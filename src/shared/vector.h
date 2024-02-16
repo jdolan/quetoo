@@ -476,7 +476,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) SignOf(float f) {
  */
 static inline float __attribute__ ((warn_unused_result)) Smoothf(float f, float min, float max) {
 	const float s = Clampf((f - min) / (max - min), 0.f, 1.f);
-	return s * s * (3.f - 2.f * s);
+	return s * s;
 }
 
 #pragma mark - vec2_t
@@ -615,6 +615,18 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Zero(void) {
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3(float x, float y, float z) {
 	return (vec3_t) { .x = x, .y = y, .z = z };
+}
+
+/**
+ * @return A `vec3_t` from the specified bytes.
+ * @see `Vec3_Bytes`
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3bv(const byte *bytes) {
+	return Vec3(
+		(bytes[0] / 255.f) * 2.f - 1.f,
+		(bytes[1] / 255.f) * 2.f - 1.f,
+		(bytes[2] / 255.f) * 2.f - 1.f
+	);
 }
 
 /**
@@ -911,6 +923,13 @@ static inline float __attribute__ ((warn_unused_result)) Vec3_Hmaxf(const vec3_t
 }
 
 /**
+ * @return A vector containing the min component of `v`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Vec3_Hminf(const vec3_t v) {
+	return Minf(Minf(v.x, v.y), v.z);
+}
+
+/**
  * @return A vector containing the max components of `a` and `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t a, const vec3_t b) {
@@ -983,6 +1002,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_One(void) {
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t a, const vec3_t b, const vec3_t mix) {
 	return Vec3_Add(Vec3_Multiply(a, Vec3_Subtract(Vec3_One(), mix)), Vec3_Multiply(b, mix));
+}
+
+/**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Pow(const vec3_t a, float exp) {
+	return Vec3(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp));
 }
 
 /**
@@ -1148,6 +1174,27 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4(float x, float y,
 }
 
 /**
+ * @return A `vec4_t` from the encoded normalized bytes.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4bv(const uint32_t xyzw) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} in;
+
+	in.integer = xyzw;
+
+	return Vec4(
+		((float) in.x / 255.f) * 2.f - 1.f,
+		((float) in.y / 255.f) * 2.f - 1.f,
+		((float) in.z / 255.f) * 2.f - 1.f,
+		((float) in.w / 255.f) * 2.f - 1.f);
+}
+
+/**
  * @return A `vec4_t` comprised of the specified `vec3_t` and `w`.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec3_ToVec4(const vec3_t v, float w) {
@@ -1228,6 +1275,20 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_One(void) {
 }
 
 /**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow(const vec4_t a, float exp) {
+	return Vec4(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp), powf(a.w, exp));
+}
+
+/**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow3(const vec4_t a, const vec3_t exp) {
+	return Vec4(powf(a.x, exp.x), powf(a.y, exp.y), powf(a.z, exp.z), a.w);
+}
+
+/**
  * @return A vector with random values between `begin` and `end`.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_RandomRange(float begin, float end) {
@@ -1242,6 +1303,34 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_RandomRange(float
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Random(void) {
 	return Vec4_RandomRange(0.f, 1.f);
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ * @details Floating point -1.0 to 1.0 are packed to bytes, where -1.0 -> 0 and 1.0 -> 255.
+ */
+static inline uint32_t __attribute__ ((warn_unused_result)) Vec4_Bytes(const vec4_t v) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} out;
+
+	out.x = (byte) Clampf((v.x + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.y = (byte) Clampf((v.y + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.z = (byte) Clampf((v.z + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.w = (byte) Clampf((v.w + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+
+	return out.integer;
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ */
+static inline int32_t __attribute__ ((warn_unused_result)) Vec3_Bytes(const vec3_t v) {
+	return Vec4_Bytes(Vec3_ToVec4(v, 1.f));
 }
 
 /**

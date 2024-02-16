@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006-2011 Quetoo.
+ * Copyright(c) 2006 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,10 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+in vertex_data {
+	vec2 texcoord;
+} vertex;
 
-#include "r_types.h"
+out vec4 out_color;
 
-void R_DrawBloom(const r_view_t *view);
-void R_InitBloom(void);
-void R_ShutdownBloom(void);
+/**
+ * @brief
+ */
+void main(void) {
+
+	out_color = texture(texture_color_attachment, vertex.texcoord);
+
+	if (bloom > 0.0) {
+		out_color += texture(texture_bloom_attachment, vertex.texcoord);
+	}
+
+	if (hdr > 0.0) {
+		float exposure = lightgrid.view_coordinate.w;
+		out_color.rgb += out_color.rgb * hdr * 0.5 / exposure;
+	}
+
+	out_color.rgb = pow(out_color.rgb, vec3(1.0 / gamma));
+}

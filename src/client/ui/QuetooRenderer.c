@@ -49,12 +49,15 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 
 	assert(surface);
 
+	GLenum internal_format;
 	GLenum format;
 	switch (surface->format->BytesPerPixel) {
 		case 3:
+			internal_format = GL_RGB8;
 			format = GL_RGB;
 			break;
 		case 4:
+			internal_format = GL_RGBA8;
 			format = GL_RGBA;
 			break;
 		default:
@@ -70,7 +73,7 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
 
 	return texture;
 }

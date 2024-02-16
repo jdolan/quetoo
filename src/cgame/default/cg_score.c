@@ -137,7 +137,7 @@ static _Bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 	// flag carrier icon
 	if (cg_state.ctf && (s->flags & SCORE_CTF_FLAG)) {
 		const int32_t team = s->team;
-		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IT_PIC);
+		const r_image_t *flag = cgi.LoadImage(va("pics/i_flag%d", team), IMG_PIC);
 		cgi.Draw2DImage(x + 1, y + 1, SCORES_ICON_WIDTH * 0.3f, SCORES_ICON_WIDTH * .3f, flag, color_white);
 	}
 

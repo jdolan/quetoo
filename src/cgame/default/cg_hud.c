@@ -230,7 +230,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0) {
 		const int32_t timer = ps->stats[STAT_QUAD_TIME];
-		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IT_PIC));
+		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IMG_PIC));
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);
@@ -257,7 +257,7 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	x = HUD_PIC_HEIGHT / 2;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
 
-	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IT_PIC);
+	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IMG_PIC);
 	cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
 }
 
@@ -597,7 +597,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			cg_draw_crosshair->value = 100;
 		}
 
-		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
+		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IMG_PIC);
 
 		if (crosshair.image == NULL) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
@@ -620,7 +620,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			}
 		}
 
-		crosshair.color = Color_Vec4(color);
+		crosshair.color = color.vec4;
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
@@ -1329,10 +1329,10 @@ void Cg_ClearHud(void) {
  * @brief
  */
 void Cg_LoadHudMedia(void) {
-	cg_select_weapon_image = cgi.LoadImage("pics/w_select", IT_PIC);
-	cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IT_PIC);
-	cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IT_PIC);
-	cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IT_PIC);
+	cg_select_weapon_image = cgi.LoadImage("pics/w_select", IMG_PIC);
+	cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IMG_PIC);
+	cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IMG_PIC);
+	cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IMG_PIC);
 }
 
 /**

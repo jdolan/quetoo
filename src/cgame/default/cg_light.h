@@ -63,6 +63,11 @@ typedef struct {
 	 * @brief The time when this light was added.
 	 */
 	uint32_t time;
+
+	/**
+	 * @brief The identifier of the light source entity, which will not cast shadow.
+	 */
+	void *source;
 } cg_light_t;
 
 void Cg_AddLight(const cg_light_t *s);

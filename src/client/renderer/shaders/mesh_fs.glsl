@@ -19,16 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2DArray texture_material;
-uniform sampler2D texture_stage;
-uniform sampler2DArrayShadow texture_shadowmap;
-uniform samplerCubeArrayShadow texture_shadowmap_cube;
-
-uniform material_t material;
-uniform stage_t stage;
-
-uniform vec4 tint_colors[3];
-
 in geometry_data {
 	vec3 model;
 	vec3 position;
@@ -51,35 +41,92 @@ layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_bloom;
 
 struct fragment_t {
-	vec3 view_dir;
+	vec3 normal;
+	vec3 tangent;
+	vec3 bitangent;
+	mat3 tbn;
+	vec3 dir;
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
 	vec3 ambient;
 	vec3 diffuse;
+	vec3 direction;
 	vec3 specular;
-	vec3 caustics;
 } fragment;
+
+uniform vec4 color;
+uniform vec4 tint_colors[3];
 
 /**
  * @brief
  */
-void tint_fragment() {
+vec4 sample_material() {
+	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
+}
 
-	vec4 tintmap = texture(texture_material, vec3(vertex.diffusemap, 3));
+/**
+ * @brief
+ */
+vec3 sample_normalmap() {
+	vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
+	vec3 roughness = vec3(vec2(material.roughness), 1.0);
+	return normalize(fragment.tbn * normalize(normalmap * roughness));
+}
 
-	fragment.diffusemap.rgb *= 1.0 - tintmap.a;
-	
-	for (int i = 0; i < 3; i++) {
-		fragment.diffusemap.rgb += (tint_colors[i] * tintmap[i]).rgb * tintmap.a;
-	}
+/**
+ * @brief
+ */
+float toksvig_gloss(in vec3 normal, in float power) {
+
+	float len_rcp = 1.0 / saturate(length(normal));
+	return 1.0 / (1.0 + power * (len_rcp - 1.0));
+}
+
+/**
+ * @brief
+ */
+vec4 sample_specularmap() {
+	vec4 specularmap;
+
+	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+
+	vec3 roughness = vec3(vec2(material.roughness), 1.0);
+	vec3 normalmap0 = (texture(texture_material, vec3(vertex.diffusemap, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap1 = (texture(texture_material, vec3(vertex.diffusemap, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+
+	float power = pow(1.0 + material.specularity, 4.0);
+	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+
+	return specularmap;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_tintmap() {
+	return texture(texture_material, vec3(vertex.diffusemap, 3));
+}
+
+/**
+ * @brief
+ */
+vec4 sample_material_stage() {
+	return pow(texture(texture_stage, vertex.diffusemap), vec4(vec3(gamma), 1.0));
+}
+
+/**
+ * @brief
+ */
+float blinn(in vec3 light_dir) {
+	return pow(max(0.0, dot(normalize(light_dir + fragment.dir), fragment.normalmap)), fragment.specularmap.w);
 }
 
 /**
  * @brief
  */
 vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
-	return diffuse * fragment.specularmap.rgb * blinn(fragment.normalmap, light_dir, fragment.view_dir, fragment.specularmap.w);
+	return diffuse * fragment.specularmap.rgb * blinn(light_dir);
 }
 
 /**
@@ -152,7 +199,7 @@ void light_and_shadow_point(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -164,7 +211,7 @@ void light_and_shadow_point(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -183,7 +230,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -195,7 +242,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -204,7 +251,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_patch(in light_t light, in int index) {
+void light_and_shadow_brush_side(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	if (radius <= 0.0) {
@@ -214,7 +261,7 @@ void light_and_shadow_patch(in light_t light, in int index) {
 	float size = light.mins.w;
 
 	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -226,7 +273,7 @@ void light_and_shadow_patch(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten /** atten*/;
+	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -260,7 +307,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	vec3 light_pos = light.position.xyz;
 
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size);
+	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
 	if (atten <= 0.0) {
 		return;
 	}
@@ -282,6 +329,28 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	fragment.diffuse += diffuse;
 	fragment.specular += blinn_phong(diffuse, light_dir);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_caustics() {
+
+	if (vertex.caustics == vec3(0.0)) {
+		return;
+	}
+
+	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 5.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	vec3 light = fragment.ambient + fragment.diffuse;
+	fragment.diffuse += max(vec3(0.0), light * length(vertex.caustics) * noise);
 }
 
 /**
@@ -309,8 +378,8 @@ void light_and_shadow(void) {
 			case LIGHT_SPOT:
 				light_and_shadow_spot(light, index);
 				break;
-			case LIGHT_PATCH:
-				light_and_shadow_patch(light, index);
+			case LIGHT_BRUSH_SIDE:
+				light_and_shadow_brush_side(light, index);
 				break;
 			case LIGHT_DYNAMIC:
 				light_and_shadow_dynamic(light, index);
@@ -319,6 +388,8 @@ void light_and_shadow(void) {
 				break;
 		}
 	}
+
+	light_and_shadow_caustics();
 }
 
 /**
@@ -326,74 +397,81 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
+	fragment.normal = normalize(vertex.normal);
+	fragment.tangent = normalize(vertex.tangent);
+	fragment.bitangent = normalize(vertex.bitangent);
+	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+	fragment.dir = normalize(-vertex.position);
+	fragment.direction = normalize(vertex.direction);
+
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = texture(texture_material, vec3(vertex.diffusemap, 0));
-		fragment.diffusemap *= vertex.color;
+		fragment.diffusemap = sample_material() * vertex.color * color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
 		}
 
-		tint_fragment();
+		vec4 tintmap = sample_tintmap();
+		fragment.diffusemap.rgb *= 1.0 - tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+		fragment.diffusemap.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
-		mat3 tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
+		fragment.normalmap = sample_normalmap();
+		fragment.specularmap = sample_specularmap();
 
-		fragment.normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz;
-		fragment.normalmap = normalize(tbn * normalize((fragment.normalmap * 2.0 - 1.0) * vec3(vec2(material.roughness), 1.0)));
-
-		fragment.specularmap.xyz = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
-		fragment.specularmap.w = toksvig(texture_material, vec3(vertex.diffusemap, 1), material.roughness, material.specularity);
-
-		vec3 view_dir = normalize(-vertex.position);
-		vec3 direction = normalize(vertex.direction);
-
-		fragment.ambient = vertex.ambient * modulate * max(0.0, dot(vertex.normal, fragment.normalmap));
-		fragment.diffuse = vertex.diffuse * modulate * max(0.0, dot(direction, fragment.normalmap));
-
-		fragment.specular = vec3(0.0);
-
-		fragment.specular += fragment.diffuse * fragment.specularmap.xyz * blinn(fragment.normalmap, direction, view_dir, fragment.specularmap.w);
-		fragment.specular += fragment.ambient * fragment.specularmap.xyz * blinn(fragment.normalmap, vertex.normal, view_dir, fragment.specularmap.w);
-
-		caustic_light(vertex.model, vertex.caustics, fragment.ambient, fragment.diffuse);
+		fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+		fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
+		fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
+		fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 		light_and_shadow();
 
 		out_color = fragment.diffusemap;
 
-		out_color.rgb = clamp(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0, 1.0);
-		out_color.rgb = clamp(out_color.rgb + fragment.specular, 0.0, 1.0);
+		out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
+		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
+		out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 
-		out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
-
-		out_color.rgb += vertex.fog.rgb * out_color.a;
-
-		if (lightmaps == 1) {
-			out_color.rgb = modulate * (vertex.ambient + vertex.diffuse);
-		} else if (lightmaps == 2) {
-			out_color.rgb = inverse(tbn) * vertex.direction;
-		} else if (lightmaps == 3) {
-			out_color.rgb = fragment.ambient + fragment.diffuse;
-		} else {
-			out_color = postprocess(out_color);
-		}
 
 	} else {
 
-		vec4 effect = texture(texture_stage, vertex.diffusemap);
-		effect *= vertex.color;
+		fragment.diffusemap = sample_material_stage() * vertex.color * color;
 
-		out_bloom.rgb = clamp(effect.rgb * material.bloom - 1.0, 0.0, 1.0);
-		out_bloom.a = effect.a;
+		out_color = fragment.diffusemap;
 
-		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			effect.rgb += vertex.fog.rgb * effect.a;
+		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+
+			fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+			fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
+
+			light_and_shadow();
+
+			out_color.rgb *= (fragment.ambient + fragment.diffuse);
 		}
 
-		out_color = effect;
+		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
+			out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
+		}
 
-		out_color = postprocess(out_color);
+		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
+		out_bloom.a = out_color.a;
+	}
+
+	if (lightmaps == 1) {
+		out_color.rgb = fragment.ambient;
+	} else if (lightmaps == 2) {
+		out_color.rgb = fragment.diffuse;
+	} else if (lightmaps == 3) {
+		out_color.rgb = fragment.specular;
+	} else if (lightmaps == 4) {
+		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
+	} else if (lightmaps == 5) {
+		out_color.rgb = inverse(fragment.tbn) * vertex.direction;
+	} else if (lightmaps == 6) {
+		out_color.rgb = sample_normalmap();
 	}
 }

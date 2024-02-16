@@ -19,21 +19,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#pragma once
+#include <check.h>
+#include <stdio.h>
 
-#include "bsp.h"
-#include "polylib.h"
+#include "shared/color.h"
 
-typedef struct patch_s {
-	const bsp_model_t *model;
-	const bsp_face_t *face;
-	const bsp_brush_side_t *brush_side;
-	vec3_t origin;
-	cm_winding_t *winding;
-	struct patch_s *next;  // next in face
-} patch_t;
+int32_t main(int32_t argc, char **argv) {
 
-extern patch_t *patches;
+	Suite *suite = suite_create("color");
+	TCase *tcase;
 
-void BuildPatches(void);
-void SubdividePatch(int32_t patch_num);
+	tcase = tcase_create("color");
+	suite_add_tcase(suite, tcase);
+
+	tcase = tcase_create("color32");
+	suite_add_tcase(suite, tcase);
+
+	SRunner *runner = srunner_create(suite);
+
+	srunner_run_all(runner, CK_VERBOSE);
+	const int32_t failed = srunner_ntests_failed(runner);
+
+	srunner_free(runner);
+	return failed;
+}
+

@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_depth_stencil_attachment;
-
 #define TRANSITION_SIZE .0016
 
 /**
@@ -39,7 +37,7 @@ float soften(in float scalar) {
 		return 1.f;
 	}
 
-	vec4 depth_sample = texture(texture_depth_stencil_attachment, gl_FragCoord.xy / viewport.zw);
+	vec4 depth_sample = texture(texture_depth_attachment_copy, gl_FragCoord.xy / viewport.zw);
 	float softness = smoothstep(0.0, TRANSITION_SIZE * abs(scalar), clamp(calc_depth(depth_sample.r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
 
 	if (scalar < 0) {

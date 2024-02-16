@@ -98,7 +98,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = Vec3_Fmaf(org, 8.f, dir),
 		.radius = 100.f,
-		.color = Color_Vec3(color_rgb),
+		.color = color_rgb.vec3,
 		.intensity = .33f,
 		.decay = 350.f
 	});
@@ -658,7 +658,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
-		.radius = 150.0,
+		.radius = 250.0,
 		.color = Vec3(0.8, 0.5, 0.4),
 		.intensity = .5f,
 		.decay = 1000
@@ -786,7 +786,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	Cg_AddLight(&(cg_light_t) {
 		.origin = start,
 		.radius = 100.f,
-		.color = Color_Vec3(color_rgb),
+		.color = color_rgb.vec3,
 		.intensity = .6f,
 		.decay = 500,
 	});
@@ -859,7 +859,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	Cg_AddLight(&(cg_light_t) {
 		.origin = Vec3_Fmaf(end, 1.f, dir),
 		.radius = 6.f,
-		.color = Color_Vec3(color_rgb),
+		.color = color_rgb.vec3,
 		.intensity = 10.f,
 		.decay = 1600.f,
 	});

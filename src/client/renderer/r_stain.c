@@ -38,7 +38,7 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 	st = Vec2_Add(st, Vec2_Scale(padding, .5f));
 
 	// convert the radius to luxels
-	const float radius = stain->radius / r_world_model->bsp->luxel_size;
+	const float radius = stain->radius / BSP_LIGHTMAP_LUXEL_SIZE;
 
 	// square it to avoid a sqrt per luxe;
 	const float radius_squared = radius * radius;
@@ -59,26 +59,22 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 			}
 
 			// this luxel is stained, so attenuate and blend it
-			byte *stainmap = face->lightmap.stainmap + (face->lightmap.w * t + s) * BSP_LIGHTMAP_BPP;
+			color32_t *out = face->lightmap.stains + (face->lightmap.w * t + s);
 
 			const float dist_squared = Vec2_LengthSquared(Vec2(i, j));
 			const float atten = (radius_squared - dist_squared) / radius_squared;
 
-			const float intensity = stain->color.a * atten * r_stains->value;
+			const float intensity = stain->color.a * atten;
 
 			const float src_alpha = Clampf(intensity, 0.0, 1.0);
 			const float dst_alpha = 1.0 - src_alpha;
 
 			const color_t src = Color_Scale(stain->color, src_alpha);
-			const color_t dst = Color_Scale(Color3b(stainmap[0], stainmap[1], stainmap[2]), dst_alpha);
+			const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
 
-			const color32_t out = Color_Color32(Color_Add(src, dst));
+			*out = Color_Color32(Color_Add(src, dst));
 
-			stainmap[0] = out.r;
-			stainmap[1] = out.g;
-			stainmap[2] = out.b;
-
-			face->stain_frame = stain_frame;
+			face->lightmap.stain_frame = stain_frame;
 		}
 	}
 }
@@ -166,7 +162,7 @@ void R_UpdateStains(const r_view_t *view) {
 
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {
-			if (e->model && e->model->type == MOD_BSP_INLINE) {
+			if (e->model && e->model->type == MODEL_BSP_INLINE) {
 
 				r_stain_t s = *stain;
 
@@ -176,41 +172,28 @@ void R_UpdateStains(const r_view_t *view) {
 			}
 		}
 	}
-}
 
-/**
- * @brief Draws the stains for the current frame.
- */
-void R_DrawStains(const r_view_t *view) {
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
-	if (!view->num_stains) {
-		return;
-	}
+	const r_bsp_face_t *face = r_world_model->bsp->faces;
+	for (int32_t i = 0; i < r_world_model->bsp->num_faces; i++, face++) {
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
-
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	const r_bsp_face_t *face = bsp->faces;
-	for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
-
-		if (face->stain_frame == stain_frame) {
-			glTexSubImage3D(GL_TEXTURE_2D_ARRAY,
+		if (face->lightmap.stain_frame == stain_frame) {
+			glTexSubImage2D(GL_TEXTURE_2D,
 					0,
 					face->lightmap.s,
 					face->lightmap.t,
-					BSP_LIGHTMAP_LAYERS,
 					face->lightmap.w,
 					face->lightmap.h,
-					1,
-					GL_RGB,
+					GL_RGBA,
 					GL_UNSIGNED_BYTE,
-					face->lightmap.stainmap);
+					face->lightmap.stains);
 		}
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
 }

@@ -56,6 +56,7 @@ static struct {
 	GLint texture_shadowmap_cube;
 
 	GLint color;
+	GLint tint_colors;
 
 	struct {
 		GLint alpha_test;
@@ -73,8 +74,6 @@ static struct {
 		GLint scale;
 		GLint shell;
 	} stage;
-
-	GLint tint_colors;
 
 	r_media_t *shell;
 } r_mesh_program;
@@ -137,7 +136,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(vec3_t);
 
 		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->shell_normals_buffer);
 
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) old_frame_offset);
@@ -292,19 +291,20 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 		glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
 	}
 
-	float alpha = 1.f;
+	vec4_t color = e->color;
 	switch (material->cm->surface & SURF_MASK_BLEND) {
 		case SURF_BLEND_33:
-			alpha = .333f;
+			color.w *= .333f;
 			break;
 		case SURF_BLEND_66:
-			alpha = .666f;
+			color.w *= .666f;
 			break;
 		default:
+			color.w *= 1.f;
 			break;
 	}
 
-	glUniform4f(r_mesh_program.color, 1.f, 1.f, 1.f, alpha);
+	glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
@@ -345,7 +345,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
-	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -388,7 +387,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
+
 	glBindVertexArray(0);
 
 	if (e->effects & EF_WEAPON) {
@@ -434,9 +433,9 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
 			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "mesh_gs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);
@@ -502,10 +501,10 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glUseProgram(0);
-	
+
 	R_GetError(NULL);
 
-	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IT_PROGRAM);
+	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
 	assert(r_mesh_program.shell);
 }
 

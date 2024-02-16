@@ -29,67 +29,6 @@ GPtrArray *node_lights[MAX_BSP_NODES];
 GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
 /**
- * @brief Clamps the components of the specified vector to 1.0, scaling the vector
- * down if necessary.
- */
-vec3_t ColorNormalize(const vec3_t in) {
-
-	vec3_t out = in;
-
-	float max = 0.0;
-	for (int32_t i = 0; i < 3; i++) { // find the brightest component
-
-		if (out.xyz[i] < 0.0) { // enforcing positive values
-			out.xyz[i] = 0.0;
-		}
-
-		if (out.xyz[i] > max) {
-			max = out.xyz[i];
-		}
-	}
-
-	if (max > 1.0) { // clamp without changing hue
-		out = Vec3_Scale(out, 1.0 / max);
-	}
-
-	return out;
-}
-
-/**
- * @brief Applies brightness, saturation and contrast to the specified input color.
- */
-vec3_t ColorFilter(const vec3_t in) {
-	const vec3_t luminosity = Vec3(0.2125f, 0.7154f, 0.0721f);
-
-	vec3_t out = ColorNormalize(in);
-
-	if (brightness != 1.f) { // apply brightness
-		out = Vec3_Scale(out, brightness);
-		out = ColorNormalize(out);
-	}
-
-	if (contrast != 1.f) { // apply contrast
-
-		for (int32_t i = 0; i < 3; i++) {
-			out.xyz[i] -= 0.5f; // normalize to -0.5 through 0.5
-			out.xyz[i] *= contrast; // scale
-			out.xyz[i] += 0.5f;
-		}
-
-		out = ColorNormalize(out);
-	}
-
-	if (saturation != 1.f) { // apply saturation
-		const float d = Vec3_Dot(out, luminosity);
-		const vec3_t intensity = Vec3(d, d, d);
-		out = Vec3_Mix(intensity, out, saturation);
-		out = ColorNormalize(out);
-	}
-
-	return out;
-}
-
-/**
  * @brief
  */
 static light_t *AllocLight(void) {
@@ -101,6 +40,10 @@ static light_t *AllocLight(void) {
  */
 static void FreeLight(light_t *light) {
 
+	if (light->winding) {
+		Cm_FreeWinding(light->winding);
+	}
+	
 	if (light->points) {
 		g_free(light->points);
 	}
@@ -142,10 +85,10 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->type = LIGHT_AMBIENT;
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
-		light->radius = LIGHT_RADIUS_AMBIENT;
-		light->intensity = LIGHT_INTENSITY;
-		light->color = Vec3_Scale(light->color, light->intensity * ambient_intensity);
+		light->radius = LIGHT_AMBIENT_RADIUS;
+		light->intensity = LIGHT_INTENSITY * ambient_intensity;
 		light->bounds = Box3_Null();
+		light->visible_bounds = Box3_Null();
 	}
 
 	return light;
@@ -161,22 +104,16 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->type = LIGHT_SUN;
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
-	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
+	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->bounds = Box3_Null();
-
-	const int32_t num = Cm_EntityNumber(entity);
+	light->visible_bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
 
-	if (Cm_EntityValue(entity, "light")->value) {
-		light->intensity = Cm_EntityValue(entity, "light")->value / 255.f;
-		Mon_SendSelect(MON_WARN, num, 0, "light_sun key light is deprecated. Use _intensity.");
-	}
-
-	light->color = Vec3_Scale(light->color, light->intensity * sun_intensity);
+	light->intensity *= sun_intensity;
 
 	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
@@ -184,6 +121,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 
 	light->normal = Vec3_Down();
 
+	const int32_t num = Cm_EntityNumber(entity);
 	const cm_entity_t *target = EntityTarget(entity);
 	if (target) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
@@ -191,18 +129,17 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 		Mon_SendSelect(MON_WARN, num, 0, "light_sun missing target");
 	}
 
-	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE_SUN;
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SUN_SIZE;
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->normal);
 
-	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+	for (int32_t i = 1; i <= ceilf(light->size / BSP_LIGHTMAP_LUXEL_SIZE); i++) {
 
 		const vec3_t cube[] = CUBE_8;
 		for (size_t j = 0; j < lengthof(cube); j++) {
 
 			const vec3_t a = Vec3_Scale(light->normal, LIGHT_SUN_DIST);
-			const vec3_t b = Vec3_Scale(cube[j], i * LIGHT_SIZE_STEP);
+			const vec3_t b = Vec3_Scale(cube[j], i * BSP_LIGHTMAP_LUXEL_SIZE);
 
 			const vec3_t dir = Vec3_Normalize(Vec3_Add(a, b));
 
@@ -220,7 +157,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForEntity_light(const cm_entity_t *entity) {
+static light_t *LightForEntity_point(const cm_entity_t *entity) {
 
 	light_t *light = AllocLight();
 
@@ -236,7 +173,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
+	light->intensity *= point_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -247,16 +184,16 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
 
-	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+	for (int32_t i = 1; i <= ceilf(light->size / BSP_LIGHTMAP_LUXEL_SIZE); i++) {
 
 		const vec3_t cube[] = CUBE_8;
 		for (size_t j = 0; j < lengthof(cube); j++) {
 
-			const vec3_t p = Vec3_Fmaf(light->origin, i * LIGHT_SIZE_STEP, cube[j]);
+			const vec3_t p = Vec3_Fmaf(light->origin, i * BSP_LIGHTMAP_LUXEL_SIZE, cube[j]);
 			if (Light_Trace(light->origin, p, 0, CONTENTS_SOLID).fraction < 1.f) {
 				continue;
 			}
@@ -268,6 +205,8 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_Expand(light->bounds, light->radius);
+
+	// TODO: No points, free it?
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
@@ -295,7 +234,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->color = LIGHT_COLOR;
 	}
 
-	light->color = Vec3_Scale(light->color, light->intensity * light_intensity);
+	light->intensity *= spot_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -306,6 +245,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	light->normal = Vec3_Down();
 
@@ -314,9 +254,9 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
 	} else if (Cm_EntityValue(entity, "angle")->parsed & ENTITY_INTEGER) {
 		const int32_t angle = Cm_EntityValue(entity, "angle")->integer;
-		if (angle == LIGHT_ANGLE_UP) {
+		if (angle == LIGHT_SPOT_ANGLE_UP) {
 			light->normal = Vec3_Up();
-		} else if (angle == LIGHT_ANGLE_DOWN) {
+		} else if (angle == LIGHT_SPOT_ANGLE_DOWN) {
 			light->normal = Vec3_Down();
 		} else {
 			Vec3_Vectors(Vec3(0.f, angle, 0.f), &light->normal, NULL, NULL);
@@ -327,22 +267,29 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	}
 
 	if (Cm_EntityValue(entity, "_cone")->parsed & ENTITY_FLOAT) {
-		light->theta = Cm_EntityValue(entity, "_cone")->value;
+		light->cone = Cm_EntityValue(entity, "_cone")->value;
 	} else {
-		light->theta = LIGHT_CONE;
+		light->cone = LIGHT_SPOT_CONE;
 	}
 
-	light->theta = Radians(light->theta);
+	light->theta = cosf(Radians(light->cone));
+
+	if (Cm_EntityValue(entity, "_falloff")->parsed & ENTITY_FLOAT) {
+		light->falloff = Cm_EntityValue(entity, "_falloff")->value;
+	} else {
+		light->falloff = LIGHT_SPOT_FALLOFF;
+	}
+
+	light->phi = cosf(Radians(light->cone + light->falloff));
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
 
-	for (int32_t i = 1; i <= ceilf(light->size / LIGHT_SIZE_STEP); i++) {
+	for (int32_t i = 1; i <= ceilf(light->size / BSP_LIGHTMAP_LUXEL_SIZE); i++) {
 
 		const vec3_t cube[] = CUBE_8;
 		for (size_t j = 0; j < lengthof(cube); j++) {
 
-			const vec3_t p = Vec3_Fmaf(light->origin, i * LIGHT_SIZE_STEP, cube[j]);
+			const vec3_t p = Vec3_Fmaf(light->origin, i * BSP_LIGHTMAP_LUXEL_SIZE, cube[j]);
 			if (Light_Trace(light->origin, p, 0, CONTENTS_SOLID).fraction < 1.f) {
 				continue;
 			}
@@ -373,7 +320,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 	} else if (!g_strcmp0(class_name, "light_sun")) {
 		return LightForEntity_light_sun(entity);
 	} else if (!g_strcmp0(class_name, "light")) {
-		return LightForEntity_light(entity);
+		return LightForEntity_point(entity);
 	} else if (!g_strcmp0(class_name, "light_spot")) {
 		return LightForEntity_light_spot(entity);
 	} else {
@@ -384,61 +331,70 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForPatch(const patch_t *patch) {
-
-	const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[patch->face->brush_side];
-	const bsp_plane_t *plane = &bsp_file.planes[patch->face->plane];
-	const material_t *material = &materials[brush_side->material];
+static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t side) {
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_PATCH;
-	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, plane->normal);
-	light->face = patch->face;
+	light->type = LIGHT_BRUSH_SIDE;
 	light->brush_side = brush_side;
+
+	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane + side];
+	const material_t *material = &materials[brush_side->material];
+
+	light->atten = material->cm->light.atten;
+	light->radius = brush_side->value ?: material->cm->light.radius;
+	light->winding = Cm_WindingForBrushSide(&bsp_file, brush_side);
 	light->plane = plane;
 	light->normal = plane->normal;
-	light->theta = Radians(material->cm->light.cone);
+	light->cone = material->cm->light.cone;
+	light->theta = cosf(Radians(light->cone));
+	light->falloff = material->cm->light.falloff;
+	light->phi = cosf(Radians(light->cone + light->falloff));
+	light->color = material->diffuse;
 	light->intensity = material->cm->light.intensity;
+	light->intensity *= face_intensity;
 	light->shadow = material->cm->light.shadow;
-	light->model = patch->model;
 
-	light->color = GetMaterialColor(brush_side->material);
+	assert(light->phi <= light->theta);
 
-	const float max = Vec3_Hmaxf(light->color);
-	if (max < 1.f) {
-		light->color = Vec3_Scale(light->color, 1.f / max);
-	}
-
-	light->color = Vec3_Scale(light->color, light->intensity * patch_intensity);
-
-	light->radius = brush_side->value ?: material->cm->light.radius;
-
-	light->bounds = Box3_FromCenter(light->origin);
+	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
 
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+	const lightmap_t *lm = lightmaps;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, plane->normal);
-		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
-			continue;
+		if (lm->brush_side == light->brush_side && lm->plane == light->plane) {
+
+			light->model = lm->model;
+
+			for (size_t j = 0; j < lm->num_luxels; j++) {
+
+				if (Light_PointContents(lm->luxels[j].origin, 0) & CONTENTS_SOLID) {
+					continue;
+				}
+
+				light->bounds = Box3_Append(light->bounds, lm->luxels[j].origin);
+				g_array_append_val(points, lm->luxels[j].origin);
+			}
 		}
-
-		light->bounds = Box3_Append(light->bounds, p);
-
-		g_array_append_val(points, p);
 	}
-
-	light->bounds = Box3_Expand(light->bounds, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
 
 	g_array_free(points, false);
+
+	if (light->num_points == 0) {
+		FreeLight(light);
+		return NULL;
+	}
+
+	light->origin = Box3_Center(light->bounds);
+	light->size = Box3_Distance(light->bounds);
+
+	light->bounds = Box3_Expand(light->bounds, light->radius);
 	return light;
 }
 
@@ -536,7 +492,13 @@ static void HashLights(light_type_t type) {
  */
 void BuildDirectLights(void) {
 
+	const uint32_t start = SDL_GetTicks();
+
+	Progress("Building direct lights", 0);
+
 	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
+
+	const int32_t count = Cm_Bsp()->num_entities + Cm_Bsp()->num_brush_sides;
 
 	cm_entity_t **entity = Cm_Bsp()->entities;
 	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
@@ -544,139 +506,103 @@ void BuildDirectLights(void) {
 		if (light) {
 			g_ptr_array_add(lights, light);
 		}
+		Progress("Building direct lights", i * 100.f / count);
 	}
 
-	const bsp_face_t *face = bsp_file.faces;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
+	const bsp_brush_side_t *side = bsp_file.brush_sides;
+	for (int32_t i = 0; i < bsp_file.num_brush_sides; i++, side++) {
 
-		const bsp_brush_side_t *brush_side = &bsp_file.brush_sides[face->brush_side];
-		if (brush_side->surface & SURF_LIGHT) {
+		if (side->surface & SURF_LIGHT) {
 
-			cm_winding_t *w = Cm_WindingForBrushSide(&bsp_file, brush_side);
-			if (w == NULL) {
-				Com_Warn("Light face had NULL winding\n");
-				continue;
-			}
-
-			if (Cm_WindingArea(w) <= patch_size * patch_size) {
-
-				patch_t patch = patches[i];
-				patch.next = NULL;
-				patch.winding = w;
-
-				light_t *light = LightForPatch(&patch);
+			for (int32_t j = 0; j < 2; j++) {
+				light_t *light = LightForBrushSide(side, j);
 				if (light) {
 					g_ptr_array_add(lights, light);
 				}
-			} else {
-				for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
-					light_t *light = LightForPatch(patch);
-					if (light) {
-						g_ptr_array_add(lights, light);
-					}
-				}
 			}
 
-			Cm_FreeWinding(w);
+			Progress("Building direct lights", i * 100.f / count);
 		}
 	}
 
-	HashLights(~LIGHT_INDIRECT);
+	HashLights(~LIGHT_PATCH);
+
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building direct lights", SDL_GetTicks() - start);
 
 	Com_Verbose("Direct lighting for %d lights\n", lights->len);
 }
 
 /**
- * @brief Add an indirect light source from a directly lit patch.
+ * @brief Add a patch light source from a directly lit lightmap.
  */
-static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *patch) {
+static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
-	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
+	const int32_t w = Mini(s + LIGHT_PATCH_SIZE, lm->w) - s;
+	const int32_t h = Mini(t + LIGHT_PATCH_SIZE, lm->h) - t;
 
-	light->type = LIGHT_INDIRECT;
-	light->atten = LIGHT_ATTEN_INVERSE_SQUARE;
-	light->size = sqrtf(Cm_WindingArea(patch->winding));
-	light->origin = Vec3_Fmaf(Cm_WindingCenter(patch->winding), 1.f, lm->plane->normal);
-	light->face = patch->face;
-	light->brush_side = patch->brush_side;
-	light->plane = lm->plane;
-	light->normal = lm->plane->normal;
-	light->theta = Radians(DEFAULT_LIGHT_CONE);
-	light->intensity = DEFAULT_LIGHT_INTENSITY;
-	light->model = patch->model;
+	assert(w);
+	assert(h);
 
-	vec2_t patch_mins = Vec2_Mins();
-	vec2_t patch_maxs = Vec2_Maxs();
+	box3_t bounds = Box3_Null();
+	vec3_t diffuse = Vec3_Zero();
 
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
-		const vec3_t point = Vec3_Subtract(patch->winding->points[i], patch->origin);
-		const vec3_t st = Mat4_Transform(lm->matrix, point);
+	for (int32_t i = s; i < s + w; i++) {
+		for (int32_t j = t; j < t + h; j++) {
 
-		patch_mins = Vec2_Minf(patch_mins, Vec3_XY(st));
-		patch_maxs = Vec2_Maxf(patch_maxs, Vec3_XY(st));
-	}
+			const luxel_t *luxel = &lm->luxels[j * lm->w + i];
 
-	assert(patch_mins.x >= lm->st_mins.x - 0.001f);
-	assert(patch_mins.y >= lm->st_mins.y - 0.001f);
-	assert(patch_maxs.x <= lm->st_maxs.x + 0.001f);
-	assert(patch_maxs.y <= lm->st_maxs.y + 0.001f);
-
-	const int16_t w = patch_maxs.x - patch_mins.x;
-	const int16_t h = patch_maxs.y - patch_mins.y;
-
-	vec3_t lightmap = Vec3_Zero();
-
-	for (int32_t t = 0; t < h; t++) {
-		for (int32_t s = 0; s < w; s++) {
-			const int32_t ds = patch_mins.x - lm->st_mins.x + s;
-			const int32_t dt = patch_mins.y - lm->st_mins.y + t;
-
-			const luxel_t *l = &lm->luxels[dt * lm->w + ds];
-
-			assert(l->s == ds);
-			assert(l->t == dt);
-
-			const lumen_t *diffuse = l->diffuse;
-			for (int32_t i = 0; i < BSP_LIGHTMAP_CHANNELS; i++, diffuse++) {
-				lightmap = Vec3_Add(lightmap, diffuse->color);
+			if (Light_PointContents(luxel->origin, lm->model->head_node) & CONTENTS_SOLID) {
+				continue;
 			}
+
+			bounds = Box3_Append(bounds, luxel->origin);
+			diffuse = Vec3_Add(diffuse, luxel->diffuse);
 		}
 	}
 
-	if (Vec3_Equal(lightmap, Vec3_Zero())) {
-		FreeLight(light);
+	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE * BSP_LIGHTMAP_LUXEL_SIZE));
+	diffuse = Vec3_Multiply(diffuse, lm->material->ambient);
+
+	if (Vec3_Hmaxf(diffuse) == 0.f) {
 		return NULL;
 	}
 
-	light->color = Vec3_Scale(lightmap, 1.f / (w * h));
-	light->color = Vec3_Scale(light->color, light->intensity * indirect_intensity);
-	light->color = Vec3_Multiply(light->color, GetMaterialColor(lm->brush_side->material));
+	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->radius = Maxf(patch_size, light->size * Vec3_Length(light->color));
+	light->type = LIGHT_PATCH;
+	light->atten = LIGHT_ATTEN_LINEAR;
+	light->origin = Box3_Center(bounds);
+	light->radius = w * h;
+	light->size = Maxi(w, h);
+	light->bounds = Box3_Expand(bounds, light->radius);
+	light->visible_bounds = Box3_Null();
+	light->color = diffuse;
+	light->model = lm->model;
+	light->brush_side = lm->brush_side;
+	light->plane = lm->plane;
+	light->intensity = LIGHT_INTENSITY;
+	light->intensity *= patch_intensity;
 
-	light->bounds = Box3_FromCenter(light->origin);
+	vec3_t points[8];
+	Box3_ToPoints(bounds, points);
 
-	GArray *points = g_array_new(false, false, sizeof(vec3_t));
-	g_array_append_val(points, light->origin);
+	light->points = g_malloc_n(8, sizeof(vec3_t));
 
-	for (int32_t i = 0; i < patch->winding->num_points; i++) {
+	for (size_t i = 0; i < lengthof(points); i++) {
 
-		const vec3_t p = Vec3_Fmaf(patch->winding->points[i], ON_EPSILON, lm->plane->normal);
-		if (Light_PointContents(p, 0) & CONTENTS_SOLID) {
-			continue;
+		_Bool unique = true;
+
+		for (int32_t j = 0; j < light->num_points; j++) {
+			if (Vec3_Equal(light->points[j], points[i])) {
+				unique = false;
+			}
 		}
 
-		light->bounds = Box3_Append(light->bounds, p);
-
-		g_array_append_val(points, p);
+		if (unique) {
+			light->points[light->num_points++] = points[i];
+		}
 	}
 
-	light->bounds = Box3_Expand(light->bounds, light->radius);
-
-	light->points = (vec3_t *) points->data;
-	light->num_points = points->len;
-
-	g_array_free(points, false);
 	return light;
 }
 
@@ -684,6 +610,10 @@ static light_t *LightForLightmappedPatch(const lightmap_t *lm, const patch_t *pa
  * @brief
  */
 void BuildIndirectLights(void) {
+
+	const uint32_t start = SDL_GetTicks();
+
+	Progress("Building indirect lights", 0);
 
 	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
 
@@ -695,63 +625,29 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (const patch_t *patch = &patches[i]; patch; patch = patch->next) {
-			LightForLightmappedPatch(lm, patch);
-		}
-	}
+		for (int32_t s = 0; s < lm->w; s += LIGHT_PATCH_SIZE) {
+			for (int32_t t = 0; t < lm->h; t += LIGHT_PATCH_SIZE) {
 
-	HashLights(LIGHT_INDIRECT);
+				light_t *light = LightForPatch(lm, s, t);
+				if (light) {
+					Com_Debug(DEBUG_ALL, "Patch radius %g, size: %g, color: %s\n",
+						   light->radius,
+						   light->size,
+						   vtos(light->color));
 
-	Com_Verbose("Indirect lighting for %d patches\n", lights->len);
-}
-
-/**
- * @brief Gather feedback from the lightmaps to determine the _actual_ light bounds. This is
- * used for culling and shadow casting in the renderer, and must be pixel-perfect.
- */
-static box3_t LightBounds(const light_t *light) {
-
-	switch (light->type) {
-		case LIGHT_AMBIENT:
-		case LIGHT_SUN:
-			return light->bounds;
-		default:
-			break;
-	}
-
-	box3_t bounds = Box3_FromCenter(light->origin);
-
-	const lightmap_t *lightmap = lightmaps;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, lightmap++) {
-
-		if (!Box3_Intersects(light->bounds, lightmap->node->bounds)) {
-			continue;
-		}
-
-		const luxel_t *luxel = lightmap->luxels;
-		for (size_t j = 0; j < lightmap->num_luxels; j++, luxel++) {
-
-			for (size_t k = 0; k < lengthof(luxel->diffuse); k++) {
-
-				if (luxel->diffuse[k].light == light) {
-					bounds = Box3_Append(bounds, luxel->origin);
+					g_ptr_array_add(lights, light);
 				}
 			}
 		}
+
+		Progress("Building indirect lights", i * 100.f / bsp_file.num_faces);
 	}
 
-	const luxel_t *luxel = lg.luxels;
-	for (size_t i = 0; i < lg.num_luxels; i++, luxel++) {
+	HashLights(LIGHT_PATCH);
 
-		for (size_t k = 0; k < lengthof(luxel->diffuse); k++) {
+	Com_Print("\r%-24s [100%%] %d ms\n", "Building indirect lights", SDL_GetTicks() - start);
 
-			if (luxel->diffuse[k].light == light) {
-				bounds = Box3_Append(bounds, luxel->origin);
-			}
-		}
-	}
-
-	return Box3_Expand(bounds, luxel_size);
+	Com_Verbose("Indirect lighting for %d lit patches\n", lights->len);
 }
 
 /**
@@ -766,7 +662,7 @@ void EmitLights(void) {
 	for (guint i = 0; i < lights->len; i++) {
 		const light_t *light = g_ptr_array_index(lights, i);
 		switch (light->type) {
-			case LIGHT_INDIRECT:
+			case LIGHT_PATCH:
 				break;
 			default:
 				bsp_file.num_lights++;
@@ -785,41 +681,8 @@ void EmitLights(void) {
 
 		light_t *light = g_ptr_array_index(lights, i);
 
-		if (light->out) {
-			continue;
-		}
-
 		switch (light->type) {
-			case LIGHT_INDIRECT:
-				break;
-
 			case LIGHT_PATCH:
-				out->type = light->type;
-				out->atten = light->atten;
-				out->origin = light->origin;
-				out->color = light->color;
-				out->normal = light->normal;
-				out->radius = light->radius;
-				out->size = light->size;
-				out->intensity = light->intensity;
-				out->shadow = light->shadow;
-				out->theta = light->theta;
-				out->bounds = LightBounds(light);
-
-				/*for (guint j = i + 1; j < lights->len; j++) {
-					light_t *l = g_ptr_array_index(lights, j);
-					if (l->type == LIGHT_PATCH &&
-						l->face->brush_side == light->face->brush_side) {
-
-						out->bounds = Box3_Union(out->bounds, l->bounds);
-						out->origin = Box3_Center(out->bounds);
-						out->radius = Box3_Radius(out->bounds);
-						out->size = Box3_Distance(light->face->bounds);
-
-						l->out = out;
-					}
-				}*/
-				light->out = out++;
 				break;
 
 			default:
@@ -832,9 +695,10 @@ void EmitLights(void) {
 				out->size = light->size;
 				out->intensity = light->intensity;
 				out->shadow = light->shadow;
-				out->theta = light->theta;
-				out->bounds = LightBounds(light);
-				light->out++;
+				out->cone = light->cone;
+				out->falloff = light->falloff;
+				out->bounds = light->visible_bounds;
+				out++;
 				break;
 		}
 

@@ -146,7 +146,7 @@ static void Cl_LoadModels(void) {
  * @brief Fs_Enumerator to load all emoji into the images atlas.
  */
 static void Cl_LoadImages_Emoji(const char *path, void *data) {
-	R_LoadAtlasImage((r_atlas_t *) data, path, IT_PIC);
+	R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);
 }
 
 /**
@@ -167,7 +167,7 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IT_PIC);
+		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
 	}
 
 	Cl_LoadingProgress(-1, "compiling images");

@@ -60,9 +60,9 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 	cg_dust_t *dust = self->data;
 
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
-	dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
+	dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
 	if (dust->sprite.image == NULL) {
-		dust->sprite.image = cgi.LoadImage("sprites/particle", IT_SPRITE);
+		dust->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
 		cgi.Warn("%s @ %s failed to load sprite %s\n",
 				 self->clazz->class_name,
 				 vtos(self->origin),
@@ -366,7 +366,7 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 	cg_misc_light_data_t *data = self->data;
 
 	data->light.origin = self->origin;
-	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT_RADIUS;
+	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: MATERIAL_LIGHT_RADIUS;
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC3) {
@@ -629,9 +629,9 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 	sprite->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
 
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
-	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
+	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
 	if (sprite->sprite.image == NULL) {
-		sprite->sprite.image = cgi.LoadImage("sprites/particle", IT_SPRITE);
+		sprite->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
 		cgi.Warn("%s @ %s failed to load sprite %s\n",
 				 self->clazz->class_name,
 				 vtos(self->origin),

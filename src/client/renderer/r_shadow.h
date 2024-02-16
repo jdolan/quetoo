@@ -27,4 +27,4 @@
 void R_DrawShadows(const r_view_t *view);
 void R_InitShadows(void);
 void R_ShutdownShadows(void);
-#endif /* __R_LOCAL_H__ */
+#endif

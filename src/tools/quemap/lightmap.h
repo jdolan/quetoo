@@ -22,26 +22,30 @@
 #pragma once
 
 #include "luxel.h"
+#include "material.h"
 
 /**
- * @brief Lightmaps are per-face textures of lighting information.
+ * @brief Lighting calculations for each BSP face.
  */
 typedef struct {
 	bsp_face_t *face;
 	const bsp_node_t *node;
 	const bsp_model_t *model;
+	vec3_t model_origin;
 	const bsp_brush_side_t *brush_side;
 	const bsp_plane_t *plane;
+	material_t *material;
+	cm_winding_t *winding;
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;
-	int16_t w, h;
-	int16_t s, t;
+	int32_t w, h;
+	int32_t s, t;
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
-	SDL_Surface *diffuse[BSP_LIGHTMAP_CHANNELS];
-	SDL_Surface *direction[BSP_LIGHTMAP_CHANNELS];
+	SDL_Surface *diffuse;
+	SDL_Surface *direction;
 	SDL_Surface *caustics;
 } lightmap_t;
 

@@ -25,11 +25,9 @@
 
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
-extern cvar_t *r_brightness;
 extern cvar_t *r_bloom;
-extern cvar_t *r_bloom_lod;
+extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_caustics;
-extern cvar_t *r_contrast;
 extern cvar_t *r_display;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
@@ -37,21 +35,19 @@ extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
+extern cvar_t *r_hdr;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
-extern cvar_t *r_multisample;
+extern cvar_t *r_post;
 extern cvar_t *r_roughness;
-extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadowmap;
 extern cvar_t *r_shadowmap_size;
 extern cvar_t *r_specularity;
-extern cvar_t *r_sprite_downsample;
 extern cvar_t *r_stains;
-extern cvar_t *r_texture_downsample;
-extern cvar_t *r_texture_mode;
-extern cvar_t *r_texture_storage;
+extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
+extern cvar_t *r_texture_mode;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
@@ -97,7 +93,7 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in lightgrid space. The fourth component is exposure.
 	 */
 	vec4_t view_coordinate;
 
@@ -105,11 +101,12 @@ typedef struct {
 	 * @brief The lightgrid size, in luxels.
 	 */
 	vec4_t size;
-} r_lightgrid_t;
 
-#define FOG_DENSITY    1.f
-#define FOG_DEPTH_NEAR 128.f
-#define FOG_DEPTH_FAR  2048.f
+	/**
+	 * @brief The lightgrid luxel size, in texture space.
+	 */
+	vec4_t luxel_size;
+} r_lightgrid_t;
 
 /**
  * @brief The uniforms block type.
@@ -151,19 +148,9 @@ typedef struct {
 		r_lightgrid_t lightgrid;
 
 		/**
-		 * @brief The global fog color (RGB, density).
-		 */
-		vec4_t fog_color;
-
-		/**
 		 * @brief The depth range, in world units.
 		 */
 		vec2_t depth_range;
-
-		/**
-		 * @brief The global fog depth range, in world units.
-		 */
-		vec2_t fog_depth_range;
 
 		/**
 		 * @brief The view type, e.g. VIEW_MAIN.
@@ -186,21 +173,6 @@ typedef struct {
 		int32_t shadows;
 
 		/**
-		 * @brief The brightness scalar.
-		 */
-		float brightness;
-
-		/**
-		 * @brief The contrast scalar.
-		 */
-		float contrast;
-
-		/**
-		 * @brief The saturation scalar.
-		 */
-		float saturation;
-
-		/**
 		 * @brief The gamma scalar.
 		 */
 		float gamma;
@@ -211,19 +183,14 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The volumetric fog density scalar.
-		 */
-		float fog_density;
-
-		/**
-		 * @brief The number of volumetric fog samples per fragment (quality).
-		 */
-		int32_t fog_samples;
-
-		/**
 		 * @brief The caustics scalar.
 		 */
 		float caustics;
+
+		/**
+		 * @brief The stains scalar.
+		 */
+		float stains;
 
 		/**
 		 * @brief The bloom scalar.
@@ -231,9 +198,19 @@ typedef struct {
 		float bloom;
 
 		/**
-		 * @brief The bloom level of detail.
+		 * @brief The HDR scalar.
 		 */
-		int32_t bloom_lod;
+		float hdr;
+
+		/**
+		 * @brief The fog density scalar.
+		 */
+		float fog_density;
+
+		/**
+		 * @brief The number of volumetric fog samples per fragment (quality).
+		 */
+		int32_t fog_samples;
 
 		/**
 		 * @brief The developer flags.
@@ -282,4 +259,4 @@ void R_GetError_(const char *function, const char *msg);
 	} \
 }
 
-#endif /* __R_LOCAL_H__ */
+#endif

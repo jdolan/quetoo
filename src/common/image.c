@@ -158,7 +158,6 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 	return output;
 }
 
-
 /**
 * @brief Write pixel data to a PNG file.
 */

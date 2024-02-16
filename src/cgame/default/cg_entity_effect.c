@@ -57,7 +57,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
 	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
 		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
-		.color = Color_Color32(color_white),
+		.color = color_white,
 		.media = (r_media_t *) cg_sprite_inactive,
 		.size = 32.f,
 		.softness = 1.f
@@ -97,6 +97,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			.radius = 80.0,
 			.color = Vec3(0.3f, 0.7f, 0.7f),
 			.intensity = .333f,
+			.source = ent,
 		};
 
 		Cg_AddLight(&l);
@@ -113,8 +114,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 				const cg_light_t l = {
 					.origin = e->origin,
 					.radius = 128.f,
-					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z)),
+					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
 					.intensity = .333f,
+					.source = ent,
 				};
 
 				Cg_AddLight(&l);
@@ -128,6 +130,8 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->shell = Vec3_Normalize(e->shell);
 		e->effects |= EF_SHELL;
 	}
+
+	e->color = Vec4_One();
 
 	if (e->effects & EF_DESPAWN) {
 
@@ -146,7 +150,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = e->termination.x,
-			.color = Color_Vec3(color),
+			.color = color.vec3,
 			.intensity = .5f,
 		};
 
@@ -165,6 +169,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {
-		e->effects |= EF_NO_SHADOW;
+		e->effects |= EF_NO_SHADOW; // FIXME: Make this entity the light's source instead
 	}
 }

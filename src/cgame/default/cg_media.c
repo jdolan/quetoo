@@ -58,6 +58,7 @@ r_atlas_image_t *cg_sprite_particle2;
 r_atlas_image_t *cg_sprite_particle3;
 r_atlas_image_t *cg_sprite_flash;
 r_atlas_image_t *cg_sprite_ring;
+r_atlas_image_t *cg_sprite_blaster_flash;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
 r_atlas_image_t *cg_sprite_rain;
 r_atlas_image_t *cg_sprite_snow;
@@ -91,7 +92,6 @@ r_image_t *cg_beam_rail;
 r_image_t *cg_beam_lightning;
 r_image_t *cg_beam_tracer;
 r_image_t *cg_beam_tail;
-r_image_t *cg_sprite_blaster_flash;
 
 r_animation_t *cg_sprite_explosion;
 r_animation_t *cg_sprite_explosion_ring_02;
@@ -129,7 +129,7 @@ static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, c
 	const r_image_t *images[length];
 	for (uint32_t i = 0; i < length; i++) {
 		g_snprintf(name, MAX_QPATH, format_path, i + first_frame);
-		images[i] = (r_image_t *) cgi.LoadAtlasImage(atlas, name, IT_SPRITE | IT_MASK_QUALITY);
+		images[i] = (r_image_t *) cgi.LoadAtlasImage(atlas, name, IMG_SPRITE);
 	}
 
 	return cgi.CreateAnimation(base_path, length, images);
@@ -192,47 +192,47 @@ void Cg_LoadMedia(void) {
 
 	Cg_FreeSprites();
 
-	cg_beam_hook = cgi.LoadImage("sprites/rope", IT_SPRITE);
-	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IT_SPRITE | IT_MASK_CLAMP_EDGE);
-	cg_beam_line = cgi.LoadImage("sprites/line", IT_SPRITE | IT_MASK_CLAMP_EDGE);
-	cg_beam_rail = cgi.LoadImage("sprites/beam", IT_SPRITE | IT_MASK_CLAMP_EDGE);
-	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IT_SPRITE);
-	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IT_SPRITE | IT_MASK_CLAMP_EDGE);
-	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IT_SPRITE | IT_MASK_CLAMP_EDGE);
-	cg_sprite_blaster_flash = cgi.LoadImage("sprites/blast_01/blast_01_flash", IT_SPRITE | IT_MASK_QUALITY);
+	cg_beam_hook = cgi.LoadImage("sprites/rope", IMG_SPRITE);
+	cg_beam_arrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE);
+	cg_beam_line = cgi.LoadImage("sprites/line", IMG_SPRITE);
+	cg_beam_rail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
+	cg_beam_lightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
+	cg_beam_tracer = cgi.LoadImage("sprites/tracer", IMG_SPRITE);
+	cg_beam_tail = cgi.LoadImage("sprites/particle_tail", IMG_SPRITE);
 
 	cg_sprite_atlas = cgi.LoadAtlas("cg_sprite_atlas");
-	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IT_SPRITE);
-	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IT_SPRITE);
-	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IT_SPRITE);
-	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IT_SPRITE);
-	cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IT_SPRITE);
-	cg_sprite_explosion_glow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_glow", IT_SPRITE);
-	cg_sprite_explosion_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_flash", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IT_SPRITE);
-	cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IT_SPRITE);
-	cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IT_SPRITE);
-	cg_sprite_bubble = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IT_SPRITE);
-	cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IT_SPRITE);
-	cg_sprite_plasma_var01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var01", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_plasma_var02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var02", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_plasma_var03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var03", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_blob_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blob_01", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_node_wait = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/teamkill", IT_SPRITE | IT_MASK_QUALITY);
-	cg_sprite_node_slow = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/crush", IT_SPRITE | IT_MASK_QUALITY);
+	cg_sprite_particle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle", IMG_SPRITE);
+	cg_sprite_particle2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle2", IMG_SPRITE);
+	cg_sprite_particle3 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/particle3", IMG_SPRITE);
+	cg_sprite_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flash", IMG_SPRITE);
+	cg_sprite_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ring", IMG_SPRITE);
+	cg_sprite_blaster_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blast_01/blast_01_flash", IMG_SPRITE);
+	cg_sprite_aniso_flare_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/aniso_flare_01", IMG_SPRITE);
+	cg_sprite_smoke = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/smoke", IMG_SPRITE);
+	cg_sprite_flame = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/flame", IMG_SPRITE);
+	cg_sprite_explosion_glow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_glow", IMG_SPRITE);
+	cg_sprite_explosion_flash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/explosion_flash", IMG_SPRITE);
+	cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IMG_SPRITE);
+	cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IMG_SPRITE);
+	cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IMG_SPRITE);
+	cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IMG_SPRITE);
+	cg_sprite_bubble = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IMG_SPRITE);
+	cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IMG_SPRITE);
+	cg_sprite_plasma_var01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var01", IMG_SPRITE);
+	cg_sprite_plasma_var02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var02", IMG_SPRITE);
+	cg_sprite_plasma_var03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/plasma/plasma_var03", IMG_SPRITE);
+	cg_sprite_blob_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/blob_01", IMG_SPRITE);
+	cg_sprite_electro_02 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/electro_02/electro_02", IMG_SPRITE);
+	cg_sprite_teleport = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/teleport", IMG_SPRITE);
+	cg_sprite_splash_02_03 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/splash_02/splash_02_03", IMG_SPRITE);
+	cg_sprite_impact_spark_01_dot = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01_dot", IMG_SPRITE);
+	cg_sprite_puff_cloud = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/puff_cloud", IMG_SPRITE);
+	cg_sprite_water_circle = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_circle", IMG_SPRITE);
+	cg_sprite_water_ring = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring", IMG_SPRITE);
+	cg_sprite_water_ring2 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
+	cg_sprite_abstract_01 = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/abstract/abstract_01", IMG_SPRITE);
+	cg_sprite_node_wait = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/teamkill", IMG_SPRITE);
+	cg_sprite_node_slow = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/crush", IMG_SPRITE);
 
 	cgi.LoadingProgress(-1, "sprites");
 

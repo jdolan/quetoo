@@ -48,11 +48,9 @@ int32_t r_error_count;
 
 cvar_t *r_allow_high_dpi;
 cvar_t *r_anisotropy;
-cvar_t *r_brightness;
 cvar_t *r_bloom;
-cvar_t *r_bloom_lod;
+cvar_t *r_bloom_iterations;
 cvar_t *r_caustics;
-cvar_t *r_contrast;
 cvar_t *r_display;
 cvar_t *r_finish;
 cvar_t *r_fog_density;
@@ -60,21 +58,19 @@ cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
 cvar_t *r_gamma;
 cvar_t *r_hardness;
+cvar_t *r_hdr;
 cvar_t *r_height;
 cvar_t *r_modulate;
-cvar_t *r_multisample;
+cvar_t *r_post;
 cvar_t *r_roughness;
-cvar_t *r_saturation;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadowmap;
 cvar_t *r_shadowmap_size;
 cvar_t *r_specularity;
-cvar_t *r_sprite_downsample;
 cvar_t *r_stains;
-cvar_t *r_texture_downsample;
-cvar_t *r_texture_mode;
-cvar_t *r_texture_storage;
+cvar_t *r_supersample;
 cvar_t *r_swap_interval;
+cvar_t *r_texture_mode;
 cvar_t *r_width;
 
 /**
@@ -138,9 +134,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 	out->projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
 
-	out->brightness = r_brightness->value;
-	out->contrast = r_contrast->value;
-	out->saturation = r_saturation->value;
 	out->gamma = r_gamma->value;
 
 	if (view) {
@@ -166,46 +159,30 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->lightmaps = r_draw_bsp_lightmap->integer;
 		out->shadows = r_shadowmap->integer;
 		out->modulate = r_modulate->value;
-		
+
 		out->fog_density = r_fog_density->value;
 		out->fog_samples = r_fog_samples->integer;
 
 		out->caustics = r_caustics->value;
+		out->stains = r_stains->value;
 		out->bloom = r_bloom->value;
-		out->bloom_lod = r_bloom_lod->integer;
+		out->hdr = r_hdr->value;
 
 		out->developer = r_developer->integer;
 
 		if (r_world_model) {
+			const r_bsp_lightgrid_t *lightgrid = r_world_model->bsp->lightgrid;
 
-			out->lightgrid.mins = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.mins, 0.f);
-			out->lightgrid.maxs = Vec3_ToVec4(r_world_model->bsp->lightgrid->bounds.maxs, 0.f);
+			out->lightgrid.mins = Vec3_ToVec4(lightgrid->bounds.mins, 0.f);
+			out->lightgrid.maxs = Vec3_ToVec4(lightgrid->bounds.maxs, 0.f);
 
-			const vec3_t pos = Vec3_Subtract(view->origin, r_world_model->bsp->lightgrid->bounds.mins);
-			const vec3_t size = Box3_Size(r_world_model->bsp->lightgrid->bounds);
+			const vec3_t pos = Vec3_Subtract(view->origin, lightgrid->bounds.mins);
+			const vec3_t extents = Box3_Size(lightgrid->bounds);
 
-			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, size), 0.f);
-			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(r_world_model->bsp->lightgrid->size), 0.f);
+			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), view->exposure ?: 1.f);
+			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(lightgrid->size), 0.f);
 
-			const cm_entity_t *worldspawn = r_world_model->bsp->cm->entities[0];
-			const cm_entity_t *fog_color = Cm_EntityValue(worldspawn, "fog_color");
-			const cm_entity_t *fog_density = Cm_EntityValue(worldspawn, "fog_density");
-			const cm_entity_t *fog_depth_range = Cm_EntityValue(worldspawn, "fog_depth_range");
-
-			out->fog_density = FOG_DENSITY * r_fog_density->value;
-			out->fog_depth_range = Vec2(FOG_DEPTH_NEAR, FOG_DEPTH_FAR);
-
-			if (fog_color->parsed & ENTITY_VEC3) {
-				out->fog_color = Vec3_ToVec4(fog_color->vec3, FOG_DENSITY);
-			}
-
-			if (fog_density->parsed & ENTITY_FLOAT) {
-				out->fog_color.w = fog_density->value * r_fog_density->value;
-			}
-
-			if (fog_depth_range->parsed & ENTITY_VEC2) {
-				out->fog_depth_range = fog_depth_range->vec2;
-			}
+			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(lightgrid->luxel_size, extents), 0.f);
 		}
 	}
 
@@ -258,12 +235,11 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
+	R_ClearFramebuffer(view->framebuffer);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
 	R_UpdateFrustum(view);
 
@@ -275,7 +251,6 @@ void R_DrawViewDepth(r_view_t *view) {
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	R_GetError(NULL);
@@ -304,7 +279,7 @@ void R_DrawMainView(r_view_t *view) {
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -318,7 +293,7 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_Draw3D();
 
-	R_DrawBloom(view);
+	R_DrawPost(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -347,7 +322,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	R_DrawEntities(view, INT32_MIN);
 
-	R_DrawBloom(view);
+	R_DrawPost(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -396,34 +371,30 @@ static void R_InitLocal(void) {
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
-	r_anisotropy = Cvar_Add("r_anisotropy", "4", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
-	r_brightness = Cvar_Add("r_brightness", "1", CVAR_ARCHIVE, "Controls texture brightness");
+	r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
-	r_bloom_lod = Cvar_Add("r_bloom_lod", "8", CVAR_ARCHIVE, "Controls the level of detail of light bloom effects");
+	r_bloom_iterations = Cvar_Add("r_bloom_iterations", "2", CVAR_ARCHIVE, "Controls the softness of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-	r_contrast = Cvar_Add("r_contrast", "1", CVAR_ARCHIVE, "Controls texture contrast");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
 	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
-	r_gamma = Cvar_Add("r_gamma", "1", CVAR_ARCHIVE, "Controls video gamma (brightness)");
+	r_gamma = Cvar_Add("r_gamma", "2.2", CVAR_ARCHIVE, "Controls video gamma (brightness)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
+	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
-	r_multisample = Cvar_Add("r_multisample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls multisampling (anti-aliasing).");
+	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
-	r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls texture saturation.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
 	r_shadowmap = Cvar_Add("r_shadowmap", "2", CVAR_ARCHIVE, "Controls dynamic shadows.");
 	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-	r_sprite_downsample = Cvar_Add("r_sprite_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of sprite effects to boost performance on low-end systems.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
+	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
-	r_texture_downsample = Cvar_Add("r_texture_downsample", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls downsampling of textures to boost performance on low-end systems.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");
-	r_texture_storage = Cvar_Add("r_texture_storage", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies whether to use newer texture storage routines; keep on unless you have errors stemming from glTexStorage.");
 	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
 	Cvar_ClearAll(CVAR_R_MASK);
@@ -446,7 +417,7 @@ static void R_InitConfig(void) {
 	r_config.vendor = (const char *) glGetString(GL_VENDOR);
 	r_config.version = (const char *) glGetString(GL_VERSION);
 
-	int32_t num_extensions;
+	GLint num_extensions;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
@@ -507,6 +478,8 @@ void R_Init(void) {
 
 	R_InitConfig();
 
+	R_InitFramebuffer();
+
 	R_InitUniforms();
 
 	R_InitMedia();
@@ -531,7 +504,7 @@ void R_Init(void) {
 
 	R_InitSky();
 
-	R_InitBloom();
+	R_InitPost();
 
 	R_GetError("Video initialization");
 
@@ -563,7 +536,7 @@ void R_Shutdown(void) {
 
 	R_ShutdownSky();
 
-	R_ShutdownBloom();
+	R_ShutdownPost();
 
 	R_ShutdownShadows();
 
@@ -572,6 +545,8 @@ void R_Shutdown(void) {
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
+
+	R_ShutdownFramebuffer();
 
 	R_ShutdownContext();
 

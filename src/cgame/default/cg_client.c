@@ -158,9 +158,9 @@ static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const c
 				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
 				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
-				ci->icon = cgi.LoadImage(path, IT_PIC);
+				ci->icon = cgi.LoadImage(path, IMG_PIC);
 
-				if (ci->icon->type == IT_PIC) {
+				if (ci->icon->type == IMG_PIC) {
 					return true;
 				}
 			}
@@ -488,6 +488,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		return;
 	}
 
+	// inform the renderer this is a player model
+	e->effects |= EF_CLIENT;
+
 	// deal with our own player model
 	if (Cg_IsSelf(ent)) {
 		e->effects |= EF_SELF;
@@ -508,17 +511,19 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		Cg_BreathTrail(ent);
 	}
 
+	e->color = Vec4_One();
+
 	// set tints
 	if (ci->shirt.a) {
-		e->tints[0] = Color_Vec4(ci->shirt);
+		e->tints[0] = ci->shirt.vec4;
 	}
 
 	if (ci->pants.a) {
-		e->tints[1] = Color_Vec4(ci->pants);
+		e->tints[1] = ci->pants.vec4;
 	}
 
 	if (ci->helmet.a) {
-		e->tints[2] = Color_Vec4(ci->helmet);
+		e->tints[2] = ci->helmet.vec4;
 	}
 
 	r_entity_t head, torso, legs;

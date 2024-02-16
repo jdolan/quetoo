@@ -33,4 +33,4 @@ extern r_model_t *r_world_model;
 void R_InitModels(void);
 void R_ShutdownModels(void);
 
-#endif /* __R_LOCAL_H__ */
+#endif

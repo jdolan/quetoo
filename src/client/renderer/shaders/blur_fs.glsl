@@ -20,15 +20,34 @@
  */
 
 in vertex_data {
-	vec2 diffusemap;
-	vec4 color;
+	vec2 texcoord;
 } vertex;
 
 out vec4 out_color;
 
+uniform int axis;
+
+const float weight[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+
 /**
- * @brief
+ * @brief https://learnopengl.com/Advanced-Lighting/Bloom
  */
 void main(void) {
-	out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
+
+	vec2 offset = 1.0 / textureSize(texture_diffusemap, 0);
+	out_color = texture(texture_diffusemap, vertex.texcoord) * weight[0];
+
+	if (axis == 0) {
+		for (int i = 1; i < 5; i++) {
+			out_color += texture(texture_diffusemap, vertex.texcoord + vec2(offset.x * i, 0.0)) * weight[i];
+			out_color += texture(texture_diffusemap, vertex.texcoord - vec2(offset.x * i, 0.0)) * weight[i];
+		}
+	} else {
+		for (int i = 1; i < 5; i++) {
+			out_color += texture(texture_diffusemap, vertex.texcoord + vec2(0.0, offset.y * i)) * weight[i];
+			out_color += texture(texture_diffusemap, vertex.texcoord - vec2(0.0, offset.y * i)) * weight[i];
+		}
+	}
+
+	out_color.a = 1.0;
 }

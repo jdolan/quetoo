@@ -643,16 +643,6 @@ typedef struct cg_import_s {
 	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
 
 	/**
-	 * @brief Blits the framebuffer to the specified rectangle on the screen.
-	 * @param framebuffer The framebuffer to blit.
-	 * @param x The horizontal origin of the screen rectangle in drawable pixels.
-	 * @param y The vertical origin of the screen rectangle in drawable pixels.
-	 * @param w The width of the screen rectangle in drawable pixels.
-	 * @param h The height of the screen rectangle in drawable pixels.
-	 */
-	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h);
-
-	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
 	 * @param name The image name (e.g. `"pics/ch1"`).
 	 * @return The surface, or `NULL` if it could not be loaded.
@@ -823,8 +813,7 @@ typedef struct cg_import_s {
 	 * @param image The image.
 	 * @param color The color.
 	 * @remarks This function uses deferred rendering, allowing framebuffers to be used as
-	 * textures in menus or on the HUD. For drawing directly and immediately to the screen,
-	 * use BlitFramebuffer.
+	 * textures in menus or on the HUD.
 	 */
 	void (*Draw2DFramebuffer)(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
 

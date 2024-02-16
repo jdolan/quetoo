@@ -53,7 +53,7 @@ static struct {
 
 	GLint in_position;
 
-	GLint texture_cubemap;
+	GLint texture_sky;
 	GLint texture_lightgrid_fog;
 
 	GLint cube;
@@ -88,14 +88,9 @@ void R_DrawSky(const r_view_t *view) {
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, r_sky.image->texnum);
-
 	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
 	glUniform1f(r_sky_program.material.bloom, sky->material->cm->bloom * r_bloom->value);
 	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -118,8 +113,8 @@ static void R_InitSkyProgram(void) {
 	memset(&r_sky_program, 0, sizeof(r_sky_program));
 
 	r_sky_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sky_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "sky_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "sky_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "sky_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_sky_program.name);
@@ -129,14 +124,14 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 
-	r_sky_program.texture_cubemap = glGetUniformLocation(r_sky_program.name, "texture_cubemap");
+	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
 	r_sky_program.texture_lightgrid_fog = glGetUniformLocation(r_sky_program.name, "texture_lightgrid_fog");
 
 	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
 
 	r_sky_program.material.bloom = glGetUniformLocation(r_sky_program.name, "material.bloom");
 
-	glUniform1i(r_sky_program.texture_cubemap, TEXTURE_SKY);
+	glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 
 	glUseProgram(0);
@@ -183,22 +178,24 @@ void R_LoadSky(const char *name) {
 		return;
 	}
 
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
+
 	if (name && *name) {
-		r_sky.image = R_LoadImage(va("sky/%s", name), IT_CUBEMAP);
+		r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
 	} else {
 		r_sky.image = NULL;
 	}
 
 	if (r_sky.image == NULL) {
-
 		Com_Warn("Failed to load sky sky/%s\n", name);
 
-		r_sky.image = R_LoadImage("sky/template", IT_CUBEMAP);
+		r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
 		if (r_sky.image == NULL) {
-
 			Com_Error(ERROR_DROP, "Failed to load default sky\n");
 		}
 	}
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
 
 /**

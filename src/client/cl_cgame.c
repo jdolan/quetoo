@@ -245,7 +245,6 @@ void Cl_InitCgame(void) {
 
 	import.CreateFramebuffer = R_CreateFramebuffer;
 	import.DestroyFramebuffer = R_DestroyFramebuffer;
-	import.BlitFramebuffer = R_BlitFramebuffer;
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;

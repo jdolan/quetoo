@@ -238,7 +238,7 @@ void Cg_AddSprites(void) {
 		}
 
 		const vec4_t c = Vec4_Mix(s->color, s->end_color, life);
-		const color32_t color = Color_Color32(ColorHSVA(c.x, c.y, c.z, c.w));
+		const color_t color = ColorHSVA(c.x, c.y, c.z, c.w);
 		vec3_t origin = s->origin;
 
 		if (s->flags & SPRITE_FOLLOW_ENTITY) {
@@ -262,7 +262,8 @@ void Cg_AddSprites(void) {
 					.dir = s->dir,
 					.axis = s->axis,
 					.softness = s->softness,
-					.lighting = s->lighting
+					.lighting = s->lighting,
+					.bloom = s->bloom,
 				});
 				break;
 			case SPRITE_BEAM: {
@@ -285,6 +286,7 @@ void Cg_AddSprites(void) {
 					.flags = s->flags,
 					.softness = s->softness,
 					.lighting = s->lighting,
+					.bloom = s->bloom,
 				});
 				break;
 			}

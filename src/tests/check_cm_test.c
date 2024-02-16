@@ -46,7 +46,7 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_front) {
 		const vec3_t mins = Vec3(0.f, 0.f, i);
 		const vec3_t maxs = Vec3(0.f, 0.f, i + 1.f);
 
-		ck_assert_int_eq(SIDE_FRONT, Cm_BoxOnPlaneSide(mins, maxs, &plane));
+		ck_assert_int_eq(SIDE_FRONT, Cm_BoxOnPlaneSide(Box3(mins, maxs), &plane));
 	}
 
 } END_TEST
@@ -59,7 +59,7 @@ START_TEST(check_Cm_BoxOnPlaneSide_axial_back) {
 		const vec3_t mins = Vec3(0.f, 0.f, i - 1.f);
 		const vec3_t maxs = Vec3(0.f, 0.f, i - ON_EPSILON);
 
-		ck_assert_int_eq(SIDE_BACK, Cm_BoxOnPlaneSide(mins, maxs, &plane));
+		ck_assert_int_eq(SIDE_BACK, Cm_BoxOnPlaneSide(Box3(mins, maxs), &plane));
 	}
 
 } END_TEST

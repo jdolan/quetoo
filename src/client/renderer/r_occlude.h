@@ -37,4 +37,4 @@ void R_AddOcclusionQuery(r_view_t *view, r_occlusion_query_t *query);
 void R_UpdateOcclusionQueries(r_view_t *view);
 void R_InitOcclusionQueries(void);
 void R_ShutdownOcclusionQueries(void);
-#endif /* __R_LOCAL_H__ */
+#endif

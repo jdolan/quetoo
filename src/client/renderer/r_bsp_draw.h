@@ -32,4 +32,4 @@ void R_UpdateBspInlineEntities(r_view_t *view);
 void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth);
 void R_DrawWorld(const r_view_t *view);
 void R_AddBspLightgridSprites(r_view_t *view);
-#endif /* __R_LOCAL_H__ */
+#endif

@@ -35,14 +35,10 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 
 	switch (l->type) {
 		case LIGHT_AMBIENT:
-			if (r_shadowmap->integer < 1) {
-				return;
-			}
-			break;
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_PATCH:
+		case LIGHT_BRUSH_SIDE:
 			if (r_shadowmap->integer < 2) {
 				return;
 			}
@@ -66,7 +62,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 static void R_AddLightUniform(r_light_t *in) {
 
 	if (r_lights.block.num_lights == MAX_LIGHT_UNIFORMS) {
-		Com_Warn("MAX_LIGHT_UNIFORMS");
+		Com_Warn("MAX_LIGHT_UNIFORMS\n");
 		return;
 	}
 
@@ -80,10 +76,25 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
 	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal, 0.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
+}
 
-	if (r_draw_light_bounds->value) {
-		R_Draw3DBox(in->bounds, Color3fv(in->color), false);
+/**
+ * @brief
+ */
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+
+	if (light->source == NULL) {
+		return false;
 	}
+
+	while (e) {
+		if (light->source == e->id) {
+			return true;
+		}
+		e = e->parent;
+	}
+
+	return false;
 }
 
 /**
@@ -106,8 +117,18 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
+	vec3_t pos = view->origin;
+	if (r_draw_light_bounds->value) {
+		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+		pos = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE).end;
+	}
+
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+		if (r_draw_light_bounds->value && Vec3_Distance(pos, l->origin) < 32.f) {
+			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+		}
 
 		l->index = -1;
 
@@ -121,6 +142,10 @@ void R_UpdateLights(r_view_t *view) {
 				}
 
 				if (e->effects & EF_NO_SHADOW) {
+					continue;
+				}
+
+				if (R_IsLightSource(l, e)) {
 					continue;
 				}
 

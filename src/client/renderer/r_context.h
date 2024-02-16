@@ -29,4 +29,4 @@ extern r_context_t r_context;
 void R_InitContext(void);
 void R_ShutdownContext(void);
 void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...);
-#endif /* __R_LOCAL_H__ */
+#endif

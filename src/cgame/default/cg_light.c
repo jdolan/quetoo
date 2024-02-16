@@ -21,8 +21,6 @@
 
 #include "cg_local.h"
 
-#define LIGHT_INTENSITY 1.f
-
 static cg_light_t cg_lights[MAX_LIGHTS];
 
 /**
@@ -36,7 +34,7 @@ void Cg_AddLight(const cg_light_t *l) {
 
 	size_t i;
 	for (i = 0; i < lengthof(cg_lights); i++)
-		if (cg_lights[i].radius == 0.0) {
+		if (cg_lights[i].radius == 0.f) {
 			break;
 		}
 
@@ -56,8 +54,8 @@ void Cg_AddLight(const cg_light_t *l) {
 		out->type = LIGHT_DYNAMIC;
 	}
 
-	if (out->intensity == 0.0) {
-		out->intensity = LIGHT_INTENSITY;
+	if (out->intensity == 0.f) {
+		out->intensity = 1.f;
 	}
 
 	out->time = cgi.client->unclamped_time;
@@ -75,7 +73,7 @@ static void Cg_AddBspLights(void) {
 			case LIGHT_INVALID:
 			case LIGHT_AMBIENT:
 			case LIGHT_SUN:
-			case LIGHT_INDIRECT:
+			case LIGHT_PATCH:
 				continue;
 			default:
 				break;
@@ -95,7 +93,8 @@ static void Cg_AddBspLights(void) {
 			.size = l->size,
 			.intensity = l->intensity,
 			.shadow = l->shadow,
-			.theta = l->theta,
+			.cone = l->cone,
+			.falloff = l->falloff,
 			.bounds = l->bounds,
 		});
 	}
@@ -130,16 +129,23 @@ static void Cg_AddAmbientLights(void) {
 			.shadow = 1.f,
 		};
 
-		const r_entity_t *child = e + 1;
-		for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
-			const r_entity_t *c = child;
-			while (c) {
-				if (c->parent == e) {
-					light.entities[light.num_entities++] = child;
-					light.bounds = Box3_Union(light.bounds, child->abs_bounds);
-					break;
+		if (IS_MESH_MODEL(e->model)) {
+
+			if (!(e->effects & EF_CLIENT)) {
+				continue;
+			}
+
+			const r_entity_t *child = e + 1;
+			for (int32_t j = i + 1; j < cgi.view->num_entities; j++, child++) {
+				const r_entity_t *c = child;
+				while (c) {
+					if (c->parent == e) {
+						light.entities[light.num_entities++] = child;
+						light.bounds = Box3_Union(light.bounds, child->abs_bounds);
+						break;
+					}
+					c = c->parent;
 				}
-				c = c->parent;
 			}
 		}
 
@@ -191,9 +197,9 @@ void Cg_AddLights(void) {
 			.radius = l->radius,
 			.size = 0.f,
 			.intensity = l->intensity,
-			.shadow = DEFAULT_LIGHT_SHADOW,
-			.theta = 0.f,
+			.shadow = MATERIAL_LIGHT_SHADOW,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
+			.source = l->source,
 		};
 
 		cgi.BoxLeafnums(out.bounds, NULL, 0, &out.node, 0);

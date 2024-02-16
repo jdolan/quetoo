@@ -87,7 +87,7 @@ void Cg_AddFlares(void) {
 
 				const r_model_t *mod = cgi.client->models[e->current.model1];
 
-				if (mod && mod->type == MOD_BSP_INLINE) {
+				if (mod && mod->type == MODEL_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
 						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
 						flare->entity = e;
@@ -121,10 +121,7 @@ void Cg_AddFlares(void) {
 			continue;
 		}
 
-		const color_t in_color = Color32_Color(flare->in.color);
-		const color_t out_color = Color_Scale(in_color, alpha);
-
-		flare->out.color = Color_Color32(out_color);
+		flare->out.color = Color_Scale(flare->in.color, alpha);
 
 		cgi.AddSprite(cgi.view, &flare->out);
 	}
@@ -148,9 +145,9 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
 
 	if (stage->cm->flags & STAGE_COLOR) {
-		flare->in.color = Color_Color32(stage->cm->color);
+		flare->in.color = stage->cm->color;
 	} else {
-		flare->in.color = Color_Color32(color_white);
+		flare->in.color = color_white;
 	}
 
 	flare->in.media = stage->media;

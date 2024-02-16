@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "CE052A8C2148333C003446C9"
-               BuildableName = "quetoo-tests"
-               BlueprintName = "quetoo-tests"
+               BlueprintIdentifier = "CEB384DE29A3A73B006DEA13"
+               BuildableName = "check_color"
+               BlueprintName = "check_color"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -39,16 +39,25 @@
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
-      <MacroExpansion>
+      allowLocationSimulation = "YES"
+      viewDebuggingEnabled = "No">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE052A8C2148333C003446C9"
-            BuildableName = "quetoo-tests"
-            BlueprintName = "quetoo-tests"
+            BlueprintIdentifier = "CEB384DE29A3A73B006DEA13"
+            BuildableName = "check_color"
+            BlueprintName = "check_color"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "CK_FORK"
+            value = "no"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -56,15 +65,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CE052A8C2148333C003446C9"
-            BuildableName = "quetoo-tests"
-            BlueprintName = "quetoo-tests"
+            BlueprintIdentifier = "CEB384DE29A3A73B006DEA13"
+            BuildableName = "check_color"
+            BlueprintName = "check_color"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

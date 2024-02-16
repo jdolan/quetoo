@@ -23,20 +23,13 @@
 
 _Bool antialias = false;
 
-float brightness = 1.f;
-float saturation = 1.f;
-float contrast = 1.f;
-
 float ambient_intensity = LIGHT_INTENSITY;
 float sun_intensity = LIGHT_INTENSITY;
-float light_intensity = LIGHT_INTENSITY;
+float point_intensity = LIGHT_INTENSITY;
+float spot_intensity = LIGHT_INTENSITY;
+float face_intensity = LIGHT_INTENSITY;
 float patch_intensity = LIGHT_INTENSITY;
-float indirect_intensity = LIGHT_INTENSITY;
-
-int32_t luxel_size = BSP_LIGHTMAP_LUXEL_SIZE;
-int32_t patch_size = DEFAULT_PATCH_SIZE;
-
-float caustics = 1.f;
+float caustic_intensity = LIGHT_INTENSITY;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -425,71 +418,44 @@ static void LightWorld(void) {
 
 	const cm_entity_t *e = Cm_Bsp()->entities[0];
 
-	if (brightness == 1.f) {
-		brightness = Cm_EntityValue(e, "brightness")->value ?: brightness;
-	}
-
-	if (saturation == 1.f) {
-		saturation = Cm_EntityValue(e, "saturation")->value ?: saturation;
-
-	}
-
-	if (contrast == 1.f) {
-		contrast = Cm_EntityValue(e, "contrast")->value ?: contrast;
-	}
-
-	if (ambient_intensity == LIGHT_INTENSITY) {
+	if (ambient_intensity == 1.f) {
 		ambient_intensity = Cm_EntityValue(e, "ambient_intensity")->value ?: ambient_intensity;
 	}
 
-	if (sun_intensity == LIGHT_INTENSITY) {
+	if (sun_intensity == 1.f) {
 		sun_intensity = Cm_EntityValue(e, "sun_intensity")->value ?: sun_intensity;
 	}
 
-	if (light_intensity == LIGHT_INTENSITY) {
-		light_intensity = Cm_EntityValue(e, "light_intensity")->value ?: light_intensity;
+	if (point_intensity == 1.f) {
+		point_intensity = Cm_EntityValue(e, "light_intensity")->value ?: point_intensity;
 	}
 
-	if (patch_intensity == LIGHT_INTENSITY) {
+	if (spot_intensity == 1.f) {
+		spot_intensity = Cm_EntityValue(e, "spot_intensity")->value ?: spot_intensity;
+	}
+
+	if (face_intensity == 1.f) {
+		face_intensity = Cm_EntityValue(e, "face_intensity")->value ?: face_intensity;
+	}
+
+	if (patch_intensity == 1.f) {
 		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
 	}
 
-	if (indirect_intensity == LIGHT_INTENSITY) {
-		indirect_intensity = Cm_EntityValue(e, "indirect_intensity")->value ?: indirect_intensity;
-	}
-
-	if (luxel_size == BSP_LIGHTMAP_LUXEL_SIZE) {
-		luxel_size = Cm_EntityValue(e, "luxel_size")->integer ?: luxel_size;
-	}
-
-	if (patch_size == DEFAULT_PATCH_SIZE) {
-		patch_size = Cm_EntityValue(e, "patch_size")->integer ?: patch_size;
-	}
-
-	if (caustics == 1.f) {
-		caustics = Cm_EntityValue(e, "caustics")->value ?: caustics;
+	if (caustic_intensity == 1.f) {
+		caustic_intensity = Cm_EntityValue(e, "caustic_intensity")->value ?: caustic_intensity;
 	}
 
 	Com_Print("\n");
 	Com_Print("Lighting parameters\n");
-	Com_Print("  Brightness: %g\n", brightness);
-	Com_Print("  Saturation: %g\n", saturation);
-	Com_Print("  Contrast: %g\n", contrast);
 	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
 	Com_Print("  Sun intensity: %g\n", sun_intensity);
-	Com_Print("  Light intensity: %g\n", light_intensity);
+	Com_Print("  Point intensity: %g\n", point_intensity);
+	Com_Print("  Spot intensity: %g\n", spot_intensity);
+	Com_Print("  Face intensity: %g\n", face_intensity);
 	Com_Print("  Patch intensity: %g\n", patch_intensity);
-	Com_Print("  Indirect intensity: %g\n", indirect_intensity);
-	Com_Print("  Caustics intensity: %g\n", caustics);
-	Com_Print("  Luxel size: %d\n", luxel_size);
-	Com_Print("  Patch size: %d\n", patch_size);
+	Com_Print("  Caustic intensity: %g\n", caustic_intensity);
 	Com_Print("\n");
-
-	// build patches
-	BuildPatches();
-
-	// subdivide patches to the desired resolution
-	Work("Building patches", SubdividePatch, bsp_file.num_faces);
 
 	// build lightmaps
 	BuildLightmaps();
@@ -497,7 +463,7 @@ static void LightWorld(void) {
 	// build lightgrid
 	const size_t num_lightgrid = BuildLightgrid();
 
-	// build lights out of entities and emissive patches
+	// build lights out of entities and emissive faces
 	BuildDirectLights();
 
 	// calculate direct lighting
@@ -505,9 +471,9 @@ static void LightWorld(void) {
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
 	// indirect lighting
-	if (indirect_intensity > 0.f) {
+	if (patch_intensity > 0.f) {
 
-		// build lights out of lightmapped patches
+		// build lights out of lightmapped faces
 		BuildIndirectLights();
 
 		// calculate indirect lighting
@@ -524,9 +490,6 @@ static void LightWorld(void) {
 
 	// free the light sources
 	FreeLights();
-
-	// free the patches
-	Mem_FreeTag(MEM_TAG_PATCH);
 
 	// build fog volumes out of brush entities
 	BuildFog();

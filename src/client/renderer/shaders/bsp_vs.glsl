@@ -27,9 +27,9 @@ layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
-uniform mat4 model;
+uniform int model_type;
 
-uniform stage_t stage;
+uniform mat4 model;
 
 out vertex_data {
 	vec3 model;
@@ -61,9 +61,9 @@ void main(void) {
 
 	vertex.model = vec3(model * position);
 	vertex.position = vec3(view_model * position);
-	vertex.normal = vec3(view_model * normal);
-	vertex.tangent = vec3(view_model * tangent);
-	vertex.bitangent = vec3(view_model * bitangent);
+	vertex.normal = normalize(vec3(view_model * normal));
+	vertex.tangent = normalize(vec3(view_model * tangent));
+	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
 	vertex.lightmap = in_lightmap;
@@ -74,3 +74,4 @@ void main(void) {
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
+

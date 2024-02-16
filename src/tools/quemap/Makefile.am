@@ -15,7 +15,6 @@ noinst_HEADERS = \
 	luxel.h \
 	material.h \
 	monitor.h \
-	patch.h \
 	points.h \
 	polylib.h \
 	portal.h \
@@ -48,7 +47,6 @@ quemap_SOURCES = \
 	map.c \
 	material.c \
 	monitor.c \
-	patch.c \
 	polylib.c \
 	portal.c \
 	prtfile.c \

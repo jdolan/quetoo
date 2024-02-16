@@ -5,7 +5,6 @@ SUBDIRS = \
 noinst_HEADERS = \
 	r_animation.h \
 	r_atlas.h \
-	r_bloom.h \
 	r_bsp.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
@@ -31,6 +30,7 @@ noinst_HEADERS = \
 	r_mesh.h \
 	r_model.h \
 	r_occlude.h \
+	r_post.h \
 	r_program.h \
 	r_shadow.h \
 	r_sky.h \
@@ -45,7 +45,6 @@ noinst_LTLIBRARIES = \
 librenderer_la_SOURCES = \
 	r_animation.c \
 	r_atlas.c \
-	r_bloom.c \
 	r_bsp.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \
@@ -62,13 +61,14 @@ librenderer_la_SOURCES = \
 	r_main.c \
 	r_material.c \
 	r_media.c \
-	r_mesh.c \
 	r_mesh_draw.c \
 	r_mesh_model.c \
 	r_mesh_model_md3.c \
 	r_mesh_model_obj.c \
+	r_mesh.c \
 	r_model.c \
 	r_occlude.c \
+	r_post.c \
 	r_program.c \
 	r_shadow.c \
 	r_sky.c \

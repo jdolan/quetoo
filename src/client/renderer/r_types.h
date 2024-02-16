@@ -87,33 +87,25 @@ typedef struct r_media_s {
  */
 typedef enum {
 	MOD_INVALID,
-	MOD_BSP,
-	MOD_BSP_INLINE,
-	MOD_MESH
+	MODEL_BSP,
+	MODEL_BSP_INLINE,
+	MODEL_MESH
 } r_model_type_t;
-
-/**
- * @brief Bit masks used in conjunction with r_image_type_t.
- */
-#define IT_MASK_MIPMAP		(1 << 24)
-#define IT_MASK_CLAMP_EDGE  (1 << 25)
-#define IT_MASK_QUALITY		(1 << 26)
-#define IT_MASK_FLAGS		(IT_MASK_MIPMAP | IT_MASK_CLAMP_EDGE)
 
 /**
  * @brieef Image types.
  */
 typedef enum {
-	IT_PROGRAM =     (1 <<  1),
-	IT_FONT =        (1 <<  2),
-	IT_UI =          (1 <<  3),
-	IT_SPRITE =      (1 <<  4) + (IT_MASK_MIPMAP),
-	IT_MATERIAL =    (1 <<  5) + (IT_MASK_MIPMAP),
-	IT_CUBEMAP =     (1 <<  6) + (IT_MASK_CLAMP_EDGE),
-	IT_PIC =         (1 <<  7) + (IT_MASK_MIPMAP),
-	IT_ATLAS =       (1 <<  8) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTMAP =    (1 <<  9) + (IT_MASK_CLAMP_EDGE),
-	IT_LIGHTGRID =   (1 << 10) + (IT_MASK_CLAMP_EDGE),
+	IMG_PROGRAM = 1,
+	IMG_FONT,
+	IMG_UI,
+	IMG_PIC,
+	IMG_SPRITE,
+	IMG_ATLAS,
+	IMG_MATERIAL,
+	IMG_CUBEMAP,
+	IMG_LIGHTMAP,
+	IMG_LIGHTGRID,
 } r_image_type_t;
 
 /**
@@ -141,9 +133,29 @@ typedef struct {
 	GLenum target;
 
 	/**
-	 * @brief The pixel format, typically GL_RGB or GL_RGBA.
+	 * @brief The number of mipmap levels to allocate, typically `log2(Maxi(w, h)) + 1`.
+	 */
+	GLsizei levels;
+
+	/**
+	 * @brief The minification and magnifaction filters, typically `GL_LINEAR`.
+	 */
+	GLenum minify, magnify;
+
+	/**
+	 * @brief The internal pixel format, typically `GL_RGB` or `GL_RGBA`, but may be a sized value.
+	 */
+	GLenum internal_format;
+
+	/**
+	 * @brief The pixel format, typically `GL_RGB` or `GL_RGBA`.
 	 */
 	GLenum format;
+
+	/**
+	 * @brief The pixel data type, typically `GL_UNSIGNED_BYTE`.
+	 */
+	GLenum pixel_type;
 
 	/**
 	 * @brief The texture name.
@@ -355,9 +367,14 @@ typedef struct {
 	vec2_t st_mins, st_maxs;
 
 	/**
-	 * @brief The stainmap for this lightmap.
+	 * @brief The stains for this lightmap.
 	 */
-	byte *stainmap;
+	color32_t *stains;
+
+	/**
+	 * @brief The frame number at which this lightmap was last stained.
+	 */
+	int32_t stain_frame;
 } r_bsp_face_lightmap_t;
 
 /**
@@ -378,8 +395,6 @@ typedef struct {
 
 	GLvoid *elements;
 	int32_t num_elements;
-
-	int32_t stain_frame;
 } r_bsp_face_t;
 
 /**
@@ -554,9 +569,14 @@ typedef struct {
 	float shadow;
 
 	/**
-	 * @brief The light cone radius, for spotlights.
+	 * @brief The light cone for angular attenuation, in degrees.
 	 */
-	float theta;
+	float cone;
+
+	/**
+	 * @brief The angular attenuation falloff, in degrees.
+	 */
+	float falloff;
 
 	/**
 	 * @brief The light bounds, for frustum and occlusion culling.
@@ -565,7 +585,7 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief
+ * @brief The BSP lightmap, which is comprised of several atlas textures of various storage types.
  */
 typedef struct {
 	/**
@@ -574,9 +594,29 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The lightmap atlas.
+	 * @brief The ambient atlas (RGB8).
 	 */
-	r_image_t *atlas;
+	r_image_t *ambient;
+
+	/**
+	 * @brief The diffuse atlas array (RGB32F).
+	 */
+	r_image_t *diffuse;
+
+	/**
+	 * @brief The direction atlas array (RGB8).
+	 */
+	r_image_t *direction;
+
+	/**
+	 * @brief The caustics atlas (RGB8).
+	 */
+	r_image_t *caustics;
+
+	/**
+	 * @brief The stain atlas (RGBA8).
+	 */
+	r_image_t *stains;
 } r_bsp_lightmap_t;
 
 /**
@@ -594,9 +634,39 @@ typedef struct {
 	box3_t bounds;
 
 	/**
-	 * @brief The lightgrid textures (ambient, diffuse, etc..).
+	 * @brief The luxel size in world units (constant).
 	 */
-	r_image_t *textures[BSP_LIGHTGRID_LAST];
+	vec3_t luxel_size;
+
+	/**
+	 * @brief The ambient 3D texture (RGB8).
+	 */
+	r_image_t *ambient;
+
+	/**
+	 * @brief The diffuse 3D texture (RGB32F).
+	 */
+	r_image_t *diffuse;
+
+	/**
+	 * @brief The direction 3D texture (RGB32F).
+	 */
+	r_image_t *direction;
+
+	/**
+	 * @brief The caustics 3D texture (RGB8).
+	 */
+	r_image_t *caustics;
+
+	/**
+	 * @brief The fog 3D texture (RGBA8).
+	 */
+	r_image_t *fog;
+
+	/**
+	 * @brief The exposure for each lightgrid luxel.
+	 */
+	float *exposure;
 } r_bsp_lightgrid_t;
 
 /**
@@ -639,8 +709,6 @@ typedef struct {
 	int32_t num_lights;
 	r_bsp_light_t *lights;
 	
-	int32_t luxel_size;
-
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
@@ -751,9 +819,9 @@ typedef struct r_model_s {
 	float radius;
 } r_model_t;
 
-#define IS_BSP_MODEL(m) (m && m->type == MOD_BSP)
-#define IS_BSP_INLINE_MODEL(m) (m && m->type == MOD_BSP_INLINE)
-#define IS_MESH_MODEL(m) (m && m->type == MOD_MESH)
+#define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
+#define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
+#define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
 
 /**
  * @brief The model format type.
@@ -803,6 +871,11 @@ enum {
 	 * @brief If set, the sprite will ignore the depth buffer entirely.
 	 */
 	SPRITE_NO_DEPTH			= 1 << 2,
+
+	/**
+	 * @brief If set, the sprite will tile its bounds, rather than stretch to them.
+	 */
+	SPRITE_BEAM_REPEAT      = 1 << 3,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
@@ -874,8 +947,8 @@ typedef struct {
 	/**
 	 * @brief The sprite color.
 	 */
-	color32_t color;
-	
+	color_t color;
+
 	/**
 	 * @brief The sprite's life from 0 to 1.
 	 */
@@ -905,6 +978,11 @@ typedef struct {
 	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
+
+	/**
+	 * @brief Sprite bloom scalar.
+	 */
+	float bloom;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -936,8 +1014,8 @@ typedef struct {
 	/**
 	 * @brief The beam color.
 	 */
-	color32_t color;
-	
+	color_t color;
+
 	/**
 	 * @brief The beam texture translation.
 	 */
@@ -962,6 +1040,11 @@ typedef struct {
 	 * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
+
+	/**
+	 * @brief Beam bloom scalar.
+	 */
+	float bloom;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -973,10 +1056,11 @@ typedef struct {
 	vec3_t position;
 	vec2_t diffusemap;
 	vec2_t next_diffusemap;
-	color32_t color;
+	color_t color;
 	float lerp;
 	float softness;
 	float lighting;
+	float bloom;
 } r_sprite_vertex_t;
 
 /**
@@ -1050,11 +1134,29 @@ typedef struct {
 #define MAX_ENTITY_SKINS 	0x8
 
 /**
+ * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
+ * client game module, and are sent over the wire as part of entity state. The higher bits are applied
+ * locally by the client, client game or renderer.
+ */
+#define EF_CLIENT			(1 << 16) // client entitiy
+#define EF_SELF             (1 << 17) // local client's entity model
+#define EF_WEAPON			(1 << 18) // view weapon
+#define EF_SHELL			(1 << 19) // colored shell
+#define EF_BLEND			(1 << 20) // preset alpha blend
+#define EF_NO_SHADOW		(1 << 21) // no shadow
+#define EF_NO_DRAW			(1 << 22) // no draw (but perhaps shadow)
+
+/**
  * @brief Entities provide a means to add model instances to the view. Entity
  * lighting is cached on the client entity so that it is only recalculated
  * when an entity moves.
  */
 typedef struct r_entity_s {
+	/**
+	 * @brief The entity identifier.
+	 */
+	const void *id;
+
 	/**
 	 * @brief The parent entity, if any, for linked mesh models.
 	 */
@@ -1220,9 +1322,14 @@ typedef struct {
 	float shadow;
 
 	/**
-	 * @brief The light cone angle for spotlights.
+	 * @brief The light cone for angular attenuation, in degrees.
 	 */
-	float theta;
+	float cone;
+
+	/**
+	 * @brief The light angular attenuation falloff, in degrees.
+	 */
+	float falloff;
 
 	/**
 	 * @brief The light bounds.
@@ -1235,7 +1342,12 @@ typedef struct {
 	int32_t node;
 
 	/**
-	 * @brief The entities that are within the bounds of this light.
+	 * @brief The optional light source, which will not cast shadow.
+	 */
+	const r_entity_t *source;
+
+	/**
+	 * @brief The entities that are within the bounds of this light, for shadow mapping.
 	 */
 	const r_entity_t *entities[MAX_LIGHT_ENTITIES];
 	int32_t num_entities;
@@ -1250,37 +1362,63 @@ typedef struct {
  * @brief Framebuffer attachments bitmask.
  */
 typedef enum {
-	ATTACHMENT_COLOR = 0x1,
-	ATTACHMENT_BLOOM = 0x2,
-	ATTACHMENT_DEPTH = 0x4,
-	ATTACHMENT_ALL   = 0xFF
+	ATTACHMENT_COLOR      = 0x1,
+	ATTACHMENT_BLOOM      = 0x2,
+	ATTACHMENT_BLUR_X     = 0x4,
+	ATTACHMENT_BLUR_Y     = 0x8,
+	ATTACHMENT_POST       = 0x10,
+	ATTACHMENT_DEPTH      = 0x20,
+	ATTACHMENT_DEPTH_COPY = 0x40,
+	ATTACHMENT_ALL        = 0xFF
 } r_attachment_t;
 
 /**
  * @brief The framebuffer type.
  */
-typedef struct {
+typedef struct r_framebuffer_s {
 	/**
 	 * @brief The framebuffer name.
 	 */
 	GLuint name;
 
 	/**
+	 * The attachments enabled for this framebuffer.
+	 */
+	int32_t attachments;
+
+	/**
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
-	GLuint color_attachment_copy;
 
 	/**
 	 * @brief The bloom attachment texture name.
 	 */
 	GLuint bloom_attachment;
-	GLuint bloom_attachment_copy;
+
+	/**
+	 * @brief The horizontal blur attachment texture name.
+	 */
+	GLuint blur_attachment_x;
+
+	/**
+	 * @brief The vertical blur attachment texture name.
+	 */
+	GLuint blur_attachment_y;
+
+	/**
+	 * @brief The post-processing attachment texture name.
+	 */
+	GLuint post_attachment;
 
 	/**
 	 * @brief The depth attachment texture name.
 	 */
 	GLuint depth_attachment;
+
+	/**
+	 * @brief The depth attachment copy texture name.
+	 */
 	GLuint depth_attachment_copy;
 
 	/**
@@ -1292,6 +1430,17 @@ typedef struct {
 	 * @brief The framebuffer height.
 	 */
 	GLint height;
+
+	/**
+	 * @brief The framebuffer width in pixels (supersampling).
+	 */
+	GLint drawable_width;
+
+	/**
+	 * @brief The framebuffer height in pixels (supersampling).
+	 */
+	GLint drawable_height;
+
 } r_framebuffer_t;
 
 /**
@@ -1349,6 +1498,12 @@ typedef struct {
 	 * @brief The view origin.
 	 */
 	vec3_t origin;
+
+
+	/**
+	 * @brief The view exposure (HDR).
+	 */
+	float exposure;
 
 	/**
 	 * @brief The view angles.
@@ -1463,10 +1618,6 @@ typedef struct {
 	 */
 	_Bool fullscreen;
 
-	/**
-	 * @brief Number of samples for multisampled buffers
-	 */
-	int32_t multisample_samples;
 } r_context_t;
 
 /**
@@ -1487,6 +1638,8 @@ typedef struct {
 	int32_t mesh_triangles;
 
 	int32_t sprite_draw_elements;
+
+	int32_t blend_depth_types;
 
 	int32_t draw_chars;
 	int32_t draw_fills;
@@ -1515,9 +1668,14 @@ typedef enum {
 	TEXTURE_WARP,
 
 	/**
-	 * @brief The lightmap texture, used by the BSP program.
+	 * @brief The lightmap textures, used by the BSP program.
 	 */
 	TEXTURE_LIGHTMAP,
+	TEXTURE_LIGHTMAP_AMBIENT = TEXTURE_LIGHTMAP,
+	TEXTURE_LIGHTMAP_DIFFUSE,
+	TEXTURE_LIGHTMAP_DIRECTION,
+	TEXTURE_LIGHTMAP_CAUSTICS,
+	TEXTURE_LIGHTMAP_STAINS,
 
 	/**
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
@@ -1552,9 +1710,10 @@ typedef enum {
 	/**
 	 * @brief Framebuffer specific textures.
 	 */
-	TEXTURE_BLOOM_ATTACHMENT,
 	TEXTURE_COLOR_ATTACHMENT,
-	TEXTURE_DEPTH_STENCIL_ATTACHMENT,
+	TEXTURE_BLOOM_ATTACHMENT,
+	TEXTURE_POST_ATTACHMENT,
+	TEXTURE_DEPTH_ATTACHMENT_COPY,
 } r_texture_t;
 
-#endif /* __R_LOCAL_H__ */
+#endif

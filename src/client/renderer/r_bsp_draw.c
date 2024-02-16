@@ -41,7 +41,11 @@ static struct {
 	GLint model;
 
 	GLint texture_material;
-	GLint texture_lightmap;
+	GLint texture_lightmap_ambient;
+	GLint texture_lightmap_diffuse;
+	GLint texture_lightmap_direction;
+	GLint texture_lightmap_caustics;
+	GLint texture_lightmap_stains;
 	GLint texture_stage;
 	GLint texture_warp;
 	GLint texture_lightgrid_ambient;
@@ -52,7 +56,7 @@ static struct {
 	GLint texture_shadowmap;
 	GLint texture_shadowmap_cube;
 
-	GLint entity;
+	GLint model_type;
 	GLint alpha_test;
 
 	struct {
@@ -93,7 +97,7 @@ static void R_DrawBspNormals(const r_view_t *view) {
 
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
-		
+
 		const vec3_t pos = v->position;
 		if (Vec3_Distance(pos, view->origin) > 256.f) {
 			continue;
@@ -129,21 +133,32 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 		return;
 	}
 
+	in += sizeof(bsp_lightgrid_t);
+
 	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
 
-	const size_t luxels = lg->size.x * lg->size.y * lg->size.z;
+	const size_t num_luxels = lg->size.x * lg->size.y * lg->size.z;
 
-	const byte *ambient = in + sizeof(bsp_lightgrid_t);
-	const byte *diffuse = ambient + luxels * BSP_LIGHTGRID_BPP;
-	const byte *direction = diffuse + luxels * BSP_LIGHTGRID_BPP;
-	const byte *caustics = direction + luxels * BSP_LIGHTGRID_BPP;
-	const byte *fog = caustics+ luxels * BSP_LIGHTGRID_BPP;
+	const color24_t *ambient = (color24_t *) in;
+	in += num_luxels * sizeof(color24_t);
 
-	r_image_t *particle = R_LoadImage("sprites/particle", IT_SPRITE);
+	const vec3_t *diffuse = (vec3_t *) in;
+	in += num_luxels * sizeof(vec3_t);
+
+	const color24_t *direction = (color24_t *) in;
+	in += num_luxels * sizeof(color24_t);
+
+	const color24_t *caustics = (color24_t *) in;
+	in += num_luxels * sizeof(color24_t);
+
+	const color32_t *fog = (color32_t *) in;
+	in += num_luxels * sizeof(color32_t);
+
+	r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient += 3, diffuse += 3, direction += 3, caustics += 3, fog += 4) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, direction++, caustics++, fog++) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -156,59 +171,76 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					continue;
 				}
 
+				const vec3_t dir = Vec3bv(direction->bytes);
+
 				if (r_draw_bsp_lightgrid->integer == 1) {
 
-					const byte r = Mini(ambient[0] + diffuse[0], 255);
-					const byte g = Mini(ambient[1] + diffuse[1], 255);
-					const byte b = Mini(ambient[2] + diffuse[2], 255);
+					const color_t color = Color24_Color(*ambient);
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
 						.size = 8.f,
-						.color = Color32(r, g, b, 255),
+						.color = color,
 						.media = (r_media_t *) particle,
 						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
-					const float x = direction[0] / 255.f * 2.f - 1.f;
-					const float y = direction[1] / 255.f * 2.f - 1.f;
-					const float z = direction[2] / 255.f * 2.f - 1.f;
-
-					const vec3_t dir = Vec3_Normalize(Vec3(x, y, z));
-					const vec3_t end = Vec3_Fmaf(origin, 16.f, dir);
-
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, Color3b(r, g, b));
+					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
-					const byte r = caustics[0];
-					const byte g = caustics[1];
-					const byte b = caustics[2];
+					const color_t color = Color3fv(*diffuse);
 
-					if (r || g || b) {
-						const float a = Clampf((r + g + b) / 255.f, 0.f, 255.f);
+					R_AddSprite(view, &(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = color,
+						.media = (r_media_t *) particle,
+						.flags = SPRITE_NO_BLEND_DEPTH
+					});
+
+					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+
+				}  else if (r_draw_bsp_lightgrid->integer == 3) {
+
+					const color_t color = Color_Add(Color24_Color(*ambient), Color3fv(*diffuse));
+
+					R_AddSprite(view, &(r_sprite_t) {
+						.origin = origin,
+						.size = 8.f,
+						.color = color,
+						.media = (r_media_t *) particle,
+						.flags = SPRITE_NO_BLEND_DEPTH
+					});
+
+					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+
+				} else if (r_draw_bsp_lightgrid->integer == 4) {
+
+					const color_t color = Color24_Color(*caustics);
+
+					if (color.r || color.g || color.b) {
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
-							.color = Color32(r, g, b, a),
+							.color = color,
 							.media = (r_media_t *) particle
 						});
 					}
-				} else if (r_draw_bsp_lightgrid->integer == 3) {
+				} else if (r_draw_bsp_lightgrid->integer == 5) {
 
-					const byte a = Mini(fog[3], 255);
+					const color_t color = Color32_Color(*fog);
 
-					if (a) {
-						const byte r = fog[0];
-						const byte g = fog[1];
-						const byte b = fog[2];
-						const float af = a / 255.f;
+					if (color.a) {
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
-							.color = Color32(r * af, g * af, b * af, 0),
+							.color = color,
 							.media = (r_media_t *) particle
 						});
 					}
@@ -463,7 +495,7 @@ static void R_DrawBspInlineAlphaTestDrawElements(const r_view_t *view,
 		if (!(draw->surface & SURF_ALPHA_TEST)) {
 			continue;
 		}
-		
+
 		R_DrawBspDrawElements(view, entity, draw, &material);
 
 		r_stats.bsp_draw_elements++;
@@ -577,7 +609,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 	if (view->type == VIEW_PLAYER_MODEL) {
 		return;
 	}
-	
+
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -585,7 +617,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
 
-	glUniform1i(r_bsp_program.entity, 1);
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -609,7 +641,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	glUniform1i(r_bsp_program.entity, 0);
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -630,6 +662,8 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUseProgram(r_bsp_program.name);
 
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
+
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glBindVertexArray(r_world_model->bsp->vertex_array);
@@ -644,19 +678,6 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-
-	for (bsp_lightgrid_texture_t i = BSP_LIGHTGRID_FIRST; i < BSP_LIGHTGRID_LAST; i++) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
-	}
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_world_model->bsp->lightmap->atlas->texnum);
-
-	R_DrawStains(view);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
-	glBindTexture(GL_TEXTURE_2D, r_bsp_program.warp_image->texnum);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -694,7 +715,7 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
+
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -714,9 +735,9 @@ void R_InitBspProgram(void) {
 	memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
 	r_bsp_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "bsp_vs.glsl", NULL),
-		    R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "bsp_gs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "bsp_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "bsp_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "bsp_gs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "bsp_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_bsp_program.name);
@@ -735,21 +756,27 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
 
+	r_bsp_program.model_type = glGetUniformLocation(r_bsp_program.name, "model_type");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");
-	r_bsp_program.texture_lightmap = glGetUniformLocation(r_bsp_program.name, "texture_lightmap");
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
+
+	r_bsp_program.texture_lightmap_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_ambient");
+	r_bsp_program.texture_lightmap_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_diffuse");
+	r_bsp_program.texture_lightmap_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_direction");
+	r_bsp_program.texture_lightmap_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_caustics");
+	r_bsp_program.texture_lightmap_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_stains");
+
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
 	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
+
 	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
 	r_bsp_program.texture_shadowmap_cube = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap_cube");
-
-	r_bsp_program.entity = glGetUniformLocation(r_bsp_program.name, "entity");
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -770,9 +797,13 @@ void R_InitBspProgram(void) {
 	r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
 
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
-	glUniform1i(r_bsp_program.texture_lightmap, TEXTURE_LIGHTMAP);
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
+	glUniform1i(r_bsp_program.texture_lightmap_ambient, TEXTURE_LIGHTMAP_AMBIENT);
+	glUniform1i(r_bsp_program.texture_lightmap_diffuse, TEXTURE_LIGHTMAP_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_lightmap_direction, TEXTURE_LIGHTMAP_DIRECTION);
+	glUniform1i(r_bsp_program.texture_lightmap_caustics, TEXTURE_LIGHTMAP_CAUSTICS);
+	glUniform1i(r_bsp_program.texture_lightmap_stains, TEXTURE_LIGHTMAP_STAINS);
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
@@ -786,9 +817,11 @@ void R_InitBspProgram(void) {
 	r_bsp_program.warp_image->media.Free = R_FreeImage;
 
 	r_bsp_program.warp_image->width = r_bsp_program.warp_image->height = WARP_IMAGE_SIZE;
-	r_bsp_program.warp_image->type = IT_PROGRAM;
+	r_bsp_program.warp_image->type = IMG_PROGRAM;
 	r_bsp_program.warp_image->target = GL_TEXTURE_2D;
+	r_bsp_program.warp_image->internal_format = GL_RGBA8;
 	r_bsp_program.warp_image->format = GL_RGBA;
+	r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
 
 	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
 
@@ -801,7 +834,11 @@ void R_InitBspProgram(void) {
 		}
 	}
 
-	R_UploadImage(r_bsp_program.warp_image, GL_TEXTURE_2D, (byte *) data);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_WARP);
+
+	R_UploadImage(r_bsp_program.warp_image, (byte *) data);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);
 }

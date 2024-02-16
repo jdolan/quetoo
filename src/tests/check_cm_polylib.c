@@ -362,12 +362,13 @@ START_TEST(check_Cm_DistanceToWinding) {
 	w->points[1] = Vec3(0.f, 1.f, 0.f);
 	w->points[2] = Vec3(1.f, 0.f, 0.f);
 
-	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[0]));
-	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[1]));
-	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[2]));
+	vec3_t dir;
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[0], &dir));
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[1], &dir));
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, w->points[2], &dir));
 
-	ck_assert_float_eq(.5f, Cm_DistanceToWinding(w, Vec3(.5f, .5f, 0.f)));
-	ck_assert_float_eq(1.f, Cm_DistanceToWinding(w, Vec3(0.f, 2.f, 0.f)));
+	ck_assert_float_eq(0.f, Cm_DistanceToWinding(w, Vec3(.5f, .5f, 0.f), &dir));
+	ck_assert_float_eq(1.f, Cm_DistanceToWinding(w, Vec3(0.f, 2.f, 0.f), &dir));
 
 	Cm_FreeWinding(w);
 

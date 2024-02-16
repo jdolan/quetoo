@@ -67,42 +67,14 @@
 #define MAX_BSP_LIGHTMAP_WIDTH 4096
 
 /**
- * @brief Lightmap atlas bytes per pixel.
- */
-#define BSP_LIGHTMAP_BPP 3
-
-/**
- * @brief Largest lightmap atlas layer size in bytes.
- */
-#define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
-
-/**
- * @brief Lightmap diffuse and directional channels.
- */
-#define BSP_LIGHTMAP_CHANNELS 2
-
-/**
- * @brief Lightmap layers.
- */
-#define BSP_LIGHTMAP_LAYERS 6
-
-/**
- * @brief Stainmap layers.
- */
-#define BSP_STAINMAP_LAYERS 1
-
-/**
  * @brief The lightmap textures.
  */
 typedef enum {
 	BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
-	BSP_LIGHTMAP_DIFFUSE_0,
-	BSP_LIGHTMAP_DIRECTION_0,
-	BSP_LIGHTMAP_DIFFUSE_1,
-	BSP_LIGHTMAP_DIRECTION_1,
+	BSP_LIGHTMAP_DIFFUSE,
+	BSP_LIGHTMAP_DIRECTION,
 	BSP_LIGHTMAP_CAUSTICS,
-	BSP_LIGHTMAP_STAINS,
 	BSP_LIGHTMAP_LAST,
 } bsp_lightmap_texture_t;
 
@@ -110,26 +82,6 @@ typedef enum {
  * @brief Lightgrid luxel size in world units.
  */
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
-
-/**
- * @brief Lightgrid bytes per pixel.
- */
-#define BSP_LIGHTGRID_BPP 3
-
-/**
- * @brief Lightgrid textures.
- */
-#define BSP_LIGHTGRID_TEXTURES 4
-
-/**
- * @brief Fog color and density textures.
- */
-#define BSP_FOG_TEXTURES 1
-
-/**
- * @brief Fog bytes per pixel.
- */
-#define BSP_FOG_BPP 4
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
@@ -338,14 +290,14 @@ typedef struct {
 } bsp_model_t;
 
 typedef enum {
-	LIGHT_INVALID  = 0x0,
-	LIGHT_AMBIENT  = 0x1,
-	LIGHT_SUN      = 0x2,
-	LIGHT_POINT    = 0x4,
-	LIGHT_SPOT     = 0x8,
-	LIGHT_PATCH    = 0x10,
-	LIGHT_INDIRECT = 0x20,
-	LIGHT_DYNAMIC  = 0x40,
+	LIGHT_INVALID    = 0x0,
+	LIGHT_AMBIENT    = 0x1,
+	LIGHT_SUN        = 0x2,
+	LIGHT_POINT      = 0x4,
+	LIGHT_SPOT       = 0x8,
+	LIGHT_BRUSH_SIDE = 0x10,
+	LIGHT_PATCH      = 0x20,
+	LIGHT_DYNAMIC    = 0x40,
 } light_type_t;
 
 typedef enum {
@@ -367,12 +319,13 @@ typedef struct {
 	float size;
 	float intensity;
 	float shadow;
-	float theta;
+	float cone;
+	float falloff;
 	box3_t bounds;
 } bsp_light_t;
 
 /**
- * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
+ * @brief Lightmaps are atlas-packed, layered texture objects of variable size.
  * @details Each layer stores either a color or a directional vector.
  */
 typedef struct {
@@ -380,8 +333,8 @@ typedef struct {
 } bsp_lightmap_t;
 
 /**
- * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
- * @details Each layer is up to 256x256x256 RGB[A] at 24-32bpp.
+ * @brief Lightgrids are layered 3D texture objects of variable size.
+ * @details Each layer is up to 256x256x256.
  */
 typedef struct {
 	vec3i_t size;

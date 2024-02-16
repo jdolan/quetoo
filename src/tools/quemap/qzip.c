@@ -391,8 +391,6 @@ int32_t ZIP_Main(void) {
 	g_list_free(assets);
 	g_hash_table_destroy(paths);
 
-	Mem_FreeTag(MEM_TAG_ASSET);
-
 	const uint32_t end = SDL_GetTicks();
 	Com_Print("\nWrote %s in %d ms\n", path, end - start);
 

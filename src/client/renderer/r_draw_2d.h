@@ -39,4 +39,4 @@ GLint R_StringWidth(const char *s);
 #ifdef __R_LOCAL_H__
 void R_InitDraw2D(void);
 void R_ShutdownDraw2D(void);
-#endif /* __R_LOCAL_H__ */
+#endif

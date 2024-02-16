@@ -30,19 +30,9 @@ layout (location = 6) in vec3 in_next_normal;
 layout (location = 7) in vec3 in_next_tangent;
 layout (location = 8) in vec3 in_next_bitangent;
 
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_caustics;
-uniform sampler3D texture_lightgrid_fog;
-
 uniform mat4 model;
 
 uniform float lerp;
-
-uniform vec4 color;
-
-uniform stage_t stage;
 
 out vertex_data {
 	vec3 model;
@@ -64,9 +54,65 @@ invariant gl_Position;
 /**
  * @brief
  */
+vec3 sample_lightgrid_ambient(in vec3 texcoord) {
+	return texture(texture_lightgrid_ambient, texcoord).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
+	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_direction(in vec3 texcoord) {
+	vec3 direction = texture(texture_lightgrid_direction, texcoord).xyz;
+	return normalize((view * model * vec4(normalize(direction), 0.0)).xyz);
+}
+
+/**
+ * @brief
+ */
+vec3 sample_lightgrid_caustics(in vec3 texcoord) {
+	return texture(texture_lightgrid_caustics, texcoord).rgb;
+}
+
+/**
+ * @brief
+ */
+vec4 sample_lightgrid_fog(in vec3 texcoord) {
+
+	vec4 fog = vec4(0.0);
+
+	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+
+	for (float i = 0; i < samples; i++) {
+
+		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+		vec3 uvw = mix(texcoord, lightgrid.view_coordinate.xyz, i / samples);
+
+		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		if (fog.a >= 1.0) {
+			break;
+		}
+	}
+
+	if (hmax(fog.rgb) > 1.0) {
+		fog.rgb /= hmax(fog.rgb);
+	}
+
+	return clamp(fog, 0.0, 1.0);
+}
+
+/**
+ * @brief
+ */
 void main(void) {
 
-	mat4 model_view = view * model;
+	mat4 view_model = view * model;
 
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
@@ -76,36 +122,29 @@ void main(void) {
 	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
 	vertex.model = vec3(model * position);
-	vertex.position = vec3(model_view * position);
-	vertex.normal = vec3(model_view * normal);
-	vertex.tangent = vec3(model_view * tangent);
-	vertex.bitangent = vec3(model_view * bitangent);
-
+	vertex.position = vec3(view_model * position);
+	vertex.normal = normalize(vec3(view_model * normal));
+	vertex.tangent = normalize(vec3(view_model * tangent));
+	vertex.bitangent = normalize(vec3(view_model * bitangent));
 	vertex.diffusemap = in_diffusemap;
-	vertex.color = color;
+	vertex.color = vec4(1.0);
 
 	if (view_type == VIEW_PLAYER_MODEL) {
-		vertex.ambient = vec3(1.0);
-		vertex.diffuse = vec3(1.0);
+		vertex.ambient = vec3(0.333);
+		vertex.diffuse = vec3(0.666);
 		vertex.direction = vec3(0.0, 0.0, 1.0);
-		vertex.caustics = vec3(0.0);
-		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
 	} else {
-
-		vec3 lightgrid_uvw = lightgrid_uvw(vec3(model * position));
-
-		vertex.ambient = texture(texture_lightgrid_ambient, lightgrid_uvw).rgb;
-		vertex.diffuse = texture(texture_lightgrid_diffuse, lightgrid_uvw).rgb;
-		vec3 direction = texture(texture_lightgrid_direction, lightgrid_uvw).xyz;
-		vertex.direction = (view * vec4(normalize(direction * 2.0 - 1.0), 0.0)).xyz;
-		vertex.caustics = texture(texture_lightgrid_caustics, lightgrid_uvw).rgb;
-		vertex.fog = vec4(0.0, 0.0, 0.0, 1.0);
-
-		lightgrid_fog(vertex.fog, texture_lightgrid_fog, vertex.position, lightgrid_uvw);
-		global_fog(vertex.fog, vertex.position);
+		vec3 texcoord = lightgrid_uvw(vec3(model * position));
+		
+		vertex.ambient = sample_lightgrid_ambient(texcoord);
+		vertex.diffuse = sample_lightgrid_diffuse(texcoord);
+		vertex.direction = sample_lightgrid_direction(texcoord);
+		vertex.caustics = sample_lightgrid_caustics(texcoord);
+		vertex.fog = sample_lightgrid_fog(texcoord);
 	}
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
+

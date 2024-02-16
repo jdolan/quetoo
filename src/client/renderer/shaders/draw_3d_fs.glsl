@@ -29,10 +29,5 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-
 	out_color = vertex.color;
-
-	// postprocessing
-
-	out_color = color_filter(out_color);
 }

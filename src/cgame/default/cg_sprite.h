@@ -40,7 +40,7 @@ typedef enum {
 	 * @brief A beam, or segmented sprite with origin and termination points.
 	 */
 	SPRITE_BEAM		= 1,
-	
+
 } cg_sprite_type_t;
 
 /**
@@ -247,6 +247,11 @@ struct cg_sprite_s {
 	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
+
+	/**
+	 * @brief Sprite bloom scalar.
+	 */
+	float bloom;
 
 	/**
 	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.

@@ -54,13 +54,14 @@ static struct {
 	GLint in_lerp;
 	GLint in_softness;
 	GLint in_lighting;
-	
+	GLint in_bloom;
+
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
-	GLint texture_depth_stencil_attachment;
+	GLint texture_depth_attachment_copy;
 } r_sprite_program;
 
 /**
@@ -278,6 +279,11 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[1].lighting =
 	in->vertexes[2].lighting =
 	in->vertexes[3].lighting = s->lighting;
+
+	in->vertexes[0].bloom =
+	in->vertexes[1].bloom =
+	in->vertexes[2].bloom =
+	in->vertexes[3].bloom = s->bloom;
 }
 
 /**
@@ -295,7 +301,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 	vec2_t texcoords[4];
 	R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
 
-	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+	if (b->flags & SPRITE_BEAM_REPEAT) {
 
 		if (b->stretch) {
 			length *= b->stretch;
@@ -446,12 +452,13 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
+	glEnableVertexAttribArray(r_sprite_program.in_bloom);
 
 	if (r_sprite_soften->value) {
-		R_CopyFramebufferAttachments(view->framebuffer, ATTACHMENT_DEPTH);
+		R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
 	}
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
 	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
 
 	glEnable(GL_DEPTH_TEST);
@@ -534,8 +541,8 @@ static void R_InitSpriteProgram(void) {
 	memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
 	r_sprite_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sprite_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "soften_fs.glsl", "sprite_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);
@@ -553,20 +560,21 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
 	r_sprite_program.in_softness = glGetAttribLocation(r_sprite_program.name, "in_softness");
 	r_sprite_program.in_lighting = glGetAttribLocation(r_sprite_program.name, "in_lighting");
+	r_sprite_program.in_bloom = glGetAttribLocation(r_sprite_program.name, "in_bloom");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_ambient = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_ambient");
 	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	r_sprite_program.texture_depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "texture_depth_stencil_attachment");
+	r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-	glUniform1i(r_sprite_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
 	glUseProgram(0);
 
@@ -590,10 +598,11 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
-	glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
 	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
 	glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+	glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, bloom));
 
 	glGenBuffers(1, &r_sprites.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);

@@ -39,4 +39,4 @@ void R_FreeMedia(r_media_t *media);
 void R_InitMedia(void);
 void R_ShutdownMedia(void);
 
-#endif /* __R_LOCAL_H__ */
+#endif

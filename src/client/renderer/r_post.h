@@ -1,7 +1,7 @@
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
- * Copyright(c) 2006 Quetoo.
+ * Copyright(c) 2006-2011 Quetoo.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,26 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform sampler2D texture_color_attachment;
-uniform sampler2D texture_bloom_attachment;
+#pragma once
 
-in vertex_data {
-	vec2 texcoord;
-} vertex;
+#include "r_types.h"
 
-out vec4 out_color;
+#ifdef __R_LOCAL_H__
 
-/**
- * @brief
- */
-void main(void) {
+void R_DrawPost(const r_view_t *view);
+void R_InitPost(void);
+void R_ShutdownPost(void);
 
-	out_color = texture(texture_color_attachment, vertex.texcoord);
-
-	vec3 bloom_color = vec3(0.0);
-	for (int i = 1; i <= bloom_lod; i++) {
-		bloom_color += textureLod(texture_bloom_attachment, vertex.texcoord, i).rgb * 1.f / float(bloom_lod);
-	}
-
-	out_color.rgb = invert(invert(out_color.rgb) * invert(bloom_color));
-}
+#endif

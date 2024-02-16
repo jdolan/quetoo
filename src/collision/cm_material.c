@@ -642,10 +642,10 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
 	Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
 
-	mat->roughness = DEFAULT_ROUGHNESS;
-	mat->hardness = DEFAULT_HARDNESS;
-	mat->specularity = DEFAULT_SPECULARITY;
-	mat->bloom = DEFAULT_BLOOM;
+	mat->roughness = MATERIAL_ROUGHNESS;
+	mat->hardness = MATERIAL_HARDNESS;
+	mat->specularity = MATERIAL_SPECULARITY;
+	mat->bloom = MATERIAL_BLOOM;
 
 	return mat;
 }
@@ -784,7 +784,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
 			} else if (m->roughness < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
-				m->roughness = DEFAULT_ROUGHNESS;
+				m->roughness = MATERIAL_ROUGHNESS;
 			}
 		}
 
@@ -794,7 +794,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No hardness specified");
 			} else if (m->hardness < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
-				m->hardness = DEFAULT_HARDNESS;
+				m->hardness = MATERIAL_HARDNESS;
 			}
 		}
 
@@ -804,7 +804,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
 			} else if (m->specularity < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
-				m->specularity = DEFAULT_SPECULARITY;
+				m->specularity = MATERIAL_SPECULARITY;
 			}
 		}
 
@@ -814,7 +814,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No bloom specified");
 			} else if (m->bloom < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid bloom value, must be >= 0.0");
-				m->bloom = DEFAULT_BLOOM;
+				m->bloom = MATERIAL_BLOOM;
 			}
 		}
 
@@ -824,7 +824,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No alpha test specified");
 			} else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
-				m->alpha_test = DEFAULT_ALPHA_TEST;
+				m->alpha_test = MATERIAL_ALPHA_TEST;
 			}
 
 			m->surface |= SURF_ALPHA_TEST;
@@ -850,16 +850,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			continue;
 		}
 
-		if (!g_strcmp0(token, "patch_size")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No patch size specified");
-			} else if (m->patch_size < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
-				m->patch_size = 0.f;
-			}
-		}
-
 		if (!g_strcmp0(token, "footsteps")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
@@ -867,20 +857,39 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "light") || !g_strcmp0(token, "light.radius")) {
+		if (!g_strcmp0(token, "light.radius")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
 			} else if (m->light.radius < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
-				m->light.radius = DEFAULT_LIGHT_RADIUS;
+				m->light.radius = MATERIAL_LIGHT_RADIUS;
 			}
 
-			m->light.intensity = m->light.intensity ?: DEFAULT_LIGHT_INTENSITY;
-			m->light.shadow = m->light.shadow ?: DEFAULT_LIGHT_SHADOW;
-			m->light.cone = m->light.cone ?: DEFAULT_LIGHT_CONE;
+			m->light.atten = MATERIAL_LIGHT_ATTEN;
+			m->light.intensity = MATERIAL_LIGHT_INTENSITY;
+			m->light.shadow = MATERIAL_LIGHT_SHADOW;
+			m->light.cone = MATERIAL_LIGHT_CONE;
+			m->light.falloff = MATERIAL_LIGHT_FALLOFF;
 
 			m->surface |= SURF_LIGHT;
+		}
+
+		if (!g_strcmp0(token, "light.atten")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.atten, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light atten specified");
+			} else if (m->light.atten < 1) {
+				Cm_MaterialWarn(path, &parser, "Invalid light atten, must be > 0");
+				m->light.atten = MATERIAL_LIGHT_ATTEN;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.color")) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, m->light.color.xyz, 3) != 3) {
+				Cm_MaterialWarn(path, &parser, "Invalid light color");
+				m->light.color = Vec3_Zero();
+			}
 		}
 
 		if (!g_strcmp0(token, "light.intensity")) {
@@ -889,7 +898,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No light intensity specified");
 			} else if (m->light.intensity <= 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
-				m->light.intensity = DEFAULT_LIGHT_INTENSITY;
+				m->light.intensity = MATERIAL_LIGHT_INTENSITY;
 			}
 		}
 
@@ -899,7 +908,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "No light shadow specified");
 			} else if (m->light.shadow < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light shadow, must be >= 0.0");
-				m->light.shadow = DEFAULT_LIGHT_SHADOW;
+				m->light.shadow = MATERIAL_LIGHT_SHADOW;
 			}
 		}
 
@@ -907,9 +916,19 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.cone, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light cone specified");
-			} else if (m->light.cone < 0.f) {
+			} else if (m->light.cone <= 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
-				m->light.cone = DEFAULT_LIGHT_CONE;
+				m->light.cone = MATERIAL_LIGHT_CONE;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.falloff")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.falloff, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light falloff specified");
+			} else if (m->light.falloff < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light falloff, must be >= 0.0");
+				m->light.falloff = MATERIAL_LIGHT_FALLOFF;
 			}
 		}
 
@@ -1298,29 +1317,44 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->alpha_test) {
-		Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+	if (material->surface & SURF_ALPHA_TEST) {
+
+		if (material->alpha_test != MATERIAL_ALPHA_TEST) {
+			Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+		}
 	}
 
-	if (material->patch_size) {
-		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
+	if (material->surface & SURF_LIGHT) {
+		const vec3_t color = material->light.color;
+
+		if (material->light.atten != MATERIAL_LIGHT_ATTEN) {
+			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
+		}
+
+		if (material->light.radius != MATERIAL_LIGHT_RADIUS) {
+			Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
+		}
+
+		if (!Vec3_Equal(material->light.color, Vec3_Zero())) {
+			Fs_Print(file, "\tlight.color %g %g %g\n", color.x, color.y, color.z);
+		}
+
+		if (material->light.intensity != MATERIAL_LIGHT_INTENSITY) {
+			Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
+		}
+
+		if (material->light.cone != MATERIAL_LIGHT_CONE) {
+			Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
+		}
+
+		if (material->light.falloff != MATERIAL_LIGHT_FALLOFF) {
+			Fs_Print(file, "\tlight.falloff %g\n", material->light.falloff);
+		}
 	}
 
 	// if not empty/default, write footsteps
 	if (*material->footsteps.name && g_strcmp0(material->footsteps.name, "default")) {
 		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
-	}
-
-	if (material->light.radius) {
-		Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
-	}
-
-	if (material->light.intensity) {
-		Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
-	}
-
-	if (material->light.cone) {
-		Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
 	}
 
 	// write stages

@@ -25,4 +25,4 @@
 
 #ifdef __R_LOCAL_H__
 extern const r_model_format_t r_bsp_model_format;
-#endif /* __R_LOCAL_H__ */
+#endif

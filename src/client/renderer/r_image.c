@@ -22,21 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Texture sampling modes.
- */
-typedef struct {
-	/**
-	 * @brief The mode name for setting from the console.
-	 */
-	const char *name;
-
-	/**
-	 * @brief The minification and magnification sampling constants.
-	 */
-	GLenum minify, magnify, minify_no_mip;
-} r_texture_mode_t;
-
-/**
  * @brief Screenshot types.
  */
 typedef enum {
@@ -50,12 +35,12 @@ typedef enum {
  */
 static struct {
 	/**
-	 * @brief The texture sampling mode.
+	 * @brief The maximum supported texture sampling anisotropy level.
 	 */
-	r_texture_mode_t texture_mode;
+	GLfloat max_anisotropy;
 
 	/**
-	 * @brief The texture sampling anisotropy level.
+	 * @brief The current anisotropy level, clamped to `max_anisotropy`.
 	 */
 	GLfloat anisotropy;
 
@@ -64,49 +49,6 @@ static struct {
 	 */
 	r_screenshot_type_t screenshot;
 } r_image_state;
-
-/**
- * @brief Texture sampling modes.
- */
-static const r_texture_mode_t r_texture_modes[] = {
-	{ "GL_NEAREST", GL_NEAREST, GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR", GL_LINEAR, GL_LINEAR, GL_LINEAR },
-	{ "GL_LINEAR_MIPMAP_NEAREST", GL_LINEAR_MIPMAP_NEAREST, GL_NEAREST, GL_NEAREST },
-	{ "GL_LINEAR_MIPMAP_LINEAR", GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR, GL_LINEAR }
-};
-
-/**
- * @brief Sets the texture parameters for mipmapping and anisotropy.
- */
-static void R_TextureMode(void) {
-	size_t i;
-
-	for (i = 0; i < lengthof(r_texture_modes); i++) {
-		if (!g_ascii_strcasecmp(r_texture_modes[i].name, r_texture_mode->string)) {
-			r_image_state.texture_mode = r_texture_modes[i];
-			break;
-		}
-	}
-
-	if (i == lengthof(r_texture_modes)) {
-		Com_Warn("Bad filter name: %s\n", r_texture_mode->string);
-		r_image_state.texture_mode = r_texture_modes[0];
-		return;
-	}
-
-	if (r_anisotropy->value) {
-		if (GLAD_GL_ARB_texture_filter_anisotropic) {
-			GLfloat max_anisotropy;
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max_anisotropy);
-			r_image_state.anisotropy = Minf(max_anisotropy, r_anisotropy->value);
-		} else {
-			Com_Warn("Anisotropy is enabled but not supported by your GPU.\n");
-			Cvar_ForceSetInteger(r_anisotropy->name, 0);
-		}
-	} else {
-		r_image_state.anisotropy = 1.0;
-	}
-}
 
 #define MAX_SCREENSHOTS 1000
 
@@ -161,13 +103,18 @@ void R_Screenshot(r_view_t *view) {
 	switch (r_image_state.screenshot) {
 		case SCREENSHOT_NONE:
 			return;
-		case SCREENSHOT_VIEW:
-			surface = R_ReadFramebuffer(view->framebuffer);
+		case SCREENSHOT_VIEW: {
+			if (r_post->value) {
+				R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_POST, &surface);
+			} else {
+				R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
+			}
+		}
 			break;
 		default:
 			surface = SDL_CreateRGBSurfaceWithFormat(0,
-													 r_context.drawable_width,
-													 r_context.drawable_height,
+													 view->framebuffer->width,
+													 view->framebuffer->height,
 													 24,
 													 SDL_PIXELFORMAT_RGB24);
 
@@ -195,24 +142,6 @@ void R_Screenshot_f(void) {
 }
 
 /**
- * @brief
- */
-static GLenum R_GetInternalImageFormat(const r_image_t *image) {
-
-	switch (image->format) {
-		case GL_RED:
-			return GL_R8;
-		case GL_RGBA:
-			return GL_RGBA8;
-		case GL_RGB:
-			return GL_RGB8;
-		default:
-			Com_Error(ERROR_DROP, "Unsupported format %d\n", image->format);
-
-	}
-}
-
-/**
  * @brief Creates the base image state for the image.
  */
 void R_SetupImage(r_image_t *image) {
@@ -222,7 +151,30 @@ void R_SetupImage(r_image_t *image) {
 	assert(image->width);
 	assert(image->height);
 	assert(image->target);
+	assert(image->internal_format);
 	assert(image->format);
+	assert(image->pixel_type);
+
+	if (image->minify == 0) {
+		image->minify = GL_LINEAR_MIPMAP_LINEAR;
+	}
+
+	if (image->magnify == 0) {
+		image->magnify = GL_LINEAR;
+	}
+
+	if (image->levels == 0) {
+		switch (image->type) {
+			case IMG_ATLAS:
+			case IMG_SPRITE:
+			case IMG_MATERIAL:
+				image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
+				break;
+			default:
+				image->levels = 1;
+				break;
+		}
+	}
 
 	if (image->texnum == 0) {
 		glGenTextures(1, &(image->texnum));
@@ -230,45 +182,28 @@ void R_SetupImage(r_image_t *image) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (image->type & IT_MASK_MIPMAP) {
-		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify);
-		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+	glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
+	glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
+	glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
 
-		if (r_image_state.anisotropy > 1.f) {
-			glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
-		}
-	} else {
-		glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, r_image_state.texture_mode.minify_no_mip);
-		glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, r_image_state.texture_mode.magnify);
+	switch (image->type) {
+		case IMG_LIGHTMAP:
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			break;
+		case IMG_CUBEMAP:
+		case IMG_LIGHTGRID:
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		default:
+			break;
 	}
 
-	if (image->type & IT_MASK_CLAMP_EDGE) {
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	if (image->depth) {
+		glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
 	} else {
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_REPEAT);
-	}
-
-	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
-
-		GLsizei levels = 1;
-		if (image->type & IT_MASK_MIPMAP) {
-			if (image->depth && image->target == GL_TEXTURE_3D) {
-				levels = floorf(log2f(Mini(Mini(image->width, image->height), image->depth))) + 1;
-			} else {
-				levels = floorf(log2f(Mini(image->width, image->height))) + 1;
-			}
-		}
-		
-		const GLenum internal_format = R_GetInternalImageFormat(image);
-		if (image->depth) {
-			glTexStorage3D(image->target, levels, internal_format, image->width, image->height, image->depth);
-		} else {
-			glTexStorage2D(image->target, levels, internal_format, image->width, image->height);
-		}
+		glTexStorage2D(image->target, image->levels, image->internal_format, image->width, image->height);
 	}
 
 	R_RegisterMedia((r_media_t *) image);
@@ -279,14 +214,13 @@ void R_SetupImage(r_image_t *image) {
 /**
  * @brief Uploads the given pixel data to the specified image and target.
  * @param image The image.
- * @param target The target, which may be different than the image's bind target.
+ * @param target The upload target, which may be different from the image's bind target.
  * @param data The pixel data.
  */
-void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
+void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
 
 	assert(image);
 	assert(target);
-	assert(data);
 
 	if (image->texnum == 0) {
 		R_SetupImage(image);
@@ -294,23 +228,15 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 
 	glBindTexture(image->target, image->texnum);
 
-	if (r_texture_storage->integer && GLAD_GL_ARB_texture_storage) {
-		if (image->depth) {
-			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, GL_UNSIGNED_BYTE, data);
+	if (data) {
+		if (image->depth > 1) {
+			glTexSubImage3D(target, 0, 0, 0, 0, image->width, image->height, image->depth, image->format, image->pixel_type, data);
 		} else {
-			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, GL_UNSIGNED_BYTE, data);
-		}
-	} else {
-		const GLenum internal_format = R_GetInternalImageFormat(image);
-
-		if (image->depth) {
-			glTexImage3D(target, 0, internal_format, image->width, image->height, image->depth, 0, image->format, GL_UNSIGNED_BYTE, data);
-		} else {
-			glTexImage2D(target, 0, internal_format, image->width, image->height, 0, image->format, GL_UNSIGNED_BYTE, data);
+			glTexSubImage2D(target, 0, 0, 0, image->width, image->height, image->format, image->pixel_type, data);
 		}
 	}
 
-	if (image->type & IT_MASK_MIPMAP) {
+	if (image->levels > 1) {
 		glGenerateMipmap(image->target);
 	}
 
@@ -318,14 +244,25 @@ void R_UploadImage(r_image_t *image, GLenum target, byte *data) {
 }
 
 /**
+ * @brief Uploads the given pixel data to the specified image.
+ * @param image The image.
+ * @param data The pixel data.
+ */
+void R_UploadImage(r_image_t *image, const void *data) {
+
+	R_UploadImageTarget(image, image->target, data);
+}
+
+
+/**
  * @brief Retain event listener for images.
  */
 _Bool R_RetainImage(r_media_t *self) {
 
-	switch (((r_image_t *) self)->type & ~IT_MASK_FLAGS) {
-		case IT_PROGRAM:
-		case IT_FONT:
-		case IT_UI:
+	switch (((r_image_t *) self)->type) {
+		case IMG_PROGRAM:
+		case IMG_FONT:
+		case IMG_UI:
 			return true;
 		default:
 			return false;
@@ -381,12 +318,14 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
 	image->type = type;
 
-	if (type == IT_CUBEMAP) {
-		image->target = GL_TEXTURE_CUBE_MAP;
-		image->format = GL_RGB;
-		
+	if (type == IMG_CUBEMAP) {
+
 		image->width = surface->w / 4;
 		image->height = surface->h / 3;
+		image->target = GL_TEXTURE_CUBE_MAP;
+		image->internal_format = GL_RGB8;
+		image->format = GL_RGB;
+		image->pixel_type = GL_UNSIGNED_BYTE;
 
 		// right left front back up down
 		const vec2s_t offsets[] = {
@@ -433,7 +372,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 				}
 			}
 
-			R_UploadImage(image, target, side->pixels);
+			R_UploadImageTarget(image, target, side->pixels);
 
 			SDL_FreeSurface(side);
 		}
@@ -441,9 +380,11 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->width = surface->w;
 		image->height = surface->h;
 		image->target = GL_TEXTURE_2D;
+		image->internal_format = GL_RGBA8;
 		image->format = GL_RGBA;
+		image->pixel_type = GL_UNSIGNED_BYTE;
 
-		R_UploadImage(image, image->target, surface->pixels);
+		R_UploadImage(image, surface->pixels);
 	}
 		
 	SDL_FreeSurface(surface);
@@ -481,11 +422,11 @@ static void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap
 	glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_HEIGHT, &height);
 	glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_DEPTH, &depth);
 
-	if (image->type == IT_CUBEMAP) {
+	if (image->type == IMG_CUBEMAP) {
 		depth = 6;
 	}
 
-	if ((image->type & IT_MASK_MIPMAP) && mipmap) {
+	if (image->levels > 1) {
 		glGetTexParameteriv(image->target, GL_TEXTURE_MAX_LEVEL, &mips);
 	} else {
 		mips = 0;
@@ -600,13 +541,14 @@ void R_DumpImages_f(void) {
  */
 void R_InitImages(void) {
 
-	// set up alignment parameters.
+	// set up alignment parameters
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	memset(&r_image_state, 0, sizeof(r_image_state));
 
-	R_TextureMode();
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.max_anisotropy);
+	r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
 
 	R_GetError(NULL);
 	

@@ -304,7 +304,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
 			char path[MAX_QPATH];
 			g_snprintf(path, sizeof(path), "pics/emoji/%s", name);
 
-			const r_image_t *emoji = R_LoadImage(path, IT_PIC) ?: r_draw_2d.null_texture;
+			const r_image_t *emoji = R_LoadImage(path, IMG_PIC) ?: r_draw_2d.null_texture;
 
 			R_Draw2DImage(x, y, r_draw_2d.font->char_height, r_draw_2d.font->char_height, emoji, color_white);
 			x += r_draw_2d.font->char_height;
@@ -606,7 +606,7 @@ static void R_InitFont(char *name) {
 
 	g_strlcpy(font->name, name, sizeof(font->name));
 
-	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
+	font->image = R_LoadImage(va("fonts/%s", name), IMG_FONT);
 	assert(font->image);
 
 	font->char_width = font->image->width / r_context.window_scale / 16;
@@ -658,7 +658,7 @@ void R_InitDraw2D(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IT_PROGRAM);
+	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IMG_PROGRAM);
 	assert(r_draw_2d.null_texture);
 	
 	glGenVertexArrays(1, &r_draw_2d.vertex_array);

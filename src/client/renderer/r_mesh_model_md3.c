@@ -472,7 +472,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
  */
 const r_model_format_t r_md3_model_format = {
 	.extension = "md3",
-	.type = MOD_MESH,
+	.type = MODEL_MESH,
 	.Load = R_LoadMd3Model,
 	.Register = R_RegisterMeshModel,
 	.Free = R_FreeMeshModel,

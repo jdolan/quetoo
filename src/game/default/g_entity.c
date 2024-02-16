@@ -770,7 +770,6 @@ static void G_WorldspawnMusic(void) {
  brightness : Global light scale, a single positive scalar value (e.g. 1.125).
  saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
  contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
- patch_size : Surface light patch size (default 64).
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."

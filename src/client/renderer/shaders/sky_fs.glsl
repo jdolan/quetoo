@@ -19,12 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform samplerCube texture_cubemap;
-uniform sampler3D texture_lightgrid_fog;
-
-uniform material_t material;
-
 in vertex_data {
+	vec3 model;
 	vec3 position;
 	vec3 cubemap;
 	vec3 lightgrid;
@@ -36,15 +32,42 @@ layout (location = 1) out vec4 out_bloom;
 /**
  * @brief
  */
+vec4 sample_lightgrid_fog() {
+
+	vec4 fog = vec4(0.0);
+
+	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+
+	for (float i = 0; i < samples; i++) {
+
+		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+		vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, i / samples);
+
+		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		if (fog.a >= 1.0) {
+			break;
+		}
+	}
+
+	if (hmax(fog.rgb) > 1.0) {
+		fog.rgb /= hmax(fog.rgb);
+	}
+
+	return clamp(fog, 0.0, 1.0);
+}
+
+/**
+ * @brief
+ */
 void main(void) {
 
-	out_color = texture(texture_cubemap, normalize(vertex.cubemap));
+	out_color = texture(texture_sky, normalize(vertex.cubemap));
+	out_color.rgb = pow(out_color.rgb, vec3(gamma));
 
-	out_bloom.rgb = clamp(out_color.rgb * material.bloom - 1.0, 0.0, 1.0);
+	vec4 fog = sample_lightgrid_fog();
+	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
+
+	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
 
-	lightgrid_fog(out_color, texture_lightgrid_fog, vertex.position, vertex.lightgrid);
-	global_fog(out_color, vec3(fog_depth_range.y));
-
-	out_color = postprocess(out_color);
 }

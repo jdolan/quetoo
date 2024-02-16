@@ -218,31 +218,11 @@ static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
 		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
-			indirect_intensity = 0.f;
+			patch_intensity = 0.f;
 			Com_Verbose("indirect: false\n");
 		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
-			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness: %g\n", brightness);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--saturation")) {
-			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation: %g\n", saturation);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--contrast")) {
-			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast: %g\n", contrast);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--luxel-size")) {
-			luxel_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("luxel size: %d\n", luxel_size);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
-			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("patch size: %d\n", patch_size);
-			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
 			ambient_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("ambient intensity: %g\n", ambient_intensity);
@@ -251,28 +231,30 @@ static void Check_LIGHT_Options(int32_t argc) {
 			sun_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("sun intensity: %g\n", sun_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--light-intensity")) {
-			light_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("light intensity: %g\n", light_intensity);
+		} else if (!g_strcmp0(Com_Argv(i), "--point-intensity")) {
+			point_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("point intensity: %g\n", point_intensity);
+			i++;
+		}  else if (!g_strcmp0(Com_Argv(i), "--spot-intensity")) {
+			spot_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("spot intensity: %g\n", spot_intensity);
+			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--face-intensity")) {
+			face_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("face intensity: %g\n", face_intensity);
 			i++;
 		} else if (!g_strcmp0(Com_Argv(i), "--patch-intensity")) {
 			patch_intensity = atof(Com_Argv(i + 1));
 			Com_Verbose("patch intensity: %g\n", patch_intensity);
 			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--indirect-intensity")) {
-			indirect_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("indirect intensity: %g\n", indirect_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--caustics")) {
-			caustics = atof(Com_Argv(i + 1));
-			Com_Verbose("caustics: %g\n", caustics);
+		} else if (!g_strcmp0(Com_Argv(i), "--caustic-intensity")) {
+			caustic_intensity = atof(Com_Argv(i + 1));
+			Com_Verbose("caustic intensity: %g\n", caustic_intensity);
 			i++;
 		} else {
 			break;
 		}
 	}
-
-	patch_size = Maxf(patch_size, luxel_size);
 }
 
 /**
@@ -317,7 +299,7 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" --micro_volume <float>\n");
+	Com_Print(" --micro-volume <float>\n");
 	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
 	Com_Print(" --no-liquid - skip liquid brushes\n");
@@ -331,17 +313,16 @@ static void PrintHelpMessage(void) {
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
 	Com_Print(" --no-indirect - skip indirect lighting\n");
-	Com_Print(" --bounce <integer> - indirect lighting bounces (default 1)\n");
 	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
 	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
 	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
-	Com_Print(" --ambient-brightness <float> - ambient light brightness (default 1.0)\n");
-	Com_Print(" --sun-brightness <float> - sun light brightness (default 1.0)\n");
-	Com_Print(" --light-brightness <float> - entity light brightness (default 1.0)\n");
-	Com_Print(" --patch-brightness <float> - patch light brightness (default 1.0)\n");
-	Com_Print(" --indirect-brightness <float> - indirect light brightness (default 1.0)\n");
-	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
-	Com_Print(" --patch-size <float> - patch size (default 16)\n");
+	Com_Print(" --ambient-intensity <float> - ambient light intensity (default 1.0)\n");
+	Com_Print(" --sun-intensity <float> - sun light intensity (default 1.0)\n");
+	Com_Print(" --point-intensity <float> - point light intensity (default 1.0)\n");
+	Com_Print(" --spot-intensity <float> - spot light intensity (default 1.0)\n");
+	Com_Print(" --face-intensity <float> - face light intensity (default 1.0)\n");
+	Com_Print(" --patch-intensity <float> - patch light intensity (default 1.0)\n");
+	Com_Print(" --caustics-intensity <float> - caustics light intensity (default 1.0)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
@@ -352,9 +333,9 @@ static void PrintHelpMessage(void) {
 	Com_Print("Examples:\n");
 	Com_Print("Materials file generation:\n"
 			  " quemap -mat maps/my.map\n");
-	Com_Print("Development compile with rough lighting:\n"
+	Com_Print("Development compile:\n"
 			  " quemap -bsp -light maps/my.map\n");
-	Com_Print("Final compile with expensive lighting:\n"
+	Com_Print("Release compile with high quality lighting:\n"
 	          " quemap -bsp -light --antialias maps/my.map\n");
 	Com_Print("Zip file generation:\n"
 			  " quemap -zip maps/my.bsp\n");
@@ -413,6 +394,7 @@ int32_t main(int32_t argc, char **argv) {
 		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
 			Com_SetDebug("all");
 			debug = true;
+			verbose = true;
 			continue;
 		}
 
