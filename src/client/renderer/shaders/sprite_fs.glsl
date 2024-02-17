@@ -46,7 +46,8 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
-	out_color.rgb += vertex.fog.rgb * out_color.a;
+	vec4 fog = vertex.fog * out_color.a;
+	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
 
 	out_bloom.rgb = max(out_color.rgb * vertex.bloom * bloom - 1.0, 0.0);
 	out_bloom.a = out_color.a;
