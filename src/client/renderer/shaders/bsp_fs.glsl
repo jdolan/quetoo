@@ -187,8 +187,8 @@ vec3 sample_lightgrid_diffuse() {
  * @brief
  */
 vec3 sample_lightgrid_direction() {
-	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz;
-	return normalize((view * model * vec4(normalize(direction), 0.0)).xyz);
+	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz * 2.0 - 1.0;
+	return vec3(view * vec4(normalize(direction), 0.0));
 }
 
 /**

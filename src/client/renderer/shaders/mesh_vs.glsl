@@ -69,8 +69,8 @@ vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
  * @brief
  */
 vec3 sample_lightgrid_direction(in vec3 texcoord) {
-	vec3 direction = texture(texture_lightgrid_direction, texcoord).xyz;
-	return normalize((view * model * vec4(normalize(direction), 0.0)).xyz);
+	vec3 direction = texture(texture_lightgrid_direction, texcoord).xyz * 2.0 - 1.0;
+	return vec3(view * vec4(normalize(direction), 0.0));
 }
 
 /**
@@ -135,7 +135,7 @@ void main(void) {
 		vertex.direction = vec3(0.0, 0.0, 1.0);
 	} else {
 		vec3 texcoord = lightgrid_uvw(vec3(model * position));
-		
+
 		vertex.ambient = sample_lightgrid_ambient(texcoord);
 		vertex.diffuse = sample_lightgrid_diffuse(texcoord);
 		vertex.direction = sample_lightgrid_direction(texcoord);
