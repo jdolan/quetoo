@@ -206,12 +206,17 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
 	light->bounds = Box3_Expand(light->bounds, light->radius);
 
-	// TODO: No points, free it?
-
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
 
 	g_array_free(points, false);
+
+	if (light->num_points == 0) {
+		Mon_SendPoint(MON_WARN, light->origin, "Light in solid");
+		FreeLight(light);
+		return NULL;
+	}
+
 	return light;
 }
 
@@ -304,6 +309,12 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
+
+	if (light->num_points == 0) {
+		Mon_SendPoint(MON_WARN, light->origin, "Light in solid");
+		FreeLight(light);
+		return NULL;
+	}
 
 	g_array_free(points, false);
 	return light;
