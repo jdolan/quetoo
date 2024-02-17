@@ -26,6 +26,7 @@
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
+#define LIGHT_SIZE 1.f
 #define LIGHT_SHADOW 1.f
 
 #define LIGHT_AMBIENT_RADIUS 256.f

@@ -157,7 +157,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForEntity_point(const cm_entity_t *entity) {
+static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
 	light_t *light = AllocLight();
 
@@ -167,7 +167,7 @@ static light_t *LightForEntity_point(const cm_entity_t *entity) {
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
-	light->size = Cm_EntityValue(entity, "_size")->value;
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE;
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -228,7 +228,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
-	light->size = Cm_EntityValue(entity, "_size")->value;
+	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE;
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -320,7 +320,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 	} else if (!g_strcmp0(class_name, "light_sun")) {
 		return LightForEntity_light_sun(entity);
 	} else if (!g_strcmp0(class_name, "light")) {
-		return LightForEntity_point(entity);
+		return LightForEntity_light(entity);
 	} else if (!g_strcmp0(class_name, "light_spot")) {
 		return LightForEntity_light_spot(entity);
 	} else {
