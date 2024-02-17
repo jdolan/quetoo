@@ -160,7 +160,7 @@ static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const c
 				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
 				ci->icon = cgi.LoadImage(path, IMG_PIC);
 
-				if (ci->icon->type == IMG_PIC) {
+				if (ci->icon) {
 					return true;
 				}
 			}
