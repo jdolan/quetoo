@@ -257,8 +257,10 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	x = HUD_PIC_HEIGHT / 2;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
 
-	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IMG_PIC);
-	cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag), IMG_PIC);
+	if (icon) {
+		cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+	}
 }
 
 /**
@@ -598,10 +600,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		}
 
 		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IMG_PIC);
-
 		if (crosshair.image == NULL) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
-			return;
 		}
 	}
 

@@ -149,10 +149,12 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 		atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
 	}
-	
+
 	atlas->image->internal_format = GL_RGBA8;
 	atlas->image->format = GL_RGBA;
 	atlas->image->pixel_type = GL_UNSIGNED_BYTE;
+	atlas->image->minify = GL_LINEAR_MIPMAP_LINEAR;
+	atlas->image->magnify = GL_LINEAR;
 
 	atlas->image->width = 0;
 

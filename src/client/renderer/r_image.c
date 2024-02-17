@@ -154,20 +154,13 @@ void R_SetupImage(r_image_t *image) {
 	assert(image->internal_format);
 	assert(image->format);
 	assert(image->pixel_type);
-
-	if (image->minify == 0) {
-		image->minify = GL_LINEAR_MIPMAP_LINEAR;
-	}
-
-	if (image->magnify == 0) {
-		image->magnify = GL_LINEAR;
-	}
+	assert(image->minify);
+	assert(image->magnify);
 
 	if (image->levels == 0) {
-		switch (image->type) {
-			case IMG_ATLAS:
-			case IMG_SPRITE:
-			case IMG_MATERIAL:
+		switch (image->minify) {
+			case GL_LINEAR_MIPMAP_LINEAR:
+			case GL_LINEAR_MIPMAP_NEAREST:
 				image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
 				break;
 			default:
@@ -326,6 +319,8 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->internal_format = GL_RGB8;
 		image->format = GL_RGB;
 		image->pixel_type = GL_UNSIGNED_BYTE;
+		image->magnify = GL_LINEAR;
+		image->minify = GL_LINEAR_MIPMAP_LINEAR;
 
 		// right left front back up down
 		const vec2s_t offsets[] = {
@@ -383,6 +378,8 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->internal_format = GL_RGBA8;
 		image->format = GL_RGBA;
 		image->pixel_type = GL_UNSIGNED_BYTE;
+		image->magnify = GL_LINEAR;
+		image->minify = GL_LINEAR_MIPMAP_LINEAR;
 
 		R_UploadImage(image, surface->pixels);
 	}

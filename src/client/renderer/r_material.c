@@ -233,6 +233,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	material->texture->internal_format = GL_RGBA8;
 	material->texture->format = GL_RGBA;
 	material->texture->pixel_type = GL_UNSIGNED_BYTE;
+	material->texture->minify = GL_LINEAR_MIPMAP_LINEAR;
+	material->texture->magnify = GL_LINEAR;
 
 	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 

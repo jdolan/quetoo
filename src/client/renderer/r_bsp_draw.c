@@ -822,6 +822,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.warp_image->internal_format = GL_RGBA8;
 	r_bsp_program.warp_image->format = GL_RGBA;
 	r_bsp_program.warp_image->pixel_type = GL_UNSIGNED_BYTE;
+	r_bsp_program.warp_image->minify = GL_LINEAR_MIPMAP_LINEAR;
+	r_bsp_program.warp_image->magnify = GL_LINEAR;
 
 	byte data[WARP_IMAGE_SIZE][WARP_IMAGE_SIZE][4];
 
