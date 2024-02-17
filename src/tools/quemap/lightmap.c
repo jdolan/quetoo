@@ -322,7 +322,7 @@ static void LightmapLuxel_Sun(light_t *light, const lightmap_t *lightmap, luxel_
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
-		const vec3_t dir = Vec3_Negate(light->points[i]);
+		const vec3_t dir = Vec3_Add(Vec3_Negate(light->points[i]), Vec3_RandomRange(-0.005f, +0.005f));
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
