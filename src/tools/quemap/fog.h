@@ -26,10 +26,15 @@
 #define FOG_COLOR Vec3(1.f, 1.f, 1.f)
 
 /**
- * @brief This is the fog alpha value. At 0.03125 (1/32), it will take 32 samples, or 1024 world
- * units, to completely obscure an object within the fog.
+ * @brief The fog density, or alpha value.
  */
-#define FOG_DENSITY 0.03125f
+#define FOG_DENSITY 1.f
+
+/**
+ * @brief At 0.03125 (1/32), it will take 32 samples, or 1024 world units, to completely obscure
+ * an object within the fog.
+ */
+#define FOG_DENSITY_SCALAR 0.03125f
 
 /**
  * @brief Diffuse light is multiplied and scaled by the fog color to produce the final fog sample.

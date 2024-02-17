@@ -564,7 +564,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
 
-		float density = Clampf(fog->density * scale, 0.f, 1.f);
+		float density = Clampf(fog->density * scale * FOG_DENSITY_SCALAR, 0.f, 1.f);
 
 		switch (fog->type) {
 			case FOG_VOLUME:
