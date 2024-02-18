@@ -331,7 +331,7 @@ void light_and_shadow_point(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -362,7 +362,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -393,7 +393,7 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -443,7 +443,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 	diffuse *= lambert;
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	diffuse *= shadow;
 
