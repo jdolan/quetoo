@@ -60,12 +60,7 @@ static struct {
  */
 static struct {
 	/**
-	 * @brief Directional light sources target a layer in the texture array.
-	 */
-	GLuint texture_array;
-
-	/**
-	 * @brief Point light sources target a layer in the cubemap array.
+	 * @brief Each light source targets a layer in the cubemap array.
 	 */
 	GLuint cubemap_array;
 
@@ -234,29 +229,17 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
  */
 static void R_ClearShadow(const r_view_t *view, const r_light_t *l) {
 
-	if (l->type == LIGHT_AMBIENT || l->type == LIGHT_SUN) {
+	for (int32_t i = 0; i < 6; i++) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
-								  r_shadows.texture_array,
+								  r_shadows.cubemap_array,
 								  0,
-								  l->index);
+								  l->index * 6 + i);
 
 		glClear(GL_DEPTH_BUFFER_BIT);
-
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.texture_array, 0);
-	} else {
-		for (int32_t i = 0; i < 6; i++) {
-			glFramebufferTextureLayer(GL_FRAMEBUFFER,
-									  GL_DEPTH_ATTACHMENT,
-									  r_shadows.cubemap_array,
-									  0,
-									  l->index * 6 + i);
-
-			glClear(GL_DEPTH_BUFFER_BIT);
-		}
-
-		glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
 	}
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
 }
 
 /**
@@ -374,22 +357,6 @@ static void R_InitShadowProgram(void) {
 static void R_InitShadowTextures(void) {
 
 	const GLsizei size = r_shadowmap_size->integer;
-
-	glGenTextures(1, &r_shadows.texture_array);
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, r_shadows.texture_array);
-
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHT_UNIFORMS, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
 	glGenTextures(1, &r_shadows.cubemap_array);
 	

@@ -103,49 +103,6 @@ static void Cg_AddBspLights(void) {
 /**
  * @brief
  */
-static void Cg_AddAmbientLights(void) {
-
-	const r_entity_t *e = cgi.view->entities;
-	for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
-
-		if (!IS_BSP_INLINE_MODEL(e->model)) {
-			continue;
-		}
-
-		if (e->effects & EF_NO_SHADOW) {
-			continue;
-		}
-
-		r_light_t light = {
-			.type = LIGHT_AMBIENT,
-			.origin = Box3_Center(e->abs_model_bounds),
-			.bounds = e->abs_model_bounds,
-			.normal = Vec3_Down(),
-			.entities[0] = e,
-			.num_entities = 1,
-			.shadow = 1.f,
-		};
-
-		const r_bsp_inline_model_t *in = e->model->bsp_inline;
-		const cm_entity_t *cm = cgi.EntityValue(in->def, "classname");
-		if (!g_strcmp0(cm->string, "func_rotating") ||
-			!g_strcmp0(cm->string, "func_door_rotating")) {
-			light.origin = e->origin;
-		}
-
-		light.bounds = Box3_Expand3(light.bounds, Vec3_Scale(Box3_Size(light.bounds), .125f));
-		light.bounds.mins.z -= Box3_Extents(light.bounds).z;
-
-		light.origin = Vec3_Fmaf(light.origin, Box3_Size(light.bounds).z * 1.5, Vec3_Up());
-		light.radius = Vec3_Distance(light.origin, light.bounds.mins);
-
-		cgi.AddLight(cgi.view, &light);
-	}
-}
-
-/**
- * @brief
- */
 void Cg_AddLights(void) {
 
 	if (!cg_add_lights->value) {
@@ -186,8 +143,6 @@ void Cg_AddLights(void) {
 	}
 
 	Cg_AddBspLights();
-
-	Cg_AddAmbientLights();
 }
 
 /**

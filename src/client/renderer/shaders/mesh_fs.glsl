@@ -132,22 +132,6 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
-float sample_shadowmap(in light_t light, in int index) {
-
-	if (shadows == 0) {
-		return 1.0;
-	}
-
-	vec4 position = vec4(light.model.xyz - vertex.model, 1.0);
-	vec4 projected = light_projection * position;
-	vec2 shadowmap = (projected.xy / projected.w) * 0.5 + 0.5;
-
-	return texture(texture_shadowmap, vec4(shadowmap, index, length(position.xyz) / depth_range.y));
-}
-
-/**
- * @brief
- */
 float sample_shadowmap_cube(in light_t light, in int index) {
 
 	if (shadows == 0) {
