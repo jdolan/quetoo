@@ -367,7 +367,7 @@ static void R_InitLocal(void) {
 	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
-	r_occlusion_query_size = Cvar_Add("r_occlusion_query_size", "256", CVAR_DEVELOPER, "Controls the occlusion query size (developer tool)");
+	r_occlusion_query_size = Cvar_Add("r_occlusion_query_size", "128", CVAR_DEVELOPER, "Controls the occlusion query size (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
@@ -389,7 +389,7 @@ static void R_InitLocal(void) {
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
 	r_shadowmap = Cvar_Add("r_shadowmap", "2", CVAR_ARCHIVE, "Controls dynamic shadows.");
-	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
+	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
