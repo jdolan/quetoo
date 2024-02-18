@@ -322,7 +322,7 @@ static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r
 			if (b) {
 				R_DestroyNodeOcclusionQueries(node->children[1]);
 			}
-			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, 1.f));
+			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, ON_EPSILON));
 			return true;
 		}
 	}
