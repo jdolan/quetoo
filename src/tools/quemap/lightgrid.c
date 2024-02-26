@@ -280,7 +280,7 @@ static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 /**
  * @brief
  */
-static void LightgridLuxel_Face(light_t *light, luxel_t *luxel, float scale) {
+static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models) {
 		return;
@@ -395,7 +395,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 				LightgridLuxel_Spot(light, luxel, scale);
 				break;
 			case LIGHT_BRUSH_SIDE:
-				LightgridLuxel_Face(light, luxel, scale);
+				LightgridLuxel_BrushSide(light, luxel, scale);
 				break;
 			case LIGHT_PATCH:
 				LightgridLuxel_Patch(light, luxel, scale);

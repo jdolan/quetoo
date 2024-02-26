@@ -436,7 +436,7 @@ static void LightmapLuxel_Spot(light_t *light, const lightmap_t *lightmap, luxel
 /**
  * @brief
  */
-static void LightmapLuxel_Face(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
+static void LightmapLuxel_BrushSide(light_t *light, const lightmap_t *lightmap, luxel_t *luxel, float scale) {
 
 	if (light->model != bsp_file.models && light->model != lightmap->model) {
 		return;
@@ -552,7 +552,7 @@ static inline void LightmapLuxel(const GPtrArray *lights, const lightmap_t *ligh
 				LightmapLuxel_Spot(light, lightmap, luxel, scale);
 				break;
 			case LIGHT_BRUSH_SIDE:
-				LightmapLuxel_Face(light, lightmap, luxel, scale);
+				LightmapLuxel_BrushSide(light, lightmap, luxel, scale);
 				break;
 			case LIGHT_PATCH:
 				LightmapLuxel_Patch(light, lightmap, luxel, scale);
