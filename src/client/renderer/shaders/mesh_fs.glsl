@@ -145,14 +145,6 @@ float sample_shadowmap_cube(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_ambient(in light_t light, in int index) {
-
-	// Don't bother with self-shadowing ambient on mesh models
-}
-
-/**
- * @brief
- */
 void light_and_shadow_sun(in light_t light, in int index) {
 
 	vec3 light_pos = light.position.xyz;
@@ -350,9 +342,6 @@ void light_and_shadow(void) {
 
 		int type = int(light.position.w);
 		switch (type) {
-			case LIGHT_AMBIENT:
-				light_and_shadow_ambient(light, index);
-				break;
 			case LIGHT_SUN:
 				light_and_shadow_sun(light, index);
 				break;
