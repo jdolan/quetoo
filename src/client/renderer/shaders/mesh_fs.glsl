@@ -61,7 +61,7 @@ uniform vec4 tint_colors[3];
 /**
  * @brief
  */
-vec4 sample_material() {
+vec4 sample_diffusemap() {
 	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
 }
 
@@ -379,7 +379,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_material() * vertex.color * color;
+		fragment.diffusemap = sample_diffusemap() * vertex.color * color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;

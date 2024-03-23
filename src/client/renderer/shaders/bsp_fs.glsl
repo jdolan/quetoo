@@ -64,8 +64,8 @@ struct fragment_t {
 /**
  * @brief
  */
-vec4 sample_material() {
-	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
+vec4 sample_diffusemap() {
+	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(1.0 / gamma), 1.0));
 }
 
 /**
@@ -454,7 +454,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_material() * vertex.color;
+		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
