@@ -40,6 +40,4 @@ void main(void) {
 		float exposure = lightgrid.view_coordinate.w;
 		out_color.rgb += out_color.rgb * hdr * 0.5 / exposure;
 	}
-
-	out_color.rgb = pow(out_color.rgb, vec3(1.0 / gamma));
 }

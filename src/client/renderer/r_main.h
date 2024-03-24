@@ -33,7 +33,6 @@ extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
-extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
 extern cvar_t *r_hdr;
 extern cvar_t *r_height;
@@ -171,11 +170,6 @@ typedef struct {
 		 * @brief The shadows debugging mask.
 		 */
 		int32_t shadows;
-
-		/**
-		 * @brief The gamma scalar.
-		 */
-		float gamma;
 
 		/**
 		 * @brief The modulate scalar.

@@ -172,20 +172,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Gamma"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_gamma"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Modulate"
                           }
                         },

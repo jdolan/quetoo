@@ -62,7 +62,7 @@ uniform vec4 tint_colors[3];
  * @brief
  */
 vec4 sample_diffusemap() {
-	return pow(texture(texture_material, vec3(vertex.diffusemap, 0)), vec4(vec3(gamma), 1.0));
+	return texture(texture_material, vec3(vertex.diffusemap, 0));
 }
 
 /**
@@ -112,7 +112,7 @@ vec4 sample_tintmap() {
  * @brief
  */
 vec4 sample_material_stage() {
-	return pow(texture(texture_stage, vertex.diffusemap), vec4(vec3(gamma), 1.0));
+	return texture(texture_stage, vertex.diffusemap);
 }
 
 /**

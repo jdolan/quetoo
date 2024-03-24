@@ -56,7 +56,6 @@ cvar_t *r_finish;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
-cvar_t *r_gamma;
 cvar_t *r_hardness;
 cvar_t *r_hdr;
 cvar_t *r_height;
@@ -133,8 +132,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	memset(out, 0, sizeof(*out));
 
 	out->projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
-
-	out->gamma = r_gamma->value;
 
 	if (view) {
 		out->viewport = view->viewport;
@@ -380,7 +377,6 @@ static void R_InitLocal(void) {
 	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
-	r_gamma = Cvar_Add("r_gamma", "2.2", CVAR_ARCHIVE, "Controls video gamma (brightness)");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

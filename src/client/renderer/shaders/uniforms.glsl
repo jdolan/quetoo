@@ -111,11 +111,6 @@ layout (std140) uniform uniforms_block {
 	int shadows;
 
 	/**
-	 * @brief The gamma scalar.
-	 */
-	float gamma;
-
-	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
