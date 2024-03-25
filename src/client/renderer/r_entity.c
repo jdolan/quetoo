@@ -80,10 +80,6 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
 	R_SetEntityBounds(e);
 
-	if (R_CullEntity(view, e)) {
-		return NULL;
-	}
-
 	view->num_entities++;
 	return e;
 }

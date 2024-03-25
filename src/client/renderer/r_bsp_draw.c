@@ -634,6 +634,10 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
 				continue;
 			}
 
+			if (R_CullEntity(view, e)) {
+				continue;
+			}
+
 			R_DrawBspInlineEntity(view, e);
 		}
 	}
