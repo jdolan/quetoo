@@ -23,14 +23,6 @@
 
 _Bool antialias = false;
 
-float ambient_intensity = LIGHT_INTENSITY;
-float sun_intensity = LIGHT_INTENSITY;
-float point_intensity = LIGHT_INTENSITY;
-float spot_intensity = LIGHT_INTENSITY;
-float face_intensity = LIGHT_INTENSITY;
-float patch_intensity = LIGHT_INTENSITY;
-float caustic_intensity = LIGHT_INTENSITY;
-
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
@@ -414,49 +406,6 @@ static void LightWorld(void) {
 		bsp_models[i] = Cm_Model(va("*%d", i));
 	}
 
-	// resolve global lighting parameters from worldspawn
-
-	const cm_entity_t *e = Cm_Bsp()->entities[0];
-
-	if (ambient_intensity == 1.f) {
-		ambient_intensity = Cm_EntityValue(e, "ambient_intensity")->value ?: ambient_intensity;
-	}
-
-	if (sun_intensity == 1.f) {
-		sun_intensity = Cm_EntityValue(e, "sun_intensity")->value ?: sun_intensity;
-	}
-
-	if (point_intensity == 1.f) {
-		point_intensity = Cm_EntityValue(e, "light_intensity")->value ?: point_intensity;
-	}
-
-	if (spot_intensity == 1.f) {
-		spot_intensity = Cm_EntityValue(e, "spot_intensity")->value ?: spot_intensity;
-	}
-
-	if (face_intensity == 1.f) {
-		face_intensity = Cm_EntityValue(e, "face_intensity")->value ?: face_intensity;
-	}
-
-	if (patch_intensity == 1.f) {
-		patch_intensity = Cm_EntityValue(e, "patch_intensity")->value ?: patch_intensity;
-	}
-
-	if (caustic_intensity == 1.f) {
-		caustic_intensity = Cm_EntityValue(e, "caustic_intensity")->value ?: caustic_intensity;
-	}
-
-	Com_Print("\n");
-	Com_Print("Lighting parameters\n");
-	Com_Print("  Ambient intensity: %g\n", ambient_intensity);
-	Com_Print("  Sun intensity: %g\n", sun_intensity);
-	Com_Print("  Point intensity: %g\n", point_intensity);
-	Com_Print("  Spot intensity: %g\n", spot_intensity);
-	Com_Print("  Face intensity: %g\n", face_intensity);
-	Com_Print("  Patch intensity: %g\n", patch_intensity);
-	Com_Print("  Caustic intensity: %g\n", caustic_intensity);
-	Com_Print("\n");
-
 	// build lightmaps
 	BuildLightmaps();
 
@@ -471,15 +420,12 @@ static void LightWorld(void) {
 	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
 	// indirect lighting
-	if (patch_intensity > 0.f) {
+	// build lights out of lightmapped faces
+	BuildIndirectLights();
 
-		// build lights out of lightmapped faces
-		BuildIndirectLights();
-
-		// calculate indirect lighting
-		Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
-		Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
-	}
+	// calculate indirect lighting
+	Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
+	Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
 
 	// caustic effects
 	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);

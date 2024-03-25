@@ -86,7 +86,7 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->atten = LIGHT_ATTEN_NONE;
 		light->color = ambient;
 		light->radius = LIGHT_AMBIENT_RADIUS;
-		light->intensity = LIGHT_INTENSITY * ambient_intensity;
+		light->intensity = LIGHT_INTENSITY;
 		light->bounds = Box3_Null();
 		light->visible_bounds = Box3_Null();
 	}
@@ -112,8 +112,6 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
-
-	light->intensity *= sun_intensity;
 
 	if (Cm_EntityValue(entity, "_shadow")->parsed & ENTITY_FLOAT) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
@@ -172,8 +170,6 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
-
-	light->intensity *= point_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -238,8 +234,6 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
 	}
-
-	light->intensity *= spot_intensity;
 
 	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
 		light->atten = Cm_EntityValue(entity, "atten")->integer;
@@ -363,7 +357,6 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 	light->phi = cosf(Radians(light->cone + light->falloff));
 	light->color = material->diffuse;
 	light->intensity = material->cm->light.intensity;
-	light->intensity *= face_intensity;
 	light->shadow = material->cm->light.shadow;
 
 	assert(light->phi <= light->theta);
@@ -592,7 +585,6 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 	light->brush_side = lm->brush_side;
 	light->plane = lm->plane;
 	light->intensity = LIGHT_INTENSITY;
-	light->intensity *= patch_intensity;
 
 	vec3_t points[8];
 	Box3_ToPoints(bounds, points);

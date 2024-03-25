@@ -217,40 +217,9 @@ static void Check_BSP_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
-			patch_intensity = 0.f;
-			Com_Verbose("indirect: false\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
+		if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--ambient-intensity")) {
-			ambient_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("ambient intensity: %g\n", ambient_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--sun-intensity")) {
-			sun_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("sun intensity: %g\n", sun_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--point-intensity")) {
-			point_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("point intensity: %g\n", point_intensity);
-			i++;
-		}  else if (!g_strcmp0(Com_Argv(i), "--spot-intensity")) {
-			spot_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("spot intensity: %g\n", spot_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--face-intensity")) {
-			face_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("face intensity: %g\n", face_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-intensity")) {
-			patch_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("patch intensity: %g\n", patch_intensity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--caustic-intensity")) {
-			caustic_intensity = atof(Com_Argv(i + 1));
-			Com_Verbose("caustic intensity: %g\n", caustic_intensity);
-			i++;
 		} else {
 			break;
 		}

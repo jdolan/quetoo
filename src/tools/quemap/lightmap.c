@@ -710,7 +710,7 @@ static void CausticsLightmapLuxel(luxel_t *luxel, float scale) {
 		}
 	}
 
-	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale * caustic_intensity, c);
+	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale, c);
 }
 
 /**
