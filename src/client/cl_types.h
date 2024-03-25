@@ -43,8 +43,8 @@ typedef struct {
 	player_state_t ps; // the player state
 	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
-	_Bool valid; // false if delta parsing failed
-	_Bool interpolated; // true if this frame has been interpolated one or more times
+	bool valid; // false if delta parsing failed
+	bool interpolated; // true if this frame has been interpolated one or more times
 	uint32_t time; // simulation time for which the frame is valid
 } cl_frame_t;
 
@@ -55,7 +55,7 @@ typedef struct {
 	int32_t old_frame;
 	float lerp;
 	float fraction;
-	_Bool reverse;
+	bool reverse;
 } cl_entity_animation_t;
 
 typedef enum {
@@ -261,12 +261,12 @@ typedef struct {
 	/**
 	 * @brief True if we are viewing a demo.
 	 */
-	_Bool demo_server;
+	bool demo_server;
 
 	/**
 	 * @brief True if we are in 3rd person view, which disables client-side prediction.
 	 */
-	_Bool third_person;
+	bool third_person;
 
 	/**
 	 * @brief The parsed configuration strings.
@@ -362,12 +362,12 @@ typedef struct {
 	cl_key_dest_t dest;
 
 	char *binds[SDL_NUM_SCANCODES];
-	_Bool down[SDL_NUM_SCANCODES];
-	_Bool latched[SDL_NUM_SCANCODES];
+	bool down[SDL_NUM_SCANCODES];
+	bool latched[SDL_NUM_SCANCODES];
 } cl_key_state_t;
 
 typedef struct {
-	_Bool team_chat;
+	bool team_chat;
 } cl_chat_state_t;
 
 typedef struct {

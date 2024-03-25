@@ -25,7 +25,7 @@
  * @return True if the specified bounding box is culled by the view frustum, false otherwise.
  * @see http://www.lighthouse3d.com/tutorials/view-frustum-culling/geometric-approach-testing-boxes/
  */
-_Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
+bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_cull->value) {
 		return false;
@@ -61,7 +61,7 @@ _Bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 /**
  * @return True if the specified sphere is culled by the view frustum, false otherwise.
  */
-_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
+bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
 
 	if (!r_cull->value) {
 		return false;

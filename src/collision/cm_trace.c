@@ -73,7 +73,7 @@ typedef struct {
 	/**
 	 * @brief True if matrix is not the identity.
 	 */
-	_Bool is_transformed;
+	bool is_transformed;
 
 	/**
 	 * @brief The brush cache, to avoid multiple tests against the same brush.
@@ -94,10 +94,10 @@ typedef struct {
 /**
  * @brief
  */
-static inline _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
+static inline bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
 	const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
 
-	const _Bool skip = (data->brush_cache[hash] == brush_num);
+	const bool skip = (data->brush_cache[hash] == brush_num);
 
 	data->brush_cache[hash] = brush_num;
 
@@ -107,7 +107,7 @@ static inline _Bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_n
 /**
  * @brief 
  */
-static inline _Bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
+static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
 	box3_t brush_bounds;
 
@@ -140,7 +140,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
 
-	_Bool start_outside = false, end_outside = false;
+	bool start_outside = false, end_outside = false;
 
 	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
 	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {

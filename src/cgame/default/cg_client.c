@@ -68,7 +68,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
  * within the model. If a skin can not be resolved for any face, the entire
  * skins array is invalidated so that the default will be loaded.
  */
-static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
+static bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
 	int32_t i, j;
@@ -122,7 +122,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static _Bool Cg_ValidateSkin(cg_client_info_t *ci) {
+static bool Cg_ValidateSkin(cg_client_info_t *ci) {
 
 	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
@@ -138,7 +138,7 @@ static _Bool Cg_ValidateSkin(cg_client_info_t *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static _Bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
+static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
 
 	g_strlcpy(ci->model, model, sizeof(ci->model));
 	g_strlcpy(ci->skin, skin, sizeof(ci->skin));

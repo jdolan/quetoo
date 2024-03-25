@@ -69,7 +69,7 @@ typedef struct r_media_s {
 	/**
 	 * @brief The media retain callback, to avoid being freed.
 	 */
-	_Bool (*Retain)(struct r_media_s *self);
+	bool (*Retain)(struct r_media_s *self);
 
 	/**
 	 * @brief The free callback, to release any system resources.
@@ -185,7 +185,7 @@ typedef struct {
 	/**
 	 * @brief True if this at atlas should be recompiled.
 	 */
-	_Bool dirty;
+	bool dirty;
 } r_atlas_t;
 
 /**
@@ -1616,7 +1616,7 @@ typedef struct {
 	/**
 	 * @brief True if fullscreen, false if windowed.
 	 */
-	_Bool fullscreen;
+	bool fullscreen;
 
 } r_context_t;
 

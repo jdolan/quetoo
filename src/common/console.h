@@ -185,7 +185,7 @@ typedef struct {
 	/**
 	 * @brief If true, input is echoed to the console subsystem.
 	 */
-	_Bool echo;
+	bool echo;
 
 	/**
 	 * @brief An optional print callback.
@@ -214,7 +214,7 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines);
 void Con_NavigateHistory(console_t *console, console_history_nav_t nav);
 void Con_ReadHistory(console_t *console, file_t *file);
 void Con_WriteHistory(const console_t *console, file_t *file);
-_Bool Con_CompleteInput(console_t *console);
+bool Con_CompleteInput(console_t *console);
 void Con_SubmitInput(console_t *console);
 void Con_AddConsole(const console_t *console);
 void Con_RemoveConsole(const console_t *console);

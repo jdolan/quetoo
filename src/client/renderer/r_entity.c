@@ -25,14 +25,13 @@
  * @brief
  */
 static void R_SetEntityBounds(r_entity_t *e) {
-
 	e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
 }
 
 /**
  * @brief
  */
-static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
+bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 	
 	if (e->parent) {
 		return false;

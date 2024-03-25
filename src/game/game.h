@@ -66,12 +66,12 @@ struct g_client_s {
 	/**
 	 * @brief True if the client is a bot.
 	 */
-	_Bool ai;
+	bool ai;
 
 	/**
 	 * @brief True if the client's is connected.
 	 */
-	_Bool connected;
+	bool connected;
 
 	/**
 	 * @brief Communicated by server to clients
@@ -125,7 +125,7 @@ struct g_entity_s {
 	/**
 	 * @brief True if the entity is currently allocated and active.
 	 */
-	_Bool in_use;
+	bool in_use;
 
 	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
@@ -176,7 +176,7 @@ struct g_entity_s {
 	g_entity_locals_t locals;
 };
 
-typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
+typedef bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief The game import provides engine functionality and core configuration
@@ -261,7 +261,7 @@ typedef struct g_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, int64_t offset);
+	bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
@@ -294,13 +294,13 @@ typedef struct g_import_s {
 	 * @param file The file.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*CloseFile)(file_t *file);
+	bool (*CloseFile)(file_t *file);
 
 	/**
 	 * @brief Check if a file exists or not.
 	 * @return True if the specified filename exists on the search path.
 	 */
-	_Bool (*FileExists)(const char *path);
+	bool (*FileExists)(const char *path);
 
 	/**
 	 * @brief Loads the specified file into the given buffer.
@@ -320,7 +320,7 @@ typedef struct g_import_s {
 	 * @brief Creates the specified directory (and any ancestors) in the game's write directory.
 	 * @param dir The directory name to create.
 	 */
-	_Bool (*Mkdir)(const char *dir);
+	bool (*Mkdir)(const char *dir);
 
 	/**
 	 * @return The real path name of the specified file or directory.
@@ -543,7 +543,7 @@ typedef struct g_import_s {
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -581,8 +581,8 @@ typedef struct g_import_s {
 	 * @brief PVS and PHS query facilities, returning true if the two points
 	 * can see or hear each other.
 	 */
-	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
-	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+	bool (*inPVS)(const vec3_t p1, const vec3_t p2);
+	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
 
 	/**
 	 * @brief Set the model of a given entity by name.
@@ -621,7 +621,7 @@ typedef struct g_import_s {
 	 */
 
 	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
-	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
+	void (*Unicast)(const g_entity_t *ent, const bool reliable);
 	void (*WriteData)(const void *data, size_t len);
 	void (*WriteChar)(const int32_t c);
 	void (*WriteByte)(const int32_t c);
@@ -702,7 +702,7 @@ typedef struct g_export_s {
 	/**
 	 * @brief Called when a client connects with valid user information.
 	 */
-	_Bool (*ClientConnect)(g_entity_t *ent, char *user_info);
+	bool (*ClientConnect)(g_entity_t *ent, char *user_info);
 
 	/**
 	 * @brief Called when a client has fully spawned and should begin thinking.

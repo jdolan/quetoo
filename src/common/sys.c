@@ -113,7 +113,7 @@ const char *Sys_UserDir(void) {
 /**
  * @brief
  */
-void *Sys_OpenLibrary(const char *name, _Bool global) {
+void *Sys_OpenLibrary(const char *name, bool global) {
 
 #if defined(_WIN32)
 	const char *so_name = va("%s.dll", name);

@@ -101,6 +101,6 @@ typedef struct {
 
 extern GArray *fogs;
 
-_Bool PointInsideFog(const vec3_t point, const fog_t *fog);
+bool PointInsideFog(const vec3_t point, const fog_t *fog);
 void FreeFog(void);
 void BuildFog(void);

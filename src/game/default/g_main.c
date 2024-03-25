@@ -372,7 +372,7 @@ void G_ResetSpawnPoints(void) {
  * For match games, this means cancel the match and force everyone
  * to ready again. Teams are only reset when teamz is true.
  */
-static void G_RestartGame(_Bool teamz) {
+static void G_RestartGame(bool teamz) {
 
 	if (g_level.match_time) {
 		g_level.match_num++;
@@ -459,7 +459,7 @@ static void G_RestartGame(_Bool teamz) {
 /**
  * @brief
  */
-void G_MuteClient(char *name, _Bool mute) {
+void G_MuteClient(char *name, bool mute) {
 	g_client_t *cl;
 
 	if (!(cl = G_ClientByName(name))) {
@@ -850,7 +850,7 @@ static char *G_FormatTime(uint32_t time) {
  */
 static void G_CheckRules(void) {
 	int32_t i;
-	_Bool restart = false;
+	bool restart = false;
 
 	if (g_level.intermission_time) {
 		return;
@@ -1218,7 +1218,7 @@ static void G_CheckRules(void) {
 	}
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		_Bool changed = false, reset_userinfo = false;
+		bool changed = false, reset_userinfo = false;
 
 		if (g_team_cvars[i].g_team_name->modified) {
 			g_team_cvars[i].g_team_name->modified = false;

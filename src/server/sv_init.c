@@ -26,7 +26,7 @@
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */
-static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, _Bool create) {
+static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool create) {
 	int32_t i;
 
 	if (!name || !name[0]) {
@@ -103,7 +103,7 @@ static void Sv_CreateBaseline(void) {
  * is sent immediately, because the server could completely terminate after
  * returning from this function.
  */
-static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
+static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 	sv_client_t *cl;
 	int32_t i;
 

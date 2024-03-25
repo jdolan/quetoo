@@ -13,7 +13,7 @@ ai_node_id_t Ai_Node_CreateNode(const vec3_t position);
 /**
  * @brief
  */
-_Bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
+bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
  * @brief
@@ -33,12 +33,12 @@ ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Node_CanPathTo(const vec3_t position);
+bool Ai_Node_CanPathTo(const vec3_t position);
 
 /**
  * @brief Check if the node we want to move towards along the path is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const GArray *path, const guint index);
+bool Ai_Path_CanPathTo(const GArray *path, const guint index);
 
 /**
  * @brief

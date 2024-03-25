@@ -28,9 +28,9 @@
 static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 	char buffer[MAX_PRINT_MSG];
 
-	const _Bool frag = attacker && (attacker != self) && attacker->client;
+	const bool frag = attacker && (attacker != self) && attacker->client;
 
-	const _Bool friendly_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
+	const bool friendly_fire = (mod & MOD_FRIENDLY_FIRE) == MOD_FRIENDLY_FIRE;
 	mod &= ~MOD_FRIENDLY_FIRE;
 
 	if (frag) { // killed by another player
@@ -588,7 +588,7 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 /**
  * @brief
  */
-static _Bool G_GiveLevelLocals(g_entity_t *ent) {
+static bool G_GiveLevelLocals(g_entity_t *ent) {
 	char buf[512], *it, *q;
 	int32_t quantity;
 
@@ -719,7 +719,7 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 /**
  * @brief Checks if spawning a player in this spot would cause a telefrag.
  */
-static _Bool G_WouldTelefrag(const vec3_t spot) {
+static bool G_WouldTelefrag(const vec3_t spot) {
 	g_entity_t *ents[MAX_ENTITIES];
 	box3_t bounds = Box3_Translate(PM_BOUNDS, spot);
 
@@ -965,7 +965,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
  * @brief In this case, voluntary means that the client has explicitly requested
  * a respawn by changing their spectator status.
  */
-void G_ClientRespawn(g_entity_t *ent, _Bool voluntary) {
+void G_ClientRespawn(g_entity_t *ent, bool voluntary) {
 
 	G_ClientRespawn_(ent);
 
@@ -1107,7 +1107,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
 	g_strlcpy(name, s, sizeof(name));
 
-	_Bool color = false;
+	bool color = false;
 	char *c = name;
 	int32_t i = 0;
 
@@ -1299,7 +1299,7 @@ static uint8_t G_NumPlayers(void) {
  * and eventually get to G_Begin()
  * Changing levels will NOT cause this to be called again.
  */
-_Bool G_ClientConnect(g_entity_t *ent, char *user_info) {
+bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 
 	// check password
 	if (strlen(g_password->string) && !ent->client->ai) {

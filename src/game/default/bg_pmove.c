@@ -260,7 +260,7 @@ static float Pm_SlideMove(void) {
 /**
  * @return True if the downward trace yielded a step, false otherwise.
  */
-static _Bool Pm_CheckStep(const cm_trace_t *trace) {
+static bool Pm_CheckStep(const cm_trace_t *trace) {
 
 	if (!trace->all_solid) {
 		if (trace->ent && trace->plane.normal.z >= PM_STEP_NORMAL) {
@@ -494,7 +494,7 @@ static void Pm_Currents(void) {
  * @return True if the player will be eligible for trick jumping should they
  * impact the ground on this frame, false otherwise.
  */
-static _Bool Pm_CheckTrickJump(void) {
+static bool Pm_CheckTrickJump(void) {
 
 	if (pm->ground.ent) {
 		return false;
@@ -650,7 +650,7 @@ static void Pm_CheckGround(void) {
 	}
 
 	// seek ground eagerly if the player wishes to trick jump
-	const _Bool trick_jump = Pm_CheckTrickJump();
+	const bool trick_jump = Pm_CheckTrickJump();
 	vec3_t pos;
 
 	if (trick_jump) {
@@ -767,8 +767,8 @@ static void Pm_CheckDuck(void) {
 		}
 	} else {
 
-		const _Bool is_ducking = pm->s.flags & PMF_DUCKED;
-		const _Bool wants_ducking = (pm->cmd.up < 0) && !(pm->s.flags & PMF_ON_LADDER);
+		const bool is_ducking = pm->s.flags & PMF_DUCKED;
+		const bool wants_ducking = (pm->cmd.up < 0) && !(pm->s.flags & PMF_ON_LADDER);
 
 		if (!is_ducking && wants_ducking) {
 			pm->s.flags |= PMF_DUCKED;
@@ -816,7 +816,7 @@ static void Pm_CheckDuck(void) {
  *
  * @return True if a jump occurs, false otherwise.
  */
-static _Bool Pm_CheckJump(void) {
+static bool Pm_CheckJump(void) {
 
 	if (Pm_CheckHookJump()) {
 		return true;
@@ -909,7 +909,7 @@ static void Pm_CheckLadder(void) {
  *
  * @return True if a water jump has occurred, false otherwise.
  */
-static _Bool Pm_CheckWaterJump(void) {
+static bool Pm_CheckWaterJump(void) {
 
 	if (pm->s.type >= PM_HOOK_PULL && pm->s.type <= PM_HOOK_SWING_AUTO) {
 		return false;

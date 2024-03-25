@@ -192,7 +192,7 @@ void Mon_SendWinding_(const char *func, mon_level_t level, const vec3_t p[], int
 /**
  * @brief Connects to the specified host for XML process monitoring.
  */
-_Bool Mon_Connect(const char *host) {
+bool Mon_Connect(const char *host) {
 
 	Net_Init();
 
@@ -231,7 +231,7 @@ _Bool Mon_Connect(const char *host) {
 /**
  * @brief
  */
-_Bool Mon_IsConnected(void) {
+bool Mon_IsConnected(void) {
 	return mon_state.socket != 0;
 }
 

@@ -41,9 +41,9 @@ char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
 char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
-_Bool verbose = false;
-_Bool debug = false;
-static _Bool is_monitor = false;
+bool verbose = false;
+bool debug = false;
+static bool is_monitor = false;
 
 static void Print(const char *msg);
 
@@ -316,10 +316,10 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t num_threads = 0;
-	_Bool do_mat = false;
-	_Bool do_bsp = false;
-	_Bool do_light = false;
-	_Bool do_zip = false;
+	bool do_mat = false;
+	bool do_bsp = false;
+	bool do_light = false;
+	bool do_zip = false;
 
 	printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
 

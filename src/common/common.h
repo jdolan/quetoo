@@ -188,7 +188,7 @@ typedef struct {
 	 * @brief Used by `Com_Error` to detect a cyclical error condition.
 	 * @remarks If your Error function doesn't exit, make sure to set this to false.
 	 */
-	_Bool recursive_error;
+	bool recursive_error;
 
 	/**
 	 * @brief Used by the common printing functions to spit out a file that we can

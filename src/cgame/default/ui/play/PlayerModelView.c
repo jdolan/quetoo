@@ -201,7 +201,7 @@ static void updateBindings(View *self) {
 /**
  * @see Control::captureEvent(Control *, const SDL_Event *)
  */
-static _Bool captureEvent(Control *self, const SDL_Event *event) {
+static bool captureEvent(Control *self, const SDL_Event *event) {
 
 	if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
 

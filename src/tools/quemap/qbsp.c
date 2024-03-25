@@ -31,19 +31,19 @@
 #include "writebsp.h"
 #include "qbsp.h"
 
-_Bool leaked = false;
+bool leaked = false;
 
 float micro_volume = 0.125;
 
-_Bool no_csg = false;
-_Bool no_detail = false;
-_Bool no_liquid = false;
-_Bool no_merge = false;
-_Bool no_phong = false;
-_Bool no_prune = false;
-_Bool no_tjunc = false;
-_Bool no_weld = false;
-_Bool only_ents = false;
+bool no_csg = false;
+bool no_detail = false;
+bool no_liquid = false;
+bool no_merge = false;
+bool no_phong = false;
+bool no_prune = false;
+bool no_tjunc = false;
+bool no_weld = false;
+bool only_ents = false;
 
 /**
  * @brief

@@ -29,5 +29,5 @@ void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, c
 void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target);
 void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to);
 void Ai_ClearGoal(ai_goal_t *goal);
-_Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent);
+bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

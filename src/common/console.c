@@ -154,7 +154,7 @@ static void Con_Dump_f(void) {
 /**
  * @return True if `str` passes the console's filter, false otherwise.
  */
-static _Bool Con_Filter(const console_t *console, const console_string_t *str) {
+static bool Con_Filter(const console_t *console, const console_string_t *str) {
 
 	if (console->level) {
 		return console->level & str->level;
@@ -463,7 +463,7 @@ static void Con_PrintMatches(const console_t *console, GList *matches) {
 	Con_Append(PRINT_ECHO, "\n");
 
 	size_t widest = 0;
-	_Bool all_simple = true;
+	bool all_simple = true;
 
 	// calculate width per column
 	for (const GList *m = matches; m; m = m->next) {
@@ -570,7 +570,7 @@ static char *Con_CommonPrefix(GList *matches) {
  * append it. If multiple matches are found, append the longest possible
  * common prefix they all share.
  */
-_Bool Con_CompleteInput(console_t *console) {
+bool Con_CompleteInput(console_t *console) {
 	const char *match;
 	GList *matches = NULL;
 
@@ -591,7 +591,7 @@ _Bool Con_CompleteInput(console_t *console) {
 	Cmd_TokenizeString(partial);
 
 	uint32_t argi = Cmd_Argc() - 1;
-	const _Bool new_argument = partial[strlen(partial) - 1] == ' ';
+	const bool new_argument = partial[strlen(partial) - 1] == ' ';
 
 	if (new_argument) {
 		argi++;
@@ -626,7 +626,7 @@ _Bool Con_CompleteInput(console_t *console) {
 		return false;
 	}
 
-	_Bool output_quotes = false;
+	bool output_quotes = false;
 
 	if (g_list_length(matches) == 1) {
 		match = ((const con_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
@@ -652,7 +652,7 @@ _Bool Con_CompleteInput(console_t *console) {
 		g_strlcat(partial, match, max_len);
 	} else {
 		size_t arg_pos = 0;
-		_Bool input_quotes = false;
+		bool input_quotes = false;
 
 		if (Cmd_Argc() > 1) {
 			const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);

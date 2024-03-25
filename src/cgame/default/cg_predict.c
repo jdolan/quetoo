@@ -25,7 +25,7 @@
 /**
  * @brief Returns true if client side prediction should be used.
  */
-_Bool Cg_UsePrediction(void) {
+bool Cg_UsePrediction(void) {
 
 	if (!cg_predict->value) {
 		return false;

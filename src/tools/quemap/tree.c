@@ -200,7 +200,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
 	GPtrArray *cache = g_ptr_array_new();
 
-	_Bool have_structural = false;
+	bool have_structural = false;
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 		if (!(brush->original->contents & CONTENTS_DETAIL)) {
 			if (brush->original->contents & CONTENTS_MASK_VISIBLE) {
@@ -237,7 +237,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
 			csg_brush_t *front, *back;
 			SplitBrush(node->volume, plane, &front, &back);
-			const _Bool valid_split = (front && back);
+			const bool valid_split = (front && back);
 			if (front) {
 				FreeBrush(front);
 			}

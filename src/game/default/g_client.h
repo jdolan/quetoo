@@ -26,9 +26,9 @@
 #ifdef __GAME_LOCAL_H__
 void G_ClientBegin(g_entity_t *ent);
 void G_ClientBeginFrame(g_entity_t *ent);
-_Bool G_ClientConnect(g_entity_t *ent, char *user_info);
+bool G_ClientConnect(g_entity_t *ent, char *user_info);
 void G_ClientDisconnect(g_entity_t *ent);
-void G_ClientRespawn(g_entity_t *ent, _Bool voluntary);
+void G_ClientRespawn(g_entity_t *ent, bool voluntary);
 void G_ClientThink(g_entity_t *ent, pm_cmd_t *ucmd);
 void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info);
 void G_SetClientHookStyle(g_entity_t *ent);

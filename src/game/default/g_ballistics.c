@@ -38,7 +38,7 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
  * @brief Returns true if the entity is facing a wall at too close proximity
  * for the specified projectile.
  */
-static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
+static bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
 	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
 	                               ent, CONTENTS_MASK_SOLID);
@@ -49,7 +49,7 @@ static _Bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 /**
  * @brief Returns true if the specified entity takes damage.
  */
-static _Bool G_TakesDamage(g_entity_t *ent) {
+static bool G_TakesDamage(g_entity_t *ent) {
 	return (ent && ent->locals.take_damage);
 }
 
@@ -126,7 +126,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  * @param size The ripple size, or 0.0 to use the entity's size.
  * @param splash True to emit a splash effect, false otherwise.
  */
-void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, _Bool splash) {
+void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash) {
 
 	const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
 	if (!tr.brush_side) {
@@ -695,7 +695,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
 /**
  * @brief
  */
-static _Bool G_LightningProjectile_Expire(g_entity_t *self) {
+static bool G_LightningProjectile_Expire(g_entity_t *self) {
 
 	if (self->locals.timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
 		return true;
@@ -857,7 +857,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 	}
 
 	int32_t content_mask = CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID;
-	_Bool liquid = false;
+	bool liquid = false;
 
 	// are we starting in water?
 	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {

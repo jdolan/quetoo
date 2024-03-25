@@ -593,7 +593,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
 	for (size_t i = 0; i < lengthof(points); i++) {
 
-		_Bool unique = true;
+		bool unique = true;
 
 		for (int32_t j = 0; j < light->num_points; j++) {
 			if (Vec3_Equal(light->points[j], points[i])) {

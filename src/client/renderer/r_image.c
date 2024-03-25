@@ -76,7 +76,7 @@ static void R_Screenshot_encode(void *data) {
 	last_screenshot = i;
 
 	SDL_Surface *surface = (SDL_Surface *) data;
-	_Bool screenshot_saved;
+	bool screenshot_saved;
 
 	if (!g_strcmp0(r_screenshot_format->string, "tga")) {
 		screenshot_saved = Img_WriteTGA(filename, surface->pixels, surface->w, surface->h);
@@ -250,7 +250,7 @@ void R_UploadImage(r_image_t *image, const void *data) {
 /**
  * @brief Retain event listener for images.
  */
-_Bool R_RetainImage(r_media_t *self) {
+bool R_RetainImage(r_media_t *self) {
 
 	switch (((r_image_t *) self)->type) {
 		case IMG_PROGRAM:
@@ -394,7 +394,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 /**
  * @brief Dump the image to the specified output file.
  */
-static void R_DumpImage(const r_image_t *image, const char *output, _Bool mipmap, _Bool raw) {
+static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap, bool raw) {
 
 	if (image->format != GL_RGB && image->format != GL_RGBA) {
 		Com_Warn("Skipped %s due to format\n", image->media.name);

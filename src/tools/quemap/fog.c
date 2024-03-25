@@ -28,7 +28,7 @@ GArray *fogs;
 /**
  * @brief
  */
-_Bool PointInsideFog(const vec3_t point, const fog_t *fog) {
+bool PointInsideFog(const vec3_t point, const fog_t *fog) {
 
 	if (Box3_ContainsPoint(fog->bounds, point)) {
 

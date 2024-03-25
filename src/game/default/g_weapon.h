@@ -25,7 +25,7 @@
 
 #ifdef __GAME_LOCAL_H__
 void G_PlayTechSound(g_entity_t *ent);
-_Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
+bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
 void G_UseBestWeapon(g_entity_t *ent);
 void G_UseWeapon(g_entity_t *ent, const g_item_t *item);
 g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item);
@@ -43,5 +43,5 @@ void G_FireRailgun(g_entity_t *ent);
 void G_FireBfg(g_entity_t *ent);
 void G_ClientWeaponThink(g_entity_t *ent);
 void G_ClientHookDetach(g_entity_t *ent);
-void G_ClientHookThink(g_entity_t *ent, const _Bool refire);
+void G_ClientHookThink(g_entity_t *ent, const bool refire);
 #endif /* __GAME_LOCAL_H__ */

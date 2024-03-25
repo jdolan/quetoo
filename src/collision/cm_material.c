@@ -204,7 +204,7 @@ static void Cm_MaterialWarn(const char *path, const parser_t *parser, const char
 /**
  * @brief
  */
-static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
+static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
 	char token[MAX_TOKEN_CHARS];
 
 	while (true) {
@@ -668,7 +668,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 	parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
 	cm_material_t *m = NULL;
-	_Bool in_material = false;
+	bool in_material = false;
 
 	while (true) {
 		char token[MAX_TOKEN_CHARS];
@@ -968,7 +968,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
-static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
+static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 	const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
 	char name[MAX_QPATH];
 
@@ -1020,7 +1020,7 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 /**
  * @brief
  */
-static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (!Cm_ResolveAsset(&stage->asset, context)) {
 		Com_Warn("Failed to resolve animation asset %s\n", stage->asset.name);
@@ -1079,9 +1079,9 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t cont
 /**
  * @brief
  */
-static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
 
-	_Bool res = false;
+	bool res = false;
 	
 	if (*stage->asset.name) {
 
@@ -1110,7 +1110,7 @@ static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, c
 /**
  * @brief Resolves the asset for the given material.
  */
-static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
+static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
 
 	if (*asset->name) {
 		return Cm_ResolveAsset(asset, context);
@@ -1178,7 +1178,7 @@ static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 /**
  * @brief Resolves all asset references within the specified material.
  */
-_Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
+bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 

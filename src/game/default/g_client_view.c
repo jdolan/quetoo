@@ -305,7 +305,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 			}
 		}
 
-		_Bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
 		if (!jumping) {
@@ -324,7 +324,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 		const vec3_t euler = Vec3(0.0, ent->s.angles.y, 0.0);
 		Vec3_Vectors(euler, &forward, NULL, NULL);
 
-		const _Bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
+		const bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
 
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0) {

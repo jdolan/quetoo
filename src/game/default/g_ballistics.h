@@ -24,7 +24,7 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const float size, _Bool splash);
+void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, const float size, bool splash);
 
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir,
                          int32_t speed, int32_t damage, int32_t knockback);

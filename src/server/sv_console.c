@@ -33,7 +33,7 @@
 
 static struct {
 	WINDOW *window;
-	_Bool dirty;
+	bool dirty;
 } sv_console_curses;
 
 static console_t sv_console;

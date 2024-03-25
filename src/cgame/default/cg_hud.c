@@ -83,7 +83,7 @@ static struct {
 		uint32_t time, bar_time;
 		int16_t bits;
 		int16_t num;
-		_Bool has[MAX_STAT_BITS];
+		bool has[MAX_STAT_BITS];
 	} weapon;
 
 	int16_t chase_target;
@@ -1072,7 +1072,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 /**
  * @brief
  */
-_Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
+bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 
 	cg_hud_state.weapon.time = 0;
 

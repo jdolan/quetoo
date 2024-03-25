@@ -43,7 +43,7 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * @return True if the delta is valid and the entity should be interpolated, false
  * if the delta is invalid and the entity should be snapped to `to`.
  */
-static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
+static bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
 
 	if (frame->delta_frame_num == -1) {
@@ -330,7 +330,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-	_Bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
+	bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
 
 	if (cl.previous_frame) {
 		const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);

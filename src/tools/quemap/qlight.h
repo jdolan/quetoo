@@ -29,7 +29,7 @@
 #include "quemap.h"
 #include "writebsp.h"
 
-extern _Bool antialias;
+extern bool antialias;
 
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);

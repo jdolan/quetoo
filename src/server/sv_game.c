@@ -201,7 +201,7 @@ static void Sv_WriteAngles(const vec3_t angles) {
 /**
  * @brief
  */
-static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
+static bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 
 	// TODO: Traces?
 
@@ -211,7 +211,7 @@ static _Bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
 /**
  * @brief
  */
-static _Bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
+static bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
 
 	// TODO: Distance threshold?
 

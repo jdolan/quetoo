@@ -42,7 +42,7 @@ ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
 /**
  * @brief
  */
-static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
+static bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 
 	// see if we're even facing the object
 	ai_locals_t *ai = Ai_GetLocals(self);
@@ -67,7 +67,7 @@ static _Bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 /**
  * @brief
  */
-static inline _Bool Ai_IsTargetable(const g_entity_t *self, const g_entity_t *other) {
+static inline bool Ai_IsTargetable(const g_entity_t *self, const g_entity_t *other) {
 
 	return !(other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
 			(other->sv_flags & SVF_NO_CLIENT) || (other->client && G_OnSameTeam(self, other)));
@@ -76,7 +76,7 @@ static inline _Bool Ai_IsTargetable(const g_entity_t *self, const g_entity_t *ot
 /**
  * @brief
  */
-static inline _Bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
+static inline bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
 
 	return Ai_IsTargetable(self, other) && Ai_CanSee(self, other);
 }
@@ -270,13 +270,13 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
 
 		for (guint i = 0; i < items_visible->len; i++) {
 			const ai_item_pick_t pick = g_array_index(items_visible, ai_item_pick_t, 0);
-			const _Bool found = pick.weight > ai->move_target.priority;
+			const bool found = pick.weight > ai->move_target.priority;
 
 			if (!found) {
 				continue;
 			}
 
-			_Bool path_found = false;
+			bool path_found = false;
 
 			if (pick.entity->locals.node != AI_NODE_INVALID) {
 				const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
@@ -464,7 +464,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 /**
  * @brief Calculate a priority for the specified target.
  */
-static float Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, const _Bool visible) {
+static float Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, const bool visible) {
 
 	// TODO: all of this function. Enemies with more powerful weapons need a higher weight.
 	// Enemies with lower health need a higher weight. Enemies carrying flags need an even higher weight.
@@ -475,7 +475,7 @@ static float Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, 
 /**
  * @brief Figure out if we should chase the enemy and close in on them.
  */
-static _Bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *target) {
+static bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *target) {
 
 	if (target->solid == SOLID_DEAD || (target->sv_flags & SVF_NO_CLIENT)) {
 		return false;
@@ -746,7 +746,7 @@ static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, cons
 /**
  * @brief Increase our path pointer.
  */
-static _Bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
+static bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
 
 	goal->path.path_index++;
 
@@ -767,7 +767,7 @@ static _Bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
 /**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
-static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
+static bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 
 	/*
 	 * The AI's bbox is expanded for collision checks. This is so
@@ -787,7 +787,7 @@ static _Bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 /**
  * @brief 
  */
-static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_t dest) {
+static bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_t dest) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 	const float path_dist = Vec3_Distance(self->s.origin, dest);
 
@@ -848,7 +848,7 @@ static _Bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_
 /**
  * @brief
  */
-static inline _Bool Ai_Path_IsLinked(const GArray *path, const guint a, const guint b) {
+static inline bool Ai_Path_IsLinked(const GArray *path, const guint a, const guint b) {
 
 	return Ai_Node_IsLinked(g_array_index(path, ai_node_id_t, a), g_array_index(path, ai_node_id_t, b));
 }
@@ -856,7 +856,7 @@ static inline _Bool Ai_Path_IsLinked(const GArray *path, const guint a, const gu
 /**
  * @brief 
  */
-static _Bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
+static bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
 	vec3_t sub = Vec3_Subtract(target, self->s.origin);
 	sub.z = 0;
 
@@ -874,7 +874,7 @@ static _Bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
  * @brief A slow-drop occurs when a connection is mono-directional, not far horizontally
  * but far vertically.
  */
-_Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node) {
+bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node) {
 
 	if (from_node <= 0 || to_node <= 0) {
 		return false;
@@ -897,10 +897,10 @@ _Bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node
 static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	ai_locals_t *ai = Ai_GetLocals(self);
 
-	_Bool target_enemy = false;
+	bool target_enemy = false;
 
 	vec3_t dir, angles, dest = Vec3_Zero();
-	_Bool move_wander = false;
+	bool move_wander = false;
 
 	switch (ai->move_target.type) {
 		default:
@@ -973,8 +973,8 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 	const float delta_yaw = self->client->locals.angles.y - angles.y;
 	Vec3_Vectors(Vec3(0.0, delta_yaw, 0.0), &dir, NULL, NULL);
 
-	const _Bool swimming = self->locals.water_level >= WATER_WAIST;
-	_Bool wait_politely = false;
+	const bool swimming = self->locals.water_level >= WATER_WAIST;
+	bool wait_politely = false;
 
 	if (ai->move_target.type == AI_GOAL_PATH) {
 		// the next step(s) will be onto a mover, so if we can't move yet, we wait.
@@ -1611,7 +1611,7 @@ void G_Ai_Shutdown(void) {
 /**
  * @brief 
  */
-_Bool G_Ai_InDeveloperMode(void) {
+bool G_Ai_InDeveloperMode(void) {
 
 	return ai_node_dev->integer == 1;
 }

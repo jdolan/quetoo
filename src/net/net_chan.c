@@ -136,7 +136,7 @@ void Netchan_Setup(net_src_t source, net_chan_t *chan, net_addr_t *addr, uint8_t
  * @return True if reliable data must be transmitted this frame, false
  * otherwise.
  */
-static _Bool Netchan_CheckRetransmit(net_chan_t *chan) {
+static bool Netchan_CheckRetransmit(net_chan_t *chan) {
 
 	// if the remote side dropped the last reliable message, re-send it
 	if (chan->incoming_acknowledged > chan->reliable_outgoing && chan->reliable_acknowledged
@@ -163,7 +163,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 	}
 
 	// check for re-transmission of reliable message
-	_Bool send_reliable = Netchan_CheckRetransmit(chan);
+	bool send_reliable = Netchan_CheckRetransmit(chan);
 
 	// or for transmission of a new one
 	if (!chan->reliable_size && chan->message.size) {
@@ -222,7 +222,7 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
  * @brief Called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
-_Bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
+bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 	uint32_t sequence, sequence_ack;
 	uint32_t reliable_ack, reliable_message;
 

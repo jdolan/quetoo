@@ -41,7 +41,7 @@ typedef enum {
 #ifdef __CG_LOCAL_H__
 void Cg_ParseCenterPrint(void);
 void Cg_ParseWeaponInfo(const char *s);
-_Bool Cg_AttemptSelectWeapon(const player_state_t *ps);
+bool Cg_AttemptSelectWeapon(const player_state_t *ps);
 void Cg_DrawHud(const player_state_t *ps);
 void Cg_ClearHud(void);
 void Cg_LoadHudMedia(void);

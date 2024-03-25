@@ -238,7 +238,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
 /**
  * @return True if the entity matches the current world filter, false otherwise.
  */
-static _Bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
+static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
 	switch (ent->solid) {
 		case SOLID_TRIGGER:

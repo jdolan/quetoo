@@ -39,7 +39,7 @@ cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane
 vec3_t Cm_ProjectPointToPlane(const vec3_t point, const cm_bsp_plane_t *plane);
 
 int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *plane);
-_Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);
+bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);
 
 int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents);
 

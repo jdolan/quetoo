@@ -390,12 +390,12 @@ typedef struct {
 	/**
 	 * @brief If true, the trace started and ended within the same solid.
 	 */
-	_Bool all_solid;
+	bool all_solid;
 
 	/**
 	 * @brief If true, the trace started within a solid, but exited it.
 	 */
-	_Bool start_solid;
+	bool start_solid;
 
 	/**
 	 * @brief The fraction of the desired distance traveled (0.0 - 1.0).

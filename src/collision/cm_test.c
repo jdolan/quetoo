@@ -99,7 +99,7 @@ vec3_t Cm_ProjectPointToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
 /**
  * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
-_Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	if (Box3_ContainsPoint(brush->bounds, point)) {
 

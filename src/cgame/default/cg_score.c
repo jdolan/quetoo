@@ -126,7 +126,7 @@ static GLint Cg_DrawScoresHeader(void) {
 /**
  * @brief
  */
-static _Bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
+static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 	GLint cw, ch;
 
 	const cg_client_info_t *info = &cg_state.clients[s->client];

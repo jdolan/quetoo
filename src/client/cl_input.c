@@ -252,7 +252,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
  *
  * @return True if the event was handled, false otherwise.
  */
-static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
+static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
 	switch (event->type) {
 

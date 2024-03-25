@@ -381,7 +381,7 @@ typedef struct cvar_s {
 	int32_t integer;
 	uint32_t flags;
 	const char *description;
-	_Bool modified; // set each time the cvar is changed
+	bool modified; // set each time the cvar is changed
 	AutocompleteFunc Autocomplete;
 } cvar_t;
 
@@ -457,7 +457,7 @@ typedef enum {
 	GLOB_CASE_INSENSITIVE = (1 << 0)
 } glob_flags_t;
 
-_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
+bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripNewline(const char *in, char *out);
@@ -487,8 +487,8 @@ void StripExtension(const char *in, char *out);
 
 #define ESC_EMOJI			':'
 
-_Bool StrIsColor(const char *s);
-_Bool StrIsEmoji(const char *s);
+bool StrIsColor(const char *s);
+bool StrIsEmoji(const char *s);
 color_t ColorEsc(int32_t esc);
 const char *EmojiEsc(const char *in, char *out, size_t out_size);
 size_t StrStripLen(const char *s);
@@ -516,7 +516,7 @@ void StrLower(const char *in, char *out);
 char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
-_Bool ValidateUserInfo(const char *s);
+bool ValidateUserInfo(const char *s);
 
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
 guint g_stri_hash(gconstpointer v);

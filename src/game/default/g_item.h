@@ -71,8 +71,8 @@
 	extern const box3_t ITEM_BOUNDS;
 
 	const g_item_t *G_CarryingTech(const g_entity_t *ent);
-	_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech);
-	_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
+	bool G_HasTech(const g_entity_t *player, const g_tech_t tech);
+	bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
 	g_entity_t *G_DropItem(g_entity_t *ent, const g_item_t *item);
 	const g_item_t *G_FindItem(const char *name);
 	const g_item_t *G_FindItemByClassName(const char *class_name);
@@ -86,7 +86,7 @@
 	void G_ResetItem(g_entity_t *ent);
 	void G_SetItemRespawn(g_entity_t *ent, uint32_t delay);
 	void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
-	_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
+	bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count);
 	g_entity_t *G_TossFlag(g_entity_t *self);
 	g_entity_t *G_TossTech(g_entity_t *self);
 	g_entity_t *G_TossQuadDamage(g_entity_t *self);

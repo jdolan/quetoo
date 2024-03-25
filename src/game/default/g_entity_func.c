@@ -1841,7 +1841,7 @@ static void G_func_train_Wait(g_entity_t *self) {
 static void G_func_train_Next(g_entity_t *self) {
 	g_entity_t *ent;
 	vec3_t dest;
-	_Bool first;
+	bool first;
 
 	first = true;
 again:

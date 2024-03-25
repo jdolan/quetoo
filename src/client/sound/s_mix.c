@@ -54,7 +54,7 @@ void S_FreeChannel(int32_t c) {
  * @param ch The channel.
  * @return True if the channel is hearable, false otherwise.
  */
-static _Bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
+static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
 	vec3_t delta;
 	float dist;

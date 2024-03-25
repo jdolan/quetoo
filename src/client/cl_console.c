@@ -282,7 +282,7 @@ void Cl_ToggleConsole_f(void) {
 /**
  * @brief
  */
-static void Cl_MessageMode(_Bool team_chat) {
+static void Cl_MessageMode(bool team_chat) {
 
 	console_input_t *in = &cl_chat_console.input;
 	memset(in, 0, sizeof(*in));

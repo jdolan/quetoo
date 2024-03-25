@@ -564,7 +564,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep1 = dot < -COLINEAR_EPSILON;
+	const bool keep1 = dot < -COLINEAR_EPSILON;
 
 	back = a->points[(i + 2) % a->num_points];
 	delta = Vec3_Subtract(back, p2);
@@ -577,7 +577,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep2 = dot < -COLINEAR_EPSILON;
+	const bool keep2 = dot < -COLINEAR_EPSILON;
 
 	// build the new polygon
 	cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);

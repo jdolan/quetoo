@@ -32,7 +32,7 @@
 #ifdef __GAME_LOCAL_H__
 
 typedef struct {
-	_Bool load_finished;
+	bool load_finished;
 } ai_level_t;
 
 /**
@@ -130,7 +130,7 @@ typedef struct {
 	/**
 	 * @brief extends the time from 1s to 10s+ FIXME: change to a fixed # that can be added to distress timeout
 	 */
-	_Bool distress_extension;
+	bool distress_extension;
 	
 	union {
 		struct {

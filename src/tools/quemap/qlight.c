@@ -21,7 +21,7 @@
 
 #include "qlight.h"
 
-_Bool antialias = false;
+bool antialias = false;
 
 // we use the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
@@ -64,10 +64,10 @@ typedef struct {
 /**
  * @brief
  */
-static inline _Bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
+static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
 	const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
 
-	const _Bool skip = (data->brush_cache[hash] == brush_num);
+	const bool skip = (data->brush_cache[hash] == brush_num);
 
 	data->brush_cache[hash] = brush_num;
 
@@ -94,7 +94,7 @@ static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_
 	cm_bsp_plane_t plane = { };
 	const cm_bsp_brush_side_t *side = NULL;
 
-	_Bool start_outside = false, end_outside = false;
+	bool start_outside = false, end_outside = false;
 
 	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
 	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {

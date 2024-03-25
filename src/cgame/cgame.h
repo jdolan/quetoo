@@ -193,7 +193,7 @@ typedef struct cg_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, int64_t offset);
+	bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
@@ -226,7 +226,7 @@ typedef struct cg_import_s {
 	 * @param file The file.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*CloseFile)(file_t *file);
+	bool (*CloseFile)(file_t *file);
 
 	/**
 	 * @brief Loads the file resource at `path` into the buffer pointed to by `buffer`.
@@ -254,7 +254,7 @@ typedef struct cg_import_s {
 	 * @brief Check if a file exists or not.
 	 * @return True if the specified filename exists on the search path.
 	 */
-	_Bool (*FileExists)(const char *path);
+	bool (*FileExists)(const char *path);
 
 	/**
 	 * @}
@@ -556,7 +556,7 @@ typedef struct cg_import_s {
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -730,12 +730,12 @@ typedef struct cg_import_s {
 	/**
 	 * @return True if the bounding box is culled or occluded, false otherwise.
 	 */
-	_Bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
+	bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
 
 	/**
 	 * @brief True if the bounding sphere is culled or occluded, false otherwise.
 	 */
-	_Bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
+	bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
 
 	/**
 	 * @brief Adds an entity to the scene for the current frame.
@@ -846,7 +846,7 @@ typedef struct cg_import_s {
 	 * @param color Color.
 	 * @param solid Whether to draw a solid or wireframe box.
 	*/
-	void (*Draw3DBox)(const box3_t bounds, const color_t color, const _Bool solid);
+	void (*Draw3DBox)(const box3_t bounds, const color_t color, const bool solid);
 
 	/**
 	 * @}
@@ -901,7 +901,7 @@ typedef struct cg_export_s {
 	 * @param cmd The message type.
 	 * @details This allows the game and client game to define their own custom message types.
 	 */
-	_Bool (*ParseMessage)(int32_t cmd);
+	bool (*ParseMessage)(int32_t cmd);
 
 	/**
 	 * @brief Called each frame to update the current movement command angles.
@@ -927,7 +927,7 @@ typedef struct cg_export_s {
 	 * @details Third person, chasecam, or other conditions may prompt the client game to disable
 	 * client side prediction.
 	 */
-	_Bool (*UsePrediction)(void);
+	bool (*UsePrediction)(void);
 
 	/**
 	 * @brief Called each frame to run all pending movement commands and update the client's

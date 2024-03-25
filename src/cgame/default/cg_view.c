@@ -141,7 +141,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 		const float lerp = delta / (float) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
 	} else {
-		const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
+		const bool ducked = ps->pm_state.flags & PMF_DUCKED;
 		const float max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
 		vec3_t velocity = ps->pm_state.velocity;

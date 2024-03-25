@@ -161,7 +161,7 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 /**
 * @brief Write pixel data to a PNG file.
 */
-_Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
+bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 
@@ -206,7 +206,7 @@ typedef struct {
 /**
 * @brief Write pixel data to a TGA file.
 */
-_Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
+bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 
@@ -243,7 +243,7 @@ _Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height
 /**
 * @brief Write pixel data to a PBM file.
 */
-_Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
+bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 

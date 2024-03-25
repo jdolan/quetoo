@@ -64,7 +64,7 @@ typedef struct s_media_s {
 	/**
 	 * @brief The media retain callback, to avoid being freed.
 	 */
-	_Bool (*Retain)(struct s_media_s *self);
+	bool (*Retain)(struct s_media_s *self);
 
 	/**
 	 * @brief The free callback, to release any system resources.
@@ -99,7 +99,7 @@ typedef struct {
 	/**
 	 * @brief True for stereo sounds, which will not be spatialized.
 	 */
-	_Bool stereo;
+	bool stereo;
 } s_sample_t;
 
 #define S_PLAY_AMBIENT      0x1 // this is an ambient sound, and may be culled by the user
@@ -229,7 +229,7 @@ typedef struct {
 	/**
 	 * @brief End of file.
 	 */
-	_Bool eof;
+	bool eof;
 } s_music_t;
 
 /**
@@ -239,7 +239,7 @@ typedef struct {
 	ALuint occluded;
 	ALuint underwater;
 
-	_Bool loaded; // whether the above are currently loaded.
+	bool loaded; // whether the above are currently loaded.
 } s_effects_t;
 
 /**

@@ -430,7 +430,7 @@ static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lu
  * count and data pointers in memory. They may be empty. If count is LUMP_SKIPPED,
  * the lump is a valid lump but not stored/used by the library.
  */
-static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **count, void ***data) {
+static bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **count, void ***data) {
 
 	if (lump_id >= BSP_LUMP_LAST) {
 		return false;
@@ -461,7 +461,7 @@ static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_
 /**
  * @brief Check whether the specified lump is loaded in memory or not.
  */
-_Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	return bsp->loaded_lumps & (bsp_lump_id_t) (1 << lump_id);
 }
@@ -514,7 +514,7 @@ void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
  * @brief Load a lump into memory from the specified BSP file. Returns false
  * if an error occured during the load that is recoverable.
  */
-_Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	int32_t *lump_count;
 	void **lump_data;
@@ -571,7 +571,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
  * @brief Loads the specified lumps into memory. If a failure occurs at any point during
  * loading, it will stop trying to load more and return false.
  */
-_Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
+bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
 		if (lump_bits & (bsp_lump_id_t) (1 << lump)) {

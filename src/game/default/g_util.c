@@ -741,7 +741,7 @@ g_hook_style_t G_HookStyleByName(const char *s) {
 /**
  * @return True if the specified entity should bleed when damaged.
  */
-_Bool G_IsMeat(const g_entity_t *ent) {
+bool G_IsMeat(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use) {
 		return false;
@@ -761,7 +761,7 @@ _Bool G_IsMeat(const g_entity_t *ent) {
 /**
  * @return True if the specified entity is likely stationary.
  */
-_Bool G_IsStationary(const g_entity_t *ent) {
+bool G_IsStationary(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use) {
 		return false;
@@ -785,7 +785,7 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const cm_trace_t *trace) {
+bool G_IsStructural(const cm_trace_t *trace) {
 
 	if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
 		return true;
@@ -797,7 +797,7 @@ _Bool G_IsStructural(const cm_trace_t *trace) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_trace_t *trace) {
+bool G_IsSky(const cm_trace_t *trace) {
 	return trace->surface & SURF_SKY;
 }
 
@@ -805,7 +805,7 @@ _Bool G_IsSky(const cm_trace_t *trace) {
  * @brief Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
-static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) {
+static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
 
 	if (restart) {
 		if (*dest == anim) {
@@ -820,7 +820,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) 
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
+void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart) {
 
 	// certain sequences go to both torso and leg animations
 
@@ -848,7 +848,7 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
 /**
  * @brief Returns true if the entity is currently using the specified animation.
  */
-_Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
+bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK) {

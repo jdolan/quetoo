@@ -121,8 +121,8 @@ void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 
 cl_entity_t *Cg_Self(void);
-_Bool Cg_IsSelf(const cl_entity_t *ent);
-_Bool Cg_IsDucking(const cl_entity_t *ent);
+bool Cg_IsSelf(const cl_entity_t *ent);
+bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
 

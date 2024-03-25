@@ -24,6 +24,6 @@
 #ifdef __GAME_LOCAL_H__
 extern size_t ai_num_weapons;
 
-_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
+bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other);
 void Ai_InitItems(void);
 #endif /* __GAME_LOCAL_H__ */

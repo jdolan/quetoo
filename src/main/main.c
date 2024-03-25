@@ -138,7 +138,7 @@ static void Debug(const debug_t debug, const char *msg) {
 	Print(va("^%d%s", color, msg));
 }
 
-static _Bool jmp_set = false;
+static bool jmp_set = false;
 
 /**
  * @brief Callback for subsystem failures. Depending on the severity, we may try to

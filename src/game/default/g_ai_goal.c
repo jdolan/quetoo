@@ -80,7 +80,7 @@ void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GAr
 /**
  * @brief Check if the goal references the same entity still
  */
-_Bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
+bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
 
 	return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawn_id == ent->s.spawn_id) ||
 		(goal->type == AI_GOAL_PATH && goal->path.path_target == ent && goal->path.path_target_spawn_id == ent->s.spawn_id);

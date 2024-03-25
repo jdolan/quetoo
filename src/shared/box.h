@@ -143,7 +143,7 @@ static inline void Box3_ToPoints(const box3_t bounds, vec3_t *points) {
 /**
  * @return `true` if `a` intersects the bounds `b`, `false` otherwise.
 */
-static inline _Bool __attribute__ ((warn_unused_result)) Box3_Intersects(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const box3_t a, const box3_t b) {
 
 	if (a.mins.x > b.maxs.x || a.mins.y > b.maxs.y || a.mins.z > b.maxs.z) {
 		return false;
@@ -159,7 +159,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Box3_Intersects(const b
 /**
  * @return `true` if `a` contains the point `b`, `false` otherwise.
 */
-static inline _Bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const box3_t a, const vec3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const box3_t a, const vec3_t b) {
 
 	if (a.mins.x > b.x || a.mins.y > b.y || a.mins.z > b.z) {
 		return false;
@@ -175,7 +175,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(cons
 /**
  * @return `true` if `b` is fully contained within `a`, `false` otherwise.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Box3_Contains(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Contains(const box3_t a, const box3_t b) {
 
 	for (int32_t j = 0; j < 3; j++) {
 		if (b.mins.xyz[j] < a.mins.xyz[j] || b.maxs.xyz[j] > a.maxs.xyz[j]) {
@@ -319,7 +319,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Box3_RandomPoint(const
 /**
  * @return Whether `a` and `b` are equal or not.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t a, const box3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t a, const box3_t b) {
 	return Vec3_Equal(a.mins, b.mins) && Vec3_Equal(a.maxs, b.maxs);
 }
 

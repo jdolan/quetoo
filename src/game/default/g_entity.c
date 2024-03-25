@@ -109,7 +109,7 @@ static const g_entity_class_t g_entity_classes[] = {
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static _Bool G_SpawnEntity(g_entity_t *ent) {
+static bool G_SpawnEntity(g_entity_t *ent) {
 
 	ent->class_name = gi.EntityValue(ent->def, "classname")->string;
 	ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;

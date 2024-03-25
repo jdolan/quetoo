@@ -23,10 +23,10 @@
 
 #include "r_types.h"
 
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
-_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
-_Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
+bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
+bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
+bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
+bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
 r_occlusion_query_t R_CreateOcclusionQuery(const box3_t bounds);
 void R_DestroyOcclusionQuery(r_occlusion_query_t *query);

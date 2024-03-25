@@ -233,7 +233,7 @@ typedef struct {
  * game module.
  */
 typedef struct {
-	_Bool initialized; // sv_init has completed
+	bool initialized; // sv_init has completed
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
 

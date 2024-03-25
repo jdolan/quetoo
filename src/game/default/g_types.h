@@ -547,7 +547,7 @@ typedef struct g_item_s {
 	 * @brief Called when a player touches this item. Returning false
 	 * prevents the item from being picked up.
 	 */
-	_Bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
+	bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
 
 	/**
 	 * @brief Called when an item is "use"d from the inventory.
@@ -718,7 +718,7 @@ typedef struct {
 	g_entity_t *entities; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
 
-	_Bool ai_loaded; // whether the AI is loaded or not
+	bool ai_loaded; // whether the AI is loaded or not
 	uint8_t ai_fill_slots; // total number of empty slots the AI should fill
 	uint8_t ai_left_to_spawn; // the number of AI bots that we're waiting to spawn in
 } g_game_t;
@@ -819,12 +819,12 @@ typedef struct {
 	char name[MAX_QPATH]; // the server name (fractures, etc)
 	int16_t gravity;
 	g_gameplay_t gameplay;
-	_Bool teams;
-	_Bool ctf;
-	_Bool techs;
-	_Bool match;
-	_Bool rounds;
-	_Bool hook_allowed;
+	bool teams;
+	bool ctf;
+	bool techs;
+	bool match;
+	bool rounds;
+	bool hook_allowed;
 	int32_t num_teams;
 	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
 	int32_t techs_map;
@@ -843,13 +843,13 @@ typedef struct {
 	vec3_t intermission_angle;
 	const char *next_map;
 
-	_Bool warmup; // shared by match and round
+	bool warmup; // shared by match and round
 
-	_Bool start_match;
+	bool start_match;
 	uint32_t match_time; // time match started
 	uint32_t match_num;
 
-	_Bool start_round;
+	bool start_round;
 	uint32_t round_time; // time round started
 	uint32_t round_num;
 
@@ -991,10 +991,10 @@ typedef struct {
 	int16_t captures;
 	uint16_t deaths;
 
-	_Bool admin;
-	_Bool spectator;
-	_Bool ready;
-	_Bool muted;
+	bool admin;
+	bool spectator;
+	bool ready;
+	bool muted;
 
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
@@ -1033,7 +1033,7 @@ typedef struct {
 	uint32_t hook_think_time; // time when the hook think was called
 	uint32_t hook_fire_time; // can fire hook when time > this
 	g_entity_t *hook_entity; // the hook that we're attached to
-	_Bool hook_pull; // whether we're pulling towards the hook now
+	bool hook_pull; // whether we're pulling towards the hook now
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health
@@ -1078,7 +1078,7 @@ typedef struct {
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 
-	_Bool show_scores; // sets layout bit mask in player state
+	bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
 
 	uint32_t regen_time; // time for regeneration?
@@ -1139,9 +1139,9 @@ typedef struct {
 
 	int16_t health;
 	int16_t max_health;
-	_Bool dead;
+	bool dead;
 
-	_Bool take_damage;
+	bool take_damage;
 	int16_t damage;
 	int16_t knockback;
 	float damage_radius;
@@ -1166,7 +1166,7 @@ typedef struct {
 
 	const g_item_t *item; // for bonus items
 	ai_node_id_t node; // for item paths
-	_Bool move_node;
+	bool move_node;
 } g_entity_locals_t;
 
 #include "game/game.h"

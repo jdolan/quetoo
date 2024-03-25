@@ -156,7 +156,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 /**
  * @brief Sends the contents of the mutlicast buffer to a single client
  */
-void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
+void Sv_Unicast(const g_entity_t *ent, const bool reliable) {
 
 	if (ent && !ent->client->ai) {
 
@@ -184,7 +184,7 @@ void Sv_Unicast(const g_entity_t *ent, const _Bool reliable) {
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) {
 
-	_Bool reliable = false;
+	bool reliable = false;
 
 	switch (to) {
 		case MULTICAST_ALL_R:
@@ -345,7 +345,7 @@ static void Sv_DemoCompleted(void) {
  * @brief Returns true if the client is over its current bandwidth estimation
  * and should not be sent another packet.
  */
-static _Bool Sv_RateDrop(sv_client_t *cl) {
+static bool Sv_RateDrop(sv_client_t *cl) {
 
 	if (sv.frame_num < lengthof(cl->frame_size)) {
 		return false;

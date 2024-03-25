@@ -40,7 +40,7 @@ static char *sv_cmd_names[32] = {
  * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
-_Bool Cl_CheckOrDownloadFile(const char *filename) {
+bool Cl_CheckOrDownloadFile(const char *filename) {
 	char cmd[MAX_STRING_CHARS];
 
 	if (cls.state == CL_DISCONNECTED) {

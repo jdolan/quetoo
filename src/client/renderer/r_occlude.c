@@ -51,7 +51,7 @@ static struct {
 /**
  * @brief
  */
-static _Bool R_OccludeBox_r(const r_view_t *view, const box3_t bounds, const r_bsp_node_t *node) {
+static bool R_OccludeBox_r(const r_view_t *view, const box3_t bounds, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return true;
@@ -85,7 +85,7 @@ static _Bool R_OccludeBox_r(const r_view_t *view, const box3_t bounds, const r_b
 /**
  * @brief
  */
-_Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
+bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	if (!r_occlude->integer) {
 		return false;
@@ -101,7 +101,7 @@ _Bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 /**
  * @brief
  */
-_Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
+bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
 	return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
 }
 
@@ -109,7 +109,7 @@ _Bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
  * @return True if the specified box is occluded *or* culled by the view frustum,
  * false otherwise.
  */
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
+bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
 	return R_OccludeBox(view, bounds) || R_CullBox(view, bounds);
 }
 
@@ -117,7 +117,7 @@ _Bool R_CulludeBox(const r_view_t *view, const box3_t bounds) {
  * @return True if the specified sphere is occluded *or* culled by the view frustum,
  * false otherwise.
  */
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
+bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius) {
 	return R_OccludeSphere(view, point, radius) || R_CullSphere(view, point, radius);
 }
 

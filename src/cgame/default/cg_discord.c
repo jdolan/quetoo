@@ -136,7 +136,7 @@ typedef enum {
 } cg_discord_status_t;
 
 typedef struct {
-	_Bool initialized;
+	bool initialized;
 	cg_discord_status_t status;
 } cg_discord_state_t;
 
@@ -179,7 +179,7 @@ void Cg_UpdateDiscord(void) {
 
 	if (cg_discord_state.initialized) {
 		DiscordRichPresence presence = { 0 };
-		_Bool needs_update = false;
+		bool needs_update = false;
 
 		char details[128];
 		char joinSecret[128];

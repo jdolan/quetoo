@@ -295,7 +295,7 @@ static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
  * or greater are selected from the tree using bottom-up recursion.
  * @return True if an occlusion query was generated for the node.
  */
-static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
 	node->parent = parent;
@@ -309,8 +309,8 @@ static _Bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r
 		face->node = node;
 	}
 
-	const _Bool a = R_SetupBspNode(model, node, node->children[0]);
-	const _Bool b = R_SetupBspNode(model, node, node->children[1]);
+	const bool a = R_SetupBspNode(model, node, node->children[0]);
+	const bool b = R_SetupBspNode(model, node, node->children[1]);
 
 	if (!a || !b) {
 

@@ -210,7 +210,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3s_CastVec3(const v
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3s_Equal(const vec3s_t a, vec3s_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3s_Equal(const vec3s_t a, vec3s_t b) {
 	return a.x == b.x &&
 		   a.y == b.y &&
 		   a.z == b.z;
@@ -353,7 +353,7 @@ static inline float __attribute__ ((warn_unused_result)) Degrees(float radians) 
 /**
  * @return True if `fabsf(a - b) <= epsilon`.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
 	return fabsf(a - b) <= epsilon;
 }
 
@@ -453,7 +453,7 @@ static inline float __attribute__ ((warn_unused_result)) Randomf(void) {
 /**
  * @return A psuedo random boolean.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Randomb(void) {
+static inline bool __attribute__ ((warn_unused_result)) Randomb(void) {
 	return !!(g_rand_int(InitRandom()) & 1);
 }
 
@@ -540,7 +540,7 @@ static inline float __attribute__ ((warn_unused_result)) Vec2_Distance(const vec
 /**
  * @return True if `a` and `b` are equal, using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
 	return EqualEpsilonf(a.x, b.x, epsilon) &&
 		   EqualEpsilonf(a.y, b.y, epsilon);
 }
@@ -548,7 +548,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec2_Equal(const vec2_t a, const vec2_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec2_Equal(const vec2_t a, const vec2_t b) {
 	return Vec2_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -835,7 +835,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Down(void) {
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const vec3_t a, const vec3_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const vec3_t a, const vec3_t b, float epsilon) {
 	return EqualEpsilonf(a.x, b.x, epsilon) &&
 		   EqualEpsilonf(a.y, b.y, epsilon) &&
 		   EqualEpsilonf(a.z, b.z, epsilon);
@@ -844,7 +844,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3_Equal(const vec3_t a, const vec3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3_Equal(const vec3_t a, const vec3_t b) {
 	return Vec3_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -1232,7 +1232,7 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Negate(const vec4
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
 	return fabsf(a.x - b.x) <= epsilon &&
 		   fabsf(a.y - b.y) <= epsilon &&
 		   fabsf(a.z - b.z) <= epsilon &&
@@ -1242,7 +1242,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec4_Equal(const vec4_t a, const vec4_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec4_Equal(const vec4_t a, const vec4_t b) {
 	return Vec4_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -1352,7 +1352,7 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Zero(void) {
 /**
  * @return True if `fabs(a - b) <= epsilon`.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilon(double a, double b, double epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) EqualEpsilon(double a, double b, double epsilon) {
 	return fabs(a - b) <= epsilon;
 }
 
@@ -1437,7 +1437,7 @@ static inline double __attribute__ ((warn_unused_result)) Vec3d_Distance(const v
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(const vec3d_t a, const vec3d_t b, double epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(const vec3d_t a, const vec3d_t b, double epsilon) {
 	return EqualEpsilon(a.x, b.x, epsilon) &&
 		   EqualEpsilon(a.y, b.y, epsilon) &&
 		   EqualEpsilon(a.z, b.z, epsilon);
@@ -1446,7 +1446,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(cons
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_Equal(const vec3d_t a, const vec3d_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3d_Equal(const vec3d_t a, const vec3d_t b) {
 	return Vec3d_EqualEpsilon(a, b, __DBL_EPSILON__);
 }
 

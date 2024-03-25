@@ -129,7 +129,7 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 /**
  * @brief
  */
-static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->locals.health < other->locals.max_health) {
 		other->locals.health = other->locals.max_health;
@@ -145,7 +145,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 		return false; // already have it
@@ -195,7 +195,7 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 /**
  * @brief
  */
-_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
+bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max = item->max;
 
@@ -219,7 +219,7 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 /**
  * @brief
  */
-_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
+bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max = item->max;
 
@@ -243,7 +243,7 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 /**
  * @brief
  */
-static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	int32_t count;
 
 	if (ent->locals.count) {
@@ -266,9 +266,9 @@ static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief When picking up grenades, give the hand grenades weapon in addition to the ammo.
  */
-static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
 
-	const _Bool pickup = G_PickupAmmo(ent, other);
+	const bool pickup = G_PickupAmmo(ent, other);
 	if (pickup) {
 		if (!other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]) {
 			other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]++;
@@ -292,9 +292,9 @@ static void G_UseGrenades(g_entity_t *ent, const g_item_t *item) {
 /**
  * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
  */
-static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
 
-	const _Bool pickup = G_PickupWeapon(ent, other);
+	const bool pickup = G_PickupWeapon(ent, other);
 	if (pickup) {
 		if (!other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]) {
 			other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]++;
@@ -307,13 +307,13 @@ static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 	int32_t h, max;
 
 	const uint16_t tag = ent->locals.item->tag;
 
-	const _Bool always_add = tag == HEALTH_SMALL;
-	const _Bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA);
+	const bool always_add = tag == HEALTH_SMALL;
+	const bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA);
 
 	if (other->locals.health < other->locals.max_health || always_add || always_pickup) {
 
@@ -383,7 +383,7 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 /**
  * @brief
  */
-static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 	const g_item_t *new_armor = ent->locals.item;
 	const g_item_t *current_armor = G_ClientArmor(other);
@@ -391,7 +391,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
 	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
 
-	_Bool taken = false;
+	bool taken = false;
 
 	if (new_armor->tag == ARMOR_SHARD) { // always take it, ignoring cap
 		if (current_armor) {
@@ -504,7 +504,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
  * @brief Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	g_team_t *t;
 	g_entity_t *f;
 	int32_t index;
@@ -723,7 +723,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 		G_DropItem_SetExpiration(ent);
 	}
 
-	const _Bool pickup = ent->locals.item->Pickup(ent, other);
+	const bool pickup = ent->locals.item->Pickup(ent, other);
 	if (pickup) {
 		// show icon and name on status bar
 		uint16_t icon = ent->locals.item->icon_index;
@@ -867,7 +867,7 @@ static g_entity_t *G_TechEntity(const g_tech_t tech) {
  */
 static float G_TechRangeFromSpot(const g_entity_t *spot) {
 	float best_dist = FLT_MAX;
-	_Bool any = false;
+	bool any = false;
 
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
 		vec3_t v;
@@ -945,14 +945,14 @@ void G_ResetDroppedTech(g_entity_t *ent) {
 /**
  * @brief Check if a player has the specified tech.
  */
-_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech) {
+bool G_HasTech(const g_entity_t *player, const g_tech_t tech) {
 	return !!player->client->locals.inventory[g_media.items.techs[tech]->index];
 }
 
 /**
  * @brief Pickup function for techs. Can only hold one tech at a time.
  */
-static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
 
 	for (g_tech_t tech = TECH_HASTE; tech < TECH_TOTAL; tech++) {
 
@@ -1032,7 +1032,7 @@ void G_ResetItem(g_entity_t *ent) {
 		ent->locals.Touch = NULL;
 	}
 
-	const _Bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
+	const bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
 	                        && ent->locals.item->type != ITEM_FLAG;
 
 	if (inhibited || (ent->locals.flags & FL_TEAM_SLAVE)) {
@@ -1056,7 +1056,7 @@ void G_ResetItem(g_entity_t *ent) {
 static void G_ItemDropToFloor(g_entity_t *ent) {
 	cm_trace_t tr;
 	vec3_t dest;
-	_Bool drop_node = false;
+	bool drop_node = false;
 
 	ent->locals.velocity = Vec3_Zero();
 	dest = ent->s.origin;

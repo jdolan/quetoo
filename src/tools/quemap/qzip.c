@@ -25,8 +25,8 @@
 #include "material.h"
 #include "qzip.h"
 
-_Bool include_shared = false;
-_Bool update_zip = false;
+bool include_shared = false;
+bool update_zip = false;
 
 #define MISSING "__missing__"
 
@@ -35,7 +35,7 @@ static GHashTable *paths;
 /**
  * @brief Adds the specified resource path if it exists.
  */
-static _Bool Add(const char *name) {
+static bool Add(const char *name) {
 
 	assert(name);
 
@@ -53,7 +53,7 @@ static _Bool Add(const char *name) {
 /**
  * @brief Adds the first resource found by name, trying the specified file extensions in order.
  */
-static _Bool AddFirstWithExtensions(const char *name, const char **extensions) {
+static bool AddFirstWithExtensions(const char *name, const char **extensions) {
 	char base[MAX_QPATH];
 
 	StripExtension(name, base);

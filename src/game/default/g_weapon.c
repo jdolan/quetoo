@@ -71,7 +71,7 @@ static void G_ChangeWeapon(g_entity_t *ent, const g_item_t *item) {
 /**
  * @brief
  */
-_Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
+bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 
 	if (g_weapon_stay->integer && other->client->locals.inventory[ent->locals.item->index]) {
 		return false;
@@ -119,7 +119,7 @@ _Bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other) {
 /**
  * @return True if the client has both weapon and ammo, false otherwise.
  */
-static _Bool G_HasWeapon(const g_entity_t *ent, const g_item_t *weapon) {
+static bool G_HasWeapon(const g_entity_t *ent, const g_item_t *weapon) {
 
 	if (!ent->client->locals.inventory[weapon->index]) {
 		return false;
@@ -248,7 +248,7 @@ g_entity_t *G_TossWeapon(g_entity_t *ent) {
  * @brief Returns true if the specified client can fire their weapon, false
  * otherwise.
  */
-static _Bool G_FireWeapon(g_entity_t *ent) {
+static bool G_FireWeapon(g_entity_t *ent) {
 
 	const uint32_t buttons = (ent->client->locals.latched_buttons | ent->client->locals.buttons);
 
@@ -480,7 +480,7 @@ void G_ClientHookDetach(g_entity_t *ent) {
 /**
  * @brief Handles the firing of the hook.
  */
-static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
+static void G_ClientHookCheckFire(g_entity_t *ent, const bool refire) {
 
 	// hook can fire, see if we should
 	if (!refire && !(ent->client->locals.latched_buttons & BUTTON_HOOK)) {
@@ -520,7 +520,7 @@ static void G_ClientHookCheckFire(g_entity_t *ent, const _Bool refire) {
 /**
  * @brief Handles management of the hook for a given player.
  */
-void G_ClientHookThink(g_entity_t *ent, const _Bool refire) {
+void G_ClientHookThink(g_entity_t *ent, const bool refire) {
 
 	// sanity checks
 	if (!g_level.hook_allowed) {
@@ -545,9 +545,9 @@ void G_ClientHookThink(g_entity_t *ent, const _Bool refire) {
 
 	if (ent->client->locals.hook_entity) {
 
-		const _Bool is_manual_hook_swing = ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL;
-		const _Bool is_holding_hook = (ent->client->locals.buttons & BUTTON_HOOK);
-		const _Bool is_pressing_hook = (ent->client->locals.latched_buttons & BUTTON_HOOK);
+		const bool is_manual_hook_swing = ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL;
+		const bool is_holding_hook = (ent->client->locals.buttons & BUTTON_HOOK);
+		const bool is_pressing_hook = (ent->client->locals.latched_buttons & BUTTON_HOOK);
 
 		if ((!is_manual_hook_swing && !is_holding_hook) || (is_manual_hook_swing && is_pressing_hook)) {
 
@@ -665,8 +665,8 @@ static void G_PullGrenadePin(g_entity_t *ent) {
  * @brief Checks button status and hold time to determine if we're still holding
  * a primed grenade
  */
-static _Bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons) {
-	_Bool current_hold = buttons & BUTTON_ATTACK;
+static bool G_CheckGrenadeHold(g_entity_t *ent, uint32_t buttons) {
+	bool current_hold = buttons & BUTTON_ATTACK;
 
 	// just pulled the pin
 	if (!ent->client->locals.grenade_hold_time && current_hold) {
@@ -731,7 +731,7 @@ void G_FireHandGrenade(g_entity_t *ent) {
 	}
 
 	// are we holding a primed grenade?
-	_Bool holding = G_CheckGrenadeHold(ent, buttons);
+	bool holding = G_CheckGrenadeHold(ent, buttons);
 
 	// how long have we been holding it?
 	uint32_t hold_time = g_level.time - ent->client->locals.grenade_hold_time;

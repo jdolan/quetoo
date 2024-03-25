@@ -91,7 +91,7 @@ static int32_t ClusterContents(const node_t *node) {
  * @remark The nodes on either side of the portal may actually be clusters, not leafs, so all
  * contents should be OR'ed together.
  */
-_Bool Portal_VisFlood(const portal_t *p) {
+bool Portal_VisFlood(const portal_t *p) {
 
 	if (!p->on_node) {
 		return false; // to global outsideleaf
@@ -130,7 +130,7 @@ _Bool Portal_VisFlood(const portal_t *p) {
  * @brief The entity flood determines which areas are "outside" of the map, which are then filled in.
  * Flowing from side s to side !s
  */
-static _Bool Portal_EntityFlood(const portal_t *p) {
+static bool Portal_EntityFlood(const portal_t *p) {
 
 	if (p->nodes[0]->plane != PLANE_LEAF || p->nodes[1]->plane != PLANE_LEAF) {
 		Com_Error(ERROR_FATAL, "Not a leaf\n");
@@ -485,7 +485,7 @@ static void FloodPortals_r(node_t *node, int32_t occupied) {
 /**
  * @return True if the entity can be placed in a valid leaf beneath head_node, false otherwise.
  */
-static _Bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_t *occupant) {
+static bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_t *occupant) {
 
 	node_t *node = head_node;
 	while (node->plane != PLANE_LEAF) {
@@ -511,11 +511,11 @@ static _Bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_
 /**
  * @brief Marks all nodes that can be reached by entites.
  */
-_Bool FloodEntities(tree_t *tree) {
+bool FloodEntities(tree_t *tree) {
 
 	Com_Debug(DEBUG_ALL, "--- FloodEntities ---\n");
 
-	_Bool inside_occupied = false;
+	bool inside_occupied = false;
 
 	const entity_t *ent = &entities[1];
 	for (int32_t i = 1; i < num_entities; i++, ent++) {

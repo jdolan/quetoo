@@ -152,7 +152,7 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 /**
  * @brief Draws the bounding box using line strips in 3D space.
  */
-void R_Draw3DBox(const box3_t bounds, const color_t color, const _Bool solid) {
+void R_Draw3DBox(const box3_t bounds, const color_t color, const bool solid) {
 	vec3_t points[8];
 
 	Box3_ToPoints(bounds, points);

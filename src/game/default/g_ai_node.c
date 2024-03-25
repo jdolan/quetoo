@@ -32,7 +32,7 @@ static struct {
 
 	ai_node_id_t last_nodes[2];
 
-	_Bool await_landing, is_jumping, is_water_jump, on_mover;
+	bool await_landing, is_jumping, is_water_jump, on_mover;
 
 	button_state_t latched_buttons, old_buttons, buttons;
 
@@ -40,7 +40,7 @@ static struct {
 
 	guint file_nodes, file_links;
 
-	_Bool do_noding, drop_nodes;
+	bool do_noding, drop_nodes;
 } ai_player_roam;
 
 /**
@@ -104,7 +104,7 @@ static inline ai_node_id_t Ai_Node_Index(const ai_node_t *node) {
 /**
  * @brief
  */
-static _Bool Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
+static bool Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 
 	return gi.Trace(position, Ai_Node_GetPosition(node), Box3_Zero(), NULL, CONTENTS_SOLID | CONTENTS_WINDOW).fraction == 1.0f;
 }
@@ -169,7 +169,7 @@ ai_node_id_t Ai_Node_CreateNode(const vec3_t position) {
 /**
  * @brief
  */
-_Bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
+bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
 	const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
 
 	if (node_a->links) {
@@ -232,7 +232,7 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
 /**
  * @brief
  */
-static inline void Ai_Node_CreateDefaultLink(const ai_node_id_t a, const ai_node_id_t b, const _Bool bidirectional) {
+static inline void Ai_Node_CreateDefaultLink(const ai_node_id_t a, const ai_node_id_t b, const bool bidirectional) {
 
 	if (a == b) {
 		return;
@@ -351,7 +351,7 @@ static void Ai_Node_Destroy(const ai_node_id_t id) {
 /**
  * @brief
  */
-static _Bool Ai_Node_PlayerIsOnFloor(const g_entity_t *player) {
+static bool Ai_Node_PlayerIsOnFloor(const g_entity_t *player) {
 	const cm_trace_t tr = gi.Trace(player->s.origin, Vec3_Add(player->s.origin, Vec3(0, 0, -PM_GROUND_DIST)), player->s.bounds, NULL, CONTENTS_MASK_CLIP_CORPSE);
 
 	return tr.fraction < 1.0f && tr.plane.normal.z > PM_STEP_NORMAL;
@@ -390,7 +390,7 @@ static void Ai_Node_RecalculateCosts(const ai_node_id_t id) {
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Node_CanPathTo(const vec3_t position) {
+bool Ai_Node_CanPathTo(const vec3_t position) {
 
 	// if we're heading onto a mover node, only allow us to go forth
 	// if the mover is there
@@ -400,7 +400,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 	cm_trace_t tr = gi.Trace(position, end, Box3_Expand3(PM_BOUNDS, Vec3(1.f, 1.f, 0.f)), NULL, CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
 
 	// bad ground
-	_Bool stuck_in_mover = tr.ent
+	bool stuck_in_mover = tr.ent
 			&& (tr.start_solid || tr.all_solid)
 			&& (tr.ent->s.number != 0
 			&& !(tr.contents & CONTENTS_MASK_LIQUID));
@@ -430,7 +430,7 @@ _Bool Ai_Node_CanPathTo(const vec3_t position) {
 /**
  * @brief Check if the node we want to move towards is currently pathable.
  */
-_Bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
+bool Ai_Path_CanPathTo(const GArray *path, const guint index) {
 
 	// sanity
 	if (index >= path->len) {
@@ -465,8 +465,8 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 	ai_player_roam.buttons = cmd->buttons;
 	ai_player_roam.latched_buttons |= ai_player_roam.buttons & ~ai_player_roam.old_buttons;
 	
-	const _Bool allow_adjustments = ai_node_dev->integer == 1;
-	const _Bool do_noding = allow_adjustments && ai_player_roam.drop_nodes && player->client->ps.pm_state.type == PM_NORMAL;	
+	const bool allow_adjustments = ai_node_dev->integer == 1;
+	const bool do_noding = allow_adjustments && ai_player_roam.drop_nodes && player->client->ps.pm_state.type == PM_NORMAL;	
 
 	// we just switched between noclip/not noclip, clear some stuff
 	// so we don't accidentally drop nodes
@@ -478,7 +478,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 		ai_player_roam.await_landing = true;
 	}
 
-	const _Bool in_water = gi.PointContents(player->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
+	const bool in_water = gi.PointContents(player->s.origin) & (CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA);
 	const float last_node_distance_compare = ai_player_roam.last_nodes[0] == AI_NODE_INVALID ? FLT_MAX : Vec3_Distance(player->s.origin, Ai_Node_GetPosition(ai_player_roam.last_nodes[0]));
 	const float player_distance_compare = Vec3_Distance(player->s.origin, ai_player_roam.position);
 
@@ -505,7 +505,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 
 				// one-way node from where we were to here
 				if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
-					_Bool bidirectional = false;
+					bool bidirectional = false;
 
 					if (ai_player_roam.is_water_jump) {
 						bidirectional = true;
@@ -546,7 +546,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 			// for water leavings, we want to drop where we are, not where we went into the water from
 			const vec3_t where = ai_player_roam.is_water_jump ? player->s.origin : ai_player_roam.floor_position;
 			const ai_node_id_t jumped_near_node = Ai_Node_FindClosest(where, WALKING_DISTANCE / 2, true, false);
-			const _Bool is_jump = player->client->ps.pm_state.velocity.z > 0;
+			const bool is_jump = player->client->ps.pm_state.velocity.z > 0;
 
 			if (jumped_near_node == AI_NODE_INVALID) {
 				const ai_node_id_t id = Ai_Node_CreateNode(where);
@@ -585,7 +585,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 	// we're walkin'
 
 	const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true, false);
-	const _Bool on_mover = player->locals.ground.ent && player->locals.ground.ent->s.number != 0;
+	const bool on_mover = player->locals.ground.ent && player->locals.ground.ent->s.number != 0;
 
 	// attack button enables/disables placement
 	if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
@@ -745,7 +745,7 @@ static void Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdata)
 /**
  * @brief
  */
-static _Bool Ai_NodeInPath(GArray *path, ai_node_id_t node) {
+static bool Ai_NodeInPath(GArray *path, ai_node_id_t node) {
 
 	if (!path) {
 		return false;
@@ -778,7 +778,7 @@ void Ai_Node_Render(void) {
 
 	for (guint i = 0; i < ai_nodes->len; i++) {
 		const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
-		const _Bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
+		const bool in_path = Ai_NodeInPath(ai_player_roam.test_path, i);
 
 		if (Ai_Node_Visible(Vec3_Add(g_game.entities[1].s.origin, g_game.entities[1].client->ps.pm_state.view_offset), i)) {
 
@@ -1126,7 +1126,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 	
 	GHashTable *costs_started = g_hash_table_new(g_direct_hash, g_direct_equal);
 	GArray *queue = g_array_new(false, false, sizeof(ai_node_priority_t));
-	_Bool finished = false;
+	bool finished = false;
 
 	g_array_append_vals(queue, &(ai_node_priority_t) {
 		.id = start,

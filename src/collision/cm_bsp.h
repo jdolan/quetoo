@@ -403,10 +403,10 @@ typedef struct bsp_file_s {
 
 int32_t Bsp_Verify(const bsp_header_t *file);
 int64_t Bsp_Size(const bsp_header_t *file);
-_Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id);
+bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
-_Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
-_Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
+bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
+bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
 void Bsp_Write(file_t *file, const bsp_file_t *bsp);

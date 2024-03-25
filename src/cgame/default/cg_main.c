@@ -410,7 +410,7 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 /**
  * @brief Parse a single server command, returning true on success.
  */
-static _Bool Cg_ParseMessage(int32_t cmd) {
+static bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
 		case SV_CMD_SOUND:

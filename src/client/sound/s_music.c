@@ -42,13 +42,13 @@ static struct {
 
 	SDL_Thread *thread; // thread sound system runs on
 	SDL_mutex *mutex; // mutex for music state
-	_Bool shutdown;
+	bool shutdown;
 } s_music_state;
 
 /**
  * @brief Retain event listener for s_music_t.
  */
-static _Bool S_RetainMusic(s_media_t *self) {
+static bool S_RetainMusic(s_media_t *self) {
 	s_music_t *music = (s_music_t *) self;
 
 	return GlobMatch("track*", music->media.name, GLOB_FLAGS_NONE);
@@ -72,7 +72,7 @@ static void S_FreeMusic(s_media_t *self) {
 /**
  * @brief Handles the actual loading of .ogg music files.
  */
-static _Bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
+static bool S_LoadMusicFile(const char *name, SF_INFO *info, SNDFILE **snd, file_t **file) {
 	char path[MAX_QPATH];
 
 	*snd = NULL;
@@ -169,7 +169,7 @@ void S_StopMusic(void) {
  * @param setup_buffers If the buffers should be pulled directly from the buffer list instead of
  * from the consumed buffer list. Use this on first call of Play only.
  */
-static void S_BufferMusic(s_music_t *music, _Bool setup_buffers) {
+static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
 
 	if (!music->snd) {
 		return;

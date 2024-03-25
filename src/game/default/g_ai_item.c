@@ -26,7 +26,7 @@ size_t ai_num_weapons;
 /**
  * @return True if the bot entity can pick up the item entity.
  */
-_Bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
 	const g_item_t *item = other->locals.item;
 
 	if (!item) {

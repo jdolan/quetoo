@@ -27,7 +27,7 @@ GArray *cg_entities = NULL;
 /**
  * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
  */
-typedef _Bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
+typedef bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
 
 /**
  * @return The first entity after `from` for which `predicate` returns `true`, or `NULL`.
@@ -60,14 +60,14 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 /**
  * @brief
  */
-static _Bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
+static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
 	return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief
  */
-static _Bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
+static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 	return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
@@ -180,7 +180,7 @@ cl_entity_t *Cg_Self(void) {
 /**
  * @return True if the specified entity is bound to the local client's view.
  */
-_Bool Cg_IsSelf(const cl_entity_t *ent) {
+bool Cg_IsSelf(const cl_entity_t *ent) {
 
 	if (ent == cgi.client->entity) {
 		return true;
@@ -208,7 +208,7 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 /**
  * @return True if the entity is ducking, false otherwise.
  */
-_Bool Cg_IsDucking(const cl_entity_t *ent) {
+bool Cg_IsDucking(const cl_entity_t *ent) {
 
 	const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
 	const float height = Box3_Size(ent->current.bounds).z;

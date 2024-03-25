@@ -137,7 +137,7 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 		}
 	}
 
-	const _Bool is_fatal = type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
+	const bool is_fatal = type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
 
 	if (is_fatal) {
 		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);

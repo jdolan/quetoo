@@ -49,7 +49,7 @@ box3_t map_bounds;
 /**
  * @brief
  */
-static _Bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
+static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
 	if (EqualEpsilon(p->dist, dist, DIST_EPSILON) &&
 		Vec3_EqualEpsilon(p->normal, normal, NORMAL_EPSILON)) {
@@ -120,7 +120,7 @@ static vec3_t SnapNormal(const vec3_t normal) {
 
 	vec3_t snapped = normal;
 
-	_Bool snap = false;
+	bool snap = false;
 	for (int32_t i = 0; i < 3; i++) {
 		if (snapped.xyz[i] != 0.f) {
 			if (fabsf(snapped.xyz[i]) < NORMAL_EPSILON) {

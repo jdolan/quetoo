@@ -356,7 +356,7 @@ static inline color_t __attribute__ ((warn_unused_result)) Color_Mix(const color
 /**
  * @return True if the parsing succeeded, false otherwise.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, color_t *color) {
+static inline bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, color_t *color) {
 
 	const size_t length = strlen(s);
 	if (length != 6 && length != 8) {

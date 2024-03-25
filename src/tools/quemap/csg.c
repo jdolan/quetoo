@@ -87,7 +87,7 @@ static csg_brush_t *SubtractBrush(csg_brush_t *a, csg_brush_t *b) {
  * @return True if the two brushes do not intersect.
  * @remarks There will be false negatives for some non-axial combinations.
  */
-static _Bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
+static bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 
 	// check bounding boxes
 	if (!Box3_Intersects(a->bounds, b->bounds)) {
@@ -188,7 +188,7 @@ static csg_brush_t *RemoveBrushFromBrushes(csg_brush_t *list, const csg_brush_t 
 /**
  * @brief Returns true if b1 is allowed to bite b2
  */
-static inline _Bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
+static inline bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
 	// detail brushes never bite structural brushes
 	if ((b1->original->contents & CONTENTS_DETAIL) && !(b2->original->contents & CONTENTS_DETAIL)) {
 		return false;

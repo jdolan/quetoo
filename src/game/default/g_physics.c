@@ -161,7 +161,7 @@ void G_RunThink(g_entity_t *ent) {
 /**
  * @return True if the entity is in a valid position, false otherwise.
  */
-static _Bool G_GoodPosition(const g_entity_t *ent) {
+static bool G_GoodPosition(const g_entity_t *ent) {
 
 	const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
 
@@ -173,7 +173,7 @@ static _Bool G_GoodPosition(const g_entity_t *ent) {
 /**
  * @return True if the entity is in, or could be moved to, a valid position, false otherwise.
  */
-static _Bool G_CorrectPosition(g_entity_t *ent) {
+static bool G_CorrectPosition(g_entity_t *ent) {
 
 	const int32_t offsets[] = { 0, 1, -1 };
 
@@ -959,7 +959,7 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 /**
  * @see Pm_SlideMove
  */
-static _Bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
+static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 	vec3_t planes[MAX_CLIP_PLANES];
 	vec3_t origin, angles;
 

@@ -38,7 +38,7 @@ typedef struct cmd_state_s {
 
 	cmd_args_t args;
 
-	_Bool wait; // commands may be deferred one frame
+	bool wait; // commands may be deferred one frame
 
 	int32_t alias_loop_count;
 } cmd_state_t;
@@ -253,7 +253,7 @@ void Cmd_TokenizeString(const char *text) {
 /**
  * @return The variable by the specified name, or `NULL`.
  */
-static cmd_t *Cmd_Get_(const char *name, const _Bool case_sensitive) {
+static cmd_t *Cmd_Get_(const char *name, const bool case_sensitive) {
 
 	if (cmd_state.commands) {
 		const GQueue *queue = (GQueue *) g_hash_table_lookup(cmd_state.commands, name);

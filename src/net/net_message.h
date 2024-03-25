@@ -88,7 +88,7 @@ void Net_WriteDir(mem_buf_t *msg, const vec3_t dir);
 void Net_WriteBounds(mem_buf_t *msg, const box3_t bounds);
 void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t *to);
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to);
-void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, _Bool force);
+void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, bool force);
 
 void Net_BeginReading(mem_buf_t *msg);
 void Net_ReadData(mem_buf_t *msg, void *data, size_t len);

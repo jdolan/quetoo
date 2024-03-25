@@ -39,10 +39,10 @@ void MakeHeadnodePortals(tree_t *tree);
 void MakeNodePortal(node_t *node);
 void SplitNodePortals(node_t *node);
 
-_Bool Portal_VisFlood(const portal_t *p);
+bool Portal_VisFlood(const portal_t *p);
 void RemovePortalFromNode(portal_t *portal, node_t *l);
 
-_Bool FloodEntities(tree_t *tree);
+bool FloodEntities(tree_t *tree);
 void FillOutside(tree_t *tree);
 void FindPortalBrushSides(tree_t *tree);
 void FreePortal(portal_t *p);
