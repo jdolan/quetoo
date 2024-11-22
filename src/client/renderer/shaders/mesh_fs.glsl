@@ -376,6 +376,7 @@ void main(void) {
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
 	fragment.dir = normalize(-vertex.position);
 	fragment.direction = normalize(vertex.direction);
+	fragment.specular = vec3(0);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
