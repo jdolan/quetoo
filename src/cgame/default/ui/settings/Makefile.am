@@ -30,6 +30,7 @@ libcguisettings_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 libcguisettings_la_LDFLAGS = \

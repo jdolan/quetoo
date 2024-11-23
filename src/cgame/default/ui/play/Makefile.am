@@ -37,6 +37,7 @@ libcguiplay_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui/common \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
 	@SDL2_CFLAGS@
 

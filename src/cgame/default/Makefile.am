@@ -63,6 +63,7 @@ cgame_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 cgame_la_LDFLAGS = \
