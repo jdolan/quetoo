@@ -8,7 +8,7 @@
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "NO"
-            buildForRunning = "YES"
+            buildForRunning = "NO"
             buildForProfiling = "NO"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
@@ -17,6 +17,20 @@
                BlueprintIdentifier = "CEA029B31C5E545B00341079"
                BuildableName = "quetoo-all"
                BlueprintName = "quetoo-all"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "NO"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+               BuildableName = "quetoo"
+               BlueprintName = "quetoo"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,10 +59,12 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
-      ignoresPersistentStateOnLaunch = "NO"
+      ignoresPersistentStateOnLaunch = "YES"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "NO"
+      consoleMode = "0"
+      structuredConsoleMode = "2">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
@@ -151,9 +167,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "quetoo-all"
-            BlueprintName = "quetoo-all"
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

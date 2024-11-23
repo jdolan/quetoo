@@ -22,6 +22,7 @@
 #pragma once
 
 #include "src/client/renderer/r_types.h"
+#include "src/client/sound/s_types.h"
 
 #include <ObjectivelyMVC.h>
 

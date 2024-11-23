@@ -102,12 +102,13 @@ typedef struct {
 	bool stereo;
 } s_sample_t;
 
-#define S_PLAY_AMBIENT      0x1 // this is an ambient sound, and may be culled by the user
+#define S_PLAY_AMBIENT      0x1 // this is an ambient sound and may be culled by the user
 #define S_PLAY_LOOP         0x2 // loop the sound continuously
 #define S_PLAY_FRAME        0x4 // cull the sound if it is not added at each frame
-#define S_PLAY_RELATIVE		0x8 // play relative to the listener origin
-#define S_PLAY_UNDERWATER	0x10 // sound is of a different liquid state than the listener: extreme low pass
-#define S_PLAY_OCCLUDED		0x20 // sound is occluded by an occluder: low pass
+#define S_PLAY_RELATIVE	    0x8 // play relative to the listener origin
+#define S_PLAY_UNDERWATER   0x10 // sound is of a different liquid state than the listener: extreme low pass
+#define S_PLAY_OCCLUDED	    0x20 // sound is occluded by an occluder: low pass
+#define S_PLAY_UI           0x40 // sound is a user-interface effect and may be culled by the user
 
 #define TONES_PER_OCTAVE	48
 

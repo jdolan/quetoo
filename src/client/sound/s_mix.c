@@ -240,7 +240,6 @@ void S_MixChannels(const s_stage_t *stage) {
 void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
 	assert(stage);
-	assert(play);
 
 	if (!s_context.context) {
 		return;
