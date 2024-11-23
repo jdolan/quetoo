@@ -114,9 +114,10 @@ void Cl_ParseServerInfo(void) {
 
 	g_strfreev(info);
 
-	MVC_PostNotification(&(const Notification) {
-		.name = NOTIFICATION_SERVER_PARSED,
-		.data = server
+	SDL_PushEvent(&(SDL_Event) {
+		.user.type = MVC_NOTIFICATION_EVENT,
+		.user.code = NOTIFICATION_SERVER_PARSED,
+		.user.data1 = server
 	});
 }
 
@@ -274,8 +275,9 @@ void Cl_ParseServers(void) {
 
 	// and inform the user interface
 
-	MVC_PostNotification(&(const Notification) {
-		.name = NOTIFICATION_SERVER_PARSED
+	SDL_PushEvent(&(SDL_Event) {
+		.user.type = MVC_NOTIFICATION_EVENT,
+		.user.code = NOTIFICATION_SERVER_PARSED,
 	});
 }
 
