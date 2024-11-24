@@ -659,8 +659,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
 		.radius = 250.0,
-		.color = Vec3(0.8, 0.5, 0.4),
-		.intensity = .5f,
+		.color = Vec3(.9f, .6f, .3f),
+		.intensity = .2f,
 		.decay = 1000
 	});
 
@@ -787,7 +787,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		.origin = start,
 		.radius = 100.f,
 		.color = color_rgb.vec3,
-		.intensity = .6f,
+		.intensity = .3f,
 		.decay = 500,
 	});
 
@@ -801,7 +801,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 	const vec3_t up = Vec3_Cross(forward, right);
 
 	const uint32_t core_lifetime = 500;
-	const uint32_t vapor_lifetime = 750;
+	const uint32_t vapor_lifetime = 900;
 
 	for (int32_t i = 0; i < dist; i++) {
 		const float cosi = cosf(i * 0.1f);
@@ -828,7 +828,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
 			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
 			.softness = 1.f,
-			.lighting = .2f
+			.lighting = .2f,
+			.bloom = 2.f
 		});
 
 		if (i % 3 == 0) {
@@ -836,15 +837,16 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_particle3,
 				.origin = org,
-				.velocity = Vec3_Add(Vec3_Scale(Vec3_RandomDir(), 64.f), Vec3_Scale(Vec3_Up(), 96.f)),
+				.velocity = Vec3_Scale(Vec3_RandomDir(), 64.f),
 				.acceleration = Vec3(RandomRangef(-64.f, 64.f), RandomRangef(-64.f, 64.f), -SPRITE_GRAVITY),
 				.lifetime = vapor_lifetime + Randomf() * 160,
-				.size = 1.5f,
+				.size = 2.5f,
 				.size_velocity = -.5f / MILLIS_TO_SECONDS(vapor_lifetime),
 				.color = Vec4(hue, 0.f, 1.f, 0.f),
 				.end_color = Vec4(hue, effect_color.y, 0.f, 0.f),
 				.softness = 1.f,
-				.lighting = 1.f
+				.lighting = 1.f,
+				.bloom = 2.f
 			});
 		}
 	}
@@ -1058,8 +1060,8 @@ static void Cg_BfgEffect(const vec3_t org) {
 	Cg_AddLight(&(const cg_light_t) {
 		.origin = org,
 		.radius = 200.f,
-		.color = Vec3(.8f, 1.f, .5f),
-		.intensity = .6f,
+		.color = Vec3(.4f, 1.f, .4f),
+		.intensity = .125f,
 		.decay = 1500
 	});
 	
