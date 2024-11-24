@@ -276,27 +276,6 @@ AC_SUBST(GAME_MODULES)
 AC_MSG_RESULT($GAME_MODULES)
 
 dnl ---------------------------------
-dnl Check which ai modules to build
-dnl ---------------------------------
-
-AC_MSG_CHECKING(which ai modules to build)
-
-AI_MODULES="default"
-
-AC_ARG_WITH(ai,
-	AS_HELP_STRING([--with-ai='default ...'],
-		[build specified ai modules]
-	)
-)
-
-if test "x${with_ai}" != x; then
-	AI_MODULES="${with_ai}"
-fi
-
-AC_SUBST(AI_MODULES)
-AC_MSG_RESULT($AI_MODULES)
-
-dnl ---------------------------------
 dnl Check whether to build unit tests
 dnl ---------------------------------
 
@@ -506,8 +485,6 @@ Quetoo $VERSION: Automatic configuration OK.
     Linking: ........... $BASE_LDFLAGS
 
     Game modules: ...... $GAME_MODULES
-    AI modules: ........ $AI_MODULES
-
     Unit tests: ........ $BUILD_TESTS
 
   Installation directories:
