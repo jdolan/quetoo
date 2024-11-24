@@ -115,6 +115,7 @@ void Com_PrintInfo(const char *s);
 
 extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
 
+bool Com_IsDebug(const debug_t debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 

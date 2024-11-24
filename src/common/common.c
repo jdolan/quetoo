@@ -83,6 +83,13 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 };
 
 /**
+ * @return True if the specified debug flag(s) are enabled.
+ */
+bool Com_IsDebug(const debug_t debug) {
+	return (quetoo.debug_mask & debug) != 0;
+}
+
+/**
  * @return A string containing all enabled debug categories.
  */
 const char *Com_GetDebug(void) {
