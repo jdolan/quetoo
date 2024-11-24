@@ -56,6 +56,13 @@ void S_FreeChannel(int32_t c) {
  */
 static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
+	if (ch->play.flags & S_PLAY_UI) {
+		ch->gain = 1.f;
+		ch->pitch = 1.f;
+		ch->filter = AL_NONE;
+		return true;
+	}
+
 	vec3_t delta;
 	float dist;
 	
@@ -84,7 +91,7 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
 	const float frac = dist * atten / SOUND_MAX_DISTANCE;
 
-	ch->gain = 1.0 - frac;
+	ch->gain = 1.f - frac;
 
 	// fade out frame sounds if they are no longer in the frame
 	if (ch->start_time) {
@@ -200,7 +207,7 @@ void S_MixChannels(const s_stage_t *stage) {
 
 			alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
 
-			if (ch->play.flags & S_PLAY_RELATIVE) {
+			if (ch->play.flags & (S_PLAY_UI | S_PLAY_RELATIVE)) {
 				alSourcei(src, AL_SOURCE_RELATIVE, 1);
 			} else {
 				alSourcei(src, AL_SOURCE_RELATIVE, 0);

@@ -634,7 +634,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	R_InitView(&cl_view);
 
-	S_ClearStage(&cl_stage);
+	S_InitStage(&cl_stage);
 
 	Cl_AttemptConnect();
 

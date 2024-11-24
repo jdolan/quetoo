@@ -45,6 +45,10 @@ Slider > .bar > .handle {
 	background-color: #1e4e62dd;
 }
 
+TabView > .tabSelectionView {
+	-sound-on-click: ui/click;
+}
+
 TabView > .tabSelectionView > Label.selected {
 	background-color: #1e4e62aa;
 }

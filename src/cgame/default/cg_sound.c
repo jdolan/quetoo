@@ -26,7 +26,6 @@
  */
 void Cg_PrepareStage(const cl_frame_t *frame) {
 
-	cgi.stage->ticks = cgi.view->ticks;
 	cgi.stage->origin = cgi.view->origin;
 	cgi.stage->angles = cgi.view->angles;
 	cgi.stage->forward = cgi.view->forward;

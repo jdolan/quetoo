@@ -188,6 +188,14 @@ void S_Stop(void) {
 }
 
 /**
+ * @brief Initialize the per-frame attributes of a sound stage.
+ */
+void S_InitStage(s_stage_t *stage) {
+	stage->ticks = SDL_GetTicks();
+	stage->num_samples = 0;
+}
+
+/**
  * @brief Renders the specified stage, adding channels from the defined play samples.
  */
 void S_RenderStage(const s_stage_t *stage) {
