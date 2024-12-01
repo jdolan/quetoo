@@ -295,7 +295,7 @@ static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
  * or greater are selected from the tree using bottom-up recursion.
  * @return True if an occlusion query was generated for the node.
  */
-static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+static bool R_SetupBspNode(r_bsp_model_t *bsp, r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
 	node->parent = parent;
@@ -309,8 +309,8 @@ static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 		face->node = node;
 	}
 
-	const bool a = R_SetupBspNode(model, node, node->children[0]);
-	const bool b = R_SetupBspNode(model, node, node->children[1]);
+	const bool a = R_SetupBspNode(bsp, model, node, node->children[0]);
+	const bool b = R_SetupBspNode(bsp, model, node, node->children[1]);
 
 	if (!a || !b) {
 
@@ -322,7 +322,19 @@ static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 			if (b) {
 				R_DestroyNodeOcclusionQueries(node->children[1]);
 			}
+
 			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, ON_EPSILON));
+
+			// Copy the query name to all vertexes within the node. These will be uploaded as
+			// a vertex attribute so that the geometry shader can make use of occlusion queries.
+
+			r_bsp_vertex_t *vertex = bsp->vertexes;
+			for (int32_t i = 0; i < bsp->num_vertexes; i++, vertex++) {
+				if (Box3_ContainsPoint(node->visible_bounds, vertex->position)) {
+					vertex->occlusion_query = node->query.name;
+				}
+			}
+
 			return true;
 		}
 	}
@@ -356,7 +368,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
-		R_SetupBspNode(out, NULL, out->head_node);
+		R_SetupBspNode(bsp, out, NULL, out->head_node);
 	}
 }
 
@@ -714,6 +726,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
 	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, lightmap));
 	glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
+	glVertexAttribIPointer(7, 1, GL_UNSIGNED_INT, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, occlusion_query));
 
 	R_GetError(mod->media.name);
 

@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-#define MAX_OCCLUSION_QUERIES 1024
-
 /**
  * @brief Hardware occlusion queries.
  */
@@ -215,6 +213,7 @@ static void R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
 			q->available = 0;
 
 			if (q->result == 0) {
+				// TODO: Can't we cull anything behind this node now too?
 				return;
 			} else {
 				r_bsp_node_t *parent = node->parent;
@@ -239,10 +238,6 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 
 	if (!r_occlude->integer) {
 		return;
-	}
-
-	if (view->flags & VIEW_FLAG_NO_DELTA) {
-		//view->num_occlusion_queries = 0;
 	}
 
 	glEnable(GL_DEPTH_TEST);

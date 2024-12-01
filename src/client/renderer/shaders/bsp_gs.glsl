@@ -32,6 +32,7 @@ in vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
+	flat int occlusion_query;
 } in_vertex[];
 
 out geometry_data {
@@ -52,7 +53,20 @@ out geometry_data {
 /**
  * @brief
  */
+bool occluded(void) {
+	return occlusion_queries[in_vertex[0].occlusion_query] == 0
+		&& occlusion_queries[in_vertex[1].occlusion_query] == 0
+		&& occlusion_queries[in_vertex[2].occlusion_query] == 0;
+}
+
+/**
+ * @brief
+ */
 void main(void) {
+
+	if (developer == 1 && occluded()) {
+		return;
+	}
 
 	int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
 	int num_active_lights = 0;
