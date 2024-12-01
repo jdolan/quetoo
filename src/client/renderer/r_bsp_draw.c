@@ -37,9 +37,7 @@ static struct {
 	GLint in_diffusemap;
 	GLint in_lightmap;
 	GLint in_color;
-	GLint in_occlusion_query;
 
-	GLint occlusion_queries;
 	GLint model;
 
 	GLint texture_material;
@@ -668,19 +666,6 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUseProgram(r_bsp_program.name);
 
-	GLuint occlusion_queries[MAX_OCCLUSION_QUERIES];
-	memset(occlusion_queries, 0xff, sizeof(occlusion_queries));
-
-	const r_bsp_node_t *node = r_world_model->bsp->nodes;
-	for (int32_t i = 0; i < r_world_model->bsp->num_nodes; i++, node++) {
-		const r_occlusion_query_t *query = &node->query;
-		if (query->name) {
-			occlusion_queries[query->name] = query->result;
-		}
-	}
-
-	glUniform1uiv(r_bsp_program.occlusion_queries, MAX_OCCLUSION_QUERIES, occlusion_queries);
-
 	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -694,7 +679,6 @@ void R_DrawWorld(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
-	glEnableVertexAttribArray(r_bsp_program.in_occlusion_query);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
@@ -775,9 +759,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
-	r_bsp_program.in_occlusion_query = glGetAttribLocation(r_bsp_program.name, "in_occlusion_query");
 
-	r_bsp_program.occlusion_queries = glGetUniformLocation(r_bsp_program.name, "occlusion_queries");
 	r_bsp_program.model_type = glGetUniformLocation(r_bsp_program.name, "model_type");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 

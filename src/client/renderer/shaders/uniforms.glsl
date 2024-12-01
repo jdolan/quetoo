@@ -20,8 +20,6 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#define MAX_OCCLUSION_QUERIES 256
-
 #define VIEW_UNKNOWN		0
 #define VIEW_MAIN			1
 #define VIEW_PLAYER_MODEL	2
@@ -234,11 +232,6 @@ layout (std140) uniform lights_block {
 	 */
 	int num_lights;
 };
-
-/**
- * @brief The occlusion query results, for use in geometry shaders.
- */
-uniform uint occlusion_queries[MAX_OCCLUSION_QUERIES];
 
 /**
  * @brief The diffusemap textures, for non-material passes such as sprites.

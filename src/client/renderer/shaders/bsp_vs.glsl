@@ -26,7 +26,6 @@ layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
-layout (location = 7) in int in_occlusion_query;
 
 uniform int model_type;
 
@@ -42,7 +41,6 @@ out vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
-	flat int occlusion_query;
 } vertex;
 
 invariant gl_Position;
@@ -71,7 +69,6 @@ void main(void) {
 	vertex.lightmap = in_lightmap;
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
-	vertex.occlusion_query = in_occlusion_query;
 
 	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 

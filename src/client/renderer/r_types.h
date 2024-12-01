@@ -340,12 +340,6 @@ typedef struct {
 	vec2_t diffusemap;
 	vec2_t lightmap;
 	color32_t color;
-
-	/**
-	 * @brief The name of the occlusion query within which this vertex resides. This is uploaded as
-	 * a vertex attribute so that the geometry shader may make use of occlusion queries.
-	 */
-	GLuint occlusion_query;
 } r_bsp_vertex_t;
 
 /**
@@ -446,8 +440,6 @@ typedef struct {
 	 */
 	GLint result;
 } r_occlusion_query_t;
-
-#define MAX_OCCLUSION_QUERIES 256
 
 /**
  * @brief BSP nodes comprise the tree representation of the world.
