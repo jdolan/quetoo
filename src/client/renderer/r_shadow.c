@@ -116,6 +116,10 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 		return;
 	}
 
+	if (node->query.name && node->query.result == 0) {
+		return;
+	}
+
 	const r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
@@ -227,14 +231,14 @@ static void R_DrawMeshEntityShadow(const r_entity_t *e) {
 /**
  * @brief Clears the shadow texture for the specified light.
  */
-static void R_ClearShadow(const r_view_t *view, const r_light_t *l) {
+static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
 
 	for (int32_t i = 0; i < 6; i++) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
 								  r_shadows.cubemap_array,
 								  0,
-								  l->index * 6 + i);
+								  light->index * 6 + i);
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
@@ -245,16 +249,16 @@ static void R_ClearShadow(const r_view_t *view, const r_light_t *l) {
 /**
  * @brief Renders the shadow cubemap for the specified light.
  */
-static void R_DrawShadow(const r_view_t *view, const r_light_t *l) {
+static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
-	glUniform1i(r_shadow_program.light_index, l->index);
+	glUniform1i(r_shadow_program.light_index, light->index);
 
-	if (l->type == LIGHT_DYNAMIC) {
-		R_DrawBspNodeShadow(l);
+	if (light->type == LIGHT_DYNAMIC) {
+		R_DrawBspNodeShadow(light);
 	}
 
-	for (int32_t i = 0; i < l->num_entities; i++) {
-		const r_entity_t *e = l->entities[i];
+	for (int32_t i = 0; i < light->num_entities; i++) {
+		const r_entity_t *e = light->entities[i];
 
 		if (IS_MESH_MODEL(e->model)) {
 			R_DrawMeshEntityShadow(e);
