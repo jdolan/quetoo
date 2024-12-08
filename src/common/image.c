@@ -21,9 +21,6 @@
 
 #include "image.h"
 
-#include <complex.h>
-#include <fftw3.h>
-
 /**
  * @brief Loads the specified image from the game filesystem.
  */
@@ -162,203 +159,12 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 }
 
 /**
- * @brief Compute the brightness (first derivative) from the given diffusemap.
- *
- * @param dx The horizontal gradient output.
- * @param dy The vertical gradient output.
- */
-static void Img_CreateHeightmap_diffusemap_derivative(const SDL_Surface* diffusemap, float *dx, float *dy) {
-
-	const int32_t w = diffusemap->w;
-	const int32_t h = diffusemap->h;
-
-	const color32_t *in = (color32_t *) diffusemap->pixels;
-	for (int32_t y = 1; y < h - 1; y++) {
-		for (int32_t x = 1; x < w - 1; x++, in++, dx++, dy++) {
-
-			const float brightness = Vec3_Length(Color32_Color(*in).vec3);
-			*dx = brightness;
-			*dy = brightness;
-		}
-	}
-}
-
-/**
- * @brief Compute the gradients (first derivative) from the given normalmap.
- *
- * @param dx The horizontal gradient output.
- * @param dy The vertical gradient output.
- */
-static void Img_CreateHeightmap_normalmap_derivative(const SDL_Surface* normalmap, float *dx, float *dy) {
-
-	const int32_t w = normalmap->w;
-	const int32_t h = normalmap->h;
-
-	const color32_t *in = (color32_t *) normalmap->pixels;
-	for (int32_t y = 1; y < h - 1; y++) {
-		for (int32_t x = 1; x < w - 1; x++, in++, dx++, dy++) {
-
-			const vec3_t normal = Color32_Direction(*in);
-			if (normal.z != 0.f) {
-				*dx = -normal.x / normal.z;
-				*dy = -normal.y / normal.z;
-			} else {
-				*dx = 0.f;
-				*dy = 0.f;
-			}
-		}
-	}
-}
-
-/**
  * @brief
  */
-void Img_CreateHeightmap3(const SDL_Surface *diffusemap, SDL_Surface* normalmap, SDL_Surface *heightmap) {
+void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface* normalmap, float roughness) {
 
-	const int32_t w = normalmap->w;
-	const int32_t h = normalmap->h;
-
-	float *dx = (float *) calloc(w * h, sizeof(float));
-	float *dy = (float *) calloc(w * h, sizeof(float));
-	float *dh = (float *) calloc(w * h, sizeof(float));
-
-	Img_CreateHeightmap_normalmap_derivative(normalmap, dx, dy);
-
-	// Integrate the X direction
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 1; x < w; x++) {
-			dh[y * w + x] += dh[y * w + (x - 1)] + dx[y * w + x];
-		}
-	}
-
-	// Integrate the Y direction
-	for (int32_t x = 0; x < w; x++) {
-		for (int32_t y = 1; y < h; y++) {
-			dh[y * w + x] += dh[(y - 1) * w + x] + dy[y * w + x];
-		}
-	}
-
-	free(dx);
-	free(dy);
-
-	// Find the height range
-	float min = dh[0], max = dh[0];
-	for (int32_t i = 1; i < w * h; i++) {
-		min = Minf(min, dh[i]);
-		max = Maxf(max, dh[i]);
-	}
-
-	// Normalize the height values to 0-255 and store in normalmap alpha channel
-	color32_t *out_normalmap = normalmap->pixels;
-	color32_t *out_heightmap = heightmap ? heightmap->pixels : NULL;
-
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++) {
-
-			const float height = (dh[y * w + x] - min) / (max - min);
-			const byte alpha = (byte) (height * 255);
-
-			out_normalmap->a = alpha;
-			out_normalmap++;
-
-			if (out_heightmap) {
-				*out_heightmap++ = Color32(alpha, alpha, alpha, 255);
-			}
-		}
-	}
-
-	free(dh);
-}
-
-/**
- * @brief
- */
-void Img_CreateHeightmap2(const SDL_Surface *diffusemap, SDL_Surface* normalmap, SDL_Surface *heightmap) {
-
-	const int32_t w = normalmap->w;
-	const int32_t h = normalmap->h;
-
-	float *dx = fftwf_alloc_real(w * h);
-	float *dy = fftwf_alloc_real(w * h);
-
-	Img_CreateHeightmap_diffusemap_derivative(diffusemap, dx, dy);
-
-	float *nx = fftwf_alloc_real(w * h);
-	float *ny = fftwf_alloc_real(w * h);
-
-	Img_CreateHeightmap_normalmap_derivative(normalmap, nx, ny);
-
-	const int32_t half_width = w / 2 + 1;
-	fftwf_complex *Nx = fftwf_alloc_complex(half_width * h);
-	fftwf_complex *Ny = fftwf_alloc_complex(half_width * h);
-	fftwf_complex *Dx = fftwf_alloc_complex(half_width * h);
-	fftwf_complex *Dy = fftwf_alloc_complex(half_width * h);
-
-	fftwf_plan plan = fftwf_plan_dft_r2c_2d(h, w, nx, Nx, FFTW_ESTIMATE);
-	fftwf_execute_dft_r2c(plan, nx, Nx);
-	fftwf_execute_dft_r2c(plan, ny, Ny);
-	fftwf_execute_dft_r2c(plan, dx, Dx);
-	fftwf_execute_dft_r2c(plan, dy, Dy);
-	fftwf_destroy_plan(plan);
-
-	float *r = fftwf_alloc_real(w * h);
-	fftwf_complex *R = fftwf_alloc_complex(half_width * h);
-
-	int32_t i = 0;
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < half_width; x++, i++) {
-			const float denom = w * h * (Dx[i] * Dx[i] + Dy[i] * Dy[i]);
-			R[i] = denom > 0.f ? -(Dx[i] * Nx[i] + Dy[i] * Ny[i]) / denom : 0.f;
-		}
-	}
-
-	plan = fftwf_plan_dft_c2r_2d(h, w, R, r, FFTW_ESTIMATE);
-	fftwf_execute(plan);
-	fftwf_destroy_plan(plan);
-
-	fftwf_free(nx);
-	fftwf_free(ny);
-	fftwf_free(dx);
-	fftwf_free(dy);
-
-	fftwf_free(Nx);
-	fftwf_free(Ny);
-	fftwf_free(Dx);
-	fftwf_free(Dy);
-
-	// Normalize the height values to 0-255 and store in normalmap alpha channel
-	float min = r[0], max = r[0];
-	for (int32_t i = 1; i < w * h; i++) {
-		min = Minf(min, r[i]);
-		max = Maxf(max, r[i]);
-	}
-
-	color32_t *out_normalmap = normalmap->pixels;
-	color32_t *out_heightmap = heightmap ? heightmap->pixels : NULL;
-
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++) {
-
-			const float height = (r[y * w + x] - min) / (max - min);
-			const byte alpha = (byte) (height * 255);
-
-			out_normalmap->a = alpha;
-			out_normalmap++;
-
-			if (out_heightmap) {
-				*out_heightmap++ = Color32(alpha, alpha, alpha, 255);
-			}
-		}
-	}
-
-	fftwf_free(r);
-	fftwf_free(R);
-}
-
-/**
- * @brief
- */
-void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface* normalmap, SDL_Surface *heightmap) {
+	assert(diffusemap->w == normalmap->w);
+	assert(diffusemap->h == normalmap->h);
 
 	const int32_t w = normalmap->w;
 	const int32_t h = normalmap->h;
@@ -366,23 +172,40 @@ void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface* normalmap, 
 	const color32_t *in_diffusemap = diffusemap->pixels;
 	color32_t *in_normalmap = normalmap->pixels;
 
-	color32_t *out_heightmap = heightmap ? heightmap->pixels : NULL;
+	float *heightmap = calloc(w * h, sizeof(float));
+	float *out_heightmap = heightmap;
 
-	int32_t i = 0;
+	float min = 1.f;
+	float max = 0.f;
+
 	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 1; x < w; x++, i++, in_diffusemap++, in_normalmap++) {
+		for (int32_t x = 1; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
-			const vec3_t diffuse = Color32_Color(*in_diffusemap).vec3;
+			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
+			const float brightness = Vec3_Length(diffuse);
+
 			const vec3_t normal = Color32_Direction(*in_normalmap);
+			const vec3_t roughed = Vec3_Multiply(normal, Vec3(roughness, roughness, 1.f));
+			const float z = Vec3_Normalize(roughed).z;
 
-			const byte height = Clampf(Vec3_Length(diffuse) * normal.z, 0.f, 1.f) * 255;
+			*out_heightmap = Clampf(brightness * z, 0.f, 1.f);
 
-			in_normalmap->a = height;
-			if (out_heightmap) {
-				*out_heightmap++ = Color32(height, height, height, 255);
-			}
+			min = Minf(min, *out_heightmap);
+			max = Maxf(max, *out_heightmap);
 		}
 	}
+
+	const float *in_heightmap = heightmap;
+	in_normalmap = normalmap->pixels;
+
+	for (int32_t y = 0; y < h; y++) {
+		for (int32_t x = 1; x < w; x++, in_heightmap++, in_normalmap++) {
+			const float scaled = (*in_heightmap - min) / (max - min);
+			in_normalmap->a = scaled * 255;
+		}
+	}
+
+	free(heightmap);
 }
 
 /**

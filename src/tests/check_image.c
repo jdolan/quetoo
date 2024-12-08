@@ -48,22 +48,17 @@ static void teardown(void) {
 
 START_TEST(check_Img_CreateHeightmap) {
 
-	SDL_Surface *diffusemap = Img_LoadSurface("textures/pits/lead1_1");
+	SDL_Surface *diffusemap = Img_LoadSurface("textures/pits/green0_2");
 	ck_assert_ptr_nonnull(diffusemap);
 
-	SDL_Surface *normalmap = Img_LoadSurface("textures/pits/lead1_1");
+	SDL_Surface *normalmap = Img_LoadSurface("textures/pits/green0_2_nm");
 	ck_assert_ptr_nonnull(normalmap);
 
-	SDL_Surface *heightmap = SDL_CreateRGBSurfaceWithFormat(0, normalmap->w, normalmap->h, 32, SDL_PIXELFORMAT_RGBA32);
-	ck_assert_ptr_nonnull(heightmap);
-
-	Img_CreateHeightmap(diffusemap, normalmap, heightmap);
-
+	Img_CreateHeightmap(diffusemap, normalmap, 1.f);
 	IMG_SavePNG(normalmap, "/tmp/normalmap.png");
-	IMG_SavePNG(heightmap, "/tmp/heightmap.png");
 
+	SDL_FreeSurface(diffusemap);
 	SDL_FreeSurface(normalmap);
-	SDL_FreeSurface(heightmap);
 } END_TEST
 
 /**

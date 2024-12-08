@@ -82,6 +82,11 @@ struct EditorView {
 	Slider *roughness;
 
 	/**
+	 * @brief The parallax slider.
+	 */
+	Slider *parallax;
+
+	/**
 	 * @brief The hardness slider.
 	 */
 	Slider *hardness;

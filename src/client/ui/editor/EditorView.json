@@ -79,6 +79,21 @@
                     "step": 0.125
                   }
                 },
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Parallax"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "parallax",
+					"min": 0,
+					"max": 8,
+					"step": 0.125
+				  }
+				},
                 {
                   "class": "Input",
                   "label": {

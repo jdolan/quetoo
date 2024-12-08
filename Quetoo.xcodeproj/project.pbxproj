@@ -545,9 +545,6 @@
 		CE82F2782D04D72E004EE5DF /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE82F27D2D04D747004EE5DF /* check_image.c in Sources */ = {isa = PBXBuildFile; fileRef = CE82F26B2D049F8E004EE5DF /* check_image.c */; };
 		CE82F27F2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */; };
-		CE82F2832D05E8D9004EE5DF /* libfftw3f.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2822D05E8D8004EE5DF /* libfftw3f.3.dylib */; };
-		CE82F2932D0604BC004EE5DF /* image-heightmap.h in Headers */ = {isa = PBXBuildFile; fileRef = CE82F2912D0604BC004EE5DF /* image-heightmap.h */; };
-		CE82F2942D0604BC004EE5DF /* image-heightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE82F2922D0604BC004EE5DF /* image-heightmap.c */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -1706,10 +1703,6 @@
 		CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/Cellar/sdl2_image/2.8.2_2/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE82F2802D05E8A1004EE5DF /* libfftw3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfftw3.3.dylib; path = ../../../../usr/local/Cellar/fftw/3.3.10_1/lib/libfftw3.3.dylib; sourceTree = "<group>"; };
 		CE82F2822D05E8D8004EE5DF /* libfftw3f.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfftw3f.3.dylib; path = ../../../../usr/local/Cellar/fftw/3.3.10_1/lib/libfftw3f.3.dylib; sourceTree = "<group>"; };
-		CE82F28E2D05FD05004EE5DF /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		CE82F28F2D05FD05004EE5DF /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE82F2912D0604BC004EE5DF /* image-heightmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "image-heightmap.h"; sourceTree = "<group>"; };
-		CE82F2922D0604BC004EE5DF /* image-heightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "image-heightmap.c"; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
@@ -2126,7 +2119,6 @@
 				CE82F2772D04D72E004EE5DF /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE82F2782D04D72E004EE5DF /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE82F27F2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib in Frameworks */,
-				CE82F2832D05E8D9004EE5DF /* libfftw3f.3.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2226,8 +2218,6 @@
 				CE12D63E1C5C58C300CD0B13 /* filesystem.h */,
 				CE12D6771C5C58C300CD0B13 /* image.c */,
 				CE12D6781C5C58C300CD0B13 /* image.h */,
-				CE82F2912D0604BC004EE5DF /* image-heightmap.h */,
-				CE82F2922D0604BC004EE5DF /* image-heightmap.c */,
 				CEC74B3825C8EE94009C6218 /* installer.c */,
 				CEC74B3725C8EE94009C6218 /* installer.h */,
 				CE12D68B1C5C58C300CD0B13 /* mem_buf.c */,
@@ -2939,7 +2929,6 @@
 		CE12D6E01C5C58C300CD0B13 /* tools */ = {
 			isa = PBXGroup;
 			children = (
-				CE82F2902D05FD05004EE5DF /* norm2height */,
 				CEE13C0B290F49F70075585D /* quemap-fu */,
 				CE12D6E51C5C58C300CD0B13 /* quemap */,
 				CE67EF861E350D54009C2819 /* quetoo-master */,
@@ -3432,15 +3421,6 @@
 			path = home;
 			sourceTree = "<group>";
 		};
-		CE82F2902D05FD05004EE5DF /* norm2height */ = {
-			isa = PBXGroup;
-			children = (
-				CE82F28E2D05FD05004EE5DF /* main.c */,
-				CE82F28F2D05FD05004EE5DF /* Makefile.am */,
-			);
-			path = norm2height;
-			sourceTree = "<group>";
-		};
 		CEAA78172775337300EAC853 /* teams */ = {
 			isa = PBXGroup;
 			children = (
@@ -3634,7 +3614,6 @@
 				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
 				CE04F26825CADF7C00C31433 /* sys.h in Headers */,
-				CE82F2932D0604BC004EE5DF /* image-heightmap.h in Headers */,
 				CE04F28D25CADF7F00C31433 /* thread.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4767,7 +4746,6 @@
 				CE04F08825CADF5100C31433 /* cmd.c in Sources */,
 				CE80FDE51C5E3E4A00A21A51 /* common.c in Sources */,
 				CE04F0D225CADF5600C31433 /* console.c in Sources */,
-				CE82F2942D0604BC004EE5DF /* image-heightmap.c in Sources */,
 				CE04F11C25CADF5E00C31433 /* cvar.c in Sources */,
 				CE04F2B225CADF8D00C31433 /* filesystem.c in Sources */,
 				CE04F2D725CADF9000C31433 /* image.c in Sources */,

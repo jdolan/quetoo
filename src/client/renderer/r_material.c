@@ -273,6 +273,8 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 			}
 
+			Img_CreateHeightmap(diffusemap, normalmap, cm->roughness);
+
 			SDL_Surface *specularmap = NULL;
 			if (*cm->specularmap.path) {
 				specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);

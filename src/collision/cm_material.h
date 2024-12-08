@@ -270,6 +270,7 @@ typedef struct {
 #define MATERIAL_ROUGHNESS 1.f
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
+#define MATERIAL_PARALLAX 1.f
 #define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
 #define MATERIAL_LIGHT_ATTEN 1
@@ -347,6 +348,11 @@ typedef struct cm_material_s {
 	 * @brief The roughness factor to use for the normalmap.
 	 */
 	float roughness;
+
+	/**
+	 * @brief The parallax factor to use for the normalmap.
+	 */
+	float parallax;
 
 	/**
 	 * @brief The hardness factor to use for the specularmap.

@@ -211,16 +211,6 @@ AC_CHECK_HEADER(physfs.h,
 )
 AC_SUBST(PHYSFS_LIBS)
 
-dnl --------------
-dnl Check for FFTW
-dnl --------------
-
-AC_CHECK_HEADER(fftw3.h,
-	FFTW_LIBS="-lfftw3",
-	[AC_MSG_ERROR([Could not find fftw3.h, please install ffwt])]
-)
-AC_SUBST(FFTW_LIBS)
-
 dnl -----------------------------------
 dnl Sort out OpenGL flags and libraries
 dnl -----------------------------------
@@ -478,7 +468,6 @@ AC_CONFIG_FILES([
 	src/shared/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/norm2height/Makefile
 	src/tools/quemap/Makefile
 	src/tools/quetoo-master/Makefile
 ])

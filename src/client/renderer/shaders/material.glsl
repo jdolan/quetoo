@@ -62,6 +62,11 @@ struct material_t {
 	float roughness;
 
 	/**
+	 * @brief The material parallax.
+	 */
+	float parallax;
+
+	/**
 	 * @brief The material hardness.
 	 */
 	float hardness;
