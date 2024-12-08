@@ -42,6 +42,17 @@ color_t Img_Color(const SDL_Surface *surf);
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 
 /**
+ * @brief Creates a heightmap from the given normalmap using the gradient derivative. The heightmap
+ * is encoded in the normalmap's alpha channel.
+ * @param heightmap If not NULL, the heightmap will also be encoded to this surface.
+ */
+void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface *normalmap, SDL_Surface *heightmap);
+
+void Img_CreateHeightmap2(const SDL_Surface *diffusemap, SDL_Surface *normalmap, SDL_Surface *heightmap);
+
+void Img_CreateHeightmap3(const SDL_Surface *diffusemap, SDL_Surface *normalmap, SDL_Surface *heightmap);
+
+/**
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);

@@ -493,6 +493,13 @@ static inline color24_t __attribute__ ((warn_unused_result)) Color32_Color24(con
 }
 
 /**
+ * @return The decoded directional vector from this `color32_t`'s RGB components.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color32_Direction(const color32_t c) {
+	return Vec3_Normalize(Vec3_Subtract(Vec3_Scale(Color32_Color(c).vec3, 2.f), Vec3_One()));
+}
+
+/**
  * @rretur A floating point color for the specified 24 bit integer color.
  */
 static inline color_t Color24_Color(const color24_t c) {

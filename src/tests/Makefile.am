@@ -37,6 +37,7 @@ TESTS = \
 	check_color \
 	check_cvar \
 	check_filesystem \
+	check_image \
 	check_master \
 	check_mem \
 	check_r_media \
@@ -95,6 +96,13 @@ check_filesystem_SOURCES = \
 check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
+	$(TESTS_LIBS)
+
+check_image_SOURCES = \
+	check_image.c
+check_image_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_image_LDADD = \
 	$(TESTS_LIBS)
 
 check_master_SOURCES = \
