@@ -98,13 +98,6 @@ check_filesystem_CFLAGS = \
 check_filesystem_LDADD = \
 	$(TESTS_LIBS)
 
-check_image_SOURCES = \
-	check_image.c
-check_image_CFLAGS = \
-	$(TESTS_CFLAGS)
-check_image_LDADD = \
-	$(TESTS_LIBS)
-
 check_master_SOURCES = \
 	check_master.c
 check_master_CFLAGS = \

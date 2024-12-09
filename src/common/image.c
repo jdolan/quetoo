@@ -159,56 +159,6 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 }
 
 /**
- * @brief
- */
-void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface* normalmap, float roughness) {
-
-	assert(diffusemap->w == normalmap->w);
-	assert(diffusemap->h == normalmap->h);
-
-	const int32_t w = normalmap->w;
-	const int32_t h = normalmap->h;
-
-	const color32_t *in_diffusemap = diffusemap->pixels;
-	color32_t *in_normalmap = normalmap->pixels;
-
-	float *heightmap = calloc(w * h, sizeof(float));
-	float *out_heightmap = heightmap;
-
-	float min = 1.f;
-	float max = 0.f;
-
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
-
-			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
-			const float brightness = Vec3_Hmaxf(diffuse);
-
-			const vec3_t normal = Color32_Direction(*in_normalmap);
-			const vec3_t roughed = Vec3_Multiply(normal, Vec3(roughness, roughness, 1.f));
-			const float z = Vec3_Normalize(roughed).z;
-
-			*out_heightmap = Maxf(brightness * z, 0.f);
-
-			min = Minf(min, *out_heightmap);
-			max = Maxf(max, *out_heightmap);
-		}
-	}
-
-	const float *in_heightmap = heightmap;
-	in_normalmap = normalmap->pixels;
-
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++, in_heightmap++, in_normalmap++) {
-			const float scaled = (*in_heightmap - min) / (max - min);
-			in_normalmap->a = scaled * 255;
-		}
-	}
-
-	free(heightmap);
-}
-
-/**
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {

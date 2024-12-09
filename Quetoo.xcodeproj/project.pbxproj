@@ -536,15 +536,6 @@
 		CE80FFFB1C5E4D1800A21A51 /* writebsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7081C5C58C300CD0B13 /* writebsp.c */; };
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE82F2702D04D72E004EE5DF /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
-		CE82F2732D04D72E004EE5DF /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE82F2742D04D72E004EE5DF /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE82F2752D04D72E004EE5DF /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE51FB9121481AE300ABE14F /* libcheck.0.dylib */; };
-		CE82F2762D04D72E004EE5DF /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE82F2772D04D72E004EE5DF /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE82F2782D04D72E004EE5DF /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
-		CE82F27D2D04D747004EE5DF /* check_image.c in Sources */ = {isa = PBXBuildFile; fileRef = CE82F26B2D049F8E004EE5DF /* check_image.c */; };
-		CE82F27F2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -798,13 +789,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FF6D1C5E49C400A21A51;
 			remoteInfo = server;
-		};
-		CE82F26E2D04D72E004EE5DF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
-			remoteInfo = common;
 		};
 		CE948B24223565C400D961FA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1698,8 +1682,6 @@
 		CE80FF6A1C5E494E00A21A51 /* libclient-null.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-null.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FF7F1C5E49C400A21A51 /* libserver.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libserver.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
-		CE82F26B2D049F8E004EE5DF /* check_image.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_image.c; sourceTree = "<group>"; };
-		CE82F27C2D04D72E004EE5DF /* check_image */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_image; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/Cellar/sdl2_image/2.8.2_2/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE82F2802D05E8A1004EE5DF /* libfftw3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfftw3.3.dylib; path = ../../../../usr/local/Cellar/fftw/3.3.10_1/lib/libfftw3.3.dylib; sourceTree = "<group>"; };
 		CE82F2822D05E8D8004EE5DF /* libfftw3f.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfftw3f.3.dylib; path = ../../../../usr/local/Cellar/fftw/3.3.10_1/lib/libfftw3f.3.dylib; sourceTree = "<group>"; };
@@ -2105,20 +2087,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CE82F2722D04D72E004EE5DF /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE82F2732D04D72E004EE5DF /* libcommon.a in Frameworks */,
-				CE82F2742D04D72E004EE5DF /* libshared.a in Frameworks */,
-				CE82F2752D04D72E004EE5DF /* libcheck.0.dylib in Frameworks */,
-				CE82F2762D04D72E004EE5DF /* libglib-2.0.0.dylib in Frameworks */,
-				CE82F2772D04D72E004EE5DF /* libphysfs.3.2.0.dylib in Frameworks */,
-				CE82F2782D04D72E004EE5DF /* libSDL2-2.0.0.dylib in Frameworks */,
-				CE82F27F2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2906,7 +2874,6 @@
 			isa = PBXGroup;
 			children = (
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
-				CE82F26B2D049F8E004EE5DF /* check_image.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
@@ -3059,7 +3026,6 @@
 				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
 				CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */,
 				CEB384EC29A3A73B006DEA13 /* check_color */,
-				CE82F27C2D04D72E004EE5DF /* check_image */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4205,23 +4171,6 @@
 			productReference = CE80FF7F1C5E49C400A21A51 /* libserver.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		CE82F26C2D04D72E004EE5DF /* check_image */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = CE82F2792D04D72E004EE5DF /* Build configuration list for PBXNativeTarget "check_image" */;
-			buildPhases = (
-				CE82F26F2D04D72E004EE5DF /* Sources */,
-				CE82F2722D04D72E004EE5DF /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				CE82F26D2D04D72E004EE5DF /* PBXTargetDependency */,
-			);
-			name = check_image;
-			productName = "test-r_media";
-			productReference = CE82F27C2D04D72E004EE5DF /* check_image */;
-			productType = "com.apple.product-type.tool";
-		};
 		CE948B102235652600D961FA /* check_shared */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE948B1F2235652600D961FA /* Build configuration list for PBXNativeTarget "check_shared" */;
@@ -4435,7 +4384,6 @@
 				CEB384DE29A3A73B006DEA13 /* check_color */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
-				CE82F26C2D04D72E004EE5DF /* check_image */,
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
@@ -4832,15 +4780,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE82F26F2D04D72E004EE5DF /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				CE82F2702D04D72E004EE5DF /* tests.c in Sources */,
-				CE82F27D2D04D747004EE5DF /* check_image.c in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE948B132235652600D961FA /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -5013,11 +4952,6 @@
 			isa = PBXTargetDependency;
 			target = CE80FF6D1C5E49C400A21A51 /* server */;
 			targetProxy = CE80FFD71C5E4BFA00A21A51 /* PBXContainerItemProxy */;
-		};
-		CE82F26D2D04D72E004EE5DF /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CE80FDD91C5E3E1100A21A51 /* common */;
-			targetProxy = CE82F26E2D04D72E004EE5DF /* PBXContainerItemProxy */;
 		};
 		CE948B25223565C400D961FA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5712,32 +5646,6 @@
 			};
 			name = Release;
 		};
-		CE82F27A2D04D72E004EE5DF /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/opt/physfs/lib,
-					/usr/local/Cellar/sdl2_image/2.8.2_2/lib,
-					/usr/local/Cellar/fftw/3.3.10_1/lib,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		CE82F27B2D04D72E004EE5DF /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/opt/physfs/lib,
-					/usr/local/Cellar/sdl2_image/2.8.2_2/lib,
-					/usr/local/Cellar/fftw/3.3.10_1/lib,
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6120,15 +6028,6 @@
 			buildConfigurations = (
 				CE80FF7D1C5E49C400A21A51 /* Debug */,
 				CE80FF7E1C5E49C400A21A51 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		CE82F2792D04D72E004EE5DF /* Build configuration list for PBXNativeTarget "check_image" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				CE82F27A2D04D72E004EE5DF /* Debug */,
-				CE82F27B2D04D72E004EE5DF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

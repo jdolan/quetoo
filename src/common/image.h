@@ -42,11 +42,6 @@ color_t Img_Color(const SDL_Surface *surf);
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 
 /**
- * @brief Creates a heightmap from the textures, encoding the result in the normalmap's alpha channel.
- */
-void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface *normalmap, float roughness);
-
-/**
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);

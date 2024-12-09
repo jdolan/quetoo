@@ -161,7 +161,58 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 /**
  * @brief
  */
-static SDL_Surface *R_CreateSpecularmap(SDL_Surface *diffusemap) {
+static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffusemap, SDL_Surface* normalmap) {
+
+	assert(diffusemap->w == normalmap->w);
+	assert(diffusemap->h == normalmap->h);
+
+	const int32_t w = normalmap->w;
+	const int32_t h = normalmap->h;
+
+	const color32_t *in_diffusemap = diffusemap->pixels;
+	color32_t *in_normalmap = normalmap->pixels;
+
+	float *heightmap = calloc(w * h, sizeof(float));
+	float *out_heightmap = heightmap;
+
+	float min = 1.f;
+	float max = 0.f;
+
+	for (int32_t y = 0; y < h; y++) {
+		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
+
+			if (in_diffusemap->a != 255) { // We aleady have a valid heightmap, so bail out
+				free(heightmap);
+				return;
+			}
+
+			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
+			const vec3_t normal = Color32_Direction(*in_normalmap);
+
+			*out_heightmap = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
+
+			min = Minf(min, *out_heightmap);
+			max = Maxf(max, *out_heightmap);
+		}
+	}
+
+	const float *in_heightmap = heightmap;
+	in_normalmap = normalmap->pixels;
+
+	for (int32_t y = 0; y < h; y++) {
+		for (int32_t x = 0; x < w; x++, in_heightmap++, in_normalmap++) {
+			const float scaled = (*in_heightmap - min) / (max - min);
+			in_normalmap->a = scaled * 255;
+		}
+	}
+
+	free(heightmap);
+}
+
+/**
+ * @brief
+ */
+static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 
 	const color32_t *in = diffusemap->pixels;
 
@@ -273,7 +324,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 			}
 
-			Img_CreateHeightmap(diffusemap, normalmap, cm->roughness);
+			R_CreateHeightmap(cm, diffusemap, normalmap);
 
 			SDL_Surface *specularmap = NULL;
 			if (*cm->specularmap.path) {
