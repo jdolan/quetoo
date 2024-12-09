@@ -181,7 +181,7 @@ static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffus
 	for (int32_t y = 0; y < h; y++) {
 		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
-			if (in_diffusemap->a != 255) { // We aleady have a valid heightmap, so bail out
+			if (in_normalmap->a != 255) { // We aleady have a valid heightmap, so bail out
 				free(heightmap);
 				return;
 			}
