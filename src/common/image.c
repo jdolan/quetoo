@@ -182,13 +182,13 @@ void Img_CreateHeightmap(const SDL_Surface *diffusemap, SDL_Surface* normalmap, 
 		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
 			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
-			const float brightness = Vec3_Length(diffuse);
+			const float brightness = Vec3_Hmaxf(diffuse);
 
 			const vec3_t normal = Color32_Direction(*in_normalmap);
 			const vec3_t roughed = Vec3_Multiply(normal, Vec3(roughness, roughness, 1.f));
 			const float z = Vec3_Normalize(roughed).z;
 
-			*out_heightmap = Clampf(brightness * z, 0.f, 1.f);
+			*out_heightmap = Maxf(brightness * z, 0.f);
 
 			min = Minf(min, *out_heightmap);
 			max = Maxf(max, *out_heightmap);
