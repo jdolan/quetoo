@@ -66,56 +66,43 @@ struct fragment_t {
  * @brief
  */
 float sample_heightmap(vec2 texcoord) {
-	float heightmap = 1.0;
-
-	if (developer == 1) {
-		vec2 texel = vec2(1.0) / vec2(textureSize(texture_material, 0));
-
-		heightmap = 0.0;
-		for (int i = -1; i <= 1; i++) {
-			for (int j = -1; j <= 1; j++) {
-				vec2 offset = vec2(i, j) * texel;
-				heightmap += texture(texture_material, vec3(texcoord + offset, 1)).w;
-			}
-		}
-
-		heightmap /= 9.0;
-	} else {
-		heightmap = texture(texture_material, vec3(texcoord, 1)).w;
-	}
-
-	return clamp(1.0 - heightmap, 0.0, 1.0);
+	return texture(texture_material, vec3(texcoord, 1)).w;
 }
 
 /**
- * @brief Returns the parallax offset for parallax occlusion mapping.
+ * @brief
  */
-vec2 parallax_offset() {
+float sample_displacement(vec2 texcoord) {
+	return 1.0 - sample_heightmap(texcoord);
+}
 
-	vec3 viewDir = normalize(fragment.tbn * normalize(-vertex.position));
+/**
+ * @brief Returns the augmented texcoord for parallax occlusion mapping.
+ */
+vec2 parallax_texcoord() {
+
+	vec3 dir = normalize(fragment.dir * fragment.tbn);
 
 	// number of depth layers
-	const float minLayers = 8;
-	const float maxLayers = 32;
-	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
+	float numLayers = 64;//mix(64, 8, abs(dot(vec3(0.0, 0.0, 1.0), dir)));
 	// calculate the size of each layer
 	float layerDepth = 1.0 / numLayers;
 	// depth of current layer
 	float currentLayerDepth = 0.0;
 	// the amount to shift the texture coordinates per layer (from vector P)
-	vec2 P = viewDir.xy / viewDir.z * material.parallax;
+	vec2 P = dir.xy / dir.z * material.parallax;
 	vec2 deltaTexCoords = P / numLayers;
 
 	// get initial values
 	vec2  currentTexCoords     = vertex.diffusemap;
-	float currentDepthMapValue = sample_heightmap(currentTexCoords);
+	float currentDepthMapValue = sample_displacement(currentTexCoords);
 
 	while(currentLayerDepth < currentDepthMapValue)
 	{
 		// shift texture coordinates along direction of P
 		currentTexCoords -= deltaTexCoords;
 		// get depthmap value at current texture coordinates
-		currentDepthMapValue = sample_heightmap(currentTexCoords);
+		currentDepthMapValue = sample_displacement(currentTexCoords);
 		// get depth of next layer
 		currentLayerDepth += layerDepth;
 	}
@@ -125,7 +112,7 @@ vec2 parallax_offset() {
 
 	// get depth after and before collision for linear interpolation
 	float afterDepth  = currentDepthMapValue - currentLayerDepth;
-	float beforeDepth = sample_heightmap(prevTexCoords) - currentLayerDepth + layerDepth;
+	float beforeDepth = sample_displacement(prevTexCoords) - currentLayerDepth + layerDepth;
 
 	// interpolation of texture coordinates
 	float weight = afterDepth / (afterDepth - beforeDepth);
@@ -518,21 +505,16 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
+	fragment.dir = normalize(-vertex.position);
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-	fragment.dir = normalize(-vertex.position);
+
+	fragment.parallax = parallax_texcoord();
 	fragment.specular = vec3(0);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
-
-		fragment.parallax = parallax_offset();
-
-//		if (fragment.parallax.x > 1.0 || fragment.parallax.y > 1.0
-//			|| fragment.parallax.x < 0.0 || fragment.parallax.y < 0.0) {
-//			discard;
-//		}
 
 		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
@@ -577,7 +559,7 @@ void main(void) {
 
 	} else {
 
-		vec2 st = vertex.diffusemap;
+		vec2 st = fragment.parallax;
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
@@ -636,6 +618,8 @@ void main(void) {
 		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
 	} else if (lightmaps == 8) {
 		out_color = vec4(fragment.stains, 1.0);
+	} else if (lightmaps == 9) {
+		out_color.rgb = normalize(fragment.tbn * fragment.dir);
 	}
 }
 
