@@ -51,7 +51,6 @@ struct fragment_t {
 	vec3 dir;
 	vec4 diffusemap;
 	vec3 normalmap;
-	float heightmap;
 	vec2 parallax;
 	vec4 specularmap;
 	vec3 ambient;
@@ -66,47 +65,87 @@ struct fragment_t {
 /**
  * @brief
  */
-float sample_heightmap() {
+float sample_heightmap(vec2 texcoord) {
+	float heightmap = 1.0;
 
 	if (developer == 1) {
-		float heightmap = 0.0;
 		vec2 texel = vec2(1.0) / vec2(textureSize(texture_material, 0));
 
+		heightmap = 0.0;
 		for (int i = -1; i <= 1; i++) {
 			for (int j = -1; j <= 1; j++) {
-				vec3 texcoord = vec3(vertex.diffusemap + vec2(i, j) * texel, 1);
-				heightmap += texture(texture_material, texcoord).w;
+				vec2 offset = vec2(i, j) * texel;
+				heightmap += texture(texture_material, vec3(texcoord + offset, 1)).w;
 			}
 		}
 
-		return 1.0 - (heightmap / 9.0);
+		heightmap /= 9.0;
 	} else {
-		return 1.0 - texture(texture_material, vec3(vertex.diffusemap, 1)).w;
+		heightmap = texture(texture_material, vec3(texcoord, 1)).w;
 	}
+
+	return clamp(1.0 - heightmap, 0.0, 1.0);
 }
 
 /**
  * @brief Returns the parallax offset for parallax occlusion mapping.
  */
 vec2 parallax_offset() {
-	vec3 view_dir = fragment.dir * fragment.tbn;
-	return view_dir.xy / view_dir.z * (fragment.heightmap * material.parallax);
+
+	vec3 viewDir = normalize(fragment.tbn * normalize(-vertex.position));
+
+	// number of depth layers
+	const float minLayers = 8;
+	const float maxLayers = 32;
+	float numLayers = mix(maxLayers, minLayers, abs(dot(vec3(0.0, 0.0, 1.0), viewDir)));
+	// calculate the size of each layer
+	float layerDepth = 1.0 / numLayers;
+	// depth of current layer
+	float currentLayerDepth = 0.0;
+	// the amount to shift the texture coordinates per layer (from vector P)
+	vec2 P = viewDir.xy / viewDir.z * material.parallax;
+	vec2 deltaTexCoords = P / numLayers;
+
+	// get initial values
+	vec2  currentTexCoords     = vertex.diffusemap;
+	float currentDepthMapValue = sample_heightmap(currentTexCoords);
+
+	while(currentLayerDepth < currentDepthMapValue)
+	{
+		// shift texture coordinates along direction of P
+		currentTexCoords -= deltaTexCoords;
+		// get depthmap value at current texture coordinates
+		currentDepthMapValue = sample_heightmap(currentTexCoords);
+		// get depth of next layer
+		currentLayerDepth += layerDepth;
+	}
+
+	// get texture coordinates before collision (reverse operations)
+	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+
+	// get depth after and before collision for linear interpolation
+	float afterDepth  = currentDepthMapValue - currentLayerDepth;
+	float beforeDepth = sample_heightmap(prevTexCoords) - currentLayerDepth + layerDepth;
+
+	// interpolation of texture coordinates
+	float weight = afterDepth / (afterDepth - beforeDepth);
+	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
+
+	return finalTexCoords;
 }
 
 /**
  * @brief
  */
 vec4 sample_diffusemap() {
-	vec2 st = vertex.diffusemap - fragment.parallax;
-	return texture(texture_material, vec3(st, 0));
+	return texture(texture_material, vec3(fragment.parallax, 0));
 }
 
 /**
  * @brief
  */
 vec3 sample_normalmap() {
-	vec2 st = vertex.diffusemap - fragment.parallax;
-	vec3 normalmap = texture(texture_material, vec3(st, 1)).xyz * 2.0 - 1.0;
+	vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
 	return normalize(fragment.tbn * normalize(normalmap * roughness));
 }
@@ -115,7 +154,6 @@ vec3 sample_normalmap() {
  * @brief
  */
 float toksvig_gloss(in vec3 normal, in float power) {
-
 	float len_rcp = 1.0 / saturate(length(normal));
 	return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
@@ -124,14 +162,12 @@ float toksvig_gloss(in vec3 normal, in float power) {
  * @brief
  */
 vec4 sample_specularmap() {
-	vec2 st = vertex.diffusemap - fragment.parallax;
-
 	vec4 specularmap;
-	specularmap.rgb = texture(texture_material, vec3(st, 2)).rgb * material.hardness;
+	specularmap.rgb = texture(texture_material, vec3(fragment.parallax, 2)).rgb * material.hardness;
 
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
-	vec3 normalmap0 = (texture(texture_material, vec3(st, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
-	vec3 normalmap1 = (texture(texture_material, vec3(st, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap0 = (texture(texture_material, vec3(fragment.parallax, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap1 = (texture(texture_material, vec3(fragment.parallax, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
 
 	float power = pow(1.0 + material.specularity, 4.0);
 	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
@@ -143,7 +179,7 @@ vec4 sample_specularmap() {
  * @brief
  */
 vec4 sample_material_stage(in vec2 texcoord) {
-	return texture(texture_stage, texcoord - fragment.parallax);
+	return texture(texture_stage, texcoord);
 }
 
 /**
@@ -491,8 +527,12 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.heightmap = sample_heightmap();
 		fragment.parallax = parallax_offset();
+
+//		if (fragment.parallax.x > 1.0 || fragment.parallax.y > 1.0
+//			|| fragment.parallax.x < 0.0 || fragment.parallax.y < 0.0) {
+//			discard;
+//		}
 
 		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
@@ -593,7 +633,7 @@ void main(void) {
 	} else if (lightmaps == 6) {
 		out_color.rgb = fragment.normalmap;
 	} else if (lightmaps == 7) {
-		out_color.rgb = vec3(fragment.heightmap);
+		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
 	} else if (lightmaps == 8) {
 		out_color = vec4(fragment.stains, 1.0);
 	}
