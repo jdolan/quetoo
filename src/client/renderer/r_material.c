@@ -182,8 +182,7 @@ static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffus
 		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
 			if (in_normalmap->a != 255) { // We aleady have a valid heightmap, so bail out
-				free(heightmap);
-				return;
+				goto postprocess;
 			}
 
 			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
@@ -203,6 +202,17 @@ static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffus
 		for (int32_t x = 0; x < w; x++, in_heightmap++, in_normalmap++) {
 			const float scaled = (*in_heightmap - min) / (max - min);
 			in_normalmap->a = scaled * 255;
+		}
+	}
+
+	postprocess: {
+		color32_t *color = normalmap->pixels;
+
+		for (int32_t y = 0; y < h; y++) {
+			for (int32_t x = 0; x < w; x++, color++) {
+				const float f = (color->a / 255.f) + .5f;
+				color->a = Clampf(f * f * f - .5f, 0.f, 1.f) * 255;
+			}
 		}
 	}
 
