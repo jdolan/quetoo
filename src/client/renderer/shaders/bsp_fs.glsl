@@ -78,47 +78,35 @@ float sample_displacement(vec2 texcoord) {
 
 /**
  * @brief Returns the augmented texcoord for parallax occlusion mapping.
+ * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
 vec2 parallax_texcoord() {
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
 
-	// number of depth layers
-	float numLayers = 64;//mix(64, 8, abs(dot(vec3(0.0, 0.0, 1.0), dir)));
-	// calculate the size of each layer
-	float layerDepth = 1.0 / numLayers;
-	// depth of current layer
-	float currentLayerDepth = 0.0;
-	// the amount to shift the texture coordinates per layer (from vector P)
-	vec2 P = dir.xy / dir.z * material.parallax;
-	vec2 deltaTexCoords = P / numLayers;
+	float layers = mix(64, 4, abs(dot(vec3(0.0, 0.0, 1.0), dir)));
+	layers = max(4.0, layers - length(vertex.position) / 32.0);
+	float layer = 1.0 / layers;
 
-	// get initial values
-	vec2  currentTexCoords     = vertex.diffusemap;
-	float currentDepthMapValue = sample_displacement(currentTexCoords);
+	vec2 p = dir.xy / dir.z * material.parallax;
+	vec2 delta = p / layers;
 
-	while(currentLayerDepth < currentDepthMapValue)
-	{
-		// shift texture coordinates along direction of P
-		currentTexCoords -= deltaTexCoords;
-		// get depthmap value at current texture coordinates
-		currentDepthMapValue = sample_displacement(currentTexCoords);
-		// get depth of next layer
-		currentLayerDepth += layerDepth;
+	vec2 texcoord = vertex.diffusemap;
+	vec2 prev_texcoord = vertex.diffusemap;
+
+	float depth = 0.0;
+	float displacement = 0.0;
+
+	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+		prev_texcoord = texcoord;
+		texcoord -= delta;
+		displacement = sample_displacement(texcoord);
 	}
 
-	// get texture coordinates before collision (reverse operations)
-	vec2 prevTexCoords = currentTexCoords + deltaTexCoords;
+	float a = displacement - depth;
+	float b = sample_displacement(prev_texcoord) - depth + layer;
 
-	// get depth after and before collision for linear interpolation
-	float afterDepth  = currentDepthMapValue - currentLayerDepth;
-	float beforeDepth = sample_displacement(prevTexCoords) - currentLayerDepth + layerDepth;
-
-	// interpolation of texture coordinates
-	float weight = afterDepth / (afterDepth - beforeDepth);
-	vec2 finalTexCoords = prevTexCoords * weight + currentTexCoords * (1.0 - weight);
-
-	return finalTexCoords;
+	return mix(prev_texcoord, texcoord, a / (a - b));
 }
 
 /**
