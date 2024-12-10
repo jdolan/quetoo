@@ -77,25 +77,25 @@ float sample_displacement(vec2 texcoord) {
 }
 
 /**
- * @brief Returns the augmented texcoord for parallax occlusion mapping.
+ * @brief Calculates the augmented texcoord for parallax occlusion mapping.
  * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
-vec2 parallax_texcoord() {
+void parallax_occlusion_mapping() {
+
+	if (parallax_samples == 0) {
+		return;
+	}
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-
-	float layers = mix(64, 4, abs(dot(vec3(0.0, 0.0, 1.0), dir)));
-	layers = max(4.0, layers - length(vertex.position) / 32.0);
-	float layer = 1.0 / layers;
-
 	vec2 p = dir.xy / dir.z * material.parallax;
-	vec2 delta = p / layers;
+	vec2 delta = p / parallax_samples;
 
 	vec2 texcoord = vertex.diffusemap;
 	vec2 prev_texcoord = vertex.diffusemap;
 
 	float depth = 0.0;
 	float displacement = 0.0;
+	float layer = 1.0 / parallax_samples;
 
 	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
 		prev_texcoord = texcoord;
@@ -106,7 +106,7 @@ vec2 parallax_texcoord() {
 	float a = displacement - depth;
 	float b = sample_displacement(prev_texcoord) - depth + layer;
 
-	return mix(prev_texcoord, texcoord, a / (a - b));
+	fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
 }
 
 /**
@@ -498,11 +498,12 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-
-	fragment.parallax = parallax_texcoord();
+	fragment.parallax = vertex.diffusemap;
 	fragment.specular = vec3(0);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+
+		parallax_occlusion_mapping();
 
 		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
@@ -547,7 +548,7 @@ void main(void) {
 
 	} else {
 
-		vec2 st = fragment.parallax;
+		vec2 st = vertex.diffusemap;
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;

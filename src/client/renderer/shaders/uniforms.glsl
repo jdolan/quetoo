@@ -111,6 +111,11 @@ layout (std140) uniform uniforms_block {
 	int shadows;
 
 	/**
+	 * @brief The parallax sample count.
+	 */
+	int parallax_samples;
+
+	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
