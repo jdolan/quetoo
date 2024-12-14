@@ -159,9 +159,13 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
- * @brief
+ * @brief Ensures the normalmap's alpha channel contains a usable heightmap.
+ * @details Checks the normalmap's alpha channel for a valid heightmap. If not found, generate it
+ * from the diffusemap brightness and normalmap Z. In either case, post-process the heightmap to
+ * with a cubic high/low-pass filter to give best parallax occlusion mapping results.
+ *
  */
-static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffusemap, SDL_Surface* normalmap) {
+static void R_LoadHeightmap(const cm_material_t *cm, const SDL_Surface *diffusemap, SDL_Surface* normalmap) {
 
 	assert(diffusemap->w == normalmap->w);
 	assert(diffusemap->h == normalmap->h);
@@ -181,7 +185,7 @@ static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffus
 	for (int32_t y = 0; y < h; y++) {
 		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
-			if (in_normalmap->a != 255) { // We aleady have a valid heightmap, so bail out
+			if (in_normalmap->a != 255) { // valid heightmap, so bail out
 				goto postprocess;
 			}
 
@@ -206,14 +210,14 @@ static void R_CreateHeightmap(const cm_material_t *cm, const SDL_Surface *diffus
 	}
 
 	postprocess: {
-		color32_t *color = normalmap->pixels;
-
-		for (int32_t y = 0; y < h; y++) {
-			for (int32_t x = 0; x < w; x++, color++) {
-				const float f = (color->a / 255.f) + .5f;
-				color->a = Clampf(f * f * f - .5f, 0.f, 1.f) * 255;
-			}
-		}
+//		color32_t *color = normalmap->pixels;
+//
+//		for (int32_t y = 0; y < h; y++) {
+//			for (int32_t x = 0; x < w; x++, color++) {
+//				const float f = (color->a / 255.f) + .5f;
+//				color->a = Clampf(powf(f, r_parallax_exponent->value) - .5f, 0.f, 1.f) * 255;
+//			}
+//		}
 	}
 
 	free(heightmap);
@@ -334,7 +338,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
 			}
 
-			R_CreateHeightmap(cm, diffusemap, normalmap);
+			R_LoadHeightmap(cm, diffusemap, normalmap);
 
 			SDL_Surface *specularmap = NULL;
 			if (*cm->specularmap.path) {

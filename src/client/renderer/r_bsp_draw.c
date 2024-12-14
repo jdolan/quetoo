@@ -62,7 +62,13 @@ static struct {
 	struct {
 		GLint alpha_test;
 		GLint roughness;
-		GLint parallax;
+
+		struct {
+			GLint amplitude;
+			GLint bias;
+			GLint exponent;
+		} parallax;
+
 		GLint hardness;
 		GLint specularity;
 		GLint bloom;
@@ -274,7 +280,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 	}
 
 	if (stage->cm->flags & STAGE_STRETCH) {
-		glUniform2f(r_bsp_program.stage.stretch, stage->cm->stretch.amp, stage->cm->stretch.hz);
+		glUniform2f(r_bsp_program.stage.stretch, stage->cm->stretch.amplitude, stage->cm->stretch.hz);
 	}
 
 	if (stage->cm->flags & STAGE_ROTATE) {
@@ -441,7 +447,9 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 
 			glUniform1f(r_bsp_program.material.alpha_test, (*material)->cm->alpha_test * r_alpha_test->value);
 			glUniform1f(r_bsp_program.material.roughness, (*material)->cm->roughness * r_roughness->value);
-			glUniform1f(r_bsp_program.material.parallax, (*material)->cm->parallax * r_parallax->value);
+			glUniform1f(r_bsp_program.material.parallax.amplitude, (*material)->cm->parallax.amplitude * r_parallax_amplitude->value);
+			glUniform1f(r_bsp_program.material.parallax.bias, (*material)->cm->parallax.bias * r_parallax_bias->value);
+			glUniform1f(r_bsp_program.material.parallax.exponent, (*material)->cm->parallax.exponent * r_parallax_exponent->value);
 			glUniform1f(r_bsp_program.material.hardness, (*material)->cm->hardness * r_hardness->value);
 			glUniform1f(r_bsp_program.material.specularity, (*material)->cm->specularity * r_specularity->value);
 			glUniform1f(r_bsp_program.material.bloom, (*material)->cm->bloom * r_bloom->value);
@@ -787,7 +795,9 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
-	r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
+	r_bsp_program.material.parallax.amplitude = glGetUniformLocation(r_bsp_program.name, "material.parallax_amplitude");
+	r_bsp_program.material.parallax.bias = glGetUniformLocation(r_bsp_program.name, "material.parallax_bias");
+	r_bsp_program.material.parallax.exponent = glGetUniformLocation(r_bsp_program.name, "material.parallax_exponent");
 	r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
 	r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
 	r_bsp_program.material.bloom = glGetUniformLocation(r_bsp_program.name, "material.bloom");

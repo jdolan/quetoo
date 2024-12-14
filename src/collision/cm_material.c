@@ -294,12 +294,12 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 
 		if (!g_strcmp0(token, "stretch")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1) != 1) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amplitude, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "No value provided for amplitude");
 				continue;
 			}
 
-			if (s->stretch.amp == 0.0f) {
+			if (s->stretch.amplitude == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Amplitude must not be zero");
 			}
 
@@ -312,7 +312,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			}
 
-			if (s->stretch.amp != 0.0f &&
+			if (s->stretch.amplitude != 0.0f &&
 				s->stretch.hz != 0.0f) {
 				s->flags |= STAGE_STRETCH;
 			}
@@ -570,7 +570,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_MATERIAL) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
-			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
+			          s->stretch.amplitude, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
 			          s->animation.fps);
 
@@ -645,7 +645,9 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->roughness = MATERIAL_ROUGHNESS;
 	mat->hardness = MATERIAL_HARDNESS;
 	mat->specularity = MATERIAL_SPECULARITY;
-	mat->parallax = MATERIAL_PARALLAX;
+	mat->parallax.amplitude = MATERIAL_PARALLAX_AMPLITUDE;
+	mat->parallax.bias = MATERIAL_PARALLAX_BIAS;
+	mat->parallax.exponent = MATERIAL_PARALLAX_EXPONENT;
 	mat->bloom = MATERIAL_BLOOM;
 
 	return mat;
@@ -789,16 +791,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "parallax")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax specified");
-			} else if (m->parallax < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be >= 0.0");
-				m->parallax = MATERIAL_PARALLAX;
-			}
-		}
-
 		if (!g_strcmp0(token, "hardness")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
@@ -868,7 +860,32 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "light.radius")) {
+		if (!g_strcmp0(token, "parallax.amplitude") || !g_strcmp0(token, "parallax")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.amplitude, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax amplitude specified");
+			} else if (m->parallax.amplitude < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax amplitude, must be >= 0.0");
+				m->parallax.amplitude = MATERIAL_PARALLAX_AMPLITUDE;
+			}
+		}
+
+		if (!g_strcmp0(token, "parallax.bias")) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.bias, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax bias specified");
+			}
+		}
+
+		if (!g_strcmp0(token, "parallax.exponent")) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.exponent, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax exponent specified");
+			} else if (m->parallax.exponent < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax exponent, must be >= 0.0");
+				m->parallax.exponent = MATERIAL_PARALLAX_EXPONENT;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.radius") || !g_strcmp0(token, "light")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
@@ -1238,7 +1255,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_STRETCH) {
-		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amp, stage->stretch.hz);
+		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amplitude, stage->stretch.hz);
 	}
 
 	if (stage->flags & STAGE_ROTATE) {

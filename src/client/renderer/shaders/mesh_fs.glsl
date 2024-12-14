@@ -46,6 +46,7 @@ struct fragment_t {
 	vec3 bitangent;
 	mat3 tbn;
 	vec3 dir;
+	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
@@ -61,15 +62,63 @@ uniform vec4 tint_colors[3];
 /**
  * @brief
  */
+float sample_heightmap(vec2 texcoord) {
+	float height = texture(texture_material, vec3(texcoord, 1)).w;
+	return clamp(pow(height + 0.5, material.parallax_exponent) - 0.5, 0.0, 1.0);
+}
+
+/**
+ * @brief
+ */
+float sample_displacement(vec2 texcoord) {
+	return 1.0 - sample_heightmap(texcoord);
+}
+
+/**
+ * @brief Calculates the augmented texcoord for parallax occlusion mapping.
+ * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+ */
+void parallax_occlusion_mapping() {
+
+	if (parallax_samples == 0) {
+		return;
+	}
+
+	vec3 dir = normalize(fragment.dir * fragment.tbn);
+	vec2 p = dir.xy / dir.z * material.parallax_amplitude * .04;
+	vec2 delta = p / parallax_samples;
+
+	vec2 texcoord = vertex.diffusemap;
+	vec2 prev_texcoord = vertex.diffusemap;
+
+	float depth = 0.0;
+	float displacement = 0.0;
+	float layer = 1.0 / parallax_samples;
+
+	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+		prev_texcoord = texcoord;
+		texcoord -= delta;
+		displacement = sample_displacement(texcoord);
+	}
+
+	float a = displacement - depth;
+	float b = sample_displacement(prev_texcoord) - depth + layer;
+
+	fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
+}
+
+/**
+ * @brief
+ */
 vec4 sample_diffusemap() {
-	return texture(texture_material, vec3(vertex.diffusemap, 0));
+	return texture(texture_material, vec3(fragment.parallax, 0));
 }
 
 /**
  * @brief
  */
 vec3 sample_normalmap() {
-	vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
+	vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
 	return normalize(fragment.tbn * normalize(normalmap * roughness));
 }
@@ -78,7 +127,6 @@ vec3 sample_normalmap() {
  * @brief
  */
 float toksvig_gloss(in vec3 normal, in float power) {
-
 	float len_rcp = 1.0 / saturate(length(normal));
 	return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
@@ -89,11 +137,11 @@ float toksvig_gloss(in vec3 normal, in float power) {
 vec4 sample_specularmap() {
 	vec4 specularmap;
 
-	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+	specularmap.rgb = texture(texture_material, vec3(fragment.parallax, 2)).rgb * material.hardness;
 
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
-	vec3 normalmap0 = (texture(texture_material, vec3(vertex.diffusemap, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
-	vec3 normalmap1 = (texture(texture_material, vec3(vertex.diffusemap, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap0 = (texture(texture_material, vec3(fragment.parallax, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap1 = (texture(texture_material, vec3(fragment.parallax, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
 
 	float power = pow(1.0 + material.specularity, 4.0);
 	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
@@ -105,14 +153,14 @@ vec4 sample_specularmap() {
  * @brief
  */
 vec4 sample_tintmap() {
-	return texture(texture_material, vec3(vertex.diffusemap, 3));
+	return texture(texture_material, vec3(fragment.parallax, 3));
 }
 
 /**
  * @brief
  */
 vec4 sample_material_stage() {
-	return texture(texture_stage, vertex.diffusemap);
+	return texture(texture_stage, fragment.parallax);
 }
 
 /**
@@ -378,6 +426,8 @@ void main(void) {
 	fragment.direction = normalize(vertex.direction);
 	fragment.specular = vec3(0);
 
+	parallax_occlusion_mapping();
+
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		fragment.diffusemap = sample_diffusemap() * vertex.color * color;
@@ -447,5 +497,7 @@ void main(void) {
 		out_color.rgb = inverse(fragment.tbn) * vertex.direction;
 	} else if (lightmaps == 6) {
 		out_color.rgb = sample_normalmap();
+	} else if (lightmaps == 7) {
+		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
 	}
 }

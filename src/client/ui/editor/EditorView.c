@@ -47,7 +47,9 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("normalmap", &self->normalmap),
 			MakeOutlet("specularmap", &self->specularmap),
 			MakeOutlet("roughness", &self->roughness),
-			MakeOutlet("parallax", &self->parallax),
+			MakeOutlet("parallax-amplitude", &self->parallaxAmplitude),
+			MakeOutlet("parallax-bias", &self->parallaxBias),
+			MakeOutlet("parallax-exponent", &self->parallaxExponent),
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("bloom", &self->bloom),
@@ -82,7 +84,9 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
 
 		$(self->roughness, setValue, (double) self->material->cm->roughness);
-		$(self->parallax, setValue, (double) self->material->cm->parallax);
+		$(self->parallaxAmplitude, setValue, (double) self->material->cm->parallax.amplitude);
+		$(self->parallaxBias, setValue, (double) self->material->cm->parallax.bias);
+		$(self->parallaxExponent, setValue, (double) self->material->cm->parallax.exponent);
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
 		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->bloom, setValue, (double) self->material->cm->bloom);
@@ -106,7 +110,9 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->specularmap, setDefaultText, NULL);
 
 		$(self->roughness, setValue, MATERIAL_ROUGHNESS);
-		$(self->parallax, setValue, MATERIAL_PARALLAX);
+		$(self->parallaxAmplitude, setValue, MATERIAL_PARALLAX_AMPLITUDE);
+		$(self->parallaxBias, setValue, MATERIAL_PARALLAX_BIAS);
+		$(self->parallaxExponent, setValue, MATERIAL_PARALLAX_EXPONENT);
 		$(self->hardness, setValue, MATERIAL_HARDNESS);
 		$(self->specularity, setValue, MATERIAL_SPECULARITY);
 		$(self->bloom, setValue, MATERIAL_BLOOM);

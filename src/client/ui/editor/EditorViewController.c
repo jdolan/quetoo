@@ -55,25 +55,28 @@ static void didSetValue(Slider *slider, double value) {
 	if (!view->material) {
 		return;
 	}
-
 	if (slider == view->roughness) {
-		view->material->cm->roughness = view->roughness->value;
-	} else if (slider == view->parallax) {
-		view->material->cm->parallax = view->parallax->value;
+		view->material->cm->roughness = slider->value;
+	} else if (slider == view->parallaxAmplitude) {
+		view->material->cm->parallax.amplitude = slider->value;
+	} else if (slider == view->parallaxBias) {
+		view->material->cm->parallax.bias = slider->value;
+	} else if (slider == view->parallaxExponent) {
+		view->material->cm->parallax.exponent = slider->value;
 	} else if (slider == view->hardness) {
-		view->material->cm->hardness = view->hardness->value;
+		view->material->cm->hardness = slider->value;
 	} else if (slider == view->specularity) {
-		view->material->cm->specularity = view->specularity->value;
+		view->material->cm->specularity = slider->value;
 	} else if (slider == view->bloom) {
-		view->material->cm->bloom = view->bloom->value;
+		view->material->cm->bloom = slider->value;
 	} else if (slider == view->alphaTest) {
-		view->material->cm->alpha_test = view->alphaTest->value;
+		view->material->cm->alpha_test = slider->value;
 	} else if (slider == view->lightRadius) {
-		view->material->cm->light.radius = view->lightRadius->value;
+		view->material->cm->light.radius = slider->value;
 	} else if (slider == view->lightIntensity) {
-		view->material->cm->light.intensity = view->lightIntensity->value;
+		view->material->cm->light.intensity = slider->value;
 	} else if (slider == view->lightCone) {
-		view->material->cm->light.cone = view->lightCone->value;
+		view->material->cm->light.cone = slider->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -94,8 +97,14 @@ static void loadView(ViewController *self) {
 	view->roughness->delegate.self = self;
 	view->roughness->delegate.didSetValue = didSetValue;
 
-	view->parallax->delegate.self = self;
-	view->parallax->delegate.didSetValue = didSetValue;
+	view->parallaxAmplitude->delegate.self = self;
+	view->parallaxAmplitude->delegate.didSetValue = didSetValue;
+
+	view->parallaxBias->delegate.self = self;
+	view->parallaxBias->delegate.didSetValue = didSetValue;
+
+	view->parallaxExponent->delegate.self = self;
+	view->parallaxExponent->delegate.didSetValue = didSetValue;
 
 	view->hardness->delegate.self = self;
 	view->hardness->delegate.didSetValue = didSetValue;

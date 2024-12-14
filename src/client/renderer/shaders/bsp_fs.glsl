@@ -49,9 +49,9 @@ struct fragment_t {
 	vec3 bitangent;
 	mat3 tbn;
 	vec3 dir;
+	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
-	vec2 parallax;
 	vec4 specularmap;
 	vec3 ambient;
 	vec3 diffuse;
@@ -66,7 +66,8 @@ struct fragment_t {
  * @brief
  */
 float sample_heightmap(vec2 texcoord) {
-	return texture(texture_material, vec3(texcoord, 1)).w;
+	float height = texture(texture_material, vec3(texcoord, 1)).w;
+	return clamp(pow(height + material.parallax_bias, material.parallax_exponent) - material.parallax_bias, 0.0, 1.0);
 }
 
 /**
@@ -87,7 +88,7 @@ void parallax_occlusion_mapping() {
 	}
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-	vec2 p = dir.xy / dir.z * material.parallax;
+	vec2 p = dir.xy / dir.z * material.parallax_amplitude * .04;
 	vec2 delta = p / parallax_samples;
 
 	vec2 texcoord = vertex.diffusemap;
@@ -501,9 +502,9 @@ void main(void) {
 	fragment.parallax = vertex.diffusemap;
 	fragment.specular = vec3(0);
 
-	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+	parallax_occlusion_mapping();
 
-		parallax_occlusion_mapping();
+	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
 		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
@@ -548,7 +549,7 @@ void main(void) {
 
 	} else {
 
-		vec2 st = vertex.diffusemap;
+		vec2 st = fragment.parallax;
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
