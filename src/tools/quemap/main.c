@@ -281,17 +281,6 @@ static void PrintHelpMessage(void) {
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" --no-indirect - skip indirect lighting\n");
-	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
-	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
-	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
-	Com_Print(" --ambient-intensity <float> - ambient light intensity (default 1.0)\n");
-	Com_Print(" --sun-intensity <float> - sun light intensity (default 1.0)\n");
-	Com_Print(" --point-intensity <float> - point light intensity (default 1.0)\n");
-	Com_Print(" --spot-intensity <float> - spot light intensity (default 1.0)\n");
-	Com_Print(" --face-intensity <float> - face light intensity (default 1.0)\n");
-	Com_Print(" --patch-intensity <float> - patch light intensity (default 1.0)\n");
-	Com_Print(" --caustics-intensity <float> - caustics light intensity (default 1.0)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
