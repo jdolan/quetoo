@@ -57,9 +57,9 @@ struct EditorView {
 	r_material_t *material;
 
 	/**
-	 * @brief The editor dialog title.
+	 * @brief The material name.
 	 */
-	Label *title;
+	TextView *name;
 
 	/**
 	 * @brief The diffusemap texture.

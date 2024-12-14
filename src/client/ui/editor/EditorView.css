@@ -1,25 +1,17 @@
 
 EditorView {
-  autoresizing-mask: fill;
-}
-
-EditorView #title {
-  font-weight: bold;
+	autoresizing-mask: fill;
 }
 
 EditorView Panel {
-  alignment: middle-center;
-}
-
-EditorView Panel Input {
-  width: 420;
-}
-
-EditorView Panel Input Label {
-  editable: false;
-  width: 200;
+	alignment: middle-center;
 }
 
 EditorView Panel .accessoryView {
-  hidden: false;
+	hidden: false;
+}
+
+EditorView Panel .material TextView {
+	editable: false;
+	min-width: 240;
 }

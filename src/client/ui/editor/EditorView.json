@@ -5,266 +5,232 @@
       "contentView": {
         "subviews": [
           {
-            "class": "Label",
-            "identifier": "title",
-            "text": {
-              "text": "Editor"
-            }
-          },
-          {
-            "class": "TabView",
-						"identifier": "tabs",
-            "tabs": [
-              {
-                "identifier": "assets",
-                "label": {
-                  "text": {
-                    "text": "Assets"
-                  }
-                },
-                "view": {
-                  "class": "StackView",
-                  "classNames": [
-                    "container"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Diffusemap"
-                        }
-                      },
-                      "control": {
-                        "class": "TextView",
-                        "identifier": "diffusemap"
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Normalmap"
-                        }
-                      },
-                      "control": {
-                        "class": "TextView",
-                        "identifier": "normalmap"
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Specularmap"
-                        }
-                      },
-                      "control": {
-                        "class": "TextView",
-                        "identifier": "specularmap"
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "identifier": "surface",
-                "label": {
-                  "text": {
-                    "text": "Surface"
-                  }
-                },
-                "view": {
-                  "class": "StackView",
-                  "classNames": [
-                    "container"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Roughness"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "roughness",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Hardness"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "hardness",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Specularity"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "specularity",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-										{
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Parallax Amplitude"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "parallax_amplitude",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Parallax Bias"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "parallax_bias",
-                        "min": -1,
-                        "max": 1,
-                        "step": 0.01
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Parallax Exponent"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "parallax_exponent",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Bloom"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "bloom",
-                        "min": 0,
-                        "max": 8,
-                        "step": 0.125
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Alpha test"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "alpha_test",
-                        "min": 0,
-                        "max": 1,
-                        "step": 0.05
-                      }
-                    }
-                  ]
-                }
-              },
-              {
-                "identifier": "light",
-                "label": {
-                  "text": {
-                    "text": "Light"
-                  }
-                },
-                "view": {
-                  "class": "StackView",
-                  "classNames": [
-                    "container"
-                  ],
-                  "subviews": [
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Radius"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "light_radius",
-                        "min": 0,
-                        "max": 384,
-                        "step": 16
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Intensity"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "light_intensity",
-                        "min": 0,
-                        "max": 3,
-                        "step": 0.05
-                      }
-                    },
-                    {
-                      "class": "Input",
-                      "label": {
-                        "text": {
-                          "text": "Cone"
-                        }
-                      },
-                      "control": {
-                        "class": "Slider",
-                        "identifier": "light_cone",
-                        "min": 0,
-                        "max": 90,
-                        "step": 5
-                      }
-                    }
-                  ]
-                }
+            "class": "Box",
+            "classNames": [
+              "material"
+            ],
+            "label": {
+              "text": {
+                "text": "Material"
               }
-            ]
+            },
+            "contentView": {
+              "subviews": [
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Material name"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "name"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Diffusemap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "diffusemap"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Normalmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "normalmap"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Specularmap texture"
+                    }
+                  },
+                  "control": {
+                    "class": "TextView",
+                    "identifier": "specularmap"
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Roughness"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "roughness",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Parallax intensity"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "parallax-amplitude",
+					"min": 0,
+					"max": 8,
+					"step": 0.125
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Parallax bias"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "parallax-bias",
+					"min": -1,
+					"max": 1,
+					"step": 0.01
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Parallax exponent"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "parallax-exponent",
+					"min": 0,
+					"max": 8,
+					"step": 0.125
+				  }
+				},
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Hardness"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "hardness",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+                {
+                  "class": "Input",
+                  "label": {
+                    "text": {
+                      "text": "Specularity"
+                    }
+                  },
+                  "control": {
+                    "class": "Slider",
+                    "identifier": "specularity",
+                    "min": 0,
+                    "max": 8,
+                    "step": 0.125
+                  }
+                },
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Bloom"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "bloom",
+					"min": 0,
+					"max": 8,
+					"step": 0.125
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Alpha test"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "alpha_test",
+					"min": 0,
+					"max": 1,
+					"step": 0.05
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Light radius"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "light_radius",
+					"min": 0,
+					"max": 384,
+					"step": 16
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Light intensity"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "light_intensity",
+					"min": 0,
+					"max": 3,
+					"step": .05
+				  }
+				},
+				{
+				  "class": "Input",
+				  "label": {
+					"text": {
+					  "text": "Light cone"
+					}
+				  },
+				  "control": {
+					"class": "Slider",
+					"identifier": "light_cone",
+					"min": 0,
+					"max": 90,
+					"step": 5
+				  }
+				}
+              ]
+            }
           }
         ]
       },

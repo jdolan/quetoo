@@ -81,8 +81,8 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080"
-            isEnabled = "YES">
+            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080 +set r_display 1 +set r_allow_high_dpi 1"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
@@ -133,7 +133,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map edge"
+            argument = "+set sv_max_clients 32 +map claustrophobopolis"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -154,7 +154,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

@@ -41,18 +41,15 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 		$((View *) self, awakeWithResourceName, "ui/editor/EditorView.json");
 
-		TabView *tabs = NULL;
-
 		Outlet outlets[] = MakeOutlets(
-			MakeOutlet("title", &self->title),
-			MakeOutlet("tabs", &tabs),
+			MakeOutlet("name", &self->name),
 			MakeOutlet("diffusemap", &self->diffusemap),
 			MakeOutlet("normalmap", &self->normalmap),
 			MakeOutlet("specularmap", &self->specularmap),
 			MakeOutlet("roughness", &self->roughness),
-			MakeOutlet("parallax_amplitude", &self->parallaxAmplitude),
-			MakeOutlet("parallax_bias", &self->parallaxBias),
-			MakeOutlet("parallax_exponent", &self->parallaxExponent),
+			MakeOutlet("parallax-amplitude", &self->parallaxAmplitude),
+			MakeOutlet("parallax-bias", &self->parallaxBias),
+			MakeOutlet("parallax-exponent", &self->parallaxExponent),
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("bloom", &self->bloom),
@@ -67,9 +64,6 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 
 		self->view.stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EditorView.css");
 		assert(self->view.stylesheet);
-
-		TabViewItem *surface = $(tabs, tabWithIdentifier, "surface");
-		$(tabs, selectTab, surface);
 	}
 
 	return self;
@@ -84,7 +78,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 	self->material = material;
 
 	if (self->material) {
-		$(self->title->text, setTextWithFormat, "Editing %s", self->material->cm->basename);
+		$(self->name, setDefaultText, self->material->cm->basename);
 		$(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
 		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
 		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
@@ -110,7 +104,7 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->lightCone, setValue, (double) self->material->cm->light.cone);
 
 	} else {
-		$(self->title->text, setText, "Select a material with your crosshair");
+		$(self->name, setDefaultText, NULL);
 		$(self->diffusemap, setDefaultText, NULL);
 		$(self->normalmap, setDefaultText, NULL);
 		$(self->specularmap, setDefaultText, NULL);
