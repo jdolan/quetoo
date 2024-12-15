@@ -294,12 +294,12 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 
 		if (!g_strcmp0(token, "stretch")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1) != 1) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amplitude, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "No value provided for amplitude");
 				continue;
 			}
 
-			if (s->stretch.amp == 0.0f) {
+			if (s->stretch.amplitude == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Amplitude must not be zero");
 			}
 
@@ -312,7 +312,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			}
 
-			if (s->stretch.amp != 0.0f &&
+			if (s->stretch.amplitude != 0.0f &&
 				s->stretch.hz != 0.0f) {
 				s->flags |= STAGE_STRETCH;
 			}
@@ -570,7 +570,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_MATERIAL) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
-			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
+			          s->stretch.amplitude, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
 			          s->animation.fps);
 
@@ -645,6 +645,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->roughness = MATERIAL_ROUGHNESS;
 	mat->hardness = MATERIAL_HARDNESS;
 	mat->specularity = MATERIAL_SPECULARITY;
+	mat->parallax = MATERIAL_PARALLAX;
 	mat->bloom = MATERIAL_BLOOM;
 
 	return mat;
@@ -725,6 +726,14 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!g_strcmp0(token, "normalmap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->normalmap.name, sizeof(m->normalmap.name))) {
+				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
+				continue;
+			}
+		}
+
+		if (!g_strcmp0(token, "heightmap")) {
+
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
 				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
 				continue;
 			}
@@ -857,7 +866,17 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "light.radius")) {
+		if (!g_strcmp0(token, "parallax")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax specified");
+			} else if (m->parallax < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
+				m->parallax = MATERIAL_PARALLAX;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.radius") || !g_strcmp0(token, "light")) {
 
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No light radius specified");
@@ -1187,6 +1206,7 @@ bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
 	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
@@ -1227,7 +1247,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_STRETCH) {
-		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amp, stage->stretch.hz);
+		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amplitude, stage->stretch.hz);
 	}
 
 	if (stage->flags & STAGE_ROTATE) {
@@ -1291,11 +1311,13 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
-	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->name);
+	Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
+	}
+	if (*material->heightmap.name) {
+		Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
 	}
 	if (*material->specularmap.name) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
@@ -1305,8 +1327,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	Fs_Print(file, "\troughness %g\n", material->roughness);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
 	if (material->contents) {

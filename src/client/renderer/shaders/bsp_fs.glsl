@@ -49,6 +49,7 @@ struct fragment_t {
 	vec3 bitangent;
 	mat3 tbn;
 	vec3 dir;
+	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
@@ -64,15 +65,64 @@ struct fragment_t {
 /**
  * @brief
  */
+float sample_heightmap(vec2 texcoord) {
+	return texture(texture_material, vec3(texcoord, 1)).w;
+}
+
+/**
+ * @brief
+ */
+float sample_displacement(vec2 texcoord) {
+	return 1.0 - sample_heightmap(texcoord);
+}
+
+#define PARALLAX_SAMPLES 16
+
+/**
+ * @brief Calculates the augmented texcoord for parallax occlusion mapping.
+ * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
+ */
+void parallax_occlusion_mapping() {
+
+	if (material.parallax == 0.0) {
+		return;
+	}
+
+	vec3 dir = normalize(fragment.dir * fragment.tbn);
+	vec2 p = dir.xy / dir.z * material.parallax * .01;
+	vec2 delta = p / PARALLAX_SAMPLES;
+
+	vec2 texcoord = vertex.diffusemap;
+	vec2 prev_texcoord = vertex.diffusemap;
+
+	float depth = 0.0;
+	float displacement = 0.0;
+	float layer = 1.0 / PARALLAX_SAMPLES;
+
+	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+		prev_texcoord = texcoord;
+		texcoord -= delta;
+		displacement = sample_displacement(texcoord);
+	}
+
+	float a = displacement - depth;
+	float b = sample_displacement(prev_texcoord) - depth + layer;
+
+	fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
+}
+
+/**
+ * @brief
+ */
 vec4 sample_diffusemap() {
-	return texture(texture_material, vec3(vertex.diffusemap, 0));
+	return texture(texture_material, vec3(fragment.parallax, 0));
 }
 
 /**
  * @brief
  */
 vec3 sample_normalmap() {
-	vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
+	vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
 	return normalize(fragment.tbn * normalize(normalmap * roughness));
 }
@@ -81,7 +131,6 @@ vec3 sample_normalmap() {
  * @brief
  */
 float toksvig_gloss(in vec3 normal, in float power) {
-
 	float len_rcp = 1.0 / saturate(length(normal));
 	return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
@@ -91,12 +140,11 @@ float toksvig_gloss(in vec3 normal, in float power) {
  */
 vec4 sample_specularmap() {
 	vec4 specularmap;
-
-	specularmap.rgb = texture(texture_material, vec3(vertex.diffusemap, 2)).rgb * material.hardness;
+	specularmap.rgb = texture(texture_material, vec3(fragment.parallax, 2)).rgb * material.hardness;
 
 	vec3 roughness = vec3(vec2(material.roughness), 1.0);
-	vec3 normalmap0 = (texture(texture_material, vec3(vertex.diffusemap, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
-	vec3 normalmap1 = (texture(texture_material, vec3(vertex.diffusemap, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap0 = (texture(texture_material, vec3(fragment.parallax, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+	vec3 normalmap1 = (texture(texture_material, vec3(fragment.parallax, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
 
 	float power = pow(1.0 + material.specularity, 4.0);
 	specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
@@ -447,12 +495,15 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
+	fragment.dir = normalize(-vertex.position);
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-	fragment.dir = normalize(-vertex.position);
+	fragment.parallax = vertex.diffusemap;
 	fragment.specular = vec3(0);
+
+	parallax_occlusion_mapping();
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -499,7 +550,7 @@ void main(void) {
 
 	} else {
 
-		vec2 st = vertex.diffusemap;
+		vec2 st = fragment.parallax;
 
 		if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
 			st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
@@ -553,9 +604,13 @@ void main(void) {
 	} else if (lightmaps == 5) {
 		out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
 	} else if (lightmaps == 6) {
-		out_color.rgb = sample_normalmap();
+		out_color.rgb = fragment.normalmap;
 	} else if (lightmaps == 7) {
+		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
+	} else if (lightmaps == 8) {
 		out_color = vec4(fragment.stains, 1.0);
+	} else if (lightmaps == 9) {
+		out_color.rgb = normalize(fragment.tbn * fragment.dir);
 	}
 }
 

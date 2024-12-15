@@ -72,6 +72,11 @@ struct material_t {
 	float specularity;
 
 	/**
+	 * @brief The material parallax.
+	 */
+	float parallax;
+
+	/**
 	 * @brief The material bloom.
 	 */
 	float bloom;

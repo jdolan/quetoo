@@ -92,6 +92,11 @@ struct EditorView {
 	Slider *specularity;
 
 	/**
+	 * @brief The parallax amplitude slider.
+	 */
+	Slider *parallax;
+
+	/**
 	 * @brief The bloom slider.
 	 */
 	Slider *bloom;

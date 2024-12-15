@@ -60,6 +60,7 @@ cvar_t *r_hardness;
 cvar_t *r_hdr;
 cvar_t *r_height;
 cvar_t *r_modulate;
+cvar_t *r_parallax;
 cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
@@ -155,15 +156,15 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 		out->lightmaps = r_draw_bsp_lightmap->integer;
 		out->shadows = r_shadowmap->integer;
+
 		out->modulate = r_modulate->value;
-
-		out->fog_density = r_fog_density->value;
-		out->fog_samples = r_fog_samples->integer;
-
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
 		out->bloom = r_bloom->value;
 		out->hdr = r_hdr->value;
+
+		out->fog_density = r_fog_density->value;
+		out->fog_samples = r_fog_samples->integer;
 
 		out->developer = r_developer->integer;
 
@@ -381,6 +382,7 @@ static void R_InitLocal(void) {
 	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
+	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
 	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");

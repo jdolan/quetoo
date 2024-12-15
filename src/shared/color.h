@@ -477,6 +477,20 @@ static inline color_t __attribute__ ((warn_unused_result)) Color32_Color(const c
 }
 
 /**
+ * @return A normalized (0.0 - 1.0) `vec3_t` for the specified 32 bit integer color.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color32_Vec3(const color32_t c) {
+	return Color4bv(c.rgba).vec3;
+}
+
+/**
+ * @return A normalized (0.0 - 1.0) `vec4_t` for the specified 32 bit integer color.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Color32_Vec4(const color32_t c) {
+	return Color4bv(c.rgba).vec4;
+}
+
+/**
  * @brief Fills `len` of `out` with RGBA values from the 32 bit color (like memset).
  */
 static inline void Color32_Fill(color32_t *out, const color32_t c, size_t len) {
@@ -490,6 +504,13 @@ static inline void Color32_Fill(color32_t *out, const color32_t c, size_t len) {
  */
 static inline color24_t __attribute__ ((warn_unused_result)) Color32_Color24(const color32_t c) {
 	return Color24(c.r, c.g, c.b);
+}
+
+/**
+ * @return The decoded directional vector from this `color32_t`'s RGB components.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color32_Direction(const color32_t c) {
+	return Vec3_Normalize(Vec3_Subtract(Vec3_Scale(Color32_Color(c).vec3, 2.f), Vec3_One()));
 }
 
 /**

@@ -1559,7 +1559,6 @@ void Ai_OffsetNodes_f(void);
  */
 void G_Ai_InitLocals(void) {
 
-	gi.Print("Ai initialization...\n");
 	gi.Mkdir("ai");
 
 	ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
@@ -1582,8 +1581,6 @@ void G_Ai_InitLocals(void) {
 
 	Ai_InitItems();
 	Ai_InitSkins();
-
-	gi.Print("Ai module initialized\n");
 }
 
 /**

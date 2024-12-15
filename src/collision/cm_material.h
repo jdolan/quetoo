@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct {
 	float hz;
-	float amp;
+	float amplitude;
 } cm_stage_stretch_t;
 
 typedef struct {
@@ -270,6 +270,7 @@ typedef struct {
 #define MATERIAL_ROUGHNESS 1.f
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
+#define MATERIAL_PARALLAX 1.f
 #define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
 #define MATERIAL_LIGHT_ATTEN 1
@@ -307,6 +308,11 @@ typedef struct cm_material_s {
 	 * @brief The normalmap asset.
 	 */
 	cm_asset_t normalmap;
+
+	/**
+	 * @brief The heightmap asset.
+	 */
+	cm_asset_t heightmap;
 
 	/**
 	 * @brief The specularmap asset.
@@ -359,19 +365,24 @@ typedef struct cm_material_s {
 	float specularity;
 
 	/**
+	 * @brief The parallax factor to use for the heightmap.
+	 */
+	float parallax;
+
+	/**
 	 * @brief The bloom factor to apply to the diffusemap.
 	 */
 	float bloom;
 
 	/**
-	 * @brief The footsteps to play when the player walks on this material.
-	 */
-	cm_footsteps_t footsteps;
-
-	/**
 	 * @brief Emissive light.
 	 */
 	cm_light_t light;
+
+	/**
+	 * @brief The footsteps to play when the player walks on this material.
+	 */
+	cm_footsteps_t footsteps;
 
 	/**
 	 * @brief Default tint colors
