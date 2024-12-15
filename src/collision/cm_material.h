@@ -310,6 +310,11 @@ typedef struct cm_material_s {
 	cm_asset_t normalmap;
 
 	/**
+	 * @brief The heightmap asset.
+	 */
+	cm_asset_t heightmap;
+
+	/**
 	 * @brief The specularmap asset.
 	 */
 	cm_asset_t specularmap;

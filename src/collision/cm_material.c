@@ -731,6 +731,14 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "heightmap")) {
+
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
+				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
+				continue;
+			}
+		}
+
 		if (!g_strcmp0(token, "specularmap")) {
 
 			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
@@ -1198,6 +1206,7 @@ bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
 	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
 	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
 
@@ -1306,6 +1315,9 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
+	}
+	if (*material->heightmap.name) {
+		Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
 	}
 	if (*material->specularmap.name) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
