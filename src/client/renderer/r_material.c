@@ -173,8 +173,15 @@ static void R_LoadHeightmap(const cm_material_t *cm, const SDL_Surface *diffusem
 	const int32_t w = normalmap->w;
 	const int32_t h = normalmap->h;
 
-	const color32_t *in_diffusemap = diffusemap->pixels;
 	color32_t *in_normalmap = normalmap->pixels;
+
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		if (in_normalmap->a != 255) {
+			return;
+		}
+	}
+
+	Com_Debug(DEBUG_RENDERER, "Generating heightmap for %s\n", cm->name);
 
 	float *heightmap = calloc(w * h, sizeof(float));
 	float *out_heightmap = heightmap;
@@ -182,42 +189,26 @@ static void R_LoadHeightmap(const cm_material_t *cm, const SDL_Surface *diffusem
 	float min = 1.f;
 	float max = 0.f;
 
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++, in_diffusemap++, in_normalmap++, out_heightmap++) {
+	const color32_t *in_diffusemap = diffusemap->pixels;
+	in_normalmap = normalmap->pixels;
 
-			if (in_normalmap->a != 255) { // valid heightmap, so bail out
-				goto postprocess;
-			}
+	for (int32_t i = 0; i < w * h; i++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
-			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
-			const vec3_t normal = Color32_Direction(*in_normalmap);
+		const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
+		const vec3_t normal = Color32_Direction(*in_normalmap);
 
-			*out_heightmap = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
+		*out_heightmap = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
 
-			min = Minf(min, *out_heightmap);
-			max = Maxf(max, *out_heightmap);
-		}
+		min = Minf(min, *out_heightmap);
+		max = Maxf(max, *out_heightmap);
 	}
 
 	const float *in_heightmap = heightmap;
 	in_normalmap = normalmap->pixels;
 
-	for (int32_t y = 0; y < h; y++) {
-		for (int32_t x = 0; x < w; x++, in_heightmap++, in_normalmap++) {
-			const float scaled = (*in_heightmap - min) / (max - min);
-			in_normalmap->a = scaled * 255;
-		}
-	}
-
-	postprocess: {
-//		color32_t *color = normalmap->pixels;
-//
-//		for (int32_t y = 0; y < h; y++) {
-//			for (int32_t x = 0; x < w; x++, color++) {
-//				const float f = (color->a / 255.f) + .5f;
-//				color->a = Clampf(powf(f, r_parallax_exponent->value) - .5f, 0.f, 1.f) * 255;
-//			}
-//		}
+	for (int32_t i = 0; i < w * h; i++, in_heightmap++, in_normalmap++) {
+		const float scaled = (*in_heightmap - min) / (max - min);
+		in_normalmap->a = Clampf(scaled, 0.f, 1.f) * 255;
 	}
 
 	free(heightmap);

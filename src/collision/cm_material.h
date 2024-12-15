@@ -40,12 +40,6 @@ typedef struct {
 } cm_asset_t;
 
 typedef struct {
-	float amplitude;
-	float bias;
-	float exponent;
-} cm_parallax_t;
-
-typedef struct {
 	uint32_t src, dest;
 } cm_stage_blend_t;
 
@@ -276,9 +270,7 @@ typedef struct {
 #define MATERIAL_ROUGHNESS 1.f
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
-#define MATERIAL_PARALLAX_AMPLITUDE 1.f
-#define MATERIAL_PARALLAX_BIAS 0.f
-#define MATERIAL_PARALLAX_EXPONENT 1.f
+#define MATERIAL_PARALLAX 1.f
 #define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
 #define MATERIAL_LIGHT_ATTEN 1
@@ -368,14 +360,14 @@ typedef struct cm_material_s {
 	float specularity;
 
 	/**
+	 * @brief The parallax factor to use for the heightmap.
+	 */
+	float parallax;
+
+	/**
 	 * @brief The bloom factor to apply to the diffusemap.
 	 */
 	float bloom;
-
-	/**
-	 * @brief The parallax parameters for the heightmap.
-	 */
-	cm_parallax_t parallax;
 
 	/**
 	 * @brief Emissive light.

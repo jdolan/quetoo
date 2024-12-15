@@ -645,9 +645,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->roughness = MATERIAL_ROUGHNESS;
 	mat->hardness = MATERIAL_HARDNESS;
 	mat->specularity = MATERIAL_SPECULARITY;
-	mat->parallax.amplitude = MATERIAL_PARALLAX_AMPLITUDE;
-	mat->parallax.bias = MATERIAL_PARALLAX_BIAS;
-	mat->parallax.exponent = MATERIAL_PARALLAX_EXPONENT;
+	mat->parallax = MATERIAL_PARALLAX;
 	mat->bloom = MATERIAL_BLOOM;
 
 	return mat;
@@ -860,28 +858,13 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "parallax.amplitude") || !g_strcmp0(token, "parallax")) {
+		if (!g_strcmp0(token, "parallax")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.amplitude, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax amplitude specified");
-			} else if (m->parallax.amplitude < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax amplitude, must be >= 0.0");
-				m->parallax.amplitude = MATERIAL_PARALLAX_AMPLITUDE;
-			}
-		}
-
-		if (!g_strcmp0(token, "parallax.bias")) {
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.bias, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax bias specified");
-			}
-		}
-
-		if (!g_strcmp0(token, "parallax.exponent")) {
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax.exponent, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax exponent specified");
-			} else if (m->parallax.exponent < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax exponent, must be >= 0.0");
-				m->parallax.exponent = MATERIAL_PARALLAX_EXPONENT;
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax specified");
+			} else if (m->parallax < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
+				m->parallax = MATERIAL_PARALLAX;
 			}
 		}
 
@@ -1319,8 +1302,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
-	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->name);
+	Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
@@ -1336,6 +1318,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
 	if (material->contents) {

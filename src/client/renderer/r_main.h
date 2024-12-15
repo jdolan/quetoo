@@ -37,10 +37,7 @@ extern cvar_t *r_hardness;
 extern cvar_t *r_hdr;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
-extern cvar_t *r_parallax_amplitude;
-extern cvar_t *r_parallax_bias;
-extern cvar_t *r_parallax_exponent;
-extern cvar_t *r_parallax_samples;
+extern cvar_t *r_parallax;
 extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
@@ -174,11 +171,6 @@ typedef struct {
 		 * @brief The shadows debugging mask.
 		 */
 		int32_t shadows;
-
-		/**
-		 * @brief The parallax sample count.
-		 */
-		int32_t parallax_samples;
 
 		/**
 		 * @brief The modulate scalar.

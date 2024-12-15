@@ -63,8 +63,7 @@ uniform vec4 tint_colors[3];
  * @brief
  */
 float sample_heightmap(vec2 texcoord) {
-	float height = texture(texture_material, vec3(texcoord, 1)).w;
-	return clamp(pow(height + 0.5, material.parallax_exponent) - 0.5, 0.0, 1.0);
+	return texture(texture_material, vec3(texcoord, 1)).w;
 }
 
 /**
@@ -74,26 +73,28 @@ float sample_displacement(vec2 texcoord) {
 	return 1.0 - sample_heightmap(texcoord);
 }
 
+#define PARALLAX_SAMPLES 16
+
 /**
  * @brief Calculates the augmented texcoord for parallax occlusion mapping.
  * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
 void parallax_occlusion_mapping() {
 
-	if (parallax_samples == 0) {
+	if (material.parallax == 0.0) {
 		return;
 	}
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-	vec2 p = dir.xy / dir.z * material.parallax_amplitude * .04;
-	vec2 delta = p / parallax_samples;
+	vec2 p = dir.xy / dir.z * material.parallax * .04;
+	vec2 delta = p / PARALLAX_SAMPLES;
 
 	vec2 texcoord = vertex.diffusemap;
 	vec2 prev_texcoord = vertex.diffusemap;
 
 	float depth = 0.0;
 	float displacement = 0.0;
-	float layer = 1.0 / parallax_samples;
+	float layer = 1.0 / PARALLAX_SAMPLES;
 
 	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
 		prev_texcoord = texcoord;

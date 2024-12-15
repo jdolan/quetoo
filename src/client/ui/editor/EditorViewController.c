@@ -57,16 +57,12 @@ static void didSetValue(Slider *slider, double value) {
 	}
 	if (slider == view->roughness) {
 		view->material->cm->roughness = slider->value;
-	} else if (slider == view->parallaxAmplitude) {
-		view->material->cm->parallax.amplitude = slider->value;
-	} else if (slider == view->parallaxBias) {
-		view->material->cm->parallax.bias = slider->value;
-	} else if (slider == view->parallaxExponent) {
-		view->material->cm->parallax.exponent = slider->value;
 	} else if (slider == view->hardness) {
 		view->material->cm->hardness = slider->value;
 	} else if (slider == view->specularity) {
 		view->material->cm->specularity = slider->value;
+	} else if (slider == view->parallax) {
+		view->material->cm->parallax = slider->value;
 	} else if (slider == view->bloom) {
 		view->material->cm->bloom = slider->value;
 	} else if (slider == view->alphaTest) {
@@ -97,20 +93,14 @@ static void loadView(ViewController *self) {
 	view->roughness->delegate.self = self;
 	view->roughness->delegate.didSetValue = didSetValue;
 
-	view->parallaxAmplitude->delegate.self = self;
-	view->parallaxAmplitude->delegate.didSetValue = didSetValue;
-
-	view->parallaxBias->delegate.self = self;
-	view->parallaxBias->delegate.didSetValue = didSetValue;
-
-	view->parallaxExponent->delegate.self = self;
-	view->parallaxExponent->delegate.didSetValue = didSetValue;
-
 	view->hardness->delegate.self = self;
 	view->hardness->delegate.didSetValue = didSetValue;
 
 	view->specularity->delegate.self = self;
 	view->specularity->delegate.didSetValue = didSetValue;
+
+	view->parallax->delegate.self = self;
+	view->parallax->delegate.didSetValue = didSetValue;
 
 	view->bloom->delegate.self = self;
 	view->bloom->delegate.didSetValue = didSetValue;
