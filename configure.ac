@@ -87,7 +87,7 @@ case "$host" in
 		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${HOMEBREW_PREFIX}/opt/openal-soft/lib/pkgconfig"
 
 		HOST_CFLAGS="-I${HOMEBREW_PREFIX}/include"
-		HOST_LDFLAGS="-L${HOMEBREW_PREFIX}lib -headerpad_max_install_names"
+		HOST_LDFLAGS="-L${HOMEBREW_PREFIX}/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
