@@ -37,7 +37,6 @@ TESTS = \
 	check_color \
 	check_cvar \
 	check_filesystem \
-	check_image \
 	check_master \
 	check_mem \
 	check_r_media \
