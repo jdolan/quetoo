@@ -170,6 +170,16 @@ static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surfac
 	const int32_t w = normalmap->w;
 	const int32_t h = normalmap->h;
 
+	bool normalmap_has_heightmap = false;
+
+	color32_t *in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		if (in_normalmap->a != 255) {
+			normalmap_has_heightmap = true;
+			break;
+		}
+	}
+
 	SDL_Surface *heightmap = NULL;
 	if (*cm->heightmap.path) {
 		heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
@@ -177,61 +187,58 @@ static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surfac
 			Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
 			heightmap = R_CreateMaterialSurface(w, h, Color32(0, 0, 0, 255));
 		}
-	} else {
+	}
 
-		const color32_t *in_normalmap = normalmap->pixels;
-		for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
-			if (in_normalmap->a != 255) {
-				return;
-			}
-		}
-
+	if (heightmap == NULL && !normalmap_has_heightmap) {
 		heightmap = R_CreateMaterialSurface(w, h, Color32(0, 0, 0, 255));
 
 		Com_Debug(DEBUG_RENDERER, "Generating heightmap for %s\n", cm->name);
 
-		float *height = calloc(w * h, sizeof(float));
-		float *out_height = height;
-
-		float min = 1.f;
-		float max = 0.f;
-
 		const color32_t *in_diffusemap = diffusemap->pixels;
 		in_normalmap = normalmap->pixels;
 
+		color32_t *out_heightmap = heightmap->pixels;
+
 		// Use the diffusemap and normalmap to derive approximate height
-		for (int32_t i = 0; i < w * h; i++, in_diffusemap++, in_normalmap++, out_height++) {
+		for (int32_t i = 0; i < w * h; i++, in_diffusemap++, in_normalmap++, out_heightmap++) {
 
 			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
 			const vec3_t normal = Color32_Direction(*in_normalmap);
 
-			*out_height = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
-
-			min = Minf(min, *out_height);
-			max = Maxf(max, *out_height);
+			const float height = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
+			out_heightmap->r = height * 255.f;
 		}
-
-		const float *in_height = height;
-		color32_t *out_heightmap = heightmap->pixels;
-
-		for (int32_t i = 0; i < w * h; i++, in_height++, out_heightmap++) {
-			const float h = (*out_height - min) / (max - min);
-			out_heightmap->r = h * 255.f;
-		}
-
-		free(height);
 	}
 
-	// finally, merge the heightmap into the normalmap's alpha channel
+	// Merge the external / generated heightmap into the normalmap's alpha channel
 
-	const color32_t *in_heightmap = heightmap->pixels;
-	color32_t *out_normalmap = normalmap->pixels;
+	if (heightmap) {
 
-	for (int32_t i = 0; i < w * h; i++, in_heightmap++, out_normalmap++) {
-		out_normalmap->a = in_heightmap->r;
+		const color32_t *in_heightmap = heightmap->pixels;
+		color32_t *out_normalmap = normalmap->pixels;
+
+		for (int32_t i = 0; i < w * h; i++, in_heightmap++, out_normalmap++) {
+			out_normalmap->a = in_heightmap->r;
+		}
+
+		SDL_FreeSurface(heightmap);
 	}
 
-	SDL_FreeSurface(heightmap);
+	// Scale the heightmap to maximize parallax effect
+
+	float min = 255.f;
+	float max = 0.f;
+
+	in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		min = Minf(min, in_normalmap->a);
+		max = Maxf(max, in_normalmap->a);
+	}
+
+	in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		in_normalmap->a = (in_normalmap->a - min) / (max - min) * 255;
+	}
 }
 
 /**

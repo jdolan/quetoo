@@ -89,7 +89,7 @@ void parallax_occlusion_mapping() {
 	}
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-	vec2 p = dir.xy / dir.z * material.parallax * .01;
+	vec2 p = dir.xy / dir.z * material.parallax * .02;
 	vec2 delta = p / PARALLAX_SAMPLES;
 
 	vec2 texcoord = vertex.diffusemap;
