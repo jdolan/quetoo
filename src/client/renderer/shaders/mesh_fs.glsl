@@ -431,7 +431,7 @@ void main(void) {
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-		fragment.diffusemap = sample_diffusemap() * vertex.color * color;
+		fragment.diffusemap = sample_diffusemap() * vertex.color;
 
 		if (fragment.diffusemap.a < material.alpha_test) {
 			discard;
