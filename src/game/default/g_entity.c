@@ -767,9 +767,6 @@ static void G_WorldspawnMusic(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- brightness : Global light scale, a single positive scalar value (e.g. 1.125).
- saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
- contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."

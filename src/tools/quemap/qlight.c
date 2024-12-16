@@ -346,7 +346,6 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
 	return data.trace;
 }
 
-
 /**
  * @brief
  */
