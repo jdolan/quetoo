@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1610"
+   LastUpgradeVersion = "1620"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -81,7 +81,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080"
+            argument = "+set r_fullscreen 1 +set r_width 1920 +set r_height 1080"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -133,7 +133,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map pits"
+            argument = "+set sv_max_clients 32 +map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"

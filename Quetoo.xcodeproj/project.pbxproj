@@ -209,6 +209,7 @@
 		CE32529D1F760D3F00512523 /* BindTextView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE32529B1F760D3F00512523 /* BindTextView.c */; };
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
 		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
+		CE3517FC2D15050600C72C00 /* libopenal.1.24.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE3517FB2D15050600C72C00 /* libopenal.1.24.1.dylib */; };
 		CE354EF922075132008AE0C2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE354F012207514B008AE0C2 /* check_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EEE22075054008AE0C2 /* check_atlas.c */; };
 		CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
@@ -652,7 +653,6 @@
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
-		CEE3FD682CF2630B00BDA5D8 /* libopenal.1.24.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE3FD672CF2630B00BDA5D8 /* libopenal.1.24.0.dylib */; };
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
@@ -1498,6 +1498,7 @@
 		CE32529C1F760D3F00512523 /* BindTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BindTextView.h; sourceTree = "<group>"; };
 		CE34098E21C2D52500989FC9 /* entity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = entity.h; sourceTree = "<group>"; };
 		CE34098F21C2D52500989FC9 /* entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = entity.c; sourceTree = "<group>"; };
+		CE3517FB2D15050600C72C00 /* libopenal.1.24.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.24.1.dylib; path = "../../../../usr/local/Cellar/openal-soft/1.24.1/lib/libopenal.1.24.1.dylib"; sourceTree = "<group>"; };
 		CE354ED9220738BF008AE0C2 /* atlas.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atlas.h; sourceTree = "<group>"; };
 		CE354EDA220738BF008AE0C2 /* atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = atlas.c; sourceTree = "<group>"; };
 		CE354EEE22075054008AE0C2 /* check_atlas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_atlas.c; sourceTree = "<group>"; };
@@ -1816,7 +1817,7 @@
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CEC2339E2C3B0320005C826C /* libncursesw.6.dylib in Frameworks */,
-				CEE3FD682CF2630B00BDA5D8 /* libopenal.1.24.0.dylib in Frameworks */,
+				CE3517FC2D15050600C72C00 /* libopenal.1.24.1.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CEDCFC7820497B4B008A4252 /* libSDL2_image-2.0.0.dylib in Frameworks */,
 				CE5816EF1D904B0B002818F5 /* libSDL2-2.0.0.dylib in Frameworks */,
@@ -3009,6 +3010,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE3517FB2D15050600C72C00 /* libopenal.1.24.1.dylib */,
 				CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */,
 				CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */,
 				CEE3FD672CF2630B00BDA5D8 /* libopenal.1.24.0.dylib */,
@@ -4249,7 +4251,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 1620;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -5145,6 +5147,7 @@
 					"/usr/local/opt/openal-soft/lib",
 					/usr/local/opt/physfs/lib,
 					"/usr/local/Cellar/openal-soft/1.24.0/lib",
+					"/usr/local/Cellar/openal-soft/1.24.1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5159,6 +5162,7 @@
 					"/usr/local/opt/openal-soft/lib",
 					/usr/local/opt/physfs/lib,
 					"/usr/local/Cellar/openal-soft/1.24.0/lib",
+					"/usr/local/Cellar/openal-soft/1.24.1/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
