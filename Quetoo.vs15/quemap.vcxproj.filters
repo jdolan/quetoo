@@ -60,9 +60,6 @@
     <ClCompile Include="..\src\tools\quemap\monitor.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\patch.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\polylib.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
@@ -147,9 +144,6 @@
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\monitor.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\patch.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\points.h">
