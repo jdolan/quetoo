@@ -372,9 +372,14 @@ typedef struct {
 	color32_t *stains;
 
 	/**
-	 * @brief The frame number at which this lightmap was last stained.
+	 * @brief The timestamp when this lightmap was last stained.
 	 */
-	int32_t stain_frame;
+	uint32_t stain_time;
+
+	/**
+	 * @brief The timestamp when this lightmap stain was last decayed.
+	 */
+	uint32_t stain_decay_time;
 } r_bsp_face_lightmap_t;
 
 /**

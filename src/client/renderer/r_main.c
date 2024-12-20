@@ -68,6 +68,7 @@ cvar_t *r_shadowmap;
 cvar_t *r_shadowmap_size;
 cvar_t *r_specularity;
 cvar_t *r_stains;
+cvar_t *r_stains_decay;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_texture_mode;
@@ -390,6 +391,7 @@ static void R_InitLocal(void) {
 	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
+	r_stains_decay = Cvar_Add("r_stains_decay", "10", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects decay.");
 	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
 	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
 	r_texture_mode = Cvar_Add("r_texture_mode", "GL_LINEAR_MIPMAP_LINEAR", CVAR_ARCHIVE | CVAR_R_MEDIA, "Specifies the active texture filtering mode.");

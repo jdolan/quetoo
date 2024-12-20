@@ -21,12 +21,10 @@
 
 #include "r_local.h"
 
-static int32_t stain_frame;
-
 /**
  * @brief Attempt to stain the surface.
  */
-static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
+static void R_StainFace(const r_view_t *view, const r_stain_t *stain, r_bsp_face_t *face) {
 
 	const vec3_t point = Mat4_Transform(face->lightmap.matrix, stain->origin);
 
@@ -66,15 +64,15 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 
 			const float intensity = stain->color.a * atten;
 
-			const float src_alpha = Clampf(intensity, 0.0, 1.0);
-			const float dst_alpha = 1.0 - src_alpha;
+			const float src_alpha = Clampf(intensity, 0.f, 1.f);
+			const float dst_alpha = 1.f - src_alpha;
 
 			const color_t src = Color_Scale(stain->color, src_alpha);
 			const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
 
 			*out = Color_Color32(Color_Add(src, dst));
 
-			face->lightmap.stain_frame = stain_frame;
+			face->lightmap.stain_time = view->ticks;
 		}
 	}
 }
@@ -82,7 +80,7 @@ static void R_StainFace(const r_stain_t *stain, r_bsp_face_t *face) {
 /**
  * @brief
  */
-static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
+static void R_StainNode(const r_view_t *view, const r_stain_t *stain, const r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
 		return;
@@ -92,12 +90,12 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 	const float dist = Cm_DistanceToPlane(stain->origin, plane);
 
 	if (dist > stain->radius) {
-		R_StainNode(stain, node->children[0]);
+		R_StainNode(view, stain, node->children[0]);
 		return;
 	}
 
 	if (dist < -stain->radius) {
-		R_StainNode(stain, node->children[1]);
+		R_StainNode(view, stain, node->children[1]);
 		return;
 	}
 
@@ -119,12 +117,12 @@ static void R_StainNode(const r_stain_t *stain, const r_bsp_node_t *node) {
 			continue;
 		}
 
-		R_StainFace(&projected, face);
+		R_StainFace(view, &projected, face);
 	}
 
 	// recurse down both sides
-	R_StainNode(stain, node->children[0]);
-	R_StainNode(stain, node->children[1]);
+	R_StainNode(view, stain, node->children[0]);
+	R_StainNode(view, stain, node->children[1]);
 }
 
 /**
@@ -148,17 +146,11 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain) {
  * @brief
  */
 void R_UpdateStains(const r_view_t *view) {
-	
-	if (!view->num_stains) {
-		return;
-	}
-
-	stain_frame++;
 
 	const r_stain_t *stain = view->stains;
 	for (int32_t i = 0; i < view->num_stains; i++, stain++) {
 
-		R_StainNode(stain, r_world_model->bsp->nodes);
+		R_StainNode(view, stain, r_world_model->bsp->nodes);
 
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {
@@ -168,26 +160,44 @@ void R_UpdateStains(const r_view_t *view) {
 
 				s.origin = Mat4_Transform(e->inverse_matrix, s.origin);
 
-				R_StainNode(&s, e->model->bsp_inline->head_node);
+				R_StainNode(view, &s, e->model->bsp_inline->head_node);
 			}
 		}
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
 
-	const r_bsp_face_t *face = r_world_model->bsp->faces;
+	const uint32_t decay_interval = (uint32_t) Mini(10, r_stains_decay->integer) * 1000;
+
+	r_bsp_face_t *face = r_world_model->bsp->faces;
 	for (int32_t i = 0; i < r_world_model->bsp->num_faces; i++, face++) {
 
-		if (face->lightmap.stain_frame == stain_frame) {
-			glTexSubImage2D(GL_TEXTURE_2D,
-					0,
-					face->lightmap.s,
-					face->lightmap.t,
-					face->lightmap.w,
-					face->lightmap.h,
-					GL_RGBA,
-					GL_UNSIGNED_BYTE,
-					face->lightmap.stains);
+		r_bsp_face_lightmap_t *lm = &face->lightmap;
+		if (lm->stain_time) {
+
+			const uint32_t age = view->ticks - lm->stain_time;
+			if (age < decay_interval) {
+
+				if (age == 0) {
+					// don't decay, but don't skip the upload either
+				} else {
+					if (view->ticks - lm->stain_decay_time >= decay_interval / 255.f) {
+						lm->stain_decay_time = view->ticks;
+
+						color32_t *color = lm->stains;
+						for (int32_t j = 0; j < lm->w * lm->h; j++, color++) {
+							color->r = Mini(255, color->r + 1);
+							color->g = Mini(255, color->g + 1);
+							color->b = Mini(255, color->b + 1);
+							color->a = Mini(255, color->a + 1);
+						}
+					} else {
+						continue;
+					}
+				}
+
+				glTexSubImage2D(GL_TEXTURE_2D, 0, lm->s, lm->t, lm->w, lm->h, GL_RGBA, GL_UNSIGNED_BYTE, lm->stains);
+			}
 		}
 	}
 

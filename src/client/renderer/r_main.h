@@ -45,6 +45,7 @@ extern cvar_t *r_shadowmap;
 extern cvar_t *r_shadowmap_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
+extern cvar_t *r_stains_decay;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_texture_mode;
