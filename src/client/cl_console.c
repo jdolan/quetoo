@@ -58,13 +58,16 @@ static void Cl_DrawConsole_Background(void) {
 
 	const float scale = Maxf(x_scale, y_scale);
 
-	const float width = ceilf(conback->width * scale);
-	const float height = ceilf(conback->height * scale);
+	const GLint width = ceilf(conback->width * scale);
+	const GLint height = ceilf(conback->height * scale);
+
+	assert(width >= r_context.width);
+	assert(height >= r_context.height);
 
 	const GLint x = (r_context.width / 2.f) - (width / 2.f);
 	const GLint y = (r_context.height / 2.f) - (height / 2.f);
 
-	const GLint offset = Maxf(0, height - cl_console.height * (ch + 1));
+	const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
 
 	const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
