@@ -42,24 +42,23 @@ g_team_t *G_TeamByName(const char *c);
 const g_item_t *G_IsFlagBearer(const g_entity_t *ent);
 g_team_t *G_TeamForFlag(const g_entity_t *ent);
 g_entity_t *G_FlagForTeam(const g_team_t *t);
-uint32_t G_EffectForTeam(const g_team_t *t);
+int32_t G_EffectForTeam(const g_team_t *t);
 size_t G_TeamSize(const g_team_t *team);
 g_team_t *G_SmallestTeam(void);
 g_entity_t *G_EntityByName(char *name);
 g_client_t *G_ClientByName(char *name);
 g_hook_style_t G_HookStyleByName(const char *s);
-_Bool G_IsMeat(const g_entity_t *ent);
-_Bool G_IsStationary(const g_entity_t *ent);
-_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *texinfo);
-_Bool G_IsSky(const cm_bsp_texinfo_t *texinfo);
-void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart);
-_Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
+bool G_IsMeat(const g_entity_t *ent);
+bool G_IsStationary(const g_entity_t *ent);
+bool G_IsStructural(const cm_trace_t *trace);
+bool G_IsSky(const cm_trace_t *trace);
+void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart);
+bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim);
 g_entity_t *G_AllocEntity_(const char *class_name);
 void G_InitEntity(g_entity_t *ent, const char *class_name);
 void G_ClearEntity(g_entity_t *ent);
 void G_FreeEntity(g_entity_t *ent);
-void G_ClientStuff(const g_entity_t *ent, const char *s);
-void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #define G_AllocEntity() G_AllocEntity_(__func__)
 

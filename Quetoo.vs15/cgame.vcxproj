@@ -19,8 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\deps\discord-rpc\include\discord_register.h" />
+    <ClInclude Include="..\deps\discord-rpc\include\discord_rpc.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\backoff.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\connection.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\msg_queue.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\rpc_connection.h" />
+    <ClInclude Include="..\deps\discord-rpc\src\serialization.h" />
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
+    <ClInclude Include="..\src\cgame\default\cg_discord.h" />
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_effect.h" />
@@ -69,13 +77,19 @@
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamPlayerView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamsViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.css" />
-    <None Include="..\src\cgame\default\ui\home\HomeViewController.json" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="..\deps\discord-rpc\src\connection_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_register_win.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\discord_rpc.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\dllmain.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp" />
+    <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
+    <ClCompile Include="..\src\cgame\default\cg_discord.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_effect.c" />
@@ -122,6 +136,9 @@
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamPlayerView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamsViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\ObjectivelyMVC\ObjectivelyMVC.vs15\ObjectivelyMVC.vcxproj">
@@ -163,8 +180,6 @@
   <ItemDefinitionGroup>
     <Link>
       <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ModuleDefinitionFile>
-      </ModuleDefinitionFile>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>

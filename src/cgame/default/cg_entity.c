@@ -22,12 +22,12 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-static GArray *cg_entities;
+GArray *cg_entities = NULL;
 
 /**
- * @brief The Cg_EntityPredicate type for Cg_FindEntity.
+ * @brief The `Cg_EntityPredicate` type for `Cg_FindEntity`.
  */
-typedef _Bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
+typedef bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
 
 /**
  * @return The first entity after `from` for which `predicate` returns `true`, or `NULL`.
@@ -36,7 +36,7 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 
 	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
 
-	size_t start = 0;
+	int32_t start = 0;
 	if (from) {
 		while (start < bsp->num_entities) {
 			if (bsp->entities[start] == from) {
@@ -47,7 +47,7 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 		assert(start < bsp->num_entities);
 	}
 
-	for (size_t i = start; i < bsp->num_entities; i++) {
+	for (int32_t i = start; i < bsp->num_entities; i++) {
 		const cm_entity_t *e = bsp->entities[i];
 		if (predicate(e, data)) {
 			return e;
@@ -60,19 +60,19 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 /**
  * @brief
  */
-static _Bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
+static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
 	return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief
  */
-static _Bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
+static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
 	return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
 /**
- * @return The cg_entity_t * for the specified cm_entity_t *, if any.
+ * @return The `cg_entity_t *` for the specified `cm_entity_t *`, if any.
  */
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
@@ -109,21 +109,24 @@ void Cg_LoadEntities(void) {
 	cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
 
 	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
-	for (size_t i = 0; i < bsp->num_entities; i++) {
+	for (int32_t i = 0; i < bsp->num_entities; i++) {
 
 		const cm_entity_t *def = bsp->entities[i];
 		const char *class_name = cgi.EntityValue(def, "classname")->string;
 
 		const cg_entity_class_t **clazz = classes;
 		for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
+
 			if (!g_strcmp0(class_name, (*clazz)->class_name)) {
 
 				cg_entity_t e = {
+					.id = MAX_ENTITIES + cg_entities->len,
 					.clazz = *clazz,
 					.def = def
 				};
 
 				e.origin = cgi.EntityValue(def, "origin")->vec3;
+				e.bounds = Box3_FromCenter(e.origin);
 
 				if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
 					const char *target_name = cgi.EntityValue(def, "target")->string;
@@ -177,9 +180,9 @@ cl_entity_t *Cg_Self(void) {
 /**
  * @return True if the specified entity is bound to the local client's view.
  */
-_Bool Cg_IsSelf(const cl_entity_t *ent) {
+bool Cg_IsSelf(const cl_entity_t *ent) {
 
-	if (ent->current.number == cgi.client->client_num + 1) {
+	if (ent == cgi.client->entity) {
 		return true;
 	}
 
@@ -205,7 +208,7 @@ _Bool Cg_IsSelf(const cl_entity_t *ent) {
 /**
  * @return True if the entity is ducking, false otherwise.
  */
-_Bool Cg_IsDucking(const cl_entity_t *ent) {
+bool Cg_IsDucking(const cl_entity_t *ent) {
 
 	const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
 	const float height = Box3_Size(ent->current.bounds).z;
@@ -254,100 +257,13 @@ void Cg_Interpolate(const cl_frame_t *frame) {
 }
 
 /**
- * @brief
- */
-void Cg_AddEntityShadow(const r_entity_t *ent) {
-
-	if (!cg_add_entity_shadows->integer) {
-		return;
-	}
-
-	if (!ent->model) {
-		return;
-	}
-
-	if (ent->model->type == MOD_BSP_INLINE) {
-		return;
-	}
-
-	if (ent->effects & EF_NO_SHADOW) {
-		return;
-	}
-
-	r_sprite_t shadow_sprite = {
-		.color = Color32(0, 0, 0, 255),
-		.width = Box3_Size(ent->model->bounds).y * 2,
-		.height = Box3_Size(ent->model->bounds).x * 2,
-		.rotation = Radians(ent->angles.y),
-		.media = (r_media_t *) cg_sprite_particle3,
-		.softness = -1.f,
-		.origin = ent->origin
-	};
-
-	vec3_t forward, right;
-	Vec3_Vectors(ent->angles, &forward, &right, NULL);
-
-	const vec2_t offsets[9] = {
-		Vec2(0.f, 0.f),
-		
-		Vec2(ent->model->bounds.mins.x, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, ent->model->bounds.maxs.y),
-		Vec2(ent->model->bounds.mins.x, ent->model->bounds.maxs.y),
-		
-		Vec2(0.f, ent->model->bounds.mins.y),
-		Vec2(ent->model->bounds.maxs.x, 0.f),
-		Vec2(0.f, ent->model->bounds.maxs.y),
-		Vec2(ent->model->bounds.mins.x, 0.f)
-	};
-
-	int32_t num_shadows;
-	switch (cg_add_entity_shadows->integer) {
-		case 1:
-			num_shadows = 1;
-			break;
-		case 2:
-			num_shadows = 5;
-			break;
-		case 3:
-		default:
-			num_shadows = 9;
-			break;
-	}
-
-	cm_bsp_plane_t planes[num_shadows];
-	int32_t num_planes = 0;
-
-	for (int32_t i = 0; i < num_shadows; i++) {
-		vec3_t start = Vec3_Fmaf(ent->origin, offsets[i].x, forward);
-		start = Vec3_Fmaf(start, offsets[i].y, right);
-		const vec3_t down = Vec3_Fmaf(start, MAX_WORLD_COORD, Vec3_Down());
-		const cm_trace_t tr = cgi.Trace(start, down, Box3_Zero(), 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
-		int32_t p;
-
-		for (p = 0; p < num_planes; p++) {
-			if (Vec3_EqualEpsilon(planes[p].normal, tr.plane.normal, .01f) && fabsf(planes[p].dist - tr.plane.dist) <= 8.f) {
-				break;
-			}
-		}
-
-		if (p == num_planes) {
-			planes[num_planes] = tr.plane;
-			num_planes++;
-			shadow_sprite.dir = tr.plane.normal;
-			shadow_sprite.origin.z = tr.end.z + 1.25f;
-			cgi.AddSprite(cgi.view, &shadow_sprite);
-		}
-	}
-}
-
-/**
  * @brief Adds the specified client entity to the view.
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
 
 	// set the origin and angles so that we know where to add effects
 	r_entity_t e = {
+		.id = ent,
 		.origin = ent->origin,
 		.termination = ent->termination,
 		.angles = ent->angles,
@@ -388,9 +304,6 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 	// and any frame animations (button state, etc)
 	e.frame = ent->current.animation1;
 
-	// add a sprite shadow
-	Cg_AddEntityShadow(&e);
-
 	// add to view list
 	cgi.AddEntity(cgi.view, &e);
 }
@@ -422,7 +335,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 		Cg_AddEntity(ent);
 	}
 
-	// and client-side entities too
+	// and client side entities too
 	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
 	for (guint i = 0; i < cg_entities->len; i++, e++) {
 

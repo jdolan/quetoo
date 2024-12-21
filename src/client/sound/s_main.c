@@ -188,6 +188,14 @@ void S_Stop(void) {
 }
 
 /**
+ * @brief Initialize the per-frame attributes of a sound stage.
+ */
+void S_InitStage(s_stage_t *stage) {
+	stage->ticks = SDL_GetTicks();
+	stage->num_samples = 0;
+}
+
+/**
  * @brief Renders the specified stage, adding channels from the defined play samples.
  */
 void S_RenderStage(const s_stage_t *stage) {
@@ -353,6 +361,8 @@ void S_Init(void) {
 
 	alDistanceModel(AL_NONE);
 	alGenSources(MAX_CHANNELS, s_context.sources);
+	// Approximate speed of sound (assumes 1 meter = 16 units)
+	alSpeedOfSound(343.3 * 16.f);
 
 	S_GetError(NULL);
 

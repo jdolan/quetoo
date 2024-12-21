@@ -1,0 +1,12 @@
+{
+  "name": "quemap-fu",
+  "version": "1.0.0",
+  "description": "Convert Quake map sources to Quetoo.",
+  "main": "main.js",
+  "author": "jdolan",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "quemap-fu": "./main.js"
+  }
+}

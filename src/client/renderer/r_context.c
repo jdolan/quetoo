@@ -108,7 +108,7 @@ static const char *R_Debug_Severity(const GLenum severity) {
  * @brief Callback for OpenGL's debug system.
 */
 static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
-	
+
 	char temp[length + 1];
 	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
 
@@ -123,29 +123,37 @@ static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, 
 	const char *trace = backtrace->str;
 	// we have to do this a bit different because it's driver-dependent as
 	// to how deep in the call stack this function will be.
-	// find the glad_ call from r_gl.c
-	const char *last_gl_func = strstr(backtrace->str, "r_gl.c");
+	const char *last_gl_func = g_strrstr(backtrace->str, "???");
 
 	if (last_gl_func) {
 		last_gl_func = strchr(last_gl_func, '\n') + 1;
 
 		if (last_gl_func) {
 			trace = last_gl_func;
-			*strchr(last_gl_func, '\n') = 0;
+			char* c = strchr(last_gl_func, '\n');
+			if (c) {
+				*c = 0;
+			}
 		}
 	}
 
-	if (type == GL_DEBUG_TYPE_ERROR) {
+	const bool is_fatal = type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
+
+	if (is_fatal) {
 		Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+
+		if (r_get_error->integer == 2) {
+			SDL_TriggerBreakpoint();
+		}
 	} else {
+		const int32_t error_relative_severity = (severity == GL_DEBUG_SEVERITY_HIGH) ? 3 : (severity == GL_DEBUG_SEVERITY_MEDIUM) ? 2 : (severity == GL_DEBUG_SEVERITY_LOW) ? 1 : 0;
+
+		if (error_relative_severity >= r_error_level->integer) {
 		Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
+	}
 	}
 
 	g_string_free(backtrace, true);
-
-	if (r_get_error->integer == 2) {
-		SDL_TriggerBreakpoint();
-	}
 }
 
 /**
@@ -172,8 +180,22 @@ static const char *R_Debug_Error(const GLenum error_code) {
 	}
 }
 
-void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...)
-{
+/**
+ * @brief No-op callback
+ */
+static void R_Debug_GladPostCallbackNull(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
+}
+
+/**
+ * @brief No-op callback
+ */
+static void R_Debug_GladPreCallbackNull(const char *name, GLADapiproc apiproc, int len_args, ...) {
+}
+
+/**
+ * @brief Callback for non-KHR_debug GPUs to log debug error sources and callstacks
+ */
+void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
 	const GLenum error_code = glad_glGetError();
 
 	if (error_code != GL_NO_ERROR) {
@@ -207,7 +229,11 @@ void R_InitContext(void) {
 		}
 	}
 
-	uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_GRABBED;
+	uint32_t flags = SDL_WINDOW_OPENGL |
+					 SDL_WINDOW_INPUT_GRABBED |
+					 SDL_WINDOW_INPUT_FOCUS |
+					 SDL_WINDOW_MOUSE_FOCUS |
+					 SDL_WINDOW_MOUSE_CAPTURE;
 
 	const int display = Clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
 
@@ -243,14 +269,8 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
 
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-	const int32_t s = Clampf(r_multisample->integer, 0, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, s ? 1 : 0);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, s);
 
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
@@ -266,13 +286,13 @@ void R_InitContext(void) {
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-	SDL_GLcontextFlag gl_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+	SDL_GLcontextFlag gl_context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 
 	if (r_get_error->integer) {
-		gl_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+		gl_context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
 	}
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_flags);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_context_flags);
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
@@ -280,9 +300,7 @@ void R_InitContext(void) {
 
 	const int32_t valid_attribs[] = {
 		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
-		SDL_GL_DEPTH_SIZE, SDL_GL_STENCIL_SIZE, SDL_GL_BUFFER_SIZE,
-		SDL_GL_DOUBLEBUFFER,
-		SDL_GL_MULTISAMPLEBUFFERS, SDL_GL_MULTISAMPLESAMPLES,
+		SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
 		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
 		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
 	};
@@ -292,20 +310,15 @@ void R_InitContext(void) {
 		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
 	}
 
-	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i stencil %i framebuffer %i\n",
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
 				attr[SDL_GL_RED_SIZE],
 	            attr[SDL_GL_GREEN_SIZE],
 				attr[SDL_GL_BLUE_SIZE],
 				attr[SDL_GL_ALPHA_SIZE],
 				attr[SDL_GL_DEPTH_SIZE],
-	            attr[SDL_GL_STENCIL_SIZE],
 				attr[SDL_GL_BUFFER_SIZE]);
 
 	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-
-	Com_Verbose("   Multisample: %i buffers, %i samples\n",
-				attr[SDL_GL_MULTISAMPLEBUFFERS],
-	            attr[SDL_GL_MULTISAMPLESAMPLES]);
 
 	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
 				attr[SDL_GL_CONTEXT_MAJOR_VERSION],
@@ -315,10 +328,6 @@ void R_InitContext(void) {
 
 	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
 		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
-	}
-
-	if (SDL_SetWindowBrightness(r_context.window, r_gamma->value) == -1) {
-		Com_Warn("Failed to set gamma %1.1f: %s\n", r_gamma->value, SDL_GetError());
 	}
 
 	SDL_DisplayMode mode;
@@ -342,8 +351,6 @@ void R_InitContext(void) {
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
-	r_context.multisample_samples = attr[SDL_GL_MULTISAMPLESAMPLES];
-
 	gladLoaderLoadGL();
 	
 	if (r_get_error->integer) {
@@ -353,13 +360,18 @@ void R_InitContext(void) {
 			glDebugMessageCallback(R_Debug_Callback, NULL);
 			glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 			gladUninstallGLDebug();
+			gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
+			gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 		} else {
 			Com_Warn("GL_KHR_debug not supported: slower debug handler attached\n");
 			gladInstallGLDebug();
 			gladSetGLPostCallback(R_Debug_GladPostCallback);
+			gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 		}
 	} else {
 		gladUninstallGLDebug();
+		gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
+		gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 	}
 
 	R_SetWindowIcon();

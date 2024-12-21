@@ -25,13 +25,14 @@
 #include "face.h"
 #include "map.h"
 
-#define	PLANE_NUM_LEAF -1
+#define	PLANE_LEAF -1
 
 typedef struct node_s {
 	// both leafs and nodes
 	struct node_s *parent;
-	int32_t plane_num; // -1 = leaf node
+	int32_t plane; // -1 = leaf node
 	box3_t bounds; // valid after portalization
+	box3_t visible_bounds;
 	csg_brush_t *volume; // one for each leaf/node
 
 	// nodes only
@@ -62,7 +63,7 @@ void FreeTree(tree_t *tree);
 void FreeTree_r(node_t *node);
 void FreeTreePortals_r(node_t *node);
 void PruneNodes_r(node_t *node);
-void PruneNodes(node_t *node);
+void PruneNodes(tree_t *tree);
+void MergeTreeFaces(tree_t *tree);
 
 tree_t *BuildTree(csg_brush_t *brushes);
-void MergeNodeFaces(node_t *node);

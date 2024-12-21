@@ -22,17 +22,24 @@
 #pragma once
 
 #include "g_types.h"
-#include "ai/ai.h"
 
 #ifdef __GAME_LOCAL_H__
+#define AI_NAME "default"
+
+#define Ai_Debug(...) ({ if (gi.DebugMask() & DEBUG_AI) { gi.Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
+
+#include "g_ai_goal.h"
+#include "g_ai_info.h"
+#include "g_ai_item.h"
+#include "g_ai_main.h"
+#include "g_ai_node.h"
+#include "g_ai_types.h"
+
 extern cvar_t *g_ai_max_clients;
 
-void G_Ai_RegisterItems(void);
 void G_Ai_ClientConnect(const g_entity_t *ent);
 void G_Ai_ClientDisconnect(g_entity_t *ent);
 void G_Ai_Init(void);
-void G_Ai_Shutdown(void);
-void G_Ai_Load(const char *mapname);
 void G_Ai_Frame(void);
 bool G_Ai_DropItemLikeNode(g_entity_t *ent);
 #endif /* __GAME_LOCAL_H__ */

@@ -20,6 +20,7 @@ libcguihome_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 libcguihome_la_LDFLAGS = \

@@ -23,6 +23,8 @@
 
 #include "shared/shared.h"
 
+#include "cm_material.h"
+
 /**
  * @brief Plane side epsilon. Because plane side tests scrutinize values around
  * and across zero, FLT_EPSILON is appropriate and accurate.
@@ -52,7 +54,7 @@
 /**
  * @brief Trace collision epsilon.
  */
-#define TRACE_EPSILON			.25f
+#define TRACE_EPSILON			.125f
 
 /**
  * @brief Plane side constants used for BSP recursion.
@@ -91,35 +93,15 @@ typedef struct {
 #define AXIAL(p) ((p)->type < PLANE_ANY_X)
 
 /**
- * @brief Texinfos describe a material applied to a winding or plane.
- */
-typedef struct {
-	/**
-	 * @brief The texture name.
-	 */
-	char name[32];
-
-	/**
-	 * @brief SURF_* flags.
-	 */
-	int32_t flags;
-
-	/**
-	 * @brief The surface value (e.g. light radius).
-	 */
-	int32_t value;
-
-	/**
-	 * @brief The material definition.
-	 */
-	struct cm_material_s *material;
-} cm_bsp_texinfo_t;
-
-/**
  * @brief Inline BSP models are segments of the collision model that may move.
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
+	/**
+	 * @brief The entity definition of this inline model.
+	 */
+	struct cm_entity_s *entity;
+
 	/**
 	 * @brief The index of the head node in the BSP file.
 	 */
@@ -161,14 +143,19 @@ typedef enum {
 	ENTITY_FLOAT = 0x4,
 
 	/**
+	 * @brief A two component vector value is available.
+	 */
+	ENTITY_VEC2 = 0x8,
+
+	/**
 	 * @brief A three component vector value is available.
 	 */
-	ENTITY_VEC3 = 0x8,
+	ENTITY_VEC3 = 0x10,
 
 	/**
 	 * @brief A four component vector is available.
 	 */
-	ENTITY_VEC4 = 0x10,
+	ENTITY_VEC4 = 0x20,
 
 } cm_entity_parsed_t;
 
@@ -213,6 +200,11 @@ typedef struct cm_entity_s {
 		float value;
 
 		/**
+		 * @brief The entity pair value, as a two component vector.
+		 */
+		vec2_t vec2;
+
+		/**
 		 * @brief The entity pair value, as a three component vector.
 		 */
 		vec3_t vec3;
@@ -230,77 +222,43 @@ typedef struct cm_entity_s {
 } cm_entity_t;
 
 /**
- * @brief Traces are discrete movements through world space, clipped to the
- * BSP planes they intersect. This is the basis for all collision detection
- * within Quake.
+ * @brief Brush sides are represented as unbounded planes, and the materials covering those planes.
+ * @remarks Brush sides do not directly provide vertex information. They are used for collision,
+ * not for rendering. During the BSP process, all sides in each brush are clipped against each
+ * other to produce their windings (ordered vertices). Visible windings are then onto portals,
+ * and portals in turn generate faces (rendered geometry).
  */
-typedef struct {
-	/**
-	 * @brief If true, the trace started and ended within the same solid.
-	 */
-	_Bool all_solid;
-
-	/**
-	 * @brief If true, the trace started within a solid, but exited it.
-	 */
-	_Bool start_solid;
-
-	/**
-	 * @brief The fraction of the desired distance traveled (0.0 - 1.0). If
-	 * 1.0, no plane was impacted.
-	 */
-	float fraction;
-
-	/**
-	 * @brief The destination position.
-	 */
-	vec3_t end;
-
-	/**
-	 * @brief The impacted plane, or empty. Note that a copy of the plane is
-	 * returned, rather than a pointer. This is because the plane may belong to
-	 * an inline BSP model or the box hull of a solid entity, in which case it must
-	 * be transformed by the entity's current position.
-	 */
-	cm_bsp_plane_t plane;
-
-	/**
-	 * @brief The impacted texinfo, or `NULL`.
-	 */
-	cm_bsp_texinfo_t *texinfo;
-
-	/**
-	 * @brief The contents mask of the impacted brush, or 0.
-	 */
-	int32_t contents;
-
-	/**
-	 * @brief The impacted entity, or `NULL`.
-	 */
-	struct g_entity_s *ent; // not set by Cm_*() functions
-} cm_trace_t;
-
-/**
- * @brief Brush sides refefence the planes and textures of a given brush.
- * @remarks Brush sides are not clipped windings, or faces. They are used for collision,
- * not for rendering.
- */
-typedef struct {
+typedef struct cm_bsp_brush_side_s {
 	/**
 	 * @brief The plane.
 	 */
 	cm_bsp_plane_t *plane;
 
 	/**
-	 * @brief The texinfo.
+	 * @brief The material definition.
 	 */
-	cm_bsp_texinfo_t *texinfo;
+	struct cm_material_s *material;
+
+	/**
+	 * @brief The contents mask (CONTENTS_*).
+	 */
+	int32_t contents;
+
+	/**
+	 * @brief The surface mask (SURF_*).
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The surface value (e.g. light radius).
+	 */
+	int32_t value;
 } cm_bsp_brush_side_t;
 
 /**
  * @brief Brushes are convex volumes defined by the clipping planes of their sides.
  */
-typedef struct {
+typedef struct cm_bsp_brush_s {
 	/**
 	 * @brief The entity this brush belongs to.
 	 * @remarks Brushes may reside within the world model's BSP tree, but may have been
@@ -309,19 +267,19 @@ typedef struct {
 	cm_entity_t *entity;
 
 	/**
-	 * @brief The brush contents (CONTENTS_*).
+	 * @brief The contents mask (CONTENTS_*).
 	 */
 	int32_t contents;
 
 	/**
 	 * @brief The brush sides.
 	 */
-	cm_bsp_brush_side_t *sides;
+	cm_bsp_brush_side_t *brush_sides;
 
 	/**
-	 * @brief The number of sides.
+	 * @brief The number of brush sides.
 	 */
-	int32_t num_sides;
+	int32_t num_brush_sides;
 
 	/**
 	 * @brief The brush bounds.
@@ -373,3 +331,121 @@ typedef struct {
 	 */
 	int32_t children[2];
 } cm_bsp_node_t;
+
+/**
+ * @brief The BSP model structure.
+ */
+typedef struct {
+	/**
+	 * @brief The relative path to the backing file, e.g. `maps/edge.bsp`.
+	 */
+	char name[MAX_QPATH];
+
+	/**
+	 * @brief A pointer to the backing file on disk.
+	 */
+	struct bsp_file_s *file;
+
+	/**
+	 * @brief For compatibility checking.
+	 */
+	int64_t size;
+	int64_t mod_time;
+
+	int32_t num_planes;
+	cm_bsp_plane_t *planes;
+
+	int32_t num_nodes;
+	cm_bsp_node_t *nodes;
+
+	int32_t num_leafs;
+	cm_bsp_leaf_t *leafs;
+
+	int32_t num_brushes;
+	cm_bsp_brush_t *brushes;
+
+	int32_t num_brush_sides;
+	cm_bsp_brush_side_t *brush_sides;
+
+	int32_t num_leaf_brushes;
+	int32_t *leaf_brushes;
+
+	int32_t num_models;
+	cm_bsp_model_t *models;
+
+	int32_t num_entities;
+	cm_entity_t **entities;
+
+	int32_t num_materials;
+	cm_material_t **materials;
+
+} cm_bsp_t;
+
+/**
+ * @brief Traces are discrete movements through world space, clipped to the
+ * BSP planes they intersect. This is the basis for all collision detection
+ * within Quake.
+ */
+typedef struct {
+	/**
+	 * @brief If true, the trace started and ended within the same solid.
+	 */
+	bool all_solid;
+
+	/**
+	 * @brief If true, the trace started within a solid, but exited it.
+	 */
+	bool start_solid;
+
+	/**
+	 * @brief The fraction of the desired distance traveled (0.0 - 1.0).
+	 */
+	float fraction;
+
+	/**
+	 * @brief The destination position.
+	 */
+	vec3_t end;
+
+	/**
+	 * @brief The brush the trace either impacted, or was completely inside of.
+	 * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
+	 * so that they need not worry about NULL checking and dereferencing.
+	 */
+	const struct cm_bsp_brush_s *brush;
+
+	/**
+	 * @brief The impacted brush side.
+	 * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
+	 * so that they need not worry about NULL checking and dereferencing.
+	 */
+	const struct cm_bsp_brush_side_s *brush_side;
+
+	/**
+	 * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
+	 */
+	cm_bsp_plane_t plane;
+
+	/**
+	 * @brief The contents mask of the impacted brush side.
+	 */
+	int32_t contents;
+
+	/**
+	 * @brief The surface mask of the impacted brush side.
+	 */
+	int32_t surface;
+
+	/**
+	 * @brief The material of the impacted brush side.
+	 */
+	const struct cm_material_s *material;
+
+	/**
+	 * @brief The impacted entity, or `NULL`. This is not set by the collision routines directly,
+	 * but rather by the Sv_Trace and Cl_Trace routines, which clip traces to their respective
+	 * known entities.
+	 */
+	struct g_entity_s *ent;
+} cm_trace_t;
+

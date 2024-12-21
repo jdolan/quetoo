@@ -61,7 +61,7 @@ tree_t *AllocTree(void) {
 void FreeTreePortals_r(node_t *node) {
 
 	// free children
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FreeTreePortals_r(node->children[0]);
 		FreeTreePortals_r(node->children[1]);
 	}
@@ -83,7 +83,7 @@ void FreeTreePortals_r(node_t *node) {
 void FreeTree_r(node_t *node) {
 
 	// free children
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FreeTree_r(node->children[0]);
 		FreeTree_r(node->children[1]);
 	}
@@ -123,19 +123,19 @@ void FreeTree(tree_t *tree) {
  */
 static void LeafNode(node_t *node, csg_brush_t *brushes) {
 
-	node->plane_num = PLANE_NUM_LEAF;
+	node->plane = PLANE_LEAF;
 	node->contents = 0;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		// if the brush is solid and all of its sides are on nodes, it eats everything
 		if (b->original->contents & CONTENTS_SOLID) {
 			int32_t i;
-			for (i = 0; i < b->num_sides; i++) {
-				if (b->sides[i].texinfo != BSP_TEXINFO_NODE) {
+			for (i = 0; i < b->num_brush_sides; i++) {
+				if (!(b->brush_sides[i].surface & SURF_NODE)) {
 					break;
 				}
 			}
-			if (i == b->num_sides) {
+			if (i == b->num_brush_sides) {
 				node->contents = CONTENTS_SOLID;
 				break;
 			}
@@ -153,18 +153,18 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
  */
 static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brush_t *brushes) {
 
-	if (side->surf & SURF_HINT) {
+	if (side->surface & SURF_HINT) {
 		return INT32_MAX;
 	}
 
-	const int32_t plane_num = side->plane_num & ~1;
+	const int32_t plane = side->plane & ~1;
 
 	int32_t front = 0, back = 0, on = 0, num_split_sides = 0;
 
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
 		int32_t i;
-		const int32_t s = BrushOnPlaneSideSplits(brush, plane_num, &i);
+		const int32_t s = BrushOnPlaneSideSplits(brush, plane, &i);
 
 		if (s & SIDE_FRONT) {
 			front++;
@@ -183,7 +183,7 @@ static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brus
 
 	int32_t value = 5 * on - 5 * num_split_sides - abs(front - back);
 
-	if (AXIAL(&planes[plane_num])) {
+	if (AXIAL(&planes[plane])) {
 		value += 5;
 	}
 
@@ -200,7 +200,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 
 	GPtrArray *cache = g_ptr_array_new();
 
-	_Bool have_structural = false;
+	bool have_structural = false;
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 		if (!(brush->original->contents & CONTENTS_DETAIL)) {
 			if (brush->original->contents & CONTENTS_MASK_VISIBLE) {
@@ -218,26 +218,26 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 			}
 		}
 
-		const brush_side_t *side = brush->sides;
-		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+		const brush_side_t *side = brush->brush_sides;
+		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 
-			if (side->texinfo == BSP_TEXINFO_BEVEL) {
+			if (side->surface & SURF_BEVEL) {
 				continue;
 			}
-			if (side->texinfo == BSP_TEXINFO_NODE) {
+			if (side->surface & SURF_NODE) {
 				continue;
 			}
 
 			assert(side->winding);
 
-			const int32_t plane_num = side->plane_num ^ 1;
-			if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane_num, NULL)) {
+			const int32_t plane = side->plane ^ 1;
+			if (g_ptr_array_find(cache, (gconstpointer) (intptr_t) plane, NULL)) {
 				continue;
 			}
 
 			csg_brush_t *front, *back;
-			SplitBrush(node->volume, plane_num, &front, &back);
-			const _Bool valid_split = (front && back);
+			SplitBrush(node->volume, plane, &front, &back);
+			const bool valid_split = (front && back);
 			if (front) {
 				FreeBrush(front);
 			}
@@ -254,7 +254,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 				best_value = value;
 			}
 
-			g_ptr_array_add(cache, (gpointer) (intptr_t) plane_num);
+			g_ptr_array_add(cache, (gpointer) (intptr_t) plane);
 		}
 	}
 
@@ -272,10 +272,10 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
 
-		const int32_t s = BrushOnPlaneSide(brush, node->plane_num);
+		const int32_t s = BrushOnPlaneSide(brush, node->plane);
 		if (s == SIDE_BOTH) {
 			csg_brush_t *front_brush, *back_brush;
-			SplitBrush(brush, node->plane_num, &front_brush, &back_brush);
+			SplitBrush(brush, node->plane, &front_brush, &back_brush);
 			if (front_brush) {
 				front_brush->next = *front;
 				*front = front_brush;
@@ -289,13 +289,13 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 		csg_brush_t *new_brush = CopyBrush(brush);
 
-		// if the plane_num is actualy a part of the brush
+		// if the plane is actualy a part of the brush
 		// find the plane and flag it as used so it won't be tried as a splitter again
 		if (s & SIDE_ON) {
-			for (int32_t i = 0; i < new_brush->num_sides; i++) {
-				brush_side_t *side = new_brush->sides + i;
-				if ((side->plane_num & ~1) == node->plane_num) {
-					side->texinfo = BSP_TEXINFO_NODE;
+			for (int32_t i = 0; i < new_brush->num_brush_sides; i++) {
+				brush_side_t *side = new_brush->brush_sides + i;
+				if ((side->plane & ~1) == node->plane) {
+					side->surface |= SURF_NODE;
 				}
 			}
 		}
@@ -321,13 +321,13 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 
 	node->split_side = SelectSplitSide(node, brushes);
 	if (!node->split_side) {
-		node->plane_num = PLANE_NUM_LEAF;
+		node->plane = PLANE_LEAF;
 		LeafNode(node, brushes);
 		return node;
 	}
 
 	// this is a decision node, reference the positive plane
-	node->plane_num = node->split_side->plane_num & ~1;
+	node->plane = node->split_side->plane & ~1;
 
 	SplitBrushes(brushes, node, &children[0], &children[1]);
 
@@ -339,7 +339,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 		node->children[i]->parent = node;
 	}
 
-	SplitBrush(node->volume, node->plane_num, &node->children[0]->volume, &node->children[1]->volume);
+	SplitBrush(node->volume, node->plane, &node->children[0]->volume, &node->children[1]->volume);
 
 	// recursively process children
 	for (int32_t i = 0; i < 2; i++) {
@@ -373,14 +373,15 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
 		const float volume = BrushVolume(b);
 		if (volume < micro_volume) {
-			Mon_SendSelect(MON_WARN, b->original->entity_num, b->original->brush_num, "Micro volume");
+			Mon_SendSelect(MON_WARN, b->original->entity, b->original->brush, "Micro volume");
 		}
 
-		for (int32_t i = 0; i < b->num_sides; i++) {
-			if (b->sides[i].texinfo == BSP_TEXINFO_BEVEL) {
+		const brush_side_t *s = b->brush_sides;
+		for (int32_t i = 0; i < b->num_brush_sides; i++, s++) {
+			if (s->surface & SURF_BEVEL) {
 				continue;
 			}
-			if (b->sides[i].texinfo == BSP_TEXINFO_NODE) {
+			if (s->surface & SURF_NODE) {
 				continue;
 			}
 			num_brush_sides++;
@@ -389,11 +390,15 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 		tree->bounds = Box3_Union(tree->bounds, b->bounds);
 	}
 
+	assert(num_brushes);
+	assert(num_brush_sides);
+
 	Com_Debug(DEBUG_ALL, "%5i brushes\n", num_brushes);
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL));
+	tree->head_node->bounds = Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL);
+	tree->head_node->volume = BrushFromBounds(tree->head_node->bounds);
 
 	BuildTree_r(tree->head_node, brushes);
 
@@ -410,7 +415,7 @@ static int32_t c_pruned;
 void PruneNodes_r(node_t *node) {
 	csg_brush_t *b, *next;
 
-	if (node->plane_num == PLANE_NUM_LEAF) {
+	if (node->plane == PLANE_LEAF) {
 		return;
 	}
 
@@ -428,7 +433,7 @@ void PruneNodes_r(node_t *node) {
 
 		// convert this node into a leaf, absorbing all brushes from its children
 
-		node->plane_num = PLANE_NUM_LEAF;
+		node->plane = PLANE_LEAF;
 		node->contents = CONTENTS_SOLID;
 		node->split_side = NULL;
 
@@ -465,53 +470,62 @@ void PruneNodes_r(node_t *node) {
  * parents, until an ancestor of different contents mask is found. The pruned
  * nodes become leafs.
  */
-void PruneNodes(node_t *node) {
+void PruneNodes(tree_t *tree) {
 	Com_Verbose("--- PruneNodes ---\n");
 	c_pruned = 0;
-	PruneNodes_r(node);
+	PruneNodes_r(tree->head_node);
 	Com_Verbose("%5i pruned nodes\n", c_pruned);
+}
+
+static int32_t c_merged_faces;
+
+/**
+ * @brief
+ */
+void MergeFaces_r(node_t *node) {
+
+	if (node->plane == PLANE_LEAF) {
+		return;
+	}
+
+again:
+	for (face_t *a = node->faces; a; a = a->next) {
+		if (a->merged) {
+			continue;
+		}
+		for (face_t *b = node->faces; b; b = b->next) {
+			if (a == b) {
+				continue;
+			}
+
+			if (b->merged) {
+				continue;
+			}
+
+			face_t *merged = MergeFaces(a, b);
+			if (!merged) {
+				continue;
+			}
+
+			c_merged_faces++;
+
+			merged->next = node->faces;
+			node->faces = merged;
+
+			goto again;
+		}
+	}
+
+	MergeFaces_r(node->children[0]);
+	MergeFaces_r(node->children[1]);
 }
 
 /**
  * @brief
  */
-void MergeNodeFaces(node_t *node) {
-
-	for (face_t *f1 = node->faces; f1; f1 = f1->next) {
-		if (f1->merged) {
-			continue;
-		}
-		for (face_t *f2 = node->faces; f2 != f1; f2 = f2->next) {
-			if (f2->merged) {
-				continue;
-			}
-
-			//IDBUG: always passes the face's node's normal to TryMerge()
-			//regardless of which side the face is on. Approximately 50% of
-			//the time the face will be on the other side of node, and thus
-			//the result of the convex/concave test in TryMergeWinding(),
-			//which depends on the normal, is flipped. This causes faces
-			//that shouldn't be merged to be merged and faces that
-			//should be merged to not be merged.
-			//the following added line fixes this bug
-			//thanks to: Alexander Malmberg <alexander@malmberg.org>
-			const plane_t *plane = &planes[f1->plane_num];
-
-			face_t *merged = MergeFaces(f1, f2, plane->normal);
-			if (!merged) {
-				continue;
-			}
-
-			// add merged to the end of the node face list
-			// so it will be checked against all the faces again
-			face_t *last = node->faces;
-			while (last->next) {
-				last = last->next;
-			}
-
-			merged->next = NULL;
-			last->next = merged;
-			break;
-		}
-	}
+void MergeTreeFaces(tree_t *tree) {
+	Com_Verbose("--- MergeTreeFaces ---\n");
+	c_merged_faces = 0;
+	MergeFaces_r(tree->head_node);
+	Com_Verbose("%5i merged faces\n", c_merged_faces);
 }

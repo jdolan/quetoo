@@ -65,7 +65,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 	// resolve the leaf for the point just in front of the surface
 
 	vec3_t center = Box3_Center(face->bounds);
-	center = Vec3_Add(center, face->plane->cm->normal);
+	center = Vec3_Add(center, face->brush_side->plane->cm->normal);
 
 	e->face = face;
 
@@ -77,8 +77,14 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 
 	// resolve the origins and their end positions
 
-	int32_t i = 0;
+	int32_t i = 0, j = 0;
 	while (i < e->num_origins) {
+
+		if (j++ == INT16_MAX) {
+			Cg_Debug("Failed to resolve weather effects @%s. Does your map leak?\n", vtos(center));
+			break;
+		}
+		
 		vec4_t *origin = e->origins + i;
 
 		// randomize the origin over the surface
@@ -89,7 +95,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
 		end.z -= MAX_WORLD_DIST;
 
 		const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
-		if (!tr.texinfo) {
+		if (tr.fraction == 1.f) {
 			continue;
 		}
 
@@ -126,8 +132,10 @@ static void Cg_LoadWeather(void) {
 	// iterate the world surfaces, testing sky surfaces
 	for (i = j = 0; i < bsp->num_faces; i++, face++) {
 
+		const r_bsp_brush_side_t *side = face->brush_side;
+
 		// for downward facing sky brushes, create an emitter
-		if ((face->texinfo->flags & SURF_SKY) && face->plane->cm->normal.z < -0.1) {
+		if ((side->surface & SURF_SKY) && side->plane->cm->normal.z < -0.1) {
 			Cg_LoadWeather_(face);
 			j++;
 		}
@@ -150,27 +158,23 @@ void Cg_LoadEffects(void) {
 static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 
 	for (int32_t i = 0; i < e->num_origins; i++) {
+
 		const vec4_t origin = *(e->origins + i);
 
-		// don't draw too far out
-		if ((fabsf(origin.x - cgi.view->origin.x) > 800.f) || (fabsf(origin.y - cgi.view->origin.y) > 800.f)) {
-			return;
+		const vec3_t org_xy = Vec3(origin.x, origin.y, cgi.view->origin.z);
+
+		if (Vec3_DistanceSquared(org_xy, cgi.view->origin) > 1024.f * 1024.f) {
+			continue;
 		}
 
-		vec3_t sprite_origin = Vec3_Add(Vec4_XYZ(origin), Vec3_RandomRange(-16.f, 16.f));
+		const float z = Maxf(cgi.view->origin.z, origin.w);
+		const vec3_t org = Vec3(origin.x, origin.y, RandomRangef(z, origin.z));
 
-		// keep sprite z origin relatively close to the view origin
-		if (origin.w < cgi.view->origin.z) {
-			if (sprite_origin.z - cgi.view->origin.z > 512.0) {
-				sprite_origin.z = cgi.view->origin.z + 256.0 + Randomf() * 256.0;
-			}
-		}
-
-		cg_sprite_t *s;
+		cg_sprite_t *s = NULL;
 
 		if (cg_state.weather & WEATHER_RAIN) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
-				.origin = sprite_origin,
+				.origin = org,
 				.atlas_image = cg_sprite_rain,
 				.color = Vec4(0.f, 0.f, 0.1f, 0.f),
 				.end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
@@ -180,13 +184,9 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
 				.softness = 5.f,
 			});
-			if (s) {
-				// particle dies when it reaches the floor
-				s->lifetime = 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z);
-			}
-		} else { // WEATHER_SNOW
+		} else if (cg_state.weather & WEATHER_SNOW) {
 			s = Cg_AddSprite(&(cg_sprite_t) {
-				.origin = sprite_origin,
+				.origin = org,
 				.atlas_image = cg_sprite_snow,
 				.color = Vec4(0.f, 0.f, .33f, .33f),
 				.end_color = Vec4(0.f, 0.f, .0f, .0f),
@@ -196,14 +196,10 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.flags = SPRITE_NO_BLEND_DEPTH,
 				.softness = 1.f
 			});
-			if (s) {
-				// limit particle lifetime to 3 secs or less
-				s->lifetime = min(3000, 1000 * (sprite_origin.z - origin.w) / fabsf(s->velocity.z));
-			}
 		}
 
-		if (!s) {
-			return;
+		if (s) {
+			s->lifetime = 1000 * (org.z - origin.w) / fabsf(s->velocity.z);
 		}
 	}
 }
@@ -221,7 +217,7 @@ static void Cg_AddWeather(void) {
 		return;
 	}
 
-	const s_sample_t *sample; // add an appropriate looping sound
+	const s_sample_t *sample;
 
 	if (cg_state.weather & WEATHER_RAIN) {
 		sample = cg_sample_rain;
@@ -235,17 +231,21 @@ static void Cg_AddWeather(void) {
 		.entity = Cg_Self()->current.number
 	});
 
-	if (cgi.client->unclamped_time - cg_weather_state.time < 100) {
+	if (cg_weather_state.time > cgi.client->unclamped_time) {
 		return;
 	}
-
-	cg_weather_state.time = cgi.client->unclamped_time;
 
 	const cg_weather_emit_t *e = cg_weather_state.emits;
 
 	while (e) {
 		Cg_AddWeather_(e);
 		e = e->next;
+	}
+
+	if (cg_state.weather & WEATHER_RAIN) {
+		cg_weather_state.time = cgi.client->unclamped_time + RandomRangeu(100, 300);
+	} else if (cg_state.weather & WEATHER_SNOW) {
+		cg_weather_state.time = cgi.client->unclamped_time + RandomRangeu(300, 600);
 	}
 }
 
@@ -266,7 +266,7 @@ static void Cg_AddUnderwater(void) {
 /**
  * @brief
  */
-void Cg_AddEffects() {
+void Cg_AddEffects(void) {
 
 	Cg_AddWeather();
 

@@ -20,49 +20,42 @@
  */
 
 #include "material.h"
-
-static GList *materials;
-static GHashTable *assets;
+#include "bsp.h"
 
 /**
- * @brief Loads all materials defined in the material file.
+ * @brief
  */
-ssize_t LoadMaterials(const char *path, cm_asset_context_t context, GList **result) {
+int32_t num_materials;
+material_t materials[MAX_BSP_MATERIALS];
 
-	const ssize_t count = Cm_LoadMaterials(path, &materials);
+/**
+ * @brief The collision materials defined in maps/my.mat.
+ */
+static GList *mat_file;
 
-	GList *e = materials;
-	for (ssize_t i = 0; i < count; i++, e = e->next) {
-		Cm_ResolveMaterial((cm_material_t *) e->data, context);
+/**
+ * @brief Allocates a material_t for the specified name.
+ */
+static material_t *AllocMaterial(const char *name) {
+
+	if (bsp_file.num_materials == MAX_BSP_MATERIALS) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_MATERIALS\n");
 	}
 
-	if (result) {
-		GList *e = materials;
-		for (ssize_t i = 0; i < count; i++, e = e->next) {
-			*result = g_list_append(*result, e->data);
+	material_t *material = materials + num_materials;
+	num_materials++;
+
+	for (GList *e = mat_file; e; e = e->next) {
+		cm_material_t *cm = e->data;
+		if (!g_strcmp0(name, cm->name)) {
+			material->cm = cm;
+			break;
 		}
 	}
 
-	return count;
-}
-
-/**
- * @brief Loads the material with the specified name.
- */
-cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
-
-	for (GList *list = materials; list; list = list->next) {
-		if (!g_strcmp0(((cm_material_t *) list->data)->name, name)) {
-			return list->data;
-		}
+	if (material->cm == NULL) {
+		material->cm = Cm_AllocMaterial(name);
 	}
-
-	cm_material_t *material = Cm_AllocMaterial(name);
-	Cm_ResolveMaterial(material, context);
-
-	materials = g_list_prepend(materials, material);
-
-	Com_Debug(DEBUG_ALL, "Loaded material %s\n", name);
 
 	return material;
 }
@@ -70,28 +63,81 @@ cm_material_t *LoadMaterial(const char *name, cm_asset_context_t context) {
 /**
  * @brief
  */
-SDL_Surface *LoadAsset(const cm_asset_t *asset) {
+static void FreeMaterial(material_t *material) {
 
-	if (assets == NULL) {
-		assets = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, (GDestroyNotify) SDL_FreeSurface);
-	}
+	Cm_FreeMaterial(material->cm);
 
-	SDL_Surface *surf = g_hash_table_lookup(assets, (void *) asset->path);
-	if (surf == NULL) {
-		surf = Img_LoadSurface(asset->path);
-		if (surf) {
-			g_hash_table_insert(assets, (void *) asset->path, surf);
-		}
-	}
-
-	return surf;
+	SDL_FreeSurface(material->diffusemap);
 }
 
 /**
  * @brief
  */
-SDL_Surface *LoadDiffuseTexture(const char *name) {
-	return LoadAsset(&LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->diffusemap);
+static material_t *LoadMaterial(const char *name) {
+
+	material_t *material = AllocMaterial(name);
+
+	if (Cm_ResolveMaterial(material->cm, ASSET_CONTEXT_TEXTURES)) {
+		material->diffusemap = Img_LoadSurface(material->cm->diffusemap.path);
+		if (material->diffusemap) {
+			Com_Verbose("Loaded %s\n", material->cm->diffusemap.path);
+			
+			material->ambient = Img_Color(material->diffusemap).vec3;
+			material->diffuse = material->cm->light.color;
+
+			if (Vec3_Equal(material->diffuse, Vec3_Zero())) {
+				material->diffuse = Vec3_Scale(material->ambient, 1.f / Vec3_Hmaxf(material->ambient));
+			}
+		} else {
+			Com_Warn("Failed to load %s\n", material->cm->diffusemap.path);
+		}
+	} else {
+		Com_Warn("Failed to resolve %s\n", name);
+	}
+
+	material->diffusemap = material->diffusemap ?: Img_LoadSurface("textures/common/notex");
+
+	return material;
+}
+
+/**
+ * @brief Loads all materials defined in the specified file.
+ */
+void LoadMaterials(const char *path) {
+
+	mat_file = NULL;
+	Cm_LoadMaterials(path, &mat_file);
+	if (mat_file) {
+		Com_Print("Loaded %d materials from %s\n", g_list_length(mat_file), path);
+	} else {
+		Com_Warn("Failed to load %s\n", path);
+		Com_Warn("Run `quemap -mat %s` to generate\n", map_name);
+	}
+
+	const bsp_material_t *bsp = bsp_file.materials;
+	for (int32_t i = 0; i < bsp_file.num_materials; i++, bsp++) {
+		LoadMaterial(bsp->name);
+	}
+}
+
+/**
+ * @brief Finds the material with the specified name, allocating a new one if necessary.
+ */
+int32_t FindMaterial(const char *name) {
+
+	material_t *material = NULL;
+	for (int32_t i = 0; i < num_materials; i++) {
+		if (!g_strcmp0(name, materials[i].cm->name)) {
+			material = &materials[i];
+			break;
+		}
+	}
+
+	if (material == NULL) {
+		material = LoadMaterial(name);
+	}
+
+	return (int32_t) (ptrdiff_t) (material - materials);
 }
 
 /**
@@ -99,21 +145,29 @@ SDL_Surface *LoadDiffuseTexture(const char *name) {
  */
 void FreeMaterials(void) {
 
-	if (materials != NULL) {
-		g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
-		materials = NULL;
+	for (int32_t i = 0; i < num_materials; i++) {
+		FreeMaterial(materials + i);
 	}
 
-	if (assets != NULL) {
-		g_hash_table_destroy(assets);
-		assets = NULL;
-	}
+	num_materials = 0;
+	memset(materials, 0, sizeof(materials));
+
+	g_list_free(mat_file);
+	mat_file = NULL;
 }
 
 /**
- * @brief Writes the materials to the specified file.
+ * @brief Writes all known materials to the specified path.
  */
-ssize_t WriteMaterialsFile(const char *filename) {
-	
-	return Cm_WriteMaterials(filename, materials);
+ssize_t WriteMaterialsFile(const char *path) {
+
+	GList *cm = NULL;
+	for (int32_t i = 0; i < num_materials; i++) {
+		cm = g_list_prepend(cm, materials[i].cm);
+	}
+
+	const ssize_t count = Cm_WriteMaterials(path, cm);
+
+	g_list_free(cm);
+	return count;
 }

@@ -214,42 +214,36 @@ typedef enum {
  * @details Lower bits are stronger, and will eat weaker brushes completely.
  */
 #define CONTENTS_NONE				0x0 // brush sides may have no contents (skip, hint)
-#define CONTENTS_SOLID				0x1 // an eye is never valid in a solid
-#define CONTENTS_WINDOW				0x2 // translucent, but not watery
+#define CONTENTS_SOLID				0x1 // opaque solids
+#define CONTENTS_WINDOW				0x2 // translucent solids
 #define CONTENTS_AUX				0x4
 #define CONTENTS_LAVA				0x8
 #define CONTENTS_SLIME				0x10
 #define CONTENTS_WATER				0x20
-#define CONTENTS_MIST				0x40
+#define CONTENTS_MIST				0x40 // visible, but does not collide
 
 #define LAST_VISIBLE_CONTENTS		CONTENTS_MIST
 
-// remaining contents are non-visible, and don't eat brushes
-
-#define CONTENTS_OCCLUSION_QUERY	0x8000 // shares value with CONTENTS_AREAPORTAL in other engines
-
-#define CONTENTS_PLAYER_CLIP		0x10000
-#define CONTENTS_MONSTER_CLIP		0x20000
-
-// currents can be added to any 	other contents, and may be mixed
-#define CONTENTS_CURRENT_0			0x40000
+// remaining contents do not generate faces, and do not eat brushes
+#define CONTENTS_ATMOSPHERIC		0x80
+#define CONTENTS_OCCLUSION_QUERY	0x8000 // hardware occlusion queries
+#define CONTENTS_PLAYER_CLIP		0x10000 // not visible, but collides with player
+#define CONTENTS_MONSTER_CLIP		0x20000 // not visible, but collides with monsters
+#define CONTENTS_CURRENT_0			0x40000 // liquid current direction for physics
 #define CONTENTS_CURRENT_90			0x80000
 #define CONTENTS_CURRENT_180		0x100000
 #define CONTENTS_CURRENT_270		0x200000
 #define CONTENTS_CURRENT_UP			0x400000
 #define CONTENTS_CURRENT_DOWN		0x800000
-
 #define CONTENTS_ORIGIN				0x1000000 // removed during BSP compilation
 #define CONTENTS_MONSTER			0x2000000 // should never be on a brush, only in game
 #define CONTENTS_DEAD_MONSTER		0x4000000
-
-#define CONTENTS_DETAIL				0x8000000 // brushes to be added after vis leafs
-#define CONTENTS_TRANSLUCENT		0x10000000 // auto set if any surface has trans
+#define CONTENTS_DETAIL				0x8000000 // details are never BSP decision nodes
+#define CONTENTS_TRANSLUCENT		0x10000000 // set if any side has blend, alpha test, etc.
 #define CONTENTS_LADDER				0x20000000
 
 /**
- * @brief Leafs will have some combination of the above flags; nodes will
- * always be -1.
+ * @brief Leafs will have some combination of the above flags; nodes will always be -1.
  */
 #define CONTENTS_NODE			-1
 
@@ -258,10 +252,13 @@ typedef enum {
  */
 #define CONTENTS_MASK_SOLID				(CONTENTS_SOLID | CONTENTS_WINDOW)
 #define CONTENTS_MASK_LIQUID			(CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
-#define CONTENTS_MASK_ATMOSPHERIC		(CONTENTS_MIST)
-#define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MASK_ATMOSPHERIC)
+#define CONTENTS_MASK_VISIBLE			(CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MIST)
 #define CONTENTS_MASK_CLIP				(CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_MEAT				(CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
+#define CONTENTS_MASK_CURRENT_X			(CONTENTS_CURRENT_0 | CONTENTS_CURRENT_180)
+#define CONTENTS_MASK_CURRENT_Y			(CONTENTS_CURRENT_90 | CONTENTS_CURRENT_270)
+#define CONTENTS_MASK_CURRENT_Z			(CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN)
+#define CONTENTS_MASK_CURRENT			(CONTENTS_MASK_CURRENT_X | CONTENTS_MASK_CURRENT_Y | CONTENTS_MASK_CURRENT_Z)
 #define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN | CONTENTS_OCCLUSION_QUERY)
 #define CONTENTS_MASK_CLIP_CORPSE		(CONTENTS_MASK_SOLID | CONTENTS_PLAYER_CLIP)
 #define CONTENTS_MASK_CLIP_PLAYER		(CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER)
@@ -269,55 +266,51 @@ typedef enum {
 #define CONTENTS_MASK_CLIP_PROJECTILE	(CONTENTS_MASK_SOLID | CONTENTS_MASK_MEAT)
 
 /**
- * @brief Faces with differing contents after applying this mask should not be considered equal
- * for face or draw elements merging.
- */
-#define CONTENTS_MASK_FACE_CMP (CONTENTS_MASK_LIQUID)
-
-/**
- * @brief Texinfo flags.
+ * @brief Surface flags.
  */
 #define SURF_LIGHT				0x1 // value will hold the light radius
 #define SURF_SLICK				0x2 // affects game physics
-#define SURF_SKY				0x4 // skybox, cubemap that occludes
+#define SURF_SKY				0x4 // cubemap that occludes
 #define SURF_LIQUID				0x8 // water, lava, slime, etc.
 #define SURF_BLEND_33			0x10 // 0.33 alpha blending
 #define SURF_BLEND_66			0x20 // 0.66 alpha blending
-#define SURF_BLEND_100			0x40 // texture-defined alpha blending
+#define SURF_BLEND_100			0x40 // alpha channel blending
 #define SURF_NO_DRAW			0x80 // caulk (backs of details, etc)
 #define SURF_HINT				0x100 // make a primary bsp splitter
 #define SURF_SKIP				0x200 // completely skip, allowing non-closed brushes
-#define SURF_ALPHA_TEST			0x400 // alpha test (grates, foliage, etc..)
+#define SURF_ALPHA_TEST			0x400 // alpha test (grates, fences, foliage, etc..)
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // skip diffuse pass, draw material stages only
-#define SURF_DECAL				0x2000 // draw diffuse pass, but don't use for alpha blend sorting
+#define SURF_DECAL				0x2000 // draw blended, but don't participate in depth sorting
 #define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
+#define SURF_BEVEL				0x20000000 // brush side is a bevel with approximate material
+#define SURF_NODE				0x40000000 // brush side is a node splitter with no material
 
 /**
- * @brief Texinfos with differing flags after applying this mask should not be considered
- * equal for face or draw elements merging.
+ * @brief Faces with differing flags after applying this mask should not be considered
+ * equal for draw elements merging.
  */
-#define SURF_MASK_TEXINFO_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
+#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
 
 /**
- * @brief Texinfos with these flags require transparency.
+ * @brief Faces with these flags require transparency.
  */
-#define SURF_MASK_BLEND			(SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
+#define SURF_MASK_BLEND				(SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
 
 /**
- * @brief Texinfos with these flags imply translucent contents.
+ * @brief Faces with these flags imply translucent contents.
  */
-#define SURF_MASK_TRANSLUCENT	(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
+#define SURF_MASK_TRANSLUCENT		(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
 
 /**
- * @brief Texinfos with these flags will not have lightmap data.
+ * @brief Faces with these flags will not have lightmap data.
  */
-#define SURF_MASK_NO_LIGHTMAP	(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
+#define SURF_MASK_NO_LIGHTMAP		(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
- * @brief Texinfos with these flags will not emit draw elements.
+ * @brief Faces with these flags will not emit draw elements.
  */
-#define SURF_MASK_NO_DRAW_ELEMENTS (SURF_NO_DRAW | SURF_HINT)
+#define SURF_MASK_NO_DRAW_ELEMENTS 	(SURF_NO_DRAW | SURF_HINT)
 
 /**
  * @brief The absolute world bounds is +/- 4096. This is the largest box we can

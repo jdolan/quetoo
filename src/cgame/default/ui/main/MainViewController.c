@@ -28,6 +28,8 @@
 #include "PlayViewController.h"
 #include "SettingsViewController.h"
 
+#include "TeamsViewController.h"
+
 #include "DialogViewController.h"
 
 #define _Class _MainViewController
@@ -148,8 +150,7 @@ static void loadView(ViewController *self) {
 
 	$(this, primaryButton, "Quit", quitAction, NULL);
 
-	$(this, secondaryButton, "Join", pushViewControllerAction, NULL); // TODO
-	$(this, secondaryButton, "Votes", pushViewControllerAction, NULL); // TODO
+	$(this, secondaryButton, "Teams", pushViewControllerAction, _TeamsViewController());
 	$(this, secondaryButton, "Disconnect", disconnectAction, NULL);
 
 	$(self, addChildViewController, (ViewController *) this->navigationViewController);

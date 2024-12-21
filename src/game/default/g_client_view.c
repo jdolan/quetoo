@@ -47,7 +47,12 @@ static void G_ClientDamage(g_entity_t *ent) {
 
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex(va("*pain%i_1", l)), SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = gi.SoundIndex(va("*pain%i_1", l)),
+				.entity = ent,
+				.origin = &org,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -73,18 +78,26 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 	// if just entered a water volume, play a sound
 	if (old_water_level <= WATER_NONE && water_level >= WATER_FEET) {
-		gi.Sound(ent, g_media.sounds.water_in, SOUND_ATTEN_LINEAR, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.water_in,
+			.entity = ent,
+			.atten = SOUND_ATTEN_LINEAR
+		}, MULTICAST_PHS, NULL);
 	}
 
 	// completely exited the water
 	if (old_water_level >= WATER_FEET && water_level == WATER_NONE) {
-		gi.Sound(ent, g_media.sounds.water_out, SOUND_ATTEN_LINEAR, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.water_out,
+			.entity = ent,
+			.atten = SOUND_ATTEN_LINEAR
+		}, MULTICAST_PHS, NULL);
 	}
 
 	// same water level, head out of water
-	if ((old_water_level == water_level) && (water_level > WATER_FEET && water_level < WATER_UNDER)) {
-		if (Vec3_Length(ent->locals.velocity) > 10.0) {
-			G_Ripple(ent, Vec3_Zero(), Vec3_Zero(), 0.0, false);
+	if ((old_water_level == water_level) && (water_level >= WATER_FEET && water_level < WATER_UNDER)) {
+		if (Vec3_Length(ent->locals.velocity) > 10.f) {
+			G_Ripple(ent, ent->abs_bounds.maxs, ent->abs_bounds.mins, 0.f, false);
 		}
 	}
 
@@ -92,10 +105,14 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 
 		// head just coming out of water, play a gasp if we were down for a while
 		if (old_water_level == WATER_UNDER && water_level != WATER_UNDER && (client->locals.drown_time - g_level.time) < 8000) {
-
 			const vec3_t org = Vec3_Add(client->ps.pm_state.origin, client->ps.pm_state.view_offset);
 
-			gi.PositionedSound(org, ent, gi.SoundIndex("*gasp_1"), SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = gi.SoundIndex("*gasp_1"),
+				.entity = ent,
+				.origin = &org,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 		}
 
 		// check for drowning
@@ -132,7 +149,7 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 	// check for sizzle damage
 	if (water_level && (ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME))) {
 		if (client->locals.sizzle_time <= g_level.time) {
-			client->locals.sizzle_time = g_level.time + 100;
+			client->locals.sizzle_time = g_level.time + 300;
 
 			if (ent->locals.dead == false && (ent->locals.water_type & CONTENTS_LAVA) && client->locals.pain_time <= g_level.time) {
 
@@ -140,15 +157,15 @@ static void G_ClientWaterInteraction(g_entity_t *ent) {
 				ent->s.event = EV_CLIENT_SIZZLE;
 
 				// suppress normal pain sound
-				client->locals.pain_time = g_level.time + 1000;
+				client->locals.pain_time = g_level.time + 300;
 			}
 
 			if (ent->locals.water_type & CONTENTS_LAVA) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), 2 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), 3 * water_level, 0, DMG_NO_ARMOR, MOD_LAVA);
 			}
 
 			if (ent->locals.water_type & CONTENTS_SLIME) {
-				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), water_level, 0, 0, MOD_SLIME);
+				G_Damage(ent, NULL, NULL, Vec3_Zero(), ent->s.origin, Vec3_Zero(), 1 * water_level, 0, DMG_NO_ARMOR, MOD_SLIME);
 			}
 		}
 	}
@@ -173,10 +190,10 @@ static void G_ClientWorldAngles(g_entity_t *ent) {
 	// set roll based on lateral velocity and ground entity
 	const float dot = Vec3_Dot(ent->locals.velocity, ent->client->locals.right);
 
-	ent->s.angles.z = ent->locals.ground_entity ? dot * 0.015 : dot * 0.005;
+	ent->s.angles.z = ent->locals.ground.ent ? dot * 0.015 : dot * 0.005;
 
 	// check for footsteps
-	if (ent->locals.ground_entity && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {
+	if (ent->locals.ground.ent && ent->locals.move_type == MOVE_TYPE_WALK && !ent->s.event) {
 
 		if (ent->client->locals.speed > 250.0 && ent->client->locals.footstep_time < g_level.time) {
 			ent->client->locals.footstep_time = g_level.time + 275;
@@ -275,7 +292,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 	// check for falling
 
 	g_client_locals_t *cl = &ent->client->locals;
-	if (!ent->locals.ground_entity) { // not on the ground
+	if (!ent->locals.ground.ent) { // not on the ground
 
 		if (g_level.time - cl->jump_time > 400) {
 			if (ent->locals.water_level == WATER_UNDER && cl->speed > 10.0) { // swimming
@@ -288,7 +305,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 			}
 		}
 
-		_Bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
+		bool jumping = G_IsAnimation(ent, ANIM_LEGS_JUMP1);
 		jumping |= G_IsAnimation(ent, ANIM_LEGS_JUMP2);
 
 		if (!jumping) {
@@ -307,7 +324,7 @@ static void G_ClientAnimation(g_entity_t *ent) {
 		const vec3_t euler = Vec3(0.0, ent->s.angles.y, 0.0);
 		Vec3_Vectors(euler, &forward, NULL, NULL);
 
-		const _Bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
+		const bool backwards = Vec3_Dot(ent->locals.velocity, forward) < -0.1;
 
 		if (ent->client->ps.pm_state.flags & PMF_DUCKED) { // ducked
 			if (cl->speed < 1.0) {
@@ -414,9 +431,7 @@ void G_EndClientFrames(void) {
 	}
 
 	// render the nodes to the clients
-	if (aix) {
-		aix->Render();
-	}
+	Ai_Node_Render();
 
 	// now loop through again, and for chase camera users, copy the final player state
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {

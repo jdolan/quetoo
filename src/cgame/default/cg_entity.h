@@ -31,7 +31,7 @@ typedef void (*EntityInit)(cg_entity_t *self);
 typedef void (*EntityThink)(cg_entity_t *self);
 
 /**
- * @brief The entity class type.
+ * @brief The client game entity class type.
  */
 typedef struct {
 	/**
@@ -57,9 +57,16 @@ typedef struct {
 } cg_entity_class_t;
 
 /**
- * @brief The entity instance type.
+ * @brief The client game entity instance type. Client game entities are local to the client,
+ * and are used for non-critical and atmospheric effects such as sparks, steam, particle
+ * fields, etc.
  */
 struct cg_entity_s {
+	/**
+	 * @brief The entity identifier, for persistent effects such as sounds.
+	 */
+	int32_t id;
+	
 	/**
 	 * @brief The entity class.
 	 */
@@ -74,6 +81,11 @@ struct cg_entity_s {
 	 * @brief The entity origin.
 	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The entity bounds.
+	 */
+	box3_t bounds;
 
 	/**
 	 * @brief The entity's target, if any.
@@ -102,15 +114,16 @@ struct cg_entity_s {
 	void *data;
 };
 
+extern GArray *cg_entities;
+
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);
 void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 
 cl_entity_t *Cg_Self(void);
-_Bool Cg_IsSelf(const cl_entity_t *ent);
-_Bool Cg_IsDucking(const cl_entity_t *ent);
+bool Cg_IsSelf(const cl_entity_t *ent);
+bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);
-void Cg_AddEntityShadow(const r_entity_t *e);
 
 #endif /* __CG_ENTITY_H__ */

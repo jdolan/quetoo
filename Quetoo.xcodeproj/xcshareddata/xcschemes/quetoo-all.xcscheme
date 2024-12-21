@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1240"
+   LastUpgradeVersion = "1620"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
       <BuildActionEntries>
          <BuildActionEntry
-            buildForTesting = "NO"
+            buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "NO"
+            buildForProfiling = "YES"
             buildForArchiving = "YES"
             buildForAnalyzing = "YES">
             <BuildableReference
@@ -17,6 +17,20 @@
                BlueprintIdentifier = "CEA029B31C5E545B00341079"
                BuildableName = "quetoo-all"
                BlueprintName = "quetoo-all"
+               ReferencedContainer = "container:Quetoo.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+               BuildableName = "quetoo"
+               BlueprintName = "quetoo"
                ReferencedContainer = "container:Quetoo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,10 +59,12 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
-      ignoresPersistentStateOnLaunch = "NO"
+      ignoresPersistentStateOnLaunch = "YES"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
-      allowLocationSimulation = "YES">
+      allowLocationSimulation = "NO"
+      consoleMode = "0"
+      structuredConsoleMode = "2">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
@@ -65,15 +81,11 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 0 +set r_width 1440 +set r_height 900 +set r_display 1"
+            argument = "+set r_fullscreen 1 +set r_width 1920 +set r_height 1080"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 0 +set r_height 0 +set r_display 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_bsp_lightmaps 1 +set r_texture_mode GL_NEAREST"
+            argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -81,11 +93,27 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 2"
+            argument = "+set r_draw_bsp_lightgrid 2 +set r_draw_bsp_lightmap 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
+            argument = "+set r_draw_bsp_normals 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_draw_occlusion_queries 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_texture_storage 0"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set r_get_error 2 +set verbose 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -97,24 +125,36 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
+            argument = "+set revision -1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+debug game"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+set sv_max_clients 32 +map edge"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set g_gameplay arena +set g_teams 1 +set g_rounds 1 +g_ai_add 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all +no_clip"
+            argument = "+set g_cheats 1 +give all +god +no_clip"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+g_ai_add 16"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set cl_draw_renderer_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug sound"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
@@ -127,9 +167,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "CEA029B31C5E545B00341079"
-            BuildableName = "quetoo-all"
-            BlueprintName = "quetoo-all"
+            BlueprintIdentifier = "CE12D7341C5C5B9300CD0B13"
+            BuildableName = "quetoo"
+            BlueprintName = "quetoo"
             ReferencedContainer = "container:Quetoo.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

@@ -50,6 +50,7 @@
 #include "g_main.h"
 #include "g_map_list.h"
 #include "g_physics.h"
+#include "g_sound.h"
 #include "g_types.h"
 #include "g_util.h"
 #include "g_weapon.h"

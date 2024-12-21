@@ -33,7 +33,7 @@ typedef struct {
 
 static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_SIZE_STRUCT(entity_string, MAX_BSP_ENTITIES_SIZE),
-	BSP_LUMP_NUM_STRUCT(texinfo, MAX_BSP_TEXINFO),
+	BSP_LUMP_NUM_STRUCT(materials, MAX_BSP_MATERIALS),
 	BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
 	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
 	BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
@@ -46,6 +46,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(leaf_faces, MAX_BSP_LEAF_FACES),
 	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
+	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
 	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
@@ -54,25 +55,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
  * @brief Table of swap functions.
  */
 typedef void (*Bsp_SwapFunction) (void *lump, const int32_t num);
-
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapTexinfos(void *lump, const int32_t num) {
-
-	bsp_texinfo_t *texinfo = (bsp_texinfo_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		texinfo->vecs[0] = LittleVec4(texinfo->vecs[0]);
-		texinfo->vecs[1] = LittleVec4(texinfo->vecs[1]);
-
-		texinfo->flags = LittleLong(texinfo->flags);
-		texinfo->value = LittleLong(texinfo->value);
-
-		texinfo++;
-	}
-}
 
 /**
  * @brief Swap function.
@@ -99,8 +81,13 @@ static void Bsp_SwapBrushSides(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		brush_side->plane_num = LittleLong(brush_side->plane_num);
-		brush_side->texinfo = LittleLong(brush_side->texinfo);
+		brush_side->plane = LittleLong(brush_side->plane);
+		brush_side->material = LittleLong(brush_side->material);
+		brush_side->axis[0] = LittleVec4(brush_side->axis[0]);
+		brush_side->axis[1] = LittleVec4(brush_side->axis[1]);
+		brush_side->contents = LittleLong(brush_side->contents);
+		brush_side->surface = LittleLong(brush_side->surface);
+		brush_side->value = LittleLong(brush_side->value);
 
 		brush_side++;
 	}
@@ -115,10 +102,10 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		brush->entity_num = LittleLong(brush->entity_num);
+		brush->entity = LittleLong(brush->entity);
 		brush->contents = LittleLong(brush->contents);
 		brush->first_brush_side = LittleLong(brush->first_brush_side);
-		brush->num_sides = LittleLong(brush->num_sides);
+		brush->num_brush_sides = LittleLong(brush->num_brush_sides);
 		brush->bounds = LittleBounds(brush->bounds);
 
 		brush++;
@@ -140,7 +127,7 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 		vertex->bitangent = LittleVec3(vertex->bitangent);
 		vertex->diffusemap = LittleVec2(vertex->diffusemap);
 		vertex->lightmap = LittleVec2(vertex->diffusemap);
-		vertex->texinfo = LittleLong(vertex->texinfo);
+		vertex->color.rgba = LittleLong(vertex->color.rgba);
 
 		vertex++;
 	}
@@ -167,10 +154,9 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		face->plane_num = LittleLong(face->plane_num);
-		face->texinfo = LittleLong(face->texinfo);
-		face->contents = LittleLong(face->contents);
-
+		face->brush_side = LittleLong(face->brush_side);
+		face->plane = LittleLong(face->plane);
+		
 		face->bounds = LittleBounds(face->bounds);
 
 		face->first_vertex = LittleLong(face->first_vertex);
@@ -202,9 +188,9 @@ static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		draw->plane_num = LittleLong(draw->plane_num);
-		draw->texinfo = LittleLong(draw->texinfo);
-		draw->contents = LittleLong(draw->contents);
+		draw->plane = LittleLong(draw->plane);
+		draw->material = LittleLong(draw->material);
+		draw->surface = LittleLong(draw->surface);
 
 		draw->bounds = LittleBounds(draw->bounds);
 
@@ -224,11 +210,12 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
-		node->plane_num = LittleLong(node->plane_num);
+		node->plane = LittleLong(node->plane);
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
 
 		node->bounds = LittleBounds(node->bounds);
+		node->visible_bounds = LittleBounds(node->visible_bounds);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
@@ -274,7 +261,8 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 		leaf->cluster = LittleLong(leaf->cluster);
 
 		leaf->bounds = LittleBounds(leaf->bounds);
-
+		leaf->visible_bounds = LittleBounds(leaf->visible_bounds);
+		
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
 
@@ -294,8 +282,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 	for (int32_t i = 0; i < num; i++) {
 
+		model->entity = LittleLong(model->entity);
 		model->head_node = LittleLong(model->head_node);
-
+		
 		model->bounds = LittleBounds(model->bounds);
 
 		model->first_face = LittleLong(model->first_face);
@@ -305,6 +294,31 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->num_draw_elements = LittleLong(model->num_draw_elements);
 
 		model++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapLights(void *lump, const int32_t num) {
+
+	bsp_light_t *light = (bsp_light_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+		light->type = LittleLong(light->type);
+		light->atten = LittleLong(light->atten);
+		light->origin = LittleVec3(light->origin);
+		light->color = LittleVec3(light->color);
+		light->normal = LittleVec3(light->normal);
+		light->radius = LittleFloat(light->radius);
+		light->size = LittleFloat(light->size);
+		light->intensity = LittleFloat(light->intensity);
+		light->shadow = LittleFloat(light->shadow);
+		light->cone = LittleFloat(light->cone);
+		light->falloff = LittleFloat(light->falloff);
+		light->bounds = LittleBounds(light->bounds);
+
+		light++;
 	}
 }
 
@@ -335,7 +349,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 
 	const Bsp_SwapFunction swap[BSP_LUMP_LAST] = {
 		NULL,
-		Bsp_SwapTexinfos,
+		NULL,
 		Bsp_SwapPlanes,
 		Bsp_SwapBrushSides,
 		Bsp_SwapBrushes,
@@ -348,6 +362,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapLeafFaces,
 		Bsp_SwapLeafs,
 		Bsp_SwapModels,
+		Bsp_SwapLights,
 		Bsp_SwapLightmap,
 		Bsp_SwapLightgrid,
 	};
@@ -415,7 +430,7 @@ static void Bsp_GetLumpPosition(const bsp_header_t *file, const bsp_lump_id_t lu
  * count and data pointers in memory. They may be empty. If count is LUMP_SKIPPED,
  * the lump is a valid lump but not stored/used by the library.
  */
-static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **count, void ***data) {
+static bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_id, int32_t **count, void ***data) {
 
 	if (lump_id >= BSP_LUMP_LAST) {
 		return false;
@@ -446,7 +461,7 @@ static _Bool Bsp_GetLumpOffsets(const bsp_file_t *bsp, const bsp_lump_id_t lump_
 /**
  * @brief Check whether the specified lump is loaded in memory or not.
  */
-_Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	return bsp->loaded_lumps & (bsp_lump_id_t) (1 << lump_id);
 }
@@ -499,7 +514,7 @@ void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
  * @brief Load a lump into memory from the specified BSP file. Returns false
  * if an error occured during the load that is recoverable.
  */
-_Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
+bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id) {
 
 	int32_t *lump_count;
 	void **lump_data;
@@ -556,7 +571,7 @@ _Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
  * @brief Loads the specified lumps into memory. If a failure occurs at any point during
  * loading, it will stop trying to load more and return false.
  */
-_Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
+bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits) {
 
 	for (bsp_lump_id_t lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
 		if (lump_bits & (bsp_lump_id_t) (1 << lump)) {

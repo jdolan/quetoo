@@ -59,7 +59,7 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
 /**
  * @brief URLSessionTaskCompletionn for Net_HttpGetAsync.
  */
-static void Net_HttpGetAsync_Completion(URLSessionTask *task, _Bool success) {
+static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
 	const int32_t status = task->response->httpStatusCode;
 

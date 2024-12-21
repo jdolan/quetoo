@@ -23,6 +23,7 @@
 
 #include "s_types.h"
 
+void S_InitStage(s_stage_t *stage);
 void S_RenderStage(const s_stage_t *stage);
 void S_Init(void);
 void S_Shutdown(void);

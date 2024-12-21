@@ -28,18 +28,19 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1018
+#define PROTOCOL_MINOR 1019
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
  * the client game module.
  */
 typedef enum {
-	SV_CMD_CENTER_PRINT = SV_CMD_CGAME,
+	SV_CMD_SOUND = SV_CMD_CGAME,
 	SV_CMD_MUZZLE_FLASH,
-	SV_CMD_SCORES,
 	SV_CMD_TEMP_ENTITY,
 	SV_CMD_VIEW_KICK,
+	SV_CMD_CENTER_PRINT,
+	SV_CMD_SCORES,
 } g_sv_packet_cmd_t;
 
 /**
@@ -47,7 +48,7 @@ typedef enum {
  * the game module.
  */
 typedef enum {
-	CL_CMD_EXAMPLE
+	CL_CMD_EXAMPLE = CL_CMD_CGAME,
 } g_cl_packet_cmd_t;
 
 /**
@@ -83,16 +84,18 @@ typedef struct {
 /**
  * @brief ConfigStrings that are local to the game module.
  */
-#define CS_GAMEPLAY			(CS_GENERAL + 0)  // gameplay string
-#define CS_TEAMS			(CS_GENERAL + 1)  // are teams enabled? if so, # of teams
-#define CS_CTF				(CS_GENERAL + 2)  // is capture enabled?
-#define CS_MATCH			(CS_GENERAL + 3)  // is match mode enabled?
-#define CS_ROUNDS			(CS_GENERAL + 4)  // are rounds enabled?
-#define CS_TEAM_INFO		(CS_GENERAL + 5)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME				(CS_GENERAL + 6)  // level or match timer
-#define CS_ROUND			(CS_GENERAL + 7)  // round number
-#define CS_VOTE				(CS_GENERAL + 8)  // vote string\yes count\no count
-#define CS_HOOK_PULL_SPEED	(CS_GENERAL + 9) // hook speed
+#define CS_GAMEPLAY			(CS_GAME + 0)  // gameplay string
+#define CS_NUM_TEAMS		(CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
+#define CS_CTF				(CS_GAME + 2)  // is capture enabled?
+#define CS_MATCH			(CS_GAME + 3)  // is match mode enabled?
+#define CS_ROUNDS			(CS_GAME + 4)  // are rounds enabled?
+#define CS_TEAM_INFO		(CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME				(CS_GAME + 6)  // level or match timer
+#define CS_ROUND			(CS_GAME + 7)  // round number
+#define CS_HOOK_PULL_SPEED	(CS_GAME + 8)  // hook speed
+#define CS_MAXCLIENTS		(CS_GAME + 9)  // maxclients of server
+#define CS_NUMCLIENTS		(CS_GAME + 10) // number of players in server
+#define CS_NAV_EDIT			(CS_GAME + 11) // nav edit mode
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -122,7 +125,6 @@ typedef enum {
 	STAT_SPECTATOR,
 	STAT_TEAM,
 	STAT_TIME,
-	STAT_VOTE,
 	STAT_WEAPON,
 	STAT_WEAPON_ICON,
 	STAT_WEAPON_TAG, // low 8 bits = current weapon, high 8 bits = switching
@@ -178,6 +180,44 @@ typedef enum {
 	TE_AI_NODE,
 	TE_AI_NODE_LINK
 } g_temp_entity_t;
+
+/**
+ * @brief Sound playback flags.
+ */
+#define SOUND_ENTITY    (1 << 0)
+#define SOUND_ORIGIN    (1 << 1)
+#define SOUND_ATTEN     (1 << 2)
+#define SOUND_PITCH     (1 << 3)
+
+/**
+ * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
+ */
+typedef struct {
+	/**
+	 * @brief The ConfigString index of the sample to play.
+	 */
+	int32_t index;
+
+	/**
+	 * @brief The entity to associate the sound with for positioning and model-specific sounds.
+	 */
+	const struct g_entity_s *entity;
+
+	/**
+	 * @brief The sound origin, which takes precedent over the entity origin (if any).
+	 */
+	const vec3_t *origin;
+
+	/**
+	 * @brief The attenuation.
+	 */
+	sound_atten_t atten;
+
+	/**
+	 * @brief The pitch shift, in tones. There are 8 tones per octave.
+	 */
+	int8_t pitch;
+} g_play_sound_t;
 
 /**
  * @brief Player scores are transmitted as binary to the client game module.
@@ -265,19 +305,20 @@ typedef enum {
 /**
  * @brief Scoreboard background color hues.
  */
-#define TEAM_COLOR_RED			360
-#define TEAM_COLOR_BLUE			240
-#define TEAM_COLOR_YELLOW		60
-#define TEAM_COLOR_WHITE		361
+#define TEAM_COLOR_RED			color_hue_red
+#define TEAM_COLOR_BLUE			color_hue_blue
+#define TEAM_COLOR_YELLOW		color_hue_yellow
+#define TEAM_COLOR_GREEN		color_hue_green
 
 /**
  * @brief Team ID
  */
 typedef enum {
+	TEAM_NONE = -1,
 	TEAM_RED,
 	TEAM_BLUE,
 	TEAM_YELLOW,
-	TEAM_WHITE,
+	TEAM_GREEN,
 
 	MAX_TEAMS
 } g_team_id_t;
@@ -506,7 +547,7 @@ typedef struct g_item_s {
 	 * @brief Called when a player touches this item. Returning false
 	 * prevents the item from being picked up.
 	 */
-	_Bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
+	bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
 
 	/**
 	 * @brief Called when an item is "use"d from the inventory.
@@ -677,7 +718,7 @@ typedef struct {
 	g_entity_t *entities; // [g_max_entities]
 	g_client_t *clients; // [sv_max_clients]
 
-	_Bool ai_loaded; // whether the AI is loaded or not
+	bool ai_loaded; // whether the AI is loaded or not
 	uint8_t ai_fill_slots; // total number of empty slots the AI should fill
 	uint8_t ai_left_to_spawn; // the number of AI bots that we're waiting to spawn in
 } g_game_t;
@@ -749,6 +790,8 @@ typedef struct {
 		uint16_t roar;
 
 		uint16_t techs[TECH_TOTAL];
+
+		uint16_t chat;
 	} sounds;
 
 	struct g_media_images_t {
@@ -776,12 +819,12 @@ typedef struct {
 	char name[MAX_QPATH]; // the server name (fractures, etc)
 	int16_t gravity;
 	g_gameplay_t gameplay;
-	_Bool teams;
-	_Bool ctf;
-	_Bool techs;
-	_Bool match;
-	_Bool rounds;
-	_Bool hook_allowed;
+	bool teams;
+	bool ctf;
+	bool techs;
+	bool match;
+	bool rounds;
+	bool hook_allowed;
 	int32_t num_teams;
 	int32_t hook_map; // the map's hook allowance, for voting/restart/etc
 	int32_t techs_map;
@@ -800,19 +843,15 @@ typedef struct {
 	vec3_t intermission_angle;
 	const char *next_map;
 
-	_Bool warmup; // shared by match and round
+	bool warmup; // shared by match and round
 
-	_Bool start_match;
+	bool start_match;
 	uint32_t match_time; // time match started
 	uint32_t match_num;
 
-	_Bool start_round;
+	bool start_round;
 	uint32_t round_time; // time round started
 	uint32_t round_num;
-
-	char vote_cmd[64]; // current vote in question
-	uint32_t votes[3]; // current vote count (yes/no/undecided)
-	uint32_t vote_time; // time vote started
 
 	g_entity_t *current_entity; // entity running from G_RunFrame
 
@@ -873,18 +912,6 @@ typedef struct {
 #define DMG_NO_GOD		0x10  // armor and god mode have no effect
 
 /**
- * @brief Voting constants.
- */
-#define MAX_VOTE_TIME 60000
-#define VOTE_MAJORITY 0.51
-
-typedef enum {
-	VOTE_NO_OP,
-	VOTE_YES,
-	VOTE_NO
-} g_vote_t;
-
-/**
  * @brief The name for the CTF skin used in team games.
  */
 #define DEFAULT_TEAM_SKIN "ctf"
@@ -893,8 +920,8 @@ typedef enum {
  * @brief There are four teams in the default game module.
  */
 typedef struct {
-	// static info, valid for all and default teams
 	g_team_id_t id; // id for team, to prevent us from needing to do ptr compare
+
 	char name[16]; // kept short for HUD consideration
 	char skin[32];
 	char flag[32]; // flag classname
@@ -903,12 +930,11 @@ typedef struct {
 	color_t shirt, pants, helmet;
 
 	int16_t color; // team color hue
+	int16_t effect; // flag effect
 
-	uint32_t effect; // flag effect
-
-	// dynamic info, valid for all teams
 	int16_t score;
 	int16_t captures;
+
 	g_spawn_points_t spawn_points;
 	g_entity_t *flag_entity;
 } g_team_t;
@@ -965,12 +991,11 @@ typedef struct {
 	int16_t captures;
 	uint16_t deaths;
 
-	_Bool admin; // client is special?
-	_Bool spectator; // client is a spectator
-	_Bool ready; // ready
-	_Bool muted;
+	bool admin;
+	bool spectator;
+	bool ready;
+	bool muted;
 
-	g_vote_t vote; // current vote (yes/no)
 	uint32_t match_num; // most recent match
 	uint32_t round_num; // most recent arena round
 } g_client_persistent_t;
@@ -1008,7 +1033,7 @@ typedef struct {
 	uint32_t hook_think_time; // time when the hook think was called
 	uint32_t hook_fire_time; // can fire hook when time > this
 	g_entity_t *hook_entity; // the hook that we're attached to
-	_Bool hook_pull; // whether we're pulling towards the hook now
+	bool hook_pull; // whether we're pulling towards the hook now
 
 	int16_t damage_armor; // damage absorbed by armor
 	int16_t damage_health; // damage taken out of health
@@ -1053,7 +1078,7 @@ typedef struct {
 
 	const g_item_t *last_dropped; // last dropped item, used for variable expansion
 
-	_Bool show_scores; // sets layout bit mask in player state
+	bool show_scores; // sets layout bit mask in player state
 	uint32_t scores_time; // eligible for scores when time > this
 
 	uint32_t regen_time; // time for regeneration?
@@ -1102,7 +1127,7 @@ typedef struct {
 	uint32_t next_think;
 	void (*Think)(g_entity_t *self);
 	void (*Blocked)(g_entity_t *self, g_entity_t *other); // move to move_info?
-	void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_bsp_plane_t *plane, const cm_bsp_texinfo_t *texinfo);
+	void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace);
 	void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
 	void (*Pain)(g_entity_t *self, g_entity_t *other, int16_t damage, int16_t knockback);
 	void (*Die)(g_entity_t *self, g_entity_t *attacker, uint32_t mod);
@@ -1114,9 +1139,9 @@ typedef struct {
 
 	int16_t health;
 	int16_t max_health;
-	_Bool dead;
+	bool dead;
 
-	_Bool take_damage;
+	bool take_damage;
 	int16_t damage;
 	int16_t knockback;
 	float damage_radius;
@@ -1134,16 +1159,14 @@ typedef struct {
 	float delay; // before firing targets
 	float random;
 
-	g_entity_t *ground_entity;
-	cm_bsp_plane_t ground_plane;
-	cm_bsp_texinfo_t *ground_texinfo;
-	int32_t ground_contents;
+	cm_trace_t ground;
 
 	int32_t water_type;
 	pm_water_level_t water_level;
 
 	const g_item_t *item; // for bonus items
 	ai_node_id_t node; // for item paths
+	bool move_node;
 } g_entity_locals_t;
 
 #include "game/game.h"

@@ -42,12 +42,15 @@ if ($IS_MASTER)
 	&$aws_exe s3 sync $QUETOO_RELEASE_SRC $QUETOO_RELEASE_BUCKET --delete
 }
 
-$QUETOO_DATA_BUCKET = "s3://quetoo-data/"
-$QUETOO_DATA_DIR = $QUETOO_RELEASE_SRC + "share/"
+if ($IS_MASTER)
+{
+	$QUETOO_DATA_BUCKET = "s3://quetoo-data/"
+	$QUETOO_DATA_DIR = $QUETOO_RELEASE_SRC + "share/"
 
-# pull in data into Quetoo/share/
-echo "Syncing data"
-&$aws_exe s3 sync $QUETOO_DATA_BUCKET $QUETOO_DATA_DIR
+	# pull in data into Quetoo/share/
+	echo "Syncing data"
+	&$aws_exe s3 sync $QUETOO_DATA_BUCKET $QUETOO_DATA_DIR
+}
 
 $QUETOO_SNAPSHOT_SRC = "Quetoo.zip"
 if ($IS_MASTER)

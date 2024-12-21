@@ -30,4 +30,4 @@ void R_DrawSky(const r_view_t *view);
 void R_InitSky(void);
 void R_ShutdownSky(void);
 void R_Sky_f(void);
-#endif /* __R_LOCAL_H__ */
+#endif

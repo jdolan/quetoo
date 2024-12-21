@@ -23,20 +23,20 @@
 
 #include "r_types.h"
 
-void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch);
-void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
-void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color);
-size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color);
-void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
-void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
-void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
-void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color);
-size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, const color_t color);
-size_t R_Draw2DString(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+void R_BindFont(const char *name, GLint *cw, GLint *ch);
+void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h);
+void R_Draw2DChar(GLint x, GLint y, char c, const color_t color);
+size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color);
+void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color);
+void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color);
+void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
+void R_Draw2DLines(const GLint *points, size_t count, const color_t color);
+size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color);
+size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color);
 void R_Draw2D(void);
-r_pixel_t R_StringWidth(const char *s);
+GLint R_StringWidth(const char *s);
 
 #ifdef __R_LOCAL_H__
 void R_InitDraw2D(void);
 void R_ShutdownDraw2D(void);
-#endif /* __R_LOCAL_H__ */
+#endif

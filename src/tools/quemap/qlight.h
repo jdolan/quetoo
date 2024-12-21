@@ -26,26 +26,10 @@
 #include "lightgrid.h"
 #include "lightmap.h"
 #include "material.h"
-#include "patch.h"
 #include "quemap.h"
 #include "writebsp.h"
 
-extern _Bool antialias;
-extern _Bool indirect;
-
-extern float brightness;
-extern float saturation;
-extern float contrast;
-
-extern int32_t luxel_size;
-extern int32_t patch_size;
-
-extern float radiosity;
-extern int32_t num_bounces;
-extern int32_t bounce;
-
-extern float lightscale_point;
-extern float lightscale_patch;
+extern bool antialias;
 
 int32_t Light_PointContents(const vec3_t p, int32_t head_node);
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask);

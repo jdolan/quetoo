@@ -25,32 +25,30 @@
 
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_anisotropy;
-extern cvar_t *r_brightness;
-extern cvar_t *r_bicubic;
+extern cvar_t *r_bloom;
+extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_caustics;
-extern cvar_t *r_contrast;
 extern cvar_t *r_display;
+extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
-extern cvar_t *r_gamma;
 extern cvar_t *r_hardness;
+extern cvar_t *r_hdr;
 extern cvar_t *r_height;
 extern cvar_t *r_modulate;
-extern cvar_t *r_multisample;
 extern cvar_t *r_parallax;
-extern cvar_t *r_parallax_samples;
+extern cvar_t *r_post;
 extern cvar_t *r_roughness;
-extern cvar_t *r_saturation;
 extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shell;
+extern cvar_t *r_shadowmap;
+extern cvar_t *r_shadowmap_size;
 extern cvar_t *r_specularity;
-extern cvar_t *r_sprite_downsample;
-extern cvar_t *r_texture_downsample;
 extern cvar_t *r_stains;
-extern cvar_t *r_texture_mode;
-extern cvar_t *r_texture_storage;
+extern cvar_t *r_stains_decay;
+extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
+extern cvar_t *r_texture_mode;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
@@ -58,10 +56,11 @@ extern r_stats_t r_stats;
 void R_Init(void);
 void R_Shutdown(void);
 void R_BeginFrame(void);
+void R_InitView(r_view_t *view);
 void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
-void R_EndFrame(_Bool finish);
+void R_EndFrame(void);
 
 #ifdef __R_LOCAL_H__
 
@@ -95,7 +94,7 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in lightgrid space. The fourth component is exposure.
 	 */
 	vec4_t view_coordinate;
 
@@ -103,6 +102,11 @@ typedef struct {
 	 * @brief The lightgrid size, in luxels.
 	 */
 	vec4_t size;
+
+	/**
+	 * @brief The lightgrid luxel size, in texture space.
+	 */
+	vec4_t luxel_size;
 } r_lightgrid_t;
 
 /**
@@ -118,11 +122,11 @@ typedef struct {
 	 * @brief The uniform block struct.
 	 * @remarks This struct is vec4 aligned.
 	 */
-	struct {
+	struct r_uniform_block_t {
 		/**
 		 * @brief The viewport (x, y, w, h) in device pixels.
 		 */
-		vec4_t viewport;
+		vec4i_t viewport;
 
 		/**
 		 * @brief The 2D projection matrix.
@@ -160,24 +164,14 @@ typedef struct {
 		int32_t ticks;
 
 		/**
-		 * @brief The brightness scalar.
+		 * @brief The lightmaps debugging mask.
 		 */
-		float brightness;
+		int32_t lightmaps;
 
 		/**
-		 * @brief The contrast scalar.
+		 * @brief The shadows debugging mask.
 		 */
-		float contrast;
-
-		/**
-		 * @brief The saturation scalar.
-		 */
-		float saturation;
-
-		/**
-		 * @brief The gamma scalar.
-		 */
-		float gamma;
+		int32_t shadows;
 
 		/**
 		 * @brief The modulate scalar.
@@ -185,7 +179,27 @@ typedef struct {
 		float modulate;
 
 		/**
-		 * @brief The volumetric fog density scalar.
+		 * @brief The caustics scalar.
+		 */
+		float caustics;
+
+		/**
+		 * @brief The stains scalar.
+		 */
+		float stains;
+
+		/**
+		 * @brief The bloom scalar.
+		 */
+		float bloom;
+
+		/**
+		 * @brief The HDR scalar.
+		 */
+		float hdr;
+
+		/**
+		 * @brief The fog density scalar.
 		 */
 		float fog_density;
 
@@ -194,6 +208,10 @@ typedef struct {
 		 */
 		int32_t fog_samples;
 
+		/**
+		 * @brief The developer flags.
+		 */
+		int32_t developer;
 	} block;
 
 } r_uniforms_t;
@@ -204,19 +222,24 @@ typedef struct {
 extern r_uniforms_t r_uniforms;
 
 // developer tools
-extern cvar_t *r_alpha_test_threshold;
+extern cvar_t *r_alpha_test;
 extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
+extern cvar_t *r_developer;
 extern cvar_t *r_draw_bsp_lightgrid;
+extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;
-extern cvar_t *r_draw_bsp_occlusion_queries;
 extern cvar_t *r_draw_entity_bounds;
+extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
+extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
+extern cvar_t *r_error_level;
 extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
+extern cvar_t *r_occlusion_query_size;
 
 /**
  * @brief Keeps track of how many errors we've run into, so we can
@@ -232,9 +255,4 @@ void R_GetError_(const char *function, const char *msg);
 	} \
 }
 
-_Bool R_CullBox(const r_view_t *view, const box3_t bounds);
-_Bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius);
-
-_Bool R_CulludeBox(const r_view_t *view, const box3_t bounds);
-_Bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radius);
-#endif /* __R_LOCAL_H__ */
+#endif

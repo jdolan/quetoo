@@ -90,6 +90,18 @@
     <ClCompile Include="..\..\src\client\renderer\r_gl.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_cull.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_occlude.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_shadow.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\renderer\r_post.c">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\r_bsp.h">
@@ -185,6 +197,18 @@
     <ClInclude Include="..\..\src\client\renderer\r_gl_types.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_cull.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_occlude.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_shadow.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\renderer\r_post.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\client\renderer\shaders\lightgrid.glsl">
@@ -254,6 +278,36 @@
       <Filter>src\shaders</Filter>
     </None>
     <None Include="..\..\src\client\renderer\shaders\version.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shadow_gs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\polylib.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\mesh_gs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\bsp_gs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\post_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\post_vs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\blur_fs.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
+    <None Include="..\..\src\client\renderer\shaders\blur_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
   </ItemGroup>

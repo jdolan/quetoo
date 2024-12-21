@@ -45,12 +45,12 @@ static void Cl_DrawConsole_Background(void) {
 		return;
 	}
 
-	const r_image_t *conback = R_LoadImage("ui/conback", IT_UI);
+	const r_image_t *conback = R_LoadImage("ui/conback", IMG_UI);
 	if (!conback) {
 		return;
 	}
 
-	r_pixel_t ch;
+	GLint ch;
 	R_BindFont("small", NULL, &ch);
 
 	const float x_scale = r_context.width / (float) conback->width;
@@ -58,13 +58,16 @@ static void Cl_DrawConsole_Background(void) {
 
 	const float scale = Maxf(x_scale, y_scale);
 
-	const float width = conback->width * scale;
-	const float height = conback->height * scale;
+	const GLint width = ceilf(conback->width * scale);
+	const GLint height = ceilf(conback->height * scale);
 
-	const r_pixel_t x = (r_context.width / 2.f) - (width / 2.f);
-	const r_pixel_t y = (r_context.height / 2.f) - (height / 2.f);
+	assert(width >= r_context.width);
+	assert(height >= r_context.height);
 
-	const r_pixel_t offset = Maxf(0, height - cl_console.height * (ch + 1));
+	const GLint x = (r_context.width / 2.f) - (width / 2.f);
+	const GLint y = (r_context.height / 2.f) - (height / 2.f);
+
+	const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
 
 	const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
@@ -75,14 +78,14 @@ static void Cl_DrawConsole_Background(void) {
  * @brief
  */
 static void Cl_DrawConsole_Buffer(void) {
-	r_pixel_t ch;
+	GLint ch;
 
 	R_BindFont("small", NULL, &ch);
 
 	char *lines[cl_console.height];
 	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
-	r_pixel_t y = (cl_console.height - count) * ch;
+	GLint y = ((GLint) cl_console.height - (GLint) count) * ch;
 
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
@@ -97,11 +100,11 @@ static void Cl_DrawConsole_Buffer(void) {
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawConsole_Input(void) {
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t x = 1, y = cl_console.height * ch;
+	GLint x = 1, y = (GLint) cl_console.height * ch;
 
 	// draw the prompt
 	R_Draw2DChar(0, y, ']', color_green);
@@ -120,13 +123,13 @@ static void Cl_DrawConsole_Input(void) {
 	}
 
 	// and lastly cursor
-	R_Draw2DChar((cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
+	R_Draw2DChar((GLint) (cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
 }
 
 /**
  * @brief
  */
-r_pixel_t Cl_GetConsoleHeight(void) {
+GLint Cl_GetConsoleHeight(void) {
 	return r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
 }
 
@@ -134,9 +137,9 @@ r_pixel_t Cl_GetConsoleHeight(void) {
  * @brief
  */
 void Cl_DrawConsole(void) {
-	const r_pixel_t height = Cl_GetConsoleHeight();
+	const GLint height = Cl_GetConsoleHeight();
 
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 	R_BindFont("small", &cw, &ch);
 
 	cl_console.width = r_context.width / cw;
@@ -155,7 +158,7 @@ void Cl_DrawConsole(void) {
  * @brief Draws the last few lines of output transparently over the game top
  */
 void Cl_DrawNotify(void) {
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 
 	if (!cl_draw_notify->value) {
 		return;
@@ -176,7 +179,7 @@ void Cl_DrawNotify(void) {
 	char *lines[con.height];
 	const size_t count = Con_Tail(&con, lines, con.height);
 
-	r_pixel_t y = 0;
+	GLint y = 0;
 
 	color_t color = color_white;
 	for (size_t i = 0; i < count; i++) {
@@ -193,11 +196,11 @@ void Cl_DrawNotify(void) {
  * @brief Draws the chat history and, optionally, the chat input string.
  */
 void Cl_DrawChat(void) {
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t x = 1, y = r_context.height * 0.66;
+	GLint x = 1, y = r_context.height * 0.66;
 
 	cl_chat_console.width = r_context.width / cw / 3;
 	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
@@ -282,7 +285,7 @@ void Cl_ToggleConsole_f(void) {
 /**
  * @brief
  */
-static void Cl_MessageMode(_Bool team_chat) {
+static void Cl_MessageMode(bool team_chat) {
 
 	console_input_t *in = &cl_chat_console.input;
 	memset(in, 0, sizeof(*in));

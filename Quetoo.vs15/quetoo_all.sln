@@ -90,12 +90,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Items", "Items", "{88A4851C
 		build_settings.props = build_settings.props
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ai", "ai.vcxproj", "{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2F1C792E-6243-462B-AF0D-E2554E77D5C5} = {2F1C792E-6243-462B-AF0D-E2554E77D5C5}
-		{B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1} = {B1E86937-5A7A-48F6-9DAB-A1D2900C3AE1}
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -240,14 +234,6 @@ Global
 		{3E6B97C6-1F51-4D72-BDFE-1D492F5EDA6C}.Release|Win32.Build.0 = Release|Win32
 		{3E6B97C6-1F51-4D72-BDFE-1D492F5EDA6C}.Release|x64.ActiveCfg = Release|x64
 		{3E6B97C6-1F51-4D72-BDFE-1D492F5EDA6C}.Release|x64.Build.0 = Release|x64
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Debug|Win32.ActiveCfg = Debug|Win32
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Debug|Win32.Build.0 = Debug|Win32
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Debug|x64.ActiveCfg = Debug|x64
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Debug|x64.Build.0 = Debug|x64
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Release|Win32.ActiveCfg = Release|Win32
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Release|Win32.Build.0 = Release|Win32
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Release|x64.ActiveCfg = Release|x64
-		{6EBF61D4-CA15-4D8A-A957-7C9CF8A3E815}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

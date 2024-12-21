@@ -117,7 +117,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
 	Cl_UpdateScreen();
 
-	R_EndFrame(true);
+	R_EndFrame();
 
 	quetoo.ticks = SDL_GetTicks();
 }
@@ -146,7 +146,7 @@ static void Cl_LoadModels(void) {
  * @brief Fs_Enumerator to load all emoji into the images atlas.
  */
 static void Cl_LoadImages_Emoji(const char *path, void *data) {
-	R_LoadAtlasImage((r_atlas_t *) data, path, IT_PIC);
+	R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);
 }
 
 /**
@@ -167,7 +167,7 @@ static void Cl_LoadImages(void) {
 			break;
 		}
 
-		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IT_PIC);
+		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
 	}
 
 	Cl_LoadingProgress(-1, "compiling images");
@@ -200,6 +200,15 @@ static void Cl_LoadSounds(void) {
 
 		cl.sounds[i] = S_LoadSample(str);
 	}
+
+	for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
+		const cm_footsteps_t *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+
+		const cm_asset_t *sample = footsteps->samples;
+		for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
+			S_LoadSample(sample->name);
+		}
+	}
 }
 
 /**
@@ -227,8 +236,7 @@ static void Cl_LoadMusics(void) {
 }
 
 /**
- * @brief Load all game media through the relevant subsystems. This is called when
- * spawning into a server. For incremental reloads on subsystem restarts, see Cl_UpdateMedia.
+ * @brief Load all game media through the relevant subsystems.
  */
 void Cl_LoadMedia(void) {
 
@@ -257,6 +265,8 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadImages();
 
+	S_Stop();
+
 	S_BeginLoading();
 
 	Cl_LoadSounds();
@@ -267,7 +277,9 @@ void Cl_LoadMedia(void) {
 
 	Cl_LoadingProgress(100, "ready");
 
-	R_FreeUnseededMedia();
+	R_EndLoading();
 
-	S_FreeMedia();
+	S_EndLoading();
+
+	Ui_ViewWillAppear();
 }

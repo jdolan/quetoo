@@ -41,22 +41,18 @@ int32_t MAT_Main(void) {
 	// clear the whole bsp structure
 	memset(&bsp_file, 0, sizeof(bsp_file));
 
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_TEXINFO, MAX_BSP_TEXINFO);
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_MATERIALS, MAX_BSP_MATERIALS);
 
-	LoadMaterials(path, ASSET_CONTEXT_TEXTURES, NULL);
+	LoadMaterials(path);
 
 	LoadMapFile(map_name);
 
-	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
-		LoadMaterial(bsp_file.texinfo[i].texture, ASSET_CONTEXT_TEXTURES);
-	}
-
-	WriteMaterialsFile(path);
+	const ssize_t count = WriteMaterialsFile(path);
 
 	FreeMaterials();
 
 	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nGenerated materials in %d ms\n", end - start);
+	Com_Print("\nGenerated %" PRIoPTR " materials in %d ms\n", count, end - start);
 
 	return 0;
 }

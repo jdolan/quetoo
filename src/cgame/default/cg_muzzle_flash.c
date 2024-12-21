@@ -55,7 +55,8 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 80.0,
-		.color = Color_Vec3(color),
+		.color = color.vec3,
+		.intensity = .5f,
 		.decay = 450,
 	});
 
@@ -63,7 +64,7 @@ static void Cg_EnergyFlash(const cl_entity_t *ent, const color_t color) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 2.f);
 	}
 }
 
@@ -78,6 +79,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		.origin = org,
 		.radius = 120.0,
 		.color = Vec3(0.8, 0.7, 0.5),
+		.intensity = .5f,
 		.decay = 300
 	});
 
@@ -85,7 +87,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 		vec3_t org2, forward, right;
 		Vec3_Vectors(ent->angles, &forward, &right, NULL);
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 2.f);
 		return;
 	}
 
@@ -114,7 +116,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	Cg_AddLight(&(cg_light_t) {
 		.origin = org,
 		.radius = 120.0,
-		.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y * 0.5f, effect_color.z)),
+		.color = ColorHSV(effect_color.x, effect_color.y * 0.5f, effect_color.z).vec3,
+		.intensity = .4f,
 		.decay = 300
 	});
 
@@ -122,7 +125,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	Vec3_Vectors(ent->angles, &forward, &right, NULL);
 	if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
 		org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
-		Cg_BubbleTrail(NULL, org, org2);
+		Cg_BubbleTrail(NULL, org, org2, 8.f);
 		return;
 	}
 
@@ -144,7 +147,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
 	}
 
 	Cg_AddSprite(&(cg_sprite_t) {
-		.image = cg_sprite_blaster_flash,
+		.image = (r_image_t *) cg_sprite_blaster_flash,
 		.lifetime = 200,
 		.origin = Vec3_Fmaf(org, 3.f, forward),
 		.size = 30.f,

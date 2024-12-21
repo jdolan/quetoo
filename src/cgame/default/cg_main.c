@@ -25,7 +25,6 @@ cg_state_t cg_state;
 
 cvar_t *cg_add_atmospheric;
 cvar_t *cg_add_entities;
-cvar_t *cg_add_entity_shadows;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
@@ -64,7 +63,6 @@ cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals;
 cvar_t *cg_draw_vitals_pulse;
-cvar_t *cg_draw_vote;
 cvar_t *cg_entity_bob;
 cvar_t *cg_entity_pulse;
 cvar_t *cg_entity_rotate;
@@ -90,6 +88,7 @@ cvar_t *cg_third_person_y;
 cvar_t *cg_third_person_z;
 cvar_t *cg_third_person_pitch;
 cvar_t *cg_third_person_yaw;
+cvar_t *cg_spectator;
 
 cvar_t *g_gameplay;
 cvar_t *g_teams;
@@ -116,7 +115,6 @@ static void Cg_Init(void) {
 
 	cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
 	cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
-	cg_add_entity_shadows = cgi.AddCvar("cg_add_entity_shadows", "1", CVAR_ARCHIVE, "Toggles adding mesh entity shadows to the scene.");
 	cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
 	cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
 	cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
@@ -129,41 +127,41 @@ static void Cg_Init(void) {
 	cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
 
 	cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies the effect color for your own weapon trails.");
+	                       "Specifies the effect color for your own weapon trails.");
 
 	cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+	                       "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
 	                    "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_helmet = cgi.AddCvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                    "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
+							"Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
 
 	cg_draw_blend = cgi.AddCvar("cg_draw_blend", "1", CVAR_ARCHIVE,
-                                 "Controls the intensity of screen alpha-blending.");
+								"Controls the intensity of screen alpha-blending.");
 	cg_draw_blend_damage = cgi.AddCvar("cg_draw_blend_damage", "1", CVAR_ARCHIVE,
-                                        "Controls the intensity of the blend flash effect when taking damage.");
+									   "Controls the intensity of the blend flash effect when taking damage.");
 	cg_draw_blend_liquid = cgi.AddCvar("cg_draw_blend_liquid", "1", CVAR_ARCHIVE,
-                                        "Controls the intensity of the blend effect while in a liquid.");
+									   "Controls the intensity of the blend effect while in a liquid.");
 	cg_draw_blend_pickup = cgi.AddCvar("cg_draw_blend_pickup", "1", CVAR_ARCHIVE,
-                                        "Controls the intensity of the blend flash effect when picking up items.");
+									   "Controls the intensity of the blend flash effect when picking up items.");
 	cg_draw_blend_powerup = cgi.AddCvar("cg_draw_blend_powerup", "1", CVAR_ARCHIVE,
-                                         "Controls the intensity of the blend flash effect when holding a powerup.");
+										"Controls the intensity of the blend flash effect when holding a powerup.");
 	cg_draw_captures = cgi.AddCvar("cg_draw_captures", "1", CVAR_ARCHIVE,
-	                            "Draw the number of captures");
+	                               "Draw the number of captures");
 	cg_draw_crosshair = cgi.AddCvar("cg_draw_crosshair", "1", CVAR_ARCHIVE,
-                                     "Which crosshair image to use, 0 disables (Default is 1)");
+									"Which crosshair image to use, 0 disables (Default is 1)");
 	cg_draw_crosshair_alpha = cgi.AddCvar("cg_draw_crosshair_alpha", "1.0", CVAR_ARCHIVE,
                                 	      "Opacity of the crosshair");
 	cg_draw_crosshair_color = cgi.AddCvar("cg_draw_crosshair_color", "default", CVAR_ARCHIVE,
-	                                   "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
+	                                     "Specifies your crosshair color, in the hex format \"rrggbb\". \"default\" uses white.");
 	cg_draw_crosshair_health = cgi.AddCvar("cg_draw_crosshair_health", "0", CVAR_ARCHIVE,
-	                                     "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
+	                                       "Method of coloring the crosshair by health. Range from 1-5, 0 disables.");
 	cg_draw_crosshair_pulse = cgi.AddCvar("cg_draw_crosshair_pulse", "1", CVAR_ARCHIVE,
-	                                   "Pulse the crosshair when picking up items");
+	                                      "Pulse the crosshair when picking up items");
 	cg_draw_crosshair_scale = cgi.AddCvar("cg_draw_crosshair_scale", "1", CVAR_ARCHIVE,
-	                                   "Controls the crosshair scale (size)");
+	                                      "Controls the crosshair scale (size)");
 
 	cg_draw_held_flag = cgi.AddCvar("cg_draw_held_flag", "1", CVAR_ARCHIVE, "Draw the currently held team flag");
 	cg_draw_held_tech = cgi.AddCvar("cg_draw_held_tech", "1", CVAR_ARCHIVE, "Draw the currently held tech");
@@ -174,27 +172,28 @@ static void Cg_Init(void) {
 	cg_draw_time = cgi.AddCvar("cg_draw_time", "1", CVAR_ARCHIVE, "Draw the time remaning");
 	cg_draw_target_name = cgi.AddCvar("cg_draw_target_name", "1", CVAR_ARCHIVE, "Draw the target's name");
 	cg_draw_team_banner = cgi.AddCvar("cg_draw_team_banner", "1", CVAR_ARCHIVE, "Draw the team banner");
-	cg_draw_trace_test = cgi.AddCvar("cg_draw_trace_test", "0", CVAR_DEVELOPER, "Project a test trace of the specified mins/maxs, in the format of \"mins_x _y _z maxs_x _y _z\" (developer tool)");
+	cg_draw_trace_test = cgi.AddCvar("cg_draw_trace_test", "0", CVAR_DEVELOPER,
+									 "Project a test trace of the specified mins/maxs, in the format of \"mins_x _y _z maxs_x _y _z (developer tool)");
+
 	cg_draw_powerups = cgi.AddCvar("cg_draw_powerups", "1", CVAR_ARCHIVE,
-	                            "Draw currently active powerups, such as Quad Damage and Adrenaline.");
+	                               "Draw currently active powerups, such as Quad Damage and Adrenaline.");
 
 	cg_draw_weapon = cgi.AddCvar("cg_draw_weapon", "1", CVAR_ARCHIVE,
-	                          "Toggle drawing of the weapon model.");
+	                             "Toggle drawing of the weapon model.");
 	cg_draw_weapon_alpha = cgi.AddCvar("cg_draw_weapon_alpha", "1", CVAR_ARCHIVE,
-	                                "The alpha transparency for drawing the weapon model.");
+	                                   "The alpha transparency for drawing the weapon model.");
 	cg_draw_weapon_bob = cgi.AddCvar("cg_draw_weapon_bob", "1", CVAR_ARCHIVE,
 	                                "If the weapon model bobs while moving.");
 	cg_draw_weapon_x = cgi.AddCvar("cg_draw_weapon_x", "0", CVAR_ARCHIVE,
-	                            "The x offset for drawing the weapon model.");
+	                               "The x offset for drawing the weapon model.");
 	cg_draw_weapon_y = cgi.AddCvar("cg_draw_weapon_y", "0", CVAR_ARCHIVE,
-	                            "The y offset for drawing the weapon model.");
+	                               "The y offset for drawing the weapon model.");
 	cg_draw_weapon_z = cgi.AddCvar("cg_draw_weapon_z", "0", CVAR_ARCHIVE,
-	                            "The z offset for drawing the weapon model.");
+	                               "The z offset for drawing the weapon model.");
 	cg_draw_vitals = cgi.AddCvar("cg_draw_vitals", "1", CVAR_ARCHIVE,
-	                          "Draw the vitals (health, armor, ammo)");
+	                             "Draw the vitals (health, armor, ammo)");
 	cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE,
 	                                "Pulse the vitals when low");
-	cg_draw_vote = cgi.AddCvar("cg_draw_vote", "1", CVAR_ARCHIVE, "Draw the current vote on the hud");
 
 	cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
 	cg_entity_pulse = cgi.AddCvar("cg_entity_pulse", "1", CVAR_ARCHIVE, "Controls the pulsing of items");
@@ -203,56 +202,56 @@ static void Cg_Init(void) {
 	cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
 	cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
 	cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE,
-	                              "Interpolate between field of view changes (default 1.0).");
+									 "Interpolate between field of view changes (default 1.0).");
 
 	cg_hand = cgi.AddCvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO,
-	                   "Controls weapon handedness (center: 0, right: 1, left: 2).");
+						  "Controls weapon handedness (center: 0, right: 1, left: 2).");
 	cg_handicap = cgi.AddCvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                       "Your handicap, or disadvantage.");
+							  "Your handicap, or disadvantage.");
 
 	cg_hit_sound = cgi.AddCvar("cg_hit_sound", "1", CVAR_ARCHIVE,
-	                       "If a hit sound is played when damaging an enemy.");
+							   "If a hit sound is played when damaging an enemy.");
 
 	cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                         "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
+								"Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
 
 	cg_predict = cgi.AddCvar("cg_predict", "1", 0, "Use client side movement prediction");
 
 	cg_quick_join_max_ping = cgi.AddCvar("cg_quick_join_max_ping", "200", CVAR_SERVER_INFO,
-									  "Maximum ping allowed for quick join");
+										 "Maximum ping allowed for quick join");
 	cg_quick_join_min_clients = cgi.AddCvar("cg_quick_join_min_clients", "1", CVAR_SERVER_INFO,
-										 "Minimum clients allowed for quick join");
+											"Minimum clients allowed for quick join");
 
 	cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE,
-	                   "Your player model and skin.");
+						  "Your player model and skin.");
 
 	cg_sprite_physics = cgi.AddCvar("cg_sprite_physics", "1", CVAR_ARCHIVE, "Whether to enable sprite physics or not.");
 
 	cg_third_person = cgi.AddCvar("cg_third_person", "0", CVAR_ARCHIVE | CVAR_DEVELOPER,
-	                           "Activate third person perspective.");
+								  "Activate third person perspective.");
 	cg_third_person_chasecam = cgi.AddCvar("cg_third_person_chasecam", "0", CVAR_ARCHIVE,
-	                                    "Activate third person chase camera perspective.");
+										   "Activate third person chase camera perspective.");
 	cg_third_person_x = cgi.AddCvar("cg_third_person_x", "-200", CVAR_ARCHIVE,
-	                             "The x offset for third person perspective.");
+									"The x offset for third person perspective.");
 	cg_third_person_y = cgi.AddCvar("cg_third_person_y", "0", CVAR_ARCHIVE,
-	                             "The y offset for third person perspective.");
+									"The y offset for third person perspective.");
 	cg_third_person_z = cgi.AddCvar("cg_third_person_z", "40", CVAR_ARCHIVE,
-	                             "The z offset for third person perspective.");
+									"The z offset for third person perspective.");
 	cg_third_person_pitch = cgi.AddCvar("cg_third_person_pitch", "0", CVAR_ARCHIVE,
-	                                 "The pitch offset for third person perspective.");
+										"The pitch offset for third person perspective.");
 	cg_third_person_yaw = cgi.AddCvar("cg_third_person_yaw", "0", CVAR_ARCHIVE,
-	                               "The yaw offset for third person perspective.");
+									  "The yaw offset for third person perspective.");
+
+	cg_spectator = cgi.AddCvar("spectator", "0", CVAR_ARCHIVE | CVAR_USER_INFO,
+						       "Controls connection spectator status. If 1, you'll be put into spectator mode automatically.");
 
 	g_gameplay = cgi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO,
 	                      "Selects deathmatch, duel, arena, or instagib combat");
-	g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO,
-	                   "Enables teams-based play");
-	g_ctf = cgi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO,
-	                 "Enables capture the flag gameplay");
-	g_match = cgi.AddCvar("g_match", "0", CVAR_SERVER_INFO,
-	                   "Enables match play requiring players to ready");
+	g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
+	g_ctf = cgi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
+	g_match = cgi.AddCvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
 	g_ai_max_clients = cgi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
-	                           "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
+								   "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
 	// add forward to server commands for tab completion
 
@@ -267,7 +266,6 @@ static void Cg_Init(void) {
 	cgi.AddCmd("god", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("no_clip", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("weapon_last", NULL, CMD_CGAME, NULL);
-	cgi.AddCmd("vote", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team_name", NULL, CMD_CGAME, NULL);
 	cgi.AddCmd("team_skin", NULL, CMD_CGAME, NULL);
@@ -280,6 +278,8 @@ static void Cg_Init(void) {
 	Cg_InitUi();
 
 	Cg_InitHud();
+
+	Cg_InitDiscord();
 
 	cgi.Print("Client game module initialized\n");
 }
@@ -295,11 +295,11 @@ static void Cg_Shutdown(void) {
 
 	Cg_ShutdownUi();
 
+	Cg_ShutdownDiscord();
+
 	cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 	cgi.FreeTag(MEM_TAG_CGAME);
 }
-
-cg_team_info_t cg_team_info[MAX_TEAMS];
 
 /**
  * @brief Resolve team info from team configstring
@@ -309,20 +309,21 @@ static void Cg_ParseTeamInfo(const char *s) {
 	gchar **info = g_strsplit(s, "\\", 0);
 	const size_t count = g_strv_length(info);
 
-	if (count != lengthof(cg_team_info) * 3) {
+	if (count != lengthof(cg_state.teams) * 4) {
 		g_strfreev(info);
-		cgi.Error("Invalid team data");
+		cgi.Error("Invalid team data: %s\n", s);
 	}
 
-	cg_team_info_t *team = cg_team_info;
+	cg_team_info_t *team = cg_state.teams;
+	for (size_t i = 0; i < count; i += 4, team++) {
 
-	for (size_t i = 0; i < count; i += 3, team++) {
+		team->id = atoi(info[i + 0]);
 
-		g_strlcpy(team->team_name, info[i], sizeof(team->team_name));
+		g_strlcpy(team->name, info[i + 1], sizeof(team->name));
 
-		team->hue = atoi(info[i + 1]);
+		team->hue = atoi(info[i + 2]);
 
-		if (!Color_Parse(info[i + 2], &team->color)) {
+		if (!Color_Parse(info[i + 3], &team->color)) {
 			team->color = color_white;
 		}
 	}
@@ -342,8 +343,8 @@ static void Cg_UpdateConfigString(int32_t i) {
 		case CS_WEATHER:
 			cg_state.weather = Cg_ParseWeather(s);
 			return;
-		case CS_HOOK_PULL_SPEED:
-			cg_state.hook_pull_speed = strtof(s, NULL);
+		case CS_NUM_TEAMS:
+			cg_state.num_teams = Clampf(atoi(s), 0, MAX_TEAMS);
 			return;
 		case CS_TEAM_INFO:
 			Cg_ParseTeamInfo(s);
@@ -351,13 +352,35 @@ static void Cg_UpdateConfigString(int32_t i) {
 		case CS_WEAPONS:
 			Cg_ParseWeaponInfo(s);
 			return;
-		default:
-			break;
+		case CS_CTF:
+			cg_state.ctf = Clampf(atoi(s), 0, 1);
+			return;
+		case CS_HOOK_PULL_SPEED:
+			cg_state.hook_pull_speed = strtof(s, NULL);
+			return;
+		case CS_MAXCLIENTS:
+			cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_NUMCLIENTS:
+			cg_state.num_clients = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_MATCH:
+			cg_state.match = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_ROUND:
+			cg_state.round = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_ROUNDS:
+			cg_state.num_rounds = (int32_t) strtol(s, NULL, 10);
+			return;
+		case CS_NAV_EDIT:
+			cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);
+			return;
 	}
 
 	if (i >= CS_CLIENTS && i < CS_CLIENTS + MAX_CLIENTS) {
 
-		cl_client_info_t *ci = &cgi.client->client_info[i - CS_CLIENTS];
+		cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
 		Cg_LoadClient(ci, s);
 
 		cl_entity_t *ent = &cgi.client->entities[i - CS_CLIENTS + 1];
@@ -376,8 +399,10 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 		case SV_CMD_CONFIG_STRING:
 			Cg_UpdateConfigString((int32_t) (intptr_t) data);
 			break;
-		case SV_CMD_SOUND:
-			Cg_AddSample(cgi.stage, (s_play_sample_t *) data);
+		case SV_CMD_FRAME:
+			if (cg_spectator->integer) {
+				cgi.SetCvarInteger("spectator", 0);
+			}
 			break;
 	}
 }
@@ -385,9 +410,13 @@ static void Cg_ParsedMessage(int32_t cmd, void *data) {
 /**
  * @brief Parse a single server command, returning true on success.
  */
-static _Bool Cg_ParseMessage(int32_t cmd) {
+static bool Cg_ParseMessage(int32_t cmd) {
 
 	switch (cmd) {
+		case SV_CMD_SOUND:
+			Cg_ParseSound();
+			return true;
+
 		case SV_CMD_TEMP_ENTITY:
 			Cg_ParseTempEntity();
 			return true;
@@ -464,7 +493,6 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 
 	Cg_AddLights();
 
-
 	if (*cg_draw_trace_test->string && *cg_draw_trace_test->string != '0') {
 		static box3_t bounds;
 
@@ -483,14 +511,57 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	}
 }
 
+static const char *Cg_Nav_KeyBind(const char *bind) {
+	SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
+
+	if (code == SDL_SCANCODE_UNKNOWN) {
+		return "^1UNBOUND^7";
+	}
+
+	return va("^2%s^7", cgi.KeyName(code));
+}
+
 /**
  * @brief
  */
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
-	Cg_DrawHud(&frame->ps);
+	// hide HUD in nav edit
+	if (cg_state.nav_edit) {
 
-	Cg_DrawScores(&frame->ps);
+		if (cg_state.nav_edit == 1) {
+			GLint ch;
+			cgi.BindFont("small", NULL, &ch);
+
+			GLint y = 32;
+
+			cgi.Draw2DString(32, y += ch, "NAVIGATION EDIT MODE", color_blue);
+			cgi.Draw2DString(32, y += ch, "You're in nav edit mode; items can't be picked up,", color_white);
+			cgi.Draw2DString(32, y += ch, "you can't die, and the map will never end.", color_white);
+
+			cgi.Draw2DString(32, y += ch, va("* To start placing/linking nav nodes, press %s. A node will", Cg_Nav_KeyBind("+attack")), color_white);
+			cgi.Draw2DString(32, y += ch, "  drop at your location, and you can now place them", color_white);
+			cgi.Draw2DString(32, y += ch, "  by running around like you normally would.", color_white);
+
+			cgi.Draw2DString(32, y += ch, va("* To stop placing/linking nodes, press %s again.", Cg_Nav_KeyBind("+attack")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To change a node's position, select the node by touching it", color_white);
+			cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("use")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To delete a node, select the node by touching it", color_white);
+			cgi.Draw2DString(32, y += ch, va("  so it turns yellow, and press %s.", Cg_Nav_KeyBind("+hook")), color_white);
+
+			cgi.Draw2DString(32, y += ch, "* To adjust the link state between two nodes, select", color_white);
+			cgi.Draw2DString(32, y += ch, "  the nodes by touching them so they turn yellow & purple respectively", color_white);
+			cgi.Draw2DString(32, y += ch, va("  then tap %s to cycle between connection types.", Cg_Nav_KeyBind("+score")), color_white);
+		}
+
+	} else {
+
+		Cg_DrawHud(&frame->ps);
+
+		Cg_DrawScores(&frame->ps);
+	}
 }
 
 /**
@@ -520,6 +591,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
 	cge.PrepareScene = Cg_PrepareScene;
 	cge.PopulateScene = Cg_PopulateScene;
 	cge.UpdateScreen = Cg_UpdateScreen;
+	cge.UpdateDiscord = Cg_UpdateDiscord;
 
 	return &cge;
 }

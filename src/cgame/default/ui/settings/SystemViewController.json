@@ -172,62 +172,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Brightness"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_brightness"
-                        }
-                      },
-					  {
-						"class": "Input",
-						"label": {
-						  "text": {
-							"text": "Saturation"
-						  }
-						},
-						"control": {
-						  "class": "CvarSlider",
-						  "min": 0.1,
-						  "max": 2,
-						  "var": "r_saturation"
-						}
-					  },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Contrast"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_contrast"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Gamma"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_gamma"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Modulate"
                           }
                         },
@@ -236,62 +180,6 @@
                           "min": 0.1,
                           "max": 2,
                           "var": "r_modulate"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Roughness"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_roughness"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Hardness"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_hardness"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Specularity"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_specularity"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Parallax"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.1,
-                          "max": 2,
-                          "var": "r_parallax"
                         }
                       }
                     ]

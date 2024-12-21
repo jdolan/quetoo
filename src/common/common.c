@@ -38,7 +38,7 @@ void Com_LogString(const char *str) {
 		return;
 	}
 
-	fprintf(quetoo.log_file, "%s", str);
+	fputs(str, quetoo.log_file);
 	fflush(quetoo.log_file);
 }
 
@@ -81,6 +81,13 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
 	"sound",
 	"ui"
 };
+
+/**
+ * @return True if the specified debug flag(s) are enabled.
+ */
+bool Com_IsDebug(const debug_t debug) {
+	return (quetoo.debug_mask & debug) != 0;
+}
 
 /**
  * @return A string containing all enabled debug categories.

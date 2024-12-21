@@ -33,23 +33,18 @@ static EditorViewController *editorViewController;
  */
 void Ui_CheckEditor(void) {
 
-	if (cl_editor->modified || cls.loading.percent == 100) {
+	if (cls.state != CL_ACTIVE) {
+		return;
+	}
 
-		if (cl_editor->integer) {
-			if (cls.state != CL_ACTIVE) {
-				return;
-			}
-
-			if (editorViewController == NULL) {
-				editorViewController = $(alloc(EditorViewController), init);
-			}
-
+	if (cl_editor->integer) {
+		if (Ui_TopViewController() != (ViewController *) editorViewController) {
 			Ui_PushViewController((ViewController *) editorViewController);
-		} else if (editorViewController) {
+		}
+	} else {
+		if (Ui_TopViewController() == (ViewController *) editorViewController) {
 			Ui_PopViewController();
 		}
-
-		cl_editor->modified = false;
 	}
 }
 
@@ -58,7 +53,7 @@ void Ui_CheckEditor(void) {
  */
 void Ui_InitEditor(void) {
 
-	editorViewController = NULL;
+	editorViewController = $(alloc(EditorViewController), init);
 }
 
 /**

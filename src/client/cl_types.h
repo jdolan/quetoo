@@ -43,8 +43,8 @@ typedef struct {
 	player_state_t ps; // the player state
 	int32_t num_entities; // the number of entities in the frame
 	uint32_t entity_state; // non-masked index into cl.entity_states array
-	_Bool valid; // false if delta parsing failed
-	_Bool interpolated; // true if this frame has been interpolated one or more times
+	bool valid; // false if delta parsing failed
+	bool interpolated; // true if this frame has been interpolated one or more times
 	uint32_t time; // simulation time for which the frame is valid
 } cl_frame_t;
 
@@ -55,7 +55,7 @@ typedef struct {
 	int32_t old_frame;
 	float lerp;
 	float fraction;
-	_Bool reverse;
+	bool reverse;
 } cl_entity_animation_t;
 
 typedef enum {
@@ -87,37 +87,14 @@ typedef struct {
 	vec3_t angles; // and angles
 	box3_t bounds; // bounding box
 	box3_t abs_bounds; // absolute bounding box
+
 	float legs_yaw; // only used by player models; leg angle ideal yaw
 	float legs_current_yaw; // only used by player models
 	float step_offset; // interpolated step offset
 
-	mat4_t matrix; // snapped transform matrix, for collision
-	mat4_t inverse_matrix; // inverse transform
+	mat4_t matrix; // snapped transform matrix, for traces
+	mat4_t inverse_matrix; // inverse transform, for point contents
 } cl_entity_t;
-
-// the total number of tokens info can contain
-#define MAX_CLIENT_INFO_ENTRIES		6
-
-typedef struct {
-	char info[MAX_STRING_CHARS]; // the full info string, e.g. newbie\qforcer/blue
-	char name[MAX_USER_INFO_VALUE]; // the player name, e.g. newbie
-	char model[MAX_USER_INFO_VALUE]; // the model name, e.g. qforcer
-	char skin[MAX_USER_INFO_VALUE]; // the skin name, e.g. blue
-
-	color_t shirt, pants, helmet; // player and effects colors
-	float hue;
-
-	r_model_t *head;
-	r_material_t *head_skins[MAX_ENTITY_SKINS];
-
-	r_model_t *torso;
-	r_material_t *torso_skins[MAX_ENTITY_SKINS];
-
-	r_model_t *legs;
-	r_material_t *legs_skins[MAX_ENTITY_SKINS];
-
-	r_image_t *icon; // for the scoreboard
-} cl_client_info_t;
 
 /**
  * @brief A circular buffer of recently sent user_cmd_t is maintained so that
@@ -140,7 +117,7 @@ typedef struct {
 		float step_offset;
 	} view;
 
-	struct g_entity_s *ground_entity;
+	cm_trace_t ground;
 
 	vec3_t error; // the prediction error, interpolated over the current server frame
 } cl_predicted_state_t;
@@ -284,12 +261,12 @@ typedef struct {
 	/**
 	 * @brief True if we are viewing a demo.
 	 */
-	_Bool demo_server;
+	bool demo_server;
 
 	/**
 	 * @brief True if we are in 3rd person view, which disables client-side prediction.
 	 */
-	_Bool third_person;
+	bool third_person;
 
 	/**
 	 * @brief The parsed configuration strings.
@@ -325,11 +302,6 @@ typedef struct {
 	 * @brief The index into `config_strings` to check for file presence or download.
 	 */
 	int32_t precache_check;
-
-	/**
-	 * @brief The cache of known client skins contained within `config_strings`.
-	 */
-	cl_client_info_t client_info[MAX_CLIENTS];
 } cl_client_t;
 
 typedef enum {
@@ -390,12 +362,12 @@ typedef struct {
 	cl_key_dest_t dest;
 
 	char *binds[SDL_NUM_SCANCODES];
-	_Bool down[SDL_NUM_SCANCODES];
-	_Bool latched[SDL_NUM_SCANCODES];
+	bool down[SDL_NUM_SCANCODES];
+	bool latched[SDL_NUM_SCANCODES];
 } cl_key_state_t;
 
 typedef struct {
-	_Bool team_chat;
+	bool team_chat;
 } cl_chat_state_t;
 
 typedef struct {

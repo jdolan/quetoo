@@ -74,6 +74,33 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 	return NULL;
 }
 
+/**
+ * @brief Resolves the average color of the specified surface.
+ */
+color_t Img_Color(const SDL_Surface *surf) {
+	color_t out = color_white;
+
+	if (surf) {
+		const int32_t texels = surf->w * surf->h;
+		uint64_t r = 0, g = 0, b = 0;
+
+		for (int32_t j = 0; j < texels; j++) {
+
+			const byte *pos = (byte *) surf->pixels + j * 4;
+
+			r += *pos++;
+			g += *pos++;
+			b += *pos++;
+		}
+
+		out = Color3f((r / (float) texels) / 255.f,
+					  (g / (float) texels) / 255.f,
+					  (b / (float) texels) / 255.f);
+	}
+
+	return out;
+}
+
 // Quick access of a pixel
 #define SDL_PIXEL_AT(surf, type, x, y) \
 	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
@@ -131,11 +158,10 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 	return output;
 }
 
-
 /**
 * @brief Write pixel data to a PNG file.
 */
-_Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
+bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 
@@ -180,7 +206,7 @@ typedef struct {
 /**
 * @brief Write pixel data to a TGA file.
 */
-_Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
+bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 
@@ -217,7 +243,7 @@ _Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height
 /**
 * @brief Write pixel data to a PBM file.
 */
-_Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
+bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
 	SDL_RWops *f;
 	const char *real_path = Fs_RealPath(path);
 

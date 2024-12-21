@@ -120,7 +120,11 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 			ent->s.sound = ent->locals.sound;
 		}
 	} else { // intermittent sound
-		gi.PositionedSound(ent->s.origin, ent, ent->locals.sound, ent->locals.atten, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = ent->locals.sound,
+			.origin = &ent->s.origin,
+			.atten = ent->locals.atten
+		}, MULTICAST_PHS, NULL);
 	}
 }
 

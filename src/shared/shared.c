@@ -26,7 +26,7 @@
 /**
  * @brief Handles wildcard suffixes for GlobMatch.
  */
-static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
+static bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
 	const char *p = pattern, *t = text;
 	register char c, c1;
 
@@ -75,7 +75,7 @@ static _Bool GlobMatchStar(const char *pattern, const char *text, const glob_fla
  * To suppress the special syntactic significance of any of `[]*?!-\',
  * and match the character exactly, precede it with a `\'.
  */
-_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
+bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
 	const char *p = pattern, *t = text;
 	register char c;
 
@@ -257,7 +257,7 @@ void StripExtension(const char *in, char *out) {
 /**
  * @return True if `c` is a color escape sequence, false otherwise.
  */
-_Bool StrIsColor(const char *c) {
+bool StrIsColor(const char *c) {
 	if (c) {
 		if (*c == ESC_COLOR) {
 			const char num = *(c + 1);
@@ -272,7 +272,7 @@ _Bool StrIsColor(const char *c) {
 /**
  * @return True if `c` is an emoji escape sequence, false otherwise.
  */
-_Bool StrIsEmoji(const char *c) {
+bool StrIsEmoji(const char *c) {
 	if (c) {
 		if (*c == ESC_EMOJI) {
 			c++;
@@ -325,7 +325,7 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 	in++;
 
 	for (size_t i = 0; i < out_size - 1; i++) {
-		if (isalnum(*in)) {
+		if (isalnum(*in) || strchr("_", *in)) {
 			if (out) {
 				*out++ = *in++;
 			}
@@ -569,7 +569,7 @@ void DeleteUserInfo(char *s, const char *key) {
  * @brief Returns true if the specified user-info string appears valid, false
  * otherwise.
  */
-_Bool ValidateUserInfo(const char *s) {
+bool ValidateUserInfo(const char *s) {
 	if (!s || !*s) {
 		return false;
 	}

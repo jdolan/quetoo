@@ -28,9 +28,11 @@ libcguimain_la_CFLAGS = \
 	-I$(top_srcdir)/src/cgame/default/ui/home \
 	-I$(top_srcdir)/src/cgame/default/ui/play \
 	-I$(top_srcdir)/src/cgame/default/ui/settings \
+	-I$(top_srcdir)/src/cgame/default/ui/teams \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 libcguimain_la_LDFLAGS = \

@@ -12,9 +12,9 @@ noinst_HEADERS = \
 	light.h \
 	lightgrid.h \
 	lightmap.h \
+	luxel.h \
 	material.h \
 	monitor.h \
-	patch.h \
 	points.h \
 	polylib.h \
 	portal.h \
@@ -25,7 +25,7 @@ noinst_HEADERS = \
 	quemap.h \
 	qzip.h \
 	simplex.h \
-	texinfo.h \
+	texture.h \
 	tjunction.h \
 	tree.h \
 	work.h \
@@ -42,11 +42,11 @@ quemap_SOURCES = \
 	light.c \
 	lightgrid.c \
 	lightmap.c \
+	luxel.c \
 	main.c \
 	map.c \
 	material.c \
 	monitor.c \
-	patch.c \
 	polylib.c \
 	portal.c \
 	prtfile.c \
@@ -55,7 +55,7 @@ quemap_SOURCES = \
 	qlight.c \
 	qzip.c \
 	simplex.c \
-	texinfo.c \
+	texture.c \
 	tjunction.c \
 	tree.c \
 	work.c \

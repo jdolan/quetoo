@@ -24,11 +24,17 @@
 #include "cm_local.h"
 
 /**
- * @brief Free the memory for the specified material.
+ * @brief Free the specified material.
  */
 void Cm_FreeMaterial(cm_material_t *material) {
-
 	Mem_Free(material);
+}
+
+/**
+ * @brief Free the specified list and all included materials.
+ */
+void Cm_FreeMaterials(GList *materials) {
+	g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
 }
 
 /**
@@ -198,7 +204,7 @@ static void Cm_MaterialWarn(const char *path, const parser_t *parser, const char
 /**
  * @brief
  */
-static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
+static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, const char *path) {
 	char token[MAX_TOKEN_CHARS];
 
 	while (true) {
@@ -288,12 +294,12 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 
 		if (!g_strcmp0(token, "stretch")) {
 
-			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amp, 1) != 1) {
+			if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->stretch.amplitude, 1) != 1) {
 				Cm_MaterialWarn(path, parser, "No value provided for amplitude");
 				continue;
 			}
 
-			if (s->stretch.amp == 0.0f) {
+			if (s->stretch.amplitude == 0.0f) {
 				Cm_MaterialWarn(path, parser, "Amplitude must not be zero");
 			}
 
@@ -306,7 +312,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 				Cm_MaterialWarn(path, parser, "Frequency must not be zero");
 			}
 
-			if (s->stretch.amp != 0.0f &&
+			if (s->stretch.amplitude != 0.0f &&
 				s->stretch.hz != 0.0f) {
 				s->flags |= STAGE_STRETCH;
 			}
@@ -405,7 +411,6 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			if (s->terrain.ceil <= s->terrain.floor) {
 				Cm_MaterialWarn(path, parser, "Terrain ceiling must be > floor");
 			} else {
-				s->terrain.height = s->terrain.ceil - s->terrain.floor;
 				s->flags |= STAGE_TERRAIN;
 			}
 
@@ -565,7 +570,7 @@ static _Bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, co
 			          "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
 			          ((s->flags & STAGE_MATERIAL) ? "true" : "false"), s->blend.src,
 			          s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
-			          s->stretch.amp, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
+			          s->stretch.amplitude, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
 			          s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
 			          s->animation.fps);
 
@@ -594,7 +599,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
 /**
  * @brief
  */
-static void Cm_AttachStage(cm_material_t *m, cm_stage_t *s) {
+static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
 
 	if (m->stages == NULL) {
 		m->stages = s;
@@ -637,10 +642,11 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
 	Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
 
-	mat->roughness = DEFAULT_ROUGHNESS;
-	mat->hardness = DEFAULT_HARDNESS;
-	mat->parallax = DEFAULT_PARALLAX;
-	mat->specularity = DEFAULT_SPECULARITY;
+	mat->roughness = MATERIAL_ROUGHNESS;
+	mat->hardness = MATERIAL_HARDNESS;
+	mat->specularity = MATERIAL_SPECULARITY;
+	mat->parallax = MATERIAL_PARALLAX;
+	mat->bloom = MATERIAL_BLOOM;
 
 	return mat;
 }
@@ -663,7 +669,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 	parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
 	cm_material_t *m = NULL;
-	_Bool in_material = false;
+	bool in_material = false;
 
 	while (true) {
 		char token[MAX_TOKEN_CHARS];
@@ -671,6 +677,18 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
 			break;
 		}
+        
+        if (!g_strcmp0(token, "#include")) {
+            
+            if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
+                Cm_MaterialWarn(path, &parser, "Missing include name");
+                continue;
+            }
+            
+            Com_Debug(DEBUG_COLLISION, "Including materials from %s\n", token);
+            Cm_LoadMaterials(token, materials);
+            continue;
+        }
 
 		if (*token == '{' && !in_material) {
 			in_material = true;
@@ -688,15 +706,16 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			assert(m);
 
 			for (const GList *list = *materials; list; list = list->next) {
-				const cm_material_t *mat = list->data;
-				if (!g_strcmp0(m->basename, mat->basename)) {
-					Cm_MaterialWarn(path, &parser, "Ignoring redefined material");
-					Cm_FreeMaterial(m);
-					m = NULL;
+				cm_material_t *material = list->data;
+				if (!g_strcmp0(m->basename, material->basename)) {
+					Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
+                    *materials = g_list_remove(*materials, material);
+					Cm_FreeMaterial(material);
 					break;
 				}
 			}
 
+			g_strlcpy(m->path, path, sizeof(m->path));
 			continue;
 		}
 
@@ -712,9 +731,9 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
-		if (!g_strcmp0(token, "glossmap")) {
+		if (!g_strcmp0(token, "heightmap")) {
 
-			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->glossmap.name, sizeof(m->glossmap.name))) {
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
 				Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
 				continue;
 			}
@@ -773,8 +792,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No roughness specified");
 			} else if (m->roughness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
-				m->roughness = DEFAULT_ROUGHNESS;
+				Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
+				m->roughness = MATERIAL_ROUGHNESS;
 			}
 		}
 
@@ -783,8 +802,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No hardness specified");
 			} else if (m->hardness < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be > 0.0");
-				m->hardness = DEFAULT_HARDNESS;
+				Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
+				m->hardness = MATERIAL_HARDNESS;
 			}
 		}
 
@@ -793,19 +812,31 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
 				Cm_MaterialWarn(path, &parser, "No specularity specified");
 			} else if (m->specularity < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be > 0.0");
-				m->specularity = DEFAULT_HARDNESS;
+				Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
+				m->specularity = MATERIAL_SPECULARITY;
 			}
 		}
 
-		if (!g_strcmp0(token, "parallax")) {
+		if (!g_strcmp0(token, "bloom")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No parallax specified");
-			} else if (m->parallax < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid parallax value, must be > 0.0");
-				m->parallax = DEFAULT_PARALLAX;
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->bloom, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No bloom specified");
+			} else if (m->bloom < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid bloom value, must be >= 0.0");
+				m->bloom = MATERIAL_BLOOM;
 			}
+		}
+
+		if (!g_strcmp0(token, "alpha_test")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No alpha test specified");
+			} else if (m->alpha_test < 0.f || m->alpha_test > 1.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid alpha test value, must be > 0.0 and < 1.0");
+				m->alpha_test = MATERIAL_ALPHA_TEST;
+			}
+
+			m->surface |= SURF_ALPHA_TEST;
 		}
 
 		if (!g_strcmp0(token, "contents")) {
@@ -828,34 +859,95 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			continue;
 		}
 
-		if (!g_strcmp0(token, "light")) {
+		if (!g_strcmp0(token, "footsteps")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light specified");
-				m->light = DEFAULT_LIGHT;
-			} else if (m->light < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid light value, must be > 0.0");
-				m->light = DEFAULT_LIGHT;
+			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
+				Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
 			}
+		}
+
+		if (!g_strcmp0(token, "parallax")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No parallax specified");
+			} else if (m->parallax < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
+				m->parallax = MATERIAL_PARALLAX;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.radius") || !g_strcmp0(token, "light")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light radius specified");
+			} else if (m->light.radius < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
+				m->light.radius = MATERIAL_LIGHT_RADIUS;
+			}
+
+			m->light.atten = MATERIAL_LIGHT_ATTEN;
+			m->light.intensity = MATERIAL_LIGHT_INTENSITY;
+			m->light.shadow = MATERIAL_LIGHT_SHADOW;
+			m->light.cone = MATERIAL_LIGHT_CONE;
+			m->light.falloff = MATERIAL_LIGHT_FALLOFF;
 
 			m->surface |= SURF_LIGHT;
 		}
 
-		if (!g_strcmp0(token, "patch_size")) {
+		if (!g_strcmp0(token, "light.atten")) {
 
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->patch_size, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No patch size specified");
-				m->patch_size = DEFAULT_PATCH_SIZE;
-			} else if (m->patch_size < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid patch size value, must be > 0.0");
-				m->patch_size = DEFAULT_PATCH_SIZE;
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.atten, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light atten specified");
+			} else if (m->light.atten < 1) {
+				Cm_MaterialWarn(path, &parser, "Invalid light atten, must be > 0");
+				m->light.atten = MATERIAL_LIGHT_ATTEN;
 			}
 		}
 
-		if (!g_strcmp0(token, "footsteps")) {
+		if (!g_strcmp0(token, "light.color")) {
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, m->light.color.xyz, 3) != 3) {
+				Cm_MaterialWarn(path, &parser, "Invalid light color");
+				m->light.color = Vec3_Zero();
+			}
+		}
 
-			if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps, sizeof(m->footsteps))) {
-				Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
+		if (!g_strcmp0(token, "light.intensity")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light intensity specified");
+			} else if (m->light.intensity <= 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
+				m->light.intensity = MATERIAL_LIGHT_INTENSITY;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.shadow")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.shadow, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light shadow specified");
+			} else if (m->light.shadow < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light shadow, must be >= 0.0");
+				m->light.shadow = MATERIAL_LIGHT_SHADOW;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.cone")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.cone, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light cone specified");
+			} else if (m->light.cone <= 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light cone, must be > 0.0");
+				m->light.cone = MATERIAL_LIGHT_CONE;
+			}
+		}
+
+		if (!g_strcmp0(token, "light.falloff")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.falloff, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light falloff specified");
+			} else if (m->light.falloff < 0.f) {
+				Cm_MaterialWarn(path, &parser, "Invalid light falloff, must be >= 0.0");
+				m->light.falloff = MATERIAL_LIGHT_FALLOFF;
 			}
 		}
 
@@ -870,9 +962,9 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 
 			// append the stage to the chain
-			Cm_AttachStage(m, s);
+			Cm_AppendStage(m, s);
 
-			m->flags |= s->flags;
+			m->stage_flags |= s->flags;
 			continue;
 		}
 
@@ -895,7 +987,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
-static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
+static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 	const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
 	char name[MAX_QPATH];
 
@@ -947,7 +1039,7 @@ static _Bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 /**
  * @brief
  */
-static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
 
 	if (!Cm_ResolveAsset(&stage->asset, context)) {
 		Com_Warn("Failed to resolve animation asset %s\n", stage->asset.name);
@@ -957,29 +1049,48 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t cont
 	const size_t size = sizeof(cm_asset_t) * stage->animation.num_frames;
 	stage->animation.frames = Mem_LinkMalloc(size, stage);
 
-	char base[MAX_QPATH];
-	g_strlcpy(base, stage->asset.name, sizeof(base));
+	if (g_str_has_prefix(stage->asset.name, "+0")) { // support for Quake style "+0texture" naming
+		const char *base = stage->asset.name + 2;
 
-	char *c = base + strlen(base) - 1;
-	while (isdigit(*c)) {
-		c--;
-	}
+		for (int32_t i = 1; i < stage->animation.num_frames; i++) {
 
-	c++;
+			cm_asset_t *frame = &stage->animation.frames[i];
+			g_snprintf(frame->name, sizeof(frame->name), "+%d%s", i, base);
 
-	int32_t start = (int32_t) strtol(c, NULL, 10);
-	*c = '\0';
+			if (!Cm_ResolveAsset(frame, context)) {
+				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
+				return false;
+			}
+		}
+	} else { // as well as suffix "texture0" naming
 
-	for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+		char base[MAX_QPATH];
+		g_strlcpy(base, stage->asset.name, sizeof(base));
 
-		cm_asset_t *frame = &stage->animation.frames[i];
-		g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
 
-		if (!Cm_ResolveAsset(frame, context)) {
-			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
-			return false;
+		char *c = base + strlen(base) - 1;
+		while (isdigit(*c)) {
+			c--;
+		}
+
+		c++;
+
+		int32_t start = (int32_t) strtol(c, NULL, 10);
+		*c = '\0';
+
+		for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+
+			cm_asset_t *frame = &stage->animation.frames[i];
+			g_snprintf(frame->name, sizeof(frame->name), "%s%d", base, start + i);
+
+			if (!Cm_ResolveAsset(frame, context)) {
+				Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->asset.name);
+				return false;
+			}
 		}
 	}
+
+
 
 	return true;
 }
@@ -987,9 +1098,9 @@ static _Bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t cont
 /**
  * @brief
  */
-static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
+static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
 
-	_Bool res = false;
+	bool res = false;
 	
 	if (*stage->asset.name) {
 
@@ -1018,7 +1129,7 @@ static _Bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, c
 /**
  * @brief Resolves the asset for the given material.
  */
-static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
+static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
 
 	if (*asset->name) {
 		return Cm_ResolveAsset(asset, context);
@@ -1037,9 +1148,56 @@ static _Bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset,
 }
 
 /**
+ * @brief Filesystem enumerator for resolving footstep assets.
+ */
+static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
+
+	cm_footsteps_t *footsteps = data;
+
+	cm_asset_t *out = footsteps->samples + footsteps->num_samples;
+
+	out->name[0] = '#';
+	g_strlcat(out->name, file, sizeof(out->name));
+	g_strlcpy(out->path, file, sizeof(out->path));
+
+	footsteps->num_samples++;
+}
+
+/**
+ * @brief Comparator for sorting footstep assets.
+ */
+static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
+
+	const cm_asset_t *a_asset = a;
+	const cm_asset_t *b_asset = b;
+
+	return g_strcmp0(a_asset->name, b_asset->name);
+}
+
+/**
+ * @brief Resolves
+ */
+static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
+
+	if (!strlen(footsteps->name)) {
+		g_strlcpy(footsteps->name, "default", sizeof(footsteps->name));
+	}
+
+	const char *pattern = va("players/common/step_%s_*", footsteps->name);
+
+	Fs_Enumerate(pattern, Cm_ResolveFootsteps_Enumerate, footsteps);
+
+	if (!footsteps->num_samples) {
+		Com_Warn("Footsteps \"%s\" have no samples\n", footsteps->name);
+	} else {
+		qsort(footsteps->samples, footsteps->num_samples, sizeof(cm_asset_t), Cm_ResolveFootsteps_Compare);
+	}
+}
+
+/**
  * @brief Resolves all asset references within the specified material.
  */
-_Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
+bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 
 	assert(material);
 
@@ -1048,10 +1206,15 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 	}
 
 	Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
-	Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
-	Cm_ResolveMaterialAsset(material, &material->glossmap, context, (const char *[]) { "_g", "_gloss", NULL });
-	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", NULL });
-	Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
+	Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
+
+	if (context == ASSET_CONTEXT_TEXTURES) {
+		Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
+	}
+
+	if (context == ASSET_CONTEXT_PLAYERS || context == ASSET_CONTEXT_MODELS) {
+		Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
+	}
 
 	cm_stage_t *stage = material->stages;
 	while (stage) {
@@ -1061,6 +1224,8 @@ _Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
 			return false;
 		}
 	}
+
+	Cm_ResolveFootsteps(&material->footsteps);
 
 	return true;
 }
@@ -1088,7 +1253,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 	}
 
 	if (stage->flags & STAGE_STRETCH) {
-		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amp, stage->stretch.hz);
+		Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amplitude, stage->stretch.hz);
 	}
 
 	if (stage->flags & STAGE_ROTATE) {
@@ -1152,17 +1317,13 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	Fs_Print(file, "{\n");
 
-	// write the innards
-	Fs_Print(file, "\tmaterial %s\n", material->name);
+	Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
 	if (*material->normalmap.name) {
 		Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
 	}
 	if (*material->heightmap.name) {
 		Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
-	}
-	if (*material->glossmap.name) {
-		Fs_Print(file, "\tglossmap %s\n", material->glossmap.name);
 	}
 	if (*material->specularmap.name) {
 		Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
@@ -1172,9 +1333,11 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	Fs_Print(file, "\troughness %g\n", material->roughness);
+	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
+	Fs_Print(file, "\tbloom %g\n", material->bloom);
 
 	if (material->contents) {
 		Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
@@ -1184,17 +1347,44 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 		Fs_Print(file, "\tsurface \"%s\"\n", Cm_UnparseSurface(material->surface));
 	}
 
-	if (material->light) {
-		Fs_Print(file, "\tlight %g\n", material->light);
+	if (material->surface & SURF_ALPHA_TEST) {
+
+		if (material->alpha_test != MATERIAL_ALPHA_TEST) {
+			Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+		}
 	}
 
-	if (material->patch_size) {
-		Fs_Print(file, "\tpatch_size %g\n", material->patch_size);
+	if (material->surface & SURF_LIGHT) {
+		const vec3_t color = material->light.color;
+
+		if (material->light.atten != MATERIAL_LIGHT_ATTEN) {
+			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
+		}
+
+		if (material->light.radius != MATERIAL_LIGHT_RADIUS) {
+			Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
+		}
+
+		if (!Vec3_Equal(material->light.color, Vec3_Zero())) {
+			Fs_Print(file, "\tlight.color %g %g %g\n", color.x, color.y, color.z);
+		}
+
+		if (material->light.intensity != MATERIAL_LIGHT_INTENSITY) {
+			Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
+		}
+
+		if (material->light.cone != MATERIAL_LIGHT_CONE) {
+			Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
+		}
+
+		if (material->light.falloff != MATERIAL_LIGHT_FALLOFF) {
+			Fs_Print(file, "\tlight.falloff %g\n", material->light.falloff);
+		}
 	}
 
 	// if not empty/default, write footsteps
-	if (*material->footsteps && g_strcmp0(material->footsteps, "default")) {
-		Fs_Print(file, "\tfootsteps %s\n", material->footsteps);
+	if (*material->footsteps.name && g_strcmp0(material->footsteps.name, "default")) {
+		Fs_Print(file, "\tfootsteps %s\n", material->footsteps.name);
 	}
 
 	// write stages
@@ -1224,8 +1414,14 @@ ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
 
 		GList *sorted = g_list_sort(g_list_copy(materials), Cm_WriteMaterials_compare);
 
-		for (const GList *list = sorted; list; list = list->next, count++) {
-			Cm_WriteMaterial((cm_material_t *) list->data, file);
+		for (const GList *list = sorted; list; list = list->next) {
+			const cm_material_t *m = list->data;
+			if (!g_strcmp0(path, m->path)) {
+				Cm_WriteMaterial(m, file);
+				count++;
+			} else {
+				Com_Debug(DEBUG_COLLISION, "Skipping %s with path %s\n", m->name, m->path);
+			}
 		}
 
 		g_list_free(sorted);

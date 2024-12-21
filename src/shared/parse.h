@@ -147,12 +147,12 @@ static inline parser_t __attribute__ ((warn_unused_result)) Parse_Init(const cha
 	};
 }
 
-_Bool Parse_IsEOF(const parser_t *parser);
-_Bool Parse_IsEOL(const parser_t *parser);
-_Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
+bool Parse_IsEOF(const parser_t *parser);
+bool Parse_IsEOL(const parser_t *parser);
+bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len);
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count);
 
-static inline _Bool Parse_SkipToken(parser_t *parser, const parse_flags_t flags) {
+static inline bool Parse_SkipToken(parser_t *parser, const parse_flags_t flags) {
 	return Parse_Token(parser, flags, NULL, 0);
 }
 
@@ -161,7 +161,7 @@ static inline size_t Parse_SkipPrimitive(parser_t *parser, const parse_flags_t f
 	return Parse_Primitive(parser, flags, type, NULL, count);
 }
 
-static inline _Bool Parse_PeekToken(parser_t *parser, const parse_flags_t flags, void *output, const size_t output_len) {
+static inline bool Parse_PeekToken(parser_t *parser, const parse_flags_t flags, void *output, const size_t output_len) {
 	return Parse_Token(parser, flags | PARSE_PEEK, output, output_len);
 }
 
@@ -170,7 +170,7 @@ static inline size_t Parse_PeekPrimitive(parser_t *parser, const parse_flags_t f
 	return Parse_Primitive(parser, flags | PARSE_PEEK, type, output, count);
 }
 
-static inline _Bool Parse_QuickToken(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
+static inline bool Parse_QuickToken(const char *data, const parser_flags_t parser_flags, const parse_flags_t flags,
 									 void *output, const size_t output_len) {
 	parser_t p = Parse_Init(data, parser_flags);
 	return Parse_Token(&p, flags, output, output_len);

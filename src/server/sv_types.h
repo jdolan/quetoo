@@ -23,7 +23,6 @@
 
 #include "common/common.h"
 
-#include "ai/ai.h"
 #include "game/game.h"
 
 #ifdef __SV_LOCAL_H__
@@ -234,7 +233,7 @@ typedef struct {
  * game module.
  */
 typedef struct {
-	_Bool initialized; // sv_init has completed
+	bool initialized; // sv_init has completed
 
 	uint32_t spawn_count; // incremented each level start, used to check late spawns
 
@@ -259,11 +258,6 @@ typedef struct {
 	 * @brief The exported game module API.
 	 */
 	g_export_t *game;
-
-	/**
-	 * @brief The exported ai module API.
-	 */
-	ai_export_t *ai;
 } sv_static_t;
 
 /**

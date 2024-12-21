@@ -41,9 +41,9 @@ char map_base[MAX_QPATH]; // the base name (e.g. "edge")
 char map_name[MAX_OS_PATH]; // the input map name (e.g. "maps/edge.map")
 char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
-_Bool verbose = false;
-_Bool debug = false;
-static _Bool is_monitor = false;
+bool verbose = false;
+bool debug = false;
+static bool is_monitor = false;
 
 static void Print(const char *msg);
 
@@ -174,37 +174,37 @@ static void Shutdown(const char *msg) {
 static void Check_BSP_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
-			Com_Verbose("no_weld = true\n");
-			no_weld = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
-			Com_Verbose("no_csg = true\n");
-			no_csg = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-share")) {
-			Com_Verbose("no_share = true\n");
-			no_share = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
-			Com_Verbose("no_tjunc = true\n");
-			no_tjunc = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
-			Com_Verbose("no_liquid = true\n");
-			no_liquid = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
-			Com_Verbose("no_prune = true\n");
-			no_prune = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
-			Com_Verbose("no_merge = true\n");
-			no_merge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
-			Com_Verbose("no_detail = true\n");
-			no_detail = true;
-		}else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
-			Com_Verbose("only_ents = true\n");
-			only_ents = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
+		if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
 			micro_volume = atof(Com_Argv(i + 1));
 			Com_Verbose("micro_volume = %f\n", micro_volume);
 			i++;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
+			Com_Verbose("no_csg = true\n");
+			no_csg = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
+			Com_Verbose("no_detail = true\n");
+			no_detail = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
+			Com_Verbose("no_liquid = true\n");
+			no_liquid = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
+			Com_Verbose("no_merge = true\n");
+			no_merge = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
+			Com_Verbose("no_phong = true\n");
+			no_phong = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
+			Com_Verbose("no_prune = true\n");
+			no_prune = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
+			Com_Verbose("no_tjunc = true\n");
+			no_tjunc = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
+			Com_Verbose("no_weld = true\n");
+			no_weld = true;
+		} else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
+			Com_Verbose("only_ents = true\n");
+			only_ents = true;
 		} else {
 			break;
 		}
@@ -217,46 +217,13 @@ static void Check_BSP_Options(int32_t argc) {
 static void Check_LIGHT_Options(int32_t argc) {
 
 	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--no-indirect")) {
-			indirect = false;
-			Com_Verbose("indirect: false\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--antialias")) {
+		if (!g_strcmp0(Com_Argv(i), "--antialias")) {
 			antialias = true;
 			Com_Verbose("antialias: true\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--radiosity")) {
-			radiosity = atof(Com_Argv(i + 1));
-			Com_Verbose("radiosity: %g\n", radiosity);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--bounce")) {
-			num_bounces = (int32_t) CLAMP(strtol(Com_Argv(i + 1), NULL, 10), 1, MAX_BOUNCES);
-			Com_Verbose("bounces: %d\n", num_bounces);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--brightness")) {
-			brightness = atof(Com_Argv(i + 1));
-			Com_Verbose("brightness: %g\n", brightness);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--saturation")) {
-			saturation = atof(Com_Argv(i + 1));
-			Com_Verbose("saturation: %g\n", saturation);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--contrast")) {
-			contrast = atof(Com_Argv(i + 1));
-			Com_Verbose("contrast: %g\n", contrast);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--luxel-size")) {
-			luxel_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("luxel size: %d\n", luxel_size);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--patch-size")) {
-			patch_size = (int32_t) strtol(Com_Argv(i + 1), NULL, 10);
-			Com_Verbose("patch size: %d\n", patch_size);
-			i++;
 		} else {
 			break;
 		}
 	}
-
-	patch_size = Maxf(patch_size, luxel_size);
 }
 
 /**
@@ -269,6 +236,9 @@ static void Check_ZIP_Options(int32_t argc) {
 		if (!g_strcmp0(Com_Argv(i), "--include-shared")) {
 			include_shared = true;
 			Com_Verbose("Including shared assets\n");
+		} else if (!g_strcmp0(Com_Argv(i), "--update")) {
+			update_zip = true;
+			Com_Verbose("Updating existing zip archive\n");
 		} else {
 			break;
 		}
@@ -298,39 +268,32 @@ static void PrintHelpMessage(void) {
 	Com_Print("\n");
 
 	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" --micro_volume <float>\n");
+	Com_Print(" --micro-volume <float>\n");
 	Com_Print(" --no-csg - don't subtract brushes\n");
 	Com_Print(" --no-detail - skip detail brushes\n");
-	Com_Print(" --no-merge - skip node face merging\n");
+	Com_Print(" --no-liquid - skip liquid brushes\n");
+	Com_Print(" --no-phong - don't apply Phong shading\n");
 	Com_Print(" --no-prune - don't prune unused nodes\n");
 	Com_Print(" --no-tjunc - don't fix T-junctions\n");
-	Com_Print(" --no-liquid - skip liquid brushes\n");
 	Com_Print(" --no-weld - don't weld vertices\n");
 	Com_Print(" --only-ents - only update the entity string from the .map\n");
 	Com_Print("\n");
 
 	Com_Print("-light             LIGHT stage options:\n");
 	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-	Com_Print(" --indirect - calculate indirect lighting\n");
-	Com_Print(" --bounce <integer> - indirect lighting bounces (default 1)\n");
-	Com_Print(" --radiosity <float> - radiosity level (default 0.125)\n");
-	Com_Print(" --brightness <float> - brightness (default 1.0)\n");
-	Com_Print(" --contrast <float> - contrast (default 1.0)\n");
-	Com_Print(" --saturation <float> - saturation (default 1.0)\n");
-	Com_Print(" --luxel-size <float> - luxel size (default 4)\n");
-	Com_Print(" --patch-size <float> - patch size (default 16)\n");
 	Com_Print("\n");
 
 	Com_Print("-zip               ZIP stage options:\n");
 	Com_Print(" --include-shared - include assets from shared archives\n");
+	Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
 	Com_Print("\n");
 
 	Com_Print("Examples:\n");
 	Com_Print("Materials file generation:\n"
 			  " quemap -mat maps/my.map\n");
-	Com_Print("Development compile with rough lighting:\n"
+	Com_Print("Development compile:\n"
 			  " quemap -bsp -light maps/my.map\n");
-	Com_Print("Final compile with expensive lighting:\n"
+	Com_Print("Release compile with high quality lighting:\n"
 	          " quemap -bsp -light --antialias maps/my.map\n");
 	Com_Print("Zip file generation:\n"
 			  " quemap -zip maps/my.bsp\n");
@@ -342,10 +305,10 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t num_threads = 0;
-	_Bool do_mat = false;
-	_Bool do_bsp = false;
-	_Bool do_light = false;
-	_Bool do_zip = false;
+	bool do_mat = false;
+	bool do_bsp = false;
+	bool do_light = false;
+	bool do_zip = false;
 
 	printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
 
@@ -389,6 +352,7 @@ int32_t main(int32_t argc, char **argv) {
 		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
 			Com_SetDebug("all");
 			debug = true;
+			verbose = true;
 			continue;
 		}
 

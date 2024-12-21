@@ -103,35 +103,35 @@ const char *Fs_DataDir(void) {
  *
  * @return True on successful flush and close, false otherwise.
  */
-_Bool Fs_Close(file_t *file) {
+bool Fs_Close(file_t *file) {
 	return PHYSFS_close((PHYSFS_File *) file) ? true : false;
 }
 
 /**
  * @brief Deletes the file from the configured write directory.
  */
-_Bool Fs_Delete(const char *filename) {
+bool Fs_Delete(const char *filename) {
 	return PHYSFS_delete(filename) == 0;
 }
 
 /**
  * @return True if the end of the file has been reached, false otherwise.
  */
-_Bool Fs_Eof(file_t *file) {
+bool Fs_Eof(file_t *file) {
 	return PHYSFS_eof((PHYSFS_File *) file) ? true : false;
 }
 
 /**
  * @return True if the specified filename exists on the search path.
  */
-_Bool Fs_Exists(const char *filename) {
+bool Fs_Exists(const char *filename) {
 	return PHYSFS_exists(filename) ? true : false;
 }
 
 /**
  * @return True if the file flushed successfully, false otherwise.
  */
-_Bool Fs_Flush(file_t *file) {
+bool Fs_Flush(file_t *file) {
 	return PHYSFS_flush((PHYSFS_File *) file) ? true : false;
 }
 
@@ -145,7 +145,7 @@ const char *Fs_LastError(void) {
 /**
  * @brief Creates the specified directory (and any ancestors) in Fs_WriteDir.
  */
-_Bool Fs_Mkdir(const char *dir) {
+bool Fs_Mkdir(const char *dir) {
 	return PHYSFS_mkdir(dir) ? true : false;
 }
 
@@ -237,7 +237,7 @@ int64_t Fs_Read(file_t *file, void *buffer, size_t size, size_t count) {
  *
  * @return True on success, false on failures.
  */
-_Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
+bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 	size_t i;
 	char *c;
 
@@ -260,7 +260,7 @@ _Bool Fs_ReadLine(file_t *file, char *buffer, size_t len) {
 /**
  * @brief Seeks to the specified offset.
  */
-_Bool Fs_Seek(file_t *file, int64_t offset) {
+bool Fs_Seek(file_t *file, int64_t offset) {
 	return PHYSFS_seek((PHYSFS_File *) file, offset) ? true : false;
 }
 
@@ -398,7 +398,7 @@ void Fs_Free(void *buffer) {
 /**
  * @brief Renames the specified source to the given destination.
  */
-_Bool Fs_Rename(const char *source, const char *dest) {
+bool Fs_Rename(const char *source, const char *dest) {
 	const char *dir = Fs_WriteDir();
 
 	const char *src = va("%s"G_DIR_SEPARATOR_S"%s", dir, source);
@@ -420,7 +420,7 @@ int64_t Fs_LastModTime(const char *filename) {
 /**
  * @brief Unlinks (deletes) the specified file.
  */
-_Bool Fs_Unlink(const char *filename) {
+bool Fs_Unlink(const char *filename) {
 
 	if (!g_strcmp0(Fs_WriteDir(), Fs_RealDir(filename))) {
 		return unlink(filename) == 0;
@@ -505,7 +505,7 @@ void Fs_AddToSearchPath(const char *path) {
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
 		Com_Print("Adding path %s..\n", path);
 
-		const _Bool is_dir = g_file_test(path, G_FILE_TEST_IS_DIR);
+		const bool is_dir = g_file_test(path, G_FILE_TEST_IS_DIR);
 
 		if (PHYSFS_mount(path, NULL, !is_dir) == 0) {
 			Com_Warn("%s: %s\n", path, Fs_LastError());

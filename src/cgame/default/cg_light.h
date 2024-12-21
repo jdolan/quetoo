@@ -29,6 +29,10 @@
  * @brief Light sources that optionally persistent over multiple frames.
  */
 typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
 
 	/**
 	 * @brief The light origin.
@@ -60,6 +64,10 @@ typedef struct {
 	 */
 	uint32_t time;
 
+	/**
+	 * @brief The identifier of the light source entity, which will not cast shadow.
+	 */
+	void *source;
 } cg_light_t;
 
 void Cg_AddLight(const cg_light_t *s);

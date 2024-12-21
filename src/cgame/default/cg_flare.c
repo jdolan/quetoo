@@ -24,12 +24,7 @@
 /**
  * @brief The flare type.
  */
-typedef struct cg_flare_s {
-	/**
-	 * @brief The flare that this flare was merged to.
-	 */
-	struct cg_flare_s *merged;
-
+typedef struct {
 	/**
 	 * @brief The face this flare is anchored to.
 	 */
@@ -41,6 +36,11 @@ typedef struct cg_flare_s {
 	const r_stage_t *stage;
 
 	/**
+	 * @brief The bounds of all faces represented by this flare.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The sprite input and output instances.
 	 */
 	r_sprite_t in, out;
@@ -49,20 +49,9 @@ typedef struct cg_flare_s {
 	 * @brief The entity referencing the model containin this flare, if any.
 	 */
 	const cl_entity_t *entity;
-
-	/**
-	 * @brief The flare alpha value, ramped by occlusion traces.
-	 */
-	float alpha;
-
-	/**
-	 * @brief The flare exposure value, calculated every once in a while.
-	 */
-	float exposure;
 } cg_flare_t;
 
 static GPtrArray *cg_flares;
-static uint32_t cg_flare_timestamp;
 
 #define FLARE_ALPHA_RAMP 0.01
 
@@ -77,10 +66,6 @@ void Cg_AddFlares(void) {
 
 	for (guint i = 0; i < cg_flares->len; i++) {
 		cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
-
-		if (flare->merged) {
-			continue;;
-		}
 
 		mat4_t matrix = Mat4_Identity();
 		flare->entity = NULL;
@@ -102,7 +87,7 @@ void Cg_AddFlares(void) {
 
 				const r_model_t *mod = cgi.client->models[e->current.model1];
 
-				if (mod && mod->type == MOD_BSP_INLINE) {
+				if (mod && mod->type == MODEL_BSP_INLINE) {
 					if (in == mod->bsp_inline) {
 						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
 						flare->entity = e;
@@ -114,76 +99,36 @@ void Cg_AddFlares(void) {
 			assert(flare->entity);
 		}
 
+		cm_bsp_plane_t plane = *(flare->face->plane->cm);
+
 		if (flare->entity) {
 			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
+
+			const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
+
+			plane.normal = Vec4_XYZ(out);
+			plane.dist = out.w;
 		}
 
-		r_sprite_t *out = cgi.AddSprite(cgi.view, &flare->out);
-
-		// occluded, so don't bother checking this
-		if (!out) {
+		if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
 			continue;
 		}
 
-		if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
-			const float dist = Cm_DistanceToPlane(cgi.view->origin, flare->face->plane->cm);
-			flare->exposure = 0.f;
+		const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
+		const float alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
 
-			if (dist > 0.f) {
-
-				const r_bsp_vertex_t *v = flare->face->vertexes;
-				for (int32_t j = 0; j < flare->face->num_vertexes; j++, v++) {
-
-					vec3_t p;
-					if (flare->entity) {
-						p = Mat4_Transform(matrix, v->position);
-					} else {
-						p = v->position;
-					}
-
-					const cm_trace_t tr = cgi.Trace(cgi.view->origin, p, Box3_Zero(), 0, CONTENTS_SOLID);
-					if (tr.fraction > 0.99f) {
-						flare->exposure += 1.f / flare->face->num_vertexes;
-					}
-				}
-			}
+		if (alpha == 0.f) {
+			continue;
 		}
 
-		float alpha;
-		if (flare->exposure > 0.f) {
- 			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * flare->exposure;
-		} else {
-			alpha = cgi.client->frame_msec * FLARE_ALPHA_RAMP * -(1.f - flare->exposure);
-		}
+		flare->out.color = Color_Scale(flare->in.color, alpha);
 
-		flare->alpha = Clampf(flare->alpha + alpha, 0.f, 1.f);
-		if (flare->alpha > 0.f) {
-
-			alpha = Clampf(flare->alpha * cg_add_flares->value, 0.f, 1.f);
-			if (alpha > 0.f) {
-
-				const color_t in_color = Color32_Color(flare->in.color);
-				const color_t out_color = Color_Scale(in_color, alpha);
-
-				out->color = Color_Color32(out_color);
-			} else {
-				// "undo" the sprite addition
-				cgi.view->num_sprites--;
-			}
-		} else {
-			// "undo" the sprite addition
-			cgi.view->num_sprites--;
-		}
-	}
-
-	if ((cgi.client->unclamped_time - cg_flare_timestamp) > 50) {
-		cg_flare_timestamp = cgi.client->unclamped_time;
+		cgi.AddSprite(cgi.view, &flare->out);
 	}
 }
 
 /**
  * @brief Creates a flare from the specified face and stage.
- * @details The flare is
  */
 cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 
@@ -192,59 +137,24 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 	flare->face = face;
 	flare->stage = stage;
 
-	box3_t bounds = Box3_Null();
-
+	flare->bounds = Box3_Null();
 	for (int32_t i = 0; i < face->num_vertexes; i++) {
-		bounds = Box3_Append(bounds, face->vertexes[i].position);
+		flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
 	}
 
-	flare->in.origin = Box3_Center(bounds);
-	flare->in.origin = Vec3_Fmaf(flare->in.origin, 2.f, face->plane->cm->normal);
-
-	flare->in.size = Box3_Distance(bounds);
+	flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
 
 	if (stage->cm->flags & STAGE_COLOR) {
-		flare->in.color = Color_Color32(stage->cm->color);
+		flare->in.color = stage->cm->color;
 	} else {
-		flare->in.color = Color_Color32(color_white);
-	}
-
-	if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		flare->in.size *= (stage->cm->scale.s ? stage->cm->scale.s : stage->cm->scale.t);
+		flare->in.color = color_white;
 	}
 
 	flare->in.media = stage->media;
-	flare->in.softness = 0.25f;
+	flare->in.softness = 1.f;
 	flare->in.lighting = 1.f;
 
-	flare->out = flare->in;
-
 	return flare;
-}
-
-/**
- * @brief
- */
-static int32_t Cg_MergeFlaresVerts(const cg_flare_t *a, const cg_flare_t *b) {
-
-	int32_t count = 0;
-
-	const r_bsp_vertex_t *av = a->face->vertexes;
-	const r_bsp_vertex_t *bv = b->face->vertexes;
-
-	for (int32_t i = 0; i < a->face->num_vertexes; i++) {
-		for (int32_t j = 0; j < b->face->num_vertexes; j++) {
-			if (Vec3_Distance(av[i].position, bv[j].position) < ON_EPSILON) {
-				count++;
-			}
-		}
-	}
-
-	if (b->merged) {
-		count += Cg_MergeFlaresVerts(a, b->merged);
-	}
-
-	return count;
 }
 
 /**
@@ -258,20 +168,24 @@ static void Cg_MergeFlares(void) {
 		for (guint j = i + 1; j < cg_flares->len; j++) {
 			cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
-			if (b->face->texinfo == a->face->texinfo &&
-				b->face->plane == a->face->plane &&
-				b->face->plane_side == a->face->plane_side) {
+			if (a->face->brush_side == b->face->brush_side) {
+				a->bounds = Box3_Union(a->bounds, b->bounds);
 
-				if (Cg_MergeFlaresVerts(a, b) > 1) {
-					Cg_Debug("Merging %s to %s\n", vtos(b->in.origin), vtos(a->in.origin));
+				g_ptr_array_remove_index(cg_flares, j);
+				cgi.Free(b);
 
-					a->merged = b;
-
-					b->in.origin = Box3_Center(Box3_Union(a->face->bounds, b->face->bounds));
-					b->in.size += a->in.size;
-				}
+				j--;
 			}
 		}
+
+		a->in.origin = Box3_Center(a->bounds);
+		a->in.size = Box3_Distance(a->bounds);
+
+		if (a->stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+			a->in.size *= (a->stage->cm->scale.s ? a->stage->cm->scale.s : a->stage->cm->scale.t);
+		}
+
+		a->out = a->in;
 	}
 }
 
@@ -287,8 +201,8 @@ void Cg_LoadFlares(void) {
 	const r_bsp_face_t *face = bsp->faces;
 	for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
 
-		const r_material_t *material = face->texinfo->material;
-		if (material->cm->flags & STAGE_FLARE) {
+		const r_material_t *material = face->brush_side->material;
+		if (material->cm->stage_flags & STAGE_FLARE) {
 
 			const r_stage_t *stage = material->stages;
 			while (stage) {

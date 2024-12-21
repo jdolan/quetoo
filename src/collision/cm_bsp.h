@@ -1,3 +1,24 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 #pragma once
 
 #include "cm_types.h"
@@ -13,7 +34,7 @@
  */
 #define MAX_BSP_ENTITIES_SIZE		0x40000
 #define MAX_BSP_ENTITIES			0x800
-#define MAX_BSP_TEXINFO				0x4000
+#define MAX_BSP_MATERIALS			0x400
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
@@ -26,10 +47,9 @@
 #define MAX_BSP_LEAF_FACES			0x20000
 #define MAX_BSP_LEAFS				0x20000
 #define MAX_BSP_MODELS				0x400
-#define MAX_BSP_PORTALS				0x20000
+#define MAX_BSP_LIGHTS				0x1000
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
-#define MAX_BSP_OCCLUSION_QUERIES	0x40
 
 /**
  * @brief Lightmap luxel size in world units.
@@ -47,49 +67,21 @@
 #define MAX_BSP_LIGHTMAP_WIDTH 4096
 
 /**
- * @brief Lightmap atlas bytes per pixel.
+ * @brief The lightmap textures.
  */
-#define BSP_LIGHTMAP_BPP 3
-
-/**
- * @brief Largest lightmap atlas layer size in bytes.
- */
-#define MAX_BSP_LIGHTMAP_LAYER_SIZE (MAX_BSP_LIGHTMAP_WIDTH * MAX_BSP_LIGHTMAP_WIDTH * BSP_LIGHTMAP_BPP)
-
-/**
- * @brief Lightmap ambient, diffuse, and direction layers.
- */
-#define BSP_LIGHTMAP_LAYERS 3
-
-/**
- * @brief Stainmap layers.
- */
-#define BSP_STAINMAP_LAYERS 1
+typedef enum {
+	BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
+	BSP_LIGHTMAP_DIFFUSE,
+	BSP_LIGHTMAP_DIRECTION,
+	BSP_LIGHTMAP_CAUSTICS,
+	BSP_LIGHTMAP_LAST,
+} bsp_lightmap_texture_t;
 
 /**
  * @brief Lightgrid luxel size in world units.
  */
 #define BSP_LIGHTGRID_LUXEL_SIZE 32
-
-/**
- * @brief Lightgrid bytes per pixel.
- */
-#define BSP_LIGHTGRID_BPP 3
-
-/**
- * @brief Lightgrid ambient, diffuse and direction textures.
- */
-#define BSP_LIGHTGRID_TEXTURES 3
-
-/**
- * @brief Fog color and density textures.
- */
-#define BSP_FOG_TEXTURES 1
-
-/**
- * @brief Fog bytes per pixel.
- */
-#define BSP_FOG_BPP 4
 
 /**
  * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
@@ -102,12 +94,25 @@
 #define MAX_BSP_LIGHTGRID_LUXELS (MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH)
 
 /**
+ * @brief The lightgrid textures.
+ */
+typedef enum {
+	BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
+	BSP_LIGHTGRID_DIFFUSE,
+	BSP_LIGHTGRID_DIRECTION,
+	BSP_LIGHTGRID_CAUSTICS,
+	BSP_LIGHTGRID_FOG,
+	BSP_LIGHTGRID_LAST
+} bsp_lightgrid_texture_t;
+
+/**
  * @brief BSP file format lump identifiers.
  */
 typedef enum {
 	BSP_LUMP_FIRST,
 	BSP_LUMP_ENTITIES = BSP_LUMP_FIRST,
-	BSP_LUMP_TEXINFO,
+	BSP_LUMP_MATERIALS,
 	BSP_LUMP_PLANES,
 	BSP_LUMP_BRUSH_SIDES,
 	BSP_LUMP_BRUSHES,
@@ -120,6 +125,7 @@ typedef enum {
 	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
+	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
@@ -144,40 +150,48 @@ typedef struct {
 	bsp_lump_t lumps[BSP_LUMP_LAST];
 } bsp_header_t;
 
+/**
+ * @brief Material references.
+ */
 typedef struct {
-	vec4_t vecs[2]; // [s/t][xyz offset]
-	int32_t flags; // SURF_* flags
-	int32_t value; // light emission, etc
-	char texture[32]; // texture name (e.g. torn/metal1)
-} bsp_texinfo_t;
+	char name[MAX_QPATH];
+} bsp_material_t;
 
-// planes (x & ~1) and (x & ~1) + 1 are always opposites
-
+/**
+ * @brief Planes are stored in opposing pairs, with positive normal vectors first in each pair.
+ */
 typedef struct {
 	vec3_t normal;
 	float dist;
 } bsp_plane_t;
 
 /**
- * @brief Sentinel texinfo identifier for BSP decision nodes.
+ * @brief Sentinel value for brush sides created from BSP.
  */
-#define BSP_TEXINFO_NODE -1
+#define BSP_MATERIAL_NODE -1
 
 /**
- * @brief Sentinel texinfo identifier for bevel sides.
+ * @brief Brush sides are defined by map input, and by BSP tree generation. Map brushes
+ * may be split into multiple BSP brushes, producing new sides where they are split.
+ * Non-axial map brushes are also "beveled" to optimize collision detection.
  */
-#define BSP_TEXINFO_BEVEL -2
-
 typedef struct {
-	int32_t plane_num; // facing out of the leaf
-	int32_t texinfo;
+	int32_t plane; // facing out of the leaf
+	int32_t material;
+	vec4_t axis[2]; // [s/t][xyz + offset]
+	int32_t contents;
+	int32_t surface;
+	int32_t value; // light emission, etc
 } bsp_brush_side_t;
 
+/**
+ * @brief Brushes are convex volumes defined by four or more clipping planes.
+ */
 typedef struct {
-	int32_t entity_num; // the entity that defined this brush
+	int32_t entity; // the entity that defined this brush
 	int32_t contents;
 	int32_t first_brush_side;
-	int32_t num_sides; // the number of total brush sides, including bevel sides
+	int32_t num_brush_sides; // the number of total brush sides, including bevel sides
 	box3_t bounds;
 } bsp_brush_t;
 
@@ -188,7 +202,7 @@ typedef struct {
 	vec3_t bitangent;
 	vec2_t diffusemap;
 	vec2_t lightmap;
-	int32_t texinfo;
+	color32_t color;
 } bsp_vertex_t;
 
 /**
@@ -206,9 +220,8 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-	int32_t plane_num;
-	int32_t texinfo;
-	int32_t contents;
+	int32_t brush_side; // the brush side that produced this face
+	int32_t plane; // the plane; for translucent brushes, this may be the negation of the side plane
 
 	box3_t bounds;
 
@@ -222,10 +235,11 @@ typedef struct {
 } bsp_face_t;
 
 typedef struct {
-	int32_t plane_num;
+	int32_t plane;
 	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
-	box3_t bounds; // for frustum culling
+	box3_t bounds; // for collision
+	box3_t visible_bounds; // for frustum culling
 
 	int32_t first_face;
 	int32_t num_faces; // counting both sides
@@ -235,7 +249,8 @@ typedef struct {
 	int32_t contents; // OR of all brushes
 	int32_t cluster;
 
-	box3_t bounds; // for frustum culling
+	box3_t bounds; // for collision
+	box3_t visible_bounds; // for frustum culling
 
 	int32_t first_leaf_face;
 	int32_t num_leaf_faces;
@@ -246,14 +261,14 @@ typedef struct {
 
 /**
  * @brief Draw elements are OpenGL draw commands, serialized directly within the BSP.
- * @details For each model, all opaque faces sharing texinfo and contents are grouped
- * into a single draw elements. All blend faces sharing plane, texinfo and contents
+ * @details For each model, all opaque faces sharing material and contents are grouped
+ * into a single draw elements. All blend faces sharing plane, material and contents
  * are also grouped.
  */
 typedef struct {
-	int32_t plane_num;
-	int32_t texinfo;
-	int32_t contents;
+	int32_t plane;
+	int32_t material;
+	int32_t surface;
 
 	box3_t bounds;
 
@@ -262,6 +277,7 @@ typedef struct {
 } bsp_draw_elements_t;
 
 typedef struct {
+	int32_t entity;
 	int32_t head_node;
 
 	box3_t bounds;
@@ -273,20 +289,52 @@ typedef struct {
 	int32_t num_draw_elements;
 } bsp_model_t;
 
+typedef enum {
+	LIGHT_INVALID    = 0x0,
+	LIGHT_AMBIENT    = 0x1,
+	LIGHT_SUN        = 0x2,
+	LIGHT_POINT      = 0x4,
+	LIGHT_SPOT       = 0x8,
+	LIGHT_BRUSH_SIDE = 0x10,
+	LIGHT_PATCH      = 0x20,
+	LIGHT_DYNAMIC    = 0x40,
+} light_type_t;
+
+typedef enum {
+	LIGHT_ATTEN_NONE,
+	LIGHT_ATTEN_LINEAR,
+	LIGHT_ATTEN_INVERSE_SQUARE,
+} light_atten_t;
+
 /**
- * @brief Lightmaps are atlas-packed, layered 24 bit texture objects of variable size.
- * @details The first layer contains diffuse light color, while the second layer contains
- * diffuse light direction.
+ * @brief BSP representation of light sources.
+ */
+typedef struct {
+	light_type_t type;
+	light_atten_t atten;
+	vec3_t origin;
+	vec3_t color;
+	vec3_t normal;
+	float radius;
+	float size;
+	float intensity;
+	float shadow;
+	float cone;
+	float falloff;
+	box3_t bounds;
+} bsp_light_t;
+
+/**
+ * @brief Lightmaps are atlas-packed, layered texture objects of variable size.
+ * @details Each layer stores either a color or a directional vector.
  */
 typedef struct {
 	int32_t width;
 } bsp_lightmap_t;
 
 /**
- * @brief Lightgrids are layered 24 bit 3D texture objects of variable size.
- * @details Each layer is up to 128x128x128 RGB at 24bpp. The first layer contains
- * ambient light color, the second contains diffuse light color, and the third contains
- * diffuse light direction.
+ * @brief Lightgrids are layered 3D texture objects of variable size.
+ * @details Each layer is up to 256x256x256.
  */
 typedef struct {
 	vec3i_t size;
@@ -298,12 +346,12 @@ typedef struct {
  * You can safely edit the data within the boundaries of the num_x values, but
  * if you want to expand the space required use the Bsp_* functions.
  */
-typedef struct {
+typedef struct bsp_file_s {
 	int32_t entity_string_size;
 	char *entity_string;
 
-	int32_t num_texinfo;
-	bsp_texinfo_t *texinfo;
+	int32_t num_materials;
+	bsp_material_t *materials;
 
 	int32_t num_planes;
 	bsp_plane_t *planes;
@@ -341,6 +389,9 @@ typedef struct {
 	int32_t num_models;
 	bsp_model_t *models;
 
+	int32_t num_lights;
+	bsp_light_t *lights;
+
 	int32_t lightmap_size;
 	bsp_lightmap_t *lightmap;
 
@@ -352,10 +403,10 @@ typedef struct {
 
 int32_t Bsp_Verify(const bsp_header_t *file);
 int64_t Bsp_Size(const bsp_header_t *file);
-_Bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id);
+bool Bsp_LumpLoaded(const bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_UnloadLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id);
 void Bsp_UnloadLumps(bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
-_Bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
-_Bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
+bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_id);
+bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t lump_bits);
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count);
 void Bsp_Write(file_t *file, const bsp_file_t *bsp);

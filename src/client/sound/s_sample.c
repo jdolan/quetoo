@@ -21,7 +21,7 @@
 
 #include "s_local.h"
 
-static const char *SAMPLE_TYPES[] = { ".ogg", ".wav", NULL };
+#define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
 
 /**
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
@@ -72,25 +72,12 @@ void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, 
 /**
  * @brief
  */
-static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const size_t pathlen) {
+static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 
 	void *buf;
-	int32_t i;
+	const int64_t len = Fs_Load(path, &buf);
 
-	buf = NULL;
-
-	i = 0;
-	while (SAMPLE_TYPES[i]) {
-
-		StripExtension(path, path);
-		g_strlcat(path, SAMPLE_TYPES[i], pathlen);
-
-		i++;
-
-		int64_t len;
-		if ((len = Fs_Load(path, &buf)) == -1) {
-			continue;
-		}
+	if (len != -1) {
 
 		SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
 
@@ -99,9 +86,7 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 
 		SNDFILE *snd = sf_open_virtual(&s_rwops_io, SFM_READ, &info, rw);
 
-		if (!snd || sf_error(snd)) {
-			Com_Warn("%s\n", sf_strerror(snd));
-		} else {
+		if (snd) {
 			const size_t raw_size = sizeof(float) * info.frames * info.channels;
 
 			if (s_context.raw_sample_buffer_size < raw_size) {
@@ -123,6 +108,8 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			sample->stereo = info.channels != 1;
 			sample->num_samples = count;
 
+			assert(sample->num_samples);
+
 			alGenBuffers(1, &sample->buffer);
 
 			const ALenum format = info.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
@@ -131,6 +118,8 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 			alBufferData(sample->buffer, format, buffer, size, s_rate->integer);
 
 			S_GetError(NULL);
+		} else {
+			Com_Warn("%s: %s\n", path, sf_strerror(snd));
 		}
 
 		sf_close(snd);
@@ -138,36 +127,38 @@ static _Bool S_LoadSampleChunkFromPath(s_sample_t *sample, char *path, const siz
 		SDL_RWclose(rw);
 
 		Fs_Free(buf);
-
-		if (sample->buffer) { // success
-			break;
-		}
 	}
 
-	return !!sample->buffer;
+	return sample->buffer;
 }
 
 /**
  * @brief
  */
-static void S_LoadSampleChunk(s_sample_t *sample) {
-	char path[MAX_QPATH];
-	_Bool found = false;
+static void S_LoadSampleBuffer(s_sample_t *sample) {
+	const char *snd_formats[] = { "ogg", "wav", NULL };
 
-	if (sample->media.name[0] == '*') { // place holder
+	if (sample->media.name[0] == '*') { // placeholder
 		return;
 	}
 
+	char name[MAX_QPATH];
 	if (sample->media.name[0] == '#') {
-		g_strlcpy(path, (sample->media.name + 1), sizeof(path));
-		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
+		g_strlcpy(name, (sample->media.name + 1), sizeof(name));
 	} else {
-		g_snprintf(path, sizeof(path), "sounds/%s", sample->media.name);
-		found = S_LoadSampleChunkFromPath(sample, path, sizeof(path));
+		g_snprintf(name, sizeof(name), "sounds/%s", sample->media.name);
 	}
 
-	if (found) {
-		Com_Debug(DEBUG_SOUND, "Loaded %s\n", path);
+	char path[MAX_QPATH];
+	for (const char **fmt = snd_formats; *fmt; fmt++) {
+		g_snprintf(path, sizeof(path), "%s.%s", name, *fmt);
+		if (S_LoadSampleBuffer_(sample, path)) {
+			break;
+		}
+	}
+
+	if (sample->buffer) {
+		Com_Debug(DEBUG_SOUND, "Loaded %s for %s\n", path, sample->media.name);
 	} else {
 		if (g_str_has_prefix(sample->media.name, "#players")) {
 			Com_Debug(DEBUG_SOUND, "Failed to load player sample %s\n", sample->media.name);
@@ -193,8 +184,6 @@ static void S_FreeSample(s_media_t *self) {
  * @brief
  */
 s_sample_t *S_LoadSample(const char *name) {
-	char key[MAX_QPATH];
-	s_sample_t *sample;
 
 	if (!s_context.context) {
 		return NULL;
@@ -204,16 +193,17 @@ s_sample_t *S_LoadSample(const char *name) {
 		Com_Error(ERROR_DROP, "NULL name\n");
 	}
 
+	char key[MAX_QPATH];
 	StripExtension(name, key);
 
-	if (!(sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE))) {
+	s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
+	if (sample == NULL) {
 
 		sample = (s_sample_t *) S_AllocMedia(key, sizeof(s_sample_t), S_MEDIA_SAMPLE);
 
-		sample->media.type = S_MEDIA_SAMPLE;
 		sample->media.Free = S_FreeSample;
 
-		S_LoadSampleChunk(sample);
+		S_LoadSampleBuffer(sample);
 
 		S_RegisterMedia((s_media_t *) sample);
 	}
@@ -237,24 +227,30 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
 	char key[MAX_QPATH];
 	g_snprintf(key, sizeof(key), "#players/%s/%s", model, name + 1);
 
-	s_sample_t *sample = (s_sample_t *) S_LoadSample(key);
-	if (sample->buffer == 0) {
+	s_sample_t *sample = (s_sample_t *) S_FindMedia(key, S_MEDIA_SAMPLE);
+	if (sample == NULL) {
 
-		char alias[MAX_QPATH];
-		g_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
+		sample = S_LoadSample(key);
+		if (sample->buffer) {
+			Com_Debug(DEBUG_SOUND, "Loaded %s\n", key);
+		} else {
+			char alias[MAX_QPATH];
+			g_snprintf(alias, sizeof(alias), "#players/common/%s", name + 1);
 
-		s_sample_t *aliased = S_LoadSample(alias);
-		if (aliased->buffer) {
+			s_sample_t *aliased = S_LoadSample(alias);
+			if (aliased->buffer) {
 
-			sample->buffer = aliased->buffer;
-			S_RegisterDependency((s_media_t *) sample, (s_media_t *) aliased);
+				S_RegisterDependency((s_media_t *) sample, (s_media_t *) aliased);
+
+				sample->buffer = aliased->buffer;
+				sample->num_samples = aliased->num_samples;
+				sample->stereo = aliased->stereo;
+
+				Com_Debug(DEBUG_SOUND, "Aliased %s for %s\n", aliased->media.name, key);
+			} else {
+				Com_Warn("Failed to load %s\n", key);
+			}
 		}
-	}
-
-	if (sample->buffer) {
-		Com_Debug(DEBUG_SOUND, "Loaded %s for %s/%s\n", sample->media.name, model, name);
-	} else {
-		Com_Warn("Failed to load %s for %s\n", name, model);
 	}
 
 	return sample;

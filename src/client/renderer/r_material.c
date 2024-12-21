@@ -54,9 +54,9 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
 
 		cm_asset_t *frame = &stage->cm->animation.frames[i];
 		if (*frame->path) {
-			*out = R_LoadImage(frame->path, IT_MATERIAL);
+			*out = R_LoadImage(frame->path, IMG_MATERIAL);
 		} else {
-			*out = R_LoadImage("textures/common/notex", IT_MATERIAL);
+			*out = R_LoadImage("textures/common/notex", IMG_MATERIAL);
 			Com_Warn("Failed to resolve frame: %d: %s\n", i, stage->cm->asset.name);
 		}
 	}
@@ -159,20 +159,106 @@ static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t colo
 }
 
 /**
- * @brief Merges the average of src's channels into the alpha channel of dest.
+ * @brief Resolves the material heightmap, or generates one if necessary.
+ * @details The resulting surface is merged it to the normalmap's alpha channel.
  */
-static void R_MergeMaterialSurfaces(SDL_Surface *dest, const SDL_Surface *src) {
+static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surface *diffusemap, SDL_Surface* normalmap) {
 
-	assert(src->w == dest->w);
-	assert(src->h == dest->h);
+	assert(diffusemap->w == normalmap->w);
+	assert(diffusemap->h == normalmap->h);
 
-	const byte *in = src->pixels;
-	byte *out = dest->pixels;
+	const int32_t w = normalmap->w;
+	const int32_t h = normalmap->h;
 
-	const int32_t pixels = dest->w * dest->h;
-	for (int32_t i = 0; i < pixels; i++, in += 4, out += 4) {
-		out[3] = (in[0] + in[1] + in[2]) / 3.0;
+	bool normalmap_has_heightmap = false;
+
+	color32_t *in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		if (in_normalmap->a != 255) {
+			normalmap_has_heightmap = true;
+			break;
+		}
 	}
+
+	SDL_Surface *heightmap = NULL;
+	if (*cm->heightmap.path) {
+		heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
+		if (heightmap == NULL) {
+			Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
+			heightmap = R_CreateMaterialSurface(w, h, Color32(0, 0, 0, 255));
+		}
+	}
+
+	if (heightmap == NULL && !normalmap_has_heightmap) {
+		heightmap = R_CreateMaterialSurface(w, h, Color32(0, 0, 0, 255));
+
+		Com_Debug(DEBUG_RENDERER, "Generating heightmap for %s\n", cm->name);
+
+		const color32_t *in_diffusemap = diffusemap->pixels;
+		in_normalmap = normalmap->pixels;
+
+		color32_t *out_heightmap = heightmap->pixels;
+
+		// Use the diffusemap and normalmap to derive approximate height
+		for (int32_t i = 0; i < w * h; i++, in_diffusemap++, in_normalmap++, out_heightmap++) {
+
+			const vec3_t diffuse = Color32_Vec3(*in_diffusemap);
+			const vec3_t normal = Color32_Direction(*in_normalmap);
+
+			const float height = Maxf(Vec3_Hmaxf(diffuse) * normal.z, 0.f);
+			out_heightmap->r = height * 255.f;
+		}
+	}
+
+	// Merge the external / generated heightmap into the normalmap's alpha channel
+
+	if (heightmap) {
+
+		const color32_t *in_heightmap = heightmap->pixels;
+		color32_t *out_normalmap = normalmap->pixels;
+
+		for (int32_t i = 0; i < w * h; i++, in_heightmap++, out_normalmap++) {
+			out_normalmap->a = in_heightmap->r;
+		}
+
+		SDL_FreeSurface(heightmap);
+	}
+
+	// Scale the heightmap to maximize parallax effect
+
+	float min = 255.f;
+	float max = 0.f;
+
+	in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		min = Minf(min, in_normalmap->a);
+		max = Maxf(max, in_normalmap->a);
+	}
+
+	in_normalmap = normalmap->pixels;
+	for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+		in_normalmap->a = (in_normalmap->a - min) / (max - min) * 255;
+	}
+}
+
+/**
+ * @brief
+ */
+static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
+
+	const color32_t *in = diffusemap->pixels;
+
+	SDL_Surface *specularmap = SDL_CreateRGBSurfaceWithFormat(0, diffusemap->w, diffusemap->h, 32, SDL_PIXELFORMAT_RGBA32);
+	color32_t *out = specularmap->pixels;
+
+	for (int32_t i = 0; i < diffusemap->w; i++) {
+		for (int32_t j = 0; j < diffusemap->h; j++, in++, out++) {
+			out->r = out->g = out->b = (byte) (in->r + in->g + in->b) / 3.f;
+			out->a = 255;
+		}
+	}
+
+	return specularmap;
 }
 
 /**
@@ -193,7 +279,7 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 			} else if (stage->cm->flags & STAGE_MATERIAL) {
 				stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
 			} else {
-				stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IT_MATERIAL);
+				stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
 			}
 
 			assert(stage->media);
@@ -225,9 +311,13 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 	R_RegisterMedia((r_media_t *) material);
 
 	material->texture = (r_image_t *) R_AllocMedia(va("%s_texture", material->cm->basename), sizeof(r_image_t), R_MEDIA_IMAGE);
-	material->texture->type = IT_MATERIAL;
+	material->texture->type = IMG_MATERIAL;
 	material->texture->target = GL_TEXTURE_2D;
+	material->texture->internal_format = GL_RGBA8;
 	material->texture->format = GL_RGBA;
+	material->texture->pixel_type = GL_UNSIGNED_BYTE;
+	material->texture->minify = GL_LINEAR_MIPMAP_LINEAR;
+	material->texture->magnify = GL_LINEAR;
 
 	R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
@@ -245,14 +335,6 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 		diffusemap = Img_LoadSurface("textures/common/notex");
 	}
 
-	if (r_texture_downsample->integer > 1) {
-		SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(0, diffusemap->w / r_texture_downsample->integer, diffusemap->h / r_texture_downsample->integer, 32, SDL_PIXELFORMAT_RGBA32);
-		SDL_BlitScaled(diffusemap, NULL, scaled, NULL);
-
-		SDL_FreeSurface(diffusemap);
-		diffusemap = scaled;
-	}
-
 	const int32_t w = material->texture->width = diffusemap->w;
 	const int32_t h = material->texture->height = diffusemap->h;
 
@@ -268,41 +350,23 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 				normalmap = R_LoadMaterialSurface(w, h, cm->normalmap.path);
 				if (normalmap == NULL) {
 					Com_Warn("Failed to load normalmap %s for %s\n", cm->normalmap.path, cm->basename);
-					normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
+					normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 255));
 				}
 			} else {
-				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 127));
+				normalmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 255, 255));
 			}
 
-			if (*cm->heightmap.path) {
-				SDL_Surface *heightmap = R_LoadMaterialSurface(w, h, cm->heightmap.path);
-				if (heightmap) {
-					R_MergeMaterialSurfaces(normalmap, heightmap);
-					SDL_FreeSurface(heightmap);
-				} else {
-					Com_Warn("Failed to load heightmap %s for %s\n", cm->heightmap.path, cm->basename);
-				}
-			}
+			R_ResolveMaterialHeightmap(cm, diffusemap, normalmap);
 
-			SDL_Surface *glossmap = NULL;
-			if (*cm->glossmap.path) {
-				glossmap = R_LoadMaterialSurface(w, h, cm->glossmap.path);
-				if (glossmap == NULL) {
-					Com_Warn("Failed to load glossmap %s for %s\n", cm->glossmap.path, cm->basename);
-					glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
-				}
-			} else {
-				glossmap = R_CreateMaterialSurface(w, h, Color32(127, 127, 127, 127));
-			}
-
+			SDL_Surface *specularmap = NULL;
 			if (*cm->specularmap.path) {
-				SDL_Surface *specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);
-				if (specularmap) {
-					R_MergeMaterialSurfaces(glossmap, specularmap);
-					SDL_FreeSurface(specularmap);
-				} else {
+				specularmap = R_LoadMaterialSurface(w, h, cm->specularmap.path);
+				if (specularmap == NULL) {
 					Com_Warn("Failed to load specularmap %s for %s\n", cm->specularmap.path, cm->basename);
+					specularmap = R_CreateSpecularmap(diffusemap);
 				}
+			} else {
+				specularmap = R_CreateSpecularmap(diffusemap);
 			}
 			
 			SDL_Surface *tintmap = NULL;
@@ -323,24 +387,26 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
 			memcpy(data + 0 * layer_size, diffusemap->pixels, layer_size);
 			memcpy(data + 1 * layer_size, normalmap->pixels, layer_size);
-			memcpy(data + 2 * layer_size, glossmap->pixels, layer_size);
+			memcpy(data + 2 * layer_size, specularmap->pixels, layer_size);
 			memcpy(data + 3 * layer_size, tintmap->pixels, layer_size);
 
-			R_UploadImage(material->texture, material->texture->target, data);
+			R_UploadImage(material->texture, data);
 
 			free(data);
 
 			SDL_FreeSurface(normalmap);
-			SDL_FreeSurface(glossmap);
+			SDL_FreeSurface(specularmap);
 			SDL_FreeSurface(tintmap);
 		}
 			break;
 
 		default:
-			R_UploadImage(material->texture, material->texture->target, diffusemap->pixels);
+			R_UploadImage(material->texture, diffusemap->pixels);
 			break;
 	}
 
+	material->color = Img_Color(diffusemap);
+	
 	SDL_FreeSurface(diffusemap);
 
 	R_ResolveMaterialStages(material, context);
@@ -362,7 +428,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Loads the r_material_t from the specified texture.
+ * @brief Loads the r_material_t with the specified asset name and context.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
@@ -400,94 +466,37 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 }
 
 /**
- * @brief Loads all r_material_t for the specified BSP model.
+ * @brief Writes all r_material_t for the specified model to disk.
  */
-static void R_LoadBspMaterials(r_model_t *mod, GList **materials) {
+static ssize_t R_SaveMaterials(const r_model_t *mod) {
 	char path[MAX_QPATH];
 
 	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
 
-	R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, materials);
-
-	const bsp_texinfo_t *in = mod->bsp->cm->file.texinfo;
-	for (int32_t i = 0; i < mod->bsp->cm->file.num_texinfo; i++, in++) {
-
-		r_material_t *material = R_LoadMaterial(in->texture, ASSET_CONTEXT_TEXTURES);
-
-		if (g_list_find(*materials, material) == NULL) {
-			*materials = g_list_prepend(*materials, material);
-		}
-	}
-}
-
-/**
- * @brief Loads all r_material_t for the specified mesh model.
- * @remarks Player models may optionally define materials, but are not required to.
- * @remarks Other mesh models must resolve at least one material. If no materials file is found,
- * we attempt to load ${model_dir}/skin.tga as the default material.
- */
-static void R_LoadMeshMaterials(r_model_t *mod, GList **materials) {
-	char path[MAX_QPATH];
-
-	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-	if (g_str_has_prefix(mod->media.name, "players/")) {
-		R_LoadMaterials(path, ASSET_CONTEXT_PLAYERS, materials);
-	} else {
-		if (R_LoadMaterials(path, ASSET_CONTEXT_MODELS, materials) < 1) {
-
-			Dirname(mod->media.name, path);
-			g_strlcat(path, "skin", sizeof(path));
-
-			*materials = g_list_prepend(*materials, R_LoadMaterial(path, ASSET_CONTEXT_MODELS));
-		}
-
-		assert(materials);
-	}
-}
-
-/**
- * @brief Loads all r_material_t for the specified model, populating `mod->materials`.
- */
-void R_LoadModelMaterials(r_model_t *mod) {
 	GList *materials = NULL;
 
 	switch (mod->type) {
-		case MOD_BSP:
-			R_LoadBspMaterials(mod, &materials);
+		case MODEL_BSP: {
+			r_material_t **mat = mod->bsp->materials;
+			for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
+				cm_material_t *cm = (*mat)->cm;
+				materials = g_list_prepend(materials, cm);
+			}
+		}
 			break;
-		case MOD_MESH:
-			R_LoadMeshMaterials(mod, &materials);
+		case MODEL_MESH: {
+			const r_mesh_face_t *face = mod->mesh->faces;
+			for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+				cm_material_t *cm = face->material->cm;
+				if (face->material && g_list_find(materials, cm) == NULL) {
+					materials = g_list_prepend(materials, cm);
+				}
+			}
+		}
 			break;
 		default:
-			Com_Debug(DEBUG_RENDERER, "Unsupported model: %s\n", mod->media.name);
+			Com_Warn("Unsupported model: %s\n", mod->media.name);
 			break;
-	}
-
-	mod->num_materials = g_list_length(materials);
-	mod->materials = Mem_LinkMalloc(sizeof(r_material_t *) * mod->num_materials, mod);
-
-	r_material_t **out = mod->materials;
-	for (const GList *list = materials; list; list = list->next, out++) {
-		*out = (r_material_t *) R_RegisterDependency((r_media_t *) mod, (r_media_t *) list->data);
-	}
-
-	Com_Debug(DEBUG_RENDERER, "Loaded %" PRIuPTR " materials for %s\n", mod->num_materials, mod->media.name);
-
-	g_list_free(materials);
-}
-
-/**
- * @brief Writes all r_material_t for the specified BSP model to disk.
- */
-static ssize_t R_SaveBspMaterials(const r_model_t *mod) {
-	char path[MAX_QPATH];
-
-	g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-	GList *materials = NULL;
-	for (size_t i = 0; i < mod->num_materials; i++) {
-		materials = g_list_prepend(materials, mod->materials[i]->cm);
 	}
 
 	const ssize_t count = Cm_WriteMaterials(path, materials);
@@ -506,5 +515,15 @@ void R_SaveMaterials_f(void) {
 		return;
 	}
 
-	R_SaveBspMaterials(r_world_model);
+	const r_model_t *model = r_world_model;
+
+	if (Cmd_Argc() > 1) {
+		model = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
+		if (model == NULL) {
+			Com_Warn("Failed to save materials for %s\n", Cmd_Argv(1));
+		}
+	}
+
+	assert(model);
+	R_SaveMaterials(model);
 }

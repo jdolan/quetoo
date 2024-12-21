@@ -252,7 +252,7 @@ static void Cl_TextEvent(const SDL_Event *event) {
  *
  * @return True if the event was handled, false otherwise.
  */
-static _Bool Cl_HandleSystemEvent(const SDL_Event *event) {
+static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
 	switch (event->type) {
 
@@ -382,15 +382,11 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 static void Cl_UpdateMouseState(void) {
 
 	if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
-		if (SDL_GetWindowGrab(r_context.window)) {
-			SDL_ShowCursor(true);
-			SDL_SetWindowGrab(r_context.window, false);
-		}
+		SDL_ShowCursor(true);
+		SDL_SetWindowGrab(r_context.window, false);
 	} else {
-		if (!SDL_GetWindowGrab(r_context.window)) {
-			SDL_ShowCursor(false);
-			SDL_SetWindowGrab(r_context.window, true);
-		}
+		SDL_ShowCursor(false);
+		SDL_SetWindowGrab(r_context.window, true);
 	}
 }
 
@@ -419,6 +415,13 @@ void Cl_HandleEvents(void) {
 		} else {
 			break;
 		}
+	}
+
+	if (cls.key_state.dest == KEY_GAME) {
+		const GLint cx = r_context.width * 0.5;
+		const GLint cy = r_context.height * 0.5;
+
+		SDL_WarpMouseInWindow(r_context.window, cx, cy);
 	}
 }
 

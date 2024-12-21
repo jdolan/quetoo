@@ -110,17 +110,59 @@ float Cm_WindingArea(const cm_winding_t *w) {
 }
 
 /**
+ * @brief Calculates the distance from `p` to `w`.
+ * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+ */
+float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir) {
+
+	float distance = FLT_MAX;
+
+	for (int32_t i = 0; i < w->num_points; i++) {
+
+		const vec3_t a = w->points[(i + 0) % w->num_points];
+		const vec3_t b = w->points[(i + 1) % w->num_points];
+
+		const float dist_squared = Vec3_DistanceSquared(a, b);
+		if (dist_squared == 0.f) {
+			continue;
+		}
+
+		const vec3_t pa = Vec3_Subtract(p, a);
+		const vec3_t ba = Vec3_Subtract(b, a);
+
+		const float f = Maxf(0.f, Minf(1.f, Vec3_Dot(pa, ba) / dist_squared));
+		const vec3_t q = Vec3_Fmaf(a, f, ba);
+
+		vec3_t dir0;
+		const float dist = Vec3_DistanceDir(q, p, &dir0);
+
+		if (dist < distance) {
+			distance = dist;
+			if (dir) {
+				*dir = dir0;
+			}
+		}
+	}
+
+	return distance;
+}
+
+/**
  * @brief
  */
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 
-	const vec3_t e1 = Vec3_Subtract(w->points[1], w->points[0]);
-	const vec3_t e2 = Vec3_Subtract(w->points[2], w->points[0]);
+	const vec3d_t a = Vec3_CastVec3d(w->points[0]);
+	const vec3d_t b = Vec3_CastVec3d(w->points[1]);
+	const vec3d_t c = Vec3_CastVec3d(w->points[2]);
 
-	*normal = Vec3_Cross(e2, e1);
-	*normal = Vec3_Normalize(*normal);
-	
-	*dist = (double) Vec3_Dot(w->points[0], *normal);
+	const vec3d_t ba = Vec3d_Subtract(b, a);
+	const vec3d_t ca = Vec3d_Subtract(c, a);
+
+	const vec3d_t n = Vec3d_Normalize(Vec3d_Cross(ca, ba));
+
+	*normal = Vec3d_CastVec3(n);
+	*dist = Vec3d_Dot(a, n);
 }
 
 /**
@@ -211,6 +253,44 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 	}
 
 	return w;
+}
+
+/**
+ * @brief
+ */
+cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side) {
+
+	const bsp_plane_t *plane = file->planes + brush_side->plane;
+	cm_winding_t *winding = Cm_WindingForPlane(plane->normal, plane->dist);
+
+	const int32_t side = (int32_t) (brush_side - file->brush_sides);
+
+	const bsp_brush_t *brush = file->brushes;
+	for (int32_t i = 0; i < file->num_brushes; i++, brush++) {
+
+		if (side >= brush->first_brush_side
+			&& side < brush->first_brush_side + brush->num_brush_sides) {
+			break;
+		}
+	}
+
+	const bsp_brush_side_t *s = file->brush_sides + brush->first_brush_side;
+	for (int32_t i = 0; i < brush->num_brush_sides; i++, s++) {
+		if (s == brush_side) {
+			continue;
+		}
+		if (s->surface & SURF_BEVEL) {
+			continue;
+		}
+		const bsp_plane_t *p = &file->planes[s->plane ^ 1];
+		Cm_ClipWinding(&winding, p->normal, p->dist, SIDE_EPSILON);
+
+		if (winding == NULL) {
+			break;
+		}
+	}
+
+	return winding;
 }
 
 /**
@@ -484,7 +564,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep1 = dot < -COLINEAR_EPSILON;
+	const bool keep1 = dot < -COLINEAR_EPSILON;
 
 	back = a->points[(i + 2) % a->num_points];
 	delta = Vec3_Subtract(back, p2);
@@ -497,7 +577,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 	if (dot > COLINEAR_EPSILON) {
 		return NULL; // not a convex polygon
 	}
-	const _Bool keep2 = dot < -COLINEAR_EPSILON;
+	const bool keep2 = dot < -COLINEAR_EPSILON;
 
 	// build the new polygon
 	cm_winding_t *merged = Cm_AllocWinding(a->num_points + b->num_points);
@@ -561,19 +641,25 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 			point_t *b = &points[(i + 1) % num_points];
 			point_t *c = &points[(i + 2) % num_points];
 
-			const vec3_t ba = Vec3_Normalize(Vec3_Subtract(b->position, a->position));
-			const vec3_t cb = Vec3_Normalize(Vec3_Subtract(c->position, b->position));
+			const vec3_t ba = Vec3_Direction(b->position, a->position);
+			const vec3_t cb = Vec3_Direction(c->position, b->position);
 
-			if (Vec3_Dot(ba, cb) > 1.0f - COLINEAR_EPSILON) {
+			const float dot = Vec3_Dot(ba, cb);
+			if (dot > 1.f - COLINEAR_EPSILON) {
 				b->corner = 0;
 			} else {
 				b->corner = ++num_corners;
 			}
 		}
 
-		//assert(num_corners > 2);
+		// if we don't find 3 corners, this is a degenerate winding (a line segment)
 
-		// chip away at edges with collinear points first
+		if (num_corners < 3) {
+			Com_Warn("Invalid winding: %d corners found in %d points\n", num_corners, num_points);
+			break;
+		}
+
+		// chip away at edges with colinear points first
 
 		const point_t *clip = NULL;
 		if (num_corners < num_points) {
@@ -585,12 +671,7 @@ int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements) {
 				const point_t *c = &points[(i + 2) % num_points];
 
 				if (!a->corner && b->corner) {
-
-					const vec3_t ba = Vec3_Subtract(b->position, a->position);
-					const vec3_t cb = Vec3_Subtract(c->position, b->position);
-					const vec3_t cross = Vec3_Cross(ba, cb);
-
-					const float area = 0.5f * Vec3_Length(cross);
+					const float area = Cm_TriangleArea(a->position, b->position, c->position);
 					if (area < best) {
 						best = area;
 						clip = b;
@@ -633,27 +714,40 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
 
 /**
 * @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
+* @remarks The max_area checks ensure that p is (approximately) inside the triangle abc.
 * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 */
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out) {
 
-   const float abc = Cm_TriangleArea(a, b, c);
-   if (abc) {
-	   const float bcp = Cm_TriangleArea(b, c, p);
-	   out->x = bcp / abc;
+	const float abc = Cm_TriangleArea(a, b, c);
+	if (abc) {
+		const float max_area = abc * 1.f;
 
-	   const float cap = Cm_TriangleArea(c, a, p);
-	   out->y = cap / abc;
+		const float bcp = Cm_TriangleArea(b, c, p);
+		if (bcp > max_area) {
+			return FLT_MAX;
+		}
 
-	   const float abp = Cm_TriangleArea(a, b, p);
-	   out->z = abp / abc;
+		const float cap = Cm_TriangleArea(c, a, p);
+		if (cap > max_area) {
+			return FLT_MAX;
+		}
 
-	   return out->x + out->y + out->z;
-   } else {
+		const float abp = Cm_TriangleArea(a, b, p);
+		if (abp > max_area) {
+			return FLT_MAX;
+		}
+
+		out->x = bcp / abc;
+		out->y = cap / abc;
+		out->z = abp / abc;
+
+		return out->x + out->y + out->z;
+	} else {
 	   *out = Vec3_Zero();
-   }
+	}
 
-   return FLT_MAX;
+	return FLT_MAX;
 }
 
 /**
@@ -683,6 +777,10 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 
 		const float r = 1.f / (x1 * y2 - x2 * y1);
 
+		if (r == INFINITY || r == -INFINITY) {
+			continue;
+		}
+
 		const vec3_t t = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e1, y2), Vec3_Scale(e2, y1)), r);
 		const vec3_t b = Vec3_Scale(Vec3_Subtract(Vec3_Scale(e2, x1), Vec3_Scale(e1, x2)), r);
 
@@ -693,10 +791,18 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		*v0->bitangent = Vec3_Add(*v0->bitangent, b);
 		*v1->bitangent = Vec3_Add(*v1->bitangent, b);
 		*v2->bitangent = Vec3_Add(*v2->bitangent, b);
+
+		v0->num_tris++;
+		v1->num_tris++;
+		v2->num_tris++;
 	}
 
 	cm_vertex_t *v = vertexes;
 	for (int32_t i = 0; i < num_vertexes; i++, v++) {
-		Vec3_Tangents(*v->normal, *v->tangent, *v->bitangent, v->tangent, v->bitangent);
+
+		const vec3_t sdir = *v->tangent;
+		const vec3_t tdir = *v->bitangent;
+
+		Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
 	}
 }

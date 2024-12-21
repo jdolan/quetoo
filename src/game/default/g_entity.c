@@ -109,7 +109,7 @@ static const g_entity_class_t g_entity_classes[] = {
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static _Bool G_SpawnEntity(g_entity_t *ent) {
+static bool G_SpawnEntity(g_entity_t *ent) {
 
 	ent->class_name = gi.EntityValue(ent->def, "classname")->string;
 	ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
@@ -256,8 +256,7 @@ static void G_InitMedia(void) {
 	// preload items/set item media ptrs
 	G_InitItems();
 
-	// precache sexed sounds; clients will load these when a new player model
-	// gets loaded.
+	// precache player sounds; clients will load these when a new player model gets loaded.
 	gi.SoundIndex("*gurp_1");
 	gi.SoundIndex("*drown_1");
 	gi.SoundIndex("*fall_1");
@@ -304,6 +303,8 @@ static void G_InitMedia(void) {
 
 	g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
 	g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
+
+	g_media.sounds.chat = gi.SoundIndex("misc/chat");
 
 	for (i = 0; i < NUM_GIB_MODELS; i++) {
 		g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
@@ -487,20 +488,22 @@ static void G_InitSpawnPoints(void) {
 	GSList *dm_spawns = NULL;
 	g_entity_t *spot = NULL;
 
-	while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
 		dm_spawns = g_slist_prepend(dm_spawns, spot);
 	}
 
-	spot = NULL;
+	if (!dm_spawns) {
+		spot = NULL;
 
-	while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
-		dm_spawns = g_slist_prepend(dm_spawns, spot);
+		while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+			dm_spawns = g_slist_prepend(dm_spawns, spot);
+		}
 	}
 	
 	// find the team points, if we have any explicit ones in the map.
 	// start by finding the flags
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		g_teamlist[t].flag_entity = G_Find(NULL, EOFS(class_name), g_teamlist[t].flag);
+		g_team_list[t].flag_entity = G_Find(NULL, EOFS(class_name), g_team_list[t].flag);
 	}
 
 	GSList *team_spawns[MAX_TEAMS];
@@ -517,7 +520,7 @@ static void G_InitSpawnPoints(void) {
 
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
 		spot = NULL;
-		g_team_t *team = &g_teamlist[t];
+		g_team_t *team = &g_team_list[t];
 
 		while ((spot = G_Find(spot, EOFS(class_name), team->spawn)) != NULL) {
 			team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
@@ -557,7 +560,7 @@ static void G_InitSpawnPoints(void) {
 
 		// re-calculate final values since the above may change them
 		for (int32_t t = 0; t < MAX_TEAMS; t++) {
-			g_teamlist[t].spawn_points.count = g_slist_length(team_spawns[t]);
+			g_team_list[t].spawn_points.count = g_slist_length(team_spawns[t]);
 		}
 
 		g_level.spawn_points.count = g_slist_length(dm_spawns);
@@ -567,10 +570,10 @@ static void G_InitSpawnPoints(void) {
 	size_t i;
 
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		g_teamlist[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_teamlist[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
+		g_team_list[t].spawn_points.spots = gi.Malloc(sizeof(g_entity_t *) * g_team_list[t].spawn_points.count, MEM_TAG_GAME_LEVEL);
 	
 		for (i = 0, point = team_spawns[t]; point; point = point->next, i++) {
-			g_teamlist[t].spawn_points.spots[i] = (g_entity_t *) point->data;
+			g_team_list[t].spawn_points.spots[i] = (g_entity_t *) point->data;
 		}
 	
 		g_slist_free(team_spawns[t]);
@@ -625,33 +628,31 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 	g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
 	// see if we have bots to keep
-	if (aix) {
-		g_game.ai_fill_slots = 0;
-		g_game.ai_left_to_spawn = 0;
+	g_game.ai_fill_slots = 0;
+	g_game.ai_left_to_spawn = 0;
 
-		if (g_ai_max_clients->integer) {
-			if (g_ai_max_clients->integer == -1) {
-				g_game.ai_fill_slots = sv_max_clients->integer;
-			} else {
-				g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
-			}
-
-			g_game.ai_left_to_spawn = g_game.ai_fill_slots;
-			g_ai_max_clients->modified = false;
+	if (g_ai_max_clients->integer) {
+		if (g_ai_max_clients->integer == -1) {
+			g_game.ai_fill_slots = sv_max_clients->integer;
 		} else {
-			for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-				if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
-					g_game.ai_left_to_spawn++;
-				}
-			}
+			g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
 		}
 
-		// load nav data
-		G_Ai_Load(name);
+		g_game.ai_left_to_spawn = g_game.ai_fill_slots;
+		g_ai_max_clients->modified = false;
+	} else {
+		for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+			if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
+				g_game.ai_left_to_spawn++;
+			}
+		}
 	}
+
+	// load nav data
+	G_Ai_Load();
 	
-	memset(g_game.entities, 0, g_max_entities->value * sizeof(g_entity_t));
-	memset(g_game.clients, 0, sv_max_clients->value * sizeof(g_client_t));
+	memset(g_game.entities, 0, g_max_entities->integer * sizeof(g_entity_t));
+	memset(g_game.clients, 0, sv_max_clients->integer * sizeof(g_client_t));
 
 	for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 		g_game.entities[i + 1].client = g_game.clients + i;
@@ -699,8 +700,6 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 	G_InitSpawnPoints();
 
 	G_ResetSpawnPoints();
-
-	G_ResetVote();
 
 	G_ResetItems();
 }
@@ -768,10 +767,6 @@ static void G_WorldspawnMusic(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- brightness : Global light scale, a single positive scalar value (e.g. 1.125).
- saturation : Global light saturation, a single positive scalar value (e.g. 0.9).
- contrast : Global light contrast, a single positive scalar value (e.g. 1.17).
- patch_size : Surface light patch size (default 64).
  weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
@@ -802,7 +797,9 @@ static void G_worldspawn(g_entity_t *ent) {
 	{
 		g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
 	}
+
 	gi.SetConfigString(CS_NAME, g_level.title);
+	gi.SetConfigString(CS_MAXCLIENTS, va("%d", sv_max_clients->integer));
 
 	if (map && *map->sky) { // prefer maps.lst sky
 		gi.SetConfigString(CS_SKY, map->sky);
@@ -1010,7 +1007,5 @@ static void G_worldspawn(g_entity_t *ent) {
 	}
 
 	G_WorldspawnMusic();
-
-	gi.SetConfigString(CS_VOTE, "");
 }
 

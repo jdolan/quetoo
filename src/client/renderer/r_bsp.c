@@ -22,43 +22,34 @@
 #include "r_local.h"
 
 /**
- * @return The leaf for the specified point.
- */
-const r_bsp_leaf_t *R_LeafForPoint(const vec3_t p) {
-
-	const int32_t leaf_num = Cm_PointLeafnum(p, 0);
-
-	assert(leaf_num >= 0);
-
-	return &r_world_model->bsp->leafs[leaf_num];
-}
-
-/**
  * @return The blend depth at which the specified point should be rendered for alpha blending.
  */
 int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend_depth_type_t type) {
 
 	if (!r_blend_depth_sorting->value) {
-		return -1;
+		return INT32_MIN;
 	}
 
 	if (view->type == VIEW_PLAYER_MODEL) {
-		return -1;
+		return INT32_MIN;
 	}
 
 	box3_t bounds = Cm_TraceBounds(view->origin, p, Box3_Zero());
 
+	// FIXME: Because blend_elements are pre-sorted, a binary search here would be faster
+	
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (guint i = 0; i < in->blend_elements->len; i++) {
 
 		r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
 
-		if (draw->texinfo->flags & SURF_DECAL) {
+		if (draw->surface & SURF_DECAL) {
 			continue;
 		}
 
 		if (Box3_Intersects(bounds, draw->bounds)) {
-			if (Cm_DistanceToPlane(p, draw->plane->cm) < 0.f) {
+			if (SignOf(Cm_DistanceToPlane(view->origin, draw->plane->cm)) !=
+				SignOf(Cm_DistanceToPlane(p, draw->plane->cm))) {
 
 				draw->blend_depth_types |= type;
 
@@ -67,7 +58,7 @@ int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend
 		}
 	}
 
-	return -1;
+	return INT32_MAX;
 }
 
 /**
@@ -84,7 +75,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		return;
 	}
 
-	box3_t bounds = node->bounds;
+	box3_t bounds = node->visible_bounds;
 
 	if (e) {
 		bounds = Mat4_TransformBounds(e->matrix, bounds);
@@ -98,7 +89,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 
 	cm_bsp_plane_t transformed_plane;
 	if (e) {
-		transformed_plane = Cm_TransformPlane(e->matrix, plane->cm);
+		transformed_plane = Cm_TransformPlane(e->matrix, *plane->cm);
 	} else {
 		transformed_plane = *plane->cm;
 	}
@@ -112,14 +103,18 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 
 	R_UpdateBspInlineModelBlendDepth_r(view, e, in, node->children[back_side]);
 
-	for (guint i = 0; i < plane->blend_elements->len; i++) {
-		r_bsp_draw_elements_t *draw = g_ptr_array_index(plane->blend_elements, i);
+	r_bsp_draw_elements_t *draw = in->draw_elements;
+	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->plane_side == back_side) {
+		if (!(draw->surface & SURF_MASK_BLEND)) {
 			continue;
 		}
 
-		if (!Box3_Intersects(draw->bounds, node->bounds)) {
+		if (draw->plane != plane && draw->plane != plane + 1) {
+			continue;
+		}
+		
+		if (!Box3_Intersects(draw->bounds, node->visible_bounds)) {
 			continue;
 		}
 
@@ -128,6 +123,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		}
 
 		draw->blend_depth_types = BLEND_DEPTH_NONE;
+
 		g_ptr_array_add(in->blend_elements, draw);
 	}
 

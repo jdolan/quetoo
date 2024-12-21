@@ -29,14 +29,14 @@ typedef struct {
 
 	r_image_t *image;
 
-	r_pixel_t char_width;
-	r_pixel_t char_height;
+	GLint char_width;
+	GLint char_height;
 } r_font_t;
 
 #define MAX_DRAW_FONTS 3
 
 typedef struct {
-	r_pixel_t x, y, w, h;
+	GLint x, y, w, h;
 } r_draw_2d_clipping_frame_t;
 
 /**
@@ -168,7 +168,7 @@ static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 /**
  * @brief
  */
-static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 
 	if (isspace(c) && c != 0x0b) {
 		return;
@@ -182,8 +182,8 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 	const float s1 = (col + 1) * 0.0625;
 	const float t1 = (row + 1) * 0.1250;
 
-	const r_pixel_t cw = r_draw_2d.font->char_width;
-	const r_pixel_t ch = r_draw_2d.font->char_height;
+	const GLint cw = r_draw_2d.font->char_width;
+	const GLint ch = r_draw_2d.font->char_height;
 
 	r_draw_2d_vertex_t quad[4];
 
@@ -204,13 +204,13 @@ static void R_Draw2DChar_(r_pixel_t x, r_pixel_t y, char c, const color_t color)
 
 	R_EmitDrawVertexes2D_Quad(quad);
 
-	r_stats.count_draw_chars++;
+	r_stats.draw_chars++;
 }
 
 /**
  * @brief
  */
-void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
+void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
 
 	if (isspace(c) && c != 0x0b) {
 		return;
@@ -231,7 +231,7 @@ void R_Draw2DChar(r_pixel_t x, r_pixel_t y, char c, const color_t color) {
  * @brief Return the width of the specified string in pixels. This will vary based
  * on the currently bound font. Color escapes are omitted.
  */
-r_pixel_t R_StringWidth(const char *s) {
+GLint R_StringWidth(const char *s) {
 
 	size_t len = 0;
 
@@ -251,20 +251,20 @@ r_pixel_t R_StringWidth(const char *s) {
 		len++;
 	}
 
-	return len * r_draw_2d.font->char_width;
+	return (GLint) (len * r_draw_2d.font->char_width);
 }
 
 /**
  * @brief
  */
-size_t R_Draw2DString(r_pixel_t x, r_pixel_t y, const char *s, const color_t color) {
+size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
 	return R_Draw2DSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /**
  * @brief
  */
-size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const color_t color) {
+size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color) {
 	return R_Draw2DSizedString(x, y, s, size, size, color);
 }
 
@@ -272,7 +272,7 @@ size_t R_Draw2DBytes(r_pixel_t x, r_pixel_t y, const char *s, size_t size, const
  * @brief Draws at most len chars or size bytes of the specified string. Color escape
  * sequences are not visible chars. Returns the number of chars drawn.
  */
-size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, size_t size, const color_t color) {
+size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t size, const color_t color) {
 	size_t i, j;
 
 	r_draw_2d_arrays_t draw = {
@@ -304,7 +304,7 @@ size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, 
 			char path[MAX_QPATH];
 			g_snprintf(path, sizeof(path), "pics/emoji/%s", name);
 
-			const r_image_t *emoji = R_LoadImage(path, IT_PIC) ?: r_draw_2d.null_texture;
+			const r_image_t *emoji = R_LoadImage(path, IMG_PIC) ?: r_draw_2d.null_texture;
 
 			R_Draw2DImage(x, y, r_draw_2d.font->char_height, r_draw_2d.font->char_height, emoji, color_white);
 			x += r_draw_2d.font->char_height;
@@ -334,7 +334,7 @@ size_t R_Draw2DSizedString(r_pixel_t x, r_pixel_t y, const char *s, size_t len, 
 /**
  * @brief Binds the specified font, returning the character width and height.
  */
-void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
+void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 
 	if (name == NULL) {
 		name = "medium";
@@ -368,7 +368,7 @@ void R_BindFont(const char *name, r_pixel_t *cw, r_pixel_t *ch) {
 /**
  * @brief
  */
-void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
+void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 
 	r_draw_2d.clipping_frame.x = x;
 	r_draw_2d.clipping_frame.y = y;
@@ -379,7 +379,7 @@ void R_SetClippingFrame(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h) {
 /**
  * @brief
  */
-void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color) {
+void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color) {
 
 	if (image == NULL) {
 		Com_Warn("NULL image\n");
@@ -407,10 +407,10 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 		quad[2].diffusemap = Vec2(st.z, st.w);
 		quad[3].diffusemap = Vec2(st.x, st.w);
 	} else {
-		quad[0].diffusemap = Vec2(0, 0);
-		quad[1].diffusemap = Vec2(1, 0);
-		quad[2].diffusemap = Vec2(1, 1);
-		quad[3].diffusemap = Vec2(0, 1);
+		quad[0].diffusemap = Vec2(0.f, 0.f);
+		quad[1].diffusemap = Vec2(1.f, 0.f);
+		quad[2].diffusemap = Vec2(1.f, 1.f);
+		quad[3].diffusemap = Vec2(0.f, 1.f);
 	}
 
 	quad[0].color = Color_Color32(color);
@@ -421,21 +421,16 @@ void R_Draw2DImage(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_i
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_images++;
+	r_stats.draw_images++;
 }
 
 /**
  * @brief
  */
-void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color) {
+void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color) {
 
 	if (framebuffer == NULL) {
 		Com_Warn("NULL framebuffer\n");
-		return;
-	}
-
-	if (framebuffer->multisample) {
-		Com_Warn("Multisample framebuffer\n");
 		return;
 	}
 
@@ -456,10 +451,10 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
 	quad[2].position = Vec2s(x + w, y + h);
 	quad[3].position = Vec2s(x, y + h);
 
-	quad[0].diffusemap = Vec2(0, 1);
-	quad[1].diffusemap = Vec2(1, 1);
-	quad[2].diffusemap = Vec2(1, 0);
-	quad[3].diffusemap = Vec2(0, 0);
+	quad[0].diffusemap = Vec2(0.f, 1.f);
+	quad[1].diffusemap = Vec2(1.f, 1.f);
+	quad[2].diffusemap = Vec2(1.f, 0.f);
+	quad[3].diffusemap = Vec2(0.f, 0.f);
 
 	quad[0].color = Color_Color32(color);
 	quad[1].color = Color_Color32(color);
@@ -474,7 +469,7 @@ void R_Draw2DFramebuffer(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, con
  * @brief The color can be specified as an index into the palette with positive alpha
  * value for a, or as an RGBA value (32 bit) by passing -1.0 for a.
  */
-void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color) {
+void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_TRIANGLES,
@@ -498,13 +493,13 @@ void R_Draw2DFill(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const colo
 	R_EmitDrawVertexes2D_Quad(quad);
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_fills++;
+	r_stats.draw_fills++;
 }
 
 /**
  * @brief
  */
-void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
+void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
 
 	r_draw_2d_arrays_t draw = {
 		.mode = GL_LINE_STRIP,
@@ -515,7 +510,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	r_draw_2d_vertex_t *out = r_draw_2d.vertexes + r_draw_2d.num_vertexes;
 	
-	const r_pixel_t *in = points;
+	const GLint *in = points;
 	for (size_t i = 0; i < count; i++, in += 2, out++) {
 
 		out->position.x = *(in + 0);
@@ -528,7 +523,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
 
 	R_AddDraw2DArrays(&draw);
 
-	r_stats.count_draw_lines += count >> 1;
+	r_stats.draw_lines += count >> 1;
 }
 
 /**
@@ -536,7 +531,7 @@ void R_Draw2DLines(const r_pixel_t *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 	
-	r_stats.count_draw_arrays = r_draw_2d.num_draw_arrays;
+	r_stats.draw_arrays = r_draw_2d.num_draw_arrays;
 
 	if (r_draw_2d.num_draw_arrays == 0) {
 		return;
@@ -546,8 +541,6 @@ void R_Draw2D(void) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glUseProgram(r_draw_2d_program.name);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_draw_2d.vertex_array);
 	
@@ -613,7 +606,7 @@ static void R_InitFont(char *name) {
 
 	g_strlcpy(font->name, name, sizeof(font->name));
 
-	font->image = R_LoadImage(va("fonts/%s", name), IT_FONT);
+	font->image = R_LoadImage(va("fonts/%s", name), IMG_FONT);
 	assert(font->image);
 
 	font->char_width = font->image->width / r_context.window_scale / 16;
@@ -665,7 +658,7 @@ void R_InitDraw2D(void) {
 
 	R_BindFont(NULL, NULL, NULL);
 
-	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IT_PROGRAM);
+	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IMG_PROGRAM);
 	assert(r_draw_2d.null_texture);
 	
 	glGenVertexArrays(1, &r_draw_2d.vertex_array);

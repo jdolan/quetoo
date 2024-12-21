@@ -43,7 +43,7 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
  * @return True if the delta is valid and the entity should be interpolated, false
  * if the delta is invalid and the entity should be snapped to `to`.
  */
-static _Bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
+static bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
 
 	if (frame->delta_frame_num == -1) {
@@ -330,7 +330,7 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-	_Bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
+	bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
 
 	if (cl.previous_frame) {
 		const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
@@ -420,7 +420,7 @@ void Cl_Interpolate(void) {
 
 		vec3_t angles;
 		if (ent->current.solid == SOLID_BSP) {
-			angles = ent->angles;
+			angles = ent->current.angles;
 
 			const r_model_t *mod = cl.models[ent->current.model1];
 
@@ -430,21 +430,20 @@ void Cl_Interpolate(void) {
 			ent->bounds = mod->bsp_inline->bounds;
 		} else {
 			angles = Vec3_Zero();
-
 			ent->bounds = ent->current.bounds;
 		}
 
-		// jdolan: Note that we use the latest snapshot origin, not the interpolated origin.
+		// jdolan: Note that we use the latest snapshot state, not the interpolated state.
 		// This is so client side prediction can work, and the client and server are working
-		// with the same entity positions at their respective intervals.
-		ent->abs_bounds = Cm_EntityBounds(ent->current.solid,
-										  ent->current.origin,
-										  angles,
-										  ent->matrix,
-										  ent->bounds);
+		// with the same entity positions at their respective intervals. A side effect of this
+		// is that client side traces are usually _ahead_ of the rendered simulation, so you'll
+		// see artifacts like player shadows glitching on func_plats, etc.
 
 		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
+
 		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
+
+		ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
 	}
 
 	cls.cgame->Interpolate(&cl.frame);

@@ -23,6 +23,7 @@
 
 #include "quemap.h"
 
-extern _Bool include_shared;
+extern bool include_shared;
+extern bool update_zip;
 
 int32_t ZIP_Main(void);

@@ -308,7 +308,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
 	mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 
-	R_LoadModelMaterials(mod);
+	R_LoadMeshMaterials(mod);
 
 	{
 		mod->mesh->num_frames = md3.num_frames;
@@ -472,7 +472,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
  */
 const r_model_format_t r_md3_model_format = {
 	.extension = "md3",
-	.type = MOD_MESH,
+	.type = MODEL_MESH,
 	.Load = R_LoadMd3Model,
 	.Register = R_RegisterMeshModel,
 	.Free = R_FreeMeshModel,

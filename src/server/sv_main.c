@@ -352,7 +352,7 @@ static void Sv_Connect_f(void) {
 /**
  * @brief
  */
-static _Bool Sv_RconAuthenticate(void) {
+static bool Sv_RconAuthenticate(void) {
 
 	// a password must be set for rcon to be available
 	if (*sv_rcon_password->string == '\0') {
@@ -383,7 +383,7 @@ static void Sv_Rcon_Print(const console_string_t *str) {
  */
 static void Sv_Rcon_f(void) {
 
-	const _Bool auth = Sv_RconAuthenticate();
+	const bool auth = Sv_RconAuthenticate();
 
 	const char *addr = Net_NetaddrToString(&net_from);
 
@@ -834,6 +834,40 @@ static void Sv_InitLocal(void) {
 }
 
 /**
+ * @brief
+ */
+static void Sv_CheckForUpdates(void) {
+
+	if (!dedicated->value) {
+		return;
+	}
+
+	switch (Installer_CheckForUpdates()) {
+		case 0:
+			Com_Print("Quetoo %s is up to date.\n", REVISION);
+			break;
+		case 1:
+			while (true) {
+				Com_Print("A new version of Quetoo is available. Update now? Y/n ");
+				const int32_t c = tolower(getc(stdin));
+				if (c == 'y' || c == '\n') {
+					Installer_LaunchInstaller();
+				} else if (c == 'n' || c == -1) {
+					Com_Warn("Your server will not be public until you update.\n");
+					Cvar_ForceSetInteger("sv_public", 0);
+					break;
+				}
+			}
+			break;
+		case 2:
+			Com_Warn("A new version of Quetoo is available on Flathub.\n"
+					 "Your server will not be public until you update.\n");
+			Cvar_ForceSetInteger("sv_public", 0);
+			break;
+	}
+}
+
+/**
  * @brief Only called at Quetoo startup, not for each game.
  */
 void Sv_Init(void) {
@@ -841,6 +875,8 @@ void Sv_Init(void) {
 	memset(&svs, 0, sizeof(svs));
 
 	Cm_LoadBspModel(NULL, NULL);
+
+	Sv_CheckForUpdates();
 
 	Sv_InitConsole();
 

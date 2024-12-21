@@ -357,7 +357,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
  * either a baseline or a previous packet_entity
  */
 void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
-                          _Bool force) {
+                          bool force) {
 
 	uint16_t bits = 0;
 
@@ -374,7 +374,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	}
 
 	if (to->spawn_id != from->spawn_id) {
-		bits |= U_SPAWNID;
+		bits |= U_SPAWN_ID;
 	}
 
 	if (!Vec3_Equal(to->origin, from->origin)) {
@@ -431,7 +431,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 	}
 
 	if (!bits && !force) {
-		return;    // nothing to send
+		return; // nothing to send
 	}
 
 	// write the message
@@ -443,7 +443,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 		Net_WriteByte(msg, to->step_offset);
 	}
 
-	if (bits & U_SPAWNID) {
+	if (bits & U_SPAWN_ID) {
 		Net_WriteByte(msg, to->spawn_id);
 	}
 
@@ -820,7 +820,7 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 		to->step_offset = Net_ReadByte(msg);
 	}
 
-	if (bits & U_SPAWNID) {
+	if (bits & U_SPAWN_ID) {
 		to->spawn_id = Net_ReadByte(msg);
 	}
 

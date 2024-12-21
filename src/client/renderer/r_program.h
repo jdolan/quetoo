@@ -38,4 +38,4 @@ typedef struct {
 r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) __attribute__((sentinel));
 GLuint R_LoadShader(const r_shader_descriptor_t *desc);
 GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) __attribute__((sentinel));
-#endif /* __R_LOCAL_H__ */
+#endif

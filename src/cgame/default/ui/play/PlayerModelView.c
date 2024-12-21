@@ -86,7 +86,7 @@ static void render(View *self, Renderer *renderer) {
 	if (this->client.torso) {
 		$(this, animate);
 
-		R_ClearView(&this->view);
+		cgi.InitView(&this->view);
 
 		this->view.type = VIEW_PLAYER_MODEL;
 		this->view.ticks = cgi.client->ticks;
@@ -94,7 +94,7 @@ static void render(View *self, Renderer *renderer) {
 		this->view.fov.x = 30.f / 2.f;
 
 		const SDL_Rect viewport = $(self, viewport);
-		this->view.viewport = Vec4(viewport.x, viewport.y, viewport.w, viewport.h);
+		this->view.viewport = Vec4i(viewport.x, viewport.y, viewport.w, viewport.h);
 
 		const float x = viewport.w / tanf(Radians(30.f));
 		const float y = atan2f(viewport.w, x);
@@ -109,7 +109,7 @@ static void render(View *self, Renderer *renderer) {
 		Vec3_Vectors(this->view.angles, &this->view.forward, &this->view.right, &this->view.up);
 
 		if (this->framebuffer.name == 0) {
-			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, false);
+			this->framebuffer = cgi.CreateFramebuffer(viewport.w, viewport.h, ATTACHMENT_ALL);
 		}
 
 		this->view.framebuffer = &this->framebuffer;
@@ -148,7 +148,7 @@ static void renderDeviceWillReset(View *self) {
 /**
  * @see View::updateBindings(View *)
  */
-	static void updateBindings(View *self) {
+static void updateBindings(View *self) {
 	
 	super(View, self, updateBindings);
 
@@ -156,7 +156,7 @@ static void renderDeviceWillReset(View *self) {
 
 	this->animation1.frame = this->animation2.frame = -1;
 
-	g_snprintf(this->info, sizeof(this->info), "newbie\\%s\\%s\\%s\\%s\\0",
+	g_snprintf(this->info, sizeof(this->info), "-1\\newbie\\%s\\%s\\%s\\%s\\default",
 			   cg_skin->string, cg_shirt->string, cg_pants->string, cg_helmet->string);
 
 	Cg_LoadClient(&this->client, this->info);
@@ -191,7 +191,9 @@ static void renderDeviceWillReset(View *self) {
 	this->platformCenter.scale = 1.0;
 	this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
 
-	this->iconView->texture = this->client.icon->texnum;
+	SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
+	$(this->iconView, setImageWithSurface, surface);
+	SDL_FreeSurface(surface);
 }
 
 #pragma mark - Control
@@ -199,7 +201,7 @@ static void renderDeviceWillReset(View *self) {
 /**
  * @see Control::captureEvent(Control *, const SDL_Event *)
  */
-static _Bool captureEvent(Control *self, const SDL_Event *event) {
+static bool captureEvent(Control *self, const SDL_Event *event) {
 
 	if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
 
@@ -320,15 +322,15 @@ static void animate(PlayerModelView *self) {
 	};
 
 	if (self->client.shirt.a) {
-		tints[0] = Color_Vec4(self->client.shirt);
+		tints[0] = self->client.shirt.vec4;
 	}
 
 	if (self->client.pants.a) {
-		tints[1] = Color_Vec4(self->client.pants);
+		tints[1] = self->client.pants.vec4;
 	}
 
 	if (self->client.helmet.a) {
-		tints[2] = Color_Vec4(self->client.helmet);
+		tints[2] = self->client.helmet.vec4;
 	}
 	
 	memcpy(self->legs.tints, tints, sizeof(tints));

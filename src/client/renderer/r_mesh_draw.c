@@ -50,16 +50,21 @@ static struct {
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
+	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
+	GLint texture_shadowmap;
+	GLint texture_shadowmap_cube;
 
 	GLint color;
-	GLint alpha_threshold;
+	GLint tint_colors;
 
 	struct {
+		GLint alpha_test;
 		GLint roughness;
 		GLint hardness;
 		GLint specularity;
 		GLint parallax;
+		GLint bloom;
 	} material;
 
 	struct {
@@ -70,8 +75,6 @@ static struct {
 		GLint scale;
 		GLint shell;
 	} stage;
-
-	GLint tint_colors;
 
 	r_media_t *shell;
 } r_mesh_program;
@@ -84,10 +87,24 @@ void R_UpdateMeshEntities(r_view_t *view) {
 	r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (IS_MESH_MODEL(e->model)) {
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
+		}
+
+		e->blend_depth = INT32_MIN;
+
+		if (e->effects & (EF_BLEND | EF_SHELL)) {
 			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
 		} else {
-			e->blend_depth = -1;
+			const r_mesh_face_t *face = e->model->mesh->faces;
+			for (int32_t j = 0; j < e->model->mesh->num_faces; j++, face++) {
+
+				const r_material_t *material = e->skins[j] ?: face->material;
+				if (material->cm->surface & SURF_MASK_BLEND) {
+					e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
+					break;
+				}
+			}
 		}
 	}
 }
@@ -120,7 +137,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(vec3_t);
 
 		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, mesh->shell_normals_buffer);
 
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) old_frame_offset);
@@ -170,10 +187,10 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 	R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
 		.cm = &(const cm_stage_t) {
 			.flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
-			.color = Color4fv(Vec3_ToVec4(e->shell, 0.33)),
+			.color = Color4fv(Vec3_ToVec4(e->shell, .33f)),
 			.blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA },
 			.scroll = { 0.25f, 0.25f },
-			.shell = { (e->effects & EF_WEAPON) ? 0.125f : 1.f }
+			.shell = { (e->effects & EF_WEAPON) ? .33f : 1.f }
 		},
 		.media = r_mesh_program.shell
 	});
@@ -188,7 +205,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 		return;
 	}
 
-	if (!(material->cm->flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
+	if (!(material->cm->stage_flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
 		return;
 	}
 
@@ -255,10 +272,12 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
 	glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
+	glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
 	glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
 	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
 	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
 	glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+	glUniform1f(r_mesh_program.material.bloom, material->cm->bloom * r_bloom->value);
 
 	if (*material->cm->tintmap.path) {
 		vec4_t tints[3];
@@ -274,24 +293,25 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 		glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
 	}
 
-	float alpha = 1.f;
+	vec4_t color = e->color;
 	switch (material->cm->surface & SURF_MASK_BLEND) {
 		case SURF_BLEND_33:
-			alpha = .333f;
+			color.w *= .333f;
 			break;
 		case SURF_BLEND_66:
-			alpha = .666f;
+			color.w *= .666f;
 			break;
 		default:
+			color.w *= 1.f;
 			break;
 	}
 
-	glUniform4f(r_mesh_program.color, 1.f, 1.f, 1.f, alpha);
+	glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
 	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
 
-	r_stats.count_mesh_triangles += face->num_elements / 3;
+	r_stats.mesh_triangles += face->num_elements / 3;
 
 	R_DrawMeshEntityMaterialStages(e, face, mesh, material);
 }
@@ -299,7 +319,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 /**
  * @brief
  */
-static void R_DrawMeshEntity(const r_entity_t *e) {
+static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -327,9 +347,8 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
-	glUniform4fv(r_mesh_program.color, 1, e->color.xyzw);
 
-	glUniform1f(r_mesh_program.alpha_threshold, r_alpha_test_threshold->value);
+	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
 	{
@@ -346,9 +365,9 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 	}
 
 	glDisable(GL_CULL_FACE);
-	glUniform1f(r_mesh_program.alpha_threshold, .0f);
 
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	{
 		const r_mesh_face_t *face = mesh->faces;
@@ -363,24 +382,21 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
 		}
 	}
 
+	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
+
+	glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
+
 	glBindVertexArray(0);
 
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.f, 1.f);
 	}
 
-	if (e->effects & EF_BLEND) {
-		glDisable(GL_BLEND);
-	} else {
-		glDisable(GL_CULL_FACE);
-	}
-
-	r_stats.count_mesh_models++;
+	r_stats.mesh_models++;
 }
 
 /**
@@ -388,28 +404,7 @@ static void R_DrawMeshEntity(const r_entity_t *e) {
  */
 void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 
-	if (!view->num_entities) {
-		return;
-	}
-
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glUseProgram(r_mesh_program.name);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-
-	if (r_world_model) {
-		for (int32_t i = 0; i < (int32_t) lengthof(r_world_model->bsp->lightgrid->textures); i++) {
-			glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID + i);
-			glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[i]->texnum);
-		}
-	}
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -418,21 +413,20 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 			if (e->effects & EF_NO_DRAW) {
 				continue;
 			}
-			
+
 			if (e->blend_depth != blend_depth) {
 				continue;
 			}
 
-			R_DrawMeshEntity(e);
+			if (R_CullEntity(view, e)) {
+				continue;
+			}
+
+			R_DrawMeshEntity(view, e);
 		}
 	}
 
 	glUseProgram(0);
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-	
-	glDisable(GL_DEPTH_TEST);
 
 	R_GetError(NULL);
 }
@@ -445,8 +439,9 @@ void R_InitMeshProgram(void) {
 	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
 	r_mesh_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "material.glsl", "mesh_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "material.glsl", "mesh_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "mesh_gs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
 	glUseProgram(r_mesh_program.name);
@@ -477,15 +472,19 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_ambient = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_ambient");
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
+	r_mesh_program.texture_lightgrid_caustics = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_caustics");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
+	r_mesh_program.texture_shadowmap = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap");
+	r_mesh_program.texture_shadowmap_cube = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap_cube");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
-	r_mesh_program.alpha_threshold = glGetUniformLocation(r_mesh_program.name, "alpha_threshold");
 
+	r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
 	r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
 	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
 	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
 	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+	r_mesh_program.material.bloom = glGetUniformLocation(r_mesh_program.name, "material.bloom");
 
 	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
 	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
@@ -501,15 +500,18 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_mesh_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_mesh_program.texture_shadowmap, TEXTURE_SHADOWMAP);
+	glUniform1i(r_mesh_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
 	glUseProgram(0);
-	
+
 	R_GetError(NULL);
 
-	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IT_PROGRAM);
+	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
 	assert(r_mesh_program.shell);
 }
 

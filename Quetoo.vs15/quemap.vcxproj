@@ -30,11 +30,11 @@
     <ClCompile Include="..\src\tools\quemap\light.c" />
     <ClCompile Include="..\src\tools\quemap\lightgrid.c" />
     <ClCompile Include="..\src\tools\quemap\lightmap.c" />
+    <ClCompile Include="..\src\tools\quemap\luxel.c" />
     <ClCompile Include="..\src\tools\quemap\main.c" />
     <ClCompile Include="..\src\tools\quemap\map.c" />
     <ClCompile Include="..\src\tools\quemap\material.c" />
     <ClCompile Include="..\src\tools\quemap\monitor.c" />
-    <ClCompile Include="..\src\tools\quemap\patch.c" />
     <ClCompile Include="..\src\tools\quemap\polylib.c" />
     <ClCompile Include="..\src\tools\quemap\portal.c" />
     <ClCompile Include="..\src\tools\quemap\prtfile.c" />
@@ -43,7 +43,7 @@
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
     <ClCompile Include="..\src\tools\quemap\qzip.c" />
     <ClCompile Include="..\src\tools\quemap\simplex.c" />
-    <ClCompile Include="..\src\tools\quemap\texinfo.c" />
+    <ClCompile Include="..\src\tools\quemap\texture.c" />
     <ClCompile Include="..\src\tools\quemap\tjunction.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
     <ClCompile Include="..\src\tools\quemap\work.c" />
@@ -62,10 +62,10 @@
     <ClInclude Include="..\src\tools\quemap\light.h" />
     <ClInclude Include="..\src\tools\quemap\lightgrid.h" />
     <ClInclude Include="..\src\tools\quemap\lightmap.h" />
+    <ClInclude Include="..\src\tools\quemap\luxel.h" />
     <ClInclude Include="..\src\tools\quemap\map.h" />
     <ClInclude Include="..\src\tools\quemap\material.h" />
     <ClInclude Include="..\src\tools\quemap\monitor.h" />
-    <ClInclude Include="..\src\tools\quemap\patch.h" />
     <ClInclude Include="..\src\tools\quemap\points.h" />
     <ClInclude Include="..\src\tools\quemap\polylib.h" />
     <ClInclude Include="..\src\tools\quemap\portal.h" />
@@ -76,7 +76,7 @@
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
     <ClInclude Include="..\src\tools\quemap\qzip.h" />
     <ClInclude Include="..\src\tools\quemap\simplex.h" />
-    <ClInclude Include="..\src\tools\quemap\texinfo.h" />
+    <ClInclude Include="..\src\tools\quemap\texture.h" />
     <ClInclude Include="..\src\tools\quemap\tjunction.h" />
     <ClInclude Include="..\src\tools\quemap\tree.h" />
     <ClInclude Include="..\src\tools\quemap\work.h" />

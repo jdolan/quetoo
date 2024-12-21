@@ -55,11 +55,6 @@ void G_ClientToIntermission(g_entity_t *ent) {
 
 	ent->client->locals.ammo_index = 0;
 	ent->client->locals.pickup_msg_time = 0;
-
-	// take a screenshot if we're supposed to
-	if (g_force_screenshot->integer == 1) {
-		G_ClientStuff(ent, "r_screenshot\n");
-	}
 }
 
 /**
@@ -122,7 +117,7 @@ static size_t G_UpdateScores(g_score_t *scores) {
 		memset(s, 0, sizeof(*s) * MAX_TEAMS);
 
 		for (i = 0; i < MAX_TEAMS; i++) {
-			g_team_t *team = &g_teamlist[i];
+			g_team_t *team = &g_team_list[i];
 
 			s->client = MAX_CLIENTS;
 			s->score = team->score;
@@ -165,7 +160,7 @@ void G_ClientScores(g_entity_t *ent) {
 			gi.WriteShort((int32_t) i);
 			gi.WriteData((const void *) (scores + j), len);
 			gi.WriteByte(0); // sequence is incomplete
-			gi.Unicast(ent, false);
+			gi.Unicast(ent, true);
 
 			j = i;
 		}
@@ -179,7 +174,7 @@ void G_ClientScores(g_entity_t *ent) {
 	gi.WriteShort((int32_t) i);
 	gi.WriteData((const void *) (scores + j), len);
 	gi.WriteByte(1); // sequence is complete
-	gi.Unicast(ent, false);
+	gi.Unicast(ent, true);
 }
 
 /**
@@ -282,10 +277,10 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_SCORES] |= 1;
 	}
 
-	if ((g_level.teams || g_level.ctf) && client->locals.persistent.team) { // send team ID, -1 is no team
+	if (client->locals.persistent.team) { // send team ID, -1 is no team
 		client->ps.stats[STAT_TEAM] = client->locals.persistent.team->id;
 	} else {
-		client->ps.stats[STAT_TEAM] = -1;
+		client->ps.stats[STAT_TEAM] = TEAM_NONE;
 	}
 
 	// time
@@ -293,13 +288,6 @@ void G_ClientStats(g_entity_t *ent) {
 		client->ps.stats[STAT_TIME] = 0;
 	} else {
 		client->ps.stats[STAT_TIME] = CS_TIME;
-	}
-
-	// vote
-	if (g_level.vote_time) {
-		client->ps.stats[STAT_VOTE] = CS_VOTE;
-	} else {
-		client->ps.stats[STAT_VOTE] = 0;
 	}
 
 	// weapon

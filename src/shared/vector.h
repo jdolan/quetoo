@@ -75,6 +75,23 @@ typedef union {
 } vec3i_t;
 
 /**
+ * @brief Four component signed integer vector type.
+ */
+typedef union {
+	/**
+	 * @brief Array accessor.
+	 */
+	int32_t xyzw[4];
+
+	/**
+	 * @brief Component accessors.
+	 */
+	struct {
+		int32_t x, y, z, w;
+	};
+} vec4i_t;
+
+/**
  * @brief Two component single precision vector type.
  */
 typedef union {
@@ -193,7 +210,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3s_CastVec3(const v
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3s_Equal(const vec3s_t a, vec3s_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3s_Equal(const vec3s_t a, vec3s_t b) {
 	return a.x == b.x &&
 		   a.y == b.y &&
 		   a.z == b.z;
@@ -209,7 +226,7 @@ static inline vec3s_t __attribute__ ((warn_unused_result)) Vec3s_Zero(void) {
 #pragma mark - integer vectors
 
 /**
- * @return A `s32vec3_t` with the specified components.
+ * @return A `vec3i_t` with the specified components.
  */
 static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i(int32_t x, int32_t y, int32_t z) {
 	return (vec3i_t) {
@@ -233,32 +250,58 @@ static inline vec3i_t __attribute__ ((warn_unused_result)) Vec3i_Zero(void) {
 	return Vec3i(0, 0, 0);
 }
 
-#pragma mark - single precision
-
 /**
- * @return The angle `theta` circularly clamped.
+ * @return A `vec4i_t` with the specified components.
  */
-static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta) {
-	while (theta >= 360.f) {
-		theta -= 360.f;
-	}
-	while (theta < 0.f) {
-		theta += 360.f;
-	}
-	return theta;
+static inline vec4i_t __attribute__ ((warn_unused_result)) Vec4i(int32_t x, int32_t y, int32_t z, int32_t w) {
+	return (vec4i_t) {
+		.x = x,
+		.y = y,
+		.z = z,
+		.w = w
+	};
 }
 
 /**
- * @return The minimim of `a` and `b`.
+ * @return The vector `(0, 0, 0, 0)`.
+ */
+static inline vec4i_t __attribute__ ((warn_unused_result)) Vec4i_Zero(void) {
+	return Vec4i(0, 0, 0, 0);
+}
+
+#pragma mark - single precision
+
+/**
+ * @brief
+ */
+static inline float __attribute__ ((warn_unused_result)) AngleMod(float a) {
+	a = fmodf(a, 360.f);
+
+	if (a < 0) {
+		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
+	}
+
+	return a;
+}
+
+/**
+ * @return The minimum of `a` and `b`.
  */
 static inline float __attribute__ ((warn_unused_result)) Minf(float a, float b) {
 	return a < b ? a : b;
 }
 
 /**
- * @return The minimim of `a` and `b`.
+ * @return The minimum of `a` and `b`.
  */
 static inline int32_t __attribute__ ((warn_unused_result)) Mini(int32_t a, int32_t b) {
+	return a < b ? a : b;
+}
+
+/**
+ * @return The minimum of `a` and `b`.
+ */
+static inline int64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, uint64_t b) {
 	return a < b ? a : b;
 }
 
@@ -273,6 +316,13 @@ static inline float __attribute__ ((warn_unused_result)) Maxf(float a, float b) 
  * @return The maximum of `a` and `b`.
  */
 static inline int32_t __attribute__ ((warn_unused_result)) Maxi(int32_t a, int32_t b) {
+	return a > b ? a : b;
+}
+
+/**
+ * @return The maximum of `a` and `b`.
+ */
+static inline int64_t __attribute__ ((warn_unused_result)) Maxui64(uint64_t a, uint64_t b) {
 	return a > b ? a : b;
 }
 
@@ -303,7 +353,7 @@ static inline float __attribute__ ((warn_unused_result)) Degrees(float radians) 
 /**
  * @return True if `fabsf(a - b) <= epsilon`.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
 	return fabsf(a - b) <= epsilon;
 }
 
@@ -320,6 +370,27 @@ static inline float __attribute__ ((warn_unused_result)) Mixf(float a, float b, 
 static inline float __attribute__ ((warn_unused_result)) Radians(float degrees) {
 	return degrees * RadiansScalar;
 }
+
+/**
+ * @brief
+ */
+static inline float __attribute__ ((warn_unused_result)) SmallestAngleBetween(const float x, const float y) {
+	return Minf(360.f - fabsf(x - y), fabsf(x - y));
+}
+
+/**
+ * @return The angle `theta` circularly clamped.
+ */
+static inline float __attribute__ ((warn_unused_result)) ClampEuler(float theta) {
+	while (theta >= 360.f) {
+		theta -= 360.f;
+	}
+	while (theta < 0.f) {
+		theta += 360.f;
+	}
+	return theta;
+}
+
 
 /**
  * @return A random number generator.
@@ -382,7 +453,7 @@ static inline float __attribute__ ((warn_unused_result)) Randomf(void) {
 /**
  * @return A psuedo random boolean.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Randomb(void) {
+static inline bool __attribute__ ((warn_unused_result)) Randomb(void) {
 	return !!(g_rand_int(InitRandom()) & 1);
 }
 
@@ -405,7 +476,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) SignOf(float f) {
  */
 static inline float __attribute__ ((warn_unused_result)) Smoothf(float f, float min, float max) {
 	const float s = Clampf((f - min) / (max - min), 0.f, 1.f);
-	return s * s * (3.f - 2.f * s);
+	return s * s;
 }
 
 #pragma mark - vec2_t
@@ -469,7 +540,7 @@ static inline float __attribute__ ((warn_unused_result)) Vec2_Distance(const vec
 /**
  * @return True if `a` and `b` are equal, using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const vec2_t a, const vec2_t b, float epsilon) {
 	return EqualEpsilonf(a.x, b.x, epsilon) &&
 		   EqualEpsilonf(a.y, b.y, epsilon);
 }
@@ -477,7 +548,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec2_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec2_Equal(const vec2_t a, const vec2_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec2_Equal(const vec2_t a, const vec2_t b) {
 	return Vec2_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -531,13 +602,6 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Mix(const vec2_t 
 }
 
 /**
- * @brief Bilinear interpolation of 4 vec2_t.
- */
-static inline vec2_t __attribute__((warn_unused_result)) Vec2_Bilinear(const vec2_t tl, const vec2_t tr, const vec2_t bl, const vec2_t br, vec2_t mix) {
-	return Vec2_Mix(Vec2_Mix(tl, tr, mix.x), Vec2_Mix(bl, br, mix.x), mix.y);
-}
-
-/**
  * @return The zero vector.
  */
 static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Zero(void) {
@@ -551,6 +615,25 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Zero(void) {
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3(float x, float y, float z) {
 	return (vec3_t) { .x = x, .y = y, .z = z };
+}
+
+/**
+ * @return A `vec3_t` from the specified bytes.
+ * @see `Vec3_Bytes`
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3bv(const byte *bytes) {
+	return Vec3(
+		(bytes[0] / 255.f) * 2.f - 1.f,
+		(bytes[1] / 255.f) * 2.f - 1.f,
+		(bytes[2] / 255.f) * 2.f - 1.f
+	);
+}
+
+/**
+ * @return A `vec3_t` comprised of the specified `vec2_t` and `z`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec2_ToVec3(const vec2_t v, float z) {
+	return Vec3(v.x, v.y, z);
 }
 
 /**
@@ -579,22 +662,6 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Add(const vec3_t 
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Subtract(const vec3_t a, const vec3_t b) {
 	return Vec3(a.x - b.x, a.y - b.y, a.z - b.z);
-}
-
-/**
- * @return True if the specified boxes intersect, false otherwise.
- */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3_BoxIntersect(const vec3_t amins, const vec3_t amaxs, const vec3_t bmins, const vec3_t bmaxs) {
-
-	if (amins.x >= bmaxs.x || amins.y >= bmaxs.y || amins.z >= bmaxs.z) {
-		return false;
-	}
-
-	if (amaxs.x <= bmins.x || amaxs.y <= bmins.y || amaxs.z <= bmins.z) {
-		return false;
-	}
-
-	return true;
 }
 
 /**
@@ -768,7 +835,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Down(void) {
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const vec3_t a, const vec3_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const vec3_t a, const vec3_t b, float epsilon) {
 	return EqualEpsilonf(a.x, b.x, epsilon) &&
 		   EqualEpsilonf(a.y, b.y, epsilon) &&
 		   EqualEpsilonf(a.z, b.z, epsilon);
@@ -777,7 +844,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec3_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3_Equal(const vec3_t a, const vec3_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3_Equal(const vec3_t a, const vec3_t b) {
 	return Vec3_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -842,6 +909,27 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmaf(const vec3_t
 }
 
 /**
+ * @return The vector containing the floating point modulo of `a / b`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Fmodf(const vec3_t a, const vec3_t b) {
+	return Vec3(fmodf(a.x, b.x), fmodf(a.y, b.y), fmodf(a.z, b.z));
+}
+
+/**
+ * @return A vector containing the max component of `v`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Vec3_Hmaxf(const vec3_t v) {
+	return Maxf(Maxf(v.x, v.y), v.z);
+}
+
+/**
+ * @return A vector containing the min component of `v`.
+ */
+static inline float __attribute__ ((warn_unused_result)) Vec3_Hminf(const vec3_t v) {
+	return Minf(Minf(v.x, v.y), v.z);
+}
+
+/**
  * @return A vector containing the max components of `a` and `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t a, const vec3_t b) {
@@ -849,7 +937,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxf(const vec3_t
 }
 
 /**
- * @return The vector `(-FLT_MAX, -FLT_MAX)`.
+ * @return The vector `(-FLT_MAX, -FLT_MAX, -FLT_MAX)`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Maxs(void) {
 	return Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -863,7 +951,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Minf(const vec3_t
 }
 
 /**
- * @return The vector `(FLT_MAX, FLT_MAX)`.
+ * @return The vector `(FLT_MAX, FLT_MAX, FLT_MAX)`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mins(void) {
 	return Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
@@ -917,6 +1005,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t
 }
 
 /**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Pow(const vec3_t a, float exp) {
+	return Vec3(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp));
+}
+
+/**
  * @return The vector `degrees` in radians.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Radians(const vec3_t degrees) {
@@ -924,12 +1019,21 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Radians(const vec
 }
 
 /**
+ * @return A vector with random values between the respective ranges.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_RandomRanges(float x_begin, float x_end,
+																			float y_begin, float y_end,
+																			float z_begin, float z_end) {
+	return Vec3(RandomRangef(x_begin, x_end),
+				RandomRangef(y_begin, y_end),
+				RandomRangef(z_begin, z_end));
+}
+
+/**
  * @return A vector with random values between `begin` and `end`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_RandomRange(float begin, float end) {
-	return Vec3(RandomRangef(begin, end),
-				RandomRangef(begin, end),
-				RandomRangef(begin, end));
+	return Vec3_RandomRanges(begin, end, begin, end, begin, end);
 }
 
 /**
@@ -994,7 +1098,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clamp01(const vec
 }
 
 /**
- * @return Reflected vector
+ * @return The vector `a` reflected by the vector `b`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Reflect(const vec3_t a, const vec3_t b) {
 	return Vec3_Add(a, Vec3_Scale(b, -2.f * Vec3_Dot(a, b)));
@@ -1070,6 +1174,27 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4(float x, float y,
 }
 
 /**
+ * @return A `vec4_t` from the encoded normalized bytes.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4bv(const uint32_t xyzw) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} in;
+
+	in.integer = xyzw;
+
+	return Vec4(
+		((float) in.x / 255.f) * 2.f - 1.f,
+		((float) in.y / 255.f) * 2.f - 1.f,
+		((float) in.z / 255.f) * 2.f - 1.f,
+		((float) in.w / 255.f) * 2.f - 1.f);
+}
+
+/**
  * @return A `vec4_t` comprised of the specified `vec3_t` and `w`.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec3_ToVec4(const vec3_t v, float w) {
@@ -1107,7 +1232,7 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Negate(const vec4
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const vec4_t a, const vec4_t b, float epsilon) {
 	return fabsf(a.x - b.x) <= epsilon &&
 		   fabsf(a.y - b.y) <= epsilon &&
 		   fabsf(a.z - b.z) <= epsilon &&
@@ -1117,7 +1242,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec4_EqualEpsilon(const
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec4_Equal(const vec4_t a, const vec4_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec4_Equal(const vec4_t a, const vec4_t b) {
 	return Vec4_EqualEpsilon(a, b, __FLT_EPSILON__);
 }
 
@@ -1150,6 +1275,20 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_One(void) {
 }
 
 /**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow(const vec4_t a, float exp) {
+	return Vec4(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp), powf(a.w, exp));
+}
+
+/**
+ * @return The vector `a` raised tht exponent `exp`.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Pow3(const vec4_t a, const vec3_t exp) {
+	return Vec4(powf(a.x, exp.x), powf(a.y, exp.y), powf(a.z, exp.z), a.w);
+}
+
+/**
  * @return A vector with random values between `begin` and `end`.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_RandomRange(float begin, float end) {
@@ -1164,6 +1303,34 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_RandomRange(float
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Random(void) {
 	return Vec4_RandomRange(0.f, 1.f);
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ * @details Floating point -1.0 to 1.0 are packed to bytes, where -1.0 -> 0 and 1.0 -> 255.
+ */
+static inline uint32_t __attribute__ ((warn_unused_result)) Vec4_Bytes(const vec4_t v) {
+
+	union {
+		struct {
+			byte x, y, z, w;
+		};
+		uint32_t integer;
+	} out;
+
+	out.x = (byte) Clampf((v.x + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.y = (byte) Clampf((v.y + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.z = (byte) Clampf((v.z + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+	out.w = (byte) Clampf((v.w + 1.f) * 0.5f * 255.f, 0.f, 255.f);
+
+	return out.integer;
+}
+
+/**
+ * @return A byte encoded representation of the normalized vector `v`.
+ */
+static inline int32_t __attribute__ ((warn_unused_result)) Vec3_Bytes(const vec3_t v) {
+	return Vec4_Bytes(Vec3_ToVec4(v, 1.f));
 }
 
 /**
@@ -1185,7 +1352,7 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Vec4_Zero(void) {
 /**
  * @return True if `fabs(a - b) <= epsilon`.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) EqualEpsilon(double a, double b, double epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) EqualEpsilon(double a, double b, double epsilon) {
 	return fabs(a - b) <= epsilon;
 }
 
@@ -1270,7 +1437,7 @@ static inline double __attribute__ ((warn_unused_result)) Vec3d_Distance(const v
 /**
  * @return True if `a` and `b` are equal using the specified epsilon.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(const vec3d_t a, const vec3d_t b, double epsilon) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(const vec3d_t a, const vec3d_t b, double epsilon) {
 	return EqualEpsilon(a.x, b.x, epsilon) &&
 		   EqualEpsilon(a.y, b.y, epsilon) &&
 		   EqualEpsilon(a.z, b.z, epsilon);
@@ -1279,7 +1446,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_EqualEpsilon(cons
 /**
  * @return True if `a` and `b` are equal.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Vec3d_Equal(const vec3d_t a, const vec3d_t b) {
+static inline bool __attribute__ ((warn_unused_result)) Vec3d_Equal(const vec3d_t a, const vec3d_t b) {
 	return Vec3d_EqualEpsilon(a, b, __DBL_EPSILON__);
 }
 

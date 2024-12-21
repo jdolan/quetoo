@@ -65,9 +65,9 @@ float SimplexNoise(float x, float y, float z, const uint8_t *perm) {
 
     // Skew the input space to determine which simplex cell we're in
     float s = (x + y + z) * F3; // Very nice and simple skew factor for 3D
-    int32_t i = (int32_t)floorf(x + s);
-    int32_t j = (int32_t)floorf(y + s);
-    int32_t k = (int32_t)floorf(z + s);
+    int32_t i = (int32_t) floorf(x + s);
+    int32_t j = (int32_t) floorf(y + s);
+    int32_t k = (int32_t) floorf(z + s);
     float t = (i + j + k) * G3;
     float X0 = i - t; // Unskew the cell origin back to (x,y,z) space
     float Y0 = j - t;

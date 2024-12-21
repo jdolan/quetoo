@@ -26,6 +26,10 @@ call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_image/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_ttf/lib/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 
+call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl/lib/%build_platform%/" "%quetoo_folder%/bin/" *.pdb
+call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_image/lib/%build_platform%/" "%quetoo_folder%/bin/" *.pdb
+call ROBO "../../ObjectivelyMVC/ObjectivelyMVC.vs15/libs/sdl_ttf/lib/%build_platform%/" "%quetoo_folder%/bin/" *.pdb
+
 call ROBO "libs/openal/bin/%build_platform%/" "%quetoo_folder%/bin/" *.dll
 
 GOTO DONE

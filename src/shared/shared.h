@@ -31,7 +31,7 @@
 /**
  * @brief ConfigStrings are a general means of communication from the server to
  * all connected clients. Each ConfigString can be at most MAX_STRING_CHARS in
- * length. The game module is free to populate CS_GENERAL - MAX_CONFIG_STRINGS.
+ * length. The game module is free to populate CS_GAME - MAX_CONFIG_STRINGS.
  */
 #define CS_NAME				0 // the name (message) of the current level
 #define CS_SKY				1 // the sky box
@@ -46,9 +46,9 @@
 #define CS_IMAGES			(CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS			(CS_IMAGES + MAX_IMAGES)
 #define CS_CLIENTS			(CS_ITEMS + MAX_ITEMS)
-#define CS_GENERAL			(CS_CLIENTS + MAX_CLIENTS)
+#define CS_GAME				(CS_CLIENTS + MAX_CLIENTS)
 
-#define MAX_CONFIG_STRINGS	(CS_GENERAL + MAX_GENERAL)
+#define MAX_CONFIG_STRINGS	(CS_GAME + MAX_GENERAL)
 
 /**
  * @brief Entity animation sequences (player animations) are dictated by the
@@ -117,22 +117,10 @@ typedef enum {
 
 /**
  * @brief Entity state effects are a bit mask used to combine common effects
- * such as rotating, bobbing, etc. The game module may define the lower 16 effect bits.
+ * such as rotating, bobbing, etc. The game module may define up to 16 effect bits.
  */
 #define EF_NONE				(0)
 #define EF_GAME				(1 << 0) // the game may extend from here
-
-/**
- * @brief The 16 high bits of the effects mask are not transmitted by the
- * protocol. Rather, they are reserved for the renderer.
- */
-#define EF_SELF             (1 << 16) // client's entity model
-#define EF_WEAPON			(1 << 17) // view weapon
-#define EF_SHELL			(1 << 18) // colored shell
-#define EF_ALPHATEST		(1 << 19) // alpha test
-#define EF_BLEND			(1 << 20) // alpha blend
-#define EF_NO_SHADOW		(1 << 22) // no shadow
-#define EF_NO_DRAW			(1 << 23) // no draw (but perhaps shadow)
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities
@@ -179,7 +167,7 @@ typedef struct {
 	uint16_t number;
 	
 	/**
-	 * @brief The entity's spawn_id; this will differ if an entity is replaced.
+	 * @brief The entity's spawn identifier; this will differ if an entity is replaced.
 	 */
 	uint8_t spawn_id;
 
@@ -393,7 +381,7 @@ typedef struct cvar_s {
 	int32_t integer;
 	uint32_t flags;
 	const char *description;
-	_Bool modified; // set each time the cvar is changed
+	bool modified; // set each time the cvar is changed
 	AutocompleteFunc Autocomplete;
 } cvar_t;
 
@@ -439,7 +427,6 @@ typedef enum {
 	SV_CMD_PRINT, // [byte] id [string] null terminated string
 	SV_CMD_RECONNECT,
 	SV_CMD_SERVER_DATA, // [long] protocol ...
-	SV_CMD_SOUND,
 	SV_CMD_CGAME, // the game may extend from here
 } sv_packet_cmd_t;
 
@@ -454,23 +441,6 @@ typedef enum {
 	CL_CMD_USER_INFO, // [user_info_string]
 	CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
-
-#define NearestMultiple(n, align)	((n) == 0 ? 0 : ((n) - 1 - ((n) - 1) % (align) + (align)))
-
-/**
- * @brief Math and trigonometry functions.
- */
-
-/**
- * @brief Make `value` stepped as specified by `step`
- */
-static inline int32_t Step(int32_t value, int32_t step) {
-	if (!step) {
-		return 0; // divide by zero check
-	}
-
-	return (int32_t) floorf(value / (float) step) * step;
-}
 
 /**
  * @brief A table of approximate normal vectors is used to save bandwidth when
@@ -487,7 +457,7 @@ typedef enum {
 	GLOB_CASE_INSENSITIVE = (1 << 0)
 } glob_flags_t;
 
-_Bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
+bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags);
 const char *Basename(const char *path);
 void Dirname(const char *in, char *out);
 void StripNewline(const char *in, char *out);
@@ -517,8 +487,8 @@ void StripExtension(const char *in, char *out);
 
 #define ESC_EMOJI			':'
 
-_Bool StrIsColor(const char *s);
-_Bool StrIsEmoji(const char *s);
+bool StrIsColor(const char *s);
+bool StrIsEmoji(const char *s);
 color_t ColorEsc(int32_t esc);
 const char *EmojiEsc(const char *in, char *out, size_t out_size);
 size_t StrStripLen(const char *s);
@@ -546,7 +516,7 @@ void StrLower(const char *in, char *out);
 char *GetUserInfo(const char *s, const char *key);
 void DeleteUserInfo(char *s, const char *key);
 void SetUserInfo(char *s, const char *key, const char *value);
-_Bool ValidateUserInfo(const char *s);
+bool ValidateUserInfo(const char *s);
 
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
 guint g_stri_hash(gconstpointer v);

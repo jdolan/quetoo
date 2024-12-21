@@ -50,7 +50,7 @@
  * of core net messages or serialized data types change. The game and client
  * game maintain PROTOCOL_MINOR as well.
  */
-#define PROTOCOL_MAJOR		1025
+#define PROTOCOL_MAJOR		1026
 
 /**
  * @brief The IP address of the master server, where the authoritative list of
@@ -115,6 +115,7 @@ void Com_PrintInfo(const char *s);
 
 extern const char *DEBUG_CATEGORIES[DEBUG_TOTAL];
 
+bool Com_IsDebug(const debug_t debug);
 const char *Com_GetDebug(void);
 void Com_SetDebug(const char *debug);
 
@@ -188,7 +189,7 @@ typedef struct {
 	 * @brief Used by `Com_Error` to detect a cyclical error condition.
 	 * @remarks If your Error function doesn't exit, make sure to set this to false.
 	 */
-	_Bool recursive_error;
+	bool recursive_error;
 
 	/**
 	 * @brief Used by the common printing functions to spit out a file that we can

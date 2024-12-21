@@ -60,9 +60,9 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 	cg_dust_t *dust = self->data;
 
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
-	dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
+	dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
 	if (dust->sprite.image == NULL) {
-		dust->sprite.image = cgi.LoadImage("sprites/particle", IT_SPRITE);
+		dust->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
 		cgi.Warn("%s @ %s failed to load sprite %s\n",
 				 self->clazz->class_name,
 				 vtos(self->origin),
@@ -105,10 +105,13 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
 	dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 
+	self->bounds = Box3_Null();
+
 	GPtrArray *brushes = cgi.EntityBrushes(self->def);
 	for (guint i = 0; i < brushes->len; i++) {
 
 		const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+		self->bounds = Box3_Union(self->bounds, brush->bounds);
 
 		const vec3_t brush_size = Box3_Size(brush->bounds);
 		const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * dust->density, 1);
@@ -157,8 +160,13 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
 	if (!cg_add_atmospheric->value) {
 		return;
 	}
-	
+
+	if (cgi.CulludeBox(cgi.view, self->bounds)) {
+		return;
+	}
+
 	cg_dust_t *dust = self->data;
+
 	while (dust->num_active < dust->num_origins) {
 
 		cg_sprite_t s = dust->sprite;
@@ -196,6 +204,26 @@ typedef struct {
 	 * @brief Flame radius.
 	 */
 	float radius;
+
+	/**
+	 * @brief Flame density.
+	 */
+	float density;
+
+	/**
+	 * @brief The last time a light was emitted.
+	 */
+	uint32_t light_time;
+
+	/**
+	 * @brief The light decay interval.
+	 */
+	uint32_t light_decay;
+
+	/**
+	 * @brief The looping sample to play.
+	 */
+	s_sample_t *sample;
 } cg_flame_t;
 
 /**
@@ -203,12 +231,24 @@ typedef struct {
  */
 static void Cg_misc_flame_Init(cg_entity_t *self) {
 
-	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 5.f;
+	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
 	self->drift = cgi.EntityValue(self->def, "drift")->value ?: .1f;
 
 	cg_flame_t *flame = self->data;
 
+	flame->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 	flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
+
+	self->bounds = Box3_FromCenterRadius(self->origin, flame->radius * 16.f);
+
+	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+	if (sound) {
+		if (g_strcmp0(sound, "none")) {
+			flame->sample = cgi.LoadSample(sound);
+		}
+	} else {
+		flame->sample = cg_sample_fire;
+	}
 }
 
 /**
@@ -216,20 +256,28 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
  */
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
-	const cg_flame_t *flame = self->data;
+	cg_flame_t *flame = self->data;
 
-	for (int32_t i = 0; i < flame->radius / 8.f; i++) {
+	if (cgi.CulludeBox(cgi.view, self->bounds)) {
+		return;
+	}
+
+	const float r = flame->radius;
+	const float s = Clampf(r / 64.f, .125f, 1.f);
+
+	for (int32_t i = 0; i < flame->radius * flame->density; i++) {
 		const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
 		const float sat = RandomRangef(.7f, 1.f);
 
 		if (!Cg_AddSprite(&(cg_sprite_t) {
 				.atlas_image = cg_sprite_flame,
-				.origin = Vec3_Add(self->origin, Vec3_RandomRange(-8.f, 8.f)),
-				.velocity = Vec3_RandomRange(-4.f, 4.f),
-				.acceleration.z = 15.f,
-				.lifetime = 500 + Randomf() * 250,
-				.size = RandomRangef(4.f, 12.f),
-				.bounce = .6f,
+				.origin = Vec3_Fmaf(self->origin, r, Vec3_RandomRanges(-s, s, -s, s, -.1f, .5f)),
+				.velocity = Vec3_Scale(Vec3_RandomRanges(-r, r, -r, r, 0.f, 24.f), s * s),
+				.acceleration.z = 150.f * s,
+				.lifetime = 750 + Randomf() * 250,
+				.size = 1.f,
+				.size_velocity = 16.f,
+				.size_acceleration = 150.f * s,
 				.color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
 				.end_color = Vec4(hue, sat, 0.f, 0.f),
 				.softness = 1.f
@@ -238,18 +286,30 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 		}
 	}
 
-	Cg_AddLight(&(const cg_light_t) {
-		.origin = self->origin,
-		.radius = flame->radius,
-		.color = Vec3(1.f, 0.8f, 0.4f),
-		.decay = 32
-	});
+	if (cgi.client->unclamped_time - flame->light_time > flame->light_decay * .666f) {
 
-	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-		.sample = cg_sample_fire,
-		.origin = self->origin,
-		.atten = SOUND_ATTEN_CUBIC,
-	});
+		flame->light_time = cgi.client->unclamped_time;
+		flame->light_decay = RandomRangeu(300, 800);
+
+		Cg_AddLight(&(const cg_light_t) {
+			.origin = self->origin,
+			.radius = r * RandomRangef(10.f, 16.f),
+			.color = Vec3_RandomRanges(.8f, .9f, .4f, .5f, .2f, .3f),
+			.intensity = RandomRangef(.02f, .06f),
+			.decay = flame->light_decay,
+		});
+	}
+
+	if (flame->sample) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+			.sample = flame->sample,
+			.origin = self->origin,
+			.atten = SOUND_ATTEN_CUBIC,
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+			.pitch = RandomRangei(-1, 1),
+			.entity = self->id
+		});
+	}
 }
 
 /**
@@ -263,30 +323,97 @@ const cg_entity_class_t cg_misc_flame = {
 };
 
 /**
+ * @brief Animated light styles.
+ */
+typedef struct {
+	/**
+	 * @brief The style string, a-z (26 levels), animated at 10Hz.
+	 * @details With 256 bytes at 10hz, you can animate up to 25 seconds.
+	 */
+	char string[MAX_BSP_ENTITY_VALUE];
+
+	/**
+	 * @brief The current index into the string, using modulo.
+	 */
+	uint32_t index;
+
+	/**
+	 * @brief The last time the animation was advanced.
+	 */
+	uint32_t time;
+} cg_light_style_t;
+
+/**
+ * @brief The misc_light data type.
+ */
+typedef struct {
+	/**
+	 * @brief The light instance.
+	 */
+	cg_light_t light;
+
+	cg_light_style_t style;
+} cg_misc_light_data_t;
+
+/**
  * @brief
  */
 static void Cg_misc_light_Init(cg_entity_t *self) {
 
-	cg_light_t *light = self->data;
+	self->hz = cgi.EntityValue(self->def, "hz")->value;
+	self->drift = cgi.EntityValue(self->def, "drift")->value;
 
-	light->origin = self->origin;
-	light->radius = cgi.EntityValue(self->def, "light")->value ?: DEFAULT_LIGHT;
+	cg_misc_light_data_t *data = self->data;
+
+	data->light.origin = self->origin;
+	data->light.radius = cgi.EntityValue(self->def, "light")->value ?: MATERIAL_LIGHT_RADIUS;
 
 	const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
 	if (color->parsed & ENTITY_VEC3) {
-		light->color = color->vec3;
+		data->light.color = color->vec3;
 	} else {
-		light->color = Vec3(1.f, 1.f, 1.f);
+		data->light.color = Vec3(1.f, 1.f, 1.f);
 	}
 
-	light->intensity = cgi.EntityValue(self->def, "intensity")->value;
+	data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
+
+	const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
+	g_strlcpy(data->style.string, style, sizeof(data->style.string));
+
+	self->bounds = Box3_FromCenterRadius(self->origin, data->light.radius);
 }
 
 /**
  * @brief
  */
 static void Cg_misc_light_Think(cg_entity_t *self) {
-	Cg_AddLight((cg_light_t *) self->data);
+
+	cg_misc_light_data_t *data = self->data;
+
+	cg_light_t light = data->light;
+
+	cg_light_style_t *style = &data->style;
+	if (*style->string) {
+		const size_t len = strlen(style->string);
+
+		if (cgi.client->unclamped_time - style->time >= 100) {
+			style->index++;
+			style->time = cgi.client->unclamped_time;
+		}
+
+		const float lerp = (cgi.client->unclamped_time - style->time) / 100.f;
+
+		const float s = (style->string[(style->index + 0) % len] - 'a') / (float) ('z' - 'a');
+		const float t = (style->string[(style->index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+		light.intensity = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+
+		if (data->light.intensity) {
+			light.intensity *= data->light.intensity;
+		}
+	}
+
+	Cg_AddLight(&light);
 }
 
 /**
@@ -296,7 +423,7 @@ const cg_entity_class_t cg_misc_light = {
 	.class_name = "misc_light",
 	.Init = Cg_misc_light_Init,
 	.Think = Cg_misc_light_Think,
-	.data_size = sizeof(cg_light_t)
+	.data_size = sizeof(cg_misc_light_data_t)
 };
 
 /**
@@ -326,7 +453,10 @@ static void Cg_misc_model_Think(cg_entity_t *self) {
 	const r_entity_t *entity = self->data;
 
 	if (entity->model) {
-		cgi.AddEntity(cgi.view, entity);
+		r_entity_t *out = cgi.AddEntity(cgi.view, entity);
+		if (out) {
+			self->bounds = out->abs_model_bounds;
+		}
 	}
 }
 
@@ -379,6 +509,8 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 	if (self->hz == 0.f) {
 		sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
 	}
+
+	sound->play.entity = self->id;
 }
 
 /**
@@ -432,8 +564,8 @@ static void Cg_misc_sparks_Init(cg_entity_t *self) {
 		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
 		sparks->dir = Vec3_Normalize(Vec3_Subtract(target_origin, self->origin));
 	} else {
-		if (cgi.EntityValue(self->def, "_angle")->parsed & ENTITY_INTEGER) {
-			const int32_t angle = cgi.EntityValue(self->def, "_angle")->integer;
+		if (cgi.EntityValue(self->def, "angle")->parsed & ENTITY_INTEGER) {
+			const int32_t angle = cgi.EntityValue(self->def, "angle")->integer;
 			if (angle == -1.f) {
 				sparks->dir = Vec3_Up();
 			} else if (angle == -2.f) {
@@ -494,10 +626,12 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
 	cg_misc_sprite_t *sprite = self->data;
 
+	sprite->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
+
 	const char *name = cgi.EntityValue(self->def, "sprite")->nullable_string ?: "particle";
-	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IT_SPRITE);
+	sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
 	if (sprite->sprite.image == NULL) {
-		sprite->sprite.image = cgi.LoadImage("sprites/particle", IT_SPRITE);
+		sprite->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
 		cgi.Warn("%s @ %s failed to load sprite %s\n",
 				 self->clazz->class_name,
 				 vtos(self->origin),
@@ -513,7 +647,6 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 		sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	}
 
-	sprite->sprite.velocity = cgi.EntityValue(self->def, "velocity")->vec3;
 	sprite->sprite.acceleration = cgi.EntityValue(self->def, "acceleration")->vec3;
 	sprite->sprite.rotation = cgi.EntityValue(self->def, "rotation")->value;
 	sprite->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
@@ -569,7 +702,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
 			cg_sprite_t s = this->sprite;
 
-			if (i & 1) {
+			if (Randomi() & 1) {
 				s.media = that->sprite.media;
 			}
 
@@ -609,7 +742,10 @@ const cg_entity_class_t cg_misc_sprite = {
  * @brief
  */
 typedef struct {
-	float hz, drift;
+	vec3_t velocity;
+	float size;
+	int32_t count;
+	s_sample_t *sample;
 } cg_misc_steam_t;
 
 /**
@@ -619,36 +755,76 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
 	cg_misc_steam_t *steam = self->data;
 
-	steam->hz = cgi.EntityValue(self->def, "hz")->value ?: .3f;
-	steam->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+	self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+	self->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
+
+	if (self->target) {
+		const vec3_t target_origin = cgi.EntityValue(self->target, "origin")->vec3;
+		steam->velocity = Vec3_Subtract(target_origin, self->origin);
+	} else {
+		const cm_entity_t *velocity = cgi.EntityValue(self->def, "velocity");
+		if (velocity->parsed & ENTITY_VEC3) {
+			steam->velocity = velocity->vec3;
+		} else {
+			steam->velocity = Vec3(0.f, 0.f, 32.f);
+		}
+	}
+
+	steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+	steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
+
+	const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+	if (sound) {
+		if (g_strcmp0(sound, "none")) {
+			steam->sample = cgi.LoadSample(sound);
+		}
+	} else {
+		steam->sample = cg_sample_steam;
+	}
 }
 
 /**
  * @brief
  */
 static void Cg_misc_steam_Think(cg_entity_t *self) {
-	/*const vec3_t end = Vec3_Add(self->origin, self->steam.velocity);
 
-	if (cgi.PointContents(self->origin) & CONTENTS_MASK_LIQUID) {
-		Cg_BubbleTrail(NULL, self->origin, end, 10.f);
+	const cg_misc_steam_t *steam = self->data;
+
+	const vec3_t end = Vec3_Add(self->origin, steam->velocity);
+
+	if (cgi.PointContents(end) & CONTENTS_MASK_LIQUID) {
+		Cg_BubbleTrail(NULL, self->origin, end, 2.f);
 		return;
 	}
 
-	Cg_AddSprite(&(cg_sprite_t) {
-		.atlas_image = cg_sprite_steam,
-		.origin = org,
-		.velocity = Vec3_Add(vel, Vec3_RandomRange(-2.f, 2.f)),
-		.lifetime = 4500 / (5.f + Randomf() * .5f),
-		.size = 8.f,
-		.color = Vec4(0.f, 0.f, 1.f, .19f)
-	});
+	for (int32_t i = 0; i < steam->count; i++) {
+		if (!Cg_AddSprite(&(cg_sprite_t) {
+			.atlas_image = cg_sprite_steam,
+			.origin = self->origin,
+			.velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
+			.acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
+			.lifetime = 4500 / (5.f + Randomf() * .5f),
+			.rotation = Randomf(),
+			.rotation_velocity = RandomRangef(-1.f, 1.f),
+			.size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
+			.size_velocity = 10.f,
+			.color = Vec4(0.f, 0.f, 1.f, .5f),
+			.lighting = 1.f,
+			.softness = 1.f,
+		})) {
+			break;
+		};
+	}
 
-	Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-		.sample = cg_sample_steam,
-		.origin = org,
-		.attenuation = SOUND_ATTEN_CUBIC,
-		.flags = S_PLAY_POSITIONED
-	});*/
+	if (steam->sample) {
+		Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+			.sample = steam->sample,
+			.origin = self->origin,
+			.atten = SOUND_ATTEN_CUBIC,
+			.flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+			.entity = self->id,
+		});
+	}
 }
 
 /**

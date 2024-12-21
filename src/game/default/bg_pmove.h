@@ -27,23 +27,23 @@
 /**
  * @brief Acceleration constants.
  */
-#define PM_ACCEL_AIR			2.125f
+#define PM_ACCEL_AIR			2.f
 #define PM_ACCEL_AIR_MOD_DUCKED	0.125f
 #define PM_ACCEL_GROUND			10.f
 #define PM_ACCEL_GROUND_SLICK	4.375f
 #define PM_ACCEL_LADDER			16.f
 #define PM_ACCEL_SPECTATOR		2.5f
-#define PM_ACCEL_WATER			2.8f
+#define PM_ACCEL_WATER			3.f
 
 /**
  * @brief Bounce constant when clipping against solids.
  */
-#define PM_CLIP_BOUNCE			1.01f
+#define PM_CLIP_BOUNCE			1.0125f
 
 /**
  * @brief Friction constants.
  */
-#define PM_FRICT_AIR			0.1f
+#define PM_FRICT_AIR			0.125f
 #define PM_FRICT_GROUND			6.f
 #define PM_FRICT_GROUND_SLICK	2.f
 #define PM_FRICT_LADDER			5.f
@@ -58,7 +58,7 @@
 /**
  * @brief Distances traced when seeking ground.
  */
-#define PM_GROUND_DIST			.25f
+#define PM_GROUND_DIST			1.f
 #define PM_GROUND_DIST_TRICK	16.f
 
 /**
@@ -78,7 +78,7 @@
 #define PM_SPEED_STOP			100.f
 #define PM_SPEED_UP				0.1f
 #define PM_SPEED_TRICK_JUMP		0.f
-#define PM_SPEED_WATER			118.f
+#define PM_SPEED_WATER			140.f
 #define PM_SPEED_WATER_JUMP		420.f
 #define PM_SPEED_WATER_SINK		-16.f
 #define PM_SPEED_STEP			150.f
@@ -123,7 +123,7 @@
  */
 #define PM_SCALE 1.f
 
-extern const box3_t PM_BOUNDS;
+extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
 
 /**
  * @brief Game-specific button hits.
@@ -166,7 +166,7 @@ extern const box3_t PM_BOUNDS;
 /**
  * @brief The maximum number of entities any single player movement can impact.
  */
-#define PM_MAX_TOUCH_ENTS 32
+#define PM_MAX_TOUCHS 32
 
 /**
  * @brief The player movement structure provides context management between the
@@ -179,21 +179,24 @@ typedef struct {
 
 	float hook_pull_speed; // hook pull speed (in)
 
-	struct g_entity_s *touch_ents[PM_MAX_TOUCH_ENTS]; // entities touched (out)
-	int32_t num_touch_ents;
+	cm_trace_t touched[PM_MAX_TOUCHS]; // entities touched (out)
+	int32_t num_touched;
 
 	vec3_t angles; // clamped, and including kick and delta (out)
 	box3_t bounds; // bounding box size (out)
 
-	struct g_entity_s *ground_entity; // (out)
+	cm_trace_t ground; // (in / out)
 
 	int32_t water_type; // water type and level (out)
 	pm_water_level_t water_level;
 
 	float step; // traversed step height (out)
 
-	// collision with the world and solid entities
+	// contents checks with the world
 	int32_t (*PointContents)(const vec3_t point);
+	int32_t (*BoxContents)(const box3_t box);
+
+	// collision with the world and solid entities
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds);
 
 	// print debug messages for development

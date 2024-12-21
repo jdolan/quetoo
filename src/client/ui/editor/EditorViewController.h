@@ -50,6 +50,16 @@ struct EditorViewController {
 	 * @private
 	 */
 	EditorViewControllerInterface *interface;
+
+	/**
+	 * @brief The material being edited.
+	 */
+	r_material_t *material;
+
+	/**
+	 * @brief The model being edited.
+	 */
+	const r_model_t *model;
 };
 
 /**

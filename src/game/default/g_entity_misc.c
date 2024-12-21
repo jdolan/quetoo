@@ -25,9 +25,7 @@
 /**
  * @brief
  */
-static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other,
-                                    const cm_bsp_plane_t *plane,
-                                    const cm_bsp_texinfo_t *texinfo) {
+static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (!G_IsMeat(other)) {
 		return;
@@ -96,21 +94,21 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 	}
 
 	// find nodes closest to src and dst
-	const ai_node_id_t src_node = aix->FindClosestNode(ent->s.origin, 512.f, true, true);
-	const ai_node_id_t dst_node = aix->FindClosestNode(dest->s.origin, 512.f, true, true);
+	const ai_node_id_t src_node = Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+	const ai_node_id_t dst_node = Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
-	if (src_node != NODE_INVALID && dst_node != NODE_INVALID) {
+	if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
 
 		// make a new node on top of src so we touch the teleporter, connect
 		// it to dst with a small cost
 
-		const ai_node_id_t new_node = aix->CreateNode(ent->s.origin);
+		const ai_node_id_t new_node = Ai_Node_CreateNode(ent->s.origin);
 
 		// use default cost for the entrance
-		aix->CreateLink(src_node, new_node, Vec3_Distance(aix->GetNodePosition(src_node), ent->s.origin));
+		Ai_Node_CreateLink(src_node, new_node, Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin));
 
 		// small cost for teleport node
-		aix->CreateLink(new_node, dst_node, 1.f);
+		Ai_Node_CreateLink(new_node, dst_node, 1.f);
 
 		ent->locals.node = src_node;
 	}
@@ -136,7 +134,6 @@ void G_misc_teleporter(g_entity_t *ent) {
 
 	if (ent->model) { // model form, trigger_teleporter
 		gi.SetModel(ent, ent->model);
-		ent->sv_flags = SVF_NO_CLIENT;
 	} else { // or model-less form, misc_teleporter
 		ent->bounds = Box3(
 			Vec3(-32.0, -32.0, -24.0),
@@ -156,7 +153,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 	ent->locals.Touch = G_misc_teleporter_Touch;
 	
 	// create link to destination
-	if (aix && !aix->IsDeveloperMode()) {
+	if (!G_Ai_InDeveloperMode()) {
 		ent->locals.Think = G_misc_teleporter_Think;
 		ent->locals.next_think = g_level.time + 1;
 	}
@@ -180,7 +177,7 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
  */
 static void G_misc_fireball_Think(g_entity_t *self) {
 
-	if (self->locals.ground_entity) {
+	if (self->locals.ground.ent) {
 		self->solid = SOLID_NOT;
 
 		self->s.effects = EF_DESPAWN;
@@ -200,9 +197,7 @@ static void G_misc_fireball_Think(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other,
-                                  const cm_bsp_plane_t *plane,
-                                  const cm_bsp_texinfo_t *texinfo) {
+static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (g_level.time - self->locals.touch_time > 500) {
 		self->locals.touch_time = g_level.time;
@@ -250,7 +245,11 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 	gi.LinkEntity(ent);
 
 	if (Randomf() < 0.33) {
-		gi.Sound(ent, gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)), SOUND_ATTEN_SQUARE, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)),
+			.entity = ent,
+			.atten = SOUND_ATTEN_SQUARE
+		}, MULTICAST_PHS, NULL);
 	}
 
 	self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * 1000 * RandomRangef(-1.f, 1.f));

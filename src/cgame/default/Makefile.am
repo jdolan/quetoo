@@ -35,6 +35,7 @@ cgamelib_LTLIBRARIES = \
 
 cgame_la_SOURCES = \
 	cg_client.c \
+	cg_discord.c \
 	cg_effect.c \
 	cg_entity.c \
 	cg_entity_effect.c \
@@ -62,6 +63,7 @@ cgame_la_CFLAGS = \
 	@SO_CFLAGS@ \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OPENAL_CFLAGS@ \
 	@SDL2_CFLAGS@
 
 cgame_la_LDFLAGS = \
@@ -77,4 +79,13 @@ cgame_la_LIBADD = \
 	ui/main/libcguimain.la \
 	ui/play/libcguiplay.la \
 	ui/settings/libcguisettings.la \
-	$(top_builddir)/src/game/default/libpmove.la
+	ui/teams/libcguiteams.la \
+	$(top_builddir)/src/game/default/libpmove.la \
+	$(top_builddir)/deps/discord-rpc/src/libdiscord-rpc.la
+
+if APPLE
+cgame_la_LIBADD += -lc++
+cgame_la_LDFLAGS += -framework AppKit
+else
+cgame_la_LIBADD += -lstdc++
+endif

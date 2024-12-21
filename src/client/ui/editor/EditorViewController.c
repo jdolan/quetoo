@@ -33,7 +33,15 @@
  * @brief ActionFunction for the Save Button.
  */
 static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	Cmd_ExecuteString("r_save_materials");
+
+	EditorViewController *this = sender;
+
+	if (this->model == NULL) {
+		Com_Debug(DEBUG_UI, "Not editing a material\n");
+		return;
+	}
+
+	Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
 }
 
 /**
@@ -47,15 +55,24 @@ static void didSetValue(Slider *slider, double value) {
 	if (!view->material) {
 		return;
 	}
-
 	if (slider == view->roughness) {
-		view->material->cm->roughness = view->roughness->value;
+		view->material->cm->roughness = slider->value;
 	} else if (slider == view->hardness) {
-		view->material->cm->hardness = view->hardness->value;
+		view->material->cm->hardness = slider->value;
 	} else if (slider == view->specularity) {
-		view->material->cm->specularity = view->specularity->value;
+		view->material->cm->specularity = slider->value;
 	} else if (slider == view->parallax) {
-		view->material->cm->parallax = view->parallax->value;
+		view->material->cm->parallax = slider->value;
+	} else if (slider == view->bloom) {
+		view->material->cm->bloom = slider->value;
+	} else if (slider == view->alphaTest) {
+		view->material->cm->alpha_test = slider->value;
+	} else if (slider == view->lightRadius) {
+		view->material->cm->light.radius = slider->value;
+	} else if (slider == view->lightIntensity) {
+		view->material->cm->light.intensity = slider->value;
+	} else if (slider == view->lightCone) {
+		view->material->cm->light.cone = slider->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -85,6 +102,21 @@ static void loadView(ViewController *self) {
 	view->parallax->delegate.self = self;
 	view->parallax->delegate.didSetValue = didSetValue;
 
+	view->bloom->delegate.self = self;
+	view->bloom->delegate.didSetValue = didSetValue;
+
+	view->alphaTest->delegate.self = self;
+	view->alphaTest->delegate.didSetValue = didSetValue;
+
+	view->lightRadius->delegate.self = self;
+	view->lightRadius->delegate.didSetValue = didSetValue;
+
+	view->lightIntensity->delegate.self = self;
+	view->lightIntensity->delegate.didSetValue = didSetValue;
+
+	view->lightCone->delegate.self = self;
+	view->lightCone->delegate.didSetValue = didSetValue;
+
 	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 
 	$(self, setView, (View *) view);
@@ -96,29 +128,67 @@ static void loadView(ViewController *self) {
  */
 static void viewWillAppear(ViewController *self) {
 
+	EditorViewController *this = (EditorViewController *) self;
+
+	this->material = NULL;
+	this->model = NULL;
+
 	EditorView *view = (EditorView *) self->view;
 
-	r_material_t *material = NULL;
+	float distance = MAX_WORLD_DIST;
 
-	vec3_t start = cl_view.origin, end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+	vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
+	vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
-	while (material == NULL) {
+	while (this->material == NULL) {
 
 		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-		if (!tr.texinfo) {
+		if (!tr.material) {
 			break;
 		}
 
-		if (g_str_has_prefix(tr.texinfo->name, "common/")) {
-			start = Vec3_Add(tr.end, cl_view.forward);
+		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
+		this->model = R_WorldModel();
+
+		distance = Vec3_Distance(cl_view.origin, tr.end);
+	}
+
+	const r_entity_t *e = cl_view.entities;
+	for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
+
+		if (e->model == NULL) {
 			continue;
 		}
 
-		assert(tr.texinfo->material);
-		material = R_LoadMaterial(tr.texinfo->name, ASSET_CONTEXT_TEXTURES);
+		if (e->model->type != MODEL_MESH) {
+			continue;
+		}
+
+		if (e->model->mesh->faces->material == NULL) {
+			continue;
+		}
+
+		if (e->effects & (EF_SELF | EF_WEAPON)) {
+			continue;
+		}
+
+		const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
+
+		const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
+		if (tr.fraction < 1.f) {
+
+			const float dist = Vec3_Distance(cl_view.origin, tr.end);
+			if (dist < distance) {
+				this->material = e->model->mesh->faces->material;
+				this->model = e->model;
+
+				distance = dist;
+
+			}
+		}
 	}
 
-	$(view, setMaterial, material);
+	$(view, setMaterial, this->material);
 
 	super(ViewController, self, viewWillAppear);
 }

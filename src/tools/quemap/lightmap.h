@@ -21,38 +21,32 @@
 
 #pragma once
 
-#include "quemap.h"
+#include "luxel.h"
+#include "material.h"
 
-#define MAX_BOUNCES 3
-
-typedef struct {
-	int32_t s, t, u;
-	vec3_t origin;
-	vec3_t normal;
-	vec3_t ambient;
-	vec3_t diffuse;
-	vec3_t direction;
-	vec3_t radiosity[MAX_BOUNCES];
-	vec4_t fog;
-} luxel_t;
-
+/**
+ * @brief Lighting calculations for each BSP face.
+ */
 typedef struct {
 	bsp_face_t *face;
 	const bsp_node_t *node;
 	const bsp_model_t *model;
+	vec3_t model_origin;
+	const bsp_brush_side_t *brush_side;
 	const bsp_plane_t *plane;
-	const bsp_texinfo_t *texinfo;
-	const cm_material_t *material;
+	material_t *material;
+	cm_winding_t *winding;
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 	vec2_t st_mins, st_maxs;
-	int16_t w, h;
-	int16_t s, t;
+	int32_t w, h;
+	int32_t s, t;
 	luxel_t *luxels;
 	size_t num_luxels;
 	SDL_Surface *ambient;
 	SDL_Surface *diffuse;
 	SDL_Surface *direction;
+	SDL_Surface *caustics;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;
@@ -61,6 +55,7 @@ void BuildLightmaps(void);
 void BuildVertexNormals(void);
 void DirectLightmap(int32_t face_num);
 void IndirectLightmap(int32_t face_num);
+void CausticsLightmap(int32_t face_num);
 void FinalizeLightmap(int32_t face_num);
 void EmitLightmap(void);
 void EmitLightmapTexcoords(void);

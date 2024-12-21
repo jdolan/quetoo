@@ -26,8 +26,8 @@
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */
-static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bool create) {
-	uint16_t i;
+static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool create) {
+	int32_t i;
 
 	if (!name || !name[0]) {
 		return 0;
@@ -60,15 +60,15 @@ static uint16_t Sv_FindIndex(const char *name, uint16_t start, uint16_t max, _Bo
 	return i;
 }
 
-uint16_t Sv_ModelIndex(const char *name) {
+int32_t Sv_ModelIndex(const char *name) {
 	return Sv_FindIndex(name, CS_MODELS, MAX_MODELS, true);
 }
 
-uint16_t Sv_SoundIndex(const char *name) {
+int32_t Sv_SoundIndex(const char *name) {
 	return Sv_FindIndex(name, CS_SOUNDS, MAX_SOUNDS, true);
 }
 
-uint16_t Sv_ImageIndex(const char *name) {
+int32_t Sv_ImageIndex(const char *name) {
 	return Sv_FindIndex(name, CS_IMAGES, MAX_IMAGES, true);
 }
 
@@ -103,7 +103,7 @@ static void Sv_CreateBaseline(void) {
  * is sent immediately, because the server could completely terminate after
  * returning from this function.
  */
-static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
+static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
 	sv_client_t *cl;
 	int32_t i;
 
@@ -134,7 +134,7 @@ static void Sv_ShutdownMessage(const char *msg, _Bool reconnect) {
 /**
  * @brief Wipes the sv_server_t structure after freeing any references it holds.
  */
-static void Sv_ClearState() {
+static void Sv_ClearState(void) {
 
 	if (svs.initialized) { // if we were intialized, cleanup
 
@@ -223,7 +223,7 @@ static void Sv_InitClients(sv_state_t state) {
 		g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
 		ent->s.number = NUM_FOR_ENTITY(ent);
 
-		// assign their edict
+		// assign their entity
 		svs.clients[i].entity = ent;
 
 		// reset state of spawned clients back to connected

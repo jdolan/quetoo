@@ -77,6 +77,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 		.origin = org,
 		.radius = 80.f,
 		.color = Vec3(.1f, .6f, .3f),
+		.intensity = 1.f,
 		.decay = 1000
 	});
 }
@@ -116,6 +117,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 		.origin = org,
 		.radius = 80.f,
 		.color = Vec3(.2f, .4f, .3f),
+		.intensity = 1.f,
 		.decay = 1000
 	});
 }
@@ -143,6 +145,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		.origin = org,
 		.radius = 120.f,
 		.color = Vec3(.9f, .9f, .9f),
+		.intensity = .666f,
 		.decay = 1000
 	});
 }
@@ -158,7 +161,7 @@ static void Cg_GurpEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**
@@ -172,7 +175,7 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
 	vec3_t end = start;
 	end.z += 16.0;
 
-	Cg_BubbleTrail(NULL, start, end);
+	Cg_BubbleTrail(NULL, start, end, 2.f);
 }
 
 /**
@@ -180,10 +183,9 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-	assert(ent->current.number > 0);
-	assert(ent->current.number <= MAX_CLIENTS);
+	const cg_client_info_t *info = &cg_state.clients[ent->current.client];
 
-	const cl_client_info_t *info = &cgi.client->client_info[ent->current.number - 1];
+	assert(info->model);
 
 	return cgi.LoadClientModelSample(info->model, name);
 }
@@ -193,9 +195,7 @@ static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name
  */
 static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
-	const char *footsteps = "default";
-
-	vec3_t start = ent->origin;
+	vec3_t start = ent->current.origin;
 	start.z += ent->current.bounds.mins.z;
 
 	vec3_t end = start;
@@ -203,11 +203,25 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 
 	cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
 
-	if (tr.fraction < 1.0 && tr.texinfo && tr.texinfo->material && *tr.texinfo->material->footsteps) {
-		footsteps = tr.texinfo->material->footsteps;
+	if (tr.material) {
+		const cm_footsteps_t *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
+
+		if (footsteps->num_samples) {
+			static uint32_t last_index = -1;
+			uint32_t index = RandomRangeu(0, footsteps->num_samples);
+
+			if (last_index == index) {
+				index = (index ^ 1) % footsteps->num_samples;
+			}
+
+			last_index = index;
+
+			return cgi.LoadSample(footsteps->samples[index].name);
+		}
 	}
 
-	return Cg_GetFootstepSample(footsteps);
+	Cg_Debug("No ground found for footstep at %s\n", vtos(end));
+	return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(0, 4)));
 }
 
 /**
@@ -251,6 +265,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 			break;
 		case EV_CLIENT_SIZZLE:
 			play.sample = Cg_ClientModelSample(ent, "*sizzle_1");
+			play.pitch = RandomRangei(-12, +12);
 			break;
 		case EV_CLIENT_TELEPORT:
 			play.sample = cg_sample_teleport;

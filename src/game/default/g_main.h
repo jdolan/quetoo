@@ -36,11 +36,13 @@ extern g_media_t g_media;
 extern g_import_t gi;
 extern g_export_t ge;
 
-extern ai_export_t *aix;
-
 extern cvar_t *g_admin_password;
 extern cvar_t *g_ammo_respawn_time;
 extern cvar_t *g_auto_join;
+extern cvar_t *g_balance_armor_shard_respawn;
+extern cvar_t *g_balance_armor_jacket_respawn;
+extern cvar_t *g_balance_armor_combat_respawn;
+extern cvar_t *g_balance_armor_body_respawn;
 extern cvar_t *g_balance_bfg_damage;
 extern cvar_t *g_balance_bfg_knockback;
 extern cvar_t *g_balance_bfg_prefire;
@@ -52,6 +54,10 @@ extern cvar_t *g_balance_blaster_knockback;
 extern cvar_t *g_balance_blaster_refire;
 extern cvar_t *g_balance_blaster_speed;
 extern cvar_t *g_balance_handgrenade_refire;
+extern cvar_t *g_balance_health_small_respawn;
+extern cvar_t *g_balance_health_medium_respawn;
+extern cvar_t *g_balance_health_large_respawn;
+extern cvar_t *g_balance_health_mega_respawn;
 extern cvar_t *g_balance_hyperblaster_climb_damage;
 extern cvar_t *g_balance_hyperblaster_climb_knockback;
 extern cvar_t *g_balance_hyperblaster_damage;
@@ -73,6 +79,8 @@ extern cvar_t *g_balance_grenadelauncher_radius;
 extern cvar_t *g_balance_grenadelauncher_refire;
 extern cvar_t *g_balance_grenadelauncher_speed;
 extern cvar_t *g_balance_grenadelauncher_timer;
+extern cvar_t *g_balance_quad_damage_respawn_time;
+extern cvar_t *g_balance_quad_damage_time;
 extern cvar_t *g_balance_railgun_damage;
 extern cvar_t *g_balance_railgun_knockback;
 extern cvar_t *g_balance_railgun_refire;
@@ -100,14 +108,12 @@ extern cvar_t *g_techs;
 extern cvar_t *g_hook;
 extern cvar_t *g_hook_auto_refire;
 extern cvar_t *g_hook_distance;
-extern cvar_t *g_hook_refire;
-extern cvar_t *g_hook_style;
-extern cvar_t *g_hook_speed;
 extern cvar_t *g_hook_pull_speed;
+extern cvar_t *g_hook_refire;
+extern cvar_t *g_hook_speed;
+extern cvar_t *g_hook_style;
 extern cvar_t *g_frag_limit;
 extern cvar_t *g_friendly_fire;
-extern cvar_t *g_force_demo;
-extern cvar_t *g_force_screenshot;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
 extern cvar_t *g_handicap;
@@ -118,20 +124,18 @@ extern cvar_t *g_max_entities;
 extern cvar_t *g_motd;
 extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
-extern cvar_t *g_quad_damage_respawn_time;
-extern cvar_t *g_quad_damage_time;
 extern cvar_t *g_random_map;
 extern cvar_t *g_respawn_protection;
 extern cvar_t *g_round_limit;
 extern cvar_t *g_rounds;
 extern cvar_t *g_self_damage;
+extern cvar_t *g_self_knockback;
 extern cvar_t *g_show_attacker_stats;
 extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_spectator_chat;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
 extern cvar_t *g_timeout_time;
-extern cvar_t *g_voting;
 extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *g_weapon_stay;
@@ -140,12 +144,12 @@ extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 
-extern g_team_t g_teamlist[MAX_TEAMS];
+extern g_team_t g_team_list[MAX_TEAMS];
 
-#define g_team_red (&g_teamlist[TEAM_RED])
-#define g_team_blue (&g_teamlist[TEAM_BLUE])
-#define g_team_yellow (&g_teamlist[TEAM_YELLOW])
-#define g_team_white (&g_teamlist[TEAM_WHITE])
+#define g_team_red (&g_team_list[TEAM_RED])
+#define g_team_blue (&g_team_list[TEAM_BLUE])
+#define g_team_yellow (&g_team_list[TEAM_YELLOW])
+#define g_team_green (&g_team_list[TEAM_GREEN])
 
 void G_Init(void);
 void G_Shutdown(void);
@@ -157,11 +161,10 @@ void G_InitNumTeams(void);
 void G_SetTeamNames(void);
 const g_team_t *G_TeamDefaults(const g_team_t *team);
 void G_ResetSpawnPoints(void);
-void G_ResetVote(void);
 void G_CallTimeOut(g_entity_t *ent);
 void G_CallTimeIn(void);
 void G_RunTimers(void);
-void G_MuteClient(char *name, _Bool mute);
+void G_MuteClient(char *name, bool mute);
 
 g_export_t *G_LoadGame(g_import_t *import);
 

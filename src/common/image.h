@@ -32,6 +32,11 @@
 SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
+ * @brief Resolves the average color of the specified surface.
+ */
+color_t Img_Color(const SDL_Surface *surf);
+
+/**
  * @brief Rotates the specified surface clockwise by the number of rotations.
  */
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
@@ -39,14 +44,14 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 /**
 * @brief Write pixel data to a PNG file.
 */
-_Bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);
+bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);
 
 /**
 * @brief Write pixel data to a TGA file.
 */
-_Bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height);
+bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height);
 
 /**
 * @brief Write pixel data to a PBM file.
 */
-_Bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp);
+bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp);

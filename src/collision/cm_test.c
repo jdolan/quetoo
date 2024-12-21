@@ -68,7 +68,7 @@ int32_t Cm_SignBitsForNormal(const vec3_t normal) {
 }
 
 /**
- * @brief
+ * @return A constructed plane struct.
  */
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 
@@ -81,22 +81,30 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
 }
 
 /**
- * @brief
+ * @return The plane transformed by the input matrix.
  */
-cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t *plane) {
-	const vec4_t out = Mat4_TransformPlane(matrix, plane->normal, plane->dist);
+cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane) {
+	const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 	return Cm_Plane(Vec4_XYZ(out), out.w);
+}
+
+/**
+ * @return The `point` projected onto `plane`.
+ */
+vec3_t Cm_ProjectPointToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
+	const float dist = Cm_DistanceToPlane(point, plane);
+	return Vec3_Subtract(point, Vec3_Scale(plane->normal, dist));
 }
 
 /**
  * @return `true` if `point` resides inside `brush`, `false` otherwise.
  */
-_Bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
+bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 	if (Box3_ContainsPoint(brush->bounds, point)) {
 
-		const cm_bsp_brush_side_t *side = brush->sides;
-		for (int32_t i = 0; i < brush->num_sides; i++, side++) {
+		const cm_bsp_brush_side_t *side = brush->brush_sides;
+		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
 			if (Cm_DistanceToPlane(point, side->plane) > 0.f) {
 				return false;
 			}
@@ -193,85 +201,83 @@ static cm_box_t cm_box;
  * is never tested by the rest of the collision detection code, as it resides
  * just beyond the parsed size of the map.
  */
-void Cm_InitBoxHull(void) {
-	static cm_bsp_texinfo_t null_texinfo;
+void Cm_InitBoxHull(cm_bsp_t *bsp) {
 
-	if (cm_bsp.file.num_planes + 12 > MAX_BSP_PLANES) {
+	if (bsp->num_planes + 12 > MAX_BSP_PLANES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_PLANES\n");
 	}
 
-	if (cm_bsp.file.num_nodes + 6 > MAX_BSP_NODES) {
+	if (bsp->num_nodes + 6 > MAX_BSP_NODES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_NODES\n");
 	}
 
-	if (cm_bsp.file.num_leafs + 1 > MAX_BSP_LEAFS) {
+	if (bsp->num_leafs + 1 > MAX_BSP_LEAFS) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAFS\n");
 	}
 
-	if (cm_bsp.file.num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
+	if (bsp->num_leaf_brushes + 1 > MAX_BSP_LEAF_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_LEAF_BRUSHES\n");
 	}
 
-	if (cm_bsp.file.num_brushes + 1 > MAX_BSP_BRUSHES) {
+	if (bsp->num_brushes + 1 > MAX_BSP_BRUSHES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSHES\n");
 	}
 
-	if (cm_bsp.file.num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
+	if (bsp->num_brush_sides + 6 > MAX_BSP_BRUSH_SIDES) {
 		Com_Error(ERROR_DROP, "MAX_BSP_BRUSH_SIDES\n");
 	}
 
 	// head node
-	cm_box.head_node = cm_bsp.file.num_nodes;
+	cm_box.head_node = bsp->num_nodes;
 
 	// planes
-	cm_box.planes = &cm_bsp.planes[cm_bsp.file.num_planes];
+	cm_box.planes = &bsp->planes[bsp->num_planes];
 
 	// leaf
-	cm_box.leaf = &cm_bsp.leafs[cm_bsp.file.num_leafs];
+	cm_box.leaf = &bsp->leafs[bsp->num_leafs];
 	cm_box.leaf->contents = CONTENTS_MONSTER;
-	cm_box.leaf->first_leaf_brush = cm_bsp.file.num_leaf_brushes;
+	cm_box.leaf->first_leaf_brush = bsp->num_leaf_brushes;
 	cm_box.leaf->num_leaf_brushes = 1;
 
 	// leaf brush
-	cm_bsp.leaf_brushes[cm_bsp.file.num_leaf_brushes] = cm_bsp.file.num_brushes;
+	bsp->leaf_brushes[bsp->num_leaf_brushes] = bsp->num_brushes;
 
 	// brush
-	cm_box.brush = &cm_bsp.brushes[cm_bsp.file.num_brushes];
-	cm_box.brush->num_sides = 6;
-	cm_box.brush->sides = cm_bsp.brush_sides + cm_bsp.file.num_brush_sides;
+	cm_box.brush = &bsp->brushes[bsp->num_brushes];
+	cm_box.brush->num_brush_sides = 6;
+	cm_box.brush->brush_sides = bsp->brush_sides + bsp->num_brush_sides;
 	cm_box.brush->contents = CONTENTS_MONSTER;
 
 	for (int32_t i = 0; i < 6; i++) {
 
 		// fill in planes, two per side
 		cm_bsp_plane_t *plane = &cm_box.planes[i * 2];
-		plane->type = i >> 1;
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = 1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+		plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
 		plane = &cm_box.planes[i * 2 + 1];
-		plane->type = PLANE_ANY_X + (i >> 1);
 		plane->normal = Vec3_Zero();
 		plane->normal.xyz[i >> 1] = -1.f;
 		plane->sign_bits = Cm_SignBitsForNormal(plane->normal);
+		plane->type = Cm_PlaneTypeForNormal(plane->normal);
 
 		const int32_t s = i & 1;
 
 		// fill in nodes, one per side
-		cm_bsp_node_t *node = &cm_bsp.nodes[cm_box.head_node + i];
-		node->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2);
-		node->children[s] = -1 - cm_bsp.file.num_leafs;
+		cm_bsp_node_t *node = &bsp->nodes[cm_box.head_node + i];
+		node->plane = bsp->planes + (bsp->num_planes + i * 2);
+		node->children[s] = -1 - bsp->num_leafs;
 		if (i != 5) {
 			node->children[s ^ 1] = cm_box.head_node + i + 1;
 		} else {
-			node->children[s ^ 1] = -1 - cm_bsp.file.num_leafs;
+			node->children[s ^ 1] = -1 - bsp->num_leafs;
 		}
 
 		// fill in brush sides, one per side
-		cm_bsp_brush_side_t *side = &cm_bsp.brush_sides[cm_bsp.file.num_brush_sides + i];
-		side->plane = cm_bsp.planes + (cm_bsp.file.num_planes + i * 2 + s);
-		side->texinfo = &null_texinfo;
+		cm_bsp_brush_side_t *side = &bsp->brush_sides[bsp->num_brush_sides + i];
+		side->plane = bsp->planes + (bsp->num_planes + i * 2 + s);
 	}
 }
 
@@ -306,7 +312,7 @@ int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents) {
  */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 
-	if (!cm_bsp.file.num_nodes) {
+	if (!cm_bsp.num_nodes) {
 		return 0;
 	}
 
@@ -325,20 +331,29 @@ int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node) {
 }
 
 /**
- * @brief Contents check against the world model.
+ * @brief Point contents check.
  *
  * @param p The point to check.
  * @param head_node The BSP head node to recurse down.
+ * @param inverse_matrix The inverse matrix of the entity to be tested.
  *
  * @return The contents mask at the specified point.
+ *
+ * @remarks The input point is transformed because node planes can't be transformed.
  */
-int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
+int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
 
-	if (!cm_bsp.file.num_nodes) {
+	if (!cm_bsp.num_nodes) {
 		return 0;
 	}
 
-	const int32_t leaf_num = Cm_PointLeafnum(p, head_node);
+	vec3_t p0 = p;
+
+	if (!Mat4_Equal(inverse_matrix, Mat4_Identity())) {
+		p0 = Mat4_Transform(inverse_matrix, p);
+	}
+
+	const int32_t leaf_num = Cm_PointLeafnum(p0, head_node);
 
 	return cm_bsp.leafs[leaf_num].contents;
 }
@@ -349,9 +364,9 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node) {
 typedef struct {
 	box3_t bounds;
 	int32_t *list;
-	size_t len, max_len;
+	size_t count, length;
 	int32_t top_node;
-	const mat4_t *matrix;
+	int32_t contents;
 } cm_box_leafnum_data;
 
 /**
@@ -362,19 +377,18 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 	while (true) {
 		if (node_num < 0) {
-			if (data->len < data->max_len) {
-				data->list[data->len++] = -1 - node_num;
+			const int32_t leaf_num = -1 - node_num;
+			data->contents |= cm_bsp.leafs[leaf_num].contents;
+
+			if (data->count < data->length) {
+				data->list[data->count++] = leaf_num;
 			}
+
 			return;
 		}
 
 		const cm_bsp_node_t *node = &cm_bsp.nodes[node_num];
-		cm_bsp_plane_t plane = *node->plane;
-
-		if (data->matrix) {
-			plane = Cm_TransformPlane(*data->matrix, &plane);
-		}
-
+		const cm_bsp_plane_t plane = *node->plane;
 		const int32_t side = Cm_BoxOnPlaneSide(data->bounds, &plane);
 
 		if (side == SIDE_FRONT) {
@@ -392,47 +406,60 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 }
 
 /**
- * @brief
- */
-int32_t Cm_TransformedPointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix) {
-	const vec3_t p0 = Mat4_Transform(inverse_matrix, p);
-	return Cm_PointContents(p0, head_node);
-}
-
-/**
  * @brief Populates the list of leafs the specified bounding box touches. If
  * top_node is not NULL, it will contain the top node of the BSP tree that
  * fully contains the box.
  *
  * @param bounds The bounds in world space.
  * @param list The list of leaf numbers to populate.
- * @param len The maximum number of leafs to return.
+ * @param length The maximum number of leafs to return.
  * @param top_node If not null, this will contain the top node for the box.
  * @param head_node The head node to recurse from.
+ * @param matrix The matrix by which to transform planes.
  *
  * @return The number of leafs accumulated to the list.
  */
-size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t len, int32_t *top_node,
-					  int32_t head_node, const mat4_t *matrix) {
+size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node,
+					  int32_t head_node) {
 
 	cm_box_leafnum_data data = {
 		.bounds = bounds,
 		.list = list,
-		.max_len = len,
-		.top_node = -1,
-		.matrix = matrix
+		.length = length,
+		.top_node = -1
 	};
 
-	Cm_BoxLeafnums_r(&data, head_node);
+	if (cm_bsp.num_nodes) {
+		Cm_BoxLeafnums_r(&data, head_node);
+	}
 
 	if (top_node) {
 		*top_node = data.top_node;
 	}
 
-	if (data.len == data.max_len) {
-		Com_Debug(DEBUG_COLLISION, "max_len (%" PRIuPTR ") reached\n", data.max_len);
+	if (data.count == data.length) {
+		Com_Debug(DEBUG_COLLISION, "length (%" PRIuPTR ") reached\n", data.length);
 	}
 
-	return data.len;
+	return data.count;
 }
 
+/**
+ * @brief Contents check for a bounded box.
+ * @param bounds The bounding box to check for contents.
+ * @param head_node The BSP head node to recurse down.
+ * @param matrix The matrix to transform the bounds by.
+ * @return The contents mask of all leafs within the transformed bounds.
+ */
+int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node) {
+	cm_box_leafnum_data data = {
+		.bounds = bounds,
+		.list = NULL,
+		.length = 0,
+		.top_node = -1
+	};
+
+	Cm_BoxLeafnums_r(&data, head_node);
+
+	return data.contents;
+}

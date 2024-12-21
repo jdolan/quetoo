@@ -22,7 +22,6 @@
 #pragma once
 
 #include "shared/shared.h"
-#include "ai/ai.h"
 #include "collision/cm_types.h"
 
 #define GAME_API_VERSION 13
@@ -67,12 +66,12 @@ struct g_client_s {
 	/**
 	 * @brief True if the client is a bot.
 	 */
-	_Bool ai;
+	bool ai;
 
 	/**
 	 * @brief True if the client's is connected.
 	 */
-	_Bool connected;
+	bool connected;
 
 	/**
 	 * @brief Communicated by server to clients
@@ -126,7 +125,7 @@ struct g_entity_s {
 	/**
 	 * @brief True if the entity is currently allocated and active.
 	 */
-	_Bool in_use;
+	bool in_use;
 
 	/**
 	 * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
@@ -177,7 +176,7 @@ struct g_entity_s {
 	g_entity_locals_t locals;
 };
 
-typedef _Bool (*EntityFilterFunc)(const g_entity_t *ent);
+typedef bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief The game import provides engine functionality and core configuration
@@ -262,7 +261,7 @@ typedef struct g_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, int64_t offset);
+	bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
@@ -295,13 +294,13 @@ typedef struct g_import_s {
 	 * @param file The file.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*CloseFile)(file_t *file);
+	bool (*CloseFile)(file_t *file);
 
 	/**
 	 * @brief Check if a file exists or not.
 	 * @return True if the specified filename exists on the search path.
 	 */
-	_Bool (*FileExists)(const char *path);
+	bool (*FileExists)(const char *path);
 
 	/**
 	 * @brief Loads the specified file into the given buffer.
@@ -321,7 +320,7 @@ typedef struct g_import_s {
 	 * @brief Creates the specified directory (and any ancestors) in the game's write directory.
 	 * @param dir The directory name to create.
 	 */
-	_Bool (*Mkdir)(const char *dir);
+	bool (*Mkdir)(const char *dir);
 
 	/**
 	 * @return The real path name of the specified file or directory.
@@ -465,71 +464,45 @@ typedef struct g_import_s {
 	 * @param index The index.
 	 * @param string The string.
 	 */
-	void (*SetConfigString)(const uint16_t index, const char *string);
+	void (*SetConfigString)(const int32_t index, const char *string);
 
 	/**
 	 @param index The index.
 	 @return The configuration string at `index`.
 	 */
-	const char *(*GetConfigString)(const uint16_t index);
+	const char *(*GetConfigString)(const int32_t index);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given model name.
 	 * @param name The asset name, e.g. `models/weapons/rocketlauncher/tris`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ModelIndex)(const char *name);
+	int32_t (*ModelIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given sound name.
 	 * @param name The asset name, e.g. `sounds/weapons/rocketlauncher/fire`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*SoundIndex)(const char *name);
+	int32_t (*SoundIndex)(const char *name);
 
 	/**
 	 * @brief Finds or inserts a string in the appropriate range for the given image name.
 	 * @param name The asset name, e.g. `pics/items/health_i`.
 	 * @return The configuration string index.
 	 */
-	uint16_t (*ImageIndex)(const char *name);
+	int32_t (*ImageIndex)(const char *name);
 
 	/**
 	 * @}
-	 */
-
-	/**
-	 * @brief Set the model of a given entity by name.
-	 * @details For inline BSP models, the bounding box is also set and the entity linked.
-	 */
-	void (*SetModel)(g_entity_t *ent, const char *name);
-
-	/**
-	 * @brief Sound sample playback dispatch.
-	 *
-	 * @param ent The entity originating the sound.
-	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
-	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
-	 */
-	void (*Sound)(const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
-
-	/**
-	 * @brief Sound sample playback dispatch for server-local entities, or
-	 * sounds that do not originate from any specific entity.
-	 *
-	 * @param origin The origin of the sound (required).
-	 * @param ent The entity originating the sound, `NULL` for worldspawn.
-	 * @param index The configuration string index of the sound to be played.
-	 * @param atten The sound attenuation constant (e.g. SOUND_ATTEN_SQUARE).
-	 * @param pitch Pitch change, in tones x 2; 24 = +1 octave, 48 = +2 octave, etc.
-	 */
-	void (*PositionedSound)(const vec3_t origin, const g_entity_t *ent, uint16_t index, sound_atten_t atten, int8_t pitch);
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
+
+	/**
+	 * @return The BSP model for the currrently loaded map.
+	 */
+	const cm_bsp_t *(*Bsp)(void);
 
 	/**
 	 * @brief Finds the key-value pair for `key` within the specifed entity.
@@ -558,13 +531,19 @@ typedef struct g_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
+	 * @return The contents mask of all leafs within bounds. The box is tested
+	 * against the world as well as all solid entities.
+	 */
+	int32_t (*BoxContents)(const box3_t bounds);
+
+	/**
 	 * @return `true` if `point` resides inside `brush`, `false` otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -580,7 +559,7 @@ typedef struct g_import_s {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds,
-	                    const g_entity_t *skip, const int32_t contents);
+	                    const g_entity_t *skip, int32_t contents);
 
 	/**
 	 * @brief Collision detection. Traces between the two endpoints, impacting
@@ -596,14 +575,20 @@ typedef struct g_import_s {
 	 * the trace intersected a plane.
 	 */
 	cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds,
-	                   const g_entity_t *ent, const int32_t contents);
+	                   const g_entity_t *ent, int32_t contents);
 
 	/**
 	 * @brief PVS and PHS query facilities, returning true if the two points
 	 * can see or hear each other.
 	 */
-	_Bool (*inPVS)(const vec3_t p1, const vec3_t p2);
-	_Bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+	bool (*inPVS)(const vec3_t p1, const vec3_t p2);
+	bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+
+	/**
+	 * @brief Set the model of a given entity by name.
+	 * @details For inline BSP models, the bounding box is also set and the entity linked.
+	 */
+	void (*SetModel)(g_entity_t *ent, const char *name);
 
 	/**
 	 * @brief All solid and trigger entities must be linked when they are
@@ -628,8 +613,7 @@ typedef struct g_import_s {
 	 *
 	 * @return The number of entities found.
 	 */
-	size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len,
-	                      const uint32_t type);
+	size_t (*BoxEntities)(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type);
 
 	/**
 	 * @}
@@ -637,7 +621,7 @@ typedef struct g_import_s {
 	 */
 
 	void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
-	void (*Unicast)(const g_entity_t *ent, const _Bool reliable);
+	void (*Unicast)(const g_entity_t *ent, const bool reliable);
 	void (*WriteData)(const void *data, size_t len);
 	void (*WriteChar)(const int32_t c);
 	void (*WriteByte)(const int32_t c);
@@ -654,17 +638,11 @@ typedef struct g_import_s {
 	 * @brief Network console IO.
 	 */
 	void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3,
-	        4)));
+	void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
 	/**
 	 * @}
 	 */
-
-	/**
-	 * @brief Load AI functions
-	 */
-	ai_export_t *(*LoadAi)(ai_import_t *import);
 } g_import_t;
 
 /**
@@ -724,7 +702,7 @@ typedef struct g_export_s {
 	/**
 	 * @brief Called when a client connects with valid user information.
 	 */
-	_Bool (*ClientConnect)(g_entity_t *ent, char *user_info);
+	bool (*ClientConnect)(g_entity_t *ent, char *user_info);
 
 	/**
 	 * @brief Called when a client has fully spawned and should begin thinking.

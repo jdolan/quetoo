@@ -24,6 +24,8 @@
 #define VIEW_MAIN			1
 #define VIEW_PLAYER_MODEL	2
 
+#define BSP_LIGHTGRID_LUXEL_SIZE 32.0
+
 /**
  * @brief The lightgrid struct.
  */
@@ -47,6 +49,11 @@ struct lightgrid_t {
 	 * @brief The lightgrid size, in luxels.
 	 */
 	vec4 size;
+
+	/**
+	 * @brief The lightrgrid luxel size, in texture space.
+	 */
+	vec4 luxel_size;
 };
 
 /**
@@ -56,7 +63,7 @@ layout (std140) uniform uniforms_block {
 	/**
 	 * @brief The viewport (x, y, w, h) in device pixels.
 	 */
-	vec4 viewport;
+	ivec4 viewport;
 
 	/**
 	 * @brief The 2D projection matrix.
@@ -94,24 +101,14 @@ layout (std140) uniform uniforms_block {
 	int ticks;
 
 	/**
-	 * @brief The brightness scalar.
+	 * @brief The lightmaps debugging mask.
 	 */
-	float brightness;
+	int lightmaps;
 
 	/**
-	 * @brief The contrast scalar.
+	 * @brief The shadow debugging mask.
 	 */
-	float contrast;
-
-	/**
-	 * @brief The saturation scalar.
-	 */
-	float saturation;
-
-	/**
-	 * @brief The gamma scalar.
-	 */
-	float gamma;
+	int shadows;
 
 	/**
 	 * @brief The modulate scalar.
@@ -119,24 +116,78 @@ layout (std140) uniform uniforms_block {
 	float modulate;
 
 	/**
-	 * @brief The fog density scalar.
+	 * @brief The caustics scalar.
+	 */
+	float caustics;
+
+	/**
+	 * @brief The stains scalar.
+	 */
+	float stains;
+
+	/**
+	 * @brief The bloom scalar, for non-material based objects.
+	 */
+	float bloom;
+
+	/**
+	 * @brief The HDR scalar.
+	 */
+	float hdr;
+
+	/**
+	 * @brief The volumetric fog density scalar.
 	 */
 	float fog_density;
 
 	/**
-	 * @brief The number of fog samples per fragment (quality).
+	 * @brief The number of volumetric fog samples per fragment (quality).
 	 */
 	int fog_samples;
+
+	/**
+	 * @brief The developer toggle, used for shader development tweaking.
+	 */
+	int developer;
 };
+
+#define LIGHT_INVALID     0
+#define LIGHT_AMBIENT     1
+#define LIGHT_SUN         2
+#define LIGHT_POINT       4
+#define LIGHT_SPOT        8
+#define LIGHT_BRUSH_SIDE 16
+#define LIGHT_PATCH      32
+#define LIGHT_DYNAMIC    64
 
 /**
  * @brief The light struct.
  */
 struct light_t {
 	/**
-	 * @brief The light origin and radius.
+	 * @brief The light position in model space, and radius.
 	 */
-	vec4 origin;
+	vec4 model;
+
+	/**
+	 * @brief The light mins in model space, and size.
+	 */
+	vec4 mins;
+
+	/**
+	 * @brief The light maxs in model space, and attenuation.
+	 */
+	vec4 maxs;
+
+	/**
+	 * @brief The light position in view space, and type.
+	 */
+	vec4 position;
+
+	/**
+	 * @brief The normal and plane distance in view space.
+	 */
+	vec4 normal;
 
 	/**
 	 * @brief The light color and intensity.
@@ -144,19 +195,97 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHTS 32
+#define MAX_LIGHT_UNIFORMS 256
+#define MAX_LIGHT_UNIFORMS_ACTIVE 16
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
 	/**
+	 * @brief The projection matrix for directional lights.
+	 */
+	mat4 light_projection;
+
+	/**
+	 * @brief The view matrix for directional lights, centered at the origin.
+	 */
+	mat4 light_view;
+
+	/**
+	 * @brief The projection matrix for point lights.
+	 */
+	mat4 light_projection_cube;
+
+	/**
+	 * @brief The view matrices for point lights, centered at the origin.
+	 */
+	mat4 light_view_cube[6];
+
+	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
-	light_t lights[MAX_LIGHTS];
+	light_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
 	 * @brief The number of active light sources.
 	 */
 	int num_lights;
 };
+
+/**
+ * @brief The diffusemap textures, for non-material passes such as sprites.
+ */
+uniform sampler2D texture_diffusemap;
+uniform sampler2D texture_next_diffusemap;
+
+/**
+ * @brief The material texture.
+ */
+uniform sampler2DArray texture_material;
+
+/**
+ * @brief The material secondary texture.
+ */
+uniform sampler2D texture_stage;
+
+/**
+ * @brief The warp texture, for liquids.
+ */
+uniform sampler2D texture_warp;
+
+/**
+ * @brief The lightmap textures.
+ */
+uniform sampler2D texture_lightmap_ambient;
+uniform sampler2D texture_lightmap_diffuse;
+uniform sampler2D texture_lightmap_direction;
+uniform sampler2D texture_lightmap_caustics;
+uniform sampler2D texture_lightmap_stains;
+
+/**
+ * @brief The lightgrid textures.
+ */
+uniform sampler3D texture_lightgrid_ambient;
+uniform sampler3D texture_lightgrid_diffuse;
+uniform sampler3D texture_lightgrid_direction;
+uniform sampler3D texture_lightgrid_caustics;
+uniform sampler3D texture_lightgrid_fog;
+
+/**
+ * @brief The sky cubemap texture.
+ */
+uniform samplerCube texture_sky;
+
+/**
+ * @brief The shadowmap textures.
+ */
+uniform sampler2DArrayShadow texture_shadowmap;
+uniform samplerCubeArrayShadow texture_shadowmap_cube;
+
+/**
+ * @brief The framebuffer attachment textures.
+ */
+uniform sampler2D texture_color_attachment;
+uniform sampler2D texture_bloom_attachment;
+uniform sampler2D texture_depth_attachment_copy;

@@ -1,2 +1,4 @@
 SUBDIRS = \
-	minizip
+	discord-rpc \
+	minizip \
+	rapidjson

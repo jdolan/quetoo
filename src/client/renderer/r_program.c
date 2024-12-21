@@ -36,17 +36,6 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 	desc->filenames[i++] = "uniforms.glsl";
 	desc->filenames[i++] = "common.glsl";
 
-	switch (type) {
-		case GL_VERTEX_SHADER:
-			desc->filenames[i++] = "common_vs.glsl";
-			break;
-		case GL_FRAGMENT_SHADER:
-			desc->filenames[i++] = "common_fs.glsl";
-			break;
-		default:
-			break;
-	}
-
 	va_list args;
 	va_start(args, type);
 

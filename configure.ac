@@ -1,4 +1,4 @@
-AC_PREREQ([2.68])
+AC_PREREQ([2.69])
 
 AC_INIT([quetoo], [0.1.0], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
@@ -39,8 +39,9 @@ dnl Check for tools
 dnl ---------------
 
 AC_PROG_CC
-AC_PROG_CC_STDC
-AC_PROG_LIBTOOL
+AC_PROG_CXX
+AC_PROG_OBJC
+LT_INIT
 
 dnl --------------------
 dnl Check for pkg-config
@@ -66,26 +67,43 @@ DEFAULT_PREFIX="/usr/local"
 AC_MSG_CHECKING([host type])
 case "$host" in
 	*-apple-*)
+		AC_MSG_RESULT(apple)
+
 		HOST_NAME="APPLE"
 		host_os="darwin"
-		HOST_CFLAGS="-I/opt/local/include"
-		HOST_LDFLAGS="-L/opt/local/lib -headerpad_max_install_names"
+
+		HOMEBREW_PREFIX=/usr/local
+
+		AC_ARG_WITH([homebrew],
+			[AS_HELP_STRING(
+				[--with-homebrew=/usr/local],
+				[On macOS, specify the HOMEBREW_PREFIX for package dependencies]
+			)],
+			[HOMEBREW_PREFIX=$withval],
+			[]
+		)
+
+		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${HOMEBREW_PREFIX}/lib/pkgconfig"
+		export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${HOMEBREW_PREFIX}/opt/openal-soft/lib/pkgconfig"
+
+		HOST_CFLAGS="-I${HOMEBREW_PREFIX}/include"
+		HOST_LDFLAGS="-L${HOMEBREW_PREFIX}/lib -headerpad_max_install_names"
 		HOST_LIBS="-ldl"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
-		AC_MSG_RESULT(apple)
 		;;
 	*bsd*)
+		AC_MSG_RESULT(bsd)
 		HOST_NAME="BSD"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
-		AC_MSG_RESULT(bsd)
 		;;
 	*-*-mingw*)
+		AC_MSG_RESULT(mingw)
 		HOST_NAME="MINGW"
 		HOST_CFLAGS="-mfpmath=sse -msse2"
 		HOST_LIBS="-ldl -lws2_32 -lole32"
 		DEFAULT_PREFIX="/"
-		AC_MSG_RESULT(mingw)
+		
 		AC_PATH_PROGS([WINDRES],
 			[windres $host-windres],
 		)
@@ -94,11 +112,11 @@ case "$host" in
 		fi
 		;;
 	*)
+		AC_MSG_RESULT(linux)
 		HOST_NAME="LINUX"
 		HOST_LIBS="-ldl -lm"
 		HOST_DEBUG_LIBS="-rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
-		AC_MSG_RESULT(linux)
 		;;
 esac
 
@@ -178,6 +196,11 @@ dnl ------------------------
 
 PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
 
+dnl ----------------
+dnl Check for OpenAL
+dnl ----------------
+PKG_CHECK_MODULES([OPENAL], [openal])
+
 dnl -------------------
 dnl Check for PhysicsFS
 dnl -------------------
@@ -220,22 +243,6 @@ dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------
 
-HOST_OPENAL_CFLAGS=""
-HOST_OPENAL_LIBS=""
-
-AC_SEARCH_LIBS(alGetError, [openal OpenAL32],
-	HOST_OPENAL_LIBS="$ac_cv_search_function_alGetError",
-	[AC_MSG_ERROR([Could not find library containing alGetError(), please install OpenAL])]
-)
-
-AC_SUBST(HOST_OPENAL_CFLAGS)
-AC_SUBST(HOST_OPENAL_LIBS)
-
-OPENAL_CFLAGS="$OPENAL_CFLAGS $HOST_OPENAL_CFLAGS"
-AC_SUBST(OPENAL_CFLAGS)
-
-OPENAL_LIBS="$OPENAL_LIBS $HOST_OPENAL_LIBS"
-AC_SUBST(OPENAL_LIBS)
 
 dnl -------------------------------
 dnl Check for execinfo.h (optional)
@@ -256,7 +263,7 @@ AC_MSG_CHECKING(which game modules to build)
 GAME_MODULES="default"
 
 AC_ARG_WITH(games,
-    AS_HELP_STRING([--with-games='default ...'],
+	AS_HELP_STRING([--with-games='default ...'],
 		[build specified game modules]
 	)
 )
@@ -267,27 +274,6 @@ fi
 
 AC_SUBST(GAME_MODULES)
 AC_MSG_RESULT($GAME_MODULES)
-
-dnl ---------------------------------
-dnl Check which ai modules to build
-dnl ---------------------------------
-
-AC_MSG_CHECKING(which ai modules to build)
-
-AI_MODULES="default"
-
-AC_ARG_WITH(ai,
-	AS_HELP_STRING([--with-ai='default ...'],
-		[build specified ai modules]
-	)
-)
-
-if test "x${with_ai}" != x; then
-	AI_MODULES="${with_ai}"
-fi
-
-AC_SUBST(AI_MODULES)
-AC_MSG_RESULT($AI_MODULES)
 
 dnl ---------------------------------
 dnl Check whether to build unit tests
@@ -446,10 +432,16 @@ dnl -----------------------------------------------------------
 AC_CONFIG_FILES([
 	Makefile
 	deps/Makefile
+	deps/discord-rpc/Makefile
+	deps/discord-rpc/include/Makefile
+	deps/discord-rpc/src/Makefile
 	deps/minizip/Makefile
+	deps/rapidjson/Makefile
+	deps/rapidjson/rapidjson/Makefile
+	deps/rapidjson/rapidjson/error/Makefile
+	deps/rapidjson/rapidjson/internal/Makefile
+	deps/rapidjson/rapidjson/msinttypes/Makefile
 	src/Makefile
-	src/ai/Makefile
-	src/ai/default/Makefile
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
@@ -460,6 +452,7 @@ AC_CONFIG_FILES([
 	src/cgame/default/ui/main/Makefile
 	src/cgame/default/ui/play/Makefile
 	src/cgame/default/ui/settings/Makefile
+	src/cgame/default/ui/teams/Makefile
 	src/client/Makefile
 	src/client/renderer/Makefile
 	src/client/renderer/shaders/Makefile
@@ -492,8 +485,6 @@ Quetoo $VERSION: Automatic configuration OK.
     Linking: ........... $BASE_LDFLAGS
 
     Game modules: ...... $GAME_MODULES
-    AI modules: ........ $AI_MODULES
-
     Unit tests: ........ $BUILD_TESTS
 
   Installation directories:

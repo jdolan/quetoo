@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cm_types.h"
+#include "shared/shared.h"
 
 /**
  * @brief Asset contexts are paths (and conventions) for locating and loading material assets.
@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct {
 	float hz;
-	float amp;
+	float amplitude;
 } cm_stage_stretch_t;
 
 typedef struct {
@@ -66,7 +66,6 @@ typedef struct {
 
 typedef struct {
 	float floor, ceil;
-	float height;
 } cm_stage_terrain_t;
 
 typedef struct {
@@ -82,7 +81,6 @@ typedef struct {
 	float radius;
 } cm_stage_shell_t;
 
-// frame based material animation, lerp between consecutive images
 typedef struct {
 	int32_t num_frames;
 	cm_asset_t *frames;
@@ -206,17 +204,90 @@ typedef struct cm_stage_s {
 	struct cm_stage_s *next;
 } cm_stage_t;
 
-#define DEFAULT_ROUGHNESS 1.0
-#define DEFAULT_PARALLAX 1.0
-#define DEFAULT_HARDNESS 1.0
-#define DEFAULT_SPECULARITY 1.0
-#define DEFAULT_LIGHT 300.0
-#define DEFAULT_PATCH_SIZE 64
+#define MAX_FOOTSTEP_SAMPLES 6
 
 /**
- * @brief Materials define the rendering attributes of texinfos.
+ * @brief Materials may optionally reference footstep samples.
+ */
+typedef struct {
+	/**
+	 * @brief The footstep name, e.g. "metal3".
+	 */
+	char name[MAX_QPATH];
+
+	/**
+	 * @brief The footstep sample assets.
+	 */
+	cm_asset_t samples[MAX_FOOTSTEP_SAMPLES];
+
+	/**
+	 * @brief The number of footstep sample assets.
+	 */
+	int32_t num_samples;
+} cm_footsteps_t;
+
+/**
+ * @brief Materials may optionally specify an emissive light.
+ */
+typedef struct {
+	/**
+	 * @brief The light attenuation.
+	 * @see `light_atten_t`
+	 */
+	int32_t atten;
+
+	/**
+	 * @brief The light color. If not set, this will be the scaled average of the diffusemap.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light shadow.
+	 */
+	float shadow;
+
+	/**
+	 * @brief The light cone for angular attenuation, in degrees.
+	 */
+	float cone;
+
+	/**
+	 * @brief The light angular attenuation falloff, in degrees.
+	 */
+	float falloff;
+} cm_light_t;
+
+#define MATERIAL_ROUGHNESS 1.f
+#define MATERIAL_HARDNESS 1.f
+#define MATERIAL_SPECULARITY 1.f
+#define MATERIAL_PARALLAX 1.f
+#define MATERIAL_BLOOM 1.f
+#define MATERIAL_ALPHA_TEST .5f
+#define MATERIAL_LIGHT_ATTEN 1
+#define MATERIAL_LIGHT_RADIUS 300.f
+#define MATERIAL_LIGHT_INTENSITY 1.f
+#define MATERIAL_LIGHT_SHADOW 1.f
+#define MATERIAL_LIGHT_CONE 45.f
+#define MATERIAL_LIGHT_FALLOFF 75.f
+
+/**
+ * @brief Materials define the rendering attributes of textures.
  */
 typedef struct cm_material_s {
+	/**
+	 * @brief The materials file path defining this material, if any.
+	 */
+	char path[MAX_QPATH];
 
 	/**
 	 * @brief The material name, as it appears in the materials file.
@@ -244,11 +315,6 @@ typedef struct cm_material_s {
 	cm_asset_t heightmap;
 
 	/**
-	 * @brief The glossmap asset.
-	 */
-	cm_asset_t glossmap;
-
-	/**
 	 * @brief The specularmap asset.
 	 */
 	cm_asset_t specularmap;
@@ -261,7 +327,7 @@ typedef struct cm_material_s {
 	/**
 	 * @brief Flags for the material.
 	 */
-	cm_stage_flags_t flags;
+	cm_stage_flags_t stage_flags;
 
 	/**
 	 * @brief The material stages, if any.
@@ -279,39 +345,44 @@ typedef struct cm_material_s {
 	int32_t surface;
 
 	/**
-	 * @brief Light emission applied to surfaces referencing this material.
+	 * @brief The alpha test threshold.
 	 */
-	float light;
+	float alpha_test;
 
 	/**
-	 * @brief The roughness factor to use for the normal map.
+	 * @brief The roughness factor to use for the normalmap.
 	 */
 	float roughness;
 
 	/**
-	 * @brief The hardness factor to use for the normal map.
+	 * @brief The hardness factor to use for the specularmap.
 	 */
 	float hardness;
 
 	/**
-	 * @brief The specular factor to use for the specular map.
+	 * @brief The specular factor to use for the specularmap.
 	 */
 	float specularity;
 
 	/**
-	 * @brief The parallel factor to use for the normal map.
+	 * @brief The parallax factor to use for the heightmap.
 	 */
 	float parallax;
 
 	/**
-	 * @brief The per-material patch size, for light emission.
+	 * @brief The bloom factor to apply to the diffusemap.
 	 */
-	float patch_size;
+	float bloom;
 
 	/**
-	 * @brief The name for the footstep sounds to query on this surface
+	 * @brief Emissive light.
 	 */
-	char footsteps[MAX_QPATH];
+	cm_light_t light;
+
+	/**
+	 * @brief The footsteps to play when the player walks on this material.
+	 */
+	cm_footsteps_t footsteps;
 
 	/**
 	 * @brief Default tint colors
@@ -322,9 +393,9 @@ typedef struct cm_material_s {
 
 cm_material_t *Cm_AllocMaterial(const char *name);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterials(GList *materials, _Bool full);
+void Cm_FreeMaterials(GList *materials);
 ssize_t Cm_LoadMaterials(const char *path, GList **materials);
-_Bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
+bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
 ssize_t Cm_WriteMaterials(const char *path, GList *materials);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 

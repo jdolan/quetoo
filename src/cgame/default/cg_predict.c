@@ -25,7 +25,7 @@
 /**
  * @brief Returns true if client side prediction should be used.
  */
-_Bool Cg_UsePrediction(void) {
+bool Cg_UsePrediction(void) {
 
 	if (!cg_predict->value) {
 		return false;
@@ -72,10 +72,12 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	pm_move_t pm = {};
 	pm.s = cgi.client->frame.ps.pm_state;
 
-	pm.ground_entity = pr->ground_entity;
-	pm.hook_pull_speed = Cg_GetHookPullSpeed();
+	pm.ground = pr->ground;
+	pm.hook_pull_speed = cg_state.hook_pull_speed;
 
 	pm.PointContents = cgi.PointContents;
+	pm.BoxContents = cgi.BoxContents;
+	
 	pm.Trace = Cg_PredictMovement_Trace;
 
 	pm.Debug = cgi.Debug_;
@@ -101,9 +103,11 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 	}
 
 	// save for rendering
-	pr->view.origin = pm.s.origin;
+	if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
+		pr->view.origin = pm.s.origin;
+	}
 	pr->view.offset = pm.s.view_offset;
 	pr->view.step_offset = pm.s.step_offset;
 	pr->view.angles = pm.cmd.angles;
-	pr->ground_entity = pm.ground_entity;
+	pr->ground = pm.ground;
 }

@@ -25,25 +25,23 @@
 #include "material.h"
 #include "qzip.h"
 
-_Bool include_shared = false;
+bool include_shared = false;
+bool update_zip = false;
 
 #define MISSING "__missing__"
 
-// assets are accumulated in this structure
-typedef struct qzip_s {
-	GHashTable *assets;
-} qzip_t;
-
-static qzip_t qzip;
+static GHashTable *paths;
 
 /**
- * @brief Adds the specified asset, assuming the given name is a valid filename.
+ * @brief Adds the specified resource path if it exists.
  */
-static _Bool AddPath(const char *name) {
+static bool Add(const char *name) {
 
-	if (Fs_Exists(name)) {
-		if (!g_hash_table_contains(qzip.assets, name)) {
-			g_hash_table_insert(qzip.assets, g_strdup(name), g_strdup(name));
+	assert(name);
+
+	if (strlen(name) && Fs_Exists(name)) {
+		if (!g_hash_table_contains(paths, name)) {
+			g_hash_table_insert(paths, g_strdup(name), g_strdup(name));
 		}
 		return true;
 	} else {
@@ -53,16 +51,14 @@ static _Bool AddPath(const char *name) {
 }
 
 /**
- * @brief Adds the specified asset to the resources list.
- *
- * @return True if the asset was found, false otherwise.
+ * @brief Adds the first resource found by name, trying the specified file extensions in order.
  */
-static _Bool ResolveAsset(const char *name, const char **extensions) {
+static bool AddFirstWithExtensions(const char *name, const char **extensions) {
 	char base[MAX_QPATH];
 
 	StripExtension(name, base);
 
-	if (g_hash_table_contains(qzip.assets, base)) {
+	if (g_hash_table_contains(paths, base)) {
 		return true;
 	}
 
@@ -70,13 +66,13 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
 	while (*ext) {
 		const char *path = va("%s.%s", base, *ext);
 		if (Fs_Exists(path)) {
-			g_hash_table_insert(qzip.assets, g_strdup(base), g_strdup(path));
+			g_hash_table_insert(paths, g_strdup(base), g_strdup(path));
 			return true;
 		}
 		ext++;
 	}
 
-	g_hash_table_insert(qzip.assets, g_strdup(base), g_strdup(MISSING));
+	g_hash_table_insert(paths, g_strdup(base), g_strdup(MISSING));
 	return false;
 }
 
@@ -84,10 +80,10 @@ static _Bool ResolveAsset(const char *name, const char **extensions) {
  * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
-	const char *sound_formats[] = { "ogg", "wav", NULL };
+	const char *sound_extensions[] = { "ogg", "wav", NULL };
 
-	if (!ResolveAsset(va("sounds/%s", sound), sound_formats)) {
-		Com_Warn("Failed to resolve %s\n", sound);
+	if (!AddFirstWithExtensions(va("sounds/%s", sound), sound_extensions)) {
+		Com_Warn("Failed to add %s\n", sound);
 	}
 }
 
@@ -96,10 +92,10 @@ static void AddSound(const char *sound) {
  * a warning will be issued should we fail to resolve the specified image.
  */
 static void AddImage(const char *image) {
-	const char *image_formats[] = { "tga", "png", "jpg", NULL };
+	const char *image_extensions[] = { "tga", "png", "jpg", NULL };
 
-	if (!ResolveAsset(image, image_formats)) {
-		Com_Warn("Failed to resolve %s\n", image);
+	if (!AddFirstWithExtensions(image, image_extensions)) {
+		Com_Warn("Failed to add %s\n", image);
 	}
 }
 
@@ -114,72 +110,77 @@ static void AddSky(const char *sky) {
 }
 
 /**
- * @brief Adds the specified material asset to the assets list.
- */
-static _Bool AddAsset(const cm_asset_t *asset) {
-
-	if (*asset->path) {
-		if (!g_hash_table_contains(qzip.assets, asset->path)) {
-			g_hash_table_insert(qzip.assets, g_strdup(asset->path), g_strdup(asset->path));
-		}
-		return true;
-	}
-
-	return false;
-}
-
-/**
  * @Adds the material's assets to the assets list.
  */
 static void AddMaterial(const cm_material_t *material) {
 
-	if (AddAsset(&material->diffusemap)) {
-		AddAsset(&material->normalmap);
-		AddAsset(&material->heightmap);
-		AddAsset(&material->glossmap);
-		AddAsset(&material->specularmap);
-		AddAsset(&material->tintmap);
+	if (Add(material->diffusemap.path)) {
+		Add(material->normalmap.path);
+		Add(material->heightmap.path);
+		Add(material->specularmap.path);
+		Add(material->tintmap.path);
 
 		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
-			AddAsset(&stage->asset);
+			Add(stage->asset.path);
 			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
-				AddAsset(stage->animation.frames + i);
+				Add(stage->animation.frames[i].path);
 			}
 		}
 	} else {
-		Com_Warn("Failed to resolve %s\n", material->name);
+		Com_Warn("Failed to add %s\n", material->name);
 	}
 }
 
 /**
- * @brief Adds all material assets to the assets list.
+ * @brief
  */
-static void AddMaterials(const char *path, cm_asset_context_t context) {
+static gint FindBspMaterial(gconstpointer a, gconstpointer b) {
+	return g_strcmp0(((cm_material_t *) a)->name, (char *) b);
+}
 
-	AddPath(path);
-	
+/**
+ * @brief Adds all world materials to the assets list.
+ */
+static void AddBspMaterials(void) {
+
+	const char *path = va("maps/%s.mat", map_base);
+	Add(path);
+
 	GList *materials = NULL;
-	const ssize_t count = LoadMaterials(path, context, &materials);
+	Cm_LoadMaterials(path, &materials);
 
-	const GList *e = materials;
-	for (ssize_t i = 0; i < count; i++, e = e->next) {
-		AddMaterial((cm_material_t *) e->data);
+	for (int32_t i = 0; i < bsp_file.num_materials; i++) {
+		if (!g_list_find_custom(materials, bsp_file.materials[i].name, FindBspMaterial)) {
+			materials = g_list_append(materials, Cm_AllocMaterial(bsp_file.materials[i].name));
+		}
 	}
 
-	g_list_free(materials);
+	for (GList *e = materials; e; e = e->next) {
+		if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
+			AddMaterial(e->data);
+		}
+	}
+
+	Cm_FreeMaterials(materials);
 }
 
 /**
- * @brief Adds all world textures (materials) to the assets list.
+ * @brief Adds the specified mesh materials to the assets list.
  */
-static void AddTextures(void) {
+static void AddMeshMaterials(const char *path) {
 
-	AddMaterials(va("maps/%s.mat", map_base), ASSET_CONTEXT_TEXTURES);
+	Add(path);
 
-	for (int32_t i = 0; i < bsp_file.num_texinfo; i++) {
-		const char *name = bsp_file.texinfo[i].texture;
-		AddMaterial(LoadMaterial(name, ASSET_CONTEXT_TEXTURES));
+	GList *materials = NULL;
+	Cm_LoadMaterials(path, &materials);
+
+	for (GList *e = materials; e; e = e->next) {
+		if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_MODELS)) {
+			AddMaterial(e->data);
+		}
 	}
+
+	Cm_FreeMaterials(materials);
 }
 
 /**
@@ -193,7 +194,7 @@ static void AddModel(const char *model) {
 		return;
 	}
 
-	if (!ResolveAsset(model, model_formats)) {
+	if (!AddFirstWithExtensions(model, model_formats)) {
 		Com_Warn("Failed to resolve %s\n", model);
 		return;
 	}
@@ -206,12 +207,12 @@ static void AddModel(const char *model) {
 	Dirname(model, path);
 	g_strlcat(path, "world.cfg", sizeof(path));
 
-	AddPath(path);
+	Add(path);
 
 	StripExtension(model, path);
 	g_strlcat(path, ".mat", sizeof(path));
 
-	AddMaterials(path, ASSET_CONTEXT_MODELS);
+	AddMeshMaterials(path);
 }
 
 /**
@@ -244,21 +245,21 @@ static void AddEntities(void) {
  * @brief
  */
 static void AddNavigation(void) {
-	AddPath(va("maps/%s.nav", map_base));
+	Add(va("maps/%s.nav", map_base));
 }
 
 /**
  * @brief
  */
 static void AddLocation(void) {
-	AddPath(va("maps/%s.loc", map_base));
+	Add(va("maps/%s.loc", map_base));
 }
 
 /**
  * @brief
  */
 static void AddDocumentation(void) {
-	AddPath(va("docs/map-%s.txt", map_base));
+	Add(va("docs/map-%s.txt", map_base));
 }
 
 /**
@@ -269,7 +270,7 @@ static void AddMapshots_enumerate(const char *path, void *data) {
 	if (g_str_has_suffix(path, ".jpg") ||
 		g_str_has_suffix(path, ".png") ||
 		g_str_has_suffix(path, ".tga")) {
-		AddPath(path);
+		Add(path);
 	}
 }
 
@@ -278,17 +279,6 @@ static void AddMapshots_enumerate(const char *path, void *data) {
  */
 static void AddMapshots(void) {
 	Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
-}
-
-/**
- * @brief Returns a suitable .pk3 filename name for the current bsp name
- */
-static char *GetZipFilename(void) {
-	static char zipfile[MAX_OS_PATH];
-
-	g_snprintf(zipfile, sizeof(zipfile), "map-%s-%d.pk3", map_base, getpid());
-
-	return zipfile;
 }
 
 /**
@@ -304,12 +294,12 @@ int32_t ZIP_Main(void) {
 
 	const uint32_t start = SDL_GetTicks();
 
-	qzip.assets = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+	paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-	LoadBSPFile(bsp_name, (1 << BSP_LUMP_TEXINFO) | (1 << BSP_LUMP_ENTITIES));
+	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
-	// add the textures
-	AddTextures();
+	// add the materials
+	AddBspMaterials();
 
 	// add the sounds, models, sky, ..
 	AddEntities();
@@ -321,21 +311,22 @@ int32_t ZIP_Main(void) {
 	AddMapshots();
 
 	// and of course the bsp and map
-	if (!AddPath(va("maps/%s.bsp", map_base))) {
+	if (!Add(va("maps/%s.bsp", map_base))) {
 		Com_Warn("Failed to add maps/%s.bsp", map_base);
 	}
-	if (!AddPath(va("maps/%s.map", map_base))) {
+	if (!Add(va("maps/%s.map", map_base))) {
 		Com_Warn("Failed to add maps/%s.map", map_base);
 	};
 
 	// sort the assets for output readability
-	GList *assets = g_hash_table_get_values(qzip.assets);
+	GList *assets = g_hash_table_get_values(paths);
 	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
-
-	g_snprintf(path, sizeof(path), "%s/%s", Fs_WriteDir(), GetZipFilename());
 
 	mz_zip_archive zip;
 	memset(&zip, 0, sizeof(zip));
+
+	// write to a "temporary" archive name
+	g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
 	if (mz_zip_writer_init_file(&zip, path, 0)) {
 		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
@@ -399,12 +390,31 @@ int32_t ZIP_Main(void) {
 	}
 
 	g_list_free(assets);
-	g_hash_table_destroy(qzip.assets);
-
-	Mem_FreeTag(MEM_TAG_ASSET);
+	g_hash_table_destroy(paths);
 
 	const uint32_t end = SDL_GetTicks();
 	Com_Print("\nWrote %s in %d ms\n", path, end - start);
+
+	if (update_zip) {
+		const char *existing = va("map-%s.pk3", map_base);
+
+		if (Fs_Exists(existing)) {
+			const char *dir = Fs_RealDir(existing);
+
+			if (dir) {
+				gchar *to_update = g_build_filename(dir, existing, NULL);
+
+				rename(path, to_update);
+				Com_Print("Renamed %s to %s\n", path, to_update);
+
+				g_free(to_update);
+			} else {
+				Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
+			}
+		} else {
+			Com_Warn("Can't update %s: file not found\n", existing);
+		}
+	}
 
 	return 0;
 }

@@ -31,6 +31,72 @@ static WindowController *windowController;
 static NavigationViewController *navigationViewController;
 
 /**
+ * @brief Retain callback for Ui sounds.
+ */
+static bool Ui_RetainSample(s_media_t *media) {
+	return true;
+}
+
+/**
+ * @brief Loads a sample for the Ui.
+ */
+static s_sample_t *Ui_LoadSample(const char *name) {
+
+	s_sample_t *sample = S_LoadSample(name);
+
+	if (sample) {
+		sample->media.Retain = Ui_RetainSample;
+	}
+
+	return sample;
+}
+
+/**
+ * @brief
+ */
+static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
+
+	const char *attr = NULL;
+
+	switch (event) {
+		case ViewEventClick:
+			attr = "-sound-on-click";
+			break;
+		case ViewEventChange:
+			attr = "-sound-on-change";
+			break;
+		case ViewEventKeyDown:
+			attr = "-sound-on-key-down";
+			break;
+		case ViewEventKeyUp:
+			attr = "-sound-on-key-up";
+			break;
+		case ViewEventMouseEnter:
+			attr = "-sound-on-mouse-enter";
+			break;
+		case ViewEventMouseLeave:
+			attr = "-sound-on-mouse-leave";
+			break;
+		case ViewEventFocus:
+			attr = "-sound-on-focus";
+			break;
+		case ViewEventBlur:
+			attr = "-sound-on-blur";
+			break;
+		default:
+			return;
+	}
+
+	const String *sound = $(view->computedStyle, attributeValue, attr);
+	if (sound) {
+		S_AddSample(&cl_stage, &(s_play_sample_t) {
+			.sample = Ui_LoadSample(sound->chars),
+			.flags = S_PLAY_UI,
+		});
+	}
+}
+
+/**
  * @brief Dispatch events to the user interface.
  */
 void Ui_HandleEvent(const SDL_Event *event) {
@@ -46,6 +112,11 @@ void Ui_HandleEvent(const SDL_Event *event) {
 		}
 
 		$(windowController, respondToEvent, event);
+
+		if (event->type == MVC_VIEW_EVENT) {
+			Ui_HandleViewEvent(event->user.data1, event->user.code);
+		}
+
 	} else {
 		Com_Warn("windowController was NULL\n");
 	}
@@ -86,6 +157,19 @@ void Ui_Draw(void) {
 	Ui_CheckEditor();
 
 	$(windowController, render);
+}
+
+/**
+ * @brief
+ */
+ViewController *Ui_TopViewController(void) {
+
+	if (navigationViewController) {
+		return $(navigationViewController, topViewController);
+	} else {
+		Com_Warn("navigationViewController was NULL\n");
+		return NULL;
+	}
 }
 
 /**
@@ -153,15 +237,18 @@ void Ui_Init(void) {
 
 	$$(Resource, addResourceProvider, Ui_Data);
 
-	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
-
 	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+
+	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
 	$(windowController, setRenderer, renderer);
 
 	navigationViewController = $(alloc(NavigationViewController), init);
-
 	$(windowController, setViewController, (ViewController *) navigationViewController);
+
+	Ui_LoadSample("ui/change");
+	Ui_LoadSample("ui/click");
+	Ui_LoadSample("ui/clack");
 
 	Ui_InitEditor();
 }

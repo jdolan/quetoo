@@ -24,14 +24,14 @@
 /**
  * @brief Return true if the parser is at the end of the input.
  */
-_Bool Parse_IsEOF(const parser_t *parser) {
+bool Parse_IsEOF(const parser_t *parser) {
 	return (*parser->position.ptr) == '\0';
 }
 
 /**
  * @brief Return true if the parser is at a newline boundary.
  */
-_Bool Parse_IsEOL(const parser_t *parser) {
+bool Parse_IsEOL(const parser_t *parser) {
 	const char c = *parser->position.ptr;
 	return c == '\r' || c == '\n';
 }
@@ -55,7 +55,7 @@ static void Parse_NextRow(parser_t *parser, const size_t len) {
  * @brief Attempt to skip whitespace and find the start of a new token. The cursor will either be positioned
  * at the start of a non-control character or at a newline if flags tell them not to traverse them.
  */
-static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
+static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
 	char c;
 
 	while ((c = *parser->position.ptr) <= ' ') {
@@ -88,7 +88,7 @@ static _Bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
  * @brief Attempt to parse and skip a line comment that begins with the specified identifier.
  * Returns true if we found any comments.
  */
-static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
+static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
 	if (strncmp(parser->position.ptr, identifier, strlen(identifier))) {
 		return false;
@@ -131,7 +131,7 @@ static _Bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
  * @brief Attempt to parse and skip a block comment that begins with the specified identifier.
  * Returns true if we found any comments.
  */
-static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
+static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
 
 	if (strncmp(parser->position.ptr, start, strlen(start))) {
 		return false;
@@ -170,11 +170,11 @@ static _Bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const c
  * only be called once the start of a token has been established.
  * @return false if we are at EOF
  */
-static _Bool Parse_SkipComments(parser_t *parser) {
+static bool Parse_SkipComments(parser_t *parser) {
 
 	while (true) {
 		char c = *parser->position.ptr;
-		_Bool parsed_comments = false;
+		bool parsed_comments = false;
 
 		if (c == '/') {
 
@@ -208,7 +208,7 @@ static _Bool Parse_SkipComments(parser_t *parser) {
  * @brief Handles the appending routine for output. Returns false if the added character would overflow the
  * output buffer.
  */
-static _Bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
 
 	if (!output) {
 		return true;
@@ -228,7 +228,7 @@ static _Bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags,
 /**
  * @brief Handles parsing a quoted string.
  */
-static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags, size_t *output_position, char *output, const size_t output_len) {
+static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags, size_t *output_position, char *output, const size_t output_len) {
 	char c = *parser->position.ptr;
 
 	if (c != '"') {
@@ -323,7 +323,7 @@ static _Bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags
  * buffer into this function.
  * @return false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
-_Bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
+bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
 	parser_position_t old_position = { NULL, 0, 0 };
 
 	if (!parser) {
@@ -420,7 +420,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
 /**
  * @brief Parse the specified data type.
  */
-static _Bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
+static bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
 	int32_t result;
 	static byte scan_buffer[sizeof(double)];
 	const size_t type_size = Parse_TypeSize(type);

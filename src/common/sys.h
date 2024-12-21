@@ -27,7 +27,7 @@ const char *Sys_ExecutablePath(void);
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 
-void *Sys_OpenLibrary(const char *name, _Bool global);
+void *Sys_OpenLibrary(const char *name, bool global);
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params);
 void Sys_CloseLibrary(void *handle);
 

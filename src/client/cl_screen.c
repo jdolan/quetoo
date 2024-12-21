@@ -91,10 +91,10 @@ static void Cl_DrawNetGraph(void) {
 		return;
 	}
 
-	r_pixel_t ch;
+	GLint ch;
 	R_BindFont("small", NULL, &ch);
 
-	const r_pixel_t netgraph_height = ch * 3;
+	const GLint netgraph_height = ch * 3;
 
 	x = r_context.width - NET_GRAPH_WIDTH;
 	y = r_context.height - NET_GRAPH_Y - netgraph_height;
@@ -113,7 +113,7 @@ static void Cl_DrawNetGraph(void) {
 		x = r_context.width - i;
 		y = r_context.height - NET_GRAPH_Y;
 
-		const r_pixel_t points[4] = { x, y, x, y - h };
+		const GLint points[4] = { x, y, x, y - h };
 		R_Draw2DLines(points, 2, net_graph_samples[j].color);
 	}
 }
@@ -122,7 +122,7 @@ static void Cl_DrawNetGraph(void) {
  * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
-	r_pixel_t ch, x = 1, y = 64;
+	GLint ch, x = 1, y = 64;
 
 	if (!cl_draw_renderer_stats->value) {
 		return;
@@ -141,16 +141,15 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "BSP:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d inline models", r_stats.count_bsp_inline_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d inline models", r_stats.bsp_inline_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_stats.count_bsp_draw_elements), color_yellow);
+		R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d blend elements", r_stats.count_bsp_draw_elements_blend), color_yellow);
+		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.bsp_blend_draw_elements), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_bsp_triangles), color_yellow);
+		R_Draw2DString(x, y, va(" %d blend depth types", r_stats.blend_depth_types), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d occlusion queries (%d passed)", r_stats.count_bsp_occlusion_queries,
-								r_stats.count_bsp_occlusion_queries_passed), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.bsp_triangles), color_yellow);
 		y += ch;
 	}
 
@@ -159,9 +158,9 @@ static void Cl_DrawRendererStats(void) {
 	{
 		R_Draw2DString(x, y, "Mesh:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d models", r_stats.count_mesh_models), color_yellow);
+		R_Draw2DString(x, y, va(" %d models", r_stats.mesh_models), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.count_mesh_triangles), color_yellow);
+		R_Draw2DString(x, y, va(" %d triangles", r_stats.mesh_triangles), color_yellow);
 		y += ch;
 	}
 
@@ -180,7 +179,7 @@ static void Cl_DrawRendererStats(void) {
 			g_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
 			g_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
 			g_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
-			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.count_sprite_draw_elements);
+			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
 		}
 
 		R_Draw2DString(x, y, sprites, color_yellow);
@@ -196,39 +195,52 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d chars", r_stats.count_draw_chars), color_yellow);
+
+		R_Draw2DString(x, y, va(" %d visible", r_stats.occlusion_queries_visible), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d fills", r_stats.count_draw_fills), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d images", r_stats.count_draw_images), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d lines", r_stats.count_draw_lines), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va("%d arrays", r_stats.count_draw_arrays), color_yellow);
+		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
 		y += ch;
 	}
 
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Other:", color_yellow);
+		R_Draw2DString(x, y, "Lights:", color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va("%d lights", cl_view.num_lights), color_yellow);
+
+		R_Draw2DString(x, y, va(" %d lights", r_stats.lights), color_yellow);
 		y += ch;
 	}
+
+	y += ch;
+
+	{
+		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d chars", r_stats.draw_chars), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d fills", r_stats.draw_fills), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d images", r_stats.draw_images), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d lines", r_stats.draw_lines), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d arrays", r_stats.draw_arrays), color_yellow);
+		y += ch;
+	}
+
+	y += ch;
 
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
-	if (tr.fraction < 1.f) {
+	if (tr.material) {
 		y += ch;
 
-		const int32_t texinfo = tr.texinfo ? (int32_t) (ptrdiff_t) (tr.texinfo - Cm_Bsp()->texinfos) : -1;
-		R_Draw2DString(x, y, va("%s %d (%g %g %g) %g",
-								tr.texinfo->name,
-								texinfo,
+		R_Draw2DString(x, y, va("%s (%g %g %g) %g",
+								tr.material->name,
 								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
 								tr.plane.dist
 								), color_white);
@@ -242,7 +254,7 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	r_pixel_t ch, x = 1, y = cl_draw_renderer_stats->value ? 540 : 64;
+	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 600 : 64;
 
 	if (!cl_draw_sound_stats->value) {
 		return;
@@ -347,7 +359,7 @@ static void Cl_DrawCounters(void) {
 	static vec3_t velocity;
 	static char ft[28], pps[28], fps[28], spd[8];
 	static int32_t last_draw_time, last_speed_time;
-	r_pixel_t cw, ch;
+	GLint cw, ch;
 
 	if (!cl_draw_counters->integer) {
 		return;
@@ -355,8 +367,8 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	r_pixel_t x = r_context.width - 7 * cw;
-	r_pixel_t y = r_context.height - 4 * ch;
+	GLint x = r_context.width - 7 * cw;
+	GLint y = r_context.height - 4 * ch;
 	
 	cl.frame_counter[cl.sample_index]++;
 
@@ -454,7 +466,9 @@ void Cl_UpdateScreen(void) {
 			Cl_DrawNetGraph();
 			Cl_DrawCounters();
 
-			cls.cgame->UpdateScreen(&cl.frame);
+			if (cls.key_state.dest != KEY_UI) {
+				cls.cgame->UpdateScreen(&cl.frame);
+			}
 
 			switch (cls.key_state.dest) {
 				case KEY_UI:

@@ -260,18 +260,6 @@ static void dealloc(Object *self) {
 #pragma mark - ViewController
 
 /**
- * @see ViewController::handleNotification(ViewController *, const Notification *)
- */
-static void handleNotification(ViewController *self, const Notification *notification) {
-
-	if (notification->name == NOTIFICATION_SERVER_PARSED) {
-		$((JoinServerViewController *) self, reloadServers);
-	}
-
-	super(ViewController, self, handleNotification, notification);
-}
-
-/**
  * @see ViewController::loadView(ViewController *)
  */
 static void loadView(ViewController *self) {
@@ -315,6 +303,18 @@ static void loadView(ViewController *self) {
 	$(quickJoin, addActionForEventType, SDL_MOUSEBUTTONUP, quickjoinAction, self, NULL);
 	$(refresh, addActionForEventType, SDL_MOUSEBUTTONUP, refreshAction, self, NULL);
 	$(connect, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, NULL);
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+	if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_SERVER_PARSED) {
+		$((JoinServerViewController *) self, reloadServers);
+	}
+
+	super(ViewController, self, respondToEvent, event);
 }
 
 /**
@@ -399,8 +399,8 @@ static void initialize(Class *clazz) {
 
 	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->interface)->handleNotification = handleNotification;
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+	((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
 	((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;

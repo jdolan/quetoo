@@ -23,17 +23,18 @@
 
 #include "quemap.h"
 
-extern _Bool no_prune;
-extern _Bool no_detail;
-extern _Bool no_merge;
-extern _Bool no_liquid;
-extern _Bool no_csg;
-extern _Bool no_weld;
-extern _Bool no_share;
-extern _Bool no_tjunc;
-extern _Bool only_ents;
-extern _Bool leaked;
+extern bool leaked;
 
 extern float micro_volume;
+
+extern bool no_csg;
+extern bool no_detail;
+extern bool no_liquid;
+extern bool no_merge;
+extern bool no_phong;
+extern bool no_prune;
+extern bool no_tjunc;
+extern bool no_weld;
+extern bool only_ents;
 
 int32_t BSP_Main(void);

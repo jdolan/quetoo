@@ -64,6 +64,7 @@ static void layoutSubviews(View *self) {
 		);
 
 		$((View *) this->imageView, resize, &size);
+		$((View *) this->imageView, layoutIfNeeded);
 	}
 
 	super(View, self, layoutSubviews);

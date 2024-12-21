@@ -36,7 +36,7 @@ static void updateBindings(View *self) {
 
 	MainView *this = (MainView *) self;
 
-	const _Bool isActive = *cgi.state == CL_ACTIVE;
+	const bool isActive = *cgi.state == CL_ACTIVE;
 
 	this->background->view.hidden = isActive;
 	this->logo->view.hidden = isActive;

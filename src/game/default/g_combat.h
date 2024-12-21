@@ -24,8 +24,8 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-_Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2);
-_Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor);
+bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2);
+bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor);
 vec3_t G_GetOrigin(const g_entity_t *ent);
 
 void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker, const vec3_t dir,

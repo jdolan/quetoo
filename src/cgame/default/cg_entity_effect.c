@@ -40,11 +40,10 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
  */
 vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
 
-	if (client >= MAX_CLIENTS) {
-		return Vec3(default_hue, 1.f, 1.f);
-	}
+	const cg_client_info_t *ci = &cg_state.clients[client];
+	const float hue = ci->team ? ci->team->hue : ci->hue;
 
-	return Cg_ResolveEffectHSV(cgi.client->client_info[client].hue, default_hue);
+	return Cg_ResolveEffectHSV(hue, default_hue);
 }
 
 /**
@@ -58,7 +57,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
 	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
 		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
-		.color = Color_Color32(color_white),
+		.color = color_white,
 		.media = (r_media_t *) cg_sprite_inactive,
 		.size = 32.f,
 		.softness = 1.f
@@ -96,7 +95,9 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = 80.0,
-			.color = Vec3(0.3f, 0.7f, 0.7f)
+			.color = Vec3(0.3f, 0.7f, 0.7f),
+			.intensity = .333f,
+			.source = ent,
 		};
 
 		Cg_AddLight(&l);
@@ -106,19 +107,21 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
 	if (e->effects & EF_CTF_MASK) {
 
-		for (int32_t team = 0; team < MAX_TEAMS; team++) {
+		for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
 			if (e->effects & (EF_CTF_RED << team)) {
-				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_team_info[team].hue, 0.f);
+				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_state.teams[team].hue, 0.f);
 
 				const cg_light_t l = {
 					.origin = e->origin,
-					.radius = 80.f,
-					.color = Color_Vec3(ColorHSV(effect_color.x, effect_color.y, effect_color.z))
+					.radius = 128.f,
+					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
+					.intensity = .333f,
+					.source = ent,
 				};
 
 				Cg_AddLight(&l);
 
-				e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
+				e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
 			}
 		}
 	}
@@ -127,6 +130,8 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		e->shell = Vec3_Normalize(e->shell);
 		e->effects |= EF_SHELL;
 	}
+
+	e->color = Vec4_One();
 
 	if (e->effects & EF_DESPAWN) {
 
@@ -145,16 +150,18 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		const cg_light_t l = {
 			.origin = e->origin,
 			.radius = e->termination.x,
-			.color = Color_Vec3(color)
+			.color = color.vec3,
+			.intensity = .5f,
 		};
 
 		Cg_AddLight(&l);
 	}
 
 	if (e->effects & EF_TEAM_TINT) {
-		const uint8_t team = ent->current.animation1;
+		assert(ent->current.animation1 < MAX_TEAMS);
 
-		e->tints[0] = Vec4(cg_team_info[team].color.r, cg_team_info[team].color.g, cg_team_info[team].color.b, 1.f);
+		const cg_team_info_t *team = cg_state.teams + ent->current.animation1;
+		e->tints[0] = Vec4(team->color.r, team->color.g, team->color.b, 1.f);
 
 		for (int32_t i = 1; i < 3; i++) {
 			e->tints[i] = e->tints[0];
@@ -162,6 +169,6 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 	}
 
 	if (ent->current.trail == TRAIL_ROCKET) {
-		e->effects |= EF_NO_SHADOW;
+		e->effects |= EF_NO_SHADOW; // FIXME: Make this entity the light's source instead
 	}
 }

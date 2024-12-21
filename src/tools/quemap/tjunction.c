@@ -43,7 +43,7 @@ static void FixTJunctions_(int32_t face_num) {
 
 	SDL_SpinLock *face_lock = &faces_locks[face_num];
 
-	const plane_t *plane = &planes[face->plane_num];
+	const plane_t *plane = &planes[face->brush_side->plane];
 
 	// Make a copy of face->w for testing
 	SDL_AtomicLock(face_lock);
@@ -128,18 +128,21 @@ static void FixTJunctions_(int32_t face_num) {
  */
 static void FixTJunctions_r(node_t *node) {
 
-	if (node->plane_num != PLANE_NUM_LEAF) {
+	if (node->plane != PLANE_LEAF) {
 		FixTJunctions_r(node->children[0]);
 		FixTJunctions_r(node->children[1]);
 	}
 
 	for (face_t *face = node->faces; face; face = face->next) {
+
 		if (face->merged) {
 			continue;
 		}
+		
 		if (g_ptr_array_find(faces, face, NULL)) {
 			continue;
 		}
+		
 		g_ptr_array_add(faces, face);
 
 		largest_winding = MAX(largest_winding, face->w->num_points);
@@ -149,13 +152,13 @@ static void FixTJunctions_r(node_t *node) {
 /**
  * @brief
  */
-void FixTJunctions(node_t *node) {
+void FixTJunctions(tree_t *tree) {
 
 	Com_Verbose("--- FixTJunctions ---\n");
 	SDL_AtomicSet(&c_tjunctions, 0);
 
 	faces = g_ptr_array_new();
-	FixTJunctions_r(node);
+	FixTJunctions_r(tree->head_node);
 
 	largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_winding);
 

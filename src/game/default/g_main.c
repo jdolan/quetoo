@@ -24,8 +24,6 @@
 g_import_t gi;
 g_export_t ge;
 
-ai_export_t *aix;
-
 g_game_t g_game;
 
 g_level_t g_level;
@@ -34,6 +32,10 @@ g_media_t g_media;
 cvar_t *g_admin_password;
 cvar_t *g_ammo_respawn_time;
 cvar_t *g_auto_join;
+cvar_t *g_balance_armor_shard_respawn;
+cvar_t *g_balance_armor_jacket_respawn;
+cvar_t *g_balance_armor_combat_respawn;
+cvar_t *g_balance_armor_body_respawn;
 cvar_t *g_balance_bfg_damage;
 cvar_t *g_balance_bfg_knockback;
 cvar_t *g_balance_bfg_prefire;
@@ -45,6 +47,10 @@ cvar_t *g_balance_blaster_knockback;
 cvar_t *g_balance_blaster_refire;
 cvar_t *g_balance_blaster_speed;
 cvar_t *g_balance_handgrenade_refire;
+cvar_t *g_balance_health_small_respawn;
+cvar_t *g_balance_health_medium_respawn;
+cvar_t *g_balance_health_large_respawn;
+cvar_t *g_balance_health_mega_respawn;
 cvar_t *g_balance_hyperblaster_climb_damage;
 cvar_t *g_balance_hyperblaster_climb_knockback;
 cvar_t *g_balance_hyperblaster_damage;
@@ -66,6 +72,8 @@ cvar_t *g_balance_grenadelauncher_radius;
 cvar_t *g_balance_grenadelauncher_refire;
 cvar_t *g_balance_grenadelauncher_speed;
 cvar_t *g_balance_grenadelauncher_timer;
+cvar_t *g_balance_quad_damage_respawn_time;
+cvar_t *g_balance_quad_damage_time;
 cvar_t *g_balance_railgun_damage;
 cvar_t *g_balance_railgun_knockback;
 cvar_t *g_balance_railgun_refire;
@@ -94,14 +102,12 @@ cvar_t *g_techs;
 cvar_t *g_hook;
 cvar_t *g_hook_auto_refire;
 cvar_t *g_hook_distance;
-cvar_t *g_hook_refire;
-cvar_t *g_hook_style;
-cvar_t *g_hook_speed;
 cvar_t *g_hook_pull_speed;
+cvar_t *g_hook_refire;
+cvar_t *g_hook_speed;
+cvar_t *g_hook_style;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
-cvar_t *g_force_demo;
-cvar_t *g_force_screenshot;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_handicap;
@@ -113,20 +119,18 @@ cvar_t *g_num_teams;
 cvar_t *g_password;
 static cvar_t *g_paused;
 cvar_t *g_player_projectile;
-cvar_t *g_quad_damage_respawn_time;
-cvar_t *g_quad_damage_time;
 cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
 cvar_t *g_round_limit;
 cvar_t *g_rounds;
 cvar_t *g_self_damage;
+cvar_t *g_self_knockback;
 cvar_t *g_show_attacker_stats;
 cvar_t *g_spawn_farthest;
 cvar_t *g_spectator_chat;
 cvar_t *g_teams;
 cvar_t *g_time_limit;
 cvar_t *g_timeout_time;
-cvar_t *g_voting;
 cvar_t *g_warmup_time;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
@@ -135,24 +139,24 @@ cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
 cvar_t *dedicated;
 
-g_team_t g_teamlist[MAX_TEAMS];
-static g_team_t g_teamlist_default[MAX_TEAMS];
+g_team_t g_team_list[MAX_TEAMS];
+static g_team_t g_team_list_default[MAX_TEAMS];
 
 static struct {
-	cvar_t		*g_team_name;
-	cvar_t		*g_team_shirt;
-	cvar_t		*g_team_color;
+	cvar_t *g_team_name;
+	cvar_t *g_team_shirt;
+	cvar_t *g_team_color;
 } g_team_cvars[MAX_TEAMS];
 
 static const struct {
-	const char	*name;
-	const char	*shirt;
-	uint16_t	color;
-} g_default_team_values[MAX_TEAMS] = {
+	const char *name;
+	const char *shirt;
+	int16_t color;
+} g_team_defaults[MAX_TEAMS] = {
 	{ "Red", "ff0000", TEAM_COLOR_RED },
 	{ "Blue", "0000ff", TEAM_COLOR_BLUE },
 	{ "Yellow", "ffff00", TEAM_COLOR_YELLOW },
-	{ "White", "ffffff", TEAM_COLOR_WHITE }
+	{ "Green", "00ff00", TEAM_COLOR_GREEN }
 };
 
 /**
@@ -161,9 +165,9 @@ static const struct {
 static void G_InitTeam(const g_team_id_t id, const char *name,
 					   const char *shirt,
 					   const int16_t color,
-					   const uint32_t effect) {
+					   const int16_t effect) {
 
-	g_team_t *team = &g_teamlist[id];
+	g_team_t *team = &g_team_list[id];
 
 	team->id = id;
 
@@ -175,6 +179,7 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 		gi.Warn("Failed to parse default team color %s\n", shirt);
 		team->shirt = color_white;
 	}
+
 	team->pants = team->helmet = team->shirt;
 
 	// FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
@@ -193,7 +198,7 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
  */
 void G_ResetTeams(void) {
 
-	memset(g_teamlist, 0, sizeof(g_teamlist));
+	memset(g_team_list, 0, sizeof(g_team_list));
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
 		G_InitTeam(i,
@@ -203,7 +208,7 @@ void G_ResetTeams(void) {
 				   EF_CTF_RED << i);
 	}
 
-	memcpy(g_teamlist_default, g_teamlist, sizeof(g_teamlist));
+	memcpy(g_team_list_default, g_team_list, sizeof(g_team_list));
 
 	G_SetTeamNames();
 }
@@ -214,17 +219,19 @@ void G_ResetTeams(void) {
 void G_SetTeamNames(void) {
 	char team_info[MAX_STRING_CHARS] = { '\0' };
 
-	for (int32_t t = 0; t < MAX_TEAMS; t++) {
+	for (int32_t i = 0; i < MAX_TEAMS; i++) {
 
-		if (t != TEAM_RED) {
+		if (i != TEAM_RED) {
 			g_strlcat(team_info, "\\", sizeof(team_info));
 		}
 
-		g_strlcat(team_info, g_teamlist[t].name, sizeof(team_info));
+		g_strlcat(team_info, va("%d", g_team_list[i].id), sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, va("%i", g_teamlist[t].color), sizeof(team_info));
+		g_strlcat(team_info, g_team_list[i].name, sizeof(team_info));
 		g_strlcat(team_info, "\\", sizeof(team_info));
-		g_strlcat(team_info, Color_Unparse(g_teamlist[t].shirt), sizeof(team_info));
+		g_strlcat(team_info, va("%d", g_team_list[i].color), sizeof(team_info));
+		g_strlcat(team_info, "\\", sizeof(team_info));
+		g_strlcat(team_info, Color_Unparse(g_team_list[i].shirt), sizeof(team_info));
 	}
 
 	gi.SetConfigString(CS_TEAM_INFO, team_info);
@@ -235,30 +242,7 @@ void G_SetTeamNames(void) {
  */
 const g_team_t *G_TeamDefaults(const g_team_t *team) {
 
-	return &g_teamlist_default[team->id];
-}
-
-/**
- * @brief
- */
-void G_ResetVote(void) {
-	int32_t i;
-
-	for (i = 0; i < sv_max_clients->integer; i++) { //reset vote flags
-
-		if (!g_game.entities[i + 1].in_use) {
-			continue;
-		}
-
-		g_game.entities[i + 1].client->locals.persistent.vote = VOTE_NO_OP;
-	}
-
-	gi.SetConfigString(CS_VOTE, NULL);
-
-	g_level.votes[0] = g_level.votes[1] = g_level.votes[2] = 0;
-	g_level.vote_cmd[0] = 0;
-
-	g_level.vote_time = 0;
+	return &g_team_list_default[team->id];
 }
 
 /**
@@ -292,8 +276,6 @@ void G_ResetItems(void) {
 	}
 
 	G_SpawnTechs();
-
-	G_Ai_RegisterItems();
 }
 
 /**
@@ -375,13 +357,13 @@ void G_ResetSpawnPoints(void) {
 
 	// reset trails to 0 first
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, 0, 0);
+		G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, 0, 0);
 	}
 
 	// then apply team-based trails, this is done twice
 	// so neutrality gets applied properly
 	for (int32_t t = 0; t < MAX_TEAMS; t++) {
-		G_ResetTeamSpawnPoints(&g_teamlist[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
+		G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
 	}
 }
 
@@ -390,11 +372,7 @@ void G_ResetSpawnPoints(void) {
  * For match games, this means cancel the match and force everyone
  * to ready again. Teams are only reset when teamz is true.
  */
-static void G_RestartGame(_Bool teamz) {
-
-	if (aix) { // reset bot level state before they respawn
-		aix->GameRestarted();
-	}
+static void G_RestartGame(bool teamz) {
 
 	if (g_level.match_time) {
 		g_level.match_num++;
@@ -468,17 +446,20 @@ static void G_RestartGame(_Bool teamz) {
 	g_level.match_time = g_level.round_time = 0;
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		g_teamlist[i].score = g_teamlist[i].captures = 0;
+		g_team_list[i].score = g_team_list[i].captures = 0;
 	}
 
 	gi.BroadcastPrint(PRINT_HIGH, "Game restarted\n");
-	gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = g_media.sounds.teleport
+	}, MULTICAST_PHS_R, NULL);
 }
 
 /**
  * @brief
  */
-void G_MuteClient(char *name, _Bool mute) {
+void G_MuteClient(char *name, bool mute) {
 	g_client_t *cl;
 
 	if (!(cl = G_ClientByName(name))) {
@@ -538,7 +519,9 @@ static void G_BeginIntermission(const char *map) {
 	}
 
 	// play a dramatic sound effect
-	gi.Sound(g_game.entities, g_media.sounds.roar, SOUND_ATTEN_NONE, 0);
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = g_media.sounds.roar
+	}, MULTICAST_PHS_R, NULL);
 
 	// stay on same level if not provided
 	g_level.next_map = map ?: g_level.name;
@@ -564,60 +547,7 @@ static void G_EndLevel(void) {
 /**
  * @brief
  */
-static void G_CheckVote(void) {
-	int32_t i, count = 0;
-
-	if (!g_voting->value) {
-		return;
-	}
-
-	if (g_level.vote_time == 0) {
-		return;
-	}
-
-	if (g_level.time - g_level.vote_time > MAX_VOTE_TIME) {
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" expired\n", g_level.vote_cmd);
-		G_ResetVote();
-		return;
-	}
-
-	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use) {
-			continue;
-		}
-		count++;
-	}
-
-	if (g_level.votes[VOTE_YES] >= count * VOTE_MAJORITY) { // vote passed
-
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" passed\n", g_level.vote_cmd);
-
-		if (!strncmp(g_level.vote_cmd, "map ", 4)) { // special case for map
-			G_BeginIntermission(g_level.vote_cmd + 4);
-		} else if (!g_strcmp0(g_level.vote_cmd, "next_map")) { // and next_map
-			G_EndLevel();
-		} else if (!g_strcmp0(g_level.vote_cmd, "restart")) { // and restart
-			G_RestartGame(false);
-		} else if (!strncmp(g_level.vote_cmd, "mute ", 5)) { // and mute
-			G_MuteClient(g_level.vote_cmd + 5, true);
-		} else if (!strncmp(g_level.vote_cmd, "unmute ", 7)) {
-			G_MuteClient(g_level.vote_cmd + 7, false);
-		} else { // general case, just execute the command
-			gi.Cbuf(g_level.vote_cmd);
-		}
-		G_ResetVote();
-	} else if (g_level.votes[VOTE_NO] >= count * VOTE_MAJORITY) { // vote failed
-		gi.BroadcastPrint(PRINT_HIGH, "Vote \"%s\" failed\n", g_level.vote_cmd);
-		G_ResetVote();
-	}
-}
-
-/**
- * @brief
- */
 static void G_CheckRoundStart(void) {
-	int32_t i, clients;
-	g_client_t *cl;
 
 	if (!g_level.rounds) {
 		return;
@@ -627,26 +557,30 @@ static void G_CheckRoundStart(void) {
 		return;
 	}
 
-	clients = 0;
+	int32_t clients = 0;
 
-	uint8_t teams_ready[MAX_TEAMS];
+	int32_t teams_ready[MAX_TEAMS];
 	memset(teams_ready, 0, sizeof(teams_ready));
 
-	for (i = 0; i < sv_max_clients->integer; i++) {
-		if (!g_game.entities[i + 1].in_use) {
+	const g_entity_t *e = g_game.entities + 1;
+	for (int32_t i = 0; i < sv_max_clients->integer; i++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		cl = g_game.entities[i + 1].client;
+		if (e->locals.dead) {
+			continue;
+		}
 
-		if (cl->locals.persistent.spectator) {
+		if (e->client->locals.persistent.spectator) {
 			continue;
 		}
 
 		clients++;
 
-		if (g_level.teams && cl->locals.persistent.team) {
-			teams_ready[cl->locals.persistent.team->id]++;
+		if (g_level.teams && e->client->locals.persistent.team) {
+			teams_ready[e->client->locals.persistent.team->id]++;
 		}
 	}
 
@@ -684,7 +618,7 @@ static void G_CheckRoundStart(void) {
 /**
  * @brief
  */
-static void G_CheckRoundLimit() {
+static void G_CheckRoundLimit(void) {
 	int32_t i;
 	g_entity_t *ent;
 	g_client_t *cl;
@@ -737,27 +671,31 @@ static void G_CheckRoundEnd(void) {
 		return; // no round currently running
 	}
 
-	g_entity_t *winner = NULL;
+	const g_entity_t *winner = NULL;
 	int32_t clients = 0;
 
-	uint8_t teams_count[MAX_TEAMS];
+	int32_t teams_count[MAX_TEAMS];
 	memset(teams_count, 0, sizeof(teams_count));
 
-	for (int32_t j = 0; j < sv_max_clients->integer; j++) {
-		if (!g_game.entities[j + 1].in_use) {
+	const g_entity_t *e = g_game.entities + 1;
+	for (int32_t j = 1; j < sv_max_clients->integer; j++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		g_client_t *cl = g_game.entities[j + 1].client;
-
-		if (cl->locals.persistent.spectator) { // true spectator, or dead
+		if (e->locals.dead) {
 			continue;
 		}
 
-		winner = &g_game.entities[j + 1];
+		if (e->client->locals.persistent.spectator) {
+			continue;
+		}
 
-		if (g_level.teams) {
-			teams_count[cl->locals.persistent.team->id]++;
+		winner = e;
+
+		if (e->client->locals.persistent.team) {
+			teams_count[e->client->locals.persistent.team->id]++;
 		}
 
 		clients++;
@@ -771,13 +709,15 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	if (g_level.teams || g_level.ctf) { // teams rounds continue if each team has a player
-		_Bool do_continue = true;
 
-		for (int32_t i = 0; do_continue && i < g_level.num_teams; i++) {
-			do_continue = do_continue && !teams_count[i];
+		int32_t i;
+		for (i = 0; i < g_level.num_teams; i++) {
+			if (teams_count[i] == 0) {
+				break;
+			}
 		}
 
-		if (do_continue) {
+		if (i == g_level.num_teams) {
 			return;
 		}
 	} else if (clients > 1) { // ffa continues if two players are alive
@@ -785,16 +725,18 @@ static void G_CheckRoundEnd(void) {
 	}
 
 	// allow enemy projectiles to expire before declaring a winner
-	for (int32_t i = 0; i < ge.num_entities; i++) {
-		if (!g_game.entities[i + 1].in_use) {
+	e = g_game.entities + 1;
+	for (int32_t i = 1; i < ge.num_entities; i++, e++) {
+
+		if (!e->in_use) {
 			continue;
 		}
 
-		if (!g_game.entities[i + 1].owner) {
+		if (!e->owner) {
 			continue;
 		}
 
-		g_client_t *cl = g_game.entities[i + 1].owner->client;
+		g_client_t *cl = e->owner->client;
 
 		if (!cl) {
 			continue;
@@ -908,7 +850,7 @@ static char *G_FormatTime(uint32_t time) {
  */
 static void G_CheckRules(void) {
 	int32_t i;
-	_Bool restart = false;
+	bool restart = false;
 
 	if (g_level.intermission_time) {
 		return;
@@ -935,7 +877,10 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport
+		}, MULTICAST_PHS_R, NULL);
+
 		gi.BroadcastPrint(PRINT_HIGH, "Match has started\n");
 	}
 
@@ -951,7 +896,10 @@ static void G_CheckRules(void) {
 			G_ClientRespawn(&g_game.entities[i + 1], false);
 		}
 
-		gi.Sound(g_game.entities, g_media.sounds.teleport, SOUND_ATTEN_NONE, 0);
+		G_MulticastSound(&(const g_play_sound_t) {
+			.index = g_media.sounds.teleport
+		}, MULTICAST_PHS_R, NULL);
+
 		gi.BroadcastPrint(PRINT_HIGH, "Round has started\n");
 	}
 
@@ -961,7 +909,7 @@ static void G_CheckRules(void) {
 
 		if (g_level.teams) { // check team scores
 			for (int32_t i = 0; i < g_level.num_teams; i++) {
-				if (g_teamlist[i].score >= g_level.frag_limit) {
+				if (g_team_list[i].score >= g_level.frag_limit) {
 					gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
 					G_EndLevel();
 					return;
@@ -986,7 +934,7 @@ static void G_CheckRules(void) {
 	if (g_level.ctf && g_level.capture_limit) { // check capture limit
 
 		for (int32_t i = 0; i < g_level.num_teams; i++) {
-			if (g_teamlist[i].captures >= g_level.capture_limit) {
+			if (g_team_list[i].captures >= g_level.capture_limit) {
 				gi.BroadcastPrint(PRINT_HIGH, "Capture limit hit\n");
 				G_EndLevel();
 				return;
@@ -1056,6 +1004,15 @@ static void G_CheckRules(void) {
 
 		gi.BroadcastPrint(PRINT_HIGH, "Self damage has been changed to %g\n",
 		                  g_self_damage->value);
+	}
+
+	if (g_self_knockback->modified) {
+		g_self_knockback->modified = false;
+
+		gi.SetCvarValue(g_self_knockback->name, Clampf(g_self_knockback->value, 0.0, 4.0));
+
+		gi.BroadcastPrint(PRINT_HIGH, "Self knockback has been changed to %g\n",
+						  g_self_knockback->value);
 	}
 
 	if (g_hook_pull_speed->modified) {
@@ -1261,16 +1218,16 @@ static void G_CheckRules(void) {
 	}
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		_Bool changed = false, reset_userinfo = false;
+		bool changed = false, reset_userinfo = false;
 
 		if (g_team_cvars[i].g_team_name->modified) {
 			g_team_cvars[i].g_team_name->modified = false;
 		
-			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_teamlist[i].name) - 1 &&
-				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_teamlist[i].name)) {
+			if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_team_list[i].name) - 1 &&
+				!strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_team_list[i].name)) {
 
-				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
-				strcpy(g_teamlist[i].name, g_team_cvars[i].g_team_name->string);
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_team_list[i].name, g_team_cvars[i].g_team_name->string);
+				strcpy(g_team_list[i].name, g_team_cvars[i].g_team_name->string);
 				changed = true;
 			}
 		}
@@ -1281,11 +1238,11 @@ static void G_CheckRules(void) {
 			color_t shirt;
 
 			if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) &&
-				Color_Color32(shirt).rgba != Color_Color32(g_teamlist[i].shirt).rgba) {
+				Color_Color32(shirt).rgba != Color_Color32(g_team_list[i].shirt).rgba) {
 
 				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n",
-								  g_teamlist[i].name, g_team_cvars[i].g_team_shirt->string);
-				g_teamlist[i].shirt = g_teamlist[i].helmet = g_teamlist[i].pants = shirt;
+								  g_team_list[i].name, g_team_cvars[i].g_team_shirt->string);
+				g_team_list[i].shirt = g_team_list[i].helmet = g_team_list[i].pants = shirt;
 				changed = true;
 				reset_userinfo = true;
 			}
@@ -1297,10 +1254,10 @@ static void G_CheckRules(void) {
 
 			int16_t hue = strtol(g_team_cvars[i].g_team_color->string, &end_point, 10);
 
-			if (end_point && hue >= 0 && hue <= 361 && hue != g_teamlist[i].color) {
+			if (end_point && hue >= 0 && hue <= 361 && hue != g_team_list[i].color) {
 
-				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_teamlist[i].name, hue);
-				g_teamlist[i].color = hue;
+				gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_team_list[i].name, hue);
+				g_team_list[i].color = hue;
 				changed = true;
 				reset_userinfo = true;
 			}
@@ -1330,14 +1287,14 @@ static void G_CheckRules(void) {
 	}
 
 	if (restart) {
-		G_RestartGame(true);	// reset all clients
+		G_RestartGame(true); // reset all clients
 	}
 }
 
 /**
  * @brief
  */
-static void G_ExitLevel(void) {
+static void G_NextMap_f(void) {
 
 	gi.Cbuf(va("map %s\n", g_level.next_map));
 
@@ -1366,7 +1323,7 @@ static void G_Frame(void) {
 	// check for level change after running intermission
 	if (g_level.intermission_time) {
 		if (g_level.time > g_level.intermission_time + INTERMISSION) {
-			G_ExitLevel();
+			G_NextMap_f();
 			return;
 		}
 	}
@@ -1393,20 +1350,20 @@ static void G_Frame(void) {
 		G_Ai_Frame();
 	}
 
-	// see if a vote has passed
-	G_CheckVote();
+	if (!G_Ai_InDeveloperMode()) {
 
-	// inspect and enforce gameplay rules
-	G_CheckRules();
+		// inspect and enforce gameplay rules
+		G_CheckRules();
 
-	// see if a match should end
-	G_CheckMatchEnd();
+		// see if a match should end
+		G_CheckMatchEnd();
 
-	// see if an arena round should start
-	G_CheckRoundStart();
+		// see if an arena round should start
+		G_CheckRoundStart();
 
-	// see if an arena round should end
-	G_CheckRoundEnd();
+		// see if an arena round should end
+		G_CheckRoundEnd();
+	}
 
 	// build the player_state_t structures for all players
 	G_EndClientFrames();
@@ -1434,13 +1391,13 @@ static const char *G_GameName(void) {
 /**
  * @brief Restart the game.
  */
-static void G_Restart_Sv_f(void) {
+static void G_Restart_f(void) {
 
 	G_RestartGame(false);
 }
 
 /**
- * @brief Set up the CS_TEAMS configstring to the number of valid teams we have
+ * @brief Set up the CS_NUM_TEAMS configstring to the number of valid teams we have
  */
 void G_InitNumTeams(void) {
 
@@ -1449,7 +1406,7 @@ void G_InitNumTeams(void) {
 
 		for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-			if (!g_teamlist[t].spawn_points.count) {
+			if (!g_team_list[t].spawn_points.count) {
 				break;
 			}
 
@@ -1459,7 +1416,7 @@ void G_InitNumTeams(void) {
 		g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
 	}
 
-	gi.SetConfigString(CS_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
+	gi.SetConfigString(CS_NUM_TEAMS, va("%d", (g_level.teams || g_level.ctf) ? g_level.num_teams : 0));
 }
 
 /**
@@ -1483,6 +1440,10 @@ void G_Init(void) {
 	g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
 	g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
 	                      "Automatically assigns players to teams, ignored for duel mode.");
+	g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
+	g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
 	g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO,
@@ -1495,6 +1456,10 @@ void G_Init(void) {
 	g_balance_blaster_refire = gi.AddCvar("g_balance_blaster_refire", "0.45", CVAR_SERVER_INFO, NULL);
 	g_balance_blaster_speed = gi.AddCvar("g_balance_blaster_speed", "2000", CVAR_SERVER_INFO, NULL);
 	g_balance_handgrenade_refire = gi.AddCvar("g_balance_handgrenade_refire", "2", CVAR_SERVER_INFO, NULL);
+	g_balance_health_small_respawn = gi.AddCvar("g_balance_health_small_respawn", "15", CVAR_SERVER_INFO, NULL);
+	g_balance_health_medium_respawn = gi.AddCvar("g_balance_health_medium_respawn", "20", CVAR_SERVER_INFO, NULL);
+	g_balance_health_large_respawn = gi.AddCvar("g_balance_health_large_respawn", "30", CVAR_SERVER_INFO, NULL);
+	g_balance_health_mega_respawn = gi.AddCvar("g_balance_health_mega_respawn", "60", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_damage = gi.AddCvar("g_balance_hyperblaster_climb_damage", "3", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_climb_knockback = gi.AddCvar("g_balance_hyperblaster_climb_knockback", "68", CVAR_SERVER_INFO, NULL);
 	g_balance_hyperblaster_damage = gi.AddCvar("g_balance_hyperblaster_damage", "16", CVAR_SERVER_INFO, NULL);
@@ -1516,11 +1481,13 @@ void G_Init(void) {
 	g_balance_grenadelauncher_refire = gi.AddCvar("g_balance_grenadelauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_speed = gi.AddCvar("g_balance_grenadelauncher_speed", "800", CVAR_SERVER_INFO, NULL);
 	g_balance_grenadelauncher_timer = gi.AddCvar("g_balance_grenadelauncher_timer", "2.5", CVAR_SERVER_INFO, NULL);
+	g_balance_quad_damage_respawn_time = gi.AddCvar("g_balance_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, NULL);
+	g_balance_quad_damage_time = gi.AddCvar("g_balance_quad_damage_time", "30", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_damage = gi.AddCvar("g_balance_railgun_damage", "100", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_knockback = gi.AddCvar("g_balance_railgun_knockback", "80", CVAR_SERVER_INFO, NULL);
 	g_balance_railgun_refire = gi.AddCvar("g_balance_railgun_refire", "1.4", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_damage = gi.AddCvar("g_balance_rocketlauncher_damage", "100", CVAR_SERVER_INFO, NULL);
-	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "100", CVAR_SERVER_INFO, NULL);
+	g_balance_rocketlauncher_knockback = gi.AddCvar("g_balance_rocketlauncher_knockback", "75", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_radius = gi.AddCvar("g_balance_rocketlauncher_radius", "150", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_refire = gi.AddCvar("g_balance_rocketlauncher_refire", "1", CVAR_SERVER_INFO, NULL);
 	g_balance_rocketlauncher_speed = gi.AddCvar("g_balance_rocketlauncher_speed", "1000", CVAR_SERVER_INFO, NULL);
@@ -1537,25 +1504,26 @@ void G_Init(void) {
 	g_balance_supershotgun_spread_x = gi.AddCvar("g_balance_supershotgun_spread_x", "1600", CVAR_SERVER_INFO, NULL);
 	g_balance_supershotgun_spread_y = gi.AddCvar("g_balance_supershotgun_spread_y", "500", CVAR_SERVER_INFO, NULL);
 	g_capture_limit = gi.AddCvar("g_capture_limit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
-	g_cheats = gi.AddCvar("g_cheats", "0", CVAR_SERVER_INFO, NULL);
+	g_cheats = gi.AddCvar("g_cheats",
+#if _DEBUG
+		"1"
+#else
+		"0"
+#endif
+		, CVAR_SERVER_INFO, NULL);
 	g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
 	g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
 	                 "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
-				     "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO,
-							  "The maximum distance the hook will travel.");
-	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO,
-	                       "The refire delay on the grapple hook in seconds.");
 	g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
 	                       "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+	g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
+					 "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+	g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO, "The maximum distance the hook will travel.");
+	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook.");
+	g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO, "The refire delay on the grapple hook in seconds.");
 	g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
-	g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO,
-	                            "The speed that you get pulled towards the hook.");
 	g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
 	g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
-	g_force_demo = gi.AddCvar("g_force_demo", "0", CVAR_SERVER_INFO, "Force all players to record a demo.");
-	g_force_screenshot = gi.AddCvar("g_force_screenshot", "0", CVAR_SERVER_INFO, "Force all players to take a screenshot.");
 	g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
 	g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
 	g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO,
@@ -1570,13 +1538,12 @@ void G_Init(void) {
 	g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
 	g_paused = gi.AddCvar("g_paused", "0", CVAR_DEVELOPER, "Pause the server. Developer tool.");
 	g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
-	g_quad_damage_respawn_time = gi.AddCvar("g_quad_damage_respawn_time", "60", CVAR_SERVER_INFO, "How long it takes for Quad Damage to respawn, in seconds.");
-	g_quad_damage_time = gi.AddCvar("g_quad_damage_time", "20", CVAR_SERVER_INFO, "How long Quad Damage lasts, in seconds.");
 	g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
 	g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
 	g_round_limit = gi.AddCvar("g_round_limit", "30", CVAR_SERVER_INFO, "The number of rounds to run per level.");
 	g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
-	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to yourself.");
+	g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
+	g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
 	g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
 					"Allows can see their attackers' health and armor when they die.");
 	g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
@@ -1587,10 +1554,9 @@ void G_Init(void) {
 	                 "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
 	g_time_limit = gi.AddCvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes.");
 	g_timeout_time = gi.AddCvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled.");
-	g_voting = gi.AddCvar("g_voting", "1", CVAR_SERVER_INFO, "Enables voting.");
 	g_warmup_time = gi.AddCvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30.");
 	g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
-	g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
+	g_weapon_stay = gi.AddCvar("g_weapon_stay", "1", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
 
 	sv_max_clients = gi.GetCvar("sv_max_clients");
 	sv_hostname = gi.GetCvar("sv_hostname");
@@ -1598,12 +1564,10 @@ void G_Init(void) {
 	dedicated = gi.GetCvar("dedicated");
 
 	for (int32_t i = 0; i < MAX_TEAMS; i++) {
-		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_default_team_values[i].name, 0, NULL);
-		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_default_team_values[i].shirt, 0, NULL);
-		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_default_team_values[i].color), 0, NULL);
+		g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_team_defaults[i].name, 0, NULL);
+		g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_team_defaults[i].shirt, 0, NULL);
+		g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_team_defaults[i].color), 0, NULL);
 	}
-
-	G_InitVote();
 
 	// initialize entities and clients for this game
 	g_game.entities = gi.Malloc(g_max_entities->integer * sizeof(g_entity_t), MEM_TAG_GAME);
@@ -1636,11 +1600,9 @@ void G_Init(void) {
 			g_time_limit->modified = false;
 
 	// add game-specific server console commands
-	gi.AddCmd("mute", G_Mute_Sv_f, CMD_GAME, "Prevent a client from talking");
-	gi.AddCmd("unmute", G_Mute_Sv_f, CMD_GAME, "Allow a muted client to talk again");
-	gi.AddCmd("stuff", G_Stuff_Sv_f, CMD_GAME, "Force a client to execute a command");
-	gi.AddCmd("stuff_all", G_StuffAll_Sv_f, CMD_GAME, "Force all players to execute a command");
-	gi.AddCmd("g_restart", G_Restart_Sv_f, CMD_GAME, "Force the game to restart");
+	gi.AddCmd("mute", G_Mute_f, CMD_GAME, "Prevent a client from talking");
+	gi.AddCmd("unmute", G_Mute_f, CMD_GAME, "Allow a muted client to talk again");
+	gi.AddCmd("restart", G_Restart_f, CMD_GAME, "Force the game to restart");
 
 	gi.Print("Game module initialized\n");
 }
@@ -1656,8 +1618,6 @@ void G_Shutdown(void) {
 	G_MapList_Shutdown();
 	
 	G_Ai_Shutdown();
-
-	G_ShutdownVote();
 
 	gi.FreeTag(MEM_TAG_GAME_LEVEL);
 	gi.FreeTag(MEM_TAG_GAME);
@@ -1747,11 +1707,13 @@ void G_RunTimers(void) {
 			if (j <= 5) {
 
 				if (j > 0) {
-					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
+					G_MulticastSound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j]
+					}, MULTICAST_PHS_R, NULL);
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
-					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+					G_TeamCenterPrint(&g_team_list[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 
@@ -1759,20 +1721,20 @@ void G_RunTimers(void) {
 			gi.SetConfigString(CS_TIME, va("Warmup %s", G_FormatTime(g_time_limit->integer * 60 * 1000)));
 		} else if (G_MatchIsTimeout()) { // mid match, player called timeout
 			j = (g_level.timeout_time - g_level.time) / 1000;
-			gi.SetConfigString(CS_TIME, va("Timeout %s",
-			                               G_FormatTime(g_level.timeout_time - g_level.time))
-			                  );
+			gi.SetConfigString(CS_TIME, va("Timeout %s", G_FormatTime(g_level.timeout_time - g_level.time)));
 
 			if (j <= 10) {
 
 				if (j > 0) {
-					gi.Sound(g_game.entities, g_media.sounds.countdown[j], SOUND_ATTEN_NONE, 0);
+					G_MulticastSound(&(const g_play_sound_t) {
+						.index = g_media.sounds.countdown[j]
+					}, MULTICAST_PHS_R, NULL);
 				} else {
 					G_CallTimeIn();
 				}
 
 				for (int32_t i = 0; i < g_level.num_teams; i++) {
-					G_TeamCenterPrint(&g_teamlist[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
+					G_TeamCenterPrint(&g_team_list[i], "%s\n", (!j) ? "Fight!" : va("%d", j));
 				}
 			}
 		} else {

@@ -19,8 +19,15 @@ Checkbox > Control {
 	background-color: #dedede10;
 }
 
+Control {
+	-sound-on-click: ui/click;
+	-sound-on-change: ui/change;
+	-sound-on-mouse-enter: ui/clack;
+}
+
 Panel {
 	background-color: #08151aaa;
+	-sound-on-mouse-enter: ui/clack;
 }
 
 Panel.menu {
@@ -36,6 +43,10 @@ Panel.menu .tabPageView {
 
 Slider > .bar > .handle {
 	background-color: #1e4e62dd;
+}
+
+TabView > .tabSelectionView {
+	-sound-on-click: ui/click;
 }
 
 TabView > .tabSelectionView > Label.selected {

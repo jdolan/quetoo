@@ -52,7 +52,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 		atlas->image = (r_image_t *) R_AllocMedia(va("%s image", atlas->media.name), sizeof(r_image_t), R_MEDIA_IMAGE);
 		atlas->image->media.Free = R_FreeImage;
 
-		atlas->image->type = IT_ATLAS;
+		atlas->image->type = IMG_ATLAS;
 
 		R_RegisterMedia((r_media_t *) atlas->image);
 		R_RegisterMedia((r_media_t *) atlas);
@@ -99,11 +99,6 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 	node->w = surf->w;
 	node->h = surf->h;
 
-	if ((type & IT_MASK_QUALITY) && r_sprite_downsample->integer > 1) {
-		node->w = Maxf(1, surf->w / r_sprite_downsample->integer);
-		node->h = Maxf(1, surf->h / r_sprite_downsample->integer);
-	}
-
 	atlas_image->image.type = type;
 	atlas_image->image.width = surf->w;
 	atlas_image->image.height = surf->h;
@@ -147,16 +142,21 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 	R_FreeImage((r_media_t *) atlas->image);
 
-	atlas->image->width = 0;
-
-	// calculate number of mip levels; basically we just take the smallest possible
-	// mip size. larger textures get kinda shafted...
-	GLsizei levels = INT32_MAX;
-
+	atlas->image->target = GL_TEXTURE_2D;
+	atlas->image->levels = INT32_MAX;
+	
 	for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
 		const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
-		levels = MIN(levels, floorf(log2f(MAX(node->w, node->h)) + 1));
+		atlas->image->levels = Mini(atlas->image->levels, floorf(log2f(Maxi(node->w, node->h)) + 1));
 	}
+
+	atlas->image->internal_format = GL_RGBA8;
+	atlas->image->format = GL_RGBA;
+	atlas->image->pixel_type = GL_UNSIGNED_BYTE;
+	atlas->image->minify = GL_LINEAR_MIPMAP_LINEAR;
+	atlas->image->magnify = GL_LINEAR;
+
+	atlas->image->width = 0;
 
 	for (int32_t width = 256; atlas->image->width == 0; width += 512) {
 
@@ -169,20 +169,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
 			atlas->image->width = width;
 			atlas->image->height = width;
-			atlas->image->target = GL_TEXTURE_2D;
-			atlas->image->format = GL_RGBA;
 
 			R_SetupImage(atlas->image);
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, levels - 1);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, atlas->image->levels - 1);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 
-			if (r_texture_storage->integer && GL_ARB_texture_storage) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-			} else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-			}
-
-			for (GLsizei i = 1; i < levels; i++) {
+			for (GLsizei i = 1; i < atlas->image->levels; i++) {
 				SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
 
 				for (guint l = 0; l < atlas->atlas->nodes->len; l++) {
@@ -190,17 +183,19 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 					const r_atlas_image_t *atlas_image = node->data;
 
 					SDL_BlitScaled(surf, &(const SDL_Rect) {
-						.x = node->x, .y = node->y, .w = atlas_image->image.width, .h = atlas_image->image.height
+						.x = node->x, 
+						.y = node->y,
+						.w = atlas_image->image.width,
+						.h = atlas_image->image.height
 					}, mip_surf, &(SDL_Rect) {
-						.x = node->x >> i, .y = node->y >> i, .w = node->w >> i, .h = node->h >> i
+						.x = node->x >> i, 
+						.y = node->y >> i,
+						.w = node->w >> i,
+						.h = node->h >> i
 					});
 				}
 				
-				if (r_texture_storage->integer && GL_ARB_texture_storage) {
-					glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
-				} else {
-					glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA8, mip_surf->w, mip_surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
-				}
+				glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
 
 				R_GetError(NULL);
 

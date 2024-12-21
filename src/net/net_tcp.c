@@ -75,7 +75,7 @@ int32_t Net_Connect(const char *host, struct timeval *timeout) {
 /**
  * @brief Send data to the specified TCP stream.
  */
-_Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
+bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 	mem_buf_t buf;
 	byte buffer[MAX_MSG_SIZE];
 
@@ -105,7 +105,7 @@ _Bool Net_SendStream(int32_t sock, const void *data, size_t len) {
 /**
  * @brief Receive data from the specified TCP stream.
  */
-_Bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {
+bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {
 
 	buf->size = buf->read = 0;
 

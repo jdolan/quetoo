@@ -83,7 +83,7 @@ static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint 
 static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	r_mesh_model_t *out;
 
-	R_LoadModelMaterials(mod);
+	R_LoadMeshMaterials(mod);
 
 	mod->mesh = out = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 	out->num_frames = 1;
@@ -205,6 +205,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 				R_AppendObjElements(face, a->el, b->el, c->el);
 			}
 		}
+
+		g_array_free(group->f, TRUE);
 	}
 
 	// and configs
@@ -234,7 +236,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
  */
 const r_model_format_t r_obj_model_format = {
 	.extension = "obj",
-	.type = MOD_MESH,
+	.type = MODEL_MESH,
 	.Load = R_LoadObjModel,
 	.Register = R_RegisterMeshModel,
 	.Free = R_FreeMeshModel,

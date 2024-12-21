@@ -50,6 +50,11 @@ typedef struct cg_import_s {
 	const cl_state_t *state;
 
 	/**
+	 * @brief The server name we're connecting/connected to.
+	 */
+	const char *server_name;
+
+	/**
 	 * @brief The renderer context.
 	 */
 	const r_context_t *context;
@@ -188,7 +193,7 @@ typedef struct cg_import_s {
 	 * @param offset The offset.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*SeekFile)(file_t *file, int64_t offset);
+	bool (*SeekFile)(file_t *file, int64_t offset);
 
 	/**
 	 * @brief Reads from the specified file.
@@ -221,7 +226,7 @@ typedef struct cg_import_s {
 	 * @param file The file.
 	 * @return True on success, false on error.
 	 */
-	_Bool (*CloseFile)(file_t *file);
+	bool (*CloseFile)(file_t *file);
 
 	/**
 	 * @brief Loads the file resource at `path` into the buffer pointed to by `buffer`.
@@ -249,7 +254,7 @@ typedef struct cg_import_s {
 	 * @brief Check if a file exists or not.
 	 * @return True if the specified filename exists on the search path.
 	 */
-	_Bool (*FileExists)(const char *path);
+	bool (*FileExists)(const char *path);
 
 	/**
 	 * @}
@@ -349,6 +354,11 @@ typedef struct cg_import_s {
 	 * @brief Resolves the current Theme.
 	 */
 	Theme *(*Theme)(void);
+
+	/**
+	 * @return The ViewController currently at the top of the stack.
+	 */
+	ViewController *(*TopViewController)(void);
 
 	/**
 	 * @brief Pushes the specified ViewController to the user interface.
@@ -489,9 +499,6 @@ typedef struct cg_import_s {
 
 	/**
 	 * @}
-	 */
-
-	/**
 	 * @defgroup collision Collision model
 	 * @{
 	 */
@@ -512,7 +519,7 @@ typedef struct cg_import_s {
 	 * @return A pointer array of brushes originally defined within `entity`.
 	 * @remarks This function returns the brushes within an entity as it was defined
 	 * in the source .map file. Even `func_group` and other entities which have their
-	 * contents merged into `worldspawn` during the compilation step are fully supported.
+	 * brushes merged into `worldspawn` during the compilation step are fully supported.
 	 */
 	GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
 
@@ -524,13 +531,32 @@ typedef struct cg_import_s {
 	int32_t (*PointContents)(const vec3_t point);
 
 	/**
+	 * @return The contents mask of all leafs within the specified box.
+	 * @param bounds The bounding box to test.
+	 * @remarks This checks the world model and all known solid entities.
+	 */
+	int32_t (*BoxContents)(const box3_t bounds);
+
+	/**
+	 * @brief Populates the list of leafs the specified bounding box touches.
+	 * @param bounds The bounds in world space.
+	 * @param list The list of leaf numbers to populate.
+	 * @param length The maximum number of leafs to return.
+	 * @param top_node If not null, this will contain the top node for the box.
+	 * @param head_node The head node to recurse from.
+	 * @param matrix The matrix by which to transform planes.
+	 * @return The number of leafs accumulated to the list.
+	 */
+	size_t (*BoxLeafnums)(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+
+	/**
 	 * @return True if `point` resides inside `brush`, falses otherwise.
 	 * @param point The point to test.
 	 * @param brush The brush to test against.
 	 * @remarks This function is useful for testing points against non-solid brushes
 	 * from brush entities. For general purpose collision detection, use PointContents.
 	 */
-	_Bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
+	bool (*PointInsideBrush)(const vec3_t point, const cm_bsp_brush_t *brush);
 
 	/**
 	 * @brief Traces from `start` to `end`, clipping to all known solids matching the given `contents` mask.
@@ -541,17 +567,16 @@ typedef struct cg_import_s {
 	 * @param contents Solids matching this mask will clip the returned trace.
 	 * @return A trace result.
 	 */
-	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const int32_t skip, const int32_t contents);
-
-	/**
-	 * @param p The point to check.
-	 * @return The BSP leaf at the given point `p`, in the given `model`.
-	 */
-	const r_bsp_leaf_t *(*LeafForPoint)(const vec3_t p);
+	cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
 
 	/**
 	 * @}
 	 */
+
+	/**
+	 * @brief Set the keyboard input destination.
+	 */
+	void (*SetKeyDest)(cl_key_dest_t dest);
 
 	/**
 	 * @brief Register a button as being held down.
@@ -606,26 +631,16 @@ typedef struct cg_import_s {
 	 * @brief Creates an OpenGL framebuffer with color and depth attachments.
 	 * @param width The framebuffer width, in pixels.
 	 * @param height The framebuffer height, in pixels.
-	 * @param multisample True if the framebuffer should support multisampling (MSAA).
+	 * @param attachments The framebuffer attachments.
 	 * @return The framebuffer.
 	 */
-	r_framebuffer_t (*CreateFramebuffer)(r_pixel_t width, r_pixel_t height, _Bool multisample);
+	r_framebuffer_t (*CreateFramebuffer)(GLint width, GLint height, int32_t attachments);
 
 	/**
 	 * @brief Destroys the specified framebuffer, releasing any OpenGL resources.
 	 * @param framebuffer The framebuffer to destroy.
 	 */
 	void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
-
-	/**
-	 * @brief Blits the framebuffer to the specified rectangle on the screen.
-	 * @param framebuffer The framebuffer to blit.
-	 * @param x The horizontal origin of the screen rectangle in drawable pixels.
-	 * @param y The vertical origin of the screen rectangle in drawable pixels.
-	 * @param w The width of the screen rectangle in drawable pixels.
-	 * @param h The height of the screen rectangle in drawable pixels.
-	 */
-	void (*BlitFramebuffer)(const r_framebuffer_t *framebuffer, r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h);
 
 	/**
 	 * @brief Loads the image by `name` into the SDL_Surface `surface`.
@@ -708,6 +723,21 @@ typedef struct cg_import_s {
 	 */
 
 	/**
+	 * @brief Initializes the view, preparing it for a new frae.
+	 */
+	void (*InitView)(r_view_t *view);
+
+	/**
+	 * @return True if the bounding box is culled or occluded, false otherwise.
+	 */
+	bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);
+
+	/**
+	 * @brief True if the bounding sphere is culled or occluded, false otherwise.
+	 */
+	bool (*CulludeSphere)(const r_view_t *view, const vec3_t origin, float radius);
+
+	/**
 	 * @brief Adds an entity to the scene for the current frame.
 	 * @return The added entity.
 	 */
@@ -750,7 +780,7 @@ typedef struct cg_import_s {
 	 * @param cw The optional return pointer for the character width.
 	 * @param ch The optional return pointer for the character height.
 	 */
-	void (*BindFont)(const char *name, r_pixel_t *cw, r_pixel_t *ch);
+	void (*BindFont)(const char *name, GLint *cw, GLint *ch);
 
 	/**
 	 * @brief Draws a filled rectangle in orthographic projection on the screen.
@@ -761,7 +791,7 @@ typedef struct cg_import_s {
 	 * @param c The color.
 	 * @param a The alpha component.
 	 */
-	void (*Draw2DFill)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const color_t color);
+	void (*Draw2DFill)(GLint x, GLint y, GLint w, GLint h, const color_t color);
 
 	/**
 	 * @brief Draws an image in orthographic projection on the screen.
@@ -772,7 +802,7 @@ typedef struct cg_import_s {
 	 * @param image The image.
 	 * @param color The color.
 	 */
-	void (*Draw2DImage)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_image_t *image, const color_t color);
+	void (*Draw2DImage)(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color);
 
 	/**
 	 * @brief Draws the framebuffer color attachment in orthographic projection on the screen.
@@ -783,10 +813,9 @@ typedef struct cg_import_s {
 	 * @param image The image.
 	 * @param color The color.
 	 * @remarks This function uses deferred rendering, allowing framebuffers to be used as
-	 * textures in menus or on the HUD. For drawing directly and immediately to the screen,
-	 * use BlitFramebuffer.
+	 * textures in menus or on the HUD.
 	 */
-	void (*Draw2DFramebuffer)(r_pixel_t x, r_pixel_t y, r_pixel_t w, r_pixel_t h, const r_framebuffer_t *framebuffer, const color_t color);
+	void (*Draw2DFramebuffer)(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color);
 
 	/**
 	 * @brief Draws the string `s` at the given coordinates.
@@ -796,12 +825,12 @@ typedef struct cg_import_s {
 	 * @param color The color.
 	 * @return The number of visible characters drawn.
 	 */
-	size_t (*Draw2DString)(r_pixel_t x, r_pixel_t y, const char *s, const color_t color);
+	size_t (*Draw2DString)(GLint x, GLint y, const char *s, const color_t color);
 
 	/**
 	 * @return The width of the string `s` in pixels, using the currently bound font.
 	 */
-	r_pixel_t (*StringWidth)(const char *s);
+	GLint (*StringWidth)(const char *s);
 
 	/**
 	 * @brief Draw a 3D line at the given coordinates.
@@ -817,7 +846,7 @@ typedef struct cg_import_s {
 	 * @param color Color.
 	 * @param solid Whether to draw a solid or wireframe box.
 	*/
-	void (*Draw3DBox)(const box3_t bounds, const color_t color, const _Bool solid);
+	void (*Draw3DBox)(const box3_t bounds, const color_t color, const bool solid);
 
 	/**
 	 * @}
@@ -872,7 +901,7 @@ typedef struct cg_export_s {
 	 * @param cmd The message type.
 	 * @details This allows the game and client game to define their own custom message types.
 	 */
-	_Bool (*ParseMessage)(int32_t cmd);
+	bool (*ParseMessage)(int32_t cmd);
 
 	/**
 	 * @brief Called each frame to update the current movement command angles.
@@ -898,7 +927,7 @@ typedef struct cg_export_s {
 	 * @details Third person, chasecam, or other conditions may prompt the client game to disable
 	 * client side prediction.
 	 */
-	_Bool (*UsePrediction)(void);
+	bool (*UsePrediction)(void);
 
 	/**
 	 * @brief Called each frame to run all pending movement commands and update the client's
@@ -930,6 +959,7 @@ typedef struct cg_export_s {
 	 * @brief Called each frame to draw any non-view visual elements, such as the HUD.
 	 */
 	void (*UpdateScreen)(const cl_frame_t *frame);
+	void (*UpdateDiscord)(void);
 
 } cg_export_t;
 

@@ -25,7 +25,7 @@
 /**
  * @brief Returns true if ent1 and ent2 are on the same team.
  */
-_Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
+bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
 
 	if (!ent1->client || !ent2->client) {
 		return false;
@@ -46,7 +46,7 @@ _Bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
  * @brief Returns true if the inflictor can directly damage the target. Used for
  * explosions and melee attacks.
  */
-_Bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
+bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
 	vec3_t dest;
 	cm_trace_t tr;
 
@@ -118,8 +118,7 @@ vec3_t G_GetOrigin(const g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal,
-                          int32_t damage) {
+static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal, int32_t damage) {
 
 	if (damage < 1) {
 		return;
@@ -129,10 +128,11 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
 	gi.WriteByte(type);
 	gi.WritePosition(pos);
 	gi.WriteDir(normal);
-	if (type == TE_BLOOD || type == TE_SPARKS) {
-		const int8_t size = Clampf(damage, 16, 48);
-		gi.WriteByte(size);
+	
+	if (type != TE_BULLET) {
+		gi.WriteByte(Clampf(damage, 1, 255));
 	}
+	
 	gi.Multicast(pos, MULTICAST_PVS, NULL);
 }
 
@@ -142,7 +142,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * @return The amount of damage absorbed, which is not necessarily the amount
  * of armor consumed.
  */
-static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int16_t damage,
+static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int32_t damage,
                             uint32_t dflags) {
 
 	if (dflags & DMG_NO_ARMOR) {
@@ -160,8 +160,8 @@ static int16_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
 		return 0;
 	}
 
-	const int16_t quantity = ent->client->locals.inventory[armor->index];
-	int16_t saved;
+	const int32_t quantity = ent->client->locals.inventory[armor->index];
+	int32_t saved;
 
 	if (dflags & DMG_ENERGY) {
 		saved = Clampf(damage * armor_info->energy_protection, 0, quantity);
@@ -211,6 +211,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 			return;
 		}
 	}
+
+	assert(damage >= 0);
+	assert(damage <= INT16_MAX);
+	assert(knockback >= 0);
+	assert(knockback <= INT16_MAX);
 
 	inflictor = inflictor ? inflictor : g_game.entities;
 	attacker = attacker ? attacker : g_game.entities;
@@ -286,10 +291,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		// ensure the target has valid mass for knockback calculation
 		const float mass = Clampf(target->locals.mass, 1.0, 1000.0);
 
-		// rocket jump hack
-		const float scale = (target == attacker ? 1200.0 : 800.0);
+		if (target == attacker) { // self knockback (rocket jump / grenade jump / plasma climb)
+			knockback *= g_self_knockback->value;
+		}
 
-		knockback_vel = Vec3_Scale(ndir, scale * knockback / mass);
+		knockback_vel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
+
 		target->locals.velocity = Vec3_Add(target->locals.velocity, knockback_vel);
 
 		// apply angular velocity (rotate)
@@ -304,7 +311,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		}
 	}
 
-	int16_t damage_armor = 0, damage_health = 0;
+	int32_t damage_armor = 0, damage_health = 0;
 
 	// check for god mode protection
 	if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
@@ -316,18 +323,16 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 		damage_health = damage - damage_armor;
 	}
 
-	const _Bool was_dead = target->locals.dead;
+	const bool was_dead = target->locals.dead;
 
 	// do the damage
 	if (damage_health && (target->locals.health || target->locals.dead)) {
-		if (G_IsStructural(target, NULL)) { // impact things we can hurt but don't bleed
-			if (dflags & DMG_BULLET) {
-				G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
-			} else {
-				G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
-			}
-		} else if (G_IsMeat(target)) { // bleed for everything else
+		if (G_IsMeat(target)) {
 			G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
+		} else if (dflags & DMG_BULLET) {
+			G_SpawnDamage(TE_BULLET, pos, normal, damage_health);
+		} else {
+			G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
 		}
 
 		if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
@@ -338,13 +343,13 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
 		target->locals.health -= damage_health;
 
-		// for hitsound
+		// for hit sound
 		if (!was_dead && attacker->client && attacker->client != client) {
 			attacker->client->locals.damage_inflicted += damage_health + damage_armor;
 		}
 
 		// kill target if he has *excessive blood loss*
-		if (target->locals.health <= 0) {
+		if (target->locals.health <= 0 && !G_Ai_InDeveloperMode()) {
 			target->locals.dead = true;
 
 			if (target->locals.Die) {
@@ -403,10 +408,10 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
 		vec3_t dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
 		const float dist = Vec3_Length(dir);
 
-		float d = damage - 0.5 * dist;
-		const float k = knockback - 0.5 * dist;
+		float d = Maxf(damage - 0.5 * dist, 0.f);
+		const float k = Maxf(knockback - 0.5 * dist, 0.f);
 
-		if (d <= 0 && k <= 0) { // too far away to be damaged
+		if (d == 0.f && k == 0.f) { // too far away to be damaged
 			continue;
 		}
 

@@ -24,16 +24,17 @@
 
 #if defined(_WIN32)
 	#include <winsock2.h> // for AllocConsole
+	#include <io.h>
+	#define isatty _isatty
+	#define fileno _fileno
 #endif
 
 #include "sv_local.h"
 
-typedef struct {
+static struct {
 	WINDOW *window;
-	_Bool dirty;
-} sv_console_state_t;
-
-static sv_console_state_t sv_console_state;
+	bool dirty;
+} sv_console_curses;
 
 static console_t sv_console;
 
@@ -42,7 +43,7 @@ static console_t sv_console;
  */
 static void Sv_Print(const console_string_t *str) {
 
-	sv_console_state.dirty = true;
+	sv_console_curses.dirty = true;
 }
 
 /**
@@ -53,9 +54,9 @@ static void Sv_HandleEvents(void) {
 	console_input_t *in = &sv_console.input;
 
 	int32_t key;
-	while ((key = wgetch(sv_console_state.window)) != ERR) {
+	while ((key = wgetch(sv_console_curses.window)) != ERR) {
 
-		sv_console_state.dirty = true;
+		sv_console_curses.dirty = true;
 
 		switch (key) {
 
@@ -238,7 +239,7 @@ static void Sv_DrawConsole_Input(void) {
 		mvaddch(LINES - 1, col++, *s++);
 	}
 
-	wmove(sv_console_state.window, LINES - 1, (int32_t) pos + 2);
+	wmove(sv_console_curses.window, LINES - 1, (int32_t) pos + 2);
 }
 
 /**
@@ -246,9 +247,13 @@ static void Sv_DrawConsole_Input(void) {
  */
 void Sv_DrawConsole(void) {
 
+	if (!sv_console_curses.window) {
+		return;
+	}
+
 	Sv_HandleEvents();
 
-	if (sv_console_state.dirty) {
+	if (sv_console_curses.dirty) {
 
 		sv_console.width = COLS - 2;
 		sv_console.height = LINES - 2;
@@ -259,7 +264,7 @@ void Sv_DrawConsole(void) {
 
 		refresh();
 
-		sv_console_state.dirty = false;
+		sv_console_curses.dirty = false;
 	}
 }
 
@@ -271,7 +276,7 @@ static void Sv_ResizeConsole(int32_t sig) {
 
 	endwin();
 
-	sv_console_state.dirty = true;
+	sv_console_curses.dirty = true;
 
 	Sv_DrawConsole();
 }
@@ -286,6 +291,11 @@ void Sv_InitConsole(void) {
 		return;
 	}
 
+	if (!isatty(fileno(stdin))) {
+		Com_Warn("stdin is not a TTY, server console disabled\n");
+		return;
+	}
+
 #if defined(_WIN32)
 	if (AllocConsole()) {
 		freopen("CONIN$", "r", stdin);
@@ -296,15 +306,15 @@ void Sv_InitConsole(void) {
 	}
 #endif
 
-	memset(&sv_console_state, 0, sizeof(sv_console_state));
+	memset(&sv_console_curses, 0, sizeof(sv_console_curses));
 
-	sv_console_state.window = initscr();
-	sv_console_state.dirty = true;
+	sv_console_curses.window = initscr();
+	sv_console_curses.dirty = true;
 
 	cbreak();
 	noecho();
-	keypad(sv_console_state.window, TRUE);
-	nodelay(sv_console_state.window, TRUE);
+	keypad(sv_console_curses.window, TRUE);
+	nodelay(sv_console_curses.window, TRUE);
 	curs_set(1);
 
 	if (has_colors() == TRUE) {
@@ -329,14 +339,12 @@ void Sv_InitConsole(void) {
 
 	Con_AddConsole(&sv_console);
 
-	if (dedicated->value) {
-		file_t *file = Fs_OpenRead("history");
-		if (file) {
-			Con_ReadHistory(&sv_console, file);
-			Fs_Close(file);
-		} else {
-			Com_Debug(DEBUG_SERVER, "Couldn't read history");
-		}
+	file_t *file = Fs_OpenRead("history");
+	if (file) {
+		Con_ReadHistory(&sv_console, file);
+		Fs_Close(file);
+	} else {
+		Com_Debug(DEBUG_SERVER, "Couldn't read history");
 	}
 
 	Com_Print("Server console initialized\n");
@@ -348,6 +356,10 @@ void Sv_InitConsole(void) {
 void Sv_ShutdownConsole(void) {
 
 	if (!dedicated->value) {
+		return;
+	}
+
+	if (!sv_console_curses.window) {
 		return;
 	}
 

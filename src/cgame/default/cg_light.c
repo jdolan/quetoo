@@ -21,22 +21,20 @@
 
 #include "cg_local.h"
 
-#define LIGHT_INTENSITY .125f
-
 static cg_light_t cg_lights[MAX_LIGHTS];
 
 /**
  * @brief
  */
 void Cg_AddLight(const cg_light_t *l) {
-	size_t i;
 
 	if (!cg_add_lights->value) {
 		return;
 	}
 
+	size_t i;
 	for (i = 0; i < lengthof(cg_lights); i++)
-		if (cg_lights[i].radius == 0.0) {
+		if (cg_lights[i].radius == 0.f) {
 			break;
 		}
 
@@ -45,16 +43,61 @@ void Cg_AddLight(const cg_light_t *l) {
 		return;
 	}
 
-	cg_lights[i] = *l;
+	cg_light_t *out = cg_lights + i;
 
-	assert(cg_lights[i].decay >= 0.f);
-	assert(cg_lights[i].intensity >= 0.f);
-	
-	if (cg_lights[i].intensity == 0.0) {
-		cg_lights[i].intensity = LIGHT_INTENSITY;
+	*out = *l;
+
+	assert(out->decay >= 0.f);
+	assert(out->intensity >= 0.f);
+
+	if (out->type == LIGHT_INVALID) {
+		out->type = LIGHT_DYNAMIC;
 	}
 
-	cg_lights[i].time = cgi.client->unclamped_time;
+	if (out->intensity == 0.f) {
+		out->intensity = 1.f;
+	}
+
+	out->time = cgi.client->unclamped_time;
+}
+
+/**
+ * @brief
+ */
+static void Cg_AddBspLights(void) {
+
+	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+
+		switch (l->type) {
+			case LIGHT_INVALID:
+			case LIGHT_AMBIENT:
+			case LIGHT_SUN:
+			case LIGHT_PATCH:
+				continue;
+			default:
+				break;
+		}
+
+		if (l->shadow == 0.f || Box3_Radius(l->bounds) < 64.f) {
+			continue;
+		}
+
+		cgi.AddLight(cgi.view, &(const r_light_t) {
+			.type = l->type,
+			.atten = l->atten,
+			.origin = l->origin,
+			.color = l->color,
+			.normal = l->normal,
+			.radius = l->radius,
+			.size = l->size,
+			.intensity = l->intensity,
+			.shadow = l->shadow,
+			.cone = l->cone,
+			.falloff = l->falloff,
+			.bounds = l->bounds,
+		});
+	}
 }
 
 /**
@@ -62,8 +105,12 @@ void Cg_AddLight(const cg_light_t *l) {
  */
 void Cg_AddLights(void) {
 
+	if (!cg_add_lights->value) {
+		return;
+	}
+
 	cg_light_t *l = cg_lights;
-	for (int32_t i = 0; i < MAX_LIGHTS; i++, l++) {
+	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
 		const uint32_t expiration = l->time + l->decay;
 		if (expiration < cgi.client->unclamped_time) {
@@ -72,11 +119,20 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
+			.type = l->type,
+			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 			.origin = l->origin,
-			.radius = l->radius,
 			.color = l->color,
-			.intensity = l->intensity
+			.normal = Vec3_Zero(),
+			.radius = l->radius,
+			.size = 0.f,
+			.intensity = l->intensity,
+			.shadow = MATERIAL_LIGHT_SHADOW,
+			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
+			.source = l->source,
 		};
+
+		cgi.BoxLeafnums(out.bounds, NULL, 0, &out.node, 0);
 
 		if (l->decay) {
 			assert(out.intensity >= 0.f);
@@ -85,6 +141,8 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
+
+	Cg_AddBspLights();
 }
 
 /**

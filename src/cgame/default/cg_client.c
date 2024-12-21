@@ -22,9 +22,13 @@
 #include "cg_local.h"
 #include "game/default/bg_pmove.h"
 
-#define DEFAULT_CLIENT_MODEL "qforcer"
-#define DEFAULT_CLIENT_SKIN "default"
-#define DEFAULT_CLIENT_INFO "newbie\\" DEFAULT_CLIENT_MODEL "/" DEFAULT_CLIENT_SKIN "\\-1\\default\\default\\default"
+#define MAX_CLIENT_INFO_ENTRIES 7
+
+#define DEFAULT_MODEL "qforcer"
+#define DEFAULT_SKIN "default"
+
+//                         team name    skin             shirt    pants    helmet   hue
+#define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
 /**
  * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
@@ -64,7 +68,7 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
  * within the model. If a skin can not be resolved for any face, the entire
  * skins array is invalidated so that the default will be loaded.
  */
-static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
+static bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
 	char path[MAX_QPATH], line[MAX_STRING_CHARS];
 	char *buffer;
 	int32_t i, j;
@@ -118,7 +122,7 @@ static _Bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, cons
 /**
  * @brief Ensures that models and skins were resolved for the specified client info.
  */
-static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
+static bool Cg_ValidateSkin(cg_client_info_t *ci) {
 
 	if (!ci->head || !ci->torso || !ci->legs) {
 		return false;
@@ -134,7 +138,7 @@ static _Bool Cg_ValidateSkin(cl_client_info_t *ci) {
 /**
  * @brief Resolve and load the specified model/skin for the player.
  */
-static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const char *skin) {
+static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const char *skin) {
 
 	g_strlcpy(ci->model, model, sizeof(ci->model));
 	g_strlcpy(ci->skin, skin, sizeof(ci->skin));
@@ -154,9 +158,9 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
 				Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
 
 				g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
-				ci->icon = cgi.LoadImage(path, IT_PIC);
+				ci->icon = cgi.LoadImage(path, IMG_PIC);
 
-				if (ci->icon->type == IT_PIC) {
+				if (ci->icon) {
 					return true;
 				}
 			}
@@ -173,7 +177,7 @@ static _Bool Cg_LoadClientModel(cl_client_info_t *ci, const char *model, const c
  * @brief Resolves the player name, model and skins for the specified user info string.
  * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
  */
-void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
+void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 	const char *t;
 	char *v = NULL;
 	int32_t i;
@@ -205,37 +209,44 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
 		Cg_LoadClient(ci, DEFAULT_CLIENT_INFO);
 	} else {
 
-		// copy in the name, first token
-		g_strlcpy(ci->name, info[0], sizeof(ci->name));
+		// resolve the team
+		const g_team_id_t team_id = atoi(info[0]);
+		if (team_id != TEAM_NONE) {
+			ci->team = cg_state.teams + team_id;
+		} else {
+			ci->team = NULL;
+		}
+
+		// copy in the name
+		g_strlcpy(ci->name, info[1], sizeof(ci->name));
 
 		// check for valid skin
-		if ((v = strchr(info[1], '/'))) { // it's well-formed
+		if ((v = strchr(info[2], '/'))) { // it's well-formed
 			*v = '\0';
 
 			// load the models
-			if (!Cg_LoadClientModel(ci, info[1], v + 1)) {
-				if (!Cg_LoadClientModel(ci, info[1], DEFAULT_CLIENT_SKIN)) {
-					if (!Cg_LoadClientModel(ci, DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN)) {
-						cgi.Error("Failed to load default client skin %s/%s\n",
-							DEFAULT_CLIENT_MODEL, DEFAULT_CLIENT_SKIN);
+			if (!Cg_LoadClientModel(ci, info[2], v + 1)) {
+				if (!Cg_LoadClientModel(ci, info[2], DEFAULT_SKIN)) {
+					if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
+						cgi.Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
 					}
 				}
 			}
 		}
 
-		if (!Color_Parse(info[2], &ci->shirt)) {
+		if (!Color_Parse(info[3], &ci->shirt)) {
 			ci->shirt.a = 0;
 		}
 
-		if (!Color_Parse(info[3], &ci->pants)) {
+		if (!Color_Parse(info[4], &ci->pants)) {
 			ci->pants.a = 0;
 		}
 
-		if (!Color_Parse(info[4], &ci->helmet)) {
+		if (!Color_Parse(info[5], &ci->helmet)) {
 			ci->helmet.a = 0;
 		}
 
-		const int32_t hue = atoi(info[5]);
+		const int32_t hue = atoi(info[6]);
 		if (hue >= 0) {
 			ci->hue = hue;
 		} else {
@@ -268,10 +279,10 @@ void Cg_LoadClient(cl_client_info_t *ci, const char *s) {
  */
 void Cg_LoadClients(void) {
 
-	memset(cgi.client->client_info, 0, sizeof(cgi.client->client_info));
+	memset(cg_state.clients, 0, sizeof(cg_state.clients));
 
 	for (int32_t i = 0; i < MAX_CLIENTS; i++) {
-		cl_client_info_t *ci = &cgi.client->client_info[i];
+		cg_client_info_t *ci = &cg_state.clients[i];
 		const char *s = cgi.ConfigString(CS_CLIENTS + i);
 
 		if (!*s) {
@@ -387,7 +398,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  */
 static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
-	const cl_client_info_t *ci = &cgi.client->client_info[ent->current.client];
+	const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
 
 	Cg_AnimateClientEntity_(ci->torso, &ent->animation1);
 
@@ -427,26 +438,6 @@ static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity
  * @brief The speed that the legs will catch up to the current leg yaw.
  */
 #define CLIENT_LEGS_YAW_LERP_SPEED		240.f
-
-/**
- * @brief
- */
-static inline float AngleMod(float a) {
-	a = fmodf(a, 360.f);// (360.0 / 65536) * ((int32_t) (a * (65536 / 360.0)) & 65535);
-
-	if (a < 0) {
-		return a + (((int32_t)(a / 360.f) + 1) * 360.f);
-	}
-
-	return a;
-}
-
-/**
- * @brief
- */
-static inline float SmallestAngleBetween(const float x, const float y) {
-	return min(360.f - fabsf(x - y), fabsf(x - y));
-}
 
 /**
  * @brief
@@ -491,11 +482,14 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	const entity_state_t *s = &ent->current;
 
-	const cl_client_info_t *ci = &cgi.client->client_info[s->client];
+	const cg_client_info_t *ci = &cg_state.clients[s->client];
 	if (!ci->head || !ci->torso || !ci->legs) {
 		Cg_Debug("Invalid client info: %d\n", s->client);
 		return;
 	}
+
+	// inform the renderer this is a player model
+	e->effects |= EF_CLIENT;
 
 	// deal with our own player model
 	if (Cg_IsSelf(ent)) {
@@ -517,17 +511,19 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 		Cg_BreathTrail(ent);
 	}
 
+	e->color = Vec4_One();
+
 	// set tints
 	if (ci->shirt.a) {
-		e->tints[0] = Color_Vec4(ci->shirt);
+		e->tints[0] = ci->shirt.vec4;
 	}
 
 	if (ci->pants.a) {
-		e->tints[1] = Color_Vec4(ci->pants);
+		e->tints[1] = ci->pants.vec4;
 	}
 
 	if (ci->helmet.a) {
-		e->tints[2] = Color_Vec4(ci->helmet);
+		e->tints[2] = ci->helmet.vec4;
 	}
 
 	r_entity_t head, torso, legs;
@@ -597,21 +593,22 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	legs.model = ci->legs;
 	legs.angles.y = ent->legs_current_yaw;
 	legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
+	legs.bounds = legs.model->bounds;
 	memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
 
 	torso.model = ci->torso;
 	torso.origin = Vec3_Zero();
 	torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
+	torso.bounds = torso.model->bounds;
 	memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
 
 	head.model = ci->head;
 	head.origin = Vec3_Zero();
 	head.angles.y = 0.0;
+	head.bounds = head.model->bounds;
 	memcpy(head.skins, ci->head_skins, sizeof(head.skins));
 
 	Cg_AnimateClientEntity(ent, &torso, &legs);
-
-	Cg_AddEntityShadow(&legs);
 
 	r_entity_t *r_legs = cgi.AddEntity(cgi.view, &legs);
 
@@ -631,8 +628,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 	r_entity_t *r_head = cgi.AddEntity(cgi.view, &head);
 	assert(r_head);
 
+	r_entity_t *r_weapon = NULL;
 	if (s->model2) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_weapon = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_weapon",
 			.scale = e->scale,
@@ -641,10 +639,13 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_weapon);
 	}
 
+	r_entity_t *r_flag = NULL;
 	if (s->model3) {
-		cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		r_flag = cgi.AddEntity(cgi.view, &(const r_entity_t) {
 			.parent = r_torso,
 			.tag = "tag_head",
 			.scale = e->scale,
@@ -653,6 +654,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 			.color = e->color,
 			.shell = e->shell,
 		});
+
+		assert(r_flag);
 	}
 
 	if (s->model4) {

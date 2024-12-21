@@ -5,18 +5,18 @@
 
 # Quetoo BETA
 
-![Quetoo BETA](http://quetoo.org/files/15385369_1245001622212024_7988137002503923923_o.jpg)
+![Quetoo BETA!](https://user-images.githubusercontent.com/643118/147579456-f045a7a3-38ed-4a51-88e3-d9ca6e4f132c.jpg)
 
 ## Overview
 
-[_Quetoo_](http://quetoo.org) is a Free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers.
+[_Quetoo_](http://quetoo.org) ("Q2") is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
 
 ## Features
 
  * Deathmatch, Capture, Instagib, Duel and Rocket Arena gameplay modes
  * Teams Play and Match Mode support
  * High quality remakes of id Software's legendary _Quake II_ deathmatch levels, as well as originals
- * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a> and <a href="http://anthonywebbmusic.com/">Anthony Webb</a>.
+ * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>, <a href="http://anthonywebbmusic.com/">Anthony Webb</a> and Jacob Zammit.
  * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
 
 ## Downloads
@@ -29,7 +29,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, Apple OS X, MinGW Cross Compile, and Microsoft Visual Studio. See [Installation and Maintenance](http://quetoo.org/books/documentation/installation-and-maintenance).
+Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
 
 The following dependencies are required:
 

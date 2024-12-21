@@ -19,20 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
  
-uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_next_diffusemap;
-
 in vertex_data {
 	vec3 position;
 	vec2 diffusemap;
 	vec2 next_diffusemap;
 	vec4 color;
+	vec4 fog;
+
 	float lerp;
 	float softness;
-	vec4 fog;
+	float bloom;
 } vertex;
 
-out vec4 out_color;
+layout (location = 0) out vec4 out_color;
+layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
@@ -46,7 +46,13 @@ void main(void) {
 
 	out_color = texture_color * vertex.color;
 
-	out_color.rgb = color_filter(out_color.rgb);
-	
-	out_color *= soften(vertex.softness);
+	vec4 fog = vertex.fog * out_color.a;
+	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
+
+	out_bloom.rgb = max(out_color.rgb * vertex.bloom * bloom - 1.0, 0.0);
+	out_bloom.a = out_color.a;
+
+	float softness = soften(vertex.softness);
+	out_color *= softness;
+	out_bloom *= softness;
 }

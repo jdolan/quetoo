@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 const box3_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
-							   .maxs = { {  16.0,  16.0,  32.0 } } };
+							 .maxs = { {  16.0,  16.0,  32.0 } } };
 
 #define ITEM_SCALE 1.0
 
@@ -129,7 +129,7 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 /**
  * @brief
  */
-static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->locals.health < other->locals.max_health) {
 		other->locals.health = other->locals.max_health;
@@ -145,7 +145,7 @@ static _Bool G_PickupAdrenaline(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 
 	if (other->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
 		return false; // already have it
@@ -156,14 +156,14 @@ static _Bool G_PickupQuadDamage(g_entity_t *ent, g_entity_t *other) {
 	uint32_t delta = 3000;
 
 	if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-		delta = Maxf(0, Step((ent->locals.next_think + 1000) - g_level.time, 1000));
+		delta = Maxf(0, (ent->locals.next_think - g_level.time) - 3000.f);
 
 		other->client->locals.quad_damage_time = ent->locals.next_think;
 		other->client->locals.quad_countdown_time = ent->locals.next_think - delta;
 	} else {
-		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_quad_damage_time->value);
+		other->client->locals.quad_damage_time = g_level.time + SECONDS_TO_MILLIS(g_balance_quad_damage_time->value);
 		other->client->locals.quad_countdown_time = other->client->locals.quad_damage_time - delta;
-		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_quad_damage_respawn_time->value));
+		G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balance_quad_damage_respawn_time->value));
 	}
 
 	other->s.effects |= EF_QUAD;
@@ -195,7 +195,7 @@ g_entity_t *G_TossQuadDamage(g_entity_t *ent) {
 /**
  * @brief
  */
-_Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
+bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max = item->max;
 
@@ -219,7 +219,7 @@ _Bool G_AddAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 /**
  * @brief
  */
-_Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
+bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 	uint16_t index;
 	int16_t max = item->max;
 
@@ -243,7 +243,7 @@ _Bool G_SetAmmo(g_entity_t *ent, const g_item_t *item, int16_t count) {
 /**
  * @brief
  */
-static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 	int32_t count;
 
 	if (ent->locals.count) {
@@ -266,9 +266,9 @@ static _Bool G_PickupAmmo(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief When picking up grenades, give the hand grenades weapon in addition to the ammo.
  */
-static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
 
-	const _Bool pickup = G_PickupAmmo(ent, other);
+	const bool pickup = G_PickupAmmo(ent, other);
 	if (pickup) {
 		if (!other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]) {
 			other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]++;
@@ -283,11 +283,18 @@ static _Bool G_PickupGrenades(g_entity_t *ent, g_entity_t *other) {
 }
 
 /**
+ * @brief When "using" grenades, route it to the Hand Grenades
+ */
+static void G_UseGrenades(g_entity_t *ent, const g_item_t *item) {
+	G_UseWeapon(ent, G_FindItem("Hand Grenades"));
+}
+
+/**
  * @brief When picking up the grenade launcher, give the hand grenades weapon as well.
  */
-static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
 
-	const _Bool pickup = G_PickupWeapon(ent, other);
+	const bool pickup = G_PickupWeapon(ent, other);
 	if (pickup) {
 		if (!other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]) {
 			other->client->locals.inventory[g_media.items.weapons[WEAPON_HAND_GRENADE]->index]++;
@@ -300,13 +307,13 @@ static _Bool G_PickupGrenadeLauncher(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief
  */
-static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 	int32_t h, max;
 
 	const uint16_t tag = ent->locals.item->tag;
 
-	const _Bool always_add = tag == HEALTH_SMALL;
-	const _Bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA);
+	const bool always_add = tag == HEALTH_SMALL;
+	const bool always_pickup = (tag == HEALTH_SMALL || tag == HEALTH_MEGA);
 
 	if (other->locals.health < other->locals.max_health || always_add || always_pickup) {
 
@@ -315,7 +322,9 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		if (always_pickup) { // resolve max
 			if (h > max && other->client) {
-				other->client->locals.boost_time = g_level.time + 750;
+				if (tag == HEALTH_MEGA) {
+					other->client->locals.boost_time = g_level.time + 1000;
+				}
 				max = other->client->locals.max_boost_health;
 			}
 		} else if (always_add) {
@@ -327,12 +336,19 @@ static _Bool G_PickupHealth(g_entity_t *ent, g_entity_t *other) {
 
 		other->locals.health = h;
 
-		if (tag == HEALTH_MEGA) { // respawn the item
-			G_SetItemRespawn(ent, 60000);
-		} else if (tag == HEALTH_LARGE) {
-			G_SetItemRespawn(ent, 30000);
-		} else {
-			G_SetItemRespawn(ent, 20000);
+		switch (tag) {
+			case HEALTH_SMALL:
+				G_SetItemRespawn(ent, g_balance_health_small_respawn->integer * 1000);
+				break;
+			case HEALTH_MEDIUM:
+				G_SetItemRespawn(ent, g_balance_health_medium_respawn->integer * 1000);
+				break;
+			case HEALTH_LARGE:
+				G_SetItemRespawn(ent, g_balance_health_large_respawn->integer * 1000);
+				break;
+			case HEALTH_MEGA:
+				G_SetItemRespawn(ent, g_balance_health_mega_respawn->integer * 1000);
+				break;
 		}
 
 		return true;
@@ -367,7 +383,7 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 /**
  * @brief
  */
-static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 
 	const g_item_t *new_armor = ent->locals.item;
 	const g_item_t *current_armor = G_ClientArmor(other);
@@ -375,7 +391,7 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	const g_armor_info_t *new_info = G_ArmorInfo(new_armor);
 	const g_armor_info_t *current_info = G_ArmorInfo(current_armor);
 
-	_Bool taken = false;
+	bool taken = false;
 
 	if (new_armor->tag == ARMOR_SHARD) { // always take it, ignoring cap
 		if (current_armor) {
@@ -434,16 +450,16 @@ static _Bool G_PickupArmor(g_entity_t *ent, g_entity_t *other) {
 	if (taken && !(ent->locals.spawn_flags & SF_ITEM_DROPPED)) {
 		switch (new_armor->tag) {
 			case ARMOR_SHARD:
-				G_SetItemRespawn(ent, 15000);
+				G_SetItemRespawn(ent, g_balance_armor_shard_respawn->integer * 1000);
 				break;
 			case ARMOR_JACKET:
-				G_SetItemRespawn(ent, 20000);
+				G_SetItemRespawn(ent, g_balance_armor_jacket_respawn->integer * 1000);
 				break;
 			case ARMOR_COMBAT:
-				G_SetItemRespawn(ent, 30000);
+				G_SetItemRespawn(ent, g_balance_armor_combat_respawn->integer * 1000);
 				break;
 			case ARMOR_BODY:
-				G_SetItemRespawn(ent, 40000);
+				G_SetItemRespawn(ent, g_balance_armor_body_respawn->integer * 1000);
 				break;
 			default:
 				G_Debug("Invalid armor tag: %d\n", new_armor->tag);
@@ -475,7 +491,9 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
 	gi.LinkEntity(f);
 
-	gi.Sound(ent, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = gi.SoundIndex("ctf/return")
+	}, MULTICAST_PHS_R, NULL);
 
 	gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
@@ -486,7 +504,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
  * @brief Return own flag, or capture on it if enemy's flag is in inventory.
  * Take the enemy's flag.
  */
-static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	g_team_t *t;
 	g_entity_t *f;
 	int32_t index;
@@ -516,7 +534,9 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 			f->s.event = EV_ITEM_RESPAWN;
 
-			gi.Sound(other, gi.SoundIndex("ctf/return"), SOUND_ATTEN_NONE, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = gi.SoundIndex("ctf/return")
+			}, MULTICAST_PHS, NULL);
 
 			gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n",
 			                  other->client->locals.persistent.net_name, t->name, t->id + 1);
@@ -525,7 +545,7 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 		}
 
 		if (ofi) {
-			const g_team_t *ot = &g_teamlist[ofi->tag];
+			const g_team_t *ot = &g_team_list[ofi->tag];
 			g_entity_t *of = G_FlagForTeam(ot);
 
 			index = of->locals.item->index;
@@ -542,7 +562,9 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 
 				of->s.event = EV_ITEM_RESPAWN;
 
-				gi.Sound(other, gi.SoundIndex("ctf/capture"), SOUND_ATTEN_NONE, 0);
+				G_MulticastSound(&(const g_play_sound_t) {
+					.index = gi.SoundIndex("ctf/capture")
+				}, MULTICAST_PHS_R, NULL);
 
 				gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n",
 								  other->client->locals.persistent.net_name, ot->name, ot->id + 1);
@@ -574,7 +596,9 @@ static _Bool G_PickupFlag(g_entity_t *ent, g_entity_t *other) {
 	// link the flag model to the player
 	other->s.model3 = f->locals.item->model_index;
 
-	gi.Sound(other, gi.SoundIndex("ctf/steal"), SOUND_ATTEN_NONE, 0);
+	G_MulticastSound(&(const g_play_sound_t) {
+		.index = gi.SoundIndex("ctf/steal"),
+	}, MULTICAST_PHS_R, NULL);
 
 	gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n",
 	                  other->client->locals.persistent.net_name, t->name, t->id + 1);
@@ -593,7 +617,7 @@ g_entity_t *G_TossFlag(g_entity_t *ent) {
 		return NULL;
 	}
 
-	const g_team_t *ot = &g_teamlist[ofi->tag];
+	const g_team_t *ot = &g_team_list[ofi->tag];
 	const int32_t index = ofi->index;
 
 	if (!ent->client->locals.inventory[index]) {
@@ -656,7 +680,7 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 static void G_DropItem_Think(g_entity_t *ent) {
 
 	// continue to think as we drop to the floor
-	if (ent->locals.ground_entity || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
+	if (ent->locals.ground.ent || (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID)) {
 		G_DropItem_SetExpiration(ent);
 	} else {
 		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
@@ -666,9 +690,11 @@ static void G_DropItem_Think(g_entity_t *ent) {
 /**
  * @brief
  */
-void G_TouchItem(g_entity_t *ent, g_entity_t *other,
-                 const cm_bsp_plane_t *plane,
-                 const cm_bsp_texinfo_t *texinfo) {
+void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
+
+	if (G_Ai_InDeveloperMode()) {
+		return;
+	}
 
 	if (other == ent->owner) {
 		if (ent->locals.touch_time > g_level.time) {
@@ -697,7 +723,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 		G_DropItem_SetExpiration(ent);
 	}
 
-	const _Bool pickup = ent->locals.item->Pickup(ent, other);
+	const bool pickup = ent->locals.item->Pickup(ent, other);
 	if (pickup) {
 		// show icon and name on status bar
 		uint16_t icon = ent->locals.item->icon_index;
@@ -714,8 +740,12 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other,
 		}
 		other->client->locals.pickup_msg_time = g_level.time + 3000;
 
-		if (ent->locals.item->pickup_sound) { // play pickup sound
-			gi.Sound(other, ent->locals.item->pickup_sound_index, SOUND_ATTEN_LINEAR, 0);
+		if (ent->locals.item->pickup_sound) {
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = ent->locals.item->pickup_sound_index,
+				.origin = &other->s.origin,
+				.atten = SOUND_ATTEN_LINEAR
+			}, MULTICAST_PHS, NULL);
 		}
 
 		other->s.event = EV_ITEM_PICKUP;
@@ -837,7 +867,7 @@ static g_entity_t *G_TechEntity(const g_tech_t tech) {
  */
 static float G_TechRangeFromSpot(const g_entity_t *spot) {
 	float best_dist = FLT_MAX;
-	_Bool any = false;
+	bool any = false;
 
 	for (g_tech_t i = TECH_HASTE; i < TECH_TOTAL; i++) {
 		vec3_t v;
@@ -889,7 +919,7 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
 
 	if (g_level.teams || g_level.ctf) {
 		for (int32_t i = 0; i < g_level.num_teams; i++) {
-			G_SelectFarthestTechSpawnPoint(&g_teamlist[i].spawn_points, &point, &point_dist);
+			G_SelectFarthestTechSpawnPoint(&g_team_list[i].spawn_points, &point, &point_dist);
 		}
 	} else {
 		G_SelectFarthestTechSpawnPoint(&g_level.spawn_points, &point, &point_dist);
@@ -915,14 +945,14 @@ void G_ResetDroppedTech(g_entity_t *ent) {
 /**
  * @brief Check if a player has the specified tech.
  */
-_Bool G_HasTech(const g_entity_t *player, const g_tech_t tech) {
+bool G_HasTech(const g_entity_t *player, const g_tech_t tech) {
 	return !!player->client->locals.inventory[g_media.items.techs[tech]->index];
 }
 
 /**
  * @brief Pickup function for techs. Can only hold one tech at a time.
  */
-static _Bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
+static bool G_PickupTech(g_entity_t *ent, g_entity_t *other) {
 
 	for (g_tech_t tech = TECH_HASTE; tech < TECH_TOTAL; tech++) {
 
@@ -1002,7 +1032,7 @@ void G_ResetItem(g_entity_t *ent) {
 		ent->locals.Touch = NULL;
 	}
 
-	const _Bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
+	const bool inhibited = (g_level.gameplay == GAME_ARENA || g_level.gameplay == GAME_INSTAGIB)
 	                        && ent->locals.item->type != ITEM_FLAG;
 
 	if (inhibited || (ent->locals.flags & FL_TEAM_SLAVE)) {
@@ -1026,7 +1056,7 @@ void G_ResetItem(g_entity_t *ent) {
 static void G_ItemDropToFloor(g_entity_t *ent) {
 	cm_trace_t tr;
 	vec3_t dest;
-	_Bool drop_node = false;
+	bool drop_node = false;
 
 	ent->locals.velocity = Vec3_Zero();
 	dest = ent->s.origin;
@@ -1793,7 +1823,7 @@ static g_item_t g_items[] = {
 	{
 		.class_name = "ammo_grenades",
 		.Pickup = G_PickupGrenades,
-		.Use = NULL,
+		.Use = G_UseGrenades,
 		.Drop = G_DropItem,
 		.Think = NULL,
 		.pickup_sound = "ammo/common/pickup.wav",
@@ -2138,7 +2168,7 @@ static g_item_t g_items[] = {
 		.effects = EF_ROTATE | EF_BOB,
 		.icon = "pics/i_mega_health",
 		.name = "Mega Health",
-		.quantity = 75,
+		.quantity = 100,
 		.ammo = NULL,
 		.type = ITEM_HEALTH,
 		.tag = HEALTH_MEGA,
@@ -2257,7 +2287,7 @@ static g_item_t g_items[] = {
 		.quantity = 0,
 		.ammo = NULL,
 		.type = ITEM_FLAG,
-		.tag = TEAM_WHITE,
+		.tag = TEAM_GREEN,
 		.priority = 0.75,
 		.precaches = "ctf/capture.wav ctf/steal.wav ctf/return.wav"
 	},
@@ -2400,7 +2430,6 @@ const size_t g_num_items = lengthof(g_items);
  * @brief Fetch the item list.
  */
 const g_item_t *G_ItemList(void) {
-
 	return g_items;
 }
 

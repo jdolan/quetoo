@@ -142,6 +142,7 @@ void Cl_InitCgame(void) {
 
 	import.client = &cl;
 	import.state = &cls.state;
+	import.server_name = cls.server_name;
 
 	import.context = &r_context;
 
@@ -192,6 +193,7 @@ void Cl_InitCgame(void) {
 	import.Cbuf = Cbuf_AddText;
 
 	import.Theme = Ui_Theme;
+	import.TopViewController = Ui_TopViewController;
 	import.PushViewController = Ui_PushViewController;
 	import.PopToViewController = Ui_PopToViewController;
 	import.PopViewController = Ui_PopViewController;
@@ -224,11 +226,12 @@ void Cl_InitCgame(void) {
 	import.EntityValue = Cm_EntityValue;
 	import.EntityBrushes = Cm_EntityBrushes;
 	import.PointContents = Cl_PointContents;
+	import.BoxContents = Cl_BoxContents;
+	import.BoxLeafnums = Cm_BoxLeafnums;
 	import.PointInsideBrush = Cm_PointInsideBrush;
 	import.Trace = Cl_Trace;
 
-	import.LeafForPoint = R_LeafForPoint;
-
+	import.SetKeyDest = Cl_SetKeyDest;
 	import.KeyDown = Cl_KeyDown;
 	import.KeyUp = Cl_KeyUp;
 	import.KeyState = Cl_KeyState;
@@ -242,7 +245,6 @@ void Cl_InitCgame(void) {
 
 	import.CreateFramebuffer = R_CreateFramebuffer;
 	import.DestroyFramebuffer = R_DestroyFramebuffer;
-	import.BlitFramebuffer = R_BlitFramebuffer;
 
 	import.LoadSurface = Img_LoadSurface;
 	import.LoadImage = R_LoadImage;
@@ -255,11 +257,15 @@ void Cl_InitCgame(void) {
 	import.LoadModel = R_LoadModel;
 	import.WorldModel = R_WorldModel;
 
+	import.InitView = R_InitView;
+	import.CulludeBox = R_CulludeBox;
+	import.CulludeSphere = R_CulludeSphere;
 	import.AddEntity = R_AddEntity;
 	import.AddLight = R_AddLight;
 	import.AddSprite = R_AddSprite;
 	import.AddBeam = R_AddBeam;
 	import.AddStain = R_AddStain;
+
 	import.DrawPlayerModelView = R_DrawPlayerModelView;
 
 	import.BindFont = R_BindFont;

@@ -45,13 +45,16 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("name", &self->name),
 			MakeOutlet("diffusemap", &self->diffusemap),
 			MakeOutlet("normalmap", &self->normalmap),
-			MakeOutlet("heightmap", &self->heightmap),
-			MakeOutlet("glossmap", &self->glossmap),
 			MakeOutlet("specularmap", &self->specularmap),
 			MakeOutlet("roughness", &self->roughness),
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("parallax", &self->parallax),
+			MakeOutlet("bloom", &self->bloom),
+			MakeOutlet("alpha_test", &self->alphaTest),
+		    MakeOutlet("light_radius", &self->lightRadius),
+		    MakeOutlet("light_intensity", &self->lightIntensity),
+			MakeOutlet("light_cone", &self->lightCone),
 			MakeOutlet("save", &self->save)
 		);
 
@@ -76,26 +79,41 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->name, setDefaultText, self->material->cm->basename);
 		$(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
 		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
-		$(self->heightmap, setDefaultText, self->material->cm->heightmap.name);
-		$(self->glossmap, setDefaultText, self->material->cm->glossmap.name);
 		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
 
 		$(self->roughness, setValue, (double) self->material->cm->roughness);
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
 		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->parallax, setValue, (double) self->material->cm->parallax);
+		$(self->bloom, setValue, (double) self->material->cm->bloom);
+
+		if (material->cm->surface & SURF_ALPHA_TEST) {
+			$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
+			self->alphaTest->control.state &= ~ControlStateDisabled;
+		} else {
+			$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
+			self->alphaTest->control.state |= ControlStateDisabled;
+		}
+
+		$(self->lightRadius, setValue, (double) self->material->cm->light.radius);
+		$(self->lightIntensity, setValue, (double) self->material->cm->light.intensity);
+		$(self->lightCone, setValue, (double) self->material->cm->light.cone);
+
 	} else {
 		$(self->name, setDefaultText, NULL);
 		$(self->diffusemap, setDefaultText, NULL);
 		$(self->normalmap, setDefaultText, NULL);
-		$(self->heightmap, setDefaultText, NULL);
-		$(self->glossmap, setDefaultText, NULL);
 		$(self->specularmap, setDefaultText, NULL);
 
-		$(self->roughness, setValue, DEFAULT_ROUGHNESS);
-		$(self->hardness, setValue, DEFAULT_HARDNESS);
-		$(self->specularity, setValue, DEFAULT_SPECULARITY);
-		$(self->parallax, setValue, DEFAULT_PARALLAX);
+		$(self->roughness, setValue, MATERIAL_ROUGHNESS);
+		$(self->parallax, setValue, MATERIAL_PARALLAX);
+		$(self->hardness, setValue, MATERIAL_HARDNESS);
+		$(self->specularity, setValue, MATERIAL_SPECULARITY);
+		$(self->bloom, setValue, MATERIAL_BLOOM);
+		$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
+		$(self->lightRadius, setValue, MATERIAL_LIGHT_RADIUS);
+		$(self->lightIntensity, setValue, MATERIAL_LIGHT_INTENSITY);
+		$(self->lightIntensity, setValue, MATERIAL_LIGHT_CONE);
 	}
 }
 

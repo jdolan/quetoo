@@ -141,7 +141,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 		const float lerp = delta / (float) 200;
 		speed = old_speed + lerp * (new_speed - old_speed);
 	} else {
-		const _Bool ducked = ps->pm_state.flags & PMF_DUCKED;
+		const bool ducked = ps->pm_state.flags & PMF_DUCKED;
 		const float max_speed = ducked ? PM_SPEED_DUCKED : PM_SPEED_AIR;
 
 		vec3_t velocity = ps->pm_state.velocity;
@@ -164,7 +164,8 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
  * are on the ground, determine the bob frequency and amplitude.
  */
 static void Cg_UpdateBob(const player_state_t *ps) {
-	static uint32_t bob, time;
+	static uint32_t time;
+	static float bob;
 
 	if (!cg_bob->value) {
 		return;
@@ -289,21 +290,44 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
+ * @brief
+ */
+static void Cg_UpdateExposure(void) {
+	static float exposure = 1.f;
+
+	const r_bsp_lightgrid_t *lg = cgi.WorldModel()->bsp->lightgrid;
+	const vec3_t org = cgi.view->origin;
+
+	if (Box3_ContainsPoint(lg->bounds, org)) {
+		const vec3_t pos = Vec3_Subtract(org, lg->bounds.mins);
+		const vec3_t xyz = Vec3_Roundf(Vec3_Divide(pos, lg->luxel_size));
+
+		const int32_t luxel = lg->size.x * lg->size.y * xyz.z + lg->size.x * xyz.y + xyz.x;
+
+		exposure += (lg->exposure[luxel] - exposure) * cgi.client->frame_msec / 800.0;
+	}
+
+	cgi.view->exposure = Clampf(exposure, .333f, 16.f);
+}
+
+/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
 
 	cgi.view->type = VIEW_MAIN;
+	cgi.view->flags = VIEW_FLAG_NONE;
 
 	cgi.view->framebuffer = &cg_framebuffer;
 
-	cgi.view->viewport = Vec4(0.f, 0.f, cg_framebuffer.width, cg_framebuffer.height);
+	cgi.view->viewport = Vec4i(0, 0, cg_framebuffer.drawable_width, cg_framebuffer.drawable_height);
 
 	const player_state_t *ps0;
 
 	if (cgi.client->previous_frame) {
 		ps0 = &cgi.client->previous_frame->ps;
 	} else {
+		cgi.view->flags |= VIEW_FLAG_NO_DELTA;
 		ps0 = &frame->ps;
 	}
 
@@ -318,6 +342,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
+
+	Cg_UpdateExposure();
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

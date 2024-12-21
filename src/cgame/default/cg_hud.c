@@ -83,7 +83,7 @@ static struct {
 		uint32_t time, bar_time;
 		int16_t bits;
 		int16_t num;
-		_Bool has[MAX_STAT_BITS];
+		bool has[MAX_STAT_BITS];
 	} weapon;
 
 	int16_t chase_target;
@@ -104,7 +104,7 @@ static cvar_t *cg_select_weapon_interval;
 /**
  * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
  */
-static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon, const color_t color) {
+static void Cg_DrawIcon(const GLint x, const GLint y, const int16_t icon, const color_t color) {
 
 	const r_image_t *image = cgi.client->images[icon];
 	if (!image) {
@@ -118,8 +118,8 @@ static void Cg_DrawIcon(const r_pixel_t x, const r_pixel_t y, const int16_t icon
 /**
  * @brief Draws the vital numeric and icon, flashing on low quantities.
  */
-static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
-	r_pixel_t y = cgi.context->height - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
+static void Cg_DrawVital(GLint x, GLint ch, const int16_t value, const int16_t icon, int16_t med, int16_t low) {
+	GLint y = cgi.context->height - HUD_PIC_HEIGHT + (HUD_PIC_HEIGHT - ch) / 2;
 
 	color_t color = HUD_COLOR_STAT;
 	color_t pulse = color_white;
@@ -147,7 +147,7 @@ static void Cg_DrawVital(r_pixel_t x, r_pixel_t ch, const int16_t value, const i
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawVitals(const player_state_t *ps) {
-	r_pixel_t x, cw, ch, x_offset;
+	GLint x, cw, ch, x_offset;
 
 	if (!cg_draw_vitals->integer) {
 		return;
@@ -166,7 +166,7 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 		Cg_DrawVital(x, ch, health, health_icon, HUD_HEALTH_MED, HUD_HEALTH_LOW);
 	}
 
-	if (atoi(cgi.ConfigString(CS_GAMEPLAY)) != GAME_INSTAGIB) {
+	if (cg_state.gameplay != GAME_INSTAGIB) {
 
 		if (ps->stats[STAT_AMMO] > 0) {
 			const int16_t ammo = ps->stats[STAT_AMMO];
@@ -194,8 +194,8 @@ static void Cg_DrawVitals(const player_state_t *ps) {
 /**
  * @brief Draws the powerup and the time remaining
  */
-static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *icon) {
-	r_pixel_t x;
+static void Cg_DrawPowerup(GLint y, const int16_t value, const r_image_t *icon) {
+	GLint x;
 
 	color_t color = HUD_COLOR_STAT;
 
@@ -218,7 +218,7 @@ static void Cg_DrawPowerup(r_pixel_t y, const int16_t value, const r_image_t *ic
  * @brief Draws health, ammo and armor numerics and icons.
  */
 static void Cg_DrawPowerups(const player_state_t *ps) {
-	r_pixel_t y, ch;
+	GLint y, ch;
 
 	if (!cg_draw_powerups->integer) {
 		return;
@@ -230,7 +230,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
 
 	if (ps->stats[STAT_QUAD_TIME] > 0) {
 		const int32_t timer = ps->stats[STAT_QUAD_TIME];
-		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IT_PIC));
+		Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IMG_PIC));
 	}
 
 	cgi.BindFont(NULL, NULL, NULL);
@@ -240,7 +240,7 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
  * @brief Draws the flag you are currently holding
  */
 static void Cg_DrawHeldFlag(const player_state_t *ps) {
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (!cg_draw_held_flag->integer) {
 		return;
@@ -257,15 +257,17 @@ static void Cg_DrawHeldFlag(const player_state_t *ps) {
 	x = HUD_PIC_HEIGHT / 2;
 	y = cgi.context->height / 2 - HUD_PIC_HEIGHT * 2;
 
-	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag),  IT_PIC);
-	cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+	const r_image_t *icon = cgi.LoadImage(va("pics/i_flag%d", flag), IMG_PIC);
+	if (icon) {
+		cgi.Draw2DImage(x, y, icon->width, icon->height, icon, pulse);
+	}
 }
 
 /**
  * @brief Draws the flag you are currently holding
  */
 static void Cg_DrawHeldTech(const player_state_t *ps) {
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (!cg_draw_held_tech->integer) {
 		return;
@@ -289,7 +291,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (!cg_draw_pickup->integer) {
 		return;
@@ -320,7 +322,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
 	const int16_t frags = ps->stats[STAT_FRAGS];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
@@ -352,7 +354,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
  */
 static void Cg_DrawDeaths(const player_state_t *ps) {
 	const int16_t deaths = ps->stats[STAT_DEATHS];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
@@ -385,17 +387,17 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
 	const int16_t captures = ps->stats[STAT_CAPTURES];
-	r_pixel_t x, y, cw, ch;
+	GLint x, y, cw, ch;
 
 	if (!cg_draw_captures->integer) {
 		return;
 	}
 
-	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+	if (!cg_state.ctf) {
 		return;
 	}
 
-	if (atoi(cgi.ConfigString(CS_CTF)) < 1) {
+	if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
 		return;
 	}
 
@@ -420,7 +422,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
-	r_pixel_t x, y, cw;
+	GLint x, y, cw;
 
 	if (!ps->stats[STAT_SPECTATOR] || ps->stats[STAT_CHASE]) {
 		return;
@@ -440,7 +442,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawChase(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 	char string[MAX_USER_INFO_VALUE * 2], *s;
 
 	// if we've changed chase targets, reset the HUD
@@ -479,35 +481,8 @@ static void Cg_DrawChase(const player_state_t *ps) {
 /**
  * @brief
  */
-static void Cg_DrawVote(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
-	char string[MAX_STRING_CHARS];
-
-	if (!cg_draw_vote->integer) {
-		return;
-	}
-
-	if (!ps->stats[STAT_VOTE]) {
-		return;
-	}
-
-	cgi.BindFont("small", NULL, &ch);
-
-	g_snprintf(string, sizeof(string), "Vote: ^7%s", cgi.ConfigString(ps->stats[STAT_VOTE]));
-
-	x = 0;
-	y = cgi.context->height - HUD_PIC_HEIGHT - ch;
-
-	cgi.Draw2DString(x, y, string, color_green);
-
-	cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief
- */
 static void Cg_DrawTime(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 	const char *string = cgi.ConfigString(CS_TIME);
 
 	if (!ps->stats[STAT_TIME]) {
@@ -523,7 +498,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 	x = cgi.context->width - cgi.StringWidth(string);
 	y = 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
@@ -536,7 +511,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
  * @brief
  */
 static void Cg_DrawReady(const player_state_t *ps) {
-	r_pixel_t x, y, ch;
+	GLint x, y, ch;
 
 	if (!ps->stats[STAT_READY]) {
 		return;
@@ -547,7 +522,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
 	x = cgi.context->width - cgi.StringWidth("Ready");
 	y = 3 * (HUD_PIC_HEIGHT + ch);
 
-	if (atoi(cgi.ConfigString(CS_CTF)) > 0) {
+	if (cg_state.ctf) {
 		y += HUD_PIC_HEIGHT + ch;
 	}
 
@@ -563,7 +538,7 @@ static void Cg_DrawReady(const player_state_t *ps) {
  */
 static void Cg_DrawTeamBanner(const player_state_t *ps) {
 	const int16_t team = ps->stats[STAT_TEAM];
-	r_pixel_t x, y;
+	GLint x, y;
 
 	if (team == -1) {
 		return;
@@ -573,7 +548,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 		return;
 	}
 
-	const color_t color = ColorHSVA(cg_team_info[team].hue, 1.f, 1.f, .14f);
+	const color_t color = ColorHSVA(cg_state.teams[team].hue, 1.f, 1.f, .14f);
 
 	x = 0;
 	y = cgi.context->height - 64;
@@ -591,7 +566,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 		vec4_t color;
 	} crosshair;
 
-	r_pixel_t x, y, w, h;
+	GLint x, y, w, h;
 
 	if (!cg_draw_crosshair->value) {
 		return;
@@ -624,11 +599,9 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			cg_draw_crosshair->value = 100;
 		}
 
-		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IT_PIC);
-
+		crosshair.image = cgi.LoadImage(va("pics/ch%d", cg_draw_crosshair->integer), IMG_PIC);
 		if (crosshair.image == NULL) {
 			cgi.Print("Couldn't load pics/ch%d.\n", cg_draw_crosshair->integer);
-			return;
 		}
 	}
 
@@ -647,7 +620,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 			}
 		}
 
-		crosshair.color = Color_Vec4(color);
+		crosshair.color = color.vec4;
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
@@ -790,7 +763,7 @@ void Cg_ParseCenterPrint(void) {
  * @brief
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
-	r_pixel_t cw, ch, x, y;
+	GLint cw, ch, x, y;
 	char *line = cg_center_print.lines[0];
 
 	if (ps->stats[STAT_SCORES]) {
@@ -890,12 +863,21 @@ static void Cg_DrawBlend(const player_state_t *ps) {
 
 	if ((contents & CONTENTS_MASK_LIQUID) && cg_draw_blend_liquid->value) {
 		color_t color;
-		if (contents & CONTENTS_LAVA) {
-			color = Color4f(.8f, .4f, .1f, 1.f);
-		} else if (contents & CONTENTS_SLIME) {
-			color = Color4f(.4f, .7f, .2f, 1.f);
+
+		const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), 0, CONTENTS_MASK_LIQUID);
+		if (tr.brush) {
+			const char *name = tr.brush->brush_sides[0].material->name;
+			color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
+			const float f = Maxf(color.r, Maxf(color.g, color.b));
+			color = Color_Scale(color, 1.f / f);
 		} else {
-			color = Color4f(.4f, .5f, .6f, 1.f);
+			if (contents & CONTENTS_LAVA) {
+				color = Color4f(.8f, .4f, .1f, 1.f);
+			} else if (contents & CONTENTS_SLIME) {
+				color = Color4f(.4f, .7f, .2f, 1.f);
+			} else {
+				color = Color4f(.4f, .5f, .6f, 1.f);
+			}
 		}
 
 		color.a = Clampf(cg_draw_blend_liquid->value * 0.4, 0.f, 0.4f);
@@ -1090,7 +1072,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 /**
  * @brief
  */
-_Bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
+bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 
 	cg_hud_state.weapon.time = 0;
 
@@ -1176,11 +1158,11 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 	// figure out weapon.tag
 	Cg_ValidateSelectedWeapon(ps);
 
-	r_pixel_t x = ((cgi.context->width / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
-	r_pixel_t y = cgi.context->height - (HUD_PIC_HEIGHT * 2.0) - 16;
+	GLint x = ((cgi.context->width / 2) - ((cg_hud_state.weapon.num * HUD_PIC_HEIGHT) / 2));
+	GLint y = cgi.context->height - (HUD_PIC_HEIGHT * 2.0) - 16;
 
 	// draw the weapons inventory bar
-	r_pixel_t ch;
+	GLint ch;
 	cgi.BindFont("medium", NULL, &ch);
 
 	if (cg_select_weapon_fade->modified || cg_select_weapon_interval->modified) {
@@ -1245,7 +1227,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 		const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
 		if (ent->current.model1 == MODEL_CLIENT) {
 
-			const cl_client_info_t *client = &cgi.client->client_info[ent->current.number - 1];
+			const cg_client_info_t *client = &cg_state.clients[ent->current.client];
 
 			g_strlcpy(name, client->name, sizeof(name));
 			time = cgi.client->unclamped_time;
@@ -1257,12 +1239,12 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 	}
 
 	if (*name) {
-		r_pixel_t ch;
+		GLint ch;
 		cgi.BindFont("medium", NULL, &ch);
 
-		const r_pixel_t w = cgi.StringWidth(name);
-		const r_pixel_t x = cgi.context->width / 2 - w / 2;
-		const r_pixel_t y = cgi.context->height - 192 - ch;
+		const GLint w = cgi.StringWidth(name);
+		const GLint x = cgi.context->width / 2 - w / 2;
+		const GLint y = cgi.context->height - 192 - ch;
 
 		cgi.Draw2DString(x, y, name, color_green);
 	}
@@ -1317,8 +1299,6 @@ void Cg_DrawHud(const player_state_t *ps) {
 
 	Cg_DrawChase(ps);
 
-	Cg_DrawVote(ps);
-
 	Cg_DrawTime(ps);
 
 	Cg_DrawReady(ps);
@@ -1349,10 +1329,10 @@ void Cg_ClearHud(void) {
  * @brief
  */
 void Cg_LoadHudMedia(void) {
-	cg_select_weapon_image = cgi.LoadImage("pics/w_select", IT_PIC);
-	cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IT_PIC);
-	cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IT_PIC);
-	cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IT_PIC);
+	cg_select_weapon_image = cgi.LoadImage("pics/w_select", IMG_PIC);
+	cg_pickup_blend_image = cgi.LoadImage("pics/bf_pickup", IMG_PIC);
+	cg_quad_blend_image = cgi.LoadImage("pics/bf_powerup_quad", IMG_PIC);
+	cg_damage_blend_image = cgi.LoadImage("pics/bf_damage", IMG_PIC);
 }
 
 /**

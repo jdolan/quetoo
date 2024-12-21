@@ -64,7 +64,7 @@ typedef struct s_media_s {
 	/**
 	 * @brief The media retain callback, to avoid being freed.
 	 */
-	_Bool (*Retain)(struct s_media_s *self);
+	bool (*Retain)(struct s_media_s *self);
 
 	/**
 	 * @brief The free callback, to release any system resources.
@@ -99,15 +99,16 @@ typedef struct {
 	/**
 	 * @brief True for stereo sounds, which will not be spatialized.
 	 */
-	_Bool stereo;
+	bool stereo;
 } s_sample_t;
 
-#define S_PLAY_AMBIENT      0x1 // this is an ambient sound, and may be culled by the user
+#define S_PLAY_AMBIENT      0x1 // this is an ambient sound and may be culled by the user
 #define S_PLAY_LOOP         0x2 // loop the sound continuously
 #define S_PLAY_FRAME        0x4 // cull the sound if it is not added at each frame
-#define S_PLAY_RELATIVE		0x8 // play relative to the listener origin
-#define S_PLAY_UNDERWATER	0x10 // sound is of a different liquid state than the listener: extreme low pass
-#define S_PLAY_OCCLUDED		0x20 // sound is occluded by an occluder: low pass
+#define S_PLAY_RELATIVE	    0x8 // play relative to the listener origin
+#define S_PLAY_UNDERWATER   0x10 // sound is of a different liquid state than the listener: extreme low pass
+#define S_PLAY_OCCLUDED	    0x20 // sound is occluded by an occluder: low pass
+#define S_PLAY_UI           0x40 // sound is a user-interface effect and may be culled by the user
 
 #define TONES_PER_OCTAVE	48
 
@@ -229,7 +230,7 @@ typedef struct {
 	/**
 	 * @brief End of file.
 	 */
-	_Bool eof;
+	bool eof;
 } s_music_t;
 
 /**
@@ -239,7 +240,7 @@ typedef struct {
 	ALuint occluded;
 	ALuint underwater;
 
-	_Bool loaded; // whether the above are currently loaded.
+	bool loaded; // whether the above are currently loaded.
 } s_effects_t;
 
 /**
@@ -336,14 +337,6 @@ typedef struct s_stage_s {
 	s_play_sample_t samples[MAX_SOUNDS];
 	int32_t num_samples;
 } s_stage_t;
-
-/**
- * @brief Convenience function to clear the per-frame attributes
- * of a sound stage.
- */
-static inline void S_ClearStage(s_stage_t *stage) {
-	stage->num_samples = 0;
-}
 
 #ifdef __S_LOCAL_H__
 

@@ -54,16 +54,14 @@ static struct {
 	GLint in_lerp;
 	GLint in_softness;
 	GLint in_lighting;
-	
+	GLint in_bloom;
+
 	GLint texture_diffusemap;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
 	GLint texture_next_diffusemap;
-	GLint texture_depth_stencil_attachment;
-
-	GLuint texture_depth_stencil;
-	GLuint framebuffer;
+	GLint texture_depth_attachment_copy;
 } r_sprite_program;
 
 /**
@@ -117,9 +115,9 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
 		return NULL;
 	}
 
-	const float size = (s->size ?: Maxf(s->width, s->height)) * .5f;
+	const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
 
-	if (R_CulludeSphere(view, s->origin, size)) {
+	if (R_CulludeSphere(view, s->origin, radius)) {
 		return NULL;
 	}
 
@@ -166,10 +164,9 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 	r_sprite_instance_t *in = &view->sprite_instances[view->num_sprite_instances];
 	memset(in, 0, sizeof(*in));
 
-	in->vertexes = r_sprites.vertexes + 4 * view->num_sprite_instances;
-	in->offset = view->num_sprite_instances * 6 * sizeof(GLuint);
+	in->index = view->num_sprite_instances++;
+	in->vertexes = r_sprites.vertexes + 4 * in->index;
 
-	view->num_sprite_instances++;
 	return in;
 }
 
@@ -268,7 +265,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[3].lerp = lerp;
 
 	if (s->flags & SPRITE_NO_BLEND_DEPTH) {
-		in->blend_depth = -1;
+		in->blend_depth = INT32_MAX;
 	} else {
 		in->blend_depth = R_BlendDepthForPoint(view, s->origin, BLEND_DEPTH_SPRITE);
 	}
@@ -282,6 +279,11 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[1].lighting =
 	in->vertexes[2].lighting =
 	in->vertexes[3].lighting = s->lighting;
+
+	in->vertexes[0].bloom =
+	in->vertexes[1].bloom =
+	in->vertexes[2].bloom =
+	in->vertexes[3].bloom = s->bloom;
 }
 
 /**
@@ -299,7 +301,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 	vec2_t texcoords[4];
 	R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
 
-	if (!(b->image->type & IT_MASK_CLAMP_EDGE)) {
+	if (b->flags & SPRITE_BEAM_REPEAT) {
 
 		if (b->stretch) {
 			length *= b->stretch;
@@ -330,6 +332,12 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 			}
 		}
 
+		vec3_t positions[4];
+		positions[0] = Vec3_Add(x, right);
+		positions[1] = Vec3_Add(y, right);
+		positions[2] = Vec3_Subtract(y, right);
+		positions[3] = Vec3_Subtract(x, right);
+
 		r_sprite_instance_t *in = R_AllocSpriteInstance(view);
 		if (!in) {
 			return;
@@ -338,10 +346,10 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->flags = b->flags;
 		in->diffusemap = b->image;
 
-		in->vertexes[0].position = Vec3_Add(x, right);
-		in->vertexes[1].position = Vec3_Add(y, right);
-		in->vertexes[2].position = Vec3_Subtract(y, right);
-		in->vertexes[3].position = Vec3_Subtract(x, right);
+		in->vertexes[0].position = positions[0];
+		in->vertexes[1].position = positions[1];
+		in->vertexes[2].position = positions[2];
+		in->vertexes[3].position = positions[3];
 
 		in->vertexes[0].diffusemap = texcoords[0];
 		in->vertexes[1].diffusemap = texcoords[1];
@@ -387,6 +395,8 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  * @brief Generate sprite instances from sprites and beams, and update the vertex array.
  */
 void R_UpdateSprites(r_view_t *view) {
+
+	R_AddBspLightgridSprites(view);
 	
 	const r_sprite_t *s = view->sprites;
 	for (int32_t i = 0; i < view->num_sprites; i++, s++) {
@@ -413,38 +423,28 @@ void R_UpdateSprites(r_view_t *view) {
 			in->prev->next = in;
 		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, r_sprite_program.framebuffer);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, view->framebuffer->name);
-	glBlitFramebuffer(0, 0, view->framebuffer->width, view->framebuffer->height, 0, 0, view->framebuffer->width, view->framebuffer->height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-
-	R_GetError(NULL);
 }
 
 /**
  * @brief
  */
 void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
-	
+
+	assert(view->framebuffer);
+
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glEnable(GL_DEPTH_TEST);
 
 	glUseProgram(r_sprite_program.name);
-
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	glBindVertexArray(r_sprites.vertex_array);
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, view->num_sprite_instances * sizeof(r_sprite_vertex_t) * 4, r_sprites.vertexes);
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
@@ -452,18 +452,16 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glVertexAttrib1f(r_sprite_program.in_lerp, 0.f);
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
+	glEnableVertexAttribArray(r_sprite_program.in_bloom);
 
-	if (r_world_model) {
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[0]->texnum);
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[1]->texnum);
-		glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
-		glBindTexture(GL_TEXTURE_3D, r_world_model->bsp->lightgrid->textures[3]->texnum);
+	if (r_sprite_soften->value) {
+		R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
 	}
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_STENCIL_ATTACHMENT);
-	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
+	glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
+
+	glEnable(GL_DEPTH_TEST);
 
 	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
 	
@@ -487,28 +485,34 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
-		const ptrdiff_t stride = 6 * (ptrdiff_t) sizeof(GLuint);
+		if (in->flags & SPRITE_NO_DEPTH) {
+			glDepthRange(.1f, .9f);
+		} else {
+			glDepthRange(0.f, 1.f);
+		}
 
-		int32_t count = 0;
+		GLsizei count = 0;
+
 		r_sprite_instance_t *chain;
-
 		for (chain = in; chain; chain = chain->next) {
-			if (chain->offset == in->offset + count * stride &&
+
+			if (chain->index == in->index + count &&
 				chain->diffusemap == in->diffusemap &&
-				chain->next_diffusemap == in->next_diffusemap) {
+				chain->next_diffusemap == in->next_diffusemap &&
+				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
 				count++;
 			} else {
 				break;
 			}
 		}
 
-		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) in->offset);
-		r_stats.count_sprite_draw_elements++;
+		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));
+		r_stats.sprite_draw_elements++;
 
 		in = chain;
 	}
 
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -518,6 +522,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glUseProgram(0);
 
 	glDisable(GL_DEPTH_TEST);
+
+	glDepthRange(0.f, 1.f);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -535,8 +541,8 @@ static void R_InitSpriteProgram(void) {
 	memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
 	r_sprite_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "lightgrid.glsl", "sprite_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "lightgrid.glsl", "soften_fs.glsl", "sprite_fs.glsl", NULL),
+			R_ShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl", NULL),
+			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
 			NULL);
 	
 	glUseProgram(r_sprite_program.name);
@@ -554,47 +560,23 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
 	r_sprite_program.in_softness = glGetAttribLocation(r_sprite_program.name, "in_softness");
 	r_sprite_program.in_lighting = glGetAttribLocation(r_sprite_program.name, "in_lighting");
+	r_sprite_program.in_bloom = glGetAttribLocation(r_sprite_program.name, "in_bloom");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_lightgrid_ambient = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_ambient");
 	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	r_sprite_program.texture_depth_stencil_attachment = glGetUniformLocation(r_sprite_program.name, "texture_depth_stencil_attachment");
+	r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-	glUniform1i(r_sprite_program.texture_depth_stencil_attachment, TEXTURE_DEPTH_STENCIL_ATTACHMENT);
+	glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
 	glUseProgram(0);
-
-	glGenTextures(1, &r_sprite_program.texture_depth_stencil);
-	glGenFramebuffers(1, &r_sprite_program.framebuffer);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, r_sprite_program.framebuffer);
-
-	glBindTexture(GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, r_context.drawable_width, r_context.drawable_height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, r_sprite_program.texture_depth_stencil, 0);
-
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-
-	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		Com_Error(ERROR_FATAL, "Failed to create framebuffer: %d\n", status);
-	}
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	R_GetError(NULL);
 }
@@ -616,10 +598,11 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
-	glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
 	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
 	glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+	glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, bloom));
 
 	glGenBuffers(1, &r_sprites.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
@@ -633,7 +616,6 @@ void R_InitSprites(void) {
 		elements[e + 4] = v + 2;
 		elements[e + 5] = v + 3;
 	}
-
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -657,8 +639,6 @@ void R_InitSprites(void) {
 static void R_ShutdownSpriteProgram(void) {
 
 	glDeleteProgram(r_sprite_program.name);
-	glDeleteTextures(1, &r_sprite_program.texture_depth_stencil);
-	glDeleteFramebuffers(1, &r_sprite_program.framebuffer);
 
 	r_sprite_program.name = 0;
 }

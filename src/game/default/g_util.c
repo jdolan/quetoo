@@ -79,10 +79,16 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 			break;
 	}
 
-	if ((ent->client->ps.pm_state.flags & PMF_DUCKED)) {
-		*org = Vec3_Fmaf(*org, -6.f, ent_up);
-	} else {
-		*org = Vec3_Fmaf(*org, -12.f, ent_up);
+	*org = Vec3_Fmaf(*org, -12.f, ent_up);
+
+	// if there's something non-damageable immediately blocking the shot, prefer to
+	// avoid the blocker
+	const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+	const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->locals.forward);
+	const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
+
+	if ((org_tr.fraction != 1.f && !org_tr.ent->locals.take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
+		*org = start;
 	}
 
 	// if the projected origin is invalid, use the entity's origin
@@ -281,15 +287,14 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
 	// print the message
 	if ((ent->locals.message) && activator->client) {
+
 		gi.WriteByte(SV_CMD_CENTER_PRINT);
 		gi.WriteString(ent->locals.message);
 		gi.Unicast(activator, true);
 
-		if (ent->locals.sound) {
-			gi.Sound(activator, ent->locals.sound, SOUND_ATTEN_LINEAR, 0);
-		} else {
-			gi.Sound(activator, gi.SoundIndex("misc/chat"), SOUND_ATTEN_LINEAR, 0);
-		}
+		G_UnicastSound(&(const g_play_sound_t) {
+			.index = ent->locals.sound ?: g_media.sounds.chat,
+		}, activator, true);
 	}
 
 	// kill kill_targets
@@ -549,8 +554,8 @@ g_team_t *G_TeamByName(const char *c) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (!StrStripCmp(g_teamlist[i].name, c)) {
-			return &g_teamlist[i];
+		if (!StrStripCmp(g_team_list[i].name, c)) {
+			return &g_team_list[i];
 		}
 	}
 
@@ -572,8 +577,8 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (!g_strcmp0(ent->class_name, g_teamlist[i].flag)) {
-			return &g_teamlist[i];
+		if (!g_strcmp0(ent->class_name, g_team_list[i].flag)) {
+			return &g_team_list[i];
 		}
 	}
 
@@ -595,7 +600,7 @@ g_entity_t *G_FlagForTeam(const g_team_t *t) {
 /**
  * @brief
  */
-uint32_t G_EffectForTeam(const g_team_t *t) {
+int32_t G_EffectForTeam(const g_team_t *t) {
 
 	if (!t) {
 		return 0;
@@ -611,11 +616,11 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-		if (&g_teamlist[i] == ent->client->locals.persistent.team) {
+		if (&g_team_list[i] == ent->client->locals.persistent.team) {
 			continue;
 		}
 
-		g_entity_t *f = G_FlagForTeam(&g_teamlist[i]);
+		g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
 
 		if (f && ent->client->locals.inventory[f->locals.item->index]) {
 			return f->locals.item;
@@ -671,7 +676,7 @@ g_team_t *G_SmallestTeam(void) {
 
 	for (int32_t i = 0; i < g_level.num_teams; i++) {
 		if (!smallest || num_clients[i] < num_clients[smallest->id]) {
-			smallest = &g_teamlist[i];
+			smallest = &g_team_list[i];
 		}
 	}
 
@@ -736,7 +741,7 @@ g_hook_style_t G_HookStyleByName(const char *s) {
 /**
  * @return True if the specified entity should bleed when damaged.
  */
-_Bool G_IsMeat(const g_entity_t *ent) {
+bool G_IsMeat(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use) {
 		return false;
@@ -756,7 +761,7 @@ _Bool G_IsMeat(const g_entity_t *ent) {
 /**
  * @return True if the specified entity is likely stationary.
  */
-_Bool G_IsStationary(const g_entity_t *ent) {
+bool G_IsStationary(const g_entity_t *ent) {
 
 	if (!ent || !ent->in_use) {
 		return false;
@@ -780,17 +785,10 @@ _Bool G_IsStationary(const g_entity_t *ent) {
 /**
  * @return True if the specified entity and surface are structural.
  */
-_Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *texinfo) {
+bool G_IsStructural(const cm_trace_t *trace) {
 
-	if (ent) {
-		if (ent->solid == SOLID_BSP) {
-
-			if (!texinfo || (texinfo->flags & SURF_SKY)) {
-				return false;
-			}
-
-			return true;
-		}
+	if ((trace->contents & CONTENTS_MASK_SOLID) && !G_IsSky(trace)) {
+		return true;
 	}
 
 	return false;
@@ -799,20 +797,15 @@ _Bool G_IsStructural(const g_entity_t *ent, const cm_bsp_texinfo_t *texinfo) {
 /**
  * @return True if the specified entity and surface are sky.
  */
-_Bool G_IsSky(const cm_bsp_texinfo_t *texinfo) {
-
-	if (texinfo && (texinfo->flags & SURF_SKY)) {
-		return true;
-	}
-
-	return false;
+bool G_IsSky(const cm_trace_t *trace) {
+	return trace->surface & SURF_SKY;
 }
 
 /**
  * @brief Writes the specified animation byte, toggling the high bit to restart the
  * sequence if desired and necessary.
  */
-static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) {
+static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
 
 	if (restart) {
 		if (*dest == anim) {
@@ -827,7 +820,7 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, _Bool restart) 
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
+void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart) {
 
 	// certain sequences go to both torso and leg animations
 
@@ -855,7 +848,7 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, _Bool restart) {
 /**
  * @brief Returns true if the entity is currently using the specified animation.
  */
-_Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
+bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 	byte a;
 
 	if (anim < ANIM_LEGS_WALK) {
@@ -868,21 +861,11 @@ _Bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
 }
 
 /**
- * @brief forcefully suggest client adds given command to its console buffer
- */
-void G_ClientStuff(const g_entity_t *ent, const char *s) {
-	gi.WriteByte(SV_CMD_CBUF_TEXT);
-	gi.WriteString(s);
-	gi.Unicast(ent, true);
-}
-
-/**
  * @brief Send a centerprint to everyone on the supplied team
  */
-void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
+void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
 	char string[MAX_STRING_CHARS];
 	va_list args;
-	const g_entity_t *ent;
 
 	va_start(args, fmt);
 	vsprintf(string, fmt, args);
@@ -894,13 +877,13 @@ void G_TeamCenterPrint(g_team_t *team, const char *fmt, ...) {
 			continue;
 		}
 
-		ent = &g_game.entities[i + 1];
+		const g_entity_t *ent = &g_game.entities[i + 1];
 
 		// member of supplied team? send it
 		if (ent->client->locals.persistent.team == team) {
 			gi.WriteByte(SV_CMD_CENTER_PRINT);
 			gi.WriteString(string);
-			gi.Unicast(ent, false);
+			gi.Unicast(ent, true);
 		}
 	}
 }

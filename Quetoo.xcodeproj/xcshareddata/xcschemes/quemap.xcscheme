@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1240"
+   LastUpgradeVersion = "1620"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -93,7 +93,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "--no-liquid"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--no-merge"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--no-phong"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -109,19 +117,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "-vis"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--fast"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "-light"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "--patch-intensity 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--no-indirect"
+            argument = "--sun-intensity 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -129,27 +133,27 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "--luxel-size 8"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--bounce 2"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "-zip"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "maps/lighttest.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/sandbox.map"
+            argument = "--update"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/jgothic.map"
+            argument = "maps/bellum.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/cistern.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/claustrophobopolis.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/darkzone.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -161,7 +165,23 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "maps/fractures.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/gehenna.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "maps/hallways.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/jgothic.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/lighttest.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -170,6 +190,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/sandbox.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

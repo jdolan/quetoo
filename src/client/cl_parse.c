@@ -40,7 +40,7 @@ static char *sv_cmd_names[32] = {
  * @brief Returns true if the file exists, otherwise it attempts to start a download
  * from the server.
  */
-_Bool Cl_CheckOrDownloadFile(const char *filename) {
+bool Cl_CheckOrDownloadFile(const char *filename) {
 	char cmd[MAX_STRING_CHARS];
 
 	if (cls.state == CL_DISCONNECTED) {
@@ -146,16 +146,6 @@ static void Cl_ParseBaseline(void) {
 	cl_entity_t *ent = &cl.entities[number];
 
 	Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
-
-	// initialize clipping matrices
-	if (ent->baseline.solid) {
-		if (ent->baseline.solid == SOLID_BSP) {
-			ent->matrix = Mat4_FromRotationTranslationScale(ent->baseline.angles, ent->baseline.origin, 1.f);
-		} else { // bounding-box entities
-			ent->matrix = Mat4_FromRotationTranslationScale(Vec3_Zero(), ent->baseline.origin, 1.f);
-		}
-		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
-	}
 }
 
 /**
@@ -198,7 +188,7 @@ int32_t Cl_ParseConfigString(void) {
 		}
 	} else if (i >= CS_IMAGES && i < CS_IMAGES + MAX_IMAGES) {
 		if (cls.state == CL_ACTIVE) {
-			cl.images[i - CS_IMAGES] = R_LoadImage(s, IT_PIC);
+			cl.images[i - CS_IMAGES] = R_LoadImage(s, IMG_PIC);
 		}
 	}
 
@@ -352,63 +342,12 @@ static void Cl_ParsePrint(void) {
 		if (sample) {
 			S_AddSample(&cl_stage, &(s_play_sample_t) {
 				.sample = S_LoadSample(sample),
-				.flags = S_PLAY_RELATIVE
+				.flags = S_PLAY_UI
 			});
 		}
 
 		Con_Append(level, string);
 	}
-}
-
-/**
- * @brief
- */
-static s_play_sample_t *Cl_ParseSound(void) {
-	static s_play_sample_t play;
-
-	const byte flags = Net_ReadByte(&net_message);
-	
-	const int32_t sound = Net_ReadByte(&net_message);
-	if (sound >= MAX_SOUNDS) {
-		Com_Error(ERROR_DROP, "Bad sound (%d)\n", sound);
-	}
-
-	play.sample = cl.sounds[sound];
-	play.atten = Net_ReadByte(&net_message);
-
-	if (flags & S_ENTITY) {
-		play.entity = Net_ReadShort(&net_message);
-
-		const cl_entity_t *ent = &cl.entities[play.entity];
-		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Box3_Center(ent->abs_bounds);
-		} else {
-			play.origin = ent->current.origin;
-
-			if (play.sample->media.name[0] == '*') {
-				assert(play.entity - 1 < MAX_CLIENTS);
-
-				const cl_client_info_t *info = &cl.client_info[play.entity - 1];
-				play.sample = S_LoadClientModelSample(info->model, play.sample->media.name);
-			}
-		}
-	} else {
-		play.entity = 0;
-	}
-
-	if (flags & S_ORIGIN) { // positioned in space
-		play.origin = Net_ReadPosition(&net_message);
-	} else {
-		play.origin = Vec3_Zero();
-	}
-
-	if (flags & S_PITCH) {
-		play.pitch = Net_ReadChar(&net_message) * 2;
-	} else {
-		play.pitch = 0;
-	}
-
-	return &play;
 }
 
 /**
@@ -502,10 +441,6 @@ void Cl_ParseServerMessage(void) {
 
 			case SV_CMD_SERVER_DATA:
 				Cl_ParseServerData();
-				break;
-
-			case SV_CMD_SOUND:
-				data = Cl_ParseSound();
 				break;
 
 			default:

@@ -56,14 +56,14 @@ typedef struct ms_server_s {
 	uint16_t queued_pings;
 	time_t last_heartbeat;
 	time_t last_ping;
-	_Bool validated;
+	bool validated;
 } ms_server_t;
 
 static GList *ms_servers;
 static int32_t ms_sock;
 
-static _Bool verbose;
-static _Bool debug;
+static bool verbose;
+static bool debug;
 
 /**
  * @brief Shorthand for printing Internet addresses.
@@ -113,7 +113,7 @@ static void Ms_DropServer(ms_server_t *server) {
  *
  * Ensure that the file is new-line terminated for all rules to be evaluated.
  */
-static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
+static bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	char *buffer;
 	int64_t len;
 
@@ -124,7 +124,7 @@ static _Bool Ms_BlacklistServer(struct sockaddr_in *from) {
 	char *c = buffer;
 	char *ip = inet_ntoa(from->sin_addr);
 
-	_Bool blacklisted = false;
+	bool blacklisted = false;
 
 	while ((c - buffer) < len) {
 		char line[256];

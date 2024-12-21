@@ -82,12 +82,10 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
 /**
  * @brief
  */
-static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other,
-                                     const cm_bsp_plane_t *plane,
-                                     const cm_bsp_texinfo_t *texinfo) {
+static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (!other->client) {
-		const _Bool isProjectile = other->owner && other->owner->client;
+		const bool isProjectile = other->owner && other->owner->client;
 		if (isProjectile && (self->locals.spawn_flags & SHOOTABLE)) {
 			// we're a shootable trigger, and we've been shot
 		} else {
@@ -227,9 +225,7 @@ void G_trigger_always(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *texinfo) {
+static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
 
@@ -242,7 +238,11 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other,
 
 		if (other->locals.push_time < g_level.time) {
 			other->locals.push_time = g_level.time + 1500;
-			gi.Sound(other, self->locals.move_info.sound_start, SOUND_ATTEN_LINEAR, 0);
+			G_MulticastSound(&(const g_play_sound_t) {
+				.index = self->locals.move_info.sound_start,
+				.origin = &other->s.origin,
+				.atten = SOUND_ATTEN_SQUARE
+			}, MULTICAST_PHS, NULL);
 		}
 	}
 
@@ -323,9 +323,7 @@ static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other,
 /**
  * @brief
  */
-static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *texinfo) {
+static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (!other->locals.take_damage) { // deal with items that land on us
 
@@ -404,9 +402,7 @@ void G_trigger_hurt(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other,
-                                 const cm_bsp_plane_t *plane,
-                                 const cm_bsp_texinfo_t *texinfo) {
+static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
 	if (self->locals.timestamp > g_level.time) {
 		return;

@@ -87,14 +87,14 @@ void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s) {
 /**
  * @return True if the addresses share the same base and port.
  */
-_Bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b) {
+bool Net_CompareNetaddr(const net_addr_t *a, const net_addr_t *b) {
 	return a->addr == b->addr && a->port == b->port;
 }
 
 /**
  * @return True if the addresses share the same type and base.
  */
-_Bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
+bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 	return a->type == b->type && a->addr == b->addr;
 }
 
@@ -118,7 +118,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
  * 192.246.40.70
  * 192.246.40.70:28000
  */
-_Bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
+bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 
 	memset(saddr, 0, sizeof(*saddr));
 
@@ -148,7 +148,7 @@ _Bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 /**
  * @brief Parses the hostname and port into the specified net_addr_t.
  */
-_Bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
+bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
 	net_sockaddr saddr;
 
 	if (!Net_StringToSockaddr(s, &saddr)) {
@@ -224,7 +224,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 /**
  * @brief Make the specified socket non-blocking.
  */
-void Net_SetNonBlocking(int32_t sock, _Bool non_blocking) {
+void Net_SetNonBlocking(int32_t sock, bool non_blocking) {
 	int32_t i = non_blocking;
 
 	if (ioctl(sock, FIONBIO, (void *) &i) == -1) {

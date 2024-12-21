@@ -27,8 +27,8 @@
  * @brief A fixed-sized buffer, used for accumulating e.g. net messages.
  */
 typedef struct {
-	_Bool allow_overflow; // error if false and overflow occurs
-	_Bool overflowed; // set to true when a write exceeds max_size
+	bool allow_overflow; // error if false and overflow occurs
+	bool overflowed; // set to true when a write exceeds max_size
 	byte *data;
 	size_t max_size; // maximum size before overflow
 	size_t size; // current size

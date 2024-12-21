@@ -25,14 +25,13 @@
  * @brief
  */
 static void R_SetEntityBounds(r_entity_t *e) {
-
 	e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
 }
 
 /**
  * @brief
  */
-static _Bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
+bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 	
 	if (e->parent) {
 		return false;
@@ -81,10 +80,6 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
 	R_SetEntityBounds(e);
 
-	if (R_CullEntity(view, e)) {
-		return NULL;
-	}
-
 	view->num_entities++;
 	return e;
 }
@@ -95,6 +90,8 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 void R_UpdateEntities(r_view_t *view) {
 
 	R_UpdateMeshEntities(view);
+
+	R_UpdateBspInlineEntities(view);
 }
 
 /**
@@ -145,7 +142,9 @@ static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
  * @brief Draw all entities at the specified depth value.
  */
 void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
-	
+
+	R_DrawBspInlineEntities(view, blend_depth);
+
 	R_DrawMeshEntities(view, blend_depth);
 
 	R_DrawEntitiesBounds(view, blend_depth);

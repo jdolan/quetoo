@@ -86,7 +86,15 @@ int32_t Installer_CheckForUpdates(void) {
 		Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
 	}
 
-	return -1;
+	// A newer remote revision is available
+
+	FILE *flatpak_info = fopen("/.flatpak-info", "r");
+	if (flatpak_info) {
+		fclose(flatpak_info);
+		return 2;
+	}
+
+	return 1;
 }
 
 /**

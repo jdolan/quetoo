@@ -9,6 +9,7 @@ noinst_HEADERS = \
 	r_bsp_draw.h \
 	r_bsp_model.h \
 	r_context.h \
+	r_cull.h \
 	r_depth_pass.h \
 	r_draw_2d.h \
 	r_draw_3d.h \
@@ -28,7 +29,10 @@ noinst_HEADERS = \
 	r_mesh_model_obj.h \
 	r_mesh.h \
 	r_model.h \
+	r_occlude.h \
+	r_post.h \
 	r_program.h \
+	r_shadow.h \
 	r_sky.h \
 	r_sprite.h \
 	r_stain.h \
@@ -45,6 +49,7 @@ librenderer_la_SOURCES = \
 	r_bsp_draw.c \
 	r_bsp_model.c \
 	r_context.c \
+	r_cull.c \
 	r_depth_pass.c \
 	r_draw_2d.c \
 	r_draw_3d.c \
@@ -56,13 +61,16 @@ librenderer_la_SOURCES = \
 	r_main.c \
 	r_material.c \
 	r_media.c \
-	r_mesh.c \
 	r_mesh_draw.c \
 	r_mesh_model.c \
 	r_mesh_model_md3.c \
 	r_mesh_model_obj.c \
+	r_mesh.c \
 	r_model.c \
+	r_occlude.c \
+	r_post.c \
 	r_program.c \
+	r_shadow.c \
 	r_sky.c \
 	r_sprite.c \
 	r_stain.c

@@ -65,6 +65,16 @@ typedef union {
 	 * @brief Array accessor.
 	 */
 	float rgba[4];
+
+	/**
+	 * @brief Vec3 accessor.
+	 */
+	vec3_t vec3;
+
+	/**
+	 * @brief Vec4 accessor.
+	 */
+	vec4_t vec4;
 } color_t;
 
 /**
@@ -89,6 +99,24 @@ typedef union {
 	 */
 	int32_t rgba;
 } color32_t;
+
+/**
+ * @brief A clamped integer RGB color.
+ */
+typedef union {
+
+	/**
+	 * @brief Component accessors.
+	 */
+	struct {
+		byte r, g, b;
+	};
+
+	/**
+	 * @brief Array accessor.
+	 */
+	byte bytes[3];
+} color24_t;
 
 /**
  * @return A color with the specified RGBA bytes.
@@ -128,22 +156,13 @@ static inline color_t __attribute__ ((warn_unused_result)) Color3bv(uint32_t rgb
 }
 
 /**
- * @return A color with the specified RGBA floating point values. Note that the resulting color is clamped.
+ * @return A color with the specified unclamped RGBA floating point values. Note that the resulting color is clamped.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4f(float r, float g, float b, float a) {
-
-	const float max = Maxf(r, Maxf(g, b));
-	if (max > 1.f) {
-		const float inverse = 1.f / max;
-		r *= inverse;
-		g *= inverse;
-		b *= inverse;
-	}
-
 	return (color_t) {
-		.r = Clampf(r, 0.f, 1.f),
-		.g = Clampf(g, 0.f, 1.f),
-		.b = Clampf(b, 0.f, 1.f),
+		.r = Maxf(0.f, r),
+		.g = Maxf(0.f, g),
+		.b = Maxf(0.f, b),
 		.a = Clampf(a, 0.f, 1.f)
 	};
 }
@@ -167,6 +186,16 @@ static inline color_t __attribute__ ((warn_unused_result)) Color3fv(const vec3_t
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4fv(const vec4_t rgba) {
 	return Color4f(rgba.x, rgba.y, rgba.z, rgba.w);
+}
+
+/**
+ * @brief Fills `len` of `out` with RGBA values from the floating point color (like memset).
+ */
+static inline void Color_Fill(color_t *out, const color_t c, size_t len) {
+
+	for (size_t i = 0; i < len; i++) {
+		*out++ = c;
+	}
 }
 
 /**
@@ -238,51 +267,96 @@ static inline color_t __attribute__ ((warn_unused_result)) ColorHSVA(float hue, 
 }
 
 /**
- * @return A floating point vector for the specified color.
+ * @return An HSV vector of the specified color.
  */
-static inline vec4_t __attribute__ ((warn_unused_result)) Color_Vec4(const color_t color) {
-	return Vec4(color.r, color.g, color.b, color.a);
+static inline vec3_t __attribute__ ((warn_unused_result)) Color_HSV(const color_t color) {
+
+	const float cmax = Maxf(Maxf(color.r, color.g), color.b);
+	const float cmin = Minf(Minf(color.r, color.g), color.b);
+
+	const float delta = cmax - cmin;
+
+	float h;
+	if (cmax == 0.f && cmin == 0.f) {
+		h = 0;
+	} else if (cmax == color.r) {
+		h = (60.f * (color.g - color.b) / delta + 360.f);
+	} else if (cmax == color.g) {
+		h = (60.f * (color.b - color.r) / delta + 120.f);
+	} else {
+		h = (60.f * (color.r - color.g) / delta + 240.f);
+	}
+
+	float s;
+	if (cmax == 0.f) {
+		s = 0.f;
+	} else {
+		s = (delta / cmax) * 100.f;
+	}
+
+	const float v = cmax * 100.f;
+
+	return Vec3((int32_t) h % 360, s, v);
+}
+
+/**
+ * @return An HSV vector of the specified color.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Color_HSVA(const color_t c) {
+	return Vec3_ToVec4(Color_HSV(c), c.a);
 }
 
 /**
  * @return The sum of `a + b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Add(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Add(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Add(a.vec4, b.vec4));
 }
 
 /**
  * @return The difference of `a - b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Subtract(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Subtract(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Subtract(a.vec4, b.vec4));
 }
 
 /**
  * @return The value of `a * b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Multiply(const color_t a, const color_t b) {
-	return Color4fv(Vec4_Multiply(Color_Vec4(a), Color_Vec4(b)));
+	return Color4fv(Vec4_Multiply(a.vec4, b.vec4));
+}
+
+/**
+ * @return The color `c` normalized to the range `0.f - 1.f`. Hue is preserved.
+ */
+static inline color_t __attribute__ ((warn_unused_result)) Color_Normalize(const color_t c) {
+	const float max = Vec3_Hmaxf(c.vec3);
+	if (max > 1.f) {
+		return Color4f(c.r / max, c.g / max, c.b / max, c.a);
+	} else {
+		return c;
+	}
 }
 
 /**
  * @return The value of `a * b`.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Scale(const color_t a, const float b) {
-	return Color4fv(Vec4_Scale(Color_Vec4(a), b));
+	return Color4fv(Vec4_Scale(a.vec4, b));
 }
 
 /**
  * @return The linear interpolation of `a` and `b` using the specified fraction.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color_Mix(const color_t a, const color_t b, float mix) {
-	return Color4fv(Vec4_Mix(Color_Vec4(a), Color_Vec4(b), mix));
+	return Color4fv(Vec4_Mix(a.vec4, b.vec4, mix));
 }
 
 /**
  * @return True if the parsing succeeded, false otherwise.
  */
-static inline _Bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, color_t *color) {
+static inline bool __attribute__ ((warn_unused_result)) Color_Parse(const char *s, color_t *color) {
 
 	const size_t length = strlen(s);
 	if (length != 6 && length != 8) {
@@ -306,7 +380,7 @@ static inline _Bool __attribute__ ((warn_unused_result)) Color_Parse(const char 
 }
 
 /**
- * @return A color32_t with the specified RGBA components.
+ * @return A `color32_t` with the specified RGBA components.
  */
 static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byte g, byte b, byte a) {
 	return (color32_t) {
@@ -318,13 +392,69 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color32(byte r, byt
 }
 
 /**
- * @return A 32-bit integer color for the specified color.
+ * @return A `color32_t` with the specified RGBA integer.
  */
-static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t color) {
-	return Color32(color.r * 255.f,
-				   color.g * 255.f,
-				   color.b * 255.f,
-				   color.a * 255.f);
+static inline color32_t __attribute__ ((warn_unused_result)) Color32i(int32_t rgba) {
+	return (color32_t) {
+		.rgba = rgba
+	};
+}
+
+/**
+ * @return A clamped 32-bit color for the specified floating point color.
+ */
+static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const color_t c) {
+
+	vec3_t rgb = Vec3(c.r, c.g, c.b);
+	const float max = Vec3_Hmaxf(rgb);
+	if (max > 1.f) {
+		rgb = Vec3_Scale(rgb, 1.f / max);
+	}
+	
+	return Color32(Clampf(rgb.x, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.z, 0.f, 1.f) * 255.f,
+				   Clampf(c.a, 0.f, 1.f) * 255.f);
+}
+
+/**
+ * @return A `color24_t` with the specified RGB components.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color24(byte r, byte g, byte b) {
+	return (color24_t) {
+		.r = r,
+		.g = g,
+		.b = b
+	};
+}
+
+/**
+ * @return A `color24_t` with the specified RGB integer.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color24i(int32_t rgb) {
+	union {
+		int32_t rgb;
+		color24_t c24;
+	} out;
+
+	out.rgb = rgb;
+	return out.c24;
+}
+
+/**
+ * @return A 24-bit color for the specified floating point color.
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color_Color24(const color_t c) {
+
+	vec3_t rgb = Vec3(c.r, c.g, c.b);
+	const float max = Vec3_Hmaxf(rgb);
+	if (max > 1.f) {
+		rgb = Vec3_Scale(rgb, 1.f / max);
+	}
+
+	return Color24(Clampf(rgb.x, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
+				   Clampf(rgb.z, 0.f, 1.f) * 255.f);
 }
 
 /**
@@ -340,15 +470,63 @@ static inline const char * __attribute__ ((warn_unused_result)) Color_Unparse(co
 }
 
 /**
- * @return A floating point vector for the specified color;
- */
-static inline vec3_t __attribute__ ((warn_unused_result)) Color_Vec3(const color_t color) {
-	return Vec3(color.r, color.g, color.b);
-}
-
-/**
  * @return A floating point color for the specified 32 bit integer color.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color32_Color(const color32_t c) {
 	return Color4bv(c.rgba);
+}
+
+/**
+ * @return A normalized (0.0 - 1.0) `vec3_t` for the specified 32 bit integer color.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color32_Vec3(const color32_t c) {
+	return Color4bv(c.rgba).vec3;
+}
+
+/**
+ * @return A normalized (0.0 - 1.0) `vec4_t` for the specified 32 bit integer color.
+ */
+static inline vec4_t __attribute__ ((warn_unused_result)) Color32_Vec4(const color32_t c) {
+	return Color4bv(c.rgba).vec4;
+}
+
+/**
+ * @brief Fills `len` of `out` with RGBA values from the 32 bit color (like memset).
+ */
+static inline void Color32_Fill(color32_t *out, const color32_t c, size_t len) {
+	for (size_t i = 0; i < len; i++, out++) {
+		*out = c;
+	}
+}
+
+/**
+ * @return A 24 bit color for the specified 32 bit color (RGB swizzle).
+ */
+static inline color24_t __attribute__ ((warn_unused_result)) Color32_Color24(const color32_t c) {
+	return Color24(c.r, c.g, c.b);
+}
+
+/**
+ * @return The decoded directional vector from this `color32_t`'s RGB components.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Color32_Direction(const color32_t c) {
+	return Vec3_Normalize(Vec3_Subtract(Vec3_Scale(Color32_Color(c).vec3, 2.f), Vec3_One()));
+}
+
+/**
+ * @rretur A floating point color for the specified 24 bit integer color.
+ */
+static inline color_t Color24_Color(const color24_t c) {
+	return Color3f(c.r / 255.f, 
+				   c.g / 255.f,
+				   c.b / 255.f);
+}
+
+/**
+ * @brief Fills `len` of `out` with the RGB values from the 24 bit color (like memset).
+ */
+static inline void Color24_Fill(color24_t *out, const color24_t c, size_t len) {
+	for (size_t i = 0; i < len; i++, out++) {
+		*out = c;
+	}
 }
