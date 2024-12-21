@@ -63,6 +63,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 	CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
 	$((View *) item, addSubview, (View *) teamView);
 
+	release(teamView);
 	return item;
 }
 
