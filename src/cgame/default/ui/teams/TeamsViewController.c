@@ -155,20 +155,6 @@ static void viewWillAppear(ViewController *self) {
 	release(index);
 }
 
-/**
- * @see ViewController::viewDidAppear(ViewController *)
- */
-static void viewDidAppear(ViewController *self) {
-
-	super(ViewController, self, viewWillAppear);
-
-	TeamsViewController *this = (TeamsViewController *) self;
-
-	$((View *) this->teamsCollectionView, sizeToFit);
-
-	$(self->view, sizeToFit);
-}
-
 #pragma mark - TeamsViewController
 
 #pragma mark - Class lifecycle
@@ -180,7 +166,6 @@ static void initialize(Class *clazz) {
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
-	((ViewControllerInterface *) clazz->interface)->viewDidAppear = viewDidAppear;
 }
 
 /**
