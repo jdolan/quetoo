@@ -295,14 +295,17 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 static void Cg_UpdateExposure(void) {
 	static float exposure = 1.f;
 
-	const r_bsp_lightgrid_t *lightgrid = cgi.WorldModel()->bsp->lightgrid;
+	const r_bsp_lightgrid_t *lg = cgi.WorldModel()->bsp->lightgrid;
+	const vec3_t org = cgi.view->origin;
 
-	const vec3_t pos = Vec3_Subtract(cgi.view->origin, lightgrid->bounds.mins);
-	const vec3_t xyz = Vec3_Roundf(Vec3_Divide(pos, lightgrid->luxel_size));
+	if (Box3_ContainsPoint(lg->bounds, org)) {
+		const vec3_t pos = Vec3_Subtract(org, lg->bounds.mins);
+		const vec3_t xyz = Vec3_Roundf(Vec3_Divide(pos, lg->luxel_size));
 
-	const size_t index = lightgrid->size.x * lightgrid->size.y * xyz.z + lightgrid->size.x * xyz.y + xyz.x;
+		const int32_t luxel = lg->size.x * lg->size.y * xyz.z + lg->size.x * xyz.y + xyz.x;
 
-	exposure += (lightgrid->exposure[index] - exposure) * cgi.client->frame_msec / 800.0;
+		exposure += (lg->exposure[luxel] - exposure) * cgi.client->frame_msec / 800.0;
+	}
 
 	cgi.view->exposure = Clampf(exposure, .333f, 16.f);
 }
