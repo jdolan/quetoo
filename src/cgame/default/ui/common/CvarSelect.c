@@ -107,11 +107,17 @@ static void didSelectOption(Select *select, Option *option) {
 
 	CvarSelect *this = (CvarSelect *) select;
 
-	if (this->expectsStringValue) {
-		const char *string = option->value ?: option->title->text;
-		cgi.SetCvarString(this->var->name, string);
+	if (this->var) {
+		if (this->expectsStringValue) {
+			const char *string = option->value ?: option->title->text;
+			cgi.SetCvarString(this->var->name, string);
+		} else {
+			cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+		}
 	} else {
-		cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+		String *desc = $((Object *) this, description);
+		cgi.Warn("%s: null cvar\n", desc->chars);
+		release(desc);
 	}
 }
 
