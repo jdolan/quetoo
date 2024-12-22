@@ -145,7 +145,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 
 		// add effect if ent is not buried and effect is not inhibited
 		if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 1)) {
-			ent->s.sound = gi.SoundIndex("world/teleport_hum");
+			ent->s.sound = gi.SoundIndex("common/teleport_hum");
 			ent->s.trail = TRAIL_TELEPORTER;
 		}
 	}
@@ -246,7 +246,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 
 	if (Randomf() < 0.33) {
 		G_MulticastSound(&(const g_play_sound_t) {
-			.index = gi.SoundIndex(va("world/lava_%d", (count++ % 3) + 1)),
+			.index = gi.SoundIndex(va("common/lava_%d", (count++ % 3) + 1)),
 			.entity = ent,
 			.atten = SOUND_ATTEN_SQUARE
 		}, MULTICAST_PHS, NULL);
@@ -268,7 +268,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 void G_misc_fireball(g_entity_t *self) {
 
 	for (int32_t i = 1; i < 4; i++) {
-		gi.SoundIndex(va("world/lava_%d", i));
+		gi.SoundIndex(va("common/lava_%d", i));
 	}
 
 	if (Vec3_Equal(self->s.angles, Vec3_Zero())) {

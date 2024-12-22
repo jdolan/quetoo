@@ -249,7 +249,7 @@ export class Entity {
       case "ambient_drip":
         return Object.assign(that, {
           classname: "misc_sound",
-          sound: "world/drip"
+          sound: "common/drip"
         });
       case "info_intermission":
         return Object.assign(that, {

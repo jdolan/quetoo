@@ -163,14 +163,14 @@ void Cg_LoadMedia(void) {
 	cg_sample_hook_hit = cgi.LoadSample("objects/hook/hit");
 
 	cg_sample_explosion = cgi.LoadSample("weapons/common/explosion");
-	cg_sample_teleport = cgi.LoadSample("world/teleport");
-	cg_sample_respawn = cgi.LoadSample("world/respawn");
-	cg_sample_sparks = cgi.LoadSample("world/sparks");
-	cg_sample_fire = cgi.LoadSample("world/fire");
-	cg_sample_steam = cgi.LoadSample("world/steam");
-	cg_sample_rain = cgi.LoadSample("world/rain");
-	cg_sample_snow = cgi.LoadSample("world/snow");
-	cg_sample_underwater = cgi.LoadSample("world/underwater");
+	cg_sample_teleport = cgi.LoadSample("common/teleport");
+	cg_sample_respawn = cgi.LoadSample("common/respawn");
+	cg_sample_sparks = cgi.LoadSample("common/sparks");
+	cg_sample_fire = cgi.LoadSample("common/fire");
+	cg_sample_steam = cgi.LoadSample("common/steam");
+	cg_sample_rain = cgi.LoadSample("common/rain");
+	cg_sample_snow = cgi.LoadSample("common/snow");
+	cg_sample_underwater = cgi.LoadSample("common/underwater");
 	cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
 	for (uint32_t i = 0; i < lengthof(cg_sample_hits); i++) {
