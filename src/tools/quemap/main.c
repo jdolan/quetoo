@@ -43,6 +43,11 @@ char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 bool verbose = false;
 bool debug = false;
+bool do_mat = false;
+bool do_bsp = false;
+bool do_light = false;
+bool do_zip = false;
+
 static bool is_monitor = false;
 
 static void Print(const char *msg);
@@ -305,10 +310,6 @@ static void PrintHelpMessage(void) {
  */
 int32_t main(int32_t argc, char **argv) {
 	int32_t num_threads = 0;
-	bool do_mat = false;
-	bool do_bsp = false;
-	bool do_light = false;
-	bool do_zip = false;
 
 	printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
 
@@ -436,7 +437,7 @@ int32_t main(int32_t argc, char **argv) {
 	if (do_bsp) {
 		BSP_Main();
 	}
-	if (do_light) {
+	if (do_bsp || do_light) {
 		LIGHT_Main();
 	}
 	if (do_zip) {

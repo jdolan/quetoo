@@ -133,7 +133,7 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain) {
 	if (!r_stains->value) {
 		return;
 	}
-	
+
 	if (view->num_stains == MAX_STAINS) {
 		Com_Warn("MAX_STAINS\n");
 		return;

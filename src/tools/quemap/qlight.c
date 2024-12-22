@@ -23,7 +23,7 @@
 
 bool antialias = false;
 
-// we use the collision detection facilities for lighting
+// we use a subset of the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
 /**
@@ -395,55 +395,64 @@ cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, 
  */
 static void LightWorld(void) {
 
-	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
-		Com_Error(ERROR_FATAL, "Empty map\n");
-	}
-
-	// load the bsp for tracing
-	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
-	for (int32_t i = 1; i < Cm_NumModels(); i++) {
-		bsp_models[i] = Cm_Model(va("*%d", i));
-	}
-
 	// build lightmaps
 	BuildLightmaps();
 
 	// build lightgrid
 	const size_t num_lightgrid = BuildLightgrid();
 
-	// build lights out of entities and emissive faces
-	BuildDirectLights();
+	if (do_light) {
 
-	// calculate direct lighting
-	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
-	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+		LoadMaterials(va("maps/%s.mat", map_base));
 
-	// indirect lighting
-	// build lights out of lightmapped faces
-	BuildIndirectLights();
+		// build lights out of entities and emissive faces
+		BuildDirectLights();
 
-	// calculate indirect lighting
-	Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
-	Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
+		// calculate direct lighting
+		Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
+		Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
 
-	// caustic effects
-	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
-	Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
+		// indirect lighting
+		// build lights out of lightmapped faces
+		BuildIndirectLights();
 
-	// save the light sources to the BSP
-	EmitLights();
+		// calculate indirect lighting
+		Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
+		Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
 
-	// free the light sources
-	FreeLights();
+		// caustic effects
+		Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
+		Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
 
-	// build fog volumes out of brush entities
-	BuildFog();
+		// save the light sources to the BSP
+		EmitLights();
 
-	// bake fog into the lightgrid
-	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+		// free the light sources
+		FreeLights();
 
-	// free the fog volumes
-	FreeFog();
+		// build fog volumes out of brush entities
+		BuildFog();
+
+		// bake fog into the lightgrid
+		Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+
+		// free the fog volumes
+		FreeFog();
+
+		// and the materials
+		FreeMaterials();
+	} else {
+		// pad lightmap and lightgrid for bsp-only compiles
+		lightmap_t *lm = lightmaps;
+		for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
+			for (size_t j = 0; j < lm->num_luxels; j++) {
+				lm->luxels[j].ambient = Vec3_One();
+			}
+		}
+		for (size_t i = 0; i < lg.num_luxels; i++) {
+			lg.luxels[i].ambient = Vec3_One();
+		}
+	}
 
 	// finalize it and write it to per-face textures
 	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
@@ -453,6 +462,9 @@ static void LightWorld(void) {
 
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
+
+	// free the lightmap windings
+	FreeWindings();
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
@@ -478,16 +490,18 @@ int32_t LIGHT_Main(void) {
 	const uint32_t start = SDL_GetTicks();
 
 	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
+		Com_Error(ERROR_FATAL, "Empty map\n");
+	}
 
-	LoadMaterials(va("maps/%s.mat", map_base));
+	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
+	for (int32_t i = 1; i < Cm_NumModels(); i++) {
+		bsp_models[i] = Cm_Model(va("*%d", i));
+	}
 
 	LightWorld();
 
-	FreeMaterials();
-
 	WriteBSPFile(va("maps/%s.bsp", map_base));
-
-	FreeWindings();
 
 	for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
 		Mem_FreeTag(tag);

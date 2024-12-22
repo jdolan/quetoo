@@ -393,30 +393,10 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 
 	const bsp_lightmap_t *in = bsp->cm->file->lightmap;
+	const byte *data = (byte *) in + sizeof(bsp_lightmap_t);
 
 	r_bsp_lightmap_t *out = bsp->lightmap = Mem_LinkMalloc(sizeof(*out), bsp);
-	byte *data;
-
-	if (in) {
-		out->width = in->width;
-		data = (byte *) in + sizeof(bsp_lightmap_t);
-	} else {
-		out->width = 1;
-		
-		static struct __attribute__((packed)) {
-			color24_t ambient;
-			vec3_t diffuse;
-			color24_t direction;
-			color24_t caustics;
-		} default_lightmap;
-
-		default_lightmap.ambient = Color24(255, 255, 255);
-		default_lightmap.diffuse = Vec3_Zero();
-		default_lightmap.direction = Color24(127, 127, 255);
-		default_lightmap.caustics = Color24(0, 0, 0);
-
-		data = (byte *) &default_lightmap;
-	}
+	out->width = in->width;
 
 	const GLsizei levels = log2f(out->width) + 1;
 
@@ -454,7 +434,6 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-
 	data += out->width * out->width * sizeof(vec3_t);
 
 	out->direction = (r_image_t *) R_AllocMedia("lightmap_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -473,7 +452,6 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIRECTION);
 
 	R_UploadImage(out->direction, data);
-
 	data += out->width * out->width * sizeof(color24_t);
 
 	out->caustics = (r_image_t *) R_AllocMedia("lightmap_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
@@ -538,32 +516,11 @@ static void R_ResetBspLightmapStains(r_bsp_model_t *bsp) {
 static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const bsp_lightgrid_t *in = mod->bsp->cm->file->lightgrid;
-	const byte *data;
+	const byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
+
 
 	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
-
-	if (in) {
-		out->size = in->size;
-		data = (byte *) in + sizeof(bsp_lightgrid_t);
-	} else {
-		out->size = Vec3i(1, 1, 1);
-
-		static struct __attribute__((packed)) {
-			color24_t ambient;
-			vec3_t diffuse;
-			color24_t direction;
-			color24_t caustics;
-			color32_t fog;
-		} default_lightgrid;
-
-		default_lightgrid.ambient = Color24(255, 255, 255);
-		default_lightgrid.diffuse = Vec3_One();
-		default_lightgrid.direction = Color24(127, 127, 255);
-		default_lightgrid.caustics = Color24(0, 0, 0);
-		default_lightgrid.fog = Color32(0, 0, 0, 0);
-
-		data = (byte *) &default_lightgrid;
-	}
+	out->size = in->size;
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
 	const vec3_t world_size = Box3_Size(mod->bounds);
