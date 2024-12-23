@@ -44,11 +44,12 @@ layout (location = 0) out vec4 out_color;
 layout (location = 1) out vec4 out_bloom;
 
 struct fragment_t {
+	vec3 dir;
+	float dist;
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 tbn;
-	vec3 dir;
 	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
@@ -63,20 +64,18 @@ struct fragment_t {
 } fragment;
 
 /**
- * @brief
+ * @brief Samples the heightmap at the given texture coordinate.
  */
 float sample_heightmap(vec2 texcoord) {
 	return texture(texture_material, vec3(texcoord, 1)).w;
 }
 
 /**
- * @brief
+ * @brief Sampels the displacement map at the given texture coordinate and lod.
  */
 float sample_displacement(vec2 texcoord) {
 	return 1.0 - sample_heightmap(texcoord);
 }
-
-#define PARALLAX_SAMPLES 16
 
 /**
  * @brief Calculates the augmented texcoord for parallax occlusion mapping.
@@ -84,20 +83,24 @@ float sample_displacement(vec2 texcoord) {
  */
 void parallax_occlusion_mapping() {
 
+	fragment.parallax = vertex.diffusemap;
+
 	if (material.parallax == 0.0) {
 		return;
 	}
 
+	float num_samples = mix(128, 1, linearstep(64.0, 1024.0, fragment.dist));
+
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
 	vec2 p = dir.xy / dir.z * material.parallax * .02;
-	vec2 delta = p / PARALLAX_SAMPLES;
+	vec2 delta = p / num_samples;
 
 	vec2 texcoord = vertex.diffusemap;
 	vec2 prev_texcoord = vertex.diffusemap;
 
 	float depth = 0.0;
 	float displacement = 0.0;
-	float layer = 1.0 / PARALLAX_SAMPLES;
+	float layer = 1.0 / num_samples;
 
 	for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
 		prev_texcoord = texcoord;
@@ -253,7 +256,7 @@ vec4 sample_lightgrid_fog() {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(fragment.dist / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
@@ -496,6 +499,7 @@ void light_and_shadow(void) {
 void main(void) {
 
 	fragment.dir = normalize(-vertex.position);
+	fragment.dist = length(vertex.position);
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
