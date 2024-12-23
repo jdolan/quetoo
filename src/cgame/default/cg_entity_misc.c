@@ -375,7 +375,7 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
 		data->light.color = Vec3(1.f, 1.f, 1.f);
 	}
 
-	data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
+	data->light.intensity = cgi.EntityValue(self->def, "_intensity")->value;
 
 	const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
 	g_strlcpy(data->style.string, style, sizeof(data->style.string));
