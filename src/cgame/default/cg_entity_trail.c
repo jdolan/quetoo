@@ -385,7 +385,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.origin = end, // TODO: find a way to nudge this away from the surface a bit
 		.radius = 40.f + 20.f * pulse1,
 		.color = Vec3(.05f, .5f, .05f),
-		.intensity = .5f
+		.intensity = .1f
 	});
 
 	/*mat4_t m = Mat4_FromTranslation(end);
@@ -567,7 +567,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		.origin = end,
 		.radius = 180.f,
 		.color = Vec3(.8f, .5f, .2f),
-		.intensity = .1f,
+		.intensity = .05f,
 	});
 }
 

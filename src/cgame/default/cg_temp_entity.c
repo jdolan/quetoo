@@ -660,7 +660,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.origin = org,
 		.radius = 250.0,
 		.color = Vec3(.9f, .6f, .3f),
-		.intensity = .2f,
+		.intensity = .1f,
 		.decay = 1000
 	});
 
