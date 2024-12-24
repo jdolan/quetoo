@@ -51,6 +51,7 @@ struct fragment_t {
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 tbn;
+	mat3 inv_tbn;
 	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
@@ -123,6 +124,34 @@ void parallax_occlusion_mapping() {
 	float b = sample_displacement(prev_texcoord) - depth + layer;
 
 	fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
+}
+
+/**
+ * @brief Returns the shadow scalar for parallax self shadowing.
+ * @param light_dir The light direction in tangent space.
+ * @return The self-shadowing scalar.
+ */
+float parallax_self_shadow(in vec3 light_dir) {
+
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return 1.0;
+	}
+
+	vec3 dir = normalize(fragment.inv_tbn * light_dir);
+	vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+	vec3 delta = vec3(dir.xy * (1.0 - lambert), 1.0) / 64.0;
+
+	int i = 0;
+	while (ray.z < 0.9) {
+		if (ray.z < sample_heightmap(ray.xy)) {
+			return i / 64.0;
+		}
+		ray += delta;
+		i++;
+	}
+
+	return 1.0;
 }
 
 /**
@@ -459,7 +488,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index);
+	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
 	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	diffuse *= shadow;
@@ -472,6 +501,12 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
  * @brief
  */
 void light_and_shadow(void) {
+
+	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
+	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
+	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
+	fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
@@ -516,6 +551,7 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+	fragment.inv_tbn = inverse(fragment.tbn);
 	fragment.parallax = vertex.diffusemap;
 	fragment.specular = vec3(0);
 
@@ -546,11 +582,6 @@ void main(void) {
 
 		fragment.stains = sample_lightmap_stains();
 		fragment.fog = sample_lightgrid_fog();
-
-		fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-		fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-		fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
-		fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
 		light_and_shadow();
 
