@@ -46,6 +46,7 @@ layout (location = 1) out vec4 out_bloom;
 struct fragment_t {
 	vec3 dir;
 	float dist;
+	float lod;
 	vec3 normal;
 	vec3 tangent;
 	vec3 bitangent;
@@ -64,10 +65,20 @@ struct fragment_t {
 } fragment;
 
 /**
+ * @brief
+ */
+float texture_query_lod(vec2 texcoord) {
+#if GL_ARB_texture_query_lod
+	return textureQueryLod(texture_material, texcoord).y;
+#endif
+	return 0.0;
+}
+
+/**
  * @brief Samples the heightmap at the given texture coordinate.
  */
 float sample_heightmap(vec2 texcoord) {
-	return texture(texture_material, vec3(texcoord, 1)).w;
+	return textureLod(texture_material, vec3(texcoord, 1), fragment.lod).w;
 }
 
 /**
@@ -500,6 +511,7 @@ void main(void) {
 
 	fragment.dir = normalize(-vertex.position);
 	fragment.dist = length(vertex.position);
+	fragment.lod = texture_query_lod(vertex.diffusemap);
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);

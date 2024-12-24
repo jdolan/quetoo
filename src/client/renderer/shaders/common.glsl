@@ -76,6 +76,13 @@ float saturate(float x) {
 }
 
 /**
+ * @brief Clamp value t to range [a,b] and map [a,b] to [0,1].
+ */
+float linearstep(float a, float b, float t) {
+	return clamp((t - a) / (b - a), 0.0, 1.0);
+}
+
+/**
  * @brief
  */
 vec3 hash33(vec3 p) {
