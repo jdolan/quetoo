@@ -128,28 +128,31 @@ void parallax_occlusion_mapping() {
 
 /**
  * @brief Returns the shadow scalar for parallax self shadowing.
- * @param light_dir The light direction in tangent space.
+ * @param light_dir The light direction in view space.
  * @return The self-shadowing scalar.
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return 1.0;
-	}
+	if (developer == 1) {
+		float lambert = dot(light_dir, fragment.normalmap);
+		if (lambert > 0.0) {
+			float shadow = 1.0 - lambert;
+			float iterations = 16.0 + shadow * 16.0;
+			vec3 dir = normalize(fragment.inv_tbn * light_dir);
+			vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+			vec3 delta = vec3(dir.xy * shadow, 1.0) / iterations;
 
-	vec3 dir = normalize(fragment.inv_tbn * light_dir);
-	vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-	vec3 delta = vec3(dir.xy * (1.0 - lambert), 1.0) / 64.0;
-
-	int i = 0;
-	while (ray.z < 0.9) {
-		if (ray.z < sample_heightmap(ray.xy)) {
-			return i / 64.0;
+			int i = 0;
+			while (ray.z < 1.0 && i < iterations) {
+				if (ray.z < sample_heightmap(ray.xy)) {
+					return i / iterations;
+				}
+				ray += delta;
+				i++;
+			}
 		}
-		ray += delta;
-		i++;
 	}
+
 
 	return 1.0;
 }
