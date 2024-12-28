@@ -58,7 +58,7 @@ tree_t *AllocTree(void) {
 /**
  * @brief
  */
-void FreeTreePortals_r(node_t *node) {
+static void FreeTreePortals_r(node_t *node) {
 
 	// free children
 	if (node->plane != PLANE_LEAF) {
@@ -75,6 +75,10 @@ void FreeTreePortals_r(node_t *node) {
 		FreePortal(p);
 	}
 	node->portals = NULL;
+}
+
+void FreeTreePortals(tree_t *tree) {
+	FreeTreePortals_r(tree->head_node);
 }
 
 /**
@@ -412,7 +416,7 @@ static int32_t c_pruned;
 /**
  * @brief
  */
-void PruneNodes_r(node_t *node) {
+static void PruneNodes_r(node_t *node) {
 	csg_brush_t *b, *next;
 
 	if (node->plane == PLANE_LEAF) {
@@ -482,7 +486,7 @@ static int32_t c_merged_faces;
 /**
  * @brief
  */
-void MergeFaces_r(node_t *node) {
+static void MergeFaces_r(node_t *node) {
 
 	if (node->plane == PLANE_LEAF) {
 		return;

@@ -186,7 +186,7 @@ void WritePortalFile(tree_t *tree) {
 	num_vis_clusters = 0;
 	num_vis_portals = 0;
 
-	FreeTreePortals_r(tree->head_node);
+	FreeTreePortals(tree);
 
 	MakeHeadnodePortals(tree);
 
