@@ -274,34 +274,15 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
- */
-static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	R_DestroyOcclusionQuery(&node->query);
-
-	R_DestroyNodeOcclusionQueries(node->children[0]);
-	R_DestroyNodeOcclusionQueries(node->children[1]);
-}
-
-/**
  * @brief Sets up in-memory relationships between node, parent and model.
- * @remarks Additionally, occlusion queries are generated from the visible bounds of the node.
- * The desired occlusion query size is controlled by `r_occlusion_query_size`. Nodes of this size
- * or greater are selected from the tree using bottom-up recursion.
- * @return True if an occlusion query was generated for the node.
  */
-static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
 	node->parent = parent;
 
 	if (node->contents != CONTENTS_NODE) {
-		return false;
+		return;
 	}
 
 	r_bsp_face_t *face = node->faces;
@@ -309,25 +290,91 @@ static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 		face->node = node;
 	}
 
-	const bool a = R_SetupBspNode(model, node, node->children[0]);
-	const bool b = R_SetupBspNode(model, node, node->children[1]);
+	R_SetupBspNode(model, node, node->children[0]);
+	R_SetupBspNode(model, node, node->children[1]);
+}
+
+/**
+ * @brief
+ */
+static void R_DestroyBspNodeOcclusionQuery(r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	R_DestroyOcclusionQuery(&node->query);
+}
+
+/**
+ * @brief Creates occlusion queries for qualfied nodes through bottom-up recursion.
+ * @return True if an occlusion query was generated for the node.
+ */
+static bool R_CreateBspNodeOcclusionQuery(r_bsp_model_t *bsp, r_bsp_node_t *node) {
+
+	if (node->contents != CONTENTS_NODE) {
+		return false;
+	}
+
+	const bool a = R_CreateBspNodeOcclusionQuery(bsp, node->children[0]);
+	const bool b = R_CreateBspNodeOcclusionQuery(bsp, node->children[1]);
 
 	if (!a || !b) {
-
-		const float size = r_occlusion_query_size->value;
-		if (Box3_Volume(node->visible_bounds) > size * size * size) {
+		if (Vec3_Hminf(Box3_Size(node->bounds)) >= r_occlusion_query_size->value) {
 			if (a) {
-				R_DestroyNodeOcclusionQueries(node->children[0]);
+				R_DestroyBspNodeOcclusionQuery(node->children[0]);
 			}
 			if (b) {
-				R_DestroyNodeOcclusionQueries(node->children[1]);
+				R_DestroyBspNodeOcclusionQuery(node->children[1]);
 			}
-			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, ON_EPSILON));
+			node->query = R_CreateOcclusionQuery(Box3_Expand(node->bounds, ON_EPSILON));
 			return true;
 		}
 	}
 
 	return a || b;
+}
+
+/**
+ * @brief Creates occlusion queries for qualified nodes, then ensures they do not overlap.
+ */
+static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+	R_CreateBspNodeOcclusionQuery(bsp, bsp->nodes);
+
+	retry: {
+		r_bsp_node_t *n = bsp->nodes;
+		for (int32_t i = 0; i < bsp->num_nodes; i++, n++) {
+
+			r_occlusion_query_t *q = &n->query;
+			if (!q->name) {
+				continue;
+			}
+
+			r_bsp_node_t *m = bsp->nodes;
+			for (int32_t j = 0; j < bsp->num_nodes; j++, m++) {
+
+				r_occlusion_query_t *p = &m->query;
+				if (!p->name) {
+					continue;
+				}
+
+				if (j == i) {
+					continue;
+				}
+
+				if (Box3_Contains(q->bounds, p->bounds)) {
+					R_DestroyBspNodeOcclusionQuery(m);
+					goto retry;
+				}
+
+				if (Box3_Contains(p->bounds, q->bounds)) {
+					R_DestroyBspNodeOcclusionQuery(n);
+					goto retry;
+				}
+			}
+		}
+	}
 }
 
 /**
@@ -777,6 +824,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspDrawElements(mod->bsp);
 	R_LoadBspLeafs(mod->bsp);
 	R_LoadBspNodes(mod->bsp);
+	R_CreateBspOcclusionQueries(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
