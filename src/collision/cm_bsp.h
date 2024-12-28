@@ -44,7 +44,6 @@
 #define MAX_BSP_DRAW_ELEMENTS		0x20000
 #define MAX_BSP_NODES				0x20000
 #define MAX_BSP_LEAF_BRUSHES 		0x20000
-#define MAX_BSP_LEAF_FACES			0x20000
 #define MAX_BSP_LEAFS				0x20000
 #define MAX_BSP_MODELS				0x400
 #define MAX_BSP_LIGHTS				0x1000
@@ -122,7 +121,6 @@ typedef enum {
 	BSP_LUMP_DRAW_ELEMENTS,
 	BSP_LUMP_NODES,
 	BSP_LUMP_LEAF_BRUSHES,
-	BSP_LUMP_LEAF_FACES,
 	BSP_LUMP_LEAFS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_LIGHTS,
@@ -252,8 +250,6 @@ typedef struct {
 	box3_t bounds; // for collision
 	box3_t visible_bounds; // for frustum culling
 
-	int32_t first_leaf_face;
-	int32_t num_leaf_faces;
 
 	int32_t first_leaf_brush;
 	int32_t num_leaf_brushes;
@@ -379,9 +375,6 @@ typedef struct bsp_file_s {
 
 	int32_t num_leaf_brushes;
 	int32_t *leaf_brushes;
-
-	int32_t num_leaf_faces;
-	int32_t *leaf_faces;
 
 	int32_t num_leafs;
 	bsp_leaf_t *leafs;
