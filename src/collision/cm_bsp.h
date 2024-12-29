@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION	71
+#define BSP_VERSION	72
 
 /**
  * @brief BSP file format limits.
@@ -132,19 +132,37 @@ typedef enum {
 #define BSP_LUMPS_ALL ((1 << BSP_LUMP_LAST) - 1)
 
 /**
- * @brief Represents the data to find and read in a lump from the disk.
+ * @brief The BSP lump type.
  */
 typedef struct {
+	/**
+	 * @brief The lump offset in bytes.
+	 */
 	int32_t file_ofs;
+
+	/**
+	 * @brief The lump length in bytes.
+	 */
 	int32_t file_len;
 } bsp_lump_t;
 
 /**
- * @brief Represents the header of a BSP file.
+ * @brief The BSP header type.
  */
 typedef struct {
+	/**
+	 * @brief `BSP_IDENT`
+	 */
 	int32_t ident;
+
+	/**
+	 * @brief `BSP_VERSION`
+	 */
 	int32_t version;
+
+	/**
+	 * @brief The lump table of contents.
+	 */
 	bsp_lump_t lumps[BSP_LUMP_LAST];
 } bsp_header_t;
 
@@ -159,7 +177,14 @@ typedef struct {
  * @brief Planes are stored in opposing pairs, with positive normal vectors first in each pair.
  */
 typedef struct {
+	/**
+	 * @brief The normal vector.
+	 */
 	vec3_t normal;
+
+	/**
+	 * @brief The distance, or offset, from the origin.
+	 */
 	float dist;
 } bsp_plane_t;
 
@@ -171,28 +196,77 @@ typedef struct {
 /**
  * @brief Brush sides are defined by map input, and by BSP tree generation. Map brushes
  * may be split into multiple BSP brushes, producing new sides where they are split.
- * Non-axial map brushes are also "beveled" to optimize collision detection.
+ * Non-axial map brushes are also "beveled" (padded to axial with additional non-visible sides)
+ * to optimize collision detection.
  */
 typedef struct {
-	int32_t plane; // facing out of the leaf
+	/**
+	 * @brief The index of the plane of this brush side.
+	 */
+	int32_t plane;
+
+	/**
+	 * @brief The index of the material.
+	 */
 	int32_t material;
-	vec4_t axis[2]; // [s/t][xyz + offset]
+
+	/**
+	 * @brief The texture projection in .map format.
+	 * @details A pair of 4-element vectors in the form: `[s/t][xyz + offset]`
+	 */
+	vec4_t axis[2];
+
+	/**
+	 * @brief The contents bitmask.
+	 * @remarks This must be uniform on all sides of any given brush. The editor enforces this.
+	 */
 	int32_t contents;
+
+	/**
+	 * @brief The surface bitmask.
+	 * @remarks Unlike contents, these may vary from side to side on a given brush.
+	 */
 	int32_t surface;
-	int32_t value; // light emission, etc
+
+	/**
+	 * @brief The surface value, used for light emission, Phong grouping, etc.
+	 */
+	int32_t value;
 } bsp_brush_side_t;
 
 /**
  * @brief Brushes are convex volumes defined by four or more clipping planes.
  */
 typedef struct {
-	int32_t entity; // the entity that defined this brush
+	/**
+	 * @brief The index of the entity that defined this brush in the source .map.
+	 */
+	int32_t entity;
+
+	/**
+	 * @brief The contents bitmask.
+	 */
 	int32_t contents;
+
+	/**
+	 * @brief The index of the first brush side belonging to this brush.
+	 */
 	int32_t first_brush_side;
-	int32_t num_brush_sides; // the number of total brush sides, including bevel sides
+
+	/**
+	 * @brief The count of brush sides, including bevels.
+	 */
+	int32_t num_brush_sides;
+
+	/**
+	 * @brief The AABB of this brush.
+	 */
 	box3_t bounds;
 } bsp_brush_t;
 
+/**
+ * @brief The BSP vertex type.
+ */
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
@@ -207,10 +281,24 @@ typedef struct {
  * @brief Face lightmaps contain atlas offsets and dimensions.
  */
 typedef struct {
+	/**
+	 * @brief The S and T atlas coordinates in luxels.
+	 */
 	int32_t s, t;
+
+	/**
+	 * @brief The width and height in luxels.
+	 */
 	int32_t w, h;
 
+	/**
+	 * @brief The texture coordinate bounds as floating point fractions.
+	 */
 	vec2_t st_mins, st_maxs;
+
+	/**
+	 * @brief The lightmap texture projection matrix.
+	 */
 	mat4_t matrix;
 } bsp_face_lightmap_t;
 
@@ -218,40 +306,109 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
-	int32_t brush_side; // the brush side that produced this face
-	int32_t plane; // the plane; for translucent brushes, this may be the negation of the side plane
+	/**
+	 * @brief The index of the brush side which created this face.
+	 */
+	int32_t brush_side;
 
+	/**
+	 * @brief The index of the plane.
+	 * @details For translucent brushes, this may be the negation of the node's plane.
+	 */
+	int32_t plane;
+
+	/**
+	 * @brief The AABB of this face.
+	 */
 	box3_t bounds;
 
+	/**
+	 * @brief The index of the first vertex within this face.
+	 */
 	int32_t first_vertex;
+
+	/**
+	 * @brief The count of vertexes.
+	 */
 	int32_t num_vertexes;
 
+	/**
+	 * @brief The index of the first element of this face.
+	 */
 	int32_t first_element;
+
+	/**
+	 * @brief The count of elements.
+	 */
 	int32_t num_elements;
 
+	/**
+	 * @brief The lightmap information.
+	 */
 	bsp_face_lightmap_t lightmap;
 } bsp_face_t;
 
+/**
+ * @brief The BSP node type.
+ * @details Nodes are created by planes in the .map file, selected by a heuristic that emphasizes
+ * planes which include visible faces and split as few brushes as possible.
+ */
 typedef struct {
+	/**
+	 * @brief The index of the plane that created this node.
+	 */
 	int32_t plane;
-	int32_t children[2]; // negative numbers are -(leafs + 1), not nodes
 
-	box3_t bounds; // for collision
-	box3_t visible_bounds; // for frustum culling
+	/**
+	 * @brief The indexes of the child nodes.
+	 * @details Negative values are leaf indexes, `-(index + 1)` to account for padding.
+	 */
+	int32_t children[2];
 
+	/**
+	 * @brief The AABB of this node used for collision.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The AABB of visible faces on this node.
+	 * @remarks Often smaller than bounds, and useful for frustum culling.
+	 */
+	box3_t visible_bounds;
+
+	/**
+	 * @brief The index of the first face within this node.
+	 */
 	int32_t first_face;
-	int32_t num_faces; // counting both sides
+
+	/**
+	 * @brief The count of faces, front and back, on this node.
+	 */
+	int32_t num_faces;
 } bsp_node_t;
 
+/**
+ * @brief The BSP leaf type.
+ */
 typedef struct {
-	int32_t contents; // OR of all brushes
-	int32_t cluster;
+	/**
+	 * @brief The contents of the leaf, which is the bitwise OR of all brushes inside the leaf.
+	 */
+	int32_t contents;
 
-	box3_t bounds; // for collision
-	box3_t visible_bounds; // for frustum culling
+	/**
+	 * @brief The AABB of this leaf used for collision.
+	 */
+	box3_t bounds;
 
-
+	/**
+	 * @brief The index of the first leaf-brush reference.
+	 */
 	int32_t first_leaf_brush;
+
+	/**
+	 * @brief The number of leaf-brush references for this leaf.
+	 */
 	int32_t num_leaf_brushes;
 } bsp_leaf_t;
 
@@ -262,26 +419,82 @@ typedef struct {
  * are also grouped.
  */
 typedef struct {
+	/**
+	 * @brief The plane index.
+	 * @details Alpha blended elements are grouped by plane so that they may be depth sorted.
+	 */
 	int32_t plane;
+
+	/**
+	 * @brief The material index.
+	 */
 	int32_t material;
+
+	/**
+	 * @brief The surface flags bitmask.
+	 */
 	int32_t surface;
 
+	/**
+	 * @brief The AABB for occlusion and frustum culling.
+	 */
 	box3_t bounds;
 
+	/**
+	 * @brief The index of the first element.
+	 */
 	int32_t first_element;
+
+	/**
+	 * @brief The count of elements.
+	 */
 	int32_t num_elements;
 } bsp_draw_elements_t;
 
+/**
+ * @brief The BSP inline model type.
+ * @details Each map is comprised of 1 or more inline models. The first is the _wordlspawn_ entity.
+ */
 typedef struct {
+	/**
+	 * @brief The index of the entity that defined this model.
+	 */
 	int32_t entity;
+
+	/**
+	 * @brief The index of the head node of this model's BSP tree.
+	 */
 	int32_t head_node;
 
+	/**
+	 * @brief The AABB of this model.
+	 */
 	box3_t bounds;
 
+	/**
+	 * @brief The AABB of this model's visible faces.
+	 * @remarks Often smaller than `bounds`, and useful for frustum culling.
+	 */
+	box3_t visible_bounds;
+
+	/**
+	 * @brief The index of the first face belonging to this model.
+	 */
 	int32_t first_face;
+
+	/**
+	 * @brief The count of faces belonging to this model.
+	 */
 	int32_t num_faces;
 
+	/**
+	 * @brief The index of the first draw element of this model.
+	 */
 	int32_t first_draw_elements;
+
+	/**
+	 * @brief The count of draw elements.
+	 */
 	int32_t num_draw_elements;
 } bsp_model_t;
 
