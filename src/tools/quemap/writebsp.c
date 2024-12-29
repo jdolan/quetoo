@@ -93,7 +93,6 @@ static int32_t EmitLeaf(node_t *node) {
 	bsp_file.num_leafs++;
 
 	out->contents = node->contents;
-	out->cluster = node->cluster;
 	out->bounds = node->bounds;
 
 	// write the leaf_brushes
@@ -488,6 +487,10 @@ bsp_model_t *BeginModel(const entity_t *e) {
  */
 void EndModel(bsp_model_t *mod) {
 
+	const bsp_node_t *head_node = &bsp_file.nodes[mod->head_node];
+	mod->visible_bounds = head_node->visible_bounds;
+
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
+
 	mod->num_draw_elements = EmitDrawElements(mod);
 }
