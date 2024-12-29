@@ -427,7 +427,7 @@ void Cl_Interpolate(void) {
 			assert(mod);
 			assert(mod->bsp_inline);
 
-			ent->bounds = mod->bsp_inline->bounds;
+			ent->bounds = mod->bsp_inline->visible_bounds;
 		} else {
 			angles = Vec3_Zero();
 			ent->bounds = ent->current.bounds;

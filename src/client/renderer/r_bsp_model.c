@@ -233,10 +233,8 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
-
 		out->contents = in->contents;
 		out->bounds = in->bounds;
-		out->visible_bounds = in->visible_bounds;
 	}
 }
 
@@ -304,6 +302,9 @@ static void R_DestroyBspNodeOcclusionQuery(r_bsp_node_t *node) {
 	}
 
 	R_DestroyOcclusionQuery(&node->query);
+
+	R_DestroyOcclusionQuery(&node->children[0]->query);
+	R_DestroyOcclusionQuery(&node->children[1]->query);
 }
 
 /**
@@ -375,6 +376,25 @@ static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
 			}
 		}
 	}
+
+#if 0
+	r_bsp_node_t *n = bsp->nodes;
+	for (int32_t i = 0; i < bsp->num_nodes; i++, n++) {
+
+		if (n->contents == CONTENTS_NODE) {
+
+			if (n->children[0]->contents == CONTENTS_NODE) {
+				assert(Box3_Contains(n->bounds, n->children[0]->bounds));
+				assert(Box3_Contains(n->visible_bounds, n->children[0]->visible_bounds));
+			}
+
+			if (n->children[1]->contents == CONTENTS_NODE) {
+				assert(Box3_Contains(n->bounds, n->children[1]->bounds));
+				assert(Box3_Contains(n->visible_bounds, n->children[1]->visible_bounds));
+			}
+		}
+	}
+#endif
 }
 
 /**
@@ -393,7 +413,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->def = bsp->cm->entities[in->entity];
 		out->head_node = bsp->nodes + in->head_node;
 
-		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -781,7 +801,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		out->type = MODEL_BSP_INLINE;
 		out->bsp_inline = in;
 
-		out->bounds = in->bounds;
+		out->bounds = in->visible_bounds;
 
 		mod->bounds = Box3_Union(mod->bounds, out->bounds);
 

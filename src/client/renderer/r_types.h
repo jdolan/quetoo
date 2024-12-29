@@ -554,7 +554,8 @@ typedef struct r_bsp_node_s {
 	box3_t bounds;
 
 	/**
-	 * @brief The AABB of visible faces within this node (often smaller than bounds).
+	 * @brief The AABB of visible faces within this node.
+	 * @remarks Often smaller than bounds, and useful for frustum culling.
 	 */
 	box3_t visible_bounds;
 
@@ -612,11 +613,6 @@ typedef struct {
 	box3_t bounds;
 
 	/**
-	 * @brief The AABB of visible faces within this node (often smaller than bounds).
-	 */
-	box3_t visible_bounds;
-
-	/**
 	 * @brief The parent node.
 	 */
 	struct r_bsp_node_s *parent;
@@ -647,7 +643,7 @@ typedef struct r_bsp_inline_model_s {
 	/**
 	 * @brief For frustum culling.
 	 */
-	box3_t bounds;
+	box3_t visible_bounds;
 
 	/**
 	 * @brief The faces of this inline model.

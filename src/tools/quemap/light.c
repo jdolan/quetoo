@@ -487,7 +487,7 @@ static void HashLights(light_type_t type) {
 			g_ptr_array_free(leaf_lights[i], true);
 		}
 
-		leaf_lights[i] = BoxLights(type, Box3_Expand(leaf->visible_bounds, BSP_LIGHTMAP_LUXEL_SIZE));
+		leaf_lights[i] = BoxLights(type, Box3_Expand(leaf->bounds, BSP_LIGHTMAP_LUXEL_SIZE));
 	}
 }
 

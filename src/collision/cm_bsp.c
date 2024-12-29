@@ -245,10 +245,7 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 	for (int32_t i = 0; i < num; i++) {
 
 		leaf->contents = LittleLong(leaf->contents);
-		leaf->cluster = LittleLong(leaf->cluster);
-
 		leaf->bounds = LittleBounds(leaf->bounds);
-		
 		leaf->first_leaf_brush = LittleLong(leaf->first_leaf_brush);
 		leaf->num_leaf_brushes = LittleLong(leaf->num_leaf_brushes);
 
@@ -269,6 +266,7 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->head_node = LittleLong(model->head_node);
 		
 		model->bounds = LittleBounds(model->bounds);
+		model->visible_bounds = LittleBounds(model->visible_bounds);
 
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);

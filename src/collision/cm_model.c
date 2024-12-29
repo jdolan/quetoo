@@ -88,9 +88,7 @@ static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
 	cm_bsp_leaf_t *out = bsp->leafs = Mem_TagMalloc(sizeof(cm_bsp_leaf_t) * (bsp->num_leafs + 1), MEM_TAG_COLLISION); // extra for box hull
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
-
 		out->contents = in->contents;
-		out->cluster = in->cluster;
 		out->first_leaf_brush = in->first_leaf_brush;
 		out->num_leaf_brushes = in->num_leaf_brushes;
 	}
@@ -359,18 +357,6 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 	}
 
 	return cm_bsp.leafs[leaf_num].contents;
-}
-
-/**
- * @brief
- */
-int32_t Cm_LeafCluster(const int32_t leaf_num) {
-
-	if (leaf_num < 1 || leaf_num >= cm_bsp.num_leafs) {
-		Com_Error(ERROR_DROP, "Bad number: %d\n", leaf_num);
-	}
-
-	return cm_bsp.leafs[leaf_num].cluster;
 }
 
 /**

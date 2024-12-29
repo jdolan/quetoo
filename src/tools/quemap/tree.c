@@ -527,9 +527,39 @@ again:
 /**
  * @brief
  */
+static box3_t CalcNodeVisibleBounds_r(node_t *node) {
+
+	if (node->plane == PLANE_LEAF) {
+		return Box3_Null();
+	}
+
+	const box3_t a = CalcNodeVisibleBounds_r(node->children[0]);
+	const box3_t b = CalcNodeVisibleBounds_r(node->children[1]);
+
+	node->visible_bounds = Box3_Union(a, b);
+
+	for (face_t *face = node->faces; face; face = face->next) {
+
+		face_t *f = face;
+		while (f->merged) {
+			f = f->merged;
+		}
+
+		assert(f->w);
+		node->visible_bounds = Box3_Union(node->visible_bounds, Cm_WindingBounds(f->w));
+	}
+
+	return node->visible_bounds;
+}
+
+
+/**
+ * @brief
+ */
 void MergeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MergeTreeFaces ---\n");
 	c_merged_faces = 0;
 	MergeFaces_r(tree->head_node);
+	CalcNodeVisibleBounds_r(tree->head_node);
 	Com_Verbose("%5i merged faces\n", c_merged_faces);
 }
