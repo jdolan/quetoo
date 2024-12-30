@@ -157,6 +157,21 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const bo
 }
 
 /**
+ * @return A `box_t` that is the intersection of the passed bounds.
+ */
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_Intersection(const box3_t a, const box3_t b) {
+
+	if (!Box3_Intersects(a, b)) {
+		return Box3_Null();
+	} else {
+		return (box3_t) {
+			.mins = Vec3_Maxf(a.mins, b.mins),
+			.maxs = Vec3_Minf(a.maxs, b.maxs)
+		};
+	}
+}
+
+/**
  * @return `true` if `a` contains the point `b`, `false` otherwise.
 */
 static inline bool __attribute__ ((warn_unused_result)) Box3_ContainsPoint(const box3_t a, const vec3_t b) {
