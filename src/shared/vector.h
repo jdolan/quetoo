@@ -354,7 +354,7 @@ static inline float __attribute__ ((warn_unused_result)) Degrees(float radians) 
  * @return True if `fabsf(a - b) <= epsilon`.
  */
 static inline bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
-	return fabsf(a - b) <= epsilon;
+	return (isinf(a) && isinf(b)) || fabsf(a - b) <= epsilon;
 }
 
 /**
