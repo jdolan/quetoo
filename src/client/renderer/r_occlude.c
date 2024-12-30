@@ -28,11 +28,6 @@
  */
 static struct {
 	/**
-	 * @brief The queries.
-	 */
-	r_occlusion_query_t queries[MAX_OCCLUSION_QUERIES];
-
-	/**
 	 * @brief The vertex array object.
 	 */
 	GLuint vertex_array;
@@ -61,8 +56,8 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	const r_occlusion_query_t *query = r_occlusion.queries;
-	for (int32_t i = 0; query->name && i < MAX_OCCLUSION_QUERIES; i++, query++) {
+	const r_occlusion_query_t *query = r_world_model->bsp->occlusion_queries;
+	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, query++) {
 		if (Box3_Intersects(query->bounds, bounds) && query->result > 0) {
 			return false;
 		}
@@ -102,15 +97,14 @@ r_occlusion_query_t R_CreateOcclusionQuery(const box3_t bounds) {
 	GLuint name;
 	glGenQueries(1, &name);
 
-	assert(name);
 	assert(name < MAX_OCCLUSION_QUERIES);
 
-	r_occlusion_query_t *query = &r_occlusion.queries[name - 1];
-
-	query->name = name;
-	query->bounds = bounds;
-	query->available = 1;
-	query->result = 1;
+	r_occlusion_query_t query = {
+		.name = name,
+		.bounds = bounds,
+		.available = 1,
+		.result = 1,
+	};
 
 	vec3_t vertexes[8];
 	Box3_ToPoints(bounds, vertexes);
@@ -120,7 +114,7 @@ r_occlusion_query_t R_CreateOcclusionQuery(const box3_t bounds) {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	R_GetError(NULL);
-	return *query;
+	return query;
 }
 
 /**
@@ -140,23 +134,11 @@ void R_DestroyOcclusionQuery(r_occlusion_query_t *query) {
 /**
  * @brief
  */
-void R_DestroyOcclusionQueries(void) {
-
-	r_occlusion_query_t *query = r_occlusion.queries;
-	for (int32_t i = 0; i < MAX_OCCLUSION_QUERIES; i++, query++) {
-		R_DestroyOcclusionQuery(query);
-	}
-}
-
-/**
- * @brief
- */
 static void R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
 
 	if (Box3_ContainsPoint(Box3_Expand(query->bounds, 16.f), view->origin)) {
 		query->available = 2;
 		query->result = 1;
-
 	} else if (R_CullBox(view, query->bounds)) {
 		query->available = 3;
 		query->result = 0;
@@ -201,8 +183,8 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
 
-	r_occlusion_query_t *query = r_occlusion.queries;
-	for (int32_t i = 0; query->name && i < MAX_OCCLUSION_QUERIES; i++, query++) {
+	r_occlusion_query_t *query = r_world_model->bsp->occlusion_queries;
+	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, query++) {
 
 		R_UpdateOcclusionQuery(view, query);
 
@@ -283,8 +265,6 @@ void R_InitOcclusionQueries(void) {
  * @brief
  */
 void R_ShutdownOcclusionQueries(void) {
-
-	R_DestroyOcclusionQueries();
 
 	glDeleteVertexArrays(1, &r_occlusion.vertex_array);
 

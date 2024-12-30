@@ -314,40 +314,11 @@ static box3_t R_ClipBspOcclusionQuery(const r_bsp_node_t *node, const box3_t bou
 }
 
 /**
- * @brief Finds the top node of the bounding box and creates a clipped occlusion query there.
- */
-static void R_CreateBspOcclusionQuery(r_bsp_model_t *bsp, const box3_t bounds) {
-
-	r_bsp_node_t *top_node = bsp->nodes;
-	r_bsp_node_t *node = top_node;
-	while (node->contents == CONTENTS_NODE) {
-		const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
-		if (side == SIDE_FRONT) {
-			top_node = node;
-			node = node->children[0];
-		} else if (side == SIDE_BACK) {
-			top_node = node;
-			node = node->children[1];
-		} else {
-			break;
-		}
-	}
-
-	assert(top_node);
-	assert(top_node->contents == CONTENTS_NODE);
-
-	const box3_t clipped = R_ClipBspOcclusionQuery(top_node, bounds);
-	if (Box3_Equal(Box3_Null(), clipped)) {
-		return;
-	}
-
-	R_CreateOcclusionQuery(clipped);
-}
-
-/**
- * @brief Creates occlusion queries for qualified nodes, then ensures they do not overlap.
+ * @brief Creates occlusion queries on a grid, and clips them to the BSP to reduce overdraw.
  */
 static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
+
+	GArray *queries = g_array_new(false, false, sizeof(r_occlusion_query_t));
 
 	const float size = r_occlusion_query_size->value;
 	const box3_t world_bounds = bsp->nodes->visible_bounds;
@@ -362,10 +333,43 @@ static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
 				const vec3_t mins = Vec3(x, y, z);
 				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
 
-				R_CreateBspOcclusionQuery(bsp, Box3(mins, maxs));
+				box3_t bounds = Box3(mins, maxs);
+
+				const r_bsp_node_t *top_node = bsp->nodes;
+				const r_bsp_node_t *node = top_node;
+				while (node->contents == CONTENTS_NODE) {
+					const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
+					if (side == SIDE_FRONT) {
+						top_node = node;
+						node = node->children[0];
+					} else if (side == SIDE_BACK) {
+						top_node = node;
+						node = node->children[1];
+					} else {
+						break;
+					}
+				}
+
+				assert(top_node->contents == CONTENTS_NODE);
+
+				bounds = R_ClipBspOcclusionQuery(top_node, bounds);
+				if (Box3_Equal(Box3_Null(), bounds)) {
+					continue;
+				}
+
+				r_occlusion_query_t query = R_CreateOcclusionQuery(bounds);
+				g_array_append_val(queries, query);
 			}
 		}
 	}
+
+	const size_t len = queries->len * sizeof(r_occlusion_query_t);
+
+	bsp->occlusion_queries = Mem_LinkMalloc(len, bsp);
+	bsp->num_occlusion_queries = queries->len;
+
+	memcpy(bsp->occlusion_queries, queries->data, len);
+	g_array_free(queries, true);
 }
 
 /**
@@ -878,7 +882,10 @@ static void R_FreeBspModel(r_media_t *self) {
 		g_ptr_array_free(in->blend_elements, true);
 	}
 
-	R_DestroyOcclusionQueries();
+	r_occlusion_query_t *query = mod->bsp->occlusion_queries;
+	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++, query++) {
+		R_DestroyOcclusionQuery(query);
+	}
 }
 
 /**
