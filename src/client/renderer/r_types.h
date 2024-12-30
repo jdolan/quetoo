@@ -589,12 +589,6 @@ typedef struct r_bsp_node_s {
 	 * @brief The count of faces.
 	 */
 	int32_t num_faces;
-
-	/**
-	 * @brief The occlusion query matching the visible bounds of this node.
-	 * @details For nodes that created occlusion queries, the `name` will be non-zero.
-	 */
-	r_occlusion_query_t query;
 } r_bsp_node_t;
 
 /**

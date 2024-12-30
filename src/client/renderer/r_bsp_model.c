@@ -293,47 +293,55 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 }
 
 /**
- * @brief
+ * @brief Clips the bounding box by all non-solid leafs in the node.
  */
-static void R_DestroyBspNodeOcclusionQuery(r_bsp_node_t *node) {
+static box3_t R_ClipBspOcclusionQuery(const r_bsp_node_t *node, const box3_t bounds) {
 
 	if (node->contents != CONTENTS_NODE) {
-		return;
+		const r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
+
+		if (leaf->contents != CONTENTS_SOLID) {
+			return Box3_Intersection(leaf->bounds, bounds);
+		}
+
+		return Box3_Null();
 	}
 
-	R_DestroyOcclusionQuery(&node->query);
+	const box3_t a = R_ClipBspOcclusionQuery(node->children[0], bounds);
+	const box3_t b = R_ClipBspOcclusionQuery(node->children[1], bounds);
 
-	R_DestroyOcclusionQuery(&node->children[0]->query);
-	R_DestroyOcclusionQuery(&node->children[1]->query);
+	return Box3_Union(a, b);
 }
 
 /**
- * @brief Creates occlusion queries for qualfied nodes through bottom-up recursion.
- * @return True if an occlusion query was generated for the node.
+ * @brief Finds the top node of the bounding box and creates a clipped occlusion query there.
  */
-static bool R_CreateBspNodeOcclusionQuery(r_bsp_model_t *bsp, r_bsp_node_t *node) {
+static void R_CreateBspOcclusionQuery(r_bsp_model_t *bsp, const box3_t bounds) {
 
-	if (node->contents != CONTENTS_NODE) {
-		return false;
-	}
-
-	const bool a = R_CreateBspNodeOcclusionQuery(bsp, node->children[0]);
-	const bool b = R_CreateBspNodeOcclusionQuery(bsp, node->children[1]);
-
-	if (!a || !b) {
-		if (Vec3_Hminf(Box3_Size(node->bounds)) >= r_occlusion_query_size->value) {
-			if (a) {
-				R_DestroyBspNodeOcclusionQuery(node->children[0]);
-			}
-			if (b) {
-				R_DestroyBspNodeOcclusionQuery(node->children[1]);
-			}
-			node->query = R_CreateOcclusionQuery(Box3_Expand(node->bounds, ON_EPSILON));
-			return true;
+	r_bsp_node_t *top_node = bsp->nodes;
+	r_bsp_node_t *node = top_node;
+	while (node->contents == CONTENTS_NODE) {
+		const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
+		if (side == SIDE_FRONT) {
+			top_node = node;
+			node = node->children[0];
+		} else if (side == SIDE_BACK) {
+			top_node = node;
+			node = node->children[1];
+		} else {
+			break;
 		}
 	}
 
-	return a || b;
+	assert(top_node);
+	assert(top_node->contents == CONTENTS_NODE);
+
+	const box3_t clipped = R_ClipBspOcclusionQuery(top_node, bounds);
+	if (Box3_Equal(Box3_Null(), clipped)) {
+		return;
+	}
+
+	R_CreateOcclusionQuery(clipped);
 }
 
 /**
@@ -341,60 +349,23 @@ static bool R_CreateBspNodeOcclusionQuery(r_bsp_model_t *bsp, r_bsp_node_t *node
  */
 static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
 
-	R_CreateBspNodeOcclusionQuery(bsp, bsp->nodes);
+	const float size = r_occlusion_query_size->value;
+	const box3_t world_bounds = bsp->nodes->visible_bounds;
 
-	retry: {
-		r_bsp_node_t *n = bsp->nodes;
-		for (int32_t i = 0; i < bsp->num_nodes; i++, n++) {
+	const vec3_t grid_mins = Vec3_Scale(Vec3_Floorf(Vec3_Scale(world_bounds.mins, 1.f / size)), size);
+	const vec3_t grid_maxs = Vec3_Scale(Vec3_Ceilf(Vec3_Scale(world_bounds.maxs, 1.f / size)), size);
 
-			r_occlusion_query_t *q = &n->query;
-			if (!q->name) {
-				continue;
-			}
+	for (float x = grid_mins.x; x < grid_maxs.x; x+= size) {
+		for (float y = grid_mins.y; y < grid_maxs.y; y+= size) {
+			for (float z = grid_mins.z; z < grid_maxs.z; z += size) {
 
-			r_bsp_node_t *m = bsp->nodes;
-			for (int32_t j = 0; j < bsp->num_nodes; j++, m++) {
+				const vec3_t mins = Vec3(x, y, z);
+				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
 
-				r_occlusion_query_t *p = &m->query;
-				if (!p->name) {
-					continue;
-				}
-
-				if (j == i) {
-					continue;
-				}
-
-				if (Box3_Contains(q->bounds, p->bounds)) {
-					R_DestroyBspNodeOcclusionQuery(m);
-					goto retry;
-				}
-
-				if (Box3_Contains(p->bounds, q->bounds)) {
-					R_DestroyBspNodeOcclusionQuery(n);
-					goto retry;
-				}
+				R_CreateBspOcclusionQuery(bsp, Box3(mins, maxs));
 			}
 		}
 	}
-
-#if 0
-	r_bsp_node_t *n = bsp->nodes;
-	for (int32_t i = 0; i < bsp->num_nodes; i++, n++) {
-
-		if (n->contents == CONTENTS_NODE) {
-
-			if (n->children[0]->contents == CONTENTS_NODE) {
-				assert(Box3_Contains(n->bounds, n->children[0]->bounds));
-				assert(Box3_Contains(n->visible_bounds, n->children[0]->visible_bounds));
-			}
-
-			if (n->children[1]->contents == CONTENTS_NODE) {
-				assert(Box3_Contains(n->bounds, n->children[1]->bounds));
-				assert(Box3_Contains(n->visible_bounds, n->children[1]->visible_bounds));
-			}
-		}
-	}
-#endif
 }
 
 /**
@@ -904,13 +875,10 @@ static void R_FreeBspModel(r_media_t *self) {
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
-		g_ptr_array_free(in->blend_elements, 1);
+		g_ptr_array_free(in->blend_elements, true);
 	}
 
-	r_bsp_node_t *node = mod->bsp->nodes;
-	for (int32_t i = 0; i < mod->bsp->num_nodes; i++, node++) {
-		R_DestroyOcclusionQuery(&node->query);
-	}
+	R_DestroyOcclusionQueries();
 }
 
 /**

@@ -516,7 +516,6 @@
 		CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F21C5C58C300CD0B13 /* monitor.c */; };
 		CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F51C5C58C300CD0B13 /* polylib.c */; };
 		CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F71C5C58C300CD0B13 /* portal.c */; };
-		CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F81C5C58C300CD0B13 /* prtfile.c */; };
 		CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FA1C5C58C300CD0B13 /* qbsp.c */; };
 		CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FC1C5C58C300CD0B13 /* qlight.c */; };
 		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
@@ -1369,7 +1368,6 @@
 		CE12D6F51C5C58C300CD0B13 /* polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = polylib.c; sourceTree = "<group>"; };
 		CE12D6F61C5C58C300CD0B13 /* polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polylib.h; sourceTree = "<group>"; };
 		CE12D6F71C5C58C300CD0B13 /* portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = portal.c; sourceTree = "<group>"; };
-		CE12D6F81C5C58C300CD0B13 /* prtfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prtfile.c; sourceTree = "<group>"; };
 		CE12D6FA1C5C58C300CD0B13 /* qbsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qbsp.c; sourceTree = "<group>"; };
 		CE12D6FB1C5C58C300CD0B13 /* qbsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qbsp.h; sourceTree = "<group>"; };
 		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = qlight.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -1490,7 +1488,6 @@
 		CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depth_pass_fs.glsl; sourceTree = "<group>"; };
 		CE2E374321CAB82800DB4648 /* tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
 		CE2E374421CABB8C00DB4648 /* tjunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tjunction.h; sourceTree = "<group>"; };
-		CE2E374521CAC14400DB4648 /* prtfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prtfile.h; sourceTree = "<group>"; };
 		CE2E374621CAC19A00DB4648 /* writebsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = writebsp.h; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
@@ -2898,8 +2895,6 @@
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
 				CE12D6F71C5C58C300CD0B13 /* portal.c */,
 				CE42657721C3EF7500F768DD /* portal.h */,
-				CE12D6F81C5C58C300CD0B13 /* prtfile.c */,
-				CE2E374521CAC14400DB4648 /* prtfile.h */,
 				CE12D6FA1C5C58C300CD0B13 /* qbsp.c */,
 				CE12D6FB1C5C58C300CD0B13 /* qbsp.h */,
 				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
@@ -4600,7 +4595,6 @@
 				CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */,
 				CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */,
 				CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */,
-				CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */,
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,

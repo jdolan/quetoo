@@ -30,11 +30,11 @@ bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
 r_occlusion_query_t R_CreateOcclusionQuery(const box3_t bounds);
 void R_DestroyOcclusionQuery(r_occlusion_query_t *query);
-void R_AddOcclusionQuery(r_view_t *view, r_occlusion_query_t *query);
 
 #ifdef __R_LOCAL_H__
 
 void R_UpdateOcclusionQueries(r_view_t *view);
+void R_DestroyOcclusionQueries(void);
 void R_InitOcclusionQueries(void);
 void R_ShutdownOcclusionQueries(void);
 #endif
