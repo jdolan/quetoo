@@ -231,7 +231,7 @@ void R_InitOcclusionQueries(void) {
 
 	glGenBuffers(1, &r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OCCLUSION_QUERIES * sizeof(vec3_t) * 8, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OCCLUSION_QUERIES * sizeof(vec3_t) * 8, NULL, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
 
