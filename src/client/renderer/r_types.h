@@ -1543,6 +1543,7 @@ typedef struct {
 
 	/**
 	 * @brief The top node containing the light bounds.
+	 * @details This is populated by the renderer, after culling checks.
 	 */
 	int32_t node;
 
