@@ -293,86 +293,6 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 }
 
 /**
- * @brief Clips the bounding box by all non-solid leafs in the node.
- */
-static box3_t R_ClipBspOcclusionQuery(const r_bsp_node_t *node, const box3_t bounds) {
-
-	if (node->contents != CONTENTS_NODE) {
-		const r_bsp_leaf_t *leaf = (r_bsp_leaf_t *) node;
-
-		if (leaf->contents != CONTENTS_SOLID) {
-			return Box3_Intersection(leaf->bounds, bounds);
-		}
-
-		return Box3_Null();
-	}
-
-	const box3_t a = R_ClipBspOcclusionQuery(node->children[0], bounds);
-	const box3_t b = R_ClipBspOcclusionQuery(node->children[1], bounds);
-
-	return Box3_Union(a, b);
-}
-
-/**
- * @brief Creates occlusion queries on a grid, and clips them to the BSP to reduce overdraw.
- */
-static void R_CreateBspOcclusionQueries(r_bsp_model_t *bsp) {
-
-	GArray *queries = g_array_new(false, false, sizeof(r_occlusion_query_t));
-
-	const float size = r_occlusion_query_size->value;
-	const box3_t world_bounds = bsp->nodes->visible_bounds;
-
-	const vec3_t grid_mins = Vec3_Scale(Vec3_Floorf(Vec3_Scale(world_bounds.mins, 1.f / size)), size);
-	const vec3_t grid_maxs = Vec3_Scale(Vec3_Ceilf(Vec3_Scale(world_bounds.maxs, 1.f / size)), size);
-
-	for (float x = grid_mins.x; x < grid_maxs.x; x+= size) {
-		for (float y = grid_mins.y; y < grid_maxs.y; y+= size) {
-			for (float z = grid_mins.z; z < grid_maxs.z; z += size) {
-
-				const vec3_t mins = Vec3(x, y, z);
-				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
-
-				box3_t bounds = Box3(mins, maxs);
-
-				const r_bsp_node_t *top_node = bsp->nodes;
-				const r_bsp_node_t *node = top_node;
-				while (node->contents == CONTENTS_NODE) {
-					const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
-					if (side == SIDE_FRONT) {
-						top_node = node;
-						node = node->children[0];
-					} else if (side == SIDE_BACK) {
-						top_node = node;
-						node = node->children[1];
-					} else {
-						break;
-					}
-				}
-
-				assert(top_node->contents == CONTENTS_NODE);
-
-				bounds = R_ClipBspOcclusionQuery(top_node, bounds);
-				if (Box3_Equal(Box3_Null(), bounds)) {
-					continue;
-				}
-
-				r_occlusion_query_t query = R_CreateOcclusionQuery(bounds);
-				g_array_append_val(queries, query);
-			}
-		}
-	}
-
-	const size_t len = queries->len * sizeof(r_occlusion_query_t);
-
-	bsp->occlusion_queries = Mem_LinkMalloc(len, bsp);
-	bsp->num_occlusion_queries = queries->len;
-
-	memcpy(bsp->occlusion_queries, queries->data, len);
-	g_array_free(queries, true);
-}
-
-/**
  * @brief
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
@@ -819,7 +739,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspDrawElements(mod->bsp);
 	R_LoadBspLeafs(mod->bsp);
 	R_LoadBspNodes(mod->bsp);
-	R_CreateBspOcclusionQueries(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
@@ -833,12 +752,15 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 	}
 
+	R_CreateOcclusionQueries(mod->bsp);
+
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
-	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:   %s\n", mod->media.name);
-	Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->bsp->num_vertexes);
-	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
-	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
+	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "!  Vertexes:          %d\n", mod->bsp->num_vertexes);
+	Com_Debug(DEBUG_RENDERER, "!  Elements:          %d\n", mod->bsp->num_elements);
+	Com_Debug(DEBUG_RENDERER, "!  Faces:             %d\n", mod->bsp->num_faces);
+	Com_Debug(DEBUG_RENDERER, "!  Draw elements:     %d\n", mod->bsp->num_draw_elements);
+	Com_Debug(DEBUG_RENDERER, "!  Occlusion queries: %d\n", mod->bsp->num_occlusion_queries);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 
@@ -882,10 +804,7 @@ static void R_FreeBspModel(r_media_t *self) {
 		g_ptr_array_free(in->blend_elements, true);
 	}
 
-	r_occlusion_query_t *query = mod->bsp->occlusion_queries;
-	for (int32_t i = 0; i < mod->bsp->num_occlusion_queries; i++, query++) {
-		R_DestroyOcclusionQuery(query);
-	}
+	R_DestroyOcclusionQueries(mod->bsp);
 }
 
 /**

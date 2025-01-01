@@ -524,9 +524,19 @@ typedef struct {
 	GLuint name;
 
 	/**
+	 * @brief The node containing this query's bounds.
+	 */
+	const struct r_bsp_node_s *node;
+
+	/**
 	 * @brief The query bounds.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief The base vertex in the shared vertex buffer.
+	 */
+	GLint base_vertex;
 
 	/**
 	 * @brief Non-zero if the query is available.
@@ -552,12 +562,6 @@ typedef struct r_bsp_node_s {
 	 * @brief The AABB.
 	 */
 	box3_t bounds;
-
-	/**
-	 * @brief The AABB of visible faces within this node.
-	 * @remarks Often smaller than bounds, and useful for frustum culling.
-	 */
-	box3_t visible_bounds;
 
 	/**
 	 * @brief The parent node.
@@ -589,11 +593,17 @@ typedef struct r_bsp_node_s {
 	 * @brief The count of faces.
 	 */
 	int32_t num_faces;
+
+	/**
+	 * @brief The AABB of visible faces within this node.
+	 * @remarks Often smaller than bounds, and useful for frustum culling.
+	 */
+	box3_t visible_bounds;
 } r_bsp_node_t;
 
 /**
  * @brief BSP leafs terminate the branches of the BSP tree.
- * @remarks Leafs share a starts-with structure with nodes, so that they may reside in the tree as child nodes.
+ * @remarks Leafs are truncated node structures so that they may be cast to `r_bsp_node_t`.
  */
 typedef struct {
 	/**
