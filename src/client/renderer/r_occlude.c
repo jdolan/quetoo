@@ -129,36 +129,36 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 				const vec3_t mins = Vec3(x, y, z);
 				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
 
-				box3_t bounds = Box3(mins, maxs);
+				r_occlusion_query_t query = {
+					.bounds = Box3(mins, maxs),
+					.available = 1,
+					.result = 1,
+				};
 
-				const r_bsp_node_t *top_node = bsp->nodes;
-				const r_bsp_node_t *node = top_node;
+				query.node = bsp->nodes;
+				const r_bsp_node_t *node = query.node;
 				while (node->contents == CONTENTS_NODE) {
-					const int32_t side = Cm_BoxOnPlaneSide(bounds, node->plane->cm);
+					const int32_t side = Cm_BoxOnPlaneSide(query.bounds, node->plane->cm);
 					if (side == SIDE_FRONT) {
-						top_node = node;
+						query.node = node;
 						node = node->children[0];
 					} else if (side == SIDE_BACK) {
-						top_node = node;
+						query.node = node;
 						node = node->children[1];
 					} else {
 						break;
 					}
 				}
 
-				assert(top_node->contents == CONTENTS_NODE);
+				assert(query.node->contents == CONTENTS_NODE);
 
-				bounds = R_ClipOcclusionQueryBounds(top_node, bounds);
-				if (Box3_IsNull(bounds)) {
+				query.bounds = R_ClipOcclusionQueryBounds(query.node, query.bounds);
+
+				if (Box3_IsNull(query.bounds)) {
 					continue;
 				}
 
-				g_array_append_val(queries, ((r_occlusion_query_t) {
-					.node = top_node,
-					.bounds = bounds,
-					.available = 1,
-					.result = 1,
-				}));
+				g_array_append_val(queries, query);
 			}
 		}
 	}
