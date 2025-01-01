@@ -33,7 +33,7 @@ static float SwapFloat(float f) {
 		byte b[4];
 	} dat1, dat2;
 
-	dat1.f = f;
+	dat1.f = f + 0.f;
 
 	dat2.b[0] = dat1.b[3];
 	dat2.b[1] = dat1.b[2];
@@ -88,7 +88,7 @@ float LittleFloat(float f) {
 	if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
 		return SwapFloat(f);
 	}
-	return f;
+	return f + 0.f;
 }
 
 /**
