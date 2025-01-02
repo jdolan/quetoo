@@ -526,7 +526,7 @@ typedef struct {
 	/**
 	 * @brief The node containing this query's bounds.
 	 */
-	const struct r_bsp_node_s *node;
+	struct r_bsp_node_s *node;
 
 	/**
 	 * @brief The query bounds.
@@ -539,6 +539,11 @@ typedef struct {
 	GLint base_vertex;
 
 	/**
+	 * @brief True if this query is pending.
+	 */
+	bool pending;
+
+	/**
 	 * @brief Non-zero if the query is available.
 	 */
 	GLint available;
@@ -547,6 +552,11 @@ typedef struct {
 	 * @brief Non-zero of the query produced visible fragments.
 	 */
 	GLint result;
+
+	/**
+	 * @brief The time this query was last updated.
+	 */
+	uint32_t ticks;
 } r_occlusion_query_t;
 
 /**
@@ -861,9 +871,6 @@ typedef struct {
 
 	int32_t num_lights;
 	r_bsp_light_t *lights;
-
-	int32_t num_occlusion_queries;
-	r_occlusion_query_t *occlusion_queries;
 
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
