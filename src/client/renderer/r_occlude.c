@@ -22,7 +22,47 @@
 #include "r_local.h"
 
 /**
- * @brief Hardware occlusion queries.
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The node containing this query's bounds.
+	 */
+	struct r_bsp_node_s *node;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The base vertex in the shared vertex buffer.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+
+	/**
+	 * @brief The time this query was last updated.
+	 */
+	uint32_t ticks;
+} r_occlusion_query_t;
+
+/**
+ * @brief OpenGL occlusion queries.
  */
 static struct {
 	/**
@@ -140,6 +180,7 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 				r_occlusion_query_t query = {
 					.node = bsp->nodes + node,
 					.bounds = bounds,
+					.available = 1,
 					.result = 1,
 				};
 
@@ -186,26 +227,32 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 	query->ticks = view->ticks;
 
 	if (Box3_ContainsPoint(query->bounds, view->origin)) {
-		query->pending = false;
+		query->available = 1;
 		query->result = 1;
 	} else if (R_CullBox(view, query->bounds)) {
-		query->pending = false;
+		query->available = 1;
 		query->result = 0;
 	} else {
-		if (query->pending) {
+		if (query->available == 0) {
 			glGetQueryObjectiv(query->name, GL_QUERY_RESULT_AVAILABLE, &query->available);
-			if (query->available) {
-				query->pending = false;
-			}
-		} else {
-			if (query->available) {
+			if (query->available || r_occlude->integer == 2) {
 				glGetQueryObjectiv(query->name, GL_QUERY_RESULT, &query->result);
+				query->available = 1;
 			}
+		}
+
+		if (query->available) {
 			glBeginQuery(GL_ANY_SAMPLES_PASSED, query->name);
 			glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, query->base_vertex);
 			glEndQuery(GL_ANY_SAMPLES_PASSED);
-			query->pending = true;
+			query->available = 0;
 		}
+	}
+
+	if (query->result) {
+		r_stats.occlusion_queries_visible++;
+	} else {
+		r_stats.occlusion_queries_occluded++;
 	}
 
 	if (r_draw_occlusion_queries->value) {
@@ -216,12 +263,6 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 		} else {
 			R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
 		}
-	}
-
-	if (query->result) {
-		r_stats.occlusion_queries_visible++;
-	} else {
-		r_stats.occlusion_queries_occluded++;
 	}
 
 	return query->result;

@@ -515,51 +515,6 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
- * @brief OpenGL occlusion queries.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The node containing this query's bounds.
-	 */
-	struct r_bsp_node_s *node;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief The base vertex in the shared vertex buffer.
-	 */
-	GLint base_vertex;
-
-	/**
-	 * @brief True if this query is pending.
-	 */
-	bool pending;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-
-	/**
-	 * @brief The time this query was last updated.
-	 */
-	uint32_t ticks;
-} r_occlusion_query_t;
-
-/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 typedef struct r_bsp_node_s {
