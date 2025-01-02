@@ -135,6 +135,8 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 					continue;
 				}
 
+				// TODO: It would be nice to clip OQ's to non-solid leafs without introducing gaps
+
 				r_occlusion_query_t query = {
 					.node = bsp->nodes + node,
 					.bounds = bounds,
@@ -207,10 +209,12 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 	}
 
 	if (r_draw_occlusion_queries->value) {
+		const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
+		const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
 		if (query->result) {
-			R_Draw3DBox(query->bounds, color_red, false);
+			R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
 		} else {
-			R_Draw3DBox(query->bounds, color_green, false);
+			R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
 		}
 	}
 
@@ -279,7 +283,7 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
 
-#if 1
+#if 0
 	r_occlusion_query_t *query = (r_occlusion_query_t *) r_occlusion.queries->data;
 	for (guint i = 0; i < r_occlusion.queries->len; i++, query++) {
 		R_UpdateOcclusionQuery(view, query);
