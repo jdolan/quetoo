@@ -26,7 +26,6 @@
 #include "map.h"
 #include "material.h"
 #include "portal.h"
-#include "prtfile.h"
 #include "tjunction.h"
 #include "writebsp.h"
 #include "qbsp.h"
@@ -85,10 +84,6 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 	}
 
 	out->head_node = EmitNodes(tree);
-
-	if (!leaked) {
-		WritePortalFile(tree);
-	}
 
 	FreeTree(tree);
 }

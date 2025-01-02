@@ -93,9 +93,7 @@ static int32_t EmitLeaf(node_t *node) {
 	bsp_file.num_leafs++;
 
 	out->contents = node->contents;
-	out->cluster = node->cluster;
 	out->bounds = node->bounds;
-	out->visible_bounds = node->visible_bounds;
 
 	// write the leaf_brushes
 	out->first_leaf_brush = bsp_file.num_leaf_brushes;
@@ -126,49 +124,6 @@ static int32_t EmitLeaf(node_t *node) {
 
 	out->num_leaf_brushes = bsp_file.num_leaf_brushes - out->first_leaf_brush;
 
-	// write the leaf_faces
-	if (out->contents & CONTENTS_SOLID) {
-		return bsp_file.num_leafs - 1;
-	}
-
-	out->first_leaf_face = bsp_file.num_leaf_faces;
-
-	int32_t s;
-	for (const portal_t *p = node->portals; p; p = p->next[s]) {
-
-		s = (p->nodes[1] == node);
-
-		const face_t *face = p->face[s];
-		if (!face) {
-			continue; // not a visible portal
-		}
-
-		while (face->merged) {
-			face = face->merged;
-		}
-
-		assert(face->out);
-
-		const int32_t face_num = (int32_t) (ptrdiff_t) (face->out - bsp_file.faces);
-
-		int32_t i;
-		for (i = out->first_leaf_face; i < bsp_file.num_leaf_faces; i++) {
-			if (bsp_file.leaf_faces[i] == face_num) {
-				break;
-			}
-		}
-
-		if (i == bsp_file.num_leaf_faces) {
-			if (bsp_file.num_leaf_faces >= MAX_BSP_LEAF_FACES) {
-				Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_FACES\n");
-			}
-
-			bsp_file.leaf_faces[bsp_file.num_leaf_faces] = face_num;
-			bsp_file.num_leaf_faces++;
-		}
-	}
-
-	out->num_leaf_faces = bsp_file.num_leaf_faces - out->first_leaf_face;
 	return (int32_t) (ptrdiff_t) (out - bsp_file.leafs);
 }
 
@@ -478,7 +433,6 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_NODES, MAX_BSP_NODES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_BRUSHES, MAX_BSP_LEAF_BRUSHES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAF_FACES, MAX_BSP_LEAF_FACES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LEAFS, MAX_BSP_LEAFS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
 
@@ -533,6 +487,10 @@ bsp_model_t *BeginModel(const entity_t *e) {
  */
 void EndModel(bsp_model_t *mod) {
 
+	const bsp_node_t *head_node = &bsp_file.nodes[mod->head_node];
+	mod->visible_bounds = head_node->visible_bounds;
+
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
+
 	mod->num_draw_elements = EmitDrawElements(mod);
 }

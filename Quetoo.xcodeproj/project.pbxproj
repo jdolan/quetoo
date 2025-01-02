@@ -15,6 +15,7 @@
 			);
 			dependencies = (
 				CE948B292235660C00D961FA /* PBXTargetDependency */,
+				CE9A67172D25891C0068D720 /* PBXTargetDependency */,
 				CE948B2B2235660C00D961FA /* PBXTargetDependency */,
 				CE45F550257733B8004DEFED /* PBXTargetDependency */,
 				CE052A9121483352003446C9 /* PBXTargetDependency */,
@@ -516,7 +517,6 @@
 		CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F21C5C58C300CD0B13 /* monitor.c */; };
 		CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F51C5C58C300CD0B13 /* polylib.c */; };
 		CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F71C5C58C300CD0B13 /* portal.c */; };
-		CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F81C5C58C300CD0B13 /* prtfile.c */; };
 		CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FA1C5C58C300CD0B13 /* qbsp.c */; };
 		CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FC1C5C58C300CD0B13 /* qlight.c */; };
 		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
@@ -541,6 +541,22 @@
 		CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CE9A66FC2D246A1D0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A66FD2D246A310068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A66FE2D246A480068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A66FF2D246A710068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67002D246A790068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67012D246A800068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67022D246A870068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67032D246A8D0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67042D246A980068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67052D246A9B0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67062D246A9F0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67072D246AA20068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A67082D246AA50068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CE9A670E2D2589020068D720 /* check_box.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9A67092D2588B20068D720 /* check_box.c */; };
+		CE9A67102D2589020068D720 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CE9A67112D2589020068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
@@ -804,6 +820,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE948B102235652600D961FA;
 			remoteInfo = check_shared;
+		};
+		CE9A67162D25891C0068D720 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE9A670B2D2589020068D720;
+			remoteInfo = check_box;
 		};
 		CEA029B71C5E546200341079 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1369,7 +1392,6 @@
 		CE12D6F51C5C58C300CD0B13 /* polylib.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = polylib.c; sourceTree = "<group>"; };
 		CE12D6F61C5C58C300CD0B13 /* polylib.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = polylib.h; sourceTree = "<group>"; };
 		CE12D6F71C5C58C300CD0B13 /* portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = portal.c; sourceTree = "<group>"; };
-		CE12D6F81C5C58C300CD0B13 /* prtfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = prtfile.c; sourceTree = "<group>"; };
 		CE12D6FA1C5C58C300CD0B13 /* qbsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qbsp.c; sourceTree = "<group>"; };
 		CE12D6FB1C5C58C300CD0B13 /* qbsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qbsp.h; sourceTree = "<group>"; };
 		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = qlight.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -1490,7 +1512,6 @@
 		CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depth_pass_fs.glsl; sourceTree = "<group>"; };
 		CE2E374321CAB82800DB4648 /* tree.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tree.h; sourceTree = "<group>"; };
 		CE2E374421CABB8C00DB4648 /* tjunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tjunction.h; sourceTree = "<group>"; };
-		CE2E374521CAC14400DB4648 /* prtfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = prtfile.h; sourceTree = "<group>"; };
 		CE2E374621CAC19A00DB4648 /* writebsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = writebsp.h; sourceTree = "<group>"; };
 		CE32084F1EBDFFB600A92FF3 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
 		CE3208511EBF518D00A92FF3 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = /opt/local/lib/libsndfile.1.dylib; sourceTree = "<absolute>"; };
@@ -1676,6 +1697,9 @@
 		CE92B3AC1D2FF83A00E9153A /* quetoo-dedicated.ico */ = {isa = PBXFileReference; lastKnownFileType = image.ico; path = "quetoo-dedicated.ico"; sourceTree = "<group>"; };
 		CE948B0F223564E900D961FA /* check_shared.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_shared.c; sourceTree = "<group>"; };
 		CE948B222235652600D961FA /* check_shared */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_shared; sourceTree = BUILT_PRODUCTS_DIR; };
+		CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcheck.0.dylib; path = ../../../../usr/local/Cellar/check/0.15.2/lib/libcheck.0.dylib; sourceTree = "<group>"; };
+		CE9A67092D2588B20068D720 /* check_box.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_box.c; sourceTree = "<group>"; };
+		CE9A67152D2589020068D720 /* check_box */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_box; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE9CFC9023E792FE0009DA65 /* cg_light.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_light.h; sourceTree = "<group>"; };
 		CE9CFC9123E792FE0009DA65 /* cg_light.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_light.c; sourceTree = "<group>"; };
 		CE9CFC9423E7A9410009DA65 /* r_mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_mesh.h; sourceTree = "<group>"; };
@@ -1783,6 +1807,7 @@
 				CE2B083C23F9EDEA007C77B6 /* libshared.a in Frameworks */,
 				CE052A67214831FE003446C9 /* libglib-2.0.0.dylib in Frameworks */,
 				CE052A69214831FE003446C9 /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67042D246A980068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1794,6 +1819,7 @@
 				CE2B083B23F9EDD7007C77B6 /* libshared.a in Frameworks */,
 				CE052A7E21483255003446C9 /* libglib-2.0.0.dylib in Frameworks */,
 				CE052A7F21483255003446C9 /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67072D246AA20068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1893,6 +1919,7 @@
 				CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */,
 				CE354EF922075132008AE0C2 /* libSDL2-2.0.0.dylib in Frameworks */,
 				CE354F052207FAA9008AE0C2 /* libSDL2_image-2.0.0.dylib in Frameworks */,
+				CE9A66FC2D246A1D0068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1906,6 +1933,7 @@
 				CE4DCF9A256F0DAD00FECAFC /* libglib-2.0.0.dylib in Frameworks */,
 				CE56BD592AAE350D00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE4DD109256F0F7C00FECAFC /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A66FF2D246A710068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1917,6 +1945,7 @@
 				CE2B085223F9EEEE007C77B6 /* libshared.a in Frameworks */,
 				CE51FB9A21481BC200ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE51FB9B21481C0D00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67052D246A9B0068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1929,6 +1958,7 @@
 				CE51FBA921481DD300ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE56BD582AAE34F900A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBB121481E5C00ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A66FD2D246A310068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1941,6 +1971,7 @@
 				CE51FBBD21481F2500ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE56BD5A2AAE357300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBBF21481F2500ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67012D246A800068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1953,6 +1984,7 @@
 				CE51FBD821481FC100ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE56BD5B2AAE358200A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBDA21481FC100ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67022D246A870068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1965,6 +1997,7 @@
 				CE51FBF02148207700ABE14F /* libglib-2.0.0.dylib in Frameworks */,
 				CE56BD5C2AAE359300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE51FBF22148207700ABE14F /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67032D246A8D0068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2057,6 +2090,16 @@
 				CE948B2E2235699300D961FA /* libshared.a in Frameworks */,
 				CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */,
 				CE948B1D2235652600D961FA /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A67062D246A9F0068D720 /* libcheck.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE9A670F2D2589020068D720 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE9A67102D2589020068D720 /* libglib-2.0.0.dylib in Frameworks */,
+				CE9A67112D2589020068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2065,6 +2108,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE2B081A23F60C4F007C77B6 /* libglib-2.0.0.dylib in Frameworks */,
+				CE9A67082D246AA50068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2085,6 +2129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CEB384E629A3A73B006DEA13 /* libglib-2.0.0.dylib in Frameworks */,
+				CE9A67002D246A790068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2111,6 +2156,7 @@
 				CE2B083823F9ECE1007C77B6 /* libshared.a in Frameworks */,
 				CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */,
 				CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */,
+				CE9A66FE2D246A480068D720 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2830,6 +2876,7 @@
 			isa = PBXGroup;
 			children = (
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
+				CE9A67092D2588B20068D720 /* check_box.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
@@ -2898,8 +2945,6 @@
 				CE12D6F61C5C58C300CD0B13 /* polylib.h */,
 				CE12D6F71C5C58C300CD0B13 /* portal.c */,
 				CE42657721C3EF7500F768DD /* portal.h */,
-				CE12D6F81C5C58C300CD0B13 /* prtfile.c */,
-				CE2E374521CAC14400DB4648 /* prtfile.h */,
 				CE12D6FA1C5C58C300CD0B13 /* qbsp.c */,
 				CE12D6FB1C5C58C300CD0B13 /* qbsp.h */,
 				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
@@ -2982,6 +3027,7 @@
 				CE4DCF9F256F0DAD00FECAFC /* check_cm_test */,
 				CE27E11527AC26E6003D56AC /* libdiscord-rpc.a */,
 				CEB384EC29A3A73B006DEA13 /* check_color */,
+				CE9A67152D2589020068D720 /* check_box */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3010,6 +3056,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */,
 				CE3517FB2D15050600C72C00 /* libopenal.1.24.1.dylib */,
 				CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */,
 				CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */,
@@ -4126,6 +4173,22 @@
 			productReference = CE948B222235652600D961FA /* check_shared */;
 			productType = "com.apple.product-type.tool";
 		};
+		CE9A670B2D2589020068D720 /* check_box */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CE9A67122D2589020068D720 /* Build configuration list for PBXNativeTarget "check_box" */;
+			buildPhases = (
+				CE9A670C2D2589020068D720 /* Sources */,
+				CE9A670F2D2589020068D720 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = check_box;
+			productName = "test-r_media";
+			productReference = CE9A67152D2589020068D720 /* check_box */;
+			productType = "com.apple.product-type.tool";
+		};
 		CE9CFC9E23EB3D020009DA65 /* check_vector */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE9CFCAC23EB3D020009DA65 /* Build configuration list for PBXNativeTarget "check_vector" */;
@@ -4316,6 +4379,7 @@
 				CE80FD861C5E3B6F00A21A51 /* quemap */,
 				CEA029B31C5E545B00341079 /* quetoo-all */,
 				CE354EEF22075132008AE0C2 /* check_atlas */,
+				CE9A670B2D2589020068D720 /* check_box */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_polylib */,
 				CE4DCF8C256F0DAD00FECAFC /* check_cm_test */,
@@ -4600,7 +4664,6 @@
 				CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */,
 				CE80FFEE1C5E4D1800A21A51 /* polylib.c in Sources */,
 				CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */,
-				CE80FFF01C5E4D1800A21A51 /* prtfile.c in Sources */,
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
@@ -4723,6 +4786,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE948B232235655700D961FA /* check_shared.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE9A670C2D2589020068D720 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE9A670E2D2589020068D720 /* check_box.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4911,6 +4982,11 @@
 			target = CE948B102235652600D961FA /* check_shared */;
 			targetProxy = CE948B2C2235660C00D961FA /* PBXContainerItemProxy */;
 		};
+		CE9A67172D25891C0068D720 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE9A670B2D2589020068D720 /* check_box */;
+			targetProxy = CE9A67162D25891C0068D720 /* PBXContainerItemProxy */;
+		};
 		CEA029B81C5E546200341079 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CE12D7341C5C5B9300CD0B13 /* quetoo */;
@@ -5002,6 +5078,10 @@
 		CE052A6C214831FE003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5009,6 +5089,10 @@
 		CE052A6D214831FE003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5016,6 +5100,10 @@
 		CE052A8221483255003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5023,6 +5111,10 @@
 		CE052A8321483255003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5285,6 +5377,10 @@
 		CE354EFC22075132008AE0C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5292,6 +5388,10 @@
 		CE354EFD22075132008AE0C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5302,6 +5402,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5313,6 +5414,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5321,6 +5423,10 @@
 		CE51FB8E214819B000ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5328,6 +5434,10 @@
 		CE51FB8F214819B000ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5338,6 +5448,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5349,6 +5460,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5360,6 +5472,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5371,6 +5484,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5382,6 +5496,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5393,6 +5508,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5404,6 +5520,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5415,6 +5532,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/usr/local/opt/physfs/lib,
+					/usr/local/Cellar/check/0.15.2/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5589,6 +5707,10 @@
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5596,6 +5718,32 @@
 		CE948B212235652600D961FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CE9A67132D2589020068D720 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CE9A67142D2589020068D720 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5603,6 +5751,10 @@
 		CE9CFCAD23EB3D020009DA65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5610,6 +5762,10 @@
 		CE9CFCAE23EB3D020009DA65 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5653,6 +5809,10 @@
 		CEB384EA29A3A73B006DEA13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5660,6 +5820,10 @@
 		CEB384EB29A3A73B006DEA13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5699,6 +5863,10 @@
 		CEE3A0FF21EE2B3F0070FD3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5706,6 +5874,10 @@
 		CEE3A10021EE2B3F0070FD3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/usr/local/Cellar/check/0.15.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5977,6 +6149,15 @@
 			buildConfigurations = (
 				CE948B202235652600D961FA /* Debug */,
 				CE948B212235652600D961FA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CE9A67122D2589020068D720 /* Build configuration list for PBXNativeTarget "check_box" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE9A67132D2589020068D720 /* Debug */,
+				CE9A67142D2589020068D720 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

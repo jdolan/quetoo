@@ -326,19 +326,46 @@ typedef struct {
 	 * @brief The surface value, for lights or Phong grouping.
 	 */
 	int32_t value;
-
 } r_bsp_brush_side_t;
 
 /**
  * @brief BSP vertex structure.
  */
 typedef struct {
+	/**
+	 * @brief The position.
+	 */
 	vec3_t position;
+
+	/**
+	 * @brief The normal, for Phong shading.
+	 */
 	vec3_t normal;
+
+	/**
+	 * @brief The tangent, for per-pixel lighting.
+	 */
 	vec3_t tangent;
+
+	/**
+	 * @brief The bitangent, for per-pixel lighting.
+	 *
+	 */
 	vec3_t bitangent;
+
+	/**
+	 * @brief The diffusemap texture coordinate.
+	 */
 	vec2_t diffusemap;
+
+	/**
+	 * @brief The lightmap texture coordinate in the lightmap atlas.
+	 */
 	vec2_t lightmap;
+
+	/**
+	 * @brief The color, for alpha blending and vertex lighting effects.
+	 */
 	color32_t color;
 } r_bsp_vertex_t;
 
@@ -386,19 +413,51 @@ typedef struct {
  * @brief BSP faces, which may reside on the front or back of their node.
  */
 typedef struct {
+	/**
+	 * @brief The node containing this face.
+	 */
 	struct r_bsp_node_s *node;
 
+	/**
+	 * @brief The brush side which generated this face.
+	 */
 	r_bsp_brush_side_t *brush_side;
+
+	/**
+	 * @brief The plane on which this face resides (to disambiguiate `node`).
+	 */
 	r_bsp_plane_t *plane;
 
+	/**
+	 * @brief The AABB of this face.
+	 */
 	box3_t bounds;
 
+	/**
+	 * @brief The lightmap.
+	 */
 	r_bsp_face_lightmap_t lightmap;
 
+	/**
+	 * @brief The vertexes.
+	 * @details This is simply a pointer into the BSP's vertex array.
+	 */
 	r_bsp_vertex_t *vertexes;
+
+	/**
+	 * @brief The count of vertexes.
+	 */
 	int32_t num_vertexes;
 
+	/**
+	 * @brief The elements.
+	 * @details This is simply a pointer into the BSP's elements array.
+	 */
 	GLvoid *elements;
+
+	/**
+	 * @brief The count of elements.
+	 */
 	int32_t num_elements;
 } r_bsp_face_t;
 
@@ -407,75 +466,129 @@ typedef struct {
  * within a particular inline model.
  */
 typedef struct {
+	/**
+	 * @brief The plane, for blended draw elements.
+	 * @details Alpha blended draw elements are sorted by plane so that they may be depth sorted.
+	 */
 	r_bsp_plane_t *plane;
+
+	/**
+	 * @brief The material.
+	 */
 	r_material_t *material;
+
+	/**
+	 * @brief The surface flags.
+	 */
 	int32_t surface;
 
+	/**
+	 * @brief The AABB of the elements.
+	 */
 	box3_t bounds;
 
+	/**
+	 * @brief An offset pointer (in bytes) into the BSP elements array.
+	 */
 	GLvoid *elements;
+
+	/**
+	 * @brief The count of elements.
+	 */
 	int32_t num_elements;
 
+	/**
+	 * @brief The texture coordinate center.
+	 * @details This is only used for draw elements that require scaling or rotating material
+	 * stages (`STAGE_SCALE`, `STAGE_STRETCH`, `STAGE_ROTATE`).
+	 */
 	vec2_t st_origin;
 
+	/**
+	 * @brief The blend depth types associated with this blended draw elements.
+	 * @details Alpha blended objects (sprites, entities, etc..) are depth sorted and grouped by
+	 * the alpha blended BSP draw elements they fall closest behind, to ensure correct draw order.
+	 * This bitmask is used to save state changes when iterating the sorted BSP draw elements
+	 * (i.e. "Are there sprites behind this plane? Are there mesh entities?")
+	 */
 	int32_t blend_depth_types;
 } r_bsp_draw_elements_t;
-
-/**
- * @brief OpenGL occlusion queries.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-} r_occlusion_query_t;
 
 /**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 typedef struct r_bsp_node_s {
+	/**
+	 * @brief The contents mask. Valid for leafs, always `CONTENTS_NODE` for nodes.
+	 */
 	int32_t contents;
-	box3_t bounds;
-	box3_t visible_bounds;
 
+	/**
+	 * @brief The AABB.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The parent node.
+	 */
 	struct r_bsp_node_s *parent;
+
+	/**
+	 * @brief The inline model. Each inline model contains its own sub-tree.
+	 */
 	struct r_bsp_inline_model_s *model;
 
+	/**
+	 * @brief The plane that created this node.
+	 */
 	r_bsp_plane_t *plane;
+
+	/**
+	 * @brief The child nodes, which may be leaves.
+	 */
 	struct r_bsp_node_s *children[2];
 
+	/**
+	 * @brief The faces within this node.
+	 * @details Faces will reside only in a single node, but they may straddle leaves.
+	 */
 	r_bsp_face_t *faces;
+
+	/**
+	 * @brief The count of faces.
+	 */
 	int32_t num_faces;
 
-	r_occlusion_query_t query;
+	/**
+	 * @brief The AABB of visible faces within this node.
+	 * @remarks Often smaller than bounds, and useful for frustum culling.
+	 */
+	box3_t visible_bounds;
 } r_bsp_node_t;
 
 /**
  * @brief BSP leafs terminate the branches of the BSP tree.
- * @remarks Leafs share a starts-with structure with nodes, so that they may reside in the tree as child nodes.
+ * @remarks Leafs are truncated node structures so that they may be cast to `r_bsp_node_t`.
  */
 typedef struct {
+	/**
+	 * @brief The contents mask. Valid for leafs, always `CONTENTS_NODE` for nodes.
+	 */
 	int32_t contents;
-	box3_t bounds;
-	box3_t visible_bounds;
 
+	/**
+	 * @brief The AABB.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The parent node.
+	 */
 	struct r_bsp_node_s *parent;
+
+	/**
+	 * @brief The inline model. Each inline model contains its own sub-tree.
+	 */
 	struct r_bsp_inline_model_s *model;
 } r_bsp_leaf_t;
 
@@ -499,7 +612,7 @@ typedef struct r_bsp_inline_model_s {
 	/**
 	 * @brief For frustum culling.
 	 */
-	box3_t bounds;
+	box3_t visible_bounds;
 
 	/**
 	 * @brief The faces of this inline model.
@@ -713,18 +826,35 @@ typedef struct {
 
 	int32_t num_lights;
 	r_bsp_light_t *lights;
-	
+
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
+	/**
+	 * @brief The sky draw elements.
+	 * @details The sky uses a unique shader, and thus is separate from the other the BSP draw elements.
+	 */
 	r_bsp_draw_elements_t *sky;
 
+	/**
+	 * @brief The vertex array (VAO) name.
+	 */
 	GLuint vertex_array;
+
+	/**
+	 * @brief The vertex array buffer (VBO) name.
+	 */
 	GLuint vertex_buffer;
+
+	/**
+	 * @brief The elements array buffer (VBO) name.
+	 */
 	GLuint elements_buffer;
 } r_bsp_model_t;
 
-// mesh model, used for objects
+/**
+ * @brief The mesh vertex type.
+ */
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
@@ -733,30 +863,69 @@ typedef struct {
 	vec2_t diffusemap;
 } r_mesh_vertex_t;
 
+/**
+ * @brief The mesh frame type.
+ */
 typedef struct {
 	box3_t bounds;
 	vec3_t translate;
 } r_mesh_frame_t;
 
+/**
+ * @brief The mesh tag type.
+ * @details Tags are used to align submodels (e.g. weapons, CTF flags).
+ */
 typedef struct {
 	char name[MAX_QPATH];
 	mat4_t matrix;
 } r_mesh_tag_t;
 
+/**
+ * @brief The mesh face type.
+ * @details A mesh model is comprised of one or more faces, which may have distinct materials.
+ */
 typedef struct {
+	/**
+	 * @brief The face name. This is used to resolve the material.
+	 */
 	char name[MAX_QPATH];
 
+	/**
+	 * @brief The material.
+	 */
 	r_material_t *material;
 
+	/**
+	 * @brief The vertexes.
+	 * @details This is a pointer into the model's vertex array.
+	 */
 	r_mesh_vertex_t *vertexes;
+
+	/**
+	 * @brief The count of vertexes.
+	 */
 	int32_t num_vertexes;
 
+	/**
+	 * @brief A vertex array attribute pointer for `EF_SHELL` normal vectors.
+	 */
 	vec3_t *shell_normals;
 
+	/**
+	 * @brief The elements.
+	 * @details This is a poitner into the model's elements array.
+	 */
 	GLvoid *elements;
+
+	/**
+	 * @brief The count of elements.
+	 */
 	int32_t num_elements;
 } r_mesh_face_t;
 
+/**
+ * @brief The mesh animation type.
+ */
 typedef struct {
 	int32_t first_frame;
 	int32_t num_frames;
@@ -771,6 +940,9 @@ typedef struct {
 	mat4_t transform;
 } r_mesh_config_t;
 
+/**
+ * @brief The mesh model type.
+ */
 typedef struct {
 	uint32_t flags;
 
@@ -1343,6 +1515,7 @@ typedef struct {
 
 	/**
 	 * @brief The top node containing the light bounds.
+	 * @details This is populated by the renderer, after culling checks.
 	 */
 	int32_t node;
 

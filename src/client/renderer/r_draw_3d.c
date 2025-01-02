@@ -26,9 +26,14 @@
  */
 typedef struct {
 	/**
-	 * @brief The mode, e.g. GL_LINE_STRIP
+	 * @brief The mode, e.g. `GL_LINE_STRIP`.
 	 */
 	GLenum mode;
+
+	/**
+	 * @brief The depth test flag.
+	 */
+	GLboolean depth_test;
 
 	/**
 	 * @brief The first vertex.
@@ -128,12 +133,13 @@ static void R_AddDraw3DVertex(const r_draw_3d_vertex_t *v) {
 /**
  * @brief Draws line strips in 3D space.
  */
-void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
+void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color, bool depth_test) {
 
 	r_draw_3d_arrays_t draw = {
 		.mode = GL_LINE_STRIP,
+		.depth_test = depth_test,
 		.first_vertex = r_draw_3d.num_vertexes,
-		.num_vertexes = (GLsizei) count
+		.num_vertexes = (GLsizei) count,
 	};
 
 	r_draw_3d_vertex_t *out = r_draw_3d.vertexes + r_draw_3d.num_vertexes;
@@ -152,78 +158,47 @@ void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color) {
 /**
  * @brief Draws the bounding box using line strips in 3D space.
  */
-void R_Draw3DBox(const box3_t bounds, const color_t color, const bool solid) {
+void R_Draw3DBox(const box3_t bounds, const color_t color, const bool depth_test) {
 	vec3_t points[8];
 
 	Box3_ToPoints(bounds, points);
 
-	if (!solid) {
-		R_Draw3DLines((const vec3_t []) {
-			points[0],
-			points[1],
-			points[3],
-			points[2],
-			points[0],
-		}, 5, color);
+	R_Draw3DLines((const vec3_t []) {
+		points[0],
+		points[1],
+		points[3],
+		points[2],
+		points[0],
+	}, 5, color, depth_test);
 
-		R_Draw3DLines((const vec3_t []) {
-			points[4],
-			points[5],
-			points[7],
-			points[6],
-			points[4],
-		}, 5, color);
+	R_Draw3DLines((const vec3_t []) {
+		points[4],
+		points[5],
+		points[7],
+		points[6],
+		points[4],
+	}, 5, color, depth_test);
 
-		R_Draw3DLines((const vec3_t []) {
-			points[0],
-			points[4],
-		}, 2, color);
+	R_Draw3DLines((const vec3_t []) {
+		points[0],
+		points[4],
+	}, 2, color, depth_test);
 
-		R_Draw3DLines((const vec3_t []) {
-			points[2],
-			points[6],
-		}, 2, color);
+	R_Draw3DLines((const vec3_t []) {
+		points[2],
+		points[6],
+	}, 2, color, depth_test);
 
-		R_Draw3DLines((const vec3_t []) {
-			points[3],
-			points[7],
-		}, 2, color);
+	R_Draw3DLines((const vec3_t []) {
+		points[3],
+		points[7],
+	}, 2, color, depth_test);
 
-		R_Draw3DLines((const vec3_t []) {
-			points[1],
-			points[5],
-		}, 2, color);
-	} else {
-		const GLuint elements[] = {
-			// bottom
-			0, 1, 3, 0, 3, 2,
-			// top
-			6, 7, 4, 7, 5, 4,
-			// front
-			4, 5, 0, 5, 1, 0,
-			// back
-			7, 6, 3, 6, 2, 3,
-			// left
-			6, 4, 2, 4, 0, 2,
-			// right
-			5, 7, 1, 7, 3, 1,
-		};
+	R_Draw3DLines((const vec3_t []) {
+		points[1],
+		points[5],
+	}, 2, color, depth_test);
 
-		r_draw_3d_arrays_t draw = {
-			.mode = GL_TRIANGLES,
-			.first_vertex = r_draw_3d.num_vertexes,
-			.num_vertexes = (GLsizei) lengthof(elements)
-		};
-
-		for (int32_t i = 0; i < draw.num_vertexes; i++) {
-			R_AddDraw3DVertex(&(const r_draw_3d_vertex_t) {
-				.position = points[elements[i]],
-				.color = Color_Color32(color)
-			});
-		}
-
-		R_AddDraw3DArrays(&draw);
-	}
 }
 
 /**
@@ -252,6 +227,13 @@ void R_Draw3D(void) {
 
 	const r_draw_3d_arrays_t *draw = r_draw_3d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
+
+		if (draw->depth_test) {
+			glEnable(GL_DEPTH_TEST);
+		} else {
+			glDisable(GL_DEPTH_TEST);
+		}
+
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
 

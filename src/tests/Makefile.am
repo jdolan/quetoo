@@ -31,6 +31,7 @@ libtests_la_LIBADD = \
 
 TESTS = \
 	check_atlas \
+	check_box \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
@@ -51,6 +52,13 @@ check_atlas_SOURCES = \
 check_atlas_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_atlas_LDADD = \
+	$(TESTS_LIBS)
+
+check_box_SOURCES = \
+	check_box.c
+check_box_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_box_LDADD = \
 	$(TESTS_LIBS)
 
 check_cmd_SOURCES = \

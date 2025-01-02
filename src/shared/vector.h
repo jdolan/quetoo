@@ -354,7 +354,7 @@ static inline float __attribute__ ((warn_unused_result)) Degrees(float radians) 
  * @return True if `fabsf(a - b) <= epsilon`.
  */
 static inline bool __attribute__ ((warn_unused_result)) EqualEpsilonf(float a, float b, float epsilon) {
-	return fabsf(a - b) <= epsilon;
+	return (isinf(a) && isinf(b)) || fabsf(a - b) <= epsilon;
 }
 
 /**
@@ -485,7 +485,10 @@ static inline float __attribute__ ((warn_unused_result)) Smoothf(float f, float 
  * @return A `vec2_t` with the specified components.
  */
 static inline vec2_t __attribute__ ((warn_unused_result)) Vec2(float x, float y) {
-	return (vec2_t) { .x = x, .y = y };
+	return (vec2_t) {
+		.x = x + 0.f,
+		.y = y + 0.f
+	};
 }
 
 /**
@@ -614,7 +617,11 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec2_Zero(void) {
  * @return A `vec3_t` with the specified components.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3(float x, float y, float z) {
-	return (vec3_t) { .x = x, .y = y, .z = z };
+	return (vec3_t) {
+		.x = x + 0.f,
+		.y = y + 0.f,
+		.z = z + 0.f
+	};
 }
 
 /**
@@ -1170,7 +1177,7 @@ static inline vec2_t __attribute__ ((warn_unused_result)) Vec3_XY(const vec3_t v
  * @return A `vec4_t` with the specified components.
  */
 static inline vec4_t __attribute__ ((warn_unused_result)) Vec4(float x, float y, float z, float w) {
-	return (vec4_t) { .x = x, .y = y, .z = z, .w = w };
+	return (vec4_t) { .x = x + 0.f, .y = y + 0.f, .z = z + 0.f, .w = w + 0.f};
 }
 
 /**
@@ -1363,9 +1370,9 @@ static inline bool __attribute__ ((warn_unused_result)) EqualEpsilon(double a, d
  */
 static inline vec3d_t __attribute__ ((warn_unused_result)) Vec3d(double x, double y, double z) {
 	return (vec3d_t) {
-		.x = x,
-		.y = y,
-		.z = z
+		.x = x + 0.0,
+		.y = y + 0.0,
+		.z = z + 0.0
 	};
 }
 

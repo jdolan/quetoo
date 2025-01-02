@@ -75,7 +75,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Zero(void) {
 }
 
 /**
- * @return A `box_t` centered around `0, 0, 0` with a size of -infinity.
+ * @return A `box_t` centered around `0, 0, 0` with a negative size.
  * @remarks This is often used as a seed value to add points to, as Box3_Zero()
  * will require that `0, 0, 0` be in the box, but the points added may not be centered
  * around that point. Using this as a seed guarantees that the first point added will
@@ -83,9 +83,18 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Zero(void) {
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_Null(void) {
 	return (box3_t) {
-		.mins = Vec3(INFINITY, INFINITY, INFINITY),
-		.maxs = Vec3(-INFINITY, -INFINITY, -INFINITY)
+		.mins = Vec3_Mins(),
+		.maxs = Vec3_Maxs()
 	};
+}
+
+/**
+ * @return True if `bounds` has a negative size, false otherwise.
+ */
+static inline bool __attribute__ ((warn_unused_result)) Box3_IsNull(const box3_t bounds) {
+	return bounds.mins.x > bounds.maxs.x
+		|| bounds.mins.y > bounds.maxs.y
+		|| bounds.mins.z > bounds.maxs.z;
 }
 
 /**
@@ -100,9 +109,22 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Append(const box3
 }
 
 /**
+ * @return Whether `a` and `b` are equal or not.
+ */
+static inline bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t a, const box3_t b) {
+	return Box3_IsNull(a) ? Box3_IsNull(b) : Vec3_Equal(a.mins, b.mins) && Vec3_Equal(a.maxs, b.maxs);
+}
+
+/**
  * @return A `box_t` that unions both of the passed bounds.
  */
 static inline box3_t __attribute__ ((warn_unused_result)) Box3_Union(const box3_t a, const box3_t b) {
+	if (Box3_IsNull(a)) {
+		return b;
+	}
+	if (Box3_IsNull(b)) {
+		return a;
+	}
 	return (box3_t) {
 		.mins = Vec3_Minf(a.mins, b.mins),
 		.maxs = Vec3_Maxf(a.maxs, b.maxs)
@@ -154,6 +176,20 @@ static inline bool __attribute__ ((warn_unused_result)) Box3_Intersects(const bo
 	}
 
 	return true;
+}
+
+/**
+ * @return A `box_t` that is the intersection of the passed bounds.
+ */
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_Intersection(const box3_t a, const box3_t b) {
+	if (Box3_Intersects(a, b)) {
+		return (box3_t) {
+			.mins = Vec3_Maxf(a.mins, b.mins),
+			.maxs = Vec3_Minf(a.maxs, b.maxs)
+		};
+	} else {
+		return Box3_Null();
+	}
 }
 
 /**
@@ -314,13 +350,6 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_ClampBounds(const
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Box3_RandomPoint(const box3_t b) {
 	return Vec3_Mix3(b.mins, b.maxs, Vec3_Random());
-}
-
-/**
- * @return Whether `a` and `b` are equal or not.
- */
-static inline bool __attribute__ ((warn_unused_result)) Box3_Equal(const box3_t a, const box3_t b) {
-	return Vec3_Equal(a.mins, b.mins) && Vec3_Equal(a.maxs, b.maxs);
 }
 
 /**

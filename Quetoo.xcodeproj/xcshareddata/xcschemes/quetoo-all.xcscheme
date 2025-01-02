@@ -82,15 +82,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 1 +set r_width 1920 +set r_height 1080"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_wireframe 1 +set r_clear 1 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            argument = "+set r_draw_wireframe 0 +set r_occlusion_query_size 384 +set r_draw_occlusion_queries 1 +set cl_draw_renderer_stats 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightgrid 2 +set r_draw_bsp_lightmap 0"
@@ -154,7 +154,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

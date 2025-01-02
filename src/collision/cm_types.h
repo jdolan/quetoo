@@ -300,12 +300,6 @@ typedef struct {
 	int32_t contents;
 
 	/**
-	 * @brief The visibility cluster. Sibling leafs, and their parent node, share the
-	 * same visibility cluster.
-	 */
-	int32_t cluster;
-
-	/**
 	 * @brief The index of the first leaf-brush reference.
 	 */
 	int32_t first_leaf_brush;
