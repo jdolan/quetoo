@@ -114,27 +114,31 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
 				const box3_t bounds = Box3(mins, maxs);
 
-				int32_t leafs[256];
-				int32_t top_node;
-				int32_t contents = 0;
+				r_bsp_occlusion_query_t query = {
+					.bounds = Box3_Null(),
+					.available = 1,
+					.result = 1
+				};
 
-				const size_t num_leafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), &top_node, 0);
+				int32_t leafs[256];
+				const size_t num_leafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), NULL, 0);
 				for (size_t i = 0; i < num_leafs; i++) {
-					contents |= Cm_LeafContents(leafs[i]);
+					const r_bsp_leaf_t *leaf = bsp->leafs + leafs[i];
+
+					if (!(leaf->contents & CONTENTS_SOLID)) {
+						query.bounds = Box3_Union(query.bounds, leaf->bounds);
+					}
 				}
 
-				if (contents == CONTENTS_SOLID) {
+				if (Box3_IsNull(query.bounds)) {
 					continue;
 				}
 
-				// TODO: It would be nice to clip OQ's to non-solid leafs without introducing gaps
+				query.bounds = Box3_Intersection(query.bounds, bounds);
 
-				r_bsp_occlusion_query_t query = {
-					.node = bsp->nodes + top_node,
-					.bounds = bounds,
-					.available = 1,
-					.result = 1,
-				};
+				int32_t top_node;
+				Cm_BoxLeafnums(query.bounds, leafs, lengthof(leafs), &top_node, 0);
+				query.node = bsp->nodes + top_node;
 
 				g_array_append_val(queries, query);
 			}

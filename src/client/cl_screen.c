@@ -233,6 +233,9 @@ static void Cl_DrawRendererStats(void) {
 
 	y += ch;
 
+	R_Draw2DString(x, y, va("Leaf: %d", Cm_PointLeafnum(cl_view.origin, 0)), color_yellow);
+	y += ch;
+
 	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
 	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
