@@ -465,7 +465,7 @@ static void HashLights(light_type_t type) {
 	const bsp_node_t *node = bsp_file.nodes;
 	for (int32_t i = 0; i < bsp_file.num_nodes; i++, node++) {
 
-		if (node->num_faces == 0) {
+		if (Box3_IsNull(node->visible_bounds)) {
 			continue;
 		}
 

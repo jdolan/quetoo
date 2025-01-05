@@ -229,9 +229,6 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 	if (Box3_ContainsPoint(query->bounds, view->origin)) {
 		query->available = 1;
 		query->result = 1;
-	} else if (R_CullBox(view, query->bounds)) {
-		query->available = 1;
-		query->result = 0;
 	} else {
 		if (query->available == 0) {
 			glGetQueryObjectiv(query->name, GL_QUERY_RESULT_AVAILABLE, &query->available);
@@ -249,22 +246,6 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 		}
 	}
 
-	if (query->result) {
-		r_stats.occlusion_queries_visible++;
-	} else {
-		r_stats.occlusion_queries_occluded++;
-	}
-
-	if (r_draw_occlusion_queries->value) {
-		const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
-		const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
-		if (query->result) {
-			R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
-		} else {
-			R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
-		}
-	}
-
 	return query->result;
 }
 
@@ -274,6 +255,10 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node) {
 
 	if (node->contents != CONTENTS_NODE) {
+		return;
+	}
+
+	if (R_CullBox(view, node->visible_bounds)) {
 		return;
 	}
 
@@ -288,8 +273,22 @@ static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node)
 
 		for (guint i = 0; i < queries->len; i++) {
 			r_occlusion_query_t *query = g_ptr_array_index(queries, i);
+
 			if (R_UpdateOcclusionQuery(view, query)) {
+				r_stats.occlusion_queries_visible++;
 				occluded = false;
+			} else {
+				r_stats.occlusion_queries_occluded++;
+			}
+
+			if (r_draw_occlusion_queries->value) {
+				const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
+				const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
+				if (query->result) {
+					R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
+				} else {
+					R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
+				}
 			}
 		}
 
