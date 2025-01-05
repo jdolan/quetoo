@@ -515,6 +515,51 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct r_bsp_occlusion_query_s {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The base vertex in the shared vertex buffer.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+
+	/**
+	 * @brief The time this query was last updated.
+	 */
+	uint32_t ticks;
+
+	/**
+	 * @brief The node containing this query.
+	 */
+	struct r_bsp_node_s *node;
+
+	/**
+	 * @brief The next query on the node.
+	 */
+	struct r_bsp_occlusion_query_s *next;
+} r_bsp_occlusion_query_t;
+
+/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 typedef struct r_bsp_node_s {
@@ -558,6 +603,11 @@ typedef struct r_bsp_node_s {
 	 * @brief The count of faces.
 	 */
 	int32_t num_faces;
+
+	/**
+	 * @brief The linked list of occlusion queries within this node.
+	 */
+	r_bsp_occlusion_query_t *occlusion_queries;
 
 	/**
 	 * @brief The AABB of visible faces within this node.
@@ -829,6 +879,9 @@ typedef struct {
 
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
+
+	int32_t num_occlusion_queries;
+	r_bsp_occlusion_query_t *occlusion_queries;
 
 	/**
 	 * @brief The sky draw elements.
