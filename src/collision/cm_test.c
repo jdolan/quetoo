@@ -437,8 +437,8 @@ size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t
 		*top_node = data.top_node;
 	}
 
-	if (data.count == data.length) {
-		Com_Debug(DEBUG_COLLISION, "length (%" PRIuPTR ") reached\n", data.length);
+	if (data.length > 0 && data.count == data.length) {
+		Com_Warn("%zd leafs exceeded\n", data.length);
 	}
 
 	return data.count;

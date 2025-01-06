@@ -98,6 +98,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  * @brief Creates occlusion queries on a grid, and clips them to the BSP to reduce overdraw.
  */
 void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
+	int32_t leafs[MAX_BSP_LEAFS];
 
 	GArray *queries = g_array_new(false, false, sizeof(r_bsp_occlusion_query_t));
 
@@ -120,7 +121,6 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 					.result = 1
 				};
 
-				int32_t leafs[512];
 				const size_t num_leafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), NULL, 0);
 				for (size_t i = 0; i < num_leafs; i++) {
 					const r_bsp_leaf_t *leaf = bsp->leafs + leafs[i];
@@ -137,7 +137,7 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 				query.bounds = Box3_Intersection(query.bounds, bounds);
 
 				int32_t top_node;
-				Cm_BoxLeafnums(query.bounds, leafs, lengthof(leafs), &top_node, 0);
+				Cm_BoxLeafnums(query.bounds, NULL, 0, &top_node, 0);
 				query.node = bsp->nodes + top_node;
 
 				g_array_append_val(queries, query);
