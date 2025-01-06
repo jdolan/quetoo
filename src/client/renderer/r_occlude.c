@@ -120,7 +120,7 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 					.result = 1
 				};
 
-				int32_t leafs[256];
+				int32_t leafs[512];
 				const size_t num_leafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), NULL, 0);
 				for (size_t i = 0; i < num_leafs; i++) {
 					const r_bsp_leaf_t *leaf = bsp->leafs + leafs[i];
