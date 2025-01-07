@@ -515,51 +515,6 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
- * @brief OpenGL occlusion queries.
- */
-typedef struct r_bsp_occlusion_query_s {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief The base vertex in the shared vertex buffer.
-	 */
-	GLint base_vertex;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-
-	/**
-	 * @brief The time this query was last updated.
-	 */
-	uint32_t ticks;
-
-	/**
-	 * @brief The node containing this query.
-	 */
-	struct r_bsp_node_s *node;
-
-	/**
-	 * @brief The next query on the node.
-	 */
-	struct r_bsp_occlusion_query_s *next;
-} r_bsp_occlusion_query_t;
-
-/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 typedef struct r_bsp_node_s {
@@ -594,6 +549,12 @@ typedef struct r_bsp_node_s {
 	struct r_bsp_node_s *children[2];
 
 	/**
+	 * @brief The AABB of visible faces within this node.
+	 * @remarks Often smaller than bounds, and useful for frustum culling.
+	 */
+	box3_t visible_bounds;
+
+	/**
 	 * @brief The faces within this node.
 	 * @details Faces will reside only in a single node, but they may straddle leaves.
 	 */
@@ -605,15 +566,14 @@ typedef struct r_bsp_node_s {
 	int32_t num_faces;
 
 	/**
-	 * @brief The linked list of occlusion queries within this node.
+	 * @brief True if this node is occluded for the current frame.
 	 */
-	r_bsp_occlusion_query_t *occlusion_queries;
+	bool occluded;
 
 	/**
-	 * @brief The AABB of visible faces within this node.
-	 * @remarks Often smaller than bounds, and useful for frustum culling.
+	 * @brief The linked list of occlusion queries within this node.
 	 */
-	box3_t visible_bounds;
+	struct r_occlusion_query_s *occlusion_queries;
 } r_bsp_node_t;
 
 /**
@@ -838,6 +798,46 @@ typedef struct {
 } r_bsp_lightgrid_t;
 
 /**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct r_occlusion_query_s {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
+	 * @brief The node containing this query.
+	 */
+	r_bsp_node_t *node;
+
+	/**
+	 * @brief The base vertex in the shared vertex buffer.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+
+	/**
+	 * @brief The next query on the node.
+	 */
+	struct r_occlusion_query_s *next;
+} r_occlusion_query_t;
+
+/**
  * @brief The renderer representation of the BSP model.
  */
 typedef struct {
@@ -881,7 +881,7 @@ typedef struct {
 	r_bsp_lightgrid_t *lightgrid;
 
 	int32_t num_occlusion_queries;
-	r_bsp_occlusion_query_t *occlusion_queries;
+	r_occlusion_query_t *occlusion_queries;
 
 	/**
 	 * @brief The sky draw elements.

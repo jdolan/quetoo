@@ -139,6 +139,10 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain) {
 		return;
 	}
 
+	if (R_OccludeSphere(view, stain->origin, stain->radius)) {
+		return;
+	}
+
 	view->stains[view->num_stains++] = *stain;
 }
 

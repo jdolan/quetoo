@@ -116,7 +116,9 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 		return;
 	}
 
-	// TODO: Occlusion query check
+	if (node->occluded) {
+		return;
+	}
 
 	const r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
