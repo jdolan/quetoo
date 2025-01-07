@@ -123,8 +123,8 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  * the clipping hull.
  */
 void Sv_LinkEntity(g_entity_t *ent) {
-	int32_t leafs[MAX_ENT_LEAFS];
-	int32_t top_node;
+
+	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
 
 	if (ent == svs.game->entities) { // never bother with the world
 		return;
@@ -156,54 +156,9 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
 	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
-	mat4_t matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
-	mat4_t inverse_matrix = Mat4_Inverse(matrix);
-
-	// set the absolute bounding box; ensure it is symmetrical
-	box3_t bounds = ent->abs_bounds = Cm_EntityBounds(ent->solid, matrix, ent->bounds);
-
-	if (!Mat4_Equal(matrix, Mat4_Identity())) {
-		bounds = Mat4_TransformBounds(inverse_matrix, bounds);
-	}
-
-	// get all leafs, including solids
-	const size_t len = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), &top_node, 0);
-
-	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-
-	// link to leafs
-	sent->num_clusters = 0;
-
-	if (len == MAX_ENT_LEAFS) { // use top_node
-		sent->num_clusters = -1;
-		sent->top_node = top_node;
-	} else {
-		sent->num_clusters = 0;
-		for (size_t i = 0; i < len; i++) {
-
-			const int32_t cluster = Cm_LeafCluster(leafs[i]);
-			if (cluster == -1) {
-				continue; // not a visible leaf
-			}
-
-			int32_t c;
-			for (c = 0; c < sent->num_clusters; c++)
-				if (sent->clusters[c] == cluster) {
-					break;
-				}
-
-			if (c == sent->num_clusters) {
-				if (sent->num_clusters == MAX_ENT_CLUSTERS) { // use top_node
-					Com_Debug(DEBUG_SERVER, "%s exceeds MAX_ENT_CLUSTERS\n", etos(ent));
-					sent->num_clusters = -1;
-					sent->top_node = top_node;
-					break;
-				}
-
-				sent->clusters[sent->num_clusters++] = cluster;
-			}
-		}
-	}
+	sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
+	sent->inverse_matrix = Mat4_Inverse(sent->matrix);
+	ent->abs_bounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
 
 	if (ent->solid == SOLID_NOT) {
 		return;
@@ -222,17 +177,13 @@ void Sv_LinkEntity(g_entity_t *ent) {
 		} else if (ent->abs_bounds.maxs.xyz[sector->axis] < sector->dist) {
 			sector = sector->children[1];
 		} else {
-			break;    // crosses the node
+			break; // crosses the node
 		}
 	}
 
 	// add it to the sector
 	sent->sector = sector;
 	sector->entities = g_list_prepend(sector->entities, ent);
-
-	// and update its clipping matrices
-	sent->matrix = matrix;
-	sent->inverse_matrix = inverse_matrix;
 }
 
 /**

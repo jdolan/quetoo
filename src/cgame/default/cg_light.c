@@ -132,8 +132,6 @@ void Cg_AddLights(void) {
 			.source = l->source,
 		};
 
-		cgi.BoxLeafnums(out.bounds, NULL, 0, &out.node, 0);
-
 		if (l->decay) {
 			assert(out.intensity >= 0.f);
 			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);

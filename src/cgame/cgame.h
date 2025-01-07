@@ -833,20 +833,21 @@ typedef struct cg_import_s {
 	GLint (*StringWidth)(const char *s);
 
 	/**
-	 * @brief Draw a 3D line at the given coordinates.
-	 * @param points Pointer to point coordinates.
-	 * @param count Number of point coordinates.
-	 * @param color Color of lines.
+	 * @brief Draw 3D lines between the given point pairs.
+	 * @param points The points array, in pairs.
+	 * @param count The length of points.
+	 * @param color Color.
+	 * @param depth_test Depth test.
 	*/
-	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color);
-	
+	void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color, bool depth_test);
+
 	/**
 	 * @brief Draw a 3D bbox at the given coordinates.
 	 * @param bounds Box.
 	 * @param color Color.
-	 * @param solid Whether to draw a solid or wireframe box.
+	 * @param depth_test Depth test.
 	*/
-	void (*Draw3DBox)(const box3_t bounds, const color_t color, const bool solid);
+	void (*Draw3DBox)(const box3_t bounds, const color_t color, bool depth_test);
 
 	/**
 	 * @}

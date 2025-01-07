@@ -33,8 +33,6 @@ typedef struct portal_s {
 	face_t *face[2]; // output face in bsp file
 } portal_t;
 
-int32_t VisibleContents(int32_t contents);
-
 void MakeHeadnodePortals(tree_t *tree);
 void MakeNodePortal(node_t *node);
 void SplitNodePortals(node_t *node);

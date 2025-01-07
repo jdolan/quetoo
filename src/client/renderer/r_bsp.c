@@ -113,7 +113,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 		if (draw->plane != plane && draw->plane != plane + 1) {
 			continue;
 		}
-		
+
 		if (!Box3_Intersects(draw->bounds, node->visible_bounds)) {
 			continue;
 		}

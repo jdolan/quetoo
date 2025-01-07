@@ -134,6 +134,10 @@ static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
 			continue;
 		}
 
+		if (R_CulludeBox(view, e->abs_model_bounds)) {
+			continue;
+		}
+
 		R_DrawEntityBounds(e);
 	}
 }

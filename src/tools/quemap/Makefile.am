@@ -18,7 +18,6 @@ noinst_HEADERS = \
 	points.h \
 	polylib.h \
 	portal.h \
-	prtfile.h \
 	qbsp.h \
 	qlight.h \
 	qmat.h \
@@ -49,7 +48,6 @@ quemap_SOURCES = \
 	monitor.c \
 	polylib.c \
 	portal.c \
-	prtfile.c \
 	qbsp.c \
 	qmat.c \
 	qlight.c \

@@ -53,7 +53,11 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	view->lights[view->num_lights++] = *l;
+	r_light_t *out = &view->lights[view->num_lights++];
+
+	*out = *l;
+
+	Cm_BoxLeafnums(out->bounds, NULL, 0, &out->node, 0);
 }
 
 /**
