@@ -37,7 +37,6 @@
     <ClCompile Include="..\src\tools\quemap\monitor.c" />
     <ClCompile Include="..\src\tools\quemap\polylib.c" />
     <ClCompile Include="..\src\tools\quemap\portal.c" />
-    <ClCompile Include="..\src\tools\quemap\prtfile.c" />
     <ClCompile Include="..\src\tools\quemap\qbsp.c" />
     <ClCompile Include="..\src\tools\quemap\qlight.c" />
     <ClCompile Include="..\src\tools\quemap\qmat.c" />
@@ -69,7 +68,6 @@
     <ClInclude Include="..\src\tools\quemap\points.h" />
     <ClInclude Include="..\src\tools\quemap\polylib.h" />
     <ClInclude Include="..\src\tools\quemap\portal.h" />
-    <ClInclude Include="..\src\tools\quemap\prtfile.h" />
     <ClInclude Include="..\src\tools\quemap\qbsp.h" />
     <ClInclude Include="..\src\tools\quemap\qlight.h" />
     <ClInclude Include="..\src\tools\quemap\qmat.h" />
