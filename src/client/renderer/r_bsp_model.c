@@ -233,10 +233,8 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
 
 	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
-
 		out->contents = in->contents;
 		out->bounds = in->bounds;
-		out->visible_bounds = in->visible_bounds;
 	}
 }
 
@@ -274,34 +272,15 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
- */
-static void R_DestroyNodeOcclusionQueries(r_bsp_node_t *node) {
-
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
-
-	R_DestroyOcclusionQuery(&node->query);
-
-	R_DestroyNodeOcclusionQueries(node->children[0]);
-	R_DestroyNodeOcclusionQueries(node->children[1]);
-}
-
-/**
  * @brief Sets up in-memory relationships between node, parent and model.
- * @remarks Additionally, occlusion queries are generated from the visible bounds of the node.
- * The desired occlusion query size is controlled by `r_occlusion_query_size`. Nodes of this size
- * or greater are selected from the tree using bottom-up recursion.
- * @return True if an occlusion query was generated for the node.
  */
-static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
 
 	node->model = model;
 	node->parent = parent;
 
 	if (node->contents != CONTENTS_NODE) {
-		return false;
+		return;
 	}
 
 	r_bsp_face_t *face = node->faces;
@@ -309,25 +288,8 @@ static bool R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 		face->node = node;
 	}
 
-	const bool a = R_SetupBspNode(model, node, node->children[0]);
-	const bool b = R_SetupBspNode(model, node, node->children[1]);
-
-	if (!a || !b) {
-
-		const float size = r_occlusion_query_size->value;
-		if (Box3_Volume(node->visible_bounds) > size * size * size) {
-			if (a) {
-				R_DestroyNodeOcclusionQueries(node->children[0]);
-			}
-			if (b) {
-				R_DestroyNodeOcclusionQueries(node->children[1]);
-			}
-			node->query = R_CreateOcclusionQuery(Box3_Expand(node->visible_bounds, ON_EPSILON));
-			return true;
-		}
-	}
-
-	return a || b;
+	R_SetupBspNode(model, node, node->children[0]);
+	R_SetupBspNode(model, node, node->children[1]);
 }
 
 /**
@@ -346,7 +308,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->def = bsp->cm->entities[in->entity];
 		out->head_node = bsp->nodes + in->head_node;
 
-		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -734,7 +696,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		out->type = MODEL_BSP_INLINE;
 		out->bsp_inline = in;
 
-		out->bounds = in->bounds;
+		out->bounds = in->visible_bounds;
 
 		mod->bounds = Box3_Union(mod->bounds, out->bounds);
 
@@ -790,12 +752,14 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 	}
 
+	R_CreateOcclusionQueries(mod->bsp);
+
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
-	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:   %s\n", mod->media.name);
-	Com_Debug(DEBUG_RENDERER, "!  Vertexes:       %d\n", mod->bsp->num_vertexes);
-	Com_Debug(DEBUG_RENDERER, "!  Elements:       %d\n", mod->bsp->num_elements);
-	Com_Debug(DEBUG_RENDERER, "!  Faces:          %d\n", mod->bsp->num_faces);
-	Com_Debug(DEBUG_RENDERER, "!  Draw elements:  %d\n", mod->bsp->num_draw_elements);
+	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);
+	Com_Debug(DEBUG_RENDERER, "!  Vertexes:          %d\n", mod->bsp->num_vertexes);
+	Com_Debug(DEBUG_RENDERER, "!  Elements:          %d\n", mod->bsp->num_elements);
+	Com_Debug(DEBUG_RENDERER, "!  Faces:             %d\n", mod->bsp->num_faces);
+	Com_Debug(DEBUG_RENDERER, "!  Draw elements:     %d\n", mod->bsp->num_draw_elements);
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 
@@ -836,13 +800,10 @@ static void R_FreeBspModel(r_media_t *self) {
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
-		g_ptr_array_free(in->blend_elements, 1);
+		g_ptr_array_free(in->blend_elements, true);
 	}
 
-	r_bsp_node_t *node = mod->bsp->nodes;
-	for (int32_t i = 0; i < mod->bsp->num_nodes; i++, node++) {
-		R_DestroyOcclusionQuery(&node->query);
-	}
+	R_DestroyOcclusionQueries(mod->bsp);
 }
 
 /**

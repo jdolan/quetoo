@@ -108,13 +108,13 @@ static void R_DrawBspNormals(const r_view_t *view) {
 		const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
 		const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-		R_Draw3DLines(normal, 2, color_red);
+		R_Draw3DLines(normal, 2, color_red, false);
 
 		if (r_draw_bsp_normals->integer > 1) {
-			R_Draw3DLines(tangent, 2, color_green);
+			R_Draw3DLines(tangent, 2, color_green, false);
 
 			if (r_draw_bsp_normals->integer > 2) {
-				R_Draw3DLines(bitangent, 2, color_blue);
+				R_Draw3DLines(bitangent, 2, color_blue, false);
 			}
 		}
 	}
@@ -187,7 +187,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color, false);
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
@@ -202,7 +202,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color, false);
 
 				}  else if (r_draw_bsp_lightgrid->integer == 3) {
 
@@ -217,7 +217,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
-					R_Draw3DLines((vec3_t []) { origin, end }, 2, color);
+					R_Draw3DLines((vec3_t []) { origin, end }, 2, color, false);
 
 				} else if (r_draw_bsp_lightgrid->integer == 4) {
 

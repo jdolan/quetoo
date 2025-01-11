@@ -36,10 +36,24 @@ static void assert_vec4_eq(const vec4_t a, const vec4_t b) {
 	ck_assert_msg(Vec4_EqualEpsilon(a, b, .01), "(%g %g %g %g) != (%g %g %g %g)", a.x, a.y, a.z, a.w, b.x, b.y, b.z, b.w);
 }
 
+START_TEST(_SignedZero) {
+	float f = -0.f;
+	printf("%g %g\n", f, f + 0.f);
+} END_TEST
+
 START_TEST(_Clampf) {
 	assert_flt_eq(0, Clampf(-1, 0, 1));
 	assert_flt_eq(1, Clampf( 1, 0, 1));
 	assert_flt_eq(0, Clampf( 0, 0, 1));
+} END_TEST
+
+START_TEST(_Smoothf ) {
+	ck_assert_float_eq(Smoothf(-0.2f, -0.2f, 0.5f), 0.f);
+	ck_assert_float_eq(Smoothf( 0.5f, -0.2f, 0.5f), 1.f);
+
+	ck_assert_float_gt(Smoothf( 0.f, -0.2f, 0.5f),  0.f);
+	ck_assert_float_lt(Smoothf( 0.f, -0.2f, 0.5f),  1.f);
+
 } END_TEST
 
 START_TEST(_Vec3f) {
@@ -56,6 +70,7 @@ START_TEST(_Vec3_Cross) {
 
 START_TEST(_Vec3_Distance) {
 	assert_flt_eq(5, Vec3_Distance(Vec3(0, 0, 0), Vec3(3, 4, 0)));
+	ck_assert_float_lt(0.f, Vec3_Distance(Vec3_Maxs(), Vec3_Mins()));
 } END_TEST
 
 START_TEST(_Vec3_Dot) {
@@ -72,6 +87,10 @@ START_TEST(_Vec3_Equal) {
 	ck_assert(Vec3_Equal(Vec3_Zero(), Vec3_Zero()));
 	ck_assert(Vec3_Equal(Vec3_One(), Vec3_One()));
 	ck_assert(!Vec3_Equal(Vec3_Zero(), Vec3_One()));
+	ck_assert(Vec3_Equal(Vec3_Mins(), Vec3_Mins()));
+	ck_assert(Vec3_Equal(Vec3_Maxs(), Vec3_Maxs()));
+	ck_assert(!Vec3_Equal(Vec3_Mins(), Vec3_One()));
+
 } END_TEST
 
 START_TEST(_Vec3_Euler) {
@@ -114,15 +133,6 @@ START_TEST(_Vec3_Up) {
 	assert_vec3_eq(Vec3(0, 0, 1), Vec3_Up());
 } END_TEST
 
-START_TEST(_Smoothf ) {
-	ck_assert_float_eq(Smoothf(-0.2f, -0.2f, 0.5f), 0.f);
-	ck_assert_float_eq(Smoothf( 0.5f, -0.2f, 0.5f), 1.f);
-
-	ck_assert_float_gt(Smoothf( 0.f, -0.2f, 0.5f),  0.f);
-	ck_assert_float_lt(Smoothf( 0.f, -0.2f, 0.5f),  1.f);
-
-} END_TEST
-
 START_TEST(_Vec4_Bytes) {
 
 	const vec4_t a = Vec4(1, 0, 0, 1);
@@ -148,11 +158,13 @@ START_TEST(_Vec4_Bytes) {
 
 int32_t main(int32_t argc, char **argv) {
 
-	Suite *suite = suite_create("vector");
+	Suite *suite = suite_create("check_vector");
 	TCase *tcase;
 
 	tcase = tcase_create("float");
+	tcase_add_test(tcase, _SignedZero);
 	tcase_add_test(tcase, _Clampf);
+	tcase_add_test(tcase, _Smoothf);
 
 	suite_add_tcase(suite, tcase);
 
@@ -173,7 +185,10 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, _Vec3_Subtract);
 	tcase_add_test(tcase, _Vec3_Scale);
 	tcase_add_test(tcase, _Vec3_Up);
-	tcase_add_test(tcase, _Smoothf);
+
+	suite_add_tcase(suite, tcase);
+
+	tcase = tcase_create("vec4");
 	tcase_add_test(tcase, _Vec4_Bytes);
 
 	suite_add_tcase(suite, tcase);

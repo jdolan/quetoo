@@ -58,9 +58,6 @@ static void PrintBSPFileSizes(void) {
 	Com_Verbose("%5i nodes         %7i bytes\n", bsp_file.num_nodes,
 				(int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
 
-	Com_Verbose("%5i leaf_faces    %7i bytes\n", bsp_file.num_leaf_faces,
-				(int32_t) (bsp_file.num_leaf_faces * sizeof(bsp_file.leaf_faces[0])));
-
 	Com_Verbose("%5i leaf_brushes  %7i bytes\n", bsp_file.num_leaf_brushes,
 				(int32_t) (bsp_file.num_leaf_brushes * sizeof(bsp_file.leaf_brushes[0])));
 

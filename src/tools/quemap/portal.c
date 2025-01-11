@@ -51,9 +51,9 @@ void FreePortal(portal_t *p) {
 }
 
 /**
- * @return The single content bit of the strongest visible content present
+ * @return The single content bit of the strongest visible content present.
  */
-int32_t VisibleContents(int32_t contents) {
+static int32_t VisibleContents(int32_t contents) {
 
 	for (int32_t i = 1; i <= LAST_VISIBLE_CONTENTS; i <<= 1) {
 		if (contents & i) {
@@ -62,68 +62,6 @@ int32_t VisibleContents(int32_t contents) {
 	}
 
 	return 0;
-}
-
-/**
- * @return The bitwise OR of all contents within node.
- */
-static int32_t ClusterContents(const node_t *node) {
-
-	if (node->plane == PLANE_LEAF) {
-		return node->contents;
-	}
-
-	const int32_t c1 = ClusterContents(node->children[0]);
-	const int32_t c2 = ClusterContents(node->children[1]);
-
-	int32_t c = c1 | c2;
-
-	// a cluster may include some solid details, but still be seen into
-	if (!(c1 & CONTENTS_SOLID) || !(c2 & CONTENTS_SOLID)) {
-		c &= ~CONTENTS_SOLID;
-	}
-
-	return c;
-}
-
-/**
- * @return True if the portal is empty or translucent, allowing the PVS calculation to see through it.
- * @remark The nodes on either side of the portal may actually be clusters, not leafs, so all
- * contents should be OR'ed together.
- */
-bool Portal_VisFlood(const portal_t *p) {
-
-	if (!p->on_node) {
-		return false; // to global outsideleaf
-	}
-
-	int32_t c1 = ClusterContents(p->nodes[0]);
-	int32_t c2 = ClusterContents(p->nodes[1]);
-
-	if (!VisibleContents(c1 ^ c2)) {
-		return true;
-	}
-
-	if (c1 & (CONTENTS_TRANSLUCENT | CONTENTS_DETAIL)) {
-		c1 = 0;
-	}
-	if (c2 & (CONTENTS_TRANSLUCENT | CONTENTS_DETAIL)) {
-		c2 = 0;
-	}
-
-	if ((c1 | c2) & CONTENTS_SOLID) {
-		return false; // can't see through solid
-	}
-
-	if (!(c1 ^ c2)) {
-		return true; // identical on both sides
-	}
-
-	if (!VisibleContents(c1 ^ c2)) {
-		return true;
-	}
-
-	return false;
 }
 
 /**
@@ -741,52 +679,12 @@ static void MakeFaces_r(node_t *node) {
 /**
  * @brief
  */
-static box3_t CalcNodeVisibleBounds_r(node_t *node) {
-
-	node->visible_bounds = Box3_Null();
-
-	if (node->plane == PLANE_LEAF) {
-
-		int32_t s;
-		for (const portal_t *p = node->portals; p; p = p->next[s]) {
-
-			s = (p->nodes[1] == node);
-
-			const face_t *face = p->face[s];
-			if (!face) {
-				continue; // not a visible portal
-			}
-
-			while (face->merged) {
-				face = face->merged;
-			}
-
-			const box3_t bounds = Cm_WindingBounds(face->w);
-			node->visible_bounds = Box3_Union(node->visible_bounds, bounds);
-		}
-
-		return node->visible_bounds;
-	}
-
-	const box3_t a = CalcNodeVisibleBounds_r(node->children[0]);
-	const box3_t b = CalcNodeVisibleBounds_r(node->children[1]);
-
-	node->visible_bounds = Box3_Union(a, b);
-	return node->visible_bounds;
-}
-
-
-/**
- * @brief
- */
 void MakeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MakeTreeFaces ---\n");
 
 	c_faces = 0;
 
 	MakeFaces_r(tree->head_node);
-
-	CalcNodeVisibleBounds_r(tree->head_node);
 
 	Com_Verbose("%5i faces\n", c_faces);
 }

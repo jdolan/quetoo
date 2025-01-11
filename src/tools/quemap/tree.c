@@ -58,7 +58,7 @@ tree_t *AllocTree(void) {
 /**
  * @brief
  */
-void FreeTreePortals_r(node_t *node) {
+static void FreeTreePortals_r(node_t *node) {
 
 	// free children
 	if (node->plane != PLANE_LEAF) {
@@ -75,6 +75,10 @@ void FreeTreePortals_r(node_t *node) {
 		FreePortal(p);
 	}
 	node->portals = NULL;
+}
+
+void FreeTreePortals(tree_t *tree) {
+	FreeTreePortals_r(tree->head_node);
 }
 
 /**
@@ -397,7 +401,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->bounds = Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL);
+	tree->head_node->bounds = Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL);;
 	tree->head_node->volume = BrushFromBounds(tree->head_node->bounds);
 
 	BuildTree_r(tree->head_node, brushes);
@@ -412,7 +416,7 @@ static int32_t c_pruned;
 /**
  * @brief
  */
-void PruneNodes_r(node_t *node) {
+static void PruneNodes_r(node_t *node) {
 	csg_brush_t *b, *next;
 
 	if (node->plane == PLANE_LEAF) {
@@ -482,7 +486,7 @@ static int32_t c_merged_faces;
 /**
  * @brief
  */
-void MergeFaces_r(node_t *node) {
+static void MergeFaces_r(node_t *node) {
 
 	if (node->plane == PLANE_LEAF) {
 		return;
@@ -523,9 +527,39 @@ again:
 /**
  * @brief
  */
+static box3_t CalcNodeVisibleBounds_r(node_t *node) {
+
+	if (node->plane == PLANE_LEAF) {
+		return Box3_Null();
+	}
+
+	const box3_t a = CalcNodeVisibleBounds_r(node->children[0]);
+	const box3_t b = CalcNodeVisibleBounds_r(node->children[1]);
+
+	node->visible_bounds = Box3_Union(a, b);
+
+	for (face_t *face = node->faces; face; face = face->next) {
+
+		face_t *f = face;
+		while (f->merged) {
+			f = f->merged;
+		}
+
+		assert(f->w);
+		node->visible_bounds = Box3_Union(node->visible_bounds, Cm_WindingBounds(f->w));
+	}
+
+	return node->visible_bounds;
+}
+
+
+/**
+ * @brief
+ */
 void MergeTreeFaces(tree_t *tree) {
 	Com_Verbose("--- MergeTreeFaces ---\n");
 	c_merged_faces = 0;
 	MergeFaces_r(tree->head_node);
+	CalcNodeVisibleBounds_r(tree->head_node);
 	Com_Verbose("%5i merged faces\n", c_merged_faces);
 }

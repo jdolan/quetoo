@@ -1373,6 +1373,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 			Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
 		}
 
+		if (material->light.shadow != MATERIAL_LIGHT_SHADOW) {
+			Fs_Print(file, "\tlight.shadow %g\n", material->light.shadow);
+		}
+
 		if (material->light.cone != MATERIAL_LIGHT_CONE) {
 			Fs_Print(file, "\tlight.cone %g\n", material->light.cone);
 		}

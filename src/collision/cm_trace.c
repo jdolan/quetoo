@@ -78,7 +78,7 @@ typedef struct {
 	/**
 	 * @brief The brush cache, to avoid multiple tests against the same brush.
 	 */
-	int32_t brush_cache[128];
+	int32_t brush_cache[256];
 
 	/**
 	 * @brief The trace result.

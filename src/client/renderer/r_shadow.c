@@ -116,7 +116,7 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 		return;
 	}
 
-	if (node->query.name && node->query.result == 0) {
+	if (node->occluded) {
 		return;
 	}
 
