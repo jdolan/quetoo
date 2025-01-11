@@ -101,10 +101,10 @@ void parallax_occlusion_mapping() {
 		return;
 	}
 
-	float num_samples = mix(128, 1, linearstep(64.0, 1024.0, fragment.dist));
+	float num_samples = mix(64.0, 16.0, smoothstep(64.0, 1024.0, fragment.dist));
 
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-	vec2 p = dir.xy / dir.z * material.parallax * .02;
+	vec2 p = dir.xy / dir.z * material.parallax * (num_samples / 64.0) * .02;
 	vec2 delta = p / num_samples;
 
 	vec2 texcoord = vertex.diffusemap;
@@ -142,7 +142,7 @@ float parallax_self_shadow(in vec3 light_dir) {
 				float iterations = 16.0 + shadow * 16.0;
 				vec3 dir = normalize(fragment.inv_tbn * light_dir) * lambert * shadow;
 				vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-				vec3 delta = vec3(dir.xy, 1.0) / iterations;
+				vec3 delta = vec3(dir.xy * shadow, 1.0) / iterations;
 
 				int i = 0;
 				while (ray.z < 1.0 && i < iterations) {
@@ -509,7 +509,7 @@ void light_and_shadow(void) {
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse.rgb = vec3(max(0.0, parallax_self_shadow(fragment.direction)));
+	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
