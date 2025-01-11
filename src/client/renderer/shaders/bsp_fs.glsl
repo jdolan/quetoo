@@ -134,25 +134,27 @@ void parallax_occlusion_mapping() {
 float parallax_self_shadow(in vec3 light_dir) {
 
 	if (developer == 1) {
-		float lambert = dot(light_dir, fragment.normalmap);
-		if (lambert > 0.0) {
-			float shadow = 1.0 - lambert;
-			float iterations = 16.0 + shadow * 16.0;
-			vec3 dir = normalize(fragment.inv_tbn * light_dir);
-			vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-			vec3 delta = vec3(dir.xy * shadow, 1.0) / iterations;
+		//float atten = 1.0 - clamp(fragment.dist / 1024.0, 0.0, 1.0);
+		//if (atten > 0.0) {
+			float lambert = dot(light_dir, fragment.normalmap);
+			if (lambert > 0.0) {
+				float shadow = 1.0 - lambert;
+				float iterations = 16.0 + shadow * 16.0;
+				vec3 dir = normalize(fragment.inv_tbn * light_dir) * lambert * shadow;
+				vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+				vec3 delta = vec3(dir.xy, 1.0) / iterations;
 
-			int i = 0;
-			while (ray.z < 1.0 && i < iterations) {
-				if (ray.z < sample_heightmap(ray.xy)) {
-					return i / iterations;
+				int i = 0;
+				while (ray.z < 1.0 && i < iterations) {
+					if (ray.z < sample_heightmap(ray.xy)) {
+						return i / iterations;
+					}
+					ray += delta;
+					i++;
 				}
-				ray += delta;
-				i++;
 			}
-		}
+		//}
 	}
-
 
 	return 1.0;
 }
@@ -507,7 +509,7 @@ void light_and_shadow(void) {
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
+	fragment.diffuse.rgb = vec3(max(0.0, parallax_self_shadow(fragment.direction)));
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
 
