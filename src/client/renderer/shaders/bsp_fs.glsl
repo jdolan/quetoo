@@ -511,7 +511,7 @@ void light_and_shadow(void) {
 	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
 	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
-	fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
+	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
 	for (int i = 0; i < vertex.num_active_lights; i++) {
 
