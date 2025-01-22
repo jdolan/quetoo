@@ -51,7 +51,7 @@ struct fragment_t {
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 tbn;
-	mat3 inv_tbn;
+	mat3 inverse_tbn;
 	vec2 parallax;
 	vec4 diffusemap;
 	vec3 normalmap;
@@ -133,27 +133,24 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	if (developer == 1) {
-		//float atten = 1.0 - clamp(fragment.dist / 1024.0, 0.0, 1.0);
-		//if (atten > 0.0) {
-			float lambert = dot(light_dir, fragment.normalmap);
-			if (lambert > 0.0) {
-				float shadow = 1.0 - lambert;
-				float iterations = 16.0 + shadow * 16.0;
-				vec3 dir = normalize(fragment.inv_tbn * light_dir) * lambert * shadow;
-				vec3 ray = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-				vec3 delta = vec3(dir.xy * shadow, 1.0) / iterations;
+	if (material.parallax == 0.0) {
+		return 1.0;
+	}
 
-				int i = 0;
-				while (ray.z < 1.0 && i < iterations) {
-					if (ray.z < sample_heightmap(ray.xy)) {
-						return i / iterations;
-					}
-					ray += delta;
-					i++;
-				}
+	if (developer > 0) {
+
+		vec2 texel = 1.0 / textureSize(texture_material, 1).xy;
+		vec3 dir = normalize(fragment.inverse_tbn * light_dir);
+		vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.001));
+		vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+
+		do {
+			texcoord += delta;
+			float sample_height = sample_heightmap(texcoord.xy);
+			if (sample_height > texcoord.z * 1.05) {
+				return distance(fragment.parallax, texcoord.xy);
 			}
-		//}
+		} while (texcoord.z < 1.0);
 	}
 
 	return 1.0;
@@ -508,7 +505,7 @@ void light_and_shadow(void) {
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
+	fragment.diffuse *= max(0.3, parallax_self_shadow(mix(fragment.direction, fragment.normalmap, 0.3)));
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
@@ -555,7 +552,7 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-	fragment.inv_tbn = inverse(fragment.tbn);
+	fragment.inverse_tbn = inverse(fragment.tbn);
 	fragment.parallax = vertex.diffusemap;
 	fragment.specular = vec3(0);
 
