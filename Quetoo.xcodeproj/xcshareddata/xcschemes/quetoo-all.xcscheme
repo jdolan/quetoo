@@ -90,7 +90,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_wireframe 0 +set r_draw_occlusion_queries 1 +set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_lightgrid 2 +set r_draw_bsp_lightmap 0"
@@ -117,6 +117,10 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set r_developer 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set s_ambient_volume 0"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -133,7 +137,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map hallways"
+            argument = "+set sv_max_clients 32 +map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

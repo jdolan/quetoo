@@ -116,10 +116,6 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 		return;
 	}
 
-	if (node->occluded) {
-		return;
-	}
-
 	const r_bsp_face_t *face = node->faces;
 	for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
@@ -167,7 +163,7 @@ static void R_DrawBspNodeShadow(const r_light_t *light) {
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	R_DrawBspNodeShadow_r(light, bsp->nodes + light->node);
+	R_DrawBspNodeShadow_r(light, light->node);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

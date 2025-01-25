@@ -1333,7 +1333,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 	}
 
 	Fs_Print(file, "\troughness %g\n", material->roughness);
-	Fs_Print(file, "\tparallax %g\n", material->parallax);
 	Fs_Print(file, "\thardness %g\n", material->hardness);
 	Fs_Print(file, "\tspecularity %g\n", material->specularity);
 	Fs_Print(file, "\tparallax %g\n", material->parallax);
