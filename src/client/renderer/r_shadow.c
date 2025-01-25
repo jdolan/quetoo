@@ -167,7 +167,7 @@ static void R_DrawBspNodeShadow(const r_light_t *light) {
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	R_DrawBspNodeShadow_r(light, bsp->nodes + light->node);
+	R_DrawBspNodeShadow_r(light, light->node);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

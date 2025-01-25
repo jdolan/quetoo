@@ -57,7 +57,10 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 
 	*out = *l;
 
-	Cm_BoxLeafnums(out->bounds, NULL, 0, &out->node, 0);
+	int32_t node;
+	Cm_BoxLeafnums(out->bounds, NULL, 0, &node, 0);
+
+	out->node = r_world_model->bsp->nodes + node;
 }
 
 /**

@@ -1570,7 +1570,7 @@ typedef struct {
 	 * @brief The top node containing the light bounds.
 	 * @details This is populated by the renderer, after culling checks.
 	 */
-	int32_t node;
+	const r_bsp_node_t *node;
 
 	/**
 	 * @brief The optional light source, which will not cast shadow.
