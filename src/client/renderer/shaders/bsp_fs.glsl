@@ -137,21 +137,18 @@ float parallax_self_shadow(in vec3 light_dir) {
 		return 1.0;
 	}
 
-	if (developer > 0) {
+	vec2 texel = 1.0 / textureSize(texture_material, 1).xy;
+	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
+	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.001));
+	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
 
-		vec2 texel = 1.0 / textureSize(texture_material, 1).xy;
-		vec3 dir = normalize(fragment.inverse_tbn * light_dir);
-		vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.001));
-		vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-
-		do {
-			texcoord += delta;
-			float sample_height = sample_heightmap(texcoord.xy);
-			if (sample_height > texcoord.z * 1.05) {
-				return distance(fragment.parallax, texcoord.xy);
-			}
-		} while (texcoord.z < 1.0);
-	}
+	do {
+		texcoord += delta;
+		float sample_height = sample_heightmap(texcoord.xy);
+		if (sample_height > texcoord.z * 1.05) {
+			return distance(fragment.parallax, texcoord.xy);
+		}
+	} while (texcoord.z < 1.0);
 
 	return 1.0;
 }
