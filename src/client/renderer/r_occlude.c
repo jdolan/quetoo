@@ -215,10 +215,6 @@ static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node)
 		return;
 	}
 
-	const int32_t side = Cm_DistanceToPlane(view->origin, node->plane->cm) >= 0.f ? 0 : 1;
-
-	R_UpdateOcclusionQueries_r(view, node->children[side]);
-
 	if (node->occlusion_queries) {
 		node->occluded = true;
 
@@ -235,7 +231,8 @@ static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node)
 		node->occluded = node->parent ? node->parent->occluded : false;
 	}
 
-	R_UpdateOcclusionQueries_r(view, node->children[!side]);
+	R_UpdateOcclusionQueries_r(view, node->children[0]);
+	R_UpdateOcclusionQueries_r(view, node->children[1]);
 }
 
 /**
