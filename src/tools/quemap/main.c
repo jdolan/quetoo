@@ -437,7 +437,7 @@ int32_t main(int32_t argc, char **argv) {
 	if (do_bsp) {
 		BSP_Main();
 	}
-	if (do_bsp || do_light) {
+	if ((do_bsp && !only_ents) || do_light) {
 		LIGHT_Main();
 	}
 	if (do_zip) {
