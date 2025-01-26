@@ -485,10 +485,10 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->size = in->size;
 
 	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
-	const vec3_t world_size = Box3_Size(mod->bounds);
+	const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
 	const vec3_t padding = Vec3_Scale(Vec3_Subtract(grid_size, world_size), 0.5);
 
-	out->bounds = Box3_Expand3(mod->bounds, padding);
+	out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
 
 	out->luxel_size = Vec3(BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE);
 
