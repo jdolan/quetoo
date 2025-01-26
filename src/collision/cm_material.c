@@ -648,6 +648,12 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->parallax = MATERIAL_PARALLAX;
 	mat->bloom = MATERIAL_BLOOM;
 
+	mat->light.atten = MATERIAL_LIGHT_ATTEN;
+	mat->light.intensity = MATERIAL_LIGHT_INTENSITY;
+	mat->light.shadow = MATERIAL_LIGHT_SHADOW;
+	mat->light.cone = MATERIAL_LIGHT_CONE;
+	mat->light.falloff = MATERIAL_LIGHT_FALLOFF;
+
 	return mat;
 }
 
@@ -884,12 +890,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
 				m->light.radius = MATERIAL_LIGHT_RADIUS;
 			}
-
-			m->light.atten = MATERIAL_LIGHT_ATTEN;
-			m->light.intensity = MATERIAL_LIGHT_INTENSITY;
-			m->light.shadow = MATERIAL_LIGHT_SHADOW;
-			m->light.cone = MATERIAL_LIGHT_CONE;
-			m->light.falloff = MATERIAL_LIGHT_FALLOFF;
 
 			m->surface |= SURF_LIGHT;
 		}
