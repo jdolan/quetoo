@@ -109,7 +109,7 @@ void LoadMaterials(const char *path) {
 	Cm_LoadMaterials(path, &mat_file);
 	if (mat_file) {
 		Com_Print("Loaded %d materials from %s\n", g_list_length(mat_file), path);
-	} else {
+	} else if (!do_mat) {
 		Com_Warn("Failed to load %s\n", path);
 		Com_Warn("Run `quemap -mat %s` to generate\n", map_name);
 	}
@@ -161,13 +161,15 @@ void FreeMaterials(void) {
  */
 ssize_t WriteMaterialsFile(const char *path) {
 
-	GList *cm = NULL;
-	for (int32_t i = 0; i < num_materials; i++) {
-		cm = g_list_prepend(cm, materials[i].cm);
+	GList *list = NULL;
+	material_t *mat = materials;
+	for (int32_t i = 0; i < num_materials; i++, mat++) {
+		g_strlcpy(mat->cm->path, path, sizeof(mat->cm->path));
+		list = g_list_prepend(list, mat->cm);
 	}
 
-	const ssize_t count = Cm_WriteMaterials(path, cm);
+	const ssize_t count = Cm_WriteMaterials(path, list);
 
-	g_list_free(cm);
+	g_list_free(list);
 	return count;
 }
