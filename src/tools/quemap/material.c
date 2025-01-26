@@ -86,7 +86,7 @@ static material_t *LoadMaterial(const char *name) {
 			material->diffuse = material->cm->light.color;
 
 			if (Vec3_Equal(material->diffuse, Vec3_Zero())) {
-				material->diffuse = Vec3_Scale(material->ambient, 1.f / Vec3_Hmaxf(material->ambient));
+				material->diffuse = Img_ColorHighPass(material->diffusemap, .9f).vec3;
 			}
 		} else {
 			Com_Warn("Failed to load %s\n", material->cm->diffusemap.path);

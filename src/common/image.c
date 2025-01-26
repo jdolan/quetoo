@@ -75,30 +75,51 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 }
 
 /**
- * @brief Resolves the average color of the specified surface.
+ * @brief Resolves the average color of the pixels which exceed the highpass filter.
  */
-color_t Img_Color(const SDL_Surface *surf) {
+color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
+
 	color_t out = color_white;
 
 	if (surf) {
-		const int32_t texels = surf->w * surf->h;
-		uint64_t r = 0, g = 0, b = 0;
+		float max = 0.f;
 
-		for (int32_t j = 0; j < texels; j++) {
-
-			const byte *pos = (byte *) surf->pixels + j * 4;
-
-			r += *pos++;
-			g += *pos++;
-			b += *pos++;
+		// first find the brightest sample
+		const int32_t *pixel = surf->pixels;
+		for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
+			const color_t c = Color4bv(*pixel);
+			const float f = Vec3_Hmaxf(c.vec3);
+			if (f > max) {
+				max = f;
+			}
 		}
 
-		out = Color3f((r / (float) texels) / 255.f,
-					  (g / (float) texels) / 255.f,
-					  (b / (float) texels) / 255.f);
+		// now accumulate the ones that pass the filter
+
+		vec3_t accumulator = Vec3_Zero();
+		int32_t passed = 0;
+
+		pixel = surf->pixels;
+		for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
+			const color_t c = Color4bv(*pixel);
+
+			if (Vec3_Hmaxf(c.vec3) >= filter * max) {
+				accumulator = Vec3_Add(accumulator, c.vec3);
+				passed++;
+			}
+		}
+
+		out = Color3fv(Vec3_Scale(accumulator, 1.f / passed));
 	}
 
 	return out;
+}
+
+/**
+ * @brief Resolves the average color of the specified surface.
+ */
+color_t Img_Color(const SDL_Surface *surf) {
+	return Img_ColorHighPass(surf, 0.f);
 }
 
 // Quick access of a pixel

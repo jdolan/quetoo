@@ -32,6 +32,11 @@
 SDL_Surface *Img_LoadSurface(const char *name);
 
 /**
+ * @brief Resolves the average color of the texels which exceed the highpass filter.
+ */
+color_t Img_ColorHighPass(const SDL_Surface *surf, float filter);
+
+/**
  * @brief Resolves the average color of the specified surface.
  */
 color_t Img_Color(const SDL_Surface *surf);
