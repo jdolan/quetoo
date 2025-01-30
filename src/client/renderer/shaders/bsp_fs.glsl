@@ -66,16 +66,6 @@ struct fragment_t {
 } fragment;
 
 /**
- * @brief
- */
-float texture_query_lod(vec2 texcoord) {
-#if GL_ARB_texture_query_lod
-	return textureQueryLod(texture_material, texcoord).y;
-#endif
-	return 0.0;
-}
-
-/**
  * @brief Samples the heightmap at the given texture coordinate.
  */
 float sample_heightmap(vec2 texcoord) {
@@ -101,10 +91,11 @@ void parallax_occlusion_mapping() {
 		return;
 	}
 
-	float num_samples = mix(64.0, 16.0, smoothstep(64.0, 1024.0, fragment.dist));
+	float num_samples = 64.0 / max(1.0, fragment.lod * fragment.lod);
 
+	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
 	vec3 dir = normalize(fragment.dir * fragment.tbn);
-	vec2 p = dir.xy / dir.z * material.parallax * (num_samples / 64.0) * .02;
+	vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
 	vec2 delta = p / num_samples;
 
 	vec2 texcoord = vertex.diffusemap;
@@ -137,7 +128,7 @@ float parallax_self_shadow(in vec3 light_dir) {
 		return 1.0;
 	}
 
-	vec2 texel = 1.0 / textureSize(texture_material, 1).xy;
+	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
 	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
 	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.001));
 	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
@@ -502,7 +493,7 @@ void light_and_shadow(void) {
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse *= max(0.3, parallax_self_shadow(mix(fragment.direction, fragment.normalmap, 0.3)));
+	fragment.diffuse *= max(0.5, parallax_self_shadow(fragment.direction));
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
@@ -544,7 +535,7 @@ void main(void) {
 
 	fragment.dir = normalize(-vertex.position);
 	fragment.dist = length(vertex.position);
-	fragment.lod = texture_query_lod(vertex.diffusemap);
+	fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 	fragment.normal = normalize(vertex.normal);
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
