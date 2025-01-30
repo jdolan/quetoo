@@ -72,8 +72,9 @@ typedef struct {
 	const char *vendor;
 	const char *version;
 
-	int32_t max_texunits;
-	int32_t max_texture_size;
+	GLint max_texunits;
+	GLint max_texture_size;
+	GLint max_uniform_block_size;
 } r_config_t;
 
 extern r_config_t r_config;
