@@ -701,7 +701,8 @@ void EmitLights(void) {
 				out->cone = light->cone;
 				out->falloff = light->falloff;
 				out->bounds = light->visible_bounds;
-				out->bounds = Box3_Expand(out->bounds, 1.f);
+
+				light->out = out;
 				out++;
 				break;
 		}

@@ -265,6 +265,7 @@ uniform sampler2D texture_lightmap_ambient;
 uniform sampler2D texture_lightmap_diffuse;
 uniform sampler2D texture_lightmap_direction;
 uniform sampler2D texture_lightmap_caustics;
+uniform sampler2D texture_lightmap_lumens;
 uniform sampler2D texture_lightmap_stains;
 
 /**

@@ -395,6 +395,8 @@ cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, 
  */
 static void LightWorld(void) {
 
+	LoadMaterials(va("maps/%s.mat", map_base));
+
 	// build lightmaps
 	BuildLightmaps();
 
@@ -402,8 +404,6 @@ static void LightWorld(void) {
 	const size_t num_lightgrid = BuildLightgrid();
 
 	if (do_light) {
-
-		LoadMaterials(va("maps/%s.mat", map_base));
 
 		// build lights out of entities and emissive faces
 		BuildDirectLights();
@@ -427,9 +427,6 @@ static void LightWorld(void) {
 		// save the light sources to the BSP
 		EmitLights();
 
-		// free the light sources
-		FreeLights();
-
 		// build fog volumes out of brush entities
 		BuildFog();
 
@@ -439,8 +436,6 @@ static void LightWorld(void) {
 		// free the fog volumes
 		FreeFog();
 
-		// and the materials
-		FreeMaterials();
 	} else {
 		// pad lightmap and lightgrid for bsp-only compiles
 		lightmap_t *lm = lightmaps;
@@ -463,8 +458,14 @@ static void LightWorld(void) {
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
 
+	// free the light sources
+	FreeLights();
+
 	// free the lightmap windings
 	FreeWindings();
+
+	// free the materials
+	FreeMaterials();
 
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);

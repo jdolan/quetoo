@@ -752,6 +752,13 @@ static SDL_Surface *CreateLightmapSurfaceRGB8(int32_t w, int32_t h) {
 /**
  * @brief
  */
+static SDL_Surface *CreateLightmapSurfaceRGBA8(int32_t w, int32_t h) {
+	return CreateLuxelSurface(w, h, sizeof(color32_t), Mem_TagMalloc(w * h * sizeof(color32_t), MEM_TAG_LIGHTMAP));
+}
+
+/**
+ * @brief
+ */
 static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 
 	// re-project the luxel so that it reflects its centered normal vector
@@ -808,6 +815,9 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->caustics = CreateLightmapSurfaceRGB8(lm->w, lm->h);
 	color24_t *out_caustics = lm->caustics->pixels;
 
+	lm->lumens = CreateLightmapSurfaceRGBA8(lm->w, lm->h);
+	byte *out_lumens = lm->lumens->pixels;
+
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
@@ -817,6 +827,22 @@ void FinalizeLightmap(int32_t face_num) {
 		*out_diffuse++ = l->diffuse;
 		*out_direction++ = Color24i(Vec3_Bytes(l->direction));
 		*out_caustics++ = Color_Color24(Color3fv(l->caustics));
+
+		const lumen_t *lumen = l->lumens;
+		for (size_t j = 0; j < lengthof(l->lumens); j++, lumen++) {
+			ptrdiff_t light;
+			if (lumen->light) {
+				assert(lumen->light->out);
+				light = lumen->light->out - bsp_file.lights;
+			} else {
+				light = 0;
+			}
+
+			assert(light >= 0);
+			assert(light < MAX_BSP_LIGHTS);
+
+			*out_lumens++ = (byte) light;
+		}
 	}
 }
 
@@ -839,7 +865,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics, lm->lumens);
 	}
 
 	int32_t width;
@@ -852,6 +878,7 @@ void EmitLightmap(void) {
 		bsp_file.lightmap_size += layer_size * sizeof(vec3_t);
 		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
 		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
+		bsp_file.lightmap_size += layer_size * sizeof(color32_t);
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
 		memset(bsp_file.lightmap, 0, bsp_file.lightmap_size);
@@ -872,19 +899,25 @@ void EmitLightmap(void) {
 		SDL_Surface *caustics = CreateLuxelSurface(width, width, sizeof(color24_t), out);
 		out += layer_size * sizeof(color24_t);
 
-		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, caustics) == 0) {
+		SDL_Surface *lumens = CreateLuxelSurface(width, width, sizeof(color32_t), out);
+		out += layer_size * sizeof(color32_t);
+
+		if (Atlas_Compile(atlas, 0, ambient, diffuse, direction, caustics, lumens) == 0) {
 
 			if (debug) {
 				WriteLuxelSurface(ambient, va("/tmp/%s_lm_ambient.png", map_base));
 				WriteLuxelSurface(diffuse, va("/tmp/%s_lm_diffuse.png", map_base));
 				WriteLuxelSurface(direction, va("/tmp/%s_lm_direction.png", map_base));
 				WriteLuxelSurface(caustics, va("/tmp/%s_lm_caustics.png", map_base));
+				WriteLuxelSurface(lumens, va("/tmp/%s_lm_lumens.png", map_base));
 			}
 
 			SDL_FreeSurface(ambient);
 			SDL_FreeSurface(diffuse);
 			SDL_FreeSurface(direction);
 			SDL_FreeSurface(caustics);
+			SDL_FreeSurface(lumens);
+
 			break;
 		}
 
@@ -892,6 +925,7 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(direction);
 		SDL_FreeSurface(caustics);
+		SDL_FreeSurface(lumens);
 	}
 
 	if (width > MAX_BSP_LIGHTMAP_WIDTH) {
@@ -919,6 +953,7 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->direction);
 		SDL_FreeSurface(lm->caustics);
+		SDL_FreeSurface(lm->lumens);
 	}
 
 	Atlas_Destroy(atlas);

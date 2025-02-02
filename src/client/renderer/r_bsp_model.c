@@ -432,6 +432,25 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_CAUSTICS);
 
 	R_UploadImage(out->caustics, data);
+	data += out->width * out->width * sizeof(color24_t);
+
+	out->lumens = (r_image_t *) R_AllocMedia("lightmap_lumens", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->lumens->media.Free = R_FreeImage;
+	out->lumens->type = IMG_LIGHTMAP;
+	out->lumens->width = out->width;
+	out->lumens->height = out->width;
+	out->lumens->target = GL_TEXTURE_2D;
+	out->lumens->levels = levels;
+	out->lumens->minify = GL_NEAREST;
+	out->lumens->magnify = GL_NEAREST;
+	out->lumens->internal_format = GL_RGBA8UI;
+	out->lumens->format = GL_RGBA_INTEGER;
+	out->lumens->pixel_type = GL_UNSIGNED_BYTE;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_LUMENS);
+
+	R_UploadImage(out->lumens, data);
+	data += out->width * out->width * sizeof(color32_t);
 
 	out->stains = (r_image_t *) R_AllocMedia("lightmap_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->stains->media.Free = R_FreeImage;

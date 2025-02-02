@@ -45,6 +45,7 @@ static struct {
 	GLint texture_lightmap_diffuse;
 	GLint texture_lightmap_direction;
 	GLint texture_lightmap_caustics;
+	GLint texture_lightmap_lumens;
 	GLint texture_lightmap_stains;
 	GLint texture_stage;
 	GLint texture_warp;
@@ -774,6 +775,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightmap_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_diffuse");
 	r_bsp_program.texture_lightmap_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_direction");
 	r_bsp_program.texture_lightmap_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_caustics");
+	r_bsp_program.texture_lightmap_lumens = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_lumens");
 	r_bsp_program.texture_lightmap_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightmap_stains");
 
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
@@ -811,10 +813,12 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightmap_diffuse, TEXTURE_LIGHTMAP_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightmap_direction, TEXTURE_LIGHTMAP_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightmap_caustics, TEXTURE_LIGHTMAP_CAUSTICS);
+	glUniform1i(r_bsp_program.texture_lightmap_lumens, TEXTURE_LIGHTMAP_LUMENS);
 	glUniform1i(r_bsp_program.texture_lightmap_stains, TEXTURE_LIGHTMAP_STAINS);
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
+	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);

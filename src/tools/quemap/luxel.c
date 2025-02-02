@@ -43,6 +43,20 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_BRUSH_SIDE:
 			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
 			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
+
+			lumen_t *a = luxel->lumens;
+			for (size_t i = 0; i < lengthof(luxel->lumens); i++, a++) {
+				if (a->lumens < lumen->lumens) {
+
+					for (lumen_t *b = luxel->lumens + lengthof(luxel->lumens) - 1; b > a; b--) {
+						*b = *(b - 1);
+					}
+
+					*a = *lumen;
+					break;
+				}
+			}
+
 			break;
 		
 		default:

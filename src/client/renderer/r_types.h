@@ -727,12 +727,12 @@ typedef struct {
 	r_image_t *ambient;
 
 	/**
-	 * @brief The diffuse atlas array (RGB32F).
+	 * @brief The diffuse atlas (RGB32F).
 	 */
 	r_image_t *diffuse;
 
 	/**
-	 * @brief The direction atlas array (RGB8).
+	 * @brief The direction atlas (RGB8).
 	 */
 	r_image_t *direction;
 
@@ -740,6 +740,11 @@ typedef struct {
 	 * @brief The caustics atlas (RGB8).
 	 */
 	r_image_t *caustics;
+
+	/**
+	 * @brief The lumens atlas (RGBA8, integers).
+	 */
+	r_image_t *lumens;
 
 	/**
 	 * @brief The stain atlas (RGBA8).
@@ -1906,6 +1911,7 @@ typedef enum {
 	TEXTURE_LIGHTMAP_DIFFUSE,
 	TEXTURE_LIGHTMAP_DIRECTION,
 	TEXTURE_LIGHTMAP_CAUSTICS,
+	TEXTURE_LIGHTMAP_LUMENS,
 	TEXTURE_LIGHTMAP_STAINS,
 
 	/**
