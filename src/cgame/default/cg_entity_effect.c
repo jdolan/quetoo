@@ -96,7 +96,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			.origin = e->origin,
 			.radius = 80.0,
 			.color = Vec3(0.3f, 0.7f, 0.7f),
-			.intensity = .333f,
+			.intensity = 1.f,
 			.source = ent,
 		};
 
@@ -115,7 +115,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 					.origin = e->origin,
 					.radius = 128.f,
 					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
-					.intensity = .333f,
+					.intensity = 1.f,
 					.source = ent,
 				};
 
@@ -151,7 +151,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			.origin = e->origin,
 			.radius = e->termination.x,
 			.color = color.vec3,
-			.intensity = .5f,
+			.intensity = 1.f,
 		};
 
 		Cg_AddLight(&l);

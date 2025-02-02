@@ -145,7 +145,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
 		.origin = org,
 		.radius = 120.f,
 		.color = Vec3(.9f, .9f, .9f),
-		.intensity = .666f,
+		.intensity = 1.f,
 		.decay = 1000
 	});
 }

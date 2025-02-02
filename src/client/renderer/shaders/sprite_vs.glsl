@@ -95,28 +95,34 @@ void light_and_shadow(in vec3 texcoord) {
 
 	for (int i = 0; i < num_lights; i++) {
 
-		int type = int(lights[i].position.w);
+		light_t light = lights[i];
+
+		int type = int(light.position.w);
 		if (type != LIGHT_DYNAMIC) {
 			continue;
 		}
 
-		float radius = lights[i].model.w;
-		if (radius <= 0.0) {
+		float radius = light.model.w;
+		float size = light.mins.w;
+
+		float dist = distance(light.position.xyz, vertex.position);
+		float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+		if (atten == 0.0) {
 			continue;
 		}
 
-		float intensity = lights[i].color.w;
-		if (intensity <= 0.0) {
-			continue;
+		vec3 color = light.color.rgb * light.color.a;
+
+		switch (int(light.maxs.w)) {
+			case LIGHT_ATTEN_LINEAR:
+				color *= atten;
+				break;
+			case LIGHT_ATTEN_INVERSE_SQUARE:
+				color *= atten * atten;
+				break;
 		}
 
-		vec3 light_pos = lights[i].position.xyz;
-		float atten = 1.0 - distance(light_pos, vertex.position) / radius;
-		if (atten <= 0.0) {
-			continue;
-		}
-
-		diffuse += radius * lights[i].color.rgb * intensity * atten * atten;
+		diffuse += color;
 	}
 
 	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * (ambient + diffuse), in_lighting);

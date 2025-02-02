@@ -332,9 +332,9 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
-		.radius = 100.f,
+		.radius = 150.f,
 		.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
-		.intensity = .25f,
+		.intensity = 1.5f,
 	});
 }
 
@@ -385,7 +385,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 		.origin = end, // TODO: find a way to nudge this away from the surface a bit
 		.radius = 40.f + 20.f * pulse1,
 		.color = Vec3(.05f, .5f, .05f),
-		.intensity = .1f
+		.intensity = 1.f
 	});
 
 	/*mat4_t m = Mat4_FromTranslation(end);
@@ -565,9 +565,9 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
-		.radius = 180.f,
+		.radius = 240.f,
 		.color = Vec3(.8f, .5f, .2f),
-		.intensity = .05f,
+		.intensity = 2.f,
 	});
 }
 
@@ -649,9 +649,9 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
-		.radius = 100.f,
+		.radius = 150.f,
 		.color = Vec3(.4f, .7f, 1.f),
-		.intensity = .25f
+		.intensity = 2.f
 	});
 }
 
@@ -692,9 +692,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 	for (float f = seed; f < Vec3_Distance(start, end); f += 128.f) {
 		Cg_AddLight(&(const cg_light_t) {
 			.origin = Vec3_Fmaf(start, f + seed, dir),
-			.radius = 128.f + RandomRangef(-32.f, 32.f),
+			.radius = 192.f + RandomRangef(-32.f, 32.f),
 			.color = Vec3(.8f, .4f, .8f),
-			.intensity = .05f,
+			.intensity = 3.f,
 		});
 
 		Cg_AddSprite(&(cg_sprite_t) {
@@ -873,9 +873,9 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = ent->origin,
-		.radius = 160.f,
+		.radius = 240.0,
 		.color = Vec3(.4f, 1.f, .4f),
-		.intensity = .125f,
+		.intensity = 2.f,
 	});
 }
 
@@ -1001,7 +1001,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 		.origin = end,
 		.radius = 85.f,
 		.color = Vec3(0.9f, 0.3f, 0.1f),
-		.intensity = 0.25f,
+		.intensity = 1.f,
 	};
 
 	if (ent->current.effects & EF_DESPAWN) {

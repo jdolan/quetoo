@@ -43,15 +43,19 @@ void Cg_AddLight(const cg_light_t *l) {
 		return;
 	}
 
+	assert(l->decay >= 0.f);
+	assert(l->intensity >= 0.f);
+	assert(Vec3_LengthSquared(l->color) >= 0.f);
+
 	cg_light_t *out = cg_lights + i;
-
 	*out = *l;
-
-	assert(out->decay >= 0.f);
-	assert(out->intensity >= 0.f);
 
 	if (out->type == LIGHT_INVALID) {
 		out->type = LIGHT_DYNAMIC;
+	}
+
+	if (out->type == LIGHT_DYNAMIC && out->atten == LIGHT_ATTEN_NONE) {
+		out->atten = LIGHT_ATTEN_LINEAR;
 	}
 
 	if (out->intensity == 0.f) {

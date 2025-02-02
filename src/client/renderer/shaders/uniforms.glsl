@@ -160,6 +160,10 @@ layout (std140) uniform uniforms_block {
 #define LIGHT_PATCH      32
 #define LIGHT_DYNAMIC    64
 
+#define LIGHT_ATTEN_NONE           0
+#define LIGHT_ATTEN_LINEAR         1
+#define LIGHT_ATTEN_INVERSE_SQUARE 2
+
 /**
  * @brief The light struct.
  */

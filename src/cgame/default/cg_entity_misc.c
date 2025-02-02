@@ -295,7 +295,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 			.origin = self->origin,
 			.radius = r * RandomRangef(10.f, 16.f),
 			.color = Vec3_RandomRanges(.8f, .9f, .4f, .5f, .2f, .3f),
-			.intensity = RandomRangef(.02f, .06f),
+			.intensity = RandomRangef(.5f, .8f),
 			.decay = flame->light_decay,
 		});
 	}

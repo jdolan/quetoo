@@ -248,19 +248,15 @@ void light_and_shadow_sun(in light_t light, in int index) {
 void light_and_shadow_point(in light_t light, in int index) {
 
 	float radius = light.model.w;
-	if (radius <= 0.0) {
-		return;
-	}
-
 	float size = light.mins.w;
 
-	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
-	if (atten <= 0.0) {
+	float dist = distance(light.position.xyz, vertex.position);
+	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+	if (atten == 0.0) {
 		return;
 	}
 
-	vec3 light_dir = normalize(light_pos - vertex.position);
+	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
@@ -279,19 +275,15 @@ void light_and_shadow_point(in light_t light, in int index) {
 void light_and_shadow_spot(in light_t light, in int index) {
 
 	float radius = light.model.w;
-	if (radius <= 0.0) {
-		return;
-	}
-
 	float size = light.mins.w;
 
-	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
-	if (atten <= 0.0) {
+	float dist = distance(light.position.xyz, vertex.position);
+	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+	if (atten == 0.0) {
 		return;
 	}
 
-	vec3 light_dir = normalize(light_pos - vertex.position);
+	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
@@ -310,26 +302,22 @@ void light_and_shadow_spot(in light_t light, in int index) {
 void light_and_shadow_brush_side(in light_t light, in int index) {
 
 	float radius = light.model.w;
-	if (radius <= 0.0) {
-		return;
-	}
-
 	float size = light.mins.w;
 
-	vec3 light_pos = light.position.xyz;
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
-	if (atten <= 0.0) {
+	float dist = distance(light.position.xyz, vertex.position);
+	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+	if (atten == 0.0) {
 		return;
 	}
 
-	vec3 light_dir = normalize(light_pos - vertex.position);
+	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
 	}
 
 	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
+	float shadow_atten = (1.0 - shadow) * lambert * atten;
 
 	fragment.diffuse -= fragment.diffuse * shadow_atten;
 	fragment.specular -= fragment.specular * shadow_atten;
@@ -340,37 +328,26 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 diffuse = light.color.rgb;
-	if (length(diffuse) <= 0.0) {
-		return;
-	}
-
 	float radius = light.model.w;
-	if (radius <= 0.0) {
-		return;
-	}
-
 	float size = light.mins.w;
 
-	diffuse *= radius;
-
-	float intensity = light.color.w;
-	if (intensity <= 0.0) {
+	float dist = distance(light.position.xyz, vertex.position);
+	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+	if (atten == 0.0) {
 		return;
 	}
 
-	diffuse *= intensity;
-
-	vec3 light_pos = light.position.xyz;
-
-	float atten = 1.0 - distance(light_pos, vertex.position) / (radius + size * 0.5);
-	if (atten <= 0.0) {
-		return;
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
 	}
 
-	diffuse *= atten * atten;
-
-	vec3 light_dir = normalize(light_pos - vertex.position);
+	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
@@ -379,7 +356,6 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 	diffuse *= lambert;
 
 	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
-	float shadow_atten = (1.0 - shadow) * lambert * atten * atten;
 
 	diffuse *= shadow;
 
