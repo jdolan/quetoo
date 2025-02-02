@@ -505,7 +505,7 @@ typedef enum {
 	LIGHT_POINT      = 0x4,
 	LIGHT_SPOT       = 0x8,
 	LIGHT_BRUSH_SIDE = 0x10,
-	LIGHT_PATCH      = 0x20,
+	LIGHT_INDIRECT   = 0x20,
 	LIGHT_DYNAMIC    = 0x40,
 } light_type_t;
 

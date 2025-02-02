@@ -40,9 +40,9 @@
 #define LIGHT_SPOT_FALLOFF 30.f
 
 /**
- * @brief Patch (indirect) light size in luxels.
+ * @brief Indirect light size in luxels.
  */
-#define LIGHT_PATCH_SIZE 16.f
+#define LIGHT_INDIRECT_SIZE 16.f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
@@ -136,22 +136,22 @@ typedef struct light_s {
 	int32_t num_points;
 
 	/**
-	 * @brief The light source winding for face lights.
+	 * @brief The light source winding for brush side lights.
 	 */
 	cm_winding_t *winding;
 
 	/**
-	 * @brief The light source brush side for face and patch lights.
+	 * @brief The light source brush side for direct and indirect lights.
 	 */
 	const bsp_brush_side_t *brush_side;
 
 	/**
-	 * @brief The light source plane for face and patch lights.
+	 * @brief The light source plane for brush side and indirect lights.
 	 */
 	const bsp_plane_t *plane;
 
 	/**
-	 * @brief The light source model for face and patch lights.
+	 * @brief The light source model for brush side and indirect lights.
 	 */
 	const bsp_model_t *model;
 } light_t;

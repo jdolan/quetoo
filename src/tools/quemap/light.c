@@ -529,7 +529,7 @@ void BuildDirectLights(void) {
 		}
 	}
 
-	HashLights(~LIGHT_PATCH);
+	HashLights(~LIGHT_INDIRECT);
 
 	Com_Print("\r%-24s [100%%] %d ms\n", "Building direct lights", SDL_GetTicks() - start);
 
@@ -537,12 +537,12 @@ void BuildDirectLights(void) {
 }
 
 /**
- * @brief Add a patch light source from a directly lit lightmap.
+ * @brief Add an indirect light source from a directly lit lightmap.
  */
-static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
+static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 
-	const int32_t w = Mini(s + LIGHT_PATCH_SIZE, lm->w) - s;
-	const int32_t h = Mini(t + LIGHT_PATCH_SIZE, lm->h) - t;
+	const int32_t w = Mini(s + LIGHT_INDIRECT_SIZE, lm->w) - s;
+	const int32_t h = Mini(t + LIGHT_INDIRECT_SIZE, lm->h) - t;
 
 	assert(w);
 	assert(h);
@@ -573,7 +573,7 @@ static light_t *LightForPatch(const lightmap_t *lm, int32_t s, int32_t t) {
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_PATCH;
+	light->type = LIGHT_INDIRECT;
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Box3_Center(bounds);
 	light->radius = w * h;
@@ -628,12 +628,12 @@ void BuildIndirectLights(void) {
 			continue;
 		}
 
-		for (int32_t s = 0; s < lm->w; s += LIGHT_PATCH_SIZE) {
-			for (int32_t t = 0; t < lm->h; t += LIGHT_PATCH_SIZE) {
+		for (int32_t s = 0; s < lm->w; s += LIGHT_INDIRECT_SIZE) {
+			for (int32_t t = 0; t < lm->h; t += LIGHT_INDIRECT_SIZE) {
 
-				light_t *light = LightForPatch(lm, s, t);
+				light_t *light = LightForLightmap(lm, s, t);
 				if (light) {
-					Com_Debug(DEBUG_ALL, "Patch radius %g, size: %g, color: %s\n",
+					Com_Debug(DEBUG_ALL, "Indirect light radius %g, size: %g, color: %s\n",
 						   light->radius,
 						   light->size,
 						   vtos(light->color));
@@ -646,11 +646,11 @@ void BuildIndirectLights(void) {
 		Progress("Building indirect lights", i * 100.f / bsp_file.num_faces);
 	}
 
-	HashLights(LIGHT_PATCH);
+	HashLights(LIGHT_INDIRECT);
 
 	Com_Print("\r%-24s [100%%] %d ms\n", "Building indirect lights", SDL_GetTicks() - start);
 
-	Com_Verbose("Indirect lighting for %d lit patches\n", lights->len);
+	Com_Verbose("Indirect lighting for %d lights\n", lights->len);
 }
 
 /**
@@ -665,7 +665,7 @@ void EmitLights(void) {
 	for (guint i = 0; i < lights->len; i++) {
 		const light_t *light = g_ptr_array_index(lights, i);
 		switch (light->type) {
-			case LIGHT_PATCH:
+			case LIGHT_INDIRECT:
 				break;
 			default:
 				bsp_file.num_lights++;
@@ -685,7 +685,7 @@ void EmitLights(void) {
 		light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_PATCH:
+			case LIGHT_INDIRECT:
 				break;
 
 			default:

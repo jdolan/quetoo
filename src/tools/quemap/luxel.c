@@ -33,7 +33,7 @@ void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
 
 	switch (lumen->light->type) {
 		case LIGHT_AMBIENT:
-		case LIGHT_PATCH:
+		case LIGHT_INDIRECT:
 			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
 			break;
 

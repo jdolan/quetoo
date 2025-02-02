@@ -73,7 +73,7 @@ static void Cg_AddBspLights(void) {
 			case LIGHT_INVALID:
 			case LIGHT_AMBIENT:
 			case LIGHT_SUN:
-			case LIGHT_PATCH:
+			case LIGHT_INDIRECT:
 				continue;
 			default:
 				break;
