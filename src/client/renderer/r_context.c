@@ -262,19 +262,29 @@ void R_InitContext(void) {
 		flags |= SDL_WINDOW_RESIZABLE;
 	}
 
-	Com_Print("  Trying %dx%d..\n", w, h);
+	Com_Print("  Trying %dx%d (32bit)..\n", w, h);
 
 	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
 	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
+	r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags);
+
+	if (!r_context.window) {
+		Com_Print("  Trying %dx%d (24bit)..\n", w, h);
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+		r_context.window = SDL_CreateWindow(PACKAGE_STRING,
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
+			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags);
+	}
+
+	if (!r_context.window) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
