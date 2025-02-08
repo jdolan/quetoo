@@ -226,7 +226,6 @@ typedef enum {
 
 // remaining contents do not generate faces, and do not eat brushes
 #define CONTENTS_ATMOSPHERIC		0x80
-#define CONTENTS_OCCLUSION_QUERY	0x8000 // hardware occlusion queries
 #define CONTENTS_PLAYER_CLIP		0x10000 // not visible, but collides with player
 #define CONTENTS_MONSTER_CLIP		0x20000 // not visible, but collides with monsters
 #define CONTENTS_CURRENT_0			0x40000 // liquid current direction for physics
@@ -241,7 +240,6 @@ typedef enum {
 #define CONTENTS_DETAIL				0x8000000 // details are never BSP decision nodes
 #define CONTENTS_TRANSLUCENT		0x10000000 // set if any side has blend, alpha test, etc.
 #define CONTENTS_LADDER				0x20000000
-
 /**
  * @brief Leafs will have some combination of the above flags; nodes will always be -1.
  */
@@ -259,7 +257,7 @@ typedef enum {
 #define CONTENTS_MASK_CURRENT_Y			(CONTENTS_CURRENT_90 | CONTENTS_CURRENT_270)
 #define CONTENTS_MASK_CURRENT_Z			(CONTENTS_CURRENT_UP | CONTENTS_CURRENT_DOWN)
 #define CONTENTS_MASK_CURRENT			(CONTENTS_MASK_CURRENT_X | CONTENTS_MASK_CURRENT_Y | CONTENTS_MASK_CURRENT_Z)
-#define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN | CONTENTS_OCCLUSION_QUERY)
+#define CONTENTS_MASK_FUNCTIONAL		(CONTENTS_MASK_CLIP | CONTENTS_ORIGIN)
 #define CONTENTS_MASK_CLIP_CORPSE		(CONTENTS_MASK_SOLID | CONTENTS_PLAYER_CLIP)
 #define CONTENTS_MASK_CLIP_PLAYER		(CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MONSTER)
 #define CONTENTS_MASK_CLIP_MONSTER		(CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MONSTER_CLIP)

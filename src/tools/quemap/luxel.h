@@ -42,6 +42,7 @@ typedef struct {
 	vec3_t ambient;
 	vec3_t diffuse;
 	vec3_t direction;
+	lumen_t lumens[MAX_LUXEL_LUMENS];
 	vec3_t caustics;
 	vec4_t fog;
 	lumen_t lumens[4];
