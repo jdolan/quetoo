@@ -652,7 +652,8 @@ void BuildIndirectLights(void) {
 }
 
 /**
- * @brief
+ * @brief Emits light sources to the BSP.
+ * @remarks The first source will always be ambient so that diffuse lightmaps do not require value padding.
  */
 void EmitLights(void) {
 
@@ -707,6 +708,8 @@ void EmitLights(void) {
 
 		Progress("Emitting lights", 100.f * i / lights->len);
 	}
+
+	assert(bsp_file.lights[0].type == LIGHT_AMBIENT);
 
 	Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", SDL_GetTicks() - start);
 }
