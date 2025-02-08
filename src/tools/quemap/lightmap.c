@@ -310,7 +310,7 @@ static void LightmapLuxel_Ambient(light_t *light, const lightmap_t *lightmap, lu
 		lumen.lumens += sample_fraction * trace.fraction;
 	}
 
-	Luxel_Illuminate(luxel, &lumen);
+	IlluminateLuxel(luxel, &lumen);
 }
 
 /**
@@ -330,7 +330,7 @@ static void LightmapLuxel_Sun(light_t *light, const lightmap_t *lightmap, luxel_
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -372,7 +372,6 @@ static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxe
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = Vec3_Direction(light->points[i], luxel->origin),
 			.lumens = lumens,
@@ -425,7 +424,7 @@ static void LightmapLuxel_Spot(light_t *light, const lightmap_t *lightmap, luxel
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -482,7 +481,7 @@ static void LightmapLuxel_BrushSide(light_t *light, const lightmap_t *lightmap, 
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -518,7 +517,7 @@ static void LightmapLuxel_Indirect(light_t *light, const lightmap_t *lightmap, l
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.lumens = lumens,
 		});
@@ -607,11 +606,11 @@ void DirectLightmap(int32_t face_num) {
 		// For inline models, always add ambient light sources, even if the sample resides
 		// in solid. This prevents completely unlit tops of doors, bottoms of plats, etc.
 
-		if (lm->model != bsp_file.models && Vec3_Equal(l->diffuse, Vec3_Zero())) {
+		if (lm->model != bsp_file.models && Vec3_Equal(l->ambient, Vec3_Zero())) {
 			for (guint j = 0; j < lights->len; j++) {
 				light_t *light = g_ptr_array_index(lights, j);
 				if (light->type == LIGHT_AMBIENT) {
-					Luxel_Illuminate(l, &(const lumen_t) {
+					IlluminateLuxel(l, &(const lumen_t) {
 						.light = light,
 						.lumens = 1.f,
 					});

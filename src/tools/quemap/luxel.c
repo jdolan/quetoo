@@ -25,7 +25,7 @@
 /**
  * @brief
  */
-void Luxel_Illuminate(luxel_t *luxel, const lumen_t *lumen) {
+void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 
 	assert(lumen->light);
 

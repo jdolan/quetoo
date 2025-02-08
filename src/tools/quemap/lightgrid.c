@@ -152,7 +152,7 @@ size_t BuildLightgrid(void) {
  */
 static void LightgridLuxel_Ambient(light_t *light, luxel_t *luxel, float scale) {
 
-	Luxel_Illuminate(luxel, &(const lumen_t) {
+	IlluminateLuxel(luxel, &(const lumen_t) {
 		.light = light,
 		.lumens = scale,
 	});
@@ -175,7 +175,7 @@ static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -216,7 +216,7 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = Vec3_Direction(light->points[i], luxel->origin),
 			.lumens = lumens,
@@ -269,7 +269,7 @@ static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -326,7 +326,7 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = dir,
 			.lumens = lumens,
@@ -362,7 +362,7 @@ static void LightgridLuxel_Indirect(light_t *light, luxel_t *luxel, float scale)
 			continue;
 		}
 
-		Luxel_Illuminate(luxel, &(const lumen_t) {
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.lumens = lumens,
 		});
