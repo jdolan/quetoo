@@ -71,25 +71,23 @@ const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
 }
 
 /**
- * @brief
+ * @brief Returns the ambient light source.
  */
 static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 
 	light_t *light = NULL;
 
 	const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
-	if (!Vec3_Equal(ambient, Vec3_Zero())) {
 
-		light = AllocLight();
+	light = AllocLight();
 
-		light->type = LIGHT_AMBIENT;
-		light->atten = LIGHT_ATTEN_NONE;
-		light->color = ambient;
-		light->radius = LIGHT_AMBIENT_RADIUS;
-		light->intensity = LIGHT_INTENSITY;
-		light->bounds = Box3_Null();
-		light->visible_bounds = Box3_Null();
-	}
+	light->type = LIGHT_AMBIENT;
+	light->atten = LIGHT_ATTEN_NONE;
+	light->color = ambient;
+	light->radius = LIGHT_AMBIENT_RADIUS;
+	light->intensity = LIGHT_INTENSITY;
+	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	return light;
 }
