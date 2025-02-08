@@ -562,7 +562,7 @@ static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 		}
 	}
 
-	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE * BSP_LIGHTMAP_LUXEL_SIZE));
+	diffuse = Vec3_Scale(diffuse, 1.f / (w * h * BSP_LIGHTMAP_LUXEL_SIZE));
 	diffuse = Vec3_Multiply(diffuse, lm->material->ambient);
 
 	if (Vec3_Hmaxf(diffuse) == 0.f) {
