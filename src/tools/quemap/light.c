@@ -631,10 +631,10 @@ void BuildIndirectLights(void) {
 
 				light_t *light = LightForLightmap(lm, s, t);
 				if (light) {
-					Com_Debug(DEBUG_ALL, "Indirect light radius %g, size: %g, color: %s\n",
+					Com_Debug(DEBUG_ALL, "Indirect light radius %g, size: %g, color: %5.4f %5.4f %5.4f\n",
 						   light->radius,
 						   light->size,
-						   vtos(light->color));
+						   light->color.x, light->color.y, light->color.z);
 
 					g_ptr_array_add(lights, light);
 				}
