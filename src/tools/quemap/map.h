@@ -127,7 +127,6 @@ typedef struct brush_side_s {
  * @brief The map file representation of a brush.
  */
 typedef struct brush_s {
-
 	/**
 	 * @brief The entity number within the map.
 	 */
@@ -165,6 +164,21 @@ typedef struct brush_s {
 	bsp_brush_t *out;
 } brush_t;
 
+/**
+ * @brief The map file representation of a block.
+ */
+typedef struct {
+	/**
+	 * @brief The brush created for this block.
+	 */
+	brush_t *brush;
+
+	/**
+	 * @brief The BSP block emitted from this map block.
+	 */
+	bsp_block_t *out;
+} block_t;
+
 extern int32_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
@@ -176,6 +190,9 @@ extern brush_t brushes[MAX_BSP_BRUSHES];
 
 extern int32_t num_brush_sides;
 extern brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
+
+extern int32_t num_blocks;
+extern block_t blocks[MAX_BSP_BLOCKS];
 
 extern box3_t map_bounds;
 

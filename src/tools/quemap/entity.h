@@ -45,6 +45,8 @@ typedef struct {
 	int32_t first_brush_side;
 	int32_t num_brush_sides;
 
+	box3_t bounds;
+
 } entity_t;
 
 void SetValueForKey(entity_t *ent, const char *key, const char *value);

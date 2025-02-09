@@ -50,6 +50,7 @@ bool only_ents = false;
 static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
 	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+
 	if (!no_csg) {
 		brushes = SubtractBrushes(brushes);
 	}
@@ -181,6 +182,7 @@ int32_t BSP_Main(void) {
 		EmitPlanes();
 		EmitMaterials();
 		EmitBrushes();
+		EmitBlocks();
 		EmitEntities();
 
 		ProcessModels();

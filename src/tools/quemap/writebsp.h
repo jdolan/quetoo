@@ -23,6 +23,7 @@
 
 #include "tree.h"
 
+void EmitBlocks(void);
 void EmitPlanes(void);
 void EmitMaterials(void);
 void EmitBrushes(void);

@@ -47,7 +47,6 @@ typedef struct {
 	SDL_Surface *diffuse;
 	SDL_Surface *direction;
 	SDL_Surface *caustics;
-	SDL_Surface *lumens;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;

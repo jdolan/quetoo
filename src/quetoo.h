@@ -226,6 +226,7 @@ typedef enum {
 
 // remaining contents do not generate faces, and do not eat brushes
 #define CONTENTS_ATMOSPHERIC		0x80
+#define CONTENTS_BLOCK				0x100
 #define CONTENTS_PLAYER_CLIP		0x10000 // not visible, but collides with player
 #define CONTENTS_MONSTER_CLIP		0x20000 // not visible, but collides with monsters
 #define CONTENTS_CURRENT_0			0x40000 // liquid current direction for physics

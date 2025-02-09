@@ -38,6 +38,7 @@
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
+#define MAX_BSP_BLOCKS				0x200
 #define MAX_BSP_VERTEXES			0x80000
 #define MAX_BSP_ELEMENTS			0x200000
 #define MAX_BSP_FACES				0x20000
@@ -46,7 +47,7 @@
 #define MAX_BSP_LEAF_BRUSHES 		0x20000
 #define MAX_BSP_LEAFS				0x20000
 #define MAX_BSP_MODELS				0x400
-#define MAX_BSP_LIGHTS				0x100
+#define MAX_BSP_LIGHTS				0x1000
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
 
@@ -74,7 +75,6 @@ typedef enum {
 	BSP_LIGHTMAP_DIFFUSE,
 	BSP_LIGHTMAP_DIRECTION,
 	BSP_LIGHTMAP_CAUSTICS,
-	BSP_LIGHTMAP_LUMENS,
 	BSP_LIGHTMAP_LAST,
 } bsp_lightmap_texture_t;
 
@@ -116,6 +116,7 @@ typedef enum {
 	BSP_LUMP_PLANES,
 	BSP_LUMP_BRUSH_SIDES,
 	BSP_LUMP_BRUSHES,
+	BSP_LUMP_BLOCKS,
 	BSP_LUMP_VERTEXES,
 	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
@@ -264,6 +265,32 @@ typedef struct {
 	 */
 	box3_t bounds;
 } bsp_brush_t;
+
+/**
+ * @brief The BSP block size.
+ */
+#define BSP_BLOCK_SIZE 256.f
+
+/**
+ The maximum number of light sources within a given block.
+ */
+#define BSP_MAX_BLOCK_LIGHTS 255
+
+/**
+ * @brief Blocks are grid cells of the BSP, used to spatially group rendering operations.
+ */
+typedef struct {
+	/**
+	 * @brief The block brush.
+	 */
+	int32_t brush;
+
+	/**
+	 * @brief Indexes of lights residing in a given block.
+	 * @details Lightmaps and the lightgrid will reference lights by their block index.
+	 */
+	int32_t lights[BSP_MAX_BLOCK_LIGHTS];
+} bsp_block_t;
 
 /**
  * @brief The BSP vertex type.
@@ -571,6 +598,9 @@ typedef struct bsp_file_s {
 
 	int32_t num_brushes;
 	bsp_brush_t *brushes;
+
+	int32_t num_blocks;
+	bsp_block_t *blocks;
 
 	int32_t num_vertexes;
 	bsp_vertex_t *vertexes;

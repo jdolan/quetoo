@@ -37,6 +37,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
 	BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
 	BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
+	BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
 	BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
 	BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
@@ -108,6 +109,23 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 		brush->bounds = LittleBounds(brush->bounds);
 
 		brush++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapBlocks(void *lump, const int32_t num) {
+
+	bsp_block_t *block = (bsp_block_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+		block->brush = LittleLong(block->brush);
+		for (int32_t j = 0; j < BSP_MAX_BLOCK_LIGHTS; j++) {
+			block->lights[j] = LittleLong(block->lights[j]);
+		}
+
+		block++;
 	}
 }
 
@@ -334,6 +352,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapPlanes,
 		Bsp_SwapBrushSides,
 		Bsp_SwapBrushes,
+		Bsp_SwapBlocks,
 		Bsp_SwapVertexes,
 		Bsp_SwapElements,
 		Bsp_SwapFaces,

@@ -372,6 +372,7 @@ static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxe
 			continue;
 		}
 
+		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
 			.direction = Vec3_Direction(light->points[i], luxel->origin),
 			.lumens = lumens,
@@ -814,9 +815,6 @@ void FinalizeLightmap(int32_t face_num) {
 	lm->caustics = CreateLightmapSurfaceRGB8(lm->w, lm->h);
 	color24_t *out_caustics = lm->caustics->pixels;
 
-	lm->lumens = CreateLightmapSurfaceRGBA8(lm->w, lm->h);
-	byte *out_lumens = lm->lumens->pixels;
-
 	luxel_t *l = lm->luxels;
 	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
 
@@ -840,7 +838,7 @@ void FinalizeLightmap(int32_t face_num) {
 			assert(light >= 0);
 			assert(light < MAX_BSP_LIGHTS);
 
-			*out_lumens++ = (byte) light;
+			// TODO: Write these to a texture
 		}
 	}
 }
@@ -864,7 +862,7 @@ void EmitLightmap(void) {
 			continue;
 		}
 
-		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics, lm->lumens);
+		nodes[i] = Atlas_Insert(atlas, lm->ambient, lm->diffuse, lm->direction, lm->caustics);
 	}
 
 	int32_t width;
@@ -952,7 +950,6 @@ void EmitLightmap(void) {
 		SDL_FreeSurface(lm->diffuse);
 		SDL_FreeSurface(lm->direction);
 		SDL_FreeSurface(lm->caustics);
-		SDL_FreeSurface(lm->lumens);
 	}
 
 	Atlas_Destroy(atlas);

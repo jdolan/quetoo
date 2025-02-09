@@ -144,7 +144,7 @@ void Cg_AddLights(void) {
 		cgi.AddLight(cgi.view, &out);
 	}
 
-	Cg_AddBspLights();
+	//Cg_AddBspLights();
 }
 
 /**

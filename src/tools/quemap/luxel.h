@@ -24,11 +24,27 @@
 #include "light.h"
 
 /**
+ * @brief The maximum number of diffuse light sources per luxel.
+ */
+#define MAX_LUXEL_LUMENS 32
+
+/**
  * @brief Lumens are light source contributions to individual luxels.
  */
-typedef struct {
+typedef struct lumen_s {
+	/**
+	 * @brief The light source.
+	 */
 	light_t *light;
+
+	/**
+	 * @brief The light directional vector.
+	 */
 	vec3_t direction;
+
+	/**
+	 * @brief The amount of light that reached the luxel.
+	 */
 	float lumens;
 } lumen_t;
 
@@ -45,11 +61,11 @@ typedef struct {
 	lumen_t lumens[MAX_LUXEL_LUMENS];
 	vec3_t caustics;
 	vec4_t fog;
-	lumen_t lumens[4];
 } luxel_t;
 
 extern void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen);
+extern void FinalizeLuxel(luxel_t *luxel);
 extern SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *luxels);
+extern uint16_t LightSourceForLumen(const lumen_t *lumen);
 extern int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect);
 extern int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name);
-
