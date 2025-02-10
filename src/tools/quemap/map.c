@@ -41,9 +41,6 @@ plane_t planes[MAX_BSP_PLANES];
 #define	PLANE_HASHES (size_t) MAX_WORLD_COORD
 static plane_t *plane_hash[PLANE_HASHES];
 
-int32_t num_blocks;
-block_t blocks[MAX_BSP_BLOCKS];
-
 box3_t map_bounds;
 
 #define	NORMAL_EPSILON	0.0001
@@ -782,62 +779,6 @@ static entity_t *ParseEntity(parser_t *parser) {
 /**
  * @brief
  */
-static void CreateBlocks(entity_t *entity) {
-
-	const float s = BSP_BLOCK_SIZE;
-	const float t = 1.f / BSP_BLOCK_SIZE;
-
-	const vec3_t mins = Vec3_Scale(Vec3_Floorf(Vec3_Scale(entity->bounds.mins, t)), s);
-	const vec3_t maxs = Vec3_Scale(Vec3_Ceilf(Vec3_Scale(entity->bounds.maxs, t)), s);
-
-	for (float x = mins.x; x < maxs.x; x+= s) {
-		for (float y = mins.y; y < maxs.y; y+= s) {
-			for (float z = mins.z; z < maxs.z; z+= s) {
-
-				assert(num_brushes < MAX_BSP_BRUSHES);
-				assert(num_brush_sides < MAX_BSP_BRUSH_SIDES);
-
-				box3_t bounds;
-				bounds.mins = Vec3(x, y, z);
-				bounds.maxs = Vec3_Add(bounds.mins, Vec3(s, s, s));
-
-				brush_t *brush = &brushes[num_brushes];
-				brush->entity = (int32_t) (entity - entities);
-				brush->brush = num_brushes - entity->first_brush;
-				brush->contents = CONTENTS_BLOCK;
-				brush->brush_sides = &brush_sides[num_brush_sides];
-				brush->num_brush_sides = 6;
-
-				num_brushes++;
-				num_brush_sides += brush->num_brush_sides;
-
-				entity->num_brushes++;
-				entity->num_brush_sides += brush->num_brush_sides;
-
-				for (int32_t i = 0; i < 3; i++) {
-					vec3_t normal = Vec3_Zero();
-
-					normal.xyz[i] = 1.f;
-					brush->brush_sides[i].plane = FindPlane(normal, bounds.maxs.xyz[i]);
-
-					normal.xyz[i] = -1.f;
-					brush->brush_sides[3 + i].plane = FindPlane(normal, -bounds.mins.xyz[i]);
-				}
-
-				MakeBrushWindings(brush);
-
-				block_t *block = &blocks[num_blocks];
-				block->brush = brush;
-
-				num_blocks++;
-			}
-		}
-	}
-}
-
-/**
- * @brief
- */
 void LoadMapFile(const char *filename) {
 
 	Com_Verbose("--- LoadMapFile ---\n");
@@ -856,9 +797,6 @@ void LoadMapFile(const char *filename) {
 
 	memset(plane_hash, 0, sizeof(plane_hash));
 
-	memset(blocks, 0, sizeof(blocks));
-	num_blocks = 0;
-
 	void *buffer;
 	if (Fs_Load(filename, &buffer) == -1) {
 		Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
@@ -873,16 +811,13 @@ void LoadMapFile(const char *filename) {
 			break;
 		}
 
-		if (i == 0) {
-			CreateBlocks(entity);
-		} else if (entity->num_brush_sides) {
+		if (i > 0 && entity->num_brush_sides) {
 			SetValueForKey(entity, "model", va("*%d", models++));
 		}
 	}
 
 	map_bounds = entities[0].bounds;
 
-	Com_Verbose("%5i blocks\n", num_blocks);
 	Com_Verbose("%5i brushes\n", num_brushes);
 	Com_Verbose("%5i brush sides\n", num_brush_sides);
 	Com_Verbose("%5i entities\n", num_entities);

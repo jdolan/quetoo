@@ -380,33 +380,6 @@ void EmitBrushes(void) {
 }
 
 /**
- * @brief
- */
-static bsp_block_t *EmitBlock(const block_t *block) {
-
-	bsp_block_t *out = bsp_file.blocks + bsp_file.num_blocks;
-
-	out->brush = (int32_t) (ptrdiff_t) (block->brush->out - bsp_file.brushes);
-
-	return out;
-}
-
-/**
- * @brief
- */
-void EmitBlocks(void) {
-
-	block_t *block = blocks;
-	for (int32_t i = 0; i < num_blocks; i++, block++) {
-
-		block->out = EmitBlock(block);
-		bsp_file.num_blocks++;
-
-		Progress("Emitting blocks", 100.f * i / num_blocks);
-	}
-}
-
-/**
  * @brief Generates the entity string from all retained entities.
  */
 void EmitEntities(void) {
@@ -454,7 +427,6 @@ void BeginBSPFile(void) {
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_PLANES, MAX_BSP_PLANES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSH_SIDES, MAX_BSP_BRUSH_SIDES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_BRUSHES, MAX_BSP_BRUSHES);
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_BLOCKS, MAX_BSP_BLOCKS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_VERTEXES, MAX_BSP_VERTEXES);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_FACES, MAX_BSP_FACES);

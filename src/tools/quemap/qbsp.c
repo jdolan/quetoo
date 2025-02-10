@@ -182,7 +182,6 @@ int32_t BSP_Main(void) {
 		EmitPlanes();
 		EmitMaterials();
 		EmitBrushes();
-		EmitBlocks();
 		EmitEntities();
 
 		ProcessModels();
