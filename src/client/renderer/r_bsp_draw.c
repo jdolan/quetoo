@@ -89,13 +89,11 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspNormals(const r_view_t *view) {
+static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	if (!r_draw_bsp_normals->value) {
 		return;
 	}
-
-	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	const r_bsp_vertex_t *v = bsp->vertexes;
 	for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
@@ -665,6 +663,7 @@ void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
  * @brief
  */
 void R_DrawWorld(const r_view_t *view) {
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	R_DrawSky(view);
 
@@ -674,7 +673,7 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
-	glBindVertexArray(r_world_model->bsp->vertex_array);
+	glBindVertexArray(bsp->vertex_array);
 
 	glEnableVertexAttribArray(r_bsp_program.in_position);
 	glEnableVertexAttribArray(r_bsp_program.in_normal);
@@ -684,8 +683,8 @@ void R_DrawWorld(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -698,20 +697,20 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
-	R_DrawBspInlineOpaqueDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineOpaqueDrawElements(view, NULL, bsp->inline_models);
 
 	if (r_depth_pass->value) {
 		glDepthMask(GL_TRUE);
 	}
 
-	R_DrawBspInlineAlphaTestDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineAlphaTestDrawElements(view, NULL, bsp->inline_models);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	R_DrawBlendDepthTypes(view, INT32_MIN, BLEND_DEPTH_ALL);
 
-	R_DrawBspInlineBlendDrawElements(view, NULL, r_world_model->bsp->inline_models);
+	R_DrawBspInlineBlendDrawElements(view, NULL, bsp->inline_models);
 
 	R_DrawBlendDepthTypes(view, INT32_MAX, BLEND_DEPTH_ALL);
 
@@ -730,7 +729,7 @@ void R_DrawWorld(const r_view_t *view) {
 
 	R_GetError(NULL);
 
-	R_DrawBspNormals(view);
+	R_DrawBspNormals(view, bsp);
 }
 
 #define WARP_IMAGE_SIZE 16
