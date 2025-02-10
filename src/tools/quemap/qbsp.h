@@ -32,7 +32,6 @@ extern bool no_detail;
 extern bool no_liquid;
 extern bool no_merge;
 extern bool no_phong;
-extern bool no_prune;
 extern bool no_tjunc;
 extern bool no_weld;
 extern bool only_ents;

@@ -39,7 +39,6 @@ bool no_detail = false;
 bool no_liquid = false;
 bool no_merge = false;
 bool no_phong = false;
-bool no_prune = false;
 bool no_tjunc = false;
 bool no_weld = false;
 bool only_ents = false;
@@ -76,10 +75,6 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 		MergeTreeFaces(tree);
 	}
 
-	if (!no_prune) {
-		PruneNodes(tree);
-	}
-
 	if (!no_tjunc) {
 		FixTJunctions(tree);
 	}
@@ -109,10 +104,6 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
 	if (!no_merge) {
 		MergeTreeFaces(tree);
-	}
-
-	if (!no_prune) {
-		PruneNodes(tree);
 	}
 
 	if (!no_tjunc) {

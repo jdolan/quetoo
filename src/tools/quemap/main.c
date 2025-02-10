@@ -198,9 +198,6 @@ static void Check_BSP_Options(int32_t argc) {
 		} else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
 			Com_Verbose("no_phong = true\n");
 			no_phong = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-prune")) {
-			Com_Verbose("no_prune = true\n");
-			no_prune = true;
 		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
 			Com_Verbose("no_tjunc = true\n");
 			no_tjunc = true;
@@ -278,7 +275,6 @@ static void PrintHelpMessage(void) {
 	Com_Print(" --no-detail - skip detail brushes\n");
 	Com_Print(" --no-liquid - skip liquid brushes\n");
 	Com_Print(" --no-phong - don't apply Phong shading\n");
-	Com_Print(" --no-prune - don't prune unused nodes\n");
 	Com_Print(" --no-tjunc - don't fix T-junctions\n");
 	Com_Print(" --no-weld - don't weld vertices\n");
 	Com_Print(" --only-ents - only update the entity string from the .map\n");

@@ -60,7 +60,6 @@ typedef struct {
 tree_t *AllocTree(void);
 void FreeTree(tree_t *tree);
 void FreeTreePortals(tree_t *tree);
-void PruneNodes(tree_t *tree);
 void MergeTreeFaces(tree_t *tree);
 
 tree_t *BuildTree(csg_brush_t *brushes);
