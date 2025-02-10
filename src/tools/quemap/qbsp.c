@@ -177,6 +177,9 @@ int32_t BSP_Main(void) {
 
 		ProcessModels();
 
+		// block nodes define additional planes, ensure they make it into the bsp
+		EmitPlanes();
+
 		PhongShading();
 		TangentVectors();
 	}

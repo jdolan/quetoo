@@ -349,6 +349,18 @@ typedef struct {
 } bsp_face_t;
 
 /**
+ * @brief The BSP block node size.
+ */
+#define BSP_BLOCK_NODE_SIZE 1024.f
+
+/**
+ * @brief The maximum number of light sources that may occupy a single node. Lightmap textures
+ * will reference light sources by their node-level index. This allows > 255 light sources per
+ * map while still storing light source references in 8-bit-per-channel textures.
+ */
+#define BSP_MAX_NODE_LIGHTS 255
+
+/**
  * @brief The BSP node type.
  * @details Nodes are created by planes in the .map file, selected by a heuristic that emphasizes
  * planes which include visible faces and split as few brushes as possible.
@@ -364,6 +376,11 @@ typedef struct {
 	 * @details Negative values are leaf indexes, `-(index + 1)` to account for padding.
 	 */
 	int32_t children[2];
+
+	/**
+	 * @brief The node contents, either `CONTENTS_NODE` or `CONTENTS_BLOCK`.
+	 */
+	int32_t contents;
 
 	/**
 	 * @brief The AABB of this node used for collision.
@@ -385,6 +402,22 @@ typedef struct {
 	 * @brief The count of faces, front and back, on this node.
 	 */
 	int32_t num_faces;
+
+	/**
+	 * @brief The index of the first draw elements within this node.
+	 */
+	int32_t first_draw_element;
+
+	/**
+	 * @brief The count of draw elements within this node.
+	 */
+	int32_t num_draw_elements;
+
+	/**
+	 * @brief Indexes of lights partially occupying this node.
+	 * @details Lightmaps and the lightgrid will reference lights by their node-level index.
+	 */
+	int32_t lights[BSP_MAX_NODE_LIGHTS];
 } bsp_node_t;
 
 /**

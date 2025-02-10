@@ -71,7 +71,7 @@ static void R_UpdateBspInlineModelBlendDepth_r(const r_view_t *view,
 											   const r_bsp_inline_model_t *in,
 											   r_bsp_node_t *node) {
 
-	if (node->contents != CONTENTS_NODE) {
+	if (node->contents > CONTENTS_NODE) {
 		return;
 	}
 

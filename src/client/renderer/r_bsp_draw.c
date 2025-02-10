@@ -122,6 +122,19 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_DrawBspBlockNodes(const r_view_t *view, const r_bsp_model_t *bsp) {
+
+	r_bsp_node_t *node = bsp->nodes;
+	for (int32_t i = 0; i < bsp->num_nodes; i++, node++) {
+		if (node->contents == CONTENTS_BLOCK) {
+			R_Draw3DBox(node->bounds, color_red, true);
+		}
+	}
+}
+
+/**
+ * @brief
+ */
 void R_AddBspLightgridSprites(r_view_t *view) {
 
 	if (!r_draw_bsp_lightgrid->value) {
@@ -730,6 +743,8 @@ void R_DrawWorld(const r_view_t *view) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals(view, bsp);
+
+	R_DrawBspBlockNodes(view, bsp);
 }
 
 #define WARP_IMAGE_SIZE 16

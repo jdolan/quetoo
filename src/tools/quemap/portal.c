@@ -156,7 +156,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 	tree->outside_node.plane = PLANE_LEAF;
 	tree->outside_node.brushes = NULL;
 	tree->outside_node.portals = NULL;
-	tree->outside_node.contents = 0;
+	tree->outside_node.contents = CONTENTS_NONE;
 
 	for (int32_t i = 0; i < 3; i++) {
 		for (int32_t j = 0; j < 2; j++) {
@@ -573,7 +573,7 @@ static void FindPortalBrushSide(portal_t *portal) {
 		}
 	}
 
-	if (!portal->side && !leaked) {
+	if (portal->on_node->split_side && !portal->side && !leaked) {
 		Mon_SendWinding(MON_WARN, portal->winding->points, portal->winding->num_points,
 						"Brush side not found for portal");
 	}

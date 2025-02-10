@@ -114,7 +114,7 @@ static void R_DrawBspInlineModelEntityShadow(const r_view_t *view, const r_entit
  */
 static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *node) {
 
-	if (node->contents != CONTENTS_NODE) {
+	if (node->contents > CONTENTS_NODE) {
 		return;
 	}
 

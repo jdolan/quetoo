@@ -34,6 +34,7 @@ typedef struct node_s {
 	box3_t bounds; // valid after portalization
 	box3_t visible_bounds; // valid after face merging
 	csg_brush_t *volume; // one for each leaf/node
+	int32_t contents; // OR of all brush contents, or CONTENTS_NODE, CONTENTS_BLOCK
 
 	// nodes only
 	const brush_side_t *split_side; // the side that created the node
@@ -42,7 +43,6 @@ typedef struct node_s {
 
 	// leafs only
 	csg_brush_t *brushes; // fragments of all brushes in this leaf
-	int32_t contents; // OR of all brush contents
 	int32_t occupied; // 1 or greater can reach entity
 	const entity_t *occupant; // for leak file testing
 	struct portal_s *portals; // also on nodes during construction

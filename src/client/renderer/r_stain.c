@@ -82,7 +82,7 @@ static void R_StainFace(const r_view_t *view, const r_stain_t *stain, r_bsp_face
  */
 static void R_StainNode(const r_view_t *view, const r_stain_t *stain, const r_bsp_node_t *node) {
 
-	if (node->contents != CONTENTS_NODE) {
+	if (node->contents > CONTENTS_NODE) {
 		return;
 	}
 

@@ -156,9 +156,11 @@ csg_brush_t *BrushFromBounds(const box3_t bounds) {
 
 		normal.xyz[i] = 1.f;
 		b->brush_sides[i].plane = FindPlane(normal, bounds.maxs.xyz[i]);
+		b->brush_sides[i].surface = SURF_NODE;
 
 		normal.xyz[i] = -1.f;
 		b->brush_sides[3 + i].plane = FindPlane(normal, -bounds.mins.xyz[i]);
+		b->brush_sides[3 + i].surface = SURF_NODE;
 	}
 
 	MakeBrushWindings(b);

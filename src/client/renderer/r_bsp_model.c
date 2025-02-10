@@ -251,11 +251,10 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
 
-		out->contents = CONTENTS_NODE; // differentiate from leafs
+		out->contents = in->contents;
+		out->plane = bsp->planes + in->plane;
 		out->bounds = in->bounds;
 		out->visible_bounds = in->visible_bounds;
-
-		out->plane = bsp->planes + in->plane;
 
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
@@ -279,7 +278,7 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 	node->model = model;
 	node->parent = parent;
 
-	if (node->contents != CONTENTS_NODE) {
+	if (node->contents > CONTENTS_NODE) {
 		return;
 	}
 

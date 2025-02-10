@@ -31,6 +31,8 @@
  */
 void EmitPlanes(void) {
 
+	bsp_file.num_planes = 0;
+
 	const plane_t *p = planes;
 	for (int32_t i = 0; i < num_planes; i++, p++) {
 		bsp_plane_t *out = &bsp_file.planes[bsp_file.num_planes];
@@ -150,6 +152,7 @@ static int32_t EmitNode(const node_t *node) {
 	bsp_file.num_nodes++;
 
 	out->plane = node->plane;
+	out->contents = node->contents;
 	out->bounds = node->bounds;
 	out->visible_bounds = node->visible_bounds;
 
@@ -157,6 +160,8 @@ static int32_t EmitNode(const node_t *node) {
 		out->first_face = bsp_file.num_faces;
 		out->num_faces = EmitFaces(node);
 	}
+
+	// TODO: emit draw elements, lights
 
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {

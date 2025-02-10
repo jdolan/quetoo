@@ -125,10 +125,10 @@ void FreeTree(tree_t *tree) {
 /**
  * @brief
  */
-static void LeafNode(node_t *node, csg_brush_t *brushes) {
+static node_t *LeafNode(node_t *node, csg_brush_t *brushes) {
 
 	node->plane = PLANE_LEAF;
-	node->contents = 0;
+	node->contents = CONTENTS_NONE;
 
 	for (csg_brush_t *b = brushes; b; b = b->next) {
 		// if the brush is solid and all of its sides are on nodes, it eats everything
@@ -150,6 +150,8 @@ static void LeafNode(node_t *node, csg_brush_t *brushes) {
 	node->brushes = brushes;
 
 	Progress("Building tree", -1);
+
+	return node;
 }
 
 /**
@@ -318,37 +320,62 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 }
 
 /**
- * @brief
+ * @brief Recursively split the node and filter brushes into its children. Nodes larger
+ * than `BSP_BLOCK_NODE_SIZE` are split in half on their longest axis to produce a balanced tree.
+ * Smaller nodes are split using a brush side heuristic to produce more optimal geometry.
  */
 static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
-	csg_brush_t *children[2];
 
-	node->split_side = SelectSplitSide(node, brushes);
-	if (!node->split_side) {
-		node->plane = PLANE_LEAF;
-		LeafNode(node, brushes);
-		return node;
+	const vec3_t size = Box3_Size(node->volume->bounds);
+
+	int32_t axis = 0;
+	float longest_side = 0.f;
+	for (int32_t i = 0; i < 3; i++) {
+		if (size.xyz[i] > longest_side) {
+			longest_side = size.xyz[i];
+			axis = i;
+		}
 	}
 
-	// this is a decision node, reference the positive plane
-	node->plane = node->split_side->plane & ~1;
+	if (longest_side > BSP_BLOCK_NODE_SIZE) {
+		node->contents = CONTENTS_BLOCK;
 
-	SplitBrushes(brushes, node, &children[0], &children[1]);
+		if (!brushes) {
+			return LeafNode(node, brushes);
+		}
 
-	FreeBrushes(brushes);
+		vec3_t normal = Vec3_Zero();
+		normal.xyz[axis] = 1.f;
 
-	// allocate children before recursing
-	for (int32_t i = 0; i < 2; i++) {
-		node->children[i] = AllocNode();
-		node->children[i]->parent = node;
+		const float dist = Box3_Center(node->volume->bounds).xyz[axis];
+
+		node->plane = FindPlane(normal, dist) & ~1;
+	} else {
+		node->contents = CONTENTS_NODE;
+
+		node->split_side = SelectSplitSide(node, brushes);
+		if (!node->split_side) {
+			return LeafNode(node, brushes);
+		}
+
+		node->plane = node->split_side->plane & ~1;
 	}
+
+	node->children[0] = AllocNode();
+	node->children[0]->parent = node;
+
+	node->children[1] = AllocNode();
+	node->children[1]->parent = node;
 
 	SplitBrush(node->volume, node->plane, &node->children[0]->volume, &node->children[1]->volume);
 
-	// recursively process children
-	for (int32_t i = 0; i < 2; i++) {
-		node->children[i] = BuildTree_r(node->children[i], children[i]);
-	}
+	csg_brush_t *front, *back;
+	SplitBrushes(brushes, node, &front, &back);
+
+	FreeBrushes(brushes);
+
+	BuildTree_r(node->children[0], front);
+	BuildTree_r(node->children[1], back);
 
 	return node;
 }
@@ -401,8 +428,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->bounds = Box3f(MAX_WORLD_AXIAL, MAX_WORLD_AXIAL, MAX_WORLD_AXIAL);;
-	tree->head_node->volume = BrushFromBounds(tree->head_node->bounds);
+	tree->head_node->volume = BrushFromBounds(tree->bounds);
 
 	BuildTree_r(tree->head_node, brushes);
 

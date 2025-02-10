@@ -212,12 +212,20 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 		node->plane = LittleLong(node->plane);
 		node->children[0] = LittleLong(node->children[0]);
 		node->children[1] = LittleLong(node->children[1]);
+		node->contents = LittleLong(node->contents);
 
 		node->bounds = LittleBounds(node->bounds);
 		node->visible_bounds = LittleBounds(node->visible_bounds);
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
+
+		node->first_draw_element = LittleLong(node->first_draw_element);
+		node->num_draw_elements = LittleLong(node->num_draw_elements);
+
+		for (int32_t j = 0; j < BSP_MAX_NODE_LIGHTS; j++) {
+			node->lights[j] = LittleLong(node->lights[j]);
+		}
 
 		node++;
 	}

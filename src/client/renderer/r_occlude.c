@@ -207,7 +207,7 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
  */
 static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node) {
 
-	if (node->contents != CONTENTS_NODE) {
+	if (node->contents > CONTENTS_NODE) {
 		return;
 	}
 
