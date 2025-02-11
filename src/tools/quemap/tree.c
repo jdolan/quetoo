@@ -351,7 +351,11 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 
 		node->plane = FindPlane(normal, dist) & ~1;
 	} else {
-		node->contents = CONTENTS_NODE;
+		if (node->parent == NULL) {
+			node->contents = CONTENTS_BLOCK;
+		} else {
+			node->contents = CONTENTS_NODE;
+		}
 
 		node->split_side = SelectSplitSide(node, brushes);
 		if (!node->split_side) {

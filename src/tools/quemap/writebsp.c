@@ -85,6 +85,170 @@ static int32_t EmitFaces(const node_t *node) {
 /**
  * @brief
  */
+static void NodeFaces_r(GPtrArray *faces, const node_t *node) {
+
+	if (node->plane == PLANE_LEAF) {
+		return;
+	}
+
+	for (face_t *face = node->faces; face; face = face->next) {
+
+		if (face->merged) {
+			continue;
+		}
+
+		g_ptr_array_add(faces, face->out);
+	}
+
+	NodeFaces_r(faces, node->children[0]);
+	NodeFaces_r(faces, node->children[1]);
+}
+
+/**
+ * @brief Recursively collects node faces.
+ */
+static GPtrArray *NodeFaces(const node_t *node) {
+
+	GPtrArray *faces = g_ptr_array_new();
+
+	// sometimes faces will actually reside *above* a block node, so grab them
+	node_t *n = node->parent;
+	while (n) {
+		for (face_t *face = n->faces; face; face = face->next) {
+
+			if (face->merged) {
+				continue;
+			}
+
+			if (Box3_Contains(node->bounds, face->out->bounds)) {
+				g_ptr_array_add(faces, face->out);
+			}
+		}
+		n = n->parent;
+	}
+
+	NodeFaces_r(faces, node);
+
+	return faces;
+}
+
+/**
+ * @brief Draw elements comparator to sort faces by surface mask.
+ */
+static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
+
+	const int32_t a_surface = (a->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
+	const int32_t b_surface = (b->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
+
+	return a_surface - b_surface;
+}
+
+/**
+ * @brief Draw elements comparator to sort model faces by material.
+ * @details Opaque faces are equal if they share material and contents.
+ * @details Blend faces are equal if they share opaque equality and plane.
+ * @details Material faces equal if they share blend equality and brush side.
+ */
+static gint FaceCmp(gconstpointer a, gconstpointer b) {
+
+	const bsp_face_t *a_face = a;
+	const bsp_face_t *b_face = b;
+
+	const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
+	const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
+
+	gint order = a_side->material - b_side->material;
+	if (order == 0) {
+
+		order = SurfaceCmp(a_side, b_side);
+		if (order == 0) {
+
+			if (a_side->surface & SURF_MATERIAL) {
+				return (gint) (ptrdiff_t) (a_side - b_side);
+			}
+
+			if (a_side->surface & SURF_MASK_BLEND) {
+				return a_side->plane - b_side->plane;
+			}
+		}
+	}
+
+	return order;
+}
+
+/**
+ * @brief Sorts opaque and alpha test faces in the given model by material, and emits
+ * glDrawElements commands for each unique material. The BSP face ordering is not modified,
+ * as this would break the references that the nodes hold to them.
+ * @return The number of draw elements commands emitted for the model.
+ */
+static int32_t EmitDrawElements(const node_t *node) {
+
+	const int32_t num_draw_elements = bsp_file.num_draw_elements;
+
+	GPtrArray *faces = NodeFaces(node);
+
+	g_ptr_array_sort_values(faces, FaceCmp);
+
+	for (guint i = 0; i < faces->len; i++) {
+
+		if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
+		}
+
+		const bsp_face_t *a = g_ptr_array_index(faces, i);
+		const bsp_brush_side_t *a_side = bsp_file.brush_sides + a->brush_side;
+
+		if (a_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+			continue;
+		}
+
+		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
+		bsp_file.num_draw_elements++;
+
+		out->plane = a_side->plane;
+		out->material = a_side->material;
+		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
+
+		out->bounds = Box3_Null();
+
+		out->first_element = bsp_file.num_elements;
+
+		for (guint j = i; j < faces->len; j++) {
+
+			const bsp_face_t *b = g_ptr_array_index(faces, j);
+
+			if (FaceCmp(a, b)) {
+				break;
+			}
+
+			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+			}
+
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + b->first_element,
+				   sizeof(int32_t) * b->num_elements);
+
+			bsp_file.num_elements += b->num_elements;
+			out->num_elements += b->num_elements;
+
+			out->bounds = Box3_Union(out->bounds, b->bounds);
+
+			i = j;
+		}
+
+		assert(out->num_elements);
+	}
+
+	g_ptr_array_free(faces, true);
+
+	return bsp_file.num_draw_elements - num_draw_elements;
+}
+
+/**
+ * @brief
+ */
 static int32_t EmitLeaf(node_t *node) {
 
 	if (bsp_file.num_leafs == MAX_BSP_LEAFS) {
@@ -161,8 +325,6 @@ static int32_t EmitNode(const node_t *node) {
 		out->num_faces = EmitFaces(node);
 	}
 
-	// TODO: emit draw elements, lights
-
 	// recursively output the other nodes
 	for (int32_t i = 0; i < 2; i++) {
 		if (node->children[i]->plane == PLANE_LEAF) {
@@ -172,6 +334,13 @@ static int32_t EmitNode(const node_t *node) {
 			out->children[i] = bsp_file.num_nodes;
 			EmitNode(node->children[i]);
 		}
+	}
+
+	if (node->contents == CONTENTS_BLOCK &&
+		node->children[0]->contents != CONTENTS_BLOCK &&
+		node->children[1]->contents != CONTENTS_BLOCK) {
+		out->first_draw_element = bsp_file.num_draw_elements;
+		out->num_draw_elements = EmitDrawElements(node);
 	}
 
 	return (int32_t) (ptrdiff_t) (out - bsp_file.nodes);
@@ -194,121 +363,6 @@ int32_t EmitNodes(const tree_t *tree) {
 	Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", SDL_GetTicks() - start);
 
 	return node;
-}
-
-/**
- * @brief Draw elements comparator to sort faces by surface mask.
- */
-static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
-
-	const int32_t a_surface = (a->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
-	const int32_t b_surface = (b->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
-
-	return a_surface - b_surface;
-}
-
-/**
- * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share material and contents.
- * @details Blend faces are equal if they share opaque equality and plane.
- * @details Material faces equal if they share blend equality and brush side.
- */
-static int32_t FaceCmp(const void *a, const void *b) {
-
-	const bsp_face_t *a_face = a;
-	const bsp_face_t *b_face = b;
-
-	const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
-	const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
-
-	int32_t order = a_side->material - b_side->material;
-	if (order == 0) {
-
-		order = SurfaceCmp(a_side, b_side);
-		if (order == 0) {
-
-			if (a_side->surface & SURF_MATERIAL) {
-				return (int32_t) (ptrdiff_t) (a_side - b_side);
-			}
-
-			if (a_side->surface & SURF_MASK_BLEND) {
-				return a_side->plane - b_side->plane;
-			}
-		}
-	}
-
-	return order;
-}
-
-/**
- * @brief Sorts opaque and alpha test faces in the given model by material, and emits
- * glDrawElements commands for each unique material. The BSP face ordering is not modified,
- * as this would break the references that the nodes hold to them.
- * @return The number of draw elements commands emitted for the model.
- */
-static int32_t EmitDrawElements(const bsp_model_t *mod) {
-
-	const int32_t num_draw_elements = bsp_file.num_draw_elements;
-
-	bsp_face_t *model_faces = calloc(mod->num_faces, sizeof(bsp_face_t));
-	memcpy(model_faces, bsp_file.faces + mod->first_face, mod->num_faces * sizeof(bsp_face_t));
-
-	qsort(model_faces, mod->num_faces, sizeof(bsp_face_t), FaceCmp);
-
-	for (int32_t i = 0; i < mod->num_faces; i++) {
-
-		if (bsp_file.num_draw_elements == MAX_BSP_DRAW_ELEMENTS) {
-			Com_Error(ERROR_FATAL, "MAX_BSP_LEAF_ELEMENTS\n");
-		}
-
-		const bsp_face_t *a = model_faces + i;
-		const bsp_brush_side_t *a_side = bsp_file.brush_sides + a->brush_side;
-
-		if (a_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
-			continue;
-		}
-
-		bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
-		bsp_file.num_draw_elements++;
-
-		out->plane = a_side->plane;
-		out->material = a_side->material;
-		out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
-
-		out->bounds = Box3_Null();
-
-		out->first_element = bsp_file.num_elements;
-
-		for (int32_t j = i; j < mod->num_faces; j++) {
-
-			const bsp_face_t *b = model_faces + j;
-
-			if (FaceCmp(a, b)) {
-				break;
-			}
-
-			if (bsp_file.num_elements + b->num_elements >= MAX_BSP_ELEMENTS) {
-				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-			}
-
-			memcpy(bsp_file.elements + bsp_file.num_elements,
-				   bsp_file.elements + b->first_element,
-				   sizeof(int32_t) * b->num_elements);
-
-			bsp_file.num_elements += b->num_elements;
-			out->num_elements += b->num_elements;
-
-			out->bounds = Box3_Union(out->bounds, b->bounds);
-			
-			i = j;
-		}
-
-		assert(out->num_elements);
-	}
-
-	free(model_faces);
-
-	return bsp_file.num_draw_elements - num_draw_elements;
 }
 
 /**
@@ -497,5 +551,5 @@ void EndModel(bsp_model_t *mod) {
 
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
 
-	mod->num_draw_elements = EmitDrawElements(mod);
+	mod->num_draw_elements = bsp_file.num_draw_elements - mod->first_draw_elements;
 }
