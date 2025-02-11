@@ -259,6 +259,9 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
+		out->draw_elements = bsp->draw_elements + in->first_draw_element;
+		out->num_draw_elements = in->num_draw_elements;
+
 		for (int32_t j = 0; j < 2; j++) {
 			const int32_t c = in->children[j];
 			if (c >= 0) {

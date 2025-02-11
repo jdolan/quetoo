@@ -519,7 +519,7 @@ typedef struct {
  */
 typedef struct r_bsp_node_s {
 	/**
-	 * @brief The contents mask. Valid for leafs, always `CONTENTS_NODE` for nodes.
+	 * @brief The contents mask; one of `CONTENTS_NODE` or `CONTENTS_BLOCK` for nodes.
 	 */
 	int32_t contents;
 
@@ -564,6 +564,16 @@ typedef struct r_bsp_node_s {
 	 * @brief The count of faces.
 	 */
 	int32_t num_faces;
+
+	/**
+	 * @brief The draw elements within this node (`CONTENTS_BLOCK` only).
+	 */
+	r_bsp_draw_elements_t *draw_elements;
+
+	/**
+	 * @brief The count of draw elements.
+	 */
+	int32_t num_draw_elements;
 
 	/**
 	 * @brief True if this node is occluded for the current frame.
