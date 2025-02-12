@@ -129,7 +129,7 @@ static void R_DrawBspBlockNodes(const r_view_t *view, const r_bsp_model_t *bsp) 
 	}
 
 	for (int32_t i = 0; i < bsp->num_block_nodes; i++) {
-		R_Draw3DBox(bsp->block_nodes[i]->bounds, color_red, true);
+		R_Draw3DBox(bsp->block_nodes[i]->bounds, color_red, false);
 	}
 }
 
@@ -404,16 +404,16 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_entity_t *entity,
 										 const r_bsp_draw_elements_t *draw) {
 
+	glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
+
+	glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
+	glUniform1f(r_bsp_program.material.roughness, draw->material->cm->roughness * r_roughness->value);
+	glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
+	glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
+	glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
+	glUniform1f(r_bsp_program.material.bloom, draw->material->cm->bloom * r_bloom->value);
+
 	if (!(draw->surface & SURF_MATERIAL)) {
-
-		glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
-
-		glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
-		glUniform1f(r_bsp_program.material.roughness, draw->material->cm->roughness * r_roughness->value);
-		glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
-		glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
-		glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
-		glUniform1f(r_bsp_program.material.bloom, draw->material->cm->bloom * r_bloom->value);
 
 		glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		r_stats.bsp_triangles += draw->num_elements / 3;
@@ -445,9 +445,31 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 		const r_bsp_draw_elements_t *draw = node->draw_elements;
 		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
 
-			if (draw->surface & SURF_SKY) {
+			if (draw->surface & (SURF_SKY | SURF_MASK_TRANSLUCENT)) {
 				continue;
 			}
+
+			if (r_depth_pass->value) {
+				glDepthMask(GL_FALSE);
+			}
+
+			R_DrawBspDrawElements(view, e, draw);
+
+			if (r_depth_pass->value) {
+				glDepthMask(GL_TRUE);
+			}
+		}
+	}
+
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+		const r_bsp_node_t *node = in->block_nodes[i];
+
+		if (node->occluded) {
+			continue;
+		}
+
+		const r_bsp_draw_elements_t *draw = node->draw_elements;
+		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
 
 			if (draw->surface & SURF_MASK_TRANSLUCENT) {
 
@@ -463,17 +485,6 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 				glBlendFunc(GL_ONE, GL_ZERO);
 				glDisable(GL_BLEND);
 
-			} else {
-
-				if (r_depth_pass->value) {
-					glDepthMask(GL_FALSE);
-				}
-
-				R_DrawBspDrawElements(view, e, draw);
-
-				if (r_depth_pass->value) {
-					glDepthMask(GL_TRUE);
-				}
 			}
 		}
 	}
