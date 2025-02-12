@@ -148,49 +148,49 @@ void R_UpdateLights(r_view_t *view) {
 	}
 
 
-//	r_light_t *l = view->lights;
-//	for (int32_t i = 0; i < view->num_lights; i++, l++) {
-//
-//		if (r_draw_light_bounds->value && Vec3_Distance(pos, l->origin) < 32.f) {
-//			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-//		}
-//
-//		l->index = -1;
-//
-//		if (l->num_entities == 0) {
-//
-//			const r_entity_t *e = view->entities;
-//			for (int32_t j = 0; j < view->num_entities; j++, e++) {
-//
-//				if (!e->model) {
-//					continue;
-//				}
-//
-//				if (e->effects & EF_NO_SHADOW) {
-//					continue;
-//				}
-//
-//				if (R_IsLightSource(l, e)) {
-//					continue;
-//				}
-//
-//				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
-//					l->entities[l->num_entities++] = e;
-//
-//					if (l->num_entities == MAX_LIGHT_ENTITIES) {
-//						Com_Warn("MAX_LIGHT_ENTITIES\n");
-//						break;
-//					}
-//				}
-//			}
-//		}
-//
-//		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
-//			continue;
-//		}
-//
-//		R_AddLightUniform(l);
-//	}
+	r_light_t *l = view->lights;
+	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+		if (r_draw_light_bounds->value && Vec3_Distance(pos, l->origin) < 32.f) {
+			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+		}
+
+		l->index = -1;
+
+		if (l->num_entities == 0) {
+
+			const r_entity_t *e = view->entities;
+			for (int32_t j = 0; j < view->num_entities; j++, e++) {
+
+				if (!e->model) {
+					continue;
+				}
+
+				if (e->effects & EF_NO_SHADOW) {
+					continue;
+				}
+
+				if (R_IsLightSource(l, e)) {
+					continue;
+				}
+
+				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
+					l->entities[l->num_entities++] = e;
+
+					if (l->num_entities == MAX_LIGHT_ENTITIES) {
+						Com_Warn("MAX_LIGHT_ENTITIES\n");
+						break;
+					}
+				}
+			}
+		}
+
+		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
+			continue;
+		}
+
+		R_AddLightUniform(l);
+	}
 
 	r_stats.lights = out->num_lights;
 
