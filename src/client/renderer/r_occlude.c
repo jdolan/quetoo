@@ -60,6 +60,9 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		r_bsp_node_t *node = in->block_nodes[i];
 
 		if (node->occluded) {
+			if (Box3_Contains(node->bounds, bounds)) {
+				return true;
+			}
 			continue;
 		}
 
@@ -160,12 +163,6 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 		return;
 	}
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	glDepthMask(GL_FALSE);
-
 	glUseProgram(r_depth_pass_program.name);
 
 	glBindVertexArray(r_occlusion.vertex_array);
@@ -173,6 +170,12 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	glDepthMask(GL_FALSE);
 
 	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 	for (int32_t i = 0; i < in->num_block_nodes; i++) {
@@ -202,16 +205,18 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 		}
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
 	glDepthMask(GL_TRUE);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+	glUseProgram(0);
 
 	R_GetError(NULL);
 }
