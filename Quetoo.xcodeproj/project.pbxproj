@@ -607,7 +607,6 @@
 		CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
-		CED438391D9D34450052BAFA /* r_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B21C5C58C300CD0B13 /* r_bsp.c */; };
 		CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */; };
 		CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */; };
 		CED4383D1D9D34450052BAFA /* r_context.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5BA1C5C58C300CD0B13 /* r_context.c */; };
@@ -622,7 +621,6 @@
 		CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D91C5C58C300CD0B13 /* r_mesh_model.c */; };
 		CED4384F1D9D34450052BAFA /* r_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5DF1C5C58C300CD0B13 /* r_model.c */; };
 		CED438561D9D34450052BAFA /* r_sky.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5ED1C5C58C300CD0B13 /* r_sky.c */; };
-		CED438801D9D34450052BAFA /* r_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B31C5C58C300CD0B13 /* r_bsp.h */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
 		CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */; };
 		CED438841D9D34450052BAFA /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BB1C5C58C300CD0B13 /* r_context.h */; };
@@ -1192,8 +1190,6 @@
 		CE12D5A91C5C58C300CD0B13 /* client.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = client.h; sourceTree = "<group>"; };
 		CE12D5AA1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D5AE1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D5B21C5C58C300CD0B13 /* r_bsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp.c; sourceTree = "<group>"; };
-		CE12D5B31C5C58C300CD0B13 /* r_bsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp.h; sourceTree = "<group>"; };
 		CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_model.c; sourceTree = "<group>"; };
 		CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_bsp_model.h; sourceTree = "<group>"; };
 		CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_bsp_draw.c; sourceTree = "<group>"; };
@@ -2580,8 +2576,6 @@
 				CE148DA7242A37BA00B589D8 /* r_animation.h */,
 				CEA082331DC6EBB7001207AA /* r_atlas.c */,
 				CEA082341DC6EBB7001207AA /* r_atlas.h */,
-				CE12D5B21C5C58C300CD0B13 /* r_bsp.c */,
-				CE12D5B31C5C58C300CD0B13 /* r_bsp.h */,
 				CE12D5B81C5C58C300CD0B13 /* r_bsp_draw.c */,
 				CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */,
 				CE12D5B61C5C58C300CD0B13 /* r_bsp_model.c */,
@@ -3659,7 +3653,6 @@
 			files = (
 				CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */,
 				CEA082381DC6EC59001207AA /* r_atlas.h in Headers */,
-				CED438801D9D34450052BAFA /* r_bsp.h in Headers */,
 				CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */,
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
 				CED438841D9D34450052BAFA /* r_context.h in Headers */,
@@ -4827,7 +4820,6 @@
 			files = (
 				CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */,
 				CEA082371DC6EC50001207AA /* r_atlas.c in Sources */,
-				CED438391D9D34450052BAFA /* r_bsp.c in Sources */,
 				CED4383C1D9D34450052BAFA /* r_bsp_draw.c in Sources */,
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,

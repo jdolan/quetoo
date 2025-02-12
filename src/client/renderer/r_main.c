@@ -26,23 +26,22 @@ r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
 cvar_t *r_alpha_test;
-cvar_t *r_blend_depth_sorting;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_developer;
+cvar_t *r_draw_bsp_block_nodes;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
+cvar_t *r_draw_bsp_occlusion_queries;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
-cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
 cvar_t *r_error_level;
 cvar_t *r_max_errors;
 cvar_t *r_occlude;
-cvar_t *r_occlusion_query_size;
 
 int32_t r_error_count;
 
@@ -263,8 +262,6 @@ void R_DrawMainView(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
-	R_UpdateBlendDepth(view);
-
 	R_UpdateEntities(view);
 
 	R_UpdateSprites(view);
@@ -285,6 +282,10 @@ void R_DrawMainView(r_view_t *view) {
 	}
 
 	R_DrawWorld(view);
+
+	R_DrawEntities(view);
+
+	R_DrawSprites(view);
 
 	if (r_draw_wireframe->value) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -319,7 +320,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-	R_DrawEntities(view, INT32_MIN);
+	R_DrawEntities(view);
 
 	R_DrawPost(view);
 
@@ -350,15 +351,15 @@ static void R_InitLocal(void) {
 
 	// development tools
 	r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
-	r_blend_depth_sorting = Cvar_Add("r_blend_depth_sorting", "1", CVAR_DEVELOPER, "Controls alpha blending sorting (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
+	r_draw_bsp_block_nodes = Cvar_Add("r_draw_bsp_block_nodes", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_lightmap = Cvar_Add("r_draw_bsp_lightmap", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
+	r_draw_bsp_occlusion_queries = Cvar_Add("r_draw_bsp_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
-	r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
 	r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
@@ -366,7 +367,6 @@ static void R_InitLocal(void) {
 	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
 	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
 	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
-	r_occlusion_query_size = Cvar_Add("r_occlusion_query_size", "512", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the occlusion query size (developer tool)");
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");

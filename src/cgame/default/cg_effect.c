@@ -180,7 +180,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
 				.size = 128.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
-				.flags = SPRITE_NO_BLEND_DEPTH,
 				.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
 				.softness = 5.f,
 			});
@@ -193,7 +192,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
 				.size = 4.f,
 				.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
 				.acceleration = Vec3_RandomRange(-12.f, 12.f),
-				.flags = SPRITE_NO_BLEND_DEPTH,
 				.softness = 1.f
 			});
 		}

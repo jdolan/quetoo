@@ -88,10 +88,7 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
  * @brief
  */
 void R_UpdateEntities(r_view_t *view) {
-
-	R_UpdateMeshEntities(view);
-
-	R_UpdateBspInlineEntities(view);
+	
 }
 
 /**
@@ -109,7 +106,7 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 /**
  * @brief
  */
-static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
+static void R_DrawEntitiesBounds(const r_view_t *view) {
 
 	if (!r_draw_entity_bounds->value) {
 		return;
@@ -130,10 +127,6 @@ static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
 			continue;
 		}
 
-		if (e->blend_depth != blend_depth) {
-			continue;
-		}
-
 		if (R_CulludeBox(view, e->abs_model_bounds)) {
 			continue;
 		}
@@ -143,13 +136,11 @@ static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
 }
 
 /**
- * @brief Draw all entities at the specified depth value.
+ * @brief Draw all entities.
  */
-void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
+void R_DrawEntities(const r_view_t *view) {
 
-	R_DrawBspInlineEntities(view, blend_depth);
+	R_DrawMeshEntities(view);
 
-	R_DrawMeshEntities(view, blend_depth);
-
-	R_DrawEntitiesBounds(view, blend_depth);
+	R_DrawEntitiesBounds(view);
 }

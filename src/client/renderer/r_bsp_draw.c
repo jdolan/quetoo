@@ -124,11 +124,12 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
  */
 static void R_DrawBspBlockNodes(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-	r_bsp_node_t *node = bsp->nodes;
-	for (int32_t i = 0; i < bsp->num_nodes; i++, node++) {
-		if (node->contents == CONTENTS_BLOCK) {
-			R_Draw3DBox(node->bounds, color_red, true);
-		}
+	if (!r_draw_bsp_block_nodes->value) {
+		return;
+	}
+
+	for (int32_t i = 0; i < bsp->num_block_nodes; i++) {
+		R_Draw3DBox(bsp->block_nodes[i]->bounds, color_red, true);
 	}
 }
 
@@ -195,7 +196,6 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 						.size = 8.f,
 						.color = color,
 						.media = (r_media_t *) particle,
-						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
@@ -210,7 +210,6 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 						.size = 8.f,
 						.color = color,
 						.media = (r_media_t *) particle,
-						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
@@ -225,7 +224,6 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 						.size = 8.f,
 						.color = color,
 						.media = (r_media_t *) particle,
-						.flags = SPRITE_NO_BLEND_DEPTH
 					});
 
 					const vec3_t end = Vec3_Fmaf(origin, 24.f, dir);
@@ -398,38 +396,6 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @brief Interrupt BSP drawing to draw depth sorted objects.
- */
-static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_blend_depth_type_t types) {
-
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-
-	if (types & BLEND_DEPTH_ENTITY) {
-		R_DrawEntities(view, blend_depth);
-	}
-
-	if (types & BLEND_DEPTH_SPRITE) {
-		R_DrawSprites(view, blend_depth);
-	}
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glUseProgram(r_bsp_program.name);
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-}
-
-/**
  * @brief Draws the specified draw elements for the given entity.
  * @param entity The entity, or NULL for the world model.
  * @param draw The draw elements command.
@@ -437,10 +403,6 @@ static void R_DrawBlendDepthTypes(const r_view_t *view, int32_t blend_depth, r_b
 static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_entity_t *entity,
 										 const r_bsp_draw_elements_t *draw) {
-
-	if (entity == NULL && R_CulludeBox(view, draw->bounds)) {
-		return;
-	}
 
 	if (!(draw->surface & SURF_MATERIAL)) {
 
@@ -460,157 +422,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 	}
 
 	R_DrawBspDrawElementsMaterialStages(view, entity, draw, draw->material);
-}
 
-/**
- * @brief Draws opaque draw elements for the specified block node.
- */
-static void R_DrawBspNodeOpaqueDrawElements(const r_view_t *view,
-											const r_entity_t *entity,
-											const r_bsp_node_t *node) {
-
-	const r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-
-		if (draw->surface & SURF_MASK_TRANSLUCENT) {
-			continue;
-		}
-
-		if (draw->surface & SURF_SKY) {
-			continue;
-		}
-
-		R_DrawBspDrawElements(view, entity, draw);
-
-		r_stats.bsp_draw_elements++;
-	}
-}
-
-/**
- * @brief Draws alpha test draw elements for the specified block node.
- */
-static void R_DrawBspNodeAlphaTestDrawElements(const r_view_t *view,
-											   const r_entity_t *entity,
-											   const r_bsp_node_t *node) {
-
-	const r_bsp_draw_elements_t *draw = node->draw_elements;
-	for (int32_t i = 0; i < node->num_draw_elements; i++, draw++) {
-
-		if (!(draw->surface & SURF_ALPHA_TEST)) {
-			continue;
-		}
-
-		R_DrawBspDrawElements(view, entity, draw);
-
-		r_stats.bsp_draw_elements++;
-	}
-}
-
-/**
- * @brief Draws alpha blended faces for the specified inline model, ordered back to front.
- * @details In order to ensure correct blend ordering, sprites and mesh entities may be dispatched
- * here, to be drawn immediately behind (before) any draw elements that may occlude them.
- */
-static void R_DrawBspInlineBlendDrawElements(const r_view_t *view,
-											 const r_entity_t *entity,
-											 const r_bsp_inline_model_t *in) {
-
-	for (guint i = 0; i < in->blend_elements->len; i++) {
-
-		const r_bsp_draw_elements_t *draw = g_ptr_array_index(in->blend_elements, i);
-
-		if (draw->blend_depth_types) {
-
-			assert(entity == NULL);
-
-			const int32_t blend_depth = (int32_t) (draw - r_world_model->bsp->draw_elements);
-
-			R_DrawBlendDepthTypes(view, blend_depth, draw->blend_depth_types);
-		}
-
-		R_DrawBspDrawElements(view, entity, draw);
-
-		r_stats.bsp_draw_elements++;
-		r_stats.bsp_blend_draw_elements++;
-	}
-
-#if 0
-	const r_bsp_face_t *face = in->faces;
-	for (int32_t i = 0; i < in->num_faces; i++, face++) {
-
-		const r_material_t *material = face->brush_side->material;
-
-		if (!(material->cm->surface & SURF_MASK_BLEND)) {
-			continue;
-		}
-
-		glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
-
-		glUniform1f(r_bsp_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
-		glUniform1f(r_bsp_program.material.roughness, material->cm->roughness * r_roughness->value);
-		glUniform1f(r_bsp_program.material.parallax, material->cm->parallax * r_parallax->value);
-		glUniform1f(r_bsp_program.material.hardness, material->cm->hardness * r_hardness->value);
-		glUniform1f(r_bsp_program.material.specularity, material->cm->specularity * r_specularity->value);
-		glUniform1f(r_bsp_program.material.bloom, material->cm->bloom* r_bloom->value);
-
-		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
-	}
-#endif
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_UpdateBspInlineEntities(r_view_t *view) {
-
-	r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_BSP_INLINE_MODEL(e->model)) {
-			const r_bsp_inline_model_t *in = e->model->bsp_inline;
-			if (in->blend_elements->len) {
-				e->blend_depth = R_BlendDepthForPoint(view, Box3_Center(e->abs_model_bounds), BLEND_DEPTH_ENTITY);
-			} else {
-				e->blend_depth = INT32_MIN;
-			}
-		}
-	}
-}
-
-/**
- * @brief
- */
-static void R_DrawBspInlineEntity_r(const r_view_t *view,
-									const r_entity_t *e,
-									const r_bsp_node_t *node) {
-
-	assert(node->contents < CONTENTS_NONE);
-
-	if (node->num_draw_elements) {
-		R_DrawBspNodeOpaqueDrawElements(view, e, node);
-		R_DrawBspNodeAlphaTestDrawElements(view, e, node);
-	} else {
-		R_DrawBspInlineEntity_r(view, e, node->children[0]);
-		R_DrawBspInlineEntity_r(view, e, node->children[1]);
-	}
-}
-
-/**
- * @brief
- */
-static void R_DrawBspInlineEntityBlend_r(const r_view_t *view,
-										 const r_entity_t *e,
-										 const r_bsp_node_t *node) {
-
-	assert(node->contents < CONTENTS_NONE);
-
-	if (node->num_draw_elements) {
-		//R_DrawBspNodeBlendDrawElements(view, e, node);
-	} else {
-		R_DrawBspInlineEntity_r(view, e, node->children[0]);
-		R_DrawBspInlineEntity_r(view, e, node->children[1]);
-	}
+	r_stats.bsp_draw_elements++;
 }
 
 /**
@@ -618,17 +431,52 @@ static void R_DrawBspInlineEntityBlend_r(const r_view_t *view,
  */
 static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e ? e->matrix.array : Mat4_Identity().array);
 
-	R_DrawBspInlineEntity_r(view, e, e->model->bsp_inline->head_node);
+	const r_bsp_inline_model_t *in = e ? e->model->bsp_inline : r_world_model->bsp->inline_models;
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+		const r_bsp_node_t *node = in->block_nodes[i];
 
-	R_DrawBspInlineEntityBlend_r(view, e, e->model->bsp_inline->head_node);
+		if (node->occluded) {
+			continue;
+		}
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+		const r_bsp_draw_elements_t *draw = node->draw_elements;
+		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
+
+			if (draw->surface & SURF_SKY) {
+				continue;
+			}
+
+			if (draw->surface & SURF_MASK_TRANSLUCENT) {
+
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+				glDepthMask(GL_FALSE);
+
+				R_DrawBspDrawElements(view, e, draw);
+
+				glDepthMask(GL_TRUE);
+
+				glBlendFunc(GL_ONE, GL_ZERO);
+				glDisable(GL_BLEND);
+
+			} else {
+
+				if (r_depth_pass->value) {
+					glDepthMask(GL_FALSE);
+				}
+
+				R_DrawBspDrawElements(view, e, draw);
+
+				if (r_depth_pass->value) {
+					glDepthMask(GL_TRUE);
+				}
+			}
+		}
+	}
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
@@ -636,68 +484,9 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
- * @brief
+ * @brief Draws all BSP inline model entities for the current view, including the world.
  */
-void R_DrawBspInlineEntities(const r_view_t *view, int32_t blend_depth) {
-
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return;
-	}
-
-	glUseProgram(r_bsp_program.name);
-
-	glBindVertexArray(r_world_model->bsp->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
-
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
-	const r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_BSP_INLINE_MODEL(e->model)) {
-
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
-			if (e->blend_depth != blend_depth) {
-				continue;
-			}
-
-			if (R_CullEntity(view, e)) {
-				continue;
-			}
-
-			R_DrawBspInlineEntity(view, e);
-		}
-	}
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
-	glUseProgram(0);
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_DrawWorld(const r_view_t *view) {
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	R_DrawSky(view);
+static void R_DrawBspInlineEntities(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	glUseProgram(r_bsp_program.name);
 
@@ -720,37 +509,31 @@ void R_DrawWorld(const r_view_t *view) {
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
 
-	if (r_depth_pass->value) {
-		glDepthMask(GL_FALSE);
+	R_DrawBspInlineEntity(view, NULL);
+
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
+
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
+
+			if (e->effects & EF_NO_DRAW) {
+				continue;
+			}
+
+			if (R_CullEntity(view, e)) {
+				continue;
+			}
+
+			R_DrawBspInlineEntity(view, e);
+		}
 	}
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
-
-	R_DrawBspInlineEntity_r(view, NULL, bsp->inline_models->head_node);
-
-	if (r_depth_pass->value) {
-		glDepthMask(GL_TRUE);
-	}
-
-	//R_DrawBspInlineAlphaTestDrawElements(view, NULL, bsp->inline_models);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	R_DrawBlendDepthTypes(view, INT32_MIN, BLEND_DEPTH_ALL);
-
-	//R_DrawBspInlineBlendDrawElements(view, NULL, bsp->inline_models);
-
-	R_DrawBlendDepthTypes(view, INT32_MAX, BLEND_DEPTH_ALL);
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-
-	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -760,6 +543,17 @@ void R_DrawWorld(const r_view_t *view) {
 	glUseProgram(0);
 
 	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
+void R_DrawWorld(const r_view_t *view) {
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+
+	R_DrawSky(view, bsp);
+
+	R_DrawBspInlineEntities(view, bsp);
 
 	R_DrawBspNormals(view, bsp);
 

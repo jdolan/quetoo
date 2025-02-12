@@ -344,6 +344,10 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 			return LeafNode(node, brushes);
 		}
 
+		if (node->parent) {
+			node->parent->contents = CONTENTS_NODE;
+		}
+
 		vec3_t normal = Vec3_Zero();
 		normal.xyz[axis] = 1.f;
 

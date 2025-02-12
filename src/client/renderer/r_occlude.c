@@ -54,18 +54,16 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	const r_occlusion_query_t *query = r_world_model->bsp->occlusion_queries;
-	for (int32_t i = 0; i < r_world_model->bsp->num_occlusion_queries; i++, query++) {
+	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
-		if (query->node->occluded) {
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+		r_bsp_node_t *node = in->block_nodes[i];
+
+		if (node->occluded) {
 			continue;
 		}
 
-		if (query->result == 0) {
-			continue;
-		}
-
-		if (Box3_Intersects(query->bounds, bounds)) {
+		if (Box3_Intersects(node->bounds, bounds)) {
 			return false;
 		}
 	}
@@ -98,75 +96,24 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  * @brief Creates occlusion queries on a grid, and clips them to the BSP to reduce overdraw.
  */
 void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
-	int32_t leafs[MAX_BSP_LEAFS];
-
-	GArray *queries = g_array_new(false, false, sizeof(r_occlusion_query_t));
-
-	const float size = r_occlusion_query_size->value;
-	const box3_t world_bounds = bsp->nodes->visible_bounds;
-	const vec3_t grid_mins = Vec3_Scale(Vec3_Floorf(Vec3_Scale(world_bounds.mins, 1.f / size)), size);
-	const vec3_t grid_maxs = Vec3_Scale(Vec3_Ceilf(Vec3_Scale(world_bounds.maxs, 1.f / size)), size);
-
-	for (float x = grid_mins.x; x < grid_maxs.x; x+= size) {
-		for (float y = grid_mins.y; y < grid_maxs.y; y+= size) {
-			for (float z = grid_mins.z; z < grid_maxs.z; z += size) {
-
-				const vec3_t mins = Vec3(x, y, z);
-				const vec3_t maxs = Vec3_Add(mins, Vec3(size, size, size));
-				const box3_t bounds = Box3(mins, maxs);
-
-				r_occlusion_query_t query = {
-					.bounds = Box3_Null(),
-					.available = 1,
-					.result = 1
-				};
-
-				const size_t num_leafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), NULL, 0);
-				for (size_t i = 0; i < num_leafs; i++) {
-					const r_bsp_leaf_t *leaf = bsp->leafs + leafs[i];
-
-					if (!(leaf->contents & CONTENTS_SOLID)) {
-						query.bounds = Box3_Union(query.bounds, leaf->bounds);
-					}
-				}
-
-				if (Box3_IsNull(query.bounds)) {
-					continue;
-				}
-
-				query.bounds = Box3_Intersection(query.bounds, bounds);
-
-				int32_t top_node;
-				Cm_BoxLeafnums(query.bounds, NULL, 0, &top_node, 0);
-				query.node = bsp->nodes + top_node;
-
-				g_array_append_val(queries, query);
-			}
-		}
-	}
-
-	bsp->num_occlusion_queries = queries->len;
-	bsp->occlusion_queries = Mem_LinkMalloc(sizeof(r_occlusion_query_t) * bsp->num_occlusion_queries, bsp);
-	memcpy(bsp->occlusion_queries, queries->data, sizeof(r_occlusion_query_t) * bsp->num_occlusion_queries);
-
-	g_array_free(queries, true);
-
 	vec3_t vertexes[8];
 
+	const r_bsp_inline_model_t *in = bsp->inline_models;
+
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, bsp->num_occlusion_queries * sizeof(vertexes), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, in->num_block_nodes * sizeof(vertexes), NULL, GL_STATIC_DRAW);
 
-	r_occlusion_query_t *query = bsp->occlusion_queries;
-	for (int32_t i = 0; i < bsp->num_occlusion_queries; i++, query++) {
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+		r_bsp_node_t *node = in->block_nodes[i];
 
-		glGenQueries(1, &query->name);
-		query->base_vertex = i * lengthof(vertexes);
+		glGenQueries(1, &node->query.name);
+		node->query.base_vertex = i * lengthof(vertexes);
 
-		Box3_ToPoints(query->bounds, vertexes);
+		node->query.available = 1;
+		node->query.result = 1;
+
+		Box3_ToPoints(node->bounds, vertexes);
 		glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(vertexes), sizeof(vertexes), vertexes);
-
-		query->next = query->node->occlusion_queries;
-		query->node->occlusion_queries = query;
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -174,12 +121,14 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Polls the query for a result and executes it again if available.
- * @return The query result.
+ * @brief Polls the node's query for a result and executes it again if available.
+ * @return True if the node is occluded (no samples passed the query).
  */
-static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
+static bool R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
 
-	if (Box3_ContainsPoint(query->bounds, view->origin)) {
+	r_bsp_occlusion_query_t *query = &node->query;
+
+	if (Box3_ContainsPoint(node->bounds, view->origin)) {
 		query->available = 1;
 		query->result = 1;
 	} else {
@@ -199,40 +148,7 @@ static GLint R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *q
 		}
 	}
 
-	return query->result;
-}
-
-/**
- * @brief
- */
-static void R_UpdateOcclusionQueries_r(const r_view_t *view, r_bsp_node_t *node) {
-
-	if (node->contents > CONTENTS_NODE) {
-		return;
-	}
-
-	if (R_CullBox(view, node->visible_bounds)) {
-		return;
-	}
-
-	if (node->occlusion_queries) {
-		node->occluded = true;
-
-		r_occlusion_query_t *query = node->occlusion_queries;
-		while (query) {
-
-			if (R_UpdateOcclusionQuery(view, query)) {
-				node->occluded = false;
-			}
-
-			query = query->next;
-		}
-	} else {
-		node->occluded = node->parent ? node->parent->occluded : false;
-	}
-
-	R_UpdateOcclusionQueries_r(view, node->children[0]);
-	R_UpdateOcclusionQueries_r(view, node->children[1]);
+	return query->result == 0;
 }
 
 /**
@@ -258,36 +174,31 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
 
-	R_UpdateOcclusionQueries_r(view, r_world_model->bsp->nodes);
+	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
 
-	r_bsp_node_t *node = r_world_model->bsp->nodes;
-	for (int32_t i = 0; i < r_world_model->bsp->num_nodes; i++, node++) {
+		r_bsp_node_t *node = in->block_nodes[i];
 
-		r_occlusion_query_t *query = node->occlusion_queries;
-		while (query) {
+		if (R_CullBox(view, node->bounds)) {
+			node->occluded = true;
+		} else {
+			node->occluded = R_UpdateOcclusionQuery(view, node);
+		}
 
-			if (node->occluded == false) {
+		if (node->occluded) {
+			r_stats.occlusion_queries_occluded++;
+		} else {
+			r_stats.occlusion_queries_visible++;
+		}
 
-				if (query->result) {
-					r_stats.occlusion_queries_visible++;
-				} else {
-					r_stats.occlusion_queries_occluded++;
-				}
-
-				if (r_draw_occlusion_queries->value) {
-					const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
-					const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
-					if (query->result) {
-						R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
-					} else {
-						R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
-					}
-				}
+		if (r_draw_bsp_occlusion_queries->value) {
+			const float dist = Vec3_Distance(Box3_Center(node->bounds), view->origin);
+			const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
+			if (node->occluded) {
+				R_Draw3DBox(node->bounds, Color3f(0.f, f, 0.f), false);
 			} else {
-				r_stats.occlusion_queries_occluded++;
+				R_Draw3DBox(node->bounds, Color3f(f, 0.f, 0.f), false);
 			}
-
-			query = query->next;
 		}
 	}
 
@@ -310,9 +221,10 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
  */
 void R_DestroyOcclusionQueries(r_bsp_model_t *bsp) {
 
-	r_occlusion_query_t *q = bsp->occlusion_queries;
-	for (int32_t i = 0; i < bsp->num_occlusion_queries; i++, q++) {
-		glDeleteQueries(1, &q->name);
+	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+		r_bsp_node_t *node = in->block_nodes[i];
+		glDeleteQueries(1, &node->query.name);
 	}
 
 	R_GetError(NULL);

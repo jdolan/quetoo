@@ -66,11 +66,7 @@ static struct {
 /**
  * @brief
  */
-void R_DrawSky(const r_view_t *view) {
-
-	if (!r_world_model->bsp->sky) {
-		return;
-	}
+void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -81,16 +77,31 @@ void R_DrawSky(const r_view_t *view) {
 	r_sky.cubemap_matrix = Mat4_ConcatTranslation(r_sky.cubemap_matrix, Vec3_Negate(view->origin));
 	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, r_sky.cubemap_matrix.array);
 
-	glBindVertexArray(r_world_model->bsp->vertex_array);
+	glBindVertexArray(bsp->vertex_array);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_world_model->bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_world_model->bsp->elements_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
 
-	const r_bsp_draw_elements_t *sky = r_world_model->bsp->sky;
-	glUniform1f(r_sky_program.material.bloom, sky->material->cm->bloom * r_bloom->value);
-	glDrawElements(GL_TRIANGLES, sky->num_elements, GL_UNSIGNED_INT, sky->elements);
+	for (int32_t i = 0; i < bsp->inline_models->num_block_nodes; i++) {
+		const r_bsp_node_t *node = bsp->inline_models->block_nodes[i];
+
+		if (node->occluded) {
+			continue;
+		}
+
+		const r_bsp_draw_elements_t *draw = node->draw_elements;
+		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
+
+			if (!(draw->surface & SURF_SKY)) {
+				continue;
+			}
+
+			glUniform1f(r_sky_program.material.bloom, draw->material->cm->bloom * r_bloom->value);
+			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+		}
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -172,11 +183,6 @@ void R_ShutdownSky(void) {
  * @param name The skybox cubemap name, e.g. `"edge/dragonheart"`.
  */
 void R_LoadSky(const char *name) {
-
-	if (!r_world_model->bsp->sky) {
-		r_sky.image = NULL;
-		return;
-	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 

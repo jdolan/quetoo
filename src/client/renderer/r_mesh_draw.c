@@ -82,36 +82,6 @@ static struct {
 /**
  * @brief
  */
-void R_UpdateMeshEntities(r_view_t *view) {
-
-	r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-		if (!IS_MESH_MODEL(e->model)) {
-			continue;
-		}
-
-		e->blend_depth = INT32_MIN;
-
-		if (e->effects & (EF_BLEND | EF_SHELL)) {
-			e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
-		} else {
-			const r_mesh_face_t *face = e->model->mesh->faces;
-			for (int32_t j = 0; j < e->model->mesh->num_faces; j++, face++) {
-
-				const r_material_t *material = e->skins[j] ?: face->material;
-				if (material->cm->surface & SURF_MASK_BLEND) {
-					e->blend_depth = R_BlendDepthForPoint(view, e->origin, BLEND_DEPTH_ENTITY);
-					break;
-				}
-			}
-		}
-	}
-}
-
-/**
- * @brief
- */
 static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_stage_t *stage) {
 
 	glUniform1i(r_mesh_program.stage.flags, stage->cm->flags);
@@ -400,9 +370,9 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
- * @brief Draws mesh entities at the specified blend depth.
+ * @brief Draws mesh entities.
  */
-void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
+void R_DrawMeshEntities(const r_view_t *view) {
 
 	glUseProgram(r_mesh_program.name);
 
@@ -411,10 +381,6 @@ void R_DrawMeshEntities(const r_view_t *view, int32_t blend_depth) {
 		if (IS_MESH_MODEL(e->model)) {
 
 			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
-			if (e->blend_depth != blend_depth) {
 				continue;
 			}
 

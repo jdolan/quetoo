@@ -503,16 +503,32 @@ typedef struct {
 	 * stages (`STAGE_SCALE`, `STAGE_STRETCH`, `STAGE_ROTATE`).
 	 */
 	vec2_t st_origin;
+} r_bsp_draw_elements_t;
+
+/**
+ * @brief OpenGL occlusion queries, embedded on each block node.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
 
 	/**
-	 * @brief The blend depth types associated with this blended draw elements.
-	 * @details Alpha blended objects (sprites, entities, etc..) are depth sorted and grouped by
-	 * the alpha blended BSP draw elements they fall closest behind, to ensure correct draw order.
-	 * This bitmask is used to save state changes when iterating the sorted BSP draw elements
-	 * (i.e. "Are there sprites behind this plane? Are there mesh entities?")
+	 * @brief The base vertex in the shared vertex buffer.
 	 */
-	int32_t blend_depth_types;
-} r_bsp_draw_elements_t;
+	GLint base_vertex;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+} r_bsp_occlusion_query_t;
 
 /**
  * @brief BSP nodes comprise the tree representation of the world.
@@ -581,9 +597,9 @@ typedef struct r_bsp_node_s {
 	bool occluded;
 
 	/**
-	 * @brief The linked list of occlusion queries within this node.
+	 * @brief The occlusion query for block nodes.
 	 */
-	struct r_occlusion_query_s *occlusion_queries;
+	r_bsp_occlusion_query_t query;
 } r_bsp_node_t;
 
 /**
@@ -618,6 +634,7 @@ typedef struct {
  * for each entity that contains brushes. Non-worldspawn models can move and rotate.
  */
 typedef struct r_bsp_inline_model_s {
+
 	/**
 	 * @brief The backing entity definition for this inline model.
 	 */
@@ -635,16 +652,18 @@ typedef struct r_bsp_inline_model_s {
 	box3_t visible_bounds;
 
 	/**
+	 * @brief The blockl nodes of this inline model.
+	 * @remarks This is a pointer into the BSP's block nodes pointer array.
+	 */
+	r_bsp_node_t **block_nodes;
+	int32_t num_block_nodes;
+
+	/**
 	 * @brief The faces of this inline model.
 	 * @remarks This is a pointer into the BSP model's faces array.
 	 */
 	r_bsp_face_t *faces;
 	int32_t num_faces;
-
-	/**
-	 * @brief The alpha blended draw elements of this inline model, sorted by depth each frame.
-	 */
-	GPtrArray *blend_elements;
 
 	/**
 	 * @brief The draw elements of this inline model.
@@ -653,6 +672,10 @@ typedef struct r_bsp_inline_model_s {
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
 
+	/**
+	 * @brief The depth pass draw elements.
+	 * @remarks This is a flattened list of all opaque geometry used to render the depth pass.
+	 */
 	GLuint depth_pass_elements_buffer;
 	GLuint num_depth_pass_elements;
 } r_bsp_inline_model_t;
@@ -813,46 +836,6 @@ typedef struct {
 } r_bsp_lightgrid_t;
 
 /**
- * @brief OpenGL occlusion queries.
- */
-typedef struct r_occlusion_query_s {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The query bounds.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief The node containing this query.
-	 */
-	r_bsp_node_t *node;
-
-	/**
-	 * @brief The base vertex in the shared vertex buffer.
-	 */
-	GLint base_vertex;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-
-	/**
-	 * @brief The next query on the node.
-	 */
-	struct r_occlusion_query_s *next;
-} r_occlusion_query_t;
-
-/**
  * @brief The renderer representation of the BSP model.
  */
 typedef struct {
@@ -883,6 +866,9 @@ typedef struct {
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
 
+	r_bsp_node_t **block_nodes;
+	int32_t num_block_nodes;
+
 	int32_t num_leafs;
 	r_bsp_leaf_t *leafs;
 
@@ -894,15 +880,6 @@ typedef struct {
 
 	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
-
-	int32_t num_occlusion_queries;
-	r_occlusion_query_t *occlusion_queries;
-
-	/**
-	 * @brief The sky draw elements.
-	 * @details The sky uses a unique shader, and thus is separate from the other the BSP draw elements.
-	 */
-	r_bsp_draw_elements_t *sky;
 
 	/**
 	 * @brief The vertex array (VAO) name.
@@ -1103,24 +1080,14 @@ typedef struct {
  */
 enum {
 	/**
-	 * @brief If set, sprite does not attempt to check blend depth.
-	 */
-	SPRITE_NO_BLEND_DEPTH	= 1 << 0,
-
-	/**
 	 * @brief If set, animations don't interpolate
 	 */
-	SPRITE_NO_LERP			= 1 << 1,
-
-	/**
-	 * @brief If set, the sprite will ignore the depth buffer entirely.
-	 */
-	SPRITE_NO_DEPTH			= 1 << 2,
+	SPRITE_NO_LERP			= 1 << 0,
 
 	/**
 	 * @brief If set, the sprite will tile its bounds, rather than stretch to them.
 	 */
-	SPRITE_BEAM_REPEAT      = 1 << 3,
+	SPRITE_BEAM_REPEAT      = 1 << 1,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
@@ -1311,7 +1278,7 @@ typedef struct {
 /**
  * @brief An instance of a renderable sprite.
  */
-typedef struct r_sprite_instance_s {
+typedef struct {
 	/**
 	 * @brief The sprite flags.
 	 */
@@ -1336,16 +1303,6 @@ typedef struct r_sprite_instance_s {
 	 * @brief The sprite index, for instancing within blend depth chains.
 	 */
 	int32_t index;
-
-	/**
-	 * @brief The blend depth at which this sprite should be rendered.
-	 */
-	int32_t blend_depth;
-
-	/**
-	 * @brief The next sprite instance to be rendered at the same blend depth.
-	 */
-	struct r_sprite_instance_s *tail, *head, *prev, *next;
 } r_sprite_instance_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
@@ -1502,10 +1459,6 @@ typedef struct r_entity_s {
 	 */
 	vec4_t tints[TINT_TOTAL];
 
-	/**
-	 * @brief The alpha blended element behind which this entity should be rendered.
-	 */
-	int32_t blend_depth;
 } r_entity_t;
 
 /**
@@ -1877,15 +1830,12 @@ typedef struct {
 
 	int32_t bsp_inline_models;
 	int32_t bsp_draw_elements;
-	int32_t bsp_blend_draw_elements;
 	int32_t bsp_triangles;
 
 	int32_t mesh_models;
 	int32_t mesh_triangles;
 
 	int32_t sprite_draw_elements;
-
-	int32_t blend_depth_types;
 
 	int32_t draw_chars;
 	int32_t draw_fills;

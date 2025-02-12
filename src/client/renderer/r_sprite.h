@@ -28,7 +28,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *p);
 
 #ifdef __R_LOCAL_H__
 void R_UpdateSprites(r_view_t *view);
-void R_DrawSprites(const r_view_t *view, int32_t blend_depth);
+void R_DrawSprites(const r_view_t *view);
 void R_ShutdownSprites(void);
 void R_InitSprites(void);
 #endif

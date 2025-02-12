@@ -210,14 +210,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 			out->st_origin = Vec2_Scale(Vec2_Add(st_mins, st_maxs), .5f);
 		}
-
-		if (out->surface & SURF_SKY) {
-			if (bsp->sky) {
-				Com_Warn("Model contains multiple sky elements\n");
-			} else {
-				bsp->sky = out;
-			}
-		}
 	}
 }
 
@@ -270,6 +262,20 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
 				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
 			}
 		}
+
+		if (out->contents == CONTENTS_BLOCK) {
+			bsp->num_block_nodes++;
+		}
+	}
+
+	bsp->block_nodes = Mem_LinkMalloc(bsp->num_block_nodes * sizeof(&out), bsp);
+	bsp->num_block_nodes = 0;
+
+	r_bsp_node_t *node = bsp->nodes;
+	for (int32_t i = 0; i < bsp->num_nodes; i++, node++) {
+		if (node->contents == CONTENTS_BLOCK) {
+			bsp->block_nodes[bsp->num_block_nodes++] = node;
+		}
 	}
 }
 
@@ -315,12 +321,21 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
-		out->blend_elements = g_ptr_array_new();
-
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
 		R_SetupBspNode(out, NULL, out->head_node);
+
+		for (int32_t j = 0; j < bsp->num_block_nodes; j++) {
+			const r_bsp_node_t *node = bsp->block_nodes[j];
+
+			if (node->model == out) {
+				if (out->block_nodes == NULL) {
+					out->block_nodes = &bsp->block_nodes[j];
+				}
+				out->num_block_nodes++;
+			}
+		}
 	}
 }
 
@@ -700,7 +715,7 @@ static void R_LoadBspInlineModelDepthPassElements(const r_bsp_model_t *bsp, r_bs
 }
 
 /**
- * @brief Creates an r_model_t for each inline model so that entities may reference them.
+ * @brief Creates an `r_model_t` for each inline model so that entities may reference them.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
 
@@ -716,7 +731,6 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 
 		out->type = MODEL_BSP_INLINE;
 		out->bsp_inline = in;
-
 		out->bounds = in->visible_bounds;
 
 		mod->bounds = Box3_Union(mod->bounds, out->bounds);
@@ -821,7 +835,6 @@ static void R_FreeBspModel(r_media_t *self) {
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
-		g_ptr_array_free(in->blend_elements, true);
 	}
 
 	R_DestroyOcclusionQueries(mod->bsp);

@@ -224,23 +224,22 @@ extern r_uniforms_t r_uniforms;
 
 // developer tools
 extern cvar_t *r_alpha_test;
-extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_developer;
+extern cvar_t *r_draw_bsp_block_nodes;
 extern cvar_t *r_draw_bsp_lightgrid;
 extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;
+extern cvar_t *r_draw_bsp_occlusion_queries;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
 extern cvar_t *r_error_level;
 extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
-extern cvar_t *r_occlusion_query_size;
 
 /**
  * @brief Keeps track of how many errors we've run into, so we can

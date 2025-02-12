@@ -124,7 +124,7 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	if (material.parallax == 0.0) {
+	/*if (material.parallax == 0.0) {
 		return 1.0;
 	}
 
@@ -139,7 +139,7 @@ float parallax_self_shadow(in vec3 light_dir) {
 		if (sample_height > texcoord.z * 1.05) {
 			return distance(fragment.parallax, texcoord.xy);
 		}
-	} while (texcoord.z < 1.0);
+	} while (texcoord.z < 1.0);*/
 
 	return 1.0;
 }

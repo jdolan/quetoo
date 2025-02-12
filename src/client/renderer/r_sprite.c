@@ -34,8 +34,6 @@ static struct {
 	GLuint vertex_buffer;
 	GLuint elements_buffer;
 
-	GHashTable *blend_depth_hash;
-
 } r_sprites;
 
 /**
@@ -264,12 +262,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[2].lerp =
 	in->vertexes[3].lerp = lerp;
 
-	if (s->flags & SPRITE_NO_BLEND_DEPTH) {
-		in->blend_depth = INT32_MAX;
-	} else {
-		in->blend_depth = R_BlendDepthForPoint(view, s->origin, BLEND_DEPTH_SPRITE);
-	}
-
 	in->vertexes[0].softness =
 	in->vertexes[1].softness =
 	in->vertexes[2].softness =
@@ -323,15 +315,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		const vec3_t x = Vec3_Mix(b->start, b->end, frac);
 		const vec3_t y = Vec3_Mix(b->start, b->end, frac + step);
 
-		const int32_t x_depth = R_BlendDepthForPoint(view, x, BLEND_DEPTH_SPRITE);
-		const int32_t y_depth = R_BlendDepthForPoint(view, y, BLEND_DEPTH_SPRITE);
-		if (x_depth != y_depth) {
-			if (step > .0625f) {
-				step *= .5f;
-				continue;
-			}
-		}
-
 		vec3_t positions[4];
 		positions[0] = Vec3_Add(x, right);
 		positions[1] = Vec3_Add(y, right);
@@ -384,8 +367,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[2].lighting =
 		in->vertexes[3].lighting = b->lighting;
 
-		in->blend_depth = x_depth;
-
 		frac += step;
 		step = 1.f - frac;
 	}
@@ -407,35 +388,19 @@ void R_UpdateSprites(r_view_t *view) {
 	for (int32_t i = 0; i < view->num_beams; i++, b++) {
 		R_UpdateBeam(view, b);
 	}
-
-	g_hash_table_remove_all(r_sprites.blend_depth_hash);
-
-	r_sprite_instance_t *in = view->sprite_instances;
-	for (int32_t i = 0; i < view->num_sprite_instances; i++, in++) {
-
-		r_sprite_instance_t *chain = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth));
-		if (chain == NULL) {
-			g_hash_table_insert(r_sprites.blend_depth_hash, GINT_TO_POINTER(in->blend_depth), in);
-			in->tail = in->head = in;
-		} else {
-			in->prev = chain->tail;
-			chain->tail = in;
-			in->prev->next = in;
-		}
-	}
 }
 
 /**
  * @brief
  */
-void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
+void R_DrawSprites(const r_view_t *view) {
 
 	assert(view->framebuffer);
 
 	glDepthMask(GL_FALSE);
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_ONE, GL_ONE);
 
 	glUseProgram(r_sprite_program.name);
 
@@ -463,13 +428,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 
 	glEnable(GL_DEPTH_TEST);
 
-	r_sprite_instance_t *in = g_hash_table_lookup(r_sprites.blend_depth_hash, GINT_TO_POINTER(blend_depth));
-	
-	if (in) {
-		in = in->head;
-	}
-
-	while (in) {
+	const r_sprite_instance_t *in = view->sprite_instances;
+	for (int32_t i = 0; i < view->num_sprite_instances; i++, in++) {
 
 		if (in->next_diffusemap) {
 			glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
@@ -485,21 +445,13 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
-		if (in->flags & SPRITE_NO_DEPTH) {
-			glDepthRange(.1f, .9f);
-		} else {
-			glDepthRange(0.f, 1.f);
-		}
+		GLsizei count = 1;
 
-		GLsizei count = 0;
+		const r_sprite_instance_t *batch = in;
+		for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
 
-		r_sprite_instance_t *chain;
-		for (chain = in; chain; chain = chain->next) {
-
-			if (chain->index == in->index + count &&
-				chain->diffusemap == in->diffusemap &&
-				chain->next_diffusemap == in->next_diffusemap &&
-				(chain->flags & SPRITE_NO_DEPTH) == (in->flags & SPRITE_NO_DEPTH)) {
+			if (batch->diffusemap == in->diffusemap &&
+				batch->next_diffusemap == in->next_diffusemap) {
 				count++;
 			} else {
 				break;
@@ -509,7 +461,8 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));
 		r_stats.sprite_draw_elements++;
 
-		in = chain;
+		i += count - 1;
+		in += count - 1;
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
@@ -522,8 +475,6 @@ void R_DrawSprites(const r_view_t *view, int32_t blend_depth) {
 	glUseProgram(0);
 
 	glDisable(GL_DEPTH_TEST);
-
-	glDepthRange(0.f, 1.f);
 
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -625,8 +576,6 @@ void R_InitSprites(void) {
 
 	R_GetError(NULL);
 
-	r_sprites.blend_depth_hash = g_hash_table_new(g_direct_hash, g_direct_equal);
-
 	R_InitSpriteProgram();
 	
 	r_sprite_lerp = Cvar_Add("r_sprite_lerp", "1", 0, "Whether animated sprites linearly interpolate their images");
@@ -651,8 +600,6 @@ void R_ShutdownSprites(void) {
 	glDeleteVertexArrays(1, &r_sprites.vertex_array);
 	glDeleteBuffers(1, &r_sprites.vertex_buffer);
 	glDeleteBuffers(1, &r_sprites.elements_buffer);
-
-	g_hash_table_destroy(r_sprites.blend_depth_hash);
 
 	R_ShutdownSpriteProgram();
 }
