@@ -318,6 +318,11 @@ typedef struct {
 	int32_t plane;
 
 	/**
+	 * @brief The index of the block node containing this face.
+	 */
+	int32_t block;
+
+	/**
 	 * @brief The AABB of this face.
 	 */
 	box3_t bounds;
@@ -404,20 +409,14 @@ typedef struct {
 	int32_t num_faces;
 
 	/**
-	 * @brief The index of the first draw elements within this node.
+	 * @brief For block nodes, the index of the first draw elements within this block.
 	 */
 	int32_t first_draw_element;
 
 	/**
-	 * @brief The count of draw elements within this node.
+	 * @brief For block nodes, the count of draw elements within this block.
 	 */
 	int32_t num_draw_elements;
-
-	/**
-	 * @brief Indexes of lights partially occupying this node.
-	 * @details Lightmaps and the lightgrid will reference lights by their node-level index.
-	 */
-	int32_t lights[BSP_MAX_NODE_LIGHTS];
 } bsp_node_t;
 
 /**

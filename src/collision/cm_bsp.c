@@ -155,7 +155,8 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 		face->brush_side = LittleLong(face->brush_side);
 		face->plane = LittleLong(face->plane);
-		
+		face->block = LittleLong(face->block);
+
 		face->bounds = LittleBounds(face->bounds);
 
 		face->first_vertex = LittleLong(face->first_vertex);
@@ -222,10 +223,6 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 		node->first_draw_element = LittleLong(node->first_draw_element);
 		node->num_draw_elements = LittleLong(node->num_draw_elements);
-
-		for (int32_t j = 0; j < BSP_MAX_NODE_LIGHTS; j++) {
-			node->lights[j] = LittleLong(node->lights[j]);
-		}
 
 		node++;
 	}

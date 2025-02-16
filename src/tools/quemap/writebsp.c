@@ -85,7 +85,7 @@ static int32_t EmitFaces(const node_t *node) {
 /**
  * @brief
  */
-static void NodeFaces_r(GPtrArray *faces, const node_t *node) {
+static void BlockNodeFaces_r(GPtrArray *faces, const node_t *node) {
 
 	if (node->plane == PLANE_LEAF) {
 		return;
@@ -100,14 +100,14 @@ static void NodeFaces_r(GPtrArray *faces, const node_t *node) {
 		g_ptr_array_add(faces, face->out);
 	}
 
-	NodeFaces_r(faces, node->children[0]);
-	NodeFaces_r(faces, node->children[1]);
+	BlockNodeFaces_r(faces, node->children[0]);
+	BlockNodeFaces_r(faces, node->children[1]);
 }
 
 /**
  * @brief Recursively collects node faces.
  */
-static GPtrArray *NodeFaces(const node_t *node) {
+static GPtrArray *BlockNodeFaces(const node_t *node, int32_t block) {
 
 	GPtrArray *faces = g_ptr_array_new();
 
@@ -127,7 +127,13 @@ static GPtrArray *NodeFaces(const node_t *node) {
 		n = n->parent;
 	}
 
-	NodeFaces_r(faces, node);
+	// and then recurse down the block node
+	BlockNodeFaces_r(faces, node);
+
+	for (guint i = 0; i < faces->len; i++) {
+		bsp_face_t *out = g_ptr_array_index(faces, i);
+		out->block = block;
+	}
 
 	return faces;
 }
@@ -177,16 +183,17 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief Sorts opaque and alpha test faces in the given model by material, and emits
+ * @brief Emits glDrawElements commands for the given block node.
+ * @details Sorts opaque and alpha test faces in the given model by material, and emits
  * glDrawElements commands for each unique material. The BSP face ordering is not modified,
  * as this would break the references that the nodes hold to them.
  * @return The number of draw elements commands emitted for the model.
  */
-static int32_t EmitDrawElements(const node_t *node) {
+static int32_t EmitDrawElements(const node_t *node, int32_t block) {
 
 	const int32_t num_draw_elements = bsp_file.num_draw_elements;
 
-	GPtrArray *faces = NodeFaces(node);
+	GPtrArray *faces = BlockNodeFaces(node, block);
 
 	g_ptr_array_sort_values(faces, FaceCmp);
 
@@ -312,8 +319,8 @@ static int32_t EmitNode(const node_t *node) {
 
 	Progress("Emitting nodes", -1);
 
-	bsp_node_t *out = &bsp_file.nodes[bsp_file.num_nodes];
-	bsp_file.num_nodes++;
+	const int32_t node_num = bsp_file.num_nodes++;
+	bsp_node_t *out = &bsp_file.nodes[node_num];
 
 	out->plane = node->plane;
 	out->contents = node->contents;
@@ -336,14 +343,13 @@ static int32_t EmitNode(const node_t *node) {
 		}
 	}
 
-	if (node->contents == CONTENTS_BLOCK &&
-		node->children[0]->contents != CONTENTS_BLOCK &&
-		node->children[1]->contents != CONTENTS_BLOCK) {
+	// aggregate draw elements on block nodes
+	if (node->contents == CONTENTS_BLOCK) {
 		out->first_draw_element = bsp_file.num_draw_elements;
-		out->num_draw_elements = EmitDrawElements(node);
+		out->num_draw_elements = EmitDrawElements(node, node_num);
 	}
 
-	return (int32_t) (ptrdiff_t) (out - bsp_file.nodes);
+	return node_num;
 }
 
 /**
