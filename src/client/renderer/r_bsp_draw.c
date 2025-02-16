@@ -450,13 +450,13 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 				continue;
 			}
 
-			if (r_depth_pass->value) {
+			if (e == NULL && r_depth_pass->value) {
 				glDepthMask(GL_FALSE);
 			}
 
 			R_DrawBspDrawElements(view, e, draw);
 
-			if (r_depth_pass->value) {
+			if (e == NULL && r_depth_pass->value) {
 				glDepthMask(GL_TRUE);
 			}
 		}
