@@ -436,7 +436,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 	Com_Debug(DEBUG_ALL, "%5i brush sides\n", num_brush_sides);
 
 	tree->head_node = AllocNode();
-	tree->head_node->volume = BrushFromBounds(tree->bounds);
+	tree->head_node->volume = BrushFromBounds(Box3_Expand(tree->bounds, 1.f));
 
 	BuildTree_r(tree->head_node, brushes);
 
