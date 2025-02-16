@@ -84,15 +84,15 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	glEnableVertexAttribArray(r_sky_program.in_position);
 
-	for (int32_t i = 0; i < bsp->inline_models->num_block_nodes; i++) {
-		const r_bsp_node_t *node = bsp->inline_models->block_nodes[i];
+	const r_bsp_block_t *block = bsp->inline_models->blocks;
+	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-		if (node->occluded) {
+		if (block->occluded) {
 			continue;
 		}
 
-		const r_bsp_draw_elements_t *draw = node->draw_elements;
-		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
+		const r_bsp_draw_elements_t *draw = block->draw_elements;
+		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
 			if (!(draw->surface & SURF_SKY)) {
 				continue;

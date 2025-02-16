@@ -56,17 +56,17 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
 	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
 
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
-		r_bsp_node_t *node = in->block_nodes[i];
+	const r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-		if (node->occluded) {
-			if (Box3_Contains(node->bounds, bounds)) {
+		if (block->occluded) {
+			if (Box3_Contains(block->node->bounds, bounds)) {
 				return true;
 			}
 			continue;
 		}
 
-		if (Box3_Intersects(node->bounds, bounds)) {
+		if (Box3_Intersects(block->node->bounds, bounds)) {
 			return false;
 		}
 	}
@@ -104,18 +104,18 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 	const r_bsp_inline_model_t *in = bsp->inline_models;
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, in->num_block_nodes * sizeof(vertexes), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, in->num_blocks * sizeof(vertexes), NULL, GL_STATIC_DRAW);
 
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
-		r_bsp_node_t *node = in->block_nodes[i];
+	r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-		glGenQueries(1, &node->query.name);
-		node->query.base_vertex = i * lengthof(vertexes);
+		glGenQueries(1, &block->query.name);
+		block->query.base_vertex = i * lengthof(vertexes);
 
-		node->query.available = 1;
-		node->query.result = 1;
+		block->query.available = 1;
+		block->query.result = 1;
 
-		Box3_ToPoints(node->bounds, vertexes);
+		Box3_ToPoints(block->node->bounds, vertexes);
 		glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(vertexes), sizeof(vertexes), vertexes);
 	}
 
@@ -124,14 +124,14 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Polls the node's query for a result and executes it again if available.
- * @return True if the node is occluded (no samples passed the query).
+ * @brief Polls the block's query for a result and executes it again if available.
+ * @return True if the block is occluded (no samples passed the query).
  */
-static bool R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_node_t *node) {
+static bool R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_block_t *block) {
 
-	r_bsp_occlusion_query_t *query = &node->query;
+	r_occlusion_query_t *query = &block->query;
 
-	if (Box3_ContainsPoint(node->bounds, view->origin)) {
+	if (Box3_ContainsPoint(block->node->bounds, view->origin)) {
 		query->available = 1;
 		query->result = 1;
 	} else {
@@ -178,29 +178,28 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 	glDepthMask(GL_FALSE);
 
 	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
+	r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-		r_bsp_node_t *node = in->block_nodes[i];
-
-		if (R_CullBox(view, node->bounds)) {
-			node->occluded = true;
+		if (R_CullBox(view, block->node->bounds)) {
+			block->occluded = true;
 		} else {
-			node->occluded = R_UpdateOcclusionQuery(view, node);
+			block->occluded = R_UpdateOcclusionQuery(view, block);
 		}
 
-		if (node->occluded) {
+		if (block->occluded) {
 			r_stats.occlusion_queries_occluded++;
 		} else {
 			r_stats.occlusion_queries_visible++;
 		}
 
-		if (r_draw_bsp_occlusion_queries->value) {
-			const float dist = Vec3_Distance(Box3_Center(node->bounds), view->origin);
+		if (r_draw_occlusion_queries->value) {
+			const float dist = Vec3_Distance(Box3_Center(block->node->bounds), view->origin);
 			const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
-			if (node->occluded) {
-				R_Draw3DBox(node->bounds, Color3f(0.f, f, 0.f), false);
+			if (block->occluded) {
+				R_Draw3DBox(block->node->bounds, Color3f(0.f, f, 0.f), false);
 			} else {
-				R_Draw3DBox(node->bounds, Color3f(f, 0.f, 0.f), false);
+				R_Draw3DBox(block->node->bounds, Color3f(f, 0.f, 0.f), false);
 			}
 		}
 	}
@@ -226,10 +225,11 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
  */
 void R_DestroyOcclusionQueries(r_bsp_model_t *bsp) {
 
-	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
-		r_bsp_node_t *node = in->block_nodes[i];
-		glDeleteQueries(1, &node->query.name);
+	r_bsp_inline_model_t *in = bsp->inline_models;
+	r_bsp_block_t *block = in->blocks;
+
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+		glDeleteQueries(1, &block->query.name);
 	}
 
 	R_GetError(NULL);

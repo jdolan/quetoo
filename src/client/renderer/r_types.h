@@ -29,6 +29,31 @@
 #include "r_gl_types.h"
 
 /**
+ * @brief OpenGL occlusion queries.
+ */
+typedef struct {
+	/**
+	 * @brief The query name.
+	 */
+	GLuint name;
+
+	/**
+	 * @brief The base vertex in the shared vertex buffer.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief Non-zero if the query is available.
+	 */
+	GLint available;
+
+	/**
+	 * @brief Non-zero of the query produced visible fragments.
+	 */
+	GLint result;
+} r_occlusion_query_t;
+
+/**
  * @brief Media types.
  */
 typedef enum {
@@ -284,6 +309,71 @@ typedef struct r_material_s {
 } r_material_t;
 
 /**
+ * @brief
+ */
+typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light size, for area lights.
+	 */
+	float size;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light shadow.
+	 */
+	float shadow;
+
+	/**
+	 * @brief The light cone for angular attenuation, in degrees.
+	 */
+	float cone;
+
+	/**
+	 * @brief The angular attenuation falloff, in degrees.
+	 */
+	float falloff;
+
+	/**
+	 * @brief The light bounds, for frustum and occlusion culling.
+	 */
+	box3_t bounds;
+} r_bsp_light_t;
+
+/**
  * @brief BSP plane structure.
  */
 typedef struct {
@@ -506,31 +596,6 @@ typedef struct {
 } r_bsp_draw_elements_t;
 
 /**
- * @brief OpenGL occlusion queries, embedded on each block node.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The base vertex in the shared vertex buffer.
-	 */
-	GLint base_vertex;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-} r_bsp_occlusion_query_t;
-
-/**
  * @brief BSP nodes comprise the tree representation of the world.
  */
 typedef struct r_bsp_node_s {
@@ -580,26 +645,6 @@ typedef struct r_bsp_node_s {
 	 * @brief The count of faces.
 	 */
 	int32_t num_faces;
-
-	/**
-	 * @brief The draw elements within this node (`CONTENTS_BLOCK` only).
-	 */
-	r_bsp_draw_elements_t *draw_elements;
-
-	/**
-	 * @brief The count of draw elements.
-	 */
-	int32_t num_draw_elements;
-
-	/**
-	 * @brief True if this node is occluded for the current frame.
-	 */
-	bool occluded;
-
-	/**
-	 * @brief The occlusion query for block nodes.
-	 */
-	r_bsp_occlusion_query_t query;
 } r_bsp_node_t;
 
 /**
@@ -629,6 +674,46 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
+ * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
+ */
+typedef struct {
+	/**
+	 * @brief The `CONTENTS_BLOCK` node defining this block.
+	 */
+	r_bsp_node_t *node;
+
+	/**
+	 * @brief The draw elements within this block.
+	 */
+	r_bsp_draw_elements_t *draw_elements;
+
+	/**
+	 * @brief The count of draw elements.
+	 */
+	int32_t num_draw_elements;
+
+	/**
+	 * @brief
+	 */
+	r_bsp_light_t **lights;
+
+	/**
+	 * @brief The count of lights.
+	 */
+	int32_t num_lights;
+
+	/**
+	 * @brief True if this block is occluded for the current frame.
+	 */
+	bool occluded;
+
+	/**
+	 * @brief The occlusion query for this block.
+	 */
+	r_occlusion_query_t query;
+} r_bsp_block_t;
+
+/**
  * @brief The BSP is organized into one or more models (trees). The first model is
  * the worldspawn model, and typically is the largest. An additional model exists
  * for each entity that contains brushes. Non-worldspawn models can move and rotate.
@@ -652,25 +737,25 @@ typedef struct r_bsp_inline_model_s {
 	box3_t visible_bounds;
 
 	/**
-	 * @brief The blockl nodes of this inline model.
-	 * @remarks This is a pointer into the BSP's block nodes pointer array.
-	 */
-	r_bsp_node_t **block_nodes;
-	int32_t num_block_nodes;
-
-	/**
 	 * @brief The faces of this inline model.
-	 * @remarks This is a pointer into the BSP model's faces array.
+	 * @details This is a pointer into the BSP model's faces array.
 	 */
 	r_bsp_face_t *faces;
 	int32_t num_faces;
 
 	/**
 	 * @brief The draw elements of this inline model.
-	 * @brief This is a pointer into the BSP model's draw elements array.
+	 * @details This is a pointer into the BSP model's draw elements array.
 	 */
 	r_bsp_draw_elements_t *draw_elements;
 	int32_t num_draw_elements;
+
+	/**
+	 * @brief The blocks of this inline model.
+	 * @details This is a pointer into the BSP model's blocks array.
+	 */
+	r_bsp_block_t *blocks;
+	int32_t num_blocks;
 
 	/**
 	 * @brief The depth pass draw elements.
@@ -679,71 +764,6 @@ typedef struct r_bsp_inline_model_s {
 	GLuint depth_pass_elements_buffer;
 	GLuint num_depth_pass_elements;
 } r_bsp_inline_model_t;
-
-/**
- * @brief
- */
-typedef struct {
-	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light attenuation.
-	 */
-	light_atten_t atten;
-
-	/**
-	 * @brief The light origin.
-	 */
-	vec3_t origin;
-
-	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light normal, for directional lights.
-	 */
-	vec3_t normal;
-
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The light size, for area lights.
-	 */
-	float size;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
-
-	/**
-	 * @brief The light shadow.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone for angular attenuation, in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The angular attenuation falloff, in degrees.
-	 */
-	float falloff;
-
-	/**
-	 * @brief The light bounds, for frustum and occlusion culling.
-	 */
-	box3_t bounds;
-} r_bsp_light_t;
 
 /**
  * @brief The BSP lightmap, which is comprised of several atlas textures of various storage types.
@@ -866,11 +886,11 @@ typedef struct {
 	int32_t num_nodes;
 	r_bsp_node_t *nodes;
 
-	r_bsp_node_t **block_nodes;
-	int32_t num_block_nodes;
-
 	int32_t num_leafs;
 	r_bsp_leaf_t *leafs;
+
+	r_bsp_block_t *blocks;
+	int32_t num_blocks;
 
 	int32_t num_inline_models;
 	r_bsp_inline_model_t *inline_models;

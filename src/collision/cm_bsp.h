@@ -34,6 +34,7 @@
  */
 #define MAX_BSP_ENTITIES_SIZE		0x40000
 #define MAX_BSP_ENTITIES			0x800
+#define MAX_BSP_LIGHTS				0x1000
 #define MAX_BSP_MATERIALS			0x400
 #define MAX_BSP_PLANES				0x20000
 #define MAX_BSP_BRUSH_SIDES			0x20000
@@ -41,12 +42,12 @@
 #define MAX_BSP_VERTEXES			0x80000
 #define MAX_BSP_ELEMENTS			0x200000
 #define MAX_BSP_FACES				0x20000
-#define MAX_BSP_DRAW_ELEMENTS		0x20000
 #define MAX_BSP_NODES				0x20000
 #define MAX_BSP_LEAF_BRUSHES 		0x20000
 #define MAX_BSP_LEAFS				0x20000
-#define MAX_BSP_MODELS				0x400
-#define MAX_BSP_LIGHTS				0x1000
+#define MAX_BSP_DRAW_ELEMENTS		0x20000
+#define MAX_BSP_BLOCKS				0x200
+#define MAX_BSP_MODELS				0x100
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
 
@@ -118,10 +119,11 @@ typedef enum {
 	BSP_LUMP_VERTEXES,
 	BSP_LUMP_ELEMENTS,
 	BSP_LUMP_FACES,
-	BSP_LUMP_DRAW_ELEMENTS,
 	BSP_LUMP_NODES,
 	BSP_LUMP_LEAF_BRUSHES,
 	BSP_LUMP_LEAFS,
+	BSP_LUMP_DRAW_ELEMENTS,
+	BSP_LUMP_BLOCKS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_LIGHTS,
 	BSP_LUMP_LIGHTMAP,
@@ -367,7 +369,7 @@ typedef struct {
 
 /**
  * @brief The BSP node type.
- * @details Nodes are created by planes in the .map file, selected by a heuristic that emphasizes
+ * @details Nodes are created by planes in the .map file, selected by a heuristic that prefers
  * planes which include visible faces and split as few brushes as possible.
  */
 typedef struct {
@@ -407,16 +409,6 @@ typedef struct {
 	 * @brief The count of faces, front and back, on this node.
 	 */
 	int32_t num_faces;
-
-	/**
-	 * @brief For block nodes, the index of the first draw elements within this block.
-	 */
-	int32_t first_draw_element;
-
-	/**
-	 * @brief For block nodes, the count of draw elements within this block.
-	 */
-	int32_t num_draw_elements;
 } bsp_node_t;
 
 /**
@@ -484,6 +476,37 @@ typedef struct {
 } bsp_draw_elements_t;
 
 /**
+ * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
+ * rendering operations.
+ */
+typedef struct {
+	int32_t node;
+
+	/**
+	 * @brief The index of the first draw elements within this block.
+	 */
+	int32_t first_draw_element;
+
+	/**
+	 * @brief The count of draw elements within this block.
+	 */
+	int32_t num_draw_elements;
+
+	/**
+	 * @brief The indexes of light sources within this block.
+	 * @details Lightmap and lightgrid diffuse channels will reference block-level light indexes.
+	 * This allows a given map to have > 255 light sources, while only requiring 8 bits per channel
+	 * for lightmap and lightgrid textures.
+	 */
+	int32_t lights[BSP_MAX_NODE_LIGHTS];
+
+	/**
+	 * @brief The count of light sources within this block.
+	 */
+	int32_t num_lights;
+} bsp_block_t;
+
+/**
  * @brief The BSP inline model type.
  * @details Each map is comprised of 1 or more inline models. The first is the _wordlspawn_ entity.
  */
@@ -528,6 +551,16 @@ typedef struct {
 	 * @brief The count of draw elements.
 	 */
 	int32_t num_draw_elements;
+
+	/**
+	 * @brief The index of the first block of this model.
+	 */
+	int32_t first_block;
+
+	/**
+	 * @brief The count of blocks.
+	 */
+	int32_t num_blocks;
 } bsp_model_t;
 
 typedef enum {
@@ -612,9 +645,6 @@ typedef struct bsp_file_s {
 	int32_t num_faces;
 	bsp_face_t *faces;
 
-	int32_t num_draw_elements;
-	bsp_draw_elements_t *draw_elements;
-
 	int32_t num_nodes;
 	bsp_node_t *nodes;
 
@@ -623,6 +653,12 @@ typedef struct bsp_file_s {
 
 	int32_t num_leafs;
 	bsp_leaf_t *leafs;
+
+	int32_t num_draw_elements;
+	bsp_draw_elements_t *draw_elements;
+
+	int32_t num_blocks;
+	bsp_block_t *blocks;
 
 	int32_t num_models;
 	bsp_model_t *models;

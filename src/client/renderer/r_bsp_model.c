@@ -24,6 +24,33 @@
 /**
  * @brief
  */
+static void R_LoadBspLights(r_bsp_model_t *bsp) {
+
+	const bsp_light_t *in = bsp->cm->file->lights;
+
+	bsp->num_lights = bsp->cm->file->num_lights;
+	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
+
+	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
+
+		out->type = in->type;
+		out->atten = in->atten;
+		out->origin = in->origin;
+		out->color = in->color;
+		out->normal = in->normal;
+		out->radius = in->radius;
+		out->size = in->size;
+		out->intensity = in->intensity;
+		out->shadow = in->shadow;
+		out->cone = in->cone;
+		out->falloff = in->falloff;
+		out->bounds = in->bounds;
+	}
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 	r_bsp_plane_t *out;
 
@@ -171,6 +198,76 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief Loads all r_bsp_leaf_t for the specified BSP model.
+ */
+static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
+	r_bsp_leaf_t *out;
+
+	const bsp_leaf_t *in = bsp->cm->file->leafs;
+
+	bsp->num_leafs = bsp->cm->file->num_leafs;
+	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
+		out->contents = in->contents;
+		out->bounds = in->bounds;
+	}
+}
+
+/**
+ * @brief Loads all r_bsp_node_t for the specified BSP model.
+ */
+static void R_LoadBspNodes(r_bsp_model_t *bsp) {
+	r_bsp_node_t *out;
+
+	const bsp_node_t *in = bsp->cm->file->nodes;
+
+	bsp->num_nodes = bsp->cm->file->num_nodes;
+	bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
+
+	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
+
+		out->contents = in->contents;
+		out->plane = bsp->planes + in->plane;
+		out->bounds = in->bounds;
+		out->visible_bounds = in->visible_bounds;
+
+		out->faces = bsp->faces + in->first_face;
+		out->num_faces = in->num_faces;
+
+		for (int32_t j = 0; j < 2; j++) {
+			const int32_t c = in->children[j];
+			if (c >= 0) {
+				out->children[j] = bsp->nodes + c;
+			} else {
+				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
+			}
+		}
+	}
+}
+
+/**
+ * @brief Sets up in-memory relationships between node, parent and model.
+ */
+static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
+
+	node->model = model;
+	node->parent = parent;
+
+	if (node->contents > CONTENTS_NODE) {
+		return;
+	}
+
+	r_bsp_face_t *face = node->faces;
+	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+		face->node = node;
+	}
+
+	R_SetupBspNode(model, node, node->children[0]);
+	R_SetupBspNode(model, node, node->children[1]);
+}
+
+/**
  * @brief
  */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
@@ -214,90 +311,31 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_leaf_t for the specified BSP model.
+ * @brief
  */
-static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
-	r_bsp_leaf_t *out;
+static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
+	r_bsp_block_t *out;
 
-	const bsp_leaf_t *in = bsp->cm->file->leafs;
+	bsp->num_blocks = bsp->cm->file->num_blocks;
+	bsp->blocks = out = Mem_LinkMalloc(bsp->num_blocks * sizeof(r_bsp_block_t), bsp);
 
-	bsp->num_leafs = bsp->cm->file->num_leafs;
-	bsp->leafs = out = Mem_LinkMalloc(bsp->num_leafs * sizeof(*out), bsp);
+	const bsp_block_t *in = bsp->cm->file->blocks;
+	for (int32_t i = 0; i < bsp->num_blocks; i++, in++, out++) {
 
-	for (int32_t i = 0; i < bsp->num_leafs; i++, in++, out++) {
-		out->contents = in->contents;
-		out->bounds = in->bounds;
-	}
-}
-
-/**
- * @brief Loads all r_bsp_node_t for the specified BSP model.
- */
-static void R_LoadBspNodes(r_bsp_model_t *bsp) {
-	r_bsp_node_t *out;
-
-	const bsp_node_t *in = bsp->cm->file->nodes;
-
-	bsp->num_nodes = bsp->cm->file->num_nodes;
-	bsp->nodes = out = Mem_LinkMalloc(bsp->num_nodes * sizeof(*out), bsp);
-
-	for (int32_t i = 0; i < bsp->num_nodes; i++, in++, out++) {
-
-		out->contents = in->contents;
-		out->plane = bsp->planes + in->plane;
-		out->bounds = in->bounds;
-		out->visible_bounds = in->visible_bounds;
-
-		out->faces = bsp->faces + in->first_face;
-		out->num_faces = in->num_faces;
-
+		out->node = bsp->nodes + in->node;
 		out->draw_elements = bsp->draw_elements + in->first_draw_element;
 		out->num_draw_elements = in->num_draw_elements;
 
-		for (int32_t j = 0; j < 2; j++) {
-			const int32_t c = in->children[j];
-			if (c >= 0) {
-				out->children[j] = bsp->nodes + c;
-			} else {
-				out->children[j] = (r_bsp_node_t *) (bsp->leafs + (-1 - c));
+		out->num_lights = in->num_lights;
+		if (out->num_lights) {
+
+			out->lights = Mem_LinkMalloc(sizeof(r_bsp_light_t *) * out->num_lights, bsp);
+
+			for (int32_t j = 0; j < out->num_lights; j++) {
+				out->lights[j] = bsp->lights + in->lights[j];
 			}
 		}
-
-		if (out->contents == CONTENTS_BLOCK) {
-			bsp->num_block_nodes++;
-		}
 	}
-
-	bsp->block_nodes = Mem_LinkMalloc(bsp->num_block_nodes * sizeof(&out), bsp);
-	bsp->num_block_nodes = 0;
-
-	r_bsp_node_t *node = bsp->nodes;
-	for (int32_t i = 0; i < bsp->num_nodes; i++, node++) {
-		if (node->contents == CONTENTS_BLOCK) {
-			bsp->block_nodes[bsp->num_block_nodes++] = node;
-		}
-	}
-}
-
-/**
- * @brief Sets up in-memory relationships between node, parent and model.
- */
-static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_bsp_node_t *node) {
-
-	node->model = model;
-	node->parent = parent;
-
-	if (node->contents > CONTENTS_NODE) {
-		return;
-	}
-
-	r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
-		face->node = node;
-	}
-
-	R_SetupBspNode(model, node, node->children[0]);
-	R_SetupBspNode(model, node, node->children[1]);
 }
 
 /**
@@ -324,45 +362,10 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
+		out->blocks = bsp->blocks + in->first_block;
+		out->num_blocks = in->num_blocks;
+
 		R_SetupBspNode(out, NULL, out->head_node);
-
-		for (int32_t j = 0; j < bsp->num_block_nodes; j++) {
-			const r_bsp_node_t *node = bsp->block_nodes[j];
-
-			if (node->model == out) {
-				if (out->block_nodes == NULL) {
-					out->block_nodes = &bsp->block_nodes[j];
-				}
-				out->num_block_nodes++;
-			}
-		}
-	}
-}
-
-/**
- * @brief
- */
-static void R_LoadBspLights(r_bsp_model_t *bsp) {
-
-	const bsp_light_t *in = bsp->cm->file->lights;
-
-	bsp->num_lights = bsp->cm->file->num_lights;
-	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
-
-	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
-
-		out->type = in->type;
-		out->atten = in->atten;
-		out->origin = in->origin;
-		out->color = in->color;
-		out->normal = in->normal;
-		out->radius = in->radius;
-		out->size = in->size;
-		out->intensity = in->intensity;
-		out->shadow = in->shadow;
-		out->cone = in->cone;
-		out->falloff = in->falloff;
-		out->bounds = in->bounds;
 	}
 }
 
@@ -747,6 +750,7 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 	(1 << BSP_LUMP_ELEMENTS) | \
 	(1 << BSP_LUMP_FACES) | \
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
+	(1 << BSP_LUMP_BLOCKS) | \
 	(1 << BSP_LUMP_LIGHTS) | \
 	(1 << BSP_LUMP_LIGHTMAP) | \
 	(1 << BSP_LUMP_LIGHTGRID) \
@@ -765,19 +769,20 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
 
+	R_LoadBspLights(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
 	R_LoadBspMaterials(mod);
 	R_LoadBspBrushSides(mod->bsp);
 	R_LoadBspVertexes(mod->bsp);
 	R_LoadBspElements(mod->bsp);
 	R_LoadBspFaces(mod->bsp);
-	R_LoadBspDrawElements(mod->bsp);
 	R_LoadBspLeafs(mod->bsp);
 	R_LoadBspNodes(mod->bsp);
+	R_LoadBspDrawElements(mod->bsp);
+	R_LoadBspBlocks(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
-	R_LoadBspLights(mod->bsp);
 	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
 

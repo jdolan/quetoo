@@ -40,10 +40,11 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
 	BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
-	BSP_LUMP_NUM_STRUCT(draw_elements, MAX_BSP_DRAW_ELEMENTS),
 	BSP_LUMP_NUM_STRUCT(nodes, MAX_BSP_NODES),
 	BSP_LUMP_NUM_STRUCT(leaf_brushes, MAX_BSP_LEAF_BRUSHES),
 	BSP_LUMP_NUM_STRUCT(leafs, MAX_BSP_LEAFS),
+	BSP_LUMP_NUM_STRUCT(draw_elements, MAX_BSP_DRAW_ELEMENTS),
+	BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
 	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
@@ -182,28 +183,6 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
-static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
-
-	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
-
-	for (int32_t i = 0; i < num; i++) {
-
-		draw->plane = LittleLong(draw->plane);
-		draw->material = LittleLong(draw->material);
-		draw->surface = LittleLong(draw->surface);
-
-		draw->bounds = LittleBounds(draw->bounds);
-
-		draw->first_element = LittleLong(draw->first_element);
-		draw->num_elements = LittleLong(draw->num_elements);
-
-		draw++;
-	}
-}
-
-/**
- * @brief Swap function.
- */
 static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 	bsp_node_t *node = (bsp_node_t *) lump;
@@ -220,9 +199,6 @@ static void Bsp_SwapNodes(void *lump, const int32_t num) {
 
 		node->first_face = LittleLong(node->first_face);
 		node->num_faces = LittleLong(node->num_faces);
-
-		node->first_draw_element = LittleLong(node->first_draw_element);
-		node->num_draw_elements = LittleLong(node->num_draw_elements);
 
 		node++;
 	}
@@ -261,6 +237,52 @@ static void Bsp_SwapLeafs(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapDrawElements(void *lump, const int32_t num) {
+
+	bsp_draw_elements_t *draw = (bsp_draw_elements_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+
+		draw->plane = LittleLong(draw->plane);
+		draw->material = LittleLong(draw->material);
+		draw->surface = LittleLong(draw->surface);
+
+		draw->bounds = LittleBounds(draw->bounds);
+
+		draw->first_element = LittleLong(draw->first_element);
+		draw->num_elements = LittleLong(draw->num_elements);
+
+		draw++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
+static void Bsp_SwapBlocks(void *lump, const int32_t num) {
+
+	bsp_block_t *block = (bsp_block_t *) lump;
+
+	for (int32_t i = 0; i < num; i++) {
+
+		block->node = LittleLong(block->node);
+
+		block->first_draw_element = LittleLong(block->first_draw_element);
+		block->num_draw_elements = LittleLong(block->num_draw_elements);
+
+		for (int32_t i = 0; i < BSP_MAX_NODE_LIGHTS; i++) {
+			block->lights[i] = LittleLong(block->lights[i]);
+		}
+
+		block->num_lights = LittleLong(block->num_lights);
+
+		block++;
+	}
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 	bsp_model_t *model = (bsp_model_t *) lump;
@@ -278,6 +300,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
 		model->first_draw_elements = LittleLong(model->first_draw_elements);
 		model->num_draw_elements = LittleLong(model->num_draw_elements);
+
+		model->first_block = LittleLong(model->first_block);
+		model->num_blocks = LittleLong(model->num_blocks);
 
 		model++;
 	}
@@ -342,10 +367,11 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapVertexes,
 		Bsp_SwapElements,
 		Bsp_SwapFaces,
-		Bsp_SwapDrawElements,
 		Bsp_SwapNodes,
 		Bsp_SwapLeafBrushes,
 		Bsp_SwapLeafs,
+		Bsp_SwapDrawElements,
+		Bsp_SwapBlocks,
 		Bsp_SwapModels,
 		Bsp_SwapLights,
 		Bsp_SwapLightmap,

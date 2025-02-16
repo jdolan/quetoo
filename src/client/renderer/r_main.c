@@ -29,11 +29,11 @@ cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_developer;
-cvar_t *r_draw_bsp_block_nodes;
+cvar_t *r_draw_bsp_blocks;
 cvar_t *r_draw_bsp_lightgrid;
 cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
-cvar_t *r_draw_bsp_occlusion_queries;
+cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_material_stages;
@@ -352,11 +352,11 @@ static void R_InitLocal(void) {
 	// development tools
 	r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
-	r_draw_bsp_block_nodes = Cvar_Add("r_draw_bsp_block_nodes", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
+	r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
 	r_draw_bsp_lightmap = Cvar_Add("r_draw_bsp_lightmap", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
-	r_draw_bsp_occlusion_queries = Cvar_Add("r_draw_bsp_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
+	r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER, "Controls the rendering of BSP occlusion queries (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
 	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");

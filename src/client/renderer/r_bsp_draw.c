@@ -122,14 +122,15 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_DrawBspBlockNodes(const r_view_t *view, const r_bsp_model_t *bsp) {
+static void R_DrawBspBlocks(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-	if (!r_draw_bsp_block_nodes->value) {
+	if (!r_draw_bsp_blocks->value) {
 		return;
 	}
 
-	for (int32_t i = 0; i < bsp->num_block_nodes; i++) {
-		R_Draw3DBox(bsp->block_nodes[i]->bounds, color_red, false);
+	const r_bsp_block_t *block = bsp->blocks;
+	for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
+		R_Draw3DBox(block->node->bounds, color_red, false);
 	}
 }
 
@@ -435,15 +436,15 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 
 	const r_bsp_inline_model_t *in = e ? e->model->bsp_inline : r_world_model->bsp->inline_models;
 
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
-		const r_bsp_node_t *node = in->block_nodes[i];
+	const r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-		if (node->occluded) {
+		if (block->occluded) {
 			continue;
 		}
 
-		const r_bsp_draw_elements_t *draw = node->draw_elements;
-		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
+		const r_bsp_draw_elements_t *draw = block->draw_elements;
+		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
 			if (draw->surface & (SURF_SKY | SURF_MASK_TRANSLUCENT)) {
 				continue;
@@ -461,15 +462,15 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 		}
 	}
 
-	for (int32_t i = 0; i < in->num_block_nodes; i++) {
-		const r_bsp_node_t *node = in->block_nodes[i];
+	block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++) {
 
-		if (node->occluded) {
+		if (block->occluded) {
 			continue;
 		}
 
-		const r_bsp_draw_elements_t *draw = node->draw_elements;
-		for (int32_t j = 0; j < node->num_draw_elements; j++, draw++) {
+		const r_bsp_draw_elements_t *draw = block->draw_elements;
+		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
 			if (draw->surface & SURF_MASK_TRANSLUCENT) {
 
@@ -568,7 +569,7 @@ void R_DrawWorld(const r_view_t *view) {
 
 	R_DrawBspNormals(view, bsp);
 
-	R_DrawBspBlockNodes(view, bsp);
+	R_DrawBspBlocks(view, bsp);
 }
 
 #define WARP_IMAGE_SIZE 16
