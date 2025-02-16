@@ -430,11 +430,16 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 /**
  * @brief
  */
-static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
+static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
 
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e ? e->matrix.array : Mat4_Identity().array);
-
-	const r_bsp_inline_model_t *in = e ? e->model->bsp_inline : r_world_model->bsp->inline_models;
+	const r_bsp_inline_model_t *in;
+	if (entity == NULL) {
+		glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+		in = r_world_model->bsp->inline_models;
+	} else {
+		glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, entity->matrix.array);
+		in = entity->model->bsp_inline;
+	}
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -446,24 +451,29 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
-			if (draw->surface & (SURF_SKY | SURF_MASK_TRANSLUCENT)) {
+			if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
 				continue;
 			}
 
-			if (e == NULL && r_depth_pass->value) {
+			if (entity == NULL && r_depth_pass->value) {
 				glDepthMask(GL_FALSE);
 			}
 
-			R_DrawBspDrawElements(view, e, draw);
+			R_DrawBspDrawElements(view, entity, draw);
 
-			if (e == NULL && r_depth_pass->value) {
+			if (entity == NULL && r_depth_pass->value) {
 				glDepthMask(GL_TRUE);
 			}
 		}
 	}
 
+	glDepthMask(GL_FALSE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	block = in->blocks;
-	for (int32_t i = 0; i < in->num_blocks; i++) {
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
 		if (block->occluded) {
 			continue;
@@ -472,23 +482,18 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *e) {
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
-			if (draw->surface & SURF_MASK_TRANSLUCENT) {
-
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-				glDepthMask(GL_FALSE);
-
-				R_DrawBspDrawElements(view, e, draw);
-
-				glDepthMask(GL_TRUE);
-
-				glBlendFunc(GL_ONE, GL_ZERO);
-				glDisable(GL_BLEND);
-
+			if (!(draw->surface & SURF_MASK_BLEND)) {
+				continue;
 			}
+
+			R_DrawBspDrawElements(view, entity, draw);
 		}
 	}
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	glDepthMask(GL_TRUE);
 
 	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
