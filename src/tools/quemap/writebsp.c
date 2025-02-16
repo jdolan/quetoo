@@ -402,7 +402,6 @@ static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) 
 /**
  * @brief Draw elements comparator to sort model faces by material.
  * @details Opaque faces are equal if they share material and contents.
- * @details Blend faces are equal if they share opaque equality and plane.
  * @details Material faces equal if they share blend equality and brush side.
  */
 static gint FaceCmp(gconstpointer a, gconstpointer b) {
@@ -421,10 +420,6 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
 
 			if (a_side->surface & SURF_MATERIAL) {
 				return (gint) (ptrdiff_t) (a_side - b_side);
-			}
-
-			if (a_side->surface & SURF_MASK_BLEND) {
-				return a_side->plane - b_side->plane;
 			}
 		}
 	}
@@ -512,7 +507,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 		GPtrArray *faces = g_ptr_array_new();
 
 		bsp_face_t *face = bsp_file.faces + mod->first_face;
-		for (int32_t j = 0; j < mod->num_faces; j++, face++) {
+		for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 			if (Box3_Contains(node->bounds, face->bounds)) {
 				face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
 				g_ptr_array_add(faces, face);
