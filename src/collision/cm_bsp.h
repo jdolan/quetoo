@@ -480,6 +480,9 @@ typedef struct {
  * rendering operations.
  */
 typedef struct {
+	/**
+	 * @brief The `CONTENTS_BLOCK` node defining this block.
+	 */
 	int32_t node;
 
 	/**
@@ -504,6 +507,13 @@ typedef struct {
 	 * @brief The count of light sources within this block.
 	 */
 	int32_t num_lights;
+
+	/**
+	 * @brief The visible bounds of all draw elements within this block.
+	 * @remarks This is different from the visible bounds of the node, which are the bounds of
+	 * only the faces on that node's plane.
+	 */
+	box3_t visible_bounds;
 } bsp_block_t;
 
 /**

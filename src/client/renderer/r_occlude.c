@@ -96,7 +96,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 }
 
 /**
- * @brief Creates occlusion queries on a grid, and clips them to the BSP to reduce overdraw.
+ * @brief Creates an occlusion query for each block node in the world model.
  */
 void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 	vec3_t vertexes[8];
@@ -115,7 +115,7 @@ void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
 		block->query.available = 1;
 		block->query.result = 1;
 
-		Box3_ToPoints(block->node->bounds, vertexes);
+		Box3_ToPoints(block->visible_bounds, vertexes);
 		glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(vertexes), sizeof(vertexes), vertexes);
 	}
 

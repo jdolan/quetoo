@@ -703,6 +703,12 @@ typedef struct {
 	int32_t num_lights;
 
 	/**
+	 * @brief The visible bounds of this block, used for occlusion query and culling.
+	 * @remarks This is different from the node's bounds, and the node's visible bounds.
+	 */
+	box3_t visible_bounds;
+
+	/**
 	 * @brief True if this block is occluded for the current frame.
 	 */
 	bool occluded;

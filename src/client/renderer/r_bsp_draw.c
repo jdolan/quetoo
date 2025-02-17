@@ -130,7 +130,7 @@ static void R_DrawBspBlocks(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	const r_bsp_block_t *block = bsp->blocks;
 	for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
-		R_Draw3DBox(block->node->bounds, color_red, false);
+		R_Draw3DBox(block->visible_bounds, color_red, false);
 	}
 }
 

@@ -335,6 +335,8 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 				out->lights[j] = bsp->lights + in->lights[j];
 			}
 		}
+
+		out->visible_bounds = in->visible_bounds;
 	}
 }
 
