@@ -430,16 +430,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 /**
  * @brief
  */
-static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
-
-	const r_bsp_inline_model_t *in;
-	if (entity == NULL) {
-		glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
-		in = r_world_model->bsp->inline_models;
-	} else {
-		glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, entity->matrix.array);
-		in = entity->model->bsp_inline;
-	}
+static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
+	const r_bsp_inline_model_t *in = entity ? entity->model->bsp_inline : r_world_model->bsp->inline_models;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -455,24 +447,88 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *entity
 				continue;
 			}
 
-			if (entity == NULL && r_depth_pass->value) {
-				glDepthMask(GL_FALSE);
-			}
-
 			R_DrawBspDrawElements(view, entity, draw);
-
-			if (entity == NULL && r_depth_pass->value) {
-				glDepthMask(GL_TRUE);
-			}
 		}
 	}
 
-	glDepthMask(GL_FALSE);
+	r_stats.bsp_inline_models++;
+}
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+/**
+ * @brief Draws all opaque BSP inline model entities for the current view, including the world.
+ */
+void R_DrawBspInlineEntitiesOpaqueDrawElements(const r_view_t *view) {
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
-	block = in->blocks;
+	R_DrawSky(view, bsp);
+
+	glUseProgram(r_bsp_program.name);
+
+	glBindVertexArray(bsp->vertex_array);
+
+	glEnableVertexAttribArray(r_bsp_program.in_position);
+	glEnableVertexAttribArray(r_bsp_program.in_normal);
+	glEnableVertexAttribArray(r_bsp_program.in_tangent);
+	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
+	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
+	glEnableVertexAttribArray(r_bsp_program.in_lightmap);
+	glEnableVertexAttribArray(r_bsp_program.in_color);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
+
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+
+	R_DrawOpaqueBspInlineEntity(view, NULL);
+
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
+
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
+
+			if (R_CullEntity(view, e)) {
+				continue;
+			}
+
+			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
+
+			R_DrawOpaqueBspInlineEntity(view, e);
+		}
+	}
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+
+	glUseProgram(0);
+
+	R_GetError(NULL);
+
+	R_DrawBspNormals(view, bsp);
+
+	R_DrawBspBlocks(view, bsp);
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
+	const r_bsp_inline_model_t *in = entity ? entity->model->bsp_inline : r_world_model->bsp->inline_models;
+
+	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
 		if (block->occluded) {
@@ -489,27 +545,15 @@ static void R_DrawBspInlineEntity(const r_view_t *view, const r_entity_t *entity
 			R_DrawBspDrawElements(view, entity, draw);
 		}
 	}
-
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
-
-	glDepthMask(GL_TRUE);
-
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
-
-	r_stats.bsp_inline_models++;
 }
 
 /**
  * @brief Draws all BSP inline model entities for the current view, including the world.
  */
-static void R_DrawBspInlineEntities(const r_view_t *view, const r_bsp_model_t *bsp) {
+void R_DrawBlendBspInlineEntities(const r_view_t *view) {
+	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	glUseProgram(r_bsp_program.name);
-
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
-
-	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glBindVertexArray(bsp->vertex_array);
 
@@ -525,11 +569,22 @@ static void R_DrawBspInlineEntities(const r_view_t *view, const r_bsp_model_t *b
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	R_DrawBspInlineEntity(view, NULL);
+	glDepthMask(GL_FALSE);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
+	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+
+	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
+
+	R_DrawBlendBspInlineEntity(view, NULL);
 
 	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
 
@@ -537,17 +592,20 @@ static void R_DrawBspInlineEntities(const r_view_t *view, const r_bsp_model_t *b
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 		if (IS_BSP_INLINE_MODEL(e->model)) {
 
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
-
 			if (R_CullEntity(view, e)) {
 				continue;
 			}
 
-			R_DrawBspInlineEntity(view, e);
+			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
+
+			R_DrawBlendBspInlineEntity(view, e);
 		}
 	}
+
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);
+
+	glDepthMask(GL_TRUE);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
@@ -560,21 +618,6 @@ static void R_DrawBspInlineEntities(const r_view_t *view, const r_bsp_model_t *b
 	glUseProgram(0);
 
 	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_DrawWorld(const r_view_t *view) {
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	R_DrawSky(view, bsp);
-
-	R_DrawBspInlineEntities(view, bsp);
-
-	R_DrawBspNormals(view, bsp);
-
-	R_DrawBspBlocks(view, bsp);
 }
 
 #define WARP_IMAGE_SIZE 16

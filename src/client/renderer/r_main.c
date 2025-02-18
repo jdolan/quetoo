@@ -281,8 +281,6 @@ void R_DrawMainView(r_view_t *view) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	R_DrawWorld(view);
-
 	R_DrawEntities(view);
 
 	R_DrawSprites(view);
@@ -320,7 +318,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-	R_DrawEntities(view);
+	R_DrawMeshEntities(view);
 
 	R_DrawPost(view);
 
