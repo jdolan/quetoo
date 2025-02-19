@@ -105,6 +105,36 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
+ * @brief
+ */
+void R_UpdateLightsForBspBlock(const r_view_t *view, const r_bsp_block_t *block) {
+
+	r_light_uniform_block_t *out = &r_lights.block;
+
+	r_lights.block.num_lights = 0;
+
+	for (int32_t i = 0; i < block->num_lights; i++) {
+		const r_bsp_light_t *light = block->lights[i];
+
+		R_AddLightUniform(&(r_light_t) {
+			.type = light->type,
+   			.atten = light->atten,
+   			.origin = light->origin,
+   			.radius = light->radius,
+   			.size = light->size,
+   			.color = light->color,
+   			.intensity = light->intensity,
+   			.normal = light->normal,
+   			.bounds = light->bounds,
+   		});
+	}
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(*out), out);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+/**
  * @brief Cull lights by occlusion queries, and transform them into view space.
  */
 void R_UpdateLights(r_view_t *view) {
@@ -129,7 +159,6 @@ void R_UpdateLights(r_view_t *view) {
 		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
 		pos = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE).end;
 	}
-
 
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {

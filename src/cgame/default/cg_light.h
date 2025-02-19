@@ -50,6 +50,11 @@ typedef struct {
 	float radius;
 
 	/**
+	 * @brief The light size.
+	 */
+	float size;
+
+	/**
 	 * @brief The light color.
 	 */
 	vec3_t color;

@@ -25,7 +25,7 @@
 uniform int model_type;
 uniform mat4 model;
 
-in geometry_data {
+in vertex_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
@@ -35,9 +35,6 @@ in geometry_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
-
-	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
-	flat int num_active_lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -58,7 +55,6 @@ struct fragment_t {
 	vec4 specularmap;
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 direction;
 	vec3 specular;
 	vec3 caustics;
 	vec4 fog;
@@ -124,13 +120,13 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	/*if (material.parallax == 0.0) {
+	if (material.parallax == 0.0) {
 		return 1.0;
 	}
 
 	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
 	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
-	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.001));
+	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.002));
 	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
 
 	do {
@@ -139,7 +135,7 @@ float parallax_self_shadow(in vec3 light_dir) {
 		if (sample_height > texcoord.z * 1.05) {
 			return distance(fragment.parallax, texcoord.xy);
 		}
-	} while (texcoord.z < 1.0);*/
+	} while (texcoord.z < 1.0);
 
 	return 1.0;
 }
@@ -202,45 +198,8 @@ vec3 sample_lightmap_ambient() {
 /**
  * @brief
  */
-vec3 sample_lightmap_diffuse() {
-	return texture(texture_lightmap_diffuse, vertex.lightmap).rgb * modulate;
-}
-
-/**
-* @brief
-*/
-vec3 sample_lightmap_direction() {
-	vec3 direction = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
-	return normalize(fragment.tbn * normalize(direction));
-}
-
-/**
- * @brief
- */
-void light_and_shadow_caustics() {
-
-	if (fragment.caustics == vec3(0.0)) {
-		return;
-	}
-
-	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
-
-	// make the inner edges stronger, clamp to 0-1
-
-	float thickness = 0.02;
-	float glow = 5.0;
-
-	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
-
-	vec3 light = fragment.ambient + fragment.diffuse;
-	fragment.diffuse += max(vec3(0.0), light * length(fragment.caustics) * noise);
-}
-
-/**
- * @brief
- */
-vec3 sample_lightmap_caustics() {
-	return texture(texture_lightmap_caustics, vertex.lightmap).rgb * caustics;
+uvec4 sample_lightmap_diffuse() {
+	return texture(texture_lightmap_diffuse, vertex.lightmap);
 }
 
 /**
@@ -260,16 +219,8 @@ vec3 sample_lightgrid_ambient() {
 /**
  * @brief
  */
-vec3 sample_lightgrid_diffuse() {
-	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightgrid_direction() {
-	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz * 2.0 - 1.0;
-	return vec3(view * vec4(normalize(direction), 0.0));
+uvec4 sample_lightgrid_diffuse() {
+	return texture(texture_lightgrid_diffuse, vertex.lightgrid);
 }
 
 /**
@@ -338,7 +289,22 @@ float sample_shadowmap_cube(in light_t light, in int index) {
  */
 void light_and_shadow_sun(in light_t light, in int index) {
 
-	// TODO
+	vec3 diffuse = light.color.rgb * light.color.a;
+
+	vec3 light_dir = light.normal.xyz;
+	float lambert = dot(light_dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+
+	diffuse *= shadow;
+
+	fragment.diffuse += diffuse;
+	fragment.specular += blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -355,17 +321,32 @@ void light_and_shadow_point(in light_t light, in int index) {
 		return;
 	}
 
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	diffuse *= atten; // FIXME: This helps avoid harsh falloff
+
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
+	diffuse *= lambert;
 
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+
+	diffuse *= shadow;
+
+	fragment.diffuse += diffuse;
+	fragment.specular += blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -382,17 +363,32 @@ void light_and_shadow_spot(in light_t light, in int index) {
 		return;
 	}
 
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	diffuse *= atten; // FIXME: This helps avoid harsh falloff
+
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
+	diffuse *= lambert;
 
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+
+	diffuse *= shadow;
+
+	fragment.diffuse += diffuse;
+	fragment.specular += blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -409,17 +405,32 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
 		return;
 	}
 
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	diffuse *= atten; // FIXME: This helps avoid harsh falloff
+
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
 	}
 
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
+	diffuse *= lambert;
 
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+
+	diffuse *= shadow;
+
+	fragment.diffuse += diffuse;
+	fragment.specular += blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -465,41 +476,94 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 /**
  * @brief
  */
+void light_and_shadow_caustics() {
+
+	if (fragment.caustics == vec3(0.0)) {
+		return;
+	}
+
+	float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+
+	// make the inner edges stronger, clamp to 0-1
+
+	float thickness = 0.02;
+	float glow = 5.0;
+
+	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+	vec3 light = fragment.ambient + fragment.diffuse;
+	fragment.diffuse += max(vec3(0.0), light * length(fragment.caustics) * noise);
+}
+
+/**
+ * @brief
+ */
 void light_and_shadow(void) {
 
+	fragment.normalmap = sample_normalmap();
+	fragment.specularmap = sample_specularmap();
+
+
+	if (model_type == MODEL_BSP) {
+		fragment.ambient = sample_lightmap_ambient();
+	} else {
+		fragment.ambient = sample_lightgrid_ambient();
+	}
+
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse *= max(0.5, parallax_self_shadow(fragment.direction));
-	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
-	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
-	for (int i = 0; i < vertex.num_active_lights; i++) {
+	uvec4 diffuse = sample_lightmap_diffuse();
 
-		int index = vertex.active_lights[i];
+	for (int i = 0; i < 4 && diffuse[i] > 0; i++) {
 
-		light_t light = lights[index];
+		light_t light = lights[diffuse[i]];
 
 		int type = int(light.position.w);
 		switch (type) {
 			case LIGHT_SUN:
-				light_and_shadow_sun(light, index);
+				light_and_shadow_sun(light, i);
 				break;
 			case LIGHT_POINT:
-				light_and_shadow_point(light, index);
+				light_and_shadow_point(light, i);
 				break;
 			case LIGHT_SPOT:
-				light_and_shadow_spot(light, index);
+				light_and_shadow_spot(light, i);
 				break;
 			case LIGHT_BRUSH_SIDE:
-				light_and_shadow_brush_side(light, index);
-				break;
-			case LIGHT_DYNAMIC:
-				light_and_shadow_dynamic(light, index);
+				light_and_shadow_brush_side(light, i);
 				break;
 			default:
 				break;
 		}
 	}
+
+//	for (int i = 0; i < num_lights; i++) {
+//
+//		light_t light = lights[i];
+//
+//		int type = int(light.position.w);
+//		switch (type) {
+//			case LIGHT_SUN:
+//				light_and_shadow_sun(light, i);
+//				break;
+//			case LIGHT_POINT:
+//				light_and_shadow_point(light, i);
+//				break;
+//			case LIGHT_SPOT:
+//				light_and_shadow_spot(light, i);
+//				break;
+//			case LIGHT_BRUSH_SIDE:
+//				light_and_shadow_brush_side(light, i);
+//				break;
+//			case LIGHT_DYNAMIC:
+//				light_and_shadow_dynamic(light, i);
+//				break;
+//			default:
+//				break;
+//		}
+//	}
+
+	fragment.caustics = sample_lightgrid_caustics();
 
 	light_and_shadow_caustics();
 }
@@ -518,7 +582,9 @@ void main(void) {
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
 	fragment.inverse_tbn = inverse(fragment.tbn);
 	fragment.parallax = vertex.diffusemap;
+	fragment.ambient = vec3(0);
 	fragment.specular = vec3(0);
+	fragment.diffuse = vec3(0);
 
 	parallax_occlusion_mapping();
 
@@ -530,25 +596,10 @@ void main(void) {
 			discard;
 		}
 
-		fragment.normalmap = sample_normalmap();
-		fragment.specularmap = sample_specularmap();
-
-		if (model_type == MODEL_BSP) {
-			fragment.ambient = sample_lightmap_ambient();
-			fragment.diffuse = sample_lightmap_diffuse();
-			fragment.direction = sample_lightmap_direction();
-			fragment.caustics = sample_lightmap_caustics();
-		} else {
-			fragment.ambient = sample_lightgrid_ambient();
-			fragment.diffuse = sample_lightgrid_diffuse();
-			fragment.direction = sample_lightgrid_direction();
-			fragment.caustics = sample_lightgrid_caustics();
-		}
+		light_and_shadow();
 
 		fragment.stains = sample_lightmap_stains();
 		fragment.fog = sample_lightgrid_fog();
-
-		light_and_shadow();
 
 		out_color = fragment.diffusemap;
 
@@ -576,21 +627,20 @@ void main(void) {
 
 			if (model_type == MODEL_BSP) {
 				fragment.ambient = sample_lightmap_ambient();
-				fragment.diffuse = sample_lightmap_diffuse();
-				fragment.direction = sample_lightmap_direction();
-				fragment.caustics = sample_lightmap_caustics();
+				//fragment.diffuse = sample_lightmap_diffuse();
+				//fragment.direction = sample_lightmap_direction();
 			} else {
 				fragment.ambient = sample_lightgrid_ambient();
-				fragment.diffuse = sample_lightgrid_diffuse();
-				fragment.direction = sample_lightgrid_direction();
-				fragment.caustics = sample_lightgrid_caustics();
+				//fragment.diffuse = sample_lightgrid_diffuse();
+				//fragment.direction = sample_lightgrid_direction();
 			}
 
+			fragment.caustics = sample_lightgrid_caustics();
 			fragment.stains = sample_lightmap_stains();
 
-			fragment.diffuse *= max(0.0, dot(fragment.diffuse, fragment.direction));
+			//fragment.diffuse *= max(0.0, dot(fragment.diffuse, fragment.direction));
 
-			light_and_shadow();
+			//light_and_shadow();
 
 			out_color.rgb *= (fragment.ambient + fragment.diffuse);
 			out_color.rgb *= fragment.stains;
@@ -614,7 +664,7 @@ void main(void) {
 	} else if (lightmaps == 4) {
 		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
 	} else if (lightmaps == 5) {
-		out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
+		//out_color.rgb = texture(texture_lightmap_direction, vertex.lightmap).xyz * 2.0 - 1.0;
 	} else if (lightmaps == 6) {
 		out_color.rgb = fragment.normalmap;
 	} else if (lightmaps == 7) {

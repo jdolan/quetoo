@@ -63,7 +63,7 @@ typedef struct {
 	vec4_t color;
 } r_light_uniform_t;
 
-#define MAX_LIGHT_UNIFORMS 256
+#define MAX_LIGHT_UNIFORMS 320
 
 /**
  * @brief The lights uniform block struct.
@@ -91,12 +91,12 @@ typedef struct {
 	mat4_t light_view_cube[6];
 
 	/**
-	 * @brief The visible light sources for the current frame.
+	 * @brief The light sources for the current operation.
 	 */
 	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
-	 * @brief The number of visible light sources.
+	 * @brief The number of light sources.
 	 */
 	int32_t num_lights;
 } r_light_uniform_block_t;
@@ -122,6 +122,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
+void R_UpdateLightsForBspBlock(const r_view_t *view, const r_bsp_block_t *block);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

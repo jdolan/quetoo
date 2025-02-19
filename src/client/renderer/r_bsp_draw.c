@@ -436,6 +436,8 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 			continue;
 		}
 
+		R_UpdateLightsForBspBlock(view, block);
+
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
@@ -530,6 +532,8 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
 		if (block->occluded) {
 			continue;
 		}
+
+		R_UpdateLightsForBspBlock(view, block);
 
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -627,7 +631,6 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "bsp_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "polylib.glsl", "bsp_gs.glsl", NULL),
 			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "bsp_fs.glsl", NULL),
 			NULL);
 

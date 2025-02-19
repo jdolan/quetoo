@@ -63,20 +63,6 @@ uniform vec4 tint_colors[3];
 /**
  * @brief
  */
-float sample_heightmap(vec2 texcoord) {
-	return texture(texture_material, vec3(texcoord, 1)).w;
-}
-
-/**
- * @brief
- */
-float sample_displacement(vec2 texcoord) {
-	return 1.0 - sample_heightmap(texcoord);
-}
-
-/**
- * @brief
- */
 vec4 sample_diffusemap() {
 	return texture(texture_material, vec3(vertex.diffusemap, 0));
 }
@@ -440,7 +426,5 @@ void main(void) {
 		out_color.rgb = inverse(fragment.tbn) * vertex.direction;
 	} else if (lightmaps == 6) {
 		out_color.rgb = sample_normalmap();
-	} else if (lightmaps == 7) {
-		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
 	}
 }

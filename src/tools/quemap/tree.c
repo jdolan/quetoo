@@ -341,7 +341,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 		node->contents = CONTENTS_BLOCK;
 
 		if (!brushes) {
-			return LeafNode(node, brushes);
+		//	return LeafNode(node, brushes);
 		}
 
 		if (node->parent) {
