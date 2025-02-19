@@ -154,17 +154,14 @@ typedef struct light_s {
 	 * @brief The light source model for brush side and indirect lights.
 	 */
 	const bsp_model_t *model;
-
-	/**
-	 * @brief The output light in the BSP, so that luxels may reference them.
-	 */
-	bsp_light_t *out;
 } light_t;
 
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
+void AllocLights(void);
 void FreeLights(void);
+int32_t LightIndex(const light_t *light);
 void BuildDirectLights(void);
 void BuildIndirectLights(void);
-void EmitLights(void);
+void EmitDirectLights(void);

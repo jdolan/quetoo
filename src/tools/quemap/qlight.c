@@ -405,12 +405,18 @@ static void LightWorld(void) {
 
 	if (do_light) {
 
+		// allocate the lights
+		AllocLights();
+
 		// build lights out of entities and emissive faces
 		BuildDirectLights();
 
 		// calculate direct lighting
 		Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
 		Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+
+		// save direct light sources to the BSP
+		EmitDirectLights();
 
 		// indirect lighting
 		// build lights out of lightmapped faces
@@ -419,13 +425,9 @@ static void LightWorld(void) {
 		// calculate indirect lighting
 		Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
 		Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
-
+		
 		// caustic effects
-		Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
-		Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
-
-		// save the light sources to the BSP
-		EmitLights();
+		Work("Caustics", CausticsLightgrid, (int32_t) num_lightgrid);
 
 		// build fog volumes out of brush entities
 		BuildFog();
@@ -458,15 +460,6 @@ static void LightWorld(void) {
 	// and vertex lightmap texcoords
 	EmitLightmapTexcoords();
 
-	// free the light sources
-	FreeLights();
-
-	// free the lightmap windings
-	FreeWindings();
-
-	// free the materials
-	FreeMaterials();
-
 	// free the lightmaps
 	Mem_FreeTag(MEM_TAG_LIGHTMAP);
 
@@ -478,6 +471,15 @@ static void LightWorld(void) {
 
 	// free the lightgrid
 	Mem_FreeTag(MEM_TAG_LIGHTGRID);
+
+	// free the light sources
+	FreeLights();
+
+	// free the lightmap windings
+	FreeWindings();
+
+	// free the materials
+	FreeMaterials();
 }
 
 /**

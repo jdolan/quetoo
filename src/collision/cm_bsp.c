@@ -268,12 +268,12 @@ static void Bsp_SwapBlocks(void *lump, const int32_t num) {
 		block->node = LittleLong(block->node);
 		block->first_draw_element = LittleLong(block->first_draw_element);
 		block->num_draw_elements = LittleLong(block->num_draw_elements);
+		block->num_lights = LittleLong(block->num_lights);
 
-		for (int32_t i = 0; i < BSP_MAX_NODE_LIGHTS; i++) {
+		for (int32_t i = 0; i < block->num_lights; i++) {
 			block->lights[i] = LittleLong(block->lights[i]);
 		}
 
-		block->num_lights = LittleLong(block->num_lights);
 		block->visible_bounds = LittleBounds(block->visible_bounds);
 		
 		block++;

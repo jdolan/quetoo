@@ -45,8 +45,6 @@ typedef struct {
 	size_t num_luxels;
 	SDL_Surface *ambient;
 	SDL_Surface *diffuse;
-	SDL_Surface *direction;
-	SDL_Surface *caustics;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;
@@ -55,7 +53,6 @@ void BuildLightmaps(void);
 void BuildVertexNormals(void);
 void DirectLightmap(int32_t face_num);
 void IndirectLightmap(int32_t face_num);
-void CausticsLightmap(int32_t face_num);
 void FinalizeLightmap(int32_t face_num);
 void EmitLightmap(void);
 void EmitLightmapTexcoords(void);

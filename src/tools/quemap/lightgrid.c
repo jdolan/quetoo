@@ -56,6 +56,24 @@ static void BuildLightgridExtents(void) {
 /**
  * @brief
  */
+static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float uoffs) {
+
+	const float padding_s = ((lg.stu_bounds.maxs.x - lg.stu_bounds.mins.x) - lg.size.x) * 0.5;
+	const float padding_t = ((lg.stu_bounds.maxs.y - lg.stu_bounds.mins.y) - lg.size.y) * 0.5;
+	const float padding_u = ((lg.stu_bounds.maxs.z - lg.stu_bounds.mins.z) - lg.size.z) * 0.5;
+
+	const float s = lg.stu_bounds.mins.x + padding_s + l->s + 0.5 + soffs;
+	const float t = lg.stu_bounds.mins.y + padding_t + l->t + 0.5 + toffs;
+	const float u = lg.stu_bounds.mins.z + padding_u + l->u + 0.5 + uoffs;
+
+	l->origin = Mat4_Transform(lg.inverse_matrix, Vec3(s, t, u));
+
+	return Light_PointContents(l->origin, 0);
+}
+
+/**
+ * @brief
+ */
 static void BuildLightgridLuxels(void) {
 
 	lg.num_luxels = lg.size.x * lg.size.y * lg.size.z;
@@ -75,27 +93,22 @@ static void BuildLightgridLuxels(void) {
 				l->s = s;
 				l->t = t;
 				l->u = u;
+
+				ProjectLightgridLuxel(l, 0.f, 0.f, 0.f);
+
+				bsp_block_t *block = bsp_file.blocks;
+				for (int32_t i = 0; i < bsp_file.num_blocks; i++, block++) {
+					const bsp_node_t *node = &bsp_file.nodes[block->node];
+					if (Box3_ContainsPoint(node->bounds, l->origin)) {
+						l->block = block;
+						break;
+					}
+				}
+
+				assert(l->block);
 			}
 		}
 	}
-}
-
-/**
- * @brief
- */
-static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float uoffs) {
-
-	const float padding_s = ((lg.stu_bounds.maxs.x - lg.stu_bounds.mins.x) - lg.size.x) * 0.5;
-	const float padding_t = ((lg.stu_bounds.maxs.y - lg.stu_bounds.mins.y) - lg.size.y) * 0.5;
-	const float padding_u = ((lg.stu_bounds.maxs.z - lg.stu_bounds.mins.z) - lg.size.z) * 0.5;
-
-	const float s = lg.stu_bounds.mins.x + padding_s + l->s + 0.5 + soffs;
-	const float t = lg.stu_bounds.mins.y + padding_t + l->t + 0.5 + toffs;
-	const float u = lg.stu_bounds.mins.z + padding_u + l->u + 0.5 + uoffs;
-
-	l->origin = Mat4_Transform(lg.inverse_matrix, Vec3(s, t, u));
-
-	return Light_PointContents(l->origin, 0);
 }
 
 /**
@@ -177,7 +190,6 @@ static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
-			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -218,7 +230,6 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
-			.direction = Vec3_Direction(light->points[i], luxel->origin),
 			.lumens = lumens,
 		});
 	}
@@ -271,7 +282,6 @@ static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
-			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -328,7 +338,6 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
-			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -625,9 +634,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *luxel = &lg.luxels[luxel_num];
 
-	if (Vec3_Equal(luxel->direction, Vec3_Zero())) {
-		luxel->direction = Vec3_Up();
-	}
+	FinalizeLuxel(luxel);
 }
 
 /**
@@ -637,8 +644,7 @@ void EmitLightgrid(void) {
 
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(vec3_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
@@ -652,11 +658,8 @@ void EmitLightgrid(void) {
 	color24_t *out_ambient = (color24_t *) out;
 	out += lg.num_luxels * sizeof(color24_t);
 
-	vec3_t *out_diffuse = (vec3_t *) out;
-	out += lg.num_luxels * sizeof(vec3_t);
-
-	color24_t *out_direction = (color24_t *) out;
-	out += lg.num_luxels * sizeof(color24_t);
+	color32_t *out_diffuse = (color32_t *) out;
+	out += lg.num_luxels * sizeof(color32_t);
 
 	color24_t *out_caustics = (color24_t *) out;
 	out += lg.num_luxels * sizeof(color24_t);
@@ -668,8 +671,7 @@ void EmitLightgrid(void) {
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
 		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_ambient);
-		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(vec3_t), out_diffuse);
-		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_direction);
+		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_diffuse);
 		SDL_Surface *caustics = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_caustics);
 		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
@@ -677,8 +679,7 @@ void EmitLightgrid(void) {
 			for (int32_t s = 0; s < lg.size.x; s++, luxel++) {
 
 				*out_ambient++ = Color_Color24(Color3fv(luxel->ambient));
-				*out_diffuse++ = luxel->diffuse;
-				*out_direction++ = Color24i(Vec3_Bytes(luxel->direction));
+				*out_diffuse++ = luxel->lights;
 				*out_caustics++ = Color_Color24(Color3fv(luxel->caustics));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
@@ -687,14 +688,12 @@ void EmitLightgrid(void) {
 		if (debug) {
 			WriteLuxelSurface(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 			WriteLuxelSurface(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(direction);
 		SDL_FreeSurface(caustics);
 		SDL_FreeSurface(fog);
 	}

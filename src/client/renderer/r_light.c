@@ -124,23 +124,6 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
-//	const r_bsp_model_t *bsp = r_world_model->bsp;
-//	const r_bsp_light_t *light = bsp->lights;
-//	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-//
-//		R_AddLightUniform(&(r_light_t) {
-//			.type = light->type,
-//			.atten = light->atten,
-//			.origin = light->origin,
-//			.radius = light->radius,
-//			.size = light->size,
-//			.color = light->color,
-//			.intensity = light->intensity,
-//			.normal = light->normal,
-//			.bounds = light->bounds,
-//		});
-//	}
-
 	vec3_t pos = view->origin;
 	if (r_draw_light_bounds->value) {
 		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);

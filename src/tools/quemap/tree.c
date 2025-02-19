@@ -321,7 +321,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 
 /**
  * @brief Recursively split the node and filter brushes into its children. Nodes larger
- * than `BSP_BLOCK_NODE_SIZE` are split in half on their longest axis to produce a balanced tree.
+ * than `BSP_BLOCK_SIZE` are split in half on their longest axis to produce a balanced tree.
  * Smaller nodes are split using a brush side heuristic to produce more optimal geometry.
  */
 static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
@@ -337,7 +337,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 		}
 	}
 
-	if (longest_side > BSP_BLOCK_NODE_SIZE) {
+	if (longest_side > BSP_BLOCK_SIZE) {
 		node->contents = CONTENTS_BLOCK;
 
 		if (!brushes) {

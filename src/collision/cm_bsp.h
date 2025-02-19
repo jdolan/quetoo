@@ -73,8 +73,6 @@ typedef enum {
 	BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
 	BSP_LIGHTMAP_DIFFUSE,
-	BSP_LIGHTMAP_DIRECTION,
-	BSP_LIGHTMAP_CAUSTICS,
 	BSP_LIGHTMAP_LAST,
 } bsp_lightmap_texture_t;
 
@@ -100,7 +98,6 @@ typedef enum {
 	BSP_LIGHTGRID_FIRST,
 	BSP_LIGHTGRID_AMBIENT = BSP_LIGHTGRID_FIRST,
 	BSP_LIGHTGRID_DIFFUSE,
-	BSP_LIGHTGRID_DIRECTION,
 	BSP_LIGHTGRID_CAUSTICS,
 	BSP_LIGHTGRID_FOG,
 	BSP_LIGHTGRID_LAST
@@ -356,18 +353,6 @@ typedef struct {
 } bsp_face_t;
 
 /**
- * @brief The BSP block node size.
- */
-#define BSP_BLOCK_NODE_SIZE 1024.f
-
-/**
- * @brief The maximum number of light sources that may occupy a single node. Lightmap textures
- * will reference light sources by their node-level index. This allows > 255 light sources per
- * map while still storing light source references in 8-bit-per-channel textures.
- */
-#define BSP_MAX_NODE_LIGHTS 255
-
-/**
  * @brief The BSP node type.
  * @details Nodes are created by planes in the .map file, selected by a heuristic that prefers
  * planes which include visible faces and split as few brushes as possible.
@@ -476,6 +461,18 @@ typedef struct {
 } bsp_draw_elements_t;
 
 /**
+ * @brief The BSP block node size.
+ */
+#define BSP_BLOCK_SIZE 1024.f
+
+/**
+ * @brief The maximum number of light sources that may occupy a single block. Lightmap textures
+ * will reference light sources by their node-level index. This allows > 255 light sources per
+ * map while still storing light source references in 8-bit-per-channel textures.
+ */
+#define BSP_MAX_BLOCK_LIGHTS 256
+
+/**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
  * rendering operations.
  */
@@ -501,7 +498,7 @@ typedef struct {
 	 * This allows a given map to have > 255 light sources, while only requiring 8 bits per channel
 	 * for lightmap and lightgrid textures.
 	 */
-	int32_t lights[BSP_MAX_NODE_LIGHTS];
+	int32_t lights[BSP_MAX_BLOCK_LIGHTS];
 
 	/**
 	 * @brief The count of light sources within this block.

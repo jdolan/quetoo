@@ -42,7 +42,6 @@ void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_SPOT:
 		case LIGHT_BRUSH_SIDE: {
 			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
-			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
 
 			lumen_t *out;
 			size_t i;
@@ -71,7 +70,7 @@ void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 	}
 
 	// append the luxel origin to the light's visible bounds
-	lumen->light->visible_bounds = Box3_Append(lumen->light->visible_bounds, luxel->origin);
+	lumen->light->bounds = Box3_Append(lumen->light->bounds, luxel->origin);
 }
 
 /**
@@ -81,21 +80,55 @@ static int32_t LumenCompare(const void *a, const void *b) {
 	const lumen_t *x = a;
 	const lumen_t *y = b;
 
-	return y->lumens - x->lumens;
+	return (int32_t) (1000.f * (y->lumens - x->lumens));
 }
 
 /**
- * @brief
+ * @brief Resolve the block-level light index for the given luxel and lumen.
+ * @details If the light is not yet present in the block, append it. The returned index is
+ * guaranteed to fit into an 8 bit value for texture encoding.
+ */
+static int32_t BlockLightForLumen(const luxel_t *luxel, const lumen_t *lumen) {
+
+	if (lumen->light) {
+
+		const int32_t index = LightIndex(lumen->light);
+		assert(index >= 0);
+		assert(lumen->light->type > LIGHT_AMBIENT);
+		assert(lumen->light->type < LIGHT_INDIRECT);
+
+		bsp_block_t *block = luxel->block;
+
+		for (int32_t i = 1; i < block->num_lights; i++) {
+			if (block->lights[i] == index) {
+				return i;
+			}
+		}
+
+		if (block->num_lights == BSP_MAX_BLOCK_LIGHTS) {
+			Mon_SendPoint(MON_ERROR, luxel->origin, "BSP_MAX_BLOCK_LIGHTS\n");
+		}
+
+		block->lights[block->num_lights++] = index;
+		return block->num_lights - 1;
+	} else {
+		return 0;
+	}
+}
+
+/**
+ * @brief Sort the lumens and populate luxel->lights with block-level indexes.
  */
 void FinalizeLuxel(luxel_t *luxel) {
 
 	qsort(luxel->lumens, lengthof(luxel->lumens), sizeof(lumen_t), LumenCompare);
 
-	for (size_t i = 3; i < lengthof(luxel->lumens); i++) {
+	const lumen_t *lumen = luxel->lumens;
+	for (size_t i = 0; i < lengthof(luxel->lumens) && lumen->light; i++, lumen++) {
 
-		const lumen_t *lumen = &luxel->lumens[i];
-		if (lumen->light) {
-
+		if (i < 4) {
+			luxel->lights.bytes[i] = (uint8_t) BlockLightForLumen(luxel, lumen);
+		} else {
 			const vec3_t color = Vec3_Scale(lumen->light->color, lumen->light->intensity);
 			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
 		}
@@ -118,17 +151,6 @@ SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *l
 	surface->pixels = luxels;
 
 	return surface;
-}
-
-/**
- * @brief
- */
-uint16_t LightSourceForLumen(const lumen_t *lumen) {
-	if (lumen->light) {
-		return (uint16_t) (ptrdiff_t) (lumen->light->out - bsp_file.lights);
-	} else {
-		return 0;
-	}
 }
 
 /**
@@ -219,21 +241,6 @@ int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name) {
 			for (int32_t x = 0; x < in->w; x++) {
 				for (int32_t y = 0; y < in->h; y++) {
 					*out_luxel++ = *in_luxel++;
-				}
-			}
-		}
-			break;
-
-		case sizeof(uint16_t): {
-			const uint16_t *in_luxel = (uint16_t *) in->pixels;
-
-			out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
-			color24_t *out_luxel = (color24_t *) out->pixels;
-
-			for (int32_t x = 0; x < in->w; x++) {
-				for (int32_t y = 0; y < in->h; y++) {
-					const float f = *in_luxel++ / (float) UINT16_MAX;
-					*out_luxel++ = Color_Color24(Color3f(f, f, f));
 				}
 			}
 		}
