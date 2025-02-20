@@ -402,6 +402,10 @@ static void R_InitShadowFramebuffer(void) {
  */
 void R_InitShadows(void) {
 
+	if (!r_shadowmap->value) {
+		return;
+	}
+
 	R_InitShadowProgram();
 
 	R_InitShadowTextures();
@@ -413,6 +417,10 @@ void R_InitShadows(void) {
  * @brief
  */
 static void R_ShutdownShadowProgram(void) {
+
+	if (!r_shadow_program.name) {
+		return;
+	}
 
 	glDeleteProgram(r_shadow_program.name);
 
