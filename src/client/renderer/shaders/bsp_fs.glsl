@@ -120,22 +120,22 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	if (material.parallax == 0.0) {
-		return 1.0;
-	}
-
-	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
-	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.002));
-	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-
-	do {
-		texcoord += delta;
-		float sample_height = sample_heightmap(texcoord.xy);
-		if (sample_height > texcoord.z * 1.05) {
-			return distance(fragment.parallax, texcoord.xy);
-		}
-	} while (texcoord.z < 1.0);
+//	if (material.parallax == 0.0) {
+//		return 1.0;
+//	}
+//
+//	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+//	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
+//	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.002));
+//	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+//
+//	do {
+//		texcoord += delta;
+//		float sample_height = sample_heightmap(texcoord.xy);
+//		if (sample_height > texcoord.z * 1.05) {
+//			return distance(fragment.parallax, texcoord.xy);
+//		}
+//	} while (texcoord.z < 1.0);
 
 	return 1.0;
 }
@@ -198,8 +198,9 @@ vec3 sample_lightmap_ambient() {
 /**
  * @brief
  */
-uvec4 sample_lightmap_diffuse() {
-	return texture(texture_lightmap_diffuse, vertex.lightmap);
+uvec4 sample_lightmap_diffuse(vec2 offset) {
+	vec2 luxel = vec2(1.0) / textureSize(texture_lightmap_diffuse, 0);
+	return texture(texture_lightmap_diffuse, vertex.lightmap + (offset * luxel));
 }
 
 /**
@@ -331,8 +332,6 @@ void light_and_shadow_point(in light_t light, in int index) {
 			break;
 	}
 
-	diffuse *= atten; // FIXME: This helps avoid harsh falloff
-
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
@@ -373,8 +372,6 @@ void light_and_shadow_spot(in light_t light, in int index) {
 			break;
 	}
 
-	diffuse *= atten; // FIXME: This helps avoid harsh falloff
-
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
 	if (lambert <= 0.0) {
@@ -414,8 +411,6 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
 			diffuse *= atten * atten;
 			break;
 	}
-
-	diffuse *= atten; // FIXME: This helps avoid harsh falloff
 
 	vec3 light_dir = normalize(light.position.xyz - vertex.position);
 	float lambert = dot(light_dir, fragment.normalmap);
@@ -512,11 +507,31 @@ void light_and_shadow(void) {
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
 
-	uvec4 diffuse = sample_lightmap_diffuse();
+	uvec4 diffuse = sample_lightmap_diffuse(vec2(0));
+	vec4 scale = vec4(1.0);
+
+	if (developer == 1) {
+		scale = vec4(0.0);
+		for (int i = -2; i <= 2; i++) {
+			for (int j = -2; j <= 2; j++) {
+				uvec4 luxel = sample_lightmap_diffuse(vec2(i * 0.25, j * 0.25));
+				for (int k = 0; k < 4; k++) {
+					if (diffuse[k] == luxel.r ||
+						diffuse[k] == luxel.g ||
+						diffuse[k] == luxel.b ||
+						diffuse[k] == luxel.a) {
+						scale[k]++;
+					}
+				}
+			}
+		}
+		scale /= 25.0;
+	}
 
 	for (int i = 0; i < 4 && diffuse[i] > 0; i++) {
 
 		light_t light = lights[diffuse[i]];
+		light.color.a *= pow(scale[i], 3.0);
 
 		int type = int(light.position.w);
 		switch (type) {
