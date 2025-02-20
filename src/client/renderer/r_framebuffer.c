@@ -64,7 +64,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 		case ATTACHMENT_BLUR_X:
 		case ATTACHMENT_BLUR_Y:
 		case ATTACHMENT_POST:
-			return R_CreateFramebufferTexture(f, GL_RGBA32F, GL_RGBA, GL_FLOAT);
+			return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 		case ATTACHMENT_DEPTH:
 		case ATTACHMENT_DEPTH_COPY:
 			return R_CreateFramebufferTexture(f, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
