@@ -693,17 +693,6 @@ typedef struct {
 	int32_t num_draw_elements;
 
 	/**
-	 * @brief The array of light sources present within this block.
-	 * @remarks Lightmap and lightgrid diffuse textures will reference the indexes of this array.
-	 */
-	r_bsp_light_t **lights;
-
-	/**
-	 * @brief The count of lights, `< MAX_BSP_BLOCK_LIGHTS`.
-	 */
-	int32_t num_lights;
-
-	/**
 	 * @brief The visible bounds of this block, used for occlusion query and culling.
 	 * @remarks This is different from the node's bounds, and the node's visible bounds.
 	 */
@@ -787,9 +776,14 @@ typedef struct {
 	r_image_t *ambient;
 
 	/**
-	 * @brief The diffuse atlas (RGBA8).
+	 * @brief The diffuse atlas (RGB8).
 	 */
 	r_image_t *diffuse;
+
+	/**
+	 * @brief The direction atlas (RG16 signed normalized).
+	 */
+	r_image_t *direction;
 
 	/**
 	 * @brief The stain atlas (RGBA8).
@@ -825,6 +819,11 @@ typedef struct {
 	 * @brief The diffuse 3D texture (RGBA8).
 	 */
 	r_image_t *diffuse;
+
+	/**
+	 * @brief The direction 3D texture (RG16 normalized).
+	 */
+	r_image_t *direction;
 
 	/**
 	 * @brief The caustics 3D texture (RGB8).
@@ -1876,6 +1875,7 @@ typedef enum {
 	TEXTURE_LIGHTMAP,
 	TEXTURE_LIGHTMAP_AMBIENT = TEXTURE_LIGHTMAP,
 	TEXTURE_LIGHTMAP_DIFFUSE,
+	TEXTURE_LIGHTMAP_DIRECTION,
 	TEXTURE_LIGHTMAP_STAINS,
 
 	/**
@@ -1884,6 +1884,7 @@ typedef enum {
 	TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_DIFFUSE,
+	TEXTURE_LIGHTGRID_DIRECTION,
 	TEXTURE_LIGHTGRID_CAUSTICS,
 	TEXTURE_LIGHTGRID_FOG,
 

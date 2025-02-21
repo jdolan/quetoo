@@ -1136,6 +1136,18 @@ static inline void SinCosf(const float rad, float *s, float *c) {
 }
 
 /**
+ * @brief Encodes the normalized directional vector `v` into a `vec2s_t`.
+ * @details This is useful for encoding directional vectors in textures, where 32 bits formats
+ * are widely supported. The Z component of the vector can be regenerated.
+ */
+static inline vec2s_t Vec3_Vec2s(const vec3_t v) {
+	return (vec2s_t) {
+		.x = v.x * INT16_MAX,
+		.y = v.y * INT16_MAX
+	};
+}
+
+/**
  * @return The forward, right and up vectors for the euler angles in radians.
  */
 static inline void Vec3_Vectors(const vec3_t euler, vec3_t *forward, vec3_t *right, vec3_t *up) {

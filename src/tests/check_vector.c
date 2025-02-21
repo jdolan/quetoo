@@ -156,6 +156,24 @@ START_TEST(_Vec4_Bytes) {
 	assert_vec4_eq(g, h);
 } END_TEST
 
+START_TEST(_Vec3_Vec2s) {
+
+	{
+		const vec3_t in = Vec3(0.f, 0.f, 1.f);
+		const vec2s_t out = Vec3_Vec2s(in);
+		ck_assert_int_eq(0, out.x);
+		ck_assert_int_eq(0, out.y);
+	}
+
+	{
+		const vec3_t in = Vec3(1.f, 0.f, 0.f);
+		const vec2s_t out = Vec3_Vec2s(in);
+		ck_assert_int_eq(INT16_MAX, out.x);
+		ck_assert_int_eq(0, out.y);
+	}
+
+} END_TEST
+
 int32_t main(int32_t argc, char **argv) {
 
 	Suite *suite = suite_create("check_vector");
@@ -185,6 +203,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, _Vec3_Subtract);
 	tcase_add_test(tcase, _Vec3_Scale);
 	tcase_add_test(tcase, _Vec3_Up);
+	tcase_add_test(tcase, _Vec3_Vec2s);
 
 	suite_add_tcase(suite, tcase);
 

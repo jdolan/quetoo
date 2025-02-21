@@ -156,7 +156,7 @@ static inline color_t __attribute__ ((warn_unused_result)) Color3bv(uint32_t rgb
 }
 
 /**
- * @return A color with the specified unclamped RGBA floating point values. Note that the resulting color is clamped.
+ * @return A color with the specified unclamped RGBA floating point values.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4f(float r, float g, float b, float a) {
 	return (color_t) {

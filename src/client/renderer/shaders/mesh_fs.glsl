@@ -47,7 +47,6 @@ struct fragment_t {
 	vec3 tangent;
 	vec3 bitangent;
 	mat3 tbn;
-	mat3 inverse_tbn;
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
@@ -358,7 +357,6 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-	fragment.inverse_tbn = inverse(fragment.tbn);
 	fragment.direction = normalize(vertex.direction);
 	fragment.specular = vec3(0);
 

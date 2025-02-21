@@ -45,6 +45,7 @@ typedef struct {
 	size_t num_luxels;
 	SDL_Surface *ambient;
 	SDL_Surface *diffuse;
+	SDL_Surface *direction;
 } lightmap_t;
 
 extern lightmap_t *lightmaps;

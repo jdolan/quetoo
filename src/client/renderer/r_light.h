@@ -122,7 +122,6 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
-void R_UpdateLightsForBspBlock(const r_view_t *view, const r_bsp_block_t *block);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

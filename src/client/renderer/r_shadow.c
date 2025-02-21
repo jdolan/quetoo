@@ -273,6 +273,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
  */
 void R_DrawShadows(const r_view_t *view) {
 
+	if (!r_shadow_program.name) {
+		return;
+	}
+
 	if (!r_shadowmap->integer) {
 		return;
 	}

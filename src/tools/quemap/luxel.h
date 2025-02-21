@@ -38,6 +38,11 @@ typedef struct lumen_s {
 	light_t *light;
 
 	/**
+	 * @brief The light direction from the relevant sample point.
+	 */
+	vec3_t direction;
+
+	/**
 	 * @brief The amount of light that reached the luxel.
 	 */
 	float lumens;
@@ -47,20 +52,17 @@ typedef struct lumen_s {
  * @brief Luxels are individual lightmap or lightgrid pixels.
  */
 typedef struct {
-	bsp_block_t *block;
 	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
 	vec3_t ambient;
 	vec3_t diffuse;
-	color32_t lights;
-	lumen_t lumens[MAX_LUXEL_LUMENS];
+	vec3_t direction;
 	vec3_t caustics;
 	vec4_t fog;
 } luxel_t;
 
 extern void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen);
-extern void FinalizeLuxel(luxel_t *luxel);
 extern SDL_Surface *CreateLuxelSurface(int32_t w, int32_t h, size_t luxel_size, void *luxels);
 extern int32_t BlitLuxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect);
 extern int32_t WriteLuxelSurface(const SDL_Surface *in, const char *name);

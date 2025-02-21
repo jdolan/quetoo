@@ -95,17 +95,6 @@ static void BuildLightgridLuxels(void) {
 				l->u = u;
 
 				ProjectLightgridLuxel(l, 0.f, 0.f, 0.f);
-
-				bsp_block_t *block = bsp_file.blocks;
-				for (int32_t i = 0; i < bsp_file.num_blocks; i++, block++) {
-					const bsp_node_t *node = &bsp_file.nodes[block->node];
-					if (Box3_ContainsPoint(node->bounds, l->origin)) {
-						l->block = block;
-						break;
-					}
-				}
-
-				assert(l->block);
 			}
 		}
 	}
@@ -190,6 +179,7 @@ static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
+			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -230,6 +220,7 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
+			.direction = Vec3_Direction(light->points[i], luxel->origin),
 			.lumens = lumens,
 		});
 	}
@@ -282,6 +273,7 @@ static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
+			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -338,6 +330,7 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
+			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -634,7 +627,9 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel_t *luxel = &lg.luxels[luxel_num];
 
-	FinalizeLuxel(luxel);
+	luxel->direction = Vec3_Normalize(luxel->direction);
+
+	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
 }
 
 /**
@@ -644,7 +639,8 @@ void EmitLightgrid(void) {
 
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
@@ -658,8 +654,11 @@ void EmitLightgrid(void) {
 	color24_t *out_ambient = (color24_t *) out;
 	out += lg.num_luxels * sizeof(color24_t);
 
-	color32_t *out_diffuse = (color32_t *) out;
-	out += lg.num_luxels * sizeof(color32_t);
+	color24_t *out_diffuse = (color24_t *) out;
+	out += lg.num_luxels * sizeof(color24_t);
+
+	color24_t *out_direction = (color24_t *) out;
+	out += lg.num_luxels * sizeof(color24_t);
 
 	color24_t *out_caustics = (color24_t *) out;
 	out += lg.num_luxels * sizeof(color24_t);
@@ -671,7 +670,8 @@ void EmitLightgrid(void) {
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
 		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_ambient);
-		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_diffuse);
+		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_diffuse);
+		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_direction);
 		SDL_Surface *caustics = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_caustics);
 		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
@@ -679,7 +679,8 @@ void EmitLightgrid(void) {
 			for (int32_t s = 0; s < lg.size.x; s++, luxel++) {
 
 				*out_ambient++ = Color_Color24(Color3fv(luxel->ambient));
-				*out_diffuse++ = luxel->lights;
+				*out_diffuse++ = Color_Color24(Color3fv(luxel->diffuse));
+				*out_direction++ = Color24i(Vec3_Bytes(luxel->direction));
 				*out_caustics++ = Color_Color24(Color3fv(luxel->caustics));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
@@ -688,12 +689,14 @@ void EmitLightgrid(void) {
 		if (debug) {
 			WriteLuxelSurface(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
+			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 			WriteLuxelSurface(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
+		SDL_FreeSurface(direction);
 		SDL_FreeSurface(caustics);
 		SDL_FreeSurface(fog);
 	}

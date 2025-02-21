@@ -325,17 +325,6 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 		out->node = bsp->nodes + in->node;
 		out->draw_elements = bsp->draw_elements + in->first_draw_element;
 		out->num_draw_elements = in->num_draw_elements;
-
-		out->num_lights = in->num_lights;
-		if (out->num_lights) {
-
-			out->lights = Mem_LinkMalloc(sizeof(r_bsp_light_t *) * out->num_lights, bsp);
-
-			for (int32_t j = 0; j < out->num_lights; j++) {
-				out->lights[j] = bsp->lights + in->lights[j];
-			}
-		}
-
 		out->visible_bounds = in->visible_bounds;
 	}
 }
@@ -409,16 +398,34 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->diffuse->height = out->width;
 	out->diffuse->target = GL_TEXTURE_2D;
 	out->diffuse->levels = levels;
-	out->diffuse->minify = GL_NEAREST;
-	out->diffuse->magnify = GL_NEAREST;
-	out->diffuse->internal_format = GL_RGBA8UI;
-	out->diffuse->format = GL_RGBA_INTEGER;
+	out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
+	out->diffuse->magnify = GL_LINEAR;
+	out->diffuse->internal_format = GL_RGB8;
+	out->diffuse->format = GL_RGB;
 	out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-	data += out->width * out->width * sizeof(color32_t);
+	data += out->width * out->width * sizeof(color24_t);
+
+	out->direction = (r_image_t *) R_AllocMedia("lightmap_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->direction->media.Free = R_FreeImage;
+	out->direction->type = IMG_LIGHTMAP;
+	out->direction->width = out->width;
+	out->direction->height = out->width;
+	out->direction->target = GL_TEXTURE_2D;
+	out->direction->levels = levels;
+	out->direction->minify = GL_LINEAR_MIPMAP_LINEAR;
+	out->direction->magnify = GL_LINEAR;
+	out->direction->internal_format = GL_RG16_SNORM;
+	out->direction->format = GL_RG;
+	out->direction->pixel_type = GL_SHORT;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIRECTION);
+
+	R_UploadImage(out->direction, data);
+	data += out->width * out->width * sizeof(vec2s_t);
 
 	out->stains = (r_image_t *) R_AllocMedia("lightmap_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->stains->media.Free = R_FreeImage;
@@ -504,7 +511,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	R_UploadImage(out->ambient, data);
 	data += luxels * sizeof(color24_t);
 
-	const color32_t *diffuse = (color32_t *) data;
+	const color24_t *diffuse = (color24_t *) data;
 
 	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->diffuse->media.Free = R_FreeImage;
@@ -514,16 +521,35 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->diffuse->depth = out->size.z;
 	out->diffuse->target = GL_TEXTURE_3D;
 	out->diffuse->levels = levels;
-	out->diffuse->minify = GL_NEAREST;
-	out->diffuse->magnify = GL_NEAREST;
-	out->diffuse->internal_format = GL_RGBA8UI;
-	out->diffuse->format = GL_RGBA_INTEGER;
+	out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
+	out->diffuse->magnify = GL_LINEAR;
+	out->diffuse->internal_format = GL_RGB8;
+	out->diffuse->format = GL_RGB;
 	out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-	data += luxels * sizeof(color32_t);
+	data += luxels * sizeof(color24_t);
+
+	out->direction = (r_image_t *) R_AllocMedia("lightgrid_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->direction->media.Free = R_FreeImage;
+	out->direction->type = IMG_LIGHTGRID;
+	out->direction->width = out->size.x;
+	out->direction->height = out->size.y;
+	out->direction->depth = out->size.z;
+	out->direction->target = GL_TEXTURE_3D;
+	out->direction->levels = levels;
+	out->direction->minify = GL_LINEAR_MIPMAP_LINEAR;
+	out->direction->magnify = GL_LINEAR;
+	out->direction->internal_format = GL_RGB8;
+	out->direction->format = GL_RGB;
+	out->direction->pixel_type = GL_UNSIGNED_BYTE;
+
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
+
+	R_UploadImage(out->direction, data);
+	data += luxels * sizeof(color24_t);
 
 	out->caustics = (r_image_t *) R_AllocMedia("lightgrid_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->caustics->media.Free = R_FreeImage;
@@ -567,7 +593,9 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	out->exposure = Mem_LinkMalloc(luxels * sizeof(float), out);
 	for (size_t i = 0; i < luxels; i++) {
-		out->exposure[i] = 0.5f;//Vec3_Hmaxf(Vec3_Add(Color24_Color(ambient[i]).vec3, diffuse[i]));
+		const vec3_t amb = Color24_Color(ambient[i]).vec3;
+		const vec3_t dif = Color24_Color(diffuse[i]).vec3;
+		out->exposure[i] = Vec3_Hmaxf(Vec3_Add(amb, dif));
 	}
 }
 

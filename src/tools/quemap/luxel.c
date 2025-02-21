@@ -40,29 +40,9 @@ void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 		case LIGHT_SUN:
 		case LIGHT_POINT:
 		case LIGHT_SPOT:
-		case LIGHT_BRUSH_SIDE: {
+		case LIGHT_BRUSH_SIDE:
 			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
-
-			lumen_t *out;
-			size_t i;
-
-			for (i = 0, out = luxel->lumens; i < lengthof(luxel->lumens); i++, out++) {
-				if (out->light == lumen->light) {
-					out->lumens += lumen->lumens;
-					break;
-				}
-
-				if (out->light == NULL) {
-					*out = *lumen;
-					break;
-				}
-			}
-
-			if (i == lengthof(luxel->lumens)) {
-				Mon_SendPoint(MON_WARN, luxel->origin, "MAX_LUXEL_LUMENS");
-			}
-		}
-
+			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
 			break;
 		
 		default:
@@ -71,70 +51,6 @@ void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 
 	// append the luxel origin to the light's visible bounds
 	lumen->light->bounds = Box3_Append(lumen->light->bounds, luxel->origin);
-}
-
-/**
- * @brief
- */
-static int32_t LumenCompare(const void *a, const void *b) {
-	const lumen_t *x = a;
-	const lumen_t *y = b;
-
-	return (int32_t) (1000.f * (y->lumens - x->lumens));
-}
-
-/**
- * @brief Resolve the block-level light index for the given luxel and lumen.
- * @details If the light is not yet present in the block, append it. The returned index is
- * guaranteed to fit into an 8 bit value for texture encoding.
- */
-static int32_t BlockLightForLumen(const luxel_t *luxel, const lumen_t *lumen) {
-
-	if (lumen->light) {
-
-		const int32_t index = LightIndex(lumen->light);
-		assert(index >= 0);
-		assert(lumen->light->type > LIGHT_AMBIENT);
-		assert(lumen->light->type < LIGHT_INDIRECT);
-
-		bsp_block_t *block = luxel->block;
-
-		for (int32_t i = 1; i < block->num_lights; i++) {
-			if (block->lights[i] == index) {
-				return i;
-			}
-		}
-
-		if (block->num_lights == BSP_MAX_BLOCK_LIGHTS) {
-			Mon_SendPoint(MON_ERROR, luxel->origin, "BSP_MAX_BLOCK_LIGHTS\n");
-		}
-
-		block->lights[block->num_lights++] = index;
-		return block->num_lights - 1;
-	} else {
-		return 0;
-	}
-}
-
-/**
- * @brief Sort the lumens and populate luxel->lights with block-level indexes.
- */
-void FinalizeLuxel(luxel_t *luxel) {
-
-	qsort(luxel->lumens, lengthof(luxel->lumens), sizeof(lumen_t), LumenCompare);
-
-	const lumen_t *lumen = luxel->lumens;
-	for (size_t i = 0; i < lengthof(luxel->lumens) && lumen->light; i++, lumen++) {
-
-		if (i < 4) {
-			luxel->lights.bytes[i] = (uint8_t) BlockLightForLumen(luxel, lumen);
-		} else {
-			const vec3_t color = Vec3_Scale(lumen->light->color, lumen->light->intensity);
-			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
-		}
-	}
-
-	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
 }
 
 /**
