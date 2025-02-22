@@ -59,8 +59,8 @@ struct fragment_t {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
+	float caustics;
 	vec3 specular;
-	vec3 caustics;
 	vec4 fog;
 	vec3 stains;
 } fragment;
@@ -247,8 +247,8 @@ vec3 sample_lightgrid_direction() {
 /**
  * @brief
  */
-vec3 sample_lightgrid_caustics() {
-	return texture(texture_lightgrid_caustics, vertex.lightgrid).rgb;
+float sample_lightgrid_caustics() {
+	return texture(texture_lightgrid_direction, vertex.lightgrid).a;
 }
 
 /**
@@ -478,7 +478,9 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
  */
 void light_and_shadow_caustics() {
 
-	if (fragment.caustics == vec3(0.0)) {
+	fragment.caustics = sample_lightgrid_caustics();
+
+	if (fragment.caustics == 0.0) {
 		return;
 	}
 
@@ -492,7 +494,7 @@ void light_and_shadow_caustics() {
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
 	vec3 light = fragment.ambient + fragment.diffuse;
-	fragment.diffuse += max(vec3(0.0), light * length(fragment.caustics) * noise);
+	fragment.diffuse += max(vec3(0.0), light * fragment.caustics * noise);
 }
 
 /**
@@ -549,8 +551,6 @@ void light_and_shadow(void) {
 				break;
 		}
 	}
-
-	fragment.caustics = sample_lightgrid_caustics();
 
 	light_and_shadow_caustics();
 }

@@ -137,17 +137,14 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 	const size_t num_luxels = lg->size.x * lg->size.y * lg->size.z;
 
-	const color24_t *ambient = (color24_t *) in;
-	in += num_luxels * sizeof(color24_t);
+	const rgb9e5 *ambient = (rgb9e5 *) in;
+	in += num_luxels * sizeof(rgb9e5);
 
-	const vec3_t *diffuse = (vec3_t *) in;
-	in += num_luxels * sizeof(vec3_t);
+	const rgb9e5 *diffuse = (rgb9e5 *) in;
+	in += num_luxels * sizeof(rgb9e5);
 
-	const color24_t *direction = (color24_t *) in;
-	in += num_luxels * sizeof(color24_t);
-
-	const color24_t *caustics = (color24_t *) in;
-	in += num_luxels * sizeof(color24_t);
+	const color32_t *direction = (color32_t *) in;
+	in += num_luxels * sizeof(color32_t);
 
 	const color32_t *fog = (color32_t *) in;
 	in += num_luxels * sizeof(color32_t);
@@ -156,7 +153,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 	for (int32_t u = 0; u < lg->size.z; u++) {
 		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, direction++, caustics++, fog++) {
+			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, direction++, fog++) {
 
 				if (s & 1 || t & 1 || u & 1) {
 					continue;
@@ -173,7 +170,8 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				if (r_draw_bsp_lightgrid->integer == 1) {
 
-					const color_t color = Color24_Color(*ambient);
+					color_t color;
+					rgb9e5_to_float3(*ambient, color.vec3.xyz);
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
@@ -187,7 +185,8 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				} else if (r_draw_bsp_lightgrid->integer == 2) {
 
-					const color_t color = Color3fv(*diffuse);
+					color_t color;
+					rgb9e5_to_float3(*diffuse, color.vec3.xyz);
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
@@ -201,7 +200,11 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				}  else if (r_draw_bsp_lightgrid->integer == 3) {
 
-					const color_t color = Color_Add(Color24_Color(*ambient), Color3fv(*diffuse));
+					vec3_t a, d;
+					rgb9e5_to_float3(*ambient, a.xyz);
+					rgb9e5_to_float3(*diffuse, d.xyz);
+
+					const color_t color = Color3fv(Vec3_Add(a, d));
 
 					R_AddSprite(view, &(r_sprite_t) {
 						.origin = origin,
@@ -215,14 +218,14 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 
 				} else if (r_draw_bsp_lightgrid->integer == 4) {
 
-					const color_t color = Color24_Color(*caustics);
+					const vec4_t dir = Color32_Vec4(*direction);
 
-					if (color.r || color.g || color.b) {
+					if (dir.w) {
 
 						R_AddSprite(view, &(r_sprite_t) {
 							.origin = origin,
 							.size = 8.f,
-							.color = color,
+							.color = color_white,
 							.media = (r_media_t *) particle
 						});
 					}
@@ -647,7 +650,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_ambient = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_ambient");
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
-	r_bsp_program.texture_lightgrid_caustics = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_caustics");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
@@ -682,7 +684,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
-	glUniform1i(r_bsp_program.texture_lightgrid_caustics, TEXTURE_LIGHTGRID_CAUSTICS);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
 	glUniform1i(r_bsp_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);

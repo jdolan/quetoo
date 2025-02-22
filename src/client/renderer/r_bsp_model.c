@@ -542,33 +542,14 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->direction->levels = levels;
 	out->direction->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->direction->magnify = GL_LINEAR;
-	out->direction->internal_format = GL_RGB8;
-	out->direction->format = GL_RGB;
+	out->direction->internal_format = GL_RGBA8;
+	out->direction->format = GL_RGBA;
 	out->direction->pixel_type = GL_UNSIGNED_BYTE;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIRECTION);
 
 	R_UploadImage(out->direction, data);
-	data += luxels * sizeof(color24_t);
-
-	out->caustics = (r_image_t *) R_AllocMedia("lightgrid_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
-	out->caustics->media.Free = R_FreeImage;
-	out->caustics->type = IMG_LIGHTGRID;
-	out->caustics->width = out->size.x;
-	out->caustics->height = out->size.y;
-	out->caustics->depth = out->size.z;
-	out->caustics->target = GL_TEXTURE_3D;
-	out->caustics->levels = levels;
-	out->caustics->minify = GL_LINEAR_MIPMAP_LINEAR;
-	out->caustics->magnify = GL_LINEAR;
-	out->caustics->internal_format = GL_RGB8;
-	out->caustics->format = GL_RGB;
-	out->caustics->pixel_type = GL_UNSIGNED_BYTE;
-
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_CAUSTICS);
-
-	R_UploadImage(out->caustics, data);
-	data += luxels * sizeof(color24_t);
+	data += luxels * sizeof(color32_t);
 
 	out->fog = (r_image_t *) R_AllocMedia("lightgrid_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->fog->media.Free = R_FreeImage;
@@ -778,7 +759,6 @@ static void R_RegisterBspModel(r_media_t *self) {
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->ambient);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->direction);
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->caustics);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->fog);
 
 	r_world_model = mod;

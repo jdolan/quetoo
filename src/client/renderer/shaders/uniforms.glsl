@@ -272,7 +272,6 @@ uniform sampler2D texture_lightmap_stains;
 uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_caustics;
 uniform sampler3D texture_lightgrid_fog;
 
 /**

@@ -644,8 +644,7 @@ void EmitLightgrid(void) {
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(rgb9e5);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(rgb9e5);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color24_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
@@ -661,11 +660,8 @@ void EmitLightgrid(void) {
 	rgb9e5 *out_diffuse = (rgb9e5 *) out;
 	out += lg.num_luxels * sizeof(rgb9e5);
 
-	color24_t *out_direction = (color24_t *) out;
-	out += lg.num_luxels * sizeof(color24_t);
-
-	color24_t *out_caustics = (color24_t *) out;
-	out += lg.num_luxels * sizeof(color24_t);
+	color32_t *out_direction = (color32_t *) out;
+	out += lg.num_luxels * sizeof(color32_t);
 
 	color32_t *out_fog = (color32_t *) out;
 	out += lg.num_luxels * sizeof(color32_t);
@@ -675,8 +671,7 @@ void EmitLightgrid(void) {
 
 		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(rgb9e5), out_ambient);
 		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(rgb9e5), out_diffuse);
-		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_direction);
-		SDL_Surface *caustics = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color24_t), out_caustics);
+		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_direction);
 		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
@@ -684,8 +679,11 @@ void EmitLightgrid(void) {
 
 				*out_ambient++ = float3_to_rgb9e5(luxel->ambient.xyz);
 				*out_diffuse++ = float3_to_rgb9e5(luxel->diffuse.xyz);
-				*out_direction++ = Color24i(Vec3_Bytes(luxel->direction));
-				*out_caustics++ = Color_Color24(Color3fv(luxel->caustics));
+
+				color32_t out = Color32i(Vec3_Bytes(luxel->direction));
+				out.a = Minf(Vec3_Length(luxel->caustics), 1.f) * 255.f;
+
+				*out_direction++ = out;
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
 		}
@@ -694,14 +692,12 @@ void EmitLightgrid(void) {
 			WriteLuxelSurface(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
-			WriteLuxelSurface(caustics, va("/tmp/%s_lg_caustics_%d.png", map_base, u));
 			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 		}
 
 		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(direction);
-		SDL_FreeSurface(caustics);
 		SDL_FreeSurface(fog);
 	}
 }

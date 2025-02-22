@@ -33,7 +33,7 @@ in vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustics;
+	float caustics;
 	vec4 fog;
 } in_vertex[];
 
@@ -48,7 +48,7 @@ out geometry_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustics;
+	float caustics;
 	vec4 fog;
 
 	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];

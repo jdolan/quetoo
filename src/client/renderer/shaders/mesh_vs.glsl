@@ -45,7 +45,7 @@ out vertex_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustics;
+	float caustics;
 	vec4 fog;
 } vertex;
 
@@ -76,8 +76,8 @@ vec3 sample_lightgrid_direction(in vec3 texcoord) {
 /**
  * @brief
  */
-vec3 sample_lightgrid_caustics(in vec3 texcoord) {
-	return texture(texture_lightgrid_caustics, texcoord).rgb;
+float sample_lightgrid_caustics(in vec3 texcoord) {
+	return texture(texture_lightgrid_direction, texcoord).a;
 }
 
 /**

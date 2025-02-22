@@ -30,7 +30,7 @@ in geometry_data {
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 direction;
-	vec3 caustics;
+	float caustics;
 	vec4 fog;
 
 	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
@@ -288,7 +288,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
  */
 void light_and_shadow_caustics() {
 
-	if (vertex.caustics == vec3(0.0)) {
+	if (vertex.caustics == 0.0) {
 		return;
 	}
 
@@ -302,7 +302,7 @@ void light_and_shadow_caustics() {
 	noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
 	vec3 light = fragment.ambient + fragment.diffuse;
-	fragment.diffuse += max(vec3(0.0), light * length(vertex.caustics) * noise);
+	fragment.diffuse += max(vec3(0.0), light * vertex.caustics * noise);
 }
 
 /**

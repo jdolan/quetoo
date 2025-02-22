@@ -771,12 +771,12 @@ typedef struct {
 	int32_t width;
 
 	/**
-	 * @brief The ambient atlas (RGB8).
+	 * @brief The ambient atlas (RGB9E5).
 	 */
 	r_image_t *ambient;
 
 	/**
-	 * @brief The diffuse atlas (RGB8).
+	 * @brief The diffuse atlas (RGB9E5).
 	 */
 	r_image_t *diffuse;
 
@@ -811,24 +811,19 @@ typedef struct {
 	vec3_t luxel_size;
 
 	/**
-	 * @brief The ambient 3D texture (RGB8).
+	 * @brief The ambient 3D texture (RGB9E5).
 	 */
 	r_image_t *ambient;
 
 	/**
-	 * @brief The diffuse 3D texture (RGBA8).
+	 * @brief The diffuse 3D texture (RGB9E5).
 	 */
 	r_image_t *diffuse;
 
 	/**
-	 * @brief The direction 3D texture (RG16 normalized).
+	 * @brief The direction 3D texture (RGBA8, alpha contains caustics).
 	 */
 	r_image_t *direction;
-
-	/**
-	 * @brief The caustics 3D texture (RGB8).
-	 */
-	r_image_t *caustics;
 
 	/**
 	 * @brief The fog 3D texture (RGBA8).
@@ -1885,7 +1880,6 @@ typedef enum {
 	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_DIFFUSE,
 	TEXTURE_LIGHTGRID_DIRECTION,
-	TEXTURE_LIGHTGRID_CAUSTICS,
 	TEXTURE_LIGHTGRID_FOG,
 
 	/**
