@@ -769,12 +769,14 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->ambient);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->direction);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightmap->stains);
 
 	R_ResetBspLightmapStains(mod->bsp);
 
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->ambient);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->direction);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->caustics);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->fog);
 
