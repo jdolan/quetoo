@@ -24,33 +24,6 @@
 /**
  * @brief
  */
-static void R_LoadBspLights(r_bsp_model_t *bsp) {
-
-	const bsp_light_t *in = bsp->cm->file->lights;
-
-	bsp->num_lights = bsp->cm->file->num_lights;
-	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
-
-	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
-
-		out->type = in->type;
-		out->atten = in->atten;
-		out->origin = in->origin;
-		out->color = in->color;
-		out->normal = in->normal;
-		out->radius = in->radius;
-		out->size = in->size;
-		out->intensity = in->intensity;
-		out->shadow = in->shadow;
-		out->cone = in->cone;
-		out->falloff = in->falloff;
-		out->bounds = in->bounds;
-	}
-}
-
-/**
- * @brief
- */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 	r_bsp_plane_t *out;
 
@@ -357,6 +330,33 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->num_blocks = in->num_blocks;
 
 		R_SetupBspNode(out, NULL, out->head_node);
+	}
+}
+
+/**
+ * @brief
+ */
+static void R_LoadBspLights(r_bsp_model_t *bsp) {
+
+	const bsp_light_t *in = bsp->cm->file->lights;
+
+	bsp->num_lights = bsp->cm->file->num_lights;
+	r_bsp_light_t *out = bsp->lights = Mem_LinkMalloc(sizeof(*out) * bsp->num_lights, bsp);
+
+	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
+
+		out->type = in->type;
+		out->atten = in->atten;
+		out->origin = in->origin;
+		out->color = in->color;
+		out->normal = in->normal;
+		out->radius = in->radius;
+		out->size = in->size;
+		out->intensity = in->intensity;
+		out->shadow = in->shadow;
+		out->cone = in->cone;
+		out->falloff = in->falloff;
+		out->bounds = in->bounds;
 	}
 }
 
@@ -726,7 +726,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	// load in lumps that the renderer needs
 	Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
 
-	R_LoadBspLights(mod->bsp);
 	R_LoadBspPlanes(mod->bsp);
 	R_LoadBspMaterials(mod);
 	R_LoadBspBrushSides(mod->bsp);
@@ -740,6 +739,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspInlineModels(mod->bsp);
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
+	R_LoadBspLights(mod->bsp);
 	R_LoadBspLightmap(mod->bsp);
 	R_LoadBspLightgrid(mod);
 
