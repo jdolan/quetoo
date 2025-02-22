@@ -538,26 +538,27 @@ void light_and_shadow(void) {
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
-	for (int i = 0; i < num_lights; i++) {
+	for (int i = 0; i < vertex.num_active_lights; i++) {
 
-		light_t light = lights[i];
+		int index = vertex.active_lights[i];
+		light_t light = lights[index];
 
 		int type = int(light.position.w);
 		switch (type) {
 			case LIGHT_SUN:
-				light_and_shadow_sun(light, i);
+				light_and_shadow_sun(light, index);
 				break;
 			case LIGHT_POINT:
-				light_and_shadow_point(light, i);
+				light_and_shadow_point(light, index);
 				break;
 			case LIGHT_SPOT:
-				light_and_shadow_spot(light, i);
+				light_and_shadow_spot(light, index);
 				break;
 			case LIGHT_BRUSH_SIDE:
-				light_and_shadow_brush_side(light, i);
+				light_and_shadow_brush_side(light, index);
 				break;
 			case LIGHT_DYNAMIC:
-				light_and_shadow_dynamic(light, i);
+				light_and_shadow_dynamic(light, index);
 				break;
 			default:
 				break;
