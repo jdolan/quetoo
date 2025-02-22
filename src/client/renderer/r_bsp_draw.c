@@ -455,7 +455,7 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 /**
  * @brief Draws all opaque BSP inline model entities for the current view, including the world.
  */
-void R_DrawBspInlineEntitiesOpaqueDrawElements(const r_view_t *view) {
+void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
 	R_DrawSky(view, bsp);

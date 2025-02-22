@@ -140,7 +140,7 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view) {
 
-	R_DrawBspInlineEntitiesOpaqueDrawElements(view);
+	R_DrawOpaqueBspInlineEntities(view);
 
 	R_DrawMeshEntities(view);
 

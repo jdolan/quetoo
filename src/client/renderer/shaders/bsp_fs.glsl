@@ -450,7 +450,7 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	/*float radius = light.model.w;
+	float radius = light.model.w;
 	float size = light.mins.w;
 
 	float dist = distance(light.position.xyz, vertex.position);
@@ -482,8 +482,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 	diffuse *= shadow;
 
 	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);*/
-	fragment.diffuse = light.color.rgb;
+	fragment.specular += blinn_phong(diffuse, light_dir);
 }
 
 /**

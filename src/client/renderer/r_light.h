@@ -63,7 +63,7 @@ typedef struct {
 	vec4_t color;
 } r_light_uniform_t;
 
-#define MAX_LIGHT_UNIFORMS 320
+#define MAX_LIGHT_UNIFORMS 256
 
 /**
  * @brief The lights uniform block struct.
