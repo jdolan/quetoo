@@ -108,6 +108,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->bounds = Box3_Null();
 	light->visible_bounds = Box3_Null();
+	light->shadow = LIGHT_SHADOW;
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -166,6 +167,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE;
+	light->shadow = LIGHT_SHADOW;
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -230,6 +232,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->size = Cm_EntityValue(entity, "_size")->value ?: LIGHT_SIZE;
+	light->shadow = LIGHT_SHADOW;
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
