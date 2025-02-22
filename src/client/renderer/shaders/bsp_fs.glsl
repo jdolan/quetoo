@@ -310,22 +310,7 @@ float sample_shadowmap_cube(in light_t light, in int index) {
  */
 void light_and_shadow_sun(in light_t light, in int index) {
 
-	vec3 diffuse = light.color.rgb * light.color.a;
-
-	vec3 light_dir = light.normal.xyz;
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	diffuse *= lambert;
-
-	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
-
-	diffuse *= shadow;
-
-	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);
+	// TODO
 }
 
 /**
@@ -360,12 +345,12 @@ void light_and_shadow_point(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+	float shadow = -sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
 
 	diffuse *= shadow;
 
-	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -400,12 +385,12 @@ void light_and_shadow_spot(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+	float shadow = -sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
 
 	diffuse *= shadow;
 
-	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, light_dir);
 }
 
 /**
@@ -440,12 +425,12 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
+	float shadow = -sample_shadowmap_cube(light, index) + parallax_self_shadow(light_dir);
 
 	diffuse *= shadow;
 
-	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, light_dir);
 }
 
 /**
