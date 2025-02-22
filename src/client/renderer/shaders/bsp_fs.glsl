@@ -25,7 +25,7 @@
 uniform int model_type;
 uniform mat4 model;
 
-in vertex_data {
+in geometry_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
@@ -35,6 +35,9 @@ in vertex_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
+
+	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
+	flat int num_active_lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;

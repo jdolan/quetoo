@@ -4,6 +4,7 @@ shaders_DATA = \
 	blur_fs.glsl \
 	blur_vs.glsl \
 	bsp_fs.glsl \
+	bsp_gs.glsl \
 	bsp_vs.glsl \
 	common.glsl \
 	depth_pass_fs.glsl \
