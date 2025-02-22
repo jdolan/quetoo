@@ -32,6 +32,7 @@
 #include "installer.h"
 #include "mem.h"
 #include "mem_buf.h"
+#include "rgb9e5.h"
 #include "sys.h"
 #include "thread.h"
 

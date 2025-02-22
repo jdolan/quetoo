@@ -668,6 +668,9 @@
 		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEE750892D6A046C004CDBCA /* bsp_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEE750882D6A0440004CDBCA /* bsp_gs.glsl */; };
+		CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
+		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
+		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
@@ -1776,6 +1779,8 @@
 		CEE3FD672CF2630B00BDA5D8 /* libopenal.1.24.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.24.0.dylib; path = "../../../../usr/local/Cellar/openal-soft/1.24.0/lib/libopenal.1.24.0.dylib"; sourceTree = "<group>"; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
 		CEE750882D6A0440004CDBCA /* bsp_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_gs.glsl; sourceTree = "<group>"; };
+		CEE7508A2D6A3253004CDBCA /* rgb9e5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rgb9e5.h; sourceTree = "<group>"; };
+		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
@@ -2190,6 +2195,8 @@
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
 				CE12D6891C5C58C300CD0B13 /* mem.c */,
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
+				CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */,
+				CEE7508A2D6A3253004CDBCA /* rgb9e5.h */,
 				CE12D6BC1C5C58C300CD0B13 /* sys.c */,
 				CE12D6BD1C5C58C300CD0B13 /* sys.h */,
 				CE12D6DE1C5C58C300CD0B13 /* thread.c */,
@@ -3533,6 +3540,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */,
 				CE0C0752260CC75700FFE27B /* box.h in Headers */,
 				CE04F3D825CADFCA00C31433 /* color.h in Headers */,
 				CE04F3FC25CADFCF00C31433 /* matrix.h in Headers */,
@@ -3558,6 +3566,7 @@
 				CE04F1D525CADF6F00C31433 /* installer.h in Headers */,
 				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
+				CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */,
 				CE04F26825CADF7C00C31433 /* sys.h in Headers */,
 				CE04F28D25CADF7F00C31433 /* thread.h in Headers */,
 			);
@@ -4694,6 +4703,7 @@
 				CE04F2FC25CADF9300C31433 /* installer.c in Sources */,
 				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,
 				CE04F34625CADF9B00C31433 /* mem.c in Sources */,
+				CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */,
 				CE04F36B25CADF9F00C31433 /* sys.c in Sources */,
 				CE04F39025CADFA200C31433 /* thread.c in Sources */,
 			);

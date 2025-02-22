@@ -8,6 +8,7 @@ noinst_HEADERS = \
 	image.h \
 	mem.h \
 	mem_buf.h \
+	rgb9e5.h \
 	sys.h \
 	thread.h
 
@@ -25,6 +26,7 @@ libcommon_la_SOURCES = \
 	installer.c \
 	mem.c \
 	mem_buf.c \
+	rgb9e5.c \
 	sys.c \
 	thread.c
 libcommon_la_CFLAGS = \

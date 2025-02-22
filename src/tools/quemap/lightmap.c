@@ -669,8 +669,8 @@ void IndirectLightmap(int32_t face_num) {
 /**
  * @brief
  */
-static SDL_Surface *CreateLightmapSurfaceRGB8(int32_t w, int32_t h) {
-	return CreateLuxelSurface(w, h, sizeof(color24_t), Mem_TagMalloc(w * h * sizeof(color24_t), MEM_TAG_LIGHTMAP));
+static SDL_Surface *CreateLightmapSurfaceRGB9E5(int32_t w, int32_t h) {
+	return CreateLuxelSurface(w, h, sizeof(rgb9e5), Mem_TagMalloc(w * h * sizeof(color32_t), MEM_TAG_LIGHTMAP));
 }
 
 /**
@@ -727,23 +727,23 @@ void FinalizeLightmap(int32_t face_num) {
 		return;
 	}
 
-	lm->ambient = CreateLightmapSurfaceRGB8(lm->w, lm->h);
-	color24_t *out_ambient = lm->ambient->pixels;
+	lm->ambient = CreateLightmapSurfaceRGB9E5(lm->w, lm->h);
+	rgb9e5 *out_ambient = lm->ambient->pixels;
 
-	lm->diffuse = CreateLightmapSurfaceRGB8(lm->w, lm->h);
-	color24_t *out_diffuse = lm->diffuse->pixels;
+	lm->diffuse = CreateLightmapSurfaceRGB9E5(lm->w, lm->h);
+	rgb9e5 *out_diffuse = lm->diffuse->pixels;
 
 	lm->direction = CreateLightmapSurfaceRG16(lm->w, lm->h);
 	vec2s_t *out_direction = lm->direction->pixels;
 
-	luxel_t *l = lm->luxels;
-	for (size_t i = 0; i < lm->num_luxels; i++, l++) {
+	luxel_t *luxel = lm->luxels;
+	for (size_t i = 0; i < lm->num_luxels; i++, luxel++) {
 
-		FinalizeLightmapLuxel(lm, l);
+		FinalizeLightmapLuxel(lm, luxel);
 
-		*out_ambient++ = Color_Color24(Color3fv(l->ambient));
-		*out_diffuse++ = Color_Color24(Color3fv(l->diffuse));
-		*out_direction++ = Vec3_Vec2s(l->direction);
+		*out_ambient++ = float3_to_rgb9e5(luxel->ambient.xyz);
+		*out_diffuse++ = float3_to_rgb9e5(luxel->diffuse.xyz);
+		*out_direction++ = Vec3_Vec2s(luxel->direction);
 	}
 }
 
@@ -775,8 +775,8 @@ void EmitLightmap(void) {
 		const int32_t layer_size = width * width;
 
 		bsp_file.lightmap_size = sizeof(bsp_lightmap_t);
-		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
-		bsp_file.lightmap_size += layer_size * sizeof(color24_t);
+		bsp_file.lightmap_size += layer_size * sizeof(rgb9e5);
+		bsp_file.lightmap_size += layer_size * sizeof(rgb9e5);
 		bsp_file.lightmap_size += layer_size * sizeof(vec2s_t);
 
 		Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTMAP, bsp_file.lightmap_size);
@@ -786,11 +786,11 @@ void EmitLightmap(void) {
 
 		byte *out = (byte *) bsp_file.lightmap + sizeof(bsp_lightmap_t);
 
-		SDL_Surface *ambient = CreateLuxelSurface(width, width, sizeof(color24_t), out);
-		out += layer_size * sizeof(color24_t);
+		SDL_Surface *ambient = CreateLuxelSurface(width, width, sizeof(rgb9e5), out);
+		out += layer_size * sizeof(rgb9e5);
 
-		SDL_Surface *diffuse = CreateLuxelSurface(width, width, sizeof(color24_t), out);
-		out += layer_size * sizeof(color24_t);
+		SDL_Surface *diffuse = CreateLuxelSurface(width, width, sizeof(rgb9e5), out);
+		out += layer_size * sizeof(rgb9e5);
 
 		SDL_Surface *direction = CreateLuxelSurface(width, width, sizeof(vec2s_t), out);
 		out += layer_size * sizeof(vec2s_t);

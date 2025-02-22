@@ -382,14 +382,14 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->ambient->levels = levels;
 	out->ambient->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->ambient->magnify = GL_LINEAR;
-	out->ambient->internal_format = GL_RGB8;
+	out->ambient->internal_format = GL_RGB9_E5;
 	out->ambient->format = GL_RGB;
-	out->ambient->pixel_type = GL_UNSIGNED_BYTE;
+	out->ambient->pixel_type = GL_UNSIGNED_INT_5_9_9_9_REV;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_AMBIENT);
 
 	R_UploadImage(out->ambient, data);
-	data += out->width * out->width * sizeof(color24_t);
+	data += out->width * out->width * sizeof(rgb9e5);
 
 	out->diffuse = (r_image_t *) R_AllocMedia("lightmap_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->diffuse->media.Free = R_FreeImage;
@@ -400,14 +400,14 @@ static void R_LoadBspLightmap(r_bsp_model_t *bsp) {
 	out->diffuse->levels = levels;
 	out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->diffuse->magnify = GL_LINEAR;
-	out->diffuse->internal_format = GL_RGB8;
+	out->diffuse->internal_format = GL_RGB9_E5;
 	out->diffuse->format = GL_RGB;
-	out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
+	out->diffuse->pixel_type = GL_UNSIGNED_INT_5_9_9_9_REV;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-	data += out->width * out->width * sizeof(color24_t);
+	data += out->width * out->width * sizeof(rgb9e5);
 
 	out->direction = (r_image_t *) R_AllocMedia("lightmap_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->direction->media.Free = R_FreeImage;
@@ -490,7 +490,7 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
-	const color24_t *ambient = (color24_t *) data;
+	const rgb9e5 *ambient = (rgb9e5 *) data;
 
 	out->ambient = (r_image_t *) R_AllocMedia("lightgrid_ambient", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->ambient->media.Free = R_FreeImage;
@@ -502,16 +502,16 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->ambient->levels = levels;
 	out->ambient->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->ambient->magnify = GL_LINEAR;
-	out->ambient->internal_format = GL_RGB8;
+	out->ambient->internal_format = GL_RGB9_E5;
 	out->ambient->format = GL_RGB;
-	out->ambient->pixel_type = GL_UNSIGNED_BYTE;
+	out->ambient->pixel_type = GL_UNSIGNED_INT_5_9_9_9_REV;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_AMBIENT);
 
 	R_UploadImage(out->ambient, data);
-	data += luxels * sizeof(color24_t);
+	data += luxels * sizeof(rgb9e5);
 
-	const color24_t *diffuse = (color24_t *) data;
+	const rgb9e5 *diffuse = (rgb9e5 *) data;
 
 	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->diffuse->media.Free = R_FreeImage;
@@ -523,14 +523,14 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->diffuse->levels = levels;
 	out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->diffuse->magnify = GL_LINEAR;
-	out->diffuse->internal_format = GL_RGB8;
+	out->diffuse->internal_format = GL_RGB9_E5;
 	out->diffuse->format = GL_RGB;
-	out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
+	out->diffuse->pixel_type = GL_UNSIGNED_INT_5_9_9_9_REV;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-	data += luxels * sizeof(color24_t);
+	data += luxels * sizeof(rgb9e5);
 
 	out->direction = (r_image_t *) R_AllocMedia("lightgrid_direction", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->direction->media.Free = R_FreeImage;
@@ -593,8 +593,9 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 
 	out->exposure = Mem_LinkMalloc(luxels * sizeof(float), out);
 	for (size_t i = 0; i < luxels; i++) {
-		const vec3_t amb = Color24_Color(ambient[i]).vec3;
-		const vec3_t dif = Color24_Color(diffuse[i]).vec3;
+		vec3_t amb, dif;
+		rgb9e5_to_float3(ambient[i], amb.xyz);
+		rgb9e5_to_float3(diffuse[i], dif.xyz);
 		out->exposure[i] = Vec3_Hmaxf(Vec3_Add(amb, dif));
 	}
 }
