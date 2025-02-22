@@ -98,7 +98,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 /**
  * @brief Creates an occlusion query for each block node in the world model.
  */
-void R_CreateOcclusionQueries(r_bsp_model_t *bsp) {
+void R_CreateOcclusionQueries(const r_bsp_model_t *bsp) {
 	vec3_t vertexes[8];
 
 	const r_bsp_inline_model_t *in = bsp->inline_models;
@@ -157,7 +157,7 @@ static bool R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_block_t *block) {
 /**
  * @brief Updates and re-draws all active occlusion queries for the current frame.
  */
-void R_UpdateOcclusionQueries(r_view_t *view) {
+void R_UpdateOcclusionQueries(const r_view_t *view) {
 
 	if (!r_occlude->integer) {
 		return;
@@ -223,7 +223,7 @@ void R_UpdateOcclusionQueries(r_view_t *view) {
 /**
  * @brief
  */
-void R_DestroyOcclusionQueries(r_bsp_model_t *bsp) {
+void R_DestroyOcclusionQueries(const r_bsp_model_t *bsp) {
 
 	r_bsp_inline_model_t *in = bsp->inline_models;
 	r_bsp_block_t *block = in->blocks;

@@ -29,31 +29,6 @@
 #include "r_gl_types.h"
 
 /**
- * @brief OpenGL occlusion queries.
- */
-typedef struct {
-	/**
-	 * @brief The query name.
-	 */
-	GLuint name;
-
-	/**
-	 * @brief The base vertex in the shared vertex buffer.
-	 */
-	GLint base_vertex;
-
-	/**
-	 * @brief Non-zero if the query is available.
-	 */
-	GLint available;
-
-	/**
-	 * @brief Non-zero of the query produced visible fragments.
-	 */
-	GLint result;
-} r_occlusion_query_t;
-
-/**
  * @brief Media types.
  */
 typedef enum {
@@ -309,69 +284,29 @@ typedef struct r_material_s {
 } r_material_t;
 
 /**
- * @brief
+ * @brief OpenGL occlusion queries.
  */
 typedef struct {
 	/**
-	 * @brief The light type.
+	 * @brief The query name.
 	 */
-	light_type_t type;
+	GLuint name;
 
 	/**
-	 * @brief The light attenuation.
+	 * @brief The base vertex in the shared vertex buffer.
 	 */
-	light_atten_t atten;
+	GLint base_vertex;
 
 	/**
-	 * @brief The light origin.
+	 * @brief Non-zero if the query is available.
 	 */
-	vec3_t origin;
+	GLint available;
 
 	/**
-	 * @brief The light color.
+	 * @brief Non-zero of the query produced visible fragments.
 	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light normal, for directional lights.
-	 */
-	vec3_t normal;
-
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The light size, for area lights.
-	 */
-	float size;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
-
-	/**
-	 * @brief The light shadow.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone for angular attenuation, in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The angular attenuation falloff, in degrees.
-	 */
-	float falloff;
-
-	/**
-	 * @brief The light bounds, for frustum and occlusion culling.
-	 */
-	box3_t bounds;
-} r_bsp_light_t;
+	GLint result;
+} r_occlusion_query_t;
 
 /**
  * @brief BSP plane structure.
@@ -760,6 +695,71 @@ typedef struct r_bsp_inline_model_s {
 	GLuint depth_pass_elements_buffer;
 	GLuint num_depth_pass_elements;
 } r_bsp_inline_model_t;
+
+/**
+ * @brief
+ */
+typedef struct {
+	/**
+	 * @brief The light type.
+	 */
+	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
+	light_atten_t atten;
+
+	/**
+	 * @brief The light origin.
+	 */
+	vec3_t origin;
+
+	/**
+	 * @brief The light color.
+	 */
+	vec3_t color;
+
+	/**
+	 * @brief The light normal, for directional lights.
+	 */
+	vec3_t normal;
+
+	/**
+	 * @brief The light radius.
+	 */
+	float radius;
+
+	/**
+	 * @brief The light size, for area lights.
+	 */
+	float size;
+
+	/**
+	 * @brief The light intensity.
+	 */
+	float intensity;
+
+	/**
+	 * @brief The light shadow.
+	 */
+	float shadow;
+
+	/**
+	 * @brief The light cone for angular attenuation, in degrees.
+	 */
+	float cone;
+
+	/**
+	 * @brief The angular attenuation falloff, in degrees.
+	 */
+	float falloff;
+
+	/**
+	 * @brief The light bounds, for frustum and occlusion culling.
+	 */
+	box3_t bounds;
+} r_bsp_light_t;
 
 /**
  * @brief The BSP lightmap, which is comprised of several atlas textures of various storage types.
