@@ -120,21 +120,6 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_DrawBspBlocks(const r_view_t *view, const r_bsp_model_t *bsp) {
-
-	if (!r_draw_bsp_blocks->value) {
-		return;
-	}
-
-	const r_bsp_block_t *block = bsp->blocks;
-	for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
-		R_Draw3DBox(block->visible_bounds, color_red, false);
-	}
-}
-
-/**
- * @brief
- */
 void R_AddBspLightgridSprites(r_view_t *view) {
 
 	if (!r_draw_bsp_lightgrid->value) {
@@ -516,8 +501,6 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	R_GetError(NULL);
 
 	R_DrawBspNormals(view, bsp);
-
-	R_DrawBspBlocks(view, bsp);
 }
 
 /**

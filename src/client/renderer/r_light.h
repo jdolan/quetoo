@@ -91,12 +91,12 @@ typedef struct {
 	mat4_t light_view_cube[6];
 
 	/**
-	 * @brief The light sources for the current operation.
+	 * @brief The visible light sources for the current frame.
 	 */
 	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
 
 	/**
-	 * @brief The number of light sources.
+	 * @brief The number of visible light sources.
 	 */
 	int32_t num_lights;
 } r_light_uniform_block_t;
