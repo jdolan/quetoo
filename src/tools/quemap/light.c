@@ -31,12 +31,8 @@ GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 /**
  * @brief
  */
-static light_t *AllocLight(light_type_t type) {
-
-	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
-	light->type = type;
-
-	return light;
+static light_t *AllocLight(void) {
+	return Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 }
 
 /**
@@ -47,23 +43,12 @@ static void FreeLight(light_t *light) {
 	if (light->winding) {
 		Cm_FreeWinding(light->winding);
 	}
-	
+
 	if (light->points) {
 		g_free(light->points);
 	}
 
 	Mem_Free(light);
-}
-
-/**
- * @brief
- */
-void AllocLights(void) {
-
-	lights = g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
-
-	memset(node_lights, 0, sizeof(node_lights));
-	memset(leaf_lights, 0, sizeof(leaf_lights));
 }
 
 /**
@@ -86,21 +71,25 @@ const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
 }
 
 /**
- * @brief Returns the ambient light source.
+ * @brief
  */
 static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 
 	light_t *light = NULL;
 
 	const vec3_t ambient = Cm_EntityValue(entity, "ambient")->vec3;
+	if (!Vec3_Equal(ambient, Vec3_Zero())) {
 
-	light = AllocLight(LIGHT_AMBIENT);
+		light = AllocLight();
 
-	light->atten = LIGHT_ATTEN_NONE;
-	light->color = ambient;
-	light->radius = LIGHT_AMBIENT_RADIUS;
-	light->intensity = LIGHT_INTENSITY;
-	light->bounds = Box3_Null();
+		light->type = LIGHT_AMBIENT;
+		light->atten = LIGHT_ATTEN_NONE;
+		light->color = ambient;
+		light->radius = LIGHT_AMBIENT_RADIUS;
+		light->intensity = LIGHT_INTENSITY;
+		light->bounds = Box3_Null();
+		light->visible_bounds = Box3_Null();
+	}
 
 	return light;
 }
@@ -110,13 +99,15 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
  */
 static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 
-	light_t *light = AllocLight(LIGHT_SUN);
+	light_t *light = AllocLight();
 
+	light->type = LIGHT_SUN;
 	light->atten = LIGHT_ATTEN_NONE;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
 	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	if (Vec3_Equal(Vec3_Zero(), light->color)) {
 		light->color = LIGHT_COLOR;
@@ -166,8 +157,9 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
  */
 static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
-	light_t *light = AllocLight(LIGHT_POINT);
+	light_t *light = AllocLight();
 
+	light->type = LIGHT_POINT;
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
@@ -188,6 +180,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 
@@ -228,8 +221,9 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
  */
 static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 
-	light_t *light = AllocLight(LIGHT_SPOT);
+	light_t *light = AllocLight();
 
+	light->type = LIGHT_SPOT;
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
@@ -250,6 +244,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 	}
 
 	light->bounds = Box3_FromCenter(light->origin);
+	light->visible_bounds = Box3_Null();
 
 	light->normal = Vec3_Down();
 
@@ -343,8 +338,9 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
  */
 static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t side) {
 
-	light_t *light = AllocLight(LIGHT_BRUSH_SIDE);
+	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
+	light->type = LIGHT_BRUSH_SIDE;
 	light->brush_side = brush_side;
 
 	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane + side];
@@ -366,6 +362,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 	assert(light->phi <= light->theta);
 
 	light->bounds = Box3_Null();
+	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
 
@@ -433,19 +430,6 @@ void FreeLights(void) {
 }
 
 /**
- * @brief Returns the index of the specified light.
- * @remarks This is expected to be its BSP index as well.
- */
-int32_t LightIndex(const light_t *light) {
-	guint index;
-
-	const bool res = g_ptr_array_find(lights, light, &index);
-	assert(res);
-
-	return index;
-}
-
-/**
  * @return A GPtrArray of all light sources of the specified types intersecting the given bounds.
  */
 static GPtrArray *BoxLights(light_type_t type, const box3_t bounds) {
@@ -508,50 +492,6 @@ static void HashLights(light_type_t type) {
 }
 
 /**
- * @brief Emits direct light sources to the BSP.
- */
-void EmitDirectLights(void) {
-
-	const uint32_t start = SDL_GetTicks();
-
-	bsp_file.num_lights = lights->len;
-
-	if (bsp_file.num_lights >= MAX_BSP_LIGHTS) {
-		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
-	}
-
-	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
-
-	bsp_light_t *out = bsp_file.lights;
-	for (guint i = 0; i < lights->len; i++, out++) {
-
-		light_t *light = g_ptr_array_index(lights, i);
-
-		assert(light->type > LIGHT_INVALID);
-		assert(light->type < LIGHT_INDIRECT);
-
-		out->type = light->type;
-		out->atten = light->atten;
-		out->origin = light->origin;
-		out->color = light->color;
-		out->normal = light->normal;
-		out->radius = light->radius;
-		out->size = light->size;
-		out->intensity = light->intensity;
-		out->shadow = light->shadow;
-		out->cone = light->cone;
-		out->falloff = light->falloff;
-		out->bounds = light->visible_bounds;
-
-		Progress("Emitting lights", 100.f * i / lights->len);
-	}
-
-	assert(bsp_file.lights[0].type == LIGHT_AMBIENT);
-
-	Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", SDL_GetTicks() - start);
-}
-
-/**
  * @brief
  */
 void BuildDirectLights(void) {
@@ -559,6 +499,8 @@ void BuildDirectLights(void) {
 	const uint32_t start = SDL_GetTicks();
 
 	Progress("Building direct lights", 0);
+
+	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
 
 	const int32_t count = Cm_Bsp()->num_entities + Cm_Bsp()->num_brush_sides;
 
@@ -586,8 +528,6 @@ void BuildDirectLights(void) {
 			Progress("Building direct lights", i * 100.f / count);
 		}
 	}
-
-	EmitDirectLights();
 
 	HashLights(~LIGHT_INDIRECT);
 
@@ -631,13 +571,15 @@ static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 		return NULL;
 	}
 
-	light_t *light = AllocLight(LIGHT_INDIRECT);
+	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
+	light->type = LIGHT_INDIRECT;
 	light->atten = LIGHT_ATTEN_LINEAR;
 	light->origin = Box3_Center(bounds);
 	light->radius = w * h;
 	light->size = Maxi(w, h);
 	light->bounds = Box3_Expand(bounds, light->radius);
+	light->visible_bounds = Box3_Null();
 	light->color = diffuse;
 	light->model = lm->model;
 	light->brush_side = lm->brush_side;
@@ -676,6 +618,8 @@ void BuildIndirectLights(void) {
 
 	Progress("Building indirect lights", 0);
 
+	lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
+
 	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
 
 		const lightmap_t *lm = &lightmaps[i];
@@ -690,9 +634,9 @@ void BuildIndirectLights(void) {
 				light_t *light = LightForLightmap(lm, s, t);
 				if (light) {
 					/*Com_Debug(DEBUG_ALL, "Indirect light radius %g, size: %g, color: %5.4f %5.4f %5.4f\n",
-						   light->radius,
-						   light->size,
-						   light->color.x, light->color.y, light->color.z);*/
+							  light->radius,
+							  light->size,
+							  light->color.x, light->color.y, light->color.z);*/
 
 					g_ptr_array_add(lights, light);
 				}
@@ -707,4 +651,63 @@ void BuildIndirectLights(void) {
 	Com_Print("\r%-24s [100%%] %d ms\n", "Building indirect lights", SDL_GetTicks() - start);
 
 	Com_Verbose("Indirect lighting for %d lights\n", lights->len);
+}
+
+/**
+ * @brief
+ */
+void EmitLights(void) {
+
+	const uint32_t start = SDL_GetTicks();
+
+	bsp_file.num_lights = 0;
+
+	for (guint i = 0; i < lights->len; i++) {
+		const light_t *light = g_ptr_array_index(lights, i);
+		switch (light->type) {
+			case LIGHT_INDIRECT:
+				break;
+			default:
+				bsp_file.num_lights++;
+				break;
+		}
+	}
+
+	if (bsp_file.num_lights >= MAX_BSP_LIGHTS) {
+		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
+	}
+
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
+
+	bsp_light_t *out = bsp_file.lights;
+	for (guint i = 0; i < lights->len; i++) {
+
+		light_t *light = g_ptr_array_index(lights, i);
+
+		switch (light->type) {
+			case LIGHT_INDIRECT:
+				break;
+
+			default:
+				out->type = light->type;
+				out->atten = light->atten;
+				out->origin = light->origin;
+				out->color = light->color;
+				out->normal = light->normal;
+				out->radius = light->radius;
+				out->size = light->size;
+				out->intensity = light->intensity;
+				out->shadow = light->shadow;
+				out->cone = light->cone;
+				out->falloff = light->falloff;
+				out->bounds = light->visible_bounds;
+				out->bounds = Box3_Expand(out->bounds, 1.f);
+				out++;
+				break;
+		}
+
+		Progress("Emitting lights", 100.f * i / lights->len);
+	}
+
+	Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", SDL_GetTicks() - start);
 }

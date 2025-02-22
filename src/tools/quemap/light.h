@@ -159,9 +159,7 @@ typedef struct light_s {
 extern GPtrArray *node_lights[MAX_BSP_NODES];
 extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
 
-void AllocLights(void);
 void FreeLights(void);
-int32_t LightIndex(const light_t *light);
 void BuildDirectLights(void);
 void BuildIndirectLights(void);
-void EmitDirectLights(void);
+void EmitLights(void);

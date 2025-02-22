@@ -50,7 +50,7 @@ void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
 	}
 
 	// append the luxel origin to the light's visible bounds
-	lumen->light->bounds = Box3_Append(lumen->light->bounds, luxel->origin);
+	lumen->light->visible_bounds = Box3_Append(lumen->light->visible_bounds, luxel->origin);
 }
 
 /**

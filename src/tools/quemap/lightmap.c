@@ -716,7 +716,6 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
 }
 
-
 /**
  * @brief Finalize light values for the given face, and create its lightmap textures.
  */
