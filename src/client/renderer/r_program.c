@@ -35,6 +35,7 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 	desc->filenames[i++] = "version.glsl";
 	desc->filenames[i++] = "uniforms.glsl";
 	desc->filenames[i++] = "common.glsl";
+	desc->filenames[i++] = "polylib.glsl";
 
 	va_list args;
 	va_start(args, type);
