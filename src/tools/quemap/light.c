@@ -661,6 +661,10 @@ void BuildIndirectLights(void) {
  */
 void EmitLights(void) {
 
+	if (!lights) {
+		return;
+	}
+
 	const uint32_t start = SDL_GetTicks();
 
 	bsp_file.num_lights = 0;
