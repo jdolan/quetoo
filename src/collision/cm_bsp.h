@@ -464,14 +464,7 @@ typedef struct {
 /**
  * @brief The BSP block node size.
  */
-#define BSP_BLOCK_SIZE 1024.f
-
-/**
- * @brief The maximum number of light sources that may occupy a single block. Lightmap textures
- * will reference light sources by their node-level index. This allows > 255 light sources per
- * map while still storing light source references in 8-bit-per-channel textures.
- */
-#define BSP_MAX_BLOCK_LIGHTS 256
+#define BSP_BLOCK_SIZE 768.f
 
 /**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
@@ -492,19 +485,6 @@ typedef struct {
 	 * @brief The count of draw elements within this block.
 	 */
 	int32_t num_draw_elements;
-
-	/**
-	 * @brief The indexes of light sources within this block.
-	 * @details Lightmap and lightgrid diffuse channels will reference block-level light indexes.
-	 * This allows a given map to have > 255 light sources, while only requiring 8 bits per channel
-	 * for lightmap and lightgrid textures.
-	 */
-	int32_t lights[BSP_MAX_BLOCK_LIGHTS];
-
-	/**
-	 * @brief The count of light sources within this block.
-	 */
-	int32_t num_lights;
 
 	/**
 	 * @brief The visible bounds of all draw elements within this block.

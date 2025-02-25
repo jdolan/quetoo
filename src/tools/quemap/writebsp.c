@@ -522,8 +522,6 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 		out->first_draw_element = bsp_file.num_draw_elements;
 		out->num_draw_elements = EmitDrawElements(faces);
 
-		out->num_lights++; // pad the 0 index
-
 		g_ptr_array_free(faces, true);
 		return;
 	}
