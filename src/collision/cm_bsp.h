@@ -45,7 +45,7 @@
 #define MAX_BSP_LEAF_BRUSHES 		0x20000
 #define MAX_BSP_LEAFS				0x20000
 #define MAX_BSP_DRAW_ELEMENTS		0x20000
-#define MAX_BSP_BLOCKS				0x200
+#define MAX_BSP_BLOCKS				0x400
 #define MAX_BSP_MODELS				0x100
 #define MAX_BSP_LIGHTS				0x1000
 #define MAX_BSP_LIGHTMAP_SIZE		0x60000000
@@ -584,7 +584,6 @@ typedef struct {
 	float cone;
 	float falloff;
 	box3_t bounds;
-	box3_t illuminant;
 } bsp_light_t;
 
 /**
