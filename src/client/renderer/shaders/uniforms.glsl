@@ -184,16 +184,6 @@ struct light_t {
 	vec4 maxs;
 
 	/**
-	 * @brief The light illuminant mins in view space.
-	 */
-	vec4 illuminant_mins;
-
-	/**
-	 * @brief The light illuminant maxs in view space.
-	 */
-	vec4 illuminant_maxs;
-
-	/**
 	 * @brief The light position in view space, and type.
 	 */
 	vec4 position;
@@ -209,7 +199,11 @@ struct light_t {
 	vec4 color;
 };
 
-//#define light_direction(light, pos) direction_to_bounds(light.illuminant_mins.xyz, light.illuminant_maxs.xyz, pos)
+#define light_direction(light, pos) \
+	direction_to_bounds( \
+		project_point_to_plane(light.normal, light.position.xyz - vec3(light.mins.w) * 0.5), \
+		project_point_to_plane(light.normal, light.position.xyz + vec3(light.mins.w) * 0.5), \
+		pos)
 
 #define MAX_LIGHT_UNIFORMS 256
 #define MAX_LIGHT_UNIFORMS_ACTIVE 16

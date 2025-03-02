@@ -82,8 +82,6 @@ static void R_AddLightUniform(r_light_t *in) {
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
 	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
 	out->normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(in->normal), in->normal.w);
-	out->illuminant_mins = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), 0.f);
-	out->illuminant_maxs = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), 0.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 
@@ -136,14 +134,7 @@ void R_UpdateLights(r_view_t *view) {
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
 		if (r_draw_light_bounds->integer && Box3_ContainsPoint(l->bounds, pos)) {
-			switch (r_draw_light_bounds->integer) {
-				case 1:
-					R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-					break;
-				case 2:
-					R_Draw3DBox(l->illuminant, Color3fv(l->color), false);
-					break;
-			}
+			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
 
 		l->index = -1;

@@ -142,12 +142,6 @@ float sample_shadowmap_cube(in light_t light, in int index) {
 	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
 }
 
-vec3 light_direction(in light_t light, in vec3 pos) {
-	vec3 mins = light.position.xyz - vec3(light.mins.w);
-	vec3 maxs = light.position.xyz + vec3(light.mins.w);
-	return direction_to_bounds(light.illuminant_mins.xyz, light.illuminant_maxs.xyz, pos);
-}
-
 /**
  * @brief
  */
@@ -161,7 +155,7 @@ void light_and_shadow_sun(in light_t light, in int index) {
  */
 void light_and_shadow_point(in light_t light, in int index) {
 
-	vec3 dir = light_direction(light, vertex.position);
+	vec3 dir = light.position.xyz - vertex.position;
 
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
 	if (atten <= 0.0) {
@@ -202,7 +196,7 @@ void light_and_shadow_point(in light_t light, in int index) {
  */
 void light_and_shadow_spot(in light_t light, in int index) {
 
-	vec3 dir = light_direction(light, vertex.position);
+	vec3 dir = light.position.xyz - vertex.position;
 
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
 	if (atten <= 0.0) {
@@ -220,6 +214,8 @@ void light_and_shadow_spot(in light_t light, in int index) {
 	}
 
 	dir = normalize(dir);
+
+	diffuse *= dot(dir, -light.normal.xyz);
 
 	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {
@@ -243,7 +239,7 @@ void light_and_shadow_spot(in light_t light, in int index) {
  */
 void light_and_shadow_brush_side(in light_t light, in int index) {
 
-	vec3 dir = light_direction(light, vertex.position);
+	vec3 dir = light.position.xyz - vertex.position;
 
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
 	if (atten <= 0.0) {
@@ -261,6 +257,8 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
 	}
 
 	dir = normalize(dir);
+
+	diffuse *= dot(dir, -light.normal.xyz);
 
 	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {
@@ -284,7 +282,7 @@ void light_and_shadow_brush_side(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 dir = light_direction(light, vertex.position);
+	vec3 dir = light.position.xyz - vertex.position;
 
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
 	if (atten <= 0.0) {

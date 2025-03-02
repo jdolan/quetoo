@@ -357,7 +357,6 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->cone = in->cone;
 		out->falloff = in->falloff;
 		out->bounds = in->bounds;
-		out->illuminant = in->illuminant;
 	}
 }
 
