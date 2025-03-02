@@ -119,6 +119,11 @@ typedef struct light_s {
 	box3_t bounds;
 
 	/**
+	 * @brief The bounds of the illuminant light points.
+	 */
+	box3_t illuminant;
+
+	/**
 	 * @brief The visible bounds of the light source; that is, the bounding box of
 	 * all luxels that this light source contributed to.
 	 */

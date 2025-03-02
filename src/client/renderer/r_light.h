@@ -48,6 +48,16 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
+	 * @brief The light illuminant mins in model space.
+	 */
+	vec4_t illuminant_mins;
+
+	/**
+	 * @brief The light illuminant maxs in model space.
+	 */
+	vec4_t illuminant_maxs;
+
+	/**
 	 * @brief The light origin in view space, and type.
 	 */
 	vec4_t position;

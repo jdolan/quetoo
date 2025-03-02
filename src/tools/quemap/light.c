@@ -87,6 +87,7 @@ static light_t *LightForEntity_worldspawn(const cm_entity_t *entity) {
 		light->color = ambient;
 		light->radius = LIGHT_AMBIENT_RADIUS;
 		light->intensity = LIGHT_INTENSITY;
+		light->illuminant = Box3_Null();
 		light->bounds = Box3_Null();
 		light->visible_bounds = Box3_Null();
 	}
@@ -106,6 +107,7 @@ static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->color = Cm_EntityValue(entity, "_color")->vec3;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
+	light->illuminant = Box3_Null();
 	light->bounds = Box3_Null();
 	light->visible_bounds = Box3_Null();
 	light->shadow = LIGHT_SHADOW;
@@ -181,7 +183,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
 	}
 
-	light->bounds = Box3_FromCenter(light->origin);
+	light->illuminant = Box3_FromCenter(light->origin);
 	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
@@ -198,11 +200,11 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
 			g_array_append_val(points, p);
 
-			light->bounds = Box3_Append(light->bounds, p);
+			light->illuminant = Box3_Append(light->illuminant, p);
 		}
 	}
 
-	light->bounds = Box3_Expand(light->bounds, light->radius);
+	light->bounds = Box3_Expand(light->illuminant, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
@@ -246,7 +248,7 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 		light->shadow = Cm_EntityValue(entity, "_shadow")->value;
 	}
 
-	light->bounds = Box3_FromCenter(light->origin);
+	light->illuminant = Box3_FromCenter(light->origin);
 	light->visible_bounds = Box3_Null();
 
 	light->normal = Vec3_Down();
@@ -296,13 +298,13 @@ static light_t *LightForEntity_light_spot(const cm_entity_t *entity) {
 				continue;
 			}
 
-			light->bounds = Box3_Append(light->bounds, p);
+			light->illuminant = Box3_Append(light->illuminant, p);
 
 			g_array_append_val(points, p);
 		}
 	}
 
-	light->bounds = Box3_Expand(light->bounds, light->radius);
+	light->bounds = Box3_Expand(light->illuminant, light->radius);
 
 	light->points = (vec3_t *) points->data;
 	light->num_points = points->len;
@@ -364,7 +366,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 
 	assert(light->phi <= light->theta);
 
-	light->bounds = Box3_Null();
+	light->illuminant = Box3_Null();
 	light->visible_bounds = Box3_Null();
 
 	GArray *points = g_array_new(false, false, sizeof(vec3_t));
@@ -382,7 +384,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 					continue;
 				}
 
-				light->bounds = Box3_Append(light->bounds, lm->luxels[j].origin);
+				light->illuminant = Box3_Append(light->illuminant, lm->luxels[j].origin);
 				g_array_append_val(points, lm->luxels[j].origin);
 			}
 		}
@@ -398,10 +400,9 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 		return NULL;
 	}
 
-	light->origin = Box3_Center(light->bounds);
-	light->size = Box3_Distance(light->bounds);
-
-	light->bounds = Box3_Expand(light->bounds, light->radius);
+	light->origin = Box3_Center(light->illuminant);
+	light->size = Box3_Distance(light->illuminant);
+	light->bounds = Box3_Expand(light->illuminant, light->radius);
 	return light;
 }
 
@@ -550,7 +551,7 @@ static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 	assert(w);
 	assert(h);
 
-	box3_t bounds = Box3_Null();
+	box3_t illuminant = Box3_Null();
 	vec3_t diffuse = Vec3_Zero();
 
 	for (int32_t i = s; i < s + w; i++) {
@@ -562,7 +563,7 @@ static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 				continue;
 			}
 
-			bounds = Box3_Append(bounds, luxel->origin);
+			illuminant = Box3_Append(illuminant, luxel->origin);
 			diffuse = Vec3_Add(diffuse, luxel->diffuse);
 		}
 	}
@@ -578,19 +579,21 @@ static light_t *LightForLightmap(const lightmap_t *lm, int32_t s, int32_t t) {
 
 	light->type = LIGHT_INDIRECT;
 	light->atten = LIGHT_ATTEN_LINEAR;
-	light->origin = Box3_Center(bounds);
+	light->origin = Box3_Center(illuminant);
 	light->radius = w * h;
 	light->size = Maxi(w, h);
-	light->bounds = Box3_Expand(bounds, light->radius);
+	light->illuminant = illuminant;
+	light->bounds = Box3_Expand(illuminant, light->radius);
 	light->visible_bounds = Box3_Null();
 	light->color = diffuse;
 	light->model = lm->model;
 	light->brush_side = lm->brush_side;
 	light->plane = lm->plane;
+	light->normal = lm->plane->normal;
 	light->intensity = LIGHT_INTENSITY;
 
 	vec3_t points[8];
-	Box3_ToPoints(bounds, points);
+	Box3_ToPoints(illuminant, points);
 
 	light->points = g_malloc_n(8, sizeof(vec3_t));
 
@@ -709,6 +712,7 @@ void EmitLights(void) {
 				out->falloff = light->falloff;
 				out->bounds = light->visible_bounds;
 				out->bounds = Box3_Expand(out->bounds, 1.f);
+				out->illuminant = light->illuminant;
 				out++;
 				break;
 		}

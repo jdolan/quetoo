@@ -142,24 +142,18 @@ float sample_shadowmap_cube(in light_t light, in int index) {
 	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
 }
 
+vec3 light_direction(in light_t light, in vec3 pos) {
+	vec3 mins = light.position.xyz - vec3(light.mins.w);
+	vec3 maxs = light.position.xyz + vec3(light.mins.w);
+	return direction_to_bounds(light.illuminant_mins.xyz, light.illuminant_maxs.xyz, pos);
+}
+
 /**
  * @brief
  */
 void light_and_shadow_sun(in light_t light, in int index) {
 
-	vec3 light_pos = light.position.xyz;
-
-	vec3 light_dir = normalize(light_pos - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert;
-
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
+	
 }
 
 /**
@@ -167,93 +161,10 @@ void light_and_shadow_sun(in light_t light, in int index) {
  */
 void light_and_shadow_point(in light_t light, in int index) {
 
-	float radius = light.model.w;
-	float size = light.mins.w;
+	vec3 dir = light_direction(light, vertex.position);
 
-	float dist = distance(light.position.xyz, vertex.position);
-	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
-	if (atten == 0.0) {
-		return;
-	}
-
-	vec3 light_dir = normalize(light.position.xyz - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
-
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
-}
-
-/**
- * @brief
- */
-void light_and_shadow_spot(in light_t light, in int index) {
-
-	float radius = light.model.w;
-	float size = light.mins.w;
-
-	float dist = distance(light.position.xyz, vertex.position);
-	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
-	if (atten == 0.0) {
-		return;
-	}
-
-	vec3 light_dir = normalize(light.position.xyz - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
-
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
-}
-
-/**
- * @brief
- */
-void light_and_shadow_brush_side(in light_t light, in int index) {
-
-	float radius = light.model.w;
-	float size = light.mins.w;
-
-	float dist = distance(light.position.xyz, vertex.position);
-	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
-	if (atten == 0.0) {
-		return;
-	}
-
-	vec3 light_dir = normalize(light.position.xyz - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	float shadow = sample_shadowmap_cube(light, index);
-	float shadow_atten = (1.0 - shadow) * lambert * atten;
-
-	fragment.diffuse -= fragment.diffuse * shadow_atten;
-	fragment.specular -= fragment.specular * shadow_atten;
-}
-
-/**
- * @brief
- */
-void light_and_shadow_dynamic(in light_t light, in int index) {
-
-	float radius = light.model.w;
-	float size = light.mins.w;
-
-	float dist = distance(light.position.xyz, vertex.position);
-	float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
-	if (atten == 0.0) {
+	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	if (atten <= 0.0) {
 		return;
 	}
 
@@ -267,8 +178,132 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 			break;
 	}
 
-	vec3 light_dir = normalize(light.position.xyz - vertex.position);
-	float lambert = dot(light_dir, fragment.normalmap);
+	dir = normalize(dir);
+
+	float lambert = dot(dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = 1.0 - sample_shadowmap_cube(light, index);
+
+	diffuse *= shadow;
+
+	diffuse = min(diffuse, fragment.diffuse);
+
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, dir);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_spot(in light_t light, in int index) {
+
+	vec3 dir = light_direction(light, vertex.position);
+
+	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	dir = normalize(dir);
+
+	float lambert = dot(dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = 1.0 - sample_shadowmap_cube(light, index);
+
+	diffuse *= shadow;
+
+	diffuse = min(diffuse, fragment.diffuse);
+
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, dir);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_brush_side(in light_t light, in int index) {
+
+	vec3 dir = light_direction(light, vertex.position);
+
+	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	dir = normalize(dir);
+
+	float lambert = dot(dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = 1.0 - sample_shadowmap_cube(light, index);
+
+	diffuse *= shadow;
+
+	diffuse = min(diffuse, fragment.diffuse);
+
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, dir);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_dynamic(in light_t light, in int index) {
+
+	vec3 dir = light_direction(light, vertex.position);
+
+	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	if (atten <= 0.0) {
+		return;
+	}
+
+	vec3 diffuse = light.color.rgb * light.color.a;
+	switch (int(light.maxs.w)) {
+		case LIGHT_ATTEN_LINEAR:
+			diffuse *= atten;
+			break;
+		case LIGHT_ATTEN_INVERSE_SQUARE:
+			diffuse *= atten * atten;
+			break;
+	}
+
+	dir = normalize(dir);
+
+	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;
 	}
@@ -280,7 +315,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 	diffuse *= shadow;
 
 	fragment.diffuse += diffuse;
-	fragment.specular += blinn_phong(diffuse, light_dir);
+	fragment.specular += blinn_phong(diffuse, dir);
 }
 
 /**

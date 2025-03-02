@@ -759,6 +759,11 @@ typedef struct {
 	 * @brief The light bounds, for frustum and occlusion culling.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief The light illuminant bounds for distance and attenuation calculations.
+	 */
+	box3_t illuminant;
 } r_bsp_light_t;
 
 /**
@@ -1531,9 +1536,14 @@ typedef struct {
 	float falloff;
 
 	/**
-	 * @brief The light bounds.
+	 * @brief The light bounds, or the volume visible to the light.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief The light illuminant, or the bounds of the actual light source.
+	 */
+	box3_t illuminant;
 
 	/**
 	 * @brief The top node containing the light bounds.

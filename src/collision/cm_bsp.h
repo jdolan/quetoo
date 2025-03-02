@@ -584,6 +584,7 @@ typedef struct {
 	float cone;
 	float falloff;
 	box3_t bounds;
+	box3_t illuminant;
 } bsp_light_t;
 
 /**
