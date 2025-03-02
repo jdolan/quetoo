@@ -323,6 +323,10 @@ static void LightmapLuxel_Sun(light_t *light, const lightmap_t *lightmap, luxel_
 	for (int32_t i = 0; i < light->num_points; i++) {
 
 		const vec3_t dir = Vec3_Add(Vec3_Negate(light->points[i]), Vec3_RandomRange(-0.005f, +0.005f));
+		if (Vec3_Dot(dir, luxel->normal) < 0.f) {
+			continue;
+		}
+
 		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
 
 		const cm_trace_t trace = Light_Trace(luxel->origin, end, lightmap->model->head_node, CONTENTS_SOLID);
@@ -367,6 +371,11 @@ static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxe
 
 	for (int32_t i = 0; i < light->num_points; i++) {
 
+		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		if (Vec3_Dot(dir, luxel->normal) < 0.f) {
+			continue;
+		}
+
 		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], lightmap->model->head_node, CONTENTS_SOLID);
 		if (trace.fraction < 1.f) {
 			continue;
@@ -374,7 +383,7 @@ static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxe
 
 		IlluminateLuxel(luxel, &(const lumen_t) {
 			.light = light,
-			.direction = Vec3_Direction(light->points[i], luxel->origin),
+			.direction = dir,
 			.lumens = lumens,
 		});
 	}
@@ -410,6 +419,10 @@ static void LightmapLuxel_Spot(light_t *light, const lightmap_t *lightmap, luxel
 		float lumens = atten * scale / light->num_points;
 
 		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		if (Vec3_Dot(dir, luxel->normal) < 0.f) {
+			continue;
+		}
+
 		const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
 		if (dot < light->theta) {
 
@@ -467,6 +480,10 @@ static void LightmapLuxel_BrushSide(light_t *light, const lightmap_t *lightmap, 
 		float lumens = atten * scale / light->num_points;
 
 		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
+		if (Vec3_Dot(dir, luxel->normal) < 0.f) {
+			continue;
+		}
+
 		const float dot = Vec3_Dot(Vec3_Negate(dir), light->normal);
 		if (dot <= light->theta) {
 
@@ -698,19 +715,16 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	// lerp the direction with the normal, according to intensity
 	const float intensity = Clampf(Vec3_Length(luxel->direction), 0.f, 1.f);
 	luxel->direction = Vec3_Normalize(luxel->direction);
-	luxel->direction = Vec3_Normalize(Vec3_Mix(luxel->direction, luxel->normal, 1.f - intensity));
-
-	const vec3_t dir = luxel->direction;
-	//assert(Vec3_Dot(dir, luxel->normal) >= 0.f);
+	luxel->direction = Vec3_Mix(luxel->direction, luxel->normal, 1.f - intensity);
+	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// transform the direction into tangent space
+	const vec3_t dir = luxel->direction;
 	luxel->direction.x = Vec3_Dot(dir, tangent);
 	luxel->direction.y = Vec3_Dot(dir, bitangent);
 	luxel->direction.z = Vec3_Dot(dir, luxel->normal);
 
 	luxel->direction = Vec3_Normalize(luxel->direction);
-
-	//assert(luxel->direction.z >= 0.f);
 
 	// and clamp the cuastics
 	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
