@@ -38,6 +38,13 @@ float distance_to_plane(in vec4 plane, in vec3 p) {
 }
 
 /**
+ * @return The point `p` projected onto `plane`.
+ */
+vec3 project_point_to_plane(in vec4 plane, in vec3 p) {
+	return p - plane.xyz * distance_to_plane(plane, p);
+}
+
+/**
  * @return The distance from `p` to the line segment `ba`.
  * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
  */

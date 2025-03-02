@@ -721,9 +721,9 @@ typedef struct {
 	vec3_t color;
 
 	/**
-	 * @brief The light normal, for directional lights.
+	 * @brief The light normal and plane distance for directional lights.
 	 */
-	vec3_t normal;
+	vec4_t normal;
 
 	/**
 	 * @brief The light radius.
@@ -1496,9 +1496,9 @@ typedef struct {
 	vec3_t color;
 
 	/**
-	 * @brief The light normal for directional lights.
+	 * @brief The light normal and plane distance for directional lights.
 	 */
-	vec3_t normal;
+	vec4_t normal;
 
 	/**
 	 * @brief The light radius.

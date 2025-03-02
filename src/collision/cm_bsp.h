@@ -576,7 +576,7 @@ typedef struct {
 	light_atten_t atten;
 	vec3_t origin;
 	vec3_t color;
-	vec3_t normal;
+	vec4_t normal;
 	float radius;
 	float size;
 	float intensity;

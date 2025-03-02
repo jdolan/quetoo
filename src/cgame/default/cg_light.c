@@ -127,7 +127,6 @@ void Cg_AddLights(void) {
 			.atten = l->atten,
 			.origin = l->origin,
 			.color = l->color,
-			.normal = Vec3_Zero(),
 			.radius = l->radius,
 			.size = l->size,
 			.intensity = l->intensity,

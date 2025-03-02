@@ -69,7 +69,7 @@ typedef struct light_s {
 	vec3_t color;
 
 	/**
-	 * @brief The normal vector for spotlights and sunlights.
+	 * @brief The light normal for directional lights.
 	 */
 	vec3_t normal;
 

@@ -700,7 +700,7 @@ void EmitLights(void) {
 				out->atten = light->atten;
 				out->origin = light->origin;
 				out->color = light->color;
-				out->normal = light->normal;
+				out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
 				out->radius = light->radius;
 				out->size = light->size;
 				out->intensity = light->intensity;
