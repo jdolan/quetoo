@@ -156,3 +156,22 @@ bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 
 
 	return true;
 }
+
+/**
+ * @return The minimal vector from `p` to the bounding box.
+ * @see https://stackoverflow.com/a/40579370/1982239
+ */
+vec3 direction_to_bounds(in vec3 mins, in vec3 maxs, in vec3 p) {
+
+	if (all(greaterThanEqual(p, mins)) && all(lessThanEqual(p, maxs))) {
+		return normalize(p - (mins + maxs) * 0.5);
+	}
+
+	vec3 c = (mins + maxs) * 0.5;
+	vec3 s = (maxs - mins) * 0.5;
+	vec3 v = p - c;
+	vec3 m = abs(v);
+	vec3 r = c + (v / m * s);
+
+	return r - p;
+}
