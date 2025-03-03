@@ -34,33 +34,23 @@ void main() {
 
 	int type = int(light.position.w);
 
-	if (type == LIGHT_AMBIENT || type == LIGHT_SUN) {
-		gl_Layer = light_index;
+	for (int i = 0; i < 6; i++) {
+		gl_Layer = light_index * 6 + i;
 
 		for (int j = 0; j < 3; j++) {
 
-			position = light_view * (gl_in[j].gl_Position + translate);
+			position = light_view_cube[i] * (gl_in[j].gl_Position + translate);
 
-			gl_Position = light_projection * position;
+			if (type == LIGHT_SUN) {
+				gl_Position = light_projection * position;
+			} else {
+				gl_Position = light_projection_cube * position;
+			}
 
 			EmitVertex();
 		}
 
 		EndPrimitive();
-	} else {
-		for (int i = 0; i < 6; i++) {
-			gl_Layer = light_index * 6 + i;
-
-			for (int j = 0; j < 3; j++) {
-
-				position = light_view_cube[i] * (gl_in[j].gl_Position + translate);
-
-				gl_Position = light_projection_cube * position;
-
-				EmitVertex();
-			}
-
-			EndPrimitive();
-		}
 	}
+
 }

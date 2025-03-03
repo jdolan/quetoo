@@ -124,45 +124,41 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view_cube[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view_cube[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
-	vec3_t pos = view->origin;
-	if (r_draw_light_bounds->value) {
-		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-		pos = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE).end;
-	}
-
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (r_draw_light_bounds->integer && Box3_ContainsPoint(l->bounds, pos)) {
-			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+		if (r_draw_light_bounds->value) {
+			const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+			const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+			const box3_t box = Box3_FromCenterRadius(l->origin, l->size * .5f);
+			if (Box3_ContainsPoint(box, tr.end)) {
+				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+			}
 		}
 
 		l->index = -1;
 
-		if (l->num_entities == 0) {
+		const r_entity_t *e = view->entities;
+		for (int32_t j = 0; j < view->num_entities; j++, e++) {
 
-			const r_entity_t *e = view->entities;
-			for (int32_t j = 0; j < view->num_entities; j++, e++) {
+			if (!e->model) {
+				continue;
+			}
 
-				if (!e->model) {
-					continue;
-				}
+			if (e->effects & EF_NO_SHADOW) {
+				continue;
+			}
 
-				if (e->effects & EF_NO_SHADOW) {
-					continue;
-				}
+			if (R_IsLightSource(l, e)) {
+				continue;
+			}
 
-				if (R_IsLightSource(l, e)) {
-					continue;
-				}
+			if (Box3_Intersects(e->abs_bounds, l->bounds)) {
+				l->entities[l->num_entities++] = e;
 
-				if (Box3_Intersects(e->abs_bounds, l->bounds)) {
-					l->entities[l->num_entities++] = e;
-
-					if (l->num_entities == MAX_LIGHT_ENTITIES) {
-						Com_Warn("MAX_LIGHT_ENTITIES\n");
-						break;
-					}
+				if (l->num_entities == MAX_LIGHT_ENTITIES) {
+					Com_Warn("MAX_ENTITIES for light\n");
+					break;
 				}
 			}
 		}

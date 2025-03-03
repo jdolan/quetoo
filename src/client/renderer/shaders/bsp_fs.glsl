@@ -310,7 +310,29 @@ float sample_shadowmap_cube(in light_t light, in int index) {
  */
 void light_and_shadow_sun(in light_t light, in int index) {
 
-	// TODO
+	vec3 dir = light.position.xyz - vertex.position;
+
+	vec3 diffuse = light.color.rgb * light.color.a;
+
+	dir = normalize(dir);
+
+//	diffuse *= dot(dir, -light.normal.xyz);
+
+	float lambert = dot(dir, fragment.normalmap);
+	if (lambert <= 0.0) {
+		return;
+	}
+
+	diffuse *= lambert;
+
+	float shadow = 1.0 - sample_shadowmap_cube(light, index);
+
+	diffuse *= shadow;
+
+	diffuse = min(diffuse, fragment.diffuse);
+
+	fragment.diffuse -= diffuse;
+	fragment.specular -= blinn_phong(diffuse, dir);
 }
 
 /**
