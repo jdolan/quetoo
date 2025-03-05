@@ -39,12 +39,12 @@ void main() {
 
 		for (int j = 0; j < 3; j++) {
 
-			position = light_view_cube[i] * (gl_in[j].gl_Position + translate);
+			position = light_view[i] * (gl_in[j].gl_Position + translate);
 
 			if (type == LIGHT_SUN) {
-				gl_Position = light_projection * position;
+				gl_Position = light_projection_ortho * position;
 			} else {
-				gl_Position = light_projection_cube * position;
+				gl_Position = light_projection * position;
 			}
 
 			EmitVertex();

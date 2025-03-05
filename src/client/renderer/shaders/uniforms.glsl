@@ -213,24 +213,19 @@ struct light_t {
  */
 layout (std140) uniform lights_block {
 	/**
-	 * @brief The projection matrix for directional lights.
+	 * @brief The projection matrix for directional light shadows.
+	 */
+	mat4 light_projection_ortho;
+
+	/**
+	 * @brief The projection matrix for point light shadows.
 	 */
 	mat4 light_projection;
 
 	/**
-	 * @brief The view matrix for directional lights, centered at the origin.
+	 * @brief The view matrices for cubemap shadow projections.
 	 */
-	mat4 light_view;
-
-	/**
-	 * @brief The projection matrix for point lights.
-	 */
-	mat4 light_projection_cube;
-
-	/**
-	 * @brief The view matrices for point lights, centered at the origin.
-	 */
-	mat4 light_view_cube[6];
+	mat4 light_view[6];
 
 	/**
 	 * @brief The light sources for the current frame, transformed to view space.

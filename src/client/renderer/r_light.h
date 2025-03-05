@@ -71,24 +71,19 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The projection matrix for directional lights.
+	 * @brief The projection matrix for directional light shadows.
+	 */
+	mat4_t light_projection_ortho;
+
+	/**
+	 * @brief The projection matrix for point light shadows.
 	 */
 	mat4_t light_projection;
 
 	/**
-	 * @brief The view matrix for directional lights, centered at the origin.
+	 * @brief The view matrices for cubemap shadow projections.
 	 */
-	mat4_t light_view;
-
-	/**
-	 * @brief The projection matrix for point lights.
-	 */
-	mat4_t light_projection_cube;
-
-	/**
-	 * @brief The view matrices for point lights, centered at the origin.
-	 */
-	mat4_t light_view_cube[6];
+	mat4_t light_view[6];
 
 	/**
 	 * @brief The visible light sources for the current frame.
