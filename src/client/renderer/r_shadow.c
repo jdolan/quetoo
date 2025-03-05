@@ -360,7 +360,7 @@ static void R_InitShadowTextures(void) {
 
 	glGenTextures(1, &r_shadows.cubemap_array);
 	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP_CUBE);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadows.cubemap_array);
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

@@ -250,7 +250,7 @@ uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_next_diffusemap;
 
 /**
- * @brief The material texture.
+ * @brief The material primary texture.
  */
 uniform sampler2DArray texture_material;
 
@@ -286,10 +286,9 @@ uniform sampler3D texture_lightgrid_fog;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadowmap textures.
+ * @brief The shadowmap cubemap array texture.
  */
-uniform sampler2DArrayShadow texture_shadowmap;
-uniform samplerCubeArrayShadow texture_shadowmap_cube;
+uniform samplerCubeArrayShadow texture_shadowmap;
 
 /**
  * @brief The framebuffer attachment textures.

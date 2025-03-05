@@ -302,7 +302,7 @@ float sample_shadowmap_cube(in light_t light, in int index) {
 	}
 
 	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
-	return texture(texture_shadowmap_cube, shadowmap, length(shadowmap.xyz) / depth_range.y);
+	return texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / depth_range.y);
 }
 
 /**

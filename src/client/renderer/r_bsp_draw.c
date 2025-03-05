@@ -53,7 +53,6 @@ static struct {
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
 	GLint texture_shadowmap;
-	GLint texture_shadowmap_cube;
 
 	GLint model_type;
 	GLint alpha_test;
@@ -653,7 +652,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
 	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
-	r_bsp_program.texture_shadowmap_cube = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap_cube");
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -686,7 +684,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
-	glUniform1i(r_bsp_program.texture_shadowmap_cube, TEXTURE_SHADOWMAP_CUBE);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;
