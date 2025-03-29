@@ -293,6 +293,11 @@ typedef struct {
 	GLuint name;
 
 	/**
+	 * @brief The query bounds.
+	 */
+	box3_t bounds;
+
+	/**
 	 * @brief The base vertex in the shared vertex buffer.
 	 */
 	GLint base_vertex;
@@ -759,6 +764,17 @@ typedef struct {
 	 * @brief The light bounds, for frustum and occlusion culling.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief True if this light is occluded for the current frame.
+	 */
+	bool occluded;
+
+	/**
+	 * @brief The light occlusion query.
+	 */
+	r_occlusion_query_t query;
+
 } r_bsp_light_t;
 
 /**
@@ -1534,6 +1550,17 @@ typedef struct {
 	 * @brief The light bounds, or the volume visible to the light.
 	 */
 	box3_t bounds;
+
+	/**
+	 * @brief True if the light is occluded for the current frame.
+	 */
+	bool occluded;
+
+	/**
+	 * @brief The light occlusion query, for static light sources.
+	 * @details This is a pointer to the backing BSP light's occlusion query.
+	 */
+	const r_occlusion_query_t *query;
 
 	/**
 	 * @brief The top node containing the light bounds.

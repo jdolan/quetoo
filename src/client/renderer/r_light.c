@@ -127,16 +127,21 @@ void R_UpdateLights(r_view_t *view) {
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
+		l->occluded = l->query && l->query->result == 0;
+
 		if (r_draw_light_bounds->value) {
-			const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-			const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-			const box3_t box = Box3_FromCenterRadius(l->origin, l->size * .5f);
-			if (Box3_ContainsPoint(box, tr.end)) {
+			if (l->occluded) {
+				R_Draw3DBox(l->bounds, color_black, false);
+			} else {
 				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 			}
 		}
 
 		l->index = -1;
+
+		if (l->occluded) {
+			continue;
+		}
 
 		const r_entity_t *e = view->entities;
 		for (int32_t j = 0; j < view->num_entities; j++, e++) {

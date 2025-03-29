@@ -87,30 +87,31 @@ static void Cg_AddBspLights(void) {
 		}
 
 		if (l->type == LIGHT_SUN) {
-			const r_bsp_block_t *b = cgi.WorldModel()->bsp->blocks;
-			for (int32_t j = 0; j < cgi.WorldModel()->bsp->num_blocks; j++, b++) {
-
-				const box3_t bounds = Box3_Intersection(b->node->bounds, l->bounds);
-				if (Box3_IsNull(bounds)) {
-					continue;
-				}
-
-				vec3_t origin = Box3_Center(bounds);
-				origin.z = bounds.maxs.z;
-
-				cgi.AddLight(cgi.view, &(const r_light_t) {
-					.type = l->type,
-					.atten = l->atten,
-					.origin = origin,
-					.color = l->color,
-					.normal = l->normal,
-					.radius = l->radius,
-					.size = l->size,
-					.intensity = l->intensity,
-					.shadow = l->shadow,
-					.bounds = bounds,
-				});
-			}
+//			const r_bsp_block_t *b = cgi.WorldModel()->bsp->blocks;
+//			for (int32_t j = 0; j < cgi.WorldModel()->bsp->num_blocks; j++, b++) {
+//
+//				const box3_t bounds = Box3_Intersection(b->node->bounds, l->bounds);
+//				if (Box3_IsNull(bounds)) {
+//					continue;
+//				}
+//
+//				vec3_t origin = Box3_Center(bounds);
+//				origin.z = bounds.maxs.z;
+//
+//				cgi.AddLight(cgi.view, &(const r_light_t) {
+//					.type = l->type,
+//					.atten = l->atten,
+//					.origin = origin,
+//					.color = l->color,
+//					.normal = l->normal,
+//					.radius = l->radius,
+//					.size = l->size,
+//					.intensity = l->intensity,
+//					.shadow = l->shadow,
+//					.bounds = bounds,
+//					.query = &l->query,
+//				});
+//			}
 		} else {
 			cgi.AddLight(cgi.view, &(const r_light_t) {
 				.type = l->type,
@@ -125,6 +126,7 @@ static void Cg_AddBspLights(void) {
 				.cone = l->cone,
 				.falloff = l->falloff,
 				.bounds = l->bounds,
+				.query = &l->query,
 			});
 		}
 	}

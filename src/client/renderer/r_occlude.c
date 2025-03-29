@@ -104,19 +104,42 @@ void R_CreateOcclusionQueries(const r_bsp_model_t *bsp) {
 	const r_bsp_inline_model_t *in = bsp->inline_models;
 
 	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, in->num_blocks * sizeof(vertexes), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, (in->num_blocks + bsp->num_lights) * sizeof(vertexes), NULL, GL_STATIC_DRAW);
+
+	GLint index = 0;
 
 	r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
 		glGenQueries(1, &block->query.name);
-		block->query.base_vertex = i * lengthof(vertexes);
-
+		block->query.bounds = block->node->visible_bounds;
+		block->query.base_vertex = index * lengthof(vertexes);
 		block->query.available = 1;
 		block->query.result = 1;
 
-		Box3_ToPoints(block->visible_bounds, vertexes);
-		glBufferSubData(GL_ARRAY_BUFFER, i * sizeof(vertexes), sizeof(vertexes), vertexes);
+		Box3_ToPoints(block->query.bounds, vertexes);
+		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
+
+		index++;
+	}
+
+	r_bsp_light_t *light = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+
+		if (light->type < LIGHT_POINT || light->type > LIGHT_BRUSH_SIDE) {
+			continue;
+		}
+
+		glGenQueries(1, &light->query.name);
+		light->query.bounds = light->bounds;
+		light->query.base_vertex = index * lengthof(vertexes);
+		light->query.available = 1;
+		light->query.result = 1;
+
+		Box3_ToPoints(light->query.bounds, vertexes);
+		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
+
+		index++;
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -124,16 +147,17 @@ void R_CreateOcclusionQueries(const r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Polls the block's query for a result and executes it again if available.
- * @return True if the block is occluded (no samples passed the query).
+ * @brief Polls the query for a result and executes it again if available.
+ * @return True if the query is occluded (no samples passed the query).
  */
-static bool R_UpdateOcclusionQuery(const r_view_t *view, r_bsp_block_t *block) {
+static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
 
-	r_occlusion_query_t *query = &block->query;
-
-	if (Box3_ContainsPoint(block->node->bounds, view->origin)) {
+	if (Box3_ContainsPoint(Box3_Expand(query->bounds, 16.f), view->origin)) {
 		query->available = 1;
 		query->result = 1;
+	} else if (R_CullBox(view, query->bounds)) {
+		query->available = 1;
+		query->result = 0;
 	} else {
 		if (query->available == 0) {
 			glGetQueryObjectiv(query->name, GL_QUERY_RESULT_AVAILABLE, &query->available);
@@ -177,15 +201,11 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 
-	r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
-	r_bsp_block_t *block = in->blocks;
-	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+	r_bsp_model_t *bsp = r_world_model->bsp;
+	r_bsp_block_t *block = bsp->inline_models->blocks;
+	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-		if (R_CullBox(view, block->node->bounds)) {
-			block->occluded = true;
-		} else {
-			block->occluded = R_UpdateOcclusionQuery(view, block);
-		}
+		block->occluded = R_UpdateOcclusionQuery(view, &block->query);
 
 		if (block->occluded) {
 			r_stats.occlusion_queries_occluded++;
@@ -200,6 +220,19 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 				R_Draw3DBox(block->node->bounds, Color3f(0.f, f, 0.f), false);
 			} else {
 				R_Draw3DBox(block->node->bounds, Color3f(f, 0.f, 0.f), false);
+			}
+		}
+	}
+
+	r_bsp_light_t *light = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+
+		if (light->query.name) {
+			light->occluded = R_UpdateOcclusionQuery(view, &light->query);
+			if (light->occluded) {
+				r_stats.occlusion_queries_occluded++;
+			} else {
+				r_stats.occlusion_queries_visible++;
 			}
 		}
 	}
