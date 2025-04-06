@@ -320,7 +320,7 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 }
 
 /**
- * @brief Returns the first brushe side within the node to reference its plane.
+ * @brief Returns the first brush side within the node to reference its plane.
  * @details Block nodes must not use planes that are referenced by visible brush sides, because
  * block nodes will not generate portals.
  */
@@ -377,7 +377,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 		vec3_t normal = Vec3_Zero();
 		normal.xyz[axis] = 1.f;
 
-		float dist = Box3_Center(node->volume->bounds).xyz[axis];
+		int32_t dist = Box3_Center(node->volume->bounds).xyz[axis];
 
 		do {
 			node->plane = FindPlane(normal, dist++) & ~1;
