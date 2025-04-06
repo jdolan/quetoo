@@ -129,9 +129,15 @@ void R_UpdateLights(r_view_t *view) {
 
 		l->occluded = l->query && l->query->result == 0;
 
-		if (r_draw_light_bounds->value) {
+		if (r_draw_light_bounds->integer == 1) {
+			const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+			const vec3_t pos = Cm_BoxTrace(view->origin, end, Box3_Null(), 0, CONTENTS_MASK_VISIBLE).end;
+			if (Box3_ContainsPoint(l->bounds, pos)) {
+				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+			}
+		} else if (r_draw_light_bounds->integer == 2) {
 			if (l->occluded) {
-				R_Draw3DBox(l->bounds, color_black, false);
+				R_Draw3DBox(l->bounds, color_green, false);
 			} else {
 				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 			}
