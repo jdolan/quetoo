@@ -59,7 +59,6 @@ START_TEST(_Box3_Intersection) {
 
 	box3_t a = Box3(Vec3(-1.f, -1.f, -1.f), Vec3(0.f, 0.f, 0.f));
 	box3_t b = Box3(Vec3( 0.f,  0.f,  0.f), Vec3(1.f, 1.f, 1.f));
-	box3_t c = Box3(Vec3(-1.f, -1.f, -1.f), Vec3(1.f, 1.f, 1.f));
 
 	ck_assert(Box3_Equal(Box3_Zero(), Box3_Intersection(a, b)));
 } END_TEST
