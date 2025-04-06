@@ -130,7 +130,7 @@ float parallax_self_shadow(in vec3 light_dir) {
 //
 //	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
 //	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
-//	vec3 delta = vec3(dir.xy * texel, max(dir.z * .02, 0.002));
+//	vec3 delta = vec3(dir.xy * texel, dir.z * length(texel));
 //	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
 //
 //	do {
@@ -210,8 +210,10 @@ vec3 sample_lightmap_diffuse() {
  * @brief
  */
 vec3 sample_lightmap_direction() {
+	
 	vec2 xy = texture(texture_lightmap_direction, vertex.lightmap).xy;
 	vec3 direction = vec3(xy, sqrt(1.0 - xy.x * xy.x - xy.y * xy.y));
+
 	return normalize(fragment.tbn * normalize(direction));
 }
 
