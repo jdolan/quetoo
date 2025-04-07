@@ -320,36 +320,6 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
 }
 
 /**
- * @brief Returns the first brush side within the node to reference its plane.
- * @details Block nodes must not use planes that are referenced by visible brush sides, because
- * block nodes will not generate portals.
- */
-static const brush_side_t *BrushSideForPlane(const node_t *node, const csg_brush_t *brushes) {
-
-	for (const csg_brush_t *brush = brushes; brush; brush = brush->next) {
-
-		const brush_side_t *side = brush->brush_sides;
-		for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
-
-			if (side->surface & SURF_BEVEL) {
-				continue;
-			}
-			if (side->surface & SURF_NODE) {
-				continue;
-			}
-
-			assert(side->winding);
-
-			if ((side->plane & ~1) == node->plane) {
-				return side;
-			}
-		}
-	}
-
-	return NULL;
-}
-
-/**
  * @brief Recursively split the node and filter brushes into its children. Nodes larger
  * than `BSP_BLOCK_SIZE` are split in half on their longest axis to produce a balanced tree.
  * Smaller nodes are split using a brush side heuristic to produce more optimal geometry.
@@ -377,11 +347,8 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 		vec3_t normal = Vec3_Zero();
 		normal.xyz[axis] = 1.f;
 
-		int32_t dist = Box3_Center(node->volume->bounds).xyz[axis];
-
-		do {
-			node->plane = FindPlane(normal, dist++) & ~1;
-		} while (BrushSideForPlane(node, brushes));
+		const int32_t dist = Box3_Center(node->volume->bounds).xyz[axis];
+		node->plane = FindPlane(normal, dist) & ~1;
 
 	} else {
 
