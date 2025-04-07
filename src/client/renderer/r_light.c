@@ -124,29 +124,24 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
+	vec3_t point = view->origin;
+	if (r_draw_light_bounds->value) {
+		point = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+		point = Cm_BoxTrace(view->origin, point, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE).end;
+	}
+
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		l->occluded = l->query && l->query->result == 0;
-
-		if (r_draw_light_bounds->integer == 1) {
-			const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-			const vec3_t pos = Cm_BoxTrace(view->origin, end, Box3_Null(), 0, CONTENTS_MASK_VISIBLE).end;
-			if (Box3_ContainsPoint(l->bounds, pos)) {
-				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-			}
-		} else if (r_draw_light_bounds->integer == 2) {
-			if (l->occluded) {
-				R_Draw3DBox(l->bounds, color_green, false);
-			} else {
-				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-			}
-		}
-
 		l->index = -1;
 
+		l->occluded = l->query && l->query->result == 0;
 		if (l->occluded) {
 			continue;
+		}
+
+		if (r_draw_light_bounds->value && Box3_ContainsPoint(l->bounds, point)) {
+			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
 
 		const r_entity_t *e = view->entities;
