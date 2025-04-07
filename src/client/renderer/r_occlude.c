@@ -217,9 +217,9 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 			const float dist = Vec3_Distance(Box3_Center(block->node->bounds), view->origin);
 			const float f = 1.f - Clampf(dist / MAX_WORLD_COORD, 0.f, 1.f);
 			if (block->occluded) {
-				R_Draw3DBox(block->node->bounds, Color3f(0.f, f, 0.f), false);
+				R_Draw3DBox(block->query.bounds, Color3f(0.f, f, 0.f), false);
 			} else {
-				R_Draw3DBox(block->node->bounds, Color3f(f, 0.f, 0.f), false);
+				R_Draw3DBox(block->query.bounds, Color3f(f, 0.f, 0.f), false);
 			}
 		}
 	}

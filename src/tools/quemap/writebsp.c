@@ -501,22 +501,29 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
 	if (node->contents == CONTENTS_BLOCK) {
 
-		bsp_block_t *out = &bsp_file.blocks[bsp_file.num_blocks++];
-		out->node = (int32_t) (ptrdiff_t) (node - bsp_file.nodes);
-
-		out->visible_bounds = Box3_Null();
-
 		GPtrArray *faces = g_ptr_array_new();
 
 		bsp_face_t *face = bsp_file.faces + mod->first_face;
 		for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 			if (Box3_Contains(node->bounds, face->bounds)) {
-
-				face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
 				g_ptr_array_add(faces, face);
-
-				out->visible_bounds = Box3_Union(out->visible_bounds, face->bounds);
 			}
+		}
+
+		if (faces->len == 0) {
+			return;
+		}
+
+		bsp_block_t *out = &bsp_file.blocks[bsp_file.num_blocks++];
+		out->node = (int32_t) (ptrdiff_t) (node - bsp_file.nodes);
+
+		out->visible_bounds = Box3_Null();
+		for (guint i = 0; i < faces->len; i++) {
+
+			bsp_face_t *face = g_ptr_array_index(faces, i);
+			face->block = (int32_t) (ptrdiff_t) (out - bsp_file.blocks);
+
+			out->visible_bounds = Box3_Union(out->visible_bounds, face->bounds);
 		}
 
 		out->first_draw_element = bsp_file.num_draw_elements;
