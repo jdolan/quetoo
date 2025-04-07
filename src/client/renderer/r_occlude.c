@@ -22,26 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief OpenGL occlusion queries.
- */
-static struct {
-	/**
-	 * @brief The vertex array object.
-	 */
-	GLuint vertex_array;
-
-	/**
-	 * @brief The vertex buffer object.
-	 */
-	GLuint vertex_buffer;
-
-	/**
-	 * @brief The elements buffer object.
-	 */
-	GLuint elements_buffer;
-} r_occlusion;
-
-/**
  * @brief
  */
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
@@ -96,57 +76,6 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 }
 
 /**
- * @brief Creates an occlusion query for each block node in the world model.
- */
-void R_CreateOcclusionQueries(const r_bsp_model_t *bsp) {
-	vec3_t vertexes[8];
-
-	const r_bsp_inline_model_t *in = bsp->inline_models;
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, (in->num_blocks + bsp->num_lights) * sizeof(vertexes), NULL, GL_STATIC_DRAW);
-
-	GLint index = 0;
-
-	r_bsp_block_t *block = in->blocks;
-	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-
-		glGenQueries(1, &block->query.name);
-		block->query.bounds = block->node->visible_bounds;
-		block->query.base_vertex = index * lengthof(vertexes);
-		block->query.available = 1;
-		block->query.result = 1;
-
-		Box3_ToPoints(block->query.bounds, vertexes);
-		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
-
-		index++;
-	}
-
-	r_bsp_light_t *light = bsp->lights;
-	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-
-		if (light->type < LIGHT_POINT || light->type > LIGHT_BRUSH_SIDE) {
-			continue;
-		}
-
-		glGenQueries(1, &light->query.name);
-		light->query.bounds = light->bounds;
-		light->query.base_vertex = index * lengthof(vertexes);
-		light->query.available = 1;
-		light->query.result = 1;
-
-		Box3_ToPoints(light->query.bounds, vertexes);
-		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
-
-		index++;
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	R_GetError(NULL);
-}
-
-/**
  * @brief Polls the query for a result and executes it again if available.
  * @return True if the query is occluded (no samples passed the query).
  */
@@ -187,13 +116,15 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 		return;
 	}
 
+	r_bsp_model_t *bsp = r_world_model->bsp;
+
 	glUseProgram(r_depth_pass_program.name);
 
-	glBindVertexArray(r_occlusion.vertex_array);
+	glBindVertexArray(bsp->occlusion.vertex_array);
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->occlusion.elements_buffer);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -201,7 +132,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	glDepthMask(GL_FALSE);
 
-	r_bsp_model_t *bsp = r_world_model->bsp;
 	r_bsp_block_t *block = bsp->inline_models->blocks;
 	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
@@ -249,75 +179,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	glBindVertexArray(0);
 
 	glUseProgram(0);
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_DestroyOcclusionQueries(const r_bsp_model_t *bsp) {
-
-	r_bsp_inline_model_t *in = bsp->inline_models;
-	r_bsp_block_t *block = in->blocks;
-
-	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-		glDeleteQueries(1, &block->query.name);
-	}
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_InitOcclusionQueries(void) {
-
-	memset(&r_occlusion, 0, sizeof(r_occlusion));
-
-	glGenVertexArrays(1, &r_occlusion.vertex_array);
-	glBindVertexArray(r_occlusion.vertex_array);
-
-	glGenBuffers(1, &r_occlusion.vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, r_occlusion.vertex_buffer);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
-
-	glGenBuffers(1, &r_occlusion.elements_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_occlusion.elements_buffer);
-
-	const GLuint elements[] = {
-		// bottom
-		0, 1, 3, 0, 3, 2,
-		// top
-		6, 7, 4, 7, 5, 4,
-		// front
-		4, 5, 0, 5, 1, 0,
-		// back
-		7, 6, 3, 6, 2, 3,
-		// left
-		6, 4, 2, 4, 0, 2,
-		// right
-		5, 7, 1, 7, 3, 1,
-	};
-
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	R_GetError(NULL);
-}
-
-/**
- * @brief
- */
-void R_ShutdownOcclusionQueries(void) {
-
-	glDeleteVertexArrays(1, &r_occlusion.vertex_array);
-
-	glDeleteBuffers(1, &r_occlusion.vertex_buffer);
-	glDeleteBuffers(1, &r_occlusion.elements_buffer);
 
 	R_GetError(NULL);
 }

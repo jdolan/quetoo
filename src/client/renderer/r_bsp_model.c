@@ -682,6 +682,88 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
+ * @brief Creates an occlusion query for each block node and light source in the world model.
+ */
+static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
+	vec3_t vertexes[8];
+
+	glGenVertexArrays(1, &bsp->occlusion.vertex_array);
+	glBindVertexArray(bsp->occlusion.vertex_array);
+
+	glGenBuffers(1, &bsp->occlusion.vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
+
+	const r_bsp_inline_model_t *in = bsp->inline_models;
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
+	glBufferData(GL_ARRAY_BUFFER, (in->num_blocks + bsp->num_lights) * sizeof(vertexes), NULL, GL_STATIC_DRAW);
+
+	GLint index = 0;
+
+	r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+
+		glGenQueries(1, &block->query.name);
+		block->query.bounds = block->node->visible_bounds;
+		block->query.base_vertex = index * lengthof(vertexes);
+		block->query.available = 1;
+		block->query.result = 1;
+
+		Box3_ToPoints(block->query.bounds, vertexes);
+		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
+
+		index++;
+	}
+
+	r_bsp_light_t *light = bsp->lights;
+	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
+
+		if (light->type < LIGHT_POINT || light->type > LIGHT_BRUSH_SIDE) {
+			continue;
+		}
+
+		glGenQueries(1, &light->query.name);
+		light->query.bounds = light->bounds;
+		light->query.base_vertex = index * lengthof(vertexes);
+		light->query.available = 1;
+		light->query.result = 1;
+
+		Box3_ToPoints(light->query.bounds, vertexes);
+		glBufferSubData(GL_ARRAY_BUFFER, index * sizeof(vertexes), sizeof(vertexes), vertexes);
+
+		index++;
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glGenBuffers(1, &bsp->occlusion.elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->occlusion.elements_buffer);
+
+	const GLuint elements[] = {
+		// bottom
+		0, 1, 3, 0, 3, 2,
+		// top
+		6, 7, 4, 7, 5, 4,
+		// front
+		4, 5, 0, 5, 1, 0,
+		// back
+		7, 6, 3, 6, 2, 3,
+		// left
+		6, 4, 2, 4, 0, 2,
+		// right
+		5, 7, 1, 7, 3, 1,
+	};
+
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	R_GetError(NULL);
+}
+
+
+/**
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
@@ -731,7 +813,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 	}
 
-	R_CreateOcclusionQueries(mod->bsp);
+	R_LoadBspOcclusionQueries(mod->bsp);
 
 	Com_Debug(DEBUG_RENDERER, "!================================\n");
 	Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);
@@ -770,17 +852,31 @@ static void R_RegisterBspModel(r_media_t *self) {
 static void R_FreeBspModel(r_media_t *self) {
 	r_model_t *mod = (r_model_t *) self;
 
-	glDeleteBuffers(1, &mod->bsp->vertex_buffer);
-	glDeleteBuffers(1, &mod->bsp->elements_buffer);
+	r_bsp_model_t *bsp = mod->bsp;
 
-	glDeleteVertexArrays(1, &mod->bsp->vertex_array);
+	glDeleteBuffers(1, &bsp->vertex_buffer);
+	glDeleteBuffers(1, &bsp->elements_buffer);
 
-	r_bsp_inline_model_t *in = mod->bsp->inline_models;
-	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
+	glDeleteVertexArrays(1, &bsp->vertex_array);
+
+	r_bsp_inline_model_t *in = bsp->inline_models;
+	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
 	}
 
-	R_DestroyOcclusionQueries(mod->bsp);
+	r_bsp_block_t *block = in->blocks;
+	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
+		glDeleteQueries(1, &block->query.name);
+	}
+
+	r_bsp_light_t *light = bsp->lights;
+	for (int32_t i = 0; i <bsp->num_lights; i++, light++) {
+		if (light->query.name) {
+			glDeleteQueries(1, &light->query.name);
+		}
+	}
+
+	R_GetError(NULL);
 }
 
 /**

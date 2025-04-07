@@ -912,6 +912,27 @@ typedef struct {
 	 * @brief The elements array buffer (VBO) name.
 	 */
 	GLuint elements_buffer;
+
+	/**
+	 * @brief The occlusion query vertex array and buffers.
+	 */
+	struct {
+		/**
+		 * @brief The vertex array object.
+		 */
+		GLuint vertex_array;
+
+		/**
+		 * @brief The vertex buffer object.
+		 */
+		GLuint vertex_buffer;
+
+		/**
+		 * @brief The elements buffer object.
+		 */
+		GLuint elements_buffer;
+	} occlusion;
+
 } r_bsp_model_t;
 
 /**

@@ -484,8 +484,6 @@ void R_Init(void) {
 
 	R_InitDepthPass();
 
-	R_InitOcclusionQueries();
-
 	R_InitShadows();
 
 	R_InitDraw2D();
@@ -535,8 +533,6 @@ void R_Shutdown(void) {
 	R_ShutdownPost();
 
 	R_ShutdownShadows();
-
-	R_ShutdownOcclusionQueries();
 
 	R_ShutdownDepthPass();
 

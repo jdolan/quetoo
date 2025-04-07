@@ -30,10 +30,6 @@ bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
 #ifdef __R_LOCAL_H__
 
-void R_CreateOcclusionQueries(const r_bsp_model_t *bsp);
-void R_DestroyOcclusionQueries(const r_bsp_model_t *bsp);
 void R_UpdateOcclusionQueries(const r_view_t *view);
-void R_InitOcclusionQueries(void);
-void R_ShutdownOcclusionQueries(void);
 
 #endif
