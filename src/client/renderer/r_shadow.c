@@ -73,7 +73,7 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspInlineModelShadow(const r_bsp_inline_model_t *in) {
+static void R_DrawBspDrawElementsShadow(const r_light_t *light) {
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
@@ -83,9 +83,36 @@ static void R_DrawBspInlineModelShadow(const r_bsp_inline_model_t *in) {
 	glDisableVertexAttribArray(r_shadow_program.in_next_position);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
-	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	const r_bsp_block_t *block = bsp->blocks;
+	for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
+
+		if (block->occluded) {
+			continue;
+		}
+
+		if (!Box3_Intersects(block->visible_bounds, light->bounds)) {
+			continue;
+		}
+
+		const r_bsp_draw_elements_t *draw = block->draw_elements;
+		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+
+			if (draw->surface & SURF_MASK_TRANSLUCENT) {
+				continue;
+			}
+
+			if (!Box3_Intersects(draw->bounds, light->bounds)) {
+				continue;
+			}
+
+			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+		}
+	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -96,64 +123,10 @@ static void R_DrawBspInlineModelShadow(const r_bsp_inline_model_t *in) {
 /**
  * @brief
  */
-static void R_DrawBspInlineModelEntityShadow(const r_view_t *view, const r_entity_t *e) {
-
-	const r_bsp_inline_model_t *in = e->model->bsp_inline;
-	assert(in);
-
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
-
-	R_DrawBspInlineModelShadow(in);
-}
-
-/**
- * @brief
- */
-static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *node) {
-
-	if (node->contents > CONTENTS_NODE) {
-		return;
-	}
-
-	const r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
-
-		if (face->brush_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
-			continue;
-		}
-
-		if (face->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-			continue;
-		}
-
-		if (!Box3_Intersects(light->bounds, face->bounds)) {
-			continue;
-		}
-
-		//glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
-	}
-
-	const int32_t side = Cm_BoxOnPlaneSide(light->bounds, node->plane->cm);
-
-	if (side & SIDE_FRONT) {
-		R_DrawBspNodeShadow_r(light, node->children[0]);
-	}
-	
-	if (side & SIDE_BACK) {
-		R_DrawBspNodeShadow_r(light, node->children[1]);
-	}
-}
-
-/**
- * @brief
- */
-static void R_DrawBspNodeShadow(const r_light_t *light) {
+static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_entity_t *e) {
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
+	const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 	glBindVertexArray(bsp->vertex_array);
 
@@ -161,9 +134,12 @@ static void R_DrawBspNodeShadow(const r_light_t *light) {
 	glDisableVertexAttribArray(r_shadow_program.in_next_position);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
 
-	R_DrawBspNodeShadow_r(light, light->node);
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -189,7 +165,7 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
 /**
  * @brief
  */
-static void R_DrawMeshEntityShadow(const r_entity_t *e) {
+static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -250,16 +226,16 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 	glUniform1i(r_shadow_program.light_index, light->index);
 
 	if (light->type == LIGHT_DYNAMIC) {
-		R_DrawBspNodeShadow(light);
+		R_DrawBspDrawElementsShadow(light);
 	}
 
 	for (int32_t i = 0; i < light->num_entities; i++) {
 		const r_entity_t *e = light->entities[i];
 
 		if (IS_MESH_MODEL(e->model)) {
-			R_DrawMeshEntityShadow(e);
+			R_DrawMeshEntityShadow(view, e);
 		} else if (IS_BSP_INLINE_MODEL(e->model)) {
-			R_DrawBspInlineModelEntityShadow(view, e);
+			R_DrawBspInlineEntityShadow(view, e);
 		} else {
 			assert(false);
 		}

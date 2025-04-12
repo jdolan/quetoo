@@ -1584,12 +1584,6 @@ typedef struct {
 	const r_occlusion_query_t *query;
 
 	/**
-	 * @brief The top node containing the light bounds.
-	 * @details This is populated by the renderer, after culling checks.
-	 */
-	const r_bsp_node_t *node;
-
-	/**
 	 * @brief The optional light source, which will not cast shadow.
 	 */
 	const r_entity_t *source;
