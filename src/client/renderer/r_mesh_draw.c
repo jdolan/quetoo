@@ -41,6 +41,8 @@ static struct {
 	GLint in_next_tangent;
 	GLint in_next_bitangent;
 
+	GLint active_lights;
+
 	GLint model;
 
 	GLint lerp;
@@ -316,6 +318,8 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
 	glUniform1f(r_mesh_program.lerp, e->lerp);
 
+	R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
@@ -404,7 +408,6 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "mesh_gs.glsl", NULL),
 			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
 			NULL);
 
@@ -426,6 +429,8 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.in_next_normal = glGetAttribLocation(r_mesh_program.name, "in_next_normal");
 	r_mesh_program.in_next_tangent = glGetAttribLocation(r_mesh_program.name, "in_next_tangent");
 	r_mesh_program.in_next_bitangent = glGetAttribLocation(r_mesh_program.name, "in_next_bitangent");
+
+	r_mesh_program.active_lights = glGetUniformLocation(r_mesh_program.name, "active_lights");
 
 	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 

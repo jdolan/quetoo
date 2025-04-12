@@ -38,6 +38,8 @@ static struct {
 	GLint in_lightmap;
 	GLint in_color;
 
+	GLint active_lights;
+
 	GLint model;
 
 	GLint texture_material;
@@ -390,6 +392,8 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_entity_t *entity,
 										 const r_bsp_draw_elements_t *draw) {
 
+	R_ActiveLights(view, draw->bounds, r_bsp_program.active_lights);
+
 	glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
 
 	glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
@@ -614,7 +618,6 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.name = R_LoadProgram(
 			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "bsp_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "bsp_gs.glsl", NULL),
 			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "bsp_fs.glsl", NULL),
 			NULL);
 
@@ -633,6 +636,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.in_diffusemap = glGetAttribLocation(r_bsp_program.name, "in_diffusemap");
 	r_bsp_program.in_lightmap = glGetAttribLocation(r_bsp_program.name, "in_lightmap");
 	r_bsp_program.in_color = glGetAttribLocation(r_bsp_program.name, "in_color");
+
+	r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
 
 	r_bsp_program.model_type = glGetUniformLocation(r_bsp_program.name, "model_type");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");

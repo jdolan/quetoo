@@ -206,7 +206,6 @@ struct light_t {
 		pos)
 
 #define MAX_LIGHT_UNIFORMS 256
-#define MAX_LIGHT_UNIFORMS_ACTIVE 16
 
 /**
  * @brief The lights uniform block.
@@ -237,6 +236,11 @@ layout (std140) uniform lights_block {
 	 */
 	int num_lights;
 };
+
+/**
+ * @brief The bit vector of active light indexes for the current render operation.
+ */
+uniform uint active_lights[8];
 
 /**
  * @brief The diffusemap textures, for non-material passes such as sprites.

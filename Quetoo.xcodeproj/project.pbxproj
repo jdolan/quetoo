@@ -667,7 +667,6 @@
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEE3A10721EE2DF40070FD3E /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
-		CEE750892D6A046C004CDBCA /* bsp_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEE750882D6A0440004CDBCA /* bsp_gs.glsl */; };
 		CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
 		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
@@ -685,7 +684,6 @@
 		CEFD07FB2B671E1700642169 /* bsp_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F72B671DE700642169 /* bsp_fs.glsl */; };
 		CEFD07FD2B671E2100642169 /* bsp_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F62B671DE600642169 /* bsp_vs.glsl */; };
 		CEFD07FE2B671E2900642169 /* mesh_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07FA2B671DE700642169 /* mesh_fs.glsl */; };
-		CEFD07FF2B671E2C00642169 /* mesh_gs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F82B671DE700642169 /* mesh_gs.glsl */; };
 		CEFD08002B671E2F00642169 /* mesh_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFD07F92B671DE700642169 /* mesh_vs.glsl */; };
 		CEFF1297277D439B001E1500 /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
 		CEFF1298277D439B001E1500 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
@@ -958,7 +956,6 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CEA9524D2764DBC100C43140 /* blur_fs.glsl in CopyFiles */,
-				CEE750892D6A046C004CDBCA /* bsp_gs.glsl in CopyFiles */,
 				CEA952702764ECF900C43140 /* blur_vs.glsl in CopyFiles */,
 				CEFD07FB2B671E1700642169 /* bsp_fs.glsl in CopyFiles */,
 				CEFD07FD2B671E2100642169 /* bsp_vs.glsl in CopyFiles */,
@@ -971,7 +968,6 @@
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CEFD07FE2B671E2900642169 /* mesh_fs.glsl in CopyFiles */,
-				CEFD07FF2B671E2C00642169 /* mesh_gs.glsl in CopyFiles */,
 				CEFD08002B671E2F00642169 /* mesh_vs.glsl in CopyFiles */,
 				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CE7F7F5929C622BA00986D1D /* post_fs.glsl in CopyFiles */,
@@ -1779,7 +1775,6 @@
 		CEE3A10121EE2B3F0070FD3E /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEE3FD672CF2630B00BDA5D8 /* libopenal.1.24.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.24.0.dylib; path = "../../../../usr/local/Cellar/openal-soft/1.24.0/lib/libopenal.1.24.0.dylib"; sourceTree = "<group>"; };
 		CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.2.11.dylib; path = /opt/local/lib/libz.1.2.11.dylib; sourceTree = "<absolute>"; };
-		CEE750882D6A0440004CDBCA /* bsp_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_gs.glsl; sourceTree = "<group>"; };
 		CEE7508A2D6A3253004CDBCA /* rgb9e5.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rgb9e5.h; sourceTree = "<group>"; };
 		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
@@ -1789,7 +1784,6 @@
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFD07F62B671DE600642169 /* bsp_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_vs.glsl; sourceTree = "<group>"; };
 		CEFD07F72B671DE700642169 /* bsp_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_fs.glsl; sourceTree = "<group>"; };
-		CEFD07F82B671DE700642169 /* mesh_gs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = mesh_gs.glsl; sourceTree = "<group>"; };
 		CEFD07F92B671DE700642169 /* mesh_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = mesh_vs.glsl; sourceTree = "<group>"; };
 		CEFD07FA2B671DE700642169 /* mesh_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = mesh_fs.glsl; sourceTree = "<group>"; };
 		CEFF1295277D439B001E1500 /* g_sound.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_sound.h; sourceTree = "<group>"; };
@@ -2655,7 +2649,6 @@
 				CEA9524B2764DB9900C43140 /* blur_fs.glsl */,
 				CEA9524C2764DB9900C43140 /* blur_vs.glsl */,
 				CEFD07F72B671DE700642169 /* bsp_fs.glsl */,
-				CEE750882D6A0440004CDBCA /* bsp_gs.glsl */,
 				CEFD07F62B671DE600642169 /* bsp_vs.glsl */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
 				CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */,
@@ -2666,7 +2659,6 @@
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
-				CEFD07F82B671DE700642169 /* mesh_gs.glsl */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,
 				CE79596F293F7812001B52F3 /* polylib.glsl */,
 				CE7F7F5829C5EB7400986D1D /* post_fs.glsl */,

@@ -131,7 +131,7 @@ static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *no
 			continue;
 		}
 
-		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
+		//glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
 	}
 
 	const int32_t side = Cm_BoxOnPlaneSide(light->bounds, node->plane->cm);

@@ -25,7 +25,7 @@
 uniform int model_type;
 uniform mat4 model;
 
-in geometry_data {
+in vertex_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
@@ -35,9 +35,6 @@ in geometry_data {
 	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
-
-	flat int active_lights[MAX_LIGHT_UNIFORMS_ACTIVE];
-	flat int num_active_lights;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -554,16 +551,16 @@ void light_and_shadow(void) {
 	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
-	for (int i = 0; i < vertex.num_active_lights; i++) {
+	for (int index = 0; index < num_lights; index++) {
 
-		int index = vertex.active_lights[i];
-		light_t light = lights[index];
+		uint bits = active_lights[index / 32];
+		uint bit = index % 32;
 
-		if (any(lessThan(vertex.model, light.mins.xyz))
-			|| any(greaterThan(vertex.model, light.maxs.xyz))) {
+		if ((bits & (1u << bit)) == 0) {
 			continue;
 		}
 
+		light_t light = lights[index];
 		int type = int(light.position.w);
 		switch (type) {
 			case LIGHT_SUN:

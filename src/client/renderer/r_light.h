@@ -109,6 +109,11 @@ typedef struct {
 	 * @brief The uniform buffer interface block.
 	 */
 	r_light_uniform_block_t block;
+
+	/**
+	 * @brief The bit vector of active light indexes for the current render operation.
+	 */
+	GLuint active_lights[MAX_LIGHT_UNIFORMS / 32];
 } r_lights_t;
 
 /**
@@ -117,6 +122,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

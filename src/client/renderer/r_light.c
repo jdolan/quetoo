@@ -186,6 +186,27 @@ void R_UpdateLights(r_view_t *view) {
 /**
  * @brief
  */
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
+
+	memset(r_lights.active_lights, 0, sizeof(r_lights.active_lights));
+
+	const r_light_uniform_t *light = r_lights.block.lights;
+	for (int32_t i = 0; i < r_lights.block.num_lights; i++, light++) {
+
+		const box3_t light_bounds = Box3(Vec4_XYZ(light->mins), Vec4_XYZ(light->maxs));
+		if (Box3_Intersects(light_bounds, bounds)) {
+			r_lights.active_lights[i / 32] |= (1 << (i % 32));
+		}
+	}
+
+	glUniform1uiv(name, lengthof(r_lights.active_lights), r_lights.active_lights);
+
+	R_GetError(NULL);
+}
+
+/**
+ * @brief
+ */
 void R_InitLights(void) {
 
 	memset(&r_lights, 0, sizeof(r_lights));
