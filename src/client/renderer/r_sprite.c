@@ -156,8 +156,10 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 	r_sprite_instance_t *in = &view->sprite_instances[view->num_sprite_instances];
 	memset(in, 0, sizeof(*in));
 
-	in->index = view->num_sprite_instances++;
-	in->vertexes = r_sprites.vertexes + 4 * in->index;
+	const int32_t index = view->num_sprite_instances++;
+
+	in->vertexes = r_sprites.vertexes + 4 * index;
+	in->elements = (GLvoid *) (sizeof(GLuint) * 6 * index);
 
 	return in;
 }
@@ -397,28 +399,29 @@ void R_DrawSprites(const r_view_t *view) {
 	glEnable(GL_DEPTH_TEST);
 
 	const r_sprite_instance_t *in = view->sprite_instances;
-	for (int32_t i = 0; i < view->num_sprite_instances; i++, in++) {
+	int32_t i = 0;
+	while (i < view->num_sprite_instances) {
 
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
-		GLsizei count = 1;
+		GLsizei batch_size = 1;
 
 		const r_sprite_instance_t *batch = in;
 		for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
 
 			if (batch->diffusemap == in->diffusemap) {
-				count++;
+				batch_size++;
 			} else {
 				break;
 			}
 		}
 
-		glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (GLvoid *) (in->index * sizeof(GLuint) * 6));
+		glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
 		r_stats.sprite_draw_elements++;
 
-		i += count - 1;
-		in += count - 1;
+		in += batch_size;
+		i += batch_size;
 	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);

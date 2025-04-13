@@ -1331,9 +1331,10 @@ typedef struct {
 	r_sprite_vertex_t *vertexes;
 
 	/**
-	 * @brief The sprite index, for instancing within blend depth chains.
+	 * @brief An offset pointer (in bytes) in the shared array.
 	 */
-	int32_t index;
+	GLvoid *elements;
+
 } r_sprite_instance_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
