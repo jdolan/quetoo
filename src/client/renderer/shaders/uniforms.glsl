@@ -243,10 +243,9 @@ layout (std140) uniform lights_block {
 uniform uint active_lights[8];
 
 /**
- * @brief The diffusemap textures, for non-material passes such as sprites.
+ * @brief The diffusemap texture, for non-material passes such as sprites.
  */
 uniform sampler2D texture_diffusemap;
-uniform sampler2D texture_next_diffusemap;
 
 /**
  * @brief The material primary texture.

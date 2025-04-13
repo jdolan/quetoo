@@ -119,8 +119,6 @@ r_framebuffer_t cg_framebuffer;
 static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
 	assert(last_frame > first_frame);
 
-	// TODO: maybe first check if the paths actually exist?
-
 	char format_path[MAX_QPATH];
 	g_snprintf(format_path, sizeof(format_path), "%s%s", base_path, seq_num_fmt);
 

@@ -21,21 +21,16 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
-layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec4 in_color;
-layout (location = 4) in float in_lerp;
-layout (location = 5) in float in_softness;
-layout (location = 6) in float in_lighting;
-layout (location = 7) in float in_bloom;
+layout (location = 2) in vec4 in_color;
+layout (location = 3) in float in_softness;
+layout (location = 4) in float in_lighting;
+layout (location = 5) in float in_bloom;
 
 out vertex_data {
 	vec3 position;
 	vec2 diffusemap;
-	vec2 next_diffusemap;
 	vec4 color;
 	vec4 fog;
-
-	float lerp;
 	float softness;
 	float bloom;
 } vertex;
@@ -137,9 +132,7 @@ void main(void) {
 
 	vertex.position = vec3(view * position);
 	vertex.diffusemap = in_diffusemap;
-	vertex.next_diffusemap = in_next_diffusemap;
 	vertex.color = in_color;
-	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
 	vertex.bloom = in_bloom;
 

@@ -1305,9 +1305,7 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec2_t diffusemap;
-	vec2_t next_diffusemap;
 	color_t color;
-	float lerp;
 	float softness;
 	float lighting;
 	float bloom;
@@ -1326,11 +1324,6 @@ typedef struct {
 	 * @brief The diffusemap texture.
 	 */
 	const r_image_t *diffusemap;
-
-	/**
-	 * @brief The next diffusemap texture for frame interpolation.
-	 */
-	const r_image_t *next_diffusemap;
 
 	/**
 	 * @brief The sprite vertexes in the shared array.
@@ -1933,11 +1926,6 @@ typedef enum {
 	 * @brief The shadowmap cubemap array texture.
 	 */
 	TEXTURE_SHADOWMAP,
-
-	/**
-	 * @brief Sprite specific textures.
-	 */
-	TEXTURE_NEXT_DIFFUSEMAP,
 
 	/**
 	 * @brief Framebuffer specific textures.
