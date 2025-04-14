@@ -164,6 +164,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 	}
 
 	out->num_faces = obj.g->len;
+	assert(out->num_faces <= MAX_MESH_FACES);
+
 	out->faces = Mem_LinkMalloc(out->num_faces * sizeof(r_mesh_face_t), out);
 
 	for (int32_t i = 0; i < out->num_faces; i++) {

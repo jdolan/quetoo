@@ -89,19 +89,19 @@ typedef struct {
 	 * @brief The head model and materials.
 	 */
 	r_model_t *head;
-	r_material_t *head_skins[MAX_ENTITY_SKINS];
+	r_material_t *head_skins[MAX_MESH_FACES];
 
 	/**
 	 * @brief The torso model and materials.
 	 */
 	r_model_t *torso;
-	r_material_t *torso_skins[MAX_ENTITY_SKINS];
+	r_material_t *torso_skins[MAX_MESH_FACES];
 
 	/**
 	 * @brief The legs model and materials.
 	 */
 	r_model_t *legs;
-	r_material_t *legs_skins[MAX_ENTITY_SKINS];
+	r_material_t *legs_skins[MAX_MESH_FACES];
 
 	/**
 	 * @brief The skin icon for the scoreboard.

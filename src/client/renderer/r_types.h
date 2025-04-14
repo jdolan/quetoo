@@ -1007,6 +1007,11 @@ typedef struct {
 } r_mesh_face_t;
 
 /**
+ * @brief Max mesh model faces.
+ */
+#define MAX_MESH_FACES 0x20
+
+/**
  * @brief The mesh animation type.
  */
 typedef struct {
@@ -1365,11 +1370,6 @@ typedef struct {
 #define MAX_STAINS			0x400
 
 /**
- * @brief Entity sub-mesh skins.
- */
-#define MAX_ENTITY_SKINS 	0x8
-
-/**
  * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
  * client game module, and are sent over the wire as part of entity state. The higher bits are applied
  * locally by the client, client game or renderer.
@@ -1466,7 +1466,7 @@ typedef struct r_entity_s {
 	/**
 	 * @brief Mesh model skins, up to one per face. NULL implies the default skin.
 	 */
-	r_material_t *skins[MAX_ENTITY_SKINS];
+	r_material_t *skins[MAX_MESH_FACES];
 
 	/**
 	 * @brief The number of mesh model skins.
