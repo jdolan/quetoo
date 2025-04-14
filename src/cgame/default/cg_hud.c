@@ -624,74 +624,74 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	}
 
 	if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE) {
-		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
+		float health_frac = Clampf01(ps->stats[STAT_HEALTH] / 100.f);
 
-		crosshair.color.x = 1.0;
+		crosshair.color.x = 1.f;
 		crosshair.color.y = health_frac;
 		crosshair.color.z = health_frac;
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_WHITE_GREEN) {
-		float health_frac = Clampf(ps->stats[STAT_HEALTH] / 100.0, 0.0, 1.0);
-		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac = Clampf01(ps->stats[STAT_HEALTH] / 100.f);
+		float health_over = Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f));
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color.x = 1.0;
+			crosshair.color.x = 1.f;
 			crosshair.color.y = health_frac;
 			crosshair.color.z = health_frac;
 		} else {
-			crosshair.color.x = 1.0 - health_over;
-			crosshair.color.y = 1.0;
-			crosshair.color.z = 1.0 - health_over;
+			crosshair.color.x = 1.f - health_over;
+			crosshair.color.y = 1.f;
+			crosshair.color.z = 1.f - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE) {
-		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
+		float health_frac_low = Clampf01((ps->stats[STAT_HEALTH] - 15) / 50.f);
+		float health_frac_medium = Clampf01((ps->stats[STAT_HEALTH] - 65) / 35.f);
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
-			crosshair.color.x = 1.0;
-			crosshair.color.y = 0.0;
-			crosshair.color.z = 0.0;
+			crosshair.color.x = 1.f;
+			crosshair.color.y = 0.f;
+			crosshair.color.z = 0.f;
 		} else if (ps->stats[STAT_HEALTH] <= 70) {
-			crosshair.color.x = 1.0;
+			crosshair.color.x = 1.f;
 			crosshair.color.y = health_frac_low;
-			crosshair.color.z = 0.0;
+			crosshair.color.z = 0.f;
 		} else {
-			crosshair.color.x = 1.0;
-			crosshair.color.y = 1.0;
+			crosshair.color.x = 1.f;
+			crosshair.color.y = 1.f;
 			crosshair.color.z = health_frac_medium;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_RED_YELLOW_WHITE_GREEN) {
-		float health_frac_low = Clampf((ps->stats[STAT_HEALTH] - 15) / 50.0, 0.0, 1.0);
-		float health_frac_medium = Clampf((ps->stats[STAT_HEALTH] - 65) / 35.0, 0.0, 1.0);
-		float health_over = Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0);
+		float health_frac_low = Clampf01((ps->stats[STAT_HEALTH] - 15) / 50.f);
+		float health_frac_medium = Clampf01((ps->stats[STAT_HEALTH] - 65) / 35.f);
+		float health_over = Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f));
 
 		if (ps->stats[STAT_HEALTH] <= 20) {
-			crosshair.color.x = 1.0;
-			crosshair.color.y = 0.0;
-			crosshair.color.z = 0.0;
+			crosshair.color.x = 1.f;
+			crosshair.color.y = 0.f;
+			crosshair.color.z = 0.f;
 		} else if (ps->stats[STAT_HEALTH] <= 70) {
-			crosshair.color.x = 1.0;
+			crosshair.color.x = 1.f;
 			crosshair.color.y = health_frac_low;
-			crosshair.color.z = 0.0;
+			crosshair.color.z = 0.f;
 		} else if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color.x = 1.0;
-			crosshair.color.y = 1.0;
+			crosshair.color.x = 1.f;
+			crosshair.color.y = 1.f;
 			crosshair.color.z = health_frac_medium;
 		} else {
-			crosshair.color.x = 1.0 - health_over;
-			crosshair.color.y = 1.0;
-			crosshair.color.z = 1.0 - health_over;
+			crosshair.color.x = 1.f - health_over;
+			crosshair.color.y = 1.f;
+			crosshair.color.z = 1.f - health_over;
 		}
 	} else if (cg_draw_crosshair_health->integer == CROSSHAIR_HEALTH_WHITE_GREEN) {
-		float health_over = (1.0 - Clampf(((ps->stats[STAT_HEALTH] - 100) / 100.0), 0.0, 1.0));
+		float health_over = (1.f - Clampf01(((ps->stats[STAT_HEALTH] - 100) / 100.f)));
 
 		if (ps->stats[STAT_HEALTH] <= 100) {
-			crosshair.color.x = 1.0;
-			crosshair.color.y = 1.0;
-			crosshair.color.z = 1.0;
+			crosshair.color.x = 1.f;
+			crosshair.color.y = 1.f;
+			crosshair.color.z = 1.f;
 		} else {
-			crosshair.color.x = 1.0 - health_over;
-			crosshair.color.y = 1.0;
-			crosshair.color.z = 1.0 - health_over;
+			crosshair.color.x = 1.f - health_over;
+			crosshair.color.y = 1.f;
+			crosshair.color.z = 1.f - health_over;
 		}
 	}
 
@@ -723,8 +723,8 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 	w = crosshair.image->width * scale;
 	h = crosshair.image->height * scale;
 
-	x = (cgi.context->width - w) / 2.0;
-	y = (cgi.context->height - h) / 2.0;
+	x = (cgi.context->width - w) / 2.f;
+	y = (cgi.context->height - h) / 2.f;
 
 	cgi.Draw2DImage(x, y, w, h, crosshair.image, Color4fv(color));
 }

@@ -1095,7 +1095,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 
 	const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
 
-	const float scale = Clampf(size / 64.f, 0.0, 1.f);
+	const float scale = Clampf01(size / 64.f);
 
 	const uint32_t lifetime = 1800 * scale;
 

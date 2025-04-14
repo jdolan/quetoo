@@ -389,7 +389,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
 	}
 
 	a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
-	a->fraction = Clampf(elapsed_time / (float) animation_duration, 0.0, 1.0);
+	a->fraction = Clampf01(elapsed_time / (float) animation_duration);
 }
 
 /**

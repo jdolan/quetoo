@@ -163,7 +163,7 @@ static inline color_t __attribute__ ((warn_unused_result)) Color4f(float r, floa
 		.r = Maxf(0.f, r),
 		.g = Maxf(0.f, g),
 		.b = Maxf(0.f, b),
-		.a = Clampf(a, 0.f, 1.f)
+		.a = Clampf01(a)
 	};
 }
 
@@ -411,10 +411,10 @@ static inline color32_t __attribute__ ((warn_unused_result)) Color_Color32(const
 		rgb = Vec3_Scale(rgb, 1.f / max);
 	}
 	
-	return Color32(Clampf(rgb.x, 0.f, 1.f) * 255.f,
-				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
-				   Clampf(rgb.z, 0.f, 1.f) * 255.f,
-				   Clampf(c.a, 0.f, 1.f) * 255.f);
+	return Color32(Clampf01(rgb.x) * 255.f,
+				   Clampf01(rgb.y) * 255.f,
+				   Clampf01(rgb.z) * 255.f,
+				   Clampf01(c.a) * 255.f);
 }
 
 /**
@@ -452,9 +452,9 @@ static inline color24_t __attribute__ ((warn_unused_result)) Color_Color24(const
 		rgb = Vec3_Scale(rgb, 1.f / max);
 	}
 
-	return Color24(Clampf(rgb.x, 0.f, 1.f) * 255.f,
-				   Clampf(rgb.y, 0.f, 1.f) * 255.f,
-				   Clampf(rgb.z, 0.f, 1.f) * 255.f);
+	return Color24(Clampf01(rgb.x) * 255.f,
+				   Clampf01(rgb.y) * 255.f,
+				   Clampf01(rgb.z) * 255.f);
 }
 
 /**

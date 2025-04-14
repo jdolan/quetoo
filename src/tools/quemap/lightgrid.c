@@ -201,10 +201,10 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 		case LIGHT_ATTEN_NONE:
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -243,10 +243,10 @@ static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
 			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -300,10 +300,10 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -354,7 +354,7 @@ static void LightgridLuxel_Indirect(light_t *light, luxel_t *luxel, float scale)
 		return;
 	}
 
-	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+	const float atten = Clampf01(1.f - dist / light->radius);
 	const float lumens = atten * scale / light->num_points;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
@@ -566,7 +566,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 	const fog_t *fog = (fog_t *) fogs->data;
 	for (guint i = 0; i < fogs->len; i++, fog++) {
 
-		float density = Clampf(fog->density * scale * FOG_DENSITY_SCALAR, 0.f, 1.f);
+		float density = Clampf01(fog->density * scale * FOG_DENSITY_SCALAR);
 
 		switch (fog->type) {
 			case FOG_VOLUME:
@@ -633,7 +633,7 @@ void FinalizeLightgrid(int32_t luxel_num) {
 
 	luxel->direction = Vec3_Normalize(luxel->direction);
 
-	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
+	luxel->caustics = Vec3_Clampf01(luxel->caustics);
 }
 
 /**

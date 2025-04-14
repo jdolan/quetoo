@@ -149,7 +149,7 @@ static float Cg_BobSpeedModulus(const player_state_t *ps) {
 
 		old_speed = new_speed;
 		new_speed = Vec3_Length(velocity) / max_speed;
-		new_speed = Clampf(new_speed, 0.f, 1.f);
+		new_speed = Clampf01(new_speed);
 		speed = old_speed;
 
 		time = cgi.client->unclamped_time;

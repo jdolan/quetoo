@@ -44,7 +44,7 @@ static void zoomAction(Control *control, const SDL_Event *event, ident sender, i
 
 	PlayerModelView *this = (PlayerModelView *) sender;
 
-	this->zoom = Clampf(this->zoom + event->wheel.y * 0.0125f, 0.0f, 1.0f);
+	this->zoom = Clampf01(this->zoom + event->wheel.y * 0.0125f);
 }
 
 #pragma mark - Object

@@ -64,7 +64,7 @@ static void R_StainFace(const r_view_t *view, const r_stain_t *stain, r_bsp_face
 
 			const float intensity = stain->color.a * atten;
 
-			const float src_alpha = Clampf(intensity, 0.f, 1.f);
+			const float src_alpha = Clampf01(intensity);
 			const float dst_alpha = 1.f - src_alpha;
 
 			const color_t src = Color_Scale(stain->color, src_alpha);

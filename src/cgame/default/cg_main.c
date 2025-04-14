@@ -349,7 +349,7 @@ static void Cg_UpdateConfigString(int32_t i) {
 			Cg_ParseWeaponInfo(s);
 			return;
 		case CS_CTF:
-			cg_state.ctf = Clampf(atoi(s), 0, 1);
+			cg_state.ctf = Clampf01(atoi(s));
 			return;
 		case CS_HOOK_PULL_SPEED:
 			cg_state.hook_pull_speed = strtof(s, NULL);

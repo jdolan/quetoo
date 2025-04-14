@@ -130,7 +130,7 @@ static void Cl_DrawConsole_Input(void) {
  * @brief
  */
 GLint Cl_GetConsoleHeight(void) {
-	return r_context.height * (cls.state == CL_ACTIVE ? Clampf(cl_console_height->value, 0.1, 1.0) : 1.0);
+	return r_context.height * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
 }
 
 /**
