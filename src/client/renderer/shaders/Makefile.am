@@ -4,7 +4,6 @@ shaders_DATA = \
 	blur_fs.glsl \
 	blur_vs.glsl \
 	bsp_fs.glsl \
-	bsp_gs.glsl \
 	bsp_vs.glsl \
 	common.glsl \
 	depth_pass_fs.glsl \
@@ -15,7 +14,6 @@ shaders_DATA = \
 	draw_3d_vs.glsl \
 	material.glsl \
 	mesh_fs.glsl \
-	mesh_gs.glsl \
 	mesh_vs.glsl \
 	polylib.glsl \
 	post_fs.glsl \
