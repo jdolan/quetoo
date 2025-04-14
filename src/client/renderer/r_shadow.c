@@ -73,7 +73,7 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspDrawElementsShadow(const r_light_t *light) {
+static void R_DrawWorldShadow(const r_light_t *light) {
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
@@ -102,7 +102,7 @@ static void R_DrawBspDrawElementsShadow(const r_light_t *light) {
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
-			if (draw->surface & SURF_MASK_TRANSLUCENT) {
+			if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
 				continue;
 			}
 
@@ -226,7 +226,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 	glUniform1i(r_shadow_program.light_index, light->index);
 
 	if (light->type == LIGHT_DYNAMIC) {
-		R_DrawBspDrawElementsShadow(light);
+		R_DrawWorldShadow(light);
 	}
 
 	for (int32_t i = 0; i < light->num_entities; i++) {
