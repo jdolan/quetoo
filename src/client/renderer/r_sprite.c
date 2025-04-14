@@ -46,12 +46,15 @@ static struct {
 	
 	GLint in_position;
 	GLint in_diffusemap;
+	GLint in_next_diffusemap;
 	GLint in_color;
+	GLint in_lerp;
 	GLint in_softness;
 	GLint in_lighting;
 	GLint in_bloom;
 
 	GLint texture_diffusemap;
+	GLint texture_next_diffusemap;
 	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
@@ -228,6 +231,37 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 											   &in->vertexes[2].diffusemap,
 											   &in->vertexes[3].diffusemap);
 
+	if (s->media->type == R_MEDIA_ANIMATION) {
+		const r_animation_t *anim = (const r_animation_t *) s->media;
+
+		in->next_diffusemap = R_ResolveAnimation(anim, s->life, 1);
+
+		R_SpriteTextureCoordinates(in->next_diffusemap, &in->vertexes[0].next_diffusemap,
+														&in->vertexes[1].next_diffusemap,
+														&in->vertexes[2].next_diffusemap,
+														&in->vertexes[3].next_diffusemap);
+
+		const float frame = s->life * anim->num_frames;
+		const float lerp = Clampf01(frame - floorf(frame));
+
+		in->vertexes[0].lerp =
+		in->vertexes[1].lerp =
+		in->vertexes[2].lerp =
+		in->vertexes[3].lerp = lerp;
+	} else {
+		in->next_diffusemap = in->diffusemap;
+
+		in->vertexes[0].next_diffusemap = in->vertexes[0].diffusemap;
+		in->vertexes[1].next_diffusemap = in->vertexes[1].diffusemap;
+		in->vertexes[2].next_diffusemap = in->vertexes[2].diffusemap;
+		in->vertexes[3].next_diffusemap = in->vertexes[3].diffusemap;
+
+		in->vertexes[0].lerp =
+		in->vertexes[1].lerp =
+		in->vertexes[2].lerp =
+		in->vertexes[3].lerp = 0.f;
+	}
+
 	in->vertexes[0].color =
 	in->vertexes[1].color =
 	in->vertexes[2].color =
@@ -385,7 +419,9 @@ void R_DrawSprites(const r_view_t *view) {
 	
 	glEnableVertexAttribArray(r_sprite_program.in_position);
 	glEnableVertexAttribArray(r_sprite_program.in_diffusemap);
+	glEnableVertexAttribArray(r_sprite_program.in_next_diffusemap);
 	glEnableVertexAttribArray(r_sprite_program.in_color);
+	glEnableVertexAttribArray(r_sprite_program.in_lerp);
 	glEnableVertexAttribArray(r_sprite_program.in_softness);
 	glEnableVertexAttribArray(r_sprite_program.in_lighting);
 	glEnableVertexAttribArray(r_sprite_program.in_bloom);
@@ -405,12 +441,16 @@ void R_DrawSprites(const r_view_t *view) {
 		glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 		glBindTexture(GL_TEXTURE_2D, in->diffusemap->texnum);
 
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_NEXT_DIFFUSEMAP);
+		glBindTexture(GL_TEXTURE_2D, in->next_diffusemap->texnum);
+
 		GLsizei batch_size = 1;
 
 		const r_sprite_instance_t *batch = in + 1;
 		for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
 
-			if (batch->diffusemap->texnum == in->diffusemap->texnum) {
+			if (batch->diffusemap == in->diffusemap &&
+				batch->next_diffusemap == in->next_diffusemap) {
 				batch_size++;
 			} else {
 				break;
@@ -463,18 +503,22 @@ static void R_InitSpriteProgram(void) {
 	
 	r_sprite_program.in_position = glGetAttribLocation(r_sprite_program.name, "in_position");
 	r_sprite_program.in_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_diffusemap");
+	r_sprite_program.in_next_diffusemap = glGetAttribLocation(r_sprite_program.name, "in_next_diffusemap");
 	r_sprite_program.in_color = glGetAttribLocation(r_sprite_program.name, "in_color");
+	r_sprite_program.in_lerp = glGetAttribLocation(r_sprite_program.name, "in_lerp");
 	r_sprite_program.in_softness = glGetAttribLocation(r_sprite_program.name, "in_softness");
 	r_sprite_program.in_lighting = glGetAttribLocation(r_sprite_program.name, "in_lighting");
 	r_sprite_program.in_bloom = glGetAttribLocation(r_sprite_program.name, "in_bloom");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
+	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
 	r_sprite_program.texture_lightgrid_ambient = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_ambient");
 	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
@@ -501,10 +545,12 @@ void R_InitSprites(void) {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
-	glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
-	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, bloom));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
+	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
+	glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+	glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, bloom));
 
 	glGenBuffers(1, &r_sprites.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);

@@ -1118,14 +1118,9 @@ typedef struct {
  */
 enum {
 	/**
-	 * @brief If set, animations don't interpolate
-	 */
-	SPRITE_NO_LERP			= 1 << 0,
-
-	/**
 	 * @brief If set, the sprite will tile its bounds, rather than stretch to them.
 	 */
-	SPRITE_BEAM_REPEAT      = 1 << 1,
+	SPRITE_BEAM_REPEAT      = 1 << 0,
 
 	/**
 	 * @brief Beginning of flags reserved for cgame
@@ -1305,7 +1300,9 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec2_t diffusemap;
+	vec2_t next_diffusemap;
 	color_t color;
+	float lerp;
 	float softness;
 	float lighting;
 	float bloom;
@@ -1324,6 +1321,11 @@ typedef struct {
 	 * @brief The diffusemap texture.
 	 */
 	const r_image_t *diffusemap;
+
+	/**
+	 * @brief The next diffusemap texture, for animation interpolation.
+	 */
+	const r_image_t *next_diffusemap;
 
 	/**
 	 * @brief The sprite vertexes in the shared array.
@@ -1927,6 +1929,11 @@ typedef enum {
 	 * @brief The shadowmap cubemap array texture.
 	 */
 	TEXTURE_SHADOWMAP,
+
+	/**
+	 * @brief Sprite specific textures.
+	 */
+	TEXTURE_NEXT_DIFFUSEMAP,
 
 	/**
 	 * @brief Framebuffer specific textures.
