@@ -24,11 +24,6 @@
 #include "light.h"
 
 /**
- * @brief The maximum number of diffuse light sources per luxel.
- */
-#define MAX_LUXEL_LUMENS 32
-
-/**
  * @brief Lumens are light source contributions to individual luxels.
  */
 typedef struct lumen_s {

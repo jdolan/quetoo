@@ -172,11 +172,6 @@ static int32_t EmitNode(const node_t *node) {
 		}
 	}
 
-	// aggregate draw elements on block nodes
-	if (node->contents == CONTENTS_BLOCK) {
-
-	}
-
 	return node_num;
 }
 

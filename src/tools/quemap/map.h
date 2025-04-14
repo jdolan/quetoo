@@ -164,7 +164,6 @@ typedef struct brush_s {
 	bsp_brush_t *out;
 } brush_t;
 
-
 extern int32_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
