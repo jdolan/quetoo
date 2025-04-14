@@ -359,10 +359,10 @@ static void LightmapLuxel_Point(light_t *light, const lightmap_t *lightmap, luxe
 			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -406,10 +406,10 @@ static void LightmapLuxel_Spot(light_t *light, const lightmap_t *lightmap, luxel
 			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -467,10 +467,10 @@ static void LightmapLuxel_BrushSide(light_t *light, const lightmap_t *lightmap, 
 			atten = 1.f;
 			break;
 		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			break;
 		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+			atten = Clampf01(1.f - dist / light->radius);
 			atten *= atten;
 			break;
 	}
@@ -525,7 +525,7 @@ static void LightmapLuxel_Indirect(light_t *light, const lightmap_t *lightmap, l
 		return;
 	}
 
-	const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
+	const float atten = Clampf01(1.f - dist / light->radius);
 	const float lumens = atten * scale / light->num_points;
 
 	for (int32_t i = 0; i < light->num_points; i++) {
@@ -713,7 +713,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	Vec3_Tangents(luxel->normal, sdir, tdir, &tangent, &bitangent);
 
 	// lerp the direction with the normal, according to intensity
-	const float intensity = Clampf(Vec3_Length(luxel->direction), 0.f, 1.f);
+	const float intensity = Clampf01(Vec3_Length(luxel->direction));
 	luxel->direction = Vec3_Normalize(luxel->direction);
 	luxel->direction = Vec3_Mix(luxel->direction, luxel->normal, 1.f - intensity);
 	luxel->direction = Vec3_Normalize(luxel->direction);
@@ -727,7 +727,7 @@ static void FinalizeLightmapLuxel(const lightmap_t *lightmap, luxel_t *luxel) {
 	luxel->direction = Vec3_Normalize(luxel->direction);
 
 	// and clamp the cuastics
-	luxel->caustics = Vec3_Clampf(luxel->caustics, 0.f, 1.f);
+	luxel->caustics = Vec3_Clampf01(luxel->caustics);
 }
 
 /**

@@ -1005,7 +1005,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 	};
 
 	if (ent->current.effects & EF_DESPAWN) {
-		const float decay = Clampf((cgi.client->unclamped_time - ent->timestamp) / 1000.f, 0.f, 1.f);
+		const float decay = Clampf01((cgi.client->unclamped_time - ent->timestamp) / 1000.f);
 		l.radius *= (1.f - decay);
 	} else {
 		Cg_SmokeTrail(ent, start, end);

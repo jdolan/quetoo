@@ -326,7 +326,7 @@ void S_RenderMusic(const s_stage_t *stage) {
 	SDL_LockMutex(s_music_state.mutex);
 
 	if (s_music_volume->modified) {
-		const float volume = Clampf(s_music_volume->value, 0.0, 1.0);
+		const float volume = Clampf01(s_music_volume->value);
 
 		if (volume) {
 			alSourcef(s_music_state.source, AL_GAIN, volume);

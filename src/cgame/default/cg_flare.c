@@ -115,7 +115,7 @@ void Cg_AddFlares(void) {
 		}
 
 		const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
-		const float alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
+		const float alpha = Clampf01(dot * cg_add_flares->value);
 
 		if (alpha == 0.f) {
 			continue;

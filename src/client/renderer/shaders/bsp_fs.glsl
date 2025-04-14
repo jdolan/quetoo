@@ -121,22 +121,25 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-//	if (material.parallax == 0.0) {
-//		return 1.0;
-//	}
-//
-//	vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-//	vec3 dir = normalize(fragment.inverse_tbn * light_dir);
-//	vec3 delta = vec3(dir.xy * texel, dir.z * length(texel));
-//	vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-//
-//	do {
-//		texcoord += delta;
-//		float sample_height = sample_heightmap(texcoord.xy);
-//		if (sample_height > texcoord.z * 1.05) {
-//			return distance(fragment.parallax, texcoord.xy);
-//		}
-//	} while (texcoord.z < 1.0);
+	if (developer == 1) {
+		
+		if (material.parallax == 0.0) {
+			return 1.0;
+		}
+
+		vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+		vec3 dir = normalize(fragment.inverse_tbn * light_dir);
+		vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01));
+		vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+
+		do {
+			texcoord += delta;
+			float sample_height = sample_heightmap(texcoord.xy);
+			if (sample_height > texcoord.z * 1.05) {
+				return distance(fragment.parallax, texcoord.xy);
+			}
+		} while (texcoord.z < 1.0);
+	}
 
 	return 1.0;
 }
@@ -491,7 +494,10 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index) + parallax_self_shadow(dir);
+	float shadow = sample_shadowmap_cube(light, index);
+	if (shadow == 1.0) {
+		shadow = parallax_self_shadow(dir);
+	}
 
 	diffuse *= shadow;
 

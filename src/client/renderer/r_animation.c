@@ -54,5 +54,6 @@ r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_i
  * @brief Resolve animation image for time parameter
  */
 const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset) {
-	return animation->frames[MIN(animation->num_frames - 1, (int32_t) ((animation->num_frames * time) + offset))];
+	const int32_t frame = (int32_t) (animation->num_frames * time);
+	return animation->frames[Mini(frame + offset, animation->num_frames - 1)];
 }

@@ -396,7 +396,7 @@ next:;
 
 	// move up to the node if we can potentially hit it
 	if (p1f < data->unnudged_fraction) {
-		frac1 = Clampf(frac1, 0.f, 1.f);
+		frac1 = Clampf01(frac1);
 
 		const float midf1 = p1f + (p2f - p1f) * frac1;
 
@@ -413,7 +413,7 @@ next:;
 	}
 
 	// go past the node
-	frac2 = Clampf(frac2, 0.f, 1.f);
+	frac2 = Clampf01(frac2);
 
 	const float midf2 = p1f + (p2f - p1f) * frac2;
 

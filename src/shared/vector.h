@@ -475,7 +475,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) SignOf(float f) {
  * @return The Hermite interpolation of `f`.
  */
 static inline float __attribute__ ((warn_unused_result)) Smoothf(float f, float min, float max) {
-	const float s = Clampf((f - min) / (max - min), 0.f, 1.f);
+	const float s = Clampf01((f - min) / (max - min));
 	return s * s;
 }
 
@@ -1097,7 +1097,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clampf(const vec3
 /**
  * @return
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clamp01(const vec3_t v) {
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Clampf01(const vec3_t v) {
 	return Vec3(
 		Clampf(v.x, 0.0, 1.0),
 		Clampf(v.y, 0.0, 1.0),
