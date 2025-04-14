@@ -332,30 +332,35 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		}
 
 		in->flags = b->flags;
-		in->diffusemap = b->image;
+		in->diffusemap = in->next_diffusemap = b->image;
 
 		in->vertexes[0].position = positions[0];
 		in->vertexes[1].position = positions[1];
 		in->vertexes[2].position = positions[2];
 		in->vertexes[3].position = positions[3];
 
-		in->vertexes[0].diffusemap = texcoords[0];
-		in->vertexes[1].diffusemap = texcoords[1];
-		in->vertexes[2].diffusemap = texcoords[2];
-		in->vertexes[3].diffusemap = texcoords[3];
+		in->vertexes[0].diffusemap = in->vertexes[0].next_diffusemap = texcoords[0];
+		in->vertexes[1].diffusemap = in->vertexes[1].next_diffusemap = texcoords[1];
+		in->vertexes[2].diffusemap = in->vertexes[2].next_diffusemap = texcoords[2];
+		in->vertexes[3].diffusemap = in->vertexes[3].next_diffusemap = texcoords[3];
 
 		const float xs = (texcoords[0].x * (1.f - frac)) + (texcoords[1].x * frac);
 		const float ys = (texcoords[0].x * (1.f - (frac + step))) + (texcoords[1].x * (frac + step));
 
-		in->vertexes[0].diffusemap.x = xs;
-		in->vertexes[1].diffusemap.x = ys;
-		in->vertexes[2].diffusemap.x = ys;
-		in->vertexes[3].diffusemap.x = xs;
+		in->vertexes[0].diffusemap.x = in->vertexes[0].next_diffusemap.x = xs;
+		in->vertexes[1].diffusemap.x = in->vertexes[1].next_diffusemap.x = ys;
+		in->vertexes[2].diffusemap.x = in->vertexes[2].next_diffusemap.x = ys;
+		in->vertexes[3].diffusemap.x = in->vertexes[3].next_diffusemap.x = xs;
 
 		in->vertexes[0].color =
 		in->vertexes[1].color =
 		in->vertexes[2].color =
 		in->vertexes[3].color = b->color;
+
+		in->vertexes[0].lerp =
+		in->vertexes[1].lerp =
+		in->vertexes[2].lerp =
+		in->vertexes[3].lerp = 0.f;
 
 		in->vertexes[0].softness =
 		in->vertexes[1].softness =
