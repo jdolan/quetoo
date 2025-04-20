@@ -221,6 +221,12 @@ void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, 
  */
 void R_InitContext(void) {
 
+#if __APPLE__
+	// Stop Xcode from launching multiple instances of the application
+	// https://developer.apple.com/forums/thread/765445
+	usleep(350000);
+#endif
+
 	memset(&r_context, 0, sizeof(r_context));
 
 	if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
