@@ -437,9 +437,12 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
 	entity->angles = cgi.EntityValue(self->def, "angles")->vec3;
 	entity->scale = cgi.EntityValue(self->def, "scale")->value ?: 1.f;
 	entity->lerp = 1.f;
+	entity->color = Vec4_One();
 
 	if (cgi.EntityValue(self->def, "model")->parsed & ENTITY_STRING) {
 		entity->model = cgi.LoadModel(cgi.EntityValue(self->def, "model")->string);
+		entity->bounds = Box3_Scale(entity->model->bounds, entity->scale);
+		entity->abs_bounds = Box3_Translate(entity->bounds, entity->origin);
 	} else {
 		cgi.Warn("%s @ %s has no model specified\n", self->clazz->class_name, vtos(self->origin));
 	}
