@@ -53,7 +53,12 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	view->lights[view->num_lights++] = *l;
+	r_light_t *out = &view->lights[view->num_lights++];
+
+	*out = *l;
+
+	out->index = -1;
+	out->occluded = false;
 }
 
 /**
@@ -79,25 +84,6 @@ static void R_AddLightUniform(r_light_t *in) {
 }
 
 /**
- * @brief
- */
-static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
-
-	if (light->source == NULL) {
-		return false;
-	}
-
-	while (e) {
-		if (light->source == e->id) {
-			return true;
-		}
-		e = e->parent;
-	}
-
-	return false;
-}
-
-/**
  * @brief Cull lights by occlusion queries, and transform them into view space.
  */
 void R_UpdateLights(r_view_t *view) {
@@ -117,53 +103,16 @@ void R_UpdateLights(r_view_t *view) {
 	out->light_view[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
 
-	vec3_t point = view->origin;
-	if (r_draw_light_bounds->value) {
-		point = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-		point = Cm_BoxTrace(view->origin, point, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE).end;
-	}
-
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		l->index = -1;
-
-		l->occluded = l->query && l->query->result == 0;
-		if (l->occluded) {
+		if (l->query && l->query->result == 0) {
+			l->occluded = true;
 			continue;
 		}
 
-		if (r_draw_light_bounds->value && Box3_ContainsPoint(l->bounds, point)) {
+		if (r_draw_light_bounds->value) {
 			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-		}
-
-		const r_entity_t *e = view->entities;
-		for (int32_t j = 0; j < view->num_entities; j++, e++) {
-
-			if (!e->model) {
-				continue;
-			}
-
-			if (e->effects & EF_NO_SHADOW) {
-				continue;
-			}
-
-			if (R_IsLightSource(l, e)) {
-				continue;
-			}
-
-			if (Box3_Intersects(e->abs_bounds, l->bounds)) {
-				l->entities[l->num_entities++] = e;
-
-				if (l->num_entities == MAX_LIGHT_ENTITIES) {
-					Com_Warn("MAX_ENTITIES for light\n");
-					break;
-				}
-			}
-		}
-
-		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
-			continue;
 		}
 
 		R_AddLightUniform(l);

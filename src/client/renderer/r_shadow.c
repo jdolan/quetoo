@@ -219,26 +219,69 @@ static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
 }
 
 /**
+ * @brief
+ */
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+
+	if (light->source == NULL) {
+		return false;
+	}
+
+	while (e) {
+		if (light->source == e->id) {
+			return true;
+		}
+		e = e->parent;
+	}
+
+	return false;
+}
+
+/**
  * @brief Renders the shadow cubemap for the specified light.
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
+	R_ClearShadow(view, light);
+
 	glUniform1i(r_shadow_program.light_index, light->index);
 
-	if (light->type == LIGHT_DYNAMIC) {
-		R_DrawWorldShadow(light);
+	R_DrawWorldShadow(light);
+
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+		if (!IS_BSP_INLINE_MODEL(e->model)) {
+			continue;
+		}
+
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		R_DrawBspInlineEntityShadow(view, e);
 	}
 
-	for (int32_t i = 0; i < light->num_entities; i++) {
-		const r_entity_t *e = light->entities[i];
+	e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (IS_MESH_MODEL(e->model)) {
-			R_DrawMeshEntityShadow(view, e);
-		} else if (IS_BSP_INLINE_MODEL(e->model)) {
-			R_DrawBspInlineEntityShadow(view, e);
-		} else {
-			assert(false);
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
 		}
+
+		if (e->effects & EF_NO_SHADOW) {
+			continue;
+		}
+
+		if (R_IsLightSource(light, e)) {
+			continue;
+		}
+
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		R_DrawMeshEntityShadow(view, e);
 	}
 
 	R_GetError(NULL);
@@ -268,12 +311,6 @@ void R_DrawShadows(const r_view_t *view) {
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
 		if (l->index == -1) {
-			continue;
-		}
-
-		R_ClearShadow(view, l);
-
-		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
 			continue;
 		}
 

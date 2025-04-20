@@ -1585,12 +1585,6 @@ typedef struct {
 	const r_entity_t *source;
 
 	/**
-	 * @brief The entities that are within the bounds of this light, for shadow mapping.
-	 */
-	const r_entity_t *entities[MAX_LIGHT_ENTITIES];
-	int32_t num_entities;
-
-	/**
 	 * @brief The light uniform index and shadowmap layer.
 	 */
 	GLint index;

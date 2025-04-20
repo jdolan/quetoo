@@ -392,8 +392,6 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 										 const r_entity_t *entity,
 										 const r_bsp_draw_elements_t *draw) {
 
-	R_ActiveLights(view, draw->bounds, r_bsp_program.active_lights);
-
 	glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
 
 	glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
@@ -428,6 +426,8 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 		if (block->occluded) {
 			continue;
 		}
+
+		R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
 
 		const r_bsp_draw_elements_t *draw = block->draw_elements;
 		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {

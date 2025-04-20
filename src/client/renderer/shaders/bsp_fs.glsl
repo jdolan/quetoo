@@ -310,162 +310,6 @@ float sample_shadowmap_cube(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_sun(in light_t light, in int index) {
-
-	vec3 dir = light.position.xyz - vertex.position;
-
-	vec3 diffuse = light.color.rgb * light.color.a;
-
-	dir = normalize(dir);
-
-//	diffuse *= dot(dir, -light.normal.xyz);
-
-	float lambert = dot(dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	diffuse *= lambert;
-
-	float shadow = 1.0 - sample_shadowmap_cube(light, index);
-
-	diffuse *= shadow;
-
-	diffuse = min(diffuse, fragment.diffuse);
-
-	fragment.diffuse -= diffuse;
-	fragment.specular -= blinn_phong(diffuse, dir);
-}
-
-/**
- * @brief
- */
-void light_and_shadow_point(in light_t light, in int index) {
-
-	vec3 dir = light.position.xyz - vertex.position;
-
-	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
-	if (atten <= 0.0) {
-		return;
-	}
-
-	vec3 diffuse = light.color.rgb * light.color.a;
-	switch (int(light.maxs.w)) {
-		case LIGHT_ATTEN_LINEAR:
-			diffuse *= atten;
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			diffuse *= atten * atten;
-			break;
-	}
-
-	dir = normalize(dir);
-
-	float lambert = dot(dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	diffuse *= lambert;
-
-	float shadow = 1.0 - sample_shadowmap_cube(light, index);
-
-	diffuse *= shadow;
-
-	diffuse = min(diffuse, fragment.diffuse);
-
-	fragment.diffuse -= diffuse;
-	fragment.specular -= blinn_phong(diffuse, dir);
-}
-
-/**
- * @brief
- */
-void light_and_shadow_spot(in light_t light, in int index) {
-
-	vec3 dir = light.position.xyz - vertex.position;
-
-	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
-	if (atten <= 0.0) {
-		return;
-	}
-
-	vec3 diffuse = light.color.rgb * light.color.a;
-	switch (int(light.maxs.w)) {
-		case LIGHT_ATTEN_LINEAR:
-			diffuse *= atten;
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			diffuse *= atten * atten;
-			break;
-	}
-
-	dir = normalize(dir);
-
-	diffuse *= dot(dir, -light.normal.xyz);
-
-	float lambert = dot(dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	diffuse *= lambert;
-
-	float shadow = 1.0 - sample_shadowmap_cube(light, index);
-
-	diffuse *= shadow;
-
-	diffuse = min(diffuse, fragment.diffuse);
-
-	fragment.diffuse -= diffuse;
-	fragment.specular -= blinn_phong(diffuse, dir);
-}
-
-/**
- * @brief
- */
-void light_and_shadow_brush_side(in light_t light, in int index) {
-
-	vec3 dir = light.position.xyz - vertex.position;
-	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
-	if (atten <= 0.0) {
-		return;
-	}
-
-	vec3 diffuse = light.color.rgb * light.color.a;
-	switch (int(light.maxs.w)) {
-		case LIGHT_ATTEN_LINEAR:
-			diffuse *= atten;
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			diffuse *= atten * atten;
-			break;
-	}
-
-	dir = normalize(dir);
-
-	diffuse *= dot(dir, -light.normal.xyz);
-
-	float lambert = dot(dir, fragment.normalmap);
-	if (lambert <= 0.0) {
-		return;
-	}
-
-	diffuse *= lambert;
-
-	float shadow = 1.0 - sample_shadowmap_cube(light, index);
-
-	diffuse *= shadow;
-
-	diffuse = min(diffuse, fragment.diffuse);
-
-	fragment.diffuse -= diffuse;
-	fragment.specular -= blinn_phong(diffuse, dir);
-}
-
-/**
- * @brief
- */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	vec3 dir = light.position.xyz - vertex.position;
@@ -543,18 +387,11 @@ void light_and_shadow(void) {
 
 	if (model_type == MODEL_BSP) {
 		fragment.ambient = sample_lightmap_ambient();
-		fragment.diffuse = sample_lightmap_diffuse();
-		fragment.direction = sample_lightmap_direction();
 	} else {
 		fragment.ambient = sample_lightgrid_ambient();
-		fragment.diffuse = sample_lightgrid_diffuse();
-		fragment.direction = sample_lightgrid_direction();
 	}
 
 	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.diffuse *= max(0.0, dot(fragment.direction, fragment.normalmap));
-	fragment.diffuse *= max(0.0, parallax_self_shadow(fragment.direction));
-	fragment.specular += blinn_phong(fragment.diffuse, fragment.direction);
 	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
 	for (int index = 0; index < num_lights; index++) {
@@ -567,26 +404,13 @@ void light_and_shadow(void) {
 		}
 
 		light_t light = lights[index];
-		int type = int(light.position.w);
-		switch (type) {
-			case LIGHT_SUN:
-				light_and_shadow_sun(light, index);
-				break;
-			case LIGHT_POINT:
-				light_and_shadow_point(light, index);
-				break;
-			case LIGHT_SPOT:
-				light_and_shadow_spot(light, index);
-				break;
-			case LIGHT_BRUSH_SIDE:
-				light_and_shadow_brush_side(light, index);
-				break;
-			case LIGHT_DYNAMIC:
-				light_and_shadow_dynamic(light, index);
-				break;
-			default:
-				break;
+
+		if (any(lessThan(vertex.model, light.mins.xyz)) || any(greaterThan(vertex.model, light.maxs.xyz))) {
+			continue;
 		}
+
+		int type = int(light.position.w);
+		light_and_shadow_dynamic(light, index);
 	}
 
 	light_and_shadow_caustics();
