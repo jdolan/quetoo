@@ -318,6 +318,12 @@ static void Cg_AddEntity(cl_entity_t *ent) {
  */
 void Cg_AddEntities(const cl_frame_t *frame) {
 
+	// add the world model
+	cgi.AddEntity(cgi.view, &(const r_entity_t) {
+		.model = cgi.WorldModel(),
+		.scale = 1.f,
+	});
+
 	if (!cg_add_entities->value) {
 		return;
 	}

@@ -418,7 +418,10 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
  * @brief
  */
 static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
-	const r_bsp_inline_model_t *in = entity ? entity->model->bsp_inline : r_world_model->bsp->inline_models;
+
+	const r_bsp_inline_model_t *in = IS_BSP_MODEL(entity->model)
+		? entity->model->bsp->inline_models
+		: entity->model->bsp_inline;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -472,22 +475,16 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
-
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
-
-	R_DrawOpaqueBspInlineEntity(view, NULL);
-
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
-
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_BSP_INLINE_MODEL(e->model)) {
+
+		if (IS_BSP_MODEL(e->model) || IS_BSP_INLINE_MODEL(e->model)) {
 
 			if (R_CullEntity(view, e)) {
 				continue;
 			}
 
+			glUniform1i(r_bsp_program.model_type, e->model->type);
 			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
 			R_DrawOpaqueBspInlineEntity(view, e);
@@ -513,7 +510,10 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
  * @brief
  */
 static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
-	const r_bsp_inline_model_t *in = entity ? entity->model->bsp_inline : r_world_model->bsp->inline_models;
+
+	const r_bsp_inline_model_t *in = IS_BSP_MODEL(entity->model)
+		? entity->model->bsp->inline_models
+		: entity->model->bsp_inline;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -566,23 +566,15 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP);
-	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
-
-	glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, Mat4_Identity().array);
-
-	R_DrawBlendBspInlineEntity(view, NULL);
-
-	glUniform1i(r_bsp_program.model_type, MODEL_BSP_INLINE);
-
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_BSP_INLINE_MODEL(e->model)) {
+		if (IS_BSP_MODEL(e->model) || IS_BSP_INLINE_MODEL(e->model)) {
 
 			if (R_CullEntity(view, e)) {
 				continue;
 			}
 
+			glUniform1i(r_bsp_program.model_type, e->model->type);
 			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
 			R_DrawBlendBspInlineEntity(view, e);

@@ -73,54 +73,19 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawWorldShadow(const r_light_t *light) {
-
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-
-	glBindVertexArray(bsp->vertex_array);
-
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glDisableVertexAttribArray(r_shadow_program.in_next_position);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->inline_models->depth_pass_elements_buffer);
-
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
-
-	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-}
-
-/**
- * @brief
- */
 static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_entity_t *e) {
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
-	const r_bsp_inline_model_t *in = e->model->bsp_inline;
+	const r_bsp_inline_model_t *in = IS_BSP_MODEL(e->model)
+		? e->model->bsp->inline_models
+		: e->model->bsp_inline;
 
-	glBindVertexArray(bsp->vertex_array);
 
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glDisableVertexAttribArray(r_shadow_program.in_next_position);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
 	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
 }
 
 /**
@@ -222,12 +187,18 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 	glUniform1i(r_shadow_program.light_index, light->index);
 
-	R_DrawWorldShadow(light);
+	const r_bsp_model_t *bsp = r_world_model->bsp;
+	glBindVertexArray(bsp->vertex_array);
+
+	glEnableVertexAttribArray(r_shadow_program.in_position);
+	glDisableVertexAttribArray(r_shadow_program.in_next_position);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (!IS_BSP_INLINE_MODEL(e->model)) {
+		if (!IS_BSP_MODEL(e->model) && !IS_BSP_INLINE_MODEL(e->model)) {
 			continue;
 		}
 
@@ -237,6 +208,11 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 		R_DrawBspInlineEntityShadow(view, e);
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 
 	e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
