@@ -319,7 +319,7 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 		return;
 	}
 
-	vec3 diffuse = light.color.rgb * light.color.a;
+	vec3 diffuse = light.color.rgb * light.color.a * modulate;
 	switch (int(light.maxs.w)) {
 		case LIGHT_ATTEN_LINEAR:
 			diffuse *= atten;
