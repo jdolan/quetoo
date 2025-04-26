@@ -774,7 +774,6 @@ typedef struct {
 	 * @brief The light occlusion query.
 	 */
 	r_occlusion_query_t query;
-
 } r_bsp_light_t;
 
 /**
@@ -1569,15 +1568,10 @@ typedef struct {
 	box3_t bounds;
 
 	/**
-	 * @brief True if the light is occluded for the current frame.
-	 */
-	bool occluded;
-
-	/**
 	 * @brief The light occlusion query, for static light sources.
 	 * @details This is a pointer to the backing BSP light's occlusion query.
 	 */
-	const r_occlusion_query_t *query;
+	const r_bsp_light_t *bsp_light;
 
 	/**
 	 * @brief The optional light source, which will not cast shadow.

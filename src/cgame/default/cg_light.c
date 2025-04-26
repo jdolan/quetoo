@@ -82,6 +82,10 @@ static void Cg_AddBspLights(void) {
 				break;
 		}
 
+		if (l->occluded) {
+			continue;
+		}
+
 		if (l->shadow == 0.f) {
 			continue;
 		}
@@ -126,7 +130,7 @@ static void Cg_AddBspLights(void) {
 				.cone = l->cone,
 				.falloff = l->falloff,
 				.bounds = l->bounds,
-				.query = &l->query,
+				.bsp_light = l,
 			});
 		}
 	}
@@ -140,6 +144,8 @@ void Cg_AddLights(void) {
 	if (!cg_add_lights->value) {
 		return;
 	}
+
+	Cg_AddBspLights();
 
 	cg_light_t *l = cg_lights;
 	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
@@ -170,8 +176,6 @@ void Cg_AddLights(void) {
 
 		cgi.AddLight(cgi.view, &out);
 	}
-
-	Cg_AddBspLights();
 }
 
 /**

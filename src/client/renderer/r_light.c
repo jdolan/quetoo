@@ -58,7 +58,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 	*out = *l;
 
 	out->index = -1;
-	out->occluded = false;
 }
 
 /**
@@ -106,8 +105,7 @@ void R_UpdateLights(r_view_t *view) {
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (l->query && l->query->result == 0) {
-			l->occluded = true;
+		if (l->bsp_light && l->bsp_light->occluded) {
 			continue;
 		}
 
