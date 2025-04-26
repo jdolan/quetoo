@@ -83,36 +83,12 @@ static void R_DrawWorldShadow(const r_light_t *light) {
 	glDisableVertexAttribArray(r_shadow_program.in_next_position);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->inline_models->depth_pass_elements_buffer);
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
 
-	const r_bsp_block_t *block = bsp->blocks;
-	for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
-
-		if (block->occluded) {
-			continue;
-		}
-
-		if (!Box3_Intersects(block->visible_bounds, light->bounds)) {
-			continue;
-		}
-
-		const r_bsp_draw_elements_t *draw = block->draw_elements;
-		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
-
-			if (draw->surface & (SURF_SKY | SURF_MASK_BLEND)) {
-				continue;
-			}
-
-			if (!Box3_Intersects(draw->bounds, light->bounds)) {
-				continue;
-			}
-
-			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-		}
-	}
+	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
