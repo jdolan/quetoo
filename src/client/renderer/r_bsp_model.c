@@ -623,7 +623,7 @@ static void R_LoadBspInlineModelDepthPassElements(const r_bsp_model_t *bsp, r_bs
 	const r_bsp_draw_elements_t *draw = in->draw_elements;
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (!(draw->surface & SURF_MASK_TRANSLUCENT)) {
+		if (!(draw->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY))) {
 			in->num_depth_pass_elements += draw->num_elements;
 		}
 	}
@@ -639,7 +639,7 @@ static void R_LoadBspInlineModelDepthPassElements(const r_bsp_model_t *bsp, r_bs
 
 	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
 
-		if (draw->surface & SURF_MASK_TRANSLUCENT) {
+		if (draw->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
 			continue;
 		}
 
