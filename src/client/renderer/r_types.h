@@ -1584,6 +1584,8 @@ typedef struct {
 	GLint index;
 } r_light_t;
 
+#define IS_DIRECTIONAL_LIGHT(light) (light->type == LIGHT_SUN)
+
 /**
  * @brief Framebuffer attachments bitmask.
  */
@@ -1916,7 +1918,8 @@ typedef enum {
 	/**
 	 * @brief The shadowmap cubemap array texture.
 	 */
-	TEXTURE_SHADOWMAP,
+	TEXTURE_SHADOW_ARRAY,
+	TEXTURE_SHADOW_CUBEMAP_ARRAY,
 
 	/**
 	 * @brief Sprite specific textures.

@@ -33,22 +33,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	switch (l->type) {
-		case LIGHT_AMBIENT:
-		case LIGHT_SUN:
-		case LIGHT_POINT:
-		case LIGHT_SPOT:
-		case LIGHT_BRUSH_SIDE:
-			if (r_shadowmap->integer < 2) {
-				return;
-			}
-			break;
-		case LIGHT_DYNAMIC:
-			break;
-		default:
-			return;
-	}
-
 	if (R_CulludeBox(view, l->bounds)) {
 		return;
 	}
@@ -70,9 +54,14 @@ static void R_AddLightUniform(r_light_t *in) {
 		return;
 	}
 
-	in->index = r_lights.block.num_lights++;
+	if (IS_DIRECTIONAL_LIGHT(in)) {
+		in->index = r_lights.texture_array_index++;
+	} else {
+		in->index = r_lights.cubemap_array_index++;
+	}
 
-	r_light_uniform_t *out = &r_lights.block.lights[in->index];
+	r_light_uniform_t *out = &r_lights.block.lights[r_lights.block.num_lights++];
+	// TODO: Need to add index to uniform struct
 
 	out->model = Vec3_ToVec4(in->origin, in->radius);
 	out->mins = Vec3_ToVec4(in->bounds.mins, in->size);
@@ -91,9 +80,11 @@ void R_UpdateLights(r_view_t *view) {
 
 	memset(out, 0, sizeof(*out));
 
-	const float f = BSP_BLOCK_SIZE * 0.5f;
+	r_lights.texture_array_index = r_lights.cubemap_array_index = 0;
 
-	out->light_projection_ortho = Mat4_FromOrtho(-f, f, -f, f, NEAR_DIST, MAX_WORLD_DIST);
+	const int32_t f = r_shadow_cubemap_array_size->value / 2.f;
+
+	out->light_projection_ortho = Mat4_FromOrtho(-f, f, -f, -f, NEAR_DIST, MAX_WORLD_DIST);
 	out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
 	out->light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));

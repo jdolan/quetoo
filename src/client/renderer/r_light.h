@@ -63,6 +63,7 @@ typedef struct {
 	vec4_t color;
 } r_light_uniform_t;
 
+#define MAX_SUN_LIGHTS 2
 #define MAX_LIGHT_UNIFORMS 256
 
 /**
@@ -109,6 +110,16 @@ typedef struct {
 	 * @brief The uniform buffer interface block.
 	 */
 	r_light_uniform_block_t block;
+
+	/**
+	 * @brief The index into the shadow texture array.
+	 */
+	GLint texture_array_index;
+
+	/**
+	 * @brief The index into the shadow cubemap array.
+	 */
+	GLint cubemap_array_index;
 
 	/**
 	 * @brief The bit vector of active light indexes for the current render operation.

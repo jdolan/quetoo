@@ -53,7 +53,7 @@ static struct {
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_fog;
-	GLint texture_shadowmap;
+	GLint texture_shadow_cubemap_array;
 
 	GLint color;
 	GLint tint_colors;
@@ -171,7 +171,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
-	if (!r_draw_material_stages->value) {
+	if (!r_materials->value) {
 		return;
 	}
 
@@ -442,7 +442,7 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_lightgrid_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_diffuse");
 	r_mesh_program.texture_lightgrid_direction = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_direction");
 	r_mesh_program.texture_lightgrid_fog = glGetUniformLocation(r_mesh_program.name, "texture_lightgrid_fog");
-	r_mesh_program.texture_shadowmap = glGetUniformLocation(r_mesh_program.name, "texture_shadowmap");
+	r_mesh_program.texture_shadow_cubemap_array = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array");
 
 	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
@@ -468,7 +468,7 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_mesh_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_mesh_program.texture_shadowmap, TEXTURE_SHADOWMAP);
+	glUniform1i(r_mesh_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
 
 	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 

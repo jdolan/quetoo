@@ -36,13 +36,14 @@ extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
 extern cvar_t *r_hdr;
 extern cvar_t *r_height;
+extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_parallax;
 extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shadowmap;
-extern cvar_t *r_shadowmap_size;
+extern cvar_t *r_shadow_texture_array_size;
+extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
 extern cvar_t *r_stains_decay;
@@ -164,16 +165,6 @@ typedef struct {
 		int32_t ticks;
 
 		/**
-		 * @brief The lightmaps debugging mask.
-		 */
-		int32_t lightmaps;
-
-		/**
-		 * @brief The shadows debugging mask.
-		 */
-		int32_t shadows;
-
-		/**
 		 * @brief The modulate scalar.
 		 */
 		float modulate;
@@ -228,11 +219,9 @@ extern cvar_t *r_depth_pass;
 extern cvar_t *r_developer;
 extern cvar_t *r_draw_bsp_blocks;
 extern cvar_t *r_draw_bsp_lightgrid;
-extern cvar_t *r_draw_bsp_lightmap;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
-extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
 extern cvar_t *r_error_level;

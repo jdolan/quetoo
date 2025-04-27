@@ -31,11 +31,9 @@ cvar_t *r_depth_pass;
 cvar_t *r_developer;
 cvar_t *r_draw_bsp_blocks;
 cvar_t *r_draw_bsp_lightgrid;
-cvar_t *r_draw_bsp_lightmap;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
-cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
 cvar_t *r_error_level;
@@ -57,13 +55,14 @@ cvar_t *r_fullscreen;
 cvar_t *r_hardness;
 cvar_t *r_hdr;
 cvar_t *r_height;
+cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_parallax;
 cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
-cvar_t *r_shadowmap;
-cvar_t *r_shadowmap_size;
+cvar_t *r_shadow_texture_array_size;
+cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_specularity;
 cvar_t *r_stains;
 cvar_t *r_stains_decay;
@@ -148,22 +147,15 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
 		out->depth_range.x = NEAR_DIST;
 		out->depth_range.y = MAX_WORLD_DIST;
-
 		out->view_type = view->type;
 		out->ticks = view->ticks;
-
-		out->lightmaps = r_draw_bsp_lightmap->integer;
-		out->shadows = r_shadowmap->integer;
-
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
 		out->bloom = r_bloom->value;
 		out->hdr = r_hdr->value;
-
 		out->fog_density = r_fog_density->value;
 		out->fog_samples = r_fog_samples->integer;
-
 		out->developer = r_developer->integer;
 
 		if (r_world_model) {
@@ -350,11 +342,9 @@ static void R_InitLocal(void) {
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
 	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
-	r_draw_bsp_lightmap = Cvar_Add("r_draw_bsp_lightmap", "0", CVAR_DEVELOPER, "Controls the rendering of BSP lightmap textures (developer tool");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
-	r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool)");
 	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
 	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
 	r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
@@ -377,13 +367,14 @@ static void R_InitLocal(void) {
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
 	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+	r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
 	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
-	r_shadowmap = Cvar_Add("r_shadowmap", "2", CVAR_ARCHIVE, "Controls dynamic shadows.");
-	r_shadowmap_size = Cvar_Add("r_shadowmap_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls dynamic shadow quality.");
+	r_shadow_texture_array_size = Cvar_Add("r_shadow_texture_array_size", "2048", CVAR_ARCHIVE, "Controls directional shadowmap resolution.");
+	r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls point shadowmap resolution.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_stains_decay = Cvar_Add("r_stains_decay", "10", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects decay.");

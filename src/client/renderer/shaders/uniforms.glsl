@@ -101,16 +101,6 @@ layout (std140) uniform uniforms_block {
 	int ticks;
 
 	/**
-	 * @brief The lightmaps debugging mask.
-	 */
-	int lightmaps;
-
-	/**
-	 * @brief The shadow debugging mask.
-	 */
-	int shadows;
-
-	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
@@ -285,9 +275,10 @@ uniform sampler3D texture_lightgrid_fog;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadowmap cubemap array texture.
+ * @brief The shadow array and cubemap array texture.
  */
-uniform samplerCubeArrayShadow texture_shadowmap;
+uniform sampler3D texture_shadow_array;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array;
 
 /**
  * @brief The framebuffer attachment textures.

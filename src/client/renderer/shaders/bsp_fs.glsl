@@ -121,7 +121,7 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	if (developer == 1) {
+	if (developer == 2) {
 		
 		if (material.parallax == 0.0) {
 			return 1.0;
@@ -213,7 +213,6 @@ vec3 sample_lightmap_direction() {
 	
 	vec2 xy = texture(texture_lightmap_direction, vertex.lightmap).xy;
 	vec3 direction = vec3(xy, sqrt(1.0 - xy.x * xy.x - xy.y * xy.y));
-
 	return normalize(fragment.tbn * normalize(direction));
 }
 
@@ -297,27 +296,27 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
-float sample_shadowmap_cube(in light_t light, in int index) {
-
-	if (shadows == 0) {
-		return 1.0;
-	}
-
-	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
-	return texture(texture_shadowmap, shadowmap, length(shadowmap.xyz) / depth_range.y);
+float sample_shadow_texture_array(in light_t light, in int index) {
+//	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
+//	return texture(texture_shadow_array, shadowmap, length(shadowmap.xyz) / depth_range.y);
+	return 1.0;
 }
 
 /**
  * @brief
  */
-void light_and_shadow_dynamic(in light_t light, in int index) {
+float sample_shadow_cubemap_array(in light_t light, in int index) {
+	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
+	return texture(texture_shadow_cubemap_array, shadowmap, length(shadowmap.xyz) / depth_range.y);
+}
+
+/**
+ * @brief
+ */
+void light_and_shadow_light(in light_t light, in int index) {
 
 	vec3 dir = light.position.xyz - vertex.position;
-
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
-	if (atten <= 0.0) {
-		return;
-	}
 
 	vec3 diffuse = light.color.rgb * light.color.a * modulate;
 	switch (int(light.maxs.w)) {
@@ -338,7 +337,13 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	float shadow = sample_shadowmap_cube(light, index);
+	int type = int(light.position.w);
+	float shadow = 1.0;
+	if (type == LIGHT_SUN) {
+		shadow = sample_shadow_texture_array(light, index);
+	} else {
+		shadow = sample_shadow_cubemap_array(light, index);
+	}
 	if (shadow == 1.0) {
 		shadow = parallax_self_shadow(dir);
 	}
@@ -409,8 +414,7 @@ void light_and_shadow(void) {
 			continue;
 		}
 
-		int type = int(light.position.w);
-		light_and_shadow_dynamic(light, index);
+		light_and_shadow_light(light, index);
 	}
 
 	light_and_shadow_caustics();
@@ -483,28 +487,6 @@ void main(void) {
 
 		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
 		out_bloom.a = out_color.a;
-	}
-
-	if (lightmaps == 1) {
-		out_color.rgb = fragment.ambient;
-	} else if (lightmaps == 2) {
-		out_color.rgb = fragment.diffuse;
-	} else if (lightmaps == 3) {
-		out_color.rgb = fragment.specular;
-	} else if (lightmaps == 4) {
-		out_color.rgb = fragment.ambient + fragment.diffuse + fragment.specular;
-	} else if (lightmaps == 5) {
-		vec2 xy = texture(texture_lightmap_direction, vertex.lightmap).xy;
-		vec3 direction = vec3(xy, sqrt(1.0 - xy.x * xy.x - xy.y * xy.y));
-		out_color.rgb = direction * 0.5 + 0.5;
-	} else if (lightmaps == 6) {
-		out_color.rgb = fragment.normalmap;
-	} else if (lightmaps == 7) {
-		out_color.rgb = vec3(sample_heightmap(vertex.diffusemap));
-	} else if (lightmaps == 8) {
-		out_color = vec4(fragment.stains, 1.0);
-	} else if (lightmaps == 9) {
-		out_color.rgb = normalize(fragment.tbn * fragment.dir);
 	}
 }
 

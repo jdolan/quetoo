@@ -33,23 +33,36 @@ void main() {
 	vec4 translate = vec4(-light.model.xyz, 0.0);
 
 	int type = int(light.position.w);
+	if (type == LIGHT_SUN) {
 
-	for (int i = 0; i < 6; i++) {
-		gl_Layer = light_index * 6 + i;
+		gl_Layer = light_index;
 
 		for (int j = 0; j < 3; j++) {
 
-			position = light_view[i] * (gl_in[j].gl_Position + translate);
+			position = light_view[5] * (gl_in[j].gl_Position + translate);
 
-			if (type == LIGHT_SUN) {
-				gl_Position = light_projection_ortho * position;
-			} else {
-				gl_Position = light_projection * position;
-			}
+			gl_Position = light_projection_ortho * position;
 
 			EmitVertex();
 		}
 
 		EndPrimitive();
+
+	} else {
+
+		for (int i = 0; i < 6; i++) {
+			gl_Layer = light_index * 6 + i;
+
+			for (int j = 0; j < 3; j++) {
+
+				position = light_view[i] * (gl_in[j].gl_Position + translate);
+
+				gl_Position = light_projection * position;
+
+				EmitVertex();
+			}
+
+			EndPrimitive();
+		}
 	}
 }

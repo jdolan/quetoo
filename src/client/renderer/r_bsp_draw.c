@@ -54,7 +54,7 @@ static struct {
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
-	GLint texture_shadowmap;
+	GLint texture_shadow_cubemap_array;
 
 	GLint model_type;
 	GLint alpha_test;
@@ -345,7 +345,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 												const r_bsp_draw_elements_t *draw,
 												const r_material_t *material) {
 
-	if (!r_draw_material_stages->value) {
+	if (!r_materials->value) {
 		return;
 	}
 
@@ -452,7 +452,7 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
-	R_DrawSky(view, bsp);
+	//R_DrawSky(view, bsp);
 
 	glUseProgram(r_bsp_program.name);
 
@@ -648,7 +648,7 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
-	r_bsp_program.texture_shadowmap = glGetUniformLocation(r_bsp_program.name, "texture_shadowmap");
+	r_bsp_program.texture_shadow_cubemap_array = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array");
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -680,7 +680,7 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_bsp_program.texture_shadowmap, TEXTURE_SHADOWMAP);
+	glUniform1i(r_bsp_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;
