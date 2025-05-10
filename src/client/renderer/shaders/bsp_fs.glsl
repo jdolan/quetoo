@@ -296,15 +296,6 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
 /**
  * @brief
  */
-float sample_shadow_texture_array(in light_t light, in int index) {
-//	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
-//	return texture(texture_shadow_array, shadowmap, length(shadowmap.xyz) / depth_range.y);
-	return 1.0;
-}
-
-/**
- * @brief
- */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
 	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
 	return texture(texture_shadow_cubemap_array, shadowmap, length(shadowmap.xyz) / depth_range.y);
@@ -315,8 +306,10 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_light(in light_t light, in int index) {
 
-	vec3 dir = light.position.xyz - vertex.position;
-	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	vec3 dir = (view * model * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
+
+	float radius = light.model.w;
+	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
 
 	vec3 diffuse = light.color.rgb * light.color.a * modulate;
 	switch (int(light.maxs.w)) {
@@ -337,13 +330,8 @@ void light_and_shadow_light(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	int type = int(light.position.w);
-	float shadow = 1.0;
-	if (type == LIGHT_SUN) {
-		shadow = sample_shadow_texture_array(light, index);
-	} else {
-		shadow = sample_shadow_cubemap_array(light, index);
-	}
+	// TODO: Skip shadowmapping for lights with shadows disabled
+	float shadow = sample_shadow_cubemap_array(light, index);
 	if (shadow == 1.0) {
 		shadow = parallax_self_shadow(dir);
 	}
@@ -390,14 +378,14 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	if (model_type == MODEL_BSP) {
-		fragment.ambient = sample_lightmap_ambient();
-	} else {
-		fragment.ambient = sample_lightgrid_ambient();
-	}
+//	if (model_type == MODEL_BSP) {
+//		fragment.ambient = sample_lightmap_ambient();
+//	} else {
+//		fragment.ambient = sample_lightgrid_ambient();
+//	}
 
-	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
+//	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
+//	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
 	for (int index = 0; index < num_lights; index++) {
 

@@ -53,6 +53,7 @@ struct fragment_t {
 	vec3 specular;
 } fragment;
 
+uniform mat4 model;
 uniform vec4 color;
 uniform vec4 tint_colors[3];
 
@@ -139,7 +140,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 dir = light.position.xyz - vertex.position;
+	vec3 dir = (view * model * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
 	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
 
 	vec3 diffuse = light.color.rgb * light.color.a;

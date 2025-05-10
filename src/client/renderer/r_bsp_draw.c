@@ -452,7 +452,7 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 
-	//R_DrawSky(view, bsp);
+	R_DrawSky(view, bsp);
 
 	glUseProgram(r_bsp_program.name);
 

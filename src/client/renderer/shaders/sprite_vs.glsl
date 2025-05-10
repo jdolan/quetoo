@@ -96,15 +96,10 @@ void light_and_shadow(in vec3 texcoord) {
 
 		light_t light = lights[i];
 
-		int type = int(light.position.w);
-		if (type != LIGHT_DYNAMIC) {
-			continue;
-		}
-
 		float radius = light.model.w;
 		float size = light.mins.w;
 
-		float dist = distance(light.position.xyz, vertex.position);
+		float dist = distance((view * vec4(light.model.xyz, 1.0)).xyz, vertex.position);
 		float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
 		if (atten == 0.0) {
 			continue;

@@ -48,22 +48,11 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
-	 * @brief The light origin in view space, and type.
-	 */
-	vec4_t position;
-
-	/**
-	 * @brief The normal and plane distance in view space.
-	 */
-	vec4_t normal;
-
-	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4_t color;
 } r_light_uniform_t;
 
-#define MAX_SUN_LIGHTS 2
 #define MAX_LIGHT_UNIFORMS 256
 
 /**
@@ -71,11 +60,6 @@ typedef struct {
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The projection matrix for directional light shadows.
-	 */
-	mat4_t light_projection_ortho;
-
 	/**
 	 * @brief The projection matrix for point light shadows.
 	 */
@@ -110,16 +94,6 @@ typedef struct {
 	 * @brief The uniform buffer interface block.
 	 */
 	r_light_uniform_block_t block;
-
-	/**
-	 * @brief The index into the shadow texture array.
-	 */
-	GLint texture_array_index;
-
-	/**
-	 * @brief The index into the shadow cubemap array.
-	 */
-	GLint cubemap_array_index;
 
 	/**
 	 * @brief The bit vector of active light indexes for the current render operation.

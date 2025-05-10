@@ -1584,8 +1584,6 @@ typedef struct {
 	GLint index;
 } r_light_t;
 
-#define IS_DIRECTIONAL_LIGHT(light) (light->type == LIGHT_SUN)
-
 /**
  * @brief Framebuffer attachments bitmask.
  */

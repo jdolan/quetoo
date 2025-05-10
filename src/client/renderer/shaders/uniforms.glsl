@@ -174,26 +174,10 @@ struct light_t {
 	vec4 maxs;
 
 	/**
-	 * @brief The light position in view space, and type.
-	 */
-	vec4 position;
-
-	/**
-	 * @brief The normal and plane distance in view space.
-	 */
-	vec4 normal;
-
-	/**
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
 };
-
-#define light_direction(light, pos) \
-	direction_to_bounds( \
-		project_point_to_plane(light.normal, light.position.xyz - vec3(light.mins.w) * 0.5), \
-		project_point_to_plane(light.normal, light.position.xyz + vec3(light.mins.w) * 0.5), \
-		pos)
 
 #define MAX_LIGHT_UNIFORMS 256
 
@@ -202,12 +186,7 @@ struct light_t {
  */
 layout (std140) uniform lights_block {
 	/**
-	 * @brief The projection matrix for directional light shadows.
-	 */
-	mat4 light_projection_ortho;
-
-	/**
-	 * @brief The projection matrix for point light shadows.
+	 * @brief The projection matrix for shadow projection.
 	 */
 	mat4 light_projection;
 

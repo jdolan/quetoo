@@ -54,20 +54,13 @@ static void R_AddLightUniform(r_light_t *in) {
 		return;
 	}
 
-	if (IS_DIRECTIONAL_LIGHT(in)) {
-		in->index = r_lights.texture_array_index++;
-	} else {
-		in->index = r_lights.cubemap_array_index++;
-	}
+	in->index = r_lights.block.num_lights++;
 
-	r_light_uniform_t *out = &r_lights.block.lights[r_lights.block.num_lights++];
-	// TODO: Need to add index to uniform struct
+	r_light_uniform_t *out = &r_lights.block.lights[in->index];
 
 	out->model = Vec3_ToVec4(in->origin, in->radius);
 	out->mins = Vec3_ToVec4(in->bounds.mins, in->size);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
-	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), in->type);
-	out->normal = Mat4_TransformPlane(r_uniforms.block.view, Vec4_XYZ(in->normal), in->normal.w);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 
@@ -80,11 +73,6 @@ void R_UpdateLights(r_view_t *view) {
 
 	memset(out, 0, sizeof(*out));
 
-	r_lights.texture_array_index = r_lights.cubemap_array_index = 0;
-
-	const int32_t f = r_shadow_cubemap_array_size->value / 2.f;
-
-	out->light_projection_ortho = Mat4_FromOrtho(-f, f, -f, -f, NEAR_DIST, MAX_WORLD_DIST);
 	out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
 	out->light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
 	out->light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));

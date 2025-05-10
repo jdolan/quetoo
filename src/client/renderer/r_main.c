@@ -61,7 +61,6 @@ cvar_t *r_parallax;
 cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
-cvar_t *r_shadow_texture_array_size;
 cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_specularity;
 cvar_t *r_stains;
@@ -373,8 +372,7 @@ static void R_InitLocal(void) {
 	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
-	r_shadow_texture_array_size = Cvar_Add("r_shadow_texture_array_size", "2048", CVAR_ARCHIVE, "Controls directional shadowmap resolution.");
-	r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls point shadowmap resolution.");
+	r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
 	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
 	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
 	r_stains_decay = Cvar_Add("r_stains_decay", "10", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects decay.");

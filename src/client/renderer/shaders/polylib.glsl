@@ -163,11 +163,12 @@ bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 
  */
 vec3 direction_to_bounds(in vec3 mins, in vec3 maxs, in vec3 p) {
 
+	vec3 c = (mins + maxs) * 0.5;
+
 	if (all(greaterThanEqual(p, mins)) && all(lessThanEqual(p, maxs))) {
-		return normalize(p - (mins + maxs) * 0.5);
+		return p - c;
 	}
 
-	vec3 c = (mins + maxs) * 0.5;
 	vec3 s = (maxs - mins) * 0.5;
 	vec3 v = p - c;
 	vec3 m = abs(v);

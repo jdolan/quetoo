@@ -73,13 +73,8 @@ static void Cg_AddBspLights(void) {
 	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
 	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-		switch (l->type) {
-			case LIGHT_INVALID:
-			case LIGHT_AMBIENT:
-			case LIGHT_INDIRECT:
-				continue;
-			default:
-				break;
+		if (l->query.name == 0) {
+			continue;
 		}
 
 		if (l->occluded) {
