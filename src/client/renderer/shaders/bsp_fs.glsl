@@ -378,14 +378,14 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-//	if (model_type == MODEL_BSP) {
-//		fragment.ambient = sample_lightmap_ambient();
-//	} else {
-//		fragment.ambient = sample_lightgrid_ambient();
-//	}
+	if (model_type == MODEL_BSP) {
+		fragment.ambient = sample_lightmap_ambient();
+	} else {
+		fragment.ambient = sample_lightgrid_ambient();
+	}
 
-//	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-//	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
+	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
 
 	for (int index = 0; index < num_lights; index++) {
 
