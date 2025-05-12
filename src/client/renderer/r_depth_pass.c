@@ -39,9 +39,9 @@ static void R_DrawBspDepthPass(const r_view_t *view) {
 	glEnableVertexAttribArray(r_depth_pass_program.in_position);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->inline_models->depth_pass_elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
-	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, bsp->inline_models->depth_pass_elements);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

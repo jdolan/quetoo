@@ -419,9 +419,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
  */
 static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
 
-	const r_bsp_inline_model_t *in = IS_BSP_MODEL(entity->model)
-		? entity->model->bsp->inline_models
-		: entity->model->bsp_inline;
+	const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -478,7 +476,7 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (IS_BSP_MODEL(e->model) || IS_BSP_INLINE_MODEL(e->model)) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			if (R_CullEntity(view, e)) {
 				continue;
@@ -511,9 +509,7 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
  */
 static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
 
-	const r_bsp_inline_model_t *in = IS_BSP_MODEL(entity->model)
-		? entity->model->bsp->inline_models
-		: entity->model->bsp_inline;
+	const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -568,7 +564,7 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_BSP_MODEL(e->model) || IS_BSP_INLINE_MODEL(e->model)) {
+		if (IS_BSP_INLINE_MODEL(e->model)) {
 
 			if (R_CullEntity(view, e)) {
 				continue;

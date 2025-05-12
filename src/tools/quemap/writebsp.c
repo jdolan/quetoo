@@ -382,6 +382,37 @@ bsp_model_t *BeginModel(const entity_t *e) {
 	return mod;
 }
 
+/**
+ * @brief
+ */
+static void EmitDepthPassElements(bsp_model_t *mod) {
+
+	mod->first_depth_pass_element = bsp_file.num_elements;
+
+	const bsp_face_t *face = &bsp_file.faces[mod->first_face];
+	for (int32_t i = 0; i < mod->num_faces; i++, face++) {
+
+		const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+		if (side->contents & CONTENTS_MIST) {
+			continue;
+		}
+
+		if (side->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
+			continue;
+		}
+
+		if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+			Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+		}
+
+		memcpy(bsp_file.elements + bsp_file.num_elements,
+			   bsp_file.elements + face->first_element,
+			   sizeof(int32_t) * face->num_elements);
+
+		bsp_file.num_elements += face->num_elements;
+		mod->num_depth_pass_elements += face->num_elements;
+	}
+}
 
 /**
  * @brief Draw elements comparator to sort faces by surface mask.
@@ -550,6 +581,8 @@ void EndModel(bsp_model_t *mod) {
 
 	mod->visible_bounds = head_node->visible_bounds;
 	mod->num_faces = bsp_file.num_faces - mod->first_face;
+
+	EmitDepthPassElements(mod);
 
 	EmitBlocks(mod);
 

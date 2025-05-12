@@ -531,6 +531,16 @@ typedef struct {
 	int32_t num_faces;
 
 	/**
+	 * @brief The index of the first depth pass element belonging to this model.
+	 */
+	int32_t first_depth_pass_element;
+
+	/**
+	 * @brief The count of depth pass elements.
+	 */
+	int32_t num_depth_pass_elements;
+
+	/**
 	 * @brief The index of the first draw element of this model.
 	 */
 	int32_t first_draw_elements;

@@ -320,7 +320,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 
 	// add the world model
 	cgi.AddEntity(cgi.view, &(const r_entity_t) {
-		.model = cgi.WorldModel(),
+		.model = cgi.WorldModel()->bsp->worldspawn,
 		.scale = 1.f,
 	});
 

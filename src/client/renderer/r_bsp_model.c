@@ -323,6 +323,9 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 		out->faces = bsp->faces + in->first_face;
 		out->num_faces = in->num_faces;
 
+		out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+		out->num_depth_pass_elements = in->num_depth_pass_elements;
+
 		out->draw_elements = bsp->draw_elements + in->first_draw_elements;
 		out->num_draw_elements = in->num_draw_elements;
 
@@ -616,59 +619,12 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 }
 
 /**
- * @brief Create the depth elements buffer for the given inline model.
- * FIXME: Move this into the BSP compilation phase so we can just load this from disk
- * FIXME: and not have a separate buffer.
- */
-static void R_LoadBspInlineModelDepthPassElements(const r_bsp_model_t *bsp, r_bsp_inline_model_t *in) {
-
-	glGenBuffers(1, &in->depth_pass_elements_buffer);
-
-	const r_bsp_draw_elements_t *draw = in->draw_elements;
-	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-
-		if (!(draw->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY))) {
-			in->num_depth_pass_elements += draw->num_elements;
-		}
-	}
-
-	glBindBuffer(GL_COPY_READ_BUFFER, bsp->elements_buffer);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, in->depth_pass_elements_buffer);
-
-	glBufferData(GL_COPY_WRITE_BUFFER, in->num_depth_pass_elements * sizeof(GLuint), NULL, GL_STATIC_DRAW);
-
-	draw = in->draw_elements;
-
-	GLintptr offset = 0;
-
-	for (int32_t i = 0; i < in->num_draw_elements; i++, draw++) {
-
-		if (draw->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
-			continue;
-		}
-
-		glCopyBufferSubData(GL_COPY_READ_BUFFER,
-							GL_COPY_WRITE_BUFFER,
-							(GLintptr) draw->elements,
-							(GLintptr) offset,
-							draw->num_elements * sizeof(GLuint));
-
-		offset += draw->num_elements * sizeof(GLuint);
-	}
-
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-}
-
-/**
  * @brief Creates an `r_model_t` for each inline model so that entities may reference them.
  */
 static void R_SetupBspInlineModels(r_model_t *mod) {
 
 	r_bsp_inline_model_t *in = mod->bsp->inline_models;
 	for (int32_t i = 0; i < mod->bsp->num_inline_models; i++, in++) {
-
-		R_LoadBspInlineModelDepthPassElements(mod->bsp, in);
 
 		char name[MAX_QPATH];
 		g_snprintf(name, sizeof(name), "%s#%d", mod->media.name, i);
@@ -680,6 +636,9 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 		out->bounds = in->visible_bounds;
 
 		mod->bounds = Box3_Union(mod->bounds, out->bounds);
+		if (i == 0) {
+			mod->bsp->worldspawn = out;
+		}
 
 		R_RegisterDependency(&mod->media, &out->media);
 	}
@@ -864,9 +823,6 @@ static void R_FreeBspModel(r_media_t *self) {
 	glDeleteVertexArrays(1, &bsp->vertex_array);
 
 	r_bsp_inline_model_t *in = bsp->inline_models;
-	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
-		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
-	}
 	for (int32_t i = 0; i < bsp->num_inline_models; i++) {
 
 		r_bsp_block_t *block = in->blocks;
@@ -876,7 +832,7 @@ static void R_FreeBspModel(r_media_t *self) {
 	}
 
 	r_bsp_light_t *light = bsp->lights;
-	for (int32_t i = 0; i <bsp->num_lights; i++, light++) {
+	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
 		if (light->query.name) {
 			glDeleteQueries(1, &light->query.name);
 		}

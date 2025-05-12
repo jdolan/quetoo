@@ -292,6 +292,9 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 		model->first_face = LittleLong(model->first_face);
 		model->num_faces = LittleLong(model->num_faces);
 
+		model->first_depth_pass_element = LittleLong(model->first_depth_pass_element);
+		model->num_depth_pass_elements = LittleLong(model->num_depth_pass_elements);
+
 		model->first_draw_elements = LittleLong(model->first_draw_elements);
 		model->num_draw_elements = LittleLong(model->num_draw_elements);
 
@@ -322,7 +325,8 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 		light->cone = LittleFloat(light->cone);
 		light->falloff = LittleFloat(light->falloff);
 		light->bounds = LittleBounds(light->bounds);
-
+		light->first_element = LittleLong(light->first_element);
+		light->num_elements = LittleLong(light->num_elements);
 		light++;
 	}
 }

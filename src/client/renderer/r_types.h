@@ -680,6 +680,13 @@ typedef struct r_bsp_inline_model_s {
 	int32_t num_faces;
 
 	/**
+	 * @brief The depth pass elements of this inline model.
+	 * @brief This is an offset pointer, in bytes, into the BSP model's elements array.
+	 */
+	GLvoid *depth_pass_elements;
+	int32_t num_depth_pass_elements;
+
+	/**
 	 * @brief The draw elements of this inline model.
 	 * @details This is a pointer into the BSP model's draw elements array.
 	 */
@@ -693,12 +700,6 @@ typedef struct r_bsp_inline_model_s {
 	r_bsp_block_t *blocks;
 	int32_t num_blocks;
 
-	/**
-	 * @brief The depth pass draw elements.
-	 * @remarks This is a flattened list of all opaque geometry used to render the depth pass.
-	 */
-	GLuint depth_pass_elements_buffer;
-	GLuint num_depth_pass_elements;
 } r_bsp_inline_model_t;
 
 /**
@@ -941,6 +942,11 @@ typedef struct {
 		 */
 		GLuint elements_buffer;
 	} occlusion;
+
+	/**
+	 * @brief The first inline BSP model, aka worldspawn.
+	 */
+	struct r_model_s *worldspawn;
 
 } r_bsp_model_t;
 

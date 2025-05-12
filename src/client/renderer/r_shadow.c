@@ -75,15 +75,11 @@ static struct {
  */
 static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_entity_t *e) {
 
-	const r_bsp_inline_model_t *in = IS_BSP_MODEL(e->model)
-		? e->model->bsp->inline_models
-		: e->model->bsp_inline;
+	const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
-	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
 }
 
 /**
@@ -190,17 +186,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 	glDisableVertexAttribArray(r_shadow_program.in_next_position);
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
-
-	if (r_developer->value && light->bsp_light) {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-		glDrawElements(GL_TRIANGLES, light->bsp_light->num_elements, GL_UNSIGNED_INT, light->bsp_light->elements);
-	} else {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->inline_models->depth_pass_elements_buffer);
-		glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
-	}
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
