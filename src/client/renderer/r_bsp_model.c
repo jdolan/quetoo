@@ -867,10 +867,12 @@ static void R_FreeBspModel(r_media_t *self) {
 	for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
 		glDeleteBuffers(1, &in->depth_pass_elements_buffer);
 	}
+	for (int32_t i = 0; i < bsp->num_inline_models; i++) {
 
-	r_bsp_block_t *block = in->blocks;
-	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-		glDeleteQueries(1, &block->query.name);
+		r_bsp_block_t *block = in->blocks;
+		for (int32_t j = 0; j < in->num_blocks; j++, block++) {
+			glDeleteQueries(1, &block->query.name);
+		}
 	}
 
 	r_bsp_light_t *light = bsp->lights;
