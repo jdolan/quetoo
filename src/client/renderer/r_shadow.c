@@ -213,6 +213,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
+		if (R_CullEntity(view, e)) {
+			continue;
+		}
+
 		R_DrawBspInlineEntityShadow(view, e);
 	}
 
@@ -237,6 +241,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 		}
 
 		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		if (R_CullEntity(view, e)) {
 			continue;
 		}
 
