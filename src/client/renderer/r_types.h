@@ -774,6 +774,16 @@ typedef struct {
 	 * @brief The light occlusion query.
 	 */
 	r_occlusion_query_t query;
+
+	/**
+	 * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
+	 */
+	GLvoid *elements;
+
+	/**
+	 * @brief The count of elements.
+	 */
+	int32_t num_elements;
 } r_bsp_light_t;
 
 /**

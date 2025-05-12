@@ -258,8 +258,8 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 
 		out->bounds = in->bounds;
 
-		out->num_elements = in->num_elements;
 		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+		out->num_elements = in->num_elements;
 
 		if ((out->surface & SURF_ALPHA_TEST) && out->material->cm->alpha_test == 0.f) {
 			out->material->cm->alpha_test = MATERIAL_ALPHA_TEST;
@@ -357,6 +357,8 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 		out->cone = in->cone;
 		out->falloff = in->falloff;
 		out->bounds = in->bounds;
+		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
+		out->num_elements = in->num_elements;
 	}
 }
 
@@ -615,6 +617,8 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 
 /**
  * @brief Create the depth elements buffer for the given inline model.
+ * FIXME: Move this into the BSP compilation phase so we can just load this from disk
+ * FIXME: and not have a separate buffer.
  */
 static void R_LoadBspInlineModelDepthPassElements(const r_bsp_model_t *bsp, r_bsp_inline_model_t *in) {
 

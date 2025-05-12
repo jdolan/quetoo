@@ -591,12 +591,12 @@ bool Bsp_LoadLumps(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_
 
 /**
  * @brief Allocates data for the specified lump in the BSP. If the lump is already loaded,
- * the data will either be expanded or truncated to the specified count. Note that "count"
+ * the data will either be expanded or truncated to the specified count. Note that `count`
  * is not in bytes, but rather the number of components to allocate - this depends on the
- * lump_id (for instance, the VERTEXES lump will allocate count * bsp_vertex_t). This
+ * `lump_id` (for instance, the VERTEXES lump will allocate `count * bsp_vertex_t`). This
  * will count as loading a lump as well. Since realloc is used here, be careful that you
- * aren't storing a pointer to the old lump data. The lump size pointer (as in, num_x or x_size)
- * won't be modified by this function call, so be careful!
+ * aren't storing a pointer to the old lump data. The lump size pointer (as in, `num_x` or
+ * `x_size`) won't be modified by this function call, so be careful!
  */
 void Bsp_AllocLump(bsp_file_t *bsp, const bsp_lump_id_t lump_id, const size_t count) {
 

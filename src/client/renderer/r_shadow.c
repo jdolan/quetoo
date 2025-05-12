@@ -191,10 +191,21 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	if (r_developer->value && light->bsp_light) {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+		glDrawElements(GL_TRIANGLES, light->bsp_light->num_elements, GL_UNSIGNED_INT, light->bsp_light->elements);
+	} else {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->inline_models->depth_pass_elements_buffer);
+		glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
+	}
+
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (!IS_BSP_MODEL(e->model) && !IS_BSP_INLINE_MODEL(e->model)) {
+		if (!IS_BSP_INLINE_MODEL(e->model)) {
 			continue;
 		}
 

@@ -420,7 +420,7 @@ static void MergeLights(void) {
 				if (b->type == LIGHT_BRUSH_SIDE) {
 
 					if (a->plane == b->plane && a->brush_side->material == b->brush_side->material
-						&& Vec3_Distance(a->origin, b->origin) < 64.f) {
+						&& Vec3_Distance(a->origin, b->origin) < 128.f) {
 
 						GArray *points = g_array_new(false, false, sizeof(vec3_t));
 
@@ -738,34 +738,62 @@ void EmitLights(void) {
 		Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
 	}
 
+	Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
 
 	bsp_light_t *out = bsp_file.lights;
 	for (guint i = 0; i < lights->len; i++) {
 
 		light_t *light = g_ptr_array_index(lights, i);
-
-		switch (light->type) {
-			case LIGHT_INDIRECT:
-				break;
-
-			default:
-				out->type = light->type;
-				out->atten = light->atten;
-				out->origin = light->origin;
-				out->color = light->color;
-				out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
-				out->radius = light->radius;
-				out->size = light->size;
-				out->intensity = light->intensity;
-				out->shadow = light->shadow;
-				out->cone = light->cone;
-				out->falloff = light->falloff;
-				out->bounds = light->visible_bounds;
-				out->bounds = Box3_Expand(out->bounds, 1.f);
-				out++;
-				break;
+		if (light->type == LIGHT_INDIRECT) {
+			continue;
 		}
+
+		out->type = light->type;
+		out->atten = light->atten;
+		out->origin = light->origin;
+		out->color = light->color;
+		out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
+		out->radius = light->radius;
+		out->size = light->size;
+		out->intensity = light->intensity;
+		out->shadow = light->shadow;
+		out->cone = light->cone;
+		out->falloff = light->falloff;
+		out->bounds = light->visible_bounds;
+		out->bounds = Box3_Expand(out->bounds, 1.f);
+
+		out->first_element = bsp_file.num_elements;
+
+		const bsp_face_t *face = bsp_file.faces;
+		for (int32_t j = 0; j < bsp_file.num_faces; j++, face++) {
+
+			const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+			if (side->contents & CONTENTS_MIST) {
+				continue;
+			}
+
+			if (side->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
+				continue;
+			}
+
+			if (!Box3_Intersects(out->bounds, face->bounds)) {
+				continue;
+			}
+
+			if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+				Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+			}
+
+			memcpy(bsp_file.elements + bsp_file.num_elements,
+				   bsp_file.elements + face->first_element,
+				   sizeof(int32_t) * face->num_elements);
+
+			bsp_file.num_elements += face->num_elements;
+			out->num_elements += face->num_elements;
+		}
+
+		out++;
 
 		Progress("Emitting lights", 100.f * i / lights->len);
 	}

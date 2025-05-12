@@ -572,18 +572,75 @@ typedef enum {
  * @brief BSP representation of light sources.
  */
 typedef struct {
+	/**
+	 * @brief The light type.
+	 */
 	light_type_t type;
+
+	/**
+	 * @brief The light attenuation.
+	 */
 	light_atten_t atten;
+
+	/**
+	 * @brief The light origin.
+	 */
 	vec3_t origin;
+
+	/**
+	 * @brief The light color.
+	 */
 	vec3_t color;
+
+	/**
+	 * @brief The light normal and plane distance.
+	 */
 	vec4_t normal;
+
+	/**
+	 * @brief The light radius.
+	 */
 	float radius;
+
+	/**
+	 * @brief The light size.
+	 */
 	float size;
+
+	/**
+	 * @brief The light intensity.
+	 */
 	float intensity;
+
+	/**
+	 * @brief The light shadow scale.
+	 */
 	float shadow;
+
+	/**
+	 * @brief The light cone in degrees.
+	 */
 	float cone;
+
+	/**
+	 * @brief The light falloff interval in degrees.
+	 */
 	float falloff;
+
+	/**
+	 * @brief The light's visible bounds, clipped to world geometry.
+	 */
 	box3_t bounds;
+
+	/**
+	 * @brief The index of the first element of this light's shadow geometry.
+	 */
+	int32_t first_element;
+
+	/**
+	 * @brief The count of shadow geometry elements.
+	 */
+	int32_t num_elements;
 } bsp_light_t;
 
 /**
