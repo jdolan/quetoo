@@ -84,10 +84,6 @@ void R_UpdateLights(r_view_t *view) {
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (l->bsp_light && l->bsp_light->occluded) {
-			continue;
-		}
-
 		if (r_draw_light_bounds->value) {
 			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
