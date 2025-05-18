@@ -28,6 +28,15 @@ out vec4 position;
 
 void main() {
 
+	mat4 light_view[6] = mat4[](
+		lookAt(vec3(0.0), vec3( 1.0,  0.0,  0.0), vec3(0.0, -1.0,  0.0)),
+		lookAt(vec3(0.0), vec3(-1.0,  0.0,  0.0), vec3(0.0, -1.0,  0.0)),
+		lookAt(vec3(0.0), vec3( 0.0,  1.0,  0.0), vec3(0.0,  0.0,  1.0)),
+		lookAt(vec3(0.0), vec3( 0.0, -1.0,  0.0), vec3(0.0,  0.0, -1.0)),
+		lookAt(vec3(0.0), vec3( 0.0,  0.0,  1.0), vec3(0.0, -1.0,  0.0)),
+		lookAt(vec3(0.0), vec3( 0.0,  0.0, -1.0), vec3(0.0, -1.0,  0.0))
+	);
+
 	light_t light = lights[light_index];
 
 	vec4 translate = vec4(-light.model.xyz, 0.0);

@@ -86,11 +86,6 @@ layout (std140) uniform uniforms_block {
 	mat4 light_projection;
 
 	/**
-	 * @brief The view matrices for cubemap shadow projections.
-	 */
-	mat4 light_view[6];
-
-	/**
 	 * @brief The lightgrid.
 	 */
 	lightgrid_t lightgrid;

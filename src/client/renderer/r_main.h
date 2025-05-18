@@ -149,11 +149,6 @@ typedef struct {
 		mat4_t light_projection;
 
 		/**
-		 * @brief The view matrices for cubemap shadow projections.
-		 */
-		mat4_t light_view[6];
-
-		/**
 		 * @brief The lightgrid uniforms.
 		 */
 		r_lightgrid_t lightgrid;
