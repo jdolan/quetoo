@@ -54,7 +54,10 @@ static struct {
 	GLint texture_lightgrid_direction;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
-	GLint texture_shadow_cubemap_array;
+	GLint texture_shadow_cubemap_array0;
+	GLint texture_shadow_cubemap_array1;
+	GLint texture_shadow_cubemap_array2;
+	GLint texture_shadow_cubemap_array3;
 
 	GLint model_type;
 	GLint alpha_test;
@@ -644,7 +647,10 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_lightgrid_direction = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_direction");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 
-	r_bsp_program.texture_shadow_cubemap_array = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array");
+	r_bsp_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array0");
+	r_bsp_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array1");
+	r_bsp_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array2");
+	r_bsp_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array3");
 
 	r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
 	r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -676,7 +682,10 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_direction, TEXTURE_LIGHTGRID_DIRECTION);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_bsp_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
+	glUniform1i(r_bsp_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
+	glUniform1i(r_bsp_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
+	glUniform1i(r_bsp_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
+	glUniform1i(r_bsp_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
 
 	r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
 	r_bsp_program.warp_image->media.Retain = R_RetainImage;

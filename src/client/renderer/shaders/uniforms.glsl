@@ -81,6 +81,16 @@ layout (std140) uniform uniforms_block {
 	mat4 view;
 
 	/**
+	 * @brief The projection matrix for shadow projection.
+	 */
+	mat4 light_projection;
+
+	/**
+	 * @brief The view matrices for cubemap shadow projections.
+	 */
+	mat4 light_view[6];
+
+	/**
 	 * @brief The lightgrid.
 	 */
 	lightgrid_t lightgrid;
@@ -99,6 +109,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The renderer time, in milliseconds.
 	 */
 	int ticks;
+
+	/**
+	 * @brief The number of active light sources.
+	 */
+	int num_lights;
 
 	/**
 	 * @brief The modulate scalar.
@@ -164,7 +179,7 @@ struct light_t {
 	vec4 model;
 
 	/**
-	 * @brief The light mins in model space, and size.
+	 * @brief The light mins in model space, and shadow layer.
 	 */
 	vec4 mins;
 
@@ -179,37 +194,24 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHT_UNIFORMS 256
+#define MAX_LIGHTS 1024
+#define MAX_SHADOW_CUBEMAP_LAYERS 256
+#define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
 	/**
-	 * @brief The projection matrix for shadow projection.
-	 */
-	mat4 light_projection;
-
-	/**
-	 * @brief The view matrices for cubemap shadow projections.
-	 */
-	mat4 light_view[6];
-
-	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
-	light_t lights[MAX_LIGHT_UNIFORMS];
-
-	/**
-	 * @brief The number of active light sources.
-	 */
-	int num_lights;
+	light_t lights[MAX_LIGHTS];
 };
 
 /**
  * @brief The bit vector of active light indexes for the current render operation.
  */
-uniform uint active_lights[8];
+uniform uint active_lights[MAX_LIGHTS / 32];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.
@@ -256,8 +258,10 @@ uniform samplerCube texture_sky;
 /**
  * @brief The shadow array and cubemap array texture.
  */
-uniform sampler3D texture_shadow_array;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
 
 /**
  * @brief The framebuffer attachment textures.

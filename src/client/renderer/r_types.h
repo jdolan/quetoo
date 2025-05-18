@@ -772,6 +772,11 @@ typedef struct {
 	bool occluded;
 
 	/**
+	 * @brief True if this light's shadowmap may be cached for the current frame.
+	 */
+	bool cached;
+
+	/**
 	 * @brief The light occlusion query.
 	 */
 	r_occlusion_query_t query;
@@ -1512,12 +1517,8 @@ typedef struct r_entity_s {
 
 /**
  * @brief Light sources per scene.
- * @remarks Lights that are frustum culled or occluded are discarded.
- * @see `MAX_LIGHT_UNIFORMS`
  */
 #define MAX_LIGHTS 1024
-
-#define MAX_LIGHT_ENTITIES 32
 
 /**
  * @brief Hardware light sources.
@@ -1593,11 +1594,6 @@ typedef struct {
 	 * @brief The optional light source, which will not cast shadow.
 	 */
 	const r_entity_t *source;
-
-	/**
-	 * @brief The light uniform index and shadowmap layer.
-	 */
-	GLint index;
 } r_light_t;
 
 /**
@@ -1932,8 +1928,11 @@ typedef enum {
 	/**
 	 * @brief The shadowmap cubemap array texture.
 	 */
-	TEXTURE_SHADOW_ARRAY,
 	TEXTURE_SHADOW_CUBEMAP_ARRAY,
+	TEXTURE_SHADOW_CUBEMAP_ARRAY0 = TEXTURE_SHADOW_CUBEMAP_ARRAY,
+	TEXTURE_SHADOW_CUBEMAP_ARRAY1,
+	TEXTURE_SHADOW_CUBEMAP_ARRAY2,
+	TEXTURE_SHADOW_CUBEMAP_ARRAY3,
 
 	/**
 	 * @brief Sprite specific textures.

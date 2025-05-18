@@ -55,14 +55,17 @@ static struct {
 	GLint light_index;
 } r_shadow_program;
 
+#define MAX_SHADOW_CUBEMAP_LAYERS 256
+#define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
+
 /**
  * @brief The shadows.
  */
 static struct {
 	/**
-	 * @brief Each point light source targets a layer in the cubemap array.
+	 * @brief Each light source targets a layer in one of the cubemap array textures.
 	 */
-	GLuint cubemap_array;
+	GLuint cubemap_arrays[MAX_SHADOW_CUBEMAP_ARRAYS];
 
 	/**
 	 * @brief The depth pass framebuffer.
@@ -140,17 +143,21 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
  */
 static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
 
+	const GLint index = (GLint) (light - view->lights);
+	const GLint array = index / MAX_SHADOW_CUBEMAP_LAYERS;
+	const GLint layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
+
 	for (int32_t i = 0; i < 6; i++) {
 		glFramebufferTextureLayer(GL_FRAMEBUFFER,
 								  GL_DEPTH_ATTACHMENT,
-								  r_shadows.cubemap_array,
+								  r_shadows.cubemap_arrays[array],
 								  0,
-								  light->index * 6 + i);
+								  layer * 6 + i);
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 	}
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_arrays[array], 0);
 }
 
 /**
@@ -177,7 +184,10 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
-	glUniform1i(r_shadow_program.light_index, light->index);
+	const GLint index = (GLint) (light - view->lights);
+	const GLint layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
+
+	glUniform1i(r_shadow_program.light_index, layer);
 
 	const r_bsp_model_t *bsp = r_world_model->bsp;
 	glBindVertexArray(bsp->vertex_array);
@@ -190,6 +200,8 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	int32_t count = 0;
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -207,6 +219,10 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 		}
 
 		R_DrawBspInlineEntityShadow(view, e);
+
+		if (i > 0) {
+			count++;
+		}
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -238,6 +254,13 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 		}
 
 		R_DrawMeshEntityShadow(view, e);
+		count++;
+	}
+
+	if (count == 0) {
+		if (light->bsp_light) {
+			((r_bsp_light_t *) light->bsp_light)->cached = true;
+		}
 	}
 
 	R_GetError(NULL);
@@ -262,11 +285,15 @@ void R_DrawShadows(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		R_ClearShadow(view, l);
-
-		if (l->index == -1) {
+		if (l->bsp_light && l->bsp_light->occluded) {
 			continue;
 		}
+
+		if (l->bsp_light && l->bsp_light->cached) {
+			continue;
+		}
+
+		R_ClearShadow(view, l);
 
 		if (l->shadow == 0.f) {
 			continue;
@@ -327,23 +354,27 @@ static void R_InitShadowProgram(void) {
  */
 static void R_InitShadowTextures(void) {
 
-	glGenTextures(1, &r_shadows.cubemap_array);
-	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOW_CUBEMAP_ARRAY);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadows.cubemap_array);
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
 	const GLsizei size = r_shadow_cubemap_array_size->integer;
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+	glGenTextures(MAX_SHADOW_CUBEMAP_ARRAYS, r_shadows.cubemap_arrays);
+
+	for (GLint i = 0; i < MAX_SHADOW_CUBEMAP_ARRAYS; i++) {
+
+		glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOW_CUBEMAP_ARRAY + i);
+		glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadows.cubemap_arrays[i]);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+		glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_SHADOW_CUBEMAP_LAYERS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -396,9 +427,9 @@ static void R_ShutdownShadowProgram(void) {
  */
 static void R_ShutdownShadowTexture(void) {
 
-	glDeleteTextures(1, &r_shadows.cubemap_array);
+	glDeleteTextures(MAX_SHADOW_CUBEMAP_ARRAYS, r_shadows.cubemap_arrays);
 
-	r_shadows.cubemap_array = 0;
+	memset(r_shadows.cubemap_arrays, 0, sizeof(r_shadows.cubemap_arrays));
 
 	R_GetError(NULL);
 }

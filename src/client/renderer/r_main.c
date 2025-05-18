@@ -144,10 +144,19 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
 		out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
+		out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+		out->light_view[0] = Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+		out->light_view[1] = Mat4_LookAt(Vec3_Zero(), Vec3(-1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f));
+		out->light_view[2] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  1.f,  0.f), Vec3(0.f,  0.f,  1.f));
+		out->light_view[3] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f, -1.f,  0.f), Vec3(0.f,  0.f, -1.f));
+		out->light_view[4] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f,  1.f), Vec3(0.f, -1.f,  0.f));
+		out->light_view[5] = Mat4_LookAt(Vec3_Zero(), Vec3( 0.f,  0.f, -1.f), Vec3(0.f, -1.f,  0.f));
+
 		out->depth_range.x = NEAR_DIST;
 		out->depth_range.y = MAX_WORLD_DIST;
 		out->view_type = view->type;
 		out->ticks = view->ticks;
+		out->num_lights = view->num_lights;
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
@@ -250,6 +259,8 @@ void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 	assert(view->framebuffer);
+
+	R_UpdateUniforms(view); // FIXME, this is just to set num_lights
 
 	R_UpdateEntities(view);
 

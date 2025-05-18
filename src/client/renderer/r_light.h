@@ -38,7 +38,7 @@ typedef struct {
 	vec4_t model;
 
 	/**
-	 * @brief The light mins in model space, and size.
+	 * @brief The light mins in model space, and shadow scalar.
 	 */
 	vec4_t mins;
 
@@ -53,32 +53,15 @@ typedef struct {
 	vec4_t color;
 } r_light_uniform_t;
 
-#define MAX_LIGHT_UNIFORMS 256
-
 /**
  * @brief The lights uniform block struct.
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
 	/**
-	 * @brief The projection matrix for point light shadows.
-	 */
-	mat4_t light_projection;
-
-	/**
-	 * @brief The view matrices for cubemap shadow projections.
-	 */
-	mat4_t light_view[6];
-
-	/**
 	 * @brief The visible light sources for the current frame.
 	 */
-	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
-
-	/**
-	 * @brief The number of visible light sources.
-	 */
-	int32_t num_lights;
+	r_light_uniform_t lights[MAX_LIGHTS];
 } r_light_uniform_block_t;
 
 /**
@@ -98,7 +81,7 @@ typedef struct {
 	/**
 	 * @brief The bit vector of active light indexes for the current render operation.
 	 */
-	GLuint active_lights[MAX_LIGHT_UNIFORMS / 32];
+	GLuint active_lights[MAX_LIGHTS / 32];
 } r_lights_t;
 
 /**

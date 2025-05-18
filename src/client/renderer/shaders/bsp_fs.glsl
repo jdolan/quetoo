@@ -297,8 +297,25 @@ vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
  * @brief
  */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
-	vec4 shadowmap = vec4(vertex.model - light.model.xyz, index);
-	return texture(texture_shadow_cubemap_array, shadowmap, length(shadowmap.xyz) / depth_range.y);
+
+	int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
+	int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
+
+	vec4 shadowmap = vec4(vertex.model - light.model.xyz, layer);
+	float bias = length(shadowmap.xyz) / depth_range.y;
+
+	switch (array) {
+		case 0:
+			return texture(texture_shadow_cubemap_array0, shadowmap, bias);
+		case 1:
+			return texture(texture_shadow_cubemap_array1, shadowmap, bias);
+		case 2:
+			return texture(texture_shadow_cubemap_array2, shadowmap, bias);
+		case 3:
+			return texture(texture_shadow_cubemap_array3, shadowmap, bias);
+	}
+
+	return 1.0;
 }
 
 /**

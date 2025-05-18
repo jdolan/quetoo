@@ -66,18 +66,15 @@ void Cg_AddLight(const cg_light_t *l) {
 }
 
 /**
- * @brief
+ * @brief Adds all BSP light sources to the view.
+ * FIXME: This can be done once at level load, and then only upload dynamic lights per frame.
  */
 static void Cg_AddBspLights(void) {
 
 	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
 	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-		if (l->query.name == 0) {
-			continue;
-		}
-
-		if (l->occluded) {
+		if (l->type < LIGHT_POINT || l->type > LIGHT_BRUSH_SIDE) {
 			continue;
 		}
 

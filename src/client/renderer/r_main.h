@@ -144,6 +144,16 @@ typedef struct {
 		mat4_t view;
 
 		/**
+		 * @brief The projection matrix for point light shadows.
+		 */
+		mat4_t light_projection;
+
+		/**
+		 * @brief The view matrices for cubemap shadow projections.
+		 */
+		mat4_t light_view[6];
+
+		/**
 		 * @brief The lightgrid uniforms.
 		 */
 		r_lightgrid_t lightgrid;
@@ -162,6 +172,11 @@ typedef struct {
 		 * @brief The renderer time, in milliseconds.
 		 */
 		int32_t ticks;
+
+		/**
+		 * @brief The number of light sources.
+		 */
+		int32_t num_lights;
 
 		/**
 		 * @brief The modulate scalar.
