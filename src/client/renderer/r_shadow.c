@@ -180,6 +180,40 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
+ * @brief Static light sources with no entities within their bounds may cache shadows.
+ */
+static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
+
+	if (light->bsp_light == NULL) {
+		return false;
+	}
+
+	if (light->bsp_light->cached == false) {
+		return false;
+	}
+
+	const r_entity_t *e = view->entities + 1;
+	for (int32_t i = 1; i < view->num_entities; i++, e++) {
+
+		if (e->effects & EF_NO_SHADOW) {
+			continue;
+		}
+
+		if (!e->model) {
+			continue;
+		}
+
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+/**
  * @brief Renders the shadow cubemap for the specified light.
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
@@ -201,7 +235,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
 
-	int32_t count = 0;
+	int32_t num_entities = 0;
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -221,7 +255,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 		R_DrawBspInlineEntityShadow(view, e);
 
 		if (i > 0) {
-			count++;
+			num_entities++;
 		}
 	}
 
@@ -254,13 +288,11 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 		}
 
 		R_DrawMeshEntityShadow(view, e);
-		count++;
+		num_entities++;
 	}
 
-	if (count == 0) {
-		if (light->bsp_light) {
-			((r_bsp_light_t *) light->bsp_light)->cached = true;
-		}
+	if (light->bsp_light) {
+		((r_bsp_light_t *) light->bsp_light)->cached = num_entities == 0;
 	}
 
 	R_GetError(NULL);
@@ -289,7 +321,7 @@ void R_DrawShadows(const r_view_t *view) {
 			continue;
 		}
 
-		if (l->bsp_light && l->bsp_light->cached) {
+		if (R_CacheShadow(view, l)) {
 			continue;
 		}
 
