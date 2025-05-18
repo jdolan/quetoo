@@ -405,58 +405,6 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 }
 
 /**
- * @brief Merge overlapping lights to reduce shadow casting light sources in-game.
- */
-static void MergeLights(void) {
-
-	for (guint i = 0; i < lights->len; i++) {
-
-		light_t *a = g_ptr_array_index(lights, i);
-		if (a->type == LIGHT_BRUSH_SIDE) {
-
-			for (guint j = i + 1; j < lights->len; j++) {
-
-				light_t *b = g_ptr_array_index(lights, j);
-				if (b->type == LIGHT_BRUSH_SIDE) {
-
-					if (a->plane == b->plane && a->brush_side->material == b->brush_side->material
-						&& Vec3_Distance(a->origin, b->origin) < 128.f) {
-
-						GArray *points = g_array_new(false, false, sizeof(vec3_t));
-
-						g_array_append_vals(points, a->points, a->num_points);
-						g_array_append_vals(points, b->points, b->num_points);
-
-						g_free(a->points);
-
-						a->points = (vec3_t *) points->data;
-						a->num_points = points->len;
-
-						g_array_free(points, false);
-
-						a->bounds = Box3_Null();
-
-						for (int32_t k = 0; k < a->num_points; k++) {
-							a->bounds = Box3_Append(a->bounds, a->points[k]);
-						}
-
-						a->origin = Box3_Center(a->bounds);
-						a->size = Box3_Distance(a->bounds);
-						a->bounds = Box3_Expand(a->bounds, a->radius);
-
-						g_ptr_array_remove(lights, b);
-
-						j--;
-
-						continue;
-					}
-				}
-			}
-		}
-	}
-}
-
-/**
  * @brief
  */
 void FreeLights(void) {
@@ -582,8 +530,6 @@ void BuildDirectLights(void) {
 			Progress("Building direct lights", i * 100.f / count);
 		}
 	}
-
-	MergeLights();
 
 	HashLights(~LIGHT_INDIRECT);
 
