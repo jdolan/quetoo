@@ -106,11 +106,6 @@ layout (std140) uniform uniforms_block {
 	int ticks;
 
 	/**
-	 * @brief The number of active light sources.
-	 */
-	int num_lights;
-
-	/**
 	 * @brief The modulate scalar.
 	 */
 	float modulate;
@@ -174,12 +169,12 @@ struct light_t {
 	vec4 model;
 
 	/**
-	 * @brief The light mins in model space, and shadow layer.
+	 * @brief The light mins in model space.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The light maxs in model space, and attenuation.
+	 * @brief The light maxs in model space.
 	 */
 	vec4 maxs;
 
@@ -189,7 +184,7 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHTS 1024
+#define MAX_LIGHTS 768
 #define MAX_SHADOW_CUBEMAP_LAYERS 256
 #define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
 
@@ -201,6 +196,11 @@ layout (std140) uniform lights_block {
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
 	light_t lights[MAX_LIGHTS];
+
+	/**
+	 * @brief The count of light sources.
+	 */
+	int num_lights;
 };
 
 /**

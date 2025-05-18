@@ -1518,7 +1518,7 @@ typedef struct r_entity_s {
 /**
  * @brief Light sources per scene.
  */
-#define MAX_LIGHTS 1024
+#define MAX_LIGHTS 768
 
 /**
  * @brief Hardware light sources.

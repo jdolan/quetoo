@@ -33,7 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (l->bsp_light == NULL && R_CulludeBox(view, l->bounds)) {
+	if (l->type == LIGHT_DYNAMIC && R_CulludeBox(view, l->bounds)) {
 		return;
 	}
 
@@ -76,7 +76,7 @@ void R_UpdateLights(r_view_t *view) {
 		R_AddLightUniform(view, l);
 	}
 
-	r_stats.lights = view->num_lights;
+	out->num_lights = r_stats.lights = view->num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(*out), out);
@@ -92,6 +92,10 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
 	const r_light_t *light = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, light++) {
+
+		if (light->bsp_light && light->bsp_light->occluded) {
+			continue;
+		}
 
 		if (Box3_Intersects(light->bounds, bounds)) {
 			r_lights.active_lights[i / 32] |= (1 << (i % 32));

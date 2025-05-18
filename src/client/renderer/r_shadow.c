@@ -165,10 +165,6 @@ static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
-	if (light->source == NULL) {
-		return false;
-	}
-
 	while (e) {
 		if (light->source == e->id) {
 			return true;
@@ -182,7 +178,7 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 /**
  * @brief Static light sources with no entities within their bounds may cache shadows.
  */
-static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
+static bool R_UseCachedShadow(const r_view_t *view, const r_light_t *light) {
 
 	if (light->bsp_light == NULL) {
 		return false;
@@ -244,11 +240,11 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+		if (e->effects & EF_NO_SHADOW) {
 			continue;
 		}
 
-		if (R_CullEntity(view, e)) {
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
 			continue;
 		}
 
@@ -275,15 +271,11 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		if (R_IsLightSource(light, e)) {
-			continue;
-		}
-
 		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
 			continue;
 		}
 
-		if (R_CullEntity(view, e)) {
+		if (R_IsLightSource(light, e)) {
 			continue;
 		}
 
@@ -321,7 +313,7 @@ void R_DrawShadows(const r_view_t *view) {
 			continue;
 		}
 
-		if (R_CacheShadow(view, l)) {
+		if (R_UseCachedShadow(view, l)) {
 			continue;
 		}
 

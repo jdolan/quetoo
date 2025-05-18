@@ -59,7 +59,6 @@ static struct {
 	GLint texture_shadow_cubemap_array2;
 	GLint texture_shadow_cubemap_array3;
 
-	GLint model_type;
 	GLint alpha_test;
 
 	struct {
@@ -485,7 +484,6 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 				continue;
 			}
 
-			glUniform1i(r_bsp_program.model_type, e->model->type);
 			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
 			R_DrawOpaqueBspInlineEntity(view, e);
@@ -573,7 +571,6 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 				continue;
 			}
 
-			glUniform1i(r_bsp_program.model_type, e->model->type);
 			glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
 			R_DrawBlendBspInlineEntity(view, e);
@@ -630,7 +627,6 @@ void R_InitBspProgram(void) {
 
 	r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
 
-	r_bsp_program.model_type = glGetUniformLocation(r_bsp_program.name, "model_type");
 	r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
 	r_bsp_program.texture_material = glGetUniformLocation(r_bsp_program.name, "texture_material");

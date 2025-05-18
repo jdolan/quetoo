@@ -169,11 +169,6 @@ typedef struct {
 		int32_t ticks;
 
 		/**
-		 * @brief The number of light sources.
-		 */
-		int32_t num_lights;
-
-		/**
 		 * @brief The modulate scalar.
 		 */
 		float modulate;

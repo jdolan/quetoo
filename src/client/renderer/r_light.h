@@ -59,9 +59,14 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The visible light sources for the current frame.
+	 * @brief The light sources for the current frame.
 	 */
 	r_light_uniform_t lights[MAX_LIGHTS];
+
+	/**
+	 * @brief The count o
+	 */
+	int32_t num_lights;
 } r_light_uniform_block_t;
 
 /**

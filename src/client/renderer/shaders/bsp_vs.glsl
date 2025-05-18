@@ -27,8 +27,6 @@ layout (location = 4) in vec2 in_diffusemap;
 layout (location = 5) in vec2 in_lightmap;
 layout (location = 6) in vec4 in_color;
 
-uniform int model_type;
-
 uniform mat4 model;
 
 out vertex_data {

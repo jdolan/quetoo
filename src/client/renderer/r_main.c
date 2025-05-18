@@ -150,7 +150,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->depth_range.y = MAX_WORLD_DIST;
 		out->view_type = view->type;
 		out->ticks = view->ticks;
-		out->num_lights = view->num_lights;
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
@@ -253,8 +252,6 @@ void R_DrawMainView(r_view_t *view) {
 
 	assert(view);
 	assert(view->framebuffer);
-
-	R_UpdateUniforms(view); // FIXME, this is just to set num_lights
 
 	R_UpdateEntities(view);
 
