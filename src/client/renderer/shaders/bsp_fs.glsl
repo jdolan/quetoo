@@ -280,7 +280,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 dir = (view * model * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
+	vec3 dir = (view * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
 
 	float radius = light.model.w;
 	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
