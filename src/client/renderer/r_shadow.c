@@ -319,10 +319,6 @@ void R_DrawShadows(const r_view_t *view) {
 
 		R_ClearShadow(view, l);
 
-		if (l->shadow == 0.f) {
-			continue;
-		}
-
 		R_DrawShadow(view, l);
 	}
 
