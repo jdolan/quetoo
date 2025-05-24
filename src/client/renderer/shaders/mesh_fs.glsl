@@ -157,8 +157,10 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 dir = (view * model * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
-	float atten = clamp(1.0 - length(dir) / light.model.w, 0.0, 1.0);
+	vec3 dir = (view * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
+
+	float radius = light.model.w;
+	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
 
 	vec3 diffuse = light.color.rgb * light.color.a;
 	switch (int(light.maxs.w)) {
@@ -214,8 +216,13 @@ void light_and_shadow_caustics() {
  */
 void light_and_shadow(void) {
 
+	fragment.normalmap = sample_normalmap();
+	fragment.specularmap = sample_specularmap();
+
 	fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular += blinn_phong(fragment.ambient, fragment.normal);
+	fragment.specular = blinn_phong(fragment.ambient, fragment.normal);
+
+	fragment.diffuse = vec3(0);
 
 	for (int index = 0; index < num_lights; index++) {
 
@@ -226,8 +233,7 @@ void light_and_shadow(void) {
 			continue;
 		}
 
-		light_t light = lights[index];
-		light_and_shadow_dynamic(light, index);
+		light_and_shadow_dynamic(lights[index], index);
 	}
 
 	light_and_shadow_caustics();
@@ -245,7 +251,6 @@ void main(void) {
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
 	fragment.direction = normalize(vertex.direction);
-	fragment.specular = vec3(0);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -260,9 +265,6 @@ void main(void) {
 		fragment.diffusemap.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
 		fragment.diffusemap.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
 		fragment.diffusemap.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
-
-		fragment.normalmap = sample_normalmap();
-		fragment.specularmap = sample_specularmap();
 
 		light_and_shadow();
 

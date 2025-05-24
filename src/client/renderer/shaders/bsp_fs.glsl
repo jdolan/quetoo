@@ -19,9 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define MODEL_BSP        1
-#define MODEL_BSP_INLINE 2
-
 uniform mat4 model;
 
 in vertex_data {
@@ -194,30 +191,6 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief
  */
-vec3 sample_lightmap_ambient() {
-	return texture(texture_lightmap_ambient, vertex.lightmap).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightmap_diffuse() {
-	return texture(texture_lightmap_diffuse, vertex.lightmap).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightmap_direction() {
-	
-	vec2 xy = texture(texture_lightmap_direction, vertex.lightmap).xy;
-	vec3 direction = vec3(xy, sqrt(1.0 - xy.x * xy.x - xy.y * xy.y));
-	return normalize(fragment.tbn * normalize(direction));
-}
-
-/**
- * @brief
- */
 vec3 sample_lightmap_stains() {
 	return texture(texture_lightmap_stains, vertex.lightmap).rgb * stains;
 }
@@ -227,21 +200,6 @@ vec3 sample_lightmap_stains() {
  */
 vec3 sample_lightgrid_ambient() {
 	return texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightgrid_diffuse() {
-	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightgrid_direction() {
-	vec3 direction = texture(texture_lightgrid_direction, vertex.lightgrid).xyz * 2.0 - 1.0;
-	return vec3(view * vec4(normalize(direction), 0.0));
 }
 
 /**
@@ -320,7 +278,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_light(in light_t light, in int index) {
+void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	vec3 dir = (view * model * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
 
@@ -346,7 +304,6 @@ void light_and_shadow_light(in light_t light, in int index) {
 
 	diffuse *= lambert;
 
-	// TODO: Skip shadowmapping for lights with shadows disabled
 	float shadow = sample_shadow_cubemap_array(light, index);
 	if (shadow == 1.0) {
 		shadow = parallax_self_shadow(dir);
@@ -387,16 +344,13 @@ void light_and_shadow_caustics() {
  */
 void light_and_shadow(void) {
 
-	fragment.ambient = vec3(0);
-	fragment.specular = vec3(0);
-	fragment.diffuse = vec3(0);
-
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = sample_lightgrid_ambient();
-	fragment.ambient *= max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular += blinn_phong(fragment.ambient, fragment.normalmap);
+	fragment.ambient = sample_lightgrid_ambient() * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
+
+	fragment.diffuse = vec3(0);
 
 	for (int index = 0; index < num_lights; index++) {
 
@@ -407,13 +361,7 @@ void light_and_shadow(void) {
 			continue;
 		}
 
-		light_t light = lights[index];
-
-		if (any(lessThan(vertex.model, light.mins.xyz)) || any(greaterThan(vertex.model, light.maxs.xyz))) {
-			continue;
-		}
-
-		light_and_shadow_light(light, index);
+		light_and_shadow_dynamic(lights[index], index);
 	}
 
 	light_and_shadow_caustics();
