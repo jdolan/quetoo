@@ -81,7 +81,10 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  */
 static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
 
-	if (Box3_ContainsPoint(Box3_Expand(query->bounds, 16.f), view->origin)) {
+	if (r_occlude->integer == 0) {
+		query->available = 1;
+		query->result = 1;
+	} else if (Box3_ContainsPoint(Box3_Expand(query->bounds, 16.f), view->origin)) {
 		query->available = 1;
 		query->result = 1;
 	} else if (R_CullBox(view, query->bounds)) {
@@ -111,10 +114,6 @@ static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *qu
  * @brief Updates and re-draws all active occlusion queries for the current frame.
  */
 void R_UpdateOcclusionQueries(const r_view_t *view) {
-
-	if (!r_occlude->integer) {
-		return;
-	}
 
 	r_bsp_model_t *bsp = r_world_model->bsp;
 
