@@ -1002,6 +1002,7 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 		.radius = 85.f,
 		.color = Vec3(0.9f, 0.3f, 0.1f),
 		.intensity = 1.f,
+		.source = ent
 	};
 
 	if (ent->current.effects & EF_DESPAWN) {
