@@ -123,6 +123,11 @@ typedef union {
 	struct {
 		float x, y, z;
 	};
+
+	/**
+	 * @brief Swizzle.
+	 */
+	vec2_t xy;
 } vec3_t;
 
 /**
@@ -140,6 +145,16 @@ typedef union {
 	struct {
 		float x, y, z, w;
 	};
+
+	/**
+	 * @brief Swizzle.
+	 */
+	vec3_t xyz;
+
+	/**
+	 * @brief Swizzle.
+	 */
+	vec2_t xy;
 } vec4_t;
 
 /**
@@ -1350,13 +1365,6 @@ static inline uint32_t __attribute__ ((warn_unused_result)) Vec4_Bytes(const vec
  */
 static inline int32_t __attribute__ ((warn_unused_result)) Vec3_Bytes(const vec3_t v) {
 	return Vec4_Bytes(Vec3_ToVec4(v, 1.f));
-}
-
-/**
- * @return The xyz swizzle of `v`.
- */
-static inline vec3_t __attribute__ ((warn_unused_result)) Vec4_XYZ(const vec4_t v) {
-	return Vec3(v.x, v.y, v.z);
 }
 
 /**

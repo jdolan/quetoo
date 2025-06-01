@@ -85,7 +85,7 @@ cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist) {
  */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane) {
 	const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
-	return Cm_Plane(Vec4_XYZ(out), out.w);
+	return Cm_Plane(out.xyz, out.w);
 }
 
 /**

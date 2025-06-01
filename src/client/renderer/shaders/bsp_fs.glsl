@@ -205,7 +205,7 @@ vec3 sample_lightgrid_ambient() {
  * @brief
  */
 float sample_lightgrid_caustics() {
-	return 0.0;//return texture(texture_lightgrid_direction, vertex.lightgrid).a;
+	return texture(texture_lightgrid_diffuse, vertex.lightgrid).a;
 }
 
 /**

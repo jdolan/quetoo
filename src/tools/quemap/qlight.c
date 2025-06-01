@@ -419,7 +419,7 @@ static void LightWorld(void) {
 	} else {
 		// pad the lightgrid for bsp-only compiles
 		for (size_t i = 0; i < lg.num_luxels; i++) {
-			lg.luxels[i].diffuse = Vec3_One();
+			lg.luxels[i].diffuse.xyz = Vec3_One();
 		}
 	}
 

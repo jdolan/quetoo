@@ -106,7 +106,7 @@ void Cg_AddFlares(void) {
 
 			const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 
-			plane.normal = Vec4_XYZ(out);
+			plane.normal = out.xyz;
 			plane.dist = out.w;
 		}
 

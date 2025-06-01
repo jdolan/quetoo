@@ -28,7 +28,7 @@
 void IlluminateLuxel(luxel_t *luxel, light_t *light, float lumens) {
 
 	const vec3_t color = Vec3_Scale(light->color, light->intensity);
-	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumens, color);
+	luxel->diffuse.xyz = Vec3_Fmaf(luxel->diffuse.xyz, lumens, color);
 
 	light->bounds = Box3_Append(light->bounds, luxel->origin);
 }

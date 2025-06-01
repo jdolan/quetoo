@@ -297,19 +297,11 @@ void DiffuseLightgrid(int32_t luxel_num) {
  */
 static void CausticsLightgridLuxel(luxel_t *luxel, float scale) {
 
-	vec3_t c = Vec3_Zero();
+	float c = 0;
 
 	const int32_t contents = Light_PointContents(luxel->origin, 0);
 	if (contents & CONTENTS_MASK_LIQUID) {
-		if (contents & CONTENTS_LAVA) {
-			c = Vec3_Add(c, Vec3(1.f, 0.f, 0.f));
-		}
-		if (contents & CONTENTS_SLIME) {
-			c = Vec3_Add(c, Vec3(0.f, 1.f, 0.f));
-		}
-		if (contents & CONTENTS_WATER) {
-			c = Vec3_Add(c, Vec3(0.f, 0.f, 1.f));
-		}
+		c = 1.f;
 	}
 	
 	const vec3_t points[] = CUBE_8;
@@ -323,20 +315,11 @@ static void CausticsLightgridLuxel(luxel_t *luxel, float scale) {
 		if ((tr.contents & CONTENTS_MASK_LIQUID) && (tr.surface & SURF_MASK_TRANSLUCENT)) {
 
 			float f = sample_fraction * (1.f - tr.fraction);
-
-			if (tr.contents & CONTENTS_LAVA) {
-				c = Vec3_Add(c, Vec3(f, 0.f, 0.f));
-			}
-			if (tr.contents & CONTENTS_SLIME) {
-				c = Vec3_Add(c, Vec3(0.f, f, 0.f));
-			}
-			if (tr.contents & CONTENTS_WATER) {
-				c = Vec3_Add(c, Vec3(0.f, 0.f, f));
-			}
+			c += f;
 		}
 	}
 
-	luxel->caustics = Vec3_Fmaf(luxel->caustics, scale, c);
+	luxel->diffuse.w += c * scale;
 }
 
 /**
@@ -394,7 +377,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(l->diffuse, fog->absorption));
+		const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(l->diffuse.xyz, fog->absorption));
 
 		l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, density));
 	}
@@ -461,7 +444,7 @@ void EmitLightgrid(void) {
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, luxel++) {
-				*out_diffuse++ = Color_Color32(Color3fv(luxel->diffuse));
+				*out_diffuse++ = Color_Color32(Color4fv(luxel->diffuse));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
 		}

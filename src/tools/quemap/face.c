@@ -250,8 +250,8 @@ static int32_t WeldWinding(const cm_winding_t *w, vec3_t *points) {
 static int32_t EmitFaceVertexes(const face_t *face) {
 	const brush_side_t *brush_side = face->brush_side;
 
-	const vec3_t sdir = Vec4_XYZ(brush_side->axis[0]);
-	const vec3_t tdir = Vec4_XYZ(brush_side->axis[1]);
+	const vec3_t sdir = brush_side->axis[0].xyz;
+	const vec3_t tdir = brush_side->axis[1].xyz;
 
 	const SDL_Surface *diffusemap = materials[brush_side->material].diffusemap;
 	

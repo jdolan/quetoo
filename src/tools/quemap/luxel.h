@@ -30,8 +30,7 @@ typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
 	vec3_t normal;
-	vec3_t diffuse;
-	vec3_t caustics;
+	vec4_t diffuse;
 	vec4_t fog;
 } luxel_t;
 
