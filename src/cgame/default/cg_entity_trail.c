@@ -769,7 +769,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			}
 
 			// hit stains
-			cgi.AddStain(cgi.view, &(const r_stain_t) {
+			Cg_AddStain(&(const r_stain_t) {
 				.origin = end,
 				.radius = RandomRangef(4.f, 16.f),
 				.color = Color4bv(0x33222222)
@@ -979,7 +979,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
 		static uint32_t added = 0;
 		if ((added++ % 3) == 0) {
-			cgi.AddStain(cgi.view, &(const r_stain_t) {
+			Cg_AddStain(&(const r_stain_t) {
 				.origin = s->origin,
 				.radius = 12.0 * Randomf() * 3.0,
 				.color = Color4bv(0x80101080),

@@ -25,6 +25,18 @@
 /**
  * @brief
  */
+void Cg_AddStain(const r_stain_t *stain) {
+
+	if (!cg_add_stains->value) {
+		return;
+	}
+
+	cgi.AddStain(cgi.view, stain);
+}
+
+/**
+ * @brief
+ */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t effect_color) {
 	const color_t color_rgb = ColorHSVA(effect_color.x, effect_color.y, effect_color.z, 1.f);
 
@@ -103,7 +115,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
 		.decay = 350.f
 	});
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = 4.0,
 		.color = Color_Add(color_rgb, Color4f(0.f, 0.f, 0.f, -.66f))
@@ -405,7 +417,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 		});
 	}
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = 1.f,
 		.color = Color4bv(0xbb202020),
@@ -450,7 +462,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 		}
 	}
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = count * .5f,
 		.color = Color4bv(0xAA2222AA),
@@ -500,7 +512,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 		}
 	}
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = count * 6.0,
 		.color = Color4bv(0x88111188),
@@ -664,7 +676,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 		.decay = 1000
 	});
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = RandomRangef(32.f, 48.f),
 		.color = Color4bv(0xaa202020),
@@ -739,7 +751,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 		.decay = 250,
 	});
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = 16.f,
 		.color = Color4f(.4f, .7f, 1.f, .33f),
@@ -909,7 +921,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 		}
 	}
 
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = end,
 		.radius = 4.f,
 		.color = Color4bv(0xDD202020)
@@ -1066,7 +1078,7 @@ static void Cg_BfgEffect(const vec3_t org) {
 		.decay = 1500
 	});
 	
-	cgi.AddStain(cgi.view, &(const r_stain_t) {
+	Cg_AddStain(&(const r_stain_t) {
 		.origin = org,
 		.radius = 45.f,
 		.color = Color4f(.8f, 1.f, .5f, .5f),
