@@ -124,7 +124,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
 		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
 			const r_material_t *material = e->skins[i] ?: face->material;
-			if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+			if (material->cm->surface & SURF_MASK_BLEND) {
 				continue;
 			}
 
@@ -139,28 +139,6 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
- * @brief Clears the shadow texture for the specified light.
- */
-static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
-
-	const GLint index = (GLint) (light - view->lights);
-	const GLint array = index / MAX_SHADOW_CUBEMAP_LAYERS;
-	const GLint layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
-
-	for (int32_t i = 0; i < 6; i++) {
-		glFramebufferTextureLayer(GL_FRAMEBUFFER,
-								  GL_DEPTH_ATTACHMENT,
-								  r_shadows.cubemap_arrays[array],
-								  0,
-								  layer * 6 + i);
-
-		glClear(GL_DEPTH_BUFFER_BIT);
-	}
-
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_arrays[array], 0);
-}
-
-/**
  * @brief
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
@@ -170,6 +148,22 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 			return true;
 		}
 		e = e->parent;
+	}
+
+	return false;
+}
+
+/**
+ * @brief
+ */
+static bool R_CullShadow(const r_view_t *view, const r_light_t *light) {
+
+	if (light->bsp_light && light->bsp_light->occluded) {
+		return true;
+	}
+
+	if (R_CullBox(view, light->bounds)) {
+		return true;
 	}
 
 	return false;
@@ -191,7 +185,7 @@ static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
 	const r_entity_t *e = view->entities + 1;
 	for (int32_t i = 1; i < view->num_entities; i++, e++) {
 
-		if (e->effects & EF_NO_SHADOW) {
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
 			continue;
 		}
 
@@ -215,7 +209,21 @@ static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 	const GLint index = (GLint) (light - view->lights);
+
+	const GLint array = index / MAX_SHADOW_CUBEMAP_LAYERS;
 	const GLint layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
+
+	for (int32_t i = 0; i < 6; i++) {
+		glFramebufferTextureLayer(GL_FRAMEBUFFER,
+								  GL_DEPTH_ATTACHMENT,
+								  r_shadows.cubemap_arrays[array],
+								  0,
+								  layer * 6 + i);
+
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_arrays[array], 0);
 
 	glUniform1i(r_shadow_program.light_index, layer);
 
@@ -238,7 +246,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		if (e->effects & EF_NO_SHADOW) {
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
 			continue;
 		}
 
@@ -261,7 +269,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		if (e->effects & EF_NO_SHADOW) {
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
 			continue;
 		}
 
@@ -302,15 +310,13 @@ void R_DrawShadows(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (l->bsp_light && l->bsp_light->occluded) {
+		if (R_CullShadow(view, l)) {
 			continue;
 		}
 
 		if (R_CacheShadow(view, l)) {
 			continue;
 		}
-
-		R_ClearShadow(view, l);
 
 		R_DrawShadow(view, l);
 	}

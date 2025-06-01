@@ -33,10 +33,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 		return;
 	}
 
-	if (l->type == LIGHT_DYNAMIC && R_CulludeBox(view, l->bounds)) {
-		return;
-	}
-
 	r_light_t *out = &view->lights[view->num_lights++];
 
 	*out = *l;
