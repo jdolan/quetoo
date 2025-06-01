@@ -78,7 +78,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--only-ents"
@@ -154,7 +154,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/edge.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/fragpipe.map"
@@ -170,7 +170,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/hallways.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/jgothic.map"

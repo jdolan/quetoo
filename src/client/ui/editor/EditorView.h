@@ -117,11 +117,6 @@ struct EditorView {
 	Slider *lightIntensity;
 
 	/**
-	 *@brief The light cone slider.
-	 */
-	Slider *lightCone;
-
-	/**
 	 * @brief The save button.
 	 */
 	Button *save;

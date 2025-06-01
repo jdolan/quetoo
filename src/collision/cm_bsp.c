@@ -47,7 +47,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
 	BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
 	BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
 	BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
-	BSP_LUMP_SIZE_STRUCT(lightmap, MAX_BSP_LIGHTMAP_SIZE),
 	BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE)
 };
 
@@ -126,7 +125,6 @@ static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 		vertex->tangent = LittleVec3(vertex->tangent);
 		vertex->bitangent = LittleVec3(vertex->bitangent);
 		vertex->diffusemap = LittleVec2(vertex->diffusemap);
-		vertex->lightmap = LittleVec2(vertex->diffusemap);
 		vertex->color.rgba = LittleLong(vertex->color.rgba);
 
 		vertex++;
@@ -165,16 +163,6 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
 		face->first_element = LittleLong(face->first_element);
 		face->num_elements = LittleLong(face->num_elements);
-
-		face->lightmap.s = LittleLong(face->lightmap.s);
-		face->lightmap.t = LittleLong(face->lightmap.t);
-		face->lightmap.w = LittleLong(face->lightmap.w);
-		face->lightmap.h = LittleLong(face->lightmap.h);
-
-		face->lightmap.st_mins = LittleVec2(face->lightmap.st_mins);
-		face->lightmap.st_maxs = LittleVec2(face->lightmap.st_maxs);
-
-		face->lightmap.matrix = LittleMat4(face->lightmap.matrix);
 		
 		face++;
 	}
@@ -316,29 +304,15 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 		light->type = LittleLong(light->type);
 		light->atten = LittleLong(light->atten);
 		light->origin = LittleVec3(light->origin);
-		light->color = LittleVec3(light->color);
-		light->normal = LittleVec4(light->normal);
 		light->radius = LittleFloat(light->radius);
-		light->size = LittleFloat(light->size);
+		light->color = LittleVec3(light->color);
 		light->intensity = LittleFloat(light->intensity);
-		light->shadow = LittleFloat(light->shadow);
-		light->cone = LittleFloat(light->cone);
-		light->falloff = LittleFloat(light->falloff);
+		light->normal = LittleVec4(light->normal);
 		light->bounds = LittleBounds(light->bounds);
 		light->first_element = LittleLong(light->first_element);
 		light->num_elements = LittleLong(light->num_elements);
 		light++;
 	}
-}
-
-/**
- * @brief Swap function.
- */
-static void Bsp_SwapLightmap(void *lump, const int32_t num) {
-
-	bsp_lightmap_t *lightmap = (bsp_lightmap_t *) lump;
-
-	lightmap->width = LittleLong(lightmap->width);
 }
 
 /**
@@ -372,7 +346,6 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
 		Bsp_SwapBlocks,
 		Bsp_SwapModels,
 		Bsp_SwapLights,
-		Bsp_SwapLightmap,
 		Bsp_SwapLightgrid,
 	};
 

@@ -362,10 +362,6 @@ int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
 /**
  * @brief Lighting collision detection.
- * @details Lighting traces are clipped to the world, and to the entity for the given lightmap.
- * This way, inline models will self-shadow, but will not cast shadows on each other or on the
- * world.
- * @param lm The lightmap.
  * @param start The starting point.
  * @param end The desired end point.
  * @param mask The contents mask to clip to.
@@ -397,29 +393,17 @@ static void LightWorld(void) {
 
 	LoadMaterials(va("maps/%s.mat", map_base));
 
-	// build lightmaps
-	BuildLightmaps();
-
 	// build lightgrid
 	const size_t num_lightgrid = BuildLightgrid();
 
 	if (do_light) {
 
-		// build lights out of entities and emissive faces
-		BuildDirectLights();
+		// build lights out of entities and brush sides
+		BuildLights();
 
 		// calculate direct lighting
-		Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
-		Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+		Work("Diffuse lighting", DiffuseLightgrid, (int32_t) num_lightgrid);
 
-		// indirect lighting
-		// build lights out of lightmapped faces
-		BuildIndirectLights();
-
-		// calculate indirect lighting
-		Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
-		Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
-		
 		// caustic effects
 		Work("Caustics", CausticsLightgrid, (int32_t) num_lightgrid);
 
@@ -433,35 +417,14 @@ static void LightWorld(void) {
 		FreeFog();
 
 	} else {
-		// pad lightmap and lightgrid for bsp-only compiles
-		lightmap_t *lm = lightmaps;
-		for (int32_t i = 0; i < bsp_file.num_faces; i++, lm++) {
-			for (size_t j = 0; j < lm->num_luxels; j++) {
-				lm->luxels[j].ambient = Vec3_One();
-			}
-		}
+		// pad the lightgrid for bsp-only compiles
 		for (size_t i = 0; i < lg.num_luxels; i++) {
-			lg.luxels[i].ambient = Vec3_One();
+			lg.luxels[i].diffuse = Vec3_One();
 		}
 	}
 
 	// emit light sources to the bsp
 	EmitLights();
-
-	// finalize it and write it to per-face textures
-	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-
-	// generate atlased lightmaps
-	EmitLightmap();
-
-	// and vertex lightmap texcoords
-	EmitLightmapTexcoords();
-
-	// free the lightmaps
-	Mem_FreeTag(MEM_TAG_LIGHTMAP);
-
-	// finalize the lightgrid
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
 
 	// write it to the bsp
 	EmitLightgrid();
@@ -472,7 +435,7 @@ static void LightWorld(void) {
 	// free the light sources
 	FreeLights();
 
-	// free the lightmap windings
+	// free the windings
 	FreeWindings();
 
 	// free the materials

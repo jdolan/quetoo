@@ -24,8 +24,7 @@ layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
-layout (location = 5) in vec2 in_lightmap;
-layout (location = 6) in vec4 in_color;
+layout (location = 5) in vec4 in_color;
 
 uniform mat4 model;
 
@@ -36,7 +35,6 @@ out vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
 } vertex;
@@ -64,7 +62,6 @@ void main(void) {
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightmap = in_lightmap;
 	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
 	vertex.color = in_color;
 

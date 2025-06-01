@@ -43,8 +43,6 @@ out vertex_data {
 	vec2 diffusemap;
 	vec4 color;
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 direction;
 	float caustics;
 	vec4 fog;
 } vertex;
@@ -54,30 +52,15 @@ invariant gl_Position;
 /**
  * @brief
  */
-vec3 sample_lightgrid_ambient(in vec3 texcoord) {
-	return texture(texture_lightgrid_ambient, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
 vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightgrid_direction(in vec3 texcoord) {
-	vec3 direction = texture(texture_lightgrid_direction, texcoord).xyz * 2.0 - 1.0;
-	return vec3(view * vec4(normalize(direction), 0.0));
+	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate * .25;
 }
 
 /**
  * @brief
  */
 float sample_lightgrid_caustics(in vec3 texcoord) {
-	return texture(texture_lightgrid_direction, texcoord).a;
+	return texture(texture_lightgrid_diffuse, texcoord).a * caustics;
 }
 
 /**
@@ -130,15 +113,13 @@ void main(void) {
 	vertex.color = vec4(1.0);
 
 	if (view_type == VIEW_PLAYER_MODEL) {
-		vertex.ambient = vec3(0.333);
-		vertex.diffuse = vec3(0.666);
-		vertex.direction = vec3(0.0, 0.0, 1.0);
+		vertex.ambient = vec3(0.666);
+		vertex.caustics = 0.0;
+		vertex.fog = vec4(0.0);
 	} else {
 		vec3 texcoord = lightgrid_uvw(vec3(model * position));
 
-		vertex.ambient = sample_lightgrid_ambient(texcoord);
-		vertex.diffuse = sample_lightgrid_diffuse(texcoord);
-		vertex.direction = sample_lightgrid_direction(texcoord);
+		vertex.ambient = sample_lightgrid_diffuse(texcoord);
 		vertex.caustics = sample_lightgrid_caustics(texcoord);
 		vertex.fog = sample_lightgrid_fog(texcoord);
 	}

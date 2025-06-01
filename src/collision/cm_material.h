@@ -250,21 +250,6 @@ typedef struct {
 	 * @brief The light intensity.
 	 */
 	float intensity;
-
-	/**
-	 * @brief The light shadow.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone for angular attenuation, in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The light angular attenuation falloff, in degrees.
-	 */
-	float falloff;
 } cm_light_t;
 
 #define MATERIAL_ROUGHNESS 1.f
@@ -276,9 +261,6 @@ typedef struct {
 #define MATERIAL_LIGHT_ATTEN 1
 #define MATERIAL_LIGHT_RADIUS 300.f
 #define MATERIAL_LIGHT_INTENSITY 1.f
-#define MATERIAL_LIGHT_SHADOW 1.f
-#define MATERIAL_LIGHT_CONE 45.f
-#define MATERIAL_LIGHT_FALLOFF 75.f
 
 /**
  * @brief Materials define the rendering attributes of textures.

@@ -35,39 +35,35 @@ static void didSelectQuality(Select *select, Option *option) {
 	switch ((intptr_t) option->value) {
 		case 3:
 			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 3);
 			cgi.SetCvarInteger("cg_add_weather", 1);
+			cgi.SetCvarInteger("cg_add_stains", 1);
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_sprites_soften", 1);
 			cgi.SetCvarInteger("r_sprites_lerp", 1);
-			cgi.SetCvarInteger("r_stains", 1);
 			break;
 		case 2:
 			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 2);
 			cgi.SetCvarInteger("cg_add_weather", 1);
+			cgi.SetCvarInteger("cg_add_stains", 1);
 			cgi.SetCvarInteger("r_caustics", 1);
 			cgi.SetCvarInteger("r_sprites_soften", 1);
 			cgi.SetCvarInteger("r_sprites_lerp", 1);
-			cgi.SetCvarInteger("r_stains", 1);
 			break;
 		case 1:
 			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 1);
 			cgi.SetCvarInteger("cg_add_weather", 1);
+			cgi.SetCvarInteger("cg_add_stains", 1);
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_sprites_soften", 1);
 			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			cgi.SetCvarInteger("r_stains", 1);
 			break;
 		case 0:
 			cgi.SetCvarInteger("cg_add_atmospheric", 0);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 0);
 			cgi.SetCvarInteger("cg_add_weather", 0);
+			cgi.SetCvarInteger("cg_add_stains", 0);
 			cgi.SetCvarInteger("r_caustics", 0);
 			cgi.SetCvarInteger("r_sprites_soften", 0);
 			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			cgi.SetCvarInteger("r_stains", 0);
 			break;
 		default:
 			break;

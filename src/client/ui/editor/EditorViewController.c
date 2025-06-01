@@ -71,8 +71,6 @@ static void didSetValue(Slider *slider, double value) {
 		view->material->cm->light.radius = slider->value;
 	} else if (slider == view->lightIntensity) {
 		view->material->cm->light.intensity = slider->value;
-	} else if (slider == view->lightCone) {
-		view->material->cm->light.cone = slider->value;
 	} else {
 		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
 	}
@@ -113,9 +111,6 @@ static void loadView(ViewController *self) {
 
 	view->lightIntensity->delegate.self = self;
 	view->lightIntensity->delegate.didSetValue = didSetValue;
-
-	view->lightCone->delegate.self = self;
-	view->lightCone->delegate.didSetValue = didSetValue;
 
 	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 

@@ -24,7 +24,6 @@
 #include "fog.h"
 #include "light.h"
 #include "lightgrid.h"
-#include "lightmap.h"
 #include "material.h"
 #include "quemap.h"
 #include "writebsp.h"

@@ -25,32 +25,12 @@
 /**
  * @brief
  */
-void IlluminateLuxel(luxel_t *luxel, const lumen_t *lumen) {
+void IlluminateLuxel(luxel_t *luxel, light_t *light, float lumens) {
 
-	assert(lumen->light);
+	const vec3_t color = Vec3_Scale(light->color, light->intensity);
+	luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumens, color);
 
-	const vec3_t color = Vec3_Scale(lumen->light->color, lumen->light->intensity);
-
-	switch (lumen->light->type) {
-		case LIGHT_AMBIENT:
-		case LIGHT_INDIRECT:
-			luxel->ambient = Vec3_Fmaf(luxel->ambient, lumen->lumens, color);
-			break;
-
-		case LIGHT_SUN:
-		case LIGHT_POINT:
-		case LIGHT_SPOT:
-		case LIGHT_BRUSH_SIDE:
-			luxel->diffuse = Vec3_Fmaf(luxel->diffuse, lumen->lumens, color);
-			luxel->direction = Vec3_Fmaf(luxel->direction, lumen->lumens, lumen->direction);
-			break;
-		
-		default:
-			break;
-	}
-
-	// append the luxel origin to the light's visible bounds
-	lumen->light->visible_bounds = Box3_Append(lumen->light->visible_bounds, luxel->origin);
+	light->bounds = Box3_Append(light->bounds, luxel->origin);
 }
 
 /**

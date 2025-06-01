@@ -24,105 +24,41 @@
 /**
  * @brief Attempt to stain the surface.
  */
-static void R_StainFace(const r_view_t *view, const r_stain_t *stain, r_bsp_face_t *face) {
+static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const vec3_t point = Mat4_Transform(face->lightmap.matrix, stain->origin);
+	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
 
-	vec2_t st = Vec2_Subtract(Vec3_XY(point), face->lightmap.st_mins);
+	const vec3_t translate = Vec3_Subtract(stain->origin, lg->bounds.mins);
+	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->luxel_size));
 
-	const vec2_t size = Vec2_Subtract(face->lightmap.st_maxs, face->lightmap.st_mins);
-	const vec2_t padding = Vec2_Subtract(Vec2(face->lightmap.w, face->lightmap.h), size);
+	const int32_t radius = stain->radius / BSP_LIGHTGRID_LUXEL_SIZE;
 
-	st = Vec2_Add(st, Vec2_Scale(padding, .5f));
+	for (int32_t z = -radius; z < radius; z++) {
+		for (int32_t y = -radius; y < radius; y++) {
+			for (int32_t x = -radius; x < radius; x++) {
 
-	// convert the radius to luxels
-	const float radius = stain->radius / BSP_LIGHTMAP_LUXEL_SIZE;
+				// this luxel is stained, so attenuate and blend it
 
-	// square it to avoid a sqrt per luxe;
-	const float radius_squared = radius * radius;
+				const vec3i_t pos = Vec3i_Add(origin, Vec3i(x, y, z));
 
-	// now iterate the luxels within the radius and stain them
-	for (int32_t i = -radius; i <= radius; i++) {
+				const int32_t luxel = lg->size.x * lg->size.y * pos.z + lg->size.x * pos.y + pos.x;
 
-		const ptrdiff_t t = st.y + i;
-		if (t < 0 || t >= face->lightmap.h) {
-			continue;
-		}
+				color32_t *out = lg->stain_buffer + luxel;
 
-		for (int32_t j = -radius; j <= radius; j++) {
+				const float atten = 1.f;
 
-			const ptrdiff_t s = st.x + j;
-			if (s < 0 || s >= face->lightmap.w) {
-				continue;
+				const float intensity = stain->color.a * atten;
+
+				const float src_alpha = Clampf01(intensity);
+				const float dst_alpha = 1.f - src_alpha;
+
+				const color_t src = Color_Scale(stain->color, src_alpha);
+				const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
+
+				*out = Color_Color32(Color_Add(src, dst));
 			}
-
-			// this luxel is stained, so attenuate and blend it
-			color32_t *out = face->lightmap.stains + (face->lightmap.w * t + s);
-
-			const float dist_squared = Vec2_LengthSquared(Vec2(i, j));
-			const float atten = (radius_squared - dist_squared) / radius_squared;
-
-			const float intensity = stain->color.a * atten;
-
-			const float src_alpha = Clampf01(intensity);
-			const float dst_alpha = 1.f - src_alpha;
-
-			const color_t src = Color_Scale(stain->color, src_alpha);
-			const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
-
-			*out = Color_Color32(Color_Add(src, dst));
-
-			face->lightmap.stain_time = view->ticks;
 		}
 	}
-}
-
-/**
- * @brief
- */
-static void R_StainNode(const r_view_t *view, const r_stain_t *stain, const r_bsp_node_t *node) {
-
-	if (node->contents > CONTENTS_NODE) {
-		return;
-	}
-
-	const cm_bsp_plane_t *plane = node->plane->cm;
-	const float dist = Cm_DistanceToPlane(stain->origin, plane);
-
-	if (dist > stain->radius) {
-		R_StainNode(view, stain, node->children[0]);
-		return;
-	}
-
-	if (dist < -stain->radius) {
-		R_StainNode(view, stain, node->children[1]);
-		return;
-	}
-
-	// project the stain onto the node's plane
-	const r_stain_t projected = {
-		.origin = Vec3_Fmaf(stain->origin, -dist, plane->normal),
-		.radius = stain->radius - fabsf(dist),
-		.color = stain->color
-	};
-
-	r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
-
-		if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
-			continue;
-		}
-
-		if (face->brush_side->surface & SURF_MASK_NO_LIGHTMAP) {
-			continue;
-		}
-
-		R_StainFace(view, &projected, face);
-	}
-
-	// recurse down both sides
-	R_StainNode(view, stain, node->children[0]);
-	R_StainNode(view, stain, node->children[1]);
 }
 
 /**
@@ -153,60 +89,15 @@ void R_UpdateStains(const r_view_t *view) {
 
 	const r_stain_t *stain = view->stains;
 	for (int32_t i = 0; i < view->num_stains; i++, stain++) {
-
-		R_StainNode(view, stain, r_world_model->bsp->nodes);
-
-		const r_entity_t *e = view->entities;
-		for (int32_t j = 0; j < view->num_entities; j++, e++) {
-			if (e->model && e->model->type == MODEL_BSP_INLINE) {
-
-				r_stain_t s = *stain;
-
-				s.origin = Mat4_Transform(e->inverse_matrix, s.origin);
-
-				R_StainNode(view, &s, e->model->bsp_inline->head_node);
-			}
-		}
+		R_UpdateStain(view, stain);
 	}
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTMAP_STAINS);
+	const r_image_t *s = r_world_model->bsp->lightgrid->stains;
+	const color32_t *c = r_world_model->bsp->lightgrid->stain_buffer;
 
-	const uint32_t decay_interval = (uint32_t) Mini(10, r_stains_decay->integer) * 1000;
-
-	r_bsp_face_t *face = r_world_model->bsp->faces;
-	for (int32_t i = 0; i < r_world_model->bsp->num_faces; i++, face++) {
-
-		r_bsp_face_lightmap_t *lm = &face->lightmap;
-		if (lm->stain_time) {
-
-			const uint32_t age = view->ticks - lm->stain_time;
-			if (age < decay_interval) {
-
-				if (age == 0) {
-					// don't decay, but don't skip the upload either
-				} else {
-					if (view->ticks - lm->stain_decay_time >= decay_interval / 255.f) {
-						lm->stain_decay_time = view->ticks;
-
-						color32_t *color = lm->stains;
-						for (int32_t j = 0; j < lm->w * lm->h; j++, color++) {
-							color->r = Mini(255, color->r + 1);
-							color->g = Mini(255, color->g + 1);
-							color->b = Mini(255, color->b + 1);
-							color->a = Mini(255, color->a + 1);
-						}
-					} else {
-						continue;
-					}
-				}
-
-				glTexSubImage2D(GL_TEXTURE_2D, 0, lm->s, lm->t, lm->w, lm->h, GL_RGBA, GL_UNSIGNED_BYTE, lm->stains);
-			}
-		}
-	}
-
-	glGenerateMipmap(GL_TEXTURE_2D);
-
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_STAINS);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);
+	glGenerateMipmap(GL_TEXTURE_3D);
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
 	R_GetError(NULL);

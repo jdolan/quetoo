@@ -53,7 +53,7 @@ static struct {
 } r_post_program;
 
 /**
- * @brief Draw post-processing stages like bloom and HDR.
+ * @brief Draw post-processing stages like bloom.
  */
 void R_DrawPost(const r_view_t *view) {
 

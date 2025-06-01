@@ -46,7 +46,7 @@ typedef struct {
 	vec3_t ambient;
 
 	/**
-	 * @brief The diffuse color for face lights.
+	 * @brief The diffuse color for brush side lights.
 	 */
 	vec3_t diffuse;
 

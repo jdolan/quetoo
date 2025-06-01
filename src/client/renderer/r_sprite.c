@@ -55,7 +55,6 @@ static struct {
 
 	GLint texture_diffusemap;
 	GLint texture_next_diffusemap;
-	GLint texture_lightgrid_ambient;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
 	GLint texture_depth_attachment_copy;
@@ -517,14 +516,12 @@ static void R_InitSpriteProgram(void) {
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	r_sprite_program.texture_lightgrid_ambient = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_ambient");
 	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
 	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
 	r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-	glUniform1i(r_sprite_program.texture_lightgrid_ambient, TEXTURE_LIGHTGRID_AMBIENT);
 	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
 	glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);

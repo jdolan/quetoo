@@ -104,7 +104,6 @@ typedef enum {
 	IMG_ATLAS,
 	IMG_MATERIAL,
 	IMG_CUBEMAP,
-	IMG_LIGHTMAP,
 	IMG_LIGHTGRID,
 } r_image_type_t;
 
@@ -389,55 +388,10 @@ typedef struct {
 	vec2_t diffusemap;
 
 	/**
-	 * @brief The lightmap texture coordinate in the lightmap atlas.
-	 */
-	vec2_t lightmap;
-
-	/**
 	 * @brief The color, for alpha blending and vertex lighting effects.
 	 */
 	color32_t color;
 } r_bsp_vertex_t;
-
-/**
- * @brief Indivudual face lightmap information.
- */
-typedef struct {
-	/**
-	 * @brief The texture coordinates of this lightmap in the lightmap atlas.
-	 */
-	GLint s, t;
-
-	/**
-	 * @brief The width and height of this lightmap.
-	 */
-	GLint w, h;
-
-	/**
-	 * @brief The world-to-lightmap projection matrix.
-	 */
-	mat4_t matrix;
-
-	/**
-	 * @brief The texture coordinate bounds.
-	 */
-	vec2_t st_mins, st_maxs;
-
-	/**
-	 * @brief The stains for this lightmap.
-	 */
-	color32_t *stains;
-
-	/**
-	 * @brief The timestamp when this lightmap was last stained.
-	 */
-	uint32_t stain_time;
-
-	/**
-	 * @brief The timestamp when this lightmap stain was last decayed.
-	 */
-	uint32_t stain_decay_time;
-} r_bsp_face_lightmap_t;
 
 /**
  * @brief BSP faces, which may reside on the front or back of their node.
@@ -462,11 +416,6 @@ typedef struct {
 	 * @brief The AABB of this face.
 	 */
 	box3_t bounds;
-
-	/**
-	 * @brief The lightmap.
-	 */
-	r_bsp_face_lightmap_t lightmap;
 
 	/**
 	 * @brief The vertexes.
@@ -737,29 +686,9 @@ typedef struct {
 	float radius;
 
 	/**
-	 * @brief The light size, for area lights.
-	 */
-	float size;
-
-	/**
 	 * @brief The light intensity.
 	 */
 	float intensity;
-
-	/**
-	 * @brief The light shadow.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone for angular attenuation, in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The angular attenuation falloff, in degrees.
-	 */
-	float falloff;
 
 	/**
 	 * @brief The light bounds, for frustum and occlusion culling.
@@ -793,36 +722,6 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief The BSP lightmap, which is comprised of several atlas textures of various storage types.
- */
-typedef struct {
-	/**
-	 * @brief The atlas width.
-	 */
-	int32_t width;
-
-	/**
-	 * @brief The ambient atlas (RGB9E5).
-	 */
-	r_image_t *ambient;
-
-	/**
-	 * @brief The diffuse atlas (RGB9E5).
-	 */
-	r_image_t *diffuse;
-
-	/**
-	 * @brief The direction atlas (RG16 signed normalized).
-	 */
-	r_image_t *direction;
-
-	/**
-	 * @brief The stain atlas (RGBA8).
-	 */
-	r_image_t *stains;
-} r_bsp_lightmap_t;
-
-/**
  * @brief
  */
 typedef struct {
@@ -842,19 +741,9 @@ typedef struct {
 	vec3_t luxel_size;
 
 	/**
-	 * @brief The ambient 3D texture (RGB9E5).
-	 */
-	r_image_t *ambient;
-
-	/**
 	 * @brief The diffuse 3D texture (RGB9E5).
 	 */
 	r_image_t *diffuse;
-
-	/**
-	 * @brief The direction 3D texture (RGBA8, alpha contains caustics).
-	 */
-	r_image_t *direction;
 
 	/**
 	 * @brief The fog 3D texture (RGBA8).
@@ -862,9 +751,14 @@ typedef struct {
 	r_image_t *fog;
 
 	/**
-	 * @brief The exposure for each lightgrid luxel.
+	 * @brief The stain 3D texture (RGBA8).
 	 */
-	float *exposure;
+	r_image_t *stains;
+
+	/**
+	 * @brief The stainmap buffer.
+	 */
+	color32_t *stain_buffer;
 } r_bsp_lightgrid_t;
 
 /**
@@ -910,7 +804,6 @@ typedef struct {
 	int32_t num_lights;
 	r_bsp_light_t *lights;
 
-	r_bsp_lightmap_t *lightmap;
 	r_bsp_lightgrid_t *lightgrid;
 
 	/**
@@ -1367,7 +1260,7 @@ typedef struct {
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
- * @brief Stains are low-resolution color effects added to the map's lightmap
+ * @brief Stains are low-resolution color effects added to the map's lightgrid
  * data. They are persistent for the duration of the map.
  */
 typedef struct {
@@ -1555,29 +1448,9 @@ typedef struct {
 	float radius;
 
 	/**
-	 * @brief The light size, for area lights.
-	 */
-	float size;
-
-	/**
 	 * @brief The light intensity.
 	 */
 	float intensity;
-
-	/**
-	 * @brief The light shadow.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone for angular attenuation, in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The light angular attenuation falloff, in degrees.
-	 */
-	float falloff;
 
 	/**
 	 * @brief The light bounds, or the volume visible to the light.
@@ -1736,12 +1609,6 @@ typedef struct {
 	 * @brief The view origin.
 	 */
 	vec3_t origin;
-
-
-	/**
-	 * @brief The view exposure (HDR).
-	 */
-	float exposure;
 
 	/**
 	 * @brief The view angles.
@@ -1903,22 +1770,12 @@ typedef enum {
 	TEXTURE_WARP,
 
 	/**
-	 * @brief The lightmap textures, used by the BSP program.
-	 */
-	TEXTURE_LIGHTMAP,
-	TEXTURE_LIGHTMAP_AMBIENT = TEXTURE_LIGHTMAP,
-	TEXTURE_LIGHTMAP_DIFFUSE,
-	TEXTURE_LIGHTMAP_DIRECTION,
-	TEXTURE_LIGHTMAP_STAINS,
-
-	/**
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
 	 */
 	TEXTURE_LIGHTGRID,
-	TEXTURE_LIGHTGRID_AMBIENT = TEXTURE_LIGHTGRID,
 	TEXTURE_LIGHTGRID_DIFFUSE,
-	TEXTURE_LIGHTGRID_DIRECTION,
 	TEXTURE_LIGHTGRID_FOG,
+	TEXTURE_LIGHTGRID_STAINS,
 
 	/**
 	 * @brief The sky cubemap texture.

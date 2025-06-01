@@ -152,36 +152,14 @@ size_t BuildLightgrid(void) {
 /**
  * @brief
  */
-static void LightgridLuxel_Ambient(light_t *light, luxel_t *luxel, float scale) {
-
-	IlluminateLuxel(luxel, &(const lumen_t) {
-		.light = light,
-		.lumens = scale,
-	});
-}
-
-/**
- * @brief
- */
 static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
 
-	const float lumens = (1.f / light->num_points) * scale;
+	const vec3_t dir = Vec3_Negate(light->normal);
+	const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
 
-	for (int32_t i = 0; i < light->num_points; i++) {
-
-		const vec3_t dir = Vec3_Negate(light->points[i]);
-		const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
-		if (!(trace.surface & SURF_SKY)) {
-			continue;
-		}
-
-		IlluminateLuxel(luxel, &(const lumen_t) {
-			.light = light,
-			.direction = dir,
-			.lumens = lumens,
-		});
+	const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
+	if (trace.surface & SURF_SKY) {
+		IlluminateLuxel(luxel, light, scale);
 	}
 }
 
@@ -190,7 +168,7 @@ static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
  */
 static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 
-	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
+	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin));
 	if (dist >= light->radius) {
 		return;
 	}
@@ -209,73 +187,11 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 			break;
 	}
 
-	const float lumens = atten * scale / light->num_points;
+	const float lumens = atten * scale;
 
-	for (int32_t i = 0; i < light->num_points; i++) {
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
-		if (trace.fraction < 1.f) {
-			continue;
-		}
-
-		IlluminateLuxel(luxel, &(const lumen_t) {
-			.light = light,
-			.direction = Vec3_Direction(light->points[i], luxel->origin),
-			.lumens = lumens,
-		});
-	}
-}
-
-/**
- * @brief
- */
-static void LightgridLuxel_Spot(light_t *light, luxel_t *luxel, float scale) {
-	
-	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
-	if (dist >= light->radius) {
-		return;
-	}
-
-	float atten;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			atten = 1.f;
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf01(1.f - dist / light->radius);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf01(1.f - dist / light->radius);
-			atten *= atten;
-			break;
-	}
-
-	for (int32_t i = 0; i < light->num_points; i++) {
-
-		float lumens = atten * scale / light->num_points;
-
-		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
-		const float dot = Vec3_Dot(dir, Vec3_Negate(light->normal));
-		if (dot < light->theta) {
-
-			if (dot < light->phi) {
-				continue;
-			}
-
-			lumens *= Smoothf(dot, light->phi, light->theta);
-		}
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
-		if (trace.fraction < 1.f) {
-			continue;
-		}
-
-		IlluminateLuxel(luxel, &(const lumen_t) {
-			.light = light,
-			.direction = dir,
-			.lumens = lumens,
-		});
+	const cm_trace_t trace = Light_Trace(luxel->origin, light->origin, 0, CONTENTS_SOLID);
+	if (trace.fraction == 1.f) {
+		IlluminateLuxel(luxel, light, lumens);
 	}
 }
 
@@ -288,7 +204,8 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 		return;
 	}
 
-	const float dist = Cm_DistanceToWinding(light->winding, luxel->origin, NULL);
+	vec3_t dir;
+	const float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
 	if (dist >= light->radius) {
 		return;
 	}
@@ -308,66 +225,11 @@ static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale
 			break;
 	}
 
-	for (int32_t i = 0; i < light->num_points; i++) {
+	float lumens = atten * scale;
 
-		float lumens = atten * scale / light->num_points;
-
-		const vec3_t dir = Vec3_Direction(light->points[i], luxel->origin);
-		const float dot = Vec3_Dot(Vec3_Negate(dir), light->normal);
-		if (dot <= light->theta) {
-
-			if (dot <= light->phi) {
-				continue;
-			}
-
-			lumens *= Smoothf(dot, light->phi, light->theta);
-		}
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
-		if (trace.fraction < 1.f) {
-			continue;
-		}
-
-		IlluminateLuxel(luxel, &(const lumen_t) {
-			.light = light,
-			.direction = dir,
-			.lumens = lumens,
-		});
-	}
-}
-
-/**
- * @brief
- */
-static void LightgridLuxel_Indirect(light_t *light, luxel_t *luxel, float scale) {
-
-	if (light->model != bsp_file.models) {
-		return;
-	}
-
-	if (Vec3_Dot(luxel->origin, light->plane->normal) - light->plane->dist < -BSP_LIGHTGRID_LUXEL_SIZE) {
-		return;
-	}
-
-	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin) - light->size * .5f);
-	if (dist >= light->radius) {
-		return;
-	}
-
-	const float atten = Clampf01(1.f - dist / light->radius);
-	const float lumens = atten * scale / light->num_points;
-
-	for (int32_t i = 0; i < light->num_points; i++) {
-
-		const cm_trace_t trace = Light_Trace(luxel->origin, light->points[i], 0, CONTENTS_SOLID);
-		if (trace.fraction < 1.f) {
-			continue;
-		}
-
-		IlluminateLuxel(luxel, &(const lumen_t) {
-			.light = light,
-			.lumens = lumens,
-		});
+	const cm_trace_t trace = Light_Trace(luxel->origin, light->origin, 0, CONTENTS_SOLID);
+	if (trace.fraction == 1.f) {
+		IlluminateLuxel(luxel, light, lumens);
 	}
 }
 
@@ -384,23 +246,14 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 		light_t *light = g_ptr_array_index(lights, i);
 
 		switch (light->type) {
-			case LIGHT_AMBIENT:
-				LightgridLuxel_Ambient(light, luxel, scale);
-				break;
 			case LIGHT_SUN:
 				LightgridLuxel_Sun(light, luxel, scale);
 				break;
 			case LIGHT_POINT:
 				LightgridLuxel_Point(light, luxel, scale);
 				break;
-			case LIGHT_SPOT:
-				LightgridLuxel_Spot(light, luxel, scale);
-				break;
 			case LIGHT_BRUSH_SIDE:
 				LightgridLuxel_BrushSide(light, luxel, scale);
-				break;
-			case LIGHT_INDIRECT:
-				LightgridLuxel_Indirect(light, luxel, scale);
 				break;
 			default:
 				break;
@@ -411,7 +264,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 /**
  * @brief
  */
-void DirectLightgrid(int32_t luxel_num) {
+void DiffuseLightgrid(int32_t luxel_num) {
 
 	const vec3_t offsets[] = {
 		Vec3(+0.00f, +0.00f, +0.00f),
@@ -432,47 +285,6 @@ void DirectLightgrid(int32_t luxel_num) {
 		const float uoffs = offsets[i].z;
 
 		if (ProjectLightgridLuxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-			continue;
-		}
-
-		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
-		if (!lights) {
-			continue;
-		}
-
-		LightgridLuxel(lights, l, weight);
-	}
-}
-
-/**
- * @brief
- */
-void IndirectLightgrid(int32_t luxel_num) {
-
-	const vec3_t offsets[] = {
-		Vec3(+0.00f, +0.00f, +0.00f),
-		Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-		Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-		Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-		Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
-	};
-
-	const float weight = 1.f / lengthof(offsets);
-
-	luxel_t *l = &lg.luxels[luxel_num];
-
-	for (size_t i = 0; i < lengthof(offsets); i++) {
-
-		const float soffs = offsets[i].x;
-		const float toffs = offsets[i].y;
-		const float uoffs = offsets[i].z;
-
-		if (ProjectLightgridLuxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-			continue;
-		}
-
-		const GPtrArray *lights = leaf_lights[Cm_PointLeafnum(l->origin, 0)];
-		if (!lights) {
 			continue;
 		}
 
@@ -582,8 +394,7 @@ static void FogLightgridLuxel(GArray *fogs, luxel_t *l, float scale) {
 			continue;
 		}
 
-		const vec3_t light = Color_Normalize(Color3fv(Vec3_Add(l->ambient, l->diffuse))).vec3;
-		const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(light, fog->absorption));
+		const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(l->diffuse, fog->absorption));
 
 		l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, density));
 	}
@@ -623,27 +434,9 @@ void FogLightgrid(int32_t luxel_num) {
 /**
  * @brief
  */
-void FinalizeLightgrid(int32_t luxel_num) {
-
-	luxel_t *luxel = &lg.luxels[luxel_num];
-
-	if (Vec3_Equal(luxel->direction, Vec3_Zero())) {
-		luxel->direction = Vec3_Up();
-	}
-
-	luxel->direction = Vec3_Normalize(luxel->direction);
-
-	luxel->caustics = Vec3_Clampf01(luxel->caustics);
-}
-
-/**
- * @brief
- */
 void EmitLightgrid(void) {
 
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(rgb9e5);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(rgb9e5);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
 
@@ -654,13 +447,7 @@ void EmitLightgrid(void) {
 
 	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 
-	rgb9e5 *out_ambient = (rgb9e5 *) out;
-	out += lg.num_luxels * sizeof(rgb9e5);
-
-	rgb9e5 *out_diffuse = (rgb9e5 *) out;
-	out += lg.num_luxels * sizeof(rgb9e5);
-
-	color32_t *out_direction = (color32_t *) out;
+	color32_t *out_diffuse = (color32_t *) out;
 	out += lg.num_luxels * sizeof(color32_t);
 
 	color32_t *out_fog = (color32_t *) out;
@@ -669,35 +456,22 @@ void EmitLightgrid(void) {
 	const luxel_t *luxel = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
 
-		SDL_Surface *ambient = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(rgb9e5), out_ambient);
-		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(rgb9e5), out_diffuse);
-		SDL_Surface *direction = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_direction);
+		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_diffuse);
 		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
 
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, luxel++) {
-
-				*out_ambient++ = float3_to_rgb9e5(luxel->ambient.xyz);
-				*out_diffuse++ = float3_to_rgb9e5(luxel->diffuse.xyz);
-
-				color32_t out = Color32i(Vec3_Bytes(luxel->direction));
-				out.a = Minf(Vec3_Length(luxel->caustics), 1.f) * 255.f;
-
-				*out_direction++ = out;
+				*out_diffuse++ = Color_Color32(Color3fv(luxel->diffuse));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
 		}
 
 		if (debug) {
-			WriteLuxelSurface(ambient, va("/tmp/%s_lg_ambient_%d.png", map_base, u));
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-			WriteLuxelSurface(direction, va("/tmp/%s_lg_direction_%d.png", map_base, u));
 			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 		}
 
-		SDL_FreeSurface(ambient);
 		SDL_FreeSurface(diffuse);
-		SDL_FreeSurface(direction);
 		SDL_FreeSurface(fog);
 	}
 }

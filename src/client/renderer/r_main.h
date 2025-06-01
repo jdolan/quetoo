@@ -45,7 +45,6 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
-extern cvar_t *r_stains_decay;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
@@ -94,7 +93,7 @@ typedef struct {
 	vec4_t maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space. The fourth component is exposure.
+	 * @brief The view origin, in lightgrid space.
 	 */
 	vec4_t view_coordinate;
 

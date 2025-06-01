@@ -127,7 +127,7 @@
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "r_stains"
+                          "var": "cg_add_stains"
                         }
                       },
                       {

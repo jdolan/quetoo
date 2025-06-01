@@ -11,7 +11,6 @@ noinst_HEADERS = \
 	leakfile.h \
 	light.h \
 	lightgrid.h \
-	lightmap.h \
 	luxel.h \
 	material.h \
 	monitor.h \
@@ -40,7 +39,6 @@ quemap_SOURCES = \
 	leakfile.c \
 	light.c \
 	lightgrid.c \
-	lightmap.c \
 	luxel.c \
 	main.c \
 	map.c \

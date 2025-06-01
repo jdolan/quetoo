@@ -28,7 +28,6 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec2 lightmap;
 	vec3 lightgrid;
 	vec4 color;
 } vertex;
@@ -191,22 +190,22 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief
  */
-vec3 sample_lightmap_stains() {
-	return texture(texture_lightmap_stains, vertex.lightmap).rgb * stains;
+vec3 sample_lightgrid_stains() {
+	return texture(texture_lightgrid_stains, vertex.lightgrid).rgb * stains;
 }
 
 /**
  * @brief
  */
 vec3 sample_lightgrid_ambient() {
-	return texture(texture_lightgrid_ambient, vertex.lightgrid).rgb * modulate;
+	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate * .25;
 }
 
 /**
  * @brief
  */
 float sample_lightgrid_caustics() {
-	return texture(texture_lightgrid_direction, vertex.lightgrid).a;
+	return 0.0;//return texture(texture_lightgrid_direction, vertex.lightgrid).a;
 }
 
 /**
@@ -394,7 +393,7 @@ void main(void) {
 
 		light_and_shadow();
 
-		fragment.stains = sample_lightmap_stains();
+		fragment.stains = sample_lightgrid_stains();
 		fragment.fog = sample_lightgrid_fog();
 
 		out_color = fragment.diffusemap;

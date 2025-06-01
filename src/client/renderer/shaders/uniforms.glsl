@@ -230,20 +230,11 @@ uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 
 /**
- * @brief The lightmap textures.
- */
-uniform sampler2D texture_lightmap_ambient;
-uniform sampler2D texture_lightmap_diffuse;
-uniform sampler2D texture_lightmap_direction;
-uniform sampler2D texture_lightmap_stains;
-
-/**
  * @brief The lightgrid textures.
  */
-uniform sampler3D texture_lightgrid_ambient;
 uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
 uniform sampler3D texture_lightgrid_fog;
+uniform sampler3D texture_lightgrid_stains;
 
 /**
  * @brief The sky cubemap texture.

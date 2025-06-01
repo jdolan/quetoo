@@ -290,27 +290,6 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
- * @brief
- */
-static void Cg_UpdateExposure(void) {
-	static float exposure = 1.f;
-
-	const r_bsp_lightgrid_t *lg = cgi.WorldModel()->bsp->lightgrid;
-	const vec3_t org = cgi.view->origin;
-
-	if (Box3_ContainsPoint(lg->bounds, org)) {
-		const vec3_t pos = Vec3_Subtract(org, lg->bounds.mins);
-		const vec3_t xyz = Vec3_Roundf(Vec3_Divide(pos, lg->luxel_size));
-
-		const int32_t luxel = lg->size.x * lg->size.y * xyz.z + lg->size.x * xyz.y + xyz.x;
-
-		exposure += (lg->exposure[luxel] - exposure) * cgi.client->frame_msec / 800.0;
-	}
-
-	cgi.view->exposure = Clampf(exposure, .333f, 16.f);
-}
-
-/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -342,8 +321,6 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 	Cg_UpdateFov();
 
 	Cg_UpdateBob(ps1);
-
-	Cg_UpdateExposure();
 
 	cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

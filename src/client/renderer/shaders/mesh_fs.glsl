@@ -28,8 +28,6 @@ in vertex_data {
 	vec2 diffusemap;
 	vec4 color;
 	vec3 ambient;
-	vec3 diffuse;
-	vec3 direction;
 	float caustics;
 	vec4 fog;
 } vertex;
@@ -49,7 +47,6 @@ struct fragment_t {
 	vec4 specularmap;
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 direction;
 	vec3 specular;
 } fragment;
 
@@ -250,7 +247,6 @@ void main(void) {
 	fragment.tangent = normalize(vertex.tangent);
 	fragment.bitangent = normalize(vertex.bitangent);
 	fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-	fragment.direction = normalize(vertex.direction);
 
 	if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
@@ -286,9 +282,8 @@ void main(void) {
 		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
 
 			fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
-			fragment.diffuse = vertex.diffuse * max(0.0, dot(fragment.direction, fragment.normalmap));
 
-			light_and_shadow();
+			light_and_shadow(); // FIXME ambient?
 
 			out_color.rgb *= (fragment.ambient + fragment.diffuse);
 		}

@@ -42,13 +42,6 @@ out vertex_data {
 /**
  * @brief
  */
-vec3 sample_lightgrid_ambient(in vec3 texcoord) {
-	return texture(texture_lightgrid_ambient, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
 vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
 	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
 }
@@ -89,7 +82,6 @@ void light_and_shadow(in vec3 texcoord) {
 		return;
 	}
 
-	vec3 ambient = sample_lightgrid_ambient(texcoord);
 	vec3 diffuse = sample_lightgrid_diffuse(texcoord);
 
 	for (int i = 0; i < num_lights; i++) {
@@ -97,10 +89,8 @@ void light_and_shadow(in vec3 texcoord) {
 		light_t light = lights[i];
 
 		float radius = light.model.w;
-		float size = light.mins.w;
-
 		float dist = distance((view * vec4(light.model.xyz, 1.0)).xyz, vertex.position);
-		float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
+		float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 		if (atten == 0.0) {
 			continue;
 		}
@@ -119,7 +109,7 @@ void light_and_shadow(in vec3 texcoord) {
 		diffuse += color;
 	}
 
-	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * (ambient + diffuse), in_lighting);
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
 }
 
 /**

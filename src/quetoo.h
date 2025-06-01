@@ -282,7 +282,6 @@ typedef enum {
 #define SURF_PHONG				0x800 // phong interpolated lighting at compile time
 #define SURF_MATERIAL			0x1000 // skip diffuse pass, draw material stages only
 #define SURF_DECAL				0x2000 // draw blended, but don't participate in depth sorting
-#define SURF_DEBUG_LUXEL		0x10000000 // generate luxel debugging information in quemap
 #define SURF_BEVEL				0x20000000 // brush side is a bevel with approximate material
 #define SURF_NODE				0x40000000 // brush side is a node splitter with no material
 
@@ -290,7 +289,7 @@ typedef enum {
  * @brief Faces with differing flags after applying this mask should not be considered
  * equal for draw elements merging.
  */
-#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG | SURF_DEBUG_LUXEL)
+#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG)
 
 /**
  * @brief Faces with these flags require transparency.
@@ -301,11 +300,6 @@ typedef enum {
  * @brief Faces with these flags imply translucent contents.
  */
 #define SURF_MASK_TRANSLUCENT		(SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
-
-/**
- * @brief Faces with these flags will not have lightmap data.
- */
-#define SURF_MASK_NO_LIGHTMAP		(SURF_SKY | SURF_NO_DRAW | SURF_HINT)
 
 /**
  * @brief Faces with these flags will not emit draw elements.

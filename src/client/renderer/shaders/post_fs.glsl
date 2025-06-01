@@ -35,9 +35,4 @@ void main(void) {
 	if (bloom > 0.0) {
 		out_color += texture(texture_bloom_attachment, vertex.texcoord);
 	}
-
-	if (hdr > 0.0) {
-		float exposure = lightgrid.view_coordinate.w;
-		out_color.rgb += out_color.rgb * hdr * 0.5 / exposure;
-	}
 }

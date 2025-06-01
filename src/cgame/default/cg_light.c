@@ -85,11 +85,7 @@ static void Cg_AddBspLights(void) {
 			.color = l->color,
 			.normal = l->normal,
 			.radius = l->radius,
-			.size = l->size,
 			.intensity = l->intensity,
-			.shadow = l->shadow,
-			.cone = l->cone,
-			.falloff = l->falloff,
 			.bounds = l->bounds,
 			.bsp_light = l,
 		});
@@ -122,9 +118,7 @@ void Cg_AddLights(void) {
 			.origin = l->origin,
 			.color = l->color,
 			.radius = l->radius,
-			.size = l->size,
 			.intensity = l->intensity,
-			.shadow = MATERIAL_LIGHT_SHADOW,
 			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
 			.source = l->source,
 		};

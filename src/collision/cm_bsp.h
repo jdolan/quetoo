@@ -39,7 +39,7 @@
 #define MAX_BSP_BRUSH_SIDES			0x20000
 #define MAX_BSP_BRUSHES				0x8000
 #define MAX_BSP_VERTEXES			0x80000
-#define MAX_BSP_ELEMENTS			0x200000
+#define MAX_BSP_ELEMENTS			0x400000
 #define MAX_BSP_FACES				0x20000
 #define MAX_BSP_NODES				0x20000
 #define MAX_BSP_LEAF_BRUSHES 		0x20000
@@ -48,34 +48,7 @@
 #define MAX_BSP_BLOCKS				0x400
 #define MAX_BSP_MODELS				0x100
 #define MAX_BSP_LIGHTS				0x200
-#define MAX_BSP_LIGHTMAP_SIZE		0x60000000
 #define MAX_BSP_LIGHTGRID_SIZE		0x2400000
-
-/**
- * @brief Lightmap luxel size in world units.
- */
-#define BSP_LIGHTMAP_LUXEL_SIZE 4
-
-/**
- * @brief Smallest lightmap atlas width in luxels.
- */
-#define MIN_BSP_LIGHTMAP_WIDTH 1024
-
-/**
- * @brief Largest lightmap atlas width in luxels.
- */
-#define MAX_BSP_LIGHTMAP_WIDTH 4096
-
-/**
- * @brief The lightmap textures.
- */
-typedef enum {
-	BSP_LIGHTMAP_FIRST,
-	BSP_LIGHTMAP_AMBIENT = BSP_LIGHTMAP_FIRST,
-	BSP_LIGHTMAP_DIFFUSE,
-	BSP_LIGHTMAP_DIRECTION,
-	BSP_LIGHTMAP_LAST,
-} bsp_lightmap_texture_t;
 
 /**
  * @brief Lightgrid luxel size in world units.
@@ -124,7 +97,6 @@ typedef enum {
 	BSP_LUMP_BLOCKS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_LIGHTS,
-	BSP_LUMP_LIGHTMAP,
 	BSP_LUMP_LIGHTGRID,
 	BSP_LUMP_LAST
 } bsp_lump_id_t;
@@ -273,34 +245,8 @@ typedef struct {
 	vec3_t tangent;
 	vec3_t bitangent;
 	vec2_t diffusemap;
-	vec2_t lightmap;
 	color32_t color;
 } bsp_vertex_t;
-
-/**
- * @brief Face lightmaps contain atlas offsets and dimensions.
- */
-typedef struct {
-	/**
-	 * @brief The S and T atlas coordinates in luxels.
-	 */
-	int32_t s, t;
-
-	/**
-	 * @brief The width and height in luxels.
-	 */
-	int32_t w, h;
-
-	/**
-	 * @brief The texture coordinate bounds as floating point fractions.
-	 */
-	vec2_t st_mins, st_maxs;
-
-	/**
-	 * @brief The lightmap texture projection matrix.
-	 */
-	mat4_t matrix;
-} bsp_face_lightmap_t;
 
 /**
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
@@ -346,11 +292,6 @@ typedef struct {
 	 * @brief The count of elements.
 	 */
 	int32_t num_elements;
-
-	/**
-	 * @brief The lightmap information.
-	 */
-	bsp_face_lightmap_t lightmap;
 } bsp_face_t;
 
 /**
@@ -563,13 +504,10 @@ typedef struct {
 
 typedef enum {
 	LIGHT_INVALID    = 0x0,
-	LIGHT_AMBIENT    = 0x1,
-	LIGHT_SUN        = 0x2,
-	LIGHT_POINT      = 0x4,
-	LIGHT_SPOT       = 0x8,
-	LIGHT_BRUSH_SIDE = 0x10,
-	LIGHT_INDIRECT   = 0x20,
-	LIGHT_DYNAMIC    = 0x40,
+	LIGHT_SUN        = 0x1,
+	LIGHT_POINT      = 0x2,
+	LIGHT_BRUSH_SIDE = 0x4,
+	LIGHT_DYNAMIC    = 0x8,
 } light_type_t;
 
 typedef enum {
@@ -598,24 +536,14 @@ typedef struct {
 	vec3_t origin;
 
 	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light normal and plane distance.
-	 */
-	vec4_t normal;
-
-	/**
 	 * @brief The light radius.
 	 */
 	float radius;
 
 	/**
-	 * @brief The light size.
+	 * @brief The light color.
 	 */
-	float size;
+	vec3_t color;
 
 	/**
 	 * @brief The light intensity.
@@ -623,19 +551,9 @@ typedef struct {
 	float intensity;
 
 	/**
-	 * @brief The light shadow scale.
+	 * @brief The light normal and plane distance.
 	 */
-	float shadow;
-
-	/**
-	 * @brief The light cone in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The light falloff interval in degrees.
-	 */
-	float falloff;
+	vec4_t normal;
 
 	/**
 	 * @brief The light's visible bounds, clipped to world geometry.
@@ -654,14 +572,6 @@ typedef struct {
 } bsp_light_t;
 
 /**
- * @brief Lightmaps are atlas-packed, layered texture objects of variable size.
- * @details Each layer stores either a color or a directional vector.
- */
-typedef struct {
-	int32_t width;
-} bsp_lightmap_t;
-
-/**
  * @brief Lightgrids are layered 3D texture objects of variable size.
  * @details Each layer is up to 256x256x256.
  */
@@ -671,9 +581,7 @@ typedef struct {
 
 /**
  * @brief BSP file lumps in their native file formats. The data is stored as pointers
- * so that we don't take up an ungodly amount of space (285 MB of memory!).
- * You can safely edit the data within the boundaries of the num_x values, but
- * if you want to expand the space required use the Bsp_* functions.
+ * so that we don't take up an ungodly amount of space.
  */
 typedef struct bsp_file_s {
 	int32_t entity_string_size;
@@ -720,9 +628,6 @@ typedef struct bsp_file_s {
 
 	int32_t num_lights;
 	bsp_light_t *lights;
-
-	int32_t lightmap_size;
-	bsp_lightmap_t *lightmap;
 
 	int32_t lightgrid_size;
 	bsp_lightgrid_t *lightgrid;

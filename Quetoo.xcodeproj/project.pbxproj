@@ -511,7 +511,6 @@
 		CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6E91C5C58C300CD0B13 /* csg.c */; };
 		CE80FFE61C5E4D1800A21A51 /* face.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EA1C5C58C300CD0B13 /* face.c */; };
 		CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EC1C5C58C300CD0B13 /* leakfile.c */; };
-		CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6ED1C5C58C300CD0B13 /* lightmap.c */; };
 		CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6EE1C5C58C300CD0B13 /* main.c */; };
 		CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F11C5C58C300CD0B13 /* map.c */; };
 		CE80FFEC1C5E4D1800A21A51 /* monitor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F21C5C58C300CD0B13 /* monitor.c */; };
@@ -1378,7 +1377,6 @@
 		CE12D6E91C5C58C300CD0B13 /* csg.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = csg.c; sourceTree = "<group>"; };
 		CE12D6EA1C5C58C300CD0B13 /* face.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = face.c; sourceTree = "<group>"; };
 		CE12D6EC1C5C58C300CD0B13 /* leakfile.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = leakfile.c; sourceTree = "<group>"; };
-		CE12D6ED1C5C58C300CD0B13 /* lightmap.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = lightmap.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6EE1C5C58C300CD0B13 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6EF1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D6F11C5C58C300CD0B13 /* map.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = map.c; sourceTree = "<group>"; };
@@ -1743,7 +1741,6 @@
 		CEBCE0C521CFC6CE00976E76 /* leakfile.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = leakfile.h; sourceTree = "<group>"; };
 		CEBCE0C621CFD43500976E76 /* work.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = work.h; sourceTree = "<group>"; };
 		CEBCE0C721CFDD1600976E76 /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
-		CEBDB0C3214A02B400A7AC3D /* lightmap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = lightmap.h; sourceTree = "<group>"; };
 		CEBDB0C4214A02B400A7AC3D /* light.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = light.h; sourceTree = "<group>"; };
 		CEBDB0C5214A02B500A7AC3D /* light.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = light.c; sourceTree = "<group>"; };
 		CEBDB0C7214A037800A7AC3D /* cm_entity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_entity.h; sourceTree = "<group>"; };
@@ -2923,8 +2920,6 @@
 				CEBDB0C4214A02B400A7AC3D /* light.h */,
 				CEB112AF22544B3900CE65F6 /* lightgrid.c */,
 				CEB112AE22544B3800CE65F6 /* lightgrid.h */,
-				CE12D6ED1C5C58C300CD0B13 /* lightmap.c */,
-				CEBDB0C3214A02B400A7AC3D /* lightmap.h */,
 				CEAFB9BB27F618BA002ED92D /* luxel.c */,
 				CEAFB9BA27F618BA002ED92D /* luxel.h */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
@@ -4653,7 +4648,6 @@
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CEEC203025B3265700E49614 /* simplex.c in Sources */,
 				CEB112B022544B3900CE65F6 /* lightgrid.c in Sources */,
-				CE80FFE91C5E4D1800A21A51 /* lightmap.c in Sources */,
 				CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */,
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,
 				CECA8CB01E50B5F1005E97E8 /* material.c in Sources */,

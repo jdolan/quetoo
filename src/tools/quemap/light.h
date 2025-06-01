@@ -26,23 +26,8 @@
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
-#define LIGHT_SIZE 1.f
-#define LIGHT_SHADOW 1.f
 
 #define LIGHT_AMBIENT_RADIUS 256.f
-
-#define LIGHT_SUN_DIST 1024.f
-#define LIGHT_SUN_SIZE 32.f
-
-#define LIGHT_SPOT_ANGLE_UP -1.f
-#define LIGHT_SPOT_ANGLE_DOWN -2.f
-#define LIGHT_SPOT_CONE 30.f
-#define LIGHT_SPOT_FALLOFF 30.f
-
-/**
- * @brief Indirect light size in luxels.
- */
-#define LIGHT_INDIRECT_SIZE 16.f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
@@ -84,56 +69,9 @@ typedef struct light_s {
 	float intensity;
 
 	/**
-	 * @brief The light cone for angular attenuation in degrees.
-	 */
-	float cone;
-
-	/**
-	 * @brief The angular attenuation interval in degrees.
-	 */
-	float falloff;
-
-	/**
-	 * @brief The cosine of the light cone.
-	 */
-	float theta;
-
-	/**
-	 * @brief The cosine of the light falloff.
-	 */
-	float phi;
-
-	/**
-	 * @brief The light shadow scalar.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The size of the light, in world units, to simulate area lights.
-	 */
-	float size;
-
-	/**
 	 * @brief The bounds of the light source.
 	 */
 	box3_t bounds;
-
-	/**
-	 * @brief The visible bounds of the light source; that is, the bounding box of
-	 * all luxels that this light source contributed to.
-	 */
-	box3_t visible_bounds;
-
-	/**
-	 * @brief The sample points (origins) to be traced to for this light.
-	 * @remarks For directional lights, these are directional vectors, not points.
-	 */
-	vec3_t *points;
-
-	/**
-	 * @brief The number of sample points.
-	 */
-	int32_t num_points;
 
 	/**
 	 * @brief The light source winding for brush side lights.
@@ -141,25 +79,23 @@ typedef struct light_s {
 	cm_winding_t *winding;
 
 	/**
-	 * @brief The light source brush side for direct and indirect lights.
+	 * @brief The light source brush side for brush side lights.
 	 */
 	const bsp_brush_side_t *brush_side;
 
 	/**
-	 * @brief The light source plane for brush side and indirect lights.
+	 * @brief The light source plane for brush side lights.
 	 */
 	const bsp_plane_t *plane;
 
 	/**
-	 * @brief The light source model for brush side and indirect lights.
+	 * @brief The light source model for brush side lights.
 	 */
 	const bsp_model_t *model;
 } light_t;
 
-extern GPtrArray *node_lights[MAX_BSP_NODES];
-extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+extern GPtrArray *lights;
 
 void FreeLights(void);
-void BuildDirectLights(void);
-void BuildIndirectLights(void);
+void BuildLights(void);
 void EmitLights(void);

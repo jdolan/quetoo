@@ -180,10 +180,6 @@ void R_SetupImage(r_image_t *image) {
 	glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
 
 	switch (image->type) {
-		case IMG_LIGHTMAP:
-			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			break;
 		case IMG_CUBEMAP:
 		case IMG_LIGHTGRID:
 			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

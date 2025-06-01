@@ -52,7 +52,7 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 	r_light_uniform_t *out = &r_lights.block.lights[index];
 
 	out->model = Vec3_ToVec4(in->origin, in->radius);
-	out->mins = Vec3_ToVec4(in->bounds.mins, in->shadow);
+	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 }
@@ -70,7 +70,11 @@ void R_UpdateLights(r_view_t *view) {
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
 		if (r_draw_light_bounds->value) {
-			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+			if (l->bsp_light && l->bsp_light->occluded) {
+				// skip
+			} else {
+				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+			}
 		}
 
 		R_AddLightUniform(view, l);
