@@ -282,8 +282,9 @@ void EmitLights(void) {
 
 		out->first_element = bsp_file.num_elements;
 
-		const bsp_face_t *face = bsp_file.faces;
-		for (int32_t j = 0; j < bsp_file.num_faces; j++, face++) {
+		const bsp_model_t *worldspawn = bsp_file.models;
+		const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
+		for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
 
 			const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
 			if (side->contents & CONTENTS_MIST) {
