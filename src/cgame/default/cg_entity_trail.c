@@ -568,6 +568,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		.radius = 240.f,
 		.color = Vec3(.8f, .5f, .2f),
 		.intensity = 2.f,
+		.source = ent,
 	});
 }
 

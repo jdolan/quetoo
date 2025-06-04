@@ -152,6 +152,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 			.radius = e->termination.x,
 			.color = color.vec3,
 			.intensity = 1.f,
+			.source = ent
 		};
 
 		Cg_AddLight(&l);
@@ -166,9 +167,5 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 		for (int32_t i = 1; i < 3; i++) {
 			e->tints[i] = e->tints[0];
 		}
-	}
-
-	if (ent->current.trail == TRAIL_ROCKET) {
-		e->effects |= EF_NO_SHADOW; // FIXME: Make this entity the light's source instead
 	}
 }
