@@ -53,7 +53,7 @@ invariant gl_Position;
  * @brief
  */
 vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate * .25;
+	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
 }
 
 /**

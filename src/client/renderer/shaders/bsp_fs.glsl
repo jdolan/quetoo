@@ -197,8 +197,8 @@ vec3 sample_lightgrid_stains() {
 /**
  * @brief
  */
-vec3 sample_lightgrid_ambient() {
-	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate * .25;
+vec3 sample_lightgrid_diffuse() {
+	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
 }
 
 /**
@@ -271,7 +271,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 			return texture(texture_shadow_cubemap_array3, shadowmap, bias);
 	}
 
-	return 1.0;
+	return -1.0;
 }
 
 /**
@@ -346,7 +346,7 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = sample_lightgrid_ambient() * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.ambient = sample_lightgrid_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
