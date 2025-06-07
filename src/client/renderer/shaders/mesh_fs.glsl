@@ -230,7 +230,11 @@ void light_and_shadow(void) {
 			continue;
 		}
 
-		light_and_shadow_dynamic(lights[index], index);
+		light_t light = lights[index];
+
+		if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
+			light_and_shadow_dynamic(light, index);
+		}
 	}
 
 	light_and_shadow_caustics();

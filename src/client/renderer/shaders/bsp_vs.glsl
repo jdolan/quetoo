@@ -69,4 +69,3 @@ void main(void) {
 
 	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
-

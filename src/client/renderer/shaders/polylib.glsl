@@ -120,6 +120,13 @@ bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
 }
 
 /**
+ * @return True if the bounding box contains the specified point.
+ */
+bool box_contains(in vec3 mins, in vec3 maxs, in vec3 point) {
+	return all(greaterThanEqual(point, mins)) && all(lessThanEqual(point, maxs));
+}
+
+/**
  * @return True if the triangle abc intersects the bounding box.
  * @see https://gdbooks.gitbooks.io/3dcollisions/content/Chapter4/aabb-triangle.html
  */
