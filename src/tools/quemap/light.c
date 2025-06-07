@@ -235,12 +235,6 @@ void BuildLights(void) {
 		}
 	}
 
-	for (guint i = 0; i < lights->len; i++) {
-		light_t *light = g_ptr_array_index(lights, i);
-		// TODO: Clip lights to leafs
-
-	}
-
 	Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", SDL_GetTicks() - start);
 
 	Com_Verbose("Lighting for %d lights\n", lights->len);
@@ -279,6 +273,10 @@ void EmitLights(void) {
 		out->intensity = light->intensity;
 		out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
 		out->bounds = Box3_Expand(light->bounds, BSP_LIGHTGRID_LUXEL_SIZE * .5f);
+
+		if (light->plane) {
+			out->bounds = Cm_ClipBox(out->bounds, out->normal);
+		}
 
 		out->first_element = bsp_file.num_elements;
 

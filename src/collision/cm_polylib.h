@@ -76,6 +76,7 @@ cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, con
 int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements);
 float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out);
+box3_t Cm_ClipBox(const box3_t in, const vec4_t plane);
 
 /**
  * @brief A UV mapped vertex primitive.

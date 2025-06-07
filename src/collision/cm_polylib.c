@@ -805,3 +805,32 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *ele
 		Vec3_Tangents(*v->normal, sdir, tdir, v->tangent, v->bitangent);
 	}
 }
+
+/**
+ * @brief
+ */
+box3_t Cm_ClipBox(const box3_t in, const vec4_t plane) {
+	box3_t out = Box3_Null();
+
+	vec3_t corners[8];
+	Box3_ToPoints(in, corners);
+
+	// There are 8 corners in the AABB
+	for (size_t i = 0; i < lengthof(corners); i++) {
+		const vec3_t corner = corners[i];
+
+		// If the corner is on the positive side of the plane, include it
+		const float dist = Vec3_Dot(plane.xyz, corner) - plane.w;
+		if (dist >= 0.f) {
+			out.mins = Vec3_Minf(out.mins, corner);
+			out.maxs = Vec3_Maxf(out.maxs, corner);
+		} else {
+			// Otherwise, project the corner onto the plane and include it
+			const vec3_t point = Vec3_Subtract(corner, Vec3_Scale(plane.xyz, dist));
+			out.mins = Vec3_Minf(out.mins, point);
+			out.maxs = Vec3_Maxf(out.maxs, point);
+		}
+	}
+
+	return out;
+}
