@@ -70,7 +70,7 @@ void R_UpdateLights(r_view_t *view) {
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (r_draw_light_bounds->value && Box3_ContainsPoint(l->bounds, tr.end)) {
+		if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
 			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
 
