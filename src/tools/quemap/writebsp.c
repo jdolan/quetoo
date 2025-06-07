@@ -397,7 +397,11 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
 			continue;
 		}
 
-		if (side->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
+		if (side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+			continue;
+		}
+
+		if (side->surface & SURF_MASK_TRANSLUCENT) {
 			continue;
 		}
 
