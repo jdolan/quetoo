@@ -59,18 +59,19 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 void R_UpdateLights(r_view_t *view) {
 
 	r_light_uniform_block_t *out = &r_lights.block;
-
 	memset(out, 0, sizeof(*out));
+
+	cm_trace_t tr = { 0 };
+	if (r_draw_light_bounds->value) {
+		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+		tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+	}
 
 	r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (r_draw_light_bounds->value) {
-			if (l->bsp_light && l->bsp_light->occluded) {
-				// skip
-			} else {
-				R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-			}
+		if (r_draw_light_bounds->value && Box3_ContainsPoint(l->bounds, tr.end)) {
+			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
 
 		R_AddLightUniform(view, l);
