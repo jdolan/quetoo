@@ -76,13 +76,17 @@ static struct {
 /**
  * @brief
  */
-static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_entity_t *e) {
+static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
 	const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
 
-	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
+	if (light->bsp_light && in == r_world_model->bsp->inline_models) {
+		glDrawElements(GL_TRIANGLES, light->bsp_light->num_elements, GL_UNSIGNED_INT, light->bsp_light->elements);
+	} else {
+		glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
+	}
 }
 
 /**
@@ -103,7 +107,7 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
 /**
  * @brief
  */
-static void R_DrawMeshEntityShadow(const r_view_t *view, const r_entity_t *e) {
+static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
 	const r_mesh_model_t *mesh = e->model->mesh;
 	assert(mesh);
@@ -185,11 +189,11 @@ static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
 	const r_entity_t *e = view->entities + 1;
 	for (int32_t i = 1; i < view->num_entities; i++, e++) {
 
-		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+		if (!e->model) {
 			continue;
 		}
 
-		if (!e->model) {
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
 			continue;
 		}
 
@@ -254,7 +258,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		R_DrawBspInlineEntityShadow(view, e);
+		R_DrawBspInlineEntityShadow(view, light, e);
 	}
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -281,7 +285,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 			continue;
 		}
 
-		R_DrawMeshEntityShadow(view, e);
+		R_DrawMeshEntityShadow(view, light, e);
 	}
 
 	if (light->bsp_light) {

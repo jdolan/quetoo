@@ -143,9 +143,10 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t side) {
 
 	bsp_face_t *face = NULL;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++) {
-		if ((bsp_file.brush_sides + bsp_file.faces[i].brush_side) == brush_side) {
-			face = &bsp_file.faces[i];
+	bsp_face_t *f = bsp_file.faces;
+	for (int32_t i = 0; i < bsp_file.num_faces; i++, f++) {
+		if (&bsp_file.brush_sides[f->brush_side] == brush_side && f->plane == brush_side->plane + side) {
+			face = f;
 			break;
 		}
 	}
@@ -272,11 +273,13 @@ void EmitLights(void) {
 		out->color = light->color;
 		out->intensity = light->intensity;
 		out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
-		out->bounds = Box3_Expand(light->bounds, BSP_LIGHTGRID_LUXEL_SIZE * .5f);
+		out->bounds = light->bounds;
 
 		if (light->plane) {
 			out->bounds = Cm_ClipBox(out->bounds, out->normal);
 		}
+
+		out->bounds = Box3_Expand(out->bounds, BSP_LIGHTGRID_LUXEL_SIZE * .5f);
 
 		out->first_element = bsp_file.num_elements;
 
@@ -284,16 +287,20 @@ void EmitLights(void) {
 		const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
 		for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
 
+			if (!Box3_Intersects(face->bounds, out->bounds)) {
+				continue;
+			}
+
 			const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
 			if (side->contents & CONTENTS_MIST) {
 				continue;
 			}
 
-			if (side->surface & (SURF_MASK_TRANSLUCENT | SURF_SKY)) {
+			if (side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
 				continue;
 			}
 
-			if (!Box3_Intersects(out->bounds, face->bounds)) {
+			if (side->surface & SURF_MASK_TRANSLUCENT) {
 				continue;
 			}
 
