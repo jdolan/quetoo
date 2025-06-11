@@ -157,11 +157,15 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
 
 		if (light->query.name) {
-			light->occluded = R_UpdateOcclusionQuery(view, &light->query);
-			if (light->occluded) {
-				r_stats.occlusion_queries_occluded++;
+			if (R_OccludeBox(view, light->query.bounds)) {
+				light->occluded = true;
 			} else {
-				r_stats.occlusion_queries_visible++;
+				light->occluded = R_UpdateOcclusionQuery(view, &light->query);
+				if (light->occluded) {
+					r_stats.occlusion_queries_occluded++;
+				} else {
+					r_stats.occlusion_queries_visible++;
+				}
 			}
 		}
 	}
