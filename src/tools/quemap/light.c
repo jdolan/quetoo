@@ -272,10 +272,11 @@ void EmitLights(void) {
 		out->radius = light->radius;
 		out->color = light->color;
 		out->intensity = light->intensity;
-		out->normal = Vec3_ToVec4(light->normal, light->plane ? light->plane->dist : 0.f);
+		out->normal.xyz = light->normal;
 		out->bounds = light->bounds;
 
 		if (light->plane) {
+			out->normal.w = light->plane->dist;
 			out->bounds = Cm_ClipBox(out->bounds, out->normal);
 		}
 
