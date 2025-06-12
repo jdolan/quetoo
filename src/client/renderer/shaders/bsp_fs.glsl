@@ -351,8 +351,8 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = sample_lightgrid_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
+	fragment.ambient = vec3(0);//sample_lightgrid_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular = vec3(0);//blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
 
