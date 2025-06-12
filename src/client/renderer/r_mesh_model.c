@@ -200,7 +200,7 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 
 			const int32_t *elements = (int32_t *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
 
-			Cm_Tangents(vertexes, face->num_vertexes, elements, face->num_elements);
+			Cm_Tangents(vertexes, 0, face->num_vertexes, elements, face->num_elements);
 		}
 
 		Mem_Free(vertexes);

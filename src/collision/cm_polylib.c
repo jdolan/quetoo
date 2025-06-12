@@ -753,13 +753,13 @@ float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_
  * @brief Calculates the tangent vectors for the given vertexes and triangle elements.
  * @see http://foundationsofgameenginedev.com/FGED2-sample.pdf
  */
-void Cm_Tangents(cm_vertex_t *vertexes, int32_t num_vertexes, const int32_t *elements, int32_t num_elements) {
+void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements) {
 
 	for (int32_t i = 0; i < num_elements; i += 3) {
 
-		const int32_t i0 = *(elements + i + 0);
-		const int32_t i1 = *(elements + i + 1);
-		const int32_t i2 = *(elements + i + 2);
+		const int32_t i0 = *(elements + i + 0) - base_vertex;
+		const int32_t i1 = *(elements + i + 1) - base_vertex;
+		const int32_t i2 = *(elements + i + 2) - base_vertex;
 
 		cm_vertex_t *v0 = vertexes + i0;
 		cm_vertex_t *v1 = vertexes + i1;

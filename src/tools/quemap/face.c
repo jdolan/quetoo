@@ -582,15 +582,27 @@ void PhongShading(void) {
 }
 
 /**
- * @brief Calculates tangent and bitangent vectors from Phong-interpolated normals.
+ * @brief
  */
-void TangentVectors(void) {
+static void TangentVectors_(bsp_model_t *model) {
 
-	cm_vertex_t *vertexes = Mem_Malloc(sizeof(cm_vertex_t) * bsp_file.num_vertexes);
+	bsp_face_t *face = bsp_file.faces + model->first_face;
+	int32_t base_vertex = face->first_vertex;
 
-	bsp_vertex_t *v = bsp_file.vertexes;
-	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
-		vertexes[i] = (cm_vertex_t) {
+	bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
+	int32_t *elements = bsp_file.elements + face->first_element;
+
+	int32_t num_vertexes = 0, num_elements = 0;
+	for (int32_t i = 0; i < model->num_faces; i++, face++) {
+		num_vertexes += face->num_vertexes;
+		num_elements += face->num_elements;
+	}
+
+	cm_vertex_t *cm = Mem_Malloc(sizeof(cm_vertex_t) * num_vertexes);
+
+	bsp_vertex_t *v = vertexes;
+	for (int32_t i = 0; i < num_vertexes; i++, v++) {
+		cm[i] = (cm_vertex_t) {
 			.position = &v->position,
 			.normal = &v->normal,
 			.tangent = &v->tangent,
@@ -599,42 +611,35 @@ void TangentVectors(void) {
 		};
 	}
 
-	Cm_Tangents(vertexes, bsp_file.num_vertexes, bsp_file.elements, bsp_file.num_elements);
+	Cm_Tangents(cm, base_vertex, num_vertexes, elements, num_elements);
 
 	int32_t num_bad_vertexes = 0;
 
-	v = bsp_file.vertexes;
-	for (int32_t i = 0; i < bsp_file.num_vertexes; i++, v++) {
+	v = vertexes;
+	for (int32_t i = 0; i < num_vertexes; i++, v++) {
 
-		if (vertexes[i].num_tris == 0) {
+		if (cm[i].num_tris == 0) {
 			continue;
 		}
 
 		if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
-
-			const int32_t *e = bsp_file.elements;
-			for (int32_t j = 0; j < bsp_file.num_elements; j += 3, e += 3) {
-
-				if (e[0] == i || e[1] == i || e[2] == i) {
-
-					const vec3_t tri[3] = {
-						bsp_file.vertexes[e[0]].position,
-						bsp_file.vertexes[e[1]].position,
-						bsp_file.vertexes[e[2]].position
-					};
-
-					const char *msg = va("Vertex at %s has invalid tangents", vtos(v->position));
-					Mon_SendWinding(MON_WARN, tri, 3, msg);
-
-					break;
-				}
-			}
-
+			Com_Warn("Vertex at %s has invalid tangents\n", vtos(v->position));
 			num_bad_vertexes++;
 		}
 	}
 
 	Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
 
-	Mem_Free(vertexes);
+	Mem_Free(cm);
+}
+
+/**
+ * @brief Calculates tangent and bitangent vectors from Phong-interpolated normals.
+ */
+void TangentVectors(void) {
+
+	bsp_model_t *model = bsp_file.models;
+	for (int32_t i = 0; i < bsp_file.num_models; i++, model++) {
+		TangentVectors_(model);
+	}
 }
