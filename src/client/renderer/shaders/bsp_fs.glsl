@@ -296,6 +296,11 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 
 	dir = normalize(dir);
 
+	if (light.normal.xyz != vec3(0)) {
+		if (developer > 0) 
+		diffuse *= max(0.25, dot(dir, -light.normal.xyz));
+	}
+
 	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {
 		return;

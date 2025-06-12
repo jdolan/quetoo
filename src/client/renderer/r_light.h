@@ -51,6 +51,11 @@ typedef struct {
 	 * @brief The light color and intensity.
 	 */
 	vec4_t color;
+
+	/**
+	 * @brief The light normal and plane distance in model space.
+	 */
+	vec4_t normal;
 } r_light_uniform_t;
 
 /**

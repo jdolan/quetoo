@@ -182,6 +182,11 @@ struct light_t {
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
+
+	/**
+	 * @brief The light normal and plane distance in model space.
+	 */
+	vec4 normal;
 };
 
 #define MAX_LIGHTS 768

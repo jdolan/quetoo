@@ -51,6 +51,7 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
+	out->normal = Mat4_TransformPlane(r_uniforms.block.view, in->normal.xyz, in->normal.w);
 }
 
 /**
