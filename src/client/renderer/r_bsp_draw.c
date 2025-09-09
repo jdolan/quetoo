@@ -45,13 +45,6 @@ static struct {
 	GLint texture_stage;
 	GLint texture_warp;
 
-	GLint texture_lightgrid_lights0;
-	GLint texture_lightgrid_lights1;
-	GLint texture_lightgrid_lights2;
-	GLint texture_lightgrid_lights3;
-	GLint texture_lightgrid_lights4;
-	GLint texture_lightgrid_lights5;
-
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_caustics;
 	GLint texture_lightgrid_fog;
@@ -580,13 +573,6 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-	r_bsp_program.texture_lightgrid_lights0 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights0");
-	r_bsp_program.texture_lightgrid_lights1 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights1");
-	r_bsp_program.texture_lightgrid_lights2 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights2");
-	r_bsp_program.texture_lightgrid_lights3 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights3");
-	r_bsp_program.texture_lightgrid_lights4 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights4");
-	r_bsp_program.texture_lightgrid_lights5 = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_lights5");
-
 	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
 	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
 	r_bsp_program.texture_lightgrid_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_stains");
@@ -618,13 +604,6 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
-
-	glUniform1i(r_bsp_program.texture_lightgrid_lights0, TEXTURE_LIGHTGRID_LIGHTS0);
-	glUniform1i(r_bsp_program.texture_lightgrid_lights1, TEXTURE_LIGHTGRID_LIGHTS1);
-	glUniform1i(r_bsp_program.texture_lightgrid_lights2, TEXTURE_LIGHTGRID_LIGHTS2);
-	glUniform1i(r_bsp_program.texture_lightgrid_lights3, TEXTURE_LIGHTGRID_LIGHTS3);
-	glUniform1i(r_bsp_program.texture_lightgrid_lights4, TEXTURE_LIGHTGRID_LIGHTS4);
-	glUniform1i(r_bsp_program.texture_lightgrid_lights5, TEXTURE_LIGHTGRID_LIGHTS5);
 
 	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);

@@ -90,7 +90,10 @@ void R_UpdateLights(r_view_t *view) {
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-	memset(r_lights.active_lights, 0, sizeof(r_lights.active_lights));
+	GLint active_lights[view->num_lights];
+	GLint num_active_lights = 0;
+	
+	memset(active_lights, 0, sizeof(GLint) * view->num_lights);
 
 	const r_light_t *light = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, light++) {
@@ -100,11 +103,11 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 		}
 
 		if (Box3_Intersects(light->bounds, bounds)) {
-			r_lights.active_lights[i / 32] |= (1 << (i % 32));
+			active_lights[num_active_lights++] = (GLuint) i;
 		}
 	}
 
-	glUniform1uiv(name, lengthof(r_lights.active_lights), r_lights.active_lights);
+	glUniform1iv(name, Mini(num_active_lights + 1, view->num_lights), active_lights);
 
 	R_GetError(NULL);
 }

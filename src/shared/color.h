@@ -129,46 +129,6 @@ typedef union {
 typedef color_rgb8_t color24_t;
 
 /**
- * @brief A clamped integer RG color with 16 bits of precision for the R and G components.
- */
-typedef union {
-	
-	/**
-	 * @brief Component accessors.
-	 */
-	struct {
-		int16_t r: 16;
-		int16_t g: 16;
-	};
-	
-	/**
-	 * @brief Integer accessor.
-	 */
-	int32_t rg;
-} color_rg16_t;
-
-/**
- * A clamped integer RGBA color with 10 bits of precision for the R, G and B components, and 2 bits of precision for the alpha component.
- */
-typedef union {
-	
-	/**
-	 * @brief Component accessors.
-	 */
-	struct {
-		int32_t r: 10;
-		int32_t g: 10;
-		int32_t b: 10;
-		int32_t a: 2;
-	};
-	
-	/**
-	 * @brief Integer accessor.
-	 */
-	int32_t rgba;
-} color_rgb10_a2_t;
-
-/**
  * @return A color with the specified RGBA bytes.
  */
 static inline color_t __attribute__ ((warn_unused_result)) Color4b(byte r, byte g, byte b, byte a) {

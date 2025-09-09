@@ -209,9 +209,9 @@ layout (std140) uniform lights_block {
 };
 
 /**
- * @brief The bit vector of active light indexes for the current render operation.
+ * @brief The zero-terminated array of active light indexes for the current render operation.
  */
-uniform uint active_lights[MAX_LIGHTS / 32];
+uniform int active_lights[MAX_LIGHTS];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.
@@ -237,12 +237,6 @@ uniform sampler2D texture_warp;
 /**
  * @brief The lightgrid textures.
  */
-uniform isampler3D texture_lightgrid_lights0;
-uniform isampler3D texture_lightgrid_lights1;
-uniform isampler3D texture_lightgrid_lights2;
-uniform isampler3D texture_lightgrid_lights3;
-uniform isampler3D texture_lightgrid_lights4;
-uniform isampler3D texture_lightgrid_lights5;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_fog;
 uniform sampler3D texture_lightgrid_stains;

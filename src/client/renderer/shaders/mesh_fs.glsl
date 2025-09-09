@@ -221,13 +221,11 @@ void light_and_shadow(void) {
 
 	fragment.diffuse = vec3(0);
 
-	for (int index = 0; index < num_lights; index++) {
-
-		uint bits = active_lights[index / 32];
-		uint bit = index % 32;
-
-		if ((bits & (1u << bit)) == 0) {
-			continue;
+	for (int i = 0; i < MAX_LIGHTS; i++) {
+		
+		int index = active_lights[i];
+		if (index == 0) {
+			break;
 		}
 
 		light_t light = lights[index];

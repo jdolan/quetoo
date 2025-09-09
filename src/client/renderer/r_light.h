@@ -87,11 +87,6 @@ typedef struct {
 	 * @brief The uniform buffer interface block.
 	 */
 	r_light_uniform_block_t block;
-
-	/**
-	 * @brief The bit vector of active light indexes for the current render operation.
-	 */
-	GLuint active_lights[MAX_LIGHTS / 32];
 } r_lights_t;
 
 /**
