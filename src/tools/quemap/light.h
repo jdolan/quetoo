@@ -92,6 +92,11 @@ typedef struct light_s {
 	 * @brief The light source model for brush side lights.
 	 */
 	const bsp_model_t *model;
+	
+	/**
+	 * @brief The output light in the BSP, so that luxels may reference them.
+	 */
+	bsp_light_t *out;
 } light_t;
 
 extern GPtrArray *lights;

@@ -164,6 +164,11 @@ layout (std140) uniform uniforms_block {
  */
 struct light_t {
 	/**
+	 * @brief The light position in view space.
+	 */
+	vec4 position;
+	
+	/**
 	 * @brief The light position in model space, and radius.
 	 */
 	vec4 model;
@@ -182,11 +187,6 @@ struct light_t {
 	 * @brief The light color and intensity.
 	 */
 	vec4 color;
-
-	/**
-	 * @brief The light normal and plane distance in model space.
-	 */
-	vec4 normal;
 };
 
 #define MAX_LIGHTS 768
@@ -237,6 +237,12 @@ uniform sampler2D texture_warp;
 /**
  * @brief The lightgrid textures.
  */
+uniform isampler3D texture_lightgrid_lights0;
+uniform isampler3D texture_lightgrid_lights1;
+uniform isampler3D texture_lightgrid_lights2;
+uniform isampler3D texture_lightgrid_lights3;
+uniform isampler3D texture_lightgrid_lights4;
+uniform isampler3D texture_lightgrid_lights5;
 uniform sampler3D texture_lightgrid_diffuse;
 uniform sampler3D texture_lightgrid_fog;
 uniform sampler3D texture_lightgrid_stains;

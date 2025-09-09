@@ -267,6 +267,7 @@ void EmitLights(void) {
 	for (guint i = 0; i < lights->len; i++) {
 
 		light_t *light = g_ptr_array_index(lights, i);
+		light->out = out;
 
 		out->type = light->type;
 		out->atten = light->atten;

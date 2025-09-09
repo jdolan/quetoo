@@ -27,6 +27,10 @@
  */
 void IlluminateLuxel(luxel_t *luxel, light_t *light, float lumens) {
 
+	if (g_list_find(luxel->lights, light) == NULL) {
+		luxel->lights = g_list_prepend(luxel->lights, light);
+	}
+	
 	const vec3_t color = Vec3_Scale(light->color, light->intensity);
 	luxel->diffuse.xyz = Vec3_Fmaf(luxel->diffuse.xyz, lumens, color);
 

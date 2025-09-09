@@ -58,9 +58,9 @@ static void BuildLightgridExtents(void) {
  */
 static int32_t ProjectLightgridLuxel(luxel_t *l, float soffs, float toffs, float uoffs) {
 
-	const float padding_s = ((lg.stu_bounds.maxs.x - lg.stu_bounds.mins.x) - lg.size.x) * 0.5;
-	const float padding_t = ((lg.stu_bounds.maxs.y - lg.stu_bounds.mins.y) - lg.size.y) * 0.5;
-	const float padding_u = ((lg.stu_bounds.maxs.z - lg.stu_bounds.mins.z) - lg.size.z) * 0.5;
+	const float padding_s = ((lg.stu_bounds.maxs.x - lg.stu_bounds.mins.x) - lg.size.x) * .5f;
+	const float padding_t = ((lg.stu_bounds.maxs.y - lg.stu_bounds.mins.y) - lg.size.y) * .5f;
+	const float padding_u = ((lg.stu_bounds.maxs.z - lg.stu_bounds.mins.z) - lg.size.z) * .5f;
 
 	const float s = lg.stu_bounds.mins.x + padding_s + l->s + 0.5 + soffs;
 	const float t = lg.stu_bounds.mins.y + padding_t + l->t + 0.5 + toffs;
@@ -417,11 +417,46 @@ void FogLightgrid(int32_t luxel_num) {
 /**
  * @brief
  */
+static gint LuxelCmp(gconstpointer a, gconstpointer b, gpointer data) {
+	
+	const light_t *a_light = a;
+	const light_t *b_light = b;
+	
+	luxel_t *luxel = data;
+	
+	const float a_atten = Vec3_Distance(a_light->origin, luxel->origin) - a_light->radius;
+	const float b_atten = Vec3_Distance(b_light->origin, luxel->origin) - b_light->radius;
+	
+	return 1000.f * a_atten - b_atten;
+}
+
+/**
+ * @brief
+ */
+static int32_t LightIndex(const luxel_t *luxel, int32_t channel) {
+	
+	const light_t *light = g_list_nth_data(luxel->lights, channel);
+	if (light) {
+		return (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+	} else {
+		return -1;
+	}
+}
+
+/**
+ * @brief
+ */
 void EmitLightgrid(void) {
 
 	bsp_file.lightgrid_size = sizeof(bsp_lightgrid_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
-	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color32_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rg16_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rgba8_t);
+	bsp_file.lightgrid_size += lg.num_luxels * sizeof(color_rgba8_t);
 
 	Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTGRID, bsp_file.lightgrid_size);
 	memset(bsp_file.lightgrid, 0, bsp_file.lightgrid_size);
@@ -430,29 +465,102 @@ void EmitLightgrid(void) {
 
 	byte *out = (byte *) bsp_file.lightgrid + sizeof(bsp_lightgrid_t);
 
-	color32_t *out_diffuse = (color32_t *) out;
-	out += lg.num_luxels * sizeof(color32_t);
+	color_rg16_t *out_lights0 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rg16_t *out_lights1 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rg16_t *out_lights2 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rg16_t *out_lights3 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rg16_t *out_lights4 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rg16_t *out_lights5 = (color_rg16_t *) out;
+	out += lg.num_luxels * sizeof(color_rg16_t);
+	
+	color_rgba8_t *out_diffuse = (color_rgba8_t *) out;
+	out += lg.num_luxels * sizeof(color_rgba8_t);
 
-	color32_t *out_fog = (color32_t *) out;
-	out += lg.num_luxels * sizeof(color32_t);
-
-	const luxel_t *luxel = lg.luxels;
+	color_rgba8_t *out_fog = (color_rgba8_t *) out;
+	out += lg.num_luxels * sizeof(color_rgba8_t);
+	
+	luxel_t *luxel = lg.luxels;
 	for (int32_t u = 0; u < lg.size.z; u++) {
+		
+		luxel->lights = g_list_sort_with_data(luxel->lights, LuxelCmp, luxel);
 
-		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_diffuse);
-		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color32_t), out_fog);
+		SDL_Surface *lights0 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights0);
+		SDL_Surface *lights1 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights1);
+		SDL_Surface *lights2 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights2);
+		SDL_Surface *lights3 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights3);
+		SDL_Surface *lights4 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights4);
+		SDL_Surface *lights5 = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgb10_a2_t), out_lights5);
 
+		SDL_Surface *diffuse = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgba8_t), out_diffuse);
+		SDL_Surface *fog = CreateLuxelSurface(lg.size.x, lg.size.y, sizeof(color_rgba8_t), out_fog);
 		for (int32_t t = 0; t < lg.size.y; t++) {
 			for (int32_t s = 0; s < lg.size.x; s++, luxel++) {
+				
+				*out_lights0++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 0),
+					.g = LightIndex(luxel, 1),
+				};
+				
+				*out_lights1++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 2),
+					.g = LightIndex(luxel, 3),
+				};
+				
+				*out_lights2++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 4),
+					.g = LightIndex(luxel, 5),
+				};
+				
+				*out_lights3++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 6),
+					.g = LightIndex(luxel, 7),
+				};
+				
+				*out_lights4++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 8),
+					.g = LightIndex(luxel, 9),
+				};
+				
+				*out_lights5++ = (color_rg16_t) {
+					.r = LightIndex(luxel, 10),
+					.g = LightIndex(luxel, 11),
+				};
+				
+				g_list_free(luxel->lights);
+				
 				*out_diffuse++ = Color_Color32(Color4fv(luxel->diffuse));
 				*out_fog++ = Color_Color32(Color4fv(luxel->fog));
 			}
 		}
 
 		if (debug) {
+			WriteLuxelSurface(lights0, va("/tmp/%s_lg_lights0_%d.png", map_base, u));
+			WriteLuxelSurface(lights1, va("/tmp/%s_lg_lights1_%d.png", map_base, u));
+			WriteLuxelSurface(lights2, va("/tmp/%s_lg_lights2_%d.png", map_base, u));
+			WriteLuxelSurface(lights3, va("/tmp/%s_lg_lights3_%d.png", map_base, u));
+			WriteLuxelSurface(lights3, va("/tmp/%s_lg_lights4_%d.png", map_base, u));
+			WriteLuxelSurface(lights3, va("/tmp/%s_lg_lights5_%d.png", map_base, u));
+
 			WriteLuxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
 			WriteLuxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
 		}
+
+		SDL_FreeSurface(lights0);
+		SDL_FreeSurface(lights1);
+		SDL_FreeSurface(lights2);
+		SDL_FreeSurface(lights3);
+		SDL_FreeSurface(lights4);
+		SDL_FreeSurface(lights5);
 
 		SDL_FreeSurface(diffuse);
 		SDL_FreeSurface(fog);

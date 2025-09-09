@@ -29,9 +29,9 @@
 typedef struct {
 	int32_t s, t, u;
 	vec3_t origin;
-	vec3_t normal;
 	vec4_t diffuse;
 	vec4_t fog;
+	GList *lights;
 } luxel_t;
 
 extern void IlluminateLuxel(luxel_t *luxel, light_t *light, float lumens);

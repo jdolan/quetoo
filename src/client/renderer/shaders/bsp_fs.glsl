@@ -48,9 +48,9 @@ struct fragment_t {
 	vec4 diffusemap;
 	vec3 normalmap;
 	vec4 specularmap;
+	int active_lights[12];
 	vec3 ambient;
 	vec3 diffuse;
-	vec3 direction;
 	float caustics;
 	vec3 specular;
 	vec4 fog;
@@ -190,6 +190,37 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief
  */
+void sample_lightgrid_lights(void) {
+	
+	ivec2 lights0 = texture(texture_lightgrid_lights0, vertex.lightgrid).rg;
+	ivec2 lights1 = texture(texture_lightgrid_lights1, vertex.lightgrid).rg;
+	ivec2 lights2 = texture(texture_lightgrid_lights2, vertex.lightgrid).rg;
+	ivec2 lights3 = texture(texture_lightgrid_lights3, vertex.lightgrid).rg;
+	ivec2 lights4 = texture(texture_lightgrid_lights4, vertex.lightgrid).rg;
+	ivec2 lights5 = texture(texture_lightgrid_lights5, vertex.lightgrid).rg;
+
+	fragment.active_lights[0] = lights0.r;
+	fragment.active_lights[1] = lights0.g;
+	
+	fragment.active_lights[2] = lights1.r;
+	fragment.active_lights[3] = lights1.g;
+	
+	fragment.active_lights[4] = lights2.r;
+	fragment.active_lights[5] = lights2.g;
+	
+	fragment.active_lights[6] = lights3.r;
+	fragment.active_lights[7] = lights3.g;
+	
+	fragment.active_lights[8] = lights4.r;
+	fragment.active_lights[9] = lights4.g;
+	
+	fragment.active_lights[10] = lights5.r;
+	fragment.active_lights[11] = lights5.g;
+}
+
+/**
+ * @brief
+ */
 vec3 sample_lightgrid_stains() {
 	return texture(texture_lightgrid_stains, vertex.lightgrid).rgb * stains;
 }
@@ -279,7 +310,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_dynamic(in light_t light, in int index) {
 
-	vec3 dir = (view * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
+	vec3 dir = light.position.xyz - vertex.position;
 
 	float radius = light.model.w;
 	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
@@ -295,11 +326,6 @@ void light_and_shadow_dynamic(in light_t light, in int index) {
 	}
 
 	dir = normalize(dir);
-
-	if (light.normal.xyz != vec3(0)) {
-		if (developer > 0) 
-		diffuse *= max(0.25, dot(dir, -light.normal.xyz));
-	}
 
 	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {
@@ -355,20 +381,35 @@ void light_and_shadow(void) {
 	fragment.specular = vec3(0);//blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
-
-	for (int index = 0; index < num_lights; index++) {
-
-		uint bits = active_lights[index / 32];
-		uint bit = index % 32;
-
-		if ((bits & (1u << bit)) == 0) {
-			continue;
-		}
-
-		light_t light = lights[index];
-
-		if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
+	
+	if (developer == 1) {
+		sample_lightgrid_lights();
+		
+		for (int i = 0; i < fragment.active_lights.length(); i++) {
+			
+			int index = fragment.active_lights[i];
+			if (index == -1) {
+				break;
+			}
+			
+			light_t light = lights[index];
 			light_and_shadow_dynamic(light, index);
+		}
+	} else {
+		for (int index = 0; index < num_lights; index++) {
+	
+			uint bits = active_lights[index / 32];
+			uint bit = index % 32;
+	
+			if ((bits & (1u << bit)) == 0) {
+				continue;
+			}
+	
+			light_t light = lights[index];
+	
+			if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
+				light_and_shadow_dynamic(light, index);
+			}
 		}
 	}
 

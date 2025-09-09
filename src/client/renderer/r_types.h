@@ -739,6 +739,11 @@ typedef struct {
 	 * @brief The luxel size in world units (constant).
 	 */
 	vec3_t luxel_size;
+	
+	/**
+	 * @brief The light index 3D textures (R10G10B10A2).
+	 */
+	r_image_t *lights0, *lights1, *lights2, *lights3, *lights4, *lights5;
 
 	/**
 	 * @brief The diffuse 3D texture (RGB9E5).
@@ -1773,6 +1778,12 @@ typedef enum {
 	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
 	 */
 	TEXTURE_LIGHTGRID,
+	TEXTURE_LIGHTGRID_LIGHTS0,
+	TEXTURE_LIGHTGRID_LIGHTS1,
+	TEXTURE_LIGHTGRID_LIGHTS2,
+	TEXTURE_LIGHTGRID_LIGHTS3,
+	TEXTURE_LIGHTGRID_LIGHTS4,
+	TEXTURE_LIGHTGRID_LIGHTS5,
 	TEXTURE_LIGHTGRID_DIFFUSE,
 	TEXTURE_LIGHTGRID_FOG,
 	TEXTURE_LIGHTGRID_STAINS,
