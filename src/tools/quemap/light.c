@@ -215,7 +215,6 @@ void BuildLights(void) {
 	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
 		light_t *light = LightForEntity(*entity);
 		if (light) {
-			light->radius *= 2.f;
 			g_ptr_array_add(lights, light);
 		}
 		Progress("Building lights", i * 100.f / count);
@@ -229,7 +228,6 @@ void BuildLights(void) {
 			for (int32_t j = 0; j < 2; j++) {
 				light_t *light = LightForBrushSide(side, j);
 				if (light) {
-					light->radius *= 2.f;
 					g_ptr_array_add(lights, light);
 				}
 			}
