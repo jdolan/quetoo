@@ -475,5 +475,4 @@ const r_model_format_t r_md3_model_format = {
 	.type = MODEL_MESH,
 	.Load = R_LoadMd3Model,
 	.Register = R_RegisterMeshModel,
-	.Free = R_FreeMeshModel,
 };

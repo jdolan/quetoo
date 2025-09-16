@@ -457,13 +457,6 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->num_elements * sizeof(GLuint), mod->bsp->elements, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-
 	R_GetError(mod->media.name);
 
 	glBindVertexArray(0);
@@ -511,6 +504,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
+	glEnableVertexAttribArray(0);
 
 	const r_bsp_inline_model_t *in = bsp->inline_models;
 
@@ -652,7 +646,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->fog);
 	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->stains);
 
-	r_world_model = mod;
+	r_models.world = mod;
 }
 
 /**

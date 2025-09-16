@@ -23,6 +23,7 @@ in vertex_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
+	vec3 smooth_normal;
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;

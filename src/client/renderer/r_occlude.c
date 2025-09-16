@@ -34,7 +34,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 		return false;
 	}
 
-	const r_bsp_inline_model_t *in = r_world_model->bsp->inline_models;
+	const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
 
 	const r_bsp_block_t *block = in->blocks;
 	for (int32_t i = 0; i < in->num_blocks; i++, block++) {
@@ -115,7 +115,7 @@ static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *qu
  */
 void R_UpdateOcclusionQueries(const r_view_t *view) {
 
-	r_bsp_model_t *bsp = r_world_model->bsp;
+	r_bsp_model_t *bsp = r_models.world->bsp;
 
 	glUseProgram(r_depth_pass_program.name);
 

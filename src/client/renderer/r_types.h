@@ -859,6 +859,7 @@ typedef struct {
 typedef struct {
 	vec3_t position;
 	vec3_t normal;
+	vec3_t smooth_normal;
 	vec3_t tangent;
 	vec3_t bitangent;
 	vec2_t diffusemap;
@@ -908,20 +909,25 @@ typedef struct {
 	int32_t num_vertexes;
 
 	/**
-	 * @brief A vertex array attribute pointer for `EF_SHELL` normal vectors.
-	 */
-	vec3_t *shell_normals;
-
-	/**
 	 * @brief The elements.
 	 * @details This is a poitner into the model's elements array.
 	 */
-	GLvoid *elements;
+	GLuint *elements;
 
 	/**
 	 * @brief The count of elements.
 	 */
 	int32_t num_elements;
+
+	/**
+	 * @brief The base vertex in the shared mesh VAO.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief The elements pointer in the shared mesh VAO.
+	 */
+	GLvoid *indices;
 } r_mesh_face_t;
 
 /**
@@ -970,19 +976,21 @@ typedef struct {
 	r_mesh_animation_t *animations;
 	int32_t num_animations;
 
+	/**
+	 * @brief The base vertex in the shared mesh VAO.
+	 */
+	GLint base_vertex;
+
+	/**
+	 * @brief The indices pointer in the shared mesh VAO.
+	 */
+	GLvoid *indices;
+
 	struct {
 		r_mesh_config_t world;
 		r_mesh_config_t view;
 		r_mesh_config_t link;
 	} config;
-
-	vec3_t *shell_normals;
-
-	// buffer data
-	GLuint vertex_buffer;
-	GLuint elements_buffer;
-	GLuint vertex_array;
-	GLuint shell_normals_buffer;
 } r_mesh_model_t;
 
 /**
@@ -1035,6 +1043,31 @@ typedef struct {
 	 */
 	void (*Free)(r_media_t *self);
 } r_model_format_t;
+
+/**
+ * @brief The models type.
+ */
+typedef struct {
+
+	/**
+	 * @brief The currently loaded world model, if any.
+	 */
+	r_model_t *world;
+
+	/**
+	 * @brief The shared vertex array object for mesh models.
+	 */
+	struct {
+		GLuint vertex_buffer;
+		GLuint elements_buffer;
+		GLuint vertex_array;
+	} mesh;
+} r_models_t;
+
+/**
+ * @brief The models instance.
+ */
+extern r_models_t r_models;
 
 /**
  * @brief

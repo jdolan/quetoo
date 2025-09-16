@@ -21,7 +21,7 @@
 
 #include "r_local.h"
 
-r_model_t *r_world_model;
+r_models_t r_models;
 
 /**
  * @brief Loads the model by the specified name.
@@ -34,7 +34,7 @@ r_model_t *R_LoadModel(const char *name) {
 	}
 
 	if (*name == '*') {
-		g_snprintf(key, sizeof(key), "%s#%s", r_world_model->media.name, name + 1);
+		g_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
 	} else {
 		StripExtension(name, key);
 	}
@@ -99,7 +99,7 @@ r_model_t *R_LoadModel(const char *name) {
  * @brief Returns the currently loaded world model (BSP).
  */
 r_model_t *R_WorldModel(void) {
-	return r_world_model;
+	return r_models.world;
 }
 
 /**
@@ -107,7 +107,11 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-	r_world_model = NULL;
+	memset(&r_models, 0, sizeof(r_models));
+
+	glGenVertexArrays(1, &r_models.mesh.vertex_array);
+	glGenBuffers(1, &r_models.mesh.vertex_buffer);
+	glGenBuffers(1, &r_models.mesh.elements_buffer);
 
 	R_InitBspProgram();
 
@@ -123,7 +127,11 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-	r_world_model = NULL;
+	glDeleteVertexArrays(1, &r_models.mesh.vertex_array);
+	glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
+	glDeleteBuffers(1, &r_models.mesh.elements_buffer);
+
+	memset(&r_models, 0, sizeof(r_models));
 
 	R_ShutdownBspProgram();
 

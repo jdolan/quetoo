@@ -21,14 +21,16 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec3 in_tangent;
-layout (location = 3) in vec3 in_bitangent;
-layout (location = 4) in vec2 in_diffusemap;
+layout (location = 2) in vec3 in_smooth_normal;
+layout (location = 3) in vec3 in_tangent;
+layout (location = 4) in vec3 in_bitangent;
+layout (location = 5) in vec2 in_diffusemap;
 
-layout (location = 5) in vec3 in_next_position;
-layout (location = 6) in vec3 in_next_normal;
-layout (location = 7) in vec3 in_next_tangent;
-layout (location = 8) in vec3 in_next_bitangent;
+layout (location = 6) in vec3 in_next_position;
+layout (location = 7) in vec3 in_next_normal;
+layout (location = 8) in vec3 in_next_smooth_normal;
+layout (location = 9) in vec3 in_next_tangent;
+layout (location = 10) in vec3 in_next_bitangent;
 
 uniform mat4 model;
 
@@ -38,6 +40,7 @@ out vertex_data {
 	vec3 model;
 	vec3 position;
 	vec3 normal;
+	vec3 smooth_normal;
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
@@ -99,6 +102,7 @@ void main(void) {
 
 	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
 	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+	vec4 smooth_normal = vec4(mix(in_smooth_normal, in_next_smooth_normal, lerp), 0.0);
 	vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
 	vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
@@ -107,6 +111,7 @@ void main(void) {
 	vertex.model = vec3(model * position);
 	vertex.position = vec3(view_model * position);
 	vertex.normal = normalize(vec3(view_model * normal));
+	vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
 	vertex.tangent = normalize(vec3(view_model * tangent));
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 	vertex.diffusemap = in_diffusemap;

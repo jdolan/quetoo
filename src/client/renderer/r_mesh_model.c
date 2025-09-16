@@ -198,9 +198,7 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 				};
 			}
 
-			const int32_t *elements = (int32_t *) ((byte *) mod->mesh->elements + (ptrdiff_t) face->elements);
-
-			Cm_Tangents(vertexes, 0, face->num_vertexes, elements, face->num_elements);
+			Cm_Tangents(vertexes, 0, face->num_vertexes, (int32_t *) face->elements, face->num_elements);
 		}
 
 		Mem_Free(vertexes);
@@ -208,8 +206,7 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 }
 
 /**
- * @brief Calculates normal vectors for shells, which need to have
- * proper smooth vertex normals to look "right".
+ * @brief Calculates smoothened normal vectors for translucent shell effects.
  */
 static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 
@@ -217,10 +214,6 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 	assert(mod->mesh->num_vertexes);
 	assert(mod->mesh->num_frames);
 
-	const int32_t total_vertices = face->num_vertexes * mod->mesh->num_frames;
-
-	face->shell_normals = Mem_LinkMalloc(sizeof(vec3_t) * total_vertices, mod->mesh);
-	
 	int32_t remap[face->num_vertexes];
 	int32_t num_normals[face->num_vertexes];
 
@@ -231,8 +224,7 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 		memset(remap, -1, sizeof(remap));
 		memset(num_normals, 0, sizeof(num_normals));
 
-		// first, remap vertices on every frame if they have
-		// the same position.
+		// first, remap vertices on every frame if they have the same position.
 		for (int32_t i = face->num_vertexes - 1; i >= 0; i--) {
 			const r_mesh_vertex_t *v = &face->vertexes[frame_vert_offset + i];
 			int32_t j;
@@ -249,11 +241,9 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 		}
 
 		// re-calculate normals for every vertex
-		vec3_t *normals = face->shell_normals + frame_vert_offset;
-
 		for (int32_t i = 0; i < face->num_vertexes; i++) {
 			const uint32_t v_i = remap[i];
-			vec3_t *normal = normals + v_i;
+			vec3_t *smooth_normal = &face->vertexes[v_i].smooth_normal;
 
 			const GLuint *e = (GLuint *) face->elements;
 
@@ -268,18 +258,19 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
 					const vec3_t v1 = Vec3_Subtract(va, vc);
 					const vec3_t v2 = Vec3_Subtract(vc, vb);
 
-					*normal = Vec3_Add(*normal, Vec3_Cross(v1, v2));
+					*smooth_normal = Vec3_Add(*smooth_normal, Vec3_Cross(v1, v2));
 					num_normals[v_i]++;
 				}
 			}
 		}
 
 		// divide and normalize
-		for (int32_t i = 0; i < face->num_vertexes; i++) {
+		r_mesh_vertex_t *v = face->vertexes;
+		for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
 			if (remap[i] == i) {
-				normals[i] = Vec3_Normalize(Vec3_Scale(normals[i], num_normals[i]));
+				v->smooth_normal = Vec3_Normalize(Vec3_Scale(v->smooth_normal, num_normals[i]));
 			} else {
-				normals[i] = normals[remap[i]];
+				v->smooth_normal = face->vertexes[remap[i]].smooth_normal;
 			}
 		}
 	}
@@ -306,11 +297,9 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
 	mod->mesh->vertexes = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh);
 	mod->mesh->elements = Mem_LinkMalloc(mod->mesh->num_elements * sizeof(GLuint), mod->mesh);
-	mod->mesh->shell_normals = Mem_LinkMalloc(mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t), mod->mesh);
 
 	r_mesh_vertex_t *vertex = mod->mesh->vertexes;
 	GLuint *elements = mod->mesh->elements;
-	vec3_t *shell_normal = mod->mesh->shell_normals;
 
 	{
 		r_mesh_face_t *face = mod->mesh->faces;
@@ -327,46 +316,82 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 			memcpy(elements, face->elements, face->num_elements * sizeof(GLuint));
 			Mem_Free(face->elements);
 
-			face->elements = (GLvoid *) ((elements - mod->mesh->elements) * sizeof(GLuint));
+			face->elements = elements;
 			elements += face->num_elements;
-
-			memcpy(shell_normal, face->shell_normals, face->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t));
-			Mem_Free(face->shell_normals);
-
-			face->shell_normals = shell_normal;
-			shell_normal += face->num_vertexes * mod->mesh->num_frames;
 		}
 	}
 
 	R_LoadMeshTangents(mod);
 
-	glGenVertexArrays(1, &mod->mesh->vertex_array);
-	glBindVertexArray(mod->mesh->vertex_array);
+	{
+		GLuint vertex_buffer;
+		glGenBuffers(1, &vertex_buffer);
 
-	glGenBuffers(1, &mod->mesh->shell_normals_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, mod->mesh->shell_normals_buffer);
-	glBufferData(GL_ARRAY_BUFFER, mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(vec3_t), mod->mesh->shell_normals, GL_STATIC_DRAW);
+		glBindBuffer(GL_COPY_READ_BUFFER, r_models.mesh.vertex_buffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, vertex_buffer);
 
-	glGenBuffers(1, &mod->mesh->vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, mod->mesh->vertex_buffer);
-	glBufferData(GL_ARRAY_BUFFER, mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t), mod->mesh->vertexes, GL_STATIC_DRAW);
+		GLint old_size;
+		glGetBufferParameteriv(GL_COPY_READ_BUFFER, GL_BUFFER_SIZE, &old_size);
 
-	glGenBuffers(1, &mod->mesh->elements_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->mesh->elements_buffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->mesh->num_elements * sizeof(GLuint), mod->mesh->elements, GL_STATIC_DRAW);
+		mod->mesh->base_vertex = old_size / sizeof(r_mesh_vertex_t);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, position));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, normal));
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, tangent));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, bitangent));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) offsetof(r_mesh_vertex_t, diffusemap));
+		r_mesh_face_t *face = mod->mesh->faces;
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+			face->base_vertex = mod->mesh->base_vertex + (GLint) (face->vertexes - mod->mesh->vertexes);
+		}
+
+		GLint new_size = old_size + mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t);
+
+		glBufferData(GL_COPY_WRITE_BUFFER, new_size, NULL, GL_STATIC_DRAW);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_size);
+
+		glBufferSubData(GL_COPY_WRITE_BUFFER,
+						old_size,
+						mod->mesh->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t),
+						mod->mesh->vertexes);
+
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+		glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
+		r_models.mesh.vertex_buffer = vertex_buffer;
+	}
+
+	{
+		GLuint elements_buffer;
+		glGenBuffers(1, &elements_buffer);
+
+		glBindBuffer(GL_COPY_READ_BUFFER, r_models.mesh.elements_buffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, elements_buffer);
+
+		GLint old_size;
+		glGetBufferParameteriv(GL_COPY_READ_BUFFER, GL_BUFFER_SIZE, &old_size);
+
+		mod->mesh->indices = (GLvoid *) (ptrdiff_t) old_size;
+
+		r_mesh_face_t *face = mod->mesh->faces;
+		for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
+			face->indices = mod->mesh->indices + ((face->elements - mod->mesh->elements) * sizeof(GLuint));
+		}
+
+		GLint new_size = old_size + mod->mesh->num_elements * sizeof(GLuint);
+
+		glBufferData(GL_COPY_WRITE_BUFFER, new_size, NULL, GL_STATIC_DRAW);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, old_size);
+
+		glBufferSubData(GL_COPY_WRITE_BUFFER,
+						old_size,
+						mod->mesh->num_elements * sizeof(GLuint),
+						mod->mesh->elements);
+
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+		glDeleteBuffers(1, &r_models.mesh.elements_buffer);
+		r_models.mesh.elements_buffer = elements_buffer;
+	}
 
 	R_GetError(mod->media.name);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-	glBindVertexArray(0);
 }
 
 /**
@@ -381,14 +406,4 @@ void R_RegisterMeshModel(r_media_t *self) {
 			R_RegisterDependency(self, (r_media_t *) face->material);
 		}
 	}
-}
-
-/**
- * @brief
- */
-void R_FreeMeshModel(r_media_t *self) {
-	r_model_t *mod = (r_model_t *) self;
-
-	glDeleteBuffers(1, &mod->mesh->vertex_buffer);
-	glDeleteBuffers(1, &mod->mesh->elements_buffer);
 }

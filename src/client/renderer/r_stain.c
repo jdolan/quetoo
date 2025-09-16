@@ -26,7 +26,7 @@
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
+	const r_bsp_lightgrid_t *lg = r_models.world->bsp->lightgrid;
 
 	const vec3_t translate = Vec3_Subtract(stain->origin, lg->bounds.mins);
 	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->luxel_size));
@@ -92,8 +92,8 @@ void R_UpdateStains(const r_view_t *view) {
 		R_UpdateStain(view, stain);
 	}
 
-	const r_image_t *s = r_world_model->bsp->lightgrid->stains;
-	const color32_t *c = r_world_model->bsp->lightgrid->stain_buffer;
+	const r_image_t *s = r_models.world->bsp->lightgrid->stains;
+	const color32_t *c = r_models.world->bsp->lightgrid->stain_buffer;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_STAINS);
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);

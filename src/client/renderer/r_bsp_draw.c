@@ -125,14 +125,14 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 		return;
 	}
 
-	const byte *in = (byte *) r_world_model->bsp->cm->file->lightgrid;
+	const byte *in = (byte *) r_models.world->bsp->cm->file->lightgrid;
 	if (!in) {
 		return;
 	}
 
 	in += sizeof(bsp_lightgrid_t);
 
-	const r_bsp_lightgrid_t *lg = r_world_model->bsp->lightgrid;
+	const r_bsp_lightgrid_t *lg = r_models.world->bsp->lightgrid;
 
 	const size_t num_luxels = lg->size.x * lg->size.y * lg->size.z;
 
@@ -391,13 +391,23 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
  * @brief Draws all opaque BSP inline model entities for the current view, including the world.
  */
 void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
-	const r_bsp_model_t *bsp = r_world_model->bsp;
+	const r_bsp_model_t *bsp = r_models.world->bsp;
 
 	R_DrawSky(view, bsp);
 
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(bsp->vertex_array);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+
+	glVertexAttribPointer(r_bsp_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glVertexAttribPointer(r_bsp_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
+	glVertexAttribPointer(r_bsp_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
+	glVertexAttribPointer(r_bsp_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
+	glVertexAttribPointer(r_bsp_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(r_bsp_program.in_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
 
 	glEnableVertexAttribArray(r_bsp_program.in_position);
 	glEnableVertexAttribArray(r_bsp_program.in_normal);
@@ -405,9 +415,6 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -477,11 +484,21 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
  * @brief Draws all BSP inline model entities for the current view, including the world.
  */
 void R_DrawBlendBspInlineEntities(const r_view_t *view) {
-	const r_bsp_model_t *bsp = r_world_model->bsp;
+	const r_bsp_model_t *bsp = r_models.world->bsp;
 
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(bsp->vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+
+	glVertexAttribPointer(r_bsp_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glVertexAttribPointer(r_bsp_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
+	glVertexAttribPointer(r_bsp_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
+	glVertexAttribPointer(r_bsp_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
+	glVertexAttribPointer(r_bsp_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(r_bsp_program.in_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
 
 	glEnableVertexAttribArray(r_bsp_program.in_position);
 	glEnableVertexAttribArray(r_bsp_program.in_normal);
@@ -489,9 +506,6 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
 	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
 	glEnableVertexAttribArray(r_bsp_program.in_color);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);

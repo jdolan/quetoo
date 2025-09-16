@@ -510,12 +510,12 @@ static ssize_t R_SaveMaterials(const r_model_t *mod) {
  */
 void R_SaveMaterials_f(void) {
 
-	if (!r_world_model) {
+	if (!r_models.world) {
 		Com_Print("No map loaded\n");
 		return;
 	}
 
-	const r_model_t *model = r_world_model;
+	const r_model_t *model = r_models.world;
 
 	if (Cmd_Argc() > 1) {
 		model = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);

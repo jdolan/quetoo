@@ -32,12 +32,14 @@ static struct {
 
 	GLint in_position;
 	GLint in_normal;
+	GLint in_smooth_normal;
 	GLint in_tangent;
 	GLint in_bitangent;
 	GLint in_diffusemap;
 
 	GLint in_next_position;
 	GLint in_next_normal;
+	GLint in_next_smooth_normal;
 	GLint in_next_tangent;
 	GLint in_next_bitangent;
 
@@ -104,15 +106,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 	}
 
 	if (stage->cm->flags & STAGE_SHELL) {
-		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(vec3_t);
-		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(vec3_t);
-
 		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
-
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->shell_normals_buffer);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) old_frame_offset);
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) frame_offset);
 	}
 
 	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -130,18 +124,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 		}
 	}
 
-	const GLint base_vertex = (GLint) (face->vertexes - e->model->mesh->vertexes);
-	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
-
-	if (stage->cm->flags & STAGE_SHELL) {
-		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-
-		glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
-
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
-	}
+	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
 	R_GetError(stage->media->name);
 }
@@ -228,19 +211,33 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
 	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
+	glVertexAttribPointer(r_mesh_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(r_mesh_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
+	glVertexAttribPointer(r_mesh_program.in_smooth_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
+	glVertexAttribPointer(r_mesh_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+	glVertexAttribPointer(r_mesh_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+	glVertexAttribPointer(r_mesh_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
 
 	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-	glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
-	glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-	glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+	glVertexAttribPointer(r_mesh_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(r_mesh_program.in_next_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
+	glVertexAttribPointer(r_mesh_program.in_next_smooth_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
+	glVertexAttribPointer(r_mesh_program.in_next_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+	glVertexAttribPointer(r_mesh_program.in_next_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
 
+	glEnableVertexAttribArray(r_mesh_program.in_position);
+	glEnableVertexAttribArray(r_mesh_program.in_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_smooth_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_tangent);
+	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
+	glEnableVertexAttribArray(r_mesh_program.in_diffusemap);
+	glEnableVertexAttribArray(r_mesh_program.in_next_position);
+	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_next_smooth_normal);
+	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
+	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
+	
 	glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
 	glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
@@ -279,8 +276,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
 	glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
-	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
-	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
+	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
 	r_stats.mesh_triangles += face->num_elements / 3;
 
@@ -298,22 +294,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(.0f, 0.1f);
 	}
-
-	glBindVertexArray(mesh->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements_buffer);
-
-	glEnableVertexAttribArray(r_mesh_program.in_position);
-	glEnableVertexAttribArray(r_mesh_program.in_normal);
-	glEnableVertexAttribArray(r_mesh_program.in_tangent);
-	glEnableVertexAttribArray(r_mesh_program.in_bitangent);
-	glEnableVertexAttribArray(r_mesh_program.in_diffusemap);
-
-	glEnableVertexAttribArray(r_mesh_program.in_next_position);
-	glEnableVertexAttribArray(r_mesh_program.in_next_normal);
-	glEnableVertexAttribArray(r_mesh_program.in_next_tangent);
-	glEnableVertexAttribArray(r_mesh_program.in_next_bitangent);
 
 	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
 
@@ -360,11 +340,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
 	glDisable(GL_DEPTH_TEST);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
-
 	if (e->effects & EF_WEAPON) {
 		glDepthRange(0.f, 1.f);
 	}
@@ -378,6 +353,11 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 void R_DrawMeshEntities(const r_view_t *view) {
 
 	glUseProgram(r_mesh_program.name);
+
+	glBindVertexArray(r_models.mesh.vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -394,6 +374,11 @@ void R_DrawMeshEntities(const r_view_t *view) {
 			R_DrawMeshEntity(view, e);
 		}
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 
 	glUseProgram(0);
 
@@ -422,12 +407,14 @@ void R_InitMeshProgram(void) {
 
 	r_mesh_program.in_position = glGetAttribLocation(r_mesh_program.name, "in_position");
 	r_mesh_program.in_normal = glGetAttribLocation(r_mesh_program.name, "in_normal");
+	r_mesh_program.in_smooth_normal = glGetAttribLocation(r_mesh_program.name, "in_smooth_normal");
 	r_mesh_program.in_tangent = glGetAttribLocation(r_mesh_program.name, "in_tangent");
 	r_mesh_program.in_bitangent = glGetAttribLocation(r_mesh_program.name, "in_bitangent");
 	r_mesh_program.in_diffusemap = glGetAttribLocation(r_mesh_program.name, "in_diffusemap");
 
 	r_mesh_program.in_next_position = glGetAttribLocation(r_mesh_program.name, "in_next_position");
 	r_mesh_program.in_next_normal = glGetAttribLocation(r_mesh_program.name, "in_next_normal");
+	r_mesh_program.in_next_smooth_normal = glGetAttribLocation(r_mesh_program.name, "in_next_smooth_normal");
 	r_mesh_program.in_next_tangent = glGetAttribLocation(r_mesh_program.name, "in_next_tangent");
 	r_mesh_program.in_next_bitangent = glGetAttribLocation(r_mesh_program.name, "in_next_bitangent");
 

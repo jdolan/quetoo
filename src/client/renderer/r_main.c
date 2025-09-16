@@ -158,8 +158,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->fog_samples = r_fog_samples->integer;
 		out->developer = r_developer->integer;
 
-		if (r_world_model) {
-			const r_bsp_lightgrid_t *lightgrid = r_world_model->bsp->lightgrid;
+		if (r_models.world) {
+			const r_bsp_lightgrid_t *lightgrid = r_models.world->bsp->lightgrid;
 
 			out->lightgrid.mins = Vec3_ToVec4(lightgrid->bounds.mins, 0.f);
 			out->lightgrid.maxs = Vec3_ToVec4(lightgrid->bounds.maxs, 0.f);
