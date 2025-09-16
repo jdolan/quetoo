@@ -345,18 +345,18 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = vec3(0);//sample_lightgrid_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular = vec3(0);//blinn_phong(fragment.ambient, fragment.normalmap);
+	fragment.ambient = sample_lightgrid_diffuse() * .333 * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
 	
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 		
 		int index = active_lights[i];
-		if (index == 0) {
+		if (index == -1) {
 			break;
 		}
-		
+
 		light_t light = lights[index];
 
 		if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {

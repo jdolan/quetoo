@@ -225,7 +225,7 @@ void light_and_shadow(void) {
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 		
 		int index = active_lights[i];
-		if (index == 0) {
+		if (index == -1) {
 			break;
 		}
 

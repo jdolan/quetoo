@@ -107,7 +107,11 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 		}
 	}
 
-	glUniform1iv(name, Mini(num_active_lights + 1, view->num_lights), active_lights);
+	if (num_active_lights < MAX_LIGHTS) {
+		active_lights[num_active_lights++] = -1;
+	}
+
+	glUniform1iv(name, num_active_lights, active_lights);
 
 	R_GetError(NULL);
 }
