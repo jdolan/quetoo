@@ -75,6 +75,10 @@ static void Cg_AddBspLights(void) {
 	const r_bsp_light_t *l = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
 
+		if (l->type == LIGHT_SUN) {
+			continue;
+		}
+		
 		cgi.AddLight(cgi.view, &(const r_light_t) {
 			.type = l->type,
 			.atten = l->atten,
