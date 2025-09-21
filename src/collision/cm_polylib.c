@@ -768,13 +768,13 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
 		const vec3_t e1 = Vec3_Subtract(*v1->position, *v0->position);
 		const vec3_t e2 = Vec3_Subtract(*v2->position, *v0->position);
 
-		const float x1 = v1->st->x - v0->st->x;
-		const float x2 = v2->st->x - v0->st->x;
+		const double x1 = v1->st->x - v0->st->x;
+		const double x2 = v2->st->x - v0->st->x;
 
-		const float y1 = v1->st->y - v0->st->y;
-		const float y2 = v2->st->y - v0->st->y;
+		const double y1 = v1->st->y - v0->st->y;
+		const double y2 = v2->st->y - v0->st->y;
 
-		const float r = 1.f / (x1 * y2 - x2 * y1);
+		const double r = 1.f / (x1 * y2 - x2 * y1);
 
 		if (r == INFINITY || r == -INFINITY) {
 			continue;
