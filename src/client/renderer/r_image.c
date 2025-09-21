@@ -181,7 +181,7 @@ void R_SetupImage(r_image_t *image) {
 
 	switch (image->type) {
 		case IMG_CUBEMAP:
-		case IMG_LIGHTGRID:
+		case IMG_VOXELS:
 			glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);

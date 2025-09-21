@@ -30,7 +30,7 @@ cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_developer;
 cvar_t *r_draw_bsp_blocks;
-cvar_t *r_draw_bsp_lightgrid;
+cvar_t *r_draw_bsp_voxel;
 cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
@@ -159,18 +159,18 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->developer = r_developer->integer;
 
 		if (r_models.world) {
-			const r_bsp_lightgrid_t *lightgrid = r_models.world->bsp->lightgrid;
+			const r_bsp_voxel_t *voxel = r_models.world->bsp->voxel;
 
-			out->lightgrid.mins = Vec3_ToVec4(lightgrid->bounds.mins, 0.f);
-			out->lightgrid.maxs = Vec3_ToVec4(lightgrid->bounds.maxs, 0.f);
+			out->voxel.mins = Vec3_ToVec4(voxel->bounds.mins, 0.f);
+			out->voxel.maxs = Vec3_ToVec4(voxel->bounds.maxs, 0.f);
 
-			const vec3_t pos = Vec3_Subtract(view->origin, lightgrid->bounds.mins);
-			const vec3_t extents = Box3_Size(lightgrid->bounds);
+			const vec3_t pos = Vec3_Subtract(view->origin, voxel->bounds.mins);
+			const vec3_t extents = Box3_Size(voxel->bounds);
 
-			out->lightgrid.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
-			out->lightgrid.size = Vec3_ToVec4(Vec3i_CastVec3(lightgrid->size), 0.f);
+			out->voxel.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
+			out->voxel.size = Vec3_ToVec4(Vec3i_CastVec3(voxel->size), 0.f);
 
-			out->lightgrid.luxel_size = Vec3_ToVec4(Vec3_Divide(lightgrid->luxel_size, extents), 0.f);
+			out->voxel.voxel_size = Vec3_ToVec4(Vec3_Divide(voxel->voxel_size, extents), 0.f);
 		}
 	}
 
@@ -341,7 +341,7 @@ static void R_InitLocal(void) {
 	r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
 	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
 	r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
-	r_draw_bsp_lightgrid = Cvar_Add("r_draw_bsp_lightgrid", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP lightgrid textures (developer tool)");
+	r_draw_bsp_voxel = Cvar_Add("r_draw_bsp_voxel", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
 	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
 	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
 	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");

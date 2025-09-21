@@ -28,7 +28,7 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec3 lightgrid;
+	vec3 voxel;
 	vec4 color;
 } vertex;
 
@@ -189,39 +189,32 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief
  */
-vec3 sample_lightgrid_stains() {
-	return texture(texture_lightgrid_stains, vertex.lightgrid).rgb * stains;
+vec3 sample_voxel_stains() {
+	return texture(texture_voxel_stains, vertex.voxel).rgb * stains;
 }
 
 /**
  * @brief
  */
-vec3 sample_lightgrid_diffuse() {
-	return texture(texture_lightgrid_diffuse, vertex.lightgrid).rgb * modulate;
+float sample_voxel_caustics() {
+	return texture(texture_voxel_diffuse, vertex.voxel).a;
 }
 
 /**
  * @brief
  */
-float sample_lightgrid_caustics() {
-	return texture(texture_lightgrid_diffuse, vertex.lightgrid).a;
-}
-
-/**
- * @brief
- */
-vec4 sample_lightgrid_fog() {
+vec4 sample_voxel_fog() {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(fragment.dist / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(fragment.dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-		vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(vertex.voxel, voxel.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {
 			break;
 		}
@@ -310,7 +303,7 @@ void light_and_shadow_light(in light_t light, in int index) {
  */
 void light_and_shadow_caustics() {
 
-	fragment.caustics = sample_lightgrid_caustics();
+	fragment.caustics = sample_voxel_caustics();
 
 	if (fragment.caustics == 0.0) {
 		return;
@@ -337,8 +330,8 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = sample_lightgrid_diffuse() * .333 * max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
+	fragment.ambient = vec3(0.0);//sample_voxel_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular = vec3(0.0);//blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
 	
@@ -386,8 +379,8 @@ void main(void) {
 
 		light_and_shadow();
 
-		fragment.stains = sample_lightgrid_stains();
-		fragment.fog = sample_lightgrid_fog();
+		fragment.stains = sample_voxel_stains();
+		fragment.fog = sample_voxel_fog();
 
 		out_color = fragment.diffusemap;
 
@@ -420,7 +413,7 @@ void main(void) {
 		}
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-			fragment.fog = sample_lightgrid_fog();
+			fragment.fog = sample_voxel_fog();
 			out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 		}
 

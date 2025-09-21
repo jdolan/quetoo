@@ -139,11 +139,11 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 }
 
 /**
- * @brief Resolves the lightgrid coordinate for the specified position in world space.
- * @param lightgrid The lightgrid struct instance.
+ * @brief Resolves the voxel coordinate for the specified position in world space.
+ * @param voxel The voxel struct instance.
  * @param position The position in world space.
- * @return The lightgrid coordinate for the specified position.
+ * @return The voxel coordinate for the specified position.
  */
-vec3 lightgrid_uvw(in vec3 position) {
-	return (position - lightgrid.mins.xyz) / (lightgrid.maxs.xyz - lightgrid.mins.xyz);
+vec3 voxel_uvw(in vec3 position) {
+	return (position - voxel.mins.xyz) / (voxel.maxs.xyz - voxel.mins.xyz);
 }

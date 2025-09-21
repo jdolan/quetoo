@@ -45,10 +45,10 @@ static struct {
 	GLint texture_stage;
 	GLint texture_warp;
 
-	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_caustics;
-	GLint texture_lightgrid_fog;
-	GLint texture_lightgrid_stains;
+	GLint texture_voxel_diffuse;
+	GLint texture_voxel_caustics;
+	GLint texture_voxel_fog;
+	GLint texture_voxel_stains;
 
 	GLint texture_shadow_cubemap_array0;
 	GLint texture_shadow_cubemap_array1;
@@ -119,31 +119,31 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-void R_AddBspLightgridSprites(r_view_t *view) {
+void R_AddBspVoxelSprites(r_view_t *view) {
 
-	if (!r_draw_bsp_lightgrid->value) {
+	if (!r_draw_bsp_voxel->value) {
 		return;
 	}
 
-	const byte *in = (byte *) r_models.world->bsp->cm->file->lightgrid;
+	const byte *in = (byte *) r_models.world->bsp->cm->file->voxels;
 	if (!in) {
 		return;
 	}
 
-	in += sizeof(bsp_lightgrid_t);
+	in += sizeof(bsp_voxels_t);
 
-	const r_bsp_lightgrid_t *lg = r_models.world->bsp->lightgrid;
+	const r_bsp_voxel_t *lg = r_models.world->bsp->voxel;
 
-	const size_t num_luxels = lg->size.x * lg->size.y * lg->size.z;
+	const size_t num_voxels = lg->size.x * lg->size.y * lg->size.z;
 
 	const rgb9e5 *ambient = (rgb9e5 *) in;
-	in += num_luxels * sizeof(rgb9e5);
+	in += num_voxels * sizeof(rgb9e5);
 
 	const rgb9e5 *diffuse = (rgb9e5 *) in;
-	in += num_luxels * sizeof(rgb9e5);
+	in += num_voxels * sizeof(rgb9e5);
 
 	const color32_t *fog = (color32_t *) in;
-	in += num_luxels * sizeof(color32_t);
+	in += num_voxels * sizeof(color32_t);
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
 
@@ -152,13 +152,13 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, fog++) {
 
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-				const vec3_t origin = Vec3_Fmaf(lg->bounds.mins, BSP_LIGHTGRID_LUXEL_SIZE, position);
+				const vec3_t origin = Vec3_Fmaf(lg->bounds.mins, BSP_VOXEL_SIZE, position);
 
 				if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
 					continue;
 				}
 
-				if (r_draw_bsp_lightgrid->integer == 1) {
+				if (r_draw_bsp_voxel->integer == 1) {
 
 					vec3_t a, d;
 					rgb9e5_to_float3(*ambient, a.xyz);
@@ -173,7 +173,7 @@ void R_AddBspLightgridSprites(r_view_t *view) {
 						.media = (r_media_t *) particle,
 					});
 
-				} else if (r_draw_bsp_lightgrid->integer == 2) {
+				} else if (r_draw_bsp_voxel->integer == 2) {
 
 					const color_t color = Color32_Color(*fog);
 
@@ -587,9 +587,9 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
 	r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-	r_bsp_program.texture_lightgrid_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_diffuse");
-	r_bsp_program.texture_lightgrid_fog = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_fog");
-	r_bsp_program.texture_lightgrid_stains = glGetUniformLocation(r_bsp_program.name, "texture_lightgrid_stains");
+	r_bsp_program.texture_voxel_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_voxel_diffuse");
+	r_bsp_program.texture_voxel_fog = glGetUniformLocation(r_bsp_program.name, "texture_voxel_fog");
+	r_bsp_program.texture_voxel_stains = glGetUniformLocation(r_bsp_program.name, "texture_voxel_stains");
 
 	r_bsp_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array0");
 	r_bsp_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array1");
@@ -619,9 +619,9 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 
-	glUniform1i(r_bsp_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_bsp_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
-	glUniform1i(r_bsp_program.texture_lightgrid_stains, TEXTURE_LIGHTGRID_STAINS);
+	glUniform1i(r_bsp_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
+	glUniform1i(r_bsp_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
+	glUniform1i(r_bsp_program.texture_voxel_stains, TEXTURE_VOXEL_STAINS);
 
 	glUniform1i(r_bsp_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
 	glUniform1i(r_bsp_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);

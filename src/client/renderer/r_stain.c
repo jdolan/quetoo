@@ -26,24 +26,24 @@
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const r_bsp_lightgrid_t *lg = r_models.world->bsp->lightgrid;
+	const r_bsp_voxel_t *lg = r_models.world->bsp->voxel;
 
 	const vec3_t translate = Vec3_Subtract(stain->origin, lg->bounds.mins);
-	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->luxel_size));
+	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->voxel_size));
 
-	const int32_t radius = stain->radius / BSP_LIGHTGRID_LUXEL_SIZE;
+	const int32_t radius = stain->radius / BSP_VOXEL_SIZE;
 
 	for (int32_t z = -radius; z < radius; z++) {
 		for (int32_t y = -radius; y < radius; y++) {
 			for (int32_t x = -radius; x < radius; x++) {
 
-				// this luxel is stained, so attenuate and blend it
+				// this voxel is stained, so attenuate and blend it
 
 				const vec3i_t pos = Vec3i_Add(origin, Vec3i(x, y, z));
 
-				const int32_t luxel = lg->size.x * lg->size.y * pos.z + lg->size.x * pos.y + pos.x;
+				const int32_t voxel = lg->size.x * lg->size.y * pos.z + lg->size.x * pos.y + pos.x;
 
-				color32_t *out = lg->stain_buffer + luxel;
+				color32_t *out = lg->stain_buffer + voxel;
 
 				const float atten = 1.f;
 
@@ -92,10 +92,10 @@ void R_UpdateStains(const r_view_t *view) {
 		R_UpdateStain(view, stain);
 	}
 
-	const r_image_t *s = r_models.world->bsp->lightgrid->stains;
-	const color32_t *c = r_models.world->bsp->lightgrid->stain_buffer;
+	const r_image_t *s = r_models.world->bsp->voxel->stains;
+	const color32_t *c = r_models.world->bsp->voxel->stain_buffer;
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_STAINS);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);
 	glGenerateMipmap(GL_TEXTURE_3D);
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);

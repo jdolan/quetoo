@@ -55,32 +55,25 @@ invariant gl_Position;
 /**
  * @brief
  */
-vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
+float sample_voxel_caustics(in vec3 texcoord) {
+	return texture(texture_voxel_diffuse, texcoord).a * caustics;
 }
 
 /**
  * @brief
  */
-float sample_lightgrid_caustics(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).a * caustics;
-}
-
-/**
- * @brief
- */
-vec4 sample_lightgrid_fog(in vec3 texcoord) {
+vec4 sample_voxel_fog(in vec3 texcoord) {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-		vec3 uvw = mix(texcoord, lightgrid.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(texcoord, voxel.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {
 			break;
 		}
@@ -122,11 +115,11 @@ void main(void) {
 		vertex.caustics = 0.0;
 		vertex.fog = vec4(0.0);
 	} else {
-		vec3 texcoord = lightgrid_uvw(vec3(model * position));
+		vec3 texcoord = voxel_uvw(vec3(model * position));
 
-		vertex.ambient = sample_lightgrid_diffuse(texcoord);
-		vertex.caustics = sample_lightgrid_caustics(texcoord);
-		vertex.fog = sample_lightgrid_fog(texcoord);
+		vertex.ambient = vec3(0.0);
+		vertex.caustics = sample_voxel_caustics(texcoord);
+		vertex.fog = sample_voxel_fog(texcoord);
 	}
 
 	gl_Position = projection3D * vec4(vertex.position, 1.0);

@@ -48,34 +48,32 @@
 #define MAX_BSP_BLOCKS				0x400
 #define MAX_BSP_MODELS				0x100
 #define MAX_BSP_LIGHTS				0x200
-#define MAX_BSP_LIGHTGRID_SIZE		0x2400000
+#define MAX_BSP_VOXELS_SIZE		0x2400000
 
 /**
- * @brief Lightgrid luxel size in world units.
+ * @brief Voxel voxel size in world units.
  */
-#define BSP_LIGHTGRID_LUXEL_SIZE 32
+#define BSP_VOXEL_SIZE 32
 
 /**
- * @brief Largest lightgrid width in luxels (8192 / 32 = 256).
+ * @brief Largest voxel texture width in voxels (8192 / 32 = 256).
  */
-#define MAX_BSP_LIGHTGRID_WIDTH (MAX_WORLD_AXIAL / BSP_LIGHTGRID_LUXEL_SIZE)
+#define MAX_BSP_VOXELS_AXIAL (MAX_WORLD_AXIAL / BSP_VOXEL_SIZE)
 
 /**
- * @brief Largest lightgrid texture size in luxels.
+ * @brief Largest voxel texture size in voxels.
  */
-#define MAX_BSP_LIGHTGRID_LUXELS (MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH * MAX_BSP_LIGHTGRID_WIDTH)
+#define MAX_BSP_VOXELS (MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL)
 
 /**
- * @brief The lightgrid textures.
+ * @brief The voxel textures.
  */
 typedef enum {
-	BSP_LIGHTGRID_FIRST,
-	BSP_LIGHTGRID_LIGHTS0 = BSP_LIGHTGRID_FIRST,
-	BSP_LIGHTGRID_LIGHTS1 = BSP_LIGHTGRID_FIRST,
-	BSP_LIGHTGRID_DIFFUSE,
-	BSP_LIGHTGRID_FOG,
-	BSP_LIGHTGRID_LAST
-} bsp_lightgrid_texture_t;
+	BSP_VOXELS_FIRST,
+	BSP_VOXELS_DIFFUSE = BSP_VOXELS_FIRST,
+	BSP_VOXELS_FOG,
+	BSP_VOXELS_LAST
+} bsp_voxel_texture_t;
 
 /**
  * @brief BSP file format lump identifiers.
@@ -97,7 +95,7 @@ typedef enum {
 	BSP_LUMP_BLOCKS,
 	BSP_LUMP_MODELS,
 	BSP_LUMP_LIGHTS,
-	BSP_LUMP_LIGHTGRID,
+	BSP_LUMP_VOXELS,
 	BSP_LUMP_LAST
 } bsp_lump_id_t;
 
@@ -550,12 +548,12 @@ typedef struct {
 } bsp_light_t;
 
 /**
- * @brief Lightgrids are layered 3D texture objects of variable size.
+ * @brief Voxels are layered 3D texture objects of variable size.
  * @details Each layer is up to 256x256x256.
  */
 typedef struct {
 	vec3i_t size;
-} bsp_lightgrid_t;
+} bsp_voxels_t;
 
 /**
  * @brief BSP file lumps in their native file formats. The data is stored as pointers
@@ -607,8 +605,8 @@ typedef struct bsp_file_s {
 	int32_t num_lights;
 	bsp_light_t *lights;
 
-	int32_t lightgrid_size;
-	bsp_lightgrid_t *lightgrid;
+	int32_t voxels_size;
+	bsp_voxels_t *voxels;
 
 	bsp_lump_id_t loaded_lumps;
 } bsp_file_t;

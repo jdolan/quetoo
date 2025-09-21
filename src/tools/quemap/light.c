@@ -216,7 +216,7 @@ void EmitLights(void) {
 		out->intensity = light->intensity;
 		out->bounds = light->bounds;
 
-		out->bounds = Box3_Expand(out->bounds, BSP_LIGHTGRID_LUXEL_SIZE * .5f);
+		out->bounds = Box3_Expand(out->bounds, BSP_VOXEL_SIZE * .5f);
 
 		out->first_depth_pass_element = bsp_file.num_elements;
 

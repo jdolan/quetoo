@@ -62,7 +62,7 @@ typedef struct light_s {
 	box3_t bounds;
 	
 	/**
-	 * @brief The output light in the BSP, so that luxels may reference them.
+	 * @brief The output light in the BSP, so that voxels may reference them.
 	 */
 	bsp_light_t *out;
 } light_t;

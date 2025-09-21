@@ -10,8 +10,6 @@ noinst_HEADERS = \
 	fog.h \
 	leakfile.h \
 	light.h \
-	lightgrid.h \
-	luxel.h \
 	material.h \
 	monitor.h \
 	points.h \
@@ -26,6 +24,7 @@ noinst_HEADERS = \
 	texture.h \
 	tjunction.h \
 	tree.h \
+	voxel.h \
 	work.h \
 	writebsp.h
 
@@ -38,8 +37,6 @@ quemap_SOURCES = \
 	fog.c \
 	leakfile.c \
 	light.c \
-	lightgrid.c \
-	luxel.c \
 	main.c \
 	map.c \
 	material.c \
@@ -54,6 +51,7 @@ quemap_SOURCES = \
 	texture.c \
 	tjunction.c \
 	tree.c \
+	voxel.c \
 	work.c \
 	writebsp.c
 

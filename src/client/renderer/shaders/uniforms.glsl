@@ -24,36 +24,36 @@
 #define VIEW_MAIN			1
 #define VIEW_PLAYER_MODEL	2
 
-#define BSP_LIGHTGRID_LUXEL_SIZE 32.0
+#define BSP_VOXEL_SIZE		32.0
 
 /**
- * @brief The lightgrid struct.
+ * @brief The voxel struct.
  */
-struct lightgrid_t {
+struct voxel_t {
 	/**
-	 * @brief The lightgrid mins, in world space.
+	 * @brief The voxel mins, in world space.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The lightgrid maxs, in world space.
+	 * @brief The voxel maxs, in world space.
 	 */
 	vec4 maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in voxel space.
 	 */
 	vec4 view_coordinate;
 
 	/**
-	 * @brief The lightgrid size, in luxels.
+	 * @brief The size, in voxels.
 	 */
 	vec4 size;
 
 	/**
-	 * @brief The lightrgrid luxel size, in texture space.
+	 * @brief The voxel size, in texture space.
 	 */
-	vec4 luxel_size;
+	vec4 voxel_size;
 };
 
 /**
@@ -86,9 +86,9 @@ layout (std140) uniform uniforms_block {
 	mat4 light_projection;
 
 	/**
-	 * @brief The lightgrid.
+	 * @brief The voxel.
 	 */
-	lightgrid_t lightgrid;
+	voxel_t voxel;
 
 	/**
 	 * @brief The depth range, in world units.
@@ -217,11 +217,11 @@ uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 
 /**
- * @brief The lightgrid textures.
+ * @brief The voxel textures.
  */
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_fog;
-uniform sampler3D texture_lightgrid_stains;
+uniform sampler3D texture_voxel_diffuse;
+uniform sampler3D texture_voxel_fog;
+uniform sampler3D texture_voxel_stains;
 
 /**
  * @brief The sky cubemap texture.

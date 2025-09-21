@@ -42,25 +42,18 @@ out vertex_data {
 /**
  * @brief
  */
-vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec4 sample_lightgrid_fog(in vec3 texcoord) {
+vec4 sample_voxel_fog(in vec3 texcoord) {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
-		vec3 uvw = mix(texcoord, lightgrid.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(texcoord, voxel.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {
 			break;
 		}
@@ -128,9 +121,9 @@ void main(void) {
 	vertex.softness = in_softness;
 	vertex.bloom = in_bloom;
 
-	vec3 texcoord = lightgrid_uvw(in_position);
+	vec3 texcoord = voxel_uvw(in_position);
 
-	vertex.fog = sample_lightgrid_fog(texcoord);
+	vertex.fog = sample_voxel_fog(texcoord);
 
 	light_and_shadow(texcoord);
 

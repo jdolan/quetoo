@@ -59,7 +59,7 @@ typedef enum {
 } fog_type_t;
 
 /**
- * @details Fog is baked into the lightgrid as an additional RGBA 3D texture.
+ * @details Fog is baked into the voxels as an additional RGBA 3D texture.
  */
 typedef struct {
 

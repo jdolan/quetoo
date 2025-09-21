@@ -35,7 +35,7 @@ out vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
-	vec3 lightgrid;
+	vec3 voxel;
 	vec4 color;
 } vertex;
 
@@ -62,7 +62,7 @@ void main(void) {
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
+	vertex.voxel = voxel_uvw(vec3(model * position));
 	vertex.color = in_color;
 
 	gl_Position = projection3D * view_model * vec4(in_position, 1.0);

@@ -343,13 +343,13 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 /**
  * @brief Resets all face stains in the event that the map is reloaded.
  */
-static void R_ResetBspLightgridStains(r_bsp_model_t *bsp) {
+static void R_ResetBspVoxelStains(r_bsp_model_t *bsp) {
 
-	r_bsp_lightgrid_t *lg = bsp->lightgrid;
+	r_bsp_voxel_t *lg = bsp->voxel;
 
 	Color32_Fill(lg->stain_buffer, Color32(255, 255, 255, 255), lg->size.x * lg->size.y * lg->size.z);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_STAINS);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 
 	R_UploadImage(lg->stains, lg->stain_buffer);
 
@@ -359,29 +359,29 @@ static void R_ResetBspLightgridStains(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
-static void R_LoadBspLightgrid(r_model_t *mod) {
+static void R_LoadBspVoxels(r_model_t *mod) {
 
-	const bsp_lightgrid_t *in = mod->bsp->cm->file->lightgrid;
-	const byte *data = (byte *) in + sizeof(bsp_lightgrid_t);
+	const bsp_voxels_t *in = mod->bsp->cm->file->voxels;
+	const byte *data = (byte *) in + sizeof(bsp_voxels_t);
 
-	r_bsp_lightgrid_t *out = mod->bsp->lightgrid = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+	r_bsp_voxel_t *out = mod->bsp->voxel = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 	out->size = in->size;
 
-	const vec3_t grid_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_LIGHTGRID_LUXEL_SIZE);
+	const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
 	const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
-	const vec3_t padding = Vec3_Scale(Vec3_Subtract(grid_size, world_size), 0.5);
+	const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5);
 
 	out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
 
-	out->luxel_size = Vec3(BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE, BSP_LIGHTGRID_LUXEL_SIZE);
+	out->voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
 
-	const size_t luxels = out->size.x * out->size.y * out->size.z;
+	const size_t voxels = out->size.x * out->size.y * out->size.z;
 
 	const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 	
-	out->diffuse = (r_image_t *) R_AllocMedia("lightgrid_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->diffuse = (r_image_t *) R_AllocMedia("voxel_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->diffuse->media.Free = R_FreeImage;
-	out->diffuse->type = IMG_LIGHTGRID;
+	out->diffuse->type = IMG_VOXELS;
 	out->diffuse->width = out->size.x;
 	out->diffuse->height = out->size.y;
 	out->diffuse->depth = out->size.z;
@@ -393,14 +393,14 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->diffuse->format = GL_RGBA;
 	out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_DIFFUSE);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DIFFUSE);
 
 	R_UploadImage(out->diffuse, data);
-	data += luxels * sizeof(color32_t);
+	data += voxels * sizeof(color32_t);
 
-	out->fog = (r_image_t *) R_AllocMedia("lightgrid_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->fog->media.Free = R_FreeImage;
-	out->fog->type = IMG_LIGHTGRID;
+	out->fog->type = IMG_VOXELS;
 	out->fog->width = out->size.x;
 	out->fog->height = out->size.y;
 	out->fog->depth = out->size.z;
@@ -412,13 +412,13 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->fog->format = GL_RGBA;
 	out->fog->pixel_type = GL_UNSIGNED_BYTE;
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_FOG);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_FOG);
 
 	R_UploadImage(out->fog, data);
 
-	out->stains = (r_image_t *) R_AllocMedia("lightgrid_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
+	out->stains = (r_image_t *) R_AllocMedia("voxel_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
 	out->stains->media.Free = R_FreeImage;
-	out->stains->type = IMG_LIGHTGRID;
+	out->stains->type = IMG_VOXELS;
 	out->stains->width = out->size.x;
 	out->stains->height = out->size.y;
 	out->stains->depth = out->size.z;
@@ -430,13 +430,13 @@ static void R_LoadBspLightgrid(r_model_t *mod) {
 	out->stains->format = GL_RGBA;
 	out->stains->pixel_type = GL_UNSIGNED_BYTE;
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHTGRID_STAINS);
+	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 
 	R_UploadImage(out->stains, NULL);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
-	out->stain_buffer = Mem_LinkMalloc(luxels * sizeof(color32_t), mod->bsp);
+	out->stain_buffer = Mem_LinkMalloc(voxels * sizeof(color32_t), mod->bsp);
 }
 
 /**
@@ -578,7 +578,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 	(1 << BSP_LUMP_DRAW_ELEMENTS) | \
 	(1 << BSP_LUMP_BLOCKS) | \
 	(1 << BSP_LUMP_LIGHTS) | \
-	(1 << BSP_LUMP_LIGHTGRID) \
+	(1 << BSP_LUMP_VOXELS) \
 )
 
 /**
@@ -608,10 +608,10 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspVertexArray(mod);
 	R_SetupBspInlineModels(mod);
 	R_LoadBspLights(mod->bsp);
-	R_LoadBspLightgrid(mod);
+	R_LoadBspVoxels(mod);
 
-	if (r_draw_bsp_lightgrid->value) {
-		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_LIGHTGRID));
+	if (r_draw_bsp_voxel->value) {
+		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_VOXELS));
 	} else {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 	}
@@ -634,11 +634,11 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	r_model_t *mod = (r_model_t *) self;
 
-	R_ResetBspLightgridStains(mod->bsp);
+	R_ResetBspVoxelStains(mod->bsp);
 
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->diffuse);
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->fog);
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->lightgrid->stains);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->fog);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->stains);
 
 	r_models.world = mod;
 }

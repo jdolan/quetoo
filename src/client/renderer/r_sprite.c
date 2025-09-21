@@ -57,8 +57,8 @@ static struct {
 
 	GLint texture_diffusemap;
 	GLint texture_next_diffusemap;
-	GLint texture_lightgrid_diffuse;
-	GLint texture_lightgrid_fog;
+	GLint texture_voxel_diffuse;
+	GLint texture_voxel_fog;
 	GLint texture_depth_attachment_copy;
 
 } r_sprite_program;
@@ -388,7 +388,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  */
 void R_UpdateSprites(r_view_t *view) {
 
-	R_AddBspLightgridSprites(view);
+	R_AddBspVoxelSprites(view);
 	
 	const r_sprite_t *s = view->sprites;
 	for (int32_t i = 0; i < view->num_sprites; i++, s++) {
@@ -530,14 +530,14 @@ static void R_InitSpriteProgram(void) {
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-	r_sprite_program.texture_lightgrid_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_diffuse");
-	r_sprite_program.texture_lightgrid_fog = glGetUniformLocation(r_sprite_program.name, "texture_lightgrid_fog");
+	r_sprite_program.texture_voxel_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_voxel_diffuse");
+	r_sprite_program.texture_voxel_fog = glGetUniformLocation(r_sprite_program.name, "texture_voxel_fog");
 	r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
 	glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 	glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-	glUniform1i(r_sprite_program.texture_lightgrid_diffuse, TEXTURE_LIGHTGRID_DIFFUSE);
-	glUniform1i(r_sprite_program.texture_lightgrid_fog, TEXTURE_LIGHTGRID_FOG);
+	glUniform1i(r_sprite_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
+	glUniform1i(r_sprite_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 	glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
 	glUseProgram(0);

@@ -21,8 +21,19 @@
 
 #pragma once
 
-#include "luxel.h"
+/**
+ * @brief The voxel type.
+ */
+typedef struct {
+	int32_t s, t, u;
+	vec3_t origin;
+	vec4_t diffuse;
+	vec4_t fog;
+} voxel_t;
 
+/**
+ * @brief The voxel grid type.
+ */
 typedef struct {
 	box3_t stu_bounds;
 	vec3i_t size;
@@ -30,14 +41,14 @@ typedef struct {
 	mat4_t matrix;
 	mat4_t inverse_matrix;
 
-	size_t num_luxels;
-	luxel_t *luxels;
-} lightgrid_t;
+	size_t num_voxels;
+	voxel_t *voxels;
+} voxels_t;
 
-extern lightgrid_t lg;
+extern voxels_t voxels;
 
-size_t BuildLightgrid(void);
-void DiffuseLightgrid(int32_t luxel_num);
-void CausticsLightgrid(int32_t luxel_num);
-void FogLightgrid(int32_t luxel_num);
-void EmitLightgrid(void);
+size_t BuildVoxels(void);
+void LightVoxel(int32_t voxel_num);
+void CausticsVoxel(int32_t voxel_num);
+void FogVoxel(int32_t voxel_num);
+void EmitVoxels(void);

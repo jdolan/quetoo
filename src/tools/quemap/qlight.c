@@ -393,8 +393,8 @@ static void LightWorld(void) {
 
 	LoadMaterials(va("maps/%s.mat", map_base));
 
-	// build lightgrid
-	const size_t num_lightgrid = BuildLightgrid();
+	// build voxel
+	const size_t num_voxel = BuildVoxels();
 
 	if (do_light) {
 
@@ -402,41 +402,38 @@ static void LightWorld(void) {
 		BuildLights();
 
 		// calculate direct lighting
-		Work("Diffuse lighting", DiffuseLightgrid, (int32_t) num_lightgrid);
+		Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
 		// caustic effects
-		Work("Caustics", CausticsLightgrid, (int32_t) num_lightgrid);
+		Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
 
 		// build fog volumes out of brush entities
 		BuildFog();
 
-		// bake fog into the lightgrid
-		Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+		// bake fog into the voxel
+		Work("Fog", FogVoxel, (int32_t) num_voxel);
 
 		// free the fog volumes
 		FreeFog();
 
 	} else {
-		// pad the lightgrid for bsp-only compiles
-		for (size_t i = 0; i < lg.num_luxels; i++) {
-			lg.luxels[i].diffuse.xyz = Vec3_One();
+		// pad the voxel for bsp-only compiles
+		for (size_t i = 0; i < voxels.num_voxels; i++) {
+			voxels.voxels[i].diffuse.xyz = Vec3_One();
 		}
 	}
 
 	// emit light sources to the bsp
 	EmitLights();
 
-	// write it to the bsp
-	EmitLightgrid();
+	// and voxels
+	EmitVoxels();
 
-	// free the lightgrid
-	Mem_FreeTag(MEM_TAG_LIGHTGRID);
+	// free the voxels
+	Mem_FreeTag(MEM_TAG_VOXEL);
 
 	// free the light sources
 	FreeLights();
-
-	// free the windings
-	FreeWindings();
 
 	// free the materials
 	FreeMaterials();

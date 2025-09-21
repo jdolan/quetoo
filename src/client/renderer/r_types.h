@@ -104,7 +104,7 @@ typedef enum {
 	IMG_ATLAS,
 	IMG_MATERIAL,
 	IMG_CUBEMAP,
-	IMG_LIGHTGRID,
+	IMG_VOXELS,
 } r_image_type_t;
 
 /**
@@ -721,19 +721,19 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The lightgrid size in luxels.
+	 * @brief The voxel size in voxels.
 	 */
 	vec3i_t size;
 
 	/**
-	 * @brief The lightgrid bounds in world space.
+	 * @brief The voxel bounds in world space.
 	 */
 	box3_t bounds;
 
 	/**
-	 * @brief The luxel size in world units (constant).
+	 * @brief The voxel size in world units (constant).
 	 */
-	vec3_t luxel_size;
+	vec3_t voxel_size;
 	
 	/**
 	 * @brief The light index 3D textures (R10G10B10A2).
@@ -759,7 +759,7 @@ typedef struct {
 	 * @brief The stainmap buffer.
 	 */
 	color32_t *stain_buffer;
-} r_bsp_lightgrid_t;
+} r_bsp_voxel_t;
 
 /**
  * @brief The renderer representation of the BSP model.
@@ -804,7 +804,7 @@ typedef struct {
 	int32_t num_lights;
 	r_bsp_light_t *lights;
 
-	r_bsp_lightgrid_t *lightgrid;
+	r_bsp_voxel_t *voxel;
 
 	/**
 	 * @brief The vertex array (VAO) name.
@@ -1297,7 +1297,7 @@ typedef struct {
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
- * @brief Stains are low-resolution color effects added to the map's lightgrid
+ * @brief Stains are low-resolution color effects added to the map's voxel
  * data. They are persistent for the duration of the map.
  */
 typedef struct {
@@ -1797,12 +1797,12 @@ typedef enum {
 	TEXTURE_WARP,
 
 	/**
-	 * @brief The lightgrid textures, used by the BSP, mesh, sprite and sky programs.
+	 * @brief The voxel textures, used by the BSP, mesh, sprite and sky programs.
 	 */
-	TEXTURE_LIGHTGRID,
-	TEXTURE_LIGHTGRID_DIFFUSE,
-	TEXTURE_LIGHTGRID_FOG,
-	TEXTURE_LIGHTGRID_STAINS,
+	TEXTURE_VOXEL,
+	TEXTURE_VOXEL_DIFFUSE,
+	TEXTURE_VOXEL_FOG,
+	TEXTURE_VOXEL_STAINS,
 
 	/**
 	 * @brief The sky cubemap texture.

@@ -78,35 +78,35 @@ typedef struct {
 extern r_config_t r_config;
 
 /**
- * @brief The lightgrid uniform struct.
+ * @brief The voxel uniform struct.
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
 	/**
-	 * @brief The lightgrid mins, in world space.
+	 * @brief The voxel mins, in world space.
 	 */
 	vec4_t mins;
 
 	/**
-	 * @brief The lightgrid maxs, in world space.
+	 * @brief The voxel maxs, in world space.
 	 */
 	vec4_t maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in voxel space.
 	 */
 	vec4_t view_coordinate;
 
 	/**
-	 * @brief The lightgrid size, in luxels.
+	 * @brief The voxel size, in voxels.
 	 */
 	vec4_t size;
 
 	/**
-	 * @brief The lightgrid luxel size, in texture space.
+	 * @brief The voxel voxel size, in texture space.
 	 */
-	vec4_t luxel_size;
-} r_lightgrid_t;
+	vec4_t voxel_size;
+} r_voxel_t;
 
 /**
  * @brief The uniforms block type.
@@ -148,9 +148,9 @@ typedef struct {
 		mat4_t light_projection;
 
 		/**
-		 * @brief The lightgrid uniforms.
+		 * @brief The voxel uniforms.
 		 */
-		r_lightgrid_t lightgrid;
+		r_voxel_t voxel;
 
 		/**
 		 * @brief The depth range, in world units.
@@ -221,7 +221,7 @@ extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_developer;
 extern cvar_t *r_draw_bsp_blocks;
-extern cvar_t *r_draw_bsp_lightgrid;
+extern cvar_t *r_draw_bsp_voxel;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;

@@ -23,7 +23,7 @@ in vertex_data {
 	vec3 model;
 	vec3 position;
 	vec3 cubemap;
-	vec3 lightgrid;
+	vec3 voxel;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -32,18 +32,18 @@ layout (location = 1) out vec4 out_bloom;
 /**
  * @brief
  */
-vec4 sample_lightgrid_fog() {
+vec4 sample_voxel_fog() {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-		vec3 uvw = mix(vertex.lightgrid, lightgrid.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(vertex.voxel, voxel.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {
 			break;
 		}
@@ -63,7 +63,7 @@ void main(void) {
 
 	out_color = texture(texture_sky, normalize(vertex.cubemap));
 
-	vec4 fog = sample_lightgrid_fog();
+	vec4 fog = sample_voxel_fog();
 	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
 
 	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
