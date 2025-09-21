@@ -76,15 +76,13 @@ vec4 sample_lightgrid_fog(in vec3 texcoord) {
 /**
  * @brief
  */
-void light_and_shadow_light(in light_t light) {
+vec3 light_and_shadow_light(in light_t light) {
 
-	float dist = distance(light.position.xyz, in_position);
+	float dist = distance(light.model.xyz, in_position);
 	float radius = light.model.w;
 	float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-	vec3 diffuse = light.color.rgb * light.color.a * atten * modulate;
-
-	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+	return light.color.rgb * light.color.a * atten * modulate;
 }
 
 /**
@@ -96,6 +94,8 @@ void light_and_shadow(in vec3 texcoord) {
 		return;
 	}
 
+	vec3 diffuse = vec3(0.0);
+
 	for (int i = 0; i < MAX_LIGHTS; i++) {
 
 		int index = active_lights[i];
@@ -106,9 +106,11 @@ void light_and_shadow(in vec3 texcoord) {
 		light_t light = lights[index];
 
 		if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
-			light_and_shadow_light(light);
+			diffuse += light_and_shadow_light(light);
 		}
 	}
+
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
 }
 
 /**
