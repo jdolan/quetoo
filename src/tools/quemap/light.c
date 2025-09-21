@@ -103,6 +103,7 @@ static light_t *LightForEntity_light(const cm_entity_t *entity) {
 
 	light->type = LIGHT_POINT;
 	light->atten = LIGHT_ATTEN_LINEAR;
+	light->flags = Cm_EntityValue(entity, "spawnflags")->integer;
 	light->origin = Cm_EntityValue(entity, "origin")->vec3;
 	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
 	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
@@ -172,6 +173,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 
 	const material_t *material = &materials[brush_side->material];
 	light->atten = material->cm->light.atten;
+	light->flags = material->cm->light.flags;
 	light->winding = winding;
 	light->origin = origin;
 	light->radius = brush_side->value ?: material->cm->light.radius;
@@ -269,6 +271,7 @@ void EmitLights(void) {
 
 		out->type = light->type;
 		out->atten = light->atten;
+		out->flags = light->flags;
 		out->origin = light->origin;
 		out->radius = light->radius;
 		out->color = light->color;

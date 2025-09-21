@@ -44,6 +44,11 @@ typedef struct light_s {
 	light_atten_t atten;
 
 	/**
+	 * @brief The flags.
+	 */
+	int32_t flags;
+
+	/**
 	 * @brief The origin.
 	 */
 	vec3_t origin;

@@ -516,6 +516,8 @@ typedef enum {
 	LIGHT_ATTEN_INVERSE_SQUARE,
 } light_atten_t;
 
+#define LIGHT_NO_SHADOW 1
+
 /**
  * @brief BSP representation of light sources.
  */
@@ -529,6 +531,11 @@ typedef struct {
 	 * @brief The light attenuation.
 	 */
 	light_atten_t atten;
+
+	/**
+	 * @brief The light flags.
+	 */
+	int32_t flags;
 
 	/**
 	 * @brief The light origin.

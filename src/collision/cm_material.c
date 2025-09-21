@@ -900,6 +900,13 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 		}
 
+		if (!g_strcmp0(token, "light.flags")) {
+
+			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.flags, 1) != 1) {
+				Cm_MaterialWarn(path, &parser, "No light flags specified");
+			}
+		}
+
 		if (!g_strcmp0(token, "light.color")) {
 			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, m->light.color.xyz, 3) != 3) {
 				Cm_MaterialWarn(path, &parser, "Invalid light color");
@@ -1324,6 +1331,10 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 		if (material->light.atten != MATERIAL_LIGHT_ATTEN) {
 			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
+		}
+
+		if (material->light.flags != MATERIAL_LIGHT_FLAGS) {
+			Fs_Print(file, "\tlight.flags %d\n", material->light.flags);
 		}
 
 		if (material->light.radius != MATERIAL_LIGHT_RADIUS) {

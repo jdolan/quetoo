@@ -666,6 +666,11 @@ typedef struct {
 	light_atten_t atten;
 
 	/**
+	 * @brief The light flags.
+	 */
+	int32_t flags;
+
+	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -703,7 +708,7 @@ typedef struct {
 	/**
 	 * @brief True if this light's shadowmap may be cached for the current frame.
 	 */
-	bool cached;
+	bool shadow_cached;
 
 	/**
 	 * @brief The light occlusion query.
@@ -1466,6 +1471,11 @@ typedef struct {
 	light_atten_t atten;
 
 	/**
+	 * @brief The light flags.
+	 */
+	int32_t flags;
+
+	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -1496,10 +1506,9 @@ typedef struct {
 	box3_t bounds;
 
 	/**
-	 * @brief The light occlusion query, for static light sources.
-	 * @details This is a pointer to the backing BSP light's occlusion query.
+	 * @brief The backing BSP light, for static light sources.
 	 */
-	const r_bsp_light_t *bsp_light;
+	r_bsp_light_t *bsp_light;
 
 	/**
 	 * @brief The optional light source, which will not cast shadow.

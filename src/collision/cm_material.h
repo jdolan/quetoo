@@ -237,6 +237,11 @@ typedef struct {
 	int32_t atten;
 
 	/**
+	 * @brief The light flags.
+	 */
+	int32_t flags;
+
+	/**
 	 * @brief The light color. If not set, this will be the scaled average of the diffusemap.
 	 */
 	vec3_t color;
@@ -259,6 +264,7 @@ typedef struct {
 #define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
 #define MATERIAL_LIGHT_ATTEN 1
+#define MATERIAL_LIGHT_FLAGS 0
 #define MATERIAL_LIGHT_RADIUS 300.f
 #define MATERIAL_LIGHT_INTENSITY 1.f
 

@@ -331,6 +331,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 		out->type = in->type;
 		out->atten = in->atten;
+		out->flags = in->flags;
 		out->origin = in->origin;
 		out->color = in->color;
 		out->normal = in->normal;

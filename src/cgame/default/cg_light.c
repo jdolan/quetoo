@@ -72,7 +72,7 @@ void Cg_AddLight(const cg_light_t *l) {
 static void Cg_AddBspLights(void) {
 	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 	
-	const r_bsp_light_t *l = bsp->lights;
+	r_bsp_light_t *l = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
 
 		if (l->type == LIGHT_SUN) {
@@ -82,6 +82,7 @@ static void Cg_AddBspLights(void) {
 		cgi.AddLight(cgi.view, &(const r_light_t) {
 			.type = l->type,
 			.atten = l->atten,
+			.flags = l->flags,
 			.origin = l->origin,
 			.color = l->color,
 			.normal = l->normal,

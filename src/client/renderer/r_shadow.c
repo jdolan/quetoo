@@ -76,6 +76,21 @@ static struct {
 /**
  * @brief
  */
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+
+	while (e) {
+		if (light->source == e->id) {
+			return true;
+		}
+		e = e->parent;
+	}
+
+	return false;
+}
+
+/**
+ * @brief
+ */
 static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
 	const r_bsp_inline_model_t *in = e->model->bsp_inline;
@@ -87,6 +102,47 @@ static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *l
 	} else {
 		glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
 	}
+}
+
+/**
+ * @brief
+ */
+static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+
+	const r_bsp_model_t *bsp = r_models.world->bsp;
+	glBindVertexArray(bsp->vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
+
+	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (GLvoid *) offsetof(r_bsp_vertex_t, position));
+	glEnableVertexAttribArray(r_shadow_program.in_position);
+
+	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+	glUniform1f(r_shadow_program.lerp, 0.f);
+
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+		if (!IS_BSP_INLINE_MODEL(e->model)) {
+			continue;
+		}
+
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+			continue;
+		}
+
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		R_DrawBspInlineEntityShadow(view, light, e);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 }
 
 /**
@@ -138,19 +194,49 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 	}
 }
 
-/**
- * @brief
- */
-static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
+static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
-	while (e) {
-		if (light->source == e->id) {
-			return true;
-		}
-		e = e->parent;
+	if (light->flags & LIGHT_NO_SHADOW) {
+		return;
 	}
 
-	return false;
+	glBindVertexArray(r_models.mesh.vertex_array);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+
+	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+	glVertexAttribPointer(r_shadow_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+
+	glEnableVertexAttribArray(r_shadow_program.in_position);
+	glEnableVertexAttribArray(r_shadow_program.in_next_position);
+
+	const r_entity_t *e = view->entities;
+	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+
+		if (!IS_MESH_MODEL(e->model)) {
+			continue;
+		}
+
+		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+			continue;
+		}
+
+		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+			continue;
+		}
+
+		if (R_IsLightSource(light, e)) {
+			continue;
+		}
+
+		R_DrawMeshEntityShadow(view, light, e);
+	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
 }
 
 /**
@@ -170,7 +256,7 @@ static bool R_CullShadow(const r_view_t *view, const r_light_t *light) {
 }
 
 /**
- * @brief Static light sources with no entities within their bounds may cache shadows.
+ * @brief Static light sources with a rendered shadowmap and no entities may cache shadows.
  */
 static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
 
@@ -178,8 +264,12 @@ static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
 		return false;
 	}
 
-	if (light->bsp_light->cached == false) {
+	if (light->bsp_light->shadow_cached == false) {
 		return false;
+	}
+
+	if (light->flags & LIGHT_NO_SHADOW) {
+		return true;
 	}
 
 	const r_entity_t *e = view->entities + 1;
@@ -227,77 +317,13 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
 	glUniform1i(r_shadow_program.light_index, layer);
 
-	const r_bsp_model_t *bsp = r_models.world->bsp;
-	glBindVertexArray(bsp->vertex_array);
+	R_DrawBspInlineEntitiesShadow(view, light);
 
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (GLvoid *) offsetof(r_bsp_vertex_t, position));
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
-
-	const r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-		if (!IS_BSP_INLINE_MODEL(e->model)) {
-			continue;
-		}
-
-		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-			continue;
-		}
-
-		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
-			continue;
-		}
-
-		R_DrawBspInlineEntityShadow(view, light, e);
-	}
-
-	glBindVertexArray(r_models.mesh.vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
-
-	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-	glVertexAttribPointer(r_shadow_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glEnableVertexAttribArray(r_shadow_program.in_next_position);
-
-	e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-		if (!IS_MESH_MODEL(e->model)) {
-			continue;
-		}
-
-		if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-			continue;
-		}
-
-		if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
-			continue;
-		}
-
-		if (R_IsLightSource(light, e)) {
-			continue;
-		}
-
-		R_DrawMeshEntityShadow(view, light, e);
-	}
+	R_DrawMeshEntitiesShadow(view, light);
 
 	if (light->bsp_light) {
-		((r_bsp_light_t *) light->bsp_light)->cached = true;
+		light->bsp_light->shadow_cached = true;
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
 
 	R_GetError(NULL);
 }
