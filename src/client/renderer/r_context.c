@@ -224,7 +224,7 @@ void R_InitContext(void) {
 #if __APPLE__
 	// Stop Xcode from launching multiple instances of the application
 	// https://developer.apple.com/forums/thread/765445
-	usleep(350000);
+	usleep(500000);
 #endif
 
 	memset(&r_context, 0, sizeof(r_context));
