@@ -50,14 +50,6 @@ void Cg_AddLight(const cg_light_t *l) {
 	cg_light_t *out = cg_lights + i;
 	*out = *l;
 
-	if (out->type == LIGHT_INVALID) {
-		out->type = LIGHT_DYNAMIC;
-	}
-
-	if (out->type == LIGHT_DYNAMIC && out->atten == LIGHT_ATTEN_NONE) {
-		out->atten = LIGHT_ATTEN_LINEAR;
-	}
-
 	if (out->intensity == 0.f) {
 		out->intensity = 1.f;
 	}
@@ -75,17 +67,10 @@ static void Cg_AddBspLights(void) {
 	r_bsp_light_t *l = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
 
-		if (l->type == LIGHT_SUN) {
-			continue;
-		}
-		
 		cgi.AddLight(cgi.view, &(const r_light_t) {
-			.type = l->type,
-			.atten = l->atten,
 			.flags = l->flags,
 			.origin = l->origin,
 			.color = l->color,
-			.normal = l->normal,
 			.radius = l->radius,
 			.intensity = l->intensity,
 			.bounds = l->bounds,
@@ -115,8 +100,6 @@ void Cg_AddLights(void) {
 		}
 
 		r_light_t out = {
-			.type = l->type,
-			.atten = l->atten,
 			.origin = l->origin,
 			.color = l->color,
 			.radius = l->radius,

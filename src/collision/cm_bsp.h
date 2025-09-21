@@ -502,36 +502,12 @@ typedef struct {
 	int32_t num_blocks;
 } bsp_model_t;
 
-typedef enum {
-	LIGHT_INVALID    = 0x0,
-	LIGHT_SUN        = 0x1,
-	LIGHT_POINT      = 0x2,
-	LIGHT_BRUSH_SIDE = 0x4,
-	LIGHT_DYNAMIC    = 0x8,
-} light_type_t;
-
-typedef enum {
-	LIGHT_ATTEN_NONE,
-	LIGHT_ATTEN_LINEAR,
-	LIGHT_ATTEN_INVERSE_SQUARE,
-} light_atten_t;
-
 #define LIGHT_NO_SHADOW 1
 
 /**
  * @brief BSP representation of light sources.
  */
 typedef struct {
-	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light attenuation.
-	 */
-	light_atten_t atten;
-
 	/**
 	 * @brief The light flags.
 	 */
@@ -558,24 +534,19 @@ typedef struct {
 	float intensity;
 
 	/**
-	 * @brief The light normal and plane distance.
-	 */
-	vec4_t normal;
-
-	/**
 	 * @brief The light's visible bounds, clipped to world geometry.
 	 */
 	box3_t bounds;
 
 	/**
-	 * @brief The index of the first element of this light's shadow geometry.
+	 * @brief The index of the first element of this light's depth pass geometry.
 	 */
-	int32_t first_element;
+	int32_t first_depth_pass_element;
 
 	/**
-	 * @brief The count of shadow geometry elements.
+	 * @brief The count of depth pass geometry elements.
 	 */
-	int32_t num_elements;
+	int32_t num_depth_pass_elements;
 } bsp_light_t;
 
 /**

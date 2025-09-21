@@ -871,7 +871,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
 	// Impact light
 	Cg_AddLight(&(cg_light_t) {
-		.atten = LIGHT_ATTEN_INVERSE_SQUARE,
 		.origin = Vec3_Fmaf(end, 1.f, dir),
 		.radius = 12.f,
 		.color = color_rgb.vec3,

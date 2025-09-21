@@ -231,12 +231,6 @@ typedef struct {
  */
 typedef struct {
 	/**
-	 * @brief The light attenuation.
-	 * @see `light_atten_t`
-	 */
-	int32_t atten;
-
-	/**
 	 * @brief The light flags.
 	 */
 	int32_t flags;
@@ -263,7 +257,6 @@ typedef struct {
 #define MATERIAL_PARALLAX 1.f
 #define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
-#define MATERIAL_LIGHT_ATTEN 1
 #define MATERIAL_LIGHT_FLAGS 0
 #define MATERIAL_LIGHT_RADIUS 300.f
 #define MATERIAL_LIGHT_INTENSITY 1.f

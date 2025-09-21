@@ -647,7 +647,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->parallax = MATERIAL_PARALLAX;
 	mat->bloom = MATERIAL_BLOOM;
 
-	mat->light.atten = MATERIAL_LIGHT_ATTEN;
+	mat->light.flags = MATERIAL_LIGHT_FLAGS;
 	mat->light.intensity = MATERIAL_LIGHT_INTENSITY;
 
 	return mat;
@@ -888,16 +888,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			}
 
 			m->surface |= SURF_LIGHT;
-		}
-
-		if (!g_strcmp0(token, "light.atten")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.atten, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light atten specified");
-			} else if (m->light.atten < 1) {
-				Cm_MaterialWarn(path, &parser, "Invalid light atten, must be > 0");
-				m->light.atten = MATERIAL_LIGHT_ATTEN;
-			}
 		}
 
 		if (!g_strcmp0(token, "light.flags")) {
@@ -1328,10 +1318,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 	if (material->surface & SURF_LIGHT) {
 		const vec3_t color = material->light.color;
-
-		if (material->light.atten != MATERIAL_LIGHT_ATTEN) {
-			Fs_Print(file, "\tlight.atten %d\n", material->light.atten);
-		}
 
 		if (material->light.flags != MATERIAL_LIGHT_FLAGS) {
 			Fs_Print(file, "\tlight.flags %d\n", material->light.flags);

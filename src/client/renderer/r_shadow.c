@@ -98,7 +98,7 @@ static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *l
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
 
 	if (light->bsp_light && in == r_models.world->bsp->inline_models) {
-		glDrawElements(GL_TRIANGLES, light->bsp_light->num_elements, GL_UNSIGNED_INT, light->bsp_light->elements);
+		glDrawElements(GL_TRIANGLES, light->bsp_light->num_depth_pass_elements, GL_UNSIGNED_INT, light->bsp_light->depth_pass_elements);
 	} else {
 		glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
 	}

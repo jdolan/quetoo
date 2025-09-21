@@ -276,22 +276,14 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_dynamic(in light_t light, in int index) {
+void light_and_shadow_light(in light_t light, in int index) {
 
 	vec3 dir = light.position.xyz - vertex.position;
 
 	float radius = light.model.w;
 	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
 
-	vec3 diffuse = light.color.rgb * light.color.a * modulate;
-	switch (int(light.maxs.w)) {
-		case LIGHT_ATTEN_LINEAR:
-			diffuse *= atten;
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			diffuse *= atten * atten;
-			break;
-	}
+	vec3 diffuse = light.color.rgb * light.color.a * atten * modulate;
 
 	dir = normalize(dir);
 
@@ -360,7 +352,7 @@ void light_and_shadow(void) {
 		light_t light = lights[index];
 
 		if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
-			light_and_shadow_dynamic(light, index);
+			light_and_shadow_light(light, index);
 		}
 	}
 

@@ -152,20 +152,6 @@ size_t BuildLightgrid(void) {
 /**
  * @brief
  */
-static void LightgridLuxel_Sun(light_t *light, luxel_t *luxel, float scale) {
-
-	const vec3_t dir = Vec3_Negate(light->normal);
-	const vec3_t end = Vec3_Fmaf(luxel->origin, MAX_WORLD_DIST, dir);
-
-	const cm_trace_t trace = Light_Trace(luxel->origin, end, 0, CONTENTS_SOLID);
-	if (trace.surface & SURF_SKY) {
-		IlluminateLuxel(luxel, light, scale);
-	}
-}
-
-/**
- * @brief
- */
 static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 
 	const float dist = Maxf(0.f, Vec3_Distance(light->origin, luxel->origin));
@@ -173,59 +159,8 @@ static void LightgridLuxel_Point(light_t *light, luxel_t *luxel, float scale) {
 		return;
 	}
 
-	float atten = 1.f;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf01(1.f - dist / light->radius);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf01(1.f - dist / light->radius);
-			atten *= atten;
-			break;
-	}
-
-	const float lumens = atten * scale;
-
-	const cm_trace_t trace = Light_Trace(luxel->origin, light->origin, 0, CONTENTS_SOLID);
-	if (trace.fraction == 1.f) {
-		IlluminateLuxel(luxel, light, lumens);
-	}
-}
-
-/**
- * @brief
- */
-static void LightgridLuxel_BrushSide(light_t *light, luxel_t *luxel, float scale) {
-
-	if (light->model != bsp_file.models) {
-		return;
-	}
-
-	vec3_t dir;
-	const float dist = Vec3_DistanceDir(light->origin, luxel->origin, &dir);
-	if (dist >= light->radius) {
-		return;
-	}
-
-	float atten;
-
-	switch (light->atten) {
-		case LIGHT_ATTEN_NONE:
-			atten = 1.f;
-			break;
-		case LIGHT_ATTEN_LINEAR:
-			atten = Clampf01(1.f - dist / light->radius);
-			break;
-		case LIGHT_ATTEN_INVERSE_SQUARE:
-			atten = Clampf01(1.f - dist / light->radius);
-			atten *= atten;
-			break;
-	}
-
-	float lumens = atten * scale;
+	const float atten = Clampf01(1.f - dist / light->radius);
+	const float lumens = atten * atten * scale;
 
 	const cm_trace_t trace = Light_Trace(luxel->origin, light->origin, 0, CONTENTS_SOLID);
 	if (trace.fraction == 1.f) {
@@ -245,19 +180,7 @@ static inline void LightgridLuxel(const GPtrArray *lights, luxel_t *luxel, float
 
 		light_t *light = g_ptr_array_index(lights, i);
 
-		switch (light->type) {
-			case LIGHT_SUN:
-				LightgridLuxel_Sun(light, luxel, scale);
-				break;
-			case LIGHT_POINT:
-				LightgridLuxel_Point(light, luxel, scale);
-				break;
-			case LIGHT_BRUSH_SIDE:
-				LightgridLuxel_BrushSide(light, luxel, scale);
-				break;
-			default:
-				break;
-		}
+		LightgridLuxel_Point(light, luxel, scale);
 	}
 }
 

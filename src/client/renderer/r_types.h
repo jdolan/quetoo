@@ -656,16 +656,6 @@ typedef struct r_bsp_inline_model_s {
  */
 typedef struct {
 	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light attenuation.
-	 */
-	light_atten_t atten;
-
-	/**
 	 * @brief The light flags.
 	 */
 	int32_t flags;
@@ -718,12 +708,12 @@ typedef struct {
 	/**
 	 * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
 	 */
-	GLvoid *elements;
+	GLvoid *depth_pass_elements;
 
 	/**
 	 * @brief The count of elements.
 	 */
-	int32_t num_elements;
+	int32_t num_depth_pass_elements;
 } r_bsp_light_t;
 
 /**
@@ -1461,16 +1451,6 @@ typedef struct r_entity_s {
  */
 typedef struct {
 	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light attenuation.
-	 */
-	light_atten_t atten;
-
-	/**
 	 * @brief The light flags.
 	 */
 	int32_t flags;
@@ -1484,11 +1464,6 @@ typedef struct {
 	 * @brief The light color.
 	 */
 	vec3_t color;
-
-	/**
-	 * @brief The light normal and plane distance for directional lights.
-	 */
-	vec4_t normal;
 
 	/**
 	 * @brief The light radius.
@@ -1776,7 +1751,8 @@ typedef struct {
  * @brief Renderer statistics.
  */
 typedef struct {
-	int32_t lights;
+	int32_t lights_visible;
+	int32_t lights_occluded;
 
 	int32_t occlusion_queries_visible;
 	int32_t occlusion_queries_occluded;

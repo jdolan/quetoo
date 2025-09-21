@@ -301,17 +301,14 @@ static void Bsp_SwapLights(void *lump, const int32_t num) {
 	bsp_light_t *light = (bsp_light_t *) lump;
 
 	for (int32_t i = 0; i < num; i++) {
-		light->type = LittleLong(light->type);
-		light->atten = LittleLong(light->atten);
 		light->flags = LittleLong(light->flags);
 		light->origin = LittleVec3(light->origin);
 		light->radius = LittleFloat(light->radius);
 		light->color = LittleVec3(light->color);
 		light->intensity = LittleFloat(light->intensity);
-		light->normal = LittleVec4(light->normal);
 		light->bounds = LittleBounds(light->bounds);
-		light->first_element = LittleLong(light->first_element);
-		light->num_elements = LittleLong(light->num_elements);
+		light->first_depth_pass_element = LittleLong(light->first_depth_pass_element);
+		light->num_depth_pass_elements = LittleLong(light->num_depth_pass_elements);
 		light++;
 	}
 }

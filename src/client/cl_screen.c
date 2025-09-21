@@ -191,22 +191,25 @@ static void Cl_DrawRendererStats(void) {
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
+		R_Draw2DString(x, y, "Lights:", color_yellow);
 		y += ch;
 
-		R_Draw2DString(x, y, va(" %d visible", r_stats.occlusion_queries_visible), color_yellow);
+		R_Draw2DString(x, y, va(" %d visible", r_stats.lights_visible), color_yellow);
 		y += ch;
-		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
+
+		R_Draw2DString(x, y, va(" %d occluded", r_stats.lights_occluded), color_yellow);
 		y += ch;
 	}
 
 	y += ch;
 
 	{
-		R_Draw2DString(x, y, "Lights:", color_yellow);
+		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
 		y += ch;
 
-		R_Draw2DString(x, y, va(" %d lights", r_stats.lights), color_yellow);
+		R_Draw2DString(x, y, va(" %d visible", r_stats.occlusion_queries_visible), color_yellow);
+		y += ch;
+		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
 		y += ch;
 	}
 

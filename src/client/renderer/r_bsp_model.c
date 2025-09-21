@@ -329,17 +329,14 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
 	for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
 
-		out->type = in->type;
-		out->atten = in->atten;
 		out->flags = in->flags;
 		out->origin = in->origin;
 		out->color = in->color;
-		out->normal = in->normal;
 		out->radius = in->radius;
 		out->intensity = in->intensity;
 		out->bounds = in->bounds;
-		out->elements = (GLvoid *) (in->first_element * sizeof(GLuint));
-		out->num_elements = in->num_elements;
+		out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
+		out->num_depth_pass_elements = in->num_depth_pass_elements;
 	}
 }
 
@@ -531,10 +528,6 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
 	r_bsp_light_t *light = bsp->lights;
 	for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-
-		if (light->type < LIGHT_POINT || light->type > LIGHT_BRUSH_SIDE) {
-			continue;
-		}
 
 		glGenQueries(1, &light->query.name);
 		light->query.bounds = light->bounds;

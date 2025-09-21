@@ -50,7 +50,7 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), 0.f);
 	out->model = Vec3_ToVec4(in->origin, in->radius);
 	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
-	out->maxs = Vec3_ToVec4(in->bounds.maxs, in->atten);
+	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 
@@ -75,10 +75,15 @@ void R_UpdateLights(r_view_t *view) {
 			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
 		}
 
+		if (l->bsp_light && l->bsp_light->occluded) {
+			r_stats.lights_occluded++;
+		} else {
+			r_stats.lights_visible++;
+		}
+
 		R_AddLightUniform(view, l);
 	}
 
-	out->num_lights = r_stats.lights = view->num_lights;
 
 	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(*out), out);

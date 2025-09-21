@@ -36,11 +36,6 @@ static light_t *AllocLight(void) {
  * @brief
  */
 static void FreeLight(light_t *light) {
-
-	if (light->winding) {
-		Cm_FreeWinding(light->winding);
-	}
-
 	Mem_Free(light);
 }
 
@@ -66,73 +61,26 @@ const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForEntity_light_sun(const cm_entity_t *entity) {
-
-	light_t *light = AllocLight();
-
-	light->type = LIGHT_SUN;
-	light->atten = LIGHT_ATTEN_NONE;
-	light->origin = Cm_EntityValue(entity, "origin")->vec3;
-	light->color = Cm_EntityValue(entity, "_color")->vec3;
-	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
-	light->bounds = Box3_FromCenter(light->origin);
-
-	if (Vec3_Equal(Vec3_Zero(), light->color)) {
-		light->color = LIGHT_COLOR;
-	}
-
-	light->normal = Vec3_Down();
-
-	const int32_t num = Cm_EntityNumber(entity);
-	const cm_entity_t *target = EntityTarget(entity);
-	if (target) {
-		light->normal = Vec3_Direction(Cm_EntityValue(target, "origin")->vec3, light->origin);
-	} else {
-		Mon_SendSelect(MON_WARN, num, 0, "light_sun missing target");
-	}
-
-	return light;
-}
-
-/**
- * @brief
- */
-static light_t *LightForEntity_light(const cm_entity_t *entity) {
-
-	light_t *light = AllocLight();
-
-	light->type = LIGHT_POINT;
-	light->atten = LIGHT_ATTEN_LINEAR;
-	light->flags = Cm_EntityValue(entity, "spawnflags")->integer;
-	light->origin = Cm_EntityValue(entity, "origin")->vec3;
-	light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
-	light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
-	light->color = Cm_EntityValue(entity, "_color")->vec3;
-
-	if (Vec3_Equal(Vec3_Zero(), light->color)) {
-		light->color = LIGHT_COLOR;
-	}
-
-	if (Cm_EntityValue(entity, "atten")->parsed & ENTITY_INTEGER) {
-		light->atten = Cm_EntityValue(entity, "atten")->integer;
-	}
-
-	light->bounds = Box3_FromCenter(light->origin);
-
-	return light;
-}
-
-
-/**
- * @brief
- */
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
 	const char *class_name = Cm_EntityValue(entity, "classname")->string;
-	if (!g_strcmp0(class_name, "light_sun")) {
-		return LightForEntity_light_sun(entity);
-	} else if (!g_strcmp0(class_name, "light")) {
-		return LightForEntity_light(entity);
+	if (!g_strcmp0(class_name, "light")) {
+
+		light_t *light = AllocLight();
+
+		light->flags = Cm_EntityValue(entity, "spawnflags")->integer;
+		light->origin = Cm_EntityValue(entity, "origin")->vec3;
+		light->radius = Cm_EntityValue(entity, "light")->value ?: LIGHT_RADIUS;
+		light->intensity = Cm_EntityValue(entity, "_intensity")->value ?: LIGHT_INTENSITY;
+		light->color = Cm_EntityValue(entity, "_color")->vec3;
+
+		if (Vec3_Equal(Vec3_Zero(), light->color)) {
+			light->color = LIGHT_COLOR;
+		}
+
+		light->bounds = Box3_FromCenter(light->origin);
+
+		return light;
 	} else {
 		return NULL;
 	}
@@ -168,21 +116,13 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 
 	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
 
-	light->type = LIGHT_BRUSH_SIDE;
-	light->brush_side = brush_side;
-
 	const material_t *material = &materials[brush_side->material];
-	light->atten = material->cm->light.atten;
 	light->flags = material->cm->light.flags;
-	light->winding = winding;
 	light->origin = origin;
 	light->radius = brush_side->value ?: material->cm->light.radius;
-	light->plane = plane;
-	light->normal = plane->normal;
 	light->color = material->diffuse;
 	light->intensity = material->cm->light.intensity;
 	light->bounds = Box3_FromCenter(light->origin);
-	light->model = bsp_file.models; // FIXME:
 
 	return light;
 }
@@ -269,24 +209,16 @@ void EmitLights(void) {
 		light_t *light = g_ptr_array_index(lights, i);
 		light->out = out;
 
-		out->type = light->type;
-		out->atten = light->atten;
 		out->flags = light->flags;
 		out->origin = light->origin;
 		out->radius = light->radius;
 		out->color = light->color;
 		out->intensity = light->intensity;
-		out->normal.xyz = light->normal;
 		out->bounds = light->bounds;
-
-		if (light->plane) {
-			out->normal.w = light->plane->dist;
-			out->bounds = Cm_ClipBox(out->bounds, out->normal);
-		}
 
 		out->bounds = Box3_Expand(out->bounds, BSP_LIGHTGRID_LUXEL_SIZE * .5f);
 
-		out->first_element = bsp_file.num_elements;
+		out->first_depth_pass_element = bsp_file.num_elements;
 
 		const bsp_model_t *worldspawn = bsp_file.models;
 		const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
@@ -318,7 +250,7 @@ void EmitLights(void) {
 				   sizeof(int32_t) * face->num_elements);
 
 			bsp_file.num_elements += face->num_elements;
-			out->num_elements += face->num_elements;
+			out->num_depth_pass_elements += face->num_elements;
 		}
 
 		out++;

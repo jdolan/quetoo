@@ -30,16 +30,6 @@
  */
 typedef struct {
 	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The light attenuation.
-	 */
-	light_atten_t atten;
-
-	/**
 	 * @brief The light origin.
 	 */
 	vec3_t origin;
@@ -48,11 +38,6 @@ typedef struct {
 	 * @brief The light radius.
 	 */
 	float radius;
-
-	/**
-	 * @brief The light size.
-	 */
-	float size;
 
 	/**
 	 * @brief The light color.

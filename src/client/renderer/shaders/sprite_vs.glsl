@@ -84,30 +84,18 @@ void light_and_shadow(in vec3 texcoord) {
 
 	vec3 diffuse = sample_lightgrid_diffuse(texcoord);
 
-	for (int i = 0; i < num_lights; i++) {
-
-		light_t light = lights[i];
-
-		float radius = light.model.w;
-		float dist = distance((view * vec4(light.model.xyz, 1.0)).xyz, vertex.position);
-		float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-		if (atten == 0.0) {
-			continue;
-		}
-
-		vec3 color = light.color.rgb * light.color.a;
-
-		switch (int(light.maxs.w)) {
-			case LIGHT_ATTEN_LINEAR:
-				color *= atten;
-				break;
-			case LIGHT_ATTEN_INVERSE_SQUARE:
-				color *= atten * atten;
-				break;
-		}
-
-		diffuse += color;
-	}
+//	for (int i = 0; i < num_lights; i++) {
+//
+//		light_t light = lights[i];
+//
+//		float radius = light.model.w;
+//		float dist = distance((view * vec4(light.model.xyz, 1.0)).xyz, vertex.position);
+//		float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+//
+//		vec3 color = light.color.rgb * light.color.a * atten * modulate;
+//
+//		diffuse += color;
+//	}
 
 	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
 }

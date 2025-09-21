@@ -27,22 +27,10 @@
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
 
-#define LIGHT_AMBIENT_RADIUS 256.f
-
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {
-	/**
-	 * @brief The type.
-	 */
-	light_type_t type;
-
-	/**
-	 * @brief The attenuation.
-	 */
-	light_atten_t atten;
-
 	/**
 	 * @brief The flags.
 	 */
@@ -59,11 +47,6 @@ typedef struct light_s {
 	vec3_t color;
 
 	/**
-	 * @brief The light normal for directional lights.
-	 */
-	vec3_t normal;
-
-	/**
 	 * @brief The light radius in units.
 	 */
 	float radius;
@@ -77,26 +60,6 @@ typedef struct light_s {
 	 * @brief The bounds of the light source.
 	 */
 	box3_t bounds;
-
-	/**
-	 * @brief The light source winding for brush side lights.
-	 */
-	cm_winding_t *winding;
-
-	/**
-	 * @brief The light source brush side for brush side lights.
-	 */
-	const bsp_brush_side_t *brush_side;
-
-	/**
-	 * @brief The light source plane for brush side lights.
-	 */
-	const bsp_plane_t *plane;
-
-	/**
-	 * @brief The light source model for brush side lights.
-	 */
-	const bsp_model_t *model;
 	
 	/**
 	 * @brief The output light in the BSP, so that luxels may reference them.
