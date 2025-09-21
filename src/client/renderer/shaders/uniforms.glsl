@@ -188,11 +188,6 @@ layout (std140) uniform lights_block {
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
 	light_t lights[MAX_LIGHTS];
-
-	/**
-	 * @brief The count of light sources.
-	 */
-	int num_lights;
 };
 
 /**

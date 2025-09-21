@@ -145,6 +145,19 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPoints(const 
 }
 
 /**
+ * @return A `box_t` constructed from a set of points.
+ */
+static inline box3_t __attribute__ ((warn_unused_result)) Box3_FromPointsStride(const void *points, const size_t num_points, const size_t stride) {
+	box3_t bounds = Box3_Null();
+
+	for (size_t i = 0; i < num_points; i++, points += stride) {
+		bounds = Box3_Append(bounds, *(vec3_t *) points);
+	}
+
+	return bounds;
+}
+
+/**
  * @brief Writes the eight corner points of the bounding box to "points".
  * It must be at least 8 `vec3_t` wide. The output of the points are in
  * axis order - assuming bitflags of 1 2 4 = X Y Z - where a bit unset is

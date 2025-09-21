@@ -67,11 +67,6 @@ typedef struct {
 	 * @brief The light sources for the current frame.
 	 */
 	r_light_uniform_t lights[MAX_LIGHTS];
-
-	/**
-	 * @brief The count o
-	 */
-	int32_t num_lights;
 } r_light_uniform_block_t;
 
 /**

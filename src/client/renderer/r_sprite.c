@@ -43,7 +43,7 @@ static struct {
 	
 	GLuint uniforms_block;
 	GLuint lights_block;
-	
+
 	GLint in_position;
 	GLint in_diffusemap;
 	GLint in_next_diffusemap;
@@ -53,11 +53,14 @@ static struct {
 	GLint in_lighting;
 	GLint in_bloom;
 
+	GLint active_lights;
+
 	GLint texture_diffusemap;
 	GLint texture_next_diffusemap;
 	GLint texture_lightgrid_diffuse;
 	GLint texture_lightgrid_fog;
 	GLint texture_depth_attachment_copy;
+
 } r_sprite_program;
 
 /**
@@ -280,6 +283,8 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[1].bloom =
 	in->vertexes[2].bloom =
 	in->vertexes[3].bloom = s->bloom;
+
+	in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
 }
 
 /**
@@ -371,6 +376,8 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 		in->vertexes[2].lighting =
 		in->vertexes[3].lighting = b->lighting;
 
+		in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
+
 		frac += step;
 		step = 1.f - frac;
 	}
@@ -450,16 +457,21 @@ void R_DrawSprites(const r_view_t *view) {
 
 		GLsizei batch_size = 1;
 
+		box3_t bounds = in->bounds;
+
 		const r_sprite_instance_t *batch = in + 1;
 		for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
 
 			if (batch->diffusemap == in->diffusemap &&
 				batch->next_diffusemap == in->next_diffusemap) {
+				bounds = Box3_Union(bounds, in->bounds);
 				batch_size++;
 			} else {
 				break;
 			}
 		}
+
+		R_ActiveLights(view, bounds, r_sprite_program.active_lights);
 
 		glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
 		r_stats.sprite_draw_elements++;
@@ -513,6 +525,8 @@ static void R_InitSpriteProgram(void) {
 	r_sprite_program.in_softness = glGetAttribLocation(r_sprite_program.name, "in_softness");
 	r_sprite_program.in_lighting = glGetAttribLocation(r_sprite_program.name, "in_lighting");
 	r_sprite_program.in_bloom = glGetAttribLocation(r_sprite_program.name, "in_bloom");
+
+	r_sprite_program.active_lights = glGetUniformLocation(r_sprite_program.name, "active_lights");
 
 	r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
 	r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");

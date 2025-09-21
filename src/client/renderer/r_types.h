@@ -1288,6 +1288,10 @@ typedef struct {
 	 */
 	GLvoid *elements;
 
+	/**
+	 * @brief The sprite bounds.
+	 */
+	box3_t bounds;
 } r_sprite_instance_t;
 
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
