@@ -81,6 +81,11 @@ layout (std140) uniform uniforms_block {
 	mat4 view;
 
 	/**
+	 * @brief The projection matrix for environment cubemaps.
+	 */
+	mat4 sky_projection;
+
+	/**
 	 * @brief The projection matrix for shadow projection.
 	 */
 	mat4 light_projection;
@@ -104,6 +109,11 @@ layout (std140) uniform uniforms_block {
 	 * @brief The renderer time, in milliseconds.
 	 */
 	int ticks;
+
+	/**
+	 * @brief The ambient scalar.
+	 */
+	float ambient;
 
 	/**
 	 * @brief The modulate scalar.

@@ -117,7 +117,7 @@ void main(void) {
 	} else {
 		vec3 texcoord = voxel_uvw(vec3(model * position));
 
-		vertex.ambient = vec3(0.0);
+		vertex.ambient = textureLod(texture_sky, normalize(vec3(model * normal)), developer).rgb * ambient;
 		vertex.caustics = sample_voxel_caustics(texcoord);
 		vertex.fog = sample_voxel_fog(texcoord);
 	}

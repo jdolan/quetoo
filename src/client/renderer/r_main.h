@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 extern cvar_t *r_allow_high_dpi;
+extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_iterations;
@@ -143,6 +144,11 @@ typedef struct {
 		mat4_t view;
 
 		/**
+		 * @brief The projection matrix for environment cubemaps.
+		 */
+		mat4_t sky_projection;
+
+		/**
 		 * @brief The projection matrix for point light shadows.
 		 */
 		mat4_t light_projection;
@@ -166,6 +172,11 @@ typedef struct {
 		 * @brief The renderer time, in milliseconds.
 		 */
 		int32_t ticks;
+
+		/**
+		 * @brief The ambient scalar.
+		 */
+		float ambient;
 
 		/**
 		 * @brief The modulate scalar.
@@ -200,12 +211,12 @@ typedef struct {
 		/**
 		 * @brief The number of volumetric fog samples per fragment (quality).
 		 */
-		int32_t fog_samples;
+		float fog_samples;
 
 		/**
 		 * @brief The developer flags.
 		 */
-		int32_t developer;
+		float developer;
 	} block;
 
 } r_uniforms_t;

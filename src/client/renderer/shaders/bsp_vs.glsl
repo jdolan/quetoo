@@ -35,6 +35,7 @@ out vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
+	vec3 cubemap;
 	vec3 voxel;
 	vec4 color;
 } vertex;
@@ -62,6 +63,7 @@ void main(void) {
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
+	vertex.cubemap = vec3(normalize(in_position).xy, abs(vec3(model * normal).z));
 	vertex.voxel = voxel_uvw(vec3(model * position));
 	vertex.color = in_color;
 

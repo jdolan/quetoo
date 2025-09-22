@@ -36,11 +36,6 @@ static struct {
 	 * @brief The sky cubemap.
 	 */
 	r_image_t *image;
-
-	/**
-	 * @brief The sky matrix, which includes Quake rotation, but not view rotation.
-	 */
-	mat4_t cubemap_matrix;
 } r_sky;
 
 /**
@@ -56,8 +51,6 @@ static struct {
 	GLint texture_sky;
 	GLint texture_voxel_fog;
 
-	GLint cube;
-
 	struct {
 		GLint bloom;
 	} material;
@@ -72,10 +65,6 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 	glEnable(GL_CULL_FACE);
 
 	glUseProgram(r_sky_program.name);
-
-	r_sky.cubemap_matrix = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
-	r_sky.cubemap_matrix = Mat4_ConcatTranslation(r_sky.cubemap_matrix, Vec3_Negate(view->origin));
-	glUniformMatrix4fv(r_sky_program.cube, 1, GL_FALSE, r_sky.cubemap_matrix.array);
 
 	glBindVertexArray(bsp->vertex_array);
 
@@ -137,8 +126,6 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
 	r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");
-
-	r_sky_program.cube = glGetUniformLocation(r_sky_program.name, "cube");
 
 	r_sky_program.material.bloom = glGetUniformLocation(r_sky_program.name, "material.bloom");
 

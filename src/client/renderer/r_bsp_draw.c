@@ -50,6 +50,8 @@ static struct {
 	GLint texture_voxel_fog;
 	GLint texture_voxel_stains;
 
+	GLint texture_sky;
+
 	GLint texture_shadow_cubemap_array0;
 	GLint texture_shadow_cubemap_array1;
 	GLint texture_shadow_cubemap_array2;
@@ -591,6 +593,8 @@ void R_InitBspProgram(void) {
 	r_bsp_program.texture_voxel_fog = glGetUniformLocation(r_bsp_program.name, "texture_voxel_fog");
 	r_bsp_program.texture_voxel_stains = glGetUniformLocation(r_bsp_program.name, "texture_voxel_stains");
 
+	r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
+
 	r_bsp_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array0");
 	r_bsp_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array1");
 	r_bsp_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array2");
@@ -622,6 +626,8 @@ void R_InitBspProgram(void) {
 	glUniform1i(r_bsp_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
 	glUniform1i(r_bsp_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 	glUniform1i(r_bsp_program.texture_voxel_stains, TEXTURE_VOXEL_STAINS);
+
+	glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 
 	glUniform1i(r_bsp_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
 	glUniform1i(r_bsp_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);

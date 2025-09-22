@@ -53,6 +53,9 @@ static struct {
 	GLint texture_stage;
 	GLint texture_voxel_diffuse;
 	GLint texture_voxel_fog;
+
+	GLint texture_sky;
+
 	GLint texture_shadow_cubemap_array0;
 	GLint texture_shadow_cubemap_array1;
 	GLint texture_shadow_cubemap_array2;
@@ -448,6 +451,9 @@ void R_InitMeshProgram(void) {
 	r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
 	r_mesh_program.texture_voxel_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_voxel_diffuse");
 	r_mesh_program.texture_voxel_fog = glGetUniformLocation(r_mesh_program.name, "texture_voxel_fog");
+
+	r_mesh_program.texture_sky = glGetUniformLocation(r_mesh_program.name, "texture_sky");
+
 	r_mesh_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array0");
 	r_mesh_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array1");
 	r_mesh_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array2");
@@ -475,6 +481,9 @@ void R_InitMeshProgram(void) {
 	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
 	glUniform1i(r_mesh_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
 	glUniform1i(r_mesh_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
+
+	glUniform1i(r_mesh_program.texture_sky, TEXTURE_SKY);
+
 	glUniform1i(r_mesh_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
 	glUniform1i(r_mesh_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
 	glUniform1i(r_mesh_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);

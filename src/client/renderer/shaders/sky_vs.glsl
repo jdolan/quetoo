@@ -21,8 +21,6 @@
 
 layout (location = 0) in vec3 in_position;
 
-uniform mat4 cube;
-
 out vertex_data {
 	vec3 model;
 	vec3 position;
@@ -41,7 +39,7 @@ void main(void) {
 
 	vertex.model = in_position;
 	vertex.position = vec3(view * position);
-	vertex.cubemap = vec3(cube * position);
+	vertex.cubemap = vec3(sky_projection * position);
 	vertex.voxel = voxel_uvw(in_position);
 
 	gl_Position = projection3D * view * position;

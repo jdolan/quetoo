@@ -28,6 +28,7 @@ in vertex_data {
 	vec3 tangent;
 	vec3 bitangent;
 	vec2 diffusemap;
+	vec3 cubemap;
 	vec3 voxel;
 	vec4 color;
 } vertex;
@@ -115,7 +116,7 @@ void parallax_occlusion_mapping() {
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-	if (developer == 2) {
+	if (int(developer) == 2) {
 		
 		if (material.parallax == 0.0) {
 			return 1.0;
@@ -330,8 +331,9 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	fragment.ambient = vec3(0.0);//sample_voxel_diffuse() * max(0.0, dot(fragment.normal, fragment.normalmap));
-	fragment.specular = vec3(0.0);//blinn_phong(fragment.ambient, fragment.normalmap);
+	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), developer).rgb * ambient;
+	fragment.ambient = sky * max(0.0, dot(fragment.normal, fragment.normalmap));
+	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
 	

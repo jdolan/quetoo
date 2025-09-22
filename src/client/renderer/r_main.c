@@ -43,6 +43,7 @@ cvar_t *r_occlude;
 int32_t r_error_count;
 
 cvar_t *r_allow_high_dpi;
+cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_bloom;
 cvar_t *r_bloom_iterations;
@@ -143,20 +144,24 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
 		out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
+		out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
+		out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
+
 		out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
 
 		out->depth_range.x = NEAR_DIST;
 		out->depth_range.y = MAX_WORLD_DIST;
 		out->view_type = view->type;
 		out->ticks = view->ticks;
+		out->ambient = r_ambient->value;
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
 		out->bloom = r_bloom->value;
 		out->hdr = r_hdr->value;
 		out->fog_density = r_fog_density->value;
-		out->fog_samples = r_fog_samples->integer;
-		out->developer = r_developer->integer;
+		out->fog_samples = r_fog_samples->value;
+		out->developer = r_developer->value;
 
 		if (r_models.world) {
 			const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
@@ -355,6 +360,7 @@ static void R_InitLocal(void) {
 
 	// settings and preferences
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
+	r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
 	r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
 	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
 	r_bloom_iterations = Cvar_Add("r_bloom_iterations", "2", CVAR_ARCHIVE, "Controls the softness of light bloom effects");

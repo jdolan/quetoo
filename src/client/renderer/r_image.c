@@ -317,6 +317,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 		image->pixel_type = GL_UNSIGNED_BYTE;
 		image->magnify = GL_LINEAR;
 		image->minify = GL_LINEAR_MIPMAP_LINEAR;
+		image->levels = 8;
 
 		// right left front back up down
 		const vec2s_t offsets[] = {
