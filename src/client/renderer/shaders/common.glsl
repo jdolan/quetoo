@@ -140,10 +140,9 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 
 /**
  * @brief Resolves the voxel coordinate for the specified position in world space.
- * @param voxel The voxel struct instance.
  * @param position The position in world space.
  * @return The voxel coordinate for the specified position.
  */
 vec3 voxel_uvw(in vec3 position) {
-	return (position - voxel.mins.xyz) / (voxel.maxs.xyz - voxel.mins.xyz);
+	return (position - voxels.mins.xyz) / (voxels.maxs.xyz - voxels.mins.xyz);
 }

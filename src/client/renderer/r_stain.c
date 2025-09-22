@@ -26,7 +26,7 @@
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const r_bsp_voxel_t *lg = r_models.world->bsp->voxel;
+	const r_bsp_voxels_t *lg = r_models.world->bsp->voxels;
 
 	const vec3_t translate = Vec3_Subtract(stain->origin, lg->bounds.mins);
 	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->voxel_size));
@@ -92,8 +92,8 @@ void R_UpdateStains(const r_view_t *view) {
 		R_UpdateStain(view, stain);
 	}
 
-	const r_image_t *s = r_models.world->bsp->voxel->stains;
-	const color32_t *c = r_models.world->bsp->voxel->stain_buffer;
+	const r_image_t *s = r_models.world->bsp->voxels->stains;
+	const color32_t *c = r_models.world->bsp->voxels->stain_buffer;
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);

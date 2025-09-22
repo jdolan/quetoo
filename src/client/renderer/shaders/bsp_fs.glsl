@@ -212,7 +212,7 @@ vec4 sample_voxel_fog() {
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-		vec3 uvw = mix(vertex.voxel, voxel.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(vertex.voxel, voxels.view_coordinate.xyz, i / samples);
 
 		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {

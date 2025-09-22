@@ -106,7 +106,7 @@ typedef struct {
 	 * @brief The voxel voxel size, in texture space.
 	 */
 	vec4_t voxel_size;
-} r_voxel_t;
+} r_voxels_t;
 
 /**
  * @brief The uniforms block type.
@@ -150,7 +150,7 @@ typedef struct {
 		/**
 		 * @brief The voxel uniforms.
 		 */
-		r_voxel_t voxel;
+		r_voxels_t voxels;
 
 		/**
 		 * @brief The depth range, in world units.
@@ -221,7 +221,7 @@ extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_developer;
 extern cvar_t *r_draw_bsp_blocks;
-extern cvar_t *r_draw_bsp_voxel;
+extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;

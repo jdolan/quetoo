@@ -27,16 +27,16 @@
 #define BSP_VOXEL_SIZE		32.0
 
 /**
- * @brief The voxel struct.
+ * @brief The voxels struct.
  */
-struct voxel_t {
+struct voxels_t {
 	/**
-	 * @brief The voxel mins, in world space.
+	 * @brief The voxels mins, in world space.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The voxel maxs, in world space.
+	 * @brief The voxels maxs, in world space.
 	 */
 	vec4 maxs;
 
@@ -86,9 +86,9 @@ layout (std140) uniform uniforms_block {
 	mat4 light_projection;
 
 	/**
-	 * @brief The voxel.
+	 * @brief The voxels.
 	 */
-	voxel_t voxel;
+	voxels_t voxels;
 
 	/**
 	 * @brief The depth range, in world units.
@@ -138,12 +138,12 @@ layout (std140) uniform uniforms_block {
 	/**
 	 * @brief The number of volumetric fog samples per fragment (quality).
 	 */
-	int fog_samples;
+	float fog_samples;
 
 	/**
 	 * @brief The developer toggle, used for shader development tweaking.
 	 */
-	int developer;
+	float developer;
 };
 
 /**

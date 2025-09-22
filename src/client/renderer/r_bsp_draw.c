@@ -121,7 +121,7 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
  */
 void R_AddBspVoxelSprites(r_view_t *view) {
 
-	if (!r_draw_bsp_voxel->value) {
+	if (!r_draw_bsp_voxels->value) {
 		return;
 	}
 
@@ -132,9 +132,9 @@ void R_AddBspVoxelSprites(r_view_t *view) {
 
 	in += sizeof(bsp_voxels_t);
 
-	const r_bsp_voxel_t *lg = r_models.world->bsp->voxel;
+	const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
 
-	const size_t num_voxels = lg->size.x * lg->size.y * lg->size.z;
+	const size_t num_voxels = voxels->size.x * voxels->size.y * voxels->size.z;
 
 	const rgb9e5 *ambient = (rgb9e5 *) in;
 	in += num_voxels * sizeof(rgb9e5);
@@ -147,18 +147,18 @@ void R_AddBspVoxelSprites(r_view_t *view) {
 
 	r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
 
-	for (int32_t u = 0; u < lg->size.z; u++) {
-		for (int32_t t = 0; t < lg->size.y; t++) {
-			for (int32_t s = 0; s < lg->size.x; s++, ambient++, diffuse++, fog++) {
+	for (int32_t u = 0; u < voxels->size.z; u++) {
+		for (int32_t t = 0; t < voxels->size.y; t++) {
+			for (int32_t s = 0; s < voxels->size.x; s++, ambient++, diffuse++, fog++) {
 
 				const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-				const vec3_t origin = Vec3_Fmaf(lg->bounds.mins, BSP_VOXEL_SIZE, position);
+				const vec3_t origin = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, position);
 
 				if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
 					continue;
 				}
 
-				if (r_draw_bsp_voxel->integer == 1) {
+				if (r_draw_bsp_voxels->integer == 1) {
 
 					vec3_t a, d;
 					rgb9e5_to_float3(*ambient, a.xyz);
@@ -173,7 +173,7 @@ void R_AddBspVoxelSprites(r_view_t *view) {
 						.media = (r_media_t *) particle,
 					});
 
-				} else if (r_draw_bsp_voxel->integer == 2) {
+				} else if (r_draw_bsp_voxels->integer == 2) {
 
 					const color_t color = Color32_Color(*fog);
 

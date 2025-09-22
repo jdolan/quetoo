@@ -759,7 +759,7 @@ typedef struct {
 	 * @brief The stainmap buffer.
 	 */
 	color32_t *stain_buffer;
-} r_bsp_voxel_t;
+} r_bsp_voxels_t;
 
 /**
  * @brief The renderer representation of the BSP model.
@@ -804,7 +804,7 @@ typedef struct {
 	int32_t num_lights;
 	r_bsp_light_t *lights;
 
-	r_bsp_voxel_t *voxel;
+	r_bsp_voxels_t *voxels;
 
 	/**
 	 * @brief The vertex array (VAO) name.

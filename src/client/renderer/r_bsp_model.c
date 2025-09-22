@@ -345,7 +345,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
  */
 static void R_ResetBspVoxelStains(r_bsp_model_t *bsp) {
 
-	r_bsp_voxel_t *lg = bsp->voxel;
+	r_bsp_voxels_t *lg = bsp->voxels;
 
 	Color32_Fill(lg->stain_buffer, Color32(255, 255, 255, 255), lg->size.x * lg->size.y * lg->size.z);
 
@@ -364,7 +364,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 	const bsp_voxels_t *in = mod->bsp->cm->file->voxels;
 	const byte *data = (byte *) in + sizeof(bsp_voxels_t);
 
-	r_bsp_voxel_t *out = mod->bsp->voxel = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+	r_bsp_voxels_t *out = mod->bsp->voxels = Mem_LinkMalloc(sizeof(*out), mod->bsp);
 	out->size = in->size;
 
 	const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
@@ -610,7 +610,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspLights(mod->bsp);
 	R_LoadBspVoxels(mod);
 
-	if (r_draw_bsp_voxel->value) {
+	if (r_draw_bsp_voxels->value) {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_VOXELS));
 	} else {
 		Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
@@ -636,9 +636,9 @@ static void R_RegisterBspModel(r_media_t *self) {
 
 	R_ResetBspVoxelStains(mod->bsp);
 
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->diffuse);
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->fog);
-	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxel->stains);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->diffuse);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
+	R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->stains);
 
 	r_models.world = mod;
 }

@@ -591,7 +591,7 @@
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
 		CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
-		CEB112B022544B3900CE65F6 /* voxels.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* voxels.c */; };
+		CEB112B022544B3900CE65F6 /* voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* voxel.c */; };
 		CEB384E629A3A73B006DEA13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEB384EE29A3A76C006DEA13 /* check_color.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB384ED29A3A76C006DEA13 /* check_color.c */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
@@ -1729,7 +1729,7 @@
 		CEAC32BF242125ED007E1253 /* sprite_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_vs.glsl; sourceTree = "<group>"; };
 		CEAC32C0242125ED007E1253 /* sprite_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_fs.glsl; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
-		CEB112AF22544B3900CE65F6 /* voxels.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxels.c; sourceTree = "<group>"; };
+		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
 		CEB384EC29A3A73B006DEA13 /* check_color */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_color; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB384ED29A3A76C006DEA13 /* check_color.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_color.c; sourceTree = "<group>"; };
@@ -2915,8 +2915,6 @@
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
 				CEBDB0C5214A02B500A7AC3D /* light.c */,
 				CEBDB0C4214A02B400A7AC3D /* light.h */,
-				CEB112AF22544B3900CE65F6 /* voxels.c */,
-				CEB112AE22544B3800CE65F6 /* voxel.h */,
 				CE12D6EE1C5C58C300CD0B13 /* main.c */,
 				CE12D6F11C5C58C300CD0B13 /* map.c */,
 				CE42657321C3CD7D00F768DD /* map.h */,
@@ -2948,6 +2946,8 @@
 				CE2E374421CABB8C00DB4648 /* tjunction.h */,
 				CE12D7071C5C58C300CD0B13 /* tree.c */,
 				CE2E374321CAB82800DB4648 /* tree.h */,
+				CEB112AF22544B3900CE65F6 /* voxel.c */,
+				CEB112AE22544B3800CE65F6 /* voxel.h */,
 				CE12D7061C5C58C300CD0B13 /* work.c */,
 				CEBCE0C621CFD43500976E76 /* work.h */,
 				CE12D7081C5C58C300CD0B13 /* writebsp.c */,
@@ -4641,7 +4641,7 @@
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CEEC203025B3265700E49614 /* simplex.c in Sources */,
-				CEB112B022544B3900CE65F6 /* voxels.c in Sources */,
+				CEB112B022544B3900CE65F6 /* voxel.c in Sources */,
 				CE80FFEA1C5E4D1800A21A51 /* main.c in Sources */,
 				CE80FFEB1C5E4D1800A21A51 /* map.c in Sources */,
 				CECA8CB01E50B5F1005E97E8 /* material.c in Sources */,
