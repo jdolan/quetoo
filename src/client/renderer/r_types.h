@@ -821,6 +821,10 @@ typedef struct {
 	 */
 	GLuint elements_buffer;
 
+	struct {
+		GLuint vertex_array;
+	} depth_pass;
+
 	/**
 	 * @brief The occlusion query vertex array and buffers.
 	 */

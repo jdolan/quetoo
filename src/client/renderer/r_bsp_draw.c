@@ -21,69 +21,7 @@
 
 #include "r_local.h"
 
-/**
- * @brief The BSP program.
- */
-static struct {
-	GLuint name;
-
-	GLuint uniforms_block;
-	GLuint lights_block;
-
-	GLint in_position;
-	GLint in_normal;
-	GLint in_tangent;
-	GLint in_bitangent;
-	GLint in_diffusemap;
-	GLint in_color;
-
-	GLint active_lights;
-
-	GLint model;
-
-	GLint texture_material;
-	GLint texture_stage;
-	GLint texture_warp;
-
-	GLint texture_voxel_diffuse;
-	GLint texture_voxel_caustics;
-	GLint texture_voxel_fog;
-	GLint texture_voxel_stains;
-
-	GLint texture_sky;
-
-	GLint texture_shadow_cubemap_array0;
-	GLint texture_shadow_cubemap_array1;
-	GLint texture_shadow_cubemap_array2;
-	GLint texture_shadow_cubemap_array3;
-
-	GLint alpha_test;
-
-	struct {
-		GLint alpha_test;
-		GLint roughness;
-		GLint hardness;
-		GLint specularity;
-		GLint parallax;
-		GLint bloom;
-	} material;
-
-	struct {
-		GLint flags;
-		GLint color;
-		GLint pulse;
-		GLint st_origin;
-		GLint stretch;
-		GLint rotate;
-		GLint scroll;
-		GLint scale;
-		GLint terrain;
-		GLint dirtmap;
-		GLint warp;
-	} stage;
-
-	r_image_t *warp_image;
-} r_bsp_program;
+r_bsp_program_t r_bsp_program;
 
 /**
  * @brief
@@ -400,23 +338,8 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(bsp->vertex_array);
-	
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	glVertexAttribPointer(r_bsp_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-	glVertexAttribPointer(r_bsp_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(r_bsp_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-	glVertexAttribPointer(r_bsp_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(r_bsp_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(r_bsp_program.in_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-
-	glEnableVertexAttribArray(r_bsp_program.in_position);
-	glEnableVertexAttribArray(r_bsp_program.in_normal);
-	glEnableVertexAttribArray(r_bsp_program.in_tangent);
-	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
-	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -442,9 +365,8 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	glUseProgram(0);
@@ -491,23 +413,8 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 	glUseProgram(r_bsp_program.name);
 
 	glBindVertexArray(bsp->vertex_array);
-
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	glVertexAttribPointer(r_bsp_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-	glVertexAttribPointer(r_bsp_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(r_bsp_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-	glVertexAttribPointer(r_bsp_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(r_bsp_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(r_bsp_program.in_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
-
-	glEnableVertexAttribArray(r_bsp_program.in_position);
-	glEnableVertexAttribArray(r_bsp_program.in_normal);
-	glEnableVertexAttribArray(r_bsp_program.in_tangent);
-	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
-	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 	glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -542,9 +449,8 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	glUseProgram(0);
