@@ -45,9 +45,6 @@ static struct {
 
 	GLuint uniforms_block;
 
-	GLint in_position;
-	GLint in_texcoord;
-
 	GLint texture_color_attachment;
 	GLint texture_bloom_attachment;
 } r_post_program;
@@ -71,11 +68,6 @@ void R_DrawPost(const r_view_t *view) {
 
 	glBindVertexArray(r_post_data.vertex_array);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_post_data.vertex_buffer);
-
-	glEnableVertexAttribArray(r_post_program.in_position);
-	glEnableVertexAttribArray(r_post_program.in_texcoord);
-
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT4 });
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
@@ -91,8 +83,6 @@ void R_DrawPost(const r_view_t *view) {
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
 	glUseProgram(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
@@ -113,9 +103,6 @@ static void R_InitPostProgram(void) {
 
 	r_post_program.uniforms_block = glGetUniformBlockIndex(r_post_program.name, "uniforms_block");
 	glUniformBlockBinding(r_post_program.name, r_post_program.uniforms_block, 0);
-
-	r_post_program.in_position = glGetAttribLocation(r_post_program.name, "in_position");
-	r_post_program.in_texcoord = glGetAttribLocation(r_post_program.name, "in_texcoord");
 
 	r_post_program.texture_color_attachment = glGetUniformLocation(r_post_program.name, "texture_color_attachment");
 	r_post_program.texture_bloom_attachment = glGetUniformLocation(r_post_program.name, "texture_bloom_attachment");
@@ -160,7 +147,8 @@ void R_InitPost(void) {
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(r_post_vertex_t), (void *) offsetof(r_post_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_post_vertex_t), (void *) offsetof(r_post_vertex_t, texcoord));
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0);
 

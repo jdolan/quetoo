@@ -395,8 +395,6 @@ void R_UpdateSprites(r_view_t *view) {
 
 	const GLsizei count = view->num_sprite_instances * 4;
 	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 /**
@@ -528,8 +526,6 @@ void R_InitSprites(void) {
 
 	glGenBuffers(1, &r_sprites.elements_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
-
-
 
 	GLuint elements[MAX_SPRITES * 6];
 	for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
