@@ -1667,6 +1667,11 @@ typedef struct {
 	uint32_t ticks;
 
 	/**
+	 * @brief The ambient scalar.
+	 */
+	float ambient;
+
+	/**
 	 * @brief The entities to render for the current frame.
 	 */
 	r_entity_t entities[MAX_ENTITIES];

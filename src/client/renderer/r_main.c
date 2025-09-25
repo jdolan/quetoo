@@ -153,7 +153,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->depth_range.y = MAX_WORLD_DIST;
 		out->view_type = view->type;
 		out->ticks = view->ticks;
-		out->ambient = r_ambient->value;
+		out->ambient = r_ambient->value * (view->ambient ?: 1.f);
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;

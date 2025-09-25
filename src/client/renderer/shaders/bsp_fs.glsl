@@ -331,8 +331,8 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), developer).rgb * ambient;
-	fragment.ambient = sky * max(0.0, dot(fragment.normal, fragment.normalmap));
+	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 6).rgb;
+	fragment.ambient = sky * ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);

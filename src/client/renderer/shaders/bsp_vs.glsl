@@ -63,7 +63,7 @@ void main(void) {
 	vertex.bitangent = normalize(vec3(view_model * bitangent));
 
 	vertex.diffusemap = in_diffusemap;
-	vertex.cubemap = vec3(normalize(in_position).xy, abs(vec3(model * normal).z));
+	vertex.cubemap = in_normal;
 	vertex.voxel = voxel_uvw(vec3(model * position));
 	vertex.color = in_color;
 
