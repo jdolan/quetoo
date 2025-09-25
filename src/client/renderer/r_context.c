@@ -193,7 +193,7 @@ static void R_Debug_GladPreCallbackNull(const char *name, GLADapiproc apiproc, i
 }
 
 /**
- * @brief Callback for non-KHR_debug GPUs to log debug error sources and callstacks
+ * @brief Callback for non-`KHR_debug` GPUs to log debug error sources and callstacks.
  */
 void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
 	const GLenum error_code = glad_glGetError();

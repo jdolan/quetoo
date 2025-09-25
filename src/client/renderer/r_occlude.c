@@ -120,10 +120,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	glUseProgram(r_depth_pass_program.name);
 
 	glBindVertexArray(bsp->occlusion.vertex_array);
-	glEnableVertexAttribArray(r_depth_pass_program.in_position);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->occlusion.elements_buffer);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -175,9 +171,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 

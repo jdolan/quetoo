@@ -110,8 +110,18 @@ void R_InitModels(void) {
 	memset(&r_models, 0, sizeof(r_models));
 
 	glGenVertexArrays(1, &r_models.mesh.vertex_array);
+	glBindVertexArray(r_models.mesh.vertex_array);
+
 	glGenBuffers(1, &r_models.mesh.vertex_buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+
 	glGenBuffers(1, &r_models.mesh.elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+
+	// We don't setup glVertexAttribPointer here because each mesh draw operation will use
+	// unique offset pointers for frame interpolation
+
+	glBindVertexArray(0);
 
 	R_InitBspProgram();
 

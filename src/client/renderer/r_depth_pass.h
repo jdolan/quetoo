@@ -32,8 +32,6 @@ typedef struct {
 	GLuint name;
 	GLuint uniforms_block;
 
-	GLint in_position;
-
 	GLint model;
 } r_depth_pass_program_t;
 

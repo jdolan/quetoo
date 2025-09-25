@@ -34,12 +34,6 @@ static struct {
 	GLuint lights_block;
 
 	/**
-	 * @brief The vertex attributes.
-	 */
-	GLint in_position;
-	GLint in_next_position;
-
-	/**
 	 * @brief The model matrix.
 	 */
 	GLint model;
@@ -110,13 +104,7 @@ static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *l
 static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
 	const r_bsp_model_t *bsp = r_models.world->bsp;
-	glBindVertexArray(bsp->vertex_array);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (GLvoid *) offsetof(r_bsp_vertex_t, position));
-	glEnableVertexAttribArray(r_shadow_program.in_position);
+	glBindVertexArray(bsp->depth_pass.vertex_array);
 
 	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
 	glUniform1f(r_shadow_program.lerp, 0.f);
@@ -139,9 +127,6 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
 		R_DrawBspInlineEntityShadow(view, light, e);
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 	glBindVertexArray(0);
 }
 
@@ -152,11 +137,11 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
 
 	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
 
 	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-	glVertexAttribPointer(r_shadow_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
 
 	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 }
@@ -174,8 +159,8 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 
 	if (mesh->num_frames == 1) {
 
-		glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-		glVertexAttribPointer(r_shadow_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
 
 		glDrawElementsBaseVertex(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, mesh->indices, mesh->base_vertex);
 
@@ -205,11 +190,18 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
 	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
 
-	glVertexAttribPointer(r_shadow_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-	glVertexAttribPointer(r_shadow_program.in_next_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glEnableVertexAttribArray(r_shadow_program.in_next_position);
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(3);
+	glDisableVertexAttribArray(4);
+	glDisableVertexAttribArray(5);
+	glDisableVertexAttribArray(6);
+	glDisableVertexAttribArray(7);
+	glDisableVertexAttribArray(8);
+	glDisableVertexAttribArray(9);
+	glDisableVertexAttribArray(10);
 
 	const r_entity_t *e = view->entities;
 	for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -391,9 +383,6 @@ static void R_InitShadowProgram(void) {
 
 	r_shadow_program.lights_block = glGetUniformBlockIndex(r_shadow_program.name, "lights_block");
 	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
-
-	r_shadow_program.in_position = glGetAttribLocation(r_shadow_program.name, "in_position");
-	r_shadow_program.in_next_position = glGetAttribLocation(r_shadow_program.name, "in_next_position");
 
 	r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
 	r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");

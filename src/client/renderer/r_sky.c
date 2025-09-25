@@ -46,8 +46,6 @@ static struct {
 
 	GLuint uniforms_block;
 
-	GLint in_position;
-
 	GLint texture_sky;
 	GLint texture_voxel_fog;
 
@@ -68,11 +66,6 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
 	glBindVertexArray(bsp->vertex_array);
 
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	glEnableVertexAttribArray(r_sky_program.in_position);
-
 	const r_bsp_block_t *block = bsp->inline_models->blocks;
 	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
@@ -91,9 +84,6 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
@@ -121,8 +111,6 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
 	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
-
-	r_sky_program.in_position = glGetAttribLocation(r_sky_program.name, "in_position");
 
 	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
 	r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");

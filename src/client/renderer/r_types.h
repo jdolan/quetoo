@@ -1057,9 +1057,9 @@ typedef struct {
 	 * @brief The shared vertex array object for mesh models.
 	 */
 	struct {
+		GLuint vertex_array;
 		GLuint vertex_buffer;
 		GLuint elements_buffer;
-		GLuint vertex_array;
 	} mesh;
 } r_models_t;
 

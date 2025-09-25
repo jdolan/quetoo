@@ -442,10 +442,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 /**
  * @brief
  */
-static void R_LoadBspVertexArrays(r_model_t *mod) {
-
-	glGenVertexArrays(1, &mod->bsp->vertex_array);
-	glBindVertexArray(mod->bsp->vertex_array);
+static void R_LoadBspVertexArray(r_model_t *mod) {
 
 	glGenBuffers(1, &mod->bsp->vertex_buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
@@ -455,31 +452,46 @@ static void R_LoadBspVertexArrays(r_model_t *mod) {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->num_elements * sizeof(GLuint), mod->bsp->elements, GL_STATIC_DRAW);
 
-	glVertexAttribPointer(r_bsp_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
-	glVertexAttribPointer(r_bsp_program.in_normal, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
-	glVertexAttribPointer(r_bsp_program.in_tangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
-	glVertexAttribPointer(r_bsp_program.in_bitangent, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
-	glVertexAttribPointer(r_bsp_program.in_diffusemap, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
-	glVertexAttribPointer(r_bsp_program.in_color, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
+	glGenVertexArrays(1, &mod->bsp->vertex_array);
+	glBindVertexArray(mod->bsp->vertex_array);
 
-	glEnableVertexAttribArray(r_bsp_program.in_position);
-	glEnableVertexAttribArray(r_bsp_program.in_normal);
-	glEnableVertexAttribArray(r_bsp_program.in_tangent);
-	glEnableVertexAttribArray(r_bsp_program.in_bitangent);
-	glEnableVertexAttribArray(r_bsp_program.in_diffusemap);
-	glEnableVertexAttribArray(r_bsp_program.in_color);
+	glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, normal));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, tangent));
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, bitangent));
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, diffusemap));
+	glVertexAttribPointer(5, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, color));
+
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(3);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+
+	glBindVertexArray(0);
+
+	R_GetError(mod->media.name);
+}
+
+/**
+ * @brief
+ */
+static void R_LoadBspDepthPassVertexArray(r_model_t *mod) {
 
 	glGenVertexArrays(1, &mod->bsp->depth_pass.vertex_array);
 	glBindVertexArray(mod->bsp->depth_pass.vertex_array);
 
-	glVertexAttribPointer(r_depth_pass_program.in_position, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glBindBuffer(GL_ARRAY_BUFFER, mod->bsp->vertex_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mod->bsp->elements_buffer);
 
-	glEnableVertexAttribArray(r_depth_pass_program.in_position);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_bsp_vertex_t), (void *) offsetof(r_bsp_vertex_t, position));
+	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	R_GetError(mod->media.name);
 }
@@ -516,17 +528,12 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 	vec3_t vertexes[8];
 
+	const r_bsp_inline_model_t *in = bsp->inline_models;
+
 	glGenVertexArrays(1, &bsp->occlusion.vertex_array);
 	glBindVertexArray(bsp->occlusion.vertex_array);
 
 	glGenBuffers(1, &bsp->occlusion.vertex_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
-	glEnableVertexAttribArray(0);
-
-	const r_bsp_inline_model_t *in = bsp->inline_models;
-
 	glBindBuffer(GL_ARRAY_BUFFER, bsp->occlusion.vertex_buffer);
 	glBufferData(GL_ARRAY_BUFFER, (in->num_blocks + bsp->num_lights) * sizeof(vertexes), NULL, GL_STATIC_DRAW);
 
@@ -562,11 +569,6 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 		index++;
 	}
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-	glGenBuffers(1, &bsp->occlusion.elements_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->occlusion.elements_buffer);
-
 	const GLuint elements[] = {
 		// bottom
 		0, 1, 3, 0, 3, 2,
@@ -582,8 +584,15 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 		5, 7, 1, 7, 3, 1,
 	};
 
+	glGenBuffers(1, &bsp->occlusion.elements_buffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->occlusion.elements_buffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3_t), (void *) 0);
+
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(0);
 
 	R_GetError(NULL);
 }
@@ -626,7 +635,8 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 	R_LoadBspDrawElements(mod->bsp);
 	R_LoadBspBlocks(mod->bsp);
 	R_LoadBspInlineModels(mod->bsp);
-	R_LoadBspVertexArrays(mod);
+	R_LoadBspVertexArray(mod);
+	R_LoadBspDepthPassVertexArray(mod);
 	R_SetupBspInlineModels(mod);
 	R_LoadBspLights(mod->bsp);
 	R_LoadBspVoxels(mod);
@@ -676,6 +686,7 @@ static void R_FreeBspModel(r_media_t *self) {
 	glDeleteBuffers(1, &bsp->elements_buffer);
 
 	glDeleteVertexArrays(1, &bsp->vertex_array);
+	glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
 
 	r_bsp_inline_model_t *in = bsp->inline_models;
 	for (int32_t i = 0; i < bsp->num_inline_models; i++) {

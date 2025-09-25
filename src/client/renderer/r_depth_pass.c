@@ -36,13 +36,8 @@ static void R_DrawBspDepthPass(const r_view_t *view) {
 	const r_bsp_model_t *bsp = r_models.world->bsp;
 
 	glBindVertexArray(bsp->depth_pass.vertex_array);
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
 
 	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, bsp->inline_models->depth_pass_elements);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 }
@@ -91,8 +86,6 @@ static void R_InitDepthPassProgram(void) {
 
 	r_depth_pass_program.uniforms_block = glGetUniformBlockIndex(r_depth_pass_program.name, "uniforms_block");
 	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
-
-	r_depth_pass_program.in_position = glGetAttribLocation(r_depth_pass_program.name, "in_position");
 	
 	r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
 
