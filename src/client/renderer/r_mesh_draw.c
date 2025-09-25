@@ -383,9 +383,6 @@ void R_DrawMeshEntities(const r_view_t *view) {
 			R_DrawMeshEntity(view, e);
 		}
 	}
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	glBindVertexArray(0);
 

@@ -378,9 +378,6 @@ GLuint name;
 
 	GLuint uniforms_block;
 
-	GLint in_position;
-	GLint in_texcoord;
-
 	GLint texture_diffusemap;
 
 	GLint axis;
@@ -419,11 +416,6 @@ void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 
 	glBindVertexArray(r_blur_data.vertex_array);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_blur_data.vertex_buffer);
-
-	glEnableVertexAttribArray(r_blur_program.in_position);
-	glEnableVertexAttribArray(r_blur_program.in_texcoord);
-
 	for (int32_t i = 0; i < blur; i++) {
 
 		glUniform1i(r_blur_program.axis, 0);
@@ -438,8 +430,6 @@ void R_BlurFramebufferAttachment(r_framebuffer_t *framebuffer,
 	}
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
@@ -462,9 +452,6 @@ static void R_InitBlurProgram(void) {
 
 	r_blur_program.uniforms_block = glGetUniformBlockIndex(r_blur_program.name, "uniforms_block");
 	glUniformBlockBinding(r_blur_program.name, r_blur_program.uniforms_block, 0);
-
-	r_blur_program.in_position = glGetAttribLocation(r_blur_program.name, "in_position");
-	r_blur_program.in_texcoord = glGetAttribLocation(r_blur_program.name, "in_texcoord");
 
 	r_blur_program.texture_diffusemap = glGetUniformLocation(r_blur_program.name, "texture_diffusemap");
 	glUniform1i(r_blur_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
@@ -509,7 +496,8 @@ void R_InitFramebuffer(void) {
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(r_blur_vertex_t), (void *) offsetof(r_blur_vertex_t, position));
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_blur_vertex_t), (void *) offsetof(r_blur_vertex_t, texcoord));
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
 	glBindVertexArray(0);
 

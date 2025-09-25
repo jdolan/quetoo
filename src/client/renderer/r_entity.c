@@ -119,6 +119,10 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
 			continue;
 		}
 
+		if (e->model == r_models.world->bsp->worldspawn) {
+			continue;
+		}
+
 		if (e->parent) {
 			continue;
 		}

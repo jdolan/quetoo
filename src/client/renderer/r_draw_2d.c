@@ -107,10 +107,6 @@ static struct {
 
 	GLuint uniforms_block;
 
-	GLint in_position;
-	GLint in_diffusemap;
-	GLint in_color;
-
 	GLint texture_diffusemap;
 } r_draw_2d_program;
 
@@ -547,10 +543,6 @@ void R_Draw2D(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes);
 
-	glEnableVertexAttribArray(r_draw_2d_program.in_position);
-	glEnableVertexAttribArray(r_draw_2d_program.in_diffusemap);
-	glEnableVertexAttribArray(r_draw_2d_program.in_color);
-
 	const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_2d.num_draw_arrays; i++, draw++) {
 
@@ -568,8 +560,6 @@ void R_Draw2D(void) {
 			glDisable(GL_SCISSOR_TEST);
 		}
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
@@ -632,10 +622,6 @@ static void R_InitDraw2DProgram(void) {
 	r_draw_2d_program.uniforms_block = glGetUniformBlockIndex(r_draw_2d_program.name, "uniforms_block");
 	glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms_block, 0);
 
-	r_draw_2d_program.in_position = glGetAttribLocation(r_draw_2d_program.name, "in_position");
-	r_draw_2d_program.in_diffusemap = glGetAttribLocation(r_draw_2d_program.name, "in_diffusemap");
-	r_draw_2d_program.in_color = glGetAttribLocation(r_draw_2d_program.name, "in_color");
-
 	r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
 
 	glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
@@ -672,8 +658,10 @@ void R_InitDraw2D(void) {
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, color));
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
 	glBindVertexArray(0);
 
 	R_GetError(NULL);

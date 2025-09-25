@@ -83,7 +83,6 @@ static struct {
 
 	// the vertex buffer
 	GLuint vertex_buffer;
-
 } r_draw_3d;
 
 /**
@@ -93,9 +92,6 @@ static struct {
 	GLuint name;
 
 	GLuint uniforms_block;
-
-	GLint in_position;
-	GLint in_color;
 } r_draw_3d_program;
 
 /**
@@ -222,9 +218,6 @@ void R_Draw3D(void) {
 	glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_3d.num_vertexes * sizeof(r_draw_3d_vertex_t), r_draw_3d.vertexes);
 
-	glEnableVertexAttribArray(r_draw_3d_program.in_position);
-	glEnableVertexAttribArray(r_draw_3d_program.in_color);
-
 	const r_draw_3d_arrays_t *draw = r_draw_3d.draw_arrays;
 	for (int32_t i = 0; i < r_draw_3d.num_draw_arrays; i++, draw++) {
 
@@ -236,8 +229,6 @@ void R_Draw3D(void) {
 
 		glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	glBindVertexArray(0);
 
@@ -271,9 +262,6 @@ static void R_InitDraw3DProgram(void) {
 	r_draw_3d_program.uniforms_block = glGetUniformBlockIndex(r_draw_3d_program.name, "uniforms_block");
 	glUniformBlockBinding(r_draw_3d_program.name, r_draw_3d_program.uniforms_block, 0);
 
-	r_draw_3d_program.in_position = glGetAttribLocation(r_draw_3d_program.name, "in_position");
-	r_draw_3d_program.in_color = glGetAttribLocation(r_draw_3d_program.name, "in_color");
-
 	glUseProgram(0);
 
 	R_GetError(NULL);
@@ -296,7 +284,8 @@ void R_InitDraw3D(void) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, position));
 	glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_draw_3d_vertex_t), (void *) offsetof(r_draw_3d_vertex_t, color));
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 	
 	glBindVertexArray(0);
 
