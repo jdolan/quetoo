@@ -26,10 +26,10 @@
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const r_bsp_voxels_t *lg = r_models.world->bsp->voxels;
+	const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
 
-	const vec3_t translate = Vec3_Subtract(stain->origin, lg->bounds.mins);
-	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, lg->voxel_size));
+	const vec3_t translate = Vec3_Subtract(stain->origin, voxels->bounds.mins);
+	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, voxels->voxel_size));
 
 	const int32_t radius = stain->radius / BSP_VOXEL_SIZE;
 
@@ -41,9 +41,9 @@ static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
 				const vec3i_t pos = Vec3i_Add(origin, Vec3i(x, y, z));
 
-				const int32_t voxel = lg->size.x * lg->size.y * pos.z + lg->size.x * pos.y + pos.x;
+				const int32_t voxel = voxels->size.x * voxels->size.y * pos.z + voxels->size.x * pos.y + pos.x;
 
-				color32_t *out = lg->stain_buffer + voxel;
+				color32_t *out = voxels->stain_buffer + voxel;
 
 				const float atten = 1.f;
 
@@ -86,6 +86,10 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain) {
  * @brief
  */
 void R_UpdateStains(const r_view_t *view) {
+
+	if (view->num_stains == 0) {
+		return;
+	}
 
 	const r_stain_t *stain = view->stains;
 	for (int32_t i = 0; i < view->num_stains; i++, stain++) {

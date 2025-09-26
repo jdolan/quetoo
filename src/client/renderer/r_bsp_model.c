@@ -345,13 +345,13 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
  */
 static void R_ResetBspVoxelStains(r_bsp_model_t *bsp) {
 
-	r_bsp_voxels_t *lg = bsp->voxels;
+	r_bsp_voxels_t *voxels = bsp->voxels;
 
-	Color32_Fill(lg->stain_buffer, Color32(255, 255, 255, 255), lg->size.x * lg->size.y * lg->size.z);
+	Color32_Fill(voxels->stain_buffer, Color32(255, 255, 255, 255), voxels->size.x * voxels->size.y * voxels->size.z);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 
-	R_UploadImage(lg->stains, lg->stain_buffer);
+	R_UploadImage(voxels->stains, voxels->stain_buffer);
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
@@ -423,7 +423,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 	out->stains->height = out->size.y;
 	out->stains->depth = out->size.z;
 	out->stains->target = GL_TEXTURE_3D;
-	out->stains->levels = levels;
+	//out->stains->levels = levels;
 	out->stains->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->stains->magnify = GL_LINEAR;
 	out->stains->internal_format = GL_RGBA8;
