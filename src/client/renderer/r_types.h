@@ -821,7 +821,13 @@ typedef struct {
 	 */
 	GLuint elements_buffer;
 
+	/**
+	 * @brief The depth pass vertex array.
+	 */
 	struct {
+		/**
+		 * @brief The depth pass vertex array (VAO) name.
+		 */
 		GLuint vertex_array;
 	} depth_pass;
 
@@ -1054,13 +1060,36 @@ typedef struct {
 	r_model_t *world;
 
 	/**
-	 * @brief The shared vertex array object for mesh models.
+	 * @brief The shared vertex array for mesh models.
 	 */
 	struct {
+		/**
+		 * @brief The vertex array (VAO) name.
+		 */
 		GLuint vertex_array;
+
+		/**
+		 * @brief THe vertex buffer (VBO) name.
+		 */
 		GLuint vertex_buffer;
+
+		/**
+		 * @brief The elements buffer (VBO) name.
+		 */
 		GLuint elements_buffer;
+
+		/**
+		 * @brief The depth pass vertex array.
+		 */
+		struct {
+			/**
+			 * @brief The depth pass vertex array (VAO) name.
+			 */
+			GLuint vertex_array;
+		} depth_pass;
+
 	} mesh;
+
 } r_models_t;
 
 /**
