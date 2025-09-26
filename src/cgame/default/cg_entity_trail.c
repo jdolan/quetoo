@@ -332,9 +332,9 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 
 	Cg_AddLight(&(cg_light_t) {
 		.origin = end,
-		.radius = 150.f,
+		.radius = 200.f,
 		.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
-		.intensity = 1.5f,
+		.intensity = 2.5f,
 	});
 }
 
@@ -1000,9 +1000,9 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 
 	cg_light_t l = {
 		.origin = end,
-		.radius = 85.f,
+		.radius = 185.f,
 		.color = Vec3(0.9f, 0.3f, 0.1f),
-		.intensity = 1.f,
+		.intensity = 3.f,
 		.source = ent
 	};
 

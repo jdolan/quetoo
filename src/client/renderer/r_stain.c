@@ -22,6 +22,26 @@
 #include "r_local.h"
 
 /**
+ * @brief
+ */
+void R_AddStain(r_view_t *view, const r_stain_t *stain) {
+
+	if (!r_stains->value) {
+		return;
+	}
+
+	if (view->num_stains == MAX_STAINS) {
+		Com_Warn("MAX_STAINS\n");
+		return;
+	}
+
+	r_stain_t s = *stain;
+	s.radius = Maxf(s.radius, BSP_VOXEL_SIZE);
+
+	view->stains[view->num_stains++] = s;
+}
+
+/**
  * @brief Attempt to stain the surface.
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
@@ -64,27 +84,6 @@ static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 /**
  * @brief
  */
-void R_AddStain(r_view_t *view, const r_stain_t *stain) {
-
-	if (!r_stains->value) {
-		return;
-	}
-
-	if (view->num_stains == MAX_STAINS) {
-		Com_Warn("MAX_STAINS\n");
-		return;
-	}
-
-	if (R_OccludeSphere(view, stain->origin, stain->radius)) {
-		return;
-	}
-
-	view->stains[view->num_stains++] = *stain;
-}
-
-/**
- * @brief
- */
 void R_UpdateStains(const r_view_t *view) {
 
 	if (view->num_stains == 0) {
@@ -93,11 +92,18 @@ void R_UpdateStains(const r_view_t *view) {
 
 	const r_stain_t *stain = view->stains;
 	for (int32_t i = 0; i < view->num_stains; i++, stain++) {
+
+		if (R_OccludeSphere(view, stain->origin, stain->radius)) {
+			continue;
+		}
+
 		R_UpdateStain(view, stain);
 	}
 
 	const r_image_t *s = r_models.world->bsp->voxels->stains;
 	const color32_t *c = r_models.world->bsp->voxels->stain_buffer;
+
+	// FIXME: Upload only the dirty voxels, calculate bounding box of frame stains in voxel space
 
 	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);

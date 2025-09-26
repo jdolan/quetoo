@@ -423,7 +423,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 	out->stains->height = out->size.y;
 	out->stains->depth = out->size.z;
 	out->stains->target = GL_TEXTURE_3D;
-	//out->stains->levels = levels;
+	out->stains->levels = levels;
 	out->stains->minify = GL_LINEAR_MIPMAP_LINEAR;
 	out->stains->magnify = GL_LINEAR;
 	out->stains->internal_format = GL_RGBA8;
