@@ -145,7 +145,7 @@ static void Thread_Shutdown_(void) {
 
 /**
  * @brief Creates a new thread to run the specified function. Callers must use
- * Thread_Wait on the returned handle to release the thread when finished.
+ * `Thread_Wait` on the returned handle to release the thread when finished.
  */
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options) {
 

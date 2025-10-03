@@ -238,7 +238,6 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
  * @param data The pixel data.
  */
 void R_UploadImage(r_image_t *image, const void *data) {
-
 	R_UploadImageTarget(image, image->target, data);
 }
 

@@ -1752,6 +1752,7 @@ typedef struct {
  * @brief Window and OpenGL context information.
  */
 typedef struct {
+
 	/**
 	 * @brief The application window.
 	 */
@@ -1763,12 +1764,12 @@ typedef struct {
 	SDL_GLContext *context;
 
 	/**
-	 * @brief OpenGL context size in drawable pixels, as reported by SDL_GL_GetDrawableSize.
+	 * @brief OpenGL context size in drawable pixels, as reported by `SDL_GL_GetDrawableSize`.
 	 */
 	GLint drawable_width, drawable_height;
 
 	/**
-	 * @brief Window size as reported by SDL_GetWindowSize (High-DPI compatibility).
+	 * @brief Window size as reported by `SDL_GetWindowSize` (High-DPI compatibility).
 	 */
 	GLint width, height;
 

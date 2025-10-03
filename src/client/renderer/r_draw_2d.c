@@ -646,7 +646,7 @@ void R_InitDraw2D(void) {
 
 	r_draw_2d.null_texture = R_LoadImage("textures/common/white", IMG_PROGRAM);
 	assert(r_draw_2d.null_texture);
-	
+
 	glGenVertexArrays(1, &r_draw_2d.vertex_array);
 	glBindVertexArray(r_draw_2d.vertex_array);
 

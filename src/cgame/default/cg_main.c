@@ -492,6 +492,9 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 	Cg_AddLights();
 }
 
+/**
+ * @brief
+ */
 static const char *Cg_Nav_KeyBind(const char *bind) {
 	SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
 

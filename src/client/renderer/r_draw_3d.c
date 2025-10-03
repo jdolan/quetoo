@@ -286,7 +286,7 @@ void R_InitDraw3D(void) {
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-	
+
 	glBindVertexArray(0);
 
 	R_GetError(NULL);
