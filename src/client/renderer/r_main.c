@@ -259,7 +259,7 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_UpdateEntities(view);
 
-	R_UpdateSprites(view);
+	thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
 
 	R_UpdateStains(view);
 
@@ -282,6 +282,8 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_DrawEntities(view);
 
+	Thread_Wait(sprites);
+	
 	R_DrawSprites(view);
 
 	if (r_draw_wireframe->value) {
@@ -307,6 +309,10 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	assert(view->framebuffer);
 
 	R_UpdateUniforms(view);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	R_UpdateEntities(view);
 

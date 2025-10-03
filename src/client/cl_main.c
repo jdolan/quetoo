@@ -585,16 +585,23 @@ static void Cl_InitLocal(void) {
  * @brief
  */
 static void Cl_UpdateScene(void) {
+	thread_t *thread;
 
 	cls.cgame->PrepareScene(&cl.frame);
 
+	thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+
 	R_DrawViewDepth(&cl_view);
 
-	cls.cgame->PopulateScene(&cl.frame);
+	Thread_Wait(thread);
+
+	thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
 	R_DrawMainView(&cl_view);
 
 	R_BlitFramebuffer(cl_view.framebuffer, 0, 0, 0, 0);
+
+	Thread_Wait(thread);
 }
 
 /**
@@ -615,6 +622,7 @@ void Cl_Frame(const uint32_t msec) {
 
 	// and the pending command duration
 	cl.frame_msec += msec;
+
 	// and the total ticks
 	cl.ticks = quetoo.ticks;
 
@@ -664,8 +672,6 @@ void Cl_Frame(const uint32_t msec) {
 	R_EndFrame();
 
 	R_Screenshot(&cl_view);
-
-	S_RenderStage(&cl_stage);
 
 	cls.cgame->UpdateDiscord();
 

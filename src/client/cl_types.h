@@ -281,12 +281,12 @@ typedef struct {
 	/**
 	 * @brief The cache of known models contained within `config_strings`.
 	 */
-	r_model_t  *models[MAX_MODELS];
+	r_model_t *models[MAX_MODELS];
 
 	/**
 	 * @brief The cache of known images contained within `config_strings`.
 	 */
-	r_image_t  *images[MAX_IMAGES];
+	r_image_t *images[MAX_IMAGES];
 
 	/**
 	 * @brief The cache of known sounds contained within `config_strings`.
@@ -296,7 +296,7 @@ typedef struct {
 	/**
 	 * @brief The cache of known musics contained within `config_strings`.
 	 */
-	s_music_t  *musics[MAX_MUSICS];
+	s_music_t *musics[MAX_MUSICS];
 
 	/**
 	 * @brief The index into `config_strings` to check for file presence or download.
