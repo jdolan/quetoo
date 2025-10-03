@@ -30,6 +30,6 @@ bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
 #ifdef __R_LOCAL_H__
 
-void R_UpdateOcclusionQueries(const r_view_t *view);
+void R_DrawOcclusionQueries(const r_view_t *view);
 
 #endif

@@ -178,10 +178,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 			out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxels->voxel_size, extents), 0.f);
 		}
 	}
-
-	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
@@ -228,19 +224,23 @@ void R_DrawViewDepth(r_view_t *view) {
 	assert(view);
 	assert(view->framebuffer);
 
+	R_UpdateFrustum(view);
+
+	R_UpdateUniforms(view);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 	R_ClearFramebuffer(view->framebuffer);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
 	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
-	R_UpdateFrustum(view);
-
-	R_UpdateUniforms(view);
-
 	R_DrawDepthPass(view);
 
-	R_UpdateOcclusionQueries(view);
+	R_DrawOcclusionQueries(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -264,6 +264,10 @@ void R_DrawMainView(r_view_t *view) {
 	R_UpdateStains(view);
 
 	R_UpdateLights(view);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	R_DrawShadows(view);
 
@@ -446,6 +450,10 @@ static void R_InitUniforms(void) {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
 	R_UpdateUniforms(NULL);
+
+	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**

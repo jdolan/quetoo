@@ -286,6 +286,8 @@ void R_InitContext(void) {
 
 	Cvar_ForceSetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
+	R_SetWindowIcon();
+
 	Com_Print("  Setting up OpenGL context..\n");
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -302,38 +304,6 @@ void R_InitContext(void) {
 
 	if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
-	}
-
-	const int32_t valid_attribs[] = {
-		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
-		SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
-		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
-		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
-	};
-
-	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
-	for (size_t i = 0; i < lengthof(valid_attribs); i++) {
-		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
-	}
-
-	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
-				attr[SDL_GL_RED_SIZE],
-	            attr[SDL_GL_GREEN_SIZE],
-				attr[SDL_GL_BLUE_SIZE],
-				attr[SDL_GL_ALPHA_SIZE],
-				attr[SDL_GL_DEPTH_SIZE],
-				attr[SDL_GL_BUFFER_SIZE]);
-
-	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
-
-	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
-				attr[SDL_GL_CONTEXT_MAJOR_VERSION],
-	            attr[SDL_GL_CONTEXT_MINOR_VERSION],
-				attr[SDL_GL_CONTEXT_FLAGS],
-				attr[SDL_GL_CONTEXT_PROFILE_MASK]);
-
-	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
-		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
 	}
 
 	SDL_DisplayMode mode;
@@ -357,8 +327,40 @@ void R_InitContext(void) {
 
 	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
 
+	const int32_t valid_attribs[] = {
+		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
+		SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
+		SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
+		SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
+	};
+
+	int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
+	for (size_t i = 0; i < lengthof(valid_attribs); i++) {
+		SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
+	}
+
+	Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
+			attr[SDL_GL_RED_SIZE],
+			attr[SDL_GL_GREEN_SIZE],
+			attr[SDL_GL_BLUE_SIZE],
+			attr[SDL_GL_ALPHA_SIZE],
+			attr[SDL_GL_DEPTH_SIZE],
+			attr[SDL_GL_BUFFER_SIZE]);
+
+	Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
+
+	Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
+			attr[SDL_GL_CONTEXT_MAJOR_VERSION],
+			attr[SDL_GL_CONTEXT_MINOR_VERSION],
+			attr[SDL_GL_CONTEXT_FLAGS],
+			attr[SDL_GL_CONTEXT_PROFILE_MASK]);
+
+	if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
+		Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
+	}
+
 	gladLoaderLoadGL();
-	
+
 	if (r_get_error->integer) {
 		if (GLAD_GL_KHR_debug) {
 			glEnable(GL_DEBUG_OUTPUT);
@@ -380,9 +382,9 @@ void R_InitContext(void) {
 		gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
 	}
 
-	R_SetWindowIcon();
-
 	glDepthFunc(GL_LEQUAL);
+
+	R_GetError(NULL);
 }
 
 /**

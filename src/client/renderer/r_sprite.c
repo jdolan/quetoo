@@ -390,11 +390,6 @@ void R_UpdateSprites(r_view_t *view) {
 	for (int32_t i = 0; i < view->num_beams; i++, b++) {
 		R_UpdateBeam(view, b);
 	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
-
-	const GLsizei count = view->num_sprite_instances * 4;
-	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
 }
 
 /**
@@ -411,6 +406,11 @@ void R_DrawSprites(const r_view_t *view) {
 	glBlendFunc(GL_ONE, GL_ONE);
 
 	glUseProgram(r_sprite_program.name);
+
+	glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
+
+	const GLsizei count = view->num_sprite_instances * 4;
+	glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
 
 	glBindVertexArray(r_sprites.vertex_array);
 

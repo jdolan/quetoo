@@ -79,7 +79,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
  * @brief Polls the query for a result and executes it again if available.
  * @return True if the query is occluded (no samples passed the query).
  */
-static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
+static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
 
 	if (r_occlude->integer == 0) {
 		query->available = 1;
@@ -111,9 +111,9 @@ static bool R_UpdateOcclusionQuery(const r_view_t *view, r_occlusion_query_t *qu
 }
 
 /**
- * @brief Updates and re-draws all active occlusion queries for the current frame.
+ * @brief Re-draws all occlusion queries for the current frame.
  */
-void R_UpdateOcclusionQueries(const r_view_t *view) {
+void R_DrawOcclusionQueries(const r_view_t *view) {
 
 	r_bsp_model_t *bsp = r_models.world->bsp;
 
@@ -130,7 +130,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 	r_bsp_block_t *block = bsp->inline_models->blocks;
 	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-		block->occluded = R_UpdateOcclusionQuery(view, &block->query);
+		block->occluded = R_DrawOcclusionQuery(view, &block->query);
 
 		if (block->occluded) {
 			r_stats.occlusion_queries_occluded++;
@@ -156,7 +156,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 			if (R_OccludeBox(view, light->query.bounds)) {
 				light->occluded = true;
 			} else {
-				light->occluded = R_UpdateOcclusionQuery(view, &light->query);
+				light->occluded = R_DrawOcclusionQuery(view, &light->query);
 			}
 		}
 	}

@@ -582,27 +582,15 @@ static void Cl_InitLocal(void) {
 }
 
 /**
- * @brief `SDL_ThreadFunction` to populate the scene asnchronously.
- */
-static int Cl_PopulateScene(void *data) {
-
-	cls.cgame->PopulateScene(&cl.frame);
-
-	return 0;
-}
-
-/**
  * @brief
  */
 static void Cl_UpdateScene(void) {
 
 	cls.cgame->PrepareScene(&cl.frame);
 
-	SDL_Thread *thread = SDL_CreateThread(Cl_PopulateScene, "PopulateScene", NULL);
-
 	R_DrawViewDepth(&cl_view);
 
-	SDL_WaitThread(thread, NULL);
+	cls.cgame->PopulateScene(&cl.frame);
 
 	R_DrawMainView(&cl_view);
 
