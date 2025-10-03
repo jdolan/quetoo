@@ -109,7 +109,7 @@ static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t si
 	}
 
 	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane + side];
-	vec3_t origin = Vec3_Fmaf(Cm_WindingCenter(winding), ON_EPSILON, plane->normal);
+	const vec3_t origin = Vec3_Fmaf(Cm_WindingCenter(winding), 8.f, plane->normal);
 	if (Cm_PointContents(origin, 0, Mat4_Identity()) & CONTENTS_SOLID) {
 		return NULL;
 	}
