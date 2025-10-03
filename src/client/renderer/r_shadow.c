@@ -213,21 +213,6 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
 	glBindVertexArray(0);
 }
 
-/**
- * @brief
- */
-static bool R_CullShadow(const r_view_t *view, const r_light_t *light) {
-
-	if (light->bsp_light && light->bsp_light->occluded) {
-		return true;
-	}
-
-	if (R_CullBox(view, light->bounds)) {
-		return true;
-	}
-
-	return false;
-}
 
 /**
  * @brief Static light sources with a rendered shadowmap and no entities may cache shadows.
@@ -321,7 +306,7 @@ void R_DrawShadows(const r_view_t *view) {
 	const r_light_t *l = view->lights;
 	for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if (R_CullShadow(view, l)) {
+		if (l->occluded) {
 			continue;
 		}
 

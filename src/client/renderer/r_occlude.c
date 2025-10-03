@@ -157,11 +157,6 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
 				light->occluded = true;
 			} else {
 				light->occluded = R_UpdateOcclusionQuery(view, &light->query);
-				if (light->occluded) {
-					r_stats.occlusion_queries_occluded++;
-				} else {
-					r_stats.occlusion_queries_visible++;
-				}
 			}
 		}
 	}

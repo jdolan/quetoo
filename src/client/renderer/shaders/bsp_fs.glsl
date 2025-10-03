@@ -276,6 +276,9 @@ void light_and_shadow_light(in light_t light, in int index) {
 
 	float radius = light.model.w;
 	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+	if (atten <= 0.0) {
+		return;
+	}
 
 	vec3 diffuse = light.color.rgb * light.color.a * atten * modulate;
 

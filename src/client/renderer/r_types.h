@@ -1526,6 +1526,11 @@ typedef struct {
 	 * @brief The optional light source, which will not cast shadow.
 	 */
 	const r_entity_t *source;
+
+	/**
+	 * @brief True if this light is occluded for the current frame.
+	 */
+	bool occluded;
 } r_light_t;
 
 /**
