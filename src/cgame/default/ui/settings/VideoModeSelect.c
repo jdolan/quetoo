@@ -80,7 +80,7 @@ static void updateBindings(View *self) {
 				char *title = va("%dx%d @ %dHz", mode->w, mode->h, mode->refresh_rate);
 				$(select, addOption, title, mode);
 
-				if (mode->w == cgi.context->width && mode->h == cgi.context->height) {
+				if (mode->w == cgi.context->mode.w && mode->h == cgi.context->mode.h) {
 					option = $(select, optionWithValue, mode);
 				}
 			}

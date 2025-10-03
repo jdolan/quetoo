@@ -437,8 +437,8 @@ void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer
 		.num_vertexes = 6
 	};
 
-	w = w ?: r_context.width;
-	h = h ?: r_context.height;
+	w = w ?: r_context.mode.w;
+	h = h ?: r_context.mode.h;
 
 	r_draw_2d_vertex_t quad[4];
 

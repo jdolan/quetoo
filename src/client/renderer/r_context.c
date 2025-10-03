@@ -270,25 +270,28 @@ void R_InitContext(void) {
 
 	Com_Print("  Trying %dx%d..\n", w, h);
 
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
 	if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display),
 			SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
 		Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
 	}
 
+	SDL_GetWindowDisplayMode(r_context.window, &r_context.mode);
+	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+
 	Cvar_ForceSetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
 
 	R_SetWindowIcon();
 
 	Com_Print("  Setting up OpenGL context..\n");
+
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -306,26 +309,13 @@ void R_InitContext(void) {
 		Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
 	}
 
-	SDL_DisplayMode mode;
-	SDL_GetWindowDisplayMode(r_context.window, &mode);
-
-	r_context.refresh_rate = mode.refresh_rate;
-
 	int32_t dw, dh;
 	SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
 
 	r_context.drawable_width = dw;
 	r_context.drawable_height = dh;
 
-	int32_t ww, wh;
-	SDL_GetWindowSize(r_context.window, &ww, &wh);
-
-	r_context.width = ww;
-	r_context.height = wh;
-
-	r_context.window_scale = dw / (float) ww;
-
-	r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+	r_context.window_scale = dw / (float) r_context.mode.w;
 
 	const int32_t valid_attribs[] = {
 		SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,

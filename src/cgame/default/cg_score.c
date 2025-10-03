@@ -89,7 +89,7 @@ static GLint Cg_DrawScoresHeader(void) {
 	const GLint sw = cgi.StringWidth(map_name);
 
 	// map title
-	x = cgi.context->width / 2 - sw / 2;
+	x = cgi.context->mode.w / 2 - sw / 2;
 	cgi.Draw2DString(x, y, map_name, color_white);
 
 	y += ch;
@@ -101,7 +101,7 @@ static GLint Cg_DrawScoresHeader(void) {
 		g_score_t *score = &cg_score_state.scores[cg_score_state.num_scores];
 
 		// start from center
-		x = cgi.context->width / 2;
+		x = cgi.context->mode.w / 2;
 		x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
 		x += SCORES_ICON_WIDTH;
 
@@ -202,10 +202,10 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
  */
 static void Cg_DrawTeamScores(const GLint start_y) {
 
-	size_t rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
+	size_t rows = (cgi.context->mode.h - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
-	GLint x = cgi.context->width / 2;
+	GLint x = cgi.context->mode.w / 2;
 	x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
 
 	GLint y = start_y;
@@ -228,7 +228,7 @@ static void Cg_DrawTeamScores(const GLint start_y) {
 		}
 	}
 
-	x = cgi.context->width / 2;
+	x = cgi.context->mode.w / 2;
 	x -= SCORES_COL_WIDTH * (cg_state.num_teams / 2.0);
 	x -= SCORES_COL_WIDTH * 2.0;
 	y = start_y;
@@ -261,7 +261,7 @@ static void Cg_DrawTeamScores(const GLint start_y) {
  */
 static void Cg_DrawDmScores(const GLint start_y) {
 
-	size_t rows = (cgi.context->height - (2 * start_y)) / SCORES_ROW_HEIGHT;
+	size_t rows = (cgi.context->mode.h - (2 * start_y)) / SCORES_ROW_HEIGHT;
 	rows = rows < 3 ? 3 : rows;
 
 	const size_t cols = (rows < cg_score_state.num_scores) ? 2 : 1;
@@ -276,7 +276,7 @@ static void Cg_DrawDmScores(const GLint start_y) {
 
 		const size_t col = i / rows;
 
-		const GLint x = (GLint) (cgi.context->width / 2 - width / 2 + col * SCORES_COL_WIDTH);
+		const GLint x = (GLint) (cgi.context->mode.w / 2 - width / 2 + col * SCORES_COL_WIDTH);
 		const GLint y = (GLint) (start_y + (i % rows) * SCORES_ROW_HEIGHT);
 
 		if (!Cg_DrawScore(x, y, s)) {

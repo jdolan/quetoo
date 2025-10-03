@@ -53,19 +53,19 @@ static void Cl_DrawConsole_Background(void) {
 	GLint ch;
 	R_BindFont("small", NULL, &ch);
 
-	const float x_scale = r_context.width / (float) conback->width;
-	const float y_scale = r_context.height / (float) conback->height;
+	const float x_scale = r_context.mode.w / (float) conback->width;
+	const float y_scale = r_context.mode.h / (float) conback->height;
 
 	const float scale = Maxf(x_scale, y_scale);
 
 	const GLint width = ceilf(conback->width * scale);
 	const GLint height = ceilf(conback->height * scale);
 
-	assert(width >= r_context.width);
-	assert(height >= r_context.height);
+	assert(width >= r_context.mode.w);
+	assert(height >= r_context.mode.h);
 
-	const GLint x = (r_context.width / 2.f) - (width / 2.f);
-	const GLint y = (r_context.height / 2.f) - (height / 2.f);
+	const GLint x = (r_context.mode.w / 2.f) - (width / 2.f);
+	const GLint y = (r_context.mode.h / 2.f) - (height / 2.f);
 
 	const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
 
@@ -130,7 +130,7 @@ static void Cl_DrawConsole_Input(void) {
  * @brief
  */
 GLint Cl_GetConsoleHeight(void) {
-	return r_context.height * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
+	return r_context.mode.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
 }
 
 /**
@@ -142,7 +142,7 @@ void Cl_DrawConsole(void) {
 	GLint cw, ch;
 	R_BindFont("small", &cw, &ch);
 
-	cl_console.width = r_context.width / cw;
+	cl_console.width = r_context.mode.w / cw;
 	cl_console.height = (height / ch) - 1;
 
 	Cl_DrawConsole_Background();
@@ -167,7 +167,7 @@ void Cl_DrawNotify(void) {
 	R_BindFont("small", &cw, &ch);
 
 	console_t con = {
-		.width = r_context.width / cw,
+		.width = r_context.mode.w / cw,
 		.height = Clampf(cl_notify_lines->integer, 1, 12),
 		.level = (PRINT_MEDIUM | PRINT_HIGH),
 	};
@@ -200,9 +200,9 @@ void Cl_DrawChat(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	GLint x = 1, y = r_context.height * 0.66;
+	GLint x = 1, y = r_context.mode.h * 0.66;
 
-	cl_chat_console.width = r_context.width / cw / 3;
+	cl_chat_console.width = r_context.mode.w / cw / 3;
 	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
 
 	if (cl_draw_chat->value && cl_chat_console.height) {

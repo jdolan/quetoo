@@ -96,8 +96,8 @@ static void Cl_DrawNetGraph(void) {
 
 	const GLint netgraph_height = ch * 3;
 
-	x = r_context.width - NET_GRAPH_WIDTH;
-	y = r_context.height - NET_GRAPH_Y - netgraph_height;
+	x = r_context.mode.w - NET_GRAPH_WIDTH;
+	y = r_context.mode.h - NET_GRAPH_Y - netgraph_height;
 
 	R_Draw2DFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x80404040));
 
@@ -110,8 +110,8 @@ static void Cl_DrawNetGraph(void) {
 			continue;
 		}
 
-		x = r_context.width - i;
-		y = r_context.height - NET_GRAPH_Y;
+		x = r_context.mode.w - i;
+		y = r_context.mode.h - NET_GRAPH_Y;
 
 		const GLint points[4] = { x, y, x, y - h };
 		R_Draw2DLines(points, 2, net_graph_samples[j].color);
@@ -369,8 +369,8 @@ static void Cl_DrawCounters(void) {
 
 	R_BindFont("small", &cw, &ch);
 
-	GLint x = r_context.width - 7 * cw;
-	GLint y = r_context.height - 4 * ch;
+	GLint x = r_context.mode.w - 7 * cw;
+	GLint y = r_context.mode.h - 4 * ch;
 	
 	cl.frame_counter[cl.sample_index]++;
 
@@ -404,7 +404,7 @@ static void Cl_DrawCounters(void) {
 	}
 
 	if (cl_draw_position->integer) {
-		R_Draw2DString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
+		R_Draw2DString(r_context.mode.w - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
 														   cl.frame.ps.pm_state.origin.x,
 														   cl.frame.ps.pm_state.origin.y,
 														   cl.frame.ps.pm_state.origin.z), color_white);
@@ -413,7 +413,7 @@ static void Cl_DrawCounters(void) {
 	R_Draw2DString(x, y, spd, color_white);
 	y += ch;
 
-	x = r_context.width - 16 * cw;
+	x = r_context.mode.w - 16 * cw;
 
 	R_Draw2DString(x, y, ft, color_white);
 	y += ch;

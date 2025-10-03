@@ -128,7 +128,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
 	struct r_uniform_block_t *out = &r_uniforms.block;
 	memset(out, 0, sizeof(*out));
 
-	out->projection2D = Mat4_FromOrtho(0.f, r_context.width, r_context.height, 0.f, -1.f, 1.f);
+	out->projection2D = Mat4_FromOrtho(0.f, r_context.mode.w, r_context.mode.h, 0.f, -1.f, 1.f);
 
 	if (view) {
 		out->viewport = view->viewport;
@@ -512,7 +512,7 @@ void R_Init(void) {
 	R_GetError("Video initialization");
 
 	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
-			  r_context.width, r_context.height,
+			  r_context.mode.w, r_context.mode.h,
 			  r_context.drawable_width, r_context.drawable_height,
 	          (r_context.fullscreen ? "fullscreen" : "windowed"));
 }

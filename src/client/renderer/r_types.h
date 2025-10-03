@@ -1769,30 +1769,24 @@ typedef struct {
 	SDL_GLContext *context;
 
 	/**
-	 * @brief OpenGL context size in drawable pixels, as reported by `SDL_GL_GetDrawableSize`.
+	 * @brief The display mode.
 	 */
-	GLint drawable_width, drawable_height;
-
-	/**
-	 * @brief Window size as reported by `SDL_GetWindowSize` (High-DPI compatibility).
-	 */
-	GLint width, height;
-
-	/**
-	 * @brief The display vertical refresh rate, in Hz.
-	 */
-	float refresh_rate;
-
-	/**
-	 * @brief Greater than 1.0 if High DPI mode is enabled.
-	 */
-	float window_scale;
+	SDL_DisplayMode mode;
 
 	/**
 	 * @brief True if fullscreen, false if windowed.
 	 */
 	bool fullscreen;
 
+	/**
+	 * @brief OpenGL context size in drawable pixels, as reported by `SDL_GL_GetDrawableSize`.
+	 */
+	GLint drawable_width, drawable_height;
+
+	/**
+	 * @brief Greater than 1.0 if High DPI mode is enabled.
+	 */
+	float window_scale;
 } r_context_t;
 
 /**
