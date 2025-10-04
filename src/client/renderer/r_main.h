@@ -43,6 +43,7 @@ extern cvar_t *r_parallax;
 extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
+extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
