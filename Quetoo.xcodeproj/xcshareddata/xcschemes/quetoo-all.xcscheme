@@ -85,31 +85,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_draw_bsp_lightmap 1 +set r_texture_mode GL_NEAREST"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_wireframe 0 +set r_draw_occlusion_queries 1 +set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_bsp_lightgrid 2 +set r_draw_bsp_lightmap 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_bsp_normals 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_draw_entity_bounds 2 +set r_cull 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set r_draw_occlusion_queries 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set r_texture_storage 0"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -118,7 +94,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_developer 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -154,11 +130,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+connect localhost"

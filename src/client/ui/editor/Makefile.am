@@ -1,6 +1,5 @@
 editordir = @PKGLIBDIR@/default/ui/editor
 editor_DATA = \
-	EditorViewController.css \
 	EditorViewController.json \
 	MaterialViewController.css \
 	MaterialViewController.json

@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include "ui_types.h"
+
 #include <ObjectivelyMVC/ViewController.h>
 
 /**

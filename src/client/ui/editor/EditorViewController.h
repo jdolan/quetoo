@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "cg_types.h"
+#include "ui_types.h"
 
 #include <ObjectivelyMVC.h>
 
@@ -75,4 +75,4 @@ struct EditorViewControllerInterface {
  * @return The EditorViewController Class.
  * @memberof EditorViewController
  */
-CGAME_EXPORT Class *_EditorViewController(void);
+extern Class *_EditorViewController(void);

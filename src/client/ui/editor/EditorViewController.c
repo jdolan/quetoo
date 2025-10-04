@@ -19,10 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cg_local.h"
-
 #include "EditorViewController.h"
-
 #include "MaterialViewController.h"
 
 #define _Class _EditorViewController

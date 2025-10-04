@@ -333,7 +333,7 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 0).rgb;
+	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 6).rgb;
 	fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
@@ -405,13 +405,13 @@ void main(void) {
 
 		out_color = fragment.diffusemap;
 
-		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-
-			light_and_shadow();
-
-			out_color.rgb *= (fragment.ambient + fragment.diffuse);
-			out_color.rgb *= fragment.stains;
-		}
+//		if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
+//
+//			light_and_shadow();
+//
+//			out_color.rgb *= (fragment.ambient + fragment.diffuse);
+//			out_color.rgb *= fragment.stains;
+//		}
 
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			fragment.fog = sample_voxel_fog();
