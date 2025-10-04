@@ -104,20 +104,20 @@
                           "class": "CvarSelect",
                           "identifier": "shadows",
                           "var": "cg_add_entity_shadows"
-						}
+            }
                       },
-					  {
-						"class": "Input",
-						"label": {
-						  "text": {
-							"text": "Sprites"
-						  }
-						},
-						"control": {
-						  "class": "Select",
-						  "identifier": "sprites"
-						}
-					  },
+            {
+            "class": "Input",
+            "label": {
+              "text": {
+              "text": "Sprites"
+              }
+            },
+            "control": {
+              "class": "Select",
+              "identifier": "sprites"
+            }
+            },
                       {
                         "class": "Input",
                         "label": {

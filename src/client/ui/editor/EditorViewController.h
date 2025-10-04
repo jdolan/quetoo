@@ -21,12 +21,13 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ViewController.h>
+#include "cg_types.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
- *
- * @brief The EditorViewController.
+ * @brief Play ViewController.
  */
 
 typedef struct EditorViewController EditorViewController;
@@ -35,7 +36,7 @@ typedef struct EditorViewControllerInterface EditorViewControllerInterface;
 /**
  * @brief The EditorViewController type.
  * @extends ViewController
- * @ingroup ViewControllers
+ * @ingroup
  */
 struct EditorViewController {
 
@@ -52,14 +53,9 @@ struct EditorViewController {
 	EditorViewControllerInterface *interface;
 
 	/**
-	 * @brief The material being edited.
+	 * @brief TabViewController to contain tabs.
 	 */
-	r_material_t *material;
-
-	/**
-	 * @brief The model being edited.
-	 */
-	const r_model_t *model;
+	TabViewController *tabViewController;
 };
 
 /**
@@ -71,14 +67,6 @@ struct EditorViewControllerInterface {
 	 * @brief The superclass interface.
 	 */
 	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn EditorViewController *EditorViewController::init(EditorViewController *self)
-	 * @brief Initializes this ViewController.
-	 * @return The initialized EditorViewController, or `NULL` on error.
-	 * @memberof EditorViewController
-	 */
-	EditorViewController *(*init)(EditorViewController *self);
 };
 
 /**
@@ -87,4 +75,4 @@ struct EditorViewControllerInterface {
  * @return The EditorViewController Class.
  * @memberof EditorViewController
  */
-extern Class *_EditorViewController(void);
+CGAME_EXPORT Class *_EditorViewController(void);

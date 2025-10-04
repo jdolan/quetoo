@@ -2,9 +2,9 @@
   "subviews": [
     {
       "class": "StackView",
-	  "classNames": [
+    "classNames": [
         "player"
-	  ],
+    ],
       "subviews": [
         {
           "class": "ImageView",

@@ -1,18 +1,20 @@
 editordir = @PKGLIBDIR@/default/ui/editor
 editor_DATA = \
-	EditorView.css \
-	EditorView.json
+	EditorViewController.css \
+	EditorViewController.json \
+	MaterialViewController.css \
+	MaterialViewController.json
 
 noinst_HEADERS = \
-	EditorView.h \
-	EditorViewController.h
+	EditorViewController.h \
+	MaterialViewController.h
 
 noinst_LTLIBRARIES = \
 	libuieditor.la
 
 libuieditor_la_SOURCES = \
-	EditorView.c \
-	EditorViewController.c
+	EditorViewController.c \
+	MaterialViewController.c
 
 libuieditor_la_CFLAGS = \
 	-I$(top_srcdir)/src \

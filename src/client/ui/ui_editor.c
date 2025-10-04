@@ -26,7 +26,7 @@
 
 extern cl_static_t cls;
 
-static EditorViewController *editorViewController;
+static ViewController *editorViewController;
 
 /**
  * @brief
@@ -53,7 +53,7 @@ void Ui_CheckEditor(void) {
  */
 void Ui_InitEditor(void) {
 
-	editorViewController = $(alloc(EditorViewController), init);
+	editorViewController = $((ViewController *) alloc(EditorViewController), init);
 }
 
 /**

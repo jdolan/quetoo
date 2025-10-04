@@ -7,30 +7,30 @@
   "contentView": {
     "subviews": [
       {
-	    "class": "CollectionView",
-		"identifier": "teamsCollectionView"
-	  }
+      "class": "CollectionView",
+    "identifier": "teamsCollectionView"
+    }
     ]
   },
   "accessoryView": {
     "style": {
       "hidden": false
-	},
-	"subviews": [
+  },
+  "subviews": [
       {
         "class": "Button",
-		"identifier": "spectate",
-		"title": {
+    "identifier": "spectate",
+    "title": {
           "text": "Spectate"
-		}
-	  },
-	  {
-		"class": "Button",
-		"identifier": "join",
-		"title": {
-		  "text": "Join"
-		}
-	  }
-	]
+    }
+    },
+    {
+    "class": "Button",
+    "identifier": "join",
+    "title": {
+      "text": "Join"
+    }
+    }
+  ]
   }
 }

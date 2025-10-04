@@ -2,9 +2,9 @@
   "subviews": [
     {
       "class": "StackView",
-	  "classNames": [
+    "classNames": [
         "team"
-	  ],
+    ],
       "subviews": [
         {
           "class": "Label",

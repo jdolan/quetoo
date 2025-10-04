@@ -224,6 +224,11 @@
 		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
 		CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F4C625728264004DEFED /* uniforms.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CE49C13D2E91801200B89CB6 /* MaterialViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1382E91801200B89CB6 /* MaterialViewController.css */; };
+		CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C13A2E91801200B89CB6 /* MaterialViewController.json */; };
+		CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1402E91816E00B89CB6 /* EditorViewController.c */; };
+		CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C1412E91816E00B89CB6 /* EditorViewController.h */; };
+		CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1422E91816E00B89CB6 /* EditorViewController.json */; };
 		CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
@@ -304,14 +309,10 @@
 		CE67EF961E350DCC009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF8A1E350D54009C2819 /* main.c */; };
 		CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DC9D202D3EE600E5C8B1 /* miniz.h */; };
 		CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DC9E202D3EE700E5C8B1 /* miniz.c */; };
-		CE69DCAC202D4FE500E5C8B1 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */; };
-		CE69DCAD202D4FE500E5C8B1 /* EditorView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA9202D4FE500E5C8B1 /* EditorView.c */; };
-		CE69DCAE202D4FE500E5C8B1 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */; };
-		CE69DCAF202D4FE500E5C8B1 /* EditorView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAB202D4FE500E5C8B1 /* EditorView.h */; };
+		CE69DCAC202D4FE500E5C8B1 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */; };
+		CE69DCAE202D4FE500E5C8B1 /* MaterialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */; };
 		CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */; };
 		CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */; };
-		CE69DCB5202D515700E5C8B1 /* EditorView.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCA7202D4FE500E5C8B1 /* EditorView.css */; };
-		CE69DCB7202D58BC00E5C8B1 /* EditorView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE69DCB6202D570400E5C8B1 /* EditorView.json */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
 		CE6EE3D21F720D6700FBC830 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
@@ -1048,8 +1049,9 @@
 			dstPath = ui/editor;
 			dstSubfolderSpec = 16;
 			files = (
-				CE69DCB5202D515700E5C8B1 /* EditorView.css in CopyFiles */,
-				CE69DCB7202D58BC00E5C8B1 /* EditorView.json in CopyFiles */,
+				CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */,
+				CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */,
+				CE49C13D2E91801200B89CB6 /* MaterialViewController.css in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1522,6 +1524,11 @@
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
 		CE45F4C625728264004DEFED /* uniforms.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
+		CE49C1382E91801200B89CB6 /* MaterialViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MaterialViewController.css; sourceTree = "<group>"; };
+		CE49C13A2E91801200B89CB6 /* MaterialViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MaterialViewController.json; sourceTree = "<group>"; };
+		CE49C1402E91816E00B89CB6 /* EditorViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
+		CE49C1412E91816E00B89CB6 /* EditorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
+		CE49C1422E91816E00B89CB6 /* EditorViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorViewController.json; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1601,14 +1608,10 @@
 		CE67EF8C1E350D54009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE69DC9D202D3EE600E5C8B1 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		CE69DC9E202D3EE700E5C8B1 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
-		CE69DCA7202D4FE500E5C8B1 /* EditorView.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = EditorView.css; sourceTree = "<group>"; };
-		CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
-		CE69DCA9202D4FE500E5C8B1 /* EditorView.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EditorView.c; sourceTree = "<group>"; };
-		CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
-		CE69DCAB202D4FE500E5C8B1 /* EditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EditorView.h; sourceTree = "<group>"; };
+		CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MaterialViewController.c; sourceTree = "<group>"; };
+		CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MaterialViewController.h; sourceTree = "<group>"; };
 		CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
 		CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
-		CE69DCB6202D570400E5C8B1 /* EditorView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorView.json; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3313,12 +3316,13 @@
 		CE69DCA6202D4FE500E5C8B1 /* editor */ = {
 			isa = PBXGroup;
 			children = (
-				CE69DCA9202D4FE500E5C8B1 /* EditorView.c */,
-				CE69DCA7202D4FE500E5C8B1 /* EditorView.css */,
-				CE69DCAB202D4FE500E5C8B1 /* EditorView.h */,
-				CE69DCB6202D570400E5C8B1 /* EditorView.json */,
-				CE69DCA8202D4FE500E5C8B1 /* EditorViewController.c */,
-				CE69DCAA202D4FE500E5C8B1 /* EditorViewController.h */,
+				CE49C1402E91816E00B89CB6 /* EditorViewController.c */,
+				CE49C1412E91816E00B89CB6 /* EditorViewController.h */,
+				CE49C1422E91816E00B89CB6 /* EditorViewController.json */,
+				CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */,
+				CE49C1382E91801200B89CB6 /* MaterialViewController.css */,
+				CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */,
+				CE49C13A2E91801200B89CB6 /* MaterialViewController.json */,
 				CE7D2C06202E670E004BC58E /* Makefile.am */,
 			);
 			path = editor;
@@ -3451,11 +3455,11 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE69DCAF202D4FE500E5C8B1 /* EditorView.h in Headers */,
-				CE69DCAE202D4FE500E5C8B1 /* EditorViewController.h in Headers */,
+				CE69DCAE202D4FE500E5C8B1 /* MaterialViewController.h in Headers */,
 				CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
 				CE55308E1E57E3670009A127 /* ui_editor.h in Headers */,
+				CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
@@ -4561,8 +4565,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE69DCAD202D4FE500E5C8B1 /* EditorView.c in Sources */,
-				CE69DCAC202D4FE500E5C8B1 /* EditorViewController.c in Sources */,
+				CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */,
+				CE69DCAC202D4FE500E5C8B1 /* MaterialViewController.c in Sources */,
 				CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */,
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,
 				CE55308D1E57E3670009A127 /* ui_editor.c in Sources */,

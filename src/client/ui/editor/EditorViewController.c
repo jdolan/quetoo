@@ -19,55 +19,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
-#include "client.h"
+#include "cg_local.h"
 
 #include "EditorViewController.h"
-#include "EditorView.h"
+
+#include "MaterialViewController.h"
 
 #define _Class _EditorViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Object
 
-/**
- * @brief ActionFunction for the Save Button.
- */
-static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void dealloc(Object *self) {
 
-	EditorViewController *this = sender;
+	EditorViewController *this = (EditorViewController *) self;
 
-	if (this->model == NULL) {
-		Com_Debug(DEBUG_UI, "Not editing a material\n");
-		return;
-	}
+	release(this->tabViewController);
 
-	Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
-}
-
-/**
- * @brief SliderDelegate callback for changing bump.
- */
-static void didSetValue(Slider *slider, double value) {
-
-	EditorViewController *this = (EditorViewController *) slider->delegate.self;
-	EditorView *view = (EditorView *) this->viewController.view;
-
-	if (!view->material) {
-		return;
-	}
-	if (slider == view->roughness) {
-		view->material->cm->roughness = slider->value;
-	} else if (slider == view->hardness) {
-		view->material->cm->hardness = slider->value;
-	} else if (slider == view->specularity) {
-		view->material->cm->specularity = slider->value;
-	} else if (slider == view->parallax) {
-		view->material->cm->parallax = slider->value;
-	} else if (slider == view->alphaTest) {
-		view->material->cm->alpha_test = slider->value;
-	} else {
-		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
-	}
+	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -79,108 +47,26 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
-	assert(view);
-
-	view->roughness->delegate.self = self;
-	view->roughness->delegate.didSetValue = didSetValue;
-
-	view->hardness->delegate.self = self;
-	view->hardness->delegate.didSetValue = didSetValue;
-
-	view->specularity->delegate.self = self;
-	view->specularity->delegate.didSetValue = didSetValue;
-
-	view->parallax->delegate.self = self;
-	view->parallax->delegate.didSetValue = didSetValue;
-
-	view->alphaTest->delegate.self = self;
-	view->alphaTest->delegate.didSetValue = didSetValue;
-
-	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
-
-	$(self, setView, (View *) view);
-	release(view);
-}
-
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
 	EditorViewController *this = (EditorViewController *) self;
 
-	this->material = NULL;
-	this->model = NULL;
+	View *view = $$(View, viewWithResourceName, "ui/editor/EditorViewController.json", NULL);
+	assert(view);
+	
+	$(self, setView, view);
 
-	EditorView *view = (EditorView *) self->view;
+	release(view);
 
-	float distance = MAX_WORLD_DIST;
+	this->tabViewController = $(alloc(TabViewController), init);
+	assert(this->tabViewController);
 
-	vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
-	vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	while (this->material == NULL) {
+	viewController = $((ViewController *) alloc(MaterialViewController), init);
+	$(tabViewController, addChildViewController, viewController);
+	release(viewController);
 
-		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-		if (!tr.material) {
-			break;
-		}
-
-		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
-		this->model = R_WorldModel();
-
-		distance = Vec3_Distance(cl_view.origin, tr.end);
-	}
-
-	const r_entity_t *e = cl_view.entities;
-	for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
-
-		if (e->model == NULL) {
-			continue;
-		}
-
-		if (e->model->type != MODEL_MESH) {
-			continue;
-		}
-
-		if (e->model->mesh->faces->material == NULL) {
-			continue;
-		}
-
-		if (e->effects & (EF_SELF | EF_WEAPON)) {
-			continue;
-		}
-
-		const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
-
-		const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
-		if (tr.fraction < 1.f) {
-
-			const float dist = Vec3_Distance(cl_view.origin, tr.end);
-			if (dist < distance) {
-				this->material = e->model->mesh->faces->material;
-				this->model = e->model;
-
-				distance = dist;
-
-			}
-		}
-	}
-
-	$(view, setMaterial, this->material);
-
-	super(ViewController, self, viewWillAppear);
-}
-
-#pragma mark - EditorViewController
-
-/**
- * @fn EditorViewController *EditorViewController::init(EditorViewController *self)
- * @memberof EditorViewController
- */
-static EditorViewController *init(EditorViewController *self) {
-	return (EditorViewController *) super(ViewController, self, init);
+	$(self, addChildViewController, tabViewController);
+	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle
@@ -190,10 +76,9 @@ static EditorViewController *init(EditorViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((EditorViewControllerInterface *) clazz->interface)->init = init;
+	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
