@@ -81,7 +81,7 @@ vec3 light_and_shadow_light(in light_t light) {
 /**
  * @brief Dynamic lighting for sprites
  */
-void light_and_shadow(in vec3 texcoord) {
+void light_and_shadow(void) {
 
 	if (in_lighting == 0.0) {
 		return;
@@ -125,7 +125,7 @@ void main(void) {
 
 	vertex.fog = sample_voxel_fog(texcoord);
 
-	light_and_shadow(texcoord);
+	light_and_shadow();
 
 	gl_Position = projection3D * view * position;
 }
