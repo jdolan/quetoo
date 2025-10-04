@@ -51,8 +51,6 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("parallax", &self->parallax),
 			MakeOutlet("alpha_test", &self->alphaTest),
-		    MakeOutlet("light_radius", &self->lightRadius),
-		    MakeOutlet("light_intensity", &self->lightIntensity),
 			MakeOutlet("save", &self->save)
 		);
 
@@ -92,9 +90,6 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 			self->alphaTest->control.state |= ControlStateDisabled;
 		}
 
-		$(self->lightRadius, setValue, (double) self->material->cm->light.radius);
-		$(self->lightIntensity, setValue, (double) self->material->cm->light.intensity);
-
 	} else {
 		$(self->name, setDefaultText, NULL);
 		$(self->diffusemap, setDefaultText, NULL);
@@ -106,8 +101,6 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->hardness, setValue, MATERIAL_HARDNESS);
 		$(self->specularity, setValue, MATERIAL_SPECULARITY);
 		$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
-		$(self->lightRadius, setValue, MATERIAL_LIGHT_RADIUS);
-		$(self->lightIntensity, setValue, MATERIAL_LIGHT_INTENSITY);
 	}
 }
 

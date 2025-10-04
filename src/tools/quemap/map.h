@@ -92,7 +92,7 @@ typedef struct brush_side_s {
 	int32_t surface;
 
 	/**
-	 * @brief The value, for e.g. SURF_LIGHT or SURF_PHONG.
+	 * @brief The value, for e.g. `SURF_PHONG`.
 	 */
 	int32_t value;
 

@@ -81,13 +81,7 @@ static material_t *LoadMaterial(const char *name) {
 		material->diffusemap = Img_LoadSurface(material->cm->diffusemap.path);
 		if (material->diffusemap) {
 			Com_Verbose("Loaded %s\n", material->cm->diffusemap.path);
-			
 			material->ambient = Img_Color(material->diffusemap).vec3;
-			material->diffuse = material->cm->light.color;
-
-			if (Vec3_Equal(material->diffuse, Vec3_Zero())) {
-				material->diffuse = Img_ColorHighPass(material->diffusemap, .9f).vec3;
-			}
 		} else {
 			Com_Warn("Failed to load %s\n", material->cm->diffusemap.path);
 		}

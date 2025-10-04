@@ -268,7 +268,6 @@ typedef enum {
 /**
  * @brief Surface flags.
  */
-#define SURF_LIGHT				0x1 // value will hold the light radius
 #define SURF_SLICK				0x2 // affects game physics
 #define SURF_SKY				0x4 // cubemap that occludes
 #define SURF_LIQUID				0x8 // water, lava, slime, etc.
@@ -289,7 +288,7 @@ typedef enum {
  * @brief Faces with differing flags after applying this mask should not be considered
  * equal for draw elements merging.
  */
-#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_LIGHT | SURF_PHONG)
+#define SURF_MASK_DRAW_ELEMENTS_CMP	~(SURF_PHONG)
 
 /**
  * @brief Faces with these flags require transparency.

@@ -89,47 +89,6 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 /**
  * @brief
  */
-static light_t *LightForBrushSide(const bsp_brush_side_t *brush_side, int32_t side) {
-
-	bsp_face_t *face = NULL;
-	bsp_face_t *f = bsp_file.faces;
-	for (int32_t i = 0; i < bsp_file.num_faces; i++, f++) {
-		if (&bsp_file.brush_sides[f->brush_side] == brush_side && f->plane == brush_side->plane + side) {
-			face = f;
-			break;
-		}
-	}
-	if (face == NULL) {
-		return NULL;
-	}
-
-	cm_winding_t *winding = Cm_WindingForBrushSide(&bsp_file, brush_side);
-	if (winding == NULL) {
-		return NULL;
-	}
-
-	const bsp_plane_t *plane = &bsp_file.planes[brush_side->plane + side];
-	const vec3_t origin = Vec3_Fmaf(Cm_WindingCenter(winding), 8.f, plane->normal);
-	if (Cm_PointContents(origin, 0, Mat4_Identity()) & CONTENTS_SOLID) {
-		return NULL;
-	}
-
-	light_t *light = Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
-
-	const material_t *material = &materials[brush_side->material];
-	light->flags = material->cm->light.flags;
-	light->origin = origin;
-	light->radius = brush_side->value ?: material->cm->light.radius;
-	light->color = material->diffuse;
-	light->intensity = material->cm->light.intensity;
-	light->bounds = Box3_FromCenter(light->origin);
-
-	return light;
-}
-
-/**
- * @brief
- */
 void FreeLights(void) {
 
 	if (!lights) {
@@ -160,22 +119,6 @@ void BuildLights(void) {
 			g_ptr_array_add(lights, light);
 		}
 		Progress("Building lights", i * 100.f / count);
-	}
-
-	const bsp_brush_side_t *side = bsp_file.brush_sides;
-	for (int32_t i = 0; i < bsp_file.num_brush_sides; i++, side++) {
-
-		if (side->surface & SURF_LIGHT) {
-
-			for (int32_t j = 0; j < 2; j++) {
-				light_t *light = LightForBrushSide(side, j);
-				if (light) {
-					g_ptr_array_add(lights, light);
-				}
-			}
-
-			Progress("Building lights", i * 100.f / count);
-		}
 	}
 
 	Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", SDL_GetTicks() - start);

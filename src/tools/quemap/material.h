@@ -40,16 +40,9 @@ typedef struct {
 	SDL_Surface *diffusemap;
 
 	/**
-	 * @brief The ambient emissive color for indirect lights.
-	 * @remarks This is mulitiplied by the direct diffuse lightmap value to reflect indirect light.
+	 * @brief The ambient emissive color for fog.
 	 */
 	vec3_t ambient;
-
-	/**
-	 * @brief The diffuse color for brush side lights.
-	 */
-	vec3_t diffuse;
-
 } material_t;
 
 extern int32_t num_materials;

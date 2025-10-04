@@ -98,7 +98,6 @@ static char *Cm_UnparseContents(int32_t contents) {
  * @brief Surface flags
  */
 static cm_dictionary_t cm_surfaceList[] = {
-	{ .keyword = "light", .flag = SURF_LIGHT },
 	{ .keyword = "slick", .flag = SURF_SLICK },
 	{ .keyword = "sky", .flag = SURF_SKY },
 	{ .keyword = "liquid", .flag = SURF_LIQUID },
@@ -497,11 +496,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 			continue;
 		}
 
-		if (!g_strcmp0(token, "lightmap")) {
-			s->flags |= STAGE_LIGHTMAP;
-			continue;
-		}
-
 		if (!g_strcmp0(token, "fog")) {
 			s->flags |= STAGE_FOG;
 			continue;
@@ -645,9 +639,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 	mat->hardness = MATERIAL_HARDNESS;
 	mat->specularity = MATERIAL_SPECULARITY;
 	mat->parallax = MATERIAL_PARALLAX;
-
-	mat->light.flags = MATERIAL_LIGHT_FLAGS;
-	mat->light.intensity = MATERIAL_LIGHT_INTENSITY;
+	mat->alpha_test = MATERIAL_ALPHA_TEST;
 
 	return mat;
 }
@@ -864,42 +856,6 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 			} else if (m->parallax < 0.f) {
 				Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
 				m->parallax = MATERIAL_PARALLAX;
-			}
-		}
-
-		if (!g_strcmp0(token, "light.radius") || !g_strcmp0(token, "light")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.radius, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light radius specified");
-			} else if (m->light.radius < 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid light radius, must be > 0.0");
-				m->light.radius = MATERIAL_LIGHT_RADIUS;
-			}
-
-			m->surface |= SURF_LIGHT;
-		}
-
-		if (!g_strcmp0(token, "light.flags")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_INT32, &m->light.flags, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light flags specified");
-			}
-		}
-
-		if (!g_strcmp0(token, "light.color")) {
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, m->light.color.xyz, 3) != 3) {
-				Cm_MaterialWarn(path, &parser, "Invalid light color");
-				m->light.color = Vec3_Zero();
-			}
-		}
-
-		if (!g_strcmp0(token, "light.intensity")) {
-
-			if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->light.intensity, 1) != 1) {
-				Cm_MaterialWarn(path, &parser, "No light intensity specified");
-			} else if (m->light.intensity <= 0.f) {
-				Cm_MaterialWarn(path, &parser, "Invalid light intensity, must be > 0.0");
-				m->light.intensity = MATERIAL_LIGHT_INTENSITY;
 			}
 		}
 
@@ -1256,10 +1212,6 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 		Fs_Print(file, "\t\tanim %u %g\n", stage->animation.num_frames, stage->animation.fps);
 	}
 
-	if (stage->flags & STAGE_LIGHTMAP) {
-		Fs_Print(file, "\t\tlightmap\n");
-	}
-
 	Fs_Print(file, "\t}\n");
 }
 
@@ -1301,26 +1253,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
 		if (material->alpha_test != MATERIAL_ALPHA_TEST) {
 			Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
-		}
-	}
-
-	if (material->surface & SURF_LIGHT) {
-		const vec3_t color = material->light.color;
-
-		if (material->light.flags != MATERIAL_LIGHT_FLAGS) {
-			Fs_Print(file, "\tlight.flags %d\n", material->light.flags);
-		}
-
-		if (material->light.radius != MATERIAL_LIGHT_RADIUS) {
-			Fs_Print(file, "\tlight.radius %g\n", material->light.radius);
-		}
-
-		if (!Vec3_Equal(material->light.color, Vec3_Zero())) {
-			Fs_Print(file, "\tlight.color %g %g %g\n", color.x, color.y, color.z);
-		}
-
-		if (material->light.intensity != MATERIAL_LIGHT_INTENSITY) {
-			Fs_Print(file, "\tlight.intensity %g\n", material->light.intensity);
 		}
 	}
 

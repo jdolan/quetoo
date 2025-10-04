@@ -111,13 +111,12 @@ typedef enum {
 	STAGE_SCALE_T			= (1 << 10),
 	STAGE_TERRAIN			= (1 << 11),
 	STAGE_ANIMATION			= (1 << 12),
-	STAGE_LIGHTMAP			= (1 << 13),
-	STAGE_DIRTMAP			= (1 << 14),
-	STAGE_ENVMAP            = (1 << 15),
-	STAGE_WARP				= (1 << 16),
-	STAGE_FLARE				= (1 << 17),
-	STAGE_FOG				= (1 << 18),
-	STAGE_SHELL				= (1 << 19),
+	STAGE_DIRTMAP			= (1 << 13),
+	STAGE_ENVMAP            = (1 << 14),
+	STAGE_WARP				= (1 << 15),
+	STAGE_FLARE				= (1 << 16),
+	STAGE_FOG				= (1 << 17),
+	STAGE_SHELL				= (1 << 18),
 
 	STAGE_DRAW 				= (1 << 28),
 	STAGE_MATERIAL			= (1 << 29),
@@ -226,39 +225,11 @@ typedef struct {
 	int32_t num_samples;
 } cm_footsteps_t;
 
-/**
- * @brief Materials may optionally specify an emissive light.
- */
-typedef struct {
-	/**
-	 * @brief The light flags.
-	 */
-	int32_t flags;
-
-	/**
-	 * @brief The light color. If not set, this will be the scaled average of the diffusemap.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
-
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
-} cm_light_t;
-
 #define MATERIAL_ROUGHNESS 1.f
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
 #define MATERIAL_PARALLAX 1.f
 #define MATERIAL_ALPHA_TEST .5f
-#define MATERIAL_LIGHT_FLAGS 0
-#define MATERIAL_LIGHT_RADIUS 300.f
-#define MATERIAL_LIGHT_INTENSITY 1.f
 
 /**
  * @brief Materials define the rendering attributes of textures.
@@ -348,11 +319,6 @@ typedef struct cm_material_s {
 	 * @brief The parallax factor to use for the heightmap.
 	 */
 	float parallax;
-
-	/**
-	 * @brief Emissive light.
-	 */
-	cm_light_t light;
 
 	/**
 	 * @brief The footsteps to play when the player walks on this material.
