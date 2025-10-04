@@ -39,16 +39,16 @@ typedef struct OptionsViewControllerInterface OptionsViewControllerInterface;
  */
 struct OptionsViewController {
 
-	/**
-	 * @brief The superclass.
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	OptionsViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  OptionsViewControllerInterface *interface;
 };
 
 /**
@@ -56,10 +56,10 @@ struct OptionsViewController {
  */
 struct OptionsViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

@@ -32,9 +32,9 @@
  */
 static void didBindKey(TextView *textView) {
 
-	const ViewController *this = textView->delegate.self;
+  const ViewController *this = textView->delegate.self;
 
-	$(this->view, updateBindings);
+  $(this->view, updateBindings);
 }
 
 /**
@@ -42,10 +42,10 @@ static void didBindKey(TextView *textView) {
  */
 static void setDelegate(View *view, ident data) {
 
-	((TextView *) view)->delegate = (TextViewDelegate) {
-		.self = data,
-		.didEndEditing = didBindKey
-	};
+  ((TextView *) view)->delegate = (TextViewDelegate) {
+    .self = data,
+    .didEndEditing = didBindKey
+  };
 }
 
 #pragma mark - ViewController
@@ -55,24 +55,24 @@ static void setDelegate(View *view, ident data) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	Select *hookStyle;
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("hookStyle", &hookStyle)
-	);
+  Select *hookStyle;
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("hookStyle", &hookStyle)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/controls/MovementCombatViewController.json");
-	$(self->view, resolve, outlets);
-	
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/controls/MovementCombatViewController.css");
-	assert(self->view->stylesheet);
-	
-	$(self->view, enumerateSelection, "BindTextView", setDelegate, self);
+  $(self->view, awakeWithResourceName, "ui/controls/MovementCombatViewController.json");
+  $(self->view, resolve, outlets);
+  
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/controls/MovementCombatViewController.css");
+  assert(self->view->stylesheet);
+  
+  $(self->view, enumerateSelection, "BindTextView", setDelegate, self);
 
-	$(hookStyle, addOption, "pull", NULL);
-	$(hookStyle, addOption, "swing_manual", NULL);
-	$(hookStyle, addOption, "swing_auto", NULL);
+  $(hookStyle, addOption, "pull", NULL);
+  $(hookStyle, addOption, "swing_manual", NULL);
+  $(hookStyle, addOption, "swing_auto", NULL);
 }
 
 #pragma mark - Class lifecycle
@@ -82,7 +82,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -90,21 +90,21 @@ static void initialize(Class *clazz) {
  * @memberof MovementCombatViewController
  */
 Class *_MovementCombatViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "MovementCombatViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(MovementCombatViewController),
-			.interfaceOffset = offsetof(MovementCombatViewController, interface),
-			.interfaceSize = sizeof(MovementCombatViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "MovementCombatViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(MovementCombatViewController),
+      .interfaceOffset = offsetof(MovementCombatViewController, interface),
+      .interfaceSize = sizeof(MovementCombatViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

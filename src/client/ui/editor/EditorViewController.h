@@ -40,22 +40,22 @@ typedef struct EditorViewControllerInterface EditorViewControllerInterface;
  */
 struct EditorViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	EditorViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  EditorViewControllerInterface *interface;
 
-	/**
-	 * @brief TabViewController to contain tabs.
-	 */
-	TabViewController *tabViewController;
+  /**
+   * @brief TabViewController to contain tabs.
+   */
+  TabViewController *tabViewController;
 };
 
 /**
@@ -63,10 +63,10 @@ struct EditorViewController {
  */
 struct EditorViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

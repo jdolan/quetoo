@@ -25,24 +25,24 @@
  * @brief The voxel type.
  */
 typedef struct {
-	int32_t s, t, u;
-	vec3_t origin;
-	vec4_t diffuse;
-	vec4_t fog;
+  int32_t s, t, u;
+  vec3_t origin;
+  vec4_t diffuse;
+  vec4_t fog;
 } voxel_t;
 
 /**
  * @brief The voxel grid type.
  */
 typedef struct {
-	box3_t stu_bounds;
-	vec3i_t size;
+  box3_t stu_bounds;
+  vec3i_t size;
 
-	mat4_t matrix;
-	mat4_t inverse_matrix;
+  mat4_t matrix;
+  mat4_t inverse_matrix;
 
-	size_t num_voxels;
-	voxel_t *voxels;
+  size_t num_voxels;
+  voxel_t *voxels;
 } voxels_t;
 
 extern voxels_t voxels;

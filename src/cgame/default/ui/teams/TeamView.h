@@ -37,31 +37,31 @@ typedef struct TeamViewInterface TeamViewInterface;
  */
 struct TeamView {
 
-	/**
-	 * @brief The superclass.
-	 */
-	View view;
+  /**
+   * @brief The superclass.
+   */
+  View view;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	TeamViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  TeamViewInterface *interface;
 
-	/**
-	 * @brief The team info to render.
-	 */
-	const cg_team_info_t *team;
+  /**
+   * @brief The team info to render.
+   */
+  const cg_team_info_t *team;
 
-	/**
-	 * @brief The team name.
-	 */
-	Label *name;
+  /**
+   * @brief The team name.
+   */
+  Label *name;
 
-	/**
-	 * @brief The players StackView.
-	 */
-	StackView *players;
+  /**
+   * @brief The players StackView.
+   */
+  StackView *players;
 };
 
 /**
@@ -69,30 +69,30 @@ struct TeamView {
  */
 struct TeamViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewInterface viewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewInterface viewInterface;
 
-	/**
-	 * @fn TeamView *TeamView::init(TeamView *self)
-	 * @brief Initializes this TeamView.
-	 * @param self The TeamView.
-	 * @param frame The frame, or `NULL`.
-	 * @return The initialized TeamView, or `NULL` on error.
-	 * @memberof TeamView
-	 */
-	TeamView *(*initWithFrame)(TeamView *self, const SDL_Rect *frame);
+  /**
+   * @fn TeamView *TeamView::init(TeamView *self)
+   * @brief Initializes this TeamView.
+   * @param self The TeamView.
+   * @param frame The frame, or `NULL`.
+   * @return The initialized TeamView, or `NULL` on error.
+   * @memberof TeamView
+   */
+  TeamView *(*initWithFrame)(TeamView *self, const SDL_Rect *frame);
 
 
-	/**
-	 * @fn void TeamView::setTeam(TeamView *self, const cg_team_info_t *team)
-	 * @brief Sets the team info to render.
-	 * @param self The TeamView.
-	 * @param team The team info.
-	 * @memberof TeamView
-	 */
-	void (*setTeam)(TeamView *self, const cg_team_info_t *team);
+  /**
+   * @fn void TeamView::setTeam(TeamView *self, const cg_team_info_t *team)
+   * @brief Sets the team info to render.
+   * @param self The TeamView.
+   * @param team The team info.
+   * @memberof TeamView
+   */
+  void (*setTeam)(TeamView *self, const cg_team_info_t *team);
 };
 
 /**

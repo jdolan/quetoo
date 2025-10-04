@@ -26,25 +26,25 @@
 
 typedef struct {
 
-	/**
-	 * @brief The lock governing global thread pool access.
-	 */
-	SDL_SpinLock lock;
+  /**
+   * @brief The lock governing global thread pool access.
+   */
+  SDL_SpinLock lock;
 
-	/**
-	 * @brief The thread dispatch identifier.
-	 */
-	SDL_atomic_t id;
+  /**
+   * @brief The thread dispatch identifier.
+   */
+  SDL_atomic_t id;
 
-	/**
-	 * @brief The number of threads in the pool.
-	 */
-	size_t num_threads;
+  /**
+   * @brief The number of threads in the pool.
+   */
+  size_t num_threads;
 
-	/**
-	 * @brief The threads.
-	 */
-	thread_t *threads;
+  /**
+   * @brief The threads.
+   */
+  thread_t *threads;
 } thread_pool_t;
 
 static thread_pool_t thread_pool;
@@ -68,30 +68,30 @@ _Thread_local SDL_threadID thread_id;
  * @brief Wrap the user's function in our own for introspection.
  */
 static int32_t Thread_Run(void *data) {
-	thread_t *t = (thread_t *) data;
+  thread_t *t = (thread_t *) data;
 
-	thread_id = SDL_ThreadID();
+  thread_id = SDL_ThreadID();
 
-	while (t->Run != ThreadTerminate) {
+  while (t->Run != ThreadTerminate) {
 
-		SDL_LockMutex(t->mutex);
+    SDL_LockMutex(t->mutex);
 
-		if (t->status == THREAD_RUNNING) {
-			t->Run(t->data);
-			if (t->options & THREAD_NO_WAIT) {
-				t->status = THREAD_IDLE;
-			} else {
-				t->status = THREAD_WAITING;
-			}
-			SDL_CondBroadcast(t->cond);
-		} else {
-			SDL_CondWait(t->cond, t->mutex);
-		}
+    if (t->status == THREAD_RUNNING) {
+      t->Run(t->data);
+      if (t->options & THREAD_NO_WAIT) {
+        t->status = THREAD_IDLE;
+      } else {
+        t->status = THREAD_WAITING;
+      }
+      SDL_CondBroadcast(t->cond);
+    } else {
+      SDL_CondWait(t->cond, t->mutex);
+    }
 
-		SDL_UnlockMutex(t->mutex);
-	}
+    SDL_UnlockMutex(t->mutex);
+  }
 
-	return 0;
+  return 0;
 }
 
 /**
@@ -99,27 +99,27 @@ static int32_t Thread_Run(void *data) {
  */
 static void Thread_Init_(ssize_t num_threads) {
 
-	if (num_threads == 0) {
-		num_threads = SDL_GetCPUCount();
-	} else if (num_threads == -1) {
-		num_threads = 0;
-	} else if (num_threads > MAX_THREADS) {
-		num_threads = MAX_THREADS;
-	}
+  if (num_threads == 0) {
+    num_threads = SDL_GetCPUCount();
+  } else if (num_threads == -1) {
+    num_threads = 0;
+  } else if (num_threads > MAX_THREADS) {
+    num_threads = MAX_THREADS;
+  }
 
-	thread_pool.num_threads = num_threads;
+  thread_pool.num_threads = num_threads;
 
-	if (thread_pool.num_threads) {
-		thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
+  if (thread_pool.num_threads) {
+    thread_pool.threads = Mem_Malloc(sizeof(thread_t) * thread_pool.num_threads);
 
-		thread_t *t = thread_pool.threads;
+    thread_t *t = thread_pool.threads;
 
-		for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
-			t->cond = SDL_CreateCond();
-			t->mutex = SDL_CreateMutex();
-			t->thread = SDL_CreateThread(Thread_Run, __func__, t);
-		}
-	}
+    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+      t->cond = SDL_CreateCond();
+      t->mutex = SDL_CreateMutex();
+      t->thread = SDL_CreateThread(Thread_Run, __func__, t);
+    }
+  }
 }
 
 /**
@@ -127,20 +127,20 @@ static void Thread_Init_(ssize_t num_threads) {
  */
 static void Thread_Shutdown_(void) {
 
-	if (thread_pool.num_threads) {
-		thread_t *t = thread_pool.threads;
+  if (thread_pool.num_threads) {
+    thread_t *t = thread_pool.threads;
 
-		for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
-			Thread_Wait(t);
-			t->Run = ThreadTerminate;
-			SDL_CondSignal(t->cond);
-			SDL_WaitThread(t->thread, NULL);
-			SDL_DestroyCond(t->cond);
-			SDL_DestroyMutex(t->mutex);
-		}
+    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+      Thread_Wait(t);
+      t->Run = ThreadTerminate;
+      SDL_CondSignal(t->cond);
+      SDL_WaitThread(t->thread, NULL);
+      SDL_DestroyCond(t->cond);
+      SDL_DestroyMutex(t->mutex);
+    }
 
-		Mem_Free(thread_pool.threads);
-	}
+    Mem_Free(thread_pool.threads);
+  }
 }
 
 /**
@@ -149,46 +149,46 @@ static void Thread_Shutdown_(void) {
  */
 thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread_options_t options) {
 
-	// if threads are available, find an idle one and dispatch it
-	if (thread_pool.num_threads) {
-		SDL_AtomicLock(&thread_pool.lock);
+  // if threads are available, find an idle one and dispatch it
+  if (thread_pool.num_threads) {
+    SDL_AtomicLock(&thread_pool.lock);
 
-		thread_t *t = thread_pool.threads;
-		for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
+    thread_t *t = thread_pool.threads;
+    for (size_t i = 0; i < thread_pool.num_threads; i++, t++) {
 
-			// if the thread appears idle, lock it and check again
-			if (t->status == THREAD_IDLE) {
+      // if the thread appears idle, lock it and check again
+      if (t->status == THREAD_IDLE) {
 
-				SDL_LockMutex(t->mutex);
+        SDL_LockMutex(t->mutex);
 
-				// if the thread is idle, dispatch it
-				if (t->status == THREAD_IDLE) {
-					t->status = THREAD_RUNNING;
-					t->options = options;
+        // if the thread is idle, dispatch it
+        if (t->status == THREAD_IDLE) {
+          t->status = THREAD_RUNNING;
+          t->options = options;
 
-					g_strlcpy(t->name, name, sizeof(t->name));
+          g_strlcpy(t->name, name, sizeof(t->name));
 
-					t->Run = run;
-					t->data = data;
+          t->Run = run;
+          t->data = data;
 
-					SDL_UnlockMutex(t->mutex);
-					SDL_CondSignal(t->cond);
+          SDL_UnlockMutex(t->mutex);
+          SDL_CondSignal(t->cond);
 
-					SDL_AtomicUnlock(&thread_pool.lock);
-					return t;
-				}
+          SDL_AtomicUnlock(&thread_pool.lock);
+          return t;
+        }
 
-				SDL_UnlockMutex(t->mutex);
-			}
-		}
+        SDL_UnlockMutex(t->mutex);
+      }
+    }
 
-		SDL_AtomicUnlock(&thread_pool.lock);
-	}
+    SDL_AtomicUnlock(&thread_pool.lock);
+  }
 
-	// if we failed to allocate a thread, run the function in this thread
+  // if we failed to allocate a thread, run the function in this thread
 
-	run(data);
-	return NULL;
+  run(data);
+  return NULL;
 }
 
 /**
@@ -196,27 +196,27 @@ thread_t *Thread_Create_(const char *name, ThreadRunFunc run, void *data, thread
  */
 void Thread_Wait(thread_t *t) {
 
-	if (!t) {
-		return;
-	}
+  if (!t) {
+    return;
+  }
 
-	SDL_LockMutex(t->mutex);
+  SDL_LockMutex(t->mutex);
 
-	if (t->status == THREAD_RUNNING) {
-		SDL_CondWait(t->cond, t->mutex);
-		assert(t->status == THREAD_WAITING);
-	}
+  if (t->status == THREAD_RUNNING) {
+    SDL_CondWait(t->cond, t->mutex);
+    assert(t->status == THREAD_WAITING);
+  }
 
-	SDL_UnlockMutex(t->mutex);
+  SDL_UnlockMutex(t->mutex);
 
-	t->status = THREAD_IDLE;
+  t->status = THREAD_IDLE;
 }
 
 /**
  * @brief Returns the number of threads in the pool.
  */
 int32_t Thread_Count(void) {
-	return (int32_t) thread_pool.num_threads;
+  return (int32_t) thread_pool.num_threads;
 }
 
 /**
@@ -224,11 +224,11 @@ int32_t Thread_Count(void) {
  */
 void Thread_Init(ssize_t num_threads) {
 
-	memset(&thread_pool, 0, sizeof(thread_pool));
+  memset(&thread_pool, 0, sizeof(thread_pool));
 
-	Thread_Init_(num_threads);
+  Thread_Init_(num_threads);
 
-	thread_main = SDL_ThreadID();
+  thread_main = SDL_ThreadID();
 }
 
 /**
@@ -236,7 +236,7 @@ void Thread_Init(ssize_t num_threads) {
  */
 void Thread_Shutdown(void) {
 
-	Thread_Shutdown_();
+  Thread_Shutdown_();
 
-	memset(&thread_pool, 0, sizeof(thread_pool));
+  memset(&thread_pool, 0, sizeof(thread_pool));
 }

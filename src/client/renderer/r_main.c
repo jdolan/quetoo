@@ -71,50 +71,50 @@ cvar_t *r_width;
  */
 void R_GetError_(const char *function, const char *msg) {
 
-	if (!r_get_error->integer) {
-		return;
-	}
+  if (!r_get_error->integer) {
+    return;
+  }
 
-	if (GLAD_GL_KHR_debug) {
-		return;
-	}
-	
-	// reset error count, so as-it-happens errors can happen again.
-	r_error_count = 0;
+  if (GLAD_GL_KHR_debug) {
+    return;
+  }
+  
+  // reset error count, so as-it-happens errors can happen again.
+  r_error_count = 0;
 
-	// reinstall debug handler.
-	gladInstallGLDebug();
+  // reinstall debug handler.
+  gladInstallGLDebug();
 
-	while (true) {
-		const GLenum err = glGetError();
-		const char *s;
+  while (true) {
+    const GLenum err = glGetError();
+    const char *s;
 
-		switch (err) {
-			case GL_NO_ERROR:
-				return;
-			case GL_INVALID_ENUM:
-				s = "GL_INVALID_ENUM";
-				break;
-			case GL_INVALID_VALUE:
-				s = "GL_INVALID_VALUE";
-				break;
-			case GL_INVALID_OPERATION:
-				s = "GL_INVALID_OPERATION";
-				break;
-			case GL_OUT_OF_MEMORY:
-				s = "GL_OUT_OF_MEMORY";
-				break;
-			default:
-				s = va("%" PRIx32, err);
-				break;
-		}
+    switch (err) {
+      case GL_NO_ERROR:
+        return;
+      case GL_INVALID_ENUM:
+        s = "GL_INVALID_ENUM";
+        break;
+      case GL_INVALID_VALUE:
+        s = "GL_INVALID_VALUE";
+        break;
+      case GL_INVALID_OPERATION:
+        s = "GL_INVALID_OPERATION";
+        break;
+      case GL_OUT_OF_MEMORY:
+        s = "GL_OUT_OF_MEMORY";
+        break;
+      default:
+        s = va("%" PRIx32, err);
+        break;
+    }
 
-		Com_Warn("%s threw %s: %s.\n", function, s, msg);
+    Com_Warn("%s threw %s: %s.\n", function, s, msg);
 
-		if (r_get_error->integer == 2) {
-			SDL_TriggerBreakpoint();
-		}
-	}
+    if (r_get_error->integer == 2) {
+      SDL_TriggerBreakpoint();
+    }
+  }
 }
 
 /**
@@ -122,57 +122,57 @@ void R_GetError_(const char *function, const char *msg) {
  */
 static void R_UpdateUniforms(const r_view_t *view) {
 
-	struct r_uniform_block_t *out = &r_uniforms.block;
-	memset(out, 0, sizeof(*out));
+  struct r_uniform_block_t *out = &r_uniforms.block;
+  memset(out, 0, sizeof(*out));
 
-	out->projection2D = Mat4_FromOrtho(0.f, r_context.mode.w, r_context.mode.h, 0.f, -1.f, 1.f);
+  out->projection2D = Mat4_FromOrtho(0.f, r_context.mode.w, r_context.mode.h, 0.f, -1.f, 1.f);
 
-	if (view) {
-		out->viewport = view->viewport;
+  if (view) {
+    out->viewport = view->viewport;
 
-		const float aspect = view->viewport.z / (float) view->viewport.w;
+    const float aspect = view->viewport.z / (float) view->viewport.w;
 
-		const float ymax = tanf(Radians(view->fov.y));
-		const float ymin = -ymax;
+    const float ymax = tanf(Radians(view->fov.y));
+    const float ymin = -ymax;
 
-		const float xmin = ymin * aspect;
-		const float xmax = ymax * aspect;
+    const float xmin = ymin * aspect;
+    const float xmax = ymax * aspect;
 
-		out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
-		out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
+    out->projection3D = Mat4_FromFrustum(xmin, xmax, ymin, ymax, NEAR_DIST, MAX_WORLD_DIST);
+    out->view = Mat4_LookAt(view->origin, Vec3_Add(view->origin, view->forward), view->up);
 
-		out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
-		out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
+    out->sky_projection = Mat4_FromScale3(Vec3(-1.f, 1.f, 1.f)); // put Z going up
+    out->sky_projection = Mat4_ConcatTranslation(out->sky_projection, Vec3_Negate(view->origin));
 
-		out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
+    out->light_projection = Mat4_FromFrustum(-1.f, 1.f, -1.f, 1.f, NEAR_DIST, MAX_WORLD_DIST);
 
-		out->depth_range.x = NEAR_DIST;
-		out->depth_range.y = MAX_WORLD_DIST;
-		out->view_type = view->type;
-		out->ticks = view->ticks;
-		out->ambient = r_ambient->value * (view->ambient ?: 1.f);
-		out->modulate = r_modulate->value;
-		out->caustics = r_caustics->value;
-		out->stains = r_stains->value;
-		out->fog_density = r_fog_density->value;
-		out->fog_samples = r_fog_samples->value;
-		out->developer = r_developer->value;
+    out->depth_range.x = NEAR_DIST;
+    out->depth_range.y = MAX_WORLD_DIST;
+    out->view_type = view->type;
+    out->ticks = view->ticks;
+    out->ambient = r_ambient->value * (view->ambient ?: 1.f);
+    out->modulate = r_modulate->value;
+    out->caustics = r_caustics->value;
+    out->stains = r_stains->value;
+    out->fog_density = r_fog_density->value;
+    out->fog_samples = r_fog_samples->value;
+    out->developer = r_developer->value;
 
-		if (r_models.world) {
-			const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+    if (r_models.world) {
+      const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
 
-			out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
-			out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
+      out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
+      out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
 
-			const vec3_t pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
-			const vec3_t extents = Box3_Size(voxels->bounds);
+      const vec3_t pos = Vec3_Subtract(view->origin, voxels->bounds.mins);
+      const vec3_t extents = Box3_Size(voxels->bounds);
 
-			out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
-			out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
+      out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
+      out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
 
-			out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxels->voxel_size, extents), 0.f);
-		}
-	}
+      out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxels->voxel_size, extents), 0.f);
+    }
+  }
 }
 
 /**
@@ -180,9 +180,9 @@ static void R_UpdateUniforms(const r_view_t *view) {
  */
 void R_BeginFrame(void) {
 
-	memset(&r_stats, 0, sizeof(r_stats));
+  memset(&r_stats, 0, sizeof(r_stats));
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 /**
@@ -190,25 +190,25 @@ void R_BeginFrame(void) {
  */
 void R_InitView(r_view_t *view) {
 
-	view->viewport = Vec4i_Zero();
-	view->fov = Vec2_Zero();
+  view->viewport = Vec4i_Zero();
+  view->fov = Vec2_Zero();
 
-	view->origin = Vec3_Zero();
-	view->angles = Vec3_Zero();
-	view->forward = Vec3_Zero();
-	view->right = Vec3_Zero();
-	view->up = Vec3_Zero();
+  view->origin = Vec3_Zero();
+  view->angles = Vec3_Zero();
+  view->forward = Vec3_Zero();
+  view->right = Vec3_Zero();
+  view->up = Vec3_Zero();
 
-	view->contents = CONTENTS_NONE;
+  view->contents = CONTENTS_NONE;
 
-	view->num_beams = 0;
-	view->num_entities = 0;
-	view->num_lights = 0;
-	view->num_sprites = 0;
-	view->num_sprite_instances = 0;
-	view->num_stains = 0;
+  view->num_beams = 0;
+  view->num_entities = 0;
+  view->num_lights = 0;
+  view->num_sprites = 0;
+  view->num_sprite_instances = 0;
+  view->num_stains = 0;
 
-	memset(view->frustum, 0, sizeof(view->frustum));
+  memset(view->frustum, 0, sizeof(view->frustum));
 }
 
 /**
@@ -216,32 +216,32 @@ void R_InitView(r_view_t *view) {
  */
 void R_DrawViewDepth(r_view_t *view) {
 
-	assert(view);
-	assert(view->framebuffer);
+  assert(view);
+  assert(view->framebuffer);
 
-	R_UpdateFrustum(view);
+  R_UpdateFrustum(view);
 
-	R_UpdateUniforms(view);
+  R_UpdateUniforms(view);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	R_ClearFramebuffer(view->framebuffer);
+  R_ClearFramebuffer(view->framebuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
+  glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
-	R_DrawDepthPass(view);
+  R_DrawDepthPass(view);
 
-	R_DrawOcclusionQueries(view);
+  R_DrawOcclusionQueries(view);
 
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -249,48 +249,48 @@ void R_DrawViewDepth(r_view_t *view) {
  */
 void R_DrawMainView(r_view_t *view) {
 
-	assert(view);
-	assert(view->framebuffer);
+  assert(view);
+  assert(view->framebuffer);
 
-	R_UpdateEntities(view);
+  R_UpdateEntities(view);
 
-	thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
+  thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
 
-	R_UpdateStains(view);
+  R_UpdateStains(view);
 
-	R_UpdateLights(view);
+  R_UpdateLights(view);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	R_DrawShadows(view);
+  R_DrawShadows(view);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
+  glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
 
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
+  if (r_draw_wireframe->value) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  }
 
-	R_DrawEntities(view);
+  R_DrawEntities(view);
 
-	Thread_Wait(sprites);
-	
-	R_DrawSprites(view);
+  Thread_Wait(sprites);
+  
+  R_DrawSprites(view);
 
-	if (r_draw_wireframe->value) {
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
+  if (r_draw_wireframe->value) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 
-	R_Draw3D();
+  R_Draw3D();
 
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /**
@@ -298,30 +298,30 @@ void R_DrawMainView(r_view_t *view) {
  */
 void R_DrawPlayerModelView(r_view_t *view) {
 
-	assert(view);
-	assert(view->framebuffer);
+  assert(view);
+  assert(view->framebuffer);
 
-	R_UpdateUniforms(view);
+  R_UpdateUniforms(view);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	R_UpdateEntities(view);
+  R_UpdateEntities(view);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-	glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
+  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-	R_DrawMeshEntities(view);
+  R_DrawMeshEntities(view);
 
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
-	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 /**
@@ -329,13 +329,13 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
-	R_Draw2D();
+  R_Draw2D();
 
-	if (r_finish->value) {
-		glFinish();
-	}
+  if (r_finish->value) {
+    glFinish();
+  }
 
-	SDL_GL_SwapWindow(r_context.window);
+  SDL_GL_SwapWindow(r_context.window);
 }
 
 /**
@@ -343,54 +343,54 @@ void R_EndFrame(void) {
  */
 static void R_InitLocal(void) {
 
-	// development tools
-	r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
-	r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
-	r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
-	r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
-	r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
-	r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
-	r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
-	r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
-	r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
-	r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
-	r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
-	r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
-	r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
-	r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
+  // development tools
+  r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
+  r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
+  r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
+  r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
+  r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
+  r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
+  r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
+  r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
+  r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
+  r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
+  r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
+  r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
+  r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
+  r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
-	// settings and preferences
-	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
-	r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
-	r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
-	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
-	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
-	r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
-	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
-	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
-	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
-	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-	r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
-	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
-	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
-	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
-	r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
-	r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
-	r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-	r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
-	r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
-	r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
-	r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  // settings and preferences
+  r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
+  r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
+  r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
+  r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
+  r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
+  r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
+  r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
+  r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
+  r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
+  r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
+  r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
+  r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
+  r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
+  r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
+  r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
+  r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
+  r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
+  r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
+  r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
+  r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
+  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+  r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
-	Cvar_ClearAll(CVAR_R_MASK);
+  Cvar_ClearAll(CVAR_R_MASK);
 
-	Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
-	Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
-	Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
-	Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
-	Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
+  Cmd_Add("r_dump_images", R_DumpImages_f, CMD_RENDERER, "Dump all loaded images to disk (developer tool)");
+  Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
+  Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
+  Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
+  Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
 }
 
 /**
@@ -398,37 +398,37 @@ static void R_InitLocal(void) {
  */
 static void R_InitConfig(void) {
 
-	memset(&r_config, 0, sizeof(r_config));
+  memset(&r_config, 0, sizeof(r_config));
 
-	r_config.renderer = (const char *) glGetString(GL_RENDERER);
-	r_config.vendor = (const char *) glGetString(GL_VENDOR);
-	r_config.version = (const char *) glGetString(GL_VERSION);
+  r_config.renderer = (const char *) glGetString(GL_RENDERER);
+  r_config.vendor = (const char *) glGetString(GL_VENDOR);
+  r_config.version = (const char *) glGetString(GL_VERSION);
 
-	GLint num_extensions;
-	glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+  GLint num_extensions;
+  glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
 
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
-	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
+  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
+  glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
 
-	Com_Print(  "  Renderer:           ^2%s^7\n", r_config.renderer);
-	Com_Print(  "  Vendor:             ^2%s^7\n", r_config.vendor);
-	Com_Print(  "  Version:            ^2%s^7\n", r_config.version);
-	Com_Verbose("  Tex Units:          ^2%i^7\n", r_config.max_texunits);
-	Com_Verbose("  Tex Size:           ^2%i^7\n", r_config.max_texture_size);
-	Com_Verbose("  Uniform block Size: ^2%i^7\n", r_config.max_uniform_block_size);
+  Com_Print(  "  Renderer:           ^2%s^7\n", r_config.renderer);
+  Com_Print(  "  Vendor:             ^2%s^7\n", r_config.vendor);
+  Com_Print(  "  Version:            ^2%s^7\n", r_config.version);
+  Com_Verbose("  Tex Units:          ^2%i^7\n", r_config.max_texunits);
+  Com_Verbose("  Tex Size:           ^2%i^7\n", r_config.max_texture_size);
+  Com_Verbose("  Uniform block Size: ^2%i^7\n", r_config.max_uniform_block_size);
 
-	for (int32_t i = 0; i < num_extensions; i++) {
-		const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
+  for (int32_t i = 0; i < num_extensions; i++) {
+    const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);
 
-		if (i == 0) {
-			Com_Verbose("  Extensions: ^2%s^7\n", c);
-		} else {
-			Com_Verbose("              ^2%s^7\n", c);
-		}
-	}
+    if (i == 0) {
+      Com_Verbose("  Extensions: ^2%s^7\n", c);
+    } else {
+      Com_Verbose("              ^2%s^7\n", c);
+    }
+  }
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -436,18 +436,18 @@ static void R_InitConfig(void) {
  */
 static void R_InitUniforms(void) {
 
-	glGenBuffers(1, &r_uniforms.buffer);
+  glGenBuffers(1, &r_uniforms.buffer);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_uniforms.block), NULL, GL_DYNAMIC_DRAW);
 
-	glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
+  glBindBufferBase(GL_UNIFORM_BUFFER, 0, r_uniforms.buffer);
 
-	R_UpdateUniforms(NULL);
+  R_UpdateUniforms(NULL);
 
-	glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
@@ -455,7 +455,7 @@ static void R_InitUniforms(void) {
  */
 static void R_ShutdownUniforms(void) {
 
-	glDeleteBuffers(1, &r_uniforms.buffer);
+  glDeleteBuffers(1, &r_uniforms.buffer);
 }
 
 /**
@@ -463,42 +463,42 @@ static void R_ShutdownUniforms(void) {
  */
 void R_Init(void) {
 
-	Com_Print("Video initialization...\n");
+  Com_Print("Video initialization...\n");
 
-	R_InitLocal();
+  R_InitLocal();
 
-	R_InitContext();
+  R_InitContext();
 
-	R_InitConfig();
+  R_InitConfig();
 
-	R_InitUniforms();
+  R_InitUniforms();
 
-	R_InitMedia();
+  R_InitMedia();
 
-	R_InitImages();
+  R_InitImages();
 
-	R_InitDepthPass();
+  R_InitDepthPass();
 
-	R_InitShadows();
+  R_InitShadows();
 
-	R_InitDraw2D();
+  R_InitDraw2D();
 
-	R_InitDraw3D();
+  R_InitDraw3D();
 
-	R_InitModels();
+  R_InitModels();
 
-	R_InitSprites();
+  R_InitSprites();
 
-	R_InitLights();
+  R_InitLights();
 
-	R_InitSky();
+  R_InitSky();
 
-	R_GetError("Video initialization");
+  R_GetError("Video initialization");
 
-	Com_Print("Video initialized %dx%d (%dx%d) %s\n",
-			  r_context.mode.w, r_context.mode.h,
-			  r_context.drawable_width, r_context.drawable_height,
-	          (r_context.fullscreen ? "fullscreen" : "windowed"));
+  Com_Print("Video initialized %dx%d (%dx%d) %s\n",
+        r_context.mode.w, r_context.mode.h,
+        r_context.drawable_width, r_context.drawable_height,
+            (r_context.fullscreen ? "fullscreen" : "windowed"));
 }
 
 /**
@@ -507,29 +507,29 @@ void R_Init(void) {
  */
 void R_Shutdown(void) {
 
-	Cmd_RemoveAll(CMD_RENDERER);
+  Cmd_RemoveAll(CMD_RENDERER);
 
-	R_ShutdownMedia();
+  R_ShutdownMedia();
 
-	R_ShutdownDraw2D();
+  R_ShutdownDraw2D();
 
-	R_ShutdownDraw3D();
+  R_ShutdownDraw3D();
 
-	R_ShutdownModels();
+  R_ShutdownModels();
 
-	R_ShutdownLights();
+  R_ShutdownLights();
 
-	R_ShutdownSprites();
+  R_ShutdownSprites();
 
-	R_ShutdownSky();
+  R_ShutdownSky();
 
-	R_ShutdownShadows();
+  R_ShutdownShadows();
 
-	R_ShutdownDepthPass();
+  R_ShutdownDepthPass();
 
-	R_ShutdownUniforms();
+  R_ShutdownUniforms();
 
-	R_ShutdownContext();
+  R_ShutdownContext();
 
-	Mem_FreeTag(MEM_TAG_RENDERER);
+  Mem_FreeTag(MEM_TAG_RENDERER);
 }

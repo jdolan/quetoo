@@ -26,87 +26,87 @@
 /**
  * @brief Quake3 .md3 model format.
  */
-#define MD3_ID				(('3'<<24)+('P'<<16)+('D'<<8)+'I')
-#define MD3_VERSION			15
+#define MD3_ID        (('3'<<24)+('P'<<16)+('D'<<8)+'I')
+#define MD3_VERSION      15
 
-#define MD3_MAX_LODS		0x4 // per model
-#define	MD3_MAX_TRIANGLES	0x2000 // per mesh
-#define MD3_MAX_VERTEXES	0x1000 // per mesh
-#define MD3_MAX_SHADERS		0x100 // per mesh
-#define MD3_MIN_FRAMES		0x1 // per model
-#define MD3_MAX_FRAMES		0x400 // per model
-#define	MD3_MAX_SURFACES	0x20 // per model
-#define MD3_MAX_TAGS		0x10 // per frame
-#define MD3_MAX_PATH		0x40 // relative file references
-#define MD3_MAX_ANIMATIONS	0x20 // see entity_animation_t
+#define MD3_MAX_LODS    0x4 // per model
+#define  MD3_MAX_TRIANGLES  0x2000 // per mesh
+#define MD3_MAX_VERTEXES  0x1000 // per mesh
+#define MD3_MAX_SHADERS    0x100 // per mesh
+#define MD3_MIN_FRAMES    0x1 // per model
+#define MD3_MAX_FRAMES    0x400 // per model
+#define  MD3_MAX_SURFACES  0x20 // per model
+#define MD3_MAX_TAGS    0x10 // per frame
+#define MD3_MAX_PATH    0x40 // relative file references
+#define MD3_MAX_ANIMATIONS  0x20 // see entity_animation_t
 // vertex scales from origin
-#define	MD3_XYZ_SCALE		(1.0 / 64)
+#define  MD3_XYZ_SCALE    (1.0 / 64)
 
 typedef struct {
-	vec2_t st;
+  vec2_t st;
 } d_md3_texcoord_t;
 
 typedef struct {
-	vec3s_t point;
-	int16_t norm;
+  vec3s_t point;
+  int16_t norm;
 } d_md3_vertex_t;
 
 typedef struct {
-	uint32_t indexes[3];
+  uint32_t indexes[3];
 } d_md3_triangle_t;
 
 typedef struct {
-	box3_t bounds;
-	vec3_t translate;
-	float radius;
-	char name[16];
+  box3_t bounds;
+  vec3_t translate;
+  float radius;
+  char name[16];
 } d_md3_frame_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
-	vec3_t origin;
-	vec3_t axis[3];
+  char name[MD3_MAX_PATH];
+  vec3_t origin;
+  vec3_t axis[3];
 } d_md3_tag_t;
 
 typedef struct {
-	char name[MD3_MAX_PATH];
-	int32_t index;
+  char name[MD3_MAX_PATH];
+  int32_t index;
 } d_md3_shader_t;
 
 typedef struct {
-	int32_t id;
+  int32_t id;
 
-	char name[MD3_MAX_PATH];
+  char name[MD3_MAX_PATH];
 
-	int32_t flags;
+  int32_t flags;
 
-	int32_t num_frames;
-	int32_t num_shaders;
-	int32_t num_vertexes;
-	int32_t num_triangles;
+  int32_t num_frames;
+  int32_t num_shaders;
+  int32_t num_vertexes;
+  int32_t num_triangles;
 
-	int32_t ofs_triangles;
-	int32_t ofs_shaders;
-	int32_t ofs_texcoords;
-	int32_t ofs_vertexes;
-	int32_t ofs_end;
+  int32_t ofs_triangles;
+  int32_t ofs_shaders;
+  int32_t ofs_texcoords;
+  int32_t ofs_vertexes;
+  int32_t ofs_end;
 } d_md3_surface_t;
 
 typedef struct {
-	int32_t id;
-	int32_t version;
+  int32_t id;
+  int32_t version;
 
-	char filename[MD3_MAX_PATH];
+  char filename[MD3_MAX_PATH];
 
-	int32_t flags;
+  int32_t flags;
 
-	int32_t num_frames;
-	int32_t num_tags;
-	int32_t num_surfaces;
-	int32_t num_shaders;
+  int32_t num_frames;
+  int32_t num_tags;
+  int32_t num_surfaces;
+  int32_t num_shaders;
 
-	int32_t ofs_frames;
-	int32_t ofs_tags;
-	int32_t ofs_surfaces;
-	int32_t ofs_end;
+  int32_t ofs_frames;
+  int32_t ofs_tags;
+  int32_t ofs_surfaces;
+  int32_t ofs_end;
 } d_md3_t;

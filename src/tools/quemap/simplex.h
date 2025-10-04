@@ -40,7 +40,7 @@ float SimplexNoise(float x, float y, float z, const uint8_t *perm);
  * @param[in] x         x float coordinate
  * @param[in] y         y float coordinate
  * @param[in] z         z float coordinate
- * @param[in] perm		permutation vector
+ * @param[in] perm    permutation vector
  *
  * @return Noise value in the range[-1; 1], value of 0 on all integer coordinates.
  */

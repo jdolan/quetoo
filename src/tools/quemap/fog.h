@@ -45,17 +45,17 @@
  * @brief Fog types.
  */
 typedef enum {
-	FOG_INVALID = -1,
+  FOG_INVALID = -1,
 
-	/**
-	 * @brief Global fog defined in worldspawn.
-	 */
-	FOG_GLOBAL,
+  /**
+   * @brief Global fog defined in worldspawn.
+   */
+  FOG_GLOBAL,
 
-	/**
-	 * @brief Fog volumes come from brush entities that are merged into worldspawn.
-	 */
-	FOG_VOLUME
+  /**
+   * @brief Fog volumes come from brush entities that are merged into worldspawn.
+   */
+  FOG_VOLUME
 } fog_type_t;
 
 /**
@@ -63,40 +63,40 @@ typedef enum {
  */
 typedef struct {
 
-	/**
-	 * @brief The fog type.
-	 */
-	fog_type_t type;
+  /**
+   * @brief The fog type.
+   */
+  fog_type_t type;
 
-	/**
-	 * @brief The entity definition.
-	 */
-	const cm_entity_t *entity;
+  /**
+   * @brief The entity definition.
+   */
+  const cm_entity_t *entity;
 
-	/**
-	 * @brief The brushes originally belonging to this fog entity.
-	 */
-	GPtrArray *brushes;
+  /**
+   * @brief The brushes originally belonging to this fog entity.
+   */
+  GPtrArray *brushes;
 
-	/**
-	 * @brief The fog color.
-	 */
-	vec3_t color;
+  /**
+   * @brief The fog color.
+   */
+  vec3_t color;
 
-	/**
-	 * @brief The fog density.
-	 */
-	float density;
+  /**
+   * @brief The fog density.
+   */
+  float density;
 
-	/**
-	 * @brief The fog absorption.
-	 */
-	float absorption;
+  /**
+   * @brief The fog absorption.
+   */
+  float absorption;
 
-	/**
-	 * @brief The bounds of all brushes in this fog entity.
-	 */
-	box3_t bounds;
+  /**
+   * @brief The bounds of all brushes in this fog entity.
+   */
+  box3_t bounds;
 } fog_t;
 
 extern GArray *fogs;

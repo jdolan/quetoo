@@ -29,16 +29,16 @@
  */
 int32_t main(int32_t argc, char **argv) {
 
-	TCase *tcase = tcase_create("check_shared");
+  TCase *tcase = tcase_create("check_shared");
 
-	Suite *suite = suite_create("check_shared");
-	suite_add_tcase(suite, tcase);
+  Suite *suite = suite_create("check_shared");
+  suite_add_tcase(suite, tcase);
 
-	SRunner *runner = srunner_create(suite);
+  SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_VERBOSE);
-	int32_t failed = srunner_ntests_failed(runner);
+  srunner_run_all(runner, CK_VERBOSE);
+  int32_t failed = srunner_ntests_failed(runner);
 
-	srunner_free(runner);
-	return failed;
+  srunner_free(runner);
+  return failed;
 }

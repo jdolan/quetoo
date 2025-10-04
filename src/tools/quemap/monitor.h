@@ -24,9 +24,9 @@
 #include "common/common.h"
 
 typedef enum {
-	MON_PRINT = 1,
-	MON_WARN,
-	MON_ERROR
+  MON_PRINT = 1,
+  MON_WARN,
+  MON_ERROR
 } mon_level_t;
 
 void Mon_SendMessage(mon_level_t level, const char *msg);

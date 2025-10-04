@@ -20,7 +20,7 @@
  */
 
 #if defined(_WIN32)
-	#include <winsock2.h> // for htons
+  #include <winsock2.h> // for htons
 #endif
 
 #include "sv_local.h"
@@ -31,32 +31,32 @@
  * @brief Sends heartbeat messages to master servers every 300s.
  */
 void Sv_HeartbeatMasters(void) {
-	const char *string;
+  const char *string;
 
-	if (!sv_public->value) {
-		return; // a private dedicated game
-	}
+  if (!sv_public->value) {
+    return; // a private dedicated game
+  }
 
-	if (sv.state != SV_ACTIVE_GAME) { // we're not up yet
-		return;
-	}
+  if (sv.state != SV_ACTIVE_GAME) { // we're not up yet
+    return;
+  }
 
-	if (svs.next_heartbeat > quetoo.ticks) {
-		return; // not time to send yet
-	}
+  if (svs.next_heartbeat > quetoo.ticks) {
+    return; // not time to send yet
+  }
 
-	svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
+  svs.next_heartbeat = quetoo.ticks + HEARTBEAT_SECONDS * 1000;
 
-	// send the same string that we would give for a status command
-	string = Sv_StatusString();
+  // send the same string that we would give for a status command
+  string = Sv_StatusString();
 
-	// send to each master server
-	for (int32_t i = 0; i < MAX_MASTERS; i++) {
-		if (svs.masters[i].port) {
-			Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
-		}
-	}
+  // send to each master server
+  for (int32_t i = 0; i < MAX_MASTERS; i++) {
+    if (svs.masters[i].port) {
+      Com_Print("Sending heartbeat to %s\n", Net_NetaddrToString(&svs.masters[i]));
+      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "heartbeat\n%s", string);
+    }
+  }
 }
 
 /**
@@ -64,11 +64,11 @@ void Sv_HeartbeatMasters(void) {
  */
 void Sv_InitMasters(void) {
 
-	memset(&svs.masters, 0, sizeof(svs.masters));
+  memset(&svs.masters, 0, sizeof(svs.masters));
 
-	// set default master server
-	Net_StringToNetaddr(HOST_MASTER, &svs.masters[0]);
-	svs.masters[0].port = htons(PORT_MASTER);
+  // set default master server
+  Net_StringToNetaddr(HOST_MASTER, &svs.masters[0]);
+  svs.masters[0].port = htons(PORT_MASTER);
 }
 
 /**
@@ -76,15 +76,15 @@ void Sv_InitMasters(void) {
  */
 void Sv_ShutdownMasters(void) {
 
-	if (!sv_public->value) {
-		return;    // a private dedicated game
-	}
+  if (!sv_public->value) {
+    return;    // a private dedicated game
+  }
 
-	// send to group master
-	for (int32_t i = 0; i < MAX_MASTERS; i++) {
-		if (svs.masters[i].port) {
-			Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
-			Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
-		}
-	}
+  // send to group master
+  for (int32_t i = 0; i < MAX_MASTERS; i++) {
+    if (svs.masters[i].port) {
+      Com_Print("Sending shutdown to %s\n", Net_NetaddrToString(&svs.masters[i]));
+      Netchan_OutOfBandPrint(NS_UDP_SERVER, &svs.masters[i], "shutdown");
+    }
+  }
 }

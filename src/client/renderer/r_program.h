@@ -31,8 +31,8 @@
  * @brief Shader descriptors are used to load GLSL shaders from disk.
  */
 typedef struct {
-	GLenum type;
-	const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES];
+  GLenum type;
+  const char *filenames[MAX_SHADER_DESCRIPTOR_FILENAMES];
 } r_shader_descriptor_t;
 
 r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) __attribute__((sentinel));

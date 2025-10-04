@@ -32,15 +32,15 @@ static Stylesheet *stylesheet;
  */
 void Cg_InitUi(void) {
 
-	stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
-	assert(stylesheet);
+  stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/common.css");
+  assert(stylesheet);
 
-	$(cgi.Theme(), addStylesheet, stylesheet);
+  $(cgi.Theme(), addStylesheet, stylesheet);
 
-	mainViewController = $(alloc(MainViewController), init);
-	assert(mainViewController);
+  mainViewController = $(alloc(MainViewController), init);
+  assert(mainViewController);
 
-	cgi.PushViewController((ViewController *) mainViewController);
+  cgi.PushViewController((ViewController *) mainViewController);
 }
 
 /**
@@ -48,15 +48,15 @@ void Cg_InitUi(void) {
  */
 void Cg_ShutdownUi(void) {
 
-	cgi.PopAllViewControllers();
+  cgi.PopAllViewControllers();
 
-	release(mainViewController);
-	mainViewController = NULL;
+  release(mainViewController);
+  mainViewController = NULL;
 
-	$(cgi.Theme(), removeStylesheet, stylesheet);
+  $(cgi.Theme(), removeStylesheet, stylesheet);
 
-	release(stylesheet);
-	stylesheet = NULL;
+  release(stylesheet);
+  stylesheet = NULL;
 }
 
 /**
@@ -64,28 +64,28 @@ void Cg_ShutdownUi(void) {
  */
 void Cg_ClearUi(void) {
 
-	if (mainViewController) {
-		cgi.PopToViewController((ViewController *) mainViewController);
-	}
+  if (mainViewController) {
+    cgi.PopToViewController((ViewController *) mainViewController);
+  }
 }
 
 /**
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const cl_loading_t loading) {
-	static LoadingViewController *loadingViewController;
+  static LoadingViewController *loadingViewController;
 
-	if (loading.percent == 0) {
-		loadingViewController = $(alloc(LoadingViewController), init);
-		cgi.PushViewController((ViewController *) loadingViewController);
-	} else if (loading.percent == 100) {
-		cgi.PopToViewController((ViewController *) mainViewController);
-		loadingViewController = release(loadingViewController);
-	}
+  if (loading.percent == 0) {
+    loadingViewController = $(alloc(LoadingViewController), init);
+    cgi.PushViewController((ViewController *) loadingViewController);
+  } else if (loading.percent == 100) {
+    cgi.PopToViewController((ViewController *) mainViewController);
+    loadingViewController = release(loadingViewController);
+  }
 
-	if (loadingViewController) {
-		$(loadingViewController, setProgress, loading);
-	}
+  if (loadingViewController) {
+    $(loadingViewController, setProgress, loading);
+  }
 }
 
 /**
@@ -93,12 +93,12 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  */
 void Cg_BindCvar(const Inlet *inlet, ident obj) {
 
-	const char *name = cast(String, obj)->chars;
-	cvar_t *var = cgi.GetCvar(name);
+  const char *name = cast(String, obj)->chars;
+  cvar_t *var = cgi.GetCvar(name);
 
-	if (var == NULL) {
-		cgi.Warn("%s not found\n", name);
-	}
+  if (var == NULL) {
+    cgi.Warn("%s not found\n", name);
+  }
 
-	*(cvar_t **) inlet->dest = var;
+  *(cvar_t **) inlet->dest = var;
 }

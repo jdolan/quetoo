@@ -28,14 +28,14 @@ r_lights_t r_lights;
  */
 void R_AddLight(r_view_t *view, const r_light_t *l) {
 
-	if (view->num_lights == MAX_LIGHTS) {
-		Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
-		return;
-	}
+  if (view->num_lights == MAX_LIGHTS) {
+    Com_Debug(DEBUG_RENDERER, "MAX_LIGHTS\n");
+    return;
+  }
 
-	r_light_t *out = &view->lights[view->num_lights++];
+  r_light_t *out = &view->lights[view->num_lights++];
 
-	*out = *l;
+  *out = *l;
 }
 
 /**
@@ -43,14 +43,14 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
  */
 static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 
-	const ptrdiff_t index = in - view->lights;
+  const ptrdiff_t index = in - view->lights;
 
-	r_light_uniform_t *out = &r_lights.block.lights[index];
+  r_light_uniform_t *out = &r_lights.block.lights[index];
 
-	out->origin = Vec3_ToVec4(in->origin, in->radius);
-	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
-	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
-	out->color = Vec3_ToVec4(in->color, in->intensity);
+  out->origin = Vec3_ToVec4(in->origin, in->radius);
+  out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
+  out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
+  out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 
 /**
@@ -58,34 +58,34 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
  */
 void R_UpdateLights(r_view_t *view) {
 
-	r_light_uniform_block_t *out = &r_lights.block;
-	memset(out, 0, sizeof(*out));
+  r_light_uniform_block_t *out = &r_lights.block;
+  memset(out, 0, sizeof(*out));
 
-	cm_trace_t tr = { 0 };
-	if (r_draw_light_bounds->value) {
-		const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-		tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-	}
+  cm_trace_t tr = { 0 };
+  if (r_draw_light_bounds->value) {
+    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+    tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
+  }
 
-	r_light_t *l = view->lights;
-	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+  r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-		if ((l->bsp_light && l->bsp_light->occluded)
-			|| R_OccludeSphere(view, l->origin, l->radius)) {
-			r_stats.lights_occluded++;
-			l->occluded = true;
-			continue;
-		}
+    if ((l->bsp_light && l->bsp_light->occluded)
+      || R_OccludeSphere(view, l->origin, l->radius)) {
+      r_stats.lights_occluded++;
+      l->occluded = true;
+      continue;
+    }
 
-		r_stats.lights_visible++;
-		l->occluded = false;
+    r_stats.lights_visible++;
+    l->occluded = false;
 
-		R_AddLightUniform(view, l);
+    R_AddLightUniform(view, l);
 
-		if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-			R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-		}
-	}
+    if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
+      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
+    }
+  }
 }
 
 /**
@@ -93,30 +93,30 @@ void R_UpdateLights(r_view_t *view) {
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-	GLint active_lights[view->num_lights];
-	GLint num_active_lights = 0;
-	
-	memset(active_lights, 0, sizeof(GLint) * view->num_lights);
+  GLint active_lights[view->num_lights];
+  GLint num_active_lights = 0;
+  
+  memset(active_lights, 0, sizeof(GLint) * view->num_lights);
 
-	const r_light_t *light = view->lights;
-	for (int32_t i = 0; i < view->num_lights; i++, light++) {
+  const r_light_t *light = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, light++) {
 
-		if (light->occluded) {
-			continue;
-		}
+    if (light->occluded) {
+      continue;
+    }
 
-		if (Box3_Intersects(light->bounds, bounds)) {
-			active_lights[num_active_lights++] = (GLuint) i;
-		}
-	}
+    if (Box3_Intersects(light->bounds, bounds)) {
+      active_lights[num_active_lights++] = (GLuint) i;
+    }
+  }
 
-	if (num_active_lights < MAX_LIGHTS) {
-		active_lights[num_active_lights++] = -1;
-	}
+  if (num_active_lights < MAX_LIGHTS) {
+    active_lights[num_active_lights++] = -1;
+  }
 
-	glUniform1iv(name, num_active_lights, active_lights);
+  glUniform1iv(name, num_active_lights, active_lights);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -124,15 +124,15 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
  */
 void R_InitLights(void) {
 
-	memset(&r_lights, 0, sizeof(r_lights));
+  memset(&r_lights, 0, sizeof(r_lights));
 
-	glGenBuffers(1, &r_lights.buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
-	glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glGenBuffers(1, &r_lights.buffer);
+  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(r_lights.block), &r_lights.block, GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_UNIFORM_BUFFER, 1, r_lights.buffer);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -140,5 +140,5 @@ void R_InitLights(void) {
  */
 void R_ShutdownLights(void) {
 
-	glDeleteBuffers(1, &r_lights.buffer);
+  glDeleteBuffers(1, &r_lights.buffer);
 }

@@ -41,32 +41,32 @@ typedef struct LoadingViewControllerInterface LoadingViewControllerInterface;
  */
 struct LoadingViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	LoadingViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  LoadingViewControllerInterface *interface;
 
-	/**
-	 * @brief The map shot.
-	 */
-	ImageView *mapShot;
+  /**
+   * @brief The map shot.
+   */
+  ImageView *mapShot;
 
-	/**
-	 * @brief The logo.
-	 */
-	ImageView *logo;
+  /**
+   * @brief The logo.
+   */
+  ImageView *logo;
 
-	/**
-	 * @brief The progress bar.
-	 */
-	ProgressBar *progressBar;
+  /**
+   * @brief The progress bar.
+   */
+  ProgressBar *progressBar;
 };
 
 /**
@@ -74,27 +74,27 @@ struct LoadingViewController {
  */
 struct LoadingViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
-	/**
-	 * @fn LoadingViewController *LoadingViewController::init(LoadingViewController *self)
-	 * @brief Initializes this ViewController.
-	 * @return The initialized LoadingViewController, or `NULL` on error.
-	 * @memberof LoadingViewController
-	 */
-	LoadingViewController *(*init)(LoadingViewController *self);
+  /**
+   * @fn LoadingViewController *LoadingViewController::init(LoadingViewController *self)
+   * @brief Initializes this ViewController.
+   * @return The initialized LoadingViewController, or `NULL` on error.
+   * @memberof LoadingViewController
+   */
+  LoadingViewController *(*init)(LoadingViewController *self);
 
-	/**
-	 * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
-	 * @brief Sets the visual progress of the loading screen.
-	 * @param percent The percent loaded.
-	 * @param status The currently loading media item.
-	 * @memberof LoadingViewController
-	 */
-	void (*setProgress)(LoadingViewController *self, const cl_loading_t loading);
+  /**
+   * @fn void LoadingViewController::setProgress(LoadingViewController *self, const cl_loading_t loading)
+   * @brief Sets the visual progress of the loading screen.
+   * @param percent The percent loaded.
+   * @param status The currently loading media item.
+   * @memberof LoadingViewController
+   */
+  void (*setProgress)(LoadingViewController *self, const cl_loading_t loading);
 };
 
 /**

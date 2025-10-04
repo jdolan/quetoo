@@ -33,14 +33,14 @@
  */
 static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	MaterialViewController *this = sender;
+  MaterialViewController *this = sender;
 
-	if (this->model == NULL) {
-		Com_Debug(DEBUG_UI, "Not editing a material\n");
-		return;
-	}
+  if (this->model == NULL) {
+    Com_Debug(DEBUG_UI, "Not editing a material\n");
+    return;
+  }
 
-	Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
+  Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
 }
 
 /**
@@ -48,24 +48,24 @@ static void saveAction(Control *control, const SDL_Event *event, ident sender, i
  */
 static void didSetValue(Slider *slider, double value) {
 
-	MaterialViewController *this = (MaterialViewController *) slider->delegate.self;
+  MaterialViewController *this = (MaterialViewController *) slider->delegate.self;
 
-	if (!this->material) {
-		return;
-	}
-	if (slider == this->roughness) {
-		this->material->cm->roughness = slider->value;
-	} else if (slider == this->hardness) {
-		this->material->cm->hardness = slider->value;
-	} else if (slider == this->specularity) {
-		this->material->cm->specularity = slider->value;
-	} else if (slider == this->parallax) {
-		this->material->cm->parallax = slider->value;
-	} else if (slider == this->alphaTest) {
-		this->material->cm->alpha_test = slider->value;
-	} else {
-		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
-	}
+  if (!this->material) {
+    return;
+  }
+  if (slider == this->roughness) {
+    this->material->cm->roughness = slider->value;
+  } else if (slider == this->hardness) {
+    this->material->cm->hardness = slider->value;
+  } else if (slider == this->specularity) {
+    this->material->cm->specularity = slider->value;
+  } else if (slider == this->parallax) {
+    this->material->cm->parallax = slider->value;
+  } else if (slider == this->alphaTest) {
+    this->material->cm->alpha_test = slider->value;
+  } else {
+    Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
+  }
 }
 
 #pragma mark - ViewController
@@ -75,45 +75,45 @@ static void didSetValue(Slider *slider, double value) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	MaterialViewController *this = (MaterialViewController *) self;
+  MaterialViewController *this = (MaterialViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("name", &this->name),
-		MakeOutlet("diffusemap", &this->diffusemap),
-		MakeOutlet("normalmap", &this->normalmap),
-		MakeOutlet("specularmap", &this->specularmap),
-		MakeOutlet("roughness", &this->roughness),
-		MakeOutlet("hardness", &this->hardness),
-		MakeOutlet("specularity", &this->specularity),
-		MakeOutlet("parallax", &this->parallax),
-		MakeOutlet("alpha_test", &this->alphaTest),
-		MakeOutlet("save", &this->save)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("name", &this->name),
+    MakeOutlet("diffusemap", &this->diffusemap),
+    MakeOutlet("normalmap", &this->normalmap),
+    MakeOutlet("specularmap", &this->specularmap),
+    MakeOutlet("roughness", &this->roughness),
+    MakeOutlet("hardness", &this->hardness),
+    MakeOutlet("specularity", &this->specularity),
+    MakeOutlet("parallax", &this->parallax),
+    MakeOutlet("alpha_test", &this->alphaTest),
+    MakeOutlet("save", &this->save)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/MaterialViewController.css");
-	assert(self->view->stylesheet);
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/MaterialViewController.css");
+  assert(self->view->stylesheet);
 
-	this->roughness->delegate.self = self;
-	this->roughness->delegate.didSetValue = didSetValue;
+  this->roughness->delegate.self = self;
+  this->roughness->delegate.didSetValue = didSetValue;
 
-	this->hardness->delegate.self = self;
-	this->hardness->delegate.didSetValue = didSetValue;
+  this->hardness->delegate.self = self;
+  this->hardness->delegate.didSetValue = didSetValue;
 
-	this->specularity->delegate.self = self;
-	this->specularity->delegate.didSetValue = didSetValue;
+  this->specularity->delegate.self = self;
+  this->specularity->delegate.didSetValue = didSetValue;
 
-	this->parallax->delegate.self = self;
-	this->parallax->delegate.didSetValue = didSetValue;
+  this->parallax->delegate.self = self;
+  this->parallax->delegate.didSetValue = didSetValue;
 
-	this->alphaTest->delegate.self = self;
-	this->alphaTest->delegate.didSetValue = didSetValue;
+  this->alphaTest->delegate.self = self;
+  this->alphaTest->delegate.didSetValue = didSetValue;
 
-	$((Control *) this->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
+  $((Control *) this->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
 }
 
 /**
@@ -121,66 +121,66 @@ static void loadView(ViewController *self) {
  */
 static void viewWillAppear(ViewController *self) {
 
-	MaterialViewController *this = (MaterialViewController *) self;
+  MaterialViewController *this = (MaterialViewController *) self;
 
-	r_material_t *material = NULL;
-	const r_model_t *model = NULL;
+  r_material_t *material = NULL;
+  const r_model_t *model = NULL;
 
-	float distance = MAX_WORLD_DIST;
+  float distance = MAX_WORLD_DIST;
 
-	vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
-	vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+  vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
+  vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
-	while (material == NULL) {
+  while (material == NULL) {
 
-		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-		if (!tr.material) {
-			break;
-		}
+    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+    if (!tr.material) {
+      break;
+    }
 
-		material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
-		model = R_WorldModel();
+    material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
+    model = R_WorldModel();
 
-		distance = Vec3_Distance(cl_view.origin, tr.end);
-	}
+    distance = Vec3_Distance(cl_view.origin, tr.end);
+  }
 
-	const r_entity_t *e = cl_view.entities;
-	for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
+  const r_entity_t *e = cl_view.entities;
+  for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
 
-		if (e->model == NULL) {
-			continue;
-		}
+    if (e->model == NULL) {
+      continue;
+    }
 
-		if (e->model->type != MODEL_MESH) {
-			continue;
-		}
+    if (e->model->type != MODEL_MESH) {
+      continue;
+    }
 
-		if (e->model->mesh->faces->material == NULL) {
-			continue;
-		}
+    if (e->model->mesh->faces->material == NULL) {
+      continue;
+    }
 
-		if (e->effects & (EF_SELF | EF_WEAPON)) {
-			continue;
-		}
+    if (e->effects & (EF_SELF | EF_WEAPON)) {
+      continue;
+    }
 
-		const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
+    const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
 
-		const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
-		if (tr.fraction < 1.f) {
+    const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
+    if (tr.fraction < 1.f) {
 
-			const float dist = Vec3_Distance(cl_view.origin, tr.end);
-			if (dist < distance) {
-				material = e->model->mesh->faces->material;
-				model = e->model;
+      const float dist = Vec3_Distance(cl_view.origin, tr.end);
+      if (dist < distance) {
+        material = e->model->mesh->faces->material;
+        model = e->model;
 
-				distance = dist;
-			}
-		}
-	}
+        distance = dist;
+      }
+    }
+  }
 
-	$(this, setModelAndMaterial, model, material);
+  $(this, setModelAndMaterial, model, material);
 
-	super(ViewController, self, viewWillAppear);
+  super(ViewController, self, viewWillAppear);
 }
 
 #pragma mark - MaterialViewController
@@ -190,7 +190,7 @@ static void viewWillAppear(ViewController *self) {
  * @memberof MaterialViewController
  */
 static MaterialViewController *init(MaterialViewController *self) {
-	return (MaterialViewController *) super(ViewController, self, init);
+  return (MaterialViewController *) super(ViewController, self, init);
 }
 
 /**
@@ -199,40 +199,40 @@ static MaterialViewController *init(MaterialViewController *self) {
  */
 static void setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material) {
 
-	self->model = model;
-	self->material = material;
+  self->model = model;
+  self->material = material;
 
-	if (self->model && self->material) {
-		$(self->name, setDefaultText, self->material->cm->basename);
-		$(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
-		$(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
-		$(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
+  if (self->model && self->material) {
+    $(self->name, setDefaultText, self->material->cm->basename);
+    $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
+    $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
+    $(self->specularmap, setDefaultText, self->material->cm->specularmap.name);
 
-		$(self->roughness, setValue, (double) self->material->cm->roughness);
-		$(self->hardness, setValue, (double) self->material->cm->hardness);
-		$(self->specularity, setValue, (double) self->material->cm->specularity);
-		$(self->parallax, setValue, (double) self->material->cm->parallax);
+    $(self->roughness, setValue, (double) self->material->cm->roughness);
+    $(self->hardness, setValue, (double) self->material->cm->hardness);
+    $(self->specularity, setValue, (double) self->material->cm->specularity);
+    $(self->parallax, setValue, (double) self->material->cm->parallax);
 
-		if (material->cm->surface & SURF_ALPHA_TEST) {
-			$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
-			self->alphaTest->control.state &= ~ControlStateDisabled;
-		} else {
-			$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
-			self->alphaTest->control.state |= ControlStateDisabled;
-		}
+    if (material->cm->surface & SURF_ALPHA_TEST) {
+      $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
+      self->alphaTest->control.state &= ~ControlStateDisabled;
+    } else {
+      $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
+      self->alphaTest->control.state |= ControlStateDisabled;
+    }
 
-	} else {
-		$(self->name, setDefaultText, NULL);
-		$(self->diffusemap, setDefaultText, NULL);
-		$(self->normalmap, setDefaultText, NULL);
-		$(self->specularmap, setDefaultText, NULL);
+  } else {
+    $(self->name, setDefaultText, NULL);
+    $(self->diffusemap, setDefaultText, NULL);
+    $(self->normalmap, setDefaultText, NULL);
+    $(self->specularmap, setDefaultText, NULL);
 
-		$(self->roughness, setValue, MATERIAL_ROUGHNESS);
-		$(self->parallax, setValue, MATERIAL_PARALLAX);
-		$(self->hardness, setValue, MATERIAL_HARDNESS);
-		$(self->specularity, setValue, MATERIAL_SPECULARITY);
-		$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
-	}
+    $(self->roughness, setValue, MATERIAL_ROUGHNESS);
+    $(self->parallax, setValue, MATERIAL_PARALLAX);
+    $(self->hardness, setValue, MATERIAL_HARDNESS);
+    $(self->specularity, setValue, MATERIAL_SPECULARITY);
+    $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
+  }
 }
 
 #pragma mark - Class lifecycle
@@ -242,11 +242,11 @@ static void setModelAndMaterial(MaterialViewController *self, const r_model_t *m
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
-	((MaterialViewControllerInterface *) clazz->interface)->init = init;
-	((MaterialViewControllerInterface *) clazz->interface)->setModelAndMaterial = setModelAndMaterial;
+  ((MaterialViewControllerInterface *) clazz->interface)->init = init;
+  ((MaterialViewControllerInterface *) clazz->interface)->setModelAndMaterial = setModelAndMaterial;
 }
 
 /**
@@ -254,21 +254,21 @@ static void initialize(Class *clazz) {
  * @memberof MaterialViewController
  */
 Class *_MaterialViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "MaterialViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(MaterialViewController),
-			.interfaceOffset = offsetof(MaterialViewController, interface),
-			.interfaceSize = sizeof(MaterialViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "MaterialViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(MaterialViewController),
+      .interfaceOffset = offsetof(MaterialViewController, interface),
+      .interfaceSize = sizeof(MaterialViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

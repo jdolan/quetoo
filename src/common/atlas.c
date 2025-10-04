@@ -29,14 +29,14 @@
  */
 static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t *b) {
 
-	return b->surfaces[0]->h - a->surfaces[0]->h;
+  return b->surfaces[0]->h - a->surfaces[0]->h;
 }
 
 /**
  * @brief The default blit function.
  */
 static int32_t Atlas_DefaultBlit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
-	return SDL_BlitScaled((SDL_Surface *) src, NULL, dest, (SDL_Rect *) rect);
+  return SDL_BlitScaled((SDL_Surface *) src, NULL, dest, (SDL_Rect *) rect);
 }
 
 /**
@@ -44,10 +44,10 @@ static int32_t Atlas_DefaultBlit(const SDL_Surface *src, SDL_Surface *dest, cons
  */
 static void Atlas_FreeNode(gpointer data) {
 
-	atlas_node_t *node = data;
+  atlas_node_t *node = data;
 
-	g_free(node->surfaces);
-	g_free(node);
+  g_free(node->surfaces);
+  g_free(node);
 }
 
 /**
@@ -55,20 +55,20 @@ static void Atlas_FreeNode(gpointer data) {
  */
 atlas_t *Atlas_Create(int32_t layers) {
 
-	atlas_t *atlas = g_malloc0(sizeof(*atlas));
-	if (atlas) {
-		atlas->layers = layers;
-		assert(atlas->layers);
+  atlas_t *atlas = g_malloc0(sizeof(*atlas));
+  if (atlas) {
+    atlas->layers = layers;
+    assert(atlas->layers);
 
-		atlas->nodes = g_ptr_array_new_with_free_func(Atlas_FreeNode);
-		assert(atlas->nodes);
+    atlas->nodes = g_ptr_array_new_with_free_func(Atlas_FreeNode);
+    assert(atlas->nodes);
 
-		atlas->comparator = Atlas_DefaultComparator;
-		atlas->blit = Atlas_DefaultBlit;
-		atlas->tag = -1;
-	}
+    atlas->comparator = Atlas_DefaultComparator;
+    atlas->blit = Atlas_DefaultBlit;
+    atlas->tag = -1;
+  }
 
-	return atlas;
+  return atlas;
 }
 
 /**
@@ -79,31 +79,31 @@ atlas_t *Atlas_Create(int32_t layers) {
  */
 atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
 
-	assert(atlas);
+  assert(atlas);
 
-	atlas_node_t *node = g_malloc0(sizeof(*node));
-	if (node) {
-		node->surfaces = g_malloc0(atlas->layers * sizeof(SDL_Surface *));
-		assert(node->surfaces);
+  atlas_node_t *node = g_malloc0(sizeof(*node));
+  if (node) {
+    node->surfaces = g_malloc0(atlas->layers * sizeof(SDL_Surface *));
+    assert(node->surfaces);
 
-		node->tag = -1;
+    node->tag = -1;
 
-		va_list args;
-		va_start(args, atlas);
+    va_list args;
+    va_start(args, atlas);
 
-		for (int32_t i = 0; i < atlas->layers; i++) {
-			node->surfaces[i] = va_arg(args, SDL_Surface *);
-			node->w = node->surfaces[i]->w;
-			node->h = node->surfaces[i]->h;
-		}
+    for (int32_t i = 0; i < atlas->layers; i++) {
+      node->surfaces[i] = va_arg(args, SDL_Surface *);
+      node->w = node->surfaces[i]->w;
+      node->h = node->surfaces[i]->h;
+    }
 
-		va_end(args);
-		assert(node->surfaces[0]);
+    va_end(args);
+    assert(node->surfaces[0]);
 
-		g_ptr_array_add(atlas->nodes, node);
-	}
+    g_ptr_array_add(atlas->nodes, node);
+  }
 
-	return node;
+  return node;
 }
 
 /**
@@ -111,17 +111,17 @@ atlas_node_t *Atlas_Insert(atlas_t *atlas, ...) {
  */
 atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
 
-	assert(atlas);
-	assert(atlas->layers > layer);
+  assert(atlas);
+  assert(atlas->layers > layer);
 
-	for (size_t i = 0; i < atlas->nodes->len; i++) {
-		atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
-		if (node->surfaces[layer] == surface) {
-			return node;
-		}
-	}
+  for (size_t i = 0; i < atlas->nodes->len; i++) {
+    atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
+    if (node->surfaces[layer] == surface) {
+      return node;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /**
@@ -129,12 +129,12 @@ atlas_node_t *Atlas_Find(atlas_t *atlas, int32_t layer, SDL_Surface *surface) {
  */
 static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data) {
 
-	const atlas_node_t *a_node = a;
-	const atlas_node_t *b_node = b;
+  const atlas_node_t *a_node = a;
+  const atlas_node_t *b_node = b;
 
-	const atlas_t *atlas = data;
+  const atlas_t *atlas = data;
 
-	return atlas->comparator(a_node, b_node);
+  return atlas->comparator(a_node, b_node);
 }
 
 /**
@@ -149,67 +149,67 @@ static gint Atlas_NodeComparator(gconstpointer a, gconstpointer b, gpointer data
  */
 int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
 
-	assert(atlas);
-	assert(atlas->comparator);
-	assert(atlas->blit);
+  assert(atlas);
+  assert(atlas->comparator);
+  assert(atlas->blit);
 
-	SDL_Surface *surfaces[atlas->layers];
+  SDL_Surface *surfaces[atlas->layers];
 
-	va_list args;
-	va_start(args, start);
+  va_list args;
+  va_start(args, start);
 
-	for (int32_t i = 0; i < atlas->layers; i++) {
-		surfaces[i] = va_arg(args, SDL_Surface *);
-		assert(surfaces[i]);
-	}
+  for (int32_t i = 0; i < atlas->layers; i++) {
+    surfaces[i] = va_arg(args, SDL_Surface *);
+    assert(surfaces[i]);
+  }
 
-	va_end(args);
+  va_end(args);
 
-	atlas->tag++;
+  atlas->tag++;
 
-	g_ptr_array_sort_values_with_data(atlas->nodes, Atlas_NodeComparator, atlas);
+  g_ptr_array_sort_values_with_data(atlas->nodes, Atlas_NodeComparator, atlas);
 
-	int32_t x = 0, y = 0, row = 0;
+  int32_t x = 0, y = 0, row = 0;
 
-	for (int32_t i = start; i < (int32_t) atlas->nodes->len; i++) {
-		atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
+  for (int32_t i = start; i < (int32_t) atlas->nodes->len; i++) {
+    atlas_node_t *node = g_ptr_array_index(atlas->nodes, i);
 
-		if (node->w > surfaces[0]->w ||
-			node->h > surfaces[0]->h) {
-			return -1;
-		}
+    if (node->w > surfaces[0]->w ||
+      node->h > surfaces[0]->h) {
+      return -1;
+    }
 
-		if (x + node->w > surfaces[0]->w) {
-			x = 0;
-			y += row;
-			row = 0;
-		}
+    if (x + node->w > surfaces[0]->w) {
+      x = 0;
+      y += row;
+      row = 0;
+    }
 
-		if (y + node->h > surfaces[0]->h) {
-			return i;
-		}
+    if (y + node->h > surfaces[0]->h) {
+      return i;
+    }
 
-		node->x = x;
-		node->y = y;
-		node->tag = atlas->tag;
+    node->x = x;
+    node->y = y;
+    node->tag = atlas->tag;
 
-		for (int32_t layer = 0; layer < atlas->layers; layer++) {
+    for (int32_t layer = 0; layer < atlas->layers; layer++) {
 
-			SDL_Surface *src = node->surfaces[layer];
-			SDL_Surface *dest = surfaces[layer];
+      SDL_Surface *src = node->surfaces[layer];
+      SDL_Surface *dest = surfaces[layer];
 
-			if (src && dest) {
-				atlas->blit(src, dest, &(const SDL_Rect) {
-					node->x, node->y, node->w, node->h
-				});
-			}
-		}
+      if (src && dest) {
+        atlas->blit(src, dest, &(const SDL_Rect) {
+          node->x, node->y, node->w, node->h
+        });
+      }
+    }
 
-		x += node->w;
-		row = MAX(row, node->h);
-	}
+    x += node->w;
+    row = MAX(row, node->h);
+  }
 
-	return 0;
+  return 0;
 }
 
 /**
@@ -217,8 +217,8 @@ int32_t Atlas_Compile(atlas_t *atlas, int32_t start, ...) {
  */
 void Atlas_Destroy(atlas_t *atlas) {
 
-	if (atlas) {
-		g_ptr_array_free(atlas->nodes, 1);
-		g_free(atlas);
-	}
+  if (atlas) {
+    g_ptr_array_free(atlas->nodes, 1);
+    g_free(atlas);
+  }
 }

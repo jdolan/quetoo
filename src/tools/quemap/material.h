@@ -29,20 +29,20 @@
  * @brief The quemap representation of materials.
  */
 typedef struct {
-	/**
-	 * @brief The collision material backing this material.
-	 */
-	cm_material_t *cm;
+  /**
+   * @brief The collision material backing this material.
+   */
+  cm_material_t *cm;
 
-	/**
-	 * @brief The diffusemap texture.
-	 */
-	SDL_Surface *diffusemap;
+  /**
+   * @brief The diffusemap texture.
+   */
+  SDL_Surface *diffusemap;
 
-	/**
-	 * @brief The ambient emissive color for fog.
-	 */
-	vec3_t ambient;
+  /**
+   * @brief The ambient emissive color for fog.
+   */
+  vec3_t ambient;
 } material_t;
 
 extern int32_t num_materials;

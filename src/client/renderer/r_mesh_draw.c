@@ -25,50 +25,50 @@
  * @brief The program.
  */
 static struct {
-	GLuint name;
+  GLuint name;
 
-	GLuint uniforms_block;
-	GLuint lights_block;
+  GLuint uniforms_block;
+  GLuint lights_block;
 
-	GLint active_lights;
+  GLint active_lights;
 
-	GLint model;
+  GLint model;
 
-	GLint lerp;
+  GLint lerp;
 
-	GLint texture_material;
-	GLint texture_stage;
-	GLint texture_voxel_diffuse;
-	GLint texture_voxel_fog;
+  GLint texture_material;
+  GLint texture_stage;
+  GLint texture_voxel_diffuse;
+  GLint texture_voxel_fog;
 
-	GLint texture_sky;
+  GLint texture_sky;
 
-	GLint texture_shadow_cubemap_array0;
-	GLint texture_shadow_cubemap_array1;
-	GLint texture_shadow_cubemap_array2;
-	GLint texture_shadow_cubemap_array3;
+  GLint texture_shadow_cubemap_array0;
+  GLint texture_shadow_cubemap_array1;
+  GLint texture_shadow_cubemap_array2;
+  GLint texture_shadow_cubemap_array3;
 
-	GLint color;
-	GLint tint_colors;
+  GLint color;
+  GLint tint_colors;
 
-	struct {
-		GLint alpha_test;
-		GLint roughness;
-		GLint hardness;
-		GLint specularity;
-		GLint parallax;
-	} material;
+  struct {
+    GLint alpha_test;
+    GLint roughness;
+    GLint hardness;
+    GLint specularity;
+    GLint parallax;
+  } material;
 
-	struct {
-		GLint flags;
-		GLint color;
-		GLint pulse;
-		GLint scroll;
-		GLint scale;
-		GLint shell;
-	} stage;
+  struct {
+    GLint flags;
+    GLint color;
+    GLint pulse;
+    GLint scroll;
+    GLint scale;
+    GLint shell;
+  } stage;
 
-	r_media_t *shell;
+  r_media_t *shell;
 } r_mesh_program;
 
 /**
@@ -76,46 +76,46 @@ static struct {
  */
 static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_stage_t *stage) {
 
-	glUniform1i(r_mesh_program.stage.flags, stage->cm->flags);
+  glUniform1i(r_mesh_program.stage.flags, stage->cm->flags);
 
-	if (stage->cm->flags & STAGE_COLOR) {
-		glUniform4fv(r_mesh_program.stage.color, 1, stage->cm->color.rgba);
-	}
+  if (stage->cm->flags & STAGE_COLOR) {
+    glUniform4fv(r_mesh_program.stage.color, 1, stage->cm->color.rgba);
+  }
 
-	if (stage->cm->flags & STAGE_PULSE) {
-		glUniform1f(r_mesh_program.stage.pulse, stage->cm->pulse.hz);
-	}
+  if (stage->cm->flags & STAGE_PULSE) {
+    glUniform1f(r_mesh_program.stage.pulse, stage->cm->pulse.hz);
+  }
 
-	if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
-		glUniform2f(r_mesh_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
-	}
+  if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
+    glUniform2f(r_mesh_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
+  }
 
-	if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-		glUniform2f(r_mesh_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
-	}
+  if (stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+    glUniform2f(r_mesh_program.stage.scale, stage->cm->scale.s, stage->cm->scale.t);
+  }
 
-	if (stage->cm->flags & STAGE_SHELL) {
-		glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
-	}
+  if (stage->cm->flags & STAGE_SHELL) {
+    glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
+  }
 
-	glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+  glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-	if (stage->media) {
-		switch (stage->media->type) {
-			case R_MEDIA_IMAGE:
-			case R_MEDIA_ATLAS_IMAGE: {
-				const r_image_t *image = (r_image_t *) stage->media;
-				glBindTexture(GL_TEXTURE_2D, image->texnum);
-			}
-				break;
-			default:
-				break;
-		}
-	}
+  if (stage->media) {
+    switch (stage->media->type) {
+      case R_MEDIA_IMAGE:
+      case R_MEDIA_ATLAS_IMAGE: {
+        const r_image_t *image = (r_image_t *) stage->media;
+        glBindTexture(GL_TEXTURE_2D, image->texnum);
+      }
+        break;
+      default:
+        break;
+    }
+  }
 
-	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
+  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
-	R_GetError(stage->media->name);
+  R_GetError(stage->media->name);
 }
 
 /**
@@ -123,20 +123,20 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
  */
 static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh) {
 
-	if (!(e->effects & EF_SHELL)) {
-		return;
-	}
+  if (!(e->effects & EF_SHELL)) {
+    return;
+  }
 
-	R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
-		.cm = &(const cm_stage_t) {
-			.flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
-			.color = Color4fv(Vec3_ToVec4(e->shell, .33f)),
-			.blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA },
-			.scroll = { 0.25f, 0.25f },
-			.shell = { (e->effects & EF_WEAPON) ? .33f : 1.f }
-		},
-		.media = r_mesh_program.shell
-	});
+  R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
+    .cm = &(const cm_stage_t) {
+      .flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
+      .color = Color4fv(Vec3_ToVec4(e->shell, .33f)),
+      .blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA },
+      .scroll = { 0.25f, 0.25f },
+      .shell = { (e->effects & EF_WEAPON) ? .33f : 1.f }
+    },
+    .media = r_mesh_program.shell
+  });
 }
 
 /**
@@ -144,137 +144,137 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
-	if (!r_materials->value) {
-		return;
-	}
+  if (!r_materials->value) {
+    return;
+  }
 
-	if (!(material->cm->stage_flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
-		return;
-	}
+  if (!(material->cm->stage_flags & STAGE_DRAW) && !(e->effects & EF_SHELL)) {
+    return;
+  }
 
-	glDepthMask(GL_FALSE);
+  glDepthMask(GL_FALSE);
 
-	const GLboolean blend = glIsEnabled(GL_BLEND);
-	if (!blend) {
-		glEnable(GL_BLEND);
-	}
+  const GLboolean blend = glIsEnabled(GL_BLEND);
+  if (!blend) {
+    glEnable(GL_BLEND);
+  }
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
-	int32_t s = 1;
-	for (const r_stage_t *stage = material->stages; stage; stage = stage->next, s++) {
+  int32_t s = 1;
+  for (const r_stage_t *stage = material->stages; stage; stage = stage->next, s++) {
 
-		if (!(stage->cm->flags & STAGE_DRAW)) {
-			continue;
-		}
+    if (!(stage->cm->flags & STAGE_DRAW)) {
+      continue;
+    }
 
-		R_DrawMeshEntityMaterialStage(e, face, mesh, stage);
-	}
+    R_DrawMeshEntityMaterialStage(e, face, mesh, stage);
+  }
 
-	R_DrawMeshEntityShellEffect(e, face, mesh);
+  R_DrawMeshEntityShellEffect(e, face, mesh);
 
-	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	if (!blend) {
-		glDisable(GL_BLEND);
-	}
+  if (!blend) {
+    glDisable(GL_BLEND);
+  }
 
-	glDepthMask(GL_TRUE);
+  glDepthMask(GL_TRUE);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
  * @brief
  */
 static void R_DrawMeshEntityFace(const r_entity_t *e,
-								 const r_mesh_model_t *mesh,
-								 const r_mesh_face_t *face,
-								 const r_material_t *material) {
+                 const r_mesh_model_t *mesh,
+                 const r_mesh_face_t *face,
+                 const r_material_t *material) {
 
-	if (mesh->num_frames > 1) {
+  if (mesh->num_frames > 1) {
 
-		const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+    const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-		glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
 
-		const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+    const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
-		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
-		glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-		glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-	}
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
+    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+    glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+  }
 
-	glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
-	glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
-	glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
-	glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
-	glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
-	glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
+  glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
+  glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
+  glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
+  glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
+  glUniform1f(r_mesh_program.material.parallax, material->cm->parallax * r_parallax->value);
 
-	if (*material->cm->tintmap.path) {
-		vec4_t tints[3];
+  if (*material->cm->tintmap.path) {
+    vec4_t tints[3];
 
-		memcpy(tints, e->tints, sizeof(tints));
+    memcpy(tints, e->tints, sizeof(tints));
 
-		for (size_t i = 0; i < lengthof(tints); i++) {
-			if (!e->tints[i].w) {
-				tints[i] = material->cm->tintmap_defaults[i];
-			}
-		}
+    for (size_t i = 0; i < lengthof(tints); i++) {
+      if (!e->tints[i].w) {
+        tints[i] = material->cm->tintmap_defaults[i];
+      }
+    }
 
-		glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
-	}
+    glUniform4fv(r_mesh_program.tint_colors, 3, tints[0].xyzw);
+  }
 
-	vec4_t color = e->color;
-	switch (material->cm->surface & SURF_MASK_BLEND) {
-		case SURF_BLEND_33:
-			color.w *= .333f;
-			break;
-		case SURF_BLEND_66:
-			color.w *= .666f;
-			break;
-		default:
-			color.w *= 1.f;
-			break;
-	}
+  vec4_t color = e->color;
+  switch (material->cm->surface & SURF_MASK_BLEND) {
+    case SURF_BLEND_33:
+      color.w *= .333f;
+      break;
+    case SURF_BLEND_66:
+      color.w *= .666f;
+      break;
+    default:
+      color.w *= 1.f;
+      break;
+  }
 
-	glUniform4fv(r_mesh_program.color, 1, color.xyzw);
+  glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
-	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
+  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
-	r_stats.mesh_triangles += face->num_elements / 3;
+  r_stats.mesh_triangles += face->num_elements / 3;
 
-	R_DrawMeshEntityMaterialStages(e, face, mesh, material);
+  R_DrawMeshEntityMaterialStages(e, face, mesh, material);
 
-	if (mesh->num_frames > 1) {
+  if (mesh->num_frames > 1) {
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-		glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
-		glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-		glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-		glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-		glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-		glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-	}
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
+    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+    glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+  }
 }
 
 /**
@@ -282,63 +282,63 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
  */
 static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
-	const r_mesh_model_t *mesh = e->model->mesh;
-	assert(mesh);
+  const r_mesh_model_t *mesh = e->model->mesh;
+  assert(mesh);
 
-	if (e->effects & EF_WEAPON) {
-		glDepthRange(.0f, 0.1f);
-	}
+  if (e->effects & EF_WEAPON) {
+    glDepthRange(.0f, 0.1f);
+  }
 
-	glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
+  glUniformMatrix4fv(r_mesh_program.model, 1, GL_FALSE, e->matrix.array);
 
-	glUniform1f(r_mesh_program.lerp, e->lerp);
+  glUniform1f(r_mesh_program.lerp, e->lerp);
 
-	R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
+  R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
-	{
-		const r_mesh_face_t *face = mesh->faces;
-		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+  {
+    const r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-			const r_material_t *material = e->skins[i] ?: face->material;
-			if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
-				continue;
-			}
+      const r_material_t *material = e->skins[i] ?: face->material;
+      if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
+        continue;
+      }
 
-			R_DrawMeshEntityFace(e, mesh, face, material);
-		}
-	}
+      R_DrawMeshEntityFace(e, mesh, face, material);
+    }
+  }
 
-	glDisable(GL_CULL_FACE);
+  glDisable(GL_CULL_FACE);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	{
-		const r_mesh_face_t *face = mesh->faces;
-		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+  {
+    const r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
 
-			const r_material_t *material = e->skins[i] ?: face->material;
-			if (!(material->cm->surface & SURF_MASK_BLEND) && !(e->effects & EF_BLEND)) {
-				continue;
-			}
+      const r_material_t *material = e->skins[i] ?: face->material;
+      if (!(material->cm->surface & SURF_MASK_BLEND) && !(e->effects & EF_BLEND)) {
+        continue;
+      }
 
-			R_DrawMeshEntityFace(e, mesh, face, material);
-		}
-	}
+      R_DrawMeshEntityFace(e, mesh, face, material);
+    }
+  }
 
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ZERO);
+  glDisable(GL_BLEND);
 
-	glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DEPTH_TEST);
 
-	if (e->effects & EF_WEAPON) {
-		glDepthRange(0.f, 1.f);
-	}
+  if (e->effects & EF_WEAPON) {
+    glDepthRange(0.f, 1.f);
+  }
 
-	r_stats.mesh_models++;
+  r_stats.mesh_models++;
 }
 
 /**
@@ -346,34 +346,34 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
  */
 void R_DrawMeshEntities(const r_view_t *view) {
 
-	glUseProgram(r_mesh_program.name);
+  glUseProgram(r_mesh_program.name);
 
-	glBindVertexArray(r_models.mesh.vertex_array);
+  glBindVertexArray(r_models.mesh.vertex_array);
 
-	glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
 
-	const r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
-		if (IS_MESH_MODEL(e->model)) {
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+    if (IS_MESH_MODEL(e->model)) {
 
-			if (e->effects & EF_NO_DRAW) {
-				continue;
-			}
+      if (e->effects & EF_NO_DRAW) {
+        continue;
+      }
 
-			if (R_CullEntity(view, e)) {
-				continue;
-			}
+      if (R_CullEntity(view, e)) {
+        continue;
+      }
 
-			R_DrawMeshEntity(view, e);
-		}
-	}
-	
-	glBindVertexArray(0);
+      R_DrawMeshEntity(view, e);
+    }
+  }
+  
+  glBindVertexArray(0);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -381,76 +381,76 @@ void R_DrawMeshEntities(const r_view_t *view) {
  */
 void R_InitMeshProgram(void) {
 
-	memset(&r_mesh_program, 0, sizeof(r_mesh_program));
+  memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
-	r_mesh_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
-			NULL);
+  r_mesh_program.name = R_LoadProgram(
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "mesh_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "mesh_fs.glsl", NULL),
+      NULL);
 
-	glUseProgram(r_mesh_program.name);
+  glUseProgram(r_mesh_program.name);
 
-	r_mesh_program.uniforms_block = glGetUniformBlockIndex(r_mesh_program.name, "uniforms_block");
-	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms_block, 0);
+  r_mesh_program.uniforms_block = glGetUniformBlockIndex(r_mesh_program.name, "uniforms_block");
+  glUniformBlockBinding(r_mesh_program.name, r_mesh_program.uniforms_block, 0);
 
-	r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
-	glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 1);
+  r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
+  glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 1);
 
-	r_mesh_program.active_lights = glGetUniformLocation(r_mesh_program.name, "active_lights");
+  r_mesh_program.active_lights = glGetUniformLocation(r_mesh_program.name, "active_lights");
 
-	r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
+  r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 
-	r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
+  r_mesh_program.lerp = glGetUniformLocation(r_mesh_program.name, "lerp");
 
-	r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
-	r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
-	r_mesh_program.texture_voxel_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_voxel_diffuse");
-	r_mesh_program.texture_voxel_fog = glGetUniformLocation(r_mesh_program.name, "texture_voxel_fog");
+  r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
+  r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
+  r_mesh_program.texture_voxel_diffuse = glGetUniformLocation(r_mesh_program.name, "texture_voxel_diffuse");
+  r_mesh_program.texture_voxel_fog = glGetUniformLocation(r_mesh_program.name, "texture_voxel_fog");
 
-	r_mesh_program.texture_sky = glGetUniformLocation(r_mesh_program.name, "texture_sky");
+  r_mesh_program.texture_sky = glGetUniformLocation(r_mesh_program.name, "texture_sky");
 
-	r_mesh_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array0");
-	r_mesh_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array1");
-	r_mesh_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array2");
-	r_mesh_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array3");
+  r_mesh_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array0");
+  r_mesh_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array1");
+  r_mesh_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array2");
+  r_mesh_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array3");
 
-	r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
+  r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
-	r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
-	r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
-	r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
-	r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
-	r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
+  r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
+  r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
+  r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");
+  r_mesh_program.material.specularity = glGetUniformLocation(r_mesh_program.name, "material.specularity");
+  r_mesh_program.material.parallax = glGetUniformLocation(r_mesh_program.name, "material.parallax");
 
-	r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
-	r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
-	r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
-	r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
-	r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
-	r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
+  r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
+  r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
+  r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
+  r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
+  r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
+  r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
-	r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
+  r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
 
-	glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
-	glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
-	glUniform1i(r_mesh_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
-	glUniform1i(r_mesh_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
+  glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
+  glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
+  glUniform1i(r_mesh_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
+  glUniform1i(r_mesh_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 
-	glUniform1i(r_mesh_program.texture_sky, TEXTURE_SKY);
+  glUniform1i(r_mesh_program.texture_sky, TEXTURE_SKY);
 
-	glUniform1i(r_mesh_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
-	glUniform1i(r_mesh_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
-	glUniform1i(r_mesh_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
-	glUniform1i(r_mesh_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
+  glUniform1i(r_mesh_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
+  glUniform1i(r_mesh_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
+  glUniform1i(r_mesh_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
+  glUniform1i(r_mesh_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
 
-	glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 
-	r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
-	assert(r_mesh_program.shell);
+  r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
+  assert(r_mesh_program.shell);
 }
 
 /**
@@ -458,7 +458,7 @@ void R_InitMeshProgram(void) {
  */
 void R_ShutdownMeshProgram(void) {
 
-	glDeleteProgram(r_mesh_program.name);
+  glDeleteProgram(r_mesh_program.name);
 
-	r_mesh_program.name = 0;
+  r_mesh_program.name = 0;
 }

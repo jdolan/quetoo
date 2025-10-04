@@ -28,32 +28,32 @@
  */
 int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
 
-	Com_Debug(DEBUG_NET, "%s\n", url_string);
+  Com_Debug(DEBUG_NET, "%s\n", url_string);
 
-	URL *url = $(alloc(URL), initWithCharacters, url_string);
-	URLSession *session = $$(URLSession, sharedInstance);
-	URLSessionDataTask *task = $(session, dataTaskWithURL, url, NULL);
-	release(url);
+  URL *url = $(alloc(URL), initWithCharacters, url_string);
+  URLSession *session = $$(URLSession, sharedInstance);
+  URLSessionDataTask *task = $(session, dataTaskWithURL, url, NULL);
+  release(url);
 
-	$((URLSessionTask *) task, execute);
-	const int32_t status = task->urlSessionTask.response->httpStatusCode;
+  $((URLSessionTask *) task, execute);
+  const int32_t status = task->urlSessionTask.response->httpStatusCode;
 
-	Com_Debug(DEBUG_NET, "%s: HTTP %d: %d bytes\n",
-			  url_string,
-			  status,
-			  task->data ? (int32_t) task->data->length : 0);
+  Com_Debug(DEBUG_NET, "%s: HTTP %d: %d bytes\n",
+        url_string,
+        status,
+        task->data ? (int32_t) task->data->length : 0);
 
-	if (task->data) {
-		*data = Mem_Malloc(task->data->length);
-		memcpy(*data, task->data->bytes, task->data->length);
-		*length = task->data->length;
-	} else {
-		*data = NULL;
-		*length = 0;
-	}
+  if (task->data) {
+    *data = Mem_Malloc(task->data->length);
+    memcpy(*data, task->data->bytes, task->data->length);
+    *length = task->data->length;
+  } else {
+    *data = NULL;
+    *length = 0;
+  }
 
-	release(task);
-	return status;
+  release(task);
+  return status;
 }
 
 /**
@@ -61,20 +61,20 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
  */
 static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
-	const int32_t status = task->response->httpStatusCode;
+  const int32_t status = task->response->httpStatusCode;
 
-	Com_Debug(DEBUG_NET, "%s: HTTP %d\n", task->request->url->urlString->chars, status);
+  Com_Debug(DEBUG_NET, "%s: HTTP %d\n", task->request->url->urlString->chars, status);
 
-	const Net_HttpCallback callback = (Net_HttpCallback) task->data;
+  const Net_HttpCallback callback = (Net_HttpCallback) task->data;
 
-	const Data *data = ((URLSessionDataTask *) task)->data;
-	if (data) {
-		callback(task->response->httpStatusCode, data->bytes, data->length);
-	} else {
-		callback(task->response->httpStatusCode, NULL, 0);
-	}
+  const Data *data = ((URLSessionDataTask *) task)->data;
+  if (data) {
+    callback(task->response->httpStatusCode, data->bytes, data->length);
+  } else {
+    callback(task->response->httpStatusCode, NULL, 0);
+  }
 
-	release(task);
+  release(task);
 }
 
 /**
@@ -82,14 +82,14 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback) {
 
-	Com_Debug(DEBUG_NET, "%s\n", url_string);
+  Com_Debug(DEBUG_NET, "%s\n", url_string);
 
-	URL *url = $(alloc(URL), initWithCharacters, url_string);
-	URLSession *session = $$(URLSession, sharedInstance);
-	URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
-	release(url);
+  URL *url = $(alloc(URL), initWithCharacters, url_string);
+  URLSession *session = $$(URLSession, sharedInstance);
+  URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
+  release(url);
 
-	task->urlSessionTask.data = (ident) callback;
+  task->urlSessionTask.data = (ident) callback;
 
-	$((URLSessionTask *) task, resume);
+  $((URLSessionTask *) task, resume);
 }

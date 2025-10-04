@@ -20,8 +20,8 @@
  */
 
 #ifdef _WIN32
-	#include <winsock2.h>
-	#include <ws2tcpip.h>
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
 #endif
 
 #include "net_tcp.h"
@@ -34,72 +34,72 @@
  */
 int32_t Net_Connect(const char *host, struct timeval *timeout) {
 
-	int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
+  int32_t sock = Net_Socket(NA_STREAM, NULL, 0);
 
-	net_sockaddr to;
-	Net_StringToSockaddr(host, &to);
+  net_sockaddr to;
+  Net_StringToSockaddr(host, &to);
 
-	if (connect(sock, (const struct sockaddr *) &to, sizeof(to)) == -1) {
+  if (connect(sock, (const struct sockaddr *) &to, sizeof(to)) == -1) {
 
-		if (Net_GetError() == EINPROGRESS) {
-			fd_set w_set;
+    if (Net_GetError() == EINPROGRESS) {
+      fd_set w_set;
 
-			FD_ZERO(&w_set);
-			FD_SET((uint32_t) sock, &w_set);
+      FD_ZERO(&w_set);
+      FD_SET((uint32_t) sock, &w_set);
 
-			if (select(sock + 1, NULL, &w_set, NULL, timeout) < 1) {
-				Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
-			}
+      if (select(sock + 1, NULL, &w_set, NULL, timeout) < 1) {
+        Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
+      }
 
-			int32_t error = -1;
-			socklen_t len = sizeof(error);
+      int32_t error = -1;
+      socklen_t len = sizeof(error);
 
-			if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &error, &len) < 0) {
-				Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
-			}
+      if (getsockopt(sock, SOL_SOCKET, SO_ERROR, (char *) &error, &len) < 0) {
+        Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
+      }
 
-			if (error) {
-				Com_Error(ERROR_DROP, "%s\n", strerror(error));
-			}
+      if (error) {
+        Com_Error(ERROR_DROP, "%s\n", strerror(error));
+      }
 
-			Net_SetNonBlocking(sock, true);
+      Net_SetNonBlocking(sock, true);
 
-		} else {
-			Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
-		}
-	}
+    } else {
+      Com_Error(ERROR_DROP, "%s\n", Net_GetErrorString());
+    }
+  }
 
-	return sock;
+  return sock;
 }
 
 /**
  * @brief Send data to the specified TCP stream.
  */
 bool Net_SendStream(int32_t sock, const void *data, size_t len) {
-	mem_buf_t buf;
-	byte buffer[MAX_MSG_SIZE];
+  mem_buf_t buf;
+  byte buffer[MAX_MSG_SIZE];
 
-	Mem_InitBuffer(&buf, buffer, sizeof(buffer));
+  Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
-	// write the packet length
-	Net_WriteLong(&buf, (int32_t) len);
+  // write the packet length
+  Net_WriteLong(&buf, (int32_t) len);
 
-	// and copy the payload
-	Net_WriteData(&buf, data, len);
+  // and copy the payload
+  Net_WriteData(&buf, data, len);
 
-	ssize_t sent = 0;
-	while ((size_t) sent < buf.size) {
-		const ssize_t s = send(sock, (void *)(buf.data + sent), (int32_t) (buf.size - sent), 0);
-		if (s == -1) {
-			if (Net_GetError() != EWOULDBLOCK) {
-				Com_Warn("%s\n", Net_GetErrorString());
-				return false;
-			}
-		}
-		sent += s;
-	}
+  ssize_t sent = 0;
+  while ((size_t) sent < buf.size) {
+    const ssize_t s = send(sock, (void *)(buf.data + sent), (int32_t) (buf.size - sent), 0);
+    if (s == -1) {
+      if (Net_GetError() != EWOULDBLOCK) {
+        Com_Warn("%s\n", Net_GetErrorString());
+        return false;
+      }
+    }
+    sent += s;
+  }
 
-	return sent == (ssize_t) buf.size;
+  return sent == (ssize_t) buf.size;
 }
 
 /**
@@ -107,21 +107,21 @@ bool Net_SendStream(int32_t sock, const void *data, size_t len) {
  */
 bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf) {
 
-	buf->size = buf->read = 0;
+  buf->size = buf->read = 0;
 
-	const ssize_t received = recv(sock, (void *) buf->data, (int32_t) buf->max_size, 0);
-	if (received == -1) {
+  const ssize_t received = recv(sock, (void *) buf->data, (int32_t) buf->max_size, 0);
+  if (received == -1) {
 
-		if (Net_GetError() == EWOULDBLOCK) {
-			return false;    // no data, don't crap our pants
-		}
+    if (Net_GetError() == EWOULDBLOCK) {
+      return false;    // no data, don't crap our pants
+    }
 
-		Com_Warn("%s\n", Net_GetErrorString());
-		return false;
-	}
+    Com_Warn("%s\n", Net_GetErrorString());
+    return false;
+  }
 
-	buf->size = received;
+  buf->size = received;
 
-	// check the packet length
-	return Net_ReadLong(buf) > -1;
+  // check the packet length
+  return Net_ReadLong(buf) > -1;
 }

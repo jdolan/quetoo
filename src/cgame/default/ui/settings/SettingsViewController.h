@@ -39,22 +39,22 @@ typedef struct SettingsViewControllerInterface SettingsViewControllerInterface;
  */
 struct SettingsViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	SettingsViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  SettingsViewControllerInterface *interface;
 
-	/**
-	 * @brief TabView to contain tabs.
-	 */
-	TabViewController *tabViewController;
+  /**
+   * @brief TabView to contain tabs.
+   */
+  TabViewController *tabViewController;
 };
 
 /**
@@ -62,10 +62,10 @@ struct SettingsViewController {
  */
 struct SettingsViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

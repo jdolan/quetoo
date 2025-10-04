@@ -28,7 +28,7 @@
  targetname : The target name of this entity.
 */
 void G_info_notnull(g_entity_t *self) {
-	gi.LinkEntity(self);
+  gi.LinkEntity(self);
 }
 
 /*QUAKED info_player_start (1 0 0) (-16 -16 -24) (16 16 32)
@@ -38,7 +38,7 @@ void G_info_notnull(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_start(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
@@ -49,7 +49,7 @@ void G_info_player_start(g_entity_t *self) {
  target : The target name of an info_notnull as an alternate way to set the camera angles.
 */
 void G_info_player_intermission(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_deathmatch (1 0 1) (-16 -16 -24) (16 16 32)
@@ -59,7 +59,7 @@ void G_info_player_intermission(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_deathmatch(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team1 (0 0 1) (-16 -16 -24) (16 16 32)
@@ -69,7 +69,7 @@ void G_info_player_deathmatch(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team1(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team2 (1 0 0) (-16 -16 -24) (16 16 32)
@@ -79,7 +79,7 @@ void G_info_player_team1(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team2(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team3 (1 0 0) (-16 -16 -24) (16 16 32)
@@ -89,7 +89,7 @@ void G_info_player_team2(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team3(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED info_player_team4 (1 0 0) (-16 -16 -24) (16 16 32)
@@ -99,7 +99,7 @@ void G_info_player_team3(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team4(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }
 
 /*QUAKED G_info_player_team_any (1 0 0) (-16 -16 -24) (16 16 32)
@@ -109,5 +109,5 @@ void G_info_player_team4(g_entity_t *self) {
  angle : The angle at which the player will face when spawned.
 */
 void G_info_player_team_any(g_entity_t *self) {
-	G_InitPlayerSpawn(self);
+  G_InitPlayerSpawn(self);
 }

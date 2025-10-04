@@ -32,22 +32,22 @@
  * @brief
  */
 static struct {
-	/**
-	 * @brief The sky cubemap.
-	 */
-	r_image_t *image;
+  /**
+   * @brief The sky cubemap.
+   */
+  r_image_t *image;
 } r_sky;
 
 /**
  * @brief The sky program.
  */
 static struct {
-	GLuint name;
+  GLuint name;
 
-	GLuint uniforms_block;
+  GLuint uniforms_block;
 
-	GLint texture_sky;
-	GLint texture_voxel_fog;
+  GLint texture_sky;
+  GLint texture_voxel_fog;
 } r_sky_program;
 
 /**
@@ -55,39 +55,39 @@ static struct {
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
-	glUseProgram(r_sky_program.name);
+  glUseProgram(r_sky_program.name);
 
-	glBindVertexArray(bsp->vertex_array);
+  glBindVertexArray(bsp->vertex_array);
 
-	const r_bsp_block_t *block = bsp->inline_models->blocks;
-	for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
+  const r_bsp_block_t *block = bsp->inline_models->blocks;
+  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-		if (block->occluded) {
-			continue;
-		}
+    if (block->occluded) {
+      continue;
+    }
 
-		const r_bsp_draw_elements_t *draw = block->draw_elements;
-		for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
+    const r_bsp_draw_elements_t *draw = block->draw_elements;
+    for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
-			if (!(draw->surface & SURF_SKY)) {
-				continue;
-			}
+      if (!(draw->surface & SURF_SKY)) {
+        continue;
+      }
 
-			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
-		}
-	}
+      glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
+    }
+  }
 
-	glBindVertexArray(0);
+  glBindVertexArray(0);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -95,27 +95,27 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
  */
 static void R_InitSkyProgram(void) {
 
-	memset(&r_sky_program, 0, sizeof(r_sky_program));
+  memset(&r_sky_program, 0, sizeof(r_sky_program));
 
-	r_sky_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "sky_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "sky_fs.glsl", NULL),
-			NULL);
+  r_sky_program.name = R_LoadProgram(
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "sky_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "sky_fs.glsl", NULL),
+      NULL);
 
-	glUseProgram(r_sky_program.name);
+  glUseProgram(r_sky_program.name);
 
-	r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
-	glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
+  r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
+  glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
-	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
-	r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");
+  r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
+  r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");
 
-	glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
-	glUniform1i(r_sky_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
+  glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
+  glUniform1i(r_sky_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -123,9 +123,9 @@ static void R_InitSkyProgram(void) {
  */
 void R_InitSky(void) {
 
-	memset(&r_sky, 0, sizeof(r_sky));
+  memset(&r_sky, 0, sizeof(r_sky));
 
-	R_InitSkyProgram();
+  R_InitSkyProgram();
 }
 
 /**
@@ -133,9 +133,9 @@ void R_InitSky(void) {
  */
 static void R_ShutdownSkyProgram(void) {
 
-	glDeleteProgram(r_sky_program.name);
+  glDeleteProgram(r_sky_program.name);
 
-	r_sky_program.name = 0;
+  r_sky_program.name = 0;
 }
 
 /**
@@ -143,7 +143,7 @@ static void R_ShutdownSkyProgram(void) {
  */
 void R_ShutdownSky(void) {
 
-	R_ShutdownSkyProgram();
+  R_ShutdownSkyProgram();
 }
 
 /**
@@ -152,24 +152,24 @@ void R_ShutdownSky(void) {
  */
 void R_LoadSky(const char *name) {
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 
-	if (name && *name) {
-		r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
-	} else {
-		r_sky.image = NULL;
-	}
+  if (name && *name) {
+    r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
+  } else {
+    r_sky.image = NULL;
+  }
 
-	if (r_sky.image == NULL) {
-		Com_Warn("Failed to load sky sky/%s\n", name);
+  if (r_sky.image == NULL) {
+    Com_Warn("Failed to load sky sky/%s\n", name);
 
-		r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
-		if (r_sky.image == NULL) {
-			Com_Error(ERROR_DROP, "Failed to load default sky\n");
-		}
-	}
+    r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
+    if (r_sky.image == NULL) {
+      Com_Error(ERROR_DROP, "Failed to load default sky\n");
+    }
+  }
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 }
 
 /**
@@ -177,10 +177,10 @@ void R_LoadSky(const char *name) {
  */
 void R_Sky_f(void) {
 
-	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
-		return;
-	}
+  if (Cmd_Argc() != 2) {
+    Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
+    return;
+  }
 
-	R_LoadSky(Cmd_Argv(1));
+  R_LoadSky(Cmd_Argv(1));
 }

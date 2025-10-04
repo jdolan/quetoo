@@ -29,7 +29,7 @@
 /**
  * @brief Quemap .prt file magic.
  */
-#define	PORTALFILE	"PRT1"
+#define  PORTALFILE  "PRT1"
 
 extern char map_base[MAX_QPATH];
 
@@ -44,16 +44,16 @@ extern bool do_light;
 extern bool do_zip;
 
 enum {
-	MEM_TAG_QBSP = 1000,
-	MEM_TAG_EPAIR,
-	MEM_TAG_BRUSH,
-	MEM_TAG_NODE,
-	MEM_TAG_TREE,
-	MEM_TAG_PORTAL,
-	MEM_TAG_FACE,
-	MEM_TAG_QLIGHT,
-	MEM_TAG_LIGHT,
-	MEM_TAG_VOXEL,
-	MEM_TAG_QMAT,
-	MEM_TAG_QZIP
+  MEM_TAG_QBSP = 1000,
+  MEM_TAG_EPAIR,
+  MEM_TAG_BRUSH,
+  MEM_TAG_NODE,
+  MEM_TAG_TREE,
+  MEM_TAG_PORTAL,
+  MEM_TAG_FACE,
+  MEM_TAG_QLIGHT,
+  MEM_TAG_LIGHT,
+  MEM_TAG_VOXEL,
+  MEM_TAG_QMAT,
+  MEM_TAG_QZIP
 };

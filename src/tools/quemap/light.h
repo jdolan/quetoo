@@ -31,40 +31,40 @@
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {
-	/**
-	 * @brief The flags.
-	 */
-	int32_t flags;
+  /**
+   * @brief The flags.
+   */
+  int32_t flags;
 
-	/**
-	 * @brief The origin.
-	 */
-	vec3_t origin;
+  /**
+   * @brief The origin.
+   */
+  vec3_t origin;
 
-	/**
-	 * @brief The color.
-	 */
-	vec3_t color;
+  /**
+   * @brief The color.
+   */
+  vec3_t color;
 
-	/**
-	 * @brief The light radius in units.
-	 */
-	float radius;
+  /**
+   * @brief The light radius in units.
+   */
+  float radius;
 
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
+  /**
+   * @brief The light intensity.
+   */
+  float intensity;
 
-	/**
-	 * @brief The bounds of the light source.
-	 */
-	box3_t bounds;
-	
-	/**
-	 * @brief The output light in the BSP, so that voxels may reference them.
-	 */
-	bsp_light_t *out;
+  /**
+   * @brief The bounds of the light source.
+   */
+  box3_t bounds;
+  
+  /**
+   * @brief The output light in the BSP, so that voxels may reference them.
+   */
+  bsp_light_t *out;
 } light_t;
 
 extern GPtrArray *lights;

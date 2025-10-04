@@ -48,7 +48,7 @@ void Cl_Frame(const uint32_t msec) {
  * @brief
  */
 void Cl_Init(void) {
-	memset(&cls, 0, sizeof(cls));
+  memset(&cls, 0, sizeof(cls));
 }
 
 /**

@@ -34,7 +34,7 @@ static NavigationViewController *navigationViewController;
  * @brief Retain callback for Ui sounds.
  */
 static bool Ui_RetainSample(s_media_t *media) {
-	return true;
+  return true;
 }
 
 /**
@@ -42,13 +42,13 @@ static bool Ui_RetainSample(s_media_t *media) {
  */
 static s_sample_t *Ui_LoadSample(const char *name) {
 
-	s_sample_t *sample = S_LoadSample(name);
+  s_sample_t *sample = S_LoadSample(name);
 
-	if (sample) {
-		sample->media.Retain = Ui_RetainSample;
-	}
+  if (sample) {
+    sample->media.Retain = Ui_RetainSample;
+  }
 
-	return sample;
+  return sample;
 }
 
 /**
@@ -56,44 +56,44 @@ static s_sample_t *Ui_LoadSample(const char *name) {
  */
 static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 
-	const char *attr = NULL;
+  const char *attr = NULL;
 
-	switch (event) {
-		case ViewEventClick:
-			attr = "-sound-on-click";
-			break;
-		case ViewEventChange:
-			attr = "-sound-on-change";
-			break;
-		case ViewEventKeyDown:
-			attr = "-sound-on-key-down";
-			break;
-		case ViewEventKeyUp:
-			attr = "-sound-on-key-up";
-			break;
-		case ViewEventMouseEnter:
-			attr = "-sound-on-mouse-enter";
-			break;
-		case ViewEventMouseLeave:
-			attr = "-sound-on-mouse-leave";
-			break;
-		case ViewEventFocus:
-			attr = "-sound-on-focus";
-			break;
-		case ViewEventBlur:
-			attr = "-sound-on-blur";
-			break;
-		default:
-			return;
-	}
+  switch (event) {
+    case ViewEventClick:
+      attr = "-sound-on-click";
+      break;
+    case ViewEventChange:
+      attr = "-sound-on-change";
+      break;
+    case ViewEventKeyDown:
+      attr = "-sound-on-key-down";
+      break;
+    case ViewEventKeyUp:
+      attr = "-sound-on-key-up";
+      break;
+    case ViewEventMouseEnter:
+      attr = "-sound-on-mouse-enter";
+      break;
+    case ViewEventMouseLeave:
+      attr = "-sound-on-mouse-leave";
+      break;
+    case ViewEventFocus:
+      attr = "-sound-on-focus";
+      break;
+    case ViewEventBlur:
+      attr = "-sound-on-blur";
+      break;
+    default:
+      return;
+  }
 
-	const String *sound = $(view->computedStyle, attributeValue, attr);
-	if (sound) {
-		S_AddSample(&cl_stage, &(s_play_sample_t) {
-			.sample = Ui_LoadSample(sound->chars),
-			.flags = S_PLAY_UI,
-		});
-	}
+  const String *sound = $(view->computedStyle, attributeValue, attr);
+  if (sound) {
+    S_AddSample(&cl_stage, &(s_play_sample_t) {
+      .sample = Ui_LoadSample(sound->chars),
+      .flags = S_PLAY_UI,
+    });
+  }
 }
 
 /**
@@ -101,25 +101,25 @@ static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
  */
 void Ui_HandleEvent(const SDL_Event *event) {
 
-	if (windowController) {
-		if (cls.key_state.dest != KEY_UI) {
-			switch (event->type) {
-				case SDL_WINDOWEVENT:
-					break;
-				default:
-					return;
-			}
-		}
+  if (windowController) {
+    if (cls.key_state.dest != KEY_UI) {
+      switch (event->type) {
+        case SDL_WINDOWEVENT:
+          break;
+        default:
+          return;
+      }
+    }
 
-		$(windowController, respondToEvent, event);
+    $(windowController, respondToEvent, event);
 
-		if (event->type == MVC_VIEW_EVENT) {
-			Ui_HandleViewEvent(event->user.data1, event->user.code);
-		}
+    if (event->type == MVC_VIEW_EVENT) {
+      Ui_HandleViewEvent(event->user.data1, event->user.code);
+    }
 
-	} else {
-		Com_Warn("windowController was NULL\n");
-	}
+  } else {
+    Com_Warn("windowController was NULL\n");
+  }
 }
 
 /**
@@ -127,12 +127,12 @@ void Ui_HandleEvent(const SDL_Event *event) {
  */
 void Ui_ViewWillAppear(void) {
 
-	if (windowController) {
-		$(windowController->viewController->view, updateBindings);
-		$(windowController->viewController, viewWillAppear);
-	} else {
-		Com_Warn("windowController was NULL\n");
-	}
+  if (windowController) {
+    $(windowController->viewController->view, updateBindings);
+    $(windowController->viewController, viewWillAppear);
+  } else {
+    Com_Warn("windowController was NULL\n");
+  }
 }
 
 /**
@@ -140,11 +140,11 @@ void Ui_ViewWillAppear(void) {
  */
 void Ui_ViewWillDisappear(void) {
 
-	if (windowController) {
-		$(windowController->viewController, viewWillDisappear);
-	} else {
-		Com_Warn("windowControler was NULL\n");
-	}
+  if (windowController) {
+    $(windowController->viewController, viewWillDisappear);
+  } else {
+    Com_Warn("windowControler was NULL\n");
+  }
 }
 
 /**
@@ -152,11 +152,11 @@ void Ui_ViewWillDisappear(void) {
  */
 void Ui_Draw(void) {
 
-	assert(windowController);
+  assert(windowController);
 
-	Ui_CheckEditor();
+  Ui_CheckEditor();
 
-	$(windowController, render);
+  $(windowController, render);
 }
 
 /**
@@ -164,12 +164,12 @@ void Ui_Draw(void) {
  */
 ViewController *Ui_TopViewController(void) {
 
-	if (navigationViewController) {
-		return $(navigationViewController, topViewController);
-	} else {
-		Com_Warn("navigationViewController was NULL\n");
-		return NULL;
-	}
+  if (navigationViewController) {
+    return $(navigationViewController, topViewController);
+  } else {
+    Com_Warn("navigationViewController was NULL\n");
+    return NULL;
+  }
 }
 
 /**
@@ -177,15 +177,15 @@ ViewController *Ui_TopViewController(void) {
  */
 void Ui_PushViewController(ViewController *viewController) {
 
-	if (navigationViewController) {
-		if (viewController) {
-			$(navigationViewController, pushViewController, viewController);
-		} else {
-			Com_Warn("viewController was NULL\n");
-		}
-	} else {
-		Com_Warn("navigationViewController was NULL\n");
-	}
+  if (navigationViewController) {
+    if (viewController) {
+      $(navigationViewController, pushViewController, viewController);
+    } else {
+      Com_Warn("viewController was NULL\n");
+    }
+  } else {
+    Com_Warn("navigationViewController was NULL\n");
+  }
 }
 
 /**
@@ -193,15 +193,15 @@ void Ui_PushViewController(ViewController *viewController) {
  */
 void Ui_PopToViewController(ViewController *viewController) {
 
-	if (navigationViewController) {
-		if (viewController) {
-			$(navigationViewController, popToViewController, viewController);
-		} else {
-			Com_Warn("viewController was NULL\n");
-		}
-	} else {
-		Com_Warn("navigationViewController was NULL\n");
-	}
+  if (navigationViewController) {
+    if (viewController) {
+      $(navigationViewController, popToViewController, viewController);
+    } else {
+      Com_Warn("viewController was NULL\n");
+    }
+  } else {
+    Com_Warn("navigationViewController was NULL\n");
+  }
 }
 
 /**
@@ -209,11 +209,11 @@ void Ui_PopToViewController(ViewController *viewController) {
  */
 void Ui_PopViewController(void) {
 
-	if (navigationViewController) {
-		$(navigationViewController, popViewController);
-	} else {
-		Com_Warn("navigationViewController was NULL\n");
-	}
+  if (navigationViewController) {
+    $(navigationViewController, popViewController);
+  } else {
+    Com_Warn("navigationViewController was NULL\n");
+  }
 }
 
 /**
@@ -221,11 +221,11 @@ void Ui_PopViewController(void) {
  */
 void Ui_PopAllViewControllers(void) {
 
-	if (navigationViewController) {
-		$(navigationViewController, popToRootViewController);
-	} else {
-		Com_Warn("navigationViewController was NULL\n");
-	}
+  if (navigationViewController) {
+    $(navigationViewController, popToRootViewController);
+  } else {
+    Com_Warn("navigationViewController was NULL\n");
+  }
 }
 
 /**
@@ -233,24 +233,24 @@ void Ui_PopAllViewControllers(void) {
  */
 void Ui_Init(void) {
 
-	MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
+  MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
-	$$(Resource, addResourceProvider, Ui_Data);
+  $$(Resource, addResourceProvider, Ui_Data);
 
-	windowController = $(alloc(WindowController), initWithWindow, r_context.window);
+  windowController = $(alloc(WindowController), initWithWindow, r_context.window);
 
-	Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
+  Renderer *renderer = (Renderer *) $(alloc(QuetooRenderer), init);
 
-	$(windowController, setRenderer, renderer);
+  $(windowController, setRenderer, renderer);
 
-	navigationViewController = $(alloc(NavigationViewController), init);
-	$(windowController, setViewController, (ViewController *) navigationViewController);
+  navigationViewController = $(alloc(NavigationViewController), init);
+  $(windowController, setViewController, (ViewController *) navigationViewController);
 
-	Ui_LoadSample("ui/change");
-	Ui_LoadSample("ui/click");
-	Ui_LoadSample("ui/clack");
+  Ui_LoadSample("ui/change");
+  Ui_LoadSample("ui/click");
+  Ui_LoadSample("ui/clack");
 
-	Ui_InitEditor();
+  Ui_InitEditor();
 }
 
 /**
@@ -258,13 +258,13 @@ void Ui_Init(void) {
  */
 void Ui_Shutdown(void) {
 
-	$$(Resource, removeResourceProvider, Ui_Data);
+  $$(Resource, removeResourceProvider, Ui_Data);
 
-	Ui_ShutdownEditor();
+  Ui_ShutdownEditor();
 
-	Ui_PopAllViewControllers();
+  Ui_PopAllViewControllers();
 
-	windowController = release(windowController);
+  windowController = release(windowController);
 
-	Mem_FreeTag(MEM_TAG_UI);
+  Mem_FreeTag(MEM_TAG_UI);
 }

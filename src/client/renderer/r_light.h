@@ -32,25 +32,25 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The light origin in model space.
-	 */
-	vec4_t origin;
+  /**
+   * @brief The light origin in model space.
+   */
+  vec4_t origin;
 
-	/**
-	 * @brief The light mins in model space, and shadow scalar.
-	 */
-	vec4_t mins;
+  /**
+   * @brief The light mins in model space, and shadow scalar.
+   */
+  vec4_t mins;
 
-	/**
-	 * @brief The light maxs in model space, and attenuation.
-	 */
-	vec4_t maxs;
+  /**
+   * @brief The light maxs in model space, and attenuation.
+   */
+  vec4_t maxs;
 
-	/**
-	 * @brief The light color and intensity.
-	 */
-	vec4_t color;
+  /**
+   * @brief The light color and intensity.
+   */
+  vec4_t color;
 } r_light_uniform_t;
 
 /**
@@ -58,25 +58,25 @@ typedef struct {
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The light sources for the current frame.
-	 */
-	r_light_uniform_t lights[MAX_LIGHTS];
+  /**
+   * @brief The light sources for the current frame.
+   */
+  r_light_uniform_t lights[MAX_LIGHTS];
 } r_light_uniform_block_t;
 
 /**
  * @brief The lights uniform block type.
  */
 typedef struct {
-	/**
-	 * @brief The uniform buffer name.
-	 */
-	GLuint buffer;
+  /**
+   * @brief The uniform buffer name.
+   */
+  GLuint buffer;
 
-	/**
-	 * @brief The uniform buffer interface block.
-	 */
-	r_light_uniform_block_t block;
+  /**
+   * @brief The uniform buffer interface block.
+   */
+  r_light_uniform_block_t block;
 } r_lights_t;
 
 /**

@@ -27,16 +27,16 @@
  */
 bool WindingIsSmall(const cm_winding_t *w) {
 
-	int32_t valid_edges = 0;
-	for (int32_t i = 0; i < w->num_points; i++) {
-		const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->num_points]);
-		if (dist >= ON_EPSILON) {
-			if (++valid_edges == 3) {
-				return false;
-			}
-		}
-	}
-	return true;
+  int32_t valid_edges = 0;
+  for (int32_t i = 0; i < w->num_points; i++) {
+    const float dist = Vec3_Distance(w->points[i], w->points[(i + 1) % w->num_points]);
+    if (dist >= ON_EPSILON) {
+      if (++valid_edges == 3) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /**
@@ -44,18 +44,18 @@ bool WindingIsSmall(const cm_winding_t *w) {
  */
 bool WindingIsLarge(const cm_winding_t *w) {
 
-	for (int32_t i = 0; i < w->num_points; i++) {
-		for (int32_t j = 0; j < 3; j++)
-			if (w->points[i].xyz[j] < -MAX_WORLD_COORD || w->points[i].xyz[j] > MAX_WORLD_COORD) {
-				return true;
-			}
-	}
-	return false;
+  for (int32_t i = 0; i < w->num_points; i++) {
+    for (int32_t j = 0; j < 3; j++)
+      if (w->points[i].xyz[j] < -MAX_WORLD_COORD || w->points[i].xyz[j] > MAX_WORLD_COORD) {
+        return true;
+      }
+  }
+  return false;
 }
 
 /**
  * @brief
  */
 void FreeWindings(void) {
-	Mem_FreeTag(MEM_TAG_POLYLIB);
+  Mem_FreeTag(MEM_TAG_POLYLIB);
 }

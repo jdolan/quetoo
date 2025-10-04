@@ -25,53 +25,53 @@
  * @brief Loads the specified image from the game filesystem.
  */
 static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
-	SDL_Surface *surf = NULL;
+  SDL_Surface *surf = NULL;
 
-	char path[MAX_QPATH];
-	g_snprintf(path, sizeof(path), "%s.%s", name, type);
+  char path[MAX_QPATH];
+  g_snprintf(path, sizeof(path), "%s.%s", name, type);
 
-	void *buf;
-	int64_t len;
-	if ((len = Fs_Load(path, &buf)) != -1) {
+  void *buf;
+  int64_t len;
+  if ((len = Fs_Load(path, &buf)) != -1) {
 
-		SDL_RWops *rw;
-		if ((rw = SDL_RWFromConstMem(buf, (int32_t) len))) {
+    SDL_RWops *rw;
+    if ((rw = SDL_RWFromConstMem(buf, (int32_t) len))) {
 
-			SDL_Surface *s;
-			if ((s = IMG_LoadTyped_RW(rw, 0, type))) {
+      SDL_Surface *s;
+      if ((s = IMG_LoadTyped_RW(rw, 0, type))) {
 
-				if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
-					surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
-					SDL_FreeSurface(s);
-				} else {
-					surf = s;
-				}
-			}
-			SDL_RWclose(rw);
-		}
-		Fs_Free(buf);
-	}
+        if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
+          surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
+          SDL_FreeSurface(s);
+        } else {
+          surf = s;
+        }
+      }
+      SDL_RWclose(rw);
+    }
+    Fs_Free(buf);
+  }
 
-	return surf;
+  return surf;
 }
 
 /**
  * @brief Loads the specified image from the game filesystem, trying all supported formats.
  */
 SDL_Surface *Img_LoadSurface(const char *name) {
-	const char *img_formats[] = { "tga", "png", "jpg", NULL };
+  const char *img_formats[] = { "tga", "png", "jpg", NULL };
 
-	char basename[MAX_QPATH];
-	StripExtension(name, basename);
+  char basename[MAX_QPATH];
+  StripExtension(name, basename);
 
-	for (const char **fmt = img_formats; *fmt; fmt++) {
-		SDL_Surface *surf = Img_LoadSurface_(basename, *fmt);
-		if (surf) {
-			return surf;
-		}
-	}
+  for (const char **fmt = img_formats; *fmt; fmt++) {
+    SDL_Surface *surf = Img_LoadSurface_(basename, *fmt);
+    if (surf) {
+      return surf;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /**
@@ -79,56 +79,56 @@ SDL_Surface *Img_LoadSurface(const char *name) {
  */
 color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
 
-	color_t out = color_white;
+  color_t out = color_white;
 
-	if (surf) {
-		float max = 0.f;
+  if (surf) {
+    float max = 0.f;
 
-		// first find the brightest sample
-		const int32_t *pixel = surf->pixels;
-		for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-			const color_t c = Color4bv(*pixel);
-			const float f = Vec3_Hmaxf(c.vec3);
-			if (f > max) {
-				max = f;
-			}
-		}
+    // first find the brightest sample
+    const int32_t *pixel = surf->pixels;
+    for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
+      const color_t c = Color4bv(*pixel);
+      const float f = Vec3_Hmaxf(c.vec3);
+      if (f > max) {
+        max = f;
+      }
+    }
 
-		// now accumulate the ones that pass the filter
+    // now accumulate the ones that pass the filter
 
-		vec3_t accumulator = Vec3_Zero();
-		int32_t passed = 0;
+    vec3_t accumulator = Vec3_Zero();
+    int32_t passed = 0;
 
-		pixel = surf->pixels;
-		for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
-			const color_t c = Color4bv(*pixel);
+    pixel = surf->pixels;
+    for (int32_t i = 0; i < surf->w * surf->h; i++, pixel++) {
+      const color_t c = Color4bv(*pixel);
 
-			if (Vec3_Hmaxf(c.vec3) >= filter * max) {
-				accumulator = Vec3_Add(accumulator, c.vec3);
-				passed++;
-			}
-		}
+      if (Vec3_Hmaxf(c.vec3) >= filter * max) {
+        accumulator = Vec3_Add(accumulator, c.vec3);
+        passed++;
+      }
+    }
 
-		out = Color3fv(Vec3_Scale(accumulator, 1.f / passed));
-	}
+    out = Color3fv(Vec3_Scale(accumulator, 1.f / passed));
+  }
 
-	return out;
+  return out;
 }
 
 /**
  * @brief Resolves the average color of the specified surface.
  */
 color_t Img_Color(const SDL_Surface *surf) {
-	return Img_ColorHighPass(surf, 0.f);
+  return Img_ColorHighPass(surf, 0.f);
 }
 
 // Quick access of a pixel
 #define SDL_PIXEL_AT(surf, type, x, y) \
-	*(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
+  *(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
 
 // helper macro which copies an SDL pixel from one surf to another
 #define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
-		SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
+    SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
 
 /**
  * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
@@ -138,194 +138,194 @@ color_t Img_Color(const SDL_Surface *surf) {
 */
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 
-	num_rotations %= 4;
+  num_rotations %= 4;
 
-	if (!num_rotations) {
-		return surf;
-	}
+  if (!num_rotations) {
+    return surf;
+  }
 
-	if (surf->w != surf->h) {
-		Com_Error(ERROR_FATAL, "Only works on square images :(");
-	}
+  if (surf->w != surf->h) {
+    Com_Error(ERROR_FATAL, "Only works on square images :(");
+  }
 
-	SDL_LockSurface(surf);
+  SDL_LockSurface(surf);
 
-	SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
+  SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
 
-	SDL_LockSurface(output);
+  SDL_LockSurface(output);
 
-	switch (num_rotations) {
-	case 1:
-		for (int32_t y = 0; y < surf->h; y++)
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
-		break;
-	case 2:
-		for (int32_t y = 0; y < surf->h; y++)
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
-		break;
-	case 3:
-		for (int32_t y = 0; y < surf->h; y++)
-			for (int32_t x = 0; x < surf->w; x++)
-				SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
-		break;
-	}
+  switch (num_rotations) {
+  case 1:
+    for (int32_t y = 0; y < surf->h; y++)
+      for (int32_t x = 0; x < surf->w; x++)
+        SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
+    break;
+  case 2:
+    for (int32_t y = 0; y < surf->h; y++)
+      for (int32_t x = 0; x < surf->w; x++)
+        SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
+    break;
+  case 3:
+    for (int32_t y = 0; y < surf->h; y++)
+      for (int32_t x = 0; x < surf->w; x++)
+        SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
+    break;
+  }
 
-	SDL_UnlockSurface(output);
+  SDL_UnlockSurface(output);
 
-	SDL_UnlockSurface(surf);
+  SDL_UnlockSurface(surf);
 
-	return output;
+  return output;
 }
 
 /**
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
-	SDL_RWops *f;
-	const char *real_path = Fs_RealPath(path);
+  SDL_RWops *f;
+  const char *real_path = Fs_RealPath(path);
 
-	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
-		Com_Warn("Failed to open to %s\n", real_path);
-		return false;
-	}
+  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+    Com_Warn("Failed to open to %s\n", real_path);
+    return false;
+  }
 
-	byte *buffer = Mem_Malloc(width * height * 3);
+  byte *buffer = Mem_Malloc(width * height * 3);
 
-	// Flip pixels vertically
-	for (size_t i = 0; i < height; i++) {
-		memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
-	}
+  // Flip pixels vertically
+  for (size_t i = 0; i < height; i++) {
+    memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
+  }
 
-	SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(buffer, width, height, 8 * 3, width * 3, 0, 0, 0, 0);
-	IMG_SavePNG_RW(ss, f, 0);
+  SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(buffer, width, height, 8 * 3, width * 3, 0, 0, 0, 0);
+  IMG_SavePNG_RW(ss, f, 0);
 
-	SDL_FreeSurface(ss);
-	Mem_Free(buffer);
-	SDL_RWclose(f);
-	return true;
+  SDL_FreeSurface(ss);
+  Mem_Free(buffer);
+  SDL_RWclose(f);
+  return true;
 }
 
 // there are _0 and _1 in here just to prevent padding
 // and so I can control the bytes explicitly. Dumb C.
 typedef struct {
-	uint8_t IDLength;        /* 00h  Size of Image ID field */
-	uint8_t ColorMapType;    /* 01h  Color map type */
-	uint8_t ImageType;       /* 02h  Image type code */
-	uint8_t CMapStart_0, CMapStart_1;      /* 03h  Color map origin */
-	uint8_t CMapLength_0, CMapLength_1;     /* 05h  Color map length */
-	uint8_t CMapDepth;       /* 07h  Depth of color map entries */
-	uint8_t XOffset_0, XOffset_1;        /* 08h  X origin of image */
-	uint8_t YOffset_0, YOffset_1;        /* 0Ah  Y origin of image */
-	uint16_t Width;          /* 0Ch  Width of image */
-	uint16_t Height;         /* 0Eh  Height of image */
-	uint8_t PixelDepth;      /* 10h  Image pixel size */
-	uint8_t ImageDescriptor; /* 11h  Image descriptor byte */
+  uint8_t IDLength;        /* 00h  Size of Image ID field */
+  uint8_t ColorMapType;    /* 01h  Color map type */
+  uint8_t ImageType;       /* 02h  Image type code */
+  uint8_t CMapStart_0, CMapStart_1;      /* 03h  Color map origin */
+  uint8_t CMapLength_0, CMapLength_1;     /* 05h  Color map length */
+  uint8_t CMapDepth;       /* 07h  Depth of color map entries */
+  uint8_t XOffset_0, XOffset_1;        /* 08h  X origin of image */
+  uint8_t YOffset_0, YOffset_1;        /* 0Ah  Y origin of image */
+  uint16_t Width;          /* 0Ch  Width of image */
+  uint16_t Height;         /* 0Eh  Height of image */
+  uint8_t PixelDepth;      /* 10h  Image pixel size */
+  uint8_t ImageDescriptor; /* 11h  Image descriptor byte */
 } r_tga_header_t;
 
 /**
 * @brief Write pixel data to a TGA file.
 */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
-	SDL_RWops *f;
-	const char *real_path = Fs_RealPath(path);
+  SDL_RWops *f;
+  const char *real_path = Fs_RealPath(path);
 
-	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
-		Com_Warn("Failed to open to %s\n", real_path);
-		return false;
-	}
+  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+    Com_Warn("Failed to open to %s\n", real_path);
+    return false;
+  }
 
-	const r_tga_header_t header = {
-		0, // no image data
-		0, // no colormap
-		2, // truecolor, no colormap, no encoding
-		0, 0, // colormap
-		0, 0, // colormap
-		0, // colormap
-		0, 0, // X origin
-		0, 0, // Y origin
-		width, // width
-		height, // height
-		24, // depth
-		0 //descriptor
-	};
+  const r_tga_header_t header = {
+    0, // no image data
+    0, // no colormap
+    2, // truecolor, no colormap, no encoding
+    0, 0, // colormap
+    0, 0, // colormap
+    0, // colormap
+    0, 0, // X origin
+    0, 0, // Y origin
+    width, // width
+    height, // height
+    24, // depth
+    0 //descriptor
+  };
 
-	// write TGA header
-	SDL_RWwrite(f, &header, 18, 1);
+  // write TGA header
+  SDL_RWwrite(f, &header, 18, 1);
 
-	// write TGA data
-	SDL_RWwrite(f, data, width * height, 3);
+  // write TGA data
+  SDL_RWwrite(f, data, width * height, 3);
 
-	SDL_RWclose(f);
-	return true;
+  SDL_RWclose(f);
+  return true;
 }
 
 /**
 * @brief Write pixel data to a PBM file.
 */
 bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
-	SDL_RWops *f;
-	const char *real_path = Fs_RealPath(path);
+  SDL_RWops *f;
+  const char *real_path = Fs_RealPath(path);
 
-	if (!(f = SDL_RWFromFile(real_path, "wb"))) {
-		Com_Warn("Failed to open to %s\n", real_path);
-		return false;
-	}
+  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+    Com_Warn("Failed to open to %s\n", real_path);
+    return false;
+  }
 
-	char header[256];
+  char header[256];
 
-	if (bpp == 4) {
-		g_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
-	}
-	else {
-		g_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
-	}
+  if (bpp == 4) {
+    g_snprintf(header, sizeof(header), "PF\n%u %u\n%f\n", width, height, -1.0f);
+  }
+  else {
+    g_snprintf(header, sizeof(header), "P6\n%u %u\n%d\n", width, height, bpp == 2 ? 65535 : 255);
+  }
 
-	// write PBM header
-	SDL_RWwrite(f, header, strlen(header), 1);
+  // write PBM header
+  SDL_RWwrite(f, header, strlen(header), 1);
 
-	// output buffer
-	byte *buffer = Mem_Malloc(width * height * 3 * bpp);
-	memcpy(buffer, data, width * height * 3 * bpp);
+  // output buffer
+  byte *buffer = Mem_Malloc(width * height * 3 * bpp);
+  memcpy(buffer, data, width * height * 3 * bpp);
 
-	// possible input/output buffers in needed formats
-	const uint8_t *buffer_uint8_in = data;
-	uint8_t *buffer_uint8_out = buffer;
+  // possible input/output buffers in needed formats
+  const uint8_t *buffer_uint8_in = data;
+  uint8_t *buffer_uint8_out = buffer;
 
-	const uint16_t *buffer_uint16_in = (uint16_t *)data;
-	uint16_t *buffer_uint16_out = (uint16_t *)buffer;
+  const uint16_t *buffer_uint16_in = (uint16_t *)data;
+  uint16_t *buffer_uint16_out = (uint16_t *)buffer;
 
-	const float *buffer_float_in = (float *)data;
-	float *buffer_float_out = (float *)buffer;
+  const float *buffer_float_in = (float *)data;
+  float *buffer_float_out = (float *)buffer;
 
-	const uint8_t *chunk = NULL;
-	
-	// swap to big endian and flip pixels vertically (if needed)
-	for (size_t i = 0; i < height; i++) {
-		for (size_t j = 0; j < width * 3; j++) {
-			size_t index_in = i * width * 3 + j;
-			size_t index_out = (height - i - 1) * width * 3 + j;
+  const uint8_t *chunk = NULL;
+  
+  // swap to big endian and flip pixels vertically (if needed)
+  for (size_t i = 0; i < height; i++) {
+    for (size_t j = 0; j < width * 3; j++) {
+      size_t index_in = i * width * 3 + j;
+      size_t index_out = (height - i - 1) * width * 3 + j;
 
-			switch (bpp) {
-			case 1:
-				buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
-				break;
-			case 2:
-				chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
-				buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
-				break;
-			case 4:
-				buffer_float_out[index_out] = buffer_float_in[index_in];
-				break;
-			}
-		}
-	}
+      switch (bpp) {
+      case 1:
+        buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
+        break;
+      case 2:
+        chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
+        buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
+        break;
+      case 4:
+        buffer_float_out[index_out] = buffer_float_in[index_in];
+        break;
+      }
+    }
+  }
 
-	SDL_RWwrite(f, buffer, width * height, 3 * bpp);
+  SDL_RWwrite(f, buffer, width * height, 3 * bpp);
 
-	Mem_Free(buffer);
+  Mem_Free(buffer);
 
-	SDL_RWclose(f);
-	return true;
+  SDL_RWclose(f);
+  return true;
 }

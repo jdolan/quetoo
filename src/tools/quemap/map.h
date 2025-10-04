@@ -27,25 +27,25 @@
  * @brief The map file representation of a plane.
  */
 typedef struct plane_s {
-	/**
-	 * @brief The plane normal vector.
-	 */
-	vec3_t normal;
+  /**
+   * @brief The plane normal vector.
+   */
+  vec3_t normal;
 
-	/**
-	 * @brief The plane distance, with full double precision.
-	 */
-	double dist;
+  /**
+   * @brief The plane distance, with full double precision.
+   */
+  double dist;
 
-	/**
-	 * @brief The plane type, for axial optimizations.
-	 */
-	int32_t type;
+  /**
+   * @brief The plane type, for axial optimizations.
+   */
+  int32_t type;
 
-	/**
-	 * @brief The plane hash chain, for fast plane lookups.
-	 */
-	struct plane_s *hash_chain;
+  /**
+   * @brief The plane hash chain, for fast plane lookups.
+   */
+  struct plane_s *hash_chain;
 } plane_t;
 
 /**
@@ -56,112 +56,112 @@ typedef struct plane_s {
  * only used for collision detection.
  */
 typedef struct brush_side_s {
-	/**
-	 * @brief The texture name.
-	 */
-	char texture[MAX_QPATH];
+  /**
+   * @brief The texture name.
+   */
+  char texture[MAX_QPATH];
 
-	/**
-	 * @brief The texture shift, in pixels.
-	 */
-	vec2_t shift;
+  /**
+   * @brief The texture shift, in pixels.
+   */
+  vec2_t shift;
 
-	/**
-	 * @brief The texture rotation, in Euler degrees.
-	 */
-	float rotate;
+  /**
+   * @brief The texture rotation, in Euler degrees.
+   */
+  float rotate;
 
-	/**
-	 * @brief The texture scale.
-	 */
-	vec2_t scale;
+  /**
+   * @brief The texture scale.
+   */
+  vec2_t scale;
 
-	/**
-	 * @brief The texture axis for S and T, in xyz + offset notation.
-	 */
-	vec4_t axis[2];
+  /**
+   * @brief The texture axis for S and T, in xyz + offset notation.
+   */
+  vec4_t axis[2];
 
-	/**
-	 * @brief The CONTENTS_* mask.
-	 */
-	int32_t contents;
+  /**
+   * @brief The CONTENTS_* mask.
+   */
+  int32_t contents;
 
-	/**
-	 * @brief The SURF_* mask.
-	 */
-	int32_t surface;
+  /**
+   * @brief The SURF_* mask.
+   */
+  int32_t surface;
 
-	/**
-	 * @brief The value, for e.g. `SURF_PHONG`.
-	 */
-	int32_t value;
+  /**
+   * @brief The value, for e.g. `SURF_PHONG`.
+   */
+  int32_t value;
 
-	/**
-	 * @brief The BSP plane number.
-	 */
-	int32_t plane;
+  /**
+   * @brief The BSP plane number.
+   */
+  int32_t plane;
 
-	/**
-	 * @brief The BSP material number.
-	 */
-	int32_t material;
+  /**
+   * @brief The BSP material number.
+   */
+  int32_t material;
 
-	/**
-	 * @brief All brush sides will have a valid winding.
-	 */
-	cm_winding_t *winding;
+  /**
+   * @brief All brush sides will have a valid winding.
+   */
+  cm_winding_t *winding;
 
-	/**
-	 * @brief During the BSP process, brush sides are split recursively. All split sides
-	 * will point to their original brush side, to tie BSP faces back to their brushes.
-	 */
-	const struct brush_side_s *original;
+  /**
+   * @brief During the BSP process, brush sides are split recursively. All split sides
+   * will point to their original brush side, to tie BSP faces back to their brushes.
+   */
+  const struct brush_side_s *original;
 
-	/**
-	 * @brief The BSP brush side emitted from this map brush side.
-	 */
-	bsp_brush_side_t *out;
+  /**
+   * @brief The BSP brush side emitted from this map brush side.
+   */
+  bsp_brush_side_t *out;
 } brush_side_t;
 
 /**
  * @brief The map file representation of a brush.
  */
 typedef struct brush_s {
-	/**
-	 * @brief The entity number within the map.
-	 */
-	int32_t entity;
+  /**
+   * @brief The entity number within the map.
+   */
+  int32_t entity;
 
-	/**
-	 * @brief The brush number within the entity.
-	 */
-	int32_t brush;
+  /**
+   * @brief The brush number within the entity.
+   */
+  int32_t brush;
 
-	/**
-	 * @brief The combined CONTENTS_* mask (bitwise OR) of all sides of this brush.
-	 */
-	int32_t contents;
+  /**
+   * @brief The combined CONTENTS_* mask (bitwise OR) of all sides of this brush.
+   */
+  int32_t contents;
 
-	/**
-	 * @brief The brush bounds, calculated by clipping all side planes against each other.
-	 */
-	box3_t bounds;
+  /**
+   * @brief The brush bounds, calculated by clipping all side planes against each other.
+   */
+  box3_t bounds;
 
-	/**
-	 * @brief The brush sides.
-	 * @remarks This is a pointer to a statically allocated global array.
-	 */
-	brush_side_t *brush_sides;
+  /**
+   * @brief The brush sides.
+   * @remarks This is a pointer to a statically allocated global array.
+   */
+  brush_side_t *brush_sides;
 
-	/**
-	 * @brief The number of brush sides.
-	 */
-	int32_t num_brush_sides;
+  /**
+   * @brief The number of brush sides.
+   */
+  int32_t num_brush_sides;
 
-	/**
-	 * @brief The BSP brush emitted from this map brush.
-	 */
-	bsp_brush_t *out;
+  /**
+   * @brief The BSP brush emitted from this map brush.
+   */
+  bsp_brush_t *out;
 } brush_t;
 
 extern int32_t num_entities;

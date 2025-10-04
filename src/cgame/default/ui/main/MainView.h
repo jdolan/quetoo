@@ -38,46 +38,46 @@ typedef struct MainViewInterface MainViewInterface;
  */
 struct MainView {
 
-	/**
-	 * @brief The superclass.
-	 */
-	View view;
+  /**
+   * @brief The superclass.
+   */
+  View view;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	MainViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  MainViewInterface *interface;
 
-	/**
-	 * @brief The background image.
-	 */
-	ImageView *background;
+  /**
+   * @brief The background image.
+   */
+  ImageView *background;
 
-	/**
-	 * @brief The logo image.
-	 */
-	ImageView *logo;
+  /**
+   * @brief The logo image.
+   */
+  ImageView *logo;
 
-	/**
-	 * @brief The version string.
-	 */
-	Label *version;
+  /**
+   * @brief The version string.
+   */
+  Label *version;
 
-	/**
-	 * @brief The content View.
-	 */
-	View *contentView;
+  /**
+   * @brief The content View.
+   */
+  View *contentView;
 
-	/**
-	 * @brief The top menu bar.
-	 */
-	StackView *primaryMenu;
+  /**
+   * @brief The top menu bar.
+   */
+  StackView *primaryMenu;
 
-	/**
-	 * @brief The bottom menu bar.
-	 */
-	StackView *secondaryMenu;
+  /**
+   * @brief The bottom menu bar.
+   */
+  StackView *secondaryMenu;
 };
 
 /**
@@ -85,20 +85,20 @@ struct MainView {
  */
 struct MainViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewInterface viewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewInterface viewInterface;
 
-	/**
-	 * @fn MainView *MainView::init(MainView *self)
-	 * @brief Initializes this MainView.
-	 * @param self The MainView.
-	 * @param frame The frame, or `NULL`.
-	 * @return The initialized MainView, or `NULL` on error.
-	 * @memberof MainView
-	 */
-	MainView *(*initWithFrame)(MainView *self, const SDL_Rect *frame);
+  /**
+   * @fn MainView *MainView::init(MainView *self)
+   * @brief Initializes this MainView.
+   * @param self The MainView.
+   * @param frame The frame, or `NULL`.
+   * @return The initialized MainView, or `NULL` on error.
+   * @memberof MainView
+   */
+  MainView *(*initWithFrame)(MainView *self, const SDL_Rect *frame);
 };
 
 /**

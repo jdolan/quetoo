@@ -42,27 +42,27 @@ typedef struct MainViewControllerInterface MainViewControllerInterface;
  */
 struct MainViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	MainViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  MainViewControllerInterface *interface;
 
-	/**
-	 * @brief The MainView.
-	 */
-	MainView *mainView;
+  /**
+   * @brief The MainView.
+   */
+  MainView *mainView;
 
-	/**
-	 * @brief The NavigationViewController.
-	 */
-	NavigationViewController *navigationViewController;
+  /**
+   * @brief The NavigationViewController.
+   */
+  NavigationViewController *navigationViewController;
 };
 
 /**
@@ -70,40 +70,40 @@ struct MainViewController {
  */
 struct MainViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
-	/**
-	 * @fn MainViewController *MainViewController::init(MainViewController *self)
-	 * @brief Initializes this ViewController.
-	 * @return The initialized MainViewController, or `NULL` on error.
-	 * @memberof MainViewController
-	 */
-	MainViewController *(*init)(MainViewController *self);
+  /**
+   * @fn MainViewController *MainViewController::init(MainViewController *self)
+   * @brief Initializes this ViewController.
+   * @return The initialized MainViewController, or `NULL` on error.
+   * @memberof MainViewController
+   */
+  MainViewController *(*init)(MainViewController *self);
 
-	/**
-	 * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
-	 * @brief Adds a Button to the primary menu.
-	 * @param self The MainViewController.
-	 * @param title The title text.
-	 * @param action The ActionFunction to bind to click events.
-	 * @param data The user data.
-	 * @memberof MainViewController
-	 */
-	void (*primaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
+  /**
+   * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
+   * @brief Adds a Button to the primary menu.
+   * @param self The MainViewController.
+   * @param title The title text.
+   * @param action The ActionFunction to bind to click events.
+   * @param data The user data.
+   * @memberof MainViewController
+   */
+  void (*primaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
 
-	/**
-	 * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
-	 * @brief Adds a Button to the secondary menu.
-	 * @param self The MainViewController.
-	 * @param title The title text.
-	 * @param action The ActionFunction to bind to click events.
-	 * @param data The user data.
-	 * @memberof MainViewController
-	 */
-	void (*secondaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
+  /**
+   * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
+   * @brief Adds a Button to the secondary menu.
+   * @param self The MainViewController.
+   * @param title The title text.
+   * @param action The ActionFunction to bind to click events.
+   * @param data The user data.
+   * @memberof MainViewController
+   */
+  void (*secondaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
 };
 
 /**

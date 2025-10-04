@@ -26,13 +26,13 @@
  */
 void Cg_PrepareStage(const cl_frame_t *frame) {
 
-	cgi.stage->origin = cgi.view->origin;
-	cgi.stage->angles = cgi.view->angles;
-	cgi.stage->forward = cgi.view->forward;
-	cgi.stage->right = cgi.view->right;
-	cgi.stage->up = cgi.view->up;
-	cgi.stage->velocity = frame->ps.pm_state.velocity;
-	cgi.stage->contents = cgi.view->contents;
+  cgi.stage->origin = cgi.view->origin;
+  cgi.stage->angles = cgi.view->angles;
+  cgi.stage->forward = cgi.view->forward;
+  cgi.stage->right = cgi.view->right;
+  cgi.stage->up = cgi.view->up;
+  cgi.stage->velocity = frame->ps.pm_state.velocity;
+  cgi.stage->contents = cgi.view->contents;
 }
 
 /**
@@ -40,47 +40,47 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
  */
 void Cg_ParseSound(void) {
 
-	const byte flags = cgi.ReadByte();
+  const byte flags = cgi.ReadByte();
 
-	s_play_sample_t play = {
-		.sample = cgi.client->sounds[cgi.ReadByte()]
-	};
-	
-	assert(play.sample);
+  s_play_sample_t play = {
+    .sample = cgi.client->sounds[cgi.ReadByte()]
+  };
+  
+  assert(play.sample);
 
-	if (flags & SOUND_ENTITY) {
-		play.entity = cgi.ReadShort();
+  if (flags & SOUND_ENTITY) {
+    play.entity = cgi.ReadShort();
 
-		const cl_entity_t *ent = &cgi.client->entities[play.entity];
-		if (ent->current.solid == SOLID_BSP) {
-			play.origin = Box3_Center(ent->abs_bounds);
-		} else {
-			play.origin = ent->current.origin;
+    const cl_entity_t *ent = &cgi.client->entities[play.entity];
+    if (ent->current.solid == SOLID_BSP) {
+      play.origin = Box3_Center(ent->abs_bounds);
+    } else {
+      play.origin = ent->current.origin;
 
-			if (play.sample->media.name[0] == '*') {
-				assert(play.entity - 1 < MAX_CLIENTS);
+      if (play.sample->media.name[0] == '*') {
+        assert(play.entity - 1 < MAX_CLIENTS);
 
-				const cg_client_info_t *info = &cg_state.clients[play.entity - 1];
-				play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
-			}
-		}
-	} else {
-		play.entity = 0;
-	}
+        const cg_client_info_t *info = &cg_state.clients[play.entity - 1];
+        play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
+      }
+    }
+  } else {
+    play.entity = 0;
+  }
 
-	if (flags & SOUND_ORIGIN) {
-		play.origin = cgi.ReadPosition();
-	}
+  if (flags & SOUND_ORIGIN) {
+    play.origin = cgi.ReadPosition();
+  }
 
-	if (flags & SOUND_ATTEN) {
-		play.atten = cgi.ReadByte();
-	}
+  if (flags & SOUND_ATTEN) {
+    play.atten = cgi.ReadByte();
+  }
 
-	if (flags & SOUND_PITCH) {
-		play.pitch = cgi.ReadChar() * 2;
-	}
+  if (flags & SOUND_PITCH) {
+    play.pitch = cgi.ReadChar() * 2;
+  }
 
-	Cg_AddSample(cgi.stage, &play);
+  Cg_AddSample(cgi.stage, &play);
 }
 
 
@@ -88,36 +88,36 @@ void Cg_ParseSound(void) {
  * @brief S_PlaySampleThink implementation.
  */
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
-	
-	if (play->entity > 0 && play->entity < MAX_ENTITIES) {
-		const cl_entity_t *ent = &cgi.client->entities[play->entity];
-		if (ent == Cg_Self()) {
-			play->flags |= S_PLAY_RELATIVE;
-		} else if (ent->current.solid == SOLID_BSP) {
-			play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
-			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-		} else {
-			play->origin = ent->origin;
-			play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-		}
-	}
+  
+  if (play->entity > 0 && play->entity < MAX_ENTITIES) {
+    const cl_entity_t *ent = &cgi.client->entities[play->entity];
+    if (ent == Cg_Self()) {
+      play->flags |= S_PLAY_RELATIVE;
+    } else if (ent->current.solid == SOLID_BSP) {
+      play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
+      play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+    } else {
+      play->origin = ent->origin;
+      play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+    }
+  }
 
-	if (play->flags & S_PLAY_RELATIVE) {
-		play->origin = play->velocity = Vec3_Zero();
-	} else {
-		if ((cgi.PointContents(play->origin) & CONTENTS_MASK_LIQUID) != (cgi.PointContents(stage->origin) & CONTENTS_MASK_LIQUID)) {
-			play->flags |= S_PLAY_UNDERWATER;
-		} else {
-			play->flags &= ~S_PLAY_UNDERWATER;
-		}
+  if (play->flags & S_PLAY_RELATIVE) {
+    play->origin = play->velocity = Vec3_Zero();
+  } else {
+    if ((cgi.PointContents(play->origin) & CONTENTS_MASK_LIQUID) != (cgi.PointContents(stage->origin) & CONTENTS_MASK_LIQUID)) {
+      play->flags |= S_PLAY_UNDERWATER;
+    } else {
+      play->flags &= ~S_PLAY_UNDERWATER;
+    }
 
-		const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-		if (tr.fraction < 1.f) {
-			play->flags |= S_PLAY_OCCLUDED;
-		} else {
-			play->flags &= ~S_PLAY_OCCLUDED;
-		}
-	}
+    const cm_trace_t tr = cgi.Trace(stage->origin, play->origin, Box3_Zero(), play->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    if (tr.fraction < 1.f) {
+      play->flags |= S_PLAY_OCCLUDED;
+    } else {
+      play->flags &= ~S_PLAY_OCCLUDED;
+    }
+  }
 }
 
 /**
@@ -125,12 +125,12 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
  */
 void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
-	s_play_sample_t s = *play;
+  s_play_sample_t s = *play;
 
-	if (s.Think == NULL) {
-		s.Think = Cg_PlaySampleThink;
-	}
+  if (s.Think == NULL) {
+    s.Think = Cg_PlaySampleThink;
+  }
 
-	cgi.AddSample(stage, &s);
+  cgi.AddSample(stage, &s);
 }
 

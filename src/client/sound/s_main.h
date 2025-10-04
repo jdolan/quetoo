@@ -35,9 +35,9 @@ extern cvar_t *s_get_error;
 void S_GetError_(const char *function, const char *msg);
 
 #define S_GetError(msg) { \
-	if (s_get_error->integer) { \
-		S_GetError_(__func__, msg); \
-	} \
+  if (s_get_error->integer) { \
+    S_GetError_(__func__, msg); \
+  } \
 }
 
 #endif /* __S_LOCAL_H__ */

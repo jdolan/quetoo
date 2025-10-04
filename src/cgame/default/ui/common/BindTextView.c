@@ -32,11 +32,11 @@
  */
 static void dealloc(Object *self) {
 
-	BindTextView *this = (BindTextView *) self;
+  BindTextView *this = (BindTextView *) self;
 
-	free(this->bind);
+  free(this->bind);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - View
@@ -46,22 +46,22 @@ static void dealloc(Object *self) {
  */
 static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
-	super(View, self, awakeWithDictionary, dictionary);
+  super(View, self, awakeWithDictionary, dictionary);
 
-	BindTextView *this = (BindTextView *) self;
+  BindTextView *this = (BindTextView *) self;
 
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
-	);
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("bind", InletTypeCharacters, &this->bind, NULL)
+  );
 
-	$(self, bind, inlets, dictionary);
+  $(self, bind, inlets, dictionary);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((BindTextView *) self, initWithBind, NULL);
+  return (View *) $((BindTextView *) self, initWithBind, NULL);
 }
 
 /**
@@ -69,32 +69,32 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	BindTextView *this = (BindTextView *) self;
-	if (this->bind) {
+  BindTextView *this = (BindTextView *) self;
+  if (this->bind) {
 
-		MutableArray *keys = $$(MutableArray, array);
-		SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
-		while (true) {
-			key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
-			if (key == SDL_SCANCODE_UNKNOWN) {
-				break;
-			}
+    MutableArray *keys = $$(MutableArray, array);
+    SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
+    while (true) {
+      key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
+      if (key == SDL_SCANCODE_UNKNOWN) {
+        break;
+      }
 
-			$(keys, addObject, str(cgi.KeyName(key)));
-		}
+      $(keys, addObject, str(cgi.KeyName(key)));
+    }
 
-		String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
+    String *keyNames = $((Array *) keys, componentsJoinedByCharacters, ", ");
 
-		$((TextView *) self, setDefaultText, keyNames->chars);
+    $((TextView *) self, setDefaultText, keyNames->chars);
 
-		release(keyNames);
-		release(keys);
+    release(keyNames);
+    release(keys);
 
-	} else {
-		$((TextView *) self, setDefaultText, NULL);
-	}
+  } else {
+    $((TextView *) self, setDefaultText, NULL);
+  }
 }
 
 #pragma mark - Control
@@ -104,46 +104,46 @@ static void updateBindings(View *self) {
  */
 static bool captureEvent(Control *self, const SDL_Event *event) {
 
-	if (self->state & ControlStateFocused) {
+  if (self->state & ControlStateFocused) {
 
-		if (event->type == SDL_KEYDOWN || event->type == SDL_MOUSEBUTTONDOWN) {
+    if (event->type == SDL_KEYDOWN || event->type == SDL_MOUSEBUTTONDOWN) {
 
-			SDL_Scancode key;
-			if (event->type == SDL_KEYDOWN) {
-				key = event->key.keysym.scancode;
-			} else {
-				key = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
-			}
+      SDL_Scancode key;
+      if (event->type == SDL_KEYDOWN) {
+        key = event->key.keysym.scancode;
+      } else {
+        key = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
+      }
 
-			BindTextView *this = (BindTextView *) self;
+      BindTextView *this = (BindTextView *) self;
 
-			if (key != SDL_SCANCODE_ESCAPE) {
-				
-				if (key == SDL_SCANCODE_BACKSPACE) {
-					key = SDL_SCANCODE_UNKNOWN;
-					while (true) {
-						key = cgi.KeyForBind(key, this->bind);
-						if (key == SDL_SCANCODE_UNKNOWN) {
-							break;
-						}
+      if (key != SDL_SCANCODE_ESCAPE) {
+        
+        if (key == SDL_SCANCODE_BACKSPACE) {
+          key = SDL_SCANCODE_UNKNOWN;
+          while (true) {
+            key = cgi.KeyForBind(key, this->bind);
+            if (key == SDL_SCANCODE_UNKNOWN) {
+              break;
+            }
 
-						cgi.BindKey(key, NULL);
-					}
-				} else {
-					cgi.BindKey(key, this->bind);
-				}
+            cgi.BindKey(key, NULL);
+          }
+        } else {
+          cgi.BindKey(key, this->bind);
+        }
 
-				if (this->textView.delegate.didEndEditing) {
-					this->textView.delegate.didEndEditing(&this->textView);
-				}
-			}
+        if (this->textView.delegate.didEndEditing) {
+          this->textView.delegate.didEndEditing(&this->textView);
+        }
+      }
 
-			self->state &= ~ControlStateFocused;
-			return true;
-		}
-	}
+      self->state &= ~ControlStateFocused;
+      return true;
+    }
+  }
 
-	return super(Control, self, captureEvent, event);
+  return super(Control, self, captureEvent, event);
 }
 
 #pragma mark - BindTextView
@@ -155,14 +155,14 @@ static bool captureEvent(Control *self, const SDL_Event *event) {
  */
 static BindTextView *initWithBind(BindTextView *self, const char *bind) {
 
-	self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
-	if (self) {
+  self = (BindTextView *) super(TextView, self, initWithFrame, NULL);
+  if (self) {
 
-		self->bind = strdup(bind ?: "");
-		assert(self->bind);
-	}
+    self->bind = strdup(bind ?: "");
+    assert(self->bind);
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -172,15 +172,15 @@ static BindTextView *initWithBind(BindTextView *self, const char *bind) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
+  ((ControlInterface *) clazz->interface)->captureEvent = captureEvent;
 
-	((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
+  ((BindTextViewInterface *) clazz->interface)->initWithBind = initWithBind;
 }
 
 /**
@@ -188,21 +188,21 @@ static void initialize(Class *clazz) {
  * @memberof BindTextView
  */
 Class *_BindTextView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "BindTextView",
-			.superclass = _TextView(),
-			.instanceSize = sizeof(BindTextView),
-			.interfaceOffset = offsetof(BindTextView, interface),
-			.interfaceSize = sizeof(BindTextViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "BindTextView",
+      .superclass = _TextView(),
+      .instanceSize = sizeof(BindTextView),
+      .interfaceOffset = offsetof(BindTextView, interface),
+      .interfaceSize = sizeof(BindTextViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

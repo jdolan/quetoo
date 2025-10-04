@@ -31,15 +31,15 @@ r_depth_pass_program_t r_depth_pass_program;
  */
 static void R_DrawBspDepthPass(const r_view_t *view) {
 
-	glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
+  glUniformMatrix4fv(r_depth_pass_program.model, 1, GL_FALSE, Mat4_Identity().array);
 
-	const r_bsp_model_t *bsp = r_models.world->bsp;
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
-	glBindVertexArray(bsp->depth_pass.vertex_array);
+  glBindVertexArray(bsp->depth_pass.vertex_array);
 
-	glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, bsp->inline_models->depth_pass_elements);
+  glDrawElements(GL_TRIANGLES, bsp->inline_models->num_depth_pass_elements, GL_UNSIGNED_INT, bsp->inline_models->depth_pass_elements);
 
-	glBindVertexArray(0);
+  glBindVertexArray(0);
 }
 
 /**
@@ -47,27 +47,27 @@ static void R_DrawBspDepthPass(const r_view_t *view) {
  */
 void R_DrawDepthPass(r_view_t *view) {
 
-	if (!r_depth_pass->value) {
-		return;
-	}
+  if (!r_depth_pass->value) {
+    return;
+  }
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
-	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-	glUseProgram(r_depth_pass_program.name);
+  glUseProgram(r_depth_pass_program.name);
 
-	R_DrawBspDepthPass(view);
+  R_DrawBspDepthPass(view);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glDisable(GL_DEPTH_TEST);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -75,23 +75,23 @@ void R_DrawDepthPass(r_view_t *view) {
  */
 static void R_InitDepthPassProgram(void) {
 
-	memset(&r_depth_pass_program, 0, sizeof(r_depth_pass_program));
+  memset(&r_depth_pass_program, 0, sizeof(r_depth_pass_program));
 
-	r_depth_pass_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "depth_pass_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_pass_fs.glsl", NULL),
-			NULL);
+  r_depth_pass_program.name = R_LoadProgram(
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "depth_pass_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_pass_fs.glsl", NULL),
+      NULL);
 
-	glUseProgram(r_depth_pass_program.name);
+  glUseProgram(r_depth_pass_program.name);
 
-	r_depth_pass_program.uniforms_block = glGetUniformBlockIndex(r_depth_pass_program.name, "uniforms_block");
-	glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
-	
-	r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
+  r_depth_pass_program.uniforms_block = glGetUniformBlockIndex(r_depth_pass_program.name, "uniforms_block");
+  glUniformBlockBinding(r_depth_pass_program.name, r_depth_pass_program.uniforms_block, 0);
+  
+  r_depth_pass_program.model = glGetUniformLocation(r_depth_pass_program.name, "model");
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -99,21 +99,21 @@ static void R_InitDepthPassProgram(void) {
  */
 static void R_ShutdownDepthPassProgram(void) {
 
-	glDeleteProgram(r_depth_pass_program.name);
+  glDeleteProgram(r_depth_pass_program.name);
 
-	r_depth_pass_program.name = 0;
+  r_depth_pass_program.name = 0;
 }
 
 /**
  * @brief
  */
 void R_InitDepthPass(void) {
-	R_InitDepthPassProgram();
+  R_InitDepthPassProgram();
 }
 
 /**
  * @brief
  */
 void R_ShutdownDepthPass(void) {
-	R_ShutdownDepthPassProgram();
+  R_ShutdownDepthPassProgram();
 }

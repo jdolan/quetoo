@@ -29,40 +29,40 @@
  */
 void Cl_RequestNextDownload(void) {
 
-	if (cls.state < CL_CONNECTED) {
-		return;
-	}
+  if (cls.state < CL_CONNECTED) {
+    return;
+  }
 
-	// check zip
-	if (cl.precache_check == CS_ZIP) {
-		cl.precache_check = CS_MODELS;
+  // check zip
+  if (cl.precache_check == CS_ZIP) {
+    cl.precache_check = CS_MODELS;
 
-		if (*cl.config_strings[CS_ZIP] != '\0') {
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP])) {
-				return;    // started a download
-			}
-		}
-	}
+    if (*cl.config_strings[CS_ZIP] != '\0') {
+      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP])) {
+        return;    // started a download
+      }
+    }
+  }
 
-	// check .bsp via models
-	if (cl.precache_check == CS_MODELS) { // the map is the only model we care about
-		cl.precache_check++;
+  // check .bsp via models
+  if (cl.precache_check == CS_MODELS) { // the map is the only model we care about
+    cl.precache_check++;
 
-		if (*cl.config_strings[CS_MODELS] != '\0') {
-			if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS])) {
-				return; // started a download
-			}
-		}
-	}
+    if (*cl.config_strings[CS_MODELS] != '\0') {
+      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS])) {
+        return; // started a download
+      }
+    }
+  }
 
-	// we're good to go, lock and load (literally)
+  // we're good to go, lock and load (literally)
 
-	Cvar_ResetDeveloper();
+  Cvar_ResetDeveloper();
 
-	Cl_LoadMedia();
+  Cl_LoadMedia();
 
-	Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-	Net_WriteString(&cls.net_chan.message, va("begin %i\n", cls.spawn_count));
+  Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
+  Net_WriteString(&cls.net_chan.message, va("begin %i\n", cls.spawn_count));
 }
 
 
@@ -70,11 +70,11 @@ void Cl_RequestNextDownload(void) {
  * @brief Fs_Enumerate function for Cl_Mapshots.
  */
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
-	GList **list = (GList **) data;
+  GList **list = (GList **) data;
 
-	if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
-		*list = g_list_append(*list, g_strdup(path));
-	}
+  if (g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".png")) {
+    *list = g_list_append(*list, g_strdup(path));
+  }
 }
 
 /**
@@ -82,13 +82,13 @@ static void Cl_Mapshots_enumerate(const char *path, void *data) {
  */
 GList *Cl_Mapshots(const char *mapname) {
 
-	char map[MAX_QPATH];
-	StripExtension(mapname, map);
+  char map[MAX_QPATH];
+  StripExtension(mapname, map);
 
-	GList *list = NULL;
-	Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) &list);
+  GList *list = NULL;
+  Fs_Enumerate(va("mapshots/%s/*", Basename(map)), Cl_Mapshots_enumerate, (void *) &list);
 
-	return list;
+  return list;
 }
 
 /**
@@ -98,28 +98,28 @@ GList *Cl_Mapshots(const char *mapname) {
  */
 void Cl_LoadingProgress(int32_t percent, const char *status) {
 
-	if (percent < 0) {
-		cls.loading.percent -= percent;
-		cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
-	} else {
-		cls.loading.percent = percent;
-	}
+  if (percent < 0) {
+    cls.loading.percent -= percent;
+    cls.loading.percent = Mini(Maxi(0, cls.loading.percent), 99);
+  } else {
+    cls.loading.percent = percent;
+  }
 
-	cls.loading.status = status;
+  cls.loading.status = status;
 
-	Cl_HandleEvents();
+  Cl_HandleEvents();
 
-	Cl_SendCommands();
+  Cl_SendCommands();
 
-	cls.cgame->UpdateLoading(cls.loading);
+  cls.cgame->UpdateLoading(cls.loading);
 
-	R_BeginFrame();
+  R_BeginFrame();
 
-	Cl_UpdateScreen();
+  Cl_UpdateScreen();
 
-	R_EndFrame();
+  R_EndFrame();
 
-	quetoo.ticks = SDL_GetTicks();
+  quetoo.ticks = SDL_GetTicks();
 }
 
 /**
@@ -127,26 +127,26 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
  */
 static void Cl_LoadModels(void) {
 
-	for (int32_t i = 0; i < MAX_MODELS; i++) {
+  for (int32_t i = 0; i < MAX_MODELS; i++) {
 
-		const char *str = cl.config_strings[CS_MODELS + i];
-		if (*str == 0) {
-			break;
-		}
+    const char *str = cl.config_strings[CS_MODELS + i];
+    if (*str == 0) {
+      break;
+    }
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
+    if (i ^ 1) {
+      Cl_LoadingProgress(-1, str);
+    }
 
-		cl.models[i] = R_LoadModel(str);
-	}
+    cl.models[i] = R_LoadModel(str);
+  }
 }
 
 /**
  * @brief Fs_Enumerator to load all emoji into the images atlas.
  */
 static void Cl_LoadImages_Emoji(const char *path, void *data) {
-	R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);
+  R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);
 }
 
 /**
@@ -154,24 +154,24 @@ static void Cl_LoadImages_Emoji(const char *path, void *data) {
  */
 static void Cl_LoadImages(void) {
 
-	Cl_LoadingProgress(-1, "sky");
-	R_LoadSky(cl.config_strings[CS_SKY]);
+  Cl_LoadingProgress(-1, "sky");
+  R_LoadSky(cl.config_strings[CS_SKY]);
 
-	r_atlas_t *atlas = R_LoadAtlas("images");
-	Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
+  r_atlas_t *atlas = R_LoadAtlas("images");
+  Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
 
-	for (int32_t i = 0; i < MAX_IMAGES; i++) {
+  for (int32_t i = 0; i < MAX_IMAGES; i++) {
 
-		const char *str = cl.config_strings[CS_IMAGES + i];
-		if (*str == 0) {
-			break;
-		}
+    const char *str = cl.config_strings[CS_IMAGES + i];
+    if (*str == 0) {
+      break;
+    }
 
-		cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
-	}
+    cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
+  }
 
-	Cl_LoadingProgress(-1, "compiling images");
-	R_CompileAtlas(atlas);
+  Cl_LoadingProgress(-1, "compiling images");
+  R_CompileAtlas(atlas);
 }
 
 /**
@@ -179,36 +179,36 @@ static void Cl_LoadImages(void) {
  */
 static void Cl_LoadSounds(void) {
 
-	if (*cl_chat_sound->string) {
-		S_LoadSample(cl_chat_sound->string);
-	}
+  if (*cl_chat_sound->string) {
+    S_LoadSample(cl_chat_sound->string);
+  }
 
-	if (*cl_team_chat_sound->string) {
-		S_LoadSample(cl_team_chat_sound->string);
-	}
+  if (*cl_team_chat_sound->string) {
+    S_LoadSample(cl_team_chat_sound->string);
+  }
 
-	for (int32_t i = 0; i < MAX_SOUNDS; i++) {
+  for (int32_t i = 0; i < MAX_SOUNDS; i++) {
 
-		const char *str = cl.config_strings[CS_SOUNDS + i];
-		if (*str == 0) {
-			break;
-		}
+    const char *str = cl.config_strings[CS_SOUNDS + i];
+    if (*str == 0) {
+      break;
+    }
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
+    if (i ^ 1) {
+      Cl_LoadingProgress(-1, str);
+    }
 
-		cl.sounds[i] = S_LoadSample(str);
-	}
+    cl.sounds[i] = S_LoadSample(str);
+  }
 
-	for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
-		const cm_footsteps_t *footsteps = &Cm_Bsp()->materials[i]->footsteps;
+  for (int32_t i = 0; i < Cm_Bsp()->num_materials; i++) {
+    const cm_footsteps_t *footsteps = &Cm_Bsp()->materials[i]->footsteps;
 
-		const cm_asset_t *sample = footsteps->samples;
-		for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
-			S_LoadSample(sample->name);
-		}
-	}
+    const cm_asset_t *sample = footsteps->samples;
+    for (int32_t j = 0; j < footsteps->num_samples; j++, sample++) {
+      S_LoadSample(sample->name);
+    }
+  }
 }
 
 /**
@@ -216,23 +216,23 @@ static void Cl_LoadSounds(void) {
  */
 static void Cl_LoadMusics(void) {
 
-	S_ClearPlaylist();
+  S_ClearPlaylist();
 
-	for (int32_t i = 0; i < MAX_MUSICS; i++) {
+  for (int32_t i = 0; i < MAX_MUSICS; i++) {
 
-		const char *str = cl.config_strings[CS_MUSICS + i];
-		if (*str == 0) {
-			break;
-		}
+    const char *str = cl.config_strings[CS_MUSICS + i];
+    if (*str == 0) {
+      break;
+    }
 
-		if (i ^ 1) {
-			Cl_LoadingProgress(-1, str);
-		}
+    if (i ^ 1) {
+      Cl_LoadingProgress(-1, str);
+    }
 
-		cl.musics[i] = S_LoadMusic(str);
-	}
+    cl.musics[i] = S_LoadMusic(str);
+  }
 
-	S_NextTrack_f();
+  S_NextTrack_f();
 }
 
 /**
@@ -240,46 +240,46 @@ static void Cl_LoadMusics(void) {
  */
 void Cl_LoadMedia(void) {
 
-	cls.cgame->FreeMedia();
+  cls.cgame->FreeMedia();
 
-	cls.state = CL_LOADING;
+  cls.state = CL_LOADING;
 
-	GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
-	const size_t len = g_list_length(mapshots);
+  GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
+  const size_t len = g_list_length(mapshots);
 
-	if (len > 0) {
-		strcpy(cls.loading.mapshot, g_list_nth_data(mapshots, rand() % len));
-	} else {
-		cls.loading.mapshot[0] = '\0';
-	}
+  if (len > 0) {
+    strcpy(cls.loading.mapshot, g_list_nth_data(mapshots, rand() % len));
+  } else {
+    cls.loading.mapshot[0] = '\0';
+  }
 
-	g_list_free_full(mapshots, g_free);
+  g_list_free_full(mapshots, g_free);
 
-	Cl_UpdatePrediction();
+  Cl_UpdatePrediction();
 
-	R_BeginLoading();
+  R_BeginLoading();
 
-	Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
+  Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
 
-	Cl_LoadModels();
+  Cl_LoadModels();
 
-	Cl_LoadImages();
+  Cl_LoadImages();
 
-	S_Stop();
+  S_Stop();
 
-	S_BeginLoading();
+  S_BeginLoading();
 
-	Cl_LoadSounds();
+  Cl_LoadSounds();
 
-	Cl_LoadMusics();
+  Cl_LoadMusics();
 
-	cls.cgame->LoadMedia();
+  cls.cgame->LoadMedia();
 
-	Cl_LoadingProgress(100, "ready");
+  Cl_LoadingProgress(100, "ready");
 
-	R_EndLoading();
+  R_EndLoading();
 
-	S_EndLoading();
+  S_EndLoading();
 
-	Ui_ViewWillAppear();
+  Ui_ViewWillAppear();
 }

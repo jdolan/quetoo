@@ -39,77 +39,77 @@ typedef struct MaterialViewControllerInterface MaterialViewControllerInterface;
  */
 struct MaterialViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	MaterialViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  MaterialViewControllerInterface *interface;
 
-	/**
-	 * @brief The model being edited.
-	 */
-	const r_model_t *model;
+  /**
+   * @brief The model being edited.
+   */
+  const r_model_t *model;
 
-	/**
-	 * @brief The material being edited.
-	 */
-	r_material_t *material;
+  /**
+   * @brief The material being edited.
+   */
+  r_material_t *material;
 
-	/**
-	 * @brief The material name.
-	 */
-	TextView *name;
+  /**
+   * @brief The material name.
+   */
+  TextView *name;
 
-	/**
-	 * @brief The diffusemap texture.
-	 */
-	TextView *diffusemap;
+  /**
+   * @brief The diffusemap texture.
+   */
+  TextView *diffusemap;
 
-	/**
-	 * @brief The normalmap texture.
-	 */
-	TextView *normalmap;
+  /**
+   * @brief The normalmap texture.
+   */
+  TextView *normalmap;
 
-	/**
-	 * @brief The specularmap texture.
-	 */
-	TextView *specularmap;
+  /**
+   * @brief The specularmap texture.
+   */
+  TextView *specularmap;
 
-	/**
-	 * @brief The roughness slider.
-	 */
-	Slider *roughness;
+  /**
+   * @brief The roughness slider.
+   */
+  Slider *roughness;
 
-	/**
-	 * @brief The hardness slider.
-	 */
-	Slider *hardness;
+  /**
+   * @brief The hardness slider.
+   */
+  Slider *hardness;
 
-	/**
-	 * @brief The specularity slider.
-	 */
-	Slider *specularity;
+  /**
+   * @brief The specularity slider.
+   */
+  Slider *specularity;
 
-	/**
-	 * @brief The parallax amplitude slider.
-	 */
-	Slider *parallax;
+  /**
+   * @brief The parallax amplitude slider.
+   */
+  Slider *parallax;
 
-	/**
-	 * @brief The alpha test slider.
-	 */
-	Slider *alphaTest;
+  /**
+   * @brief The alpha test slider.
+   */
+  Slider *alphaTest;
 
-	/**
-	 * @brief The save button.
-	 */
-	Button *save;
+  /**
+   * @brief The save button.
+   */
+  Button *save;
 };
 
 /**
@@ -117,29 +117,29 @@ struct MaterialViewController {
  */
 struct MaterialViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
-	/**
-	 * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)
-	 * @brief Initializes this ViewController.
-	 * @param self The MaterialViewController.
-	 * @return The initialized MaterialViewController, or `NULL` on error.
-	 * @memberof MaterialViewController
-	 */
-	MaterialViewController *(*init)(MaterialViewController *self);
+  /**
+   * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)
+   * @brief Initializes this ViewController.
+   * @param self The MaterialViewController.
+   * @return The initialized MaterialViewController, or `NULL` on error.
+   * @memberof MaterialViewController
+   */
+  MaterialViewController *(*init)(MaterialViewController *self);
 
-	/**
-	 * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material)
-	 * @brief Sets the material to edit.
-	 * @param self The MaterialViewController.
-	 * @param model The model owning the material to edit.
-	 * @param material The material to edit.
-	 * @memberof MaterialViewController
-	 */
-	void (*setModelAndMaterial)(MaterialViewController *self, const r_model_t *model, r_material_t *material);
+  /**
+   * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material)
+   * @brief Sets the material to edit.
+   * @param self The MaterialViewController.
+   * @param model The model owning the material to edit.
+   * @param material The material to edit.
+   * @memberof MaterialViewController
+   */
+  void (*setModelAndMaterial)(MaterialViewController *self, const r_model_t *model, r_material_t *material);
 };
 
 /**

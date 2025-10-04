@@ -29,10 +29,10 @@
  * @brief The client game view structure.
  */
 typedef struct {
-	/**
-	 * @brief View bob.
-	 */
-	float bob;
+  /**
+   * @brief View bob.
+   */
+  float bob;
 } cg_view_t;
 
 extern cg_view_t cg_view;

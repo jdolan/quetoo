@@ -41,29 +41,29 @@ typedef struct CvarSelectInterface CvarSelectInterface;
  */
 struct CvarSelect {
 
-	/**
-	 * @brief The superclass.
-	 *
-	 * @private
-	 */
-	Select select;
+  /**
+   * @brief The superclass.
+   *
+   * @private
+   */
+  Select select;
 
-	/**
-	 * @brief The interface.
-	 *
-	 * @private
-	 */
-	CvarSelectInterface *interface;
+  /**
+   * @brief The interface.
+   *
+   * @private
+   */
+  CvarSelectInterface *interface;
 
-	/**
-	 * @brief The variable.
-	 */
-	cvar_t *var;
+  /**
+   * @brief The variable.
+   */
+  cvar_t *var;
 
-	/**
-	 * @brief Set to true if the variable expects a string value, false for integer.
-	 */
-	bool expectsStringValue;
+  /**
+   * @brief Set to true if the variable expects a string value, false for integer.
+   */
+  bool expectsStringValue;
 };
 
 /**
@@ -71,28 +71,28 @@ struct CvarSelect {
  */
 struct CvarSelectInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	SelectInterface selectInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  SelectInterface selectInterface;
 
-	/**
-	 * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
-	 * @brief Initializes this CvarSelect with the given variable.
-	 * @param var The variable.
-	 * @return The initialized CvarSelect, or `NULL` on error.
-	 * @memberof CvarSelect
-	 */
-	CvarSelect *(*initWithVariable)(CvarSelect *self, cvar_t *var);
+  /**
+   * @fn CvarSelect *CvarSelect::initWithVariable(CvarSelect *self, cvar_t *var)
+   * @brief Initializes this CvarSelect with the given variable.
+   * @param var The variable.
+   * @return The initialized CvarSelect, or `NULL` on error.
+   * @memberof CvarSelect
+   */
+  CvarSelect *(*initWithVariable)(CvarSelect *self, cvar_t *var);
 
-	/**
-	 * @fn CvarSelect *CvarSelect::initWithVariabeName(CvarSelect *self, const char (name)
-	 * @brief Initializes this CvarSelect with the given variable name.
-	 * @param name The variable name.
-	 * @return The initialized CvarSelect, or `NULL`.
-	 * @memberof CvarSelect
-	 */
-	CvarSelect *(*initWithVariableName)(CvarSelect *self, const char *name);
+  /**
+   * @fn CvarSelect *CvarSelect::initWithVariabeName(CvarSelect *self, const char (name)
+   * @brief Initializes this CvarSelect with the given variable name.
+   * @param name The variable name.
+   * @return The initialized CvarSelect, or `NULL`.
+   * @memberof CvarSelect
+   */
+  CvarSelect *(*initWithVariableName)(CvarSelect *self, const char *name);
 };
 
 /**

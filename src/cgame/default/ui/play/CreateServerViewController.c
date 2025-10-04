@@ -35,21 +35,21 @@
  */
 static void selectTeams(Select *select, Option *option) {
 
-	const intptr_t value = (intptr_t) option->value;
-	switch (value) {
-		case 1:
-			cgi.SetCvarInteger(g_teams->name, 1);
-			cgi.SetCvarInteger(g_ctf->name, 0);
-			break;
-		case 2:
-			cgi.SetCvarInteger(g_teams->name, 0);
-			cgi.SetCvarInteger(g_ctf->name, 1);
-			break;
-		default:
-			cgi.SetCvarInteger(g_teams->name, 0);
-			cgi.SetCvarInteger(g_ctf->name, 1);
-			break;
-	}
+  const intptr_t value = (intptr_t) option->value;
+  switch (value) {
+    case 1:
+      cgi.SetCvarInteger(g_teams->name, 1);
+      cgi.SetCvarInteger(g_ctf->name, 0);
+      break;
+    case 2:
+      cgi.SetCvarInteger(g_teams->name, 0);
+      cgi.SetCvarInteger(g_ctf->name, 1);
+      break;
+    default:
+      cgi.SetCvarInteger(g_teams->name, 0);
+      cgi.SetCvarInteger(g_ctf->name, 1);
+      break;
+  }
 }
 
 /**
@@ -57,53 +57,53 @@ static void selectTeams(Select *select, Option *option) {
  */
 static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	CreateServerViewController *this = (CreateServerViewController *) sender;
+  CreateServerViewController *this = (CreateServerViewController *) sender;
 
-	Array *selectedMaps = $(this->mapList, selectedMaps);
-	if (selectedMaps->count) {
-		char map[MAX_QPATH];
+  Array *selectedMaps = $(this->mapList, selectedMaps);
+  if (selectedMaps->count) {
+    char map[MAX_QPATH];
 
-		file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
-		if (file) {
+    file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
+    if (file) {
 
-			MutableString *string = mstr("");
+      MutableString *string = mstr("");
 
-			for (size_t i = 0; i < selectedMaps->count; i++) {
+      for (size_t i = 0; i < selectedMaps->count; i++) {
 
-				const Value *value = $(selectedMaps, objectAtIndex, i);
-				const MapListItemInfo *info = (MapListItemInfo *) value->value;
+        const Value *value = $(selectedMaps, objectAtIndex, i);
+        const MapListItemInfo *info = (MapListItemInfo *) value->value;
 
-				char name[MAX_QPATH];
-				StripExtension(Basename(info->mapname), name);
+        char name[MAX_QPATH];
+        StripExtension(Basename(info->mapname), name);
 
-				if (i == 0) {
-					g_strlcpy(map, name, sizeof(map));
-				}
+        if (i == 0) {
+          g_strlcpy(map, name, sizeof(map));
+        }
 
-				$(string, appendFormat, "{\n\tname %s\n}\n", name);
-			}
+        $(string, appendFormat, "{\n\tname %s\n}\n", name);
+      }
 
-			const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
+      const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
 
-			if (len == -1) {
-				cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
-			} else {
-				Cg_Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
-			}
+      if (len == -1) {
+        cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
+      } else {
+        Cg_Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
+      }
 
-			release(string);
-		}
+      release(string);
+    }
 
-		cgi.CloseFile(file);
+    cgi.CloseFile(file);
 
-		cgi.SetCvarString("g_map_list", MAP_LIST_UI);
-		cgi.Cbuf(va("map %s", map));
+    cgi.SetCvarString("g_map_list", MAP_LIST_UI);
+    cgi.Cbuf(va("map %s", map));
 
-	} else {
-		cgi.Print("No maps selected\n");
-	}
+  } else {
+    cgi.Print("No maps selected\n");
+  }
 
-	release(selectedMaps);
+  release(selectedMaps);
 }
 
 #pragma mark - ViewController
@@ -113,36 +113,36 @@ static void createAction(Control *control, const SDL_Event *event, ident sender,
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	CreateServerViewController *this = (CreateServerViewController *) self;
+  CreateServerViewController *this = (CreateServerViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("gameplay", &this->gameplay),
-		MakeOutlet("teams", &this->teams),
-		MakeOutlet("mapList", &this->mapList),
-		MakeOutlet("create", &this->create)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("gameplay", &this->gameplay),
+    MakeOutlet("teams", &this->teams),
+    MakeOutlet("mapList", &this->mapList),
+    MakeOutlet("create", &this->create)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/play/CreateServerViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
-	assert(self->view->stylesheet);
-	
-	$(this->gameplay, addOption, "Default", "default");
-	$(this->gameplay, addOption, "Deathmatch", "deathmatch");
-	$(this->gameplay, addOption, "Instagib", "instagib");
-	$(this->gameplay, addOption, "Arena", "arena");
-	$(this->gameplay, addOption, "Duel", "duel");
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/play/CreateServerViewController.css");
+  assert(self->view->stylesheet);
+  
+  $(this->gameplay, addOption, "Default", "default");
+  $(this->gameplay, addOption, "Deathmatch", "deathmatch");
+  $(this->gameplay, addOption, "Instagib", "instagib");
+  $(this->gameplay, addOption, "Arena", "arena");
+  $(this->gameplay, addOption, "Duel", "duel");
 
-	$(this->teams, addOption, "Free for all", (ident) 0);
-	$(this->teams, addOption, "Team deathmatch", (ident) 1);
-	$(this->teams, addOption, "Capture the flag", (ident) 2);
+  $(this->teams, addOption, "Free for all", (ident) 0);
+  $(this->teams, addOption, "Team deathmatch", (ident) 1);
+  $(this->teams, addOption, "Capture the flag", (ident) 2);
 
-	this->teams->delegate.didSelectOption = selectTeams;
+  this->teams->delegate.didSelectOption = selectTeams;
 
-	$((Control *) this->create, addActionForEventType, SDL_MOUSEBUTTONUP, createAction, self, NULL);
+  $((Control *) this->create, addActionForEventType, SDL_MOUSEBUTTONUP, createAction, self, NULL);
 }
 
 #pragma mark - Class lifecycle
@@ -152,7 +152,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -160,21 +160,21 @@ static void initialize(Class *clazz) {
  * @memberof CreateServerViewController
  */
 Class *_CreateServerViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CreateServerViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(CreateServerViewController),
-			.interfaceOffset = offsetof(CreateServerViewController, interface),
-			.interfaceSize = sizeof(CreateServerViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CreateServerViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(CreateServerViewController),
+      .interfaceOffset = offsetof(CreateServerViewController, interface),
+      .interfaceSize = sizeof(CreateServerViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

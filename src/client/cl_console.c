@@ -41,223 +41,223 @@ static cvar_t *cl_notify_time;
  */
 static void Cl_DrawConsole_Background(void) {
 
-	if (cl_draw_console_background_alpha->value == 0.0) {
-		return;
-	}
+  if (cl_draw_console_background_alpha->value == 0.0) {
+    return;
+  }
 
-	const r_image_t *conback = R_LoadImage("ui/conback", IMG_UI);
-	if (!conback) {
-		return;
-	}
+  const r_image_t *conback = R_LoadImage("ui/conback", IMG_UI);
+  if (!conback) {
+    return;
+  }
 
-	GLint ch;
-	R_BindFont("small", NULL, &ch);
+  GLint ch;
+  R_BindFont("small", NULL, &ch);
 
-	const float x_scale = r_context.mode.w / (float) conback->width;
-	const float y_scale = r_context.mode.h / (float) conback->height;
+  const float x_scale = r_context.mode.w / (float) conback->width;
+  const float y_scale = r_context.mode.h / (float) conback->height;
 
-	const float scale = Maxf(x_scale, y_scale);
+  const float scale = Maxf(x_scale, y_scale);
 
-	const GLint width = ceilf(conback->width * scale);
-	const GLint height = ceilf(conback->height * scale);
+  const GLint width = ceilf(conback->width * scale);
+  const GLint height = ceilf(conback->height * scale);
 
-	assert(width >= r_context.mode.w);
-	assert(height >= r_context.mode.h);
+  assert(width >= r_context.mode.w);
+  assert(height >= r_context.mode.h);
 
-	const GLint x = (r_context.mode.w / 2.f) - (width / 2.f);
-	const GLint y = (r_context.mode.h / 2.f) - (height / 2.f);
+  const GLint x = (r_context.mode.w / 2.f) - (width / 2.f);
+  const GLint y = (r_context.mode.h / 2.f) - (height / 2.f);
 
-	const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
+  const GLint offset = y + height - ((GLint) cl_console.height + 1) * ch;
 
-	const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
+  const color_t color = Color4f(1.f, 1.f, 1.f, cl_draw_console_background_alpha->value);
 
-	R_Draw2DImage(x, y - offset, width, height, conback, color);
+  R_Draw2DImage(x, y - offset, width, height, conback, color);
 }
 
 /**
  * @brief
  */
 static void Cl_DrawConsole_Buffer(void) {
-	GLint ch;
+  GLint ch;
 
-	R_BindFont("small", NULL, &ch);
+  R_BindFont("small", NULL, &ch);
 
-	char *lines[cl_console.height];
-	const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
+  char *lines[cl_console.height];
+  const size_t count = Con_Tail(&cl_console, lines, cl_console.height);
 
-	GLint y = ((GLint) cl_console.height - (GLint) count) * ch;
+  GLint y = ((GLint) cl_console.height - (GLint) count) * ch;
 
-	color_t color = color_white;
-	for (size_t i = 0; i < count; i++) {
-		R_Draw2DString(0, y, lines[i], color);
-		color = ColorEsc(StrrColor(lines[i]));
-		g_free(lines[i]);
-		y += ch;
-	}
+  color_t color = color_white;
+  for (size_t i = 0; i < count; i++) {
+    R_Draw2DString(0, y, lines[i], color);
+    color = ColorEsc(StrrColor(lines[i]));
+    g_free(lines[i]);
+    y += ch;
+  }
 }
 
 /**
  * @brief The input line scrolls horizontally if typing goes beyond the right edge
  */
 static void Cl_DrawConsole_Input(void) {
-	GLint cw, ch;
+  GLint cw, ch;
 
-	R_BindFont("small", &cw, &ch);
+  R_BindFont("small", &cw, &ch);
 
-	GLint x = 1, y = (GLint) cl_console.height * ch;
+  GLint x = 1, y = (GLint) cl_console.height * ch;
 
-	// draw the prompt
-	R_Draw2DChar(0, y, ']', color_green);
+  // draw the prompt
+  R_Draw2DChar(0, y, ']', color_green);
 
-	// and the input buffer, scrolling horizontally if appropriate
-	const char *s = cl_console.input.buffer;
-	if (cl_console.input.pos > (size_t) cl_console.width - 2) {
-		s += 2 + cl_console.input.pos - cl_console.width;
-	}
+  // and the input buffer, scrolling horizontally if appropriate
+  const char *s = cl_console.input.buffer;
+  if (cl_console.input.pos > (size_t) cl_console.width - 2) {
+    s += 2 + cl_console.input.pos - cl_console.width;
+  }
 
-	while (*s) {
-		R_Draw2DChar(x * cw, y, *s, color_white);
+  while (*s) {
+    R_Draw2DChar(x * cw, y, *s, color_white);
 
-		s++;
-		x++;
-	}
+    s++;
+    x++;
+  }
 
-	// and lastly cursor
-	R_Draw2DChar((GLint) (cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
+  // and lastly cursor
+  R_Draw2DChar((GLint) (cl_console.input.pos + 1) * cw, y, 0x0b, color_white);
 }
 
 /**
  * @brief
  */
 GLint Cl_GetConsoleHeight(void) {
-	return r_context.mode.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
+  return r_context.mode.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
 }
 
 /**
  * @brief
  */
 void Cl_DrawConsole(void) {
-	const GLint height = Cl_GetConsoleHeight();
+  const GLint height = Cl_GetConsoleHeight();
 
-	GLint cw, ch;
-	R_BindFont("small", &cw, &ch);
+  GLint cw, ch;
+  R_BindFont("small", &cw, &ch);
 
-	cl_console.width = r_context.mode.w / cw;
-	cl_console.height = (height / ch) - 1;
+  cl_console.width = r_context.mode.w / cw;
+  cl_console.height = (height / ch) - 1;
 
-	Cl_DrawConsole_Background();
+  Cl_DrawConsole_Background();
 
-	Cl_DrawConsole_Buffer();
+  Cl_DrawConsole_Buffer();
 
-	Cl_DrawConsole_Input();
+  Cl_DrawConsole_Input();
 
-	R_BindFont(NULL, NULL, NULL);
+  R_BindFont(NULL, NULL, NULL);
 }
 
 /**
  * @brief Draws the last few lines of output transparently over the game top
  */
 void Cl_DrawNotify(void) {
-	GLint cw, ch;
+  GLint cw, ch;
 
-	if (!cl_draw_notify->value) {
-		return;
-	}
+  if (!cl_draw_notify->value) {
+    return;
+  }
 
-	R_BindFont("small", &cw, &ch);
+  R_BindFont("small", &cw, &ch);
 
-	console_t con = {
-		.width = r_context.mode.w / cw,
-		.height = Clampf(cl_notify_lines->integer, 1, 12),
-		.level = (PRINT_MEDIUM | PRINT_HIGH),
-	};
+  console_t con = {
+    .width = r_context.mode.w / cw,
+    .height = Clampf(cl_notify_lines->integer, 1, 12),
+    .level = (PRINT_MEDIUM | PRINT_HIGH),
+  };
 
-	if (quetoo.ticks > cl_notify_time->value * 1000) {
-		con.whence = quetoo.ticks - cl_notify_time->value * 1000;
-	}
+  if (quetoo.ticks > cl_notify_time->value * 1000) {
+    con.whence = quetoo.ticks - cl_notify_time->value * 1000;
+  }
 
-	char *lines[con.height];
-	const size_t count = Con_Tail(&con, lines, con.height);
+  char *lines[con.height];
+  const size_t count = Con_Tail(&con, lines, con.height);
 
-	GLint y = 0;
+  GLint y = 0;
 
-	color_t color = color_white;
-	for (size_t i = 0; i < count; i++) {
-		R_Draw2DString(0, y, lines[i], color);
-		color = ColorEsc(StrrColor(lines[i]));
-		g_free(lines[i]);
-		y += ch;
-	}
+  color_t color = color_white;
+  for (size_t i = 0; i < count; i++) {
+    R_Draw2DString(0, y, lines[i], color);
+    color = ColorEsc(StrrColor(lines[i]));
+    g_free(lines[i]);
+    y += ch;
+  }
 
-	R_BindFont(NULL, NULL, NULL);
+  R_BindFont(NULL, NULL, NULL);
 }
 
 /**
  * @brief Draws the chat history and, optionally, the chat input string.
  */
 void Cl_DrawChat(void) {
-	GLint cw, ch;
+  GLint cw, ch;
 
-	R_BindFont("small", &cw, &ch);
+  R_BindFont("small", &cw, &ch);
 
-	GLint x = 1, y = r_context.mode.h * 0.66;
+  GLint x = 1, y = r_context.mode.h * 0.66;
 
-	cl_chat_console.width = r_context.mode.w / cw / 3;
-	cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
+  cl_chat_console.width = r_context.mode.w / cw / 3;
+  cl_chat_console.height = Clampf(cl_chat_lines->integer, 0, 16);
 
-	if (cl_draw_chat->value && cl_chat_console.height) {
+  if (cl_draw_chat->value && cl_chat_console.height) {
 
-		if (cls.key_state.dest == KEY_CHAT) {
-			cl_chat_console.whence = 0;
-		} else if (quetoo.ticks > cl_chat_time->value * 1000) {
-			cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
-		}
+    if (cls.key_state.dest == KEY_CHAT) {
+      cl_chat_console.whence = 0;
+    } else if (quetoo.ticks > cl_chat_time->value * 1000) {
+      cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
+    }
 
-		char *lines[cl_chat_console.height];
-		const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
+    char *lines[cl_chat_console.height];
+    const size_t count = Con_Tail(&cl_chat_console, lines, cl_chat_console.height);
 
-		color_t color = color_white;
-		for (size_t i = 0; i < count; i++) {
-			R_Draw2DString(0, y, lines[i], color);
-			color = ColorEsc(StrrColor(lines[i]));
-			g_free(lines[i]);
-			y += ch;
-		}
-	}
+    color_t color = color_white;
+    for (size_t i = 0; i < count; i++) {
+      R_Draw2DString(0, y, lines[i], color);
+      color = ColorEsc(StrrColor(lines[i]));
+      g_free(lines[i]);
+      y += ch;
+    }
+  }
 
-	if (cls.key_state.dest == KEY_CHAT) {
+  if (cls.key_state.dest == KEY_CHAT) {
 
-		const int32_t esc = cls.chat_state.team_chat ? ESC_COLOR_TEAMCHAT : ESC_COLOR_CHAT;
+    const int32_t esc = cls.chat_state.team_chat ? ESC_COLOR_TEAM_CHAT : ESC_COLOR_CHAT;
 
-		// draw the prompt
-		R_Draw2DChar(0, y, ']', ColorEsc(esc));
+    // draw the prompt
+    R_Draw2DChar(0, y, ']', ColorEsc(esc));
 
-		// and the input, scrolling horizontally if appropriate
-		const char *s = cl_chat_console.input.buffer;
-		if (cl_chat_console.input.pos > (size_t) cl_chat_console.width - 2) {
-			s += 2 + cl_chat_console.input.pos - cl_chat_console.width;
-		}
+    // and the input, scrolling horizontally if appropriate
+    const char *s = cl_chat_console.input.buffer;
+    if (cl_chat_console.input.pos > (size_t) cl_chat_console.width - 2) {
+      s += 2 + cl_chat_console.input.pos - cl_chat_console.width;
+    }
 
-		while (*s) {
-			R_Draw2DChar(x * cw, y, *s, color_white);
+    while (*s) {
+      R_Draw2DChar(x * cw, y, *s, color_white);
 
-			s++;
-			x++;
-		}
+      s++;
+      x++;
+    }
 
-		// and lastly cursor
-		R_Draw2DChar(x * cw, y, 0x0b, color_white);
-	}
+    // and lastly cursor
+    R_Draw2DChar(x * cw, y, 0x0b, color_white);
+  }
 }
 
 /**
  * @brief
  */
 static void Cl_Print(const console_string_t *str) {
-	char stripped[strlen(str->chars) + 1];
+  char stripped[strlen(str->chars) + 1];
 
-	StrStrip(str->chars, stripped);
-	fputs(stripped, stdout);
+  StrStrip(str->chars, stripped);
+  fputs(stripped, stdout);
 }
 
 /**
@@ -265,21 +265,21 @@ static void Cl_Print(const console_string_t *str) {
  */
 void Cl_ToggleConsole_f(void) {
 
-	if (cls.state == CL_LOADING) {
-		return;
-	}
+  if (cls.state == CL_LOADING) {
+    return;
+  }
 
-	if (cls.key_state.dest == KEY_CONSOLE) {
-		if (cls.state == CL_ACTIVE) {
-			Cl_SetKeyDest(KEY_GAME);
-		} else {
-			Cl_SetKeyDest(KEY_UI);
-		}
-	} else {
-		Cl_SetKeyDest(KEY_CONSOLE);
-	}
+  if (cls.key_state.dest == KEY_CONSOLE) {
+    if (cls.state == CL_ACTIVE) {
+      Cl_SetKeyDest(KEY_GAME);
+    } else {
+      Cl_SetKeyDest(KEY_UI);
+    }
+  } else {
+    Cl_SetKeyDest(KEY_CONSOLE);
+  }
 
-	memset(&cl_console.input, 0, sizeof(cl_console.input));
+  memset(&cl_console.input, 0, sizeof(cl_console.input));
 }
 
 /**
@@ -287,12 +287,12 @@ void Cl_ToggleConsole_f(void) {
  */
 static void Cl_MessageMode(bool team_chat) {
 
-	console_input_t *in = &cl_chat_console.input;
-	memset(in, 0, sizeof(*in));
+  console_input_t *in = &cl_chat_console.input;
+  memset(in, 0, sizeof(*in));
 
-	cls.chat_state.team_chat = team_chat;
+  cls.chat_state.team_chat = team_chat;
 
-	Cl_SetKeyDest(KEY_CHAT);
+  Cl_SetKeyDest(KEY_CHAT);
 }
 
 /**
@@ -300,7 +300,7 @@ static void Cl_MessageMode(bool team_chat) {
  */
 static void Cl_MessageMode_f(void) {
 
-	Cl_MessageMode(false);
+  Cl_MessageMode(false);
 }
 
 /**
@@ -308,16 +308,16 @@ static void Cl_MessageMode_f(void) {
  */
 static void Cl_MessageMode2_f(void) {
 
-	Cl_MessageMode(true);
+  Cl_MessageMode(true);
 }
 
 /**
  * @brief Generate a backtrace.
  */
 static void Cl_Backtrace_f(void) {
-	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
-	Com_Print("%s\n", backtrace->str);
-	g_string_free(backtrace, true);
+  GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
+  Com_Print("%s\n", backtrace->str);
+  g_string_free(backtrace, true);
 }
 
 /**
@@ -325,13 +325,13 @@ static void Cl_Backtrace_f(void) {
  */
 __attribute__((noreturn))
 static void Cl_Error_f(void) {
-	err_t err = ERROR_DROP;
+  err_t err = ERROR_DROP;
 
-	if (Cmd_Argc() > 1) {
-		err = (err_t) strtoul(Cmd_Argv(1), NULL, 10);
-	}
+  if (Cmd_Argc() > 1) {
+    err = (err_t) strtoul(Cmd_Argv(1), NULL, 10);
+  }
 
-	Com_Error(err, __func__);
+  Com_Error(err, __func__);
 }
 
 /**
@@ -339,45 +339,45 @@ static void Cl_Error_f(void) {
  */
 void Cl_InitConsole(void) {
 
-	memset(&cl_console, 0, sizeof(cl_console));
+  memset(&cl_console, 0, sizeof(cl_console));
 
-	cl_console.echo = true;
+  cl_console.echo = true;
 
-	cl_console.Append = Cl_Print;
+  cl_console.Append = Cl_Print;
 
-	Con_AddConsole(&cl_console);
+  Con_AddConsole(&cl_console);
 
-	file_t *file = Fs_OpenRead("history");
-	if (file) {
-		Con_ReadHistory(&cl_console, file);
-		Fs_Close(file);
-	} else {
-		Com_Debug(DEBUG_CLIENT, "Couldn't read history");
-	}
+  file_t *file = Fs_OpenRead("history");
+  if (file) {
+    Con_ReadHistory(&cl_console, file);
+    Fs_Close(file);
+  } else {
+    Com_Debug(DEBUG_CLIENT, "Couldn't read history");
+  }
 
-	memset(&cl_chat_console, 0, sizeof(cl_chat_console));
-	cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
+  memset(&cl_chat_console, 0, sizeof(cl_chat_console));
+  cl_chat_console.level = PRINT_CHAT | PRINT_TEAM_CHAT;
 
-	cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
-	cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
+  cl_console_height = Cvar_Add("cl_console_height", "0.4", CVAR_ARCHIVE, "Console height, as a multiplier of the screen height. Default is 0.4.");
+  cl_draw_console_background_alpha = Cvar_Add("cl_draw_console_background_alpha", "0.8", CVAR_ARCHIVE, NULL);
 
-	cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
-	cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");
+  cl_draw_chat = Cvar_Add("cl_draw_chat", "1", 0, "Draw recent chat messages");
+  cl_draw_notify = Cvar_Add("cl_draw_notify", "1", 0, "Draw recent console activity");
 
-	cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
-	cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
+  cl_notify_lines = Cvar_Add("cl_console_notify_lines", "3", CVAR_ARCHIVE, "How many lines to show in the notify console.");
+  cl_notify_time = Cvar_Add("cl_notify_time", "3.0", CVAR_ARCHIVE, "How long notify messages stay on-screen.");
 
-	cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
-	cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
+  cl_chat_lines = Cvar_Add("cl_chat_lines", "4", CVAR_ARCHIVE, "How many chat lines to show");
+  cl_chat_time = Cvar_Add("cl_chat_time", "10.0", CVAR_ARCHIVE, "How long chat messages last");
 
-	Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
-	Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
-	Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
+  Cmd_Add("cl_toggle_console", Cl_ToggleConsole_f, CMD_SYSTEM | CMD_CLIENT, "Toggle the console");
+  Cmd_Add("cl_message_mode", Cl_MessageMode_f, CMD_CLIENT, "Activate chat");
+  Cmd_Add("cl_message_mode_2", Cl_MessageMode2_f, CMD_CLIENT, "Activate team chat");
 
-	Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace");
-	Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error");
+  Cmd_Add("cl_backtrace", Cl_Backtrace_f, CMD_SYSTEM, "Generate a backtrace");
+  Cmd_Add("cl_error", Cl_Error_f, CMD_SYSTEM, "Generate an error");
 
-	Com_Print("Client console initialized\n");
+  Com_Print("Client console initialized\n");
 }
 
 /**
@@ -385,22 +385,22 @@ void Cl_InitConsole(void) {
  */
 void Cl_ShutdownConsole(void) {
 
-	Con_RemoveConsole(&cl_console);
+  Con_RemoveConsole(&cl_console);
 
-	file_t *file = Fs_OpenWrite("history");
-	if (file) {
-		Con_WriteHistory(&cl_console, file);
-		Fs_Close(file);
-	} else {
-		Com_Warn("Couldn't write history\n");
-	}
+  file_t *file = Fs_OpenWrite("history");
+  if (file) {
+    Con_WriteHistory(&cl_console, file);
+    Fs_Close(file);
+  } else {
+    Com_Warn("Couldn't write history\n");
+  }
 
-	Cmd_Remove("cl_toggle_console");
-	Cmd_Remove("cl_message_mode");
-	Cmd_Remove("cl_message_mode_2");
+  Cmd_Remove("cl_toggle_console");
+  Cmd_Remove("cl_message_mode");
+  Cmd_Remove("cl_message_mode_2");
 
-	Cmd_Remove("crash");
-	Cmd_Remove("fatal");
+  Cmd_Remove("crash");
+  Cmd_Remove("fatal");
 
-	Com_Print("Client console shutdown\n");
+  Com_Print("Client console shutdown\n");
 }

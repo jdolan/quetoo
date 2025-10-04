@@ -64,13 +64,13 @@ void R_EndFrame(void);
  * @brief OpenGL driver information.
  */
 typedef struct {
-	const char *renderer;
-	const char *vendor;
-	const char *version;
+  const char *renderer;
+  const char *vendor;
+  const char *version;
 
-	GLint max_texunits;
-	GLint max_texture_size;
-	GLint max_uniform_block_size;
+  GLint max_texunits;
+  GLint max_texture_size;
+  GLint max_uniform_block_size;
 } r_config_t;
 
 extern r_config_t r_config;
@@ -80,131 +80,131 @@ extern r_config_t r_config;
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The voxel mins, in world space.
-	 */
-	vec4_t mins;
+  /**
+   * @brief The voxel mins, in world space.
+   */
+  vec4_t mins;
 
-	/**
-	 * @brief The voxel maxs, in world space.
-	 */
-	vec4_t maxs;
+  /**
+   * @brief The voxel maxs, in world space.
+   */
+  vec4_t maxs;
 
-	/**
-	 * @brief The view origin, in voxel space.
-	 */
-	vec4_t view_coordinate;
+  /**
+   * @brief The view origin, in voxel space.
+   */
+  vec4_t view_coordinate;
 
-	/**
-	 * @brief The voxel size, in voxels.
-	 */
-	vec4_t size;
+  /**
+   * @brief The voxel size, in voxels.
+   */
+  vec4_t size;
 
-	/**
-	 * @brief The voxel voxel size, in texture space.
-	 */
-	vec4_t voxel_size;
+  /**
+   * @brief The voxel voxel size, in texture space.
+   */
+  vec4_t voxel_size;
 } r_voxels_t;
 
 /**
  * @brief The uniforms block type.
  */
 typedef struct {
-	/**
-	 * @brief The name of the uniform buffer.
-	 */
-	GLuint buffer;
+  /**
+   * @brief The name of the uniform buffer.
+   */
+  GLuint buffer;
 
-	/**
-	 * @brief The uniform block struct.
-	 * @remarks This struct is vec4 aligned.
-	 */
-	struct r_uniform_block_t {
-		/**
-		 * @brief The viewport (x, y, w, h) in device pixels.
-		 */
-		vec4i_t viewport;
+  /**
+   * @brief The uniform block struct.
+   * @remarks This struct is vec4 aligned.
+   */
+  struct r_uniform_block_t {
+    /**
+     * @brief The viewport (x, y, w, h) in device pixels.
+     */
+    vec4i_t viewport;
 
-		/**
-		 * @brief The 2D projection matrix.
-		 */
-		mat4_t projection2D;
+    /**
+     * @brief The 2D projection matrix.
+     */
+    mat4_t projection2D;
 
-		/**
-		 * @brief The 3D projection matrix.
-		 */
-		mat4_t projection3D;
+    /**
+     * @brief The 3D projection matrix.
+     */
+    mat4_t projection3D;
 
-		/**
-		 * @brief The view matrix.
-		 */
-		mat4_t view;
+    /**
+     * @brief The view matrix.
+     */
+    mat4_t view;
 
-		/**
-		 * @brief The projection matrix for environment cubemaps.
-		 */
-		mat4_t sky_projection;
+    /**
+     * @brief The projection matrix for environment cubemaps.
+     */
+    mat4_t sky_projection;
 
-		/**
-		 * @brief The projection matrix for point light shadows.
-		 */
-		mat4_t light_projection;
+    /**
+     * @brief The projection matrix for point light shadows.
+     */
+    mat4_t light_projection;
 
-		/**
-		 * @brief The voxel uniforms.
-		 */
-		r_voxels_t voxels;
+    /**
+     * @brief The voxel uniforms.
+     */
+    r_voxels_t voxels;
 
-		/**
-		 * @brief The depth range, in world units.
-		 */
-		vec2_t depth_range;
+    /**
+     * @brief The depth range, in world units.
+     */
+    vec2_t depth_range;
 
-		/**
-		 * @brief The view type, e.g. VIEW_MAIN.
-		 */
-		int32_t view_type;
+    /**
+     * @brief The view type, e.g. VIEW_MAIN.
+     */
+    int32_t view_type;
 
-		/**
-		 * @brief The renderer time, in milliseconds.
-		 */
-		int32_t ticks;
+    /**
+     * @brief The renderer time, in milliseconds.
+     */
+    int32_t ticks;
 
-		/**
-		 * @brief The ambient scalar.
-		 */
-		float ambient;
+    /**
+     * @brief The ambient scalar.
+     */
+    float ambient;
 
-		/**
-		 * @brief The modulate scalar.
-		 */
-		float modulate;
+    /**
+     * @brief The modulate scalar.
+     */
+    float modulate;
 
-		/**
-		 * @brief The caustics scalar.
-		 */
-		float caustics;
+    /**
+     * @brief The caustics scalar.
+     */
+    float caustics;
 
-		/**
-		 * @brief The stains scalar.
-		 */
-		float stains;
+    /**
+     * @brief The stains scalar.
+     */
+    float stains;
 
-		/**
-		 * @brief The fog density scalar.
-		 */
-		float fog_density;
+    /**
+     * @brief The fog density scalar.
+     */
+    float fog_density;
 
-		/**
-		 * @brief The number of volumetric fog samples per fragment (quality).
-		 */
-		float fog_samples;
+    /**
+     * @brief The number of volumetric fog samples per fragment (quality).
+     */
+    float fog_samples;
 
-		/**
-		 * @brief The developer flags.
-		 */
-		float developer;
-	} block;
+    /**
+     * @brief The developer flags.
+     */
+    float developer;
+  } block;
 
 } r_uniforms_t;
 
@@ -238,9 +238,9 @@ extern int32_t r_error_count;
 void R_GetError_(const char *function, const char *msg);
 
 #define R_GetError(msg) { \
-	if (r_get_error->integer) { \
-		R_GetError_(__func__, msg); \
-	} \
+  if (r_get_error->integer) { \
+    R_GetError_(__func__, msg); \
+  } \
 }
 
 #endif

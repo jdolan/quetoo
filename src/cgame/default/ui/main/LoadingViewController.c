@@ -32,24 +32,24 @@
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	LoadingViewController *this = (LoadingViewController *) self;
+  LoadingViewController *this = (LoadingViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("mapShot", &this->mapShot),
-		MakeOutlet("logo", &this->logo),
-		MakeOutlet("progress", &this->progressBar)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("mapShot", &this->mapShot),
+    MakeOutlet("logo", &this->logo),
+    MakeOutlet("progress", &this->progressBar)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/main/LoadingViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/main/LoadingViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/LoadingViewController.css");
-	assert(self->view->stylesheet);
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/LoadingViewController.css");
+  assert(self->view->stylesheet);
 
-	$(this->logo, setImageWithResourceName, "ui/loading.tga");
-	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
+  $(this->logo, setImageWithResourceName, "ui/loading.tga");
+  $(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 }
 
 #pragma mark - LoadingViewController
@@ -59,7 +59,7 @@ static void loadView(ViewController *self) {
  * @memberof LoadingViewController
  */
 static LoadingViewController *init(LoadingViewController *self) {
-	return (LoadingViewController *) super(ViewController, self, init);
+  return (LoadingViewController *) super(ViewController, self, init);
 }
 
 /**
@@ -68,12 +68,12 @@ static LoadingViewController *init(LoadingViewController *self) {
  */
 static void setProgress(LoadingViewController *self, const cl_loading_t loading) {
 
-	$(self->progressBar, setLabelFormat, va("%%0.0lf%%%% (%s)", loading.status));
-	$(self->progressBar, setValue, loading.percent);
+  $(self->progressBar, setLabelFormat, va("%%0.0lf%%%% (%s)", loading.status));
+  $(self->progressBar, setValue, loading.percent);
 
-	if (loading.percent == 0 && loading.mapshot[0] != '\0') {
-		$(self->mapShot, setImageWithResourceName, loading.mapshot);
-	}
+  if (loading.percent == 0 && loading.mapshot[0] != '\0') {
+    $(self->mapShot, setImageWithResourceName, loading.mapshot);
+  }
 }
 
 #pragma mark - Class lifecycle
@@ -83,10 +83,10 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((LoadingViewControllerInterface *) clazz->interface)->init = init;
-	((LoadingViewControllerInterface *) clazz->interface)->setProgress = setProgress;
+  ((LoadingViewControllerInterface *) clazz->interface)->init = init;
+  ((LoadingViewControllerInterface *) clazz->interface)->setProgress = setProgress;
 }
 
 /**
@@ -94,21 +94,21 @@ static void initialize(Class *clazz) {
  * @memberof LoadingViewController
  */
 Class *_LoadingViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "LoadingViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(LoadingViewController),
-			.interfaceOffset = offsetof(LoadingViewController, interface),
-			.interfaceSize = sizeof(LoadingViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "LoadingViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(LoadingViewController),
+      .interfaceOffset = offsetof(LoadingViewController, interface),
+      .interfaceSize = sizeof(LoadingViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

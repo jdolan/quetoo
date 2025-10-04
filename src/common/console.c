@@ -30,40 +30,40 @@ console_state_t console_state;
  */
 static console_string_t *Con_AllocString(int32_t level, const char *string) {
 
-	console_string_t *str = g_new0(console_string_t, 1);
-	if (str == NULL) {
-		raise(SIGABRT);
-		return NULL;
-	}
+  console_string_t *str = g_new0(console_string_t, 1);
+  if (str == NULL) {
+    raise(SIGABRT);
+    return NULL;
+  }
 
-	const size_t string_len = strlen(string) + 4;
+  const size_t string_len = strlen(string) + 4;
 
-	str->level = level;
-	str->chars = g_new0(char, string_len);
+  str->level = level;
+  str->chars = g_new0(char, string_len);
 
-	g_strlcpy(str->chars, string, string_len); // copy in input
-	g_strchomp(str->chars); // remove \n if it's there
+  g_strlcpy(str->chars, string, string_len); // copy in input
+  g_strchomp(str->chars); // remove \n if it's there
 
-	if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
-		g_strlcat(str->chars, "^7", string_len);
-	}
+  if (!g_str_has_suffix(str->chars, "^7")) { // append ^7 if we need it
+    g_strlcat(str->chars, "^7", string_len);
+  }
 
-	if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
-		raise(SIGABRT);
-		return NULL;
-	}
+  if (g_strlcat(str->chars, "\n", string_len) >= string_len) {
+    raise(SIGABRT);
+    return NULL;
+  }
 
-	if (str->chars == NULL) {
-		raise(SIGABRT);
-		return NULL;
-	}
+  if (str->chars == NULL) {
+    raise(SIGABRT);
+    return NULL;
+  }
 
-	str->size = string_len;
-	str->length = StrStripLen(str->chars);
+  str->size = string_len;
+  str->length = StrStripLen(str->chars);
 
-	str->timestamp = quetoo.ticks;
+  str->timestamp = quetoo.ticks;
 
-	return str;
+  return str;
 }
 
 /**
@@ -71,24 +71,24 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
  */
 static void Con_FreeString(console_string_t *str) {
 
-	if (str) {
-		g_free(str->chars);
-		g_free(str);
-	}
+  if (str) {
+    g_free(str->chars);
+    g_free(str);
+  }
 }
 
 /**
  * @brief GFunc flavor of Con_FreeString.
  */
 static void Con_FreeString_GFunc(gpointer data, gpointer user_data) {
-	Con_FreeString(data);
+  Con_FreeString(data);
 }
 
 /**
  * @brief GDestroyNotify flavor of Con_FreeString.
  */
 static void Con_FreeString_GDestroyNotify(gpointer data) {
-	Con_FreeString(data);
+  Con_FreeString(data);
 }
 
 /**
@@ -96,10 +96,10 @@ static void Con_FreeString_GDestroyNotify(gpointer data) {
  */
 static void Con_FreeStrings(void) {
 
-	g_queue_foreach(&console_state.strings, Con_FreeString_GFunc, NULL);
-	g_queue_clear(&console_state.strings);
+  g_queue_foreach(&console_state.strings, Con_FreeString_GFunc, NULL);
+  g_queue_clear(&console_state.strings);
 
-	console_state.size = 0;
+  console_state.size = 0;
 }
 
 /**
@@ -107,7 +107,7 @@ static void Con_FreeStrings(void) {
  */
 static void Con_Clear_f(void) {
 
-	Con_FreeStrings();
+  Con_FreeStrings();
 }
 
 /**
@@ -115,40 +115,40 @@ static void Con_Clear_f(void) {
  */
 static void Con_Dump_f(void) {
 
-	const char *path = "console.log";
+  const char *path = "console.log";
 
-	if (Cmd_Argc() > 1) {
-		path = Cmd_Argv(1);
-	}
+  if (Cmd_Argc() > 1) {
+    path = Cmd_Argv(1);
+  }
 
-	file_t *file;
-	if (!(file = Fs_OpenWrite(path))) {
-		Com_Warn("Couldn't open %s\n", path);
-	} else {
-		SDL_LockMutex(console_state.lock);
+  file_t *file;
+  if (!(file = Fs_OpenWrite(path))) {
+    Com_Warn("Couldn't open %s\n", path);
+  } else {
+    SDL_LockMutex(console_state.lock);
 
-		const GList *list = console_state.strings.head;
-		while (list) {
-			const char *c = ((console_string_t *) list->data)->chars;
-			while (*c) {
-				if (StrIsColor(c)) {
-					c++;
-				} else {
-					if (Fs_Write(file, c, 1, 1) != 1) {
-						fputs("Failed to dump console\n", stderr);
-						break;
-					}
-				}
-				c++;
-			}
-			list = list->next;
-		}
+    const GList *list = console_state.strings.head;
+    while (list) {
+      const char *c = ((console_string_t *) list->data)->chars;
+      while (*c) {
+        if (StrIsColor(c)) {
+          c++;
+        } else {
+          if (Fs_Write(file, c, 1, 1) != 1) {
+            fputs("Failed to dump console\n", stderr);
+            break;
+          }
+        }
+        c++;
+      }
+      list = list->next;
+    }
 
-		SDL_UnlockMutex(console_state.lock);
+    SDL_UnlockMutex(console_state.lock);
 
-		Fs_Close(file);
-		Com_Print("Dumped console to %s.\n", path);
-	}
+    Fs_Close(file);
+    Com_Print("Dumped console to %s.\n", path);
+  }
 }
 
 /**
@@ -156,11 +156,11 @@ static void Con_Dump_f(void) {
  */
 static bool Con_Filter(const console_t *console, const console_string_t *str) {
 
-	if (console->level) {
-		return console->level & str->level;
-	}
+  if (console->level) {
+    return console->level & str->level;
+  }
 
-	return true;
+  return true;
 }
 
 /**
@@ -168,46 +168,46 @@ static bool Con_Filter(const console_t *console, const console_string_t *str) {
  */
 void Con_Append(int32_t level, const char *string) {
 
-	assert(string);
+  assert(string);
 
-	console_string_t *str = Con_AllocString(level, string);
+  console_string_t *str = Con_AllocString(level, string);
 
-	SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(console_state.lock);
 
-	g_queue_push_tail(&console_state.strings, str);
-	console_state.size += str->size;
+  g_queue_push_tail(&console_state.strings, str);
+  console_state.size += str->size;
 
-	while (console_state.size > CON_MAX_SIZE) {
-		GList *first = console_state.strings.head;
-		str = first->data;
+  while (console_state.size > CON_MAX_SIZE) {
+    GList *first = console_state.strings.head;
+    str = first->data;
 
-		g_queue_unlink(&console_state.strings, first);
-		console_state.size -= str->size;
+    g_queue_unlink(&console_state.strings, first);
+    console_state.size -= str->size;
 
-		g_list_free_full(first, Con_FreeString_GDestroyNotify);
-	}
+    g_list_free_full(first, Con_FreeString_GDestroyNotify);
+  }
 
-	SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(console_state.lock);
 
-	if (console_state.consoles) {
+  if (console_state.consoles) {
 
-		// iterate the configured consoles and append the new string
+    // iterate the configured consoles and append the new string
 
-		for (GList *list = console_state.consoles; list; list = list->next) {
-			const console_t *console = list->data;
+    for (GList *list = console_state.consoles; list; list = list->next) {
+      const console_t *console = list->data;
 
-			if (console->Append) {
-				if (Con_Filter(console, str)) {
-					console->Append(str);
-				}
-			}
-		}
-	} else {
-		char stripped[strlen(string) + 1];
+      if (console->Append) {
+        if (Con_Filter(console, str)) {
+          console->Append(str);
+        }
+      }
+    }
+  } else {
+    char stripped[strlen(string) + 1];
 
-		StrStrip(string, stripped);
-		fputs(stripped, stdout);
-	}
+    StrStrip(string, stripped);
+    fputs(stripped, stdout);
+  }
 }
 
 /**
@@ -225,62 +225,62 @@ void Con_Append(int32_t level, const char *string) {
  */
 size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_lines) {
 
-	size_t count = 0;
+  size_t count = 0;
 
-	int8_t wrap_color = ESC_COLOR_DEFAULT, color = ESC_COLOR_DEFAULT;
+  int8_t wrap_color = ESC_COLOR_DEFAULT, color = ESC_COLOR_DEFAULT;
 
-	const char *line = chars;
-	while (*line) {
+  const char *line = chars;
+  while (*line) {
 
-		size_t width = 0;
+    size_t width = 0;
 
-		wrap_color = color;
+    wrap_color = color;
 
-		const char *c = line;
-		while (*c && width < line_width) {
+    const char *c = line;
+    while (*c && width < line_width) {
 
-			if (*c == '\n') {
-				break;
-			}
+      if (*c == '\n') {
+        break;
+      }
 
-			if (StrIsColor(c)) {
-				color = *(c + 1) - '0';
-				c += 2;
-			} else {
-				c++;
-				width++;
-			}
-		}
+      if (StrIsColor(c)) {
+        color = *(c + 1) - '0';
+        c += 2;
+      } else {
+        c++;
+        width++;
+      }
+    }
 
-		const char *eol = c;
+    const char *eol = c;
 
-		if (width == line_width) {
-			while (!isspace(*eol)) {
-				if (eol == line) {
-					eol = c;
-					break;
-				}
-				eol--;
-			}
-		}
+    if (width == line_width) {
+      while (!isspace(*eol)) {
+        if (eol == line) {
+          eol = c;
+          break;
+        }
+        eol--;
+      }
+    }
 
-		if (lines) {
-			if (count < max_lines) {
-				lines[count] = g_malloc((eol - line) + 3);
-				lines[count][0] = ESC_COLOR;
-				lines[count][1] = wrap_color + '0';
-				lines[count][2] = '\0';
-				strncat(lines[count], line, eol - line);
-			} else {
-				break;
-			}
-		}
+    if (lines) {
+      if (count < max_lines) {
+        lines[count] = g_malloc((eol - line) + 3);
+        lines[count][0] = ESC_COLOR;
+        lines[count][1] = wrap_color + '0';
+        lines[count][2] = '\0';
+        strncat(lines[count], line, eol - line);
+      } else {
+        break;
+      }
+    }
 
-		line = eol + 1;
-		count++;
-	}
+    line = eol + 1;
+    count++;
+  }
 
-	return count;
+  return count;
 }
 
 /**
@@ -294,48 +294,48 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
  */
 size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
 
-	assert(console);
+  assert(console);
 
-	ssize_t back = console->scroll + max_lines;
+  ssize_t back = console->scroll + max_lines;
 
-	GList *start = NULL;
-	GList *list = console_state.strings.tail;
-	while (list) {
-		const console_string_t *str = list->data;
+  GList *start = NULL;
+  GList *list = console_state.strings.tail;
+  while (list) {
+    const console_string_t *str = list->data;
 
-		if (str->timestamp < console->whence) {
-			break;
-		}
+    if (str->timestamp < console->whence) {
+      break;
+    }
 
-		if (Con_Filter(console, str)) {
+    if (Con_Filter(console, str)) {
 
-			back -= Con_Wrap(str->chars, console->width, NULL, 0);
+      back -= Con_Wrap(str->chars, console->width, NULL, 0);
 
-			if (back < 0) {
-				if (back < -1) {
-					list = list->next;
-				}
-				break;
-			}
-		}
+      if (back < 0) {
+        if (back < -1) {
+          list = list->next;
+        }
+        break;
+      }
+    }
 
-		start = list;
-		list = list->prev;
-	}
+    start = list;
+    list = list->prev;
+  }
 
-	size_t count = 0;
+  size_t count = 0;
 
-	while (start) {
-		const console_string_t *str = start->data;
+  while (start) {
+    const console_string_t *str = start->data;
 
-		if (Con_Filter(console, str)) {
-			count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
-		}
+    if (Con_Filter(console, str)) {
+      count += Con_Wrap(str->chars, console->width, lines + count, max_lines - count);
+    }
 
-		start = start->next;
-	}
+    start = start->next;
+  }
 
-	return count;
+  return count;
 }
 
 /**
@@ -343,46 +343,46 @@ size_t Con_Tail(const console_t *console, char **lines, size_t max_lines) {
  */
 void Con_NavigateHistory(console_t *console, console_history_nav_t nav) {
 
-	assert(console);
+  assert(console);
 
-	console_history_t *hist = &console->history;
+  console_history_t *hist = &console->history;
 
-	size_t p = 0;
-	switch (nav) {
-		case CON_HISTORY_PREV:
-			p = (hist->pos - 1) % CON_HISTORY_SIZE;
-			break;
-		case CON_HISTORY_NEXT:
-			p = (hist->pos + 1) % CON_HISTORY_SIZE;
-			break;
-	}
+  size_t p = 0;
+  switch (nav) {
+    case CON_HISTORY_PREV:
+      p = (hist->pos - 1) % CON_HISTORY_SIZE;
+      break;
+    case CON_HISTORY_NEXT:
+      p = (hist->pos + 1) % CON_HISTORY_SIZE;
+      break;
+  }
 
-	if (strlen(hist->strings[p])) {
-		console_input_t *in = &console->input;
+  if (strlen(hist->strings[p])) {
+    console_input_t *in = &console->input;
 
-		g_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
-		in->pos = strlen(in->buffer);
+    g_strlcpy(in->buffer, hist->strings[p], sizeof(in->buffer));
+    in->pos = strlen(in->buffer);
 
-		hist->pos = p;
-	}
+    hist->pos = p;
+  }
 }
 
 /**
  * @brief Reads the history log from file into the console's history.
  */
 void Con_ReadHistory(console_t *console, file_t *file) {
-	char str[MAX_PRINT_MSG];
+  char str[MAX_PRINT_MSG];
 
-	assert(console);
-	assert(file);
+  assert(console);
+  assert(file);
 
-	console_history_t *hist = &console->history;
+  console_history_t *hist = &console->history;
 
-	while (Fs_ReadLine(file, str, sizeof(str))) {
-		g_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
-	}
+  while (Fs_ReadLine(file, str, sizeof(str))) {
+    g_strlcpy(hist->strings[hist->index++ % CON_HISTORY_SIZE], str, sizeof(str));
+  }
 
-	hist->pos = hist->index;
+  hist->pos = hist->index;
 }
 
 /**
@@ -390,28 +390,28 @@ void Con_ReadHistory(console_t *console, file_t *file) {
  */
 void Con_WriteHistory(const console_t *console, file_t *file) {
 
-	assert(console);
-	assert(file);
+  assert(console);
+  assert(file);
 
-	const console_history_t *hist = &console->history;
+  const console_history_t *hist = &console->history;
 
-	for (size_t i = 1; i <= CON_HISTORY_SIZE; i++) {
+  for (size_t i = 1; i <= CON_HISTORY_SIZE; i++) {
 
-		const char *str = hist->strings[(hist->index + i) % CON_HISTORY_SIZE];
-		if (*str) {
-			Fs_Print(file, "%s\n", str);
-		}
-	}
+    const char *str = hist->strings[(hist->index + i) % CON_HISTORY_SIZE];
+    if (*str) {
+      Fs_Print(file, "%s\n", str);
+    }
+  }
 }
 
 /**
  * @brief Autocomplete match compare function
  */
 static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
-	const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
-	const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
+  const con_autocomplete_match_t *ma = (const con_autocomplete_match_t *) a;
+  const con_autocomplete_match_t *mb = (const con_autocomplete_match_t *) b;
 
-	return g_ascii_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
+  return g_ascii_strcasecmp(ma->description ?: ma->name, mb->description ?: mb->name);
 }
 
 /**
@@ -419,148 +419,148 @@ static int32_t Con_AutocompleteMatchCompare(const void *a, const void *b) {
  */
 void Con_AutocompleteMatch(GList **matches, const char *name, const char *description) {
 
-	con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
+  con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
 
-	match->name = Mem_CopyString(name);
-	Mem_Link(match, match->name);
+  match->name = Mem_CopyString(name);
+  Mem_Link(match, match->name);
 
-	if (description) {
-		match->description = Mem_CopyString(description);
-		Mem_Link(match, match->description);
-	}
-	
-	if (!g_list_find_custom(*matches, match, Con_AutocompleteMatchCompare)) {
-		*matches = g_list_insert_sorted(*matches, match, Con_AutocompleteMatchCompare);
-	} else {
-		Mem_Free(match);
-	}
+  if (description) {
+    match->description = Mem_CopyString(description);
+    Mem_Link(match, match->description);
+  }
+  
+  if (!g_list_find_custom(*matches, match, Con_AutocompleteMatchCompare)) {
+    *matches = g_list_insert_sorted(*matches, match, Con_AutocompleteMatchCompare);
+  } else {
+    Mem_Free(match);
+  }
 }
 
 /**
  * @brief Tab completion for cvars & commands. This is the "generic case".
  */
 void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
-	const char *partial = Cmd_Argv(argi);
-	char pattern[strlen(partial) + 3];
+  const char *partial = Cmd_Argv(argi);
+  char pattern[strlen(partial) + 3];
 
-	g_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
+  g_snprintf(pattern, (gulong) sizeof(pattern), "%s*", partial);
 
-	Cmd_CompleteCommand(pattern, matches);
-	Cvar_CompleteVar(pattern, matches);
+  Cmd_CompleteCommand(pattern, matches);
+  Cvar_CompleteVar(pattern, matches);
 }
 
 /**
  * @brief
  */
 static void Con_PrintMatches(const console_t *console, GList *matches) {
-	const guint num_matches = g_list_length(matches);
+  const guint num_matches = g_list_length(matches);
 
-	if (!num_matches) {
-		return;
-	}
+  if (!num_matches) {
+    return;
+  }
 
-	// print empty line to separate old autocompletes
-	Con_Append(PRINT_ECHO, "\n");
+  // print empty line to separate old autocompletes
+  Con_Append(PRINT_ECHO, "\n");
 
-	size_t widest = 0;
-	bool all_simple = true;
+  size_t widest = 0;
+  bool all_simple = true;
 
-	// calculate width per column
-	for (const GList *m = matches; m; m = m->next) {
-		const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
-		const char *str = (match->description ?: match->name);
-		const size_t str_len = strlen(str);
+  // calculate width per column
+  for (const GList *m = matches; m; m = m->next) {
+    const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+    const char *str = (match->description ?: match->name);
+    const size_t str_len = strlen(str);
 
-		if (match->description) {
-			all_simple = false;
-		}
+    if (match->description) {
+      all_simple = false;
+    }
 
-		if (strchr(str, '\n') != NULL) {
-			widest = -1;
-			break;
-		}
+    if (strchr(str, '\n') != NULL) {
+      widest = -1;
+      break;
+    }
 
-		if (str_len > widest) {
-			widest = str_len + 1;
-		}
-	}
+    if (str_len > widest) {
+      widest = str_len + 1;
+    }
+  }
 
-	// calculate # that can fit in a row
-	const size_t per_row = Maxf(console->width / widest, 1u);
-	const size_t num_rows = Maxf(num_matches / per_row, 1u);
+  // calculate # that can fit in a row
+  const size_t per_row = Maxf(console->width / widest, 1u);
+  const size_t num_rows = Maxf(num_matches / per_row, 1u);
 
-	// simple path
-	if (per_row == 1 || (!all_simple && num_rows == 1)) {
-		
-		for (const GList *m = matches; m; m = m->next) {
-			const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
-			const char *str = (match->description ?: match->name);
+  // simple path
+  if (per_row == 1 || (!all_simple && num_rows == 1)) {
+    
+    for (const GList *m = matches; m; m = m->next) {
+      const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+      const char *str = (match->description ?: match->name);
 
-			Con_Append(PRINT_ECHO, va("%s\n", str));
-		}
+      Con_Append(PRINT_ECHO, va("%s\n", str));
+    }
 
-		return;
-	}
+    return;
+  }
 
-	const GList *m = matches;
-	char line[per_row * widest + 1];
+  const GList *m = matches;
+  char line[per_row * widest + 1];
 
-	while (m) {
-		line[0] = '\0';
+  while (m) {
+    line[0] = '\0';
 
-		for (size_t i = 0; m && i < per_row; i++, m = m->next) {
-			const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
-			const char *str = (match->description ?: match->name);
-			const size_t str_len = strlen(str);
+    for (size_t i = 0; m && i < per_row; i++, m = m->next) {
+      const con_autocomplete_match_t *match = (const con_autocomplete_match_t *) m->data;
+      const char *str = (match->description ?: match->name);
+      const size_t str_len = strlen(str);
 
-			g_strlcat(line, str, sizeof(line));
+      g_strlcat(line, str, sizeof(line));
 
-			for (size_t x = 0; x < widest - str_len; x++) {
-				g_strlcat(line, " ", sizeof(line));
-			}
-		}
+      for (size_t x = 0; x < widest - str_len; x++) {
+        g_strlcat(line, " ", sizeof(line));
+      }
+    }
 
-		if (line[0]) {
-			g_strlcat(line, "\n", sizeof(line));
-			Con_Append(PRINT_ECHO, line);
-		}
-	}
+    if (line[0]) {
+      g_strlcat(line, "\n", sizeof(line));
+      Con_Append(PRINT_ECHO, line);
+    }
+  }
 }
 
 /**
  * @brief Returns the longest common prefix the specified words share.
  */
 static char *Con_CommonPrefix(GList *matches) {
-	static char common_prefix[MAX_TOKEN_CHARS];
+  static char common_prefix[MAX_TOKEN_CHARS];
 
-	memset(common_prefix, 0, sizeof(common_prefix));
+  memset(common_prefix, 0, sizeof(common_prefix));
 
-	if (!matches) {
-		return common_prefix;
-	}
+  if (!matches) {
+    return common_prefix;
+  }
 
-	for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
-		GList *e = matches;
-		const con_autocomplete_match_t *m = (const con_autocomplete_match_t *) e->data;
-		const char c = m->name[i];
+  for (size_t i = 0; i < sizeof(common_prefix) - 1; i++) {
+    GList *e = matches;
+    const con_autocomplete_match_t *m = (const con_autocomplete_match_t *) e->data;
+    const char c = m->name[i];
 
-		e = e->next;
+    e = e->next;
 
-		while (e) {
-			m = (const con_autocomplete_match_t *) e->data;
-			const char *w = m->name;
+    while (e) {
+      m = (const con_autocomplete_match_t *) e->data;
+      const char *w = m->name;
 
-			if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
-				return common_prefix;
-			}
+      if (!c || tolower(w[i]) != tolower(c)) { // prefix no longer common
+        return common_prefix;
+      }
 
-			e = e->next;
-		}
+      e = e->next;
+    }
 
-		common_prefix[i] = c;
-	}
+    common_prefix[i] = c;
+  }
 
-	return common_prefix;
+  return common_prefix;
 }
 
 /**
@@ -571,122 +571,122 @@ static char *Con_CommonPrefix(GList *matches) {
  * common prefix they all share.
  */
 bool Con_CompleteInput(console_t *console) {
-	const char *match;
-	GList *matches = NULL;
+  const char *match;
+  GList *matches = NULL;
 
-	char *partial = console->input.buffer;
-	size_t max_len = sizeof(console->input.buffer) - 1;
+  char *partial = console->input.buffer;
+  size_t max_len = sizeof(console->input.buffer) - 1;
 
-	if (*partial == '\\' || *partial == '/') {
-		partial++;
-		max_len--; // prevent buffer overflow
-	}
+  if (*partial == '\\' || *partial == '/') {
+    partial++;
+    max_len--; // prevent buffer overflow
+  }
 
-	const size_t partial_len = strlen(partial);
+  const size_t partial_len = strlen(partial);
 
-	if (!*partial) {
-		return false;    // lets start with at least something
-	}
+  if (!*partial) {
+    return false;    // lets start with at least something
+  }
 
-	Cmd_TokenizeString(partial);
+  Cmd_TokenizeString(partial);
 
-	uint32_t argi = Cmd_Argc() - 1;
-	const bool new_argument = partial[strlen(partial) - 1] == ' ';
+  uint32_t argi = Cmd_Argc() - 1;
+  const bool new_argument = partial[strlen(partial) - 1] == ' ';
 
-	if (new_argument) {
-		argi++;
-	}
+  if (new_argument) {
+    argi++;
+  }
 
-	AutocompleteFunc autocomplete = NULL;
+  AutocompleteFunc autocomplete = NULL;
 
-	if (argi == 0) {
-		autocomplete = Con_AutocompleteInput_f;
-	} else {
-		const char *name = Cmd_Argv(0);
-		const cmd_t *command = Cmd_Get(name);
+  if (argi == 0) {
+    autocomplete = Con_AutocompleteInput_f;
+  } else {
+    const char *name = Cmd_Argv(0);
+    const cmd_t *command = Cmd_Get(name);
 
-		if (command) {
-			autocomplete = command->Autocomplete;
-		} else {
-			const cvar_t *cvar = Cvar_Get(name);
+    if (command) {
+      autocomplete = command->Autocomplete;
+    } else {
+      const cvar_t *cvar = Cvar_Get(name);
 
-			if (cvar) {
-				autocomplete = cvar->Autocomplete;
-			}
-		}
-	}
+      if (cvar) {
+        autocomplete = cvar->Autocomplete;
+      }
+    }
+  }
 
-	if (!autocomplete) {
-		return false;
-	}
+  if (!autocomplete) {
+    return false;
+  }
 
-	autocomplete(argi, &matches);
+  autocomplete(argi, &matches);
 
-	if (g_list_length(matches) == 0) {
-		return false;
-	}
+  if (g_list_length(matches) == 0) {
+    return false;
+  }
 
-	bool output_quotes = false;
+  bool output_quotes = false;
 
-	if (g_list_length(matches) == 1) {
-		match = ((const con_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
+  if (g_list_length(matches) == 1) {
+    match = ((const con_autocomplete_match_t *) g_list_nth_data(matches, 0))->name;
 
-		if (strchr(match, ' ') != NULL) {
-			match = va("\"%s\" ", match);
-			output_quotes = true;
-		} else {
-			match = va("%s ", match);
-		}
-	} else {
-		match = Con_CommonPrefix(matches);
+    if (strchr(match, ' ') != NULL) {
+      match = va("\"%s\" ", match);
+      output_quotes = true;
+    } else {
+      match = va("%s ", match);
+    }
+  } else {
+    match = Con_CommonPrefix(matches);
 
-		if (!strlen(match)) {
-			match = Cmd_Argv(argi);
-		} else if (strchr(match, ' ') != NULL) {
-			match = va("\"%s", match);
-			output_quotes = true;
-		}
-	}
+    if (!strlen(match)) {
+      match = Cmd_Argv(argi);
+    } else if (strchr(match, ' ') != NULL) {
+      match = va("\"%s", match);
+      output_quotes = true;
+    }
+  }
 
-	if (new_argument) {
-		g_strlcat(partial, match, max_len);
-	} else {
-		size_t arg_pos = 0;
-		bool input_quotes = false;
+  if (new_argument) {
+    g_strlcat(partial, match, max_len);
+  } else {
+    size_t arg_pos = 0;
+    bool input_quotes = false;
 
-		if (Cmd_Argc() > 1) {
-			const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
-			arg_pos = strlen(partial) - strlen(last_arg);
+    if (Cmd_Argc() > 1) {
+      const char *last_arg = Cmd_Argv(Cmd_Argc() - 1);
+      arg_pos = strlen(partial) - strlen(last_arg);
 
-			uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
-			                     '"');
+      uint8_t num_quotes = (partial[partial_len - 1] == '"') + (partial[arg_pos - 1 - (partial[partial_len - 1] == '"')] ==
+                           '"');
 
-			if (num_quotes) {
-				arg_pos -= num_quotes;
-				input_quotes = true;
-			}
-		}
+      if (num_quotes) {
+        arg_pos -= num_quotes;
+        input_quotes = true;
+      }
+    }
 
-		if (!output_quotes && input_quotes) {
+    if (!output_quotes && input_quotes) {
 
-			if (g_list_length(matches) == 1) {
-				match = va("\"%s\"", match);
-			} else {
-				match = va("\"%s", match);
-			}
-		}
+      if (g_list_length(matches) == 1) {
+        match = va("\"%s\"", match);
+      } else {
+        match = va("\"%s", match);
+      }
+    }
 
-		g_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
-	}
+    g_snprintf(partial + arg_pos, (gulong) (max_len - arg_pos), "%s", match);
+  }
 
-	console->input.pos = strlen(console->input.buffer);
+  console->input.pos = strlen(console->input.buffer);
 
-	// print matches
-	Con_PrintMatches(console, matches);
+  // print matches
+  Con_PrintMatches(console, matches);
 
-	g_list_free_full(matches, Mem_Free);
+  g_list_free_full(matches, Mem_Free);
 
-	return true;
+  return true;
 }
 
 /**
@@ -696,30 +696,30 @@ bool Con_CompleteInput(console_t *console) {
  */
 void Con_SubmitInput(console_t *console) {
 
-	if (*console->input.buffer) {
+  if (*console->input.buffer) {
 
-		const size_t h = console->history.index++ % CON_HISTORY_SIZE;
-		g_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
+    const size_t h = console->history.index++ % CON_HISTORY_SIZE;
+    g_strlcpy(console->history.strings[h], console->input.buffer, MAX_PRINT_MSG);
 
-		console->history.pos = console->history.index;
+    console->history.pos = console->history.index;
 
-		if (!g_str_has_suffix(console->input.buffer, "\n")) {
-			g_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
-		}
+    if (!g_str_has_suffix(console->input.buffer, "\n")) {
+      g_strlcat(console->input.buffer, "\n", sizeof(console->input.buffer));
+    }
 
-		const char *cmd = console->input.buffer;
-		if (*cmd == '\\' || *cmd == '/') {
-			cmd++;
-		}
+    const char *cmd = console->input.buffer;
+    if (*cmd == '\\' || *cmd == '/') {
+      cmd++;
+    }
 
-		Cbuf_AddText(cmd);
+    Cbuf_AddText(cmd);
 
-		if (console->echo) {
-			Con_Append(PRINT_ECHO, cmd);
-		}
+    if (console->echo) {
+      Con_Append(PRINT_ECHO, cmd);
+    }
 
-		memset(&console->input, 0, sizeof(console->input));
-	}
+    memset(&console->input, 0, sizeof(console->input));
+  }
 }
 
 /**
@@ -727,11 +727,11 @@ void Con_SubmitInput(console_t *console) {
  */
 void Con_AddConsole(const console_t *console) {
 
-	SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(console_state.lock);
 
-	console_state.consoles = g_list_append(console_state.consoles, (gpointer) console);
+  console_state.consoles = g_list_append(console_state.consoles, (gpointer) console);
 
-	SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(console_state.lock);
 }
 
 /**
@@ -739,11 +739,11 @@ void Con_AddConsole(const console_t *console) {
  */
 void Con_RemoveConsole(const console_t *console) {
 
-	SDL_LockMutex(console_state.lock);
+  SDL_LockMutex(console_state.lock);
 
-	console_state.consoles = g_list_remove(console_state.consoles, (gpointer) console);
+  console_state.consoles = g_list_remove(console_state.consoles, (gpointer) console);
 
-	SDL_UnlockMutex(console_state.lock);
+  SDL_UnlockMutex(console_state.lock);
 }
 
 /**
@@ -752,12 +752,12 @@ void Con_RemoveConsole(const console_t *console) {
  */
 void Con_Init(void) {
 
-	memset(&console_state, 0, sizeof(console_state));
+  memset(&console_state, 0, sizeof(console_state));
 
-	console_state.lock = SDL_CreateMutex();
+  console_state.lock = SDL_CreateMutex();
 
-	Cmd_Add("clear", Con_Clear_f, 0, NULL);
-	Cmd_Add("dump", Con_Dump_f, 0, NULL);
+  Cmd_Add("clear", Con_Clear_f, 0, NULL);
+  Cmd_Add("dump", Con_Dump_f, 0, NULL);
 }
 
 /**
@@ -765,13 +765,13 @@ void Con_Init(void) {
  */
 void Con_Shutdown(void) {
 
-	Cmd_Remove("clear");
-	Cmd_Remove("dump");
+  Cmd_Remove("clear");
+  Cmd_Remove("dump");
 
-	Con_FreeStrings();
+  Con_FreeStrings();
 
-	g_list_free(console_state.consoles);
+  g_list_free(console_state.consoles);
 
-	SDL_DestroyMutex(console_state.lock);
-	console_state.lock = NULL;
+  SDL_DestroyMutex(console_state.lock);
+  console_state.lock = NULL;
 }

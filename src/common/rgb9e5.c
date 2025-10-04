@@ -35,31 +35,31 @@
 static float ClampRange_for_rgb9e5(float x)
 {
   if (x > 0.0) {
-	if (x >= MAX_RGB9E5) {
-	  return MAX_RGB9E5;
-	} else {
-	  return x;
-	}
+  if (x >= MAX_RGB9E5) {
+    return MAX_RGB9E5;
   } else {
-	/* NaN gets here too since comparisons with NaN always fail! */
-	return 0.0;
+    return x;
+  }
+  } else {
+  /* NaN gets here too since comparisons with NaN always fail! */
+  return 0.0;
   }
 }
 
 static float MaxOf3(float x, float y, float z)
 {
   if (x > y) {
-	if (x > z) {
-	  return x;
-	} else {
-	  return z;
-	}
+  if (x > z) {
+    return x;
   } else {
-	if (y > z) {
-	  return y;
-	} else {
-	  return z;
-	}
+    return z;
+  }
+  } else {
+  if (y > z) {
+    return y;
+  } else {
+    return z;
+  }
   }
 }
 
@@ -77,9 +77,9 @@ static int FloorLog2(float x)
 static int Max(int x, int y)
 {
   if (x > y) {
-	return x;
+  return x;
   } else {
-	return y;
+  return y;
   }
 }
 
@@ -105,11 +105,11 @@ rgb9e5 float3_to_rgb9e5(const float rgb[3])
 
   maxm = (int) floor(maxrgb / denom + 0.5);
   if (maxm == MAX_RGB9E5_MANTISSA+1) {
-	denom *= 2;
-	exp_shared += 1;
-	assert(exp_shared <= RGB9E5_MAX_VALID_BIASED_EXP);
+  denom *= 2;
+  exp_shared += 1;
+  assert(exp_shared <= RGB9E5_MAX_VALID_BIASED_EXP);
   } else {
-	assert(maxm <= MAX_RGB9E5_MANTISSA);
+  assert(maxm <= MAX_RGB9E5_MANTISSA);
   }
 
   rm = (int) floor(rc / denom + 0.5);

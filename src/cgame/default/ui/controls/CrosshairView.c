@@ -32,11 +32,11 @@
  */
 static void dealloc(Object *self) {
 
-	CrosshairView *this = (CrosshairView *) self;
+  CrosshairView *this = (CrosshairView *) self;
 
-	release(this->imageView);
+  release(this->imageView);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - View
@@ -45,7 +45,7 @@ static void dealloc(Object *self) {
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((CrosshairView *) self, initWithFrame, NULL);
+  return (View *) $((CrosshairView *) self, initWithFrame, NULL);
 }
 
 /**
@@ -53,21 +53,21 @@ static View *init(View *self) {
  */
 static void layoutSubviews(View *self) {
 
-	CrosshairView *this = (CrosshairView *) self;
-	if (this->imageView->image) {
+  CrosshairView *this = (CrosshairView *) self;
+  if (this->imageView->image) {
 
-		const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
+    const float scale = cg_draw_crosshair_scale->value * CROSSHAIR_SCALE;
 
-		const SDL_Size size = MakeSize(
-			this->imageView->image->surface->w * scale,
-			this->imageView->image->surface->h * scale
-		);
+    const SDL_Size size = MakeSize(
+      this->imageView->image->surface->w * scale,
+      this->imageView->image->surface->h * scale
+    );
 
-		$((View *) this->imageView, resize, &size);
-		$((View *) this->imageView, layoutIfNeeded);
-	}
+    $((View *) this->imageView, resize, &size);
+    $((View *) this->imageView, layoutIfNeeded);
+  }
 
-	super(View, self, layoutSubviews);
+  super(View, self, layoutSubviews);
 }
 
 /**
@@ -75,36 +75,36 @@ static void layoutSubviews(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	CrosshairView *this = (CrosshairView *) self;
+  CrosshairView *this = (CrosshairView *) self;
 
-	$(this->imageView, setImage, NULL);
+  $(this->imageView, setImage, NULL);
 
-	const int32_t ch = cg_draw_crosshair->value;
-	if (ch) {
-		SDL_Surface *surface = cgi.LoadSurface(va("pics/ch%d", ch));
-		if (surface) {
+  const int32_t ch = cg_draw_crosshair->value;
+  if (ch) {
+    SDL_Surface *surface = cgi.LoadSurface(va("pics/ch%d", ch));
+    if (surface) {
 
-			$(this->imageView, setImageWithSurface, surface);
-			SDL_FreeSurface(surface);
+      $(this->imageView, setImageWithSurface, surface);
+      SDL_FreeSurface(surface);
 
-			SDL_Color color = Colors.White;
-			if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
-				color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
-				if (color.r == 0 && color.g == 0 && color.b == 0) {
-					color = Colors.White;
-				}
-			}
+      SDL_Color color = Colors.White;
+      if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {
+        color = MVC_HexToRGBA(cg_draw_crosshair_color->string);
+        if (color.r == 0 && color.g == 0 && color.b == 0) {
+          color = Colors.White;
+        }
+      }
 
-			this->imageView->color.r = color.r;
-			this->imageView->color.g = color.g;
-			this->imageView->color.b = color.b;
-			this->imageView->color.a = Clampf(cg_draw_crosshair_alpha->value * 255, 0, 255);
-		}
-	}
+      this->imageView->color.r = color.r;
+      this->imageView->color.g = color.g;
+      this->imageView->color.b = color.b;
+      this->imageView->color.a = Clampf(cg_draw_crosshair_alpha->value * 255, 0, 255);
+    }
+  }
 
-	self->needsLayout = true;
+  self->needsLayout = true;
 }
 
 #pragma mark - CrosshairView
@@ -116,16 +116,16 @@ static void updateBindings(View *self) {
  */
 static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) {
 
-	self = (CrosshairView *) super(Control, self, initWithFrame, frame);
-	if (self) {
+  self = (CrosshairView *) super(Control, self, initWithFrame, frame);
+  if (self) {
 
-		self->imageView = $(alloc(ImageView), initWithFrame, NULL);
-		assert(self->imageView);
+    self->imageView = $(alloc(ImageView), initWithFrame, NULL);
+    assert(self->imageView);
 
-		$((View *) self, addSubview, (View *) self->imageView);
-	}
+    $((View *) self, addSubview, (View *) self->imageView);
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -135,13 +135,13 @@ static CrosshairView *initWithFrame(CrosshairView *self, const SDL_Rect *frame) 
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->layoutSubviews = layoutSubviews;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((CrosshairViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -149,21 +149,21 @@ static void initialize(Class *clazz) {
  * @memberof CrosshairView
  */
 Class *_CrosshairView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CrosshairView",
-			.superclass = _Control(),
-			.instanceSize = sizeof(CrosshairView),
-			.interfaceOffset = offsetof(CrosshairView, interface),
-			.interfaceSize = sizeof(CrosshairViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CrosshairView",
+      .superclass = _Control(),
+      .instanceSize = sizeof(CrosshairView),
+      .interfaceOffset = offsetof(CrosshairView, interface),
+      .interfaceSize = sizeof(CrosshairViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

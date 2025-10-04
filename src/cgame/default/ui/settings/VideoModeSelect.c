@@ -29,11 +29,11 @@
 
 static void dealloc(Object *self) {
 
-	VideoModeSelect *this = (VideoModeSelect *) self;
+  VideoModeSelect *this = (VideoModeSelect *) self;
 
-	g_free(this->modes);
+  g_free(this->modes);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - View
@@ -42,7 +42,7 @@ static void dealloc(Object *self) {
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((VideoModeSelect *) self, initWithFrame, NULL);
+  return (View *) $((VideoModeSelect *) self, initWithFrame, NULL);
 }
 
 /**
@@ -50,44 +50,44 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	VideoModeSelect *this = (VideoModeSelect *) self;
+  VideoModeSelect *this = (VideoModeSelect *) self;
 
-	g_free(this->modes);
-	this->modes = NULL;
+  g_free(this->modes);
+  this->modes = NULL;
 
-	Select *select = (Select *) this;
+  Select *select = (Select *) this;
 
-	$(select, removeAllOptions);
-	$(select, addOption, "Custom", NULL);
+  $(select, removeAllOptions);
+  $(select, addOption, "Custom", NULL);
 
-	Option *option = $(select, optionWithValue, NULL);
+  Option *option = $(select, optionWithValue, NULL);
 
-	const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
-	const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
+  const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
+  const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
 
-	if (numDisplayModes) {
-		this->modes = g_malloc(sizeof(SDL_DisplayMode) * numDisplayModes);
-		assert(this->modes);
+  if (numDisplayModes) {
+    this->modes = g_malloc(sizeof(SDL_DisplayMode) * numDisplayModes);
+    assert(this->modes);
 
-		SDL_DisplayMode *mode = this->modes;
-		for (int32_t i = 0; i < numDisplayModes; i++, mode++) {
-			SDL_GetDisplayMode(display, i, mode);
+    SDL_DisplayMode *mode = this->modes;
+    for (int32_t i = 0; i < numDisplayModes; i++, mode++) {
+      SDL_GetDisplayMode(display, i, mode);
 
-			if (SDL_BITSPERPIXEL(mode->format) == 32) {
+      if (SDL_BITSPERPIXEL(mode->format) == 32) {
 
-				char *title = va("%dx%d @ %dHz", mode->w, mode->h, mode->refresh_rate);
-				$(select, addOption, title, mode);
+        char *title = va("%dx%d @ %dHz", mode->w, mode->h, mode->refresh_rate);
+        $(select, addOption, title, mode);
 
-				if (mode->w == cgi.context->mode.w && mode->h == cgi.context->mode.h) {
-					option = $(select, optionWithValue, mode);
-				}
-			}
-		}
-	}
+        if (mode->w == cgi.context->mode.w && mode->h == cgi.context->mode.h) {
+          option = $(select, optionWithValue, mode);
+        }
+      }
+    }
+  }
 
-	$(select, selectOption, option);
+  $(select, selectOption, option);
 }
 
 #pragma mark - VideoModeSelect
@@ -98,7 +98,7 @@ static void updateBindings(View *self) {
  */
 static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *frame) {
 
-	return (VideoModeSelect *) super(Select, self, initWithFrame, frame);
+  return (VideoModeSelect *) super(Select, self, initWithFrame, frame);
 }
 
 #pragma mark - Class lifecycle
@@ -108,12 +108,12 @@ static VideoModeSelect *initWithFrame(VideoModeSelect *self, const SDL_Rect *fra
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((VideoModeSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((VideoModeSelectInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -121,21 +121,21 @@ static void initialize(Class *clazz) {
  * @memberof VideoModeSelect
  */
 Class *_VideoModeSelect(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "VideoModeSelect",
-			.superclass = _Select(),
-			.instanceSize = sizeof(VideoModeSelect),
-			.interfaceOffset = offsetof(VideoModeSelect, interface),
-			.interfaceSize = sizeof(VideoModeSelectInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "VideoModeSelect",
+      .superclass = _Select(),
+      .instanceSize = sizeof(VideoModeSelect),
+      .interfaceOffset = offsetof(VideoModeSelect, interface),
+      .interfaceSize = sizeof(VideoModeSelectInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

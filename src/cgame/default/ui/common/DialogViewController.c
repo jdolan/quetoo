@@ -32,23 +32,23 @@
  */
 static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
 
-	DialogViewController *this = (DialogViewController *) sender;
+  DialogViewController *this = (DialogViewController *) sender;
 
-	if (control == (Control *) this->okButton) {
-		if (this->dialog.okFunction) {
-			this->dialog.okFunction(this->dialog.data);
-		} else {
-			cgi.Warn("okFunction was NULL\n");
-		}
-	} else if (control == (Control *) this->cancelButton) {
-		if (this->dialog.cancelFunction) {
-			this->dialog.cancelFunction(this->dialog.data);
-		}
-	} else {
-		assert(false);
-	}
+  if (control == (Control *) this->okButton) {
+    if (this->dialog.okFunction) {
+      this->dialog.okFunction(this->dialog.data);
+    } else {
+      cgi.Warn("okFunction was NULL\n");
+    }
+  } else if (control == (Control *) this->cancelButton) {
+    if (this->dialog.cancelFunction) {
+      this->dialog.cancelFunction(this->dialog.data);
+    }
+  } else {
+    assert(false);
+  }
 
-	$((ViewController *) this, removeFromParentViewController);
+  $((ViewController *) this, removeFromParentViewController);
 }
 
 #pragma mark - ViewController
@@ -58,28 +58,28 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	DialogViewController *this = (DialogViewController *) self;
+  DialogViewController *this = (DialogViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("message", &this->message),
-		MakeOutlet("cancel", &this->cancelButton),
-		MakeOutlet("ok", &this->okButton)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("message", &this->message),
+    MakeOutlet("cancel", &this->cancelButton),
+    MakeOutlet("ok", &this->okButton)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/common/DialogViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/common/DialogViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/DialogViewController.css");
-	assert(self->view->stylesheet);
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/common/DialogViewController.css");
+  assert(self->view->stylesheet);
 
-	$(this->message->text, setText, this->dialog.message);
-	$(this->cancelButton->title, setText, this->dialog.cancel);
-	$(this->okButton->title, setText, this->dialog.ok);
+  $(this->message->text, setText, this->dialog.message);
+  $(this->cancelButton->title, setText, this->dialog.cancel);
+  $(this->okButton->title, setText, this->dialog.ok);
 
-	$((Control *) this->okButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
-	$((Control *) this->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+  $((Control *) this->okButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+  $((Control *) this->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
 }
 
 #pragma mark - DialogViewController
@@ -90,13 +90,13 @@ static void loadView(ViewController *self) {
  */
 static DialogViewController *initWithDialog(DialogViewController *self, const Dialog *dialog) {
 
-	self = (DialogViewController *) super(ViewController, self, init);
-	if (self) {
-		assert(dialog);
-		self->dialog = *dialog;
-	}
+  self = (DialogViewController *) super(ViewController, self, init);
+  if (self) {
+    assert(dialog);
+    self->dialog = *dialog;
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -106,9 +106,9 @@ static DialogViewController *initWithDialog(DialogViewController *self, const Di
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((DialogViewControllerInterface *) clazz->interface)->initWithDialog = initWithDialog;
+  ((DialogViewControllerInterface *) clazz->interface)->initWithDialog = initWithDialog;
 }
 
 /**
@@ -116,21 +116,21 @@ static void initialize(Class *clazz) {
  * @memberof DialogViewController
  */
 Class *_DialogViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "DialogViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(DialogViewController),
-			.interfaceOffset = offsetof(DialogViewController, interface),
-			.interfaceSize = sizeof(DialogViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "DialogViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(DialogViewController),
+      .interfaceOffset = offsetof(DialogViewController, interface),
+      .interfaceSize = sizeof(DialogViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

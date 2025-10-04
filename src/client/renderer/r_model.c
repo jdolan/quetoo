@@ -27,79 +27,79 @@ r_models_t r_models;
  * @brief Loads the model by the specified name.
  */
 r_model_t *R_LoadModel(const char *name) {
-	char key[MAX_QPATH];
+  char key[MAX_QPATH];
 
-	if (!name || !name[0]) {
-		Com_Error(ERROR_DROP, "R_LoadModel: NULL name\n");
-	}
+  if (!name || !name[0]) {
+    Com_Error(ERROR_DROP, "R_LoadModel: NULL name\n");
+  }
 
-	if (*name == '*') {
-		g_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
-	} else {
-		StripExtension(name, key);
-	}
+  if (*name == '*') {
+    g_snprintf(key, sizeof(key), "%s#%s", r_models.world->media.name, name + 1);
+  } else {
+    StripExtension(name, key);
+  }
 
-	r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
-	if (mod == NULL) {
+  r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
+  if (mod == NULL) {
 
-		const r_model_format_t formats[] = {
-			r_obj_model_format,
-			r_md3_model_format,
-			r_bsp_model_format
-		};
+    const r_model_format_t formats[] = {
+      r_obj_model_format,
+      r_md3_model_format,
+      r_bsp_model_format
+    };
 
-		const r_model_format_t *format = formats;
-		char path[MAX_QPATH];
+    const r_model_format_t *format = formats;
+    char path[MAX_QPATH];
 
-		size_t i;
-		for (i = 0; i < lengthof(formats); i++, format++) {
+    size_t i;
+    for (i = 0; i < lengthof(formats); i++, format++) {
 
-			g_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
+      g_snprintf(path, sizeof(path), "%s.%s", key, format->extension);
 
-			if (Fs_Exists(path)) {
-				break;
-			}
-		}
+      if (Fs_Exists(path)) {
+        break;
+      }
+    }
 
-		if (i == lengthof(formats)) {
-			if (strstr(name, "players/")) {
-				Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
-			} else {
-				Com_Warn("Failed to load %s\n", name);
-			}
-			return NULL;
-		}
+    if (i == lengthof(formats)) {
+      if (strstr(name, "players/")) {
+        Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
+      } else {
+        Com_Warn("Failed to load %s\n", name);
+      }
+      return NULL;
+    }
 
-		mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), R_MEDIA_MODEL);
+    mod = (r_model_t *) R_AllocMedia(key, sizeof(r_model_t), R_MEDIA_MODEL);
 
-		mod->media.Register = format->Register;
-		mod->media.Free = format->Free;
+    mod->media.Register = format->Register;
+    mod->media.Free = format->Free;
 
-		mod->type = format->type;
+    mod->type = format->type;
 
-		mod->bounds = Box3_Null();
+    mod->bounds = Box3_Null();
 
-		void *buf = NULL;
+    void *buf = NULL;
 
-		Fs_Load(path, &buf);
+    Fs_Load(path, &buf);
 
-		format->Load(mod, buf);
+    format->Load(mod, buf);
 
-		Fs_Free(buf);
+    Fs_Free(buf);
 
-		mod->radius = Box3_Radius(mod->bounds);
+    mod->radius = Box3_Radius(mod->bounds);
 
-		R_RegisterMedia((r_media_t *) mod);
-	}
+    R_RegisterMedia((r_media_t *) mod);
+  }
 
-	return mod;
+  return mod;
 }
 
 /**
  * @brief Returns the currently loaded world model (BSP).
  */
 r_model_t *R_WorldModel(void) {
-	return r_models.world;
+  return r_models.world;
 }
 
 /**
@@ -107,21 +107,21 @@ r_model_t *R_WorldModel(void) {
  */
 void R_InitModels(void) {
 
-	memset(&r_models, 0, sizeof(r_models));
+  memset(&r_models, 0, sizeof(r_models));
 
-	glGenVertexArrays(1, &r_models.mesh.vertex_array);
-	glGenVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
+  glGenVertexArrays(1, &r_models.mesh.vertex_array);
+  glGenVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
 
-	glGenBuffers(1, &r_models.mesh.vertex_buffer);
-	glGenBuffers(1, &r_models.mesh.elements_buffer);
+  glGenBuffers(1, &r_models.mesh.vertex_buffer);
+  glGenBuffers(1, &r_models.mesh.elements_buffer);
 
-	R_InitBspProgram();
+  R_InitBspProgram();
 
-	R_InitMeshProgram();
+  R_InitMeshProgram();
 
-	glFrontFace(GL_CW);
+  glFrontFace(GL_CW);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -129,15 +129,15 @@ void R_InitModels(void) {
  */
 void R_ShutdownModels(void) {
 
-	glDeleteVertexArrays(1, &r_models.mesh.vertex_array);
-	glDeleteVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
+  glDeleteVertexArrays(1, &r_models.mesh.vertex_array);
+  glDeleteVertexArrays(1, &r_models.mesh.depth_pass.vertex_array);
 
-	glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
-	glDeleteBuffers(1, &r_models.mesh.elements_buffer);
+  glDeleteBuffers(1, &r_models.mesh.vertex_buffer);
+  glDeleteBuffers(1, &r_models.mesh.elements_buffer);
 
-	memset(&r_models, 0, sizeof(r_models));
+  memset(&r_models, 0, sizeof(r_models));
 
-	R_ShutdownBspProgram();
+  R_ShutdownBspProgram();
 
-	R_ShutdownMeshProgram();
+  R_ShutdownMeshProgram();
 }

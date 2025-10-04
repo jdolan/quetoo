@@ -32,22 +32,22 @@
  */
 static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
-	super(View, self, awakeWithDictionary, dictionary);
+  super(View, self, awakeWithDictionary, dictionary);
 
-	CvarSlider *this = (CvarSlider *) self;
+  CvarSlider *this = (CvarSlider *) self;
 
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
-	);
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+  );
 
-	$(self, bind, inlets, dictionary);
+  $(self, bind, inlets, dictionary);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((CvarSlider *) self, initWithVariable, NULL, 0.0, 0.0, 0.0);
+  return (View *) $((CvarSlider *) self, initWithVariable, NULL, 0.0, 0.0, 0.0);
 }
 
 /**
@@ -55,17 +55,17 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	CvarSlider *this = (CvarSlider *) self;
+  CvarSlider *this = (CvarSlider *) self;
 
-	if (this->slider.step >= 1.0) {
-		$((Slider *) this, setLabelFormat, "%g");
-	}
+  if (this->slider.step >= 1.0) {
+    $((Slider *) this, setLabelFormat, "%g");
+  }
 
-	if (this->var) {
-		$((Slider *) this, setValue, this->var->value);
-	}
+  if (this->var) {
+    $((Slider *) this, setValue, this->var->value);
+  }
 }
 
 #pragma mark - Slider
@@ -75,12 +75,12 @@ static void updateBindings(View *self) {
  */
 static void setValue(Slider *self, double value) {
 
-	super(Slider, self, setValue, value);
+  super(Slider, self, setValue, value);
 
-	const CvarSlider *this = (CvarSlider *) self;
-	if (this->var) {
-		cgi.SetCvarValue(this->var->name, value);
-	}
+  const CvarSlider *this = (CvarSlider *) self;
+  if (this->var) {
+    cgi.SetCvarValue(this->var->name, value);
+  }
 }
 
 #pragma mark - CvarSlider
@@ -92,20 +92,20 @@ static void setValue(Slider *self, double value) {
  */
 static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step) {
 
-	self = (CvarSlider *) super(Slider, self, initWithFrame, NULL);
-	if (self) {
+  self = (CvarSlider *) super(Slider, self, initWithFrame, NULL);
+  if (self) {
 
-		self->var = var;
+    self->var = var;
 
-		Slider *this = (Slider *) self;
+    Slider *this = (Slider *) self;
 
-		this->min = min;
-		this->max = max;
-		this->step = step;
-		this->snapToStep = true;
-	}
+    this->min = min;
+    this->max = max;
+    this->step = step;
+    this->snapToStep = true;
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -115,13 +115,13 @@ static CvarSlider *initWithVariable(CvarSlider *self, cvar_t *var, double min, d
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((SliderInterface *) clazz->interface)->setValue = setValue;
+  ((SliderInterface *) clazz->interface)->setValue = setValue;
 
-	((CvarSliderInterface *) clazz->interface)->initWithVariable = initWithVariable;
+  ((CvarSliderInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -129,21 +129,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarSlider
  */
 Class *_CvarSlider(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CvarSlider",
-			.superclass = _Slider(),
-			.instanceSize = sizeof(CvarSlider),
-			.interfaceOffset = offsetof(CvarSlider, interface),
-			.interfaceSize = sizeof(CvarSliderInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CvarSlider",
+      .superclass = _Slider(),
+      .instanceSize = sizeof(CvarSlider),
+      .interfaceOffset = offsetof(CvarSlider, interface),
+      .interfaceSize = sizeof(CvarSliderInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

@@ -26,68 +26,68 @@
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void) {
-	static entity_state_t null_state;
-	mem_buf_t msg;
-	byte buffer[MAX_MSG_SIZE];
+  static entity_state_t null_state;
+  mem_buf_t msg;
+  byte buffer[MAX_MSG_SIZE];
 
-	// write out messages to hold the startup information
-	Mem_InitBuffer(&msg, buffer, sizeof(buffer));
+  // write out messages to hold the startup information
+  Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
-	// write the server data
-	Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
-	Net_WriteLong(&msg, PROTOCOL_MAJOR);
-	Net_WriteLong(&msg, cls.cgame->protocol);
-	Net_WriteByte(&msg, 1); // demo_server byte
-	Net_WriteString(&msg, Cvar_GetString("game"));
-	Net_WriteShort(&msg, cl.client_num);
-	Net_WriteString(&msg, cl.config_strings[CS_NAME]);
+  // write the server data
+  Net_WriteByte(&msg, SV_CMD_SERVER_DATA);
+  Net_WriteLong(&msg, PROTOCOL_MAJOR);
+  Net_WriteLong(&msg, cls.cgame->protocol);
+  Net_WriteByte(&msg, 1); // demo_server byte
+  Net_WriteString(&msg, Cvar_GetString("game"));
+  Net_WriteShort(&msg, cl.client_num);
+  Net_WriteString(&msg, cl.config_strings[CS_NAME]);
 
-	// and config_strings
-	for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
-		if (*cl.config_strings[i] != '\0') {
-			if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
-				const int32_t len = LittleLong((int32_t) msg.size);
-				Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-				Fs_Write(cls.demo_file, msg.data, msg.size, 1);
-				msg.size = 0;
-			}
+  // and config_strings
+  for (int32_t i = 0; i < MAX_CONFIG_STRINGS; i++) {
+    if (*cl.config_strings[i] != '\0') {
+      if (msg.size + strlen(cl.config_strings[i]) + 32 > msg.max_size) { // write it out
+        const int32_t len = LittleLong((int32_t) msg.size);
+        Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+        Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+        msg.size = 0;
+      }
 
-			Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
-			Net_WriteShort(&msg, i);
-			Net_WriteString(&msg, cl.config_strings[i]);
-		}
-	}
+      Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
+      Net_WriteShort(&msg, i);
+      Net_WriteString(&msg, cl.config_strings[i]);
+    }
+  }
 
-	// and baselines
-	for (size_t i = 0; i < lengthof(cl.entities); i++) {
-		entity_state_t *ent = &cl.entities[i].baseline;
-		if (!ent->number) {
-			continue;
-		}
+  // and baselines
+  for (size_t i = 0; i < lengthof(cl.entities); i++) {
+    entity_state_t *ent = &cl.entities[i].baseline;
+    if (!ent->number) {
+      continue;
+    }
 
-		if (msg.size + 64 > msg.max_size) { // write it out
-			const int32_t len = LittleLong((int32_t) msg.size);
-			Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-			Fs_Write(cls.demo_file, msg.data, msg.size, 1);
-			msg.size = 0;
-		}
+    if (msg.size + 64 > msg.max_size) { // write it out
+      const int32_t len = LittleLong((int32_t) msg.size);
+      Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+      Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+      msg.size = 0;
+    }
 
-		Net_WriteByte(&msg, SV_CMD_BASELINE);
-		Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true);
-	}
+    Net_WriteByte(&msg, SV_CMD_BASELINE);
+    Net_WriteDeltaEntity(&msg, &null_state, &cl.entities[i].baseline, true);
+  }
 
-	Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
-	Net_WriteString(&msg, "precache 0\n");
+  Net_WriteByte(&msg, SV_CMD_CBUF_TEXT);
+  Net_WriteString(&msg, "precache 0\n");
 
-	// write it to the demo file
+  // write it to the demo file
 
-	const int32_t len = LittleLong((int32_t) msg.size);
+  const int32_t len = LittleLong((int32_t) msg.size);
 
-	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-	Fs_Write(cls.demo_file, msg.data, msg.size, 1);
+  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+  Fs_Write(cls.demo_file, msg.data, msg.size, 1);
 
-	Com_Debug(DEBUG_CLIENT, "Demo started\n");
-	// the rest of the demo file will be individual frames
+  Com_Debug(DEBUG_CLIENT, "Demo started\n");
+  // the rest of the demo file will be individual frames
 }
 
 /**
@@ -95,43 +95,43 @@ static void Cl_WriteDemoHeader(void) {
  */
 void Cl_WriteDemoMessage(void) {
 
-	if (!cls.demo_file) {
-		return;
-	}
+  if (!cls.demo_file) {
+    return;
+  }
 
-	if (!Fs_Tell(cls.demo_file)) {
-		if (cl.frame.delta_frame_num < 0) {
-			Com_Debug(DEBUG_CLIENT, "Received uncompressed frame, writing demo header..\n");
-			Cl_WriteDemoHeader();
-		} else {
-			return; // wait for an uncompressed packet
-		}
-	}
+  if (!Fs_Tell(cls.demo_file)) {
+    if (cl.frame.delta_frame_num < 0) {
+      Com_Debug(DEBUG_CLIENT, "Received uncompressed frame, writing demo header..\n");
+      Cl_WriteDemoHeader();
+    } else {
+      return; // wait for an uncompressed packet
+    }
+  }
 
-	// the first eight bytes are just packet sequencing stuff
-	const int32_t len = LittleLong((int32_t) (net_message.size - 8));
+  // the first eight bytes are just packet sequencing stuff
+  const int32_t len = LittleLong((int32_t) (net_message.size - 8));
 
-	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-	Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
+  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+  Fs_Write(cls.demo_file, net_message.data + 8, len, 1);
 }
 
 /**
  * @brief Stop recording a demo
  */
 void Cl_Stop_f(void) {
-	int32_t len = -1;
+  int32_t len = -1;
 
-	if (!cls.demo_file) {
-		Com_Print("Not recording a demo\n");
-		return;
-	}
+  if (!cls.demo_file) {
+    Com_Print("Not recording a demo\n");
+    return;
+  }
 
-	// finish up
-	Fs_Write(cls.demo_file, &len, sizeof(len), 1);
-	Fs_Close(cls.demo_file);
+  // finish up
+  Fs_Write(cls.demo_file, &len, sizeof(len), 1);
+  Fs_Close(cls.demo_file);
 
-	cls.demo_file = NULL;
-	Com_Print("Stopped demo\n");
+  cls.demo_file = NULL;
+  Com_Print("Stopped demo\n");
 }
 
 /**
@@ -141,30 +141,30 @@ void Cl_Stop_f(void) {
  */
 void Cl_Record_f(void) {
 
-	if (Cmd_Argc() != 2) {
-		Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
-		return;
-	}
+  if (Cmd_Argc() != 2) {
+    Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
+    return;
+  }
 
-	if (cls.demo_file) {
-		Com_Print("Already recording\n");
-		return;
-	}
+  if (cls.demo_file) {
+    Com_Print("Already recording\n");
+    return;
+  }
 
-	if (cls.state != CL_ACTIVE) {
-		Com_Print("You must be in a level to record\n");
-		return;
-	}
+  if (cls.state != CL_ACTIVE) {
+    Com_Print("You must be in a level to record\n");
+    return;
+  }
 
-	g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
+  g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
 
-	// open the demo file
-	if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
-		Com_Warn("Couldn't open %s\n", cls.demo_filename);
-		return;
-	}
+  // open the demo file
+  if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
+    Com_Warn("Couldn't open %s\n", cls.demo_filename);
+    return;
+  }
 
-	Com_Print("Recording to %s\n", cls.demo_filename);
+  Com_Print("Recording to %s\n", cls.demo_filename);
 }
 
 #define DEMO_PLAYBACK_STEP 1
@@ -174,25 +174,25 @@ void Cl_Record_f(void) {
  */
 static void Cl_AdjustDemoPlayback(float delta) {
 
-	if (!cl.demo_server) {
-		return;
-	}
+  if (!cl.demo_server) {
+    return;
+  }
 
-	Cvar_ForceSetValue(time_scale->name, Clampf(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
+  Cvar_ForceSetValue(time_scale->name, Clampf(time_scale->value + delta, DEMO_PLAYBACK_STEP, 4.0));
 
-	Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
+  Com_Print("Demo playback rate %d%%\n", (int32_t) (time_scale->value * 100));
 }
 
 /**
  * @brief
  */
 void Cl_FastForward_f(void) {
-	Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
+  Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
 }
 
 /**
  * @brief
  */
 void Cl_SlowMotion_f(void) {
-	Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);
+  Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);
 }

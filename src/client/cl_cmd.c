@@ -26,9 +26,9 @@
  */
 static void Cl_InitMovementCommand(void) {
 
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	memset(cmd, 0, sizeof(*cmd));
+  memset(cmd, 0, sizeof(*cmd));
 }
 
 /**
@@ -36,14 +36,14 @@ static void Cl_InitMovementCommand(void) {
  */
 void Cl_UpdateMovementCommand(uint32_t msec) {
 
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cmd->cmd.msec = Minf(msec, 255u);
+  cmd->cmd.msec = Minf(msec, 255u);
 
-	Cl_Look(&cmd->cmd);
+  Cl_Look(&cmd->cmd);
 
-	cmd->time = cl.time;
-	cmd->timestamp = cl.unclamped_time;
+  cmd->time = cl.time;
+  cmd->timestamp = cl.unclamped_time;
 }
 
 /**
@@ -51,42 +51,42 @@ void Cl_UpdateMovementCommand(uint32_t msec) {
  */
 static void Cl_FinalizeMovementCommand(void) {
 
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
+  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.outgoing_sequence & CMD_MASK];
 
-	cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+  cl_cmd_t *prev = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
 
-	const uint32_t msec = cl.unclamped_time - prev->timestamp;
+  const uint32_t msec = cl.unclamped_time - prev->timestamp;
 
-	cmd->cmd.msec = Minf(msec, 255u);
+  cmd->cmd.msec = Minf(msec, 255u);
 
-	Cl_Move(&cmd->cmd);
+  Cl_Move(&cmd->cmd);
 
-	cmd->time = cl.time;
-	cmd->timestamp = cl.unclamped_time;
+  cmd->time = cl.time;
+  cmd->timestamp = cl.unclamped_time;
 }
 
 /**
  * @brief Writes the most recent movement command(s) using delta-compression if available.
  */
 static void Cl_WriteMovementCommand(mem_buf_t *buf) {
-	static cl_cmd_t null_cmd;
+  static cl_cmd_t null_cmd;
 
-	Net_WriteByte(buf, CL_CMD_MOVE);
+  Net_WriteByte(buf, CL_CMD_MOVE);
 
-	if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0)) {
-		Net_WriteLong(buf, -1);
-	} else {
-		Net_WriteLong(buf, cl.frame.frame_num);
-	}
+  if (!cl.frame.valid || (cls.demo_file && Fs_Tell(cls.demo_file) == 0)) {
+    Net_WriteLong(buf, -1);
+  } else {
+    Net_WriteLong(buf, cl.frame.frame_num);
+  }
 
-	cl_cmd_t *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
-	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  cl_cmd_t *from = &null_cmd, *to = &cl.cmds[(cls.net_chan.outgoing_sequence - 2) & CMD_MASK];
+  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-	from = to; to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
-	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  from = to; to = &cl.cmds[(cls.net_chan.outgoing_sequence - 1) & CMD_MASK];
+  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 
-	from = to;  to = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
-	Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
+  from = to;  to = &cl.cmds[(cls.net_chan.outgoing_sequence) & CMD_MASK];
+  Net_WriteDeltaMoveCmd(buf, &from->cmd, &to->cmd);
 }
 
 /**
@@ -94,12 +94,12 @@ static void Cl_WriteMovementCommand(mem_buf_t *buf) {
  */
 static void Cl_WriteUserInfoCommand(void) {
 
-	if (cvar_user_info_modified) {
-		cvar_user_info_modified = false;
+  if (cvar_user_info_modified) {
+    cvar_user_info_modified = false;
 
-		Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
-		Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
-	}
+    Net_WriteByte(&cls.net_chan.message, CL_CMD_USER_INFO);
+    Net_WriteString(&cls.net_chan.message, Cvar_UserInfo());
+  }
 }
 
 /**
@@ -110,44 +110,44 @@ static void Cl_WriteUserInfoCommand(void) {
  */
 void Cl_SendCommands(void) {
 
-	const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
+  const uint32_t delta = quetoo.ticks - cls.net_chan.last_sent;
 
-	if (delta < 8 && !r_swap_interval->value) {
-		return;
-	}
+  if (delta < 8 && !r_swap_interval->value) {
+    return;
+  }
 
-	switch (cls.state) {
-		case CL_CONNECTED:
-		case CL_LOADING:
+  switch (cls.state) {
+    case CL_CONNECTED:
+    case CL_LOADING:
 
-			if (cls.net_chan.message.size || delta > 1000) {
-				Netchan_Transmit(&cls.net_chan, NULL, 0);
-				cl.packet_counter[cl.sample_index]++;
-			}
+      if (cls.net_chan.message.size || delta > 1000) {
+        Netchan_Transmit(&cls.net_chan, NULL, 0);
+        cl.packet_counter[cl.sample_index]++;
+      }
 
-			break;
+      break;
 
-		case CL_ACTIVE:
+    case CL_ACTIVE:
 
-			Cl_WriteUserInfoCommand();
+      Cl_WriteUserInfoCommand();
 
-			Cl_FinalizeMovementCommand();
+      Cl_FinalizeMovementCommand();
 
-			mem_buf_t buf;
-			byte data[sizeof(cl_cmd_t) * 3];
+      mem_buf_t buf;
+      byte data[sizeof(cl_cmd_t) * 3];
 
-			Mem_InitBuffer(&buf, data, sizeof(data));
+      Mem_InitBuffer(&buf, data, sizeof(data));
 
-			Cl_WriteMovementCommand(&buf);
+      Cl_WriteMovementCommand(&buf);
 
-			Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
-			cl.packet_counter[cl.sample_index]++;
+      Netchan_Transmit(&cls.net_chan, buf.data, buf.size);
+      cl.packet_counter[cl.sample_index]++;
 
-			Cl_InitMovementCommand();
+      Cl_InitMovementCommand();
 
-			break;
+      break;
 
-		default:
-			break;
-	}
+    default:
+      break;
+  }
 }

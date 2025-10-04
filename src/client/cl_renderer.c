@@ -26,24 +26,24 @@
  */
 void Cl_R_Restart_f(void) {
 
-	if (cls.state == CL_CONNECTING ||
-		cls.state == CL_CONNECTED ||
-		cls.state == CL_LOADING) {
-		return;
-	}
+  if (cls.state == CL_CONNECTING ||
+    cls.state == CL_CONNECTED ||
+    cls.state == CL_LOADING) {
+    return;
+  }
 
-	Ui_HandleEvent(&(const SDL_Event) {
-		.window.type = SDL_WINDOWEVENT,
-		.window.event = SDL_WINDOWEVENT_CLOSE
-	});
+  Ui_HandleEvent(&(const SDL_Event) {
+    .window.type = SDL_WINDOWEVENT,
+    .window.event = SDL_WINDOWEVENT_CLOSE
+  });
 
-	R_Shutdown();
+  R_Shutdown();
 
-	R_Init();
+  R_Init();
 
-	if (cls.state == CL_ACTIVE) {
-		Cl_LoadMedia();
-	}
+  if (cls.state == CL_ACTIVE) {
+    Cl_LoadMedia();
+  }
 }
 
 /**
@@ -51,7 +51,7 @@ void Cl_R_Restart_f(void) {
  */
 void Cl_R_ToggleFullscreen_f(void) {
 
-	Cvar_Toggle("r_fullscreen");
+  Cvar_Toggle("r_fullscreen");
 
-	Cl_R_Restart_f();
+  Cl_R_Restart_f();
 }

@@ -27,34 +27,34 @@
  * @brief Handles wildcard suffixes for GlobMatch.
  */
 static bool GlobMatchStar(const char *pattern, const char *text, const glob_flags_t flags) {
-	const char *p = pattern, *t = text;
-	register char c, c1;
+  const char *p = pattern, *t = text;
+  register char c, c1;
 
-	while ((c = *p++) == '?' || c == '*')
-		if (c == '?' && *t++ == '\0') {
-			return false;
-		}
+  while ((c = *p++) == '?' || c == '*')
+    if (c == '?' && *t++ == '\0') {
+      return false;
+    }
 
-	if (c == '\0') {
-		return true;
-	}
+  if (c == '\0') {
+    return true;
+  }
 
-	if (c == '\\') {
-		c1 = *p;
-	} else {
-		c1 = c;
-	}
+  if (c == '\\') {
+    c1 = *p;
+  } else {
+    c1 = c;
+  }
 
-	while (true) {
-		if ((c == '[' || *t == c1) && GlobMatch(p - 1, t, flags)) {
-			return true;
-		}
-		if (*t++ == '\0') {
-			return false;
-		}
-	}
+  while (true) {
+    if ((c == '[' || *t == c1) && GlobMatch(p - 1, t, flags)) {
+      return true;
+    }
+    if (*t++ == '\0') {
+      return false;
+    }
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -76,145 +76,145 @@ static bool GlobMatchStar(const char *pattern, const char *text, const glob_flag
  * and match the character exactly, precede it with a `\'.
  */
 bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
-	const char *p = pattern, *t = text;
-	register char c;
+  const char *p = pattern, *t = text;
+  register char c;
 
-	if (!p || !t) {
-		return false;
-	}
+  if (!p || !t) {
+    return false;
+  }
 
-	while ((c = *p++) != '\0')
-		switch (c) {
-			case '?':
-				if (*t == '\0') {
-					return 0;
-				} else {
-					++t;
-				}
-				break;
+  while ((c = *p++) != '\0')
+    switch (c) {
+      case '?':
+        if (*t == '\0') {
+          return 0;
+        } else {
+          ++t;
+        }
+        break;
 
-			case '\\':
-				if (*p++ != *t++) {
-					return 0;
-				}
-				break;
+      case '\\':
+        if (*p++ != *t++) {
+          return 0;
+        }
+        break;
 
-			case '*':
-				return GlobMatchStar(p, t, flags);
+      case '*':
+        return GlobMatchStar(p, t, flags);
 
-			case '[': {
-					register char c1 = *t++;
-					int32_t invert;
+      case '[': {
+          register char c1 = *t++;
+          int32_t invert;
 
-					if (!c1) {
-						return 0;
-					}
+          if (!c1) {
+            return 0;
+          }
 
-					invert = ((*p == '!') || (*p == '^'));
-					if (invert) {
-						p++;
-					}
+          invert = ((*p == '!') || (*p == '^'));
+          if (invert) {
+            p++;
+          }
 
-					c = *p++;
-					while (true) {
-						register char cstart = c, cend = c;
+          c = *p++;
+          while (true) {
+            register char cstart = c, cend = c;
 
-						if (c == '\\') {
-							cstart = *p++;
-							cend = cstart;
-						}
-						if (c == '\0') {
-							return 0;
-						}
+            if (c == '\\') {
+              cstart = *p++;
+              cend = cstart;
+            }
+            if (c == '\0') {
+              return 0;
+            }
 
-						c = *p++;
-						if (c == '-' && *p != ']') {
-							cend = *p++;
-							if (cend == '\\') {
-								cend = *p++;
-							}
-							if (cend == '\0') {
-								return 0;
-							}
-							c = *p++;
-						}
-						if (c1 >= cstart && c1 <= cend) {
-							goto match;
-						}
-						if (c == ']') {
-							break;
-						}
-					}
-					if (!invert) {
-						return 0;
-					}
-					break;
+            c = *p++;
+            if (c == '-' && *p != ']') {
+              cend = *p++;
+              if (cend == '\\') {
+                cend = *p++;
+              }
+              if (cend == '\0') {
+                return 0;
+              }
+              c = *p++;
+            }
+            if (c1 >= cstart && c1 <= cend) {
+              goto match;
+            }
+            if (c == ']') {
+              break;
+            }
+          }
+          if (!invert) {
+            return 0;
+          }
+          break;
 
 match:
-					/* Skip the rest of the [...] construct that already matched. */
-					while (c != ']') {
-						if (c == '\0') {
-							return 0;
-						}
-						c = *p++;
-						if (c == '\0') {
-							return 0;
-						} else if (c == '\\') {
-							++p;
-						}
-					}
-					if (invert) {
-						return 0;
-					}
-					break;
-				}
+          /* Skip the rest of the [...] construct that already matched. */
+          while (c != ']') {
+            if (c == '\0') {
+              return 0;
+            }
+            c = *p++;
+            if (c == '\0') {
+              return 0;
+            } else if (c == '\\') {
+              ++p;
+            }
+          }
+          if (invert) {
+            return 0;
+          }
+          break;
+        }
 
-			default:
-				if (flags & GLOB_CASE_INSENSITIVE) {
-					if (tolower(c) != tolower(*t++)) {
-						return 0;
-					}
-				} else {
-					if (c != *t++) {
-						return 0;
-					}
-				}
-				break;
-		}
+      default:
+        if (flags & GLOB_CASE_INSENSITIVE) {
+          if (tolower(c) != tolower(*t++)) {
+            return 0;
+          }
+        } else {
+          if (c != *t++) {
+            return 0;
+          }
+        }
+        break;
+    }
 
-	return *t == '\0';
+  return *t == '\0';
 }
 
 /**
  * @brief Returns the base name for the given file or path.
  */
 const char *Basename(const char *path) {
-	const char *last = path;
-	while (*path) {
-		if (*path == '/') {
-			last = path + 1;
-		}
-		path++;
-	}
-	return last;
+  const char *last = path;
+  while (*path) {
+    if (*path == '/') {
+      last = path + 1;
+    }
+    path++;
+  }
+  return last;
 }
 
 /**
  * @brief Returns the directory name for the given file or path name.
  */
 void Dirname(const char *in, char *out) {
-	char *c;
+  char *c;
 
-	if (!(c = strrchr(in, '/'))) {
-		strcpy(out, "./");
-		return;
-	}
+  if (!(c = strrchr(in, '/'))) {
+    strcpy(out, "./");
+    return;
+  }
 
-	while (in <= c) {
-		*out++ = *in++;
-	}
+  while (in <= c) {
+    *out++ = *in++;
+  }
 
-	*out = '\0';
+  *out = '\0';
 }
 
 /**
@@ -223,17 +223,17 @@ void Dirname(const char *in, char *out) {
  */
 void StripNewline(const char *in, char *out) {
 
-	if (in) {
-		const size_t len = strlen(in);
-		memmove(out, in, len + 1);
+  if (in) {
+    const size_t len = strlen(in);
+    memmove(out, in, len + 1);
 
-		char *ext = strrchr(out, '\n');
-		if (ext) {
-			*ext = '\0';
-		}
-	} else {
-		*out = '\0';
-	}
+    char *ext = strrchr(out, '\n');
+    if (ext) {
+      *ext = '\0';
+    }
+  } else {
+    *out = '\0';
+  }
 }
 
 /**
@@ -241,77 +241,77 @@ void StripNewline(const char *in, char *out) {
  */
 void StripExtension(const char *in, char *out) {
 
-	if (in) {
-		const size_t len = strlen(in);
-		memmove(out, in, len + 1);
+  if (in) {
+    const size_t len = strlen(in);
+    memmove(out, in, len + 1);
 
-		char *ext = strrchr(out, '.');
-		if (ext) {
-			*ext = '\0';
-		}
-	} else {
-		*out = '\0';
-	}
+    char *ext = strrchr(out, '.');
+    if (ext) {
+      *ext = '\0';
+    }
+  } else {
+    *out = '\0';
+  }
 }
 
 /**
  * @return True if `c` is a color escape sequence, false otherwise.
  */
 bool StrIsColor(const char *c) {
-	if (c) {
-		if (*c == ESC_COLOR) {
-			const char num = *(c + 1);
-			if (num >= '0' && num <= '7') {
-				return true;
-			}
-		}
-	}
-	return false;
+  if (c) {
+    if (*c == ESC_COLOR) {
+      const char num = *(c + 1);
+      if (num >= '0' && num <= '7') {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /**
  * @return True if `c` is an emoji escape sequence, false otherwise.
  */
 bool StrIsEmoji(const char *c) {
-	if (c) {
-		if (*c == ESC_EMOJI) {
-			c++;
-			if (isalpha(*c)) {
-				while (isalnum(*c) || strchr("_-", *c)) {
-					c++;
-				}
-				if (*c == ESC_EMOJI) {
-					return true;
-				}
-			}
-		}
-	}
-	return false;
+  if (c) {
+    if (*c == ESC_EMOJI) {
+      c++;
+      if (isalpha(*c)) {
+        while (isalnum(*c) || strchr("_-", *c)) {
+          c++;
+        }
+        if (*c == ESC_EMOJI) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 }
 /**
  * @return A color_t for the color specified escape sequence.
  */
 color_t ColorEsc(int32_t esc) {
-	switch (esc) {
-		case ESC_COLOR_BLACK:
-			return color_white;
-		case ESC_COLOR_RED:
-			return color_red;
-		case ESC_COLOR_GREEN:
-			return color_green;
-		case ESC_COLOR_YELLOW:
-			return color_yellow;
-		case ESC_COLOR_BLUE:
-			return color_blue;
-		case ESC_COLOR_MAGENTA:
-			return color_magenta;
-		case ESC_COLOR_CYAN:
-			return color_cyan;
-		case ESC_COLOR_WHITE:
-			return color_white;
-	}
+  switch (esc) {
+    case ESC_COLOR_BLACK:
+      return color_white;
+    case ESC_COLOR_RED:
+      return color_red;
+    case ESC_COLOR_GREEN:
+      return color_green;
+    case ESC_COLOR_YELLOW:
+      return color_yellow;
+    case ESC_COLOR_BLUE:
+      return color_blue;
+    case ESC_COLOR_MAGENTA:
+      return color_magenta;
+    case ESC_COLOR_CYAN:
+      return color_cyan;
+    case ESC_COLOR_WHITE:
+      return color_white;
+  }
 
-	return color_white;
+  return color_white;
 }
 
 /**
@@ -320,26 +320,26 @@ color_t ColorEsc(int32_t esc) {
  */
 const char *EmojiEsc(const char *in, char *out, size_t out_size) {
 
-	assert(*in == ESC_EMOJI);
+  assert(*in == ESC_EMOJI);
 
-	in++;
+  in++;
 
-	for (size_t i = 0; i < out_size - 1; i++) {
-		if (isalnum(*in) || strchr("_", *in)) {
-			if (out) {
-				*out++ = *in++;
-			}
-		} else {
-			break;
-		}
-	}
-	
-	if (out) {
-		*out = 0;
-	}
+  for (size_t i = 0; i < out_size - 1; i++) {
+    if (isalnum(*in) || strchr("_", *in)) {
+      if (out) {
+        *out++ = *in++;
+      }
+    } else {
+      break;
+    }
+  }
+  
+  if (out) {
+    *out = 0;
+  }
 
-	assert(*in == ESC_EMOJI);
-	return in + 1;
+  assert(*in == ESC_EMOJI);
+  return in + 1;
 }
 
 /**
@@ -347,16 +347,16 @@ const char *EmojiEsc(const char *in, char *out, size_t out_size) {
  */
 void StrStrip(const char *in, char *out) {
 
-	while (*in) {
+  while (*in) {
 
-		if (StrIsColor(in)) {
-			in += 2;
-			continue;
-		}
+    if (StrIsColor(in)) {
+      in += 2;
+      continue;
+    }
 
-		*out++ = *in++;
-	}
-	*out = '\0';
+    *out++ = *in++;
+  }
+  *out = '\0';
 }
 
 /**
@@ -364,31 +364,31 @@ void StrStrip(const char *in, char *out) {
  */
 size_t StrStripLen(const char *s) {
 
-	size_t len = 0;
+  size_t len = 0;
 
-	while (*s) {
-		if (StrIsColor(s)) {
-			s += 2;
-			continue;
-		}
+  while (*s) {
+    if (StrIsColor(s)) {
+      s += 2;
+      continue;
+    }
 
-		s++;
-		len++;
-	}
+    s++;
+    len++;
+  }
 
-	return len;
+  return len;
 }
 
 /**
  * @brief Performs a color- and case-insensitive string comparison.
  */
 int32_t StrStripCmp(const char *s1, const char *s2) {
-	char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
+  char string1[strlen(s1) + 1], string2[strlen(s2) + 1];
 
-	StrStrip(s1, string1);
-	StrStrip(s2, string2);
+  StrStrip(s1, string1);
+  StrStrip(s2, string2);
 
-	return g_ascii_strcasecmp(string1, string2);
+  return g_ascii_strcasecmp(string1, string2);
 }
 
 /**
@@ -396,15 +396,15 @@ int32_t StrStripCmp(const char *s1, const char *s2) {
  */
 int32_t StrColor(const char *s) {
 
-	const char *c = s;
-	while (*c) {
-		if (StrIsColor(c)) {
-			return *(c + 1) - '0';
-		}
-		c++;
-	}
+  const char *c = s;
+  while (*c) {
+    if (StrIsColor(c)) {
+      return *(c + 1) - '0';
+    }
+    c++;
+  }
 
-	return ESC_COLOR_DEFAULT;
+  return ESC_COLOR_DEFAULT;
 }
 
 /**
@@ -412,17 +412,17 @@ int32_t StrColor(const char *s) {
  */
 int32_t StrrColor(const char *s) {
 
-	if (s) {
-		const char *c = s + strlen(s) - 1;
-		while (c > s) {
-			if (StrIsColor(c)) {
-				return *(c + 1) - '0';
-			}
-			c--;
-		}
-	}
+  if (s) {
+    const char *c = s + strlen(s) - 1;
+    while (c > s) {
+      if (StrIsColor(c)) {
+        return *(c + 1) - '0';
+      }
+      c--;
+    }
+  }
 
-	return ESC_COLOR_DEFAULT;
+  return ESC_COLOR_DEFAULT;
 }
 
 /**
@@ -431,31 +431,31 @@ int32_t StrrColor(const char *s) {
  * reasonable limits. This function is not thread safe.
  */
 char *va(const char *format, ...) {
-	static char strings[8][MAX_STRING_CHARS];
-	static int32_t index;
+  static char strings[8][MAX_STRING_CHARS];
+  static int32_t index;
 
-	char *string = strings[index++ % 8];
+  char *string = strings[index++ % 8];
 
-	va_list args;
+  va_list args;
 
-	va_start(args, format);
-	vsnprintf(string, MAX_STRING_CHARS, format, args);
-	va_end(args);
+  va_start(args, format);
+  vsnprintf(string, MAX_STRING_CHARS, format, args);
+  va_end(args);
 
-	return string;
+  return string;
 }
 
 /**
  * @brief A convenience function for printing vectors.
  */
 char *vtos(const vec3_t v) {
-	static uint32_t index;
-	static char str[8][MAX_QPATH];
+  static uint32_t index;
+  static char str[8][MAX_QPATH];
 
-	char *s = str[index++ % 8];
-	g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
+  char *s = str[index++ % 8];
+  g_snprintf(s, MAX_QPATH, "(%4.2f %4.2f %4.2f)", v.x, v.y, v.z);
 
-	return s;
+  return s;
 }
 
 /**
@@ -463,9 +463,9 @@ char *vtos(const vec3_t v) {
  */
 void StrLower(const char *in, char *out) {
 
-	while (*in) {
-		(*(out++)) = (char) tolower(*(in++));
-	}
+  while (*in) {
+    (*(out++)) = (char) tolower(*(in++));
+  }
 }
 
 /**
@@ -473,96 +473,96 @@ void StrLower(const char *in, char *out) {
  * or an empty string.
  */
 char *GetUserInfo(const char *s, const char *key) {
-	char pkey[512];
-	static char value[2][512]; // use two buffers so compares
-	// work without stomping on each other
-	static int32_t value_index;
-	char *o;
+  char pkey[512];
+  static char value[2][512]; // use two buffers so compares
+  // work without stomping on each other
+  static int32_t value_index;
+  char *o;
 
-	value_index ^= 1;
-	if (*s == '\\') {
-		s++;
-	}
-	while (true) {
-		o = pkey;
-		while (*s != '\\') {
-			if (!*s) {
-				return "";
-			}
-			*o++ = *s++;
-		}
-		*o = '\0';
-		s++;
+  value_index ^= 1;
+  if (*s == '\\') {
+    s++;
+  }
+  while (true) {
+    o = pkey;
+    while (*s != '\\') {
+      if (!*s) {
+        return "";
+      }
+      *o++ = *s++;
+    }
+    *o = '\0';
+    s++;
 
-		o = value[value_index];
+    o = value[value_index];
 
-		while (*s != '\\' && *s) {
-			if (!*s) {
-				return "";
-			}
-			*o++ = *s++;
-		}
-		*o = '\0';
+    while (*s != '\\' && *s) {
+      if (!*s) {
+        return "";
+      }
+      *o++ = *s++;
+    }
+    *o = '\0';
 
-		if (!g_strcmp0(key, pkey)) {
-			return value[value_index];
-		}
+    if (!g_strcmp0(key, pkey)) {
+      return value[value_index];
+    }
 
-		if (!*s) {
-			break;
-		}
-		s++;
-	}
+    if (!*s) {
+      break;
+    }
+    s++;
+  }
 
-	return "";
+  return "";
 }
 
 /**
  * @brief
  */
 void DeleteUserInfo(char *s, const char *key) {
-	char *start;
-	char pkey[512];
-	char value[512];
-	char *o;
+  char *start;
+  char pkey[512];
+  char value[512];
+  char *o;
 
-	if (strstr(key, "\\")) {
-		return;
-	}
+  if (strstr(key, "\\")) {
+    return;
+  }
 
-	while (true) {
-		start = s;
-		if (*s == '\\') {
-			s++;
-		}
-		o = pkey;
-		while (*s != '\\') {
-			if (!*s) {
-				return;
-			}
-			*o++ = *s++;
-		}
-		*o = '\0';
-		s++;
+  while (true) {
+    start = s;
+    if (*s == '\\') {
+      s++;
+    }
+    o = pkey;
+    while (*s != '\\') {
+      if (!*s) {
+        return;
+      }
+      *o++ = *s++;
+    }
+    *o = '\0';
+    s++;
 
-		o = value;
-		while (*s != '\\' && *s) {
-			if (!*s) {
-				return;
-			}
-			*o++ = *s++;
-		}
-		*o = '\0';
+    o = value;
+    while (*s != '\\' && *s) {
+      if (!*s) {
+        return;
+      }
+      *o++ = *s++;
+    }
+    *o = '\0';
 
-		if (!g_strcmp0(key, pkey)) {
-			memmove(start, s, strlen(s) + 1);
-			return;
-		}
+    if (!g_strcmp0(key, pkey)) {
+      memmove(start, s, strlen(s) + 1);
+      return;
+    }
 
-		if (!*s) {
-			return;
-		}
-	}
+    if (!*s) {
+      return;
+    }
+  }
 }
 
 /**
@@ -570,86 +570,86 @@ void DeleteUserInfo(char *s, const char *key) {
  * otherwise.
  */
 bool ValidateUserInfo(const char *s) {
-	if (!s || !*s) {
-		return false;
-	}
-	if (strstr(s, "\"")) {
-		return false;
-	}
-	if (strstr(s, ";")) {
-		return false;
-	}
-	return true;
+  if (!s || !*s) {
+    return false;
+  }
+  if (strstr(s, "\"")) {
+    return false;
+  }
+  if (strstr(s, ";")) {
+    return false;
+  }
+  return true;
 }
 
 /**
  * @brief
  */
 void SetUserInfo(char *s, const char *key, const char *value) {
-	char newi[MAX_USER_INFO_STRING * 16], *v;
+  char newi[MAX_USER_INFO_STRING * 16], *v;
 
-	if (strstr(key, "\\") || strstr(value, "\\")) {
-		//Com_Print("Can't use keys or values with a \\\n");
-		return;
-	}
+  if (strstr(key, "\\") || strstr(value, "\\")) {
+    //Com_Print("Can't use keys or values with a \\\n");
+    return;
+  }
 
-	if (strstr(key, ";")) {
-		//Com_Print("Can't use keys or values with a semicolon\n");
-		return;
-	}
+  if (strstr(key, ";")) {
+    //Com_Print("Can't use keys or values with a semicolon\n");
+    return;
+  }
 
-	if (strstr(key, "\"") || strstr(value, "\"")) {
-		//Com_Print("Can't use keys or values with a \"\n");
-		return;
-	}
+  if (strstr(key, "\"") || strstr(value, "\"")) {
+    //Com_Print("Can't use keys or values with a \"\n");
+    return;
+  }
 
-	if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
-		//Com_Print("Keys and values must be < 64 characters\n");
-		return;
-	}
+  if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
+    //Com_Print("Keys and values must be < 64 characters\n");
+    return;
+  }
 
-	DeleteUserInfo(s, key);
+  DeleteUserInfo(s, key);
 
-	if (!value || *value == '\0') {
-		return;
-	}
+  if (!value || *value == '\0') {
+    return;
+  }
 
-	g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+  g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
 
-	if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING * 16) {
-		//Com_Print("Info string length exceeded\n");
-		return;
-	}
+  if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING * 16) {
+    //Com_Print("Info string length exceeded\n");
+    return;
+  }
 
-	// only copy ascii values
-	s += strlen(s);
-	v = newi;
-	while (*v) {
-		char c = *v++;
-		c &= 127; // strip high bits
-		if (c >= 32 && c < 127) {
-			*s++ = c;
-		}
-	}
-	*s = '\0';
+  // only copy ascii values
+  s += strlen(s);
+  v = newi;
+  while (*v) {
+    char c = *v++;
+    c &= 127; // strip high bits
+    if (c >= 32 && c < 127) {
+      *s++ = c;
+    }
+  }
+  *s = '\0';
 }
 
 /**
  * @brief Case-insensitive version of g_str_equal
  */
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
-	return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
+  return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
 }
 
 /**
  * @brief Case-insensitive version of g_str_hash
  */
 guint g_stri_hash(gconstpointer v) {
-	guint32 h = 5381;
+  guint32 h = 5381;
 
-	for (const char *p = (const char *) v; *p; p++) {
-		h = (h << 5) + h + tolower(*p);
-	}
+  for (const char *p = (const char *) v; *p; p++) {
+    h = (h << 5) + h + tolower(*p);
+  }
 
-	return h;
+  return h;
 }

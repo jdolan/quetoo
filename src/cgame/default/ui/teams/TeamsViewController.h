@@ -40,32 +40,32 @@ typedef struct TeamsViewControllerInterface TeamsViewControllerInterface;
  */
 struct TeamsViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	TeamsViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  TeamsViewControllerInterface *interface;
 
-	/**
-	 * @brief The teams CollectionView.
-	 */
-	CollectionView *teamsCollectionView;
+  /**
+   * @brief The teams CollectionView.
+   */
+  CollectionView *teamsCollectionView;
 
-	/**
-	 * @brief The spectate Button.
-	 */
-	Button *spectate;
+  /**
+   * @brief The spectate Button.
+   */
+  Button *spectate;
 
-	/**
-	 * @brief The join Button.
-	 */
-	Button *join;
+  /**
+   * @brief The join Button.
+   */
+  Button *join;
 };
 
 /**
@@ -73,10 +73,10 @@ struct TeamsViewController {
  */
 struct TeamsViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

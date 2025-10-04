@@ -24,12 +24,12 @@
 #include "quemap.h"
 
 typedef struct {
-	SDL_mutex *lock; // mutex on all running work
-	const char *name; // the work name
-	WorkFunc func; // the work function
-	int32_t index; // current work cycle
-	int32_t count; // total work cycles
-	int32_t percent; // last fraction of work completed
+  SDL_mutex *lock; // mutex on all running work
+  const char *name; // the work name
+  WorkFunc func; // the work function
+  int32_t index; // current work cycle
+  int32_t count; // total work cycles
+  int32_t percent; // last fraction of work completed
 } work_t;
 
 static work_t work;
@@ -39,28 +39,28 @@ static work_t work;
  */
 static int32_t GetWork(void) {
 
-	int32_t w = -1;
-	SDL_LockMutex(work.lock);
+  int32_t w = -1;
+  SDL_LockMutex(work.lock);
 
-	if (Com_WasInit(QUEMAP)) {
-		if (work.index < work.count) {
+  if (Com_WasInit(QUEMAP)) {
+    if (work.index < work.count) {
 
-			// update work percent and output progress
-			const int32_t p = ceilf(100.0 * work.index / work.count);
-			if (p != work.percent) {
-				if (work.name) {
-					Com_Print("\r%-24s [%3d%%]", work.name, p);
-				}
-				work.percent = p;
-			}
+      // update work percent and output progress
+      const int32_t p = ceilf(100.0 * work.index / work.count);
+      if (p != work.percent) {
+        if (work.name) {
+          Com_Print("\r%-24s [%3d%%]", work.name, p);
+        }
+        work.percent = p;
+      }
 
-			// assign the next work iteration
-			w = work.index++;
-		}
-	}
+      // assign the next work iteration
+      w = work.index++;
+    }
+  }
 
-	SDL_UnlockMutex(work.lock);
-	return w;
+  SDL_UnlockMutex(work.lock);
+  return w;
 }
 
 /**
@@ -69,13 +69,13 @@ static int32_t GetWork(void) {
  */
 static void RunWorkFunc(void *p) {
 
-	while (true) {
-		const int32_t w = GetWork();
-		if (w == -1) {
-			break;
-		}
-		work.func(w);
-	}
+  while (true) {
+    const int32_t w = GetWork();
+    if (w == -1) {
+      break;
+    }
+    work.func(w);
+  }
 }
 
 /**
@@ -83,41 +83,41 @@ static void RunWorkFunc(void *p) {
  */
 void Work(const char *name, WorkFunc func, int32_t count) {
 
-	memset(&work, 0, sizeof(work));
+  memset(&work, 0, sizeof(work));
 
-	work.lock = SDL_CreateMutex();
-	work.name = name;
-	work.count = count;
-	work.func = func;
-	work.index = 0;
-	work.percent = -1;
+  work.lock = SDL_CreateMutex();
+  work.name = name;
+  work.count = count;
+  work.func = func;
+  work.index = 0;
+  work.percent = -1;
 
-	const uint32_t start = SDL_GetTicks();
+  const uint32_t start = SDL_GetTicks();
 
-	const int32_t thread_count = Thread_Count();
+  const int32_t thread_count = Thread_Count();
 
-	if (thread_count == 0) {
-		RunWorkFunc(0);
-	} else {
-		thread_t *threads[thread_count];
+  if (thread_count == 0) {
+    RunWorkFunc(0);
+  } else {
+    thread_t *threads[thread_count];
 
-		for (int32_t i = 0; i < thread_count; i++) {
-			threads[i] = Thread_Create(RunWorkFunc, NULL, 0);
-		}
+    for (int32_t i = 0; i < thread_count; i++) {
+      threads[i] = Thread_Create(RunWorkFunc, NULL, 0);
+    }
 
-		for (int32_t i = 0; i < thread_count; i++) {
-			Thread_Wait(threads[i]);
-		}
-	}
+    for (int32_t i = 0; i < thread_count; i++) {
+      Thread_Wait(threads[i]);
+    }
+  }
 
-	SDL_DestroyMutex(work.lock);
-	work.lock = NULL;
+  SDL_DestroyMutex(work.lock);
+  work.lock = NULL;
 
-	const uint32_t end = SDL_GetTicks();
+  const uint32_t end = SDL_GetTicks();
 
-	if (work.name) {
-		Com_Print(" %d ms\n", end - start);
-	}
+  if (work.name) {
+    Com_Print(" %d ms\n", end - start);
+  }
 }
 
 /**
@@ -126,25 +126,25 @@ void Work(const char *name, WorkFunc func, int32_t count) {
  * poor GtkRadiant console performance.
  */
 void Progress(const char *progress, int32_t percent) {
-	static char *string = "-\\|/-|";
-	static int32_t index = 0;
-	static int32_t last_percent;
+  static char *string = "-\\|/-|";
+  static int32_t index = 0;
+  static int32_t last_percent;
 
-	if (Mon_IsConnected() && percent != 0 && percent != 100) {
-		static uint32_t last_ticks;
-		if (SDL_GetTicks() - last_ticks < 200) {
-			return;
-		}
-		last_ticks = SDL_GetTicks();
-	}
+  if (Mon_IsConnected() && percent != 0 && percent != 100) {
+    static uint32_t last_ticks;
+    if (SDL_GetTicks() - last_ticks < 200) {
+      return;
+    }
+    last_ticks = SDL_GetTicks();
+  }
 
-	if (percent == -1) {
-		Com_Print("\r%-24s [%c]", progress, string[index]);
-		index = (index + 1) % strlen(string);
-	} else {
-		if (percent != last_percent) {
-			Com_Print("\r%-24s [%3d%%]", progress, percent);
-			last_percent = percent;
-		}
-	}
+  if (percent == -1) {
+    Com_Print("\r%-24s [%c]", progress, string[index]);
+    index = (index + 1) % strlen(string);
+  } else {
+    if (percent != last_percent) {
+      Com_Print("\r%-24s [%3d%%]", progress, percent);
+      last_percent = percent;
+    }
+  }
 }

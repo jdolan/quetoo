@@ -26,74 +26,74 @@
  */
 GList *Cm_LoadEntities(const char *entity_string) {
 
-	GList *entities = NULL;
+  GList *entities = NULL;
 
-	parser_t parser = Parse_Init(entity_string, PARSER_NO_COMMENTS);
+  parser_t parser = Parse_Init(entity_string, PARSER_NO_COMMENTS);
 
-	while (true) {
+  while (true) {
 
-		char token[MAX_BSP_ENTITY_VALUE];
+    char token[MAX_BSP_ENTITY_VALUE];
 
-		if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-			break;
-		}
+    if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+      break;
+    }
 
-		if (!g_strcmp0("{", token)) {
+    if (!g_strcmp0("{", token)) {
 
-			cm_entity_t *entity = NULL;
+      cm_entity_t *entity = NULL;
 
-			while (true) {
+      while (true) {
 
-				cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_COLLISION);
+        cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_COLLISION);
 
-				Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
-				Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
+        Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
+        Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
 
-				if (strlen(pair->string)) {
-					pair->parsed |= ENTITY_STRING;
-					pair->nullable_string = pair->string;
-				}
+        if (strlen(pair->string)) {
+          pair->parsed |= ENTITY_STRING;
+          pair->nullable_string = pair->string;
+        }
 
-				if (Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS, PARSE_DEFAULT,
-										 PARSE_INT32, &pair->integer, 1) == 1) {
-					pair->parsed |= ENTITY_INTEGER;
-				}
+        if (Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS, PARSE_DEFAULT,
+                     PARSE_INT32, &pair->integer, 1) == 1) {
+          pair->parsed |= ENTITY_INTEGER;
+        }
 
-				const size_t count = Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS,
-														  PARSE_DEFAULT, PARSE_FLOAT, &pair->vec4, 4);
+        const size_t count = Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS,
+                              PARSE_DEFAULT, PARSE_FLOAT, &pair->vec4, 4);
 
-				switch (count) {
-					case 1:
-						pair->parsed |= ENTITY_FLOAT;
-						break;
-					case 2:
-						pair->parsed |= ENTITY_VEC2;
-						break;
-					case 3:
-						pair->parsed |= ENTITY_VEC3;
-						break;
-					case 4:
-						pair->parsed |= ENTITY_VEC4;
-						break;
-				}
+        switch (count) {
+          case 1:
+            pair->parsed |= ENTITY_FLOAT;
+            break;
+          case 2:
+            pair->parsed |= ENTITY_VEC2;
+            break;
+          case 3:
+            pair->parsed |= ENTITY_VEC3;
+            break;
+          case 4:
+            pair->parsed |= ENTITY_VEC4;
+            break;
+        }
 
-				pair->next = entity;
-				entity = pair;
+        pair->next = entity;
+        entity = pair;
 
-				Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
+        Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
 
-				if (!g_strcmp0("}", token)) {
-					break;
-				}
-			}
+        if (!g_strcmp0("}", token)) {
+          break;
+        }
+      }
 
-			assert(entity);
+      assert(entity);
 
-			entities = g_list_prepend(entities, entity);
-		}
-	}
+      entities = g_list_prepend(entities, entity);
+    }
+  }
 
-	return g_list_reverse(entities);
+  return g_list_reverse(entities);
 }
 
 /**
@@ -101,28 +101,28 @@ GList *Cm_LoadEntities(const char *entity_string) {
  */
 int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 
-	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
-		if (Cm_Bsp()->entities[i] == entity) {
-			return i;
-		}
-	}
+  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
+    if (Cm_Bsp()->entities[i] == entity) {
+      return i;
+    }
+  }
 
-	return -1;
+  return -1;
 }
 
 /**
  * @brief
  */
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
-	static cm_entity_t null_entity;
+  static cm_entity_t null_entity;
 
-	for (const cm_entity_t *e = entity; e; e = e->next) {
-		if (!g_strcmp0(e->key, key)) {
-			return e;
-		}
-	}
+  for (const cm_entity_t *e = entity; e; e = e->next) {
+    if (!g_strcmp0(e->key, key)) {
+      return e;
+    }
+  }
 
-	return &null_entity;
+  return &null_entity;
 }
 
 /**
@@ -130,15 +130,15 @@ const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
  */
 GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
 
-	GPtrArray *brushes = g_ptr_array_new();
+  GPtrArray *brushes = g_ptr_array_new();
 
-	cm_bsp_brush_t *brush = Cm_Bsp()->brushes;
-	for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
+  cm_bsp_brush_t *brush = Cm_Bsp()->brushes;
+  for (int32_t i = 0; i < Cm_Bsp()->num_brushes; i++, brush++) {
 
-		if (brush->entity == entity) {
-			g_ptr_array_add(brushes, brush);
-		}
-	}
+    if (brush->entity == entity) {
+      g_ptr_array_add(brushes, brush);
+    }
+  }
 
-	return brushes;
+  return brushes;
 }

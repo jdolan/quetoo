@@ -57,48 +57,48 @@
 
 #ifndef GLAD_PLATFORM_WIN32
   #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__MINGW32__)
-	#define GLAD_PLATFORM_WIN32 1
+  #define GLAD_PLATFORM_WIN32 1
   #else
-	#define GLAD_PLATFORM_WIN32 0
+  #define GLAD_PLATFORM_WIN32 0
   #endif
 #endif
 
 #ifndef GLAD_PLATFORM_APPLE
   #ifdef __APPLE__
-	#define GLAD_PLATFORM_APPLE 1
+  #define GLAD_PLATFORM_APPLE 1
   #else
-	#define GLAD_PLATFORM_APPLE 0
+  #define GLAD_PLATFORM_APPLE 0
   #endif
 #endif
 
 #ifndef GLAD_PLATFORM_EMSCRIPTEN
   #ifdef __EMSCRIPTEN__
-	#define GLAD_PLATFORM_EMSCRIPTEN 1
+  #define GLAD_PLATFORM_EMSCRIPTEN 1
   #else
-	#define GLAD_PLATFORM_EMSCRIPTEN 0
+  #define GLAD_PLATFORM_EMSCRIPTEN 0
   #endif
 #endif
 
 #ifndef GLAD_PLATFORM_UWP
   #if defined(_MSC_VER) && !defined(GLAD_INTERNAL_HAVE_WINAPIFAMILY)
-	#ifdef __has_include
-	  #if __has_include(<winapifamily.h>)
-		#define GLAD_INTERNAL_HAVE_WINAPIFAMILY 1
-	  #endif
-	#elif _MSC_VER >= 1700 && !_USING_V110_SDK71_
-	  #define GLAD_INTERNAL_HAVE_WINAPIFAMILY 1
-	#endif
+  #ifdef __has_include
+    #if __has_include(<winapifamily.h>)
+    #define GLAD_INTERNAL_HAVE_WINAPIFAMILY 1
+    #endif
+  #elif _MSC_VER >= 1700 && !_USING_V110_SDK71_
+    #define GLAD_INTERNAL_HAVE_WINAPIFAMILY 1
+  #endif
   #endif
 
   #ifdef GLAD_INTERNAL_HAVE_WINAPIFAMILY
-	#include <winapifamily.h>
-	#if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
-	  #define GLAD_PLATFORM_UWP 1
-	#endif
+  #include <winapifamily.h>
+  #if !WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP) && WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_APP)
+    #define GLAD_PLATFORM_UWP 1
+  #endif
   #endif
 
   #ifndef GLAD_PLATFORM_UWP
-	#define GLAD_PLATFORM_UWP 0
+  #define GLAD_PLATFORM_UWP 0
   #endif
 #endif
 
@@ -112,27 +112,27 @@
 
 #ifndef GLAD_API_CALL
   #if defined(GLAD_API_CALL_EXPORT)
-	#if GLAD_PLATFORM_WIN32 || defined(__CYGWIN__)
-	  #if defined(GLAD_API_CALL_EXPORT_BUILD)
-		#if defined(__GNUC__)
-		  #define GLAD_API_CALL __attribute__ ((dllexport)) extern
-		#else
-		  #define GLAD_API_CALL __declspec(dllexport) extern
-		#endif
-	  #else
-		#if defined(__GNUC__)
-		  #define GLAD_API_CALL __attribute__ ((dllimport)) extern
-		#else
-		  #define GLAD_API_CALL __declspec(dllimport) extern
-		#endif
-	  #endif
-	#elif defined(__GNUC__) && defined(GLAD_API_CALL_EXPORT_BUILD)
-	  #define GLAD_API_CALL __attribute__ ((visibility ("default"))) extern
-	#else
-	  #define GLAD_API_CALL extern
-	#endif
+  #if GLAD_PLATFORM_WIN32 || defined(__CYGWIN__)
+    #if defined(GLAD_API_CALL_EXPORT_BUILD)
+    #if defined(__GNUC__)
+      #define GLAD_API_CALL __attribute__ ((dllexport)) extern
+    #else
+      #define GLAD_API_CALL __declspec(dllexport) extern
+    #endif
+    #else
+    #if defined(__GNUC__)
+      #define GLAD_API_CALL __attribute__ ((dllimport)) extern
+    #else
+      #define GLAD_API_CALL __declspec(dllimport) extern
+    #endif
+    #endif
+  #elif defined(__GNUC__) && defined(GLAD_API_CALL_EXPORT_BUILD)
+    #define GLAD_API_CALL __attribute__ ((visibility ("default"))) extern
   #else
-	#define GLAD_API_CALL extern
+    #define GLAD_API_CALL extern
+  #endif
+  #else
+  #define GLAD_API_CALL extern
   #endif
 #endif
 
@@ -1246,8 +1246,8 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
  * This precedes the return type of the function in the function prototype.
  */
 #if defined(KHRONOS_STATIC)
-	/* If the preprocessor constant KHRONOS_STATIC is defined, make the
-	 * header compatible with static linking. */
+  /* If the preprocessor constant KHRONOS_STATIC is defined, make the
+   * header compatible with static linking. */
 #   define KHRONOS_APICALL
 #elif defined(_WIN32)
 #   define KHRONOS_APICALL __declspec(dllimport)
@@ -1266,7 +1266,7 @@ typedef void (*GLADpostcallback)(void *ret, const char *name, GLADapiproc apipro
  * name in the function prototype.
  */
 #if defined(_WIN32) && !defined(_WIN32_WCE) && !defined(__SCITECH_SNAP__)
-	/* Win32 but not WinCE */
+  /* Win32 but not WinCE */
 #   define KHRONOS_APIENTRY __stdcall
 #else
 #   define KHRONOS_APIENTRY
@@ -1449,9 +1449,9 @@ typedef khronos_int64_t        khronos_stime_nanoseconds_t;
  * comparisons should not be made against KHRONOS_TRUE.
  */
 typedef enum {
-	KHRONOS_FALSE = 0,
-	KHRONOS_TRUE  = 1,
-	KHRONOS_BOOLEAN_ENUM_FORCE_SIZE = KHRONOS_MAX_ENUM
+  KHRONOS_FALSE = 0,
+  KHRONOS_TRUE  = 1,
+  KHRONOS_BOOLEAN_ENUM_FORCE_SIZE = KHRONOS_MAX_ENUM
 } khronos_boolean_enum_t;
 
 #endif /* __khrplatform_h_ */

@@ -26,19 +26,19 @@
  */
 void R_AddStain(r_view_t *view, const r_stain_t *stain) {
 
-	if (!r_stains->value) {
-		return;
-	}
+  if (!r_stains->value) {
+    return;
+  }
 
-	if (view->num_stains == MAX_STAINS) {
-		Com_Warn("MAX_STAINS\n");
-		return;
-	}
+  if (view->num_stains == MAX_STAINS) {
+    Com_Warn("MAX_STAINS\n");
+    return;
+  }
 
-	r_stain_t s = *stain;
-	s.radius = Maxf(s.radius, BSP_VOXEL_SIZE);
+  r_stain_t s = *stain;
+  s.radius = Maxf(s.radius, BSP_VOXEL_SIZE);
 
-	view->stains[view->num_stains++] = s;
+  view->stains[view->num_stains++] = s;
 }
 
 /**
@@ -46,39 +46,39 @@ void R_AddStain(r_view_t *view, const r_stain_t *stain) {
  */
 static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
 
-	const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+  const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
 
-	const vec3_t translate = Vec3_Subtract(stain->origin, voxels->bounds.mins);
-	const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, voxels->voxel_size));
+  const vec3_t translate = Vec3_Subtract(stain->origin, voxels->bounds.mins);
+  const vec3i_t origin = Vec3_CastVec3i(Vec3_Divide(translate, voxels->voxel_size));
 
-	const int32_t radius = stain->radius / BSP_VOXEL_SIZE;
+  const int32_t radius = stain->radius / BSP_VOXEL_SIZE;
 
-	for (int32_t z = -radius; z < radius; z++) {
-		for (int32_t y = -radius; y < radius; y++) {
-			for (int32_t x = -radius; x < radius; x++) {
+  for (int32_t z = -radius; z < radius; z++) {
+    for (int32_t y = -radius; y < radius; y++) {
+      for (int32_t x = -radius; x < radius; x++) {
 
-				// this voxel is stained, so attenuate and blend it
+        // this voxel is stained, so attenuate and blend it
 
-				const vec3i_t pos = Vec3i_Add(origin, Vec3i(x, y, z));
+        const vec3i_t pos = Vec3i_Add(origin, Vec3i(x, y, z));
 
-				const int32_t voxel = voxels->size.x * voxels->size.y * pos.z + voxels->size.x * pos.y + pos.x;
+        const int32_t voxel = voxels->size.x * voxels->size.y * pos.z + voxels->size.x * pos.y + pos.x;
 
-				color32_t *out = voxels->stain_buffer + voxel;
+        color32_t *out = voxels->stain_buffer + voxel;
 
-				const float atten = 1.f;
+        const float atten = 1.f;
 
-				const float intensity = stain->color.a * atten;
+        const float intensity = stain->color.a * atten;
 
-				const float src_alpha = Clampf01(intensity);
-				const float dst_alpha = 1.f - src_alpha;
+        const float src_alpha = Clampf01(intensity);
+        const float dst_alpha = 1.f - src_alpha;
 
-				const color_t src = Color_Scale(stain->color, src_alpha);
-				const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
+        const color_t src = Color_Scale(stain->color, src_alpha);
+        const color_t dst = Color_Scale(Color32_Color(*out), dst_alpha);
 
-				*out = Color_Color32(Color_Add(src, dst));
-			}
-		}
-	}
+        *out = Color_Color32(Color_Add(src, dst));
+      }
+    }
+  }
 }
 
 /**
@@ -86,29 +86,29 @@ static void R_UpdateStain(const r_view_t *view, const r_stain_t *stain) {
  */
 void R_UpdateStains(const r_view_t *view) {
 
-	if (view->num_stains == 0) {
-		return;
-	}
+  if (view->num_stains == 0) {
+    return;
+  }
 
-	const r_stain_t *stain = view->stains;
-	for (int32_t i = 0; i < view->num_stains; i++, stain++) {
+  const r_stain_t *stain = view->stains;
+  for (int32_t i = 0; i < view->num_stains; i++, stain++) {
 
-		if (R_OccludeSphere(view, stain->origin, stain->radius)) {
-			continue;
-		}
+    if (R_OccludeSphere(view, stain->origin, stain->radius)) {
+      continue;
+    }
 
-		R_UpdateStain(view, stain);
-	}
+    R_UpdateStain(view, stain);
+  }
 
-	const r_image_t *s = r_models.world->bsp->voxels->stains;
-	const color32_t *c = r_models.world->bsp->voxels->stain_buffer;
+  const r_image_t *s = r_models.world->bsp->voxels->stains;
+  const color32_t *c = r_models.world->bsp->voxels->stain_buffer;
 
-	// FIXME: Upload only the dirty voxels, calculate bounding box of frame stains in voxel space
+  // FIXME: Upload only the dirty voxels, calculate bounding box of frame stains in voxel space
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
-	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);
-	glGenerateMipmap(GL_TEXTURE_3D);
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
+  glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);
+  glGenerateMipmap(GL_TEXTURE_3D);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }

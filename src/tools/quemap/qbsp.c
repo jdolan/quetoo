@@ -48,40 +48,40 @@ bool only_ents = false;
  */
 static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
-	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
 
-	if (!no_csg) {
-		brushes = SubtractBrushes(brushes);
-	}
+  if (!no_csg) {
+    brushes = SubtractBrushes(brushes);
+  }
 
-	tree_t *tree = BuildTree(brushes);
+  tree_t *tree = BuildTree(brushes);
 
-	MakeTreePortals(tree);
+  MakeTreePortals(tree);
 
-	if (FloodEntities(tree)) {
-		FillOutside(tree);
-	} else {
-		Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
-		leaked = true;
+  if (FloodEntities(tree)) {
+    FillOutside(tree);
+  } else {
+    Com_Warn("Map leaked, writing maps/%s.lin\n", map_base);
+    leaked = true;
 
-		WriteLeakFile(tree);
-	}
+    WriteLeakFile(tree);
+  }
 
-	FindPortalBrushSides(tree);
+  FindPortalBrushSides(tree);
 
-	MakeTreeFaces(tree);
+  MakeTreeFaces(tree);
 
-	if (!no_merge) {
-		MergeTreeFaces(tree);
-	}
+  if (!no_merge) {
+    MergeTreeFaces(tree);
+  }
 
-	if (!no_tjunc) {
-		FixTJunctions(tree);
-	}
+  if (!no_tjunc) {
+    FixTJunctions(tree);
+  }
 
-	out->head_node = EmitNodes(tree);
+  out->head_node = EmitNodes(tree);
 
-	FreeTree(tree);
+  FreeTree(tree);
 }
 
 /**
@@ -89,30 +89,30 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
  */
 static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
-	csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
-	if (!no_csg) {
-		brushes = SubtractBrushes(brushes);
-	}
+  csg_brush_t *brushes = MakeBrushes(e->first_brush, e->num_brushes);
+  if (!no_csg) {
+    brushes = SubtractBrushes(brushes);
+  }
 
-	tree_t *tree = BuildTree(brushes);
+  tree_t *tree = BuildTree(brushes);
 
-	MakeTreePortals(tree);
+  MakeTreePortals(tree);
 
-	FindPortalBrushSides(tree);
+  FindPortalBrushSides(tree);
 
-	MakeTreeFaces(tree);
+  MakeTreeFaces(tree);
 
-	if (!no_merge) {
-		MergeTreeFaces(tree);
-	}
+  if (!no_merge) {
+    MergeTreeFaces(tree);
+  }
 
-	if (!no_tjunc) {
-		FixTJunctions(tree);
-	}
+  if (!no_tjunc) {
+    FixTJunctions(tree);
+  }
 
-	out->head_node = EmitNodes(tree);
+  out->head_node = EmitNodes(tree);
 
-	FreeTree(tree);
+  FreeTree(tree);
 }
 
 /**
@@ -120,26 +120,26 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
  */
 static void ProcessModels(void) {
 
-	for (int32_t i = 0; i < num_entities; i++) {
-		const entity_t *e = entities + i;
+  for (int32_t i = 0; i < num_entities; i++) {
+    const entity_t *e = entities + i;
 
-		if (!e->num_brush_sides) {
-			continue;
-		}
+    if (!e->num_brush_sides) {
+      continue;
+    }
 
-		const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
-		Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
+    const vec3_t origin = VectorForKey(e, "origin", Vec3_Zero());
+    Com_Print("%s @ %s\n", ValueForKey(e, "classname", "Unknown"), vtos(origin));
 
-		bsp_model_t *mod = BeginModel(e);
-		if (i == 0) {
-			ProcessWorldModel(e, mod);
-		} else {
-			ProcessInlineModel(e, mod);
-		}
-		EndModel(mod);
+    bsp_model_t *mod = BeginModel(e);
+    if (i == 0) {
+      ProcessWorldModel(e, mod);
+    } else {
+      ProcessInlineModel(e, mod);
+    }
+    EndModel(mod);
 
-		Com_Print("\n");
-	}
+    Com_Print("\n");
+  }
 }
 
 /**
@@ -147,54 +147,54 @@ static void ProcessModels(void) {
  */
 int32_t BSP_Main(void) {
 
-	Com_Print("\n------------------------------------------\n");
-	Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
+  Com_Print("\n------------------------------------------\n");
+  Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
 
-	const uint32_t start = SDL_GetTicks();
+  const uint32_t start = SDL_GetTicks();
 
-	LoadMaterials(va("maps/%s.mat", map_base));
+  LoadMaterials(va("maps/%s.mat", map_base));
 
-	if (only_ents) {
+  if (only_ents) {
 
-		LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+    LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
 
-		LoadMapFile(map_name);
+    LoadMapFile(map_name);
 
-		EmitEntities();
-	} else {
+    EmitEntities();
+  } else {
 
-		Fs_Delete(va("maps/%s.prt", map_base));
-		Fs_Delete(va("maps/%s.lin", map_base));
+    Fs_Delete(va("maps/%s.prt", map_base));
+    Fs_Delete(va("maps/%s.lin", map_base));
 
-		BeginBSPFile();
+    BeginBSPFile();
 
-		LoadMapFile(map_name);
+    LoadMapFile(map_name);
 
-		EmitPlanes();
-		EmitMaterials();
-		EmitBrushes();
-		EmitEntities();
+    EmitPlanes();
+    EmitMaterials();
+    EmitBrushes();
+    EmitEntities();
 
-		ProcessModels();
+    ProcessModels();
 
-		EndBSPFile();
+    EndBSPFile();
 
-		PhongShading();
-		TangentVectors();
-	}
+    PhongShading();
+    TangentVectors();
+  }
 
-	WriteBSPFile(bsp_name);
+  WriteBSPFile(bsp_name);
 
-	FreeMaterials();
+  FreeMaterials();
 
-	FreeWindings();
+  FreeWindings();
 
-	for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QLIGHT; tag++) {
-		Mem_FreeTag(tag);
-	}
+  for (int32_t tag = MEM_TAG_QBSP; tag < MEM_TAG_QLIGHT; tag++) {
+    Mem_FreeTag(tag);
+  }
 
-	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
+  const uint32_t end = SDL_GetTicks();
+  Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
 
-	return 0;
+  return 0;
 }

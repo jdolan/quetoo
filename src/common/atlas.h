@@ -29,31 +29,31 @@
  */
 typedef struct {
 
-	/**
-	 * @brief The surfaces, which must all be of the same size. The first surface
-	 * (first layer) must not be `NULL`.
-	 */
-	SDL_Surface **surfaces;
+  /**
+   * @brief The surfaces, which must all be of the same size. The first surface
+   * (first layer) must not be `NULL`.
+   */
+  SDL_Surface **surfaces;
 
-	/**
-	 * @brief The node coordinates within the compiled atlas.
-	 */
-	int32_t x, y;
+  /**
+   * @brief The node coordinates within the compiled atlas.
+   */
+  int32_t x, y;
 
-	/**
-	 * @brief The node width/height of the compiled atlas image.
-	 */
-	int32_t w, h;
+  /**
+   * @brief The node width/height of the compiled atlas image.
+   */
+  int32_t w, h;
 
-	/**
-	 * @brief The atlas tag at which this node was compiled.
-	 */
-	int32_t tag;
+  /**
+   * @brief The atlas tag at which this node was compiled.
+   */
+  int32_t tag;
 
-	/**
-	 * @brief User data.
-	 */
-	void *data;
+  /**
+   * @brief User data.
+   */
+  void *data;
 
 } atlas_node_t;
 
@@ -81,30 +81,30 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  */
 typedef struct atlas_s {
 
-	/**
-	 * @brief The number of layers in the atlas.
-	 */
-	int32_t layers;
+  /**
+   * @brief The number of layers in the atlas.
+   */
+  int32_t layers;
 
-	/**
-	 * @brief The atlas nodes.
-	 */
-	GPtrArray *nodes;
+  /**
+   * @brief The atlas nodes.
+   */
+  GPtrArray *nodes;
 
-	/**
-	 * @brief The comparator to sort nodes for packing.
-	 */
-	AtlasNodeComparator comparator;
+  /**
+   * @brief The comparator to sort nodes for packing.
+   */
+  AtlasNodeComparator comparator;
 
-	/**
-	 * @brief The blit function for blitting packed nodes into the atlas.
-	 */
-	AtlasBlit blit;
+  /**
+   * @brief The blit function for blitting packed nodes into the atlas.
+   */
+  AtlasBlit blit;
 
-	/**
-	 * @brief The iteration identifier, which is written to nodes as they are compiled.
-	 */
-	int32_t tag;
+  /**
+   * @brief The iteration identifier, which is written to nodes as they are compiled.
+   */
+  int32_t tag;
 
 } atlas_t;
 

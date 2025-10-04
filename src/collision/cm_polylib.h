@@ -27,35 +27,35 @@
  * @brief An ordered collection of coplanar points describing a convex volume.
  */
 typedef struct {
-	/**
-	 * @brief The number of points in the winding.
-	 */
-	int32_t num_points;
+  /**
+   * @brief The number of points in the winding.
+   */
+  int32_t num_points;
 
-	/**
-	 * @brief The actual number of points will vary.
-	 */
-	vec3_t points[0];
+  /**
+   * @brief The actual number of points will vary.
+   */
+  vec3_t points[0];
 } cm_winding_t;
 
 /**
  * @brief A winding point, clipped against a specific plane.
  */
 typedef struct {
-	/**
-	 * @brief The clipped point.
-	 */
-	vec3_t point;
+  /**
+   * @brief The clipped point.
+   */
+  vec3_t point;
 
-	/**
-	 * @brief The distance from the plane.
-	 */
-	double dist;
+  /**
+   * @brief The distance from the plane.
+   */
+  double dist;
 
-	/**
-	 * @brief The plane side.
-	 */
-	int32_t side;
+  /**
+   * @brief The plane side.
+   */
+  int32_t side;
 } cm_clip_point_t;
 
 cm_winding_t *Cm_AllocWinding(int32_t num_points);
@@ -82,35 +82,35 @@ box3_t Cm_ClipBox(const box3_t in, const vec4_t plane);
  * @brief A UV mapped vertex primitive.
  */
 typedef struct {
-	/**
-	 * @brief The vertex position.
-	 */
-	vec3_t *position;
+  /**
+   * @brief The vertex position.
+   */
+  vec3_t *position;
 
-	/**
-	 * @brief The vertex normal.
-	 */
-	vec3_t *normal;
+  /**
+   * @brief The vertex normal.
+   */
+  vec3_t *normal;
 
-	/**
-	 * @brief The vertex tangent.
-	 */
-	vec3_t *tangent;
+  /**
+   * @brief The vertex tangent.
+   */
+  vec3_t *tangent;
 
-	/**
-	 * @brief The vertex bitangent.
-	 */
-	vec3_t *bitangent;
+  /**
+   * @brief The vertex bitangent.
+   */
+  vec3_t *bitangent;
 
-	/**
-	 * @brief The vertex texture coordinate.
-	 */
-	vec2_t *st;
+  /**
+   * @brief The vertex texture coordinate.
+   */
+  vec2_t *st;
 
-	/**
-	 * @brief The number of triangles referencing this vertex.
-	 */
-	int32_t num_tris;
+  /**
+   * @brief The number of triangles referencing this vertex.
+   */
+  int32_t num_tris;
 } cm_vertex_t;
 
 

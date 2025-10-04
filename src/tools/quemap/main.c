@@ -25,11 +25,11 @@
 #include "qzip.h"
 
 #if defined(_WIN32)
-	#if defined(__MINGW32__)
-	 #define SDL_MAIN_HANDLED
-	#endif
+  #if defined(__MINGW32__)
+   #define SDL_MAIN_HANDLED
+  #endif
 
-	#include <windows.h>
+  #include <windows.h>
 #endif
 
 #include <SDL.h>
@@ -57,11 +57,11 @@ static void Print(const char *msg);
  */
 static void Debug(const debug_t debug, const char *msg) {
 
-	if (!debug) {
-		return;
-	}
+  if (!debug) {
+    return;
+  }
 
-	Print(msg);
+  Print(msg);
 }
 
 static void Shutdown(const char *msg);
@@ -72,17 +72,17 @@ static void Shutdown(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
 
-	fprintf(stderr, "ERROR: Thread %lu: %s", SDL_ThreadID(), msg);
+  fprintf(stderr, "ERROR: Thread %lu: %s", SDL_ThreadID(), msg);
 
-	fflush(stderr);
+  fflush(stderr);
 
-	if (SDL_ThreadID() == thread_main) {
-		Shutdown(msg);
-		exit(err);
-	} else {
-		raise(SIGINT);
-		exit(err);
-	}
+  if (SDL_ThreadID() == thread_main) {
+    Shutdown(msg);
+    exit(err);
+  } else {
+    raise(SIGINT);
+    exit(err);
+  }
 }
 
 /**
@@ -90,16 +90,16 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (msg) {
-		if (*msg == '@') {
-			fputs(msg + 1, stdout);
-		} else {
-			fputs(msg, stdout);
-			Mon_SendMessage(MON_PRINT, msg);
-		}
+  if (msg) {
+    if (*msg == '@') {
+      fputs(msg + 1, stdout);
+    } else {
+      fputs(msg, stdout);
+      Mon_SendMessage(MON_PRINT, msg);
+    }
 
-		fflush(stdout);
-	}
+    fflush(stdout);
+  }
 }
 
 /**
@@ -108,11 +108,11 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (!verbose) {
-		return;
-	}
+  if (!verbose) {
+    return;
+  }
 
-	Print(msg);
+  Print(msg);
 }
 
 /**
@@ -121,16 +121,16 @@ static void Verbose(const char *msg) {
  */
 static void Warn(const char *msg) {
 
-	if (msg) {
-		if (*msg == '@') {
-			fprintf(stderr, "WARNING: %s", msg + 1);
-		} else {
-			fprintf(stderr, "WARNING: %s", msg);
-			Mon_SendMessage(MON_WARN, va("WARNING: %s", msg));
-		}
+  if (msg) {
+    if (*msg == '@') {
+      fprintf(stderr, "WARNING: %s", msg + 1);
+    } else {
+      fprintf(stderr, "WARNING: %s", msg);
+      Mon_SendMessage(MON_WARN, va("WARNING: %s", msg));
+    }
 
-		fflush(stderr);
-	}
+    fflush(stderr);
+  }
 }
 
 /**
@@ -138,17 +138,17 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-	SDL_Init(SDL_INIT_TIMER);
+  SDL_Init(SDL_INIT_TIMER);
 
-	Com_InitSubsystem(QUEMAP);
+  Com_InitSubsystem(QUEMAP);
 
-	Mem_Init();
+  Mem_Init();
 
-	Mon_Init();
+  Mon_Init();
 
-	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
+  Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-	Com_Print("Quemap %s %s %s initialized\n", VERSION, BUILD, REVISION);
+  Com_Print("Quemap %s %s %s initialized\n", VERSION, BUILD, REVISION);
 }
 
 /**
@@ -156,20 +156,20 @@ static void Init(void) {
  */
 static void Shutdown(const char *msg) {
 
-	Com_QuitSubsystem(QUEMAP);
+  Com_QuitSubsystem(QUEMAP);
 
-	Thread_Shutdown();
+  Thread_Shutdown();
 
-	Mon_Shutdown(msg);
+  Mon_Shutdown(msg);
 
-	Fs_Shutdown();
+  Fs_Shutdown();
 
-	Mem_Shutdown();
+  Mem_Shutdown();
 
-	SDL_Quit();
+  SDL_Quit();
 
 #if defined(_WIN32)
-	FreeConsole();
+  FreeConsole();
 #endif
 }
 
@@ -178,39 +178,39 @@ static void Shutdown(const char *msg) {
  */
 static void Check_BSP_Options(int32_t argc) {
 
-	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
-			micro_volume = atof(Com_Argv(i + 1));
-			Com_Verbose("micro_volume = %f\n", micro_volume);
-			i++;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
-			Com_Verbose("no_csg = true\n");
-			no_csg = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
-			Com_Verbose("no_detail = true\n");
-			no_detail = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
-			Com_Verbose("no_liquid = true\n");
-			no_liquid = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
-			Com_Verbose("no_merge = true\n");
-			no_merge = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
-			Com_Verbose("no_phong = true\n");
-			no_phong = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
-			Com_Verbose("no_tjunc = true\n");
-			no_tjunc = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
-			Com_Verbose("no_weld = true\n");
-			no_weld = true;
-		} else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
-			Com_Verbose("only_ents = true\n");
-			only_ents = true;
-		} else {
-			break;
-		}
-	}
+  for (int32_t i = argc; i < Com_Argc(); i++) {
+    if (!g_strcmp0(Com_Argv(i), "--micro-volume")) {
+      micro_volume = atof(Com_Argv(i + 1));
+      Com_Verbose("micro_volume = %f\n", micro_volume);
+      i++;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-csg")) {
+      Com_Verbose("no_csg = true\n");
+      no_csg = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-detail")) {
+      Com_Verbose("no_detail = true\n");
+      no_detail = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-liquid")) {
+      Com_Verbose("no_liquid = true\n");
+      no_liquid = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-merge")) {
+      Com_Verbose("no_merge = true\n");
+      no_merge = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-phong")) {
+      Com_Verbose("no_phong = true\n");
+      no_phong = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-tjunc")) {
+      Com_Verbose("no_tjunc = true\n");
+      no_tjunc = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
+      Com_Verbose("no_weld = true\n");
+      no_weld = true;
+    } else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
+      Com_Verbose("only_ents = true\n");
+      only_ents = true;
+    } else {
+      break;
+    }
+  }
 }
 
 /**
@@ -218,14 +218,14 @@ static void Check_BSP_Options(int32_t argc) {
  */
 static void Check_LIGHT_Options(int32_t argc) {
 
-	for (int32_t i = argc; i < Com_Argc(); i++) {
-		if (!g_strcmp0(Com_Argv(i), "--antialias")) {
-			antialias = true;
-			Com_Verbose("antialias: true\n");
-		} else {
-			break;
-		}
-	}
+  for (int32_t i = argc; i < Com_Argc(); i++) {
+    if (!g_strcmp0(Com_Argv(i), "--antialias")) {
+      antialias = true;
+      Com_Verbose("antialias: true\n");
+    } else {
+      break;
+    }
+  }
 }
 
 /**
@@ -233,18 +233,18 @@ static void Check_LIGHT_Options(int32_t argc) {
  */
 static void Check_ZIP_Options(int32_t argc) {
 
-	for (int32_t i = argc; i < Com_Argc(); i++) {
+  for (int32_t i = argc; i < Com_Argc(); i++) {
 
-		if (!g_strcmp0(Com_Argv(i), "--include-shared")) {
-			include_shared = true;
-			Com_Verbose("Including shared assets\n");
-		} else if (!g_strcmp0(Com_Argv(i), "--update")) {
-			update_zip = true;
-			Com_Verbose("Updating existing zip archive\n");
-		} else {
-			break;
-		}
-	}
+    if (!g_strcmp0(Com_Argv(i), "--include-shared")) {
+      include_shared = true;
+      Com_Verbose("Including shared assets\n");
+    } else if (!g_strcmp0(Com_Argv(i), "--update")) {
+      update_zip = true;
+      Com_Verbose("Updating existing zip archive\n");
+    } else {
+      break;
+    }
+  }
 }
 
 /**
@@ -257,192 +257,192 @@ static void Check_MAT_Options(int32_t argc) {
  * @brief
  */
 static void PrintHelpMessage(void) {
-	Com_Print("General options\n");
-	Com_Print("-v --verbose\n");
-	Com_Print("-d --debug\n");
-	Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
-	Com_Print("-p --path <game directory> - add the path to the search directory\n");
-	Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
-	Com_Print("-connect <host> - use GtkRadiant's BSP monitoring server\n");
-	Com_Print("\n");
+  Com_Print("General options\n");
+  Com_Print("-v --verbose\n");
+  Com_Print("-d --debug\n");
+  Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
+  Com_Print("-p --path <game directory> - add the path to the search directory\n");
+  Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
+  Com_Print("-connect <host> - use GtkRadiant's BSP monitoring server\n");
+  Com_Print("\n");
 
-	Com_Print("-mat               MAT stage options:\n");
-	Com_Print("\n");
+  Com_Print("-mat               MAT stage options:\n");
+  Com_Print("\n");
 
-	Com_Print("-bsp               BSP stage options:\n");
-	Com_Print(" --micro-volume <float>\n");
-	Com_Print(" --no-csg - don't subtract brushes\n");
-	Com_Print(" --no-detail - skip detail brushes\n");
-	Com_Print(" --no-liquid - skip liquid brushes\n");
-	Com_Print(" --no-phong - don't apply Phong shading\n");
-	Com_Print(" --no-tjunc - don't fix T-junctions\n");
-	Com_Print(" --no-weld - don't weld vertices\n");
-	Com_Print(" --only-ents - only update the entity string from the .map\n");
-	Com_Print("\n");
+  Com_Print("-bsp               BSP stage options:\n");
+  Com_Print(" --micro-volume <float>\n");
+  Com_Print(" --no-csg - don't subtract brushes\n");
+  Com_Print(" --no-detail - skip detail brushes\n");
+  Com_Print(" --no-liquid - skip liquid brushes\n");
+  Com_Print(" --no-phong - don't apply Phong shading\n");
+  Com_Print(" --no-tjunc - don't fix T-junctions\n");
+  Com_Print(" --no-weld - don't weld vertices\n");
+  Com_Print(" --only-ents - only update the entity string from the .map\n");
+  Com_Print("\n");
 
-	Com_Print("-light             LIGHT stage options:\n");
-	Com_Print(" --antialias - calculate extra lighting samples and average them\n");
-	Com_Print("\n");
+  Com_Print("-light             LIGHT stage options:\n");
+  Com_Print(" --antialias - calculate extra lighting samples and average them\n");
+  Com_Print("\n");
 
-	Com_Print("-zip               ZIP stage options:\n");
-	Com_Print(" --include-shared - include assets from shared archives\n");
-	Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
-	Com_Print("\n");
+  Com_Print("-zip               ZIP stage options:\n");
+  Com_Print(" --include-shared - include assets from shared archives\n");
+  Com_Print(" --update - Update the existing archive instead of authoring a new one\n");
+  Com_Print("\n");
 
-	Com_Print("Examples:\n");
-	Com_Print("Materials file generation:\n"
-			  " quemap -mat maps/my.map\n");
-	Com_Print("Development compile:\n"
-			  " quemap -bsp -light maps/my.map\n");
-	Com_Print("Release compile with high quality lighting:\n"
-	          " quemap -bsp -light --antialias maps/my.map\n");
-	Com_Print("Zip file generation:\n"
-			  " quemap -zip maps/my.bsp\n");
-	Com_Print("\n");
+  Com_Print("Examples:\n");
+  Com_Print("Materials file generation:\n"
+        " quemap -mat maps/my.map\n");
+  Com_Print("Development compile:\n"
+        " quemap -bsp -light maps/my.map\n");
+  Com_Print("Release compile with high quality lighting:\n"
+            " quemap -bsp -light --antialias maps/my.map\n");
+  Com_Print("Zip file generation:\n"
+        " quemap -zip maps/my.bsp\n");
+  Com_Print("\n");
 }
 
 /**
  * @brief
  */
 int32_t main(int32_t argc, char **argv) {
-	int32_t num_threads = 0;
+  int32_t num_threads = 0;
 
-	printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
+  printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
 
-	memset(&quetoo, 0, sizeof(quetoo));
+  memset(&quetoo, 0, sizeof(quetoo));
 
-	quetoo.Debug = Debug;
-	quetoo.Error = Error;
-	quetoo.Print = Print;
-	quetoo.Verbose = Verbose;
-	quetoo.Warn = Warn;
+  quetoo.Debug = Debug;
+  quetoo.Error = Error;
+  quetoo.Print = Print;
+  quetoo.Verbose = Verbose;
+  quetoo.Warn = Warn;
 
-	quetoo.Init = Init;
-	quetoo.Shutdown = Shutdown;
+  quetoo.Init = Init;
+  quetoo.Shutdown = Shutdown;
 
-	signal(SIGINT, Sys_Signal);
-	signal(SIGILL, Sys_Signal);
-	signal(SIGABRT, Sys_Signal);
-	signal(SIGFPE, Sys_Signal);
-	signal(SIGSEGV, Sys_Signal);
-	signal(SIGTERM, Sys_Signal);
+  signal(SIGINT, Sys_Signal);
+  signal(SIGILL, Sys_Signal);
+  signal(SIGABRT, Sys_Signal);
+  signal(SIGFPE, Sys_Signal);
+  signal(SIGSEGV, Sys_Signal);
+  signal(SIGTERM, Sys_Signal);
 #ifndef _WIN32
-	signal(SIGHUP, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
+  signal(SIGHUP, Sys_Signal);
+  signal(SIGQUIT, Sys_Signal);
 #endif
 
-	Com_Init(argc, argv);
+  Com_Init(argc, argv);
 
-	// general options
-	for (int32_t i = 1; i < Com_Argc(); i++) {
+  // general options
+  for (int32_t i = 1; i < Com_Argc(); i++) {
 
-		if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "--help")) {
-			PrintHelpMessage();
-			Com_Shutdown(NULL);
-		}
+    if (!g_strcmp0(Com_Argv(i), "-h") || !g_strcmp0(Com_Argv(i), "--help")) {
+      PrintHelpMessage();
+      Com_Shutdown(NULL);
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "--verbose")) {
-			verbose = true;
-			continue;
-		}
+    if (!g_strcmp0(Com_Argv(i), "-v") || !g_strcmp0(Com_Argv(i), "--verbose")) {
+      verbose = true;
+      continue;
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
-			Com_SetDebug("all");
-			debug = true;
-			verbose = true;
-			continue;
-		}
+    if (!g_strcmp0(Com_Argv(i), "-d") || !g_strcmp0(Com_Argv(i), "--debug")) {
+      Com_SetDebug("all");
+      debug = true;
+      verbose = true;
+      continue;
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "--threads")) {
-			num_threads = atoi(Com_Argv(i + 1));
-			continue;
-		}
+    if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "--threads")) {
+      num_threads = atoi(Com_Argv(i + 1));
+      continue;
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-connect")) { // GtkRadiant hard-codes this option
-			is_monitor = Mon_Connect(Com_Argv(i + 1));
-			continue;
-		}
-	}
+    if (!g_strcmp0(Com_Argv(i), "-connect")) { // GtkRadiant hard-codes this option
+      is_monitor = Mon_Connect(Com_Argv(i + 1));
+      continue;
+    }
+  }
 
-	// read compiling options
-	for (int32_t i = 1; i < Com_Argc(); i++) {
+  // read compiling options
+  for (int32_t i = 1; i < Com_Argc(); i++) {
 
-		if (!g_strcmp0(Com_Argv(i), "-mat")) {
-			do_mat = true;
-			Check_MAT_Options(i + 1);
-		}
+    if (!g_strcmp0(Com_Argv(i), "-mat")) {
+      do_mat = true;
+      Check_MAT_Options(i + 1);
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-bsp")) {
-			do_bsp = true;
-			Check_BSP_Options(i + 1);
-		}
+    if (!g_strcmp0(Com_Argv(i), "-bsp")) {
+      do_bsp = true;
+      Check_BSP_Options(i + 1);
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-light")) {
-			do_light = true;
-			Check_LIGHT_Options(i + 1);
-		}
+    if (!g_strcmp0(Com_Argv(i), "-light")) {
+      do_light = true;
+      Check_LIGHT_Options(i + 1);
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-zip")) {
-			do_zip = true;
-			Check_ZIP_Options(i + 1);
-		}
-	}
+    if (!g_strcmp0(Com_Argv(i), "-zip")) {
+      do_zip = true;
+      Check_ZIP_Options(i + 1);
+    }
+  }
 
-	if (!do_bsp && !do_light && !do_mat && !do_zip) {
-		Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
-	}
+  if (!do_bsp && !do_light && !do_mat && !do_zip) {
+    Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
+  }
 
-	Thread_Init(num_threads);
-	Com_Print("Using %d threads\n", Thread_Count());
+  Thread_Init(num_threads);
+  Com_Print("Using %d threads\n", Thread_Count());
 
-	const char *filename = Com_Argv(Com_Argc() - 1);
-	if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
-		gchar *dirname = g_path_get_dirname(filename);
-		if (dirname) {
-			Fs_AddToSearchPath(dirname);
-			filename += strlen(dirname);
-			g_free(dirname);
-		}
-	}
+  const char *filename = Com_Argv(Com_Argc() - 1);
+  if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
+    gchar *dirname = g_path_get_dirname(filename);
+    if (dirname) {
+      Fs_AddToSearchPath(dirname);
+      filename += strlen(dirname);
+      g_free(dirname);
+    }
+  }
 
-	// resolve the base name, used for all output files
-	gchar *basename = g_path_get_basename(filename);
-	StripExtension(basename, map_base);
-	g_free(basename);
+  // resolve the base name, used for all output files
+  gchar *basename = g_path_get_basename(filename);
+  StripExtension(basename, map_base);
+  g_free(basename);
 
-	StripExtension(filename, map_name);
-	g_strlcat(map_name, ".map", sizeof(map_name));
+  StripExtension(filename, map_name);
+  g_strlcat(map_name, ".map", sizeof(map_name));
 
-	if (!Fs_Exists(map_name)) {
-		g_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
-	}
+  if (!Fs_Exists(map_name)) {
+    g_snprintf(map_name, sizeof(map_name), "maps/%s.map", map_base);
+  }
 
-	StripExtension(filename, bsp_name);
-	g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
+  StripExtension(filename, bsp_name);
+  g_strlcat(bsp_name, ".bsp", sizeof(bsp_name));
 
-	if (!Fs_Exists(bsp_name)) {
-		g_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
-	}
+  if (!Fs_Exists(bsp_name)) {
+    g_snprintf(bsp_name, sizeof(bsp_name), "maps/%s.bsp", map_base);
+  }
 
-	// start timer
-	const uint32_t start = SDL_GetTicks();
+  // start timer
+  const uint32_t start = SDL_GetTicks();
 
-	if (do_mat) {
-		MAT_Main();
-	}
-	if (do_bsp) {
-		BSP_Main();
-	}
-	if ((do_bsp && !only_ents) || do_light) {
-		LIGHT_Main();
-	}
-	if (do_zip) {
-		ZIP_Main();
-	}
+  if (do_mat) {
+    MAT_Main();
+  }
+  if (do_bsp) {
+    BSP_Main();
+  }
+  if ((do_bsp && !only_ents) || do_light) {
+    LIGHT_Main();
+  }
+  if (do_zip) {
+    ZIP_Main();
+  }
 
-	// emit time
-	const uint32_t end = SDL_GetTicks();
-	Com_Print("\n%s finished in %dms\n", Com_Argv(0), end - start);
+  // emit time
+  const uint32_t end = SDL_GetTicks();
+  Com_Print("\n%s finished in %dms\n", Com_Argv(0), end - start);
 
-	Com_Shutdown(NULL);
+  Com_Shutdown(NULL);
 }

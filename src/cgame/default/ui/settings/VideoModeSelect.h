@@ -37,23 +37,23 @@ typedef struct VideoModeSelectInterface VideoModeSelectInterface;
  */
 struct VideoModeSelect {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	Select select;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  Select select;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	VideoModeSelectInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  VideoModeSelectInterface *interface;
 
-	/**
-	 * @brief The known display modes.
-	 * @private
-	 */
-	SDL_DisplayMode *modes;
+  /**
+   * @brief The known display modes.
+   * @private
+   */
+  SDL_DisplayMode *modes;
 };
 
 /**
@@ -61,19 +61,19 @@ struct VideoModeSelect {
  */
 struct VideoModeSelectInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	SelectInterface selectInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  SelectInterface selectInterface;
 
-	/**
-	 * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame)
-	 * @brief Initializes this VideoModeSelect with the specified frame and style.
-	 * @param frame The frame.
-	 * @return The initialized VideoModeSelect, or `NULL` on error.
-	 * @memberof VideoModeSelect
-	 */
-	VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame);
+  /**
+   * @fn VideoModeSelect *VideoModeSelect::initWithFrame(VideoModeSelect *self, const SDL_Rect *frame)
+   * @brief Initializes this VideoModeSelect with the specified frame and style.
+   * @param frame The frame.
+   * @return The initialized VideoModeSelect, or `NULL` on error.
+   * @memberof VideoModeSelect
+   */
+  VideoModeSelect *(*initWithFrame)(VideoModeSelect *self, const SDL_Rect *frame);
 };
 
 /**

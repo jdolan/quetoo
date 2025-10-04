@@ -26,28 +26,28 @@
 #include <signal.h>
 
 #if defined(_WIN32)
-	#include <windows.h>
-	#include <shlobj.h>
+  #include <windows.h>
+  #include <shlobj.h>
 #if !defined(__MINGW32__)
-		#include <DbgHelp.h>
+    #include <DbgHelp.h>
 #endif
 #endif
 
 #if defined(__APPLE__)
-	#include <mach-o/dyld.h>
+  #include <mach-o/dyld.h>
 #endif
 
 #if HAVE_DLFCN_H
-	#include <dlfcn.h>
+  #include <dlfcn.h>
 #endif
 
 #if HAVE_EXECINFO
-	#include <execinfo.h>
-	#define MAX_BACKTRACE_SYMBOLS 50
+  #include <execinfo.h>
+  #define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
 #if HAVE_SYS_TIME_H
-	#include <sys/time.h>
+  #include <sys/time.h>
 #endif
 
 #include <SDL.h>
@@ -56,38 +56,38 @@
  * @return The current executable path (argv[0]).
  */
 const char *Sys_ExecutablePath(void) {
-	static char path[MAX_OS_PATH];
+  static char path[MAX_OS_PATH];
 
 #if defined(__APPLE__)
-	uint32_t i = sizeof(path);
+  uint32_t i = sizeof(path);
 
-	if (_NSGetExecutablePath(path, &i) > -1) {
-		return path;
-	}
+  if (_NSGetExecutablePath(path, &i) > -1) {
+    return path;
+  }
 
 #elif defined(__linux__)
 
-	if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
-		return path;
-	}
+  if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
+    return path;
+  }
 
 #elif defined(_WIN32)
 
-	if (GetModuleFileName(0, path, sizeof(path))) {
-		return path;
-	}
+  if (GetModuleFileName(0, path, sizeof(path))) {
+    return path;
+  }
 
 #endif
 
-	Com_Warn("Failed to resolve executable path\n");
-	return NULL;
+  Com_Warn("Failed to resolve executable path\n");
+  return NULL;
 }
 
 /**
  * @return The current user's name.
  */
 const char *Sys_Username(void) {
-	return g_get_user_name();
+  return g_get_user_name();
 }
 
 /**
@@ -97,17 +97,17 @@ const char *Sys_Username(void) {
  * platforms, it's `~/.quetoo`.
  */
 const char *Sys_UserDir(void) {
-	static char user_dir[MAX_OS_PATH];
+  static char user_dir[MAX_OS_PATH];
 
 #if defined(_WIN32)
-	const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-	g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
+  const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
+  g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
 #else
-	const char *home = g_get_home_dir();
-	g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
+  const char *home = g_get_home_dir();
+  g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
 #endif
 
-	return user_dir;
+  return user_dir;
 }
 
 /**
@@ -116,33 +116,33 @@ const char *Sys_UserDir(void) {
 void *Sys_OpenLibrary(const char *name, bool global) {
 
 #if defined(_WIN32)
-	const char *so_name = va("%s.dll", name);
+  const char *so_name = va("%s.dll", name);
 #else
-	const char *so_name = va("%s.so", name);
+  const char *so_name = va("%s.so", name);
 #endif
 
-	if (Fs_Exists(so_name)) {
-		char path[MAX_OS_PATH];
+  if (Fs_Exists(so_name)) {
+    char path[MAX_OS_PATH];
 
-		g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
-		Com_Print("  Loading %s...\n", path);
+    g_snprintf(path, sizeof(path), "%s%c%s", Fs_RealDir(so_name), G_DIR_SEPARATOR, so_name);
+    Com_Print("  Loading %s...\n", path);
 
-		void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
-		if (handle) {
-			return handle;
-		}
+    void *handle = dlopen(path, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+    if (handle) {
+      return handle;
+    }
 
-		Com_Error(ERROR_DROP, "%s\n", dlerror());
-	}
+    Com_Error(ERROR_DROP, "%s\n", dlerror());
+  }
 
-	Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
+  Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
 }
 
 /**
  * @brief Closes an open game module.
  */
 void Sys_CloseLibrary(void *handle) {
-	dlclose(handle);
+  dlclose(handle);
 }
 
 /**
@@ -151,18 +151,18 @@ void Sys_CloseLibrary(void *handle) {
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
-	typedef void *EntryPointFunc(void *);
-	EntryPointFunc *EntryPoint;
+  typedef void *EntryPointFunc(void *);
+  EntryPointFunc *EntryPoint;
 
-	assert(handle);
-	assert(entry_point);
+  assert(handle);
+  assert(entry_point);
 
-	EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
-	if (!EntryPoint) {
-		Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
-	}
+  EntryPoint = (EntryPointFunc *) dlsym(handle, entry_point);
+  if (!EntryPoint) {
+    Com_Error(ERROR_DROP, "Failed to resolve entry point: %s\n", entry_point);
+  }
 
-	return EntryPoint(params);
+  return EntryPoint(params);
 }
 
 /**
@@ -173,92 +173,92 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
  */
 GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
 {
-	GString *backtrace_str = g_string_new(NULL);
+  GString *backtrace_str = g_string_new(NULL);
 
 #if HAVE_EXECINFO
-	void *symbols[MAX_BACKTRACE_SYMBOLS];
-	const int32_t symbol_count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
+  void *symbols[MAX_BACKTRACE_SYMBOLS];
+  const int32_t symbol_count = backtrace(symbols, MAX_BACKTRACE_SYMBOLS);
 
-	char **strings = backtrace_symbols(symbols, symbol_count);
+  char **strings = backtrace_symbols(symbols, symbol_count);
 
-	for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
+  for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
 
-		g_string_append(backtrace_str, strings[i]);
-		g_string_append(backtrace_str, "\n");
-	}
+    g_string_append(backtrace_str, strings[i]);
+    g_string_append(backtrace_str, "\n");
+  }
 
-	free(strings);
+  free(strings);
 #elif defined(_WIN32) && !defined(__MINGW32__)
-	static bool symbols_initialized = false;
-	void *symbols[32];
-	const int name_length = 256;
-	
+  static bool symbols_initialized = false;
+  void *symbols[32];
+  const int name_length = 256;
+  
     HANDLE process = GetCurrentProcess();
 
-	if (!symbols_initialized)
-	{
-		SymSetOptions(SYMOPT_LOAD_LINES);
-		SymInitialize(process, NULL, TRUE);
-		symbols_initialized = true;
-	}
+  if (!symbols_initialized)
+  {
+    SymSetOptions(SYMOPT_LOAD_LINES);
+    SymInitialize(process, NULL, TRUE);
+    symbols_initialized = true;
+  }
 
-	const int16_t symbol_count = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
+  const int16_t symbol_count = RtlCaptureStackBackTrace(1, lengthof(symbols), symbols, NULL);
 
-	PSYMBOL_INFO symbol = calloc(sizeof(*symbol) + name_length, 1);
-	symbol->MaxNameLen = name_length - 1;
-	symbol->SizeOfStruct = sizeof(*symbol);
-	
-	IMAGEHLP_LINE line;
-	line.SizeOfStruct = sizeof(line);
-	DWORD dwDisplacement;
-	
-	for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
-		BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
+  PSYMBOL_INFO symbol = calloc(sizeof(*symbol) + name_length, 1);
+  symbol->MaxNameLen = name_length - 1;
+  symbol->SizeOfStruct = sizeof(*symbol);
+  
+  IMAGEHLP_LINE line;
+  line.SizeOfStruct = sizeof(line);
+  DWORD dwDisplacement;
+  
+  for (uint32_t i = start, s = 0; s < max_count && i < (uint32_t) symbol_count; i++, s++) {
+    BOOL result = SymFromAddr(process, (DWORD64) symbols[i], 0, symbol);
 
-		if (!result) {
-			g_string_append(backtrace_str, "> ???\n");
-			continue;
-		}
+    if (!result) {
+      g_string_append(backtrace_str, "> ???\n");
+      continue;
+    }
 
-		// we don't care about UCRT/Windows SDK stuff
-		if (!g_strcmp0(symbol->Name, "invoke_main") ||
-			!strncmp(symbol->Name, "__scrt_", 7)) {
-			break;
-		}
+    // we don't care about UCRT/Windows SDK stuff
+    if (!g_strcmp0(symbol->Name, "invoke_main") ||
+      !strncmp(symbol->Name, "__scrt_", 7)) {
+      break;
+    }
 
-		// check for line number support
+    // check for line number support
 #ifdef _WIN64
-		if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
+    if (SymGetLineFromAddr(process, (DWORD64) symbols[i], &dwDisplacement, &line)) {
 #else
-		if (SymGetLineFromAddr(process, (DWORD) symbols[i], &dwDisplacement, &line)) {
+    if (SymGetLineFromAddr(process, (DWORD) symbols[i], &dwDisplacement, &line)) {
 #endif
-			char *last_slash = strrchr(line.FileName, '\\');
+      char *last_slash = strrchr(line.FileName, '\\');
 
-			if (!last_slash)
-				last_slash = strrchr(line.FileName, '/');
+      if (!last_slash)
+        last_slash = strrchr(line.FileName, '/');
 
-			if (!last_slash)
-				last_slash = line.FileName;
-			else
-				last_slash++;
+      if (!last_slash)
+        last_slash = line.FileName;
+      else
+        last_slash++;
 
-			g_string_append_printf(backtrace_str, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
-		}
-		else
-			g_string_append_printf(backtrace_str, "> %s (unknown:unknown)\n", symbol->Name);
-	}
+      g_string_append_printf(backtrace_str, "> %s (%s:%i)\n", symbol->Name, last_slash, line.LineNumber);
+    }
+    else
+      g_string_append_printf(backtrace_str, "> %s (unknown:unknown)\n", symbol->Name);
+  }
 
-	free(symbol);
+  free(symbol);
 #else
-	g_string_append(backtrace_str, "Backtrace not supported.\n");
+  g_string_append(backtrace_str, "Backtrace not supported.\n");
 #endif
 
-	// cut off the last \n
-	if (backtrace_str->len) {
-		g_string_truncate(backtrace_str, backtrace_str->len - 1);
-	}
+  // cut off the last \n
+  if (backtrace_str->len) {
+    g_string_truncate(backtrace_str, backtrace_str->len - 1);
+  }
 
-	return backtrace_str;
+  return backtrace_str;
 }
 
 /**
@@ -266,37 +266,37 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
  */
 void Sys_Raise(const char *msg) {
 
-	GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
-	
-	g_string_prepend(backtrace, "\n");
-	g_string_prepend(backtrace, msg);
+  GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
+  
+  g_string_prepend(backtrace, "\n");
+  g_string_prepend(backtrace, msg);
 
-	if (!Com_WasInit(QUETOO_CLIENT)) {
-		fprintf(stderr, "%s", backtrace->str);
-		g_string_free(backtrace, true);
-		return;
-	}
+  if (!Com_WasInit(QUETOO_CLIENT)) {
+    fprintf(stderr, "%s", backtrace->str);
+    g_string_free(backtrace, true);
+    return;
+  }
 
-	const SDL_MessageBoxData data = {
-		.flags = SDL_MESSAGEBOX_ERROR,
-		.title = "Fatal Error",
-		.message = backtrace->str,
-		.numbuttons = 1,
-		.buttons = &(const SDL_MessageBoxButtonData) {
-			.flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-			.buttonid = 1,
-			.text = "OK"
-		}
-	};
+  const SDL_MessageBoxData data = {
+    .flags = SDL_MESSAGEBOX_ERROR,
+    .title = "Fatal Error",
+    .message = backtrace->str,
+    .numbuttons = 1,
+    .buttons = &(const SDL_MessageBoxButtonData) {
+      .flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+      .buttonid = 1,
+      .text = "OK"
+    }
+  };
 
-	int32_t button;
-	SDL_ShowMessageBox(&data, &button);
+  int32_t button;
+  SDL_ShowMessageBox(&data, &button);
 
-	g_string_free(backtrace, true);
+  g_string_free(backtrace, true);
 
 #if defined(_MSC_VER)
 
-	RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
+  RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);
 
 #endif
 }
@@ -306,15 +306,15 @@ void Sys_Raise(const char *msg) {
  */
 void Sys_Signal(int32_t s) {
 
-	switch (s) {
-		case SIGINT:
-		case SIGTERM:
+  switch (s) {
+    case SIGINT:
+    case SIGTERM:
 #ifndef _WIN32
-		case SIGHUP:
-		case SIGQUIT:
+    case SIGHUP:
+    case SIGQUIT:
 #endif
-			Com_Shutdown("Received signal %d, quitting...\n", s);
-		default:
-			Com_Error(ERROR_FATAL, "Received signal %d\n", s);
-	}
+      Com_Shutdown("Received signal %d, quitting...\n", s);
+    default:
+      Com_Error(ERROR_FATAL, "Received signal %d\n", s);
+  }
 }
