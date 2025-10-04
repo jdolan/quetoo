@@ -33,14 +33,9 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  */
 typedef struct {
 	/**
-	 * @brief The light origin in view space.
+	 * @brief The light origin in model space.
 	 */
-	vec4_t position;
-	
-	/**
-	 * @brief The light origin in model space, and radius.
-	 */
-	vec4_t model;
+	vec4_t origin;
 
 	/**
 	 * @brief The light mins in model space, and shadow scalar.

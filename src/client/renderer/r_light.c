@@ -47,8 +47,7 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 
 	r_light_uniform_t *out = &r_lights.block.lights[index];
 
-	out->position = Vec3_ToVec4(Mat4_Transform(r_uniforms.block.view, in->origin), 0.f);
-	out->model = Vec3_ToVec4(in->origin, in->radius);
+	out->origin = Vec3_ToVec4(in->origin, in->radius);
 	out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
 	out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
 	out->color = Vec3_ToVec4(in->color, in->intensity);
@@ -90,7 +89,7 @@ void R_UpdateLights(r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Writes the indexes of the lights that intersect bounds to the given uniform name.
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 

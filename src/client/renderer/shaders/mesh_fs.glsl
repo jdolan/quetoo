@@ -133,7 +133,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 	int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
 	int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
 
-	vec4 shadowmap = vec4(vertex.model - light.model.xyz, layer);
+	vec4 shadowmap = vec4(vertex.model - light.origin.xyz, layer);
 	float bias = length(shadowmap.xyz) / depth_range.y;
 
 	switch (array) {
@@ -155,14 +155,17 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
  */
 void light_and_shadow_light(in light_t light, in int index) {
 
-	vec3 dir = (view * vec4(light.model.xyz, 1.0)).xyz - vertex.position;
+	vec3 dir = light.origin.xyz - vertex.model;
 
-	float radius = light.model.w;
+	float radius = light.origin.w;
 	float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+	if (atten <= 0.0) {
+		return;
+	}
 
 	vec3 diffuse = light.color.rgb * light.color.a * atten * modulate;
 
-	dir = normalize(dir);
+	dir = normalize(view * vec4(dir, 0.0)).xyz;
 
 	float lambert = dot(dir, fragment.normalmap);
 	if (lambert <= 0.0) {

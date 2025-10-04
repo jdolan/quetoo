@@ -39,7 +39,7 @@ void main() {
 
 	light_t light = lights[light_index];
 
-	vec4 translate = vec4(-light.model.xyz, 0.0);
+	vec4 translate = vec4(-light.origin.xyz, 0.0);
 
 	for (int i = 0; i < 6; i++) {
 		gl_Layer = light_index * 6 + i;

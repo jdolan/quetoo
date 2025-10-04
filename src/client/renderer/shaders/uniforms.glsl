@@ -161,14 +161,9 @@ layout (std140) uniform uniforms_block {
  */
 struct light_t {
 	/**
-	 * @brief The light position in view space.
+	 * @brief The light origin in model space, and radius.
 	 */
-	vec4 position;
-	
-	/**
-	 * @brief The light position in model space, and radius.
-	 */
-	vec4 model;
+	vec4 origin;
 
 	/**
 	 * @brief The light mins in model space.

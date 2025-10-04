@@ -71,8 +71,8 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
  */
 vec3 light_and_shadow_light(in light_t light) {
 
-	float dist = distance(light.model.xyz, in_position);
-	float radius = light.model.w;
+	float dist = distance(light.origin.xyz, in_position);
+	float radius = light.origin.w;
 	float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
 	return light.color.rgb * light.color.a * atten * modulate;
