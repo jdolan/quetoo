@@ -27,7 +27,6 @@ in vertex_data {
 } vertex;
 
 layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
@@ -65,7 +64,4 @@ void main(void) {
 
 	vec4 fog = sample_voxel_fog();
 	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
-
-	out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-	out_bloom.a = out_color.a;
 }

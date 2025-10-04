@@ -163,12 +163,6 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 
 		const r_mesh_face_t *face = mesh->faces;
 		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-
-			const r_material_t *material = e->skins[i] ?: face->material;
-			if (material->cm->surface & SURF_MASK_BLEND) {
-				continue;
-			}
-
 			R_DrawMeshFaceShadow(e, mesh, face);
 		}
 

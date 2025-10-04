@@ -841,7 +841,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 			.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
 			.softness = 1.f,
 			.lighting = .2f,
-			.bloom = 2.f
 		});
 
 		if (i % 3 == 0) {
@@ -858,7 +857,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 				.end_color = Vec4(hue, effect_color.y, 0.f, 0.f),
 				.softness = 1.f,
 				.lighting = 1.f,
-				.bloom = 2.f
 			});
 		}
 	}

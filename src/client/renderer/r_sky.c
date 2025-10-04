@@ -48,10 +48,6 @@ static struct {
 
 	GLint texture_sky;
 	GLint texture_voxel_fog;
-
-	struct {
-		GLint bloom;
-	} material;
 } r_sky_program;
 
 /**
@@ -80,7 +76,6 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 				continue;
 			}
 
-			glUniform1f(r_sky_program.material.bloom, draw->material->cm->bloom * r_bloom->value);
 			glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 		}
 	}
@@ -114,8 +109,6 @@ static void R_InitSkyProgram(void) {
 
 	r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
 	r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");
-
-	r_sky_program.material.bloom = glGetUniformLocation(r_sky_program.name, "material.bloom");
 
 	glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
 	glUniform1i(r_sky_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);

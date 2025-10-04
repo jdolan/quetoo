@@ -255,7 +255,6 @@ typedef struct {
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
 #define MATERIAL_PARALLAX 1.f
-#define MATERIAL_BLOOM 1.f
 #define MATERIAL_ALPHA_TEST .5f
 #define MATERIAL_LIGHT_FLAGS 0
 #define MATERIAL_LIGHT_RADIUS 300.f
@@ -349,11 +348,6 @@ typedef struct cm_material_s {
 	 * @brief The parallax factor to use for the heightmap.
 	 */
 	float parallax;
-
-	/**
-	 * @brief The bloom factor to apply to the diffusemap.
-	 */
-	float bloom;
 
 	/**
 	 * @brief Emissive light.

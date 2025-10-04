@@ -192,7 +192,6 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 		.color = Vec4(hue, 1.f, 1.f, 1.f),
 		.end_color = Vec4(hue - 50.f, 1.f, 0.f, 0.f),
 		.softness = 1.f,
-		.bloom = 4.f,
 	});
 
 	// make static flames rise
@@ -256,7 +255,6 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 			.end_color = Vec4(0.f, 0.f, v, 0.f),
 			.softness = 1.f,
 			.lighting = 1.f,
-			.bloom = 1.f,
 			.Think = Cg_BubbleTrail_Think,
 		});
 
@@ -315,7 +313,6 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 				.end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
 				.softness = 1.f,
 				.lighting = .3f,
-				.bloom = 4.f,
 			})) {
 				break;
 			}
@@ -438,7 +435,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 		.size = 50.f,
 		.color = ColorHSVA(29.f, .57f, .34f, 0.f),
 		.softness = 1.f,
-		.bloom = 3.f,
 	});
 
 	// exhaust flare
@@ -450,7 +446,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 			.color = ColorHSVA(0.f, 0.f, .50f, 0.f),
 			.rotation = (i == 0 ? sine : -sine),
 			.softness = 1.f,
-			.bloom = 2.f,
 		});
 	}
 
@@ -481,7 +476,6 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 					.size_velocity = -20.f,
 					.color = Vec4(0.f, 0.f, 1.f, 0.f),
 					.softness = 1.f,
-					.bloom = 2.f,
 				})) {
 				break;
 			}
@@ -621,7 +615,6 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.color = Color4b(16, 64, 96, 0),
 		.softness = 1.f,
 		.lighting = .3f,
-		.bloom = 1.f,
 	});
 
 	// center core
@@ -633,7 +626,6 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.color = bcolor,
 		.softness = 1.f,
 		.lighting = .1f,
-		.bloom = 1.f,
 	});
 
 	cgi.AddBeam(cgi.view, &(r_beam_t) {
@@ -645,7 +637,6 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.softness = 1.f,
 		.lighting = 1.f,
-		.bloom = 3.f,
 	});
 
 	Cg_AddLight(&(cg_light_t) {
@@ -674,7 +665,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 		.flags = SPRITE_BEAM_REPEAT,
 		.translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
 		.softness = 1.f,
-		.bloom = 2.f,
 	});
 
 	// beam endpoint cap
@@ -709,7 +699,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 			.color = Vec4(250.f, 0.5f, 1.f, 0.f),
 			.end_color = Vec4(280.f, 0.f, 0.1f, 0.f),
 			.softness = 0.5f,
-			.bloom = 4.f,
 		});
 	}
 
@@ -765,7 +754,6 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 					.color = Vec4(250.f, 0.5f, 1.0f, 0.f),
 					.end_color = Vec4(280.f, 0.0f, 0.0f, 0.f),
 					.softness = 0.5f,
-					.bloom = 4.f,
 				});
 			}
 

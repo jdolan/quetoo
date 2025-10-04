@@ -263,7 +263,6 @@ void Cg_AddSprites(void) {
 					.axis = s->axis,
 					.softness = s->softness,
 					.lighting = s->lighting,
-					.bloom = s->bloom,
 				});
 				break;
 			case SPRITE_BEAM: {
@@ -286,7 +285,6 @@ void Cg_AddSprites(void) {
 					.flags = s->flags,
 					.softness = s->softness,
 					.lighting = s->lighting,
-					.bloom = s->bloom,
 				});
 				break;
 			}

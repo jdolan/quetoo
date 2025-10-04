@@ -131,16 +131,6 @@ layout (std140) uniform uniforms_block {
 	float stains;
 
 	/**
-	 * @brief The bloom scalar, for non-material based objects.
-	 */
-	float bloom;
-
-	/**
-	 * @brief The HDR scalar.
-	 */
-	float hdr;
-
-	/**
 	 * @brief The volumetric fog density scalar.
 	 */
 	float fog_density;
@@ -245,5 +235,4 @@ uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
  * @brief The framebuffer attachment textures.
  */
 uniform sampler2D texture_color_attachment;
-uniform sampler2D texture_bloom_attachment;
 uniform sampler2D texture_depth_attachment_copy;

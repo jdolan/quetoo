@@ -270,11 +270,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 	in->vertexes[2].lighting =
 	in->vertexes[3].lighting = s->lighting;
 
-	in->vertexes[0].bloom =
-	in->vertexes[1].bloom =
-	in->vertexes[2].bloom =
-	in->vertexes[3].bloom = s->bloom;
-
 	in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
 }
 
@@ -545,7 +540,6 @@ void R_InitSprites(void) {
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
 	glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
 	glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
-	glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, bloom));
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
@@ -554,7 +548,6 @@ void R_InitSprites(void) {
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
 	glEnableVertexAttribArray(6);
-	glEnableVertexAttribArray(7);
 
 	glBindVertexArray(0);
 

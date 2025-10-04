@@ -1,8 +1,6 @@
 shadersdir = @PKGLIBDIR@/default/shaders
 
 shaders_DATA = \
-	blur_fs.glsl \
-	blur_vs.glsl \
 	bsp_fs.glsl \
 	bsp_vs.glsl \
 	common.glsl \
@@ -16,8 +14,6 @@ shaders_DATA = \
 	mesh_fs.glsl \
 	mesh_vs.glsl \
 	polylib.glsl \
-	post_fs.glsl \
-	post_vs.glsl \
 	shadow_fs.glsl \
 	shadow_gs.glsl \
 	shadow_vs.glsl \

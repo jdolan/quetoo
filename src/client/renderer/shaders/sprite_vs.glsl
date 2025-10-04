@@ -26,7 +26,6 @@ layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
-layout (location = 7) in float in_bloom;
 
 out vertex_data {
 	vec3 position;
@@ -36,7 +35,6 @@ out vertex_data {
 	vec4 fog;
 	float lerp;
 	float softness;
-	float bloom;
 } vertex;
 
 /**
@@ -119,7 +117,6 @@ void main(void) {
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
-	vertex.bloom = in_bloom;
 
 	vec3 texcoord = voxel_uvw(in_position);
 

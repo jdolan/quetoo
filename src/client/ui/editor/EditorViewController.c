@@ -63,8 +63,6 @@ static void didSetValue(Slider *slider, double value) {
 		view->material->cm->specularity = slider->value;
 	} else if (slider == view->parallax) {
 		view->material->cm->parallax = slider->value;
-	} else if (slider == view->bloom) {
-		view->material->cm->bloom = slider->value;
 	} else if (slider == view->alphaTest) {
 		view->material->cm->alpha_test = slider->value;
 	} else if (slider == view->lightRadius) {
@@ -99,9 +97,6 @@ static void loadView(ViewController *self) {
 
 	view->parallax->delegate.self = self;
 	view->parallax->delegate.didSetValue = didSetValue;
-
-	view->bloom->delegate.self = self;
-	view->bloom->delegate.didSetValue = didSetValue;
 
 	view->alphaTest->delegate.self = self;
 	view->alphaTest->delegate.didSetValue = didSetValue;

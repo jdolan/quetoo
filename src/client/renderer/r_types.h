@@ -1207,11 +1207,6 @@ typedef struct {
 	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
-
-	/**
-	 * @brief Sprite bloom scalar.
-	 */
-	float bloom;
 } r_sprite_t;
 
 #define MAX_SPRITES		0x8000
@@ -1269,11 +1264,6 @@ typedef struct {
 	 * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
 	 */
 	float lighting;
-
-	/**
-	 * @brief Beam bloom scalar.
-	 */
-	float bloom;
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
@@ -1289,7 +1279,6 @@ typedef struct {
 	float lerp;
 	float softness;
 	float lighting;
-	float bloom;
 } r_sprite_vertex_t;
 
 /**
@@ -1538,12 +1527,8 @@ typedef struct {
  */
 typedef enum {
 	ATTACHMENT_COLOR      = 0x1,
-	ATTACHMENT_BLOOM      = 0x2,
-	ATTACHMENT_BLUR_X     = 0x4,
-	ATTACHMENT_BLUR_Y     = 0x8,
-	ATTACHMENT_POST       = 0x10,
-	ATTACHMENT_DEPTH      = 0x20,
-	ATTACHMENT_DEPTH_COPY = 0x40,
+	ATTACHMENT_DEPTH      = 0x2,
+	ATTACHMENT_DEPTH_COPY = 0x4,
 	ATTACHMENT_ALL        = 0xFF
 } r_attachment_t;
 
@@ -1565,26 +1550,6 @@ typedef struct r_framebuffer_s {
 	 * @brief The color attachment texture name.
 	 */
 	GLuint color_attachment;
-
-	/**
-	 * @brief The bloom attachment texture name.
-	 */
-	GLuint bloom_attachment;
-
-	/**
-	 * @brief The horizontal blur attachment texture name.
-	 */
-	GLuint blur_attachment_x;
-
-	/**
-	 * @brief The vertical blur attachment texture name.
-	 */
-	GLuint blur_attachment_y;
-
-	/**
-	 * @brief The post-processing attachment texture name.
-	 */
-	GLuint post_attachment;
 
 	/**
 	 * @brief The depth attachment texture name.
@@ -1865,8 +1830,7 @@ typedef enum {
 	 * @brief Framebuffer specific textures.
 	 */
 	TEXTURE_COLOR_ATTACHMENT,
-	TEXTURE_BLOOM_ATTACHMENT,
-	TEXTURE_POST_ATTACHMENT,
+	TEXTURE_DEPTH_ATTACHMENT,
 	TEXTURE_DEPTH_ATTACHMENT_COPY,
 } r_texture_t;
 

@@ -34,7 +34,6 @@ in vertex_data {
 } vertex;
 
 layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bloom;
 
 struct fragment_t {
 	vec3 dir;
@@ -268,9 +267,6 @@ void main(void) {
 		out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
 		out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 
-		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = out_color.a;
-
 	} else {
 
 		fragment.diffusemap = sample_material_stage() * vertex.color * color;
@@ -289,8 +285,5 @@ void main(void) {
 		if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 			out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 		}
-
-		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = out_color.a;
 	}
 }

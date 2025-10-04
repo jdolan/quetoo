@@ -50,7 +50,6 @@ static EditorView *initWithFrame(EditorView *self, const SDL_Rect *frame) {
 			MakeOutlet("hardness", &self->hardness),
 			MakeOutlet("specularity", &self->specularity),
 			MakeOutlet("parallax", &self->parallax),
-			MakeOutlet("bloom", &self->bloom),
 			MakeOutlet("alpha_test", &self->alphaTest),
 		    MakeOutlet("light_radius", &self->lightRadius),
 		    MakeOutlet("light_intensity", &self->lightIntensity),
@@ -84,7 +83,6 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->hardness, setValue, (double) self->material->cm->hardness);
 		$(self->specularity, setValue, (double) self->material->cm->specularity);
 		$(self->parallax, setValue, (double) self->material->cm->parallax);
-		$(self->bloom, setValue, (double) self->material->cm->bloom);
 
 		if (material->cm->surface & SURF_ALPHA_TEST) {
 			$(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
@@ -107,7 +105,6 @@ static void setMaterial(EditorView *self, r_material_t *material) {
 		$(self->parallax, setValue, MATERIAL_PARALLAX);
 		$(self->hardness, setValue, MATERIAL_HARDNESS);
 		$(self->specularity, setValue, MATERIAL_SPECULARITY);
-		$(self->bloom, setValue, MATERIAL_BLOOM);
 		$(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
 		$(self->lightRadius, setValue, MATERIAL_LIGHT_RADIUS);
 		$(self->lightIntensity, setValue, MATERIAL_LIGHT_INTENSITY);

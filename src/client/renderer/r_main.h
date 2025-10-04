@@ -26,8 +26,6 @@
 extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
-extern cvar_t *r_bloom;
-extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_caustics;
 extern cvar_t *r_display;
 extern cvar_t *r_finish;
@@ -35,12 +33,10 @@ extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
-extern cvar_t *r_hdr;
 extern cvar_t *r_height;
 extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_parallax;
-extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
@@ -193,16 +189,6 @@ typedef struct {
 		 * @brief The stains scalar.
 		 */
 		float stains;
-
-		/**
-		 * @brief The bloom scalar.
-		 */
-		float bloom;
-
-		/**
-		 * @brief The HDR scalar.
-		 */
-		float hdr;
 
 		/**
 		 * @brief The fog density scalar.

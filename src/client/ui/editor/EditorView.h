@@ -97,11 +97,6 @@ struct EditorView {
 	Slider *parallax;
 
 	/**
-	 * @brief The bloom slider.
-	 */
-	Slider *bloom;
-
-	/**
 	 * @brief The alpha test slider.
 	 */
 	Slider *alphaTest;

@@ -34,7 +34,6 @@ in vertex_data {
 } vertex;
 
 layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bloom;
 
 struct fragment_t {
 	vec3 dir;
@@ -334,8 +333,8 @@ void light_and_shadow(void) {
 	fragment.normalmap = sample_normalmap();
 	fragment.specularmap = sample_specularmap();
 
-	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 6).rgb;
-	fragment.ambient = sky * ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+	vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 0).rgb;
+	fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
 	fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
 	fragment.diffuse = vec3(0);
@@ -394,9 +393,6 @@ void main(void) {
 		out_color.rgb *= fragment.stains;
 		out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
-		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = out_color.a;
-
 	} else {
 
 		vec2 st = fragment.parallax;
@@ -421,9 +417,6 @@ void main(void) {
 			fragment.fog = sample_voxel_fog();
 			out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 		}
-
-		out_bloom.rgb = max(out_color.rgb * material.bloom - 1.0, 0.0);
-		out_bloom.a = out_color.a;
 	}
 }
 

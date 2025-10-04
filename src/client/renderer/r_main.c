@@ -45,8 +45,6 @@ int32_t r_error_count;
 cvar_t *r_allow_high_dpi;
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
-cvar_t *r_bloom;
-cvar_t *r_bloom_iterations;
 cvar_t *r_caustics;
 cvar_t *r_display;
 cvar_t *r_finish;
@@ -54,12 +52,10 @@ cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fullscreen;
 cvar_t *r_hardness;
-cvar_t *r_hdr;
 cvar_t *r_height;
 cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_parallax;
-cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -158,8 +154,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
 		out->modulate = r_modulate->value;
 		out->caustics = r_caustics->value;
 		out->stains = r_stains->value;
-		out->bloom = r_bloom->value;
-		out->hdr = r_hdr->value;
 		out->fog_density = r_fog_density->value;
 		out->fog_samples = r_fog_samples->value;
 		out->developer = r_developer->value;
@@ -293,8 +287,6 @@ void R_DrawMainView(r_view_t *view) {
 
 	R_Draw3D();
 
-	R_DrawPost(view);
-
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
 	glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
@@ -325,8 +317,6 @@ void R_DrawPlayerModelView(r_view_t *view) {
 	glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
 	R_DrawMeshEntities(view);
-
-	R_DrawPost(view);
 
 	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
 
@@ -373,8 +363,6 @@ static void R_InitLocal(void) {
 	r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
 	r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
 	r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
-	r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of light bloom effects");
-	r_bloom_iterations = Cvar_Add("r_bloom_iterations", "2", CVAR_ARCHIVE, "Controls the softness of light bloom effects");
 	r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
 	r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
 	r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
@@ -382,12 +370,10 @@ static void R_InitLocal(void) {
 	r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
 	r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
 	r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
-	r_hdr = Cvar_Add("r_hdr", "1", CVAR_ARCHIVE, "Controls high dynamic range effects");
 	r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 	r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
 	r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
 	r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
-	r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Controls the rendering of post-processing effects.");
 	r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
 	r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
 	r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
@@ -485,8 +471,6 @@ void R_Init(void) {
 
 	R_InitConfig();
 
-	R_InitFramebuffer();
-
 	R_InitUniforms();
 
 	R_InitMedia();
@@ -508,8 +492,6 @@ void R_Init(void) {
 	R_InitLights();
 
 	R_InitSky();
-
-	R_InitPost();
 
 	R_GetError("Video initialization");
 
@@ -541,15 +523,11 @@ void R_Shutdown(void) {
 
 	R_ShutdownSky();
 
-	R_ShutdownPost();
-
 	R_ShutdownShadows();
 
 	R_ShutdownDepthPass();
 
 	R_ShutdownUniforms();
-
-	R_ShutdownFramebuffer();
 
 	R_ShutdownContext();
 

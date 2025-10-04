@@ -27,11 +27,9 @@ in vertex_data {
 	vec4 fog;
 	float lerp;
 	float softness;
-	float bloom;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
-layout (location = 1) out vec4 out_bloom;
 
 /**
  * @brief
@@ -39,19 +37,15 @@ layout (location = 1) out vec4 out_bloom;
 void main(void) {
 
 	vec4 texture_color = mix(
-			texture(texture_diffusemap, vertex.diffusemap),
-			texture(texture_next_diffusemap, vertex.next_diffusemap),
-			vertex.lerp);
+							 texture(texture_diffusemap, vertex.diffusemap),
+							 texture(texture_next_diffusemap, vertex.next_diffusemap),
+							 vertex.lerp);
 
 	out_color = texture_color * vertex.color;
 
 	vec4 fog = vertex.fog * out_color.a;
 	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
 
-	out_bloom.rgb = max(out_color.rgb * vertex.bloom * bloom - 1.0, 0.0);
-	out_bloom.a = out_color.a;
-
 	float softness = soften(vertex.softness);
 	out_color *= softness;
-	out_bloom *= softness;
 }

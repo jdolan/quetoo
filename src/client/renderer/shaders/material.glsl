@@ -75,11 +75,6 @@ struct material_t {
 	 * @brief The material parallax.
 	 */
 	float parallax;
-
-	/**
-	 * @brief The material bloom.
-	 */
-	float bloom;
 };
 
 uniform material_t material;
