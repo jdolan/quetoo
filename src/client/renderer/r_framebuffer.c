@@ -82,9 +82,9 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 		.attachments = attachments,
 	};
 
-	if (r_supersample->value) {
-		framebuffer.drawable_width *= 2;
-		framebuffer.drawable_height *= 2;
+	if (r_supersample->value > 1.f) {
+		framebuffer.drawable_width *= r_supersample->value;
+		framebuffer.drawable_height *= r_supersample->value;
 	}
 
 	glGenFramebuffers(1, &framebuffer.name);
@@ -168,6 +168,8 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
+	glReadBuffer(GL_BACK);
+
 	R_GetError(NULL);
 }
 
@@ -221,9 +223,7 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLi
 /**
  * @brief
  */
-void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer,
-								 r_attachment_t attachment,
-								 SDL_Surface **surface) {
+void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface) {
 
 	assert(framebuffer);
 	assert(surface);

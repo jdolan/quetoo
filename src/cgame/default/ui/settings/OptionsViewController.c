@@ -130,34 +130,34 @@ static void loadView(ViewController *self) {
 	assert(self->view->stylesheet);
 
 	$(quality, addOption, "Custom", (ident) -1);
-	$(quality, addOption, "Highest", (ident) 3);
-	$(quality, addOption, "High", (ident) 2);
-	$(quality, addOption, "Medium", (ident) 1);
 	$(quality, addOption, "Low", (ident) 0);
+	$(quality, addOption, "Medium", (ident) 1);
+	$(quality, addOption, "High", (ident) 2);
+	$(quality, addOption, "Highest", (ident) 3);
 
 	quality->delegate.self = self;
 	quality->delegate.didSelectOption = didSelectQuality;
 
-	$(weather, addOption, "Heavy", (ident) 2);
-	$(weather, addOption, "Normal", (ident) 1);
 	$(weather, addOption, "Off", (ident) 0);
+	$(weather, addOption, "Normal", (ident) 1);
+	$(weather, addOption, "Heavy", (ident) 2);
 
-	$(fog, addOption, "High", (ident) 32);
-	$(fog, addOption, "Medium", (ident) 16);
 	$(fog, addOption, "Low", (ident) 8);
+	$(fog, addOption, "Medium", (ident) 16);
+	$(fog, addOption, "High", (ident) 32);
 
-	$(atmospheric, addOption, "Heavy", (ident) 2);
-	$(atmospheric, addOption, "Normal", (ident) 1);
 	$(atmospheric, addOption, "Off", (ident) 8);
+	$(atmospheric, addOption, "Normal", (ident) 1);
+	$(atmospheric, addOption, "Heavy", (ident) 2);
 
-	$(shadows, addOption, "High", (ident) 3);
-	$(shadows, addOption, "Medium", (ident) 2);
-	$(shadows, addOption, "Low", (ident) 1);
 	$(shadows, addOption, "Off", (ident) 0);
+	$(shadows, addOption, "Low", (ident) 1);
+	$(shadows, addOption, "Medium", (ident) 2);
+	$(shadows, addOption, "High", (ident) 3);
 
-	$(sprites, addOption, "High", (ident) 2);
-	$(sprites, addOption, "Medium", (ident) 1);
 	$(sprites, addOption, "Low", (ident) 8);
+	$(sprites, addOption, "Medium", (ident) 1);
+	$(sprites, addOption, "High", (ident) 2);
 
 	sprites->delegate.self = self;
 	sprites->delegate.didSelectOption = didSelectSprites;

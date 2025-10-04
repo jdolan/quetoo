@@ -57,9 +57,7 @@ static void loadView(ViewController *self) {
 
 	super(ViewController, self, loadView);
 
-	Select *videoMode, *windowMode, *verticalSync,
-		   *textureMode, *anisotropy, *multisample,
-	       *rate;
+	Select *videoMode, *windowMode, *verticalSync, *anisotropy, *supersample, *rate;
 
 	Button *apply;
 
@@ -67,9 +65,8 @@ static void loadView(ViewController *self) {
 		MakeOutlet("videoMode", &videoMode),
 		MakeOutlet("windowMode", &windowMode),
 		MakeOutlet("verticalSync", &verticalSync),
-		MakeOutlet("textureMode", &textureMode),
 		MakeOutlet("anisotropy", &anisotropy),
-		MakeOutlet("multisample", &multisample),
+		MakeOutlet("supersample", &supersample),
 		MakeOutlet("rate", &rate),
 		MakeOutlet("apply", &apply)
 	);
@@ -91,25 +88,20 @@ static void loadView(ViewController *self) {
 	$(verticalSync, addOption, "On", (ident) 1);
 	$(verticalSync, addOption, "Immediate", (ident) -1);
 
-	$(textureMode, addOption, "Nearest", "GL_NEAREST");
-	$(textureMode, addOption, "Bilinear", "GL_LINEAR");
-	$(textureMode, addOption, "Trilinear", "GL_LINEAR_MIPMAP_LINEAR");
-
-	$(anisotropy, addOption, "16x", (ident) 16);
-	$(anisotropy, addOption, "8x", (ident) 8);
-	$(anisotropy, addOption, "4x", (ident) 4);
-	$(anisotropy, addOption, "2x", (ident) 2);
 	$(anisotropy, addOption, "Off", (ident) 0);
+	$(anisotropy, addOption, "2x", (ident) 2);
+	$(anisotropy, addOption, "4x", (ident) 4);
+	$(anisotropy, addOption, "8x", (ident) 8);
+	$(anisotropy, addOption, "16x", (ident) 16);
 
-	$(multisample, addOption, "8x", (ident) 4);
-	$(multisample, addOption, "4x", (ident) 2);
-	$(multisample, addOption, "2x", (ident) 1);
-	$(multisample, addOption, "Off", (ident) 0);
+	$(supersample, addOption, "Off", (ident) 0);
+	$(supersample, addOption, "2x", (ident) 2);
+	$(supersample, addOption, "4x", (ident) 4);
 
-	$(rate, addOption, "100Mbps", (ident) (intptr_t) 0);
-	$(rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
-	$(rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
 	$(rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
+	$(rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
+	$(rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
+	$(rate, addOption, "100Mbps", (ident) (intptr_t) 0);
 
 	$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
 }
