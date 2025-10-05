@@ -78,6 +78,9 @@ GList *Cm_LoadEntities(const char *entity_string) {
         }
 
         pair->next = entity;
+        if (entity) {
+          entity->prev = pair;
+        }
         entity = pair;
 
         Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));

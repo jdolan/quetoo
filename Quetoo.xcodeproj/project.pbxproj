@@ -229,6 +229,14 @@
 		CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1402E91816E00B89CB6 /* EditorViewController.c */; };
 		CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C1412E91816E00B89CB6 /* EditorViewController.h */; };
 		CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1422E91816E00B89CB6 /* EditorViewController.json */; };
+		CE49C1472E91B99C00B89CB6 /* editor.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1462E91B8B500B89CB6 /* editor.css */; };
+		CE49C14C2E91B9CF00B89CB6 /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */; };
+		CE49C14D2E91B9CF00B89CB6 /* EntityViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */; };
+		CE49C14E2E91B9CF00B89CB6 /* EntityViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */; };
+		CE49C14F2E91B9CF00B89CB6 /* EntityViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */; };
+		CE49C1532E91F6C500B89CB6 /* EntityView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C1512E91F6C500B89CB6 /* EntityView.h */; };
+		CE49C1542E91F6C500B89CB6 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1522E91F6C500B89CB6 /* EntityView.c */; };
+		CE49C1552E91FDBA00B89CB6 /* EntityView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1502E91CECE00B89CB6 /* EntityView.json */; };
 		CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
@@ -1050,8 +1058,12 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */,
-				CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */,
+				CE49C1552E91FDBA00B89CB6 /* EntityView.json in CopyFiles */,
+				CE49C14F2E91B9CF00B89CB6 /* EntityViewController.css in CopyFiles */,
+				CE49C14E2E91B9CF00B89CB6 /* EntityViewController.json in CopyFiles */,
 				CE49C13D2E91801200B89CB6 /* MaterialViewController.css in CopyFiles */,
+				CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */,
+				CE49C1472E91B99C00B89CB6 /* editor.css in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1529,6 +1541,14 @@
 		CE49C1402E91816E00B89CB6 /* EditorViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
 		CE49C1412E91816E00B89CB6 /* EditorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
 		CE49C1422E91816E00B89CB6 /* EditorViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorViewController.json; sourceTree = "<group>"; };
+		CE49C1462E91B8B500B89CB6 /* editor.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = editor.css; sourceTree = "<group>"; };
+		CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityViewController.c; sourceTree = "<group>"; };
+		CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = EntityViewController.css; sourceTree = "<group>"; };
+		CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityViewController.h; sourceTree = "<group>"; };
+		CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityViewController.json; sourceTree = "<group>"; };
+		CE49C1502E91CECE00B89CB6 /* EntityView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityView.json; sourceTree = "<group>"; };
+		CE49C1512E91F6C500B89CB6 /* EntityView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityView.h; sourceTree = "<group>"; };
+		CE49C1522E91F6C500B89CB6 /* EntityView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityView.c; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -3319,10 +3339,18 @@
 				CE49C1402E91816E00B89CB6 /* EditorViewController.c */,
 				CE49C1412E91816E00B89CB6 /* EditorViewController.h */,
 				CE49C1422E91816E00B89CB6 /* EditorViewController.json */,
+				CE49C1522E91F6C500B89CB6 /* EntityView.c */,
+				CE49C1512E91F6C500B89CB6 /* EntityView.h */,
+				CE49C1502E91CECE00B89CB6 /* EntityView.json */,
+				CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */,
+				CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */,
+				CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */,
+				CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */,
 				CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */,
 				CE49C1382E91801200B89CB6 /* MaterialViewController.css */,
 				CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */,
 				CE49C13A2E91801200B89CB6 /* MaterialViewController.json */,
+				CE49C1462E91B8B500B89CB6 /* editor.css */,
 				CE7D2C06202E670E004BC58E /* Makefile.am */,
 			);
 			path = editor;
@@ -3455,11 +3483,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */,
+				CE49C1532E91F6C500B89CB6 /* EntityView.h in Headers */,
+				CE49C14D2E91B9CF00B89CB6 /* EntityViewController.h in Headers */,
 				CE69DCAE202D4FE500E5C8B1 /* MaterialViewController.h in Headers */,
 				CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
 				CE55308E1E57E3670009A127 /* ui_editor.h in Headers */,
-				CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
@@ -4566,6 +4596,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */,
+				CE49C1542E91F6C500B89CB6 /* EntityView.c in Sources */,
+				CE49C14C2E91B9CF00B89CB6 /* EntityViewController.c in Sources */,
 				CE69DCAC202D4FE500E5C8B1 /* MaterialViewController.c in Sources */,
 				CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */,
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,

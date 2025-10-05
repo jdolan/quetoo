@@ -20,6 +20,7 @@
  */
 
 #include "EditorViewController.h"
+#include "EntityViewController.h"
 #include "MaterialViewController.h"
 
 #define _Class _EditorViewController
@@ -48,7 +49,10 @@ static void loadView(ViewController *self) {
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EditorViewController.json", NULL);
   assert(view);
-  
+
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/editor.css");
+  assert(view->stylesheet);
+
   $(self, setView, view);
 
   release(view);
@@ -57,6 +61,10 @@ static void loadView(ViewController *self) {
   assert(this->tabViewController);
 
   ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
+
+  viewController = $((ViewController *) alloc(EntityViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
   viewController = $((ViewController *) alloc(MaterialViewController), init);
   $(tabViewController, addChildViewController, viewController);

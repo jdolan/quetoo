@@ -504,10 +504,10 @@ typedef struct cg_import_s {
    */
 
   /**
-   * @brief Finds the key-value pair for `key` within the specifed entity.
+   * @brief Finds the entity pair for `key` within the specifed entity.
    * @param entity The entity.
    * @param key The entity key.
-   * @return The key-value pair for the specified key within entity.
+   * @return The entity pair for the specified key within entity.
    * @remarks This function will always return non-NULL for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */

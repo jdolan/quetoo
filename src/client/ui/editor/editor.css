@@ -1,0 +1,14 @@
+Panel.editor {
+  alignment: middle-right;
+  draggable: true;
+}
+
+Panel.editor .tabPageView {
+  autoresizing-mask: none;
+  width: 420;
+  height: 500;
+}
+
+#Entity .entity {
+  axis: StackViewAxisHorizontal;
+}

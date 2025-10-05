@@ -1,0 +1,26 @@
+{
+  "identifier": "Entity",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "identifier": "definition",
+      "subviews": [
+        {
+          "class": "Input",
+          "label": {
+            "text": {
+              "text": "Classname"
+            }
+          },
+          "control": {
+            "class": "TextView",
+            "identifier": "classname"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -114,17 +114,17 @@ typedef struct {
 } cm_bsp_model_t;
 
 /**
- * @brief The maximum length of an entity key-value key, in characters.
+ * @brief The maximum length of an entity pair key, in characters.
  */
 #define MAX_BSP_ENTITY_KEY    32
 
 /**
- * @brief The maximum length of an entity key-value value, in characters.
+ * @brief The maximum length of an entity pair value, in characters.
  */
 #define MAX_BSP_ENTITY_VALUE  256
 
 /**
- * @brief Entity key-value pair parsed types.
+ * @brief Entity pair parsed types.
  */
 typedef enum {
   /**
@@ -214,6 +214,11 @@ typedef struct cm_entity_s {
      */
     vec4_t vec4;
   };
+
+  /**
+   * @brief The previous entity pair in this entity, or `NULL`.
+   */
+  struct cm_entity_s *prev;
 
   /**
    * @brief The next entity pair in this entity, or `NULL`.
@@ -437,7 +442,7 @@ typedef struct {
 
   /**
    * @brief The impacted entity, or `NULL`. This is not set by the collision routines directly,
-   * but rather by the Sv_Trace and Cl_Trace routines, which clip traces to their respective
+   * but rather by the `Sv_Trace` and `Cl_Trace` routines, which clip traces to their respective
    * known entities.
    */
   struct g_entity_s *ent;

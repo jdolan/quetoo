@@ -24,7 +24,7 @@
 #include "quemap.h"
 
 /**
- * @brief Entity key-value pairs.
+ * @brief Entity pairs.
  */
 typedef struct entity_key_value_s {
   struct entity_key_value_s *next;

@@ -1,0 +1,14 @@
+{
+  "class": "StackView",
+  "classNames": [
+    "entity"
+  ],
+  "key": {
+    "class": "TextView",
+    "identifier": "key"
+  },
+  "value": {
+    "class": "TextView",
+    "identifier": "value"
+  }
+}
