@@ -306,7 +306,13 @@ void R_InitContext(void) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_context_flags);
 
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-    Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
+    Com_Warn("Failed to create 32 bit OpenGL context: %s\n", SDL_GetError());
+
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+
+    if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
+      Com_Error(ERROR_FATAL, "Failed to create 24 bit OpenGL context: %s\n", SDL_GetError());
+    }
   }
 
   int32_t dw, dh;
