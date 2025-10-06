@@ -9,6 +9,12 @@ Panel.editor .tabPageView {
   height: 500;
 }
 
-#Entity .entity {
+#entity .entity {
   axis: StackViewAxisHorizontal;
 }
+
+#add {
+  width: 200;
+  height: 40;
+}
+

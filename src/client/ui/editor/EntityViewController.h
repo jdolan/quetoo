@@ -23,6 +23,8 @@
 
 #include "ui_types.h"
 
+#include "EntityView.h"
+
 #include <ObjectivelyMVC/ViewController.h>
 
 /**
@@ -52,6 +54,16 @@ struct EntityViewController {
    * @private
    */
   EntityViewControllerInterface *interface;
+
+  /**
+   * @brief The StackView containing the pairs.
+   */
+  StackView *pairs;
+
+  /**
+   * @brief The EntityView reserved for adding a new pair to the current entity.
+   */
+  EntityView *add;
 
   /**
    * @brief The first pair of the entity being edited.

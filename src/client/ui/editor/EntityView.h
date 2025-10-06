@@ -104,14 +104,13 @@ struct EntityViewInterface {
   StackViewInterface stackViewInterface;
 
   /**
-   * @fn EntityView *EntityView::initWithFrame(EntityView *self, const SDL_Rect *frame)
+   * @fn EntityView *EntityView::init(EntityView *self)
    * @brief Initializes this EntityView.
    * @param self The EntityView.
-   * @param frame The frame.
    * @return The initialized EntityView, or `NULL` on error.
    * @memberof EntityView
    */
-  EntityView *(*initWithFrame)(EntityView *self, const SDL_Rect *frame);
+  EntityView *(*init)(EntityView *self);
 
   /**
    * @fn void EntityView::setEntity(EntityView *self, cm_entity_t *entity)

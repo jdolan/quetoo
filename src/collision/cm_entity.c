@@ -24,6 +24,49 @@
 /**
  * @brief
  */
+void Cm_ParseEntity(cm_entity_t *pair) {
+
+  assert(pair);
+  assert(pair->string);
+
+  if (strlen(pair->string)) {
+    pair->parsed |= ENTITY_STRING;
+    pair->nullable_string = pair->string;
+  }
+
+  if (Parse_QuickPrimitive(pair->string,
+                           PARSER_NO_COMMENTS,
+                           PARSE_DEFAULT,
+                           PARSE_INT32,
+                           &pair->integer, 1) == 1) {
+    pair->parsed |= ENTITY_INTEGER;
+  }
+
+  const size_t count = Parse_QuickPrimitive(pair->string,
+                                            PARSER_NO_COMMENTS,
+                                            PARSE_DEFAULT,
+                                            PARSE_FLOAT,
+                                            &pair->vec4, 4);
+
+  switch (count) {
+    case 1:
+      pair->parsed |= ENTITY_FLOAT;
+      break;
+    case 2:
+      pair->parsed |= ENTITY_VEC2;
+      break;
+    case 3:
+      pair->parsed |= ENTITY_VEC3;
+      break;
+    case 4:
+      pair->parsed |= ENTITY_VEC4;
+      break;
+  }
+}
+
+/**
+ * @brief
+ */
 GList *Cm_LoadEntities(const char *entity_string) {
 
   GList *entities = NULL;
@@ -49,33 +92,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
         Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
         Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
 
-        if (strlen(pair->string)) {
-          pair->parsed |= ENTITY_STRING;
-          pair->nullable_string = pair->string;
-        }
-
-        if (Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS, PARSE_DEFAULT,
-                     PARSE_INT32, &pair->integer, 1) == 1) {
-          pair->parsed |= ENTITY_INTEGER;
-        }
-
-        const size_t count = Parse_QuickPrimitive(pair->string, PARSER_NO_COMMENTS,
-                              PARSE_DEFAULT, PARSE_FLOAT, &pair->vec4, 4);
-
-        switch (count) {
-          case 1:
-            pair->parsed |= ENTITY_FLOAT;
-            break;
-          case 2:
-            pair->parsed |= ENTITY_VEC2;
-            break;
-          case 3:
-            pair->parsed |= ENTITY_VEC3;
-            break;
-          case 4:
-            pair->parsed |= ENTITY_VEC4;
-            break;
-        }
+        Cm_ParseEntity(pair);
 
         pair->next = entity;
         if (entity) {

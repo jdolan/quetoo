@@ -29,8 +29,79 @@
 
 #pragma mark - Actions and delegate callbacks
 
+/**
+ * @brief EntityViewDelegate for lights.
+ */
+static void didEditLight(cm_entity_t *entity, cm_entity_t *pair) {
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+
+  r_bsp_light_t *light = NULL;
+
+  r_bsp_light_t *l = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
+    if (l->entity == entity) {
+      light = l;
+      break;
+    }
+  }
+
+  assert(light);
+
+  if (!g_strcmp0(pair->key, "radius")) {
+    light->radius = pair->value;
+  } else if (!g_strcmp0(pair->key, "color")) {
+    light->color = pair->vec3;
+  } else if (!g_strcmp0(pair->key, "intensity")) {
+    light->intensity = pair->value;
+  }
+}
+
+/**
+ * @brief EntityViewDelegate entry point.
+ */
 static void didEditEntity(EntityView *view, const char *key, const char *value) {
-  Com_Print("%s : %s -> %s : %s\n", view->entity->key, view->entity->string, key, value);
+
+  EntityViewController *this = view->delegate.self;
+
+  cm_entity_t *pair = view->entity;
+
+  if (view == this->add) {
+    pair = Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
+
+    cm_entity_t *e = this->entity;
+    while (e->next) {
+      e = e->next;
+    }
+    e->next = pair;
+    pair->prev = e;
+  }
+
+  g_strlcpy(pair->key, key, sizeof(pair->key));
+  g_strlcpy(pair->string, value, sizeof(pair->string));
+
+  Cm_ParseEntity(pair);
+
+  const char *classname = Cm_EntityValue(this->entity, "classname")->nullable_string;
+  if (!g_strcmp0(key, "classname")) {
+    classname = value;
+  }
+
+  if (!g_strcmp0(classname, "light")) {
+    didEditLight(this->entity, pair);
+  }
+
+  if (view == this->add) {
+    EntityView *that = $(alloc(EntityView), init);
+
+    that->delegate.self = this;
+    that->delegate.didEditEntity = didEditEntity;
+
+    that->entity = pair;
+
+    $((View *) this->pairs, addSubview, (View *) that);
+
+    release(that);
+  }
 }
 
 #pragma mark - ViewController
@@ -40,12 +111,18 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
  */
 static void loadView(ViewController *self) {
 
-  super(ViewController, self, loadView);
+  EntityViewController *this = (EntityViewController *) self;
 
-  $(self->view, awakeWithResourceName, "ui/editor/EntityViewController.json");
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("pairs", &this->pairs),
+    MakeOutlet("add", &this->add)
+  );
 
+  self->view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EntityViewController.css");
-  assert(self->view->stylesheet);
+
+  this->add->delegate.self = this;
+  this->add->delegate.didEditEntity = didEditEntity;
 }
 
 /**
@@ -90,7 +167,13 @@ static void viewWillAppear(ViewController *self) {
  * @memberof EntityViewController
  */
 static EntityViewController *init(EntityViewController *self) {
-  return (EntityViewController *) super(ViewController, self, init);
+
+  self = (EntityViewController *) super(ViewController, self, init);
+  if (self) {
+
+  }
+
+  return self;
 }
 
 /**
@@ -101,35 +184,21 @@ static void setEntity(EntityViewController *self, cm_entity_t *entity) {
 
   self->entity = entity;
 
-  View *definition = $(self->viewController.view, subviewWithIdentifier, "definition");
-  assert(definition);
-
-  $(definition, removeAllSubviews);
+  $((View *) self->pairs, removeAllSubviews);
 
   for (cm_entity_t *e = self->entity; e; e = e->next) {
 
-    EntityView *view = $(alloc(EntityView), initWithFrame, NULL);
+    EntityView *view = $(alloc(EntityView), init);
 
     view->delegate.self = self;
     view->delegate.didEditEntity = didEditEntity;
 
-    $(definition, addSubview, (View *) view);
+    $((View *) self->pairs, addSubview, (View *) view);
 
     $(view, setEntity, e);
 
     release(view);
   }
-
-  // add a blank row to define a new entity pair
-
-  EntityView *view = $(alloc(EntityView), initWithFrame, NULL);
-
-  view->delegate.self = self;
-  view->delegate.didEditEntity = didEditEntity;
-
-  $(definition, addSubview, (View *) view);
-
-  release(view);
 }
 
 #pragma mark - Class lifecycle

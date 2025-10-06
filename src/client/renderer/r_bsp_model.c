@@ -296,7 +296,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_inline_models; i++, in++, out++) {
 
-    out->def = bsp->cm->entities[in->entity];
+    out->entity = bsp->cm->entities[in->entity];
     out->head_node = bsp->nodes + in->head_node;
 
     out->visible_bounds = in->visible_bounds;
@@ -329,6 +329,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_lights; i++, in++, out++) {
 
+    out->entity = bsp->cm->entities[in->entity];
     out->flags = in->flags;
     out->origin = in->origin;
     out->color = in->color;

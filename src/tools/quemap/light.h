@@ -32,6 +32,11 @@
  */
 typedef struct light_s {
   /**
+   * @brief The entity number.
+   */
+  int32_t entity;
+
+  /**
    * @brief The flags.
    */
   int32_t flags;

@@ -111,8 +111,8 @@ static void FogForEntity(const cm_entity_t *entity) {
       fog.absorption = FOG_ABSORPTION;
     }
 
-    if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
-      fog.color = Cm_EntityValue(entity, "_color")->vec3;
+    if (Cm_EntityValue(entity, "color")->parsed & ENTITY_VEC3) {
+      fog.color = Cm_EntityValue(entity, "color")->vec3;
     } else if (material) {
       fog.color = material->ambient;
     } else {

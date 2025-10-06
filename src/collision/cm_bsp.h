@@ -507,6 +507,11 @@ typedef struct {
  */
 typedef struct {
   /**
+   * @brief The entity number.
+   */
+  int32_t entity;
+
+  /**
    * @brief The light flags.
    */
   int32_t flags;

@@ -99,7 +99,7 @@ static void render(View *self, Renderer *renderer) {
     const box3_t bounds = Box3_FromCenterRadius(origin, 8.f);
 
     color_t c = color_white;
-    const cm_entity_t *color = Cm_EntityValue(this->entity, "_color");
+    const cm_entity_t *color = Cm_EntityValue(this->entity, "color");
     if (color && color->parsed & ENTITY_VEC3) {
       c = Color3fv(color->vec3);
     }
@@ -114,9 +114,9 @@ static void render(View *self, Renderer *renderer) {
  * @fn EntityView *EntityView::init(EntityView *self)
  * @memberof EntityView
  */
-static EntityView *initWithFrame(EntityView *self, const SDL_Rect *frame) {
+static EntityView *init(EntityView *self) {
 
-  self = (EntityView *) super(StackView, self, initWithFrame, frame);
+  self = (EntityView *) super(StackView, self, initWithFrame, NULL);
   if (self) {
 
     self->key = $(alloc(TextView), initWithFrame, NULL);
@@ -146,8 +146,25 @@ static void setEntity(EntityView *self, cm_entity_t *entity) {
   self->entity = entity;
 
   if (entity) {
+
     $(self->key, setDefaultText, entity->key);
-    $(self->value, setDefaultText, entity->string);
+
+    if (entity->parsed & ENTITY_VEC4) {
+      const vec4_t v = entity->vec4;
+      $(self->value, setDefaultText, va("%.2f %.2f %.2f %.2f", v.x, v.y, v.z, v.w));
+    } else if (entity->parsed & ENTITY_VEC3) {
+      const vec3_t v = entity->vec3;
+      $(self->value, setDefaultText, va("%.2f %.2f %.2f", v.x, v.y, v.z));
+    } else if (entity->parsed & ENTITY_VEC2) {
+      const vec2_t v = entity->vec2;
+      $(self->value, setDefaultText, va("%.2f %.2f", v.x, v.y));
+    } else if (entity->parsed & ENTITY_FLOAT) {
+      $(self->value, setDefaultText, va("%.2f", entity->value));
+    } else if (entity->parsed & ENTITY_INTEGER) {
+      $(self->value, setDefaultText, va("%d", entity->integer));
+    } else {
+      $(self->value, setDefaultText, entity->nullable_string);
+    }
   } else {
     $(self->key, setDefaultText, NULL);
     $(self->value, setDefaultText, NULL);
@@ -166,7 +183,7 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->render = render;
 
-  ((EntityViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((EntityViewInterface *) clazz->interface)->init = init;
   ((EntityViewInterface *) clazz->interface)->setEntity = setEntity;
 }
 

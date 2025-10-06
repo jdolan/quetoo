@@ -608,7 +608,7 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief The backing entity definition for this inline model.
    */
-  cm_entity_t *def;
+  cm_entity_t *entity;
 
   /**
    * @brief The head node of this inline model.
@@ -655,6 +655,11 @@ typedef struct r_bsp_inline_model_s {
  * @brief
  */
 typedef struct {
+  /**
+   * @brief The entity that defines this light.
+   */
+  cm_entity_t *entity;
+
   /**
    * @brief The light flags.
    */

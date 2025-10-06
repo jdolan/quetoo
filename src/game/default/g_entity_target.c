@@ -88,10 +88,10 @@ void G_target_light(g_entity_t *self) {
     self->locals.color = Vec3_One();
   }
 
-  self->locals.light = self->locals.light ?: 300.f;
+  self->locals.radius = self->locals.radius ?: 300.f;
 
   self->s.color = Color_Color32(Color3fv(self->locals.color));
-  self->s.termination.x = self->locals.light;
+  self->s.termination.x = self->locals.radius;
 
   if (self->locals.spawn_flags & LIGHT_START_ON) {
     self->s.effects |= EF_LIGHT;

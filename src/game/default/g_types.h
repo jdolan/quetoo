@@ -1121,7 +1121,7 @@ typedef struct {
   vec3_t color;
 
   float mass;
-  float light;
+  float radius;
 
   uint32_t next_think;
   void (*Think)(g_entity_t *self);

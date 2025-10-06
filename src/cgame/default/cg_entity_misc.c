@@ -75,7 +75,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
   dust->sprite.dir = cgi.EntityValue(self->def, "dir")->vec3;
 
-  const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
+  const cm_entity_t *color = cgi.EntityValue(self->def, "color");
   if (color->parsed & ENTITY_VEC4) {
     dust->sprite.color = color->vec4;
   } else if (color->parsed & ENTITY_VEC3) {
@@ -366,16 +366,16 @@ static void Cg_misc_light_Init(cg_entity_t *self) {
   cg_misc_light_data_t *data = self->data;
 
   data->light.origin = self->origin;
-  data->light.radius = cgi.EntityValue(self->def, "light")->value ?: 300.f;
+  data->light.radius = cgi.EntityValue(self->def, "radius")->value ?: 300.f;
 
-  const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
+  const cm_entity_t *color = cgi.EntityValue(self->def, "color");
   if (color->parsed & ENTITY_VEC3) {
     data->light.color = color->vec3;
   } else {
     data->light.color = Vec3(1.f, 1.f, 1.f);
   }
 
-  data->light.intensity = cgi.EntityValue(self->def, "_intensity")->value;
+  data->light.intensity = cgi.EntityValue(self->def, "intensity")->value;
 
   const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "zzz";
   g_strlcpy(data->style.string, style, sizeof(data->style.string));
@@ -652,7 +652,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   sprite->sprite.rotation_velocity = cgi.EntityValue(self->def, "rotation_velocity")->value;
   sprite->sprite.dir = cgi.EntityValue(self->def, "dir")->vec3;
 
-  const cm_entity_t *color = cgi.EntityValue(self->def, "_color");
+  const cm_entity_t *color = cgi.EntityValue(self->def, "color");
   if (color->parsed & ENTITY_VEC4) {
     sprite->sprite.color = color->vec4;
   } else if (color->parsed & ENTITY_VEC3) {

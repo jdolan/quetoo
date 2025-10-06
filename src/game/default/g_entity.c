@@ -149,8 +149,8 @@ static bool G_SpawnEntity(g_entity_t *ent) {
   ent->locals.mass = gi.EntityValue(ent->def, "mass")->value;
 
   ent->locals.atten = gi.EntityValue(ent->def, "atten")->integer;
-  ent->locals.color = gi.EntityValue(ent->def, "_color")->vec3;
-  ent->locals.light = gi.EntityValue(ent->def, "light")->value;
+  ent->locals.color = gi.EntityValue(ent->def, "color")->vec3;
+  ent->locals.radius = gi.EntityValue(ent->def, "radius")->value;
 
   // check item spawn functions
   for (size_t i = 0; i < g_num_items; i++) {
