@@ -5,10 +5,14 @@
   ],
   "key": {
     "class": "TextView",
-    "identifier": "key"
+    "classNames": [
+      "key"
+    ]
   },
   "value": {
     "class": "TextView",
-    "identifier": "value"
+    "classNames": [
+      "value"
+    ]
   }
 }

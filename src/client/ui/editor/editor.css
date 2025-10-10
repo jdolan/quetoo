@@ -9,12 +9,22 @@ Panel.editor .tabPageView {
   height: 500;
 }
 
-#entity .entity {
+#Entity {
+  padding: 4;
+}
+
+#Entity .entity {
   axis: StackViewAxisHorizontal;
 }
 
-#add {
-  width: 200;
-  height: 40;
+#Entity .entity .value {
+  min-width: 240;
 }
 
+#Entity #add {
+
+}
+
+#Material Input Label {
+  width: 200;
+}

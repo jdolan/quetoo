@@ -104,13 +104,14 @@ struct EntityViewInterface {
   StackViewInterface stackViewInterface;
 
   /**
-   * @fn EntityView *EntityView::init(EntityView *self)
+   * @fn EntityView *EntityView::init(EntityView *self, cm_entity_t *entity)
    * @brief Initializes this EntityView.
    * @param self The EntityView.
+   * @param entity The entity.
    * @return The initialized EntityView, or `NULL` on error.
    * @memberof EntityView
    */
-  EntityView *(*init)(EntityView *self);
+  EntityView *(*initWithEntity)(EntityView *self, cm_entity_t *entity);
 
   /**
    * @fn void EntityView::setEntity(EntityView *self, cm_entity_t *entity)
@@ -128,4 +129,4 @@ struct EntityViewInterface {
  * @return The EntityView Class.
  * @memberof EntityView
  */
-OBJECTIVELY_EXPORT Class *_EntityView(void);
+OBJECTIVELYMVC_EXPORT Class *_EntityView(void);

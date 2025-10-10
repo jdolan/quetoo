@@ -43,7 +43,9 @@ static void didEndEditing(TextView *textView) {
   const char *key = self->key->attributedText->string.chars ?: self->key->defaultText;
   const char *value = self->value->attributedText->string.chars ?: self->value->defaultText;
 
-  self->delegate.didEditEntity(self, key, value);
+  if (key && value) {
+    self->delegate.didEditEntity(self, key, value);
+  }
 }
 
 #pragma mark - Object
@@ -83,6 +85,14 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 }
 
 /**
+ * @fn View *View::init(View *self)
+ * @memberof View
+ */
+static View *init(View *self) {
+  return (View *) $((EntityView *) self, initWithEntity, NULL);
+}
+
+/**
  * @fn void View::render(View *self, Renderer *renderer)
  * @memberof View
  */
@@ -111,27 +121,26 @@ static void render(View *self, Renderer *renderer) {
 #pragma mark - EntityView
 
 /**
- * @fn EntityView *EntityView::init(EntityView *self)
+ * @fn EntityView *EntityView::initWithEntity(EntityView *self, cm_entity_t *entity)
  * @memberof EntityView
  */
-static EntityView *init(EntityView *self) {
+static EntityView *initWithEntity(EntityView *self, cm_entity_t *entity) {
 
   self = (EntityView *) super(StackView, self, initWithFrame, NULL);
   if (self) {
 
-    self->key = $(alloc(TextView), initWithFrame, NULL);
-    $((View *) self, addSubview, (View *) self->key);
-
-    self->value = $(alloc(TextView), initWithFrame, NULL);
-    $((View *) self, addSubview, (View *) self->value);
-
     $((View *) self, awakeWithResourceName, "ui/editor/EntityView.json");
+
+    $((View *) self, addSubview, (View *) self->key);
+    $((View *) self, addSubview, (View *) self->value);
 
     self->key->delegate.self = self;
     self->key->delegate.didEndEditing = didEndEditing;
 
     self->value->delegate.self = self;
     self->value->delegate.didEndEditing = didEndEditing;
+
+    $(self, setEntity, entity);
   }
 
   return self;
@@ -144,6 +153,12 @@ static EntityView *init(EntityView *self) {
 static void setEntity(EntityView *self, cm_entity_t *entity) {
 
   self->entity = entity;
+
+  $(self->key, setAttributedText, NULL);
+  $(self->key, setDefaultText, NULL);
+
+  $(self->value, setAttributedText, NULL);
+  $(self->value, setDefaultText, NULL);
 
   if (entity) {
 
@@ -165,9 +180,6 @@ static void setEntity(EntityView *self, cm_entity_t *entity) {
     } else {
       $(self->value, setDefaultText, entity->nullable_string);
     }
-  } else {
-    $(self->key, setDefaultText, NULL);
-    $(self->value, setDefaultText, NULL);
   }
 }
 
@@ -181,9 +193,10 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->render = render;
 
-  ((EntityViewInterface *) clazz->interface)->init = init;
+  ((EntityViewInterface *) clazz->interface)->initWithEntity = initWithEntity;
   ((EntityViewInterface *) clazz->interface)->setEntity = setEntity;
 }
 

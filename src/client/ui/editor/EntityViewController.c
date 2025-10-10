@@ -91,16 +91,16 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
   }
 
   if (view == this->add) {
-    EntityView *that = $(alloc(EntityView), init);
+    EntityView *that = $(alloc(EntityView), initWithEntity, pair);
 
     that->delegate.self = this;
     that->delegate.didEditEntity = didEditEntity;
 
-    that->entity = pair;
-
-    $((View *) this->pairs, addSubview, (View *) that);
+    $((View *) this->pairs, addSubviewRelativeTo, (View *) that, (View *) this->add, ViewPositionBefore);
 
     release(that);
+
+    $(this->add, setEntity, NULL);
   }
 }
 
@@ -188,14 +188,12 @@ static void setEntity(EntityViewController *self, cm_entity_t *entity) {
 
   for (cm_entity_t *e = self->entity; e; e = e->next) {
 
-    EntityView *view = $(alloc(EntityView), init);
+    EntityView *view = $(alloc(EntityView), initWithEntity, e);
 
     view->delegate.self = self;
     view->delegate.didEditEntity = didEditEntity;
 
     $((View *) self->pairs, addSubview, (View *) view);
-
-    $(view, setEntity, e);
 
     release(view);
   }
