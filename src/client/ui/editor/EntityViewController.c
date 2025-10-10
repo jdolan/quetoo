@@ -49,6 +49,9 @@ static void didEditLight(cm_entity_t *entity, cm_entity_t *pair) {
 
   if (!g_strcmp0(pair->key, "radius")) {
     light->radius = pair->value;
+    light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
+    light->depth_pass_elements = NULL;
+    light->num_depth_pass_elements = bsp->num_elements;
   } else if (!g_strcmp0(pair->key, "color")) {
     light->color = pair->vec3;
   } else if (!g_strcmp0(pair->key, "intensity")) {
