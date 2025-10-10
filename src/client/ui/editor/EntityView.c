@@ -155,30 +155,27 @@ static void setEntity(EntityView *self, cm_entity_t *entity) {
   self->entity = entity;
 
   $(self->key, setAttributedText, NULL);
-  $(self->key, setDefaultText, NULL);
-
   $(self->value, setAttributedText, NULL);
-  $(self->value, setDefaultText, NULL);
 
   if (entity) {
 
-    $(self->key, setDefaultText, entity->key);
+    $(self->key, setAttributedText, entity->key);
 
     if (entity->parsed & ENTITY_VEC4) {
       const vec4_t v = entity->vec4;
-      $(self->value, setDefaultText, va("%.2f %.2f %.2f %.2f", v.x, v.y, v.z, v.w));
+      $(self->value, setAttributedText, va("%.2f %.2f %.2f %.2f", v.x, v.y, v.z, v.w));
     } else if (entity->parsed & ENTITY_VEC3) {
       const vec3_t v = entity->vec3;
-      $(self->value, setDefaultText, va("%.2f %.2f %.2f", v.x, v.y, v.z));
+      $(self->value, setAttributedText, va("%.2f %.2f %.2f", v.x, v.y, v.z));
     } else if (entity->parsed & ENTITY_VEC2) {
       const vec2_t v = entity->vec2;
-      $(self->value, setDefaultText, va("%.2f %.2f", v.x, v.y));
+      $(self->value, setAttributedText, va("%.2f %.2f", v.x, v.y));
     } else if (entity->parsed & ENTITY_FLOAT) {
-      $(self->value, setDefaultText, va("%.2f", entity->value));
+      $(self->value, setAttributedText, va("%.2f", entity->value));
     } else if (entity->parsed & ENTITY_INTEGER) {
-      $(self->value, setDefaultText, va("%d", entity->integer));
+      $(self->value, setAttributedText, va("%d", entity->integer));
     } else {
-      $(self->value, setDefaultText, entity->nullable_string);
+      $(self->value, setAttributedText, entity->nullable_string);
     }
   }
 }
