@@ -62,6 +62,10 @@ void Cm_ParseEntity(cm_entity_t *pair) {
       pair->parsed |= ENTITY_VEC4;
       break;
   }
+
+  if ((pair->parsed & ENTITY_VEC3) && !(pair->parsed & ENTITY_VEC4)) {
+    pair->vec4.w = 1.f;
+  }
 }
 
 /**
