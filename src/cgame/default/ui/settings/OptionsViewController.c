@@ -25,7 +25,7 @@
 
 #define _Class _OptionsViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief SelectDelegate callback for Quality.

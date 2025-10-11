@@ -75,14 +75,14 @@ static void updateBindings(View *self) {
 #pragma mark - CvarCheckbox
 
 /**
- * @brief ActionFunction for the Checkbox.
+ * @brief CheckboxDelegate.
  */
-static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didToggle(Checkbox *checkbox) {
 
-  const CvarCheckbox *this = (CvarCheckbox *) control;
+  const CvarCheckbox *this = (CvarCheckbox *) checkbox;
 
   if (this->var) {
-    cgi.SetCvarInteger(this->var->name, $(control, isSelected));
+    cgi.SetCvarInteger(this->var->name, $((Control *) this, isSelected));
   }
 }
 
@@ -98,7 +98,7 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
     self->var = var;
 
-    $((Control *) self, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+    self->checkbox.delegate.didToggle = didToggle;
   }
 
   return self;

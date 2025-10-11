@@ -25,7 +25,7 @@
 
 #define _Class _MovementCombatViewController
 
-#pragma mark - Actions and delegates
+#pragma mark - Delegates
 
 /**
  * @brief TextViewDelegate callback for binding keys.

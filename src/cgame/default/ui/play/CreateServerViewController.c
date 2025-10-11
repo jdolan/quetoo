@@ -28,7 +28,7 @@
 
 #define _Class _CreateServerViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief Select teams mode
@@ -53,11 +53,11 @@ static void selectTeams(Select *select, Option *option) {
 }
 
 /**
- * @brief ActionFunction for the Create button.
+ * @brief ButtonDelegate for the Create button.
  */
-static void createAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void createServer(Button *button) {
 
-  CreateServerViewController *this = (CreateServerViewController *) sender;
+  CreateServerViewController *this = button->delegate.self;
 
   Array *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
@@ -142,7 +142,8 @@ static void loadView(ViewController *self) {
 
   this->teams->delegate.didSelectOption = selectTeams;
 
-  $((Control *) this->create, addActionForEventType, SDL_MOUSEBUTTONUP, createAction, self, NULL);
+  this->create->delegate.didClick = createServer;
+  this->create->delegate.self = this;
 }
 
 #pragma mark - Class lifecycle

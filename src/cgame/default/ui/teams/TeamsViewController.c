@@ -70,9 +70,9 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Actions
 
 /**
- * @brief ActionFunction for spectate Button.
+ * @brief ButtonDelegate for Spectate.
  */
-static void spectateAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickSpectate(Button *button) {
 
   cgi.Cbuf("spectate\n");
 
@@ -80,11 +80,11 @@ static void spectateAction(Control *control, const SDL_Event *event, ident sende
 }
 
 /**
- * @brief ActionFunction for join Button.
+ * @brief ButtonDelegate for Join.
  */
-static void joinAction(Control *self, const SDL_Event *event, ident sender, ident data) {
+static void didClickJoin(Button *button) {
 
-  TeamsViewController *this = sender;
+  TeamsViewController *this = button->delegate.self;
 
   Array *paths = $(this->teamsCollectionView, selectionIndexPaths);
   IndexPath *path = $(paths, firstObject);
@@ -124,8 +124,11 @@ static void loadView(ViewController *self) {
   View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
   assert(view);
 
-  $((Control *) this->spectate, addActionForEventType, SDL_MOUSEBUTTONUP, spectateAction, self, NULL);
-  $((Control *) this->join, addActionForEventType, SDL_MOUSEBUTTONUP, joinAction, self, NULL);
+  this->spectate->delegate.didClick = didClickSpectate;
+  this->spectate->delegate.self = self;
+
+  this->join->delegate.didClick = didClickJoin;
+  this->join->delegate.self = self;
 
   $(self, setView, view);
   release(view);

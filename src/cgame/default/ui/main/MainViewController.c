@@ -34,16 +34,16 @@
 
 #define _Class _MainViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for main menu primary items.
+ * @brief ButtonDelegate for menu navigation.
  */
-static void pushViewControllerAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickNavigateViewController(Button *button) {
 
-  MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
-  Class *clazz = (Class *) data;
+  Class *clazz = button->delegate.data;
 
   if (clazz) {
     ViewController *topViewController = $(this->navigationViewController, topViewController);
@@ -70,11 +70,11 @@ static void quit(ident data) {
 }
 
 /**
- * @brief Quit Action.
+ * @brief ButtonDelegate for Quit.
  */
-static void quitAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickQuit(Button *button) {
 
-  MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
   const Dialog dialog = {
     .message = "Are you sure you want to quit?",
@@ -95,11 +95,11 @@ static void disconnect(ident data) {
 }
 
 /**
- * @brief Disconnect Action.
+ * @brief ButtonDelegate for Disconnect.
  */
-static void disconnectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickDisconnect(Button *button) {
 
-  MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
   const Dialog dialog = {
     .message = "Are you sure you want to disconnect?",
@@ -143,20 +143,50 @@ static void loadView(ViewController *self) {
 
   $(self, setView, (View *) this->mainView);
 
-  $(this, primaryButton, "Home", pushViewControllerAction, _HomeViewController());
-  $(this, primaryButton, "Play", pushViewControllerAction, _PlayViewController());
-  $(this, primaryButton, "Controls", pushViewControllerAction, _ControlsViewController());
-  $(this, primaryButton, "Settings", pushViewControllerAction, _SettingsViewController());
+  $(this, primaryButton, "Home", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _HomeViewController()
+  });
 
-  $(this, primaryButton, "Quit", quitAction, NULL);
+  $(this, primaryButton, "Play", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _PlayViewController()
+  });
 
-  $(this, secondaryButton, "Teams", pushViewControllerAction, _TeamsViewController());
-  $(this, secondaryButton, "Disconnect", disconnectAction, NULL);
+  $(this, primaryButton, "Controls", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _ControlsViewController()
+  });
+
+  $(this, primaryButton, "Settings", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _SettingsViewController()
+  });
+
+  $(this, primaryButton, "Quit", &(const ButtonDelegate) {
+    .didClick = didClickQuit,
+    .self = self
+  });
+
+  $(this, secondaryButton, "Teams", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _TeamsViewController()
+  });
+
+  $(this, secondaryButton, "Disconnect", &(const ButtonDelegate) {
+    .didClick = didClickDisconnect,
+    .self = self
+  });
 
   $(self, addChildViewController, (ViewController *) this->navigationViewController);
   $(this->mainView->contentView, addSubview, this->navigationViewController->viewController.view);
 
-  pushViewControllerAction(NULL, NULL, this, _HomeViewController());
+  $(this, navigateToViewController, _HomeViewController());
 }
 
 #pragma mark - MainViewController
@@ -177,10 +207,31 @@ static MainViewController *init(MainViewController *self) {
 }
 
 /**
- * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
+ * @fn void MainViewController::navigateToViewController(MainViewController *self, Class *clazz)
  * @memberof MainViewController
  */
-static void primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
+static void navigateToViewController(MainViewController *self, Class *clazz) {
+
+  assert(clazz);
+
+  ViewController *topViewController = $(self->navigationViewController, topViewController);
+  if (topViewController && $((Object *) topViewController, isKindOfClass, clazz)) {
+    return;
+  }
+
+  $(self->navigationViewController, popToRootViewController);
+  $(self->navigationViewController, popViewController);
+
+  ViewController *viewController = $((ViewController *) _alloc(clazz), init);
+  $(self->navigationViewController, pushViewController, viewController);
+  release(viewController);
+}
+
+/**
+ * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate)
+ * @memberof MainViewController
+ */
+static void primaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate) {
 
   Button *button = $(alloc(Button), initWithTitle, title);
   assert(button);
@@ -188,22 +239,22 @@ static void primaryButton(MainViewController *self, const char *title, ActionFun
   button->control.view.identifier = strdup(title);
   assert(button->control.view.identifier);
 
-  $((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
+  button->delegate = *delegate;
 
   $((View *) self->mainView->primaryMenu, addSubview, (View *) button);
   release(button);
 }
 
 /**
- * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
+ * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate)
  * @memberof MainViewController
  */
-static void secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
+static void secondaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate) {
 
   Button *button = $(alloc(Button), initWithTitle, title);
   assert(button);
 
-  $((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
+  button->delegate = *delegate;
 
   $((View *) self->mainView->secondaryMenu, addSubview, (View *) button);
   release(button);
@@ -221,6 +272,7 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
   ((MainViewControllerInterface *) clazz->interface)->init = init;
+  ((MainViewControllerInterface *) clazz->interface)->navigateToViewController = navigateToViewController;
   ((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
   ((MainViewControllerInterface *) clazz->interface)->secondaryButton = secondaryButton;
 }

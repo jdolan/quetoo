@@ -27,7 +27,7 @@
 
 #define _Class _EntityViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief EntityViewDelegate for lights.
@@ -118,7 +118,8 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("pairs", &this->pairs),
-    MakeOutlet("add", &this->add)
+    MakeOutlet("add", &this->add),
+    MakeOutlet("create", &this->create)
   );
 
   self->view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -200,6 +201,8 @@ static void setEntity(EntityViewController *self, cm_entity_t *entity) {
 
     release(view);
   }
+
+  $((View *) self->pairs, sizeToFit);
 }
 
 #pragma mark - Class lifecycle

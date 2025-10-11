@@ -23,6 +23,13 @@
         {
           "identifier": "add",
           "class": "EntityView"
+        },
+        {
+          "identifier": "create",
+          "class": "Button",
+          "title": {
+            "text": "Create Entity"
+          }
         }
       ]
     }

@@ -26,14 +26,13 @@
 
 #define _Class _MaterialViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief ActionFunction for the Save Button.
  */
-static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-  MaterialViewController *this = sender;
+static void didClickSave(Button *button) {
+  MaterialViewController *this = button->delegate.self;
 
   if (this->model == NULL) {
     Com_Debug(DEBUG_UI, "Not editing a material\n");
@@ -113,7 +112,8 @@ static void loadView(ViewController *self) {
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
 
-  $((Control *) this->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
+  this->save->delegate.self = self;
+  this->save->delegate.didClick = didClickSave;
 }
 
 /**

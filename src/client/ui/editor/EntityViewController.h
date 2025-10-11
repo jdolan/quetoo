@@ -66,6 +66,11 @@ struct EntityViewController {
   EntityView *add;
 
   /**
+   * @brief The Button to create a new entity.
+   */
+  Button *create;
+
+  /**
    * @brief The first pair of the entity being edited.
    */
   cm_entity_t *entity;

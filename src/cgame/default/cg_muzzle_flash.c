@@ -132,7 +132,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
   const int32_t np = 5;
   const float flashlen = 2.f;
 
-  for (int32_t i = 0; i < np; i++){
+  for (int32_t i = 0; i < np; i++) {
 
     Cg_AddSprite(&(cg_sprite_t) {
       .animation = cg_sprite_blaster_flame,

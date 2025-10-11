@@ -25,7 +25,7 @@
 
 #define _Class _SystemViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief SelectDelegate callback for Video Mode.
@@ -42,9 +42,9 @@ static void didSelecVideoMode(Select *select, Option *option) {
 }
 
 /**
- * @brief ActionFunction for the Apply button.
+ * @brief ButtonDelegate for the Apply button.
  */
-static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickApply(Button *button) {
   cgi.Cbuf("r_restart; s_restart");
 }
 
@@ -103,7 +103,8 @@ static void loadView(ViewController *self) {
   $(rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
   $(rate, addOption, "100Mbps", (ident) (intptr_t) 0);
 
-  $((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
+  apply->delegate.didClick = didClickApply;
+  apply->delegate.self = self;
 }
 
 #pragma mark - Class lifecycle

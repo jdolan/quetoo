@@ -28,7 +28,7 @@
 
 #define _Class _EntityView
 
-#pragma mark - Actions and Delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief TextViewDelegate callback for editing an entity pair.

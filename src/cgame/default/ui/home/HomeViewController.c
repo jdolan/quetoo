@@ -26,7 +26,7 @@
 
 #define _Class _HomeViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
  * @brief Dialog::okFunction for launching the installer to fetch updates.

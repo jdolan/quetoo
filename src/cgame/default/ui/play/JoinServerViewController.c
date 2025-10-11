@@ -32,18 +32,18 @@ static const char *_ping = "Ping";
 
 #define _Class _JoinServerViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for the Quickjoin button.
+ * @brief ButtonDelegate for Quick Join.
  * @description Selects a server based on minumum ping and maximum players with
  * a bit of lovely random thrown in. Any server that matches the criteria will
  * be weighted by how much "better" they are by how much lower their ping is and
  * how many more players there are.
  */
-static void quickjoinAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickQuickJoin(Button *button) {
 
-  JoinServerViewController *this = (JoinServerViewController *) sender;
+  JoinServerViewController *this = button->delegate.self;
 
   const int32_t max_ping = Clampf(cg_quick_join_max_ping->integer, 0, 999);
   const int32_t min_clients = Clampf(cg_quick_join_min_clients->integer, 0, MAX_CLIENTS);
@@ -113,24 +113,26 @@ static void quickjoinAction(Control *control, const SDL_Event *event, ident send
 }
 
 /**
- * @brief ActionFunction for the Refresh button.
+ * @brief ButtonDelegate for the Refresh button.
  */
-static void refreshAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickRefresh(Button *button) {
   cgi.GetServers();
 }
 
 /**
- * @brief ActionFunction for the Connect button.
+ * @brief ButtonDelegate for the Connect button.
  */
-static void connectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickConnect(Button *button) {
 
-  JoinServerViewController *this = (JoinServerViewController *) sender;
+  JoinServerViewController *this = button->delegate.self;
 
-  if (control == (Control *) this->serversTableView) {
-    if (event->button.clicks < 2) {
-      return;
-    }
-  }
+// FIXME: By removing Actions, we lost tableview row click callbacks
+// FIXME: Make this work with TableViewDelegate instead
+//  if (control == (Control *) this->serversTableView) {
+//    if (event->button.clicks < 2) {
+//      return;
+//    }
+//  }
 
   IndexSet *selectedRowIndexes = $((TableView *) this->serversTableView, selectedRowIndexes);
   if (selectedRowIndexes->count) {
@@ -268,7 +270,7 @@ static void loadView(ViewController *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
 
-  Control *quickJoin, *refresh, *connect;
+  Button *quickJoin, *refresh, *connect;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("servers", &this->serversTableView),
@@ -298,11 +300,14 @@ static void loadView(ViewController *self) {
   this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
   this->serversTableView->delegate.self = this;
 
-  $((Control *) this->serversTableView, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, this, NULL);
+  quickJoin->delegate.didClick = didClickQuickJoin;
+  quickJoin->delegate.self = this;
 
-  $(quickJoin, addActionForEventType, SDL_MOUSEBUTTONUP, quickjoinAction, self, NULL);
-  $(refresh, addActionForEventType, SDL_MOUSEBUTTONUP, refreshAction, self, NULL);
-  $(connect, addActionForEventType, SDL_MOUSEBUTTONUP, connectAction, self, NULL);
+  refresh->delegate.didClick = didClickRefresh;
+  refresh->delegate.self = this;
+
+  connect->delegate.didClick = didClickConnect;
+  connect->delegate.self = this;
 }
 
 /**

@@ -25,22 +25,22 @@
 
 #define _Class _DialogViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for clicking Ok
+ * @brief ButtonDelegate.
  */
-static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickButton(Button *button) {
 
-  DialogViewController *this = (DialogViewController *) sender;
+  DialogViewController *this = button->delegate.self;
 
-  if (control == (Control *) this->okButton) {
+  if (button == this->okButton) {
     if (this->dialog.okFunction) {
       this->dialog.okFunction(this->dialog.data);
     } else {
       cgi.Warn("okFunction was NULL\n");
     }
-  } else if (control == (Control *) this->cancelButton) {
+  } else if (button == this->cancelButton) {
     if (this->dialog.cancelFunction) {
       this->dialog.cancelFunction(this->dialog.data);
     }
@@ -78,8 +78,11 @@ static void loadView(ViewController *self) {
   $(this->cancelButton->title, setText, this->dialog.cancel);
   $(this->okButton->title, setText, this->dialog.ok);
 
-  $((Control *) this->okButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
-  $((Control *) this->cancelButton, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
+  this->okButton->delegate.self = self;
+  this->okButton->delegate.didClick = didClickButton;
+
+  this->cancelButton->delegate.self = self;
+  this->okButton->delegate.didClick = didClickButton;
 }
 
 #pragma mark - DialogViewController

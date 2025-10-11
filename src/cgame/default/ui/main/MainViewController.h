@@ -84,26 +84,33 @@ struct MainViewControllerInterface {
   MainViewController *(*init)(MainViewController *self);
 
   /**
-   * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
+   * @fn void MainViewController::navigateToViewController(MainViewController *self, Class *clazz)
+   * @brief Navigates to an instance of the ViewController `clazz`.
+   * @param self The MainViewController.
+   * @param clazz The ViewController Class.
+   * @memberof MainViewController
+   */
+  void (*navigateToViewController)(MainViewController *self, Class *clazz);
+
+  /**
+   * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, const ButtonDelegate *delegate)
    * @brief Adds a Button to the primary menu.
    * @param self The MainViewController.
    * @param title The title text.
-   * @param action The ActionFunction to bind to click events.
-   * @param data The user data.
+   * @param delegate The ButtonDelegate.
    * @memberof MainViewController
    */
-  void (*primaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
+  void (*primaryButton)(MainViewController *self, const char *title, const ButtonDelegate *delegate);
 
   /**
-   * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, ActionFunction action, ident data)
+   * @fn void MainViewController::secondaryButton(const MainViewController *self, const char *title, const ButtonDelegate *delegate)
    * @brief Adds a Button to the secondary menu.
    * @param self The MainViewController.
    * @param title The title text.
-   * @param action The ActionFunction to bind to click events.
-   * @param data The user data.
+   * @param delegate The ButtonDelegate.
    * @memberof MainViewController
    */
-  void (*secondaryButton)(MainViewController *self, const char *title, ActionFunction action, ident data);
+  void (*secondaryButton)(MainViewController *self, const char *title, const ButtonDelegate *delegate);
 };
 
 /**

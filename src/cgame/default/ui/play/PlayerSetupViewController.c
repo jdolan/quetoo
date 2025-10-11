@@ -27,7 +27,7 @@
 
 #define _Class _PlayerSetupViewController
 
-#pragma mark - Actions & delegates
+#pragma mark - Delegates
 
 /**
  * @brief Comparator for SkinSelect.

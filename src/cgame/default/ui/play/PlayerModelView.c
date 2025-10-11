@@ -360,8 +360,8 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
     $((View *) self->iconView, addClassName, "iconView");
     $((View *) self, addSubview, (View *) self->iconView);
 
-    $((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
-    $((Control *) self, addActionForEventType, SDL_MOUSEWHEEL, zoomAction, self, NULL);
+//    $((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
+//    $((Control *) self, addActionForEventType, SDL_MOUSEWHEEL, zoomAction, self, NULL);
   }
 
   return self;
