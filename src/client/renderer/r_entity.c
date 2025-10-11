@@ -25,7 +25,11 @@
  * @brief
  */
 static void R_SetEntityBounds(r_entity_t *e) {
-  e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+  if (e->model) {
+    e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+  } else {
+    e->abs_model_bounds = e->abs_bounds;
+  }
 }
 
 /**
@@ -97,9 +101,9 @@ void R_UpdateEntities(r_view_t *view) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
   if (r_draw_entity_bounds->integer == 2) {
-    R_Draw3DBox(e->abs_model_bounds, color_yellow, false);
+    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), false);
   } else {
-    R_Draw3DBox(e->abs_bounds, color_yellow, false);
+    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), false);
   }
 }
 
@@ -108,16 +112,12 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
  */
 static void R_DrawEntitiesBounds(const r_view_t *view) {
 
-  if (!r_draw_entity_bounds->value) {
+  if (!r_draw_entity_bounds->value && !editor->value) {
     return;
   }
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
-
-    if (e->model == NULL) {
-      continue;
-    }
 
     if (e->model == r_models.world->bsp->worldspawn) {
       continue;

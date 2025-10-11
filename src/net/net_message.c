@@ -353,11 +353,9 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 }
 
 /**
- * @brief Writes an entity's state changes to a net message. Can delta from
- * either a baseline or a previous packet_entity
+ * @brief Writes an entity's state changes to a net message. Can delta from a baseline or a previous state.
  */
-void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to,
-                          bool force) {
+void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const entity_state_t *to, bool force) {
 
   uint16_t bits = 0;
 

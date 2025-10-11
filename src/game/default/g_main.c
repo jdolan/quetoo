@@ -138,6 +138,7 @@ cvar_t *g_weapon_stay;
 cvar_t *sv_max_clients;
 cvar_t *sv_hostname;
 cvar_t *dedicated;
+cvar_t *editor;
 
 g_team_t g_team_list[MAX_TEAMS];
 static g_team_t g_team_list_default[MAX_TEAMS];
@@ -1562,6 +1563,7 @@ void G_Init(void) {
   sv_hostname = gi.GetCvar("sv_hostname");
 
   dedicated = gi.GetCvar("dedicated");
+  editor = gi.GetCvar("editor");
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_team_defaults[i].name, 0, NULL);

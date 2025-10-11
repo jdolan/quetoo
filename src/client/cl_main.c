@@ -30,7 +30,6 @@ cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
 cvar_t *cl_draw_position;
 cvar_t *cl_draw_net_graph;
-cvar_t *cl_editor;
 cvar_t *cl_ignore;
 cvar_t *cl_max_fps;
 cvar_t *cl_no_lerp;
@@ -532,7 +531,6 @@ static void Cl_InitLocal(void) {
   cl_draw_counters = Cvar_Add("cl_draw_counters", "1", CVAR_ARCHIVE, "Draw the speed, fps and pps counters at the bottom-right");
   cl_draw_position = Cvar_Add("cl_draw_position", "0", CVAR_DEVELOPER, "Draw your current position to the screen");
   cl_draw_net_graph = Cvar_Add("cl_draw_net_graph", "1", CVAR_ARCHIVE, "Draw the net graph at the bottom-right");
-  cl_editor = Cvar_Add("cl_editor", "0", CVAR_DEVELOPER, "Activate the in-game editor");
   cl_ignore = Cvar_Add("cl_ignore", "", 0, "A list of patterns that will be matched against incoming messages and ignored by your client");
   cl_max_fps = Cvar_Add("cl_max_fps", "0", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
   cl_no_lerp = Cvar_Add("cl_no_lerp", "0", CVAR_DEVELOPER, "Disable frame interpolation");

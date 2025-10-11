@@ -20,6 +20,7 @@
  */
 
 #include "g_local.h"
+#include "bg_pmove.h"
 
 /**
  * @brief The entity class structure.
@@ -107,7 +108,7 @@ static const g_entity_class_t g_entity_classes[] = {
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static bool G_SpawnEntity(g_entity_t *ent) {
+static bool G_SpawnEntity(g_entity_t *ent, int32_t num) {
 
   ent->class_name = gi.EntityValue(ent->def, "classname")->string;
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
@@ -116,6 +117,33 @@ static bool G_SpawnEntity(g_entity_t *ent) {
   const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
   if (angle->parsed & ENTITY_FLOAT) {
     ent->s.angles = Vec3(0.f, angle->value, 0.f);
+  }
+
+  // if the editor is active, send every entity (except worldspawn) as a simple box
+  if (editor->integer && num > 0) {
+
+    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
+    ent->s.color = Color32i(0xffffffff);
+
+    if (g_str_has_prefix(ent->class_name, "info_player")) {
+      ent->bounds = PM_BOUNDS;
+      ent->s.color = Color32i(0xffff00ff);
+    } else if (!g_strcmp0(ent->class_name, "light")) {
+      ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
+      ent->s.color = Color_Color32(gi.EntityValue(ent->def, "color")->color);
+      ent->s.color.a = 0xff;
+    } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
+      ent->s.color = Color32i(0xff0088ff);
+    } else if (g_str_has_prefix(ent->class_name, "func_")) {
+      ent->s.color = Color32i(0xff00ff00);
+    } else if (g_str_has_prefix(ent->class_name, "misc_")) {
+      ent->s.color = Color32i(0xff00ffff);
+    }
+
+    ent->solid = SOLID_DEAD;
+    gi.LinkEntity(ent);
+
+    return true;
   }
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
@@ -666,7 +694,7 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
     g_entity_t *ent = i == 0 ? g_game.entities : G_AllocEntity();
     ent->def = entities[i];
 
-    if (!G_SpawnEntity(ent)) {
+    if (!G_SpawnEntity(ent, (int32_t) i)) {
       G_FreeEntity(ent);
       continue;
     }

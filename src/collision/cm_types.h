@@ -213,6 +213,11 @@ typedef struct cm_entity_s {
      * @brief The entity pair value, as a four component vector.
      */
     vec4_t vec4;
+
+    /**
+     * @brief The entity pair value, as a four component color.
+     */
+    color_t color;
   };
 
   /**

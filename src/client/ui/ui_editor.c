@@ -37,7 +37,7 @@ void Ui_CheckEditor(void) {
     return;
   }
 
-  if (cl_editor->integer) {
+  if (editor->integer) {
     if (Ui_TopViewController() != (ViewController *) editorViewController) {
       Ui_PushViewController((ViewController *) editorViewController);
     }

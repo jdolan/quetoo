@@ -269,40 +269,50 @@ static void Cg_AddEntity(cl_entity_t *ent) {
     .angles = ent->angles,
     .scale = 1.f,
     .bounds = ent->bounds,
-    .abs_bounds = ent->abs_bounds
+    .abs_bounds = ent->abs_bounds,
+    .color = Color32_Vec4(ent->current.color),
   };
 
-  // add effects, augmenting the renderer entity
-  Cg_EntityEffects(ent, &e);
+  if (editor->value) {
 
-  // if there's no model associated with the entity, we're done
-  if (!ent->current.model1) {
-    return;
-  }
-
-  if (ent->current.model1 == MODEL_CLIENT) {
-
-    // add a client entity, with an animated player model
-    Cg_AddClientEntity(ent, &e);
-
-    // add our view weapon, if it's us
     if (Cg_IsSelf(ent)) {
-      Cg_AddWeapon(ent, &e);
+      return;
     }
 
-    return;
+  } else {
+
+    // add effects, augmenting the renderer entity
+    Cg_EntityEffects(ent, &e);
+
+    // if there's no model associated with the entity, we're done
+    if (!ent->current.model1) {
+      return;
+    }
+
+    if (ent->current.model1 == MODEL_CLIENT) {
+
+      // add a client entity, with an animated player model
+      Cg_AddClientEntity(ent, &e);
+
+      // add our view weapon, if it's us
+      if (Cg_IsSelf(ent)) {
+        Cg_AddWeapon(ent, &e);
+      }
+
+      return;
+    }
+
+    // don't draw our own giblet, since the view is inside it
+    if (Cg_IsSelf(ent) && !cgi.client->third_person) {
+      e.effects |= EF_NO_DRAW;
+    }
+
+    // assign the model
+    e.model = cgi.client->models[ent->current.model1];
+
+    // and any frame animations (button state, etc)
+    e.frame = ent->current.animation1;
   }
-
-  // don't draw our own giblet, since the view is inside it
-  if (Cg_IsSelf(ent) && !cgi.client->third_person) {
-    e.effects |= EF_NO_DRAW;
-  }
-
-  // assign the model
-  e.model = cgi.client->models[ent->current.model1];
-
-  // and any frame animations (button state, etc)
-  e.frame = ent->current.animation1;
 
   // add to view list
   cgi.AddEntity(cgi.view, &e);

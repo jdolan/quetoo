@@ -143,6 +143,7 @@ extern cvar_t *g_weapon_stay;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
+extern cvar_t *editor;
 
 extern g_team_t g_team_list[MAX_TEAMS];
 

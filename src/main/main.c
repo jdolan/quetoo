@@ -37,6 +37,7 @@ static cvar_t *verbose;
 cvar_t *version;
 cvar_t *revision;
 cvar_t *dedicated;
+cvar_t *editor;
 cvar_t *game;
 cvar_t *ai;
 cvar_t *threads;
@@ -297,6 +298,8 @@ static void Init(void) {
   if (strstr(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
+
+  editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
   game->modified = g_strcmp0(game->string, DEFAULT_GAME);

@@ -21,8 +21,10 @@
 
 #include "g_local.h"
 
-const box3_t ITEM_BOUNDS = { .mins = { { -16.0, -16.0, -16.0 } },
-               .maxs = { {  16.0,  16.0,  32.0 } } };
+const box3_t ITEM_BOUNDS = {
+  .mins = { { -16.0, -16.0, -16.0 } },
+  .maxs = { {  16.0,  16.0,  32.0 } }
+};
 
 #define ITEM_SCALE 1.0
 
