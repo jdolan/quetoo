@@ -67,7 +67,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
   return item;
 }
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
  * @brief ButtonDelegate for Spectate.

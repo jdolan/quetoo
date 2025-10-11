@@ -25,28 +25,6 @@
 
 #define _Class _PlayerModelView
 
-#pragma mark - Actions
-
-/**
- * @brief ActionFunction for clicking the model's 3D view
- */
-static void rotateAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-  PlayerModelView *this = (PlayerModelView *) sender;
-
-  this->yaw += event->motion.xrel;
-}
-
-/**
- * @brief ActionFunction for zooming the model's 3D view
- */
-static void zoomAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-
-  PlayerModelView *this = (PlayerModelView *) sender;
-
-  this->zoom = Clampf01(this->zoom + event->wheel.y * 0.0125f);
-}
-
 #pragma mark - Object
 
 /**
@@ -203,14 +181,18 @@ static void updateBindings(View *self) {
  */
 static bool captureEvent(Control *self, const SDL_Event *event) {
 
+  PlayerModelView *this = (PlayerModelView *) self;
+
   if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
 
     if ($((View *) self, didReceiveEvent, event)) {
+      this->yaw += event->motion.xrel;
       return true;
     }
   } else if (event->type == SDL_MOUSEWHEEL) {
 
     if ($((View *) self, didReceiveEvent, event)) {
+      this->zoom = Clampf01(this->zoom + event->wheel.y * 0.0125f);
       return true;
     }
   }
@@ -359,9 +341,6 @@ static PlayerModelView *initWithFrame(PlayerModelView *self, const SDL_Rect *fra
 
     $((View *) self->iconView, addClassName, "iconView");
     $((View *) self, addSubview, (View *) self->iconView);
-
-//    $((Control *) self, addActionForEventType, SDL_MOUSEMOTION, rotateAction, self, NULL);
-//    $((Control *) self, addActionForEventType, SDL_MOUSEWHEEL, zoomAction, self, NULL);
   }
 
   return self;
