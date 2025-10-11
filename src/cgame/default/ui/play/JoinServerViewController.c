@@ -126,14 +126,6 @@ static void didClickConnect(Button *button) {
 
   JoinServerViewController *this = button->delegate.self;
 
-// FIXME: By removing Actions, we lost tableview row click callbacks
-// FIXME: Make this work with TableViewDelegate instead
-//  if (control == (Control *) this->serversTableView) {
-//    if (event->button.clicks < 2) {
-//      return;
-//    }
-//  }
-
   IndexSet *selectedRowIndexes = $((TableView *) this->serversTableView, selectedRowIndexes);
   if (selectedRowIndexes->count) {
 
@@ -245,6 +237,27 @@ static void didSetSortColumn(TableView *tableView) {
   $((JoinServerViewController *) tableView->delegate.self, reloadServers);
 }
 
+/**
+ * @see TableViewDelegate::didSelectRowsAtIndexes(TableView *, const IndexSet *)
+ */
+static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes) {
+
+  JoinServerViewController *this = tableView->delegate.self;
+
+  View *view = (View *) tableView;
+
+  const SDL_Event *event = SDL_GetWindowData(view->window, "event");
+  if (event && event->button.clicks == 2) {
+
+    const guint index = (guint) indexes->indexes[0];
+    const cl_server_info_t *server = g_list_nth_data(this->servers, index);
+
+    if (server) {
+      cgi.Connect(&server->addr);
+    }
+  }
+}
+
 #pragma mark - Object
 
 /**
@@ -298,6 +311,7 @@ static void loadView(ViewController *self) {
 
   this->serversTableView->delegate.cellForColumnAndRow = cellForColumnAndRow;
   this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
+  this->serversTableView->delegate.didSelectRowsAtIndexes = didSelectRowsAtIndexes;
   this->serversTableView->delegate.self = this;
 
   quickJoin->delegate.didClick = didClickQuickJoin;
