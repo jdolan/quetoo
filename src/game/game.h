@@ -163,8 +163,8 @@ struct g_entity_s {
   g_entity_t *owner;
 
   /**
-   * @brief Entities 1 through sv_max_clients->integer will have a valid
-   * pointer to the variable-sized g_client_t.
+   * @brief Entities 1 through `sv_max_clients->integer` will have a valid
+   * pointer to the variable-sized `g_client_t`.
    */
   g_client_t *client;
 

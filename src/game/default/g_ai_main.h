@@ -39,8 +39,7 @@ extern cvar_t *ai_node_dev;
 /**
  * @brief Resolve the entity at the given index.
  */
-#define ENTITY_FOR_NUM(n) \
-  &g_game.entities[n]
+#define ENTITY_FOR_NUM(n) &g_game.entities[n]
 
 ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
 

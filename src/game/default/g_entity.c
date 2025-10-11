@@ -105,10 +105,46 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_steam", G_FreeEntity },
 };
 
+static void G_SpawnEditorEntity(g_entity_t *ent) {
+
+  ent->class_name = gi.EntityValue(ent->def, "classname")->string;
+  ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
+  ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
+
+  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
+  ent->s.color = Color32i(0xffffffff);
+
+  if (g_str_has_prefix(ent->class_name, "info_player")) {
+    ent->bounds = PM_BOUNDS;
+    ent->s.color = Color32i(0xffff00ff);
+  } else if (g_str_has_prefix(ent->class_name, "light")) {
+    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
+    ent->s.color = Color_Color32(gi.EntityValue(ent->def, "color")->color);
+  } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
+    ent->s.color = Color32i(0xff0088ff);
+  } else if (g_str_has_prefix(ent->class_name, "func_")) {
+    ent->s.color = Color32i(0xff00ff00);
+  } else if (g_str_has_prefix(ent->class_name, "misc_")) {
+    ent->s.color = Color32i(0xff00ffff);
+  } else if (g_str_has_prefix(ent->class_name, "item_")) {
+    ent->s.color = Color32i(0xffffff00);
+  }
+
+  // use the BSP inline model to set bounds
+  const char *model = gi.EntityValue(ent->def, "model")->nullable_string;
+  if (model) {
+    gi.SetModel(ent, model);
+  }
+
+  ent->s.model1 = 0;
+  ent->solid = SOLID_DEAD;
+
+  gi.LinkEntity(ent);
+}
+
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static bool G_SpawnEntity(g_entity_t *ent, int32_t num) {
 
   ent->class_name = gi.EntityValue(ent->def, "classname")->string;
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
@@ -117,33 +153,6 @@ static bool G_SpawnEntity(g_entity_t *ent, int32_t num) {
   const cm_entity_t *angle = gi.EntityValue(ent->def, "angle");
   if (angle->parsed & ENTITY_FLOAT) {
     ent->s.angles = Vec3(0.f, angle->value, 0.f);
-  }
-
-  // if the editor is active, send every entity (except worldspawn) as a simple box
-  if (editor->integer && num > 0) {
-
-    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
-    ent->s.color = Color32i(0xffffffff);
-
-    if (g_str_has_prefix(ent->class_name, "info_player")) {
-      ent->bounds = PM_BOUNDS;
-      ent->s.color = Color32i(0xffff00ff);
-    } else if (!g_strcmp0(ent->class_name, "light")) {
-      ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-      ent->s.color = Color_Color32(gi.EntityValue(ent->def, "color")->color);
-      ent->s.color.a = 0xff;
-    } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
-      ent->s.color = Color32i(0xff0088ff);
-    } else if (g_str_has_prefix(ent->class_name, "func_")) {
-      ent->s.color = Color32i(0xff00ff00);
-    } else if (g_str_has_prefix(ent->class_name, "misc_")) {
-      ent->s.color = Color32i(0xff00ffff);
-    }
-
-    ent->solid = SOLID_DEAD;
-    gi.LinkEntity(ent);
-
-    return true;
   }
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
@@ -190,7 +199,7 @@ static bool G_SpawnEntity(g_entity_t *ent, int32_t num) {
 
     if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
       G_SpawnItem(ent, item);
-      return true;
+      return;
     }
   }
 
@@ -201,12 +210,12 @@ static bool G_SpawnEntity(g_entity_t *ent, int32_t num) {
 
     if (!g_strcmp0(clazz->class_name, ent->class_name)) {
       clazz->Init(ent);
-      return true;
+      return;
     }
   }
 
   gi.Warn("%s doesn't have a spawn function\n", etos(ent));
-  return false;
+  ent->in_use = false;
 }
 
 /**
@@ -686,26 +695,20 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
   ge.num_entities = sv_max_clients->integer + 1;
 
-  gchar **inhibit = g_strsplit(g_inhibit->string, " ", -1);
-  int32_t num_inhibited = 0;
 
   for (size_t i = 0; i < num_entities; i++) {
 
     g_entity_t *ent = i == 0 ? g_game.entities : G_AllocEntity();
     ent->def = entities[i];
 
-    if (!G_SpawnEntity(ent, (int32_t) i)) {
-      G_FreeEntity(ent);
-      continue;
+    if (editor->value) {
+      G_SpawnEditorEntity(ent);
+    } else {
+      G_SpawnEntity(ent);
     }
 
-    // enforce entity inhibiting
-    for (size_t i = 0; i < g_strv_length(inhibit); i++) {
-      if (!g_strcmp0(ent->class_name, inhibit[i])) {
-        G_FreeEntity(ent);
-        num_inhibited++;
-        continue;
-      }
+    if (!ent->in_use) {
+      G_FreeEntity(ent);
     }
   }
 

@@ -111,7 +111,6 @@ cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
 cvar_t *g_handicap;
-cvar_t *g_inhibit;
 cvar_t *g_match;
 cvar_t *g_max_entities;
 cvar_t *g_motd;
@@ -1439,16 +1438,14 @@ void G_Init(void) {
 
   g_admin_password = gi.AddCvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin.");
   g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
-  g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO,
-                        "Automatically assigns players to teams, ignored for duel mode.");
+  g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO, "Automatically assigns players to teams, ignored for duel mode.");
   g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
   g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", CVAR_SERVER_INFO, NULL);
   g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
   g_balance_armor_body_respawn = gi.AddCvar("g_balance_armor_body_respawn", "30", CVAR_SERVER_INFO, NULL);
   g_balance_bfg_damage = gi.AddCvar("g_balance_bfg_damage", "180", CVAR_SERVER_INFO, NULL);
   g_balance_bfg_knockback = gi.AddCvar("g_balance_bfg_knockback", "140", CVAR_SERVER_INFO, NULL);
-  g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO,
-          "The prefire warmup delay for the BFG10K in seconds.");
+  g_balance_bfg_prefire = gi.AddCvar("g_balance_bfg_prefire", "1", CVAR_SERVER_INFO, "The prefire warmup delay for the BFG10K in seconds.");
   g_balance_bfg_radius = gi.AddCvar("g_balance_bfg_radius", "512", CVAR_SERVER_INFO, NULL);
   g_balance_bfg_refire = gi.AddCvar("g_balance_bfg_refire", "2", CVAR_SERVER_INFO, NULL);
   g_balance_bfg_speed = gi.AddCvar("g_balance_bfg_speed", "720", CVAR_SERVER_INFO, NULL);
@@ -1513,12 +1510,9 @@ void G_Init(void) {
 #endif
     , CVAR_SERVER_INFO, NULL);
   g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
-  g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO,
-                   "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-  g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO,
-                         "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
-  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO,
-           "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+  g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
+  g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
   g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO, "The maximum distance the hook will travel.");
   g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook.");
   g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO, "The refire delay on the grapple hook in seconds.");
@@ -1527,12 +1521,8 @@ void G_Init(void) {
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
-  g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO,
-                       "Allows usage of player handicap. 0 disallows handicap, 1 allows handicap, 2 allows handicap but disables damage reduction. (default 1)");
-  g_inhibit = gi.AddCvar("g_inhibit", "", CVAR_SERVER_INFO,
-                      "Prevents entities from spawning using a class name filter (e.g.: \"weapon_bfg ammo_nukes item_quad\")");
-  g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO,
-            "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+  g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO, "Allows use of player handicap. 0 disallows, 1 allows, 2 allows but disables damage reduction.");
+  g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_match = gi.AddCvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready.");
   g_max_entities = gi.AddCvar("g_max_entities", "1024", CVAR_LATCH, NULL);
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
@@ -1545,14 +1535,11 @@ void G_Init(void) {
   g_rounds = gi.AddCvar("g_rounds", "0", CVAR_SERVER_INFO, "Enables rounds-based play, where last player standing wins.");
   g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
   g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
-  g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO,
-          "Allows can see their attackers' health and armor when they die.");
+  g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
   g_spawn_farthest = gi.AddCvar("g_spawn_farthest", "0", CVAR_SERVER_INFO, NULL);
-  g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO,
-                             "If enabled, spectators can only talk to other spectators.");
+  g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
   g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
-  g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO,
-                   "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
+  g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
   g_time_limit = gi.AddCvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_timeout_time = gi.AddCvar("g_timeout_time", "120", CVAR_SERVER_INFO, "Length in seconds of a timeout, 0 = disabled.");
   g_warmup_time = gi.AddCvar("g_warmup_time", "15", CVAR_SERVER_INFO, "Match warmup countdown in seconds, up to 30.");
