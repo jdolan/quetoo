@@ -145,6 +145,7 @@ static void G_SpawnEditorEntity(g_entity_t *ent) {
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
+static void G_SpawnEntity(g_entity_t *ent) {
 
   ent->class_name = gi.EntityValue(ent->def, "classname")->string;
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
@@ -695,13 +696,12 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
   ge.num_entities = sv_max_clients->integer + 1;
 
-
   for (size_t i = 0; i < num_entities; i++) {
 
     g_entity_t *ent = i == 0 ? g_game.entities : G_AllocEntity();
     ent->def = entities[i];
 
-    if (editor->value) {
+    if (editor->value && i > 0) {
       G_SpawnEditorEntity(ent);
     } else {
       G_SpawnEntity(ent);
@@ -711,10 +711,6 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
       G_FreeEntity(ent);
     }
   }
-
-  g_strfreev(inhibit);
-
-  G_Debug("%i entities inhibited\n", num_inhibited);
 
   G_InitMedia();
 
