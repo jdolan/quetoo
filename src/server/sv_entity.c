@@ -62,7 +62,7 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
     }
 
     if (new_num < old_num) { // this is a new entity, send it from the baseline
-      Net_WriteDeltaEntity(msg, &sv.baselines[new_num], new_state, true);
+      Net_WriteDeltaEntity(msg, &sv.entities[new_num].baseline, new_state, true);
       new_index++;
       continue;
     }

@@ -94,7 +94,7 @@ static void Sv_CreateBaseline(void) {
     ent->s.number = i;
 
     // take current state as baseline
-    sv.baselines[i] = ent->s;
+    sv.entities[i].baseline = ent->s;
   }
 }
 

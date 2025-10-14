@@ -21,6 +21,8 @@
 
 #include "sv_local.h"
 
+// FIXME: Couldn't we use the BSP blocks for this now?
+
 /**
  * @brief The world is divided into evenly sized sectors to aid in entity
  * management. This works like a meta-BSP tree, providing fast searches via
@@ -38,11 +40,11 @@ typedef struct sv_sector_s {
 
 /**
  * @brief The world structure contains all sectors and also the current query
- * context issued to Sv_BoxEntities.
+ * context issued to `Sv_BoxEntities`.
  */
 typedef struct {
   sv_sector_t sectors[SECTOR_NODES];
-  uint16_t num_sectors;
+  size_t num_sectors;
 
   box3_t box;
 
@@ -93,7 +95,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
  */
 void Sv_InitWorld(void) {
 
-  for (uint16_t i = 0; i < sv_world.num_sectors; i++) {
+  for (size_t i = 0; i < sv_world.num_sectors; i++) {
     g_list_free(sv_world.sectors[i].entities);
   }
 

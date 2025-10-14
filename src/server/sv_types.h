@@ -28,13 +28,22 @@
 #ifdef __SV_LOCAL_H__
 
 /**
- * @brief The server-specific view of an entity. An sv_entity_t corresponds to
- * precisely one g_entity_t, where most general-purpose entity state resides.
- * This structure is primarily used for entity list management and clipping.
+ * @brief The server entity type.
  */
 typedef struct {
+  /**
+   * @brief The baseline entity state, used for delta compression.
+   */
+  entity_state_t baseline;
+  
+  /**
+   * @brief The sector, for entity list management.
+   */
   struct sv_sector_s *sector;
 
+  /**
+   * @brief The clipping matrix, used for collision tests.
+   */
   mat4_t matrix;
   mat4_t inverse_matrix;
 } sv_entity_t;
@@ -43,29 +52,52 @@ typedef struct {
  * @brief Server states.
  */
 typedef enum {
-  SV_UNINITIALIZED, // no level loaded
-  SV_LOADING, // spawning level edicts
-  SV_ACTIVE_GAME, // actively running
+  SV_UNINITIALIZED,
+  SV_LOADING,
+  SV_ACTIVE_GAME,
   SV_ACTIVE_DEMO
 } sv_state_t;
 
 /**
- * @brief The sv_server_t struct is wiped at each level load.
+ * @brief The `sv_server_t` struct is wiped at each level load.
  */
 typedef struct {
+  /**
+   * @brief The server state.
+   */
   sv_state_t state;
 
-  uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
+  /**
+   * @brief The simulation time.
+   * @details This is always `sv.frame_num * 1000 / QUETOO_TICK_RATE`.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The current frame number.
+   */
   uint32_t frame_num;
 
-  char name[MAX_QPATH]; // map name
+  /**
+   * @brief The map name.
+   */
+  char name[MAX_QPATH];
+
+  /**
+   * @brief The collision models (worldspawn, plus all inline models).
+   */
   cm_bsp_model_t *cm_models[MAX_MODELS];
 
-  // all known and indexed assets, string constants, etc..
+  /**
+   * @brief The configuration strings. These enumerate all loaded assets, such as models,
+   * sounds, client skins, etc.
+   */
   char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
-  sv_entity_t entities[MAX_ENTITIES]; // the server-local entity structures
-  entity_state_t baselines[MAX_ENTITIES]; // g_entity_t baselines
+  /**
+   * @brief The entities.
+   */
+  sv_entity_t entities[MAX_ENTITIES];
 
   // the multicast buffer is used to send a message to a set of clients
   // it is flushed each time Sv_Multicast is called

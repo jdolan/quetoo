@@ -141,7 +141,7 @@ static void Sv_Baselines_f(void) {
 
   // write a packet full of data
   while (sv_client->net_chan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
-    base = &sv.baselines[start];
+    base = &sv.entities[start].baseline;
     if (base->model1 || base->sound || base->effects) {
       Net_WriteByte(&sv_client->net_chan.message, SV_CMD_BASELINE);
       Net_WriteDeltaEntity(&sv_client->net_chan.message, &null_state, base, true);
