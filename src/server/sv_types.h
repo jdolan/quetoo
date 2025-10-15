@@ -308,24 +308,51 @@ typedef struct {
    */
   sv_state_t state;
 
-  uint32_t spawn_count; // incremented each level start, used to check late spawns
+  /**
+   * @brief The clients.
+   */
+  sv_client_t *clients;
 
-  sv_client_t *clients; // server-side client structures
+  /**
+   * @brief The entity state circular array.
+   * @details The server maintains this to calculate delta compression between client frames.
+   * The array is sized to support the maximum number of clients and entities.
+   */
+  entity_state_t *entity_states;
 
-  // the server maintains an array of entity states it uses to calculate
-  // delta compression from frame to frame
+  /**
+   * @brief The length of the entity states array.
+   * @details Equal to `sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES`.
+   */
+  uint32_t num_entity_states;
 
-  // the size of this array is based on the number of clients we might be
-  // asked to support at any point in time during the current game
+  /**
+   * @brief The next free entity state for newly spawned entities.
+   */
+  uint32_t next_entity_state;
 
-  uint32_t num_entity_states; // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
-  uint32_t next_entity_state; // next entity_state to use for newly spawned entities
-  entity_state_t *entity_states; // entity states array used for delta compression
-
+  /**
+   * @brief The master servers.
+   * @details Master servers maintain lists of running game servers.
+   */
   net_addr_t masters[MAX_MASTERS];
+
+  /**
+   * @brief The time at which a heartbeat will be sent to all configured master servers.
+   */
   uint32_t next_heartbeat;
 
-  sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
+  /**
+   * @brief The challenges array.
+   */
+  sv_challenge_t challenges[MAX_CHALLENGES];
+
+  /**
+   * @brief The spawn count, incremented at each map start, is used to ensure that
+   * long-running connection handshakes (for example, when a client needs to download
+   * the map) are still current when the client attempts to spawn.
+   */
+  uint32_t spawn_count;
 
   /**
    * @brief The exported game module API.
@@ -345,6 +372,6 @@ typedef struct {
  * negotiating the edicts array based on the reported size of g_entity_t.
  */
 #define NUM_FOR_ENTITY(e) \
-  ( ((intptr_t)(e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
+  ( ((intptr_t) (e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */

@@ -647,7 +647,6 @@ static void Sv_RunGameFrame(void) {
   }
 }
 
-
 /**
  * @brief
  */

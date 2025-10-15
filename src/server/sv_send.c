@@ -132,7 +132,6 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
     }
   }
 
-
   sv_client_message_t *msg = g_malloc0(sizeof(*msg));
 
   msg->offset = cl->datagram.buffer.size;
