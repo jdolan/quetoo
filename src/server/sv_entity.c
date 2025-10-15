@@ -24,7 +24,7 @@
 /**
  * @brief Writes a delta update of an entity_state_t list to the message.
  */
-static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
+static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   entity_state_t *old_state = NULL, *new_state = NULL;
   uint32_t old_index, new_index;
   uint16_t old_num, new_num;
@@ -84,7 +84,7 @@ static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
 /**
  * @brief
  */
-static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
+static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   static player_state_t null_state;
 
   if (from) {
@@ -98,7 +98,7 @@ static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg
  * @brief
  */
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
-  sv_frame_t *frame, *delta_frame;
+  sv_client_frame_t *frame, *delta_frame;
   int32_t delta_frame_num;
 
   // this is the frame we are creating
@@ -143,7 +143,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
   }
 
   // this is the frame we are creating
-  sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
+  sv_client_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
   frame->sent_time = quetoo.ticks; // timestamp for ping calculation
 
   // grab the current player_state_t

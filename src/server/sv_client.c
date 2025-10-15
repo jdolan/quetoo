@@ -429,8 +429,15 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
 
       case CL_CMD_MOVE:
 
+        if (cl->state != SV_CLIENT_ACTIVE) {
+          Com_Warn("CL_CMD_MOVE from inactive client %s\n", Sv_NetaddrToString(cl));
+          Sv_DropClient(cl);
+          return;
+        }
+
         if (++moves_issued > CMD_MAX_MOVES) {
           Com_Warn("CMD_MAX_MOVES exceeded for %s\n", Sv_NetaddrToString(cl));
+          Sv_DropClient(cl);
           return; // someone is trying to cheat
         }
 
@@ -443,34 +450,24 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
           }
         }
 
+        // the client sends their 3 most recent movement commands every frame to combat packet loss
         static pm_cmd_t null_cmd;
-        pm_cmd_t oldest_cmd, old_cmd, new_cmd;
-        Net_ReadDeltaMoveCmd(&net_message, &null_cmd, &oldest_cmd);
-        Net_ReadDeltaMoveCmd(&net_message, &oldest_cmd, &old_cmd);
-        Net_ReadDeltaMoveCmd(&net_message, &old_cmd, &new_cmd);
-
-        // don't start delta compression until the client is spawned
-        // TODO: should this be a little higher up?
-        if (cl->state != SV_CLIENT_ACTIVE) {
-          cl->last_frame = -1;
-          break;
-        }
+        pm_cmd_t cmd[3];
+        Net_ReadDeltaMoveCmd(&net_message, &null_cmd, &cmd[0]);
+        Net_ReadDeltaMoveCmd(&net_message, &cmd[0], &cmd[1]);
+        Net_ReadDeltaMoveCmd(&net_message, &cmd[1], &cmd[2]);
 
         uint32_t net_drop = cl->net_chan.dropped;
-        if (net_drop < 20) {
-          while (net_drop > 2) {
-            Sv_ClientThink(cl, &cl->last_cmd);
-            net_drop--;
-          }
-          if (net_drop > 1) {
-            Sv_ClientThink(cl, &oldest_cmd);
-          }
-          if (net_drop > 0) {
-            Sv_ClientThink(cl, &old_cmd);
-          }
+
+        if (net_drop > 1) {
+          Sv_ClientThink(cl, &cmd[0]);
         }
-        Sv_ClientThink(cl, &new_cmd);
-        cl->last_cmd = new_cmd;
+
+        if (net_drop > 0) {
+          Sv_ClientThink(cl, &cmd[1]);
+        }
+
+        Sv_ClientThink(cl, &cmd[2]);
         break;
 
       case CL_CMD_STRING:

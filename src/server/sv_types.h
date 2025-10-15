@@ -35,7 +35,7 @@ typedef struct {
    * @brief The baseline entity state, used for delta compression.
    */
   entity_state_t baseline;
-  
+
   /**
    * @brief The sector, for entity list management.
    */
@@ -99,21 +99,44 @@ typedef struct {
    */
   sv_entity_t entities[MAX_ENTITIES];
 
-  // the multicast buffer is used to send a message to a set of clients
-  // it is flushed each time Sv_Multicast is called
+  /**
+   * @brief The multicast buffer used to send a message to a set of clients.
+   */
   mem_buf_t multicast;
   byte multicast_buffer[MAX_MSG_SIZE];
 
-  // demo server information
+  /**
+   * @brief The demo file for demo playback.
+   */
   file_t *demo_file;
 } sv_server_t;
 
+/**
+ * @brief The server's client frame type. For each server frame, a unique client
+ * frame is authored, containing only the relevant updates for that client. This
+ * structure is sent as the header of `SV_CMD_FRAME`.
+ */
 typedef struct {
+  /**
+   * @brief The player state.
+   */
   player_state_t ps;
+
+  /**
+   * @brief The number of entities in this frame.
+   */
   uint16_t num_entities;
-  uint32_t entity_state; // index into svs.entity_states array
-  uint32_t sent_time; // for ping calculations
-} sv_frame_t;
+
+  /**
+   * @brief The index into the entity state circular buffer.
+   */
+  uint32_t entity_state;
+
+  /**
+   * @brief The delivery timestamp, used to calculate ping.
+   */
+  uint32_t sent_time;
+} sv_client_frame_t;
 
 /**
  * @brief Clients are dropped after 20 seconds without receiving a packet.
@@ -180,41 +203,90 @@ typedef struct {
 } sv_client_download_t;
 
 /**
- * @brief Per-client accounting for protocol flow control and low-level
- * connection state management.
+ * @brief The server client type.
  */
 typedef struct {
+  /**
+   * @brief The client state.
+   */
   sv_client_state_t state;
 
-  char user_info[MAX_USER_INFO_STRING]; // name, skin, etc
+  /**
+   * @brief The user-info string.
+   */
+  char user_info[MAX_USER_INFO_STRING];
 
-  int32_t last_frame; // for delta compression
-  pm_cmd_t last_cmd; // for filling in big drops
+  /**
+   * @brief The player name, extracted from user-info and stripped of colors.
+   */
+  char name[32]; // extracted from user_info, high bits masked
 
-  uint32_t cmd_msec; // for sv_enforce_time
-  uint16_t cmd_msec_errors; // maintain how many problems we've seen
+  /**
+   * @brief The message receipt level, used to filter chat messages.
+   */
+  int32_t message_level;
 
-  uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
+  /**
+   * @brief The last frame the client has acknowledged.
+   * @details This is used for delta compression. -1 will receive baselines.
+   */
+  int32_t last_frame;
 
-  size_t frame_size[QUETOO_TICK_RATE]; // used to rate drop packets
+  /**
+   * @brief The sum of movement command durations for this client. If this
+   * exceeds the server elapsed duration, the client is trying to cheat.
+   */
+  uint32_t cmd_msec;
+  uint16_t cmd_msec_errors;
+
+  /**
+   * @brief Ping calculation.
+   */
+  uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+
+  /**
+   * @brief Rate limiting.
+   */
+  size_t frame_size[QUETOO_TICK_RATE];
+
+  /**
+   * @brief Packet Rate limiting.
+   */
   uint32_t rate;
   uint32_t suppress_count; // number of messages rate suppressed
 
-  g_entity_t *entity; // the g_entity_t for this client
-  char name[32]; // extracted from user_info, high bits masked
-  int32_t message_level; // for filtering printed messages
+  /**
+   * @brief The entity bound to this client.
+   */
+  g_entity_t *entity;
 
-  // the datagram is written to by sound calls, prints, temp ents, etc.
-  // it can be overflowed without consequence.
-  // it is packetized and written to the client, then wiped, each frame.
+  /**
+   * @brief The client's datagram.
+   * @details This is accumulated, packetized and delivered each server frame.
+   */
   sv_client_datagram_t datagram;
 
-  sv_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
+  /**
+   * @brief The circular buffer of recently sent client frames. The client
+   * may reference any of these frames for valid delta compression. If the
+   * client references a frame _not_ in this array, they'll receive baselines.
+   */
+  sv_client_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
 
-  sv_client_download_t download; // UDP file downloads
+  /**
+   * @brief UDP file downloads.
+   */
+  sv_client_download_t download;
 
-  uint32_t last_message; // quetoo.ticks when packet was last received
+  /**
+   * @brief The network channel.
+   */
   net_chan_t net_chan;
+
+  /**
+   * @brief Server time when the last message was received, used to detect timeouts.
+   */
+  uint32_t last_message;
 } sv_client_t;
 
 /**
@@ -235,17 +307,20 @@ typedef struct {
 } sv_challenge_t;
 
 /**
- * @brief MAX_CHALLENGES is large to prevent a denial of service attack that
+ * @brief `MAX_CHALLENGES` is large to prevent a denial of service attack that
  * could cycle all of them out before legitimate users connected.
  */
 #define MAX_CHALLENGES 1024
 
 /**
- * @brief The sv_static_t structure is persistent for the execution of the
- * game. It is only cleared when Sv_Init is called. It is not exposed to the
+ * @brief The `sv_static_t` structure is persistent for the execution of the
+ * game. It is only cleared when `Sv_Init` is called. It is not exposed to the
  * game module.
  */
 typedef struct {
+  /**
+   * @brief
+   */
   bool initialized; // sv_init has completed
 
   uint32_t spawn_count; // incremented each level start, used to check late spawns
