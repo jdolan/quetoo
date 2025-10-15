@@ -213,7 +213,7 @@ static void Sv_Status_f(void) {
       continue;
     }
 
-    const uint32_t ping = cl->entity->client->ping < 9999 ? cl->entity->client->ping : 9999;
+    const uint32_t ping = Mini(cl->ping, 9999);
 
     char status[MAX_STRING_CHARS];
     g_snprintf(status, sizeof(status), "%3d %4d %16s %7d %22s %3d",

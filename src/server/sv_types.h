@@ -228,6 +228,7 @@ typedef struct {
    * @brief Ping calculation.
    */
   uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+  uint32_t ping;
 
   /**
    * @brief The entity bound to this client.

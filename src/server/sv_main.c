@@ -80,24 +80,22 @@ void Sv_DropClient(sv_client_t *cl) {
  */
 const char *Sv_StatusString(void) {
   static char status[MAX_MSG_SIZE - 16];
-  int32_t i;
 
   g_snprintf(status, sizeof(status), "%s\n", Cvar_ServerInfo());
   size_t status_len = strlen(status);
 
-  for (i = 0; i < sv_max_clients->integer; i++) {
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
     const sv_client_t *cl = &svs.clients[i];
 
     if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
       char player[MAX_TOKEN_CHARS];
-      const uint32_t ping = cl->entity->client->ping;
 
-      g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, ping, cl->name);
+      g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
       const size_t player_len = strlen(player);
 
       if (status_len + player_len + 1 >= sizeof(status)) {
-        break;    // can't hold any more
+        break;
       }
 
       strcat(status, player);
@@ -465,7 +463,7 @@ static void Sv_UpdatePings(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
-    const sv_client_t *cl = &svs.clients[i];
+    sv_client_t *cl = &svs.clients[i];
 
     if (cl->state != SV_CLIENT_ACTIVE) {
       continue;
@@ -480,8 +478,10 @@ static void Sv_UpdatePings(void) {
     }
 
     if (!count) {
+      cl->ping = 0;
       cl->entity->client->ping = 0;
     } else {
+      cl->ping = total / (float) count;
       cl->entity->client->ping = total / (float) count;
     }
   }
