@@ -69,10 +69,6 @@ void Cl_AddNetGraph(void) {
     Cl_NetGraph(1.0, color_red);
   }
 
-  for (i = 0; i < cl.suppress_count; i++) {
-    Cl_NetGraph(1.0, color_yellow);
-  }
-
   // see what the latency was on this packet
   const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
   const uint32_t ping = cl.unclamped_time - cl.cmds[frame].timestamp;

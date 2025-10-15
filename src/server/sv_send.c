@@ -261,9 +261,6 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
   buf.allow_overflow = true;
 
-  // accumulate the total size for rate throttling
-  size_t frame_size = 0;
-
   // send over all the relevant entity_state_t and the player_state_t
   Sv_WriteClientFrame(cl, &buf);
 
@@ -283,7 +280,6 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
       Com_Debug(DEBUG_SERVER, "Fragmenting datagram @ %u bytes\n", (uint32_t) buf.size);
 
       Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
-      frame_size += buf.size;
 
       Mem_ClearBuffer(&buf);
     }
@@ -294,10 +290,6 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 
   // send the pending packet, which may include reliable messages
   Netchan_Transmit(&cl->net_chan, buf.data, buf.size);
-  frame_size += buf.size;
-
-  // record the total size for rate estimation
-  cl->frame_size[sv.frame_num % QUETOO_TICK_RATE] = frame_size;
 }
 
 /**
@@ -339,37 +331,6 @@ static void Sv_DemoCompleted(void) {
   } else {
     Sv_ShutdownServer("Demo complete\n");
   }
-}
-
-/**
- * @brief Returns true if the client is over its current bandwidth estimation
- * and should not be sent another packet.
- */
-static bool Sv_RateDrop(sv_client_t *cl) {
-
-  if (sv.frame_num < lengthof(cl->frame_size)) {
-    return false;
-  }
-
-  if (cl->rate == 0) {
-    return false;
-  }
-
-  if (cl->net_chan.remote_address.type == NA_LOOP) {
-    return false;
-  }
-
-  size_t total = 0;
-
-  for (size_t i = 0; i < lengthof(cl->frame_size); i++) {
-    total += cl->frame_size[(sv.frame_num - i) % lengthof(cl->frame_size)];
-    if (total > cl->rate) {
-      cl->suppress_count++;
-      return true;
-    }
-  }
-
-  return false;
 }
 
 /**
@@ -452,11 +413,7 @@ void Sv_SendClientPackets(void) {
       }
     } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 
-      if (Sv_RateDrop(cl)) { // enforce rate throttle
-        cl->frame_size[sv.frame_num % lengthof(cl->frame_size)] = 0;
-      } else {
-        Sv_SendClientDatagram(cl);
-      }
+      Sv_SendClientDatagram(cl);
 
       // clean up for the next frame
       Mem_ClearBuffer(&cl->datagram.buffer);

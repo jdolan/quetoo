@@ -261,8 +261,6 @@ void Cl_ParseFrame(void) {
   cl.frame.frame_num = Net_ReadLong(&net_message);
   cl.frame.delta_frame_num = Net_ReadLong(&net_message);
 
-  cl.suppress_count += Net_ReadByte(&net_message);
-
   if (cl_draw_net_messages->integer == 3) {
     Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
   }

@@ -219,11 +219,6 @@ typedef struct {
   int32_t client_num;
 
   /**
-   * @brief Suppressed messages count, for rate throttling.
-   */
-  uint32_t suppress_count;
-
-  /**
    * @brief Clamped simulation time. This will always be between the previously received
    * server frame time, and the most recently received server frame time.
    */

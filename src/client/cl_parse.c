@@ -371,8 +371,6 @@ void Cl_ParseServerMessage(void) {
     Com_Print("------------------\n");
   }
 
-  cl.suppress_count = 0;
-
   cmd = SV_CMD_BAD;
 
   // parse the message

@@ -722,15 +722,6 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
     cl->name[i] &= 127;
   }
 
-  // rate command
-  val = GetUserInfo(cl->user_info, "rate");
-  if (*val != '\0') {
-    cl->rate = (uint32_t) strtoul(val, NULL, 10);
-    if (cl->rate > 0 && cl->rate < CLIENT_RATE_MIN) {
-      cl->rate = CLIENT_RATE_MIN;
-    }
-  }
-
   // limit the print messages the client receives
   val = GetUserInfo(cl->user_info, "message_level");
   if (*val != '\0') {

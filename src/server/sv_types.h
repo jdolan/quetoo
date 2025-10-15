@@ -123,7 +123,7 @@ typedef struct {
   player_state_t ps;
 
   /**
-   * @brief The number of entities in this frame.
+   * @brief The number of delta-compressed entities in this frame.
    */
   uint16_t num_entities;
 
@@ -243,17 +243,6 @@ typedef struct {
    * @brief Ping calculation.
    */
   uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
-
-  /**
-   * @brief Rate limiting.
-   */
-  size_t frame_size[QUETOO_TICK_RATE];
-
-  /**
-   * @brief Packet Rate limiting.
-   */
-  uint32_t rate;
-  uint32_t suppress_count; // number of messages rate suppressed
 
   /**
    * @brief The entity bound to this client.

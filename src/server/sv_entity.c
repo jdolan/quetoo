@@ -121,8 +121,6 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
   Net_WriteByte(msg, SV_CMD_FRAME);
   Net_WriteLong(msg, sv.frame_num);
   Net_WriteLong(msg, delta_frame_num); // what we are delta'ing from
-  Net_WriteByte(msg, client->suppress_count); // rate dropped packets
-  client->suppress_count = 0;
 
   // delta encode the player state
   Sv_WritePlayerState(delta_frame, frame, msg);
