@@ -274,19 +274,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Connection speed"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "rate",
-                          "var": "rate"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Network graph"
                           }
                         },
