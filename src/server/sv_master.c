@@ -37,7 +37,7 @@ void Sv_HeartbeatMasters(void) {
     return; // a private dedicated game
   }
 
-  if (sv.state != SV_ACTIVE_GAME) { // we're not up yet
+  if (svs.state != SV_ACTIVE_GAME) { // we're not up yet
     return;
   }
 

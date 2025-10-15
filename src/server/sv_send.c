@@ -106,7 +106,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
   char string[MAX_STRING_CHARS];
   va_list args;
 
-  if (!sv.state) {
+  if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 
@@ -381,17 +381,16 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {
-  sv_client_t *cl;
-  int32_t i;
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 
   // send a message to each connected client
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-    if (cl->state == SV_CLIENT_FREE) { // don't bother
+    if (cl->state == SV_CLIENT_FREE) {
       continue;
     }
 
@@ -402,7 +401,7 @@ void Sv_SendClientPackets(void) {
       continue;
     }
 
-    if (sv.state == SV_ACTIVE_DEMO) { // send the demo packet
+    if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
       byte buffer[MAX_MSG_SIZE];
       size_t size;
 

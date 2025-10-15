@@ -49,7 +49,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
 
   g_strlcpy(sv.config_strings[start + i], name, sizeof(sv.config_strings[i]));
 
-  if (sv.state != SV_LOADING) { // send the update to everyone
+  if (svs.state != SV_LOADING) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
     Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
     Net_WriteShort(&sv.multicast, start + i);
@@ -104,10 +104,8 @@ static void Sv_CreateBaseline(void) {
  * returning from this function.
  */
 static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
-  sv_client_t *cl;
-  int32_t i;
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 
@@ -125,22 +123,24 @@ static void Sv_ShutdownMessage(const char *msg, bool reconnect) {
     Net_WriteByte(&net_message, SV_CMD_DISCONNECT);
   }
 
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++)
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++)
     if (cl->state >= SV_CLIENT_CONNECTED) {
       Netchan_Transmit(&cl->net_chan, net_message.data, net_message.size);
     }
 }
 
 /**
- * @brief Wipes the sv_server_t structure after freeing any references it holds.
+ * @brief Wipes the `sv_server_t` structure after freeing any references it holds.
  */
 static void Sv_ClearState(void) {
 
-  if (svs.initialized) { // if we were intialized, cleanup
+  if (svs.state == SV_UNINITIALIZED) {
+    return;
+  }
 
-    if (sv.demo_file) {
-      Fs_Close(sv.demo_file);
-    }
+  if (sv.demo_file) {
+    Fs_Close(sv.demo_file);
   }
 
   memset(&sv, 0, sizeof(sv));
@@ -166,7 +166,7 @@ static void Sv_ShutdownClients(void) {
   sv_client_t *cl;
   int32_t i;
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 
@@ -191,7 +191,7 @@ static void Sv_ShutdownClients(void) {
  */
 static void Sv_InitEntities(sv_state_t state) {
 
-  if (!svs.initialized || Cvar_PendingLatched()) {
+  if (svs.state == SV_UNINITIALIZED || Cvar_PendingLatched()) {
 
     Sv_ShutdownGame();
 
@@ -276,7 +276,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
       sv.cm_models[i] = Cm_Model(s);
     }
 
-    sv.state = SV_LOADING;
+    svs.state = SV_LOADING;
 
     Sv_InitWorld();
 
@@ -354,12 +354,10 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
   // load the map or demo and related media
   Sv_LoadMedia(server, state);
-  sv.state = state;
+  svs.state = state;
 
   Com_Print("Server initialized\n");
   Com_InitSubsystem(QUETOO_SERVER);
-
-  svs.initialized = true;
 }
 
 /**
@@ -385,5 +383,5 @@ void Sv_ShutdownServer(const char *msg) {
 
   Com_Print("Server down\n");
 
-  svs.initialized = false;
+  svs.state = SV_UNINITIALIZED;
 }

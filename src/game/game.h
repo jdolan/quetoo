@@ -674,12 +674,12 @@ typedef struct g_export_s {
   size_t entity_size;
 
   /**
-   * @brief The current number of allocated (in use) g_entity_t.
+   * @brief The current number of in-use `g_entity_t`.
    */
   int32_t num_entities;
 
   /**
-   * @brief The total number of allocated g_entity_t (MAX_ENTITIES).
+   * @brief The total number of allocated `g_entity_t` (`MAX_ENTITIES`).
    */
   int32_t max_entities;
 

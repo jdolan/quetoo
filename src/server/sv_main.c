@@ -622,11 +622,11 @@ static void Sv_CheckTimeouts(void) {
  */
 static void Sv_ResetEntities(void) {
 
-  if (sv.state != SV_ACTIVE_GAME) {
+  if (svs.state != SV_ACTIVE_GAME) {
     return;
   }
 
-  for (uint16_t i = 0; i < svs.game->num_entities; i++) {
+  for (int32_t i = 0; i < svs.game->num_entities; i++) {
     g_entity_t *edict = ENTITY_FOR_NUM(i);
 
     // events only last for a single message
@@ -642,7 +642,7 @@ static void Sv_RunGameFrame(void) {
   sv.frame_num++;
   sv.time = sv.frame_num * QUETOO_TICK_MILLIS;
 
-  if (sv.state == SV_ACTIVE_GAME) {
+  if (svs.state == SV_ACTIVE_GAME) {
     svs.game->Frame();
   }
 }
@@ -735,8 +735,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 void Sv_Frame(const uint32_t msec) {
   static uint32_t frame_delta;
 
-  // if server is not active, do nothing
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 

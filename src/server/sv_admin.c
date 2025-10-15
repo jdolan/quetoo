@@ -175,7 +175,7 @@ static void Sv_Map_f(void) {
  */
 static void Sv_Kick_f(void) {
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     Com_Print("No server running\n");
     return;
   }
@@ -197,7 +197,7 @@ static void Sv_Kick_f(void) {
  */
 static void Sv_Status_f(void) {
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     Com_Print("No server running\n");
     return;
   }
@@ -233,7 +233,7 @@ static void Sv_Status_f(void) {
  */
 static void Sv_ListEntities_f(void) {
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     Com_Print("No server running\n");
     return;
   }
@@ -328,7 +328,7 @@ static void Sv_Tell_f(void) {
  */
 static void Sv_ServerInfo_f(void) {
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     Com_Print("No server running\n");
     return;
   }
@@ -342,7 +342,7 @@ static void Sv_ServerInfo_f(void) {
  */
 static void Sv_UserInfo_f(void) {
 
-  if (!svs.initialized) {
+  if (svs.state == SV_UNINITIALIZED) {
     Com_Print("No server running\n");
     return;
   }

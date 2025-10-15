@@ -49,24 +49,9 @@ typedef struct {
 } sv_entity_t;
 
 /**
- * @brief Server states.
- */
-typedef enum {
-  SV_UNINITIALIZED,
-  SV_LOADING,
-  SV_ACTIVE_GAME,
-  SV_ACTIVE_DEMO
-} sv_state_t;
-
-/**
  * @brief The `sv_server_t` struct is wiped at each level load.
  */
 typedef struct {
-  /**
-   * @brief The server state.
-   */
-  sv_state_t state;
-
   /**
    * @brief The simulation time.
    * @details This is always `sv.frame_num * 1000 / QUETOO_TICK_RATE`.
@@ -161,9 +146,9 @@ typedef struct {
  * @brief Client states.
  */
 typedef enum {
-  SV_CLIENT_FREE, // can be used for a new connection
-  SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
-  SV_CLIENT_ACTIVE // client is spawned
+  SV_CLIENT_FREE,
+  SV_CLIENT_CONNECTED,
+  SV_CLIENT_ACTIVE
 } sv_client_state_t;
 
 /**
@@ -219,7 +204,7 @@ typedef struct {
   /**
    * @brief The player name, extracted from user-info and stripped of colors.
    */
-  char name[32]; // extracted from user_info, high bits masked
+  char name[32];
 
   /**
    * @brief The message receipt level, used to filter chat messages.
@@ -260,7 +245,7 @@ typedef struct {
    * may reference any of these frames for valid delta compression. If the
    * client references a frame _not_ in this array, they'll receive baselines.
    */
-  sv_client_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
+  sv_client_frame_t frames[PACKET_BACKUP];
 
   /**
    * @brief UDP file downloads.
@@ -302,15 +287,26 @@ typedef struct {
 #define MAX_CHALLENGES 1024
 
 /**
+ * @brief Server states.
+ */
+typedef enum {
+  SV_UNINITIALIZED,
+  SV_INITIALIZED,
+  SV_LOADING,
+  SV_ACTIVE_GAME,
+  SV_ACTIVE_DEMO
+} sv_state_t;
+
+/**
  * @brief The `sv_static_t` structure is persistent for the execution of the
  * game. It is only cleared when `Sv_Init` is called. It is not exposed to the
  * game module.
  */
 typedef struct {
   /**
-   * @brief
+   * @brief The server state.
    */
-  bool initialized; // sv_init has completed
+  sv_state_t state;
 
   uint32_t spawn_count; // incremented each level start, used to check late spawns
 

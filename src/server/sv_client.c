@@ -31,11 +31,12 @@ static void Sv_New_f(void) {
 
   if (sv_client->state != SV_CLIENT_CONNECTED) {
     Com_Warn("%s issued new from %d\n", Sv_NetaddrToString(sv_client), sv_client->state);
+    Sv_DropClient(sv_client);
     return;
   }
 
   // demo servers will send the demo file's server info packet
-  if (sv.state == SV_ACTIVE_DEMO) {
+  if (svs.state == SV_ACTIVE_DEMO) {
     return;
   }
 
@@ -169,11 +170,11 @@ static void Sv_Begin_f(void) {
 
   if (sv_client->state != SV_CLIENT_CONNECTED) { // catch duplicate spawns
     Com_Warn("Invalid begin from %s\n", Sv_NetaddrToString(sv_client));
-    Sv_KickClient(sv_client, NULL);
+    Sv_DropClient(sv_client);
     return;
   }
 
-  if (sv.state == SV_ACTIVE_DEMO) {
+  if (svs.state == SV_ACTIVE_DEMO) {
     return;
   }
 
@@ -376,7 +377,7 @@ static void Sv_UserStringCommand(const char *s) {
   }
 
   if (!c->name) { // unmatched command
-    if (sv.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
+    if (svs.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
       svs.game->ClientCommand(sv_client->entity);
     }
   }
