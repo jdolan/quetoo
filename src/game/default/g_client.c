@@ -99,8 +99,8 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name,
-               attacker->client->locals.persistent.net_name);
+    g_snprintf(buffer, sizeof(buffer), msg, self->client->persistent.net_name,
+               attacker->client->persistent.net_name);
 #pragma clang diagnostic pop
 
     if (friendly_fire) {
@@ -169,7 +169,7 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wformat-nonliteral"
-    g_snprintf(buffer, sizeof(buffer), msg, self->client->locals.persistent.net_name);
+    g_snprintf(buffer, sizeof(buffer), msg, self->client->persistent.net_name);
 #pragma clang diagnostic pop
   }
 
@@ -181,10 +181,10 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
       int16_t a = 0;
       const g_item_t *armor = G_ClientArmor(attacker);
       if (armor) {
-        a = attacker->client->locals.inventory[armor->index];
+        a = attacker->client->inventory[armor->index];
       }
       gi.ClientPrint(self, PRINT_MEDIUM, "%s had %d health and %d armor\n",
-                     attacker->client->locals.persistent.net_name, attacker->locals.health, a);
+                     attacker->client->persistent.net_name, attacker->health, a);
     }
   }
 
@@ -192,26 +192,26 @@ static void G_ClientObituary(g_entity_t *self, g_entity_t *attacker, uint32_t mo
 
     if (frag) {
       if (friendly_fire) {
-        attacker->client->locals.persistent.score--;
+        attacker->client->persistent.score--;
       } else {
-        attacker->client->locals.persistent.score++;
+        attacker->client->persistent.score++;
       }
 
       if ((g_level.teams || g_level.ctf) &&
-              self->client->locals.persistent.team &&
-              attacker->client->locals.persistent.team) {
+              self->client->persistent.team &&
+              attacker->client->persistent.team) {
 
         if (friendly_fire) {
-          attacker->client->locals.persistent.team->score--;
+          attacker->client->persistent.team->score--;
         } else {
-          attacker->client->locals.persistent.team->score++;
+          attacker->client->persistent.team->score++;
         }
       }
     } else {
-      self->client->locals.persistent.score--;
+      self->client->persistent.score--;
 
-      if ((g_level.teams || g_level.ctf) && self->client->locals.persistent.team) {
-        self->client->locals.persistent.team->score--;
+      if ((g_level.teams || g_level.ctf) && self->client->persistent.team) {
+        self->client->persistent.team->score--;
       }
     }
   }
@@ -229,16 +229,16 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
   if (G_IsSky(trace)) {
     G_FreeEntity(self);
   } else {
-    const float speed = Vec3_Length(self->locals.velocity);
+    const float speed = Vec3_Length(self->velocity);
     if (speed > 40.0 && G_IsStructural(trace)) {
 
-      if (g_level.time - self->locals.touch_time > 200) {
+      if (g_level.time - self->touch_time > 200) {
         G_MulticastSound(&(const g_play_sound_t) {
-          .index = self->locals.sound,
+          .index = self->sound,
           .entity = self,
           .atten = SOUND_ATTEN_SQUARE
         }, MULTICAST_PHS, NULL);
-        self->locals.touch_time = g_level.time;
+        self->touch_time = g_level.time;
       }
     }
   }
@@ -250,22 +250,22 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
  */
 static void G_ClientCorpse_Think(g_entity_t *self) {
 
-  const uint32_t age = g_level.time - self->locals.timestamp;
+  const uint32_t age = g_level.time - self->timestamp;
 
   if (self->s.model1 == MODEL_CLIENT) {
     if (age > 6000) {
-      const int32_t dmg = self->locals.health;
+      const int32_t dmg = self->health;
 
-      if (self->locals.water_type & CONTENTS_LAVA) {
+      if (self->water_type & CONTENTS_LAVA) {
         G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_LAVA);
       }
 
-      if (self->locals.water_type & CONTENTS_SLIME) {
+      if (self->water_type & CONTENTS_SLIME) {
         G_Damage(self, NULL, NULL, Vec3_Zero(), self->s.origin, Vec3_Zero(), dmg, 0, DMG_NO_ARMOR, MOD_SLIME);
       }
     }
   } else {
-    const float speed = Vec3_Length(self->locals.velocity);
+    const float speed = Vec3_Length(self->velocity);
 
     if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
       self->s.trail = TRAIL_GIB;
@@ -284,19 +284,19 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
 
     self->s.effects |= EF_DESPAWN;
 
-    self->locals.move_type = MOVE_TYPE_NONE;
-    self->locals.take_damage = false;
+    self->move_type = MOVE_TYPE_NONE;
+    self->take_damage = false;
 
     self->solid = SOLID_NOT;
 
-    if (self->locals.ground.ent) {
+    if (self->ground.ent) {
       self->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
     }
 
     gi.LinkEntity(self);
   }
 
-  self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -335,29 +335,29 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
     ent->solid = SOLID_DEAD;
 
     ent->s.model1 = g_media.models.gibs[gib_index];
-    ent->locals.sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
+    ent->sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
-    ent->locals.velocity = self->locals.velocity;
+    ent->velocity = self->velocity;
 
-    const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
+    const int32_t h = Clampf(-5.0 * self->health, 100, 500);
 
-    ent->locals.velocity.x += RandomRangef(-h, h);
-    ent->locals.velocity.y += RandomRangef(-h, h);
-    ent->locals.velocity.z += RandomRangef(100.f, 100.f + h);
+    ent->velocity.x += RandomRangef(-h, h);
+    ent->velocity.y += RandomRangef(-h, h);
+    ent->velocity.z += RandomRangef(100.f, 100.f + h);
 
     for (int32_t i = 0; i < 3; ++i) {
-      ent->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+      ent->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
       ent->s.angles.xyz[i] = RandomRangef(0, 360.f);
     }
 
-    ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
-    ent->locals.dead = true;
-    ent->locals.mass = (gib_index + 1) * 20.0;
-    ent->locals.move_type = MOVE_TYPE_BOUNCE;
-    ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-    ent->locals.take_damage = true;
-    ent->locals.Think = G_ClientCorpse_Think;
-    ent->locals.Touch = G_ClientGiblet_Touch;
+    ent->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
+    ent->dead = true;
+    ent->mass = (gib_index + 1) * 20.0;
+    ent->move_type = MOVE_TYPE_BOUNCE;
+    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->take_damage = true;
+    ent->Think = G_ClientCorpse_Think;
+    ent->Touch = G_ClientGiblet_Touch;
 
     gi.LinkEntity(ent);
   }
@@ -370,24 +370,24 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
   if (self->client) {
     self->bounds = bounds[2];
 
-    const int32_t h = Clampf(-5.0 * self->locals.health, 100, 500);
+    const int32_t h = Clampf(-5.0 * self->health, 100, 500);
     
-    self->locals.velocity.x += RandomRangef(-h, h);
-    self->locals.velocity.y += RandomRangef(-h, h);
-    self->locals.velocity.z += RandomRangef(100.f, 100.f + h);
+    self->velocity.x += RandomRangef(-h, h);
+    self->velocity.y += RandomRangef(-h, h);
+    self->velocity.z += RandomRangef(100.f, 100.f + h);
 
     for (int32_t i = 0; i < 3; ++i) {
-      self->locals.avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+      self->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
       self->s.angles.xyz[i] = RandomRangef(0, 360.f);
     }
 
-    self->locals.Die = NULL;
+    self->Die = NULL;
 
     self->client->ps.pm_state.flags |= PMF_GIBLET;
 
     self->s.model1 = g_media.models.gibs[2];
 
-    self->locals.mass = 20.0;
+    self->mass = 20.0;
 
     self->solid = SOLID_DEAD;
 
@@ -407,7 +407,7 @@ static void G_ClientCorpse(g_entity_t *self) {
     return;
   }
 
-  if (self->locals.dead == false) {
+  if (self->dead == false) {
     return;
   }
 
@@ -432,17 +432,17 @@ static void G_ClientCorpse(g_entity_t *self) {
 
   ent->s.effects = EF_CORPSE;
 
-  ent->locals.velocity = self->locals.velocity;
+  ent->velocity = self->velocity;
 
-  ent->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
-  ent->locals.dead = true;
-  ent->locals.mass = self->locals.mass;
-  ent->locals.move_type = MOVE_TYPE_BOUNCE;
-  ent->locals.take_damage = true;
-  ent->locals.health = self->locals.health;
-  ent->locals.Die = ent->locals.health > 0 ? G_ClientCorpse_Die : NULL;
-  ent->locals.Think = G_ClientCorpse_Think;
-  ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
+  ent->dead = true;
+  ent->mass = self->mass;
+  ent->move_type = MOVE_TYPE_BOUNCE;
+  ent->take_damage = true;
+  ent->health = self->health;
+  ent->Die = ent->health > 0 ? G_ClientCorpse_Die : NULL;
+  ent->Think = G_ClientCorpse_Think;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
 }
@@ -475,7 +475,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
     }
   }
 
-  if (self->locals.health <= -CLIENT_CORPSE_HEALTH) {
+  if (self->health <= -CLIENT_CORPSE_HEALTH) {
     G_ClientCorpse_Die(self, attacker, mod);
   } else {
     G_MulticastSound(&(const g_play_sound_t) {
@@ -496,11 +496,11 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
     self->bounds.maxs.z = 0.0; // corpses are laying down
 
-    self->locals.health = CLIENT_CORPSE_HEALTH;
-    self->locals.Die = G_ClientCorpse_Die;
+    self->health = CLIENT_CORPSE_HEALTH;
+    self->Die = G_ClientCorpse_Die;
   }
 
-  uint32_t nade_hold_time = self->client->locals.grenade_hold_time;
+  uint32_t nade_hold_time = self->client->grenade_hold_time;
 
   if (nade_hold_time != 0) {
 
@@ -508,7 +508,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 
     G_HandGrenadeProjectile(
         self,          // player
-        self->client->locals.held_grenade, // the grenade
+        self->client->held_grenade, // the grenade
         self->s.origin,      // starting point
         Vec3_Up(),        // direction
         0,            // how fast it flies
@@ -529,14 +529,14 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
   self->s.model4 = 0;
   self->s.sound = 0;
 
-  self->locals.take_damage = true;
+  self->take_damage = true;
 
-  self->locals.clip_mask = CONTENTS_MASK_CLIP_CORPSE;
-  self->client->locals.respawn_time = g_level.time + 1800; // respawn after death animation finishes
-  self->client->locals.show_scores = true;
-  self->client->locals.persistent.deaths++;
+  self->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
+  self->client->respawn_time = g_level.time + 1800; // respawn after death animation finishes
+  self->client->show_scores = true;
+  self->client->persistent.deaths++;
 
-  G_ClientDamageKick(self, self->client->locals.right, 60.0);
+  G_ClientDamageKick(self, self->client->right, 60.0);
 
   gi.LinkEntity(self);
 }
@@ -549,7 +549,7 @@ static void G_ClientDie(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
 static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
 
   if (!g_ascii_strcasecmp(it, "Health")) {
-    ent->locals.health = quantity;
+    ent->health = quantity;
     return;
   }
 
@@ -562,7 +562,7 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
   const uint16_t index = item->index;
 
   if (item->type == ITEM_WEAPON) { // weapons receive quantity as ammo
-    ent->client->locals.inventory[index]++;
+    ent->client->inventory[index]++;
 
     if (item->ammo) {
       const g_item_t *ammo = item->ammo_item;
@@ -570,17 +570,17 @@ static void G_Give(g_entity_t *ent, char *it, int16_t quantity) {
         const uint16_t ammo_index = ammo->index;
 
         if (quantity > -1) {
-          ent->client->locals.inventory[ammo_index] = quantity;
+          ent->client->inventory[ammo_index] = quantity;
         } else {
-          ent->client->locals.inventory[ammo_index] = ammo->quantity;
+          ent->client->inventory[ammo_index] = ammo->quantity;
         }
       }
     }
   } else { // while other items receive quantity directly
     if (quantity > -1) {
-      ent->client->locals.inventory[index] = quantity;
+      ent->client->inventory[index] = quantity;
     } else {
-      ent->client->locals.inventory[index] = item->quantity;
+      ent->client->inventory[index] = item->quantity;
     }
   }
 }
@@ -688,11 +688,11 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
       continue;
     }
 
-    if (other->locals.health <= 0) {
+    if (other->health <= 0) {
       continue;
     }
 
-    if (other->client->locals.persistent.spectator) {
+    if (other->client->persistent.spectator) {
       continue;
     }
 
@@ -701,7 +701,7 @@ static float G_EnemyRangeFromSpot(g_entity_t *ent, g_entity_t *spot) {
 
     if (g_level.teams || g_level.ctf) { // avoid collision with team mates
 
-      if (other->client->locals.persistent.team == ent->client->locals.persistent.team) {
+      if (other->client->persistent.team == ent->client->persistent.team) {
         if (dist > 64.0) { // if they're far away, ignore them
           continue;
         }
@@ -810,15 +810,15 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_entity_t *ent) {
  */
 static g_entity_t *G_SelectTeamSpawnPoint(g_entity_t *ent) {
 
-  if (!ent->client->locals.persistent.team) {
+  if (!ent->client->persistent.team) {
     return NULL;
   }
 
   if (g_spawn_farthest->value) {
-    return G_SelectFarthestSpawnPoint(ent, &ent->client->locals.persistent.team->spawn_points);
+    return G_SelectFarthestSpawnPoint(ent, &ent->client->persistent.team->spawn_points);
   }
 
-  return G_SelectRandomSpawnPoint(&ent->client->locals.persistent.team->spawn_points);
+  return G_SelectRandomSpawnPoint(&ent->client->persistent.team->spawn_points);
 }
 
 /**
@@ -852,16 +852,16 @@ static void G_ClientRespawn_(g_entity_t *ent) {
   G_ClientCorpse(ent);
 
   // retain the persistent structure
-  g_client_persistent_t persistent = ent->client->locals.persistent;
+  g_client_persistent_t persistent = ent->client->persistent;
 
   // and the last angles for calculating delta to spawn point
-  cmd_angles = ent->client->locals.cmd_angles;
+  cmd_angles = ent->client->cmd_angles;
 
   // clear the client and restore the persistent state
 
   const g_client_t cl = *ent->client;
   memset(ent->client, 0, sizeof(*ent->client));
-  ent->client->locals.persistent = persistent;
+  ent->client->persistent = persistent;
   ent->client->ai = cl.ai;
   ent->client->connected = cl.connected;
 
@@ -874,14 +874,14 @@ static void G_ClientRespawn_(g_entity_t *ent) {
 
   // and calculate delta angles
   ent->s.angles = Vec3_Zero();
-  ent->client->locals.angles = spawn->s.angles;
+  ent->client->angles = spawn->s.angles;
   delta_angles = Vec3_Subtract(spawn->s.angles, cmd_angles);
 
   // pack the new origin and delta angles into the player state
   ent->client->ps.pm_state.origin = ent->s.origin;
   ent->client->ps.pm_state.delta_angles = delta_angles;
 
-  ent->locals.velocity = Vec3_Zero();
+  ent->velocity = Vec3_Zero();
 
   ent->s.effects = 0;
   ent->s.model1 = 0;
@@ -889,7 +889,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
   ent->s.model3 = 0;
   ent->s.model4 = 0;
 
-  if (ent->client->locals.persistent.spectator) { // spawn a spectator
+  if (ent->client->persistent.spectator) { // spawn a spectator
     ent->class_name = "spectator";
 
     ent->bounds = Box3_Zero();
@@ -897,15 +897,15 @@ static void G_ClientRespawn_(g_entity_t *ent) {
     ent->solid = SOLID_NOT;
     ent->sv_flags = SVF_NO_CLIENT;
 
-    ent->locals.move_type = MOVE_TYPE_NO_CLIP;
-    ent->locals.dead = true;
-    ent->locals.take_damage = false;
+    ent->move_type = MOVE_TYPE_NO_CLIP;
+    ent->dead = true;
+    ent->take_damage = false;
 
-    ent->client->locals.chase_target = NULL;
-    ent->client->locals.weapon = NULL;
+    ent->client->chase_target = NULL;
+    ent->client->weapon = NULL;
 
-    ent->client->locals.persistent.team = NULL;
-    ent->client->locals.persistent.ready = false;
+    ent->client->persistent.team = NULL;
+    ent->client->persistent.ready = false;
   } else { // spawn an active client
     ent->class_name = "client";
 
@@ -921,27 +921,27 @@ static void G_ClientRespawn_(g_entity_t *ent) {
     G_SetAnimation(ent, ANIM_TORSO_STAND1, true);
     G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
-    ent->locals.clip_mask = CONTENTS_MASK_CLIP_PLAYER;
+    ent->clip_mask = CONTENTS_MASK_CLIP_PLAYER;
 
     if (ent->client->ai) {
-      ent->locals.clip_mask = CONTENTS_MASK_CLIP_MONSTER;
+      ent->clip_mask = CONTENTS_MASK_CLIP_MONSTER;
     }
 
-    ent->locals.dead = false;
-    ent->locals.Die = G_ClientDie;
-    memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
-    ent->client->locals.persistent.handicap = ent->client->locals.persistent.handicap_next;
-    ent->locals.max_health = ent->client->locals.persistent.handicap;
-    ent->locals.health = ent->locals.max_health + 5;
-    ent->client->locals.boost_time = g_level.time + 1000;
-    ent->client->locals.max_armor = 200;
-    ent->client->locals.max_boost_health = ent->locals.max_health + 100;
-    ent->locals.move_type = MOVE_TYPE_WALK;
-    ent->locals.mass = 200.0;
-    ent->locals.take_damage = true;
-    ent->locals.water_level = WATER_UNKNOWN;
-    ent->locals.water_type = 0;
-    ent->locals.ripple_size = 32.0;
+    ent->dead = false;
+    ent->Die = G_ClientDie;
+    memset(&ent->ground, 0, sizeof(ent->ground));
+    ent->client->persistent.handicap = ent->client->persistent.handicap_next;
+    ent->max_health = ent->client->persistent.handicap;
+    ent->health = ent->max_health + 5;
+    ent->client->boost_time = g_level.time + 1000;
+    ent->client->max_armor = 200;
+    ent->client->max_boost_health = ent->max_health + 100;
+    ent->move_type = MOVE_TYPE_WALK;
+    ent->mass = 200.0;
+    ent->take_damage = true;
+    ent->water_level = WATER_UNKNOWN;
+    ent->water_type = 0;
+    ent->ripple_size = 32.0;
 
     // hold in place briefly
     ent->client->ps.pm_state.flags = PMF_TIME_TELEPORT;
@@ -953,7 +953,7 @@ static void G_ClientRespawn_(g_entity_t *ent) {
     }
 
     // briefly disable firing, since we likely just clicked to respawn
-    ent->client->locals.weapon_fire_time = g_level.time + 250;
+    ent->client->weapon_fire_time = g_level.time + 250;
 
     G_KillBox(ent); // kill anyone in our spot
   }
@@ -969,7 +969,7 @@ void G_ClientRespawn(g_entity_t *ent, bool voluntary) {
 
   G_ClientRespawn_(ent);
 
-  g_client_persistent_t *pers = &ent->client->locals.persistent;
+  g_client_persistent_t *pers = &ent->client->persistent;
 
   // clear scores and match/round on voluntary changes
   if (pers->spectator && voluntary) {
@@ -980,8 +980,8 @@ void G_ClientRespawn(g_entity_t *ent, bool voluntary) {
     pers->round_num = g_level.round_num;
   }
 
-  ent->client->locals.respawn_time = g_level.time;
-  ent->client->locals.respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
+  ent->client->respawn_time = g_level.time;
+  ent->client->respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
   G_Ai_Respawn(ent);
 
@@ -1007,17 +1007,17 @@ void G_ClientBegin(g_entity_t *ent) {
 
   G_InitEntity(ent, "client");
 
-  ent->client->locals.cmd_angles = Vec3_Zero();
-  ent->client->locals.persistent.first_frame = g_level.frame_num;
+  ent->client->cmd_angles = Vec3_Zero();
+  ent->client->persistent.first_frame = g_level.frame_num;
 
   // force spectator if match or rounds
   if (g_level.match || g_level.rounds) {
-    ent->client->locals.persistent.spectator = true;
+    ent->client->persistent.spectator = true;
   } else if (g_level.teams || g_level.ctf) {
     if (g_auto_join->value || ent->client->ai) {
       G_AddClientToTeam(ent, G_SmallestTeam()->name);
     } else {
-      ent->client->locals.persistent.spectator = true;
+      ent->client->persistent.spectator = true;
     }
   }
 
@@ -1076,12 +1076,12 @@ void G_SetClientHookStyle(g_entity_t *ent) {
 
   // respect user_info on default
   if (!g_strcmp0(g_hook_style->string, "default")) {
-    hook_style = G_HookStyleByName(GetUserInfo(ent->client->locals.persistent.user_info, "hook_style"));
+    hook_style = G_HookStyleByName(GetUserInfo(ent->client->persistent.user_info, "hook_style"));
   } else {
     hook_style = G_HookStyleByName(g_hook_style->string);
   }
 
-  ent->client->locals.persistent.hook_style = hook_style;
+  ent->client->persistent.hook_style = hook_style;
 }
 
 /**
@@ -1098,7 +1098,7 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
 
   // save off the user_info in case we want to check something later
   const size_t len = strlen(user_info);
-  memmove(ent->client->locals.persistent.user_info, user_info, len + 1);
+  memmove(ent->client->persistent.user_info, user_info, len + 1);
 
   G_Debug("%s\n", user_info);
 
@@ -1138,17 +1138,17 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
   }
 
   g_client_t *cl = ent->client;
-  if (strncmp(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name))) {
+  if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
 
-    if (*cl->locals.persistent.net_name != '\0') {
-      gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->locals.persistent.net_name,
+    if (*cl->persistent.net_name != '\0') {
+      gi.BroadcastPrint(PRINT_MEDIUM, "%s changed name to %s\n", cl->persistent.net_name,
                         name);
     }
 
-    g_strlcpy(cl->locals.persistent.net_name, name, sizeof(cl->locals.persistent.net_name));
+    g_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
   }
 
-  const g_team_t *team = cl->locals.persistent.team;
+  const g_team_t *team = cl->persistent.team;
 
   // set skin
   if (team) { // players must use team_skin to change
@@ -1166,54 +1166,54 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
   }
 
   if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
-    g_strlcpy(cl->locals.persistent.skin, s, sizeof(cl->locals.persistent.skin));
+    g_strlcpy(cl->persistent.skin, s, sizeof(cl->persistent.skin));
   } else {
-    g_strlcpy(cl->locals.persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->locals.persistent.skin));
+    g_strlcpy(cl->persistent.skin, DEFAULT_USER_MODEL "/" DEFAULT_USER_SKIN, sizeof(cl->persistent.skin));
   }
 
   // set effect color
   if (team) { // players must use team_skin to change
-    cl->locals.persistent.color = team->color;
+    cl->persistent.color = team->color;
   } else {
     s = GetUserInfo(user_info, "color");
 
-    cl->locals.persistent.color = -1;
+    cl->persistent.color = -1;
 
     if (strlen(s) && strcmp(s, "default")) { // not default
       const int32_t hue = atoi(s);
       if (hue >= 0) {
-        cl->locals.persistent.color = Minf(hue, 361);
+        cl->persistent.color = Minf(hue, 361);
       }
     }
   }
 
   // set shirt, pants and head colors
 
-  cl->locals.persistent.shirt.a = 0;
-  cl->locals.persistent.pants.a = 0;
-  cl->locals.persistent.helmet.a = 0;
+  cl->persistent.shirt.a = 0;
+  cl->persistent.pants.a = 0;
+  cl->persistent.helmet.a = 0;
 
   if (team) {
 
-    cl->locals.persistent.shirt = team->shirt;
-    cl->locals.persistent.pants = team->pants;
-    cl->locals.persistent.helmet = team->helmet;
+    cl->persistent.shirt = team->shirt;
+    cl->persistent.pants = team->pants;
+    cl->persistent.helmet = team->helmet;
 
   } else {
 
     s = GetUserInfo(user_info, "shirt");
-    if (!Color_Parse(s, &cl->locals.persistent.shirt)) {
-      cl->locals.persistent.shirt = color_white;
+    if (!Color_Parse(s, &cl->persistent.shirt)) {
+      cl->persistent.shirt = color_white;
     }
 
     s = GetUserInfo(user_info, "pants");
-    if (!Color_Parse(s, &cl->locals.persistent.pants)) {
-      cl->locals.persistent.pants = color_white;
+    if (!Color_Parse(s, &cl->persistent.pants)) {
+      cl->persistent.pants = color_white;
     }
 
     s = GetUserInfo(user_info, "helmet");
-    if (!Color_Parse(s, &cl->locals.persistent.helmet)) {
-      cl->locals.persistent.helmet = color_white;
+    if (!Color_Parse(s, &cl->persistent.helmet)) {
+      cl->persistent.helmet = color_white;
     }
   }
 
@@ -1223,29 +1223,29 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
   g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, cl->locals.persistent.net_name, sizeof(client_info));
+  g_strlcat(client_info, cl->persistent.net_name, sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, cl->locals.persistent.skin, sizeof(client_info));
+  g_strlcat(client_info, cl->persistent.skin, sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->locals.persistent.shirt), sizeof(client_info));
+  g_strlcat(client_info, Color_Unparse(cl->persistent.shirt), sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->locals.persistent.pants), sizeof(client_info));
+  g_strlcat(client_info, Color_Unparse(cl->persistent.pants), sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, Color_Unparse(cl->locals.persistent.helmet), sizeof(client_info));
+  g_strlcat(client_info, Color_Unparse(cl->persistent.helmet), sizeof(client_info));
 
   g_strlcat(client_info, "\\", sizeof(client_info));
-  g_strlcat(client_info, va("%i", cl->locals.persistent.color), sizeof(client_info));
+  g_strlcat(client_info, va("%i", cl->persistent.color), sizeof(client_info));
 
   // send it to clients
   const int32_t index = (int32_t) (ptrdiff_t) (cl - g_game.clients);
   gi.SetConfigString(CS_CLIENTS + index, client_info);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
-  cl->locals.persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);
+  cl->persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);
 
   s = GetUserInfo(user_info, "active");
   if (g_strcmp0(s, "0") == 0) {
@@ -1260,18 +1260,18 @@ void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info) {
     handicap = 100;
   }
 
-  cl->locals.persistent.handicap_next = Clampf(handicap, 50, 100);
+  cl->persistent.handicap_next = Clampf(handicap, 50, 100);
 
   // auto-switch
   uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
-  cl->locals.persistent.auto_switch = auto_switch;
+  cl->persistent.auto_switch = auto_switch;
 
   // hook style
   G_SetClientHookStyle(ent);
 
   // auto-spectate from "spectator" key
   if (strtoul(GetUserInfo(user_info, "spectator"), NULL, 10)) {
-    ent->client->locals.persistent.spectator = true;
+    ent->client->persistent.spectator = true;
   }
 }
 
@@ -1311,13 +1311,13 @@ bool G_ClientConnect(g_entity_t *ent, char *user_info) {
 
   // they can connect
   // clean up locals things which are not reset on spawns
-  memset(&ent->client->locals.persistent, 0, sizeof(ent->client->locals.persistent));
+  memset(&ent->client->persistent, 0, sizeof(ent->client->persistent));
 
   // set name, skin, etc..
   G_ClientUserInfoChanged(ent, user_info);
 
   if (sv_max_clients->integer > 1) {
-    gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->locals.persistent.net_name);
+    gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", ent->client->persistent.net_name);
   }
 
   ent->sv_flags = 0; // make sure we start with known default
@@ -1347,7 +1347,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
   G_TossTech(ent);
   G_ClientHookDetach(ent);
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s disconnected\n", ent->client->locals.persistent.net_name);
+  gi.BroadcastPrint(PRINT_HIGH, "%s disconnected\n", ent->client->persistent.net_name);
 
   // send effect
   if (G_IsMeat(ent)) {
@@ -1382,7 +1382,7 @@ void G_ClientDisconnect(g_entity_t *ent) {
 static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
   const g_entity_t *self = g_level.current_entity;
 
-  return gi.Trace(start, end, bounds, self, self->locals.clip_mask);
+  return gi.Trace(start, end, bounds, self, self->clip_mask);
 }
 
 #ifdef _DEBUG
@@ -1445,12 +1445,12 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
   g_client_t *cl = ent->client;
 
   // save the raw angles sent over in the command
-  cl->locals.cmd_angles = cmd->angles;
+  cl->cmd_angles = cmd->angles;
 
   // set the move type
-  if (ent->locals.move_type == MOVE_TYPE_NO_CLIP) {
+  if (ent->move_type == MOVE_TYPE_NO_CLIP) {
     cl->ps.pm_state.type = PM_SPECTATOR;
-  } else if (ent->locals.dead) {
+  } else if (ent->dead) {
     cl->ps.pm_state.type = PM_DEAD;
   } else {
     cl->ps.pm_state.type = PM_NORMAL;
@@ -1479,23 +1479,23 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
 
     pm.s.origin = ent->s.origin;
 
-    if (ent->client->locals.hook_pull) {
+    if (ent->client->hook_pull) {
     
-      if (ent->client->locals.persistent.hook_style == HOOK_PULL) {
+      if (ent->client->persistent.hook_style == HOOK_PULL) {
         pm.s.type = PM_HOOK_PULL;
-      } else if (ent->client->locals.persistent.hook_style == HOOK_SWING_MANUAL) {
+      } else if (ent->client->persistent.hook_style == HOOK_SWING_MANUAL) {
         pm.s.type = PM_HOOK_SWING_MANUAL;
-      } else if (ent->client->locals.persistent.hook_style == HOOK_SWING_AUTO) {
+      } else if (ent->client->persistent.hook_style == HOOK_SWING_AUTO) {
         pm.s.type = PM_HOOK_SWING_AUTO;
       } else {
         pm.s.type = PM_HOOK_PULL;
       }
     } else {
-      pm.s.velocity = ent->locals.velocity;
+      pm.s.velocity = ent->velocity;
     }
 
     pm.cmd = *cmd;
-    pm.ground = ent->locals.ground;
+    pm.ground = ent->ground;
     pm.hook_pull_speed = g_hook_pull_speed->value;
 #ifdef _DEBUG
   }
@@ -1522,43 +1522,43 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
   // save results of move
   cl->ps.pm_state = pm.s;
 
-  old_velocity = ent->locals.velocity;
+  old_velocity = ent->velocity;
 
   ent->s.step_offset = roundf(pm.s.step_offset);
   ent->s.origin = pm.s.origin;
-  ent->locals.velocity = pm.s.velocity;
+  ent->velocity = pm.s.velocity;
 
   ent->bounds = pm.bounds;
 
   // copy the clamped angles out
-  cl->locals.angles = pm.angles;
+  cl->angles = pm.angles;
 
   // update the directional vectors based on new view angles
-  Vec3_Vectors(cl->locals.angles, &cl->locals.forward, &cl->locals.right, &cl->locals.up);
+  Vec3_Vectors(cl->angles, &cl->forward, &cl->right, &cl->up);
 
   // update the horizontal speed scalar based on new velocity
-  velocity = ent->locals.velocity;
+  velocity = ent->velocity;
   velocity.z = 0.0;
 
-  velocity = Vec3_NormalizeLength(velocity, &cl->locals.speed);
+  velocity = Vec3_NormalizeLength(velocity, &cl->speed);
 
   // blend animations for live players
-  if (ent->locals.dead == false) {
+  if (ent->dead == false) {
 
     if (pm.s.flags & PMF_JUMPED) {
-      if (g_level.time - 100 > cl->locals.jump_time) {
+      if (g_level.time - 100 > cl->jump_time) {
         vec3_t angles, forward, point;
         cm_trace_t tr;
 
         angles = Vec3(0.0, ent->s.angles.y, 0.0);
         Vec3_Vectors(angles, &forward, NULL, NULL);
 
-        point = Vec3_Fmaf(ent->s.origin, cl->locals.speed * .4f, velocity);
+        point = Vec3_Fmaf(ent->s.origin, cl->speed * .4f, velocity);
 
         // trace towards our jump destination to see if we have room to backflip
         tr = gi.Trace(ent->s.origin, point, ent->bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
 
-        if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->locals.speed > 200.0) {
+        if (Vec3_Dot(velocity, forward) < -0.1 && tr.fraction == 1.0 && cl->speed > 200.0) {
           G_SetAnimation(ent, ANIM_LEGS_JUMP2, true);
         } else {
           G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
@@ -1569,18 +1569,18 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
           ent->s.event = EV_CLIENT_JUMP;
         }
 
-        cl->locals.jump_time = g_level.time;
+        cl->jump_time = g_level.time;
       }
     } else if (pm.s.flags & PMF_TIME_WATER_JUMP) {
-      if (g_level.time - 2000 > cl->locals.jump_time) {
+      if (g_level.time - 2000 > cl->jump_time) {
 
         G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
         ent->s.event = EV_CLIENT_JUMP;
-        cl->locals.jump_time = g_level.time;
+        cl->jump_time = g_level.time;
       }
     } else if (pm.s.flags & PMF_TIME_LAND) {
-      if (g_level.time - 800 > cl->locals.land_time) {
+      if (g_level.time - 800 > cl->land_time) {
         g_entity_event_t event = EV_CLIENT_LAND;
 
         if (G_IsAnimation(ent, ANIM_LEGS_JUMP2)) {
@@ -1604,53 +1604,53 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
             event = EV_CLIENT_FALL;
           }
 
-          cl->locals.pain_time = g_level.time; // suppress pain sound
+          cl->pain_time = g_level.time; // suppress pain sound
           
           // TODO: get normal from what we've landed on
           G_Damage(ent, NULL, NULL, Vec3_Up(), ent->s.origin, Vec3_Zero(), damage, 0, DMG_NO_ARMOR, MOD_FALLING);
         }
 
         ent->s.event = event;
-        cl->locals.land_time = g_level.time;
+        cl->land_time = g_level.time;
       }
     } else if (pm.s.flags & PMF_ON_LADDER) {
-      if (g_level.time - 400 > cl->locals.jump_time) {
-        if (fabs(ent->locals.velocity.z) > 20.0) {
+      if (g_level.time - 400 > cl->jump_time) {
+        if (fabs(ent->velocity.z) > 20.0) {
 
           G_SetAnimation(ent, ANIM_LEGS_JUMP1, true);
 
           ent->s.event = EV_CLIENT_JUMP;
-          cl->locals.jump_time = g_level.time;
+          cl->jump_time = g_level.time;
         }
       }
     }
 
     // detect hitting the ground to help with animation blending
-    if (pm.ground.ent && !ent->locals.ground.ent) {
-      cl->locals.ground_time = g_level.time;
+    if (pm.ground.ent && !ent->ground.ent) {
+      cl->ground_time = g_level.time;
     }
   }
 
   // copy ground and water state back into entity
-  ent->locals.ground = pm.ground;
-  ent->locals.water_level = pm.water_level;
-  ent->locals.water_type = pm.water_type;
+  ent->ground = pm.ground;
+  ent->water_level = pm.water_level;
+  ent->water_type = pm.water_type;
 
   // and finally link them back in to collide with others below
   gi.LinkEntity(ent);
 
   // touch every object we collided with objects
-  if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+  if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 
     const cm_trace_t *touched = pm.touched;
     for (int32_t i = 0; i < pm.num_touched; i++, touched++) {
       g_entity_t *other = touched->ent;
 
-      if (!other->locals.Touch) {
+      if (!other->Touch) {
         continue;
       }
 
-      other->locals.Touch(other, ent, touched);
+      other->Touch(other, ent, touched);
     }
 
     G_TouchOccupy(ent);
@@ -1662,22 +1662,22 @@ static void G_ClientMove(g_entity_t *ent, pm_cmd_t *cmd) {
  */
 static void G_ClientInventoryThink(g_entity_t *ent) {
 
-  if (ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
+  if (ent->client->inventory[g_media.items.powerups[POWERUP_QUAD]->index]) { // if they have quad
 
-    if (ent->client->locals.quad_countdown_time && ent->client->locals.quad_countdown_time < g_level.time) { // play the countdown sound      
+    if (ent->client->quad_countdown_time && ent->client->quad_countdown_time < g_level.time) { // play the countdown sound      
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.quad_expire,
         .entity = ent,
         .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS, NULL);
       
-      ent->client->locals.quad_countdown_time += 1000;
+      ent->client->quad_countdown_time += 1000;
     }
 
-    if (ent->client->locals.quad_damage_time < g_level.time) { // expire it
+    if (ent->client->quad_damage_time < g_level.time) { // expire it
 
-      ent->client->locals.quad_damage_time = 0.0;
-      ent->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
+      ent->client->quad_damage_time = 0.0;
+      ent->client->inventory[g_media.items.powerups[POWERUP_QUAD]->index] = 0;
 
       ent->s.effects &= ~EF_QUAD;
     }
@@ -1685,19 +1685,19 @@ static void G_ClientInventoryThink(g_entity_t *ent) {
 
   // other power-ups and things can be timed out here as well
 
-  if (ent->client->locals.respawn_protection_time > g_level.time) {
+  if (ent->client->respawn_protection_time > g_level.time) {
     ent->s.effects |= EF_RESPAWN;
   } else {
     ent->s.effects &= ~EF_RESPAWN;
   }
 
   // decrement any boosted health from items
-  if (ent->client->locals.boost_time != 0 && ent->client->locals.boost_time < g_level.time) {
-    if (ent->locals.health > ent->locals.max_health) {
-      ent->locals.health -= 1;
-      ent->client->locals.boost_time = g_level.time + 1000;
+  if (ent->client->boost_time != 0 && ent->client->boost_time < g_level.time) {
+    if (ent->health > ent->max_health) {
+      ent->health -= 1;
+      ent->client->boost_time = g_level.time + 1000;
     } else {
-      ent->client->locals.boost_time = 0;
+      ent->client->boost_time = 0;
     }
   }
 }
@@ -1719,51 +1719,51 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
   g_level.current_entity = ent;
   g_client_t *cl = ent->client;
 
-  if (cl->locals.chase_target) { // ensure chase is valid
+  if (cl->chase_target) { // ensure chase is valid
 
-    if (!G_IsMeat(cl->locals.chase_target)) {
+    if (!G_IsMeat(cl->chase_target)) {
 
-      const g_entity_t *other = cl->locals.chase_target;
+      const g_entity_t *other = cl->chase_target;
 
       G_ClientChaseNext(ent);
 
-      if (cl->locals.chase_target == other) { // no one to chase
-        cl->locals.chase_target = NULL;
+      if (cl->chase_target == other) { // no one to chase
+        cl->chase_target = NULL;
       }
     }
   }
 
   // setup buttons now, since pmove won't modify them
-  cl->locals.old_buttons = cl->locals.buttons;
-  cl->locals.buttons = cmd->buttons;
-  cl->locals.latched_buttons |= cl->locals.buttons & ~cl->locals.old_buttons;
+  cl->old_buttons = cl->buttons;
+  cl->buttons = cmd->buttons;
+  cl->latched_buttons |= cl->buttons & ~cl->old_buttons;
 
-  if (!cl->locals.chase_target) { // move through the world
+  if (!cl->chase_target) { // move through the world
 
     // process hook buttons
-    if (cl->locals.hook_think_time < g_level.time) {
+    if (cl->hook_think_time < g_level.time) {
       G_ClientHookThink(ent, false);
     }
 
     G_ClientMove(ent, cmd);
   }
 
-  cl->locals.cmd = *cmd;
+  cl->cmd = *cmd;
 
   // fire weapon if requested
-  if (cl->locals.latched_buttons & BUTTON_ATTACK) {
-    if (cl->locals.persistent.spectator) {
+  if (cl->latched_buttons & BUTTON_ATTACK) {
+    if (cl->persistent.spectator) {
 
-      cl->locals.latched_buttons = 0;
+      cl->latched_buttons = 0;
 
-      if (cl->locals.chase_target) { // toggle chase camera
-        cl->locals.chase_target = cl->locals.old_chase_target = NULL;
+      if (cl->chase_target) { // toggle chase camera
+        cl->chase_target = cl->old_chase_target = NULL;
       } else {
         G_ClientChaseTarget(ent);
       }
 
       G_ClientChaseThink(ent);
-    } else if (cl->locals.weapon_think_time < g_level.time) {
+    } else if (cl->weapon_think_time < g_level.time) {
       G_ClientWeaponThink(ent);
     }
   }
@@ -1775,7 +1775,7 @@ void G_ClientThink(g_entity_t *ent, pm_cmd_t *cmd) {
 
     g_entity_t *other = g_game.entities + i;
 
-    if (other->in_use && other->client->locals.chase_target == ent) {
+    if (other->in_use && other->client->chase_target == ent) {
       G_ClientChaseThink(other);
     }
   }
@@ -1797,37 +1797,37 @@ void G_ClientBeginFrame(g_entity_t *ent) {
     return;
   }
 
-  if ((G_IsMeat(ent) && ent->locals.dead) ||
-      ((ent->client->locals.buttons | ent->client->locals.latched_buttons) & BUTTON_SCORE)) {
-    ent->client->locals.show_scores = true;
+  if ((G_IsMeat(ent) && ent->dead) ||
+      ((ent->client->buttons | ent->client->latched_buttons) & BUTTON_SCORE)) {
+    ent->client->show_scores = true;
   } else {
-    ent->client->locals.show_scores = false;
+    ent->client->show_scores = false;
   }
 
   g_client_t *cl = ent->client;
 
   // run weapon think if it hasn't been done by a command
-  if (cl->locals.weapon_think_time < g_level.time) {
+  if (cl->weapon_think_time < g_level.time) {
     G_ClientWeaponThink(ent);
   }
 
-  if (cl->locals.hook_think_time < g_level.time) {
+  if (cl->hook_think_time < g_level.time) {
     G_ClientHookThink(ent, false);
   }
 
-  if (ent->locals.dead) {
+  if (ent->dead) {
 
     // rounds mode implies last-man-standing, force to spectator immediately if round underway
     if (g_level.rounds && g_level.round_time && g_level.time >= g_level.round_time) {
 
-      if (!cl->locals.persistent.spectator) {
-        cl->locals.persistent.spectator = true;
+      if (!cl->persistent.spectator) {
+        cl->persistent.spectator = true;
         G_ClientRespawn(ent, false);
       }
-    } else if (g_level.time > cl->locals.respawn_time) {
+    } else if (g_level.time > cl->respawn_time) {
 
       // all other respawns require a click from the player
-      if (cl->locals.latched_buttons & BUTTON_ATTACK) {
+      if (cl->latched_buttons & BUTTON_ATTACK) {
         G_ClientRespawn(ent, false);
       }
     }
@@ -1835,16 +1835,16 @@ void G_ClientBeginFrame(g_entity_t *ent) {
 
     if (G_HasTech(ent, TECH_REGEN)) {
 
-      if (ent->client->locals.regen_time < g_level.time) {
-        ent->client->locals.regen_time = g_level.time + TECH_REGEN_TICK_TIME;
+      if (ent->client->regen_time < g_level.time) {
+        ent->client->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
 
-        if (ent->locals.health < ent->locals.max_health) {
-          ent->locals.health = Minf(ent->locals.health + TECH_REGEN_HEALTH, ent->locals.max_health);
+        if (ent->health < ent->max_health) {
+          ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
           G_PlayTechSound(ent);
         }
       }
     }
   }
 
-  cl->locals.latched_buttons = 0;
+  cl->latched_buttons = 0;
 }

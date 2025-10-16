@@ -161,34 +161,34 @@ static void G_SpawnEntity(g_entity_t *ent) {
   // TODO: Trim down entity_locals_t, move all of these "one offs" to custom data
   // structs, allocated through each spawn function. See cgame cg_entity_t.
 
-  ent->locals.spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
+  ent->spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
-  ent->locals.speed = gi.EntityValue(ent->def, "speed")->value;
-  ent->locals.accel = gi.EntityValue(ent->def, "accel")->value;
-  ent->locals.decel = gi.EntityValue(ent->def, "decel")->value;
-  ent->locals.lip = gi.EntityValue(ent->def, "lip")->value;
+  ent->speed = gi.EntityValue(ent->def, "speed")->value;
+  ent->accel = gi.EntityValue(ent->def, "accel")->value;
+  ent->decel = gi.EntityValue(ent->def, "decel")->value;
+  ent->lip = gi.EntityValue(ent->def, "lip")->value;
 
-  ent->locals.target = gi.EntityValue(ent->def, "target")->nullable_string;
-  ent->locals.target_name = gi.EntityValue(ent->def, "targetname")->nullable_string;
-  ent->locals.path_target = gi.EntityValue(ent->def, "pathtarget")->nullable_string;
-  ent->locals.kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
-  ent->locals.message = gi.EntityValue(ent->def, "message")->nullable_string;
-  ent->locals.team = gi.EntityValue(ent->def, "team")->nullable_string;
-  ent->locals.command = gi.EntityValue(ent->def, "command")->nullable_string;
-  ent->locals.script = gi.EntityValue(ent->def, "script")->nullable_string;
+  ent->target = gi.EntityValue(ent->def, "target")->nullable_string;
+  ent->target_name = gi.EntityValue(ent->def, "targetname")->nullable_string;
+  ent->path_target = gi.EntityValue(ent->def, "pathtarget")->nullable_string;
+  ent->kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
+  ent->message = gi.EntityValue(ent->def, "message")->nullable_string;
+  ent->team = gi.EntityValue(ent->def, "team")->nullable_string;
+  ent->command = gi.EntityValue(ent->def, "command")->nullable_string;
+  ent->script = gi.EntityValue(ent->def, "script")->nullable_string;
 
-  ent->locals.wait = gi.EntityValue(ent->def, "wait")->value;
-  ent->locals.delay = gi.EntityValue(ent->def, "delay")->value;
-  ent->locals.random = gi.EntityValue(ent->def, "random")->value;
-  ent->locals.count = gi.EntityValue(ent->def, "count")->integer;
+  ent->wait = gi.EntityValue(ent->def, "wait")->value;
+  ent->delay = gi.EntityValue(ent->def, "delay")->value;
+  ent->random = gi.EntityValue(ent->def, "random")->value;
+  ent->count = gi.EntityValue(ent->def, "count")->integer;
 
-  ent->locals.health = gi.EntityValue(ent->def, "health")->integer;
-  ent->locals.damage = gi.EntityValue(ent->def, "dmg")->integer;
-  ent->locals.mass = gi.EntityValue(ent->def, "mass")->value;
+  ent->health = gi.EntityValue(ent->def, "health")->integer;
+  ent->damage = gi.EntityValue(ent->def, "dmg")->integer;
+  ent->mass = gi.EntityValue(ent->def, "mass")->value;
 
-  ent->locals.atten = gi.EntityValue(ent->def, "atten")->integer;
-  ent->locals.color = gi.EntityValue(ent->def, "color")->vec3;
-  ent->locals.radius = gi.EntityValue(ent->def, "radius")->value;
+  ent->atten = gi.EntityValue(ent->def, "atten")->integer;
+  ent->color = gi.EntityValue(ent->def, "color")->vec3;
+  ent->radius = gi.EntityValue(ent->def, "radius")->value;
 
   // check item spawn functions
   for (size_t i = 0; i < g_num_items; i++) {
@@ -236,16 +236,16 @@ static void G_InitEntityTeams(void) {
       continue;
     }
 
-    if (!m->locals.team) {
+    if (!m->team) {
       continue;
     }
 
-    if (m->locals.flags & FL_TEAM_SLAVE) {
+    if (m->flags & FL_TEAM_SLAVE) {
       continue;
     }
 
     g_entity_t *team = m;
-    m->locals.team_master = m;
+    m->team_master = m;
 
     teams++;
     team_entities++;
@@ -257,20 +257,20 @@ static void G_InitEntityTeams(void) {
         continue;
       }
 
-      if (!n->locals.team) {
+      if (!n->team) {
         continue;
       }
 
-      if (n->locals.flags & FL_TEAM_SLAVE) {
+      if (n->flags & FL_TEAM_SLAVE) {
         continue;
       }
 
-      if (!g_strcmp0(m->locals.team, n->locals.team)) {
+      if (!g_strcmp0(m->team, n->team)) {
 
-        n->locals.team_master = m;
-        n->locals.flags |= FL_TEAM_SLAVE;
+        n->team_master = m;
+        n->flags |= FL_TEAM_SLAVE;
 
-        team->locals.team_next = n;
+        team->team_next = n;
         team = n;
 
         team_entities++;
@@ -634,7 +634,7 @@ void G_SpawnTech(const g_item_t *item) {
   g_entity_t *spawn = G_SelectTechSpawnPoint();
   g_entity_t *ent = G_DropItem(spawn, item);
 
-  ent->locals.velocity = Vec3(RandomRangef(-250.f, 250.f), RandomRangef(-250.f, 250.f), RandomRangef(200.f, 400.f));
+  ent->velocity = Vec3(RandomRangef(-250.f, 250.f), RandomRangef(-250.f, 250.f), RandomRangef(200.f, 400.f));
 }
 
 /**
@@ -809,14 +809,14 @@ static void G_WorldspawnMusic(void) {
 static void G_worldspawn(g_entity_t *ent) {
 
   ent->solid = SOLID_BSP;
-  ent->locals.move_type = MOVE_TYPE_NONE;
+  ent->move_type = MOVE_TYPE_NONE;
   ent->in_use = true; // since the world doesn't use G_Spawn()
   ent->s.model1 = 0; // world model is always index 1
 
   const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 
-  if (ent->locals.message && *ent->locals.message) {
-    g_strlcpy(g_level.title, ent->locals.message, sizeof(g_level.title));
+  if (ent->message && *ent->message) {
+    g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
   } else
     // or just the level name
   {

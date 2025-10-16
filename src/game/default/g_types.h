@@ -664,7 +664,6 @@ typedef struct g_item_s {
 } g_item_t;
 
 #define EOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->x)
-#define LOFS(x) (ptrdiff_t) &(((g_entity_t *) 0)->locals.x)
 
 /**
  * @brief Movement states.
@@ -1005,7 +1004,27 @@ typedef struct {
  * extends the server-visible definition to provide all of the state management
  * the game module requires.
  */
-typedef struct {
+struct g_client_s {
+  /**
+   * @brief True if the client is a bot.
+   */
+  bool ai;
+
+  /**
+   * @brief True if the client's is connected.
+   */
+  bool connected;
+
+  /**
+   * @brief Communicated by server to clients
+   */
+  player_state_t ps;
+
+  /**
+   * @brief This player's ping
+   */
+  uint32_t ping;
+
   pm_cmd_t cmd;
 
   g_client_persistent_t persistent;
@@ -1082,13 +1101,84 @@ typedef struct {
 
   uint32_t regen_time; // time for regeneration?
   uint32_t tech_sound_time; // next time we can play sound
-} g_client_locals_t;
+};
+
+typedef struct g_client_s g_client_t;
 
 /**
- * @brief Finally the g_entity_locals structure extends the server stub to
+ * @brief The g_entity_s structure extends the server stub to
  * provide all of the state management the game module requires.
  */
-typedef struct {
+struct g_entity_s {
+  /**
+   * @brief The entity definition from the BSP file.
+   */
+  const cm_entity_t *def;
+
+  /**
+   * @brief The class name provides basic identification and taxonomy for
+   * the entity. This is guaranteed to be set through G_Spawn.
+   */
+  const char *class_name;
+
+  /**
+   * @brief The model name for an entity (optional). For SOLID_BSP entities,
+   * this is the inline model name (e.g. "*1").
+   */
+  const char *model;
+
+  /**
+   * @brief The entity state is written by the game module and serialized
+   * using delta compression by the server.
+   */
+  entity_state_t s;
+
+  /**
+   * @brief True if the entity is currently allocated and active.
+   */
+  bool in_use;
+
+  /**
+   * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+   */
+  uint32_t sv_flags;
+
+  /**
+   * @brief The entity bounding box, set by the game, defines its relative
+   * bounds. These are typically populated in the entity's spawn function.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The entity bounding box, set by the server, in world space. These
+   * are populated by gi.LinkEntity / Sv_LinkEntity.
+   */
+  box3_t abs_bounds;
+  
+  /**
+   * @brief The entity size, set by the server. This
+   * is populated by gi.LinkEntity / Sv_LinkEntity.
+   */
+  vec3_t size;
+
+  /**
+   * @brief The solid type for the entity (e.g. SOLID_BOX) defines its
+   * clipping behavior and interactions with other entities.
+   */
+  solid_t solid;
+
+  /**
+   * @brief Sometimes it is useful for an entity to not be clipped against
+   * the entity that created it (for example, player projectiles).
+   */
+  g_entity_t *owner;
+
+  /**
+   * @brief Entities 1 through `sv_max_clients->integer` will have a valid
+   * pointer to the variable-sized `g_client_t`.
+   */
+  g_client_t *client;
+
   uint32_t spawn_flags; // SF_ITEM_HOVER, etc..
   uint32_t flags; // FL_GOD_MODE, etc..
 
@@ -1166,7 +1256,9 @@ typedef struct {
   const g_item_t *item; // for bonus items
   ai_node_id_t node; // for item paths
   bool move_node;
-} g_entity_locals_t;
+};
+
+typedef struct g_entity_s g_entity_t;
 
 #include "game/game.h"
 

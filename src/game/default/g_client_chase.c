@@ -25,15 +25,15 @@
  * @brief
  */
 void G_ClientChaseThink(g_entity_t *ent) {
-  g_entity_t *targ = ent->client->locals.chase_target;
+  g_entity_t *targ = ent->client->chase_target;
 
   if (targ) {
     vec3_t new_delta;
 
     // calculate delta angles if switching targets
-    if (targ != ent->client->locals.old_chase_target) {
-      new_delta = Vec3_Subtract(ent->client->locals.angles, targ->client->locals.angles);
-      ent->client->locals.old_chase_target = targ;
+    if (targ != ent->client->old_chase_target) {
+      new_delta = Vec3_Subtract(ent->client->angles, targ->client->angles);
+      ent->client->old_chase_target = targ;
     } else {
       new_delta = Vec3_Zero();
     }
@@ -42,10 +42,10 @@ void G_ClientChaseThink(g_entity_t *ent) {
     ent->s.origin = targ->s.origin;
 
     // velocity
-    ent->locals.velocity = targ->locals.velocity;
+    ent->velocity = targ->velocity;
 
     // and angles
-    ent->client->locals.angles = targ->client->locals.angles;
+    ent->client->angles = targ->client->angles;
 
     // and player state
     memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
@@ -73,11 +73,11 @@ void G_ClientChaseThink(g_entity_t *ent) {
 void G_ClientChaseNext(g_entity_t *ent) {
   g_entity_t *e;
 
-  if (!ent->client->locals.chase_target) {
+  if (!ent->client->chase_target) {
     return;
   }
 
-  int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
+  int32_t i = (int32_t) (ptrdiff_t) (ent->client->chase_target - g_game.entities);
   do {
     i++;
 
@@ -91,9 +91,9 @@ void G_ClientChaseNext(g_entity_t *ent) {
       break;
     }
 
-  } while (e != ent->client->locals.chase_target);
+  } while (e != ent->client->chase_target);
 
-  ent->client->locals.chase_target = e;
+  ent->client->chase_target = e;
 }
 
 /**
@@ -102,11 +102,11 @@ void G_ClientChaseNext(g_entity_t *ent) {
 void G_ClientChasePrevious(g_entity_t *ent) {
   g_entity_t *e;
 
-  if (!ent->client->locals.chase_target) {
+  if (!ent->client->chase_target) {
     return;
   }
 
-  int32_t i = (int32_t) (ptrdiff_t) (ent->client->locals.chase_target - g_game.entities);
+  int32_t i = (int32_t) (ptrdiff_t) (ent->client->chase_target - g_game.entities);
   do {
     i--;
 
@@ -120,9 +120,9 @@ void G_ClientChasePrevious(g_entity_t *ent) {
       break;
     }
 
-  } while (e != ent->client->locals.chase_target);
+  } while (e != ent->client->chase_target);
 
-  ent->client->locals.chase_target = e;
+  ent->client->chase_target = e;
 }
 
 /**
@@ -133,7 +133,7 @@ void G_ClientChaseTarget(g_entity_t *ent) {
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     g_entity_t *other = g_game.entities + i + 1;
     if (G_IsMeat(other)) {
-      ent->client->locals.chase_target = other;
+      ent->client->chase_target = other;
       return;
     }
   }

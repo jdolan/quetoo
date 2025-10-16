@@ -96,12 +96,12 @@ static void G_Ai_ClientThink(g_entity_t *self) {
   }
 
   // see if we're in a match and need to join
-  if (self->client->locals.persistent.spectator) {
+  if (self->client->persistent.spectator) {
 
     if (g_level.match || g_level.rounds) {
 
       // see if we can join
-      if (!(g_level.time - self->client->locals.respawn_time < 3000) &&
+      if (!(g_level.time - self->client->respawn_time < 3000) &&
         !(g_level.match_time) &&
         !(g_level.round_time)) {
 
@@ -120,7 +120,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
   } else {
 
     // ready up
-    if ((g_level.match || g_level.rounds) && !self->client->locals.persistent.ready) {
+    if ((g_level.match || g_level.rounds) && !self->client->persistent.ready) {
 
       // only if all clients are ready
       uint8_t num_players = 0;
@@ -130,10 +130,10 @@ static void G_Ai_ClientThink(g_entity_t *self) {
 
         g_entity_t *ent = &g_game.entities[i + 1];
 
-        if (ent->in_use && ent->client->connected && !ent->client->ai && !ent->client->locals.persistent.spectator) {
+        if (ent->in_use && ent->client->connected && !ent->client->ai && !ent->client->persistent.spectator) {
           num_players++;
 
-          if (ent->client->locals.persistent.ready) {
+          if (ent->client->persistent.ready) {
             ready_slots++;
           }
         }
@@ -146,7 +146,7 @@ static void G_Ai_ClientThink(g_entity_t *self) {
     }
   }
 
-  self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -158,10 +158,10 @@ static void G_Ai_ClientBegin(g_entity_t *self) {
 
   G_Ai_Begin(self);
 
-  G_Debug("Spawned %s at %s", self->client->locals.persistent.net_name, vtos(self->s.origin));
+  G_Debug("Spawned %s at %s", self->client->persistent.net_name, vtos(self->s.origin));
 
-  self->locals.Think = G_Ai_ClientThink;
-  self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  self->Think = G_Ai_ClientThink;
+  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -179,8 +179,8 @@ static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
   if (!time_offset) {
     G_Ai_ClientBegin(self);
   } else {
-    self->locals.Think = G_Ai_ClientBegin;
-    self->locals.next_think = g_level.time + time_offset;
+    self->Think = G_Ai_ClientBegin;
+    self->next_think = g_level.time + time_offset;
   }
 
   g_game.ai_left_to_spawn--;
@@ -445,6 +445,6 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
     g_array_free(src_links, true);
   }
 
-  ent->locals.node = new_node;
+  ent->node = new_node;
   return true;
 }

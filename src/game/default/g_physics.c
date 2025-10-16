@@ -28,31 +28,31 @@
 static void G_CheckGround(g_entity_t *ent) {
   vec3_t pos;
 
-  if (ent->locals.move_type == MOVE_TYPE_WALK) {
+  if (ent->move_type == MOVE_TYPE_WALK) {
     return;
   }
 
   // check for ground interaction
-  if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
+  if (ent->move_type == MOVE_TYPE_BOUNCE) {
 
     pos = ent->s.origin;
     pos.z -= PM_GROUND_DIST;
 
-    cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->locals.clip_mask ? : CONTENTS_MASK_SOLID);
+    cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, ent->clip_mask ? : CONTENTS_MASK_SOLID);
 
     if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
-      if (ent->locals.ground.ent == NULL) {
+      if (ent->ground.ent == NULL) {
         G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
       }
-      ent->locals.ground = trace;
+      ent->ground = trace;
     } else {
-      if (ent->locals.ground.ent) {
-        G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->locals.ground.ent));
+      if (ent->ground.ent) {
+        G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->ground.ent));
       }
-      memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
+      memset(&ent->ground, 0, sizeof(ent->ground));
     }
   } else {
-    memset(&ent->locals.ground, 0, sizeof(ent->locals.ground));
+    memset(&ent->ground, 0, sizeof(ent->ground));
   }
 }
 
@@ -62,7 +62,7 @@ static void G_CheckGround(g_entity_t *ent) {
 static void G_CheckWater(g_entity_t *ent) {
   vec3_t pos;
 
-  if (ent->locals.move_type == MOVE_TYPE_WALK) {
+  if (ent->move_type == MOVE_TYPE_WALK) {
     return;
   }
 
@@ -71,13 +71,13 @@ static void G_CheckWater(g_entity_t *ent) {
   }
 
   // check for water interaction
-  const pm_water_level_t old_water_level = ent->locals.water_level;
-  const int32_t old_water_type = ent->locals.water_type;
+  const pm_water_level_t old_water_level = ent->water_level;
+  const int32_t old_water_type = ent->water_type;
 
   const int32_t water = gi.BoxContents(ent->abs_bounds) & CONTENTS_MASK_LIQUID;
 
-  ent->locals.water_type = water;
-  ent->locals.water_level = ent->locals.water_type ? WATER_UNDER : WATER_NONE;
+  ent->water_type = water;
+  ent->water_level = ent->water_type ? WATER_UNDER : WATER_NONE;
 
   if (ent->solid == SOLID_BSP) {
     pos = Box3_Center(ent->abs_bounds);
@@ -88,14 +88,14 @@ static void G_CheckWater(g_entity_t *ent) {
   const vec3_t top = Vec3(pos.x, pos.y, ent->abs_bounds.maxs.z);
   const vec3_t bot = Vec3(pos.x, pos.y, ent->abs_bounds.mins.z);
 
-  if (old_water_level == WATER_NONE && ent->locals.water_level == WATER_UNDER) {
+  if (old_water_level == WATER_NONE && ent->water_level == WATER_UNDER) {
 
-    if (ent->locals.move_type == MOVE_TYPE_BOUNCE) {
-      ent->locals.velocity = Vec3_Scale(ent->locals.velocity, 0.66);
+    if (ent->move_type == MOVE_TYPE_BOUNCE) {
+      ent->velocity = Vec3_Scale(ent->velocity, 0.66);
     }
 
     if (!(ent->sv_flags & SVF_NO_CLIENT)) {
-      const int8_t pitch = ent->locals.water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+      const int8_t pitch = ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
@@ -104,16 +104,16 @@ static void G_CheckWater(g_entity_t *ent) {
         .pitch = pitch
       }, MULTICAST_PHS, NULL);
 
-      if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+      if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 
-        const vec3_t pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->locals.velocity);
-        const vec3_t pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->locals.velocity);
+        const vec3_t pos1 = Vec3_Fmaf(top, -QUETOO_TICK_SECONDS, ent->velocity);
+        const vec3_t pos2 = Vec3_Fmaf(bot,  QUETOO_TICK_SECONDS, ent->velocity);
 
-        G_Ripple(ent, pos1, pos2, 0.f, Vec3_Length(ent->locals.velocity) > 100.f);
+        G_Ripple(ent, pos1, pos2, 0.f, Vec3_Length(ent->velocity) > 100.f);
       }
     }
 
-  } else if (old_water_level == WATER_UNDER && ent->locals.water_level == WATER_NONE) {
+  } else if (old_water_level == WATER_UNDER && ent->water_level == WATER_NONE) {
 
     if (!(ent->sv_flags & SVF_NO_CLIENT)) {
       const int8_t pitch = old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
@@ -125,10 +125,10 @@ static void G_CheckWater(g_entity_t *ent) {
         .pitch = pitch
       }, MULTICAST_PHS, NULL);
 
-      if (ent->locals.move_type != MOVE_TYPE_NO_CLIP) {
+      if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 
-        const vec3_t pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->locals.velocity);
-        const vec3_t pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->locals.velocity);
+        const vec3_t pos1 = Vec3_Fmaf(top,  QUETOO_TICK_SECONDS, ent->velocity);
+        const vec3_t pos2 = Vec3_Fmaf(bot, -QUETOO_TICK_SECONDS, ent->velocity);
 
         G_Ripple(ent, pos1, pos2, 0.f, false);
       }
@@ -141,21 +141,21 @@ static void G_CheckWater(g_entity_t *ent) {
  */
 void G_RunThink(g_entity_t *ent) {
 
-  if (ent->locals.next_think == 0) {
+  if (ent->next_think == 0) {
     return;
   }
 
-  if (ent->locals.next_think > g_level.time + 1) {
+  if (ent->next_think > g_level.time + 1) {
     return;
   }
 
-  ent->locals.next_think = 0;
+  ent->next_think = 0;
 
-  if (!ent->locals.Think) {
+  if (!ent->Think) {
     gi.Error("%s has no Think function\n", etos(ent));
   }
 
-  ent->locals.Think(ent);
+  ent->Think(ent);
 }
 
 /**
@@ -163,7 +163,7 @@ void G_RunThink(g_entity_t *ent) {
  */
 static bool G_GoodPosition(const g_entity_t *ent) {
 
-  const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
+  const int32_t mask = ent->clip_mask ? : CONTENTS_MASK_SOLID;
 
   const cm_trace_t tr = gi.Trace(ent->s.origin, ent->s.origin, ent->bounds, ent, mask);
 
@@ -208,12 +208,12 @@ static bool G_CorrectPosition(g_entity_t *ent) {
  */
 static void G_ClampVelocity(g_entity_t *ent) {
 
-  const float speed = Vec3_Length(ent->locals.velocity);
+  const float speed = Vec3_Length(ent->velocity);
 
   if (speed > MAX_SPEED) {
-    ent->locals.velocity = Vec3_Scale(ent->locals.velocity, MAX_SPEED / speed);
+    ent->velocity = Vec3_Scale(ent->velocity, MAX_SPEED / speed);
   } else if (speed < STOP_EPSILON) {
-    ent->locals.velocity = Vec3_Zero();
+    ent->velocity = Vec3_Zero();
   }
 }
 
@@ -240,16 +240,16 @@ static vec3_t G_ClipVelocity(const vec3_t in, const vec3_t normal, float bounce)
  */
 static void G_Friction(g_entity_t *ent) {
 
-  vec3_t vel = ent->locals.velocity;
+  vec3_t vel = ent->velocity;
 
-  if (ent->locals.ground.contents & CONTENTS_MASK_SOLID) {
+  if (ent->ground.contents & CONTENTS_MASK_SOLID) {
     vel.z = 0.0;
   }
 
   const float speed = Vec3_Length(vel);
 
   if (speed < 1.0) {
-    ent->locals.velocity = Vec3_Zero();
+    ent->velocity = Vec3_Zero();
     return;
   }
 
@@ -257,8 +257,8 @@ static void G_Friction(g_entity_t *ent) {
 
   float friction = 0.0;
 
-  if (ent->locals.ground.contents & CONTENTS_MASK_SOLID) {
-    if (ent->locals.ground.surface & SURF_SLICK) {
+  if (ent->ground.contents & CONTENTS_MASK_SOLID) {
+    if (ent->ground.surface & SURF_SLICK) {
       friction = PM_FRICT_GROUND_SLICK;
     } else {
       friction = PM_FRICT_GROUND;
@@ -267,14 +267,14 @@ static void G_Friction(g_entity_t *ent) {
     friction = PM_FRICT_AIR;
   }
 
-  if (ent->locals.water_type) {
+  if (ent->water_type) {
     friction += PM_FRICT_WATER;
   }
 
   float scale = Maxf(0.0, speed - (friction * control * QUETOO_TICK_SECONDS)) / speed;
 
-  ent->locals.velocity = Vec3_Scale(ent->locals.velocity, scale);
-  ent->locals.avelocity = Vec3_Scale(ent->locals.avelocity, scale);
+  ent->velocity = Vec3_Scale(ent->velocity, scale);
+  ent->avelocity = Vec3_Scale(ent->avelocity, scale);
 }
 
 /**
@@ -282,7 +282,7 @@ static void G_Friction(g_entity_t *ent) {
  */
 static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float accel) {
 
-  const float current_speed = Vec3_Dot(ent->locals.velocity, dir);
+  const float current_speed = Vec3_Dot(ent->velocity, dir);
   const float add_speed = speed - current_speed;
 
   if (add_speed <= 0.0) {
@@ -295,7 +295,7 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
     accel_speed = add_speed;
   }
 
-  ent->locals.velocity = Vec3_Fmaf(ent->locals.velocity, accel_speed, dir);
+  ent->velocity = Vec3_Fmaf(ent->velocity, accel_speed, dir);
 }
 
 /**
@@ -303,14 +303,14 @@ static void G_Accelerate(g_entity_t *ent, const vec3_t dir, float speed, float a
  */
 static void G_Gravity(g_entity_t *ent) {
 
-  if (ent->locals.ground.ent == NULL) {
+  if (ent->ground.ent == NULL) {
     float gravity = g_level.gravity;
 
-    if (ent->locals.water_level) {
+    if (ent->water_level) {
       gravity *= PM_GRAVITY_WATER;
     }
 
-    ent->locals.velocity.z -= gravity * QUETOO_TICK_SECONDS;
+    ent->velocity.z -= gravity * QUETOO_TICK_SECONDS;
   }
 }
 
@@ -320,46 +320,46 @@ static void G_Gravity(g_entity_t *ent) {
 static void G_Currents(g_entity_t *ent) {
   vec3_t current = Vec3_Zero();
 
-  if (ent->locals.water_level) {
+  if (ent->water_level) {
 
-    if (ent->locals.water_type & CONTENTS_CURRENT_0) {
+    if (ent->water_type & CONTENTS_CURRENT_0) {
       current.x += 1.0;
     }
-    if (ent->locals.water_type & CONTENTS_CURRENT_90) {
+    if (ent->water_type & CONTENTS_CURRENT_90) {
       current.y += 1.0;
     }
-    if (ent->locals.water_type & CONTENTS_CURRENT_180) {
+    if (ent->water_type & CONTENTS_CURRENT_180) {
       current.x -= 1.0;
     }
-    if (ent->locals.water_type & CONTENTS_CURRENT_270) {
+    if (ent->water_type & CONTENTS_CURRENT_270) {
       current.y -= 1.0;
     }
-    if (ent->locals.water_type & CONTENTS_CURRENT_UP) {
+    if (ent->water_type & CONTENTS_CURRENT_UP) {
       current.z += 1.0;
     }
-    if (ent->locals.water_type & CONTENTS_CURRENT_DOWN) {
+    if (ent->water_type & CONTENTS_CURRENT_DOWN) {
       current.z -= 1.0;
     }
   }
 
-  if (ent->locals.ground.ent) {
+  if (ent->ground.ent) {
 
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_0) {
+    if (ent->ground.contents & CONTENTS_CURRENT_0) {
       current.x += 1.0;
     }
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_90) {
+    if (ent->ground.contents & CONTENTS_CURRENT_90) {
       current.y += 1.0;
     }
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_180) {
+    if (ent->ground.contents & CONTENTS_CURRENT_180) {
       current.x -= 1.0;
     }
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_270) {
+    if (ent->ground.contents & CONTENTS_CURRENT_270) {
       current.y -= 1.0;
     }
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_UP) {
+    if (ent->ground.contents & CONTENTS_CURRENT_UP) {
       current.z += 1.0;
     }
-    if (ent->locals.ground.contents & CONTENTS_CURRENT_DOWN) {
+    if (ent->ground.contents & CONTENTS_CURRENT_DOWN) {
       current.z -= 1.0;
     }
   }
@@ -407,8 +407,8 @@ void G_TouchOccupy(g_entity_t *ent) {
 
     G_Debug("%s occupying %s\n", etos(ent), etos(occupied));
 
-    if (occupied->locals.Touch) {
-      occupied->locals.Touch(occupied, ent, NULL);
+    if (occupied->Touch) {
+      occupied->Touch(occupied, ent, NULL);
     }
 
     if (!ent->in_use) {
@@ -422,8 +422,8 @@ void G_TouchOccupy(g_entity_t *ent) {
  */
 static void G_Physics_NoClip(g_entity_t *ent) {
 
-  ent->s.angles = Vec3_Fmaf(ent->s.angles, QUETOO_TICK_SECONDS, ent->locals.avelocity);
-  ent->s.origin = Vec3_Fmaf(ent->s.origin, QUETOO_TICK_SECONDS, ent->locals.velocity);
+  ent->s.angles = Vec3_Fmaf(ent->s.angles, QUETOO_TICK_SECONDS, ent->avelocity);
+  ent->s.origin = Vec3_Fmaf(ent->s.origin, QUETOO_TICK_SECONDS, ent->velocity);
 
   gi.LinkEntity(ent);
 }
@@ -485,7 +485,7 @@ static void G_Physics_Push_Revert(const g_push_t *p) {
  */
 static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, float yaw) {
 
-  if (ent->locals.ground.ent == self) {
+  if (ent->ground.ent == self) {
     if (ent->client) {
       ent->client->ps.pm_state.delta_angles.y += yaw;
     } else {
@@ -531,21 +531,21 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
       continue;
     }
 
-    if (ent->locals.move_type < MOVE_TYPE_WALK) {
+    if (ent->move_type < MOVE_TYPE_WALK) {
       continue;
     }
 
     // if the entity is in a good position and not riding us, we can skip them
-    if (G_GoodPosition(ent) && ent->locals.ground.ent != self) {
+    if (G_GoodPosition(ent) && ent->ground.ent != self) {
       continue;
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground.ent == self)) {
+    if ((self->move_type == MOVE_TYPE_PUSH) || (ent->ground.ent == self)) {
 
       G_Physics_Push_Impact(ent);
 
-      if (ent->locals.ground.ent == self) {
+      if (ent->ground.ent == self) {
         // we can only ride a bmodel if we're in a good position
         // on top of it already; to make things simpler, we assume
         // that we're not going to self-intersect with the pusher.
@@ -554,7 +554,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
         // and clip us to where we end up.
         gi.UnlinkEntity(self);
 
-        const cm_trace_t tr = gi.Trace(ent->s.origin, Vec3_Add(ent->s.origin, move), ent->bounds, ent, ent->locals.clip_mask);
+        const cm_trace_t tr = gi.Trace(ent->s.origin, Vec3_Add(ent->s.origin, move), ent->bounds, ent, ent->clip_mask);
 
         gi.LinkEntity(self);
 
@@ -584,7 +584,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
 
         gi.LinkEntity(self);
 
-        cm_trace_t tr = gi.Clip(ent->s.origin, Vec3_Subtract(ent->s.origin, move), ent->bounds, self, ent->locals.clip_mask);
+        cm_trace_t tr = gi.Clip(ent->s.origin, Vec3_Subtract(ent->s.origin, move), ent->bounds, self, ent->clip_mask);
 
         // move back to final position
         self->s.origin = final_position;
@@ -605,7 +605,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
 
           const vec3_t new_position = Vec3_Fmaf(ent->s.origin, remaining_dist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
 
-          tr = gi.Trace(ent->s.origin, new_position, ent->s.bounds, self, ent->locals.clip_mask);
+          tr = gi.Trace(ent->s.origin, new_position, ent->s.bounds, self, ent->clip_mask);
         
           ent->s.origin = tr.end;
 
@@ -624,9 +624,9 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
 
     // try to destroy the impeding entity by calling our Blocked function
 
-    if (self->locals.Blocked) {
-      self->locals.Blocked(self, ent);
-      if (!ent->in_use || ent->locals.dead) {
+    if (self->Blocked) {
+      self->Blocked(self, ent);
+      if (!ent->in_use || ent->dead) {
         continue;
       }
     }
@@ -668,7 +668,7 @@ static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *m
   
   gi.LinkEntity(mover);
 
-  return gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, mover, ent->locals.clip_mask);
+  return gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, mover, ent->clip_mask);
 }
 
 /**
@@ -748,17 +748,17 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       continue;
     }
 
-    if (ent->locals.move_type < MOVE_TYPE_WALK) {
+    if (ent->move_type < MOVE_TYPE_WALK) {
       continue;
     }
 
     // if the entity is in a good position and not riding us, we can skip them
-    if (G_GoodPosition(ent) && ent->locals.ground.ent != self) {
+    if (G_GoodPosition(ent) && ent->ground.ent != self) {
       continue;
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((self->locals.move_type == MOVE_TYPE_PUSH) || (ent->locals.ground.ent == self)) {
+    if ((self->move_type == MOVE_TYPE_PUSH) || (ent->ground.ent == self)) {
 
       G_Physics_Push_Impact(ent);
 
@@ -770,7 +770,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 
       gi.LinkEntity(self);
 
-      cm_trace_t tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->locals.clip_mask);
+      cm_trace_t tr = gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clip_mask);
       float remaining_move = 1.0f;
 
       if (tr.fraction < 1.f) {
@@ -802,7 +802,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 
         ent->s.origin = Mat4_Transform(m, original_ent_position);
 
-        if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->locals.clip_mask).fraction == 1.0f) {
+        if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clip_mask).fraction == 1.0f) {
           G_Debug("%s rotated %s @ %i, good position\n", etos(self), etos(ent), i);
           break;
         }
@@ -813,7 +813,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       }
 
       // clip rest of the movement.
-      tr = gi.Trace(original_ent_position, ent->s.origin, ent->bounds, ent, ent->locals.clip_mask);
+      tr = gi.Trace(original_ent_position, ent->s.origin, ent->bounds, ent, ent->clip_mask);
 
       ent->s.origin = tr.end;
 
@@ -823,7 +823,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
         break;
       }
 
-      if (ent->locals.ground.ent == self) {
+      if (ent->ground.ent == self) {
 
         // an entity riding us may have been pushed off of us by the world, so try
         // it's original position, which may now be valid
@@ -839,9 +839,9 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 
     // try to destroy the impeding entity by calling our Blocked function
 
-    if (self->locals.Blocked) {
-      self->locals.Blocked(self, ent);
-      if (!ent->in_use || ent->locals.dead) {
+    if (self->Blocked) {
+      self->Blocked(self, ent);
+      if (!ent->in_use || ent->dead) {
         continue;
       }
     }
@@ -883,7 +883,7 @@ static void G_Physics_Push(g_entity_t *ent) {
   g_entity_t *obstacle = NULL;
 
   // for teamed entities, the master must initiate all moves
-  if (ent->locals.flags & FL_TEAM_SLAVE) {
+  if (ent->flags & FL_TEAM_SLAVE) {
     return;
   }
 
@@ -891,17 +891,17 @@ static void G_Physics_Push(g_entity_t *ent) {
   g_push_p = g_pushes;
 
   // make sure all team slaves can move before committing any moves
-  for (g_entity_t *part = ent; part; part = part->locals.team_next) {
-    if (!Vec3_Equal(part->locals.velocity, Vec3_Zero())) { // object is translating
-      const vec3_t move = Vec3_Scale(part->locals.velocity, QUETOO_TICK_SECONDS);
+  for (g_entity_t *part = ent; part; part = part->team_next) {
+    if (!Vec3_Equal(part->velocity, Vec3_Zero())) { // object is translating
+      const vec3_t move = Vec3_Scale(part->velocity, QUETOO_TICK_SECONDS);
 
       if ((obstacle = G_Physics_Push_Translate(part, move))) {
         break; // move was blocked
       }
     }
 
-    if (!Vec3_Equal(part->locals.avelocity, Vec3_Zero())) { // object is rotating
-      const vec3_t amove = Vec3_Scale(part->locals.avelocity, QUETOO_TICK_SECONDS);
+    if (!Vec3_Equal(part->avelocity, Vec3_Zero())) { // object is rotating
+      const vec3_t amove = Vec3_Scale(part->avelocity, QUETOO_TICK_SECONDS);
 
       if ((obstacle = G_Physics_Push_Rotate(part, amove))) {
         break; // move was blocked
@@ -910,7 +910,7 @@ static void G_Physics_Push(g_entity_t *ent) {
   }
 
   if (!obstacle) { // the move succeeded, so call all think functions
-    for (g_entity_t *part = ent; part; part = part->locals.team_next) {
+    for (g_entity_t *part = ent; part; part = part->team_next) {
       G_RunThink(part);
     }
   }
@@ -942,16 +942,16 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 
   // run the interaction
 
-  if (ent->locals.Touch) {
+  if (ent->Touch) {
     G_Debug("%s touching %s\n", etos(ent), etos(trace->ent));
-    ent->locals.Touch(ent, trace->ent, trace);
+    ent->Touch(ent, trace->ent, trace);
   }
 
   if (ent->in_use && trace->ent->in_use) {
 
-    if (trace->ent->locals.Touch) {
+    if (trace->ent->Touch) {
       G_Debug("%s touching %s\n", etos(trace->ent), etos(ent));
-      trace->ent->locals.Touch(trace->ent, ent, trace);
+      trace->ent->Touch(trace->ent, ent, trace);
     }
   }
 }
@@ -968,7 +968,7 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
   origin = ent->s.origin;
   angles = ent->s.angles;
 
-  const int32_t mask = ent->locals.clip_mask ? : CONTENTS_MASK_SOLID;
+  const int32_t mask = ent->clip_mask ? : CONTENTS_MASK_SOLID;
 
   float time_remaining = QUETOO_TICK_SECONDS;
   int32_t num_planes = 0;
@@ -981,21 +981,21 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
     }
 
     // project desired destination
-    pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->locals.velocity);
+    pos = Vec3_Fmaf(ent->s.origin, time_remaining, ent->velocity);
 
     // trace to it
     const cm_trace_t trace = gi.Trace(ent->s.origin, pos, ent->bounds, ent, mask);
 
     // if the entity is trapped in a solid, don't build up Z
     if (trace.all_solid) {
-      ent->locals.velocity.z = 0;
+      ent->velocity.z = 0;
       return true;
     }
 
     const float time = trace.fraction * time_remaining;
 
-    ent->s.origin = Vec3_Fmaf(ent->s.origin, time, ent->locals.velocity);
-    ent->s.angles = Vec3_Fmaf(ent->s.angles, time, ent->locals.avelocity);
+    ent->s.origin = Vec3_Fmaf(ent->s.origin, time, ent->velocity);
+    ent->s.angles = Vec3_Fmaf(ent->s.angles, time, ent->avelocity);
 
     time_remaining -= time;
 
@@ -1018,12 +1018,12 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
       for (int32_t i = 0; i < num_planes; i++) {
 
-        if (Vec3_Dot(ent->locals.velocity, planes[i]) >= 0.0) {
+        if (Vec3_Dot(ent->velocity, planes[i]) >= 0.0) {
           continue;
         }
 
         // slide along the plane
-        vec3_t vel = G_ClipVelocity(ent->locals.velocity, planes[i], bounce);
+        vec3_t vel = G_ClipVelocity(ent->velocity, planes[i], bounce);
 
         // see if there is a second plane that the new move enters
         for (int32_t j = 0; j < num_planes; j++) {
@@ -1049,7 +1049,7 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
           cross = Vec3_Cross(planes[i], planes[j]);
           cross = Vec3_Normalize(cross);
 
-          const float scale = Vec3_Dot(cross, ent->locals.velocity);
+          const float scale = Vec3_Dot(cross, ent->velocity);
           vel = Vec3_Scale(cross, scale);
 
           // see if there is a third plane the the new move enters
@@ -1064,13 +1064,13 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
             }
 
             // stop dead at a triple plane interaction
-            ent->locals.velocity = Vec3_Zero();
+            ent->velocity = Vec3_Zero();
             return true;
           }
         }
 
         // if we have fixed all interactions, try another move
-        ent->locals.velocity = vel;
+        ent->velocity = vel;
         break;
       }
     }
@@ -1082,8 +1082,8 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
     ent->s.origin = origin;
     ent->s.angles = angles;
 
-    ent->locals.velocity = Vec3_Zero();
-    ent->locals.avelocity = Vec3_Zero();
+    ent->velocity = Vec3_Zero();
+    ent->avelocity = Vec3_Zero();
   }
 
   gi.LinkEntity(ent);
@@ -1110,7 +1110,7 @@ static void G_Physics_Fly(g_entity_t *ent) {
  */
 static void G_Physics_Bounce(g_entity_t *ent) {
 
-  if (ent->locals.ground.ent == NULL || !Vec3_Equal(ent->locals.velocity, Vec3_Zero())) {
+  if (ent->ground.ent == NULL || !Vec3_Equal(ent->velocity, Vec3_Zero())) {
 
     G_Friction(ent);
 
@@ -1137,7 +1137,7 @@ void G_RunEntity(g_entity_t *ent) {
 
   G_RunThink(ent);
 
-  switch (ent->locals.move_type) {
+  switch (ent->move_type) {
     case MOVE_TYPE_NONE:
       break;
     case MOVE_TYPE_NO_CLIP:
@@ -1154,11 +1154,11 @@ void G_RunEntity(g_entity_t *ent) {
       G_Physics_Bounce(ent);
       break;
     default:
-      gi.Error("Bad move type %i\n", ent->locals.move_type);
+      gi.Error("Bad move type %i\n", ent->move_type);
   }
 
   // update BSP sub-model animations based on move state
   if (ent->solid == SOLID_BSP) {
-    ent->s.animation1 = ent->locals.move_info.state;
+    ent->s.animation1 = ent->move_info.state;
   }
 }

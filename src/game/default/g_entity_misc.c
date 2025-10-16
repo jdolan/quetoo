@@ -31,7 +31,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const c
     return;
   }
 
-  const g_entity_t *dest = G_Find(NULL, LOFS(target_name), self->locals.target);
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), self->target);
 
   if (!dest) {
     gi.Warn("Couldn't find destination\n");
@@ -55,21 +55,21 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const c
     other->client->ps.pm_state.time = 20;
 
     // set delta angles
-    other->client->ps.pm_state.delta_angles = Vec3_Subtract(dest->s.angles, other->client->locals.cmd_angles);
+    other->client->ps.pm_state.delta_angles = Vec3_Subtract(dest->s.angles, other->client->cmd_angles);
 
-    other->locals.velocity = Vec3_Scale(forward, other->client->locals.speed);
+    other->velocity = Vec3_Scale(forward, other->client->speed);
 
-    other->client->locals.cmd_angles = Vec3_Zero();
-    other->client->locals.angles = Vec3_Zero();
+    other->client->cmd_angles = Vec3_Zero();
+    other->client->angles = Vec3_Zero();
   } else {
 
-    const vec3_t vel = Vec3(other->locals.velocity.x, other->locals.velocity.x, 0.0);
-    other->locals.velocity = Vec3_Scale(forward, Vec3_Length(vel));
+    const vec3_t vel = Vec3(other->velocity.x, other->velocity.x, 0.0);
+    other->velocity = Vec3_Scale(forward, Vec3_Length(vel));
 
     other->s.angles.y += dest->s.angles.y;
   }
 
-  other->locals.velocity.z = 150.0;
+  other->velocity.z = 150.0;
 
   // draw the teleport effect at source and dest
   self->s.event = EV_CLIENT_TELEPORT;
@@ -86,7 +86,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const c
  * @brief Creates bot node links
  */
 static void G_misc_teleporter_Think(g_entity_t *ent) {
-  const g_entity_t *dest = G_Find(NULL, LOFS(target_name), ent->locals.target);
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
 
   if (!dest) {
     gi.Warn("Couldn't find destination\n");
@@ -110,7 +110,7 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
     // small cost for teleport node
     Ai_Node_CreateLink(new_node, dst_node, 1.f);
 
-    ent->locals.node = src_node;
+    ent->node = src_node;
   }
 }
 
@@ -123,14 +123,14 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
 void G_misc_teleporter(g_entity_t *ent) {
   vec3_t v;
 
-  if (!ent->locals.target) {
+  if (!ent->target) {
     G_Debug("No target specified\n");
     G_FreeEntity(ent);
     return;
   }
 
   ent->solid = SOLID_TRIGGER;
-  ent->locals.move_type = MOVE_TYPE_NONE;
+  ent->move_type = MOVE_TYPE_NONE;
 
   if (ent->model) { // model form, trigger_teleporter
     gi.SetModel(ent, ent->model);
@@ -144,18 +144,18 @@ void G_misc_teleporter(g_entity_t *ent) {
     v.z -= 16.0;
 
     // add effect if ent is not buried and effect is not inhibited
-    if (!gi.PointContents(v) && !(ent->locals.spawn_flags & 1)) {
+    if (!gi.PointContents(v) && !(ent->spawn_flags & 1)) {
       ent->s.sound = gi.SoundIndex("common/teleport_hum");
       ent->s.trail = TRAIL_TELEPORTER;
     }
   }
 
-  ent->locals.Touch = G_misc_teleporter_Touch;
+  ent->Touch = G_misc_teleporter_Touch;
   
   // create link to destination
   if (!G_Ai_InDeveloperMode()) {
-    ent->locals.Think = G_misc_teleporter_Think;
-    ent->locals.next_think = g_level.time + 1;
+    ent->Think = G_misc_teleporter_Think;
+    ent->next_think = g_level.time + 1;
   }
 
   gi.LinkEntity(ent);
@@ -177,16 +177,16 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
  */
 static void G_misc_fireball_Think(g_entity_t *self) {
 
-  if (self->locals.ground.ent) {
+  if (self->ground.ent) {
     self->solid = SOLID_NOT;
 
     self->s.effects = EF_DESPAWN;
 
-    self->locals.move_type = MOVE_TYPE_NO_CLIP;
-    self->locals.velocity.z = -8.0;
+    self->move_type = MOVE_TYPE_NO_CLIP;
+    self->velocity.z = -8.0;
 
-    self->locals.Think = G_FreeEntity;
-    self->locals.next_think = g_level.time + 3000;
+    self->Think = G_FreeEntity;
+    self->next_think = g_level.time + 3000;
 
     gi.LinkEntity(self);
   } else {
@@ -199,12 +199,12 @@ static void G_misc_fireball_Think(g_entity_t *self) {
  */
 static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (g_level.time - self->locals.touch_time > 500) {
-    self->locals.touch_time = g_level.time;
+  if (g_level.time - self->touch_time > 500) {
+    self->touch_time = g_level.time;
 
     G_Damage(other, self, NULL,
-         self->locals.velocity, self->s.origin, Vec3_Zero(),
-         self->locals.damage, self->locals.damage, 0, MOD_FIREBALL);
+         self->velocity, self->s.origin, Vec3_Zero(),
+         self->damage, self->damage, 0, MOD_FIREBALL);
   }
 }
 
@@ -220,27 +220,27 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
 
   ent->bounds = Box3f(6.f, 6.f, 6.f);
 
-  Vec3_Vectors(self->s.angles, &ent->locals.velocity, NULL, NULL);
-  ent->locals.velocity = Vec3_Scale(ent->locals.velocity, self->locals.speed);
+  Vec3_Vectors(self->s.angles, &ent->velocity, NULL, NULL);
+  ent->velocity = Vec3_Scale(ent->velocity, self->speed);
 
   for (int32_t i = 0; i < 3; i++) {
-    ent->locals.velocity.xyz[i] += RandomRangef(-30.f, 30.f);
+    ent->velocity.xyz[i] += RandomRangef(-30.f, 30.f);
   }
 
-  ent->locals.avelocity = Vec3(RandomRangef(-10.f, 10.f), RandomRangef(-10.f, 10.f), RandomRangef(-20.f, 20.f));
+  ent->avelocity = Vec3(RandomRangef(-10.f, 10.f), RandomRangef(-10.f, 10.f), RandomRangef(-20.f, 20.f));
 
   ent->s.trail = TRAIL_FIREBALL;
 
   ent->solid = SOLID_TRIGGER;
-  ent->locals.move_type = MOVE_TYPE_BOUNCE;
+  ent->move_type = MOVE_TYPE_BOUNCE;
 
   ent->s.model1 = g_media.models.fireball;
-  ent->locals.damage = self->locals.damage;
+  ent->damage = self->damage;
 
-  ent->locals.Touch = G_misc_fireball_Touch;
+  ent->Touch = G_misc_fireball_Touch;
 
-  ent->locals.Think = G_misc_fireball_Think;
-  ent->locals.next_think = g_level.time + 3000;
+  ent->Think = G_misc_fireball_Think;
+  ent->next_think = g_level.time + 3000;
 
   gi.LinkEntity(ent);
 
@@ -252,7 +252,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
     }, MULTICAST_PHS, NULL);
   }
 
-  self->locals.next_think = g_level.time + (self->locals.wait * 1000.0) + (self->locals.random * 1000 * RandomRangef(-1.f, 1.f));
+  self->next_think = g_level.time + (self->wait * 1000.0) + (self->random * 1000 * RandomRangef(-1.f, 1.f));
 }
 
 /*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)
@@ -275,23 +275,23 @@ void G_misc_fireball(g_entity_t *self) {
     self->s.angles = Vec3(-90.0, 0.0, 0.0);
   }
 
-  if (self->locals.damage == 0) {
-    self->locals.damage = 4;
+  if (self->damage == 0) {
+    self->damage = 4;
   }
 
-  if (self->locals.speed == 0.0) {
-    self->locals.speed = 600.0;
+  if (self->speed == 0.0) {
+    self->speed = 600.0;
   }
 
-  if (self->locals.wait == 0.0) {
-    self->locals.wait = 5.0;
+  if (self->wait == 0.0) {
+    self->wait = 5.0;
   }
 
-  if (self->locals.random == 0.0) {
-    self->locals.random = self->locals.wait * 0.5;
+  if (self->random == 0.0) {
+    self->random = self->wait * 0.5;
   }
 
-  self->locals.Think = G_misc_fireball_Fly;
-  self->locals.next_think = g_level.time + (Randomf() * 1000);
+  self->Think = G_misc_fireball_Fly;
+  self->next_think = g_level.time + (Randomf() * 1000);
 }
 

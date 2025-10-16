@@ -59,16 +59,16 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 
   // resolve the projectile destination
   const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->locals.forward);
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->forward);
   const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
   vec3_t ent_forward, ent_right, ent_up;
-  Vec3_Vectors(ent->client->locals.angles, &ent_forward, &ent_right, &ent_up);
+  Vec3_Vectors(ent->client->angles, &ent_forward, &ent_right, &ent_up);
 
   *org = Vec3_Fmaf(start, 12.f, ent_forward);
 
-  switch (ent->client->locals.persistent.hand) {
+  switch (ent->client->persistent.hand) {
     case HAND_RIGHT:
       *org = Vec3_Fmaf(*org, 6.f * hand, ent_right);
       break;
@@ -84,10 +84,10 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
   // if there's something non-damageable immediately blocking the shot, prefer to
   // avoid the blocker
   const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
-  const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->locals.forward);
+  const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->forward);
   const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
 
-  if ((org_tr.fraction != 1.f && !org_tr.ent->locals.take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
+  if ((org_tr.fraction != 1.f && !org_tr.ent->take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
     *org = start;
   }
 
@@ -150,7 +150,7 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   G_Find(NULL, LOFS(ptr), 0x1234);
+ *   G_Find(NULL, EOFS(ptr), 0x1234);
  *
  */
 g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
@@ -233,7 +233,7 @@ g_entity_t *G_PickTarget(const char *target_name) {
   g_entity_t *ent = NULL;
   while (true) {
 
-    ent = G_Find(ent, LOFS(target_name), target_name);
+    ent = G_Find(ent, EOFS(target_name), target_name);
 
     if (!ent) {
       break;
@@ -258,7 +258,7 @@ g_entity_t *G_PickTarget(const char *target_name) {
  * @brief
  */
 static void G_UseTargets_Delay(g_entity_t *ent) {
-  G_UseTargets(ent, ent->locals.activator);
+  G_UseTargets(ent, ent->activator);
   G_FreeEntity(ent);
 }
 
@@ -270,37 +270,37 @@ static void G_UseTargets_Delay(g_entity_t *ent) {
 void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
   // check for a delay
-  if (ent->locals.delay) {
+  if (ent->delay) {
     // create a temp entity to fire at a later time
     g_entity_t *temp = G_AllocEntity();
-    temp->locals.next_think = g_level.time + ent->locals.delay * 1000;
-    temp->locals.Think = G_UseTargets_Delay;
-    temp->locals.activator = activator;
+    temp->next_think = g_level.time + ent->delay * 1000;
+    temp->Think = G_UseTargets_Delay;
+    temp->activator = activator;
     if (!activator) {
       G_Debug("No activator for %s\n", etos(ent));
     }
-    temp->locals.message = ent->locals.message;
-    temp->locals.target = ent->locals.target;
-    temp->locals.kill_target = ent->locals.kill_target;
+    temp->message = ent->message;
+    temp->target = ent->target;
+    temp->kill_target = ent->kill_target;
     return;
   }
 
   // print the message
-  if ((ent->locals.message) && activator->client) {
+  if ((ent->message) && activator->client) {
 
     gi.WriteByte(SV_CMD_CENTER_PRINT);
-    gi.WriteString(ent->locals.message);
+    gi.WriteString(ent->message);
     gi.Unicast(activator, true);
 
     G_UnicastSound(&(const g_play_sound_t) {
-      .index = ent->locals.sound ?: g_media.sounds.chat,
+      .index = ent->sound ?: g_media.sounds.chat,
     }, activator, true);
   }
 
   // kill kill_targets
-  if (ent->locals.kill_target) {
+  if (ent->kill_target) {
     g_entity_t *target = NULL;
-    while ((target = G_Find(target, LOFS(target_name), ent->locals.kill_target))) {
+    while ((target = G_Find(target, EOFS(target_name), ent->kill_target))) {
       G_FreeEntity(target);
       if (!ent->in_use) {
         G_Debug("%s was removed while using kill_targets\n", etos(ent));
@@ -310,17 +310,17 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
   }
 
   // fire targets
-  if (ent->locals.target) {
+  if (ent->target) {
     g_entity_t *target = NULL;
-    while ((target = G_Find(target, LOFS(target_name), ent->locals.target))) {
+    while ((target = G_Find(target, EOFS(target_name), ent->target))) {
 
       if (target == ent) {
         G_Debug("%s tried to use itself\n", etos(ent));
         continue;
       }
 
-      if (target->locals.Use) {
-        target->locals.Use(target, ent, activator);
+      if (target->Use) {
+        target->Use(target, ent, activator);
         if (!ent->in_use) { // see if our target freed us
           G_Debug("%s was removed while using targets\n", etos(ent));
           break;
@@ -341,11 +341,11 @@ void G_SetMoveDir(g_entity_t *ent) {
   const vec3_t dir_down = Vec3(0.0, 0.0, -1.0);
 
   if (Vec3_Equal(ent->s.angles, angles_up)) {
-    ent->locals.move_dir = dir_up;
+    ent->move_dir = dir_up;
   } else if (Vec3_Equal(ent->s.angles, angles_down)) {
-    ent->locals.move_dir = dir_down;
+    ent->move_dir = dir_down;
   } else {
-    Vec3_Vectors(ent->s.angles, &ent->locals.move_dir, NULL, NULL);
+    Vec3_Vectors(ent->s.angles, &ent->move_dir, NULL, NULL);
   }
 
   ent->s.angles = Vec3_Zero();
@@ -376,8 +376,8 @@ void G_InitEntity(g_entity_t *ent, const char *class_name) {
   ent->class_name = class_name;
   ent->in_use = true;
 
-  ent->locals.water_level = WATER_UNKNOWN;
-  ent->locals.timestamp = g_level.time;
+  ent->water_level = WATER_UNKNOWN;
+  ent->timestamp = g_level.time;
   ent->s.number = ent - g_game.entities;
   ent->s.spawn_id = g_spawn_id++;
 }
@@ -441,7 +441,7 @@ void G_KillBox(g_entity_t *ent) {
 
       G_Damage(ents[i], NULL, ent, Vec3_Zero(), ents[i]->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
 
-      if (ents[i]->in_use && !ents[i]->locals.dead) {
+      if (ents[i]->in_use && !ents[i]->dead) {
         break;
       }
     } else {
@@ -470,7 +470,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
 
   G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
 
-  const g_item_t *item = ent->locals.item;
+  const g_item_t *item = ent->item;
   if (item) {
     switch (item->type) {
       case ITEM_TECH:
@@ -571,7 +571,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
     return NULL;
   }
 
-  if (!ent->locals.item || ent->locals.item->type != ITEM_FLAG) {
+  if (!ent->item || ent->item->type != ITEM_FLAG) {
     return NULL;
   }
 
@@ -616,14 +616,14 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (&g_team_list[i] == ent->client->locals.persistent.team) {
+    if (&g_team_list[i] == ent->client->persistent.team) {
       continue;
     }
 
     g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
 
-    if (f && ent->client->locals.inventory[f->locals.item->index]) {
-      return f->locals.item;
+    if (f && ent->client->inventory[f->item->index]) {
+      return f->item;
     }
   }
 
@@ -642,7 +642,7 @@ size_t G_TeamSize(const g_team_t *team) {
     }
 
     const g_client_t *cl = g_game.entities[i + 1].client;
-    if (cl->locals.persistent.team == team) {
+    if (cl->persistent.team == team) {
       count++;
     }
   }
@@ -665,11 +665,11 @@ g_team_t *G_SmallestTeam(void) {
 
     cl = g_game.entities[i + 1].client;
 
-    if (!cl->locals.persistent.team) {
+    if (!cl->persistent.team) {
       continue;
     }
 
-    num_clients[cl->locals.persistent.team->id]++;
+    num_clients[cl->persistent.team->id]++;
   }
 
   g_team_t *smallest = NULL;
@@ -705,7 +705,7 @@ g_entity_t *G_EntityByName(char *name) {
     }
 
     cl = g_game.entities[i + 1].client;
-    if ((j = g_strcmp0(name, cl->locals.persistent.net_name)) < min) {
+    if ((j = g_strcmp0(name, cl->persistent.net_name)) < min) {
       ret = &g_game.entities[i + 1];
       min = j;
     }
@@ -767,15 +767,15 @@ bool G_IsStationary(const g_entity_t *ent) {
     return false;
   }
 
-  if (ent->locals.move_type) {
+  if (ent->move_type) {
     return false;
   }
 
-  if (!Vec3_Equal(Vec3_Zero(), ent->locals.velocity)) {
+  if (!Vec3_Equal(Vec3_Zero(), ent->velocity)) {
     return false;
   }
 
-  if (!Vec3_Equal(Vec3_Zero(), ent->locals.avelocity)) {
+  if (!Vec3_Equal(Vec3_Zero(), ent->avelocity)) {
     return false;
   }
 
@@ -833,14 +833,14 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart) {
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || ent->client->locals.animation1_time <= g_level.time) {
+    if (restart || ent->client->animation1_time <= g_level.time) {
       G_SetAnimation_(&ent->s.animation1, anim, restart);
-      ent->client->locals.animation1_time = g_level.time + 50;
+      ent->client->animation1_time = g_level.time + 50;
     }
   } else {
-    if (restart || ent->client->locals.animation2_time <= g_level.time) {
+    if (restart || ent->client->animation2_time <= g_level.time) {
       G_SetAnimation_(&ent->s.animation2, anim, restart);
-      ent->client->locals.animation2_time = g_level.time + 50;
+      ent->client->animation2_time = g_level.time + 50;
     }
   }
 }
@@ -880,7 +880,7 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
     const g_entity_t *ent = &g_game.entities[i + 1];
 
     // member of supplied team? send it
-    if (ent->client->locals.persistent.team == team) {
+    if (ent->client->persistent.team == team) {
       gi.WriteByte(SV_CMD_CENTER_PRINT);
       gi.WriteString(string);
       gi.Unicast(ent, true);

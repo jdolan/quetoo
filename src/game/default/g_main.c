@@ -258,16 +258,16 @@ void G_ResetItems(void) {
       continue;
     }
 
-    if (!ent->locals.item) {
+    if (!ent->item) {
       continue;
     }
 
-    if (ent->locals.spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
+    if (ent->spawn_flags & SF_ITEM_DROPPED) { // free dropped ones
       G_FreeEntity(ent);
       continue;
     }
 
-    if (ent->locals.item->type == ITEM_TECH) { // free techs, we'll spawn them again
+    if (ent->item->type == ITEM_TECH) { // free techs, we'll spawn them again
       G_FreeEntity(ent);
       continue;
     }
@@ -391,45 +391,45 @@ static void G_RestartGame(bool teamz) {
     g_entity_t *ent = &g_game.entities[i + 1];
     g_client_t *cl = ent->client;
 
-    cl->locals.persistent.ready = false; // back to warmup
-    cl->locals.persistent.score = 0;
-    cl->locals.persistent.captures = 0;
-    cl->locals.persistent.deaths = 0;
+    cl->persistent.ready = false; // back to warmup
+    cl->persistent.score = 0;
+    cl->persistent.captures = 0;
+    cl->persistent.deaths = 0;
 
     if (teamz) { // reset teams
-      cl->locals.persistent.team = NULL;
+      cl->persistent.team = NULL;
     }
 
     // determine spectator or team affiliations
 
     if (g_level.match) {
-      if (cl->locals.persistent.match_num == g_level.match_num) {
-        cl->locals.persistent.spectator = false;
+      if (cl->persistent.match_num == g_level.match_num) {
+        cl->persistent.spectator = false;
       } else {
-        cl->locals.persistent.spectator = true;
+        cl->persistent.spectator = true;
       }
     }
 
     else if (g_level.rounds) {
-      if (cl->locals.persistent.round_num == g_level.round_num) {
-        cl->locals.persistent.spectator = false;
+      if (cl->persistent.round_num == g_level.round_num) {
+        cl->persistent.spectator = false;
       } else {
-        cl->locals.persistent.spectator = true;
+        cl->persistent.spectator = true;
       }
     }
 
     if (g_level.teams || g_level.ctf) {
 
-      if (!cl->locals.persistent.team) {
+      if (!cl->persistent.team) {
         if (g_auto_join->value && g_level.gameplay != GAME_DUEL) {
           G_AddClientToTeam(ent, G_SmallestTeam()->name);
         } else {
-          cl->locals.persistent.spectator = true;
+          cl->persistent.spectator = true;
         }
       }
     }
 
-    G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
+    G_ClientUserInfoChanged(ent, ent->client->persistent.user_info);
     G_ClientRespawn(ent, false);
   }
 
@@ -466,7 +466,7 @@ void G_MuteClient(char *name, bool mute) {
     return;
   }
 
-  cl->locals.persistent.muted = mute;
+  cl->persistent.muted = mute;
 }
 
 /**
@@ -489,7 +489,7 @@ static void G_BeginIntermission(const char *map) {
       continue;
     }
 
-    if (client->locals.health <= 0) {
+    if (client->health <= 0) {
       G_ClientRespawn(client, false);
     }
   }
@@ -569,18 +569,18 @@ static void G_CheckRoundStart(void) {
       continue;
     }
 
-    if (e->locals.dead) {
+    if (e->dead) {
       continue;
     }
 
-    if (e->client->locals.persistent.spectator) {
+    if (e->client->persistent.spectator) {
       continue;
     }
 
     clients++;
 
-    if (g_level.teams && e->client->locals.persistent.team) {
-      teams_ready[e->client->locals.persistent.team->id]++;
+    if (g_level.teams && e->client->persistent.team) {
+      teams_ready[e->client->persistent.team->id]++;
     }
   }
 
@@ -638,20 +638,20 @@ static void G_CheckRoundLimit(void) {
     ent = &g_game.entities[i + 1];
     cl = ent->client;
 
-    if (cl->locals.persistent.round_num != g_level.round_num) {
+    if (cl->persistent.round_num != g_level.round_num) {
       continue; // they were intentionally spectating, skip them
     }
 
     if (g_level.teams || g_level.ctf) { // rejoin a team
-      if (cl->locals.persistent.team) {
-        G_AddClientToTeam(ent, cl->locals.persistent.team->name);
+      if (cl->persistent.team) {
+        G_AddClientToTeam(ent, cl->persistent.team->name);
       } else {
         G_AddClientToTeam(ent, G_SmallestTeam()->name);
       }
     } else
       // just rejoin the game
     {
-      cl->locals.persistent.spectator = false;
+      cl->persistent.spectator = false;
     }
 
     G_ClientRespawn(ent, false);
@@ -684,18 +684,18 @@ static void G_CheckRoundEnd(void) {
       continue;
     }
 
-    if (e->locals.dead) {
+    if (e->dead) {
       continue;
     }
 
-    if (e->client->locals.persistent.spectator) {
+    if (e->client->persistent.spectator) {
       continue;
     }
 
     winner = e;
 
-    if (e->client->locals.persistent.team) {
-      teams_count[e->client->locals.persistent.team->id]++;
+    if (e->client->persistent.team) {
+      teams_count[e->client->persistent.team->id]++;
     }
 
     clients++;
@@ -743,7 +743,7 @@ static void G_CheckRoundEnd(void) {
     }
 
     if (g_level.teams || g_level.ctf) {
-      if (cl->locals.persistent.team != winner->client->locals.persistent.team) {
+      if (cl->persistent.team != winner->client->persistent.team) {
         return;
       }
     } else {
@@ -755,8 +755,8 @@ static void G_CheckRoundEnd(void) {
 
   // we have a winner
   gi.BroadcastPrint(PRINT_HIGH, "%s wins!\n",
-                    (g_level.teams || g_level.ctf ? winner->client->locals.persistent.team->name
-                     : winner->client->locals.persistent.net_name));
+                    (g_level.teams || g_level.ctf ? winner->client->persistent.team->name
+                     : winner->client->persistent.net_name));
 
   g_level.round_time = 0;
 
@@ -790,12 +790,12 @@ static void G_CheckMatchEnd(void) {
 
     cl = g_game.entities[i + 1].client;
 
-    if (cl->locals.persistent.spectator) {
+    if (cl->persistent.spectator) {
       continue;
     }
 
     if (g_level.teams || g_level.ctf) {
-      teams_count[cl->locals.persistent.team->id]++;
+      teams_count[cl->persistent.team->id]++;
     }
 
     clients++;
@@ -922,7 +922,7 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (cl->locals.persistent.score >= g_level.frag_limit) {
+        if (cl->persistent.score >= g_level.frag_limit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           G_EndLevel();
           return;
@@ -1191,15 +1191,15 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!ent->locals.item) {
+        if (!ent->item) {
           continue;
         }
 
-        if (ent->locals.spawn_flags & SF_ITEM_DROPPED) {
+        if (ent->spawn_flags & SF_ITEM_DROPPED) {
           continue;
         }
 
-        if (ent->locals.item->type != ITEM_WEAPON) {
+        if (ent->item->type != ITEM_WEAPON) {
           continue;
         }
 
@@ -1207,12 +1207,12 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!ent->locals.Think) {
+        if (!ent->Think) {
           continue;
         }
 
-        ent->locals.next_think = 0;
-        ent->locals.Think(ent); // force a respawn
+        ent->next_think = 0;
+        ent->Think(ent); // force a respawn
       }
     }
   }
@@ -1277,11 +1277,11 @@ static void G_CheckRules(void) {
           continue;
         }
 
-        if (!ent->client->locals.persistent.team) {
+        if (!ent->client->persistent.team) {
           continue;
         }
 
-        G_ClientUserInfoChanged(ent, ent->client->locals.persistent.user_info);
+        G_ClientUserInfoChanged(ent, ent->client->persistent.user_info);
       }
     }
   }
@@ -1630,7 +1630,7 @@ void G_CallTimeOut(g_entity_t *ent) {
   }
 
   gi.BroadcastPrint(PRINT_HIGH, "%s called a timeout, play with resume in %s\n",
-                    ent->client->locals.persistent.net_name, G_FormatTime(g_timeout_time->integer * 1000));
+                    ent->client->persistent.net_name, G_FormatTime(g_timeout_time->integer * 1000));
 }
 
 void G_CallTimeIn(void) {

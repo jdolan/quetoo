@@ -31,7 +31,7 @@ bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
     return false;
   }
 
-  if (ent1->client->locals.persistent.spectator && ent2->client->locals.persistent.spectator) {
+  if (ent1->client->persistent.spectator && ent2->client->persistent.spectator) {
     return true;
   }
 
@@ -39,7 +39,7 @@ bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
     return false;
   }
 
-  return ent1->client->locals.persistent.team == ent2->client->locals.persistent.team;
+  return ent1->client->persistent.team == ent2->client->persistent.team;
 }
 
 /**
@@ -160,7 +160,7 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
     return 0;
   }
 
-  const int32_t quantity = ent->client->locals.inventory[armor->index];
+  const int32_t quantity = ent->client->inventory[armor->index];
   int32_t saved;
 
   if (dflags & DMG_ENERGY) {
@@ -169,7 +169,7 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
     saved = Clampf(damage * armor_info->normal_protection, 0, quantity);
   }
 
-  ent->client->locals.inventory[armor->index] -= saved;
+  ent->client->inventory[armor->index] -= saved;
 
   G_SpawnDamage(TE_BLOOD, pos, normal, saved);
 
@@ -202,12 +202,12 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
         const vec3_t dir, const vec3_t pos, const vec3_t normal,
         int32_t damage, int32_t knockback, int32_t dflags, g_means_of_death mod) {
 
-  if (!target || !target->locals.take_damage) {
+  if (!target || !target->take_damage) {
     return;
   }
 
   if (target->client) { // respawn protection
-    if (target->client->locals.respawn_protection_time > g_level.time) {
+    if (target->client->respawn_protection_time > g_level.time) {
       return;
     }
   }
@@ -228,7 +228,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
   }
 
   if (attacker->client) {
-    if (attacker->client->locals.inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
+    if (attacker->client->inventory[g_media.items.powerups[POWERUP_QUAD]->index]) {
       damage *= QUAD_DAMAGE_FACTOR;
       knockback *= QUAD_KNOCKBACK_FACTOR;
     }
@@ -240,7 +240,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
       G_PlayTechSound(attacker);
     }
 
-    damage *= attacker->client->locals.persistent.handicap / 100.0;
+    damage *= attacker->client->persistent.handicap / 100.0;
   }
 
   // friendly fire avoidance
@@ -276,7 +276,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
   g_client_t *client = target->client;
 
   // calculate velocity change due to knockback
-  if (knockback && (target->locals.move_type >= MOVE_TYPE_WALK)) {
+  if (knockback && (target->move_type >= MOVE_TYPE_WALK)) {
     vec3_t ndir, knockback_vel, knockback_avel;
 
     ndir = dir;
@@ -289,7 +289,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
     }
 
     // ensure the target has valid mass for knockback calculation
-    const float mass = Clampf(target->locals.mass, 1.0, 1000.0);
+    const float mass = Clampf(target->mass, 1.0, 1000.0);
 
     if (target == attacker) { // self knockback (rocket jump / grenade jump / plasma climb)
       knockback *= g_self_knockback->value;
@@ -297,15 +297,15 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
     knockback_vel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
 
-    target->locals.velocity = Vec3_Add(target->locals.velocity, knockback_vel);
+    target->velocity = Vec3_Add(target->velocity, knockback_vel);
 
     // apply angular velocity (rotate)
     if (client == NULL || (client->ps.pm_state.flags & PMF_GIBLET)) {
       knockback_avel = Vec3(knockback, knockback, knockback);
-      target->locals.avelocity = Vec3_Fmaf(target->locals.avelocity, 100.f / mass, knockback_avel);
+      target->avelocity = Vec3_Fmaf(target->avelocity, 100.f / mass, knockback_avel);
     }
 
-    if (client && target->locals.velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
+    if (client && target->velocity.z >= PM_STEP_HEIGHT) { // make sure the client can leave the ground
       client->ps.pm_state.flags |= PMF_TIME_PUSHED;
       client->ps.pm_state.time = 120;
     }
@@ -314,7 +314,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
   int32_t damage_armor = 0, damage_health = 0;
 
   // check for god mode protection
-  if ((target->locals.flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
+  if ((target->flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD)) {
     damage_armor = damage;
     damage_health = 0;
     G_SpawnDamage(TE_BLOOD, pos, normal, damage);
@@ -323,10 +323,10 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
     damage_health = damage - damage_armor;
   }
 
-  const bool was_dead = target->locals.dead;
+  const bool was_dead = target->dead;
 
   // do the damage
-  if (damage_health && (target->locals.health || target->locals.dead)) {
+  if (damage_health && (target->health || target->dead)) {
     if (G_IsMeat(target)) {
       G_SpawnDamage(TE_BLOOD, pos, normal, damage_health);
     } else if (dflags & DMG_BULLET) {
@@ -336,24 +336,24 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
     }
 
     if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
-      !target->locals.dead && G_HasTech(attacker, TECH_VAMPIRE)) {
-      attacker->locals.health = Minf(attacker->locals.health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->locals.max_health);
+      !target->dead && G_HasTech(attacker, TECH_VAMPIRE)) {
+      attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
       G_PlayTechSound(attacker);
     }
 
-    target->locals.health -= damage_health;
+    target->health -= damage_health;
 
     // for hit sound
     if (!was_dead && attacker->client && attacker->client != client) {
-      attacker->client->locals.damage_inflicted += damage_health + damage_armor;
+      attacker->client->damage_inflicted += damage_health + damage_armor;
     }
 
     // kill target if he has *excessive blood loss*
-    if (target->locals.health <= 0 && !G_Ai_InDeveloperMode()) {
-      target->locals.dead = true;
+    if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
+      target->dead = true;
 
-      if (target->locals.Die) {
-        target->locals.Die(target, attacker, mod);
+      if (target->Die) {
+        target->Die(target, attacker, mod);
       } else {
         G_Debug("No die function for %s\n", target->class_name);
       }
@@ -368,14 +368,14 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
   }
 
   // invoke the pain callback
-  if ((damage_health || knockback) && target->locals.Pain) {
-    target->locals.Pain(target, attacker, damage_health, knockback);
+  if ((damage_health || knockback) && target->Pain) {
+    target->Pain(target, attacker, damage_health, knockback);
   }
 
   // add view kick on a player this frame
   if (client) {
-    client->locals.damage_armor += damage_armor;
-    client->locals.damage_health += damage_health;
+    client->damage_armor += damage_armor;
+    client->damage_health += damage_health;
 
     float kick = (damage_armor + damage_health) / 50.0;
 
@@ -401,7 +401,7 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
       continue;
     }
 
-    if (!ent->locals.take_damage) {
+    if (!ent->take_damage) {
       continue;
     }
 

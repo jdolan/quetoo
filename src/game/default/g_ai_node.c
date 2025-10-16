@@ -585,7 +585,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
   // we're walkin'
 
   const ai_node_id_t closest_node = Ai_Node_FindClosest(player->s.origin, WALKING_DISTANCE / 4, true, false);
-  const bool on_mover = player->locals.ground.ent && player->locals.ground.ent->s.number != 0;
+  const bool on_mover = player->ground.ent && player->ground.ent->s.number != 0;
 
   // attack button enables/disables placement
   if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
@@ -593,7 +593,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
 
     ai_player_roam.latched_buttons &= ~BUTTON_ATTACK;
   // "use" moves node
-  } else if (allow_adjustments && player->locals.move_node) {
+  } else if (allow_adjustments && player->move_node) {
     if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
       ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, ai_player_roam.last_nodes[0]);
       node->position = player->s.origin;
@@ -607,7 +607,7 @@ void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd) {
       Ai_Node_RecalculateCosts(ai_player_roam.last_nodes[0]);
     }
 
-    player->locals.move_node = false;
+    player->move_node = false;
   // hook destroys node
   } else if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_HOOK)) {
     if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
@@ -968,7 +968,7 @@ static void Ai_CheckNodes(void) {
       }
 
       // only warn for item nodes
-      if (!ent->locals.item) {
+      if (!ent->item) {
         continue;
       }
 

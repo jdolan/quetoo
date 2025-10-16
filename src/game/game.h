@@ -52,16 +52,6 @@
 typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
 
-typedef struct {
-  void *opaque;
-} g_client_locals_t;
-
-typedef struct {
-  void *opaque;
-} g_entity_locals_t;
-
-#endif /* __GAME_LOCAL_H__ */
-
 struct g_client_s {
   /**
    * @brief True if the client is a bot.
@@ -82,20 +72,12 @@ struct g_client_s {
    * @brief This player's ping
    */
   uint32_t ping;
-
-  /**
-   * @brief The game module can extend the client structure through this
-   * opaque field. Therefore, the actual size of g_client_t is returned to the
-   * server through ge.client_size.
-   */
-  g_client_locals_t locals;
 };
 
 /**
  * @brief Entitys (or entities) are autonomous units of game interaction, such
  * as items, moving platforms, giblets and players. The game module and server
- * share a common base for this structure, but the game is free to extend it
- * through g_entity_locals_t.
+ * share a common base for this structure, but the game is free to extend it.
  */
 struct g_entity_s {
 
@@ -167,14 +149,9 @@ struct g_entity_s {
    * pointer to the variable-sized `g_client_t`.
    */
   g_client_t *client;
-
-  /**
-   * @brief The game module can extend the entity structure through this
-   * opaque field. Therefore, the actual size of g_entity_t is returned to the
-   * server through ge.entity_size.
-   */
-  g_entity_locals_t locals;
 };
+
+#endif /* __GAME_LOCAL_H__ */
 
 typedef bool (*EntityFilterFunc)(const g_entity_t *ent);
 
