@@ -27,18 +27,18 @@
 #define GAME_API_VERSION 13
 
 /**
- * @brief Server flags for g_entity_t.
+ * @brief Server flags for `g_entity_t`.
  */
-#define SVF_NO_CLIENT     (1 << 0) // don't send entity to clients
+#define SVF_NO_CLIENT (1 << 0) // don't send entity to clients
 #define SVF_GAME      (1 << 1) // game may extend from here
 
 /**
  * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
  */
-#define BOX_COLLIDE      (1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
-#define BOX_OCCUPY      (1 << 1) // SOLID_TRIGGER, SOLID_PROJECTILE, ..
+#define BOX_COLLIDE   (1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
+#define BOX_OCCUPY    (1 << 1) // SOLID_TRIGGER, SOLID_PROJECTILE, ..
 
-#define BOX_ALL        (BOX_COLLIDE | BOX_OCCUPY)
+#define BOX_ALL       (BOX_COLLIDE | BOX_OCCUPY)
 
 #ifndef __GAME_LOCAL_H__
 

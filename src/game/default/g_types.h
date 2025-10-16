@@ -84,18 +84,18 @@ typedef struct {
 /**
  * @brief ConfigStrings that are local to the game module.
  */
-#define CS_GAMEPLAY      (CS_GAME + 0)  // gameplay string
-#define CS_NUM_TEAMS    (CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
-#define CS_CTF        (CS_GAME + 2)  // is capture enabled?
-#define CS_MATCH      (CS_GAME + 3)  // is match mode enabled?
-#define CS_ROUNDS      (CS_GAME + 4)  // are rounds enabled?
-#define CS_TEAM_INFO    (CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME        (CS_GAME + 6)  // level or match timer
-#define CS_ROUND      (CS_GAME + 7)  // round number
-#define CS_HOOK_PULL_SPEED  (CS_GAME + 8)  // hook speed
-#define CS_MAXCLIENTS    (CS_GAME + 9)  // maxclients of server
-#define CS_NUMCLIENTS    (CS_GAME + 10) // number of players in server
-#define CS_NAV_EDIT      (CS_GAME + 11) // nav edit mode
+#define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
+#define CS_NUM_TEAMS       (CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
+#define CS_CTF             (CS_GAME + 2)  // is capture enabled?
+#define CS_MATCH           (CS_GAME + 3)  // is match mode enabled?
+#define CS_ROUNDS          (CS_GAME + 4)  // are rounds enabled?
+#define CS_TEAM_INFO       (CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME            (CS_GAME + 6)  // level or match timer
+#define CS_ROUND           (CS_GAME + 7)  // round number
+#define CS_HOOK_PULL_SPEED (CS_GAME + 8)  // hook speed
+#define CS_MAXCLIENTS      (CS_GAME + 9)  // maxclients of server
+#define CS_NUMCLIENTS      (CS_GAME + 10) // number of players in server
+#define CS_NAV_EDIT        (CS_GAME + 11) // nav edit mode
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -135,7 +135,7 @@ typedef enum {
 /**
  * @brief Forces a statistic field to be re-sent, even if the value has not changed.
  */
-#define STAT_TOGGLE_BIT    0x4000
+#define STAT_TOGGLE_BIT 0x4000
 
 /**
  * @brief Muzzle flashes are bound to the entity that created them. This allows
