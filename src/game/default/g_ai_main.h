@@ -31,7 +31,6 @@ void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
 
 #ifdef __GAME_LOCAL_H__
-extern ai_level_t ai_level;
 
 extern cvar_t *ai_no_target;
 extern cvar_t *ai_node_dev;

@@ -1010,7 +1010,8 @@ static void Ai_CheckNodes(void) {
 }
 
 /**
- * @brief 
+ * @brief Called after the first second of gameplay to allow the AI to pick up nodes
+ * from late-spawning entities.
  */
 void Ai_NodesReady(void) {
 

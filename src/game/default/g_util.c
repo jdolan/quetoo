@@ -114,7 +114,7 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
+ *   `G_Find(NULL, EOFS(class_name), "info_player_deathmatch")`
  *
  */
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
@@ -137,17 +137,14 @@ g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
   return NULL;
 }
 
-#define MAX_TARGETS  8
+#define MAX_TARGETS 8
 
 /**
  * @brief Searches all active entities for the next targeted one.
- *
- * Searches beginning at the entity after from, or the beginning if NULL
- * NULL will be returned if the end of the list is reached.
  */
 g_entity_t *G_PickTarget(const char *target_name) {
   g_entity_t *choice[MAX_TARGETS];
-  uint32_t num_choices = 0;
+  int32_t num_choices = 0;
 
   if (!target_name) {
     G_Debug("NULL target_name\n");

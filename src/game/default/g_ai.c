@@ -86,6 +86,10 @@ void G_Ai_Frame(void) {
 
   if (g_level.time % 1000 == 0) {
 
+    if (g_level.time == 1000) {
+      Ai_NodesReady();
+    }
+
     int32_t count = 0;
     G_ForEachClient(cl, {
       if (cl->ai) {
@@ -93,14 +97,15 @@ void G_Ai_Frame(void) {
       }
     });
 
-    if (count < g_ai_min_clients->integer) {
-      G_ForEachClient(cl, {
-        if (!cl->entity) {
-          G_Ai_Connect(cl);
-          break;
-        }
+    const int32_t min = Maxi(0, g_ai_min_clients->integer);
+    const int32_t max = Maxi(min, g_ai_max_clients->integer);
+
+    if (count < min) {
+      G_ForEachFreeClient(cl, {
+        G_Ai_Connect(cl);
+        break;
       });
-    } else if (count > g_ai_max_clients->integer) {
+    } else if (count > max) {
       G_ForEachClient(cl, {
         if (cl->ai) {
           G_Ai_Disconnect(cl);
@@ -116,15 +121,6 @@ void G_Ai_Frame(void) {
       G_RunThink(cl->entity);
     }
   });
-  
-  // Mark loading finished if 1 second has passed
-  if (g_level.time > 1000) {
-    if (!ai_level.load_finished) {
-
-      Ai_NodesReady();
-      ai_level.load_finished = true;
-    }
-  }
 }
 
 /**

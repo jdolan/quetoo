@@ -27,13 +27,9 @@
 /**
  * @brief
  */
-#define AI_NODE_INVALID  ((ai_node_id_t)-1)
+#define AI_NODE_INVALID ((ai_node_id_t)-1)
 
 #ifdef __GAME_LOCAL_H__
-
-typedef struct {
-  bool load_finished;
-} ai_level_t;
 
 /**
  * @brief The default user info string (name and skin).

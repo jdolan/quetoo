@@ -511,6 +511,10 @@ static void G_CheckRules(void) {
     return;
   }
 
+  if (G_Ai_InDeveloperMode()) {
+    return;
+  }
+
   G_RunTimers();
 
   if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
@@ -836,8 +840,7 @@ static void G_Frame(void) {
     }
   }
 
-  // treat each object in turn
-  // even the world gets a chance to think
+  // treat each object in turn, even the world gets a chance to think
   G_ForEachEntity(ent, {
     g_level.current_entity = ent;
 
@@ -850,13 +853,11 @@ static void G_Frame(void) {
     g_level.current_entity = NULL;
   });
 
+  // let the AI think
   G_Ai_Frame();
 
-  if (!G_Ai_InDeveloperMode()) {
-
-    // inspect and enforce gameplay rules
-    G_CheckRules();
-  }
+  // inspect and enforce gameplay rules
+  G_CheckRules();
 
   // build the player_state_t structures for all players
   G_EndClientFrames();

@@ -65,11 +65,31 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) __attribute__
   } \
 }
 
+#define G_ForEachFreeClient(var, block) \
+{ \
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) { \
+    g_client_t *var = ge.clients[i]; \
+    if (!var->in_use) { \
+      block; \
+    } \
+  } \
+}
+
 #define G_ForEachEntity(var, block) \
 { \
   for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
     g_entity_t *var = ge.entities[i]; \
     if (var->in_use) { \
+      block; \
+    } \
+  } \
+}
+
+#define G_ForEachFreeEntity(var, block) \
+{ \
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) { \
+    g_entity_t *var = ge.entities[i]; \
+    if (!var->in_use) { \
       block; \
     } \
   } \

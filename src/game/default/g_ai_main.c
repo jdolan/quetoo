@@ -22,8 +22,6 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-ai_level_t ai_level;
-
 cvar_t *ai_no_target;
 cvar_t *ai_node_dev;
 
@@ -1565,8 +1563,6 @@ void Ai_OffsetNodes_f(void);
  */
 void G_Ai_InitLocals(void) {
 
-  gi.Mkdir("ai");
-
   ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
   ai_node_dev = gi.AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   
@@ -1590,9 +1586,6 @@ void G_Ai_InitLocals(void) {
  * @brief Loads map data for the AI subsystem.
  */
 void G_Ai_Load(void) {
-
-  ai_level.load_finished = false;
-
   Ai_InitNodes();
 }
 
@@ -1600,8 +1593,6 @@ void G_Ai_Load(void) {
  * @brief Shuts down the AI subsystem
  */
 void G_Ai_Shutdown(void) {
-
-  gi.Print("  ^5Ai module shutdown...\n");
 
   Ai_ShutdownSkins();
 
