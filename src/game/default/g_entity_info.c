@@ -42,7 +42,7 @@ void G_info_player_start(g_entity_t *self) {
 }
 
 /*QUAKED info_player_intermission (1 0 1) (-16 -16 -24) (16 16 32)
- Camera for intermission screen between matches.
+ Camera for intermission screen between maps.
 
  -------- Keys --------
  angles : The "pitch yaw roll" angles for the camera (e.g. 20 270 0).

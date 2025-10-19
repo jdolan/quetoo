@@ -168,28 +168,28 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*Ai_GoalFunc)(g_entity_t *ent, pm_cmd_t *cmd);
+typedef uint32_t (*Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
 
 /**
  * @brief Functional AI goal IDs.
  */
 typedef enum {
-  AI_FUNCGOAL_LONGRANGE,
-  AI_FUNCGOAL_HUNT,
-  AI_FUNCGOAL_WEAPONRY,
-  AI_FUNCGOAL_ACROBATICS,
-  AI_FUNCGOAL_FINDITEMS,
-  AI_FUNCGOAL_TURN,
-  AI_FUNCGOAL_MOVE,
+  AI_FUNC_GOAL_LONGRANGE,
+  AI_FUNC_GOAL_HUNT,
+  AI_FUNC_GOAL_WEAPONRY,
+  AI_FUNC_GOAL_ACROBATICS,
+  AI_FUNC_GOAL_FINDITEMS,
+  AI_FUNC_GOAL_TURN,
+  AI_FUNC_GOAL_MOVE,
 
-  AI_FUNCGOAL_TOTAL
-} ai_funcgoal_t;
+  AI_FUNC_GOAL_TOTAL
+} ai_func_goal_t;
 
 /**
  * @brief AI-specific locals
  */
 typedef struct ai_locals_s {
-  uint32_t funcgoal_nextthinks[AI_FUNCGOAL_TOTAL];
+  uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 
   vec3_t last_origin;
   vec3_t aim_forward; // calculated at start of thinking
@@ -203,4 +203,5 @@ typedef struct ai_locals_s {
   uint32_t distress_jump_offset;
   vec3_t ideal_angles;
 } ai_locals_t;
+
 #endif /* __GAME_LOCAL_H__ */

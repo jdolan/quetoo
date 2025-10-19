@@ -94,7 +94,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set verbose 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_developer 1"
@@ -110,18 +110,18 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+debug game"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set sv_max_clients 32 +map hallways"
-            isEnabled = "YES">
+            argument = "+debug game server"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_gameplay arena +set g_teams 1 +set g_rounds 1 +g_ai_add 1"
+            argument = "+map hallways"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -134,11 +134,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+connect localhost"

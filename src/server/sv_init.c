@@ -54,7 +54,7 @@ static int32_t Sv_FindIndex(const char *name, int32_t start, int32_t max, bool c
     Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
     Net_WriteShort(&sv.multicast, start + i);
     Net_WriteString(&sv.multicast, name);
-    Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
+    Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R);
   }
 
   return i;
@@ -77,11 +77,13 @@ int32_t Sv_ImageIndex(const char *name) {
  * to the clients -- only the fields that differ from the
  * baseline will be transmitted
  */
-static void Sv_CreateBaseline(void) {
+static int32_t Sv_CreateBaseline(void) {
 
-  for (int32_t i = 1; i < svs.game->num_entities; i++) {
+  int32_t count = 0;
 
-    g_entity_t *ent = ENTITY_FOR_NUM(i);
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+
+    g_entity_t *ent = svs.game->entities[i];
 
     if (!ent->in_use) {
       continue;
@@ -95,7 +97,11 @@ static void Sv_CreateBaseline(void) {
 
     // take current state as baseline
     sv.entities[i].baseline = ent->s;
+
+    count++;
   }
+
+  return count;
 }
 
 /**
@@ -160,17 +166,29 @@ static void Sv_UpdateLatchedVars(void) {
 }
 
 /**
+ * @brief
+ */
+static void Sv_InitClients(void) {
+
+  // initialize the clients array
+  svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
+
+  // and the entity states array, which is based on the number of clients
+  svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
+  svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
+}
+
+/**
  * @brief Gracefully frees all resources allocated to svs.clients.
  */
 static void Sv_ShutdownClients(void) {
-  sv_client_t *cl;
-  int32_t i;
 
   if (svs.state == SV_UNINITIALIZED) {
     return;
   }
 
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->download.buffer) {
       Fs_Free(cl->download.buffer);
@@ -182,6 +200,24 @@ static void Sv_ShutdownClients(void) {
 
   Mem_Free(svs.entity_states);
   svs.entity_states = NULL;
+}
+
+/**
+ * @brief
+ */
+static void Sv_ReconnectClients(void) {
+
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+
+    // reset state of spawned clients back to connected
+    if (svs.clients[i].state > SV_CLIENT_CONNECTED) {
+      svs.clients[i].state = SV_CLIENT_CONNECTED;
+    }
+
+    // invalidate last frame to force a baseline
+    svs.clients[i].last_frame = -1;
+    svs.clients[i].last_message = quetoo.ticks;
+  }
 }
 
 /**
@@ -199,43 +235,17 @@ static void Sv_InitEntities(sv_state_t state) {
 
     Sv_UpdateLatchedVars();
 
-    // initialize the clients array
-    svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
-
-    // and the entity states array
-    svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
-    svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
+    Sv_InitClients();
 
     Sv_InitGame();
+  } else {
+    Sv_ReconnectClients();
   }
-  
+
   svs.spawn_count++;
 }
 
-/**
- * @brief Prepares the client slots for loading a new level. Connected clients are
- * carried over.
- */
-static void Sv_InitClients(sv_state_t state) {
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-    g_entity_t *ent = ENTITY_FOR_NUM(i + 1);
-    ent->s.number = NUM_FOR_ENTITY(ent);
-
-    // assign their entity
-    svs.clients[i].entity = ent;
-
-    // reset state of spawned clients back to connected
-    if (svs.clients[i].state > SV_CLIENT_CONNECTED) {
-      svs.clients[i].state = SV_CLIENT_CONNECTED;
-    }
-
-    // invalidate last frame to force a baseline
-    svs.clients[i].last_frame = -1;
-    svs.clients[i].last_message = quetoo.ticks;
-  }
-}
 
 /**
  * @brief Loads the map or demo file and populates the server-controlled "config
@@ -292,9 +302,9 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
       svs.game->Frame();
     }
 
-    Sv_CreateBaseline();
+    const int32_t num_entities = Sv_CreateBaseline();
 
-    Com_Print("  Loaded map %s, %d entities.\n", sv.name, svs.game->num_entities);
+    Com_Print("  Loaded map %s, %d entities.\n", sv.name, num_entities);
   }
 
   g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
@@ -302,7 +312,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
   // do not delete: this cvar is defined in order to be sent within reply paquets
   // to third-party server query tools and game server browsers implementing
   // standard quake 2 server query protocol
-  Cvar_Add("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the map that is currently played");
+  Cvar_Add("map_name", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
 }
 
 /**
@@ -349,8 +359,6 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
   // initialize entities, reloading the game module if necessary
   Sv_InitEntities(state);
-
-  Sv_InitClients(state);
 
   // load the map or demo and related media
   Sv_LoadMedia(server, state);

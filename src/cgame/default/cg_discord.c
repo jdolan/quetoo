@@ -126,7 +126,7 @@ static const char *Cg_DiscordErrorString(enum EDiscordResult result) {
 }
 
 static void Cg_DiscordDisconnected(int errorCode, const char* message) {
-  cgi.Warn("Discord error %s: %s\n", Cg_DiscordErrorString(errorCode), message);
+  Cg_Warn("Discord error %s: %s\n", Cg_DiscordErrorString(errorCode), message);
 }
 
 typedef enum {
@@ -149,30 +149,21 @@ static void Cg_DiscordReady(const DiscordUser *user) {
 }
 
 static const char *Cg_GetGameMode(void) {
-  const char *round_buffer = "";
-
-  if (cg_state.num_rounds) {
-    round_buffer = va(" (Round %i/%i)", cg_state.round, cg_state.num_rounds);
-  }
 
   if (cg_state.ctf) {
-    return va("%i-Team CTF%s", cg_state.num_teams, round_buffer);
+    return va("%i-Team CTF", cg_state.num_teams);
   } else if (cg_state.num_teams) {
-    return va("%i-Team Deathmatch%s", cg_state.num_teams, round_buffer);
-  } else if (cg_state.match) {
-    return va("Match Mode%s", round_buffer);
+    return va("%i-Team Deathmatch", cg_state.num_teams);
   } else switch (cg_state.gameplay) {
     case GAME_DEATHMATCH:
-      return va("Deathmatch%s", round_buffer);
+      return "Deathmatch";
     case GAME_ARENA:
-      return va("Arena%s", round_buffer);
-    case GAME_DUEL:
-      return va("Duel%s", round_buffer);
+      return "Arena";
     case GAME_INSTAGIB:
-      return va("Instagib%s", round_buffer);
+      return "Instagib";
   }
 
-  return va("Deathmatch%s", round_buffer);
+  return va("Deathmatch");
 }
 
 void Cg_UpdateDiscord(void) {
@@ -232,7 +223,7 @@ void Cg_UpdateDiscord(void) {
 static void Cg_DiscordJoinGame(const char *secret) {
 
   if (g_ascii_strncasecmp(secret, "JOIN_", 5)) {
-    cgi.Warn("Invalid invitation\n");
+    Cg_Warn("Invalid invitation\n");
     return;
   }
 
@@ -251,7 +242,7 @@ static void Cg_DiscordJoinRequest(const DiscordUser *request) {
 static void Cg_DiscordSpectateGame(const char *secret) {
 
   if (g_ascii_strncasecmp(secret, "SPCT_", 5)) {
-    cgi.Warn("Invalid invitation\n");
+    Cg_Warn("Invalid invitation\n");
     return;
   }
 

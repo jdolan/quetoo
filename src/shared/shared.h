@@ -317,6 +317,7 @@ typedef struct {
  * contains.
  */
 typedef struct player_state_s {
+  uint8_t client;
   pm_state_t pm_state; // movement and contents state
   int16_t stats[MAX_STATS]; // status bar updates
 } player_state_t;

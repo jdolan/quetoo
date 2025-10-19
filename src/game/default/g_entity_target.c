@@ -124,7 +124,7 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
       .index = ent->sound,
       .origin = &ent->s.origin,
       .atten = ent->atten
-    }, MULTICAST_PHS, NULL);
+    }, MULTICAST_PHS);
   }
 }
 

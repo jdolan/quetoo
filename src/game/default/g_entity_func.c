@@ -283,13 +283,24 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
   if (G_IsMeat(other)) {
 
     if (other->solid == SOLID_DEAD) {
-      G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, DMG_NO_ARMOR, MOD_CRUSH);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = self,
+        .attacker = NULL,
+        .dir = dir,
+        .point = other->s.origin,
+        .normal = Vec3_Up(),
+        .damage = 999,
+        .knockback = 0,
+        .flags = DMG_NO_ARMOR,
+        .mod = MOD_CRUSH
+      });
       if (other->in_use) {
         if (other->client) {
           gi.WriteByte(SV_CMD_TEMP_ENTITY);
           gi.WriteByte(TE_GIB);
           gi.WritePosition(other->s.origin);
-          gi.Multicast(other->s.origin, MULTICAST_PVS, NULL);
+          gi.Multicast(other->s.origin, MULTICAST_PVS);
 
           other->solid = SOLID_NOT;
         } else {
@@ -297,12 +308,34 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
         }
       }
     } else if (other->solid == SOLID_BOX) {
-      G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), self->damage, 0, DMG_NO_ARMOR, MOD_CRUSH);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = self,
+        .attacker = NULL,
+        .dir = dir,
+        .point = other->s.origin,
+        .normal = Vec3_Up(),
+        .damage = self->damage,
+        .knockback = 0,
+        .flags = DMG_NO_ARMOR,
+        .mod = MOD_CRUSH
+      });
     } else {
       G_Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
     }
   } else {
-    G_Damage(other, self, NULL, dir, other->s.origin, Vec3_Up(), 999, 0, 0, MOD_CRUSH);
+    G_Damage(&(g_damage_t) {
+      .target = other,
+      .inflictor = self,
+      .attacker = NULL,
+      .dir = dir,
+      .point = other->s.origin,
+      .normal = Vec3_Up(),
+      .damage = 999,
+      .knockback = 0,
+      .flags = 0,
+      .mod = MOD_CRUSH
+    });
     if (other->in_use) {
       G_Explode(other, 60, 60, 80.0, 0);
     }
@@ -325,7 +358,7 @@ static void G_func_plat_Top(g_entity_t *ent) {
         .index = ent->move_info.sound_end,
         .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     ent->s.sound = 0;
@@ -354,7 +387,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
         .index = ent->move_info.sound_end,
         .origin = &pos,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     ent->s.sound = 0;
@@ -375,7 +408,7 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
         .index = ent->move_info.sound_start,
         .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     ent->s.sound = ent->move_info.sound_middle;
@@ -402,7 +435,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
         .index = ent->move_info.sound_start,
         .origin = &pos,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     ent->s.sound = ent->move_info.sound_middle;
@@ -468,7 +501,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
   g_entity_t *trigger;
 
   // middle trigger
-  trigger = G_AllocEntity();
+  trigger = G_AllocEntity(__func__);
   trigger->Touch = G_func_plat_Touch;
   trigger->move_type = MOVE_TYPE_NONE;
   trigger->solid = SOLID_TRIGGER;
@@ -598,7 +631,18 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other, const cm_
 
   if (self->damage) {
     if (!Vec3_Equal(self->avelocity, Vec3_Zero())) {
-      G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->damage, 1, 0, MOD_CRUSH);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = self,
+        .attacker = NULL,
+        .dir = Vec3_Zero(),
+        .point = other->s.origin,
+        .normal = Vec3_Zero(),
+        .damage = self->damage,
+        .knockback = 1,
+        .flags = 0,
+        .mod = MOD_CRUSH
+      });
     }
   }
 }
@@ -737,7 +781,7 @@ static void G_func_button_Activate(g_entity_t *self) {
       .index = move->sound_start,
       .entity = self,
       .atten = SOUND_ATTEN_SQUARE
-    }, MULTICAST_PHS, NULL);
+    }, MULTICAST_PHS);
   }
 
   G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
@@ -827,8 +871,7 @@ void G_func_button(g_entity_t *ent) {
   abs_move_dir.x = fabsf(ent->move_dir.x);
   abs_move_dir.y = fabsf(ent->move_dir.y);
   abs_move_dir.z = fabsf(ent->move_dir.z);
-  dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y
-         + abs_move_dir.z * ent->size.z - ent->lip;
+  dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y + abs_move_dir.z * ent->size.z - ent->lip;
   ent->pos2 = Vec3_Fmaf(ent->pos1, dist, ent->move_dir);
 
   ent->Use = G_func_button_Use;
@@ -871,7 +914,7 @@ static void G_func_door_Top(g_entity_t *self) {
         .index = self->move_info.sound_end,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = 0;
@@ -901,7 +944,7 @@ static void G_func_door_Bottom(g_entity_t *self) {
         .index = self->move_info.sound_end,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = 0;
@@ -920,7 +963,7 @@ static void G_func_door_GoingDown(g_entity_t *self) {
         .index = self->move_info.sound_start,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
     self->s.sound = self->move_info.sound_middle;
   }
@@ -959,7 +1002,7 @@ static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
         .index = self->move_info.sound_start,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
     self->s.sound = self->move_info.sound_middle;
   }
@@ -1084,7 +1127,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
   // expand
   bounds = Box3_Expand3(bounds, Vec3(60.f, 60.f, 0.f));
 
-  trigger = G_AllocEntity();
+  trigger = G_AllocEntity(__func__);
   trigger->bounds = bounds;
   trigger->owner = ent;
   trigger->solid = SOLID_TRIGGER;
@@ -1151,12 +1194,12 @@ static void G_func_door_Touch(g_entity_t *self, g_entity_t *other, const cm_trac
   if (self->message && strlen(self->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
     gi.WriteString(self->message);
-    gi.Unicast(other, true);
+    gi.Unicast(other->client, true);
   }
 
   G_UnicastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.chat,
-  }, other, true);
+  }, other->client, true);
 }
 
 /*QUAKED func_door (0 .5 .8) ? start_open x x x toggle
@@ -1419,7 +1462,7 @@ static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
         .index = self->move_info.sound_start,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = self->move_info.sound_middle;
@@ -1459,7 +1502,7 @@ static void G_func_door_secret_Move3(g_entity_t *self) {
         .index = self->move_info.sound_end,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = 0;
@@ -1481,7 +1524,7 @@ static void G_func_door_secret_Move4(g_entity_t *self) {
         .index = self->move_info.sound_start,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = self->move_info.sound_middle;
@@ -1524,7 +1567,7 @@ static void G_func_door_secret_Done(g_entity_t *self) {
         .index = self->move_info.sound_end,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
 
     self->s.sound = 0;
@@ -1546,7 +1589,18 @@ static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
 
   self->touch_time = g_level.time + 500;
 
-  G_Damage(other, self, self, Vec3_Zero(), other->s.origin, Vec3_Zero(), self->damage, 1, 0, MOD_CRUSH);
+  G_Damage(&(g_damage_t) {
+    .target = other,
+    .inflictor = self,
+    .attacker = self,
+    .dir = Vec3_Zero(),
+    .point = other->s.origin,
+    .normal = Vec3_Zero(),
+    .damage = self->damage,
+    .knockback = 1,
+    .flags = 0,
+    .mod = MOD_CRUSH
+  });
 
   self->next_think = g_level.time + 1;
 }
@@ -1826,7 +1880,7 @@ static void G_func_train_Wait(g_entity_t *self) {
           .index = self->move_info.sound_end,
           .entity = self,
           .atten = SOUND_ATTEN_SQUARE
-        }, MULTICAST_PHS, NULL);
+        }, MULTICAST_PHS);
       }
       self->s.sound = 0;
     }
@@ -1881,7 +1935,7 @@ again:
         .index = self->move_info.sound_start,
         .entity = self,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
     self->s.sound = self->move_info.sound_middle;
   }

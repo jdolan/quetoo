@@ -33,6 +33,7 @@ cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
+cvar_t *sv_max_entities;
 cvar_t *sv_public;
 cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
@@ -44,7 +45,6 @@ cvar_t *sv_udp_download;
  * or crashing.
  */
 void Sv_DropClient(sv_client_t *cl) {
-  g_entity_t *ent;
 
   Mem_ClearBuffer(&cl->net_chan.message);
   Mem_ClearBuffer(&cl->datagram.buffer);
@@ -56,7 +56,7 @@ void Sv_DropClient(sv_client_t *cl) {
   if (cl->state > SV_CLIENT_FREE) { // send the disconnect
 
     if (cl->state == SV_CLIENT_ACTIVE) { // after informing the game module
-      svs.game->ClientDisconnect(cl->entity);
+      svs.game->ClientDisconnect(svs.game->clients[cl - svs.clients]);
     }
 
     Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
@@ -67,11 +67,8 @@ void Sv_DropClient(sv_client_t *cl) {
     Fs_Free(cl->download.buffer);
   }
 
-  ent = cl->entity;
-
   memset(cl, 0, sizeof(*cl));
 
-  cl->entity = ent;
   cl->last_frame = -1;
 }
 
@@ -200,9 +197,6 @@ static void Sv_GetChallenge_f(void) {
  * @brief A connection request that did not come from the master.
  */
 static void Sv_Connect_f(void) {
-  char user_info[MAX_USER_INFO_STRING];
-  sv_client_t *cl, *client;
-  int32_t i;
 
   Com_Debug(DEBUG_SERVER, "Svc_Connect()\n");
 
@@ -220,6 +214,7 @@ static void Sv_Connect_f(void) {
   const uint32_t challenge = (uint32_t) strtoul(Cmd_Argv(3), NULL, 0);
 
   // copy user_info, leave room for ip stuffing
+  char user_info[MAX_USER_INFO_STRING];
   g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
   if (*user_info == '\0') { // catch empty user_info
@@ -250,6 +245,7 @@ static void Sv_Connect_f(void) {
   SetUserInfo(user_info, "ip", Net_NetaddrToString(addr));
 
   // enforce a valid challenge to avoid denial of service attack
+  int32_t i;
   for (i = 0; i < MAX_CHALLENGES; i++) {
     if (Net_CompareClientNetaddr(addr, &svs.challenges[i].addr)) {
       if (challenge == svs.challenges[i].challenge) {
@@ -267,20 +263,20 @@ static void Sv_Connect_f(void) {
   }
 
   // resolve the client slot
-  client = NULL;
+  sv_client_t *client = NULL;
 
   // first check for an ungraceful reconnect (client crashed, perhaps)
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-
-    const net_chan_t *ch = &cl->net_chan;
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) { // not in use, not interested
       continue;
     }
 
+    const net_chan_t *ch = &cl->net_chan;
+
     // the base address and either the qport or real port must match
     if (Net_CompareClientNetaddr(addr, &ch->remote_address)) {
-
       if (addr->port == ch->remote_address.port || qport == ch->qport) {
         client = cl;
         break;
@@ -290,8 +286,9 @@ static void Sv_Connect_f(void) {
 
   // otherwise, treat as a fresh connect to a new slot
   if (!client) {
-    for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-      if (cl->state == SV_CLIENT_FREE && !cl->entity->client->ai) { // we have a free one
+    sv_client_t *cl = svs.clients;
+    for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+      if (cl->state == SV_CLIENT_FREE) { // we have a free one
         client = cl;
         break;
       }
@@ -300,16 +297,16 @@ static void Sv_Connect_f(void) {
 
   // no free slots, see if there's an AI slot ready to go and boot them.
   if (!client) {
-    for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
-      if (cl->state == SV_CLIENT_FREE && cl->entity->client->ai) { // we have a free one
+    sv_client_t *cl = svs.clients;
+    for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+      if (svs.game->clients[cl - svs.clients]->ai) {
         client = cl;
-        svs.game->ClientDisconnect(cl->entity);
+        svs.game->ClientDisconnect(svs.game->clients[cl - svs.clients]);
         break;
       }
     }
   }
 
-  // no soup for you, next!!
   if (!client) {
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is full\n");
     Com_Debug(DEBUG_SERVER, "Rejected a connection\n");
@@ -317,7 +314,7 @@ static void Sv_Connect_f(void) {
   }
 
   // give the game a chance to reject this connection or modify the user_info
-  if (!(svs.game->ClientConnect(client->entity, user_info))) {
+  if (!(svs.game->ClientConnect(svs.game->clients[client - svs.clients], user_info))) {
     const char *rejmsg = GetUserInfo(user_info, "rejmsg");
 
     if (strlen(rejmsg)) {
@@ -479,11 +476,11 @@ static void Sv_UpdatePings(void) {
 
     if (!count) {
       cl->ping = 0;
-      cl->entity->client->ping = 0;
     } else {
       cl->ping = total / (float) count;
-      cl->entity->client->ping = total / (float) count;
     }
+
+    svs.game->clients[cl - svs.clients]->ping = cl->ping;
   }
 }
 
@@ -626,11 +623,11 @@ static void Sv_ResetEntities(void) {
     return;
   }
 
-  for (int32_t i = 0; i < svs.game->num_entities; i++) {
-    g_entity_t *edict = ENTITY_FOR_NUM(i);
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+    g_entity_t *ent = svs.game->entities[i];
 
     // events only last for a single message
-    edict->s.event = 0;
+    ent->s.event = 0;
   }
 }
 
@@ -673,7 +670,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
     g_snprintf(buf, sizeof(buf), ": %s", msg);
   }
 
-  Sv_ClientPrint(cl->entity, PRINT_HIGH, "You were kicked%s\n", buf);
+  Sv_ClientPrint(svs.game->clients[cl - svs.clients], PRINT_HIGH, "You were kicked%s\n", buf);
 
   Sv_DropClient(cl);
 
@@ -713,7 +710,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
   }
 
   // call game code to allow overrides
-  svs.game->ClientUserInfoChanged(cl->entity, cl->user_info);
+  svs.game->ClientUserInfoChanged(svs.game->clients[cl - svs.clients], cl->user_info);
 
   // name for C code, mask off high bit
   g_strlcpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name));
@@ -796,23 +793,19 @@ void Sv_Frame(const uint32_t msec) {
  */
 static void Sv_InitLocal(void) {
 
-  sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO,
-                          "A list of demo names to cycle through");
-  sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO,
-                             "The base URL for in-game HTTP downloads");
-  sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0,
-                             "Prevents the most blatant form of speed cheating, disable at your own risk");
-  sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE,
-                         "The server hostname, visible in the server browser");
-  sv_max_clients = Cvar_Add("sv_max_clients", "8", CVAR_SERVER_INFO | CVAR_LATCH,
-                            "The maximum number of clients the server will allow");
-  sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO,
-                       "Set to 1 to to advertise this server via the master server");
-  sv_rcon_password = Cvar_Add("rcon_password", "", 0,
-                              "The remote console password. If set, only give this to trusted clients");
-  sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, NULL);
-  sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE,
-                             "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
+  sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
+  sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO, "The base URL for in-game HTTP downloads");
+  sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
+  sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
+  sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
+  sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
+  sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
+  sv_rcon_password = Cvar_Add("rcon_password", "", 0, "The remote console password. If set, only give this to trusted clients");
+  sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
+  sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE, "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
+
+  sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);
+  sv_max_entities->integer = Mini(sv_max_entities->integer, MAX_ENTITIES);
 
   if (dedicated->value) {
     Cvar_SetInteger(sv_public->name, 1);

@@ -188,7 +188,7 @@ static void Sv_Begin_f(void) {
   sv_client->state = SV_CLIENT_ACTIVE;
 
   // call the game begin function
-  svs.game->ClientBegin(sv_client->entity);
+  svs.game->ClientBegin(svs.game->clients[sv_client - svs.clients]);
 
   Cbuf_InsertFromDefer();
 }
@@ -316,10 +316,13 @@ static void Sv_Disconnect_f(void) {
  * @brief Enumeration helper for Sv_Info_f.
  */
 static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
-  sv_client_t *client = (sv_client_t *) data;
 
   if (var->flags & CVAR_SERVER_INFO) {
-    Sv_ClientPrint(client->entity, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
+
+    const sv_client_t *client = (sv_client_t *) data;
+    const g_client_t *cl = svs.game->clients[client - svs.clients];
+
+    Sv_ClientPrint(cl, PRINT_MEDIUM, "%s %s\n", var->name, var->string);
   }
 }
 
@@ -378,7 +381,7 @@ static void Sv_UserStringCommand(const char *s) {
 
   if (!c->name) { // unmatched command
     if (svs.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
-      svs.game->ClientCommand(sv_client->entity);
+      svs.game->ClientCommand(svs.game->clients[sv_client - svs.clients]);
     }
   }
 }
@@ -390,7 +393,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 
   cl->cmd_msec += cmd->msec;
 
-  svs.game->ClientThink(cl->entity, cmd);
+  svs.game->ClientThink(svs.game->clients[cl - svs.clients], cmd);
 }
 
 #define CMD_MAX_MOVES 1

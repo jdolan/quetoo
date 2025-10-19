@@ -237,6 +237,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 
   uint16_t bits = 0;
 
+  if (to->client != from->client) {
+    bits |= PS_PM_CLIENT;
+  }
+
   if (to->pm_state.type != from->pm_state.type) {
     bits |= PS_PM_TYPE;
   }
@@ -286,6 +290,10 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   Net_WriteShort(msg, bits);
+
+  if (bits & PS_PM_CLIENT) {
+    Net_WriteByte(msg, to->client);
+  }
 
   if (bits & PS_PM_TYPE) {
     Net_WriteByte(msg, to->pm_state.type);
@@ -746,6 +754,10 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   *to = *from;
 
   const int32_t bits = Net_ReadShort(msg);
+
+  if (bits & PS_PM_CLIENT) {
+    to->client = Net_ReadByte(msg);
+  }
 
   if (bits & PS_PM_TYPE) {
     to->pm_state.type = Net_ReadByte(msg);

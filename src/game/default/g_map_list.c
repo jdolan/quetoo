@@ -62,10 +62,7 @@ static GList *G_MapList_Parse(const char *filename) {
       map->num_teams = -1;
       map->techs = -1;
       map->ctf = -1;
-      map->match = -1;
-      map->rounds = -1;
       map->frag_limit = -1;
-      map->round_limit = -1;
       map->capture_limit = -1;
       map->time_limit = -1;
       map->hook = -1;
@@ -165,29 +162,8 @@ static GList *G_MapList_Parse(const char *filename) {
       continue;
     }
 
-    if (!g_strcmp0(token, "match")) {
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->match, 1)) {
-        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
-      }
-      continue;
-    }
-
-    if (!g_strcmp0(token, "rounds")) {
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->rounds, 1)) {
-        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
-      }
-      continue;
-    }
-
     if (!g_strcmp0(token, "frag_limit")) {
       if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->frag_limit, 1)) {
-        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
-      }
-      continue;
-    }
-
-    if (!g_strcmp0(token, "round_limit")) {
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->round_limit, 1)) {
         gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
       }
       continue;
@@ -222,36 +198,12 @@ static GList *G_MapList_Parse(const char *filename) {
     }
 
     if (*token == '}') { // wrap it up, B
-
-      G_Debug("Loaded map %s:\n"
-               "message: %s\n"
-               "sky: %s\n"
-               "weather: %s\n"
-               "gravity: %d\n"
-               "gameplay: %ud\n"
-               "teams: %ud\n"
-               "ctf: %ud\n"
-               "match: %ud\n"
-               "rounds: %ud\n"
-               "frag_limit: %ud\n"
-               "round_limit: %ud\n"
-               "capture_limit: %ud\n"
-               "time_limit: %f\n"
-               "give: %s\n"
-               "music: %s\n",
-               map->name, map->message, map->sky, map->weather, map->gravity,
-               map->gameplay, map->teams, map->ctf, map->match, map->rounds,
-               map->frag_limit, map->round_limit, map->capture_limit,
-               map->time_limit, map->give, map->music);
-
       list = g_list_append(list, map);
-
       map = NULL;
     }
   }
 
   gi.FreeFile(buf);
-
   return list;
 }
 

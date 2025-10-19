@@ -24,7 +24,7 @@
 /**
  * @brief Setup base entity goal for the specified target.
  */
-static inline void Ai_SetGoalBase(const g_entity_t *self, ai_goal_t *goal, ai_goal_type_t type, float priority) {
+static inline void Ai_SetGoalBase(const g_client_t *cl, ai_goal_t *goal, ai_goal_type_t type, float priority) {
 
   Ai_ClearGoal(goal);
 
@@ -35,9 +35,9 @@ static inline void Ai_SetGoalBase(const g_entity_t *self, ai_goal_t *goal, ai_go
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const vec3_t pos) {
+void Ai_SetPositionalGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const vec3_t pos) {
 
-  Ai_SetGoalBase(self, goal, AI_GOAL_POSITION, priority);
+  Ai_SetGoalBase(cl, goal, AI_GOAL_POSITION, priority);
 
   goal->position.pos = pos;
 
@@ -47,9 +47,9 @@ void Ai_SetPositionalGoal(const g_entity_t *self, ai_goal_t *goal, float priorit
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, const g_entity_t *entity) {
+void Ai_SetEntityGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const g_entity_t *entity) {
 
-  Ai_SetGoalBase(self, goal, AI_GOAL_ENTITY, priority);
+  Ai_SetGoalBase(cl, goal, AI_GOAL_ENTITY, priority);
   
   goal->entity.ent = entity;
   goal->entity.spawn_id = entity->s.spawn_id;
@@ -60,9 +60,9 @@ void Ai_SetEntityGoal(const g_entity_t *self, ai_goal_t *goal, float priority, c
 /**
  * @brief Setup entity goal for the specified target.
  */
-void Ai_SetPathGoal(const g_entity_t *self, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
+void Ai_SetPathGoal(const g_client_t *cl, ai_goal_t *goal, float priority, GArray *path, const g_entity_t *path_target) {
 
-  Ai_SetGoalBase(self, goal, AI_GOAL_PATH, priority);
+  Ai_SetGoalBase(cl, goal, AI_GOAL_PATH, priority);
   
   goal->path.path = g_array_ref(path);
   goal->path.path_index = 0;

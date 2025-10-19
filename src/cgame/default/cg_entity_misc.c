@@ -63,7 +63,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
   if (dust->sprite.image == NULL) {
     dust->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
-    cgi.Warn("%s @ %s failed to load sprite %s\n",
+    Cg_Warn("%s @ %s failed to load sprite %s\n",
          self->clazz->class_name,
          vtos(self->origin),
          name);
@@ -441,7 +441,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
   if (cgi.EntityValue(self->def, "model")->parsed & ENTITY_STRING) {
     entity->model = cgi.LoadModel(cgi.EntityValue(self->def, "model")->string);
   } else {
-    cgi.Warn("%s @ %s has no model specified\n", self->clazz->class_name, vtos(self->origin));
+    Cg_Warn("%s @ %s has no model specified\n", self->clazz->class_name, vtos(self->origin));
   }
 }
 
@@ -493,7 +493,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
   if (cgi.EntityValue(self->def, "sound")->parsed & ENTITY_STRING) {
     sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
   } else {
-    cgi.Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
+    Cg_Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
   }
 
   sound->play.origin = self->origin;
@@ -632,7 +632,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   sprite->sprite.image = cgi.LoadImage(va("sprites/%s", name), IMG_SPRITE);
   if (sprite->sprite.image == NULL) {
     sprite->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
-    cgi.Warn("%s @ %s failed to load sprite %s\n",
+    Cg_Warn("%s @ %s failed to load sprite %s\n",
          self->clazz->class_name,
          vtos(self->origin),
          name);
@@ -693,7 +693,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
     if (!g_strcmp0(self->clazz->class_name, teammate->clazz->class_name)) {
       that = teammate->data;
     } else {
-      cgi.Warn("Teammate is not %s\n", self->clazz->class_name);
+      Cg_Warn("Teammate is not %s\n", self->clazz->class_name);
     }
   }
 

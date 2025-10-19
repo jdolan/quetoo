@@ -21,10 +21,10 @@
 
 #pragma once
 
-void G_Ai_Disconnect(g_entity_t *self);
-void G_Ai_Think(g_entity_t *self, pm_cmd_t *cmd);
-void G_Ai_Respawn(g_entity_t *self);
-void G_Ai_Begin(g_entity_t *self);
+void G_Ai_Disconnect(g_client_t *cl);
+void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd);
+void G_Ai_Respawn(g_client_t *cl);
+void G_Ai_Begin(g_client_t *cl);
 void G_Ai_InitLocals(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
@@ -36,12 +36,7 @@ extern ai_level_t ai_level;
 extern cvar_t *ai_no_target;
 extern cvar_t *ai_node_dev;
 
-/**
- * @brief Resolve the entity at the given index.
- */
-#define ENTITY_FOR_NUM(n) &g_game.entities[n]
-
-ai_locals_t *Ai_GetLocals(const g_entity_t *ent);
+ai_locals_t *Ai_GetLocals(const g_client_t *cl);
 
 bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
 

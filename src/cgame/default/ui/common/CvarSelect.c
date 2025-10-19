@@ -116,7 +116,7 @@ static void didSelectOption(Select *select, Option *option) {
     }
   } else {
     String *desc = $((Object *) this, description);
-    cgi.Warn("%s: null cvar\n", desc->chars);
+    Cg_Warn("%s: null cvar\n", desc->chars);
     release(desc);
   }
 }

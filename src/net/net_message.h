@@ -26,18 +26,19 @@
 /**
  * @brief Delta compression flags for pm_state_t.
  */
-#define PS_PM_TYPE          (1 << 0)
-#define PS_PM_ORIGIN        (1 << 1)
-#define PS_PM_VELOCITY      (1 << 2)
-#define PS_PM_FLAGS         (1 << 3)
-#define PS_PM_TIME          (1 << 4)
-#define PS_PM_GRAVITY       (1 << 5)
-#define PS_PM_VIEW_OFFSET   (1 << 6)
-#define PS_PM_VIEW_ANGLES   (1 << 7)
-#define PS_PM_DELTA_ANGLES  (1 << 8)
-#define PS_PM_HOOK_POSITION (1 << 9)
-#define PS_PM_HOOK_LENGTH   (1 << 10)
-#define PS_PM_STEP_OFFSET   (1 << 11)
+#define PS_PM_CLIENT        (1 << 0)
+#define PS_PM_TYPE          (1 << 1)
+#define PS_PM_ORIGIN        (1 << 2)
+#define PS_PM_VELOCITY      (1 << 3)
+#define PS_PM_FLAGS         (1 << 4)
+#define PS_PM_TIME          (1 << 5)
+#define PS_PM_GRAVITY       (1 << 6)
+#define PS_PM_VIEW_OFFSET   (1 << 7)
+#define PS_PM_VIEW_ANGLES   (1 << 8)
+#define PS_PM_DELTA_ANGLES  (1 << 9)
+#define PS_PM_HOOK_POSITION (1 << 10)
+#define PS_PM_HOOK_LENGTH   (1 << 11)
+#define PS_PM_STEP_OFFSET   (1 << 12)
 
 /**
  * @brief Delta compression flags for user_cmd_t.

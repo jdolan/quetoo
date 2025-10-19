@@ -1196,7 +1196,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t brush_side, float size, bool splash) {
 
   if (brush_side < 0 || brush_side > cgi.WorldModel()->bsp->num_brush_sides) {
-    cgi.Warn("Invalid brush side %d\n", brush_side);
+    Cg_Warn("Invalid brush side %d\n", brush_side);
     return;
   }
 
@@ -1371,7 +1371,7 @@ void Cg_ParseTempEntity(void) {
       break;
 
     default:
-      cgi.Warn("Unknown type: %d\n", type);
+      Cg_Warn("Unknown type: %d\n", type);
       return;
   }
 }

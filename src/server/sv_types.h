@@ -228,12 +228,7 @@ typedef struct {
    * @brief Ping calculation.
    */
   uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
-  uint32_t ping;
-
-  /**
-   * @brief The entity bound to this client.
-   */
-  g_entity_t *entity;
+  int32_t ping;
 
   /**
    * @brief The client's datagram.
@@ -360,19 +355,5 @@ typedef struct {
    */
   g_export_t *game;
 } sv_static_t;
-
-/**
- * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_entity_t.
- */
-#define ENTITY_FOR_NUM(n) \
-  ( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
-
-/**
- * @brief Yields the entity number (index) for the specified g_entity_t * by
- * negotiating the edicts array based on the reported size of g_entity_t.
- */
-#define NUM_FOR_ENTITY(e) \
-  ( ((intptr_t) (e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */

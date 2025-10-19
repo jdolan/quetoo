@@ -242,7 +242,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other, const cm_t
         .index = self->move_info.sound_start,
         .origin = &other->s.origin,
         .atten = SOUND_ATTEN_SQUARE
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
     }
   }
 
@@ -256,7 +256,7 @@ static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other, const cm_t
  */
 static void G_trigger_push_Effect(g_entity_t *self) {
 
-  g_entity_t *ent = G_AllocEntity();
+  g_entity_t *ent = G_AllocEntity(__func__);
 
   ent->s.origin = Box3_Center(self->bounds);
 
@@ -359,7 +359,18 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other, const cm_t
     dflags = DMG_NO_GOD;
   }
 
-  G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), d, d, dflags, MOD_TRIGGER_HURT);
+  G_Damage(&(g_damage_t) {
+    .target = other,
+    .inflictor = self,
+    .attacker = NULL,
+    .dir = Vec3_Zero(),
+    .point = other->s.origin,
+    .normal = Vec3_Zero(),
+    .damage = d,
+    .knockback = d,
+    .flags = dflags,
+    .mod = MOD_TRIGGER_HURT
+  });
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow

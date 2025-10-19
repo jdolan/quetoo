@@ -202,9 +202,18 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_
   if (g_level.time - self->touch_time > 500) {
     self->touch_time = g_level.time;
 
-    G_Damage(other, self, NULL,
-         self->velocity, self->s.origin, Vec3_Zero(),
-         self->damage, self->damage, 0, MOD_FIREBALL);
+    G_Damage(&(g_damage_t) {
+      .target = other,
+      .inflictor = self,
+      .attacker = NULL,
+      .dir = self->velocity,
+      .point = self->s.origin,
+      .normal = Vec3_Zero(),
+      .damage = self->damage,
+      .knockback = self->damage,
+      .flags = 0,
+      .mod = MOD_FIREBALL
+    });
   }
 }
 
@@ -214,7 +223,7 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_
 static void G_misc_fireball_Fly(g_entity_t *self) {
   static uint32_t count;
 
-  g_entity_t *ent = G_AllocEntity();
+  g_entity_t *ent = G_AllocEntity(__func__);
 
   ent->s.origin = self->s.origin;
 
@@ -249,7 +258,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
       .index = gi.SoundIndex(va("common/lava_%d", (count++ % 3) + 1)),
       .entity = ent,
       .atten = SOUND_ATTEN_SQUARE
-    }, MULTICAST_PHS, NULL);
+    }, MULTICAST_PHS);
   }
 
   self->next_think = g_level.time + (self->wait * 1000.0) + (self->random * 1000 * RandomRangef(-1.f, 1.f));

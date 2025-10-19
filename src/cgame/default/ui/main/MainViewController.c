@@ -58,7 +58,7 @@ static void didClickNavigateViewController(Button *button) {
     $(this->navigationViewController, pushViewController, viewController);
     release(viewController);
   } else {
-    cgi.Warn("Menu item does not provide a ViewController class\n");
+    Cg_Warn("Menu item does not provide a ViewController class\n");
   }
 }
 

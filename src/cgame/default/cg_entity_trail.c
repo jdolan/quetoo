@@ -1107,7 +1107,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
     end = ent->termination;
 
     // client is overridden to specify owner of the beam
-    if (ent->current.client == cgi.client->client_num && !cgi.client->third_person) {
+    if (ent->current.client == cgi.client->client && !cgi.client->third_person) {
 
       // we own this beam (lightning, grapple, etc..)
       // project start & end points based on our current view origin

@@ -22,276 +22,57 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
+cvar_t *g_ai_min_clients;
 cvar_t *g_ai_max_clients;
-
-/**
- * @brief Calculate the number of empty client slots.
- */
-static uint8_t G_Ai_EmptySlots(void) {
-  uint8_t empty_slots = 0;
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-    g_entity_t *ent = &g_game.entities[i + 1];
-
-    if (!ent->in_use && !ent->client->connected) {
-      empty_slots++;
-    }
-  }
-
-  return empty_slots;
-}
-
-/**
- * @brief Calculate the number of bots.
- */
-static uint8_t G_Ai_NumberOfBots(void) {
-  uint8_t filled_slots = 0;
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-    g_entity_t *ent = &g_game.entities[i + 1];
-
-    if (ent->in_use && ent->client->connected && ent->client->ai) {
-      filled_slots++;
-    }
-  }
-
-  return filled_slots;
-}
-
-/**
- * @brief Calculate the number of connected clients (bots and players alike).
- */
-static uint8_t G_Ai_NumberOfClients(void) {
-  uint8_t filled_slots = 0;
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-    g_entity_t *ent = &g_game.entities[i + 1];
-
-    if (ent->in_use) {
-      filled_slots++;
-    }
-  }
-
-  return filled_slots;
-}
 
 /**
  * @brief
  */
-static void G_Ai_ClientThink(g_entity_t *self) {
-  pm_cmd_t cmd;
+static void G_Ai_ClientThink(g_entity_t *ent) {
   const int32_t num_runs = 3;
   uint8_t msec_left = QUETOO_TICK_MILLIS;
 
   for (int32_t i = 0; i < num_runs; i++) {
-    memset(&cmd, 0, sizeof(cmd));
+    pm_cmd_t cmd = { 0 };
+
     cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
-    G_Ai_Think(self, &cmd);
+    G_Ai_Think(ent->client, &cmd);
 
     msec_left -= cmd.msec;
   }
 
-  // see if we're in a match and need to join
-  if (self->client->persistent.spectator) {
-
-    if (g_level.match || g_level.rounds) {
-
-      // see if we can join
-      if (!(g_level.time - self->client->respawn_time < 3000) &&
-        !(g_level.match_time) &&
-        !(g_level.round_time)) {
-
-        if (g_level.teams || g_level.ctf) {
-          G_AddClientToTeam(self, G_SmallestTeam()->name);
-        } else {
-          gi.TokenizeString("spectate");
-          G_ClientCommand(self);
-        }
-      }
-    } else {
-      gi.Print("AI was stuck in spectator\n");
-      G_ClientDisconnect(self);
-      return;
-    }
-  } else {
-
-    // ready up
-    if ((g_level.match || g_level.rounds) && !self->client->persistent.ready) {
-
-      // only if all clients are ready
-      uint8_t num_players = 0;
-      uint8_t ready_slots = 0;
-
-      for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-
-        g_entity_t *ent = &g_game.entities[i + 1];
-
-        if (ent->in_use && ent->client->connected && !ent->client->ai && !ent->client->persistent.spectator) {
-          num_players++;
-
-          if (ent->client->persistent.ready) {
-            ready_slots++;
-          }
-        }
-      }
-
-      if (ready_slots == num_players) {
-        gi.TokenizeString("ready");
-        G_ClientCommand(self);
-      }
-    }
-  }
-
-  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief
  */
-static void G_Ai_ClientBegin(g_entity_t *self) {
+static void G_Ai_ClientBegin(g_client_t *cl) {
 
-  G_ClientBegin(self);
+  G_ClientBegin(cl);
 
-  G_Ai_Begin(self);
+  G_Ai_Begin(cl);
 
-  G_Debug("Spawned %s at %s", self->client->persistent.net_name, vtos(self->s.origin));
+  G_Debug("Spawned %s at %s", cl->persistent.net_name, vtos(cl->entity->s.origin));
 
-  self->Think = G_Ai_ClientThink;
-  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  cl->entity->Think = G_Ai_ClientThink;
+  cl->entity->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief
  */
-static void G_Ai_Spawn(g_entity_t *self, const uint32_t time_offset) {
+static void G_Ai_Connect(g_client_t *cl) {
 
-  char userinfo[MAX_USER_INFO_STRING];
-  Ai_GetUserInfo(self, userinfo);
+  char user_info[MAX_USER_INFO_STRING];
+  Ai_GetUserInfo(cl, user_info);
 
-  self->client->ai = true; // and away we go!
+  cl->ai = true; // and away we go!
 
-  G_ClientConnect(self, userinfo);
+  G_ClientConnect(cl, user_info);
 
-  if (!time_offset) {
-    G_Ai_ClientBegin(self);
-  } else {
-    self->Think = G_Ai_ClientBegin;
-    self->next_think = g_level.time + time_offset;
-  }
-
-  g_game.ai_left_to_spawn--;
-}
-
-static void G_Ai_AddBots(const int32_t count) {
-  int32_t empty_slots = G_Ai_EmptySlots();
-
-  if (!empty_slots) {
-    gi.Print("No client slots available, increase sv_max_clients.\n");
-    return;
-  }
-
-  g_game.ai_left_to_spawn += Minf(count, empty_slots);
-}
-
-/**
- * @brief
- */
-static void G_Ai_RemoveBots(const int32_t count) {
-  int32_t clamped = Minf(count, G_Ai_NumberOfBots());
-
-  if (!clamped) {
-    return;
-  }
-
-  while (clamped) {
-    g_entity_t *ent = &g_game.entities[1];
-    int32_t j;
-
-    for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-      if (ent->in_use && ent->client->connected && ent->client->ai) {
-        G_ClientDisconnect(ent);
-        break;
-      }
-    }
-
-    clamped--;
-  }
-}
-
-/**
- * @brief
- */
-static void G_Ai_Add_f(void) {
-
-  if (g_game.ai_fill_slots) {
-    gi.Print("g_ai_max_clients is set - change that instead\n");
-    return;
-  }
-
-  int32_t count = 1;
-
-  if (gi.Argc() > 1) {
-    count = atoi(gi.Argv(1));
-  }
-
-  G_Ai_AddBots(count);
-}
-
-/**
- * @brief
- */
-static void G_Ai_Remove_f(void) {
-
-  if (g_game.ai_fill_slots) {
-    gi.Print("g_ai_max_clients is set - change that instead\n");
-    return;
-  }
-
-  int32_t count = 1;
-
-  if (gi.Argc() > 1) {
-    count = atoi(gi.Argv(1));
-  }
-
-  G_Ai_RemoveBots(count);
-}
-
-/**
- * @brief
- */
-void G_Ai_ClientConnect(const g_entity_t *ent) {
-
-  // see if this overfilled the server
-  if (g_game.ai_fill_slots) {
-
-    uint8_t num_bots = G_Ai_NumberOfBots();
-    uint8_t num_clients = G_Ai_NumberOfClients();
-
-    if (num_bots && num_clients > g_game.ai_fill_slots) {
-      G_Ai_RemoveBots(1);
-    }
-  }
-}
-
-/**
- * @brief
- */
-void G_Ai_ClientDisconnect(g_entity_t *ent) {
-
-  if (g_game.ai_fill_slots) {
-    // see if this opened up a slot for a bot
-    uint8_t empty_slots = G_Ai_EmptySlots();
-
-    if (empty_slots && G_Ai_NumberOfClients() < g_game.ai_fill_slots) {
-      g_game.ai_left_to_spawn++;
-    }
-  }
-
-  G_Ai_Disconnect(ent);
+  G_Ai_ClientBegin(cl);
 }
 
 /**
@@ -299,61 +80,42 @@ void G_Ai_ClientDisconnect(g_entity_t *ent) {
  */
 void G_Ai_Frame(void) {
 
-  // don't run bots for a few frames so that the game has settled
-  // or during intermission
-  if (g_level.frame_num <= 5 || g_level.intermission_time) {
+  if (g_level.intermission_time) {
     return;
   }
 
-  if (g_ai_max_clients->modified) {
-    g_ai_max_clients->modified = false;
+  if (g_level.time % 1000 == 0) {
 
-    if (g_ai_max_clients->integer == -1) {
-      g_ai_max_clients->integer = sv_max_clients->integer;
-    } else {
-      g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
-    }
-
-    int32_t slot_diff = g_ai_max_clients->integer - G_Ai_NumberOfClients();
-
-    if (slot_diff > 0) {
-      G_Ai_AddBots(slot_diff);
-    } else if (slot_diff < 0) {
-      G_Ai_RemoveBots(abs(slot_diff));
-    }
-  }
-
-  // spawn as many bots as we have left to go
-  while (g_game.ai_left_to_spawn) {
-    g_entity_t *ent = &g_game.entities[1];
-    int32_t j;
-
-    for (j = 1; j <= sv_max_clients->integer; j++, ent++) {
-      if (!ent->in_use && !ent->client->connected) {
-        G_Ai_Spawn(ent, (g_game.ai_left_to_spawn - 1) * 500);
-        break;
+    int32_t count = 0;
+    G_ForEachClient(cl, {
+      if (cl->ai) {
+        count++;
       }
-    }
+    });
 
-    if (j > sv_max_clients->integer) { // should never happen
-      gi.Print("Desync in ai_left_to_spawn?\n");
-      g_game.ai_left_to_spawn = 0;
-      break;
+    if (count < g_ai_min_clients->integer) {
+      G_ForEachClient(cl, {
+        if (!cl->entity) {
+          G_Ai_Connect(cl);
+          break;
+        }
+      });
+    } else if (count > g_ai_max_clients->integer) {
+      G_ForEachClient(cl, {
+        if (cl->ai) {
+          G_Ai_Disconnect(cl);
+          break;
+        }
+      });
     }
   }
 
   // run AI think functions
-  g_entity_t *ent = &g_game.entities[1];
-  for (int32_t i = 1; i <= sv_max_clients->integer; i++, ent++) {
-
-    if (!ent->client->connected) {
-      continue;
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      G_RunThink(cl->entity);
     }
-
-    if (ent->client->ai) {
-      G_RunThink(ent);
-    }
-  }
+  });
   
   // Mark loading finished if 1 second has passed
   if (g_level.time > 1000) {
@@ -370,11 +132,8 @@ void G_Ai_Frame(void) {
  */
 void G_Ai_Init(void) {
 
-  g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO,
-                  "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
-
-  gi.AddCmd("g_ai_add", G_Ai_Add_f, CMD_GAME, "Add one or more AI to the game");
-  gi.AddCmd("g_ai_remove", G_Ai_Remove_f, CMD_GAME, "Remove one or more AI from the game");
+  g_ai_min_clients = gi.AddCvar("g_ai_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of bots to spawn.");
+  g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO, "The maximum number of bots to spawn.");
 
   G_Ai_InitLocals();
 }

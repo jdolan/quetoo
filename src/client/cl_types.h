@@ -205,7 +205,7 @@ typedef struct {
    * @details Each frame maintains an index into this buffer. Entity states are parsed
    * from the frame into this buffer, and then copied into the relevant entities.
    */
-  entity_state_t entity_states[ENTITY_STATE_BACKUP]; // accumulated each frame
+  entity_state_t entity_states[ENTITY_STATE_BACKUP];
 
   /**
    * @brief The entity state index.
@@ -213,10 +213,9 @@ typedef struct {
   uint32_t entity_state;
 
   /**
-   * @brief Our local client number, or index into `CS_CLIENTS`.
-   * @details This is equal to our entity number - 1, since the world is entity 0.
+   * @brief Our client number, or index into `CS_CLIENTS`.
    */
-  int32_t client_num;
+  int32_t client;
 
   /**
    * @brief Clamped simulation time. This will always be between the previously received

@@ -110,7 +110,11 @@ void Sv_InitWorld(void) {
  */
 void Sv_UnlinkEntity(g_entity_t *ent) {
 
-  sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+  if (ent->s.number == 0) {
+    return;
+  }
+
+  sv_entity_t *sent = &sv.entities[ent->s.number];
 
   if (sent->sector) {
     sv_sector_t *sector = (sv_sector_t *) sent->sector;
@@ -126,9 +130,7 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  */
 void Sv_LinkEntity(g_entity_t *ent) {
 
-  sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-
-  if (ent == svs.game->entities) { // never bother with the world
+  if (ent->s.number == 0) { // never bother with the world
     return;
   }
 
@@ -158,11 +160,17 @@ void Sv_LinkEntity(g_entity_t *ent) {
 
   const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
+  sv_entity_t *sent = &sv.entities[ent->s.number];
+
   sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
   sent->inverse_matrix = Mat4_Inverse(sent->matrix);
   ent->abs_bounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
 
   if (ent->solid == SOLID_NOT) {
+    return;
+  }
+
+  if (ent->solid == SOLID_PROJECTILE) {
     return;
   }
 
@@ -331,7 +339,7 @@ int32_t Sv_PointContents(const vec3_t point) {
     const int32_t head_node = Sv_HullForEntity(ent);
     if (head_node != -1) {
 
-      const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+      const sv_entity_t *sent = &sv.entities[ent->s.number];
       contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
     }
   }
@@ -359,7 +367,7 @@ int32_t Sv_BoxContents(const box3_t bounds) {
     const int32_t head_node = Sv_HullForEntity(ent);
     if (head_node != -1) {
 
-      const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+      const sv_entity_t *sent = &sv.entities[ent->s.number];
       contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverse_matrix, bounds), head_node);
     }
   }
@@ -417,7 +425,7 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
     return;
   }
 
-  const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+  const sv_entity_t *sent = &sv.entities[ent->s.number];
 
   cm_trace_t tr;
   
@@ -465,8 +473,8 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 
   // clip to world
   trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
-  if (trace.trace.fraction < 1.0f) {
-    trace.trace.ent = svs.game->entities;
+  if (trace.trace.fraction < 1.f) {
+    trace.trace.ent = svs.game->entities[0];
 
     if (trace.trace.start_solid) { // blocked entirely
       return trace.trace;
@@ -487,7 +495,6 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 
   return trace.trace;
 }
-
 
 /**
  * @brief Tests a clip of the specified translation against the specified entity.

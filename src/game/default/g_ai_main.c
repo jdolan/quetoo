@@ -35,17 +35,17 @@ static ai_locals_t *ai_locals;
 /**
  * @brief Get the locals for the specified bot entity.
  */
-ai_locals_t *Ai_GetLocals(const g_entity_t *ent) {
-  return ai_locals + ent->s.client;
+ai_locals_t *Ai_GetLocals(const g_client_t *cl) {
+  return ai_locals + cl->ps.client;
 }
 
 /**
  * @brief
  */
-static bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
+static bool Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
 
   // see if we're even facing the object
-  ai_locals_t *ai = Ai_GetLocals(self);
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   const vec3_t dir = Vec3_Normalize(Vec3_Subtract(other->s.origin, ai->eye_origin));
 
@@ -55,7 +55,7 @@ static bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
     return false;
   }
 
-  cm_trace_t tr = gi.Trace(ai->eye_origin, other->s.origin, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+  cm_trace_t tr = gi.Trace(ai->eye_origin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.ent == other) {
     return true;
@@ -67,27 +67,29 @@ static bool Ai_CanSee(const g_entity_t *self, const g_entity_t *other) {
 /**
  * @brief
  */
-static inline bool Ai_IsTargetable(const g_entity_t *self, const g_entity_t *other) {
+static inline bool Ai_IsTargetable(const g_client_t *cl, const g_entity_t *other) {
 
-  return !(other == self || !other->in_use || other->solid == SOLID_DEAD || other->solid == SOLID_NOT ||
-      (other->sv_flags & SVF_NO_CLIENT) || (other->client && G_OnSameTeam(self, other)));
+  if (G_IsMeat(other) && !G_OnSameTeam(cl, other->client)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
  * @brief
  */
-static inline bool Ai_CanTarget(const g_entity_t *self, const g_entity_t *other) {
-
-  return Ai_IsTargetable(self, other) && Ai_CanSee(self, other);
+static inline bool Ai_CanTarget(const g_client_t *cl, const g_entity_t *other) {
+  return Ai_IsTargetable(cl, other) && Ai_CanSee(cl, other);
 }
 
 /**
  * @brief Executes a console command as if the bot typed it.
  */
-static void Ai_Command(g_entity_t *self, const char *command) {
+static void Ai_Command(g_client_t *cl, const char *command) {
 
   gi.TokenizeString(command);
-  ge.ClientCommand(self);
+  ge.ClientCommand(cl);
 }
 
 /**
@@ -120,9 +122,9 @@ static int32_t Ai_ItemPick_Compare(const void *a, const void *b) {
 /**
  * @brief
  */
-static float Ai_ItemReachable(const g_entity_t *self, const g_entity_t *other) {
+static float Ai_ItemReachable(const g_client_t *cl, const g_entity_t *other) {
 
-  const float dist = Vec3_Distance(self->s.origin, other->s.origin);
+  const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
   if (dist > AI_MAX_ITEM_DISTANCE) {
     return AI_ITEM_UNREACHABLE;
@@ -139,19 +141,19 @@ static inline void Ai_BackupMainPath(ai_locals_t *ai) {
   }
 }
 
-static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
+static inline void Ai_RestoreMainPath(const g_client_t *cl, ai_locals_t *ai) {
 
   if (ai->backup_move_target.type == AI_GOAL_PATH) {
     // generate a new path to the old target, because we might have gotten a bit out
     // of sync with moving to the item
-    const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
+    const ai_node_id_t src = Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
     const ai_node_id_t dest = g_array_index(ai->backup_move_target.path.path, ai_node_id_t, ai->backup_move_target.path.path->len - 1);
     GArray *path = Ai_Node_FindPath(src, dest, Ai_Node_DefaultHeuristic, NULL);
 
     if (!path) {
       Ai_ClearGoal(&ai->move_target);
     } else {
-      Ai_SetPathGoal(self, &ai->move_target, ai->backup_move_target.priority, path, ai->backup_move_target.path.path_target);
+      Ai_SetPathGoal(cl, &ai->move_target, ai->backup_move_target.priority, path, ai->backup_move_target.path.path_target);
       g_array_unref(path);
     }
   } else {
@@ -163,19 +165,19 @@ static inline void Ai_RestoreMainPath(const g_entity_t *self, ai_locals_t *ai) {
   Ai_Debug("Returning to main path\n");
 
   // no matter what, clear long range func goal so we can try it immediately
-  ai->funcgoal_nextthinks[AI_FUNCGOAL_LONGRANGE] = 0;
+  ai->func_goal_next_thinks[AI_FUNC_GOAL_LONGRANGE] = 0;
 }
 
 /**
  * @brief Seek for items if we're not doing anything better.
  */
-static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
+static uint32_t Ai_FuncGoal_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (self->solid == SOLID_DEAD) {
+  if (cl->entity->solid == SOLID_DEAD) {
     return 1;
   }
 
-  ai_locals_t *ai = Ai_GetLocals(self);
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   // if we got stuck, don't hunt for items for a little bit
   if (ai->reacquire_time > g_level.time) {
@@ -185,7 +187,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
   // see if we're already hunting something.
   // early exit if we're under water or in air; we have a goal already
   // in that case.
-  if (ai->combat_target.type || !self->ground.ent) {
+  if (ai->combat_target.type || !cl->entity->ground.ent) {
     return 5;
   }
   
@@ -196,15 +198,15 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
     // check to see if the thing we are moving to has been taken
     if (target && target->item) {
 
-      if (!Ai_IsTargetable(self, target) ||
-        !Ai_CanPickupItem(self, target)) {
+      if (!Ai_IsTargetable(cl, target) ||
+        !Ai_CanPickupItem(cl, target)) {
 
         Ai_ClearGoal(&ai->move_target);
 
         // if we had a backup, return to it now
         if (ai->backup_move_target.type) {
 
-          Ai_RestoreMainPath(self, ai);
+          Ai_RestoreMainPath(cl, ai);
         }
       // still a good goal
       } else {
@@ -216,14 +218,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
   // we have nothing to do, start looking for a new one
   GArray *items_visible = g_array_new(false, false, sizeof(ai_item_pick_t));
 
-  for (int32_t i = sv_max_clients->integer + 1; i < ge.num_entities; i++) {
-
-    g_entity_t *ent = ENTITY_FOR_NUM(i);
-
-    if (!ent->in_use) {
-      continue;
-    }
-
+  G_ForEachEntity(ent, {
     if (ent->s.solid != SOLID_TRIGGER) {
       continue;
     }
@@ -234,7 +229,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
       continue;
     }
 
-    if (!gi.inPVS(self->s.origin, ent->s.origin)) {
+    if (!gi.inPVS(cl->entity->s.origin, ent->s.origin)) {
       continue;
     }
 
@@ -246,9 +241,9 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
     // most likely an item!
     float distance;
 
-    if (!Ai_CanTarget(self, ent) ||
-      !Ai_CanPickupItem(self, ent) ||
-      (distance = Ai_ItemReachable(self, ent)) <= AI_ITEM_UNREACHABLE) {
+    if (!Ai_CanTarget(cl, ent) ||
+        !Ai_CanPickupItem(cl, ent) ||
+        (distance = Ai_ItemReachable(cl, ent)) <= AI_ITEM_UNREACHABLE) {
       continue;
     }
 
@@ -259,7 +254,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
       .item = item,
       .weight = weight
     }, 1);
-  }
+  });
 
   // found one, set it up
   if (items_visible->len) {
@@ -279,7 +274,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
       bool path_found = false;
 
       if (pick.entity->node != AI_NODE_INVALID) {
-        const ai_node_id_t src = Ai_Node_FindClosest(self->s.origin, 512.f, true, true);
+        const ai_node_id_t src = Ai_Node_FindClosest(cl->entity->s.origin, 512.f, true, true);
         const ai_node_id_t dest = pick.entity->node;
 
         if (src != AI_NODE_INVALID) {
@@ -293,7 +288,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
           }
 
           Ai_BackupMainPath(ai);
-          Ai_SetPathGoal(self, &ai->move_target, pick.weight, path, pick.entity);  
+          Ai_SetPathGoal(cl, &ai->move_target, pick.weight, path, pick.entity);  
           g_array_unref(path);
 
           path_found = true;
@@ -303,9 +298,9 @@ static uint32_t Ai_FuncGoal_FindItems(g_entity_t *self, pm_cmd_t *cmd) {
       if (!path_found && ai_node_dev->integer) {
         gi.WriteByte(SV_CMD_TEMP_ENTITY);
         gi.WriteByte(TE_TRACER);
-        gi.WritePosition(self->s.origin);
+        gi.WritePosition(cl->entity->s.origin);
         gi.WritePosition(pick.entity->s.origin);
-        gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
+        gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
       }
 
       // if we can't find a path to the item, don't try to get it.
@@ -346,15 +341,15 @@ static ai_range_t Ai_GetRange(const float distance) {
 /**
  * @brief Picks a weapon for the AI based on its target
  */
-static void Ai_PickBestWeapon(g_entity_t *self) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+static void Ai_PickBestWeapon(g_client_t *cl) {
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   ai->weapon_check_time = g_level.time + 250; // don't try again for a bit
 
   ai_range_t targ_range;
 
   if (ai->combat_target.type == AI_GOAL_ENTITY) {
-    targ_range = Ai_GetRange(Vec3_Distance(self->s.origin, ai->combat_target.entity.ent->s.origin));
+    targ_range = Ai_GetRange(Vec3_Distance(cl->entity->s.origin, ai->combat_target.entity.ent->s.origin));
   } else {
     targ_range = RANGE_DONT_CARE;
   }
@@ -362,7 +357,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
   ai_item_pick_t weapons[ai_num_weapons];
   size_t num_weapons = 0;
 
-  const int16_t *inventory = self->client->inventory;
+  const int16_t *inventory = cl->inventory;
 
   for (size_t i = 0; i < g_num_items; i++) {
     const g_item_t *item = G_ItemByIndex(i);
@@ -432,8 +427,8 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
       weight /= 2.f;
     }
 
-    // penalty for explosive weapons at low self health
-    if ((self->health < 25) &&
+    // penalty for explosive weapons at low cl health
+    if ((cl->entity->health < 25) &&
         (item->flags & WF_EXPLOSIVE)) {
       weight /= 2.f;
     }
@@ -452,11 +447,11 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 
   const ai_item_pick_t *best_weapon = &weapons[0];
 
-  if (self->client->weapon == best_weapon->item) {
+  if (cl->weapon == best_weapon->item) {
     return;
   }
 
-  Ai_Command(self, va("use %s", best_weapon->item->name));
+  Ai_Command(cl, va("use %s", best_weapon->item->name));
   ai->weapon_check_time = g_level.time + 300; // don't try again for a bit
   Ai_Debug("weapon choice: %s (%d choices)\n", best_weapon->item->name, (int32_t) num_weapons);
 }
@@ -464,7 +459,7 @@ static void Ai_PickBestWeapon(g_entity_t *self) {
 /**
  * @brief Calculate a priority for the specified target.
  */
-static float Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, const bool visible) {
+static float Ai_EnemyPriority(const g_client_t *cl, const g_entity_t *target, const bool visible) {
 
   // TODO: all of this function. Enemies with more powerful weapons need a higher weight.
   // Enemies with lower health need a higher weight. Enemies carrying flags need an even higher weight.
@@ -475,14 +470,14 @@ static float Ai_EnemyPriority(const g_entity_t *self, const g_entity_t *target, 
 /**
  * @brief Figure out if we should chase the enemy and close in on them.
  */
-static bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *target) {
+static bool Ai_ShouldChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
 
   if (target->solid == SOLID_DEAD || (target->sv_flags & SVF_NO_CLIENT)) {
     return false;
   }
 
   // base chance is our weapon's weight
-  const g_item_t *const weapon = self->client->weapon;
+  const g_item_t *const weapon = cl->weapon;
   float chance = weapon->priority;
 
   // if they're low health, higher chance
@@ -512,13 +507,13 @@ static bool Ai_ShouldChaseEnemy(const g_entity_t *self, const g_entity_t *target
 /**
  * @brief Funcgoal that controls the AI's lust for blood
  */
-static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
+static uint32_t Ai_FuncGoal_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (self->solid == SOLID_DEAD) {
+  if (cl->entity->solid == SOLID_DEAD) {
     return 1;
   }
 
-  ai_locals_t *ai = Ai_GetLocals(self);
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   if (ai_no_target->integer || ai_node_dev->integer) {
 
@@ -537,19 +532,19 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
   if (ai->combat_target.type == AI_GOAL_ENTITY) {
 
     // check to see if the enemy has gone out of our line of sight
-    if (!Ai_CanTarget(self, ai->combat_target.entity.ent)) {
+    if (!Ai_CanTarget(cl, ai->combat_target.entity.ent)) {
 
       // enemy dead/out of LOS/disconnected; chase them!
-      if (Ai_ShouldChaseEnemy(self, ai->combat_target.entity.ent)) {
+      if (Ai_ShouldChaseEnemy(cl, ai->combat_target.entity.ent)) {
 
         const vec3_t where_to = ai->combat_target.entity.ent->s.origin;
         
-        const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 128.f, true, true);
+        const ai_node_id_t closest = Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
         const ai_node_id_t closest_to_target = Ai_Node_FindClosest(where_to, 128.f, true, true);
         GArray *path = Ai_Node_FindPath(closest, closest_to_target, Ai_Node_DefaultHeuristic, NULL);
 
         if (path) {
-          Ai_SetPathGoal(self, &ai->move_target, 0.7f, path, ai->combat_target.entity.ent);
+          Ai_SetPathGoal(cl, &ai->move_target, 0.7f, path, ai->combat_target.entity.ent);
           g_array_unref(path);
           Ai_Debug("Enemy out of sight & chasing\n");
         }
@@ -567,7 +562,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
   }
 
   // we have somebody to kill; go get'em!
-  if (ai->combat_target.type == AI_GOAL_ENTITY && !Ai_GoalHasEntity(&ai->move_target, ai->combat_target.entity.ent) && Ai_ShouldChaseEnemy(self, ai->combat_target.entity.ent)) {
+  if (ai->combat_target.type == AI_GOAL_ENTITY && !Ai_GoalHasEntity(&ai->move_target, ai->combat_target.entity.ent) && Ai_ShouldChaseEnemy(cl, ai->combat_target.entity.ent)) {
     Ai_CopyGoal(&ai->combat_target, &ai->move_target);
     Ai_Debug("Decided to chase/close in on enemy\n");
   }
@@ -579,25 +574,21 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
   }
 
   // we lost our enemy, start looking for a new one
-  g_entity_t *player = NULL;
+  g_entity_t *enemy = NULL;
 
-  for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
-
-    g_entity_t *ent = ENTITY_FOR_NUM(i);
-
-    if (Ai_CanTarget(self, ent)) {
-
-      player = ent;
+  G_ForEachEntity(ent, {
+    if (Ai_CanTarget(cl, ent)) {
+      enemy = ent;
       break;
     }
-  }
+  });
 
   // found one, set it up
-  if (player) {
+  if (enemy) {
 
-    Ai_SetEntityGoal(self, &ai->combat_target, Ai_EnemyPriority(self, player, true), player);
+    Ai_SetEntityGoal(cl, &ai->combat_target, Ai_EnemyPriority(cl, enemy, true), enemy);
 
-    Ai_PickBestWeapon(self);
+    Ai_PickBestWeapon(cl);
 
     ai->combat_target.entity.combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
     ai->combat_target.entity.lock_on_time = g_level.time + RandomRangeu(250, 1000);
@@ -607,7 +598,7 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
     }
 
     // re-run hunt with the new target
-    return Ai_FuncGoal_Hunt(self, cmd);
+    return Ai_FuncGoal_Hunt(cl, cmd);
   }
 
   return 5;
@@ -616,10 +607,10 @@ static uint32_t Ai_FuncGoal_Hunt(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Funcgoal that controls the AI's weaponry.
  */
-static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
+static uint32_t Ai_FuncGoal_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
 
   // if we're dead, just keep clicking so we respawn.
-  if (self->solid == SOLID_DEAD) {
+  if (cl->entity->solid == SOLID_DEAD) {
 
     if (g_level.frame_num & 1) {
       cmd->buttons = BUTTON_ATTACK;
@@ -627,17 +618,17 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
     return 1;
   }
 
-  ai_locals_t *ai = Ai_GetLocals(self);
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   if (ai->weapon_check_time < g_level.time) { // check for a new weapon every once in a while
-    Ai_PickBestWeapon(self);
+    Ai_PickBestWeapon(cl);
   }
 
   // we're alive - if we're aiming at an enemy, start-a-firin
   if (ai->combat_target.type == AI_GOAL_ENTITY) {
     if (ai->combat_target.entity.lock_on_time < g_level.time) {
 
-      const uint32_t grenade_hold_time = self->client->grenade_hold_time;
+      const uint32_t grenade_hold_time = cl->grenade_hold_time;
       if (grenade_hold_time) {
         if (g_level.time - grenade_hold_time < RandomRangeu(1500, 2500)) {
           cmd->buttons |= BUTTON_ATTACK;
@@ -654,22 +645,22 @@ static uint32_t Ai_FuncGoal_Weaponry(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Funcgoal that controls the AI's crouch/jumping while hunting.
  */
-static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
+static uint32_t Ai_FuncGoal_Acrobatics(g_client_t *cl, pm_cmd_t *cmd) {
 
-  if (self->solid == SOLID_DEAD) {
+  if (cl->entity->solid == SOLID_DEAD) {
     return 1;
   }
 
-  ai_locals_t *ai = Ai_GetLocals(self);
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   if (ai->combat_target.type != AI_GOAL_ENTITY) {
     return 200;
   }
 
   // do some acrobatics
-  if (self->ground.ent) {
+  if (cl->entity->ground.ent) {
 
-    if (self->client->ps.pm_state.flags & PMF_DUCKED) {
+    if (cl->ps.pm_state.flags & PMF_DUCKED) {
 
       if ((RandomRangeu(0, 32)) == 0) { // uncrouch eventually
         cmd->up = 0;
@@ -695,15 +686,20 @@ static uint32_t Ai_FuncGoal_Acrobatics(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Wander aimlessly, hoping to find something to love.
  */
-static inline float Ai_Wander(g_entity_t *self, pm_cmd_t *cmd) {
-  ai_locals_t *ai = Ai_GetLocals(self);
-  float *angle = ai->combat_target.type == AI_GOAL_ENTITY ? &ai->combat_target.entity.flank_angle : &ai->move_target.wander.angle;
+static inline float Ai_Wander(g_client_t *cl, pm_cmd_t *cmd) {
+
+  ai_locals_t *ai = Ai_GetLocals(cl);
+  g_entity_t *ent = cl->entity;
+
+  float *angle = ai->combat_target.type == AI_GOAL_ENTITY
+    ? &ai->combat_target.entity.flank_angle
+    : &ai->move_target.wander.angle;
 
   vec3_t forward;
   Vec3_Vectors(Vec3(0.f, *angle, 0.f), &forward, NULL, NULL);
 
-  const vec3_t end = Vec3_Fmaf(self->s.origin, Box3_Size(self->bounds).x * 2.0f, forward);
-  const cm_trace_t tr = gi.Trace(self->s.origin, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PLAYER);
+  const vec3_t end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.0f, forward);
+  const cm_trace_t tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
 
   if (tr.fraction < 1.0f) { // hit a wall
   
@@ -734,19 +730,19 @@ static g_entity_t *ai_current_entity;
  */
 static cm_trace_t Ai_ClientMove_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
-  const g_entity_t *self = ai_current_entity;
+  const g_entity_t *ent= ai_current_entity;
 
-  if (self->solid == SOLID_DEAD) {
-    return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_CORPSE);
+  if (ent->solid == SOLID_DEAD) {
+    return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
   } else {
-    return gi.Trace(start, end, bounds, self, CONTENTS_MASK_CLIP_PLAYER);
+    return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_PLAYER);
   }
 }
 
 /**
  * @brief Increase our path pointer.
  */
-static bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
+static bool Ai_TryNextNodeInPath(g_client_t *cl, ai_goal_t *goal) {
 
   goal->path.path_index++;
 
@@ -767,7 +763,7 @@ static bool Ai_TryNextNodeInPath(g_entity_t *self, ai_goal_t *goal) {
 /**
  * @brief See if we're in a good spot to keep going towards our node goal.
  */
-static bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
+static bool Ai_CheckNodeNav(g_client_t *cl, ai_goal_t *goal) {
 
   /*
    * The AI's bbox is expanded for collision checks. This is so
@@ -776,9 +772,8 @@ static bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
   const vec3_t padding = { .x = 8.f, .y = 8.f, .z = 0.f };
 
   // if we're touching our nav goal, we can go next
-  if (Box3_ContainsPoint(Box3_Expand3(self->abs_bounds, padding), goal->path.path_position)) {
-
-    return Ai_TryNextNodeInPath(self, goal);
+  if (Box3_ContainsPoint(Box3_Expand3(cl->entity->abs_bounds, padding), goal->path.path_position)) {
+    return Ai_TryNextNodeInPath(cl, goal);
   }
 
   return true;
@@ -787,9 +782,9 @@ static bool Ai_CheckNodeNav(g_entity_t *self, ai_goal_t *goal) {
 /**
  * @brief 
  */
-static bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_t dest) {
-  ai_locals_t *ai = Ai_GetLocals(self);
-  const float path_dist = Vec3_Distance(self->s.origin, dest);
+static bool Ai_CheckGoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest) {
+  ai_locals_t *ai = Ai_GetLocals(cl);
+  const float path_dist = Vec3_Distance(cl->entity->s.origin, dest);
 
   // wander's distress is handled elsewhere
   if (goal->type) {
@@ -799,7 +794,7 @@ static bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_t
       goal->distress /= 2;
     // getting further away
     } else {
-      goal->distress += (gi.PointContents(self->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
+      goal->distress += (gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
     }
 
     vec3_t dest = Vec3_Zero();
@@ -820,7 +815,7 @@ static bool Ai_CheckGoalDistress(g_entity_t *self, ai_goal_t *goal, const vec3_t
     }
 
     // something is blocking our destination
-    const cm_trace_t tr = gi.Trace(ai->eye_origin, dest, Box3_Zero(), self, CONTENTS_MASK_CLIP_CORPSE);
+    const cm_trace_t tr = gi.Trace(ai->eye_origin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f) {
       goal->distress += 0.25f;
@@ -856,14 +851,14 @@ static inline bool Ai_Path_IsLinked(const GArray *path, const guint a, const gui
 /**
  * @brief 
  */
-static bool Ai_FacingTarget(const g_entity_t *self, const vec3_t target) {
-  vec3_t sub = Vec3_Subtract(target, self->s.origin);
+static bool Ai_FacingTarget(const g_client_t *cl, const vec3_t target) {
+  vec3_t sub = Vec3_Subtract(target, cl->entity->s.origin);
   sub.z = 0;
 
   sub = Vec3_Normalize(sub);
 
   vec3_t fwd;
-  Vec3_Vectors(Vec3(0, self->s.angles.y, 0), &fwd, NULL, NULL);
+  Vec3_Vectors(Vec3(0, cl->entity->s.angles.y, 0), &fwd, NULL, NULL);
 
   const float dot = Vec3_Dot(sub, fwd);
 
@@ -894,8 +889,11 @@ bool Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node)
 /**
  * @brief Move towards our current target
  */
-static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+static uint32_t Ai_MoveToTarget(g_client_t *cl, pm_cmd_t *cmd) {
+
+  g_entity_t *ent = cl->entity;
+
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   bool target_enemy = false;
 
@@ -904,7 +902,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
   switch (ai->move_target.type) {
     default:
-      dest = self->s.origin;
+      dest = ent->s.origin;
       move_wander = true;
       break;
     case AI_GOAL_POSITION:
@@ -929,9 +927,9 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
       break;
     case AI_GOAL_PATH:
-      if (!Ai_CheckNodeNav(self, &ai->move_target)) {
-        Ai_RestoreMainPath(self, ai);
-        Ai_MoveToTarget(self, cmd);
+      if (!Ai_CheckNodeNav(cl, &ai->move_target)) {
+        Ai_RestoreMainPath(cl, ai);
+        Ai_MoveToTarget(cl, cmd);
         return 1;
       }
 
@@ -943,21 +941,21 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
       break;
   }
   
-  if (!Ai_CheckGoalDistress(self, &ai->move_target, dest)) {
+  if (!Ai_CheckGoalDistress(cl, &ai->move_target, dest)) {
     Ai_ClearGoal(&ai->move_target);
-    Ai_MoveToTarget(self, cmd);
+    Ai_MoveToTarget(cl, cmd);
     return 1;
   }
 
   if (move_wander) {
-    const float wander_angle = Ai_Wander(self, cmd);
+    const float wander_angle = Ai_Wander(cl, cmd);
 
     angles = Vec3(0.0, wander_angle, 0.0);
     Vec3_Vectors(angles, &dir, NULL, NULL);
-    dest = Vec3_Add(self->s.origin, dir);
+    dest = Vec3_Add(ent->s.origin, dir);
   }
 
-  dir = Vec3_Subtract(dest, self->s.origin);
+  dir = Vec3_Subtract(dest, ent->s.origin);
   const float len = Vec3_Length(dir);
 
   if (target_enemy && len < 200.0f) {
@@ -970,15 +968,15 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
   dir = Vec3_Normalize(dir);
   angles = Vec3_Euler(dir);
 
-  const float delta_yaw = self->client->angles.y - angles.y;
+  const float delta_yaw = cl->angles.y - angles.y;
   Vec3_Vectors(Vec3(0.0, delta_yaw, 0.0), &dir, NULL, NULL);
 
-  const bool swimming = self->water_level >= WATER_WAIST;
+  const bool swimming = ent->water_level >= WATER_WAIST;
   bool wait_politely = false;
 
   if (ai->move_target.type == AI_GOAL_PATH) {
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
-    if (!(gi.PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
+    if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
       dir = Vec3_Scale(dir, PM_SPEED_RUN);
       wait_politely = true;
       ai->move_target.distress_extension = true;
@@ -991,9 +989,11 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
       }
     // if we aren't underwater, have no ground entity & falling downwards, we're probably in the air;
     // rather than full-blasting, pull us towards what we're trying to drop on.
-    } else if (!swimming && !self->ground.ent && self->velocity.z < 0 &&
-      Vec3_Dot(Vec3_Subtract(self->s.origin, ai->move_target.path.path_position), Vec3_Down()) > 0.7f &&
-      (ai->move_target.path.path_position.z - self->s.origin.z) <= -PM_STEP_HEIGHT) {
+    } else if (!swimming
+               && !ent->ground.ent
+               && ent->velocity.z < 0.f
+               && Vec3_Dot(Vec3_Subtract(ent->s.origin, ai->move_target.path.path_position), Vec3_Down()) > 0.7f
+               && (ai->move_target.path.path_position.z - ent->s.origin.z) <= -PM_STEP_HEIGHT) {
       dir = Vec3_Scale(dir, Clampf(len, 10.f, PM_SPEED_RUN));
       Ai_Debug("Trying to land on target\n");
     // we're navigating on land, and our next target is below us & a drop node (one-way connection); rather than full-blast
@@ -1006,25 +1006,23 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
     }
 
     // if we're swimming, node is above us and we're "sticky feet", jump
-    if (swimming && self->ground.ent) {
+    if (swimming && ent->ground.ent) {
       cmd->up = PM_SPEED_JUMP;
     // if we're on a ladder and the node is a bbox below us, crouch to get down,
     // otherwise hold jump
-    } else if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
-
-      if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
+    } else if (cl->ps.pm_state.flags & PMF_ON_LADDER) {
+      if ((ai->move_target.path.path_position.z - ent->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
         cmd->up = -PM_SPEED_DUCKED;
       } else {
         cmd->up = PM_SPEED_JUMP;
       }
-
     }
   // run full speed towards the target
   } else {
     dir = Vec3_Scale(dir, PM_SPEED_RUN);
 
     // if we're not navving, hold jump under water
-    if (self->water_level >= WATER_WAIST) {
+    if (ent->water_level >= WATER_WAIST) {
       cmd->up = PM_SPEED_JUMP;
     }
   }
@@ -1032,22 +1030,22 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  ai_current_entity = self;
+  ai_current_entity = ent;
 
   // predict ahead
   pm_move_t pm;
 
   memset(&pm, 0, sizeof(pm));
-  pm.s = self->client->ps.pm_state;
+  pm.s = cl->ps.pm_state;
 
-  pm.s.origin = self->s.origin;
+  pm.s.origin = ent->s.origin;
 
-  pm.s.velocity = self->velocity;
+  pm.s.velocity = ent->velocity;
 
   pm.s.type = PM_NORMAL;
 
   pm.cmd = *cmd;
-  pm.ground = self->ground;
+  pm.ground = ent->ground;
   //pm.hook_pull_speed = g_hook_pull_speed->value;
 
   pm.PointContents = gi.PointContents;
@@ -1069,21 +1067,21 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
   Pm_Move(&pm_ahead);
 
   // we weren't trying to jump and predicted ground is gone
-  if (cmd->up <= 0 && self->ground.ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
+  if (cmd->up <= 0 && ent->ground.ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
 
     //Ai_Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
 
     if (ai->move_target.type == AI_GOAL_PATH) {
-      const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin));
+      const float xy_dist = Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(ent->s.origin));
       
       // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-      if (!(gi.PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
+      if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !Ai_Path_CanPathTo(ai->move_target.path.path, ai->move_target.path.path_index)) {
         cmd->forward = -cmd->forward;
         cmd->right = -cmd->right; // stop for now
         Ai_Debug("Stopping early to prevent mover issues\n");
       // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
-      } else if (((ai->move_target.path.path_position.z - self->s.origin.z) > -PM_STEP_HEIGHT ||
-        (xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
+      } else if (((ai->move_target.path.path_position.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
+        (xy_dist > fabsf(ai->move_target.path.path_position.z - ent->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
         cmd->up = PM_SPEED_JUMP;
       }
     } else if (move_wander) {
@@ -1096,10 +1094,10 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
         ai->move_target.wander.angle += Randomb() ? -angle : angle;
       }
     } else {
-      const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(self->s.origin));
+      const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(ent->s.origin));
 
-      if (((dest.z - self->s.origin.z) > -PM_STEP_HEIGHT &&
-        (xy_dist > fabsf(ai->move_target.path.path_position.z - self->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
+      if (((dest.z - ent->s.origin.z) > -PM_STEP_HEIGHT &&
+        (xy_dist > fabsf(ai->move_target.path.path_position.z - ent->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
         cmd->up = PM_SPEED_JUMP;
       }
     }
@@ -1117,26 +1115,29 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
   }
   
   // check for getting stuck
-  const vec3_t move_dir = Vec3_Subtract(self->s.origin, pm.s.origin);
+  const vec3_t move_dir = Vec3_Subtract(ent->s.origin, pm.s.origin);
   const float move_len = Vec3_Length(move_dir);
   
   // check for teleport
   if (move_len > 64.f) {
     if (ai->move_target.type == AI_GOAL_PATH) {
-      if (!Ai_TryNextNodeInPath(self, &ai->move_target)) {
-        Ai_RestoreMainPath(self, ai);
+      if (!Ai_TryNextNodeInPath(cl, &ai->move_target)) {
+        Ai_RestoreMainPath(cl, ai);
       }
     }
   // if we're not waiting to turn...
   // and not waiting politely...
   // and not riding a mover...
-  } else if (((ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.trick_jump != TRICK_JUMP_TURNING) || ai->move_target.type != AI_GOAL_PATH) &&
-    !wait_politely && (!self->ground.ent || self->ground.ent->s.number == 0)) {
+  } else if (((ai->move_target.type == AI_GOAL_PATH
+               && ai->move_target.path.trick_jump != TRICK_JUMP_TURNING)
+               || ai->move_target.type != AI_GOAL_PATH)
+               && !wait_politely
+               && (!ent->ground.ent || ent->ground.ent->s.number == 0)) {
 
     // we'll be pushed up against something
     float smol_dist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
 
-    if (gi.PointContents(self->s.origin) & CONTENTS_MASK_LIQUID) {
+    if (gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) {
       smol_dist *= 0.1f;
     }
 
@@ -1145,17 +1146,17 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
       if (ai->distress_jump_offset <= g_level.time) {
         // if we're navving, node is above us, and we're on ground, jump; we're probably trying
         // to trick-jump or something
-        if (ai->move_target.type == AI_GOAL_PATH && self->ground.ent && pm.ground.ent) {
-          if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
+        if (ai->move_target.type == AI_GOAL_PATH && ent->ground.ent && pm.ground.ent) {
+          if ((ai->move_target.path.path_position.z - ent->s.origin.z) > PM_STEP_HEIGHT * 7.f) {
 
             ai->move_target.path.trick_jump = TRICK_JUMP_START;
             ai->move_target.path.trick_position = ai->move_target.path.path_position;
             cmd->up = PM_SPEED_JUMP;
 
             Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
-          } else if ((ai->move_target.path.path_position.z - self->s.origin.z) > PM_STEP_HEIGHT &&
-            Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(self->s.origin)) < PM_STEP_HEIGHT * 7.f &&
-            Ai_FacingTarget(self, ai->move_target.path.path_position)) {
+          } else if ((ai->move_target.path.path_position.z - ent->s.origin.z) > PM_STEP_HEIGHT &&
+            Vec2_Distance(Vec3_XY(ai->move_target.path.path_position), Vec3_XY(ent->s.origin)) < PM_STEP_HEIGHT * 7.f &&
+            Ai_FacingTarget(cl, ai->move_target.path.path_position)) {
 
             cmd->up = PM_SPEED_JUMP;
             Ai_Debug("Node above us & close, and we're probably stuck; regular jump\n");
@@ -1165,7 +1166,7 @@ static uint32_t Ai_MoveToTarget(g_entity_t *self, pm_cmd_t *cmd) {
 
       // if we're on a mover, distress differently so we don't unexpectedly
       // jump off of it
-      if (self->ground.ent && self->ground.ent->s.number != 0) {
+      if (ent->ground.ent && ent->ground.ent->s.number != 0) {
         ai->move_target.distress += 0.02f;
       } else {
         ai->move_target.distress += 0.2f;
@@ -1198,7 +1199,7 @@ static inline float Ai_AngleMod(const float a) {
   return (360.0f / 65536) * ((int32_t) (a * (65536 / 360.0f)) & 65535);
 }
 
-static float Ai_CalculateAngle(g_entity_t *self, const float speed, float current, float ideal) {
+static float Ai_CalculateAngle(g_client_t *cl, const float speed, float current, float ideal) {
   current = Ai_AngleMod(current);
   ideal = Ai_AngleMod(ideal);
 
@@ -1234,10 +1235,12 @@ static float Ai_CalculateAngle(g_entity_t *self, const float speed, float curren
 /**
  * @brief Turn/look towards our current target
  */
-static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+static uint32_t Ai_TurnToTarget(g_client_t *cl, pm_cmd_t *cmd) {
+
+  ai_locals_t *ai = Ai_GetLocals(cl);
   ai_goal_t *combat_target = &ai->combat_target;
 
+  g_entity_t *ent = cl->entity;
   vec3_t ideal_angles;
 
   if (combat_target->type != AI_GOAL_ENTITY) {
@@ -1253,8 +1256,13 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
           aim_target = ai->move_target.path.trick_position;
         // if we're above ground & on-land, and our next path is bidirectional, assume it's normal
         // pathing; aim towards our *next* target to look a bit more natural.
-        } else if (((self->water_level < WATER_WAIST && !(self->client->ps.pm_state.flags & PMF_ON_LADDER)) || !(gi.PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID)) &&
-          ai->move_target.path.path_index && Ai_Path_IsLinked(ai->move_target.path.path, ai->move_target.path.path_index, ai->move_target.path.path_index - 1)) {
+        } else if (((ent->water_level < WATER_WAIST
+                     && !(cl->ps.pm_state.flags & PMF_ON_LADDER))
+                     || !(gi.PointContents(ai->move_target.path.path_position) & CONTENTS_MASK_LIQUID))
+                   && ai->move_target.path.path_index
+                   && Ai_Path_IsLinked(ai->move_target.path.path,
+                                       ai->move_target.path.path_index,
+                                       ai->move_target.path.path_index - 1)) {
           aim_target = ai->move_target.path.next_path_position;
         // otherwise, aim directly at the next position
         } else {
@@ -1268,7 +1276,7 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
         assert(false);
       }
 
-      const vec3_t aim_direction = Vec3_Normalize(Vec3_Subtract(aim_target, self->s.origin));
+      const vec3_t aim_direction = Vec3_Normalize(Vec3_Subtract(aim_target, cl->entity->s.origin));
       ideal_angles = Vec3_Euler(aim_direction);
       ideal_angles.z = 0.f;
 
@@ -1277,21 +1285,21 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
       // FIXME: bug in PMove prevents this from working for *all* in air situations
       // (you get less forward momentum on a jump if you are looking up/down)
       // so for now this is hardcoded to ladders
-      if (self->client->ps.pm_state.flags & PMF_ON_LADDER) {
-        if ((ai->move_target.path.path_position.z - self->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
+      if (cl->ps.pm_state.flags & PMF_ON_LADDER) {
+        if ((ai->move_target.path.path_position.z - cl->entity->s.origin.z) < -Box3_Size(PM_BOUNDS).z) {
           ideal_angles.x = Clampf(ideal_angles.x, -10.f, -180.f);
         } else {
           ideal_angles.x = Clampf(ideal_angles.x, 10.f, 180.f);
         }
         Ai_Debug("Clamping X to %f\n", ideal_angles.x);
-      } else if (self->water_level < WATER_WAIST) {
+      } else if (ent->water_level < WATER_WAIST) {
         ideal_angles.x = 0.f;
       }
     }
   } else {
-    vec3_t aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, self->s.origin);
+    vec3_t aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, cl->entity->s.origin);
 
-    const g_item_t *const weapon = self->client->weapon;
+    const g_item_t *const weapon = cl->weapon;
 
     if (weapon->flags & WF_PROJECTILE) {
       const float dist = Vec3_Length(aim_direction);
@@ -1300,9 +1308,9 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
       const float time = dist / speed;
       const vec3_t target_velocity = combat_target->entity.ent->velocity;
       const vec3_t target_pos = Vec3_Fmaf(combat_target->entity.ent->s.origin, time, target_velocity);
-      aim_direction = Vec3_Subtract(target_pos, self->s.origin);
+      aim_direction = Vec3_Subtract(target_pos, cl->entity->s.origin);
     } else {
-      aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, self->s.origin);
+      aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, cl->entity->s.origin);
     }
 
     aim_direction = Vec3_Normalize(aim_direction);
@@ -1313,10 +1321,10 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
     ideal_angles.y += cosf(g_level.time / 164.0f) * 4.0f;
   }
 
-  const vec3_t view_angles = self->client->angles;
+  const vec3_t view_angles = cl->angles;
 
   for (int32_t i = 0; i < 2; ++i) {
-    ideal_angles.xyz[i] = Ai_CalculateAngle(self, 12.5f * (cmd->msec / (float)QUETOO_TICK_MILLIS), view_angles.xyz[i], ideal_angles.xyz[i]);
+    ideal_angles.xyz[i] = Ai_CalculateAngle(cl, 12.5f * (cmd->msec / (float)QUETOO_TICK_MILLIS), view_angles.xyz[i], ideal_angles.xyz[i]);
   }
 
   if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.trick_jump == TRICK_JUMP_TURNING && view_angles.y == ideal_angles.y) {
@@ -1324,15 +1332,15 @@ static uint32_t Ai_TurnToTarget(g_entity_t *self, pm_cmd_t *cmd) {
   }
 
   ai->ideal_angles = ideal_angles;
-  cmd->angles = Vec3_Subtract(ideal_angles, self->client->ps.pm_state.delta_angles);
+  cmd->angles = Vec3_Subtract(ideal_angles, cl->ps.pm_state.delta_angles);
   return 0;
 }
 
 /**
  * @brief Called just before an AI leaves this mortal plane.
  */
-void G_Ai_Disconnect(g_entity_t *self) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+void G_Ai_Disconnect(g_client_t *cl) {
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   // clear any dynamic memory
   Ai_ClearGoal(&ai->combat_target);
@@ -1345,8 +1353,8 @@ void G_Ai_Disconnect(g_entity_t *self) {
 /**
  * @brief Long range goal picking
  */
-static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+static uint32_t Ai_FuncGoal_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
   // if we already have a long range goal, try again later.
   // TODO: we know what entity we're heading towards, so we can
@@ -1359,7 +1367,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
   }
 
   // check to be sure we're in a navicable spot
-  const ai_node_id_t closest = Ai_Node_FindClosest(self->s.origin, 256.f, true, true);
+  const ai_node_id_t closest = Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
   if (closest == AI_NODE_INVALID) {
     return 200;
@@ -1367,17 +1375,18 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 
   GArray *goal_possibilities = g_array_new(false, false, sizeof(ai_item_pick_t));
 
-  for (int32_t i = sv_max_clients->integer; i < ge.num_entities; i++) {
-    g_entity_t *ent = ENTITY_FOR_NUM(i);
+  G_ForEachEntity(ent, {
 
-    // not in use, dead/invisible, and/or clients can't be long term goals
-    if (!ent->in_use || ent->solid == SOLID_NOT || ent->solid == SOLID_DEAD || (ent->sv_flags & SVF_NO_CLIENT) || ent->client) {
+    if (ent->solid == SOLID_NOT || ent->solid == SOLID_DEAD) {
       continue;
     }
 
-    // TODO: atm only items can be goals. in future,
-    // other players should be able to be goals (supporting
-    // carrier for instance)
+    if (ent->sv_flags & SVF_NO_CLIENT) {
+      continue;
+    }
+
+    // TODO: atm only items can be goals.
+    // in future, other players should be able to be goals (supporting flag carrier for instance)
     if (!ent->item) {
       continue;
     }
@@ -1388,7 +1397,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
     // and check weight
     if (ent->item) {
 
-      if (!Ai_CanPickupItem(self, ent)) {
+      if (!Ai_CanPickupItem(cl, ent)) {
         continue;
       }
 
@@ -1409,7 +1418,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
       .weight = weight,
       .entity = ent
     }, 1);
-  }
+  });
 
   // sort!
   if (goal_possibilities->len > 1) {
@@ -1418,12 +1427,13 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 
   // go down the list, high priority wins but might not be pickable
   for (guint i = 0; i < goal_possibilities->len; i++) {
+
     const ai_item_pick_t *pick = &g_array_index(goal_possibilities, ai_item_pick_t, i);
     const ai_node_id_t closest_to_item = Ai_Node_FindClosest(pick->entity->s.origin, 256.f, true, true);
-    GArray *path = Ai_Node_FindPath(closest, closest_to_item, Ai_Node_DefaultHeuristic, NULL);
 
+    GArray *path = Ai_Node_FindPath(closest, closest_to_item, Ai_Node_DefaultHeuristic, NULL);
     if (path) {
-      Ai_SetPathGoal(self, &ai->move_target, pick->weight, path, pick->entity);
+      Ai_SetPathGoal(cl, &ai->move_target, pick->weight, path, pick->entity);
       g_array_unref(path);
       break;
     }
@@ -1438,48 +1448,47 @@ static uint32_t Ai_FuncGoal_LongRange(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const Ai_GoalFunc ai_goalfuncs[AI_FUNCGOAL_TOTAL] = {
-  [AI_FUNCGOAL_LONGRANGE] = Ai_FuncGoal_LongRange,
-  [AI_FUNCGOAL_HUNT] = Ai_FuncGoal_Hunt,
-  [AI_FUNCGOAL_WEAPONRY] = Ai_FuncGoal_Weaponry,
-  [AI_FUNCGOAL_ACROBATICS] = Ai_FuncGoal_Acrobatics,
-  [AI_FUNCGOAL_FINDITEMS] = Ai_FuncGoal_FindItems,
-  [AI_FUNCGOAL_TURN] = Ai_TurnToTarget,
-  [AI_FUNCGOAL_MOVE] = Ai_MoveToTarget
+static const Ai_GoalFunc ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
+  [AI_FUNC_GOAL_LONGRANGE] = Ai_FuncGoal_LongRange,
+  [AI_FUNC_GOAL_HUNT] = Ai_FuncGoal_Hunt,
+  [AI_FUNC_GOAL_WEAPONRY] = Ai_FuncGoal_Weaponry,
+  [AI_FUNC_GOAL_ACROBATICS] = Ai_FuncGoal_Acrobatics,
+  [AI_FUNC_GOAL_FINDITEMS] = Ai_FuncGoal_FindItems,
+  [AI_FUNC_GOAL_TURN] = Ai_TurnToTarget,
+  [AI_FUNC_GOAL_MOVE] = Ai_MoveToTarget
 };
 
 /**
  * @brief Called every frame for every AI.
  */
-void G_Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
-  ai_locals_t *ai = Ai_GetLocals(self);
+void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
+  ai_locals_t *ai = Ai_GetLocals(cl);
 
-  if (self->solid == SOLID_DEAD) {
+  if (cl->entity->solid == SOLID_DEAD) {
     Ai_ClearGoal(&ai->combat_target);
     Ai_ClearGoal(&ai->move_target);
     Ai_ClearGoal(&ai->backup_move_target);
   } else {
-    Vec3_Vectors(self->client->angles, &ai->aim_forward, NULL, NULL);
-    ai->eye_origin = Vec3_Add(self->s.origin, self->client->ps.pm_state.view_offset);
+    Vec3_Vectors(cl->angles, &ai->aim_forward, NULL, NULL);
+    ai->eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
   }
 
   // run functional goals
-  for (int32_t i = 0; i < AI_FUNCGOAL_TOTAL; i++) {
+  for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
-    if (ai->funcgoal_nextthinks[i] <= g_level.time) {
-      ai->funcgoal_nextthinks[i] = g_level.time + ai_goalfuncs[i](self, cmd);
+    if (ai->func_goal_next_thinks[i] <= g_level.time) {
+      ai->func_goal_next_thinks[i] = g_level.time + ai_goalfuncs[i](cl, cmd);
     }
   }
 
-  ai->last_origin = self->s.origin;
+  ai->last_origin = cl->entity->s.origin;
   
   // run client think
-  G_ClientThink(self, cmd);
+  G_ClientThink(cl, cmd);
 
   // can't trick jump when we hit the ground.
-  if (ai->move_target.type == AI_GOAL_PATH && self->ground.ent && ai->move_target.path.trick_jump) {
-
-    if (Vec3_Distance(ai->move_target.path.trick_position, self->s.origin) < 24.f) {
+  if (ai->move_target.type == AI_GOAL_PATH && cl->entity->ground.ent && ai->move_target.path.trick_jump) {
+    if (Vec3_Distance(ai->move_target.path.trick_position, cl->entity->s.origin) < 24.f) {
       ai->move_target.path.trick_jump = TRICK_JUMP_TURNING;
       Ai_Debug("Trick jump: mission accomplished\n");
     } else {
@@ -1491,12 +1500,12 @@ void G_Ai_Think(g_entity_t *self, pm_cmd_t *cmd) {
 /**
  * @brief Called every time an AI spawns
  */
-void G_Ai_Respawn(g_entity_t *self) {
+void G_Ai_Respawn(g_client_t *cl) {
 
   // clean up state
-  G_Ai_Disconnect(self);
+  G_Ai_Disconnect(cl);
 
-  if (self->solid == SOLID_NOT) { // intermission, spectator, etc
+  if (cl->entity->solid == SOLID_NOT) { // intermission, spectator, etc
     return;
   }
 }
@@ -1504,14 +1513,13 @@ void G_Ai_Respawn(g_entity_t *self) {
 /**
  * @brief Called when an AI is first spawned and is ready to go.
  */
-void G_Ai_Begin(g_entity_t *self) {
+void G_Ai_Begin(g_client_t *cl) {
 }
 
 /**
  * @brief 
  */
 static void Ai_SaveNodes_f(void) {
-
   Ai_SaveNodes();
 }
 
@@ -1526,12 +1534,10 @@ static void Ai_TestPath_f(void) {
     return;
   }
 
-  for (int32_t i = 1; i <= sv_max_clients->integer; i++) {
-    g_entity_t *ent = ENTITY_FOR_NUM(i);
-
-    if (ent->in_use && !(ent->sv_flags & SVF_NO_CLIENT) && ent->client && ent->client->ai) {
-      ai_locals_t *ai = Ai_GetLocals(ent);
-      const ai_node_id_t closest_to_player = Ai_Node_FindClosest(ent->s.origin, 256.f, true, true);
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      ai_locals_t *ai = Ai_GetLocals(cl);
+      const ai_node_id_t closest_to_player = Ai_Node_FindClosest(cl->entity->s.origin, 256.f, true, true);
 
       if (closest_to_player == AI_NODE_INVALID) {
         Ai_Debug("Can't find a node near this bot\n");
@@ -1546,10 +1552,10 @@ static void Ai_TestPath_f(void) {
       }
 
       g_array_append_vals(path_to_start, &g_array_index(path, ai_node_id_t, 1), path->len - 1);
-      Ai_SetPathGoal(ent, &ai->move_target, 1.0, path_to_start, NULL);
+      Ai_SetPathGoal(cl, &ai->move_target, 1.0, path_to_start, NULL);
       g_array_unref(path_to_start);
     }
-  }
+  });
 }
 
 void Ai_OffsetNodes_f(void);
@@ -1562,7 +1568,6 @@ void G_Ai_InitLocals(void) {
   gi.Mkdir("ai");
 
   ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-
   ai_node_dev = gi.AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   
   if (ai_node_dev->integer) {
@@ -1571,12 +1576,10 @@ void G_Ai_InitLocals(void) {
 
   gi.SetConfigString(CS_NAV_EDIT, ai_node_dev->string);
 
-  ai_locals = (ai_locals_t *) gi.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
+  ai_locals = gi.Malloc(sizeof(ai_locals_t) * sv_max_clients->integer, MEM_TAG_AI);
 
   gi.AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
-
   gi.AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
-
   gi.AddCmd("ai_offset_nodes", Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
   Ai_InitItems();

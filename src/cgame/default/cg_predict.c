@@ -80,7 +80,7 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
   
   pm.Trace = Cg_PredictMovement_Trace;
 
-  pm.Debug = cgi.Debug_;
+  pm.Debug = cgi.Debug;
   pm.DebugMask = cgi.DebugMask;
   pm.debug_mask = DEBUG_PMOVE_CLIENT;
 

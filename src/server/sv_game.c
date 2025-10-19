@@ -62,7 +62,7 @@ static void Sv_GameError(const char *func, const char *fmt, ...) {
 static void Sv_SetModel(g_entity_t *ent, const char *name) {
 
   if (!name) {
-    Com_Warn("%d: NULL\n", (int32_t) NUM_FOR_ENTITY(ent));
+    Com_Warn("%s: NULL\n", etos(ent));
     return;
   }
 
@@ -104,7 +104,7 @@ static void Sv_SetConfigString(const int32_t index, const char *val) {
     Net_WriteShort(&sv.multicast, index);
     Net_WriteString(&sv.multicast, val);
 
-    Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
+    Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R);
   }
 }
 

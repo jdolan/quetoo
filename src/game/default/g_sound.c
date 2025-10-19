@@ -52,7 +52,7 @@ static void G_Sound(const g_play_sound_t *play) {
   gi.WriteByte(play->index);
 
   if (flags & SOUND_ENTITY) {
-    gi.WriteShort((uint16_t) (ptrdiff_t) (play->entity - ge.entities));
+    gi.WriteShort(play->entity->s.number);
   }
 
   if (flags & SOUND_ORIGIN) {
@@ -71,7 +71,7 @@ static void G_Sound(const g_play_sound_t *play) {
 /**
  * @brief
  */
-void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFunc filter) {
+void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
   vec3_t from = Vec3_Zero();
 
   G_Sound(play);
@@ -84,15 +84,15 @@ void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFu
     from = *play->origin;
   }
 
-  gi.Multicast(from, to, filter);
+  gi.Multicast(from, to);
 }
 
 /**
  * @brief
  */
-void G_UnicastSound(const g_play_sound_t *play, const g_entity_t *to, bool reliable) {
+void G_UnicastSound(const g_play_sound_t *play, const g_client_t *cl, bool reliable) {
 
   G_Sound(play);
 
-  gi.Unicast(to, reliable);
+  gi.Unicast(cl, reliable);
 }

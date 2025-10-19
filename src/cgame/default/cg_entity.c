@@ -133,7 +133,7 @@ void Cg_LoadEntities(void) {
           e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
           if (!e.target) {
             const char *class_name = cgi.EntityValue(def, "classname")->string;
-            cgi.Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
+            Cg_Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
           }
         }
 
@@ -168,13 +168,20 @@ void Cg_FreeEntities(void) {
  */
 cl_entity_t *Cg_Self(void) {
 
-  int32_t index = cgi.client->client_num;
+  int32_t index = cgi.client->client;
 
   if (cgi.client->frame.ps.stats[STAT_CHASE]) {
     index = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
   }
 
-  return &cgi.client->entities[index + 1];
+  cl_entity_t *e = cgi.client->entities;
+  for (size_t i = 0; i < lengthof(cgi.client->entities); i++, e++) {
+    if (e->current.client == index) {
+      return e;
+    }
+  }
+
+  Cg_Error("No entity for local client\n");
 }
 
 /**
@@ -190,7 +197,7 @@ bool Cg_IsSelf(const cl_entity_t *ent) {
 
     if (ent->current.model1 == MODEL_CLIENT) {
 
-      if (ent->current.client == cgi.client->client_num) {
+      if (ent->current.client == cgi.client->client) {
         return true;
       }
 

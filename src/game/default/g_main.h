@@ -25,11 +25,6 @@
 
 #ifdef __GAME_LOCAL_H__
 
-#define G_MatchIsPlaying()   (g_level.match_status & MSTAT_PLAYING)
-#define G_MatchIsTimeout()   (g_level.match_status & MSTAT_TIMEOUT)
-#define G_MatchIsCountdown() (g_level.match_status & MSTAT_COUNTDOWN)
-#define G_MatchIsWarmup()    (g_level.match_status & MSTAT_WARMUP)
-
 extern g_level_t g_level;
 extern g_media_t g_media;
 
@@ -118,15 +113,11 @@ extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
 extern cvar_t *g_handicap;
 extern cvar_t *g_num_teams;
-extern cvar_t *g_match;
-extern cvar_t *g_max_entities;
 extern cvar_t *g_motd;
 extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
 extern cvar_t *g_random_map;
 extern cvar_t *g_respawn_protection;
-extern cvar_t *g_round_limit;
-extern cvar_t *g_rounds;
 extern cvar_t *g_self_damage;
 extern cvar_t *g_self_knockback;
 extern cvar_t *g_show_attacker_stats;
@@ -134,12 +125,11 @@ extern cvar_t *g_spawn_farthest;
 extern cvar_t *g_spectator_chat;
 extern cvar_t *g_teams;
 extern cvar_t *g_time_limit;
-extern cvar_t *g_timeout_time;
-extern cvar_t *g_warmup_time;
 extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *g_weapon_stay;
 
 extern cvar_t *sv_max_clients;
+extern cvar_t *sv_max_entities;
 extern cvar_t *sv_hostname;
 extern cvar_t *dedicated;
 extern cvar_t *editor;

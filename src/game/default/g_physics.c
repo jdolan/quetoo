@@ -102,7 +102,7 @@ static void G_CheckWater(g_entity_t *ent) {
         .origin = &pos,
         .atten = SOUND_ATTEN_SQUARE,
         .pitch = pitch
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
 
       if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 
@@ -123,7 +123,7 @@ static void G_CheckWater(g_entity_t *ent) {
         .origin = &pos,
         .atten = SOUND_ATTEN_SQUARE,
         .pitch = pitch
-      }, MULTICAST_PHS, NULL);
+      }, MULTICAST_PHS);
 
       if (ent->move_type != MOVE_TYPE_NO_CLIP) {
 

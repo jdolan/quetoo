@@ -24,44 +24,46 @@
 /**
  * @brief
  */
-void G_ClientChaseThink(g_entity_t *ent) {
-  g_entity_t *targ = ent->client->chase_target;
+void G_ClientChaseThink(g_client_t *cl) {
 
-  if (targ) {
+  g_entity_t *ent = cl->entity;
+  g_client_t *target = cl->chase_target;
+
+  if (target) {
     vec3_t new_delta;
 
     // calculate delta angles if switching targets
-    if (targ != ent->client->old_chase_target) {
-      new_delta = Vec3_Subtract(ent->client->angles, targ->client->angles);
-      ent->client->old_chase_target = targ;
+    if (target != cl->old_chase_target) {
+      new_delta = Vec3_Subtract(cl->angles, target->angles);
+      cl->old_chase_target = target;
     } else {
       new_delta = Vec3_Zero();
     }
 
     // copy origin
-    ent->s.origin = targ->s.origin;
+    ent->s.origin = target->entity->s.origin;
 
     // velocity
-    ent->velocity = targ->velocity;
+    ent->velocity = target->entity->velocity;
 
     // and angles
-    ent->client->angles = targ->client->angles;
+    cl->angles = target->angles;
 
     // and player state
-    memcpy(&ent->client->ps, &targ->client->ps, sizeof(player_state_t));
+    memcpy(&cl->ps, &target->ps, sizeof(player_state_t));
 
     // add in delta angles in case we've switched targets
     if (!Vec3_Equal(new_delta, Vec3_Zero())) {
-      ent->client->ps.pm_state.delta_angles = Vec3_Add(ent->client->ps.pm_state.delta_angles, new_delta);
+      cl->ps.pm_state.delta_angles = Vec3_Add(cl->ps.pm_state.delta_angles, new_delta);
     }
 
     // disable the spectator's input
-    ent->client->ps.pm_state.type = PM_FREEZE;
+    cl->ps.pm_state.type = PM_FREEZE;
   } else {
-    ent->client->ps.pm_state.delta_angles.z = -ent->client->ps.pm_state.delta_angles.z;
+    cl->ps.pm_state.delta_angles.z = -cl->ps.pm_state.delta_angles.z;
 
     // enable the spectator's input
-    ent->client->ps.pm_state.type = PM_SPECTATOR;
+    cl->ps.pm_state.type = PM_SPECTATOR;
   }
 
   gi.LinkEntity(ent);
@@ -70,72 +72,73 @@ void G_ClientChaseThink(g_entity_t *ent) {
 /**
  * @brief
  */
-void G_ClientChaseNext(g_entity_t *ent) {
-  g_entity_t *e;
+void G_ClientChaseNext(g_client_t *cl) {
 
-  if (!ent->client->chase_target) {
+  if (!cl->chase_target) {
     return;
   }
 
-  int32_t i = (int32_t) (ptrdiff_t) (ent->client->chase_target - g_game.entities);
+  g_client_t *next = NULL;
+
+  int32_t i = cl->chase_target->ps.client;
   do {
     i++;
 
-    if (i > sv_max_clients->integer) {
-      i = 1;
+    if (i == sv_max_clients->integer) {
+      i = 0;
     }
 
-    e = g_game.entities + i;
+    next = ge.clients[i];
 
-    if (G_IsMeat(e)) {
+    if (G_IsMeat(next->entity)) {
       break;
     }
 
-  } while (e != ent->client->chase_target);
+  } while (next != cl->chase_target);
 
-  ent->client->chase_target = e;
+  cl->chase_target = next;
 }
 
 /**
  * @brief
  */
-void G_ClientChasePrevious(g_entity_t *ent) {
-  g_entity_t *e;
+void G_ClientChasePrevious(g_client_t *cl) {
 
-  if (!ent->client->chase_target) {
+  if (!cl->chase_target) {
     return;
   }
 
-  int32_t i = (int32_t) (ptrdiff_t) (ent->client->chase_target - g_game.entities);
+  g_client_t *prev = NULL;
+
+  int32_t i = cl->chase_target->ps.client;
   do {
     i--;
 
-    if (i < 1) {
+    if (i == -1) {
       i = sv_max_clients->integer;
     }
 
-    e = g_game.entities + i;
+    prev = ge.clients[i];
 
-    if (G_IsMeat(e)) {
+    if (G_IsMeat(prev->entity)) {
       break;
     }
 
-  } while (e != ent->client->chase_target);
+  } while (prev != cl->chase_target);
 
-  ent->client->chase_target = e;
+  cl->chase_target = prev;
 }
 
 /**
  * @brief Finds the first available chase target and assigns it to the specified ent.
  */
-void G_ClientChaseTarget(g_entity_t *ent) {
+void G_ClientChaseTarget(g_client_t *cl) {
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    g_entity_t *other = g_game.entities + i + 1;
-    if (G_IsMeat(other)) {
-      ent->client->chase_target = other;
-      return;
+  G_ForEachClient(other, {
+    if (G_IsMeat(other->entity)) {
+      cl->chase_target = other;
+      break;
     }
-  }
+  });
 }
 

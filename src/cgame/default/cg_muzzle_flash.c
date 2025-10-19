@@ -170,12 +170,11 @@ static void Cg_LogoutFlash(const cl_entity_t *ent) {
  * @brief
  */
 void Cg_ParseMuzzleFlash(void) {
-  int32_t c;
 
   const uint16_t entity = cgi.ReadShort();
 
   if (entity < 1 || entity >= MAX_ENTITIES) {
-    cgi.Warn("Bad entity %u\n", entity);
+    Cg_Warn("Bad entity %u\n", entity);
     cgi.ReadByte(); // attempt to ignore cleanly
     return;
   }
@@ -188,9 +187,8 @@ void Cg_ParseMuzzleFlash(void) {
 
   switch (flash) {
     case MZ_BLASTER:
-      c = cgi.ReadByte();
       sample = cg_sample_blaster_fire;
-       Cg_BlasterFlash(ent, Cg_ResolveEntityEffectHSV(c ? c - 1 : 0, color_hue_orange));
+      Cg_BlasterFlash(ent, Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_orange));
       pitch = 5;
       break;
     case MZ_SHOTGUN:

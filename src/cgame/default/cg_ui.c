@@ -97,7 +97,7 @@ void Cg_BindCvar(const Inlet *inlet, ident obj) {
   cvar_t *var = cgi.GetCvar(name);
 
   if (var == NULL) {
-    cgi.Warn("%s not found\n", name);
+    Cg_Warn("%s not found\n", name);
   }
 
   *(cvar_t **) inlet->dest = var;

@@ -158,8 +158,9 @@ static void G_SpawnEntity(g_entity_t *ent) {
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
 
-  // TODO: Trim down entity_locals_t, move all of these "one offs" to custom data
+  // TODO: Trim down g_entity_t, move all of these "one offs" to custom data
   // structs, allocated through each spawn function. See cgame cg_entity_t.
+  // Or, better yet, just use EntityValue to resolve these when they're needed
 
   ent->spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
@@ -198,14 +199,13 @@ static void G_SpawnEntity(g_entity_t *ent) {
       continue;
     }
 
-    if (!g_strcmp0(item->class_name, ent->class_name)) { // found it
+    if (!g_strcmp0(item->class_name, ent->class_name)) {
       G_SpawnItem(ent, item);
       return;
     }
   }
 
   // check normal spawn functions
-
   for (size_t i = 0; i < lengthof(g_entity_classes); i++) {
     const g_entity_class_t *clazz = g_entity_classes + i;
 
@@ -216,7 +216,8 @@ static void G_SpawnEntity(g_entity_t *ent) {
   }
 
   gi.Warn("%s doesn't have a spawn function\n", etos(ent));
-  ent->in_use = false;
+
+  G_FreeEntity(ent);
 }
 
 /**
@@ -229,54 +230,48 @@ static void G_InitEntityTeams(void) {
 
   int32_t teams = 0, team_entities = 0;
 
-  g_entity_t *m = g_game.entities;
-  for (int32_t i = 0; i < ge.num_entities; i++, m++) {
+  G_ForEachEntity(ent, {
 
-    if (!m->in_use) {
+    if (!ent->team) {
       continue;
     }
 
-    if (!m->team) {
+    if (ent->flags & FL_TEAM_SLAVE) {
       continue;
     }
 
-    if (m->flags & FL_TEAM_SLAVE) {
-      continue;
-    }
-
-    g_entity_t *team = m;
-    m->team_master = m;
+    g_entity_t *team = ent;
+    ent->team_master = ent;
 
     teams++;
     team_entities++;
 
-    g_entity_t *n = m + 1;
-    for (int32_t j = i + 1; j < ge.num_entities; j++, n++) {
+    G_ForEachEntity(e, {
 
-      if (!n->in_use) {
+      if (e->s.number <= ent->s.number) {
         continue;
       }
 
-      if (!n->team) {
+      if (!e->team) {
         continue;
       }
 
-      if (n->flags & FL_TEAM_SLAVE) {
+      if (e->flags & FL_TEAM_SLAVE) {
         continue;
       }
 
-      if (!g_strcmp0(m->team, n->team)) {
+      if (!g_strcmp0(ent->team, e->team)) {
 
-        n->team_master = m;
-        n->flags |= FL_TEAM_SLAVE;
+        e->team_master = ent;
+        e->flags |= FL_TEAM_SLAVE;
 
-        team->team_next = n;
-        team = n;
+        team->team_next = e;
+        team = e;
 
         team_entities++;
       }
-    }
-  }
+    });
+  });
 
   G_Debug("%i teams with %i entities\n", teams, team_entities);
 }
@@ -439,8 +434,8 @@ static void G_CreateTeamSpawnPoints(GSList **dm_spawns, GSList **team_red_spawns
       return; // error in finding furthest points
     }
     
-    red_flag = G_AllocEntity_(g_team_red->flag);
-    blue_flag = G_AllocEntity_(g_team_blue->flag);
+    red_flag = G_AllocEntity(g_team_red->flag);
+    blue_flag = G_AllocEntity(g_team_blue->flag);
 
     const uint8_t r = RandomRangeu(0, 2);
 
@@ -632,7 +627,11 @@ static void G_InitSpawnPoints(void) {
 void G_SpawnTech(const g_item_t *item) {
 
   g_entity_t *spawn = G_SelectTechSpawnPoint();
-  g_entity_t *ent = G_DropItem(spawn, item);
+
+  g_entity_t *ent = G_AllocEntity(item->class_name);
+  ent->s.origin = spawn->s.origin;
+
+  G_SpawnItem(ent, item);
 
   ent->velocity = Vec3(RandomRangef(-250.f, 250.f), RandomRangef(-250.f, 250.f), RandomRangef(200.f, 400.f));
 }
@@ -663,52 +662,17 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
   g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
-  // see if we have bots to keep
-  g_game.ai_fill_slots = 0;
-  g_game.ai_left_to_spawn = 0;
-
-  if (g_ai_max_clients->integer) {
-    if (g_ai_max_clients->integer == -1) {
-      g_game.ai_fill_slots = sv_max_clients->integer;
-    } else {
-      g_game.ai_fill_slots = Clampf(g_ai_max_clients->integer, 0, sv_max_clients->integer);
-    }
-
-    g_game.ai_left_to_spawn = g_game.ai_fill_slots;
-    g_ai_max_clients->modified = false;
-  } else {
-    for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-      if (g_game.entities[i + 1].client && g_game.entities[i + 1].client->ai) {
-        g_game.ai_left_to_spawn++;
-      }
-    }
-  }
-
-  // load nav data
   G_Ai_Load();
   
-  memset(g_game.entities, 0, g_max_entities->integer * sizeof(g_entity_t));
-  memset(g_game.clients, 0, sv_max_clients->integer * sizeof(g_client_t));
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    g_game.entities[i + 1].client = g_game.clients + i;
-  }
-
-  ge.num_entities = sv_max_clients->integer + 1;
-
   for (size_t i = 0; i < num_entities; i++) {
 
-    g_entity_t *ent = i == 0 ? g_game.entities : G_AllocEntity();
+    g_entity_t *ent = G_AllocEntity(__func__);
     ent->def = entities[i];
 
     if (editor->value && i > 0) {
       G_SpawnEditorEntity(ent);
     } else {
       G_SpawnEntity(ent);
-    }
-
-    if (!ent->in_use) {
-      G_FreeEntity(ent);
     }
   }
 
@@ -799,7 +763,6 @@ static void G_WorldspawnMusic(void) {
  teams : Enables and enforces teams play (enabled = 1, auto-balance = 2).
  num_teams : Enforces number of teams (disabled = -1, must be between 2 and 4)
  ctf : Enables CTF play (enabled = 1, auto-balance = 2).
- match : Enables match play (round-based elimination with warmup) (enabled = 1).
  fraglimit : The frag limit (default 20).
  roundlimit : The round limit (default 20).
  capturelimit : The capture limit (default 8).
@@ -824,7 +787,7 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
   gi.SetConfigString(CS_NAME, g_level.title);
-  gi.SetConfigString(CS_MAXCLIENTS, va("%d", sv_max_clients->integer));
+  gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
   if (map && *map->sky) { // prefer maps.lst sky
     gi.SetConfigString(CS_SKY, map->sky);
@@ -934,35 +897,6 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
   gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
-  if (map && map->match > -1) { // prefer maps.lst match
-    g_level.match = map->match;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *match = gi.EntityValue(ent->def, "match");
-    if (match->parsed & ENTITY_INTEGER) {
-      g_level.match = match->integer;
-    } else {
-      g_level.match = g_match->integer;
-    }
-  }
-
-  if (map && map->rounds > -1) { // prefer maps.lst rounds
-    g_level.rounds = map->rounds;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *rounds = gi.EntityValue(ent->def, "rounds");
-    if (rounds->parsed & ENTITY_INTEGER) {
-      g_level.rounds = rounds->integer;
-    } else {
-      g_level.rounds = g_rounds->integer;
-    }
-  }
-
-  if (g_level.match && g_level.rounds) { // rounds overrides match
-    g_level.match = 0;
-  }
-
-  gi.SetConfigString(CS_MATCH, va("%d", g_level.match));
-  gi.SetConfigString(CS_ROUNDS, va("%d", g_level.rounds));
-
   if (map && map->frag_limit > -1) { // prefer maps.lst frag_limit
     g_level.frag_limit = map->frag_limit;
   } else { // or fall back on worldspawn
@@ -971,17 +905,6 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.frag_limit = frag_limit->integer;
     } else {
       g_level.frag_limit = g_frag_limit->integer;
-    }
-  }
-
-  if (map && map->round_limit > -1) { // prefer maps.lst round_limit
-    g_level.round_limit = map->round_limit;
-  } else { // or fall back on worldspawn
-    const cm_entity_t *round_limit = gi.EntityValue(ent->def, "round_limit");
-    if (round_limit->parsed & ENTITY_INTEGER) {
-      g_level.round_limit = round_limit->integer;
-    } else {
-      g_level.round_limit = g_round_limit->integer;
     }
   }
 

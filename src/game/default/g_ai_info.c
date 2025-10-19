@@ -93,7 +93,7 @@ static uint32_t ai_name_suffix;
 /**
  * @brief Create the user info for the specified bot entity.
  */
-void Ai_GetUserInfo(const g_entity_t *self, char *info) {
+void Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
 

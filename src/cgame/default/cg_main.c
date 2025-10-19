@@ -250,7 +250,7 @@ static void Cg_ParseTeamInfo(const char *s) {
 
   if (count != lengthof(cg_state.teams) * 4) {
     g_strfreev(info);
-    cgi.Error("Invalid team data: %s\n", s);
+    Cg_Error("Invalid team data: %s\n", s);
   }
 
   cg_team_info_t *team = cg_state.teams;
@@ -297,20 +297,11 @@ static void Cg_UpdateConfigString(int32_t i) {
     case CS_HOOK_PULL_SPEED:
       cg_state.hook_pull_speed = strtof(s, NULL);
       return;
-    case CS_MAXCLIENTS:
+    case CS_MAX_CLIENTS:
       cg_state.max_clients = (int32_t) strtol(s, NULL, 10);
       return;
-    case CS_NUMCLIENTS:
+    case CS_NUM_CLIENTS:
       cg_state.num_clients = (int32_t) strtol(s, NULL, 10);
-      return;
-    case CS_MATCH:
-      cg_state.match = (int32_t) strtol(s, NULL, 10);
-      return;
-    case CS_ROUND:
-      cg_state.round = (int32_t) strtol(s, NULL, 10);
-      return;
-    case CS_ROUNDS:
-      cg_state.num_rounds = (int32_t) strtol(s, NULL, 10);
       return;
     case CS_NAV_EDIT:
       cg_state.nav_edit = (int32_t) strtol(s, NULL, 10);

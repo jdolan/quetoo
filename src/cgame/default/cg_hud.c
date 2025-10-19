@@ -108,7 +108,7 @@ static void Cg_DrawIcon(const GLint x, const GLint y, const int16_t icon, const 
 
   const r_image_t *image = cgi.client->images[icon];
   if (!image) {
-    cgi.Warn("Invalid icon: %d\n", icon);
+    Cg_Warn("Invalid icon: %d\n", icon);
     return;
   }
 
@@ -458,7 +458,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
   const int32_t c = ps->stats[STAT_CHASE];
 
   if (c - CS_CLIENTS >= MAX_CLIENTS) {
-    cgi.Warn("Invalid client info index: %d\n", c);
+    Cg_Warn("Invalid client info index: %d\n", c);
     return;
   }
 
@@ -503,32 +503,6 @@ static void Cg_DrawTime(const player_state_t *ps) {
   }
 
   cgi.Draw2DString(x, y, string, color_white);
-
-  cgi.BindFont(NULL, NULL, NULL);
-}
-
-/**
- * @brief
- */
-static void Cg_DrawReady(const player_state_t *ps) {
-  GLint x, y, ch;
-
-  if (!ps->stats[STAT_READY]) {
-    return;
-  }
-
-  cgi.BindFont("small", NULL, &ch);
-
-  x = cgi.context->mode.w - cgi.StringWidth("Ready");
-  y = 3 * (HUD_PIC_HEIGHT + ch);
-
-  if (cg_state.ctf) {
-    y += HUD_PIC_HEIGHT + ch;
-  }
-
-  y += ch;
-
-  cgi.Draw2DString(x, y, "Ready", color_green);
 
   cgi.BindFont(NULL, NULL, NULL);
 }
@@ -963,7 +937,7 @@ void Cg_ParseWeaponInfo(const char *s) {
 
   if ((num_info / 2) > MAX_STAT_BITS || num_info & 1) {
     g_strfreev(info);
-    cgi.Error("Invalid weapon info");
+    Cg_Error("Invalid weapon info");
   }
 
   cg_hud_weapon_t *weapon = cg_hud_weapons;
@@ -1300,8 +1274,6 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawChase(ps);
 
   Cg_DrawTime(ps);
-
-  Cg_DrawReady(ps);
 
   Cg_DrawCrosshair(ps);
 

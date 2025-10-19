@@ -228,7 +228,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       if (!Cg_LoadClientModel(ci, info[2], v + 1)) {
         if (!Cg_LoadClientModel(ci, info[2], DEFAULT_SKIN)) {
           if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
-            cgi.Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
+            Cg_Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
           }
         }
       }
@@ -257,7 +257,7 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
     if (!Cg_ValidateSkin(ci)) {
 
       if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
-        cgi.Error("Failed to load default client info\n");
+        Cg_Error("Failed to load default client info\n");
       }
     }
 
@@ -335,14 +335,14 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
   const r_mesh_model_t *mesh = model->mesh;
 
   if ((int32_t) a->animation > mesh->num_animations) {
-    cgi.Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
+    Cg_Warn("Invalid animation: %s: %d\n", model->media.name, a->animation);
     return;
   }
 
   const r_mesh_animation_t *anim = &mesh->animations[a->animation];
 
   if (!anim->num_frames || !anim->hz) {
-    cgi.Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
+    Cg_Warn("Bad animation sequence: %s: %d\n", model->media.name, a->animation);
     return;
   }
 
@@ -487,9 +487,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     Cg_Debug("Invalid client info: %d\n", s->client);
     return;
   }
-
-  // inform the renderer this is a player model
-  e->effects |= EF_CLIENT;
 
   // deal with our own player model
   if (Cg_IsSelf(ent)) {
@@ -659,6 +656,6 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (s->model4) {
-    cgi.Warn("Unsupported model_index4\n");
+    Cg_Warn("Unsupported model_index4\n");
   }
 }

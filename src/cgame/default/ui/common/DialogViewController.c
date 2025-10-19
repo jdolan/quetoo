@@ -38,7 +38,7 @@ static void didClickButton(Button *button) {
     if (this->dialog.okFunction) {
       this->dialog.okFunction(this->dialog.data);
     } else {
-      cgi.Warn("okFunction was NULL\n");
+      Cg_Warn("okFunction was NULL\n");
     }
   } else if (button == this->cancelButton) {
     if (this->dialog.cancelFunction) {

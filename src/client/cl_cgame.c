@@ -45,6 +45,20 @@ static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt
 }
 
 /**
+ * @brief
+ */
+static void Cl_CgameWarn(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+static void Cl_CgameWarn(const char *func, const char *fmt, ...) {
+
+  va_list args;
+  va_start(args, fmt);
+
+  Com_Warnv_(func, fmt, args);
+
+  va_end(args);
+}
+
+/**
  * @brief Handle a client game error. This wraps Com_Error, always emitting ERROR_DROP.
  */
 static void Cl_CgameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
@@ -150,10 +164,10 @@ void Cl_InitCgame(void) {
   import.stage = &cl_stage;
 
   import.Print = Com_Print;
-  import.Debug_ = Cl_CgameDebug;
+  import.Debug = Cl_CgameDebug;
   import.DebugMask = Cl_CgameDebugMask;
-  import.Warn_ = Com_Warn_;
-  import.Error_ = Cl_CgameError;
+  import.Warn = Cl_CgameWarn;
+  import.Error = Cl_CgameError;
 
   import.CheckForUpdates = Installer_CheckForUpdates;
   import.LaunchInstaller = Installer_LaunchInstaller;

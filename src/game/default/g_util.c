@@ -55,20 +55,20 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
 /**
  * @brief Determines the initial position and directional vectors of a projectile.
  */
-void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
+void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, vec3_t *up, vec3_t *org, float hand) {
 
   // resolve the projectile destination
-  const vec3_t start = Vec3_Add(ent->s.origin, ent->client->ps.pm_state.view_offset);
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, ent->client->forward);
-  const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+  const vec3_t start = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl->forward);
+  const cm_trace_t tr = gi.Trace(start, end, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   // resolve the projectile origin
   vec3_t ent_forward, ent_right, ent_up;
-  Vec3_Vectors(ent->client->angles, &ent_forward, &ent_right, &ent_up);
+  Vec3_Vectors(cl->angles, &ent_forward, &ent_right, &ent_up);
 
   *org = Vec3_Fmaf(start, 12.f, ent_forward);
 
-  switch (ent->client->persistent.hand) {
+  switch (cl->persistent.hand) {
     case HAND_RIGHT:
       *org = Vec3_Fmaf(*org, 6.f * hand, ent_right);
       break;
@@ -83,8 +83,8 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
 
   // if there's something non-damageable immediately blocking the shot, prefer to
   // avoid the blocker
-  const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
-  const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, ent->client->forward);
+  const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, cl->forward);
   const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
 
   if ((org_tr.fraction != 1.f && !org_tr.ent->take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
@@ -92,8 +92,8 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
   }
 
   // if the projected origin is invalid, use the entity's origin
-  if (gi.Trace(*org, *org, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
-    *org = ent->s.origin;
+  if (gi.Trace(*org, *org, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
+    *org = cl->entity->s.origin;
   }
 
   if (forward) {
@@ -118,96 +118,20 @@ void G_InitProjectile(const g_entity_t *ent, vec3_t *forward, vec3_t *right, vec
  *
  */
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
-  char *s;
+  
+  for (int32_t i = from ? from->s.number + 1 : 0; i < sv_max_entities->integer; i++) {
 
-  if (!from) {
-    from = g_game.entities;
-  } else {
-    from++;
-  }
-
-  for (; from < &g_game.entities[ge.num_entities]; from++) {
-    if (!from->in_use) {
+    g_entity_t *ent = ge.entities[i];
+    if (!ent->in_use) {
       continue;
     }
-    s = *(char **) ((byte *) from + field);
+    char *s = *(char **) ((byte *) ent + field);
     if (!s) {
       continue;
     }
     if (!g_ascii_strcasecmp(s, match)) {
-      return from;
+      return ent;
     }
-  }
-
-  return NULL;
-}
-
-/**
- * @brief Searches all active entities for the next one that holds the matching pointer
- * at field offset (use the ELOFS() macro) in the structure.
- *
- * Searches beginning at the entity after from, or the beginning if NULL
- * NULL will be returned if the end of the list is reached.
- *
- * Example:
- *   G_Find(NULL, EOFS(ptr), 0x1234);
- *
- */
-g_entity_t *G_FindPtr(g_entity_t *from, ptrdiff_t field, const void *match) {
-  void *s;
-
-  if (!from) {
-    from = g_game.entities;
-  } else {
-    from++;
-  }
-
-  for (; from < &g_game.entities[ge.num_entities]; from++) {
-    if (!from->in_use) {
-      continue;
-    }
-    s = *(void **) ((byte *) from + field);
-    if (!s) {
-      continue;
-    }
-    if (s == match) {
-      return from;
-    }
-  }
-
-  return NULL;
-}
-
-/**
- * @brief Returns entities that have origins within a spherical radius.
- */
-g_entity_t *G_FindRadius(g_entity_t *from, const vec3_t org, float rad) {
-
-  if (!from) {
-    from = g_game.entities;
-  } else {
-    from++;
-  }
-
-  for (; from < &g_game.entities[ge.num_entities]; from++) {
-
-    if (!from->in_use) {
-      continue;
-    }
-
-    if (from->solid == SOLID_NOT) {
-      continue;
-    }
-
-    if (Vec3_Distance(org, from->abs_bounds.mins) < rad) {
-      return from;
-    }
-
-    if (Vec3_Distance(org, from->abs_bounds.maxs) < rad) {
-      return from;
-    }
-
-    return from;
   }
 
   return NULL;
@@ -272,7 +196,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
   // check for a delay
   if (ent->delay) {
     // create a temp entity to fire at a later time
-    g_entity_t *temp = G_AllocEntity();
+    g_entity_t *temp = G_AllocEntity(__func__);
     temp->next_think = g_level.time + ent->delay * 1000;
     temp->Think = G_UseTargets_Delay;
     temp->activator = activator;
@@ -290,11 +214,11 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 
     gi.WriteByte(SV_CMD_CENTER_PRINT);
     gi.WriteString(ent->message);
-    gi.Unicast(activator, true);
+    gi.Unicast(activator->client, true);
 
     G_UnicastSound(&(const g_play_sound_t) {
       .index = ent->sound ?: g_media.sounds.chat,
-    }, activator, true);
+    }, activator->client, true);
   }
 
   // kill kill_targets
@@ -352,57 +276,29 @@ void G_SetMoveDir(g_entity_t *ent) {
 }
 
 /**
- * @brief Clear an entity's local data to empty. This function
- * retains any data that the entity client should always keep.
- */
-void G_ClearEntity(g_entity_t *ent) {
-
-  g_client_t *client = ent->client;
-
-  memset(ent, 0, sizeof(*ent));
-
-  ent->client = client;
-}
-
-/**
- * @brief Initialize an entity. This clears the entity memory, sets up the members
- * that need to be there for entity system to work (number, etc) and marks it as in_use.
- */
-void G_InitEntity(g_entity_t *ent, const char *class_name) {
-  static uint8_t g_spawn_id;
-
-  G_ClearEntity(ent);
-
-  ent->class_name = class_name;
-  ent->in_use = true;
-
-  ent->water_level = WATER_UNKNOWN;
-  ent->timestamp = g_level.time;
-  ent->s.number = ent - g_game.entities;
-  ent->s.spawn_id = g_spawn_id++;
-}
-
-/**
  * @brief Allocates an entity for use.
  */
-g_entity_t *G_AllocEntity_(const char *class_name) {
-  uint16_t i;
+g_entity_t *G_AllocEntity(const char *class_name) {
+  static uint8_t g_spawn_id;
 
-  g_entity_t *e = &g_game.entities[sv_max_clients->integer + 1];
-  for (i = sv_max_clients->integer + 1; i < ge.num_entities; i++, e++) {
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+
+    g_entity_t *e = ge.entities[i];
     if (!e->in_use) {
-      G_InitEntity(e, class_name);
+
+      e->class_name = class_name;
+      e->in_use = true;
+      e->water_level = WATER_UNKNOWN;
+      e->timestamp = g_level.time;
+      e->s.number = i;
+      e->s.spawn_id = g_spawn_id++;
+      e->s.client = -1;
+
       return e;
     }
   }
 
-  if (i >= g_max_entities->value) {
-    gi.Error("No free entities for %s\n", class_name);
-  }
-
-  ge.num_entities++;
-  G_InitEntity(e, class_name);
-  return e;
+  gi.Error("No free entities\n");
 }
 
 /**
@@ -410,14 +306,11 @@ g_entity_t *G_AllocEntity_(const char *class_name) {
  */
 void G_FreeEntity(g_entity_t *ent) {
 
+  G_Debug("%s\n", etos(ent));
+
   gi.UnlinkEntity(ent);
 
-  if ((ent - g_game.entities) <= sv_max_clients->integer) {
-    return;
-  }
-
-  G_ClearEntity(ent);
-  ent->class_name = "free";
+  memset(ent, 0, sizeof(*ent));
 }
 
 /**
@@ -439,7 +332,18 @@ void G_KillBox(g_entity_t *ent) {
 
     if (G_IsMeat(ents[i])) {
 
-      G_Damage(ents[i], NULL, ent, Vec3_Zero(), ents[i]->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_TELEFRAG);
+      G_Damage(&(g_damage_t) {
+        .target = ents[i],
+        .inflictor = NULL,
+        .attacker = ent,
+        .dir = Vec3_Zero(),
+        .point = ents[i]->s.origin,
+        .normal = Vec3_Zero(),
+        .damage = 999,
+        .knockback = 0,
+        .flags = DMG_NO_GOD,
+        .mod = MOD_TELEFRAG
+      });
 
       if (ents[i]->in_use && !ents[i]->dead) {
         break;
@@ -451,7 +355,18 @@ void G_KillBox(g_entity_t *ent) {
 
   if (i < len) {
     if (G_IsMeat(ent)) {
-      G_Damage(ent, NULL, ents[i], Vec3_Zero(), ent->s.origin, Vec3_Zero(), 999, 0, DMG_NO_GOD, MOD_ACT_OF_GOD);
+      G_Damage(&(g_damage_t) {
+        .target = ent,
+        .inflictor = NULL,
+        .attacker = ents[i],
+        .dir = Vec3_Zero(),
+        .point = ent->s.origin,
+        .normal = Vec3_Zero(),
+        .damage = 999,
+        .knockback = 0,
+        .flags = DMG_NO_GOD,
+        .mod = MOD_ACT_OF_GOD
+      });
     }
   }
 }
@@ -466,7 +381,7 @@ void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius,
   gi.WriteByte(TE_EXPLOSION);
   gi.WritePosition(ent->s.origin);
   gi.WriteDir(Vec3_Up());
-  gi.Multicast(ent->s.origin, MULTICAST_PHS, NULL);
+  gi.Multicast(ent->s.origin, MULTICAST_PHS);
 
   G_RadiusDamage(ent, ent, NULL, damage, knockback, radius, mod ?: MOD_EXPLOSIVE);
 
@@ -496,7 +411,7 @@ void G_Gib(g_entity_t *ent) {
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_GIB);
   gi.WritePosition(ent->s.origin);
-  gi.Multicast(ent->s.origin, MULTICAST_PVS, NULL);
+  gi.Multicast(ent->s.origin, MULTICAST_PVS);
 
   G_FreeEntity(ent);
 }
@@ -512,8 +427,6 @@ char *G_GameplayName(int32_t g) {
       return "Instagib";
     case GAME_ARENA:
       return "Arena";
-    case GAME_DUEL:
-      return "Duel";
     default:
       return "DM";
   }
@@ -535,8 +448,6 @@ g_gameplay_t G_GameplayByName(const char *c) {
     gameplay = GAME_INSTAGIB;
   } else if (g_str_has_prefix(lower, "arena")) {
     gameplay = GAME_ARENA;
-  } else if (g_str_has_prefix(lower, "duel")) {
-    gameplay = GAME_DUEL;
   }
 
   g_free(lower);
@@ -612,17 +523,17 @@ int32_t G_EffectForTeam(const g_team_t *t) {
 /**
  * @brief Get the flag a player is holding, or NULL if we're not a flag-bearer.
  */
-const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
+const g_item_t *G_GetFlag(const g_client_t *cl) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (&g_team_list[i] == ent->client->persistent.team) {
+    if (&g_team_list[i] == cl->persistent.team) {
       continue;
     }
 
     g_entity_t *f = G_FlagForTeam(&g_team_list[i]);
 
-    if (f && ent->client->inventory[f->item->index]) {
+    if (f && cl->inventory[f->item->index]) {
       return f->item;
     }
   }
@@ -636,16 +547,12 @@ const g_item_t *G_IsFlagBearer(const g_entity_t *ent) {
 size_t G_TeamSize(const g_team_t *team) {
   size_t count = 0;
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    if (!g_game.entities[i + 1].in_use) {
-      continue;
-    }
-
-    const g_client_t *cl = g_game.entities[i + 1].client;
+  G_ForEachClient(cl, {
     if (cl->persistent.team == team) {
       count++;
     }
-  }
+  });
+
   return count;
 }
 
@@ -653,75 +560,39 @@ size_t G_TeamSize(const g_team_t *team) {
  * @brief
  */
 g_team_t *G_SmallestTeam(void) {
-  g_client_t *cl;
-  uint8_t num_clients[MAX_TEAMS];
-
-  memset(num_clients, 0, sizeof(num_clients));
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    if (!g_game.entities[i + 1].in_use) {
-      continue;
-    }
-
-    cl = g_game.entities[i + 1].client;
-
-    if (!cl->persistent.team) {
-      continue;
-    }
-
-    num_clients[cl->persistent.team->id]++;
-  }
 
   g_team_t *smallest = NULL;
+  size_t size = SIZE_MAX;
 
-  for (int32_t i = 0; i < g_level.num_teams; i++) {
-    if (!smallest || num_clients[i] < num_clients[smallest->id]) {
-      smallest = &g_team_list[i];
+  g_team_t *team = g_team_list;
+  for (int32_t i = 0; i < g_level.num_teams; i++, team++) {
+    const size_t s = G_TeamSize(team);
+    if (s < size) {
+      smallest = team;
+      size = s;
     }
   }
 
   return smallest;
 }
 
-
-/**
- * @brief
- */
-g_entity_t *G_EntityByName(char *name) {
-  int32_t i, j, min;
-  g_client_t *cl;
-  g_entity_t *ret;
-
-  if (!name) {
-    return NULL;
-  }
-
-  ret = NULL;
-  min = 9999;
-
-  for (i = 0; i < sv_max_clients->integer; i++) {
-    if (!g_game.entities[i + 1].in_use) {
-      continue;
-    }
-
-    cl = g_game.entities[i + 1].client;
-    if ((j = g_strcmp0(name, cl->persistent.net_name)) < min) {
-      ret = &g_game.entities[i + 1];
-      min = j;
-    }
-  }
-
-  return ret;
-}
-
-
 /**
  * @brief
  */
 g_client_t *G_ClientByName(char *name) {
 
-  const g_entity_t *ent = G_EntityByName(name);
-  return ent->client;
+  g_client_t *client = NULL;
+  int32_t match = INT32_MAX;
+
+  G_ForEachClient(cl, {
+    const int32_t m = g_strcmp0(name, cl->persistent.net_name);
+    if (m < match) {
+      client = cl;
+      match = m;
+    }
+  });
+
+  return client;
 }
 
 /**
@@ -820,27 +691,27 @@ static void G_SetAnimation_(byte *dest, entity_animation_t anim, bool restart) {
  * @brief Assigns the specified animation to the correct member(s) on the specified
  * entity. If requested, the current animation will be restarted.
  */
-void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart) {
+void G_SetAnimation(g_client_t *cl, entity_animation_t anim, bool restart) {
 
   // certain sequences go to both torso and leg animations
 
   if (anim < ANIM_TORSO_GESTURE) {
-    G_SetAnimation_(&ent->s.animation1, anim, restart);
-    G_SetAnimation_(&ent->s.animation2, anim, restart);
+    G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
+    G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
     return;
   }
 
   // while most go to one or the other, and are throttled
 
   if (anim < ANIM_LEGS_WALKCR) {
-    if (restart || ent->client->animation1_time <= g_level.time) {
-      G_SetAnimation_(&ent->s.animation1, anim, restart);
-      ent->client->animation1_time = g_level.time + 50;
+    if (restart || cl->animation1_time <= g_level.time) {
+      G_SetAnimation_(&cl->entity->s.animation1, anim, restart);
+      cl->animation1_time = g_level.time + 50;
     }
   } else {
-    if (restart || ent->client->animation2_time <= g_level.time) {
-      G_SetAnimation_(&ent->s.animation2, anim, restart);
-      ent->client->animation2_time = g_level.time + 50;
+    if (restart || cl->animation2_time <= g_level.time) {
+      G_SetAnimation_(&cl->entity->s.animation2, anim, restart);
+      cl->animation2_time = g_level.time + 50;
     }
   }
 }
@@ -848,13 +719,13 @@ void G_SetAnimation(g_entity_t *ent, entity_animation_t anim, bool restart) {
 /**
  * @brief Returns true if the entity is currently using the specified animation.
  */
-bool G_IsAnimation(g_entity_t *ent, entity_animation_t anim) {
+bool G_IsAnimation(g_client_t *cl, entity_animation_t anim) {
   byte a;
 
   if (anim < ANIM_LEGS_WALK) {
-    a = ent->s.animation1;
+    a = cl->entity->s.animation1;
   } else {
-    a = ent->s.animation2;
+    a = cl->entity->s.animation2;
   }
 
   return (a & ANIM_MASK_VALUE) == anim;
@@ -871,19 +742,11 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
   vsprintf(string, fmt, args);
   va_end(args);
 
-  // look through all players
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    if (!g_game.entities[i + 1].in_use) {
-      continue;
-    }
-
-    const g_entity_t *ent = &g_game.entities[i + 1];
-
-    // member of supplied team? send it
-    if (ent->client->persistent.team == team) {
+  G_ForEachClient(cl, {
+    if (cl->persistent.team == team) {
       gi.WriteByte(SV_CMD_CENTER_PRINT);
       gi.WriteString(string);
-      gi.Unicast(ent, true);
+      gi.Unicast(cl, true);
     }
-  }
+  });
 }

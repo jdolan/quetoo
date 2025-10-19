@@ -44,9 +44,7 @@
 
 /**
  * @brief This is the server's definition of the client and entity structures. The
- * game module is free to add additional members to these structures, provided
- * they communicate the actual size of them at runtime through the game export
- * structure.
+ * game module is free to add additional members to these structures.
  */
 
 typedef struct g_client_s g_client_t;
@@ -54,14 +52,9 @@ typedef struct g_entity_s g_entity_t;
 
 struct g_client_s {
   /**
-   * @brief True if the client is a bot.
+   * @brief The entity bound to this client.
    */
-  bool ai;
-
-  /**
-   * @brief True if the client's is connected.
-   */
-  bool connected;
+  g_entity_t *entity;
 
   /**
    * @brief Communicated by server to clients
@@ -72,15 +65,24 @@ struct g_client_s {
    * @brief This player's ping
    */
   uint32_t ping;
+
+  /**
+   * @brief True if the client is in use.
+   */
+  bool in_use;
+
+  /**
+   * @brief True if the client is a bot.
+   */
+  bool ai;
 };
 
 /**
- * @brief Entitys (or entities) are autonomous units of game interaction, such
+ * @brief Entities are autonomous units of game interaction, such
  * as items, moving platforms, giblets and players. The game module and server
  * share a common base for this structure, but the game is free to extend it.
  */
 struct g_entity_s {
-
   /**
    * @brief The entity definition from the BSP file.
    */
@@ -88,13 +90,13 @@ struct g_entity_s {
 
   /**
    * @brief The class name provides basic identification and taxonomy for
-   * the entity. This is guaranteed to be set through G_Spawn.
+   * the entity. This is guaranteed to be set through `G_Spawn`.
    */
   const char *class_name;
 
   /**
-   * @brief The model name for an entity (optional). For SOLID_BSP entities,
-   * this is the inline model name (e.g. "*1").
+   * @brief The model name for an entity (optional). For `SOLID_BSP` entities,
+   * this is the inline model name (e.g. `"*1"`).
    */
   const char *model;
 
@@ -110,7 +112,7 @@ struct g_entity_s {
   bool in_use;
 
   /**
-   * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
   uint32_t sv_flags;
 
@@ -122,13 +124,13 @@ struct g_entity_s {
 
   /**
    * @brief The entity bounding box, set by the server, in world space. These
-   * are populated by gi.LinkEntity / Sv_LinkEntity.
+   * are populated by `gi.LinkEntity` / `Sv_LinkEntity`.
    */
   box3_t abs_bounds;
   
   /**
    * @brief The entity size, set by the server. This
-   * is populated by gi.LinkEntity / Sv_LinkEntity.
+   * is populated by `gi.LinkEntity` / `Sv_LinkEntity`.
    */
   vec3_t size;
 
@@ -145,15 +147,12 @@ struct g_entity_s {
   g_entity_t *owner;
 
   /**
-   * @brief Entities 1 through `sv_max_clients->integer` will have a valid
-   * pointer to the variable-sized `g_client_t`.
+   * @brief The `g_client_t` bound to this entity, if any.
    */
   g_client_t *client;
 };
 
 #endif /* __GAME_LOCAL_H__ */
-
-typedef bool (*EntityFilterFunc)(const g_entity_t *ent);
 
 /**
  * @brief The game import provides engine functionality and core configuration
@@ -597,8 +596,8 @@ typedef struct g_import_s {
    * @defgroup network Network messaging.
    */
 
-  void (*Multicast)(const vec3_t org, multicast_t to, EntityFilterFunc filter);
-  void (*Unicast)(const g_entity_t *ent, const bool reliable);
+  void (*Multicast)(const vec3_t org, multicast_t to);
+  void (*Unicast)(const g_client_t *ent, const bool reliable);
   void (*WriteData)(const void *data, size_t len);
   void (*WriteChar)(const int32_t c);
   void (*WriteByte)(const int32_t c);
@@ -615,7 +614,7 @@ typedef struct g_import_s {
    * @brief Network console IO.
    */
   void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-  void (*ClientPrint)(const g_entity_t *ent, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+  void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
    * @}
@@ -639,26 +638,16 @@ typedef struct g_export_s {
   int32_t protocol;
 
   /**
-   * @brief The g_entity_t array, which must be allocated by the game due to
-   * the opaque nature of g_entity_t.
+   * @brief The `g_client_t` pointer array, `sv_max_clients` in length.
+   * @details The game module is responsible for allocating the actual client structures.
    */
-  struct g_entity_s *entities;
+  g_client_t *clients[MAX_CLIENTS];
 
   /**
-   * @brief To be set to the size of g_entity_t so that the server can safely
-   * iterate the entities array.
+   * @brief The `g_entity_t` poitner array, `sv_max_entiteis` in length.
+   * @details The game module is responsible for allocating the actual entity structures.
    */
-  size_t entity_size;
-
-  /**
-   * @brief The current number of in-use `g_entity_t`.
-   */
-  int32_t num_entities;
-
-  /**
-   * @brief The total number of allocated `g_entity_t` (`MAX_ENTITIES`).
-   */
-  int32_t max_entities;
+  g_entity_t *entities[MAX_ENTITIES];
 
   /**
    * @brief Called only when the game module is first loaded. Persistent
@@ -679,26 +668,26 @@ typedef struct g_export_s {
   /**
    * @brief Called when a client connects with valid user information.
    */
-  bool (*ClientConnect)(g_entity_t *ent, char *user_info);
+  bool (*ClientConnect)(g_client_t *cl, char *user_info);
 
   /**
    * @brief Called when a client has fully spawned and should begin thinking.
    */
-  void (*ClientBegin)(g_entity_t *ent);
-  void (*ClientUserInfoChanged)(g_entity_t *ent, const char *user_info);
-  void (*ClientDisconnect)(g_entity_t *ent);
+  void (*ClientBegin)(g_client_t *cl);
+  void (*ClientUserInfoChanged)(g_client_t *cl, const char *user_info);
+  void (*ClientDisconnect)(g_client_t *cl);
 
   /**
    * @brief Called when a client has issued a console command that could not
    * be handled by the server directly (e.g. voting).
    */
-  void (*ClientCommand)(g_entity_t *ent);
+  void (*ClientCommand)(g_client_t *cl);
 
   /**
    * @brief Called when a client issues a movement command, which may include
    * button actions such as attacking.
    */
-  void (*ClientThink)(g_entity_t *ent, pm_cmd_t *cmd);
+  void (*ClientThink)(g_client_t *cl, pm_cmd_t *cmd);
 
   /**
    * @brief Called every QUETOO_TICK_SECONDS to advance game logic.

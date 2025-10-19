@@ -168,21 +168,6 @@ typedef struct {
   int32_t num_clients;
 
   /**
-   * @brief Whether match mode is enabled
-   */
-  int32_t match;
-
-  /**
-   * @brief The current round #
-   */
-  int32_t round;
-
-  /**
-   * @brief The current number of rounds
-   */
-  int32_t num_rounds;
-
-  /**
    * @brief Nav editor state.
    */
   int32_t nav_edit;

@@ -25,13 +25,13 @@
 /**
  * @brief Returns true if ent1 and ent2 are on the same team.
  */
-bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
+bool G_OnSameTeam(const g_client_t *a, const g_client_t *b) {
 
-  if (!ent1->client || !ent2->client) {
+  if (!a || !b) {
     return false;
   }
 
-  if (ent1->client->persistent.spectator && ent2->client->persistent.spectator) {
+  if (a->persistent.spectator && b->persistent.spectator) {
     return true;
   }
 
@@ -39,7 +39,7 @@ bool G_OnSameTeam(const g_entity_t *ent1, const g_entity_t *ent2) {
     return false;
   }
 
-  return ent1->client->persistent.team == ent2->client->persistent.team;
+  return a->persistent.team == b->persistent.team;
 }
 
 /**
@@ -133,7 +133,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
     gi.WriteByte(Clampf(damage, 1, 255));
   }
   
-  gi.Multicast(pos, MULTICAST_PVS, NULL);
+  gi.Multicast(pos, MULTICAST_PVS);
 }
 
 /**
@@ -142,8 +142,7 @@ static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t n
  * @return The amount of damage absorbed, which is not necessarily the amount
  * of armor consumed.
  */
-static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int32_t damage,
-                            uint32_t dflags) {
+static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t normal, int32_t damage, uint32_t dflags) {
 
   if (dflags & DMG_NO_ARMOR) {
     return 0;
@@ -153,7 +152,7 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
     return 0;
   }
 
-  const g_item_t *armor = G_ClientArmor(ent);
+  const g_item_t *armor = G_ClientArmor(ent->client);
   const g_armor_info_t *armor_info = G_ArmorInfo(armor);
 
   if (!armor) {
@@ -180,29 +179,47 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  * @brief Damage routine. The inflictor imparts damage on the target on behalf
  * of the attacker.
  *
- * @param target The target may receive damage.
- * @param inflictor The entity inflicting the damage (projectile, optional).
- * @param attacker The entity taking credit for the damage (client, optional).
- * @param dir The direction of the attack (optional).
- * @param pos The point at which damage is being inflicted (optional).
- * @param normal The normal vector from that point (optional).
- * @param damage The damage to be inflicted.
- * @param knockback Velocity added to target in the direction of the normal.
- * @param dflags Damage flags:
+ * @param damage The damage parameters:
+ *   target The target may receive damage.
+ *   inflictor The entity inflicting the damage (projectile, optional).
+ *   attacker The entity taking credit for the damage (client, optional).
+ *   dir The direction of the attack (optional).
+ *   point The point at which damage is being inflicted (optional).
+ *   normal The normal vector from that point (optional).
+ *   damage The damage to be inflicted.
+ *   knockback Velocity added to target in the direction of the normal.
+ *   flags Damage flags:
  *
- *  DAMAGE_RADIUS      damage was indirect (from a nearby explosion)
- *   DAMAGE_NO_ARMOR      armor does not protect from this damage
- *   DAMAGE_ENERGY      damage is from an energy based weapon
- *   DAMAGE_BULLET      damage is from a bullet
- *   DAMAGE_NO_PROTECTION  kills god mode, armor, everything
+ *     DAMAGE_RADIUS        damage was indirect (from a nearby explosion)
+ *     DAMAGE_NO_ARMOR      armor does not protect from this damage
+ *     DAMAGE_ENERGY        damage is from an energy based weapon
+ *     DAMAGE_BULLET        damage is from a bullet
+ *     DAMAGE_NO_PROTECTION kills god mode, armor, everything
  *
- * @param mod The means of death, used by the obituaries routine.
+ *   mod The means of death, used by the obituaries routine.
  */
-void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
-        const vec3_t dir, const vec3_t pos, const vec3_t normal,
-        int32_t damage, int32_t knockback, int32_t dflags, g_means_of_death mod) {
+void G_Damage(const g_damage_t *dmg) {
 
-  if (!target || !target->take_damage) {
+  g_entity_t *target = dmg->target;
+  g_entity_t *inflictor = dmg->inflictor ?: ge.entities[0];
+  g_entity_t *attacker = dmg->attacker ?: ge.entities[0];
+	const vec3_t dir = dmg->dir;
+	const vec3_t pos = dmg->point;
+	const vec3_t normal = dmg->normal;
+	int32_t damage = dmg->damage;
+	int32_t knockback = dmg->knockback;
+	int32_t dflags = dmg->flags;
+	g_means_of_death mod = dmg->mod;
+
+  assert(target);
+  assert(inflictor);
+  assert(attacker);
+  assert(damage >= 0);
+  assert(damage <= INT16_MAX);
+  assert(knockback >= 0);
+  assert(knockback <= INT16_MAX);
+
+  if (!target->take_damage) {
     return;
   }
 
@@ -212,19 +229,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
     }
   }
 
-  assert(damage >= 0);
-  assert(damage <= INT16_MAX);
-  assert(knockback >= 0);
-  assert(knockback <= INT16_MAX);
-
-  inflictor = inflictor ? inflictor : g_game.entities;
-  attacker = attacker ? attacker : g_game.entities;
-
-  if (target->client && G_HasTech(target, TECH_RESIST)) {
+  if (target->client && G_HasTech(target->client, TECH_RESIST)) {
     damage *= TECH_RESIST_DAMAGE_FACTOR;
     knockback *= TECH_RESIST_KNOCKBACK_FACTOR;
 
-    G_PlayTechSound(target);
+    G_PlayTechSound(target->client);
   }
 
   if (attacker->client) {
@@ -233,11 +242,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
       knockback *= QUAD_KNOCKBACK_FACTOR;
     }
 
-    if (G_HasTech(attacker, TECH_STRENGTH)) {
+    if (G_HasTech(attacker->client, TECH_STRENGTH)) {
       damage *= TECH_STRENGTH_DAMAGE_FACTOR;
       knockback *= TECH_STRENGTH_KNOCKBACK_FACTOR;
 
-      G_PlayTechSound(attacker);
+      G_PlayTechSound(attacker->client);
     }
 
     damage *= attacker->client->persistent.handicap / 100.0;
@@ -245,11 +254,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 
   // friendly fire avoidance
   if (target != attacker && (g_level.teams || g_level.ctf)) {
-    if (G_OnSameTeam(target, attacker)) { // target and attacker are on same team
+    if (G_OnSameTeam(target->client, attacker->client)) {
 
       if (mod == MOD_TELEFRAG) { // telefrags can not be avoided
         mod |= MOD_FRIENDLY_FIRE;
-      } else { // while everything else can
+      } else {
         if (g_friendly_fire->value) {
           damage *= g_friendly_fire->value;
           mod |= MOD_FRIENDLY_FIRE;
@@ -335,10 +344,11 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
       G_SpawnDamage(TE_SPARKS, pos, normal, damage_health);
     }
 
-    if (attacker->client && attacker != target && !G_OnSameTeam(target, attacker) &&
-      !target->dead && G_HasTech(attacker, TECH_VAMPIRE)) {
-      attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
-      G_PlayTechSound(attacker);
+    if (attacker->client && G_HasTech(attacker->client, TECH_VAMPIRE)) {
+      if (!target->dead && attacker != target && !G_OnSameTeam(attacker->client, target->client)) {
+        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->max_health);
+        G_PlayTechSound(attacker->client);
+      }
     }
 
     target->health -= damage_health;
@@ -383,7 +393,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
       kick = 1.0;
     }
 
-    G_ClientDamageKick(target, dir, kick * 10.0);
+    G_ClientDamageKick(client, dir, kick * 10.0);
   }
 }
 
@@ -393,10 +403,7 @@ void G_Damage(g_entity_t *target, g_entity_t *inflictor, g_entity_t *attacker,
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
                     int32_t knockback, float radius, g_means_of_death mod) {
 
-  g_entity_t *ent = NULL;
-
-  while ((ent = G_FindRadius(ent, inflictor->s.origin, radius)) != NULL) {
-
+  G_ForEachEntity(ent, {
     if (ent == ignore) {
       continue;
     }
@@ -406,7 +413,7 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
     }
 
     vec3_t dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
-    const float dist = Vec3_Length(dir);
+    const float dist = Vec3_Length(dir) - Box3_Radius(ent->bounds);
 
     float d = Maxf(damage - 0.5 * dist, 0.f);
     const float k = Maxf(knockback - 0.5 * dist, 0.f);
@@ -430,6 +437,17 @@ void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ign
     // find closest point to inflictor
     const vec3_t point = Box3_ClampPoint(ent->abs_bounds, inflictor->s.origin);
 
-    G_Damage(ent, inflictor, attacker, dir, point, dir, d, k, DMG_RADIUS, mod);
-  }
+    G_Damage(&(g_damage_t) {
+      .target = ent,
+      .inflictor = inflictor,
+      .attacker = attacker,
+      .dir = dir,
+      .point = point,
+      .normal = dir,
+      .damage = d,
+      .knockback = k,
+      .flags = DMG_RADIUS,
+      .mod = mod
+    });
+  });
 }

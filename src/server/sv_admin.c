@@ -95,15 +95,15 @@ static bool Sv_SetPlayer(void) {
 
   // numeric values are just slot numbers
   if (s[0] >= '0' && s[0] <= '9') {
-    const int32_t idnum = atoi(Cmd_Argv(1));
-    if (idnum < 0 || idnum >= sv_max_clients->integer) {
-      Com_Print("Bad client slot: %i\n", idnum);
+    const int32_t num = atoi(Cmd_Argv(1));
+    if (num < 0 || num >= sv_max_clients->integer) {
+      Com_Print("Bad client slot: %i\n", num);
       return false;
     }
 
-    sv_client = &svs.clients[idnum];
+    sv_client = &svs.clients[num];
     if (!sv_client->state) {
-      Com_Print("Client %i is not active\n", idnum);
+      Com_Print("Client %i is not active\n", num);
       return false;
     }
     return true;
@@ -238,8 +238,8 @@ static void Sv_ListEntities_f(void) {
     return;
   }
 
-  for (int32_t i = 0; i < svs.game->num_entities; i++) {
-    const g_entity_t *e = ENTITY_FOR_NUM(i);
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+    const g_entity_t *e = svs.game->entities[i];
 
     if (Cmd_Argc() > 1) {
       if (!GlobMatch(Cmd_Argv(1), e->class_name, GLOB_FLAGS_NONE)) {
@@ -274,14 +274,14 @@ static void Sv_Say_f(void) {
     s++;
   }
 
-  const sv_client_t *client = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
+  const sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
-    if (client->state != SV_CLIENT_ACTIVE) {
+    if (cl->state != SV_CLIENT_ACTIVE) {
       continue;
     }
 
-    Sv_ClientPrint(client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
+    Sv_ClientPrint(svs.game->clients[i], PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
   }
 
   Com_Print("^1console^%d: %s\n", ESC_COLOR_CHAT, s);
@@ -319,7 +319,8 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  Sv_ClientPrint(sv_client->entity, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
+  const g_client_t *cl = svs.game->clients[sv_client - svs.clients];
+  Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
   Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
 }
 

@@ -23,9 +23,9 @@
 
 #define __CG_LOCAL_H__
 
-#define Cg_Debug(...) ({ if (cgi.DebugMask() & DEBUG_CGAME) { cgi.Debug_(DEBUG_CGAME, __func__, __VA_ARGS__); } })
-#define Error(...) Error_(__func__, __VA_ARGS__)
-#define Warn(...) Warn_(__func__, __VA_ARGS__)
+#define Cg_Debug(...) ({ if (cgi.DebugMask() & DEBUG_CGAME) { cgi.Debug(DEBUG_CGAME, __func__, __VA_ARGS__); } })
+#define Cg_Error(...) cgi.Error(__func__, __VA_ARGS__)
+#define Cg_Warn(...) cgi.Warn(__func__, __VA_ARGS__)
 
 #include "cg_client.h"
 #include "cg_discord.h"

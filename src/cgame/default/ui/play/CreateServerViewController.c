@@ -86,7 +86,7 @@ static void createServer(Button *button) {
       const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
 
       if (len == -1) {
-        cgi.Warn("Failed to write %s\n", MAP_LIST_UI);
+        Cg_Warn("Failed to write %s\n", MAP_LIST_UI);
       } else {
         Cg_Debug("Wrote %s %"PRId64" bytes\n", MAP_LIST_UI, len);
       }

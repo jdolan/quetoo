@@ -26,14 +26,14 @@ size_t ai_num_weapons;
 /**
  * @return True if the bot entity can pick up the item entity.
  */
-bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
+bool Ai_CanPickupItem(const g_client_t *cl, const g_entity_t *other) {
   const g_item_t *item = other->item;
 
   if (!item) {
     return false;
   }
 
-  const int16_t *inventory = self->client->inventory;
+  const int16_t *inventory = cl->inventory;
 
   switch (item->type)
   {
@@ -43,7 +43,7 @@ bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
         return true;
       }
 
-      return self->health < self->max_health;
+      return cl->entity->health < cl->entity->max_health;
     case ITEM_ARMOR:
       if (item->tag == ARMOR_SHARD ||
         inventory[item->index] < item->max) {
@@ -74,7 +74,7 @@ bool Ai_CanPickupItem(const g_entity_t *self, const g_entity_t *other) {
 
       return true;
     case ITEM_FLAG: {
-      const g_team_id_t team = self->client->persistent.team->id;
+      const g_team_id_t team = cl->persistent.team->id;
       if ((g_team_id_t) item->tag == team && other->owner == NULL) {
         return false;
       }

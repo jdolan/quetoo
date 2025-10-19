@@ -71,10 +71,7 @@ typedef struct {
   int32_t num_teams;
   int32_t techs;
   int32_t ctf;
-  int32_t match;
-  int32_t rounds;
   int32_t frag_limit;
-  int32_t round_limit;
   int32_t capture_limit;
   float time_limit;
   char give[MAX_STRING_CHARS];
@@ -85,17 +82,14 @@ typedef struct {
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
-#define CS_NUM_TEAMS       (CS_GAME + 1)  // number of teams (0 - MAX_TEAMS)
-#define CS_CTF             (CS_GAME + 2)  // is capture enabled?
-#define CS_MATCH           (CS_GAME + 3)  // is match mode enabled?
-#define CS_ROUNDS          (CS_GAME + 4)  // are rounds enabled?
-#define CS_TEAM_INFO       (CS_GAME + 5)  // team info, separated by \ (name\color\name\color, etc)
-#define CS_TIME            (CS_GAME + 6)  // level or match timer
-#define CS_ROUND           (CS_GAME + 7)  // round number
-#define CS_HOOK_PULL_SPEED (CS_GAME + 8)  // hook speed
-#define CS_MAXCLIENTS      (CS_GAME + 9)  // maxclients of server
-#define CS_NUMCLIENTS      (CS_GAME + 10) // number of players in server
-#define CS_NAV_EDIT        (CS_GAME + 11) // nav edit mode
+#define CS_CTF             (CS_GAME + 1)  // is capture enabled?
+#define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
+#define CS_TIME            (CS_GAME + 3)  // map time
+#define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
+#define CS_MAX_CLIENTS     (CS_GAME + 5)  // maxclients of server
+#define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
+#define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
+#define CS_NAV_EDIT        (CS_GAME + 8)  // nav edit mode
 
 /**
  * @brief Player state statistics (inventory, score, etc).
@@ -119,8 +113,6 @@ typedef enum {
   STAT_PICKUP_ICON,
   STAT_PICKUP_STRING,
   STAT_QUAD_TIME,
-  STAT_READY,
-  STAT_ROUND,
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
@@ -236,10 +228,9 @@ typedef struct {
 /**
  * @brief Player scores flags.
  */
-#define SCORE_CTF_FLAG    (1 << 0)
-#define SCORE_NOT_READY    (1 << 1)
-#define SCORE_SPECTATOR    (1 << 2)
-#define SCORE_AGGREGATE    (1 << 3)
+#define SCORE_CTF_FLAG  (1 << 0)
+#define SCORE_SPECTATOR (1 << 2)
+#define SCORE_AGGREGATE (1 << 3)
 
 /**
  * @brief Game-specific entity events.
@@ -345,8 +336,7 @@ typedef enum {
 typedef enum {
   GAME_DEATHMATCH,
   GAME_INSTAGIB,
-  GAME_ARENA,
-  GAME_DUEL
+  GAME_ARENA
 } g_gameplay_t;
 
 /**
@@ -546,23 +536,23 @@ typedef struct g_item_s {
    * @brief Called when a player touches this item. Returning false
    * prevents the item from being picked up.
    */
-  bool (*Pickup)(g_entity_t *ent, g_entity_t *other);
+  bool (*Pickup)(g_client_t *cl, g_entity_t *it);
 
   /**
    * @brief Called when an item is "use"d from the inventory.
    */
-  void (*Use)(g_entity_t *ent, const struct g_item_s *item);
+  void (*Use)(g_client_t *cl, const struct g_item_s *item);
 
   /**
    * @brief Called when an item is dropped from the inventory. Must return
    * the item that was dropped, or NULL if the item can't currently be dropped.
    */
-  g_entity_t *(*Drop)(g_entity_t *ent, const struct g_item_s *item);
+  g_entity_t *(*Drop)(g_client_t *cl, const struct g_item_s *item);
 
   /**
    * @brief Called every frame for a player that is holding this weapon.
    */
-  void (*Think)(g_entity_t *ent);
+  void (*Think)(g_client_t *cl);
 
   /**
    * @brief The ammo this weapon uses
@@ -707,30 +697,8 @@ typedef struct {
   void (*Done)(g_entity_t *);
 } g_move_info_t;
 
-/**
- * @brief This structure is initialized when the game module is loaded and
- * remains in tact until it is unloaded. The server receives the pointers
- * within this structure so that it may e.g. iterate over entities.
- */
-typedef struct {
-  g_entity_t *entities; // [g_max_entities]
-  g_client_t *clients; // [sv_max_clients]
-
-  bool ai_loaded; // whether the AI is loaded or not
-  int32_t ai_fill_slots; // total number of empty slots the AI should fill
-  int32_t ai_left_to_spawn; // the number of AI bots that we're waiting to spawn in
-} g_game_t;
-
-extern g_game_t g_game;
-
 #define NUM_GIB_MODELS 4
 #define NUM_GIB_SOUNDS 3
-
-// for match status bitmasking
-#define MSTAT_WARMUP    0
-#define MSTAT_PLAYING   1 << 0
-#define MSTAT_TIMEOUT   1 << 1
-#define MSTAT_COUNTDOWN 1 << 2
 
 /**
  * @brief This structure holds references to frequently accessed media.
@@ -820,16 +788,13 @@ typedef struct {
   bool teams;
   bool ctf;
   bool techs;
-  bool match;
-  bool rounds;
-  bool hook_allowed;
+  bool hook;
   int32_t num_teams;
   int32_t hook_map; // the map's hook allowance, for voting/restart/etc
   int32_t techs_map;
   int32_t frag_limit;
-  int32_t round_limit;
   int32_t capture_limit;
-  uint32_t time_limit;
+  int32_t time_limit;
   char give[MAX_STRING_CHARS];
   char music[MAX_STRING_CHARS];
 
@@ -841,22 +806,7 @@ typedef struct {
   vec3_t intermission_angle;
   const char *next_map;
 
-  bool warmup; // shared by match and round
-
-  bool start_match;
-  uint32_t match_time; // time match started
-  uint32_t match_num;
-
-  bool start_round;
-  uint32_t round_time; // time round started
-  uint32_t round_num;
-
   g_entity_t *current_entity; // entity running from G_RunFrame
-
-  uint32_t match_status;  // (bitmask) are we playing, in warmup, in timeout?
-  g_entity_t *timeout_caller; // who called it?
-  uint32_t timeout_time;
-  uint32_t timeout_frame;
 
   g_spawn_points_t spawn_points;
 } g_level_t;
@@ -908,6 +858,22 @@ typedef struct {
 #define DMG_BULLET   0x4  // damage is from a bullet
 #define DMG_NO_ARMOR 0x8  // armor does not protect from this damage
 #define DMG_NO_GOD   0x10  // armor and god mode have no effect
+
+/**
+ * @brief Damage parameters for G_Damage.
+ */
+typedef struct {
+	g_entity_t *target;
+	g_entity_t *inflictor;
+	g_entity_t *attacker;
+	vec3_t dir;
+	vec3_t point;
+	vec3_t normal;
+	int32_t damage;
+	int32_t knockback;
+	int32_t flags;
+	g_means_of_death mod;
+} g_damage_t;
 
 /**
  * @brief The name for the CTF skin used in team games.
@@ -991,11 +957,7 @@ typedef struct {
 
   bool admin;
   bool spectator;
-  bool ready;
   bool muted;
-
-  uint32_t match_num; // most recent match
-  uint32_t round_num; // most recent arena round
 } g_client_persistent_t;
 
 /**
@@ -1006,14 +968,9 @@ typedef struct {
  */
 struct g_client_s {
   /**
-   * @brief True if the client is a bot.
+   * @brief The entity bound to this client.
    */
-  bool ai;
-
-  /**
-   * @brief True if the client's is connected.
-   */
-  bool connected;
+  g_entity_t *entity;
 
   /**
    * @brief Communicated by server to clients
@@ -1025,9 +982,26 @@ struct g_client_s {
    */
   uint32_t ping;
 
+  /**
+   * @brief True if the client is in use.
+   */
+  bool in_use;
+
+  /**
+   * @brief True if the client is a bot.
+   */
+  bool ai;
+
+  /**
+   * @brief The persistent client data, like name and score.
+   */
+  g_client_persistent_t persistent;
+
+  /**
+   * @brief The most recently received movement command.
+   */
   pm_cmd_t cmd;
 
-  g_client_persistent_t persistent;
 
   int16_t inventory[MAX_ITEMS];
 
@@ -1091,8 +1065,8 @@ struct g_client_s {
   uint32_t quad_countdown_time; // has quad when time < this
   uint32_t quad_attack_time; // play attack sound when time > this
 
-  g_entity_t *chase_target; // player we are chasing
-  g_entity_t *old_chase_target; // player we were chasing
+  g_client_t *chase_target; // player we are chasing
+  g_client_t *old_chase_target; // player we were chasing
 
   const g_item_t *last_dropped; // last dropped item, used for variable expansion
 

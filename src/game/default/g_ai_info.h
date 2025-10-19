@@ -24,5 +24,5 @@
 #ifdef __GAME_LOCAL_H__
 void Ai_InitSkins(void);
 void Ai_ShutdownSkins(void);
-void Ai_GetUserInfo(const g_entity_t *self, char *info);
+void Ai_GetUserInfo(const g_client_t *cl, char *info);
 #endif /* __GAME_LOCAL_H__ */

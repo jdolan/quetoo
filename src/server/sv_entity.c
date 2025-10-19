@@ -49,8 +49,7 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
     if (old_index >= from_num_entities) {
       old_num = 0xffff;
     } else {
-      old_state
-          = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
+      old_state = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
       old_num = old_state->number;
     }
 
@@ -130,13 +129,13 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
 }
 
 /**
- * @brief Decides which entities are going to be visible to the client, and
- * copies off the player state.
+ * @brief Decides which entities are going to be visible to the client and copies off the player state.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
 
-  g_entity_t *cent = client->entity;
-  if (!cent->client) {
+  g_client_t *cl = svs.game->clients[client - svs.clients];
+
+  if (!cl->in_use) {
     return;    // not in game yet
   }
 
@@ -145,14 +144,22 @@ void Sv_BuildClientFrame(sv_client_t *client) {
   frame->sent_time = quetoo.ticks; // timestamp for ping calculation
 
   // grab the current player_state_t
-  frame->ps = cent->client->ps;
+  frame->ps = cl->ps;
 
   // build up the list of relevant entities
   frame->num_entities = 0;
   frame->entity_state = svs.next_entity_state;
 
-  for (int32_t e = 1; e < svs.game->num_entities; e++) {
-    g_entity_t *ent = ENTITY_FOR_NUM(e);
+  for (int32_t i = 1; i < sv_max_entities->integer; i++) {
+
+    const g_entity_t *ent = svs.game->entities[i];
+
+    if (!ent->in_use) {
+      continue;
+    }
+
+    assert(ent->s.number == i);
+
 
     if (!editor->value) {
 
@@ -169,14 +176,11 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
     // copy it to the circular entity_state_t array
     entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
-    if (ent->s.number != e) {
-      Com_Warn("Fixing entity number: %d -> %d\n", ent->s.number, e);
-      ent->s.number = e;
-    }
+
     *s = ent->s;
 
-    // don't mark our own missiles as solid for prediction
-    if (ent->owner == client->entity) {
+    // make the client's own projectiles as not-solid for client side prediction
+    if (ent->owner == cl->entity) {
       s->solid = SOLID_NOT;
     }
 

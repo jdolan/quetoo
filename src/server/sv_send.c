@@ -24,50 +24,48 @@
 /**
  * @brief Sends text across to be displayed if the level filter passes.
  */
-void Sv_ClientPrint(const g_entity_t *ent, const int32_t level, const char *fmt, ...) {
-  sv_client_t *cl;
-  va_list args;
-  char string[MAX_STRING_CHARS];
-  ptrdiff_t n;
+void Sv_ClientPrint(const g_client_t *cl, const int32_t level, const char *fmt, ...) {
 
-  n = NUM_FOR_ENTITY(ent);
-  if (n < 1 || n > sv_max_clients->integer) {
-    Com_Warn("Issued to non-client %" PRIuPTR "\n", n);
+  if (cl->ai) {
     return;
   }
 
-  cl = &svs.clients[n - 1];
+  sv_client_t *client = svs.clients + cl->ps.client;
 
-  if (cl->state != SV_CLIENT_ACTIVE) {
+  if (client->state != SV_CLIENT_ACTIVE) {
     Com_Debug(DEBUG_SERVER, "Issued to unspawned client\n");
     return;
   }
 
-  if (level < cl->message_level) {
+  if (level < client->message_level) {
     Com_Debug(DEBUG_SERVER, "Filtered by message level\n");
     return;
   }
 
+  va_list args;
   va_start(args, fmt);
+
+  char string[MAX_STRING_CHARS];
   vsprintf(string, fmt, args);
+
   va_end(args);
 
-  Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
-  Net_WriteByte(&cl->net_chan.message, level);
-  Net_WriteString(&cl->net_chan.message, string);
+  Net_WriteByte(&client->net_chan.message, SV_CMD_PRINT);
+  Net_WriteByte(&client->net_chan.message, level);
+  Net_WriteString(&client->net_chan.message, string);
 }
 
 /**
  * @brief Sends text to all active clients over their unreliable channels.
  */
 void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
-  char string[MAX_STRING_CHARS];
-  va_list args;
-  sv_client_t *cl;
-  int32_t i;
 
+  va_list args;
   va_start(args, fmt);
+
+  char string[MAX_STRING_CHARS];
   vsprintf(string, fmt, args);
+
   va_end(args);
 
   // echo to console
@@ -83,7 +81,8 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
     Com_Print("%s", copy);
   }
 
-  for (i = 0, cl = svs.clients; i < sv_max_clients->integer; i++, cl++) {
+  sv_client_t *cl = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (level < cl->message_level) {
       continue;
@@ -116,7 +115,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
 
   Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
   Net_WriteString(&sv.multicast, string);
-  Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R, NULL);
+  Sv_Multicast(Vec3_Zero(), MULTICAST_ALL_R);
 }
 
 /**
@@ -153,25 +152,20 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 }
 
 /**
- * @brief Sends the contents of the mutlicast buffer to a single client
+ * @brief Sends the contents of the mutlicast buffer to a single client.
  */
-void Sv_Unicast(const g_entity_t *ent, const bool reliable) {
+void Sv_Unicast(const g_client_t *cl, const bool reliable) {
 
-  if (ent && !ent->client->ai) {
+  if (cl->ai) {
+    return;
+  }
 
-    const uint16_t n = NUM_FOR_ENTITY(ent);
-    if (n < 1 || n > sv_max_clients->integer) {
-      Com_Warn("Non-client: %s\n", etos(ent));
-      return;
-    }
+  sv_client_t *client = svs.clients + cl->ps.client;
 
-    sv_client_t *cl = svs.clients + (n - 1);
-
-    if (reliable) {
-      Mem_WriteBuffer(&cl->net_chan.message, sv.multicast.data, sv.multicast.size);
-    } else {
-      Sv_ClientDatagramMessage(cl, sv.multicast.data, sv.multicast.size);
-    }
+  if (reliable) {
+    Mem_WriteBuffer(&client->net_chan.message, sv.multicast.data, sv.multicast.size);
+  } else {
+    Sv_ClientDatagramMessage(client, sv.multicast.data, sv.multicast.size);
   }
 
   Mem_ClearBuffer(&sv.multicast);
@@ -181,7 +175,7 @@ void Sv_Unicast(const g_entity_t *ent, const bool reliable) {
  * @brief Sends the contents of sv.multicast to a subset of the clients,
  * then clears sv.multicast.
  */
-void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) {
+void Sv_Multicast(const vec3_t origin, multicast_t to) {
 
   bool reliable = false;
 
@@ -222,18 +216,12 @@ void Sv_Multicast(const vec3_t origin, multicast_t to, EntityFilterFunc filter) 
       continue;
     }
 
-    if (cl->entity->client->ai) {
+    if (svs.game->clients[j]->ai) {
       continue;
     }
 
     if (to != MULTICAST_ALL && to != MULTICAST_ALL_R) {
       // TODO: Some basic tracing or just distance attenuation?
-    }
-
-    if (filter) { // allow the game module to filter the recipients
-      if (!filter(cl->entity)) {
-        continue;
-      }
     }
 
     if (reliable) {
