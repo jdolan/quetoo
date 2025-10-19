@@ -83,7 +83,6 @@ cvar_t *cg_third_person_yaw;
 cvar_t *cg_auto_switch;
 cvar_t *cg_color;
 cvar_t *cg_hand;
-cvar_t *cg_handicap;
 cvar_t *cg_helmet;
 cvar_t *cg_hook_style;
 cvar_t *cg_pants;
@@ -176,7 +175,6 @@ static void Cg_Init(void) {
   cg_auto_switch = cgi.AddCvar("auto_switch", "1", CVAR_USER_INFO | CVAR_ARCHIVE, "The weapon auto-switch mode. 0 disables, 1 switches from Blaster only, 2 always switches, 3 switches to new weapons.");
   cg_color = cgi.AddCvar("color", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies the effect color for your own weapon trails.");
   cg_hand = cgi.AddCvar("hand", "1", CVAR_ARCHIVE | CVAR_USER_INFO, "Controls weapon handedness (center: 0, right: 1, left: 2).");
-  cg_handicap = cgi.AddCvar("handicap", "100", CVAR_USER_INFO | CVAR_ARCHIVE, "Your handicap, or disadvantage.");
   cg_helmet = cgi.AddCvar("helmet", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your helmet color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_hook_style = cgi.AddCvar("hook_style", "pull", CVAR_USER_INFO | CVAR_ARCHIVE, "Your preferred hook style. Can be either \"pull\", \"swing_manual\", or \"swing_auto\".");
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");

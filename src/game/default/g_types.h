@@ -939,9 +939,6 @@ typedef struct {
   char skin[MAX_QPATH];
   g_hand_t hand;
 
-  uint16_t handicap; // current handicap inverse percentage from 0 to 100
-  uint16_t handicap_next; // handicap to use next respawn
-
   uint16_t auto_switch; // if weapons auto-switch on pickup
 
   g_hook_style_t hook_style; // the player's current hook style

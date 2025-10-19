@@ -862,7 +862,6 @@ static void G_ClientRespawn_(g_client_t *cl) {
   G_ClientCorpse(cl);
 
   // clear the client, retaining only critical fields
-
   const g_client_t tmp = *cl;
   memset(cl, 0, sizeof(*cl));
 
@@ -873,83 +872,83 @@ static void G_ClientRespawn_(g_client_t *cl) {
   cl->ai = tmp.ai;
   cl->persistent = tmp.persistent;
 
+  g_entity_t *ent = cl->entity;
+
   // find a spawn point
   const g_entity_t *spawn = G_SelectSpawnPoint(cl);
   assert(spawn);
 
   // move to the spawn origin
-  cl->entity->s.origin = spawn->s.origin;
-  cl->entity->s.origin.z += PM_STEP_HEIGHT;
+  ent->s.origin = spawn->s.origin;
+  ent->s.origin.z += PM_STEP_HEIGHT;
 
   // and calculate delta angles
-  cl->entity->s.angles = Vec3_Zero();
-  cl->entity->client->angles = spawn->s.angles;
+  ent->s.angles = Vec3_Zero();
+  cl->angles = spawn->s.angles;
   delta_angles = Vec3_Subtract(spawn->s.angles, tmp.cmd_angles);
 
   // pack the new origin and delta angles into the player state
-  cl->ps.pm_state.origin = cl->entity->s.origin;
+  cl->ps.pm_state.origin = ent->s.origin;
   cl->ps.pm_state.delta_angles = delta_angles;
 
-  cl->entity->velocity = Vec3_Zero();
+  ent->velocity = Vec3_Zero();
 
-  cl->entity->s.effects = 0;
-  cl->entity->s.model1 = 0;
-  cl->entity->s.model2 = 0;
-  cl->entity->s.model3 = 0;
-  cl->entity->s.model4 = 0;
+  ent->s.effects = 0;
+  ent->s.model1 = 0;
+  ent->s.model2 = 0;
+  ent->s.model3 = 0;
+  ent->s.model4 = 0;
 
   if (cl->persistent.spectator) { // spawn a spectator
-    cl->entity->class_name = "spectator";
+    ent->class_name = "spectator";
 
-    cl->entity->bounds = Box3_Zero();
+    ent->bounds = Box3_Zero();
 
-    cl->entity->solid = SOLID_NOT;
-    cl->entity->sv_flags = SVF_NO_CLIENT;
+    ent->solid = SOLID_NOT;
+    ent->sv_flags = SVF_NO_CLIENT;
 
-    cl->entity->move_type = MOVE_TYPE_NO_CLIP;
-    cl->entity->dead = true;
-    cl->entity->take_damage = false;
+    ent->move_type = MOVE_TYPE_NO_CLIP;
+    ent->dead = true;
+    ent->take_damage = false;
 
     cl->chase_target = NULL;
     cl->weapon = NULL;
 
     cl->persistent.team = NULL;
   } else { // spawn an active client
-    cl->entity->class_name = "client";
+    ent->class_name = "client";
 
-    cl->entity->solid = SOLID_BOX;
-    cl->entity->sv_flags = 0;
+    ent->solid = SOLID_BOX;
+    ent->sv_flags = 0;
 
-    cl->entity->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
+    ent->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
 
-    cl->entity->s.model1 = MODEL_CLIENT;
-    cl->entity->s.client = cl->ps.client;
-    cl->entity->s.event = EV_CLIENT_TELEPORT;
+    ent->s.model1 = MODEL_CLIENT;
+    ent->s.event = EV_CLIENT_TELEPORT;
 
     G_SetAnimation(cl, ANIM_TORSO_STAND1, true);
     G_SetAnimation(cl, ANIM_LEGS_JUMP1, true);
 
-    cl->entity->clip_mask = CONTENTS_MASK_CLIP_PLAYER;
+    ent->clip_mask = CONTENTS_MASK_CLIP_PLAYER;
 
     if (cl->ai) {
-      cl->entity->clip_mask = CONTENTS_MASK_CLIP_MONSTER;
+      ent->clip_mask = CONTENTS_MASK_CLIP_MONSTER;
     }
 
-    cl->entity->dead = false;
-    cl->entity->Die = G_ClientDie;
-    memset(&cl->entity->ground, 0, sizeof(cl->entity->ground));
-    cl->persistent.handicap = cl->persistent.handicap_next;
-    cl->entity->max_health = cl->persistent.handicap;
-    cl->entity->health = cl->entity->max_health + 5;
+    ent->dead = false;
+    ent->Die = G_ClientDie;
+    memset(&ent->ground, 0, sizeof(ent->ground));
+    ent->max_health = 100;
+    ent->health = ent->max_health + 5;
     cl->boost_time = g_level.time + 1000;
     cl->max_armor = 200;
-    cl->max_boost_health = cl->entity->max_health + 100;
-    cl->entity->move_type = MOVE_TYPE_WALK;
-    cl->entity->mass = 200.0;
-    cl->entity->take_damage = true;
-    cl->entity->water_level = WATER_UNKNOWN;
-    cl->entity->water_type = 0;
-    cl->entity->ripple_size = 32.0;
+    cl->max_boost_health = ent->max_health + 100;
+    ent->move_type = MOVE_TYPE_WALK;
+    ent->mass = 200.0;
+    ent->take_damage = true;
+    ent->water_level = WATER_UNKNOWN;
+    ent->water_type = 0;
+    ent->ripple_size = 32.0;
 
     // hold in place briefly
     cl->ps.pm_state.flags = PMF_TIME_TELEPORT;
@@ -963,10 +962,10 @@ static void G_ClientRespawn_(g_client_t *cl) {
     // briefly disable firing, since we likely just clicked to respawn
     cl->weapon_fire_time = g_level.time + 250;
 
-    G_KillBox(cl->entity); // kill anyone in our spot
+    G_KillBox(ent); // kill anyone in our spot
   }
 
-  gi.LinkEntity(cl->entity);
+  gi.LinkEntity(ent);
 }
 
 /**
@@ -1242,14 +1241,6 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   } else {
     cl->entity->s.effects &= ~(EF_INACTIVE);
   }
-
-  // handicap
-  uint16_t handicap = strtoul(GetUserInfo(user_info, "handicap"), NULL, 10);
-  if (handicap == 0) {
-    handicap = 100;
-  }
-
-  cl->persistent.handicap_next = Clampf(handicap, 50, 100);
 
   // auto-switch
   uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);

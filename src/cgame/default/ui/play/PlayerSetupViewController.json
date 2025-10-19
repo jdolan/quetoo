@@ -52,21 +52,6 @@
                           "class": "Select",
                           "identifier": "skin"
                         }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Handicap"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 50,
-                          "max": 100,
-                          "step": 5,
-                          "var": "handicap"
-                        }
                       }
                     ]
                   }

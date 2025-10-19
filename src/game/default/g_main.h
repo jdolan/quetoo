@@ -111,7 +111,6 @@ extern cvar_t *g_frag_limit;
 extern cvar_t *g_friendly_fire;
 extern cvar_t *g_gameplay;
 extern cvar_t *g_gravity;
-extern cvar_t *g_handicap;
 extern cvar_t *g_num_teams;
 extern cvar_t *g_motd;
 extern cvar_t *g_password;

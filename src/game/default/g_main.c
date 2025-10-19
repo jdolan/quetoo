@@ -108,7 +108,6 @@ cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
 cvar_t *g_gravity;
-cvar_t *g_handicap;
 cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
@@ -1012,7 +1011,6 @@ void G_Init(void) {
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
-  g_handicap = gi.AddCvar("g_handicap", "1", CVAR_SERVER_INFO, "Allows use of player handicap. 0 disallows, 1 allows, 2 allows but disables damage reduction.");
   g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");

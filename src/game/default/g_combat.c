@@ -248,8 +248,6 @@ void G_Damage(const g_damage_t *dmg) {
 
       G_PlayTechSound(attacker->client);
     }
-
-    damage *= attacker->client->persistent.handicap / 100.0;
   }
 
   // friendly fire avoidance

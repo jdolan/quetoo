@@ -86,7 +86,6 @@ extern cvar_t *cg_third_person_yaw;
 extern cvar_t *cg_auto_switch;
 extern cvar_t *cg_color;
 extern cvar_t *cg_hand;
-extern cvar_t *cg_handicap;
 extern cvar_t *cg_helmet;
 extern cvar_t *cg_hook_style;
 extern cvar_t *cg_pants;
