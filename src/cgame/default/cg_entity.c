@@ -261,7 +261,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
       return;
     }
 
-    if (ent->current.model1 == MODEL_CLIENT) {
+    if (ent->current.effects & EF_CLIENT) {
 
       // add a client entity, with an animated player model
       Cg_AddClientEntity(ent, &e);

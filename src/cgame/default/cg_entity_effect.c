@@ -40,7 +40,7 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
  */
 vec3_t Cg_ResolveClientEffectHSV(const int32_t client, const float default_hue) {
 
-  if (client < 0 || client >= cgi.ConfigString(CS_MAX_CLIENTS)) {
+  if (client < 0 || client >= MAX_CLIENTS) {
     return Vec3(default_hue, 1.f, 1.f);
   }
 

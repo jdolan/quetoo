@@ -893,7 +893,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
 
   ent->velocity = Vec3_Zero();
 
-  ent->s.effects = 0;
+  ent->s.effects = EF_CLIENT;
   ent->s.model1 = 0;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
@@ -940,15 +940,16 @@ static void G_ClientRespawn_(g_client_t *cl) {
     memset(&ent->ground, 0, sizeof(ent->ground));
     ent->max_health = 100;
     ent->health = ent->max_health + 5;
-    cl->boost_time = g_level.time + 1000;
-    cl->max_armor = 200;
-    cl->max_boost_health = ent->max_health + 100;
     ent->move_type = MOVE_TYPE_WALK;
     ent->mass = 200.0;
     ent->take_damage = true;
     ent->water_level = WATER_UNKNOWN;
     ent->water_type = 0;
     ent->ripple_size = 32.0;
+
+    cl->boost_time = g_level.time + 1000;
+    cl->max_armor = 200;
+    cl->max_boost_health = ent->max_health + 100;
 
     // hold in place briefly
     cl->ps.pm_state.flags = PMF_TIME_TELEPORT;
@@ -1276,6 +1277,7 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
   cl->entity = G_AllocEntity("client");
   cl->entity->client = cl;
   cl->entity->s.client = cl->ps.client;
+  cl->entity->s.effects = EF_CLIENT;
   cl->ps.entity = cl->entity->s.number;
 
   memset(&cl->persistent, 0, sizeof(cl->persistent));

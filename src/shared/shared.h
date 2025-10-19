@@ -118,8 +118,9 @@ typedef enum {
  * @brief Entity state effects are a bit mask used to combine common effects
  * such as rotating, bobbing, etc. The game module may define up to 16 effect bits.
  */
-#define EF_NONE (0)
-#define EF_GAME (1 << 0) // the game may extend from here
+#define EF_NONE   (0)
+#define EF_CLIENT (1 << 0)
+#define EF_GAME   (1 << 1) // the game may extend from here
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities

@@ -39,7 +39,7 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
 
   const cl_entity_t *ent = &cl.entities[s->number];
 
-  if (s->effects) {
+  if (s->effects & EF_CLIENT) {
     return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
   } else {
     return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);

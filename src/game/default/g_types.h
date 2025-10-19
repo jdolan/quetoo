@@ -1038,7 +1038,7 @@ struct g_client_s {
 
   uint32_t respawn_time; // eligible for respawn when time > this
   uint32_t respawn_protection_time; // respawn protected till this time
-  uint32_t ground_time; // last touched ground whence
+  uint32_t ground_time; // time when last touched ground
   uint32_t boost_time; // eligible for falling health damage when time > this
   uint32_t drown_time; // eligible for drowning damage when time > this
   uint32_t sizzle_time; // eligible for sizzle damage when time > this
