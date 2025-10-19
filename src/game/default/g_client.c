@@ -1249,11 +1249,6 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // hook style
   G_SetClientHookStyle(cl);
-
-  // auto-spectate from "spectator" key
-  if (strtoul(GetUserInfo(user_info, "spectator"), NULL, 10)) {
-    cl->persistent.spectator = true;
-  }
 }
 
 /**

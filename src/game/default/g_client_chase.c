@@ -50,7 +50,7 @@ void G_ClientChaseThink(g_client_t *cl) {
     cl->angles = target->angles;
 
     // and player state
-    memcpy(&cl->ps, &target->ps, sizeof(player_state_t));
+    memcpy(&cl->ps.pm_state, &target->ps.pm_state, sizeof(pm_state_t));
 
     // add in delta angles in case we've switched targets
     if (!Vec3_Equal(new_delta, Vec3_Zero())) {
@@ -115,7 +115,7 @@ void G_ClientChasePrevious(g_client_t *cl) {
     i--;
 
     if (i == -1) {
-      i = sv_max_clients->integer;
+      i = sv_max_clients->integer - 1;
     }
 
     prev = ge.clients[i];
@@ -135,7 +135,7 @@ void G_ClientChasePrevious(g_client_t *cl) {
 void G_ClientChaseTarget(g_client_t *cl) {
 
   G_ForEachClient(other, {
-    if (G_IsMeat(other->entity)) {
+    if (other != cl && G_IsMeat(other->entity)) {
       cl->chase_target = other;
       break;
     }

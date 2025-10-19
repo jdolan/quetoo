@@ -227,9 +227,6 @@ static void Cg_DiscordJoinGame(const char *secret) {
     return;
   }
 
-  // just to clear any pending spectator value
-  cgi.SetCvarInteger("spectator", 0);
-
   cgi.Cbuf(va("connect %s\n", (secret + 5)));
 }
 
@@ -237,18 +234,6 @@ static void Cg_DiscordJoinRequest(const DiscordUser *request) {
 
   // TODO: display UI for this
   Discord_Respond(request->userId, DISCORD_REPLY_YES);
-}
-
-static void Cg_DiscordSpectateGame(const char *secret) {
-
-  if (g_ascii_strncasecmp(secret, "SPCT_", 5)) {
-    Cg_Warn("Invalid invitation\n");
-    return;
-  }
-
-  cgi.SetCvarInteger("spectator", 1);
-
-  cgi.Cbuf(va("connect %s\n", (secret + 5)));
 }
 
 void Cg_InitDiscord(void) {
@@ -259,7 +244,7 @@ void Cg_InitDiscord(void) {
     .joinGame = Cg_DiscordJoinGame,
     .joinRequest = Cg_DiscordJoinRequest,
     .errored = Cg_DiscordDisconnected,
-    .spectateGame = Cg_DiscordSpectateGame
+    .spectateGame = Cg_DiscordJoinGame
   };
 
   Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);

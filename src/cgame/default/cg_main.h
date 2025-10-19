@@ -91,7 +91,6 @@ extern cvar_t *cg_hook_style;
 extern cvar_t *cg_pants;
 extern cvar_t *cg_shirt;
 extern cvar_t *cg_skin;
-extern cvar_t *cg_spectator;
 
 extern cvar_t *g_gameplay;
 extern cvar_t *g_teams;
