@@ -168,48 +168,13 @@ void Cg_FreeEntities(void) {
  */
 cl_entity_t *Cg_Self(void) {
 
-  int32_t index = cgi.client->client;
+  int32_t index = cgi.client->frame.ps.entity;
 
   if (cgi.client->frame.ps.stats[STAT_CHASE]) {
-    index = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
+    index = cgi.client->frame.ps.stats[STAT_CHASE];
   }
 
-  cl_entity_t *e = cgi.client->entities;
-  for (size_t i = 0; i < lengthof(cgi.client->entities); i++, e++) {
-    if (e->current.client == index) {
-      return e;
-    }
-  }
-
-  Cg_Error("No entity for local client\n");
-}
-
-/**
- * @return True if the specified entity is bound to the local client's view.
- */
-bool Cg_IsSelf(const cl_entity_t *ent) {
-
-  if (ent == cgi.client->entity) {
-    return true;
-  }
-
-  if ((ent->current.effects & EF_CORPSE) == 0) {
-
-    if (ent->current.model1 == MODEL_CLIENT) {
-
-      if (ent->current.client == cgi.client->client) {
-        return true;
-      }
-
-      const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
-
-      if (ent->current.client == chase) {
-        return true;
-      }
-    }
-  }
-
-  return false;
+  return cgi.client->entities + index;
 }
 
 /**
@@ -282,7 +247,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
 
   if (editor->value) {
 
-    if (Cg_IsSelf(ent)) {
+    if (ent == cgi.client->entity) {
       return;
     }
 
@@ -302,7 +267,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
       Cg_AddClientEntity(ent, &e);
 
       // add our view weapon, if it's us
-      if (Cg_IsSelf(ent)) {
+      if (ent == cgi.client->entity) {
         Cg_AddWeapon(ent, &e);
       }
 
@@ -310,7 +275,7 @@ static void Cg_AddEntity(cl_entity_t *ent) {
     }
 
     // don't draw our own giblet, since the view is inside it
-    if (Cg_IsSelf(ent) && !cgi.client->third_person) {
+    if (ent == cgi.client->entity && !cgi.client->third_person) {
       e.effects |= EF_NO_DRAW;
     }
 

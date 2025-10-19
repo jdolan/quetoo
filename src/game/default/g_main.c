@@ -889,7 +889,7 @@ static void G_Restart_f(void) {
 }
 
 /**
- * @brief Set up the CS_NUM_TEAMS configstring to the number of valid teams we have
+ * @brief Set up the `CS_NUM_TEAMS` configstring to the number of valid teams we have
  */
 void G_InitNumTeams(void) {
 

@@ -489,7 +489,7 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   }
 
   // deal with our own player model
-  if (Cg_IsSelf(ent)) {
+  if (ent == cgi.client->entity) {
     e->effects |= EF_SELF;
 
     // don't draw ourselves, unless 3rd person is set

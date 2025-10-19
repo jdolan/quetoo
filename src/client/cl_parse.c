@@ -288,9 +288,6 @@ static void Cl_ParseServerData(void) {
     Com_Error(ERROR_DROP, "Server is using protocol minor %d, you have %d\n", minor, cls.cgame->protocol);
   }
 
-  // parse client slot number
-  cl.client = Net_ReadShort(&net_message);
-
   // get the full level name
   str = Net_ReadString(&net_message);
   Com_Print("\n");

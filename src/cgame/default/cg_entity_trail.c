@@ -278,7 +278,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
  * @brief
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-  const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_orange);
+  const vec3_t effect_color = Cg_ResolveClientEffectHSV(ent->current.client, color_hue_orange);
 
   const int32_t liquid = Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID;
   if (liquid) {
@@ -777,7 +777,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
   vec3_t forward;
   Vec3_Vectors(ent->angles, &forward, NULL, NULL);
 
-  const vec3_t effect_color = Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_green);
+  const vec3_t effect_color = Cg_ResolveClientEffectHSV(ent->current.client, color_hue_green);
 
   cgi.AddBeam(cgi.view, &(const r_beam_t) {
     .start = start,
@@ -914,7 +914,7 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
  */
 static void Cg_PlayerSpawnTrail(cl_entity_t *ent) {
 
-  const vec3_t hsv = Cg_ResolveEntityEffectHSV(ent->current.client, 0);
+  const vec3_t hsv = Cg_ResolveClientEffectHSV(ent->current.client, 0);
 
   const vec4_t color = Vec4(hsv.x, 1.f, 1.f, 0.f);
 
@@ -1107,7 +1107,7 @@ void Cg_EntityTrail(cl_entity_t *ent) {
     end = ent->termination;
 
     // client is overridden to specify owner of the beam
-    if (ent->current.client == cgi.client->client && !cgi.client->third_person) {
+    if (ent->current.client == cgi.client->frame.ps.client && !cgi.client->third_person) {
 
       // we own this beam (lightning, grapple, etc..)
       // project start & end points based on our current view origin

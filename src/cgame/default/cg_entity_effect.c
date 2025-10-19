@@ -38,7 +38,11 @@ vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
 /**
  * @brief Resolve a client hue from the entity index given in the effect
  */
-vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
+vec3_t Cg_ResolveClientEffectHSV(const int32_t client, const float default_hue) {
+
+  if (client < 0 || client >= cgi.ConfigString(CS_MAX_CLIENTS)) {
+    return Vec3(default_hue, 1.f, 1.f);
+  }
 
   const cg_client_info_t *ci = &cg_state.clients[client];
   const float hue = ci->team ? ci->team->hue : ci->hue;
@@ -51,7 +55,7 @@ vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) 
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
-  if (Cg_IsSelf(ent) && !cgi.client->third_person) {
+  if (ent == cgi.client->entity && !cgi.client->third_person) {
     return;
   }
 

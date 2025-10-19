@@ -455,12 +455,16 @@ static void Cg_DrawChase(const player_state_t *ps) {
     return;
   }
 
-  const int32_t c = ps->stats[STAT_CHASE];
+  const int32_t e = ps->stats[STAT_CHASE];
 
-  if (c - CS_CLIENTS >= MAX_CLIENTS) {
-    Cg_Warn("Invalid client info index: %d\n", c);
+  if (e < 0 || e > MAX_ENTITIES) {
+    Cg_Warn("Invalid client info index: %d\n", e);
     return;
   }
+
+  cl_entity_t *ent = cgi.client->entities + e;
+
+  const int32_t c = ent->current.client;
 
   cgi.BindFont("small", NULL, &ch);
 

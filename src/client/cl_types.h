@@ -208,14 +208,9 @@ typedef struct {
   entity_state_t entity_states[ENTITY_STATE_BACKUP];
 
   /**
-   * @brief The entity state index.
+   * @brief The entity state index for parsing server frames.
    */
   uint32_t entity_state;
-
-  /**
-   * @brief Our client number, or index into `CS_CLIENTS`.
-   */
-  int32_t client;
 
   /**
    * @brief Clamped simulation time. This will always be between the previously received

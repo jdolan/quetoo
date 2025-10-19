@@ -268,7 +268,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
   projectile->next_think = g_level.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_BlasterProjectile_Touch;
-  projectile->s.client = ent->s.client; // player number, for trail color
+  projectile->s.client = ent->s.client;
   projectile->s.trail = TRAIL_BLASTER;
 
   gi.LinkEntity(projectile);
@@ -913,7 +913,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
     projectile->move_type = MOVE_TYPE_THINK;
     projectile->Think = G_LightningProjectile_Think;
     projectile->knockback = knockback;
-    projectile->s.client = ent->s.client; // player number, for client prediction fix
+    projectile->s.client = ent->s.client;
     projectile->s.effects = EF_BEAM;
     projectile->s.sound = g_media.sounds.lightning_fly;
     projectile->s.trail = TRAIL_LIGHTNING;
@@ -1367,7 +1367,7 @@ g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t d
   trail->solid = SOLID_NOT;
   trail->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
   trail->move_type = MOVE_TYPE_THINK;
-  trail->s.client = ent->s.client; // player number, for client prediction fix
+  trail->s.client = ent->s.client;
   trail->s.effects = EF_BEAM;
   trail->s.trail = TRAIL_HOOK;
   trail->Think = G_HookTrail_Think;

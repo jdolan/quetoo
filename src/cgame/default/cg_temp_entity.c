@@ -1263,7 +1263,7 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_BlasterEffect(pos, dir, Cg_ResolveEntityEffectHSV(i, color_hue_orange));
+      Cg_BlasterEffect(pos, dir, Cg_ResolveClientEffectHSV(i, color_hue_orange));
       break;
 
     case TE_TRACER:
@@ -1314,7 +1314,7 @@ void Cg_ParseTempEntity(void) {
       dir = cgi.ReadDir();
       i = cgi.ReadLong();
       j = cgi.ReadByte();
-      Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveEntityEffectHSV(j, color_hue_cyan));
+      Cg_RailEffect(pos, pos2, dir, i, Cg_ResolveClientEffectHSV(j, color_hue_cyan));
       break;
 
     case TE_EXPLOSION: // rocket and grenade explosions

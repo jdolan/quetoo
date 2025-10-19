@@ -144,7 +144,7 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
   x += SCORES_ICON_WIDTH;
 
   // background
-  const float fa = s->client == cgi.client->client ? 0.3 : 0.15;
+  const float fa = s->client == cgi.client->frame.ps.client ? 0.3 : 0.15;
   const GLint fw = SCORES_COL_WIDTH - SCORES_ICON_WIDTH - 1;
   const GLint fh = SCORES_ROW_HEIGHT - 1;
 

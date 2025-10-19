@@ -47,9 +47,6 @@ static void Sv_New_f(void) {
   Net_WriteByte(&sv_client->net_chan.message, 0);
   Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
-  const int32_t client_num = (int32_t) (ptrdiff_t) (sv_client - svs.clients);
-  Net_WriteShort(&sv_client->net_chan.message, client_num);
-
   // send full level name
   Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_NAME]);
 
@@ -156,8 +153,7 @@ static void Sv_Baselines_f(void) {
     Net_WriteString(&sv_client->net_chan.message, va("precache %i\n", svs.spawn_count));
   } else {
     Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);
-    Net_WriteString(&sv_client->net_chan.message,
-                    va("baselines %i %i\n", svs.spawn_count, start));
+    Net_WriteString(&sv_client->net_chan.message, va("baselines %i %i\n", svs.spawn_count, start));
   }
 }
 

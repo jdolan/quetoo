@@ -188,7 +188,7 @@ void Cg_ParseMuzzleFlash(void) {
   switch (flash) {
     case MZ_BLASTER:
       sample = cg_sample_blaster_fire;
-      Cg_BlasterFlash(ent, Cg_ResolveEntityEffectHSV(ent->current.client, color_hue_orange));
+      Cg_BlasterFlash(ent, Cg_ResolveClientEffectHSV(ent->current.client, color_hue_orange));
       pitch = 5;
       break;
     case MZ_SHOTGUN:

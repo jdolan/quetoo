@@ -324,7 +324,7 @@ static void Sv_DemoCompleted(void) {
  * @brief Reads the next frame from the current demo file into the specified buffer,
  * returning the size of the frame in bytes.
  *
- * FIXME This doesn't work with the new packetized overflow avoidance. Multiple
+ * FIXME: This doesn't work with the new packetized overflow avoidance. Multiple
  * messages can constitute a frame. We need a mechanism to indicate frame
  * completion, or we need a timecode in our demos.
  */

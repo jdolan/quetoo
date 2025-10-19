@@ -1272,8 +1272,11 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
     }
   }
 
+  // setup the client's entity
   cl->entity = G_AllocEntity("client");
   cl->entity->client = cl;
+  cl->entity->s.client = cl->ps.client;
+  cl->ps.entity = cl->entity->s.number;
 
   memset(&cl->persistent, 0, sizeof(cl->persistent));
 
@@ -1778,8 +1781,8 @@ void G_ClientBeginFrame(g_client_t *cl) {
     }
   } else {
     if (G_HasTech(cl, TECH_REGEN)) {
-      if (ent->client->regen_time < g_level.time) {
-        ent->client->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
+      if (cl->regen_time < g_level.time) {
+        cl->regen_time = g_level.time + TECH_REGEN_TICK_TIME;
         if (ent->health < ent->max_health) {
           ent->health = Minf(ent->health + TECH_REGEN_HEALTH, ent->max_health);
           G_PlayTechSound(cl);

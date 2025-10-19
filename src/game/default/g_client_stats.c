@@ -315,7 +315,7 @@ void G_ClientSpectatorStats(g_client_t *cl) {
 
   // chase camera inherits stats from their chase target
   if (cl->chase_target && G_IsMeat(cl->chase_target->entity)) {
-    cl->ps.stats[STAT_CHASE] = CS_CLIENTS + cl->chase_target->ps.client;
+    cl->ps.stats[STAT_CHASE] = cl->chase_target->entity->s.number;
 
     // scores are independent of chase camera target
     if (g_level.intermission_time || cl->show_scores) {

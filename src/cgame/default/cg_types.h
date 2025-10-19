@@ -158,7 +158,7 @@ typedef struct {
   int32_t weather;
   
   /**
-   * @brief The current max_clients value of the server.
+   * @brief The current `sv_max_clients` value of the server.
    */
   int32_t max_clients;
   
@@ -168,7 +168,7 @@ typedef struct {
   int32_t num_clients;
 
   /**
-   * @brief Nav editor state.
+   * @brief Bot navitation node editor.
    */
   int32_t nav_edit;
 } cg_state_t;

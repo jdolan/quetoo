@@ -191,17 +191,17 @@ typedef struct {
   uint8_t animation1, animation2;
 
   /**
-   * @brief The entity event (entity_event_t).
+   * @brief The entity event (`entity_event_t`).
    */
   uint8_t event;
 
   /**
-   * @brief The entity effects flags (EF_ROTATE, EF_BOB, etc).
+   * @brief The entity effects flags (`EF_ROTATE`, `EF_BOB`, etc).
    */
   uint16_t effects;
 
   /**
-   * @brief The entity trail effect (entity_trail_t).
+   * @brief The entity trail effect (`entity_trail_t`).
    */
   uint8_t trail;
 
@@ -317,9 +317,25 @@ typedef struct {
  * contains.
  */
 typedef struct player_state_s {
+  /**
+   * @brief The player's client index.
+   */
   uint8_t client;
-  pm_state_t pm_state; // movement and contents state
-  int16_t stats[MAX_STATS]; // status bar updates
+
+  /**
+   * @brief The player's entity index.
+   */
+  uint16_t entity;
+
+  /**
+   * @brief The player's movement state.
+   */
+  pm_state_t pm_state;
+
+  /**
+   * @brief The player's stats.
+   */
+  int16_t stats[MAX_STATS];
 } player_state_t;
 
 /*

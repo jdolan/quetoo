@@ -86,7 +86,7 @@ typedef struct {
 #define CS_TEAM_INFO       (CS_GAME + 2)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME            (CS_GAME + 3)  // map time
 #define CS_HOOK_PULL_SPEED (CS_GAME + 4)  // hook speed
-#define CS_MAX_CLIENTS     (CS_GAME + 5)  // maxclients of server
+#define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
 #define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
 #define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
 #define CS_NAV_EDIT        (CS_GAME + 8)  // nav edit mode
@@ -316,7 +316,7 @@ typedef enum {
 
 /**
  * @brief Entity state model number to indicate that the entity is a client.
- * When this is set, the model should be resolved from CS_CLIENTS.
+ * When this is set, the model should be resolved from `CS_CLIENTS`.
  */
 #define MODEL_CLIENT 0xff
 
@@ -330,8 +330,7 @@ typedef enum {
 } g_hand_t;
 
 /**
- * @brief Game modes. These are selected via g_gameplay and
- * sent to client via configstring.
+ * @brief Game modes. These are selected via `g_gameplay` and sent to client via ConfigString.
  */
 typedef enum {
   GAME_DEATHMATCH,
