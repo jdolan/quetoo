@@ -27,9 +27,9 @@
  * @brief For singular lights, simply toggle them. For teamed lights,
  * advance through the team, toggling two at a time.
  */
-static void G_target_light_Cycle(g_entity_t *self) {
+static void G_target_light_Cycle(g_entity_t *ent) {
 
-  g_entity_t *master = self->team_master;
+  g_entity_t *master = ent->team_master;
   if (master) {
     G_Debug("Cycling %s\n", etos(master->enemy));
 
@@ -42,25 +42,25 @@ static void G_target_light_Cycle(g_entity_t *self) {
 
     master->enemy->s.effects ^= EF_LIGHT;
   } else {
-    self->s.effects ^= EF_LIGHT;
+    ent->s.effects ^= EF_LIGHT;
   }
 }
 
 /**
  * @brief
  */
-static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
+static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
-  if (self->delay) {
-    self->Think = G_target_light_Cycle;
-    self->next_think = g_level.time + self->delay * 1000.0;
+  if (ent->delay) {
+    ent->Think = G_target_light_Cycle;
+    ent->next_think = g_level.time + ent->delay * 1000.0;
   } else {
-    G_target_light_Cycle(self);
+    G_target_light_Cycle(ent);
   }
 
-  if (self->wait) {
-    self->Think = G_target_light_Cycle;
-    self->next_think = g_level.time + (self->delay + self->wait) * 1000.0;
+  if (ent->wait) {
+    ent->Think = G_target_light_Cycle;
+    ent->next_think = g_level.time + (ent->delay + ent->wait) * 1000.0;
   }
 }
 
@@ -82,25 +82,25 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
  Use this entity to add switched lights. Use the wait key to synchronize
  color cycles with other entities.
 */
-void G_target_light(g_entity_t *self) {
+void G_target_light(g_entity_t *ent) {
 
-  if (Vec3_Equal(self->color, Vec3_Zero())) {
-    self->color = Vec3_One();
+  if (Vec3_Equal(ent->color, Vec3_Zero())) {
+    ent->color = Vec3_One();
   }
 
-  self->radius = self->radius ?: 300.f;
+  ent->radius = ent->radius ?: 300.f;
 
-  self->s.color = Color_Color32(Color3fv(self->color));
-  self->s.termination.x = self->radius;
+  ent->s.color = Color_Color32(Color3fv(ent->color));
+  ent->s.termination.x = ent->radius;
 
-  if (self->spawn_flags & LIGHT_START_ON) {
-    self->s.effects |= EF_LIGHT;
+  if (ent->spawn_flags & LIGHT_START_ON) {
+    ent->s.effects |= EF_LIGHT;
   }
 
-  self->enemy = self;
-  self->Use = G_target_light_Use;
+  ent->enemy = ent;
+  ent->Use = G_target_light_Use;
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }
 
 #define SPEAKER_LOOP_ON 1
@@ -184,10 +184,10 @@ void G_target_speaker(g_entity_t *ent) {
  message : The message to display.
  targetname : The target name of this entity.
  */
-void G_target_string(g_entity_t *self) {
+void G_target_string(g_entity_t *ent) {
 
-  if (!self->message) {
-    self->message = "";
+  if (!ent->message) {
+    ent->message = "";
   }
 
   // the rest is handled by G_UseTargets

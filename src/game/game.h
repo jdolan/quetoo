@@ -644,7 +644,7 @@ typedef struct g_export_s {
   g_client_t *clients[MAX_CLIENTS];
 
   /**
-   * @brief The `g_entity_t` poitner array, `sv_max_entiteis` in length.
+   * @brief The `g_entity_t` poitner array, `sv_max_entities` in length.
    * @details The game module is responsible for allocating the actual entity structures.
    */
   g_entity_t *entities[MAX_ENTITIES];

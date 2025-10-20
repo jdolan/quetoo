@@ -1184,12 +1184,12 @@ struct g_entity_s {
   float radius;
 
   uint32_t next_think;
-  void (*Think)(g_entity_t *self);
-  void (*Blocked)(g_entity_t *self, g_entity_t *other); // move to move_info?
-  void (*Touch)(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace);
-  void (*Use)(g_entity_t *self, g_entity_t *other, g_entity_t *activator);
-  void (*Pain)(g_entity_t *self, g_entity_t *other, int16_t damage, int16_t knockback);
-  void (*Die)(g_entity_t *self, g_entity_t *attacker, uint32_t mod);
+  void (*Think)(g_entity_t *ent);
+  void (*Blocked)(g_entity_t *ent, g_entity_t *other); // move to move_info?
+  void (*Touch)(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace);
+  void (*Use)(g_entity_t *ent, g_entity_t *other, g_entity_t *activator);
+  void (*Pain)(g_entity_t *ent, g_entity_t *other, int16_t damage, int16_t knockback);
+  void (*Die)(g_entity_t *ent, g_entity_t *attacker, uint32_t mod);
 
   uint32_t touch_time;
   uint32_t push_time;

@@ -25,13 +25,13 @@
 /**
  * @brief
  */
-static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (!G_IsMeat(other)) {
     return;
   }
 
-  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), self->target);
+  const g_entity_t *dest = G_Find(NULL, EOFS(target_name), ent->target);
 
   if (!dest) {
     gi.Warn("Couldn't find destination\n");
@@ -72,7 +72,7 @@ static void G_misc_teleporter_Touch(g_entity_t *self, g_entity_t *other, const c
   other->velocity.z = 150.0;
 
   // draw the teleport effect at source and dest
-  self->s.event = EV_CLIENT_TELEPORT;
+  ent->s.event = EV_CLIENT_TELEPORT;
   other->s.event = EV_CLIENT_TELEPORT;
 
   other->s.angles = Vec3_Zero();
@@ -175,42 +175,42 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_misc_fireball_Think(g_entity_t *self) {
+static void G_misc_fireball_Think(g_entity_t *ent) {
 
-  if (self->ground.ent) {
-    self->solid = SOLID_NOT;
+  if (ent->ground.ent) {
+    ent->solid = SOLID_NOT;
 
-    self->s.effects = EF_DESPAWN;
+    ent->s.effects = EF_DESPAWN;
 
-    self->move_type = MOVE_TYPE_NO_CLIP;
-    self->velocity.z = -8.0;
+    ent->move_type = MOVE_TYPE_NO_CLIP;
+    ent->velocity.z = -8.0;
 
-    self->Think = G_FreeEntity;
-    self->next_think = g_level.time + 3000;
+    ent->Think = G_FreeEntity;
+    ent->next_think = g_level.time + 3000;
 
-    gi.LinkEntity(self);
+    gi.LinkEntity(ent);
   } else {
-    G_FreeEntity(self);
+    G_FreeEntity(ent);
   }
 }
 
 /**
  * @brief
  */
-static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_misc_fireball_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (g_level.time - self->touch_time > 500) {
-    self->touch_time = g_level.time;
+  if (g_level.time - ent->touch_time > 500) {
+    ent->touch_time = g_level.time;
 
     G_Damage(&(g_damage_t) {
       .target = other,
-      .inflictor = self,
+      .inflictor = ent,
       .attacker = NULL,
-      .dir = self->velocity,
-      .point = self->s.origin,
+      .dir = ent->velocity,
+      .point = ent->s.origin,
       .normal = Vec3_Zero(),
-      .damage = self->damage,
-      .knockback = self->damage,
+      .damage = ent->damage,
+      .knockback = ent->damage,
       .flags = 0,
       .mod = MOD_FIREBALL
     });
@@ -220,38 +220,38 @@ static void G_misc_fireball_Touch(g_entity_t *self, g_entity_t *other, const cm_
 /**
  * @brief
  */
-static void G_misc_fireball_Fly(g_entity_t *self) {
+static void G_misc_fireball_Fly(g_entity_t *ent) {
   static uint32_t count;
 
-  g_entity_t *ent = G_AllocEntity(__func__);
+  g_entity_t *fireball = G_AllocEntity(__func__);
 
-  ent->s.origin = self->s.origin;
+  fireball->s.origin = ent->s.origin;
 
-  ent->bounds = Box3f(6.f, 6.f, 6.f);
+  fireball->bounds = Box3f(6.f, 6.f, 6.f);
 
-  Vec3_Vectors(self->s.angles, &ent->velocity, NULL, NULL);
-  ent->velocity = Vec3_Scale(ent->velocity, self->speed);
+  Vec3_Vectors(ent->s.angles, &fireball->velocity, NULL, NULL);
+  fireball->velocity = Vec3_Scale(fireball->velocity, ent->speed);
 
   for (int32_t i = 0; i < 3; i++) {
-    ent->velocity.xyz[i] += RandomRangef(-30.f, 30.f);
+    fireball->velocity.xyz[i] += RandomRangef(-30.f, 30.f);
   }
 
-  ent->avelocity = Vec3(RandomRangef(-10.f, 10.f), RandomRangef(-10.f, 10.f), RandomRangef(-20.f, 20.f));
+  fireball->avelocity = Vec3(RandomRangef(-10.f, 10.f), RandomRangef(-10.f, 10.f), RandomRangef(-20.f, 20.f));
 
-  ent->s.trail = TRAIL_FIREBALL;
+  fireball->s.trail = TRAIL_FIREBALL;
 
-  ent->solid = SOLID_TRIGGER;
-  ent->move_type = MOVE_TYPE_BOUNCE;
+  fireball->solid = SOLID_TRIGGER;
+  fireball->move_type = MOVE_TYPE_BOUNCE;
 
-  ent->s.model1 = g_media.models.fireball;
-  ent->damage = self->damage;
+  fireball->s.model1 = g_media.models.fireball;
+  fireball->damage = ent->damage;
 
-  ent->Touch = G_misc_fireball_Touch;
+  fireball->Touch = G_misc_fireball_Touch;
 
-  ent->Think = G_misc_fireball_Think;
-  ent->next_think = g_level.time + 3000;
+  fireball->Think = G_misc_fireball_Think;
+  fireball->next_think = g_level.time + 3000;
 
-  gi.LinkEntity(ent);
+  gi.LinkEntity(fireball);
 
   if (Randomf() < 0.33) {
     G_MulticastSound(&(const g_play_sound_t) {
@@ -261,7 +261,7 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
     }, MULTICAST_PHS);
   }
 
-  self->next_think = g_level.time + (self->wait * 1000.0) + (self->random * 1000 * RandomRangef(-1.f, 1.f));
+  ent->next_think = g_level.time + (ent->wait * 1000.0) + (ent->random * 1000 * RandomRangef(-1.f, 1.f));
 }
 
 /*QUAKED misc_fireball (1 0.3 0.1) (-6 -6 -6) (6 6 6)
@@ -274,33 +274,33 @@ static void G_misc_fireball_Fly(g_entity_t *self) {
  speed : The speed at which the fireball will fly (default 600.0).
  wait : The interval in seconds between fireball emissions (default 5.0).
  */
-void G_misc_fireball(g_entity_t *self) {
+void G_misc_fireball(g_entity_t *ent) {
 
   for (int32_t i = 1; i < 4; i++) {
     gi.SoundIndex(va("common/lava_%d", i));
   }
 
-  if (Vec3_Equal(self->s.angles, Vec3_Zero())) {
-    self->s.angles = Vec3(-90.0, 0.0, 0.0);
+  if (Vec3_Equal(ent->s.angles, Vec3_Zero())) {
+    ent->s.angles = Vec3(-90.0, 0.0, 0.0);
   }
 
-  if (self->damage == 0) {
-    self->damage = 4;
+  if (ent->damage == 0) {
+    ent->damage = 4;
   }
 
-  if (self->speed == 0.0) {
-    self->speed = 600.0;
+  if (ent->speed == 0.0) {
+    ent->speed = 600.0;
   }
 
-  if (self->wait == 0.0) {
-    self->wait = 5.0;
+  if (ent->wait == 0.0) {
+    ent->wait = 5.0;
   }
 
-  if (self->random == 0.0) {
-    self->random = self->wait * 0.5;
+  if (ent->random == 0.0) {
+    ent->random = ent->wait * 0.5;
   }
 
-  self->Think = G_misc_fireball_Fly;
-  self->next_think = g_level.time + (Randomf() * 1000);
+  ent->Think = G_misc_fireball_Fly;
+  ent->next_think = g_level.time + (Randomf() * 1000);
 }
 

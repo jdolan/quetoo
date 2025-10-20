@@ -497,71 +497,71 @@ static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, floa
 /**
  * @brief
  */
-static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move) {
+static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) {
   g_entity_t *ents[MAX_ENTITIES];
 
-  G_Physics_Push_Impact(self);
+  G_Physics_Push_Impact(ent);
 
   // calculate bounds for the entire move
-  box3_t total_bounds = self->abs_bounds;
+  box3_t total_bounds = ent->abs_bounds;
 
   // unlink the pusher so we don't get it in the entity list
-  gi.UnlinkEntity(self);
+  gi.UnlinkEntity(ent);
 
   // store original position
-  const vec3_t original_position = self->s.origin;
+  const vec3_t original_position = ent->s.origin;
 
   // move the pusher to it's intended position
   const vec3_t final_position = Vec3_Add(original_position, move);
 
-  self->s.origin = final_position;
+  ent->s.origin = final_position;
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-  total_bounds = Box3_Union(total_bounds, self->abs_bounds);
+  total_bounds = Box3_Union(total_bounds, ent->abs_bounds);
 
   const size_t len = gi.BoxEntities(total_bounds, ents, lengthof(ents), BOX_ALL);
 
   // see if any solid entities are inside the final position
   for (size_t i = 0; i < len; i++) {
 
-    g_entity_t *ent = ents[i];
+    g_entity_t *other = ents[i];
 
-    if (ent->solid == SOLID_BSP) {
+    if (other->solid == SOLID_BSP) {
       continue;
     }
 
-    if (ent->move_type < MOVE_TYPE_WALK) {
+    if (other->move_type < MOVE_TYPE_WALK) {
       continue;
     }
 
     // if the entity is in a good position and not riding us, we can skip them
-    if (G_GoodPosition(ent) && ent->ground.ent != self) {
+    if (G_GoodPosition(other) && other->ground.ent != ent) {
       continue;
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((self->move_type == MOVE_TYPE_PUSH) || (ent->ground.ent == self)) {
+    if ((ent->move_type == MOVE_TYPE_PUSH) || (other->ground.ent == ent)) {
 
-      G_Physics_Push_Impact(ent);
+      G_Physics_Push_Impact(other);
 
-      if (ent->ground.ent == self) {
+      if (other->ground.ent == ent) {
         // we can only ride a bmodel if we're in a good position
         // on top of it already; to make things simpler, we assume
         // that we're not going to self-intersect with the pusher.
 
         // move us by the full translation, clipping to the rest of the world,
         // and clip us to where we end up.
-        gi.UnlinkEntity(self);
+        gi.UnlinkEntity(ent);
 
-        const cm_trace_t tr = gi.Trace(ent->s.origin, Vec3_Add(ent->s.origin, move), ent->bounds, ent, ent->clip_mask);
+        const cm_trace_t tr = gi.Trace(other->s.origin, Vec3_Add(other->s.origin, move), other->bounds, other, other->clip_mask);
 
-        gi.LinkEntity(self);
+        gi.LinkEntity(ent);
 
-        ent->s.origin = tr.end;
+        other->s.origin = tr.end;
 
         // if we're good here, we can stop
-        if (G_CorrectPosition(ent)) {
+        if (G_CorrectPosition(other)) {
           continue;
         }
 
@@ -569,7 +569,7 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
         // so try it's original position, which may now be valid.
         G_Physics_Push_Revert(--g_push_p);
 
-        if (G_CorrectPosition(ent)) {
+        if (G_CorrectPosition(other)) {
           continue;
         }
         
@@ -577,61 +577,61 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
       } else {
         // we're not riding the bmodel, so we must be being pushed by it.
         // trace backwards to find our TOI with the pusher.
-        gi.UnlinkEntity(ent);
+        gi.UnlinkEntity(other);
 
         // restore original position to calculate our hit with it
-        self->s.origin = original_position;
+        ent->s.origin = original_position;
 
-        gi.LinkEntity(self);
+        gi.LinkEntity(ent);
 
-        cm_trace_t tr = gi.Clip(ent->s.origin, Vec3_Subtract(ent->s.origin, move), ent->bounds, self, ent->clip_mask);
+        cm_trace_t tr = gi.Clip(other->s.origin, Vec3_Subtract(other->s.origin, move), other->bounds, ent, other->clip_mask);
 
         // move back to final position
-        self->s.origin = final_position;
+        ent->s.origin = final_position;
 
-        gi.LinkEntity(self);
+        gi.LinkEntity(ent);
 
         // did we even collide with it?
         if (tr.fraction >= 1.0) {
-          G_Debug("%s false positive clip\n", etos(self));
+          G_Debug("%s false positive clip\n", etos(ent));
           continue; // was a false positive?
         }
 
         // didn't hit the mover??
-        if (tr.ent == self) {
+        if (tr.ent == ent) {
           // we did; clip us against the world with the full movement that
           // we need to do
           const float remaining_dist = 1.0f - tr.fraction;
 
-          const vec3_t new_position = Vec3_Fmaf(ent->s.origin, remaining_dist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
+          const vec3_t new_position = Vec3_Fmaf(other->s.origin, remaining_dist, Vec3_Multiply(move, Vec3_Fabsf(tr.plane.normal)));
 
-          tr = gi.Trace(ent->s.origin, new_position, ent->s.bounds, self, ent->clip_mask);
+          tr = gi.Trace(other->s.origin, new_position, other->s.bounds, ent, other->clip_mask);
         
-          ent->s.origin = tr.end;
+          other->s.origin = tr.end;
 
           // in theory this should never be a bad spot, but who knows
-          if (G_CorrectPosition(ent)) {
-            G_Debug("%s: pushed %s into correct position\n", etos(self), etos(ent));
+          if (G_CorrectPosition(other)) {
+            G_Debug("%s: pushed %s into correct position\n", etos(ent), etos(other));
             continue;
           }
           
-          G_Debug("%s: pushed %s into bad position\n", etos(self), etos(ent));
+          G_Debug("%s: pushed %s into bad position\n", etos(ent), etos(other));
         } else {
-          G_Debug("%s -> %s didn't clip?\n", etos(self), etos(ent));
+          G_Debug("%s -> %s didn't clip?\n", etos(ent), etos(other));
         }
       }
     }
 
     // try to destroy the impeding entity by calling our Blocked function
 
-    if (self->Blocked) {
-      self->Blocked(self, ent);
-      if (!ent->in_use || ent->dead) {
+    if (ent->Blocked) {
+      ent->Blocked(ent, other);
+      if (!other->in_use || other->dead) {
         continue;
       }
     }
 
-    G_Debug("%s blocked by %s\n", etos(self), etos(ent));
+    G_Debug("%s blocked by %s\n", etos(ent), etos(other));
 
     // if we've reached this point, we were G_MOVE_TYPE_STOP, or we were
     // blocked: revert any moves we may have made and return our obstacle
@@ -640,11 +640,11 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *self, const vec3_t move)
       G_Physics_Push_Revert(--g_push_p);
     }
 
-    return ent;
+    return other;
   }
 
   // set us in the new position
-  self->s.origin = final_position;
+  ent->s.origin = final_position;
 
   // the move was successful, so re-link all pushed entities
   for (g_push_t *p = g_push_p - 1; p >= g_pushes; p--) {

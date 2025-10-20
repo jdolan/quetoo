@@ -845,7 +845,7 @@ static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator)
 /**
  * @brief Returns the distance to the nearest enemy from the given spot.
  */
-static float G_TechRangeFromSpot(const g_entity_t *spot) {
+static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
   float best_dist = FLT_MAX;
   bool any = false;
 
@@ -863,7 +863,7 @@ static float G_TechRangeFromSpot(const g_entity_t *spot) {
       continue;
     }
 
-    const vec3_t v = Vec3_Subtract(spot->s.origin, ent->s.origin);
+    const vec3_t v = Vec3_Subtract(spawn->s.origin, ent->s.origin);
     const float dist = Vec3_Length(v);
 
     if (dist < best_dist) {
@@ -887,7 +887,7 @@ static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points,
 
   for (size_t i = 0; i < spawn_points->count; i++) {
     g_entity_t *spot = spawn_points->spots[i];
-    float dist = G_TechRangeFromSpot(spot);
+    float dist = G_TechRangeFromSpawn(spot);
 
     if (dist > *point_dist) {
       *point = spot;

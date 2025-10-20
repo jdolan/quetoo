@@ -270,22 +270,22 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
  * @brief When a MOVE_TYPE_PUSH or MOVE_TYPE_STOP is blocked, deal with the
  * obstacle by damaging it.
  */
-static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
+static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
 
-  const vec3_t dir = self->velocity;
+  const vec3_t dir = ent->velocity;
 
-  if (g_level.time < self->touch_time) {
+  if (g_level.time < ent->touch_time) {
     return;
   }
 
-  self->touch_time = g_level.time + 1000;
+  ent->touch_time = g_level.time + 1000;
 
   if (G_IsMeat(other)) {
 
     if (other->solid == SOLID_DEAD) {
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
+        .inflictor = ent,
         .attacker = NULL,
         .dir = dir,
         .point = other->s.origin,
@@ -310,23 +310,23 @@ static void G_MoveType_Push_Blocked(g_entity_t *self, g_entity_t *other) {
     } else if (other->solid == SOLID_BOX) {
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
+        .inflictor = ent,
         .attacker = NULL,
         .dir = dir,
         .point = other->s.origin,
         .normal = Vec3_Up(),
-        .damage = self->damage,
+        .damage = ent->damage,
         .knockback = 0,
         .flags = DMG_NO_ARMOR,
         .mod = MOD_CRUSH
       });
     } else {
-      G_Debug("Unhandled blocker: %s: %s\n", etos(self), etos(other));
+      G_Debug("Unhandled blocker: %s: %s\n", etos(ent), etos(other));
     }
   } else {
     G_Damage(&(g_damage_t) {
       .target = other,
-      .inflictor = self,
+      .inflictor = ent,
       .attacker = NULL,
       .dir = dir,
       .point = other->s.origin,
@@ -448,14 +448,14 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_func_plat_Blocked(g_entity_t *self, g_entity_t *other) {
+static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 
-  G_MoveType_Push_Blocked(self, other);
+  G_MoveType_Push_Blocked(ent, other);
 
-  if (self->move_info.state == MOVE_STATE_GOING_UP) {
-    G_func_plat_GoingDown(self);
-  } else if (self->move_info.state == MOVE_STATE_GOING_DOWN) {
-    G_func_plat_GoingUp(self);
+  if (ent->move_info.state == MOVE_STATE_GOING_UP) {
+    G_func_plat_GoingDown(ent);
+  } else if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
+    G_func_plat_GoingUp(ent);
   }
 }
 
@@ -627,18 +627,18 @@ void G_func_plat(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (self->damage) {
-    if (!Vec3_Equal(self->avelocity, Vec3_Zero())) {
+  if (ent->damage) {
+    if (!Vec3_Equal(ent->avelocity, Vec3_Zero())) {
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
+        .inflictor = ent,
         .attacker = NULL,
         .dir = Vec3_Zero(),
         .point = other->s.origin,
         .normal = Vec3_Zero(),
-        .damage = self->damage,
+        .damage = ent->damage,
         .knockback = 1,
         .flags = 0,
         .mod = MOD_CRUSH
@@ -650,18 +650,18 @@ static void G_func_rotating_Touch(g_entity_t *self, g_entity_t *other, const cm_
 /**
  * @brief
  */
-static void G_func_rotating_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_rotating_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
 
-  if (!Vec3_Equal(self->avelocity, Vec3_Zero())) {
-    self->s.sound = 0;
-    self->avelocity = Vec3_Zero();
-    self->Touch = NULL;
+  if (!Vec3_Equal(ent->avelocity, Vec3_Zero())) {
+    ent->s.sound = 0;
+    ent->avelocity = Vec3_Zero();
+    ent->Touch = NULL;
   } else {
-    self->s.sound = self->move_info.sound_middle;
-    self->avelocity = Vec3_Scale(self->move_dir, self->speed);
-    if (self->spawn_flags & ROTATE_TOUCH_PAIN) {
-      self->Touch = G_func_rotating_Touch;
+    ent->s.sound = ent->move_info.sound_middle;
+    ent->avelocity = Vec3_Scale(ent->move_dir, ent->speed);
+    if (ent->spawn_flags & ROTATE_TOUCH_PAIN) {
+      ent->Touch = G_func_rotating_Touch;
     }
   }
 }
@@ -729,46 +729,46 @@ void G_func_rotating(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_func_button_Done(g_entity_t *self) {
-  self->move_info.state = MOVE_STATE_BOTTOM;
+static void G_func_button_Done(g_entity_t *ent) {
+  ent->move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /**
  * @brief
  */
-static void G_func_button_Reset(g_entity_t *self) {
-  g_move_info_t *move = &self->move_info;
+static void G_func_button_Reset(g_entity_t *ent) {
+  g_move_info_t *move = &ent->move_info;
 
   move->state = MOVE_STATE_GOING_DOWN;
 
-  G_MoveInfo_Linear_Init(self, move->start_origin, G_func_button_Done);
+  G_MoveInfo_Linear_Init(ent, move->start_origin, G_func_button_Done);
 
-  if (self->health) {
-    self->take_damage = true;
+  if (ent->health) {
+    ent->take_damage = true;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_button_Wait(g_entity_t *self) {
-  g_move_info_t *move = &self->move_info;
+static void G_func_button_Wait(g_entity_t *ent) {
+  g_move_info_t *move = &ent->move_info;
 
   move->state = MOVE_STATE_TOP;
 
-  G_UseTargets(self, self->activator);
+  G_UseTargets(ent, ent->activator);
 
   if (move->wait >= 0) {
-    self->next_think = g_level.time + move->wait * 1000;
-    self->Think = G_func_button_Reset;
+    ent->next_think = g_level.time + move->wait * 1000;
+    ent->Think = G_func_button_Reset;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_button_Activate(g_entity_t *self) {
-  g_move_info_t *move = &self->move_info;
+static void G_func_button_Activate(g_entity_t *ent) {
+  g_move_info_t *move = &ent->move_info;
 
   if (move->state == MOVE_STATE_GOING_UP || move->state == MOVE_STATE_TOP) {
     return;
@@ -776,31 +776,31 @@ static void G_func_button_Activate(g_entity_t *self) {
 
   move->state = MOVE_STATE_GOING_UP;
 
-  if (move->sound_start && !(self->flags & FL_TEAM_SLAVE)) {
+  if (move->sound_start && !(ent->flags & FL_TEAM_SLAVE)) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = move->sound_start,
-      .entity = self,
+      .entity = ent,
       .atten = SOUND_ATTEN_SQUARE
     }, MULTICAST_PHS);
   }
 
-  G_MoveInfo_Linear_Init(self, move->end_origin, G_func_button_Wait);
+  G_MoveInfo_Linear_Init(ent, move->end_origin, G_func_button_Wait);
 }
 
 /**
  * @brief
  */
-static void G_func_button_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_button_Use(g_entity_t *ent, g_entity_t *other,
                               g_entity_t *activator) {
 
-  self->activator = activator;
-  G_func_button_Activate(self);
+  ent->activator = activator;
+  G_func_button_Activate(ent);
 }
 
 /**
  * @brief
  */
-static void G_func_button_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_button_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (!other->client) {
     return;
@@ -810,21 +810,21 @@ static void G_func_button_Touch(g_entity_t *self, g_entity_t *other, const cm_tr
     return;
   }
 
-  self->activator = other;
-  G_func_button_Activate(self);
+  ent->activator = other;
+  G_func_button_Activate(ent);
 }
 
 /**
  * @brief
  */
-static void G_func_button_Die(g_entity_t *self, g_entity_t *attacker,
+static void G_func_button_Die(g_entity_t *ent, g_entity_t *attacker,
                               uint32_t mod) {
 
-  self->health = self->max_health;
-  self->take_damage = false;
+  ent->health = ent->max_health;
+  ent->take_damage = false;
 
-  self->activator = attacker;
-  G_func_button_Activate(self);
+  ent->activator = attacker;
+  G_func_button_Activate(ent);
 }
 
 /*QUAKED func_button (0 .5 .8) ?
@@ -900,157 +900,157 @@ void G_func_button(g_entity_t *ent) {
 #define DOOR_ROTATING_X_AXIS   0x8
 #define DOOR_ROTATING_Y_AXIS   0x10
 
-static void G_func_door_GoingDown(g_entity_t *self);
+static void G_func_door_GoingDown(g_entity_t *ent);
 
 /**
  * @brief
  */
-static void G_func_door_Top(g_entity_t *self) {
+static void G_func_door_Top(g_entity_t *ent) {
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_end) {
+    if (ent->move_info.sound_end) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_end,
-        .entity = self,
+        .index = ent->move_info.sound_end,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = 0;
+    ent->s.sound = 0;
   }
 
-  self->move_info.state = MOVE_STATE_TOP;
+  ent->move_info.state = MOVE_STATE_TOP;
 
-  if (self->spawn_flags & DOOR_TOGGLE) {
+  if (ent->spawn_flags & DOOR_TOGGLE) {
     return;
   }
 
-  if (self->move_info.wait >= 0) {
-    self->Think = G_func_door_GoingDown;
-    self->next_think = g_level.time + self->move_info.wait * 1000;
+  if (ent->move_info.wait >= 0) {
+    ent->Think = G_func_door_GoingDown;
+    ent->next_think = g_level.time + ent->move_info.wait * 1000;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_door_Bottom(g_entity_t *self) {
+static void G_func_door_Bottom(g_entity_t *ent) {
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_end) {
+    if (ent->move_info.sound_end) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_end,
-        .entity = self,
+        .index = ent->move_info.sound_end,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = 0;
+    ent->s.sound = 0;
   }
 
-  self->move_info.state = MOVE_STATE_BOTTOM;
+  ent->move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /**
  * @brief
  */
-static void G_func_door_GoingDown(g_entity_t *self) {
-  if (!(self->flags & FL_TEAM_SLAVE)) {
-    if (self->move_info.sound_start) {
+static void G_func_door_GoingDown(g_entity_t *ent) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
+    if (ent->move_info.sound_start) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_start,
-        .entity = self,
+        .index = ent->move_info.sound_start,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
-    self->s.sound = self->move_info.sound_middle;
+    ent->s.sound = ent->move_info.sound_middle;
   }
-  if (self->max_health) {
-    self->take_damage = true;
-    self->health = self->max_health;
+  if (ent->max_health) {
+    ent->take_damage = true;
+    ent->health = ent->max_health;
   }
 
-  self->move_info.state = MOVE_STATE_GOING_DOWN;
-  if (g_strcmp0(self->class_name, "func_door_rotating")) {
-    G_MoveInfo_Linear_Init(self, self->move_info.start_origin, G_func_door_Bottom);
+  ent->move_info.state = MOVE_STATE_GOING_DOWN;
+  if (g_strcmp0(ent->class_name, "func_door_rotating")) {
+    G_MoveInfo_Linear_Init(ent, ent->move_info.start_origin, G_func_door_Bottom);
   } else { // rotating
-    G_MoveInfo_Angular_Init(self, G_func_door_Bottom);
+    G_MoveInfo_Angular_Init(ent, G_func_door_Bottom);
   }
 }
 
 /**
  * @brief
  */
-static void G_func_door_GoingUp(g_entity_t *self, g_entity_t *activator) {
+static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
 
-  if (self->move_info.state == MOVE_STATE_GOING_UP) {
+  if (ent->move_info.state == MOVE_STATE_GOING_UP) {
     return; // already going up
   }
 
-  if (self->move_info.state == MOVE_STATE_TOP) { // reset top wait time
-    if (self->move_info.wait >= 0) {
-      self->next_think = g_level.time + self->move_info.wait * 1000;
+  if (ent->move_info.state == MOVE_STATE_TOP) { // reset top wait time
+    if (ent->move_info.wait >= 0) {
+      ent->next_think = g_level.time + ent->move_info.wait * 1000;
     }
     return;
   }
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
-    if (self->move_info.sound_start) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
+    if (ent->move_info.sound_start) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_start,
-        .entity = self,
+        .index = ent->move_info.sound_start,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
-    self->s.sound = self->move_info.sound_middle;
+    ent->s.sound = ent->move_info.sound_middle;
   }
-  self->move_info.state = MOVE_STATE_GOING_UP;
-  if (g_strcmp0(self->class_name, "func_door_rotating")) {
-    G_MoveInfo_Linear_Init(self, self->move_info.end_origin, G_func_door_Top);
+  ent->move_info.state = MOVE_STATE_GOING_UP;
+  if (g_strcmp0(ent->class_name, "func_door_rotating")) {
+    G_MoveInfo_Linear_Init(ent, ent->move_info.end_origin, G_func_door_Top);
   } else { // rotating
-    G_MoveInfo_Angular_Init(self, G_func_door_Top);
+    G_MoveInfo_Angular_Init(ent, G_func_door_Top);
   }
 
-  G_UseTargets(self, activator);
+  G_UseTargets(ent, activator);
 }
 
 /**
  * @brief
  */
-static void G_func_door_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
-  g_entity_t *ent;
+static void G_func_door_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
+  g_entity_t *e;
 
-  if (self->flags & FL_TEAM_SLAVE) {
+  if (ent->flags & FL_TEAM_SLAVE) {
     return;
   }
 
-  if (self->spawn_flags & DOOR_TOGGLE) {
-    if (self->move_info.state == MOVE_STATE_GOING_UP
-            || self->move_info.state == MOVE_STATE_TOP) {
+  if (ent->spawn_flags & DOOR_TOGGLE) {
+    if (ent->move_info.state == MOVE_STATE_GOING_UP
+            || ent->move_info.state == MOVE_STATE_TOP) {
       // trigger all paired doors
-      for (ent = self; ent; ent = ent->team_next) {
-        ent->message = NULL;
-        ent->Touch = NULL;
-        G_func_door_GoingDown(ent);
+      for (e = ent; e; e = e->team_next) {
+        e->message = NULL;
+        e->Touch = NULL;
+        G_func_door_GoingDown(e);
       }
       return;
     }
   }
 
   // trigger all paired doors
-  for (ent = self; ent; ent = ent->team_next) {
-    ent->message = NULL;
-    ent->Touch = NULL;
-    G_func_door_GoingUp(ent, activator);
+  for (e = ent; e; e = e->team_next) {
+    e->message = NULL;
+    e->Touch = NULL;
+    G_func_door_GoingUp(e, activator);
   }
 }
 
 /**
  * @brief
  */
-static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_door_TouchTrigger(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (other->health <= 0) {
     return;
@@ -1060,51 +1060,51 @@ static void G_func_door_TouchTrigger(g_entity_t *self, g_entity_t *other, const 
     return;
   }
 
-  if (g_level.time < self->touch_time) {
+  if (g_level.time < ent->touch_time) {
     return;
   }
 
-  self->touch_time = g_level.time + 1000;
+  ent->touch_time = g_level.time + 1000;
 
-  G_func_door_Use(self->owner, other, other);
+  G_func_door_Use(ent->owner, other, other);
 }
 
 /**
  * @brief
  */
-static void G_func_door_CalculateMove(g_entity_t *self) {
-  g_entity_t *ent;
+static void G_func_door_CalculateMove(g_entity_t *ent) {
+  g_entity_t *e;
 
-  if (self->flags & FL_TEAM_SLAVE) {
+  if (ent->flags & FL_TEAM_SLAVE) {
     return; // only the team master does this
   }
 
   // find the smallest distance any member of the team will be moving
-  float min = fabsf(self->move_info.distance);
-  for (ent = self->team_next; ent; ent = ent->team_next) {
-    float dist = fabsf(ent->move_info.distance);
+  float min = fabsf(ent->move_info.distance);
+  for (e = ent->team_next; e; e = e->team_next) {
+    float dist = fabsf(e->move_info.distance);
     if (dist < min) {
       min = dist;
     }
   }
 
-  const float time = min / self->move_info.speed;
+  const float time = min / ent->move_info.speed;
 
   // adjust speeds so they will all complete at the same time
-  for (ent = self; ent; ent = ent->team_next) {
-    const float new_speed = fabsf(ent->move_info.distance) / time;
-    const float ratio = new_speed / ent->move_info.speed;
-    if (ent->move_info.accel == ent->move_info.speed) {
-      ent->move_info.accel = new_speed;
+  for (e = ent; e; e = e->team_next) {
+    const float new_speed = fabsf(e->move_info.distance) / time;
+    const float ratio = new_speed / e->move_info.speed;
+    if (e->move_info.accel == e->move_info.speed) {
+      e->move_info.accel = new_speed;
     } else {
-      ent->move_info.accel *= ratio;
+      e->move_info.accel *= ratio;
     }
-    if (ent->move_info.decel == ent->move_info.speed) {
-      ent->move_info.decel = new_speed;
+    if (e->move_info.decel == e->move_info.speed) {
+      e->move_info.decel = new_speed;
     } else {
-      ent->move_info.decel *= ratio;
+      e->move_info.decel *= ratio;
     }
-    ent->move_info.speed = new_speed;
+    e->move_info.speed = new_speed;
   }
 }
 
@@ -1141,21 +1141,21 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
+static void G_func_door_Blocked(g_entity_t *ent, g_entity_t *other) {
 
-  G_MoveType_Push_Blocked(self, other);
+  G_MoveType_Push_Blocked(ent, other);
 
   // if a door has a negative wait, it would never come back if blocked,
   // so let it just squash the object to death real fast
-  if (self->move_info.wait >= 0) {
-    g_entity_t *ent;
-    if (self->move_info.state == MOVE_STATE_GOING_DOWN) {
-      for (ent = self->team_master; ent; ent = ent->team_next) {
-        G_func_door_GoingUp(ent, ent->activator);
+  if (ent->move_info.wait >= 0) {
+    g_entity_t *e;
+    if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
+      for (e = ent->team_master; e; e = e->team_next) {
+        G_func_door_GoingUp(e, e->activator);
       }
     } else {
-      for (ent = self->team_master; ent; ent = ent->team_next) {
-        G_func_door_GoingDown(ent);
+      for (e = ent->team_master; e; e = e->team_next) {
+        G_func_door_GoingDown(e);
       }
     }
   }
@@ -1164,36 +1164,36 @@ static void G_func_door_Blocked(g_entity_t *self, g_entity_t *other) {
 /**
  * @brief
  */
-static void G_func_door_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
+static void G_func_door_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
-  g_entity_t *ent;
+  g_entity_t *e;
 
-  for (ent = self->team_master; ent; ent = ent->team_next) {
-    ent->health = ent->max_health;
-    ent->take_damage = false;
+  for (e = ent->team_master; e; e = e->team_next) {
+    e->health = ent->max_health;
+    e->take_damage = false;
   }
 
-  G_func_door_Use(self->team_master, attacker, attacker);
+  G_func_door_Use(ent->team_master, attacker, attacker);
 }
 
 /**
  * @brief
  */
-static void G_func_door_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (!other->client) {
     return;
   }
 
-  if (g_level.time < self->touch_time) {
+  if (g_level.time < ent->touch_time) {
     return;
   }
 
-  self->touch_time = g_level.time + 3000;
+  ent->touch_time = g_level.time + 3000;
 
-  if (self->message && strlen(self->message)) {
+  if (ent->message && strlen(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
-    gi.WriteString(self->message);
+    gi.WriteString(ent->message);
     gi.Unicast(other->client, true);
   }
 
@@ -1434,184 +1434,184 @@ void G_func_door_rotating(g_entity_t *ent) {
 #define SECRET_FIRST_LEFT    2
 #define SECRET_FIRST_DOWN    4
 
-static void G_func_door_secret_Move1(g_entity_t *self);
-static void G_func_door_secret_Move2(g_entity_t *self);
-static void G_func_door_secret_Move3(g_entity_t *self);
-static void G_func_door_secret_Move4(g_entity_t *self);
-static void G_func_door_secret_Move5(g_entity_t *self);
-static void G_func_door_secret_Move6(g_entity_t *self);
-static void G_func_door_secret_Done(g_entity_t *self);
+static void G_func_door_secret_Move1(g_entity_t *ent);
+static void G_func_door_secret_Move2(g_entity_t *ent);
+static void G_func_door_secret_Move3(g_entity_t *ent);
+static void G_func_door_secret_Move4(g_entity_t *ent);
+static void G_func_door_secret_Move5(g_entity_t *ent);
+static void G_func_door_secret_Move6(g_entity_t *ent);
+static void G_func_door_secret_Done(g_entity_t *ent);
 
 /**
  * @brief
  */
-static void G_func_door_secret_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
                                    g_entity_t *activator) {
 
   // make sure we're not already moving
-  if (!Vec3_Equal(self->s.origin, Vec3_Zero())) {
+  if (!Vec3_Equal(ent->s.origin, Vec3_Zero())) {
     return;
   }
 
-  G_MoveInfo_Linear_Init(self, self->pos1, G_func_door_secret_Move1);
+  G_MoveInfo_Linear_Init(ent, ent->pos1, G_func_door_secret_Move1);
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_start) {
+    if (ent->move_info.sound_start) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_start,
-        .entity = self,
+        .index = ent->move_info.sound_start,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = self->move_info.sound_middle;
+    ent->s.sound = ent->move_info.sound_middle;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move1(g_entity_t *self) {
+static void G_func_door_secret_Move1(g_entity_t *ent) {
 
-  self->next_think = g_level.time + 1000;
-  self->Think = G_func_door_secret_Move2;
+  ent->next_think = g_level.time + 1000;
+  ent->Think = G_func_door_secret_Move2;
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move2(g_entity_t *self) {
+static void G_func_door_secret_Move2(g_entity_t *ent) {
 
-  G_MoveInfo_Linear_Init(self, self->pos2, G_func_door_secret_Move3);
+  G_MoveInfo_Linear_Init(ent, ent->pos2, G_func_door_secret_Move3);
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move3(g_entity_t *self) {
+static void G_func_door_secret_Move3(g_entity_t *ent) {
 
-  if (self->wait == -1.0) {
+  if (ent->wait == -1.0) {
     return;
   }
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_end) {
+    if (ent->move_info.sound_end) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_end,
-        .entity = self,
+        .index = ent->move_info.sound_end,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = 0;
+    ent->s.sound = 0;
   }
 
-  self->next_think = g_level.time + self->wait * 1000;
-  self->Think = G_func_door_secret_Move4;
+  ent->next_think = g_level.time + ent->wait * 1000;
+  ent->Think = G_func_door_secret_Move4;
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move4(g_entity_t *self) {
+static void G_func_door_secret_Move4(g_entity_t *ent) {
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_start) {
+    if (ent->move_info.sound_start) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_start,
-        .entity = self,
+        .index = ent->move_info.sound_start,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = self->move_info.sound_middle;
+    ent->s.sound = ent->move_info.sound_middle;
   }
 
-  G_MoveInfo_Linear_Init(self, self->pos1, G_func_door_secret_Move5);
+  G_MoveInfo_Linear_Init(ent, ent->pos1, G_func_door_secret_Move5);
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move5(g_entity_t *self) {
+static void G_func_door_secret_Move5(g_entity_t *ent) {
 
-  self->next_think = g_level.time + 1000;
-  self->Think = G_func_door_secret_Move6;
+  ent->next_think = g_level.time + 1000;
+  ent->Think = G_func_door_secret_Move6;
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Move6(g_entity_t *self) {
+static void G_func_door_secret_Move6(g_entity_t *ent) {
 
-  G_MoveInfo_Linear_Init(self, Vec3_Zero(), G_func_door_secret_Done);
+  G_MoveInfo_Linear_Init(ent, Vec3_Zero(), G_func_door_secret_Done);
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Done(g_entity_t *self) {
+static void G_func_door_secret_Done(g_entity_t *ent) {
 
-  if (!(self->target_name) || (self->spawn_flags & SECRET_ALWAYS_SHOOT)) {
-    self->dead = true;
-    self->take_damage = true;
+  if (!(ent->target_name) || (ent->spawn_flags & SECRET_ALWAYS_SHOOT)) {
+    ent->dead = true;
+    ent->take_damage = true;
   }
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
 
-    if (self->move_info.sound_end) {
+    if (ent->move_info.sound_end) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_end,
-        .entity = self,
+        .index = ent->move_info.sound_end,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
 
-    self->s.sound = 0;
+    ent->s.sound = 0;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Blocked(g_entity_t *self, g_entity_t *other) {
+static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
 
   if (!other->client) {
     return;
   }
 
-  if (g_level.time < self->touch_time) {
+  if (g_level.time < ent->touch_time) {
     return;
   }
 
-  self->touch_time = g_level.time + 500;
+  ent->touch_time = g_level.time + 500;
 
   G_Damage(&(g_damage_t) {
     .target = other,
-    .inflictor = self,
-    .attacker = self,
+    .inflictor = ent,
+    .attacker = ent,
     .dir = Vec3_Zero(),
     .point = other->s.origin,
     .normal = Vec3_Zero(),
-    .damage = self->damage,
+    .damage = ent->damage,
     .knockback = 1,
     .flags = 0,
     .mod = MOD_CRUSH
   });
 
-  self->next_think = g_level.time + 1;
+  ent->next_think = g_level.time + 1;
 }
 
 /**
  * @brief
  */
-static void G_func_door_secret_Die(g_entity_t *self, g_entity_t *attacker, uint32_t mod) {
+static void G_func_door_secret_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
-  self->take_damage = false;
-  G_func_door_secret_Use(self, attacker, attacker);
+  ent->take_damage = false;
+  G_func_door_secret_Use(ent, attacker, attacker);
 }
 
 /*QUAKED func_door_secret (0 .5 .8) ? always_shoot 1st_left 1st_down
@@ -1709,21 +1709,21 @@ void G_func_door_secret(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_func_wall_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_wall_Use(g_entity_t *ent, g_entity_t *other,
                             g_entity_t *activator) {
 
-  if (self->solid == SOLID_NOT) {
-    self->solid = SOLID_BSP;
-    self->sv_flags &= ~SVF_NO_CLIENT;
-    G_KillBox(self);
+  if (ent->solid == SOLID_NOT) {
+    ent->solid = SOLID_BSP;
+    ent->sv_flags &= ~SVF_NO_CLIENT;
+    G_KillBox(ent);
   } else {
-    self->solid = SOLID_NOT;
-    self->sv_flags |= SVF_NO_CLIENT;
+    ent->solid = SOLID_NOT;
+    ent->sv_flags |= SVF_NO_CLIENT;
   }
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-  if (!(self->spawn_flags & 2)) {
-    self->Use = NULL;
+  if (!(ent->spawn_flags & 2)) {
+    ent->Use = NULL;
   }
 }
 
@@ -1744,34 +1744,34 @@ static void G_func_wall_Use(g_entity_t *self, g_entity_t *other,
  toggle : The wall may be triggered off and on.
  start_on : The wall will initially be present, but can be toggled off.
  */
-void G_func_wall(g_entity_t *self) {
-  self->move_type = MOVE_TYPE_PUSH;
-  gi.SetModel(self, self->model);
+void G_func_wall(g_entity_t *ent) {
+  ent->move_type = MOVE_TYPE_PUSH;
+  gi.SetModel(ent, ent->model);
 
-  if ((self->spawn_flags & WALL_SPAWN_FLAGS) == 0) {
-    self->solid = SOLID_BSP;
-    gi.LinkEntity(self);
+  if ((ent->spawn_flags & WALL_SPAWN_FLAGS) == 0) {
+    ent->solid = SOLID_BSP;
+    gi.LinkEntity(ent);
     return;
   }
 
   // it must be triggered to use start_on or toggle
-  self->spawn_flags |= WALL_TRIGGER;
+  ent->spawn_flags |= WALL_TRIGGER;
 
   // and if it's start_on, it must be toggled
-  if (self->spawn_flags & WALL_START_ON) {
-    self->spawn_flags |= WALL_TOGGLE;
+  if (ent->spawn_flags & WALL_START_ON) {
+    ent->spawn_flags |= WALL_TOGGLE;
   }
 
-  self->Use = G_func_wall_Use;
+  ent->Use = G_func_wall_Use;
 
-  if (self->spawn_flags & WALL_START_ON) {
-    self->solid = SOLID_BSP;
+  if (ent->spawn_flags & WALL_START_ON) {
+    ent->solid = SOLID_BSP;
   } else {
-    self->solid = SOLID_NOT;
-    self->sv_flags |= SVF_NO_CLIENT;
+    ent->solid = SOLID_NOT;
+    ent->sv_flags |= SVF_NO_CLIENT;
   }
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }
 
 /*QUAKED func_water(0 .5 .8) ? start_open
@@ -1787,235 +1787,235 @@ void G_func_wall(g_entity_t *self) {
  -------- Spawn flags ---------
  start_open : If set, causes the water to move to its destination when spawned and operate in reverse.
  */
-void G_func_water(g_entity_t *self) {
+void G_func_water(g_entity_t *ent) {
   vec3_t abs_move_dir;
 
-  G_SetMoveDir(self);
-  self->move_type = MOVE_TYPE_PUSH;
-  self->solid = SOLID_BSP;
-  gi.SetModel(self, self->model);
+  G_SetMoveDir(ent);
+  ent->move_type = MOVE_TYPE_PUSH;
+  ent->solid = SOLID_BSP;
+  gi.SetModel(ent, ent->model);
 
   // calculate second position
-  self->pos1 = self->s.origin;
-  abs_move_dir = Vec3_Fabsf(self->move_dir);
-  self->move_info.distance = abs_move_dir.x * self->size.x +
-                    abs_move_dir.y * self->size.y +
-                    abs_move_dir.z * self->size.z - self->lip;
+  ent->pos1 = ent->s.origin;
+  abs_move_dir = Vec3_Fabsf(ent->move_dir);
+  ent->move_info.distance = abs_move_dir.x * ent->size.x +
+                    abs_move_dir.y * ent->size.y +
+                    abs_move_dir.z * ent->size.z - ent->lip;
 
-  self->pos2 = Vec3_Fmaf(self->pos1, self->move_info.distance, self->move_dir);
+  ent->pos2 = Vec3_Fmaf(ent->pos1, ent->move_info.distance, ent->move_dir);
 
   // if it starts open, switch the positions
-  if (self->spawn_flags & DOOR_START_OPEN) {
-    self->s.origin = self->pos2;
-    self->pos2 = self->pos1;
-    self->pos1 = self->s.origin;
+  if (ent->spawn_flags & DOOR_START_OPEN) {
+    ent->s.origin = ent->pos2;
+    ent->pos2 = ent->pos1;
+    ent->pos1 = ent->s.origin;
   }
 
-  self->move_info.start_origin = self->pos1;
-  self->move_info.start_angles = self->s.angles;
-  self->move_info.end_origin = self->pos2;
-  self->move_info.end_angles = self->s.angles;
+  ent->move_info.start_origin = ent->pos1;
+  ent->move_info.start_angles = ent->s.angles;
+  ent->move_info.end_origin = ent->pos2;
+  ent->move_info.end_angles = ent->s.angles;
 
-  self->move_info.state = MOVE_STATE_BOTTOM;
+  ent->move_info.state = MOVE_STATE_BOTTOM;
 
-  if (!self->speed) {
-    self->speed = 25.0;
+  if (!ent->speed) {
+    ent->speed = 25.0;
   }
 
-  self->move_info.speed = self->speed;
+  ent->move_info.speed = ent->speed;
 
-  if (!self->wait) {
-    self->wait = -1;
+  if (!ent->wait) {
+    ent->wait = -1;
   }
 
-  self->move_info.wait = self->wait;
+  ent->move_info.wait = ent->wait;
 
-  self->Use = G_func_door_Use;
+  ent->Use = G_func_door_Use;
 
-  if (self->wait == -1) {
-    self->spawn_flags |= DOOR_TOGGLE;
+  if (ent->wait == -1) {
+    ent->spawn_flags |= DOOR_TOGGLE;
   }
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }
 
 #define TRAIN_START_ON    1
 #define TRAIN_TOGGLE    2
 #define TRAIN_BLOCK_STOPS  4
 
-static void G_func_train_Next(g_entity_t *self);
+static void G_func_train_Next(g_entity_t *ent);
 
 /**
  * @brief
  */
-static void G_func_train_Wait(g_entity_t *self) {
+static void G_func_train_Wait(g_entity_t *ent) {
 
-  if (self->target_ent->path_target) {
-    g_entity_t *ent = self->target_ent;
-    const char *target = ent->target;
-    ent->target = ent->path_target;
-    G_UseTargets(ent, self->activator);
-    ent->target = target;
+  if (ent->target_ent->path_target) {
+    g_entity_t *target_ent = ent->target_ent;
+    const char *target = target_ent->target;
+    target_ent->target = target_ent->path_target;
+    G_UseTargets(target_ent, ent->activator);
+    target_ent->target = target;
 
     // make sure we didn't get killed by a killtarget
-    if (!self->in_use) {
+    if (!ent->in_use) {
       return;
     }
   }
 
-  if (self->move_info.wait) {
-    if (self->move_info.wait > 0) {
-      self->next_think = g_level.time + (self->move_info.wait * 1000);
-      self->Think = G_func_train_Next;
-    } else if (self->spawn_flags & TRAIN_TOGGLE) {
-      G_func_train_Next(self);
-      self->spawn_flags &= ~TRAIN_START_ON;
-      self->velocity = Vec3_Zero();
-      self->next_think = 0;
+  if (ent->move_info.wait) {
+    if (ent->move_info.wait > 0) {
+      ent->next_think = g_level.time + (ent->move_info.wait * 1000);
+      ent->Think = G_func_train_Next;
+    } else if (ent->spawn_flags & TRAIN_TOGGLE) {
+      G_func_train_Next(ent);
+      ent->spawn_flags &= ~TRAIN_START_ON;
+      ent->velocity = Vec3_Zero();
+      ent->next_think = 0;
     }
 
-    if (!(self->flags & FL_TEAM_SLAVE)) {
-      if (self->move_info.sound_end) {
+    if (!(ent->flags & FL_TEAM_SLAVE)) {
+      if (ent->move_info.sound_end) {
         G_MulticastSound(&(const g_play_sound_t) {
-          .index = self->move_info.sound_end,
-          .entity = self,
+          .index = ent->move_info.sound_end,
+          .entity = ent,
           .atten = SOUND_ATTEN_SQUARE
         }, MULTICAST_PHS);
       }
-      self->s.sound = 0;
+      ent->s.sound = 0;
     }
   } else {
-    G_func_train_Next(self);
+    G_func_train_Next(ent);
   }
 }
 
 /**
  * @brief
  */
-static void G_func_train_Next(g_entity_t *self) {
-  g_entity_t *ent;
+static void G_func_train_Next(g_entity_t *ent) {
+  g_entity_t *target;
   vec3_t dest;
   bool first;
 
   first = true;
 again:
-  if (!self->target) {
+  if (!ent->target) {
     return;
   }
 
-  ent = G_PickTarget(self->target);
-  if (!ent) {
-    G_Debug("%s has invalid target %s\n", etos(self), self->target);
+  target = G_PickTarget(ent->target);
+  if (!target) {
+    G_Debug("%s has invalid target %s\n", etos(ent), ent->target);
     return;
   }
 
-  self->target = ent->target;
+  ent->target = target->target;
 
   // check for a teleport path_corner
-  if (ent->spawn_flags & 1) {
+  if (target->spawn_flags & 1) {
     if (!first) {
-      G_Debug("%s has teleport path_corner %s\n", etos(self), etos(ent));
+      G_Debug("%s has teleport path_corner %s\n", etos(ent), etos(target));
       return;
     }
     first = false;
-    self->s.origin = Vec3_Subtract(ent->s.origin, self->bounds.mins);
-    if (!(ent->spawn_flags & 2)) {
-      self->s.event = EV_CLIENT_TELEPORT;
+    ent->s.origin = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+    if (!(target->spawn_flags & 2)) {
+      ent->s.event = EV_CLIENT_TELEPORT;
     }
-    gi.LinkEntity(self);
+    gi.LinkEntity(ent);
     goto again;
   }
 
-  self->move_info.wait = ent->wait;
-  self->target_ent = ent;
+  ent->move_info.wait = target->wait;
+  ent->target_ent = target;
 
-  if (!(self->flags & FL_TEAM_SLAVE)) {
-    if (self->move_info.sound_start) {
+  if (!(ent->flags & FL_TEAM_SLAVE)) {
+    if (ent->move_info.sound_start) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = self->move_info.sound_start,
-        .entity = self,
+        .index = ent->move_info.sound_start,
+        .entity = ent,
         .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
-    self->s.sound = self->move_info.sound_middle;
+    ent->s.sound = ent->move_info.sound_middle;
   }
 
-  dest = Vec3_Subtract(ent->s.origin, self->bounds.mins);
-  self->move_info.state = MOVE_STATE_TOP;
-  self->move_info.start_origin = self->s.origin;
-  self->move_info.end_origin = dest;
-  G_MoveInfo_Linear_Init(self, dest, G_func_train_Wait);
-  self->spawn_flags |= TRAIN_START_ON;
+  dest = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  ent->move_info.state = MOVE_STATE_TOP;
+  ent->move_info.start_origin = ent->s.origin;
+  ent->move_info.end_origin = dest;
+  G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+  ent->spawn_flags |= TRAIN_START_ON;
 }
 
 /**
  * @brief
  */
-static void G_func_train_Resume(g_entity_t *self) {
-  g_entity_t *ent;
+static void G_func_train_Resume(g_entity_t *ent) {
+  g_entity_t *target;
   vec3_t dest;
 
-  ent = self->target_ent;
+  target = ent->target_ent;
 
-  dest = Vec3_Subtract(ent->s.origin, self->bounds.mins);
-  self->move_info.state = MOVE_STATE_TOP;
-  self->move_info.start_origin = self->s.origin;
-  self->move_info.end_origin = dest;
-  G_MoveInfo_Linear_Init(self, dest, G_func_train_Wait);
-  self->spawn_flags |= TRAIN_START_ON;
+  dest = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  ent->move_info.state = MOVE_STATE_TOP;
+  ent->move_info.start_origin = ent->s.origin;
+  ent->move_info.end_origin = dest;
+  G_MoveInfo_Linear_Init(ent, dest, G_func_train_Wait);
+  ent->spawn_flags |= TRAIN_START_ON;
 }
 
 /**
  * @brief
  */
-static void G_func_train_Find(g_entity_t *self) {
-  g_entity_t *ent;
+static void G_func_train_Find(g_entity_t *ent) {
+  g_entity_t *target;
 
-  if (!self->target) {
+  if (!ent->target) {
     G_Debug("No target specified\n");
     return;
   }
-  ent = G_PickTarget(self->target);
-  if (!ent) {
-    G_Debug("Target \"%s\" not found\n", self->target);
+  target = G_PickTarget(ent->target);
+  if (!target) {
+    G_Debug("Target \"%s\" not found\n", ent->target);
     return;
   }
-  self->target = ent->target;
+  ent->target = target->target;
 
-  self->s.origin = Vec3_Subtract(ent->s.origin, self->bounds.mins);
-  gi.LinkEntity(self);
+  ent->s.origin = Vec3_Subtract(target->s.origin, ent->bounds.mins);
+  gi.LinkEntity(ent);
 
   // if not triggered, start immediately
-  if (!self->target_name) {
-    self->spawn_flags |= TRAIN_START_ON;
+  if (!ent->target_name) {
+    ent->spawn_flags |= TRAIN_START_ON;
   }
 
-  if (self->spawn_flags & TRAIN_START_ON) {
-    self->next_think = g_level.time + QUETOO_TICK_MILLIS;
-    self->Think = G_func_train_Next;
-    self->activator = self;
+  if (ent->spawn_flags & TRAIN_START_ON) {
+    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->Think = G_func_train_Next;
+    ent->activator = ent;
   }
 }
 
 /**
  * @brief
  */
-static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
                              g_entity_t *activator) {
-  self->activator = activator;
+  ent->activator = activator;
 
-  if (self->spawn_flags & TRAIN_START_ON) {
-    if (!(self->spawn_flags & TRAIN_TOGGLE)) {
+  if (ent->spawn_flags & TRAIN_START_ON) {
+    if (!(ent->spawn_flags & TRAIN_TOGGLE)) {
       return;
     }
-    self->spawn_flags &= ~TRAIN_START_ON;
-    self->velocity = Vec3_Zero();
-    self->next_think = 0;
+    ent->spawn_flags &= ~TRAIN_START_ON;
+    ent->velocity = Vec3_Zero();
+    ent->next_think = 0;
   } else {
-    if (self->target_ent) {
-      G_func_train_Resume(self);
+    if (ent->target_ent) {
+      G_func_train_Resume(ent);
     } else {
-      G_func_train_Next(self);
+      G_func_train_Next(ent);
     }
   }
 }
@@ -2036,78 +2036,78 @@ static void G_func_train_Use(g_entity_t *self, g_entity_t *other,
  toggle : If set, the train will start or stop each time it is activated.
  block_stops : When blocked, stop moving and inflict no damage.
  */
-void G_func_train(g_entity_t *self) {
-  self->move_type = MOVE_TYPE_PUSH;
+void G_func_train(g_entity_t *ent) {
+  ent->move_type = MOVE_TYPE_PUSH;
 
-  self->s.angles = Vec3_Zero();
+  ent->s.angles = Vec3_Zero();
 
-  if (self->spawn_flags & TRAIN_BLOCK_STOPS) {
-    self->damage = 0;
+  if (ent->spawn_flags & TRAIN_BLOCK_STOPS) {
+    ent->damage = 0;
   } else {
-    if (!self->damage) {
-      self->damage = 100;
+    if (!ent->damage) {
+      ent->damage = 100;
     }
   }
-  self->solid = SOLID_BSP;
-  gi.SetModel(self, self->model);
+  ent->solid = SOLID_BSP;
+  gi.SetModel(ent, ent->model);
 
-  const char *sound = gi.EntityValue(self->def, "sound")->string;
+  const char *sound = gi.EntityValue(ent->def, "sound")->string;
   if (*sound) {
-    self->move_info.sound_middle = gi.SoundIndex(sound);
+    ent->move_info.sound_middle = gi.SoundIndex(sound);
   }
 
-  if (!self->speed) {
-    self->speed = 100.0;
+  if (!ent->speed) {
+    ent->speed = 100.0;
   }
 
-  self->move_info.speed = self->speed;
+  ent->move_info.speed = ent->speed;
 
-  self->Use = G_func_train_Use;
-  self->Blocked = G_MoveType_Push_Blocked;
+  ent->Use = G_func_train_Use;
+  ent->Blocked = G_MoveType_Push_Blocked;
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-  if (self->target) {
+  if (ent->target) {
     // start trains on the second frame, to make sure their targets have had
     // a chance to spawn
-    self->next_think = g_level.time + QUETOO_TICK_MILLIS;
-    self->Think = G_func_train_Find;
+    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->Think = G_func_train_Find;
   } else {
-    G_Debug("No target: %s\n", vtos(self->s.origin));
+    G_Debug("No target: %s\n", vtos(ent->s.origin));
   }
 }
 
 /**
  * @brief
  */
-static void G_func_timer_Think(g_entity_t *self) {
+static void G_func_timer_Think(g_entity_t *ent) {
 
-  G_UseTargets(self, self->activator);
+  G_UseTargets(ent, ent->activator);
 
-  const uint32_t wait = self->wait * 1000;
-  const uint32_t rand = self->random * 1000 * RandomRangef(-1.f, 1.f);
+  const uint32_t wait = ent->wait * 1000;
+  const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-  self->next_think = g_level.time + wait + rand;
+  ent->next_think = g_level.time + wait + rand;
 }
 
 /**
  * @brief
  */
-static void G_func_timer_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
                              g_entity_t *activator) {
-  self->activator = activator;
+  ent->activator = activator;
 
   // if on, turn it off
-  if (self->next_think) {
-    self->next_think = 0;
+  if (ent->next_think) {
+    ent->next_think = 0;
     return;
   }
 
   // turn it on
-  if (self->delay) {
-    self->next_think = g_level.time + self->delay * 1000;
+  if (ent->delay) {
+    ent->next_think = g_level.time + ent->delay * 1000;
   } else {
-    G_func_timer_Think(self);
+    G_func_timer_Think(ent);
   }
 }
 
@@ -2123,48 +2123,48 @@ static void G_func_timer_Use(g_entity_t *self, g_entity_t *other,
  -------- Spawn flags --------
  start_on : If set, the timer will begin firing once spawned.
  */
-void G_func_timer(g_entity_t *self) {
+void G_func_timer(g_entity_t *ent) {
 
-  if (!self->wait) {
-    self->wait = 1.0;
+  if (!ent->wait) {
+    ent->wait = 1.0;
   }
 
-  self->Use = G_func_timer_Use;
-  self->Think = G_func_timer_Think;
+  ent->Use = G_func_timer_Use;
+  ent->Think = G_func_timer_Think;
 
-  if (self->random >= self->wait) {
-    self->random = self->wait - QUETOO_TICK_SECONDS;
-    G_Debug("random >= wait: %s\n", vtos(self->s.origin));
+  if (ent->random >= ent->wait) {
+    ent->random = ent->wait - QUETOO_TICK_SECONDS;
+    G_Debug("random >= wait: %s\n", vtos(ent->s.origin));
   }
 
-  if (self->spawn_flags & 1) {
+  if (ent->spawn_flags & 1) {
 
-    const uint32_t delay = self->delay * 1000;
-    const uint32_t wait = self->wait * 1000;
-    const uint32_t rand = self->random * 1000 * RandomRangef(-1.f, 1.f);
+    const uint32_t delay = ent->delay * 1000;
+    const uint32_t wait = ent->wait * 1000;
+    const uint32_t rand = ent->random * 1000 * RandomRangef(-1.f, 1.f);
 
-    self->next_think = g_level.time + delay + wait + rand;
-    self->activator = self;
+    ent->next_think = g_level.time + delay + wait + rand;
+    ent->activator = ent;
   }
 
-  self->sv_flags = SVF_NO_CLIENT;
+  ent->sv_flags = SVF_NO_CLIENT;
 }
 
 /**
  * @brief
  */
-static void G_func_conveyor_Use(g_entity_t *self, g_entity_t *other,
+static void G_func_conveyor_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
-  if (self->spawn_flags & 1) {
-    self->speed = 0;
-    self->spawn_flags &= ~1;
+  if (ent->spawn_flags & 1) {
+    ent->speed = 0;
+    ent->spawn_flags &= ~1;
   } else {
-    self->speed = self->count;
-    self->spawn_flags |= 1;
+    ent->speed = ent->count;
+    ent->spawn_flags |= 1;
   }
 
-  if (!(self->spawn_flags & 2)) {
-    self->count = 0;
+  if (!(ent->spawn_flags & 2)) {
+    ent->count = 0;
   }
 }
 
@@ -2179,19 +2179,19 @@ static void G_func_conveyor_Use(g_entity_t *self, g_entity_t *other,
  start_on : The conveyor will be active immediately.
  toggle : The conveyor is toggled each time it is used.
  */
-void G_func_conveyor(g_entity_t *self) {
-  if (!self->speed) {
-    self->speed = 100;
+void G_func_conveyor(g_entity_t *ent) {
+  if (!ent->speed) {
+    ent->speed = 100;
   }
 
-  if (!(self->spawn_flags & 1)) {
-    self->count = self->speed;
-    self->speed = 0;
+  if (!(ent->spawn_flags & 1)) {
+    ent->count = ent->speed;
+    ent->speed = 0;
   }
 
-  self->Use = G_func_conveyor_Use;
+  ent->Use = G_func_conveyor_Use;
 
-  gi.SetModel(self, self->model);
-  self->solid = SOLID_BSP;
-  gi.LinkEntity(self);
+  gi.SetModel(ent, ent->model);
+  ent->solid = SOLID_BSP;
+  gi.LinkEntity(ent);
 }

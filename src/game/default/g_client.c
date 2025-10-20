@@ -213,25 +213,25 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
 /**
  * @brief Play a sloppy sound when impacting the world.
  */
-static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
   if (trace == NULL) {
     return;
   }
 
   if (G_IsSky(trace)) {
-    G_FreeEntity(self);
+    G_FreeEntity(ent);
   } else {
-    const float speed = Vec3_Length(self->velocity);
+    const float speed = Vec3_Length(ent->velocity);
     if (speed > 40.0 && G_IsStructural(trace)) {
 
-      if (g_level.time - self->touch_time > 200) {
+      if (g_level.time - ent->touch_time > 200) {
         G_MulticastSound(&(const g_play_sound_t) {
-          .index = self->sound,
-          .entity = self,
+          .index = ent->sound,
+          .entity = ent,
           .atten = SOUND_ATTEN_SQUARE
         }, MULTICAST_PHS);
-        self->touch_time = g_level.time;
+        ent->touch_time = g_level.time;
       }
     }
   }
@@ -241,21 +241,21 @@ static void G_ClientGiblet_Touch(g_entity_t *self, g_entity_t *other, const cm_t
  * @brief Sink into the floor after a few seconds, providing a window of time for us to be made into
  * giblets or knocked around. This is called by corpses and giblets alike.
  */
-static void G_ClientCorpse_Think(g_entity_t *self) {
+static void G_ClientCorpse_Think(g_entity_t *ent) {
 
-  const uint32_t age = g_level.time - self->timestamp;
+  const uint32_t age = g_level.time - ent->timestamp;
 
-  if (self->s.model1 == MODEL_CLIENT) {
+  if (ent->s.model1 == MODEL_CLIENT) {
     if (age > 6000) {
-      const int32_t dmg = self->health;
+      const int32_t dmg = ent->health;
 
-      if (self->water_type & CONTENTS_LAVA) {
+      if (ent->water_type & CONTENTS_LAVA) {
         G_Damage(&(g_damage_t) {
-          .target = self,
+          .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
           .dir = Vec3_Zero(),
-          .point = self->s.origin,
+          .point = ent->s.origin,
           .normal = Vec3_Zero(),
           .damage = dmg,
           .knockback = 0,
@@ -264,13 +264,13 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
         });
       }
 
-      if (self->water_type & CONTENTS_SLIME) {
+      if (ent->water_type & CONTENTS_SLIME) {
         G_Damage(&(g_damage_t) {
-          .target = self,
+          .target = ent,
           .inflictor = NULL,
           .attacker = NULL,
           .dir = Vec3_Zero(),
-          .point = self->s.origin,
+          .point = ent->s.origin,
           .normal = Vec3_Zero(),
           .damage = dmg,
           .knockback = 0,
@@ -280,38 +280,38 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
       }
     }
   } else {
-    const float speed = Vec3_Length(self->velocity);
+    const float speed = Vec3_Length(ent->velocity);
 
-    if (!(self->s.effects & EF_DESPAWN) && speed > 30.0) {
-      self->s.trail = TRAIL_GIB;
+    if (!(ent->s.effects & EF_DESPAWN) && speed > 30.0) {
+      ent->s.trail = TRAIL_GIB;
     } else {
-      self->s.trail = TRAIL_NONE;
+      ent->s.trail = TRAIL_NONE;
     }
   }
 
   if (age > 33000) {
-    G_FreeEntity(self);
+    G_FreeEntity(ent);
     return;
   }
 
   // sink into the floor after a few seconds
   if (age > 30000) {
 
-    self->s.effects |= EF_DESPAWN;
+    ent->s.effects |= EF_DESPAWN;
 
-    self->move_type = MOVE_TYPE_NONE;
-    self->take_damage = false;
+    ent->move_type = MOVE_TYPE_NONE;
+    ent->take_damage = false;
 
-    self->solid = SOLID_NOT;
+    ent->solid = SOLID_NOT;
 
-    if (self->ground.ent) {
-      self->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
+    if (ent->ground.ent) {
+      ent->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
     }
 
-    gi.LinkEntity(self);
+    gi.LinkEntity(ent);
   }
 
-  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -319,8 +319,7 @@ static void G_ClientCorpse_Think(g_entity_t *self) {
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
  */
-static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
-                               uint32_t mod) {
+static void G_ClientCorpse_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
   const box3_t bounds[NUM_GIB_MODELS] = {
     Box3f(12.f, 12.f, 12.f),
@@ -335,27 +334,58 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
     int32_t gib_index;
     if (i == 0) { // 0 is always chest
       gib_index = (NUM_GIB_MODELS - 1);
-    } else if (i == 1 && !self->client) { // if we're not client, drop a head
+    } else if (i == 1 && !ent->client) { // if we're not client, drop a head
       gib_index = 2;
     } else { // pick forearm/femur
       gib_index = RandomRangei(0, NUM_GIB_MODELS - 2);
     }
 
-    g_entity_t *ent = G_AllocEntity(__func__);
+    g_entity_t *gib = G_AllocEntity(__func__);
 
-    ent->s.origin = self->s.origin;
+    gib->s.origin = ent->s.origin;
 
-    ent->bounds = bounds[gib_index];
+    gib->bounds = bounds[gib_index];
 
-    ent->solid = SOLID_DEAD;
+    gib->solid = SOLID_DEAD;
 
-    ent->s.model1 = g_media.models.gibs[gib_index];
-    ent->sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
+    gib->s.model1 = g_media.models.gibs[gib_index];
+    gib->sound = g_media.sounds.gib_hits[i % NUM_GIB_SOUNDS];
 
-    ent->velocity = self->velocity;
+    gib->velocity = ent->velocity;
 
-    const int32_t h = Clampf(-5.0 * self->health, 100, 500);
+    const int32_t h = Clampf(-5.0 * gib->health, 100, 500);
 
+    gib->velocity.x += RandomRangef(-h, h);
+    gib->velocity.y += RandomRangef(-h, h);
+    gib->velocity.z += RandomRangef(100.f, 100.f + h);
+
+    for (int32_t i = 0; i < 3; ++i) {
+      gib->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
+      gib->s.angles.xyz[i] = RandomRangef(0, 360.f);
+    }
+
+    gib->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
+    gib->dead = true;
+    gib->mass = (gib_index + 1) * 20.0;
+    gib->move_type = MOVE_TYPE_BOUNCE;
+    gib->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    gib->take_damage = true;
+    gib->Think = G_ClientCorpse_Think;
+    gib->Touch = G_ClientGiblet_Touch;
+
+    gi.LinkEntity(gib);
+  }
+
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_GIB);
+  gi.WritePosition(ent->s.origin);
+  gi.Multicast(ent->s.origin, MULTICAST_PVS);
+
+  if (ent->client) {
+    ent->bounds = bounds[2];
+
+    const int32_t h = Clampf(-5.0 * ent->health, 100, 500);
+    
     ent->velocity.x += RandomRangef(-h, h);
     ent->velocity.y += RandomRangef(-h, h);
     ent->velocity.z += RandomRangef(100.f, 100.f + h);
@@ -365,50 +395,19 @@ static void G_ClientCorpse_Die(g_entity_t *self, g_entity_t *attacker,
       ent->s.angles.xyz[i] = RandomRangef(0, 360.f);
     }
 
-    ent->clip_mask = CONTENTS_MASK_CLIP_CORPSE;
-    ent->dead = true;
-    ent->mass = (gib_index + 1) * 20.0;
-    ent->move_type = MOVE_TYPE_BOUNCE;
-    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
-    ent->take_damage = true;
-    ent->Think = G_ClientCorpse_Think;
-    ent->Touch = G_ClientGiblet_Touch;
+    ent->Die = NULL;
+
+    ent->client->ps.pm_state.flags |= PMF_GIBLET;
+
+    ent->s.model1 = g_media.models.gibs[2];
+
+    ent->mass = 20.0;
+
+    ent->solid = SOLID_DEAD;
 
     gi.LinkEntity(ent);
-  }
-
-  gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_GIB);
-  gi.WritePosition(self->s.origin);
-  gi.Multicast(self->s.origin, MULTICAST_PVS);
-
-  if (self->client) {
-    self->bounds = bounds[2];
-
-    const int32_t h = Clampf(-5.0 * self->health, 100, 500);
-    
-    self->velocity.x += RandomRangef(-h, h);
-    self->velocity.y += RandomRangef(-h, h);
-    self->velocity.z += RandomRangef(100.f, 100.f + h);
-
-    for (int32_t i = 0; i < 3; ++i) {
-      self->avelocity.xyz[i] = RandomRangef(-100.f, 100.f);
-      self->s.angles.xyz[i] = RandomRangef(0, 360.f);
-    }
-
-    self->Die = NULL;
-
-    self->client->ps.pm_state.flags |= PMF_GIBLET;
-
-    self->s.model1 = g_media.models.gibs[2];
-
-    self->mass = 20.0;
-
-    self->solid = SOLID_DEAD;
-
-    gi.LinkEntity(self);
   } else {
-    G_FreeEntity(self);
+    G_FreeEntity(ent);
   }
 }
 

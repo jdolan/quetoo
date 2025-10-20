@@ -198,9 +198,9 @@ static void G_BulletImpact(const cm_trace_t *trace) {
 /**
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -216,13 +216,13 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const
 
     G_Damage(&(g_damage_t) {
       .target = other,
-      .inflictor = self,
-      .attacker = self->owner,
-      .dir = self->velocity,
-      .point = self->s.origin,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = ent->velocity,
+      .point = ent->s.origin,
       .normal = trace->plane.normal,
-      .damage = self->damage,
-      .knockback = self->knockback,
+      .damage = ent->damage,
+      .knockback = ent->knockback,
       .flags = DMG_ENERGY,
       .mod = MOD_BLASTER
     });
@@ -231,14 +231,14 @@ static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_BLASTER);
-      gi.WritePosition(self->s.origin);
+      gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
-      gi.WriteByte(self->owner->s.client);
-      gi.Multicast(self->s.origin, MULTICAST_PHS);
+      gi.WriteByte(ent->owner->s.client);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
     }
   }
 
-  G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
@@ -277,8 +277,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 /**
  * @brief
  */
-void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-                        int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
+void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
   cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3f(1.f, 1.f, 1.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
   if (tr.fraction == 1.0) {
@@ -328,8 +327,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 /**
  * @brief
  */
-void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-              int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
+void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
 
   for (int32_t i = 0; i < count; i++) {
     G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
@@ -342,29 +340,29 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 /**
  * @brief
  */
-static void G_GrenadeProjectile_Explode(g_entity_t *self) {
+static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
   int32_t mod;
 
-  if (self->enemy) { // direct hit
+  if (ent->enemy) { // direct hit
 
-    mod = self->spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
+    mod = ent->spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
     G_Damage(&(g_damage_t) {
-      .target = self->enemy,
-      .inflictor = self,
-      .attacker = self->owner,
-      .dir = self->velocity,
-      .point = self->s.origin,
-      .normal = Vec3_Negate(self->velocity),
-      .damage = self->damage,
-      .knockback = self->knockback,
+      .target = ent->enemy,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = ent->velocity,
+      .point = ent->s.origin,
+      .normal = Vec3_Negate(ent->velocity),
+      .damage = ent->damage,
+      .knockback = ent->knockback,
       .flags = 0,
       .mod = mod
     });
   }
 
-  if (self->spawn_flags & HAND_GRENADE) {
-    if (self->spawn_flags & HAND_GRENADE_HELD) {
+  if (ent->spawn_flags & HAND_GRENADE) {
+    if (ent->spawn_flags & HAND_GRENADE_HELD) {
       mod = MOD_HANDGRENADE_KAMIKAZE;
     } else {
       mod = MOD_HANDGRENADE_SPLASH;
@@ -374,24 +372,23 @@ static void G_GrenadeProjectile_Explode(g_entity_t *self) {
   }
 
   // hurt anything else nearby
-  G_RadiusDamage(self, self->owner, self->enemy, self->damage,
-                 self->knockback, self->damage_radius, mod);
+  G_RadiusDamage(ent, ent->owner, ent->enemy, ent->damage, ent->knockback, ent->damage_radius, mod);
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_EXPLOSION);
-  gi.WritePosition(self->s.origin);
+  gi.WritePosition(ent->s.origin);
   gi.WriteDir(Vec3_Up());
-  gi.Multicast(self->s.origin, MULTICAST_PHS);
+  gi.Multicast(ent->s.origin, MULTICAST_PHS);
 
-  G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+void G_GrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -406,32 +403,31 @@ void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_tra
   if (!G_TakesDamage(other)) { // bounce off of structural solids
 
     if (G_IsStructural(trace)) {
-      if (g_level.time - self->touch_time > 200) {
-        if (Vec3_Length(self->velocity) > 40.0) {
+      if (g_level.time - ent->touch_time > 200) {
+        if (Vec3_Length(ent->velocity) > 40.0) {
           G_MulticastSound(&(const g_play_sound_t) {
             .index = g_media.sounds.grenade_hit,
-            .entity = self,
+            .entity = ent,
             .atten = SOUND_ATTEN_LINEAR,
             .pitch = (int8_t) (Randomf() * 5.0)
           }, MULTICAST_PHS);
-          self->touch_time = g_level.time;
+          ent->touch_time = g_level.time;
         }
       }
     } else if (G_IsSky(trace)) {
-      G_FreeEntity(self);
+      G_FreeEntity(ent);
     }
 
     return;
   }
-  self->enemy = other;
-  G_GrenadeProjectile_Explode(self);
+  ent->enemy = other;
+  G_GrenadeProjectile_Explode(ent);
 }
 
 /**
  * @brief
  */
-void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-             int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
+void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
   const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
@@ -477,9 +473,7 @@ void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 }
 
 // tossing a hand grenade
-void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
-                             vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage,
-               int32_t knockback, float damage_radius, uint32_t timer) {
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
   const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
@@ -525,9 +519,9 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
 /**
  * @brief
  */
-static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -545,36 +539,34 @@ static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, const 
 
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
-        .attacker = self->owner,
-        .dir = self->velocity,
-        .point = self->s.origin,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
         .normal = trace->plane.normal,
-        .damage = self->damage,
-        .knockback = self->knockback,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
         .flags = 0,
         .mod = MOD_ROCKET
       });
 
-      G_RadiusDamage(self, self->owner, other, self->damage, self->knockback,
-                     self->damage_radius, MOD_ROCKET_SPLASH);
+      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damage_radius, MOD_ROCKET_SPLASH);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_EXPLOSION);
-      gi.WritePosition(self->s.origin);
+      gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
-      gi.Multicast(self->s.origin, MULTICAST_PHS);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
     }
   }
 
-  G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-            int32_t damage, int32_t knockback, float damage_radius) {
+void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
   const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
@@ -611,9 +603,9 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 /**
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_HyperblasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -631,13 +623,13 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, 
 
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
-        .attacker = self->owner,
-        .dir = self->velocity,
-        .point = self->s.origin,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
         .normal = trace->plane.normal,
-        .damage = self->damage,
-        .knockback = self->knockback,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
         .flags = DMG_ENERGY,
         .mod = MOD_HYPERBLASTER
       });
@@ -645,15 +637,15 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, 
       if (G_IsStructural(trace)) {
 
         vec3_t v;
-        v = Vec3_Subtract(self->s.origin, self->owner->s.origin);
+        v = Vec3_Subtract(ent->s.origin, ent->owner->s.origin);
 
         if (Vec3_Length(v) < 32.0) { // hyperblaster climbing
           G_Damage(&(g_damage_t) {
-            .target = self->owner,
-            .inflictor = self,
-            .attacker = self->owner,
+            .target = ent->owner,
+            .inflictor = ent,
+            .attacker = ent->owner,
             .dir = Vec3_Zero(),
-            .point = self->s.origin,
+            .point = ent->s.origin,
             .normal = trace->plane.normal,
             .damage = g_balance_hyperblaster_climb_damage->integer,
             .knockback = 0,
@@ -661,26 +653,25 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, 
             .mod = MOD_HYPERBLASTER_CLIMB
           });
 
-          self->owner->velocity.z += g_balance_hyperblaster_climb_knockback->value;
+          ent->owner->velocity.z += g_balance_hyperblaster_climb_knockback->value;
         }
       }
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_HYPERBLASTER);
-      gi.WritePosition(self->s.origin);
+      gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
-      gi.Multicast(self->s.origin, MULTICAST_PHS);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
     }
   }
 
-  G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                int32_t damage, int32_t knockback) {
+void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
 
   const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
@@ -713,15 +704,15 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 /**
  * @brief
  */
-static void G_LightningProjectile_Discharge(g_entity_t *self) {
+static void G_LightningProjectile_Discharge(g_entity_t *ent) {
 
   // kill ourselves
   G_Damage(&(g_damage_t) {
-    .target = self->owner,
-    .inflictor = self,
-    .attacker = self->owner,
+    .target = ent->owner,
+    .inflictor = ent,
+    .attacker = ent->owner,
     .dir = Vec3_Zero(),
-    .point = self->s.origin,
+    .point = ent->s.origin,
     .normal = Vec3_Zero(),
     .damage = 9999,
     .knockback = 100,
@@ -730,29 +721,29 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
   });
 
   // and ruin the pool party for everyone else too
-  G_ForEachEntity(ent, {
-    if (ent == self->owner) {
+  G_ForEachEntity(other, {
+    if (other == ent->owner) {
       continue;
     }
 
-    if (!G_IsMeat(ent)) {
+    if (!G_IsMeat(other)) {
       continue;
     }
 
-    if (gi.inPVS(self->s.origin, ent->s.origin)) {
+    if (gi.inPVS(other->s.origin, ent->s.origin)) {
 
-      const float dist = Vec3_Distance(self->s.origin, ent->s.origin);
+      const float dist = Vec3_Distance(ent->s.origin, other->s.origin);
       const float atten = Clampf01(1.f - (dist / 1024.f));
 
       if (ent->water_level > WATER_NONE) {
         const int32_t dmg = 50 * ent->water_level * atten;
 
         G_Damage(&(g_damage_t) {
-          .target = ent,
-          .inflictor = self,
-          .attacker = self->owner,
+          .target = other,
+          .inflictor = ent,
+          .attacker = ent->owner,
           .dir = Vec3_Zero(),
-          .point = ent->s.origin,
+          .point = other->s.origin,
           .normal = Vec3_Zero(),
           .damage = dmg,
           .knockback = 100 * atten,
@@ -766,19 +757,19 @@ static void G_LightningProjectile_Discharge(g_entity_t *self) {
   // send discharge event
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
   gi.WriteByte(TE_LIGHTNING_DISCHARGE);
-  gi.WritePosition(self->s.origin);
+  gi.WritePosition(ent->s.origin);
 }
 
 /**
  * @brief
  */
-static bool G_LightningProjectile_Expire(g_entity_t *self) {
+static bool G_LightningProjectile_Expire(g_entity_t *ent) {
 
-  if (self->timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
+  if (ent->timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
     return true;
   }
 
-  if (self->owner->dead) {
+  if (ent->owner->dead) {
     return true;
   }
 
@@ -788,28 +779,28 @@ static bool G_LightningProjectile_Expire(g_entity_t *self) {
 /**
  * @brief
  */
-static void G_LightningProjectile_Think(g_entity_t *self) {
+static void G_LightningProjectile_Think(g_entity_t *ent) {
   vec3_t forward, right, up;
   vec3_t start, end;
   vec3_t water_start;
   cm_trace_t tr;
 
-  if (G_LightningProjectile_Expire(self)) {
-    G_FreeEntity(self);
+  if (G_LightningProjectile_Expire(ent)) {
+    G_FreeEntity(ent);
     return;
   }
 
   // re-calculate end points based on owner's movement
-  G_ClientProjectile(self->owner->client, &forward, &right, &up, &start, 1.0);
-  self->s.origin = start;
+  G_ClientProjectile(ent->owner->client, &forward, &right, &up, &start, 1.0);
+  ent->s.origin = start;
 
-  if (G_ImmediateWall(self->owner, self)) { // resolve start
-    start = self->owner->s.origin;
+  if (G_ImmediateWall(ent->owner, ent)) { // resolve start
+    start = ent->owner->s.origin;
   }
 
   if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) { // discharge and return
-    G_LightningProjectile_Discharge(self);
-    G_FreeEntity(self);
+    G_LightningProjectile_Discharge(ent);
+    G_FreeEntity(ent);
     return;
   }
 
@@ -817,70 +808,70 @@ static void G_LightningProjectile_Think(g_entity_t *self) {
   end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
   end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
-  tr = gi.Trace(start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+  tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
   if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
     water_start = tr.end;
 
-    if (!self->water_level) {
+    if (!ent->water_level) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &water_start,
         .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
-      self->water_level = WATER_FEET;
+      ent->water_level = WATER_FEET;
     }
 
-    tr = gi.Trace(water_start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
+    tr = gi.Trace(water_start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
     G_BubbleTrail(water_start, &tr, 4.f);
 
     G_Ripple(NULL, start, end, 16.f, true);
   } else {
-    if (self->water_level) { // exited water, play sound, no trail
+    if (ent->water_level) { // exited water, play sound, no trail
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_out,
         .origin = &start,
         .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
-      self->water_level = WATER_NONE;
+      ent->water_level = WATER_NONE;
     }
   }
 
   // clear the angles for impact effects
-  self->s.angles = Vec3_Zero();
-  self->s.animation1 = LIGHTNING_NO_HIT;
+  ent->s.angles = Vec3_Zero();
+  ent->s.animation1 = LIGHTNING_NO_HIT;
 
-  if (self->damage) { // shoot, removing our damage until it is renewed
+  if (ent->damage) { // shoot, removing our damage until it is renewed
     if (G_TakesDamage(tr.ent)) { // try to damage what we hit
       G_Damage(&(g_damage_t) {
         .target = tr.ent,
-        .inflictor = self,
-        .attacker = self->owner,
+        .inflictor = ent,
+        .attacker = ent->owner,
         .dir = forward,
         .point = tr.end,
         .normal = tr.plane.normal,
-        .damage = self->damage,
-        .knockback = self->knockback,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
         .flags = DMG_ENERGY,
         .mod = MOD_LIGHTNING
       });
-      self->damage = 0;
+      ent->damage = 0;
     } else { // or leave a mark
       if (tr.contents & CONTENTS_MASK_SOLID) {
         if (G_IsStructural(&tr)) {
-          self->s.angles = Vec3_Euler(tr.plane.normal);
-          self->s.animation1 = LIGHTNING_SOLID_HIT;
+          ent->s.angles = Vec3_Euler(tr.plane.normal);
+          ent->s.animation1 = LIGHTNING_SOLID_HIT;
         }
       }
     }
   }
 
-  self->s.origin = start; // update end points
-  self->s.termination = tr.end;
+  ent->s.origin = start; // update end points
+  ent->s.termination = tr.end;
 
-  gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
@@ -1029,9 +1020,9 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 /**
  * @brief
  */
-static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_BfgProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -1049,69 +1040,68 @@ static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_
 
       G_Damage(&(g_damage_t) {
         .target = other,
-        .inflictor = self,
-        .attacker = self->owner,
-        .dir = self->velocity,
-        .point = self->s.origin,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
         .normal = trace->plane.normal,
-        .damage = self->damage,
-        .knockback = self->knockback,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
         .flags = DMG_ENERGY,
         .mod = MOD_BFG_BLAST
       });
 
-      G_RadiusDamage(self, self->owner, other, self->damage, self->knockback,
-                     self->damage_radius, MOD_BFG_BLAST);
+      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damage_radius, MOD_BFG_BLAST);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_BFG);
-      gi.WritePosition(self->s.origin);
-      gi.Multicast(self->s.origin, MULTICAST_PHS);
+      gi.WritePosition(ent->s.origin);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
     }
   }
 
-  G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-static void G_BfgProjectile_Think(g_entity_t *self) {
+static void G_BfgProjectile_Think(g_entity_t *ent) {
 
-  const int32_t frame_damage = self->damage * QUETOO_TICK_SECONDS;
-  const int32_t frame_knockback = self->knockback * QUETOO_TICK_SECONDS;
+  const int32_t frame_damage = ent->damage * QUETOO_TICK_SECONDS;
+  const int32_t frame_knockback = ent->knockback * QUETOO_TICK_SECONDS;
 
-  G_ForEachEntity(ent, {
+  G_ForEachEntity(other, {
 
-    if (ent == self || ent == self->owner) {
+    if (other == ent || other == ent->owner) {
       continue;
     }
 
-    if (!ent->take_damage) {
+    if (!other->take_damage) {
       continue;
     }
 
-    if (!G_CanDamage(ent, self)) {
+    if (!G_CanDamage(ent, other)) {
       continue;
     }
 
-    const vec3_t end = G_GetOrigin(ent);
-    const vec3_t dir = Vec3_Subtract(end, self->s.origin);
+    const vec3_t end = G_GetOrigin(other);
+    const vec3_t dir = Vec3_Subtract(end, ent->s.origin);
     const float dist = Vec3_Length(dir) - Box3_Radius(ent->bounds);
     const vec3_t normal = Vec3_Normalize(Vec3_Negate(dir));
 
-    const float f = 1.0 - dist / self->damage_radius;
+    const float f = 1.0 - dist / ent->damage_radius;
 
     if (f <= 0.f) {
       continue;
     }
 
     G_Damage(&(g_damage_t) {
-      .target = ent,
-      .inflictor = self,
-      .attacker = self->owner,
+      .target = other,
+      .inflictor = ent,
+      .attacker = ent->owner,
       .dir = dir,
-      .point = ent->s.origin,
+      .point = other->s.origin,
       .normal = normal,
       .damage = frame_damage * f,
       .knockback = frame_knockback * f,
@@ -1121,18 +1111,18 @@ static void G_BfgProjectile_Think(g_entity_t *self) {
 
     gi.WriteByte(SV_CMD_TEMP_ENTITY);
     gi.WriteByte(TE_BFG_LASER);
-    gi.WriteShort(self->s.number);
     gi.WriteShort(ent->s.number);
-    gi.Multicast(self->s.origin, MULTICAST_PVS);
+    gi.WriteShort(other->s.number);
+    gi.Multicast(ent->s.origin, MULTICAST_PVS);
   });
-  self->next_think = g_level.time + QUETOO_TICK_MILLIS;
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief
  */
-void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-           int32_t damage, int32_t knockback, float damage_radius) {
+void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
   const box3_t bounds = Box3f(24.f, 24.f, 24.f);
 
@@ -1164,9 +1154,9 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 /**
  * @brief
  */
-static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-  if (other == self->owner) {
+  if (other == ent->owner) {
     return;
   }
 
@@ -1178,58 +1168,58 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
     return;
   }
 
-  self->s.sound = 0;
+  ent->s.sound = 0;
 
   if (!G_IsSky(trace)) {
 
-    if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other->client, self->owner->client))) {
+    if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
 
-      self->velocity = Vec3_Zero();
-      self->avelocity = Vec3_Zero();
+      ent->velocity = Vec3_Zero();
+      ent->avelocity = Vec3_Zero();
 
-      self->owner->client->hook_pull = true;
+      ent->owner->client->hook_pull = true;
 
-      self->move_type = MOVE_TYPE_THINK;
-      self->solid = SOLID_NOT;
-      self->bounds = Box3_Zero();
-      self->enemy = other;
+      ent->move_type = MOVE_TYPE_THINK;
+      ent->solid = SOLID_NOT;
+      ent->bounds = Box3_Zero();
+      ent->enemy = other;
 
-      gi.LinkEntity(self);
+      gi.LinkEntity(ent);
 
-      self->owner->client->ps.pm_state.hook_position = self->s.origin;
+      ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
 
-      if (self->owner->client->persistent.hook_style != HOOK_PULL) {
-        const float distance = Vec3_Distance(self->owner->s.origin, self->s.origin);
+      if (ent->owner->client->persistent.hook_style != HOOK_PULL) {
+        const float distance = Vec3_Distance(ent->owner->s.origin, ent->s.origin);
 
-        self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
+        ent->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
       }
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_HOOK_IMPACT);
-      gi.WritePosition(self->s.origin);
+      gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
-      gi.Multicast(self->s.origin, MULTICAST_PHS);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
     } else {
 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.hook_gibhit,
-        .entity = self,
+        .entity = ent,
         .atten = SOUND_ATTEN_LINEAR,
         .pitch = RandomRangei(-4, 5)
       }, MULTICAST_PHS);
 
       /*
       if (g_hook_auto_refire->integer) {
-        G_HookThink(self->owner, true);
+        G_HookThink(ent->owner, true);
       } else {*/
-        self->velocity = Vec3_Normalize(self->velocity);
+        ent->velocity = Vec3_Normalize(ent->velocity);
 
         G_Damage(&(g_damage_t) {
           .target = other,
-          .inflictor = self,
-          .attacker = self->owner,
-          .dir = self->velocity,
-          .point = self->s.origin,
+          .inflictor = ent,
+          .attacker = ent->owner,
+          .dir = ent->velocity,
+          .point = ent->s.origin,
           .normal = Vec3_Zero(),
           .damage = 5,
           .knockback = 0,
@@ -1237,16 +1227,16 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
           .mod = MOD_HOOK
         });
 
-        G_HookDetach(self->owner->client);
+        G_HookDetach(ent->owner->client);
 //      }
     }
   } else {
     /* Currently disabled due to bugs
     if (g_hook_auto_refire->integer) {
-      G_HookThink(self->owner, true);
+      G_HookThink(ent->owner, true);
     } else {
     */
-      G_HookDetach(self->owner->client);
+      G_HookDetach(ent->owner->client);
 //    }
   }
 }
