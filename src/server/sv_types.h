@@ -199,7 +199,7 @@ typedef struct {
   /**
    * @brief The user-info string.
    */
-  char user_info[MAX_USER_INFO_STRING];
+  char user_info[MAX_INFO_STRING_STRING];
 
   /**
    * @brief The player name, extracted from user-info and stripped of colors.

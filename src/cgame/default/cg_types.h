@@ -38,7 +38,7 @@ typedef struct {
   /**
    * @brief Team name.
    */
-  char name[MAX_USER_INFO_KEY];
+  char name[MAX_INFO_STRING_KEY];
 
   /**
    * @brief Shirt color.
@@ -63,17 +63,17 @@ typedef struct {
   /**
    * @brief The player name, e.g. "newbie."
    */
-  char name[MAX_USER_INFO_VALUE];
+  char name[MAX_INFO_STRING_VALUE];
 
   /**
    * @brief The model name, e.g. "qforcer."
    */
-  char model[MAX_USER_INFO_VALUE];
+  char model[MAX_INFO_STRING_VALUE];
 
   /**
    * @brief The skin name, e.g. "default."
    */
-  char skin[MAX_USER_INFO_VALUE];
+  char skin[MAX_INFO_STRING_VALUE];
 
   /**
    * @brief Shirt, pants and helmet color.

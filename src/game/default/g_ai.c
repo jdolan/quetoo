@@ -65,7 +65,7 @@ static void G_Ai_ClientBegin(g_client_t *cl) {
  */
 static void G_Ai_Connect(g_client_t *cl) {
 
-  char user_info[MAX_USER_INFO_STRING];
+  char user_info[MAX_INFO_STRING_STRING];
   Ai_GetUserInfo(cl, user_info);
 
   cl->ai = true; // and away we go!

@@ -469,13 +469,11 @@ void StrLower(const char *in, char *out) {
 }
 
 /**
- * @brief Searches the string for the given key and returns the associated value,
- * or an empty string.
+ * @brief Returns the value for the given key, or an empty string.
  */
-char *GetUserInfo(const char *s, const char *key) {
+char *InfoString_Get(const char *s, const char *key) {
   char pkey[512];
-  static char value[2][512]; // use two buffers so compares
-  // work without stomping on each other
+  static char value[2][512]; // use two buffers so compares work without stomping on each other
   static int32_t value_index;
   char *o;
 
@@ -518,16 +516,48 @@ char *GetUserInfo(const char *s, const char *key) {
 }
 
 /**
+ * @brief Iterates the key-value pairs in an info string.
+ */
+const char *InfoString_Next(const char *s, char *key, char *value) {
+
+  assert(s);
+
+  if (!*s) {
+    return NULL;
+  }
+
+  const char *src;
+
+  src = s;
+  while (*s && *s != '\\') {
+    s++;
+  }
+  s++;
+
+  g_strlcpy(key, src, s - src);
+
+  src = s;
+  while (*s && *s != '\\') {
+    s++;
+  }
+  s++;
+
+  g_strlcpy(value, src, s - src);
+
+  return s;
+}
+
+/**
  * @brief
  */
-void DeleteUserInfo(char *s, const char *key) {
+bool InfoString_Delete(char *s, const char *key) {
   char *start;
   char pkey[512];
   char value[512];
   char *o;
 
   if (strstr(key, "\\")) {
-    return;
+    return false;
   }
 
   while (true) {
@@ -538,7 +568,7 @@ void DeleteUserInfo(char *s, const char *key) {
     o = pkey;
     while (*s != '\\') {
       if (!*s) {
-        return;
+        return false;
       }
       *o++ = *s++;
     }
@@ -548,7 +578,7 @@ void DeleteUserInfo(char *s, const char *key) {
     o = value;
     while (*s != '\\' && *s) {
       if (!*s) {
-        return;
+        return false;
       }
       *o++ = *s++;
     }
@@ -556,20 +586,19 @@ void DeleteUserInfo(char *s, const char *key) {
 
     if (!g_strcmp0(key, pkey)) {
       memmove(start, s, strlen(s) + 1);
-      return;
+      return true;
     }
 
     if (!*s) {
-      return;
+      return false;
     }
   }
 }
 
 /**
- * @brief Returns true if the specified user-info string appears valid, false
- * otherwise.
+ * @brief Returns true if the specified info string appears valid, false otherwise.
  */
-bool ValidateUserInfo(const char *s) {
+bool InfoString_Validate(const char *s) {
   if (!s || !*s) {
     return false;
   }
@@ -585,40 +614,39 @@ bool ValidateUserInfo(const char *s) {
 /**
  * @brief
  */
-void SetUserInfo(char *s, const char *key, const char *value) {
-  char newi[MAX_USER_INFO_STRING * 16], *v;
+bool InfoString_Set(char *s, const char *key, const char *value) {
+  char newi[MAX_INFO_STRING_STRING * 16], *v;
 
   if (strstr(key, "\\") || strstr(value, "\\")) {
-    //Com_Print("Can't use keys or values with a \\\n");
-    return;
+    return false;
   }
 
   if (strstr(key, ";")) {
-    //Com_Print("Can't use keys or values with a semicolon\n");
-    return;
+    return false;
   }
 
   if (strstr(key, "\"") || strstr(value, "\"")) {
-    //Com_Print("Can't use keys or values with a \"\n");
-    return;
+    return false;
   }
 
-  if (strlen(key) > MAX_USER_INFO_KEY - 1 || strlen(value) > MAX_USER_INFO_VALUE - 1) {
-    //Com_Print("Keys and values must be < 64 characters\n");
-    return;
+  if (strlen(key) > MAX_INFO_STRING_KEY - 1 || strlen(value) > MAX_INFO_STRING_VALUE - 1) {
+    return false;
   }
 
-  DeleteUserInfo(s, key);
+  InfoString_Delete(s, key);
 
   if (!value || *value == '\0') {
-    return;
+    return true;
   }
 
-  g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+  if (strlen(s)) {
+    g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+  } else {
+    g_snprintf(newi, sizeof(newi), "%s\\%s", key, value);
+  }
 
-  if (strlen(newi) + strlen(s) > MAX_USER_INFO_STRING * 16) {
-    //Com_Print("Info string length exceeded\n");
-    return;
+  if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {
+    return false;
   }
 
   // only copy ascii values
@@ -632,6 +660,8 @@ void SetUserInfo(char *s, const char *key, const char *value) {
     }
   }
   *s = '\0';
+
+  return true;
 }
 
 /**

@@ -69,7 +69,7 @@ void Cm_ParseEntity(cm_entity_t *pair) {
 }
 
 /**
- * @brief
+ * @brief Loads the BSP entity string lump.
  */
 GList *Cm_LoadEntities(const char *entity_string) {
 
@@ -166,3 +166,46 @@ GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
 
   return brushes;
 }
+
+/**
+ * @brief Serializes a `cm_entity_t` to an info string.
+ */
+char *Cm_EntityToInfoString(const cm_entity_t *entity) {
+  char *str = Mem_TagMalloc(MAX_INFO_STRING_STRING, MEM_TAG_COLLISION);
+
+  for (const cm_entity_t *e = entity; e; e = e->next) {
+    InfoString_Set(str, e->key, e->string);
+  }
+
+  return str;
+}
+
+/**
+ * @brief Deserializes an info string to a `cm_entity_t`.
+ */
+cm_entity_t *Cm_EntityFromInfoString(const char *str) {
+
+  if (InfoString_Validate(str)) {
+
+    cm_entity_t *entity = NULL;
+
+    const char *s = str;
+
+    while (s) {
+      cm_entity_t *pair = Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
+
+      s = InfoString_Next(s, pair->key, pair->string);
+      Cm_ParseEntity(pair);
+
+      pair->next = entity;
+      entity = pair;
+    }
+
+    return entity;
+  }
+
+  Com_Warn("Invalid entity info string: %s\n", str);
+  return NULL;
+}
+
+

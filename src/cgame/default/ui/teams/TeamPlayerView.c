@@ -38,7 +38,7 @@ static void updateBindings(View *self) {
 
   if (this->client && strlen(this->client->info)) {
 
-    char name[MAX_USER_INFO_VALUE];
+    char name[MAX_INFO_STRING_VALUE];
     StrStrip(this->client->name, name);
 
     $(this->name->text, setText, name);

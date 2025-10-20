@@ -671,7 +671,7 @@ static void Cvar_List_f(void) {
 static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 
   if (var->flags & CVAR_USER_INFO) {
-    SetUserInfo((char *) data, var->name, var->string);
+    InfoString_Set((char *) data, var->name, var->string);
   }
 }
 
@@ -679,7 +679,7 @@ static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
  * @brief Returns an info string containing all the CVAR_USER_INFO cvars.
  */
 char *Cvar_UserInfo(void) {
-  static char info[MAX_USER_INFO_STRING];
+  static char info[MAX_INFO_STRING_STRING];
 
   memset(info, 0, sizeof(info));
 
@@ -694,7 +694,7 @@ char *Cvar_UserInfo(void) {
 static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 
   if (var->flags & CVAR_SERVER_INFO) {
-    SetUserInfo((char *) data, var->name, var->string);
+    InfoString_Set((char *) data, var->name, var->string);
   }
 }
 
@@ -702,7 +702,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
  * @return An info string containing all the CVAR_SERVER_INFO cvars.
  */
 char *Cvar_ServerInfo(void) {
-  static char info[MAX_USER_INFO_STRING * 16];
+  static char info[MAX_INFO_STRING_STRING * 16];
 
   memset(info, 0, sizeof(info));
 

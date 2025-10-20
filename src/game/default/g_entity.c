@@ -223,8 +223,8 @@ static void G_SpawnEntity(g_entity_t *ent) {
 /**
  * @brief Chain together all entities with a matching team field.
  *
- * All but the first will have the FL_TEAM_SLAVE flag set.
- * All but the last will have the team_next field set to the next one.
+ * All but the first will have the `FL_TEAM_SLAVE` flag set.
+ * All but the last will have the `team_next` field set to the next one.
  */
 static void G_InitEntityTeams(void) {
 

@@ -443,7 +443,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
  */
 static void Cg_DrawChase(const player_state_t *ps) {
   GLint x, y, ch;
-  char string[MAX_USER_INFO_VALUE * 2], *s;
+  char string[MAX_INFO_STRING_VALUE * 2], *s;
 
   // if we've changed chase targets, reset the HUD
   if (ps->stats[STAT_CHASE] != cg_hud_state.chase_target) {
@@ -1187,7 +1187,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
  */
 static void Cg_DrawTargetName(const player_state_t *ps) {
   static uint32_t time;
-  static char name[MAX_USER_INFO_VALUE];
+  static char name[MAX_INFO_STRING_VALUE];
 
   if (!cg_draw_target_name->integer) {
     return;

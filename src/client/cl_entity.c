@@ -376,8 +376,8 @@ void Cl_Interpolate(void) {
 
   for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
+    const uint32_t s = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    cl_entity_t *ent = &cl.entities[cl.entity_states[s].number];
 
     if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
       ent->previous_origin = ent->origin;

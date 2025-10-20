@@ -214,7 +214,7 @@ static void Sv_Connect_f(void) {
   const uint32_t challenge = (uint32_t) strtoul(Cmd_Argv(3), NULL, 0);
 
   // copy user_info, leave room for ip stuffing
-  char user_info[MAX_USER_INFO_STRING];
+  char user_info[MAX_INFO_STRING_STRING];
   g_strlcpy(user_info, Cmd_Argv(4), sizeof(user_info) - 25);
 
   if (*user_info == '\0') { // catch empty user_info
@@ -229,20 +229,20 @@ static void Sv_Connect_f(void) {
     return;
   }
 
-  if (strlen(GetUserInfo(user_info, "ip"))) { // catch spoofed ips
+  if (strlen(InfoString_Get(user_info, "ip"))) { // catch spoofed ips
     Com_Print("Illegal user_info contained ip from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
-  if (!ValidateUserInfo(user_info)) { // catch otherwise invalid user_info
+  if (!InfoString_Validate(user_info)) { // catch otherwise invalid user_info
     Com_Print("Invalid user_info from %s\n", Net_NetaddrToString(addr));
     Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
   // force the ip so the game can filter on it
-  SetUserInfo(user_info, "ip", Net_NetaddrToString(addr));
+  InfoString_Set(user_info, "ip", Net_NetaddrToString(addr));
 
   // enforce a valid challenge to avoid denial of service attack
   int32_t i;
@@ -315,7 +315,7 @@ static void Sv_Connect_f(void) {
 
   // give the game a chance to reject this connection or modify the user_info
   if (!(svs.game->ClientConnect(svs.game->clients[client - svs.clients], user_info))) {
-    const char *rejmsg = GetUserInfo(user_info, "rejmsg");
+    const char *rejmsg = InfoString_Get(user_info, "rejmsg");
 
     if (strlen(rejmsg)) {
       Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\n%s\nConnection refused\n", rejmsg);
@@ -703,7 +703,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
     return;
   }
 
-  if (!ValidateUserInfo(cl->user_info)) { // catch otherwise invalid user_info
+  if (!InfoString_Validate(cl->user_info)) { // catch otherwise invalid user_info
     Com_Print("Invalid user_info from %s\n", Sv_NetaddrToString(cl));
     Sv_KickClient(cl, "Bad user info");
     return;
@@ -713,13 +713,13 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
   svs.game->ClientUserInfoChanged(svs.game->clients[cl - svs.clients], cl->user_info);
 
   // name for C code, mask off high bit
-  g_strlcpy(cl->name, GetUserInfo(cl->user_info, "name"), sizeof(cl->name));
+  g_strlcpy(cl->name, InfoString_Get(cl->user_info, "name"), sizeof(cl->name));
   for (i = 0; i < sizeof(cl->name); i++) {
     cl->name[i] &= 127;
   }
 
   // limit the print messages the client receives
-  val = GetUserInfo(cl->user_info, "message_level");
+  val = InfoString_Get(cl->user_info, "message_level");
   if (*val != '\0') {
     cl->message_level = (int32_t) strtol(val, NULL, 10);
   }

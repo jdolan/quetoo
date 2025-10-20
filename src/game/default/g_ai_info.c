@@ -68,7 +68,7 @@ static void Ai_EnumerateModels(const char *path, void *data) {
 /**
  * @brief
  */
-static const char ai_names[][MAX_USER_INFO_VALUE] = {
+static const char ai_names[][MAX_INFO_STRING_VALUE] = {
   "Stroggo",
   "Enforcer",
   "Berserker",
@@ -95,19 +95,19 @@ static uint32_t ai_name_suffix;
  */
 void Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
-  g_strlcpy(info, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
+  g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
-  SetUserInfo(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
-  SetUserInfo(info, "color", va("%u", RandomRangeu(0, 360)));
-  SetUserInfo(info, "hand", va("%u", RandomRangeu(0, 3)));
-  SetUserInfo(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-  SetUserInfo(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-  SetUserInfo(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
+  InfoString_Set(info, "color", va("%u", RandomRangeu(0, 360)));
+  InfoString_Set(info, "hand", va("%u", RandomRangeu(0, 3)));
+  InfoString_Set(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
   if (ai_name_suffix == 0) {
-    SetUserInfo(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
+    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
   } else {
-    SetUserInfo(info, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
+    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
   }
 
   ai_name_index++;

@@ -1067,7 +1067,7 @@ void G_SetClientHookStyle(g_client_t *cl) {
 
   // respect user_info on default
   if (!g_strcmp0(g_hook_style->string, "default")) {
-    hook_style = G_HookStyleByName(GetUserInfo(cl->persistent.user_info, "hook_style"));
+    hook_style = G_HookStyleByName(InfoString_Get(cl->persistent.user_info, "hook_style"));
   } else {
     hook_style = G_HookStyleByName(g_hook_style->string);
   }
@@ -1082,7 +1082,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   char name[MAX_NET_NAME];
 
   // check for malformed or illegal info strings
-  if (!ValidateUserInfo(user_info)) {
+  if (!InfoString_Validate(user_info)) {
     printf("invalid\n");
     user_info = DEFAULT_USER_INFO;
   }
@@ -1094,7 +1094,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   G_Debug("%s\n", user_info);
 
   // set name, use a temp buffer to compute length and crutch up bad names
-  const char *s = GetUserInfo(user_info, "name");
+  const char *s = InfoString_Get(user_info, "name");
 
   g_strlcpy(name, s, sizeof(name));
 
@@ -1141,7 +1141,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // set skin
   if (team) { // players must use team_skin to change
-    s = GetUserInfo(user_info, "skin");
+    s = InfoString_Get(user_info, "skin");
 
     char *p;
     if (strlen(s) && (p = strchr(s, '/'))) {
@@ -1151,7 +1151,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
       s = va("%s/%s", DEFAULT_USER_MODEL, DEFAULT_TEAM_SKIN);
     }
   } else {
-    s = GetUserInfo(user_info, "skin");
+    s = InfoString_Get(user_info, "skin");
   }
 
   if (strlen(s) && !strstr(s, "..")) { // something valid-ish was provided
@@ -1164,7 +1164,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   if (team) { // players must use team_skin to change
     cl->persistent.color = team->color;
   } else {
-    s = GetUserInfo(user_info, "color");
+    s = InfoString_Get(user_info, "color");
 
     cl->persistent.color = -1;
 
@@ -1190,23 +1190,23 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   } else {
 
-    s = GetUserInfo(user_info, "shirt");
+    s = InfoString_Get(user_info, "shirt");
     if (!Color_Parse(s, &cl->persistent.shirt)) {
       cl->persistent.shirt = color_white;
     }
 
-    s = GetUserInfo(user_info, "pants");
+    s = InfoString_Get(user_info, "pants");
     if (!Color_Parse(s, &cl->persistent.pants)) {
       cl->persistent.pants = color_white;
     }
 
-    s = GetUserInfo(user_info, "helmet");
+    s = InfoString_Get(user_info, "helmet");
     if (!Color_Parse(s, &cl->persistent.helmet)) {
       cl->persistent.helmet = color_white;
     }
   }
 
-  gchar client_info[MAX_USER_INFO_STRING] = { '\0' };
+  gchar client_info[MAX_INFO_STRING_STRING] = { '\0' };
 
   // build the client info string
   g_strlcat(client_info, va("%d", team ? team->id : TEAM_NONE), sizeof(client_info));
@@ -1233,9 +1233,9 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   gi.SetConfigString(CS_CLIENTS + cl->ps.client, client_info);
 
   // set hand, if anything should go wrong, it defaults to 0 (centered)
-  cl->persistent.hand = (g_hand_t) strtol(GetUserInfo(user_info, "hand"), NULL, 10);
+  cl->persistent.hand = (g_hand_t) strtol(InfoString_Get(user_info, "hand"), NULL, 10);
 
-  s = GetUserInfo(user_info, "active");
+  s = InfoString_Get(user_info, "active");
   if (g_strcmp0(s, "0") == 0) {
     cl->entity->s.effects |= EF_INACTIVE;
   } else {
@@ -1243,7 +1243,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   // auto-switch
-  uint16_t auto_switch = strtoul(GetUserInfo(user_info, "auto_switch"), NULL, 10);
+  uint16_t auto_switch = strtoul(InfoString_Get(user_info, "auto_switch"), NULL, 10);
   cl->persistent.auto_switch = auto_switch;
 
   // hook style
@@ -1261,8 +1261,8 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
 
   // check password
   if (strlen(g_password->string) && !cl->ai) {
-    if (g_strcmp0(g_password->string, GetUserInfo(user_info, "password"))) {
-      SetUserInfo(user_info, "rejmsg", "Password required or incorrect.");
+    if (g_strcmp0(g_password->string, InfoString_Get(user_info, "password"))) {
+      InfoString_Set(user_info, "rejmsg", "Password required or incorrect.");
       return false;
     }
   }

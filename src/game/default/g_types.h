@@ -933,7 +933,7 @@ typedef struct {
 typedef struct {
   uint32_t first_frame; // g_level.frame_num the client entered the game
 
-  char user_info[MAX_USER_INFO_STRING];
+  char user_info[MAX_INFO_STRING_STRING];
   char net_name[MAX_NET_NAME];
   char skin[MAX_QPATH];
   g_hand_t hand;

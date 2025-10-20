@@ -434,7 +434,7 @@ static const char *Cg_Nav_KeyBind(const char *bind) {
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
   // hide HUD in nav edit
-  if (cg_state.nav_edit) {
+  if (cg_state.nav_edit || cgi.GetCvarValue("editor")) {
 
     if (cg_state.nav_edit == 1) {
       GLint ch;

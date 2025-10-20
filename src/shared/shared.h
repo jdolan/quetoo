@@ -456,6 +456,7 @@ typedef enum {
   CL_CMD_MOVE, // [user_cmd_t]
   CL_CMD_STRING, // [string] message
   CL_CMD_USER_INFO, // [user_info_string]
+  CL_CMD_ENTITY_INFO, // [entity def info string]
   CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
 
@@ -523,17 +524,18 @@ void StrLower(const char *in, char *out);
 #define etos(e) (e ? va("%u: %s @ %s", e->s.number, e->class_name, vtos(e->s.origin)) : "null")
 
 // key / value info strings
-#define MAX_USER_INFO_KEY    64
-#define MAX_USER_INFO_VALUE  64
-#define MAX_USER_INFO_STRING 512
+#define MAX_INFO_STRING_KEY    64
+#define MAX_INFO_STRING_VALUE  64
+#define MAX_INFO_STRING_STRING 768
 
 // max name of a team
 #define MAX_TEAM_NAME 32
 
-char *GetUserInfo(const char *s, const char *key);
-void DeleteUserInfo(char *s, const char *key);
-void SetUserInfo(char *s, const char *key, const char *value);
-bool ValidateUserInfo(const char *s);
+const char *InfoString_Next(const char *s, char *key, char *value);
+char *InfoString_Get(const char *s, const char *key);
+bool InfoString_Delete(char *s, const char *key);
+bool InfoString_Set(char *s, const char *key, const char *value);
+bool InfoString_Validate(const char *s);
 
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2);
 guint g_stri_hash(gconstpointer v);
