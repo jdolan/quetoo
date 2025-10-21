@@ -27,22 +27,31 @@
  */
 static int32_t Cl_HullForEntity(const entity_state_t *s) {
 
-  if (s->solid == SOLID_BSP) {
-    const cm_bsp_model_t *mod = cl.cm_models[s->model1];
-
-    if (!mod) {
-      Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
-    }
-
-    return mod->head_node;
-  }
-
   const cl_entity_t *ent = &cl.entities[s->number];
 
-  if (s->effects & EF_CLIENT) {
-    return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
-  } else {
-    return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
+  switch (s->solid) {
+
+    case SOLID_BOX: {
+      if (s->effects & EF_CLIENT) {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
+      } else {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
+      }
+    }
+
+    case SOLID_BSP: {
+      const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+      if (!mod) {
+        Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
+      }
+      return mod->head_node;
+    }
+
+    case SOLID_EDITOR:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
+
+    default:
+      return -1;
   }
 }
 
@@ -163,7 +172,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
     if (tr.start_solid || tr.fraction < trace->trace.fraction) {
       trace->trace = tr;
-      trace->trace.ent = (struct g_entity_s *) (ptrdiff_t) s->number;
+      trace->trace.ent = (struct g_entity_s *) (intptr_t) s->number;
 
       if (tr.start_solid) {
         return;

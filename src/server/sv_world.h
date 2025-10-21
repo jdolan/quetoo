@@ -25,6 +25,7 @@
 
 #ifdef __SV_LOCAL_H__
 void Sv_InitWorld(void);
+void Sv_SpawnEntities(void);
 void Sv_LinkEntity(g_entity_t *ent);
 void Sv_UnlinkEntity(g_entity_t *ent);
 size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, size_t len, uint32_t type);

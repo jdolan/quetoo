@@ -105,6 +105,83 @@ void Sv_InitWorld(void) {
 }
 
 /**
+ * @brief Spawn an editor entity; a non-functional bounding box.
+ */
+static void Sv_SpawnEditorEntity(int32_t number) {
+
+  g_entity_t *ent = svs.game->entities[number];
+  ent->def = Cm_Bsp()->entities[number];
+
+  ent->in_use = true;
+  ent->class_name = Cm_EntityValue(ent->def, "classname")->string;
+
+  ent->s.number = number;
+  ent->s.origin = Cm_EntityValue(ent->def, "origin")->vec3;
+  ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
+  ent->s.color = Color32i(0xffffffff);
+
+  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
+
+  if (g_str_has_prefix(ent->class_name, "info_player")) {
+    ent->bounds = Box3f(24.f, 24.f, 64.f);
+    ent->s.color = Color32i(0xffff00ff);
+  } else if (g_str_has_prefix(ent->class_name, "light")) {
+    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
+    ent->s.color = Color_Color32(Cm_EntityValue(ent->def, "color")->color);
+  } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
+    ent->s.color = Color32i(0xff0088ff);
+  } else if (g_str_has_prefix(ent->class_name, "func_")) {
+    ent->s.color = Color32i(0xff00ff00);
+  } else if (g_str_has_prefix(ent->class_name, "misc_")) {
+    ent->s.color = Color32i(0xff00ffff);
+  } else if (g_str_has_prefix(ent->class_name, "item_")) {
+    ent->s.color = Color32i(0xffffff00);
+  }
+
+  // use the BSP inline model to set bounds
+  const char *model = Cm_EntityValue(ent->def, "model")->nullable_string;
+  if (model && *model == '*') {
+    const cm_bsp_model_t *mod = Cm_Model(model);
+    ent->bounds = mod->bounds;
+  }
+
+  ent->solid = SOLID_EDITOR;
+
+  char *info = Cm_EntityToInfoString(ent->def);
+
+  g_strlcpy(sv.config_strings[CS_ENTITIES + number], info, MAX_STRING_CHARS);
+
+  Mem_Free(info);
+
+  Sv_LinkEntity(ent);
+}
+
+/**
+ * @brief
+ */
+void Sv_SpawnEntities(void) {
+
+  if (editor->value) {
+    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);
+    for (int32_t i = 1; i < Cm_Bsp()->num_entities; i++) {
+      Sv_SpawnEditorEntity(i);
+    }
+  } else {
+    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+  }
+
+  /*
+   * Run a few game frames for entities to settle down. Failure to do
+   * this will cause the entities to produce all but useless baselines,
+   * which will in turn blow out the packet entities in Sv_EmitEntities.
+   */
+
+  for (int32_t i = 0; i < 3; i++) {
+    svs.game->Frame();
+  }
+}
+
+/**
  * @brief Called before moving or freeing an entity to remove it from the clipping
  * hull.
  */
@@ -151,6 +228,7 @@ void Sv_LinkEntity(g_entity_t *ent) {
     case SOLID_PROJECTILE:
     case SOLID_DEAD:
     case SOLID_BOX:
+    case SOLID_EDITOR:
       ent->s.bounds = ent->bounds;
       break;
     default:
@@ -218,6 +296,7 @@ static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
       break;
 
     case SOLID_NOT:
+    case SOLID_EDITOR:
       break;
   }
 
@@ -293,30 +372,33 @@ size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, 
  */
 static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 
-  if (ent->solid == SOLID_BSP) {
-    const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
+  switch (ent->solid) {
 
-    if (!mod) {
-      Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
+    case SOLID_DEAD:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_DEAD_MONSTER);
+
+    case SOLID_BOX: {
+      if (ent->client) {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
+      } else {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
+      }
     }
 
-    return mod->head_node;
-  }
-
-  if (ent->solid == SOLID_BOX) {
-
-    if (ent->client) {
-      return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
+    case SOLID_BSP: {
+      const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
+      if (!mod) {
+        Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
+      }
+      return mod->head_node;
     }
 
-    return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
-  }
+    case SOLID_EDITOR:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
 
-  if (ent->solid == SOLID_DEAD) {
-    return Cm_SetBoxHull(ent->bounds, CONTENTS_DEAD_MONSTER);
+    default:
+      return -1;
   }
-
-  return -1;
 }
 
 /**

@@ -208,4 +208,17 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
   return NULL;
 }
 
+/**
+ * @brief
+ */
+void Cm_FreeEntity(cm_entity_t *entity) {
+
+  cm_entity_t *e = entity, *next;
+
+  while (e) {
+    next = e->next;
+    Mem_Free(e);
+    e = next;
+  }
+}
 

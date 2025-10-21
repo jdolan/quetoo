@@ -289,6 +289,7 @@ g_entity_t *G_AllocEntity(const char *class_name) {
       e->timestamp = g_level.time;
       e->s.number = i;
       e->s.spawn_id = g_spawn_id++;
+
       return e;
     }
   }

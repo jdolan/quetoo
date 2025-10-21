@@ -105,49 +105,16 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_steam", G_FreeEntity },
 };
 
-static void G_SpawnEditorEntity(g_entity_t *ent) {
-
-  ent->class_name = gi.EntityValue(ent->def, "classname")->string;
-  ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
-  ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
-
-  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
-  ent->s.color = Color32i(0xffffffff);
-
-  if (g_str_has_prefix(ent->class_name, "info_player")) {
-    ent->bounds = PM_BOUNDS;
-    ent->s.color = Color32i(0xffff00ff);
-  } else if (g_str_has_prefix(ent->class_name, "light")) {
-    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-    ent->s.color = Color_Color32(gi.EntityValue(ent->def, "color")->color);
-  } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
-    ent->s.color = Color32i(0xff0088ff);
-  } else if (g_str_has_prefix(ent->class_name, "func_")) {
-    ent->s.color = Color32i(0xff00ff00);
-  } else if (g_str_has_prefix(ent->class_name, "misc_")) {
-    ent->s.color = Color32i(0xff00ffff);
-  } else if (g_str_has_prefix(ent->class_name, "item_")) {
-    ent->s.color = Color32i(0xffffff00);
-  }
-
-  // use the BSP inline model to set bounds
-  const char *model = gi.EntityValue(ent->def, "model")->nullable_string;
-  if (model) {
-    gi.SetModel(ent, model);
-  }
-
-  ent->s.model1 = 0;
-  ent->solid = SOLID_DEAD;
-
-  gi.LinkEntity(ent);
-}
-
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntity(g_entity_t *ent) {
+static void G_SpawnEntity(cm_entity_t *def) {
+
+  g_entity_t *ent = G_AllocEntity(__func__);
+  ent->def = def;
 
   ent->class_name = gi.EntityValue(ent->def, "classname")->string;
+
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
 
@@ -158,9 +125,7 @@ static void G_SpawnEntity(g_entity_t *ent) {
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
 
-  // TODO: Trim down g_entity_t, move all of these "one offs" to custom data
-  // structs, allocated through each spawn function. See cgame cg_entity_t.
-  // Or, better yet, just use EntityValue to resolve these when they're needed
+  // TODO: Trim down g_entity_t, use EntityValue to resolve these when they're needed
 
   ent->spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
@@ -560,11 +525,6 @@ static void G_InitSpawnPoints(void) {
     team->spawn_points.count = g_slist_length(team_spawns[t]);
   }
 
-  // only one team
-  if (!!g_team_red->spawn_points.count != !!g_team_blue->spawn_points.count) {
-    gi.Error("Map has spawns for only a single team. Use info_player_deathmatch for these!\n");
-  }
-
   g_level.spawn_points.count = g_slist_length(dm_spawns);
 
   GSList *point = NULL;
@@ -580,7 +540,7 @@ static void G_InitSpawnPoints(void) {
     g_level.spawn_points.count = g_slist_length(dm_spawns);
 
     if (!g_level.spawn_points.count) {
-      gi.Error("Map has no spawn points! You need some info_player_deathmatch's (or info_player_team1/2/3/4/_any for teamplay maps).\n");
+      gi.Error("Map has no spawn points\n");
     }
   }
 
@@ -651,8 +611,7 @@ void G_SpawnTechs(void) {
 }
 
 /**
- * @brief Creates a server's entity / program execution context by
- * parsing textual entity definitions out of an ent file.
+ * @brief Spawns game entities from the BSP entity definition lump.
  */
 void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
 
@@ -665,15 +624,7 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   G_Ai_Load();
   
   for (size_t i = 0; i < num_entities; i++) {
-
-    g_entity_t *ent = G_AllocEntity(__func__);
-    ent->def = entities[i];
-
-    if (editor->value && i > 0) {
-      G_SpawnEditorEntity(ent);
-    } else {
-      G_SpawnEntity(ent);
-    }
+    G_SpawnEntity(entities[i]);
   }
 
   G_InitMedia();
@@ -685,6 +636,10 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   G_CheckTechs();
 
   G_ResetTeams();
+
+  if (editor->value) {
+    G_info_player_start(G_AllocEntity("info_player_start"));
+  }
 
   G_InitSpawnPoints();
 
@@ -780,9 +735,7 @@ static void G_worldspawn(g_entity_t *ent) {
 
   if (ent->message && *ent->message) {
     g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
-  } else
-    // or just the level name
-  {
+  } else {
     g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
   }
 

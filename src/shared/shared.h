@@ -30,8 +30,8 @@
 
 /**
  * @brief ConfigStrings are a general means of communication from the server to
- * all connected clients. Each ConfigString can be at most MAX_STRING_CHARS in
- * length. The game module is free to populate CS_GAME - MAX_CONFIG_STRINGS.
+ * all connected clients. Each ConfigString can be at most `MAX_STRING_CHARS` in
+ * length. The game module is free to populate `CS_GAME - MAX_CONFIG_STRINGS`.
  */
 #define CS_NAME     0 // the server name
 #define CS_SKY      1 // the sky box
@@ -44,10 +44,13 @@
 #define CS_MUSICS   (CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES   (CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS    (CS_IMAGES + MAX_IMAGES)
-#define CS_CLIENTS  (CS_ITEMS + MAX_ITEMS)
-#define CS_GAME     (CS_CLIENTS + MAX_CLIENTS)
+#define CS_CLIENTS  (CS_ITEMS  + MAX_ITEMS)
+#define CS_ENTITIES (CS_CLIENTS + MAX_CLIENTS) // for the in-game editor
+#define CS_GAME     (CS_CLIENTS + MAX_ENTITIES)
 
-#define MAX_CONFIG_STRINGS  (CS_GAME + MAX_GENERAL)
+#define MAX_GAME_CONFIG_STRINGS 256
+
+#define MAX_CONFIG_STRINGS (CS_GAME + MAX_GAME_CONFIG_STRINGS)
 
 /**
  * @brief Entity animation sequences (player animations) are dictated by the
@@ -143,6 +146,7 @@ typedef enum {
   SOLID_DEAD, // dead solids clip to the world, but do not clip to boxes
   SOLID_BOX, // boxes collide with the world and other boxes
   SOLID_BSP, // inline models interact just like the static world
+  SOLID_EDITOR, // entity is a placeholder for the in-game editor
 } solid_t;
 
 /**
@@ -456,7 +460,7 @@ typedef enum {
   CL_CMD_MOVE, // [user_cmd_t]
   CL_CMD_STRING, // [string] message
   CL_CMD_USER_INFO, // [user_info_string]
-  CL_CMD_ENTITY_INFO, // [entity def info string]
+  CL_CMD_ENTITY_INFO, // [short] number [entity_info_string]
   CL_CMD_CGAME, // the game may extend from here
 } cl_packet_cmd_t;
 
@@ -526,7 +530,7 @@ void StrLower(const char *in, char *out);
 // key / value info strings
 #define MAX_INFO_STRING_KEY    64
 #define MAX_INFO_STRING_VALUE  64
-#define MAX_INFO_STRING_STRING 768
+#define MAX_INFO_STRING_STRING MAX_STRING_CHARS
 
 // max name of a team
 #define MAX_TEAM_NAME 32

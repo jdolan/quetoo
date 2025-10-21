@@ -22,6 +22,8 @@
 #include "ui_local.h"
 #include "client.h"
 
+extern cl_client_t cl;
+
 #include "EntityViewController.h"
 #include "EntityView.h"
 
@@ -136,30 +138,18 @@ static void viewWillAppear(ViewController *self) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  const cm_bsp_t *bsp = r_models.world->bsp->cm;
-  cm_entity_t *best_entity = bsp->entities[0];
+  vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
+  vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
 
-  float best_dot = .8f;
+  cm_entity_t *ent = NULL;
 
-  for (int32_t i = 1; i < bsp->num_entities; i++) {
-
-    cm_entity_t *entity = bsp->entities[i];
-
-    const vec3_t origin = Cm_EntityValue(entity, "origin")->vec3;
-    const vec3_t dir = Vec3_Direction(origin, cl_view.origin);
-
-    const float dot = Vec3_Dot(cl_view.forward, dir);
-    if (dot > best_dot) {
-
-      const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-      if (tr.fraction == 1.f) {
-        best_dot = dot;
-        best_entity = entity;
-      }
-    }
+  const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_EDITOR);
+  if (tr.fraction < 1.f) {
+    const int32_t number = (int32_t) (intptr_t) tr.ent;
+    ent = Cm_EntityFromInfoString(cl.config_strings[CS_ENTITIES + number]);
   }
 
-  $(this, setEntity, best_entity);
+  $(this, setEntity, ent);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -185,6 +175,10 @@ static EntityViewController *init(EntityViewController *self) {
  * @memberof EntityViewController
  */
 static void setEntity(EntityViewController *self, cm_entity_t *entity) {
+
+  if (self->entity) {
+    Cm_FreeEntity(self->entity);
+  }
 
   self->entity = entity;
 

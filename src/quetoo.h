@@ -114,16 +114,13 @@
 /**
  * @brief Protocol limits.
  */
-#define MIN_CLIENTS  1 // duh
-#define MAX_CLIENTS  64 // absolute limit
-#define MIN_ENTITIES 128 // necessary for even the simplest game
+#define MAX_CLIENTS  64 // this can be increased with minimal effort
 #define MAX_ENTITIES 1024 // this can be increased with minimal effort
 #define MAX_MODELS   256 // these are sent over the net as uint8_t
 #define MAX_SOUNDS   256 // so they cannot be blindly increased
 #define MAX_MUSICS   8 // per level
 #define MAX_IMAGES   256 // that the server knows about
 #define MAX_ITEMS    64 // pickup items
-#define MAX_GENERAL  256 // general config strings
 
 /**
  * @brief The max length of any given output message (stdio).
@@ -226,6 +223,7 @@ typedef enum {
 
 // remaining contents do not generate faces, and do not eat brushes
 #define CONTENTS_ATMOSPHERIC  0x80
+#define CONTENTS_EDITOR       0x100
 #define CONTENTS_PLAYER_CLIP  0x10000 // not visible, but collides with player
 #define CONTENTS_MONSTER_CLIP 0x20000 // not visible, but collides with monsters
 #define CONTENTS_CURRENT_0    0x40000 // liquid current direction for physics

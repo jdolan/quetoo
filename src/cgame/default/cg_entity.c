@@ -313,10 +313,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
   // add server side entities
   for (int32_t i = 0; i < frame->num_entities; i++) {
 
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cgi.client->entity_states[snum];
-
-    cl_entity_t *ent = &cgi.client->entities[s->number];
+    const uint32_t s = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    cl_entity_t *ent = &cgi.client->entities[cgi.client->entity_states[s].number];
 
     Cg_EntityTrail(ent);
 

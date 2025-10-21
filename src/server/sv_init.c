@@ -162,7 +162,7 @@ static void Sv_UpdateLatchedVars(void) {
 
   Cvar_UpdateLatched();
 
-  sv_max_clients->integer = Clampf(sv_max_clients->integer, MIN_CLIENTS, MAX_CLIENTS);
+  sv_max_clients->integer = Clampf(sv_max_clients->integer, 1, MAX_CLIENTS);
 }
 
 /**
@@ -290,17 +290,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
     Sv_InitWorld();
 
-    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
-
-    /*
-     * Run a few game frames for entities to settle down. Failure to do
-     * this will cause the entities to produce all but useless baselines,
-     * which will in turn blow out the packet entities in Sv_EmitEntities.
-     */
-
-    for (int32_t i = 0; i < 3; i++) {
-      svs.game->Frame();
-    }
+    Sv_SpawnEntities();
 
     const int32_t num_entities = Sv_CreateBaseline();
 
