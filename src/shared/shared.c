@@ -532,19 +532,25 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
   while (*s && *s != '\\') {
     s++;
   }
-  s++;
 
-  g_strlcpy(key, src, s - src);
+  g_strlcpy(key, src, s - src + 1);
+
+  if (*s == '\\') {
+    s++;
+  }
 
   src = s;
   while (*s && *s != '\\') {
     s++;
   }
-  s++;
 
-  g_strlcpy(value, src, s - src);
+  g_strlcpy(value, src, s - src + 1);
 
-  return s;
+  if (*s == '\\') {
+    s++;
+  }
+
+  return *s ? s : NULL;
 }
 
 /**
