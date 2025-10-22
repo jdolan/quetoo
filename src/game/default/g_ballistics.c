@@ -107,14 +107,6 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
   gi.WritePosition(mid);
   gi.WritePosition(end);
   gi.Multicast(start, MULTICAST_PHS);
-
-  if (!gi.inPHS(start, end)) { // send to both PHS's
-    gi.WriteByte(SV_CMD_TEMP_ENTITY);
-    gi.WriteByte(TE_TRACER);
-    gi.WritePosition(mid);
-    gi.WritePosition(end);
-    gi.Multicast(end, MULTICAST_PHS);
-  }
 }
 
 /**
@@ -730,27 +722,24 @@ static void G_LightningProjectile_Discharge(g_entity_t *ent) {
       continue;
     }
 
-    if (gi.inPVS(other->s.origin, ent->s.origin)) {
+    const float dist = Vec3_Distance(ent->s.origin, other->s.origin);
+    const float atten = Clampf01(1.f - (dist / 1024.f));
 
-      const float dist = Vec3_Distance(ent->s.origin, other->s.origin);
-      const float atten = Clampf01(1.f - (dist / 1024.f));
+    if (ent->water_level > WATER_NONE) {
+      const int32_t dmg = 50 * ent->water_level * atten;
 
-      if (ent->water_level > WATER_NONE) {
-        const int32_t dmg = 50 * ent->water_level * atten;
-
-        G_Damage(&(g_damage_t) {
-          .target = other,
-          .inflictor = ent,
-          .attacker = ent->owner,
-          .dir = Vec3_Zero(),
-          .point = other->s.origin,
-          .normal = Vec3_Zero(),
-          .damage = dmg,
-          .knockback = 100 * atten,
-          .flags = DMG_NO_ARMOR,
-          .mod = MOD_LIGHTNING_DISCHARGE
-        });
-      }
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = Vec3_Zero(),
+        .point = other->s.origin,
+        .normal = Vec3_Zero(),
+        .damage = dmg,
+        .knockback = 100 * atten,
+        .flags = DMG_NO_ARMOR,
+        .mod = MOD_LIGHTNING_DISCHARGE
+      });
     }
   });
 
@@ -1003,18 +992,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
   gi.WriteByte(ent->s.client);
 
   gi.Multicast(start, MULTICAST_PHS);
-
-  if (!gi.inPHS(start, tr.end)) { // send to both PHS's
-    gi.WriteByte(SV_CMD_TEMP_ENTITY);
-    gi.WriteByte(TE_RAIL);
-    gi.WritePosition(start);
-    gi.WritePosition(tr.end);
-    gi.WriteDir(tr.plane.normal);
-    gi.WriteLong(tr.surface);
-    gi.WriteByte(ent->s.client);
-
-    gi.Multicast(tr.end, MULTICAST_PHS);
-  }
 }
 
 /**

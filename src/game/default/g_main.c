@@ -1131,7 +1131,6 @@ g_export_t *G_LoadGame(g_import_t *import) {
   ge.Init = G_Init;
   ge.Shutdown = G_Shutdown;
   ge.SpawnEntities = G_SpawnEntities;
-
   ge.ClientThink = G_ClientThink;
   ge.ClientConnect = G_ClientConnect;
   ge.ClientUserInfoChanged = G_ClientUserInfoChanged;

@@ -534,8 +534,7 @@ typedef struct g_import_s {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds,
-                      const g_entity_t *skip, int32_t contents);
+  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *skip, int32_t contents);
 
   /**
    * @brief Collision detection. Traces between the two endpoints, impacting
@@ -550,15 +549,7 @@ typedef struct g_import_s {
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
    */
-  cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds,
-                     const g_entity_t *ent, int32_t contents);
-
-  /**
-   * @brief PVS and PHS query facilities, returning true if the two points
-   * can see or hear each other.
-   */
-  bool (*inPVS)(const vec3_t p1, const vec3_t p2);
-  bool (*inPHS)(const vec3_t p1, const vec3_t p2);
+  cm_trace_t (*Clip)(const vec3_t start, const vec3_t end, const box3_t bounds, const g_entity_t *ent, int32_t contents);
 
   /**
    * @brief Set the model of a given entity by name.

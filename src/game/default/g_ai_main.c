@@ -227,10 +227,6 @@ static uint32_t Ai_FuncGoal_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
       continue;
     }
 
-    if (!gi.inPVS(cl->entity->s.origin, ent->s.origin)) {
-      continue;
-    }
-
     // we're already pathing to this item, so ignore it in our short range goal finding
     if (ai->move_target.type == AI_GOAL_PATH && ai->move_target.path.path_target == ent && ai->move_target.path.path_target_spawn_id == ent->s.spawn_id) {
       continue;

@@ -198,26 +198,6 @@ static void Sv_WriteAngles(const vec3_t angles) {
   Net_WriteAngles(&sv.multicast, angles);
 }
 
-/**
- * @brief
- */
-static bool Sv_InPVS(const vec3_t p1, const vec3_t p2) {
-
-  // TODO: Traces?
-
-  return true;
-}
-
-/**
- * @brief
- */
-static bool Sv_InPHS(const vec3_t p1, const vec3_t p2) {
-
-  // TODO: Distance threshold?
-
-  return true;
-}
-
 static void *game_handle;
 
 /**
@@ -294,8 +274,6 @@ void Sv_InitGame(void) {
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Sv_Trace;
   import.Clip = Sv_Clip;
-  import.inPVS = Sv_InPVS;
-  import.inPHS = Sv_InPHS;
   import.SetModel = Sv_SetModel;
   import.LinkEntity = Sv_LinkEntity;
   import.UnlinkEntity = Sv_UnlinkEntity;
