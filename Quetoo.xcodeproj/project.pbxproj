@@ -588,6 +588,8 @@
 		CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA509062EA5D21F00F27205 /* check_cm_entity.c */; };
 		CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
 		CEA5090B2EA5D44B00F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
+		CEA5090D2EA900D600F27205 /* cl_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA5090C2EA900D100F27205 /* cl_editor.h */; };
+		CEA5090F2EA900DF00F27205 /* cl_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA5090E2EA900DC00F27205 /* cl_editor.c */; };
 		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
@@ -1739,6 +1741,8 @@
 		CEA509052EA5D20A00F27205 /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA509062EA5D21F00F27205 /* check_cm_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_entity.c; sourceTree = "<group>"; };
 		CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../opt/homebrew/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
+		CEA5090C2EA900D100F27205 /* cl_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_editor.h; sourceTree = "<group>"; };
+		CEA5090E2EA900DC00F27205 /* cl_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_editor.c; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
 		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2573,6 +2577,8 @@
 				CE12D58B1C5C58C300CD0B13 /* cl_console.h */,
 				CE12D58C1C5C58C300CD0B13 /* cl_demo.c */,
 				CE12D58D1C5C58C300CD0B13 /* cl_demo.h */,
+				CEA5090E2EA900DC00F27205 /* cl_editor.c */,
+				CEA5090C2EA900D100F27205 /* cl_editor.h */,
 				CE12D58E1C5C58C300CD0B13 /* cl_entity.c */,
 				CE12D58F1C5C58C300CD0B13 /* cl_entity.h */,
 				CE12D5921C5C58C300CD0B13 /* cl_input.c */,
@@ -3646,6 +3652,7 @@
 				CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */,
 				CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */,
 				CE80FF841C5E49E700A21A51 /* cl_demo.h in Headers */,
+				CEA5090D2EA900D600F27205 /* cl_editor.h in Headers */,
 				CE80FF851C5E49E700A21A51 /* cl_entity.h in Headers */,
 				CE80FF871C5E49E700A21A51 /* cl_input.h in Headers */,
 				CE80FF881C5E49E700A21A51 /* cl_keys.h in Headers */,
@@ -4795,6 +4802,7 @@
 				CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */,
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
 				CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */,
+				CEA5090F2EA900DF00F27205 /* cl_editor.c in Sources */,
 				CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */,
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
 				CE80FF381C5E473500A21A51 /* cl_keys.c in Sources */,

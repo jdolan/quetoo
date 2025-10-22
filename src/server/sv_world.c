@@ -107,20 +107,19 @@ void Sv_InitWorld(void) {
 /**
  * @brief Spawn an editor entity; a non-functional bounding box.
  */
-static void Sv_SpawnEditorEntity(int32_t number) {
+void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
   g_entity_t *ent = svs.game->entities[number];
-  ent->def = Cm_Bsp()->entities[number];
 
+  ent->def = def;
   ent->in_use = true;
   ent->class_name = Cm_EntityValue(ent->def, "classname")->string;
+  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
   ent->s.number = number;
   ent->s.origin = Cm_EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
-
-  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
   if (g_str_has_prefix(ent->class_name, "info_player")) {
     ent->bounds = Box3f(24.f, 24.f, 64.f);
@@ -164,7 +163,7 @@ void Sv_SpawnEntities(void) {
   if (editor->value) {
     svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);
     for (int32_t i = 1; i < Cm_Bsp()->num_entities; i++) {
-      Sv_SpawnEditorEntity(i);
+      Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
     }
   } else {
     svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);

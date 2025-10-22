@@ -21,28 +21,10 @@
 
 #pragma once
 
-#include "collision/collision.h"
-#include "cgame/cgame.h"
-#include "net/net_chan.h"
-#include "renderer/renderer.h"
-#include "sound/sound.h"
-#include "ui/ui.h"
-
-#include "cl_cgame.h"
-#include "cl_cmd.h"
-#include "cl_console.h"
-#include "cl_demo.h"
-#include "cl_editor.h"
-#include "cl_entity.h"
-#include "cl_input.h"
-#include "cl_keys.h"
-#include "cl_main.h"
-#include "cl_media.h"
-#include "cl_mouse.h"
-#include "cl_parse.h"
-#include "cl_predict.h"
-#include "cl_renderer.h"
-#include "cl_screen.h"
-#include "cl_server.h"
-#include "cl_sound.h"
 #include "cl_types.h"
+
+void Cl_UpdateEditedEntity(int16_t number);
+
+#ifdef __CL_LOCAL_H__
+
+#endif /* __CL_LOCAL_H__ */

@@ -136,7 +136,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
   g_client_t *cl = svs.game->clients[client - svs.clients];
 
   if (!cl->in_use) {
-    return;    // not in game yet
+    return; // not in game yet
   }
 
   // this is the frame we are creating
@@ -168,7 +168,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
         continue;
       }
 
-      // ignore entities without visible presence unless they have an effect
+      // ignore entities without visible presence
       if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
         continue;
       }

@@ -24,6 +24,27 @@
 /**
  * @brief
  */
+cm_entity_t *Cm_AllocEntity(void) {
+  return Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
+}
+
+/**
+ * @brief
+ */
+void Cm_FreeEntity(cm_entity_t *entity) {
+
+  cm_entity_t *e = entity, *next;
+
+  while (e) {
+    next = e->next;
+    Mem_Free(e);
+    e = next;
+  }
+}
+
+/**
+ * @brief
+ */
 void Cm_ParseEntity(cm_entity_t *pair) {
 
   assert(pair);
@@ -91,7 +112,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
       while (true) {
 
-        cm_entity_t *pair = Mem_TagMalloc(sizeof(*pair), MEM_TAG_COLLISION);
+        cm_entity_t *pair = Cm_AllocEntity();
 
         Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
         Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
@@ -138,7 +159,7 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
  * @brief
  */
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
-  static cm_entity_t null_entity;
+  static const cm_entity_t null_entity;
 
   for (const cm_entity_t *e = entity; e; e = e->next) {
     if (!g_strcmp0(e->key, key)) {
@@ -191,7 +212,8 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
     const char *s = str;
 
     do {
-      cm_entity_t *pair = Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
+      cm_entity_t *pair = Cm_AllocEntity();
+
       s = InfoString_Next(s, pair->key, pair->string);
 
       Cm_ParseEntity(pair);
@@ -210,18 +232,3 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
   Com_Warn("Invalid entity info string: %s\n", str);
   return NULL;
 }
-
-/**
- * @brief
- */
-void Cm_FreeEntity(cm_entity_t *entity) {
-
-  cm_entity_t *e = entity, *next;
-
-  while (e) {
-    next = e->next;
-    Mem_Free(e);
-    e = next;
-  }
-}
-

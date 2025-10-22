@@ -31,35 +31,7 @@ extern cl_client_t cl;
 
 #pragma mark - Delegates
 
-/**
- * @brief EntityViewDelegate for lights.
- */
-static void didEditLight(cm_entity_t *entity, cm_entity_t *pair) {
-  const r_bsp_model_t *bsp = r_models.world->bsp;
 
-  r_bsp_light_t *light = NULL;
-
-  r_bsp_light_t *l = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
-    if (l->entity == entity) {
-      light = l;
-      break;
-    }
-  }
-
-  assert(light);
-
-  if (!g_strcmp0(pair->key, "radius")) {
-    light->radius = pair->value;
-    light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
-    light->depth_pass_elements = NULL;
-    light->num_depth_pass_elements = bsp->num_elements;
-  } else if (!g_strcmp0(pair->key, "color")) {
-    light->color = pair->vec3;
-  } else if (!g_strcmp0(pair->key, "intensity")) {
-    light->intensity = pair->value;
-  }
-}
 
 /**
  * @brief EntityViewDelegate entry point.
@@ -86,14 +58,7 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
 
   Cm_ParseEntity(pair);
 
-  const char *classname = Cm_EntityValue(this->entity, "classname")->nullable_string;
-  if (!g_strcmp0(key, "classname")) {
-    classname = value;
-  }
-
-  if (!g_strcmp0(classname, "light")) {
-    didEditLight(this->entity, pair);
-  }
+  Cl_WriteEntityInfoCommand(this->number, this->entity);
 
   if (view == this->add) {
     EntityView *that = $(alloc(EntityView), initWithEntity, pair);
@@ -107,8 +72,6 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
 
     $(this->add, setEntity, NULL);
   }
-
-  Cl_WriteEntityInfoCommand(this->number, this->entity);
 }
 
 #pragma mark - ViewController

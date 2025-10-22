@@ -392,6 +392,30 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
   svs.game->ClientThink(svs.game->clients[cl - svs.clients], cmd);
 }
 
+/**
+ * @brief
+ */
+static void Sv_EditEntity(int32_t number, const char *info) {
+
+  cm_entity_t *def = Cm_EntityFromInfoString(info);
+
+  if (number >= 0) {
+    g_entity_t *entity = svs.game->entities[number];
+    Mem_Free((void *) entity->def);
+  } else {
+    for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+      if (svs.game->entities[i]->in_use == false) {
+        number = i;
+        break;
+      }
+    }
+  }
+
+  Sv_SpawnEditorEntity(number, def);
+
+  Sv_SetConfigString(CS_ENTITIES + number, info);
+}
+
 #define CMD_MAX_MOVES 1
 #define CMD_MAX_STRINGS 8
 
@@ -430,7 +454,7 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
       case CL_CMD_ENTITY_INFO: {
         const int16_t number = Net_ReadShort(&net_message);
         char *info = Net_ReadString(&net_message);
-        Sv_SetConfigString(CS_ENTITIES + number, info);
+        Sv_EditEntity(number, info);
         break;
       }
 
