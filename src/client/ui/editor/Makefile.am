@@ -1,17 +1,17 @@
 editordir = @PKGLIBDIR@/default/ui/editor
 editor_DATA = \
 	EditorViewController.json \
-  EntityView.json \
-  EntityViewController.css \
-  EntityViewController.json \
+	EntityView.json \
+	EntityViewController.css \
+	EntityViewController.json \
 	MaterialViewController.css \
 	MaterialViewController.json \
-  editor.css
+	editor.css
 
 noinst_HEADERS = \
 	EditorViewController.h \
-  EntityView.h \
-  EntityViewController.h \
+	EntityView.h \
+	EntityViewController.h \
 	MaterialViewController.h
 
 noinst_LTLIBRARIES = \
@@ -19,8 +19,8 @@ noinst_LTLIBRARIES = \
 
 libuieditor_la_SOURCES = \
 	EditorViewController.c \
-  EntityView.c \
-  EntityViewController.c \
+	EntityView.c \
+	EntityViewController.c \
 	MaterialViewController.c
 
 libuieditor_la_CFLAGS = \

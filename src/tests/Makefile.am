@@ -32,7 +32,7 @@ libtests_la_LIBADD = \
 TESTS = \
 	check_atlas \
 	check_box \
-  check_cm_entity \
+	check_cm_entity \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
