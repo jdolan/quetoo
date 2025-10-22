@@ -427,6 +427,13 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
         Sv_UserInfoChanged(cl);
         break;
 
+      case CL_CMD_ENTITY_INFO: {
+        const int16_t number = Net_ReadShort(&net_message);
+        char *info = Net_ReadString(&net_message);
+        Sv_SetConfigString(CS_ENTITIES + number, info);
+        break;
+      }
+
       case CL_CMD_MOVE:
 
         if (cl->state != SV_CLIENT_ACTIVE) {

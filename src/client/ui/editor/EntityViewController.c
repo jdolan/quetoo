@@ -107,6 +107,8 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
 
     $(this->add, setEntity, NULL);
   }
+
+  Cl_WriteEntityInfoCommand(this->number, this->entity);
 }
 
 #pragma mark - ViewController
@@ -138,18 +140,13 @@ static void viewWillAppear(ViewController *self) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
-  vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
-
-  cm_entity_t *ent = NULL;
-
-  const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_EDITOR);
+  const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Box3_Zero(), 0, CONTENTS_EDITOR);
   if (tr.fraction < 1.f) {
-    const int32_t number = (int32_t) (intptr_t) tr.ent;
-    ent = Cm_EntityFromInfoString(cl.config_strings[CS_ENTITIES + number]);
+    $(this, setEntity, (int16_t) (intptr_t) tr.ent);
+  } else {
+    $(this, setEntity, 0);
   }
-
-  $(this, setEntity, ent);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -171,20 +168,25 @@ static EntityViewController *init(EntityViewController *self) {
 }
 
 /**
- * @fn void EntityViewController::setEntity(EntityViewController *, cm_entity *)
+ * @fn void EntityViewController::setEntity(EntityViewController *, int16_t)
  * @memberof EntityViewController
  */
-static void setEntity(EntityViewController *self, cm_entity_t *entity) {
+static void setEntity(EntityViewController *self, int16_t number) {
 
+  $((View *) self->pairs, removeAllSubviews);
+
+  self->number = number;
   if (self->entity) {
     Cm_FreeEntity(self->entity);
   }
 
-  self->entity = entity;
-
-  $((View *) self->pairs, removeAllSubviews);
+  self->entity = Cm_EntityFromInfoString(cl.config_strings[CS_ENTITIES + number]);
 
   for (cm_entity_t *e = self->entity; e; e = e->next) {
+
+    if (g_str_has_prefix(e->key, "_tb_")) {
+      continue;
+    }
 
     EntityView *view = $(alloc(EntityView), initWithEntity, e);
 

@@ -103,6 +103,21 @@ static void Cl_WriteUserInfoCommand(void) {
 }
 
 /**
+ * @brief Sends the entity info string tot he server over the reliable channel.
+ */
+void Cl_WriteEntityInfoCommand(int16_t number, cm_entity_t *entity) {
+
+  Net_WriteByte(&cls.net_chan.message, CL_CMD_ENTITY_INFO);
+  Net_WriteShort(&cls.net_chan.message, number);
+
+  char *info = Cm_EntityToInfoString(entity);
+
+  Net_WriteString(&cls.net_chan.message, info);
+
+  Mem_Free(info);
+}
+
+/**
  * @brief Pumps the command cycle, sending the most recently gathered movement to the server.
  * @details Commands must meet a certain duration, in milliseconds, in order to be sent. This
  * prevents saturating the network channel with very small movement commands, which are also

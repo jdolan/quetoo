@@ -188,18 +188,21 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
   if (InfoString_Validate(str)) {
 
     cm_entity_t *entity = NULL;
-
     const char *s = str;
 
-    while (s) {
+    do {
       cm_entity_t *pair = Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
-
       s = InfoString_Next(s, pair->key, pair->string);
+
       Cm_ParseEntity(pair);
 
       pair->next = entity;
+      if (entity) {
+        entity->prev = pair;
+      }
       entity = pair;
-    }
+
+    } while (s);
 
     return entity;
   }

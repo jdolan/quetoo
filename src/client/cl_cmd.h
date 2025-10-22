@@ -23,6 +23,8 @@
 
 #include "cl_types.h"
 
+void Cl_WriteEntityInfoCommand(int16_t number, cm_entity_t *entity);
+
 #ifdef __CL_LOCAL_H__
 void Cl_UpdateMovementCommand(uint32_t msec);
 void Cl_SendCommands(void);

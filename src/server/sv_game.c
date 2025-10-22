@@ -79,7 +79,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 /**
  * @brief
  */
-static void Sv_SetConfigString(const int32_t index, const char *val) {
+void Sv_SetConfigString(const int32_t index, const char *val) {
 
   if (index >= MAX_CONFIG_STRINGS) {
     Com_Warn("Bad index %u\n", index);
@@ -111,7 +111,7 @@ static void Sv_SetConfigString(const int32_t index, const char *val) {
 /**
  * @brief
  */
-static const char *Sv_GetConfigString(const int32_t index) {
+const char *Sv_GetConfigString(const int32_t index) {
 
   if (index >= MAX_CONFIG_STRINGS) {
     Com_Warn("Bad index %u\n", index);

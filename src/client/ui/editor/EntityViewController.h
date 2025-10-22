@@ -71,7 +71,12 @@ struct EntityViewController {
   Button *create;
 
   /**
-   * @brief The first pair of the entity being edited.
+   * @brief The number of the entity being edited.
+   */
+  int16_t number;
+
+  /**
+   * @brief The entity definition.
    */
   cm_entity_t *entity;
 };
@@ -96,13 +101,13 @@ struct EntityViewControllerInterface {
   EntityViewController *(*init)(EntityViewController *self);
 
   /**
-   * @fn void EntityViewController::setEntity(EntityViewController *self, cm_entity_t *entity)
+   * @fn void EntityViewController::setEntity(EntityViewController *self, int16_t number)
    * @brief Sets the material to edit.
    * @param self The EntityViewController.
    * @param entity The entity to edit.
    * @memberof EntityViewController
    */
-  void (*setEntity)(EntityViewController *self, cm_entity_t *entity);
+  void (*setEntity)(EntityViewController *self, int16_t number);
 };
 
 /**
