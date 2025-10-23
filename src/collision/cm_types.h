@@ -277,12 +277,12 @@ typedef struct cm_bsp_brush_s {
   /**
    * @brief The entity this brush belongs to.
    * @remarks Brushes may reside within the world model's BSP tree, but may have been
-   * defined in a different entity (func_group, misc_fog, etc).
+   * defined in a different entity (`func_group`, `misc_fog`, etc).
    */
   cm_entity_t *entity;
 
   /**
-   * @brief The contents mask (CONTENTS_*).
+   * @brief The contents mask (`CONTENTS_*`).
    */
   int32_t contents;
 
@@ -310,7 +310,7 @@ typedef struct cm_bsp_brush_s {
  */
 typedef struct {
   /**
-   * @brief The leaf CONTENTS_*.
+   * @brief The leaf `CONTENTS_*`.
    */
   int32_t contents;
 

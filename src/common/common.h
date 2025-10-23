@@ -78,23 +78,10 @@
 
 /**
  * @brief Both the client and the server retain multiple snapshots of each
- * g_entity_t's state (entity_state_t) in order to calculate delta compression.
+ * `g_entity_t`'s state (`entity_state_t`) in order to calculate delta compression.
  */
-#define PACKET_BACKUP 32
+#define PACKET_BACKUP 128
 #define PACKET_MASK   (PACKET_BACKUP - 1)
-
-/**
- * @brief The maximum number of entities to be referenced in a single message.
- */
-#define MAX_PACKET_ENTITIES 128
-
-/**
- * @brief Client bandwidth throttling thresholds, in bytes per second. Clients
- * may actually request that the server drops messages for them above a certain
- * bandwidth saturation point in order to maintain some level of connectivity.
- * However, they must accept at least 8KB/s.
- */
-#define CLIENT_RATE_MIN 8192
 
 /**
  * @brief Disallow dangerous downloads for both the client and server.

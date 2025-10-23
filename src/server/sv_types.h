@@ -318,7 +318,7 @@ typedef struct {
 
   /**
    * @brief The length of the entity states array.
-   * @details Equal to `sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES`.
+   * @details Equal to `PACKET_BACKUP * MAX_ENTITIES`.
    */
   uint32_t num_entity_states;
 

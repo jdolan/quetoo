@@ -31,8 +31,6 @@ extern cl_client_t cl;
 
 #pragma mark - Delegates
 
-
-
 /**
  * @brief EntityViewDelegate.
  */

@@ -174,7 +174,7 @@ static void Sv_InitClients(void) {
   svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
 
   // and the entity states array, which is based on the number of clients
-  svs.num_entity_states = sv_max_clients->integer * PACKET_BACKUP * MAX_PACKET_ENTITIES;
+  svs.num_entity_states = PACKET_BACKUP * MAX_ENTITIES;
   svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
 }
 

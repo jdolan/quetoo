@@ -125,7 +125,7 @@ typedef struct {
 /**
  * @brief We accumulate a large buffer of entity states for each entity in order to calculate delta compression.
  */
-#define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_PACKET_ENTITIES)
+#define ENTITY_STATE_BACKUP (PACKET_BACKUP * MAX_ENTITIES)
 #define ENTITY_STATE_MASK (ENTITY_STATE_BACKUP - 1)
 
 /**
