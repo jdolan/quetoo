@@ -160,7 +160,6 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
     assert(ent->s.number == i);
 
-
     if (!editor->value) {
 
       // ignore entities that are local to the server

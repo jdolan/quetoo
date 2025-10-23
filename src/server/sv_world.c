@@ -126,7 +126,10 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     ent->s.color = Color32i(0xffff00ff);
   } else if (g_str_has_prefix(ent->class_name, "light")) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-    ent->s.color = Color_Color32(Cm_EntityValue(ent->def, "color")->color);
+    const cm_entity_t *color = Cm_EntityValue(ent->def, "color");
+    if (color->parsed & ENTITY_COLOR) {
+      ent->s.color = Color_Color32(color->color);
+    }
   } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
     ent->s.color = Color32i(0xff0088ff);
   } else if (g_str_has_prefix(ent->class_name, "func_")) {

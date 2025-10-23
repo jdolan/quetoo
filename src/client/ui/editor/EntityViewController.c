@@ -34,7 +34,7 @@ extern cl_client_t cl;
 
 
 /**
- * @brief EntityViewDelegate entry point.
+ * @brief EntityViewDelegate.
  */
 static void didEditEntity(EntityView *view, const char *key, const char *value) {
 
@@ -74,6 +74,45 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
   }
 }
 
+/**
+ * @brief ButtonDelegate for Create.
+ */
+static void didCreateEntity(Button *button) {
+
+  const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+
+  const int32_t leaf = Cm_PointLeafnum(tr.end, 0);
+  if (leaf == -1) {
+    Com_Warn("Can't create an entity outside of the world\n");
+    return;
+  }
+
+  vec3_t org = Vec3_Fmaf(tr.end, 16.f, tr.plane.normal);
+  org = Vec3_Scale(Vec3_Roundf(Vec3_Scale(org, 1.f / 16.f)), 16.f);
+
+  cm_entity_t *classname = Cm_AllocEntity();
+
+  g_strlcpy(classname->key, "classname", sizeof(classname->key));
+  g_strlcpy(classname->string, "light", sizeof(classname->string));
+
+  Cm_ParseEntity(classname);
+
+  cm_entity_t *origin = Cm_AllocEntity();
+
+  g_strlcpy(origin->key, "origin", sizeof(origin->key));
+  g_snprintf(origin->string, sizeof(origin->string), "%g %g %g", org.x, org.y, org.z);
+
+  Cm_ParseEntity(origin);
+
+  classname->next = origin;
+  origin->prev = classname;
+
+  Cl_WriteEntityInfoCommand(-1, classname);
+
+  Cm_FreeEntity(classname);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -94,6 +133,9 @@ static void loadView(ViewController *self) {
 
   this->add->delegate.self = this;
   this->add->delegate.didEditEntity = didEditEntity;
+
+  this->create->delegate.self = this;
+  this->create->delegate.didClick = didCreateEntity;
 }
 
 /**

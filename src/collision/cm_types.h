@@ -153,6 +153,11 @@ typedef enum {
   ENTITY_VEC3 = 0x10,
 
   /**
+   * @brief An alias for `ENTITY_VEC3`.
+   */
+  ENTITY_COLOR = ENTITY_VEC3,
+
+  /**
    * @brief A four component vector is available.
    */
   ENTITY_VEC4 = 0x20,

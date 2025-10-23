@@ -412,8 +412,6 @@ static void Sv_EditEntity(int32_t number, const char *info) {
   }
 
   Sv_SpawnEditorEntity(number, def);
-
-  Sv_SetConfigString(CS_ENTITIES + number, info);
 }
 
 #define CMD_MAX_MOVES 1
