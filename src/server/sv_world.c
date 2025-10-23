@@ -147,7 +147,10 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     ent->bounds = mod->bounds;
   }
 
-  ent->solid = SOLID_EDITOR;
+  if (number > 0) {
+    ent->solid = SOLID_EDITOR;
+    Sv_LinkEntity(ent);
+  }
 
   char *info = Cm_EntityToInfoString(ent->def);
 
@@ -155,7 +158,6 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
   Mem_Free(info);
 
-  Sv_LinkEntity(ent);
 }
 
 /**
@@ -164,8 +166,12 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 void Sv_SpawnEntities(void) {
 
   if (editor->value) {
+
+    // Let the game handle worldspawn to initialize the world
     svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);
-    for (int32_t i = 1; i < Cm_Bsp()->num_entities; i++) {
+
+    // But in general, withhold all BSP entities from the game module
+    for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
       Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
     }
   } else {
