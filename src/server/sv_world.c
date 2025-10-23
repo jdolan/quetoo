@@ -153,7 +153,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
   char *info = Cm_EntityToInfoString(ent->def);
 
-  g_strlcpy(sv.config_strings[CS_ENTITIES + number], info, MAX_STRING_CHARS);
+  Sv_SetConfigString(CS_ENTITIES + number, info);
 
   Mem_Free(info);
 
