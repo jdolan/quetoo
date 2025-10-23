@@ -90,10 +90,9 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 }
 
 /**
- * @brief Resolve our sectors for a newly loaded level. This is called prior to
- * linking any entities.
+ * @brief
  */
-void Sv_InitWorld(void) {
+static void Sv_InitWorld(void) {
 
   for (size_t i = 0; i < sv_world.num_sectors; i++) {
     g_list_free(sv_world.sectors[i].entities);
@@ -164,6 +163,8 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
  * @brief
  */
 void Sv_SpawnEntities(void) {
+
+  Sv_InitWorld();
 
   if (editor->value) {
 

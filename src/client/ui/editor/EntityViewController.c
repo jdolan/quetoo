@@ -183,7 +183,8 @@ static void setEntity(EntityViewController *self, int16_t number) {
     Cm_FreeEntity(self->entity);
   }
 
-  self->entity = Cm_EntityFromInfoString(cl.config_strings[CS_ENTITIES + number]);
+  const char *info = cl.config_strings[CS_ENTITIES + number];
+  self->entity = Cm_EntityFromInfoString(info);
 
   for (cm_entity_t *e = self->entity; e; e = e->next) {
 

@@ -169,11 +169,13 @@ static void Sv_UpdateLatchedVars(void) {
  * @brief
  */
 static void Sv_InitClients(void) {
-
-  // initialize the clients array
   svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
+}
 
-  // and the entity states array, which is based on the number of clients
+/**
+ * @brief
+ */
+static void Sv_InitEntityState(void) {
   svs.num_entity_states = PACKET_BACKUP * MAX_ENTITIES;
   svs.entity_states = Mem_TagMalloc(sizeof(entity_state_t) * svs.num_entity_states, MEM_TAG_SERVER);
 }
@@ -237,6 +239,8 @@ static void Sv_InitEntities(sv_state_t state) {
 
     Sv_InitClients();
 
+    Sv_InitEntityState();
+
     Sv_InitGame();
   } else {
     Sv_ReconnectClients();
@@ -244,8 +248,6 @@ static void Sv_InitEntities(sv_state_t state) {
 
   svs.spawn_count++;
 }
-
-
 
 /**
  * @brief Loads the map or demo file and populates the server-controlled "config
@@ -287,8 +289,6 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
     }
 
     svs.state = SV_LOADING;
-
-    Sv_InitWorld();
 
     Sv_SpawnEntities();
 
