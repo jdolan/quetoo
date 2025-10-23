@@ -122,7 +122,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->s.color = Color32i(0xffffffff);
 
   if (g_str_has_prefix(ent->class_name, "info_player")) {
-    ent->bounds = Box3f(24.f, 24.f, 64.f);
+    ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
   } else if (g_str_has_prefix(ent->class_name, "light")) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
