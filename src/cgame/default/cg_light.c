@@ -62,8 +62,13 @@ void Cg_AddLight(const cg_light_t *l) {
  * FIXME: This can be done once at level load, and then only upload dynamic lights per frame.
  */
 static void Cg_AddBspLights(void) {
+
+  if (editor->value) {
+    return;
+  }
+
   const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-  
+
   r_bsp_light_t *l = bsp->lights;
   for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
 

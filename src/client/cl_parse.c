@@ -190,6 +190,8 @@ int32_t Cl_ParseConfigString(void) {
     if (cls.state == CL_ACTIVE) {
       cl.images[i - CS_IMAGES] = R_LoadImage(s, IMG_PIC);
     }
+  } else if (i >= CS_ENTITIES && i < CS_ENTITIES + MAX_ENTITIES) {
+    Cl_ParseEditorEntity(i - CS_ENTITIES, s);
   }
 
   return i;

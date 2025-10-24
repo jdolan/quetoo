@@ -22,56 +22,43 @@
 #include "cl_local.h"
 
 /**
- * @brief EntityViewDelegate for lights.
+ * @brief
  */
-static void Cl_UpdateEditedEntity_light(int16_t number, cm_entity_t *entity) {
-  const r_bsp_model_t *bsp = r_models.world->bsp;
+void Cl_ParseEditorEntity(int16_t number, const char *info) {
 
-  r_bsp_light_t *light = NULL;
-
-  r_bsp_light_t *l = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
-    if (l->entity == bsp->cm->entities[number]) {
-      light = l;
-      break;
-    }
+  if (cl.entity_definitions[number]) {
+    Cm_FreeEntity(cl.entity_definitions[number]);
   }
 
-  assert(light);
-
-  const cm_entity_t *color = Cm_EntityValue(entity, "color");
-
-  light->origin = Cm_EntityValue(entity, "origin")->vec3;
-  light->radius = Cm_EntityValue(entity, "radius")->value ?: 300.f;
-  light->color = (color->parsed & ENTITY_VEC3) ? color->vec3 : Vec3(1.f, 1.f, 1.f);
-  light->intensity = Cm_EntityValue(entity, "intensity")->value ?: 1.f;
-  light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
-  light->depth_pass_elements = NULL;
-  light->num_depth_pass_elements = bsp->num_elements;
+  cl.entity_definitions[number] = Cm_EntityFromInfoString(info);
 }
 
 /**
  * @brief
  */
-void Cl_UpdateEditedEntity(int16_t number) {
-  const cm_bsp_t *bsp = Cm_Bsp();
+void Cl_PopulateEditorScene(const cl_frame_t *frame) {
 
-  const char *info = cl.config_strings[CS_ENTITIES + number];
-  cm_entity_t *entity = Cm_EntityFromInfoString(info);
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 
-  if (number < bsp->num_entities) {
-    Mem_Free(bsp->entities[number]);
-    bsp->entities[number] = entity;
-  } else {
-    
+    const cm_entity_t *e = cl.entity_definitions[i];
+    const char *classname = Cm_EntityValue(e, "classname")->string;
+
+    if (!g_strcmp0(classname, "light")) {
+
+      r_light_t light = {
+        .origin = Cm_EntityValue(e, "origin")->vec3,
+        .radius = Cm_EntityValue(e, "radius")->value ?: 300.f,
+        .intensity = Cm_EntityValue(e, "intensity")->value ?: 1.f,
+        .color = Cm_EntityValue(e, "color")->vec3
+      };
+
+      if (Vec3_Equal(light.color, Vec3_Zero())) {
+        light.color = Vec3(1.f, 1.f, 1.f);
+      }
+
+      light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
+
+      R_AddLight(&cl_view, &light);
+    }
   }
-
-  const cm_entity_t *classname = Cm_EntityValue(entity, "classname");
-  Com_Debug(DEBUG_CLIENT, "%d %s\n", number, classname->string);
-
-  if (!g_strcmp0(classname->string, "light")) {
-    Cl_UpdateEditedEntity_light(number, entity);
-  }
-
-  Mem_Free(entity);
 }

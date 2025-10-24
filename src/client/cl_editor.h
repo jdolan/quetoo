@@ -23,8 +23,7 @@
 
 #include "cl_types.h"
 
-void Cl_UpdateEditedEntity(int16_t number);
-
 #ifdef __CL_LOCAL_H__
-
+void Cl_ParseEditorEntity(int16_t number, const char *info);
+void Cl_PopulateEditorScene(const cl_frame_t *frame);
 #endif /* __CL_LOCAL_H__ */

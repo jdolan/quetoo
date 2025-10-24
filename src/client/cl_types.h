@@ -288,6 +288,11 @@ typedef struct {
   s_music_t *musics[MAX_MUSICS];
 
   /**
+   * @brief The cache of known entity definitions within from `config_strings`.
+   */
+  cm_entity_t *entity_definitions[MAX_ENTITIES];
+
+  /**
    * @brief The index into `config_strings` to check for file presence or download.
    */
   int32_t precache_check;
