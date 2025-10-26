@@ -31,12 +31,27 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
   }
 
   cl.entity_definitions[number] = Cm_EntityFromInfoString(info);
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_ENTITY_PARSED,
+    .user.data1 = (void *) (intptr_t) number
+  });
 }
 
 /**
  * @brief
  */
 void Cl_PopulateEditorScene(const cl_frame_t *frame) {
+  static bool did_print_help = false;
+
+  if (!did_print_help) {
+    Com_Print("^5In-game entity editor enabled\n");
+    Com_Print("^5To select an entity, place your crosshair over it and press ESC\n");
+    Com_Print("^5To move a selected entity, use W, A, S, D, E, C\n");
+
+    did_print_help = true;
+  }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 

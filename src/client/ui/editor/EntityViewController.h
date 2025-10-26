@@ -71,6 +71,11 @@ struct EntityViewController {
   Button *create;
 
   /**
+   * @brief The Button to delete the current entity.
+   */
+  Button *delete;
+
+  /**
    * @brief The number of the entity being edited.
    */
   int16_t number;
@@ -90,15 +95,6 @@ struct EntityViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
-
-  /**
-   * @fn EntityViewController *EntityViewController::init(EntityViewController *self)
-   * @brief Initializes this ViewController.
-   * @param self The EntityViewController.
-   * @return The initialized EntityViewController, or `NULL` on error.
-   * @memberof EntityViewController
-   */
-  EntityViewController *(*init)(EntityViewController *self);
 
   /**
    * @fn void EntityViewController::setEntity(EntityViewController *self, int16_t number)

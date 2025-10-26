@@ -24,10 +24,19 @@
 
 extern cl_client_t cl;
 
+static cvar_t *cl_editor_grid_size;
+
 #include "EntityViewController.h"
 #include "EntityView.h"
 
 #define _Class _EntityViewController
+
+/**
+ * @brief Snaps the vector to the given grid size.
+ */
+static vec3_t snapToGrid(const vec3_t v, float gridSize) {
+  return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / gridSize)), gridSize);
+}
 
 #pragma mark - Delegates
 
@@ -38,36 +47,11 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
 
   EntityViewController *this = view->delegate.self;
 
-  cm_entity_t *pair = view->entity;
-
-  if (view == this->add) {
-    pair = Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
-
-    cm_entity_t *e = this->entity;
-    while (e->next) {
-      e = e->next;
-    }
-    e->next = pair;
-    pair->prev = e;
-  }
-
-  g_strlcpy(pair->key, key, sizeof(pair->key));
-  g_strlcpy(pair->string, value, sizeof(pair->string));
-
-  Cm_ParseEntity(pair);
+  Cm_EntitySetKeyValue(this->entity, key, ENTITY_STRING, value);
 
   Cl_WriteEntityInfoCommand(this->number, this->entity);
 
   if (view == this->add) {
-    EntityView *that = $(alloc(EntityView), initWithEntity, pair);
-
-    that->delegate.self = this;
-    that->delegate.didEditEntity = didEditEntity;
-
-    $((View *) this->pairs, addSubviewRelativeTo, (View *) that, (View *) this->add, ViewPositionBefore);
-
-    release(that);
-
     $(this->add, setEntity, NULL);
   }
 }
@@ -86,29 +70,14 @@ static void didCreateEntity(Button *button) {
     return;
   }
 
-  vec3_t org = Vec3_Fmaf(tr.end, 16.f, tr.plane.normal);
-  org = Vec3_Scale(Vec3_Roundf(Vec3_Scale(org, 1.f / 16.f)), 16.f);
+  cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
 
-  cm_entity_t *classname = Cm_AllocEntity();
+  const vec3_t origin = snapToGrid(tr.end, cl_editor_grid_size->value);
+  Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
 
-  g_strlcpy(classname->key, "classname", sizeof(classname->key));
-  g_strlcpy(classname->string, "light", sizeof(classname->string));
+  Cl_WriteEntityInfoCommand(-1, entity);
 
-  Cm_ParseEntity(classname);
-
-  cm_entity_t *origin = Cm_AllocEntity();
-
-  g_strlcpy(origin->key, "origin", sizeof(origin->key));
-  g_snprintf(origin->string, sizeof(origin->string), "%g %g %g", org.x, org.y, org.z);
-
-  Cm_ParseEntity(origin);
-
-  classname->next = origin;
-  origin->prev = classname;
-
-  Cl_WriteEntityInfoCommand(-1, classname);
-
-  Cm_FreeEntity(classname);
+  Cm_FreeEntity(entity);
 }
 
 #pragma mark - ViewController
@@ -123,17 +92,121 @@ static void loadView(ViewController *self) {
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
-    MakeOutlet("create", &this->create)
+    MakeOutlet("create", &this->create),
+    MakeOutlet("delete", &this->delete)
   );
 
-  self->view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
-  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EntityViewController.css");
+  View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EntityViewController.css");
+
+  $(self, setView, view);
+  release(view);
 
   this->add->delegate.self = this;
   this->add->delegate.didEditEntity = didEditEntity;
 
   this->create->delegate.self = this;
   this->create->delegate.didClick = didCreateEntity;
+}
+
+/**
+ * @see ViewContrxoller::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  if (event->type == SDL_KEYDOWN) {
+
+    switch (event->key.keysym.sym) {
+      case SDLK_1:
+        cl_editor_grid_size->value = 1.f;
+        break;
+      case SDLK_2:
+        cl_editor_grid_size->value = 2.f;
+        break;
+      case SDLK_3:
+        cl_editor_grid_size->value = 4.f;
+        break;
+      case SDLK_4:
+        cl_editor_grid_size->value = 8.f;
+        break;
+      case SDLK_5:
+        cl_editor_grid_size->value = 16.f;
+        break;
+      case SDLK_6:
+        cl_editor_grid_size->value = 32.f;
+        break;
+      case SDLK_7:
+        cl_editor_grid_size->value = 64.f;
+        break;
+      case SDLK_8:
+        cl_editor_grid_size->value = 128.f;
+        break;
+      case SDLK_9:
+        cl_editor_grid_size->value = 256.f;
+        break;
+      default:
+        break;
+    }
+
+    if (this->entity) {
+
+      vec3_t move = Vec3_Zero();
+
+      switch (event->key.keysym.sym) {
+        case SDLK_w:
+        case SDLK_KP_8:
+        case SDLK_UP:
+          move = Vec3_Scale(cl_view.forward, +cl_editor_grid_size->value);
+          break;
+        case SDLK_s:
+        case SDLK_KP_2:
+        case SDLK_DOWN:
+          move = Vec3_Scale(cl_view.forward, -cl_editor_grid_size->value);
+          break;
+
+        case SDLK_d:
+        case SDLK_KP_6:
+        case SDLK_RIGHT:
+          move = Vec3_Scale(cl_view.right, +cl_editor_grid_size->value);
+          break;
+        case SDLK_a:
+        case SDLK_KP_4:
+        case SDLK_LEFT:
+          move = Vec3_Scale(cl_view.right, -cl_editor_grid_size->value);
+          break;
+
+        case SDLK_e:
+        case SDLK_KP_9:
+          move = Vec3_Scale(cl_view.up, +cl_editor_grid_size->value);
+          break;
+        case SDLK_c:
+        case SDLK_KP_3:
+          move = Vec3_Scale(cl_view.up, -cl_editor_grid_size->value);
+          break;
+      }
+
+      if (!Vec3_Equal(move, Vec3_Zero())) {
+
+        vec3_t origin = Cm_EntityValue(this->entity, "origin")->vec3;
+        origin = snapToGrid(Vec3_Add(origin, move), cl_editor_grid_size->value);
+
+        Cm_EntitySetKeyValue(this->entity, "origin", ENTITY_VEC3, &origin);
+
+        Cl_WriteEntityInfoCommand(this->number, this->entity);
+      }
+    }
+  }
+
+  if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
+    const int16_t number = (int16_t) (intptr_t) event->user.data1;
+    if (number == this->number) {
+      $(this, setEntity, number);
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
 }
 
 /**
@@ -155,20 +228,6 @@ static void viewWillAppear(ViewController *self) {
 }
 
 #pragma mark - EntityViewController
-
-/**
- * @fn EntityViewController *EntityViewController::init(EntityViewController *)
- * @memberof EntityViewController
- */
-static EntityViewController *init(EntityViewController *self) {
-
-  self = (EntityViewController *) super(ViewController, self, init);
-  if (self) {
-
-  }
-
-  return self;
-}
 
 /**
  * @fn void EntityViewController::setEntity(EntityViewController *, int16_t)
@@ -213,10 +272,12 @@ static void setEntity(EntityViewController *self, int16_t number) {
 static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
-  ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
+
+  cl_editor_grid_size = Cvar_Add("cl_editor_grid_size", "16.f", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-9 to set, like in Radiant.");
 }
 
 /**

@@ -186,14 +186,6 @@ static void viewWillAppear(ViewController *self) {
 #pragma mark - MaterialViewController
 
 /**
- * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)
- * @memberof MaterialViewController
- */
-static MaterialViewController *init(MaterialViewController *self) {
-  return (MaterialViewController *) super(ViewController, self, init);
-}
-
-/**
  * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, r_material_t *material)
  * @memberof MaterialViewController
  */
@@ -245,7 +237,6 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
-  ((MaterialViewControllerInterface *) clazz->interface)->init = init;
   ((MaterialViewControllerInterface *) clazz->interface)->setModelAndMaterial = setModelAndMaterial;
 }
 

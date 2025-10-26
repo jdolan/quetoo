@@ -155,11 +155,12 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
   return -1;
 }
 
+static const cm_entity_t null_entity;
+
 /**
  * @brief
  */
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
-  static const cm_entity_t null_entity;
 
   for (const cm_entity_t *e = entity; e; e = e->next) {
     if (!g_strcmp0(e->key, key)) {
@@ -168,6 +169,64 @@ const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
   }
 
   return &null_entity;
+}
+
+/**
+ * @brief
+ */
+cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value) {
+
+  assert(entity != &null_entity);
+
+  cm_entity_t *e;
+  cm_entity_t *target = NULL;
+  for (e = entity; e; e = e->next) {
+    if (!g_strcmp0(e->key, key)) {
+      target = e;
+      break;
+    }
+  }
+
+  if (target == NULL) {
+    target = Cm_AllocEntity();
+    if (entity) {
+      for (e = entity; e->next != NULL; e = e->next) ;
+      e->next = target;
+      target->prev = e;
+    }
+  }
+
+  g_strlcpy(target->key, key, sizeof(target->key));
+
+  switch (field) {
+    case ENTITY_STRING:
+      g_strlcpy(target->string, (const char *) value, sizeof(entity->string));
+      break;
+    case ENTITY_INTEGER:
+      g_snprintf(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      break;
+    case ENTITY_FLOAT:
+      g_snprintf(target->string, sizeof(entity->string), "%g", *(float *) value);
+      break;
+    case ENTITY_VEC2: {
+      const vec2_t v = *(vec2_t *) value;
+      g_snprintf(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      break;
+    }
+    case ENTITY_VEC3: {
+      const vec3_t v = *(vec3_t *) value;
+      g_snprintf(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      break;
+    }
+    case ENTITY_VEC4: {
+      const vec4_t v = *(vec4_t *) value;
+      g_snprintf(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      break;
+    }
+  }
+
+  Cm_ParseEntity(target);
+  return target;
 }
 
 /**

@@ -56,7 +56,6 @@ static void loadView(ViewController *self) {
   assert(view);
 
   $(self, setView, view);
-
   release(view);
 
   switch (cgi.CheckForUpdates()) {

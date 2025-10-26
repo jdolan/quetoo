@@ -25,11 +25,30 @@
           "class": "EntityView"
         },
         {
-          "identifier": "create",
-          "class": "Button",
-          "title": {
-            "text": "Create Entity"
-          }
+          "identifier": "actions",
+          "class": "StackView",
+          "classNames": [
+            "container"
+          ],
+          "style": {
+            "axis": "StackViewAxisHorizontal"
+          },
+          "subviews": [
+            {
+              "identifier": "create",
+              "class": "Button",
+              "title": {
+                "text": "Create Entity"
+              }
+            },
+            {
+              "identifier": "delete",
+              "class": "Button",
+              "title": {
+                "text": "Delete Entity"
+              }
+            }
+          ]
         }
       ]
     }

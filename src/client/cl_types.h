@@ -406,7 +406,8 @@ typedef struct {
  */
 typedef enum {
   NOTIFICATION_NONE,
-  NOTIFICATION_SERVER_PARSED
+  NOTIFICATION_SERVER_PARSED,
+  NOTIFICATION_ENTITY_PARSED,
 } cl_notification_t;
 
 /**

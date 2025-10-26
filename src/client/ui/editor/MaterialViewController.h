@@ -125,15 +125,6 @@ struct MaterialViewControllerInterface {
   ViewControllerInterface viewControllerInterface;
 
   /**
-   * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)
-   * @brief Initializes this ViewController.
-   * @param self The MaterialViewController.
-   * @return The initialized MaterialViewController, or `NULL` on error.
-   * @memberof MaterialViewController
-   */
-  MaterialViewController *(*init)(MaterialViewController *self);
-
-  /**
    * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material)
    * @brief Sets the material to edit.
    * @param self The MaterialViewController.
