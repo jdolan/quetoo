@@ -48,8 +48,6 @@ bool do_bsp = false;
 bool do_light = false;
 bool do_zip = false;
 
-static bool is_monitor = false;
-
 static void Print(const char *msg);
 
 /**
@@ -89,17 +87,8 @@ static void Error(err_t err, const char *msg) {
  * @brief Print to stdout and, if not escaped, to the monitor socket.
  */
 static void Print(const char *msg) {
-
-  if (msg) {
-    if (*msg == '@') {
-      fputs(msg + 1, stdout);
-    } else {
-      fputs(msg, stdout);
-      Mon_SendMessage(MON_PRINT, msg);
-    }
-
-    fflush(stdout);
-  }
+  fputs(msg, stdout);
+  fflush(stdout);
 }
 
 /**
@@ -122,13 +111,7 @@ static void Verbose(const char *msg) {
 static void Warn(const char *msg) {
 
   if (msg) {
-    if (*msg == '@') {
-      fprintf(stderr, "WARNING: %s", msg + 1);
-    } else {
-      fprintf(stderr, "WARNING: %s", msg);
-      Mon_SendMessage(MON_WARN, va("WARNING: %s", msg));
-    }
-
+    fprintf(stderr, "WARNING: %s", msg);
     fflush(stderr);
   }
 }
@@ -144,8 +127,6 @@ static void Init(void) {
 
   Mem_Init();
 
-  Mon_Init();
-
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
   Com_Print("Quemap %s %s %s initialized\n", VERSION, BUILD, REVISION);
@@ -159,8 +140,6 @@ static void Shutdown(const char *msg) {
   Com_QuitSubsystem(QUEMAP);
 
   Thread_Shutdown();
-
-  Mon_Shutdown(msg);
 
   Fs_Shutdown();
 
@@ -263,7 +242,6 @@ static void PrintHelpMessage(void) {
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
   Com_Print("-p --path <game directory> - add the path to the search directory\n");
   Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
-  Com_Print("-connect <host> - use GtkRadiant's BSP monitoring server\n");
   Com_Print("\n");
 
   Com_Print("-mat               MAT stage options:\n");
@@ -355,11 +333,6 @@ int32_t main(int32_t argc, char **argv) {
 
     if (!g_strcmp0(Com_Argv(i), "-t") || !g_strcmp0(Com_Argv(i), "--threads")) {
       num_threads = atoi(Com_Argv(i + 1));
-      continue;
-    }
-
-    if (!g_strcmp0(Com_Argv(i), "-connect")) { // GtkRadiant hard-codes this option
-      is_monitor = Mon_Connect(Com_Argv(i + 1));
       continue;
     }
   }

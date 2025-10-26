@@ -314,7 +314,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   } else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
     Ms_GetServers(from);
   } else {
-    Com_Warn("Unknown command from %s: '%s'", atos(from), cmd);
+    Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
   }
 }
 

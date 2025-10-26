@@ -358,7 +358,7 @@ static void MakeBrushWindings(brush_t *brush) {
     if (side->winding) {
       brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(side->winding));
     } else {
-      Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Malformed brush");
+      Com_Warn("Entity %d brush %d: Malformed brush\n", brush->entity, brush->brush);
       UnparseBrush(brush);
       return;
     }
@@ -367,12 +367,12 @@ static void MakeBrushWindings(brush_t *brush) {
   for (int32_t i = 0; i < 3; i++) {
     //IDBUG: all the indexes into the mins and maxs were zero (not using i)
     if (brush->bounds.mins.xyz[i] < MIN_WORLD_COORD || brush->bounds.maxs.xyz[i] > MAX_WORLD_COORD) {
-      Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Brush bounds out of range");
+      Com_Warn("Entity %d brush %d: Brush exceeds world bounds\n", brush->entity, brush->brush);
       UnparseBrush(brush);
       return;
     }
     if (brush->bounds.mins.xyz[i] > MAX_WORLD_COORD || brush->bounds.maxs.xyz[i] < MIN_WORLD_COORD) {
-      Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "No visible sides on brush");
+      Com_Warn("Entity %d brush %d: No visible sides on brush\n", brush->entity, brush->brush);
       UnparseBrush(brush);
       return;
     }
@@ -517,7 +517,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     // find the plane number
     side->plane = PlaneFromPoints(points[0], points[1], points[2]);
     if (side->plane == -1) {
-      Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Bad plane");
+      Com_Warn("Entity %d brush %d: Invalid plane\n", brush->entity, brush->brush);
       UnparseBrush(brush);
       return brush;
     }
@@ -526,12 +526,12 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     const brush_side_t *other = brush->brush_sides;
     for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
       if (other->plane == side->plane) {
-        Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Duplicate plane");
+        Com_Warn("Entity %d brush %d: Duplicate plane within brush\n", brush->entity, brush->brush);
         UnparseBrush(brush);
         return brush;
       }
       if (other->plane == (side->plane ^ 1)) {
-        Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Mirrored plane");
+        Com_Warn("Entity %d brush %d: Mirrored plane within brush\n", brush->entity, brush->brush);
         UnparseBrush(brush);
         return brush;
       }
@@ -624,7 +624,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
   if (brush->contents & CONTENTS_ORIGIN) {
 
     if (brush->entity == 0) {
-      Mon_SendSelect(MON_WARN, brush->entity, brush->brush, "Origin brush in world");
+      Com_Warn("Entity %d brush %d: Origin brush in worldspawn\n", brush->entity, brush->brush);
     } else {
       const vec3_t origin = Box3_Center(brush->bounds);
       SetValueForKey(entity, "origin", va("%g %g %g", origin.x, origin.y, origin.z));

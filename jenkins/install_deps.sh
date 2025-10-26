@@ -12,7 +12,6 @@ dnf -y install \
 	mingw32-libgnurx \
 	mingw32-libogg \
 	mingw32-libvorbis \
-	mingw32-libxml2 \
 	mingw32-openal-soft \
 	mingw32-pdcurses \
 	mingw32-physfs \
@@ -31,7 +30,6 @@ dnf -y install \
 	mingw64-libgnurx \
 	mingw64-libogg \
 	mingw64-libvorbis \
-	mingw64-libxml2 \
 	mingw64-openal-soft \
 	mingw64-pdcurses \
 	mingw64-physfs \

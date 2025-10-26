@@ -312,10 +312,10 @@ int32_t ZIP_Main(void) {
 
   // and of course the bsp and map
   if (!Add(va("maps/%s.bsp", map_base))) {
-    Com_Warn("Failed to add maps/%s.bsp", map_base);
+    Com_Warn("Failed to add maps/%s.bsp\n", map_base);
   }
   if (!Add(va("maps/%s.map", map_base))) {
-    Com_Warn("Failed to add maps/%s.map", map_base);
+    Com_Warn("Failed to add maps/%s.map\n", map_base);
   };
 
   // sort the assets for output readability

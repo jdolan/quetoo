@@ -469,12 +469,12 @@ bool FloodEntities(tree_t *tree) {
       inside_occupied = true;
     } else {
       const char *classname = ValueForKey(ent, "classname", NULL);
-      Mon_SendSelect(MON_WARN, i, 0, va("%s resides outside map", classname));
+      Com_Warn("%s @ %s resides outside map\n", classname, vtos(origin));
     }
   }
 
   if (!inside_occupied) {
-    Mon_SendMessage(MON_WARN, "No entities inside map");
+    Com_Warn("No entities inside map.\n");
   }
 
   return inside_occupied && !tree->outside_node.occupied;
@@ -574,8 +574,7 @@ static void FindPortalBrushSide(portal_t *portal) {
   }
 
   if (portal->on_node->split_side && !portal->side && !leaked) {
-    Mon_SendWinding(MON_WARN, portal->winding->points, portal->winding->num_points,
-            "Brush side not found for portal");
+    Com_Warn("Brush side not found for portal @ %s\n", vtos(Cm_WindingCenter(portal->winding)));
   }
 }
 

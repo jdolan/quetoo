@@ -166,12 +166,6 @@ dnl Check for GLib
 dnl --------------
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
 
-dnl -----------------
-dnl Check for libxml2
-dnl -----------------
-
-PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
-
 dnl --------------------------
 dnl Check for SDL2, SDL2_image
 dnl --------------------------

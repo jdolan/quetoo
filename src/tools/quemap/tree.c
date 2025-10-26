@@ -409,7 +409,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
     const float volume = BrushVolume(b);
     if (volume < micro_volume) {
-      Mon_SendSelect(MON_WARN, b->original->entity, b->original->brush, "Micro volume");
+      Com_Warn("Entity %d brush %d produced microvolume\n", b->original->entity, b->original->brush);
     }
 
     const brush_side_t *s = b->brush_sides;

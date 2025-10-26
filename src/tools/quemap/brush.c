@@ -363,7 +363,7 @@ void SplitBrush(const csg_brush_t *brush, int32_t plane, csg_brush_t **front, cs
   }
 
   if (WindingIsLarge(w)) {
-    Mon_SendWinding(MON_WARN, (const vec3_t *) w->points, w->num_points, "Large winding");
+    Com_Warn("Splitting entity %d brush %d created a large winding\n", brush->original->entity, brush->original->brush);
   }
 
   cm_winding_t *mid_winding = w;

@@ -263,7 +263,9 @@ static int32_t EmitFaceVertexes(const face_t *face) {
   } else {
     num_points = WeldWinding(face->w, points);
     if (num_points < 3) {
-      Mon_SendWinding(MON_WARN, points, num_points, "Malformed face after welding");
+      const material_t *mat = &materials[face->brush_side->material];
+      const vec3_t center = Cm_WindingCenter(face->w);
+      Com_Warn("Malformed face %s @ %s after welding\n", mat->cm->name, vtos(center));
       return 0;
     }
   }
@@ -271,7 +273,7 @@ static int32_t EmitFaceVertexes(const face_t *face) {
   for (int32_t i = 0; i < num_points; i++) {
 
     if (bsp_file.num_vertexes == MAX_BSP_VERTEXES) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES");
+      Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
     }
 
     bsp_vertex_t out = {
@@ -317,7 +319,9 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
   const int32_t count = Cm_ElementsForWinding(face->w, elements);
 
   if (num_elements != count) {
-    Mon_SendWinding(MON_WARN, face->w->points, face->w->num_points, "Face has degenerate winding");
+    const material_t *mat = &materials[face->brush_side->material];
+    const vec3_t center = Cm_WindingCenter(face->w);
+    Com_Warn("Face %s @ %s has degenerate winding\n", mat->cm->name, vtos(center));
   }
 
   for (int32_t i = 0; i < count; i++) {
@@ -401,7 +405,7 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
     }
 
     if (count == MAX_VERTEX_FACES) {
-      Mon_SendPoint(MON_ERROR, vertex->position, "MAX_VERTEX_FACES");
+      Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
       break;
     }
   }

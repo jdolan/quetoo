@@ -11,7 +11,6 @@ noinst_HEADERS = \
 	leakfile.h \
 	light.h \
 	material.h \
-	monitor.h \
 	points.h \
 	polylib.h \
 	portal.h \
@@ -40,7 +39,6 @@ quemap_SOURCES = \
 	main.c \
 	map.c \
 	material.c \
-	monitor.c \
 	polylib.c \
 	portal.c \
 	qbsp.c \
@@ -61,16 +59,14 @@ quemap_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@ \
-	@XML_CFLAGS@
+	@SDL2_CFLAGS@
 
 quemap_LDADD = \
 	$(top_builddir)/deps/minizip/libminizip.la \
 	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	@CURSES_LIBS@ \
-	@SDL2_LIBS@ \
-	@XML_LIBS@
+	@SDL2_LIBS@
 
 if MINGW
 
