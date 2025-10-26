@@ -742,22 +742,21 @@ static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GSt
 }
 
 /**
- * @brief Replaces cvar replacement strings (ie, $cvar_name_here) with their string values.
+ * @brief Replaces placeholders (`$my_cvar`) with the interpolated string values.
  * @returns false if no emplacement was performed (or could be performed), otherwise the *output is set
  * to a valid GString.
  */
 bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output) {
-  // sanity checks
+
   if (!input || !in_size) {
     return false;
   }
 
   GError *error = NULL;
-  gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL,
-                                         &error);
+  gchar *replaced = g_regex_replace_eval(cvar_emplace_regex, input, in_size, 0, 0, Cvar_ExpandString_EvalCallback, NULL, &error);
 
   if (error) {
-    Com_Warn("Error preprocessing shader: %s", error->message);
+    Com_Warn("Script expansion error: %s\n", error->message);
   }
 
   *output = g_string_new(replaced);
@@ -822,7 +821,7 @@ void Cvar_Init(void) {
     cvar_emplace_regex = g_regex_new("\\$([a-z0-9_]+)", G_REGEX_CASELESS | G_REGEX_MULTILINE | G_REGEX_DOTALL, 0, &error);
 
     if (error) {
-      Com_Warn("Error compiling regex: %s", error->message);
+      Com_Warn("Error compiling regex: %s\n", error->message);
     }
   }
 }

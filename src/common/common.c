@@ -375,14 +375,12 @@ void Com_Init(int32_t argc, char *argv[]) {
 
     // if we specified debug mode, quickly set it to all here
     // so that early systems prior to init can write stuff out
-    if (!g_strcmp0(Com_Argv(i), "-debug") ||
-            !g_strcmp0(Com_Argv(i), "+debug")) {
+    if (!g_strcmp0(Com_Argv(i), "-debug") || !g_strcmp0(Com_Argv(i), "+debug")) {
       Com_SetDebug("all");
       continue;
     }
 
-    if (!g_strcmp0(Com_Argv(i), "-log") ||
-            !g_strcmp0(Com_Argv(i), "+log")) {
+    if (!g_strcmp0(Com_Argv(i), "-log") || !g_strcmp0(Com_Argv(i), "+log")) {
       Com_InitLog(argc, argv);
       continue;
     }

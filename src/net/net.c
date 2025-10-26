@@ -199,7 +199,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
       break;
 
     default:
-      Com_Error(ERROR_DROP, "Invalid socket type: %d", type);
+      Com_Error(ERROR_DROP, "Invalid socket type: %d\n", type);
   }
 
   net_sockaddr addr;

@@ -145,7 +145,7 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
   }
 
   if (surf->w != surf->h) {
-    Com_Error(ERROR_FATAL, "Only works on square images :(");
+    Com_Error(ERROR_FATAL, "Only works on square images :(\n");
   }
 
   SDL_LockSurface(surf);

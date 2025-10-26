@@ -336,7 +336,7 @@ void S_Init(void) {
 
   if (s_effects->integer) {
     if (!ALAD_ALC_EXT_EFX) {
-      Com_Warn("s_effects is enabled but OpenAL driver does not support them.");
+      Com_Warn("s_effects is enabled but OpenAL driver does not support them.\n");
       Cvar_ForceSetInteger(s_effects->name, 0);
       s_effects->modified = false;
       s_context.effects.loaded = false;
