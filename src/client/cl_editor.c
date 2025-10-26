@@ -30,7 +30,11 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
     Cm_FreeEntity(cl.entity_definitions[number]);
   }
 
-  cl.entity_definitions[number] = Cm_EntityFromInfoString(info);
+  if (strlen(info)) {
+    cl.entity_definitions[number] = Cm_EntityFromInfoString(info);
+  } else {
+    cl.entity_definitions[number] = NULL;
+  }
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,

@@ -105,16 +105,21 @@ static void render(View *self, Renderer *renderer) {
   // if we are the first entity pair, draw the selection box
   if (this->entity && this->entity->prev == NULL) {
 
-    const vec3_t origin = Cm_EntityValue(this->entity, "origin")->vec3;
-    const box3_t bounds = Box3_FromCenterRadius(origin, 8.f);
+    // except worldspawn, there's no point in drawing that selection box
+    const char *classname = Cm_EntityValue(this->entity, "classname")->string;
+    if (g_strcmp0(classname, "worldspawn")) {
 
-    color_t c = color_white;
-    const cm_entity_t *color = Cm_EntityValue(this->entity, "color");
-    if (color && color->parsed & ENTITY_VEC3) {
-      c = Color3fv(color->vec3);
+      const vec3_t origin = Cm_EntityValue(this->entity, "origin")->vec3;
+      const box3_t bounds = Box3_FromCenterRadius(origin, 8.f);
+
+      color_t c = color_white;
+      const cm_entity_t *color = Cm_EntityValue(this->entity, "color");
+      if (color && color->parsed & ENTITY_COLOR) {
+        c = Color3fv(color->vec3);
+      }
+
+      R_Draw3DBox(bounds, c, false);
     }
-
-    R_Draw3DBox(bounds, c, false);
   }
 }
 

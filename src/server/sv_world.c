@@ -156,7 +156,42 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   Sv_SetConfigString(CS_ENTITIES + number, info);
 
   Mem_Free(info);
+}
 
+/**
+ * @brief
+ */
+void Sv_EditEditorEntity(int32_t number, const char *info) {
+
+  cm_entity_t *def = Cm_EntityFromInfoString(info);
+
+  if (number >= 0) {
+    g_entity_t *entity = svs.game->entities[number];
+    Mem_Free((void *) entity->def);
+  } else {
+    for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+      if (svs.game->entities[i]->in_use == false) {
+        number = i;
+        break;
+      }
+    }
+  }
+
+  Sv_SpawnEditorEntity(number, def);
+}
+
+/**
+ * @brief
+ */
+void Sv_FreeEditorEntity(int32_t number) {
+
+  g_entity_t *entity = svs.game->entities[number];
+
+  Sv_UnlinkEntity(entity);
+
+  memset(entity, 0, sizeof(*entity));
+
+  Sv_SetConfigString(CS_ENTITIES + number, "");
 }
 
 /**

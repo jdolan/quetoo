@@ -288,6 +288,6 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
     return entity;
   }
 
-  Com_Warn("Invalid entity info string: %s\n", str);
+  Com_Debug(DEBUG_COLLISION, "Invalid entity info string: %s\n", str);
   return NULL;
 }
