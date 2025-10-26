@@ -34,8 +34,27 @@ static cvar_t *cl_editor_grid_size;
 /**
  * @brief Snaps the vector to the given grid size.
  */
-static vec3_t snapToGrid(const vec3_t v, float gridSize) {
+static vec3_t snapToGrid(const vec3_t v) {
+  const float gridSize = cl_editor_grid_size->value;
   return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / gridSize)), gridSize);
+}
+
+/**
+ * @brief Sets the given entity's origin to where the client is looking.
+ */
+static void setEntityOriginFromClientView(cm_entity_t *entity) {
+
+  vec3_t origin = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+
+  origin = Vec3_Fmaf(tr.end, cl_editor_grid_size->value, Vec3_Negate(cl_view.forward));
+  origin = snapToGrid(origin);
+
+  if (Cm_PointLeafnum(origin, 0) == -1) {
+    origin = snapToGrid(Vec3_Fmaf(cl_view.origin, 256.f, cl_view.forward));
+  }
+
+  Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
 }
 
 #pragma mark - Delegates
@@ -65,19 +84,9 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
  */
 static void didCreateEntity(Button *button) {
 
-  const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-  const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-
-  const int32_t leaf = Cm_PointLeafnum(tr.end, 0);
-  if (leaf == -1) {
-    Com_Warn("Can't create an entity outside of the world\n");
-    return;
-  }
-
   cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
 
-  const vec3_t origin = snapToGrid(tr.end, cl_editor_grid_size->value);
-  Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
+  setEntityOriginFromClientView(entity);
 
   Cl_WriteEntityInfoCommand(-1, entity);
 
@@ -132,56 +141,93 @@ static void loadView(ViewController *self) {
  */
 static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 
+  assert(self->entity);
+
   const SDL_Keycode key = event->key.keysym.sym;
+  const int32_t mod = event->key.keysym.mod;
 
-  if (key >= SDLK_1 && key <= SDLK_8) {
-    Cvar_SetValue(cl_editor_grid_size->name, (1 << (key - SDLK_1)));
-    Com_Print("Editor grid size set to %g\n", cl_editor_grid_size->value);
-  }
+  if (mod & KMOD_CLIPBOARD) {
 
-  if (self->entity) {
+    char *info;
+
+    switch (key) {
+      case SDLK_c:
+        info = Cm_EntityToInfoString(self->entity);
+        SDL_SetClipboardText(info);
+        Mem_Free(info);
+        Com_Print("Copied %s\n", Cm_EntityValue(self->entity, "classname")->string);
+        break;
+
+      case SDLK_x:
+        info = Cm_EntityToInfoString(self->entity);
+        SDL_SetClipboardText(info);
+        Mem_Free(info);
+        didDeleteEntity(self->delete);
+        Com_Print("Cut %s\n", Cm_EntityValue(self->entity, "classname")->string);
+        break;
+
+      case SDLK_v:
+        if (SDL_HasClipboardText()) {
+          info = SDL_GetClipboardText();
+          cm_entity_t *entity = Cm_EntityFromInfoString(info);
+          setEntityOriginFromClientView(entity);
+          Cl_WriteEntityInfoCommand(-1, entity);
+          Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
+          Cm_FreeEntity(entity);
+          SDL_free(info);
+        }
+        break;
+    }
+  } else if (mod == KMOD_NONE) {
+
+    if (key >= SDLK_1 && key <= SDLK_8) {
+      Cvar_SetValue(cl_editor_grid_size->name, (1 << (key - SDLK_1)));
+      Com_Print("Editor grid size set to %g\n", cl_editor_grid_size->value);
+    }
 
     vec3_t move = Vec3_Zero();
+    float step = cl_editor_grid_size->value;
 
     switch (key) {
       case SDLK_w:
       case SDLK_KP_8:
       case SDLK_UP:
-        move = Vec3_Scale(cl_view.forward, +cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.forward, +step);
         break;
       case SDLK_s:
       case SDLK_KP_2:
       case SDLK_DOWN:
-        move = Vec3_Scale(cl_view.forward, -cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.forward, -step);
         break;
 
       case SDLK_d:
       case SDLK_KP_6:
       case SDLK_RIGHT:
-        move = Vec3_Scale(cl_view.right, +cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.right, +step);
         break;
       case SDLK_a:
       case SDLK_KP_4:
       case SDLK_LEFT:
-        move = Vec3_Scale(cl_view.right, -cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.right, -step);
         break;
 
       case SDLK_e:
       case SDLK_KP_9:
       case SDLK_PAGEUP:
-        move = Vec3_Scale(cl_view.up, +cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.up, +step);
         break;
       case SDLK_c:
       case SDLK_KP_3:
       case SDLK_PAGEDOWN:
-        move = Vec3_Scale(cl_view.up, -cl_editor_grid_size->value);
+        move = Vec3_Scale(cl_view.up, -step);
         break;
     }
 
     if (!Vec3_Equal(move, Vec3_Zero())) {
 
       vec3_t origin = Cm_EntityValue(self->entity, "origin")->vec3;
-      origin = snapToGrid(Vec3_Add(origin, move), cl_editor_grid_size->value);
+      origin = snapToGrid(Vec3_Add(origin, move));
+
       Cm_EntitySetKeyValue(self->entity, "origin", ENTITY_VEC3, &origin);
 
       Cl_WriteEntityInfoCommand(self->number, self->entity);
