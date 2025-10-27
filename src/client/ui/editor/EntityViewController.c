@@ -147,7 +147,9 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
   cm_entity_t *e = self->entity.def;
 
-  assert(e);
+  if (!e) {
+    return;
+  }
 
   const SDL_Keycode key = event->key.keysym.sym;
   const int32_t mod = event->key.keysym.mod;
