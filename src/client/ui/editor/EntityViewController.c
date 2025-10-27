@@ -240,14 +240,6 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
       Cl_WriteEntityInfoCommand(self->entity.number, e);
     }
-
-    switch (key) {
-      case SDLK_DELETE:
-      case SDLK_BACKSPACE:
-      case SDLK_KP_BACKSPACE:
-        didDeleteEntity(self->delete);
-        break;
-    }
   }
 }
 
