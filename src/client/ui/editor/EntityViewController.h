@@ -76,14 +76,9 @@ struct EntityViewController {
   Button *delete;
 
   /**
-   * @brief The number of the entity being edited.
+   * @brief The entity being edited.
    */
-  int16_t number;
-
-  /**
-   * @brief The entity definition.
-   */
-  cm_entity_t *entity;
+  EditorEntity entity;
 };
 
 /**
@@ -97,13 +92,13 @@ struct EntityViewControllerInterface {
   ViewControllerInterface viewControllerInterface;
 
   /**
-   * @fn void EntityViewController::setEntity(EntityViewController *self, int16_t number)
+   * @fn void EntityViewController::setEntity(EntityViewController *self, EditorEntity *entity)
    * @brief Sets the material to edit.
    * @param self The EntityViewController.
    * @param entity The entity to edit.
    * @memberof EntityViewController
    */
-  void (*setEntity)(EntityViewController *self, int16_t number);
+  void (*setEntity)(EntityViewController *self, EditorEntity *entity);
 };
 
 /**

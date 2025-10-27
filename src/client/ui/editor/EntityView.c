@@ -102,23 +102,15 @@ static void render(View *self, Renderer *renderer) {
 
   EntityView *this = (EntityView *) self;
 
-  // if we are the first entity pair, draw the selection box
-  if (this->entity && this->entity->prev == NULL) {
+  EditorEntity *e = &this->entity;
+
+  // if we are the classname entity pair, draw the selection box
+  if (e->def && !g_strcmp0(e->def->key, "classname")) {
 
     // except worldspawn, there's no point in drawing that selection box
-    const char *classname = Cm_EntityValue(this->entity, "classname")->string;
-    if (g_strcmp0(classname, "worldspawn")) {
-
-      const vec3_t origin = Cm_EntityValue(this->entity, "origin")->vec3;
-      const box3_t bounds = Box3_FromCenterRadius(origin, 8.f);
-
-      color_t c = color_white;
-      const cm_entity_t *color = Cm_EntityValue(this->entity, "color");
-      if (color && color->parsed & ENTITY_COLOR) {
-        c = Color3fv(color->vec3);
-      }
-
-      R_Draw3DBox(bounds, c, false);
+    if (g_strcmp0(e->def->string, "worldspawn")) {
+      const box3_t bounds = Box3_Expand(e->entity->abs_bounds, 2.f);
+      R_Draw3DBox(bounds, color_red, false);
     }
   }
 }
@@ -126,10 +118,10 @@ static void render(View *self, Renderer *renderer) {
 #pragma mark - EntityView
 
 /**
- * @fn EntityView *EntityView::initWithEntity(EntityView *self, cm_entity_t *entity)
+ * @fn EntityView *EntityView::initWithEntity(EntityView *self, EditorEntity *entity)
  * @memberof EntityView
  */
-static EntityView *initWithEntity(EntityView *self, cm_entity_t *entity) {
+static EntityView *initWithEntity(EntityView *self, EditorEntity *entity) {
 
   self = (EntityView *) super(StackView, self, initWithFrame, NULL);
   if (self) {
@@ -155,32 +147,34 @@ static EntityView *initWithEntity(EntityView *self, cm_entity_t *entity) {
  * @fn void EntityView::setEntity(EntityView *self, cm_entity_t *entity)
  * @memberof EntityView
  */
-static void setEntity(EntityView *self, cm_entity_t *entity) {
-
-  self->entity = entity;
+static void setEntity(EntityView *self, EditorEntity *entity) {
 
   $(self->key, setAttributedText, NULL);
   $(self->value, setAttributedText, NULL);
 
   if (entity) {
 
-    $(self->key, setAttributedText, entity->key);
+    self->entity = *entity;
 
-    if (entity->parsed & ENTITY_VEC4) {
-      const vec4_t v = entity->vec4;
+    const cm_entity_t *e = self->entity.def;
+
+    $(self->key, setAttributedText, e->key);
+
+    if (e->parsed & ENTITY_VEC4) {
+      const vec4_t v = e->vec4;
       $(self->value, setAttributedText, va("%.2f %.2f %.2f %.2f", v.x, v.y, v.z, v.w));
-    } else if (entity->parsed & ENTITY_VEC3) {
-      const vec3_t v = entity->vec3;
+    } else if (e->parsed & ENTITY_VEC3) {
+      const vec3_t v = e->vec3;
       $(self->value, setAttributedText, va("%.2f %.2f %.2f", v.x, v.y, v.z));
-    } else if (entity->parsed & ENTITY_VEC2) {
-      const vec2_t v = entity->vec2;
+    } else if (e->parsed & ENTITY_VEC2) {
+      const vec2_t v = e->vec2;
       $(self->value, setAttributedText, va("%.2f %.2f", v.x, v.y));
-    } else if (entity->parsed & ENTITY_FLOAT) {
-      $(self->value, setAttributedText, va("%.2f", entity->value));
-    } else if (entity->parsed & ENTITY_INTEGER) {
-      $(self->value, setAttributedText, va("%d", entity->integer));
+    } else if (e->parsed & ENTITY_FLOAT) {
+      $(self->value, setAttributedText, va("%.2f", e->value));
+    } else if (e->parsed & ENTITY_INTEGER) {
+      $(self->value, setAttributedText, va("%d", e->integer));
     } else {
-      $(self->value, setAttributedText, entity->nullable_string);
+      $(self->value, setAttributedText, e->nullable_string);
     }
   }
 }

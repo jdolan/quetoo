@@ -22,6 +22,7 @@
 #pragma once
 
 #include "ui_local.h"
+#include "cl_types.h"
 
 #include <ObjectivelyMVC/StackView.h>
 
@@ -32,6 +33,26 @@ typedef struct EntityViewInterface EntityViewInterface;
  * @file
  * @brief A View for editing `cm_entity_t`.
  */
+
+/**
+ * @brief The Editor entity type.
+ */
+typedef struct {
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+
+  /**
+   * @brief The client entity.
+   */
+  cl_entity_t *entity;
+
+  /**
+   * @brief The entity definition.
+   */
+  cm_entity_t *def;
+} EditorEntity;
 
 /**
  * @brief The EntityViewDelegate type.
@@ -75,12 +96,7 @@ struct EntityView {
   /**
    * @brief The entity to edit.
    */
-  cm_entity_t *entity;
-
-  /**
-   * @brief The user-data, usually to link the BSP entity to a renderer struct.
-   */
-  ident data;
+  EditorEntity entity;
 
   /**
    * @brief The entity key.
@@ -104,23 +120,23 @@ struct EntityViewInterface {
   StackViewInterface stackViewInterface;
 
   /**
-   * @fn EntityView *EntityView::init(EntityView *self, cm_entity_t *entity)
+   * @fn EntityView *EntityView::init(EntityView *self, cm_entity_t *EditorEntity)
    * @brief Initializes this EntityView.
    * @param self The EntityView.
    * @param entity The entity.
    * @return The initialized EntityView, or `NULL` on error.
    * @memberof EntityView
    */
-  EntityView *(*initWithEntity)(EntityView *self, cm_entity_t *entity);
+  EntityView *(*initWithEntity)(EntityView *self, EditorEntity *entity);
 
   /**
-   * @fn void EntityView::setEntity(EntityView *self, cm_entity_t *entity)
+   * @fn void EntityView::setEntity(EntityView *self, EditorEntity *entity)
    * @brief Sets the entity to be edited.
    * @param self The EntityView.
    * @param entity The entity.
    * @memberof EntityView
    */
-  void (*setEntity)(EntityView *self, cm_entity_t *entity);
+  void (*setEntity)(EntityView *self, EditorEntity *entity);
 };
 
 /**

@@ -70,9 +70,9 @@ static void didEditEntity(EntityView *view, const char *key, const char *value) 
 
   EntityViewController *this = view->delegate.self;
 
-  Cm_EntitySetKeyValue(this->entity, key, ENTITY_STRING, value);
+  Cm_EntitySetKeyValue(this->entity.def, key, ENTITY_STRING, value);
 
-  Cl_WriteEntityInfoCommand(this->number, this->entity);
+  Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
 
   if (view == this->add) {
     $(this->add, setEntity, NULL);
@@ -99,8 +99,12 @@ static void didCreateEntity(Button *button) {
 static void didDeleteEntity(Button *button) {
 
   EntityViewController *this = button->delegate.self;
-  if (this->entity && this->number) {
-    Cl_WriteEntityInfoCommand(this->number, NULL);
+
+  if (this->entity.number) {
+
+    Cl_WriteEntityInfoCommand(this->entity.number, NULL);
+
+    $(this, setEntity, NULL);
   }
 }
 
@@ -141,7 +145,9 @@ static void loadView(ViewController *self) {
  */
 static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 
-  assert(self->entity);
+  cm_entity_t *e = self->entity.def;
+
+  assert(e);
 
   const SDL_Keycode key = event->key.keysym.sym;
   const int32_t mod = event->key.keysym.mod;
@@ -152,18 +158,18 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
     switch (key) {
       case SDLK_c:
-        info = Cm_EntityToInfoString(self->entity);
+        info = Cm_EntityToInfoString(e);
         SDL_SetClipboardText(info);
         Mem_Free(info);
-        Com_Print("Copied %s\n", Cm_EntityValue(self->entity, "classname")->string);
+        Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
         break;
 
       case SDLK_x:
-        info = Cm_EntityToInfoString(self->entity);
+        info = Cm_EntityToInfoString(e);
         SDL_SetClipboardText(info);
         Mem_Free(info);
         didDeleteEntity(self->delete);
-        Com_Print("Cut %s\n", Cm_EntityValue(self->entity, "classname")->string);
+        Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
         break;
 
       case SDLK_v:
@@ -225,12 +231,12 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
     if (!Vec3_Equal(move, Vec3_Zero())) {
 
-      vec3_t origin = Cm_EntityValue(self->entity, "origin")->vec3;
+      vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
       origin = snapToGrid(Vec3_Add(origin, move));
 
-      Cm_EntitySetKeyValue(self->entity, "origin", ENTITY_VEC3, &origin);
+      Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
-      Cl_WriteEntityInfoCommand(self->number, self->entity);
+      Cl_WriteEntityInfoCommand(self->entity.number, e);
     }
 
     switch (key) {
@@ -258,8 +264,13 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
     const int16_t number = (int16_t) (intptr_t) event->user.data1;
-    if (number == this->number) {
-      $(this, setEntity, number);
+    if (number == this->entity.number) {
+
+      $(this, setEntity, &(EditorEntity) {
+        .number = number,
+        .entity = &cl.entities[number],
+        .def = cl.entity_definitions[number]
+      });
     }
   }
 
@@ -273,53 +284,48 @@ static void viewWillAppear(ViewController *self) {
 
   EntityViewController *this = (EntityViewController *) self;
 
+  int16_t number = 0;
+
   const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
   const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Box3_Zero(), 0, CONTENTS_EDITOR);
   if (tr.fraction < 1.f) {
-    $(this, setEntity, (int16_t) (intptr_t) tr.ent);
-  } else {
-    $(this, setEntity, 0);
+    number = (int16_t) (intptr_t) tr.ent;
   }
 
+  $(this, setEntity, &(EditorEntity) {
+    .number = number,
+    .entity = &cl.entities[number],
+    .def = cl.entity_definitions[number]
+  });
+
   super(ViewController, self, viewWillAppear);
-}
-
-/**
- * @see ViewController::viewWillDisappear(ViewController *)
- */
-static void viewWillDisappear(ViewController *self) {
-
-  EntityViewController *this = (EntityViewController *) self;
-
-  Cm_FreeEntity(this->entity);
-
-  this->number = 0;
-  this->entity = NULL;
 }
 
 #pragma mark - EntityViewController
 
 /**
- * @fn void EntityViewController::setEntity(EntityViewController *, int16_t)
+ * @fn void EntityViewController::setEntity(EntityViewController *, EditorEntity *)
  * @memberof EntityViewController
  */
-static void setEntity(EntityViewController *self, int16_t number) {
+static void setEntity(EntityViewController *self, EditorEntity *entity) {
 
   $((View *) self->pairs, removeAllSubviews);
 
-  const char *info = cl.config_strings[CS_ENTITIES + number];
-  if (strlen(info)) {
+  if (entity) {
 
-    self->number = number;
-    self->entity = Cm_EntityFromInfoString(info);
+    self->entity = *entity;
 
-    for (cm_entity_t *e = self->entity; e; e = e->next) {
+    for (cm_entity_t *e = self->entity.def; e; e = e->next) {
 
       if (g_str_has_prefix(e->key, "_tb_")) {
         continue;
       }
 
-      EntityView *view = $(alloc(EntityView), initWithEntity, e);
+      EntityView *view = $(alloc(EntityView), initWithEntity, &(EditorEntity) {
+        .number = self->entity.number,
+        .entity = self->entity.entity,
+        .def = e
+      });
 
       view->delegate.self = self;
       view->delegate.didEditEntity = didEditEntity;
@@ -329,11 +335,9 @@ static void setEntity(EntityViewController *self, int16_t number) {
       release(view);
     }
   } else {
-
-    Cm_FreeEntity(self->entity);
-
-    self->number = -1;
-    self->entity = NULL;
+    self->entity.number = -1;
+    self->entity.entity = NULL;
+    self->entity.def = NULL;
   }
 
   $((View *) self->pairs, sizeToFit);
@@ -349,7 +353,6 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
-  ((ViewControllerInterface *) clazz->interface)->viewWillDisappear = viewWillDisappear;
 
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
