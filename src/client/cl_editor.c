@@ -50,9 +50,11 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
   static bool did_print_help = false;
 
   if (!did_print_help) {
-    Com_Print("^5In-game entity editor enabled\n");
+    Com_Print("^5In-game editor enabled\n");
     Com_Print("^5To select an entity, place your crosshair over it and press ESC\n");
     Com_Print("^5To move a selected entity, use W, A, S, D, E, C\n");
+    Com_Print("^5Use your normal hotkeys to cut, copy and paste entities\n");
+    Com_Print("^6To select a material, place your crosshair over it and press ESC\n");
 
     did_print_help = true;
   }

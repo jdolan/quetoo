@@ -217,12 +217,12 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         move = Vec3_Scale(cl_view.right, -step);
         break;
 
-      case SDLK_e:
+      case SDLK_q:
       case SDLK_KP_9:
       case SDLK_PAGEUP:
         move = Vec3_Scale(cl_view.up, +step);
         break;
-      case SDLK_c:
+      case SDLK_e:
       case SDLK_KP_3:
       case SDLK_PAGEDOWN:
         move = Vec3_Scale(cl_view.up, -step);
