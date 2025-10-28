@@ -21,6 +21,8 @@
 
 #include "cm_local.h"
 
+static const cm_entity_t null_entity;
+
 /**
  * @brief
  */
@@ -90,6 +92,69 @@ void Cm_ParseEntity(cm_entity_t *pair) {
 }
 
 /**
+ * @brief GCompareFunc for entity sorting.
+ * @details Classname comes first, followed by the rest in lexigraphical order.
+ */
+static gint Cm_SortEntity_cmp(gconstpointer a, gconstpointer b) {
+
+  const cm_entity_t *m = a;
+  const cm_entity_t *n = b;
+
+  if (!g_strcmp0(m->key, "classname")) {
+    return INT_MIN;
+  }
+
+  if (!g_strcmp0(n->key, "classname")) {
+    return INT_MAX;
+  }
+
+  return g_strcmp0(m->key, n->key);
+}
+
+/**
+ * @brief
+ */
+cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
+
+  assert(entity);
+  assert(entity != &null_entity);
+
+  GPtrArray *pairs = g_ptr_array_new();
+
+  for (cm_entity_t *e = entity; e; e = e->next) {
+    g_ptr_array_add(pairs, e);
+  }
+
+  g_ptr_array_sort_values(pairs, Cm_SortEntity_cmp);
+
+  cm_entity_t *classname = NULL;
+
+  // now rebuild the linked list
+
+  for (guint i = 0; i < pairs->len; i++) {
+
+    cm_entity_t *e = g_ptr_array_index(pairs, i);
+
+    if (i == 0) {
+      classname = e;
+      classname->prev = NULL;
+    } else {
+      e->prev = g_ptr_array_index(pairs, i - 1);
+    }
+
+    if (i < pairs->len - 1) {
+      e->next = g_ptr_array_index(pairs, i + 1);
+    } else {
+      e->next = NULL;
+    }
+  }
+
+  g_ptr_array_free(pairs, false);
+
+  return classname;
+}
+
+/**
  * @brief Loads the BSP entity string lump.
  */
 GList *Cm_LoadEntities(const char *entity_string) {
@@ -132,6 +197,8 @@ GList *Cm_LoadEntities(const char *entity_string) {
         }
       }
 
+      entity = Cm_SortEntity(entity);
+
       assert(entity);
 
       entities = g_list_prepend(entities, entity);
@@ -155,8 +222,6 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
   return -1;
 }
 
-static const cm_entity_t null_entity;
-
 /**
  * @brief
  */
@@ -172,7 +237,13 @@ const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 }
 
 /**
- * @brief
+ * @brief Sets the specified key-value pair in the given entity.
+ * @details If the key exists, it is modified. If it does not exist, it is added.
+ * @param entity The head of the entity linked list.
+ * @param key The key to set.
+ * @param field How the value should be parsed.
+ * @param value The value string.
+ * @return The modified key-value pair.
  */
 cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value) {
 
@@ -190,7 +261,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
   if (target == NULL) {
     target = Cm_AllocEntity();
     if (entity) {
-      for (e = entity; e->next != NULL; e = e->next) ;
+      for (e = entity; e->next; e = e->next) ;
       e->next = target;
       target->prev = e;
     }
@@ -285,7 +356,7 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
 
     } while (s);
 
-    return entity;
+    return Cm_SortEntity(entity);
   }
 
   Com_Debug(DEBUG_COLLISION, "Invalid entity info string: %s\n", str);
