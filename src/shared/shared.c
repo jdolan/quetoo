@@ -623,6 +623,10 @@ bool InfoString_Validate(const char *s) {
 bool InfoString_Set(char *s, const char *key, const char *value) {
   char newi[MAX_INFO_STRING_STRING * 16], *v;
 
+  if (!strlen(key)) {
+    return false;
+  }
+
   if (strstr(key, "\\") || strstr(value, "\\")) {
     return false;
   }
