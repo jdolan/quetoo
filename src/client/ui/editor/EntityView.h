@@ -46,7 +46,7 @@ typedef struct {
   /**
    * @brief The client entity.
    */
-  cl_entity_t *entity;
+  cl_entity_t *ent;
 
   /**
    * @brief The entity definition.
@@ -67,7 +67,7 @@ typedef struct EntityViewDelegate {
   /**
    * @brief The Delegate callback.
    */
-  void (*didEditEntity)(EntityView *view, const char *key, const char *value);
+  void (*didEditEntity)(EntityView *view, cm_entity_t *def);
 
 } EntityViewDelegate;
 

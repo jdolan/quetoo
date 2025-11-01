@@ -357,8 +357,8 @@ static void Cl_HandleEvent(const SDL_Event *event) {
       Cl_KeyEvent(event);
       break;
 
-    case SDL_MOUSEBUTTONUP:
     case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
       Cl_MouseButtonEvent(event);
       break;
 

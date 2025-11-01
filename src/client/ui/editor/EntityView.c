@@ -40,11 +40,19 @@ static void didEndEditing(TextView *textView) {
   assert(self);
   assert(self->delegate.didEditEntity);
 
-  const char *key = self->key->attributedText->string.chars ?: self->key->defaultText;
-  const char *value = self->value->attributedText->string.chars ?: self->value->defaultText;
+  cm_entity_t *e = self->entity.def ?: Cm_AllocEntity();
 
-  if (key && value) {
-    self->delegate.didEditEntity(self, key, value);
+  const char *key = self->key->attributedText->string.chars;
+  const char *value = self->value->attributedText->string.chars;
+
+  if (g_strcmp0(e->key, key) || g_strcmp0(e->string, value)) {
+
+    g_strlcpy(e->key, key, sizeof(e->key));
+    g_strlcpy(e->string, value, sizeof(e->value));
+
+    Cm_ParseEntity(e);
+
+    self->delegate.didEditEntity(self, e);
   }
 }
 
@@ -89,7 +97,11 @@ static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
  * @memberof View
  */
 static View *init(View *self) {
-  return (View *) $((EntityView *) self, initWithEntity, NULL);
+  return (View *) $((EntityView *) self, initWithEntity, &(EditorEntity) {
+    .number = -1,
+    .ent = NULL,
+    .def = NULL
+  });
 }
 
 /**
@@ -102,15 +114,15 @@ static void render(View *self, Renderer *renderer) {
 
   EntityView *this = (EntityView *) self;
 
-  EditorEntity *e = &this->entity;
+  const cl_entity_t *ent = this->entity.ent;
+  const cm_entity_t *def = this->entity.def;
 
   // if we are the classname entity pair, draw the selection box
-  if (e->def && !g_strcmp0(e->def->key, "classname")) {
+  if (def && !g_strcmp0(def->key, "classname")) {
 
     // except worldspawn, there's no point in drawing that selection box
-    if (g_strcmp0(e->def->string, "worldspawn")) {
-      const box3_t bounds = Box3_Expand(e->entity->abs_bounds, 2.f);
-      R_Draw3DBox(bounds, color_red, false);
+    if (g_strcmp0(def->string, "worldspawn")) {
+      R_Draw3DBox(Box3_Expand(ent->abs_bounds, 2.f), color_red, false);
     }
   }
 }
@@ -149,33 +161,17 @@ static EntityView *initWithEntity(EntityView *self, EditorEntity *entity) {
  */
 static void setEntity(EntityView *self, EditorEntity *entity) {
 
-  $(self->key, setAttributedText, NULL);
-  $(self->value, setAttributedText, NULL);
+  assert(entity);
 
-  if (entity) {
+  self->entity = *entity;
 
-    self->entity = *entity;
-
-    const cm_entity_t *e = self->entity.def;
-
-    $(self->key, setAttributedText, e->key);
-
-    if (e->parsed & ENTITY_VEC4) {
-      const vec4_t v = e->vec4;
-      $(self->value, setAttributedText, va("%.2f %.2f %.2f %.2f", v.x, v.y, v.z, v.w));
-    } else if (e->parsed & ENTITY_VEC3) {
-      const vec3_t v = e->vec3;
-      $(self->value, setAttributedText, va("%.2f %.2f %.2f", v.x, v.y, v.z));
-    } else if (e->parsed & ENTITY_VEC2) {
-      const vec2_t v = e->vec2;
-      $(self->value, setAttributedText, va("%.2f %.2f", v.x, v.y));
-    } else if (e->parsed & ENTITY_FLOAT) {
-      $(self->value, setAttributedText, va("%.2f", e->value));
-    } else if (e->parsed & ENTITY_INTEGER) {
-      $(self->value, setAttributedText, va("%d", e->integer));
-    } else {
-      $(self->value, setAttributedText, e->nullable_string);
-    }
+  const cm_entity_t *def = self->entity.def;
+  if (def) {
+    $(self->key, setAttributedText, def->key);
+    $(self->value, setAttributedText, def->string);
+  } else {
+    $(self->key, setAttributedText, "");
+    $(self->value, setAttributedText, "");
   }
 }
 

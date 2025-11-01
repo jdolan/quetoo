@@ -31,11 +31,15 @@ static cvar_t *cl_editor_grid_size;
 
 #define _Class _EntityViewController
 
+#pragma mark - Utilities
+
 /**
  * @brief Snaps the vector to the given grid size.
  */
 static vec3_t snapToGrid(const vec3_t v) {
+
   const float gridSize = cl_editor_grid_size->value;
+
   return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / gridSize)), gridSize);
 }
 
@@ -62,20 +66,24 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
 /**
  * @brief EntityViewDelegate.
  */
-static void didEditEntity(EntityView *view, const char *key, const char *value) {
-
-  if (!strlen(key) || !strlen(value)) {
-    return;
-  }
+static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
 
-  Cm_EntitySetKeyValue(this->entity.def, key, ENTITY_STRING, value);
+  if (view == this->add) {
+
+    if (!strlen(def->key) || !strlen(def->string)) {
+      return;
+    }
+
+    Cm_EntitySetKeyValue(this->entity.def, def->key, ENTITY_STRING, def->string);
+  }
 
   Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
 
   if (view == this->add) {
-    $(this->add, setEntity, NULL);
+    $(view, setEntity, &view->entity);
+    Cm_FreeEntity(def);
   }
 }
 
@@ -88,6 +96,9 @@ static void didCreateEntity(Button *button) {
 
   setEntityOriginFromClientView(entity);
 
+  // TODO: Include a hint so that when we receive this entity back from the server
+  // TODO: we can select it immediately for the user
+  
   Cl_WriteEntityInfoCommand(-1, entity);
 
   Cm_FreeEntity(entity);
@@ -262,7 +273,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
       $(this, setEntity, &(EditorEntity) {
         .number = number,
-        .entity = &cl.entities[number],
+        .ent = &cl.entities[number],
         .def = cl.entity_definitions[number]
       });
     }
@@ -288,7 +299,7 @@ static void viewWillAppear(ViewController *self) {
 
   $(this, setEntity, &(EditorEntity) {
     .number = number,
-    .entity = &cl.entities[number],
+    .ent = &cl.entities[number],
     .def = cl.entity_definitions[number]
   });
 
@@ -317,7 +328,7 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
 
       EntityView *view = $(alloc(EntityView), initWithEntity, &(EditorEntity) {
         .number = self->entity.number,
-        .entity = self->entity.entity,
+        .ent = self->entity.ent,
         .def = e
       });
 
@@ -330,7 +341,7 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
     }
   } else {
     self->entity.number = -1;
-    self->entity.entity = NULL;
+    self->entity.ent = NULL;
     self->entity.def = NULL;
   }
 

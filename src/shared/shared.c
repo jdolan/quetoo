@@ -645,14 +645,10 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
 
   InfoString_Delete(s, key);
 
-  if (!value || *value == '\0') {
-    return true;
-  }
-
   if (strlen(s)) {
-    g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value);
+    g_snprintf(newi, sizeof(newi), "\\%s\\%s", key, value ?: "");
   } else {
-    g_snprintf(newi, sizeof(newi), "%s\\%s", key, value);
+    g_snprintf(newi, sizeof(newi), "%s\\%s", key, value ?: "");
   }
 
   if (strlen(newi) + strlen(s) > MAX_INFO_STRING_STRING) {
