@@ -511,6 +511,10 @@ static void G_CheckRules(void) {
     return;
   }
 
+  if (editor->value) {
+    return;
+  }
+
   if (G_Ai_InDeveloperMode()) {
     return;
   }
