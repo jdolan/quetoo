@@ -289,19 +289,42 @@ static void viewWillAppear(ViewController *self) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  int16_t number = 0;
+  EditorEntity entity = {
+    .number = 0,
+    .ent = cl.entities,
+    .def = cl.entity_definitions[0]
+  };
 
-  const vec3_t end = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-  const cm_trace_t tr = Cl_Trace(cl_view.origin, end, Box3_Zero(), 0, CONTENTS_EDITOR);
-  if (tr.fraction < 1.f) {
-    number = (int16_t) (intptr_t) tr.ent;
+  int16_t skip = 0;
+  float best_radius = FLT_MAX;
+
+  vec3_t start = cl_view.origin;
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+
+  while (true) {
+
+    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), skip, CONTENTS_EDITOR);
+    if (tr.fraction == 1.f) {
+      break;
+    }
+
+    start = Vec3_Add(tr.end, cl_view.forward);
+    skip = (int16_t) (intptr_t) tr.ent;
+
+    EditorEntity e = {
+      .number = skip,
+      .ent = &cl.entities[skip],
+      .def = cl.entity_definitions[skip]
+    };
+
+    const float radius = Box3_Radius(e.ent->bounds);
+    if (radius < best_radius) {
+      best_radius = radius;
+      entity = e;
+    }
   }
 
-  $(this, setEntity, &(EditorEntity) {
-    .number = number,
-    .ent = &cl.entities[number],
-    .def = cl.entity_definitions[number]
-  });
+  $(this, setEntity, &entity);
 
   super(ViewController, self, viewWillAppear);
 }
