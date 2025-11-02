@@ -83,7 +83,6 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   if (view == this->add) {
     $(view, setEntity, &view->entity);
-    Cm_FreeEntity(def);
   }
 }
 

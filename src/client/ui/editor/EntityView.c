@@ -53,6 +53,10 @@ static void didEndEditing(TextView *textView) {
     Cm_ParseEntity(e);
 
     self->delegate.didEditEntity(self, e);
+
+    if (e != self->entity.def) {
+      Cm_FreeEntity(e);
+    }
   }
 }
 
