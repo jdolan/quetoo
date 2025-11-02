@@ -86,4 +86,19 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       R_AddLight(&cl_view, &light);
     }
   }
+
+  static cvar_t *cl_editor_light;
+  if (!cl_editor_light) {
+    cl_editor_light = Cvar_Add("cl_editor_light", "0", 0, NULL);
+  }
+
+  if (cl_editor_light->value > 0.f) {
+    R_AddLight(&cl_view, &(r_light_t) {
+      .origin = cl_view.origin,
+      .color = Vec3_One(),
+      .intensity = 1.f,
+      .radius = cl_editor_light->value,
+      .bounds = Box3_FromCenterRadius(cl_view.origin, cl_editor_light->value),
+    });
+  }
 }
