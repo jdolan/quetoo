@@ -128,6 +128,17 @@ static void render(View *self, Renderer *renderer) {
 
     // except worldspawn, there's no point in drawing that selection box
     if (g_strcmp0(def->string, "worldspawn")) {
+      vec3_t points[2] = { ent->origin };
+
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(1.f, 0.f, 0.f));
+      R_Draw3DLines(points, 2, color_red, true);
+
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 1.f, 0.f));
+      R_Draw3DLines(points, 2, color_green, true);
+
+      points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 0.f, 1.f));
+      R_Draw3DLines(points, 2, color_blue, true);
+
       R_Draw3DBox(Box3_Expand(ent->abs_bounds, 2.f), color_red, false);
     }
   }
