@@ -70,6 +70,8 @@ static void dealloc(Object *self) {
 
   EntityView *this = (EntityView *) self;
 
+  memset(&this->delegate, 0, sizeof(this->delegate));
+
   release(this->key);
   release(this->value);
 
