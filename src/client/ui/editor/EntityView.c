@@ -48,7 +48,7 @@ static void didEndEditing(TextView *textView) {
   if (g_strcmp0(e->key, key) || g_strcmp0(e->string, value)) {
 
     g_strlcpy(e->key, key, sizeof(e->key));
-    g_strlcpy(e->string, value, sizeof(e->value));
+    g_strlcpy(e->string, value, sizeof(e->string));
 
     Cm_ParseEntity(e);
 
