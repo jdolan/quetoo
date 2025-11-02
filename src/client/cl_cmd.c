@@ -112,6 +112,7 @@ void Cl_WriteEntityInfoCommand(int16_t number, cm_entity_t *entity) {
 
   char *info = Cm_EntityToInfoString(entity);
 
+  Com_Debug(DEBUG_EDITOR, "%d: %s\n", number, info);
   Net_WriteString(&cls.net_chan.message, info);
 
   Mem_Free(info);

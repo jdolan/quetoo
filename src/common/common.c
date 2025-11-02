@@ -79,7 +79,8 @@ const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
   "renderer",
   "server",
   "sound",
-  "ui"
+  "ui",
+  "editor",
 };
 
 /**
