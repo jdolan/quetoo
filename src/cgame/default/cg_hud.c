@@ -546,24 +546,27 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
   GLint x, y, w, h;
 
-  if (!cg_draw_crosshair->value) {
-    return;
-  }
+  if (!editor->value) {
 
-  if (cgi.client->third_person) {
-    return;
-  }
+    if (!cg_draw_crosshair->value) {
+      return;
+    }
 
-  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
-    return; // spectating
-  }
+    if (cgi.client->third_person) {
+      return;
+    }
 
-  if (!ps->stats[STAT_WEAPONS]) {
-    return; // dead
-  }
+    if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+      return; // spectating
+    }
 
-  if (cg_center_print.time > cgi.client->unclamped_time) {
-    return;
+    if (!ps->stats[STAT_WEAPONS]) {
+      return; // dead
+    }
+
+    if (cg_center_print.time > cgi.client->unclamped_time) {
+      return;
+    }
   }
 
   if (cg_draw_crosshair->modified) {
@@ -583,7 +586,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
     }
   }
 
-  if (crosshair.image == NULL) { // not found
+  if (crosshair.image == NULL) {
     return;
   }
 
@@ -703,6 +706,10 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 
   x = (cgi.context->mode.w - w) / 2.f;
   y = (cgi.context->mode.h - h) / 2.f;
+
+  if (editor->value) {
+    color = Vec4_One();
+  }
 
   cgi.Draw2DImage(x, y, w, h, crosshair.image, Color4fv(color));
 }

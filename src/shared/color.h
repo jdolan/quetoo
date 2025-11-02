@@ -27,28 +27,28 @@
 /**
  * @brief Color constants.
  */
-#define color_black      Color3bv(0x000000)
-#define color_red      Color3bv(0x0000ff)
-#define color_green      Color3bv(0x00ff00)
-#define color_yellow    Color3bv(0x00ffff)
-#define color_blue      Color3bv(0xff0000)
-#define color_magenta    Color3bv(0xff00ff)
-#define color_cyan      Color3bv(0xffff00)
-#define color_white      Color3bv(0xffffff)
-#define color_transparent  Color4bv(0);
+#define color_black       Color3bv(0x000000)
+#define color_red         Color3bv(0x0000ff)
+#define color_green       Color3bv(0x00ff00)
+#define color_yellow      Color3bv(0x00ffff)
+#define color_blue        Color3bv(0xff0000)
+#define color_magenta     Color3bv(0xff00ff)
+#define color_cyan        Color3bv(0xffff00)
+#define color_white       Color3bv(0xffffff)
+#define color_transparent Color4bv(0);
 
-#define color_hue_red        0.f
-#define color_hue_orange      30.f
-#define color_hue_yellow      60.f
-#define color_hue_chartreuse_green  90.f
-#define color_hue_green        120.f
-#define color_hue_spring_green    150.f
-#define color_hue_cyan        180.f
-#define color_hue_azure        210.f
-#define color_hue_blue        240.f
-#define color_hue_violet      270.f
-#define color_hue_magenta      300.f
-#define color_hue_rose        330.f
+#define color_hue_red              0.f
+#define color_hue_orange           30.f
+#define color_hue_yellow           60.f
+#define color_hue_chartreuse_green 90.f
+#define color_hue_green            120.f
+#define color_hue_spring_green     150.f
+#define color_hue_cyan             180.f
+#define color_hue_azure            210.f
+#define color_hue_blue             240.f
+#define color_hue_violet           270.f
+#define color_hue_magenta          300.f
+#define color_hue_rose             330.f
 
 /**
  * @brief A clamped floating point RGBA color.
