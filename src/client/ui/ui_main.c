@@ -141,6 +141,10 @@ void Ui_ViewWillAppear(void) {
 void Ui_ViewWillDisappear(void) {
 
   if (windowController) {
+    View *firstResponder = SDL_GetWindowData(r_context.window, "firstResponder");
+    if (firstResponder) {
+      $(firstResponder, resignFirstResponder);
+    }
     $(windowController->viewController, viewWillDisappear);
   } else {
     Com_Warn("windowControler was NULL\n");
