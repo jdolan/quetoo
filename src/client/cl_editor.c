@@ -64,7 +64,11 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     const cm_entity_t *e = cl.entity_definitions[i];
     const char *classname = Cm_EntityValue(e, "classname")->string;
 
-    if (!g_strcmp0(classname, "light")) {
+    if (!g_strcmp0(classname, "worldspawn")) {
+
+      cl_view.ambient = Cm_EntityValue(e, "ambient")->value;
+
+    } else if (!g_strcmp0(classname, "light")) {
 
       r_light_t light = {
         .origin = Cm_EntityValue(e, "origin")->vec3,

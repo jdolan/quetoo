@@ -323,7 +323,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   Cg_UpdateBob(ps1);
 
   const cm_entity_t *worldspawn = *cgi.WorldModel()->bsp->cm->entities;
-  cgi.view->ambient = cgi.EntityValue(worldspawn, "ambient")->value ?: 1.f;
+  cgi.view->ambient = cgi.EntityValue(worldspawn, "ambient")->value;
 
   cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
