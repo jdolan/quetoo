@@ -898,7 +898,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   ent->s.model3 = 0;
   ent->s.model4 = 0;
 
-  if (cl->persistent.spectator) { // spawn a spectator
+  if (cl->persistent.spectator || editor->value) { // spawn a spectator
     ent->class_name = "spectator";
 
     ent->bounds = Box3_Zero();
@@ -1009,11 +1009,16 @@ void G_ClientBegin(g_client_t *cl) {
   cl->cmd_angles = Vec3_Zero();
   cl->persistent.first_frame = g_level.frame_num;
 
-  if (g_level.teams || g_level.ctf) {
-    if (g_auto_join->value || cl->ai) {
-      G_AddClientToTeam(cl, G_SmallestTeam()->name);
-    } else {
-      cl->persistent.spectator = true;
+  if (editor->value) {
+    cl->persistent.spectator = true;
+  }
+  else {
+    if (g_level.teams || g_level.ctf) {
+      if (g_auto_join->value || cl->ai) {
+        G_AddClientToTeam(cl, G_SmallestTeam()->name);
+      } else {
+        cl->persistent.spectator = true;
+      }
     }
   }
 
