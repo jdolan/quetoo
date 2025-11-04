@@ -34,6 +34,5 @@ extern bool no_merge;
 extern bool no_phong;
 extern bool no_tjunc;
 extern bool no_weld;
-extern bool only_ents;
 
 int32_t BSP_Main(void);

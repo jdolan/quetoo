@@ -40,7 +40,6 @@ extern bool verbose;
 extern bool debug;
 extern bool do_mat;
 extern bool do_bsp;
-extern bool do_light;
 extern bool do_zip;
 
 enum {

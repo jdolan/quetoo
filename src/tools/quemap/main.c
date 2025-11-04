@@ -45,7 +45,6 @@ bool verbose = false;
 bool debug = false;
 bool do_mat = false;
 bool do_bsp = false;
-bool do_light = false;
 bool do_zip = false;
 
 static void Print(const char *msg);
@@ -183,9 +182,6 @@ static void Check_BSP_Options(int32_t argc) {
     } else if (!g_strcmp0(Com_Argv(i), "--no-weld")) {
       Com_Verbose("no_weld = true\n");
       no_weld = true;
-    } else if (!g_strcmp0(Com_Argv(i), "--only-ents")) {
-      Com_Verbose("only_ents = true\n");
-      only_ents = true;
     } else {
       break;
     }
@@ -348,10 +344,6 @@ int32_t main(int32_t argc, char **argv) {
     if (!g_strcmp0(Com_Argv(i), "-bsp")) {
       do_bsp = true;
       Check_BSP_Options(i + 1);
-    }
-
-    if (!g_strcmp0(Com_Argv(i), "-light")) {
-      do_light = true;
       Check_LIGHT_Options(i + 1);
     }
 
@@ -361,7 +353,7 @@ int32_t main(int32_t argc, char **argv) {
     }
   }
 
-  if (!do_bsp && !do_light && !do_mat && !do_zip) {
+  if (!do_bsp && !do_mat && !do_zip) {
     Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
   }
 
@@ -403,12 +395,14 @@ int32_t main(int32_t argc, char **argv) {
   if (do_mat) {
     MAT_Main();
   }
+
   if (do_bsp) {
+
     BSP_Main();
-  }
-  if ((do_bsp && !only_ents) || do_light) {
+
     LIGHT_Main();
   }
+
   if (do_zip) {
     ZIP_Main();
   }

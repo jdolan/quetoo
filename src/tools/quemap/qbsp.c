@@ -41,7 +41,6 @@ bool no_merge = false;
 bool no_phong = false;
 bool no_tjunc = false;
 bool no_weld = false;
-bool only_ents = false;
 
 /**
  * @brief
@@ -154,34 +153,24 @@ int32_t BSP_Main(void) {
 
   LoadMaterials(va("maps/%s.mat", map_base));
 
-  if (only_ents) {
+  Fs_Delete(va("maps/%s.prt", map_base));
+  Fs_Delete(va("maps/%s.lin", map_base));
 
-    LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+  BeginBSPFile();
 
-    LoadMapFile(map_name);
+  LoadMapFile(map_name);
 
-    EmitEntities();
-  } else {
+  EmitPlanes();
+  EmitMaterials();
+  EmitBrushes();
+  EmitEntities();
 
-    Fs_Delete(va("maps/%s.prt", map_base));
-    Fs_Delete(va("maps/%s.lin", map_base));
+  ProcessModels();
 
-    BeginBSPFile();
+  EndBSPFile();
 
-    LoadMapFile(map_name);
-
-    EmitPlanes();
-    EmitMaterials();
-    EmitBrushes();
-    EmitEntities();
-
-    ProcessModels();
-
-    EndBSPFile();
-
-    PhongShading();
-    TangentVectors();
-  }
+  PhongShading();
+  TangentVectors();
 
   WriteBSPFile(bsp_name);
 
