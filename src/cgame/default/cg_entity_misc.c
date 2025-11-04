@@ -84,7 +84,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
     dust->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
   }
 
-  const cm_entity_t *end_color = cgi.EntityValue(self->def, "_end_color");
+  const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
   if (end_color->parsed & ENTITY_VEC4) {
     dust->sprite.end_color = end_color->vec4;
   } else if (end_color->parsed & ENTITY_VEC3) {
@@ -93,7 +93,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
     dust->sprite.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
   }
 
-  dust->sprite.size = cgi.EntityValue(self->def, "_size")->value ?: 1.f;
+  dust->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
   dust->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
   dust->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
   dust->sprite.width = cgi.EntityValue(self->def, "width")->value;
@@ -661,7 +661,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
     sprite->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
   }
 
-  const cm_entity_t *end_color = cgi.EntityValue(self->def, "_end_color");
+  const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
   if (end_color->parsed & ENTITY_VEC4) {
     sprite->sprite.end_color = end_color->vec4;
   } else if (end_color->parsed & ENTITY_VEC3) {
@@ -670,7 +670,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
     sprite->sprite.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
   }
 
-  sprite->sprite.size = cgi.EntityValue(self->def, "_size")->value ?: 1.f;
+  sprite->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
   sprite->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
   sprite->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
   sprite->sprite.width = cgi.EntityValue(self->def, "width")->value;
