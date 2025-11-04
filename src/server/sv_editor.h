@@ -21,20 +21,12 @@
 
 #pragma once
 
-#include "collision/collision.h"
-#include "common/common.h"
-#include "game/game.h"
-#include "net/net_chan.h"
-
-#include "sv_admin.h"
-#include "sv_console.h"
-#include "sv_client.h"
-#include "sv_editor.h"
-#include "sv_entity.h"
-#include "sv_game.h"
-#include "sv_init.h"
-#include "sv_main.h"
-#include "sv_master.h"
-#include "sv_send.h"
 #include "sv_types.h"
-#include "sv_world.h"
+
+#ifdef __SV_LOCAL_H__
+void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def);
+void Sv_EditEditorEntity(int32_t number, const char *info);
+void Sv_FreeEditorEntity(int32_t number);
+void Sv_LoadEditorMap(void);
+void Sv_SaveEditorMap_f(void);
+#endif /* __SV_LOCAL_H__ */

@@ -411,6 +411,8 @@ void Sv_InitAdmin(void) {
           "Set the master server(s) for the dedicated server");
   Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server");
 
+  Cmd_Add("save_editor_map", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file");
+
   if (dedicated->value) {
     Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message");
     Cmd_Add("tell", Sv_Tell_f, CMD_SERVER, "Send a private chat message");

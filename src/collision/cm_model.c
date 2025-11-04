@@ -26,64 +26,6 @@ cm_bsp_t cm_bsp = {};
 /**
  * @brief
  */
-static void Cm_LoadMapEntityBrushes(cm_bsp_t *bsp) {
-  char path[MAX_QPATH];
-  StripExtension(bsp->name, path);
-  g_strlcat(path, ".map", sizeof(path));
-
-  void *buffer;
-  if (Fs_Load(path, &buffer) == -1) {
-    Com_Warn("Could not load %s\n", path);
-    return;
-  }
-
-  parser_t parser = Parse_Init(buffer, PARSER_DEFAULT);
-
-  for (int32_t i = 0; i < bsp->num_entities; i++) {
-    cm_entity_t *e = bsp->entities[i];
-
-    const char *brushes = NULL;
-    bool in_entity = false;
-    bool in_brush = false;
-    char token[MAX_TOKEN_CHARS] = "";
-
-    while (Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-
-      if (!g_strcmp0(token, "{")) {
-        if (!in_entity) {
-          in_entity = true;
-        } else if (!in_brush) {
-          in_brush = true;
-          if (!brushes) {
-            brushes = parser.position.ptr - 1;
-          }
-        }
-      }
-
-      if (!g_strcmp0(token, "}")) {
-        if (in_brush) {
-          in_brush = false;
-        } else if (in_entity) {
-          in_entity = false;
-          break;
-        }
-      }
-    }
-
-    if (brushes) {
-      const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_LinkMalloc(len + strlen("// brush 0\n") + 1, e);
-      strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + strlen(e->brushes), brushes, len);
-    }
-  }
-
-  Fs_Free(buffer);
-}
-
-/**
- * @brief
- */
 static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
   GList *entities = Cm_LoadEntities(bsp->file->entity_string);
@@ -97,10 +39,6 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
   }
 
   g_list_free(entities);
-
-  if (Cvar_GetValue("editor")) {
-    Cm_LoadMapEntityBrushes(bsp);
-  }
 }
 
 /**

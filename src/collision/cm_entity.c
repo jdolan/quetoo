@@ -47,6 +47,32 @@ void Cm_FreeEntity(cm_entity_t *entity) {
 /**
  * @brief
  */
+cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
+
+  cm_entity_t *copy = NULL;
+  for (const cm_entity_t *in = entity; in; in = in->next) {
+
+    cm_entity_t *out = Cm_AllocEntity();
+
+    g_strlcpy(out->key, in->key, sizeof(out->key));
+    g_strlcpy(out->string, in->string, sizeof(out->string));
+
+    Cm_ParseEntity(out);
+
+    if (in->brushes) {
+      out->brushes = Mem_TagCopyString(in->brushes, MEM_TAG_COLLISION);
+    }
+
+    out->next = copy;
+    copy = out;
+  }
+
+  return Cm_SortEntity(copy);
+}
+
+/**
+ * @brief
+ */
 void Cm_ParseEntity(cm_entity_t *pair) {
 
   assert(pair);

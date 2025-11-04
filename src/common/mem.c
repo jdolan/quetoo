@@ -418,7 +418,6 @@ char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
  * @brief Allocates and returns a copy of the specified string.
  */
 char *Mem_CopyString(const char *in) {
-
   return Mem_TagCopyString(in, MEM_TAG_DEFAULT);
 }
 

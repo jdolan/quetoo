@@ -104,97 +104,6 @@ static void Sv_InitWorld(void) {
 }
 
 /**
- * @brief Spawn an editor entity; a non-functional bounding box.
- */
-void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
-
-  g_entity_t *ent = svs.game->entities[number];
-
-  ent->def = def;
-  ent->in_use = true;
-  ent->class_name = Cm_EntityValue(ent->def, "classname")->string;
-  ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
-
-  ent->s.number = number;
-  ent->s.origin = Cm_EntityValue(ent->def, "origin")->vec3;
-  ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
-  ent->s.color = Color32i(0xffffffff);
-
-  if (g_str_has_prefix(ent->class_name, "info_player")) {
-    ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
-    ent->s.color = Color32i(0xffff00ff);
-  } else if (g_str_has_prefix(ent->class_name, "light")) {
-    ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
-    const cm_entity_t *color = Cm_EntityValue(ent->def, "color");
-    if (color->parsed & ENTITY_COLOR) {
-      ent->s.color = Color_Color32(color->color);
-    }
-  } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
-    ent->s.color = Color32i(0xff0088ff);
-  } else if (g_str_has_prefix(ent->class_name, "func_")) {
-    ent->s.color = Color32i(0xff00ff00);
-  } else if (g_str_has_prefix(ent->class_name, "misc_")) {
-    ent->s.color = Color32i(0xff00ffff);
-  } else if (g_str_has_prefix(ent->class_name, "item_")) {
-    ent->s.color = Color32i(0xffffff00);
-  }
-
-  // use the BSP inline model to set bounds
-  const char *model = Cm_EntityValue(ent->def, "model")->nullable_string;
-  if (model && *model == '*') {
-    const cm_bsp_model_t *mod = Cm_Model(model);
-    ent->bounds = mod->bounds;
-  }
-
-  if (number > 0) {
-    ent->solid = SOLID_EDITOR;
-    Sv_LinkEntity(ent);
-  }
-
-  char *info = Cm_EntityToInfoString(ent->def);
-
-  Sv_SetConfigString(CS_ENTITIES + number, info);
-
-  Mem_Free(info);
-}
-
-/**
- * @brief
- */
-void Sv_EditEditorEntity(int32_t number, const char *info) {
-
-  cm_entity_t *def = Cm_EntityFromInfoString(info);
-
-  if (number >= 0) {
-    g_entity_t *entity = svs.game->entities[number];
-    Mem_Free((void *) entity->def);
-  } else {
-    for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-      if (svs.game->entities[i]->in_use == false) {
-        number = i;
-        break;
-      }
-    }
-  }
-
-  Sv_SpawnEditorEntity(number, def);
-}
-
-/**
- * @brief
- */
-void Sv_FreeEditorEntity(int32_t number) {
-
-  g_entity_t *entity = svs.game->entities[number];
-
-  Sv_UnlinkEntity(entity);
-
-  memset(entity, 0, sizeof(*entity));
-
-  Sv_SetConfigString(CS_ENTITIES + number, "");
-}
-
-/**
  * @brief
  */
 void Sv_SpawnEntities(void) {
@@ -202,6 +111,9 @@ void Sv_SpawnEntities(void) {
   Sv_InitWorld();
 
   if (editor->value) {
+
+    // Resolve the map brushes for the bsp entities
+    Sv_LoadEditorMap();
 
     // Let the game handle worldspawn to initialize the world
     svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);

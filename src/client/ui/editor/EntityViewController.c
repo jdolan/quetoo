@@ -118,6 +118,13 @@ static void didDeleteEntity(Button *button) {
   }
 }
 
+/**
+ * @brief ButtonDelegate for Save.
+ */
+static void didSaveMap(Button *button) {
+  Cbuf_AddText("save_editor_map\n");
+}
+
 #pragma mark - ViewController
 
 /**
@@ -131,7 +138,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
     MakeOutlet("create", &this->create),
-    MakeOutlet("delete", &this->delete)
+    MakeOutlet("delete", &this->delete),
+    MakeOutlet("save", &this->save)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -148,6 +156,9 @@ static void loadView(ViewController *self) {
 
   this->delete->delegate.self = this;
   this->delete->delegate.didClick = didDeleteEntity;
+
+  this->save->delegate.self = this;
+  this->save->delegate.didClick = didSaveMap;
 }
 
 /**

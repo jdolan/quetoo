@@ -685,6 +685,8 @@
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
+		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
+		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC79A51D9CB1EE000FA6B2 /* libSDL2-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8331C5C6F0100CD0B13 /* libSDL2-2.0.0.dylib */; };
 		CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
@@ -1803,6 +1805,8 @@
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
+		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
+		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFD07F62B671DE600642169 /* bsp_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_vs.glsl; sourceTree = "<group>"; };
 		CEFD07F72B671DE700642169 /* bsp_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_fs.glsl; sourceTree = "<group>"; };
@@ -2878,6 +2882,8 @@
 				CE12D6A41C5C58C300CD0B13 /* sv_client.h */,
 				CE12D6A51C5C58C300CD0B13 /* sv_console.c */,
 				CE12D6A61C5C58C300CD0B13 /* sv_console.h */,
+				CEF75F402EB996E80026CCA4 /* sv_editor.c */,
+				CEF75F3F2EB996E80026CCA4 /* sv_editor.h */,
 				CE12D6A71C5C58C300CD0B13 /* sv_entity.c */,
 				CE12D6A81C5C58C300CD0B13 /* sv_entity.h */,
 				CE12D6A91C5C58C300CD0B13 /* sv_game.c */,
@@ -3680,6 +3686,7 @@
 				CE80FFB31C5E4A3100A21A51 /* sv_admin.h in Headers */,
 				CE80FFB41C5E4A3100A21A51 /* sv_client.h in Headers */,
 				CE80FFB51C5E4A3100A21A51 /* sv_console.h in Headers */,
+				CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */,
 				CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */,
 				CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */,
 				CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */,
@@ -4827,6 +4834,7 @@
 				CE80FFA81C5E4A2800A21A51 /* sv_admin.c in Sources */,
 				CE80FFA91C5E4A2800A21A51 /* sv_client.c in Sources */,
 				CE80FFAA1C5E4A2800A21A51 /* sv_console.c in Sources */,
+				CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */,
 				CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */,
 				CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */,
 				CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */,

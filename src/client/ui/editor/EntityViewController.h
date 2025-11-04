@@ -76,6 +76,11 @@ struct EntityViewController {
   Button *delete;
 
   /**
+   * @brief The Button to save the .map.
+   */
+  Button *save;
+
+  /**
    * @brief The entity being edited.
    */
   EditorEntity entity;

@@ -24,9 +24,6 @@
 #include "sv_types.h"
 
 #ifdef __SV_LOCAL_H__
-void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def);
-void Sv_EditEditorEntity(int32_t number, const char *info);
-void Sv_FreeEditorEntity(int32_t number);
 void Sv_SpawnEntities(void);
 void Sv_LinkEntity(g_entity_t *ent);
 void Sv_UnlinkEntity(g_entity_t *ent);

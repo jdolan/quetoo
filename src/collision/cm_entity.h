@@ -25,6 +25,7 @@
 
 void Cm_FreeEntity(cm_entity_t *entity);
 cm_entity_t *Cm_AllocEntity(void);
+cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity);
 void Cm_ParseEntity(cm_entity_t *pair);
 cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
 GList *Cm_LoadEntities(const char *entity_string);
