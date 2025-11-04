@@ -226,6 +226,12 @@ typedef struct cm_entity_s {
   };
 
   /**
+   * @brief When in editor mode, the brushes belonging to the entity are saved here so that they
+   * may be re-serialized to the .map.
+   */
+  char *brushes;
+
+  /**
    * @brief The previous entity pair in this entity, or `NULL`.
    */
   struct cm_entity_s *prev;
@@ -346,7 +352,7 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The relative path to the backing file, e.g. `maps/edge.bsp`.
+   * @brief The Quake path of the .bsp, e.g. `maps/edge.bsp`.
    */
   char name[MAX_QPATH];
 

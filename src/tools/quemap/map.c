@@ -43,8 +43,8 @@ static plane_t *plane_hash[PLANE_HASHES];
 
 box3_t map_bounds;
 
-#define  NORMAL_EPSILON  0.0001
-#define  DIST_EPSILON  0.005
+#define NORMAL_EPSILON 0.0001
+#define DIST_EPSILON   0.005
 
 /**
  * @brief
