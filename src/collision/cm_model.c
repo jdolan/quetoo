@@ -72,11 +72,9 @@ static void Cm_LoadMapEntityBrushes(cm_bsp_t *bsp) {
 
     if (brushes) {
       const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = g_strndup(brushes, len);
-    }
-
-    if (e->brushes) {
-      printf("entity %d: %s\n", i, e->brushes);
+      e->brushes = Mem_LinkMalloc(len + strlen("// brush 0\n") + 1, e);
+      strcpy(e->brushes, "// brush 0\n");
+      memcpy(e->brushes + strlen(e->brushes), brushes, len);
     }
   }
 
@@ -100,7 +98,9 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
   g_list_free(entities);
 
-  Cm_LoadMapEntityBrushes(bsp);
+  if (Cvar_GetValue("editor")) {
+    Cm_LoadMapEntityBrushes(bsp);
+  }
 }
 
 /**
