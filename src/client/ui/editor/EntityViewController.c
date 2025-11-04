@@ -252,7 +252,8 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         break;
     }
 
-    if (!Vec3_Equal(move, Vec3_Zero())) {
+    const char *classname = Cm_EntityValue(e, "classname")->string;
+    if (!Vec3_Equal(move, Vec3_Zero()) && g_strcmp0(classname, "worldspawn")) {
 
       vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
       origin = snapToGrid(Vec3_Add(origin, move));
