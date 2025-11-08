@@ -235,44 +235,56 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
     }
 
     if (cls.key_state.dest == KEY_UI && e) {
+
       vec3_t move = Vec3_Zero();
+      vec3_t forward = Vec3_Zero();
+      vec3_t right = Vec3_Zero();
+
+      if (fabsf(cl_view.forward.x) > fabsf(cl_view.forward.y)) {
+        forward.x = SignOf(cl_view.forward.x);
+        right.y = SignOf(cl_view.right.y);
+      } else {
+        forward.y = SignOf(cl_view.forward.y);
+        right.x = SignOf(cl_view.right.x);
+      }
+
       float step = editor_grid_size->value;
 
       switch (key) {
         case SDLK_w:
         case SDLK_KP_8:
         case SDLK_UP:
-          move = Vec3_Scale(cl_view.forward, +step);
+          move = Vec3_Scale(forward, +step);
           break;
 
         case SDLK_s:
         case SDLK_KP_2:
         case SDLK_DOWN:
-          move = Vec3_Scale(cl_view.forward, -step);
+          move = Vec3_Scale(forward, -step);
           break;
 
         case SDLK_d:
         case SDLK_KP_6:
         case SDLK_RIGHT:
-          move = Vec3_Scale(cl_view.right, +step);
+          move = Vec3_Scale(right, +step);
           break;
 
         case SDLK_a:
         case SDLK_KP_4:
         case SDLK_LEFT:
-          move = Vec3_Scale(cl_view.right, -step);
+          move = Vec3_Scale(right, -step);
           break;
 
         case SDLK_q:
         case SDLK_KP_9:
         case SDLK_PAGEUP:
-          move = Vec3_Scale(cl_view.up, +step);
+          move = Vec3_Scale(Vec3_Up(), +step);
           break;
 
         case SDLK_e:
         case SDLK_KP_3:
         case SDLK_PAGEDOWN:
-          move = Vec3_Scale(cl_view.up, -step);
+          move = Vec3_Scale(Vec3_Up(), -step);
           break;
       }
 
