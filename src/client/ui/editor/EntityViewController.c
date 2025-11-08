@@ -92,13 +92,16 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
  */
 static void didCreateEntity(Button *button) {
 
+  EntityViewController *this = button->delegate.self;
+
   cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
 
   setEntityOriginFromClientView(entity);
 
-  // TODO: Include a hint so that when we receive this entity back from the server
-  // TODO: we can select it immediately for the user
-  
+  Mem_Free(this->created);
+
+  this->created = Cm_EntityToInfoString(entity);
+
   Cl_WriteEntityInfoCommand(-1, entity);
 
   Cm_FreeEntity(entity);
@@ -124,6 +127,20 @@ static void didDeleteEntity(Button *button) {
  */
 static void didSaveMap(Button *button) {
   Cbuf_AddText("save_editor_map\n");
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  Mem_Free(this->created);
+
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -201,6 +218,8 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           info = SDL_GetClipboardText();
           cm_entity_t *entity = Cm_EntityFromInfoString(info);
           setEntityOriginFromClientView(entity);
+          Mem_Free(self->created);
+          self->created = Cm_EntityToInfoString(entity);
           Cl_WriteEntityInfoCommand(-1, entity);
           Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
           Cm_FreeEntity(entity);
@@ -283,8 +302,11 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   }
 
   if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
+
     const int16_t number = (int16_t) (intptr_t) event->user.data1;
-    if (number == this->entity.number) {
+    const char *info = cl.config_strings[CS_ENTITIES + number];
+
+    if (number == this->entity.number || !g_strcmp0(this->created, info)) {
 
       $(this, setEntity, &(EditorEntity) {
         .number = number,
@@ -392,6 +414,8 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;

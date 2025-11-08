@@ -84,6 +84,12 @@ struct EntityViewController {
    * @brief The entity being edited.
    */
   EditorEntity entity;
+
+  /**
+   * @brief The info string of the most recently created entity. When this entity returns to us
+   * from the server, select it.
+   */
+  char *created;
 };
 
 /**
