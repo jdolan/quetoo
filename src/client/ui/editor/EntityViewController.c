@@ -122,13 +122,6 @@ static void didDeleteEntity(Button *button) {
   }
 }
 
-/**
- * @brief ButtonDelegate for Save.
- */
-static void didSaveMap(Button *button) {
-  Cbuf_AddText("save_editor_map\n");
-}
-
 #pragma mark - Object
 
 /**
@@ -156,8 +149,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("pairs", &this->pairs),
     MakeOutlet("add", &this->add),
     MakeOutlet("create", &this->create),
-    MakeOutlet("delete", &this->delete),
-    MakeOutlet("save", &this->save)
+    MakeOutlet("delete", &this->delete)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -174,9 +166,6 @@ static void loadView(ViewController *self) {
 
   this->delete->delegate.self = this;
   this->delete->delegate.didClick = didDeleteEntity;
-
-  this->save->delegate.self = this;
-  this->save->delegate.didClick = didSaveMap;
 }
 
 /**
@@ -381,6 +370,14 @@ static void viewWillAppear(ViewController *self) {
 #pragma mark - EntityViewController
 
 /**
+ * @fn EntityViewController *EntityViewController::init(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static EntityViewController *init(EntityViewController *self) {
+  return (EntityViewController *) super(ViewController, self, init);
+}
+
+/**
  * @fn void EntityViewController::setEntity(EntityViewController *, EditorEntity *)
  * @memberof EntityViewController
  */
@@ -433,9 +430,10 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
+  ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  editor_grid_size = Cvar_Add("editor_grid_size", "16.f", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_grid_size = Cvar_Add("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
 }
 
 /**

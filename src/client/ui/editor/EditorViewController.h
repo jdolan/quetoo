@@ -22,6 +22,8 @@
 #pragma once
 
 #include "ui_types.h"
+#include "EntityViewController.h"
+#include "MaterialViewController.h"
 
 #include <ObjectivelyMVC.h>
 
@@ -56,6 +58,21 @@ struct EditorViewController {
    * @brief TabViewController to contain tabs.
    */
   TabViewController *tabViewController;
+
+  /**
+   * @brief The EntityViewController.
+   */
+  EntityViewController *entityViewController;
+
+  /**
+   * @brief The MaterialViewController.
+   */
+  MaterialViewController *materialViewController;
+
+  /**
+   * @brief The Save Button.
+   */
+  Button *save;
 };
 
 /**

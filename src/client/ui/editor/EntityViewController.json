@@ -47,13 +47,6 @@
               "title": {
                 "text": "Delete Entity"
               }
-            },
-            {
-              "identifier": "save",
-              "class": "Button",
-              "title": {
-                "text": "Save Map"
-              }
             }
           ]
         }

@@ -2,5 +2,19 @@
   "class": "Panel",
   "classNames": [
     "editor"
-  ]
+  ],
+  "accessoryView": {
+    "style": {
+      "hidden": false
+    },
+    "subviews": [
+      {
+        "class": "Button",
+        "identifier": "save",
+        "title": {
+          "text": "Save"
+        }
+      }
+    ]
+  }
 }

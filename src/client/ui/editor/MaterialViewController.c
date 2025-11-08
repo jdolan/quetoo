@@ -87,8 +87,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("hardness", &this->hardness),
     MakeOutlet("specularity", &this->specularity),
     MakeOutlet("parallax", &this->parallax),
-    MakeOutlet("alpha_test", &this->alphaTest),
-    MakeOutlet("save", &this->save)
+    MakeOutlet("alpha_test", &this->alphaTest)
   );
 
   $(self->view, awakeWithResourceName, "ui/editor/MaterialViewController.json");
@@ -111,9 +110,6 @@ static void loadView(ViewController *self) {
 
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
-
-  this->save->delegate.self = self;
-  this->save->delegate.didClick = didClickSave;
 }
 
 /**
@@ -186,6 +182,14 @@ static void viewWillAppear(ViewController *self) {
 #pragma mark - MaterialViewController
 
 /**
+ * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *)
+ * @memberof MaterialViewController
+ */
+static MaterialViewController *init(MaterialViewController *self) {
+  return (MaterialViewController *) super(ViewController, self, init);
+}
+
+/**
  * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, r_material_t *material)
  * @memberof MaterialViewController
  */
@@ -237,6 +241,7 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
+  ((MaterialViewControllerInterface *) clazz->interface)->init = init;
   ((MaterialViewControllerInterface *) clazz->interface)->setModelAndMaterial = setModelAndMaterial;
 }
 

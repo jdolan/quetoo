@@ -23,6 +23,23 @@
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
 
+#pragma mark - Delegates
+
+/**
+ * @brief ButtonDelegate for Save .map and .mat.
+ */
+static void didSave(Button *button) {
+
+  Cbuf_AddText("save_editor_map\n");
+
+  EditorViewController *this = button->delegate.self;
+
+  const r_model_t *model = this->materialViewController->model;
+  if (model) {
+    Cmd_ExecuteString(va("r_save_materials %s", model->media.name));
+  }
+}
+
 #define _Class _EditorViewController
 
 #pragma mark - Object
@@ -32,6 +49,8 @@ static void dealloc(Object *self) {
   EditorViewController *this = (EditorViewController *) self;
 
   release(this->tabViewController);
+  release(this->entityViewController);
+  release(this->materialViewController);
 
   super(Object, self, dealloc);
 }
@@ -54,24 +73,30 @@ static void loadView(ViewController *self) {
   assert(view->stylesheet);
 
   $(self, setView, view);
-
   release(view);
 
   this->tabViewController = $(alloc(TabViewController), init);
   assert(this->tabViewController);
 
-  ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
+  this->entityViewController = $(alloc(EntityViewController), init);
+  assert(this->entityViewController);
 
-  viewController = $((ViewController *) alloc(EntityViewController), init);
-  $(tabViewController, addChildViewController, viewController);
-  release(viewController);
+  this->materialViewController = $(alloc(MaterialViewController), init);
+  assert(this->materialViewController);
 
-  viewController = $((ViewController *) alloc(MaterialViewController), init);
-  $(tabViewController, addChildViewController, viewController);
-  release(viewController);
+  ViewController *tabViewController = (ViewController *) this->tabViewController;
+
+  $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
+  $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
 
   $(self, addChildViewController, tabViewController);
   $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
+
+  Outlet outlets[] = MakeOutlets(MakeOutlet("save", &this->save));
+  $(self->view, resolve, outlets);
+
+  this->save->delegate.self = this;
+  this->save->delegate.didClick = didSave;
 }
 
 #pragma mark - Class lifecycle

@@ -76,11 +76,6 @@ struct EntityViewController {
   Button *delete;
 
   /**
-   * @brief The Button to save the .map.
-   */
-  Button *save;
-
-  /**
    * @brief The entity being edited.
    */
   EditorEntity entity;
@@ -101,6 +96,15 @@ struct EntityViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
+
+  /**
+   * @fn EntityViewController *EntityViewController::init(EntityViewController *self)
+   * @brief Initializes this EntityViewController.
+   * @param self The EntityViewController.
+   * @return The initialized EntityViewController, or `NULL` on error.
+   * @memberof EntityViewController
+   */
+  EntityViewController *(*init)(EntityViewController *self);
 
   /**
    * @fn void EntityViewController::setEntity(EntityViewController *self, EditorEntity *entity)
