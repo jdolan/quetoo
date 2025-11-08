@@ -528,7 +528,7 @@ void StrLower(const char *in, char *out);
 #define etos(e) (e ? va("%u: %s @ %s", e->s.number, e->class_name, vtos(e->s.origin)) : "null")
 
 // key / value info strings
-#define MAX_INFO_STRING_KEY    128
+#define MAX_INFO_STRING_KEY    32
 #define MAX_INFO_STRING_VALUE  128
 #define MAX_INFO_STRING_STRING MAX_STRING_CHARS
 

@@ -121,7 +121,7 @@ typedef struct {
 /**
  * @brief The maximum length of an entity pair value, in characters.
  */
-#define MAX_BSP_ENTITY_VALUE  256
+#define MAX_BSP_ENTITY_VALUE  128
 
 /**
  * @brief Entity pair parsed types.
