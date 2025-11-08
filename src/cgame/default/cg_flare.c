@@ -72,7 +72,7 @@ void Cg_AddFlares(void) {
 
     const r_bsp_inline_model_t *in = flare->face->node->model;
 
-    if (in != cgi.WorldModel()->bsp->inline_models) {
+    if (in != cgi.WorldModel()->bsp->inline_models && !editor->value) {
 
       const cl_entity_t *e = cgi.client->entities;
       for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
