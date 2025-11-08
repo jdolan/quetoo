@@ -23,6 +23,7 @@
 #include "client.h"
 
 extern cl_client_t cl;
+extern cl_static_t cls;
 
 static cvar_t *cl_editor_grid_size;
 
@@ -168,10 +169,6 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
   cm_entity_t *e = self->entity.def;
 
-  if (!e) {
-    return;
-  }
-
   const SDL_Keycode key = event->key.keysym.sym;
   const int32_t mod = event->key.keysym.mod;
 
@@ -181,18 +178,22 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
     switch (key) {
       case SDLK_c:
-        info = Cm_EntityToInfoString(e);
-        SDL_SetClipboardText(info);
-        Mem_Free(info);
-        Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
+        if (cls.key_state.dest == KEY_UI && e) {
+          info = Cm_EntityToInfoString(e);
+          SDL_SetClipboardText(info);
+          Mem_Free(info);
+          Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
+        }
         break;
 
       case SDLK_x:
-        info = Cm_EntityToInfoString(e);
-        SDL_SetClipboardText(info);
-        Mem_Free(info);
-        didDeleteEntity(self->delete);
-        Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
+        if (cls.key_state.dest == KEY_UI && e) {
+          info = Cm_EntityToInfoString(e);
+          SDL_SetClipboardText(info);
+          Mem_Free(info);
+          didDeleteEntity(self->delete);
+          Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
+        }
         break;
 
       case SDLK_v:
@@ -214,53 +215,58 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       Com_Print("Editor grid size set to %g\n", cl_editor_grid_size->value);
     }
 
-    vec3_t move = Vec3_Zero();
-    float step = cl_editor_grid_size->value;
+    if (cls.key_state.dest == KEY_UI && e) {
+      vec3_t move = Vec3_Zero();
+      float step = cl_editor_grid_size->value;
 
-    switch (key) {
-      case SDLK_w:
-      case SDLK_KP_8:
-      case SDLK_UP:
-        move = Vec3_Scale(cl_view.forward, +step);
-        break;
-      case SDLK_s:
-      case SDLK_KP_2:
-      case SDLK_DOWN:
-        move = Vec3_Scale(cl_view.forward, -step);
-        break;
+      switch (key) {
+        case SDLK_w:
+        case SDLK_KP_8:
+        case SDLK_UP:
+          move = Vec3_Scale(cl_view.forward, +step);
+          break;
 
-      case SDLK_d:
-      case SDLK_KP_6:
-      case SDLK_RIGHT:
-        move = Vec3_Scale(cl_view.right, +step);
-        break;
-      case SDLK_a:
-      case SDLK_KP_4:
-      case SDLK_LEFT:
-        move = Vec3_Scale(cl_view.right, -step);
-        break;
+        case SDLK_s:
+        case SDLK_KP_2:
+        case SDLK_DOWN:
+          move = Vec3_Scale(cl_view.forward, -step);
+          break;
 
-      case SDLK_q:
-      case SDLK_KP_9:
-      case SDLK_PAGEUP:
-        move = Vec3_Scale(cl_view.up, +step);
-        break;
-      case SDLK_e:
-      case SDLK_KP_3:
-      case SDLK_PAGEDOWN:
-        move = Vec3_Scale(cl_view.up, -step);
-        break;
-    }
+        case SDLK_d:
+        case SDLK_KP_6:
+        case SDLK_RIGHT:
+          move = Vec3_Scale(cl_view.right, +step);
+          break;
 
-    const char *classname = Cm_EntityValue(e, "classname")->string;
-    if (!Vec3_Equal(move, Vec3_Zero()) && g_strcmp0(classname, "worldspawn")) {
+        case SDLK_a:
+        case SDLK_KP_4:
+        case SDLK_LEFT:
+          move = Vec3_Scale(cl_view.right, -step);
+          break;
 
-      vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
-      origin = snapToGrid(Vec3_Add(origin, move));
+        case SDLK_q:
+        case SDLK_KP_9:
+        case SDLK_PAGEUP:
+          move = Vec3_Scale(cl_view.up, +step);
+          break;
 
-      Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
+        case SDLK_e:
+        case SDLK_KP_3:
+        case SDLK_PAGEDOWN:
+          move = Vec3_Scale(cl_view.up, -step);
+          break;
+      }
 
-      Cl_WriteEntityInfoCommand(self->entity.number, e);
+      const char *classname = Cm_EntityValue(e, "classname")->string;
+      if (!Vec3_Equal(move, Vec3_Zero()) && g_strcmp0(classname, "worldspawn")) {
+
+        vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
+        origin = snapToGrid(Vec3_Add(origin, move));
+
+        Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
+
+        Cl_WriteEntityInfoCommand(self->entity.number, e);
+      }
     }
   }
 }
@@ -272,10 +278,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  if ($(self->view, isVisible)) {
-    if (event->type == SDL_KEYDOWN) {
-      respondToKeyEvent(this, event);
-    }
+  if (event->type == SDL_KEYDOWN) {
+    respondToKeyEvent(this, event);
   }
 
   if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {

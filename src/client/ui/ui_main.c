@@ -106,6 +106,10 @@ void Ui_HandleEvent(const SDL_Event *event) {
       switch (event->type) {
         case SDL_WINDOWEVENT:
           break;
+        case SDL_KEYDOWN:
+          if (editor->value) {
+            break;
+          }
         default:
           return;
       }
@@ -141,7 +145,7 @@ void Ui_ViewWillAppear(void) {
 void Ui_ViewWillDisappear(void) {
 
   if (windowController) {
-    View *firstResponder = SDL_GetWindowData(r_context.window, "firstResponder");
+    View *firstResponder = $(windowController, firstResponder);
     if (firstResponder) {
       $(firstResponder, resignFirstResponder);
     }
