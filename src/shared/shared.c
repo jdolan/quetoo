@@ -611,9 +611,6 @@ bool InfoString_Validate(const char *s) {
   if (strstr(s, "\"")) {
     return false;
   }
-  if (strstr(s, ";")) {
-    return false;
-  }
   return true;
 }
 
