@@ -25,7 +25,7 @@
 extern cl_client_t cl;
 extern cl_static_t cls;
 
-static cvar_t *cl_editor_grid_size;
+static cvar_t *editor_grid_size;
 
 #include "EntityViewController.h"
 #include "EntityView.h"
@@ -39,7 +39,7 @@ static cvar_t *cl_editor_grid_size;
  */
 static vec3_t snapToGrid(const vec3_t v) {
 
-  const float gridSize = cl_editor_grid_size->value;
+  const float gridSize = editor_grid_size->value;
 
   return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / gridSize)), gridSize);
 }
@@ -52,7 +52,7 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
   vec3_t origin = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
   const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
-  origin = Vec3_Fmaf(tr.end, cl_editor_grid_size->value, Vec3_Negate(cl_view.forward));
+  origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cl_view.forward));
   origin = snapToGrid(origin);
 
   if (Cm_PointLeafnum(origin, 0) == -1) {
@@ -211,13 +211,13 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   } else if (mod == KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
-      Cvar_SetValue(cl_editor_grid_size->name, (1 << (key - SDLK_1)));
-      Com_Print("Editor grid size set to %g\n", cl_editor_grid_size->value);
+      Cvar_SetValue(editor_grid_size->name, (1 << (key - SDLK_1)));
+      Com_Print("Editor grid size set to %g\n", editor_grid_size->value);
     }
 
     if (cls.key_state.dest == KEY_UI && e) {
       vec3_t move = Vec3_Zero();
-      float step = cl_editor_grid_size->value;
+      float step = editor_grid_size->value;
 
       switch (key) {
         case SDLK_w:
@@ -399,7 +399,7 @@ static void initialize(Class *clazz) {
 
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
-  cl_editor_grid_size = Cvar_Add("cl_editor_grid_size", "16.f", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_grid_size = Cvar_Add("editor_grid_size", "16.f", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
 }
 
 /**
