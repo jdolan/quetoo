@@ -182,10 +182,19 @@ static void setEntity(EntityView *self, EditorEntity *entity) {
 
   self->entity = *entity;
 
+  self->key->control.state = ControlStateDefault;
+  self->value->control.state = ControlStateDefault;
+
   const cm_entity_t *def = self->entity.def;
   if (def) {
     $(self->key, setAttributedText, def->key);
     $(self->value, setAttributedText, def->string);
+
+    if (!g_strcmp0(def->key, "classname")
+        && !g_strcmp0(def->string, "worldspawn")) {
+      self->key->control.state |= ControlStateDisabled;
+      self->value->control.state |= ControlStateDisabled;
+    }
   } else {
     $(self->key, setAttributedText, "");
     $(self->value, setAttributedText, "");

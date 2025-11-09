@@ -70,6 +70,16 @@ struct EditorViewController {
   MaterialViewController *materialViewController;
 
   /**
+   * @brief The Create Entity Button.
+   */
+  Button *createEntity;
+
+  /**
+   * @brief The Delete Entity Button.
+   */
+  Button *deleteEntity;
+
+  /**
    * @brief The Save Button.
    */
   Button *save;

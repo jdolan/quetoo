@@ -66,16 +66,6 @@ struct EntityViewController {
   EntityView *add;
 
   /**
-   * @brief The Button to create a new entity.
-   */
-  Button *create;
-
-  /**
-   * @brief The Button to delete the current entity.
-   */
-  Button *delete;
-
-  /**
    * @brief The entity being edited.
    */
   EditorEntity entity;
@@ -96,6 +86,22 @@ struct EntityViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
+
+  /**
+   * @fn void EntityViewController::createEntity(EntityViewController *self)
+   * @brief Creates a new entity.
+   * @param self The EntityViewController.
+   * @memberof EntityViewController
+   */
+  void (*createEntity)(EntityViewController *self);
+
+  /**
+   * @fn void EntityViewController::deleteEntity(EntityViewController *self)
+   * @brief Deletes the selected entity.
+   * @param self The EntityViewController.
+   * @memberof EntityViewController
+   */
+  void (*deleteEntity)(EntityViewController *self);
 
   /**
    * @fn EntityViewController *EntityViewController::init(EntityViewController *self)

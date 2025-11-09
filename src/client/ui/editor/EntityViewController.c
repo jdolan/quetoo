@@ -35,16 +35,6 @@ static cvar_t *editor_grid_size;
 #pragma mark - Utilities
 
 /**
- * @brief Snaps the vector to the given grid size.
- */
-static vec3_t snapToGrid(const vec3_t v) {
-
-  const float gridSize = editor_grid_size->value;
-
-  return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / gridSize)), gridSize);
-}
-
-/**
  * @brief Sets the given entity's origin to where the client is looking.
  */
 static void setEntityOriginFromClientView(cm_entity_t *entity) {
@@ -53,10 +43,11 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
   const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
   origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cl_view.forward));
-  origin = snapToGrid(origin);
+  origin = Vec3_Quantize(origin, editor_grid_size->value);
 
   if (Cm_PointLeafnum(origin, 0) == -1) {
-    origin = snapToGrid(Vec3_Fmaf(cl_view.origin, 256.f, cl_view.forward));
+    origin = Vec3_Fmaf(cl_view.origin, 256.f, cl_view.forward);
+    origin = Vec3_Quantize(origin, editor_grid_size->value);
   }
 
   Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
@@ -87,41 +78,6 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
   }
 }
 
-/**
- * @brief ButtonDelegate for Create.
- */
-static void didCreateEntity(Button *button) {
-
-  EntityViewController *this = button->delegate.self;
-
-  cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
-
-  setEntityOriginFromClientView(entity);
-
-  Mem_Free(this->created);
-
-  this->created = Cm_EntityToInfoString(entity);
-
-  Cl_WriteEntityInfoCommand(-1, entity);
-
-  Cm_FreeEntity(entity);
-}
-
-/**
- * @brief ButtonDelegate for Delete.
- */
-static void didDeleteEntity(Button *button) {
-
-  EntityViewController *this = button->delegate.self;
-
-  if (this->entity.number) {
-
-    Cl_WriteEntityInfoCommand(this->entity.number, NULL);
-
-    $(this, setEntity, NULL);
-  }
-}
-
 #pragma mark - Object
 
 /**
@@ -147,9 +103,7 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("pairs", &this->pairs),
-    MakeOutlet("add", &this->add),
-    MakeOutlet("create", &this->create),
-    MakeOutlet("delete", &this->delete)
+    MakeOutlet("add", &this->add)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -160,12 +114,6 @@ static void loadView(ViewController *self) {
 
   this->add->delegate.self = this;
   this->add->delegate.didEditEntity = didEditEntity;
-
-  this->create->delegate.self = this;
-  this->create->delegate.didClick = didCreateEntity;
-
-  this->delete->delegate.self = this;
-  this->delete->delegate.didClick = didDeleteEntity;
 }
 
 /**
@@ -179,13 +127,10 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   const int32_t mod = event->key.keysym.mod;
 
   if (mod & KMOD_CLIPBOARD) {
-
-    char *info;
-
     switch (key) {
       case SDLK_c:
         if (cls.key_state.dest == KEY_UI && e) {
-          info = Cm_EntityToInfoString(e);
+          char *info = Cm_EntityToInfoString(e);
           SDL_SetClipboardText(info);
           Mem_Free(info);
           Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
@@ -194,24 +139,26 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
       case SDLK_x:
         if (cls.key_state.dest == KEY_UI && e) {
-          info = Cm_EntityToInfoString(e);
+          char *info = Cm_EntityToInfoString(e);
           SDL_SetClipboardText(info);
           Mem_Free(info);
-          didDeleteEntity(self->delete);
+          $(self, deleteEntity);
           Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
         }
         break;
 
       case SDLK_v:
         if (SDL_HasClipboardText()) {
-          info = SDL_GetClipboardText();
+          char *info = SDL_GetClipboardText();
           cm_entity_t *entity = Cm_EntityFromInfoString(info);
-          setEntityOriginFromClientView(entity);
-          Mem_Free(self->created);
-          self->created = Cm_EntityToInfoString(entity);
-          Cl_WriteEntityInfoCommand(-1, entity);
-          Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
-          Cm_FreeEntity(entity);
+          if (entity) {
+            setEntityOriginFromClientView(entity);
+            Mem_Free(self->created);
+            self->created = Cm_EntityToInfoString(entity);
+            Cl_WriteEntityInfoCommand(-1, entity);
+            Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
+            Cm_FreeEntity(entity);
+          }
           SDL_free(info);
         }
         break;
@@ -237,7 +184,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         right.x = SignOf(cl_view.right.x);
       }
 
-      float step = editor_grid_size->value;
+      const float step = editor_grid_size->value;
 
       switch (key) {
         case SDLK_w:
@@ -281,7 +228,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       if (!Vec3_Equal(move, Vec3_Zero()) && g_strcmp0(classname, "worldspawn")) {
 
         vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
-        origin = snapToGrid(Vec3_Add(origin, move));
+        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
 
         Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
@@ -302,18 +249,24 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     respondToKeyEvent(this, event);
   }
 
-  if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
+  if (event->type == MVC_NOTIFICATION_EVENT) {
 
-    const int16_t number = (int16_t) (intptr_t) event->user.data1;
-    const char *info = cl.config_strings[CS_ENTITIES + number];
+    switch (event->user.code) {
+      case NOTIFICATION_ENTITY_PARSED: {
 
-    if (number == this->entity.number || !g_strcmp0(this->created, info)) {
+        const int16_t number = (int16_t) (intptr_t) event->user.data1;
+        const char *info = cl.config_strings[CS_ENTITIES + number];
 
-      $(this, setEntity, &(EditorEntity) {
-        .number = number,
-        .ent = &cl.entities[number],
-        .def = cl.entity_definitions[number]
-      });
+        if (number == this->entity.number || !g_strcmp0(this->created, info)) {
+
+          $(this, setEntity, &(EditorEntity) {
+            .number = number,
+            .ent = &cl.entities[number],
+            .def = cl.entity_definitions[number]
+          });
+        }
+      }
+        break;
     }
   }
 
@@ -370,6 +323,34 @@ static void viewWillAppear(ViewController *self) {
 #pragma mark - EntityViewController
 
 /**
+ * @fn void EntityViewController::createEntity(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static void createEntity(EntityViewController *self) {
+
+  cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
+  setEntityOriginFromClientView(entity);
+
+  Mem_Free(self->created);
+  self->created = Cm_EntityToInfoString(entity);
+
+  Cl_WriteEntityInfoCommand(-1, entity);
+  Cm_FreeEntity(entity);
+}
+
+/**
+ * @fn void EntityViewController::deleteEntity(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static void deleteEntity(EntityViewController *self) {
+
+  if (self->entity.number) {
+    Cl_WriteEntityInfoCommand(self->entity.number, NULL);
+    $(self, setEntity, NULL);
+  }
+}
+
+/**
  * @fn EntityViewController *EntityViewController::init(EntityViewController *)
  * @memberof EntityViewController
  */
@@ -408,6 +389,7 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
 
       release(view);
     }
+
   } else {
     self->entity.number = -1;
     self->entity.ent = NULL;
@@ -415,6 +397,12 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
   }
 
   $((View *) self->pairs, sizeToFit);
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_ENTITY_SELECTED,
+    .user.data1 = (void *) (intptr_t) self->entity.number
+  });
 }
 
 #pragma mark - Class lifecycle
@@ -430,6 +418,8 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
+  ((EntityViewControllerInterface *) clazz->interface)->createEntity = createEntity;
+  ((EntityViewControllerInterface *) clazz->interface)->deleteEntity = deleteEntity;
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 

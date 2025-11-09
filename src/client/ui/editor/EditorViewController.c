@@ -26,9 +26,29 @@
 #pragma mark - Delegates
 
 /**
+ * @brief ButtonDelegate for Create Entity.
+ */
+static void didClickCreateEntity(Button *button) {
+
+  EditorViewController *this = button->delegate.self;
+
+  $(this->entityViewController, createEntity);
+}
+
+/**
+ * @brief ButtonDelegate for Delete Entity.
+ */
+static void didClickDeleteEntity(Button *button) {
+
+  EditorViewController *this = button->delegate.self;
+
+  $(this->entityViewController, deleteEntity);
+}
+
+/**
  * @brief ButtonDelegate for Save .map and .mat.
  */
-static void didSave(Button *button) {
+static void didClickSave(Button *button) {
 
   Cbuf_AddText("save_editor_map\n");
 
@@ -92,11 +112,49 @@ static void loadView(ViewController *self) {
   $(self, addChildViewController, tabViewController);
   $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 
-  Outlet outlets[] = MakeOutlets(MakeOutlet("save", &this->save));
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
+    MakeOutlet("save", &this->save)
+  );
+
   $(self->view, resolve, outlets);
 
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+
   this->save->delegate.self = this;
-  this->save->delegate.didClick = didSave;
+  this->save->delegate.didClick = didClickSave;
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  EditorViewController *this = (EditorViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+
+    switch (event->user.code) {
+      case NOTIFICATION_ENTITY_SELECTED: {
+        Control *deleteEntity = (Control *) this->deleteEntity;
+        const int16_t number = (int16_t) (intptr_t) event->user.data1;
+        if (number <= 0) {
+          deleteEntity->state |= ControlStateDisabled;
+        } else {
+          deleteEntity->state &= ~ControlStateDisabled;
+        }
+        $(deleteEntity, stateDidChange);
+      }
+        break;
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
 }
 
 #pragma mark - Class lifecycle
@@ -109,6 +167,7 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
 }
 
 /**
