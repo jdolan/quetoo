@@ -191,7 +191,7 @@ void Sv_SaveEditorMap_f(void) {
 
   char path[MAX_QPATH];
   StripExtension(Cm_Bsp()->name, path);
-  g_strlcat(path, ".editor.map", sizeof(path));
+  g_strlcat(path, ".map", sizeof(path));
 
   file_t *file = Fs_OpenWrite(path);
   if (!file) {
