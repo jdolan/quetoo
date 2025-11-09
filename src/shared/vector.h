@@ -1027,7 +1027,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Mix3(const vec3_t
 }
 
 /**
- * @return The vector `a` raised tht exponent `exp`.
+ * @return The vector `a` raised the exponent `exp`.
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Pow(const vec3_t a, float exp) {
   return Vec3(powf(a.x, exp), powf(a.y, exp), powf(a.z, exp));
@@ -1087,6 +1087,13 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_RandomizeDir(cons
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Roundf(const vec3_t v) {
   return Vec3(roundf(v.x), roundf(v.y), roundf(v.z));
+}
+
+/**
+ * @return The vector `v` quantized to the given step.
+ */
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Quantize(const vec3_t v, float step) {
+  return Vec3_Scale(Vec3_Roundf(Vec3_Scale(v, 1.f / step)), step);
 }
 
 /**
