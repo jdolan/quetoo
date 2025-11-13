@@ -33,8 +33,7 @@ void Cl_R_Restart_f(void) {
   }
 
   Ui_HandleEvent(&(const SDL_Event) {
-    .window.type = SDL_WINDOWEVENT,
-    .window.event = SDL_WINDOWEVENT_CLOSE
+    .type = SDL_EVENT_WINDOW_CLOSE_REQUESTED,
   });
 
   R_Shutdown();

@@ -87,7 +87,7 @@ static void updateBindings(View *self) {
     if (surface) {
 
       $(this->imageView, setImageWithSurface, surface);
-      SDL_FreeSurface(surface);
+      SDL_DestroySurface(surface);
 
       SDL_Color color = Colors.White;
       if (g_strcmp0(cg_draw_crosshair_color->string, "default")) {

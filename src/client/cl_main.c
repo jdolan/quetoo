@@ -638,7 +638,7 @@ void Cl_Frame(const uint32_t msec) {
     }
     cl.time_demo_frames++;
   } else {
-    float target_fps = cl_max_fps->value ?: r_context.mode.refresh_rate;
+    float target_fps = cl_max_fps->value ?: r_context.refresh_rate;
     if (target_fps > 0.f) { // cap render frame rate
       if (MILLIS_TO_SECONDS(quetoo.ticks - frame_timestamp) < 1.f / target_fps) {
         return;

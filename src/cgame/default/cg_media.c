@@ -253,7 +253,7 @@ void Cg_LoadMedia(void) {
 
   cgi.CompileAtlas(cg_sprite_atlas);
 
-  const int32_t w = cgi.context->drawable_width, h = cgi.context->drawable_height;
+  const int32_t w = cgi.context->pw, h = cgi.context->ph;
   cg_framebuffer = cgi.CreateFramebuffer(w, h, ATTACHMENT_ALL);
 
   Cg_LoadFlares();

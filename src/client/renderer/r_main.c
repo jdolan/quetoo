@@ -125,7 +125,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
   struct r_uniform_block_t *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
 
-  out->projection2D = Mat4_FromOrtho(0.f, r_context.mode.w, r_context.mode.h, 0.f, -1.f, 1.f);
+  out->projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
 
   if (view) {
     out->viewport = view->viewport;
@@ -237,7 +237,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_DrawOcclusionQueries(view);
 
-  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.pw, r_context.ph);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -287,7 +287,7 @@ void R_DrawMainView(r_view_t *view) {
 
   R_Draw3D();
 
-  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.pw, r_context.ph);
 
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -318,7 +318,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   R_DrawMeshEntities(view);
 
-  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.pw, r_context.ph);
 
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -496,9 +496,9 @@ void R_Init(void) {
   R_GetError("Video initialization");
 
   Com_Print("Video initialized %dx%d (%dx%d) %s\n",
-        r_context.mode.w, r_context.mode.h,
-        r_context.drawable_width, r_context.drawable_height,
-            (r_context.fullscreen ? "fullscreen" : "windowed"));
+        r_context.w, r_context.h,
+        r_context.pw, r_context.ph,
+        r_context.fullscreen ? "fullscreen" : "windowed");
 }
 
 /**

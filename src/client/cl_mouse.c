@@ -28,9 +28,9 @@ void Cl_MouseButtonEvent(const SDL_Event *event) {
   SDL_Event e;
   memset(&e, 0, sizeof(e));
 
-  e.type = event->type == SDL_MOUSEBUTTONUP ? SDL_KEYUP : SDL_KEYDOWN;
-  e.key.keysym.scancode = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
-  e.key.keysym.sym = SDL_SCANCODE_TO_KEYCODE(e.key.keysym.scancode);
+  e.type = event->type == SDL_EVENT_MOUSE_BUTTON_UP ? SDL_EVENT_KEY_UP : SDL_EVENT_KEY_DOWN;
+  e.key.scancode = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
+  e.key.key = SDL_SCANCODE_TO_KEYCODE(e.key.scancode);
 
   Cl_KeyEvent(&e);
 }
@@ -58,13 +58,13 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
         SDL_Event e;
         memset(&e, 0, sizeof(e));
 
-        e.type = SDL_KEYDOWN;
-        e.key.keysym.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN);
-        e.key.keysym.sym = SDL_SCANCODE_TO_KEYCODE(e.key.keysym.scancode);
+        e.type = SDL_EVENT_KEY_DOWN;
+        e.key.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN);
+        e.key.key = SDL_SCANCODE_TO_KEYCODE(e.key.scancode);
 
         Cl_KeyEvent(&e);
 
-        e.type = SDL_KEYUP;
+        e.type = SDL_EVENT_KEY_UP;
 
         Cl_KeyEvent(&e);
       }

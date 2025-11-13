@@ -21,7 +21,7 @@
 
 #include "swap.h"
 
-#include <SDL_endian.h>
+#include <SDL3/SDL_endian.h>
 
 /**
  * @brief
@@ -47,28 +47,28 @@ static float SwapFloat(float f) {
  * @brief
  */
 int16_t BigShort(int16_t s) {
-  return SDL_SwapBE16(s);
+  return SDL_Swap16BE(s);
 }
 
 /**
  * @brief
  */
 int16_t LittleShort(int16_t s) {
-  return SDL_SwapLE16(s);
+  return SDL_Swap16LE(s);
 }
 
 /**
  * @brief
  */
 int32_t BigLong(int32_t l) {
-  return SDL_SwapBE32(l);
+  return SDL_Swap32BE(l);
 }
 
 /**
  * @brief
  */
 int32_t LittleLong(int32_t l) {
-  return SDL_SwapLE32(l);
+  return SDL_Swap32LE(l);
 }
 
 /**

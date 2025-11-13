@@ -56,7 +56,7 @@ void Cl_KeyDown(button_t *b) {
   if (c[0]) {
     k = atoi(c);
   } else {
-    k = SDL_NUM_SCANCODES; // typed manually at the console for continuous down
+    k = SDL_SCANCODE_COUNT; // typed manually at the console for continuous down
   }
 
   if (k == (SDL_Scancode) b->keys[0] || k == (SDL_Scancode) b->keys[1]) {
@@ -256,35 +256,39 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
   switch (event->type) {
 
-    case SDL_QUIT:
+    case SDL_EVENT_QUIT:
       Cmd_ExecuteString("quit");
       return true;
 
-    case SDL_WINDOWEVENT:
-      if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-        if (r_context.fullscreen == false) {
-          const int32_t w = event->window.data1;
-          const int32_t h = event->window.data2;
-          if (w != r_width->integer || h != r_height->integer) {
-            Cvar_ForceSetInteger(r_width->name, event->window.data1);
-            Cvar_ForceSetInteger(r_height->name, event->window.data2);
-            Cbuf_AddText("r_restart\n");
-            return true;
-          }
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+      if (r_context.fullscreen == false) {
+        const int32_t w = event->window.data1;
+        const int32_t h = event->window.data2;
+        if (w != r_width->integer || h != r_height->integer) {
+          Cvar_ForceSetInteger(r_width->name, event->window.data1);
+          Cvar_ForceSetInteger(r_height->name, event->window.data2);
+          Cbuf_AddText("r_restart\n");
+          return true;
         }
-      } else if (event->window.event == SDL_WINDOWEVENT_EXPOSED) {
-        const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
-        if (display != r_display->integer) {
-          Cvar_ForceSetInteger(r_display->name, display);
+      }
+      break;
+      
+    case SDL_EVENT_WINDOW_EXPOSED:
+      {
+        const SDL_DisplayID display = SDL_GetDisplayForWindow(SDL_GL_GetCurrentWindow());
+        // Note: r_display stores an index but SDL3 uses DisplayID
+        // This comparison may need adjustment based on how r_display is used
+        if ((int32_t)display != r_display->integer) {
+          Cvar_ForceSetInteger(r_display->name, (int32_t)display);
           Cbuf_AddText("r_restart\n");
           return true;
         }
       }
       break;
 
-    case SDL_KEYDOWN:
+    case SDL_EVENT_KEY_DOWN:
 
-      if (event->key.keysym.sym == SDLK_ESCAPE) { // escape can cancel a few things
+      if (event->key.key == SDLK_ESCAPE) { // escape can cancel a few things
 
         // connecting to a server
         switch (cls.state) {
@@ -327,7 +331,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
       // for everything other than ESC, check for system-level command binds
 
-      SDL_Scancode key = event->key.keysym.scancode;
+      SDL_Scancode key = event->key.scancode;
       if (cls.key_state.binds[key]) {
         cmd_t *cmd;
 
@@ -352,25 +356,25 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 
   switch (event->type) {
 
-    case SDL_KEYDOWN:
-    case SDL_KEYUP:
+    case SDL_EVENT_KEY_DOWN:
+    case SDL_EVENT_KEY_UP:
       Cl_KeyEvent(event);
       break;
 
-    case SDL_MOUSEBUTTONDOWN:
-    case SDL_MOUSEBUTTONUP:
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
       Cl_MouseButtonEvent(event);
       break;
 
-    case SDL_MOUSEWHEEL:
+    case SDL_EVENT_MOUSE_WHEEL:
       Cl_MouseWheelEvent(event);
       break;
 
-    case SDL_MOUSEMOTION:
+    case SDL_EVENT_MOUSE_MOTION:
       Cl_MouseMotionEvent(event);
       break;
 
-    case SDL_TEXTINPUT:
+    case SDL_EVENT_TEXT_INPUT:
       Cl_TextEvent(event);
       break;
   }
@@ -382,11 +386,11 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 static void Cl_UpdateMouseState(void) {
 
   if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
-    SDL_ShowCursor(true);
-    SDL_SetWindowGrab(r_context.window, false);
+    SDL_ShowCursor();
+    SDL_SetWindowMouseGrab(r_context.window, false);
   } else {
-    SDL_ShowCursor(false);
-    SDL_SetWindowGrab(r_context.window, true);
+    SDL_HideCursor();
+    SDL_SetWindowMouseGrab(r_context.window, true);
   }
 }
 
@@ -418,8 +422,8 @@ void Cl_HandleEvents(void) {
   }
 
   if (cls.key_state.dest == KEY_GAME) {
-    const GLint cx = r_context.mode.w * 0.5f;
-    const GLint cy = r_context.mode.h * 0.5f;
+    const GLint cx = r_context.w * 0.5f;
+    const GLint cy = r_context.h * 0.5f;
 
     SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }

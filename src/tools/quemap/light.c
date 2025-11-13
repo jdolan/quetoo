@@ -105,7 +105,7 @@ void FreeLights(void) {
  */
 void BuildLights(void) {
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   Progress("Building lights", 0);
 
@@ -122,7 +122,7 @@ void BuildLights(void) {
     Progress("Building lights", i * 100.f / count);
   }
 
-  Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
 
   Com_Verbose("Lighting for %d lights\n", lights->len);
 }
@@ -136,7 +136,7 @@ void EmitLights(void) {
     return;
   }
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   bsp_file.num_lights = lights->len;
 
@@ -203,5 +203,5 @@ void EmitLights(void) {
     Progress("Emitting lights", 100.f * i / lights->len);
   }
 
-  Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }

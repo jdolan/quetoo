@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <SDL_mutex.h>
+#include <SDL3/SDL_mutex.h>
 
 #include "cmd.h"
 #include "cvar.h"
@@ -87,7 +87,7 @@ typedef struct {
   /**
    * @brief A lock for coordinating thread access to the console.
    */
-  SDL_mutex *lock;
+  SDL_Mutex *lock;
 
 } console_state_t;
 

@@ -55,7 +55,7 @@ libclient_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL2_CFLAGS@ \
+	@SDL3_CFLAGS@ \
 	@SNDFILE_CFLAGS@
 
 libclient_la_LDFLAGS = \
@@ -75,7 +75,7 @@ libclient_null_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL2_CFLAGS@ \
+	@SDL3_CFLAGS@ \
 	@SNDFILE_CFLAGS@
 
 libclient_null_la_LDFLAGS = \

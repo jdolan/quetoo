@@ -79,7 +79,7 @@ static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 
   if (len != -1) {
 
-    SDL_RWops *rw = SDL_RWFromConstMem(buf, (int32_t) len);
+    SDL_IOStream *rw = SDL_IOFromConstMem(buf, (int32_t) len);
 
     SF_INFO info;
     memset(&info, 0, sizeof(info));
@@ -124,7 +124,7 @@ static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 
     sf_close(snd);
 
-    SDL_RWclose(rw);
+    SDL_CloseIO(rw);
 
     Fs_Free(buf);
   }

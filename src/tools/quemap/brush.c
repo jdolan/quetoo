@@ -22,7 +22,7 @@
 #include "brush.h"
 #include "map.h"
 
-static SDL_atomic_t c_active_brushes;
+static SDL_AtomicInt c_active_brushes;
 
 /**
  * @brief
@@ -33,7 +33,7 @@ csg_brush_t *AllocBrush(int32_t num_brush_sides) {
 
   brush->brush_sides = Mem_LinkMalloc(sizeof(brush_side_t) * num_brush_sides, brush);
 
-  SDL_AtomicAdd(&c_active_brushes, 1);
+  SDL_AddAtomicInt(&c_active_brushes, 1);
 
   return brush;
 }
@@ -45,7 +45,7 @@ void FreeBrush(csg_brush_t *brush) {
 
   assert(brush);
 
-  SDL_AtomicAdd(&c_active_brushes, -1);
+  SDL_AddAtomicInt(&c_active_brushes, -1);
   
   for (int32_t i = 0; i < brush->num_brush_sides; i++) {
     if (brush->brush_sides[i].winding) {

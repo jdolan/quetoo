@@ -19,20 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 
 #include "tree.h"
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_atomic_t c_active_nodes;
+static SDL_AtomicInt c_active_nodes;
 
 /**
  * @brief
  */
 node_t *AllocNode(void) {
 
-  SDL_AtomicAdd(&c_active_nodes, 1);
+  SDL_AddAtomicInt(&c_active_nodes, 1);
 
   return Mem_TagMalloc(sizeof(node_t), MEM_TAG_NODE);
 }
@@ -42,7 +42,7 @@ node_t *AllocNode(void) {
  */
 void FreeNode(node_t *node) {
 
-  SDL_AtomicAdd(&c_active_nodes, -1);
+  SDL_AddAtomicInt(&c_active_nodes, -1);
 
   Mem_Free(node);
 }
@@ -395,7 +395,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
   Com_Debug(DEBUG_ALL, "--- BuildTree ---\n");
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   tree_t *tree = AllocTree();
 
@@ -437,7 +437,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 
   BuildTree_r(tree->head_node, brushes);
 
-  Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Building tree", (uint32_t) SDL_GetTicks() - start);
 
   return tree;
 }

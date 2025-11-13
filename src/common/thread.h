@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <SDL_thread.h>
+#include <SDL3/SDL_thread.h>
 
 #include "mem.h"
 
@@ -46,8 +46,8 @@ typedef void (*ThreadRunFunc)(void *data);
 
 typedef struct {
   SDL_Thread *thread;
-  SDL_cond *cond;
-  SDL_mutex *mutex;
+  SDL_Condition *cond;
+  SDL_Mutex *mutex;
   thread_status_t status;
   thread_options_t options;
   char name[64];
@@ -62,5 +62,5 @@ int32_t Thread_Count(void);
 void Thread_Init(ssize_t num_threads);
 void Thread_Shutdown(void);
 
-extern SDL_threadID thread_main;
-extern _Thread_local SDL_threadID thread_id;
+extern SDL_ThreadID thread_main;
+extern _Thread_local SDL_ThreadID thread_id;

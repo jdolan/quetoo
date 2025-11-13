@@ -104,9 +104,9 @@ void Ui_HandleEvent(const SDL_Event *event) {
   if (windowController) {
     if (cls.key_state.dest != KEY_UI) {
       switch (event->type) {
-        case SDL_WINDOWEVENT:
+        case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
           break;
-        case SDL_KEYDOWN:
+        case SDL_EVENT_KEY_DOWN:
           if (editor->value) {
             break;
           }

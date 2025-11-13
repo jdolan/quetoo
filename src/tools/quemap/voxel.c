@@ -45,10 +45,10 @@ SDL_Surface *CreateVoxelSurface(int32_t w, int32_t h, size_t voxel_size, void *v
 
   SDL_Surface *surface = SDL_malloc(sizeof(SDL_Surface));
 
-  surface->flags = SDL_DONTFREE;
+  surface->flags = SDL_SURFACE_PREALLOCATED;
   surface->w = w;
   surface->h = h;
-  surface->userdata = (void *) voxel_size;
+  surface->reserved = (void *) voxel_size;
   surface->pixels = voxels;
 
   return surface;
@@ -65,14 +65,14 @@ int32_t BlitVoxelSurface(const SDL_Surface *src, SDL_Surface *dest, const SDL_Re
   assert(dest);
   assert(dest->pixels);
 
-  assert(src->userdata == dest->userdata);
+  assert(src->reserved == dest->reserved);
 
   assert(rect);
 
   assert(src->w == rect->w);
   assert(src->h == rect->h);
 
-  const size_t voxel_size = (size_t) src->userdata;
+  const size_t voxel_size = (size_t) src->reserved;
 
   const byte *in = src->pixels;
   byte *out = dest->pixels;
@@ -102,13 +102,13 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
 
   SDL_Surface *out;
 
-  const size_t voxel_size = (size_t) in->userdata;
+  const size_t voxel_size = (size_t) in->reserved;
   switch (voxel_size) {
 
     case sizeof(vec3_t): {
       const vec3_t *in_voxel = (vec3_t *) in->pixels;
 
-      out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+      out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGB24);
       color24_t *out_voxel = (color24_t *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
@@ -122,7 +122,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
     case sizeof(color24_t): {
       const color24_t *in_voxel = (color24_t *) in->pixels;
 
-      out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 24, SDL_PIXELFORMAT_RGB24);
+      out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGB24);
       color24_t *out_voxel = (color24_t *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
@@ -136,7 +136,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
     case sizeof(color32_t): {
       const color32_t *in_voxel = (color32_t *) in->pixels;
 
-      out = SDL_CreateRGBSurfaceWithFormat(0, in->w, in->h, 32, SDL_PIXELFORMAT_RGBA32);
+      out = SDL_CreateSurface(in->w, in->h, SDL_PIXELFORMAT_RGBA32);
       color32_t *out_voxel = (color32_t *) out->pixels;
 
       for (int32_t x = 0; x < in->w; x++) {
@@ -150,7 +150,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
 
   const int32_t err = IMG_SavePNG(out, name);
 
-  SDL_FreeSurface(out);
+  SDL_DestroySurface(out);
 
   return err;
 }
@@ -498,7 +498,7 @@ void EmitVoxels(void) {
       WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
     }
 
-    SDL_FreeSurface(diffuse);
-    SDL_FreeSurface(fog);
+    SDL_DestroySurface(diffuse);
+    SDL_DestroySurface(fog);
   }
 }

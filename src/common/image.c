@@ -34,20 +34,20 @@ static SDL_Surface *Img_LoadSurface_(const char *name, const char *type) {
   int64_t len;
   if ((len = Fs_Load(path, &buf)) != -1) {
 
-    SDL_RWops *rw;
-    if ((rw = SDL_RWFromConstMem(buf, (int32_t) len))) {
+    SDL_IOStream *rw;
+    if ((rw = SDL_IOFromConstMem(buf, (int32_t) len))) {
 
       SDL_Surface *s;
-      if ((s = IMG_LoadTyped_RW(rw, 0, type))) {
+      if ((s = IMG_LoadTyped_IO(rw, 0, type))) {
 
-        if (s->format->format != SDL_PIXELFORMAT_RGBA32) {
-          surf = SDL_ConvertSurfaceFormat(s, SDL_PIXELFORMAT_RGBA32, 0);
-          SDL_FreeSurface(s);
+        if (s->format != SDL_PIXELFORMAT_RGBA32) {
+          surf = SDL_ConvertSurface(s, SDL_PIXELFORMAT_RGBA32);
+          SDL_DestroySurface(s);
         } else {
           surf = s;
         }
       }
-      SDL_RWclose(rw);
+      SDL_CloseIO(rw);
     }
     Fs_Free(buf);
   }
@@ -124,7 +124,7 @@ color_t Img_Color(const SDL_Surface *surf) {
 
 // Quick access of a pixel
 #define SDL_PIXEL_AT(surf, type, x, y) \
-  *(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * surf->format->BytesPerPixel)
+  *(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * SDL_BYTESPERPIXEL(surf->format))
 
 // helper macro which copies an SDL pixel from one surf to another
 #define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
@@ -150,7 +150,7 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 
   SDL_LockSurface(surf);
 
-  SDL_Surface *output = SDL_CreateRGBSurfaceWithFormat(0, surf->w, surf->h, surf->format->BitsPerPixel, surf->format->format);
+  SDL_Surface *output = SDL_CreateSurface(surf->w, surf->h, surf->format);
 
   SDL_LockSurface(output);
 
@@ -183,10 +183,10 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
-  SDL_RWops *f;
+  SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
 
-  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
     Com_Warn("Failed to open to %s\n", real_path);
     return false;
   }
@@ -198,12 +198,12 @@ bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height)
     memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
   }
 
-  SDL_Surface *ss = SDL_CreateRGBSurfaceFrom(buffer, width, height, 8 * 3, width * 3, 0, 0, 0, 0);
-  IMG_SavePNG_RW(ss, f, 0);
+  SDL_Surface *ss = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGB24, buffer, width * 3);
+  IMG_SavePNG_IO(ss, f, 0);
 
-  SDL_FreeSurface(ss);
+  SDL_DestroySurface(ss);
   Mem_Free(buffer);
-  SDL_RWclose(f);
+  SDL_CloseIO(f);
   return true;
 }
 
@@ -228,10 +228,10 @@ typedef struct {
 * @brief Write pixel data to a TGA file.
 */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
-  SDL_RWops *f;
+  SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
 
-  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
     Com_Warn("Failed to open to %s\n", real_path);
     return false;
   }
@@ -252,12 +252,12 @@ bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height)
   };
 
   // write TGA header
-  SDL_RWwrite(f, &header, 18, 1);
+  SDL_WriteIO(f, &header, 18);
 
   // write TGA data
-  SDL_RWwrite(f, data, width * height, 3);
+  SDL_WriteIO(f, data, width * height * 3);
 
-  SDL_RWclose(f);
+  SDL_CloseIO(f);
   return true;
 }
 
@@ -265,10 +265,10 @@ bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height)
 * @brief Write pixel data to a PBM file.
 */
 bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
-  SDL_RWops *f;
+  SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
 
-  if (!(f = SDL_RWFromFile(real_path, "wb"))) {
+  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
     Com_Warn("Failed to open to %s\n", real_path);
     return false;
   }
@@ -283,7 +283,7 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   }
 
   // write PBM header
-  SDL_RWwrite(f, header, strlen(header), 1);
+  SDL_WriteIO(f, header, strlen(header));
 
   // output buffer
   byte *buffer = Mem_Malloc(width * height * 3 * bpp);
@@ -322,10 +322,10 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
     }
   }
 
-  SDL_RWwrite(f, buffer, width * height, 3 * bpp);
+  SDL_WriteIO(f, buffer, width * height * 3 * bpp);
 
   Mem_Free(buffer);
 
-  SDL_RWclose(f);
+  SDL_CloseIO(f);
   return true;
 }

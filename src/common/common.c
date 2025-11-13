@@ -233,7 +233,7 @@ void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
   va_end(args);
 }
 
-#include <SDL_assert.h>
+#include <SDL3/SDL_assert.h>
 
 /**
  * @brief An error condition has occurred. This function does not return.

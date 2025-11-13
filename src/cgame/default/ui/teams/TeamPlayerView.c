@@ -45,7 +45,7 @@ static void updateBindings(View *self) {
 
     SDL_Surface *surface = cgi.LoadSurface(this->client->icon->media.name);
     $(this->icon, setImageWithSurface, surface);
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface);
     
   } else {
     $(this->name->text, setText, NULL);

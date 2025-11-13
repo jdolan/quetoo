@@ -171,7 +171,7 @@ static void updateBindings(View *self) {
 
   SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
   $(this->iconView, setImageWithSurface, surface);
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 }
 
 #pragma mark - Control
@@ -183,13 +183,13 @@ static bool captureEvent(Control *self, const SDL_Event *event) {
 
   PlayerModelView *this = (PlayerModelView *) self;
 
-  if (event->type == SDL_MOUSEMOTION && event->motion.state & SDL_BUTTON_LMASK) {
+  if (event->type == SDL_EVENT_MOUSE_MOTION && event->motion.state & SDL_BUTTON_LMASK) {
 
     if ($((View *) self, didReceiveEvent, event)) {
       this->yaw += event->motion.xrel;
       return true;
     }
-  } else if (event->type == SDL_MOUSEWHEEL) {
+  } else if (event->type == SDL_EVENT_MOUSE_WHEEL) {
 
     if ($((View *) self, didReceiveEvent, event)) {
       this->zoom = Clampf01(this->zoom + event->wheel.y * 0.0125f);

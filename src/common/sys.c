@@ -50,7 +50,7 @@
   #include <sys/time.h>
 #endif
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 /**
  * @return The current executable path (argv[0]).
@@ -284,7 +284,7 @@ void Sys_Raise(const char *msg) {
     .numbuttons = 1,
     .buttons = &(const SDL_MessageBoxButtonData) {
       .flags = SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT | SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-      .buttonid = 1,
+      .buttonID = 1,
       .text = "OK"
     }
   };

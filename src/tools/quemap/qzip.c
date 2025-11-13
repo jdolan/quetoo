@@ -292,7 +292,7 @@ int32_t ZIP_Main(void) {
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nCreating archive for %s\n\n", bsp_name);
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -392,7 +392,7 @@ int32_t ZIP_Main(void) {
   g_list_free(assets);
   g_hash_table_destroy(paths);
 
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
   if (update_zip) {

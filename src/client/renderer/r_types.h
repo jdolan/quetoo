@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <SDL_video.h>
+#include <SDL3/SDL_video.h>
 
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
@@ -1735,12 +1735,18 @@ typedef struct {
   /**
    * @brief The OpenGL 3.3 context.
    */
-  SDL_GLContext *context;
+  SDL_GLContext context;
 
   /**
-   * @brief The display mode.
+   * @brief The window size, which may be smaller than the drawable size in pixels
+   * on high pixel density (4K+) displays.
    */
-  SDL_DisplayMode mode;
+  GLint w, h;
+
+  /**
+   * @brief OpenGL context size in drawable pixels, as reported by `SDL_GetWindowSizeInPixels`.
+   */
+  GLint pw, ph;
 
   /**
    * @brief True if fullscreen, false if windowed.
@@ -1748,14 +1754,14 @@ typedef struct {
   bool fullscreen;
 
   /**
-   * @brief OpenGL context size in drawable pixels, as reported by `SDL_GL_GetDrawableSize`.
-   */
-  GLint drawable_width, drawable_height;
-
-  /**
    * @brief Greater than 1.0 if High DPI mode is enabled.
    */
   float window_scale;
+
+  /**
+   * @brief The display refresh rate in Hz.
+   */
+  float refresh_rate;
 } r_context_t;
 
 /**

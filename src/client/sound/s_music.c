@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 
 #include "s_local.h"
 
@@ -41,7 +41,7 @@ static struct {
   GList *playlist;
 
   SDL_Thread *thread; // thread sound system runs on
-  SDL_mutex *mutex; // mutex for music state
+  SDL_Mutex *mutex; // mutex for music state
   bool shutdown;
 } s_music_state;
 

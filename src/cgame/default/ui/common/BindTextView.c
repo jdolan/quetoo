@@ -106,11 +106,11 @@ static bool captureEvent(Control *self, const SDL_Event *event) {
 
   if (self->state & ControlStateFocused) {
 
-    if (event->type == SDL_KEYDOWN || event->type == SDL_MOUSEBUTTONDOWN) {
+    if (event->type == SDL_EVENT_KEY_DOWN || event->type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 
       SDL_Scancode key;
-      if (event->type == SDL_KEYDOWN) {
-        key = event->key.keysym.scancode;
+      if (event->type == SDL_EVENT_KEY_DOWN) {
+        key = event->key.scancode;
       } else {
         key = SDL_SCANCODE_MOUSE1 + (event->button.button - 1);
       }

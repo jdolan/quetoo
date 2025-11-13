@@ -134,10 +134,10 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
       if (surface->w != w || surface->h != h) {
         Com_Warn("Material asset %s is not %dx%d, resizing..\n", path, w, h);
 
-        SDL_Surface *scaled = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
-        SDL_BlitScaled(surface, NULL, scaled, NULL);
+        SDL_Surface *scaled = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
+        SDL_BlitSurfaceScaled(surface, NULL, scaled, NULL, SDL_SCALEMODE_NEAREST);
 
-        SDL_FreeSurface(surface);
+        SDL_DestroySurface(surface);
         surface = scaled;
       }
     }
@@ -151,7 +151,7 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
  */
 static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
 
-  SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, w, h, 32, SDL_PIXELFORMAT_RGBA32);
+  SDL_Surface *surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
 
   SDL_memset4(surface->pixels, color.rgba, w * h);
 
@@ -221,7 +221,7 @@ static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surfac
       out_normalmap->a = in_heightmap->r;
     }
 
-    SDL_FreeSurface(heightmap);
+    SDL_DestroySurface(heightmap);
   }
 
   // Scale the heightmap to maximize parallax effect
@@ -248,7 +248,7 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 
   const color32_t *in = diffusemap->pixels;
 
-  SDL_Surface *specularmap = SDL_CreateRGBSurfaceWithFormat(0, diffusemap->w, diffusemap->h, 32, SDL_PIXELFORMAT_RGBA32);
+  SDL_Surface *specularmap = SDL_CreateSurface(diffusemap->w, diffusemap->h, SDL_PIXELFORMAT_RGBA32);
   color32_t *out = specularmap->pixels;
 
   for (int32_t i = 0; i < diffusemap->w; i++) {
@@ -394,9 +394,9 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
       free(data);
 
-      SDL_FreeSurface(normalmap);
-      SDL_FreeSurface(specularmap);
-      SDL_FreeSurface(tintmap);
+      SDL_DestroySurface(normalmap);
+      SDL_DestroySurface(specularmap);
+      SDL_DestroySurface(tintmap);
     }
       break;
 
@@ -407,7 +407,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
   material->color = Img_Color(diffusemap);
   
-  SDL_FreeSurface(diffusemap);
+  SDL_DestroySurface(diffusemap);
 
   R_ResolveMaterialStages(material, context);
 

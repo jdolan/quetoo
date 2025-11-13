@@ -19,18 +19,18 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_atomic.h>
+#include <SDL3/SDL_atomic.h>
 
 #include "cm_local.h"
 
-static SDL_atomic_t c_windings;
+static SDL_AtomicInt c_windings;
 
 /**
  * @brief
  */
 cm_winding_t *Cm_AllocWinding(int32_t num_points) {
 
-  SDL_AtomicAdd(&c_windings, 1);
+  SDL_AddAtomicInt(&c_windings, 1);
 
   return Mem_TagMalloc(sizeof(int32_t) + sizeof(vec3_t) * num_points, MEM_TAG_POLYLIB);
 }
@@ -40,7 +40,7 @@ cm_winding_t *Cm_AllocWinding(int32_t num_points) {
  */
 void Cm_FreeWinding(cm_winding_t *w) {
 
-  SDL_AtomicAdd(&c_windings, -1);
+  SDL_AddAtomicInt(&c_windings, -1);
 
   Mem_Free(w);
 }

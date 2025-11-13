@@ -24,14 +24,14 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_atomic_t c_active_portals;
+static SDL_AtomicInt c_active_portals;
 
 /**
  * @brief
  */
 static portal_t *AllocPortal(void) {
 
-  SDL_AtomicAdd(&c_active_portals, 1);
+  SDL_AddAtomicInt(&c_active_portals, 1);
 
   return Mem_TagMalloc(sizeof(portal_t), MEM_TAG_PORTAL);
 }
@@ -45,7 +45,7 @@ void FreePortal(portal_t *p) {
     Cm_FreeWinding(p->winding);
   }
 
-  SDL_AtomicAdd(&c_active_portals, -1);
+  SDL_AddAtomicInt(&c_active_portals, -1);
 
   Mem_Free(p);
 }

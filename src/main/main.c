@@ -22,7 +22,7 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#include <SDL_assert.h>
+#include <SDL3/SDL_assert.h>
 
 #include "config.h"
 #include "client/client.h"
@@ -279,7 +279,7 @@ static void MemStats_f(void) {
  */
 static void Init(void) {
 
-  SDL_Init(SDL_INIT_TIMER);
+  SDL_Init(SDL_INIT_EVENTS);
 
   Mem_Init();
 
@@ -455,7 +455,7 @@ int32_t main(int32_t argc, char *argv[]) {
     }
 
     do {
-      quetoo.ticks = SDL_GetTicks();
+      quetoo.ticks = (uint32_t) SDL_GetTicks();
       msec = (quetoo.ticks - old_time) * time_scale->value;
     } while (msec < 1);
 

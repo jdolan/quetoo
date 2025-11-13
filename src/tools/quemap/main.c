@@ -32,7 +32,7 @@
   #include <windows.h>
 #endif
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 quetoo_t quetoo;
 
@@ -69,11 +69,11 @@ static void Shutdown(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
 
-  fprintf(stderr, "ERROR: Thread %lu: %s", SDL_ThreadID(), msg);
+  fprintf(stderr, "ERROR: Thread %llu: %s", SDL_GetCurrentThreadID(), msg);
 
   fflush(stderr);
 
-  if (SDL_ThreadID() == thread_main) {
+  if (SDL_GetCurrentThreadID() == thread_main) {
     Shutdown(msg);
     exit(err);
   } else {
@@ -120,7 +120,7 @@ static void Warn(const char *msg) {
  */
 static void Init(void) {
 
-  SDL_Init(SDL_INIT_TIMER);
+  SDL_Init(SDL_INIT_EVENTS);
 
   Com_InitSubsystem(QUEMAP);
 
@@ -390,7 +390,7 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   // start timer
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   if (do_mat) {
     MAT_Main();
@@ -408,7 +408,7 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   // emit time
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\n%s finished in %dms\n", Com_Argv(0), end - start);
 
   Com_Shutdown(NULL);

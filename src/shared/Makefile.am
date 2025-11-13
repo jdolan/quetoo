@@ -19,10 +19,10 @@ libshared_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 libshared_la_LDFLAGS = \
 	-shared
 libshared_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
-	@SDL2_LIBS@
+	@SDL3_LIBS@

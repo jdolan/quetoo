@@ -180,7 +180,7 @@ static int32_t EmitNode(const node_t *node) {
  */
 int32_t EmitNodes(const tree_t *tree) {
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   // block nodes define additional planes, ensure they make it into the bsp
   EmitPlanes();
@@ -192,7 +192,7 @@ int32_t EmitNodes(const tree_t *tree) {
 
   Com_Verbose("%5i welded vertices\n", num_welds);
 
-  Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Emitting nodes", (uint32_t) SDL_GetTicks() - start);
 
   return node;
 }
@@ -275,7 +275,7 @@ void EmitBrushes(void) {
  */
 void EmitEntities(void) {
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_ENTITIES, MAX_BSP_ENTITIES_SIZE);
 
@@ -304,7 +304,7 @@ void EmitEntities(void) {
 
   bsp_file.entity_string_size = (int32_t) len + 1;
 
-  Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting entities", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting entities", (uint32_t) SDL_GetTicks() - start);
 }
 
 /**

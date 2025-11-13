@@ -438,7 +438,7 @@ int32_t LIGHT_Main(void) {
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nLighting %s\n\n", bsp_name);
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
   if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
@@ -458,7 +458,7 @@ int32_t LIGHT_Main(void) {
     Mem_FreeTag(tag);
   }
 
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
 
   return 0;

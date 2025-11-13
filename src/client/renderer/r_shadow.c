@@ -320,7 +320,7 @@ void R_DrawShadows(const r_view_t *view) {
   glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
 
-  glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
+  glViewport(0, 0, r_context.pw, r_context.ph);
 
   glUseProgram(0);
 

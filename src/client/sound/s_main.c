@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 #include "s_local.h"
 
@@ -60,44 +60,44 @@ void S_GetError_(const char *function, const char *msg) {
  * @brief
  */
 static sf_count_t S_RWops_get_filelen(void *user_data) {
-  SDL_RWops *rwops = (SDL_RWops *) user_data;
-  return rwops->size(rwops);
+  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+  return SDL_GetIOSize(rwops);
 }
 
 /**
  * @brief
  */
 static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
-  SDL_RWops *rwops = (SDL_RWops *) user_data;
-  return rwops->seek(rwops, offset, whence);
+  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+  return SDL_SeekIO(rwops, offset, whence);
 }
 
 /**
  * @brief
  */
 static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
-  SDL_RWops *rwops = (SDL_RWops *) user_data;
-  return rwops->read(rwops, ptr, 1, count);
+  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+  return SDL_ReadIO(rwops, ptr, count);
 }
 
 /**
  * @brief
  */
 static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
-  SDL_RWops *rwops = (SDL_RWops *) user_data;
-  return rwops->write(rwops, ptr, 1, count);
+  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+  return SDL_WriteIO(rwops, ptr, count);
 }
 
 /**
  * @brief
  */
 static sf_count_t S_RWops_tell(void *user_data) {
-  SDL_RWops *rwops = (SDL_RWops *) user_data;
-  return rwops->seek(rwops, 0, SEEK_CUR);
+  SDL_IOStream *rwops = (SDL_IOStream *) user_data;
+  return SDL_TellIO(rwops);
 }
 
 /**
- * @brief An interface to SDL_RWops for libsndfile
+ * @brief An interface to SDL_IOStream for libsndfile
  */
 SF_VIRTUAL_IO s_rwops_io = {
   .get_filelen = S_RWops_get_filelen,
@@ -191,7 +191,7 @@ void S_Stop(void) {
  * @brief Initialize the per-frame attributes of a sound stage.
  */
 void S_InitStage(s_stage_t *stage) {
-  stage->ticks = SDL_GetTicks();
+  stage->ticks = (uint32_t) SDL_GetTicks();
   stage->num_samples = 0;
 }
 

@@ -178,18 +178,8 @@ static void enumerateMaps(const char *path, void *data) {
 
         SDL_Surface *surf = cgi.LoadSurface(mapshot);
         if (surf) {
-          SDL_SetSurfaceBlendMode(surf, SDL_BLENDMODE_NONE);
-          info->mapshot = SDL_CreateRGBSurface(0,
-                                               this->collectionView.itemSize.w * 2,
-                                               this->collectionView.itemSize.h * 2,
-                                               surf->format->BitsPerPixel,
-                                               surf->format->Rmask,
-                                               surf->format->Gmask,
-                                               surf->format->Bmask,
-                                               surf->format->Amask
-                                              );
-          SDL_SetSurfaceBlendMode(info->mapshot, SDL_BLENDMODE_NONE);
-          SDL_BlitScaled(surf, NULL, info->mapshot, NULL);
+          info->mapshot = SDL_CreateSurface(this->collectionView.itemSize.w, this->collectionView.itemSize.h, SDL_PIXELFORMAT_RGB24);
+          SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
         } else {
           info->mapshot = NULL;
         }

@@ -23,7 +23,7 @@
 #include "portal.h"
 #include "qbsp.h"
 
-static SDL_atomic_t c_tjunctions;
+static SDL_AtomicInt c_tjunctions;
 static GPtrArray *faces;
 static SDL_SpinLock *faces_locks;
 static int32_t largest_winding = 0;
@@ -46,9 +46,9 @@ static void FixTJunctions_(int32_t face_num) {
   const plane_t *plane = &planes[face->brush_side->plane];
 
   // Make a copy of face->w for testing
-  SDL_AtomicLock(face_lock);
+  SDL_LockSpinlock(face_lock);
   memcpy(face_winding, face->w, sizeof(cm_winding_t) + (face->w->num_points * sizeof(vec3_t)));
-  SDL_AtomicUnlock(face_lock);
+  SDL_UnlockSpinlock(face_lock);
 
   for (size_t s = 0; s < faces->len; s++) {
 
@@ -59,9 +59,9 @@ static void FixTJunctions_(int32_t face_num) {
     
     SDL_SpinLock *f_lock = &faces_locks[s];
 
-    SDL_AtomicLock(f_lock);
+    SDL_LockSpinlock(f_lock);
     memcpy(f_winding, f->w, sizeof(cm_winding_t) + (f->w->num_points * sizeof(vec3_t)));
-    SDL_AtomicUnlock(f_lock);
+    SDL_UnlockSpinlock(f_lock);
 
     for (int32_t i = 0; i < f_winding->num_points; i++) {
       const vec3_t v = f_winding->points[i];
@@ -107,16 +107,16 @@ static void FixTJunctions_(int32_t face_num) {
           }
         }
 
-        SDL_AtomicLock(face_lock);
+        SDL_LockSpinlock(face_lock);
 
         // Copy back to face, and copy to temp winding
         Cm_FreeWinding(face->w);
         face->w = w;
         memcpy(face_winding, face->w, sizeof(cm_winding_t) + (face->w->num_points * sizeof(vec3_t)));
 
-        SDL_AtomicUnlock(face_lock);
+        SDL_UnlockSpinlock(face_lock);
 
-        SDL_AtomicAdd(&c_tjunctions, 1);
+        SDL_AddAtomicInt(&c_tjunctions, 1);
         break;
       }
     }
@@ -155,7 +155,7 @@ static void FixTJunctions_r(node_t *node) {
 void FixTJunctions(tree_t *tree) {
 
   Com_Verbose("--- FixTJunctions ---\n");
-  SDL_AtomicSet(&c_tjunctions, 0);
+  SDL_SetAtomicInt(&c_tjunctions, 0);
 
   faces = g_ptr_array_new();
   FixTJunctions_r(tree->head_node);
@@ -166,7 +166,7 @@ void FixTJunctions(tree_t *tree) {
 
   Work("Fixing t-junctions", FixTJunctions_, faces->len);
 
-  Com_Verbose("%5i fixed tjunctions\n", SDL_AtomicGet(&c_tjunctions));
+  Com_Verbose("%5i fixed tjunctions\n", SDL_GetAtomicInt(&c_tjunctions));
 
   Mem_Free(faces_locks);
   g_ptr_array_free(faces, true);

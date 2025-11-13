@@ -182,8 +182,8 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
   assert(framebuffer);
 
-  w = w ?: r_context.drawable_width;
-  h = h ?: r_context.drawable_height;
+  w = w ?: r_context.pw;
+  h = h ?: r_context.ph;
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
 
@@ -229,11 +229,7 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   assert(surface);
 
   if (*surface == NULL) {
-    *surface = SDL_CreateRGBSurfaceWithFormat(0,
-                          framebuffer->drawable_width,
-                          framebuffer->drawable_height,
-                          24,
-                          SDL_PIXELFORMAT_RGB24);
+    *surface = SDL_CreateSurface(framebuffer->drawable_width, framebuffer->drawable_height, SDL_PIXELFORMAT_RGB24);
   }
 
   GLuint in = 0;

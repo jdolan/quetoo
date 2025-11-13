@@ -1,8 +1,8 @@
 dnf -y install awscli libtool make wget zip
 
 dnf -y install \
-	mingw32-SDL2 \
-	mingw32-SDL2_image \
+	mingw32-SDL3 \
+	mingw32-SDL3_image \
 	mingw32-curl \
 	mingw32-dlfcn \
 	mingw32-flac \
@@ -19,8 +19,8 @@ dnf -y install \
 	mingw32-zlib
 
 dnf -y install \
-	mingw64-SDL2 \
-	mingw64-SDL2_image \
+	mingw64-SDL3 \
+	mingw64-SDL3_image \
 	mingw64-curl \
 	mingw64-dlfcn \
 	mingw64-flac \

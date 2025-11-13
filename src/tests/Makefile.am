@@ -5,14 +5,14 @@ TESTS_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CHECK_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 	
 TESTS_LIBS = \
 	libtests.la \
 	@BASE_LIBS@ \
 	@CHECK_LIBS@ \
 	@GLIB_LIBS@ \
-	@SDL2_LIBS@
+	@SDL3_LIBS@
 
 noinst_LTLIBRARIES = \
 	libtests.la

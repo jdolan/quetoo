@@ -67,7 +67,7 @@ static void FreeMaterial(material_t *material) {
 
   Cm_FreeMaterial(material->cm);
 
-  SDL_FreeSurface(material->diffusemap);
+  SDL_DestroySurface(material->diffusemap);
 }
 
 /**

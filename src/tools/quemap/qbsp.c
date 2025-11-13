@@ -149,7 +149,7 @@ int32_t BSP_Main(void) {
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nCompiling %s from %s\n\n", bsp_name, map_name);
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   LoadMaterials(va("maps/%s.mat", map_base));
 
@@ -182,7 +182,7 @@ int32_t BSP_Main(void) {
     Mem_FreeTag(tag);
   }
 
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nCompiled %s in %d ms\n", bsp_name, (end - start));
 
   return 0;

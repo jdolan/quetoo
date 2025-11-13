@@ -51,7 +51,7 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 
   GLenum internal_format;
   GLenum format;
-  switch (surface->format->BytesPerPixel) {
+  switch (SDL_BYTESPERPIXEL(surface->format)) {
     case 3:
       internal_format = GL_RGB8;
       format = GL_RGB;
@@ -61,7 +61,7 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
       format = GL_RGBA;
       break;
     default:
-      MVC_LogError("Invalid surface format: %s\n", SDL_GetPixelFormatName(surface->format->format));
+      MVC_LogError("Invalid surface format: %s\n", SDL_GetPixelFormatName(surface->format));
       return 0;
   }
 

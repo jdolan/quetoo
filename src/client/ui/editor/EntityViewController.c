@@ -123,12 +123,12 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
 
   cm_entity_t *e = self->entity.def;
 
-  const SDL_Keycode key = event->key.keysym.sym;
-  const int32_t mod = event->key.keysym.mod;
+  const SDL_Keycode key = event->key.key;
+  const int32_t mod = event->key.mod;
 
-  if (mod & KMOD_CLIPBOARD) {
+  if (mod & SDL_KMOD_CLIPBOARD) {
     switch (key) {
-      case SDLK_c:
+      case SDLK_C:
         if (cls.key_state.dest == KEY_UI && e) {
           char *info = Cm_EntityToInfoString(e);
           SDL_SetClipboardText(info);
@@ -137,7 +137,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         }
         break;
 
-      case SDLK_x:
+      case SDLK_X:
         if (cls.key_state.dest == KEY_UI && e) {
           char *info = Cm_EntityToInfoString(e);
           SDL_SetClipboardText(info);
@@ -147,7 +147,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         }
         break;
 
-      case SDLK_v:
+      case SDLK_V:
         if (SDL_HasClipboardText()) {
           char *info = SDL_GetClipboardText();
           cm_entity_t *entity = Cm_EntityFromInfoString(info);
@@ -163,7 +163,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         }
         break;
     }
-  } else if (mod == KMOD_NONE) {
+  } else if (mod == SDL_KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
       Cvar_SetValue(editor_grid_size->name, (1 << (key - SDLK_1)));
@@ -187,37 +187,37 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
       const float step = editor_grid_size->value;
 
       switch (key) {
-        case SDLK_w:
+        case SDLK_W:
         case SDLK_KP_8:
         case SDLK_UP:
           move = Vec3_Scale(forward, +step);
           break;
 
-        case SDLK_s:
+        case SDLK_S:
         case SDLK_KP_2:
         case SDLK_DOWN:
           move = Vec3_Scale(forward, -step);
           break;
 
-        case SDLK_d:
+        case SDLK_D:
         case SDLK_KP_6:
         case SDLK_RIGHT:
           move = Vec3_Scale(right, +step);
           break;
 
-        case SDLK_a:
+        case SDLK_A:
         case SDLK_KP_4:
         case SDLK_LEFT:
           move = Vec3_Scale(right, -step);
           break;
 
-        case SDLK_q:
+        case SDLK_Q:
         case SDLK_KP_9:
         case SDLK_PAGEUP:
           move = Vec3_Scale(Vec3_Up(), +step);
           break;
 
-        case SDLK_e:
+        case SDLK_E:
         case SDLK_KP_3:
         case SDLK_PAGEDOWN:
           move = Vec3_Scale(Vec3_Up(), -step);
@@ -245,7 +245,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  if (event->type == SDL_KEYDOWN) {
+  if (event->type == SDL_EVENT_KEY_DOWN) {
     respondToKeyEvent(this, event);
   }
 

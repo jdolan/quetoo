@@ -28,7 +28,7 @@ static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
   SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
-  SDL_FillRect(surface, &(SDL_Rect) {
+  SDL_FillSurfaceRect(surface, &(SDL_Rect) {
     0, 0, surface->w, surface->h
   }, color);
 
@@ -87,14 +87,14 @@ START_TEST(check_atlas) {
 
   Atlas_Destroy(atlas);
 
-  SDL_FreeSurface(red);
-  SDL_FreeSurface(green);
-  SDL_FreeSurface(blue);
-  SDL_FreeSurface(purple);
+  SDL_DestroySurface(red);
+  SDL_DestroySurface(green);
+  SDL_DestroySurface(blue);
+  SDL_DestroySurface(purple);
 
   IMG_SavePNG(surface, "/tmp/check_atlas.png");
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
 } END_TEST
 
@@ -127,10 +127,10 @@ START_TEST(check_atlas_random) {
   IMG_SavePNG(surface, "/tmp/check_atlas_random.png");
 
   for (size_t i = 0; i < 100; i++) {
-    SDL_FreeSurface(surfaces[i]);
+    SDL_DestroySurface(surfaces[i]);
   }
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
 } END_TEST
 
@@ -171,10 +171,10 @@ START_TEST(check_atlas_custom_comparator) {
   IMG_SavePNG(surface, "/tmp/check_atlas_custom_comparator.png");
 
   for (size_t i = 0; i < 100; i++) {
-    SDL_FreeSurface(surfaces[i]);
+    SDL_DestroySurface(surfaces[i]);
   }
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 } END_TEST
 
 /**
@@ -230,10 +230,10 @@ START_TEST(check_atlas_custom_blit) {
   IMG_SavePNG(surface, "/tmp/check_atlas_custom_blit.png");
 
   for (size_t i = 0; i < 100; i++) {
-    SDL_FreeSurface(surfaces[i]);
+    SDL_DestroySurface(surfaces[i]);
   }
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 } END_TEST
 
 /**

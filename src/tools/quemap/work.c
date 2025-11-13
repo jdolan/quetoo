@@ -19,12 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 
 #include "quemap.h"
 
 typedef struct {
-  SDL_mutex *lock; // mutex on all running work
+  SDL_Mutex *lock; // mutex on all running work
   const char *name; // the work name
   WorkFunc func; // the work function
   int32_t index; // current work cycle
@@ -92,7 +92,7 @@ void Work(const char *name, WorkFunc func, int32_t count) {
   work.index = 0;
   work.percent = -1;
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   const int32_t thread_count = Thread_Count();
 
@@ -113,7 +113,7 @@ void Work(const char *name, WorkFunc func, int32_t count) {
   SDL_DestroyMutex(work.lock);
   work.lock = NULL;
 
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
 
   if (work.name) {
     Com_Print(" %d ms\n", end - start);

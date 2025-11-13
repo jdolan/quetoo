@@ -59,14 +59,14 @@ quemap_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 quemap_LDADD = \
 	$(top_builddir)/deps/minizip/libminizip.la \
 	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	@CURSES_LIBS@ \
-	@SDL2_LIBS@
+	@SDL3_LIBS@
 
 if MINGW
 

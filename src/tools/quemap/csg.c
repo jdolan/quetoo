@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <SDL_timer.h>
+#include <SDL3/SDL_timer.h>
 
 #include "brush.h"
 #include "map.h"
@@ -111,7 +111,7 @@ static bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
  */
 csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   csg_brush_t *list = NULL;
 
@@ -145,7 +145,7 @@ csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
     Progress("Creating brushes", i * 100.f / count);
   }
 
-  Com_Print("\r%-24s [100%%] %d ms\n", "Creating brushes", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Creating brushes", (uint32_t) SDL_GetTicks() - start);
 
   return list;
 }
@@ -205,8 +205,8 @@ static inline bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
  */
 csg_brush_t *SubtractBrushes(csg_brush_t *head) {
 
-  const uint32_t start = SDL_GetTicks();
-  
+  const uint32_t start = (uint32_t) SDL_GetTicks();
+
   size_t head_count = CountBrushes(head);
 
   csg_brush_t *keep = NULL;
@@ -304,7 +304,7 @@ newlist:
 
   Com_Verbose("SubtractBrushes: %zi / %zi\n", head_count, CountBrushes(keep));
 
-  Com_Print("\r%-24s [100%%] %d ms\n", "Subtracting brushes", SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Subtracting brushes", (uint32_t) SDL_GetTicks() - start);
 
   return keep;
 }

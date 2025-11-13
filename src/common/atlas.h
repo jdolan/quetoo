@@ -22,7 +22,7 @@
 #pragma once
 
 #include <glib.h>
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 
 /**
  * @brief An atlas node locates one or more layered surfaces within an atlas.
@@ -68,7 +68,7 @@ typedef int32_t (*AtlasNodeComparator)(const atlas_node_t *a, const atlas_node_t
  * @param src The node layer.
  * @param dest The atlas layer.
  * @param rect The target rectangle in `dest` in which to blit `src`.
- * @details The default blit function delegates to `SDL_BlitScaled`.
+ * @details The default blit function delegates to `SDL_BlitSurfaceScaled`.
  */
 typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect);
 

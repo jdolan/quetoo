@@ -33,7 +33,7 @@ libcommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 libcommon_la_LDFLAGS = \
 	-shared
 libcommon_la_LIBADD = \
@@ -41,4 +41,4 @@ libcommon_la_LIBADD = \
 	@BASE_LIBS@ \
 	@GLIB_LIBS@ \
 	@PHYSFS_LIBS@ \
-	@SDL2_LIBS@
+	@SDL3_LIBS@

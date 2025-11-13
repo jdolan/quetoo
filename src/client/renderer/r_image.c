@@ -90,7 +90,7 @@ static void R_Screenshot_encode(void *data) {
     Com_Warn("Failed to write %s\n", filename);
   }
 
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 }
 
 /**
@@ -107,12 +107,7 @@ void R_Screenshot(r_view_t *view) {
       R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
       break;
     default:
-      surface = SDL_CreateRGBSurfaceWithFormat(0,
-                           view->framebuffer->width,
-                           view->framebuffer->height,
-                           24,
-                           SDL_PIXELFORMAT_RGB24);
-
+      surface = SDL_CreateSurface(view->framebuffer->width, view->framebuffer->height, SDL_PIXELFORMAT_RGB24);
       glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
       break;
   }
@@ -335,7 +330,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     for (size_t i = 0; i < 6; i++) {
       const GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum) i;
 
-      SDL_Surface *side = SDL_CreateRGBSurfaceWithFormat(0, image->width, image->height, 3, SDL_PIXELFORMAT_RGB24);
+      SDL_Surface *side = SDL_CreateSurface(image->width, image->height, SDL_PIXELFORMAT_RGBA32);
 
       SDL_BlitSurface(surface, &(const SDL_Rect) {
         .x = image->width * offsets[i].x,
@@ -353,14 +348,14 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
         SDL_Surface *rotated = Img_RotateSurface(side, rotations[i]);
 
         if (rotated != side) {
-          SDL_FreeSurface(side);
+          SDL_DestroySurface(side);
           side = rotated;
         }
       }
 
       R_UploadImageTarget(image, target, side->pixels);
 
-      SDL_FreeSurface(side);
+      SDL_DestroySurface(side);
     }
   } else {
     image->width = surface->w;
@@ -375,7 +370,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     R_UploadImage(image, surface->pixels);
   }
     
-  SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
   R_GetError(name);
 
@@ -473,19 +468,20 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
     
         const char *real_path = Fs_RealPath(path_name);
 
-        SDL_RWops *f = SDL_RWFromFile(real_path, "wb");
+        SDL_IOStream *f = SDL_IOFromFile(real_path, "wb");
 
         if (!f) {
           break;
         }
 
-        SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormatFrom(pixels, scaled_width, scaled_height, bpp == 3 ? 24 : 32, scaled_width * bpp, bpp == 3 ? SDL_PIXELFORMAT_RGB24 : SDL_PIXELFORMAT_RGBA32);
+        const SDL_PixelFormat format = bpp == 3 ? SDL_PIXELFORMAT_RGB24 : SDL_PIXELFORMAT_RGBA32;
+        SDL_Surface *surf = SDL_CreateSurfaceFrom(scaled_width, scaled_height, format, pixels, scaled_width * bpp);
 
-        IMG_SavePNG_RW(surf, f, 0);
+        IMG_SavePNG_IO(surf, f, 0);
 
-        SDL_FreeSurface(surf);
+        SDL_DestroySurface(surf);
 
-        SDL_RWclose(f);
+        SDL_CloseIO(f);
       }
 
       pixels += scaled_width * scaled_height * bpp;

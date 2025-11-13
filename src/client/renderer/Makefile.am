@@ -77,7 +77,7 @@ librenderer_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 librenderer_la_LDFLAGS = \
 	-shared

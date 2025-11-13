@@ -31,7 +31,7 @@ static void R_FreeAtlas(r_media_t *media) {
     atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
 
     for (int32_t layer = 0; layer < atlas->atlas->layers; layer++) {
-      SDL_FreeSurface(node->surfaces[layer]);
+      SDL_DestroySurface(node->surfaces[layer]);
     }
   }
 
@@ -88,8 +88,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
   SDL_Surface *surf = Img_LoadSurface(name);
   if (!surf) {
     Com_Warn("Failed to load atlas image %s\n", name);
-
-    surf = SDL_CreateRGBSurfaceWithFormatFrom((void *) (intptr_t) &pixels, 1, 1, 32, 4, SDL_PIXELFORMAT_RGBA32);
+    surf = SDL_CreateSurfaceFrom(1, 1, SDL_PIXELFORMAT_RGBA32, (void *) &pixels, sizeof(pixels));
   }
 
   atlas_node_t *node = Atlas_Insert(atlas->atlas, surf);
@@ -164,7 +163,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
     }
 
-    SDL_Surface *surf = SDL_CreateRGBSurfaceWithFormat(0, width, width, 32, SDL_PIXELFORMAT_RGBA32);
+    SDL_Surface *surf = SDL_CreateSurface(width, width, SDL_PIXELFORMAT_RGBA32);
     if (Atlas_Compile(atlas->atlas, 0, surf) == 0) {
 
       atlas->image->width = width;
@@ -176,13 +175,13 @@ void R_CompileAtlas(r_atlas_t *atlas) {
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, surf->w, surf->h, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 
       for (GLsizei i = 1; i < atlas->image->levels; i++) {
-        SDL_Surface *mip_surf = SDL_CreateRGBSurfaceWithFormat(0, width >> i, width >> i, 32, SDL_PIXELFORMAT_RGBA32);
+        SDL_Surface *mip_surf = SDL_CreateSurface(width >> i, width >> i, SDL_PIXELFORMAT_RGBA32);
 
         for (guint l = 0; l < atlas->atlas->nodes->len; l++) {
           const atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, l);
           const r_atlas_image_t *atlas_image = node->data;
 
-          SDL_BlitScaled(surf, &(const SDL_Rect) {
+          SDL_BlitSurfaceScaled(surf, &(const SDL_Rect) {
             .x = node->x, 
             .y = node->y,
             .w = atlas_image->image.width,
@@ -192,20 +191,20 @@ void R_CompileAtlas(r_atlas_t *atlas) {
             .y = node->y >> i,
             .w = node->w >> i,
             .h = node->h >> i
-          });
+          }, SDL_SCALEMODE_NEAREST);
         }
         
         glTexSubImage2D(GL_TEXTURE_2D, i, 0, 0, mip_surf->w, mip_surf->h, GL_RGBA, GL_UNSIGNED_BYTE, mip_surf->pixels);
 
         R_GetError(NULL);
 
-        SDL_FreeSurface(mip_surf);
+        SDL_DestroySurface(mip_surf);
       }
 
       g_ptr_array_foreach(atlas->atlas->nodes, R_CompileAtlas_Node, atlas);
     }
 
-    SDL_FreeSurface(surf);
+    SDL_DestroySurface(surf);
 
     atlas->dirty = false;
   }

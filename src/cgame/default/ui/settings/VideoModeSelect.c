@@ -64,27 +64,29 @@ static void updateBindings(View *self) {
 
   Option *option = $(select, optionWithValue, NULL);
 
-  const int32_t display = SDL_GetWindowDisplayIndex(SDL_GL_GetCurrentWindow());
-  const int32_t numDisplayModes = SDL_GetNumDisplayModes(display);
+  const SDL_DisplayID display = SDL_GetDisplayForWindow(SDL_GL_GetCurrentWindow());
+  int32_t numDisplayModes = 0;
+  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &numDisplayModes);
 
-  if (numDisplayModes) {
+  if (modes && numDisplayModes > 0) {
     this->modes = g_malloc(sizeof(SDL_DisplayMode) * numDisplayModes);
     assert(this->modes);
 
     SDL_DisplayMode *mode = this->modes;
     for (int32_t i = 0; i < numDisplayModes; i++, mode++) {
-      SDL_GetDisplayMode(display, i, mode);
+      *mode = *modes[i];  // Copy the mode data
 
       if (SDL_BITSPERPIXEL(mode->format) == 32) {
 
-        char *title = va("%dx%d @ %dHz", mode->w, mode->h, mode->refresh_rate);
+        char *title = va("%dx%d @ %.0fHz", mode->w, mode->h, mode->refresh_rate);
         $(select, addOption, title, mode);
 
-        if (mode->w == cgi.context->mode.w && mode->h == cgi.context->mode.h) {
+        if (mode->w == cgi.context->w && mode->h == cgi.context->h) {
           option = $(select, optionWithValue, mode);
         }
       }
     }
+    SDL_free(modes);
   }
 
   $(select, selectOption, option);

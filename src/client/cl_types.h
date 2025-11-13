@@ -315,7 +315,7 @@ typedef enum {
 } cl_key_dest_t;
 
 typedef enum {
-  SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_APP2 + 1),
+  SDL_SCANCODE_MOUSE1 = (SDL_SCANCODE_RESERVED + 1),
   SDL_SCANCODE_MOUSE3,
   SDL_SCANCODE_MOUSE2,
   SDL_SCANCODE_MOUSE4,
@@ -347,17 +347,17 @@ enum {
 };
 
 #if defined(__APPLE__)
-  #define KMOD_CLIPBOARD KMOD_GUI
+  #define SDL_KMOD_CLIPBOARD SDL_KMOD_GUI
 #else
-  #define KMOD_CLIPBOARD KMOD_CTRL
+  #define SDL_KMOD_CLIPBOARD SDL_KMOD_CTRL
 #endif
 
 typedef struct {
   cl_key_dest_t dest;
 
-  char *binds[SDL_NUM_SCANCODES];
-  bool down[SDL_NUM_SCANCODES];
-  bool latched[SDL_NUM_SCANCODES];
+  char *binds[SDL_SCANCODE_COUNT];
+  bool down[SDL_SCANCODE_COUNT];
+  bool latched[SDL_SCANCODE_COUNT];
 } cl_key_state_t;
 
 typedef struct {

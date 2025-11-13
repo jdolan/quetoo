@@ -36,7 +36,7 @@ int32_t MAT_Main(void) {
   Com_Print("\n------------------------------------------\n");
   Com_Print("\nGenerating %s for %s\n\n", path, map_name);
 
-  const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
   // clear the whole bsp structure
   memset(&bsp_file, 0, sizeof(bsp_file));
@@ -51,7 +51,7 @@ int32_t MAT_Main(void) {
 
   FreeMaterials();
 
-  const uint32_t end = SDL_GetTicks();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nGenerated %" PRIoPTR " materials in %d ms\n", count, end - start);
 
   return 0;

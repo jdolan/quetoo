@@ -36,7 +36,7 @@ static int32_t Atlas_DefaultComparator(const atlas_node_t *a, const atlas_node_t
  * @brief The default blit function.
  */
 static int32_t Atlas_DefaultBlit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
-  return SDL_BlitScaled((SDL_Surface *) src, NULL, dest, (SDL_Rect *) rect);
+  return SDL_BlitSurfaceScaled((SDL_Surface *) src, NULL, dest, (SDL_Rect *) rect, SDL_SCALEMODE_NEAREST);
 }
 
 /**

@@ -36,7 +36,7 @@ static void R_SetWindowIcon(void) {
 
   SDL_SetWindowIcon(r_context.window, surf);
 
-  SDL_FreeSurface(surf);
+  SDL_DestroySurface(surf);
 }
 
 /**
@@ -230,56 +230,69 @@ void R_InitContext(void) {
   memset(&r_context, 0, sizeof(r_context));
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
-    if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0) {
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
       Com_Error(ERROR_FATAL, "%s\n", SDL_GetError());
     }
   }
 
-  uint32_t flags = SDL_WINDOW_OPENGL |
-           SDL_WINDOW_INPUT_GRABBED |
-           SDL_WINDOW_INPUT_FOCUS |
+  SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL |
+           SDL_WINDOW_MOUSE_GRABBED |
            SDL_WINDOW_MOUSE_FOCUS |
+           SDL_WINDOW_INPUT_FOCUS |
+           SDL_WINDOW_KEYBOARD_GRABBED |
            SDL_WINDOW_MOUSE_CAPTURE;
 
-  const int display = Clampf(r_display->integer, 0, SDL_GetNumVideoDisplays() - 1);
+  SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
 
-  if (r_allow_high_dpi->integer) {
-    flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+  int32_t num_displays = 0;
+  SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
+  if (displays && r_display->integer) {
+    for (int32_t i = 0; i < num_displays; i++) {
+      if (displays[i] == (SDL_DisplayID) r_display->integer) {
+        display_id = displays[i];
+        break;
+      }
+    }
+    SDL_free(displays);
+  } else {
+    Com_Warn("Failed to query displays: %s\n", SDL_GetError());
   }
 
   int32_t w = Maxf(0, r_width->integer);
   int32_t h = Maxf(0, r_height->integer);
 
   if (w == 0 || h == 0) {
-    SDL_DisplayMode best;
-    SDL_GetDesktopDisplayMode(display, &best);
-
-    w = best.w;
-    h = best.h;
+    const SDL_DisplayMode *best = SDL_GetDesktopDisplayMode(display_id);
+    if (best) {
+      w = best->w;
+      h = best->h;
+    }
   }
 
   if (r_fullscreen->integer) {
     if (r_fullscreen->integer == 2) {
-      flags |= SDL_WINDOW_BORDERLESS;
+      window_flags |= SDL_WINDOW_BORDERLESS;
     } else {
-      flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+      window_flags |= SDL_WINDOW_FULLSCREEN;
     }
   } else {
-    flags |= SDL_WINDOW_RESIZABLE;
+    window_flags |= SDL_WINDOW_RESIZABLE;
   }
 
   Com_Print("  Trying %dx%d..\n", w, h);
 
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING,
-      SDL_WINDOWPOS_CENTERED_DISPLAY(display),
-      SDL_WINDOWPOS_CENTERED_DISPLAY(display), w, h, flags)) == NULL) {
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
   }
 
-  SDL_GetWindowDisplayMode(r_context.window, &r_context.mode);
-  r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+  SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);
+  SDL_GetWindowSizeInPixels(r_context.window, &r_context.pw, &r_context.ph);
 
-  Cvar_ForceSetInteger(r_display->name, SDL_GetWindowDisplayIndex(r_context.window));
+  r_context.refresh_rate = SDL_GetCurrentDisplayMode(display_id)->refresh_rate;
+  r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
+  r_context.window_scale = SDL_GetWindowDisplayScale(r_context.window);
+
+  Cvar_ForceSetInteger(r_display->name, (int32_t) SDL_GetDisplayForWindow(r_context.window));
 
   R_SetWindowIcon();
 
@@ -297,13 +310,13 @@ void R_InitContext(void) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  SDL_GLcontextFlag gl_context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+  SDL_GLContextFlag context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 
   if (r_get_error->integer) {
-    gl_context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
+    context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
   }
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, gl_context_flags);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
 
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
     Com_Warn("Failed to create 32 bit OpenGL context: %s\n", SDL_GetError());
@@ -315,14 +328,6 @@ void R_InitContext(void) {
       Com_Error(ERROR_FATAL, "Failed to create 24 bit OpenGL context: %s\n", SDL_GetError());
     }
   }
-
-  int32_t dw, dh;
-  SDL_GL_GetDrawableSize(r_context.window, &dw, &dh);
-
-  r_context.drawable_width = dw;
-  r_context.drawable_height = dh;
-
-  r_context.window_scale = dw / (float) r_context.mode.w;
 
   const int32_t valid_attribs[] = {
     SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
@@ -352,7 +357,7 @@ void R_InitContext(void) {
       attr[SDL_GL_CONTEXT_FLAGS],
       attr[SDL_GL_CONTEXT_PROFILE_MASK]);
 
-  if (SDL_GL_SetSwapInterval(r_swap_interval->integer) == -1) {
+  if (!SDL_GL_SetSwapInterval(r_swap_interval->integer)) {
     Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
   }
 
@@ -390,7 +395,7 @@ void R_InitContext(void) {
 void R_ShutdownContext(void) {
 
   if (r_context.context) {
-    SDL_GL_DeleteContext(r_context.context);
+    SDL_GL_DestroyContext(r_context.context);
     r_context.context = NULL;
   }
 

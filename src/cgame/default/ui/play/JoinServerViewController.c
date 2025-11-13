@@ -246,7 +246,8 @@ static void didSelectRowsAtIndexes(TableView *tableView, const IndexSet *indexes
 
   View *view = (View *) tableView;
 
-  const SDL_Event *event = SDL_GetWindowData(view->window, "event");
+  const SDL_PropertiesID props = SDL_GetWindowProperties(view->window);
+  const SDL_Event *event = SDL_GetPointerProperty(props, "event", NULL);
   if (event && event->button.clicks == 2) {
 
     const guint index = (guint) indexes->indexes[0];
