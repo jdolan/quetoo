@@ -29,20 +29,6 @@
 #pragma mark - Delegates
 
 /**
- * @brief ActionFunction for the Save Button.
- */
-static void didClickSave(Button *button) {
-  MaterialViewController *this = button->delegate.self;
-
-  if (this->model == NULL) {
-    Com_Debug(DEBUG_UI, "Not editing a material\n");
-    return;
-  }
-
-  Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
-}
-
-/**
  * @brief SliderDelegate callback.
  */
 static void didSetValue(Slider *slider, double value) {
