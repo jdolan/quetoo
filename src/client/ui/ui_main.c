@@ -145,9 +145,13 @@ void Ui_ViewWillAppear(void) {
 void Ui_ViewWillDisappear(void) {
 
   if (windowController) {
-    View *firstResponder = $(windowController, firstResponder);
-    if (firstResponder) {
-      $(firstResponder, resignFirstResponder);
+    View *keyResponder = $(windowController, keyResponder);
+    if (keyResponder) {
+      $(keyResponder, resignKeyResponder);
+    }
+    View *touchResponder = $(windowController, touchResponder);
+    if (touchResponder) {
+      $(touchResponder, resignTouchResponder);
     }
     $(windowController->viewController, viewWillDisappear);
   } else {
