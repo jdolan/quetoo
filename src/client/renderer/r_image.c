@@ -330,7 +330,7 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     for (size_t i = 0; i < 6; i++) {
       const GLenum target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + (GLenum) i;
 
-      SDL_Surface *side = SDL_CreateSurface(image->width, image->height, SDL_PIXELFORMAT_RGBA32);
+      SDL_Surface *side = SDL_CreateSurface(image->width, image->height, SDL_PIXELFORMAT_RGB24);
 
       SDL_BlitSurface(surface, &(const SDL_Rect) {
         .x = image->width * offsets[i].x,
