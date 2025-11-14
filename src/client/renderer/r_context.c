@@ -235,7 +235,7 @@ void R_InitContext(void) {
     }
   }
 
-  SDL_WindowFlags window_flags = 
+  SDL_WindowFlags window_flags =
            SDL_WINDOW_OPENGL |
            SDL_WINDOW_MOUSE_GRABBED |
            SDL_WINDOW_MOUSE_FOCUS |
@@ -334,33 +334,40 @@ void R_InitContext(void) {
     }
   }
 
-  const int32_t valid_attribs[] = {
-    SDL_GL_RED_SIZE, SDL_GL_GREEN_SIZE, SDL_GL_BLUE_SIZE, SDL_GL_ALPHA_SIZE,
-    SDL_GL_DEPTH_SIZE, SDL_GL_BUFFER_SIZE, SDL_GL_DOUBLEBUFFER,
-    SDL_GL_CONTEXT_MAJOR_VERSION, SDL_GL_CONTEXT_MINOR_VERSION,
-    SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_PROFILE_MASK
+  const SDL_GLAttr attr_names[] = {
+    SDL_GL_RED_SIZE,
+    SDL_GL_GREEN_SIZE,
+    SDL_GL_BLUE_SIZE,
+    SDL_GL_ALPHA_SIZE,
+    SDL_GL_DEPTH_SIZE,
+    SDL_GL_BUFFER_SIZE,
+    SDL_GL_DOUBLEBUFFER,
+    SDL_GL_CONTEXT_MAJOR_VERSION,
+    SDL_GL_CONTEXT_MINOR_VERSION,
+    SDL_GL_CONTEXT_FLAGS,
+    SDL_GL_CONTEXT_PROFILE_MASK
   };
 
-  int32_t attr[SDL_GL_CONTEXT_RELEASE_BEHAVIOR];
-  for (size_t i = 0; i < lengthof(valid_attribs); i++) {
-    SDL_GL_GetAttribute(valid_attribs[i], &attr[valid_attribs[i]]);
+  int32_t attr_values[SDL_GL_EGL_PLATFORM];
+  for (size_t i = 0; i < lengthof(attr_names); i++) {
+    SDL_GL_GetAttribute(attr_names[i], &attr_values[attr_names[i]]);
   }
 
   Com_Verbose("   Buffer Sizes: r %i g %i b %i a %i depth %i framebuffer %i\n",
-      attr[SDL_GL_RED_SIZE],
-      attr[SDL_GL_GREEN_SIZE],
-      attr[SDL_GL_BLUE_SIZE],
-      attr[SDL_GL_ALPHA_SIZE],
-      attr[SDL_GL_DEPTH_SIZE],
-      attr[SDL_GL_BUFFER_SIZE]);
+      attr_values[SDL_GL_RED_SIZE],
+      attr_values[SDL_GL_GREEN_SIZE],
+      attr_values[SDL_GL_BLUE_SIZE],
+      attr_values[SDL_GL_ALPHA_SIZE],
+      attr_values[SDL_GL_DEPTH_SIZE],
+      attr_values[SDL_GL_BUFFER_SIZE]);
 
-  Com_Verbose("   Double-buffered: %s\n", attr[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
+  Com_Verbose("   Double-buffered: %s\n", attr_values[SDL_GL_DOUBLEBUFFER] ? "yes" : "no");
 
   Com_Verbose("   Version: %i.%i (%i flags, %i profile)\n",
-      attr[SDL_GL_CONTEXT_MAJOR_VERSION],
-      attr[SDL_GL_CONTEXT_MINOR_VERSION],
-      attr[SDL_GL_CONTEXT_FLAGS],
-      attr[SDL_GL_CONTEXT_PROFILE_MASK]);
+      attr_values[SDL_GL_CONTEXT_MAJOR_VERSION],
+      attr_values[SDL_GL_CONTEXT_MINOR_VERSION],
+      attr_values[SDL_GL_CONTEXT_FLAGS],
+      attr_values[SDL_GL_CONTEXT_PROFILE_MASK]);
 
   if (!SDL_GL_SetSwapInterval(r_swap_interval->integer)) {
     Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
