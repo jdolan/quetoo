@@ -126,63 +126,83 @@ void Cl_KeyUp(button_t *b) {
 static void Cl_Up_down_f(void) {
   Cl_KeyDown(&in_up);
 }
+
 static void Cl_Up_up_f(void) {
   Cl_KeyUp(&in_up);
 }
+
 static void Cl_Down_down_f(void) {
   Cl_KeyDown(&in_down);
 }
+
 static void Cl_Down_up_f(void) {
   Cl_KeyUp(&in_down);
 }
+
 static void Cl_Left_down_f(void) {
   Cl_KeyDown(&in_left);
 }
+
 static void Cl_Left_up_f(void) {
   Cl_KeyUp(&in_left);
 }
+
 static void Cl_Right_down_f(void) {
   Cl_KeyDown(&in_right);
 }
+
 static void Cl_Right_up_f(void) {
   Cl_KeyUp(&in_right);
 }
+
 static void Cl_Forward_down_f(void) {
   Cl_KeyDown(&in_forward);
 }
+
 static void Cl_Forward_up_f(void) {
   Cl_KeyUp(&in_forward);
 }
+
 static void Cl_Back_down_f(void) {
   Cl_KeyDown(&in_back);
 }
+
 static void Cl_Back_up_f(void) {
   Cl_KeyUp(&in_back);
 }
+
 static void Cl_LookUp_down_f(void) {
   Cl_KeyDown(&in_look_up);
 }
+
 static void Cl_LookUp_up_f(void) {
   Cl_KeyUp(&in_look_up);
 }
+
 static void Cl_LookDown_down_f(void) {
   Cl_KeyDown(&in_look_down);
 }
+
 static void Cl_LookDown_up_f(void) {
   Cl_KeyUp(&in_look_down);
 }
+
 static void Cl_MoveLeft_down_f(void) {
   Cl_KeyDown(&in_move_left);
 }
+
 static void Cl_MoveLeft_up_f(void) {
   Cl_KeyUp(&in_move_left);
 }
+
 static void Cl_MoveRight_down_f(void) {
   Cl_KeyDown(&in_move_right);
 }
+
 static void Cl_MoveRight_up_f(void) {
   Cl_KeyUp(&in_move_right);
 }
+
 static void Cl_CenterView_f(void) {
   cl.angles.x = 0;
 }
@@ -203,6 +223,23 @@ float Cl_KeyState(button_t *key, uint32_t cmd_msec) {
   const float frac = (msec * 1000.0) / (cmd_msec * 1000.0);
 
   return Clampf01(frac);
+}
+
+/**
+ * @brief Updates mouse state, ensuring the window has mouse focus, and draws the cursor.
+ */
+static void Cl_UpdateMouseState(void) {
+
+  const SDL_WindowFlags flags = SDL_GetWindowFlags(r_context.window);
+
+  if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE ||
+      (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
+    SDL_ShowCursor();
+    SDL_SetWindowMouseGrab(r_context.window, false);
+  } else {
+    SDL_HideCursor();
+    SDL_SetWindowMouseGrab(r_context.window, true);
+  }
 }
 
 /**
@@ -260,26 +297,24 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       Cmd_ExecuteString("quit");
       return true;
 
-    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+    case SDL_EVENT_WINDOW_EXPOSED:
+      {
+        const SDL_DisplayID display = SDL_GetDisplayForWindow(SDL_GL_GetCurrentWindow());
+        if ((int32_t) display != r_display->integer) {
+          Cvar_ForceSetInteger(r_display->name, (int32_t) display);
+          Cbuf_AddText("r_restart\n");
+          return true;
+        }
+      }
+      break;
+
+    case SDL_EVENT_WINDOW_RESIZED:
       if (r_context.fullscreen == false) {
         const int32_t w = event->window.data1;
         const int32_t h = event->window.data2;
         if (w != r_width->integer || h != r_height->integer) {
           Cvar_ForceSetInteger(r_width->name, event->window.data1);
           Cvar_ForceSetInteger(r_height->name, event->window.data2);
-          Cbuf_AddText("r_restart\n");
-          return true;
-        }
-      }
-      break;
-      
-    case SDL_EVENT_WINDOW_EXPOSED:
-      {
-        const SDL_DisplayID display = SDL_GetDisplayForWindow(SDL_GL_GetCurrentWindow());
-        // Note: r_display stores an index but SDL3 uses DisplayID
-        // This comparison may need adjustment based on how r_display is used
-        if ((int32_t)display != r_display->integer) {
-          Cvar_ForceSetInteger(r_display->name, (int32_t)display);
           Cbuf_AddText("r_restart\n");
           return true;
         }
@@ -377,20 +412,6 @@ static void Cl_HandleEvent(const SDL_Event *event) {
     case SDL_EVENT_TEXT_INPUT:
       Cl_TextEvent(event);
       break;
-  }
-}
-
-/**
- * @brief Updates mouse state, ensuring the window has mouse focus, and draws the cursor.
- */
-static void Cl_UpdateMouseState(void) {
-
-  if (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_CONSOLE) {
-    SDL_ShowCursor();
-    SDL_SetWindowMouseGrab(r_context.window, false);
-  } else {
-    SDL_HideCursor();
-    SDL_SetWindowMouseGrab(r_context.window, true);
   }
 }
 

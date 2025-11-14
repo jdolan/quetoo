@@ -235,13 +235,7 @@ void R_InitContext(void) {
     }
   }
 
-  SDL_WindowFlags window_flags =
-           SDL_WINDOW_OPENGL |
-           SDL_WINDOW_MOUSE_GRABBED |
-           SDL_WINDOW_MOUSE_FOCUS |
-           SDL_WINDOW_INPUT_FOCUS |
-           SDL_WINDOW_KEYBOARD_GRABBED |
-           SDL_WINDOW_MOUSE_CAPTURE;
+  SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL;
 
   if (r_allow_high_dpi->value) {
     window_flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
