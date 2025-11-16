@@ -26,73 +26,73 @@
  */
 static void G_Sound(const g_play_sound_t *play) {
 
-	assert(play->index > -1);
-	assert(play->index < MAX_SOUNDS);
+  assert(play->index > -1);
+  assert(play->index < MAX_SOUNDS);
 
-	int32_t flags = 0;
+  int32_t flags = 0;
 
-	if (play->entity) {
-		flags |= SOUND_ENTITY;
-	}
+  if (play->entity) {
+    flags |= SOUND_ENTITY;
+  }
 
-	if (play->origin) {
-		flags |= SOUND_ORIGIN;
-	}
+  if (play->origin) {
+    flags |= SOUND_ORIGIN;
+  }
 
-	if (play->atten) {
-		flags |= SOUND_ATTEN;
-	}
+  if (play->atten) {
+    flags |= SOUND_ATTEN;
+  }
 
-	if (play->pitch) {
-		flags |= SOUND_PITCH;
-	}
+  if (play->pitch) {
+    flags |= SOUND_PITCH;
+  }
 
-	gi.WriteByte(SV_CMD_SOUND);
-	gi.WriteByte(flags);
-	gi.WriteByte(play->index);
+  gi.WriteByte(SV_CMD_SOUND);
+  gi.WriteByte(flags);
+  gi.WriteByte(play->index);
 
-	if (flags & SOUND_ENTITY) {
-		gi.WriteShort((uint16_t) (ptrdiff_t) (play->entity - ge.entities));
-	}
+  if (flags & SOUND_ENTITY) {
+    gi.WriteShort(play->entity->s.number);
+  }
 
-	if (flags & SOUND_ORIGIN) {
-		gi.WritePosition(*play->origin);
-	}
+  if (flags & SOUND_ORIGIN) {
+    gi.WritePosition(*play->origin);
+  }
 
-	if (flags & SOUND_ATTEN) {
-		gi.WriteByte(play->atten);
-	}
+  if (flags & SOUND_ATTEN) {
+    gi.WriteByte(play->atten);
+  }
 
-	if (flags & SOUND_PITCH) {
-		gi.WriteChar(play->pitch);
-	}
+  if (flags & SOUND_PITCH) {
+    gi.WriteChar(play->pitch);
+  }
 }
 
 /**
  * @brief
  */
-void G_MulticastSound(const g_play_sound_t *play, multicast_t to, EntityFilterFunc filter) {
-	vec3_t from = Vec3_Zero();
+void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
+  vec3_t from = Vec3_Zero();
 
-	G_Sound(play);
+  G_Sound(play);
 
-	if (play->entity) {
-		from = Box3_Center(play->entity->abs_bounds);
-	}
+  if (play->entity) {
+    from = Box3_Center(play->entity->abs_bounds);
+  }
 
-	if (play->origin) {
-		from = *play->origin;
-	}
+  if (play->origin) {
+    from = *play->origin;
+  }
 
-	gi.Multicast(from, to, filter);
+  gi.Multicast(from, to);
 }
 
 /**
  * @brief
  */
-void G_UnicastSound(const g_play_sound_t *play, const g_entity_t *to, bool reliable) {
+void G_UnicastSound(const g_play_sound_t *play, const g_client_t *cl, bool reliable) {
 
-	G_Sound(play);
+  G_Sound(play);
 
-	gi.Unicast(to, reliable);
+  gi.Unicast(cl, reliable);
 }

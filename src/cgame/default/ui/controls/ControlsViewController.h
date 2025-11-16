@@ -39,22 +39,22 @@ typedef struct ControlsViewControllerInterface ControlsViewControllerInterface;
  */
 struct ControlsViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	ControlsViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  ControlsViewControllerInterface *interface;
 
-	/**
-	 * @brief TabView to contain tabs.
-	 */
-	TabViewController *tabViewController;
+  /**
+   * @brief TabView to contain tabs.
+   */
+  TabViewController *tabViewController;
 };
 
 /**
@@ -62,10 +62,10 @@ struct ControlsViewController {
  */
 struct ControlsViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

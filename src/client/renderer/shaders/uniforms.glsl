@@ -24,36 +24,36 @@
 #define VIEW_MAIN			1
 #define VIEW_PLAYER_MODEL	2
 
-#define BSP_LIGHTGRID_LUXEL_SIZE 32.0
+#define BSP_VOXEL_SIZE		32.0
 
 /**
- * @brief The lightgrid struct.
+ * @brief The voxels struct.
  */
-struct lightgrid_t {
+struct voxels_t {
 	/**
-	 * @brief The lightgrid mins, in world space.
+	 * @brief The voxels mins, in world space.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The lightgrid maxs, in world space.
+	 * @brief The voxels maxs, in world space.
 	 */
 	vec4 maxs;
 
 	/**
-	 * @brief The view origin, in lightgrid space.
+	 * @brief The view origin, in voxel space.
 	 */
 	vec4 view_coordinate;
 
 	/**
-	 * @brief The lightgrid size, in luxels.
+	 * @brief The size, in voxels.
 	 */
 	vec4 size;
 
 	/**
-	 * @brief The lightrgrid luxel size, in texture space.
+	 * @brief The voxel size, in texture space.
 	 */
-	vec4 luxel_size;
+	vec4 voxel_size;
 };
 
 /**
@@ -81,9 +81,19 @@ layout (std140) uniform uniforms_block {
 	mat4 view;
 
 	/**
-	 * @brief The lightgrid.
+	 * @brief The projection matrix for environment cubemaps.
 	 */
-	lightgrid_t lightgrid;
+	mat4 sky_projection;
+
+	/**
+	 * @brief The projection matrix for shadow projection.
+	 */
+	mat4 light_projection;
+
+	/**
+	 * @brief The voxels.
+	 */
+	voxels_t voxels;
 
 	/**
 	 * @brief The depth range, in world units.
@@ -101,14 +111,9 @@ layout (std140) uniform uniforms_block {
 	int ticks;
 
 	/**
-	 * @brief The lightmaps debugging mask.
+	 * @brief The ambient scalar.
 	 */
-	int lightmaps;
-
-	/**
-	 * @brief The shadow debugging mask.
-	 */
-	int shadows;
+	float ambient;
 
 	/**
 	 * @brief The modulate scalar.
@@ -126,16 +131,6 @@ layout (std140) uniform uniforms_block {
 	float stains;
 
 	/**
-	 * @brief The bloom scalar, for non-material based objects.
-	 */
-	float bloom;
-
-	/**
-	 * @brief The HDR scalar.
-	 */
-	float hdr;
-
-	/**
 	 * @brief The volumetric fog density scalar.
 	 */
 	float fog_density;
@@ -143,55 +138,32 @@ layout (std140) uniform uniforms_block {
 	/**
 	 * @brief The number of volumetric fog samples per fragment (quality).
 	 */
-	int fog_samples;
+	float fog_samples;
 
 	/**
 	 * @brief The developer toggle, used for shader development tweaking.
 	 */
-	int developer;
+	float developer;
 };
-
-#define LIGHT_INVALID     0
-#define LIGHT_AMBIENT     1
-#define LIGHT_SUN         2
-#define LIGHT_POINT       4
-#define LIGHT_SPOT        8
-#define LIGHT_BRUSH_SIDE 16
-#define LIGHT_PATCH      32
-#define LIGHT_DYNAMIC    64
-
-#define LIGHT_ATTEN_NONE           0
-#define LIGHT_ATTEN_LINEAR         1
-#define LIGHT_ATTEN_INVERSE_SQUARE 2
 
 /**
  * @brief The light struct.
  */
 struct light_t {
 	/**
-	 * @brief The light position in model space, and radius.
+	 * @brief The light origin in model space, and radius.
 	 */
-	vec4 model;
+	vec4 origin;
 
 	/**
-	 * @brief The light mins in model space, and size.
+	 * @brief The light mins in model space.
 	 */
 	vec4 mins;
 
 	/**
-	 * @brief The light maxs in model space, and attenuation.
+	 * @brief The light maxs in model space.
 	 */
 	vec4 maxs;
-
-	/**
-	 * @brief The light position in view space, and type.
-	 */
-	vec4 position;
-
-	/**
-	 * @brief The normal and plane distance in view space.
-	 */
-	vec4 normal;
 
 	/**
 	 * @brief The light color and intensity.
@@ -199,52 +171,33 @@ struct light_t {
 	vec4 color;
 };
 
-#define MAX_LIGHT_UNIFORMS 256
-#define MAX_LIGHT_UNIFORMS_ACTIVE 16
+#define MAX_LIGHTS 768
+#define MAX_SHADOW_CUBEMAP_LAYERS 256
+#define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
 	/**
-	 * @brief The projection matrix for directional lights.
-	 */
-	mat4 light_projection;
-
-	/**
-	 * @brief The view matrix for directional lights, centered at the origin.
-	 */
-	mat4 light_view;
-
-	/**
-	 * @brief The projection matrix for point lights.
-	 */
-	mat4 light_projection_cube;
-
-	/**
-	 * @brief The view matrices for point lights, centered at the origin.
-	 */
-	mat4 light_view_cube[6];
-
-	/**
 	 * @brief The light sources for the current frame, transformed to view space.
 	 */
-	light_t lights[MAX_LIGHT_UNIFORMS];
-
-	/**
-	 * @brief The number of active light sources.
-	 */
-	int num_lights;
+	light_t lights[MAX_LIGHTS];
 };
 
 /**
- * @brief The diffusemap textures, for non-material passes such as sprites.
+ * @brief The zero-terminated array of active light indexes for the current render operation.
+ */
+uniform int active_lights[MAX_LIGHTS];
+
+/**
+ * @brief The diffusemap texture, for non-material passes such as sprites.
  */
 uniform sampler2D texture_diffusemap;
 uniform sampler2D texture_next_diffusemap;
 
 /**
- * @brief The material texture.
+ * @brief The material primary texture.
  */
 uniform sampler2DArray texture_material;
 
@@ -259,22 +212,11 @@ uniform sampler2D texture_stage;
 uniform sampler2D texture_warp;
 
 /**
- * @brief The lightmap textures.
+ * @brief The voxel textures.
  */
-uniform sampler2D texture_lightmap_ambient;
-uniform sampler2D texture_lightmap_diffuse;
-uniform sampler2D texture_lightmap_direction;
-uniform sampler2D texture_lightmap_caustics;
-uniform sampler2D texture_lightmap_stains;
-
-/**
- * @brief The lightgrid textures.
- */
-uniform sampler3D texture_lightgrid_ambient;
-uniform sampler3D texture_lightgrid_diffuse;
-uniform sampler3D texture_lightgrid_direction;
-uniform sampler3D texture_lightgrid_caustics;
-uniform sampler3D texture_lightgrid_fog;
+uniform sampler3D texture_voxel_diffuse;
+uniform sampler3D texture_voxel_fog;
+uniform sampler3D texture_voxel_stains;
 
 /**
  * @brief The sky cubemap texture.
@@ -282,14 +224,15 @@ uniform sampler3D texture_lightgrid_fog;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadowmap textures.
+ * @brief The shadow array and cubemap array texture.
  */
-uniform sampler2DArrayShadow texture_shadowmap;
-uniform samplerCubeArrayShadow texture_shadowmap_cube;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
 
 /**
  * @brief The framebuffer attachment textures.
  */
 uniform sampler2D texture_color_attachment;
-uniform sampler2D texture_bloom_attachment;
 uniform sampler2D texture_depth_attachment_copy;

@@ -38,22 +38,22 @@ typedef struct CrosshairViewInterface CrosshairViewInterface;
  */
 struct CrosshairView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	Control control;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  Control control;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	CrosshairViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  CrosshairViewInterface *interface;
 
-	/**
-	 * @brief The ImageView.
-	 */
-	ImageView *imageView;
+  /**
+   * @brief The ImageView.
+   */
+  ImageView *imageView;
 };
 
 /**
@@ -61,19 +61,19 @@ struct CrosshairView {
  */
 struct CrosshairViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ControlInterface controlInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ControlInterface controlInterface;
 
-	/**
-	 * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
-	 * @brief Initializes this CrosshairView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized CrosshairView, or `NULL` on error.
-	 * @memberof CrosshairView
-	 */
-	CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);
+  /**
+   * @fn CrosshairView *CrosshairView::initWithFrame(CrosshairView *self, const SDL_Rect *frame)
+   * @brief Initializes this CrosshairView with the specified frame.
+   * @param frame The frame.
+   * @return The initialized CrosshairView, or `NULL` on error.
+   * @memberof CrosshairView
+   */
+  CrosshairView *(*initWithFrame)(CrosshairView *self, const SDL_Rect *frame);
 };
 
 /**

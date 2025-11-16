@@ -32,88 +32,51 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The light origin in model space, and radius.
-	 */
-	vec4_t model;
+  /**
+   * @brief The light origin in model space.
+   */
+  vec4_t origin;
 
-	/**
-	 * @brief The light mins in model space, and size.
-	 */
-	vec4_t mins;
+  /**
+   * @brief The light mins in model space, and shadow scalar.
+   */
+  vec4_t mins;
 
-	/**
-	 * @brief The light maxs in model space, and attenuation.
-	 */
-	vec4_t maxs;
+  /**
+   * @brief The light maxs in model space, and attenuation.
+   */
+  vec4_t maxs;
 
-	/**
-	 * @brief The light origin in view space, and type.
-	 */
-	vec4_t position;
-
-	/**
-	 * @brief The normal and plane distance in view space.
-	 */
-	vec4_t normal;
-
-	/**
-	 * @brief The light color and intensity.
-	 */
-	vec4_t color;
+  /**
+   * @brief The light color and intensity.
+   */
+  vec4_t color;
 } r_light_uniform_t;
-
-#define MAX_LIGHT_UNIFORMS 256
 
 /**
  * @brief The lights uniform block struct.
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The projection matrix for directional lights.
-	 */
-	mat4_t light_projection;
-
-	/**
-	 * @brief The view matrix for directional lights, centered at the origin.
-	 */
-	mat4_t light_view;
-
-	/**
-	 * @brief The projection matrix for point lights.
-	 */
-	mat4_t light_projection_cube;
-
-	/**
-	 * @brief The view matrices for point lights, centered at the origin.
-	 */
-	mat4_t light_view_cube[6];
-
-	/**
-	 * @brief The visible light sources for the current frame.
-	 */
-	r_light_uniform_t lights[MAX_LIGHT_UNIFORMS];
-
-	/**
-	 * @brief The number of visible light sources.
-	 */
-	int32_t num_lights;
+  /**
+   * @brief The light sources for the current frame.
+   */
+  r_light_uniform_t lights[MAX_LIGHTS];
 } r_light_uniform_block_t;
 
 /**
  * @brief The lights uniform block type.
  */
 typedef struct {
-	/**
-	 * @brief The uniform buffer name.
-	 */
-	GLuint buffer;
+  /**
+   * @brief The uniform buffer name.
+   */
+  GLuint buffer;
 
-	/**
-	 * @brief The uniform buffer interface block.
-	 */
-	r_light_uniform_block_t block;
+  /**
+   * @brief The uniform buffer interface block.
+   */
+  r_light_uniform_block_t block;
 } r_lights_t;
 
 /**
@@ -122,6 +85,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

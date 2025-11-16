@@ -19,28 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define STAGE_TEXTURE      0
-#define STAGE_BLEND        4
-#define STAGE_COLOR        8
-#define STAGE_PULSE        16
-#define STAGE_STRETCH      32
-#define STAGE_ROTATE       64
-#define STAGE_SCROLL_S     128
-#define STAGE_SCROLL_T     256
-#define STAGE_SCALE_S      512
-#define STAGE_SCALE_T      1024
-#define STAGE_TERRAIN      2048
-#define STAGE_ANIM         4096
-#define STAGE_LIGHTMAP     8192
-#define STAGE_DIRTMAP      16384
-#define STAGE_ENVMAP       32768
-#define STAGE_WARP         65536
-#define STAGE_FLARE        131072
-#define STAGE_FOG          262144
-#define STAGE_SHELL        524288
+#define STAGE_TEXTURE  (1 << 0)
+#define STAGE_BLEND    (1 << 1)
+#define STAGE_COLOR    (1 << 2)
+#define STAGE_PULSE    (1 << 3)
+#define STAGE_STRETCH  (1 << 4)
+#define STAGE_ROTATE   (1 << 5)
+#define STAGE_SCROLL_S (1 << 6)
+#define STAGE_SCROLL_T (1 << 7)
+#define STAGE_SCALE_S  (1 << 8)
+#define STAGE_SCALE_T  (1 << 9)
+#define STAGE_TERRAIN  (1 << 10)
+#define STAGE_ANIM     (1 << 11)
+#define STAGE_DIRTMAP  (1 << 12)
+#define STAGE_ENVMAP   (1 << 13)
+#define STAGE_WARP     (1 << 14)
+#define STAGE_FLARE    (1 << 15)
+#define STAGE_FOG      (1 << 16)
+#define STAGE_SHELL    (1 << 17)
 
-#define STAGE_DRAW         268435456
-#define STAGE_MATERIAL     536870912
+#define STAGE_DRAW     (1 << 28)
+#define STAGE_MATERIAL (1 << 29)
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;
@@ -75,11 +74,6 @@ struct material_t {
 	 * @brief The material parallax.
 	 */
 	float parallax;
-
-	/**
-	 * @brief The material bloom.
-	 */
-	float bloom;
 };
 
 uniform material_t material;

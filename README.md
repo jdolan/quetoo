@@ -39,7 +39,6 @@ The following dependencies are required:
  * [libsndfile](http://mega-nerd.com/libsndfile/)
  * [glib2](https://developer.gnome.org/glib/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
- * [libxml2](http://xmlsoft.org/)
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 

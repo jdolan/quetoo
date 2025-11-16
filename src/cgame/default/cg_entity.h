@@ -34,25 +34,25 @@ typedef void (*EntityThink)(cg_entity_t *self);
  * @brief The client game entity class type.
  */
 typedef struct {
-	/**
-	 * @brief The entity class name.
-	 */
-	const char *class_name;
+  /**
+   * @brief The entity class name.
+   */
+  const char *class_name;
 
-	/**
-	 * @brief The initialization function, called once per level.
-	 */
-	EntityInit Init;
+  /**
+   * @brief The initialization function, called once per level.
+   */
+  EntityInit Init;
 
-	/**
-	 * @brief The think function, called once per client frame.
-	 */
-	EntityThink Think;
+  /**
+   * @brief The think function, called once per client frame.
+   */
+  EntityThink Think;
 
-	/**
-	 * @brief The size of the opaque data.
-	 */
-	size_t data_size;
+  /**
+   * @brief The size of the opaque data.
+   */
+  size_t data_size;
 
 } cg_entity_class_t;
 
@@ -62,56 +62,56 @@ typedef struct {
  * fields, etc.
  */
 struct cg_entity_s {
-	/**
-	 * @brief The entity identifier, for persistent effects such as sounds.
-	 */
-	int32_t id;
-	
-	/**
-	 * @brief The entity class.
-	 */
-	const cg_entity_class_t *clazz;
+  /**
+   * @brief The entity identifier, for persistent effects such as sounds.
+   */
+  int32_t id;
+  
+  /**
+   * @brief The entity class.
+   */
+  const cg_entity_class_t *clazz;
 
-	/**
-	 * @brief The backing entity definition.
-	 */
-	const cm_entity_t *def;
+  /**
+   * @brief The backing entity definition.
+   */
+  const cm_entity_t *def;
 
-	/**
-	 * @brief The entity origin.
-	 */
-	vec3_t origin;
+  /**
+   * @brief The entity origin.
+   */
+  vec3_t origin;
 
-	/**
-	 * @brief The entity bounds.
-	 */
-	box3_t bounds;
+  /**
+   * @brief The entity bounds.
+   */
+  box3_t bounds;
 
-	/**
-	 * @brief The entity's target, if any.
-	 */
-	const cm_entity_t *target;
+  /**
+   * @brief The entity's target, if any.
+   */
+  const cm_entity_t *target;
 
-	/**
-	 * @brief The entity's teammate, if any.
-	 */
-	const cm_entity_t *team;
+  /**
+   * @brief The entity's teammate, if any.
+   */
+  const cm_entity_t *team;
 
-	/**
-	 * @brief Timestamp for next emission.
-	 * @details Client game entities will Think() each frame, unless deferred.
-	 */
-	uint32_t next_think;
+  /**
+   * @brief Timestamp for next emission.
+   * @details Client game entities will Think() each frame, unless deferred.
+   */
+  uint32_t next_think;
 
-	/**
-	 * @brief Randomization of next_think.
-	 */
-	float hz, drift;
+  /**
+   * @brief Randomization of next_think.
+   */
+  float hz, drift;
 
-	/**
-	 * @brief Opaque, type-specific data.
-	 */
-	void *data;
+  /**
+   * @brief Opaque, type-specific data.
+   */
+  void *data;
 };
 
 extern GArray *cg_entities;
@@ -121,7 +121,6 @@ void Cg_LoadEntities(void);
 void Cg_FreeEntities(void);
 
 cl_entity_t *Cg_Self(void);
-bool Cg_IsSelf(const cl_entity_t *ent);
 bool Cg_IsDucking(const cl_entity_t *ent);
 void Cg_Interpolate(const cl_frame_t *frame);
 void Cg_AddEntities(const cl_frame_t *frame);

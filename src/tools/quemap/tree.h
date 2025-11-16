@@ -25,42 +25,41 @@
 #include "face.h"
 #include "map.h"
 
-#define	PLANE_LEAF -1
+#define  PLANE_LEAF -1
 
 typedef struct node_s {
-	// both leafs and nodes
-	struct node_s *parent;
-	int32_t plane; // -1 = leaf node
-	box3_t bounds; // valid after portalization
-	box3_t visible_bounds; // valid after face merging
-	csg_brush_t *volume; // one for each leaf/node
+  // both leafs and nodes
+  struct node_s *parent;
+  int32_t plane; // -1 = leaf node
+  box3_t bounds; // valid after portalization
+  box3_t visible_bounds; // valid after face merging
+  csg_brush_t *volume; // one for each leaf/node
+  int32_t contents; // OR of all brush contents, or CONTENTS_NODE, CONTENTS_BLOCK
 
-	// nodes only
-	const brush_side_t *split_side; // the side that created the node
-	struct node_s *children[2];
-	face_t *faces;
+  // nodes only
+  const brush_side_t *split_side; // the side that created the node
+  struct node_s *children[2];
+  face_t *faces;
 
-	// leafs only
-	csg_brush_t *brushes; // fragments of all brushes in this leaf
-	int32_t contents; // OR of all brush contents
-	int32_t occupied; // 1 or greater can reach entity
-	const entity_t *occupant; // for leak file testing
-	struct portal_s *portals; // also on nodes during construction
+  // leafs only
+  csg_brush_t *brushes; // fragments of all brushes in this leaf
+  int32_t occupied; // 1 or greater can reach entity
+  const entity_t *occupant; // for leak file testing
+  struct portal_s *portals; // also on nodes during construction
 } node_t;
 
 node_t *AllocNode(void);
 void FreeNode(node_t *node);
 
 typedef struct {
-	node_t *head_node;
-	node_t outside_node;
-	box3_t bounds;
+  node_t *head_node;
+  node_t outside_node;
+  box3_t bounds;
 } tree_t;
 
 tree_t *AllocTree(void);
 void FreeTree(tree_t *tree);
 void FreeTreePortals(tree_t *tree);
-void PruneNodes(tree_t *tree);
 void MergeTreeFaces(tree_t *tree);
 
 tree_t *BuildTree(csg_brush_t *brushes);

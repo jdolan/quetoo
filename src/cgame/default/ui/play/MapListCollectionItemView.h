@@ -31,9 +31,9 @@
  */
 
 typedef struct {
-	char mapname[MAX_QPATH];
-	char message[MAX_TOKEN_CHARS];
-	SDL_Surface *mapshot;
+  char mapname[MAX_QPATH];
+  char message[MAX_TOKEN_CHARS];
+  SDL_Surface *mapshot;
 } MapListItemInfo;
 
 typedef struct MapListCollectionItemView MapListCollectionItemView;
@@ -45,17 +45,17 @@ typedef struct MapListCollectionItemViewInterface MapListCollectionItemViewInter
  */
 struct MapListCollectionItemView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	CollectionItemView collectionItemView;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  CollectionItemView collectionItemView;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	MapListCollectionItemViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  MapListCollectionItemViewInterface *interface;
 };
 
 /**
@@ -63,27 +63,27 @@ struct MapListCollectionItemView {
  */
 struct MapListCollectionItemViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	CollectionItemViewInterface collectionItemViewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  CollectionItemViewInterface collectionItemViewInterface;
 
-	/**
-	 * @fn MapListCollectionItemView *MapListCollectionItemView::initWithFrame(MapListCollectionItemView *self, const SDL_Rect *frame)
-	 * @brief Initializes this MapListCollectionItemView with the specified frame.
-	 * @param frame The frame.
-	 * @return The initialized MapListCollectionItemView, or `NULL` on error.
-	 * @memberof MapListCollectionItemView
-	 */
-	MapListCollectionItemView *(*initWithFrame)(MapListCollectionItemView *self, const SDL_Rect *frame);
+  /**
+   * @fn MapListCollectionItemView *MapListCollectionItemView::initWithFrame(MapListCollectionItemView *self, const SDL_Rect *frame)
+   * @brief Initializes this MapListCollectionItemView with the specified frame.
+   * @param frame The frame.
+   * @return The initialized MapListCollectionItemView, or `NULL` on error.
+   * @memberof MapListCollectionItemView
+   */
+  MapListCollectionItemView *(*initWithFrame)(MapListCollectionItemView *self, const SDL_Rect *frame);
 
-	/**
-	 * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info);
-	 * @brief Sets the information for this item.
-	 * @param info The MapListItemInfo.
-	 * @memberof MapListCollectionItemView
-	 */
-	void (*setMapListItemInfo)(MapListCollectionItemView *self, MapListItemInfo *info);
+  /**
+   * @fn void MapListCollectionItemView::setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info);
+   * @brief Sets the information for this item.
+   * @param info The MapListItemInfo.
+   * @memberof MapListCollectionItemView
+   */
+  void (*setMapListItemInfo)(MapListCollectionItemView *self, MapListItemInfo *info);
 };
 
 /**

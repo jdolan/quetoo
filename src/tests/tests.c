@@ -26,13 +26,13 @@
  */
 int32_t Test_Run(Suite *suite) {
 
-	SRunner *runner = srunner_create(suite);
+  SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_VERBOSE);
-	const int32_t failed = srunner_ntests_failed(runner);
+  srunner_run_all(runner, CK_VERBOSE);
+  const int32_t failed = srunner_ntests_failed(runner);
 
-	srunner_free(runner);
-	return failed;
+  srunner_free(runner);
+  return failed;
 }
 
 /**
@@ -40,9 +40,9 @@ int32_t Test_Run(Suite *suite) {
  */
 void Test_Init(int32_t argc, char **argv) {
 
-	memset(&quetoo, 0, sizeof(quetoo));
+  memset(&quetoo, 0, sizeof(quetoo));
 
-	Com_Init(argc, argv);
+  Com_Init(argc, argv);
 }
 
 /**

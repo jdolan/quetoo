@@ -43,37 +43,37 @@ typedef struct CreateServerViewControllerInterface CreateServerViewControllerInt
  */
 struct CreateServerViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	CreateServerViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  CreateServerViewControllerInterface *interface;
 
-	/**
-	 * @brief The create Button.
-	 */
-	Button *create;
+  /**
+   * @brief The create Button.
+   */
+  Button *create;
 
-	/**
-	 * @brief The gameplay Select.
-	 */
-	Select *gameplay;
+  /**
+   * @brief The gameplay Select.
+   */
+  Select *gameplay;
 
-	/**
-	 * @brief The MapListCollectionView.
-	 */
-	MapListCollectionView *mapList;
+  /**
+   * @brief The MapListCollectionView.
+   */
+  MapListCollectionView *mapList;
 
-	/**
-	 * @brief The teamsplay Select.
-	 */
-	Select *teams;
+  /**
+   * @brief The teamsplay Select.
+   */
+  Select *teams;
 };
 
 /**
@@ -81,10 +81,10 @@ struct CreateServerViewController {
  */
 struct CreateServerViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

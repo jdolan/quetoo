@@ -48,7 +48,7 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
 /**
  * @brief
  */
-void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd);
+void Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd);
 
 /**
  * @brief
@@ -84,25 +84,25 @@ typedef float (*Ai_NodeCost_Func)(const ai_node_id_t a, const ai_node_id_t b);
  * @brief
  */
 static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_node_id_t end) {
-	const vec3_t av = Ai_Node_GetPosition(link);
-	const vec3_t bv = Ai_Node_GetPosition(end);
-	float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
+  const vec3_t av = Ai_Node_GetPosition(link);
+  const vec3_t bv = Ai_Node_GetPosition(end);
+  float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 
-	if (!Ai_Node_CanPathTo(av)) {
-		cost *= 8.f;
-	}
+  if (!Ai_Node_CanPathTo(av)) {
+    cost *= 8.f;
+  }
 
-	return cost;
+  return cost;
 }
 
 /**
  * @brief
  */
 static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t b) {
-	const vec3_t av = Ai_Node_GetPosition(a);
-	const vec3_t bv = Ai_Node_GetPosition(b);
+  const vec3_t av = Ai_Node_GetPosition(a);
+  const vec3_t bv = Ai_Node_GetPosition(b);
 
-	return Vec3_Distance(av, bv);
+  return Vec3_Distance(av, bv);
 }
 
 /**

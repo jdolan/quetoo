@@ -26,111 +26,111 @@
 
 static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
-	SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+  SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
 
-	SDL_FillRect(surface, &(SDL_Rect) {
-		0, 0, surface->w, surface->h
-	}, color);
+  SDL_FillSurfaceRect(surface, &(SDL_Rect) {
+    0, 0, surface->w, surface->h
+  }, color);
 
-	return surface;
+  return surface;
 }
 
 START_TEST(check_atlas) {
 
-	SDL_Surface *red = CreateSurface(128, 128, 0xff0000);
-	SDL_Surface *green = CreateSurface(256, 256, 0x00ff00);
-	SDL_Surface *blue = CreateSurface(512, 512, 0x0000ff);
-	SDL_Surface *purple = CreateSurface(512, 512, 0xff00ff);
+  SDL_Surface *red = CreateSurface(128, 128, 0xff0000);
+  SDL_Surface *green = CreateSurface(256, 256, 0x00ff00);
+  SDL_Surface *blue = CreateSurface(512, 512, 0x0000ff);
+  SDL_Surface *purple = CreateSurface(512, 512, 0xff00ff);
 
-	atlas_t *atlas = Atlas_Create(1);
+  atlas_t *atlas = Atlas_Create(1);
 
-	atlas_node_t *a = Atlas_Insert(atlas, red);
-	ck_assert_ptr_ne(NULL, a);
+  atlas_node_t *a = Atlas_Insert(atlas, red);
+  ck_assert_ptr_ne(NULL, a);
 
-	atlas_node_t *b = Atlas_Insert(atlas, green);
-	ck_assert_ptr_ne(NULL, b);
+  atlas_node_t *b = Atlas_Insert(atlas, green);
+  ck_assert_ptr_ne(NULL, b);
 
-	atlas_node_t *c = Atlas_Insert(atlas, blue);
-	ck_assert_ptr_ne(NULL, c);
+  atlas_node_t *c = Atlas_Insert(atlas, blue);
+  ck_assert_ptr_ne(NULL, c);
 
-	SDL_Surface *surface = CreateSurface(1024, 1024, 0x000000);
+  SDL_Surface *surface = CreateSurface(1024, 1024, 0x000000);
 
-	int32_t res = Atlas_Compile(atlas, 0, surface);
-	ck_assert_int_eq(0, res);
+  int32_t res = Atlas_Compile(atlas, 0, surface);
+  ck_assert_int_eq(0, res);
 
-	ck_assert_int_eq(0, c->x);
-	ck_assert_int_eq(0, c->y);
+  ck_assert_int_eq(0, c->x);
+  ck_assert_int_eq(0, c->y);
 
-	ck_assert_int_eq(512, b->x);
-	ck_assert_int_eq(0, b->y);
+  ck_assert_int_eq(512, b->x);
+  ck_assert_int_eq(0, b->y);
 
-	ck_assert_int_eq(768, a->x);
-	ck_assert_int_eq(0, a->y);
+  ck_assert_int_eq(768, a->x);
+  ck_assert_int_eq(0, a->y);
 
-	atlas_node_t *d = Atlas_Insert(atlas, purple);
-	ck_assert_ptr_ne(NULL, d);
+  atlas_node_t *d = Atlas_Insert(atlas, purple);
+  ck_assert_ptr_ne(NULL, d);
 
-	res = Atlas_Compile(atlas, 0, surface);
-	ck_assert_int_eq(0, res);
+  res = Atlas_Compile(atlas, 0, surface);
+  ck_assert_int_eq(0, res);
 
-	ck_assert_int_eq(0, c->x);
-	ck_assert_int_eq(0, c->y);
+  ck_assert_int_eq(0, c->x);
+  ck_assert_int_eq(0, c->y);
 
-	ck_assert_int_eq(512, d->x);
-	ck_assert_int_eq(0, d->y);
+  ck_assert_int_eq(512, d->x);
+  ck_assert_int_eq(0, d->y);
 
-	ck_assert_int_eq(0, b->x);
-	ck_assert_int_eq(512, b->y);
+  ck_assert_int_eq(0, b->x);
+  ck_assert_int_eq(512, b->y);
 
-	ck_assert_int_eq(256, a->x);
-	ck_assert_int_eq(512, a->y);
+  ck_assert_int_eq(256, a->x);
+  ck_assert_int_eq(512, a->y);
 
-	Atlas_Destroy(atlas);
+  Atlas_Destroy(atlas);
 
-	SDL_FreeSurface(red);
-	SDL_FreeSurface(green);
-	SDL_FreeSurface(blue);
-	SDL_FreeSurface(purple);
+  SDL_DestroySurface(red);
+  SDL_DestroySurface(green);
+  SDL_DestroySurface(blue);
+  SDL_DestroySurface(purple);
 
-	IMG_SavePNG(surface, "/tmp/check_atlas.png");
+  IMG_SavePNG(surface, "/tmp/check_atlas.png");
 
-	SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
 } END_TEST
 
 START_TEST(check_atlas_random) {
 
-	srand(getpid());
+  srand(getpid());
 
-	atlas_t *atlas = Atlas_Create(1);
+  atlas_t *atlas = Atlas_Create(1);
 
-	SDL_Surface *surfaces[100];
+  SDL_Surface *surfaces[100];
 
-	for (size_t i = 0; i < 100; i++) {
+  for (size_t i = 0; i < 100; i++) {
 
-		const int32_t w = rand() % 96 + 1;
-		const int32_t h = rand() % 96 + 1;
-		const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
-		
-		surfaces[i] = CreateSurface(w, h, color);
+    const int32_t w = rand() % 96 + 1;
+    const int32_t h = rand() % 96 + 1;
+    const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+    
+    surfaces[i] = CreateSurface(w, h, color);
 
-		Atlas_Insert(atlas, surfaces[i]);
-	}
+    Atlas_Insert(atlas, surfaces[i]);
+  }
 
-	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+  SDL_Surface *surface = CreateSurface(1024, 1024, 0);
 
-	const int32_t res = Atlas_Compile(atlas, 0, surface);
-	ck_assert_int_eq(0, res);
+  const int32_t res = Atlas_Compile(atlas, 0, surface);
+  ck_assert_int_eq(0, res);
 
-	Atlas_Destroy(atlas);
+  Atlas_Destroy(atlas);
 
-	IMG_SavePNG(surface, "/tmp/check_atlas_random.png");
+  IMG_SavePNG(surface, "/tmp/check_atlas_random.png");
 
-	for (size_t i = 0; i < 100; i++) {
-		SDL_FreeSurface(surfaces[i]);
-	}
+  for (size_t i = 0; i < 100; i++) {
+    SDL_DestroySurface(surfaces[i]);
+  }
 
-	SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 
 } END_TEST
 
@@ -138,43 +138,43 @@ START_TEST(check_atlas_random) {
  * @brief This custom comparator should actually produce the worst possible packing.
  */
 static int32_t comparator(const atlas_node_t *a, const atlas_node_t *b) {
-	return a->surfaces[0]->h - b->surfaces[0]->h;
+  return a->surfaces[0]->h - b->surfaces[0]->h;
 }
 
 START_TEST(check_atlas_custom_comparator) {
 
-	srand(getpid());
+  srand(getpid());
 
-	atlas_t *atlas = Atlas_Create(1);
-	atlas->comparator = comparator;
+  atlas_t *atlas = Atlas_Create(1);
+  atlas->comparator = comparator;
 
-	SDL_Surface *surfaces[100];
+  SDL_Surface *surfaces[100];
 
-	for (size_t i = 0; i < 100; i++) {
+  for (size_t i = 0; i < 100; i++) {
 
-		const int32_t w = rand() % 96 + 1;
-		const int32_t h = rand() % 96 + 1;
-		const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+    const int32_t w = rand() % 96 + 1;
+    const int32_t h = rand() % 96 + 1;
+    const int32_t color = rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
 
-		surfaces[i] = CreateSurface(w, h, color);
+    surfaces[i] = CreateSurface(w, h, color);
 
-		Atlas_Insert(atlas, surfaces[i]);
-	}
+    Atlas_Insert(atlas, surfaces[i]);
+  }
 
-	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+  SDL_Surface *surface = CreateSurface(1024, 1024, 0);
 
-	const int32_t res = Atlas_Compile(atlas, 0, surface);
-	ck_assert_int_eq(0, res);
+  const int32_t res = Atlas_Compile(atlas, 0, surface);
+  ck_assert_int_eq(0, res);
 
-	Atlas_Destroy(atlas);
+  Atlas_Destroy(atlas);
 
-	IMG_SavePNG(surface, "/tmp/check_atlas_custom_comparator.png");
+  IMG_SavePNG(surface, "/tmp/check_atlas_custom_comparator.png");
 
-	for (size_t i = 0; i < 100; i++) {
-		SDL_FreeSurface(surfaces[i]);
-	}
+  for (size_t i = 0; i < 100; i++) {
+    SDL_DestroySurface(surfaces[i]);
+  }
 
-	SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 } END_TEST
 
 /**
@@ -182,58 +182,58 @@ START_TEST(check_atlas_custom_comparator) {
  */
 static int32_t blit(const SDL_Surface *src, SDL_Surface *dest, const SDL_Rect *rect) {
 
-	const color32_t *in = (color32_t *) src->pixels;
-	color32_t *out = (color32_t *) dest->pixels;
+  const color32_t *in = (color32_t *) src->pixels;
+  color32_t *out = (color32_t *) dest->pixels;
 
-	out += rect->y * dest->w + rect->x;
+  out += rect->y * dest->w + rect->x;
 
-	for (int32_t x = 0; x < src->w; x++) {
-		for (int32_t y = 0; y < src->h; y++) {
+  for (int32_t x = 0; x < src->w; x++) {
+    for (int32_t y = 0; y < src->h; y++) {
 
-			const color32_t *in_color = in + y * src->w + x;
-			color32_t *out_color = out + y * dest->w + x;
+      const color32_t *in_color = in + y * src->w + x;
+      color32_t *out_color = out + y * dest->w + x;
 
-			*out_color = *in_color;
-		}
-	}
+      *out_color = *in_color;
+    }
+  }
 
-	return 0;
+  return 0;
 }
 
 START_TEST(check_atlas_custom_blit) {
 
-	srand(getpid());
+  srand(getpid());
 
-	atlas_t *atlas = Atlas_Create(1);
-	atlas->blit = blit;
+  atlas_t *atlas = Atlas_Create(1);
+  atlas->blit = blit;
 
-	SDL_Surface *surfaces[100];
+  SDL_Surface *surfaces[100];
 
-	for (size_t i = 0; i < 100; i++) {
+  for (size_t i = 0; i < 100; i++) {
 
-		const int32_t w = rand() % 96 + 1;
-		const int32_t h = rand() % 96 + 1;
-		const int32_t color = 255 << 24 | rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
+    const int32_t w = rand() % 96 + 1;
+    const int32_t h = rand() % 96 + 1;
+    const int32_t color = 255 << 24 | rand() % 255 << 16 | rand() % 255 << 8 | rand() % 255;
 
-		surfaces[i] = CreateSurface(w, h, color);
+    surfaces[i] = CreateSurface(w, h, color);
 
-		Atlas_Insert(atlas, surfaces[i]);
-	}
+    Atlas_Insert(atlas, surfaces[i]);
+  }
 
-	SDL_Surface *surface = CreateSurface(1024, 1024, 0);
+  SDL_Surface *surface = CreateSurface(1024, 1024, 0);
 
-	const int32_t res = Atlas_Compile(atlas, 0, surface);
-	ck_assert_int_eq(0, res);
+  const int32_t res = Atlas_Compile(atlas, 0, surface);
+  ck_assert_int_eq(0, res);
 
-	Atlas_Destroy(atlas);
+  Atlas_Destroy(atlas);
 
-	IMG_SavePNG(surface, "/tmp/check_atlas_custom_blit.png");
+  IMG_SavePNG(surface, "/tmp/check_atlas_custom_blit.png");
 
-	for (size_t i = 0; i < 100; i++) {
-		SDL_FreeSurface(surfaces[i]);
-	}
+  for (size_t i = 0; i < 100; i++) {
+    SDL_DestroySurface(surfaces[i]);
+  }
 
-	SDL_FreeSurface(surface);
+  SDL_DestroySurface(surface);
 } END_TEST
 
 /**
@@ -241,21 +241,21 @@ START_TEST(check_atlas_custom_blit) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	TCase *tcase = tcase_create("check_atlas");
+  TCase *tcase = tcase_create("check_atlas");
 
-	tcase_add_test(tcase, check_atlas);
-	tcase_add_test(tcase, check_atlas_random);
-	tcase_add_test(tcase, check_atlas_custom_comparator);
-	tcase_add_test(tcase, check_atlas_custom_blit);
+  tcase_add_test(tcase, check_atlas);
+  tcase_add_test(tcase, check_atlas_random);
+  tcase_add_test(tcase, check_atlas_custom_comparator);
+  tcase_add_test(tcase, check_atlas_custom_blit);
 
-	Suite *suite = suite_create("check_atlas");
-	suite_add_tcase(suite, tcase);
+  Suite *suite = suite_create("check_atlas");
+  suite_add_tcase(suite, tcase);
 
-	SRunner *runner = srunner_create(suite);
+  SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_VERBOSE);
-	int32_t failed = srunner_ntests_failed(runner);
+  srunner_run_all(runner, CK_VERBOSE);
+  int32_t failed = srunner_ntests_failed(runner);
 
-	srunner_free(runner);
-	return failed;
+  srunner_free(runner);
+  return failed;
 }

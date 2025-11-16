@@ -27,23 +27,32 @@
  */
 static int32_t Cl_HullForEntity(const entity_state_t *s) {
 
-	if (s->solid == SOLID_BSP) {
-		const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+  const cl_entity_t *ent = &cl.entities[s->number];
 
-		if (!mod) {
-			Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
-		}
+  switch (s->solid) {
 
-		return mod->head_node;
-	}
+    case SOLID_BOX: {
+      if (s->effects & EF_CLIENT) {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
+      } else {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
+      }
+    }
 
-	const cl_entity_t *ent = &cl.entities[s->number];
+    case SOLID_BSP: {
+      const cm_bsp_model_t *mod = cl.cm_models[s->model1];
+      if (!mod) {
+        Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
+      }
+      return mod->head_node;
+    }
 
-	if (s->client) {
-		return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
-	} else {
-		return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
-	}
+    case SOLID_EDITOR:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
+
+    default:
+      return -1;
+  }
 }
 
 /**
@@ -52,29 +61,29 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
  */
 int32_t Cl_PointContents(const vec3_t point) {
 
-	int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
+  int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
-	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX) {
-			continue;
-		}
+    if (s->solid < SOLID_BOX) {
+      continue;
+    }
 
-		const cl_entity_t *ent = &cl.entities[s->number];
+    const cl_entity_t *ent = &cl.entities[s->number];
 
-		if (ent == cl.entity) {
-			continue;
-		}
+    if (ent == cl.entity) {
+      continue;
+    }
 
-		const int32_t head_node = Cl_HullForEntity(s);
+    const int32_t head_node = Cl_HullForEntity(s);
 
-		contents |= Cm_PointContents(point, head_node, ent->inverse_matrix);
-	}
+    contents |= Cm_PointContents(point, head_node, ent->inverse_matrix);
+  }
 
-	return contents;
+  return contents;
 }
 
 /**
@@ -82,45 +91,45 @@ int32_t Cl_PointContents(const vec3_t point) {
  */
 int32_t Cl_BoxContents(const box3_t bounds) {
 
-	int32_t contents = Cm_BoxContents(bounds, 0);
+  int32_t contents = Cm_BoxContents(bounds, 0);
 
-	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX) {
-			continue;
-		}
+    if (s->solid < SOLID_BOX) {
+      continue;
+    }
 
-		const cl_entity_t *ent = &cl.entities[s->number];
+    const cl_entity_t *ent = &cl.entities[s->number];
 
-		if (ent == cl.entity) {
-			continue;
-		}
+    if (ent == cl.entity) {
+      continue;
+    }
 
-		if (!Box3_Intersects(bounds, ent->abs_bounds)) {
-			continue;
-		}
+    if (!Box3_Intersects(bounds, ent->abs_bounds)) {
+      continue;
+    }
 
-		const int32_t head_node = Cl_HullForEntity(s);
+    const int32_t head_node = Cl_HullForEntity(s);
 
-		contents |= Cm_BoxContents(Mat4_TransformBounds(ent->inverse_matrix, bounds), head_node);
-	}
+    contents |= Cm_BoxContents(Mat4_TransformBounds(ent->inverse_matrix, bounds), head_node);
+  }
 
-	return contents;
+  return contents;
 }
 
 /**
  * @brief A structure facilitating clipping to SOLID_BOX entities.
  */
 typedef struct {
-	vec3_t start, end;
-	box3_t bounds;
-	box3_t abs_bounds;
-	cm_trace_t trace;
-	int32_t skip;
-	int32_t contents;
+  vec3_t start, end;
+  box3_t bounds;
+  box3_t abs_bounds;
+  cm_trace_t trace;
+  int32_t skip;
+  int32_t contents;
 } cl_trace_t;
 
 /**
@@ -128,48 +137,48 @@ typedef struct {
  */
 static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
-	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *s = &cl.entity_states[snum];
+    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cl.entity_states[snum];
 
-		if (s->solid < SOLID_BOX) {
-			continue;
-		}
+    if (s->solid < SOLID_BOX) {
+      continue;
+    }
 
-		if (s->number == trace->skip) {
-			continue;
-		}
+    if (s->number == trace->skip) {
+      continue;
+    }
 
-		const cl_entity_t *ent = &cl.entities[s->number];
+    const cl_entity_t *ent = &cl.entities[s->number];
 
-		if (ent == cl.entity) {
-			continue;
-		}
+    if (ent == cl.entity) {
+      continue;
+    }
 
-		if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
-			continue;
-		}
+    if (!Box3_Intersects(ent->abs_bounds, trace->abs_bounds)) {
+      continue;
+    }
 
-		const int32_t head_node = Cl_HullForEntity(s);
+    const int32_t head_node = Cl_HullForEntity(s);
 
-		cm_trace_t tr;
-		
-		if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
-			tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
-		} else {
-			tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
-		}
+    cm_trace_t tr;
+    
+    if (Mat4_Equal(ent->matrix, Mat4_Identity())) {
+      tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+    } else {
+      tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, ent->matrix, ent->inverse_matrix);
+    }
 
-		if (tr.start_solid || tr.fraction < trace->trace.fraction) {
-			trace->trace = tr;
-			trace->trace.ent = (struct g_entity_s *) (ptrdiff_t) s->number;
+    if (tr.start_solid || tr.fraction < trace->trace.fraction) {
+      trace->trace = tr;
+      trace->trace.ent = (struct g_entity_s *) (intptr_t) s->number;
 
-			if (tr.start_solid) {
-				return;
-			}
-		}
-	}
+      if (tr.start_solid) {
+        return;
+      }
+    }
+  }
 }
 
 /**
@@ -181,31 +190,31 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  */
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents) {
 
-	cl_trace_t trace;
+  cl_trace_t trace;
 
-	memset(&trace, 0, sizeof(trace));
+  memset(&trace, 0, sizeof(trace));
 
-	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
-	if (trace.trace.fraction < 1.0) {
-		trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
+  // clip to world
+  trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
+  if (trace.trace.fraction < 1.f) {
+    trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
 
-		if (trace.trace.start_solid) { // blocked entirely
-			return trace.trace;
-		}
-	}
+    if (trace.trace.start_solid) { // blocked entirely
+      return trace.trace;
+    }
+  }
 
-	trace.start = start;
-	trace.end = end;
-	trace.bounds = bounds;
-	trace.skip = skip;
-	trace.contents = contents;
+  trace.start = start;
+  trace.end = end;
+  trace.bounds = bounds;
+  trace.skip = skip;
+  trace.contents = contents;
 
-	trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
+  trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
 
-	Cl_ClipTraceToEntities(&trace);
+  Cl_ClipTraceToEntities(&trace);
 
-	return trace.trace;
+  return trace.trace;
 }
 
 /**
@@ -219,30 +228,30 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, i
  */
 void Cl_PredictMovement(void) {
 
-	if (!cls.cgame->UsePrediction()) {
-		return;
-	}
+  if (!cls.cgame->UsePrediction()) {
+    return;
+  }
 
-	const uint32_t last = cls.net_chan.outgoing_sequence;
-	uint32_t ack = cls.net_chan.incoming_acknowledged;
+  const uint32_t last = cls.net_chan.outgoing_sequence;
+  uint32_t ack = cls.net_chan.incoming_acknowledged;
 
-	// if we are too far out of date, just freeze in place
-	if (last - ack >= CMD_BACKUP) {
-		Com_Debug(DEBUG_CLIENT, "Exceeded CMD_BACKUP\n");
-		return;
-	}
+  // if we are too far out of date, just freeze in place
+  if (last - ack >= CMD_BACKUP) {
+    Com_Debug(DEBUG_CLIENT, "Exceeded CMD_BACKUP\n");
+    return;
+  }
 
-	GPtrArray *cmds = g_ptr_array_new();
+  GPtrArray *cmds = g_ptr_array_new();
 
-	while (++ack <= last) {
-		g_ptr_array_add(cmds, &cl.cmds[ack & CMD_MASK]);
-	}
+  while (++ack <= last) {
+    g_ptr_array_add(cmds, &cl.cmds[ack & CMD_MASK]);
+  }
 
-	if (cmds->len) {
-		cls.cgame->PredictMovement(cmds);
-	}
+  if (cmds->len) {
+    cls.cgame->PredictMovement(cmds);
+  }
 
-	g_ptr_array_free(cmds, true);
+  g_ptr_array_free(cmds, true);
 }
 
 /**
@@ -251,44 +260,44 @@ void Cl_PredictMovement(void) {
  */
 void Cl_CheckPredictionError(void) {
 
-	const pm_state_t *in = &cl.frame.ps.pm_state;
+  const pm_state_t *in = &cl.frame.ps.pm_state;
 
-	cl_predicted_state_t *out = &cl.predicted_state;
+  cl_predicted_state_t *out = &cl.predicted_state;
 
-	// calculate the last cl_cmd_t we sent that the server has processed
-	cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
+  // calculate the last cl_cmd_t we sent that the server has processed
+  cl_cmd_t *cmd = &cl.cmds[cls.net_chan.incoming_acknowledged & CMD_MASK];
 
-	// if prediction was not run (just spawned), don't sweat it
-	if (cmd->prediction.time == 0) {
+  // if prediction was not run (just spawned), don't sweat it
+  if (cmd->prediction.time == 0) {
 
-		out->view.origin = in->origin;
-		out->view.offset = in->view_offset;
-		out->view.angles = in->view_angles;
-		out->view.step_offset = 0.f;
+    out->view.origin = in->origin;
+    out->view.offset = in->view_offset;
+    out->view.angles = in->view_angles;
+    out->view.step_offset = 0.f;
 
-		out->error = Vec3_Zero();
-		return;
-	}
+    out->error = Vec3_Zero();
+    return;
+  }
 
-	// subtract what the server returned from our predicted origin for that frame
-	out->error = cmd->prediction.error = Vec3_Subtract(cmd->prediction.origin, in->origin);
+  // subtract what the server returned from our predicted origin for that frame
+  out->error = cmd->prediction.error = Vec3_Subtract(cmd->prediction.origin, in->origin);
 
-	// if the error is too large, it was likely a teleport or respawn, so ignore it
-	const float len = Vec3_Length(out->error);
-	if (len > .1f) {
-		if (len > MAX_DELTA_ORIGIN) {
-			Com_Debug(DEBUG_CLIENT, "MAX_DELTA_ORIGIN: %s\n", vtos(out->error));
+  // if the error is too large, it was likely a teleport or respawn, so ignore it
+  const float len = Vec3_Length(out->error);
+  if (len > .1f) {
+    if (len > MAX_DELTA_ORIGIN) {
+      Com_Debug(DEBUG_CLIENT, "MAX_DELTA_ORIGIN: %s\n", vtos(out->error));
 
-			out->view.origin = in->origin;
-			out->view.offset = in->view_offset;
-			out->view.angles = in->view_angles;
-			out->view.step_offset = 0.f;
+      out->view.origin = in->origin;
+      out->view.offset = in->view_offset;
+      out->view.angles = in->view_angles;
+      out->view.step_offset = 0.f;
 
-			out->error = Vec3_Zero();
-		} else {
-			Com_Debug(DEBUG_CLIENT, "%s\n", vtos(out->error));
-		}
-	}
+      out->error = Vec3_Zero();
+    } else {
+      Com_Debug(DEBUG_CLIENT, "%s\n", vtos(out->error));
+    }
+  }
 }
 
 /**
@@ -297,29 +306,29 @@ void Cl_CheckPredictionError(void) {
  */
 void Cl_UpdatePrediction(void) {
 
-	// ensure the world model is loaded
-	if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
-		int64_t bs;
+  // ensure the world model is loaded
+  if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
+    int64_t bs;
 
-		const char *bsp_name = cl.config_strings[CS_MODELS];
-		const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
+    const char *bsp_name = cl.config_strings[CS_MODELS];
+    const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
 
-		Cm_LoadBspModel(bsp_name, &bs);
+    Cm_LoadBspModel(bsp_name, &bs);
 
-		if (bs != bsp_size) {
-			Com_Error(ERROR_DROP, "Local map version differs from server: "
-			          "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
-		}
-	}
+    if (bs != bsp_size) {
+      Com_Error(ERROR_DROP, "Local map version differs from server: "
+                "%" PRId64 " != %" PRId64 "\n", bs, bsp_size);
+    }
+  }
 
-	// load the BSP models for prediction as well
-	for (int32_t i = 0; i < MAX_MODELS; i++) {
+  // load the BSP models for prediction as well
+  for (int32_t i = 0; i < MAX_MODELS; i++) {
 
-		const char *s = cl.config_strings[CS_MODELS + i];
-		if (*s == '*') {
-			cl.cm_models[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
-		} else {
-			cl.cm_models[i] = NULL;
-		}
-	}
+    const char *s = cl.config_strings[CS_MODELS + i];
+    if (*s == '*') {
+      cl.cm_models[i] = Cm_Model(cl.config_strings[CS_MODELS + i]);
+    } else {
+      cl.cm_models[i] = NULL;
+    }
+  }
 }

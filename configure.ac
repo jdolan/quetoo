@@ -166,17 +166,11 @@ dnl Check for GLib
 dnl --------------
 PKG_CHECK_MODULES([GLIB], [glib-2.0 >= 2.0.0])
 
-dnl -----------------
-dnl Check for libxml2
-dnl -----------------
-
-PKG_CHECK_MODULES(XML, libxml-2.0 >= 2.4)
-
 dnl --------------------------
-dnl Check for SDL2, SDL2_image
+dnl Check for SDL3, SDL3_image
 dnl --------------------------
 
-PKG_CHECK_MODULES([SDL2], [sdl2 >= 2.0.0 SDL2_image])
+PKG_CHECK_MODULES([SDL3], [sdl3 >= 2.0.0 sdl3-image])
 
 dnl --------------------
 dnl Check for libsndfile

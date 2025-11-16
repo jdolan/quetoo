@@ -27,11 +27,11 @@
  * @brief Map brushes are carved via CSG before being sorted into the tree.
  */
 typedef struct csg_brush_s {
-	const struct brush_s *original;
-	struct brush_side_s *brush_sides;
-	int32_t num_brush_sides;
-	box3_t bounds;
-	struct csg_brush_s *next;
+  const struct brush_s *original;
+  struct brush_side_s *brush_sides;
+  int32_t num_brush_sides;
+  box3_t bounds;
+  struct csg_brush_s *next;
 } csg_brush_t;
 
 csg_brush_t *AllocBrush(int32_t num_sides);

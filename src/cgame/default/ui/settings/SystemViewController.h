@@ -37,16 +37,16 @@ typedef struct SystemViewControllerInterface SystemViewControllerInterface;
  */
 struct SystemViewController {
 
-	/**
-	 * @brief The superclass.
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	SystemViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  SystemViewControllerInterface *interface;
 };
 
 /**
@@ -54,10 +54,10 @@ struct SystemViewController {
  */
 struct SystemViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

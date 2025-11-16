@@ -1,96 +1,96 @@
 
 .container {
-	spacing: 12;
+  spacing: 12;
 }
 
 Box {
-	border-color: #1e4e62;
+  border-color: #1e4e62;
 }
 
 Box > Label {
-	background-color: #0c1f27;
+  background-color: #0c1f27;
 }
 
 Box > .contentView > Input > Label {
-	min-width: 180;
+  min-width: 180;
 }
 
 Checkbox > Control {
-	background-color: #dedede10;
+  background-color: #dedede10;
 }
 
 Control {
-	-sound-on-click: ui/click;
-	-sound-on-change: ui/change;
-	-sound-on-mouse-enter: ui/clack;
+  -sound-on-click: ui/click;
+  -sound-on-change: ui/change;
+  -sound-on-mouse-enter: ui/clack;
 }
 
 Panel {
-	background-color: #08151aaa;
-	-sound-on-mouse-enter: ui/clack;
+  background-color: #08151aaa;
+  -sound-on-mouse-enter: ui/clack;
 }
 
 Panel.menu {
-	resizable: false;
-	draggable: false;
+  resizable: false;
+  draggable: false;
 }
 
 Panel.menu .tabPageView {
-	autoresizing-mask: none;
-	width: 1200;
-	height: 600;
+  autoresizing-mask: none;
+  width: 1200;
+  height: 600;
 }
 
 Slider > .bar > .handle {
-	background-color: #1e4e62dd;
+  background-color: #1e4e62dd;
 }
 
 TabView > .tabSelectionView {
-	-sound-on-click: ui/click;
+  -sound-on-click: ui/click;
 }
 
 TabView > .tabSelectionView > Label.selected {
-	background-color: #1e4e62aa;
+  background-color: #1e4e62aa;
 }
 
 TextView {
-	background-color: #dedede10;
+  background-color: #dedede10;
 }
 
 .options {
-	border-color: #1e4e62;
+  border-color: #1e4e62;
 }
 
 .options > Option {
-	background-color: #08151a;
+  background-color: #08151a;
 }
 
 .options > Option:hover {
-	background-color: #1e4e62;
+  background-color: #1e4e62;
 }
 
 .options > Option:selected {
-	background-color: #122e3b;
+  background-color: #122e3b;
 }
 
 .columns {
-	autoreizing-mask: contain | width;
-	axis: horizontal;
-	distribution: fill;
+  autoreizing-mask: contain | width;
+  axis: horizontal;
+  distribution: fill;
 }
 
 .columns > .column {
-	autoresizing-mask: contain | height;
-	distribution: fill;
-	width: 384;
+  autoresizing-mask: contain | height;
+  distribution: fill;
+  width: 384;
 }
 
 .columns > .column-2 {
-	autoresizing-mask: contain | height;
-	distribution: fill;
-	width: 768;
+  autoresizing-mask: contain | height;
+  distribution: fill;
+  width: 768;
 }
 
 .column Box {
-	autoresizing-mask: contain | width;
+  autoresizing-mask: contain | width;
 }

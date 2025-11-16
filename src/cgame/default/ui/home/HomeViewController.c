@@ -26,15 +26,15 @@
 
 #define _Class _HomeViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
  * @brief Dialog::okFunction for launching the installer to fetch updates.
  */
 static void launchInstaller(ident data) {
 
-	cgi.Print("Launching installer..\n");
-	cgi.LaunchInstaller();
+  cgi.Print("Launching installer..\n");
+  cgi.LaunchInstaller();
 }
 
 #pragma mark - ViewController
@@ -44,43 +44,42 @@ static void launchInstaller(ident data) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	HomeViewController *this = (HomeViewController *) self;
+  HomeViewController *this = (HomeViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("motd", &this->motd)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("motd", &this->motd)
+  );
 
-	View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
-	assert(view);
+  View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
+  assert(view);
 
-	$(self, setView, view);
+  $(self, setView, view);
+  release(view);
 
-	release(view);
+  switch (cgi.CheckForUpdates()) {
+    case 0:
+      $(this->motd->text, setTextWithFormat, "Quetoo %s is up to date.\n", REVISION);
+      break;
+    case 1: {
+      $(this->motd->text, setText, "A new version of Quetoo is available.");
 
-	switch (cgi.CheckForUpdates()) {
-		case 0:
-			$(this->motd->text, setTextWithFormat, "Quetoo %s is up to date.\n", REVISION);
-			break;
-		case 1: {
-			$(this->motd->text, setText, "A new version of Quetoo is available.");
+      const Dialog dialog = {
+        .message = "A new version of Quetoo is available. Update now?",
+        .ok = "Yes",
+        .cancel = "No",
+        .okFunction = launchInstaller
+      };
 
-			const Dialog dialog = {
-				.message = "A new version of Quetoo is available. Update now?",
-				.ok = "Yes",
-				.cancel = "No",
-				.okFunction = launchInstaller
-			};
-
-			ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-			$(self, addChildViewController, viewController);
-		}
-			break;
-		case 2:
-			$(this->motd->text, setText, "A new version of Quetoo is available from Flathub.");
-			break;
-	}
+      ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+      $(self, addChildViewController, viewController);
+    }
+      break;
+    case 2:
+      $(this->motd->text, setText, "A new version of Quetoo is available from Flathub.");
+      break;
+  }
 }
 
 #pragma mark - Class lifecycle
@@ -89,7 +88,7 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -97,21 +96,21 @@ static void initialize(Class *clazz) {
  * @memberof HomeViewController
  */
 Class *_HomeViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "HomeViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(HomeViewController),
-			.interfaceOffset = offsetof(HomeViewController, interface),
-			.interfaceSize = sizeof(HomeViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "HomeViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(HomeViewController),
+      .interfaceOffset = offsetof(HomeViewController, interface),
+      .interfaceSize = sizeof(HomeViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

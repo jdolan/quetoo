@@ -22,7 +22,7 @@ libnet_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OBJECTIVELY_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 libnet_la_LDFLAGS = \
 	-shared

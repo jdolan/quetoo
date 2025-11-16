@@ -40,22 +40,22 @@ typedef struct PlayViewControllerInterface PlayViewControllerInterface;
  */
 struct PlayViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	PlayViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  PlayViewControllerInterface *interface;
 
-	/**
-	 * @brief TabViewController to contain tabs.
-	 */
-	TabViewController *tabViewController;
+  /**
+   * @brief TabViewController to contain tabs.
+   */
+  TabViewController *tabViewController;
 };
 
 /**
@@ -63,10 +63,10 @@ struct PlayViewController {
  */
 struct PlayViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

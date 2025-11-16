@@ -40,22 +40,22 @@ typedef struct CvarTextViewInterface CvarTextViewInterface;
  */
 struct CvarTextView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	TextView textView;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  TextView textView;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	CvarTextViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  CvarTextViewInterface *interface;
 
-	/**
-	 * @brief The variable.
-	 */
-	cvar_t *var;
+  /**
+   * @brief The variable.
+   */
+  cvar_t *var;
 };
 
 /**
@@ -63,19 +63,19 @@ struct CvarTextView {
  */
 struct CvarTextViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	TextViewInterface textViewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  TextViewInterface textViewInterface;
 
-	/**
-	 * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
-	 * @brief Initializes this TextView with the given variable.
-	 * @param var The variable.
-	 * @return The initialized CvarTextView, or `NULL` on error.
-	 * @memberof CvarTextView
-	 */
-	CvarTextView *(*initWithVariable)(CvarTextView *self, cvar_t *var);
+  /**
+   * @fn CvarTextView *CvarTextView::initWithVariable(CvarTextView *self, cvar_t *var)
+   * @brief Initializes this TextView with the given variable.
+   * @param var The variable.
+   * @return The initialized CvarTextView, or `NULL` on error.
+   * @memberof CvarTextView
+   */
+  CvarTextView *(*initWithVariable)(CvarTextView *self, cvar_t *var);
 };
 
 /**

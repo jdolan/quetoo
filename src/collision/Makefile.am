@@ -16,7 +16,7 @@ libcollision_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 libcollision_la_SOURCES = \
 	cm_bsp.c \

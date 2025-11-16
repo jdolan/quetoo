@@ -19,19 +19,36 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_texcoord;
-
-out vertex_data {
-	vec2 texcoord;
-} vertex;
+#pragma once
 
 /**
- * @brief
+ * @brief The voxel type.
  */
-void main(void) {
+typedef struct {
+  int32_t s, t, u;
+  vec3_t origin;
+  vec4_t diffuse;
+  vec4_t fog;
+} voxel_t;
 
-	gl_Position = vec4(in_position, 0.0, 1.0);
+/**
+ * @brief The voxel grid type.
+ */
+typedef struct {
+  box3_t stu_bounds;
+  vec3i_t size;
 
-	vertex.texcoord = in_texcoord;
-}
+  mat4_t matrix;
+  mat4_t inverse_matrix;
+
+  size_t num_voxels;
+  voxel_t *voxels;
+} voxels_t;
+
+extern voxels_t voxels;
+
+size_t BuildVoxels(void);
+void LightVoxel(int32_t voxel_num);
+void CausticsVoxel(int32_t voxel_num);
+void FogVoxel(int32_t voxel_num);
+void EmitVoxels(void);

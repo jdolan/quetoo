@@ -32,22 +32,22 @@
  */
 static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
-	super(View, self, awakeWithDictionary, dictionary);
+  super(View, self, awakeWithDictionary, dictionary);
 
-	CvarCheckbox *this = (CvarCheckbox *) self;
+  CvarCheckbox *this = (CvarCheckbox *) self;
 
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
-	);
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+  );
 
-	$(self, bind, inlets, dictionary);
+  $(self, bind, inlets, dictionary);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((CvarCheckbox *) self, initWithVariable, NULL);
+  return (View *) $((CvarCheckbox *) self, initWithVariable, NULL);
 }
 
 /**
@@ -55,35 +55,35 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	Control *this = (Control *) self;
+  Control *this = (Control *) self;
 
-	const ControlState state = this->state;
+  const ControlState state = this->state;
 
-	const cvar_t *var = ((CvarCheckbox *) self)->var;
-	if (var) {
+  const cvar_t *var = ((CvarCheckbox *) self)->var;
+  if (var) {
 
-		this->state = var->value ? ControlStateSelected : ControlStateDefault;
+    this->state = var->value ? ControlStateSelected : ControlStateDefault;
 
-		if ((ControlState) this->state != state) {
-			$(this, stateDidChange);
-		}
-	}
+    if ((ControlState) this->state != state) {
+      $(this, stateDidChange);
+    }
+  }
 }
 
 #pragma mark - CvarCheckbox
 
 /**
- * @brief ActionFunction for the Checkbox.
+ * @brief CheckboxDelegate.
  */
-static void action(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didToggle(Checkbox *checkbox) {
 
-	const CvarCheckbox *this = (CvarCheckbox *) control;
+  const CvarCheckbox *this = (CvarCheckbox *) checkbox;
 
-	if (this->var) {
-		cgi.SetCvarInteger(this->var->name, $(control, isSelected));
-	}
+  if (this->var) {
+    cgi.SetCvarInteger(this->var->name, $((Control *) this, isSelected));
+  }
 }
 
 /**
@@ -93,15 +93,15 @@ static void action(Control *control, const SDL_Event *event, ident sender, ident
  */
 static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
-	self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL);
-	if (self) {
+  self = (CvarCheckbox *) super(Checkbox, self, initWithFrame, NULL);
+  if (self) {
 
-		self->var = var;
+    self->var = var;
 
-		$((Control *) self, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, NULL);
-	}
+    self->checkbox.delegate.didToggle = didToggle;
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -111,11 +111,11 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((CvarCheckboxInterface *) clazz->interface)->initWithVariable = initWithVariable;
+  ((CvarCheckboxInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -123,21 +123,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarCheckbox
  */
 Class *_CvarCheckbox(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CvarCheckbox",
-			.superclass = _Checkbox(),
-			.instanceSize = sizeof(CvarCheckbox),
-			.interfaceOffset = offsetof(CvarCheckbox, interface),
-			.interfaceSize = sizeof(CvarCheckboxInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CvarCheckbox",
+      .superclass = _Checkbox(),
+      .instanceSize = sizeof(CvarCheckbox),
+      .interfaceOffset = offsetof(CvarCheckbox, interface),
+      .interfaceSize = sizeof(CvarCheckboxInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

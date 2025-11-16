@@ -42,47 +42,47 @@ typedef struct PlayerSetupViewControllerInterface PlayerSetupViewControllerInter
  */
 struct PlayerSetupViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	PlayerSetupViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  PlayerSetupViewControllerInterface *interface;
 
-	/**
-	 * @brief The head HSVColorPicker.
-	 */
-	HSVColorPicker *helmetColorPicker;
+  /**
+   * @brief The head HSVColorPicker.
+   */
+  HSVColorPicker *helmetColorPicker;
 
-	/**
-	 * @brief The effects HueColorPicker.
-	 */
-	HueColorPicker *effectsColorPicker;
+  /**
+   * @brief The effects HueColorPicker.
+   */
+  HueColorPicker *effectsColorPicker;
 
-	/**
-	 * @brief The pants HSVColorPicker.
-	 */
-	HSVColorPicker *pantsColorPicker;
+  /**
+   * @brief The pants HSVColorPicker.
+   */
+  HSVColorPicker *pantsColorPicker;
 
-	/**
-	 * @brief The PlayerModelView.
-	 */
-	PlayerModelView *playerModelView;
+  /**
+   * @brief The PlayerModelView.
+   */
+  PlayerModelView *playerModelView;
 
-	/**
-	 * @brief The shirt HSVColorPicker.
-	 */
-	HSVColorPicker *shirtColorPicker;
+  /**
+   * @brief The shirt HSVColorPicker.
+   */
+  HSVColorPicker *shirtColorPicker;
 
-	/**
-	 * @brief The skin Select.
-	 */
-	Select *skinSelect;
+  /**
+   * @brief The skin Select.
+   */
+  Select *skinSelect;
 };
 
 /**
@@ -90,10 +90,10 @@ struct PlayerSetupViewController {
  */
 struct PlayerSetupViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface menuViewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface menuViewControllerInterface;
 };
 
 /**

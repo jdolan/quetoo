@@ -28,60 +28,100 @@
 #ifdef __SV_LOCAL_H__
 
 /**
- * @brief The server-specific view of an entity. An sv_entity_t corresponds to
- * precisely one g_entity_t, where most general-purpose entity state resides.
- * This structure is primarily used for entity list management and clipping.
+ * @brief The server entity type.
  */
 typedef struct {
-	struct sv_sector_s *sector;
+  /**
+   * @brief The baseline entity state, used for delta compression.
+   */
+  entity_state_t baseline;
 
-	mat4_t matrix;
-	mat4_t inverse_matrix;
+  /**
+   * @brief The sector, for entity list management.
+   */
+  struct sv_sector_s *sector;
+
+  /**
+   * @brief The clipping matrix, used for collision tests.
+   */
+  mat4_t matrix;
+  mat4_t inverse_matrix;
 } sv_entity_t;
 
 /**
- * @brief Server states.
- */
-typedef enum {
-	SV_UNINITIALIZED, // no level loaded
-	SV_LOADING, // spawning level edicts
-	SV_ACTIVE_GAME, // actively running
-	SV_ACTIVE_DEMO
-} sv_state_t;
-
-/**
- * @brief The sv_server_t struct is wiped at each level load.
+ * @brief The `sv_server_t` struct is wiped at each level load.
  */
 typedef struct {
-	sv_state_t state;
+  /**
+   * @brief The simulation time.
+   * @details This is always `sv.frame_num * 1000 / QUETOO_TICK_RATE`.
+   */
+  uint32_t time;
 
-	uint32_t time; // always sv.frame_num * 1000 / sv_packetrate->value
-	uint32_t frame_num;
+  /**
+   * @brief The current frame number.
+   */
+  uint32_t frame_num;
 
-	char name[MAX_QPATH]; // map name
-	cm_bsp_model_t *cm_models[MAX_MODELS];
+  /**
+   * @brief The map name.
+   */
+  char name[MAX_QPATH];
 
-	// all known and indexed assets, string constants, etc..
-	char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
+  /**
+   * @brief The collision models (worldspawn, plus all inline models).
+   */
+  cm_bsp_model_t *cm_models[MAX_MODELS];
 
-	sv_entity_t entities[MAX_ENTITIES]; // the server-local entity structures
-	entity_state_t baselines[MAX_ENTITIES]; // g_entity_t baselines
+  /**
+   * @brief The configuration strings. These enumerate all loaded assets, such as models,
+   * sounds, client skins, etc.
+   */
+  char config_strings[MAX_CONFIG_STRINGS][MAX_STRING_CHARS];
 
-	// the multicast buffer is used to send a message to a set of clients
-	// it is flushed each time Sv_Multicast is called
-	mem_buf_t multicast;
-	byte multicast_buffer[MAX_MSG_SIZE];
+  /**
+   * @brief The entities.
+   */
+  sv_entity_t entities[MAX_ENTITIES];
 
-	// demo server information
-	file_t *demo_file;
+  /**
+   * @brief The multicast buffer used to send a message to a set of clients.
+   */
+  mem_buf_t multicast;
+  byte multicast_buffer[MAX_MSG_SIZE];
+
+  /**
+   * @brief The demo file for demo playback.
+   */
+  file_t *demo_file;
 } sv_server_t;
 
+/**
+ * @brief The server's client frame type. For each server frame, a unique client
+ * frame is authored, containing only the relevant updates for that client. This
+ * structure is sent as the header of `SV_CMD_FRAME`.
+ */
 typedef struct {
-	player_state_t ps;
-	uint16_t num_entities;
-	uint32_t entity_state; // index into svs.entity_states array
-	uint32_t sent_time; // for ping calculations
-} sv_frame_t;
+  /**
+   * @brief The player state.
+   */
+  player_state_t ps;
+
+  /**
+   * @brief The number of delta-compressed entities in this frame.
+   */
+  uint16_t num_entities;
+
+  /**
+   * @brief The index into the entity state circular buffer.
+   */
+  uint32_t entity_state;
+
+  /**
+   * @brief The delivery timestamp, used to calculate ping.
+   */
+  uint32_t sent_time;
+} sv_client_frame_t;
 
 /**
  * @brief Clients are dropped after 20 seconds without receiving a packet.
@@ -106,9 +146,9 @@ typedef struct {
  * @brief Client states.
  */
 typedef enum {
-	SV_CLIENT_FREE, // can be used for a new connection
-	SV_CLIENT_CONNECTED, // client is connecting, but has not yet spawned
-	SV_CLIENT_ACTIVE // client is spawned
+  SV_CLIENT_FREE,
+  SV_CLIENT_CONNECTED,
+  SV_CLIENT_ACTIVE
 } sv_client_state_t;
 
 /**
@@ -122,8 +162,8 @@ typedef enum {
  * bounds and transmitted as fragments when necessary.
  */
 typedef struct {
-	size_t offset;
-	size_t len;
+  size_t offset;
+  size_t len;
 } sv_client_message_t;
 
 /**
@@ -131,9 +171,9 @@ typedef struct {
  * that it may be safely fragmented for delivery.
  */
 typedef struct {
-	mem_buf_t buffer; // the managed size buffer
-	byte data[MAX_DATAGRAM_SIZE]; // the raw message buffer
-	GList *messages; // message segmentation
+  mem_buf_t buffer; // the managed size buffer
+  byte data[MAX_DATAGRAM_SIZE]; // the raw message buffer
+  GList *messages; // message segmentation
 } sv_client_datagram_t;
 
 /**
@@ -142,54 +182,88 @@ typedef struct {
  * configured or unavailable.
  */
 typedef struct {
-	byte *buffer;
-	int32_t size;
-	int32_t count;
+  byte *buffer;
+  int32_t size;
+  int32_t count;
 } sv_client_download_t;
 
 /**
- * @brief Per-client accounting for protocol flow control and low-level
- * connection state management.
+ * @brief The server client type.
  */
 typedef struct {
-	sv_client_state_t state;
+  /**
+   * @brief The client state.
+   */
+  sv_client_state_t state;
 
-	char user_info[MAX_USER_INFO_STRING]; // name, skin, etc
+  /**
+   * @brief The user-info string.
+   */
+  char user_info[MAX_INFO_STRING_STRING];
 
-	int32_t last_frame; // for delta compression
-	pm_cmd_t last_cmd; // for filling in big drops
+  /**
+   * @brief The player name, extracted from user-info and stripped of colors.
+   */
+  char name[32];
 
-	uint32_t cmd_msec; // for sv_enforce_time
-	uint16_t cmd_msec_errors; // maintain how many problems we've seen
+  /**
+   * @brief The message receipt level, used to filter chat messages.
+   */
+  int32_t message_level;
 
-	uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT]; // used to calculate ping
+  /**
+   * @brief The last frame the client has acknowledged.
+   * @details This is used for delta compression. -1 will receive baselines.
+   */
+  int32_t last_frame;
 
-	size_t frame_size[QUETOO_TICK_RATE]; // used to rate drop packets
-	uint32_t rate;
-	uint32_t suppress_count; // number of messages rate suppressed
+  /**
+   * @brief The sum of movement command durations for this client. If this
+   * exceeds the server elapsed duration, the client is trying to cheat.
+   */
+  uint32_t cmd_msec;
+  uint16_t cmd_msec_errors;
 
-	g_entity_t *entity; // the g_entity_t for this client
-	char name[32]; // extracted from user_info, high bits masked
-	int32_t message_level; // for filtering printed messages
+  /**
+   * @brief Ping calculation.
+   */
+  uint32_t frame_latency[SV_CLIENT_LATENCY_COUNT];
+  int32_t ping;
 
-	// the datagram is written to by sound calls, prints, temp ents, etc.
-	// it can be overflowed without consequence.
-	// it is packetized and written to the client, then wiped, each frame.
-	sv_client_datagram_t datagram;
+  /**
+   * @brief The client's datagram.
+   * @details This is accumulated, packetized and delivered each server frame.
+   */
+  sv_client_datagram_t datagram;
 
-	sv_frame_t frames[PACKET_BACKUP]; // updates can be delta'd from here
+  /**
+   * @brief The circular buffer of recently sent client frames. The client
+   * may reference any of these frames for valid delta compression. If the
+   * client references a frame _not_ in this array, they'll receive baselines.
+   */
+  sv_client_frame_t frames[PACKET_BACKUP];
 
-	sv_client_download_t download; // UDP file downloads
+  /**
+   * @brief UDP file downloads.
+   */
+  sv_client_download_t download;
 
-	uint32_t last_message; // quetoo.ticks when packet was last received
-	net_chan_t net_chan;
+  /**
+   * @brief The network channel.
+   */
+  net_chan_t net_chan;
+
+  /**
+   * @brief Server time when the last message was received, used to detect timeouts.
+   */
+  uint32_t last_message;
 } sv_client_t;
 
 /**
  * @brief Public servers may broadcast their status to as many as 8 master
  * servers.
  */
-#define MAX_MASTERS	8
+#define MAX_MASTERS  8
 
 /**
  * @brief Challenges are a request for a connection. The client must receive
@@ -197,62 +271,89 @@ typedef struct {
  * provides basic protection against simple UDP DoS attacks.
  */
 typedef struct {
-	net_addr_t addr;
-	uint32_t challenge;
-	uint32_t time;
+  net_addr_t addr;
+  uint32_t challenge;
+  uint32_t time;
 } sv_challenge_t;
 
 /**
- * @brief MAX_CHALLENGES is large to prevent a denial of service attack that
+ * @brief `MAX_CHALLENGES` is large to prevent a denial of service attack that
  * could cycle all of them out before legitimate users connected.
  */
 #define MAX_CHALLENGES 1024
 
 /**
- * @brief The sv_static_t structure is persistent for the execution of the
- * game. It is only cleared when Sv_Init is called. It is not exposed to the
+ * @brief Server states.
+ */
+typedef enum {
+  SV_UNINITIALIZED,
+  SV_INITIALIZED,
+  SV_LOADING,
+  SV_ACTIVE_GAME,
+  SV_ACTIVE_DEMO
+} sv_state_t;
+
+/**
+ * @brief The `sv_static_t` structure is persistent for the execution of the
+ * game. It is only cleared when `Sv_Init` is called. It is not exposed to the
  * game module.
  */
 typedef struct {
-	bool initialized; // sv_init has completed
+  /**
+   * @brief The server state.
+   */
+  sv_state_t state;
 
-	uint32_t spawn_count; // incremented each level start, used to check late spawns
+  /**
+   * @brief The clients.
+   */
+  sv_client_t *clients;
 
-	sv_client_t *clients; // server-side client structures
+  /**
+   * @brief The entity state circular array.
+   * @details The server maintains this to calculate delta compression between client frames.
+   * The array is sized to support the maximum number of clients and entities.
+   */
+  entity_state_t *entity_states;
 
-	// the server maintains an array of entity states it uses to calculate
-	// delta compression from frame to frame
+  /**
+   * @brief The length of the entity states array.
+   * @details Equal to `PACKET_BACKUP * MAX_ENTITIES`.
+   */
+  uint32_t num_entity_states;
 
-	// the size of this array is based on the number of clients we might be
-	// asked to support at any point in time during the current game
+  /**
+   * @brief The next free entity state for newly spawned entities.
+   */
+  uint32_t next_entity_state;
 
-	uint32_t num_entity_states; // sv_max_clients->integer * UPDATE_BACKUP * MAX_PACKET_ENTITIES
-	uint32_t next_entity_state; // next entity_state to use for newly spawned entities
-	entity_state_t *entity_states; // entity states array used for delta compression
+  /**
+   * @brief The master servers.
+   * @details Master servers maintain lists of running game servers.
+   */
+  net_addr_t masters[MAX_MASTERS];
 
-	net_addr_t masters[MAX_MASTERS];
-	uint32_t next_heartbeat;
+  /**
+   * @brief The time at which a heartbeat will be sent to all configured master servers.
+   */
+  uint32_t next_heartbeat;
 
-	sv_challenge_t challenges[MAX_CHALLENGES]; // to prevent invalid IPs from connecting
+  /**
+   * @brief The challenges array.
+   */
+  sv_challenge_t challenges[MAX_CHALLENGES];
 
-	/**
-	 * @brief The exported game module API.
-	 */
-	g_export_t *game;
+  /**
+   * @brief The spawn count, incremented at each map start, is used to ensure that
+   * long-running connection handshakes (for example, when a client needs to download
+   * the map) are still current when the client attempts to spawn.
+   */
+  uint32_t spawn_count;
+
+  /**
+   * @brief The exported game module API.
+   */
+  g_export_t *game;
 } sv_static_t;
-
-/**
- * @brief Yields a pointer to the edict by the given number by negotiating the
- * edicts array based on the reported size of g_entity_t.
- */
-#define ENTITY_FOR_NUM(n) \
-	( (g_entity_t *) ((byte *) svs.game->entities + svs.game->entity_size * (n)) )
-
-/**
- * @brief Yields the entity number (index) for the specified g_entity_t * by
- * negotiating the edicts array based on the reported size of g_entity_t.
- */
-#define NUM_FOR_ENTITY(e) \
-	( ((intptr_t)(e) - (intptr_t) svs.game->entities) / svs.game->entity_size )
 
 #endif /* __SV_LOCAL_H__ */

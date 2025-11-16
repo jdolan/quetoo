@@ -24,24 +24,24 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_PlayTechSound(g_entity_t *ent);
-bool G_PickupWeapon(g_entity_t *ent, g_entity_t *other);
-void G_UseBestWeapon(g_entity_t *ent);
-void G_UseWeapon(g_entity_t *ent, const g_item_t *item);
-g_entity_t *G_DropWeapon(g_entity_t *ent, const g_item_t *item);
-g_entity_t *G_TossWeapon(g_entity_t *ent);
-void G_FireBlaster(g_entity_t *ent);
-void G_FireShotgun(g_entity_t *ent);
-void G_FireSuperShotgun(g_entity_t *ent);
-void G_FireMachinegun(g_entity_t *ent);
-void G_FireHyperblaster(g_entity_t *ent);
-void G_FireRocketLauncher(g_entity_t *ent);
-void G_FireHandGrenade(g_entity_t *ent);
-void G_FireGrenadeLauncher(g_entity_t *ent);
-void G_FireLightning(g_entity_t *ent);
-void G_FireRailgun(g_entity_t *ent);
-void G_FireBfg(g_entity_t *ent);
-void G_ClientWeaponThink(g_entity_t *ent);
-void G_ClientHookDetach(g_entity_t *ent);
-void G_ClientHookThink(g_entity_t *ent, const bool refire);
+void G_PlayTechSound(g_client_t *cl);
+bool G_PickupWeapon(g_client_t *cl, g_entity_t *other);
+void G_UseBestWeapon(g_client_t *cl);
+void G_UseWeapon(g_client_t *cl, const g_item_t *item);
+g_entity_t *G_DropWeapon(g_client_t *cl, const g_item_t *item);
+g_entity_t *G_TossWeapon(g_client_t *cl);
+void G_FireBlaster(g_client_t *cl);
+void G_FireShotgun(g_client_t *cl);
+void G_FireSuperShotgun(g_client_t *cl);
+void G_FireMachinegun(g_client_t *cl);
+void G_FireHyperblaster(g_client_t *cl);
+void G_FireRocketLauncher(g_client_t *cl);
+void G_FireHandGrenade(g_client_t *cl);
+void G_FireGrenadeLauncher(g_client_t *cl);
+void G_FireLightning(g_client_t *cl);
+void G_FireRailgun(g_client_t *cl);
+void G_FireBfg(g_client_t *cl);
+void G_ClientWeaponThink(g_client_t *cl);
+void G_HookDetach(g_client_t *cl);
+void G_HookThink(g_client_t *cl, const bool refire);
 #endif /* __GAME_LOCAL_H__ */

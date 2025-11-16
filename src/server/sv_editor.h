@@ -21,17 +21,12 @@
 
 #pragma once
 
-#include "r_types.h"
+#include "sv_types.h"
 
-#ifdef __R_LOCAL_H__
-
-typedef enum {
-	BLEND_DEPTH_NONE   = 0x0,
-	BLEND_DEPTH_ENTITY = 0x1,
-	BLEND_DEPTH_SPRITE = 0x2,
-	BLEND_DEPTH_ALL    = 0x3
-} r_blend_depth_type_t;
-
-int32_t R_BlendDepthForPoint(const r_view_t *view, const vec3_t p, const r_blend_depth_type_t);
-void R_UpdateBlendDepth(const r_view_t *view);
-#endif
+#ifdef __SV_LOCAL_H__
+void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def);
+void Sv_EditEditorEntity(int32_t number, const char *info);
+void Sv_FreeEditorEntity(int32_t number);
+void Sv_LoadEditorMap(void);
+void Sv_SaveEditorMap_f(void);
+#endif /* __SV_LOCAL_H__ */

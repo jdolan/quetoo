@@ -24,13 +24,13 @@
 #include "tree.h"
 
 typedef struct portal_s {
-	plane_t plane;
-	node_t *on_node; // NULL = outside box
-	node_t *nodes[2]; // [0] = front side of plane
-	struct portal_s *next[2];
-	cm_winding_t *winding;
-	brush_side_t *side; // NULL = non-visible
-	face_t *face[2]; // output face in bsp file
+  plane_t plane;
+  node_t *on_node; // NULL = outside box
+  node_t *nodes[2]; // [0] = front side of plane
+  struct portal_s *next[2];
+  cm_winding_t *winding;
+  brush_side_t *side; // NULL = non-visible
+  face_t *face[2]; // output face in bsp file
 } portal_t;
 
 void MakeHeadnodePortals(tree_t *tree);

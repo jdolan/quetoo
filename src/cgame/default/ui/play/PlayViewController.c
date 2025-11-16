@@ -33,11 +33,11 @@
 
 static void dealloc(Object *self) {
 
-	PlayViewController *this = (PlayViewController *) self;
+  PlayViewController *this = (PlayViewController *) self;
 
-	release(this->tabViewController);
+  release(this->tabViewController);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -47,36 +47,36 @@ static void dealloc(Object *self) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	PlayViewController *this = (PlayViewController *) self;
+  PlayViewController *this = (PlayViewController *) self;
 
-	View *view = $$(View, viewWithResourceName, "ui/play/PlayViewController.json", NULL);
-	assert(view);
-	
-	$(self, setView, view);
+  View *view = $$(View, viewWithResourceName, "ui/play/PlayViewController.json", NULL);
+  assert(view);
+  
+  $(self, setView, view);
 
-	release(view);
+  release(view);
 
-	this->tabViewController = $(alloc(TabViewController), init);
-	assert(this->tabViewController);
+  this->tabViewController = $(alloc(TabViewController), init);
+  assert(this->tabViewController);
 
-	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
+  ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(JoinServerViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
+  viewController = $((ViewController *) alloc(JoinServerViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
-	viewController = $((ViewController *) alloc(CreateServerViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
+  viewController = $((ViewController *) alloc(CreateServerViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
-	viewController = $((ViewController *) alloc(PlayerSetupViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
+  viewController = $((ViewController *) alloc(PlayerSetupViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
-	$(self, addChildViewController, tabViewController);
-	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
+  $(self, addChildViewController, tabViewController);
+  $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle
@@ -86,9 +86,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -96,21 +96,21 @@ static void initialize(Class *clazz) {
  * @memberof PlayViewController
  */
 Class *_PlayViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "PlayViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(PlayViewController),
-			.interfaceOffset = offsetof(PlayViewController, interface),
-			.interfaceSize = sizeof(PlayViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "PlayViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(PlayViewController),
+      .interfaceOffset = offsetof(PlayViewController, interface),
+      .interfaceSize = sizeof(PlayViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

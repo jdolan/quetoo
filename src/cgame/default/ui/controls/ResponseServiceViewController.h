@@ -43,37 +43,37 @@ typedef struct ResponseServiceViewControllerInterface ResponseServiceViewControl
  */
 struct ResponseServiceViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	ResponseServiceViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  ResponseServiceViewControllerInterface *interface;
 
-	/**
-	 * @brief The crosshair HueColorPicker.
-	 */
-	HueColorPicker *crosshairColorPicker;
+  /**
+   * @brief The crosshair HueColorPicker.
+   */
+  HueColorPicker *crosshairColorPicker;
 
-	/**
-	 * @brief The crosshair Select.
-	 */
-	Select *crosshair;
+  /**
+   * @brief The crosshair Select.
+   */
+  Select *crosshair;
 
-	/**
-	 * @brief The crosshair health Select.
-	 */
-	Select *crosshairHealth;
+  /**
+   * @brief The crosshair health Select.
+   */
+  Select *crosshairHealth;
 
-	/**
-	 * @brief The CrosshairView.
-	 */
-	CrosshairView *crosshairView;
+  /**
+   * @brief The CrosshairView.
+   */
+  CrosshairView *crosshairView;
 };
 
 /**
@@ -81,10 +81,10 @@ struct ResponseServiceViewController {
  */
 struct ResponseServiceViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

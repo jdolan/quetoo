@@ -39,9 +39,9 @@ void Mem_Check(void *p);
  * @brief Struct used for return values of Mem_Stats
  */
 typedef struct {
-	mem_tag_t	tag; // tag
-	size_t		size; // total size in bytes
-	size_t		count; // number of blocks
+  mem_tag_t  tag; // tag
+  size_t    size; // total size in bytes
+  size_t    count; // number of blocks
 } mem_stat_t;
 
 GArray *Mem_Stats(void);

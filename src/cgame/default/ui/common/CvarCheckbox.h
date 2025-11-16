@@ -39,22 +39,22 @@ typedef struct CvarCheckboxInterface CvarCheckboxInterface;
  */
 struct CvarCheckbox {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	Checkbox checkbox;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  Checkbox checkbox;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	CvarCheckboxInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  CvarCheckboxInterface *interface;
 
-	/**
-	 * @brief The variable.
-	 */
-	cvar_t *var;
+  /**
+   * @brief The variable.
+   */
+  cvar_t *var;
 };
 
 /**
@@ -62,19 +62,19 @@ struct CvarCheckbox {
  */
 struct CvarCheckboxInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	CheckboxInterface checkboxInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  CheckboxInterface checkboxInterface;
 
-	/**
-	 * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
-	 * @brief Initializes this Checkbox with the given variable.
-	 * @param var The variable.
-	 * @return The initialized CvarCheckbox, or `NULL` on error.
-	 * @memberof CvarCheckbox
-	 */
-	CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, cvar_t *var);
+  /**
+   * @fn CvarCheckbox *CvarCheckbox::initWithVariable(CvarCheckbox *self, cvar_t *var)
+   * @brief Initializes this Checkbox with the given variable.
+   * @param var The variable.
+   * @return The initialized CvarCheckbox, or `NULL` on error.
+   * @memberof CvarCheckbox
+   */
+  CvarCheckbox *(*initWithVariable)(CvarCheckbox *self, cvar_t *var);
 };
 
 /**

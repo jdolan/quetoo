@@ -37,22 +37,22 @@ typedef struct BindTextViewInterface BindTextViewInterface;
  */
 struct BindTextView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	TextView textView;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  TextView textView;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	BindTextViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  BindTextViewInterface *interface;
 
-	/**
-	 * @brief The bind (e.g. `+forward`).
-	 */
-	char *bind;
+  /**
+   * @brief The bind (e.g. `+forward`).
+   */
+  char *bind;
 };
 
 /**
@@ -60,19 +60,19 @@ struct BindTextView {
  */
 struct BindTextViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	TextViewInterface textViewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  TextViewInterface textViewInterface;
 
-	/**
-	 * @fn BindTextView *BindTextView::initWithBind(BindTextView *self, const char *bind)
-	 * @brief Initializes this TextView with the given bind.
-	 * @param bind The bind (e.g. `+forward).
-	 * @return The initialized BindTextView, or `NULL` on error.
-	 * @memberof BindTextView
-	 */
-	BindTextView *(*initWithBind)(BindTextView *self, const char *bind);
+  /**
+   * @fn BindTextView *BindTextView::initWithBind(BindTextView *self, const char *bind)
+   * @brief Initializes this TextView with the given bind.
+   * @param bind The bind (e.g. `+forward).
+   * @return The initialized BindTextView, or `NULL` on error.
+   * @memberof BindTextView
+   */
+  BindTextView *(*initWithBind)(BindTextView *self, const char *bind);
 };
 
 /**

@@ -1,0 +1,30 @@
+{
+  "identifier": "Entity",
+  "classNames": [
+    "container"
+  ],
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "identifier": "pairs",
+          "class": "StackView",
+          "classNames": [
+            "container"
+          ],
+          "subviews": [
+            
+          ]
+        },
+        {
+          "identifier": "add",
+          "class": "EntityView"
+        }
+      ]
+    }
+  ]
+}

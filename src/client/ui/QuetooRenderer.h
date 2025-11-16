@@ -39,16 +39,16 @@ typedef struct QuetooRendererInterface QuetooRendererInterface;
  */
 struct QuetooRenderer {
 
-	/**
-	 * @brief The superclass.
-	 */
-	Renderer renderer;
+  /**
+   * @brief The superclass.
+   */
+  Renderer renderer;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	QuetooRendererInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  QuetooRendererInterface *interface;
 };
 
 /**
@@ -56,19 +56,19 @@ struct QuetooRenderer {
  */
 struct QuetooRendererInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	RendererInterface rendererInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  RendererInterface rendererInterface;
 
-	/**
-	 * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
-	 * @brief Initializes this QuetooRenderer.
-	 * @param self The QuetooRenderer.
-	 * @return The initialized QuetooRenderer, or `NULL` on error.
-	 * @memberof QuetooRenderer
-	 */
-	QuetooRenderer *(*init)(QuetooRenderer *self);
+  /**
+   * @fn QuetooRenderer *QuetooRenderer::init(QuetooRenderer *self)
+   * @brief Initializes this QuetooRenderer.
+   * @param self The QuetooRenderer.
+   * @return The initialized QuetooRenderer, or `NULL` on error.
+   * @memberof QuetooRenderer
+   */
+  QuetooRenderer *(*init)(QuetooRenderer *self);
 };
 
 /**

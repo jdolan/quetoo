@@ -39,27 +39,27 @@ typedef struct MapListCollectionViewInterface MapListCollectionViewInterface;
  */
 struct MapListCollectionView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	CollectionView collectionView;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  CollectionView collectionView;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	MapListCollectionViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  MapListCollectionViewInterface *interface;
 
-	/**
-	 * @brief A lock used for asynchronous map loading.
-	 */
-	Lock *lock;
+  /**
+   * @brief A lock used for asynchronous map loading.
+   */
+  Lock *lock;
 
-	/**
-	 * @brief Available maps.
-	 */
-	MutableArray *maps;
+  /**
+   * @brief Available maps.
+   */
+  MutableArray *maps;
 };
 
 /**
@@ -67,26 +67,26 @@ struct MapListCollectionView {
  */
 struct MapListCollectionViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	CollectionViewInterface collectionViewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  CollectionViewInterface collectionViewInterface;
 
-	/**
-	 * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame)
-	 * @brief Initializes this MapListCollectionView with the specified frame and style.
-	 * @param frame The frame.
-	 * @return The initialized MapListCollectionView, or `NULL` on error.
-	 * @memberof MapListCollectionView
-	 */
-	MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame);
+  /**
+   * @fn MapListCollectionView *MapListCollectionView::initWithFrame(MapListCollectionView *self, const SDL_Rect *frame)
+   * @brief Initializes this MapListCollectionView with the specified frame and style.
+   * @param frame The frame.
+   * @return The initialized MapListCollectionView, or `NULL` on error.
+   * @memberof MapListCollectionView
+   */
+  MapListCollectionView *(*initWithFrame)(MapListCollectionView *self, const SDL_Rect *frame);
 
-	/**
-	 * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
-	 * @return An Array of selected MapListItemInfo Values.
-	 * @memberof MapListCollectionView
-	 */
-	Array *(*selectedMaps)(const MapListCollectionView *self);
+  /**
+   * @fn Array *MapListCollectionView::selectedMaps(const MapListCollectionView *self)
+   * @return An Array of selected MapListItemInfo Values.
+   * @memberof MapListCollectionView
+   */
+  Array *(*selectedMaps)(const MapListCollectionView *self);
 };
 
 /**

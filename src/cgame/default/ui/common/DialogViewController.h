@@ -40,35 +40,35 @@ typedef struct DialogViewControllerInterface DialogViewControllerInterface;
  */
 struct Dialog {
 
-	/**
-	 * @brief The data.
-	 */
-	ident data;
+  /**
+   * @brief The data.
+   */
+  ident data;
 
-	/**
-	 * @brief The message.
-	 */
-	const char *message;
+  /**
+   * @brief The message.
+   */
+  const char *message;
 
-	/**
-	 * @brief The Ok text.
-	 */
-	const char *ok;
+  /**
+   * @brief The Ok text.
+   */
+  const char *ok;
 
-	/**
-	 * @brief the Cancel text.
-	 */
-	const char *cancel;
+  /**
+   * @brief the Cancel text.
+   */
+  const char *cancel;
 
-	/**
-	 * @brief The Ok callback.
-	 */
-	void (*okFunction)(ident data);
+  /**
+   * @brief The Ok callback.
+   */
+  void (*okFunction)(ident data);
 
-	/**
-	 * @brief The Cancel callback.
-	 */
-	void (*cancelFunction)(ident data);
+  /**
+   * @brief The Cancel callback.
+   */
+  void (*cancelFunction)(ident data);
 };
 
 /**
@@ -77,36 +77,36 @@ struct Dialog {
  */
 struct DialogViewController {
 
-	/**
-	 * @brief The superclass.
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	DialogViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  DialogViewControllerInterface *interface;
 
-	/**
-	 * @brief The dialog.
-	 */
-	Dialog dialog;
+  /**
+   * @brief The dialog.
+   */
+  Dialog dialog;
 
-	/**
-	 * @brief The message.
-	 */
-	Label *message;
+  /**
+   * @brief The message.
+   */
+  Label *message;
 
-	/**
-	 * @brief The Ok button.
-	 */
-	Button *okButton;
+  /**
+   * @brief The Ok button.
+   */
+  Button *okButton;
 
-	/**
-	 * @brief The Cancel button.
-	 */
-	Button *cancelButton;
+  /**
+   * @brief The Cancel button.
+   */
+  Button *cancelButton;
 };
 
 /**
@@ -114,20 +114,20 @@ struct DialogViewController {
  */
 struct DialogViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
-	/**
-	 * @fn DialogViewController *DialogViewController::initWithDialog(DialogViewController *self, const Dialog *dialog)
-	 * @brief Initializes this DialogViewController.
-	 * @param self The DialogViewController.
-	 * @param dialog The Dialog.
-	 * @return The initialized DialogViewController, or `NULL` on error.
-	 * @memberof DialogViewController
-	 */
-	DialogViewController *(*initWithDialog)(DialogViewController *self, const Dialog *dialog);
+  /**
+   * @fn DialogViewController *DialogViewController::initWithDialog(DialogViewController *self, const Dialog *dialog)
+   * @brief Initializes this DialogViewController.
+   * @param self The DialogViewController.
+   * @param dialog The Dialog.
+   * @return The initialized DialogViewController, or `NULL` on error.
+   * @memberof DialogViewController
+   */
+  DialogViewController *(*initWithDialog)(DialogViewController *self, const Dialog *dialog);
 };
 
 /**

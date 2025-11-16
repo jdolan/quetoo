@@ -25,27 +25,27 @@
 
 #define _Class _SystemViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief SelectDelegate callback for Video Mode.
  */
 static void didSelecVideoMode(Select *select, Option *option) {
 
-	const SDL_DisplayMode *mode = option->value;
-	if (mode) {
-		if (mode->w != cgi.context->width || mode->h != cgi.context->height) {
-			cgi.SetCvarInteger("r_width", mode->w);
-			cgi.SetCvarInteger("r_height", mode->h);
-		}
-	}
+  const SDL_DisplayMode *mode = option->value;
+  if (mode) {
+    if (mode->w != cgi.context->w || mode->h != cgi.context->h) {
+      cgi.SetCvarInteger("r_width", mode->w);
+      cgi.SetCvarInteger("r_height", mode->h);
+    }
+  }
 }
 
 /**
- * @brief ActionFunction for the Apply button.
+ * @brief ButtonDelegate for the Apply button.
  */
-static void applyAction(Control *control, const SDL_Event *event, ident sender, ident data) {
-	cgi.Cbuf("r_restart; s_restart");
+static void didClickApply(Button *button) {
+  cgi.Cbuf("r_restart; s_restart");
 }
 
 #pragma mark - ViewController
@@ -55,63 +55,50 @@ static void applyAction(Control *control, const SDL_Event *event, ident sender, 
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	Select *videoMode, *windowMode, *verticalSync,
-		   *textureMode, *anisotropy, *multisample,
-	       *rate;
+  Select *videoMode, *windowMode, *verticalSync, *anisotropy, *supersample;
 
-	Button *apply;
+  Button *apply;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("videoMode", &videoMode),
-		MakeOutlet("windowMode", &windowMode),
-		MakeOutlet("verticalSync", &verticalSync),
-		MakeOutlet("textureMode", &textureMode),
-		MakeOutlet("anisotropy", &anisotropy),
-		MakeOutlet("multisample", &multisample),
-		MakeOutlet("rate", &rate),
-		MakeOutlet("apply", &apply)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("videoMode", &videoMode),
+    MakeOutlet("windowMode", &windowMode),
+    MakeOutlet("verticalSync", &verticalSync),
+    MakeOutlet("anisotropy", &anisotropy),
+    MakeOutlet("supersample", &supersample),
+    MakeOutlet("apply", &apply)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/settings/SystemViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/settings/SystemViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/SystemViewController.css");
-	assert(self->view->stylesheet);
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/SystemViewController.css");
+  assert(self->view->stylesheet);
 
-	videoMode->delegate.self = self;
-	videoMode->delegate.didSelectOption = didSelecVideoMode;
+  videoMode->delegate.self = self;
+  videoMode->delegate.didSelectOption = didSelecVideoMode;
 
-	$(windowMode, addOption, "Windowed", (ident) 0);
-	$(windowMode, addOption, "Fullscreen", (ident) 1);
-	$(windowMode, addOption, "Borderless", (ident) 2);
+  $(windowMode, addOption, "Windowed", (ident) 0);
+  $(windowMode, addOption, "Fullscreen", (ident) 1);
+  $(windowMode, addOption, "Borderless", (ident) 2);
 
-	$(verticalSync, addOption, "Off", (ident) 0);
-	$(verticalSync, addOption, "On", (ident) 1);
-	$(verticalSync, addOption, "Immediate", (ident) -1);
+  $(verticalSync, addOption, "Off", (ident) 0);
+  $(verticalSync, addOption, "On", (ident) 1);
+  $(verticalSync, addOption, "Immediate", (ident) -1);
 
-	$(textureMode, addOption, "Nearest", "GL_NEAREST");
-	$(textureMode, addOption, "Bilinear", "GL_LINEAR");
-	$(textureMode, addOption, "Trilinear", "GL_LINEAR_MIPMAP_LINEAR");
+  $(anisotropy, addOption, "Off", (ident) 0);
+  $(anisotropy, addOption, "2x", (ident) 2);
+  $(anisotropy, addOption, "4x", (ident) 4);
+  $(anisotropy, addOption, "8x", (ident) 8);
+  $(anisotropy, addOption, "16x", (ident) 16);
 
-	$(anisotropy, addOption, "16x", (ident) 16);
-	$(anisotropy, addOption, "8x", (ident) 8);
-	$(anisotropy, addOption, "4x", (ident) 4);
-	$(anisotropy, addOption, "2x", (ident) 2);
-	$(anisotropy, addOption, "Off", (ident) 0);
+  $(supersample, addOption, "Off", (ident) 0);
+  $(supersample, addOption, "2x", (ident) 2);
+  $(supersample, addOption, "4x", (ident) 4);
 
-	$(multisample, addOption, "8x", (ident) 4);
-	$(multisample, addOption, "4x", (ident) 2);
-	$(multisample, addOption, "2x", (ident) 1);
-	$(multisample, addOption, "Off", (ident) 0);
-
-	$(rate, addOption, "100Mbps", (ident) (intptr_t) 0);
-	$(rate, addOption, "50Mbps", (ident) (intptr_t) 50000);
-	$(rate, addOption, "20Mbps", (ident) (intptr_t) 20000);
-	$(rate, addOption, "10Mbps", (ident) (intptr_t) 10000);
-
-	$((Control *) apply, addActionForEventType, SDL_MOUSEBUTTONUP, applyAction, self, NULL);
+  apply->delegate.didClick = didClickApply;
+  apply->delegate.self = self;
 }
 
 #pragma mark - Class lifecycle
@@ -120,7 +107,7 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -128,21 +115,21 @@ static void initialize(Class *clazz) {
  * @memberof SystemViewController
  */
 Class *_SystemViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "SystemViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(SystemViewController),
-			.interfaceOffset = offsetof(SystemViewController, interface),
-			.interfaceSize = sizeof(SystemViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "SystemViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(SystemViewController),
+      .interfaceOffset = offsetof(SystemViewController, interface),
+      .interfaceSize = sizeof(SystemViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

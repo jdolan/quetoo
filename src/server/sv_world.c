@@ -21,35 +21,37 @@
 
 #include "sv_local.h"
 
+// FIXME: Couldn't we use the BSP blocks for this now?
+
 /**
  * @brief The world is divided into evenly sized sectors to aid in entity
  * management. This works like a meta-BSP tree, providing fast searches via
  * recursion to find entities within an arbitrary box.
  */
 typedef struct sv_sector_s {
-	int32_t axis; // -1 = leaf
-	float dist;
-	struct sv_sector_s *children[2];
-	GList *entities;
+  int32_t axis; // -1 = leaf
+  float dist;
+  struct sv_sector_s *children[2];
+  GList *entities;
 } sv_sector_t;
 
-#define SECTOR_DEPTH	4
-#define SECTOR_NODES	32
+#define SECTOR_DEPTH  4
+#define SECTOR_NODES  32
 
 /**
  * @brief The world structure contains all sectors and also the current query
- * context issued to Sv_BoxEntities.
+ * context issued to `Sv_BoxEntities`.
  */
 typedef struct {
-	sv_sector_t sectors[SECTOR_NODES];
-	uint16_t num_sectors;
+  sv_sector_t sectors[SECTOR_NODES];
+  size_t num_sectors;
 
-	box3_t box;
+  box3_t box;
 
-	g_entity_t **box_entities;
-	size_t num_box_entities, max_box_entities;
+  g_entity_t **box_entities;
+  size_t num_box_entities, max_box_entities;
 
-	uint32_t box_type; // BOX_SOLID, BOX_TRIGGER, ..
+  uint32_t box_type; // BOX_SOLID, BOX_TRIGGER, ..
 } sv_world_t;
 
 static sv_world_t sv_world;
@@ -58,48 +60,81 @@ static sv_world_t sv_world;
  * @brief Builds a uniformly subdivided tree for the given world size.
  */
 static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
-	sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
-	sv_world.num_sectors++;
+  sv_sector_t *sector = &sv_world.sectors[sv_world.num_sectors];
+  sv_world.num_sectors++;
 
-	if (depth == SECTOR_DEPTH) {
-		sector->axis = -1;
-		sector->children[0] = sector->children[1] = NULL;
-		return sector;
-	}
+  if (depth == SECTOR_DEPTH) {
+    sector->axis = -1;
+    sector->children[0] = sector->children[1] = NULL;
+    return sector;
+  }
 
-	vec3_t size = Box3_Size(bounds);
+  vec3_t size = Box3_Size(bounds);
 
-	if (size.x > size.y) {
-		sector->axis = 0;
-	} else {
-		sector->axis = 1;
-	}
+  if (size.x > size.y) {
+    sector->axis = 0;
+  } else {
+    sector->axis = 1;
+  }
 
-	sector->dist = 0.5f * (bounds.maxs.xyz[sector->axis] + bounds.mins.xyz[sector->axis]);
+  sector->dist = 0.5f * (bounds.maxs.xyz[sector->axis] + bounds.mins.xyz[sector->axis]);
 
-	box3_t bounds1 = bounds, bounds2 = bounds;
+  box3_t bounds1 = bounds, bounds2 = bounds;
 
-	bounds1.maxs.xyz[sector->axis] = bounds2.mins.xyz[sector->axis] = sector->dist;
+  bounds1.maxs.xyz[sector->axis] = bounds2.mins.xyz[sector->axis] = sector->dist;
 
-	sector->children[0] = Sv_CreateSector(depth + 1, bounds2);
-	sector->children[1] = Sv_CreateSector(depth + 1, bounds1);
+  sector->children[0] = Sv_CreateSector(depth + 1, bounds2);
+  sector->children[1] = Sv_CreateSector(depth + 1, bounds1);
 
-	return sector;
+  return sector;
 }
 
 /**
- * @brief Resolve our sectors for a newly loaded level. This is called prior to
- * linking any entities.
+ * @brief
  */
-void Sv_InitWorld(void) {
+static void Sv_InitWorld(void) {
 
-	for (uint16_t i = 0; i < sv_world.num_sectors; i++) {
-		g_list_free(sv_world.sectors[i].entities);
-	}
+  for (size_t i = 0; i < sv_world.num_sectors; i++) {
+    g_list_free(sv_world.sectors[i].entities);
+  }
 
-	memset(&sv_world, 0, sizeof(sv_world));
+  memset(&sv_world, 0, sizeof(sv_world));
 
-	Sv_CreateSector(0, sv.cm_models[0]->bounds);
+  Sv_CreateSector(0, sv.cm_models[0]->bounds);
+}
+
+/**
+ * @brief
+ */
+void Sv_SpawnEntities(void) {
+
+  Sv_InitWorld();
+
+  if (editor->value) {
+
+    // Resolve the map brushes for the bsp entities
+    Sv_LoadEditorMap();
+
+    // Let the game handle worldspawn to initialize the world
+    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);
+
+    // But in general, withhold all BSP entities from the game module
+    for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
+      Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
+    }
+  } else {
+    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+  }
+
+  /*
+   * Run a few game frames for entities to settle down. Failure to do
+   * this will cause the entities to produce all but useless baselines,
+   * which will in turn blow out the packet entities in Sv_EmitEntities.
+   */
+
+  for (int32_t i = 0; i < 3; i++) {
+    svs.game->Frame();
+  }
 }
 
 /**
@@ -108,14 +143,18 @@ void Sv_InitWorld(void) {
  */
 void Sv_UnlinkEntity(g_entity_t *ent) {
 
-	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+  if (ent->s.number == 0) {
+    return;
+  }
 
-	if (sent->sector) {
-		sv_sector_t *sector = (sv_sector_t *) sent->sector;
-		sector->entities = g_list_remove(sector->entities, ent);
+  sv_entity_t *sent = &sv.entities[ent->s.number];
 
-		memset(sent, 0, sizeof(*sent));
-	}
+  if (sent->sector) {
+    sv_sector_t *sector = (sv_sector_t *) sent->sector;
+    sector->entities = g_list_remove(sector->entities, ent);
+
+    memset(sent, 0, sizeof(*sent));
+  }
 }
 
 /**
@@ -124,66 +163,71 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  */
 void Sv_LinkEntity(g_entity_t *ent) {
 
-	sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+  if (ent->s.number == 0) { // never bother with the world
+    return;
+  }
 
-	if (ent == svs.game->entities) { // never bother with the world
-		return;
-	}
+  // remove it from its current sector
+  Sv_UnlinkEntity(ent);
 
-	// remove it from its current sector
-	Sv_UnlinkEntity(ent);
+  if (!ent->in_use) { // and if its free, we're done
+    return;
+  }
 
-	if (!ent->in_use) { // and if its free, we're done
-		return;
-	}
+  // set the size
+  ent->size = Box3_Size(ent->bounds);
 
-	// set the size
-	ent->size = Box3_Size(ent->bounds);
+  // encode the size into the entity state for client prediction
+  ent->s.solid = ent->solid;
+  switch (ent->s.solid) {
+    case SOLID_TRIGGER:
+    case SOLID_PROJECTILE:
+    case SOLID_DEAD:
+    case SOLID_BOX:
+    case SOLID_EDITOR:
+      ent->s.bounds = ent->bounds;
+      break;
+    default:
+      ent->s.bounds = Box3_Zero();
+      break;
+  }
 
-	// encode the size into the entity state for client prediction
-	ent->s.solid = ent->solid;
-	switch (ent->s.solid) {
-		case SOLID_TRIGGER:
-		case SOLID_PROJECTILE:
-		case SOLID_DEAD:
-		case SOLID_BOX:
-			ent->s.bounds = ent->bounds;
-			break;
-		default:
-			ent->s.bounds = Box3_Zero();
-			break;
-	}
+  const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
 
-	const vec3_t angles = ent->solid == SOLID_BSP ? ent->s.angles : Vec3_Zero();
+  sv_entity_t *sent = &sv.entities[ent->s.number];
 
-	sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
-	sent->inverse_matrix = Mat4_Inverse(sent->matrix);
-	ent->abs_bounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
+  sent->matrix = Mat4_FromRotationTranslationScale(angles, ent->s.origin, 1.f);
+  sent->inverse_matrix = Mat4_Inverse(sent->matrix);
+  ent->abs_bounds = Cm_EntityBounds(ent->solid, sent->matrix, ent->bounds);
 
-	if (ent->solid == SOLID_NOT) {
-		return;
-	}
+  if (ent->solid == SOLID_NOT) {
+    return;
+  }
 
-	// find the first sector that the ent's box crosses
-	sv_sector_t *sector = sv_world.sectors;
-	while (true) {
+  if (ent->solid == SOLID_PROJECTILE) {
+    return;
+  }
 
-		if (sector->axis == -1) {
-			break;
-		}
+  // find the first sector that the ent's box crosses
+  sv_sector_t *sector = sv_world.sectors;
+  while (true) {
 
-		if (ent->abs_bounds.mins.xyz[sector->axis] > sector->dist) {
-			sector = sector->children[0];
-		} else if (ent->abs_bounds.maxs.xyz[sector->axis] < sector->dist) {
-			sector = sector->children[1];
-		} else {
-			break; // crosses the node
-		}
-	}
+    if (sector->axis == -1) {
+      break;
+    }
 
-	// add it to the sector
-	sent->sector = sector;
-	sector->entities = g_list_prepend(sector->entities, ent);
+    if (ent->abs_bounds.mins.xyz[sector->axis] > sector->dist) {
+      sector = sector->children[0];
+    } else if (ent->abs_bounds.maxs.xyz[sector->axis] < sector->dist) {
+      sector = sector->children[1];
+    } else {
+      break; // crosses the node
+    }
+  }
+
+  // add it to the sector
+  sent->sector = sector;
+  sector->entities = g_list_prepend(sector->entities, ent);
 }
 
 /**
@@ -191,27 +235,28 @@ void Sv_LinkEntity(g_entity_t *ent) {
  */
 static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 
-	switch (ent->solid) {
-		case SOLID_TRIGGER:
-		case SOLID_PROJECTILE:
-			if (sv_world.box_type & BOX_OCCUPY) {
-				return true;
-			}
-			break;
+  switch (ent->solid) {
+    case SOLID_TRIGGER:
+    case SOLID_PROJECTILE:
+      if (sv_world.box_type & BOX_OCCUPY) {
+        return true;
+      }
+      break;
 
-		case SOLID_DEAD:
-		case SOLID_BOX:
-		case SOLID_BSP:
-			if (sv_world.box_type & BOX_COLLIDE) {
-				return true;
-			}
-			break;
+    case SOLID_DEAD:
+    case SOLID_BOX:
+    case SOLID_BSP:
+      if (sv_world.box_type & BOX_COLLIDE) {
+        return true;
+      }
+      break;
 
-		case SOLID_NOT:
-			break;
-	}
+    case SOLID_NOT:
+    case SOLID_EDITOR:
+      break;
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -219,39 +264,39 @@ static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
  */
 static void Sv_BoxEntities_r(sv_sector_t *sector) {
 
-	GList *e = sector->entities;
-	while (e) {
-		g_entity_t *ent = (g_entity_t *) e->data;
+  GList *e = sector->entities;
+  while (e) {
+    g_entity_t *ent = (g_entity_t *) e->data;
 
-		if (Sv_BoxEntities_Filter(ent)) {
+    if (Sv_BoxEntities_Filter(ent)) {
 
-			if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
+      if (Box3_Intersects(ent->abs_bounds, sv_world.box)) {
 
-				sv_world.box_entities[sv_world.num_box_entities] = ent;
-				sv_world.num_box_entities++;
+        sv_world.box_entities[sv_world.num_box_entities] = ent;
+        sv_world.num_box_entities++;
 
-				if (sv_world.num_box_entities == sv_world.max_box_entities) {
-					Com_Warn("sv_world.max_box_entities\n");
-					return;
-				}
-			}
-		}
+        if (sv_world.num_box_entities == sv_world.max_box_entities) {
+          Com_Warn("sv_world.max_box_entities\n");
+          return;
+        }
+      }
+    }
 
-		e = e->next;
-	}
+    e = e->next;
+  }
 
-	if (sector->axis == -1) {
-		return;    // terminal node
-	}
+  if (sector->axis == -1) {
+    return;    // terminal node
+  }
 
-	// recurse down both sides
-	if (sv_world.box.maxs.xyz[sector->axis] > sector->dist) {
-		Sv_BoxEntities_r(sector->children[0]);
-	}
+  // recurse down both sides
+  if (sv_world.box.maxs.xyz[sector->axis] > sector->dist) {
+    Sv_BoxEntities_r(sector->children[0]);
+  }
 
-	if (sv_world.box.mins.xyz[sector->axis] < sector->dist) {
-		Sv_BoxEntities_r(sector->children[1]);
-	}
+  if (sv_world.box.mins.xyz[sector->axis] < sector->dist) {
+    Sv_BoxEntities_r(sector->children[1]);
+  }
 }
 
 /**
@@ -263,18 +308,18 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
  */
 size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, uint32_t type) {
 
-	sv_world.box = bounds;
-	sv_world.box_entities = list;
-	sv_world.num_box_entities = 0;
-	sv_world.max_box_entities = len;
-	sv_world.box_type = type;
+  sv_world.box = bounds;
+  sv_world.box_entities = list;
+  sv_world.num_box_entities = 0;
+  sv_world.max_box_entities = len;
+  sv_world.box_type = type;
 
-	Sv_BoxEntities_r(sv_world.sectors);
+  Sv_BoxEntities_r(sv_world.sectors);
 
-	sv_world.box = Box3_Zero();
-	sv_world.box_entities = NULL;
+  sv_world.box = Box3_Zero();
+  sv_world.box_entities = NULL;
 
-	return sv_world.num_box_entities;
+  return sv_world.num_box_entities;
 }
 
 /**
@@ -283,30 +328,33 @@ size_t Sv_BoxEntities(const box3_t bounds, g_entity_t **list, const size_t len, 
  */
 static int32_t Sv_HullForEntity(const g_entity_t *ent) {
 
-	if (ent->solid == SOLID_BSP) {
-		const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
+  switch (ent->solid) {
 
-		if (!mod) {
-			Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
-		}
+    case SOLID_DEAD:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_DEAD_MONSTER);
 
-		return mod->head_node;
-	}
+    case SOLID_BOX: {
+      if (ent->client) {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
+      } else {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
+      }
+    }
 
-	if (ent->solid == SOLID_BOX) {
+    case SOLID_BSP: {
+      const cm_bsp_model_t *mod = sv.cm_models[ent->s.model1];
+      if (!mod) {
+        Com_Error(ERROR_DROP, "SOLID_BSP with no model\n");
+      }
+      return mod->head_node;
+    }
 
-		if (ent->client) {
-			return Cm_SetBoxHull(ent->bounds, CONTENTS_MONSTER);
-		}
+    case SOLID_EDITOR:
+      return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
 
-		return Cm_SetBoxHull(ent->bounds, CONTENTS_SOLID);
-	}
-
-	if (ent->solid == SOLID_DEAD) {
-		return Cm_SetBoxHull(ent->bounds, CONTENTS_DEAD_MONSTER);
-	}
-
-	return -1;
+    default:
+      return -1;
+  }
 }
 
 /**
@@ -314,27 +362,27 @@ static int32_t Sv_HullForEntity(const g_entity_t *ent) {
  * contents as well as contents for any solid entities this point intersects.
  */
 int32_t Sv_PointContents(const vec3_t point) {
-	g_entity_t *entities[MAX_ENTITIES];
+  g_entity_t *entities[MAX_ENTITIES];
 
-	// get base contents from world
-	int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
+  // get base contents from world
+  int32_t contents = Cm_PointContents(point, 0, Mat4_Identity());
 
-	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(Box3_FromCenter(point), entities, lengthof(entities), BOX_COLLIDE);
+  // as well as contents from all intersected entities
+  const size_t len = Sv_BoxEntities(Box3_FromCenter(point), entities, lengthof(entities), BOX_COLLIDE);
 
-	// iterate the box entities, checking each one for an intersection
-	for (size_t i = 0; i < len; i++) {
-		const g_entity_t *ent = entities[i];
+  // iterate the box entities, checking each one for an intersection
+  for (size_t i = 0; i < len; i++) {
+    const g_entity_t *ent = entities[i];
 
-		const int32_t head_node = Sv_HullForEntity(ent);
-		if (head_node != -1) {
+    const int32_t head_node = Sv_HullForEntity(ent);
+    if (head_node != -1) {
 
-			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-			contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
-		}
-	}
+      const sv_entity_t *sent = &sv.entities[ent->s.number];
+      contents |= Cm_PointContents(point, head_node, sent->inverse_matrix);
+    }
+  }
 
-	return contents;
+  return contents;
 }
 
 /**
@@ -342,37 +390,37 @@ int32_t Sv_PointContents(const vec3_t point) {
  * contents as well as contents for any solid entities this point intersects.
  */
 int32_t Sv_BoxContents(const box3_t bounds) {
-	g_entity_t *entities[MAX_ENTITIES];
+  g_entity_t *entities[MAX_ENTITIES];
 
-	// get base contents from world
-	int32_t contents = Cm_BoxContents(bounds, 0);
+  // get base contents from world
+  int32_t contents = Cm_BoxContents(bounds, 0);
 
-	// as well as contents from all intersected entities
-	const size_t len = Sv_BoxEntities(bounds, entities, lengthof(entities), BOX_COLLIDE);
+  // as well as contents from all intersected entities
+  const size_t len = Sv_BoxEntities(bounds, entities, lengthof(entities), BOX_COLLIDE);
 
-	// iterate the box entities, checking each one for an intersection
-	for (size_t i = 0; i < len; i++) {
-		const g_entity_t *ent = entities[i];
+  // iterate the box entities, checking each one for an intersection
+  for (size_t i = 0; i < len; i++) {
+    const g_entity_t *ent = entities[i];
 
-		const int32_t head_node = Sv_HullForEntity(ent);
-		if (head_node != -1) {
+    const int32_t head_node = Sv_HullForEntity(ent);
+    if (head_node != -1) {
 
-			const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
-			contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverse_matrix, bounds), head_node);
-		}
-	}
+      const sv_entity_t *sent = &sv.entities[ent->s.number];
+      contents |= Cm_BoxContents(Mat4_TransformBounds(sent->inverse_matrix, bounds), head_node);
+    }
+  }
 
-	return contents;
+  return contents;
 }
 
 // an entity's movement, with allowed exceptions and other info
 typedef struct {
-	vec3_t start, end;
-	box3_t bounds; // size of the moving object
-	box3_t abs_bounds; // enclose the test object along entire move
-	cm_trace_t trace;
-	const g_entity_t *skip;
-	int32_t contents;
+  vec3_t start, end;
+  box3_t bounds; // size of the moving object
+  box3_t abs_bounds; // enclose the test object along entire move
+  cm_trace_t trace;
+  const g_entity_t *skip;
+  int32_t contents;
 } sv_trace_t;
 
 /**
@@ -380,61 +428,61 @@ typedef struct {
  */
 static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
 
-	if (trace->skip) { // see if we can skip it
+  if (trace->skip) { // see if we can skip it
 
-		if (ent == trace->skip) {
-			return; // explicitly (ourselves)
-		}
+    if (ent == trace->skip) {
+      return; // explicitly (ourselves)
+    }
 
-		if (ent->owner == trace->skip) {
-			return; // or via ownership (we own it)
-		}
+    if (ent->owner == trace->skip) {
+      return; // or via ownership (we own it)
+    }
 
-		if (trace->skip->owner) {
+    if (trace->skip->owner) {
 
-			if (ent == trace->skip->owner) {
-				return; // which is bidirectional (inverse of previous case)
-			}
+      if (ent == trace->skip->owner) {
+        return; // which is bidirectional (inverse of previous case)
+      }
 
-			if (ent->owner == trace->skip->owner) {
-				return; // and commutative (we are both owned by the same)
-			}
-		}
+      if (ent->owner == trace->skip->owner) {
+        return; // and commutative (we are both owned by the same)
+      }
+    }
 
-		// triggers only clip to the world (while other entities can occupy triggers)
-		if (trace->skip->solid == SOLID_TRIGGER) {
+    // triggers only clip to the world (while other entities can occupy triggers)
+    if (trace->skip->solid == SOLID_TRIGGER) {
 
-			if (ent->solid != SOLID_BSP) {
-				return;
-			}
-		}
-	}
+      if (ent->solid != SOLID_BSP) {
+        return;
+      }
+    }
+  }
 
-	const int32_t head_node = Sv_HullForEntity(ent);
-	if (head_node == -1) {
-		return;
-	}
+  const int32_t head_node = Sv_HullForEntity(ent);
+  if (head_node == -1) {
+    return;
+  }
 
-	const sv_entity_t *sent = &sv.entities[NUM_FOR_ENTITY(ent)];
+  const sv_entity_t *sent = &sv.entities[ent->s.number];
 
-	cm_trace_t tr;
-	
-	if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
-		tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
-	} else {
-		tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix, sent->inverse_matrix);
-	}
+  cm_trace_t tr;
+  
+  if (Mat4_Equal(sent->matrix, Mat4_Identity())) {
+    tr = Cm_BoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents);
+  } else {
+    tr = Cm_TransformedBoxTrace(trace->start, trace->end, trace->bounds, head_node, trace->contents, sent->matrix, sent->inverse_matrix);
+  }
 
-	// check for a full or partial intersection
-	if (tr.all_solid || tr.fraction < trace->trace.fraction) {
+  // check for a full or partial intersection
+  if (tr.all_solid || tr.fraction < trace->trace.fraction) {
 
-		trace->trace = tr;
-		trace->trace.ent = (g_entity_t *) ent;
+    trace->trace = tr;
+    trace->trace.ent = (g_entity_t *) ent;
 
-		if (tr.all_solid) { // we were actually blocked
-			return;
-		}
-	}
+    if (tr.all_solid) { // we were actually blocked
+      return;
+    }
+  }
 }
 
 /**
@@ -442,12 +490,12 @@ static void Sv_ClipTraceToEntity(sv_trace_t *trace, const g_entity_t *ent) {
  * collision and interaction for the server. Tread carefully.
  */
 static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
-	g_entity_t *e[MAX_ENTITIES];
+  g_entity_t *e[MAX_ENTITIES];
 
-	const size_t len = Sv_BoxEntities(trace->abs_bounds, e, lengthof(e), BOX_COLLIDE);
-	for (size_t i = 0; i < len; i++) {
-		Sv_ClipTraceToEntity(trace, e[i]);
-	}
+  const size_t len = Sv_BoxEntities(trace->abs_bounds, e, lengthof(e), BOX_COLLIDE);
+  for (size_t i = 0; i < len; i++) {
+    Sv_ClipTraceToEntity(trace, e[i]);
+  }
 }
 
 /**
@@ -459,33 +507,32 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, int32_t contents) {
 
-	sv_trace_t trace = { };
+  sv_trace_t trace = { };
 
-	// clip to world
-	trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
-	if (trace.trace.fraction < 1.0f) {
-		trace.trace.ent = svs.game->entities;
+  // clip to world
+  trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
+  if (trace.trace.fraction < 1.f) {
+    trace.trace.ent = svs.game->entities[0];
 
-		if (trace.trace.start_solid) { // blocked entirely
-			return trace.trace;
-		}
-	}
+    if (trace.trace.start_solid) { // blocked entirely
+      return trace.trace;
+    }
+  }
 
-	trace.start = start;
-	trace.end = end;
-	trace.bounds = bounds;
-	trace.skip = skip;
-	trace.contents = contents;
+  trace.start = start;
+  trace.end = end;
+  trace.bounds = bounds;
+  trace.skip = skip;
+  trace.contents = contents;
 
-	// create the bounding box of the entire move
-	trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
+  // create the bounding box of the entire move
+  trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
 
-	// clip to other solid entities
-	Sv_ClipTraceToEntities(&trace);
+  // clip to other solid entities
+  Sv_ClipTraceToEntities(&trace);
 
-	return trace.trace;
+  return trace.trace;
 }
-
 
 /**
  * @brief Tests a clip of the specified translation against the specified entity.
@@ -493,17 +540,17 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
 cm_trace_t Sv_Clip(const vec3_t start, const vec3_t end, const box3_t bounds,
                    const g_entity_t *test, int32_t contents) {
 
-	sv_trace_t trace = {
-		.trace = {
-			.fraction = 1.f
-		},
-		.start = start,
-		.end = end,
-		.bounds = bounds,
-		.contents = contents
-	};
+  sv_trace_t trace = {
+    .trace = {
+      .fraction = 1.f
+    },
+    .start = start,
+    .end = end,
+    .bounds = bounds,
+    .contents = contents
+  };
 
-	Sv_ClipTraceToEntity(&trace, test);
+  Sv_ClipTraceToEntity(&trace, test);
 
-	return trace.trace;
+  return trace.trace;
 }

@@ -5,7 +5,6 @@ SUBDIRS = \
 noinst_HEADERS = \
 	r_animation.h \
 	r_atlas.h \
-	r_bsp.h \
 	r_bsp_draw.h \
 	r_bsp_model.h \
 	r_context.h \
@@ -30,7 +29,6 @@ noinst_HEADERS = \
 	r_mesh.h \
 	r_model.h \
 	r_occlude.h \
-	r_post.h \
 	r_program.h \
 	r_shadow.h \
 	r_sky.h \
@@ -45,7 +43,6 @@ noinst_LTLIBRARIES = \
 librenderer_la_SOURCES = \
 	r_animation.c \
 	r_atlas.c \
-	r_bsp.c \
 	r_bsp_draw.c \
 	r_bsp_model.c \
 	r_context.c \
@@ -68,7 +65,6 @@ librenderer_la_SOURCES = \
 	r_mesh.c \
 	r_model.c \
 	r_occlude.c \
-	r_post.c \
 	r_program.c \
 	r_shadow.c \
 	r_sky.c \
@@ -81,7 +77,7 @@ librenderer_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 librenderer_la_LDFLAGS = \
 	-shared

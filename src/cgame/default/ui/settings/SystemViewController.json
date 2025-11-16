@@ -107,20 +107,7 @@
                   },
                   "contentView": {
                     "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Texture mode"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "textureMode",
-                          "expectsStringValue": true,
-                          "var": "r_texture_mode"
-                        }
-                      },
+
                       {
                         "class": "Input",
                         "label": {
@@ -138,13 +125,13 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Multisample"
+                            "text": "Supersample"
                           }
                         },
                         "control": {
                           "class": "CvarSelect",
-                          "identifier": "multisample",
-                          "var": "r_multisample"
+                          "identifier": "supersample",
+                          "var": "r_supersample"
                         }
                       }
                     ]
@@ -283,19 +270,6 @@
                   },
                   "contentView": {
                     "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Connection speed"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "rate",
-                          "var": "rate"
-                        }
-                      },
                       {
                         "class": "Input",
                         "label": {

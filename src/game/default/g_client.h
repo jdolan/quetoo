@@ -24,12 +24,12 @@
 #include "g_types.h"
 
 #ifdef __GAME_LOCAL_H__
-void G_ClientBegin(g_entity_t *ent);
-void G_ClientBeginFrame(g_entity_t *ent);
-bool G_ClientConnect(g_entity_t *ent, char *user_info);
-void G_ClientDisconnect(g_entity_t *ent);
-void G_ClientRespawn(g_entity_t *ent, bool voluntary);
-void G_ClientThink(g_entity_t *ent, pm_cmd_t *ucmd);
-void G_ClientUserInfoChanged(g_entity_t *ent, const char *user_info);
-void G_SetClientHookStyle(g_entity_t *ent);
+void G_ClientBegin(g_client_t *cl);
+void G_ClientBeginFrame(g_client_t *cl);
+bool G_ClientConnect(g_client_t *cl, char *user_info);
+void G_ClientDisconnect(g_client_t *cl);
+void G_ClientRespawn(g_client_t *cl, bool voluntary);
+void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd);
+void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info);
+void G_SetClientHookStyle(g_client_t *cl);
 #endif /* __GAME_LOCAL_H__ */

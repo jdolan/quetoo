@@ -121,11 +121,28 @@ float noise3d(vec3 p) {
 }
 
 /**
- * @brief Resolves the lightgrid coordinate for the specified position in world space.
- * @param lightgrid The lightgrid struct instance.
- * @param position The position in world space.
- * @return The lightgrid coordinate for the specified position.
+ * @brief Calculates a lookAt matrix for the given parameters.
+ * @see Mat4_LookAt
  */
-vec3 lightgrid_uvw(in vec3 position) {
-	return (position - lightgrid.mins.xyz) / (lightgrid.maxs.xyz - lightgrid.mins.xyz);
+mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
+
+	vec3 Z = normalize(eye - pos);
+	vec3 X = normalize(cross(up, Z));
+	vec3 Y = normalize(cross(Z, X));
+
+	return mat4(
+		vec4(X.x, Y.x, Z.x, 0.0),
+		vec4(X.y, Y.y, Z.y, 0.0),
+		vec4(X.z, Y.z, Z.z, 0.0),
+		vec4(-dot(X, eye), -dot(Y, eye), -dot(Z, eye), 1.0)
+	);
+}
+
+/**
+ * @brief Resolves the voxel coordinate for the specified position in world space.
+ * @param position The position in world space.
+ * @return The voxel coordinate for the specified position.
+ */
+vec3 voxel_uvw(in vec3 position) {
+	return (position - voxels.mins.xyz) / (voxels.maxs.xyz - voxels.mins.xyz);
 }

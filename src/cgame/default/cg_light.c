@@ -28,80 +28,60 @@ static cg_light_t cg_lights[MAX_LIGHTS];
  */
 void Cg_AddLight(const cg_light_t *l) {
 
-	if (!cg_add_lights->value) {
-		return;
-	}
+  if (!cg_add_lights->value) {
+    return;
+  }
 
-	size_t i;
-	for (i = 0; i < lengthof(cg_lights); i++)
-		if (cg_lights[i].radius == 0.f) {
-			break;
-		}
+  size_t i;
+  for (i = 0; i < lengthof(cg_lights); i++)
+    if (cg_lights[i].radius == 0.f) {
+      break;
+    }
 
-	if (i == lengthof(cg_lights)) {
-		Cg_Debug("MAX_LIGHTS\n");
-		return;
-	}
+  if (i == lengthof(cg_lights)) {
+    Cg_Debug("MAX_LIGHTS\n");
+    return;
+  }
 
-	assert(l->decay >= 0.f);
-	assert(l->intensity >= 0.f);
-	assert(Vec3_LengthSquared(l->color) >= 0.f);
+  assert(l->decay >= 0.f);
+  assert(l->intensity >= 0.f);
+  assert(Vec3_LengthSquared(l->color) >= 0.f);
 
-	cg_light_t *out = cg_lights + i;
-	*out = *l;
+  cg_light_t *out = cg_lights + i;
+  *out = *l;
 
-	if (out->type == LIGHT_INVALID) {
-		out->type = LIGHT_DYNAMIC;
-	}
+  if (out->intensity == 0.f) {
+    out->intensity = 1.f;
+  }
 
-	if (out->type == LIGHT_DYNAMIC && out->atten == LIGHT_ATTEN_NONE) {
-		out->atten = LIGHT_ATTEN_LINEAR;
-	}
-
-	if (out->intensity == 0.f) {
-		out->intensity = 1.f;
-	}
-
-	out->time = cgi.client->unclamped_time;
+  out->time = cgi.client->unclamped_time;
 }
 
 /**
- * @brief
+ * @brief Adds all BSP light sources to the view.
+ * FIXME: This can be done once at level load, and then only upload dynamic lights per frame.
  */
 static void Cg_AddBspLights(void) {
 
-	const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
-	for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+  if (editor->value) {
+    return;
+  }
 
-		switch (l->type) {
-			case LIGHT_INVALID:
-			case LIGHT_AMBIENT:
-			case LIGHT_SUN:
-			case LIGHT_INDIRECT:
-				continue;
-			default:
-				break;
-		}
+  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 
-		if (l->shadow == 0.f || Box3_Radius(l->bounds) < 64.f) {
-			continue;
-		}
+  r_bsp_light_t *l = bsp->lights;
+  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
 
-		cgi.AddLight(cgi.view, &(const r_light_t) {
-			.type = l->type,
-			.atten = l->atten,
-			.origin = l->origin,
-			.color = l->color,
-			.normal = l->normal,
-			.radius = l->radius,
-			.size = l->size,
-			.intensity = l->intensity,
-			.shadow = l->shadow,
-			.cone = l->cone,
-			.falloff = l->falloff,
-			.bounds = l->bounds,
-		});
-	}
+    cgi.AddLight(cgi.view, &(const r_light_t) {
+      .flags = l->flags,
+      .origin = l->origin,
+      .color = l->color,
+      .radius = l->radius,
+      .intensity = l->intensity,
+      .bounds = l->bounds,
+      .bsp_light = l,
+    });
+  }
 }
 
 /**
@@ -109,42 +89,37 @@ static void Cg_AddBspLights(void) {
  */
 void Cg_AddLights(void) {
 
-	if (!cg_add_lights->value) {
-		return;
-	}
+  if (!cg_add_lights->value) {
+    return;
+  }
 
-	cg_light_t *l = cg_lights;
-	for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
+  Cg_AddBspLights();
 
-		const uint32_t expiration = l->time + l->decay;
-		if (expiration < cgi.client->unclamped_time) {
-			l->radius = 0.0;
-			continue;
-		}
+  cg_light_t *l = cg_lights;
+  for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
 
-		r_light_t out = {
-			.type = l->type,
-			.atten = LIGHT_ATTEN_INVERSE_SQUARE,
-			.origin = l->origin,
-			.color = l->color,
-			.normal = Vec3_Zero(),
-			.radius = l->radius,
-			.size = 0.f,
-			.intensity = l->intensity,
-			.shadow = MATERIAL_LIGHT_SHADOW,
-			.bounds = Box3_FromCenterRadius(l->origin, l->radius),
-			.source = l->source,
-		};
+    const uint32_t expiration = l->time + l->decay;
+    if (expiration < cgi.client->unclamped_time) {
+      l->radius = 0.0;
+      continue;
+    }
 
-		if (l->decay) {
-			assert(out.intensity >= 0.f);
-			out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
-		}
+    r_light_t out = {
+      .origin = l->origin,
+      .color = l->color,
+      .radius = l->radius,
+      .intensity = l->intensity,
+      .bounds = Box3_FromCenterRadius(l->origin, l->radius),
+      .source = l->source,
+    };
 
-		cgi.AddLight(cgi.view, &out);
-	}
+    if (l->decay) {
+      assert(out.intensity >= 0.f);
+      out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+    }
 
-	Cg_AddBspLights();
+    cgi.AddLight(cgi.view, &out);
+  }
 }
 
 /**
@@ -152,5 +127,5 @@ void Cg_AddLights(void) {
  */
 void Cg_InitLights(void) {
 
-	memset(cg_lights, 0, sizeof(cg_lights));
+  memset(cg_lights, 0, sizeof(cg_lights));
 }

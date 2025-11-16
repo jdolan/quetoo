@@ -24,7 +24,7 @@
 quetoo_t quetoo;
 
 typedef struct {
-	bool ready;
+  bool ready;
 } critical_section_t;
 
 static critical_section_t cs;
@@ -34,11 +34,11 @@ static critical_section_t cs;
  */
 void setup(void) {
 
-	Mem_Init();
+  Mem_Init();
 
-	Thread_Init(2);
+  Thread_Init(2);
 
-	memset(&cs, 0, sizeof(cs));
+  memset(&cs, 0, sizeof(cs));
 }
 
 /**
@@ -46,16 +46,16 @@ void setup(void) {
  */
 void teardown(void) {
 
-	Thread_Shutdown();
+  Thread_Shutdown();
 
-	Mem_Shutdown();
+  Mem_Shutdown();
 }
 
 /**
  * @brief Populates the critical section.
  */
 static void produce(void *data) {
-	cs.ready = true; // set the CS to ready
+  cs.ready = true; // set the CS to ready
 }
 
 /**
@@ -63,21 +63,21 @@ static void produce(void *data) {
  */
 static void consume(void *data) {
 
-	Thread_Wait((thread_t *) data); // wait for the producer
+  Thread_Wait((thread_t *) data); // wait for the producer
 
-	ck_assert(cs.ready); // ensure the CS was made ready
+  ck_assert(cs.ready); // ensure the CS was made ready
 
-	cs.ready = false; // and reset it
+  cs.ready = false; // and reset it
 }
 
 START_TEST(check_Thread_Wait) {
-	thread_t *p = Thread_Create(produce, NULL, 0);
+  thread_t *p = Thread_Create(produce, NULL, 0);
 
-	thread_t *c = Thread_Create(consume, p, 0);
+  thread_t *c = Thread_Create(consume, p, 0);
 
-	Thread_Wait(c);
+  Thread_Wait(c);
 
-	ck_assert(!cs.ready);
+  ck_assert(!cs.ready);
 
 } END_TEST
 
@@ -86,18 +86,18 @@ START_TEST(check_Thread_Wait) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	Test_Init(argc, argv);
+  Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_Thread_Wait");
-	tcase_add_checked_fixture(tcase, setup, teardown);
+  TCase *tcase = tcase_create("check_Thread_Wait");
+  tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_Thread_Wait);
+  tcase_add_test(tcase, check_Thread_Wait);
 
-	Suite *suite = suite_create("check_threads");
-	suite_add_tcase(suite, tcase);
+  Suite *suite = suite_create("check_threads");
+  suite_add_tcase(suite, tcase);
 
-	int32_t failed = Test_Run(suite);
+  int32_t failed = Test_Run(suite);
 
-	Test_Shutdown();
-	return failed;
+  Test_Shutdown();
+  return failed;
 }

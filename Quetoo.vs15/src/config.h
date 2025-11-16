@@ -1,31 +1,31 @@
 #define _USE_MATH_DEFINES
 
 #if defined(__clang__)
-	#define stat _stat64
-	#define unlink _unlink
-	#define S_IFDIR _S_IFDIR
+  #define stat _stat64
+  #define unlink _unlink
+  #define S_IFDIR _S_IFDIR
 
-	#define isascii __isascii
-	#define itoa _itoa
-	#define getpid _getpid
-	#define strdup _strdup
-	#define stricmp _stricmp
+  #define isascii __isascii
+  #define itoa _itoa
+  #define getpid _getpid
+  #define strdup _strdup
+  #define stricmp _stricmp
 #endif
 
 #ifdef _WIN64
-	typedef signed __int64 ssize_t;
+  typedef signed __int64 ssize_t;
 #else
-	typedef signed int     ssize_t;
+  typedef signed int     ssize_t;
 #endif
 
 #ifndef S_ISDIR
-	#define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
+  #define S_ISDIR(m) (((m) & S_IFDIR) == S_IFDIR)
 #endif
 
 #ifdef _WIN64
-	typedef signed __int64 ssize_t;
+  typedef signed __int64 ssize_t;
 #else
-	typedef signed int     ssize_t;
+  typedef signed int     ssize_t;
 #endif
 
 #define _WINSOCKAPI_
@@ -36,20 +36,20 @@
 #define _strngfx(s) _strngf(s)
 
 #if defined(__clang__)
-	#define BUILD_MACHINE "MSVC "  _strngfx(_MSC_VER) " using Clang " __clang_version__
+  #define BUILD_MACHINE "MSVC "  _strngfx(_MSC_VER) " using Clang " __clang_version__
 #elif defined(_MSC_VER)
-	#define BUILD_MACHINE "MSVC " _strngfx(_MSC_VER)
+  #define BUILD_MACHINE "MSVC " _strngfx(_MSC_VER)
 #endif
 
 #if defined(_WIN64)
-	#define BUILD_HOST "Win64 " BUILD_MACHINE
-	#define BUILD "x86_64-pc-windows"
+  #define BUILD_HOST "Win64 " BUILD_MACHINE
+  #define BUILD "x86_64-pc-windows"
 #elif defined(_WIN32)
-	#define BUILD_HOST "Win32 " BUILD_MACHINE
-	#define BUILD "i686-pc-windows"
+  #define BUILD_HOST "Win32 " BUILD_MACHINE
+  #define BUILD "i686-pc-windows"
 #else
-	#define BUILD_HOST "Windows " BUILD_MACHINE
-	#define BUILD "unknown-pc-windows"
+  #define BUILD_HOST "Windows " BUILD_MACHINE
+  #define BUILD "unknown-pc-windows"
 #endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */

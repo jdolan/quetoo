@@ -32,23 +32,23 @@
  */
 static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
-	super(View, self, awakeWithDictionary, dictionary);
+  super(View, self, awakeWithDictionary, dictionary);
 
-	CvarSelect *this = (CvarSelect *) self;
+  CvarSelect *this = (CvarSelect *) self;
 
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("expectsStringValue", InletTypeBool, &this->expectsStringValue, NULL),
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
-	);
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("expectsStringValue", InletTypeBool, &this->expectsStringValue, NULL),
+    MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+  );
 
-	$(self, bind, inlets, dictionary);
+  $(self, bind, inlets, dictionary);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((CvarSelect *) self, initWithVariable, NULL);
+  return (View *) $((CvarSelect *) self, initWithVariable, NULL);
 }
 
 /**
@@ -56,22 +56,22 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	CvarSelect *this = (CvarSelect *) self;
+  CvarSelect *this = (CvarSelect *) self;
 
-	if (this->var) {
-		const Array *options = (Array *) this->select.options;
-		for (size_t i = 0; i < options->count; i++) {
-			Option *option = $(options, objectAtIndex, i);
-			if (this->expectsStringValue) {
-				const char *string = option->value ?: option->title->text;
-				option->isSelected = !strcmp(string, this->var->string);
-			} else {
-				option->isSelected = (intptr_t) option->value == this->var->integer;
-			}
-		}
-	}
+  if (this->var) {
+    const Array *options = (Array *) this->select.options;
+    for (size_t i = 0; i < options->count; i++) {
+      Option *option = $(options, objectAtIndex, i);
+      if (this->expectsStringValue) {
+        const char *string = option->value ?: option->title->text;
+        option->isSelected = !strcmp(string, this->var->string);
+      } else {
+        option->isSelected = (intptr_t) option->value == this->var->integer;
+      }
+    }
+  }
 }
 
 #pragma mark - Select
@@ -81,21 +81,21 @@ static void updateBindings(View *self) {
  */
 static void selectOptionWithValue(Select *self, ident value) {
 
-	const CvarSelect *this = (CvarSelect *) self;
-	if (this->var) {
+  const CvarSelect *this = (CvarSelect *) self;
+  if (this->var) {
 
-		Option *option = $(self, optionWithValue, value);
-		if (option) {
-			if (this->expectsStringValue) {
-				const char *string = option->value ?: option->title->text;
-				cgi.SetCvarString(this->var->name, string);
-			} else {
-				cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
-			}
-		}
-	}
+    Option *option = $(self, optionWithValue, value);
+    if (option) {
+      if (this->expectsStringValue) {
+        const char *string = option->value ?: option->title->text;
+        cgi.SetCvarString(this->var->name, string);
+      } else {
+        cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+      }
+    }
+  }
 
-	super(Select, self, selectOptionWithValue, value);
+  super(Select, self, selectOptionWithValue, value);
 }
 
 #pragma mark - CvarSelect
@@ -105,20 +105,20 @@ static void selectOptionWithValue(Select *self, ident value) {
  */
 static void didSelectOption(Select *select, Option *option) {
 
-	CvarSelect *this = (CvarSelect *) select;
+  CvarSelect *this = (CvarSelect *) select;
 
-	if (this->var) {
-		if (this->expectsStringValue) {
-			const char *string = option->value ?: option->title->text;
-			cgi.SetCvarString(this->var->name, string);
-		} else {
-			cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
-		}
-	} else {
-		String *desc = $((Object *) this, description);
-		cgi.Warn("%s: null cvar\n", desc->chars);
-		release(desc);
-	}
+  if (this->var) {
+    if (this->expectsStringValue) {
+      const char *string = option->value ?: option->title->text;
+      cgi.SetCvarString(this->var->name, string);
+    } else {
+      cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
+    }
+  } else {
+    String *desc = $((Object *) this, description);
+    Cg_Warn("%s: null cvar\n", desc->chars);
+    release(desc);
+  }
 }
 
 /**
@@ -128,15 +128,15 @@ static void didSelectOption(Select *select, Option *option) {
  */
 static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
 
-	self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
-	if (self) {
-		self->var = var;
+  self = (CvarSelect *) super(Select, self, initWithFrame, NULL);
+  if (self) {
+    self->var = var;
 
-		self->select.delegate.self = self;
-		self->select.delegate.didSelectOption = didSelectOption;
-	}
+    self->select.delegate.self = self;
+    self->select.delegate.didSelectOption = didSelectOption;
+  }
 
-	return self;
+  return self;
 }
 
 /**
@@ -145,7 +145,7 @@ static CvarSelect *initWithVariable(CvarSelect *self, cvar_t *var) {
  * @memberof CvarSelect
  */
 static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
-	return $(self, initWithVariable, cgi.GetCvar(name));
+  return $(self, initWithVariable, cgi.GetCvar(name));
 }
 
 #pragma mark - Class lifecycle
@@ -155,14 +155,14 @@ static CvarSelect *initWithVariableName(CvarSelect *self, const char *name) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((SelectInterface *) clazz->interface)->selectOptionWithValue = selectOptionWithValue;
+  ((SelectInterface *) clazz->interface)->selectOptionWithValue = selectOptionWithValue;
 
-	((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
-	((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;
+  ((CvarSelectInterface *) clazz->interface)->initWithVariable = initWithVariable;
+  ((CvarSelectInterface *) clazz->interface)->initWithVariableName = initWithVariableName;
 }
 
 /**
@@ -170,21 +170,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarSelect
  */
 Class *_CvarSelect(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CvarSelect",
-			.superclass = _Select(),
-			.instanceSize = sizeof(CvarSelect),
-			.interfaceOffset = offsetof(CvarSelect, interface),
-			.interfaceSize = sizeof(CvarSelectInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CvarSelect",
+      .superclass = _Select(),
+      .instanceSize = sizeof(CvarSelect),
+      .interfaceOffset = offsetof(CvarSelect, interface),
+      .interfaceSize = sizeof(CvarSelectInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

@@ -25,27 +25,31 @@
  * @brief
  */
 static void R_SetEntityBounds(r_entity_t *e) {
-	e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+  if (e->model) {
+    e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+  } else {
+    e->abs_model_bounds = e->abs_bounds;
+  }
 }
 
 /**
  * @brief
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
-	
-	if (e->parent) {
-		return false;
-	}
+  
+  if (e->parent) {
+    return false;
+  }
 
-	if (e->effects & (EF_SELF | EF_WEAPON)) {
-		return false;
-	}
+  if (e->effects & (EF_SELF | EF_WEAPON)) {
+    return false;
+  }
 
-	if (R_CulludeBox(view, e->abs_model_bounds)) {
-		return true;
-	}
+  if (R_CulludeBox(view, e->abs_model_bounds)) {
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -54,44 +58,41 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
  */
 r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 
-	assert(view);
-	assert(ent);
+  assert(view);
+  assert(ent);
 
-	if (view->num_entities == MAX_ENTITIES) {
-		Com_Warn("MAX_ENTITIES\n");
-		return NULL;
-	}
+  if (view->num_entities == MAX_ENTITIES) {
+    Com_Warn("MAX_ENTITIES\n");
+    return NULL;
+  }
 
-	r_entity_t *e = &view->entities[view->num_entities];
-	*e = *ent;
+  r_entity_t *e = &view->entities[view->num_entities];
+  *e = *ent;
 
-	e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
+  e->matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, e->scale);
 
-	if (IS_MESH_MODEL(e->model)) {
+  if (IS_MESH_MODEL(e->model)) {
 
-		if (e->parent && e->tag) {
-			R_ApplyMeshTag(e);
-		}
+    if (e->parent && e->tag) {
+      R_ApplyMeshTag(e);
+    }
 
-		R_ApplyMeshConfig(e);
-	}
+    R_ApplyMeshConfig(e);
+  }
 
-	e->inverse_matrix = Mat4_Inverse(e->matrix);
+  e->inverse_matrix = Mat4_Inverse(e->matrix);
 
-	R_SetEntityBounds(e);
+  R_SetEntityBounds(e);
 
-	view->num_entities++;
-	return e;
+  view->num_entities++;
+  return e;
 }
 
 /**
  * @brief
  */
 void R_UpdateEntities(r_view_t *view) {
-
-	R_UpdateMeshEntities(view);
-
-	R_UpdateBspInlineEntities(view);
+  
 }
 
 /**
@@ -99,57 +100,55 @@ void R_UpdateEntities(r_view_t *view) {
  */
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
-	if (r_draw_entity_bounds->integer == 2) {
-		R_Draw3DBox(e->abs_model_bounds, color_yellow, false);
-	} else {
-		R_Draw3DBox(e->abs_bounds, color_yellow, false);
-	}
+  if (r_draw_entity_bounds->integer == 2) {
+    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), true);
+  } else {
+    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), true);
+  }
 }
 
 /**
  * @brief
  */
-static void R_DrawEntitiesBounds(const r_view_t *view, int32_t blend_depth) {
+static void R_DrawEntitiesBounds(const r_view_t *view) {
 
-	if (!r_draw_entity_bounds->value) {
-		return;
-	}
+  if (!r_draw_entity_bounds->value && !editor->value) {
+    return;
+  }
 
-	const r_entity_t *e = view->entities;
-	for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-		if (e->model == NULL) {
-			continue;
-		}
+    if (e->model == r_models.world->bsp->worldspawn) {
+      continue;
+    }
 
-		if (e->parent) {
-			continue;
-		}
+    if (e->parent) {
+      continue;
+    }
 
-		if (e->effects & (EF_SELF | EF_WEAPON)) {
-			continue;
-		}
+    if (e->effects & (EF_SELF | EF_WEAPON)) {
+      continue;
+    }
 
-		if (e->blend_depth != blend_depth) {
-			continue;
-		}
+    if (R_CulludeBox(view, e->abs_model_bounds)) {
+      continue;
+    }
 
-		if (R_CulludeBox(view, e->abs_model_bounds)) {
-			continue;
-		}
-
-		R_DrawEntityBounds(e);
-	}
+    R_DrawEntityBounds(e);
+  }
 }
 
 /**
- * @brief Draw all entities at the specified depth value.
+ * @brief Draw all entities.
  */
-void R_DrawEntities(const r_view_t *view, int32_t blend_depth) {
+void R_DrawEntities(const r_view_t *view) {
 
-	R_DrawBspInlineEntities(view, blend_depth);
+  R_DrawOpaqueBspInlineEntities(view);
 
-	R_DrawMeshEntities(view, blend_depth);
+  R_DrawMeshEntities(view);
 
-	R_DrawEntitiesBounds(view, blend_depth);
+  R_DrawBlendBspInlineEntities(view);
+
+  R_DrawEntitiesBounds(view);
 }

@@ -24,7 +24,7 @@
 #include "files.h"
 #include "filesystem.h"
 
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 
 /**
  * @brief Loads an image by the specified Quake path to the given surface.

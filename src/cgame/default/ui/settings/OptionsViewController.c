@@ -25,58 +25,54 @@
 
 #define _Class _OptionsViewController
 
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
  * @brief SelectDelegate callback for Quality.
  */
 static void didSelectQuality(Select *select, Option *option) {
 
-	switch ((intptr_t) option->value) {
-		case 3:
-			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 3);
-			cgi.SetCvarInteger("cg_add_weather", 1);
-			cgi.SetCvarInteger("r_caustics", 1);
-			cgi.SetCvarInteger("r_sprites_soften", 1);
-			cgi.SetCvarInteger("r_sprites_lerp", 1);
-			cgi.SetCvarInteger("r_stains", 1);
-			break;
-		case 2:
-			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 2);
-			cgi.SetCvarInteger("cg_add_weather", 1);
-			cgi.SetCvarInteger("r_caustics", 1);
-			cgi.SetCvarInteger("r_sprites_soften", 1);
-			cgi.SetCvarInteger("r_sprites_lerp", 1);
-			cgi.SetCvarInteger("r_stains", 1);
-			break;
-		case 1:
-			cgi.SetCvarInteger("cg_add_atmospheric", 1);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 1);
-			cgi.SetCvarInteger("cg_add_weather", 1);
-			cgi.SetCvarInteger("r_caustics", 0);
-			cgi.SetCvarInteger("r_sprites_soften", 1);
-			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			cgi.SetCvarInteger("r_stains", 1);
-			break;
-		case 0:
-			cgi.SetCvarInteger("cg_add_atmospheric", 0);
-			cgi.SetCvarInteger("cg_add_entity_shadows", 0);
-			cgi.SetCvarInteger("cg_add_weather", 0);
-			cgi.SetCvarInteger("r_caustics", 0);
-			cgi.SetCvarInteger("r_sprites_soften", 0);
-			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			cgi.SetCvarInteger("r_stains", 0);
-			break;
-		default:
-			break;
-	}
+  switch ((intptr_t) option->value) {
+    case 3:
+      cgi.SetCvarInteger("cg_add_atmospheric", 1);
+      cgi.SetCvarInteger("cg_add_weather", 1);
+      cgi.SetCvarInteger("cg_add_stains", 1);
+      cgi.SetCvarInteger("r_caustics", 1);
+      cgi.SetCvarInteger("r_sprites_soften", 1);
+      cgi.SetCvarInteger("r_sprites_lerp", 1);
+      break;
+    case 2:
+      cgi.SetCvarInteger("cg_add_atmospheric", 1);
+      cgi.SetCvarInteger("cg_add_weather", 1);
+      cgi.SetCvarInteger("cg_add_stains", 1);
+      cgi.SetCvarInteger("r_caustics", 1);
+      cgi.SetCvarInteger("r_sprites_soften", 1);
+      cgi.SetCvarInteger("r_sprites_lerp", 1);
+      break;
+    case 1:
+      cgi.SetCvarInteger("cg_add_atmospheric", 1);
+      cgi.SetCvarInteger("cg_add_weather", 1);
+      cgi.SetCvarInteger("cg_add_stains", 1);
+      cgi.SetCvarInteger("r_caustics", 0);
+      cgi.SetCvarInteger("r_sprites_soften", 1);
+      cgi.SetCvarInteger("r_sprites_lerp", 0);
+      break;
+    case 0:
+      cgi.SetCvarInteger("cg_add_atmospheric", 0);
+      cgi.SetCvarInteger("cg_add_weather", 0);
+      cgi.SetCvarInteger("cg_add_stains", 0);
+      cgi.SetCvarInteger("r_caustics", 0);
+      cgi.SetCvarInteger("r_sprites_soften", 0);
+      cgi.SetCvarInteger("r_sprites_lerp", 0);
+      break;
+    default:
+      break;
+  }
 
-	ViewController *this = select->delegate.self;
-	if (this) {
-		$(this->view, updateBindings);
-	}
+  ViewController *this = select->delegate.self;
+  if (this) {
+    $(this->view, updateBindings);
+  }
 }
 
 /**
@@ -84,27 +80,27 @@ static void didSelectQuality(Select *select, Option *option) {
  */
 static void didSelectSprites(Select *select, Option *option) {
 
-	switch ((intptr_t) option->value) {
-		case 0:
-			cgi.SetCvarInteger("r_sprites_soften", 0);
-			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			break;
-		case 1:
-			cgi.SetCvarInteger("r_sprites_soften", 1);
-			cgi.SetCvarInteger("r_sprites_lerp", 0);
-			break;
-		case 2:
-			cgi.SetCvarInteger("r_sprites_soften", 1);
-			cgi.SetCvarInteger("r_sprites_lerp", 1);
-			break;
-		default:
-			break;
-	}
+  switch ((intptr_t) option->value) {
+    case 0:
+      cgi.SetCvarInteger("r_sprites_soften", 0);
+      cgi.SetCvarInteger("r_sprites_lerp", 0);
+      break;
+    case 1:
+      cgi.SetCvarInteger("r_sprites_soften", 1);
+      cgi.SetCvarInteger("r_sprites_lerp", 0);
+      break;
+    case 2:
+      cgi.SetCvarInteger("r_sprites_soften", 1);
+      cgi.SetCvarInteger("r_sprites_lerp", 1);
+      break;
+    default:
+      break;
+  }
 
-	ViewController *this = select->delegate.self;
-	if (this) {
-		$(this->view, updateBindings);
-	}
+  ViewController *this = select->delegate.self;
+  if (this) {
+    $(this->view, updateBindings);
+  }
 }
 
 #pragma mark - ViewController
@@ -114,57 +110,57 @@ static void didSelectSprites(Select *select, Option *option) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	Select *quality, *weather, *fog, *atmospheric, *shadows, *sprites;
+  Select *quality, *weather, *fog, *atmospheric, *shadows, *sprites;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("quality", &quality),
-		MakeOutlet("weather", &weather),
-		MakeOutlet("fog", &fog),
-		MakeOutlet("atmospheric", &atmospheric),
-		MakeOutlet("shadows", &shadows),
-		MakeOutlet("sprites", &sprites)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("quality", &quality),
+    MakeOutlet("weather", &weather),
+    MakeOutlet("fog", &fog),
+    MakeOutlet("atmospheric", &atmospheric),
+    MakeOutlet("shadows", &shadows),
+    MakeOutlet("sprites", &sprites)
+  );
 
-	$(self->view, awakeWithResourceName, "ui/settings/OptionsViewController.json");
-	$(self->view, resolve, outlets);
+  $(self->view, awakeWithResourceName, "ui/settings/OptionsViewController.json");
+  $(self->view, resolve, outlets);
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/OptionsViewController.css");
-	assert(self->view->stylesheet);
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/OptionsViewController.css");
+  assert(self->view->stylesheet);
 
-	$(quality, addOption, "Custom", (ident) -1);
-	$(quality, addOption, "Highest", (ident) 3);
-	$(quality, addOption, "High", (ident) 2);
-	$(quality, addOption, "Medium", (ident) 1);
-	$(quality, addOption, "Low", (ident) 0);
+  $(quality, addOption, "Custom", (ident) -1);
+  $(quality, addOption, "Low", (ident) 0);
+  $(quality, addOption, "Medium", (ident) 1);
+  $(quality, addOption, "High", (ident) 2);
+  $(quality, addOption, "Highest", (ident) 3);
 
-	quality->delegate.self = self;
-	quality->delegate.didSelectOption = didSelectQuality;
+  quality->delegate.self = self;
+  quality->delegate.didSelectOption = didSelectQuality;
 
-	$(weather, addOption, "Heavy", (ident) 2);
-	$(weather, addOption, "Normal", (ident) 1);
-	$(weather, addOption, "Off", (ident) 0);
+  $(weather, addOption, "Off", (ident) 0);
+  $(weather, addOption, "Normal", (ident) 1);
+  $(weather, addOption, "Heavy", (ident) 2);
 
-	$(fog, addOption, "High", (ident) 32);
-	$(fog, addOption, "Medium", (ident) 16);
-	$(fog, addOption, "Low", (ident) 8);
+  $(fog, addOption, "Low", (ident) 8);
+  $(fog, addOption, "Medium", (ident) 16);
+  $(fog, addOption, "High", (ident) 32);
 
-	$(atmospheric, addOption, "Heavy", (ident) 2);
-	$(atmospheric, addOption, "Normal", (ident) 1);
-	$(atmospheric, addOption, "Off", (ident) 8);
+  $(atmospheric, addOption, "Off", (ident) 8);
+  $(atmospheric, addOption, "Normal", (ident) 1);
+  $(atmospheric, addOption, "Heavy", (ident) 2);
 
-	$(shadows, addOption, "High", (ident) 3);
-	$(shadows, addOption, "Medium", (ident) 2);
-	$(shadows, addOption, "Low", (ident) 1);
-	$(shadows, addOption, "Off", (ident) 0);
+  $(shadows, addOption, "Off", (ident) 0);
+  $(shadows, addOption, "Low", (ident) 1);
+  $(shadows, addOption, "Medium", (ident) 2);
+  $(shadows, addOption, "High", (ident) 3);
 
-	$(sprites, addOption, "High", (ident) 2);
-	$(sprites, addOption, "Medium", (ident) 1);
-	$(sprites, addOption, "Low", (ident) 8);
+  $(sprites, addOption, "Low", (ident) 8);
+  $(sprites, addOption, "Medium", (ident) 1);
+  $(sprites, addOption, "High", (ident) 2);
 
-	sprites->delegate.self = self;
-	sprites->delegate.didSelectOption = didSelectSprites;
+  sprites->delegate.self = self;
+  sprites->delegate.didSelectOption = didSelectSprites;
 }
 
 #pragma mark - Class lifecycle
@@ -173,7 +169,7 @@ static void loadView(ViewController *self) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -181,21 +177,21 @@ static void initialize(Class *clazz) {
  * @memberof OptionsViewController
  */
 Class *_OptionsViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "OptionsViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(OptionsViewController),
-			.interfaceOffset = offsetof(OptionsViewController, interface),
-			.interfaceSize = sizeof(OptionsViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "OptionsViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(OptionsViewController),
+      .interfaceOffset = offsetof(OptionsViewController, interface),
+      .interfaceSize = sizeof(OptionsViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

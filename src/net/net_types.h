@@ -22,23 +22,23 @@
 #pragma once
 
 #if defined(_WIN32)
-	#include <inttypes.h>
+  #include <inttypes.h>
 
-	typedef uint32_t in_addr_t;
-	typedef uint16_t in_port_t;
+  typedef uint32_t in_addr_t;
+  typedef uint16_t in_port_t;
 
-	#undef  EWOULDBLOCK
-	#define EWOULDBLOCK  WSAEWOULDBLOCK
-	#undef  ECONNREFUSED
-	#define ECONNREFUSED WSAECONNREFUSED
-	#undef  EINPROGRESS
-	#define EINPROGRESS  WSAEINPROGRESS
+  #undef  EWOULDBLOCK
+  #define EWOULDBLOCK  WSAEWOULDBLOCK
+  #undef  ECONNREFUSED
+  #define ECONNREFUSED WSAECONNREFUSED
+  #undef  EINPROGRESS
+  #define EINPROGRESS  WSAEINPROGRESS
 
 #else
 
-	#include <errno.h>
-	#include <sys/select.h>
-	#include <netinet/in.h>
+  #include <errno.h>
+  #include <sys/select.h>
+  #include <netinet/in.h>
 
 #endif
 
@@ -49,32 +49,32 @@
  * this length. However, large server messages can be split into multiple
  * messages and sent in series. See Sv_SendClientDatagram.
  */
-#define MAX_MSG_SIZE		16384
+#define MAX_MSG_SIZE 16384
 
 /**
  * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
  */
-#define MAX_MSG_SIZE_UDP	1450
+#define MAX_MSG_SIZE_UDP 1450
 
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;
 
 typedef enum {
-	NA_LOOP,
-	NA_BROADCAST,
-	NA_DATAGRAM,
-	NA_STREAM
+  NA_LOOP,
+  NA_BROADCAST,
+  NA_DATAGRAM,
+  NA_STREAM
 } net_addr_type_t;
 
 typedef struct {
-	net_addr_type_t type;
-	in_addr_t addr;
-	in_port_t port;
+  net_addr_type_t type;
+  in_addr_t addr;
+  in_port_t port;
 } net_addr_t;
 
 typedef enum {
-	NS_UDP_CLIENT,
-	NS_UDP_SERVER
+  NS_UDP_CLIENT,
+  NS_UDP_SERVER
 } net_src_t;
 
 /**
@@ -83,31 +83,31 @@ typedef enum {
  * through this interface.
  */
 typedef struct {
-	net_src_t source;
+  net_src_t source;
 
-	uint32_t dropped; // between last packet and previous
+  uint32_t dropped; // between last packet and previous
 
-	uint32_t last_received; // for timeouts
-	uint32_t last_sent; // for retransmits
+  uint32_t last_received; // for timeouts
+  uint32_t last_sent; // for retransmits
 
-	net_addr_t remote_address;
+  net_addr_t remote_address;
 
-	uint8_t qport; // to differentiate multiple clients behind NAT
+  uint8_t qport; // to differentiate multiple clients behind NAT
 
-	// sequencing variables
-	uint32_t incoming_sequence;
-	uint32_t incoming_acknowledged;
-	uint32_t outgoing_sequence;
+  // sequencing variables
+  uint32_t incoming_sequence;
+  uint32_t incoming_acknowledged;
+  uint32_t outgoing_sequence;
 
-	uint32_t reliable_sequence; // single bit
-	uint32_t reliable_acknowledged; // single bit
-	uint32_t reliable_incoming; // single bit
-	uint32_t reliable_outgoing; // outgoing sequence number of last reliable
+  uint32_t reliable_sequence; // single bit
+  uint32_t reliable_acknowledged; // single bit
+  uint32_t reliable_incoming; // single bit
+  uint32_t reliable_outgoing; // outgoing sequence number of last reliable
 
-	mem_buf_t message; // writing buffer to send to server
-	byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
+  mem_buf_t message; // writing buffer to send to server
+  byte message_buffer[MAX_MSG_SIZE - 10]; // leave space for header
 
-	// message is copied to this buffer when it is first transfered
-	size_t reliable_size;
-	byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+  // message is copied to this buffer when it is first transfered
+  size_t reliable_size;
+  byte reliable_buffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
 } net_chan_t;

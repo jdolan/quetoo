@@ -39,16 +39,16 @@ typedef struct MovementCombatViewControllerInterface MovementCombatViewControlle
  */
 struct MovementCombatViewController {
 
-	/**
-	 * @brief The superclass.
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	MovementCombatViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  MovementCombatViewControllerInterface *interface;
 };
 
 /**
@@ -56,10 +56,10 @@ struct MovementCombatViewController {
  */
 struct MovementCombatViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

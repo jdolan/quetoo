@@ -34,12 +34,12 @@
  */
 static MapListCollectionItemView *initWithFrame(MapListCollectionItemView *self, const SDL_Rect *frame) {
 
-	self = (MapListCollectionItemView *) super(CollectionItemView, self, initWithFrame, frame);
-	if (self) {
-		self->collectionItemView.text->view.alignment = ViewAlignmentBottomCenter;
-	}
+  self = (MapListCollectionItemView *) super(CollectionItemView, self, initWithFrame, frame);
+  if (self) {
+    self->collectionItemView.text->view.alignment = ViewAlignmentBottomCenter;
+  }
 
-	return self;
+  return self;
 }
 
 /**
@@ -49,15 +49,15 @@ static MapListCollectionItemView *initWithFrame(MapListCollectionItemView *self,
  */
 static void setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo *info) {
 
-	CollectionItemView *item = (CollectionItemView *) self;
+  CollectionItemView *item = (CollectionItemView *) self;
 
-	$(item->text, setText, NULL);
-	$(item->imageView, setImage, NULL);
+  $(item->text, setText, NULL);
+  $(item->imageView, setImage, NULL);
 
-	if (info) {
-		$(item->text, setText, info->message);
-		$(item->imageView, setImageWithSurface, info->mapshot);
-	}
+  if (info) {
+    $(item->text, setText, info->message);
+    $(item->imageView, setImageWithSurface, info->mapshot);
+  }
 }
 
 #pragma mark - Class lifecycle
@@ -67,8 +67,8 @@ static void setMapListItemInfo(MapListCollectionItemView *self, MapListItemInfo 
  */
 static void initialize(Class *clazz) {
 
-	((MapListCollectionItemViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((MapListCollectionItemViewInterface *) clazz->interface)->setMapListItemInfo = setMapListItemInfo;
+  ((MapListCollectionItemViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((MapListCollectionItemViewInterface *) clazz->interface)->setMapListItemInfo = setMapListItemInfo;
 }
 
 /**
@@ -76,21 +76,21 @@ static void initialize(Class *clazz) {
  * @memberof MapListCollectionItemView
  */
 Class *_MapListCollectionItemView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "MapListCollectionItemView",
-			.superclass = _CollectionItemView(),
-			.instanceSize = sizeof(MapListCollectionItemView),
-			.interfaceOffset = offsetof(MapListCollectionItemView, interface),
-			.interfaceSize = sizeof(MapListCollectionItemViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "MapListCollectionItemView",
+      .superclass = _CollectionItemView(),
+      .instanceSize = sizeof(MapListCollectionItemView),
+      .interfaceOffset = offsetof(MapListCollectionItemView, interface),
+      .interfaceSize = sizeof(MapListCollectionItemViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

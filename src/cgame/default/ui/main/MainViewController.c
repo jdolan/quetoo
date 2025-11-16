@@ -34,82 +34,82 @@
 
 #define _Class _MainViewController
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for main menu primary items.
+ * @brief ButtonDelegate for menu navigation.
  */
-static void pushViewControllerAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickNavigateViewController(Button *button) {
 
-	MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
-	Class *clazz = (Class *) data;
+  Class *clazz = button->delegate.data;
 
-	if (clazz) {
-		ViewController *topViewController = $(this->navigationViewController, topViewController);
-		if (topViewController && $((Object *) topViewController, isKindOfClass, clazz)) {
-			return;
-		}
+  if (clazz) {
+    ViewController *topViewController = $(this->navigationViewController, topViewController);
+    if (topViewController && $((Object *) topViewController, isKindOfClass, clazz)) {
+      return;
+    }
 
-		$(this->navigationViewController, popToRootViewController);
-		$(this->navigationViewController, popViewController);
+    $(this->navigationViewController, popToRootViewController);
+    $(this->navigationViewController, popViewController);
 
-		ViewController *viewController = $((ViewController *) _alloc(clazz), init);
-		$(this->navigationViewController, pushViewController, viewController);
-		release(viewController);
-	} else {
-		cgi.Warn("Menu item does not provide a ViewController class\n");
-	}
+    ViewController *viewController = $((ViewController *) _alloc(clazz), init);
+    $(this->navigationViewController, pushViewController, viewController);
+    release(viewController);
+  } else {
+    Cg_Warn("Menu item does not provide a ViewController class\n");
+  }
 }
 
 /**
  * @brief Quit the game.
  */
 static void quit(ident data) {
-	cgi.Cbuf("quit\n");
+  cgi.Cbuf("quit\n");
 }
 
 /**
- * @brief Quit Action.
+ * @brief ButtonDelegate for Quit.
  */
-static void quitAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickQuit(Button *button) {
 
-	MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
-	const Dialog dialog = {
-		.message = "Are you sure you want to quit?",
-		.ok = "Yes",
-		.cancel = "No",
-		.okFunction = quit
-	};
+  const Dialog dialog = {
+    .message = "Are you sure you want to quit?",
+    .ok = "Yes",
+    .cancel = "No",
+    .okFunction = quit
+  };
 
-	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-	$((ViewController *) this, addChildViewController, viewController);
+  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+  $((ViewController *) this, addChildViewController, viewController);
 }
 
 /**
  * @brief Disconnect from the current game.
  */
 static void disconnect(ident data) {
-	cgi.Cbuf("disconnect\n");
+  cgi.Cbuf("disconnect\n");
 }
 
 /**
- * @brief Disconnect Action.
+ * @brief ButtonDelegate for Disconnect.
  */
-static void disconnectAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickDisconnect(Button *button) {
 
-	MainViewController *this = (MainViewController *) sender;
+  MainViewController *this = button->delegate.self;
 
-	const Dialog dialog = {
-		.message = "Are you sure you want to disconnect?",
-		.ok = "Yes",
-		.cancel = "No",
-		.okFunction = disconnect
-	};
+  const Dialog dialog = {
+    .message = "Are you sure you want to disconnect?",
+    .ok = "Yes",
+    .cancel = "No",
+    .okFunction = disconnect
+  };
 
-	ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
-	$((ViewController *) this, addChildViewController, viewController);
+  ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+  $((ViewController *) this, addChildViewController, viewController);
 }
 
 #pragma mark - Object
@@ -119,12 +119,12 @@ static void disconnectAction(Control *control, const SDL_Event *event, ident sen
  */
 static void dealloc(Object *self) {
 
-	MainViewController *this = (MainViewController *) self;
+  MainViewController *this = (MainViewController *) self;
 
-	release(this->mainView);
-	release(this->navigationViewController);
+  release(this->mainView);
+  release(this->navigationViewController);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -134,29 +134,59 @@ static void dealloc(Object *self) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	MainViewController *this = (MainViewController *) self;
+  MainViewController *this = (MainViewController *) self;
 
-	this->mainView = $(alloc(MainView), initWithFrame, NULL);
-	assert(this->mainView);
+  this->mainView = $(alloc(MainView), initWithFrame, NULL);
+  assert(this->mainView);
 
-	$(self, setView, (View *) this->mainView);
+  $(self, setView, (View *) this->mainView);
 
-	$(this, primaryButton, "Home", pushViewControllerAction, _HomeViewController());
-	$(this, primaryButton, "Play", pushViewControllerAction, _PlayViewController());
-	$(this, primaryButton, "Controls", pushViewControllerAction, _ControlsViewController());
-	$(this, primaryButton, "Settings", pushViewControllerAction, _SettingsViewController());
+  $(this, primaryButton, "Home", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _HomeViewController()
+  });
 
-	$(this, primaryButton, "Quit", quitAction, NULL);
+  $(this, primaryButton, "Play", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _PlayViewController()
+  });
 
-	$(this, secondaryButton, "Teams", pushViewControllerAction, _TeamsViewController());
-	$(this, secondaryButton, "Disconnect", disconnectAction, NULL);
+  $(this, primaryButton, "Controls", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _ControlsViewController()
+  });
 
-	$(self, addChildViewController, (ViewController *) this->navigationViewController);
-	$(this->mainView->contentView, addSubview, this->navigationViewController->viewController.view);
+  $(this, primaryButton, "Settings", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _SettingsViewController()
+  });
 
-	pushViewControllerAction(NULL, NULL, this, _HomeViewController());
+  $(this, primaryButton, "Quit", &(const ButtonDelegate) {
+    .didClick = didClickQuit,
+    .self = self
+  });
+
+  $(this, secondaryButton, "Teams", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _TeamsViewController()
+  });
+
+  $(this, secondaryButton, "Disconnect", &(const ButtonDelegate) {
+    .didClick = didClickDisconnect,
+    .self = self
+  });
+
+  $(self, addChildViewController, (ViewController *) this->navigationViewController);
+  $(this->mainView->contentView, addSubview, this->navigationViewController->viewController.view);
+
+  $(this, navigateToViewController, _HomeViewController());
 }
 
 #pragma mark - MainViewController
@@ -168,45 +198,66 @@ static void loadView(ViewController *self) {
  */
 static MainViewController *init(MainViewController *self) {
 
-	self = (MainViewController *) super(ViewController, self, init);
-	if (self) {
-		self->navigationViewController = $(alloc(NavigationViewController), init);
-		assert(self->navigationViewController);
-	}
-	return self;
+  self = (MainViewController *) super(ViewController, self, init);
+  if (self) {
+    self->navigationViewController = $(alloc(NavigationViewController), init);
+    assert(self->navigationViewController);
+  }
+  return self;
 }
 
 /**
- * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
+ * @fn void MainViewController::navigateToViewController(MainViewController *self, Class *clazz)
  * @memberof MainViewController
  */
-static void primaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
+static void navigateToViewController(MainViewController *self, Class *clazz) {
 
-	Button *button = $(alloc(Button), initWithTitle, title);
-	assert(button);
+  assert(clazz);
 
-	button->control.view.identifier = strdup(title);
-	assert(button->control.view.identifier);
+  ViewController *topViewController = $(self->navigationViewController, topViewController);
+  if (topViewController && $((Object *) topViewController, isKindOfClass, clazz)) {
+    return;
+  }
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
+  $(self->navigationViewController, popToRootViewController);
+  $(self->navigationViewController, popViewController);
 
-	$((View *) self->mainView->primaryMenu, addSubview, (View *) button);
-	release(button);
+  ViewController *viewController = $((ViewController *) _alloc(clazz), init);
+  $(self->navigationViewController, pushViewController, viewController);
+  release(viewController);
 }
 
 /**
- * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data)
+ * @fn void MainViewController::primaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate)
  * @memberof MainViewController
  */
-static void secondaryButton(MainViewController *self, const char *title, ActionFunction action, ident data) {
+static void primaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate) {
 
-	Button *button = $(alloc(Button), initWithTitle, title);
-	assert(button);
+  Button *button = $(alloc(Button), initWithTitle, title);
+  assert(button);
 
-	$((Control *) button, addActionForEventType, SDL_MOUSEBUTTONUP, action, self, data);
+  button->control.view.identifier = strdup(title);
+  assert(button->control.view.identifier);
 
-	$((View *) self->mainView->secondaryMenu, addSubview, (View *) button);
-	release(button);
+  button->delegate = *delegate;
+
+  $((View *) self->mainView->primaryMenu, addSubview, (View *) button);
+  release(button);
+}
+
+/**
+ * @fn void MainViewController::secondaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate)
+ * @memberof MainViewController
+ */
+static void secondaryButton(MainViewController *self, const char *title, const ButtonDelegate *delegate) {
+
+  Button *button = $(alloc(Button), initWithTitle, title);
+  assert(button);
+
+  button->delegate = *delegate;
+
+  $((View *) self->mainView->secondaryMenu, addSubview, (View *) button);
+  release(button);
 }
 
 #pragma mark - Class lifecycle
@@ -216,13 +267,14 @@ static void secondaryButton(MainViewController *self, const char *title, ActionF
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
-	((MainViewControllerInterface *) clazz->interface)->init = init;
-	((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
-	((MainViewControllerInterface *) clazz->interface)->secondaryButton = secondaryButton;
+  ((MainViewControllerInterface *) clazz->interface)->init = init;
+  ((MainViewControllerInterface *) clazz->interface)->navigateToViewController = navigateToViewController;
+  ((MainViewControllerInterface *) clazz->interface)->primaryButton = primaryButton;
+  ((MainViewControllerInterface *) clazz->interface)->secondaryButton = secondaryButton;
 }
 
 /**
@@ -230,21 +282,21 @@ static void initialize(Class *clazz) {
  * @memberof MainViewController
  */
 Class *_MainViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "MainViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(MainViewController),
-			.interfaceOffset = offsetof(MainViewController, interface),
-			.interfaceSize = sizeof(MainViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "MainViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(MainViewController),
+      .interfaceOffset = offsetof(MainViewController, interface),
+      .interfaceSize = sizeof(MainViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

@@ -34,41 +34,41 @@ typedef bool (*Cg_EntityPredicate)(const cm_entity_t *e, void *data);
  */
 static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_EntityPredicate predicate, void *data) {
 
-	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
+  const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
 
-	int32_t start = 0;
-	if (from) {
-		while (start < bsp->num_entities) {
-			if (bsp->entities[start] == from) {
-				break;
-			}
-			start++;
-		}
-		assert(start < bsp->num_entities);
-	}
+  int32_t start = 0;
+  if (from) {
+    while (start < bsp->num_entities) {
+      if (bsp->entities[start] == from) {
+        break;
+      }
+      start++;
+    }
+    assert(start < bsp->num_entities);
+  }
 
-	for (int32_t i = start; i < bsp->num_entities; i++) {
-		const cm_entity_t *e = bsp->entities[i];
-		if (predicate(e, data)) {
-			return e;
-		}
-	}
+  for (int32_t i = start; i < bsp->num_entities; i++) {
+    const cm_entity_t *e = bsp->entities[i];
+    if (predicate(e, data)) {
+      return e;
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /**
  * @brief
  */
 static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
-	return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
+  return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
  * @brief
  */
 static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
-	return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
+  return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
 }
 
 /**
@@ -76,16 +76,16 @@ static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
  */
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
 
-	if (e) {
-		for (guint i = 0; i < cg_entities->len; i++) {
-			cg_entity_t *ent = &g_array_index(cg_entities, cg_entity_t, i);
-			if (ent->def == e) {
-				return ent;
-			}
-		}
-	}
+  if (e) {
+    for (guint i = 0; i < cg_entities->len; i++) {
+      cg_entity_t *ent = &g_array_index(cg_entities, cg_entity_t, i);
+      if (ent->def == e) {
+        return ent;
+      }
+    }
+  }
 
-	return NULL;
+  return NULL;
 }
 
 /**
@@ -93,63 +93,63 @@ cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
  * @remarks This should be called once per map load, after the precache routine.
  */
 void Cg_LoadEntities(void) {
-	 const cg_entity_class_t *classes[] = {
-		&cg_misc_dust,
-		&cg_misc_flame,
-		&cg_misc_light,
-		&cg_misc_model,
-		&cg_misc_sound,
-		&cg_misc_sparks,
-		&cg_misc_sprite,
-		&cg_misc_steam
-	};
+   const cg_entity_class_t *classes[] = {
+    &cg_misc_dust,
+    &cg_misc_flame,
+    &cg_misc_light,
+    &cg_misc_model,
+    &cg_misc_sound,
+    &cg_misc_sparks,
+    &cg_misc_sprite,
+    &cg_misc_steam
+  };
 
-	Cg_FreeEntities();
+  Cg_FreeEntities();
 
-	cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
+  cg_entities = g_array_new(false, false, sizeof(cg_entity_t));
 
-	const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
-	for (int32_t i = 0; i < bsp->num_entities; i++) {
+  const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
+  for (int32_t i = 0; i < bsp->num_entities; i++) {
 
-		const cm_entity_t *def = bsp->entities[i];
-		const char *class_name = cgi.EntityValue(def, "classname")->string;
+    const cm_entity_t *def = bsp->entities[i];
+    const char *class_name = cgi.EntityValue(def, "classname")->string;
 
-		const cg_entity_class_t **clazz = classes;
-		for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
+    const cg_entity_class_t **clazz = classes;
+    for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
 
-			if (!g_strcmp0(class_name, (*clazz)->class_name)) {
+      if (!g_strcmp0(class_name, (*clazz)->class_name)) {
 
-				cg_entity_t e = {
-					.id = MAX_ENTITIES + cg_entities->len,
-					.clazz = *clazz,
-					.def = def
-				};
+        cg_entity_t e = {
+          .id = MAX_ENTITIES + cg_entities->len,
+          .clazz = *clazz,
+          .def = def
+        };
 
-				e.origin = cgi.EntityValue(def, "origin")->vec3;
-				e.bounds = Box3_FromCenter(e.origin);
+        e.origin = cgi.EntityValue(def, "origin")->vec3;
+        e.bounds = Box3_FromCenter(e.origin);
 
-				if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
-					const char *target_name = cgi.EntityValue(def, "target")->string;
-					e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
-					if (!e.target) {
-						const char *class_name = cgi.EntityValue(def, "classname")->string;
-						cgi.Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
-					}
-				}
+        if (cgi.EntityValue(def, "target")->parsed & ENTITY_STRING) {
+          const char *target_name = cgi.EntityValue(def, "target")->string;
+          e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
+          if (!e.target) {
+            const char *class_name = cgi.EntityValue(def, "classname")->string;
+            Cg_Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
+          }
+        }
 
-				if (cgi.EntityValue(def, "team")->parsed & ENTITY_STRING) {
-					const char *team_name = cgi.EntityValue(def, "team")->string;
-					e.team = Cg_FindEntity(def, Cg_EntityTeam_Predicate, (void *) team_name);
-				}
+        if (cgi.EntityValue(def, "team")->parsed & ENTITY_STRING) {
+          const char *team_name = cgi.EntityValue(def, "team")->string;
+          e.team = Cg_FindEntity(def, Cg_EntityTeam_Predicate, (void *) team_name);
+        }
 
-				e.data = cgi.Malloc(e.clazz->data_size, MEM_TAG_CGAME_LEVEL);
+        e.data = cgi.Malloc(e.clazz->data_size, MEM_TAG_CGAME_LEVEL);
 
-				e.clazz->Init(&e);
+        e.clazz->Init(&e);
 
-				g_array_append_val(cg_entities, e);
-			}
-		}
-	}
+        g_array_append_val(cg_entities, e);
+      }
+    }
+  }
 }
 
 /**
@@ -157,10 +157,10 @@ void Cg_LoadEntities(void) {
  */
 void Cg_FreeEntities(void) {
 
-	if (cg_entities) {
-		g_array_free(cg_entities, true);
-		cg_entities = NULL;
-	}
+  if (cg_entities) {
+    g_array_free(cg_entities, true);
+    cg_entities = NULL;
+  }
 }
 
 /**
@@ -168,41 +168,13 @@ void Cg_FreeEntities(void) {
  */
 cl_entity_t *Cg_Self(void) {
 
-	int32_t index = cgi.client->client_num;
+  int32_t index = cgi.client->frame.ps.entity;
 
-	if (cgi.client->frame.ps.stats[STAT_CHASE]) {
-		index = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
-	}
+  if (cgi.client->frame.ps.stats[STAT_CHASE]) {
+    index = cgi.client->frame.ps.stats[STAT_CHASE];
+  }
 
-	return &cgi.client->entities[index + 1];
-}
-
-/**
- * @return True if the specified entity is bound to the local client's view.
- */
-bool Cg_IsSelf(const cl_entity_t *ent) {
-
-	if (ent == cgi.client->entity) {
-		return true;
-	}
-
-	if ((ent->current.effects & EF_CORPSE) == 0) {
-
-		if (ent->current.model1 == MODEL_CLIENT) {
-
-			if (ent->current.client == cgi.client->client_num) {
-				return true;
-			}
-
-			const int16_t chase = cgi.client->frame.ps.stats[STAT_CHASE] - CS_CLIENTS;
-
-			if (ent->current.client == chase) {
-				return true;
-			}
-		}
-	}
-
-	return false;
+  return cgi.client->entities + index;
 }
 
 /**
@@ -210,10 +182,10 @@ bool Cg_IsSelf(const cl_entity_t *ent) {
  */
 bool Cg_IsDucking(const cl_entity_t *ent) {
 
-	const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
-	const float height = Box3_Size(ent->current.bounds).z;
+  const float standing_height = Box3_Size(PM_BOUNDS).z * PM_SCALE;
+  const float height = Box3_Size(ent->current.bounds).z;
 
-	return standing_height - height > PM_STOP_EPSILON;
+  return standing_height - height > PM_STOP_EPSILON;
 }
 
 /**
@@ -221,19 +193,19 @@ bool Cg_IsDucking(const cl_entity_t *ent) {
  */
 static void Cg_EntitySound(cl_entity_t *ent) {
 
-	entity_state_t *s = &ent->current;
+  entity_state_t *s = &ent->current;
 
-	if (s->sound) {
-		Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
-			.sample = cgi.client->sounds[s->sound],
-			.origin = s->origin,
-			.entity = s->number,
-			.atten = SOUND_ATTEN_SQUARE,
-			.flags = S_PLAY_LOOP | S_PLAY_FRAME
-		});
-	}
+  if (s->sound) {
+    Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
+      .sample = cgi.client->sounds[s->sound],
+      .origin = s->origin,
+      .entity = s->number,
+      .atten = SOUND_ATTEN_SQUARE,
+      .flags = S_PLAY_LOOP | S_PLAY_FRAME
+    });
+  }
 
-	s->sound = 0;
+  s->sound = 0;
 }
 
 /**
@@ -241,19 +213,19 @@ static void Cg_EntitySound(cl_entity_t *ent) {
  */
 void Cg_Interpolate(const cl_frame_t *frame) {
 
-	cgi.client->entity = Cg_Self();
+  cgi.client->entity = Cg_Self();
 
-	for (int32_t i = 0; i < frame->num_entities; i++) {
+  for (int32_t i = 0; i < frame->num_entities; i++) {
 
-		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *s = &cgi.client->entity_states[snum];
+    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cgi.client->entity_states[snum];
 
-		cl_entity_t *ent = &cgi.client->entities[s->number];
+    cl_entity_t *ent = &cgi.client->entities[s->number];
 
-		Cg_EntitySound(ent);
+    Cg_EntitySound(ent);
 
-		Cg_EntityEvent(ent);
-	}
+    Cg_EntityEvent(ent);
+  }
 }
 
 /**
@@ -261,51 +233,61 @@ void Cg_Interpolate(const cl_frame_t *frame) {
  */
 static void Cg_AddEntity(cl_entity_t *ent) {
 
-	// set the origin and angles so that we know where to add effects
-	r_entity_t e = {
-		.id = ent,
-		.origin = ent->origin,
-		.termination = ent->termination,
-		.angles = ent->angles,
-		.scale = 1.f,
-		.bounds = ent->bounds,
-		.abs_bounds = ent->abs_bounds
-	};
+  // set the origin and angles so that we know where to add effects
+  r_entity_t e = {
+    .id = ent,
+    .origin = ent->origin,
+    .termination = ent->termination,
+    .angles = ent->angles,
+    .scale = 1.f,
+    .bounds = ent->bounds,
+    .abs_bounds = ent->abs_bounds,
+    .color = Color32_Vec4(ent->current.color),
+  };
 
-	// add effects, augmenting the renderer entity
-	Cg_EntityEffects(ent, &e);
+  if (editor->value) {
 
-	// if there's no model associated with the entity, we're done
-	if (!ent->current.model1) {
-		return;
-	}
+    if (ent == cgi.client->entity) {
+      return;
+    }
 
-	if (ent->current.model1 == MODEL_CLIENT) {
+  } else {
 
-		// add a client entity, with an animated player model
-		Cg_AddClientEntity(ent, &e);
+    // add effects, augmenting the renderer entity
+    Cg_EntityEffects(ent, &e);
 
-		// add our view weapon, if it's us
-		if (Cg_IsSelf(ent)) {
-			Cg_AddWeapon(ent, &e);
-		}
+    // if there's no model associated with the entity, we're done
+    if (!ent->current.model1) {
+      return;
+    }
 
-		return;
-	}
+    if (ent->current.effects & EF_CLIENT) {
 
-	// don't draw our own giblet, since the view is inside it
-	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
-		e.effects |= EF_NO_DRAW;
-	}
+      // add a client entity, with an animated player model
+      Cg_AddClientEntity(ent, &e);
 
-	// assign the model
-	e.model = cgi.client->models[ent->current.model1];
+      // add our view weapon, if it's us
+      if (ent == cgi.client->entity) {
+        Cg_AddWeapon(ent, &e);
+      }
 
-	// and any frame animations (button state, etc)
-	e.frame = ent->current.animation1;
+      return;
+    }
 
-	// add to view list
-	cgi.AddEntity(cgi.view, &e);
+    // don't draw our own giblet, since the view is inside it
+    if (ent == cgi.client->entity && !cgi.client->third_person) {
+      e.effects |= EF_NO_DRAW;
+    }
+
+    // assign the model
+    e.model = cgi.client->models[ent->current.model1];
+
+    // and any frame animations (button state, etc)
+    e.frame = ent->current.animation1;
+  }
+
+  // add to view list
+  cgi.AddEntity(cgi.view, &e);
 }
 
 /**
@@ -318,33 +300,37 @@ static void Cg_AddEntity(cl_entity_t *ent) {
  */
 void Cg_AddEntities(const cl_frame_t *frame) {
 
-	if (!cg_add_entities->value) {
-		return;
-	}
+  // add the world model
+  cgi.AddEntity(cgi.view, &(const r_entity_t) {
+    .model = cgi.WorldModel()->bsp->worldspawn,
+    .scale = 1.f,
+  });
 
-	// add server side entities
-	for (int32_t i = 0; i < frame->num_entities; i++) {
+  if (!cg_add_entities->value) {
+    return;
+  }
 
-		const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-		const entity_state_t *s = &cgi.client->entity_states[snum];
+  // add server side entities
+  for (int32_t i = 0; i < frame->num_entities; i++) {
 
-		cl_entity_t *ent = &cgi.client->entities[s->number];
+    const uint32_t s = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    cl_entity_t *ent = &cgi.client->entities[cgi.client->entity_states[s].number];
 
-		Cg_EntityTrail(ent);
+    Cg_EntityTrail(ent);
 
-		Cg_AddEntity(ent);
-	}
+    Cg_AddEntity(ent);
+  }
 
-	// and client side entities too
-	cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-	for (guint i = 0; i < cg_entities->len; i++, e++) {
+  // and client side entities too
+  cg_entity_t *e = (cg_entity_t *) cg_entities->data;
+  for (guint i = 0; i < cg_entities->len; i++, e++) {
 
-		if (e->next_think > cgi.client->unclamped_time) {
-			continue;
-		}
+    if (e->next_think > cgi.client->unclamped_time) {
+      continue;
+    }
 
-		e->clazz->Think(e);
+    e->clazz->Think(e);
 
-		e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
-	}
+    e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
+  }
 }

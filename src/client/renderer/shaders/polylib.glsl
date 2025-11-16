@@ -38,6 +38,13 @@ float distance_to_plane(in vec4 plane, in vec3 p) {
 }
 
 /**
+ * @return The point `p` projected onto `plane`.
+ */
+vec3 project_point_to_plane(in vec4 plane, in vec3 p) {
+	return p - plane.xyz * distance_to_plane(plane, p);
+}
+
+/**
  * @return The distance from `p` to the line segment `ba`.
  * @see https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
  */
@@ -113,6 +120,13 @@ bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
 }
 
 /**
+ * @return True if the bounding box contains the specified point.
+ */
+bool box_contains(in vec3 mins, in vec3 maxs, in vec3 point) {
+	return all(greaterThanEqual(point, mins)) && all(lessThanEqual(point, maxs));
+}
+
+/**
  * @return True if the triangle abc intersects the bounding box.
  * @see https://gdbooks.gitbooks.io/3dcollisions/content/Chapter4/aabb-triangle.html
  */
@@ -148,4 +162,24 @@ bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 
 	}
 
 	return true;
+}
+
+/**
+ * @return The minimal vector from `p` to the bounding box.
+ * @see https://stackoverflow.com/a/40579370/1982239
+ */
+vec3 direction_to_bounds(in vec3 mins, in vec3 maxs, in vec3 p) {
+
+	vec3 c = (mins + maxs) * 0.5;
+
+	if (all(greaterThanEqual(p, mins)) && all(lessThanEqual(p, maxs))) {
+		return p - c;
+	}
+
+	vec3 s = (maxs - mins) * 0.5;
+	vec3 v = p - c;
+	vec3 m = abs(v);
+	vec3 r = c + (v / m * s);
+
+	return r - p;
 }

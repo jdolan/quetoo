@@ -26,50 +26,52 @@
 /**
  * @brief Delta compression flags for pm_state_t.
  */
-#define PS_PM_TYPE				(1 << 0)
-#define PS_PM_ORIGIN			(1 << 1)
-#define PS_PM_VELOCITY			(1 << 2)
-#define PS_PM_FLAGS				(1 << 3)
-#define PS_PM_TIME				(1 << 4)
-#define PS_PM_GRAVITY			(1 << 5)
-#define PS_PM_VIEW_OFFSET		(1 << 6)
-#define PS_PM_VIEW_ANGLES		(1 << 7)
-#define PS_PM_DELTA_ANGLES		(1 << 8)
-#define PS_PM_HOOK_POSITION		(1 << 9)
-#define PS_PM_HOOK_LENGTH		(1 << 10)
-#define PS_PM_STEP_OFFSET		(1 << 11)
+#define PS_PM_CLIENT        (1 << 0)
+#define PS_PM_ENTITY        (1 << 1)
+#define PS_PM_TYPE          (1 << 2)
+#define PS_PM_ORIGIN        (1 << 3)
+#define PS_PM_VELOCITY      (1 << 4)
+#define PS_PM_FLAGS         (1 << 5)
+#define PS_PM_TIME          (1 << 6)
+#define PS_PM_GRAVITY       (1 << 7)
+#define PS_PM_VIEW_OFFSET   (1 << 8)
+#define PS_PM_VIEW_ANGLES   (1 << 9)
+#define PS_PM_DELTA_ANGLES  (1 << 10)
+#define PS_PM_HOOK_POSITION (1 << 11)
+#define PS_PM_HOOK_LENGTH   (1 << 12)
+#define PS_PM_STEP_OFFSET   (1 << 13)
 
 /**
  * @brief Delta compression flags for user_cmd_t.
  */
-#define CMD_ANGLE1 				0x1
-#define CMD_ANGLE2 				0x2
-#define CMD_ANGLE3 				0x4
-#define CMD_FORWARD				0x8
-#define CMD_RIGHT				0x10
-#define CMD_UP					0x20
-#define CMD_BUTTONS				0x40
+#define CMD_ANGLE1  0x1
+#define CMD_ANGLE2  0x2
+#define CMD_ANGLE3  0x4
+#define CMD_FORWARD 0x8
+#define CMD_RIGHT   0x10
+#define CMD_UP      0x20
+#define CMD_BUTTONS 0x40
 
 /**
- * @brief These flags indicate which fields in a given entity_state_t must be
+ * @brief These flags indicate which fields in a given `entity_state_t` must be
  * written or read for delta compression from one snapshot to the next.
  */
-#define U_ORIGIN				(1 << 0)
-#define U_TERMINATION			(1 << 1)
-#define U_ANGLES				(1 << 2)
-#define U_ANIMATIONS			(1 << 3)
-#define U_EVENT					(1 << 4)
-#define U_EFFECTS				(1 << 5)
-#define U_TRAIL					(1 << 6)
-#define U_MODELS				(1 << 7)
-#define U_COLOR					(1 << 8)
-#define U_CLIENT				(1 << 9)
-#define U_SOUND					(1 << 10)
-#define U_SOLID					(1 << 11)
-#define U_BOUNDS				(1 << 12)
-#define U_REMOVE				(1 << 13)
-#define U_SPAWN_ID              (1 << 14)
-#define U_STEP_OFFSET           (1 << 15)
+#define U_ORIGIN      (1 << 0)
+#define U_TERMINATION (1 << 1)
+#define U_ANGLES      (1 << 2)
+#define U_ANIMATIONS  (1 << 3)
+#define U_EVENT       (1 << 4)
+#define U_EFFECTS     (1 << 5)
+#define U_TRAIL       (1 << 6)
+#define U_MODELS      (1 << 7)
+#define U_COLOR       (1 << 8)
+#define U_CLIENT      (1 << 9)
+#define U_SOUND       (1 << 10)
+#define U_SOLID       (1 << 11)
+#define U_BOUNDS      (1 << 12)
+#define U_REMOVE      (1 << 13)
+#define U_SPAWN_ID    (1 << 14)
+#define U_STEP_OFFSET (1 << 15)
 
 /**
  * @brief Message writing and reading facilities.
@@ -106,5 +108,4 @@ vec3_t Net_ReadDir(mem_buf_t *msg);
 box3_t Net_ReadBounds(mem_buf_t *msg);
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
-void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
-                         uint16_t number, uint16_t bits);
+void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to, uint16_t number, uint16_t bits);

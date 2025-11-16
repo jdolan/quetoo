@@ -28,11 +28,11 @@ quetoo_t quetoo;
  */
 void setup(void) {
 
-	Mem_Init();
+  Mem_Init();
 
-	Fs_Init(FS_NONE);
+  Fs_Init(FS_NONE);
 
-	Cmd_Init();
+  Cmd_Init();
 }
 
 /**
@@ -40,11 +40,11 @@ void setup(void) {
  */
 void teardown(void) {
 
-	Cmd_Shutdown();
+  Cmd_Shutdown();
 
-	Fs_Shutdown();
+  Fs_Shutdown();
 
-	Mem_Shutdown();
+  Mem_Shutdown();
 }
 
 static void Cmd1(void) {
@@ -54,19 +54,19 @@ static void Cmd2(void) {
 }
 
 START_TEST(check_Cmd_RemoveAll) {
-	cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
-	cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
+  cmd_t *cmd1 = Cmd_Add("cmd1", Cmd1, (CMD_SYSTEM | CMD_SERVER), NULL);
+  cmd_t *cmd2 = Cmd_Add("cmd2", Cmd2, CMD_GAME, NULL);
 
-	ck_assert(cmd1 != NULL);
-	ck_assert(cmd2 != NULL);
+  ck_assert(cmd1 != NULL);
+  ck_assert(cmd2 != NULL);
 
-	Cmd_RemoveAll(CMD_GAME);
+  Cmd_RemoveAll(CMD_GAME);
 
-	cmd1 = Cmd_Get("cmd1");
-	cmd2 = Cmd_Get("cmd2");
+  cmd1 = Cmd_Get("cmd1");
+  cmd2 = Cmd_Get("cmd2");
 
-	ck_assert(cmd1 != NULL);
-	ck_assert(cmd2 == NULL);
+  ck_assert(cmd1 != NULL);
+  ck_assert(cmd2 == NULL);
 
 } END_TEST
 
@@ -75,18 +75,18 @@ START_TEST(check_Cmd_RemoveAll) {
  */
 int32_t main(int32_t argc, char **argv) {
 
-	Test_Init(argc, argv);
+  Test_Init(argc, argv);
 
-	TCase *tcase = tcase_create("check_cmd");
-	tcase_add_checked_fixture(tcase, setup, teardown);
+  TCase *tcase = tcase_create("check_cmd");
+  tcase_add_checked_fixture(tcase, setup, teardown);
 
-	tcase_add_test(tcase, check_Cmd_RemoveAll);
+  tcase_add_test(tcase, check_Cmd_RemoveAll);
 
-	Suite *suite = suite_create("check_cmd");
-	suite_add_tcase(suite, tcase);
+  Suite *suite = suite_create("check_cmd");
+  suite_add_tcase(suite, tcase);
 
-	int32_t failed = Test_Run(suite);
+  int32_t failed = Test_Run(suite);
 
-	Test_Shutdown();
-	return failed;
+  Test_Shutdown();
+  return failed;
 }

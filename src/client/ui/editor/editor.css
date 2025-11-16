@@ -1,0 +1,30 @@
+Panel.editor {
+  alignment: middle-right;
+  draggable: true;
+}
+
+Panel.editor .tabPageView {
+  autoresizing-mask: none;
+  width: 420;
+  height: 500;
+}
+
+#Entity {
+  padding: 4;
+}
+
+#Entity .entity {
+  axis: StackViewAxisHorizontal;
+}
+
+#Entity .entity .value {
+  min-width: 240;
+}
+
+#Entity #add {
+
+}
+
+#Material Input Label {
+  width: 200;
+}

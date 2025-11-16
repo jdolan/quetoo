@@ -26,7 +26,6 @@ layout (location = 3) in vec4 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
-layout (location = 7) in float in_bloom;
 
 out vertex_data {
 	vec3 position;
@@ -34,41 +33,25 @@ out vertex_data {
 	vec2 next_diffusemap;
 	vec4 color;
 	vec4 fog;
-
 	float lerp;
 	float softness;
-	float bloom;
 } vertex;
 
 /**
  * @brief
  */
-vec3 sample_lightgrid_ambient(in vec3 texcoord) {
-	return texture(texture_lightgrid_ambient, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec3 sample_lightgrid_diffuse(in vec3 texcoord) {
-	return texture(texture_lightgrid_diffuse, texcoord).rgb * modulate;
-}
-
-/**
- * @brief
- */
-vec4 sample_lightgrid_fog(in vec3 texcoord) {
+vec4 sample_voxel_fog(in vec3 texcoord) {
 
 	vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_LIGHTGRID_LUXEL_SIZE, 1.0, fog_samples);
+	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
 	for (float i = 0; i < samples; i++) {
 
 		vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
-		vec3 uvw = mix(texcoord, lightgrid.view_coordinate.xyz, i / samples);
+		vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_lightgrid_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
 		if (fog.a >= 1.0) {
 			break;
 		}
@@ -82,50 +65,43 @@ vec4 sample_lightgrid_fog(in vec3 texcoord) {
 }
 
 /**
+ * @brief
+ */
+vec3 light_and_shadow_light(in light_t light) {
+
+	float dist = distance(light.origin.xyz, in_position);
+	float radius = light.origin.w;
+	float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+
+	return light.color.rgb * light.color.a * atten * modulate;
+}
+
+/**
  * @brief Dynamic lighting for sprites
  */
-void light_and_shadow(in vec3 texcoord) {
+void light_and_shadow(void) {
 
 	if (in_lighting == 0.0) {
 		return;
 	}
 
-	vec3 ambient = sample_lightgrid_ambient(texcoord);
-	vec3 diffuse = sample_lightgrid_diffuse(texcoord);
+	vec3 diffuse = vec3(0.0);
 
-	for (int i = 0; i < num_lights; i++) {
+	for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		light_t light = lights[i];
-
-		int type = int(light.position.w);
-		if (type != LIGHT_DYNAMIC) {
-			continue;
+		int index = active_lights[i];
+		if (index == -1) {
+			break;
 		}
 
-		float radius = light.model.w;
-		float size = light.mins.w;
+		light_t light = lights[index];
 
-		float dist = distance(light.position.xyz, vertex.position);
-		float atten = clamp(1.0 - dist / (radius + size * 0.5), 0.0, 1.0);
-		if (atten == 0.0) {
-			continue;
+		if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
+			diffuse += light_and_shadow_light(light);
 		}
-
-		vec3 color = light.color.rgb * light.color.a;
-
-		switch (int(light.maxs.w)) {
-			case LIGHT_ATTEN_LINEAR:
-				color *= atten;
-				break;
-			case LIGHT_ATTEN_INVERSE_SQUARE:
-				color *= atten * atten;
-				break;
-		}
-
-		diffuse += color;
 	}
 
-	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * (ambient + diffuse), in_lighting);
+	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
 }
 
 /**
@@ -141,13 +117,12 @@ void main(void) {
 	vertex.color = in_color;
 	vertex.lerp = in_lerp;
 	vertex.softness = in_softness;
-	vertex.bloom = in_bloom;
 
-	vec3 texcoord = lightgrid_uvw(in_position);
+	vec3 texcoord = voxel_uvw(in_position);
 
-	vertex.fog = sample_lightgrid_fog(texcoord);
+	vertex.fog = sample_voxel_fog(texcoord);
 
-	light_and_shadow(texcoord);
+	light_and_shadow();
 
 	gl_Position = projection3D * view * position;
 }

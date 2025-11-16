@@ -19,63 +19,60 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
-#include "client.h"
-
 #include "EditorViewController.h"
-#include "EditorView.h"
+#include "EntityViewController.h"
+#include "MaterialViewController.h"
 
-#define _Class _EditorViewController
-
-#pragma mark - Actions and delegate callbacks
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for the Save Button.
+ * @brief ButtonDelegate for Create Entity.
  */
-static void saveAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickCreateEntity(Button *button) {
 
-	EditorViewController *this = sender;
+  EditorViewController *this = button->delegate.self;
 
-	if (this->model == NULL) {
-		Com_Debug(DEBUG_UI, "Not editing a material\n");
-		return;
-	}
-
-	Cmd_ExecuteString(va("r_save_materials %s", this->model->media.name));
+  $(this->entityViewController, createEntity);
 }
 
 /**
- * @brief SliderDelegate callback for changing bump.
+ * @brief ButtonDelegate for Delete Entity.
  */
-static void didSetValue(Slider *slider, double value) {
+static void didClickDeleteEntity(Button *button) {
 
-	EditorViewController *this = (EditorViewController *) slider->delegate.self;
-	EditorView *view = (EditorView *) this->viewController.view;
+  EditorViewController *this = button->delegate.self;
 
-	if (!view->material) {
-		return;
-	}
-	if (slider == view->roughness) {
-		view->material->cm->roughness = slider->value;
-	} else if (slider == view->hardness) {
-		view->material->cm->hardness = slider->value;
-	} else if (slider == view->specularity) {
-		view->material->cm->specularity = slider->value;
-	} else if (slider == view->parallax) {
-		view->material->cm->parallax = slider->value;
-	} else if (slider == view->bloom) {
-		view->material->cm->bloom = slider->value;
-	} else if (slider == view->alphaTest) {
-		view->material->cm->alpha_test = slider->value;
-	} else if (slider == view->lightRadius) {
-		view->material->cm->light.radius = slider->value;
-	} else if (slider == view->lightIntensity) {
-		view->material->cm->light.intensity = slider->value;
-	} else if (slider == view->lightCone) {
-		view->material->cm->light.cone = slider->value;
-	} else {
-		Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
-	}
+  $(this->entityViewController, deleteEntity);
+}
+
+/**
+ * @brief ButtonDelegate for Save .map and .mat.
+ */
+static void didClickSave(Button *button) {
+
+  Cbuf_AddText("save_editor_map\n");
+
+  EditorViewController *this = button->delegate.self;
+
+  const r_model_t *model = this->materialViewController->model;
+  if (model) {
+    Cmd_ExecuteString(va("r_save_materials %s", model->media.name));
+  }
+}
+
+#define _Class _EditorViewController
+
+#pragma mark - Object
+
+static void dealloc(Object *self) {
+
+  EditorViewController *this = (EditorViewController *) self;
+
+  release(this->tabViewController);
+  release(this->entityViewController);
+  release(this->materialViewController);
+
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -85,122 +82,79 @@ static void didSetValue(Slider *slider, double value) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	EditorView *view = $(alloc(EditorView), initWithFrame, NULL);
-	assert(view);
+  EditorViewController *this = (EditorViewController *) self;
 
-	view->roughness->delegate.self = self;
-	view->roughness->delegate.didSetValue = didSetValue;
+  View *view = $$(View, viewWithResourceName, "ui/editor/EditorViewController.json", NULL);
+  assert(view);
 
-	view->hardness->delegate.self = self;
-	view->hardness->delegate.didSetValue = didSetValue;
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/editor.css");
+  assert(view->stylesheet);
 
-	view->specularity->delegate.self = self;
-	view->specularity->delegate.didSetValue = didSetValue;
+  $(self, setView, view);
+  release(view);
 
-	view->parallax->delegate.self = self;
-	view->parallax->delegate.didSetValue = didSetValue;
+  this->tabViewController = $(alloc(TabViewController), init);
+  assert(this->tabViewController);
 
-	view->bloom->delegate.self = self;
-	view->bloom->delegate.didSetValue = didSetValue;
+  this->entityViewController = $(alloc(EntityViewController), init);
+  assert(this->entityViewController);
 
-	view->alphaTest->delegate.self = self;
-	view->alphaTest->delegate.didSetValue = didSetValue;
+  this->materialViewController = $(alloc(MaterialViewController), init);
+  assert(this->materialViewController);
 
-	view->lightRadius->delegate.self = self;
-	view->lightRadius->delegate.didSetValue = didSetValue;
+  ViewController *tabViewController = (ViewController *) this->tabViewController;
 
-	view->lightIntensity->delegate.self = self;
-	view->lightIntensity->delegate.didSetValue = didSetValue;
+  $(tabViewController, addChildViewController, (ViewController *) this->entityViewController);
+  $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
 
-	view->lightCone->delegate.self = self;
-	view->lightCone->delegate.didSetValue = didSetValue;
+  $(self, addChildViewController, tabViewController);
+  $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 
-	$((Control *) view->save, addActionForEventType, SDL_MOUSEBUTTONUP, saveAction, self, NULL);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("createEntity", &this->createEntity),
+    MakeOutlet("deleteEntity", &this->deleteEntity),
+    MakeOutlet("save", &this->save)
+  );
 
-	$(self, setView, (View *) view);
-	release(view);
+  $(self->view, resolve, outlets);
+
+  this->createEntity->delegate.self = this;
+  this->createEntity->delegate.didClick = didClickCreateEntity;
+
+  this->deleteEntity->delegate.self = this;
+  this->deleteEntity->delegate.didClick = didClickDeleteEntity;
+
+  this->save->delegate.self = this;
+  this->save->delegate.didClick = didClickSave;
 }
 
 /**
- * @see ViewController::viewWillAppear(ViewController *)
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
  */
-static void viewWillAppear(ViewController *self) {
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
-	EditorViewController *this = (EditorViewController *) self;
+  EditorViewController *this = (EditorViewController *) self;
 
-	this->material = NULL;
-	this->model = NULL;
+  if (event->type == MVC_NOTIFICATION_EVENT) {
 
-	EditorView *view = (EditorView *) self->view;
+    switch (event->user.code) {
+      case NOTIFICATION_ENTITY_SELECTED: {
+        Control *deleteEntity = (Control *) this->deleteEntity;
+        const int16_t number = (int16_t) (intptr_t) event->user.data1;
+        if (number <= 0) {
+          deleteEntity->state |= ControlStateDisabled;
+        } else {
+          deleteEntity->state &= ~ControlStateDisabled;
+        }
+        $(deleteEntity, stateDidChange);
+      }
+        break;
+    }
+  }
 
-	float distance = MAX_WORLD_DIST;
-
-	vec3_t start = Vec3_Fmaf(cl_view.origin, 16.f, cl_view.forward);
-	vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
-
-	while (this->material == NULL) {
-
-		const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
-		if (!tr.material) {
-			break;
-		}
-
-		this->material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
-		this->model = R_WorldModel();
-
-		distance = Vec3_Distance(cl_view.origin, tr.end);
-	}
-
-	const r_entity_t *e = cl_view.entities;
-	for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
-
-		if (e->model == NULL) {
-			continue;
-		}
-
-		if (e->model->type != MODEL_MESH) {
-			continue;
-		}
-
-		if (e->model->mesh->faces->material == NULL) {
-			continue;
-		}
-
-		if (e->effects & (EF_SELF | EF_WEAPON)) {
-			continue;
-		}
-
-		const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
-
-		const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
-		if (tr.fraction < 1.f) {
-
-			const float dist = Vec3_Distance(cl_view.origin, tr.end);
-			if (dist < distance) {
-				this->material = e->model->mesh->faces->material;
-				this->model = e->model;
-
-				distance = dist;
-
-			}
-		}
-	}
-
-	$(view, setMaterial, this->material);
-
-	super(ViewController, self, viewWillAppear);
-}
-
-#pragma mark - EditorViewController
-
-/**
- * @fn EditorViewController *EditorViewController::init(EditorViewController *self)
- * @memberof EditorViewController
- */
-static EditorViewController *init(EditorViewController *self) {
-	return (EditorViewController *) super(ViewController, self, init);
+  super(ViewController, self, respondToEvent, event);
 }
 
 #pragma mark - Class lifecycle
@@ -210,10 +164,10 @@ static EditorViewController *init(EditorViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((EditorViewControllerInterface *) clazz->interface)->init = init;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
 }
 
 /**
@@ -221,21 +175,21 @@ static void initialize(Class *clazz) {
  * @memberof EditorViewController
  */
 Class *_EditorViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "EditorViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(EditorViewController),
-			.interfaceOffset = offsetof(EditorViewController, interface),
-			.interfaceSize = sizeof(EditorViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "EditorViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(EditorViewController),
+      .interfaceOffset = offsetof(EditorViewController, interface),
+      .interfaceSize = sizeof(EditorViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

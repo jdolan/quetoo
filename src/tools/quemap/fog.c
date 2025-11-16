@@ -30,17 +30,17 @@ GArray *fogs;
  */
 bool PointInsideFog(const vec3_t point, const fog_t *fog) {
 
-	if (Box3_ContainsPoint(fog->bounds, point)) {
+  if (Box3_ContainsPoint(fog->bounds, point)) {
 
-		for (guint i = 0; i < fog->brushes->len; i++) {
-			const cm_bsp_brush_t *brush = g_ptr_array_index(fog->brushes, i);
-			if (Cm_PointInsideBrush(point, brush)) {
-				return true;
-			}
-		}
-	}
+    for (guint i = 0; i < fog->brushes->len; i++) {
+      const cm_bsp_brush_t *brush = g_ptr_array_index(fog->brushes, i);
+      if (Cm_PointInsideBrush(point, brush)) {
+        return true;
+      }
+    }
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -48,12 +48,12 @@ bool PointInsideFog(const vec3_t point, const fog_t *fog) {
  */
 void FreeFog(void) {
 
-	if (!fogs) {
-		return;
-	}
+  if (!fogs) {
+    return;
+  }
 
-	g_array_free(fogs, true);
-	fogs = NULL;
+  g_array_free(fogs, true);
+  fogs = NULL;
 }
 
 /**
@@ -61,68 +61,68 @@ void FreeFog(void) {
  */
 static void FogForEntity(const cm_entity_t *entity) {
 
-	const char *class_name = Cm_EntityValue(entity, "classname")->string;
-	if (!g_strcmp0(class_name, "worldspawn")) {
+  const char *class_name = Cm_EntityValue(entity, "classname")->string;
+  if (!g_strcmp0(class_name, "worldspawn")) {
 
-		if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
-			Cm_EntityValue(entity, "fog_color")->parsed ||
-			Cm_EntityValue(entity, "fog_density")->parsed) {
+    if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
+      Cm_EntityValue(entity, "fog_color")->parsed ||
+      Cm_EntityValue(entity, "fog_density")->parsed) {
 
-			fog_t fog = {};
-			fog.type = FOG_GLOBAL;
-			fog.entity = entity;
+      fog_t fog = {};
+      fog.type = FOG_GLOBAL;
+      fog.entity = entity;
 
-			fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value ?: FOG_ABSORPTION;
+      fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value ?: FOG_ABSORPTION;
 
-			const cm_entity_t *color = Cm_EntityValue(entity, "fog_color");
-			if (color->parsed & ENTITY_VEC3) {
-				fog.color = color->vec3;
-			} else {
-				fog.color = FOG_COLOR;
-			}
+      const cm_entity_t *color = Cm_EntityValue(entity, "fog_color");
+      if (color->parsed & ENTITY_VEC3) {
+        fog.color = color->vec3;
+      } else {
+        fog.color = FOG_COLOR;
+      }
 
-			fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
+      fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
 
-			g_array_append_val(fogs, fog);
-		}
-	} else if (!g_strcmp0(class_name, "misc_fog")) {
+      g_array_append_val(fogs, fog);
+    }
+  } else if (!g_strcmp0(class_name, "misc_fog")) {
 
-		fog_t fog = {};
-		fog.type = FOG_VOLUME;
-		fog.entity = entity;
+    fog_t fog = {};
+    fog.type = FOG_VOLUME;
+    fog.entity = entity;
 
-		fog.brushes = Cm_EntityBrushes(entity);
-		fog.bounds = Box3_Null();
+    fog.brushes = Cm_EntityBrushes(entity);
+    fog.bounds = Box3_Null();
 
-		material_t *material = NULL;
+    material_t *material = NULL;
 
-		for (guint i = 0; i < fog.brushes->len; i++) {
-			const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
-			fog.bounds = Box3_Union(fog.bounds, brush->bounds);
+    for (guint i = 0; i < fog.brushes->len; i++) {
+      const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
+      fog.bounds = Box3_Union(fog.bounds, brush->bounds);
 
-			if (g_strcmp0(brush->brush_sides->material->name, "common/fog")) {
-				material = &materials[FindMaterial(brush->brush_sides->material->name)];
-			}
-		}
+      if (g_strcmp0(brush->brush_sides->material->name, "common/fog")) {
+        material = &materials[FindMaterial(brush->brush_sides->material->name)];
+      }
+    }
 
-		if (Cm_EntityValue(entity, "absorption")->parsed & ENTITY_FLOAT) {
-			fog.absorption = Cm_EntityValue(entity, "absorption")->value;
-		} else {
-			fog.absorption = FOG_ABSORPTION;
-		}
+    if (Cm_EntityValue(entity, "absorption")->parsed & ENTITY_FLOAT) {
+      fog.absorption = Cm_EntityValue(entity, "absorption")->value;
+    } else {
+      fog.absorption = FOG_ABSORPTION;
+    }
 
-		if (Cm_EntityValue(entity, "_color")->parsed & ENTITY_VEC3) {
-			fog.color = Cm_EntityValue(entity, "_color")->vec3;
-		} else if (material) {
-			fog.color = material->ambient;
-		} else {
-			fog.color = FOG_COLOR;
-		}
+    if (Cm_EntityValue(entity, "color")->parsed & ENTITY_VEC3) {
+      fog.color = Cm_EntityValue(entity, "color")->vec3;
+    } else if (material) {
+      fog.color = material->ambient;
+    } else {
+      fog.color = FOG_COLOR;
+    }
 
-		fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
+    fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
 
-		g_array_append_val(fogs, fog);
-	}
+    g_array_append_val(fogs, fog);
+  }
 }
 
 /**
@@ -130,14 +130,14 @@ static void FogForEntity(const cm_entity_t *entity) {
  */
 void BuildFog(void) {
 
-	FreeFog();
+  FreeFog();
 
-	fogs = g_array_new(false, false, sizeof(fog_t));
+  fogs = g_array_new(false, false, sizeof(fog_t));
 
-	cm_entity_t **entity = Cm_Bsp()->entities;
-	for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
-		FogForEntity(*entity);
-	}
+  cm_entity_t **entity = Cm_Bsp()->entities;
+  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
+    FogForEntity(*entity);
+  }
 
-	Com_Verbose("Fog lighting for %d sources\n", fogs->len);
+  Com_Verbose("Fog lighting for %d sources\n", fogs->len);
 }

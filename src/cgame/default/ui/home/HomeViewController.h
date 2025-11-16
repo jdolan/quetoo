@@ -40,22 +40,22 @@ typedef struct HomeViewControllerInterface HomeViewControllerInterface;
  */
 struct HomeViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	HomeViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  HomeViewControllerInterface *interface;
 
-	/**
-	 * @brief The message of the day.
-	 */
-	Label *motd;
+  /**
+   * @brief The message of the day.
+   */
+  Label *motd;
 };
 
 /**
@@ -63,10 +63,10 @@ struct HomeViewController {
  */
 struct HomeViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

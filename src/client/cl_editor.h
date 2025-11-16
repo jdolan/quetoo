@@ -19,19 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-layout (location = 0) in vec2 in_position;
-layout (location = 1) in vec2 in_texcoord;
+#pragma once
 
-out vertex_data {
-	vec2 texcoord;
-} vertex;
+#include "cl_types.h"
 
-/**
- * @brief
- */
-void main(void) {
-
-	gl_Position = vec4(in_position, 0.0, 1.0);
-
-	vertex.texcoord = in_texcoord;
-}
+#ifdef __CL_LOCAL_H__
+void Cl_ParseEditorEntity(int16_t number, const char *info);
+void Cl_PopulateEditorScene(const cl_frame_t *frame);
+#endif /* __CL_LOCAL_H__ */

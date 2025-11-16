@@ -24,9 +24,8 @@
 #include "r_types.h"
 
 extern cvar_t *r_allow_high_dpi;
+extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
-extern cvar_t *r_bloom;
-extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_caustics;
 extern cvar_t *r_display;
 extern cvar_t *r_finish;
@@ -34,21 +33,18 @@ extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
-extern cvar_t *r_hdr;
 extern cvar_t *r_height;
+extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_parallax;
-extern cvar_t *r_post;
 extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
-extern cvar_t *r_shadowmap;
-extern cvar_t *r_shadowmap_size;
+extern cvar_t *r_shadows;
+extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_specularity;
 extern cvar_t *r_stains;
-extern cvar_t *r_stains_decay;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
-extern cvar_t *r_texture_mode;
 extern cvar_t *r_width;
 
 extern r_stats_t r_stats;
@@ -68,152 +64,147 @@ void R_EndFrame(void);
  * @brief OpenGL driver information.
  */
 typedef struct {
-	const char *renderer;
-	const char *vendor;
-	const char *version;
+  const char *renderer;
+  const char *vendor;
+  const char *version;
 
-	GLint max_texunits;
-	GLint max_texture_size;
-	GLint max_uniform_block_size;
+  GLint max_texunits;
+  GLint max_texture_size;
+  GLint max_uniform_block_size;
 } r_config_t;
 
 extern r_config_t r_config;
 
 /**
- * @brief The lightgrid uniform struct.
+ * @brief The voxel uniform struct.
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-	/**
-	 * @brief The lightgrid mins, in world space.
-	 */
-	vec4_t mins;
+  /**
+   * @brief The voxel mins, in world space.
+   */
+  vec4_t mins;
 
-	/**
-	 * @brief The lightgrid maxs, in world space.
-	 */
-	vec4_t maxs;
+  /**
+   * @brief The voxel maxs, in world space.
+   */
+  vec4_t maxs;
 
-	/**
-	 * @brief The view origin, in lightgrid space. The fourth component is exposure.
-	 */
-	vec4_t view_coordinate;
+  /**
+   * @brief The view origin, in voxel space.
+   */
+  vec4_t view_coordinate;
 
-	/**
-	 * @brief The lightgrid size, in luxels.
-	 */
-	vec4_t size;
+  /**
+   * @brief The voxel size, in voxels.
+   */
+  vec4_t size;
 
-	/**
-	 * @brief The lightgrid luxel size, in texture space.
-	 */
-	vec4_t luxel_size;
-} r_lightgrid_t;
+  /**
+   * @brief The voxel voxel size, in texture space.
+   */
+  vec4_t voxel_size;
+} r_voxels_t;
 
 /**
  * @brief The uniforms block type.
  */
 typedef struct {
-	/**
-	 * @brief The name of the uniform buffer.
-	 */
-	GLuint buffer;
+  /**
+   * @brief The name of the uniform buffer.
+   */
+  GLuint buffer;
 
-	/**
-	 * @brief The uniform block struct.
-	 * @remarks This struct is vec4 aligned.
-	 */
-	struct r_uniform_block_t {
-		/**
-		 * @brief The viewport (x, y, w, h) in device pixels.
-		 */
-		vec4i_t viewport;
+  /**
+   * @brief The uniform block struct.
+   * @remarks This struct is vec4 aligned.
+   */
+  struct r_uniform_block_t {
+    /**
+     * @brief The viewport (x, y, w, h) in device pixels.
+     */
+    vec4i_t viewport;
 
-		/**
-		 * @brief The 2D projection matrix.
-		 */
-		mat4_t projection2D;
+    /**
+     * @brief The 2D projection matrix.
+     */
+    mat4_t projection2D;
 
-		/**
-		 * @brief The 3D projection matrix.
-		 */
-		mat4_t projection3D;
+    /**
+     * @brief The 3D projection matrix.
+     */
+    mat4_t projection3D;
 
-		/**
-		 * @brief The view matrix.
-		 */
-		mat4_t view;
+    /**
+     * @brief The view matrix.
+     */
+    mat4_t view;
 
-		/**
-		 * @brief The lightgrid uniforms.
-		 */
-		r_lightgrid_t lightgrid;
+    /**
+     * @brief The projection matrix for environment cubemaps.
+     */
+    mat4_t sky_projection;
 
-		/**
-		 * @brief The depth range, in world units.
-		 */
-		vec2_t depth_range;
+    /**
+     * @brief The projection matrix for point light shadows.
+     */
+    mat4_t light_projection;
 
-		/**
-		 * @brief The view type, e.g. VIEW_MAIN.
-		 */
-		int32_t view_type;
+    /**
+     * @brief The voxel uniforms.
+     */
+    r_voxels_t voxels;
 
-		/**
-		 * @brief The renderer time, in milliseconds.
-		 */
-		int32_t ticks;
+    /**
+     * @brief The depth range, in world units.
+     */
+    vec2_t depth_range;
 
-		/**
-		 * @brief The lightmaps debugging mask.
-		 */
-		int32_t lightmaps;
+    /**
+     * @brief The view type, e.g. VIEW_MAIN.
+     */
+    int32_t view_type;
 
-		/**
-		 * @brief The shadows debugging mask.
-		 */
-		int32_t shadows;
+    /**
+     * @brief The renderer time, in milliseconds.
+     */
+    int32_t ticks;
 
-		/**
-		 * @brief The modulate scalar.
-		 */
-		float modulate;
+    /**
+     * @brief The ambient scalar.
+     */
+    float ambient;
 
-		/**
-		 * @brief The caustics scalar.
-		 */
-		float caustics;
+    /**
+     * @brief The modulate scalar.
+     */
+    float modulate;
 
-		/**
-		 * @brief The stains scalar.
-		 */
-		float stains;
+    /**
+     * @brief The caustics scalar.
+     */
+    float caustics;
 
-		/**
-		 * @brief The bloom scalar.
-		 */
-		float bloom;
+    /**
+     * @brief The stains scalar.
+     */
+    float stains;
 
-		/**
-		 * @brief The HDR scalar.
-		 */
-		float hdr;
+    /**
+     * @brief The fog density scalar.
+     */
+    float fog_density;
 
-		/**
-		 * @brief The fog density scalar.
-		 */
-		float fog_density;
+    /**
+     * @brief The number of volumetric fog samples per fragment (quality).
+     */
+    float fog_samples;
 
-		/**
-		 * @brief The number of volumetric fog samples per fragment (quality).
-		 */
-		int32_t fog_samples;
-
-		/**
-		 * @brief The developer flags.
-		 */
-		int32_t developer;
-	} block;
+    /**
+     * @brief The developer flags.
+     */
+    float developer;
+  } block;
 
 } r_uniforms_t;
 
@@ -224,23 +215,19 @@ extern r_uniforms_t r_uniforms;
 
 // developer tools
 extern cvar_t *r_alpha_test;
-extern cvar_t *r_blend_depth_sorting;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
 extern cvar_t *r_developer;
-extern cvar_t *r_draw_bsp_lightgrid;
-extern cvar_t *r_draw_bsp_lightmap;
+extern cvar_t *r_draw_bsp_blocks;
+extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
-extern cvar_t *r_draw_material_stages;
-extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
 extern cvar_t *r_error_level;
 extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
-extern cvar_t *r_occlusion_query_size;
 
 /**
  * @brief Keeps track of how many errors we've run into, so we can
@@ -251,9 +238,9 @@ extern int32_t r_error_count;
 void R_GetError_(const char *function, const char *msg);
 
 #define R_GetError(msg) { \
-	if (r_get_error->integer) { \
-		R_GetError_(__func__, msg); \
-	} \
+  if (r_get_error->integer) { \
+    R_GetError_(__func__, msg); \
+  } \
 }
 
 #endif

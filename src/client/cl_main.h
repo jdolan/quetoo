@@ -27,7 +27,6 @@ extern cvar_t *cl_chat_sound;
 extern cvar_t *cl_draw_counters;
 extern cvar_t *cl_draw_position;
 extern cvar_t *cl_draw_net_graph;
-extern cvar_t *cl_editor;
 extern cvar_t *cl_ignore;
 extern cvar_t *cl_max_fps;
 extern cvar_t *cl_no_lerp;

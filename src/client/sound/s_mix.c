@@ -26,14 +26,14 @@
  */
 int32_t S_AllocChannel(void) {
 
-	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-		if (!s_context.channels[i].play.sample) {
-			return i;
-		}
-	}
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    if (!s_context.channels[i].play.sample) {
+      return i;
+    }
+  }
 
-	Com_Debug(DEBUG_SOUND, "Failed\n");
-	return -1;
+  Com_Debug(DEBUG_SOUND, "Failed\n");
+  return -1;
 }
 
 /**
@@ -41,10 +41,10 @@ int32_t S_AllocChannel(void) {
  */
 void S_FreeChannel(int32_t c) {
 
-	alSourceStop(s_context.sources[c]);
-	alSourcei(s_context.sources[c], AL_BUFFER, 0);
+  alSourceStop(s_context.sources[c]);
+  alSourcei(s_context.sources[c], AL_BUFFER, 0);
 
-	memset(&s_context.channels[c], 0, sizeof(s_context.channels[c]));
+  memset(&s_context.channels[c], 0, sizeof(s_context.channels[c]));
 }
 
 #define SOUND_MAX_DISTANCE 2048.0
@@ -56,83 +56,83 @@ void S_FreeChannel(int32_t c) {
  */
 static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
-	if (ch->play.flags & S_PLAY_UI) {
-		ch->gain = 1.f;
-		ch->pitch = 1.f;
-		ch->filter = AL_NONE;
-		return true;
-	}
+  if (ch->play.flags & S_PLAY_UI) {
+    ch->gain = 1.f;
+    ch->pitch = 1.f;
+    ch->filter = AL_NONE;
+    return true;
+  }
 
-	vec3_t delta;
-	float dist;
-	
-	if (ch->play.flags & S_PLAY_RELATIVE) {
-		delta = Vec3_NormalizeLength(ch->play.origin, &dist);
-	} else {
-		dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
-	}
+  vec3_t delta;
+  float dist;
+  
+  if (ch->play.flags & S_PLAY_RELATIVE) {
+    delta = Vec3_NormalizeLength(ch->play.origin, &dist);
+  } else {
+    dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
+  }
 
-	float atten;
-	switch (ch->play.atten) {
-		case SOUND_ATTEN_NONE:
-		default:
-			atten = 0.f;
-			break;
-		case SOUND_ATTEN_LINEAR:
-			atten = 1.f;
-			break;
-		case SOUND_ATTEN_SQUARE:
-			atten = 2.f;
-			break;
-		case SOUND_ATTEN_CUBIC:
-			atten = 4.f;
-			break;
-	}
+  float atten;
+  switch (ch->play.atten) {
+    case SOUND_ATTEN_NONE:
+    default:
+      atten = 0.f;
+      break;
+    case SOUND_ATTEN_LINEAR:
+      atten = 1.f;
+      break;
+    case SOUND_ATTEN_SQUARE:
+      atten = 2.f;
+      break;
+    case SOUND_ATTEN_CUBIC:
+      atten = 4.f;
+      break;
+  }
 
-	const float frac = dist * atten / SOUND_MAX_DISTANCE;
+  const float frac = dist * atten / SOUND_MAX_DISTANCE;
 
-	ch->gain = 1.f - frac;
+  ch->gain = 1.f - frac;
 
-	// fade out frame sounds if they are no longer in the frame
-	if (ch->start_time) {
-		if (ch->play.flags & S_PLAY_FRAME) {
-			if (ch->timestamp != stage->ticks) {
-				const uint32_t delta = stage->ticks - ch->timestamp;
+  // fade out frame sounds if they are no longer in the frame
+  if (ch->start_time) {
+    if (ch->play.flags & S_PLAY_FRAME) {
+      if (ch->timestamp != stage->ticks) {
+        const uint32_t delta = stage->ticks - ch->timestamp;
 
-				if (delta > 250) {
-					return false; // x faded out
-				}
+        if (delta > 250) {
+          return false; // x faded out
+        }
 
-				ch->gain *= 1.f - (delta / 250.f);
-			}
-		}
-	}
+        ch->gain *= 1.f - (delta / 250.f);
+      }
+    }
+  }
 
-	ch->pitch = 1.f;
-	ch->filter = AL_NONE;
+  ch->pitch = 1.f;
+  ch->filter = AL_NONE;
 
-	// adjust pitch in liquids
-	if (stage->contents & CONTENTS_MASK_LIQUID) {
-		ch->pitch = .5f;
-	}
+  // adjust pitch in liquids
+  if (stage->contents & CONTENTS_MASK_LIQUID) {
+    ch->pitch = .5f;
+  }
 
-	// offset pitch by sound-requested offset
-	if (ch->play.pitch) {
-		const float octaves = (float) pow(2.0, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
-		ch->pitch *= octaves;
-	}
+  // offset pitch by sound-requested offset
+  if (ch->play.pitch) {
+    const float octaves = (float) pow(2.0, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
+    ch->pitch *= octaves;
+  }
 
-	// apply sound effects
-	if (s_context.effects.loaded) {
+  // apply sound effects
+  if (s_context.effects.loaded) {
 
-		if (ch->play.flags & S_PLAY_UNDERWATER) {
-			ch->filter = s_context.effects.underwater;
-		} else if (ch->play.flags & S_PLAY_OCCLUDED) {
-			ch->filter = s_context.effects.occluded;
-		}
-	}
+    if (ch->play.flags & S_PLAY_UNDERWATER) {
+      ch->filter = s_context.effects.underwater;
+    } else if (ch->play.flags & S_PLAY_OCCLUDED) {
+      ch->filter = s_context.effects.occluded;
+    }
+  }
 
-	return ch->gain > 0.f;
+  return ch->gain > 0.f;
 }
 
 /**
@@ -140,105 +140,105 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
  */
 void S_MixChannels(const s_stage_t *stage) {
 
-	if (s_doppler->modified) {
-		alDopplerFactor(.05f * s_doppler->value);
-	}
+  if (s_doppler->modified) {
+    alDopplerFactor(.05f * s_doppler->value);
+  }
 
-	alListenerfv(AL_POSITION, stage->origin.xyz);
+  alListenerfv(AL_POSITION, stage->origin.xyz);
 
-	alListenerfv(AL_ORIENTATION, (float []) {
-		stage->forward.x, stage->forward.y, stage->forward.z,
-		stage->up.x, stage->up.y, stage->up.z
-	});
+  alListenerfv(AL_ORIENTATION, (float []) {
+    stage->forward.x, stage->forward.y, stage->forward.z,
+    stage->up.x, stage->up.y, stage->up.z
+  });
 
-	if (s_doppler->value) {
-		alListenerfv(AL_VELOCITY, stage->velocity.xyz);
-	} else {
-		alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
-	}
+  if (s_doppler->value) {
+    alListenerfv(AL_VELOCITY, stage->velocity.xyz);
+  } else {
+    alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
+  }
 
-	s_context.num_active_channels = 0;
+  s_context.num_active_channels = 0;
 
-	s_channel_t *ch = s_context.channels;
-	for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
+  s_channel_t *ch = s_context.channels;
+  for (int32_t i = 0; i < MAX_CHANNELS; i++, ch++) {
 
-		if (ch->play.sample == NULL) {
-			continue;
-		}
+    if (ch->play.sample == NULL) {
+      continue;
+    }
 
-		assert(ch->play.sample->buffer);
+    assert(ch->play.sample->buffer);
 
-		const ALuint src = s_context.sources[i];
-		assert(src);
+    const ALuint src = s_context.sources[i];
+    assert(src);
 
-		if (ch->play.Think) {
-			ch->play.Think(stage, &ch->play);
-		}
+    if (ch->play.Think) {
+      ch->play.Think(stage, &ch->play);
+    }
 
-		if (!S_SpatializeChannel(stage, ch)) {
-			S_FreeChannel(i);
-			continue;
-		}
+    if (!S_SpatializeChannel(stage, ch)) {
+      S_FreeChannel(i);
+      continue;
+    }
 
-		alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
+    alSourcefv(src, AL_POSITION, ch->play.origin.xyz);
 
-		if (s_doppler->value) {
-			alSourcefv(src, AL_VELOCITY, ch->play.velocity.xyz);
-		} else {
-			alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
-		}
+    if (s_doppler->value) {
+      alSourcefv(src, AL_VELOCITY, ch->play.velocity.xyz);
+    } else {
+      alSourcefv(src, AL_VELOCITY, Vec3_Zero().xyz);
+    }
 
-		float volume;
-		if (ch->play.flags & S_PLAY_AMBIENT) {
-			volume = s_volume->value * s_ambient_volume->value;
-		} else {
-			volume = s_volume->value * s_effects_volume->value;
-		}
+    float volume;
+    if (ch->play.flags & S_PLAY_AMBIENT) {
+      volume = s_volume->value * s_ambient_volume->value;
+    } else {
+      volume = s_volume->value * s_effects_volume->value;
+    }
 
-		alSourcef(src, AL_GAIN, ch->gain * volume);
-		alSourcef(src, AL_PITCH, ch->pitch);
+    alSourcef(src, AL_GAIN, ch->gain * volume);
+    alSourcef(src, AL_PITCH, ch->pitch);
 
-		if (s_context.effects.loaded) {
-			alSourcei(src, AL_DIRECT_FILTER, ch->filter);
-		}
+    if (s_context.effects.loaded) {
+      alSourcei(src, AL_DIRECT_FILTER, ch->filter);
+    }
 
-		if (ch->start_time == 0) {
-			ch->start_time = stage->ticks;
+    if (ch->start_time == 0) {
+      ch->start_time = stage->ticks;
 
-			alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
+      alSourcei(src, AL_BUFFER, ch->play.sample->buffer);
 
-			if (ch->play.flags & (S_PLAY_UI | S_PLAY_RELATIVE)) {
-				alSourcei(src, AL_SOURCE_RELATIVE, 1);
-			} else {
-				alSourcei(src, AL_SOURCE_RELATIVE, 0);
-			}
+      if (ch->play.flags & (S_PLAY_UI | S_PLAY_RELATIVE)) {
+        alSourcei(src, AL_SOURCE_RELATIVE, 1);
+      } else {
+        alSourcei(src, AL_SOURCE_RELATIVE, 0);
+      }
 
-			if (ch->play.flags & S_PLAY_LOOP) {
-				alSourcei(src, AL_LOOPING, 1);
-			} else {
-				alSourcei(src, AL_LOOPING, 0);
-			}
+      if (ch->play.flags & S_PLAY_LOOP) {
+        alSourcei(src, AL_LOOPING, 1);
+      } else {
+        alSourcei(src, AL_LOOPING, 0);
+      }
 
-			if (ch->play.flags & S_PLAY_AMBIENT) {
-				alSourcei(src, AL_SAMPLE_OFFSET, Randomf() * (int32_t) ch->play.sample->num_samples);
-			}
+      if (ch->play.flags & S_PLAY_AMBIENT) {
+        alSourcei(src, AL_SAMPLE_OFFSET, Randomf() * (int32_t) ch->play.sample->num_samples);
+      }
 
-			alSourcePlay(src);
+      alSourcePlay(src);
 
-		} else {
-			ALenum state;
-			alGetSourcei(src, AL_SOURCE_STATE, &state);
+    } else {
+      ALenum state;
+      alGetSourcei(src, AL_SOURCE_STATE, &state);
 
-			if (state != AL_PLAYING) {
-				S_FreeChannel(i);
-				continue;
-			}
-		}
+      if (state != AL_PLAYING) {
+        S_FreeChannel(i);
+        continue;
+      }
+    }
 
-		S_GetError(ch->play.sample->media.name);
+    S_GetError(ch->play.sample->media.name);
 
-		s_context.num_active_channels++;
-	}
+    s_context.num_active_channels++;
+  }
 }
 
 /**
@@ -246,43 +246,43 @@ void S_MixChannels(const s_stage_t *stage) {
  */
 void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
-	assert(stage);
+  assert(stage);
 
-	if (!s_context.context) {
-		return;
-	}
+  if (!s_context.context) {
+    return;
+  }
 
-	if (!s_volume->value) {
-		return;
-	}
+  if (!s_volume->value) {
+    return;
+  }
 
-	if (!play) {
-		return;
-	}
+  if (!play) {
+    return;
+  }
 
-	if (!play->sample) {
-		return;
-	}
+  if (!play->sample) {
+    return;
+  }
 
-	if (!play->sample->buffer) {
-		return;
-	}
+  if (!play->sample->buffer) {
+    return;
+  }
 
-	if (play->flags & S_PLAY_AMBIENT) {
-		if (!s_ambient_volume->value) {
-			return;
-		}
-	} else {
-		if (!s_effects_volume->value) {
-			return;
-		}
-	}
+  if (play->flags & S_PLAY_AMBIENT) {
+    if (!s_ambient_volume->value) {
+      return;
+    }
+  } else {
+    if (!s_effects_volume->value) {
+      return;
+    }
+  }
 
-	if (stage->num_samples == MAX_SOUNDS) {
-		Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
-		return;
-	}
+  if (stage->num_samples == MAX_SOUNDS) {
+    Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
+    return;
+  }
 
-	stage->samples[stage->num_samples] = *play;
-	stage->num_samples++;
+  stage->samples[stage->num_samples] = *play;
+  stage->num_samples++;
 }

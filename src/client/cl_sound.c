@@ -26,17 +26,17 @@
  */
 void Cl_S_Restart_f(void) {
 
-	if (cls.state == CL_CONNECTING ||
-		cls.state == CL_CONNECTED ||
-		cls.state == CL_LOADING) {
-		return;
-	}
+  if (cls.state == CL_CONNECTING ||
+    cls.state == CL_CONNECTED ||
+    cls.state == CL_LOADING) {
+    return;
+  }
 
-	S_Shutdown();
+  S_Shutdown();
 
-	S_Init();
+  S_Init();
 
-	if (cls.state == CL_ACTIVE) {
-		Cl_LoadMedia();
-	}
+  if (cls.state == CL_ACTIVE) {
+    Cl_LoadMedia();
+  }
 }

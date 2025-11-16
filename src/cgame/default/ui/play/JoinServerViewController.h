@@ -40,27 +40,27 @@ typedef struct JoinServerViewControllerInterface JoinServerViewControllerInterfa
  */
 struct JoinServerViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	JoinServerViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  JoinServerViewControllerInterface *interface;
 
-	/**
-	 * @brief A copy of the client's servers list, for sorting, etc.
-	 */
-	GList *servers;
+  /**
+   * @brief A copy of the client's servers list, for sorting, etc.
+   */
+  GList *servers;
 
-	/**
-	 * @brief The servers TableView.
-	 */
-	TableView *serversTableView;
+  /**
+   * @brief The servers TableView.
+   */
+  TableView *serversTableView;
 };
 
 /**
@@ -68,18 +68,18 @@ struct JoinServerViewController {
  */
 struct JoinServerViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
-	/**
-	 * @fn void JoinServerViewController::reloadServers(JoinServerViewController *self)
-	 * @brief Reloads the list of known servers.
-	 * @param self The JoinServerViewController.
-	 * @memberof JoinServerViewController
-	 */
-	void (*reloadServers)(JoinServerViewController *self);
+  /**
+   * @fn void JoinServerViewController::reloadServers(JoinServerViewController *self)
+   * @brief Reloads the list of known servers.
+   * @param self The JoinServerViewController.
+   * @memberof JoinServerViewController
+   */
+  void (*reloadServers)(JoinServerViewController *self);
 };
 
 /**
