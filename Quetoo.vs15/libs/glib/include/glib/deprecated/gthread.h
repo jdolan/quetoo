@@ -1,6 +1,8 @@
 /* GLIB - Library of useful routines for C programming
  * Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -125,14 +127,20 @@ void     g_thread_foreach      (GFunc             thread_func,
 #endif
 
 #define g_static_mutex_get_mutex g_static_mutex_get_mutex_impl GLIB_DEPRECATED_MACRO_IN_2_32
+#ifndef G_OS_WIN32
+#define G_STATIC_MUTEX_INIT { NULL, PTHREAD_MUTEX_INITIALIZER } GLIB_DEPRECATED_MACRO_IN_2_32_FOR(g_mutex_init)
+#else
 #define G_STATIC_MUTEX_INIT { NULL } GLIB_DEPRECATED_MACRO_IN_2_32_FOR(g_mutex_init)
+#endif
 typedef struct
 {
   GMutex *mutex;
-#ifndef G_OS_WIN32
+#ifndef __GI_SCANNER__
+# ifndef G_OS_WIN32
   /* only for ABI compatibility reasons */
   pthread_mutex_t unused;
-#endif
+# endif /* !G_OS_WIN32 */
+#endif /* !__GI_SCANNER__ */
 } GStaticMutex GLIB_DEPRECATED_TYPE_IN_2_32_FOR(GMutex);
 
 #define g_static_mutex_lock(mutex) \
@@ -156,15 +164,17 @@ struct _GStaticRecMutex
   GStaticMutex mutex;
   guint depth;
 
+#ifndef __GI_SCANNER__
   /* ABI compat only */
   union {
-#ifdef G_OS_WIN32
+# ifdef G_OS_WIN32
     void *owner;
-#else
+# else
     pthread_t owner;
-#endif
+# endif /* !G_OS_WIN32 */
     gdouble dummy;
   } unused;
+#endif /* !__GI_SCANNER__ */
 } GLIB_DEPRECATED_TYPE_IN_2_32_FOR(GRecMutex);
 
 #define G_STATIC_REC_MUTEX_INIT { G_STATIC_MUTEX_INIT, 0, { 0 } } GLIB_DEPRECATED_MACRO_IN_2_32_FOR(g_rec_mutex_init)
@@ -280,7 +290,7 @@ void            g_cond_free             (GCond  *cond);
 GLIB_DEPRECATED_IN_2_32
 gboolean        g_cond_timed_wait       (GCond          *cond,
                                          GMutex         *mutex,
-                                         GTimeVal       *timeval);
+                                         GTimeVal       *abs_time);
 
 G_GNUC_END_IGNORE_DEPRECATIONS
 

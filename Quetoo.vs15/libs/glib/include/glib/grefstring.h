@@ -2,6 +2,8 @@
  *
  * Copyright 2018  Emmanuele Bassi
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -53,5 +55,9 @@ gsize   g_ref_string_length     (char       *str);
  * Since: 2.58
  */
 typedef char GRefString;
+
+GLIB_AVAILABLE_IN_2_84
+gboolean g_ref_string_equal (const char *str1,
+                             const char *str2);
 
 G_END_DECLS

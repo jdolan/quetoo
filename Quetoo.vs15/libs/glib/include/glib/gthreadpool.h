@@ -1,6 +1,8 @@
 /* GLIB - Library of useful routines for C programming
  * Copyright (C) 1995-1997  Peter Mattis, Spencer Kimball and Josh MacDonald
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -48,6 +50,13 @@ struct _GThreadPool
 GLIB_AVAILABLE_IN_ALL
 GThreadPool *   g_thread_pool_new               (GFunc            func,
                                                  gpointer         user_data,
+                                                 gint             max_threads,
+                                                 gboolean         exclusive,
+                                                 GError         **error);
+GLIB_AVAILABLE_IN_2_70
+GThreadPool *   g_thread_pool_new_full          (GFunc            func,
+                                                 gpointer         user_data,
+                                                 GDestroyNotify   item_free_func,
                                                  gint             max_threads,
                                                  gboolean         exclusive,
                                                  GError         **error);
