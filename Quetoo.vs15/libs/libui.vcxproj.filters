@@ -21,10 +21,16 @@
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\EditorView.c">
+    <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c">
       <Filter>src\editor</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c">
+    <ClCompile Include="..\..\src\client\ui\editor\EntityView.c">
+      <Filter>src\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\editor\EntityViewController.c">
+      <Filter>src\editor</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\ui\editor\MaterialViewController.c">
       <Filter>src\editor</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,10 +56,16 @@
     <ClInclude Include="..\..\src\client\ui\ui_types.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\EditorView.h">
+    <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h">
       <Filter>src\editor</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h">
+    <ClInclude Include="..\..\src\client\ui\editor\EntityView.h">
+      <Filter>src\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\editor\EntityViewController.h">
+      <Filter>src\editor</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\client\ui\editor\MaterialViewController.h">
       <Filter>src\editor</Filter>
     </ClInclude>
   </ItemGroup>

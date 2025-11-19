@@ -28,13 +28,9 @@
     <ClCompile Include="..\src\tools\quemap\fog.c" />
     <ClCompile Include="..\src\tools\quemap\leakfile.c" />
     <ClCompile Include="..\src\tools\quemap\light.c" />
-    <ClCompile Include="..\src\tools\quemap\lightgrid.c" />
-    <ClCompile Include="..\src\tools\quemap\lightmap.c" />
-    <ClCompile Include="..\src\tools\quemap\luxel.c" />
     <ClCompile Include="..\src\tools\quemap\main.c" />
     <ClCompile Include="..\src\tools\quemap\map.c" />
     <ClCompile Include="..\src\tools\quemap\material.c" />
-    <ClCompile Include="..\src\tools\quemap\monitor.c" />
     <ClCompile Include="..\src\tools\quemap\polylib.c" />
     <ClCompile Include="..\src\tools\quemap\portal.c" />
     <ClCompile Include="..\src\tools\quemap\qbsp.c" />
@@ -45,6 +41,7 @@
     <ClCompile Include="..\src\tools\quemap\texture.c" />
     <ClCompile Include="..\src\tools\quemap\tjunction.c" />
     <ClCompile Include="..\src\tools\quemap\tree.c" />
+    <ClCompile Include="..\src\tools\quemap\voxel.c" />
     <ClCompile Include="..\src\tools\quemap\work.c" />
     <ClCompile Include="..\src\tools\quemap\writebsp.c" />
     <ClCompile Include="src\main\winmain.c" />
@@ -59,12 +56,8 @@
     <ClInclude Include="..\src\tools\quemap\fog.h" />
     <ClInclude Include="..\src\tools\quemap\leakfile.h" />
     <ClInclude Include="..\src\tools\quemap\light.h" />
-    <ClInclude Include="..\src\tools\quemap\lightgrid.h" />
-    <ClInclude Include="..\src\tools\quemap\lightmap.h" />
-    <ClInclude Include="..\src\tools\quemap\luxel.h" />
     <ClInclude Include="..\src\tools\quemap\map.h" />
     <ClInclude Include="..\src\tools\quemap\material.h" />
-    <ClInclude Include="..\src\tools\quemap\monitor.h" />
     <ClInclude Include="..\src\tools\quemap\points.h" />
     <ClInclude Include="..\src\tools\quemap\polylib.h" />
     <ClInclude Include="..\src\tools\quemap\portal.h" />
@@ -77,17 +70,9 @@
     <ClInclude Include="..\src\tools\quemap\texture.h" />
     <ClInclude Include="..\src\tools\quemap\tjunction.h" />
     <ClInclude Include="..\src\tools\quemap\tree.h" />
+    <ClInclude Include="..\src\tools\quemap\voxel.h" />
     <ClInclude Include="..\src\tools\quemap\work.h" />
     <ClInclude Include="..\src\tools\quemap\writebsp.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\tools\quemap\Makefile.am" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\src\tools\quemap\quemap.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="..\src\tools\quemap\quemap-icon.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
@@ -134,7 +119,7 @@
       <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>SDL2.lib;SDL2_image.lib;glib-2.0.lib;intl.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL3.lib;SDL3_image.lib;glib-2.0.lib;intl.lib;dbghelp.lib;Wldap32.lib;physfs.lib;libxml2.lib;ws2_32.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
     <PostBuildEvent>

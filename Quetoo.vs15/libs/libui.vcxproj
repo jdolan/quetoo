@@ -19,16 +19,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\client\ui\editor\EditorView.c" />
     <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c" />
+    <ClCompile Include="..\..\src\client\ui\editor\EntityView.c" />
+    <ClCompile Include="..\..\src\client\ui\editor\EntityViewController.c" />
+    <ClCompile Include="..\..\src\client\ui\editor\MaterialViewController.c" />
     <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c" />
     <ClCompile Include="..\..\src\client\ui\ui_data.c" />
     <ClCompile Include="..\..\src\client\ui\ui_editor.c" />
     <ClCompile Include="..\..\src\client\ui\ui_main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\client\ui\editor\EditorView.h" />
     <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h" />
+    <ClInclude Include="..\..\src\client\ui\editor\EntityView.h" />
+    <ClInclude Include="..\..\src\client\ui\editor\EntityViewController.h" />
+    <ClInclude Include="..\..\src\client\ui\editor\MaterialViewController.h" />
     <ClInclude Include="..\..\src\client\ui\QuetooRenderer.h" />
     <ClInclude Include="..\..\src\client\ui\ui.h" />
     <ClInclude Include="..\..\src\client\ui\ui_data.h" />
@@ -60,5 +64,9 @@
     <IncludePath>$(QuetooFullIncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(QuetooFullLibraryPath);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile />
+    <ClCompile />
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

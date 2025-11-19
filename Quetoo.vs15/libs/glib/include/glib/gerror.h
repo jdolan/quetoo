@@ -2,6 +2,8 @@
  *
  *  Copyright 2000 Red Hat, Inc.
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -31,7 +33,7 @@ G_BEGIN_DECLS
 
 /**
  * GError:
- * @domain: error domain, e.g. #G_FILE_ERROR
+ * @domain: error domain, e.g. %G_FILE_ERROR
  * @code: error code, e.g. %G_FILE_ERROR_NOENT
  * @message: human-readable informative error message
  *
@@ -65,7 +67,7 @@ struct _GError
  * respectively, but they should receive the private data type instead
  * of #GError.
  *
- * See [Extended #GError Domains][gerror-extended-domains] for an example.
+ * See [Extended #GError Domains](error-reporting.html#extended-gerror-domains) for an example.
  *
  * Since: 2.68
  */
@@ -243,6 +245,11 @@ GLIB_AVAILABLE_IN_ALL
 void     g_prefix_error               (GError       **err,
                                        const gchar   *format,
                                        ...) G_GNUC_PRINTF (2, 3);
+
+/* if (err) prefix the string to the ->message */
+GLIB_AVAILABLE_IN_2_70
+void     g_prefix_error_literal       (GError       **err,
+                                       const gchar   *prefix);
 
 /* g_propagate_error then g_error_prefix on dest */
 GLIB_AVAILABLE_IN_ALL
