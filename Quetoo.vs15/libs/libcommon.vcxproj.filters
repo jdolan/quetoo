@@ -45,6 +45,9 @@
     <ClCompile Include="..\..\src\common\thread.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\rgb9e5.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\atlas.h">

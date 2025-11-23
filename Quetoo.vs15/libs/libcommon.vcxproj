@@ -29,6 +29,7 @@
     <ClCompile Include="..\..\src\common\installer.c" />
     <ClCompile Include="..\..\src\common\mem.c" />
     <ClCompile Include="..\..\src\common\mem_buf.c" />
+    <ClCompile Include="..\..\src\common\rgb9e5.c" />
     <ClCompile Include="..\..\src\common\sys.c" />
     <ClCompile Include="..\..\src\common\thread.c" />
   </ItemGroup>
