@@ -2,6 +2,8 @@
  *
  *  Copyright 2000 Red Hat, Inc.
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -95,14 +97,14 @@ typedef enum
 /**
  * G_SPAWN_EXIT_ERROR:
  *
- * Error domain used by g_spawn_check_exit_status().  The code
+ * Error domain used by g_spawn_check_wait_status().  The code
  * will be the program exit code.
  */
 #define G_SPAWN_EXIT_ERROR g_spawn_exit_error_quark ()
 
 /**
  * GSpawnChildSetupFunc:
- * @user_data: (closure): user data to pass to the function.
+ * @data: user data passed to the function.
  *
  * Specifies the type of the setup function passed to g_spawn_async(),
  * g_spawn_sync() and g_spawn_async_with_pipes(), which can, in very
@@ -135,7 +137,7 @@ typedef enum
  * and g_environ_unsetenv(), and then pass the complete environment
  * list to the `g_spawn...` function.
  */
-typedef void (* GSpawnChildSetupFunc) (gpointer user_data);
+typedef void (* GSpawnChildSetupFunc) (gpointer data);
 
 /**
  * GSpawnFlags:
@@ -162,6 +164,12 @@ typedef void (* GSpawnChildSetupFunc) (gpointer user_data);
  *     Since: 2.34
  * @G_SPAWN_CLOEXEC_PIPES: create all pipes with the `O_CLOEXEC` flag set.
  *     Since: 2.40
+ * @G_SPAWN_CHILD_INHERITS_STDOUT: the child will inherit the parent's standard output.
+ *     Since: 2.74
+ * @G_SPAWN_CHILD_INHERITS_STDERR: the child will inherit the parent's standard error.
+ *     Since: 2.74
+ * @G_SPAWN_STDIN_FROM_DEV_NULL: the child's standard input is attached to `/dev/null`.
+ *     Since: 2.74
  *
  * Flags passed to g_spawn_sync(), g_spawn_async() and g_spawn_async_with_pipes().
  */
@@ -178,7 +186,34 @@ typedef enum
   G_SPAWN_CHILD_INHERITS_STDIN   = 1 << 5,
   G_SPAWN_FILE_AND_ARGV_ZERO     = 1 << 6,
   G_SPAWN_SEARCH_PATH_FROM_ENVP  = 1 << 7,
-  G_SPAWN_CLOEXEC_PIPES          = 1 << 8
+  G_SPAWN_CLOEXEC_PIPES          = 1 << 8,
+
+  /**
+   * G_SPAWN_CHILD_INHERITS_STDOUT:
+   *
+   * The child will inherit the parent's standard output.
+   *
+   * Since: 2.74
+   */
+  G_SPAWN_CHILD_INHERITS_STDOUT  = 1 << 9,
+
+  /**
+   * G_SPAWN_CHILD_INHERITS_STDERR:
+   *
+   * The child will inherit the parent's standard error.
+   *
+   * Since: 2.74
+   */
+  G_SPAWN_CHILD_INHERITS_STDERR  = 1 << 10,
+
+  /**
+   * G_SPAWN_STDIN_FROM_DEV_NULL:
+   *
+   * The child's standard input is attached to `/dev/null`.
+   *
+   * Since: 2.74
+   */
+  G_SPAWN_STDIN_FROM_DEV_NULL    = 1 << 11
 } GSpawnFlags;
 
 GLIB_AVAILABLE_IN_ALL
@@ -213,6 +248,25 @@ gboolean g_spawn_async_with_pipes (const gchar          *working_directory,
                                    gint                 *standard_error,
                                    GError              **error);
 
+GLIB_AVAILABLE_IN_2_68
+gboolean g_spawn_async_with_pipes_and_fds (const gchar          *working_directory,
+                                           const gchar * const  *argv,
+                                           const gchar * const  *envp,
+                                           GSpawnFlags           flags,
+                                           GSpawnChildSetupFunc  child_setup,
+                                           gpointer              user_data,
+                                           gint                  stdin_fd,
+                                           gint                  stdout_fd,
+                                           gint                  stderr_fd,
+                                           const gint           *source_fds,
+                                           const gint           *target_fds,
+                                           gsize                 n_fds,
+                                           GPid                 *child_pid_out,
+                                           gint                 *stdin_pipe_out,
+                                           gint                 *stdout_pipe_out,
+                                           gint                 *stderr_pipe_out,
+                                           GError              **error);
+
 /* Lets you provide fds for stdin/stdout/stderr */
 GLIB_AVAILABLE_IN_2_58
 gboolean g_spawn_async_with_fds (const gchar          *working_directory,
@@ -240,21 +294,25 @@ gboolean g_spawn_sync         (const gchar          *working_directory,
                                gpointer              user_data,
                                gchar               **standard_output,
                                gchar               **standard_error,
-                               gint                 *exit_status,
+                               gint                 *wait_status,
                                GError              **error);
 
 GLIB_AVAILABLE_IN_ALL
 gboolean g_spawn_command_line_sync  (const gchar          *command_line,
                                      gchar               **standard_output,
                                      gchar               **standard_error,
-                                     gint                 *exit_status,
+                                     gint                 *wait_status,
                                      GError              **error);
 GLIB_AVAILABLE_IN_ALL
 gboolean g_spawn_command_line_async (const gchar          *command_line,
                                      GError              **error);
 
-GLIB_AVAILABLE_IN_2_34
-gboolean g_spawn_check_exit_status (gint      exit_status,
+GLIB_AVAILABLE_IN_2_70
+gboolean g_spawn_check_wait_status (gint      wait_status,
+                                    GError  **error);
+
+GLIB_DEPRECATED_IN_2_70_FOR(g_spawn_check_wait_status)
+gboolean g_spawn_check_exit_status (gint      wait_status,
 				    GError  **error);
 
 GLIB_AVAILABLE_IN_ALL
