@@ -360,9 +360,14 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->occluded) {
-      continue;
+    if (block->query) {
+      if (block->query->result == 0) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
     }
+
+    r_stats.blocks_visible++;
 
     R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
 
@@ -435,7 +440,7 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->occluded) {
+    if (block->query && block->query->result == 0) {
       continue;
     }
 

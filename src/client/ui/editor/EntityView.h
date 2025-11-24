@@ -145,5 +145,4 @@ struct EntityViewInterface {
  * @return The EntityView Class.
  * @memberof EntityView
  */
-//OBJECTIVELYMVC_EXPORT Class *_EntityView(void);
-__declspec(dllexport) Class* _EntityView(void);
+OBJECTIVELYMVC_EXPORT Class *_EntityView(void);

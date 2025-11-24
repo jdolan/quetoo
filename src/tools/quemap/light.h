@@ -37,11 +37,6 @@ typedef struct light_s {
   int32_t entity;
 
   /**
-   * @brief The flags.
-   */
-  int32_t flags;
-
-  /**
    * @brief The origin.
    */
   vec3_t origin;

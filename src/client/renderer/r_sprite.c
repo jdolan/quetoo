@@ -103,12 +103,6 @@ r_sprite_t *R_AddSprite(r_view_t *view, const r_sprite_t *s) {
     return NULL;
   }
 
-  const float radius = (s->size ?: Maxf(s->width, s->height)) * .5f;
-
-  if (R_CulludeSphere(view, s->origin, radius)) {
-    return NULL;
-  }
-
   r_sprite_t *out = &view->sprites[view->num_sprites++];
   *out = *s;
 
@@ -124,12 +118,6 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 
   if (view->num_beams == MAX_BEAMS) {
     Com_Debug(DEBUG_RENDERER, "MAX_BEAMS\n");
-    return NULL;
-  }
-
-  const box3_t bounds = Cm_TraceBounds(b->start, b->end, Box3f(b->size, b->size, b->size));
-
-  if (R_CulludeBox(view, bounds)) {
     return NULL;
   }
 

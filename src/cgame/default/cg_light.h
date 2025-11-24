@@ -60,6 +60,11 @@ typedef struct {
   uint32_t time;
 
   /**
+   * @brief The occlusion query enclosing this light's bounds.
+   */
+  r_occlusion_query_t *query;
+
+  /**
    * @brief The identifier of the light source entity, which will not cast shadow.
    */
   void *source;
@@ -68,5 +73,6 @@ typedef struct {
 void Cg_AddLight(const cg_light_t *s);
 void Cg_AddLights(void);
 void Cg_InitLights(void);
+void Cg_FreeLights(void);
 
 #endif /* __CG_LOCAL_H__ */

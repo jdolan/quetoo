@@ -285,14 +285,16 @@ void Cg_LoadMedia(void) {
  */
 void Cg_FreeMedia(void) {
 
-  cgi.FreeTag(MEM_TAG_CGAME);
-  cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
-
   cgi.DestroyFramebuffer(&cg_framebuffer);
+
+  Cg_FreeLights();
 
   Cg_FreeEntities();
 
   Cg_FreeFlares();
 
   Cg_FreeSprites();
+
+  cgi.FreeTag(MEM_TAG_CGAME);
+  cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
 }

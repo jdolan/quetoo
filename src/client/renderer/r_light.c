@@ -70,17 +70,13 @@ void R_UpdateLights(r_view_t *view) {
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if ((l->bsp_light && l->bsp_light->occluded)
-      || R_OccludeSphere(view, l->origin, l->radius)) {
+    if (l->query && l->query->result == 0) {
       r_stats.lights_occluded++;
-      l->occluded = true;
       continue;
     }
 
-    r_stats.lights_visible++;
-    l->occluded = false;
-
     R_AddLightUniform(view, l);
+    r_stats.lights_visible++;
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);
@@ -101,7 +97,7 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
   const r_light_t *light = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, light++) {
 
-    if (light->occluded) {
+    if (light->query && light->query->result == 0) {
       continue;
     }
 

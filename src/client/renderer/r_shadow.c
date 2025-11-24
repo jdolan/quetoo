@@ -116,10 +116,6 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
       continue;
     }
 
-    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-      continue;
-    }
-
     if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
       continue;
     }
@@ -136,11 +132,9 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
 static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
   const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-
   const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
 
   glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
@@ -174,7 +168,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 /**
  * @brief
  */
-static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static void  R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
   glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
 
@@ -192,11 +186,23 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
       continue;
     }
 
+    if (R_IsLightSource(light, e)) {
+      continue;
+    }
+
     if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
       continue;
     }
 
-    if (R_IsLightSource(light, e)) {
+    box3_t shadow_bounds = Box3_FromCenter(light->origin);
+
+    const vec3_t mins_dir = Vec3_Direction(e->abs_model_bounds.mins, light->origin);
+    const vec3_t maxs_dir = Vec3_Direction(e->abs_model_bounds.maxs, light->origin);
+
+    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, mins_dir));
+    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, maxs_dir));
+
+    if (R_CulludeBox(view, shadow_bounds)) {
       continue;
     }
 
@@ -204,45 +210,6 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
   }
 
   glBindVertexArray(0);
-}
-
-
-/**
- * @brief Static light sources with a rendered shadowmap and no entities may cache shadows.
- */
-static bool R_CacheShadow(const r_view_t *view, const r_light_t *light) {
-
-  if (light->bsp_light == NULL) {
-    return false;
-  }
-
-  if (light->bsp_light->shadow_cached == false) {
-    return false;
-  }
-
-  if (light->flags & LIGHT_NO_SHADOW) {
-    return true;
-  }
-
-  const r_entity_t *e = view->entities + 1;
-  for (int32_t i = 1; i < view->num_entities; i++, e++) {
-
-    if (!e->model) {
-      continue;
-    }
-
-    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
-      continue;
-    }
-
-    if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
-      continue;
-    }
-
-    return false;
-  }
-
-  return true;
 }
 
 /**
@@ -275,10 +242,6 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     R_DrawMeshEntitiesShadow(view, light);
   }
 
-  if (light->bsp_light) {
-    light->bsp_light->shadow_cached = true;
-  }
-
   R_GetError(NULL);
 }
 
@@ -301,15 +264,7 @@ void R_DrawShadows(const r_view_t *view) {
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (l->flags & LIGHT_NO_SHADOW) {
-      continue;
-    }
-
-    if (l->occluded) {
-      continue;
-    }
-
-    if (R_CacheShadow(view, l)) {
+    if (l->query && l->query->result == 0) {
       continue;
     }
 

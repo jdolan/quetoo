@@ -90,7 +90,7 @@ void R_UpdateStains(const r_view_t *view) {
     return;
   }
 
-  const r_stain_t *stain = view->stains;
+  /*const r_stain_t *stain = view->stains;
   for (int32_t i = 0; i < view->num_stains; i++, stain++) {
 
     if (R_OccludeSphere(view, stain->origin, stain->radius)) {
@@ -109,6 +109,7 @@ void R_UpdateStains(const r_view_t *view) {
   glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, s->width, s->height, s->depth, s->format, s->pixel_type, c);
   glGenerateMipmap(GL_TEXTURE_3D);
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+  */
 
   R_GetError(NULL);
 }

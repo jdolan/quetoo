@@ -21,45 +21,78 @@
 
 #include "cg_local.h"
 
-static cg_light_t cg_lights[MAX_LIGHTS];
+/**
+ * @brief Dynamic light source accounting structure.
+ */
+static struct {
+  /**
+   * @brief The queue of allocated lights.
+   */
+  GQueue *allocated;
+
+  /**
+   * @brief The queue of free lights.
+   */
+  GQueue *free;
+} cg_lights;
+
+/**
+ * @brief Allocates a dynamic light source.
+ */
+static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
+
+  cg_light_t *light = g_queue_pop_head(cg_lights.free);
+  if (light == NULL) {
+    light = cgi.Malloc(sizeof(cg_light_t), MEM_TAG_CGAME_LEVEL);
+  }
+
+  *light = *in;
+
+  light->intensity = light->intensity ?: 1.f;
+
+  if (light->decay) {
+    light->query = cgi.AllocOcclusionQuery(Box3_FromCenterRadius(light->origin, light->radius));
+  } else {
+    light->query = NULL;
+  }
+
+  light->time = cgi.client->unclamped_time;
+
+  g_queue_push_head(cg_lights.allocated, light);
+  return light;
+}
+
+/**
+ * @brief Frees the specified light source.
+ */
+static void Cg_FreeLight(cg_light_t *light) {
+
+  if (light->query) {
+    cgi.FreeOcclusionQuery(light->query);
+  }
+
+  light->query = NULL;
+
+  const bool removed = g_queue_remove(cg_lights.allocated, light);
+  assert(removed);
+
+  g_queue_push_head(cg_lights.free, light);
+}
 
 /**
  * @brief
  */
-void Cg_AddLight(const cg_light_t *l) {
+void Cg_AddLight(const cg_light_t *in) {
 
   if (!cg_add_lights->value) {
     return;
   }
 
-  size_t i;
-  for (i = 0; i < lengthof(cg_lights); i++)
-    if (cg_lights[i].radius == 0.f) {
-      break;
-    }
-
-  if (i == lengthof(cg_lights)) {
-    Cg_Debug("MAX_LIGHTS\n");
-    return;
-  }
-
-  assert(l->decay >= 0.f);
-  assert(l->intensity >= 0.f);
-  assert(Vec3_LengthSquared(l->color) >= 0.f);
-
-  cg_light_t *out = cg_lights + i;
-  *out = *l;
-
-  if (out->intensity == 0.f) {
-    out->intensity = 1.f;
-  }
-
-  out->time = cgi.client->unclamped_time;
+  Cg_AllocLight(in);
 }
 
 /**
  * @brief Adds all BSP light sources to the view.
- * FIXME: This can be done once at level load, and then only upload dynamic lights per frame.
  */
 static void Cg_AddBspLights(void) {
 
@@ -67,18 +100,16 @@ static void Cg_AddBspLights(void) {
     return;
   }
 
-  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
-
-  r_bsp_light_t *l = bsp->lights;
-  for (int32_t i = 0; i < bsp->num_lights; i++, l++) {
+  const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+  for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
-      .flags = l->flags,
       .origin = l->origin,
       .color = l->color,
       .radius = l->radius,
       .intensity = l->intensity,
       .bounds = l->bounds,
+      .query = l->query,
       .bsp_light = l,
     });
   }
@@ -89,36 +120,33 @@ static void Cg_AddBspLights(void) {
  */
 void Cg_AddLights(void) {
 
-  if (!cg_add_lights->value) {
-    return;
-  }
-
   Cg_AddBspLights();
 
-  cg_light_t *l = cg_lights;
-  for (size_t i = 0; i < lengthof(cg_lights); i++, l++) {
+  for (guint i = 0; i < cg_lights.allocated->length; i++) {
 
-    const uint32_t expiration = l->time + l->decay;
-    if (expiration < cgi.client->unclamped_time) {
-      l->radius = 0.0;
-      continue;
+    cg_light_t *light = g_queue_peek_nth(cg_lights.allocated, i);
+
+    const uint32_t age = cgi.client->unclamped_time - light->time;
+    float intensity = light->intensity;
+    if (light->decay) {
+      intensity = Mixf(intensity, 0.f, age / (float) light->decay);
     }
 
-    r_light_t out = {
-      .origin = l->origin,
-      .color = l->color,
-      .radius = l->radius,
-      .intensity = l->intensity,
-      .bounds = Box3_FromCenterRadius(l->origin, l->radius),
-      .source = l->source,
-    };
-
-    if (l->decay) {
-      assert(out.intensity >= 0.f);
-      out.intensity *= (expiration - cgi.client->unclamped_time) / (float) (l->decay);
+    if (cg_add_lights->value) {
+      cgi.AddLight(cgi.view, &(const r_light_t) {
+        .origin = light->origin,
+        .color = light->color,
+        .radius = light->radius,
+        .intensity = intensity,
+        .bounds = Box3_FromCenterRadius(light->origin, light->radius),
+        .source = light->source,
+        .query = light->query,
+      });
     }
 
-    cgi.AddLight(cgi.view, &out);
+    if (age >= light->decay) {
+      Cg_FreeLight(light);
+    }
   }
 }
 
@@ -127,5 +155,40 @@ void Cg_AddLights(void) {
  */
 void Cg_InitLights(void) {
 
-  memset(cg_lights, 0, sizeof(cg_lights));
+  memset(&cg_lights, 0, sizeof(cg_lights));
+
+  cg_lights.allocated = g_queue_new();
+  cg_lights.free = g_queue_new();
+}
+
+/**
+ * @brief GDestroyNotify for freeing lights.
+ */
+static void Cg_ShutdownLight(gpointer data) {
+
+  cg_light_t *light = data;
+
+  if (light->query) {
+    cgi.FreeOcclusionQuery(light->query);
+  }
+
+  cgi.Free(light);
+}
+
+/**
+ * @brief
+ */
+void Cg_FreeLights(void) {
+
+  if (cg_lights.allocated) {
+    g_queue_free_full(cg_lights.allocated, Cg_ShutdownLight);
+  }
+
+  cg_lights.allocated = NULL;
+
+  if (cg_lights.free) {
+    g_queue_free_full(cg_lights.free, Cg_ShutdownLight);
+  }
+
+  cg_lights.free = NULL;
 }

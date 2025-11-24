@@ -500,8 +500,6 @@ typedef struct {
   int32_t num_blocks;
 } bsp_model_t;
 
-#define LIGHT_NO_SHADOW 1
-
 /**
  * @brief BSP representation of light sources.
  */
@@ -510,11 +508,6 @@ typedef struct {
    * @brief The entity number.
    */
   int32_t entity;
-
-  /**
-   * @brief The light flags.
-   */
-  int32_t flags;
 
   /**
    * @brief The light origin.

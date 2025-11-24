@@ -263,6 +263,10 @@ void Cl_ClearState(void) {
 
   memset(&cl, 0, sizeof(cl));
 
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    Cm_FreeEntity(cl.entity_definitions[i]);
+  }
+
   Mem_ClearBuffer(&cls.net_chan.message);
 }
 
@@ -595,11 +599,12 @@ static void Cl_UpdateScene(void) {
     Cl_PopulateEditorScene(&cl.frame);
   }
 
-  thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+  //thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
 
+  cls.cgame->PopulateScene(&cl.frame);
   R_DrawViewDepth(&cl_view);
 
-  Thread_Wait(thread);
+  //Thread_Wait(thread);
 
   thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
