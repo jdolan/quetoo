@@ -5251,11 +5251,13 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src/**",
 				);
+				USE_HEADERMAP = NO;
 				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
 			name = Debug;
@@ -5297,11 +5299,13 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/lib",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 15.6;
 				ONLY_ACTIVE_ARCH = YES;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src/**",
 				);
+				USE_HEADERMAP = NO;
 				VALIDATE_WORKSPACE_SKIPPED_SDK_FRAMEWORKS = OpenGL;
 			};
 			name = Release;
