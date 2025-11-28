@@ -281,8 +281,13 @@ void R_DrawShadows(const r_view_t *view) {
   glViewport(0, 0, size, size);
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_CLAMP);
+
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
+
+  glEnable(GL_POLYGON_OFFSET_FILL);
+  glPolygonOffset(2.0f, 4.0f);
 
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -294,8 +299,12 @@ void R_DrawShadows(const r_view_t *view) {
     R_DrawShadow(view, l);
   }
 
+  glDisable(GL_POLYGON_OFFSET_FILL);
+
   glCullFace(GL_BACK);
   glDisable(GL_CULL_FACE);
+
+  glDisable(GL_DEPTH_CLAMP);
   glDisable(GL_DEPTH_TEST);
 
   glViewport(0, 0, r_context.pw, r_context.ph);
