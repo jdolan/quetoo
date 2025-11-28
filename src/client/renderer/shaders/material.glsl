@@ -50,30 +50,30 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
  * @brief The material type.
  */
 struct material_t {
-	/**
-	 * @brief The material alpha test threshold.
-	 */
-	float alpha_test;
+  /**
+   * @brief The material alpha test threshold.
+   */
+  float alpha_test;
 
-	/**
-	 * @brief The material roughness.
-	 */
-	float roughness;
+  /**
+   * @brief The material roughness.
+   */
+  float roughness;
 
-	/**
-	 * @brief The material hardness.
-	 */
-	float hardness;
+  /**
+   * @brief The material hardness.
+   */
+  float hardness;
 
-	/**
-	 * @brief The material specularity.
-	 */
-	float specularity;
+  /**
+   * @brief The material specularity.
+   */
+  float specularity;
 
-	/**
-	 * @brief The material parallax.
-	 */
-	float parallax;
+  /**
+   * @brief The material parallax.
+   */
+  float parallax;
 };
 
 uniform material_t material;
@@ -82,65 +82,65 @@ uniform material_t material;
  * @brief The stage type.
  */
 struct stage_t {
-	/**
-	 * @brief The stage flags.
-	 */
-	int flags;
+  /**
+   * @brief The stage flags.
+   */
+  int flags;
 
-	/**
-	 * @brief The stage color.
-	 */
-	vec4 color;
+  /**
+   * @brief The stage color.
+   */
+  vec4 color;
 
-	/**
-	 * @brief The stage alpha pulse.
-	 */
-	float pulse;
+  /**
+   * @brief The stage alpha pulse.
+   */
+  float pulse;
 
-	/**
-	 * @brief The stage texture coordinate origin for rotations and stretches.
-	 */
-	vec2 st_origin;
+  /**
+   * @brief The stage texture coordinate origin for rotations and stretches.
+   */
+  vec2 st_origin;
 
-	/**
-	 * @brief The stage stretch amplitude and frequency.
-	 */
-	vec2 stretch;
+  /**
+   * @brief The stage stretch amplitude and frequency.
+   */
+  vec2 stretch;
 
-	/**
-	 * @brief The stage rotation rate in radians per second.
-	 */
-	float rotate;
+  /**
+   * @brief The stage rotation rate in radians per second.
+   */
+  float rotate;
 
-	/**
-	 * @brief The stage scroll rate.
-	 */
-	vec2 scroll;
+  /**
+   * @brief The stage scroll rate.
+   */
+  vec2 scroll;
 
-	/**
-	 * @brief The stage scale factor.
-	 */
-	vec2 scale;
+  /**
+   * @brief The stage scale factor.
+   */
+  vec2 scale;
 
-	/**
-	 * @brief The stage terrain blending floor and ceiling.
-	 */
-	vec2 terrain;
+  /**
+   * @brief The stage terrain blending floor and ceiling.
+   */
+  vec2 terrain;
 
-	/**
-	 * @brief The stage dirtmap intensity.
-	 */
-	float dirtmap;
+  /**
+   * @brief The stage dirtmap intensity.
+   */
+  float dirtmap;
 
-	/**
-	 * @brief The stage warp rate and intensity.
-	 */
-	vec2 warp;
+  /**
+   * @brief The stage warp rate and intensity.
+   */
+  vec2 warp;
 
-	/**
-	 * @brief The stage shell radius.
-	 */
-	float shell;
+  /**
+   * @brief The stage shell radius.
+   */
+  float shell;
 };
 
 uniform stage_t stage;
@@ -150,9 +150,9 @@ uniform stage_t stage;
  */
 void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
-	if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
-		position += normal * stage.shell;
-	}
+  if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
+	  position += normal * stage.shell;
+  }
 }
 
 /**
@@ -160,66 +160,66 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
  */
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
-	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
+  if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
+	  float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
 
-		mat2 matrix;
-		vec2 translate;
-		matrix[0][0] = p;
-		matrix[1][0] = 0;
-		translate[0] = stage.st_origin.x - stage.st_origin.x * p;
+	  mat2 matrix;
+	  vec2 translate;
+	  matrix[0][0] = p;
+	  matrix[1][0] = 0;
+	  translate[0] = stage.st_origin.x - stage.st_origin.x * p;
 
-		matrix[0][1] = 0;
-		matrix[1][1] = p;
-		translate[1] = stage.st_origin.y - stage.st_origin.y * p;
+	  matrix[0][1] = 0;
+	  matrix[1][1] = p;
+	  translate[1] = stage.st_origin.y - stage.st_origin.y * p;
 
-		diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
-		diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
-	}
+	  diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
+	  diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
+  }
 
-	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-		float theta = ticks * 0.001 * stage.rotate * TWO_PI;
+  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+	  float theta = ticks * 0.001 * stage.rotate * TWO_PI;
 
-		diffusemap = diffusemap - stage.st_origin;
-		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
-		diffusemap = diffusemap + stage.st_origin;
-	}
+	  diffusemap = diffusemap - stage.st_origin;
+	  diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
+	  diffusemap = diffusemap + stage.st_origin;
+  }
 
-	if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-		diffusemap.s += stage.scroll.s * ticks * 0.001;
-	}
+  if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+	  diffusemap.s += stage.scroll.s * ticks * 0.001;
+  }
 
-	if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-		diffusemap.t += stage.scroll.t * ticks * 0.001;
-	}
+  if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+	  diffusemap.t += stage.scroll.t * ticks * 0.001;
+  }
 
-	if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-		diffusemap.s *= stage.scale.s;
-	}
+  if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+	  diffusemap.s *= stage.scale.s;
+  }
 
-	if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-		diffusemap.t *= stage.scale.t;
-	}
+  if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+	  diffusemap.t *= stage.scale.t;
+  }
 
-	if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
-		diffusemap *= normalize(position).xy;
-	}
+  if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
+	  diffusemap *= normalize(position).xy;
+  }
 
-	if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-		color *= stage.color;
-	}
+  if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+	  color *= stage.color;
+  }
 
-	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
-	}
+  if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+	  color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
+  }
 
-	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-		float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
-		color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
-	}
+  if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
+	  float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
+	  color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
+  }
 
-	if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-		int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
-		color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
-	}
+  if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+	  int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
+	  color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
+  }
 }

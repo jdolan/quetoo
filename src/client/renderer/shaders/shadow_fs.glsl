@@ -22,5 +22,5 @@
 in vec4 position;
 
 void main() {
-	gl_FragDepth = length(position.xyz) / depth_range.y;
+  gl_FragDepth = length(position.xyz) / depth_range.y;
 }

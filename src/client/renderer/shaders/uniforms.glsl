@@ -20,155 +20,155 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 
-#define VIEW_UNKNOWN		0
-#define VIEW_MAIN			1
-#define VIEW_PLAYER_MODEL	2
+#define VIEW_UNKNOWN	  0
+#define VIEW_MAIN  	  1
+#define VIEW_PLAYER_MODEL  2
 
-#define BSP_VOXEL_SIZE		32.0
+#define BSP_VOXEL_SIZE	  32.0
 
 /**
  * @brief The voxels struct.
  */
 struct voxels_t {
-	/**
-	 * @brief The voxels mins, in world space.
-	 */
-	vec4 mins;
+  /**
+   * @brief The voxels mins, in world space.
+   */
+  vec4 mins;
 
-	/**
-	 * @brief The voxels maxs, in world space.
-	 */
-	vec4 maxs;
+  /**
+   * @brief The voxels maxs, in world space.
+   */
+  vec4 maxs;
 
-	/**
-	 * @brief The view origin, in voxel space.
-	 */
-	vec4 view_coordinate;
+  /**
+   * @brief The view origin, in voxel space.
+   */
+  vec4 view_coordinate;
 
-	/**
-	 * @brief The size, in voxels.
-	 */
-	vec4 size;
+  /**
+   * @brief The size, in voxels.
+   */
+  vec4 size;
 
-	/**
-	 * @brief The voxel size, in texture space.
-	 */
-	vec4 voxel_size;
+  /**
+   * @brief The voxel size, in texture space.
+   */
+  vec4 voxel_size;
 };
 
 /**
  * @brief The uniforms block.
  */
 layout (std140) uniform uniforms_block {
-	/**
-	 * @brief The viewport (x, y, w, h) in device pixels.
-	 */
-	ivec4 viewport;
+  /**
+   * @brief The viewport (x, y, w, h) in device pixels.
+   */
+  ivec4 viewport;
 
-	/**
-	 * @brief The 2D projection matrix.
-	 */
-	mat4 projection2D;
+  /**
+   * @brief The 2D projection matrix.
+   */
+  mat4 projection2D;
 
-	/**
-	 * @brief The 3D projection matrix.
-	 */
-	mat4 projection3D;
+  /**
+   * @brief The 3D projection matrix.
+   */
+  mat4 projection3D;
 
-	/**
-	 * @brief The view matrix.
-	 */
-	mat4 view;
+  /**
+   * @brief The view matrix.
+   */
+  mat4 view;
 
-	/**
-	 * @brief The projection matrix for environment cubemaps.
-	 */
-	mat4 sky_projection;
+  /**
+   * @brief The projection matrix for environment cubemaps.
+   */
+  mat4 sky_projection;
 
-	/**
-	 * @brief The projection matrix for shadow projection.
-	 */
-	mat4 light_projection;
+  /**
+   * @brief The projection matrix for shadow projection.
+   */
+  mat4 light_projection;
 
-	/**
-	 * @brief The voxels.
-	 */
-	voxels_t voxels;
+  /**
+   * @brief The voxels.
+   */
+  voxels_t voxels;
 
-	/**
-	 * @brief The depth range, in world units.
-	 */
-	vec2 depth_range;
+  /**
+   * @brief The depth range, in world units.
+   */
+  vec2 depth_range;
 
-	/**
-	 * @brief The view type, e.g. VIEW_MAIN.
-	 */
-	int view_type;
+  /**
+   * @brief The view type, e.g. VIEW_MAIN.
+   */
+  int view_type;
 
-	/**
-	 * @brief The renderer time, in milliseconds.
-	 */
-	int ticks;
+  /**
+   * @brief The renderer time, in milliseconds.
+   */
+  int ticks;
 
-	/**
-	 * @brief The ambient scalar.
-	 */
-	float ambient;
+  /**
+   * @brief The ambient scalar.
+   */
+  float ambient;
 
-	/**
-	 * @brief The modulate scalar.
-	 */
-	float modulate;
+  /**
+   * @brief The modulate scalar.
+   */
+  float modulate;
 
-	/**
-	 * @brief The caustics scalar.
-	 */
-	float caustics;
+  /**
+   * @brief The caustics scalar.
+   */
+  float caustics;
 
-	/**
-	 * @brief The stains scalar.
-	 */
-	float stains;
+  /**
+   * @brief The stains scalar.
+   */
+  float stains;
 
-	/**
-	 * @brief The volumetric fog density scalar.
-	 */
-	float fog_density;
+  /**
+   * @brief The volumetric fog density scalar.
+   */
+  float fog_density;
 
-	/**
-	 * @brief The number of volumetric fog samples per fragment (quality).
-	 */
-	float fog_samples;
+  /**
+   * @brief The number of volumetric fog samples per fragment (quality).
+   */
+  float fog_samples;
 
-	/**
-	 * @brief The developer toggle, used for shader development tweaking.
-	 */
-	float developer;
+  /**
+   * @brief The developer toggle, used for shader development tweaking.
+   */
+  float developer;
 };
 
 /**
  * @brief The light struct.
  */
 struct light_t {
-	/**
-	 * @brief The light origin in model space, and radius.
-	 */
-	vec4 origin;
+  /**
+   * @brief The light origin in model space, and radius.
+   */
+  vec4 origin;
 
-	/**
-	 * @brief The light mins in model space.
-	 */
-	vec4 mins;
+  /**
+   * @brief The light mins in model space.
+   */
+  vec4 mins;
 
-	/**
-	 * @brief The light maxs in model space.
-	 */
-	vec4 maxs;
+  /**
+   * @brief The light maxs in model space.
+   */
+  vec4 maxs;
 
-	/**
-	 * @brief The light color and intensity.
-	 */
-	vec4 color;
+  /**
+   * @brief The light color and intensity.
+   */
+  vec4 color;
 };
 
 #define MAX_LIGHTS 768
@@ -179,10 +179,10 @@ struct light_t {
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
-	/**
-	 * @brief The light sources for the current frame, transformed to view space.
-	 */
-	light_t lights[MAX_LIGHTS];
+  /**
+   * @brief The light sources for the current frame, transformed to view space.
+   */
+  light_t lights[MAX_LIGHTS];
 };
 
 /**

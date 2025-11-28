@@ -28,13 +28,13 @@ layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
 
 out vertex_data {
-	vec3 position;
-	vec2 diffusemap;
-	vec2 next_diffusemap;
-	vec4 color;
-	vec4 fog;
-	float lerp;
-	float softness;
+  vec3 position;
+  vec2 diffusemap;
+  vec2 next_diffusemap;
+  vec4 color;
+  vec4 fog;
+  float lerp;
+  float softness;
 } vertex;
 
 /**
@@ -42,26 +42,26 @@ out vertex_data {
  */
 vec4 sample_voxel_fog(in vec3 texcoord) {
 
-	vec4 fog = vec4(0.0);
+  vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
+  float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
-	for (float i = 0; i < samples; i++) {
+  for (float i = 0; i < samples; i++) {
 
-		vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
-		vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
+	  vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
+	  vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
-		if (fog.a >= 1.0) {
-			break;
-		}
-	}
+	  fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+	  if (fog.a >= 1.0) {
+  	  break;
+	  }
+  }
 
-	if (hmax(fog.rgb) > 1.0) {
-		fog.rgb /= hmax(fog.rgb);
-	}
+  if (hmax(fog.rgb) > 1.0) {
+	  fog.rgb /= hmax(fog.rgb);
+  }
 
-	return clamp(fog, 0.0, 1.0);
+  return clamp(fog, 0.0, 1.0);
 }
 
 /**
@@ -69,11 +69,11 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
  */
 vec3 light_and_shadow_light(in light_t light) {
 
-	float dist = distance(light.origin.xyz, in_position);
-	float radius = light.origin.w;
-	float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+  float dist = distance(light.origin.xyz, in_position);
+  float radius = light.origin.w;
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-	return light.color.rgb * light.color.a * atten * modulate;
+  return light.color.rgb * light.color.a * atten * modulate;
 }
 
 /**
@@ -81,27 +81,27 @@ vec3 light_and_shadow_light(in light_t light) {
  */
 void light_and_shadow(void) {
 
-	if (in_lighting == 0.0) {
-		return;
-	}
+  if (in_lighting == 0.0) {
+	  return;
+  }
 
-	vec3 diffuse = vec3(0.0);
+  vec3 diffuse = vec3(0.0);
 
-	for (int i = 0; i < MAX_LIGHTS; i++) {
+  for (int i = 0; i < MAX_LIGHTS; i++) {
 
-		int index = active_lights[i];
-		if (index == -1) {
-			break;
-		}
+	  int index = active_lights[i];
+	  if (index == -1) {
+  	  break;
+	  }
 
-		light_t light = lights[index];
+	  light_t light = lights[index];
 
-		if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
-			diffuse += light_and_shadow_light(light);
-		}
-	}
+	  if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
+  	  diffuse += light_and_shadow_light(light);
+	  }
+  }
 
-	vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+  vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
 }
 
 /**
@@ -109,20 +109,20 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
-	vec4 position = vec4(in_position, 1.0);
+  vec4 position = vec4(in_position, 1.0);
 
-	vertex.position = vec3(view * position);
-	vertex.diffusemap = in_diffusemap;
-	vertex.next_diffusemap = in_next_diffusemap;
-	vertex.color = in_color;
-	vertex.lerp = in_lerp;
-	vertex.softness = in_softness;
+  vertex.position = vec3(view * position);
+  vertex.diffusemap = in_diffusemap;
+  vertex.next_diffusemap = in_next_diffusemap;
+  vertex.color = in_color;
+  vertex.lerp = in_lerp;
+  vertex.softness = in_softness;
 
-	vec3 texcoord = voxel_uvw(in_position);
+  vec3 texcoord = voxel_uvw(in_position);
 
-	vertex.fog = sample_voxel_fog(texcoord);
+  vertex.fog = sample_voxel_fog(texcoord);
 
-	light_and_shadow();
+  light_and_shadow();
 
-	gl_Position = projection3D * view * position;
+  gl_Position = projection3D * view * position;
 }

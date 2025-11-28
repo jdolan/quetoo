@@ -20,13 +20,13 @@
  */
  
 in vertex_data {
-	vec3 position;
-	vec2 diffusemap;
-	vec2 next_diffusemap;
-	vec4 color;
-	vec4 fog;
-	float lerp;
-	float softness;
+  vec3 position;
+  vec2 diffusemap;
+  vec2 next_diffusemap;
+  vec4 color;
+  vec4 fog;
+  float lerp;
+  float softness;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -36,16 +36,16 @@ layout (location = 0) out vec4 out_color;
  */
 void main(void) {
 
-	vec4 texture_color = mix(
-							 texture(texture_diffusemap, vertex.diffusemap),
-							 texture(texture_next_diffusemap, vertex.next_diffusemap),
-							 vertex.lerp);
+  vec4 texture_color = mix(
+  	  	  	   texture(texture_diffusemap, vertex.diffusemap),
+  	  	  	   texture(texture_next_diffusemap, vertex.next_diffusemap),
+  	  	  	   vertex.lerp);
 
-	out_color = texture_color * vertex.color;
+  out_color = texture_color * vertex.color;
 
-	vec4 fog = vertex.fog * out_color.a;
-	out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
+  vec4 fog = vertex.fog * out_color.a;
+  out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
 
-	float softness = soften(vertex.softness);
-	out_color *= softness;
+  float softness = soften(vertex.softness);
+  out_color *= softness;
 }
