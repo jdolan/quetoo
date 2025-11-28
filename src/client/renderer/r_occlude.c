@@ -270,6 +270,21 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
     }
   }
 
+  if (r_draw_bsp_blocks->value) {
+
+    r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
+    for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
+
+      const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
+      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
+      if (b->query->result == 0) {
+        R_Draw3DBox(b->visible_bounds, Color3f(0.f, f, 0.f), false);
+      } else {
+        R_Draw3DBox(b->visible_bounds, Color3f(f, 0.f, 0.f), false);
+      }
+    }
+  }
+
   glDepthMask(GL_TRUE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
