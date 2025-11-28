@@ -130,6 +130,18 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
       continue;
     }
 
+    box3_t shadow_bounds = Box3_FromCenter(light->origin);
+
+    const vec3_t mins_dir = Vec3_Direction(e->abs_model_bounds.mins, light->origin);
+    const vec3_t maxs_dir = Vec3_Direction(e->abs_model_bounds.maxs, light->origin);
+
+    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, mins_dir));
+    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, maxs_dir));
+
+    if (R_CulludeBox(view, shadow_bounds)) {
+      continue;
+    }
+
     R_DrawBspInlineEntityShadow(view, light, e);
   }
 
@@ -224,7 +236,6 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
 
 /**
  * @brief Renders the shadow cubemap for the specified light.
- * @details Optimized 6-pass rendering without geometry shader.
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
@@ -303,10 +314,9 @@ static void R_InitShadowProgram(void) {
 
   memset(&r_shadow_program, 0, sizeof(r_shadow_program));
 
-  // Load optimized shaders without geometry shader
   r_shadow_program.name = R_LoadProgram(
-        R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_optimized_vs.glsl", NULL),
-        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_optimized_fs.glsl", NULL),
+        R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_vs.glsl", NULL),
+        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_fs.glsl", NULL),
         NULL);
 
   glUseProgram(r_shadow_program.name);

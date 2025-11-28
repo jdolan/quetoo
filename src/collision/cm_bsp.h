@@ -403,7 +403,7 @@ typedef struct {
 /**
  * @brief The BSP block node size.
  */
-#define BSP_BLOCK_SIZE 512.f
+#define BSP_BLOCK_SIZE 768.f
 
 /**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate

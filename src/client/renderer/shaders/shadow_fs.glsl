@@ -1,4 +1,3 @@
-
 /*
  * Copyright(c) 1997-2001 id Software, Inc.
  * Copyright(c) 2002 The Quakeforge Project.
@@ -23,5 +22,5 @@
 in vec4 position;
 
 void main() {
-	gl_FragDepth = length(position) / depth_range.y;
+	gl_FragDepth = length(position.xyz) / depth_range.y;
 }
