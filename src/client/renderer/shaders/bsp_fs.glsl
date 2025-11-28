@@ -27,6 +27,8 @@ in vertex_data {
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;
+  mat3 tbn;
+  mat3 inverse_tbn;
   vec2 diffusemap;
   vec3 cubemap;
   vec3 voxel;
@@ -42,8 +44,6 @@ struct fragment_t {
   vec3 normal;
   vec3 tangent;
   vec3 bitangent;
-  mat3 tbn;
-  mat3 inverse_tbn;
   vec2 parallax;
   vec4 diffusemap;
   vec3 normalmap;
@@ -85,7 +85,7 @@ void parallax_occlusion_mapping() {
   float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.dir * fragment.tbn);
+  vec3 dir = normalize(fragment.dir * vertex.tbn);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
 
@@ -122,7 +122,7 @@ float parallax_self_shadow(in vec3 light_dir) {
     }
 
     vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-    vec3 dir = normalize(fragment.inverse_tbn * light_dir);
+    vec3 dir = normalize(vertex.inverse_tbn * light_dir);
     vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01));
     vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
 
@@ -151,7 +151,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
   vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(fragment.tbn * normalize(normalmap * roughness));
+  return normalize(vertex.tbn * normalize(normalmap * roughness));
 }
 
 /**
@@ -366,8 +366,6 @@ void main(void) {
   fragment.normal = normalize(vertex.normal);
   fragment.tangent = normalize(vertex.tangent);
   fragment.bitangent = normalize(vertex.bitangent);
-  fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
-  fragment.inverse_tbn = inverse(fragment.tbn);
   fragment.parallax = vertex.diffusemap;
 
   parallax_occlusion_mapping();

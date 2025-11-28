@@ -29,15 +29,17 @@ layout (location = 5) in vec4 in_color;
 uniform mat4 model;
 
 out vertex_data {
-	vec3 model;
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec2 diffusemap;
-	vec3 cubemap;
-	vec3 voxel;
-	vec4 color;
+  vec3 model;
+  vec3 position;
+  vec3 normal;
+  vec3 tangent;
+  vec3 bitangent;
+  mat3 tbn;
+  mat3 inverse_tbn;
+  vec2 diffusemap;
+  vec3 cubemap;
+  vec3 voxel;
+  vec4 color;
 } vertex;
 
 invariant gl_Position;
@@ -47,27 +49,30 @@ invariant gl_Position;
  */
 void main(void) {
 
-	mat4 view_model = view * model;
+  mat4 view_model = view * model;
 
-	vec4 position = vec4(in_position, 1.0);
-	vec4 normal = vec4(in_normal, 0.0);
-	vec4 tangent = vec4(in_tangent, 0.0);
-	vec4 bitangent = vec4(in_bitangent, 0.0);
+  vec4 position = vec4(in_position, 1.0);
+  vec4 normal = vec4(in_normal, 0.0);
+  vec4 tangent = vec4(in_tangent, 0.0);
+  vec4 bitangent = vec4(in_bitangent, 0.0);
 
-	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.model = vec3(model * position);
-	vertex.position = vec3(view_model * position);
-	vertex.normal = normalize(vec3(view_model * normal));
-	vertex.tangent = normalize(vec3(view_model * tangent));
-	vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.model = vec3(model * position);
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
+  vertex.tangent = normalize(vec3(view_model * tangent));
+  vertex.bitangent = normalize(vec3(view_model * bitangent));
 
-	vertex.diffusemap = in_diffusemap;
-	vertex.cubemap = in_normal;
-	vertex.voxel = voxel_uvw(vec3(model * position));
-	vertex.color = in_color;
+  vertex.diffusemap = in_diffusemap;
+  vertex.cubemap = in_normal;
+  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.color = in_color;
 
-	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
+  vertex.inverse_tbn = inverse(vertex.tbn);
 
-	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+  gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+
+  stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }
