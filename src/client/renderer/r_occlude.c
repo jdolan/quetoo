@@ -38,16 +38,6 @@ static struct {
   GQueue *free;
 
   /**
-   * @brief The pointer array of visible queries for the current frame.
-   */
-  GPtrArray *visible;
-
-  /**
-   * @brief The pointer array of occluded queries for the current frame.
-   */
-  GPtrArray *occluded;
-
-  /**
    * @brief The vertex array object.
    */
   GLuint vertex_array;
@@ -76,22 +66,15 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
     return false;
   }
 
-  // First check if the specified bounds is completely contained by an occluded query
+  const r_bsp_inline_model_t *in = r_models.world->bsp->inline_models;
 
-  const r_occlusion_query_t *query = (r_occlusion_query_t *) r_occlusion_queries.occluded->pdata;
-  for (guint i = 0; i < r_occlusion_queries.occluded->len; i++, query++) {
-    if (Box3_Contains(query->bounds, bounds)) {
-      return true;
-    }
-  }
-
-  // If that fails, check if the specified bounds intersects any visible blocks
-
-  const r_bsp_inline_model_t *world = r_models.world->bsp->inline_models;
-  const r_bsp_block_t *block = world->blocks;
-  for (int32_t i = 0; i < world->num_blocks; i++, block++) {
+  const r_bsp_block_t *block = in->blocks;
+  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (block->query->result == 0) {
+      if (Box3_Contains(block->node->bounds, bounds)) {
+        return true;
+      }
       continue;
     }
 
@@ -215,10 +198,6 @@ static gint R_OcclusionQuery_Cmp(gconstpointer a, gconstpointer b, gpointer data
  */
 void R_DrawOcclusionQueries(const r_view_t *view) {
 
-  g_ptr_array_set_size(r_occlusion_queries.visible, 0);
-  g_ptr_array_set_size(r_occlusion_queries.occluded, 0);
-
-
   g_queue_sort(r_occlusion_queries.allocated, R_OcclusionQuery_Cmp, NULL);
 
   vec3_t *vertexes = malloc(r_occlusion_queries.allocated->length * sizeof(vec3_t) * 8);
@@ -254,8 +233,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
     }
 
     if (R_DrawOcclusionQuery(view, query)) {
-
-      g_ptr_array_add(r_occlusion_queries.occluded, query);
+      r_stats.queries_occluded++;
 
       // Queries are sorted by size, so if one is occluded, iterate the remaining ones and check
       // if any subsequent queries are contained within it and can be skipped this frame
@@ -269,11 +247,11 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
           q->result = 0;
           q->ticks = view->ticks;
 
-          g_ptr_array_add(r_occlusion_queries.occluded, q);
+          r_stats.queries_occluded++;
         }
       }
     } else {
-      g_ptr_array_add(r_occlusion_queries.visible, query);
+      r_stats.queries_visible++;
     }
   }
 
@@ -305,8 +283,6 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
   R_GetError(NULL);
 
   r_stats.queries_allocated = r_occlusion_queries.allocated->length;
-  r_stats.queries_visible = r_occlusion_queries.visible->len;
-  r_stats.queries_occluded = r_occlusion_queries.occluded->len;
 }
 
 /**
@@ -318,9 +294,6 @@ void R_InitOcclusionQueries(void) {
 
   r_occlusion_queries.free = g_queue_new();
   r_occlusion_queries.allocated = g_queue_new();
-
-  r_occlusion_queries.visible = g_ptr_array_new();
-  r_occlusion_queries.occluded = g_ptr_array_new();
 
   glGenVertexArrays(1, &r_occlusion_queries.vertex_array);
   glBindVertexArray(r_occlusion_queries.vertex_array);
@@ -379,7 +352,4 @@ void R_ShutdownOcclusionQueries(void) {
 
   g_queue_free_full(r_occlusion_queries.allocated, R_ShutdownOcclusionQuery);
   g_queue_free_full(r_occlusion_queries.free, R_ShutdownOcclusionQuery);
-
-  g_ptr_array_free(r_occlusion_queries.visible, true);
-  g_ptr_array_free(r_occlusion_queries.occluded, true);
 }

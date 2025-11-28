@@ -168,7 +168,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 /**
  * @brief
  */
-static void  R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
   glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
 
