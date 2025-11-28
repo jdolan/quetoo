@@ -44,10 +44,23 @@ static struct {
   GLint lerp;
 
   /**
-   * @brief The light index and shadow layer.
+   * @brief The light view matrix (for 6-pass rendering without geometry shader).
    */
-  GLint light_index;
+  GLint light_view;
 } r_shadow_program;
+
+/**
+ * @brief Pre-computed view matrices for cubemap faces.
+ * @details These match the original geometry shader's lookAt calls exactly.
+ */
+static const mat4_t cubemap_view_matrices[6] = {
+  {{ 0.0f,  0.0f, -1.0f,  0.0f,   0.0f, -1.0f,  0.0f,  0.0f,  -1.0f,  0.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }},
+  {{ 0.0f,  0.0f,  1.0f,  0.0f,   0.0f, -1.0f,  0.0f,  0.0f,   1.0f,  0.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }},
+  {{ 1.0f,  0.0f,  0.0f,  0.0f,   0.0f,  0.0f,  1.0f,  0.0f,   0.0f, -1.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }},
+  {{ 1.0f,  0.0f,  0.0f,  0.0f,   0.0f,  0.0f, -1.0f,  0.0f,   0.0f,  1.0f,  0.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }},
+  {{ 1.0f,  0.0f,  0.0f,  0.0f,   0.0f, -1.0f,  0.0f,  0.0f,   0.0f,  0.0f, -1.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }},
+  {{-1.0f,  0.0f,  0.0f,  0.0f,   0.0f, -1.0f,  0.0f,  0.0f,   0.0f,  0.0f,  1.0f,  0.0f,   0.0f,  0.0f,  0.0f,  1.0f }}
+};
 
 #define MAX_SHADOW_CUBEMAP_LAYERS 256
 #define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
@@ -214,6 +227,7 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
 
 /**
  * @brief Renders the shadow cubemap for the specified light.
+ * @details Optimized 6-pass rendering without geometry shader.
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
@@ -222,31 +236,39 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
   const GLint array = index / MAX_SHADOW_CUBEMAP_LAYERS;
   const GLint layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
 
-  for (int32_t i = 0; i < 6; i++) {
+  // Compute light-space transformation (translate to light origin)
+  const mat4_t light_translate = Mat4_FromTranslation(Vec3_Negate(light->origin));
+
+  // Render each cubemap face separately (6-pass approach)
+  for (int32_t face = 0; face < 6; face++) {
+
+    // Bind the specific cubemap layer for this face
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
-                  GL_DEPTH_ATTACHMENT,
-                  r_shadow_textures.cubemap_arrays[array],
-                  0,
-                  layer * 6 + i);
+                              GL_DEPTH_ATTACHMENT,
+                              r_shadow_textures.cubemap_arrays[array],
+                              0,
+                              layer * 6 + face);
 
+    // Clear only once per face
     glClear(GL_DEPTH_BUFFER_BIT);
-  }
 
-  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_textures.cubemap_arrays[array], 0);
+    // Compute the view matrix for this cubemap face
+    const mat4_t light_view = Mat4_Concat(cubemap_view_matrices[face], light_translate);
+    glUniformMatrix4fv(r_shadow_program.light_view, 1, GL_FALSE, light_view.array);
 
-  glUniform1i(r_shadow_program.light_index, layer);
+    // Render shadow casters for this face
+    R_DrawBspInlineEntitiesShadow(view, light);
 
-  R_DrawBspInlineEntitiesShadow(view, light);
-
-  if (r_shadows->value) {
-    R_DrawMeshEntitiesShadow(view, light);
+    if (r_shadows->value) {
+      R_DrawMeshEntitiesShadow(view, light);
+    }
   }
 
   R_GetError(NULL);
 }
 
 /**
- * @brief 
+ * @brief
  */
 void R_DrawShadows(const r_view_t *view) {
 
@@ -285,17 +307,17 @@ void R_DrawShadows(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Initializes the shadow program with optimized shaders (no geometry shader).
  */
 static void R_InitShadowProgram(void) {
 
   memset(&r_shadow_program, 0, sizeof(r_shadow_program));
 
+  // Load optimized shaders without geometry shader
   r_shadow_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_GEOMETRY_SHADER, "shadow_gs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_fs.glsl", NULL),
-      NULL);
+                                        R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_optimized_vs.glsl", NULL),
+                                        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_optimized_fs.glsl", NULL),
+                                        NULL);
 
   glUseProgram(r_shadow_program.name);
 
@@ -307,8 +329,7 @@ static void R_InitShadowProgram(void) {
 
   r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
   r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");
-
-  r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
+  r_shadow_program.light_view = glGetUniformLocation(r_shadow_program.name, "light_view");
 
   glUseProgram(0);
 
@@ -365,7 +386,7 @@ static void R_InitShadowFramebuffer(void) {
 }
 
 /**
- * @brief 
+ * @brief
  */
 void R_InitShadows(void) {
 
@@ -413,7 +434,7 @@ static void R_ShutdownShadowFramebuffer(void) {
 }
 
 /**
- * @brief 
+ * @brief
  */
 void R_ShutdownShadows(void) {
 

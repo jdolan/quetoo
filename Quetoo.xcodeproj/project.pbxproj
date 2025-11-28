@@ -688,6 +688,8 @@
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
+		CEF7B4A72ED9500E00B551CA /* shadow_optimized_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A52ED94FED00B551CA /* shadow_optimized_fs.glsl */; };
+		CEF7B4A82ED9501000B551CA /* shadow_optimized_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A62ED94FED00B551CA /* shadow_optimized_vs.glsl */; };
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -991,6 +993,8 @@
 				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CE0FDB8A29329FE700353351 /* shadow_fs.glsl in CopyFiles */,
 				CE0FDB8B29329FE700353351 /* shadow_gs.glsl in CopyFiles */,
+				CEF7B4A72ED9500E00B551CA /* shadow_optimized_fs.glsl in CopyFiles */,
+				CEF7B4A82ED9501000B551CA /* shadow_optimized_vs.glsl in CopyFiles */,
 				CE0FDB8C29329FE700353351 /* shadow_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
 				CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */,
@@ -1809,6 +1813,8 @@
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
 		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
+		CEF7B4A52ED94FED00B551CA /* shadow_optimized_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_optimized_fs.glsl; sourceTree = "<group>"; };
+		CEF7B4A62ED94FED00B551CA /* shadow_optimized_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_optimized_vs.glsl; sourceTree = "<group>"; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFD07F62B671DE600642169 /* bsp_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_vs.glsl; sourceTree = "<group>"; };
 		CEFD07F72B671DE700642169 /* bsp_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_fs.glsl; sourceTree = "<group>"; };
@@ -2704,6 +2710,8 @@
 				CE79596F293F7812001B52F3 /* polylib.glsl */,
 				CEE13C12293241740075585D /* shadow_fs.glsl */,
 				CEE13C10293241740075585D /* shadow_gs.glsl */,
+				CEF7B4A52ED94FED00B551CA /* shadow_optimized_fs.glsl */,
+				CEF7B4A62ED94FED00B551CA /* shadow_optimized_vs.glsl */,
 				CEE13C11293241740075585D /* shadow_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
