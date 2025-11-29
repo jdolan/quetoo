@@ -104,6 +104,11 @@ struct MaterialViewController {
   Slider *parallax;
 
   /**
+   * @brief The shadow amplitude slider.
+   */
+  Slider *shadow;
+
+  /**
    * @brief The alpha test slider.
    */
   Slider *alphaTest;

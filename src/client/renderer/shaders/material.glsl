@@ -74,6 +74,11 @@ struct material_t {
    * @brief The material parallax.
    */
   float parallax;
+
+  /**
+   * @brief The material self-shadowing.
+   */
+  float shadow;
 };
 
 uniform material_t material;

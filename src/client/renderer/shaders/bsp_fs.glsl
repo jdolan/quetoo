@@ -111,31 +111,35 @@ void parallax_occlusion_mapping() {
 /**
  * @brief Returns the shadow scalar for parallax self shadowing.
  * @param light_dir The light direction in view space.
+ * @param texel The material texel size.
  * @return The self-shadowing scalar.
  */
 float parallax_self_shadow(in vec3 light_dir) {
 
-  if (int(developer) == 2) {
-
-    if (material.parallax == 0.0) {
-      return 1.0;
-    }
-
-    vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-    vec3 dir = normalize(vertex.inverse_tbn * light_dir);
-    vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01));
-    vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
-
-    do {
-      texcoord += delta;
-      float sample_height = sample_heightmap(texcoord.xy);
-      if (sample_height > texcoord.z * 1.05) {
-        return distance(fragment.parallax, texcoord.xy);
-      }
-    } while (texcoord.z < 1.0);
+  // If the light angle is nearly perpendicular, skip self-shadowing
+  if (dot(light_dir, normalize(vertex.tbn[2])) > 0.9) {
+    return 1.0;
   }
 
-  return 1.0;
+  // LOD-based step count: 16 close, 4 far (bounded for performance)
+  int max_steps = int(mix(16.0, 4.0, min(fragment.lod * 0.33, 1.0)));
+
+  // Adaptive step size based on LOD (larger steps at distance)
+  float step_scale = mix(1.0, 2.5, min(fragment.lod * 0.5, 1.0));
+
+  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+  vec3 dir = normalize(vertex.inverse_tbn * light_dir);
+  vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
+  vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+
+  float max_height = texcoord.z;
+  for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
+    texcoord += delta;
+    max_height = max(max_height, sample_heightmap(texcoord.xy));
+  }
+
+  float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
+  return clamp(shadow, 0.0, 1.0);
 }
 
 /**
@@ -291,8 +295,10 @@ void light_and_shadow_light(in light_t light, in int index) {
   diffuse *= lambert;
 
   float shadow = sample_shadow_cubemap_array(light, index);
-  // Note: parallax_self_shadow() removed - was only active in developer==2 mode
-  // and added unnecessary per-light per-fragment overhead
+
+  if (fragment.lod < 4.0 && material.shadow > 0.0) {
+    shadow *= parallax_self_shadow(dir);
+  }
 
   diffuse *= shadow;
 
