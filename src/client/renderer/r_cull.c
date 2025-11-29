@@ -95,25 +95,31 @@ void R_UpdateFrustum(r_view_t *view) {
 
   cm_bsp_plane_t *p = view->frustum;
 
-  float ang = Radians(view->fov.x);
-  float xs = sinf(ang);
-  float xc = cosf(ang);
+  // Use half of the FOV angle (from center to edge of frustum)
+  float half_ang = Radians(view->fov.x) * 0.5f;
+  float xs = sinf(half_ang);
+  float xc = cosf(half_ang);
 
-  p[0].normal = Vec3_Scale(view->forward, xs);
-  p[0].normal = Vec3_Fmaf(p[0].normal, xc, view->right);
+  // Right frustum plane: normal = forward * cos + right * sin
+  p[0].normal = Vec3_Scale(view->forward, xc);
+  p[0].normal = Vec3_Fmaf(p[0].normal, xs, view->right);
 
-  p[1].normal = Vec3_Scale(view->forward, xs);
-  p[1].normal = Vec3_Fmaf(p[1].normal, -xc, view->right);
+  // Left frustum plane: normal = forward * cos - right * sin
+  p[1].normal = Vec3_Scale(view->forward, xc);
+  p[1].normal = Vec3_Fmaf(p[1].normal, -xs, view->right);
 
-  ang = Radians(view->fov.y);
-  xs = sinf(ang);
-  xc = cosf(ang);
+  // Use half of the vertical FOV
+  half_ang = Radians(view->fov.y) * 0.5f;
+  xs = sinf(half_ang);
+  xc = cosf(half_ang);
 
-  p[2].normal = Vec3_Scale(view->forward, xs);
-  p[2].normal = Vec3_Fmaf(p[2].normal, xc, view->up);
+  // Top frustum plane: normal = forward * cos + up * sin
+  p[2].normal = Vec3_Scale(view->forward, xc);
+  p[2].normal = Vec3_Fmaf(p[2].normal, xs, view->up);
 
-  p[3].normal = Vec3_Scale(view->forward, xs);
-  p[3].normal = Vec3_Fmaf(p[3].normal, -xc, view->up);
+  // Bottom frustum plane: normal = forward * cos - up * sin
+  p[3].normal = Vec3_Scale(view->forward, xc);
+  p[3].normal = Vec3_Fmaf(p[3].normal, -xs, view->up);
 
   for (size_t i = 0; i < lengthof(view->frustum); i++) {
     p[i].normal = Vec3_Normalize(p[i].normal);
