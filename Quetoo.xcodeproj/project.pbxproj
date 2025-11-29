@@ -1806,6 +1806,18 @@
 		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
 		CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_fs.glsl; sourceTree = "<group>"; };
 		CEF7B4A62ED94FED00B551CA /* shadow_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_vs.glsl; sourceTree = "<group>"; };
+		CEF7B4A92EDB871F00B551CA /* ENTITY_BUG_ANALYSIS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ENTITY_BUG_ANALYSIS.md; sourceTree = "<group>"; };
+		CEF7B4AA2EDB871F00B551CA /* ENTITY_STATE_BUG_FIX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ENTITY_STATE_BUG_FIX.md; sourceTree = "<group>"; };
+		CEF7B4AB2EDB871F00B551CA /* FRUSTUM_BUG_FIX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FRUSTUM_BUG_FIX.md; sourceTree = "<group>"; };
+		CEF7B4AC2EDB871F00B551CA /* FRUSTUM_CULLING_ANALYSIS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = FRUSTUM_CULLING_ANALYSIS.md; sourceTree = "<group>"; };
+		CEF7B4AD2EDB871F00B551CA /* PARALLAX_FINAL_RESULTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PARALLAX_FINAL_RESULTS.md; sourceTree = "<group>"; };
+		CEF7B4AE2EDB871F00B551CA /* PARALLAX_OPTIMIZATION_ANALYSIS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PARALLAX_OPTIMIZATION_ANALYSIS.md; sourceTree = "<group>"; };
+		CEF7B4AF2EDB871F00B551CA /* PARALLAX_OPTIMIZATIONS_APPLIED.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PARALLAX_OPTIMIZATIONS_APPLIED.md; sourceTree = "<group>"; };
+		CEF7B4B02EDB871F00B551CA /* PARALLAX_SELF_SHADOW_OPTIMIZATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PARALLAX_SELF_SHADOW_OPTIMIZATION.md; sourceTree = "<group>"; };
+		CEF7B4B12EDB871F00B551CA /* SESSION_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SESSION_SUMMARY.md; sourceTree = "<group>"; };
+		CEF7B4B22EDB871F00B551CA /* SHADOWMAP_OPTIMIZATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = SHADOWMAP_OPTIMIZATION.md; sourceTree = "<group>"; };
+		CEF7B4B42EDB873E00B551CA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		CEF7B4B52EDB875400B551CA /* INDEX.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = INDEX.md; sourceTree = "<group>"; };
 		CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-pmove.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEFD07F62B671DE600642169 /* bsp_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_vs.glsl; sourceTree = "<group>"; };
 		CEFD07F72B671DE700642169 /* bsp_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = bsp_fs.glsl; sourceTree = "<group>"; };
@@ -2315,6 +2327,7 @@
 		CE12D5091C5C58C300CD0B13 /* doc */ = {
 			isa = PBXGroup;
 			children = (
+				CEF7B4B32EDB871F00B551CA /* copilot */,
 				CE12D50A1C5C58C300CD0B13 /* engine-architecture.graffle */,
 				CE12D50B1C5C58C300CD0B13 /* engine-architecture.pdf */,
 			);
@@ -3428,6 +3441,25 @@
 				CEAA7882277533B100EAC853 /* Makefile.am */,
 			);
 			path = teams;
+			sourceTree = "<group>";
+		};
+		CEF7B4B32EDB871F00B551CA /* copilot */ = {
+			isa = PBXGroup;
+			children = (
+				CEF7B4A92EDB871F00B551CA /* ENTITY_BUG_ANALYSIS.md */,
+				CEF7B4AA2EDB871F00B551CA /* ENTITY_STATE_BUG_FIX.md */,
+				CEF7B4AB2EDB871F00B551CA /* FRUSTUM_BUG_FIX.md */,
+				CEF7B4AC2EDB871F00B551CA /* FRUSTUM_CULLING_ANALYSIS.md */,
+				CEF7B4B52EDB875400B551CA /* INDEX.md */,
+				CEF7B4AD2EDB871F00B551CA /* PARALLAX_FINAL_RESULTS.md */,
+				CEF7B4AE2EDB871F00B551CA /* PARALLAX_OPTIMIZATION_ANALYSIS.md */,
+				CEF7B4AF2EDB871F00B551CA /* PARALLAX_OPTIMIZATIONS_APPLIED.md */,
+				CEF7B4B02EDB871F00B551CA /* PARALLAX_SELF_SHADOW_OPTIMIZATION.md */,
+				CEF7B4B42EDB873E00B551CA /* README.md */,
+				CEF7B4B12EDB871F00B551CA /* SESSION_SUMMARY.md */,
+				CEF7B4B22EDB871F00B551CA /* SHADOWMAP_OPTIMIZATION.md */,
+			);
+			path = copilot;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
