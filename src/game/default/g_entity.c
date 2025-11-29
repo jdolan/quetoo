@@ -728,8 +728,8 @@ static void G_worldspawn(g_entity_t *ent) {
 
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
-  ent->in_use = true; // since the world doesn't use G_Spawn()
-  ent->s.model1 = 0; // world model is always index 1
+
+  gi.SetModel(ent, ent->model);
 
   const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 
