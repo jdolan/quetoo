@@ -93,7 +93,7 @@ cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
  * @remarks This should be called once per map load, after the precache routine.
  */
 void Cg_LoadEntities(void) {
-   const cg_entity_class_t *classes[] = {
+  const cg_entity_class_t *classes[] = {
     &cg_misc_dust,
     &cg_misc_flame,
     &cg_misc_light,
@@ -218,13 +218,17 @@ void Cg_Interpolate(const cl_frame_t *frame) {
   for (int32_t i = 0; i < frame->num_entities; i++) {
 
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cgi.client->entity_states[snum];
+    entity_state_t *s = &cgi.client->entity_states[snum];
 
     cl_entity_t *ent = &cgi.client->entities[s->number];
 
     Cg_EntitySound(ent);
 
     Cg_EntityEvent(ent);
+
+    // Also clear the event in the circular buffer to prevent it from being restored
+    // by the spawn_id validation in Cg_AddEntities()
+    s->event = 0;
   }
 }
 
@@ -313,8 +317,15 @@ void Cg_AddEntities(const cl_frame_t *frame) {
   // add server side entities
   for (int32_t i = 0; i < frame->num_entities; i++) {
 
-    const uint32_t s = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    cl_entity_t *ent = &cgi.client->entities[cgi.client->entity_states[s].number];
+    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cgi.client->entity_states[snum];
+    cl_entity_t *ent = &cgi.client->entities[s->number];
+
+    // Ensure ent->current matches the fresh state from this frame
+    // This fixes a bug where entity slots are reused but ent->current contains stale data
+    if (ent->current.number != s->number || ent->current.spawn_id != s->spawn_id) {
+      ent->current = *s;
+    }
 
     Cg_EntityTrail(ent);
 

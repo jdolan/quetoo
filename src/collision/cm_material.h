@@ -229,6 +229,7 @@ typedef struct {
 #define MATERIAL_HARDNESS 1.f
 #define MATERIAL_SPECULARITY 1.f
 #define MATERIAL_PARALLAX 1.f
+#define MATERIAL_SHADOW 1.f
 #define MATERIAL_ALPHA_TEST .5f
 
 /**
@@ -319,6 +320,11 @@ typedef struct cm_material_s {
    * @brief The parallax factor to use for the heightmap.
    */
   float parallax;
+
+  /**
+   * @brief The self-shadow factor to use for the heightmap.
+   */
+  float shadow;
 
   /**
    * @brief The footsteps to play when the player walks on this material.

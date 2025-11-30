@@ -30,7 +30,7 @@ invariant gl_Position;
  */
 void main(void) {
 
-	mat4 view_model = view * model;
+  mat4 view_model = view * model;
 
-	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+  gl_Position = projection3D * view_model * vec4(in_position, 1.0);
 }

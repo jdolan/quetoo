@@ -53,7 +53,7 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
- * @brief Adds an entity to the view if it passes frustum culling and occlusion tests.
+ * @brief Adds an entity to the view.
  * @return The renderer copy of the entity, if any. This is to enable linked entities.
  */
 r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
@@ -101,9 +101,9 @@ void R_UpdateEntities(r_view_t *view) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
   if (r_draw_entity_bounds->integer == 2) {
-    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), true);
+    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), false);
   } else {
-    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), true);
+    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), false);
   }
 }
 

@@ -24,8 +24,8 @@ layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec4 in_color;
 
 out vertex_data {
-	vec2 diffusemap;
-	vec4 color;
+  vec2 diffusemap;
+  vec4 color;
 } vertex;
 
 /**
@@ -33,8 +33,8 @@ out vertex_data {
  */
 void main(void) {
 
-	gl_Position = projection2D * vec4(in_position, 0.0, 1.0);
+  gl_Position = projection2D * vec4(in_position, 0.0, 1.0);
 
-	vertex.diffusemap = in_diffusemap;
-	vertex.color = in_color;
+  vertex.diffusemap = in_diffusemap;
+  vertex.color = in_color;
 }

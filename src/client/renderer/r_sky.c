@@ -65,7 +65,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
   const r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-    if (block->occluded) {
+    if (block->query->result == 0) {
       continue;
     }
 

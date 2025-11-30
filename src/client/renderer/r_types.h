@@ -285,7 +285,7 @@ typedef struct r_material_s {
 /**
  * @brief OpenGL occlusion queries.
  */
-typedef struct {
+typedef struct r_occlusion_query_s {
   /**
    * @brief The query name.
    */
@@ -310,6 +310,11 @@ typedef struct {
    * @brief Non-zero of the query produced visible fragments.
    */
   GLint result;
+
+  /**
+   * @brief Simulation time when this query was last drawn.
+   */
+  uint32_t ticks;
 } r_occlusion_query_t;
 
 /**
@@ -588,14 +593,9 @@ typedef struct {
   box3_t visible_bounds;
 
   /**
-   * @brief True if this block is occluded for the current frame.
-   */
-  bool occluded;
-
-  /**
    * @brief The occlusion query for this block.
    */
-  r_occlusion_query_t query;
+  r_occlusion_query_t *query;
 } r_bsp_block_t;
 
 /**
@@ -661,11 +661,6 @@ typedef struct {
   cm_entity_t *entity;
 
   /**
-   * @brief The light flags.
-   */
-  int32_t flags;
-
-  /**
    * @brief The light origin.
    */
   vec3_t origin;
@@ -696,19 +691,9 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief True if this light is occluded for the current frame.
-   */
-  bool occluded;
-
-  /**
-   * @brief True if this light's shadowmap may be cached for the current frame.
-   */
-  bool shadow_cached;
-
-  /**
    * @brief The light occlusion query.
    */
-  r_occlusion_query_t query;
+  r_occlusion_query_t *query;
 
   /**
    * @brief An offset pointer (in bytes) into the BSP elements array for shadow geometry.
@@ -835,26 +820,6 @@ typedef struct {
      */
     GLuint vertex_array;
   } depth_pass;
-
-  /**
-   * @brief The occlusion query vertex array and buffers.
-   */
-  struct {
-    /**
-     * @brief The vertex array object.
-     */
-    GLuint vertex_array;
-
-    /**
-     * @brief The vertex buffer object.
-     */
-    GLuint vertex_buffer;
-
-    /**
-     * @brief The elements buffer object.
-     */
-    GLuint elements_buffer;
-  } occlusion;
 
   /**
    * @brief The first inline BSP model, aka worldspawn.
@@ -1425,6 +1390,11 @@ typedef struct r_entity_s {
   mat4_t inverse_matrix;
 
   /**
+   * @brief True if this entity is occluded, false otherwise.
+   */
+  bool occluded;
+
+  /**
    * @brief The model, if any.
    */
   const r_model_t *model;
@@ -1511,19 +1481,19 @@ typedef struct {
   box3_t bounds;
 
   /**
+   * @brief The occlusion query, for lights that persist multiple frames.
+   */
+  r_occlusion_query_t *query;
+
+  /**
    * @brief The backing BSP light, for static light sources.
    */
-  r_bsp_light_t *bsp_light;
+  const r_bsp_light_t *bsp_light;
 
   /**
    * @brief The optional light source, which will not cast shadow.
    */
   const r_entity_t *source;
-
-  /**
-   * @brief True if this light is occluded for the current frame.
-   */
-  bool occluded;
 } r_light_t;
 
 /**
@@ -1768,17 +1738,26 @@ typedef struct {
  * @brief Renderer statistics.
  */
 typedef struct {
+
+  int32_t queries_allocated;
+  int32_t queries_visible;
+  int32_t queries_occluded;
+
+  int32_t blocks_visible;
+  int32_t blocks_occluded;
+
   int32_t lights_visible;
   int32_t lights_occluded;
 
-  int32_t occlusion_queries_visible;
-  int32_t occlusion_queries_occluded;
+  int32_t entities_visible;
+  int32_t entities_occluded;
 
   int32_t bsp_inline_models;
   int32_t bsp_draw_elements;
   int32_t bsp_triangles;
 
   int32_t mesh_models;
+  int32_t mesh_draw_elements;
   int32_t mesh_triangles;
 
   int32_t sprite_draw_elements;

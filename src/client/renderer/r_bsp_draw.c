@@ -58,6 +58,7 @@ static struct {
     GLint hardness;
     GLint specularity;
     GLint parallax;
+    GLint shadow;
   } material;
 
   struct {
@@ -336,6 +337,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
   glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
   glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
   glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
+  glUniform1f(r_bsp_program.material.shadow, draw->material->cm->shadow * r_parallax_shadow->value);
 
   if (!(draw->surface & SURF_MATERIAL)) {
 
@@ -360,9 +362,14 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->occluded) {
-      continue;
+    if (block->query) {
+      if (block->query->result == 0) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
     }
+
+    r_stats.blocks_visible++;
 
     R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
 
@@ -435,7 +442,7 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->occluded) {
+    if (block->query && block->query->result == 0) {
       continue;
     }
 
@@ -549,6 +556,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
   r_bsp_program.material.specularity = glGetUniformLocation(r_bsp_program.name, "material.specularity");
   r_bsp_program.material.parallax = glGetUniformLocation(r_bsp_program.name, "material.parallax");
+  r_bsp_program.material.shadow = glGetUniformLocation(r_bsp_program.name, "material.shadow");
 
   r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
   r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");

@@ -29,9 +29,10 @@ cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_developer;
+cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_blocks;
-cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_bsp_normals;
+cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_wireframe;
@@ -56,6 +57,7 @@ cvar_t *r_height;
 cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_parallax;
+cvar_t *r_parallax_shadow;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -346,9 +348,10 @@ static void R_InitLocal(void) {
   // development tools
   r_alpha_test = Cvar_Add("r_alpha_test", "1", CVAR_DEVELOPER, "Controls alpha test (developer tool)");
   r_cull = Cvar_Add("r_cull", "1", CVAR_DEVELOPER, "Controls bounded box culling routines (developer tool)");
-  r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER , "Controls the rendering of BSP block nodes (developer tool)");
-  r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
+  r_draw_occlusion_queries = Cvar_Add("r_draw_occlusion_queries", "0", CVAR_DEVELOPER , "Controls the rendering of occlusion queries (developer tool)");
+  r_draw_bsp_blocks = Cvar_Add("r_draw_bsp_blocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool)");
   r_draw_bsp_normals = Cvar_Add("r_draw_bsp_normals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool)");
+  r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
   r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
@@ -374,6 +377,7 @@ static void R_InitLocal(void) {
   r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
+  r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
@@ -473,6 +477,8 @@ void R_Init(void) {
 
   R_InitUniforms();
 
+  R_InitOcclusionQueries();
+
   R_InitMedia();
 
   R_InitImages();
@@ -526,6 +532,8 @@ void R_Shutdown(void) {
   R_ShutdownShadows();
 
   R_ShutdownDepthPass();
+
+  R_ShutdownOcclusionQueries();
 
   R_ShutdownUniforms();
 

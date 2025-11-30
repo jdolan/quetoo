@@ -20,8 +20,8 @@
  */
 
 in vertex_data {
-	vec2 diffusemap;
-	vec4 color;
+  vec2 diffusemap;
+  vec4 color;
 } vertex;
 
 out vec4 out_color;
@@ -30,5 +30,5 @@ out vec4 out_color;
  * @brief
  */
 void main(void) {
-	out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
+  out_color = vertex.color * texture(texture_diffusemap, vertex.diffusemap);
 }

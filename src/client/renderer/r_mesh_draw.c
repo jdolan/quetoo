@@ -362,10 +362,12 @@ void R_DrawMeshEntities(const r_view_t *view) {
       }
 
       if (R_CullEntity(view, e)) {
+        r_stats.entities_occluded++;
         continue;
       }
 
       R_DrawMeshEntity(view, e);
+      r_stats.entities_visible++;
     }
   }
   

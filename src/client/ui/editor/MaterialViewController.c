@@ -46,6 +46,8 @@ static void didSetValue(Slider *slider, double value) {
     this->material->cm->specularity = slider->value;
   } else if (slider == this->parallax) {
     this->material->cm->parallax = slider->value;
+  } else if (slider == this->shadow) {
+    this->material->cm->shadow = slider->value;
   } else if (slider == this->alphaTest) {
     this->material->cm->alpha_test = slider->value;
   } else {
@@ -73,6 +75,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("hardness", &this->hardness),
     MakeOutlet("specularity", &this->specularity),
     MakeOutlet("parallax", &this->parallax),
+    MakeOutlet("shadow", &this->shadow),
     MakeOutlet("alpha_test", &this->alphaTest)
   );
 
@@ -93,6 +96,9 @@ static void loadView(ViewController *self) {
 
   this->parallax->delegate.self = self;
   this->parallax->delegate.didSetValue = didSetValue;
+
+  this->shadow->delegate.self = self;
+  this->shadow->delegate.didSetValue = didSetValue;
 
   this->alphaTest->delegate.self = self;
   this->alphaTest->delegate.didSetValue = didSetValue;
@@ -194,6 +200,7 @@ static void setModelAndMaterial(MaterialViewController *self, const r_model_t *m
     $(self->hardness, setValue, (double) self->material->cm->hardness);
     $(self->specularity, setValue, (double) self->material->cm->specularity);
     $(self->parallax, setValue, (double) self->material->cm->parallax);
+    $(self->shadow, setValue, (double) self->material->cm->shadow);
 
     if (material->cm->surface & SURF_ALPHA_TEST) {
       $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
@@ -211,6 +218,7 @@ static void setModelAndMaterial(MaterialViewController *self, const r_model_t *m
 
     $(self->roughness, setValue, MATERIAL_ROUGHNESS);
     $(self->parallax, setValue, MATERIAL_PARALLAX);
+    $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->hardness, setValue, MATERIAL_HARDNESS);
     $(self->specularity, setValue, MATERIAL_SPECULARITY);
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);

@@ -23,9 +23,16 @@ layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_next_position;
 
 uniform mat4 model;
-
+uniform mat4 light_view[6];
+uniform int light_index;
+uniform int face_index;
 uniform float lerp;
 
+out vec4 position;
+
 void main() {
-    gl_Position = model * vec4(mix(in_position, in_next_position, lerp), 1.0);
-}  
+  position = model * vec4(mix(in_position, in_next_position, lerp), 1.0);
+  position = position - vec4(lights[light_index].origin.xyz, 0.0);
+  position = light_view[face_index] * position;
+  gl_Position = light_projection * position;
+}

@@ -859,6 +859,16 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
       }
     }
 
+    if (!g_strcmp0(token, "shadow")) {
+
+      if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->shadow, 1) != 1) {
+        Cm_MaterialWarn(path, &parser, "No shadow specified");
+      } else if (m->shadow < 0.f) {
+        Cm_MaterialWarn(path, &parser, "Invalid shadow, must be >= 0.0");
+        m->shadow = MATERIAL_SHADOW;
+      }
+    }
+
     if (*token == '{' && in_material) {
 
       cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
@@ -1240,6 +1250,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
   Fs_Print(file, "\thardness %g\n", material->hardness);
   Fs_Print(file, "\tspecularity %g\n", material->specularity);
   Fs_Print(file, "\tparallax %g\n", material->parallax);
+  Fs_Print(file, "\tshadow %g\n", material->shadow);
 
   if (material->contents) {
     Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));

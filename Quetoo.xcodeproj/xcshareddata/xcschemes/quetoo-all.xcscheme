@@ -117,6 +117,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set editor 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+map pits"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -126,7 +130,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
@@ -135,10 +139,6 @@
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set editor 1"
-            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+connect localhost"

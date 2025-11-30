@@ -15,7 +15,6 @@ shaders_DATA = \
 	mesh_vs.glsl \
 	polylib.glsl \
 	shadow_fs.glsl \
-	shadow_gs.glsl \
 	shadow_vs.glsl \
 	sky_fs.glsl \
 	sky_vs.glsl \

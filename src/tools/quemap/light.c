@@ -69,7 +69,6 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light_t *light = AllocLight();
 
     light->entity = Cm_EntityNumber(entity);
-    light->flags = Cm_EntityValue(entity, "spawnflags")->integer;
     light->origin = Cm_EntityValue(entity, "origin")->vec3;
     light->radius = Cm_EntityValue(entity, "radius")->value ?: LIGHT_RADIUS;
     light->intensity = Cm_EntityValue(entity, "intensity")->value ?: LIGHT_INTENSITY;
@@ -154,7 +153,6 @@ void EmitLights(void) {
     light->out = out;
 
     out->entity = light->entity;
-    out->flags = light->flags;
     out->origin = light->origin;
     out->radius = light->radius;
     out->color = light->color;

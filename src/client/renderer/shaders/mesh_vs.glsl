@@ -37,17 +37,17 @@ uniform mat4 model;
 uniform float lerp;
 
 out vertex_data {
-	vec3 model;
-	vec3 position;
-	vec3 normal;
-	vec3 smooth_normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec2 diffusemap;
-	vec4 color;
-	vec3 ambient;
-	float caustics;
-	vec4 fog;
+  vec3 model;
+  vec3 position;
+  vec3 normal;
+  vec3 smooth_normal;
+  vec3 tangent;
+  vec3 bitangent;
+  vec2 diffusemap;
+  vec4 color;
+  vec3 ambient;
+  float caustics;
+  vec4 fog;
 } vertex;
 
 invariant gl_Position;
@@ -56,7 +56,7 @@ invariant gl_Position;
  * @brief
  */
 float sample_voxel_caustics(in vec3 texcoord) {
-	return texture(texture_voxel_diffuse, texcoord).a * caustics;
+  return texture(texture_voxel_diffuse, texcoord).a * caustics;
 }
 
 /**
@@ -64,26 +64,26 @@ float sample_voxel_caustics(in vec3 texcoord) {
  */
 vec4 sample_voxel_fog(in vec3 texcoord) {
 
-	vec4 fog = vec4(0.0);
+  vec4 fog = vec4(0.0);
 
-	float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
+  float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
-	for (float i = 0; i < samples; i++) {
+  for (float i = 0; i < samples; i++) {
 
-		vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-		vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
+	  vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+	  vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
-		fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
-		if (fog.a >= 1.0) {
-			break;
-		}
-	}
+	  fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+	  if (fog.a >= 1.0) {
+  	  break;
+	  }
+  }
 
-	if (hmax(fog.rgb) > 1.0) {
-		fog.rgb /= hmax(fog.rgb);
-	}
+  if (hmax(fog.rgb) > 1.0) {
+	  fog.rgb /= hmax(fog.rgb);
+  }
 
-	return clamp(fog, 0.0, 1.0);
+  return clamp(fog, 0.0, 1.0);
 }
 
 /**
@@ -91,38 +91,38 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
  */
 void main(void) {
 
-	mat4 view_model = view * model;
+  mat4 view_model = view * model;
 
-	vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
-	vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-	vec4 smooth_normal = vec4(mix(in_smooth_normal, in_next_smooth_normal, lerp), 0.0);
-	vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
-	vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
+  vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
+  vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
+  vec4 smooth_normal = vec4(mix(in_smooth_normal, in_next_smooth_normal, lerp), 0.0);
+  vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
+  vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
-	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.model = vec3(model * position);
-	vertex.position = vec3(view_model * position);
-	vertex.normal = normalize(vec3(view_model * normal));
-	vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
-	vertex.tangent = normalize(vec3(view_model * tangent));
-	vertex.bitangent = normalize(vec3(view_model * bitangent));
-	vertex.diffusemap = in_diffusemap;
-	vertex.color = vec4(1.0);
+  vertex.model = vec3(model * position);
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
+  vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
+  vertex.tangent = normalize(vec3(view_model * tangent));
+  vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.diffusemap = in_diffusemap;
+  vertex.color = vec4(1.0);
 
-	if (view_type == VIEW_PLAYER_MODEL) {
-		vertex.ambient = vec3(0.666);
-		vertex.caustics = 0.0;
-		vertex.fog = vec4(0.0);
-	} else {
-		vec3 texcoord = voxel_uvw(vec3(model * position));
+  if (view_type == VIEW_PLAYER_MODEL) {
+	  vertex.ambient = vec3(0.666);
+	  vertex.caustics = 0.0;
+	  vertex.fog = vec4(0.0);
+  } else {
+	  vec3 texcoord = voxel_uvw(vec3(model * position));
 
-		vertex.ambient = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb * ambient;
-		vertex.caustics = sample_voxel_caustics(texcoord);
-		vertex.fog = sample_voxel_fog(texcoord);
-	}
+	  vertex.ambient = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb * ambient;
+	  vertex.caustics = sample_voxel_caustics(texcoord);
+	  vertex.fog = sample_voxel_fog(texcoord);
+  }
 
-	gl_Position = projection3D * vec4(vertex.position, 1.0);
+  gl_Position = projection3D * vec4(vertex.position, 1.0);
 
-	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+  stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

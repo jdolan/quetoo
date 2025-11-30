@@ -22,10 +22,10 @@
 layout (location = 0) in vec3 in_position;
 
 out vertex_data {
-	vec3 model;
-	vec3 position;
-	vec3 cubemap;
-	vec3 voxel;
+  vec3 model;
+  vec3 position;
+  vec3 cubemap;
+  vec3 voxel;
 } vertex;
 
 invariant gl_Position;
@@ -35,12 +35,12 @@ invariant gl_Position;
  */
 void main(void) {
 
-	vec4 position = vec4(in_position, 1.0);
+  vec4 position = vec4(in_position, 1.0);
 
-	vertex.model = in_position;
-	vertex.position = vec3(view * position);
-	vertex.cubemap = vec3(sky_projection * position);
-	vertex.voxel = voxel_uvw(in_position);
+  vertex.model = in_position;
+  vertex.position = vec3(view * position);
+  vertex.cubemap = vec3(sky_projection * position);
+  vertex.voxel = voxel_uvw(in_position);
 
-	gl_Position = projection3D * view * position;
+  gl_Position = projection3D * view * position;
 }

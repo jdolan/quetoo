@@ -172,18 +172,16 @@ static void Cg_LogoutFlash(const cl_entity_t *ent) {
 void Cg_ParseMuzzleFlash(void) {
 
   const uint16_t entity = cgi.ReadShort();
+  const uint8_t flash = cgi.ReadByte();
 
   if (entity < 1 || entity >= MAX_ENTITIES) {
     Cg_Warn("Bad entity %u\n", entity);
-    cgi.ReadByte(); // attempt to ignore cleanly
     return;
   }
 
   const cl_entity_t *ent = &cgi.client->entities[entity];
-  const uint8_t flash = cgi.ReadByte();
-
   const s_sample_t *sample;
-  int16_t pitch = 0;
+  int32_t pitch = 0;
 
   switch (flash) {
     case MZ_BLASTER:
