@@ -98,8 +98,8 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
     .size_velocity = 16.f,
     .atlas_image = cg_sprite_steam,
     .rotation = RandomRangef(0.0f, 2.0 * M_PI),
-    .color = Vec4(0.f, 0.f, 1.f, 1.f),
-    .end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+    .color = Vec3(0.f, 0.f, 1.f),
+    .end_color = Vec3(0.f, 0.f, 0.f),
     .softness = 1.f
   });
 }
@@ -140,8 +140,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
       .origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
       .rotation = Randomf() * M_PI * 2.f,
       .size = 1.f + 2.f * (np - i / flashlen),
-      .color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-      .end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
+      .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
       .softness = 1.f
     });
   }
@@ -152,8 +152,8 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
     .origin = Vec3_Fmaf(org, 3.f, forward),
     .size = 30.f,
     .size_velocity = 30.f,
-    .color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-    .end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+    .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
+    .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
     .softness = 1.f
   });
 }

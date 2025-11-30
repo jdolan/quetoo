@@ -50,8 +50,8 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
         .lifetime = 1000,
         .origin = z_offset,
         .velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
-        .color = Vec4(144.f, 0.f, 1.f, 0.f),
-        .end_color = Vec4(144.f, .83f, .6f, 0.f),
+        .color = Vec3(144.f, 0.f, 1.f),
+        .end_color = Vec3(144.f, .83f, .6f),
         .size = 10.f,
         .softness = 1.f
       }))) {
@@ -68,8 +68,8 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
     .lifetime = 1000,
     .size = 150.f,
     .atlas_image = cg_sprite_particle,
-    .color = Vec4(150.f, .5f, .4f, 0.f),
-    .end_color = Vec4(150.f, .5f, 0.f, 0.f),
+    .color = Vec3(150.f, .5f, .4f),
+    .end_color = Vec3(150.f, .5f, 0.f),
     .softness = 4.f
   });
 
@@ -95,8 +95,8 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
       .lifetime = 400,
       .size = 10.f,
       .atlas_image = cg_sprite_ring,
-      .color = Vec4(150.f, .5f, .4f, 0.f),
-      .end_color = Vec4(150.f, .5f, 0.f, 0.f),
+      .color = Vec3(150.f, .5f, .4f),
+      .end_color = Vec3(150.f, .5f, 0.f),
       .dir = Vec3_Up()
     }))) {
     s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
@@ -108,8 +108,8 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
     .lifetime = 1000,
     .size = 150,
     .atlas_image = cg_sprite_particle,
-    .color = Vec4(150.f, .5f, .4f, 0.f),
-    .end_color = Vec4(150.f, .5f, 0.f, 0.f),
+    .color = Vec3(150.f, .5f, .4f),
+    .end_color = Vec3(150.f, .5f, 0.f),
     .softness = 4.f
   });
 
@@ -136,7 +136,7 @@ static void Cg_TeleporterEffect(const vec3_t org) {
       .velocity = Vec3_Add(Vec3_RandomRange(-24.f, 24.f), Vec3(0.f, 0.f, RandomRangef(16.f, 48.f))),
       .acceleration.z = -SPRITE_GRAVITY * .1f,
       .lifetime = 500,
-      .color = Vec4(0.f, 0.f, .87f, 0.f),
+      .color = Vec3(0.f, 0.f, .87f),
       .softness = 1.f
     });
   }

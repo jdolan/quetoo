@@ -51,8 +51,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
       .size = 22.5f,
       .size_velocity = 75.f,
       .dir = (i == 1) ? dir : Vec3_Zero(),
-      .color = Vec4(effect_color.x, effect_color.y * saturation, effect_color.z, 0.f),
-      .end_color = Vec4(effect_color.x, effect_color.y * saturation, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y * saturation, effect_color.z),
+      .end_color = Vec3(effect_color.x, effect_color.y * saturation, 0.f),
       .softness = 1.f
     });
   }
@@ -69,8 +69,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
       .size = 4.f,
       .acceleration = Vec3_Scale(velocity, -2.f),
       .lifetime = 500,
-      .color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-      .end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
+      .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
       .softness = 1.f
     });
   }
@@ -85,8 +85,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
       .rotation = Randomf() * M_PI * 2.f,
       .rotation_velocity = Randomf() * .1f,
       .size = 25.f,
-      .color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-      .end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
+      .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
       .softness = 1.f
     });
   }
@@ -103,8 +103,8 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t ef
     .dir = dir,
     .size = 25.f,
     .size_velocity = 20.f,
-    .color = Vec4(effect_color.x, effect_color.y * flame_sat, effect_color.z, 0.f),
-    .end_color = Vec4(effect_color.x, effect_color.y * flame_sat, 0.f, 0.f)
+    .color = Vec3(effect_color.x, effect_color.y * flame_sat, effect_color.z),
+    .end_color = Vec3(effect_color.x, effect_color.y * flame_sat, 0.f)
   });
 
   Cg_AddLight(&(const cg_light_t) {
@@ -146,7 +146,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
     .size = 5.f,
     .velocity = Vec3_Scale(velocity, tracer_speed),
     .lifetime = lifetime,
-    .color = Vec4(0, 0.0f, 1.f, 1.0f),
+    .color = Vec3(0, 0.0f, 1.f),
     .softness = 1.f
   });
 }
@@ -165,8 +165,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
       .flags = SPRITE_SERVER_TIME,
       .lifetime = 1,
       .size = 8.f,
-      .color = Vec4(0.f, 0.f, 1.f, 1.f),
-      .end_color = Vec4(0.f, 0.f, 1.f, 1.f)
+      .color = Vec3(0.f, 0.f, 1.f),
+      .end_color = Vec3(0.f, 0.f, 1.f)
     });
   }
 
@@ -176,8 +176,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
     .flags = SPRITE_SERVER_TIME,
     .lifetime = 1,
     .size = 4.f,
-    .color = Vec4(hue, 1.f, 1.f, 1.f),
-    .end_color = Vec4(hue, 1.f, 1.f, 1.f)
+    .color = Vec3(hue, 1.f, 1.f),
+    .end_color = Vec3(hue, 1.f, 1.f)
   });
 
   // draw bbox representation
@@ -200,8 +200,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
     .size = 1.5f,
     .flags = SPRITE_SERVER_TIME,
     .lifetime = 1,
-    .color = Vec4(hue, 1.f, 1.f, 1.f),
-    .end_color = Vec4(hue, 1.f, 1.f, 1.f)
+    .color = Vec3(hue, 1.f, 1.f),
+    .end_color = Vec3(hue, 1.f, 1.f)
   });
 
   Cg_AddSprite(&(cg_sprite_t) {
@@ -212,8 +212,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
     .size = 1.5f,
     .flags = SPRITE_SERVER_TIME,
     .lifetime = 1,
-    .color = Vec4(hue, 1.f, 1.f, 1.f),
-    .end_color = Vec4(hue, 1.f, 1.f, 1.f)
+    .color = Vec3(hue, 1.f, 1.f),
+    .end_color = Vec3(hue, 1.f, 1.f)
   });
 
   Cg_AddSprite(&(cg_sprite_t) {
@@ -224,8 +224,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
     .size = 1.5f,
     .flags = SPRITE_SERVER_TIME,
     .lifetime = 1,
-    .color = Vec4(hue, 1.f, 1.f, 1.f),
-    .end_color = Vec4(hue, 1.f, 1.f, 1.f)
+    .color = Vec3(hue, 1.f, 1.f),
+    .end_color = Vec3(hue, 1.f, 1.f)
   });
 
   Cg_AddSprite(&(cg_sprite_t) {
@@ -236,8 +236,8 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
     .size = 1.5f,
     .flags = SPRITE_SERVER_TIME,
     .lifetime = 1,
-    .color = Vec4(hue, 1.f, 1.f, 1.f),
-    .end_color = Vec4(hue, 1.f, 1.f, 1.f)
+    .color = Vec3(hue, 1.f, 1.f),
+    .end_color = Vec3(hue, 1.f, 1.f)
   });
 }
 
@@ -247,9 +247,9 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
 static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint8_t bits) {
 
   const float color_intensity = (bits & 4) ? 0.2f : 1.0f;
-  const vec4_t both_color = Vec4(color_hue_green, color_intensity, color_intensity, 0.f);
-  const vec4_t a_color = Vec4(color_hue_blue, color_intensity, color_intensity, 0.f);
-  const vec4_t mover_color = Vec4(color_hue_cyan, color_intensity, color_intensity, 0.f);
+  const vec3_t both_color = Vec3(color_hue_green, color_intensity, color_intensity);
+  const vec3_t a_color = Vec3(color_hue_blue, color_intensity, color_intensity);
+  const vec3_t mover_color = Vec3(color_hue_cyan, color_intensity, color_intensity);
 
   // mover connection
   if (bits & 8) {
@@ -286,8 +286,8 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
       .flags = SPRITE_SERVER_TIME,
       .lifetime = 1,
       .size = 8.f,
-      .color = Vec4(0.f, 0.f, 1.f, 1.f),
-      .end_color = Vec4(0.f, 0.f, 1.f, 1.f)
+      .color = Vec3(0.f, 0.f, 1.f),
+      .end_color = Vec3(0.f, 0.f, 1.f)
     });
   }
 
@@ -356,7 +356,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .rotation = Randomf() * 2.f * M_PI,
       .size = spark_size,
       .lifetime = spark_life,
-      .color = Vec4(0.f, 0.f, 1.f, 0.f),
+      .color = Vec3(0.f, 0.f, 1.f),
       .softness = 1.f
     });
 
@@ -367,7 +367,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .rotation = Randomf() * 2.f * M_PI,
       .size = spark_size,
       .lifetime = spark_life,
-      .color = Vec4(0.f, 0.f, 1.f, 0.f),
+      .color = Vec3(0.f, 0.f, 1.f),
       .dir = dir
     });
 
@@ -383,8 +383,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
         .size = size,
         .size_velocity = -size * 5.f,
         .lifetime = lifetime,
-        .color = Vec4(0.0, 0.0, 1.0, 1.0),
-        .end_color = Vec4(0.0, 0.0, 1.0, 1.0),
+        .color = Vec3(0.0, 0.0, 1.0),
+        .end_color = Vec3(0.0, 0.0, 1.0),
         .softness = 1.f
       });
     }
@@ -398,7 +398,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .rotation = Randomf() * 2.f * M_PI,
       .size_velocity = 60.0f,
       .lifetime = 800.f,
-      .color = Vec4(0.f, 0.f, 0.75f, 0.75f),
+      .color = Vec3(0.f, 0.f, 0.75f),
       .softness = 2.f,
       .lighting = 0.65f
     });
@@ -411,8 +411,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .dir = dir,
       .size = 4.f,
       .lifetime = 650,
-      .color = Vec4(color_hue_orange, 0.8f, 1.f, 1.f),
-      .end_color = Vec4(color_hue_orange, 0.8f, 0.f, 0.f),
+      .color = Vec3(color_hue_orange, 0.8f, 1.f),
+      .end_color = Vec3(color_hue_orange, 0.8f, 0.f),
       .softness = -1.f
     });
   }
@@ -454,8 +454,8 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
         .origin = Vec3_Fmaf(Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)), RandomRangef(0.f, 32.f), dir),
         .velocity = Vec3_RandomRange(-30.f, 30.f),
         .acceleration.z = -SPRITE_GRAVITY / 2.0,
-        .color = Vec4(0.f, 1.f, .5f, .66f),
-        .end_color = Vec4(0.f, 1.f, 0.f, 0.f),
+        .color = Vec3(0.f, 1.f, .5f),
+        .end_color = Vec3(0.f, 1.f, 0.f),
         .softness = 1.f
       })) {
       break;
@@ -503,7 +503,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
           .velocity = Vec3_Add(Vec3_Add(Vec3_Scale(v, dist * ((float)j / GIB_STREAM_COUNT)), Vec3_RandomRange(-2.f, 2.f)), Vec3(0.f, 0.f, 100.f)),
           .acceleration.z = -SPRITE_GRAVITY * 2.0,
           .size = RandomRangef(24.f, 56.f),
-          .color = Vec4(0.f, 1.f, .5f, .97f),
+          .color = Vec3(0.f, 1.f, .5f),
           .softness = 1.f,
           .lighting = 1.f
         })) {
@@ -544,8 +544,8 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
         .rotation = RandomRangef(-M_PI, M_PI),
         .rotation_velocity = 1.f,
         .bounce = .3f,
-        .color = Vec4(hue, .4f, 1.f, 1.f),
-        .end_color = Vec4(hue, .6f, .4f, 0.f),
+        .color = Vec3(hue, .4f, 1.f),
+        .end_color = Vec3(hue, .6f, .4f),
         .softness = 1.f,
         .lighting = 1.f,
       })) {
@@ -597,8 +597,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
           .size = size,
           .size_velocity = -size / MILLIS_TO_SECONDS(lifetime),
           .bounce = .4f,
-          .color = Vec4(hue, 1.f, 1.f, 8.f),
-          .end_color = Vec4(hue, 1.f, -.7f, 0.f),
+          .color = Vec3(hue, 1.f, 1.f),
+          .end_color = Vec3(hue, 1.f, -.7f),
           .softness = 1.f,
           .lighting = .5f,
         })) {
@@ -615,7 +615,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size = 100.f,
     .size_velocity = 25.f,
     .rotation = Randomf() * 2.f * M_PI,
-    .color = Vec4(0.f, 0.f, 1.f, .0f),
+    .color = Vec3(0.f, 0.f, 1.f),
     .softness = 2.f
   });
 
@@ -627,7 +627,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size = 175.f,
     .size_velocity = 25.f,
     .rotation = Randomf() * 2.f * M_PI,
-    .color = Vec4(0.f, 0.f, 1.f, .0f),
+    .color = Vec3(0.f, 0.f, 1.f),
     .softness = 2.f
   });
 
@@ -639,7 +639,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size = 175.f,
     .size_velocity = 25.f,
     .rotation = Randomf() * 2.f * M_PI,
-    .color = Vec4(0.f, 0.f, 1.f, .0f),
+    .color = Vec3(0.f, 0.f, 1.f),
     .dir = dir
   });
 
@@ -652,7 +652,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size_velocity = 500.f,
     .size_acceleration = -500.f,
     .rotation = Randomf() * 2.f * M_PI,
-    .color = Vec4(0.f, 0.f, 1.f, 0.f),
+    .color = Vec3(0.f, 0.f, 1.f),
     .dir = dir
   });
 
@@ -663,7 +663,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size = 200.f,
     .rotation = Randomf() * 2.f * M_PI,
     .atlas_image = cg_sprite_explosion_glow,
-    .color = Vec4(0.f, 0.f, 1.f, 1.f),
+    .color = Vec3(0.f, 0.f, 1.f),
     .softness = 2.f,
     .lighting = 1.f
   });
@@ -694,8 +694,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
  */
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
   
-  vec4_t color_start = Vec4(204.f, .75f, .9f, 0.f);
-  vec4_t color_end = Vec4(204.f, .9f, .0f, 0.f);
+  vec3_t color_start = Vec3(204.f, .75f, .9f);
+  vec3_t color_end = Vec3(204.f, .9f, .0f);
   
   // impact "splash"
   for (uint32_t i = 0; i < 6; i++) {
@@ -837,8 +837,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       .lifetime = core_lifetime + Randomf() * 120,
       .size = 1.f,
       .size_velocity = 1.0 / MILLIS_TO_SECONDS(core_lifetime),
-      .color = Vec4(effect_color.x, effect_color.y, effect_color.z, 0.f),
-      .end_color = Vec4(effect_color.x, effect_color.y, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
+      .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
       .softness = 1.f,
       .lighting = .2f,
     });
@@ -853,8 +853,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
         .lifetime = vapor_lifetime + Randomf() * 160,
         .size = 2.5f,
         .size_velocity = -.5f / MILLIS_TO_SECONDS(vapor_lifetime),
-        .color = Vec4(hue, 0.f, 1.f, 0.f),
-        .end_color = Vec4(hue, effect_color.y, 0.f, 0.f),
+        .color = Vec3(hue, 0.f, 1.f),
+        .end_color = Vec3(hue, effect_color.y, 0.f),
         .softness = 1.f,
         .lighting = 1.f,
       });
@@ -886,8 +886,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       .size_velocity = RandomRangef(100.f, 200.f),
       .rotation = RandomRadian(),
       .rotation_velocity = i == 0 ? .66f : -.66f,
-      .color = Vec4(effect_color.x, effect_color.y * .5f, 1.f, 0.f),
-      .end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
+      .color = Vec3(effect_color.x, effect_color.y * .5f, 1.f),
+      .end_color = Vec3(effect_color.x, 0.f, 0.f),
       .softness = 1.f
     });
   }
@@ -908,8 +908,8 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
           .size = size,
           .size_velocity = -size / MILLIS_TO_SECONDS(lifetime),
           .bounce = .4f,
-          .color = Vec4(effect_color.x, effect_color.y * .5f, effect_color.z, .3f),
-          .end_color = Vec4(effect_color.x, 0.f, 0.f, 0.f),
+          .color = Vec3(effect_color.x, effect_color.y * .5f, effect_color.z),
+          .end_color = Vec3(effect_color.x, 0.f, 0.f),
           .softness = 1.f,
           .lighting = .5f,
         })) {
@@ -970,8 +970,8 @@ static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_ent
     .size = 5.f,
     .lifetime = 1,
     .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
-    .color = Vec4(color_hue_green, 1.f, 1.f, 0),
-    .end_color = Vec4(color_hue_green, 1.f, 1.f, 0),
+    .color = Vec3(color_hue_green, 1.f, 1.f),
+    .end_color = Vec3(color_hue_green, 1.f, 1.f),
     .data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
     .Think = Cg_BfgLaserThink,
     .softness = 1.f,
@@ -1002,7 +1002,7 @@ static void Cg_BfgEffect(const vec3_t org) {
       .size_acceleration = -10.f,
       .rotation = RandomRangef(0.f, 2.f * M_PI),
       .origin = Vec3_Fmaf(org, 50.f, Vec3_RandomDir()),
-      .color = Vec4(0.f, 0.f, 1.f, .15f),
+      .color = Vec3(0.f, 0.f, 1.f),
       .softness = 1.f
     });
   }
@@ -1018,7 +1018,7 @@ static void Cg_BfgEffect(const vec3_t org) {
       .size_acceleration = -10.f,
       .rotation = RandomRangef(0.f, 2.f * M_PI),
       .origin = Vec3_Fmaf(org, 50.f, Vec3_RandomDir()),
-      .color = Vec4(0.f, 0.f, 1.f, .15f),
+      .color = Vec3(0.f, 0.f, 1.f),
       .softness = 1.f,
       .lighting = .5f,
     });
@@ -1034,8 +1034,8 @@ static void Cg_BfgEffect(const vec3_t org) {
       .size = RandomRangef(300, 400),
       .rotation = RandomRadian(),
       .dir = Vec3_Random(),
-      .color = Vec4(120.f, .87f, .80f, .0f),
-      .end_color = Vec4(120.f, .87f, 0.f, 0.f),
+      .color = Vec3(120.f, .87f, .80f),
+      .end_color = Vec3(120.f, .87f, 0.f),
       .softness = 1.f,
       .lighting = .3f,
     });
@@ -1048,8 +1048,8 @@ static void Cg_BfgEffect(const vec3_t org) {
     .lifetime = 600,
     .size = 400.f,
     .rotation = RandomRadian(),
-    .color = Vec4(120.f, .87f, .80f, .0f),
-    .end_color = Vec4(120.f, .87f, .0f, .0f),
+    .color = Vec3(120.f, .87f, .80f),
+    .end_color = Vec3(120.f, .87f, .0f),
     .softness = 1.f,
     .lighting = .3f,
   });
@@ -1061,8 +1061,8 @@ static void Cg_BfgEffect(const vec3_t org) {
     .lifetime = 1000,
     .size = 600.f,
     .rotation = RandomRadian(),
-    .color = Vec4(120.f, .87f, .80f, .0f),
-    .end_color = Vec4(120.f, .87f, 0.f, 0.f),
+    .color = Vec3(120.f, .87f, .80f),
+    .end_color = Vec3(120.f, .87f, 0.f),
     .softness = 6.f,
     .lighting = .2f,
   });
@@ -1102,7 +1102,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 
   // vertical spray
 
-  const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
+  const vec3_t color = Color_HSV(side->material->color);
 
   const float scale = Clampf01(size / 64.f);
 
@@ -1114,8 +1114,8 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
     .origin = Vec3_Fmaf(org, .5f, Vec3(0.f, 0.f, size)),
     .size = size,
     .size_velocity = size * 2.f / MILLIS_TO_SECONDS(lifetime),
-    .color = Vec4(color.x, .3f, .5f, 0.f),
-    .end_color = Vec4(color.x, 0.f, 0.f, 0.f),
+    .color = Vec3(color.x, .3f, .5f),
+    .end_color = Vec3(color.x, 0.f, 0.f),
     .softness = 1.f,
     .lighting = 1.f,
     .Think = Cg_SplashEffect_Think,
@@ -1131,8 +1131,8 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
       .size = RandomRangef(1.f, 3.f),
       .velocity = Vec3_Scale(Vec3_RandomizeDir(dir, 0.33f), RandomRangef(100.f, 200.f)),
       .acceleration.z = -SPRITE_GRAVITY,
-      .color = Vec4(color.x, .3f, .5f, 0.f),
-      .end_color = Vec4(color.x, 0.f, 0.f, 0.f),
+      .color = Vec3(color.x, .3f, .5f),
+      .end_color = Vec3(color.x, 0.f, 0.f),
       .softness = 1.f,
       .lighting = 1.f
     });
@@ -1150,7 +1150,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 
   size *= RandomRangef(0.9f, 1.1f);
 
-  const vec4_t color = Vec3_ToVec4(Color_HSV(side->material->color), 0.f);
+  const vec3_t color = Color_HSV(side->material->color);
 
   float viscosity;
   if (side->contents & CONTENTS_LAVA) {
@@ -1170,8 +1170,8 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
     .size_velocity = size,
     .dir = Vec3_Up(),
     .rotation = RandomRadian(),
-    .color = Vec4(color.x, .1f, .3f, 0.f),
-    .end_color = Vec4(color.x, 0.f, 0.f, 0.f),
+    .color = Vec3(color.x, .1f, .3f),
+    .end_color = Vec3(color.x, 0.f, 0.f),
     .lighting = .6f
   });
 
@@ -1184,8 +1184,8 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
     .size_velocity = size * 6.f,
     .rotation = RandomRadian(),
     .dir = Vec3_Up(),
-    .color = Vec4(0.f, 0.f, .5f, .5f),
-    .end_color = Vec4(0.f, 0.f, 0.f, 0.f),
+    .color = Vec3(0.f, 0.f, .5f),
+    .end_color = Vec3(0.f, 0.f, 0.f),
     .lighting = 1.f
   });
 }
@@ -1222,8 +1222,8 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
         .velocity = Vec3_Add(Vec3_Scale(dir, 9.f), Vec3_RandomRange(-90.f, 90.f)),
         .acceleration = Vec3_Add(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, -0.5f * SPRITE_GRAVITY)),
         .lifetime = 100 + (Randomf() * 150),
-        .color = Vec4(53.f, .83f, .97f, RandomRangef(.8f, 1.f)),
-        .end_color = Vec4(53.f, .83f, 0.f, 0.f),
+        .color = Vec3(53.f, .83f, .97f),
+        .end_color = Vec3(53.f, .83f, 0.f),
         .size = 6.4f + Randomf() * 3.2f,
         .softness = 1.f,
         .lighting = 1.f

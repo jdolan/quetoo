@@ -176,8 +176,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
       s = Cg_AddSprite(&(cg_sprite_t) {
         .origin = org,
         .atlas_image = cg_sprite_rain,
-        .color = Vec4(0.f, 0.f, 0.1f, 0.f),
-        .end_color = Vec4(0.f, 0.f, 0.0f, 0.f),
+        .color = Vec3(0.f, 0.f, 0.1f),
+        .end_color = Vec3(0.f, 0.f, 0.0f),
         .size = 128.f,
         .velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
         .axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
@@ -187,8 +187,8 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
       s = Cg_AddSprite(&(cg_sprite_t) {
         .origin = org,
         .atlas_image = cg_sprite_snow,
-        .color = Vec4(0.f, 0.f, .33f, .33f),
-        .end_color = Vec4(0.f, 0.f, .0f, .0f),
+        .color = Vec3(0.f, 0.f, .33f),
+        .end_color = Vec3(0.f, 0.f, .0f),
         .size = 4.f,
         .velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
         .acceleration = Vec3_RandomRange(-12.f, 12.f),

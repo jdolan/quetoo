@@ -150,17 +150,15 @@ struct cg_sprite_s {
   vec3_t dir;
 
   /**
-   * @brief The sprite color, in HSVA.
-   * @details For alpha-blended sprites, the colors are used as "normal". For additive sprites,
-   * alpha *must* be zero at all times.
+   * @brief The sprite color, in HSV.
    */
-  vec4_t color;
+  vec3_t color;
 
   /**
-   * @brief The sprite's end color, in HSVA.
+   * @brief The sprite's end color, in HSV.
    * @see color
    */
-  vec4_t end_color;
+  vec3_t end_color;
 
   /**
    * @brief The sprite size, in world units. If this is specified, width/height are not used.

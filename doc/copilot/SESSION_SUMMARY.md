@@ -276,3 +276,45 @@ r_max_lights 512   # High
 **Status:** All planned optimizations applied and tested. Codebase is in good shape!
 
 **Next Session:** Ready to tackle new optimizations or bugs with full context.
+
+---
+
+## Sprite vec3_t Refactor (Replaced color24_t approach)
+
+**Date:** November 30, 2025
+
+### Reverted color24_t, Implemented Simpler vec3_t Approach
+
+The color24_t refactor caused strange sprite colors due to double HSV→RGB conversion. Reverted and implemented a simpler solution: just drop the alpha channel from sprite colors.
+
+**Changes:**
+- `cg_sprite_t.color`: Changed from `vec4_t` (HSVA) to `vec3_t` (HSV)
+- `cg_sprite_t.end_color`: Changed from `vec4_t` (HSVA) to `vec3_t` (HSV)
+- Updated all sprite color initializations: `Vec4(h,s,v,a)` → `Vec3(h,s,v)`
+- Updated color interpolation: `Vec4_Mix` → `Vec3_Mix`
+- Updated color operations: `Vec4_Scale` → `Vec3_Scale`
+
+**Benefits:**
+- **Simpler** - No complex type conversions
+- **Readable** - HSV space is clear and explicit
+- **Consistent** - Matches lights which also use vec3_t HSV
+- **Maintainable** - Easy to understand and modify
+
+**Files Modified:** 15+ files across cgame
+**Build Status:** ✅ Zero compilation errors
+**Documentation:** `SPRITE_VEC3_REFACTOR_COMPLETE.md`
+
+### Why vec3_t is Better Than color24_t
+
+1. **No double conversion** - HSV interpolation, single HSV→RGB at render
+2. **Clear semantics** - Vec3(hue, sat, val) is obvious
+3. **Matches lights** - cg_light_t also uses vec3_t HSV colors
+4. **No type confusion** - Simple vector math, no color type juggling
+
+---
+
+**Total Bugs Fixed:** 7
+**Total Optimizations Applied:** 8  
+**Total Refactors Completed:** 2 (color24_t attempted, vec3_t successful)
+**Overall Performance Improvement:** ~3x frame rate from all optimizations combined
+

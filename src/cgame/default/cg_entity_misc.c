@@ -76,21 +76,17 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.dir = cgi.EntityValue(self->def, "dir")->vec3;
 
   const cm_entity_t *color = cgi.EntityValue(self->def, "color");
-  if (color->parsed & ENTITY_VEC4) {
-    dust->sprite.color = color->vec4;
-  } else if (color->parsed & ENTITY_VEC3) {
-    dust->sprite.color = Vec3_ToVec4(color->vec3, 1.f);
+  if (color->parsed & ENTITY_VEC3) {
+    dust->sprite.color = color->vec3;
   } else {
-    dust->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
+    dust->sprite.color = Vec3(0.f, 0.f, 1.f);
   }
 
   const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
-  if (end_color->parsed & ENTITY_VEC4) {
-    dust->sprite.end_color = end_color->vec4;
-  } else if (end_color->parsed & ENTITY_VEC3) {
-    dust->sprite.end_color = Vec3_ToVec4(end_color->vec3, 0.f);
+  if (end_color->parsed & ENTITY_VEC3) {
+    dust->sprite.end_color = end_color->vec3;
   } else {
-    dust->sprite.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
+    dust->sprite.end_color = Vec3(0.f, 0.f, 0.f);
   }
 
   dust->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
@@ -144,7 +140,7 @@ static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delt
   cg_dust_t *dust = sprite->data;
 
   if (life <= .1f) {
-    sprite->color = Vec4_Scale(dust->sprite.color, life / .1f);
+    sprite->color = Vec3_Scale(dust->sprite.color, life / .1f);
   }
 
   if (life >= 1.f) {
@@ -278,8 +274,8 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
         .size = 1.f,
         .size_velocity = 16.f,
         .size_acceleration = 150.f * s,
-        .color = Vec4(hue, sat, RandomRangef(.7f, 1.f), RandomRangef(.56f, 1.f)),
-        .end_color = Vec4(hue, sat, 0.f, 0.f),
+        .color = Vec3(hue, sat, RandomRangef(.7f, 1.f)),
+        .end_color = Vec3(hue, sat, 0.f),
         .softness = 1.f
       })) {
       break;
@@ -653,21 +649,17 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   sprite->sprite.dir = cgi.EntityValue(self->def, "dir")->vec3;
 
   const cm_entity_t *color = cgi.EntityValue(self->def, "color");
-  if (color->parsed & ENTITY_VEC4) {
-    sprite->sprite.color = color->vec4;
-  } else if (color->parsed & ENTITY_VEC3) {
-    sprite->sprite.color = Vec3_ToVec4(color->vec3, 1.f);
+  if (color->parsed & ENTITY_VEC3) {
+    sprite->sprite.color = color->vec3;
   } else {
-    sprite->sprite.color = Vec4(0.f, 0.f, 1.f, 1.f);
+    sprite->sprite.color = Vec3(0.f, 0.f, 1.f);
   }
 
   const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
-  if (end_color->parsed & ENTITY_VEC4) {
-    sprite->sprite.end_color = end_color->vec4;
-  } else if (end_color->parsed & ENTITY_VEC3) {
-    sprite->sprite.end_color = Vec3_ToVec4(end_color->vec3, 0.f);
+  if (end_color->parsed & ENTITY_VEC3) {
+    sprite->sprite.end_color = end_color->vec3;
   } else {
-    sprite->sprite.end_color = Vec4(0.f, 0.f, 0.f, 0.f);
+    sprite->sprite.end_color = Vec3(0.f, 0.f, 0.f);
   }
 
   sprite->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
@@ -712,8 +704,8 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
       s.rotation = Mixf(this->sprite.rotation, that->sprite.rotation, Randomf());
       s.rotation_velocity = Mixf(this->sprite.rotation_velocity, that->sprite.rotation_velocity, Randomf());
       s.dir = Vec3_Mix(this->sprite.dir, that->sprite.dir, Randomf());
-      s.color = Vec4_Mix(this->sprite.color, that->sprite.color, Randomf());
-      s.end_color = Vec4_Mix(this->sprite.end_color, that->sprite.end_color, Randomf());
+      s.color = Vec3_Mix(this->sprite.color, that->sprite.color, Randomf());
+      s.end_color = Vec3_Mix(this->sprite.end_color, that->sprite.end_color, Randomf());
       s.size = Mixf(this->sprite.size, that->sprite.size, Randomf());
       s.width = Mixf(this->sprite.width, that->sprite.width, Randomf());
       s.height = Mixf(this->sprite.height, that->sprite.height, Randomf());
@@ -808,7 +800,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .rotation_velocity = RandomRangef(-1.f, 1.f),
       .size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
       .size_velocity = 10.f,
-      .color = Vec4(0.f, 0.f, 1.f, .5f),
+      .color = Vec3(0.f, 0.f, 1.f),
       .lighting = 1.f,
       .softness = 1.f,
     })) {
