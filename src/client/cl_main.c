@@ -651,6 +651,10 @@ void Cl_Frame(const uint32_t msec) {
     }
   }
 
+  R_InitView(&cl_view);
+
+  S_InitStage(&cl_stage);
+
   Cl_AttemptConnect();
 
   Cl_ReadPackets();
@@ -658,10 +662,6 @@ void Cl_Frame(const uint32_t msec) {
   Cl_HandleEvents();
 
   R_BeginFrame();
-
-  R_InitView(&cl_view);
-
-  S_InitStage(&cl_stage);
 
   if (cls.state == CL_ACTIVE) {
 
