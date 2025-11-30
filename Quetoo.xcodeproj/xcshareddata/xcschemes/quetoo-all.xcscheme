@@ -101,6 +101,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set cl_draw_renderer_stats 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set s_ambient_volume 0"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -118,10 +122,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map pits"
+            argument = "+set g_cheats 1 +give all +god +no_clip"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -129,16 +133,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "NO">
+            argument = "+map pits"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+connect localhost"

@@ -110,7 +110,9 @@ void Cg_AddLights(void) {
 
   Cg_AddBspLights();
 
-  for (GList *list = cg_lights.allocated->head; list != NULL; list = list->next) {
+  GList *list = cg_lights.allocated->head;
+  while (list != NULL) {
+    GList *next = list->next; // for potential removal
 
     cg_light_t *light = list->data;
 
@@ -134,11 +136,13 @@ void Cg_AddLights(void) {
     if (age >= light->decay) {
       Cg_FreeLight(light);
     }
+
+    list = next;
   }
 }
 
 /**
- * @brief 
+ * @brief
  */
 void Cg_InitLights(void) {
 
