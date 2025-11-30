@@ -728,22 +728,6 @@ typedef struct cg_import_s {
   void (*InitView)(r_view_t *view);
 
   /**
-   * @brief Allocates an occlusion query for the given bounding box.
-   * @details Occlusion queries should persist multiple frames to be effective. Add them to
-   * persistent client game objects such as lights and entities, and consult them before adding
-   * the renderer instance of each object to the view.
-   * @param bounds The bounding box.
-   * @return A pointer to the occlusion query, which should be freed with FreeOcclusionQuery.
-   */
-  r_occlusion_query_t *(*AllocOcclusionQuery)(const box3_t bounds);
-
-  /**
-   * @brief Frees (release) the specified occlusion query back to the pool.
-   * @param query The occlusion query to free.
-   */
-  void (*FreeOcclusionQuery)(r_occlusion_query_t *query);
-
-  /**
    * @return True if the bounding box is culled or occluded, false otherwise.
    */
   bool (*CulludeBox)(const r_view_t *view, const box3_t bounds);

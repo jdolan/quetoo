@@ -60,11 +60,6 @@ typedef struct {
   uint32_t time;
 
   /**
-   * @brief The occlusion query enclosing this light's bounds.
-   */
-  r_occlusion_query_t *query;
-
-  /**
    * @brief The identifier of the light source entity, which will not cast shadow.
    */
   void *source;

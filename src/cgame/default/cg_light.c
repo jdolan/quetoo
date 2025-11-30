@@ -50,12 +50,6 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
 
   light->intensity = light->intensity ?: 1.f;
 
-  if (light->decay) {
-    light->query = cgi.AllocOcclusionQuery(Box3_FromCenterRadius(light->origin, light->radius));
-  } else {
-    light->query = NULL;
-  }
-
   light->time = cgi.client->unclamped_time;
 
   g_queue_push_head(cg_lights.allocated, light);
@@ -66,12 +60,6 @@ static cg_light_t *Cg_AllocLight(const cg_light_t *in) {
  * @brief Frees the specified light source.
  */
 static void Cg_FreeLight(cg_light_t *light) {
-
-  if (light->query) {
-    cgi.FreeOcclusionQuery(light->query);
-  }
-
-  light->query = NULL;
 
   const bool removed = g_queue_remove(cg_lights.allocated, light);
   assert(removed);
@@ -140,7 +128,6 @@ void Cg_AddLights(void) {
         .intensity = intensity,
         .bounds = Box3_FromCenterRadius(light->origin, light->radius),
         .source = light->source,
-        .query = light->query,
       });
     }
 
@@ -162,32 +149,18 @@ void Cg_InitLights(void) {
 }
 
 /**
- * @brief GDestroyNotify for freeing lights.
- */
-static void Cg_ShutdownLight(gpointer data) {
-
-  cg_light_t *light = data;
-
-  if (light->query) {
-    cgi.FreeOcclusionQuery(light->query);
-  }
-
-  cgi.Free(light);
-}
-
-/**
  * @brief
  */
 void Cg_FreeLights(void) {
 
   if (cg_lights.allocated) {
-    g_queue_free_full(cg_lights.allocated, Cg_ShutdownLight);
+    g_queue_free_full(cg_lights.allocated, cgi.Free);
   }
 
   cg_lights.allocated = NULL;
 
   if (cg_lights.free) {
-    g_queue_free_full(cg_lights.free, Cg_ShutdownLight);
+    g_queue_free_full(cg_lights.free, cgi.Free);
   }
 
   cg_lights.free = NULL;
