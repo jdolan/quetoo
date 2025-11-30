@@ -110,9 +110,9 @@ void Cg_AddLights(void) {
 
   Cg_AddBspLights();
 
-  for (guint i = 0; i < cg_lights.allocated->length; i++) {
+  for (GList *list = cg_lights.allocated->head; list != NULL; list = list->next) {
 
-    cg_light_t *light = g_queue_peek_nth(cg_lights.allocated, i);
+    cg_light_t *light = list->data;
 
     const uint32_t age = cgi.client->unclamped_time - light->time;
     float intensity = light->intensity;
