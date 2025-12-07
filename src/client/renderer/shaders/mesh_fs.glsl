@@ -125,28 +125,100 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir) {
 }
 
 /**
- * @brief
+ * @brief Poisson disk samples for PCF soft shadows
+ */
+const vec3 poisson_disk[16] = vec3[](
+                                     vec3( 0.2770745,  0.6951455,  0.6638531),
+                                     vec3(-0.5932785, -0.1203284,  0.7954771),
+                                     vec3( 0.4494750,  0.2469098, -0.8414080),
+                                     vec3(-0.1460639, -0.5679667, -0.8098297),
+                                     vec3( 0.6400498, -0.4071948,  0.6527679),
+                                     vec3(-0.3631914,  0.7935778, -0.4889667),
+                                     vec3( 0.1248857, -0.8975238,  0.4223446),
+                                     vec3(-0.7720318,  0.4438458,  0.4568679),
+                                     vec3( 0.8851806,  0.1653373, -0.4349109),
+                                     vec3(-0.5238012, -0.7260296,  0.4437121),
+                                     vec3( 0.3642682,  0.5968054,  0.7145538),
+                                     vec3(-0.8331701, -0.3328346, -0.4437121),
+                                     vec3( 0.5527260, -0.6985809, -0.4568679),
+                                     vec3(-0.2407123,  0.3153157,  0.9181205),
+                                     vec3( 0.7269405, -0.1430640,  0.6718765),
+                                     vec3(-0.6444675,  0.6444675, -0.4076138)
+                                     );
+
+/**
+ * @brief Simple pseudo-random function for per-pixel rotation
+ */
+float random_angle(vec3 seed) {
+  return fract(sin(dot(seed, vec3(12.9898, 78.233, 45.164))) * 43758.5453) * 6.283185;
+}
+
+/**
+ * @brief Rotate a 3D vector around an arbitrary axis
+ */
+vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
+  axis = normalize(axis);
+  float s = sin(angle);
+  float c = cos(angle);
+  float oc = 1.0 - c;
+
+  return vec3(
+              (oc * axis.x * axis.x + c) * v.x + (oc * axis.x * axis.y - axis.z * s) * v.y + (oc * axis.z * axis.x + axis.y * s) * v.z,
+              (oc * axis.x * axis.y + axis.z * s) * v.x + (oc * axis.y * axis.y + c) * v.y + (oc * axis.y * axis.z - axis.x * s) * v.z,
+              (oc * axis.z * axis.x - axis.y * s) * v.x + (oc * axis.y * axis.z + axis.x * s) * v.y + (oc * axis.z * axis.z + c) * v.z
+              );
+}
+
+/**
+ * @brief Soft shadow sampling with PCF and Poisson disk
  */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
 
   int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
   int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
 
-  vec4 shadowmap = vec4(vertex.model - light.origin.xyz, layer);
-  float bias = length(shadowmap.xyz) / depth_range.y;
+  vec3 light_to_frag = vertex.model - light.origin.xyz;
+  float current_depth = length(light_to_frag) / depth_range.y;
 
-  switch (array) {
-	  case 0:
-  	  return texture(texture_shadow_cubemap_array0, shadowmap, bias);
-	  case 1:
-  	  return texture(texture_shadow_cubemap_array1, shadowmap, bias);
-	  case 2:
-  	  return texture(texture_shadow_cubemap_array2, shadowmap, bias);
-	  case 3:
-  	  return texture(texture_shadow_cubemap_array3, shadowmap, bias);
+  // Estimate penumbra size based on light radius (treat as light size)
+  float light_size = light.origin.w * 3.0;  // 2% of light radius as physical size
+  float dist_to_light = length(light_to_frag);
+  float penumbra = light_size * (dist_to_light / light.origin.w);
+  float filter_radius = penumbra * 0.005;  // Scale to texel units
+
+  // Distance-based sample count (close = more samples, far = fewer)
+  float view_dist = length(vertex.position);
+  int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
+
+  // Per-pixel rotation to eliminate banding
+  float angle = random_angle(vertex.model);
+  vec3 rotation_axis = normalize(light_to_frag);
+
+  float shadow = 0.0;
+
+  for (int i = 0; i < num_samples; i++) {
+    // Rotate Poisson sample to eliminate banding patterns
+    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, angle);
+    vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
+    vec4 shadowmap = vec4(sample_dir, layer);
+
+    switch (array) {
+      case 0:
+        shadow += texture(texture_shadow_cubemap_array0, shadowmap, current_depth);
+        break;
+      case 1:
+        shadow += texture(texture_shadow_cubemap_array1, shadowmap, current_depth);
+        break;
+      case 2:
+        shadow += texture(texture_shadow_cubemap_array2, shadowmap, current_depth);
+        break;
+      case 3:
+        shadow += texture(texture_shadow_cubemap_array3, shadowmap, current_depth);
+        break;
+    }
   }
 
-  return -1.0;
+  return shadow / float(num_samples);
 }
 
 /**
