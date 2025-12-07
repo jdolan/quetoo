@@ -241,8 +241,8 @@ float blinn(in vec3 light_dir) {
 /**
  * @brief
  */
-vec3 blinn_phong(in vec3 diffuse, in vec3 light_dir) {
-  return diffuse * fragment.specularmap.rgb * blinn(light_dir);
+vec3 blinn_phong(in vec3 light_color, in vec3 light_dir) {
+  return light_color * fragment.specularmap.rgb * blinn(light_dir);
 }
 
 /**
@@ -283,27 +283,19 @@ void light_and_shadow_light(in light_t light, in int index) {
     return;
   }
 
-  vec3 diffuse = light.color.rgb * light.color.a * atten * modulate;
+  vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
   dir = normalize(view * vec4(dir, 0.0)).xyz;
 
-  float lambert = dot(dir, fragment.normalmap);
-  if (lambert <= 0.0) {
-    return;
-  }
-
-  diffuse *= lambert;
-
+  float lambert = max(0.0, dot(dir, fragment.normalmap));
   float shadow = sample_shadow_cubemap_array(light, index);
 
   if (fragment.lod < 4.0 && material.shadow > 0.0) {
     shadow *= parallax_self_shadow(dir);
   }
 
-  diffuse *= shadow;
-
-  fragment.diffuse += diffuse;
-  fragment.specular += blinn_phong(diffuse, dir);
+  fragment.diffuse += color * lambert * shadow;
+  fragment.specular += blinn_phong(color * shadow, dir);
 }
 
 /**
@@ -339,10 +331,10 @@ void light_and_shadow(void) {
   fragment.specularmap = sample_specularmap();
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 6).rgb;
-  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
-  fragment.specular = blinn_phong(fragment.ambient, fragment.normalmap);
 
-  fragment.diffuse = vec3(0);
+  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
+  fragment.diffuse = vec3(0.0);
+  fragment.specular = vec3(0.0);
 
   for (int i = 0; i < MAX_LIGHTS; i++) {
 
