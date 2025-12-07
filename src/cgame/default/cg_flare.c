@@ -121,7 +121,7 @@ void Cg_AddFlares(void) {
       continue;
     }
 
-    flare->out.color = Color_Scale(flare->in.color, alpha);
+    flare->out.color = Vec3_Scale(flare->in.color, alpha);
 
     cgi.AddSprite(cgi.view, &flare->out);
   }
@@ -145,9 +145,9 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
   flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
 
   if (stage->cm->flags & STAGE_COLOR) {
-    flare->in.color = stage->cm->color;
+    flare->in.color = stage->cm->color.vec3;
   } else {
-    flare->in.color = color_white;
+    flare->in.color = color_white.vec3;
   }
 
   flare->in.media = stage->media;

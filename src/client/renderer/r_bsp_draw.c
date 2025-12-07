@@ -164,7 +164,7 @@ void R_AddBspVoxelSprites(r_view_t *view) {
           R_AddSprite(view, &(r_sprite_t) {
             .origin = origin,
             .size = 8.f,
-            .color = color,
+            .color = color.vec3,
             .media = (r_media_t *) particle,
           });
 
@@ -177,7 +177,7 @@ void R_AddBspVoxelSprites(r_view_t *view) {
             R_AddSprite(view, &(r_sprite_t) {
               .origin = origin,
               .size = 8.f,
-              .color = color,
+              .color = color.vec3,
               .media = (r_media_t *) particle
             });
           }

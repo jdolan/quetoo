@@ -48,8 +48,6 @@ static struct {
 
   GLint texture_diffusemap;
   GLint texture_next_diffusemap;
-  GLint texture_voxel_diffuse;
-  GLint texture_voxel_fog;
   GLint texture_depth_attachment_copy;
 
 } r_sprite_program;
@@ -228,7 +226,7 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
     in->vertexes[0].lerp =
     in->vertexes[1].lerp =
     in->vertexes[2].lerp =
-    in->vertexes[3].lerp = lerp;
+    in->vertexes[3].lerp = lerp * 255;
   } else {
     in->next_diffusemap = in->diffusemap;
 
@@ -240,23 +238,23 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
     in->vertexes[0].lerp =
     in->vertexes[1].lerp =
     in->vertexes[2].lerp =
-    in->vertexes[3].lerp = 0.f;
+    in->vertexes[3].lerp = 0;
   }
 
   in->vertexes[0].color =
   in->vertexes[1].color =
   in->vertexes[2].color =
-  in->vertexes[3].color = s->color;
+  in->vertexes[3].color = Color_Color24(Color3fv(s->color));
 
   in->vertexes[0].softness =
   in->vertexes[1].softness =
   in->vertexes[2].softness =
-  in->vertexes[3].softness = r_sprite_soften->value * s->softness;
+  in->vertexes[3].softness = Clampf01(r_sprite_soften->value * s->softness) * 255;
 
   in->vertexes[0].lighting =
   in->vertexes[1].lighting =
   in->vertexes[2].lighting =
-  in->vertexes[3].lighting = s->lighting;
+  in->vertexes[3].lighting = Clampf01(s->lighting) * 255;
 
   in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
 }
@@ -333,7 +331,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
     in->vertexes[0].color =
     in->vertexes[1].color =
     in->vertexes[2].color =
-    in->vertexes[3].color = b->color;
+    in->vertexes[3].color = Color_Color24(Color3fv(b->color));
 
     in->vertexes[0].lerp =
     in->vertexes[1].lerp =
@@ -478,14 +476,10 @@ static void R_InitSpriteProgram(void) {
 
   r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
   r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
-  r_sprite_program.texture_voxel_diffuse = glGetUniformLocation(r_sprite_program.name, "texture_voxel_diffuse");
-  r_sprite_program.texture_voxel_fog = glGetUniformLocation(r_sprite_program.name, "texture_voxel_fog");
   r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
   glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
   glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
-  glUniform1i(r_sprite_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
-  glUniform1i(r_sprite_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
   glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
   glUseProgram(0);
@@ -524,10 +518,10 @@ void R_InitSprites(void) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
-  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
-  glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-  glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
-  glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+  glVertexAttribPointer(3, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
+  glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
+  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
+  glVertexAttribPointer(6, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);

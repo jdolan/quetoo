@@ -46,9 +46,10 @@ typedef struct {
   color_t color;
 
   /**
-   * @brief Effects color.
+   * @brief Effects color, transmitted as a hue for efficiency.
    */
   float hue;
+
 } cg_team_info_t;
 
 /**
@@ -81,7 +82,7 @@ typedef struct {
   color_t shirt, pants, helmet;
 
   /**
-   * @brief Effects color.
+   * @brief Effects color, transmitted as a hue for efficiency.
    */
   float hue;
 

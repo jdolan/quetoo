@@ -79,7 +79,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   if (color->parsed & ENTITY_VEC3) {
     dust->sprite.color = color->vec3;
   } else {
-    dust->sprite.color = Vec3(0.f, 0.f, 1.f);
+    dust->sprite.color = Vec3(1.f, 1.f, 1.f);
   }
 
   const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
@@ -274,8 +274,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
         .size = 1.f,
         .size_velocity = 16.f,
         .size_acceleration = 150.f * s,
-        .color = Vec3(hue, sat, RandomRangef(.7f, 1.f)),
-        .end_color = Vec3(hue, sat, 0.f),
+        .color = ColorHSV(hue, sat, RandomRangef(.7f, 1.f)).vec3,
         .softness = 1.f
       })) {
       break;
@@ -652,7 +651,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   if (color->parsed & ENTITY_VEC3) {
     sprite->sprite.color = color->vec3;
   } else {
-    sprite->sprite.color = Vec3(0.f, 0.f, 1.f);
+    sprite->sprite.color = Vec3(1.f, 1.f, 1.f);
   }
 
   const cm_entity_t *end_color = cgi.EntityValue(self->def, "end_color");
@@ -800,7 +799,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .rotation_velocity = RandomRangef(-1.f, 1.f),
       .size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
       .size_velocity = 10.f,
-      .color = Vec3(0.f, 0.f, 1.f),
+      .color = Vec3(1.f, 1.f, 1.f),
       .lighting = 1.f,
       .softness = 1.f,
     })) {

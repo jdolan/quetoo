@@ -237,10 +237,9 @@ void Cg_AddSprites(void) {
       }
     }
 
-    const vec3_t c = Vec3_Mix(s->color, s->end_color, life);
-    const color_t color = ColorHSV(c.x, c.y, c.z);
-    vec3_t origin = s->origin;
+    const vec3_t color = Vec3_Mix(s->color, s->end_color, life);
 
+    vec3_t origin = s->origin;
     if (s->flags & SPRITE_FOLLOW_ENTITY) {
       origin = Vec3_Add(origin, entity->origin);
     }
@@ -258,7 +257,7 @@ void Cg_AddSprites(void) {
           .rotation = s->rotation,
           .media = s->media,
           .life = life,
-          .flags = (r_sprite_flags_t)s->flags,
+          .flags = s->flags,
           .dir = s->dir,
           .axis = s->axis,
           .softness = s->softness,

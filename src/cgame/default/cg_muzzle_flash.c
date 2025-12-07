@@ -98,8 +98,7 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
     .size_velocity = 16.f,
     .atlas_image = cg_sprite_steam,
     .rotation = RandomRangef(0.0f, 2.0 * M_PI),
-    .color = Vec3(0.f, 0.f, 1.f),
-    .end_color = Vec3(0.f, 0.f, 0.f),
+    .color = Vec3(1.f, 1.f, 1.f),
     .softness = 1.f
   });
 }
@@ -107,16 +106,18 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 /**
  * @brief
  */
-static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
+static void Cg_BlasterFlash(const cl_entity_t *ent) {
 
   // TODO: make less ugly and align better with gun
+
+  const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_orange);
 
   vec3_t org = Cg_MuzzleOrigin(ent, -2.f, 16.f);
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
     .radius = 120.0,
-    .color = ColorHSV(effect_color.x, effect_color.y * 0.5f, effect_color.z).vec3,
+    .color = color,
     .intensity = 1.f,
     .decay = 300
   });
@@ -140,8 +141,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
       .origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
       .rotation = Randomf() * M_PI * 2.f,
       .size = 1.f + 2.f * (np - i / flashlen),
-      .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
-      .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
+      .color = color,
       .softness = 1.f
     });
   }
@@ -152,8 +152,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent, const vec3_t effect_color) {
     .origin = Vec3_Fmaf(org, 3.f, forward),
     .size = 30.f,
     .size_velocity = 30.f,
-    .color = Vec3(effect_color.x, effect_color.y, effect_color.z),
-    .end_color = Vec3(effect_color.x, effect_color.y, 0.f),
+    .color = color,
     .softness = 1.f
   });
 }
@@ -186,7 +185,7 @@ void Cg_ParseMuzzleFlash(void) {
   switch (flash) {
     case MZ_BLASTER:
       sample = cg_sample_blaster_fire;
-      Cg_BlasterFlash(ent, Cg_ResolveClientEffectHSV(ent->current.client, color_hue_orange));
+      Cg_BlasterFlash(ent);
       pitch = 5;
       break;
     case MZ_SHOTGUN:

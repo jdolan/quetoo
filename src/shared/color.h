@@ -209,15 +209,15 @@ static inline void Color_Fill(color_t *out, const color_t c, size_t len) {
 }
 
 /**
- * @return A color with the specified RGB vector converted from HSV.
+ * @return A color from the given HSV components.
  */
 static inline color_t __attribute__ ((warn_unused_result)) ColorHSV(float hue, float saturation, float value) {
 
   value = Clampf01(value);
 
-    if (saturation <= 0.0f) {
+  if (saturation <= 0.0f) {
     return Color3f(value, value, value);
-    }
+  }
 
   saturation = Minf(saturation, 1.f);
 
@@ -268,12 +268,29 @@ static inline color_t __attribute__ ((warn_unused_result)) ColorHSV(float hue, f
 }
 
 /**
+ * @return A color from the given HSV vector.
+ */
+static inline color_t __attribute__ ((warn_unused_result)) ColorHSV3fv(const vec3_t hsv) {
+  return ColorHSV(hsv.x, hsv.y, hsv.z);
+}
+
+/**
  * @return A color with the specified RGB vector converted from HSV.
  */
-static inline color_t __attribute__ ((warn_unused_result)) ColorHSVA(float hue, float saturation, float value, float alpha) {
+static inline color_t __attribute__ ((warn_unused_result)) ColorHSVA(float hue,
+                                                                     float saturation,
+                                                                     float value,
+                                                                     float alpha) {
   color_t color = ColorHSV(hue, saturation, value);
   color.a = Clampf01(alpha);
   return color;
+}
+
+/**
+  * @return A color with the specified HSV vector converted from HSV.
+  */
+static inline color_t __attribute__ ((warn_unused_result)) ColorHSVA3fv(const vec4_t hsva) {
+  return ColorHSVA(hsva.x, hsva.y, hsva.z, hsva.w);
 }
 
 /**

@@ -78,8 +78,6 @@ enum {
   SPRITE_ENTITY_UNLINK_ON_DEATH = SPRITE_CGAME << 4
 };
 
-typedef uint32_t cg_r_sprite_flags_t;
-
 /**
  * @brief Type-safe mapping to entity & spawn ID
  */
@@ -150,12 +148,12 @@ struct cg_sprite_s {
   vec3_t dir;
 
   /**
-   * @brief The sprite color, in HSV.
+   * @brief The sprite color.
    */
   vec3_t color;
 
   /**
-   * @brief The sprite's end color, in HSV.
+   * @brief The sprite's end color.
    * @see color
    */
   vec3_t end_color;
@@ -229,7 +227,7 @@ struct cg_sprite_s {
   /**
    * @brief Sprite flags.
    */
-  cg_r_sprite_flags_t flags;
+  r_sprite_flags_t flags;
 
   /**
    * @brief Sprite billboard axis.

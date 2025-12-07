@@ -22,7 +22,7 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
-layout (location = 3) in vec4 in_color;
+layout (location = 3) in vec3 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_softness;
 layout (location = 6) in float in_lighting;
@@ -31,38 +31,10 @@ out vertex_data {
   vec3 position;
   vec2 diffusemap;
   vec2 next_diffusemap;
-  vec4 color;
-  vec4 fog;
+  vec3 color;
   float lerp;
   float softness;
 } vertex;
-
-/**
- * @brief
- */
-vec4 sample_voxel_fog(in vec3 texcoord) {
-
-  vec4 fog = vec4(0.0);
-
-  float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
-
-  for (float i = 0; i < samples; i++) {
-
-	  vec3 xyz = mix(vertex.position, view[0].xyz, i / samples);
-	  vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
-
-	  fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
-	  if (fog.a >= 1.0) {
-  	  break;
-	  }
-  }
-
-  if (hmax(fog.rgb) > 1.0) {
-	  fog.rgb /= hmax(fog.rgb);
-  }
-
-  return clamp(fog, 0.0, 1.0);
-}
 
 /**
  * @brief
@@ -119,8 +91,6 @@ void main(void) {
   vertex.softness = in_softness;
 
   vec3 texcoord = voxel_uvw(in_position);
-
-  vertex.fog = sample_voxel_fog(texcoord);
 
   light_and_shadow();
 

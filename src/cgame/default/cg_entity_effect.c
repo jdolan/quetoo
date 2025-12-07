@@ -22,32 +22,38 @@
 #include "cg_local.h"
 
 /**
- * @brief Resolve HSV from the given hue value
+ * @brief
  */
-vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
+vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 
-  if (hue < 0) {
-    return Vec3(default_hue, 1.f, 1.f);
-  } else if (hue > 360.f) {
-    return Vec3(0.f, 0.f, 1.f);
+  if (hue) {
+    if (*hue < 0.f) {
+      *hue = default_hue;
+    }
+    return ColorHSV(*hue, 1.f, 1.f).vec3;
+  } else {
+    return ColorHSV(default_hue, 1.f, 1.f).vec3;
   }
-
-  return Vec3(hue, 1.f, 1.f);
 }
 
 /**
- * @brief Resolve a client hue from the entity index given in the effect
+ * @brief
  */
-vec3_t Cg_ResolveClientEffectHSV(const int32_t client, const float default_hue) {
+vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
-  if (client < 0 || client >= MAX_CLIENTS) {
-    return Vec3(default_hue, 1.f, 1.f);
-  }
+  assert(client >= 0);
+  assert(client < MAX_CLIENTS);
 
   const cg_client_info_t *ci = &cg_state.clients[client];
-  const float hue = ci->team ? ci->team->hue : ci->hue;
+  float client_hue = ci->team ? ci->team->hue : ci->hue;
 
-  return Cg_ResolveEffectHSV(hue, default_hue);
+  const vec3_t color = Cg_EffectColor(&client_hue, default_hue);
+
+  if (hue) {
+    *hue = client_hue;
+  }
+
+  return color;
 }
 
 /**
@@ -61,7 +67,7 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
   cgi.AddSprite(cgi.view, &(const r_sprite_t) {
     .origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
-    .color = color_white,
+    .color = color_white.vec3,
     .media = (r_media_t *) cg_sprite_inactive,
     .size = 32.f,
     .softness = 1.f
@@ -99,7 +105,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     const cg_light_t l = {
       .origin = e->origin,
       .radius = 180.0,
-      .color = Vec3(0.3f, 0.7f, 0.7f),
+      .color = Vec3(.3f, .7f, .7f),
       .intensity = 1.5f,
       .source = ent,
     };
@@ -113,12 +119,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
     for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
-        const vec3_t effect_color = Cg_ResolveEffectHSV(cg_state.teams[team].hue, 0.f);
+        const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
 
         const cg_light_t l = {
           .origin = e->origin,
           .radius = 180.f,
-          .color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
+          .color = color,
           .intensity = 1.5f,
           .source = ent,
         };

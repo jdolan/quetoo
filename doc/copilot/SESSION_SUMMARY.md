@@ -113,17 +113,49 @@ if (ent->current.number != s->number || ent->current.spawn_id != s->spawn_id) {
 - **Shadow mapping:** ~70% faster
 - **Parallax mapping:** ~50% faster  
 - **Self-shadows:** 99% cost reduction (from unusable to usable)
-- **Overall:** Significant frame rate improvements
+- **Sprite rendering:** Simpler code with vec3_t (HSV) instead of vec4_t (HSVA)
+- **Lighting quality:** Fixed critical Blinn-Phong specular bugs
+- **Overall:** Significant frame rate improvements and better visual quality
 
 ### Typical Scene Impact
 - 1920x1080: ~50 FPS → 100 FPS (user reported: "30% performance bump!")
 - Major improvements in shadow-heavy and parallax-heavy scenes
+- Better specular highlights with physically correct Blinn-Phong
+
+---
+
+## Latest Work (December 6, 2025)
+
+### 9. Sprite Color Refactor ✅
+**Files:** 15+ cgame files, `cg_sprite.h`
+
+**Changes:**
+- Simplified sprite colors from `vec4_t` (HSVA) to `vec3_t` (HSV)
+- Dropped unnecessary alpha channel for additive blending
+- Updated all sprite initializers across codebase
+- Fixed variable declarations and operations
+
+**Result:** Cleaner, more readable code without performance impact
+
+### 10. Blinn-Phong Lighting Fixes ✅
+**Files:** `src/client/renderer/shaders/bsp_fs.glsl`
+
+**Critical Bugs Fixed:**
+1. **Ambient specular using normal as light direction** - Was broken, now removed
+2. **Specular multiplied by Lambert term** - Now physically correct and independent
+
+**Changes:**
+- Fixed `blinn_phong()` signature to take `light_color` not `diffuse`
+- Separated diffuse (Lambert-based) and specular (independent) in lighting
+- Removed broken ambient specular calculation
+
+**Impact:** Specular highlights now appear correctly at all angles, physically accurate
 
 ---
 
 ## Documentation Created
 
-All optimizations are documented in:
+All work is documented in:
 - `SHADOWMAP_OPTIMIZATION_RECOMMENDATIONS.md`
 - `PARALLAX_OPTIMIZATION_ANALYSIS.md`
 - `PARALLAX_FINAL_OPTIMIZATIONS.md`
@@ -132,6 +164,15 @@ All optimizations are documented in:
 - `FRUSTUM_CULLING_ANALYSIS.md`
 - `FRUSTUM_CONSTRUCTION_BUG.md`
 - `ENTITY_STATE_BUG_FIX.md`
+- `ENTITY_EVENTS_BUG_FIX.md`
+- `TEMP_ENTITY_BUG_FIX.md`
+- `TEMP_ENTITY_DEBUG_NOTES.md`
+- `SOUND_STAGE_BUG_FIX.md`
+- `DYNAMIC_LIGHTS_BUG_FIX.md`
+- `SPRITE_VEC3_REFACTOR_COMPLETE.md`
+- `LIGHT_VS_SPRITE_COLORS.md`
+- `BLINN_PHONG_ANALYSIS.md`
+- `BLINN_PHONG_FIXES.md`
 
 ---
 
