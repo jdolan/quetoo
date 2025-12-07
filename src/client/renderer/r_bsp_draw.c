@@ -370,7 +370,11 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 
     r_stats.blocks_visible++;
 
-    R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+    if (entity->model == r_models.world) {
+      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+    } else {
+      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+    }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -445,7 +449,11 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
       continue;
     }
 
-    R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+    if (entity->model == r_models.world) {
+      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+    } else {
+      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+    }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
