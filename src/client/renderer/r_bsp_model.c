@@ -341,22 +341,6 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Resets all face stains in the event that the map is reloaded.
- */
-static void R_ResetBspVoxelStains(r_bsp_model_t *bsp) {
-
-  r_bsp_voxels_t *voxels = bsp->voxels;
-
-  Color32_Fill(voxels->stain_buffer, Color32(255, 255, 255, 255), voxels->size.x * voxels->size.y * voxels->size.z);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
-
-  R_UploadImage(voxels->stains, voxels->stain_buffer);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-}
-
-/**
  * @brief
  */
 static void R_LoadBspVoxels(r_model_t *mod) {
@@ -416,27 +400,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   R_UploadImage(out->fog, data);
 
-  out->stains = (r_image_t *) R_AllocMedia("voxel_stains", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->stains->media.Free = R_FreeImage;
-  out->stains->type = IMG_VOXELS;
-  out->stains->width = out->size.x;
-  out->stains->height = out->size.y;
-  out->stains->depth = out->size.z;
-  out->stains->target = GL_TEXTURE_3D;
-  out->stains->levels = levels;
-  out->stains->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->stains->magnify = GL_LINEAR;
-  out->stains->internal_format = GL_RGBA8;
-  out->stains->format = GL_RGBA;
-  out->stains->pixel_type = GL_UNSIGNED_BYTE;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_STAINS);
-
-  R_UploadImage(out->stains, NULL);
-
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-
-  out->stain_buffer = Mem_LinkMalloc(voxels * sizeof(color32_t), mod->bsp);
 }
 
 /**
@@ -606,11 +570,8 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_ResetBspVoxelStains(mod->bsp);
-
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->diffuse);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->stains);
 
   r_models.world = mod;
 }

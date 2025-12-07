@@ -41,7 +41,6 @@ static struct {
   GLint texture_voxel_diffuse;
   GLint texture_voxel_caustics;
   GLint texture_voxel_fog;
-  GLint texture_voxel_stains;
 
   GLint texture_sky;
 
@@ -542,7 +541,6 @@ void R_InitBspProgram(void) {
 
   r_bsp_program.texture_voxel_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_voxel_diffuse");
   r_bsp_program.texture_voxel_fog = glGetUniformLocation(r_bsp_program.name, "texture_voxel_fog");
-  r_bsp_program.texture_voxel_stains = glGetUniformLocation(r_bsp_program.name, "texture_voxel_stains");
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
 
@@ -576,7 +574,6 @@ void R_InitBspProgram(void) {
 
   glUniform1i(r_bsp_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
   glUniform1i(r_bsp_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
-  glUniform1i(r_bsp_program.texture_voxel_stains, TEXTURE_VOXEL_STAINS);
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 

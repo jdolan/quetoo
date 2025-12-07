@@ -537,8 +537,6 @@
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
 		CE8FD2ED23D3E034002FD074 /* r_program.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2EB23D3E034002FD074 /* r_program.c */; };
-		CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EF23D48AB7002FD074 /* r_stain.h */; };
-		CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8FD2F023D48AB7002FD074 /* r_stain.c */; };
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
 		CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
@@ -1706,8 +1704,6 @@
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
 		CE8FD2EA23D3E034002FD074 /* r_program.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_program.h; sourceTree = "<group>"; };
 		CE8FD2EB23D3E034002FD074 /* r_program.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_program.c; sourceTree = "<group>"; };
-		CE8FD2EF23D48AB7002FD074 /* r_stain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_stain.h; sourceTree = "<group>"; };
-		CE8FD2F023D48AB7002FD074 /* r_stain.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_stain.c; sourceTree = "<group>"; };
 		CE8FD2F923D70A11002FD074 /* sky_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_vs.glsl; sourceTree = "<group>"; };
 		CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sky_fs.glsl; sourceTree = "<group>"; };
 		CE91924C2055731E007AC8FF /* tjunction.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tjunction.c; sourceTree = "<group>"; };
@@ -2687,8 +2683,6 @@
 				CE12D5EE1C5C58C300CD0B13 /* r_sky.h */,
 				CEAC32BA24212553007E1253 /* r_sprite.c */,
 				CEAC32BB24212553007E1253 /* r_sprite.h */,
-				CE8FD2F023D48AB7002FD074 /* r_stain.c */,
-				CE8FD2EF23D48AB7002FD074 /* r_stain.h */,
 				CE12D5F11C5C58C300CD0B13 /* r_types.h */,
 				CE12D5F21C5C58C300CD0B13 /* renderer.h */,
 				CE12D5AE1C5C58C300CD0B13 /* Makefile.am */,
@@ -3765,7 +3759,6 @@
 				CEE13C16293241970075585D /* r_shadow.h in Headers */,
 				CED4389E1D9D34450052BAFA /* r_sky.h in Headers */,
 				CEAC32BD24212553007E1253 /* r_sprite.h in Headers */,
-				CE8FD2F123D48AB7002FD074 /* r_stain.h in Headers */,
 				CED438A01D9D34450052BAFA /* r_types.h in Headers */,
 				CED438A11D9D34450052BAFA /* renderer.h in Headers */,
 			);
@@ -4958,7 +4951,6 @@
 				CEE13C15293241970075585D /* r_shadow.c in Sources */,
 				CED438561D9D34450052BAFA /* r_sky.c in Sources */,
 				CEAC32BC24212553007E1253 /* r_sprite.c in Sources */,
-				CE8FD2F223D48AB7002FD074 /* r_stain.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

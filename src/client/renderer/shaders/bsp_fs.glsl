@@ -53,7 +53,6 @@ struct fragment_t {
   float caustics;
   vec3 specular;
   vec4 fog;
-  vec3 stains;
 } fragment;
 
 /**
@@ -193,13 +192,6 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief
  */
-vec3 sample_voxel_stains() {
-  return texture(texture_voxel_stains, vertex.voxel).rgb * stains;
-}
-
-/**
- * @brief
- */
 float sample_voxel_caustics() {
   return texture(texture_voxel_diffuse, vertex.voxel).a;
 }
@@ -285,14 +277,18 @@ void light_and_shadow_light(in light_t light, in int index) {
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
-  dir = normalize(view * vec4(dir, 0.0)).xyz;
-
-  float lambert = max(0.0, dot(dir, fragment.normalmap));
   float shadow = sample_shadow_cubemap_array(light, index);
 
   if (fragment.lod < 4.0 && material.shadow > 0.0) {
     shadow *= parallax_self_shadow(dir);
   }
+
+  if (shadow <= 0.0) {
+    return;
+  }
+
+  dir = normalize(view * vec4(dir, 0.0)).xyz;
+  float lambert = max(0.0, dot(dir, fragment.normalmap));
 
   fragment.diffuse += color * lambert * shadow;
   fragment.specular += blinn_phong(color * shadow, dir);
@@ -378,14 +374,12 @@ void main(void) {
 
     light_and_shadow();
 
-    fragment.stains = sample_voxel_stains();
     fragment.fog = sample_voxel_fog();
 
     out_color = fragment.diffusemap;
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
-    out_color.rgb *= fragment.stains;
     out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
@@ -405,7 +399,6 @@ void main(void) {
     //      light_and_shadow();
     //
     //      out_color.rgb *= (fragment.ambient + fragment.diffuse);
-    //      out_color.rgb *= fragment.stains;
     //    }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {

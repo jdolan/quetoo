@@ -126,11 +126,6 @@ layout (std140) uniform uniforms_block {
   float caustics;
 
   /**
-   * @brief The stains scalar.
-   */
-  float stains;
-
-  /**
    * @brief The volumetric fog density scalar.
    */
   float fog_density;
@@ -216,7 +211,6 @@ uniform sampler2D texture_warp;
  */
 uniform sampler3D texture_voxel_diffuse;
 uniform sampler3D texture_voxel_fog;
-uniform sampler3D texture_voxel_stains;
 
 /**
  * @brief The sky cubemap texture.

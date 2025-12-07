@@ -118,18 +118,7 @@
               "identifier": "sprites"
             }
             },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Stains"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "cg_add_stains"
-                        }
-                      },
+                      
                       {
                         "class": "Input",
                         "label": {

@@ -724,11 +724,6 @@ typedef struct {
    * @brief The voxel size in world units (constant).
    */
   vec3_t voxel_size;
-  
-  /**
-   * @brief The light index 3D textures (R10G10B10A2).
-   */
-  r_image_t *lights0, *lights1, *lights2, *lights3, *lights4, *lights5;
 
   /**
    * @brief The diffuse 3D texture (RGB9E5).
@@ -739,16 +734,6 @@ typedef struct {
    * @brief The fog 3D texture (RGBA8).
    */
   r_image_t *fog;
-
-  /**
-   * @brief The stain 3D texture (RGBA8).
-   */
-  r_image_t *stains;
-
-  /**
-   * @brief The stainmap buffer.
-   */
-  color32_t *stain_buffer;
 } r_bsp_voxels_t;
 
 /**
@@ -1289,29 +1274,6 @@ typedef struct {
 #define MAX_SPRITE_INSTANCES (MAX_SPRITES + MAX_BEAMS)
 
 /**
- * @brief Stains are low-resolution color effects added to the map's voxel
- * data. They are persistent for the duration of the map.
- */
-typedef struct {
-  /**
-   * @brief The stain origin.
-   */
-  vec3_t origin;
-
-  /**
-   * @brief The stain radius.
-   */
-  float radius;
-
-  /**
-   * @brief The stain color.
-   */
-  color_t color;
-} r_stain_t;
-
-#define MAX_STAINS      0x400
-
-/**
  * @brief Renderer-specific entity effect bits. The lower 16 bits are reserved for the game and
  * client game module, and are sent over the wire as part of entity state. The higher bits are applied
  * locally by the client, client game or renderer.
@@ -1680,12 +1642,6 @@ typedef struct {
   int32_t num_lights;
 
   /**
-   * @brief The stains to render for the current frame.
-   */
-  r_stain_t stains[MAX_STAINS];
-  int32_t num_stains;
-
-  /**
    * @brief The view frustum, for box and sphere culling.
    * @remarks This is populated by the renderer.
    */
@@ -1794,7 +1750,6 @@ typedef enum {
   TEXTURE_VOXEL,
   TEXTURE_VOXEL_DIFFUSE,
   TEXTURE_VOXEL_FOG,
-  TEXTURE_VOXEL_STAINS,
 
   /**
    * @brief The sky cubemap texture.

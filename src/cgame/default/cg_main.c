@@ -28,7 +28,6 @@ cvar_t *cg_add_entities;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
 cvar_t *cg_add_sprites;
-cvar_t *cg_add_stains;
 cvar_t *cg_add_weather;
 cvar_t *cg_bob;
 cvar_t *cg_draw_blend;
@@ -119,7 +118,6 @@ static void Cg_Init(void) {
   cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
   cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");
   cg_add_sprites = cgi.AddCvar("cg_add_sprites", "1", 0, "Toggles adding sprites to the scene.");
-  cg_add_stains = cgi.AddCvar("cg_add_stains", "1", 0, "Toggles adding stains to the scene.");
   cg_add_weather = cgi.AddCvar("cg_add_weather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
   cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Controls weapon bobbing effect.");
   cg_draw_blend = cgi.AddCvar("cg_draw_blend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");

@@ -25,18 +25,6 @@
 /**
  * @brief
  */
-void Cg_AddStain(const r_stain_t *stain) {
-
-  if (!cg_add_stains->value) {
-    return;
-  }
-
-  cgi.AddStain(cgi.view, stain);
-}
-
-/**
- * @brief
- */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t color) {
 
   for (int32_t i = 0; i < 2; i++) {
@@ -393,12 +381,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     });
   }
 
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = 1.f,
-    .color = Color4bv(0xbb202020),
-  });
-
   if (cgi.client->unclamped_time < last_ric_time) {
     last_ric_time = 0;
   }
@@ -436,12 +418,6 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
       break;
     }
   }
-
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = count * .5f,
-    .color = Color4bv(0xAA2222AA),
-  });
 }
 
 #define GIB_STREAM_DIST 220.0
@@ -486,12 +462,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
       }
     }
   }
-
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = count * 6.0,
-    .color = Color4bv(0x88111188),
-  });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_gib,
@@ -649,12 +619,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .decay = 1000
   });
 
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = RandomRangef(32.f, 48.f),
-    .color = Color4bv(0xaa202020),
-  });
-
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_explosion,
     .origin = org,
@@ -718,12 +682,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
     .color = Vec3(.4f, .7f, 1.f),
     .intensity = 3.f,
     .decay = 250,
-  });
-
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = 16.f,
-    .color = Color4f(.4f, .7f, 1.f, .33f),
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
@@ -883,12 +841,6 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       }
     }
   }
-
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = end,
-    .radius = 4.f,
-    .color = Color4bv(0xDD202020)
-  });
 }
 
 /**
@@ -1034,12 +986,6 @@ static void Cg_BfgEffect(const vec3_t org) {
     .color = Vec3(.4f, 1.f, .4f),
     .intensity = 3.f,
     .decay = 1500
-  });
-  
-  Cg_AddStain(&(const r_stain_t) {
-    .origin = org,
-    .radius = 45.f,
-    .color = Color4f(.8f, 1.f, .5f, .5f),
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {

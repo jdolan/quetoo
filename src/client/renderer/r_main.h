@@ -43,7 +43,6 @@ extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_specularity;
-extern cvar_t *r_stains;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
@@ -185,11 +184,6 @@ typedef struct {
      * @brief The caustics scalar.
      */
     float caustics;
-
-    /**
-     * @brief The stains scalar.
-     */
-    float stains;
 
     /**
      * @brief The fog density scalar.

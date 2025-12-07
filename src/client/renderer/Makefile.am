@@ -33,7 +33,6 @@ noinst_HEADERS = \
 	r_shadow.h \
 	r_sky.h \
 	r_sprite.h \
-	r_stain.h \
 	r_types.h \
 	renderer.h
 
@@ -68,8 +67,7 @@ librenderer_la_SOURCES = \
 	r_program.c \
 	r_shadow.c \
 	r_sky.c \
-	r_sprite.c \
-	r_stain.c
+	r_sprite.c
 
 librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \

@@ -36,7 +36,6 @@ static void didSelectQuality(Select *select, Option *option) {
     case 3:
       cgi.SetCvarInteger("cg_add_atmospheric", 1);
       cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_stains", 1);
       cgi.SetCvarInteger("r_caustics", 1);
       cgi.SetCvarInteger("r_sprites_soften", 1);
       cgi.SetCvarInteger("r_sprites_lerp", 1);
@@ -44,7 +43,6 @@ static void didSelectQuality(Select *select, Option *option) {
     case 2:
       cgi.SetCvarInteger("cg_add_atmospheric", 1);
       cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_stains", 1);
       cgi.SetCvarInteger("r_caustics", 1);
       cgi.SetCvarInteger("r_sprites_soften", 1);
       cgi.SetCvarInteger("r_sprites_lerp", 1);
@@ -52,7 +50,6 @@ static void didSelectQuality(Select *select, Option *option) {
     case 1:
       cgi.SetCvarInteger("cg_add_atmospheric", 1);
       cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_stains", 1);
       cgi.SetCvarInteger("r_caustics", 0);
       cgi.SetCvarInteger("r_sprites_soften", 1);
       cgi.SetCvarInteger("r_sprites_lerp", 0);
@@ -60,7 +57,6 @@ static void didSelectQuality(Select *select, Option *option) {
     case 0:
       cgi.SetCvarInteger("cg_add_atmospheric", 0);
       cgi.SetCvarInteger("cg_add_weather", 0);
-      cgi.SetCvarInteger("cg_add_stains", 0);
       cgi.SetCvarInteger("r_caustics", 0);
       cgi.SetCvarInteger("r_sprites_soften", 0);
       cgi.SetCvarInteger("r_sprites_lerp", 0);

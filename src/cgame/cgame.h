@@ -759,11 +759,6 @@ typedef struct cg_import_s {
   r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
 
   /**
-   * @brief Add a stain to the scene.
-   */
-  void (*AddStain)(r_view_t *view, const r_stain_t *s);
-
-  /**
    * @brief Draws the player model view.
    */
   void (*DrawPlayerModelView)(r_view_t *view);

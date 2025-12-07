@@ -63,7 +63,6 @@ cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_specularity;
-cvar_t *r_stains;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
@@ -155,7 +154,6 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->ambient = r_ambient->value * view->ambient;
     out->modulate = r_modulate->value;
     out->caustics = r_caustics->value;
-    out->stains = r_stains->value;
     out->fog_density = r_fog_density->value;
     out->fog_samples = r_fog_samples->value;
     out->developer = r_developer->value;
@@ -208,7 +206,6 @@ void R_InitView(r_view_t *view) {
   view->num_lights = 0;
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
-  view->num_stains = 0;
 
   memset(view->frustum, 0, sizeof(view->frustum));
 }
@@ -257,8 +254,6 @@ void R_DrawMainView(r_view_t *view) {
   R_UpdateEntities(view);
 
   thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
-
-  R_UpdateStains(view);
 
   R_UpdateLights(view);
 
@@ -383,7 +378,6 @@ static void R_InitLocal(void) {
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
   r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_stains = Cvar_Add("r_stains", "1", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls persistent stain effects.");
   r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
   r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);

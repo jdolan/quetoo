@@ -24,7 +24,6 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-void Cg_AddStain(const r_stain_t *stain);
 void Cg_GibEffect(const vec3_t org, int32_t count);
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count);
 void Cg_ParseTempEntity(void);
