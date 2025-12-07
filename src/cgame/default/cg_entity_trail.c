@@ -1009,6 +1009,7 @@ static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
   }
   assert(team);
 
+  const vec3_t color = ColorHSV(team->hue, 1.f, 1.f).vec3;
   const vec3_t velocity = Vec3_Scale(Vec3_Subtract(end, start), 100.f / cgi.client->frame_msec);
 
   const int32_t count = Cg_TrailCount(end, 1.f, ent, TRAIL_PRIMARY, NULL, NULL);
@@ -1023,7 +1024,7 @@ static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
         .velocity = Vec3_Add(velocity, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 0.f, 24.f)),
         .acceleration = Vec3_RandomizeDir(Vec3_Scale(Vec3_Up(), 30.f), .33f),
         .friction = 50.f,
-        .color = team->effect_color,
+        .color = color,
         .softness = 1.f,
         .lighting = .5f
       })) {
