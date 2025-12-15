@@ -599,12 +599,11 @@ static void Cl_UpdateScene(void) {
     Cl_PopulateEditorScene(&cl.frame);
   }
 
-  //thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
+  thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
 
-  cls.cgame->PopulateScene(&cl.frame);
   R_DrawViewDepth(&cl_view);
 
-  //Thread_Wait(thread);
+  Thread_Wait(thread);
 
   thread = Thread_Create((ThreadRunFunc) S_RenderStage, &cl_stage, THREAD_NONE);
 
