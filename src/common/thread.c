@@ -84,7 +84,7 @@ static int32_t Thread_Run(void *data) {
       } else {
         t->status = THREAD_WAITING;
       }
-      SDL_BroadcastCondition(t->cond);
+      SDL_SignalCondition(t->cond);
     } else {
       SDL_WaitCondition(t->cond, t->mutex);
     }
