@@ -181,7 +181,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   float current_depth = length(light_to_frag) / depth_range.y;
 
   // Estimate penumbra size based on light radius (treat as light size)
-  float light_size = light.origin.w * 3.0;  // 2% of light radius as physical size
+  float light_size = light.origin.w * 3.0; // 3x radius term used for penumbra heuristic
   float dist_to_light = length(light_to_frag);
   float penumbra = light_size * (dist_to_light / light.origin.w);
   float filter_radius = penumbra * 0.005;  // Scale to texel units
