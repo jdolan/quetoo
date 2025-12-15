@@ -216,6 +216,7 @@ void R_Draw3D(void) {
   glBindVertexArray(r_draw_3d.vertex_array);
 
   glBindBuffer(GL_ARRAY_BUFFER, r_draw_3d.vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_3d.vertexes), NULL, GL_DYNAMIC_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_3d.num_vertexes * sizeof(r_draw_3d_vertex_t), r_draw_3d.vertexes);
 
   const r_draw_3d_arrays_t *draw = r_draw_3d.draw_arrays;

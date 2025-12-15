@@ -381,7 +381,7 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
     Com_Warn("NULL image\n");
     return;
   }
-  
+
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = image->texnum,
@@ -505,7 +505,7 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
   };
 
   r_draw_2d_vertex_t *out = r_draw_2d.vertexes + r_draw_2d.num_vertexes;
-  
+
   const GLint *in = points;
   for (size_t i = 0; i < count; i++, in += 2, out++) {
 
@@ -526,7 +526,7 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
  * @brief Draw all 2D geometry accumulated for the current frame.
  */
 void R_Draw2D(void) {
-  
+
   r_stats.draw_arrays = r_draw_2d.num_draw_arrays;
 
   if (r_draw_2d.num_draw_arrays == 0) {
@@ -539,8 +539,9 @@ void R_Draw2D(void) {
   glUseProgram(r_draw_2d_program.name);
 
   glBindVertexArray(r_draw_2d.vertex_array);
-  
+
   glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.vertexes), NULL, GL_DYNAMIC_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes);
 
   const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
@@ -564,7 +565,7 @@ void R_Draw2D(void) {
   glBindVertexArray(0);
 
   glUseProgram(0);
-  
+
   r_draw_2d.num_draw_arrays = 0;
   r_draw_2d.num_vertexes = 0;
 

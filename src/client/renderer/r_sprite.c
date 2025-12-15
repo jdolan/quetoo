@@ -40,7 +40,7 @@ static struct {
  */
 static struct {
   GLuint name;
-  
+
   GLuint uniforms_block;
   GLuint lights_block;
 
@@ -361,7 +361,7 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
 void R_UpdateSprites(r_view_t *view) {
 
   R_AddBspVoxelSprites(view);
-  
+
   const r_sprite_t *s = view->sprites;
   for (int32_t i = 0; i < view->num_sprites; i++, s++) {
     R_UpdateSprite(view, s);
@@ -391,6 +391,7 @@ void R_DrawSprites(const r_view_t *view) {
   glBindBuffer(GL_ARRAY_BUFFER, r_sprites.vertex_buffer);
 
   const GLsizei count = view->num_sprite_instances * 4;
+  glBufferData(GL_ARRAY_BUFFER, sizeof(r_sprites.vertexes), NULL, GL_DYNAMIC_DRAW);
   glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(r_sprite_vertex_t), r_sprites.vertexes);
 
   glBindVertexArray(r_sprites.vertex_array);
@@ -514,7 +515,7 @@ void R_InitSprites(void) {
     elements[e + 5] = v + 3;
   }
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-  
+
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, position));
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, diffusemap));
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
@@ -536,7 +537,7 @@ void R_InitSprites(void) {
   R_GetError(NULL);
 
   R_InitSpriteProgram();
-  
+
   r_sprite_soften = Cvar_Add("r_sprite_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
