@@ -78,7 +78,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->color = LIGHT_COLOR;
     }
 
-    light->bounds = Box3_FromCenter(light->origin);
+    light->bounds = Box3_Null();
 
     return light;
   } else {
@@ -150,6 +150,11 @@ void EmitLights(void) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
+
+    if (Box3_IsNull(light->bounds)) {
+      continue;
+    }
+
     light->out = out;
 
     out->entity = light->entity;
