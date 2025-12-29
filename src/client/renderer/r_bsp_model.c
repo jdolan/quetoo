@@ -353,7 +353,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
   const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
-  const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5);
+  const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
 
   out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
 
@@ -513,7 +513,6 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 (1 << BSP_LUMP_DRAW_ELEMENTS) | \
 (1 << BSP_LUMP_BLOCKS) | \
 (1 << BSP_LUMP_LIGHTS) | \
-(1 << BSP_LUMP_LIGHTGRID) | \
 (1 << BSP_LUMP_VOXELS) \
 )
 
@@ -535,16 +534,31 @@ static void R_LoadBspLightGrid(r_model_t *mod) {
   }
 
   const bsp_file_t *file = bsp->cm->file;
-  const byte *data = file->lightgrid;
-  const bsp_lightgrid_header_t *hdr = (const bsp_lightgrid_header_t *) data;
+  if (!file->voxels) {
+    Com_Debug(DEBUG_RENDERER, "No voxels in BSP\n");
+    return;
+  }
 
-  const int vx = hdr->size_x;
-  const int vy = hdr->size_y;
-  const int vz = hdr->size_z;
+  // Light grid data is appended to voxels lump after voxel texture data
+  const bsp_voxels_t *voxels_header = file->voxels;
+  const int vx = voxels_header->size.x;
+  const int vy = voxels_header->size.y;
+  const int vz = voxels_header->size.z;
   const int num_cells = vx * vy * vz;
-  const int total = hdr->total_indices;
+  const int total = voxels_header->light_grid_size;
 
-  data += sizeof(bsp_lightgrid_header_t);
+  Com_Print("Voxels header: size=(%d,%d,%d) light_grid_size=%d\n", vx, vy, vz, total);
+
+  if (total == 0) {
+    Com_Debug(DEBUG_RENDERER, "No light grid data in BSP\n");
+    return;
+  }
+
+  // Calculate offset to light grid data:
+  // sizeof(bsp_voxels_t) + voxel diffuse data + voxel fog data
+  const byte *data = (const byte *) file->voxels;
+  data += sizeof(bsp_voxels_t);
+  data += (vx * vy * vz) * sizeof(color32_t) * 2; // diffuse + fog
 
   const int32_t *file_meta = (const int32_t *) data;
   data += num_cells * 2 * sizeof(int32_t);

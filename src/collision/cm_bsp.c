@@ -47,7 +47,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
   BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
   BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
-  BSP_LUMP_SIZE_STRUCT(lightgrid, MAX_BSP_LIGHTGRID_SIZE),
   BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE)
 };
 
@@ -322,6 +321,7 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
   bsp_voxels_t *voxel = (bsp_voxels_t *) lump;
 
   voxel->size = LittleVec3i(voxel->size);
+  voxel->light_grid_size = LittleLong(voxel->light_grid_size);
 }
 
 /**

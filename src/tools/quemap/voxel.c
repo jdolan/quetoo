@@ -463,14 +463,22 @@ void FogVoxel(int32_t voxel_num) {
  */
 void EmitVoxels(void) {
 
-  bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t);
+  // Calculate base voxel data size
+  const size_t voxel_data_size = voxels.num_voxels * sizeof(color32_t) * 2; // diffuse + fog
+  
+  // Reserve space for light grid (will be filled by EmitLightGrid)
+  // We don't know the exact size yet, so reserve maximum possible
+  const int num_cells = voxels.num_voxels;
+  const size_t max_lightgrid_size = num_cells * 2 * sizeof(int32_t) + // metadata
+                                     num_cells * bsp_file.num_lights * sizeof(int32_t); // worst case: all lights in all cells
+  
+  bsp_file.voxels_size = sizeof(bsp_voxels_t) + voxel_data_size + max_lightgrid_size;
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_VOXELS, bsp_file.voxels_size);
   memset(bsp_file.voxels, 0, bsp_file.voxels_size);
 
   bsp_file.voxels->size = voxels.size;
+  bsp_file.voxels->light_grid_size = 0; // Will be set by EmitLightGrid
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   

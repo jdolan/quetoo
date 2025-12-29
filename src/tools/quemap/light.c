@@ -340,39 +340,35 @@ void EmitLightGrid(void) {
     Mem_Free(cursor);
   }
 
-  // write into bsp_file.lightgrid
-  if (bsp_file.lightgrid) {
-    Mem_Free(bsp_file.lightgrid);
-    bsp_file.lightgrid = NULL;
-    bsp_file.lightgrid_size = 0;
-  }
-
-  const size_t header_size = sizeof(bsp_lightgrid_header_t);
+  // Write light grid data into already-allocated voxels lump space
   const size_t meta_size = num_cells * 2 * sizeof(int32_t);
   const size_t indices_size = total * sizeof(int32_t);
-
-  bsp_file.lightgrid_size = (int32_t) (header_size + meta_size + indices_size);
-  bsp_file.lightgrid = Mem_TagMalloc(bsp_file.lightgrid_size, MEM_TAG_QLIGHT);
-
-  byte *out = bsp_file.lightgrid;
-  bsp_lightgrid_header_t hdr;
-  hdr.size_x = vx;
-  hdr.size_y = vy;
-  hdr.size_z = vz;
-  hdr.total_indices = total;
-
-  memcpy(out, &hdr, header_size);
-  out += header_size;
-
+  
+  // Set light_grid_size in voxels header
+  bsp_file.voxels->light_grid_size = total;
+  
+  // Calculate where to write light grid data:
+  // After voxel header + diffuse data + fog data
+  byte *out = (byte *) bsp_file.voxels;
+  out += sizeof(bsp_voxels_t);
+  out += (vx * vy * vz) * sizeof(color32_t) * 2; // diffuse + fog
+  
+  // Write light grid metadata (offset/count pairs)
   if (meta) {
     memcpy(out, meta, meta_size);
     out += meta_size;
   }
-
+  
+  // Write light grid indices
   if (indices) {
     memcpy(out, indices, indices_size);
     out += indices_size;
   }
+  
+  // Trim the voxels lump to actual size
+  const size_t voxel_data_size = (vx * vy * vz) * sizeof(color32_t) * 2;
+  const int32_t actual_size = sizeof(bsp_voxels_t) + voxel_data_size + meta_size + indices_size;
+  bsp_file.voxels_size = actual_size;
 
   Mem_Free(counts);
   Mem_Free(offsets);

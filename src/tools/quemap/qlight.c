@@ -417,11 +417,11 @@ static void LightWorld(void) {
   // emit light sources to the bsp
   EmitLights();
 
-  // emit the clustered light grid into the BSP file for runtime use
-  EmitLightGrid();
-
-  // and voxels
+  // Emit voxels first (allocates space for light grid)
   EmitVoxels();
+
+  // Then emit the clustered light grid into the already-allocated voxels lump
+  EmitLightGrid();
 
   // free the voxels
   Mem_FreeTag(MEM_TAG_VOXEL);

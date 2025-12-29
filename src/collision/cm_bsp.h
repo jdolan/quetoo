@@ -98,7 +98,6 @@ typedef enum {
   BSP_LUMP_BLOCKS,
   BSP_LUMP_MODELS,
   BSP_LUMP_LIGHTS,
-  BSP_LUMP_LIGHTGRID,
   BSP_LUMP_VOXELS,
   BSP_LUMP_LAST
 } bsp_lump_id_t;
@@ -551,10 +550,18 @@ typedef struct {
 
 /**
  * @brief Voxels are layered 3D texture objects of variable size.
- * @details Each layer is up to 256x256x256.
+ * @details Each layer is up to 256x256x256. Includes clustered light grid data.
  */
 typedef struct {
+  /**
+   * @brief The voxel grid dimensions.
+   */
   vec3i_t size;
+
+  /**
+   * @brief The number of light indices in the light grid.
+   */
+  int32_t light_grid_size;
 } bsp_voxels_t;
 
 /**
@@ -607,22 +614,11 @@ typedef struct bsp_file_s {
   int32_t num_lights;
   bsp_light_t *lights;
 
-  /* Light grid lump emitted by quemap: binary blob (header + meta + indices) */
-  int32_t lightgrid_size;
-  byte *lightgrid;
-
   int32_t voxels_size;
   bsp_voxels_t *voxels;
 
   bsp_lump_id_t loaded_lumps;
 } bsp_file_t;
-
-typedef struct {
-  int32_t size_x;
-  int32_t size_y;
-  int32_t size_z;
-  int32_t total_indices;
-} bsp_lightgrid_header_t;
 
 int32_t Bsp_Verify(const bsp_header_t *file);
 int64_t Bsp_Size(const bsp_header_t *file);
