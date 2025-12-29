@@ -582,25 +582,7 @@ static void R_LoadBspLightGrid(r_model_t *mod) {
         bsp->light_grid_indices = NULL;
       }
 
-      Com_Print("Sample metadata - Cell 0: offset=%d count=%d\n",
-                bsp->light_grid_meta[0], bsp->light_grid_meta[1]);
-      Com_Print("Sample metadata - Cell 1000: offset=%d count=%d\n",
-                bsp->light_grid_meta[2000], bsp->light_grid_meta[2001]);
-      Com_Print("Sample metadata - Last cell: offset=%d count=%d\n",
-                bsp->light_grid_meta[(num_cells-1)*2], bsp->light_grid_meta[(num_cells-1)*2+1]);
-
-      if (total > 0) {
-        Com_Print("Sample indices - [0]=%d [1]=%d [2]=%d [4880]=%d [4881]=%d\n",
-                  bsp->light_grid_indices[0], bsp->light_grid_indices[1], bsp->light_grid_indices[2],
-                  bsp->light_grid_indices[4880], bsp->light_grid_indices[4881]);
-      }
-
       Com_Debug(DEBUG_RENDERER, "Loaded light grid from BSP: cells=%d indices=%d\n", num_cells, total);
-      Com_Print("Light grid loaded: size=(%d,%d,%d) cells=%d indices=%d\n",
-                vx, vy, vz, num_cells, total);
-      Com_Print("Light grid bounds: mins=(%.1f,%.1f,%.1f) voxel_size=(%.1f,%.1f,%.1f)\n",
-                bsp->light_grid_mins.x, bsp->light_grid_mins.y, bsp->light_grid_mins.z,
-                bsp->light_grid_voxel_size.x, bsp->light_grid_voxel_size.y, bsp->light_grid_voxel_size.z);
 
       return;
     }

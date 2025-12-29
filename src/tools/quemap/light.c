@@ -238,11 +238,6 @@ void EmitLightGrid(void) {
   const box3_t world_bounds = Box3_Expand3(worldspawn->visible_bounds, padding);
   const vec3_t world_voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
 
-  Com_Print("Quemap light grid: mins=(%.1f,%.1f,%.1f) voxel_size=(%.1f,%.1f,%.1f)\n",
-            world_bounds.mins.x, world_bounds.mins.y, world_bounds.mins.z,
-            world_voxel_size.x, world_voxel_size.y, world_voxel_size.z);
-
-  
   // counts per cell
   int32_t *counts = Mem_TagMalloc(num_cells * sizeof(int32_t), MEM_TAG_QLIGHT);
   memset(counts, 0, num_cells * sizeof(int32_t));
@@ -384,5 +379,5 @@ void EmitLightGrid(void) {
   Mem_Free(indices);
   Mem_Free(meta);
 
-  Com_Print("Emitted light grid: cells=%d indices=%d\n", num_cells, total);
+  Com_Debug(DEBUG_ALL, "Emitted light grid: cells=%d indices=%d\n", num_cells, total);
 }
