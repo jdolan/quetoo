@@ -51,9 +51,6 @@ static struct {
 
   GLint texture_light_grid_meta;
   GLint texture_light_grid_indices;
-  GLint texture_light_origin;
-  GLint texture_light_color;
-  GLint use_light_grid;
 
   GLint alpha_test;
 
@@ -376,12 +373,6 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 
     r_stats.blocks_visible++;
 
-//    if (entity->model == r_models.world) {
-//      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
-//    } else {
-//      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
-//    }
-
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
@@ -408,30 +399,11 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 
   glBindVertexArray(bsp->vertex_array);
 
-  // Bind light grid textures if available and GL 4.1+ is supported
-  // ALL required textures must be present to enable light grid
-  if (GLAD_GL_VERSION_4_1 &&
-      bsp->light_grid_meta_tex &&
-      bsp->light_grid_index_tex &&
-      bsp->light_grid_light_origin_tex &&
-      bsp->light_grid_light_color_tex) {
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
+  glBindTexture(GL_TEXTURE_3D, bsp->voxels->light_meta_texture);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
-    glBindTexture(GL_TEXTURE_3D, bsp->light_grid_meta_tex);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_ORIGIN);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_tex);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_COLOR);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_color_tex);
-
-    glUniform1i(r_bsp_program.use_light_grid, 1);
-  } else {
-    glUniform1i(r_bsp_program.use_light_grid, 0);
-  }
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
+  glBindTexture(GL_TEXTURE_BUFFER, bsp->voxels->light_index_texture);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -508,30 +480,13 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 
   glBindVertexArray(bsp->vertex_array);
 
-  // Bind light grid textures if available and GL 4.1+ is supported
-  // ALL required textures must be present to enable light grid
-  if (GLAD_GL_VERSION_4_1 &&
-      bsp->light_grid_meta_tex &&
-      bsp->light_grid_index_tex &&
-      bsp->light_grid_light_origin_tex &&
-      bsp->light_grid_light_color_tex) {
+  // Bind light grid textures
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
+  glBindTexture(GL_TEXTURE_3D, bsp->voxels->light_meta_texture);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
-    glBindTexture(GL_TEXTURE_3D, bsp->light_grid_meta_tex);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
+  glBindTexture(GL_TEXTURE_BUFFER, bsp->voxels->light_index_texture);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_ORIGIN);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_tex);
-
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_COLOR);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_color_tex);
-
-    glUniform1i(r_bsp_program.use_light_grid, 1);
-  } else {
-    glUniform1i(r_bsp_program.use_light_grid, 0);
-  }
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -615,9 +570,6 @@ void R_InitBspProgram(void) {
 
   r_bsp_program.texture_light_grid_meta = glGetUniformLocation(r_bsp_program.name, "texture_light_grid_meta");
   r_bsp_program.texture_light_grid_indices = glGetUniformLocation(r_bsp_program.name, "texture_light_grid_indices");
-  r_bsp_program.texture_light_origin = glGetUniformLocation(r_bsp_program.name, "texture_light_origin");
-  r_bsp_program.texture_light_color = glGetUniformLocation(r_bsp_program.name, "texture_light_color");
-  r_bsp_program.use_light_grid = glGetUniformLocation(r_bsp_program.name, "use_light_grid");
 
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -654,9 +606,6 @@ void R_InitBspProgram(void) {
 
   glUniform1i(r_bsp_program.texture_light_grid_meta, TEXTURE_LIGHT_GRID_META);
   glUniform1i(r_bsp_program.texture_light_grid_indices, TEXTURE_LIGHT_GRID_INDICES);
-  glUniform1i(r_bsp_program.texture_light_origin, TEXTURE_LIGHT_ORIGIN);
-  glUniform1i(r_bsp_program.texture_light_color, TEXTURE_LIGHT_COLOR);
-  glUniform1i(r_bsp_program.use_light_grid, 0); // Disabled by default
 
   r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
   r_bsp_program.warp_image->media.Retain = R_RetainImage;

@@ -707,7 +707,7 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief
+ * @brief The BSP voxel grid, including light grid data for clustered forward lighting.
  */
 typedef struct {
   /**
@@ -734,6 +734,37 @@ typedef struct {
    * @brief The fog 3D texture (RGBA8).
    */
   r_image_t *fog;
+
+  /**
+   * @brief The per-voxel offset and count pairs (`2 * num_voxels`).
+   */
+  int32_t *light_meta;
+
+  /**
+   * @brief The light metadata 3D texture (RG32I) for offset and count pairs per voxel.
+   */
+  GLuint light_meta_texture;
+
+  /**
+   * @brief The integer vector of all light indices.
+   */
+  int32_t *light_indices;
+
+  /**
+   * @brief The length of `light_indices`.
+   */
+  int32_t num_light_indices;
+
+  /**
+   * @brief The buffer object backing the index vector.
+   */
+  GLuint light_index_buffer;
+
+  /**
+   * @brief Light grid: GL texture buffer object (R32I) for indices.
+   */
+  GLuint light_index_texture;
+
 } r_bsp_voxels_t;
 
 /**
@@ -781,25 +812,7 @@ typedef struct {
 
   r_bsp_voxels_t *voxels;
 
-  /* Clustered light grid (CPU-side) */
-  int32_t *light_grid_meta;      // per-cell offset/count pairs (2 * num_cells)
-  int32_t *light_grid_indices;   // flattened list of light indices
-  int32_t  light_grid_num_cells; // number of cells (size.x * size.y * size.z)
-  int32_t  light_grid_index_count; // total indices in flattened list
-  vec3i_t  light_grid_size;      // grid dimensions (cells)
-  vec3_t   light_grid_mins;      // grid mins in world space
-  vec3_t   light_grid_voxel_size; // size of a voxel in world units
-
-  /* Optional GPU resources for the light grid (0 if unused) */
-  GLuint light_grid_index_buffer; // GL buffer backing the flattened index list
-  GLuint light_grid_index_tex;    // GL texture buffer object (R32I)
-  GLuint light_grid_meta_tex;     // 3D integer texture (RG32I) for offset/count per cell
-  GLuint light_grid_light_origin_buf; // TBO for light origin+radius (vec4)
-  GLuint light_grid_light_origin_tex; // texture buffer for light origin
-  GLuint light_grid_light_color_buf;  // TBO for light color+intensity (vec4)
-  GLuint light_grid_light_color_tex;  // texture buffer for light color
-
-  /**
+    /**
    * @brief The vertex array (VAO) name.
    */
   GLuint vertex_array;
@@ -1788,8 +1801,6 @@ typedef enum {
    */
   TEXTURE_LIGHT_GRID_META,
   TEXTURE_LIGHT_GRID_INDICES,
-  TEXTURE_LIGHT_ORIGIN,
-  TEXTURE_LIGHT_COLOR,
 
   /**
    * @brief Sprite specific textures.

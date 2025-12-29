@@ -177,26 +177,3 @@ int light_grid_index(in int index) {
   return texelFetch(texture_light_grid_indices, index).x;
 }
 
-/**
- * @brief Fetches light parameters from the texture buffer objects.
- * @param light_index The index of the light.
- * @return A light_t structure populated from the TBOs.
- */
-light_t light_grid_light(in int light_index) {
-  light_t light;
-  
-  vec4 origin_radius = texelFetch(texture_light_origin, light_index);
-  vec4 color_intensity = texelFetch(texture_light_color, light_index);
-  
-  light.origin = origin_radius;
-  
-  // Compute mins/maxs from origin and radius
-  float radius = origin_radius.w;
-  light.mins = vec4(origin_radius.xyz - vec3(radius), 0.0);
-  light.maxs = vec4(origin_radius.xyz + vec3(radius), 0.0);
-  
-  light.color = color_intensity;
-  
-  return light;
-}
-

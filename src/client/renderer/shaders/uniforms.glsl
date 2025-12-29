@@ -232,11 +232,8 @@ uniform isampler3D texture_light_grid_meta;
 // Flattened index list (R32I) stored in a texture buffer
 uniform isamplerBuffer texture_light_grid_indices;
 // Per-light parameter buffers (origin.xyz + radius, color.rgb + intensity)
-uniform samplerBuffer texture_light_origin; // rgba32f
-uniform samplerBuffer texture_light_color;  // rgba32f
 
 // Toggle (set by the renderer)
-uniform int use_light_grid;
 
 // -----------------------------------------------------------------------------
 
