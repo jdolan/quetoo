@@ -65,6 +65,9 @@
  */
 #define MAX_BSP_VOXELS (MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL)
 
+/* conservative upper bound for emitted light grid lump size (bytes) */
+#define MAX_BSP_LIGHTGRID_SIZE (1024 * 1024 * 8)
+
 /**
  * @brief The voxel textures.
  */
@@ -95,6 +98,7 @@ typedef enum {
   BSP_LUMP_BLOCKS,
   BSP_LUMP_MODELS,
   BSP_LUMP_LIGHTS,
+  BSP_LUMP_LIGHTGRID,
   BSP_LUMP_VOXELS,
   BSP_LUMP_LAST
 } bsp_lump_id_t;
@@ -603,11 +607,22 @@ typedef struct bsp_file_s {
   int32_t num_lights;
   bsp_light_t *lights;
 
+  /* Light grid lump emitted by quemap: binary blob (header + meta + indices) */
+  int32_t lightgrid_size;
+  byte *lightgrid;
+
   int32_t voxels_size;
   bsp_voxels_t *voxels;
 
   bsp_lump_id_t loaded_lumps;
 } bsp_file_t;
+
+typedef struct {
+  int32_t size_x;
+  int32_t size_y;
+  int32_t size_z;
+  int32_t total_indices;
+} bsp_lightgrid_header_t;
 
 int32_t Bsp_Verify(const bsp_header_t *file);
 int64_t Bsp_Size(const bsp_header_t *file);

@@ -407,17 +407,37 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 
-  for (int i = 0; i < MAX_LIGHTS; i++) {
+  if (use_light_grid != 0 && developer > 0) {
+    // Use clustered light grid for spatial culling
+    ivec3 cell = light_grid_cell(vertex.model);
+    ivec2 meta = light_grid_meta(cell);
+    int offset = meta.x;
+    int count = meta.y;
 
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
+    for (int i = 0; i < count; i++) {
+      int light_index = light_grid_index(offset + i);
+      
+      // Read light from uniform block (fast) instead of TBO (slow)
+      light_t light = lights[light_index];
+
+      if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
+        light_and_shadow_light(light, light_index);
+      }
     }
+  } else {
+    // Use traditional active_lights array
+    for (int i = 0; i < MAX_LIGHTS; i++) {
 
-    light_t light = lights[index];
+      int index = active_lights[i];
+      if (index == -1) {
+        break;
+      }
 
-    if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
-      light_and_shadow_light(light, index);
+      light_t light = lights[index];
+
+      if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
+        light_and_shadow_light(light, index);
+      }
     }
   }
 

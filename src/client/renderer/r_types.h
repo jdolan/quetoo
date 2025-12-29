@@ -781,6 +781,24 @@ typedef struct {
 
   r_bsp_voxels_t *voxels;
 
+  /* Clustered light grid (CPU-side) */
+  int32_t *light_grid_meta;      // per-cell offset/count pairs (2 * num_cells)
+  int32_t *light_grid_indices;   // flattened list of light indices
+  int32_t  light_grid_num_cells; // number of cells (size.x * size.y * size.z)
+  int32_t  light_grid_index_count; // total indices in flattened list
+  vec3i_t  light_grid_size;      // grid dimensions (cells)
+  vec3_t   light_grid_mins;      // grid mins in world space
+  vec3_t   light_grid_voxel_size; // size of a voxel in world units
+
+  /* Optional GPU resources for the light grid (0 if unused) */
+  GLuint light_grid_index_buffer; // GL buffer backing the flattened index list
+  GLuint light_grid_index_tex;    // GL texture buffer object (R32I)
+  GLuint light_grid_meta_tex;     // 3D integer texture (RG32I) for offset/count per cell
+  GLuint light_grid_light_origin_buf; // TBO for light origin+radius (vec4)
+  GLuint light_grid_light_origin_tex; // texture buffer for light origin
+  GLuint light_grid_light_color_buf;  // TBO for light color+intensity (vec4)
+  GLuint light_grid_light_color_tex;  // texture buffer for light color
+
   /**
    * @brief The vertex array (VAO) name.
    */
@@ -1070,26 +1088,26 @@ enum {
 typedef uint32_t r_sprite_flags_t;
 
 /**
- * @brief 
+ * @brief
  */
 typedef enum {
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_ALL = 0,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_X = 1,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_Y = 2,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_Z = 4
 } r_sprite_billboard_axis_t;
@@ -1117,7 +1135,7 @@ typedef struct {
    * @brief The sprite width.
    */
   float height;
-  
+
   /**
    * @brief The sprite media (an r_amimation_t, r_image_t, etc).
    */
@@ -1142,7 +1160,7 @@ typedef struct {
    * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
    */
   vec3_t dir;
-  
+
   /**
    * @brief Axis modifier for billboard sprites.
    */
@@ -1184,7 +1202,7 @@ typedef struct {
    * @brief The beam size.
    */
   float size;
-  
+
   /**
    * @brief The beam texture.
    */
@@ -1199,12 +1217,12 @@ typedef struct {
    * @brief The beam texture translation.
    */
   float translate;
-      
+
   /**
    * @brief The beam texture stretch.
    */
   float stretch;
-      
+
   /**
    * @brief The beam flags.
    */
@@ -1764,6 +1782,14 @@ typedef enum {
   TEXTURE_SHADOW_CUBEMAP_ARRAY1,
   TEXTURE_SHADOW_CUBEMAP_ARRAY2,
   TEXTURE_SHADOW_CUBEMAP_ARRAY3,
+
+  /**
+   * @brief Clustered light grid textures.
+   */
+  TEXTURE_LIGHT_GRID_META,
+  TEXTURE_LIGHT_GRID_INDICES,
+  TEXTURE_LIGHT_ORIGIN,
+  TEXTURE_LIGHT_COLOR,
 
   /**
    * @brief Sprite specific textures.

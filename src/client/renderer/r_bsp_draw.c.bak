@@ -376,11 +376,11 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 
     r_stats.blocks_visible++;
 
-//    if (entity->model == r_models.world) {
-//      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
-//    } else {
-//      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
-//    }
+    if (entity->model == r_models.world) {
+      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+    } else {
+      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+    }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -409,18 +409,14 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   // Bind light grid textures if available and GL 4.1+ is supported
-  // ALL required textures must be present to enable light grid
-  if (GLAD_GL_VERSION_4_1 &&
-      bsp->light_grid_meta_tex &&
-      bsp->light_grid_index_tex &&
-      bsp->light_grid_light_origin_tex &&
+  if (GLAD_GL_VERSION_4_1 && 
+      bsp->light_grid_meta_tex && bsp->light_grid_index_tex && 
+      bsp->light_grid_light_origin_tex && 
       bsp->light_grid_light_color_tex) {
-
+    
     glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
     glBindTexture(GL_TEXTURE_3D, bsp->light_grid_meta_tex);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
 
     glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_ORIGIN);
     glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_tex);
@@ -509,18 +505,18 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   // Bind light grid textures if available and GL 4.1+ is supported
-  // ALL required textures must be present to enable light grid
-  if (GLAD_GL_VERSION_4_1 &&
-      bsp->light_grid_meta_tex &&
-      bsp->light_grid_index_tex &&
-      bsp->light_grid_light_origin_tex &&
+  if (GLAD_GL_VERSION_4_1 && 
+      bsp->light_grid_meta_tex && 
+      bsp->light_grid_light_origin_tex && 
       bsp->light_grid_light_color_tex) {
-
+    
     glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
     glBindTexture(GL_TEXTURE_3D, bsp->light_grid_meta_tex);
 
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
+    if (bsp->light_grid_index_tex) {
+      glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
+      glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
+    }
 
     glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_ORIGIN);
     glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_tex);

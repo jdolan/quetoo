@@ -89,20 +89,106 @@ void R_UpdateLights(r_view_t *view) {
  */
 void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-  GLint active_lights[view->num_lights];
+  GLint active_lights[ MAX_LIGHTS ];
   GLint num_active_lights = 0;
-  
-  memset(active_lights, 0, sizeof(GLint) * view->num_lights);
 
-  const r_light_t *light = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, light++) {
+  memset(active_lights, -1, sizeof(active_lights));
 
-    if (light->query && light->query->result == 0) {
-      continue;
+#if 0
+  const r_bsp_model_t *bsp = r_models.world ? r_models.world->bsp : NULL;
+
+  // If we have a CPU-side light grid, use it to accelerate selection.
+  if (bsp && bsp->light_grid_meta && bsp->light_grid_indices && bsp->light_grid_num_cells > 0 && bsp->voxels) {
+
+    const int32_t num_bsp_lights = bsp->num_lights;
+
+    // Map BSP light index -> view light index
+    int32_t *bsp_map = Mem_Malloc(num_bsp_lights * sizeof(int32_t));
+    for (int32_t i = 0; i < num_bsp_lights; i++) {
+      bsp_map[i] = -1;
     }
 
-    if (Box3_Intersects(light->bounds, bounds)) {
-      active_lights[num_active_lights++] = (GLuint) i;
+    for (int32_t i = 0; i < view->num_lights; i++) {
+      const r_light_t *vl = &view->lights[i];
+      if (vl->bsp_light) {
+        const ptrdiff_t idx = vl->bsp_light - bsp->lights;
+        if (idx >= 0 && idx < num_bsp_lights) {
+          bsp_map[idx] = i;
+        }
+      }
+    }
+
+    // visited flags to avoid duplicates
+    uint8_t *visited = Mem_Malloc(num_bsp_lights * sizeof(uint8_t));
+    memset(visited, 0, num_bsp_lights * sizeof(uint8_t));
+
+    const r_bsp_voxels_t *vox = bsp->voxels;
+    vec3_t rel_min = Vec3_Subtract(bounds.mins, vox->bounds.mins);
+    vec3_t rel_max = Vec3_Subtract(bounds.maxs, vox->bounds.mins);
+
+    vec3i_t imin = Vec3_CastVec3i(Vec3_Divide(rel_min, vox->voxel_size));
+    vec3i_t imax = Vec3_CastVec3i(Vec3_Divide(rel_max, vox->voxel_size));
+
+    imin.x = CLAMP(imin.x, 0, vox->size.x - 1);
+    imin.y = CLAMP(imin.y, 0, vox->size.y - 1);
+    imin.z = CLAMP(imin.z, 0, vox->size.z - 1);
+    imax.x = CLAMP(imax.x, 0, vox->size.x - 1);
+    imax.y = CLAMP(imax.y, 0, vox->size.y - 1);
+    imax.z = CLAMP(imax.z, 0, vox->size.z - 1);
+
+    const int vx = vox->size.x;
+    const int vy = vox->size.y;
+
+    for (int z = imin.z; z <= imax.z && num_active_lights < MAX_LIGHTS - 1; z++) {
+      for (int y = imin.y; y <= imax.y && num_active_lights < MAX_LIGHTS - 1; y++) {
+        for (int x = imin.x; x <= imax.x && num_active_lights < MAX_LIGHTS - 1; x++) {
+          const int cell = (z * vy + y) * vx + x;
+          const int32_t offset = bsp->light_grid_meta[cell * 2 + 0];
+          const int32_t count  = bsp->light_grid_meta[cell * 2 + 1];
+
+          for (int32_t k = 0; k < count && num_active_lights < MAX_LIGHTS - 1; k++) {
+            const int32_t bsp_idx = bsp->light_grid_indices[offset + k];
+            if (bsp_idx < 0 || bsp_idx >= num_bsp_lights) {
+              continue;
+            }
+            if (visited[bsp_idx]) {
+              continue;
+            }
+
+            visited[bsp_idx] = 1;
+
+            const int view_idx = bsp_map[bsp_idx];
+            if (view_idx >= 0) {
+              active_lights[num_active_lights++] = view_idx;
+            }
+          }
+        }
+      }
+    }
+
+    Mem_Free(bsp_map);
+    Mem_Free(visited);
+
+    // terminate
+    if (num_active_lights < MAX_LIGHTS) {
+      active_lights[num_active_lights++] = -1;
+    }
+
+    glUniform1iv(name, num_active_lights, active_lights);
+    R_GetError(NULL);
+    return;
+  }
+
+#endif
+  // Fallback: brute force
+  num_active_lights = 0;
+  for (int32_t i = 0; i < view->num_lights; i++) {
+    const r_light_t *l = &view->lights[i];
+    if (l->query && l->query->result == 0) {
+      continue;
+    }
+    if (Box3_Intersects(l->bounds, bounds)) {
+      active_lights[num_active_lights++] = i;
     }
   }
 
@@ -111,7 +197,6 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
   }
 
   glUniform1iv(name, num_active_lights, active_lights);
-
   R_GetError(NULL);
 }
 

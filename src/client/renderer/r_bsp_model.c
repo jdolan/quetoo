@@ -362,7 +362,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const size_t voxels = out->size.x * out->size.y * out->size.z;
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
-  
+
   out->diffuse = (r_image_t *) R_AllocMedia("voxel_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->diffuse->media.Free = R_FreeImage;
   out->diffuse->type = IMG_VOXELS;
@@ -507,14 +507,373 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
-  (1 << BSP_LUMP_VERTEXES) | \
-  (1 << BSP_LUMP_ELEMENTS) | \
-  (1 << BSP_LUMP_FACES) | \
-  (1 << BSP_LUMP_DRAW_ELEMENTS) | \
-  (1 << BSP_LUMP_BLOCKS) | \
-  (1 << BSP_LUMP_LIGHTS) | \
-  (1 << BSP_LUMP_VOXELS) \
+(1 << BSP_LUMP_VERTEXES) | \
+(1 << BSP_LUMP_ELEMENTS) | \
+(1 << BSP_LUMP_FACES) | \
+(1 << BSP_LUMP_DRAW_ELEMENTS) | \
+(1 << BSP_LUMP_BLOCKS) | \
+(1 << BSP_LUMP_LIGHTS) | \
+(1 << BSP_LUMP_LIGHTGRID) | \
+(1 << BSP_LUMP_VOXELS) \
 )
+
+/**
+ * @brief Build a CPU-side light grid from bsp->lights and bsp->voxels.
+ * Place this after R_LoadBspVoxels() and before R_LoadBspVertexArray().
+ */
+static void r_bsp_build_light_grid(r_model_t *mod);
+
+/**
+ * @brief Load the light grid from the BSP file if available, otherwise build it from lights and voxels.
+ * Place this after R_LoadBspVoxels() and R_LoadBspLights().
+ */
+static void R_LoadBspLightGrid(r_model_t *mod) {
+  r_bsp_model_t *bsp = mod->bsp;
+
+  if (!bsp || !bsp->voxels || bsp->num_lights <= 0) {
+    return;
+  }
+
+  // Free any previous light grid data
+  if (bsp->light_grid_meta) {
+    Mem_Free(bsp->light_grid_meta);
+    bsp->light_grid_meta = NULL;
+  }
+  if (bsp->light_grid_indices) {
+    Mem_Free(bsp->light_grid_indices);
+    bsp->light_grid_indices = NULL;
+  }
+
+  // Try to load from BSP file first
+  const bsp_file_t *file = bsp->cm->file;
+  if (file->lightgrid && file->lightgrid_size > 0) {
+    const byte *data = file->lightgrid;
+    const bsp_lightgrid_header_t *hdr = (const bsp_lightgrid_header_t *) data;
+    
+    const int vx = hdr->size_x;
+    const int vy = hdr->size_y;
+    const int vz = hdr->size_z;
+    const int num_cells = vx * vy * vz;
+    const int total = hdr->total_indices;
+
+    if (num_cells > 0 && vx > 0 && vy > 0 && vz > 0) {
+      data += sizeof(bsp_lightgrid_header_t);
+      
+      const int32_t *file_meta = (const int32_t *) data;
+      data += num_cells * 2 * sizeof(int32_t);
+      
+      const int32_t *file_indices = total > 0 ? (const int32_t *) data : NULL;
+
+      bsp->light_grid_num_cells = num_cells;
+      bsp->light_grid_index_count = total;
+      bsp->light_grid_size = Vec3i(vx, vy, vz);
+      bsp->light_grid_mins = bsp->voxels->bounds.mins;
+      bsp->light_grid_voxel_size = bsp->voxels->voxel_size;
+
+      // Copy meta array
+      bsp->light_grid_meta = (int32_t *) Mem_LinkMalloc(num_cells * 2 * sizeof(int32_t), bsp);
+      memcpy(bsp->light_grid_meta, file_meta, num_cells * 2 * sizeof(int32_t));
+
+      // Copy indices array if present
+      if (total > 0 && file_indices) {
+        bsp->light_grid_indices = (int32_t *) Mem_LinkMalloc(total * sizeof(int32_t), bsp);
+        memcpy(bsp->light_grid_indices, file_indices, total * sizeof(int32_t));
+      } else {
+        bsp->light_grid_indices = NULL;
+      }
+
+      Com_Print("Sample metadata - Cell 0: offset=%d count=%d\n",
+                bsp->light_grid_meta[0], bsp->light_grid_meta[1]);
+      Com_Print("Sample metadata - Cell 1000: offset=%d count=%d\n",
+                bsp->light_grid_meta[2000], bsp->light_grid_meta[2001]);
+      Com_Print("Sample metadata - Last cell: offset=%d count=%d\n",
+                bsp->light_grid_meta[(num_cells-1)*2], bsp->light_grid_meta[(num_cells-1)*2+1]);
+
+      if (total > 0) {
+        Com_Print("Sample indices - [0]=%d [1]=%d [2]=%d [4880]=%d [4881]=%d\n",
+                  bsp->light_grid_indices[0], bsp->light_grid_indices[1], bsp->light_grid_indices[2],
+                  bsp->light_grid_indices[4880], bsp->light_grid_indices[4881]);
+      }
+
+      Com_Debug(DEBUG_RENDERER, "Loaded light grid from BSP: cells=%d indices=%d\n", num_cells, total);
+      Com_Print("Light grid loaded: size=(%d,%d,%d) cells=%d indices=%d\n",
+                vx, vy, vz, num_cells, total);
+      Com_Print("Light grid bounds: mins=(%.1f,%.1f,%.1f) voxel_size=(%.1f,%.1f,%.1f)\n",
+                bsp->light_grid_mins.x, bsp->light_grid_mins.y, bsp->light_grid_mins.z,
+                bsp->light_grid_voxel_size.x, bsp->light_grid_voxel_size.y, bsp->light_grid_voxel_size.z);
+
+      return;
+    }
+  }
+
+  // Fallback: build light grid from lights and voxels if not in BSP file
+  Com_Debug(DEBUG_RENDERER, "Light grid not found in BSP, building from lights...\n");
+  r_bsp_build_light_grid(mod);
+}
+
+/**
+ * @brief Build a CPU-side light grid from bsp->lights and bsp->voxels.
+ * Place this after R_LoadBspVoxels() and before R_LoadBspVertexArray().
+ */
+static void r_bsp_build_light_grid(r_model_t *mod) {
+  r_bsp_model_t *bsp = mod->bsp;
+
+  if (!bsp || !bsp->voxels || bsp->num_lights <= 0) {
+    return;
+  }
+
+  const int vx = bsp->voxels->size.x;
+  const int vy = bsp->voxels->size.y;
+  const int vz = bsp->voxels->size.z;
+  const int num_cells = vx * vy * vz;
+  if (num_cells <= 0) {
+    return;
+  }
+
+  /* free any previous CPU-side arrays */
+  if (bsp->light_grid_meta) {
+    Mem_Free(bsp->light_grid_meta);
+    bsp->light_grid_meta = NULL;
+  }
+  if (bsp->light_grid_indices) {
+    Mem_Free(bsp->light_grid_indices);
+    bsp->light_grid_indices = NULL;
+  }
+
+  int32_t *counts = (int32_t *) Mem_LinkMalloc(num_cells * sizeof(int32_t), bsp);
+  memset(counts, 0, num_cells * sizeof(int32_t));
+
+  /* First pass: count how many lights touch each cell */
+  for (int li = 0; li < bsp->num_lights; li++) {
+    const r_bsp_light_t *L = &bsp->lights[li];
+
+    const vec3_t min = Vec3_Subtract(L->origin, Vec3(L->radius, L->radius, L->radius));
+    const vec3_t max = Vec3_Add(L->origin, Vec3(L->radius, L->radius, L->radius));
+
+    const vec3_t rel_min = Vec3_Subtract(min, bsp->voxels->bounds.mins);
+    const vec3_t rel_max = Vec3_Subtract(max, bsp->voxels->bounds.mins);
+
+    const int ix0 = CLAMP((int) floorf(rel_min.x / bsp->voxels->voxel_size.x), 0, vx - 1);
+    const int iy0 = CLAMP((int) floorf(rel_min.y / bsp->voxels->voxel_size.y), 0, vy - 1);
+    const int iz0 = CLAMP((int) floorf(rel_min.z / bsp->voxels->voxel_size.z), 0, vz - 1);
+    const int ix1 = CLAMP((int) floorf(rel_max.x / bsp->voxels->voxel_size.x), 0, vx - 1);
+    const int iy1 = CLAMP((int) floorf(rel_max.y / bsp->voxels->voxel_size.y), 0, vy - 1);
+    const int iz1 = CLAMP((int) floorf(rel_max.z / bsp->voxels->voxel_size.z), 0, vz - 1);
+
+    const float r2 = L->radius * L->radius;
+
+    for (int z = iz0; z <= iz1; z++) {
+      for (int y = iy0; y <= iy1; y++) {
+        for (int x = ix0; x <= ix1; x++) {
+          const int cell = (z * vy + y) * vx + x;
+          const vec3_t center = Vec3_Add(bsp->voxels->bounds.mins,
+                                         Vec3_Multiply(bsp->voxels->voxel_size, Vec3(x + 0.5f, y + 0.5f, z + 0.5f)));
+          if (Vec3_DistanceSquared(center, L->origin) <= r2) {
+            counts[cell]++;
+          }
+        }
+      }
+    }
+  }
+
+  /* prefix-sum offsets */
+  int total = 0;
+  int32_t *offsets = (int32_t *) Mem_LinkMalloc(num_cells * sizeof(int32_t), bsp);
+  for (int i = 0; i < num_cells; i++) {
+    offsets[i] = total;
+    total += counts[i];
+  }
+
+  bsp->light_grid_num_cells = num_cells;
+  bsp->light_grid_index_count = total;
+  bsp->light_grid_size = Vec3i(vx, vy, vz);
+  bsp->light_grid_mins = bsp->voxels->bounds.mins;
+  bsp->light_grid_voxel_size = bsp->voxels->voxel_size;
+
+  if (total > 0) {
+    bsp->light_grid_indices = (int32_t *) Mem_LinkMalloc(total * sizeof(int32_t), bsp);
+    bsp->light_grid_meta = (int32_t *) Mem_LinkMalloc(num_cells * 2 * sizeof(int32_t), bsp);
+    memset(bsp->light_grid_meta, 0, num_cells * 2 * sizeof(int32_t));
+
+    int32_t *cursor = (int32_t *) Mem_LinkMalloc(num_cells * sizeof(int32_t), bsp);
+    memcpy(cursor, offsets, num_cells * sizeof(int32_t));
+
+    /* Second pass: emit indices into the big array */
+    for (int li = 0; li < bsp->num_lights; li++) {
+      const r_bsp_light_t *L = &bsp->lights[li];
+
+      const vec3_t min = Vec3_Subtract(L->origin, Vec3(L->radius, L->radius, L->radius));
+      const vec3_t max = Vec3_Add(L->origin, Vec3(L->radius, L->radius, L->radius));
+
+      const vec3_t rel_min = Vec3_Subtract(min, bsp->voxels->bounds.mins);
+      const vec3_t rel_max = Vec3_Subtract(max, bsp->voxels->bounds.mins);
+
+      const int ix0 = CLAMP((int) floorf(rel_min.x / bsp->voxels->voxel_size.x), 0, vx - 1);
+      const int iy0 = CLAMP((int) floorf(rel_min.y / bsp->voxels->voxel_size.y), 0, vy - 1);
+      const int iz0 = CLAMP((int) floorf(rel_min.z / bsp->voxels->voxel_size.z), 0, vz - 1);
+      const int ix1 = CLAMP((int) floorf(rel_max.x / bsp->voxels->voxel_size.x), 0, vx - 1);
+      const int iy1 = CLAMP((int) floorf(rel_max.y / bsp->voxels->voxel_size.y), 0, vy - 1);
+      const int iz1 = CLAMP((int) floorf(rel_max.z / bsp->voxels->voxel_size.z), 0, vz - 1);
+
+      const float r2 = L->radius * L->radius;
+
+      for (int z = iz0; z <= iz1; z++) {
+        for (int y = iy0; y <= iy1; y++) {
+          for (int x = ix0; x <= ix1; x++) {
+            const int cell = (z * vy + y) * vx + x;
+            const vec3_t center = Vec3_Add(bsp->voxels->bounds.mins,
+                                           Vec3_Multiply(bsp->voxels->voxel_size, Vec3(x + 0.5f, y + 0.5f, z + 0.5f)));
+            if (Vec3_DistanceSquared(center, L->origin) <= r2) {
+              const int pos = cursor[cell]++;
+              bsp->light_grid_indices[pos] = li;
+              bsp->light_grid_meta[cell * 2 + 1]++; /* count for the cell (second component) */
+            }
+          }
+        }
+      }
+    }
+
+    /* store offsets into meta (first component) */
+    for (int i = 0; i < num_cells; i++) {
+      bsp->light_grid_meta[i * 2 + 0] = offsets[i];
+    }
+
+    Mem_Free(cursor);
+  } else {
+    /* no indices, but keep a zeroed meta array */
+    bsp->light_grid_indices = NULL;
+    bsp->light_grid_meta = (int32_t *) Mem_LinkMalloc(num_cells * 2 * sizeof(int32_t), bsp);
+    memset(bsp->light_grid_meta, 0, num_cells * 2 * sizeof(int32_t));
+  }
+
+  Mem_Free(counts);
+  Mem_Free(offsets);
+
+  Com_Print("Runtime grid: size=(%d,%d,%d) cells=%d indices=%d\n",
+            vx, vy, vz, num_cells, bsp->light_grid_index_count);
+  Com_Print("Runtime bounds: mins=(%.1f,%.1f,%.1f) voxel_size=(%.1f,%.1f,%.1f)\n",
+            bsp->light_grid_mins.x, bsp->light_grid_mins.y, bsp->light_grid_mins.z,
+            bsp->light_grid_voxel_size.x, bsp->light_grid_voxel_size.y, bsp->light_grid_voxel_size.z);
+  
+  Com_Debug(DEBUG_RENDERER, "Built light grid: cells=%d indices=%d\n", num_cells, bsp->light_grid_index_count);
+}
+
+/**
+ * @brief Upload CPU-side light grid arrays to GPU resources (TBO / 3D texture).
+ * Uses GL texture buffer for index list and texture buffer + 3D texture for meta.
+ */
+static void r_bsp_upload_light_grid(r_bsp_model_t *bsp) {
+  if (!bsp || !bsp->light_grid_meta || bsp->light_grid_num_cells == 0) {
+    return;
+  }
+
+  /* delete previous resources */
+  if (bsp->light_grid_index_tex) {
+    glDeleteTextures(1, &bsp->light_grid_index_tex);
+    bsp->light_grid_index_tex = 0;
+  }
+  if (bsp->light_grid_index_buffer) {
+    glDeleteBuffers(1, &bsp->light_grid_index_buffer);
+    bsp->light_grid_index_buffer = 0;
+  }
+  if (bsp->light_grid_meta_tex) {
+    glDeleteTextures(1, &bsp->light_grid_meta_tex);
+    bsp->light_grid_meta_tex = 0;
+  }
+  if (bsp->light_grid_light_origin_tex) {
+    glDeleteTextures(1, &bsp->light_grid_light_origin_tex);
+    bsp->light_grid_light_origin_tex = 0;
+  }
+  if (bsp->light_grid_light_origin_buf) {
+    glDeleteBuffers(1, &bsp->light_grid_light_origin_buf);
+    bsp->light_grid_light_origin_buf = 0;
+  }
+  if (bsp->light_grid_light_color_tex) {
+    glDeleteTextures(1, &bsp->light_grid_light_color_tex);
+    bsp->light_grid_light_color_tex = 0;
+  }
+  if (bsp->light_grid_light_color_buf) {
+    glDeleteBuffers(1, &bsp->light_grid_light_color_buf);
+    bsp->light_grid_light_color_buf = 0;
+  }
+
+  /* index list -> texture buffer (R32I) */
+  if (bsp->light_grid_index_count > 0 && bsp->light_grid_indices) {
+    glGenBuffers(1, &bsp->light_grid_index_buffer);
+    glBindBuffer(GL_TEXTURE_BUFFER, bsp->light_grid_index_buffer);
+    glBufferData(GL_TEXTURE_BUFFER, bsp->light_grid_index_count * sizeof(int32_t), bsp->light_grid_indices, GL_STATIC_DRAW);
+
+    glGenTextures(1, &bsp->light_grid_index_tex);
+    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_index_tex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, bsp->light_grid_index_buffer);
+
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  }
+
+  /* meta -> 3D integer texture (RG32I) */
+  const int vx = bsp->light_grid_size.x;
+  const int vy = bsp->light_grid_size.y;
+  const int vz = bsp->light_grid_size.z;
+  if (vx > 0 && vy > 0 && vz > 0 && bsp->light_grid_meta) {
+    glGenTextures(1, &bsp->light_grid_meta_tex);
+    glBindTexture(GL_TEXTURE_3D, bsp->light_grid_meta_tex);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32I, vx, vy, vz, 0, GL_RG_INTEGER, GL_INT, bsp->light_grid_meta);
+    glBindTexture(GL_TEXTURE_3D, 0);
+  }
+
+  /* upload per-light origin/radius and color/intensity as texture buffers (RGBA32F) */
+  if (bsp->num_lights > 0) {
+    Com_Print("Uploading %d lights to TBOs\n", bsp->num_lights);
+    Com_Print("  Light 0: origin=(%.1f,%.1f,%.1f) radius=%.1f color=(%.2f,%.2f,%.2f) intensity=%.2f\n",
+                bsp->lights[0].origin.x, bsp->lights[0].origin.y, bsp->lights[0].origin.z, bsp->lights[0].radius,
+                bsp->lights[0].color.x, bsp->lights[0].color.y, bsp->lights[0].color.z, bsp->lights[0].intensity);
+
+    float *origin_buf = (float *) Mem_Malloc(sizeof(float) * 4 * bsp->num_lights);
+    float *color_buf = (float *) Mem_Malloc(sizeof(float) * 4 * bsp->num_lights);
+    for (int i = 0; i < bsp->num_lights; i++) {
+      const r_bsp_light_t *L = &bsp->lights[i];
+      origin_buf[i * 4 + 0] = L->origin.x;
+      origin_buf[i * 4 + 1] = L->origin.y;
+      origin_buf[i * 4 + 2] = L->origin.z;
+      origin_buf[i * 4 + 3] = L->radius;
+
+      color_buf[i * 4 + 0] = L->color.x;
+      color_buf[i * 4 + 1] = L->color.y;
+      color_buf[i * 4 + 2] = L->color.z;
+      color_buf[i * 4 + 3] = L->intensity;
+    }
+
+    glGenBuffers(1, &bsp->light_grid_light_origin_buf);
+    glBindBuffer(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_buf);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(float) * 4 * bsp->num_lights, origin_buf, GL_STATIC_DRAW);
+    glGenTextures(1, &bsp->light_grid_light_origin_tex);
+    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_origin_tex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, bsp->light_grid_light_origin_buf);
+
+    glGenBuffers(1, &bsp->light_grid_light_color_buf);
+    glBindBuffer(GL_TEXTURE_BUFFER, bsp->light_grid_light_color_buf);
+    glBufferData(GL_TEXTURE_BUFFER, sizeof(float) * 4 * bsp->num_lights, color_buf, GL_STATIC_DRAW);
+    glGenTextures(1, &bsp->light_grid_light_color_tex);
+    glBindTexture(GL_TEXTURE_BUFFER, bsp->light_grid_light_color_tex);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, bsp->light_grid_light_color_buf);
+
+    Mem_Free(origin_buf);
+    Mem_Free(color_buf);
+
+    glBindTexture(GL_TEXTURE_BUFFER, 0);
+    glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  }
+
+  R_GetError(NULL);
+}
 
 /**
  * @brief
@@ -545,6 +904,14 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
   R_LoadBspVoxels(mod);
+
+  // Load or build the CPU-side light grid for accelerating active-light selection.
+  R_LoadBspLightGrid(mod);
+
+  // Upload GPU backing resources for the light grid (if possible)
+  if (GLAD_GL_VERSION_4_1) {
+    r_bsp_upload_light_grid(mod->bsp);
+  }
 
   if (r_draw_bsp_voxels->value) {
     Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_VOXELS));
@@ -598,6 +965,46 @@ static void R_FreeBspModel(r_media_t *self) {
   r_bsp_light_t *light = bsp->lights;
   for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
     R_FreeOcclusionQuery(light->query);
+  }
+
+  // free CPU-side light grid
+  if (bsp->light_grid_meta) {
+    Mem_Free(bsp->light_grid_meta);
+    bsp->light_grid_meta = NULL;
+  }
+  if (bsp->light_grid_indices) {
+    Mem_Free(bsp->light_grid_indices);
+    bsp->light_grid_indices = NULL;
+  }
+
+  // free GPU-side resources
+  if (bsp->light_grid_index_tex) {
+    glDeleteTextures(1, &bsp->light_grid_index_tex);
+    bsp->light_grid_index_tex = 0;
+  }
+  if (bsp->light_grid_index_buffer) {
+    glDeleteBuffers(1, &bsp->light_grid_index_buffer);
+    bsp->light_grid_index_buffer = 0;
+  }
+  if (bsp->light_grid_meta_tex) {
+    glDeleteTextures(1, &bsp->light_grid_meta_tex);
+    bsp->light_grid_meta_tex = 0;
+  }
+  if (bsp->light_grid_light_origin_tex) {
+    glDeleteTextures(1, &bsp->light_grid_light_origin_tex);
+    bsp->light_grid_light_origin_tex = 0;
+  }
+  if (bsp->light_grid_light_origin_buf) {
+    glDeleteBuffers(1, &bsp->light_grid_light_origin_buf);
+    bsp->light_grid_light_origin_buf = 0;
+  }
+  if (bsp->light_grid_light_color_tex) {
+    glDeleteTextures(1, &bsp->light_grid_light_color_tex);
+    bsp->light_grid_light_color_tex = 0;
+  }
+  if (bsp->light_grid_light_color_buf) {
+    glDeleteBuffers(1, &bsp->light_grid_light_color_buf);
+    bsp->light_grid_light_color_buf = 0;
   }
 
   R_GetError(NULL);

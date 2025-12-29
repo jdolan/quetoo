@@ -60,7 +60,7 @@ typedef struct light_s {
    * @brief The bounds of the light source.
    */
   box3_t bounds;
-  
+
   /**
    * @brief The output light in the BSP, so that voxels may reference them.
    */
@@ -72,3 +72,4 @@ extern GPtrArray *lights;
 void FreeLights(void);
 void BuildLights(void);
 void EmitLights(void);
+void EmitLightGrid(void);

@@ -1,30 +1,29 @@
-
 /*
-* Copyright(c) 1997-2001 id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quetoo.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
-#define VIEW_UNKNOWN	  0
-#define VIEW_MAIN  	  1
+#define VIEW_UNKNOWN    0
+#define VIEW_MAIN      1
 #define VIEW_PLAYER_MODEL  2
 
-#define BSP_VOXEL_SIZE	  32.0
+#define BSP_VOXEL_SIZE    32.0
 
 /**
  * @brief The voxels struct.
@@ -224,6 +223,22 @@ uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
+
+// -----------------------------------------------------------------------------
+// Clustered light grid resources (optional)
+// -----------------------------------------------------------------------------
+// Per-voxel meta: RG32I (offset, count) into the index buffer
+uniform isampler3D texture_light_grid_meta;
+// Flattened index list (R32I) stored in a texture buffer
+uniform isamplerBuffer texture_light_grid_indices;
+// Per-light parameter buffers (origin.xyz + radius, color.rgb + intensity)
+uniform samplerBuffer texture_light_origin; // rgba32f
+uniform samplerBuffer texture_light_color;  // rgba32f
+
+// Toggle (set by the renderer)
+uniform int use_light_grid;
+
+// -----------------------------------------------------------------------------
 
 /**
  * @brief The framebuffer attachment textures.

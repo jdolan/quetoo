@@ -194,8 +194,8 @@ void EmitLights(void) {
       }
 
       memcpy(bsp_file.elements + bsp_file.num_elements,
-           bsp_file.elements + face->first_element,
-           sizeof(int32_t) * face->num_elements);
+             bsp_file.elements + face->first_element,
+             sizeof(int32_t) * face->num_elements);
 
       bsp_file.num_elements += face->num_elements;
       out->num_depth_pass_elements += face->num_elements;
@@ -207,4 +207,182 @@ void EmitLights(void) {
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
+}
+
+/**
+ * @brief Emit a clustered light grid into the BSP file so the renderer can load it directly.
+ * Layout: bsp_lightgrid_header_t header; int32_t meta[num_cells * 2]; int32_t indices[total_indices];
+ */
+void EmitLightGrid(void) {
+  if (!lights) {
+    return;
+  }
+
+  // use the tool-side voxel representation (voxels) and its STU-space matrix
+  const voxels_t *vox = &voxels;
+  if (!vox || vox->num_voxels == 0) {
+    return;
+  }
+
+  const int vx = vox->size.x;
+  const int vy = vox->size.y;
+  const int vz = vox->size.z;
+  const int num_cells = vx * vy * vz;
+
+  // Compute world-space bounds to match what the renderer will calculate
+  // The renderer uses: visible_bounds + padding to fit voxel grid
+  const bsp_model_t *worldspawn = &bsp_file.models[0];
+  const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(vox->size), BSP_VOXEL_SIZE);
+  const vec3_t world_size = Box3_Size(worldspawn->visible_bounds);
+  const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
+  const box3_t world_bounds = Box3_Expand3(worldspawn->visible_bounds, padding);
+  const vec3_t world_voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
+
+  Com_Print("Quemap light grid: mins=(%.1f,%.1f,%.1f) voxel_size=(%.1f,%.1f,%.1f)\n",
+            world_bounds.mins.x, world_bounds.mins.y, world_bounds.mins.z,
+            world_voxel_size.x, world_voxel_size.y, world_voxel_size.z);
+
+  
+  // counts per cell
+  int32_t *counts = Mem_TagMalloc(num_cells * sizeof(int32_t), MEM_TAG_QLIGHT);
+  memset(counts, 0, num_cells * sizeof(int32_t));
+
+  // We need the BSP lights array populated in bsp_file.lights
+  for (int li = 0; li < bsp_file.num_lights; li++) {
+    const bsp_light_t *L = &bsp_file.lights[li];
+
+    const vec3_t min_world = Vec3_Subtract(L->origin, Vec3(L->radius, L->radius, L->radius));
+    const vec3_t max_world = Vec3_Add(L->origin, Vec3(L->radius, L->radius, L->radius));
+
+    // Use world space directly, like the renderer does at runtime
+    const vec3_t rel_min = Vec3_Subtract(min_world, world_bounds.mins);
+    const vec3_t rel_max = Vec3_Subtract(max_world, world_bounds.mins);
+
+    const int ix0 = CLAMP((int) floorf(rel_min.x / world_voxel_size.x), 0, vx - 1);
+    const int iy0 = CLAMP((int) floorf(rel_min.y / world_voxel_size.y), 0, vy - 1);
+    const int iz0 = CLAMP((int) floorf(rel_min.z / world_voxel_size.z), 0, vz - 1);
+    const int ix1 = CLAMP((int) floorf(rel_max.x / world_voxel_size.x), 0, vx - 1);
+    const int iy1 = CLAMP((int) floorf(rel_max.y / world_voxel_size.y), 0, vy - 1);
+    const int iz1 = CLAMP((int) floorf(rel_max.z / world_voxel_size.z), 0, vz - 1);
+
+    const float r2 = L->radius * L->radius;
+
+    for (int z = iz0; z <= iz1; z++) {
+      for (int y = iy0; y <= iy1; y++) {
+        for (int x = ix0; x <= ix1; x++) {
+          const int cell = (z * vy + y) * vx + x;
+
+          const vec3_t center = Vec3_Add(world_bounds.mins, 
+                                         Vec3_Multiply(world_voxel_size, Vec3(x + 0.5f, y + 0.5f, z + 0.5f)));
+
+          if (Vec3_DistanceSquared(center, L->origin) <= r2) {
+            counts[cell]++;
+          }
+        }
+      }
+    }
+  }
+
+  int total = 0;
+  int32_t *offsets = Mem_TagMalloc(num_cells * sizeof(int32_t), MEM_TAG_QLIGHT);
+  for (int i = 0; i < num_cells; i++) {
+    offsets[i] = total;
+    total += counts[i];
+  }
+
+  int32_t *indices = NULL;
+  int32_t *meta = NULL;
+
+  if (total > 0) {
+    indices = Mem_TagMalloc(total * sizeof(int32_t), MEM_TAG_QLIGHT);
+    meta = Mem_TagMalloc(num_cells * 2 * sizeof(int32_t), MEM_TAG_QLIGHT);
+    memset(meta, 0, num_cells * 2 * sizeof(int32_t));
+
+    int32_t *cursor = Mem_TagMalloc(num_cells * sizeof(int32_t), MEM_TAG_QLIGHT);
+    memcpy(cursor, offsets, num_cells * sizeof(int32_t));
+
+    for (int li = 0; li < bsp_file.num_lights; li++) {
+      const bsp_light_t *L = &bsp_file.lights[li];
+
+      const vec3_t min_world = Vec3_Subtract(L->origin, Vec3(L->radius, L->radius, L->radius));
+      const vec3_t max_world = Vec3_Add(L->origin, Vec3(L->radius, L->radius, L->radius));
+
+      // Use world space directly, like the renderer does at runtime
+      const vec3_t rel_min = Vec3_Subtract(min_world, world_bounds.mins);
+      const vec3_t rel_max = Vec3_Subtract(max_world, world_bounds.mins);
+
+      const int ix0 = CLAMP((int) floorf(rel_min.x / world_voxel_size.x), 0, vx - 1);
+      const int iy0 = CLAMP((int) floorf(rel_min.y / world_voxel_size.y), 0, vy - 1);
+      const int iz0 = CLAMP((int) floorf(rel_min.z / world_voxel_size.z), 0, vz - 1);
+      const int ix1 = CLAMP((int) floorf(rel_max.x / world_voxel_size.x), 0, vx - 1);
+      const int iy1 = CLAMP((int) floorf(rel_max.y / world_voxel_size.y), 0, vy - 1);
+      const int iz1 = CLAMP((int) floorf(rel_max.z / world_voxel_size.z), 0, vz - 1);
+
+      const float r2 = L->radius * L->radius;
+
+      for (int z = iz0; z <= iz1; z++) {
+        for (int y = iy0; y <= iy1; y++) {
+          for (int x = ix0; x <= ix1; x++) {
+            const int cell = (z * vy + y) * vx + x;
+
+            const vec3_t center = Vec3_Add(world_bounds.mins, 
+                                           Vec3_Multiply(world_voxel_size, Vec3(x + 0.5f, y + 0.5f, z + 0.5f)));
+
+            if (Vec3_DistanceSquared(center, L->origin) <= r2) {
+              const int pos = cursor[cell]++;
+              indices[pos] = li;
+              meta[cell * 2 + 1]++;
+            }
+          }
+        }
+      }
+    }
+
+    for (int i = 0; i < num_cells; i++) {
+      meta[i * 2 + 0] = offsets[i];
+    }
+
+    Mem_Free(cursor);
+  }
+
+  // write into bsp_file.lightgrid
+  if (bsp_file.lightgrid) {
+    Mem_Free(bsp_file.lightgrid);
+    bsp_file.lightgrid = NULL;
+    bsp_file.lightgrid_size = 0;
+  }
+
+  const size_t header_size = sizeof(bsp_lightgrid_header_t);
+  const size_t meta_size = num_cells * 2 * sizeof(int32_t);
+  const size_t indices_size = total * sizeof(int32_t);
+
+  bsp_file.lightgrid_size = (int32_t) (header_size + meta_size + indices_size);
+  bsp_file.lightgrid = Mem_TagMalloc(bsp_file.lightgrid_size, MEM_TAG_QLIGHT);
+
+  byte *out = bsp_file.lightgrid;
+  bsp_lightgrid_header_t hdr;
+  hdr.size_x = vx;
+  hdr.size_y = vy;
+  hdr.size_z = vz;
+  hdr.total_indices = total;
+
+  memcpy(out, &hdr, header_size);
+  out += header_size;
+
+  if (meta) {
+    memcpy(out, meta, meta_size);
+    out += meta_size;
+  }
+
+  if (indices) {
+    memcpy(out, indices, indices_size);
+    out += indices_size;
+  }
+
+  Mem_Free(counts);
+  Mem_Free(offsets);
+  Mem_Free(indices);
+  Mem_Free(meta);
+
+  Com_Print("Emitted light grid: cells=%d indices=%d\n", num_cells, total);
 }

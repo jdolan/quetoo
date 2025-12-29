@@ -146,3 +146,57 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
 vec3 voxel_uvw(in vec3 position) {
   return (position - voxels.mins.xyz) / (voxels.maxs.xyz - voxels.mins.xyz);
 }
+
+/**
+ * @brief Resolves the light grid cell coordinate for the specified position in world space.
+ * @param position The position in world space (model space for meshes, world space for BSP).
+ * @return The integer cell coordinates (x, y, z) in the light grid.
+ */
+ivec3 light_grid_cell(in vec3 position) {
+  vec3 rel_pos = position - voxels.mins.xyz;
+  ivec3 cell = ivec3(floor(rel_pos / voxels.voxel_size.xyz));
+  ivec3 grid_size = ivec3(voxels.size.xyz);
+  return clamp(cell, ivec3(0), grid_size - ivec3(1));
+}
+
+/**
+ * @brief Fetches the light metadata (offset, count) for a given cell.
+ * @param cell The cell coordinates in the light grid.
+ * @return A vec2 where .x is the offset into the index buffer and .y is the count.
+ */
+ivec2 light_grid_meta(in ivec3 cell) {
+  return texelFetch(texture_light_grid_meta, cell, 0).xy;
+}
+
+/**
+ * @brief Fetches the light index at the specified position in the flattened index array.
+ * @param index The index into the flattened light index array.
+ * @return The light index.
+ */
+int light_grid_index(in int index) {
+  return texelFetch(texture_light_grid_indices, index).x;
+}
+
+/**
+ * @brief Fetches light parameters from the texture buffer objects.
+ * @param light_index The index of the light.
+ * @return A light_t structure populated from the TBOs.
+ */
+light_t light_grid_light(in int light_index) {
+  light_t light;
+  
+  vec4 origin_radius = texelFetch(texture_light_origin, light_index);
+  vec4 color_intensity = texelFetch(texture_light_color, light_index);
+  
+  light.origin = origin_radius;
+  
+  // Compute mins/maxs from origin and radius
+  float radius = origin_radius.w;
+  light.mins = vec4(origin_radius.xyz - vec3(radius), 0.0);
+  light.maxs = vec4(origin_radius.xyz + vec3(radius), 0.0);
+  
+  light.color = color_intensity;
+  
+  return light;
+}
+

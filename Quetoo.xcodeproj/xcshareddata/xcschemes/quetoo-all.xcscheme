@@ -125,16 +125,16 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+map pits"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
             isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+map pits"
-            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"
