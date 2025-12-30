@@ -359,7 +359,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
 
   out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
-  out->voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 

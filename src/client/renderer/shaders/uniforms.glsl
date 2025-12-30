@@ -19,9 +19,9 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define VIEW_UNKNOWN    0
-#define VIEW_MAIN      1
-#define VIEW_PLAYER_MODEL  2
+#define VIEW_UNKNOWN      0
+#define VIEW_MAIN         1
+#define VIEW_PLAYER_MODEL 2
 
 #define BSP_VOXEL_SIZE    32.0
 
@@ -45,7 +45,7 @@ struct voxels_t {
   vec4 view_coordinate;
 
   /**
-   * @brief The size, in voxels.
+   * @brief The grid size, in voxels.
    */
   vec4 size;
 

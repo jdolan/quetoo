@@ -726,11 +726,6 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The voxel size in world units (constant).
-   */
-  vec3_t voxel_size;
-
-  /**
    * @brief The diffuse 3D texture (RGB9E5).
    */
   r_image_t *diffuse;

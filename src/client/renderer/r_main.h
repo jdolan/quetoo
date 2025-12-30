@@ -96,12 +96,12 @@ typedef struct {
   vec4_t view_coordinate;
 
   /**
-   * @brief The voxel size, in voxels.
+   * @brief The voxel grid size, in voxels.
    */
   vec4_t size;
 
   /**
-   * @brief The voxel voxel size, in texture space.
+   * @brief The voxel size, in texture space.
    */
   vec4_t voxel_size;
 } r_voxels_t;

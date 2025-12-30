@@ -154,7 +154,7 @@ vec3 voxel_uvw(in vec3 position) {
  */
 ivec3 voxel_xyz(in vec3 position) {
   vec3 pos = position - voxels.mins.xyz;
-  ivec3 voxel = ivec3(floor(pos / voxels.voxel_size.xyz));
+  ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
   return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
 }
 
