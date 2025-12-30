@@ -52,16 +52,6 @@ typedef struct {
    * @brief The light sources for the current frame.
    */
   r_light_uniform_t lights[MAX_LIGHTS];
-
-  /**
-   * @brief The number of BSP lights (and index of first dynamic light).
-   */
-  int32_t num_bsp_lights;
-
-  /**
-   * @brief The number of dynamic lights.
-   */
-  int32_t num_dynamic_lights;
 } r_light_uniform_block_t;
 
 /**
@@ -85,7 +75,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name);
+void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

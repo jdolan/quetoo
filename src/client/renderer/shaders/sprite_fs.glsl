@@ -36,9 +36,9 @@ layout (location = 0) out vec3 out_color;
 void main(void) {
 
   vec3 texture_color = mix(
-  	  	  	   texture(texture_diffusemap, vertex.diffusemap),
-  	  	  	   texture(texture_next_diffusemap, vertex.next_diffusemap),
-  	  	  	   vertex.lerp).rgb;
+               texture(texture_diffusemap, vertex.diffusemap),
+               texture(texture_next_diffusemap, vertex.next_diffusemap),
+               vertex.lerp).rgb;
 
   out_color = texture_color * vertex.color;
 

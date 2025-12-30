@@ -54,20 +54,22 @@ vec3 light_and_shadow_light(in light_t light) {
 void light_and_shadow(void) {
 
   if (in_lighting == 0.0) {
-	  return;
+    return;
   }
 
   vec3 diffuse = vec3(0.0);
 
-  // Sprites only use dynamic lights (they're typically dynamic themselves)
-  for (int i = num_bsp_lights; i < num_bsp_lights + num_dynamic_lights; i++) {
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = dynamic_lights[i];
+    if (index == -1) {
+      break;
+    }
 
-	  light_t light = lights[i];
-
-	  // Spherical culling
-	  if (distance(light.origin.xyz, in_position.xyz) < light.origin.w) {
-  	  diffuse += light_and_shadow_light(light);
-	  }
+    light_t light = lights[index];
+    
+    if (distance(light.origin.xyz, in_position.xyz) < light.origin.w) {
+      diffuse += light_and_shadow_light(light);
+    }
   }
 
   vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);

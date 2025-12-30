@@ -47,7 +47,7 @@
 #define MAX_BSP_DRAW_ELEMENTS 0x20000
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
-#define MAX_BSP_LIGHTS        0x200
+#define MAX_BSP_LIGHTS        0x300
 #define MAX_BSP_VOXELS_SIZE   0x2400000
 
 /**

@@ -155,7 +155,9 @@ struct light_t {
   vec4 color;
 };
 
-#define MAX_LIGHTS 768
+#define MAX_BSP_LIGHTS 768
+#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 #define MAX_SHADOW_CUBEMAP_LAYERS 256
 #define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
 
@@ -167,22 +169,12 @@ layout (std140) uniform lights_block {
    * @brief The light sources for the current frame.
    */
   light_t lights[MAX_LIGHTS];
-
-  /**
-   * @brief The number of BSP lights (and index of first dynamic light).
-   */
-  int num_bsp_lights;
-
-  /**
-   * @brief The number of dynamic lights.
-   */
-  int num_dynamic_lights;
 };
 
 /**
- * @brief The zero-terminated array of active light indexes for the current render operation.
+ * @brief The -1 terminated array of active light indexes for the current render operation.
  */
-uniform int active_lights[MAX_LIGHTS];
+uniform int dynamic_lights[MAX_DYNAMIC_LIGHTS];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.

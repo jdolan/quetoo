@@ -70,17 +70,17 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
 
   for (float i = 0; i < samples; i++) {
 
-	  vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-	  vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
+    vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+    vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
-	  fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
-	  if (fog.a >= 1.0) {
-  	  break;
-	  }
+    fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+    if (fog.a >= 1.0) {
+      break;
+    }
   }
 
   if (hmax(fog.rgb) > 1.0) {
-	  fog.rgb /= hmax(fog.rgb);
+    fog.rgb /= hmax(fog.rgb);
   }
 
   return clamp(fog, 0.0, 1.0);
@@ -111,16 +111,16 @@ void main(void) {
   vertex.color = vec4(1.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
-	  vertex.ambient = vec3(0.666);
-	  vertex.caustics = 0.0;
-	  vertex.fog = vec4(0.0);
+    vertex.ambient = vec3(0.666);
+    vertex.caustics = 0.0;
+    vertex.fog = vec4(0.0);
   } else {
-	  vec3 texcoord = voxel_uvw(vec3(model * position));
+    vec3 texcoord = voxel_uvw(vec3(model * position));
 
-	  vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
+    vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
-	  vertex.caustics = sample_voxel_caustics(texcoord);
-	  vertex.fog = sample_voxel_fog(texcoord);
+    vertex.caustics = sample_voxel_caustics(texcoord);
+    vertex.fog = sample_voxel_fog(texcoord);
   }
 
   gl_Position = projection3D * vec4(vertex.position, 1.0);

@@ -289,12 +289,17 @@ void light_and_shadow(void) {
     light_and_shadow_light(light, light_index);
   }
 
-  for (int i = num_bsp_lights; i < num_bsp_lights + num_dynamic_lights; i++) {
-    light_t light = lights[i];
-    
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = dynamic_lights[i];
+    if (index == -1) {
+      break;
+    }
+
+    light_t light = lights[index];
+
     float dist = distance(light.origin.xyz, vertex.model);
     if (dist < light.origin.w) {
-      light_and_shadow_light(light, i);
+      light_and_shadow_light(light, index);
     }
   }
 
