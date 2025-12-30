@@ -27,6 +27,7 @@
 typedef struct {
   int32_t s, t, u;
   vec3_t origin;
+  box3_t bounds;
   vec4_t diffuse;
   vec4_t fog;
   GHashTable *lights;

@@ -35,7 +35,7 @@ void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
   const vec3_t color = Vec3_Scale(light->color, light->intensity);
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
-  light->bounds = Box3_Append(light->bounds, voxel->origin);
+  light->bounds = Box3_Union(light->bounds, voxel->bounds);
 
   g_hash_table_add(voxel->lights, light);
 }
@@ -215,7 +215,7 @@ static void BuildVoxelVoxels(void) {
 
   voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(voxel_t), MEM_TAG_VOXEL);
 
-  voxel_t *l = voxels.voxels;
+  voxel_t *v = voxels.voxels;
 
   // Initialize in XYZ order to match OpenGL texture layout
   for (int32_t u = 0; u < voxels.size.z; u++) {
@@ -223,15 +223,17 @@ static void BuildVoxelVoxels(void) {
       for (int32_t s = 0; s < voxels.size.x; s++) {
         
         const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
-        l = &voxels.voxels[idx];
+        v = &voxels.voxels[idx];
 
-        l->s = s;
-        l->t = t;
-        l->u = u;
+        v->s = s;
+        v->t = t;
+        v->u = u;
         
-        l->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
+        v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-        ProjectVoxel(l, 0.f, 0.f, 0.f);
+        ProjectVoxel(v, 0.f, 0.f, 0.f);
+
+        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
       }
     }
   }
