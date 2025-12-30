@@ -76,6 +76,12 @@ void R_UpdateLights(r_view_t *view) {
     R_AddLightUniform(view, l);
     r_stats.lights_visible++;
 
+    if (l->bsp_light) {
+      out->num_bsp_lights++;
+    } else {
+      out->num_dynamic_lights++;
+    }
+
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);
     }

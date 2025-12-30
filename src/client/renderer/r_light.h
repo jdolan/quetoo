@@ -52,6 +52,16 @@ typedef struct {
    * @brief The light sources for the current frame.
    */
   r_light_uniform_t lights[MAX_LIGHTS];
+
+  /**
+   * @brief The number of BSP lights (and index of first dynamic light).
+   */
+  int32_t num_bsp_lights;
+
+  /**
+   * @brief The number of dynamic lights.
+   */
+  int32_t num_dynamic_lights;
 } r_light_uniform_block_t;
 
 /**

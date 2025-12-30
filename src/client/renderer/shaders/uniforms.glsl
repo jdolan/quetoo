@@ -164,9 +164,19 @@ struct light_t {
  */
 layout (std140) uniform lights_block {
   /**
-   * @brief The light sources for the current frame, transformed to view space.
+   * @brief The light sources for the current frame.
    */
   light_t lights[MAX_LIGHTS];
+
+  /**
+   * @brief The number of BSP lights (and index of first dynamic light).
+   */
+  int num_bsp_lights;
+
+  /**
+   * @brief The number of dynamic lights.
+   */
+  int num_dynamic_lights;
 };
 
 /**
