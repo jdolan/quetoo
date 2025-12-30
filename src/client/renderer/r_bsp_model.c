@@ -545,7 +545,7 @@ static void R_LoadBspLightGrid(r_model_t *mod) {
   const int vy = voxels_header->size.y;
   const int vz = voxels_header->size.z;
   const int num_cells = vx * vy * vz;
-  const int total = voxels_header->light_grid_size;
+  const int total = voxels_header->num_light_indices;
 
   Com_Print("Voxels header: size=(%d,%d,%d) light_grid_size=%d\n", vx, vy, vz, total);
 

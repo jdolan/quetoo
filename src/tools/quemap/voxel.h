@@ -29,6 +29,9 @@ typedef struct {
   vec3_t origin;
   vec4_t diffuse;
   vec4_t fog;
+  GHashTable *lights;
+  int32_t lights_offset;
+  int32_t lights_count;
 } voxel_t;
 
 /**
@@ -43,6 +46,8 @@ typedef struct {
 
   size_t num_voxels;
   voxel_t *voxels;
+
+  size_t num_light_indices;
 } voxels_t;
 
 extern voxels_t voxels;
@@ -52,3 +57,4 @@ void LightVoxel(int32_t voxel_num);
 void CausticsVoxel(int32_t voxel_num);
 void FogVoxel(int32_t voxel_num);
 void EmitVoxels(void);
+void FreeVoxels(void);

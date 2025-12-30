@@ -321,7 +321,7 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
   bsp_voxels_t *voxel = (bsp_voxels_t *) lump;
 
   voxel->size = LittleVec3i(voxel->size);
-  voxel->light_grid_size = LittleLong(voxel->light_grid_size);
+  voxel->num_light_indices = LittleLong(voxel->num_light_indices);
 }
 
 /**

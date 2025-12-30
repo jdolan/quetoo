@@ -36,6 +36,8 @@ void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
   light->bounds = Box3_Append(light->bounds, voxel->origin);
+
+  g_hash_table_add(voxel->lights, light);
 }
 
 /**
@@ -215,13 +217,19 @@ static void BuildVoxelVoxels(void) {
 
   voxel_t *l = voxels.voxels;
 
+  // Initialize in XYZ order to match OpenGL texture layout
   for (int32_t u = 0; u < voxels.size.z; u++) {
     for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++, l++) {
+      for (int32_t s = 0; s < voxels.size.x; s++) {
+        
+        const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
+        l = &voxels.voxels[idx];
 
         l->s = s;
         l->t = t;
         l->u = u;
+        
+        l->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
 
         ProjectVoxel(l, 0.f, 0.f, 0.f);
       }
@@ -311,11 +319,11 @@ static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float sc
 void LightVoxel(int32_t voxel_num) {
 
   const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
+    Vec3(+0.0f, +0.0f, +0.0f),
+    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
+    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
+    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
+    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
   };
 
   const float weight = 1.f / lengthof(offsets);
@@ -463,22 +471,27 @@ void FogVoxel(int32_t voxel_num) {
  */
 void EmitVoxels(void) {
 
-  // Calculate base voxel data size
-  const size_t voxel_data_size = voxels.num_voxels * sizeof(color32_t) * 2; // diffuse + fog
-  
-  // Reserve space for light grid (will be filled by EmitLightGrid)
-  // We don't know the exact size yet, so reserve maximum possible
-  const int num_cells = voxels.num_voxels;
-  const size_t max_lightgrid_size = num_cells * 2 * sizeof(int32_t) + // metadata
-                                     num_cells * bsp_file.num_lights * sizeof(int32_t); // worst case: all lights in all cells
-  
-  bsp_file.voxels_size = sizeof(bsp_voxels_t) + voxel_data_size + max_lightgrid_size;
+  const uint32_t start = (uint32_t) SDL_GetTicks();
+
+  voxels.num_light_indices = 0;
+
+  voxel_t *v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+    v->lights_offset = (int32_t) voxels.num_light_indices;
+    v->lights_count = (int32_t) g_hash_table_size(v->lights);
+    voxels.num_light_indices += v->lights_count;
+  }
+
+  bsp_file.voxels_size = sizeof(bsp_voxels_t);
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t) * 2; // diffuse + fog
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
+  bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_VOXELS, bsp_file.voxels_size);
   memset(bsp_file.voxels, 0, bsp_file.voxels_size);
 
   bsp_file.voxels->size = voxels.size;
-  bsp_file.voxels->light_grid_size = 0; // Will be set by EmitLightGrid
+  bsp_file.voxels->num_light_indices = (int32_t) voxels.num_light_indices;
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
@@ -488,14 +501,18 @@ void EmitVoxels(void) {
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
   
-  voxel_t *voxel = voxels.voxels;
   for (int32_t u = 0; u < voxels.size.z; u++) {
-    
+
+    Progress("Emitting voxels", 100.f * u / voxels.size.z);
+
     SDL_Surface *diffuse = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_diffuse);
     SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
     for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++, voxel++) {
+      for (int32_t s = 0; s < voxels.size.x; s++) {
+        const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
+        voxel_t *voxel = &voxels.voxels[idx];
+        
         *out_diffuse++ = Color_Color32(Color4fv(voxel->diffuse));
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }
@@ -509,4 +526,47 @@ void EmitVoxels(void) {
     SDL_DestroySurface(diffuse);
     SDL_DestroySurface(fog);
   }
+
+  int32_t *meta_out = (int32_t *) out;
+  out += voxels.num_voxels * sizeof(int32_t) * 2;
+
+  v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+    *meta_out++ = v->lights_offset;
+    *meta_out++ = v->lights_count;
+  }
+
+  int32_t *indices_out = (int32_t *) out;
+  out += voxels.num_light_indices * sizeof(int32_t);
+
+  v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+
+    GHashTableIter iter;
+    gpointer key;
+
+    g_hash_table_iter_init(&iter, v->lights);
+    while (g_hash_table_iter_next(&iter, &key, NULL)) {
+      light_t *light = key;
+
+      *indices_out++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+    }
+  }
+  
+  Com_Debug(DEBUG_ALL, "Emitted voxels=%zd indices=%zd\n", voxels.num_voxels, voxels.num_light_indices);
+
+  Com_Print("\r%-24s [100%%] %d ms\n", "Emitting voxels", (uint32_t) SDL_GetTicks() - start);
+}
+
+/**
+ * @brief
+ */
+void FreeVoxels(void) {
+
+  voxel_t *v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+    g_hash_table_destroy(v->lights);
+  }
+
+  Mem_FreeTag(MEM_TAG_VOXEL);
 }

@@ -561,7 +561,7 @@ typedef struct {
   /**
    * @brief The number of light indices in the light grid.
    */
-  int32_t light_grid_size;
+  int32_t num_light_indices;
 } bsp_voxels_t;
 
 /**

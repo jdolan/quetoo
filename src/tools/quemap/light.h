@@ -59,7 +59,7 @@ typedef struct light_s {
   /**
    * @brief The bounds of the light source.
    */
-  box3_t bounds;
+  box3_t bounds; // FIXME: Remove this?
 
   /**
    * @brief The output light in the BSP, so that voxels may reference them.
