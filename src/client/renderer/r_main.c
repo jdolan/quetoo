@@ -260,10 +260,6 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateLights(view);
 
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
   R_DrawShadows(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
