@@ -349,17 +349,17 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const byte *data = (byte *) in + sizeof(bsp_voxels_t);
 
   r_bsp_voxels_t *out = mod->bsp->voxels = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+
   out->size = in->size;
+  out->num_voxels = out->size.x * out->size.y * out->size.z;
+  out->num_light_indices = in->num_light_indices;
 
   const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
   const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
   const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
 
   out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
-
   out->voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
-
-  const size_t voxels = out->size.x * out->size.y * out->size.z;
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
@@ -380,7 +380,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DIFFUSE);
 
   R_UploadImage(out->diffuse, data);
-  data += voxels * sizeof(color32_t);
+  data += out->num_voxels * sizeof(color32_t);
 
   out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->fog->media.Free = R_FreeImage;
@@ -399,8 +399,46 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_FOG);
 
   R_UploadImage(out->fog, data);
+  data += out->num_voxels * sizeof(color32_t);
+
+  out->light_data = (int32_t *) Mem_LinkMalloc(out->num_voxels * sizeof(int32_t) * 2, mod->bsp);
+  memcpy(out->light_data, data, out->num_voxels * sizeof(int32_t) * 2);
+
+  data += out->num_voxels * sizeof(int32_t) * 2;
+
+  out->light_indices = (int32_t *) Mem_LinkMalloc(out->num_light_indices * sizeof(int32_t), mod->bsp);
+  memcpy(out->light_indices, data, out->num_light_indices * sizeof(int32_t));
+
+  data += out->num_voxels * sizeof(int32_t) * 2;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
+
+  glGenTextures(1, &out->light_data_texture);
+  glBindTexture(GL_TEXTURE_3D, out->light_data_texture);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32I, out->size.x, out->size.y, out->size.z, 0, GL_RG_INTEGER, GL_INT, out->light_data);
+
+  glGenBuffers(1, &out->light_index_buffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, out->light_index_buffer);
+  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), out->light_indices, GL_STATIC_DRAW);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
+
+  glGenTextures(1, &out->light_index_texture);
+  glBindTexture(GL_TEXTURE_BUFFER, out->light_index_texture);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, out->light_index_buffer);
+
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+
+  R_GetError(NULL);
 }
 
 /**
@@ -507,118 +545,14 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
-(1 << BSP_LUMP_VERTEXES) | \
-(1 << BSP_LUMP_ELEMENTS) | \
-(1 << BSP_LUMP_FACES) | \
-(1 << BSP_LUMP_DRAW_ELEMENTS) | \
-(1 << BSP_LUMP_BLOCKS) | \
-(1 << BSP_LUMP_LIGHTS) | \
-(1 << BSP_LUMP_VOXELS) \
+  (1 << BSP_LUMP_VERTEXES) | \
+  (1 << BSP_LUMP_ELEMENTS) | \
+  (1 << BSP_LUMP_FACES) | \
+  (1 << BSP_LUMP_DRAW_ELEMENTS) | \
+  (1 << BSP_LUMP_BLOCKS) | \
+  (1 << BSP_LUMP_LIGHTS) | \
+  (1 << BSP_LUMP_VOXELS) \
 )
-
-/**
- * @brief Load the light grid from the BSP file if available, otherwise build it from lights and voxels.
- * Place this after R_LoadBspVoxels() and R_LoadBspLights().
- */
-static void R_LoadBspLightGrid(r_model_t *mod) {
-  r_bsp_model_t *bsp = mod->bsp;
-
-  // Free any previous light grid data
-  if (bsp->voxels->light_meta) {
-    Mem_Free(bsp->voxels->light_meta);
-    bsp->voxels->light_meta = NULL;
-  }
-  if (bsp->voxels->light_indices) {
-    Mem_Free(bsp->voxels->light_indices);
-    bsp->voxels->light_indices = NULL;
-  }
-
-  const bsp_file_t *file = bsp->cm->file;
-  if (!file->voxels) {
-    Com_Debug(DEBUG_RENDERER, "No voxels in BSP\n");
-    return;
-  }
-
-  // Light grid data is appended to voxels lump after voxel texture data
-  const bsp_voxels_t *voxels_header = file->voxels;
-  const int vx = voxels_header->size.x;
-  const int vy = voxels_header->size.y;
-  const int vz = voxels_header->size.z;
-  const int num_cells = vx * vy * vz;
-  const int total = voxels_header->num_light_indices;
-
-  Com_Print("Voxels header: size=(%d,%d,%d) light_grid_size=%d\n", vx, vy, vz, total);
-
-  if (total == 0) {
-    Com_Debug(DEBUG_RENDERER, "No light grid data in BSP\n");
-    return;
-  }
-
-  // Calculate offset to light grid data:
-  // sizeof(bsp_voxels_t) + voxel diffuse data + voxel fog data
-  const byte *data = (const byte *) file->voxels;
-  data += sizeof(bsp_voxels_t);
-  data += (vx * vy * vz) * sizeof(color32_t) * 2; // diffuse + fog
-
-  const int32_t *file_meta = (const int32_t *) data;
-  data += num_cells * 2 * sizeof(int32_t);
-
-  const int32_t *file_indices = total > 0 ? (const int32_t *) data : NULL;
-
-  bsp->voxels->num_light_indices = total;
-
-  // Copy meta array
-  bsp->voxels->light_meta = (int32_t *) Mem_LinkMalloc(num_cells * 2 * sizeof(int32_t), bsp);
-  memcpy(bsp->voxels->light_meta, file_meta, num_cells * 2 * sizeof(int32_t));
-
-  // Copy indices array if present
-  if (total > 0 && file_indices) {
-    bsp->voxels->light_indices = (int32_t *) Mem_LinkMalloc(total * sizeof(int32_t), bsp);
-    memcpy(bsp->voxels->light_indices, file_indices, total * sizeof(int32_t));
-  } else {
-    bsp->voxels->light_indices = NULL;
-  }
-
-  Com_Debug(DEBUG_RENDERER, "Loaded light grid from BSP: cells=%d indices=%d\n", num_cells, total);
-
-  if (bsp->voxels->light_index_texture) {
-    glDeleteTextures(1, &bsp->voxels->light_index_texture);
-    bsp->voxels->light_index_texture = 0;
-  }
-  if (bsp->voxels->light_index_buffer) {
-    glDeleteBuffers(1, &bsp->voxels->light_index_buffer);
-    bsp->voxels->light_index_buffer = 0;
-  }
-  if (bsp->voxels->light_meta_texture) {
-    glDeleteTextures(1, &bsp->voxels->light_meta_texture);
-    bsp->voxels->light_meta_texture = 0;
-  }
-
-  glGenTextures(1, &bsp->voxels->light_meta_texture);
-  glBindTexture(GL_TEXTURE_3D, bsp->voxels->light_meta_texture);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32I, vx, vy, vz, 0, GL_RG_INTEGER, GL_INT, bsp->voxels->light_meta);
-  glBindTexture(GL_TEXTURE_3D, 0);
-
-  glGenBuffers(1, &bsp->voxels->light_index_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, bsp->voxels->light_index_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, bsp->voxels->num_light_indices * sizeof(int32_t), bsp->voxels->light_indices, GL_STATIC_DRAW);
-
-  glGenTextures(1, &bsp->voxels->light_index_texture);
-  glBindTexture(GL_TEXTURE_BUFFER, bsp->voxels->light_index_texture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, bsp->voxels->light_index_buffer);
-
-  glBindTexture(GL_TEXTURE_BUFFER, 0);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
-
-  R_GetError(NULL);
-}
 
 /**
  * @brief
@@ -649,9 +583,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
   R_LoadBspVoxels(mod);
-
-  // Load or build the CPU-side light grid for accelerating active-light selection.
-  R_LoadBspLightGrid(mod);
 
   if (r_draw_bsp_voxels->value) {
     Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_VOXELS));
@@ -707,29 +638,12 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  // free CPU-side light grid
-  if (bsp->voxels->light_meta) {
-    Mem_Free(bsp->voxels->light_meta);
-    bsp->voxels->light_meta = NULL;
-  }
-  if (bsp->voxels->light_indices) {
-    Mem_Free(bsp->voxels->light_indices);
-    bsp->voxels->light_indices = NULL;
-  }
+  glDeleteTextures(1, &bsp->voxels->light_index_texture);
+  glDeleteBuffers(1, &bsp->voxels->light_index_buffer);
+  glDeleteTextures(1, &bsp->voxels->light_data_texture);
 
-  // free GPU-side resources
-  if (bsp->voxels->light_index_texture) {
-    glDeleteTextures(1, &bsp->voxels->light_index_texture);
-    bsp->voxels->light_index_texture = 0;
-  }
-  if (bsp->voxels->light_index_buffer) {
-    glDeleteBuffers(1, &bsp->voxels->light_index_buffer);
-    bsp->voxels->light_index_buffer = 0;
-  }
-  if (bsp->voxels->light_meta_texture) {
-    glDeleteTextures(1, &bsp->voxels->light_meta_texture);
-    bsp->voxels->light_meta_texture = 0;
-  }
+  Mem_Free(bsp->voxels->light_data);
+  Mem_Free(bsp->voxels->light_indices);
 
   R_GetError(NULL);
 }

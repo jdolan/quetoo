@@ -49,8 +49,8 @@ static struct {
   GLint texture_shadow_cubemap_array2;
   GLint texture_shadow_cubemap_array3;
 
-  GLint texture_light_grid_meta;
-  GLint texture_light_grid_indices;
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
 
   GLint alpha_test;
 
@@ -399,12 +399,6 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 
   glBindVertexArray(bsp->vertex_array);
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
-  glBindTexture(GL_TEXTURE_3D, bsp->voxels->light_meta_texture);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-  glBindTexture(GL_TEXTURE_BUFFER, bsp->voxels->light_index_texture);
-
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
@@ -479,14 +473,6 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
   glUseProgram(r_bsp_program.name);
 
   glBindVertexArray(bsp->vertex_array);
-
-  // Bind light grid textures
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_META);
-  glBindTexture(GL_TEXTURE_3D, bsp->voxels->light_meta_texture);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_LIGHT_GRID_INDICES);
-  glBindTexture(GL_TEXTURE_BUFFER, bsp->voxels->light_index_texture);
-
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -568,8 +554,8 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array2");
   r_bsp_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array3");
 
-  r_bsp_program.texture_light_grid_meta = glGetUniformLocation(r_bsp_program.name, "texture_light_grid_meta");
-  r_bsp_program.texture_light_grid_indices = glGetUniformLocation(r_bsp_program.name, "texture_light_grid_indices");
+  r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
+  r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
 
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -604,8 +590,8 @@ void R_InitBspProgram(void) {
   glUniform1i(r_bsp_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
   glUniform1i(r_bsp_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
 
-  glUniform1i(r_bsp_program.texture_light_grid_meta, TEXTURE_LIGHT_GRID_META);
-  glUniform1i(r_bsp_program.texture_light_grid_indices, TEXTURE_LIGHT_GRID_INDICES);
+  glUniform1i(r_bsp_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_bsp_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 
   r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
   r_bsp_program.warp_image->media.Retain = R_RetainImage;

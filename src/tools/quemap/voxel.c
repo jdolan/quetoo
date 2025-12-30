@@ -330,7 +330,7 @@ void LightVoxel(int32_t voxel_num) {
 
   const float weight = 1.f / lengthof(offsets);
 
-  voxel_t *l = &voxels.voxels[voxel_num];
+  voxel_t *v = &voxels.voxels[voxel_num];
 
   for (size_t i = 0; i < lengthof(offsets); i++) {
 
@@ -338,11 +338,11 @@ void LightVoxel(int32_t voxel_num) {
     const float toffs = offsets[i].y;
     const float uoffs = offsets[i].z;
 
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
+    if (ProjectVoxel(v, soffs, toffs, uoffs) == CONTENTS_SOLID) {
       continue;
     }
 
-    LightVoxel_(lights, l, weight);
+    LightVoxel_(lights, v, weight);
   }
 }
 

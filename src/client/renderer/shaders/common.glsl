@@ -148,32 +148,30 @@ vec3 voxel_uvw(in vec3 position) {
 }
 
 /**
- * @brief Resolves the light grid cell coordinate for the specified position in world space.
- * @param position The position in world space (model space for meshes, world space for BSP).
- * @return The integer cell coordinates (x, y, z) in the light grid.
+ * @brief Resolves the voxel coordinate for the specified position in world space.
+ * @param position The position in world space.
+ * @return The integer voxel coordinates (x, y, z).
  */
-ivec3 light_grid_cell(in vec3 position) {
-  vec3 rel_pos = position - voxels.mins.xyz;
-  ivec3 cell = ivec3(floor(rel_pos / voxels.voxel_size.xyz));
-  ivec3 grid_size = ivec3(voxels.size.xyz);
-  return clamp(cell, ivec3(0), grid_size - ivec3(1));
+ivec3 voxel_xyz(in vec3 position) {
+  vec3 pos = position - voxels.mins.xyz;
+  ivec3 voxel = ivec3(floor(pos / voxels.voxel_size.xyz));
+  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
 }
 
 /**
- * @brief Fetches the light metadata (offset, count) for a given cell.
- * @param cell The cell coordinates in the light grid.
- * @return A vec2 where .x is the offset into the index buffer and .y is the count.
+ * @brief Fetches the light data (index offset, index count) for the given voxel.
+ * @param voxel The voxel coordinate.
+ * @return The offset into the voxel light index TBO, and the count of index elements (texels).
  */
-ivec2 light_grid_meta(in ivec3 cell) {
-  return texelFetch(texture_light_grid_meta, cell, 0).xy;
+ivec2 voxel_light_data(in ivec3 cell) {
+  return texelFetch(texture_voxel_light_data, cell, 0).xy;
 }
 
 /**
- * @brief Fetches the light index at the specified position in the flattened index array.
- * @param index The index into the flattened light index array.
- * @return The light index.
+ * @brief Fetches the light index element at the specified position in the light index TBO.
+ * @param index The position in the light index TBO.
+ * @return The index of the light referenced by the index element.
  */
-int light_grid_index(in int index) {
-  return texelFetch(texture_light_grid_indices, index).x;
+int voxel_light_index(in int index) {
+  return texelFetch(texture_voxel_light_indices, index).x;
 }
-

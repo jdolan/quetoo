@@ -228,9 +228,9 @@ uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
 // Clustered light grid resources (optional)
 // -----------------------------------------------------------------------------
 // Per-voxel meta: RG32I (offset, count) into the index buffer
-uniform isampler3D texture_light_grid_meta;
+uniform isampler3D texture_voxel_light_data;
 // Flattened index list (R32I) stored in a texture buffer
-uniform isamplerBuffer texture_light_grid_indices;
+uniform isamplerBuffer texture_voxel_light_indices;
 // Per-light parameter buffers (origin.xyz + radius, color.rgb + intensity)
 
 // Toggle (set by the renderer)

@@ -407,13 +407,11 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 
-  ivec3 cell = light_grid_cell(vertex.model);
-  ivec2 meta = light_grid_meta(cell);
-  int offset = meta.x;
-  int count = meta.y;
+  ivec3 voxel = voxel_xyz(vertex.model);
+  ivec2 data = voxel_light_data(voxel);
 
-  for (int i = 0; i < count; i++) {
-    int light_index = light_grid_index(offset + i);
+  for (int i = 0; i < data.y; i++) {
+    int light_index = voxel_light_index(data.x + i);
 
     light_t light = lights[light_index];
     light_and_shadow_light(light, light_index);

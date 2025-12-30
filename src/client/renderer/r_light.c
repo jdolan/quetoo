@@ -98,7 +98,7 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
   const r_bsp_model_t *bsp = r_models.world ? r_models.world->bsp : NULL;
 
   // If we have a CPU-side light grid, use it to accelerate selection.
-  if (bsp && bsp->light_grid_meta && bsp->light_grid_indices && bsp->light_grid_num_cells > 0 && bsp->voxels) {
+  if (bsp && bsp->voxel_light_data && bsp->voxels_voxel_indices && bsp->voxels_voxel_num_cells > 0 && bsp->voxels) {
 
     const int32_t num_bsp_lights = bsp->num_lights;
 
@@ -143,11 +143,11 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
       for (int y = imin.y; y <= imax.y && num_active_lights < MAX_LIGHTS - 1; y++) {
         for (int x = imin.x; x <= imax.x && num_active_lights < MAX_LIGHTS - 1; x++) {
           const int cell = (z * vy + y) * vx + x;
-          const int32_t offset = bsp->light_grid_meta[cell * 2 + 0];
-          const int32_t count  = bsp->light_grid_meta[cell * 2 + 1];
+          const int32_t offset = bsp->voxel_light_data[cell * 2 + 0];
+          const int32_t count  = bsp->voxel_light_data[cell * 2 + 1];
 
           for (int32_t k = 0; k < count && num_active_lights < MAX_LIGHTS - 1; k++) {
-            const int32_t bsp_idx = bsp->light_grid_indices[offset + k];
+            const int32_t bsp_idx = bsp->voxels_voxel_indices[offset + k];
             if (bsp_idx < 0 || bsp_idx >= num_bsp_lights) {
               continue;
             }

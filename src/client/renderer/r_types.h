@@ -711,9 +711,14 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The voxel size in voxels.
+   * @brief The grid dimensions in voxels.
    */
   vec3i_t size;
+
+  /**
+   * The total number of voxels.
+   */
+  int32_t num_voxels;
 
   /**
    * @brief The voxel bounds in world space.
@@ -738,12 +743,12 @@ typedef struct {
   /**
    * @brief The per-voxel offset and count pairs (`2 * num_voxels`).
    */
-  int32_t *light_meta;
+  int32_t *light_data;
 
   /**
-   * @brief The light metadata 3D texture (RG32I) for offset and count pairs per voxel.
+   * @brief The light data 3D texture (RG32I) for offset and count pairs per voxel.
    */
-  GLuint light_meta_texture;
+  GLuint light_data_texture;
 
   /**
    * @brief The integer vector of all light indices.
@@ -1799,8 +1804,8 @@ typedef enum {
   /**
    * @brief Clustered light grid textures.
    */
-  TEXTURE_LIGHT_GRID_META,
-  TEXTURE_LIGHT_GRID_INDICES,
+  TEXTURE_VOXEL_LIGHT_DATA,
+  TEXTURE_VOXEL_LIGHT_INDICES,
 
   /**
    * @brief Sprite specific textures.
