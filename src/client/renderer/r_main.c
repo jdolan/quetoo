@@ -170,10 +170,8 @@ static void R_UpdateUniforms(const r_view_t *view) {
       out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
 
-      out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxels->voxel_size, extents), 0.f);
-      out->voxels.voxel_size = Vec4(32, 32, 32, 0);
-      
-
+      const vec3_t voxel_size = Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE);
+      out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxel_size, extents), 0.f);
     }
   }
 }
