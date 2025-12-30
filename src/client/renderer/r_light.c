@@ -48,8 +48,6 @@ static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
   r_light_uniform_t *out = &r_lights.block.lights[index];
 
   out->origin = Vec3_ToVec4(in->origin, in->radius);
-  out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
-  out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
   out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 

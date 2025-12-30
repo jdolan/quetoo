@@ -150,16 +150,6 @@ struct light_t {
   vec4 origin;
 
   /**
-   * @brief The light mins in model space.
-   */
-  vec4 mins;
-
-  /**
-   * @brief The light maxs in model space.
-   */
-  vec4 maxs;
-
-  /**
    * @brief The light color and intensity.
    */
   vec4 color;

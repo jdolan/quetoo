@@ -68,7 +68,7 @@ void light_and_shadow(void) {
 
 	  light_t light = lights[index];
 
-	  if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
+	  if (distance(light.origin.xyz, in_position.xyz) < light.origin.w) {
   	  diffuse += light_and_shadow_light(light);
 	  }
   }
