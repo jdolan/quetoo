@@ -1,80 +1,87 @@
 Session export: Copilot transition guide
 
-Purpose
+## Purpose
 
-This file captures the minimal context needed to continue the interactive Copilot session in a CLI environment (or hand it off to another tool/agent). Live chat context (the model's internal state) cannot be transferred automatically — you must provide the workspace plus a short summary like this to rehydrate a new session.
+This file captures context for continuing work on the Quetoo renderer, particularly the clustered forward lighting implementation using voxels.
 
-High-level summary
+## High-level summary
 
-- Project: Quetoo (repo root)
-- Work in progress: Renderer optimizations (shadowmapping, parallax occlusion mapping, light grid / clustered lights), bug fixes in entity/event/sound handling. Implemented a GPU-uploadable light grid (TBO + 3D meta texture) in renderer, and corresponding quemap emission logic for the light grid.
-- Key recent edits (examples):
-  - src/client/renderer/r_bsp_model.c — added r_bsp_build_light_grid / r_bsp_upload_light_grid and integration in R_LoadBspModel
-  - src/tools/quemap/light.c — added EmitLightGrid and voxel-aware light-grid emission logic
-  - src/tools/quemap/light.h — exported EmitLightGrid prototype
-  - Other files touched during the session: src/client/renderer/r_types.h, various shader files (bsp_fs.glsl, mesh_fs.glsl), and shadow/occlusion shader paths.
+- **Project**: Quetoo game engine (C/OpenGL renderer)
+- **Recent work**: Clustered forward lighting using voxel grid for light culling
+- **Latest fix** (Dec 31, 2024): Fixed voxel boundary lighting artifacts by correcting sphere-box intersection test in quemap light assignment
 
-Why this file helps
+## Current Implementation Status
 
-- A new Copilot CLI session (or any other CLI-based assistant) won't have the chat transcript. Give it:
-  1) This repository checked out at the current HEAD
-  2) A branch containing your WIP changes (recommended)
-  3) This session context file (already created here)
-  4) Any additional notes/screenshots or the chat transcript if needed
+### Clustered Lighting (Voxel-based)
+- **Status**: Implemented and functional
+- **How it works**: 
+  - Compile-time: quemap assigns lights to voxels using sphere-box intersection
+  - Runtime: Shaders look up which lights affect each voxel, dramatically reducing per-fragment lighting cost
+  - Data stored in `BSP_LUMP_VOXELS` (shared with GI system)
+- **Recent fix**: Changed from point-to-center distance test to proper sphere-box intersection in `src/tools/quemap/voxel.c::LightVoxel_()` to eliminate hard lighting transitions at voxel boundaries
 
-Suggested minimal checklist to continue work in CLI
+### Other Recent Work
+- Shadow mapping optimizations
+- Parallax occlusion mapping
+- Soft shadows
+- Various entity/event/sound bug fixes
 
-- Create a dedicated branch to preserve current WIP:
-  - git checkout -b copilot-session
-  - git add -A
-  - git commit -m "WIP: copilot session snapshot"
-  - git push origin copilot-session
+## Key Files
 
-- Copy this session file to the remote repo (it's already created locally at doc/copilot/SESSION_CONTEXT.md).
+### Renderer (Client)
+- `src/client/renderer/r_bsp_model.c` - BSP/voxel loading, calculates padded bounds
+- `src/client/renderer/r_bsp_draw.c` - BSP rendering, binds voxel textures
+- `src/client/renderer/r_types.h` - Renderer data structures
+- `src/client/renderer/r_main.c` - Uploads voxel bounds to shader uniforms
+- `src/client/renderer/shaders/common.glsl` - Voxel lookup functions
+- `src/client/renderer/shaders/bsp_fs.glsl` - BSP fragment shader with voxel lighting
+- `src/client/renderer/shaders/mesh_fs.glsl` - Mesh fragment shader with voxel lighting
 
-- (Optional) Also add a short conversation transcript or the relevant messages in doc/copilot/CHAT_HISTORY.md for more fidelity.
+### Compiler (quemap)
+- `src/tools/quemap/voxel.c` - Voxel grid building and light assignment ⭐ Recent fix here
+- `src/tools/quemap/voxel.h` - Voxel data structures
+- `src/tools/quemap/light.c` - Light compilation
+- `src/tools/quemap/light.h` - Light structures
 
-Feeding context to Copilot CLI (or another assistant)
+### Shared
+- `src/collision/cm_bsp.h` - BSP file format definitions
+- `src/shared/box.h` - Box/bounds utility functions (Box3_ClampPoint used in fix)
 
-- Provide the assistant with:
-  - The repo path
-  - The branch name (copilot-session) or a patch/diff
-  - This session summary file (doc/copilot/SESSION_CONTEXT.md)
-  - A list of important files (see below)
+## Documentation
+- `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` - Detailed implementation guide ⭐ Just updated
+- `doc/copilot/SESSION_CONTEXT.md` - This file
 
-Important files to point the assistant at (priority order)
+## Continuing Work in CLI
 
-- src/client/renderer/r_bsp_model.c
-- src/client/renderer/r_types.h
-- src/client/renderer/r_light.c (renderer light code)
-- src/client/renderer/r_bsp_draw.c (draw integration)
-- src/tools/quemap/light.c (quemap emission + EmitLightGrid)
-- src/tools/quemap/light.h
-- src/tools/quemap/voxel.c, voxel.h
-- shader files: shaders/ or src/client/renderer/shaders (bsp_fs.glsl, mesh_fs.glsl, shadow_fs.glsl, bsp_fs.glsl)
-- doc/copilot/* (session and any other notes you add)
+To pick up where this session left off:
 
-Notes about "live" session transfer
+1. The voxel boundary artifact fix has been implemented and compiled successfully
+2. User is about to test the fix in-game
+3. Next steps may include:
+   - Verifying the fix resolves the visual artifacts
+   - Further optimization if needed
+   - Documentation updates if behavior differs from expected
 
-- There is no way to hand a running chat-model session from the GUI plugin directly to a CLI tool and preserve the model's ephemeral internal context. The only practical approaches are to:
-  - Save and commit workspace state + session summary so the next run has the same repository snapshot and a human-readable summary to replicate the context.
-  - Run a private persistence service (MCP) that stores conversation/context and provides an API to rehydrate a new agent; this requires extra infra and a custom integration.
+## Build Instructions
 
-If you want me to do the handoff for you
+```bash
+cd /Users/jdolan/Coding/quetoo
+make -j4
+```
 
-I can:
-- Create this session export (done: doc/copilot/SESSION_CONTEXT.md)
-- Create a short CHAT_HISTORY.md containing the last N messages from this session (if you want the transcript included)
-- Commit the session files on a new branch (copilot-session) and push it to your remote for the CLI to pick up
-- Optionally generate a patch (git format-patch) if you prefer to apply locally
+## Testing the Voxel Lighting
 
-Tell me which of the above to do next (I can commit & push the branch for you, or just create local files). If you want me to push, tell me the remote branch name and confirm you want me to run git commands in this environment.
+```bash
+# Compile a test map with lighting
+./quemap -bsp -light maps/yourmap.map
 
-Troubleshooting tips for Copilot CLI
+# Run the game and load the map
+./quetoo +map yourmap
 
-- If the CLI tool asks for a limited subset of files, hand it the important files list above.
-- If it supports a workspace upload or tarball input, create a tarball of the repo at the copilot-session commit and provide that artifact.
+# Look for smooth lighting transitions at voxel boundaries
+# Previously would have had visible "grid lines" where lights cut off
+```
 
 ---
-Generated on: 2025-12-28
-Autogenerated by Copilot assistant session export
+**Last updated**: December 31, 2024
+**Status**: Voxel boundary fix implemented, awaiting testing

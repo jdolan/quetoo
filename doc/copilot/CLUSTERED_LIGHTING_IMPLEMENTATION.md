@@ -296,24 +296,21 @@ For each fragment in the shader:
 
 To verify the system is working:
 
-1. Compile a map: `quemap -bsp maps/test.map`
-   - Should see: "Emitted light grid: cells=X indices=Y"
+1. Compile a map with lighting: `quemap -bsp -light maps/test.map`
+   - Should see: "Emitted voxels=X indices=Y"
 
 2. Load the map in Quetoo
-   - Renderer should print: "Loaded light grid from BSP: cells=X indices=Y"
+   - Voxel data including light indices loaded from BSP
 
-3. Check GPU resources are created (in debug mode):
-   - `light_grid_meta_tex` should be non-zero
-   - `light_grid_index_tex` should be non-zero
-   - `use_light_grid` uniform should be 1
+3. Visual verification:
+   - Lighting should be smooth across voxel boundaries (no hard edges)
+   - Performance should scale well with many lights
+   - Use `r_draw_bsp_lightgrid 1` (if available) to visualize voxel grid
 
-4. Visual verification:
-   - Lighting should look identical to traditional path
-   - Performance should be better with many lights
+## Implementation Dates
 
-## Implementation Date
-
-December 28-29, 2024
+- Initial implementation: December 28-29, 2024
+- Voxel boundary artifact fix: December 31, 2024
 
 ## Authors
 
