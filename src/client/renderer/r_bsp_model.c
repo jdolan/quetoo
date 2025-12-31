@@ -421,21 +421,18 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   glGenBuffers(1, &out->light_indices_buffer);
   glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
   glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), data, GL_STATIC_DRAW);
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
   out->light_data->target = GL_TEXTURE_BUFFER;
   out->light_data->internal_format = GL_R32I;
-  out->light_data->format = GL_RED_INTEGER;
-  out->light_data->pixel_type = GL_INT;
+  out->light_data->buffer = out->light_indices_buffer;
 
-  glGenTextures(1, &out->light_indices->texnum);
-  glBindTexture(GL_TEXTURE_BUFFER, out->light_indices->texnum);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, out->light_indices_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
+
+  R_SetupImage(out->light_data);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 

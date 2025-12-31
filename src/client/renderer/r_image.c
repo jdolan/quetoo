@@ -138,26 +138,8 @@ void R_SetupImage(r_image_t *image) {
   
   assert(image);
   assert(image->type);
-  assert(image->width);
-  assert(image->height);
   assert(image->target);
   assert(image->internal_format);
-  assert(image->format);
-  assert(image->pixel_type);
-  assert(image->minify);
-  assert(image->magnify);
-
-  if (image->levels == 0) {
-    switch (image->minify) {
-      case GL_LINEAR_MIPMAP_LINEAR:
-      case GL_LINEAR_MIPMAP_NEAREST:
-        image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
-        break;
-      default:
-        image->levels = 1;
-        break;
-    }
-  }
 
   if (image->texnum == 0) {
     glGenTextures(1, &(image->texnum));
@@ -165,24 +147,49 @@ void R_SetupImage(r_image_t *image) {
 
   glBindTexture(image->target, image->texnum);
 
-  glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
-  glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
-  glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
+  if (image->target == GL_TEXTURE_BUFFER) {
 
-  switch (image->type) {
-    case IMG_CUBEMAP:
-    case IMG_VOXELS:
-      glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-      glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    default:
-      break;
-  }
+    assert(image->buffer);
+    glTexBuffer(GL_TEXTURE_BUFFER, image->internal_format, image->buffer);
 
-  if (image->depth) {
-    glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
   } else {
-    glTexStorage2D(image->target, image->levels, image->internal_format, image->width, image->height);
+
+    assert(image->minify);
+    assert(image->magnify);
+    assert(image->format);
+    assert(image->pixel_type);
+
+    glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
+    glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
+    glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
+
+    switch (image->type) {
+      case IMG_CUBEMAP:
+      case IMG_VOXELS:
+        glTexParameteri(image->target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(image->target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(image->target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+      default:
+        break;
+    }
+
+    if (image->levels == 0) {
+      switch (image->minify) {
+        case GL_LINEAR_MIPMAP_LINEAR:
+        case GL_LINEAR_MIPMAP_NEAREST:
+          image->levels = floorf(log2f(Mini(image->width, image->height))) + 1;
+          break;
+        default:
+          image->levels = 1;
+          break;
+      }
+    }
+
+    if (image->depth) {
+      glTexStorage3D(image->target, image->levels, image->internal_format, image->width, image->height, image->depth);
+    } else {
+      glTexStorage2D(image->target, image->levels, image->internal_format, image->width, image->height);
+    }
   }
 
   R_RegisterMedia((r_media_t *) image);

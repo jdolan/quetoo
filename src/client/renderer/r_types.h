@@ -157,6 +157,11 @@ typedef struct {
   GLenum pixel_type;
 
   /**
+   * @brief The buffer object name, for `GL_TEXTURE_BUFFER` (TBO).
+   */
+  GLuint buffer;
+
+  /**
    * @brief The texture name.
    */
   GLuint texnum;
