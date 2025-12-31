@@ -81,8 +81,10 @@ void R_UpdateLights(r_view_t *view) {
     }
   }
 
+  const GLsizei size = view->num_lights * sizeof(r_light_uniform_t);
+
   glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, &r_lights.block);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   R_GetError(NULL);
@@ -95,8 +97,6 @@ void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
   GLint dynamic_lights[MAX_DYNAMIC_LIGHTS];
   GLint len = 0;
-
-  memset(dynamic_lights, 0, sizeof(dynamic_lights));
 
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
