@@ -300,12 +300,15 @@ static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float sc
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    const float dist = Maxf(0.f, Vec3_Distance(light->origin, voxel->origin));
-    if (dist >= light->radius) {
+    const vec3_t closest_point = Box3_ClampPoint(voxel->bounds, light->origin);
+    const float dist_to_voxel = Vec3_Distance(light->origin, closest_point);
+    
+    if (dist_to_voxel >= light->radius) {
       continue;
     }
 
-    const float atten = Clampf01(1.f - dist / light->radius);
+    const float dist_to_center = Vec3_Distance(light->origin, voxel->origin);
+    const float atten = Clampf01(1.f - dist_to_center / light->radius);
     const float lumens = atten * atten * scale;
 
     const cm_trace_t trace = Light_Trace(voxel->origin, light->origin, 0, CONTENTS_SOLID);
