@@ -36,7 +36,6 @@ void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
   light->bounds = Box3_Union(light->bounds, voxel->bounds);
-
   g_hash_table_add(voxel->lights, light);
 }
 
@@ -187,11 +186,15 @@ static void BuildVoxelExtents(void) {
  */
 static int32_t ProjectVoxel(voxel_t *v, float soffs, float toffs, float uoffs) {
 
-  // Sample point offset from voxel center
-  const vec3_t offset = Vec3(soffs * BSP_VOXEL_SIZE, toffs * BSP_VOXEL_SIZE, uoffs * BSP_VOXEL_SIZE);
-  const vec3_t sample_pos = Vec3_Add(v->origin, offset);
-  
-  return Light_PointContents(sample_pos, 0);
+  v->origin = Vec3(
+     voxels.stu_bounds.mins.x + (v->s + 0.5f + soffs) * BSP_VOXEL_SIZE,
+     voxels.stu_bounds.mins.y + (v->t + 0.5f + toffs) * BSP_VOXEL_SIZE,
+     voxels.stu_bounds.mins.z + (v->u + 0.5f + uoffs) * BSP_VOXEL_SIZE
+  );
+
+  v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
+
+  return Light_PointContents(v->origin, 0);
 }
 
 /**
@@ -230,15 +233,6 @@ static void BuildVoxelVoxels(void) {
         v->u = u;
         
         v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-        // Set voxel center (aligned to world grid)
-        v->origin = Vec3(
-          voxels.stu_bounds.mins.x + (s + 0.5f) * BSP_VOXEL_SIZE,
-          voxels.stu_bounds.mins.y + (t + 0.5f) * BSP_VOXEL_SIZE,
-          voxels.stu_bounds.mins.z + (u + 0.5f) * BSP_VOXEL_SIZE
-        );
-        
-        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
 
         // Sample 4 points within voxel for gradient information
         for (size_t i = 0; i < lengthof(offsets); i++) {
