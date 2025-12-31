@@ -428,11 +428,22 @@ void EmitVoxels(void) {
   voxels.num_light_indices = 0;
 
   voxel_t *v = voxels.voxels;
+  int32_t min_lights = INT32_MAX, max_lights = 0;
+  size_t total_lights = 0;
+  
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
     v->lights_offset = (int32_t) voxels.num_light_indices;
     v->lights_count = (int32_t) g_hash_table_size(v->lights);
     voxels.num_light_indices += v->lights_count;
+    
+    // Track statistics
+    total_lights += v->lights_count;
+    if (v->lights_count < min_lights) min_lights = v->lights_count;
+    if (v->lights_count > max_lights) max_lights = v->lights_count;
   }
+  
+  Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
+              min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 4; // contents (4 samples per voxel)
