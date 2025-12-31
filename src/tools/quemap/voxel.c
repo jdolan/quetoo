@@ -157,49 +157,41 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
   return err;
 }
 
-
 /**
- * @brief
- */
-static void BuildVoxelMatrices(void) {
-
-  const bsp_model_t *world = bsp_file.models;
-
-  voxels.matrix = Mat4_FromTranslation(Vec3_Negate(world->visible_bounds.mins));
-  voxels.matrix = Mat4_ConcatScale(voxels.matrix, 1.f / BSP_VOXEL_SIZE);
-  voxels.inverse_matrix = Mat4_Inverse(voxels.matrix);
-}
-
-/**
- * @brief
+ * @brief Builds the voxel grid aligned to world coordinates at BSP_VOXEL_SIZE intervals.
+ * Voxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
  */
 static void BuildVoxelExtents(void) {
 
   const bsp_model_t *world = bsp_file.models;
-
-  voxels.stu_bounds = Mat4_TransformBounds(voxels.matrix, world->visible_bounds);
-
+  
+  // Align mins to voxel grid (round down to nearest multiple of BSP_VOXEL_SIZE)
+  voxels.stu_bounds.mins.x = floorf(world->visible_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.mins.y = floorf(world->visible_bounds.mins.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.mins.z = floorf(world->visible_bounds.mins.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  
+  // Align maxs to voxel grid (round up to nearest multiple of BSP_VOXEL_SIZE)
+  voxels.stu_bounds.maxs.x = ceilf(world->visible_bounds.maxs.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.maxs.y = ceilf(world->visible_bounds.maxs.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.maxs.z = ceilf(world->visible_bounds.maxs.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  
+  // Calculate grid size (number of voxels in each dimension)
   for (int32_t i = 0; i < 3; i++) {
-    voxels.size.xyz[i] = floorf(voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) + 2;
+    voxels.size.xyz[i] = (int32_t)((voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) / BSP_VOXEL_SIZE);
   }
 }
 
 /**
- * @brief
+ * @brief Projects a voxel sample point to world space for contents sampling.
+ * Voxels are aligned to world grid at 0, ±32, ±64, etc.
  */
-static int32_t ProjectVoxel(voxel_t *l, float soffs, float toffs, float uoffs) {
+static int32_t ProjectVoxel(voxel_t *v, float soffs, float toffs, float uoffs) {
 
-  const float padding_s = ((voxels.stu_bounds.maxs.x - voxels.stu_bounds.mins.x) - voxels.size.x) * .5f;
-  const float padding_t = ((voxels.stu_bounds.maxs.y - voxels.stu_bounds.mins.y) - voxels.size.y) * .5f;
-  const float padding_u = ((voxels.stu_bounds.maxs.z - voxels.stu_bounds.mins.z) - voxels.size.z) * .5f;
-
-  const float s = voxels.stu_bounds.mins.x + padding_s + l->s + .5f + soffs;
-  const float t = voxels.stu_bounds.mins.y + padding_t + l->t + .5f + toffs;
-  const float u = voxels.stu_bounds.mins.z + padding_u + l->u + .5f + uoffs;
-
-  l->origin = Mat4_Transform(voxels.inverse_matrix, Vec3(s, t, u));
-
-  return Light_PointContents(l->origin, 0);
+  // Sample point offset from voxel center
+  const vec3_t offset = Vec3(soffs * BSP_VOXEL_SIZE, toffs * BSP_VOXEL_SIZE, uoffs * BSP_VOXEL_SIZE);
+  const vec3_t sample_pos = Vec3_Add(v->origin, offset);
+  
+  return Light_PointContents(sample_pos, 0);
 }
 
 /**
@@ -239,6 +231,15 @@ static void BuildVoxelVoxels(void) {
         
         v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
 
+        // Set voxel center (aligned to world grid)
+        v->origin = Vec3(
+          voxels.stu_bounds.mins.x + (s + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.y + (t + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.z + (u + 0.5f) * BSP_VOXEL_SIZE
+        );
+        
+        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
+
         // Sample 4 points within voxel for gradient information
         for (size_t i = 0; i < lengthof(offsets); i++) {
 
@@ -248,8 +249,6 @@ static void BuildVoxelVoxels(void) {
 
           v->contents[i] = ProjectVoxel(v, soffs, toffs, uoffs);
         }
-
-        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
       }
     }
   }
@@ -292,8 +291,6 @@ static void DebugVoxels(void) {
 size_t BuildVoxels(void) {
 
   memset(&voxels, 0, sizeof(voxels));
-
-  BuildVoxelMatrices();
 
   BuildVoxelExtents();
 

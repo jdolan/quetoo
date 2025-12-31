@@ -354,11 +354,17 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->num_voxels = out->size.x * out->size.y * out->size.z;
   out->num_light_indices = in->num_light_indices;
 
-  const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
-  const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
-  const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
-
-  out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
+  // Voxel grid is world-aligned at BSP_VOXEL_SIZE intervals
+  // Calculate bounds by aligning world bounds to voxel grid
+  const box3_t world_bounds = mod->bsp->inline_models->visible_bounds;
+  
+  out->bounds.mins.x = floorf(world_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  out->bounds.mins.y = floorf(world_bounds.mins.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  out->bounds.mins.z = floorf(world_bounds.mins.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  
+  out->bounds.maxs.x = ceilf(world_bounds.maxs.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  out->bounds.maxs.y = ceilf(world_bounds.maxs.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  out->bounds.maxs.z = ceilf(world_bounds.maxs.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 

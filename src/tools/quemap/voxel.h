@@ -43,9 +43,6 @@ typedef struct {
   box3_t stu_bounds;
   vec3i_t size;
 
-  mat4_t matrix;
-  mat4_t inverse_matrix;
-
   size_t num_voxels;
   voxel_t *voxels;
 
