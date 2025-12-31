@@ -1782,6 +1782,8 @@ typedef enum {
   TEXTURE_VOXEL,
   TEXTURE_VOXEL_DIFFUSE,
   TEXTURE_VOXEL_FOG,
+  TEXTURE_VOXEL_LIGHT_DATA,
+  TEXTURE_VOXEL_LIGHT_INDICES,
 
   /**
    * @brief The sky cubemap texture.
@@ -1796,12 +1798,6 @@ typedef enum {
   TEXTURE_SHADOW_CUBEMAP_ARRAY1,
   TEXTURE_SHADOW_CUBEMAP_ARRAY2,
   TEXTURE_SHADOW_CUBEMAP_ARRAY3,
-
-  /**
-   * @brief Clustered light grid textures.
-   */
-  TEXTURE_VOXEL_LIGHT_DATA,
-  TEXTURE_VOXEL_LIGHT_INDICES,
 
   /**
    * @brief Sprite specific textures.

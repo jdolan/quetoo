@@ -202,6 +202,8 @@ uniform sampler2D texture_warp;
  */
 uniform sampler3D texture_voxel_diffuse;
 uniform sampler3D texture_voxel_fog;
+uniform isampler3D texture_voxel_light_data;
+uniform isamplerBuffer texture_voxel_light_indices;
 
 /**
  * @brief The sky cubemap texture.
@@ -215,19 +217,6 @@ uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
 uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
-
-// -----------------------------------------------------------------------------
-// Clustered light grid resources (optional)
-// -----------------------------------------------------------------------------
-// Per-voxel meta: RG32I (offset, count) into the index buffer
-uniform isampler3D texture_voxel_light_data;
-// Flattened index list (R32I) stored in a texture buffer
-uniform isamplerBuffer texture_voxel_light_indices;
-// Per-light parameter buffers (origin.xyz + radius, color.rgb + intensity)
-
-// Toggle (set by the renderer)
-
-// -----------------------------------------------------------------------------
 
 /**
  * @brief The framebuffer attachment textures.
