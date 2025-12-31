@@ -48,6 +48,10 @@ static struct {
 
   GLint texture_diffusemap;
   GLint texture_next_diffusemap;
+
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
+
   GLint texture_depth_attachment_copy;
 
 } r_sprite_program;
@@ -477,10 +481,14 @@ static void R_InitSpriteProgram(void) {
 
   r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
   r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
+  r_sprite_program.texture_voxel_light_data = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_data");
+  r_sprite_program.texture_voxel_light_indices = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_indices");
   r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
   glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
   glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
+  glUniform1i(r_sprite_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_sprite_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
   glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
   glUseProgram(0);
