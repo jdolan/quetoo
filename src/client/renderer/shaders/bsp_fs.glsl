@@ -197,7 +197,6 @@ float sample_voxel_caustics() {
   ivec3 voxel = voxel_xyz(vertex.model);
   ivec4 contents = voxel_contents(voxel);
   
-  // Count how many of the 4 samples are liquid
   int liquid_count = 0;
   for (int i = 0; i < 4; i++) {
     if ((contents[i] & CONTENTS_MASK_LIQUID) != 0) {
@@ -205,7 +204,6 @@ float sample_voxel_caustics() {
     }
   }
   
-  // Attenuation based on liquid sample count (0-4)
   return (float(liquid_count) / 4.0) * caustics;
 }
 
