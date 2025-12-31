@@ -309,8 +309,9 @@ static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float sc
 
     const vec3_t closest_point = Box3_ClampPoint(voxel->bounds, light->origin);
     const float dist_to_voxel = Vec3_Distance(light->origin, closest_point);
-    
-    if (dist_to_voxel >= light->radius) {
+
+    const float conservative_radius = light->radius + BSP_VOXEL_SIZE;
+    if (dist_to_voxel >= conservative_radius) {
       continue;
     }
 
