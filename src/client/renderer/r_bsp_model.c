@@ -431,13 +431,13 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->light_indices->media.Free = R_FreeImage;
   out->light_indices->type = IMG_VOXELS;
-  out->light_data->target = GL_TEXTURE_BUFFER;
-  out->light_data->internal_format = GL_R32I;
-  out->light_data->buffer = out->light_indices_buffer;
+  out->light_indices->target = GL_TEXTURE_BUFFER;
+  out->light_indices->internal_format = GL_R32I;
+  out->light_indices->buffer = out->light_indices_buffer;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
 
-  R_SetupImage(out->light_data);
+  R_SetupImage(out->light_indices);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
