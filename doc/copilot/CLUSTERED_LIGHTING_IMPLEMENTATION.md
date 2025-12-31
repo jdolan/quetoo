@@ -4,220 +4,293 @@
 
 This document describes the implementation of clustered/voxel-forward lighting in Quetoo. The system uses a 3D grid that maps world space into voxel cells, with each cell storing a list of lights that affect it. This dramatically reduces lighting overhead by only processing lights that actually affect each fragment.
 
+**Note:** The light grid data is stored in the same voxels structure used for global illumination (`BSP_LUMP_VOXELS`), not in a separate `BSP_LUMP_LIGHTGRID` lump. The implementation reuses the existing voxel grid infrastructure.
+
 ## Architecture
 
 ### Data Flow
 
 1. **Compile-time (quemap)**:
    - Light sources are analyzed against the voxel grid
-   - For each voxel cell, determine which lights overlap it
+   - For each voxel cell, determine which lights overlap it using sphere-box intersection test
+   - Each voxel tracks its lights via a hash table
    - Generate two arrays:
      - `meta`: Per-cell (offset, count) pairs into the index array
      - `indices`: Flattened list of light indices
-   - Write light grid data to BSP file in `BSP_LUMP_LIGHTGRID` lump
+   - Write light grid data to BSP file in `BSP_LUMP_VOXELS` lump (combined with GI data)
 
 2. **Load-time (renderer)**:
-   - Load light grid data from BSP file
+   - Load voxel data from BSP file (includes light indices)
    - Upload to GPU as:
-     - 3D integer texture (RG32I) for meta data
-     - Texture buffer (R32I) for indices
-     - Texture buffers (RGBA32F) for light parameters
+     - 3D integer texture (RG32I) for meta data (offset, count)
+     - Texture buffer (R32I) for light indices
+     - Voxel diffuse and fog textures for GI
+   - Light parameters are uploaded separately in the active lights system
 
 3. **Runtime (shaders)**:
    - Fragment determines its voxel cell based on world position
-   - Fetch (offset, count) from 3D meta texture
-   - Loop through indices to get light IDs
-   - Fetch light parameters from TBOs
+   - Fetch (offset, count) from 3D meta texture using `voxel_light_data()`
+   - Loop through indices to get light IDs using `voxel_light_index()`
+   - Fetch light parameters from the existing light uniform arrays
    - Apply lighting calculations
 
 ## File Changes
 
 ### BSP File Format (`src/collision/cm_bsp.c`, `src/collision/cm_bsp.h`)
 
-**Added**:
-- `BSP_LUMP_LIGHTGRID` enum value to `bsp_lump_id_t`
-- `bsp_lightgrid_header_t` structure with grid dimensions and index count
-- Entry in `bsp_lump_meta` array for lightgrid lump
-- `MAX_BSP_LIGHTGRID_SIZE` constant (8MB)
+**No changes required** - Light grid data is stored within the existing `BSP_LUMP_VOXELS` lump structure.
 
-**lightgrid and voxels fields in `bsp_file_t`**:
-```c
-int32_t lightgrid_size;
-byte *lightgrid;
-```
+The `bsp_voxels_t` structure contains:
+- Grid dimensions (size.x, size.y, size.z)
+- Number of light indices
+- Diffuse color data for each voxel
+- Fog data for each voxel
+- Light index metadata (offset, count) for each voxel
+- Flattened light index array
 
-### Quemap Compiler (`src/tools/quemap/light.c`)
+### Quemap Compiler (`src/tools/quemap/voxel.c`)
 
-**Added**:
-- `EmitLightGrid()` function that:
-  - Iterates through all lights
-  - Transforms light bounds to voxel space
-  - Determines which cells each light affects
-  - Builds prefix-sum index structure
-  - Writes binary blob to `bsp_file.lightgrid`
+**Key function: `LightVoxel_()`**
+- Iterates through all lights for each voxel
+- Uses **sphere-box intersection test** to determine light-voxel overlap
+  - Finds closest point on voxel bounding box to light origin via `Box3_ClampPoint()`
+  - Measures distance from light to closest point
+  - Light affects voxel if distance < light radius
+- Calls `IlluminateVoxel()` to add light to voxel's hash table
+- Attenuation still uses center-to-center distance for smooth falloff
+
+**Bug Fix (December 31, 2024):**
+Previously used point-to-point distance (light origin to voxel center), which caused hard lighting boundaries at voxel edges when lights partially overlapped voxels. Fixed by using proper sphere-box intersection test.
+
+**Function: `EmitVoxels()`**
+- Writes voxel data to BSP file including:
+  - Diffuse and fog color arrays
+  - Light index metadata (offset, count per voxel)
+  - Flattened light index array
+- All data written to `BSP_LUMP_VOXELS`
 
 ### Renderer - BSP Model Loading (`src/client/renderer/r_bsp_model.c`)
 
-**Added**:
-- `R_LoadBspLightGrid()` function that:
-  - Tries to load pre-computed light grid from BSP file
-  - Falls back to runtime generation if not found
-  - Copies data into renderer structures
+**Function: `R_LoadBspVoxels()`**
+- Loads voxel data from `BSP_LUMP_VOXELS`
+- Extracts light index metadata and indices
+- Calculates padded bounds to center fixed-size voxel grid around irregular world
+- Creates GPU textures for:
+  - Voxel diffuse (3D texture for GI)
+  - Voxel fog (3D texture)
+  - Voxel light metadata (3D texture, RG32I format)
+  - Voxel light indices (texture buffer, R32I format)
 
-**Modified**:
-- `R_BSP_LUMPS` mask to include `BSP_LUMP_LIGHTGRID`
-- `r_bsp_upload_light_grid()` to upload GPU resources:
-  - Light grid index texture buffer (R32I)
-  - Light grid meta 3D texture (RG32I) 
-  - Per-light origin/radius TBO (RGBA32F)
-  - Per-light color/intensity TBO (RGBA32F)
+**Padding calculation:**
+```c
+const vec3_t voxels_size = Vec3_Scale(Vec3i_CastVec3(out->size), BSP_VOXEL_SIZE);
+const vec3_t world_size = Box3_Size(mod->bsp->inline_models->visible_bounds);
+const vec3_t padding = Vec3_Scale(Vec3_Subtract(voxels_size, world_size), 0.5f);
+out->bounds = Box3_Expand3(mod->bsp->inline_models->visible_bounds, padding);
+```
+
+This padding ensures the voxel grid (which has fixed-size cells) properly encompasses the world geometry.
 
 ### Renderer - Types (`src/client/renderer/r_types.h`)
 
-**Added texture slots**:
-- `TEXTURE_LIGHT_GRID_META`
-- `TEXTURE_LIGHT_GRID_INDICES`
-- `TEXTURE_LIGHT_ORIGIN`
-- `TEXTURE_LIGHT_COLOR`
+**Texture slots for voxel light data:**
+- `TEXTURE_VOXEL_LIGHT_DATA` - 3D texture (RG32I) for metadata
+- `TEXTURE_VOXEL_LIGHT_INDICES` - Texture buffer (R32I) for indices
 
-**r_bsp_model_t fields** (already existed):
+**r_bsp_voxels_t structure** (within r_bsp_model_t):
 ```c
-int32_t *light_grid_meta;           // CPU-side meta array
-int32_t *light_grid_indices;        // CPU-side indices
-GLuint light_grid_meta_tex;         // 3D texture
-GLuint light_grid_index_tex;        // TBO for indices
-GLuint light_grid_light_origin_tex; // TBO for origins
-GLuint light_grid_light_color_tex;  // TBO for colors
+vec3i_t size;                    // Grid dimensions
+size_t num_voxels;               // Total voxel count
+size_t num_light_indices;        // Total light index count
+box3_t bounds;                   // Padded world-space bounds
+GLuint light_data_texture;       // 3D texture for (offset, count)
+GLuint light_indices_buffer;     // TBO for light indices
+r_image_t *diffuse;              // Voxel GI diffuse texture
+r_image_t *fog;                  // Voxel fog texture
 ```
 
 ### Renderer - BSP Drawing (`src/client/renderer/r_bsp_draw.c`)
 
-**Added to program structure**:
-```c
-GLint texture_light_grid_meta;
-GLint texture_light_grid_indices;
-GLint texture_light_origin;
-GLint texture_light_color;
-GLint use_light_grid;
-```
+The renderer binds the voxel light textures when drawing BSP geometry. Light parameters come from the existing active lights system, not from separate TBOs.
 
-**Modified**:
-- `R_InitBspProgram()`: Get uniform locations and bind texture units
-- `R_DrawOpaqueBspInlineEntities()`: Bind light grid textures before drawing
-- `R_DrawBlendBspInlineEntities()`: Bind light grid textures before drawing
+### Shaders
 
 ### Shaders
 
 #### Common Functions (`shaders/common.glsl`)
 
-**Added**:
-- `light_grid_cell(vec3 position)`: Convert world position to cell coordinates
-- `light_grid_meta(ivec3 cell)`: Fetch (offset, count) for a cell
-- `light_grid_index(int index)`: Fetch light index from flattened array
-- `light_grid_light(int light_index)`: Construct `light_t` from TBO data
+**Voxel lookup functions:**
+- `voxel_xyz(vec3 position)`: Convert world position to voxel cell coordinates
+  - Subtracts padded voxel bounds minimum
+  - Divides by `BSP_VOXEL_SIZE` (32.0)
+  - Clamps to valid grid range
+- `voxel_light_data(ivec3 cell)`: Fetch (offset, count) metadata for a cell
+- `voxel_light_index(int index)`: Fetch light index from flattened array
+
+**Note:** The padding calculated in quemap matches the padding used in the renderer, ensuring correct voxel-to-world mapping.
 
 #### Uniforms (`shaders/uniforms.glsl`)
 
-**Already existed**:
+**Voxel-related uniforms:**
 ```glsl
-uniform isampler3D texture_light_grid_meta;
-uniform isamplerBuffer texture_light_grid_indices;
-uniform samplerBuffer texture_light_origin;
-uniform samplerBuffer texture_light_color;
-uniform int use_light_grid;
+uniform isampler3D texture_voxel_light_data;    // RG32I: (offset, count)
+uniform isamplerBuffer texture_voxel_light_indices; // R32I: light indices
 ```
+
+The `voxels_t` uniform block contains bounds and size information used for coordinate calculations.
 
 #### BSP Fragment Shader (`shaders/bsp_fs.glsl`)
 
 **Modified** `light_and_shadow()`:
-- Check `use_light_grid` flag
-- If enabled: use clustered path with `light_grid_*()` functions
-- If disabled: use traditional `active_lights[]` array
+- Gets voxel cell for fragment position: `ivec3 voxel = voxel_xyz(vertex.model)`
+- Fetches light metadata: `ivec2 data = voxel_light_data(voxel)` 
+- Loops through voxel's light indices
+- Fetches each light from existing light arrays and applies lighting
+- Also processes dynamic lights from `dynamic_lights[]` array
 
-**Modified** `sample_shadow_cubemap_array()`:
-- Return 1.0 (no shadow) if index < 0
-- Allows light grid lights to work without shadow maps
+**Light parameters** come from the existing active lights system (uniforms), not from dedicated TBOs.
 
 #### Mesh Fragment Shader (`shaders/mesh_fs.glsl`)
 
-**Same changes as bsp_fs.glsl**:
-- Modified `light_and_shadow()`
-- Modified `sample_shadow_cubemap_array()`
+**Same voxel light grid integration as bsp_fs.glsl:**
+- Uses `voxel_xyz()`, `voxel_light_data()`, and `voxel_light_index()`
+- Processes voxel lights plus dynamic lights
 
 ## How It Works
 
 ### Voxel Space Calculation
 
-The light grid uses the same voxel space as the global illumination system:
+The voxel grid uses a padded bounding box to center fixed-size voxel cells around irregular world geometry:
+
+**In quemap (voxel.c):**
+```c
+// Transform world bounds to voxel-normalized space
+voxels.matrix = translate(-world.mins) * scale(1/BSP_VOXEL_SIZE)
+voxels.stu_bounds = transform(voxels.matrix, world.visible_bounds)
+
+// Size includes padding: floor(extent) + 2
+size = floor(stu_bounds.max - stu_bounds.min) + 2
+
+// Padding in STU space (negative, shifts voxels inward)
+padding_stu = (stu_bounds_size - size) * 0.5
+
+// Voxel center in STU space
+stu = stu_bounds.mins + padding_stu + (s, t, u) + 0.5
+world_origin = inverse_transform(stu)
+```
+
+**In renderer (r_bsp_model.c):**
+```c
+// Calculate padding in world space
+voxels_size = size * BSP_VOXEL_SIZE  
+padding_world = (voxels_size - world_size) * 0.5
+padded_bounds = expand(visible_bounds, padding_world)
+```
+
+**In shader (common.glsl):**
+```glsl
+// Padded bounds uploaded as voxels.mins/maxs
+ivec3 cell = ivec3(floor((position - voxels.mins.xyz) / BSP_VOXEL_SIZE))
+```
+
+The padding ensures that voxel centers align correctly with the world geometry regardless of the world's size relative to the fixed voxel dimensions.
+
+### Light-Voxel Assignment (Sphere-Box Intersection)
+
+For each voxel during lighting in quemap:
 
 ```c
-// In quemap (tools-side):
-vec3_t stu_pos = Mat4_Transform(voxels.matrix, world_pos);
-vec3_t rel = Vec3_Subtract(stu_pos, voxels.stu_bounds.mins);
-ivec3 cell = (iz * vy + iy) * vx + ix;
+// Find closest point on voxel box to light origin
+vec3_t closest_point = Box3_ClampPoint(voxel->bounds, light->origin);
+float dist_to_box = Vec3_Distance(light->origin, closest_point);
+
+// Light affects voxel if sphere overlaps box
+if (dist_to_box < light->radius) {
+  // Add light to voxel's list
+  IlluminateVoxel(voxel, light, lumens);
+}
 ```
 
-```glsl
-// In shader (GPU-side):
-vec3 rel_pos = position - voxels.mins.xyz;
-ivec3 cell = ivec3(floor(rel_pos / voxels.voxel_size.xyz));
+This ensures lights are assigned to **all** voxels they overlap, eliminating hard boundaries. Attenuation still uses center-to-center distance for smooth falloff:
+
+```c
+float dist_to_center = Vec3_Distance(light->origin, voxel->origin);
+float atten = clamp(1.0 - dist_to_center / light->radius, 0.0, 1.0);
+float lumens = atten * atten * scale;
 ```
 
-### Light Grid Lookup
+### Voxel Light Lookup (Runtime)
 
-For each fragment:
+For each fragment in the shader:
 
-1. Calculate voxel cell: `ivec3 cell = light_grid_cell(vertex.model)`
-2. Fetch metadata: `ivec2 meta = light_grid_meta(cell)` → (offset, count)
+1. Calculate voxel cell: `ivec3 voxel = voxel_xyz(vertex.model)`
+2. Fetch metadata: `ivec2 data = voxel_light_data(voxel)` → (offset, count)
 3. Loop through lights:
    ```glsl
-   for (int i = 0; i < count; i++) {
-     int light_id = light_grid_index(offset + i);
-     light_t light = light_grid_light(light_id);
-     // Apply lighting...
+   for (int i = 0; i < data.y; i++) {
+     int light_index = voxel_light_index(data.x + i);
+     // Fetch light parameters from active_lights array
+     // Apply lighting calculation
    }
    ```
 
 ### Memory Layout
 
-**BSP File lightgrid lump**:
+**BSP File voxels lump** (`BSP_LUMP_VOXELS`):
 ```
-[header: 16 bytes]
-  - size_x, size_y, size_z (int32_t each)
-  - total_indices (int32_t)
-[meta: num_cells * 8 bytes]
-  - offset, count pairs (int32_t each)
-[indices: total_indices * 4 bytes]
-  - light indices (int32_t each)
+[header: bsp_voxels_t]
+  - size (vec3i_t): grid dimensions
+  - num_light_indices (int32_t)
+[diffuse: num_voxels * sizeof(color32_t)]
+  - RGBA color data for GI
+[fog: num_voxels * sizeof(color32_t)]
+  - RGBA fog data
+[meta: num_voxels * 2 * sizeof(int32_t)]
+  - offset, count pairs for light indices
+[indices: num_light_indices * sizeof(int32_t)]
+  - flattened light index array
 ```
 
 **GPU Resources**:
-- Meta texture: `GL_TEXTURE_3D`, `GL_RG32I`, size (vx, vy, vz)
-- Index TBO: `GL_TEXTURE_BUFFER`, `GL_R32I`, size total_indices
-- Origin TBO: `GL_TEXTURE_BUFFER`, `GL_RGBA32F`, size num_lights
-- Color TBO: `GL_TEXTURE_BUFFER`, `GL_RGBA32F`, size num_lights
+- Diffuse texture: `GL_TEXTURE_3D`, `GL_RGBA8`, size (vx, vy, vz)
+- Fog texture: `GL_TEXTURE_3D`, `GL_RGBA8`, size (vx, vy, vz)
+- Light data texture: `GL_TEXTURE_3D`, `GL_RG32I`, size (vx, vy, vz)
+- Light indices TBO: `GL_TEXTURE_BUFFER`, `GL_R32I`, size num_light_indices
 
 ## Performance Characteristics
 
 ### Benefits
 
-1. **Reduced fragment shader cost**: Only process lights that affect each cell
-2. **Scalable**: Performance independent of total light count
-3. **Predictable**: Each fragment processes at most ~8-16 lights
-4. **Cache-friendly**: Adjacent fragments use same cell data
+1. **Reduced fragment shader cost**: Only process lights that affect each voxel cell
+2. **Scalable**: Performance largely independent of total light count
+3. **Predictable**: Each fragment processes at most ~8-16 lights (typical)
+4. **Cache-friendly**: Adjacent fragments use same voxel cell data
+5. **Shared infrastructure**: Reuses voxel grid from GI system
 
-### Tradeoffs
+### Considerations
 
-1. **Memory**: Requires ~8MB for light grid in BSP file
-2. **No shadows**: Light grid lights currently don't cast shadows (index = -1)
-3. **Fallback path**: Still supports traditional active_lights[] for compatibility
+1. **Memory**: Voxel data stored in BSP file (size depends on world bounds and light count)
+2. **Static assignment**: Light-voxel assignments baked at compile time
+3. **Shadow support**: Lights can use shadow maps from existing shadow system
+
+## Known Issues and Fixes
+
+### Voxel Boundary Artifacts (FIXED: December 31, 2024)
+
+**Problem:** Hard lighting transitions visible at voxel boundaries where lights would suddenly start/stop contributing.
+
+**Cause:** The `LightVoxel_()` function used point-to-point distance test (light origin to voxel center) to determine if a light should affect a voxel. This incorrectly excluded lights that partially overlapped voxel boxes.
+
+**Fix:** Changed to sphere-box intersection test using `Box3_ClampPoint()` to find the closest point on the voxel's bounding box to the light origin, then measuring that distance. Light now affects voxel if `distance < light_radius`, ensuring all overlapping voxels are included.
+
+**File:** `src/tools/quemap/voxel.c`, function `LightVoxel_()`
 
 ## Future Enhancements
 
-1. **Shadow support**: Store shadow map indices in light grid
-2. **Dynamic lights**: Update light grid at runtime for moving lights
-3. **Light importance**: Sort lights by contribution within each cell
-4. **Temporal coherence**: Reuse previous frame results for stable lighting
+1. **Dynamic lights**: Currently only static (baked) lights use voxel grid; dynamic lights processed separately
+2. **Light importance**: Could sort lights by contribution within each voxel
+3. **Adaptive grid**: Variable resolution voxel grid based on geometry density
+4. **Temporal coherence**: Could cache/reuse previous frame voxel data for animated lights
 
 ## Testing
 
