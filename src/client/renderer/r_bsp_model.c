@@ -400,39 +400,41 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   R_UploadImage(out->fog, data);
   data += out->num_voxels * sizeof(color32_t);
 
-  out->light_data = (int32_t *) Mem_LinkMalloc(out->num_voxels * sizeof(int32_t) * 2, mod->bsp);
-  memcpy(out->light_data, data, out->num_voxels * sizeof(int32_t) * 2);
-
-  data += out->num_voxels * sizeof(int32_t) * 2;
-
-  out->light_indices = (int32_t *) Mem_LinkMalloc(out->num_light_indices * sizeof(int32_t), mod->bsp);
-  memcpy(out->light_indices, data, out->num_light_indices * sizeof(int32_t));
-
-  data += out->num_voxels * sizeof(int32_t) * 2;
+  out->light_data = (r_image_t *) R_AllocMedia("voxel_light_data", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_data->media.Free = R_FreeImage;
+  out->light_data->type = IMG_VOXELS;
+  out->light_data->width = out->size.x;
+  out->light_data->height = out->size.y;
+  out->light_data->depth = out->size.z;
+  out->light_data->target = GL_TEXTURE_3D;
+  out->light_data->minify = GL_NEAREST;
+  out->light_data->magnify = GL_NEAREST;
+  out->light_data->internal_format = GL_RG32I;
+  out->light_data->format = GL_RG_INTEGER;
+  out->light_data->pixel_type = GL_INT;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
 
-  glGenTextures(1, &out->light_data_texture);
-  glBindTexture(GL_TEXTURE_3D, out->light_data_texture);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  R_UploadImage(out->light_data, data);
+  data += out->num_voxels * sizeof(int32_t) * 2;
 
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexImage3D(GL_TEXTURE_3D, 0, GL_RG32I, out->size.x, out->size.y, out->size.z, 0, GL_RG_INTEGER, GL_INT, out->light_data);
-
-  glGenBuffers(1, &out->light_index_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, out->light_index_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), out->light_indices, GL_STATIC_DRAW);
+  glGenBuffers(1, &out->light_indices_buffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
+  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), data, GL_STATIC_DRAW);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
 
-  glGenTextures(1, &out->light_index_texture);
-  glBindTexture(GL_TEXTURE_BUFFER, out->light_index_texture);
-  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, out->light_index_buffer);
+  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_indices->media.Free = R_FreeImage;
+  out->light_indices->type = IMG_VOXELS;
+  out->light_data->target = GL_TEXTURE_BUFFER;
+  out->light_data->internal_format = GL_R32I;
+  out->light_data->format = GL_RED_INTEGER;
+  out->light_data->pixel_type = GL_INT;
 
+  glGenTextures(1, &out->light_indices->texnum);
+  glBindTexture(GL_TEXTURE_BUFFER, out->light_indices->texnum);
+  glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, out->light_indices_buffer);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
@@ -609,6 +611,8 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->diffuse);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_indices);
 
   r_models.world = mod;
 }
@@ -637,12 +641,7 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  glDeleteTextures(1, &bsp->voxels->light_index_texture);
-  glDeleteBuffers(1, &bsp->voxels->light_index_buffer);
-  glDeleteTextures(1, &bsp->voxels->light_data_texture);
-
-  Mem_Free(bsp->voxels->light_data);
-  Mem_Free(bsp->voxels->light_indices);
+  glDeleteBuffers(1, &bsp->voxels->light_indices_buffer);
 
   R_GetError(NULL);
 }

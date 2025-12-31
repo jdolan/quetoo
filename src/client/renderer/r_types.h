@@ -736,34 +736,24 @@ typedef struct {
   r_image_t *fog;
 
   /**
-   * @brief The per-voxel offset and count pairs (`2 * num_voxels`).
-   */
-  int32_t *light_data;
-
-  /**
    * @brief The light data 3D texture (RG32I) for offset and count pairs per voxel.
    */
-  GLuint light_data_texture;
+  r_image_t *light_data;
 
-  /**
-   * @brief The integer vector of all light indices.
+  /*/
+   * @brief Voxel light index texture to sample the index buffer (R32I).
    */
-  int32_t *light_indices;
-
-  /**
-   * @brief The length of `light_indices`.
-   */
-  int32_t num_light_indices;
+  r_image_t *light_indices;
 
   /**
    * @brief The buffer object backing the index vector.
    */
-  GLuint light_index_buffer;
+  GLuint light_indices_buffer;
 
   /**
-   * @brief Voxel light index texture to sample the index buffer (R32I).
+   * @brief The length of `light_indices_buffer`.
    */
-  GLuint light_index_texture;
+  int32_t num_light_indices;
 
 } r_bsp_voxels_t;
 
