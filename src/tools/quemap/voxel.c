@@ -462,13 +462,15 @@ void EmitVoxels(void) {
     
     for (int32_t t = 0; t < voxels.size.y; t++) {
       for (int32_t s = 0; s < voxels.size.x; s++) {
-        const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
-        voxel_t *voxel = &voxels.voxels[idx];
-        
-        // Write 4 contents samples as RGBA
-        for (int32_t i = 0; i < 4; i++) {
-          *out_contents++ = voxel->contents[i];
-        }
+
+        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        *out_contents++ = voxel->contents[0];
+        *out_contents++ = voxel->contents[1];
+        *out_contents++ = voxel->contents[2];
+        *out_contents++ = voxel->contents[3];
+
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }
     }
@@ -480,16 +482,23 @@ void EmitVoxels(void) {
     SDL_DestroySurface(fog);
   }
 
-  int32_t *meta_out = (int32_t *) out;
+  int32_t *out_light_data = (int32_t *) out;
   out += voxels.num_voxels * sizeof(int32_t) * 2;
 
-  v = voxels.voxels;
-  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
-    *meta_out++ = v->lights_offset;
-    *meta_out++ = v->lights_count;
+  for (int32_t u = 0; u < voxels.size.z; u++) {
+    for (int32_t t = 0; t < voxels.size.y; t++) {
+      for (int32_t s = 0; s < voxels.size.x; s++) {
+
+        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        *out_light_data++ = voxel->lights_offset;
+        *out_light_data++ = voxel->lights_count;
+      }
+    }
   }
 
-  int32_t *indices_out = (int32_t *) out;
+  int32_t *out_light_indices = (int32_t *) out;
   out += voxels.num_light_indices * sizeof(int32_t);
 
   v = voxels.voxels;
@@ -502,7 +511,7 @@ void EmitVoxels(void) {
     while (g_hash_table_iter_next(&iter, &key, NULL)) {
       light_t *light = key;
 
-      *indices_out++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+      *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
     }
   }
   
