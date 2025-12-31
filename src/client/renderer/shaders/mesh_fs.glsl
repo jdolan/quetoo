@@ -224,7 +224,9 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_light(in light_t light, in int index) {
+void light_and_shadow_light(in int index) {
+
+  light_t light = lights[index];
 
   vec3 dir = light.origin.xyz - vertex.model;
 
@@ -283,10 +285,8 @@ void light_and_shadow(void) {
   ivec2 data = voxel_light_data(voxel);
 
   for (int i = 0; i < data.y; i++) {
-    int light_index = voxel_light_index(data.x + i);
-
-    light_t light = lights[light_index];
-    light_and_shadow_light(light, light_index);
+    int index = voxel_light_index(data.x + i);
+    light_and_shadow_light(index);
   }
 
   for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
@@ -295,12 +295,7 @@ void light_and_shadow(void) {
       break;
     }
 
-    light_t light = lights[index];
-
-    float dist = distance(light.origin.xyz, vertex.model);
-    if (dist < light.origin.w) {
-      light_and_shadow_light(light, index);
-    }
+    light_and_shadow_light(index);
   }
 
   light_and_shadow_caustics();
