@@ -163,8 +163,8 @@ ivec3 voxel_xyz(in vec3 position) {
  * @param voxel The voxel coordinate.
  * @return The offset into the voxel light index TBO, and the count of index elements (texels).
  */
-ivec2 voxel_light_data(in ivec3 cell) {
-  return texelFetch(texture_voxel_light_data, cell, 0).xy;
+ivec2 voxel_light_data(in ivec3 voxel) {
+  return texelFetch(texture_voxel_light_data, voxel, 0).xy;
 }
 
 /**
@@ -174,4 +174,13 @@ ivec2 voxel_light_data(in ivec3 cell) {
  */
 int voxel_light_index(in int index) {
   return texelFetch(texture_voxel_light_indices, index).x;
+}
+
+/**
+ * @brief Fetches the BSP contents at the given voxel cell.
+ * @param voxel The voxel coordinate.
+ * @return The CONTENTS_ flags for that voxel.
+ */
+int voxel_contents(in ivec3 voxel) {
+  return texelFetch(texture_voxel_contents, voxel, 0).x;
 }

@@ -25,6 +25,18 @@
 
 #define BSP_VOXEL_SIZE    32.0
 
+// BSP Contents flags
+#define CONTENTS_NONE   0x0
+#define CONTENTS_SOLID  0x1
+#define CONTENTS_WINDOW 0x2
+#define CONTENTS_LAVA   0x8
+#define CONTENTS_SLIME  0x10
+#define CONTENTS_WATER  0x20
+#define CONTENTS_MIST   0x40
+
+#define CONTENTS_MASK_SOLID  (CONTENTS_SOLID | CONTENTS_WINDOW)
+#define CONTENTS_MASK_LIQUID (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
+
 /**
  * @brief The voxels struct.
  */
@@ -200,7 +212,7 @@ uniform sampler2D texture_warp;
 /**
  * @brief The voxel textures.
  */
-uniform sampler3D texture_voxel_diffuse;
+uniform isampler3D texture_voxel_contents;
 uniform sampler3D texture_voxel_fog;
 uniform isampler3D texture_voxel_light_data;
 uniform isamplerBuffer texture_voxel_light_indices;

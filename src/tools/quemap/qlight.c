@@ -402,9 +402,6 @@ static void LightWorld(void) {
   // calculate direct lighting
   Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
-  // caustic effects
-  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
-
   // build fog volumes out of brush entities
   BuildFog();
 

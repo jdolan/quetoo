@@ -731,9 +731,9 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The diffuse 3D texture (RGB9E5).
+   * @brief The contents 3D texture (R32I).
    */
-  r_image_t *diffuse;
+  r_image_t *contents;
 
   /**
    * @brief The fog 3D texture (RGBA8).
@@ -1775,7 +1775,7 @@ typedef enum {
    * @brief The voxel textures, used by the BSP, mesh, sprite and sky programs.
    */
   TEXTURE_VOXEL,
-  TEXTURE_VOXEL_DIFFUSE,
+  TEXTURE_VOXEL_CONTENTS,
   TEXTURE_VOXEL_FOG,
   TEXTURE_VOXEL_LIGHT_DATA,
   TEXTURE_VOXEL_LIGHT_INDICES,

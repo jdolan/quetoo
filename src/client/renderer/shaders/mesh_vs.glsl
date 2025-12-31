@@ -53,10 +53,17 @@ out vertex_data {
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Calculates caustics based on voxel contents.
  */
 float sample_voxel_caustics(in vec3 texcoord) {
-  return texture(texture_voxel_diffuse, texcoord).a * caustics;
+  ivec3 voxel = ivec3(texcoord * voxels.size.xyz);
+  int contents = voxel_contents(voxel);
+  
+  if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+    return caustics;
+  }
+  
+  return 0.0;
 }
 
 /**

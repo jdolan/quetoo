@@ -28,7 +28,8 @@ typedef struct {
   int32_t s, t, u;
   vec3_t origin;
   box3_t bounds;
-  vec4_t diffuse;
+  int32_t contents;
+  vec4_t diffuse;  // Accumulated light color for fog absorption (not emitted to BSP)
   vec4_t fog;
   GHashTable *lights;
   int32_t lights_offset;
@@ -55,7 +56,6 @@ extern voxels_t voxels;
 
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
-void CausticsVoxel(int32_t voxel_num);
 void FogVoxel(int32_t voxel_num);
 void EmitVoxels(void);
 void FreeVoxels(void);

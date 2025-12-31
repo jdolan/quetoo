@@ -362,24 +362,23 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
-  out->diffuse = (r_image_t *) R_AllocMedia("voxel_diffuse", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->diffuse->media.Free = R_FreeImage;
-  out->diffuse->type = IMG_VOXELS;
-  out->diffuse->width = out->size.x;
-  out->diffuse->height = out->size.y;
-  out->diffuse->depth = out->size.z;
-  out->diffuse->target = GL_TEXTURE_3D;
-  out->diffuse->levels = levels;
-  out->diffuse->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->diffuse->magnify = GL_LINEAR;
-  out->diffuse->internal_format = GL_RGBA8;
-  out->diffuse->format = GL_RGBA;
-  out->diffuse->pixel_type = GL_UNSIGNED_BYTE;
+  out->contents = (r_image_t *) R_AllocMedia("voxel_contents", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->contents->media.Free = R_FreeImage;
+  out->contents->type = IMG_VOXELS;
+  out->contents->width = out->size.x;
+  out->contents->height = out->size.y;
+  out->contents->depth = out->size.z;
+  out->contents->target = GL_TEXTURE_3D;
+  out->contents->minify = GL_NEAREST;
+  out->contents->magnify = GL_NEAREST;
+  out->contents->internal_format = GL_R32I;
+  out->contents->format = GL_RED_INTEGER;
+  out->contents->pixel_type = GL_INT;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DIFFUSE);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);
 
-  R_UploadImage(out->diffuse, data);
-  data += out->num_voxels * sizeof(color32_t);
+  R_UploadImage(out->contents, data);
+  data += out->num_voxels * sizeof(int32_t);
 
   out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->fog->media.Free = R_FreeImage;
@@ -606,7 +605,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->diffuse);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->contents);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_indices);

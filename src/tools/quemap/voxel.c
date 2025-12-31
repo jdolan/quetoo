@@ -28,7 +28,7 @@
 voxels_t voxels;
 
 /**
- * @brief
+ * @brief Accumulates light color into the voxel for fog absorption calculations.
  */
 void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
 
@@ -207,6 +207,14 @@ static int32_t ProjectVoxel(voxel_t *l, float soffs, float toffs, float uoffs) {
  */
 static void BuildVoxelVoxels(void) {
 
+  const vec3_t offsets[] = {
+    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
+    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
+    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
+    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
+    Vec3(+0.0f, +0.0f, +0.0f),
+  };
+
   voxels.num_voxels = voxels.size.x * voxels.size.y * voxels.size.z;
 
   if (voxels.num_voxels > MAX_BSP_VOXELS) {
@@ -231,7 +239,14 @@ static void BuildVoxelVoxels(void) {
         
         v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-        ProjectVoxel(v, 0.f, 0.f, 0.f);
+        for (size_t i = 0; i < lengthof(offsets); i++) {
+
+          const float soffs = offsets[i].x;
+          const float toffs = offsets[i].y;
+          const float uoffs = offsets[i].z;
+
+          v->contents |= ProjectVoxel(v, soffs, toffs, uoffs);
+        }
 
         v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
       }
@@ -324,11 +339,11 @@ static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float sc
 void LightVoxel(int32_t voxel_num) {
 
   const vec3_t offsets[] = {
-    Vec3(+0.0f, +0.0f, +0.0f),
     Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
     Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
     Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
     Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
+    Vec3(+0.0f, +0.0f, +0.0f),
   };
 
   const float weight = 1.f / lengthof(offsets);
@@ -346,67 +361,6 @@ void LightVoxel(int32_t voxel_num) {
     }
 
     LightVoxel_(lights, v, weight);
-  }
-}
-
-/**
- * @brief
- */
-static void CausticsVoxel_(voxel_t *voxel, float scale) {
-
-  float c = 0;
-
-  const int32_t contents = Light_PointContents(voxel->origin, 0);
-  if (contents & CONTENTS_MASK_LIQUID) {
-    c = 1.f;
-  }
-  
-  const vec3_t points[] = CUBE_8;
-  float sample_fraction = 1.f / lengthof(points);
-
-  for (size_t i = 0; i < lengthof(points); i++) {
-
-    const vec3_t point = Vec3_Fmaf(voxel->origin, 128.f, points[i]);
-
-    const cm_trace_t tr = Light_Trace(voxel->origin, point, 0, CONTENTS_SOLID | CONTENTS_MASK_LIQUID);
-    if ((tr.contents & CONTENTS_MASK_LIQUID) && (tr.surface & SURF_MASK_TRANSLUCENT)) {
-
-      float f = sample_fraction * (1.f - tr.fraction);
-      c += f;
-    }
-  }
-
-  voxel->diffuse.w += c * scale;
-}
-
-/**
- * @brief
- */
-void CausticsVoxel(int32_t voxel_num) {
-
-  const vec3_t offsets[] = {
-    Vec3(+0.0f, +0.0f, +0.0f),
-    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
-    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
-    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
-    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
-  };
-
-  const float weight = 1.f / lengthof(offsets);
-
-  voxel_t *v = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(v, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    CausticsVoxel_(v, weight);
   }
 }
 
@@ -446,11 +400,11 @@ static void FogVoxel_(GArray *fogs, voxel_t *v, float scale) {
 void FogVoxel(int32_t voxel_num) {
 
   const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
+    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
+    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
+    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
+    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
+    Vec3(+0.0f, +0.0f, +0.0f),
   };
 
   const float weight = 1.f / lengthof(offsets);
@@ -488,7 +442,8 @@ void EmitVoxels(void) {
   }
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t) * 2; // diffuse + fog
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t); // contents
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
@@ -500,8 +455,8 @@ void EmitVoxels(void) {
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
-  color32_t *out_diffuse = (color32_t *) out;
-  out += voxels.num_voxels * sizeof(color32_t);
+  int32_t *out_contents = (int32_t *) out;
+  out += voxels.num_voxels * sizeof(int32_t);
 
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
@@ -510,7 +465,6 @@ void EmitVoxels(void) {
 
     Progress("Emitting voxels", 100.f * u / voxels.size.z);
 
-    SDL_Surface *diffuse = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_diffuse);
     SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
     for (int32_t t = 0; t < voxels.size.y; t++) {
@@ -518,17 +472,15 @@ void EmitVoxels(void) {
         const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
         voxel_t *voxel = &voxels.voxels[idx];
         
-        *out_diffuse++ = Color_Color32(Color4fv(voxel->diffuse));
+        *out_contents++ = voxel->contents;
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }
     }
 
     if (debug) {
-      WriteVoxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
       WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
     }
 
-    SDL_DestroySurface(diffuse);
     SDL_DestroySurface(fog);
   }
 

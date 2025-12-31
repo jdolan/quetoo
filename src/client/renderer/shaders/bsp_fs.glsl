@@ -190,10 +190,17 @@ vec4 sample_material_stage(in vec2 texcoord) {
 }
 
 /**
- * @brief
+ * @brief Calculates caustics based on voxel contents.
  */
 float sample_voxel_caustics() {
-  return texture(texture_voxel_diffuse, vertex.voxel).a;
+  ivec3 voxel = voxel_xyz(vertex.model);
+  int contents = voxel_contents(voxel);
+  
+  if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+    return caustics;
+  }
+  
+  return 0.0;
 }
 
 /**
