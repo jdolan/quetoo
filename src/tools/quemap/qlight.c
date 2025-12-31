@@ -417,7 +417,7 @@ static void LightWorld(void) {
   // emit light sources to the bsp
   EmitLights();
 
-  // Emit voxels (includes light grid data)
+  // emit voxels
   EmitVoxels();
 
   // free the voxels

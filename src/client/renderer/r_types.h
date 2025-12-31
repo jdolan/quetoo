@@ -707,7 +707,7 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief The BSP voxel grid, including light grid data for clustered forward lighting.
+ * @brief The BSP voxel grid, including light index data for clustered forward lighting.
  */
 typedef struct {
   /**
@@ -761,7 +761,7 @@ typedef struct {
   GLuint light_index_buffer;
 
   /**
-   * @brief Light grid: GL texture buffer object (R32I) for indices.
+   * @brief Voxel light index texture to sample the index buffer (R32I).
    */
   GLuint light_index_texture;
 

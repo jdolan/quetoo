@@ -65,9 +65,6 @@
  */
 #define MAX_BSP_VOXELS (MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL)
 
-/* conservative upper bound for emitted light grid lump size (bytes) */
-#define MAX_BSP_LIGHTGRID_SIZE (1024 * 1024 * 8)
-
 /**
  * @brief The voxel textures.
  */
@@ -549,8 +546,7 @@ typedef struct {
 } bsp_light_t;
 
 /**
- * @brief Voxels are layered 3D texture objects of variable size.
- * @details Each layer is up to 256x256x256. Includes clustered light grid data.
+ * @brief The voxels lump header.
  */
 typedef struct {
   /**
@@ -559,7 +555,7 @@ typedef struct {
   vec3i_t size;
 
   /**
-   * @brief The number of light indices in the light grid.
+   * @brief The total count of light indices for all voxels.
    */
   int32_t num_light_indices;
 } bsp_voxels_t;
