@@ -259,6 +259,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
   glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
+  r_stats.mesh_draw_elements++;
   r_stats.mesh_triangles += face->num_elements / 3;
 
   R_DrawMeshEntityMaterialStages(e, face, mesh, material);
