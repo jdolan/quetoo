@@ -371,14 +371,14 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->contents->target = GL_TEXTURE_3D;
   out->contents->minify = GL_NEAREST;
   out->contents->magnify = GL_NEAREST;
-  out->contents->internal_format = GL_R32I;
-  out->contents->format = GL_RED_INTEGER;
+  out->contents->internal_format = GL_RGBA32I;
+  out->contents->format = GL_RGBA_INTEGER;
   out->contents->pixel_type = GL_INT;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);
 
   R_UploadImage(out->contents, data);
-  data += out->num_voxels * sizeof(int32_t);
+  data += out->num_voxels * sizeof(int32_t) * 4;
 
   out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->fog->media.Free = R_FreeImage;

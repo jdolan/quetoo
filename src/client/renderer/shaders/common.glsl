@@ -179,8 +179,8 @@ int voxel_light_index(in int index) {
 /**
  * @brief Fetches the BSP contents at the given voxel cell.
  * @param voxel The voxel coordinate.
- * @return The CONTENTS_ flags for that voxel.
+ * @return The 4 CONTENTS_ flag samples for that voxel (RGBA channels).
  */
-int voxel_contents(in ivec3 voxel) {
-  return texelFetch(texture_voxel_contents, voxel, 0).x;
+ivec4 voxel_contents(in ivec3 voxel) {
+  return texelFetch(texture_voxel_contents, voxel, 0);
 }

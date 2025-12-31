@@ -207,12 +207,12 @@ static int32_t ProjectVoxel(voxel_t *l, float soffs, float toffs, float uoffs) {
  */
 static void BuildVoxelVoxels(void) {
 
+  // 4 tetrahedral sample points within each voxel for sub-voxel gradient information
   const vec3_t offsets[] = {
-    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
-    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
-    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
-    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
-    Vec3(+0.0f, +0.0f, +0.0f),
+    Vec3(-0.25f, -0.25f, -0.25f),
+    Vec3(+0.25f, -0.25f, +0.25f),
+    Vec3(-0.25f, +0.25f, +0.25f),
+    Vec3(+0.25f, +0.25f, -0.25f),
   };
 
   voxels.num_voxels = voxels.size.x * voxels.size.y * voxels.size.z;
@@ -239,13 +239,14 @@ static void BuildVoxelVoxels(void) {
         
         v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
 
+        // Sample 4 points within voxel for gradient information
         for (size_t i = 0; i < lengthof(offsets); i++) {
 
           const float soffs = offsets[i].x;
           const float toffs = offsets[i].y;
           const float uoffs = offsets[i].z;
 
-          v->contents |= ProjectVoxel(v, soffs, toffs, uoffs);
+          v->contents[i] = ProjectVoxel(v, soffs, toffs, uoffs);
         }
 
         v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
@@ -442,7 +443,7 @@ void EmitVoxels(void) {
   }
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t); // contents
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 4; // contents (4 samples per voxel)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
@@ -456,7 +457,7 @@ void EmitVoxels(void) {
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
   int32_t *out_contents = (int32_t *) out;
-  out += voxels.num_voxels * sizeof(int32_t);
+  out += voxels.num_voxels * sizeof(int32_t) * 4;
 
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
@@ -472,7 +473,10 @@ void EmitVoxels(void) {
         const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
         voxel_t *voxel = &voxels.voxels[idx];
         
-        *out_contents++ = voxel->contents;
+        // Write 4 contents samples as RGBA
+        for (int32_t i = 0; i < 4; i++) {
+          *out_contents++ = voxel->contents[i];
+        }
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }
     }
