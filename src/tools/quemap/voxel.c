@@ -382,16 +382,16 @@ static void CausticsVoxel_(voxel_t *voxel, float scale) {
 void CausticsVoxel(int32_t voxel_num) {
 
   const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
+    Vec3(+0.0f, +0.0f, +0.0f),
+    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
+    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
+    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
+    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
   };
 
   const float weight = 1.f / lengthof(offsets);
 
-  voxel_t *l = &voxels.voxels[voxel_num];
+  voxel_t *v = &voxels.voxels[voxel_num];
 
   for (size_t i = 0; i < lengthof(offsets); i++) {
 
@@ -399,18 +399,18 @@ void CausticsVoxel(int32_t voxel_num) {
     const float toffs = offsets[i].y;
     const float uoffs = offsets[i].z;
 
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
+    if (ProjectVoxel(v, soffs, toffs, uoffs) == CONTENTS_SOLID) {
       continue;
     }
 
-    CausticsVoxel_(l, weight);
+    CausticsVoxel_(v, weight);
   }
 }
 
 /**
  * @brief
  */
-static void FogVoxel_(GArray *fogs, voxel_t *l, float scale) {
+static void FogVoxel_(GArray *fogs, voxel_t *v, float scale) {
 
   const fog_t *fog = (fog_t *) fogs->data;
   for (guint i = 0; i < fogs->len; i++, fog++) {
@@ -419,7 +419,7 @@ static void FogVoxel_(GArray *fogs, voxel_t *l, float scale) {
 
     switch (fog->type) {
       case FOG_VOLUME:
-        if (!PointInsideFog(l->origin, fog)) {
+        if (!PointInsideFog(v->origin, fog)) {
           density = 0.f;
         }
         break;
@@ -431,9 +431,9 @@ static void FogVoxel_(GArray *fogs, voxel_t *l, float scale) {
       continue;
     }
 
-    const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(l->diffuse.xyz, fog->absorption));
+    const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(v->diffuse.xyz, fog->absorption));
 
-    l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, density));
+    v->fog = Vec4_Add(v->fog, Vec3_ToVec4(color, density));
   }
 }
 
