@@ -501,17 +501,24 @@ void EmitVoxels(void) {
   int32_t *out_light_indices = (int32_t *) out;
   out += voxels.num_light_indices * sizeof(int32_t);
 
-  v = voxels.voxels;
-  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+  // Write light indices in the same u/t/s order
+  for (int32_t u = 0; u < voxels.size.z; u++) {
+    for (int32_t t = 0; t < voxels.size.y; t++) {
+      for (int32_t s = 0; s < voxels.size.x; s++) {
 
-    GHashTableIter iter;
-    gpointer key;
+        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const voxel_t *voxel = &voxels.voxels[index];
 
-    g_hash_table_iter_init(&iter, v->lights);
-    while (g_hash_table_iter_next(&iter, &key, NULL)) {
-      light_t *light = key;
+        GHashTableIter iter;
+        gpointer key;
 
-      *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+        g_hash_table_iter_init(&iter, voxel->lights);
+        while (g_hash_table_iter_next(&iter, &key, NULL)) {
+          light_t *light = key;
+
+          *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+        }
+      }
     }
   }
   
