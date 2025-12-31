@@ -364,14 +364,18 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query) {
-      if (block->query->result == 0) {
-        r_stats.blocks_occluded++;
-        continue;
-      }
+    if (block->query && block->query->result == 0) {
+      r_stats.blocks_occluded++;
+      continue;
     }
 
     r_stats.blocks_visible++;
+
+    if (entity->model == r_models.world) {
+      R_DynamicLights(view, block->node->visible_bounds, r_bsp_program.dynamic_lights);
+    } else {
+      R_DynamicLights(view, entity->abs_model_bounds, r_bsp_program.dynamic_lights);
+    }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
