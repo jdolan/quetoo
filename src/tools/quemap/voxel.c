@@ -296,125 +296,77 @@ size_t BuildVoxels(void) {
 }
 
 /**
- * @brief Iterates lights, accumulating color and direction on the specified voxel.
- * @param lights The light sources to iterate.
- * @param voxel The voxel to light.
- * @param scale A scalar applied to both color and direction.
+ * @brief Assigns lights to a voxel based on visibility traces to corners and center.
  */
-static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float scale) {
+void LightVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
 
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    const vec3_t closest_point = Box3_ClampPoint(voxel->bounds, light->origin);
-    const float dist_to_voxel = Vec3_Distance(light->origin, closest_point);
-
-    const float conservative_radius = light->radius + BSP_VOXEL_SIZE;
-    if (dist_to_voxel >= conservative_radius) {
+    const float dist = Vec3_Distance(light->origin, Box3_ClampPoint(voxel->bounds, light->origin));
+    if (dist >= light->radius + BSP_VOXEL_SIZE * 2.0f) {
       continue;
     }
 
-    const float dist_to_center = Vec3_Distance(light->origin, voxel->origin);
-    const float atten = Clampf01(1.f - dist_to_center / light->radius);
-    const float lumens = atten * atten * scale;
-
-    const cm_trace_t trace = Light_Trace(voxel->origin, light->origin, 0, CONTENTS_SOLID);
-    if (trace.fraction == 1.f) {
-      IlluminateVoxel(voxel, light, lumens);
+    for (size_t j = 0; j < lengthof(points); j++) {
+      const vec3_t point = Vec3_Add(points[j], Vec3_Direction(light->origin, points[j]));
+      const cm_trace_t trace = Light_Trace(point, light->origin, 0, CONTENTS_SOLID);
+      if (trace.fraction == 1.f) {
+        const float dist_to_center = Vec3_Distance(light->origin, voxel->origin);
+        const float atten = Clampf01(1.f - dist_to_center / light->radius);
+        const float lumens = atten * atten;
+        
+        IlluminateVoxel(voxel, light, lumens);
+        break;
+      }
     }
   }
 }
 
 /**
- * @brief
+ * @brief Applies fog to a voxel by sampling corners and center.
  */
-void LightVoxel(int32_t voxel_num) {
+void FogVoxel(int32_t voxel_num) {
 
-  const vec3_t offsets[] = {
-    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
-    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
-    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
-    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
-    Vec3(+0.0f, +0.0f, +0.0f),
-  };
+  voxel_t *voxel = &voxels.voxels[voxel_num];
 
-  const float weight = 1.f / lengthof(offsets);
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
 
-  voxel_t *v = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(v, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    LightVoxel_(lights, v, weight);
-  }
-}
-
-/**
- * @brief
- */
-static void FogVoxel_(GArray *fogs, voxel_t *v, float scale) {
+  const float weight = 1.f / lengthof(points);
 
   const fog_t *fog = (fog_t *) fogs->data;
   for (guint i = 0; i < fogs->len; i++, fog++) {
 
-    float density = Clampf01(fog->density * scale * FOG_DENSITY_SCALAR);
+    for (size_t j = 0; j < lengthof(points); j++) {
 
-    switch (fog->type) {
-      case FOG_VOLUME:
-        if (!PointInsideFog(v->origin, fog)) {
-          density = 0.f;
-        }
-        break;
-      default:
-        break;
+      float density = Clampf01(fog->density * weight * FOG_DENSITY_SCALAR);
+
+      switch (fog->type) {
+        case FOG_VOLUME:
+          if (!PointInsideFog(points[j], fog)) {
+            density = 0.f;
+          }
+          break;
+        default:
+          break;
+      }
+
+      if (density == 0.f) {
+        continue;
+      }
+
+      const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(voxel->diffuse.xyz, fog->absorption));
+      voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
     }
-
-    if (density == 0.f) {
-      continue;
-    }
-
-    const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(v->diffuse.xyz, fog->absorption));
-
-    v->fog = Vec4_Add(v->fog, Vec3_ToVec4(color, density));
-  }
-}
-
-/**
- * @brief
- */
-void FogVoxel(int32_t voxel_num) {
-
-  const vec3_t offsets[] = {
-    Vec3(-0.5f, -0.5f, -0.5f), Vec3(-0.5f, +0.5f, -0.5f),
-    Vec3(+0.5f, -0.5f, -0.5f), Vec3(+0.5f, +0.5f, -0.5f),
-    Vec3(-0.5f, -0.5f, +0.5f), Vec3(-0.5f, +0.5f, +0.5f),
-    Vec3(+0.5f, -0.5f, +0.5f), Vec3(+0.5f, +0.5f, +0.5f),
-    Vec3(+0.0f, +0.0f, +0.0f),
-  };
-
-  const float weight = 1.f / lengthof(offsets);
-
-  voxel_t *l = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    FogVoxel_(fogs, l, weight);
   }
 }
 
