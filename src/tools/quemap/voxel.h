@@ -28,8 +28,8 @@ typedef struct {
   int32_t s, t, u;
   vec3_t origin;
   box3_t bounds;
-  int32_t contents[4];  // 4 sub-samples per voxel for gradient information
-  vec4_t diffuse;  // Accumulated light color for fog absorption (not emitted to BSP)
+  int32_t contents[4]; // 4 sub-samples per voxel for gradient information
+  vec4_t diffuse; // Accumulated light color for fog absorption (not emitted to BSP)
   vec4_t fog;
   GHashTable *lights;
   int32_t lights_offset;
@@ -42,10 +42,8 @@ typedef struct {
 typedef struct {
   box3_t stu_bounds;
   vec3i_t size;
-
   size_t num_voxels;
   voxel_t *voxels;
-
   size_t num_light_indices;
 } voxels_t;
 

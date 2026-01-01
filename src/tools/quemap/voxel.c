@@ -30,12 +30,17 @@ voxels_t voxels;
 /**
  * @brief Accumulates light color into the voxel for fog absorption calculations.
  */
-void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
+static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
+
+  const float dist = Vec3_Distance(voxel->origin, light->origin);
+  const float atten = Clampf01(1.f - dist / light->radius);
+  const float lumens = atten * atten;
 
   const vec3_t color = Vec3_Scale(light->color, light->intensity);
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
   light->bounds = Box3_Union(light->bounds, voxel->bounds);
+
   g_hash_table_add(voxel->lights, light);
 }
 
@@ -299,6 +304,7 @@ size_t BuildVoxels(void) {
  * @brief Assigns lights to a voxel based on visibility traces to corners and center.
  */
 void LightVoxel(int32_t voxel_num) {
+  const float epsilon = sqrtf(3.f) * BSP_VOXEL_SIZE;
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
 
@@ -311,19 +317,15 @@ void LightVoxel(int32_t voxel_num) {
     light_t *light = g_ptr_array_index(lights, i);
 
     const float dist = Vec3_Distance(light->origin, Box3_ClampPoint(voxel->bounds, light->origin));
-    if (dist >= light->radius + BSP_VOXEL_SIZE * 2.0f) {
+    if (dist > light->radius + BSP_VOXEL_SIZE * .5f) {
       continue;
     }
 
     for (size_t j = 0; j < lengthof(points); j++) {
-      const vec3_t point = Vec3_Add(points[j], Vec3_Direction(light->origin, points[j]));
-      const cm_trace_t trace = Light_Trace(point, light->origin, 0, CONTENTS_SOLID);
-      if (trace.fraction == 1.f) {
-        const float dist_to_center = Vec3_Distance(light->origin, voxel->origin);
-        const float atten = Clampf01(1.f - dist_to_center / light->radius);
-        const float lumens = atten * atten;
-        
-        IlluminateVoxel(voxel, light, lumens);
+      const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
+      if (Vec3_Distance(trace.end, points[j]) <= epsilon) {
+
+        IlluminateVoxel(voxel, light);
         break;
       }
     }
