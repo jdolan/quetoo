@@ -297,14 +297,19 @@ typedef struct r_occlusion_query_s {
   GLuint name;
 
   /**
-   * @brief The query bounds.
+   * @brief The array of bounding boxes for this query.
    */
-  box3_t bounds;
+  GArray *boxes;
 
   /**
    * @brief The base vertex in the shared vertex buffer.
    */
   GLint base_vertex;
+
+  /**
+   * @brief The number of vertices for this query (cached).
+   */
+  GLint num_vertices;
 
   /**
    * @brief Non-zero if the query is available.
@@ -315,11 +320,6 @@ typedef struct r_occlusion_query_s {
    * @brief Non-zero of the query produced visible fragments.
    */
   GLint result;
-
-  /**
-   * @brief Simulation time when this query was last drawn.
-   */
-  uint32_t ticks;
 } r_occlusion_query_t;
 
 /**
@@ -712,6 +712,26 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
+ * @brief Individual voxel data for CPU-side access.
+ */
+typedef struct {
+  /**
+   * @brief The voxel's world-space bounds.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The lights affecting this voxel.
+   */
+  const r_bsp_light_t **lights;
+
+  /**
+   * @brief The number of lights affecting this voxel.
+   */
+  int32_t num_lights;
+} r_bsp_voxel_t;
+
+/**
  * @brief The BSP voxel grid, including light index data for clustered forward lighting.
  */
 typedef struct {
@@ -729,6 +749,11 @@ typedef struct {
    * @brief The voxel bounds in world space.
    */
   box3_t bounds;
+
+  /**
+   * @brief Array of individual voxel data (for CPU-side access).
+   */
+  r_bsp_voxel_t *voxels;
 
   /**
    * @brief The contents 3D texture (R32I).
