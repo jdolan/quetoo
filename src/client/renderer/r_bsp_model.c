@@ -583,6 +583,54 @@ static void R_SetupBspInlineModels(r_model_t *mod) {
 }
 
 /**
+ * @brief Merges adjacent voxel boxes to reduce occlusion query complexity.
+ */
+static void R_MergeOcclusionQueryBoxes(r_occlusion_query_t *query) {
+  
+  if (query->boxes->len < 2) {
+    return;
+  }
+
+  bool merged;
+  do {
+    merged = false;
+
+    for (guint i = 0; i < query->boxes->len; i++) {
+      box3_t *box_i = &g_array_index(query->boxes, box3_t, i);
+
+      for (guint j = i + 1; j < query->boxes->len; j++) {
+        box3_t *box_j = &g_array_index(query->boxes, box3_t, j);
+
+        // Check if boxes are adjacent or overlapping
+        const box3_t merged_box = Box3_Union(*box_i, *box_j);
+        const vec3_t merged_size = Box3_Size(merged_box);
+        const vec3_t size_i = Box3_Size(*box_i);
+        const vec3_t size_j = Box3_Size(*box_j);
+
+        // Merge if combined volume is not much larger than sum of parts
+        // This catches adjacent boxes without creating huge empty spaces
+        const float volume_i = size_i.x * size_i.y * size_i.z;
+        const float volume_j = size_j.x * size_j.y * size_j.z;
+        const float volume_merged = merged_size.x * merged_size.y * merged_size.z;
+        const float volume_sum = volume_i + volume_j;
+
+        // Allow up to 50% increase in volume (accounts for some empty space)
+        if (volume_merged <= volume_sum * 1.5f) {
+          *box_i = merged_box;
+          g_array_remove_index(query->boxes, j);
+          merged = true;
+          break;
+        }
+      }
+
+      if (merged) {
+        break;
+      }
+    }
+  } while (merged);
+}
+
+/**
  * @brief Allocates an occlusion query for each block node and light source in the world model.
  * @remarks Other inline models will instead allocate queries as entities.
  */
@@ -608,6 +656,15 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
           break;
         }
       }
+    }
+
+    // Merge adjacent voxel boxes to reduce complexity
+    const guint original_count = light->query->boxes->len;
+    R_MergeOcclusionQueryBoxes(light->query);
+    
+    if (original_count != light->query->boxes->len) {
+      Com_Debug(DEBUG_ALL, "Light %d: merged %u boxes -> %u boxes\n", 
+                i, original_count, light->query->boxes->len);
     }
 
     assert(light->query->boxes->len);
