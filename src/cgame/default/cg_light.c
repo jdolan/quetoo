@@ -96,7 +96,6 @@ static void Cg_AddBspLights(void) {
       .color = l->color,
       .radius = l->radius,
       .intensity = l->intensity,
-      .bounds = l->bounds,
       .query = l->query,
       .bsp_light = l,
     });

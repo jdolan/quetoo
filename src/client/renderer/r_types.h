@@ -691,11 +691,6 @@ typedef struct {
   float intensity;
 
   /**
-   * @brief The light bounds, for frustum and occlusion culling.
-   */
-  box3_t bounds;
-
-  /**
    * @brief The light occlusion query.
    */
   r_occlusion_query_t *query;
