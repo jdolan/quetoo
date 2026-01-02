@@ -38,6 +38,11 @@ static struct {
   GQueue *free;
 
   /**
+   * @brief If true, rebuild the vertex buffer at next frame.
+   */
+  bool dirty;
+
+  /**
    * @brief The vertex array object.
    */
   GLuint vertex_array;
@@ -71,22 +76,18 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
+    // Block queries only have a single box
+    const box3_t box = g_array_index(block->query->boxes, box3_t, 0);
+
     if (block->query->result == 0) {
-      // Block queries have one box - use it directly
-      if (block->query->boxes->len > 0) {
-        const box3_t box = g_array_index(block->query->boxes, box3_t, 0);
-        if (Box3_Contains(box, bounds)) {
-          return true;
-        }
+      if (Box3_Contains(box, bounds)) {
+        return true;
       }
       continue;
     }
 
-    if (block->query->boxes->len > 0) {
-      const box3_t box = g_array_index(block->query->boxes, box3_t, 0);
-      if (Box3_Intersects(box, bounds)) {
-        return false;
-      }
+    if (Box3_Intersects(box, bounds)) {
+      return false;
     }
   }
 
@@ -122,16 +123,20 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
   r_occlusion_query_t *query = g_queue_pop_head(r_occlusion_queries.free);
   if (query == NULL) {
     query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
+    glGenQueries(1, &query->name);
     query->boxes = g_array_new(false, false, sizeof(box3_t));
   }
 
   g_array_set_size(query->boxes, 0);
+
   if (!Box3_IsNull(bounds)) {
     g_array_append_val(query->boxes, bounds);
   }
 
   query->available = 1;
   query->result = 1;
+
+  r_occlusion_queries.dirty = true;
 
   g_queue_push_head(r_occlusion_queries.allocated, query);
   return query;
@@ -149,21 +154,16 @@ void R_ModifyOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds, r_o
 
     case R_OCCLUSION_QUERY_REMOVE:
       for (guint i = 0; i < query->boxes->len; i++) {
-        const box3_t *box = &g_array_index(query->boxes, box3_t, i);
-        if (Box3_Equal(*box, bounds)) {
-          g_array_remove_index_fast(query->boxes, i);
+        const box3_t box = g_array_index(query->boxes, box3_t, i);
+        if (Box3_Equal(box, bounds)) {
+          g_array_remove_index(query->boxes, i);
           break;
         }
       }
       break;
-
-    case R_OCCLUSION_QUERY_CLEAR:
-      g_array_set_size(query->boxes, 0);
-      break;
   }
 
-  // Mark vertex buffer as needing update
-  query->base_vertex = -1;
+  r_occlusion_queries.dirty = true;
 }
 
 /**
@@ -173,6 +173,8 @@ void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
 
   g_queue_remove(r_occlusion_queries.allocated, query);
   g_queue_push_head(r_occlusion_queries.free, query);
+
+  r_occlusion_queries.dirty = true;
 }
 
 /**
@@ -180,10 +182,6 @@ void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
  * @return True if the query is occluded (no samples passed the query).
  */
 static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *query) {
-
-  if (query->name == 0) {
-    glGenQueries(1, &query->name);
-  }
 
   if (r_occlude->integer == 0) {
 
@@ -249,49 +247,49 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
 }
 
 /**
+ * @brief
+ */
+void R_UpdateOcclusionQueries(const r_view_t *view) {
+
+  if (!r_occlusion_queries.dirty) {
+    return;
+  }
+
+  size_t num_boxes = 0;
+  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
+    r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
+    num_boxes += query->boxes->len;
+  }
+
+  vec3_t *vertexes = malloc(num_boxes * sizeof(vec3_t) * 8);
+
+  int32_t vertex_offset = 0;
+  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
+    r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
+
+    query->base_vertex = vertex_offset;
+    query->num_vertices = (GLint) query->boxes->len * 8;
+
+    for (guint j = 0; j < query->boxes->len; j++) {
+      const box3_t box = g_array_index(query->boxes, box3_t, j);
+      Box3_ToPoints(box, vertexes + vertex_offset);
+      vertex_offset += 8;
+    }
+  }
+
+  glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, num_boxes * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  free(vertexes);
+
+  r_occlusion_queries.dirty = false;
+}
+
+/**
  * @brief Re-draws all occlusion queries for the current frame.
  */
 void R_DrawOcclusionQueries(const r_view_t *view) {
-
-  // Check if any queries need vertex buffer updates
-  bool needs_rebuild = false;
-  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
-    r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
-    if (query->base_vertex == -1) {
-      needs_rebuild = true;
-      break;
-    }
-  }
-
-  // Rebuild vertex buffer if needed
-  if (needs_rebuild) {
-    size_t total_boxes = 0;
-    for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
-      r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
-      total_boxes += query->boxes->len;
-    }
-
-    vec3_t *vertexes = malloc(total_boxes * sizeof(vec3_t) * 8);
-
-    int32_t vertex_offset = 0;
-    for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
-      r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
-
-      query->base_vertex = vertex_offset;
-      query->num_vertices = (GLint) query->boxes->len * 8;
-
-      for (guint j = 0; j < query->boxes->len; j++) {
-        const box3_t box = g_array_index(query->boxes, box3_t, j);
-        Box3_ToPoints(box, vertexes + vertex_offset);
-        vertex_offset += 8;
-      }
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, total_boxes * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
-
-    free(vertexes);
-  }
 
   glUseProgram(r_depth_pass_program.name);
 

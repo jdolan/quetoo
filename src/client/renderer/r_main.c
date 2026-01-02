@@ -174,6 +174,10 @@ static void R_UpdateUniforms(const r_view_t *view) {
       out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxel_size, extents), 0.f);
     }
   }
+
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
@@ -223,9 +227,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  R_UpdateOcclusionQueries(view);
 
   R_ClearFramebuffer(view->framebuffer);
 

@@ -28,21 +28,20 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
 bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
+#ifdef __R_LOCAL_H__
+
 /**
  * @brief Occlusion query modification operations.
  */
 typedef enum {
   R_OCCLUSION_QUERY_ADD,
   R_OCCLUSION_QUERY_REMOVE,
-  R_OCCLUSION_QUERY_CLEAR
 } r_occlusion_query_modifier_t;
 
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds);
 void R_ModifyOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds, r_occlusion_query_modifier_t mod);
 void R_FreeOcclusionQuery(r_occlusion_query_t *query);
-
-#ifdef __R_LOCAL_H__
-
+void R_UpdateOcclusionQueries(const r_view_t *view);
 void R_DrawOcclusionQueries(const r_view_t *view);
 void R_InitOcclusionQueries(void);
 void R_ShutdownOcclusionQueries(void);
