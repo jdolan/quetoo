@@ -308,23 +308,23 @@ void LightVoxel(int32_t voxel_num) {
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
 
-  vec3_t points[9];
+  vec3_t points[17];
   points[0] = voxel->origin;
-  Box3_ToPoints(voxel->bounds, &points[1]);
+  Box3_ToPoints(Box3_Expand(voxel->bounds, -4.f), &points[1]);
+  Box3_ToPoints(Box3_Expand(voxel->bounds, +16.f), &points[9]);
 
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
     const float dist = Vec3_Distance(light->origin, Box3_ClampPoint(voxel->bounds, light->origin));
-    if (dist > light->radius + BSP_VOXEL_SIZE * .5f) {
+    if (dist > light->radius) {
       continue;
     }
 
     for (size_t j = 0; j < lengthof(points); j++) {
       const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
       if (Vec3_Distance(trace.end, points[j]) <= epsilon) {
-
         IlluminateVoxel(voxel, light);
         break;
       }
