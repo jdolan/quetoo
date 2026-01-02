@@ -317,14 +317,14 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
       r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
 
       for (guint j = 0; j < query->boxes->len; j++) {
-        const box3_t *box = &g_array_index(query->boxes, box3_t, j);
+        const box3_t box = g_array_index(query->boxes, box3_t, j);
 
-        const float dist = Vec3_Distance(Box3_Center(*box), view->origin);
+        const float dist = Vec3_Distance(Box3_Center(box), view->origin);
         const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
         if (query->result == 0) {
-          R_Draw3DBox(*box, Color3f(0.f, f, 0.f), false);
+          R_Draw3DBox(box, Color3f(0.f, f, 0.f), false);
         } else {
-          R_Draw3DBox(*box, Color3f(f, 0.f, 0.f), false);
+          R_Draw3DBox(box, Color3f(f, 0.f, 0.f), false);
         }
       }
     }
