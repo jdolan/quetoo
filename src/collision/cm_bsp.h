@@ -53,7 +53,7 @@
 /**
  * @brief Voxel voxel size in world units.
  */
-#define BSP_VOXEL_SIZE 32
+#define BSP_VOXEL_SIZE 16
 
 /**
  * @brief Largest voxel texture width in voxels (8192 / 32 = 256).
