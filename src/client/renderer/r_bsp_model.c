@@ -368,7 +368,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   // Skip contents data for now (will upload to GPU texture)
   const byte *contents_data = data;
-  data += out->num_voxels * sizeof(int32_t) * 4;
+  data += out->num_voxels * sizeof(int32_t);
 
   // Skip fog data for now (will upload to GPU texture)
   const byte *fog_data = data;
@@ -436,8 +436,8 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->contents->target = GL_TEXTURE_3D;
   out->contents->minify = GL_NEAREST;
   out->contents->magnify = GL_NEAREST;
-  out->contents->internal_format = GL_RGBA32I;
-  out->contents->format = GL_RGBA_INTEGER;
+  out->contents->internal_format = GL_R32I;
+  out->contents->format = GL_RED_INTEGER;
   out->contents->pixel_type = GL_INT;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);

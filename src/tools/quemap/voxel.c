@@ -400,7 +400,7 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 4; // contents (4 samples per voxel)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t); // contents (1 sample per voxel)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
@@ -414,7 +414,7 @@ void EmitVoxels(void) {
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
   int32_t *out_contents = (int32_t *) out;
-  out += voxels.num_voxels * sizeof(int32_t) * 4;
+  out += voxels.num_voxels * sizeof(int32_t);
 
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
@@ -432,9 +432,6 @@ void EmitVoxels(void) {
         const voxel_t *voxel = &voxels.voxels[index];
 
         *out_contents++ = voxel->contents[0];
-        *out_contents++ = voxel->contents[1];
-        *out_contents++ = voxel->contents[2];
-        *out_contents++ = voxel->contents[3];
 
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }

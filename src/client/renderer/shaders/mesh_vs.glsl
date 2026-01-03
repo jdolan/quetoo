@@ -58,16 +58,12 @@ invariant gl_Position;
  */
 float sample_voxel_caustics(in vec3 texcoord) {
   ivec3 voxel = ivec3(texcoord * voxels.size.xyz);
-  ivec4 contents = voxel_contents(voxel);
+  int contents = voxel_contents(voxel);
   
-  int liquid_count = 0;
-  for (int i = 0; i < 4; i++) {
-    if ((contents[i] & CONTENTS_MASK_LIQUID) != 0) {
-      liquid_count++;
-    }
+  if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+    return caustics;
   }
-  
-  return (float(liquid_count) / 4.0) * caustics;
+  return 0.0;
 }
 
 /**
