@@ -37,7 +37,7 @@ uniform mat4 model;
 uniform float lerp;
 
 out vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 normal;
   vec3 smooth_normal;
@@ -77,7 +77,7 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
 
   for (float i = 0; i < samples; i++) {
 
-    vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+    vec3 xyz = mix(vertex.model_position, view[0].xyz, i / samples);
     vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
     fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
@@ -108,7 +108,7 @@ void main(void) {
 
   stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-  vertex.model = vec3(model * position);
+  vertex.model_position = vec3(model * position);
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
   vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));

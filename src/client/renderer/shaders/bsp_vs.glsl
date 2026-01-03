@@ -29,7 +29,7 @@ layout (location = 5) in vec4 in_color;
 uniform mat4 model;
 
 out vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 normal;
   vec3 tangent;
@@ -37,7 +37,7 @@ out vertex_data {
   mat3 tbn;
   mat3 inverse_tbn;
   vec2 diffusemap;
-  vec3 cubemap;
+  vec3 model_normal;
   vec3 voxel;
   vec4 color;
 } vertex;
@@ -58,14 +58,14 @@ void main(void) {
 
   stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-  vertex.model = vec3(model * position);
+  vertex.model_position = vec3(model * position);
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
 
   vertex.diffusemap = in_diffusemap;
-  vertex.cubemap = in_normal;
+  vertex.model_normal = in_normal;
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = in_color;
 

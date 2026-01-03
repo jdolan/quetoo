@@ -186,34 +186,9 @@ static void BuildVoxelExtents(void) {
 }
 
 /**
- * @brief Projects a voxel sample point to world space for contents sampling.
- * Voxels are aligned to world grid at 0, ±32, ±64, etc.
- */
-static int32_t ProjectVoxel(voxel_t *v, float soffs, float toffs, float uoffs) {
-
-  v->origin = Vec3(
-     voxels.stu_bounds.mins.x + (v->s + 0.5f + soffs) * BSP_VOXEL_SIZE,
-     voxels.stu_bounds.mins.y + (v->t + 0.5f + toffs) * BSP_VOXEL_SIZE,
-     voxels.stu_bounds.mins.z + (v->u + 0.5f + uoffs) * BSP_VOXEL_SIZE
-  );
-
-  v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
-
-  return Light_PointContents(v->origin, 0);
-}
-
-/**
  * @brief
  */
 static void BuildVoxelVoxels(void) {
-
-  // 4 tetrahedral sample points within each voxel for sub-voxel gradient information
-  const vec3_t offsets[] = {
-    Vec3(-0.25f, -0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f),
-    Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, +0.25f, -0.25f),
-  };
 
   voxels.num_voxels = voxels.size.x * voxels.size.y * voxels.size.z;
 
@@ -236,18 +211,16 @@ static void BuildVoxelVoxels(void) {
         v->s = s;
         v->t = t;
         v->u = u;
-        
+
+        v->origin = Vec3(
+          voxels.stu_bounds.mins.x + (v->s + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.y + (v->t + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.z + (v->u + 0.5f) * BSP_VOXEL_SIZE
+        );
+
+        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
+
         v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
-
-        // Sample 4 points within voxel for gradient information
-        for (size_t i = 0; i < lengthof(offsets); i++) {
-
-          const float soffs = offsets[i].x;
-          const float toffs = offsets[i].y;
-          const float uoffs = offsets[i].z;
-
-          v->contents[i] = ProjectVoxel(v, soffs, toffs, uoffs);
-        }
       }
     }
   }
@@ -307,11 +280,10 @@ void LightVoxel(int32_t voxel_num) {
   const float epsilon = sqrtf(3.f) * BSP_VOXEL_SIZE;
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
+  voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
-  vec3_t points[17];
-  points[0] = voxel->origin;
-  Box3_ToPoints(Box3_Expand(voxel->bounds, -4.f), &points[1]);
-  Box3_ToPoints(Box3_Expand(voxel->bounds, +16.f), &points[9]);
+  vec3_t points[8];
+  Box3_ToPoints(voxel->bounds, points);
 
   for (guint i = 0; i < lights->len; i++) {
 
@@ -431,7 +403,7 @@ void EmitVoxels(void) {
         const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        *out_contents++ = voxel->contents[0];
+        *out_contents++ = voxel->contents;
 
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }

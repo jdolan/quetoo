@@ -53,10 +53,10 @@
 /**
  * @brief Voxel voxel size in world units.
  */
-#define BSP_VOXEL_SIZE 16
+#define BSP_VOXEL_SIZE 64
 
 /**
- * @brief Largest voxel texture width in voxels (8192 / 32 = 256).
+ * @brief Largest voxel texture width in voxels (8192 / 64 = 128).
  */
 #define MAX_BSP_VOXELS_AXIAL (MAX_WORLD_AXIAL / BSP_VOXEL_SIZE)
 

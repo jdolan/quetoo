@@ -22,7 +22,7 @@
 layout (location = 0) in vec3 in_position;
 
 out vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 cubemap;
   vec3 voxel;
@@ -37,7 +37,7 @@ void main(void) {
 
   vec4 position = vec4(in_position, 1.0);
 
-  vertex.model = in_position;
+  vertex.model_position = in_position;
   vertex.position = vec3(view * position);
   vertex.cubemap = vec3(sky_projection * position);
   vertex.voxel = voxel_uvw(in_position);

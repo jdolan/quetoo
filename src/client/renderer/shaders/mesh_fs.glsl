@@ -20,7 +20,7 @@
  */
 
 in vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 normal;
   vec3 smooth_normal;
@@ -177,7 +177,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
   int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
 
-  vec3 light_to_frag = vertex.model - light.origin.xyz;
+  vec3 light_to_frag = vertex.model_position - light.origin.xyz;
   float current_depth = length(light_to_frag) / depth_range.y;
 
   // Estimate penumbra size based on light radius (treat as light size)
@@ -191,7 +191,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
 
   // Per-pixel rotation to eliminate banding
-  float angle = random_angle(vertex.model);
+  float angle = random_angle(vertex.model_position);
   vec3 rotation_axis = normalize(light_to_frag);
 
   float shadow = 0.0;
@@ -228,7 +228,7 @@ void light_and_shadow_light(in int index) {
 
   light_t light = lights[index];
 
-  vec3 dir = light.origin.xyz - vertex.model;
+  vec3 dir = light.origin.xyz - vertex.model_position;
 
   float radius = light.origin.w;
   float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
@@ -256,7 +256,7 @@ void light_and_shadow_caustics() {
 	  return;
   }
 
-  float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(vertex.model_position * .05 + (ticks / 1000.0) * 0.5);
 
   // make the inner edges stronger, clamp to 0-1
 
@@ -281,7 +281,7 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);;
 
-  ivec3 voxel = voxel_xyz(vertex.model);
+  ivec3 voxel = voxel_xyz(vertex.model_position);
   ivec2 data = voxel_light_data(voxel);
 
   for (int i = 0; i < data.y; i++) {
