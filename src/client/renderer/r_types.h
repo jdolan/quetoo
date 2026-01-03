@@ -297,19 +297,14 @@ typedef struct r_occlusion_query_s {
   GLuint name;
 
   /**
-   * @brief The array of bounding boxes for this query.
+   * @brief The query bounds.
    */
-  GArray *boxes;
+  box3_t bounds;
 
   /**
    * @brief The base vertex in the shared vertex buffer.
    */
   GLint base_vertex;
-
-  /**
-   * @brief The number of vertices for this query (cached).
-   */
-  GLint num_vertices;
 
   /**
    * @brief Non-zero if the query is available.
@@ -689,6 +684,11 @@ typedef struct {
    * @brief The light intensity.
    */
   float intensity;
+
+  /**
+   * @brief The light bounds (sphere).
+   */
+  box3_t bounds;
 
   /**
    * @brief The light occlusion query.

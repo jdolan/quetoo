@@ -77,14 +77,7 @@ void R_UpdateLights(r_view_t *view) {
     r_stats.lights_visible++;
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
-
-      if (l->query) {
-        for (guint j = 0; j < l->query->boxes->len; j++) {
-          R_Draw3DBox(g_array_index(l->query->boxes, box3_t, j), Color3fv(l->color), false);
-        }
-      } else {
-        R_Draw3DBox(l->bounds, Color3fv(l->color), false);
-      }
+      R_Draw3DBox(l->bounds, Color3fv(l->color), false);
     }
   }
 

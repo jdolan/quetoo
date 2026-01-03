@@ -334,6 +334,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->color = in->color;
     out->radius = in->radius;
     out->intensity = in->intensity;
+    out->bounds = in->bounds;
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
   }
@@ -594,27 +595,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
   r_bsp_light_t *light = bsp->lights;
   for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    light->query = R_AllocOcclusionQuery(Box3_FromCenter(light->origin));
-
-    const r_bsp_voxel_t *voxel = bsp->voxels->voxels;
-    for (int32_t j = 0; j < bsp->voxels->num_voxels; j++, voxel++) {
-
-      const r_bsp_light_t **l = voxel->lights;
-      for (int32_t k = 0; k < voxel->num_lights; k++, l++) {
-
-        if (light == *l) {
-
-          if (voxel->contents & CONTENTS_SOLID) {
-            R_AppendOcclusionQuery(light->query, voxel->bounds);
-          } else {
-            R_ExpandOcclusionQuery(light->query, voxel->bounds);
-          }
-          break;
-        }
-      }
-    }
-
-    assert(light->query->boxes->len);
+    light->query = R_AllocOcclusionQuery(light->bounds);
   }
 }
 

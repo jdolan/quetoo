@@ -38,11 +38,6 @@ static struct {
   GQueue *free;
 
   /**
-   * @brief The total count of boxes for all allocated queries.
-   */
-  size_t num_boxes;
-
-  /**
    * @brief If true, rebuild the vertex buffer at next frame.
    */
   bool dirty;
@@ -81,17 +76,14 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    // Block queries only have a single box
-    const box3_t box = g_array_index(block->query->boxes, box3_t, 0);
-
     if (block->query->result == 0) {
-      if (Box3_Contains(box, bounds)) {
+      if (Box3_Contains(block->query->bounds, bounds)) {
         return true;
       }
       continue;
     }
 
-    if (Box3_Intersects(box, bounds)) {
+    if (Box3_Intersects(block->query->bounds, bounds)) {
       return false;
     }
   }
@@ -129,44 +121,16 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
   if (query == NULL) {
     query = Mem_TagMalloc(sizeof(r_occlusion_query_t), MEM_TAG_RENDERER);
     glGenQueries(1, &query->name);
-    query->boxes = g_array_new(false, false, sizeof(box3_t));
   }
 
-  g_array_set_size(query->boxes, 0);
-
-  R_AppendOcclusionQuery(query, bounds);
-
+  query->bounds = bounds;
   query->available = 1;
   query->result = 1;
 
+  r_occlusion_queries.dirty = true;
+
   g_queue_push_head(r_occlusion_queries.allocated, query);
   return query;
-}
-
-/**
- * @brief Modifies an occlusion query by appending the given bounds.
- */
-void R_AppendOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds) {
-
-  assert(query);
-
-  g_array_append_val(query->boxes, bounds);
-
-  r_occlusion_queries.num_boxes++;
-  r_occlusion_queries.dirty = true;
-}
-
-/**
- * @brief Modifies an occlusion query by expanding the base box to include bounds.
- */
-void R_ExpandOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds) {
-
-  assert(query);
-
-  box3_t *box = &g_array_index(query->boxes, box3_t, 0);
-  *box = Box3_Union(*box, bounds);
-
-  r_occlusion_queries.dirty = true;
 }
 
 /**
@@ -175,8 +139,6 @@ void R_ExpandOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds) {
 void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
 
   assert(query);
-
-  r_occlusion_queries.num_boxes -= query->boxes->len;
 
   g_queue_remove(r_occlusion_queries.allocated, query);
   g_queue_push_head(r_occlusion_queries.free, query);
@@ -197,34 +159,14 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
 
   } else {
 
-    // Check if view is inside any of the query boxes
-    bool view_inside = false;
-    for (guint i = 0; i < query->boxes->len; i++) {
-      const box3_t box = g_array_index(query->boxes, box3_t, i);
-      if (Box3_ContainsPoint(Box3_Expand(box, 16.f), view->origin)) {
-        view_inside = true;
-        break;
-      }
-    }
-
-    if (view_inside) {
+    if (Box3_Intersects(query->bounds, Box3_FromCenterRadius(view->origin, BSP_VOXEL_SIZE))) {
 
       query->available = 1;
       query->result = 1;
 
     } else {
 
-      // Check if all boxes are frustum culled
-      bool all_culled = true;
-      for (guint i = 0; i < query->boxes->len; i++) {
-        const box3_t box = g_array_index(query->boxes, box3_t, i);
-        if (!R_CullBox(view, box)) {
-          all_culled = false;
-          break;
-        }
-      }
-
-      if (all_culled) {
+        if (R_CullBox(view, query->bounds)) {
 
         query->available = 1;
         query->result = 0;
@@ -240,9 +182,8 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
         }
 
         if (query->available) {
-          const int32_t num_elements = (int32_t) query->boxes->len * 36;
           glBeginQuery(GL_ANY_SAMPLES_PASSED, query->name);
-          glDrawElementsBaseVertex(GL_TRIANGLES, num_elements, GL_UNSIGNED_INT, NULL, query->base_vertex);
+          glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, query->base_vertex);
           glEndQuery(GL_ANY_SAMPLES_PASSED);
           query->available = 0;
         }
@@ -262,24 +203,20 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
     return;
   }
 
-  vec3_t *vertexes = malloc(r_occlusion_queries.num_boxes * sizeof(vec3_t) * 8);
+  const size_t num_queries = r_occlusion_queries.allocated->length;
+  vec3_t *vertexes = malloc(num_queries * sizeof(vec3_t) * 8);
 
   GLint base_vertex = 0;
-  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
+  for (guint i = 0; i < num_queries; i++) {
     r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
 
     query->base_vertex = base_vertex;
-    query->num_vertices = (GLint) query->boxes->len * 8;
-
-    for (guint j = 0; j < query->boxes->len; j++) {
-      const box3_t box = g_array_index(query->boxes, box3_t, j);
-      Box3_ToPoints(box, vertexes + base_vertex);
-      base_vertex += 8;
-    }
+    Box3_ToPoints(query->bounds, vertexes + base_vertex);
+    base_vertex += 8;
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, r_occlusion_queries.num_boxes * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, num_queries * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   free(vertexes);
@@ -316,17 +253,12 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 
     for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
       r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
-
-      for (guint j = 0; j < query->boxes->len; j++) {
-        const box3_t box = g_array_index(query->boxes, box3_t, j);
-
-        const float dist = Vec3_Distance(Box3_Center(box), view->origin);
-        const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
-        if (query->result == 0) {
-          R_Draw3DBox(box, Color3f(0.f, f, 0.f), false);
-        } else {
-          R_Draw3DBox(box, Color3f(f, 0.f, 0.f), false);
-        }
+      const float dist = Vec3_Distance(Box3_Center(query->bounds), view->origin);
+      const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
+      if (query->result == 0) {
+        R_Draw3DBox(query->bounds, Color3f(0.f, f, 0.f), false);
+      } else {
+        R_Draw3DBox(query->bounds, Color3f(f, 0.f, 0.f), false);
       }
     }
   }
@@ -335,7 +267,6 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 
     r_bsp_block_t *b = r_models.world->bsp->inline_models->blocks;
     for (int32_t i = 0; i < r_models.world->bsp->inline_models->num_blocks; i++, b++) {
-
       const float dist = Vec3_Distance(Box3_Center(b->visible_bounds), view->origin);
       const float f = 1.f - Clampf01(dist / MAX_WORLD_COORD);
       if (b->query->result == 0) {
@@ -412,8 +343,6 @@ static void R_ShutdownOcclusionQuery(gpointer data) {
   r_occlusion_query_t *query = data;
 
   glDeleteQueries(1, &query->name);
-
-  g_array_free(query->boxes, true);
 
   Mem_Free(query);
 }
