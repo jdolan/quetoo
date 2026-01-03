@@ -716,6 +716,11 @@ typedef struct {
   box3_t bounds;
 
   /**
+   * @brief The voxel's combined contents mask.
+   */
+  int32_t contents;
+
+  /**
    * @brief The lights affecting this voxel.
    */
   const r_bsp_light_t **lights;

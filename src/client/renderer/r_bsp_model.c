@@ -353,8 +353,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->num_voxels = out->size.x * out->size.y * out->size.z;
   out->num_light_indices = in->num_light_indices;
 
-  // Voxel grid is world-aligned at BSP_VOXEL_SIZE intervals
-  // Calculate bounds by aligning world bounds to voxel grid
   const box3_t world_bounds = mod->bsp->inline_models->visible_bounds;
   
   out->bounds.mins.x = floorf(world_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
@@ -399,6 +397,8 @@ static void R_LoadBspVoxels(r_model_t *mod) {
         );
         const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
         voxel->bounds = Box3(voxel_mins, voxel_maxs);
+
+        voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
         // Read light count and allocate fixed-size array
         const int32_t first_light_index = light_data[voxel_index * 2 + 0];
@@ -594,7 +594,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
   r_bsp_light_t *light = bsp->lights;
   for (int32_t i = 0; i < bsp->num_lights; i++, light++) {
-    light->query = R_AllocOcclusionQuery(Box3_Null());
+    light->query = R_AllocOcclusionQuery(Box3_FromCenter(light->origin));
 
     const r_bsp_voxel_t *voxel = bsp->voxels->voxels;
     for (int32_t j = 0; j < bsp->voxels->num_voxels; j++, voxel++) {
@@ -603,7 +603,12 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
       for (int32_t k = 0; k < voxel->num_lights; k++, l++) {
 
         if (light == *l) {
-          R_ModifyOcclusionQuery(light->query, voxel->bounds, R_OCCLUSION_QUERY_ADD);
+
+          if (voxel->contents & CONTENTS_SOLID) {
+            R_AppendOcclusionQuery(light->query, voxel->bounds);
+          } else {
+            R_ExpandOcclusionQuery(light->query, voxel->bounds);
+          }
           break;
         }
       }

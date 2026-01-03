@@ -38,6 +38,11 @@ static struct {
   GQueue *free;
 
   /**
+   * @brief The total count of boxes for all allocated queries.
+   */
+  size_t num_boxes;
+
+  /**
    * @brief If true, rebuild the vertex buffer at next frame.
    */
   bool dirty;
@@ -129,39 +134,37 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 
   g_array_set_size(query->boxes, 0);
 
-  if (!Box3_IsNull(bounds)) {
-    g_array_append_val(query->boxes, bounds);
-  }
+  R_AppendOcclusionQuery(query, bounds);
 
   query->available = 1;
   query->result = 1;
-
-  r_occlusion_queries.dirty = true;
 
   g_queue_push_head(r_occlusion_queries.allocated, query);
   return query;
 }
 
 /**
- * @brief Modifies an occlusion query by adding, removing, or clearing boxes.
+ * @brief Modifies an occlusion query by appending the given bounds.
  */
-void R_ModifyOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds, r_occlusion_query_modifier_t mod) {
+void R_AppendOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds) {
 
-  switch (mod) {
-    case R_OCCLUSION_QUERY_ADD:
-      g_array_append_val(query->boxes, bounds);
-      break;
+  assert(query);
 
-    case R_OCCLUSION_QUERY_REMOVE:
-      for (guint i = 0; i < query->boxes->len; i++) {
-        const box3_t box = g_array_index(query->boxes, box3_t, i);
-        if (Box3_Equal(box, bounds)) {
-          g_array_remove_index(query->boxes, i);
-          break;
-        }
-      }
-      break;
-  }
+  g_array_append_val(query->boxes, bounds);
+
+  r_occlusion_queries.num_boxes++;
+  r_occlusion_queries.dirty = true;
+}
+
+/**
+ * @brief Modifies an occlusion query by expanding the base box to include bounds.
+ */
+void R_ExpandOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds) {
+
+  assert(query);
+
+  box3_t *box = &g_array_index(query->boxes, box3_t, 0);
+  *box = Box3_Union(*box, bounds);
 
   r_occlusion_queries.dirty = true;
 }
@@ -170,6 +173,10 @@ void R_ModifyOcclusionQuery(r_occlusion_query_t *query, const box3_t bounds, r_o
  * @brief Frees the specified occlusion query.
  */
 void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
+
+  assert(query);
+
+  r_occlusion_queries.num_boxes -= query->boxes->len;
 
   g_queue_remove(r_occlusion_queries.allocated, query);
   g_queue_push_head(r_occlusion_queries.free, query);
@@ -247,52 +254,6 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
 }
 
 /**
- * @brief Merges adjacent boxes in a query to reduce complexity.
- */
-static void R_MergeOcclusionQueryBoxes(r_occlusion_query_t *query) {
-  
-  if (query->boxes->len < 2) {
-    return;
-  }
-
-  bool merged;
-  do {
-    merged = false;
-
-    for (guint i = 0; i < query->boxes->len; i++) {
-      box3_t *a = &g_array_index(query->boxes, box3_t, i);
-
-      for (guint j = i + 1; j < query->boxes->len; j++) {
-        box3_t *b = &g_array_index(query->boxes, box3_t, j);
-
-        // Check if boxes can be merged without creating too much empty space
-        const box3_t merged_box = Box3_Union(*a, *b);
-        const vec3_t merged_size = Box3_Size(merged_box);
-        const vec3_t size_a = Box3_Size(*a);
-        const vec3_t size_b = Box3_Size(*b);
-
-        const float volume_a = size_a.x * size_a.y * size_a.z;
-        const float volume_b = size_b.x * size_b.y * size_b.z;
-        const float volume_merged = merged_size.x * merged_size.y * merged_size.z;
-        const float volume_sum = volume_a + volume_b;
-
-        // Allow up to 50% increase in volume (adjacent boxes with small gaps)
-        if (volume_merged <= volume_sum * 1.5f) {
-          *a = merged_box;
-          g_array_remove_index_fast(query->boxes, j);
-          merged = true;
-          break;
-        }
-      }
-
-      if (merged) {
-        break;
-      }
-    }
-  } while (merged);
-}
-
-/**
  * @brief Updates the occlusion query vertex buffer when queries are modified.
  */
 void R_UpdateOcclusionQueries(const r_view_t *view) {
@@ -301,16 +262,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
     return;
   }
 
-  size_t num_boxes = 0;
-  for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
-    r_occlusion_query_t *query = g_queue_peek_nth(r_occlusion_queries.allocated, i);
-
-    R_MergeOcclusionQueryBoxes(query);
-
-    num_boxes += query->boxes->len;
-  }
-
-  vec3_t *vertexes = malloc(num_boxes * sizeof(vec3_t) * 8);
+  vec3_t *vertexes = malloc(r_occlusion_queries.num_boxes * sizeof(vec3_t) * 8);
 
   GLint base_vertex = 0;
   for (guint i = 0; i < r_occlusion_queries.allocated->length; i++) {
@@ -327,7 +279,7 @@ void R_UpdateOcclusionQueries(const r_view_t *view) {
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_occlusion_queries.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, num_boxes * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, r_occlusion_queries.num_boxes * sizeof(vec3_t) * 8, vertexes, GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   free(vertexes);
