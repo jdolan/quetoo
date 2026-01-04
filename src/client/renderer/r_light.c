@@ -73,6 +73,11 @@ void R_UpdateLights(r_view_t *view) {
       continue;
     }
 
+    if (R_CullBox(view, l->bounds)) {
+      r_stats.lights_occluded++;
+      continue;
+    }
+
     R_AddLightUniform(view, l);
     r_stats.lights_visible++;
 
