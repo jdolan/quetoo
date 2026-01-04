@@ -57,9 +57,14 @@ typedef struct light_s {
   float intensity;
 
   /**
-   * @brief The bounds of the light source.
+   * @brief The unclipped light bounds.
    */
-  box3_t bounds; // FIXME: Remove this?
+  box3_t bounds;
+
+  /**
+   * @brief The visible light bounds.
+   */
+  box3_t visible_bounds;
 
   /**
    * @brief The output light in the BSP, so that voxels may reference them.

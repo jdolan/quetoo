@@ -39,7 +39,7 @@ static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
   const vec3_t color = Vec3_Scale(light->color, light->intensity);
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
-  light->bounds = Box3_Union(light->bounds, voxel->bounds);
+  light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
 
   g_hash_table_add(voxel->lights, light);
 }
@@ -200,22 +200,19 @@ static void BuildVoxelVoxels(void) {
 
   voxel_t *v = voxels.voxels;
 
-  // Initialize in XYZ order to match OpenGL texture layout
-  for (int32_t u = 0; u < voxels.size.z; u++) {
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++) {
-        
-        const int32_t idx = (u * voxels.size.y + t) * voxels.size.x + s;
-        v = &voxels.voxels[idx];
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
 
-        v->s = s;
-        v->t = t;
-        v->u = u;
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        v = &voxels.voxels[index];
+
+        v->xyz = Vec3i(x, y, z);
 
         v->origin = Vec3(
-          voxels.stu_bounds.mins.x + (v->s + 0.5f) * BSP_VOXEL_SIZE,
-          voxels.stu_bounds.mins.y + (v->t + 0.5f) * BSP_VOXEL_SIZE,
-          voxels.stu_bounds.mins.z + (v->u + 0.5f) * BSP_VOXEL_SIZE
+          voxels.stu_bounds.mins.x + (v->xyz.x + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.y + (v->xyz.y + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.z + (v->xyz.z + 0.5f) * BSP_VOXEL_SIZE
         );
 
         v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
@@ -230,7 +227,7 @@ static void BuildVoxelVoxels(void) {
  * @brief Authors a .map file which can be imported into Radiant to view the voxel projections.
  */
 static void DebugVoxels(void) {
-#if 0
+#if 1
   const char *path = va("maps/%s.voxel.map", map_base);
 
   file_t *file = Fs_OpenWrite(path);
@@ -239,17 +236,15 @@ static void DebugVoxels(void) {
     return;
   }
 
-  voxel_t *l = lg.voxels;
-  for (size_t i = 0; i < lg.num_voxels; i++, l++) {
-
-    ProjectVoxelVoxel(l, 0.0, 0.0, 0.0);
+  voxel_t *v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
 
     Fs_Print(file, "{\n");
     Fs_Print(file, "  \"classname\" \"info_voxel\"\n");
-    Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin.x, l->origin.y, l->origin.z);
-    Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
-    Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
-    Fs_Print(file, "  \"u\" \"%d\"\n", l->u);
+    Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", v->origin.x, v->origin.y, v->origin.z);
+    Fs_Print(file, "  \"x\" \"%d\"\n", v->xyz.x);
+    Fs_Print(file, "  \"y\" \"%d\"\n", v->xyz.y);
+    Fs_Print(file, "  \"z\" \"%d\"\n", v->xyz.z);
     Fs_Print(file, "}\n");
   }
 
@@ -283,14 +278,13 @@ void LightVoxel(int32_t voxel_num) {
   voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
   vec3_t points[8];
-  Box3_ToPoints(voxel->bounds, points);
+  Box3_ToPoints(Box3_Expand(voxel->bounds, BSP_VOXEL_SIZE * .5f), points);
 
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    const float dist = Vec3_Distance(light->origin, Box3_ClampPoint(voxel->bounds, light->origin));
-    if (dist > light->radius) {
+    if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
 
@@ -391,16 +385,16 @@ void EmitVoxels(void) {
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
   
-  for (int32_t u = 0; u < voxels.size.z; u++) {
+  for (int32_t z = 0; z < voxels.size.z; z++) {
 
-    Progress("Emitting voxels", 100.f * u / voxels.size.z);
+    Progress("Emitting voxels", 100.f * z / voxels.size.z);
 
     SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
 
-        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
         *out_contents++ = voxel->contents;
@@ -410,7 +404,7 @@ void EmitVoxels(void) {
     }
 
     if (debug) {
-      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, z));
     }
 
     SDL_DestroySurface(fog);
@@ -419,11 +413,11 @@ void EmitVoxels(void) {
   int32_t *out_light_data = (int32_t *) out;
   out += voxels.num_voxels * sizeof(int32_t) * 2;
 
-  for (int32_t u = 0; u < voxels.size.z; u++) {
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++) {
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
 
-        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
         *out_light_data++ = voxel->lights_offset;
@@ -435,21 +429,18 @@ void EmitVoxels(void) {
   int32_t *out_light_indices = (int32_t *) out;
   out += voxels.num_light_indices * sizeof(int32_t);
 
-  // Write light indices in the same u/t/s order
-  for (int32_t u = 0; u < voxels.size.z; u++) {
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++) {
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
 
-        const int32_t index = (u * voxels.size.y + t) * voxels.size.x + s;
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
         GHashTableIter iter;
-        gpointer key;
+        light_t *light;
 
         g_hash_table_iter_init(&iter, voxel->lights);
-        while (g_hash_table_iter_next(&iter, &key, NULL)) {
-          light_t *light = key;
-
+        while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
           *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
         }
       }

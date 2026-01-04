@@ -78,7 +78,8 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->color = LIGHT_COLOR;
     }
 
-    light->bounds = Box3_Null();
+    light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
+    light->visible_bounds = Box3_Null();
 
     return light;
   } else {
@@ -151,7 +152,7 @@ void EmitLights(void) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    if (Box3_IsNull(light->bounds)) {
+    if (Box3_IsNull(light->visible_bounds)) {
       continue;
     }
 
@@ -162,9 +163,7 @@ void EmitLights(void) {
     out->radius = light->radius;
     out->color = light->color;
     out->intensity = light->intensity;
-    out->bounds = light->bounds;
-
-    out->bounds = Box3_Expand(out->bounds, BSP_VOXEL_SIZE * .5f);
+    out->bounds = light->visible_bounds;
 
     out->first_depth_pass_element = bsp_file.num_elements;
 

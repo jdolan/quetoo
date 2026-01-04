@@ -51,9 +51,14 @@
 #define MAX_BSP_VOXELS_SIZE   0x10000000
 
 /**
+ * @brief The BSP block node size.
+ */
+#define BSP_BLOCK_SIZE 512.f
+
+/**
  * @brief Voxel voxel size in world units.
  */
-#define BSP_VOXEL_SIZE 64
+#define BSP_VOXEL_SIZE 8.f
 
 /**
  * @brief Largest voxel texture width in voxels (8192 / 64 = 128).
@@ -399,11 +404,6 @@ typedef struct {
    */
   int32_t num_elements;
 } bsp_draw_elements_t;
-
-/**
- * @brief The BSP block node size.
- */
-#define BSP_BLOCK_SIZE 768.f
 
 /**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate

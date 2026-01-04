@@ -25,7 +25,7 @@
  * @brief The voxel type.
  */
 typedef struct {
-  int32_t s, t, u;
+  vec3i_t xyz;
   vec3_t origin;
   box3_t bounds;
   int32_t contents;
