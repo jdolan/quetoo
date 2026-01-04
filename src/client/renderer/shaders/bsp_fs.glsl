@@ -23,6 +23,7 @@ uniform mat4 model;
 
 in vertex_data {
   vec3 model_position;
+  vec3 model_normal;
   vec3 position;
   vec3 normal;
   vec3 tangent;
@@ -30,7 +31,6 @@ in vertex_data {
   mat3 tbn;
   mat3 inverse_tbn;
   vec2 diffusemap;
-  vec3 model_normal;
   vec3 voxel;
   vec4 color;
 } vertex;
