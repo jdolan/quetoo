@@ -71,7 +71,7 @@ void main(void) {
   vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
   vertex.inverse_tbn = inverse(vertex.tbn);
 
-  gl_Position = projection3D * vec4(vertex.position, 1.0);
+  gl_Position = projection3D * view_model * position;
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

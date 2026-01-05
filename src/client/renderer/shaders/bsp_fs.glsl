@@ -92,10 +92,11 @@ void parallax_occlusion_mapping() {
   vec2 prev_texcoord = vertex.diffusemap;
 
   float depth = 0.0;
-  float displacement = 0.0;
   float layer = 1.0 / num_samples;
+  float displacement = sample_displacement(texcoord);
 
-  for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
+    depth += layer;
     prev_texcoord = texcoord;
     texcoord -= delta;
     displacement = sample_displacement(texcoord);
@@ -278,12 +279,9 @@ float random_angle(vec3 seed) {
 }
 
 /**
- * @brief Rotate a 3D vector around an arbitrary axis
+ * @brief Rotate a 3D vector around a normalized axis with precomputed sin/cos
  */
-vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
-  axis = normalize(axis);
-  float s = sin(angle);
-  float c = cos(angle);
+vec3 rotate_around_axis(vec3 v, vec3 axis, float s, float c) {
   float oc = 1.0 - c;
 
   return vec3(
@@ -315,14 +313,16 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
 
   // Per-pixel rotation to eliminate banding
-  float angle = random_angle(vertex.model_position);
   vec3 rotation_axis = normalize(light_to_frag);
+  float angle = random_angle(vertex.model_position);
+  float s = sin(angle);
+  float c = cos(angle);
 
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
     // Rotate Poisson sample to eliminate banding patterns
-    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, angle);
+    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, s, c);
     vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
     vec4 shadowmap = vec4(sample_dir, layer);
 
