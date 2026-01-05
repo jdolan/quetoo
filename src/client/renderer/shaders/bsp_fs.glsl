@@ -155,7 +155,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
   vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(vertex.tbn * normalize(normalmap * roughness));
+  return normalize(vertex.tbn * (normalmap * roughness));
 }
 
 /**
@@ -355,7 +355,8 @@ void light_and_shadow_light(in int index) {
   vec3 dir = light.origin.xyz - vertex.model_position;
 
   float radius = light.origin.w;
-  float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+  float dist = length(dir);
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
   if (atten <= 0.0) {
     return;
   }
@@ -445,10 +446,6 @@ void main(void) {
   fragment.dir = normalize(-vertex.position);
   fragment.dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
-  fragment.normal = normalize(vertex.normal);
-  fragment.tangent = normalize(vertex.tangent);
-  fragment.bitangent = normalize(vertex.bitangent);
-  fragment.parallax = vertex.diffusemap;
 
   parallax_occlusion_mapping();
 

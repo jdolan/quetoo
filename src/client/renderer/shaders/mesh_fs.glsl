@@ -67,7 +67,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
   vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(fragment.tbn * normalize(normalmap * roughness));
+  return normalize(fragment.tbn * (normalmap * roughness));
 }
 
 /**
@@ -230,7 +230,8 @@ void light_and_shadow_light(in int index) {
   vec3 dir = light.origin.xyz - vertex.model_position;
 
   float radius = light.origin.w;
-  float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+  float dist = length(dir);
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
   if (atten <= 0.0) {
 	  return;
   }
@@ -307,10 +308,7 @@ void main(void) {
 
   fragment.dir = normalize(-vertex.position);
   fragment.dist = length(vertex.position);
-  fragment.normal = normalize(vertex.normal);
-  fragment.tangent = normalize(vertex.tangent);
-  fragment.bitangent = normalize(vertex.bitangent);
-  fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+  fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
