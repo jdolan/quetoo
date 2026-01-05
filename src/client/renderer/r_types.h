@@ -1500,6 +1500,11 @@ typedef struct {
   r_occlusion_query_t *query;
 
   /**
+   * @brief True if the light is occluded for the current frame.
+   */
+  bool occluded;
+
+  /**
    * @brief The backing BSP light, for static light sources.
    */
   const r_bsp_light_t *bsp_light;

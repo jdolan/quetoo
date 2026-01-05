@@ -44,7 +44,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 
   const ptrdiff_t index = in - view->lights;
-
   r_light_uniform_t *out = &r_lights.block.lights[index];
 
   out->origin = Vec3_ToVec4(in->origin, in->radius);
@@ -68,18 +67,18 @@ void R_UpdateLights(r_view_t *view) {
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (l->query && l->query->result == 0) {
-      r_stats.lights_occluded++;
-      continue;
+    if (l->query) {
+      l->occluded = l->query->result == 0;
+    } else {
+      l->occluded = R_CulludeBox(view, l->bounds);
     }
 
-    if (R_CullBox(view, l->bounds)) {
+    if (l->occluded) {
       r_stats.lights_occluded++;
-      continue;
+    } else {
+      r_stats.lights_visible++;
+      R_AddLightUniform(view, l);
     }
-
-    R_AddLightUniform(view, l);
-    r_stats.lights_visible++;
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);

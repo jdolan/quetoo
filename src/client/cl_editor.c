@@ -83,10 +83,6 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
 
       light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
 
-      if (R_CulludeBox(&cl_view, light.bounds)) {
-        continue;
-      }
-
       R_AddLight(&cl_view, &light);
     }
   }

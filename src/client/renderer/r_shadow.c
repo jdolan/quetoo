@@ -289,7 +289,7 @@ void R_DrawShadows(const r_view_t *view) {
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (l->query && l->query->result == 0) {
+    if (l->occluded) {
       continue;
     }
 
