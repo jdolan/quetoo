@@ -406,13 +406,15 @@ static void R_InitConfig(void) {
 
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &r_config.max_3d_texture_size);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
 
   Com_Print(  "  Renderer:           ^2%s^7\n", r_config.renderer);
   Com_Print(  "  Vendor:             ^2%s^7\n", r_config.vendor);
   Com_Print(  "  Version:            ^2%s^7\n", r_config.version);
-  Com_Verbose("  Tex Units:          ^2%i^7\n", r_config.max_texunits);
-  Com_Verbose("  Tex Size:           ^2%i^7\n", r_config.max_texture_size);
+  Com_Verbose("  Texture Units:      ^2%i^7\n", r_config.max_texunits);
+  Com_Verbose("  Texture Size:       ^2%i^7\n", r_config.max_texture_size);
+  Com_Verbose("  3D Texture Size     ^2%i^7\n", r_config.max_3d_texture_size);
   Com_Verbose("  Uniform block Size: ^2%i^7\n", r_config.max_uniform_block_size);
 
   for (int32_t i = 0; i < num_extensions; i++) {

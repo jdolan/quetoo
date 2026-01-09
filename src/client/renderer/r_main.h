@@ -70,6 +70,7 @@ typedef struct {
 
   GLint max_texunits;
   GLint max_texture_size;
+  GLint max_3d_texture_size;
   GLint max_uniform_block_size;
 } r_config_t;
 
