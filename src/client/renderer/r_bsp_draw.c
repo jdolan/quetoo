@@ -43,10 +43,7 @@ static struct {
 
   GLint texture_sky;
 
-  GLint texture_shadow_cubemap_array0;
-  GLint texture_shadow_cubemap_array1;
-  GLint texture_shadow_cubemap_array2;
-  GLint texture_shadow_cubemap_array3;
+  GLint texture_shadow_cubemap_array;
 
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
@@ -615,10 +612,7 @@ void R_InitBspProgram(void) {
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
 
-  r_bsp_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array0");
-  r_bsp_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array1");
-  r_bsp_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array2");
-  r_bsp_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array3");
+  r_bsp_program.texture_shadow_cubemap_array = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array");
 
   r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
   r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
@@ -651,10 +645,7 @@ void R_InitBspProgram(void) {
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
+  glUniform1i(r_bsp_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
 
   glUniform1i(r_bsp_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_bsp_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);

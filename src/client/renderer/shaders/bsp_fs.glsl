@@ -296,9 +296,6 @@ vec3 rotate_around_axis(vec3 v, vec3 axis, float s, float c) {
  */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
 
-  int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
-  int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
-
   vec3 light_to_frag = vertex.model_position - light.origin.xyz;
   float current_depth = length(light_to_frag) / depth_range.y;
 
@@ -324,22 +321,9 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
     // Rotate Poisson sample to eliminate banding patterns
     vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, s, c);
     vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
-    vec4 shadowmap = vec4(sample_dir, layer);
+    vec4 shadowmap = vec4(sample_dir, index);
 
-    switch (array) {
-      case 0:
-        shadow += texture(texture_shadow_cubemap_array0, shadowmap, current_depth);
-        break;
-      case 1:
-        shadow += texture(texture_shadow_cubemap_array1, shadowmap, current_depth);
-        break;
-      case 2:
-        shadow += texture(texture_shadow_cubemap_array2, shadowmap, current_depth);
-        break;
-      case 3:
-        shadow += texture(texture_shadow_cubemap_array3, shadowmap, current_depth);
-        break;
-    }
+    shadow += texture(texture_shadow_cubemap_array, shadowmap, current_depth);
   }
 
   return shadow / float(num_samples);

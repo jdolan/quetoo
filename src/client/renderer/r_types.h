@@ -1457,7 +1457,7 @@ typedef struct r_entity_s {
 /**
  * @brief Light sources per scene.
  */
-#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_DYNAMIC_LIGHTS 64
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
@@ -1819,10 +1819,6 @@ typedef enum {
    * @brief The shadowmap cubemap array texture.
    */
   TEXTURE_SHADOW_CUBEMAP_ARRAY,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY0 = TEXTURE_SHADOW_CUBEMAP_ARRAY,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY1,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY2,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY3,
 
   /**
    * @brief Sprite specific textures.

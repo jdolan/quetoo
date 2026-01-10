@@ -45,10 +45,7 @@ static struct {
 
   GLint texture_sky;
 
-  GLint texture_shadow_cubemap_array0;
-  GLint texture_shadow_cubemap_array1;
-  GLint texture_shadow_cubemap_array2;
-  GLint texture_shadow_cubemap_array3;
+  GLint texture_shadow_cubemap_array;
 
   GLint color;
   GLint tint_colors;
@@ -416,10 +413,7 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.texture_sky = glGetUniformLocation(r_mesh_program.name, "texture_sky");
 
-  r_mesh_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array0");
-  r_mesh_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array1");
-  r_mesh_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array2");
-  r_mesh_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array3");
+  r_mesh_program.texture_shadow_cubemap_array = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array");
 
   r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
@@ -447,10 +441,7 @@ void R_InitMeshProgram(void) {
 
   glUniform1i(r_mesh_program.texture_sky, TEXTURE_SKY);
 
-  glUniform1i(r_mesh_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
-  glUniform1i(r_mesh_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
-  glUniform1i(r_mesh_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
-  glUniform1i(r_mesh_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
+  glUniform1i(r_mesh_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
 
   glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
 

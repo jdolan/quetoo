@@ -167,11 +167,9 @@ struct light_t {
   vec4 color;
 };
 
-#define MAX_BSP_LIGHTS 768
-#define MAX_DYNAMIC_LIGHTS 256
+#define MAX_BSP_LIGHTS 256
+#define MAX_DYNAMIC_LIGHTS 64
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
-#define MAX_SHADOW_CUBEMAP_LAYERS 256
-#define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
 
 /**
  * @brief The lights uniform block.
@@ -223,12 +221,9 @@ uniform isamplerBuffer texture_voxel_light_indices;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadow array and cubemap array texture.
+ * @brief The shadow cubemap array texture.
  */
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array;
 
 /**
  * @brief The framebuffer attachment textures.
