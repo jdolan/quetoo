@@ -366,22 +366,81 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
-  // Skip contents data for now (will upload to GPU texture)
-  const byte *contents_data = data;
+  const int32_t *contents_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t);
 
-  // Skip fog data for now (will upload to GPU texture)
-  const byte *fog_data = data;
+  out->contents = (r_image_t *) R_AllocMedia("voxel_contents", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->contents->media.Free = R_FreeImage;
+  out->contents->type = IMG_VOXELS;
+  out->contents->width = out->size.x;
+  out->contents->height = out->size.y;
+  out->contents->depth = out->size.z;
+  out->contents->target = GL_TEXTURE_3D;
+  out->contents->minify = GL_NEAREST;
+  out->contents->magnify = GL_NEAREST;
+  out->contents->internal_format = GL_R32I;
+  out->contents->format = GL_RED_INTEGER;
+  out->contents->pixel_type = GL_INT;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);
+  R_UploadImage(out->contents, (const byte *) contents_data);
+
+  const color32_t *fog_data = (const color32_t *) data;
   data += out->num_voxels * sizeof(color32_t);
 
-  // Read light metadata to populate CPU-side voxel array
+  out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->fog->media.Free = R_FreeImage;
+  out->fog->type = IMG_VOXELS;
+  out->fog->width = out->size.x;
+  out->fog->height = out->size.y;
+  out->fog->depth = out->size.z;
+  out->fog->target = GL_TEXTURE_3D;
+  out->fog->levels = levels;
+  out->fog->minify = GL_LINEAR_MIPMAP_LINEAR;
+  out->fog->magnify = GL_LINEAR;
+  out->fog->internal_format = GL_RGBA8;
+  out->fog->format = GL_RGBA;
+  out->fog->pixel_type = GL_UNSIGNED_BYTE;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_FOG);
+  R_UploadImage(out->fog, (const byte *) fog_data);
+
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;
 
-  // Read light indices array
+  out->light_data = (r_image_t *) R_AllocMedia("voxel_light_data", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_data->media.Free = R_FreeImage;
+  out->light_data->type = IMG_VOXELS;
+  out->light_data->width = out->size.x;
+  out->light_data->height = out->size.y;
+  out->light_data->depth = out->size.z;
+  out->light_data->target = GL_TEXTURE_3D;
+  out->light_data->minify = GL_NEAREST;
+  out->light_data->magnify = GL_NEAREST;
+  out->light_data->internal_format = GL_RG32I;
+  out->light_data->format = GL_RG_INTEGER;
+  out->light_data->pixel_type = GL_INT;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
+  R_UploadImage(out->light_data, (const byte *) light_data);
+
   const int32_t *light_indices_data = (const int32_t *) data;
 
-  // Allocate and populate per-voxel data
+  glGenBuffers(1, &out->light_indices_buffer);
+  glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
+  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), light_indices_data, GL_STATIC_DRAW);
+  glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_indices->media.Free = R_FreeImage;
+  out->light_indices->type = IMG_VOXELS;
+  out->light_indices->target = GL_TEXTURE_BUFFER;
+  out->light_indices->internal_format = GL_R32I;
+  out->light_indices->buffer = out->light_indices_buffer;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
+  R_SetupImage(out->light_indices);
+
   out->voxels = Mem_LinkMalloc(out->num_voxels * sizeof(r_bsp_voxel_t), mod->bsp);
 
   for (int32_t u = 0; u < out->size.z; u++) {
@@ -401,7 +460,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
         voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
-        // Read light count and allocate fixed-size array
+        // Read light references
         const int32_t first_light_index = light_data[voxel_index * 2 + 0];
         const int32_t num_light_indices = light_data[voxel_index * 2 + 1];
 
@@ -425,74 +484,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
       }
     }
   }
-
-  // Upload contents texture
-  out->contents = (r_image_t *) R_AllocMedia("voxel_contents", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->contents->media.Free = R_FreeImage;
-  out->contents->type = IMG_VOXELS;
-  out->contents->width = out->size.x;
-  out->contents->height = out->size.y;
-  out->contents->depth = out->size.z;
-  out->contents->target = GL_TEXTURE_3D;
-  out->contents->minify = GL_NEAREST;
-  out->contents->magnify = GL_NEAREST;
-  out->contents->internal_format = GL_R32I;
-  out->contents->format = GL_RED_INTEGER;
-  out->contents->pixel_type = GL_INT;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);
-  R_UploadImage(out->contents, contents_data);
-
-  // Upload fog texture
-  out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->fog->media.Free = R_FreeImage;
-  out->fog->type = IMG_VOXELS;
-  out->fog->width = out->size.x;
-  out->fog->height = out->size.y;
-  out->fog->depth = out->size.z;
-  out->fog->target = GL_TEXTURE_3D;
-  out->fog->levels = levels;
-  out->fog->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->fog->magnify = GL_LINEAR;
-  out->fog->internal_format = GL_RGBA8;
-  out->fog->format = GL_RGBA;
-  out->fog->pixel_type = GL_UNSIGNED_BYTE;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_FOG);
-  R_UploadImage(out->fog, fog_data);
-
-  // Upload light metadata texture
-  out->light_data = (r_image_t *) R_AllocMedia("voxel_light_data", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->light_data->media.Free = R_FreeImage;
-  out->light_data->type = IMG_VOXELS;
-  out->light_data->width = out->size.x;
-  out->light_data->height = out->size.y;
-  out->light_data->depth = out->size.z;
-  out->light_data->target = GL_TEXTURE_3D;
-  out->light_data->minify = GL_NEAREST;
-  out->light_data->magnify = GL_NEAREST;
-  out->light_data->internal_format = GL_RG32I;
-  out->light_data->format = GL_RG_INTEGER;
-  out->light_data->pixel_type = GL_INT;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_DATA);
-  R_UploadImage(out->light_data, (const byte *) light_data);
-
-  // Upload light indices buffer
-  glGenBuffers(1, &out->light_indices_buffer);
-  glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
-  glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), light_indices_data, GL_STATIC_DRAW);
-  glBindBuffer(GL_TEXTURE_BUFFER, 0);
-
-  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->light_indices->media.Free = R_FreeImage;
-  out->light_indices->type = IMG_VOXELS;
-  out->light_indices->target = GL_TEXTURE_BUFFER;
-  out->light_indices->internal_format = GL_R32I;
-  out->light_indices->buffer = out->light_indices_buffer;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
-  R_SetupImage(out->light_indices);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 

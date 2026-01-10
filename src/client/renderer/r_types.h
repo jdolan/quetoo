@@ -751,7 +751,7 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief Array of individual voxel data (for CPU-side access).
+   * @brief Array of individual voxel data (for CPU-side access and debugging).
    */
   r_bsp_voxel_t *voxels;
 
