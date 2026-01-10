@@ -865,7 +865,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   memset(cl, 0, sizeof(*cl));
 
   cl->entity = tmp.entity;
-  cl->ps = tmp.ps;
+  cl->ps.client = tmp.ps.client;
   cl->ping = tmp.ping;
   cl->in_use = tmp.in_use;
   cl->ai = tmp.ai;
@@ -889,6 +889,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   // pack the new origin and delta angles into the player state
   cl->ps.pm_state.origin = ent->s.origin;
   cl->ps.pm_state.delta_angles = delta_angles;
+  cl->ps.entity = ent->s.number;
 
   ent->velocity = Vec3_Zero();
 
