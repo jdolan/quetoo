@@ -181,8 +181,7 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   float filter_radius = penumbra * 0.005;  // Scale to texel units
 
   // Distance-based sample count (close = more samples, far = fewer)
-  float view_dist = length(vertex.position);
-  int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
+  int num_samples = fragment.dist < 512.0 ? 16 : (fragment.dist < 1024.0 ? 8 : 4);
 
   // Per-pixel rotation to eliminate banding
   vec3 rotation_axis = normalize(light_to_frag);
