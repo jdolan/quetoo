@@ -127,13 +127,18 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
       continue;
     }
 
-    box3_t shadow_bounds = Box3_FromCenter(light->origin);
-
-    const vec3_t mins_dir = Vec3_Direction(e->abs_model_bounds.mins, light->origin);
-    const vec3_t maxs_dir = Vec3_Direction(e->abs_model_bounds.maxs, light->origin);
-
-    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, mins_dir));
-    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, maxs_dir));
+    const vec3_t to_mins = Vec3_Subtract(e->abs_model_bounds.mins, light->origin);
+    const vec3_t to_maxs = Vec3_Subtract(e->abs_model_bounds.maxs, light->origin);
+    
+    const vec3_t shadow_mins_dir = Vec3_Normalize(to_mins);
+    const vec3_t shadow_maxs_dir = Vec3_Normalize(to_maxs);
+    
+    const vec3_t shadow_mins_end = Vec3_Fmaf(light->origin, light->radius, shadow_mins_dir);
+    const vec3_t shadow_maxs_end = Vec3_Fmaf(light->origin, light->radius, shadow_maxs_dir);
+    
+    box3_t shadow_bounds = e->abs_model_bounds;
+    shadow_bounds = Box3_Append(shadow_bounds, shadow_mins_end);
+    shadow_bounds = Box3_Append(shadow_bounds, shadow_maxs_end);
 
     if (R_CulludeBox(view, shadow_bounds)) {
       continue;
@@ -213,13 +218,18 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
       continue;
     }
 
-    box3_t shadow_bounds = Box3_FromCenter(light->origin);
-
-    const vec3_t mins_dir = Vec3_Direction(e->abs_model_bounds.mins, light->origin);
-    const vec3_t maxs_dir = Vec3_Direction(e->abs_model_bounds.maxs, light->origin);
-
-    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, mins_dir));
-    shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, maxs_dir));
+    const vec3_t to_mins = Vec3_Subtract(e->abs_model_bounds.mins, light->origin);
+    const vec3_t to_maxs = Vec3_Subtract(e->abs_model_bounds.maxs, light->origin);
+    
+    const vec3_t shadow_mins_dir = Vec3_Normalize(to_mins);
+    const vec3_t shadow_maxs_dir = Vec3_Normalize(to_maxs);
+    
+    const vec3_t shadow_mins_end = Vec3_Fmaf(light->origin, light->radius, shadow_mins_dir);
+    const vec3_t shadow_maxs_end = Vec3_Fmaf(light->origin, light->radius, shadow_maxs_dir);
+    
+    box3_t shadow_bounds = e->abs_model_bounds;
+    shadow_bounds = Box3_Append(shadow_bounds, shadow_mins_end);
+    shadow_bounds = Box3_Append(shadow_bounds, shadow_maxs_end);
 
     if (R_CulludeBox(view, shadow_bounds)) {
       continue;
