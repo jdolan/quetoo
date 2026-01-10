@@ -42,6 +42,7 @@ extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
+extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;

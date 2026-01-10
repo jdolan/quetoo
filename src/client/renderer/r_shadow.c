@@ -240,6 +240,9 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
   glUniform1i(r_shadow_program.light_index, index);
 
+  const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
+  const float dist = Vec3_Distance(closest_point, view->origin);
+
   for (GLint face = 0; face < 6; face++) {
 
     glFramebufferTextureLayer(GL_FRAMEBUFFER,
@@ -254,7 +257,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
     R_DrawBspInlineEntitiesShadow(view, light);
 
-    if (r_shadows->value) {
+    if (r_shadows->value && dist <= r_shadow_distance->value) {
       R_DrawMeshEntitiesShadow(view, light);
     }
   }
