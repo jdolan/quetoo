@@ -53,17 +53,25 @@ out vertex_data {
 invariant gl_Position;
 
 /**
- * @brief Calculates caustics based on voxel contents with sub-voxel gradient attenuation.
- * Uses the 4 contents samples per voxel to determine liquid proximity.
+ * @brief Calculates caustics based on voxel contents with vertical multisampling attenuation.
+ * Samples upward (positive Z) from the current voxel to check for liquid above.
  */
 float sample_voxel_caustics(in vec3 texcoord) {
   ivec3 voxel = ivec3(texcoord * voxels.size.xyz);
-  int contents = voxel_contents(voxel);
   
-  if ((contents & CONTENTS_MASK_LIQUID) != 0) {
-    return caustics;
+  const int num_samples = 4;
+  float caustics_sum = 0.0;
+
+  for (int i = 0; i < num_samples; i++) {
+    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
+    int contents = voxel_contents(sample_voxel);
+
+    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+      caustics_sum += 1.0 - (float(i) / float(num_samples));
+    }
   }
-  return 0.0;
+
+  return (caustics_sum / float(num_samples)) * caustics;
 }
 
 /**

@@ -191,18 +191,25 @@ vec4 sample_material_stage(in vec2 texcoord) {
 }
 
 /**
- * @brief Calculates caustics based on voxel contents with sub-voxel gradient attenuation.
- * Uses the 4 contents samples per voxel to determine liquid proximity.
+ * @brief Calculates caustics based on voxel contents.
  */
 float sample_voxel_caustics() {
-  vec3 projected = vertex.model_position + normalize(vertex.model_normal) * 32.0;
+  vec3 projected = vertex.model_position + normalize(vertex.model_normal) * BSP_VOXEL_SIZE;
   ivec3 voxel = voxel_xyz(projected);
-  int contents = voxel_contents(voxel);
   
-  if ((contents & CONTENTS_MASK_LIQUID) != 0) {
-    return caustics;
+  const int num_samples = 4;
+  float caustics_sum = 0.0;
+  
+  for (int i = 0; i < num_samples; i++) {
+    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
+    int contents = voxel_contents(sample_voxel);
+    
+    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+      caustics_sum += 1.0 - (float(i) / float(num_samples));
+    }
   }
-  return 0.0;
+  
+  return (caustics_sum / float(num_samples)) * caustics;
 }
 
 /**
