@@ -591,48 +591,50 @@ void PhongShading(void) {
 static void TangentVectors_(bsp_model_t *model) {
 
   bsp_face_t *face = bsp_file.faces + model->first_face;
-  
+  int32_t base_vertex = face->first_vertex;
+
+  bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
+  int32_t *elements = bsp_file.elements + face->first_element;
+
+  int32_t num_vertexes = 0, num_elements = 0;
+  for (int32_t i = 0; i < model->num_faces; i++, face++) {
+    num_vertexes += face->num_vertexes;
+    num_elements += face->num_elements;
+  }
+
+  cm_vertex_t *cm = Mem_Malloc(sizeof(cm_vertex_t) * num_vertexes);
+
+  bsp_vertex_t *v = vertexes;
+  for (int32_t i = 0; i < num_vertexes; i++, v++) {
+    cm[i] = (cm_vertex_t) {
+      .position = &v->position,
+      .normal = &v->normal,
+      .tangent = &v->tangent,
+      .bitangent = &v->bitangent,
+      .st = &v->diffusemap
+    };
+  }
+
+  Cm_Tangents(cm, base_vertex, num_vertexes, elements, num_elements);
+
   int32_t num_bad_vertexes = 0;
 
-  for (int32_t f = 0; f < model->num_faces; f++, face++) {
-    
-    const int32_t base_vertex = face->first_vertex;
-    const int32_t num_vertexes = face->num_vertexes;
-    const int32_t num_elements = face->num_elements;
+  v = vertexes;
+  for (int32_t i = 0; i < num_vertexes; i++, v++) {
 
-    bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
-    int32_t *elements = bsp_file.elements + face->first_element;
-
-    cm_vertex_t *cm = Mem_Malloc(sizeof(cm_vertex_t) * num_vertexes);
-
-    for (int32_t i = 0; i < num_vertexes; i++) {
-      cm[i] = (cm_vertex_t) {
-        .position = &vertexes[i].position,
-        .normal = &vertexes[i].normal,
-        .tangent = &vertexes[i].tangent,
-        .bitangent = &vertexes[i].bitangent,
-        .st = &vertexes[i].diffusemap
-      };
+    if (cm[i].num_tris == 0) {
+      continue;
     }
 
-    Cm_Tangents(cm, base_vertex, num_vertexes, elements, num_elements);
-
-    for (int32_t i = 0; i < num_vertexes; i++) {
-
-      if (cm[i].num_tris == 0) {
-        continue;
-      }
-
-      if (Vec3_Length(vertexes[i].tangent) < .9f || Vec3_Length(vertexes[i].bitangent) < .9f) {
-        Com_Warn("Vertex at %s has invalid tangents\n", vtos(vertexes[i].position));
-        num_bad_vertexes++;
-      }
+    if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
+      Com_Warn("Vertex at %s has invalid tangents\n", vtos(v->position));
+      num_bad_vertexes++;
     }
-
-    Mem_Free(cm);
   }
 
   Com_Debug(DEBUG_ALL, "%d bad vertexes\n", num_bad_vertexes);
+
+  Mem_Free(cm);
 }
 
 /**
