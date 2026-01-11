@@ -193,24 +193,12 @@ void R_BeginFrame(void) {
  */
 void R_InitView(r_view_t *view) {
 
-  view->viewport = Vec4i_Zero();
-  view->fov = Vec2_Zero();
-
-  view->origin = Vec3_Zero();
-  view->angles = Vec3_Zero();
-  view->forward = Vec3_Zero();
-  view->right = Vec3_Zero();
-  view->up = Vec3_Zero();
-
-  view->contents = CONTENTS_NONE;
-
+  view->ticks = (uint32_t) SDL_GetTicks();
   view->num_beams = 0;
   view->num_entities = 0;
   view->num_lights = 0;
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
-
-  memset(view->frustum, 0, sizeof(view->frustum));
 }
 
 /**

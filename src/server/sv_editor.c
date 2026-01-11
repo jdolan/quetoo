@@ -83,7 +83,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 
   cm_entity_t *def = Cm_EntityFromInfoString(info);
 
-  if (number >= 0) {
+  if (number > -1) {
     g_entity_t *entity = svs.game->entities[number];
     cm_entity_t *ent = (cm_entity_t *) entity->def;
     def->brushes = ent->brushes;
@@ -95,6 +95,12 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
         number = i;
         break;
       }
+    }
+
+    if (number == -1) {
+      Com_Warn("No free entity slots available\n");
+      Cm_FreeEntity(def);
+      return;
     }
   }
 
