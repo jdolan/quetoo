@@ -111,7 +111,6 @@ void parallax_occlusion_mapping() {
 /**
  * @brief Returns the shadow scalar for parallax self shadowing.
  * @param light_dir The light direction in view space.
- * @param texel The material texel size.
  * @return The self-shadowing scalar.
  */
 float parallax_self_shadow(in vec3 light_dir) {
@@ -343,13 +342,14 @@ void light_and_shadow_light(in int index) {
   light_t light = lights[index];
 
   vec3 dir = light.origin.xyz - vertex.model_position;
-
-  float radius = light.origin.w;
   float dist = length(dir);
+  float radius = light.origin.w;
   float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
   if (atten <= 0.0) {
     return;
   }
+
+  dir = normalize(view * vec4(dir, 0.0)).xyz;
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
@@ -363,7 +363,6 @@ void light_and_shadow_light(in int index) {
     return;
   }
 
-  dir = normalize(view * vec4(dir, 0.0)).xyz;
   float lambert = max(0.0, dot(dir, fragment.normalmap));
 
   fragment.diffuse += color * lambert * shadow;
