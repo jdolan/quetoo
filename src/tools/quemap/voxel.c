@@ -28,14 +28,20 @@
 voxels_t voxels;
 
 /**
- * @brief
+ * @brief Accumulates light color into the voxel for fog absorption calculations.
  */
-void IlluminateVoxel(voxel_t *voxel, light_t *light, float lumens) {
+static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
+
+  const float dist = Vec3_Distance(voxel->origin, light->origin);
+  const float atten = Clampf01(1.f - dist / light->radius);
+  const float lumens = atten * atten;
 
   const vec3_t color = Vec3_Scale(light->color, light->intensity);
   voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
-  light->bounds = Box3_Append(light->bounds, voxel->origin);
+  light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
+
+  g_hash_table_add(voxel->lights, light);
 }
 
 /**
@@ -155,49 +161,28 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
   return err;
 }
 
-
 /**
- * @brief
- */
-static void BuildVoxelMatrices(void) {
-
-  const bsp_model_t *world = bsp_file.models;
-
-  voxels.matrix = Mat4_FromTranslation(Vec3_Negate(world->visible_bounds.mins));
-  voxels.matrix = Mat4_ConcatScale(voxels.matrix, 1.f / BSP_VOXEL_SIZE);
-  voxels.inverse_matrix = Mat4_Inverse(voxels.matrix);
-}
-
-/**
- * @brief
+ * @brief Builds the voxel grid aligned to world coordinates at `BSP_VOXEL_SIZE` intervals.
+ * Voxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
  */
 static void BuildVoxelExtents(void) {
 
   const bsp_model_t *world = bsp_file.models;
-
-  voxels.stu_bounds = Mat4_TransformBounds(voxels.matrix, world->visible_bounds);
-
+  
+  // Align mins to voxel grid (round down to nearest multiple of BSP_VOXEL_SIZE)
+  voxels.stu_bounds.mins.x = floorf(world->visible_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.mins.y = floorf(world->visible_bounds.mins.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.mins.z = floorf(world->visible_bounds.mins.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  
+  // Align maxs to voxel grid (round up to nearest multiple of BSP_VOXEL_SIZE)
+  voxels.stu_bounds.maxs.x = ceilf(world->visible_bounds.maxs.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.maxs.y = ceilf(world->visible_bounds.maxs.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  voxels.stu_bounds.maxs.z = ceilf(world->visible_bounds.maxs.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  
+  // Calculate grid size (number of voxels in each dimension)
   for (int32_t i = 0; i < 3; i++) {
-    voxels.size.xyz[i] = floorf(voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) + 2;
+    voxels.size.xyz[i] = (int32_t) ((voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) / BSP_VOXEL_SIZE);
   }
-}
-
-/**
- * @brief
- */
-static int32_t ProjectVoxel(voxel_t *l, float soffs, float toffs, float uoffs) {
-
-  const float padding_s = ((voxels.stu_bounds.maxs.x - voxels.stu_bounds.mins.x) - voxels.size.x) * .5f;
-  const float padding_t = ((voxels.stu_bounds.maxs.y - voxels.stu_bounds.mins.y) - voxels.size.y) * .5f;
-  const float padding_u = ((voxels.stu_bounds.maxs.z - voxels.stu_bounds.mins.z) - voxels.size.z) * .5f;
-
-  const float s = voxels.stu_bounds.mins.x + padding_s + l->s + .5f + soffs;
-  const float t = voxels.stu_bounds.mins.y + padding_t + l->t + .5f + toffs;
-  const float u = voxels.stu_bounds.mins.z + padding_u + l->u + .5f + uoffs;
-
-  l->origin = Mat4_Transform(voxels.inverse_matrix, Vec3(s, t, u));
-
-  return Light_PointContents(l->origin, 0);
 }
 
 /**
@@ -213,17 +198,26 @@ static void BuildVoxelVoxels(void) {
 
   voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(voxel_t), MEM_TAG_VOXEL);
 
-  voxel_t *l = voxels.voxels;
+  voxel_t *v = voxels.voxels;
 
-  for (int32_t u = 0; u < voxels.size.z; u++) {
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++, l++) {
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
 
-        l->s = s;
-        l->t = t;
-        l->u = u;
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        v = &voxels.voxels[index];
 
-        ProjectVoxel(l, 0.f, 0.f, 0.f);
+        v->xyz = Vec3i(x, y, z);
+
+        v->origin = Vec3(
+          voxels.stu_bounds.mins.x + (v->xyz.x + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.y + (v->xyz.y + 0.5f) * BSP_VOXEL_SIZE,
+          voxels.stu_bounds.mins.z + (v->xyz.z + 0.5f) * BSP_VOXEL_SIZE
+        );
+
+        v->bounds = Box3_FromCenterRadius(v->origin, BSP_VOXEL_SIZE * .5f);
+
+        v->lights = g_hash_table_new(g_direct_hash, g_direct_equal);
       }
     }
   }
@@ -233,7 +227,7 @@ static void BuildVoxelVoxels(void) {
  * @brief Authors a .map file which can be imported into Radiant to view the voxel projections.
  */
 static void DebugVoxels(void) {
-#if 0
+#if 1
   const char *path = va("maps/%s.voxel.map", map_base);
 
   file_t *file = Fs_OpenWrite(path);
@@ -242,17 +236,15 @@ static void DebugVoxels(void) {
     return;
   }
 
-  voxel_t *l = lg.voxels;
-  for (size_t i = 0; i < lg.num_voxels; i++, l++) {
-
-    ProjectVoxelVoxel(l, 0.0, 0.0, 0.0);
+  voxel_t *v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
 
     Fs_Print(file, "{\n");
     Fs_Print(file, "  \"classname\" \"info_voxel\"\n");
-    Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", l->origin.x, l->origin.y, l->origin.z);
-    Fs_Print(file, "  \"s\" \"%d\"\n", l->s);
-    Fs_Print(file, "  \"t\" \"%d\"\n", l->t);
-    Fs_Print(file, "  \"u\" \"%d\"\n", l->u);
+    Fs_Print(file, "  \"origin\" \"%g %g %g\"\n", v->origin.x, v->origin.y, v->origin.z);
+    Fs_Print(file, "  \"x\" \"%d\"\n", v->xyz.x);
+    Fs_Print(file, "  \"y\" \"%d\"\n", v->xyz.y);
+    Fs_Print(file, "  \"z\" \"%d\"\n", v->xyz.z);
     Fs_Print(file, "}\n");
   }
 
@@ -267,8 +259,6 @@ size_t BuildVoxels(void) {
 
   memset(&voxels, 0, sizeof(voxels));
 
-  BuildVoxelMatrices();
-
   BuildVoxelExtents();
 
   BuildVoxelVoxels();
@@ -279,182 +269,72 @@ size_t BuildVoxels(void) {
 }
 
 /**
- * @brief Iterates lights, accumulating color and direction on the specified voxel.
- * @param lights The light sources to iterate.
- * @param voxel The voxel to light.
- * @param scale A scalar applied to both color and direction.
+ * @brief Assigns lights to a voxel based on visibility traces to corners and center.
  */
-static inline void LightVoxel_(const GPtrArray *lights, voxel_t *voxel, float scale) {
+void LightVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+  voxel->contents = Cm_BoxContents(voxel->bounds, 0);
+
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
 
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    const float dist = Maxf(0.f, Vec3_Distance(light->origin, voxel->origin));
-    if (dist >= light->radius) {
+    if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
 
-    const float atten = Clampf01(1.f - dist / light->radius);
-    const float lumens = atten * atten * scale;
-
-    const cm_trace_t trace = Light_Trace(voxel->origin, light->origin, 0, CONTENTS_SOLID);
-    if (trace.fraction == 1.f) {
-      IlluminateVoxel(voxel, light, lumens);
+    for (size_t j = 0; j < lengthof(points); j++) {
+      const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
+      if (trace.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, trace.end)) {
+        IlluminateVoxel(voxel, light);
+        break;
+      }
     }
   }
 }
 
 /**
- * @brief
+ * @brief Applies fog to a voxel by sampling corners and center.
  */
-void LightVoxel(int32_t voxel_num) {
+void FogVoxel(int32_t voxel_num) {
 
-  const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
-  };
+  voxel_t *voxel = &voxels.voxels[voxel_num];
 
-  const float weight = 1.f / lengthof(offsets);
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
 
-  voxel_t *l = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    LightVoxel_(lights, l, weight);
-  }
-}
-
-/**
- * @brief
- */
-static void CausticsVoxel_(voxel_t *voxel, float scale) {
-
-  float c = 0;
-
-  const int32_t contents = Light_PointContents(voxel->origin, 0);
-  if (contents & CONTENTS_MASK_LIQUID) {
-    c = 1.f;
-  }
-  
-  const vec3_t points[] = CUBE_8;
-  float sample_fraction = 1.f / lengthof(points);
-
-  for (size_t i = 0; i < lengthof(points); i++) {
-
-    const vec3_t point = Vec3_Fmaf(voxel->origin, 128.f, points[i]);
-
-    const cm_trace_t tr = Light_Trace(voxel->origin, point, 0, CONTENTS_SOLID | CONTENTS_MASK_LIQUID);
-    if ((tr.contents & CONTENTS_MASK_LIQUID) && (tr.surface & SURF_MASK_TRANSLUCENT)) {
-
-      float f = sample_fraction * (1.f - tr.fraction);
-      c += f;
-    }
-  }
-
-  voxel->diffuse.w += c * scale;
-}
-
-/**
- * @brief
- */
-void CausticsVoxel(int32_t voxel_num) {
-
-  const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
-  };
-
-  const float weight = 1.f / lengthof(offsets);
-
-  voxel_t *l = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    CausticsVoxel_(l, weight);
-  }
-}
-
-/**
- * @brief
- */
-static void FogVoxel_(GArray *fogs, voxel_t *l, float scale) {
+  const float weight = 1.f / lengthof(points);
 
   const fog_t *fog = (fog_t *) fogs->data;
   for (guint i = 0; i < fogs->len; i++, fog++) {
 
-    float density = Clampf01(fog->density * scale * FOG_DENSITY_SCALAR);
+    for (size_t j = 0; j < lengthof(points); j++) {
 
-    switch (fog->type) {
-      case FOG_VOLUME:
-        if (!PointInsideFog(l->origin, fog)) {
-          density = 0.f;
-        }
-        break;
-      default:
-        break;
+      float density = Clampf01(fog->density * weight * FOG_DENSITY_SCALAR);
+
+      switch (fog->type) {
+        case FOG_VOLUME:
+          if (!PointInsideFog(points[j], fog)) {
+            density = 0.f;
+          }
+          break;
+        default:
+          break;
+      }
+
+      if (density == 0.f) {
+        continue;
+      }
+
+      const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(voxel->diffuse.xyz, fog->absorption));
+      voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
     }
-
-    if (density == 0.f) {
-      continue;
-    }
-
-    const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(l->diffuse.xyz, fog->absorption));
-
-    l->fog = Vec4_Add(l->fog, Vec3_ToVec4(color, density));
-  }
-}
-
-/**
- * @brief
- */
-void FogVoxel(int32_t voxel_num) {
-
-  const vec3_t offsets[] = {
-    Vec3(+0.00f, +0.00f, +0.00f),
-    Vec3(-0.25f, -0.25f, -0.25f), Vec3(-0.25f, +0.25f, -0.25f),
-    Vec3(+0.25f, -0.25f, -0.25f), Vec3(+0.25f, +0.25f, -0.25f),
-    Vec3(-0.25f, -0.25f, +0.25f), Vec3(-0.25f, +0.25f, +0.25f),
-    Vec3(+0.25f, -0.25f, +0.25f), Vec3(+0.25f, +0.25f, +0.25f),
-  };
-
-  const float weight = 1.f / lengthof(offsets);
-
-  voxel_t *l = &voxels.voxels[voxel_num];
-
-  for (size_t i = 0; i < lengthof(offsets); i++) {
-
-    const float soffs = offsets[i].x;
-    const float toffs = offsets[i].y;
-    const float uoffs = offsets[i].z;
-
-    if (ProjectVoxel(l, soffs, toffs, uoffs) == CONTENTS_SOLID) {
-      continue;
-    }
-
-    FogVoxel_(fogs, l, weight);
   }
 }
 
@@ -463,42 +343,124 @@ void FogVoxel(int32_t voxel_num) {
  */
 void EmitVoxels(void) {
 
+  const uint32_t start = (uint32_t) SDL_GetTicks();
+
+  voxels.num_light_indices = 0;
+
+  voxel_t *v = voxels.voxels;
+  int32_t min_lights = INT32_MAX, max_lights = 0;
+  size_t total_lights = 0;
+  
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+    v->lights_offset = (int32_t) voxels.num_light_indices;
+    v->lights_count = (int32_t) g_hash_table_size(v->lights);
+    voxels.num_light_indices += v->lights_count;
+    
+    // Track statistics
+    total_lights += v->lights_count;
+    if (v->lights_count < min_lights) min_lights = v->lights_count;
+    if (v->lights_count > max_lights) max_lights = v->lights_count;
+  }
+  
+  Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
+              min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
+
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t);
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t); // contents (1 sample per voxel)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
+  bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_VOXELS, bsp_file.voxels_size);
   memset(bsp_file.voxels, 0, bsp_file.voxels_size);
 
   bsp_file.voxels->size = voxels.size;
+  bsp_file.voxels->num_light_indices = (int32_t) voxels.num_light_indices;
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
-  color32_t *out_diffuse = (color32_t *) out;
-  out += voxels.num_voxels * sizeof(color32_t);
+  int32_t *out_contents = (int32_t *) out;
+  out += voxels.num_voxels * sizeof(int32_t);
 
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
   
-  voxel_t *voxel = voxels.voxels;
-  for (int32_t u = 0; u < voxels.size.z; u++) {
-    
-    SDL_Surface *diffuse = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_diffuse);
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+
+    Progress("Emitting voxels", 100.f * z / voxels.size.z);
+
     SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
-    for (int32_t t = 0; t < voxels.size.y; t++) {
-      for (int32_t s = 0; s < voxels.size.x; s++, voxel++) {
-        *out_diffuse++ = Color_Color32(Color4fv(voxel->diffuse));
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
+
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        *out_contents++ = voxel->contents;
+
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }
     }
 
     if (debug) {
-      WriteVoxelSurface(diffuse, va("/tmp/%s_lg_diffuse_%d.png", map_base, u));
-      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, u));
+      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, z));
     }
 
-    SDL_DestroySurface(diffuse);
     SDL_DestroySurface(fog);
   }
+
+  int32_t *out_light_data = (int32_t *) out;
+  out += voxels.num_voxels * sizeof(int32_t) * 2;
+
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
+
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        *out_light_data++ = voxel->lights_offset;
+        *out_light_data++ = voxel->lights_count;
+      }
+    }
+  }
+
+  int32_t *out_light_indices = (int32_t *) out;
+  out += voxels.num_light_indices * sizeof(int32_t);
+
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
+
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        GHashTableIter iter;
+        light_t *light;
+
+        g_hash_table_iter_init(&iter, voxel->lights);
+        while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
+          *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+        }
+      }
+    }
+  }
+  
+  Com_Debug(DEBUG_ALL, "Emitted voxels=%zd indices=%zd\n", voxels.num_voxels, voxels.num_light_indices);
+
+  Com_Print("\r%-24s [100%%] %d ms\n", "Emitting voxels", (uint32_t) SDL_GetTicks() - start);
+}
+
+/**
+ * @brief
+ */
+void FreeVoxels(void) {
+
+  voxel_t *v = voxels.voxels;
+  for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
+    g_hash_table_destroy(v->lights);
+  }
+
+  Mem_FreeTag(MEM_TAG_VOXEL);
 }

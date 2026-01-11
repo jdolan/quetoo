@@ -37,7 +37,7 @@ uniform mat4 model;
 uniform float lerp;
 
 out vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 normal;
   vec3 smooth_normal;
@@ -53,10 +53,25 @@ out vertex_data {
 invariant gl_Position;
 
 /**
- * @brief
+ * @brief Calculates caustics based on voxel contents with vertical multisampling attenuation.
+ * Samples upward (positive Z) from the current voxel to check for liquid above.
  */
 float sample_voxel_caustics(in vec3 texcoord) {
-  return texture(texture_voxel_diffuse, texcoord).a * caustics;
+  ivec3 voxel = ivec3(texcoord * voxels.size.xyz);
+  
+  const int num_samples = 4;
+  float caustics_sum = 0.0;
+
+  for (int i = 0; i < num_samples; i++) {
+    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
+    int contents = voxel_contents(sample_voxel);
+
+    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+      caustics_sum += 1.0 - (float(i) / float(num_samples));
+    }
+  }
+
+  return (caustics_sum / float(num_samples)) * caustics;
 }
 
 /**
@@ -70,17 +85,17 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
 
   for (float i = 0; i < samples; i++) {
 
-	  vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
-	  vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
+    vec3 xyz = mix(vertex.model_position, view[0].xyz, i / samples);
+    vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
 
-	  fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
-	  if (fog.a >= 1.0) {
-  	  break;
-	  }
+    fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
+    if (fog.a >= 1.0) {
+      break;
+    }
   }
 
   if (hmax(fog.rgb) > 1.0) {
-	  fog.rgb /= hmax(fog.rgb);
+    fog.rgb /= hmax(fog.rgb);
   }
 
   return clamp(fog, 0.0, 1.0);
@@ -101,7 +116,7 @@ void main(void) {
 
   stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-  vertex.model = vec3(model * position);
+  vertex.model_position = vec3(model * position);
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
   vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
@@ -111,19 +126,19 @@ void main(void) {
   vertex.color = vec4(1.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
-	  vertex.ambient = vec3(0.666);
-	  vertex.caustics = 0.0;
-	  vertex.fog = vec4(0.0);
+    vertex.ambient = vec3(0.666);
+    vertex.caustics = 0.0;
+    vertex.fog = vec4(0.0);
   } else {
-	  vec3 texcoord = voxel_uvw(vec3(model * position));
+    vec3 texcoord = voxel_uvw(vec3(model * position));
 
-	  vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
+    vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
-	  vertex.caustics = sample_voxel_caustics(texcoord);
-	  vertex.fog = sample_voxel_fog(texcoord);
+    vertex.caustics = sample_voxel_caustics(texcoord);
+    vertex.fog = sample_voxel_fog(texcoord);
   }
 
-  gl_Position = projection3D * vec4(vertex.position, 1.0);
+  gl_Position = projection3D * view_model * position;
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 }

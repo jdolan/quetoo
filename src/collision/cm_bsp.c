@@ -12,21 +12,21 @@ typedef struct {
 
 #ifndef BSP_SIZEOF
 #define BSP_SIZEOF(T, F) \
-  sizeof(*((T *) 0)->F)
+sizeof(*((T *) 0)->F)
 #endif
 
 #define BSP_LUMP_NUM_STRUCT(n, m) { \
-  .count_ofs = offsetof(bsp_file_t, num_ ## n), \
-  .data_ofs = offsetof(bsp_file_t, n), \
-  .type_size = BSP_SIZEOF(bsp_file_t, n), \
-  .max_count = m \
+.count_ofs = offsetof(bsp_file_t, num_ ## n), \
+.data_ofs = offsetof(bsp_file_t, n), \
+.type_size = BSP_SIZEOF(bsp_file_t, n), \
+.max_count = m \
 }
 
 #define BSP_LUMP_SIZE_STRUCT(n, m) { \
-  .count_ofs = offsetof(bsp_file_t, n ## _size), \
-  .data_ofs = offsetof(bsp_file_t, n),\
-  .type_size = sizeof(byte), \
-  .max_count = m \
+.count_ofs = offsetof(bsp_file_t, n ## _size), \
+.data_ofs = offsetof(bsp_file_t, n),\
+.type_size = sizeof(byte), \
+.max_count = m \
 }
 
 #define BSP_LUMP_SKIP { 0, 0, 0, 0 }
@@ -163,7 +163,7 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
     face->first_element = LittleLong(face->first_element);
     face->num_elements = LittleLong(face->num_elements);
-    
+
     face++;
   }
 }
@@ -257,7 +257,7 @@ static void Bsp_SwapBlocks(void *lump, const int32_t num) {
     block->first_draw_element = LittleLong(block->first_draw_element);
     block->num_draw_elements = LittleLong(block->num_draw_elements);
     block->visible_bounds = LittleBounds(block->visible_bounds);
-    
+
     block++;
   }
 }
@@ -273,7 +273,7 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
 
     model->entity = LittleLong(model->entity);
     model->head_node = LittleLong(model->head_node);
-    
+
     model->bounds = LittleBounds(model->bounds);
     model->visible_bounds = LittleBounds(model->visible_bounds);
 
@@ -321,6 +321,7 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
   bsp_voxels_t *voxel = (bsp_voxels_t *) lump;
 
   voxel->size = LittleVec3i(voxel->size);
+  voxel->num_light_indices = LittleLong(voxel->num_light_indices);
 }
 
 /**
@@ -519,7 +520,7 @@ bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t
 
   if (lump.file_len % lump_type_size) {
     Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n",
-          lump_id, lump.file_len, lump_type_size);
+              lump_id, lump.file_len, lump_type_size);
   }
 
   *lump_count = lump.file_len / lump_type_size;

@@ -22,7 +22,8 @@
 uniform mat4 model;
 
 in vertex_data {
-  vec3 model;
+  vec3 model_position;
+  vec3 model_normal;
   vec3 position;
   vec3 normal;
   vec3 tangent;
@@ -30,7 +31,6 @@ in vertex_data {
   mat3 tbn;
   mat3 inverse_tbn;
   vec2 diffusemap;
-  vec3 cubemap;
   vec3 voxel;
   vec4 color;
 } vertex;
@@ -92,10 +92,11 @@ void parallax_occlusion_mapping() {
   vec2 prev_texcoord = vertex.diffusemap;
 
   float depth = 0.0;
-  float displacement = 0.0;
   float layer = 1.0 / num_samples;
+  float displacement = sample_displacement(texcoord);
 
-  for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+  for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
+    depth += layer;
     prev_texcoord = texcoord;
     texcoord -= delta;
     displacement = sample_displacement(texcoord);
@@ -110,7 +111,6 @@ void parallax_occlusion_mapping() {
 /**
  * @brief Returns the shadow scalar for parallax self shadowing.
  * @param light_dir The light direction in view space.
- * @param texel The material texel size.
  * @return The self-shadowing scalar.
  */
 float parallax_self_shadow(in vec3 light_dir) {
@@ -154,7 +154,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
   vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(vertex.tbn * normalize(normalmap * roughness));
+  return normalize(vertex.tbn * (normalmap * roughness));
 }
 
 /**
@@ -190,10 +190,25 @@ vec4 sample_material_stage(in vec2 texcoord) {
 }
 
 /**
- * @brief
+ * @brief Calculates caustics based on voxel contents.
  */
 float sample_voxel_caustics() {
-  return texture(texture_voxel_diffuse, vertex.voxel).a;
+  vec3 projected = vertex.model_position + normalize(vertex.model_normal) * BSP_VOXEL_SIZE;
+  ivec3 voxel = voxel_xyz(projected);
+  
+  const int num_samples = 4;
+  float caustics_sum = 0.0;
+  
+  for (int i = 0; i < num_samples; i++) {
+    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
+    int contents = voxel_contents(sample_voxel);
+    
+    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
+      caustics_sum += 1.0 - (float(i) / float(num_samples));
+    }
+  }
+  
+  return (caustics_sum / float(num_samples)) * caustics;
 }
 
 /**
@@ -207,7 +222,7 @@ vec4 sample_voxel_fog() {
 
   for (float i = 0; i < samples; i++) {
 
-    vec3 xyz = mix(vertex.model, view[0].xyz, i / samples);
+    vec3 xyz = mix(vertex.model_position, view[0].xyz, i / samples);
     vec3 uvw = mix(vertex.voxel, voxels.view_coordinate.xyz, i / samples);
 
     fog += texture(texture_voxel_fog, uvw) * vec4(vec3(1.0), fog_density) * min(1.0, samples - i);
@@ -270,12 +285,9 @@ float random_angle(vec3 seed) {
 }
 
 /**
- * @brief Rotate a 3D vector around an arbitrary axis
+ * @brief Rotate a 3D vector around a normalized axis with precomputed sin/cos
  */
-vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
-  axis = normalize(axis);
-  float s = sin(angle);
-  float c = cos(angle);
+vec3 rotate_around_axis(vec3 v, vec3 axis, float s, float c) {
   float oc = 1.0 - c;
 
   return vec3(
@@ -290,10 +302,7 @@ vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
  */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
 
-  int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
-  int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
-
-  vec3 light_to_frag = vertex.model - light.origin.xyz;
+  vec3 light_to_frag = vertex.model_position - light.origin.xyz;
   float current_depth = length(light_to_frag) / depth_range.y;
 
   // Estimate penumbra size based on light radius (treat as light size)
@@ -303,35 +312,23 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   float filter_radius = penumbra * 0.005;  // Scale to texel units
 
   // Distance-based sample count (close = more samples, far = fewer)
-  float view_dist = length(vertex.position);
-  int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
+  int num_samples = fragment.dist < 512.0 ? 16 : (fragment.dist < 1024.0 ? 8 : 4);
 
   // Per-pixel rotation to eliminate banding
-  float angle = random_angle(vertex.model);
   vec3 rotation_axis = normalize(light_to_frag);
+  float angle = random_angle(vertex.model_position);
+  float s = sin(angle);
+  float c = cos(angle);
 
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
     // Rotate Poisson sample to eliminate banding patterns
-    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, angle);
+    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, s, c);
     vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
-    vec4 shadowmap = vec4(sample_dir, layer);
+    vec4 shadowmap = vec4(sample_dir, index);
 
-    switch (array) {
-      case 0:
-        shadow += texture(texture_shadow_cubemap_array0, shadowmap, current_depth);
-        break;
-      case 1:
-        shadow += texture(texture_shadow_cubemap_array1, shadowmap, current_depth);
-        break;
-      case 2:
-        shadow += texture(texture_shadow_cubemap_array2, shadowmap, current_depth);
-        break;
-      case 3:
-        shadow += texture(texture_shadow_cubemap_array3, shadowmap, current_depth);
-        break;
-    }
+    shadow += texture(texture_shadow_cubemap_array, shadowmap, current_depth);
   }
 
   return shadow / float(num_samples);
@@ -340,15 +337,19 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_light(in light_t light, in int index) {
+void light_and_shadow_light(in int index) {
 
-  vec3 dir = light.origin.xyz - vertex.model;
+  light_t light = lights[index];
 
+  vec3 dir = light.origin.xyz - vertex.model_position;
+  float dist = length(dir);
   float radius = light.origin.w;
-  float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
   if (atten <= 0.0) {
     return;
   }
+
+  dir = normalize(view * vec4(dir, 0.0)).xyz;
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
@@ -362,7 +363,6 @@ void light_and_shadow_light(in light_t light, in int index) {
     return;
   }
 
-  dir = normalize(view * vec4(dir, 0.0)).xyz;
   float lambert = max(0.0, dot(dir, fragment.normalmap));
 
   fragment.diffuse += color * lambert * shadow;
@@ -380,7 +380,7 @@ void light_and_shadow_caustics() {
     return;
   }
 
-  float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(vertex.model_position * .05 + (ticks / 1000.0) * 0.5);
 
   // make the inner edges stronger, clamp to 0-1
 
@@ -401,24 +401,27 @@ void light_and_shadow(void) {
   fragment.normalmap = sample_normalmap();
   fragment.specularmap = sample_specularmap();
 
-  vec3 sky = textureLod(texture_sky, normalize(vertex.cubemap), 6).rgb;
+  vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
   fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 
-  for (int i = 0; i < MAX_LIGHTS; i++) {
+  ivec3 voxel = voxel_xyz(vertex.model_position);
+  ivec2 data = voxel_light_data(voxel);
 
-    int index = active_lights[i];
+  for (int i = 0; i < data.y; i++) {
+    int index = voxel_light_index(data.x + i);
+    light_and_shadow_light(index);
+  }
+
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = dynamic_lights[i];
     if (index == -1) {
       break;
     }
 
-    light_t light = lights[index];
-
-    if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
-      light_and_shadow_light(light, index);
-    }
+    light_and_shadow_light(index);
   }
 
   light_and_shadow_caustics();
@@ -432,10 +435,6 @@ void main(void) {
   fragment.dir = normalize(-vertex.position);
   fragment.dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
-  fragment.normal = normalize(vertex.normal);
-  fragment.tangent = normalize(vertex.tangent);
-  fragment.bitangent = normalize(vertex.bitangent);
-  fragment.parallax = vertex.diffusemap;
 
   parallax_occlusion_mapping();
 

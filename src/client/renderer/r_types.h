@@ -157,6 +157,11 @@ typedef struct {
   GLenum pixel_type;
 
   /**
+   * @brief The buffer object name, for `GL_TEXTURE_BUFFER` (TBO).
+   */
+  GLuint buffer;
+
+  /**
    * @brief The texture name.
    */
   GLuint texnum;
@@ -310,11 +315,6 @@ typedef struct r_occlusion_query_s {
    * @brief Non-zero of the query produced visible fragments.
    */
   GLint result;
-
-  /**
-   * @brief Simulation time when this query was last drawn.
-   */
-  uint32_t ticks;
 } r_occlusion_query_t;
 
 /**
@@ -686,7 +686,7 @@ typedef struct {
   float intensity;
 
   /**
-   * @brief The light bounds, for frustum and occlusion culling.
+   * @brief The light bounds (sphere).
    */
   box3_t bounds;
 
@@ -707,13 +707,43 @@ typedef struct {
 } r_bsp_light_t;
 
 /**
- * @brief
+ * @brief Individual voxel data for CPU-side access.
  */
 typedef struct {
   /**
-   * @brief The voxel size in voxels.
+   * @brief The voxel's world-space bounds.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The voxel's combined contents mask.
+   */
+  int32_t contents;
+
+  /**
+   * @brief The lights affecting this voxel.
+   */
+  const r_bsp_light_t **lights;
+
+  /**
+   * @brief The number of lights affecting this voxel.
+   */
+  int32_t num_lights;
+} r_bsp_voxel_t;
+
+/**
+ * @brief The BSP voxel grid, including light index data for clustered forward lighting.
+ */
+typedef struct {
+  /**
+   * @brief The grid dimensions in voxels.
    */
   vec3i_t size;
+
+  /**
+   * The total number of voxels.
+   */
+  int32_t num_voxels;
 
   /**
    * @brief The voxel bounds in world space.
@@ -721,19 +751,40 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The voxel size in world units (constant).
+   * @brief Array of individual voxel data (for CPU-side access and debugging).
    */
-  vec3_t voxel_size;
+  r_bsp_voxel_t *voxels;
 
   /**
-   * @brief The diffuse 3D texture (RGB9E5).
+   * @brief The contents 3D texture (R32I).
    */
-  r_image_t *diffuse;
+  r_image_t *contents;
 
   /**
    * @brief The fog 3D texture (RGBA8).
    */
   r_image_t *fog;
+
+  /**
+   * @brief The light data 3D texture (RG32I) for offset and count pairs per voxel.
+   */
+  r_image_t *light_data;
+
+  /*/
+   * @brief Voxel light index texture to sample the index buffer (R32I).
+   */
+  r_image_t *light_indices;
+
+  /**
+   * @brief The buffer object backing the index vector.
+   */
+  GLuint light_indices_buffer;
+
+  /**
+   * @brief The length of `light_indices_buffer`.
+   */
+  int32_t num_light_indices;
+
 } r_bsp_voxels_t;
 
 /**
@@ -1070,26 +1121,26 @@ enum {
 typedef uint32_t r_sprite_flags_t;
 
 /**
- * @brief 
+ * @brief
  */
 typedef enum {
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_ALL = 0,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_X = 1,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_Y = 2,
-  
+
   /**
-   * @brief 
+   * @brief
    */
   SPRITE_AXIS_Z = 4
 } r_sprite_billboard_axis_t;
@@ -1117,7 +1168,7 @@ typedef struct {
    * @brief The sprite width.
    */
   float height;
-  
+
   /**
    * @brief The sprite media (an r_amimation_t, r_image_t, etc).
    */
@@ -1142,7 +1193,7 @@ typedef struct {
    * @brief Direction of the sprite. { 0, 0, 0 } is billboard.
    */
   vec3_t dir;
-  
+
   /**
    * @brief Axis modifier for billboard sprites.
    */
@@ -1184,7 +1235,7 @@ typedef struct {
    * @brief The beam size.
    */
   float size;
-  
+
   /**
    * @brief The beam texture.
    */
@@ -1199,12 +1250,12 @@ typedef struct {
    * @brief The beam texture translation.
    */
   float translate;
-      
+
   /**
    * @brief The beam texture stretch.
    */
   float stretch;
-      
+
   /**
    * @brief The beam flags.
    */
@@ -1406,7 +1457,8 @@ typedef struct r_entity_s {
 /**
  * @brief Light sources per scene.
  */
-#define MAX_LIGHTS 768
+#define MAX_DYNAMIC_LIGHTS 64
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
  * @brief Hardware light sources.
@@ -1446,6 +1498,11 @@ typedef struct {
    * @brief The occlusion query, for lights that persist multiple frames.
    */
   r_occlusion_query_t *query;
+
+  /**
+   * @brief True if the light is occluded for the current frame.
+   */
+  bool occluded;
 
   /**
    * @brief The backing BSP light, for static light sources.
@@ -1748,8 +1805,10 @@ typedef enum {
    * @brief The voxel textures, used by the BSP, mesh, sprite and sky programs.
    */
   TEXTURE_VOXEL,
-  TEXTURE_VOXEL_DIFFUSE,
+  TEXTURE_VOXEL_CONTENTS,
   TEXTURE_VOXEL_FOG,
+  TEXTURE_VOXEL_LIGHT_DATA,
+  TEXTURE_VOXEL_LIGHT_INDICES,
 
   /**
    * @brief The sky cubemap texture.
@@ -1760,10 +1819,6 @@ typedef enum {
    * @brief The shadowmap cubemap array texture.
    */
   TEXTURE_SHADOW_CUBEMAP_ARRAY,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY0 = TEXTURE_SHADOW_CUBEMAP_ARRAY,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY1,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY2,
-  TEXTURE_SHADOW_CUBEMAP_ARRAY3,
 
   /**
    * @brief Sprite specific textures.

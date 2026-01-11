@@ -194,11 +194,11 @@ static void Sv_GetChallenge_f(void) {
 }
 
 /**
- * @brief A connection request that did not come from the master.
+ * @brief A client connection.
  */
 static void Sv_Connect_f(void) {
 
-  Com_Debug(DEBUG_SERVER, "Svc_Connect()\n");
+  Com_Debug(DEBUG_SERVER, "Sv_Connect_f()\n");
 
   net_addr_t *addr = &net_from;
 

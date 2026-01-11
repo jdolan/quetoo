@@ -47,13 +47,18 @@
 #define MAX_BSP_DRAW_ELEMENTS 0x20000
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
-#define MAX_BSP_LIGHTS        0x200
-#define MAX_BSP_VOXELS_SIZE   0x2400000
+#define MAX_BSP_LIGHTS        0x100
+#define MAX_BSP_VOXELS_SIZE   0x4000000
+
+/**
+ * @brief The BSP block node size.
+ */
+#define BSP_BLOCK_SIZE 512.f
 
 /**
  * @brief Voxel voxel size in world units.
  */
-#define BSP_VOXEL_SIZE 32
+#define BSP_VOXEL_SIZE 32.f
 
 /**
  * @brief Largest voxel texture width in voxels (8192 / 32 = 256).
@@ -70,7 +75,7 @@
  */
 typedef enum {
   BSP_VOXELS_FIRST,
-  BSP_VOXELS_DIFFUSE = BSP_VOXELS_FIRST,
+  BSP_VOXELS_CONTENTS = BSP_VOXELS_FIRST,
   BSP_VOXELS_FOG,
   BSP_VOXELS_LAST
 } bsp_voxel_texture_t;
@@ -401,11 +406,6 @@ typedef struct {
 } bsp_draw_elements_t;
 
 /**
- * @brief The BSP block node size.
- */
-#define BSP_BLOCK_SIZE 768.f
-
-/**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
  * rendering operations.
  */
@@ -546,11 +546,18 @@ typedef struct {
 } bsp_light_t;
 
 /**
- * @brief Voxels are layered 3D texture objects of variable size.
- * @details Each layer is up to 256x256x256.
+ * @brief The voxels lump header.
  */
 typedef struct {
+  /**
+   * @brief The voxel grid dimensions.
+   */
   vec3i_t size;
+
+  /**
+   * @brief The total count of light indices for all voxels.
+   */
+  int32_t num_light_indices;
 } bsp_voxels_t;
 
 /**

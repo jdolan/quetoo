@@ -25,10 +25,15 @@
  * @brief The voxel type.
  */
 typedef struct {
-  int32_t s, t, u;
+  vec3i_t xyz;
   vec3_t origin;
+  box3_t bounds;
+  int32_t contents;
   vec4_t diffuse;
   vec4_t fog;
+  GHashTable *lights;
+  int32_t lights_offset;
+  int32_t lights_count;
 } voxel_t;
 
 /**
@@ -37,18 +42,15 @@ typedef struct {
 typedef struct {
   box3_t stu_bounds;
   vec3i_t size;
-
-  mat4_t matrix;
-  mat4_t inverse_matrix;
-
   size_t num_voxels;
   voxel_t *voxels;
+  size_t num_light_indices;
 } voxels_t;
 
 extern voxels_t voxels;
 
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
-void CausticsVoxel(int32_t voxel_num);
 void FogVoxel(int32_t voxel_num);
 void EmitVoxels(void);
+void FreeVoxels(void);

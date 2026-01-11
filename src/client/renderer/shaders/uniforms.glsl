@@ -1,30 +1,41 @@
-
 /*
-* Copyright(c) 1997-2001 id Software, Inc.
-* Copyright(c) 2002 The Quakeforge Project.
-* Copyright(c) 2006 Quetoo.
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-*
-* See the GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software
-* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*/
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
 
-#define VIEW_UNKNOWN	  0
-#define VIEW_MAIN  	  1
-#define VIEW_PLAYER_MODEL  2
+#define VIEW_UNKNOWN      0
+#define VIEW_MAIN         1
+#define VIEW_PLAYER_MODEL 2
 
-#define BSP_VOXEL_SIZE	  32.0
+#define BSP_VOXEL_SIZE    32.0
+
+// BSP Contents flags
+#define CONTENTS_NONE   0x0
+#define CONTENTS_SOLID  0x1
+#define CONTENTS_WINDOW 0x2
+#define CONTENTS_LAVA   0x8
+#define CONTENTS_SLIME  0x10
+#define CONTENTS_WATER  0x20
+#define CONTENTS_MIST   0x40
+
+#define CONTENTS_MASK_SOLID  (CONTENTS_SOLID | CONTENTS_WINDOW)
+#define CONTENTS_MASK_LIQUID (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
 
 /**
  * @brief The voxels struct.
@@ -46,14 +57,9 @@ struct voxels_t {
   vec4 view_coordinate;
 
   /**
-   * @brief The size, in voxels.
+   * @brief The grid size, in voxels.
    */
   vec4 size;
-
-  /**
-   * @brief The voxel size, in texture space.
-   */
-  vec4 voxel_size;
 };
 
 /**
@@ -151,39 +157,29 @@ struct light_t {
   vec4 origin;
 
   /**
-   * @brief The light mins in model space.
-   */
-  vec4 mins;
-
-  /**
-   * @brief The light maxs in model space.
-   */
-  vec4 maxs;
-
-  /**
    * @brief The light color and intensity.
    */
   vec4 color;
 };
 
-#define MAX_LIGHTS 768
-#define MAX_SHADOW_CUBEMAP_LAYERS 256
-#define MAX_SHADOW_CUBEMAP_ARRAYS (MAX_LIGHTS / MAX_SHADOW_CUBEMAP_LAYERS)
+#define MAX_BSP_LIGHTS 256
+#define MAX_DYNAMIC_LIGHTS 64
+#define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
  * @brief The lights uniform block.
  */
 layout (std140) uniform lights_block {
   /**
-   * @brief The light sources for the current frame, transformed to view space.
+   * @brief The light sources for the current frame.
    */
   light_t lights[MAX_LIGHTS];
 };
 
 /**
- * @brief The zero-terminated array of active light indexes for the current render operation.
+ * @brief The -1 terminated array of dynamic light indexes for the current render operation.
  */
-uniform int active_lights[MAX_LIGHTS];
+uniform int dynamic_lights[MAX_DYNAMIC_LIGHTS];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.
@@ -209,8 +205,10 @@ uniform sampler2D texture_warp;
 /**
  * @brief The voxel textures.
  */
-uniform sampler3D texture_voxel_diffuse;
+uniform isampler3D texture_voxel_contents;
 uniform sampler3D texture_voxel_fog;
+uniform isampler3D texture_voxel_light_data;
+uniform isamplerBuffer texture_voxel_light_indices;
 
 /**
  * @brief The sky cubemap texture.
@@ -218,12 +216,9 @@ uniform sampler3D texture_voxel_fog;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadow array and cubemap array texture.
+ * @brief The shadow cubemap array texture.
  */
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array0;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array1;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array2;
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array3;
+uniform samplerCubeArrayShadow texture_shadow_cubemap_array;
 
 /**
  * @brief The framebuffer attachment textures.

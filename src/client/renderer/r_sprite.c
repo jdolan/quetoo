@@ -44,10 +44,14 @@ static struct {
   GLuint uniforms_block;
   GLuint lights_block;
 
-  GLint active_lights;
+  GLint dynamic_lights;
 
   GLint texture_diffusemap;
   GLint texture_next_diffusemap;
+
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
+
   GLint texture_depth_attachment_copy;
 
 } r_sprite_program;
@@ -360,8 +364,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  */
 void R_UpdateSprites(r_view_t *view) {
 
-  R_AddBspVoxelSprites(view);
-
   const r_sprite_t *s = view->sprites;
   for (int32_t i = 0; i < view->num_sprites; i++, s++) {
     R_UpdateSprite(view, s);
@@ -430,7 +432,7 @@ void R_DrawSprites(const r_view_t *view) {
       }
     }
 
-    R_ActiveLights(view, bounds, r_sprite_program.active_lights);
+    R_DynamicLights(view, bounds, r_sprite_program.dynamic_lights);
 
     glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
     r_stats.sprite_draw_elements++;
@@ -473,14 +475,18 @@ static void R_InitSpriteProgram(void) {
   r_sprite_program.lights_block = glGetUniformBlockIndex(r_sprite_program.name, "lights_block");
   glUniformBlockBinding(r_sprite_program.name, r_sprite_program.lights_block, 1);
 
-  r_sprite_program.active_lights = glGetUniformLocation(r_sprite_program.name, "active_lights");
+  r_sprite_program.dynamic_lights = glGetUniformLocation(r_sprite_program.name, "dynamic_lights");
 
   r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
   r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");
+  r_sprite_program.texture_voxel_light_data = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_data");
+  r_sprite_program.texture_voxel_light_indices = glGetUniformLocation(r_sprite_program.name, "texture_voxel_light_indices");
   r_sprite_program.texture_depth_attachment_copy = glGetUniformLocation(r_sprite_program.name, "texture_depth_attachment_copy");
 
   glUniform1i(r_sprite_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
   glUniform1i(r_sprite_program.texture_next_diffusemap, TEXTURE_NEXT_DIFFUSEMAP);
+  glUniform1i(r_sprite_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_sprite_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
   glUniform1i(r_sprite_program.texture_depth_attachment_copy, TEXTURE_DEPTH_ATTACHMENT_COPY);
 
   glUseProgram(0);

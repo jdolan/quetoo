@@ -78,7 +78,8 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->color = LIGHT_COLOR;
     }
 
-    light->bounds = Box3_FromCenter(light->origin);
+    light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
+    light->visible_bounds = Box3_Null();
 
     return light;
   } else {
@@ -150,6 +151,11 @@ void EmitLights(void) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
+
+    if (Box3_IsNull(light->visible_bounds)) {
+      continue;
+    }
+
     light->out = out;
 
     out->entity = light->entity;
@@ -157,9 +163,7 @@ void EmitLights(void) {
     out->radius = light->radius;
     out->color = light->color;
     out->intensity = light->intensity;
-    out->bounds = light->bounds;
-
-    out->bounds = Box3_Expand(out->bounds, BSP_VOXEL_SIZE * .5f);
+    out->bounds = light->visible_bounds;
 
     out->first_depth_pass_element = bsp_file.num_elements;
 
@@ -189,8 +193,8 @@ void EmitLights(void) {
       }
 
       memcpy(bsp_file.elements + bsp_file.num_elements,
-           bsp_file.elements + face->first_element,
-           sizeof(int32_t) * face->num_elements);
+             bsp_file.elements + face->first_element,
+             sizeof(int32_t) * face->num_elements);
 
       bsp_file.num_elements += face->num_elements;
       out->num_depth_pass_elements += face->num_elements;
@@ -201,5 +205,6 @@ void EmitLights(void) {
     Progress("Emitting lights", 100.f * i / lights->len);
   }
 
-  Com_Print("\r%-24s [100%%] %d ms\n\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
+  Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }
+

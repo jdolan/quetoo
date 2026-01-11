@@ -792,7 +792,7 @@ void Ai_Node_Render(void) {
 
   g_client_t *client = NULL;
   G_ForEachClient(cl, {
-    if (!cl->ai) {
+    if (cl->entity && !cl->ai) {
       client = cl;
       break;
     }

@@ -33,19 +33,9 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  */
 typedef struct {
   /**
-   * @brief The light origin in model space.
+   * @brief The light origin in model space, and radius.
    */
   vec4_t origin;
-
-  /**
-   * @brief The light mins in model space, and shadow scalar.
-   */
-  vec4_t mins;
-
-  /**
-   * @brief The light maxs in model space, and attenuation.
-   */
-  vec4_t maxs;
 
   /**
    * @brief The light color and intensity.
@@ -85,7 +75,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name);
+void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

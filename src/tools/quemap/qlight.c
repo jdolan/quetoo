@@ -202,9 +202,9 @@ static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
  * @brief
  */
 static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
-                   const vec3_t p1, const vec3_t p2) {
+                                     const vec3_t p1, const vec3_t p2) {
 
-next:;
+  next:;
   // find the point distances to the separating plane
   // and the offset for the size of the box
   const cm_bsp_node_t *node = Cm_Bsp()->nodes + num;
@@ -269,7 +269,7 @@ next:;
     const float midf1 = p1f + (p2f - p1f) * frac1;
 
     const vec3_t mid = Vec3_Mix(p1, p2, frac1);
-    
+
     num = node->children[side];
 
     // if < 0, we are in a leaf node
@@ -287,7 +287,7 @@ next:;
 
   if (midf2 < data->unnudged_fraction) {
     const vec3_t mid = Vec3_Mix(p1, p2, frac2);
-    
+
     num = node->children[side ^ 1];
 
     // if < 0, we are in a leaf node
@@ -322,7 +322,7 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
   data.trace = (cm_trace_t) {
     .fraction = 1.f
   };
-  
+
   data.start = start;
   data.end = end;
   data.abs_bounds = Box3_FromPoints((const vec3_t []) { start, end }, 2);
@@ -402,9 +402,6 @@ static void LightWorld(void) {
   // calculate direct lighting
   Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
-  // caustic effects
-  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
-
   // build fog volumes out of brush entities
   BuildFog();
 
@@ -417,11 +414,11 @@ static void LightWorld(void) {
   // emit light sources to the bsp
   EmitLights();
 
-  // and voxels
+  // emit voxels
   EmitVoxels();
 
   // free the voxels
-  Mem_FreeTag(MEM_TAG_VOXEL);
+  FreeVoxels();
 
   // free the light sources
   FreeLights();

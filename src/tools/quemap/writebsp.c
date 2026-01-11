@@ -108,7 +108,7 @@ static int32_t EmitLeaf(node_t *node) {
 
     assert(brush->original);
     assert(brush->original->out);
-    
+
     const int32_t brush_num = (int32_t) (ptrdiff_t) (brush->original->out - bsp_file.brushes);
 
     int32_t i;
@@ -410,8 +410,8 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
     }
 
     memcpy(bsp_file.elements + bsp_file.num_elements,
-         bsp_file.elements + face->first_element,
-         sizeof(int32_t) * face->num_elements);
+           bsp_file.elements + face->first_element,
+           sizeof(int32_t) * face->num_elements);
 
     bsp_file.num_elements += face->num_elements;
     mod->num_depth_pass_elements += face->num_elements;
@@ -507,8 +507,8 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
       }
 
       memcpy(bsp_file.elements + bsp_file.num_elements,
-           bsp_file.elements + b->first_element,
-           sizeof(int32_t) * b->num_elements);
+             bsp_file.elements + b->first_element,
+             sizeof(int32_t) * b->num_elements);
 
       bsp_file.num_elements += b->num_elements;
       out->num_elements += b->num_elements;

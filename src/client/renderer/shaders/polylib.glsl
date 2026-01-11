@@ -61,8 +61,8 @@ float distance_to_line(in vec3 a, in vec3 b, in vec3 p) {
  */
 float distance_to_triangle(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
   return min(abs(distance_to_line(a, b, p)),
-	     min(abs(distance_to_line(b, c, p)),
-  	     abs(distance_to_line(c, a, p))));
+       min(abs(distance_to_line(b, c, p)),
+         abs(distance_to_line(c, a, p))));
 }
 
 /**
@@ -80,13 +80,13 @@ bool barycentric(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
   float abc = triangle_area(a, b, c);
 
   vec3 bary = vec3(triangle_area(b, c, p),
-  	  	   triangle_area(c, a, p),
-  	  	   triangle_area(a, b, p)) / abc;
+           triangle_area(c, a, p),
+           triangle_area(a, b, p)) / abc;
 
   if (bary.x < 0.0 || bary.x > 1.0 ||
-	  bary.y < 0.0 || bary.y > 1.0 ||
-	  bary.z < 0.0 || bary.z > 1.0) {
-	  return false;
+    bary.y < 0.0 || bary.y > 1.0 ||
+    bary.z < 0.0 || bary.z > 1.0) {
+    return false;
   }
 
   return true;
@@ -109,11 +109,11 @@ bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
   vec3 p = vec3(dot(a, axis), dot(b, axis), dot(c, axis));
 
   float r = extents.x * abs(dot(box_normals[0], axis)) +
-  	    extents.y * abs(dot(box_normals[1], axis)) +
-  	    extents.z * abs(dot(box_normals[2], axis));
+        extents.y * abs(dot(box_normals[1], axis)) +
+        extents.z * abs(dot(box_normals[2], axis));
 
   if (max(-hmax(p), hmin(p)) > r) {
-	  return true; // separating axis
+    return true; // separating axis
   }
 
   return false;
@@ -142,23 +142,23 @@ bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 
   vec3[] tri_edges = vec3[](b - a, c - b, a - c);
 
   for (int i = 0; i < 3; i++) {
-	  for (int j = 0; j < 3; j++) {
-  	  vec3 axis = cross(box_normals[i], tri_edges[j]);
-  	  if (sat(a, b, c, extents, axis)) {
-	  	  return false;
-  	  }
-	  }
+    for (int j = 0; j < 3; j++) {
+      vec3 axis = cross(box_normals[i], tri_edges[j]);
+      if (sat(a, b, c, extents, axis)) {
+        return false;
+      }
+    }
   }
 
   for (int i = 0; i < 3; i++) {
-	  if (sat(a, b, c, extents, box_normals[i])) {
-  	  return false;
-	  }
+    if (sat(a, b, c, extents, box_normals[i])) {
+      return false;
+    }
   }
 
   vec3 tri_normal = cross(b - a, c - b);
   if (sat(a, b, c, extents, tri_normal)) {
-	  return false;
+    return false;
   }
 
   return true;
@@ -173,7 +173,7 @@ vec3 direction_to_bounds(in vec3 mins, in vec3 maxs, in vec3 p) {
   vec3 c = (mins + maxs) * 0.5;
 
   if (all(greaterThanEqual(p, mins)) && all(lessThanEqual(p, maxs))) {
-	  return p - c;
+    return p - c;
   }
 
   vec3 s = (maxs - mins) * 0.5;

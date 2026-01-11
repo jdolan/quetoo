@@ -39,7 +39,9 @@ out vertex_data {
 /**
  * @brief
  */
-vec3 light_and_shadow_light(in light_t light) {
+vec3 light_and_shadow_light(in int index) {
+
+  light_t light = lights[index];
 
   float dist = distance(light.origin.xyz, in_position);
   float radius = light.origin.w;
@@ -54,23 +56,26 @@ vec3 light_and_shadow_light(in light_t light) {
 void light_and_shadow(void) {
 
   if (in_lighting == 0.0) {
-	  return;
+    return;
   }
 
   vec3 diffuse = vec3(0.0);
 
-  for (int i = 0; i < MAX_LIGHTS; i++) {
+  ivec3 voxel = voxel_xyz(in_position);
+  ivec2 data = voxel_light_data(voxel);
 
-	  int index = active_lights[i];
-	  if (index == -1) {
-  	  break;
-	  }
+  for (int i = 0; i < data.y; i++) {
+    int index = voxel_light_index(data.x + i);
+    diffuse += light_and_shadow_light(index);
+  }
 
-	  light_t light = lights[index];
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = dynamic_lights[i];
+    if (index == -1) {
+      break;
+    }
 
-	  if (box_contains(light.mins.xyz, light.maxs.xyz, in_position.xyz)) {
-  	  diffuse += light_and_shadow_light(light);
-	  }
+    diffuse += light_and_shadow_light(index);
   }
 
   vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);

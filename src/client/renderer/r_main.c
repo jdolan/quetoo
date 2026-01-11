@@ -62,6 +62,7 @@ cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
 cvar_t *r_shadow_cubemap_array_size;
+cvar_t *r_shadow_distance;
 cvar_t *r_specularity;
 cvar_t *r_supersample;
 cvar_t *r_swap_interval;
@@ -169,10 +170,12 @@ static void R_UpdateUniforms(const r_view_t *view) {
 
       out->voxels.view_coordinate = Vec3_ToVec4(Vec3_Divide(pos, extents), 0.f);
       out->voxels.size = Vec3_ToVec4(Vec3i_CastVec3(voxels->size), 0.f);
-
-      out->voxels.voxel_size = Vec3_ToVec4(Vec3_Divide(voxels->voxel_size, extents), 0.f);
     }
   }
+
+  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 /**
@@ -222,9 +225,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_UpdateUniforms(view);
 
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  R_UpdateOcclusionQueries(view);
 
   R_ClearFramebuffer(view->framebuffer);
 
@@ -256,10 +257,6 @@ void R_DrawMainView(r_view_t *view) {
   thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
 
   R_UpdateLights(view);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_lights.block), &r_lights.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   R_DrawShadows(view);
 
@@ -377,6 +374,7 @@ static void R_InitLocal(void) {
   r_screenshot_format = Cvar_Add("r_screenshot_format", "tga", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"png\" or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
   r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
+  r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
   r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
@@ -407,13 +405,15 @@ static void R_InitConfig(void) {
 
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &r_config.max_texunits);
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &r_config.max_texture_size);
+  glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &r_config.max_3d_texture_size);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
 
   Com_Print(  "  Renderer:           ^2%s^7\n", r_config.renderer);
   Com_Print(  "  Vendor:             ^2%s^7\n", r_config.vendor);
   Com_Print(  "  Version:            ^2%s^7\n", r_config.version);
-  Com_Verbose("  Tex Units:          ^2%i^7\n", r_config.max_texunits);
-  Com_Verbose("  Tex Size:           ^2%i^7\n", r_config.max_texture_size);
+  Com_Verbose("  Texture Units:      ^2%i^7\n", r_config.max_texunits);
+  Com_Verbose("  Texture Size:       ^2%i^7\n", r_config.max_texture_size);
+  Com_Verbose("  3D Texture Size     ^2%i^7\n", r_config.max_3d_texture_size);
   Com_Verbose("  Uniform block Size: ^2%i^7\n", r_config.max_uniform_block_size);
 
   for (int32_t i = 0; i < num_extensions; i++) {

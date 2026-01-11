@@ -292,11 +292,8 @@
 		CE57E13D2462572900F8902F /* material.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE57E13C246255D100F8902F /* material.glsl */; };
 		CE5A6AB12EC600E4005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB42EC60117005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */; };
 		CE5A6AB52EC6014D005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5A6AB62EC60172005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB72EC6018C005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB82EC6018C005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */; };
 		CE5A6AB92EC601F9005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */; };
 		CE5A6ABA2EC601F9005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5A6ABB2EC6021E005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
@@ -533,6 +530,9 @@
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
+		CE85F47D2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */; };
+		CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */; };
+		CE85F4812F12CA4A005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -1699,6 +1699,9 @@
 		CE80FFBF1C5E4A4D00A21A51 /* libncurses.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libncurses.6.dylib; path = /opt/local/lib/libncurses.6.dylib; sourceTree = "<absolute>"; };
 		CE82F27E2D04D957004EE5DF /* libSDL2_image-2.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL2_image-2.0.0.dylib"; path = "../../../../usr/local/Cellar/sdl2_image/2.8.2_2/lib/libSDL2_image-2.0.0.dylib"; sourceTree = "<group>"; };
 		CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "usr/lib/libc++.1.tbd"; sourceTree = SDKROOT; };
+		CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.2.6.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.2.6/lib/libSDL3_image.0.2.6.dylib; sourceTree = "<group>"; };
+		CE85F47B2F12C3C6005D2F9C /* libSDL3_ttf.0.2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_ttf.0.2.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_ttf/3.2.2/lib/libSDL3_ttf.0.2.2.dylib; sourceTree = "<group>"; };
+		CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.4.0/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
@@ -1874,8 +1877,8 @@
 				CEC2339E2C3B0320005C826C /* libncursesw.6.dylib in Frameworks */,
 				CE5333F22DA164EC00E47B5B /* libopenal.1.24.3.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
-				CE5A6AB42EC60117005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */,
 				CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */,
+				CE85F4812F12CA4A005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */,
 				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2056,8 +2059,8 @@
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
 				CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
-				CE5A6AB82EC6018C005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */,
-				CE5A6AB72EC6018C005F3C92 /* libSDL3.0.dylib in Frameworks */,
+				CE85F47D2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */,
+				CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
 				CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */,
 			);
@@ -3090,6 +3093,9 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */,
+				CE85F47B2F12C3C6005D2F9C /* libSDL3_ttf.0.2.2.dylib */,
+				CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */,
 				CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */,
 				CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */,
 				CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */,
@@ -4400,7 +4406,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -5178,10 +5184,6 @@
 		CE052A6C214831FE003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5189,10 +5191,6 @@
 		CE052A6D214831FE003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5200,10 +5198,6 @@
 		CE052A8221483255003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5211,10 +5205,6 @@
 		CE052A8321483255003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5271,8 +5261,9 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src/**",
@@ -5319,8 +5310,9 @@
 					"$(HOMEBREW_PREFIX)/opt/ncurses/lib",
 					"$(HOMEBREW_PREFIX)/opt/openal-soft/lib",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 15.6;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)",
 					"$(SRCROOT)/src/**",
@@ -5335,9 +5327,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/opt/homebrew/Cellar/openal-soft/1.24.3/lib",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.2.6/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5348,9 +5338,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"/opt/homebrew/Cellar/openal-soft/1.24.3/lib",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.2.6/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5376,10 +5364,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5389,10 +5373,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				OTHER_LDFLAGS = "-all_load";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5427,10 +5407,6 @@
 		CE12D8F21C5CF86600CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5438,10 +5414,6 @@
 		CE12D8F31C5CF86600CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5479,12 +5451,6 @@
 		CE354EFC22075132008AE0C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5492,12 +5458,6 @@
 		CE354EFD22075132008AE0C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5505,10 +5465,6 @@
 		CE4DCF9D256F0DAD00FECAFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5516,10 +5472,6 @@
 		CE4DCF9E256F0DAD00FECAFC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5527,10 +5479,6 @@
 		CE51FB8E214819B000ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5538,10 +5486,6 @@
 		CE51FB8F214819B000ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5549,11 +5493,6 @@
 		CE51FBAD21481DD300ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5561,11 +5500,6 @@
 		CE51FBAE21481DD300ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5573,10 +5507,6 @@
 		CE51FBC221481F2500ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5584,10 +5514,6 @@
 		CE51FBC321481F2500ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5595,10 +5521,6 @@
 		CE51FBDD21481FC100ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5606,10 +5528,6 @@
 		CE51FBDE21481FC100ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5617,10 +5535,6 @@
 		CE51FBF52148207700ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5628,10 +5542,6 @@
 		CE51FBF62148207700ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5671,11 +5581,6 @@
 		CE80FD8B1C5E3B6F00A21A51 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5683,11 +5588,6 @@
 		CE80FD8C1C5E3B6F00A21A51 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-					/opt/homebrew/Cellar/sdl3_image/3.2.4/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5807,10 +5707,6 @@
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5818,10 +5714,6 @@
 		CE948B212235652600D961FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5829,10 +5721,6 @@
 		CE9A67132D2589020068D720 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5840,10 +5728,6 @@
 		CE9A67142D2589020068D720 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/usr/local/Cellar/check/0.15.2/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5879,10 +5763,6 @@
 		CEA029F21C5E558100341079 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5890,10 +5770,6 @@
 		CEA029F31C5E558100341079 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5901,11 +5777,6 @@
 		CEA509032EA5D20A00F27205 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/physfs/3.2.0/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5913,11 +5784,6 @@
 		CEA509042EA5D20A00F27205 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/physfs/3.2.0/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5971,11 +5837,6 @@
 		CEE3A0FF21EE2B3F0070FD3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/physfs/3.2.0/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5983,11 +5844,6 @@
 		CEE3A10021EE2B3F0070FD3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/physfs/3.2.0/lib,
-					/opt/homebrew/Cellar/sdl3/3.2.26/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

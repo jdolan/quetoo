@@ -101,23 +101,23 @@ float noise3d(vec3 p) {
   vec3 w = pf * pf * (3.0 - 2.0 * pf);
 
   return mix(
-	  mix(
-  	  mix(dot(pf - vec3(0, 0, 0), hash33(pi + vec3(0, 0, 0))),
-	  	  dot(pf - vec3(1, 0, 0), hash33(pi + vec3(1, 0, 0))),
-	  	  w.x),
-  	  mix(dot(pf - vec3(0, 0, 1), hash33(pi + vec3(0, 0, 1))),
-	  	  dot(pf - vec3(1, 0, 1), hash33(pi + vec3(1, 0, 1))),
-	  	  w.x),
-  	  w.z),
-	  mix(
-  	  mix(dot(pf - vec3(0, 1, 0), hash33(pi + vec3(0, 1, 0))),
-	  	  dot(pf - vec3(1, 1, 0), hash33(pi + vec3(1, 1, 0))),
-	  	  w.x),
-  	  mix(dot(pf - vec3(0, 1, 1), hash33(pi + vec3(0, 1, 1))),
-	  	  dot(pf - vec3(1, 1, 1), hash33(pi + vec3(1, 1, 1))),
-	  	  w.x),
-  	  w.z),
-	  w.y);
+    mix(
+      mix(dot(pf - vec3(0, 0, 0), hash33(pi + vec3(0, 0, 0))),
+        dot(pf - vec3(1, 0, 0), hash33(pi + vec3(1, 0, 0))),
+        w.x),
+      mix(dot(pf - vec3(0, 0, 1), hash33(pi + vec3(0, 0, 1))),
+        dot(pf - vec3(1, 0, 1), hash33(pi + vec3(1, 0, 1))),
+        w.x),
+      w.z),
+    mix(
+      mix(dot(pf - vec3(0, 1, 0), hash33(pi + vec3(0, 1, 0))),
+        dot(pf - vec3(1, 1, 0), hash33(pi + vec3(1, 1, 0))),
+        w.x),
+      mix(dot(pf - vec3(0, 1, 1), hash33(pi + vec3(0, 1, 1))),
+        dot(pf - vec3(1, 1, 1), hash33(pi + vec3(1, 1, 1))),
+        w.x),
+      w.z),
+    w.y);
 }
 
 /**
@@ -131,10 +131,10 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
   vec3 Y = normalize(cross(Z, X));
 
   return mat4(
-	  vec4(X.x, Y.x, Z.x, 0.0),
-	  vec4(X.y, Y.y, Z.y, 0.0),
-	  vec4(X.z, Y.z, Z.z, 0.0),
-	  vec4(-dot(X, eye), -dot(Y, eye), -dot(Z, eye), 1.0)
+    vec4(X.x, Y.x, Z.x, 0.0),
+    vec4(X.y, Y.y, Z.y, 0.0),
+    vec4(X.z, Y.z, Z.z, 0.0),
+    vec4(-dot(X, eye), -dot(Y, eye), -dot(Z, eye), 1.0)
   );
 }
 
@@ -145,4 +145,42 @@ mat4 lookAt(vec3 eye, vec3 pos, vec3 up) {
  */
 vec3 voxel_uvw(in vec3 position) {
   return (position - voxels.mins.xyz) / (voxels.maxs.xyz - voxels.mins.xyz);
+}
+
+/**
+ * @brief Resolves the voxel coordinate for the specified position in world space.
+ * @param position The position in world space.
+ * @return The integer voxel coordinates (x, y, z).
+ */
+ivec3 voxel_xyz(in vec3 position) {
+  vec3 pos = position - voxels.mins.xyz;
+  ivec3 voxel = ivec3(floor(pos / BSP_VOXEL_SIZE));
+  return clamp(voxel, ivec3(0), ivec3(voxels.size.xyz) - ivec3(1));
+}
+
+/**
+ * @brief Fetches the light data (index offset, index count) for the given voxel.
+ * @param voxel The voxel coordinate.
+ * @return The offset into the voxel light index TBO, and the count of index elements (texels).
+ */
+ivec2 voxel_light_data(in ivec3 voxel) {
+  return texelFetch(texture_voxel_light_data, voxel, 0).xy;
+}
+
+/**
+ * @brief Fetches the light index element at the specified position in the light index TBO.
+ * @param index The position in the light index TBO.
+ * @return The index of the light referenced by the index element.
+ */
+int voxel_light_index(in int index) {
+  return texelFetch(texture_voxel_light_indices, index).x;
+}
+
+/**
+ * @brief Fetches the BSP contents at the given voxel cell.
+ * @param voxel The voxel coordinate.
+ * @return The CONTENTS_ flags for that voxel.
+ */
+int voxel_contents(in ivec3 voxel) {
+  return texelFetch(texture_voxel_contents, voxel, 0).r;
 }

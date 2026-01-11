@@ -44,12 +44,9 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
 
   const ptrdiff_t index = in - view->lights;
-
   r_light_uniform_t *out = &r_lights.block.lights[index];
 
   out->origin = Vec3_ToVec4(in->origin, in->radius);
-  out->mins = Vec3_ToVec4(in->bounds.mins, 1.f);
-  out->maxs = Vec3_ToVec4(in->bounds.maxs, 1.f);
   out->color = Vec3_ToVec4(in->color, in->intensity);
 }
 
@@ -70,48 +67,58 @@ void R_UpdateLights(r_view_t *view) {
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (l->query && l->query->result == 0) {
-      r_stats.lights_occluded++;
-      continue;
+    if (l->query) {
+      l->occluded = l->query->result == 0;
+    } else {
+      l->occluded = R_CulludeBox(view, l->bounds);
     }
 
-    R_AddLightUniform(view, l);
-    r_stats.lights_visible++;
+    if (l->occluded) {
+      r_stats.lights_occluded++;
+    } else {
+      r_stats.lights_visible++;
+      R_AddLightUniform(view, l);
+    }
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
       R_Draw3DBox(l->bounds, Color3fv(l->color), false);
     }
   }
+
+  const GLsizei size = view->num_lights * sizeof(r_light_uniform_t);
+
+  glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, &r_lights.block);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+  R_GetError(NULL);
 }
 
 /**
- * @brief Writes the indexes of the lights that intersect bounds to the given uniform name.
+ * @brief Writes the indexes of dynamic lights intersecting bounds to the given uniform name.
  */
-void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
+void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-  GLint active_lights[view->num_lights];
-  GLint num_active_lights = 0;
-  
-  memset(active_lights, 0, sizeof(GLint) * view->num_lights);
+  GLint dynamic_lights[MAX_DYNAMIC_LIGHTS];
+  GLint len = 0;
 
-  const r_light_t *light = view->lights;
-  for (int32_t i = 0; i < view->num_lights; i++, light++) {
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
-    if (light->query && light->query->result == 0) {
+    if (l->bsp_light) {
       continue;
     }
 
-    if (Box3_Intersects(light->bounds, bounds)) {
-      active_lights[num_active_lights++] = (GLuint) i;
+    if (Box3_Intersects(l->bounds, bounds)) {
+      dynamic_lights[len++] = i;
     }
   }
 
-  if (num_active_lights < MAX_LIGHTS) {
-    active_lights[num_active_lights++] = -1;
+  if (len < MAX_DYNAMIC_LIGHTS) {
+    dynamic_lights[len++] = -1;
   }
 
-  glUniform1iv(name, num_active_lights, active_lights);
-
+  glUniform1iv(name, len, dynamic_lights);
   R_GetError(NULL);
 }
 

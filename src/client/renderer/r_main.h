@@ -42,6 +42,7 @@ extern cvar_t *r_roughness;
 extern cvar_t *r_screenshot_format;
 extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
+extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
 extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
@@ -70,6 +71,7 @@ typedef struct {
 
   GLint max_texunits;
   GLint max_texture_size;
+  GLint max_3d_texture_size;
   GLint max_uniform_block_size;
 } r_config_t;
 
@@ -96,14 +98,9 @@ typedef struct {
   vec4_t view_coordinate;
 
   /**
-   * @brief The voxel size, in voxels.
+   * @brief The voxel grid size, in voxels.
    */
   vec4_t size;
-
-  /**
-   * @brief The voxel voxel size, in texture space.
-   */
-  vec4_t voxel_size;
 } r_voxels_t;
 
 /**

@@ -20,7 +20,7 @@
  */
 
 in vertex_data {
-  vec3 model;
+  vec3 model_position;
   vec3 position;
   vec3 normal;
   vec3 smooth_normal;
@@ -67,7 +67,7 @@ vec4 sample_diffusemap() {
 vec3 sample_normalmap() {
   vec3 normalmap = texture(texture_material, vec3(vertex.diffusemap, 1)).xyz * 2.0 - 1.0;
   vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(fragment.tbn * normalize(normalmap * roughness));
+  return normalize(fragment.tbn * (normalmap * roughness));
 }
 
 /**
@@ -154,19 +154,16 @@ float random_angle(vec3 seed) {
 }
 
 /**
- * @brief Rotate a 3D vector around an arbitrary axis
+ * @brief Rotate a 3D vector around a normalized axis with precomputed sin/cos
  */
-vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
-  axis = normalize(axis);
-  float s = sin(angle);
-  float c = cos(angle);
+vec3 rotate_around_axis(vec3 v, vec3 axis, float s, float c) {
   float oc = 1.0 - c;
 
   return vec3(
-              (oc * axis.x * axis.x + c) * v.x + (oc * axis.x * axis.y - axis.z * s) * v.y + (oc * axis.z * axis.x + axis.y * s) * v.z,
-              (oc * axis.x * axis.y + axis.z * s) * v.x + (oc * axis.y * axis.y + c) * v.y + (oc * axis.y * axis.z - axis.x * s) * v.z,
-              (oc * axis.z * axis.x - axis.y * s) * v.x + (oc * axis.y * axis.z + axis.x * s) * v.y + (oc * axis.z * axis.z + c) * v.z
-              );
+    (oc * axis.x * axis.x + c) * v.x + (oc * axis.x * axis.y - axis.z * s) * v.y + (oc * axis.z * axis.x + axis.y * s) * v.z,
+    (oc * axis.x * axis.y + axis.z * s) * v.x + (oc * axis.y * axis.y + c) * v.y + (oc * axis.y * axis.z - axis.x * s) * v.z,
+    (oc * axis.z * axis.x - axis.y * s) * v.x + (oc * axis.y * axis.z + axis.x * s) * v.y + (oc * axis.z * axis.z + c) * v.z
+  );
 }
 
 /**
@@ -174,10 +171,7 @@ vec3 rotate_around_axis(vec3 v, vec3 axis, float angle) {
  */
 float sample_shadow_cubemap_array(in light_t light, in int index) {
 
-  int array = index / MAX_SHADOW_CUBEMAP_LAYERS;
-  int layer = index % MAX_SHADOW_CUBEMAP_LAYERS;
-
-  vec3 light_to_frag = vertex.model - light.origin.xyz;
+  vec3 light_to_frag = vertex.model_position - light.origin.xyz;
   float current_depth = length(light_to_frag) / depth_range.y;
 
   // Estimate penumbra size based on light radius (treat as light size)
@@ -187,35 +181,23 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
   float filter_radius = penumbra * 0.005;  // Scale to texel units
 
   // Distance-based sample count (close = more samples, far = fewer)
-  float view_dist = length(vertex.position);
-  int num_samples = view_dist < 500.0 ? 16 : (view_dist < 1000.0 ? 9 : 4);
+  int num_samples = fragment.dist < 512.0 ? 16 : (fragment.dist < 1024.0 ? 8 : 4);
 
   // Per-pixel rotation to eliminate banding
-  float angle = random_angle(vertex.model);
   vec3 rotation_axis = normalize(light_to_frag);
+  float angle = random_angle(vertex.model_position);
+  float s = sin(angle);
+  float c = cos(angle);
 
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
     // Rotate Poisson sample to eliminate banding patterns
-    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, angle);
+    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, s, c);
     vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
-    vec4 shadowmap = vec4(sample_dir, layer);
+    vec4 shadowmap = vec4(sample_dir, index);
 
-    switch (array) {
-      case 0:
-        shadow += texture(texture_shadow_cubemap_array0, shadowmap, current_depth);
-        break;
-      case 1:
-        shadow += texture(texture_shadow_cubemap_array1, shadowmap, current_depth);
-        break;
-      case 2:
-        shadow += texture(texture_shadow_cubemap_array2, shadowmap, current_depth);
-        break;
-      case 3:
-        shadow += texture(texture_shadow_cubemap_array3, shadowmap, current_depth);
-        break;
-    }
+    shadow += texture(texture_shadow_cubemap_array, shadowmap, current_depth);
   }
 
   return shadow / float(num_samples);
@@ -224,12 +206,15 @@ float sample_shadow_cubemap_array(in light_t light, in int index) {
 /**
  * @brief
  */
-void light_and_shadow_light(in light_t light, in int index) {
+void light_and_shadow_light(in int index) {
 
-  vec3 dir = light.origin.xyz - vertex.model;
+  light_t light = lights[index];
+
+  vec3 dir = light.origin.xyz - vertex.model_position;
 
   float radius = light.origin.w;
-  float atten = clamp(1.0 - length(dir) / radius, 0.0, 1.0);
+  float dist = length(dir);
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
   if (atten <= 0.0) {
 	  return;
   }
@@ -254,7 +239,7 @@ void light_and_shadow_caustics() {
 	  return;
   }
 
-  float noise = noise3d(vertex.model * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(vertex.model_position * .05 + (ticks / 1000.0) * 0.5);
 
   // make the inner edges stronger, clamp to 0-1
 
@@ -279,18 +264,21 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);;
 
-  for (int i = 0; i < MAX_LIGHTS; i++) {
-	  
-	  int index = active_lights[i];
-	  if (index == -1) {
-  	  break;
-	  }
+  ivec3 voxel = voxel_xyz(vertex.model_position);
+  ivec2 data = voxel_light_data(voxel);
 
-	  light_t light = lights[index];
+  for (int i = 0; i < data.y; i++) {
+    int index = voxel_light_index(data.x + i);
+    light_and_shadow_light(index);
+  }
 
-	  if (box_contains(light.mins.xyz, light.maxs.xyz, vertex.model)) {
-  	  light_and_shadow_light(light, index);
-	  }
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = dynamic_lights[i];
+    if (index == -1) {
+      break;
+    }
+
+    light_and_shadow_light(index);
   }
 
   light_and_shadow_caustics();
@@ -303,10 +291,7 @@ void main(void) {
 
   fragment.dir = normalize(-vertex.position);
   fragment.dist = length(vertex.position);
-  fragment.normal = normalize(vertex.normal);
-  fragment.tangent = normalize(vertex.tangent);
-  fragment.bitangent = normalize(vertex.bitangent);
-  fragment.tbn = mat3(fragment.tangent, fragment.bitangent, fragment.normal);
+  fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 

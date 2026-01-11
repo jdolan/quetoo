@@ -30,7 +30,7 @@ static struct {
   GLuint uniforms_block;
   GLuint lights_block;
 
-  GLint active_lights;
+  GLint dynamic_lights;
 
   GLint model;
 
@@ -38,16 +38,15 @@ static struct {
   GLint texture_stage;
   GLint texture_warp;
 
-  GLint texture_voxel_diffuse;
-  GLint texture_voxel_caustics;
+  GLint texture_voxel_contents;
   GLint texture_voxel_fog;
 
   GLint texture_sky;
 
-  GLint texture_shadow_cubemap_array0;
-  GLint texture_shadow_cubemap_array1;
-  GLint texture_shadow_cubemap_array2;
-  GLint texture_shadow_cubemap_array3;
+  GLint texture_shadow_cubemap_array;
+
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
 
   GLint alpha_test;
 
@@ -111,76 +110,49 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Debug visualization for voxels and lights
  */
-void R_AddBspVoxelSprites(r_view_t *view) {
+static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   if (!r_draw_bsp_voxels->value) {
     return;
   }
 
-  const byte *in = (byte *) r_models.world->bsp->cm->file->voxels;
-  if (!in) {
+  if (!bsp->voxels) {
     return;
   }
 
-  in += sizeof(bsp_voxels_t);
+  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+  const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+  if (tr.fraction < 1.0f) {
 
-  const size_t num_voxels = voxels->size.x * voxels->size.y * voxels->size.z;
+    const r_bsp_voxels_t *voxels = bsp->voxels;
 
-  const rgb9e5 *ambient = (rgb9e5 *) in;
-  in += num_voxels * sizeof(rgb9e5);
+    const vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
+    const vec3_t xyz = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
 
-  const rgb9e5 *diffuse = (rgb9e5 *) in;
-  in += num_voxels * sizeof(rgb9e5);
+    const int32_t x = Clampf((int32_t) floorf(xyz.x), 0, (int32_t) voxels->size.x - 1);
+    const int32_t y = Clampf((int32_t) floorf(xyz.y), 0, (int32_t) voxels->size.y - 1);
+    const int32_t z = Clampf((int32_t) floorf(xyz.z), 0, (int32_t) voxels->size.z - 1);
 
-  const color32_t *fog = (color32_t *) in;
-  in += num_voxels * sizeof(color32_t);
+    const vec3_t voxel_pos = Vec3(x + 0.5f, y + 0.5f, z + 0.5f);
+    const vec3_t voxel_world = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, voxel_pos);
 
-  r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
+    const box3_t voxel_box = Box3_FromCenterRadius(voxel_world, BSP_VOXEL_SIZE * 0.5f);
+    R_Draw3DBox(voxel_box, Color3f(0.f, 1.f, 1.f), false);
 
-  for (int32_t u = 0; u < voxels->size.z; u++) {
-    for (int32_t t = 0; t < voxels->size.y; t++) {
-      for (int32_t s = 0; s < voxels->size.x; s++, ambient++, diffuse++, fog++) {
+    const int32_t index = x + y * voxels->size.x + z * voxels->size.x * voxels->size.y;
 
-        const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-        const vec3_t origin = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, position);
+    if (index >= 0 && index < voxels->num_voxels) {
+      const r_bsp_voxel_t *voxel = &voxels->voxels[index];
 
-        if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
-          continue;
-        }
+      for (int32_t i = 0; i < voxel->num_lights; i++) {
+        const r_bsp_light_t *light = voxel->lights[i];
+        const color_t color = Color3fv(light->color);
 
-        if (r_draw_bsp_voxels->integer == 1) {
-
-          vec3_t a, d;
-          rgb9e5_to_float3(*ambient, a.xyz);
-          rgb9e5_to_float3(*diffuse, d.xyz);
-
-          const color_t color = Color3fv(Vec3_Add(a, d));
-
-          R_AddSprite(view, &(r_sprite_t) {
-            .origin = origin,
-            .size = 8.f,
-            .color = color.vec3,
-            .media = (r_media_t *) particle,
-          });
-
-        } else if (r_draw_bsp_voxels->integer == 2) {
-
-          const color_t color = Color32_Color(*fog);
-
-          if (color.a) {
-
-            R_AddSprite(view, &(r_sprite_t) {
-              .origin = origin,
-              .size = 8.f,
-              .color = color.vec3,
-              .media = (r_media_t *) particle
-            });
-          }
-        }
+        const vec3_t line_points[2] = { voxel_world, light->origin };
+        R_Draw3DLines(line_points, 2, color, true);
       }
     }
   }
@@ -361,19 +333,17 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query) {
-      if (block->query->result == 0) {
-        r_stats.blocks_occluded++;
-        continue;
-      }
+    if (block->query && block->query->result == 0) {
+      r_stats.blocks_occluded++;
+      continue;
     }
 
     r_stats.blocks_visible++;
 
     if (entity->model == r_models.world) {
-      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+      R_DynamicLights(view, block->node->visible_bounds, r_bsp_program.dynamic_lights);
     } else {
-      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+      R_DynamicLights(view, entity->abs_model_bounds, r_bsp_program.dynamic_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -433,6 +403,8 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
   R_GetError(NULL);
 
   R_DrawBspNormals(view, bsp);
+
+  R_DrawBspVoxels(view, bsp);
 }
 
 /**
@@ -450,9 +422,9 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
     }
 
     if (entity->model == r_models.world) {
-      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
+      R_DynamicLights(view, block->node->visible_bounds, r_bsp_program.dynamic_lights);
     } else {
-      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+      R_DynamicLights(view, entity->abs_model_bounds, r_bsp_program.dynamic_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -539,7 +511,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
   glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 1);
 
-  r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
+  r_bsp_program.dynamic_lights = glGetUniformLocation(r_bsp_program.name, "dynamic_lights");
 
   r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 
@@ -547,15 +519,15 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
   r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-  r_bsp_program.texture_voxel_diffuse = glGetUniformLocation(r_bsp_program.name, "texture_voxel_diffuse");
+  r_bsp_program.texture_voxel_contents = glGetUniformLocation(r_bsp_program.name, "texture_voxel_contents");
   r_bsp_program.texture_voxel_fog = glGetUniformLocation(r_bsp_program.name, "texture_voxel_fog");
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
 
-  r_bsp_program.texture_shadow_cubemap_array0 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array0");
-  r_bsp_program.texture_shadow_cubemap_array1 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array1");
-  r_bsp_program.texture_shadow_cubemap_array2 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array2");
-  r_bsp_program.texture_shadow_cubemap_array3 = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array3");
+  r_bsp_program.texture_shadow_cubemap_array = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array");
+
+  r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
+  r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
 
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
@@ -580,15 +552,15 @@ void R_InitBspProgram(void) {
   glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
   glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 
-  glUniform1i(r_bsp_program.texture_voxel_diffuse, TEXTURE_VOXEL_DIFFUSE);
+  glUniform1i(r_bsp_program.texture_voxel_contents, TEXTURE_VOXEL_CONTENTS);
   glUniform1i(r_bsp_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array0, TEXTURE_SHADOW_CUBEMAP_ARRAY0);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array1, TEXTURE_SHADOW_CUBEMAP_ARRAY1);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array2, TEXTURE_SHADOW_CUBEMAP_ARRAY2);
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array3, TEXTURE_SHADOW_CUBEMAP_ARRAY3);
+  glUniform1i(r_bsp_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
+
+  glUniform1i(r_bsp_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_bsp_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 
   r_bsp_program.warp_image = (r_image_t *) R_AllocMedia("r_warp_image", sizeof(r_image_t), R_MEDIA_IMAGE);
   r_bsp_program.warp_image->media.Retain = R_RetainImage;
