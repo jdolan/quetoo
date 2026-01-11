@@ -1161,8 +1161,6 @@ struct g_entity_s {
 
   const char *target;
   const char *target_name;
-  const char *path_target;
-  const char *kill_target;
   const char *message;
   const char *team;
 

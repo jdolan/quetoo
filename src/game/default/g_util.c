@@ -200,9 +200,9 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
     if (!activator) {
       G_Debug("No activator for %s\n", etos(ent));
     }
+    temp->def = ent->def;
     temp->message = ent->message;
     temp->target = ent->target;
-    temp->kill_target = ent->kill_target;
     return;
   }
 
@@ -219,9 +219,10 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
   }
 
   // kill kill_targets
-  if (ent->kill_target) {
+  const char *kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
+  if (kill_target) {
     g_entity_t *target = NULL;
-    while ((target = G_Find(target, EOFS(target_name), ent->kill_target))) {
+    while ((target = G_Find(target, EOFS(target_name), kill_target))) {
       G_FreeEntity(target);
       if (!ent->in_use) {
         G_Debug("%s was removed while using kill_targets\n", etos(ent));

@@ -1854,10 +1854,11 @@ static void G_func_train_Next(g_entity_t *ent);
  */
 static void G_func_train_Wait(g_entity_t *ent) {
 
-  if (ent->target_ent->path_target) {
+  const char *path_target = gi.EntityValue(ent->target_ent->def, "pathtarget")->nullable_string;
+  if (path_target) {
     g_entity_t *target_ent = ent->target_ent;
     const char *target = target_ent->target;
-    target_ent->target = target_ent->path_target;
+    target_ent->target = path_target;
     G_UseTargets(target_ent, ent->activator);
     target_ent->target = target;
 

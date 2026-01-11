@@ -133,8 +133,6 @@ static void G_SpawnEntity(cm_entity_t *def) {
 
   ent->target = gi.EntityValue(ent->def, "target")->nullable_string;
   ent->target_name = gi.EntityValue(ent->def, "targetname")->nullable_string;
-  ent->path_target = gi.EntityValue(ent->def, "pathtarget")->nullable_string;
-  ent->kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
   ent->message = gi.EntityValue(ent->def, "message")->nullable_string;
   ent->team = gi.EntityValue(ent->def, "team")->nullable_string;
 
