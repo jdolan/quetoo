@@ -441,45 +441,47 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
   R_SetupImage(out->light_indices);
 
-  out->voxels = Mem_LinkMalloc(out->num_voxels * sizeof(r_bsp_voxel_t), mod->bsp);
+  if (r_draw_bsp_voxels->value) {
+    
+    out->voxels = Mem_LinkMalloc(out->num_voxels * sizeof(r_bsp_voxel_t), mod->bsp);
 
-  for (int32_t u = 0; u < out->size.z; u++) {
-    for (int32_t t = 0; t < out->size.y; t++) {
-      for (int32_t s = 0; s < out->size.x; s++) {
-        const int32_t voxel_index = (u * out->size.y + t) * out->size.x + s;
-        r_bsp_voxel_t *voxel = &out->voxels[voxel_index];
+    for (int32_t u = 0; u < out->size.z; u++) {
+      for (int32_t t = 0; t < out->size.y; t++) {
+        for (int32_t s = 0; s < out->size.x; s++) {
+          const int32_t voxel_index = (u * out->size.y + t) * out->size.x + s;
+          r_bsp_voxel_t *voxel = &out->voxels[voxel_index];
 
-        // Calculate voxel bounds
-        const vec3_t voxel_mins = Vec3(
-          out->bounds.mins.x + s * BSP_VOXEL_SIZE,
-          out->bounds.mins.y + t * BSP_VOXEL_SIZE,
-          out->bounds.mins.z + u * BSP_VOXEL_SIZE
-        );
-        const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
-        voxel->bounds = Box3(voxel_mins, voxel_maxs);
+          const vec3_t voxel_mins = Vec3(
+                                         out->bounds.mins.x + s * BSP_VOXEL_SIZE,
+                                         out->bounds.mins.y + t * BSP_VOXEL_SIZE,
+                                         out->bounds.mins.z + u * BSP_VOXEL_SIZE
+                                         );
 
-        voxel->contents = Cm_BoxContents(voxel->bounds, 0);
+          const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
+          voxel->bounds = Box3(voxel_mins, voxel_maxs);
 
-        // Read light references
-        const int32_t first_light_index = light_data[voxel_index * 2 + 0];
-        const int32_t num_light_indices = light_data[voxel_index * 2 + 1];
+          voxel->contents = contents_data[voxel_index];
 
-        voxel->num_lights = num_light_indices;
+          const int32_t first_light_index = light_data[voxel_index * 2 + 0];
+          const int32_t num_light_indices = light_data[voxel_index * 2 + 1];
 
-        if (num_light_indices > 0) {
-          voxel->lights = Mem_LinkMalloc(num_light_indices * sizeof(r_bsp_light_t *), mod->bsp);
+          voxel->num_lights = num_light_indices;
 
-          for (int32_t i = 0; i < num_light_indices; i++) {
-            const int32_t light_id = light_indices_data[first_light_index + i];
-            
-            if (light_id >= 0 && light_id < mod->bsp->num_lights) {
-              voxel->lights[i] = &mod->bsp->lights[light_id];
-            } else {
-              voxel->lights[i] = NULL;
+          if (voxel->num_lights > 0) {
+            voxel->lights = Mem_LinkMalloc(voxel->num_lights * sizeof(r_bsp_light_t *), mod->bsp);
+
+            for (int32_t i = 0; i < voxel->num_lights; i++) {
+              const int32_t light_id = light_indices_data[first_light_index + i];
+
+              if (light_id >= 0 && light_id < mod->bsp->num_lights) {
+                voxel->lights[i] = &mod->bsp->lights[light_id];
+              } else {
+                voxel->lights[i] = NULL;
+              }
             }
+          } else {
+            voxel->lights = NULL;
           }
-        } else {
-          voxel->lights = NULL;
         }
       }
     }
@@ -634,11 +636,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspVoxels(mod);
   R_LoadBspOcclusionQueries(mod->bsp);
 
-  if (r_draw_bsp_voxels->value) {
-    Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS & ~(1 << BSP_LUMP_VOXELS));
-  } else {
-    Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
-  }
+  Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
   Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);

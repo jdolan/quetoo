@@ -364,8 +364,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
  */
 void R_UpdateSprites(r_view_t *view) {
 
-  R_AddBspVoxelSprites(view);
-
   const r_sprite_t *s = view->sprites;
   for (int32_t i = 0; i < view->num_sprites; i++, s++) {
     R_UpdateSprite(view, s);

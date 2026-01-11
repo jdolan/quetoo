@@ -162,7 +162,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
 }
 
 /**
- * @brief Builds the voxel grid aligned to world coordinates at BSP_VOXEL_SIZE intervals.
+ * @brief Builds the voxel grid aligned to world coordinates at `BSP_VOXEL_SIZE` intervals.
  * Voxels are placed at ..., -64, -32, 0, 32, 64, 96, ... in all axes.
  */
 static void BuildVoxelExtents(void) {
@@ -181,7 +181,7 @@ static void BuildVoxelExtents(void) {
   
   // Calculate grid size (number of voxels in each dimension)
   for (int32_t i = 0; i < 3; i++) {
-    voxels.size.xyz[i] = (int32_t)((voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) / BSP_VOXEL_SIZE);
+    voxels.size.xyz[i] = (int32_t) ((voxels.stu_bounds.maxs.xyz[i] - voxels.stu_bounds.mins.xyz[i]) / BSP_VOXEL_SIZE);
   }
 }
 
@@ -272,13 +272,13 @@ size_t BuildVoxels(void) {
  * @brief Assigns lights to a voxel based on visibility traces to corners and center.
  */
 void LightVoxel(int32_t voxel_num) {
-  const float epsilon = sqrtf(3.f) * BSP_VOXEL_SIZE;
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
   voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
-  vec3_t points[8];
-  Box3_ToPoints(Box3_Expand(voxel->bounds, BSP_VOXEL_SIZE * .5f), points);
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
 
   for (guint i = 0; i < lights->len; i++) {
 
@@ -290,7 +290,7 @@ void LightVoxel(int32_t voxel_num) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
       const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
-      if (Vec3_Distance(trace.end, points[j]) <= epsilon) {
+      if (trace.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, trace.end)) {
         IlluminateVoxel(voxel, light);
         break;
       }

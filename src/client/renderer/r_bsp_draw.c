@@ -112,137 +112,47 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 /**
  * @brief Debug visualization for voxels and lights
  */
-void R_AddBspVoxelSprites(r_view_t *view) {
+static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   if (!r_draw_bsp_voxels->value) {
     return;
   }
 
-  const byte *in = (byte *) r_models.world->bsp->cm->file->voxels;
-  if (!in) {
+  if (!bsp->voxels) {
     return;
   }
 
-  in += sizeof(bsp_voxels_t);
+  const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
+  const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+  if (tr.fraction < 1.0f) {
 
-  const size_t num_voxels = voxels->size.x * voxels->size.y * voxels->size.z;
+    const r_bsp_voxels_t *voxels = bsp->voxels;
 
-  const rgb9e5 *ambient = (rgb9e5 *) in;
-  in += num_voxels * sizeof(rgb9e5);
+    const vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
+    const vec3_t xyz = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
 
-  const rgb9e5 *diffuse = (rgb9e5 *) in;
-  in += num_voxels * sizeof(rgb9e5);
+    const int32_t x = Clampf((int32_t) floorf(xyz.x), 0, (int32_t) voxels->size.x - 1);
+    const int32_t y = Clampf((int32_t) floorf(xyz.y), 0, (int32_t) voxels->size.y - 1);
+    const int32_t z = Clampf((int32_t) floorf(xyz.z), 0, (int32_t) voxels->size.z - 1);
 
-  const color32_t *fog = (color32_t *) in;
-  in += num_voxels * sizeof(color32_t);
+    const vec3_t voxel_pos = Vec3(x + 0.5f, y + 0.5f, z + 0.5f);
+    const vec3_t voxel_world = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, voxel_pos);
 
-  r_image_t *particle = R_LoadImage("sprites/particle", IMG_SPRITE);
+    const box3_t voxel_box = Box3_FromCenterRadius(voxel_world, BSP_VOXEL_SIZE * 0.5f);
+    R_Draw3DBox(voxel_box, Color3f(0.f, 1.f, 1.f), false);
 
-  // Mode 3: Show voxel at crosshair and its lights
-  if (r_draw_bsp_voxels->integer == 3) {
-    
-    // Trace from view origin along view forward to find impact point
-    const vec3_t end = Vec3_Fmaf(view->origin, MAX_WORLD_DIST, view->forward);
-    const cm_trace_t tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
-    
-    if (tr.fraction < 1.0f) {
-      
-      // Calculate which voxel was hit (CPU side calculation)
-      vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
-      vec3_t voxel_f = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
-      int32_t voxel_x = Clampf((int32_t)floorf(voxel_f.x), 0, (int32_t)voxels->size.x - 1);
-      int32_t voxel_y = Clampf((int32_t)floorf(voxel_f.y), 0, (int32_t)voxels->size.y - 1);
-      int32_t voxel_z = Clampf((int32_t)floorf(voxel_f.z), 0, (int32_t)voxels->size.z - 1);
-      
-      // Compute the voxel center position (should match GPU calculation)
-      const vec3_t voxel_pos = Vec3(voxel_x + 0.5f, voxel_y + 0.5f, voxel_z + 0.5f);
-      const vec3_t voxel_world = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, voxel_pos);
-      
-      // Draw the voxel box in cyan
-      const box3_t voxel_box = Box3_FromCenterRadius(voxel_world, BSP_VOXEL_SIZE * 0.5f);
-      R_Draw3DBox(voxel_box, Color3f(0.f, 1.f, 1.f), false);
-      
-      // Get the voxel from the voxel grid
-      const int32_t voxel_index = voxel_x + voxel_y * voxels->size.x + voxel_z * voxels->size.x * voxels->size.y;
-      
-      if (voxel_index >= 0 && voxel_index < voxels->num_voxels) {
-        const r_bsp_voxel_t *voxel = &voxels->voxels[voxel_index];
-        
-        // Draw lines to each light that affects this voxel
-        for (int32_t i = 0; i < voxel->num_lights; i++) {
-          const r_bsp_light_t *light = voxel->lights[i];
-          
-          // Draw line from voxel center to light origin in yellow
-          const vec3_t line_points[2] = { voxel_world, light->origin };
-          R_Draw3DLines(line_points, 2, Color3f(1.f, 1.f, 0.f), true);
-          
-          // Draw light bounds in green
-          R_Draw3DBox(light->bounds, Color3f(0.f, 1.f, 0.f), false);
-          
-          // Add sprite at light origin colored by light color
-          R_AddSprite(view, &(r_sprite_t) {
-            .origin = light->origin,
-            .size = 16.f,
-            .color = Vec3_Scale(light->color, light->intensity),
-            .media = (r_media_t *) particle,
-          });
-        }
-      }
-      
-      // Draw a marker at the trace impact point in red
-      R_AddSprite(view, &(r_sprite_t) {
-        .origin = tr.end,
-        .size = 8.f,
-        .color = Vec3(1.f, 0.f, 0.f),
-        .media = (r_media_t *) particle,
-      });
-    }
-    
-    return;
-  }
+    const int32_t index = x + y * voxels->size.x + z * voxels->size.x * voxels->size.y;
 
-  for (int32_t u = 0; u < voxels->size.z; u++) {
-    for (int32_t t = 0; t < voxels->size.y; t++) {
-      for (int32_t s = 0; s < voxels->size.x; s++, ambient++, diffuse++, fog++) {
+    if (index >= 0 && index < voxels->num_voxels) {
+      const r_bsp_voxel_t *voxel = &voxels->voxels[index];
 
-        const vec3_t position = Vec3(s + 0.5f, t + 0.5f, u + 0.5f);
-        const vec3_t origin = Vec3_Fmaf(voxels->bounds.mins, BSP_VOXEL_SIZE, position);
+      for (int32_t i = 0; i < voxel->num_lights; i++) {
+        const r_bsp_light_t *light = voxel->lights[i];
+        const color_t color = Color3fv(light->color);
 
-        if (Vec3_DistanceSquared(view->origin, origin) > 512.f * 512.f) {
-          continue;
-        }
-
-        if (r_draw_bsp_voxels->integer == 1) {
-
-          vec3_t a, d;
-          rgb9e5_to_float3(*ambient, a.xyz);
-          rgb9e5_to_float3(*diffuse, d.xyz);
-
-          const color_t color = Color3fv(Vec3_Add(a, d));
-
-          R_AddSprite(view, &(r_sprite_t) {
-            .origin = origin,
-            .size = 8.f,
-            .color = color.vec3,
-            .media = (r_media_t *) particle,
-          });
-
-        } else if (r_draw_bsp_voxels->integer == 2) {
-
-          const color_t color = Color32_Color(*fog);
-
-          if (color.a) {
-
-            R_AddSprite(view, &(r_sprite_t) {
-              .origin = origin,
-              .size = 8.f,
-              .color = color.vec3,
-              .media = (r_media_t *) particle
-            });
-          }
-        }
+        const vec3_t line_points[2] = { voxel_world, light->origin };
+        R_Draw3DLines(line_points, 2, color, true);
       }
     }
   }
@@ -493,6 +403,8 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
   R_GetError(NULL);
 
   R_DrawBspNormals(view, bsp);
+
+  R_DrawBspVoxels(view, bsp);
 }
 
 /**
