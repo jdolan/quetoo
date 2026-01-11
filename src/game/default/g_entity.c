@@ -110,10 +110,10 @@ static const g_entity_class_t g_entity_classes[] = {
  */
 static void G_SpawnEntity(cm_entity_t *def) {
 
-  g_entity_t *ent = G_AllocEntity(__func__);
-  ent->def = def;
+  const char *class_name = gi.EntityValue(def, "classname")->string;
+  g_entity_t *ent = G_AllocEntity(class_name);
 
-  ent->class_name = gi.EntityValue(ent->def, "classname")->string;
+  ent->def = def;
 
   ent->s.origin = gi.EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = gi.EntityValue(ent->def, "angles")->vec3;
@@ -618,6 +618,10 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
+
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+    G_FreeEntity(ge.entities[i]);
+  }
 
   g_strlcpy(g_level.name, name, sizeof(g_level.name));
 

@@ -1007,6 +1007,13 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
 void G_ClientBegin(g_client_t *cl) {
   char welcome[MAX_STRING_CHARS];
 
+  // setup the client's entity
+  cl->entity = G_AllocEntity("client");
+  cl->entity->client = cl;
+  cl->entity->s.client = cl->ps.client;
+  cl->entity->s.effects = EF_CLIENT;
+  cl->ps.entity = cl->entity->s.number;
+
   cl->cmd_angles = Vec3_Zero();
   cl->persistent.first_frame = g_level.frame_num;
 
@@ -1241,11 +1248,13 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   // set hand, if anything should go wrong, it defaults to 0 (centered)
   cl->persistent.hand = (g_hand_t) strtol(InfoString_Get(user_info, "hand"), NULL, 10);
 
-  s = InfoString_Get(user_info, "active");
-  if (g_strcmp0(s, "0") == 0) {
-    cl->entity->s.effects |= EF_INACTIVE;
-  } else {
-    cl->entity->s.effects &= ~(EF_INACTIVE);
+  if (cl->entity) {
+    s = InfoString_Get(user_info, "active");
+    if (g_strcmp0(s, "0") == 0) {
+      cl->entity->s.effects |= EF_INACTIVE;
+    } else {
+      cl->entity->s.effects &= ~(EF_INACTIVE);
+    }
   }
 
   // auto-switch
@@ -1272,13 +1281,6 @@ bool G_ClientConnect(g_client_t *cl, char *user_info) {
       return false;
     }
   }
-
-  // setup the client's entity
-  cl->entity = G_AllocEntity("client");
-  cl->entity->client = cl;
-  cl->entity->s.client = cl->ps.client;
-  cl->entity->s.effects = EF_CLIENT;
-  cl->ps.entity = cl->entity->s.number;
 
   memset(&cl->persistent, 0, sizeof(cl->persistent));
 

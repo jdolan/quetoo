@@ -454,7 +454,9 @@ void G_EndClientFrames(void) {
 
   // finalize the player_state_t for this frame
   G_ForEachClient(cl, {
-    G_ClientEndFrame(cl);
+    if (cl->entity) {
+      G_ClientEndFrame(cl);
+    }
   });
 
   // render the nodes to the clients
@@ -462,7 +464,7 @@ void G_EndClientFrames(void) {
 
   // now loop through again, and for chase camera users, copy the final player state
   G_ForEachClient(cl, {
-    if (cl->chase_target) {
+    if (cl->entity && cl->chase_target) {
       G_ClientChaseThink(cl);
       G_ClientSpectatorStats(cl);
     }
