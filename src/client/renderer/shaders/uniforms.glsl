@@ -60,11 +60,6 @@ struct voxels_t {
    * @brief The grid size, in voxels.
    */
   vec4 size;
-
-  /**
-   * @brief The voxel size, in texture space.
-   */
-  vec4 voxel_size;
 };
 
 /**
