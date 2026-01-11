@@ -63,8 +63,8 @@ const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
  */
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
-  const char *class_name = Cm_EntityValue(entity, "classname")->string;
-  if (!g_strcmp0(class_name, "light")) {
+  const char *classname = Cm_EntityValue(entity, "classname")->string;
+  if (!g_strcmp0(classname, "light")) {
 
     light_t *light = AllocLight();
 

@@ -61,8 +61,8 @@ void FreeFog(void) {
  */
 static void FogForEntity(const cm_entity_t *entity) {
 
-  const char *class_name = Cm_EntityValue(entity, "classname")->string;
-  if (!g_strcmp0(class_name, "worldspawn")) {
+  const char *classname = Cm_EntityValue(entity, "classname")->string;
+  if (!g_strcmp0(classname, "worldspawn")) {
 
     if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
       Cm_EntityValue(entity, "fog_color")->parsed ||
@@ -85,7 +85,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 
       g_array_append_val(fogs, fog);
     }
-  } else if (!g_strcmp0(class_name, "misc_fog")) {
+  } else if (!g_strcmp0(classname, "misc_fog")) {
 
     fog_t fog = {};
     fog.type = FOG_VOLUME;

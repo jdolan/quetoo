@@ -64,7 +64,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   if (dust->sprite.image == NULL) {
     dust->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
     Cg_Warn("%s @ %s failed to load sprite %s\n",
-         self->clazz->class_name,
+         self->clazz->classname,
          vtos(self->origin),
          name);
   }
@@ -186,7 +186,7 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_dust = {
-  .class_name = "misc_dust",
+  .classname = "misc_dust",
   .Init = Cg_misc_dust_Init,
   .Think = Cg_misc_dust_Think,
   .data_size = sizeof(cg_dust_t)
@@ -311,7 +311,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_flame = {
-  .class_name = "misc_flame",
+  .classname = "misc_flame",
   .Init = Cg_misc_flame_Init,
   .Think = Cg_misc_flame_Think,
   .data_size = sizeof(cg_flame_t)
@@ -415,7 +415,7 @@ static void Cg_misc_light_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_light = {
-  .class_name = "misc_light",
+  .classname = "misc_light",
   .Init = Cg_misc_light_Init,
   .Think = Cg_misc_light_Think,
   .data_size = sizeof(cg_misc_light_data_t)
@@ -436,7 +436,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
   if (cgi.EntityValue(self->def, "model")->parsed & ENTITY_STRING) {
     entity->model = cgi.LoadModel(cgi.EntityValue(self->def, "model")->string);
   } else {
-    Cg_Warn("%s @ %s has no model specified\n", self->clazz->class_name, vtos(self->origin));
+    Cg_Warn("%s @ %s has no model specified\n", self->clazz->classname, vtos(self->origin));
   }
 }
 
@@ -459,7 +459,7 @@ static void Cg_misc_model_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_model = {
-  .class_name = "misc_model",
+  .classname = "misc_model",
   .Init = Cg_misc_model_Init,
   .Think = Cg_misc_model_Think,
   .data_size = sizeof(r_entity_t)
@@ -488,7 +488,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
   if (cgi.EntityValue(self->def, "sound")->parsed & ENTITY_STRING) {
     sound->play.sample = cgi.LoadSample(cgi.EntityValue(self->def, "sound")->string);
   } else {
-    Cg_Warn("%s @ %s has no sound specified\n", self->clazz->class_name, vtos(self->origin));
+    Cg_Warn("%s @ %s has no sound specified\n", self->clazz->classname, vtos(self->origin));
   }
 
   sound->play.origin = self->origin;
@@ -524,7 +524,7 @@ static void Cg_misc_sound_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_sound = {
-  .class_name = "misc_sound",
+  .classname = "misc_sound",
   .Init = Cg_misc_sound_Init,
   .Think = Cg_misc_sound_Think,
   .data_size = sizeof(cg_misc_sound_t)
@@ -590,7 +590,7 @@ static void Cg_misc_sparks_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_sparks = {
-  .class_name = "misc_sparks",
+  .classname = "misc_sparks",
   .Init = Cg_misc_sparks_Init,
   .Think = Cg_misc_sparks_Think,
   .data_size = sizeof(cg_misc_sparks_t)
@@ -628,7 +628,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   if (sprite->sprite.image == NULL) {
     sprite->sprite.image = cgi.LoadImage("sprites/particle", IMG_SPRITE);
     Cg_Warn("%s @ %s failed to load sprite %s\n",
-         self->clazz->class_name,
+         self->clazz->classname,
          vtos(self->origin),
          name);
   }
@@ -681,10 +681,10 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
   const cg_entity_t *teammate = Cg_EntityForDefinition(self->team);
   if (teammate) {
-    if (!g_strcmp0(self->clazz->class_name, teammate->clazz->class_name)) {
+    if (!g_strcmp0(self->clazz->classname, teammate->clazz->classname)) {
       that = teammate->data;
     } else {
-      Cg_Warn("Teammate is not %s\n", self->clazz->class_name);
+      Cg_Warn("Teammate is not %s\n", self->clazz->classname);
     }
   }
 
@@ -723,7 +723,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_sprite = {
-  .class_name = "misc_sprite",
+  .classname = "misc_sprite",
   .Init = Cg_misc_sprite_Init,
   .Think = Cg_misc_sprite_Think,
   .data_size = sizeof(cg_sprite_t)
@@ -822,7 +822,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
  * @brief
  */
 const cg_entity_class_t cg_misc_steam = {
-  .class_name = "misc_steam",
+  .classname = "misc_steam",
   .Init = Cg_misc_steam_Init,
   .Think = Cg_misc_steam_Think,
   .data_size = sizeof(s_play_sample_t)

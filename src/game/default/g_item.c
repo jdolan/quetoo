@@ -31,16 +31,16 @@ const box3_t ITEM_BOUNDS = {
 /**
  * @brief
  */
-const g_item_t *G_FindItemByClassName(const char *class_name) {
+const g_item_t *G_FindItemByClassName(const char *classname) {
 
   for (size_t i = 0; i < g_num_items; i++) {
     const g_item_t *it = G_ItemByIndex(i);
 
-    if (!it->class_name) {
+    if (!it->classname) {
       continue;
     }
 
-    if (!g_strcmp0(it->class_name, class_name)) {
+    if (!g_strcmp0(it->classname, classname)) {
       return it;
     }
   }
@@ -758,7 +758,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   vec3_t forward;
 
-  g_entity_t *it = G_AllocEntity(item->class_name);
+  g_entity_t *it = G_AllocEntity(item->classname);
   it->owner = cl->entity;
 
   it->bounds = Box3_Scale(ITEM_BOUNDS, ITEM_SCALE);
@@ -1140,7 +1140,7 @@ void G_PrecacheItem(const g_item_t *it) {
 
     len = s - start;
     if (len >= MAX_QPATH || len < 5) {
-      gi.Error("%s has bad precache string\n", it->class_name);
+      gi.Error("%s has bad precache string\n", it->classname);
     }
     memcpy(data, start, len);
     data[len] = '\0';
@@ -1157,7 +1157,7 @@ void G_PrecacheItem(const g_item_t *it) {
                || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".pcx")) {
       gi.ImageIndex(data);
     } else {
-      gi.Error("%s has unknown data type\n", it->class_name);
+      gi.Error("%s has unknown data type\n", it->classname);
     }
   }
 }
@@ -1226,7 +1226,7 @@ static g_item_t g_items[] = {
    model="models/armor/body/tris.md3"
    */
   {
-    .class_name = "item_armor_body",
+    .classname = "item_armor_body",
     .Pickup = G_PickupArmor,
     .Use = NULL,
     .Drop = NULL,
@@ -1260,7 +1260,7 @@ static g_item_t g_items[] = {
    model="models/armor/combat/tris.md3"
    */
   {
-    .class_name = "item_armor_combat",
+    .classname = "item_armor_combat",
     .Pickup = G_PickupArmor,
     .Use = NULL,
     .Drop = NULL,
@@ -1294,7 +1294,7 @@ static g_item_t g_items[] = {
    model="models/armor/jacket/tris.md3"
    */
   {
-    .class_name = "item_armor_jacket",
+    .classname = "item_armor_jacket",
     .Pickup = G_PickupArmor,
     .Use = NULL,
     .Drop = NULL,
@@ -1328,7 +1328,7 @@ static g_item_t g_items[] = {
    model="models/armor/shard/tris.md3"
    */
   {
-    .class_name = "item_armor_shard",
+    .classname = "item_armor_shard",
     .Pickup = G_PickupArmor,
     .Use = NULL,
     .Drop = NULL,
@@ -1361,7 +1361,7 @@ static g_item_t g_items[] = {
    model="models/weapons/shotgun/tris.obj"
    */
   {
-    .class_name = "weapon_blaster",
+    .classname = "weapon_blaster",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = NULL,
@@ -1395,7 +1395,7 @@ static g_item_t g_items[] = {
    model="models/weapons/shotgun/tris.obj"
    */
   {
-    .class_name = "weapon_shotgun",
+    .classname = "weapon_shotgun",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1429,7 +1429,7 @@ static g_item_t g_items[] = {
    model="models/weapons/supershotgun/tris.obj"
    */
   {
-    .class_name = "weapon_supershotgun",
+    .classname = "weapon_supershotgun",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1463,7 +1463,7 @@ static g_item_t g_items[] = {
    model="models/weapons/machinegun/tris.obj"
    */
   {
-    .class_name = "weapon_machinegun",
+    .classname = "weapon_machinegun",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1498,7 +1498,7 @@ static g_item_t g_items[] = {
    model="models/objects/grenade/tris.md3"
    */
   {
-    .class_name = "weapon_handgrenades",
+    .classname = "weapon_handgrenades",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = NULL,
@@ -1533,7 +1533,7 @@ static g_item_t g_items[] = {
    model="models/weapons/grenadelauncher/tris.obj"
    */
   {
-    .class_name = "weapon_grenadelauncher",
+    .classname = "weapon_grenadelauncher",
     .Pickup = G_PickupGrenadeLauncher,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1567,7 +1567,7 @@ static g_item_t g_items[] = {
    model="models/weapons/rocketlauncher/tris.md3"
    */
   {
-    .class_name = "weapon_rocketlauncher",
+    .classname = "weapon_rocketlauncher",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1602,7 +1602,7 @@ static g_item_t g_items[] = {
    model="models/weapons/hyperblaster/tris.obj"
    */
   {
-    .class_name = "weapon_hyperblaster",
+    .classname = "weapon_hyperblaster",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1636,7 +1636,7 @@ static g_item_t g_items[] = {
    model="models/weapons/lightning/tris.obj"
    */
   {
-    .class_name = "weapon_lightning",
+    .classname = "weapon_lightning",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1671,7 +1671,7 @@ static g_item_t g_items[] = {
    model="models/weapons/railgun/tris.obj"
    */
   {
-    .class_name = "weapon_railgun",
+    .classname = "weapon_railgun",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1705,7 +1705,7 @@ static g_item_t g_items[] = {
    model="models/weapons/bfg/tris.obj"
    */
   {
-    .class_name = "weapon_bfg",
+    .classname = "weapon_bfg",
     .Pickup = G_PickupWeapon,
     .Use = G_UseWeapon,
     .Drop = G_DropWeapon,
@@ -1739,7 +1739,7 @@ static g_item_t g_items[] = {
    model="models/ammo/shells/tris.md3"
    */
   {
-    .class_name = "ammo_shells",
+    .classname = "ammo_shells",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1773,7 +1773,7 @@ static g_item_t g_items[] = {
    model="models/ammo/bullets/tris.md3"
    */
   {
-    .class_name = "ammo_bullets",
+    .classname = "ammo_bullets",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1807,7 +1807,7 @@ static g_item_t g_items[] = {
    model="models/ammo/grenades/tris.md3"
    */
   {
-    .class_name = "ammo_grenades",
+    .classname = "ammo_grenades",
     .Pickup = G_PickupGrenades,
     .Use = G_UseGrenades,
     .Drop = G_DropItem,
@@ -1842,7 +1842,7 @@ static g_item_t g_items[] = {
    model="models/ammo/rockets/tris.md3"
    */
   {
-    .class_name = "ammo_rockets",
+    .classname = "ammo_rockets",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1876,7 +1876,7 @@ static g_item_t g_items[] = {
    model="models/ammo/cells/tris.md3"
    */
   {
-    .class_name = "ammo_cells",
+    .classname = "ammo_cells",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1910,7 +1910,7 @@ static g_item_t g_items[] = {
    model="models/ammo/bolts/tris.md3"
    */
   {
-    .class_name = "ammo_bolts",
+    .classname = "ammo_bolts",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1944,7 +1944,7 @@ static g_item_t g_items[] = {
    model="models/ammo/slugs/tris.md3"
    */
   {
-    .class_name = "ammo_slugs",
+    .classname = "ammo_slugs",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -1978,7 +1978,7 @@ static g_item_t g_items[] = {
    model="models/ammo/nukes/tris.md3"
    */
   {
-    .class_name = "ammo_nukes",
+    .classname = "ammo_nukes",
     .Pickup = G_PickupAmmo,
     .Use = NULL,
     .Drop = G_DropItem,
@@ -2012,7 +2012,7 @@ static g_item_t g_items[] = {
    model="models/powerups/adren/tris.obj"
    */
   {
-    .class_name = "item_adrenaline",
+    .classname = "item_adrenaline",
     .Pickup = G_PickupAdrenaline,
     .Use = NULL,
     .Drop = NULL,
@@ -2045,7 +2045,7 @@ static g_item_t g_items[] = {
    model="models/health/small/tris.obj"
    */
   {
-    .class_name = "item_health_small",
+    .classname = "item_health_small",
     .Pickup = G_PickupHealth,
     .Use = NULL,
     .Drop = NULL,
@@ -2078,7 +2078,7 @@ static g_item_t g_items[] = {
    model="models/health/medium/tris.obj"
    */
   {
-    .class_name = "item_health",
+    .classname = "item_health",
     .Pickup = G_PickupHealth,
     .Use = NULL,
     .Drop = NULL,
@@ -2111,7 +2111,7 @@ static g_item_t g_items[] = {
    model="models/health/large/tris.obj"
    */
   {
-    .class_name = "item_health_large",
+    .classname = "item_health_large",
     .Pickup = G_PickupHealth,
     .Use = NULL,
     .Drop = NULL,
@@ -2144,7 +2144,7 @@ static g_item_t g_items[] = {
    model="models/health/mega/tris.obj"
    */
   {
-    .class_name = "item_health_mega",
+    .classname = "item_health_mega",
     .Pickup = G_PickupHealth,
     .Use = NULL,
     .Drop = NULL,
@@ -2173,7 +2173,7 @@ static g_item_t g_items[] = {
    model="models/ctf/flag/tris.obj"
    */
   {
-    .class_name = "item_flag_team1",
+    .classname = "item_flag_team1",
     .Pickup = G_PickupFlag,
     .Use = NULL,
     .Drop = G_DropFlag,
@@ -2202,7 +2202,7 @@ static g_item_t g_items[] = {
    model="models/ctf/flag/tris.obj"
    */
   {
-    .class_name = "item_flag_team2",
+    .classname = "item_flag_team2",
     .Pickup = G_PickupFlag,
     .Use = NULL,
     .Drop = G_DropFlag,
@@ -2231,7 +2231,7 @@ static g_item_t g_items[] = {
    model="models/ctf/flag/tris.obj"
    */
   {
-    .class_name = "item_flag_team3",
+    .classname = "item_flag_team3",
     .Pickup = G_PickupFlag,
     .Use = NULL,
     .Drop = G_DropFlag,
@@ -2260,7 +2260,7 @@ static g_item_t g_items[] = {
    model="models/ctf/flag/tris.obj"
    */
   {
-    .class_name = "item_flag_team4",
+    .classname = "item_flag_team4",
     .Pickup = G_PickupFlag,
     .Use = NULL,
     .Drop = G_DropFlag,
@@ -2293,7 +2293,7 @@ static g_item_t g_items[] = {
    model="models/powerups/quad/tris.obj"
    */
   {
-    .class_name = "item_quad",
+    .classname = "item_quad",
     .Pickup = G_PickupQuadDamage,
     .Use = NULL,
     .Drop = NULL,
@@ -2312,7 +2312,7 @@ static g_item_t g_items[] = {
   },
 
   {
-    .class_name = "item_tech_haste",
+    .classname = "item_tech_haste",
     .Pickup = G_PickupTech,
     .Use = NULL,
     .Drop = G_DropTech,
@@ -2331,7 +2331,7 @@ static g_item_t g_items[] = {
   },
 
   {
-    .class_name = "item_tech_regen",
+    .classname = "item_tech_regen",
     .Pickup = G_PickupTech,
     .Use = NULL,
     .Drop = G_DropTech,
@@ -2350,7 +2350,7 @@ static g_item_t g_items[] = {
   },
 
   {
-    .class_name = "item_tech_resist",
+    .classname = "item_tech_resist",
     .Pickup = G_PickupTech,
     .Use = NULL,
     .Drop = G_DropTech,
@@ -2369,7 +2369,7 @@ static g_item_t g_items[] = {
   },
 
   {
-    .class_name = "item_tech_strength",
+    .classname = "item_tech_strength",
     .Pickup = G_PickupTech,
     .Use = NULL,
     .Drop = G_DropTech,
@@ -2388,7 +2388,7 @@ static g_item_t g_items[] = {
   },
 
   {
-    .class_name = "item_tech_vampire",
+    .classname = "item_tech_vampire",
     .Pickup = G_PickupTech,
     .Use = NULL,
     .Drop = G_DropTech,

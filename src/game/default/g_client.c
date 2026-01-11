@@ -900,7 +900,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   ent->s.model4 = 0;
 
   if (cl->persistent.spectator || editor->value) { // spawn a spectator
-    ent->class_name = "spectator";
+    ent->classname = "spectator";
 
     ent->bounds = Box3_Zero();
 
@@ -916,7 +916,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
 
     cl->persistent.team = NULL;
   } else { // spawn an active client
-    ent->class_name = "client";
+    ent->classname = "client";
 
     ent->solid = SOLID_BOX;
     ent->sv_flags = 0;

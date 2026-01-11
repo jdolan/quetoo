@@ -973,7 +973,7 @@ static void G_func_door_GoingDown(g_entity_t *ent) {
   }
 
   ent->move_info.state = MOVE_STATE_GOING_DOWN;
-  if (g_strcmp0(ent->class_name, "func_door_rotating")) {
+  if (g_strcmp0(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->move_info.start_origin, G_func_door_Bottom);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Bottom);
@@ -1007,7 +1007,7 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
     ent->s.sound = ent->move_info.sound_middle;
   }
   ent->move_info.state = MOVE_STATE_GOING_UP;
-  if (g_strcmp0(ent->class_name, "func_door_rotating")) {
+  if (g_strcmp0(ent->classname, "func_door_rotating")) {
     G_MoveInfo_Linear_Init(ent, ent->move_info.end_origin, G_func_door_Top);
   } else { // rotating
     G_MoveInfo_Angular_Init(ent, G_func_door_Top);

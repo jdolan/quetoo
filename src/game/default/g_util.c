@@ -47,7 +47,7 @@ void G_InitPlayerSpawn(g_entity_t *ent) {
   Vec3_Vectors(ent->s.angles, &forward, NULL, NULL);
   ent->s.origin = Vec3_Fmaf(ent->s.origin, fwd, forward);
   
-  if (!g_strcmp0(ent->class_name, "info_player_intermission")) {
+  if (!g_strcmp0(ent->classname, "info_player_intermission")) {
     G_Ai_DropItemLikeNode(ent);
   }
 }
@@ -114,7 +114,7 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
  * NULL will be returned if the end of the list is reached.
  *
  * Example:
- *   `G_Find(NULL, EOFS(class_name), "info_player_deathmatch")`
+ *   `G_Find(NULL, EOFS(classname), "info_player_deathmatch")`
  *
  */
 g_entity_t *G_Find(g_entity_t *from, ptrdiff_t field, const char *match) {
@@ -275,7 +275,7 @@ void G_SetMoveDir(g_entity_t *ent) {
 /**
  * @brief Allocates an entity for use.
  */
-g_entity_t *G_AllocEntity(const char *class_name) {
+g_entity_t *G_AllocEntity(const char *classname) {
   static uint8_t g_spawn_id;
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
@@ -283,7 +283,7 @@ g_entity_t *G_AllocEntity(const char *class_name) {
     g_entity_t *e = ge.entities[i];
     if (!e->in_use) {
 
-      e->class_name = class_name;
+      e->classname = classname;
       e->in_use = true;
       e->water_level = WATER_UNKNOWN;
       e->timestamp = g_level.time;
@@ -484,7 +484,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
   for (int32_t i = 0; i < g_level.num_teams; i++) {
 
-    if (!g_strcmp0(ent->class_name, g_team_list[i].flag)) {
+    if (!g_strcmp0(ent->classname, g_team_list[i].flag)) {
       return &g_team_list[i];
     }
   }

@@ -112,12 +112,12 @@ void Cg_LoadEntities(void) {
   for (int32_t i = 0; i < bsp->num_entities; i++) {
 
     const cm_entity_t *def = bsp->entities[i];
-    const char *class_name = cgi.EntityValue(def, "classname")->string;
+    const char *classname = cgi.EntityValue(def, "classname")->string;
 
     const cg_entity_class_t **clazz = classes;
     for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
 
-      if (!g_strcmp0(class_name, (*clazz)->class_name)) {
+      if (!g_strcmp0(classname, (*clazz)->classname)) {
 
         cg_entity_t e = {
           .id = MAX_ENTITIES + cg_entities->len,
@@ -132,8 +132,8 @@ void Cg_LoadEntities(void) {
           const char *target_name = cgi.EntityValue(def, "target")->string;
           e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
           if (!e.target) {
-            const char *class_name = cgi.EntityValue(def, "classname")->string;
-            Cg_Warn("Target not found for %s @ %s\n", class_name, vtos(e.origin));
+            const char *classname = cgi.EntityValue(def, "classname")->string;
+            Cg_Warn("Target not found for %s @ %s\n", classname, vtos(e.origin));
           }
         }
 

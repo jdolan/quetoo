@@ -363,7 +363,7 @@ void G_Damage(const g_damage_t *dmg) {
       if (target->Die) {
         target->Die(target, attacker, mod);
       } else {
-        G_Debug("No die function for %s\n", target->class_name);
+        G_Debug("No die function for %s\n", target->classname);
       }
 
       return;

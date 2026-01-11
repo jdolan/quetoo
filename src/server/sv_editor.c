@@ -30,7 +30,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
   ent->def = Cm_CopyEntity(def);
   ent->in_use = true;
-  ent->class_name = Cm_EntityValue(ent->def, "classname")->string;
+  ent->classname = Cm_EntityValue(ent->def, "classname")->string;
   ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
 
   ent->s.number = number;
@@ -38,22 +38,22 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
-  if (g_str_has_prefix(ent->class_name, "info_player")) {
+  if (g_str_has_prefix(ent->classname, "info_player")) {
     ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
-  } else if (g_str_has_prefix(ent->class_name, "light")) {
+  } else if (g_str_has_prefix(ent->classname, "light")) {
     ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
     const cm_entity_t *color = Cm_EntityValue(ent->def, "color");
     if (color->parsed & ENTITY_COLOR) {
       ent->s.color = Color_Color32(color->color);
     }
-  } else if (g_str_has_prefix(ent->class_name, "trigger_")) {
+  } else if (g_str_has_prefix(ent->classname, "trigger_")) {
     ent->s.color = Color32i(0xff0088ff);
-  } else if (g_str_has_prefix(ent->class_name, "func_")) {
+  } else if (g_str_has_prefix(ent->classname, "func_")) {
     ent->s.color = Color32i(0xff00ff00);
-  } else if (g_str_has_prefix(ent->class_name, "misc_")) {
+  } else if (g_str_has_prefix(ent->classname, "misc_")) {
     ent->s.color = Color32i(0xff00ffff);
-  } else if (g_str_has_prefix(ent->class_name, "item_")) {
+  } else if (g_str_has_prefix(ent->classname, "item_")) {
     ent->s.color = Color32i(0xffffff00);
   }
 

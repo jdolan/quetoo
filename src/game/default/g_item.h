@@ -75,7 +75,7 @@
   bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count);
   g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item);
   const g_item_t *G_FindItem(const char *name);
-  const g_item_t *G_FindItemByClassName(const char *class_name);
+  const g_item_t *G_FindItemByClassName(const char *classname);
   const g_item_t *G_ItemByIndex(uint16_t index);
   const g_item_t *G_ClientArmor(const g_client_t *cl);
   const g_armor_info_t *G_ArmorInfo(const g_item_t *armor);

@@ -764,11 +764,11 @@ static entity_t *ParseEntity(parser_t *parser) {
     // CSG subtracted and included in the world's BSP tree. However, these brushes will
     // maintain a reference to their entity definition, so that any entity pairs
     // associated with them will still be available.
-    const char *class_name = ValueForKey(entity, "classname", NULL);
-    if (!g_strcmp0(class_name, "func_group") ||
-      !g_strcmp0(class_name, "misc_fog") ||
-      !g_strcmp0(class_name, "misc_dust") ||
-      !g_strcmp0(class_name, "misc_sprite")) {
+    const char *classname = ValueForKey(entity, "classname", NULL);
+    if (!g_strcmp0(classname, "func_group") ||
+      !g_strcmp0(classname, "misc_fog") ||
+      !g_strcmp0(classname, "misc_dust") ||
+      !g_strcmp0(classname, "misc_sprite")) {
       MoveBrushesToWorld(entity);
     }
   }

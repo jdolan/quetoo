@@ -37,7 +37,7 @@ typedef struct {
   /**
    * @brief The entity class name.
    */
-  const char *class_name;
+  const char *classname;
 
   /**
    * @brief The initialization function, called once per level.

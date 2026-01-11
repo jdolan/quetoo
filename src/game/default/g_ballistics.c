@@ -870,7 +870,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 
   g_entity_t *projectile = NULL;
 
-  while ((projectile = G_Find(projectile, EOFS(class_name), __func__))) {
+  while ((projectile = G_Find(projectile, EOFS(classname), __func__))) {
     if (projectile->owner == ent) {
       break;
     }

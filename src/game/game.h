@@ -92,7 +92,7 @@ struct g_entity_s {
    * @brief The class name provides basic identification and taxonomy for
    * the entity. This is guaranteed to be set through `G_Spawn`.
    */
-  const char *class_name;
+  const char *classname;
 
   /**
    * @brief The model name for an entity (optional). For `SOLID_BSP` entities,

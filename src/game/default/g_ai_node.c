@@ -995,7 +995,7 @@ static void Ai_CheckNodes(void) {
       const ai_node_id_t node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
       if (node == AI_NODE_INVALID) {
-        gi.Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->class_name, vtos(ent->s.origin));
+        gi.Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
       }
     });
   }

@@ -529,7 +529,7 @@ typedef struct g_item_s {
   /**
    * @brief The spawn name of the entity, used for maps.
    */
-  const char *class_name;
+  const char *classname;
 
   /**
    * @brief Called when a player touches this item. Returning false
@@ -1089,7 +1089,7 @@ struct g_entity_s {
    * @brief The class name provides basic identification and taxonomy for
    * the entity. This is guaranteed to be set through G_Spawn.
    */
-  const char *class_name;
+  const char *classname;
 
   /**
    * @brief The model name for an entity (optional). For SOLID_BSP entities,

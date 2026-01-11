@@ -29,7 +29,7 @@ typedef struct {
   /**
    * @brief The entity class name.
    */
-  char *class_name;
+  char *classname;
 
   /**
    * @brief The instance initializer.
@@ -110,8 +110,8 @@ static const g_entity_class_t g_entity_classes[] = {
  */
 static void G_SpawnEntity(cm_entity_t *def) {
 
-  const char *class_name = gi.EntityValue(def, "classname")->string;
-  g_entity_t *ent = G_AllocEntity(class_name);
+  const char *classname = gi.EntityValue(def, "classname")->string;
+  g_entity_t *ent = G_AllocEntity(classname);
 
   ent->def = def;
 
@@ -160,11 +160,11 @@ static void G_SpawnEntity(cm_entity_t *def) {
   for (size_t i = 0; i < g_num_items; i++) {
 
     const g_item_t *item = G_ItemByIndex(i);
-    if (!item->class_name) {
+    if (!item->classname) {
       continue;
     }
 
-    if (!g_strcmp0(item->class_name, ent->class_name)) {
+    if (!g_strcmp0(item->classname, ent->classname)) {
       G_SpawnItem(ent, item);
       return;
     }
@@ -174,7 +174,7 @@ static void G_SpawnEntity(cm_entity_t *def) {
   for (size_t i = 0; i < lengthof(g_entity_classes); i++) {
     const g_entity_class_t *clazz = g_entity_classes + i;
 
-    if (!g_strcmp0(clazz->class_name, ent->class_name)) {
+    if (!g_strcmp0(clazz->classname, ent->classname)) {
       clazz->Init(ent);
       return;
     }
@@ -484,14 +484,14 @@ static void G_InitSpawnPoints(void) {
   GSList *dm_spawns = NULL;
   g_entity_t *spot = NULL;
 
-  while ((spot = G_Find(spot, EOFS(class_name), "info_player_deathmatch")) != NULL) {
+  while ((spot = G_Find(spot, EOFS(classname), "info_player_deathmatch")) != NULL) {
     dm_spawns = g_slist_prepend(dm_spawns, spot);
   }
 
   if (!dm_spawns) {
     spot = NULL;
 
-    while ((spot = G_Find(spot, EOFS(class_name), "info_player_start")) != NULL) {
+    while ((spot = G_Find(spot, EOFS(classname), "info_player_start")) != NULL) {
       dm_spawns = g_slist_prepend(dm_spawns, spot);
     }
   }
@@ -499,7 +499,7 @@ static void G_InitSpawnPoints(void) {
   // find the team points, if we have any explicit ones in the map.
   // start by finding the flags
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
-    g_team_list[t].flag_entity = G_Find(NULL, EOFS(class_name), g_team_list[t].flag);
+    g_team_list[t].flag_entity = G_Find(NULL, EOFS(classname), g_team_list[t].flag);
   }
 
   GSList *team_spawns[MAX_TEAMS];
@@ -508,7 +508,7 @@ static void G_InitSpawnPoints(void) {
 
   spot = NULL;
 
-  while ((spot = G_Find(spot, EOFS(class_name), "info_player_team_any")) != NULL) {
+  while ((spot = G_Find(spot, EOFS(classname), "info_player_team_any")) != NULL) {
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
       team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
     }
@@ -518,7 +518,7 @@ static void G_InitSpawnPoints(void) {
     spot = NULL;
     g_team_t *team = &g_team_list[t];
 
-    while ((spot = G_Find(spot, EOFS(class_name), team->spawn)) != NULL) {
+    while ((spot = G_Find(spot, EOFS(classname), team->spawn)) != NULL) {
       team_spawns[t] = g_slist_prepend(team_spawns[t], spot);
     }
 
@@ -588,7 +588,7 @@ void G_SpawnTech(const g_item_t *item) {
 
   g_entity_t *spawn = G_SelectTechSpawnPoint();
 
-  g_entity_t *ent = G_AllocEntity(item->class_name);
+  g_entity_t *ent = G_AllocEntity(item->classname);
   ent->s.origin = spawn->s.origin;
 
   G_SpawnItem(ent, item);

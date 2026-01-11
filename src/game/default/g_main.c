@@ -437,11 +437,11 @@ static void G_BeginIntermission(const char *map) {
   });
 
   // find an intermission spot
-  g_entity_t *ent = G_Find(NULL, EOFS(class_name), "info_player_intermission");
+  g_entity_t *ent = G_Find(NULL, EOFS(classname), "info_player_intermission");
   if (!ent) { // map does not have an intermission point
-    ent = G_Find(NULL, EOFS(class_name), "info_player_start");
+    ent = G_Find(NULL, EOFS(classname), "info_player_start");
     if (!ent) {
-      ent = G_Find(NULL, EOFS(class_name), "info_player_deathmatch");
+      ent = G_Find(NULL, EOFS(classname), "info_player_deathmatch");
     }
   }
 
