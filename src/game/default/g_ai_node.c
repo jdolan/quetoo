@@ -878,16 +878,15 @@ void Ai_Node_Render(void) {
       continue;
     }
 
-    const ai_locals_t *ai = Ai_GetLocals(cl);
 
-    if (ai->move_target.type != AI_GOAL_PATH) {
+    if (cl->ai->move_target.type != AI_GOAL_PATH) {
       continue;
     }
 
     gi.WriteByte(SV_CMD_TEMP_ENTITY);
     gi.WriteByte(TE_AI_NODE_LINK);
     gi.WritePosition(cl->entity->s.origin);
-    gi.WritePosition(ai->move_target.path.path_position);
+    gi.WritePosition(cl->ai->move_target.path.path_position);
     gi.WriteByte(8);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PVS);
   });

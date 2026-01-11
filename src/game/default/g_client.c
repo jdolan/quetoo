@@ -985,7 +985,9 @@ void G_ClientRespawn(g_client_t *cl, bool voluntary) {
   cl->respawn_time = g_level.time;
   cl->respawn_protection_time = g_level.time + g_respawn_protection->value * 1000;
 
-  G_Ai_Respawn(cl);
+  if (cl->ai) {
+    G_Ai_Respawn(cl);
+  }
 
   if (!voluntary) { // don't announce involuntary spectator changes
     return;

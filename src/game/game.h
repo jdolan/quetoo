@@ -72,9 +72,9 @@ struct g_client_s {
   bool in_use;
 
   /**
-   * @brief True if the client is a bot.
+   * @brief Non-null if the client is a bot.
    */
-  bool ai;
+  struct g_ai_s *ai;
 };
 
 /**

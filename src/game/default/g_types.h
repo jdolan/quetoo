@@ -984,9 +984,9 @@ struct g_client_s {
   bool in_use;
 
   /**
-   * @brief True if the client is a bot.
+   * @brief Non-null if the client is a bot.
    */
-  bool ai;
+  struct ai_s *ai;
 
   /**
    * @brief The persistent client data, like name and score.

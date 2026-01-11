@@ -68,7 +68,7 @@ static void G_Ai_Connect(g_client_t *cl) {
   char user_info[MAX_INFO_STRING_STRING];
   Ai_GetUserInfo(cl, user_info);
 
-  cl->ai = true; // and away we go!
+  cl->ai = gi.Malloc(sizeof(ai_t), MEM_TAG_AI);
 
   G_ClientConnect(cl, user_info);
 

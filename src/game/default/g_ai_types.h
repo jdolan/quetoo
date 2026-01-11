@@ -184,7 +184,7 @@ typedef enum {
 /**
  * @brief AI-specific locals
  */
-typedef struct ai_locals_s {
+typedef struct ai_s {
   uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 
   vec3_t last_origin;
@@ -198,6 +198,6 @@ typedef struct ai_locals_s {
   uint32_t reacquire_time;
   uint32_t distress_jump_offset;
   vec3_t ideal_angles;
-} ai_locals_t;
+} ai_t;
 
 #endif /* __GAME_LOCAL_H__ */
