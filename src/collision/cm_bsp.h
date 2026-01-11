@@ -48,7 +48,7 @@
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
 #define MAX_BSP_LIGHTS        0x100
-#define MAX_BSP_VOXELS_SIZE   0x10000000
+#define MAX_BSP_VOXELS_SIZE   0x4000000
 
 /**
  * @brief The BSP block node size.
@@ -58,10 +58,10 @@
 /**
  * @brief Voxel voxel size in world units.
  */
-#define BSP_VOXEL_SIZE 8.f
+#define BSP_VOXEL_SIZE 32.f
 
 /**
- * @brief Largest voxel texture width in voxels (8192 / 64 = 128).
+ * @brief Largest voxel texture width in voxels (8192 / 32 = 256).
  */
 #define MAX_BSP_VOXELS_AXIAL (MAX_WORLD_AXIAL / BSP_VOXEL_SIZE)
 

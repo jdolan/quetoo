@@ -23,7 +23,7 @@
 #define VIEW_MAIN         1
 #define VIEW_PLAYER_MODEL 2
 
-#define BSP_VOXEL_SIZE    8.0
+#define BSP_VOXEL_SIZE    32.0
 
 // BSP Contents flags
 #define CONTENTS_NONE   0x0
