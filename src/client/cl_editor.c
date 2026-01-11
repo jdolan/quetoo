@@ -59,6 +59,15 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
+  const cm_entity_t *worldspawn = cl.entity_definitions[0];
+
+  R_AddEntity(&cl_view, &(const r_entity_t) {
+    .model = R_WorldModel()->bsp->worldspawn,
+    .scale = 1.f
+  });
+
+  cl_view.ambient = Cm_EntityValue(worldspawn, "ambient")->value;
+
   for (int32_t i = 0; i < frame->num_entities; i++) {
 
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
@@ -67,40 +76,27 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     const cm_entity_t *def = cl.entity_definitions[s->number];
 
     const char *classname = Cm_EntityValue(def, "classname")->string;
+    if (!g_strcmp0(classname, "light")) {
 
-    if (!g_strcmp0(classname, "worldspawn")) {
+      r_light_t light = { 0 };
 
-      R_AddEntity(&cl_view, &(const r_entity_t) {
-        .model = R_WorldModel()->bsp->worldspawn,
-        .scale = 1.f
-      });
+      light.origin = Cm_EntityValue(def, "origin")->vec3;
+      light.radius = Cm_EntityValue(def, "radius")->value;
+      light.color = Cm_EntityValue(def, "color")->vec3;
+      light.intensity = Cm_EntityValue(def, "intensity")->value;
+      light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
 
-      cl_view.ambient = Cm_EntityValue(def, "ambient")->value;
-
-    } else {
-
-      if (!g_strcmp0(classname, "light")) {
-
-        r_light_t light = { 0 };
-
-        light.origin = Cm_EntityValue(def, "origin")->vec3;
-        light.radius = Cm_EntityValue(def, "radius")->value;
-        light.color = Cm_EntityValue(def, "color")->vec3;
-        light.intensity = Cm_EntityValue(def, "intensity")->value;
-        light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
-
-        R_AddLight(&cl_view, &light);
-      }
-
-      R_AddEntity(&cl_view, &(const r_entity_t) {
-        .id = ent,
-        .origin = ent->origin,
-        .angles = ent->angles,
-        .scale = 1.f,
-        .bounds = ent->bounds,
-        .abs_bounds = ent->abs_bounds,
-        .color = Color32_Vec4(ent->current.color),
-      });
+      R_AddLight(&cl_view, &light);
     }
+
+    R_AddEntity(&cl_view, &(const r_entity_t) {
+      .id = ent,
+      .origin = ent->origin,
+      .angles = ent->angles,
+      .scale = 1.f,
+      .bounds = ent->bounds,
+      .abs_bounds = ent->abs_bounds,
+      .color = Color32_Vec4(ent->current.color),
+    });
   }
 }

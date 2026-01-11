@@ -101,10 +101,6 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_developer 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -122,6 +118,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug game server"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set developer 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
