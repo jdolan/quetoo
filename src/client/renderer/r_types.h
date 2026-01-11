@@ -1564,16 +1564,6 @@ typedef struct r_framebuffer_s {
    */
   GLint height;
 
-  /**
-   * @brief The framebuffer width in pixels (supersampling).
-   */
-  GLint drawable_width;
-
-  /**
-   * @brief The framebuffer height in pixels (supersampling).
-   */
-  GLint drawable_height;
-
 } r_framebuffer_t;
 
 /**

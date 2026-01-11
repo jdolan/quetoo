@@ -219,7 +219,7 @@ void R_DrawViewDepth(r_view_t *view) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
 
-  glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
+  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
   R_DrawDepthPass(view);
 
@@ -251,7 +251,7 @@ void R_DrawMainView(r_view_t *view) {
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
 
-  glViewport(0, 0, view->framebuffer->drawable_width, view->framebuffer->drawable_height);
+  glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
   if (r_draw_wireframe->value) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -363,7 +363,7 @@ static void R_InitLocal(void) {
   r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_supersample = Cvar_Add("r_supersample", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls supersampling (anti-aliasing).");
+  r_supersample = Cvar_Add("r_supersample", "1", CVAR_ARCHIVE, "Controls supersampling (anti-aliasing).");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
   r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 

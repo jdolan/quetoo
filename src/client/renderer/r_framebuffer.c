@@ -36,8 +36,8 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
   glTexImage2D(GL_TEXTURE_2D, 
          0,
          internal_format,
-         f->drawable_width,
-         f->drawable_height,
+         f->width,
+         f->height,
          0,
          format,
          type,
@@ -74,18 +74,13 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
+  const float scale = Clampf(r_supersample->value, 0.25f, 2.f);
+
   r_framebuffer_t framebuffer = {
-    .width = width,
-    .drawable_width = width,
-    .height = height,
-    .drawable_height = height,
+    .width = width * scale,
+    .height = height * scale,
     .attachments = attachments,
   };
-
-  if (r_supersample->value > 1.f) {
-    framebuffer.drawable_width *= r_supersample->value;
-    framebuffer.drawable_height *= r_supersample->value;
-  }
 
   glGenFramebuffers(1, &framebuffer.name);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.name);
@@ -163,7 +158,7 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   }
 
   glBindTexture(GL_TEXTURE_2D, *texture);
-  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->drawable_width, framebuffer->drawable_height);
+  glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, framebuffer->width, framebuffer->height);
   glBindTexture(GL_TEXTURE_2D, 0);
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -197,8 +192,8 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
   glBlitFramebuffer(0,
             0,
-            framebuffer->drawable_width,
-            framebuffer->drawable_height,
+            framebuffer->width,
+            framebuffer->height,
             x,
             y,
             x + w,
@@ -229,7 +224,7 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   assert(surface);
 
   if (*surface == NULL) {
-    *surface = SDL_CreateSurface(framebuffer->drawable_width, framebuffer->drawable_height, SDL_PIXELFORMAT_RGB24);
+    *surface = SDL_CreateSurface(framebuffer->width, framebuffer->height, SDL_PIXELFORMAT_RGB24);
   }
 
   GLuint in = 0;
