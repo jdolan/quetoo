@@ -113,7 +113,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 }
 
 /**
- * @brief Allocates an occlusion query with the specified initial bounds.
+ * @brief Allocates an occlusion query with the specified bounds.
  */
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
 

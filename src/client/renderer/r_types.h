@@ -832,7 +832,7 @@ typedef struct {
 
   r_bsp_voxels_t *voxels;
 
-    /**
+  /**
    * @brief The vertex array (VAO) name.
    */
   GLuint vertex_array;
