@@ -156,6 +156,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->caustics = r_caustics->value;
     out->fog_density = r_fog_density->value;
     out->fog_samples = r_fog_samples->value;
+    out->editor = editor->integer;
     out->developer = developer->integer;
 
     if (r_models.world) {

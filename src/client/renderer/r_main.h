@@ -193,6 +193,11 @@ typedef struct {
     float fog_samples;
 
     /**
+     * @brief The editor flags.
+     */
+    int editor;
+
+    /**
      * @brief The developer flags.
      */
     int developer;

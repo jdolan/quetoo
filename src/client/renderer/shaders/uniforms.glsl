@@ -142,7 +142,12 @@ layout (std140) uniform uniforms_block {
   float fog_samples;
 
   /**
-   * @brief The developer toggle, used for shader development tweaking.
+   * @brief The editor flags, used for in-game lighting and more.
+   */
+  int editor;
+
+  /**
+   * @brief The developer flags, used for shader development tweaking.
    */
   int developer;
 };

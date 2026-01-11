@@ -407,24 +407,36 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 
-  ivec3 voxel = voxel_xyz(vertex.model_position);
-  ivec2 data = voxel_light_data(voxel);
+  if (editor == 0) {
+    ivec3 voxel = voxel_xyz(vertex.model_position);
+    ivec2 data = voxel_light_data(voxel);
 
-  for (int i = 0; i < data.y; i++) {
-    int index = voxel_light_index(data.x + i);
-    light_and_shadow_light(index);
-  }
-
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = dynamic_lights[i];
-    if (index == -1) {
-      break;
+    for (int i = 0; i < data.y; i++) {
+      int index = voxel_light_index(data.x + i);
+      light_and_shadow_light(index);
     }
 
-    light_and_shadow_light(index);
-  }
+    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+      int index = dynamic_lights[i];
+      if (index == -1) {
+        break;
+      }
 
-  light_and_shadow_caustics();
+      light_and_shadow_light(index);
+    }
+
+    light_and_shadow_caustics();
+
+  } else {
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+      int index = dynamic_lights[i];
+      if (index == -1) {
+        break;
+      }
+
+      light_and_shadow_light(index);
+    }
+  }
 }
 
 /**
