@@ -125,14 +125,11 @@ static void G_SpawnEntity(cm_entity_t *def) {
 
   ent->model = gi.EntityValue(ent->def, "model")->nullable_string;
 
-  // TODO: Trim down g_entity_t, use EntityValue to resolve these when they're needed
-
   ent->spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
   ent->speed = gi.EntityValue(ent->def, "speed")->value;
   ent->accel = gi.EntityValue(ent->def, "accel")->value;
   ent->decel = gi.EntityValue(ent->def, "decel")->value;
-  ent->lip = gi.EntityValue(ent->def, "lip")->value;
 
   ent->target = gi.EntityValue(ent->def, "target")->nullable_string;
   ent->target_name = gi.EntityValue(ent->def, "targetname")->nullable_string;
@@ -140,8 +137,6 @@ static void G_SpawnEntity(cm_entity_t *def) {
   ent->kill_target = gi.EntityValue(ent->def, "killtarget")->nullable_string;
   ent->message = gi.EntityValue(ent->def, "message")->nullable_string;
   ent->team = gi.EntityValue(ent->def, "team")->nullable_string;
-  ent->command = gi.EntityValue(ent->def, "command")->nullable_string;
-  ent->script = gi.EntityValue(ent->def, "script")->nullable_string;
 
   ent->wait = gi.EntityValue(ent->def, "wait")->value;
   ent->delay = gi.EntityValue(ent->def, "delay")->value;
@@ -151,10 +146,6 @@ static void G_SpawnEntity(cm_entity_t *def) {
   ent->health = gi.EntityValue(ent->def, "health")->integer;
   ent->damage = gi.EntityValue(ent->def, "dmg")->integer;
   ent->mass = gi.EntityValue(ent->def, "mass")->value;
-
-  ent->atten = gi.EntityValue(ent->def, "atten")->integer;
-  ent->color = gi.EntityValue(ent->def, "color")->vec3;
-  ent->radius = gi.EntityValue(ent->def, "radius")->value;
 
   // check item spawn functions
   for (size_t i = 0; i < g_num_items; i++) {

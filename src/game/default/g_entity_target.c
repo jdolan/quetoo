@@ -84,14 +84,16 @@ static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
 */
 void G_target_light(g_entity_t *ent) {
 
-  if (Vec3_Equal(ent->color, Vec3_Zero())) {
-    ent->color = Vec3_One();
+  vec3_t color = gi.EntityValue(ent->def, "color")->vec3;
+  if (Vec3_Equal(color, Vec3_Zero())) {
+    color = Vec3_One();
   }
 
-  ent->radius = ent->radius ?: 300.f;
+  float radius = gi.EntityValue(ent->def, "radius")->value;
+  radius = radius ?: 300.f;
 
-  ent->s.color = Color_Color32(Color3fv(ent->color));
-  ent->s.termination.x = ent->radius;
+  ent->s.color = Color_Color32(Color3fv(color));
+  ent->s.termination.x = radius;
 
   if (ent->spawn_flags & LIGHT_START_ON) {
     ent->s.effects |= EF_LIGHT;
@@ -120,10 +122,15 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
       ent->s.sound = ent->sound;
     }
   } else { // intermittent sound
+    const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
+    int16_t atten_value = SOUND_ATTEN_LINEAR;
+    if (atten->parsed & ENTITY_INTEGER) {
+      atten_value = atten->integer;
+    }
     G_MulticastSound(&(const g_play_sound_t) {
       .index = ent->sound,
       .origin = &ent->s.origin,
-      .atten = ent->atten
+      .atten = atten_value
     }, MULTICAST_PHS);
   }
 }
@@ -157,13 +164,6 @@ void G_target_speaker(g_entity_t *ent) {
   }
 
   ent->sound = gi.SoundIndex(sound);
-
-  const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
-  if (atten->parsed & ENTITY_INTEGER) {
-    ent->atten = atten->integer;
-  } else {
-    ent->atten = SOUND_ATTEN_LINEAR;
-  }
 
   const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 

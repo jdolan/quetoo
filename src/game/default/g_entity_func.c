@@ -497,7 +497,7 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
 /**
  * @brief
  */
-static void G_func_plat_CreateTrigger(g_entity_t *ent) {
+static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
   g_entity_t *trigger;
 
   // middle trigger
@@ -510,7 +510,7 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent) {
   box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-25.f, -25.f, 0.f));
   bounds.maxs.z += 8;
 
-  bounds.mins.z = bounds.maxs.z - (ent->pos1.z - ent->pos2.z + ent->lip);
+  bounds.mins.z = bounds.maxs.z - (ent->pos1.z - ent->pos2.z + lip);
 
   if (ent->spawn_flags & PLAT_LOW_TRIGGER) {
     bounds.maxs.z = bounds.mins.z + 8.0;
@@ -571,8 +571,9 @@ void G_func_plat(g_entity_t *ent) {
     ent->damage = 2;
   }
 
-  if (!ent->lip) {
-    ent->lip = 8.0;
+  float lip = gi.EntityValue(ent->def, "lip")->value;
+  if (!lip) {
+    lip = 8.0;
   }
 
   // pos1 is the top position, pos2 is the bottom
@@ -583,12 +584,12 @@ void G_func_plat(g_entity_t *ent) {
   if (height->parsed & ENTITY_INTEGER) { // use the specified height
     ent->pos2.z -= height->integer;
   } else { // or derive it from the model height
-    ent->pos2.z -= Box3_Size(ent->bounds).z - ent->lip;
+    ent->pos2.z -= Box3_Size(ent->bounds).z - lip;
   }
 
   ent->Use = G_func_plat_Use;
 
-  G_func_plat_CreateTrigger(ent); // the "start moving" trigger
+  G_func_plat_CreateTrigger(ent, lip); // the "start moving" trigger
 
   if (ent->target_name) {
     ent->move_info.state = MOVE_STATE_GOING_UP;
@@ -863,15 +864,16 @@ void G_func_button(g_entity_t *ent) {
     ent->wait = 3.0;
   }
 
-  if (!ent->lip) {
-    ent->lip = 4.0;
+  float lip = gi.EntityValue(ent->def, "lip")->value;
+  if (!lip) {
+    lip = 4.0;
   }
 
   ent->pos1 = ent->s.origin;
   abs_move_dir.x = fabsf(ent->move_dir.x);
   abs_move_dir.y = fabsf(ent->move_dir.y);
   abs_move_dir.z = fabsf(ent->move_dir.z);
-  dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y + abs_move_dir.z * ent->size.z - ent->lip;
+  dist = abs_move_dir.x * ent->size.x + abs_move_dir.y * ent->size.y + abs_move_dir.z * ent->size.z - lip;
   ent->pos2 = Vec3_Fmaf(ent->pos1, dist, ent->move_dir);
 
   ent->Use = G_func_button_Use;
@@ -1247,8 +1249,9 @@ void G_func_door(g_entity_t *ent) {
     ent->wait = 3.0;
   }
 
-  if (!ent->lip) {
-    ent->lip = 8.0;
+  float lip = gi.EntityValue(ent->def, "lip")->value;
+  if (!lip) {
+    lip = 8.0;
   }
 
   if (!ent->damage) {
@@ -1260,7 +1263,7 @@ void G_func_door(g_entity_t *ent) {
   abs_move_dir = Vec3_Fabsf(ent->move_dir);
   ent->move_info.distance = abs_move_dir.x * ent->size.x +
                                    abs_move_dir.y * ent->size.y +
-                                   abs_move_dir.z * ent->size.z - ent->lip;
+                                   abs_move_dir.z * ent->size.z - lip;
 
   ent->pos2 = Vec3_Fmaf(ent->pos1, ent->move_info.distance, ent->move_dir);
 
@@ -1798,9 +1801,10 @@ void G_func_water(g_entity_t *ent) {
   // calculate second position
   ent->pos1 = ent->s.origin;
   abs_move_dir = Vec3_Fabsf(ent->move_dir);
+  float lip = gi.EntityValue(ent->def, "lip")->value;
   ent->move_info.distance = abs_move_dir.x * ent->size.x +
                     abs_move_dir.y * ent->size.y +
-                    abs_move_dir.z * ent->size.z - ent->lip;
+                    abs_move_dir.z * ent->size.z - lip;
 
   ent->pos2 = Vec3_Fmaf(ent->pos1, ent->move_info.distance, ent->move_dir);
 

@@ -1165,23 +1165,17 @@ struct g_entity_s {
   const char *kill_target;
   const char *message;
   const char *team;
-  const char *command;
-  const char *script;
 
   g_entity_t *target_ent;
 
   float speed, accel, decel;
   vec3_t move_dir;
   vec3_t pos1, pos2;
-  float lip;
 
   vec3_t velocity;
   vec3_t avelocity;
 
-  vec3_t color;
-
   float mass;
-  float radius;
 
   uint32_t next_think;
   void (*Think)(g_entity_t *ent);
@@ -1212,7 +1206,6 @@ struct g_entity_s {
   g_entity_t *team_next;
 
   uint16_t sound;
-  int16_t atten;
 
   float wait;
   float delay; // before firing targets

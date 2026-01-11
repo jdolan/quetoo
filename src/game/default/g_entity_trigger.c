@@ -421,12 +421,16 @@ static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
 
   ent->timestamp = g_level.time + ent->delay * 1000;
 
-  if (ent->command) {
-    gi.Cbuf(va("%s\n", ent->command));
+  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
+  if (command) {
+    gi.Cbuf(va("%s\n", command));
   }
 
-  else if (ent->script) {
-    gi.Cbuf(va("exec %s\n", ent->script));
+  else {
+    const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+    if (script) {
+      gi.Cbuf(va("exec %s\n", script));
+    }
   }
 }
 
@@ -440,7 +444,9 @@ static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
  */
 void G_trigger_exec(g_entity_t *ent) {
 
-  if (!ent->command && !ent->script) {
+  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
+  const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+  if (!command && !script) {
     G_Debug("No command or script at %s", vtos(ent->s.origin));
     G_FreeEntity(ent);
     return;
