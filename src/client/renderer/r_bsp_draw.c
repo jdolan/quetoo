@@ -326,7 +326,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 /**
  * @brief
  */
-static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
@@ -363,7 +363,7 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
 /**
  * @brief Draws all opaque BSP inline model entities for the current view, including the world.
  */
-void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
+void R_DrawOpaqueBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
 
   R_DrawSky(view, bsp);
@@ -389,7 +389,7 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 
       glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
-      R_DrawOpaqueBspInlineEntity(view, e);
+      R_DrawOpaqueBspEntity(view, e);
     }
   }
 
@@ -410,7 +410,7 @@ void R_DrawOpaqueBspInlineEntities(const r_view_t *view) {
 /**
  * @brief
  */
-static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *entity) {
+static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
@@ -442,7 +442,7 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
 /**
  * @brief Draws all BSP inline model entities for the current view, including the world.
  */
-void R_DrawBlendBspInlineEntities(const r_view_t *view) {
+void R_DrawBlendBspEntities(const r_view_t *view) {
   const r_bsp_model_t *bsp = r_models.world->bsp;
 
   glUseProgram(r_bsp_program.name);
@@ -470,7 +470,7 @@ void R_DrawBlendBspInlineEntities(const r_view_t *view) {
 
       glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
-      R_DrawBlendBspInlineEntity(view, e);
+      R_DrawBlendBspEntity(view, e);
     }
   }
 

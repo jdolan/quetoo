@@ -26,6 +26,6 @@
 #ifdef __R_LOCAL_H__
 void R_InitBspProgram(void);
 void R_ShutdownBspProgram(void);
-void R_DrawOpaqueBspInlineEntities(const r_view_t *view);
-void R_DrawBlendBspInlineEntities(const r_view_t *view);
+void R_DrawOpaqueBspEntities(const r_view_t *view);
+void R_DrawBlendBspEntities(const r_view_t *view);
 #endif

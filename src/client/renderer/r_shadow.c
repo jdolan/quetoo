@@ -92,7 +92,7 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 /**
  * @brief
  */
-static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
+static void R_DrawBspEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
   const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
@@ -108,7 +108,7 @@ static void R_DrawBspInlineEntityShadow(const r_view_t *view, const r_light_t *l
 /**
  * @brief
  */
-static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
   const r_bsp_model_t *bsp = r_models.world->bsp;
   glBindVertexArray(bsp->depth_pass.vertex_array);
@@ -144,7 +144,7 @@ static void R_DrawBspInlineEntitiesShadow(const r_view_t *view, const r_light_t 
       continue;
     }
 
-    R_DrawBspInlineEntityShadow(view, light, e);
+    R_DrawBspEntityShadow(view, light, e);
   }
 
   glBindVertexArray(0);
@@ -265,7 +265,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
     glUniform1i(r_shadow_program.face_index, face);
 
-    R_DrawBspInlineEntitiesShadow(view, light);
+    R_DrawBspEntitiesShadow(view, light);
 
     if (r_shadows->value && dist <= r_shadow_distance->value) {
       R_DrawMeshEntitiesShadow(view, light);

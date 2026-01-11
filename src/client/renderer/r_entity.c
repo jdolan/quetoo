@@ -144,11 +144,11 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view) {
 
-  R_DrawOpaqueBspInlineEntities(view);
+  R_DrawOpaqueBspEntities(view);
 
   R_DrawMeshEntities(view);
 
-  R_DrawBlendBspInlineEntities(view);
+  R_DrawBlendBspEntities(view);
 
   R_DrawEntitiesBounds(view);
 }
