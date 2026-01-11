@@ -207,7 +207,6 @@ extern cvar_t *dedicated;
 extern cvar_t *developer;
 extern cvar_t *editor;
 extern cvar_t *game;
-extern cvar_t *ai;
 extern cvar_t *threads;
 extern cvar_t *time_demo;
 extern cvar_t *time_scale;

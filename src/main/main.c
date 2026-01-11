@@ -40,7 +40,6 @@ cvar_t *dedicated;
 cvar_t *developer;
 cvar_t *editor;
 cvar_t *game;
-cvar_t *ai;
 cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -305,9 +304,6 @@ static void Init(void) {
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
   game->modified = g_strcmp0(game->string, DEFAULT_GAME);
-
-  ai = Cvar_Add("ai", DEFAULT_AI, CVAR_LATCH | CVAR_SERVER_INFO, "The AI module name");
-  ai->modified = g_strcmp0(ai->string, DEFAULT_AI);
 
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
   threads->modified = false;
