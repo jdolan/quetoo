@@ -452,10 +452,10 @@ static void R_LoadBspVoxels(r_model_t *mod) {
           r_bsp_voxel_t *voxel = &out->voxels[voxel_index];
 
           const vec3_t voxel_mins = Vec3(
-                                         out->bounds.mins.x + s * BSP_VOXEL_SIZE,
-                                         out->bounds.mins.y + t * BSP_VOXEL_SIZE,
-                                         out->bounds.mins.z + u * BSP_VOXEL_SIZE
-                                         );
+            out->bounds.mins.x + s * BSP_VOXEL_SIZE,
+            out->bounds.mins.y + t * BSP_VOXEL_SIZE,
+            out->bounds.mins.z + u * BSP_VOXEL_SIZE
+          );
 
           const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
           voxel->bounds = Box3(voxel_mins, voxel_maxs);
