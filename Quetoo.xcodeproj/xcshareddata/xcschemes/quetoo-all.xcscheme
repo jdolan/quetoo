@@ -94,7 +94,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_bsp_voxels 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set verbose 1"
@@ -126,7 +126,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map pits"
@@ -134,7 +134,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"

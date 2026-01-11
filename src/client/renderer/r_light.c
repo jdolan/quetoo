@@ -99,7 +99,7 @@ void R_UpdateLights(r_view_t *view) {
  */
 void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-  GLint dynamic_lights[MAX_DYNAMIC_LIGHTS];
+  GLint dynamic_lights[MAX_LIGHTS];
   GLint len = 0;
 
   const r_light_t *l = view->lights;
@@ -114,7 +114,7 @@ void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
     }
   }
 
-  if (len < MAX_DYNAMIC_LIGHTS) {
+  if (len < MAX_LIGHTS) {
     dynamic_lights[len++] = -1;
   }
 
