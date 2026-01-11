@@ -75,7 +75,7 @@ typedef struct {
 extern r_lights_t r_lights;
 
 void R_UpdateLights(r_view_t *view);
-void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name);
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name);
 void R_InitLights(void);
 void R_ShutdownLights(void);
 #endif

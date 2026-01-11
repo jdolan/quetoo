@@ -417,7 +417,7 @@ void light_and_shadow(void) {
     }
 
     for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-      int index = dynamic_lights[i];
+      int index = active_lights[i];
       if (index == -1) {
         break;
       }
@@ -429,7 +429,7 @@ void light_and_shadow(void) {
 
   } else {
     for (int i = 0; i < MAX_LIGHTS; i++) {
-      int index = dynamic_lights[i];
+      int index = active_lights[i];
       if (index == -1) {
         break;
       }

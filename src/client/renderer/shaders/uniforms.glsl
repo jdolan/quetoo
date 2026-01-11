@@ -182,9 +182,9 @@ layout (std140) uniform lights_block {
 };
 
 /**
- * @brief The -1 terminated array of dynamic light indexes for the current render operation.
+ * @brief The -1 terminated array of active light indexes for the current render operation.
  */
-uniform int dynamic_lights[MAX_LIGHTS];
+uniform int active_lights[MAX_LIGHTS];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.

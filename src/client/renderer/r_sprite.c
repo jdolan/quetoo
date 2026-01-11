@@ -44,7 +44,7 @@ static struct {
   GLuint uniforms_block;
   GLuint lights_block;
 
-  GLint dynamic_lights;
+  GLint active_lights;
 
   GLint texture_diffusemap;
   GLint texture_next_diffusemap;
@@ -432,7 +432,7 @@ void R_DrawSprites(const r_view_t *view) {
       }
     }
 
-    R_DynamicLights(view, bounds, r_sprite_program.dynamic_lights);
+    R_ActiveLights(view, bounds, r_sprite_program.active_lights);
 
     glDrawElements(GL_TRIANGLES, batch_size * 6, GL_UNSIGNED_INT, in->elements);
     r_stats.sprite_draw_elements++;
@@ -475,7 +475,7 @@ static void R_InitSpriteProgram(void) {
   r_sprite_program.lights_block = glGetUniformBlockIndex(r_sprite_program.name, "lights_block");
   glUniformBlockBinding(r_sprite_program.name, r_sprite_program.lights_block, 1);
 
-  r_sprite_program.dynamic_lights = glGetUniformLocation(r_sprite_program.name, "dynamic_lights");
+  r_sprite_program.active_lights = glGetUniformLocation(r_sprite_program.name, "active_lights");
 
   r_sprite_program.texture_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_diffusemap");
   r_sprite_program.texture_next_diffusemap = glGetUniformLocation(r_sprite_program.name, "texture_next_diffusemap");

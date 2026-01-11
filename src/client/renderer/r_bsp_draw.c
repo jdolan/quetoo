@@ -30,7 +30,7 @@ static struct {
   GLuint uniforms_block;
   GLuint lights_block;
 
-  GLint dynamic_lights;
+  GLint active_lights;
 
   GLint model;
 
@@ -341,9 +341,9 @@ static void R_DrawOpaqueBspInlineEntity(const r_view_t *view, const r_entity_t *
     r_stats.blocks_visible++;
 
     if (entity->model == r_models.world) {
-      R_DynamicLights(view, block->node->visible_bounds, r_bsp_program.dynamic_lights);
+      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
-      R_DynamicLights(view, entity->abs_model_bounds, r_bsp_program.dynamic_lights);
+      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -422,9 +422,9 @@ static void R_DrawBlendBspInlineEntity(const r_view_t *view, const r_entity_t *e
     }
 
     if (entity->model == r_models.world) {
-      R_DynamicLights(view, block->node->visible_bounds, r_bsp_program.dynamic_lights);
+      R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
-      R_DynamicLights(view, entity->abs_model_bounds, r_bsp_program.dynamic_lights);
+      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -511,7 +511,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.lights_block = glGetUniformBlockIndex(r_bsp_program.name, "lights_block");
   glUniformBlockBinding(r_bsp_program.name, r_bsp_program.lights_block, 1);
 
-  r_bsp_program.dynamic_lights = glGetUniformLocation(r_bsp_program.name, "dynamic_lights");
+  r_bsp_program.active_lights = glGetUniformLocation(r_bsp_program.name, "active_lights");
 
   r_bsp_program.model = glGetUniformLocation(r_bsp_program.name, "model");
 

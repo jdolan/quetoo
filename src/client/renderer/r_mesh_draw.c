@@ -30,7 +30,7 @@ static struct {
   GLuint uniforms_block;
   GLuint lights_block;
 
-  GLint dynamic_lights;
+  GLint active_lights;
 
   GLint model;
 
@@ -293,7 +293,7 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   glUniform1f(r_mesh_program.lerp, e->lerp);
 
-  R_DynamicLights(view, e->abs_model_bounds, r_mesh_program.dynamic_lights);
+  R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
@@ -398,7 +398,7 @@ void R_InitMeshProgram(void) {
   r_mesh_program.lights_block = glGetUniformBlockIndex(r_mesh_program.name, "lights_block");
   glUniformBlockBinding(r_mesh_program.name, r_mesh_program.lights_block, 1);
 
-  r_mesh_program.dynamic_lights = glGetUniformLocation(r_mesh_program.name, "dynamic_lights");
+  r_mesh_program.active_lights = glGetUniformLocation(r_mesh_program.name, "active_lights");
 
   r_mesh_program.model = glGetUniformLocation(r_mesh_program.name, "model");
 

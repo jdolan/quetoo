@@ -95,11 +95,14 @@ void R_UpdateLights(r_view_t *view) {
 }
 
 /**
- * @brief Writes the indexes of dynamic lights intersecting bounds to the given uniform name.
+ * @brief Writes the indexes of active lights intersecting bounds to the given uniform name.
+ * @details In normal gameplay, these are dynamic light sources (rockets, explosions, etc).
+ * @details When the in-game editor is enabled, all lights use this code path.
+ * @remarks The uniform must be an `int[MAX_LIGHTS]`.
  */
-void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
+void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
-  GLint dynamic_lights[MAX_LIGHTS];
+  GLint active_lights[MAX_LIGHTS];
   GLint len = 0;
 
   const r_light_t *l = view->lights;
@@ -110,15 +113,15 @@ void R_DynamicLights(const r_view_t *view, const box3_t bounds, GLint name) {
     }
 
     if (Box3_Intersects(l->bounds, bounds)) {
-      dynamic_lights[len++] = i;
+      active_lights[len++] = i;
     }
   }
 
   if (len < MAX_LIGHTS) {
-    dynamic_lights[len++] = -1;
+    active_lights[len++] = -1;
   }
 
-  glUniform1iv(name, len, dynamic_lights);
+  glUniform1iv(name, len, active_lights);
   R_GetError(NULL);
 }
 
