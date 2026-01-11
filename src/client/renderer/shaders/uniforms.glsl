@@ -144,7 +144,7 @@ layout (std140) uniform uniforms_block {
   /**
    * @brief The developer toggle, used for shader development tweaking.
    */
-  float developer;
+  int developer;
 };
 
 /**

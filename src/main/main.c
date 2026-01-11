@@ -37,6 +37,7 @@ static cvar_t *verbose;
 cvar_t *version;
 cvar_t *revision;
 cvar_t *dedicated;
+cvar_t *developer;
 cvar_t *editor;
 cvar_t *game;
 cvar_t *ai;
@@ -299,6 +300,7 @@ static void Init(void) {
     Cvar_ForceSetInteger(dedicated->name, 1);
   }
 
+  developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
   editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
   game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");

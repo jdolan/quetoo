@@ -195,7 +195,7 @@ typedef struct {
     /**
      * @brief The developer flags.
      */
-    float developer;
+    int developer;
   } block;
 
 } r_uniforms_t;
@@ -209,7 +209,6 @@ extern r_uniforms_t r_uniforms;
 extern cvar_t *r_alpha_test;
 extern cvar_t *r_cull;
 extern cvar_t *r_depth_pass;
-extern cvar_t *r_developer;
 extern cvar_t *r_draw_occlusion_queries;
 extern cvar_t *r_draw_bsp_blocks;
 extern cvar_t *r_draw_bsp_normals;

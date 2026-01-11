@@ -28,7 +28,6 @@ r_stats_t r_stats;
 cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
-cvar_t *r_developer;
 cvar_t *r_draw_occlusion_queries;
 cvar_t *r_draw_bsp_blocks;
 cvar_t *r_draw_bsp_normals;
@@ -157,7 +156,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->caustics = r_caustics->value;
     out->fog_density = r_fog_density->value;
     out->fog_samples = r_fog_samples->value;
-    out->developer = r_developer->value;
+    out->developer = developer->integer;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
@@ -336,7 +335,6 @@ static void R_InitLocal(void) {
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
-  r_developer = Cvar_Add("r_developer", "0", CVAR_DEVELOPER, "Controls shader debugging tools (developer tool)");
   r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
   r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
   r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
