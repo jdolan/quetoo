@@ -84,10 +84,6 @@ void Cg_AddLight(const cg_light_t *in) {
  */
 static void Cg_AddBspLights(void) {
 
-  if (editor->value) {
-    return;
-  }
-
   const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 

@@ -596,10 +596,10 @@ static void Cl_UpdateScene(void) {
   cls.cgame->PrepareScene(&cl.frame);
 
   if (editor->value) {
-    Cl_PopulateEditorScene(&cl.frame);
+    thread = Thread_Create((ThreadRunFunc) Cl_PopulateEditorScene, &cl.frame, THREAD_NONE);
+  } else {
+    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }
-
-  thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
 
   R_DrawViewDepth(&cl_view);
 

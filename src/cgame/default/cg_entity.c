@@ -249,46 +249,37 @@ static void Cg_AddEntity(cl_entity_t *ent) {
     .color = Color32_Vec4(ent->current.color),
   };
 
-  if (editor->value) {
+  // add effects, augmenting the renderer entity
+  Cg_EntityEffects(ent, &e);
 
-    if (ent == cgi.client->entity) {
-      return;
-    }
-
-  } else {
-
-    // add effects, augmenting the renderer entity
-    Cg_EntityEffects(ent, &e);
-
-    // if there's no model associated with the entity, we're done
-    if (!ent->current.model1) {
-      return;
-    }
-
-    if (ent->current.effects & EF_CLIENT) {
-
-      // add a client entity, with an animated player model
-      Cg_AddClientEntity(ent, &e);
-
-      // add our view weapon, if it's us
-      if (ent == cgi.client->entity) {
-        Cg_AddWeapon(ent, &e);
-      }
-
-      return;
-    }
-
-    // don't draw our own giblet, since the view is inside it
-    if (ent == cgi.client->entity && !cgi.client->third_person) {
-      e.effects |= EF_NO_DRAW;
-    }
-
-    // assign the model
-    e.model = cgi.client->models[ent->current.model1];
-
-    // and any frame animations (button state, etc)
-    e.frame = ent->current.animation1;
+  // if there's no model associated with the entity, we're done
+  if (!ent->current.model1) {
+    return;
   }
+
+  if (ent->current.effects & EF_CLIENT) {
+
+    // add a client entity, with an animated player model
+    Cg_AddClientEntity(ent, &e);
+
+    // add our view weapon, if it's us
+    if (ent == cgi.client->entity) {
+      Cg_AddWeapon(ent, &e);
+    }
+
+    return;
+  }
+
+  // don't draw our own giblet, since the view is inside it
+  if (ent == cgi.client->entity && !cgi.client->third_person) {
+    e.effects |= EF_NO_DRAW;
+  }
+
+  // assign the model
+  e.model = cgi.client->models[ent->current.model1];
+
+  // and any frame animations (button state, etc)
+  e.frame = ent->current.animation1;
 
   // add to view list
   cgi.AddEntity(cgi.view, &e);
@@ -320,12 +311,6 @@ void Cg_AddEntities(const cl_frame_t *frame) {
     const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
     const entity_state_t *s = &cgi.client->entity_states[snum];
     cl_entity_t *ent = &cgi.client->entities[s->number];
-
-    // Ensure ent->current matches the fresh state from this frame
-    // This fixes a bug where entity slots are reused but ent->current contains stale data
-    if (ent->current.number != s->number || ent->current.spawn_id != s->spawn_id) {
-      ent->current = *s;
-    }
 
     Cg_EntityTrail(ent);
 
