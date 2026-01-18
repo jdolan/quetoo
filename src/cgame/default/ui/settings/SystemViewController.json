@@ -34,7 +34,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Video mode"
+                            "text": "Window resolution"
                           }
                         },
                         "control": {
@@ -107,7 +107,22 @@
                   },
                   "contentView": {
                     "subviews": [
-
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Render scale"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "identifier": "supersample",
+                          "var": "r_supersample",
+                          "min": 0.25,
+                          "max": 2.0,
+                          "step": .25
+                        }
+                      },
                       {
                         "class": "Input",
                         "label": {
@@ -119,19 +134,6 @@
                           "class": "CvarSelect",
                           "identifier": "anisotropy",
                           "var": "r_anisotropy"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Supersample"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSelect",
-                          "identifier": "supersample",
-                          "var": "r_supersample"
                         }
                       }
                     ]

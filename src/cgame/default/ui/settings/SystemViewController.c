@@ -57,7 +57,7 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  Select *videoMode, *windowMode, *verticalSync, *anisotropy, *supersample;
+  Select *videoMode, *windowMode, *verticalSync, *anisotropy;
 
   Button *apply;
 
@@ -66,7 +66,6 @@ static void loadView(ViewController *self) {
     MakeOutlet("windowMode", &windowMode),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
-    MakeOutlet("supersample", &supersample),
     MakeOutlet("apply", &apply)
   );
 
@@ -92,10 +91,6 @@ static void loadView(ViewController *self) {
   $(anisotropy, addOption, "4x", (ident) 4);
   $(anisotropy, addOption, "8x", (ident) 8);
   $(anisotropy, addOption, "16x", (ident) 16);
-
-  $(supersample, addOption, "Off", (ident) 0);
-  $(supersample, addOption, "2x", (ident) 2);
-  $(supersample, addOption, "4x", (ident) 4);
 
   apply->delegate.didClick = didClickApply;
   apply->delegate.self = self;

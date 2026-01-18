@@ -64,6 +64,11 @@ struct CvarSelect {
    * @brief Set to true if the variable expects a string value, false for integer.
    */
   bool expectsStringValue;
+
+  /**
+   * @brief Set to true if the variable expects a floating point value, false for integer.
+   */
+  bool expectsFloatValue;
 };
 
 /**

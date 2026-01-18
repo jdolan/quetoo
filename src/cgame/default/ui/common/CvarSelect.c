@@ -111,6 +111,8 @@ static void didSelectOption(Select *select, Option *option) {
     if (this->expectsStringValue) {
       const char *string = option->value ?: option->title->text;
       cgi.SetCvarString(this->var->name, string);
+    } else if (this->expectsFloatValue) {
+      cgi.SetCvarValue(this->var->name, (float) (intptr_t) option->value);
     } else {
       cgi.SetCvarInteger(this->var->name, (int32_t) (intptr_t) option->value);
     }
