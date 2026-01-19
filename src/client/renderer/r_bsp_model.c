@@ -339,8 +339,6 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->num_depth_pass_elements = in->num_depth_pass_elements;
 
     g_strlcpy(out->style, in->style, sizeof(out->style));
-    out->style_index = 0;
-    out->style_time = 0;
   }
 }
 

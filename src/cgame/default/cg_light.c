@@ -91,16 +91,13 @@ static void Cg_AddBspLights(void) {
 
     if (*l->style) {
       const size_t len = strlen(l->style);
+      const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
+      const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
 
-      if (cgi.client->unclamped_time - l->style_time >= 100) {
-        l->style_index++;
-        l->style_time = cgi.client->unclamped_time;
-      }
+      const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
 
-      const float lerp = (cgi.client->unclamped_time - l->style_time) / 100.f;
-
-      const float s = (l->style[(l->style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-      const float t = (l->style[(l->style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+      const float s = (l->style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+      const float t = (l->style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
 
       const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
       intensity *= style_value;
