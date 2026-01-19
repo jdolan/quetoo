@@ -78,6 +78,9 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       light->color = LIGHT_COLOR;
     }
 
+    const char *style = Cm_EntityValue(entity, "style")->string;
+    g_strlcpy(light->style, style, sizeof(light->style));
+
     light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
     light->visible_bounds = Box3_Null();
 
@@ -164,6 +167,7 @@ void EmitLights(void) {
     out->color = light->color;
     out->intensity = light->intensity;
     out->bounds = light->visible_bounds;
+    g_strlcpy(out->style, light->style, sizeof(out->style));
 
     out->first_depth_pass_element = bsp_file.num_elements;
 

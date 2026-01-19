@@ -704,6 +704,21 @@ typedef struct {
    * @brief The count of elements.
    */
   int32_t num_depth_pass_elements;
+
+  /**
+   * @brief The style string, a-z (26 levels), animated at 10Hz.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
+
+  /**
+   * @brief The current index into the style string, using modulo.
+   */
+  uint32_t style_index;
+
+  /**
+   * @brief The last time the style animation was advanced.
+   */
+  uint32_t style_time;
 } r_bsp_light_t;
 
 /**

@@ -535,6 +535,11 @@ typedef struct {
   box3_t bounds;
 
   /**
+   * @brief The style string, a-z (26 levels), animated at 10Hz.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
+
+  /**
    * @brief The index of the first element of this light's depth pass geometry.
    */
   int32_t first_depth_pass_element;

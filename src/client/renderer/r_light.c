@@ -39,18 +39,6 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
 }
 
 /**
- * @brief
- */
-static void R_AddLightUniform(r_view_t *view, r_light_t *in) {
-
-  const ptrdiff_t index = in - view->lights;
-  r_light_uniform_t *out = &r_lights.block.lights[index];
-
-  out->origin = Vec3_ToVec4(in->origin, in->radius);
-  out->color = Vec3_ToVec4(in->color, in->intensity);
-}
-
-/**
  * @brief Transform lights into their uniform representation and upload them.
  */
 void R_UpdateLights(r_view_t *view) {
@@ -77,7 +65,10 @@ void R_UpdateLights(r_view_t *view) {
       r_stats.lights_occluded++;
     } else {
       r_stats.lights_visible++;
-      R_AddLightUniform(view, l);
+
+      r_light_uniform_t *uniform = &out->lights[i];
+      uniform->origin = Vec3_ToVec4(l->origin, l->radius);
+      uniform->color = Vec3_ToVec4(l->color, l->intensity);
     }
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {

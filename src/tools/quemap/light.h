@@ -67,6 +67,11 @@ typedef struct light_s {
   box3_t visible_bounds;
 
   /**
+   * @brief The light style.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
+
+  /**
    * @brief The output light in the BSP, so that voxels may reference them.
    */
   bsp_light_t *out;

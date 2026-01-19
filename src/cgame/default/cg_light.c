@@ -84,14 +84,33 @@ void Cg_AddLight(const cg_light_t *in) {
  */
 static void Cg_AddBspLights(void) {
 
-  const r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
+  r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
+
+    float intensity = l->intensity ?: 1.f;
+
+    if (*l->style) {
+      const size_t len = strlen(l->style);
+
+      if (cgi.client->unclamped_time - l->style_time >= 100) {
+        l->style_index++;
+        l->style_time = cgi.client->unclamped_time;
+      }
+
+      const float lerp = (cgi.client->unclamped_time - l->style_time) / 100.f;
+
+      const float s = (l->style[(l->style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+      const float t = (l->style[(l->style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+      const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+      intensity *= style_value;
+    }
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
       .origin = l->origin,
       .color = l->color,
       .radius = l->radius,
-      .intensity = l->intensity,
+      .intensity = intensity,
       .bounds = l->bounds,
       .query = l->query,
       .bsp_light = l,
