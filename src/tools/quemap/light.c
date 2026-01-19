@@ -40,17 +40,23 @@ static void FreeLight(light_t *light) {
 }
 
 /**
- * @brief
+ * @brief Finds the team_master light entity for the given team.
  */
-const cm_entity_t *EntityTarget(const cm_entity_t *entity) {
+static const cm_entity_t *FindTeamMaster(const char *team) {
 
-  const char *targetname = Cm_EntityValue(entity, "target")->nullable_string;
-  if (targetname) {
+  if (!team) {
+    return NULL;
+  }
 
-    cm_entity_t **e = Cm_Bsp()->entities;
-    for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
-      if (!g_strcmp0(targetname, Cm_EntityValue(*e, "targetname")->nullable_string)) {
-        return *e;
+  cm_entity_t **e = Cm_Bsp()->entities;
+  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, e++) {
+    const char *classname = Cm_EntityValue(*e, "classname")->string;
+    if (!g_strcmp0(classname, "light")) {
+      const char *ent_team = Cm_EntityValue(*e, "team")->nullable_string;
+      if (ent_team && !g_strcmp0(ent_team, team)) {
+        if (Cm_EntityValue(*e, "team_master")->parsed) {
+          return *e;
+        }
       }
     }
   }
@@ -70,16 +76,33 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 
     light->entity = Cm_EntityNumber(entity);
     light->origin = Cm_EntityValue(entity, "origin")->vec3;
-    light->radius = Cm_EntityValue(entity, "radius")->value ?: LIGHT_RADIUS;
-    light->intensity = Cm_EntityValue(entity, "intensity")->value ?: LIGHT_INTENSITY;
+    light->radius = Cm_EntityValue(entity, "radius")->value;
     light->color = Cm_EntityValue(entity, "color")->vec3;
+    light->intensity = Cm_EntityValue(entity, "intensity")->value;
+    g_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
+
+    const cm_entity_t *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
+    if (master) {
+      light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
+
+      if (Vec3_Equal(Vec3_Zero(), light->color)) {
+        light->color = Cm_EntityValue(master, "color")->vec3;
+      }
+
+      light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
+
+      if (!*light->style) {
+        g_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
+      }
+    }
+
+    light->radius = light->radius ?: LIGHT_RADIUS;
 
     if (Vec3_Equal(Vec3_Zero(), light->color)) {
       light->color = LIGHT_COLOR;
     }
 
-    const char *style = Cm_EntityValue(entity, "style")->string;
-    g_strlcpy(light->style, style, sizeof(light->style));
+    light->intensity = light->intensity ?: LIGHT_INTENSITY;
 
     light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
     light->visible_bounds = Box3_Null();

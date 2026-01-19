@@ -21,6 +21,10 @@
 
 #include "cl_local.h"
 
+#define LIGHT_RADIUS 300.f
+#define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
+#define LIGHT_INTENSITY 1.f
+
 /**
  * @brief
  */
@@ -41,6 +45,35 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
     .user.code = NOTIFICATION_ENTITY_PARSED,
     .user.data1 = (void *) (intptr_t) number
   });
+}
+
+/**
+ * @brief Finds the `team_master` light entity for the given team.
+ */
+static const cm_entity_t *Cl_FindTeamMaster(const char *team) {
+
+  if (!team) {
+    return NULL;
+  }
+
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    const cm_entity_t *entity = cl.entity_definitions[i];
+    if (!entity) {
+      continue;
+    }
+
+    const char *classname = Cm_EntityValue(entity, "classname")->string;
+    if (!g_strcmp0(classname, "light")) {
+      const char *ent_team = Cm_EntityValue(entity, "team")->nullable_string;
+      if (ent_team && !g_strcmp0(ent_team, team)) {
+        if (Cm_EntityValue(entity, "team_master")->parsed) {
+          return entity;
+        }
+      }
+    }
+  }
+
+  return NULL;
 }
 
 /**
@@ -83,11 +116,36 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       light.origin = Cm_EntityValue(def, "origin")->vec3;
       light.radius = Cm_EntityValue(def, "radius")->value;
       light.color = Cm_EntityValue(def, "color")->vec3;
-      light.intensity = Cm_EntityValue(def, "intensity")->value ?: 1.f;
+      light.intensity = Cm_EntityValue(def, "intensity")->value;
+
+      const char *style = Cm_EntityValue(def, "style")->nullable_string;
+
+      const cm_entity_t *master = Cl_FindTeamMaster(Cm_EntityValue(def, "team")->nullable_string);
+      if (master) {
+        light.radius = light.radius ?: Cm_EntityValue(master, "radius")->value;
+
+        if (Vec3_Equal(Vec3_Zero(), light.color)) {
+          light.color = Cm_EntityValue(master, "color")->vec3;
+        }
+
+        light.intensity = light.intensity ?: Cm_EntityValue(master, "intensity")->value;
+
+        if (!style) {
+          style = Cm_EntityValue(master, "style")->nullable_string;
+        }
+      }
+
+      light.radius = light.radius ?: LIGHT_RADIUS;
+
+      if (Vec3_Equal(Vec3_Zero(), light.color)) {
+        light.color = LIGHT_COLOR;
+      }
+
+      light.intensity = light.intensity ?: LIGHT_INTENSITY;
+
       light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
 
-      const char *style = Cm_EntityValue(def, "style")->string;
-      if (*style) {
+      if (style && *style) {
         const size_t len = strlen(style);
         const uint32_t style_index = (cl.unclamped_time / 100) % len;
         const uint32_t style_time = (cl.unclamped_time / 100) * 100;
