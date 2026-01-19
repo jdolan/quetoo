@@ -83,8 +83,23 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       light.origin = Cm_EntityValue(def, "origin")->vec3;
       light.radius = Cm_EntityValue(def, "radius")->value;
       light.color = Cm_EntityValue(def, "color")->vec3;
-      light.intensity = Cm_EntityValue(def, "intensity")->value;
+      light.intensity = Cm_EntityValue(def, "intensity")->value ?: 1.f;
       light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
+
+      const char *style = Cm_EntityValue(def, "style")->string;
+      if (*style) {
+        const size_t len = strlen(style);
+        const uint32_t style_index = (cl.unclamped_time / 100) % len;
+        const uint32_t style_time = (cl.unclamped_time / 100) * 100;
+
+        const float lerp = (cl.unclamped_time - style_time) / 100.f;
+
+        const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+        const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+        const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+        light.intensity *= style_value;
+      }
 
       R_AddLight(&cl_view, &light);
     }
