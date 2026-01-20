@@ -1,5 +1,5 @@
 {
-  "identifier": "Entity",
+  "identifier": "entity",
   "classNames": [
     "container"
   ],
@@ -23,6 +23,33 @@
         {
           "identifier": "add",
           "class": "EntityView"
+        },
+        {
+          "identifier": "teamEntity",
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "Team Master"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "identifier": "teamPairs",
+                "class": "StackView",
+                "classNames": [
+                  "container"
+                ],
+                "subviews": [
+                  
+                ]
+              },
+              {
+                "identifier": "teamAdd",
+                "class": "EntityView"
+              }
+            ]
+          }
         }
       ]
     }

@@ -50,30 +50,26 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
 /**
  * @brief Finds the `team_master` light entity for the given team.
  */
-static const cm_entity_t *Cl_FindTeamMaster(const char *team) {
+int32_t Cl_FindTeamMaster(const char *team) {
 
   if (!team) {
-    return NULL;
+    return -1;
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const cm_entity_t *entity = cl.entity_definitions[i];
-    if (!entity) {
+    const cm_entity_t *e = cl.entity_definitions[i];
+    if (!e) {
       continue;
     }
 
-    const char *classname = Cm_EntityValue(entity, "classname")->string;
-    if (!g_strcmp0(classname, "light")) {
-      const char *ent_team = Cm_EntityValue(entity, "team")->nullable_string;
-      if (ent_team && !g_strcmp0(ent_team, team)) {
-        if (Cm_EntityValue(entity, "team_master")->parsed) {
-          return entity;
-        }
+    if (!g_strcmp0(Cm_EntityValue(e, "team")->string, team)) {
+      if (Cm_EntityValue(e, "team_master")->parsed) {
+        return i;
       }
     }
   }
 
-  return NULL;
+  return -1;
 }
 
 /**
@@ -120,8 +116,9 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
 
       const char *style = Cm_EntityValue(def, "style")->nullable_string;
 
-      const cm_entity_t *master = Cl_FindTeamMaster(Cm_EntityValue(def, "team")->nullable_string);
-      if (master) {
+      const int32_t team_master = Cl_FindTeamMaster(Cm_EntityValue(def, "team")->nullable_string);
+      if (team_master > -1) {
+        const cm_entity_t *master = cl.entity_definitions[team_master];
         light.radius = light.radius ?: Cm_EntityValue(master, "radius")->value;
 
         if (Vec3_Equal(Vec3_Zero(), light.color)) {

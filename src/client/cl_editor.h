@@ -23,6 +23,8 @@
 
 #include "cl_types.h"
 
+int32_t Cl_FindTeamMaster(const char *team);
+
 #ifdef __CL_LOCAL_H__
 void Cl_ParseEditorEntity(int16_t number, const char *info);
 void Cl_PopulateEditorScene(const cl_frame_t *frame);

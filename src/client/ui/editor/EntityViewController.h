@@ -61,14 +61,29 @@ struct EntityViewController {
   StackView *pairs;
 
   /**
+   * @brief The StackView containing the team pairs.
+   */
+  StackView *teamPairs;
+
+  /**
    * @brief The EntityView reserved for adding a new pair to the current entity.
    */
   EntityView *add;
 
   /**
+   * @brief The EntityView reserved for adding a new pair to the current team entity.
+   */
+  EntityView *teamAdd;
+
+  /**
    * @brief The entity being edited.
    */
   EditorEntity entity;
+
+  /**
+   * @brief The team entity being edited.
+   */
+  EditorEntity teamEntity;
 
   /**
    * @brief The info string of the most recently created entity. When this entity returns to us

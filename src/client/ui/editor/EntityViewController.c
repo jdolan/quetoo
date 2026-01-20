@@ -69,13 +69,34 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
     }
 
     Cm_EntitySetKeyValue(this->entity.def, def->key, ENTITY_STRING, def->string);
+
+    $(this->add->key, setAttributedText, NULL);
+    $(this->add->value, setAttributedText, NULL);
   }
 
   Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
+}
 
-  if (view == this->add) {
-    $(view, setEntity, &view->entity);
+/**
+ * @brief EntityViewDelegate.
+ */
+static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
+
+  EntityViewController *this = view->delegate.self;
+
+  if (view == this->teamAdd) {
+
+    if (!strlen(def->key) || !strlen(def->string)) {
+      return;
+    }
+
+    Cm_EntitySetKeyValue(this->teamEntity.def, def->key, ENTITY_STRING, def->string);
+
+    $(this->teamAdd->key, setAttributedText, NULL);
+    $(this->teamAdd->value, setAttributedText, NULL);
   }
+
+  Cl_WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
 }
 
 #pragma mark - Object
@@ -103,7 +124,9 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("pairs", &this->pairs),
-    MakeOutlet("add", &this->add)
+    MakeOutlet("add", &this->add),
+    MakeOutlet("teamPairs", &this->teamPairs),
+    MakeOutlet("teamAdd", &this->teamAdd)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
@@ -114,6 +137,9 @@ static void loadView(ViewController *self) {
 
   this->add->delegate.self = this;
   this->add->delegate.didEditEntity = didEditEntity;
+
+  this->teamAdd->delegate.self = this;
+  this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
 }
 
 /**
@@ -257,7 +283,9 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cl.config_strings[CS_ENTITIES + number];
 
-        if (number == this->entity.number || !g_strcmp0(this->created, info)) {
+        if (number == this->entity.number
+            || number == this->teamEntity.number
+            || !g_strcmp0(this->created, info)) {
 
           $(this, setEntity, &(EditorEntity) {
             .number = number,
@@ -365,10 +393,12 @@ static EntityViewController *init(EntityViewController *self) {
 static void setEntity(EntityViewController *self, EditorEntity *entity) {
 
   $((View *) self->pairs, removeAllSubviews);
+  $((View *) self->teamPairs, removeAllSubviews);
 
   if (entity) {
 
     self->entity = *entity;
+    self->teamEntity = *entity;
 
     for (cm_entity_t *e = self->entity.def; e; e = e->next) {
 
@@ -390,10 +420,53 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
       release(view);
     }
 
+    const char *classname = Cm_EntityValue(self->entity.def, "classname")->string;
+    if (!g_strcmp0(classname, "light")) {
+
+      const char *team = Cm_EntityValue(self->entity.def, "team")->nullable_string;
+      const int32_t teamMaster = Cl_FindTeamMaster(team);
+      if (teamMaster != -1 && teamMaster != self->entity.number) {
+
+        self->teamEntity = (EditorEntity) {
+          .number = teamMaster,
+          .ent = &cl.entities[teamMaster],
+          .def = cl.entity_definitions[teamMaster]
+        };
+
+        for (cm_entity_t *e = self->teamEntity.def; e; e = e->next) {
+
+          if (g_str_has_prefix(e->key, "_tb_")
+              || !g_strcmp0(e->key, "classname")
+              || !g_strcmp0(e->key, "origin")
+              || !g_strcmp0(e->key, "team")
+              || !g_strcmp0(e->key, "team_master")) {
+            continue;
+          }
+
+          EntityView *view = $(alloc(EntityView), initWithEntity, &(EditorEntity) {
+            .number = self->teamEntity.number,
+            .ent = self->teamEntity.ent,
+            .def = e
+          });
+
+          view->delegate.self = self;
+          view->delegate.didEditEntity = didEditTeamEntity;
+
+          $((View *) self->teamPairs, addSubview, (View *) view);
+
+          release(view);
+        }
+      }
+    }
+
   } else {
     self->entity.number = -1;
     self->entity.ent = NULL;
     self->entity.def = NULL;
+
+    self->teamEntity.number = -1;
+    self->teamEntity.ent = NULL;
+    self->teamEntity.def = NULL;
   }
 
   $((View *) self->pairs, sizeToFit);

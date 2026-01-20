@@ -9,22 +9,30 @@ Panel.editor .tabPageView {
   height: 500;
 }
 
-#Entity {
+#entity {
   padding: 4;
 }
 
-#Entity .entity {
+#entity .entity {
   axis: StackViewAxisHorizontal;
 }
 
-#Entity .entity .value {
-  min-width: 240;
+#entity .entity .value {
+  min-width: 230;
 }
 
-#Entity #add {
+#entity #add {
 
 }
 
-#Material Input Label {
+#teamEntity {
+  background-color: #22222244;
+}
+
+#teamEntity .entity .value {
+  min-width: 210;
+}
+
+#material Input Label {
   width: 200;
 }
