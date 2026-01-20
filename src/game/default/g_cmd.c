@@ -179,22 +179,20 @@ static void G_God_f(g_client_t *cl) {
  * @brief
  */
 static void G_NoClip_f(g_client_t *cl) {
-  char *msg;
 
-  if (sv_max_clients->integer > 1 && !g_cheats->value) {
-    gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
+  if (editor->value) {
     return;
   }
 
-  if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
+  if (sv_max_clients->integer > 1 && !g_cheats->value) {
+    gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
+  } else if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
     cl->entity->move_type = MOVE_TYPE_WALK;
-    msg = "no_clip OFF\n";
+    gi.ClientPrint(cl, PRINT_HIGH, "no_clip disabled\n");
   } else {
     cl->entity->move_type = MOVE_TYPE_NO_CLIP;
-    msg = "no_clip ON\n";
+    gi.ClientPrint(cl, PRINT_HIGH, "no_clip enabled\n");
   }
-
-  gi.ClientPrint(cl, PRINT_HIGH, "%s", msg);
 }
 
 /**
