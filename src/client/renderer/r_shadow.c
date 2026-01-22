@@ -75,6 +75,18 @@ static struct {
 } r_shadow_textures;
 
 /**
+ * @brief Pre-culled entities for shadow rendering.
+ * @details Populated once per light to avoid redundant culling tests across 6 cubemap faces.
+ */
+static struct {
+  const r_entity_t *bsp_entities[MAX_ENTITIES];
+  int32_t num_bsp_entities;
+
+  const r_entity_t *mesh_entities[MAX_ENTITIES];
+  int32_t num_mesh_entities;
+} r_shadow_entities;
+
+/**
  * @brief
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
@@ -106,15 +118,13 @@ static void R_DrawBspEntityShadow(const r_view_t *view, const r_light_t *light, 
 }
 
 /**
- * @brief
+ * @brief Culls BSP entities for shadow rendering against the specified light.
+ * @details Performs all culling tests once and builds a list of visible entities.
+ * This avoids redundant testing across all 6 cubemap faces.
  */
-static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static void R_CullBspEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
 
-  const r_bsp_model_t *bsp = r_models.world->bsp;
-  glBindVertexArray(bsp->depth_pass.vertex_array);
-
-  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-  glUniform1f(r_shadow_program.lerp, 0.f);
+  r_shadow_entities.num_bsp_entities = 0;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -144,7 +154,24 @@ static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light
       continue;
     }
 
-    R_DrawBspEntityShadow(view, light, e);
+    r_shadow_entities.bsp_entities[r_shadow_entities.num_bsp_entities++] = e;
+  }
+}
+
+/**
+ * @brief Draws BSP entity shadows for the specified light.
+ * @details Iterates the pre-culled list built by R_CullBspEntitiesForShadow().
+ */
+static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  glBindVertexArray(bsp->depth_pass.vertex_array);
+
+  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+  glUniform1f(r_shadow_program.lerp, 0.f);
+
+  for (int32_t i = 0; i < r_shadow_entities.num_bsp_entities; i++) {
+    R_DrawBspEntityShadow(view, light, r_shadow_entities.bsp_entities[i]);
   }
 
   glBindVertexArray(0);
@@ -190,17 +217,13 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 }
 
 /**
- * @brief Draws mesh entity shadows for the specified light.
- * @return The number of mesh entities that were rendered.
+ * @brief Culls mesh entities for shadow rendering against the specified light.
+ * @details Performs all culling tests once and builds a list of visible entities.
+ * This avoids redundant testing across all 6 cubemap faces.
  */
-static int32_t R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static void R_CullMeshEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
 
-  glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
-
-  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
-
-  int32_t count = 0;
+  r_shadow_entities.num_mesh_entities = 0;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -238,13 +261,26 @@ static int32_t R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *l
       continue;
     }
 
-    R_DrawMeshEntityShadow(view, light, e);
-    count++;
+    r_shadow_entities.mesh_entities[r_shadow_entities.num_mesh_entities++] = e;
+  }
+}
+
+/**
+ * @brief Draws mesh entity shadows for the specified light.
+ * @details Iterates the pre-culled list built by R_CullMeshEntitiesForShadow().
+ */
+static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+
+  glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
+
+  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+
+  for (int32_t i = 0; i < r_shadow_entities.num_mesh_entities; i++) {
+    R_DrawMeshEntityShadow(view, light, r_shadow_entities.mesh_entities[i]);
   }
 
   glBindVertexArray(0);
-
-  return count;
 }
 
 /**
@@ -263,7 +299,13 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
   const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
   const float dist = Vec3_Distance(closest_point, view->origin);
 
-  int32_t mesh_entity_count = 0;
+  R_CullBspEntitiesForShadow(view, light);
+
+  if (r_shadows->value && dist <= r_shadow_distance->value) {
+    R_CullMeshEntitiesForShadow(view, light);
+  } else {
+    r_shadow_entities.num_mesh_entities = 0;
+  }
 
   for (GLint face = 0; face < 6; face++) {
 
@@ -277,15 +319,17 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
     glUniform1i(r_shadow_program.face_index, face);
 
-    R_DrawBspEntitiesShadow(view, light);
+    if (r_shadow_entities.num_bsp_entities > 0) {
+      R_DrawBspEntitiesShadow(view, light);
+    }
 
-    if (r_shadows->value && dist <= r_shadow_distance->value) {
-      mesh_entity_count += R_DrawMeshEntitiesShadow(view, light);
+    if (r_shadow_entities.num_mesh_entities > 0) {
+      R_DrawMeshEntitiesShadow(view, light);
     }
   }
 
   if (light->shadow_cached) {
-    *light->shadow_cached = (mesh_entity_count == 0);
+    *light->shadow_cached = (r_shadow_entities.num_mesh_entities == 0);
   }
 
   R_GetError(NULL);
