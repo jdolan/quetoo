@@ -190,14 +190,17 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
 }
 
 /**
- * @brief
+ * @brief Draws mesh entity shadows for the specified light.
+ * @return The number of mesh entities that were rendered.
  */
-static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+static int32_t R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
   glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
 
   glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+
+  int32_t count = 0;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -236,9 +239,12 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
     }
 
     R_DrawMeshEntityShadow(view, light, e);
+    count++;
   }
 
   glBindVertexArray(0);
+
+  return count;
 }
 
 /**
@@ -246,12 +252,18 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
+  if (light->bsp_light && light->bsp_light->shadow_cached) {
+    return;
+  }
+
   const GLint index = (GLint) (light - view->lights);
 
   glUniform1i(r_shadow_program.light_index, index);
 
   const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
   const float dist = Vec3_Distance(closest_point, view->origin);
+
+  int32_t mesh_entity_count = 0;
 
   for (GLint face = 0; face < 6; face++) {
 
@@ -268,8 +280,12 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     R_DrawBspEntitiesShadow(view, light);
 
     if (r_shadows->value && dist <= r_shadow_distance->value) {
-      R_DrawMeshEntitiesShadow(view, light);
+      mesh_entity_count += R_DrawMeshEntitiesShadow(view, light);
     }
+  }
+
+  if (light->bsp_light) {
+    light->bsp_light->shadow_cached = (mesh_entity_count == 0);
   }
 
   R_GetError(NULL);

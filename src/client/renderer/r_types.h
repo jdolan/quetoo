@@ -709,6 +709,11 @@ typedef struct {
    * @brief The style string, a-z (26 levels), animated at 10Hz.
    */
   char style[MAX_BSP_ENTITY_VALUE];
+
+  /**
+   * @brief True if this light's shadowmap can be reused from the previous frame.
+   */
+  bool shadow_cached;
 } r_bsp_light_t;
 
 /**
@@ -1512,7 +1517,7 @@ typedef struct {
   /**
    * @brief The backing BSP light, for static light sources.
    */
-  const r_bsp_light_t *bsp_light;
+  r_bsp_light_t *bsp_light;
 
   /**
    * @brief The optional light source, which will not cast shadow.
