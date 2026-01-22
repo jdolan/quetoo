@@ -288,14 +288,6 @@ static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *ligh
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
-  if (light->shadow_cached && *light->shadow_cached) {
-    return;
-  }
-
-  const GLint index = (GLint) (light - view->lights);
-
-  glUniform1i(r_shadow_program.light_index, index);
-
   const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
   const float dist = Vec3_Distance(closest_point, view->origin);
 
@@ -306,6 +298,19 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
   } else {
     r_shadow_entities.num_mesh_entities = 0;
   }
+
+  const bool is_shadow_cacheable = r_shadow_entities.num_bsp_entities == 1
+                                && r_shadow_entities.num_mesh_entities == 0;
+
+  if (is_shadow_cacheable) {
+    if (light->shadow_cached && *light->shadow_cached) {
+      return;
+    }
+  }
+
+  const GLint index = (GLint) (light - view->lights);
+
+  glUniform1i(r_shadow_program.light_index, index);
 
   for (GLint face = 0; face < 6; face++) {
 
@@ -329,7 +334,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
   }
 
   if (light->shadow_cached) {
-    *light->shadow_cached = (r_shadow_entities.num_mesh_entities == 0);
+    *light->shadow_cached = is_shadow_cacheable;
   }
 
   R_GetError(NULL);
