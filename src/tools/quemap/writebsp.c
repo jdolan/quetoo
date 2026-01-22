@@ -535,12 +535,13 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
     bsp_face_t *face = bsp_file.faces + mod->first_face;
     for (int32_t i = 0; i < mod->num_faces; i++, face++) {
-      if (Box3_Contains(Box3_Expand(node->bounds, 1.f), face->bounds)) {
+      if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
         g_ptr_array_add(faces, face);
       }
     }
 
     if (faces->len == 0) {
+      g_ptr_array_free(faces, true);
       return;
     }
 
