@@ -111,6 +111,7 @@ static void Cg_AddBspLights(void) {
       .bounds = l->bounds,
       .query = l->query,
       .bsp_light = l,
+      .shadow_cached = &l->shadow_cached,
     });
   }
 }

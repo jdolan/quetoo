@@ -252,7 +252,7 @@ static int32_t R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *l
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
-  if (light->bsp_light && light->bsp_light->shadow_cached) {
+  if (light->shadow_cached && *light->shadow_cached) {
     return;
   }
 
@@ -284,8 +284,8 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     }
   }
 
-  if (light->bsp_light) {
-    light->bsp_light->shadow_cached = (mesh_entity_count == 0);
+  if (light->shadow_cached) {
+    *light->shadow_cached = (mesh_entity_count == 0);
   }
 
   R_GetError(NULL);

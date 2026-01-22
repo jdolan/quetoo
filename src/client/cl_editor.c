@@ -26,6 +26,12 @@
 #define LIGHT_INTENSITY 1.f
 
 /**
+ * @brief Persistent storage for editor light shadow cache state.
+ * @details Indexed by entity number to track shadowmap caching per light.
+ */
+static bool cl_editor_shadow_cached[MAX_ENTITIES];
+
+/**
  * @brief
  */
 void Cl_ParseEditorEntity(int16_t number, const char *info) {
@@ -39,6 +45,8 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
   } else {
     cl.entity_definitions[number] = NULL;
   }
+
+  cl_editor_shadow_cached[number] = false;
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
@@ -155,6 +163,8 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
         const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
         light.intensity *= style_value;
       }
+
+      light.shadow_cached = &cl_editor_shadow_cached[s->number];
 
       R_AddLight(&cl_view, &light);
     }

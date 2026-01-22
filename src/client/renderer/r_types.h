@@ -1517,7 +1517,12 @@ typedef struct {
   /**
    * @brief The backing BSP light, for static light sources.
    */
-  r_bsp_light_t *bsp_light;
+  const r_bsp_light_t *bsp_light;
+
+  /**
+   * @brief Pointer to the shadow cache flag for this light.
+   */
+  bool *shadow_cached;
 
   /**
    * @brief The optional light source, which will not cast shadow.

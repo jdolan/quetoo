@@ -5,6 +5,7 @@
 - `src/client/renderer/r_types.h`
 - `src/client/renderer/r_shadow.c`
 - `src/client/renderer/r_bsp_model.c`
+- `src/client/cl_editor.c`
 
 ---
 
@@ -43,12 +44,27 @@ This resulted in redundant shadow rendering, especially in scenes with many stat
 
 ### 1. Cache State Storage
 
-Added `shadow_cached` flag to `r_bsp_light_t` structure:
+**Cache flag pointer in `r_light_t`:**
 
 ```c
 typedef struct {
     // ... existing fields ...
-    char style[MAX_BSP_ENTITY_VALUE];
+    
+    /**
+     * @brief Pointer to the shadow cache flag for this light.
+     * @details For BSP lights, points to r_bsp_light_t::shadow_cached.
+     * For editor lights, points to cl_editor_lights_cached[entity_number].
+     * NULL for dynamic lights (which are never cached).
+     */
+    bool *shadow_cached;
+} r_light_t;
+```
+
+**Storage location in `r_bsp_light_t`:**
+
+```c
+typedef struct {
+    // ... existing fields ...
     
     /**
      * @brief True if this light's shadowmap contains no mesh entities
@@ -58,11 +74,11 @@ typedef struct {
 } r_bsp_light_t;
 ```
 
-**Why `r_bsp_light_t`?**
-- Persists across frames (stored in BSP model structure)
-- Only BSP lights can be cached (dynamic lights always move)
-- Every BSP light in the view has a `.bsp_light` pointer back to this structure
-- Works in all modes (gameplay, editor, etc.)
+**Why use a pointer?**
+- ✅ **Decouples cache state from light type** - works for BSP and editor lights
+- ✅ **Avoids R_ActiveLights issue** - editor lights don't need `.bsp_light` set
+- ✅ **Minimal memory overhead** - just one pointer per light
+- ✅ **Flexible storage** - can point to different backing stores
 
 ### 2. Mesh Entity Counting
 
@@ -83,13 +99,13 @@ static int32_t R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *l
 
 ### 3. Cache Check and Update
 
-Modified `R_DrawShadow()` to implement caching logic:
+Modified `R_DrawShadow()` to use the cache pointer:
 
 ```c
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     
-    // Early exit for cached BSP lights
-    if (light->bsp_light && light->bsp_light->shadow_cached) {
+    // Early exit for cached lights (pointer-based)
+    if (light->shadow_cached && *light->shadow_cached) {
         return; // Reuse previous frame's cubemap
     }
     
@@ -106,10 +122,20 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     }
     
     // Mark as cacheable if no mesh entities were rendered
-    if (light->bsp_light) {
-        ((r_bsp_light_t *)light->bsp_light)->shadow_cached = (mesh_entity_count == 0);
+    if (light->shadow_cached) {
+        *light->shadow_cached = (mesh_entity_count == 0);
     }
 }
+```
+
+**Gameplay mode (cgame):**
+```c
+// Points to bool stored in r_bsp_light_t
+cgi.AddLight(cgi.view, &(const r_light_t) {
+    // ... light properties ...
+    .bsp_light = l,
+    .shadow_cached = &l->shadow_cached,  // <-- Pointer to BSP light's flag
+});
 ```
 
 ### 4. Initialization
@@ -237,10 +263,38 @@ Dynamic lights (rockets, muzzle flashes) are:
 ### Editor Mode Compatibility
 
 In editor mode:
-- All lights still use the same caching logic
-- Cache may be invalidated more often due to entity movement
-- Editor-specific light modifications should explicitly clear cache
-- Works transparently with existing editor workflow
+- Uses a static bool array `cl_editor_lights_cached[MAX_ENTITIES]` for cache state
+- Indexed by entity number (stable identifier in editor)
+- Each light gets `.shadow_cached = &cl_editor_lights_cached[entity_number]`
+- **Does NOT set `.bsp_light`** - avoids R_ActiveLights skipping issue
+- Cache automatically invalidates when entity is modified via `Cl_ParseEditorEntity()`
+
+**Implementation:**
+```c
+// Static bool array for editor light cache state (very small!)
+static bool cl_editor_lights_cached[MAX_ENTITIES];
+
+// Invalidate cache when entity modified
+void Cl_ParseEditorEntity(int16_t number, const char *info) {
+    // ... parse entity ...
+    cl_editor_lights_cached[number] = false;
+}
+
+// Link light to cache storage via pointer
+void Cl_PopulateEditorScene(const cl_frame_t *frame) {
+    // ... create light ...
+    light.shadow_cached = &cl_editor_lights_cached[s->number];  // Pointer!
+    R_AddLight(&cl_view, &light);
+}
+```
+
+**Why This Works:**
+- ✅ **No `.bsp_light` set** - editor lights work with R_ActiveLights
+- ✅ **Zero lookup cost** - direct array indexing by entity number
+- ✅ **Minimal memory** - MAX_ENTITIES bools (~2KB) vs ~200KB for r_bsp_light_t array
+- ✅ **Persistent state** - cache survives across frames
+- ✅ **Automatic invalidation** - when entities are modified
+- ✅ **Same caching logic** - works identically to gameplay mode
 
 ### Multi-Frame Caching Potential
 
