@@ -283,15 +283,17 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cl.config_strings[CS_ENTITIES + number];
 
-        if (number == this->entity.number
-            || number == this->teamEntity.number
-            || !g_strcmp0(this->created, info)) {
+        if (number == this->entity.number || !g_strcmp0(this->created, info)) {
 
           $(this, setEntity, &(EditorEntity) {
             .number = number,
             .ent = &cl.entities[number],
             .def = cl.entity_definitions[number]
           });
+        }
+
+        if (number == this->teamEntity.number) {
+          $(this, setEntity, &this->entity);
         }
       }
         break;
