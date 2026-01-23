@@ -101,6 +101,8 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
   dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 
+  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+
   self->bounds = Box3_Null();
 
   GPtrArray *brushes = cgi.EntityBrushes(self->def);
