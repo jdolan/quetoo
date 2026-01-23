@@ -188,7 +188,14 @@ static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t
   const vec3d_t t1 = Vec3d_Subtract(p0, p1);
   const vec3d_t t2 = Vec3d_Subtract(p2, p1);
 
-  const vec3d_t normal = Vec3d_Normalize(Vec3d_Cross(t1, t2));
+  const vec3d_t cross = Vec3d_Cross(t1, t2);
+  const double length = Vec3d_Length(cross);
+
+  if (length < 1e-6) {
+    return -1;
+  }
+
+  const vec3d_t normal = Vec3d_Scale(cross, 1.0 / length);
   const double dist = Vec3d_Dot(p0, normal);
 
   return FindPlane(Vec3d_CastVec3(normal), dist);
