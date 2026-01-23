@@ -105,12 +105,28 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
 
   cl_view.ambient = Cm_EntityValue(worldspawn, "ambient")->value;
 
-  for (int32_t i = 0; i < frame->num_entities; i++) {
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 
-    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
-    const cl_entity_t *ent = &cl.entities[s->number];
-    const cm_entity_t *def = cl.entity_definitions[s->number];
+    const cl_entity_t *ent = &cl.entities[i];
+    const cm_entity_t *def = cl.entity_definitions[i];
+
+    if (!def) {
+      continue;
+    }
+
+    bool in_frame = false;
+    for (int32_t j = 0; j < frame->num_entities; j++) {
+      const uint32_t snum = (frame->entity_state + j) & ENTITY_STATE_MASK;
+      const entity_state_t *s = &cl.entity_states[snum];
+      if (s->number == i) {
+        in_frame = true;
+        break;
+      }
+    }
+
+    if (!in_frame) {
+      continue;
+    }
 
     vec4_t color = Color32_Vec4(ent->current.color);
 
@@ -166,7 +182,7 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
         light.intensity *= style_value;
       }
 
-      light.shadow_cached = &cl_editor_shadow_cached[s->number];
+      light.shadow_cached = &cl_editor_shadow_cached[i];
 
       R_AddLight(&cl_view, &light);
 

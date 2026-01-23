@@ -472,6 +472,7 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
   }
 
   $((View *) self->pairs, sizeToFit);
+  $((View *) self->teamPairs, sizeToFit);
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
