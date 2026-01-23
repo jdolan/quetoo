@@ -392,8 +392,13 @@ void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, d
       continue;
     }
 
+    const double denom = c->dist - d->dist;
+    if (fabs(denom) < 1e-10) {
+      continue; // Points too close, skip interpolation
+    }
+
     vec3d_t mid = Vec3d_Zero();
-    const double dot = c->dist / (c->dist - d->dist);
+    const double dot = c->dist / denom;
     for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
       if (normal.xyz[j] > 1.f - FLT_EPSILON) {
         mid.xyz[j] = dist;
@@ -481,8 +486,13 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
       continue;
     }
 
+    const double denom = c->dist - d->dist;
+    if (fabs(denom) < 1e-10) {
+      continue; // Points too close, skip interpolation
+    }
+
     vec3d_t mid = Vec3d_Zero();
-    const double dot = c->dist / (c->dist - d->dist);
+    const double dot = c->dist / denom;
     for (int32_t j = 0; j < 3; j++) { // avoid round off error when possible
       if (normal.xyz[j] > 1.f - FLT_EPSILON) {
         mid.xyz[j] = dist;
