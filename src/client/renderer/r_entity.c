@@ -101,9 +101,9 @@ void R_UpdateEntities(r_view_t *view) {
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
   if (r_draw_entity_bounds->integer == 2) {
-    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), false);
+    R_Draw3DBox(e->abs_model_bounds, Color4fv(e->color), true);
   } else {
-    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), false);
+    R_Draw3DBox(e->abs_bounds, Color4fv(e->color), true);
   }
 }
 
