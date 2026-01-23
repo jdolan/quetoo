@@ -126,10 +126,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map fragpipe"
+            argument = "+map claustrophobopolis"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
