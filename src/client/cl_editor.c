@@ -112,6 +112,8 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     const cl_entity_t *ent = &cl.entities[s->number];
     const cm_entity_t *def = cl.entity_definitions[s->number];
 
+    vec4_t color = Color32_Vec4(ent->current.color);
+
     const char *classname = Cm_EntityValue(def, "classname")->string;
     if (!g_strcmp0(classname, "light")) {
 
@@ -167,6 +169,8 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       light.shadow_cached = &cl_editor_shadow_cached[s->number];
 
       R_AddLight(&cl_view, &light);
+
+      color = Vec3_ToVec4(light.color, 1.f);
     }
 
     R_AddEntity(&cl_view, &(const r_entity_t) {
@@ -176,7 +180,7 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       .scale = 1.f,
       .bounds = ent->bounds,
       .abs_bounds = ent->abs_bounds,
-      .color = Color32_Vec4(ent->current.color),
+      .color = color,
     });
   }
 }
