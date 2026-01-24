@@ -542,18 +542,24 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     }
 
     // ensure that no other side on the brush references the same plane
+    bool duplicate = false;
     const brush_side_t *other = brush->brush_sides;
     for (int32_t i = 0; i < brush->num_brush_sides; i++, other++) {
       if (other->plane == side->plane) {
-        Com_Warn("Entity %d brush %d: Duplicate plane within brush\n", brush->entity, brush->brush);
-        UnparseBrush(brush, parser);
-        return brush;
+        Com_Warn("Entity %d brush %d: Duplicate plane within brush, skipping\n", brush->entity, brush->brush);
+        duplicate = true;
+        break;
       }
       if (other->plane == (side->plane ^ 1)) {
-        Com_Warn("Entity %d brush %d: Mirrored plane within brush\n", brush->entity, brush->brush);
-        UnparseBrush(brush, parser);
-        return brush;
+        Com_Warn("Entity %d brush %d: Mirrored plane within brush, skipping\n", brush->entity, brush->brush);
+        duplicate = true;
+        break;
       }
+    }
+
+    // Skip this side if it was a duplicate, but continue parsing the brush
+    if (duplicate) {
+      continue;
     }
 
     // resolve the material
