@@ -365,7 +365,7 @@ static void MakeBrushWindings(brush_t *brush) {
     if (side->winding) {
       brush->bounds = Box3_Union(brush->bounds, Cm_WindingBounds(side->winding));
     } else {
-      Com_Warn("Entity %d brush %d: Malformed brush\n", brush->entity, brush->brush);
+      Com_Warn("Entity %d brush %d @ %s: Malformed brush\n", brush->entity, brush->brush, vtos(Box3_Center(brush->bounds)));
       UnparseBrush(brush);
       return;
     }
