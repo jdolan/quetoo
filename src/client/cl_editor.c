@@ -96,14 +96,10 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
-  const cm_entity_t *worldspawn = cl.entity_definitions[0];
-
   R_AddEntity(&cl_view, &(const r_entity_t) {
     .model = R_WorldModel()->bsp->worldspawn,
     .scale = 1.f
   });
-
-  cl_view.ambient = Cm_EntityValue(worldspawn, "ambient")->value;
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 

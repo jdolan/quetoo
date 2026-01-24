@@ -290,6 +290,19 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
+ * @brief
+ */
+static void Cg_UpdateAmbient(void) {
+
+  const cm_entity_t *worldspawn = editor->value
+  ? cgi.client->entity_definitions[0]
+  : cgi.WorldModel()->bsp->cm->entities[0];
+
+  const cm_entity_t *ambient = cgi.EntityValue(worldspawn, "ambient");
+  cgi.view->ambient = ambient->value;
+}
+
+/**
  * @brief Updates the view origin, angles, and field of view.
  */
 void Cg_PrepareView(const cl_frame_t *frame) {
@@ -322,9 +335,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   Cg_UpdateBob(ps1);
 
-  const cm_entity_t *worldspawn = *cgi.WorldModel()->bsp->cm->entities;
-  const cm_entity_t *ambient = cgi.EntityValue(worldspawn, "ambient");
-  cgi.view->ambient = ambient->value;
+  Cg_UpdateAmbient();
 
   cgi.view->contents = cgi.PointContents(cgi.view->origin);
 
