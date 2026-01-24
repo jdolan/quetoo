@@ -1485,6 +1485,13 @@ static inline bool __attribute__ ((warn_unused_result)) Vec3d_Equal(const vec3d_
 }
 
 /**
+ * @return The vector `v` + (`add` * `multiply`).
+ */
+static inline vec3d_t __attribute__ ((warn_unused_result)) Vec3d_Fma(const vec3d_t v, double multiply, const vec3d_t add) {
+  return Vec3d(fma(add.x, multiply, v.x), fma(add.y, multiply, v.y), fma(add.z, multiply, v.z));
+}
+
+/**
  * @return The vector `v` scaled by `scale`.
  */
 static inline vec3d_t __attribute__ ((warn_unused_result)) Vec3d_Scale(const vec3d_t v, double scale) {

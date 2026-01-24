@@ -168,13 +168,14 @@ void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
  * @brief Create a massive polygon for the specified plane.
  */
 cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
-  vec3_t org, right, up;
+
+  const vec3d_t norm = Vec3d_Normalize(Vec3d(normal.x, normal.y, normal.z));
 
   // find the major axis
-  float max = 0.0;
+  double max = 0.0;
   int32_t x = -1;
   for (int32_t i = 0; i < 3; i++) {
-    const float v = fabsf(normal.xyz[i]);
+    const double v = fabs(norm.xyz[i]);
     if (v > max) {
       x = i;
       max = v;
@@ -184,38 +185,49 @@ cm_winding_t *Cm_WindingForPlane(const vec3_t normal, double dist) {
     Com_Error(ERROR_FATAL, "No axis found\n");
   }
 
+  vec3d_t up, right;
   switch (x) {
     case 0:
     case 1:
-      right = Vec3(-normal.y, normal.x, 0.0);
+      right = Vec3d(-norm.y, norm.x, 0.0);
       break;
     case 2:
-      right = Vec3(0.0, -normal.z, normal.y);
+      right = Vec3d(0.0, -norm.z, norm.y);
       break;
     default:
       Com_Error(ERROR_FATAL, "Bad axis\n");
   }
 
-  right = Vec3_Scale(right, MAX_WORLD_DIST);
 
-  up = Vec3_Cross(normal, right);
+  right = Vec3d_Normalize(right);
+  up = Vec3d_Normalize(Vec3d_Cross(norm, right));
 
-  org = Vec3_Fmaf(Vec3_Zero(), dist, normal);
+  const vec3d_t r = Vec3d_Scale(right, MAX_WORLD_AXIAL);
+  const vec3d_t u = Vec3d_Scale(up, MAX_WORLD_AXIAL);
 
-  // project a really big  axis aligned box onto the plane
+  const vec3d_t org = Vec3d_Fma(Vec3d_Zero(), dist, norm);
+
+  // project a really big quad onto the plane
+  vec3d_t points[4];
+
+  points[0] = Vec3d_Subtract(org, r);
+  points[0] = Vec3d_Add(points[0], u);
+
+  points[1] = Vec3d_Add(org, r);
+  points[1] = Vec3d_Add(points[1], u);
+
+  points[2] = Vec3d_Add(org, r);
+  points[2] = Vec3d_Subtract(points[2], u);
+
+  points[3] = Vec3d_Subtract(org, r);
+  points[3] = Vec3d_Subtract(points[3], u);
+
   cm_winding_t *w = Cm_AllocWinding(4);
 
-  w->points[0] = Vec3_Subtract(org, right);
-  w->points[0] = Vec3_Add(w->points[0], up);
-
-  w->points[1] = Vec3_Add(org, right);
-  w->points[1] = Vec3_Add(w->points[1], up);
-
-  w->points[2] = Vec3_Add(org, right);
-  w->points[2] = Vec3_Subtract(w->points[2], up);
-
-  w->points[3] = Vec3_Subtract(org, right);
-  w->points[3] = Vec3_Subtract(w->points[3], up);
+  w->points[0] = Vec3d_CastVec3(points[0]);
+  w->points[1] = Vec3d_CastVec3(points[1]);
+  w->points[2] = Vec3d_CastVec3(points[2]);
+  w->points[3] = Vec3d_CastVec3(points[3]);
 
   w->num_points = 4;
 
