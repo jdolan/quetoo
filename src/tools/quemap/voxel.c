@@ -332,7 +332,7 @@ void FogVoxel(int32_t voxel_num) {
         continue;
       }
 
-      const vec3_t color = Vec3_Multiply(fog->color, Vec3_Scale(voxel->diffuse.xyz, fog->absorption));
+      const vec3_t color = Vec3_Fmaf(fog->color, fog->absorption, voxel->diffuse.xyz);
       voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
     }
   }
