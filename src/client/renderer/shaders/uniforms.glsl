@@ -150,6 +150,11 @@ layout (std140) uniform uniforms_block {
    * @brief The developer flags, used for shader development tweaking.
    */
   int developer;
+
+  /**
+   * @brief The wireframe mode flag.
+   */
+  int wireframe;
 };
 
 /**

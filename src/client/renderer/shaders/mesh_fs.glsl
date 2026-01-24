@@ -289,6 +289,11 @@ void light_and_shadow(void) {
  */
 void main(void) {
 
+  if (wireframe != 0) {
+    out_color = vec4(0.8, 0.8, 0.8, 1.0);
+    return;
+  }
+
   fragment.dir = normalize(-vertex.position);
   fragment.dist = length(vertex.position);
   fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));

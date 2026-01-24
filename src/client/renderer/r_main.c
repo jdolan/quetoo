@@ -158,6 +158,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->fog_samples = r_fog_samples->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
+    out->wireframe = r_draw_wireframe->integer;
 
     if (r_models.world) {
       const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;

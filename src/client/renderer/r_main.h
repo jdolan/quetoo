@@ -201,6 +201,11 @@ typedef struct {
      * @brief The developer flags.
      */
     int developer;
+
+    /**
+     * @brief The wireframe mode flag.
+     */
+    int wireframe;
   } block;
 
 } r_uniforms_t;
