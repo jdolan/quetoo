@@ -305,14 +305,14 @@ void G_trigger_push(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other,
-                               g_entity_t *activator) {
+static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
   if (ent->solid == SOLID_NOT) {
     ent->solid = SOLID_TRIGGER;
   } else {
     ent->solid = SOLID_NOT;
   }
+
   gi.LinkEntity(ent);
 
   if (!(ent->spawn_flags & 2)) {
@@ -338,6 +338,10 @@ static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
     }
 
     G_Debug("%s\n", etos(other));
+    return;
+  }
+
+  if (other->dead) {
     return;
   }
 
@@ -367,7 +371,7 @@ static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
     .point = other->s.origin,
     .normal = Vec3_Zero(),
     .damage = d,
-    .knockback = d,
+    .knockback = d >> 2,
     .flags = dflags,
     .mod = MOD_TRIGGER_HURT
   });
