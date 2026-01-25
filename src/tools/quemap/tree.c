@@ -131,19 +131,6 @@ static node_t *LeafNode(node_t *node, csg_brush_t *brushes) {
   node->contents = CONTENTS_NONE;
 
   for (csg_brush_t *b = brushes; b; b = b->next) {
-    // if the brush is solid and all of its sides are on nodes, it eats everything
-    if (b->original->contents & CONTENTS_SOLID) {
-      int32_t i;
-      for (i = 0; i < b->num_brush_sides; i++) {
-        if (!(b->brush_sides[i].surface & SURF_NODE)) {
-          break;
-        }
-      }
-      if (i == b->num_brush_sides) {
-        node->contents = CONTENTS_SOLID;
-        break;
-      }
-    }
     node->contents |= b->original->contents;
   }
 
@@ -294,17 +281,6 @@ static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t *
     }
 
     csg_brush_t *new_brush = CopyBrush(brush);
-
-    // if the plane is actualy a part of the brush
-    // find the plane and flag it as used so it won't be tried as a splitter again
-    if (s & SIDE_ON) {
-      for (int32_t i = 0; i < new_brush->num_brush_sides; i++) {
-        brush_side_t *side = new_brush->brush_sides + i;
-        if ((side->plane & ~1) == node->plane) {
-          side->surface |= SURF_NODE;
-        }
-      }
-    }
 
     if (s & SIDE_FRONT) {
       new_brush->next = *front;

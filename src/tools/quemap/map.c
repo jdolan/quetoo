@@ -585,13 +585,11 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     // clip brushes are not drawn and should not be splitters
     if (side->contents & CONTENTS_MASK_CLIP) {
       side->contents |= CONTENTS_DETAIL;
-      side->surface |= SURF_NODE;
     }
 
     // and the same goes for atmospherics like dust and fog
     if (side->contents & CONTENTS_ATMOSPHERIC) {
       side->contents |= CONTENTS_DETAIL;
-      side->surface |= SURF_NODE;
     }
 
     // default brushes with no explicit contents to either solid or window
@@ -614,7 +612,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
     // and skips should never be splitters
     if (side->surface & SURF_SKIP) {
-      side->surface |= SURF_NODE;
+      side->contents |= CONTENTS_DETAIL;
     }
 
     brush->num_brush_sides++;

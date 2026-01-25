@@ -549,16 +549,12 @@ static void FindPortalBrushSide(portal_t *portal) {
 
       brush_side_t *side = original->brush_sides;
       for (int32_t i = 0; i < original->num_brush_sides; i++, side++) {
+
         if (side->surface & SURF_BEVEL) {
           continue;
         }
+
         if (side->surface & SURF_NODE) {
-          continue;
-        }
-        if (side->surface & SURF_NO_DRAW) {
-          continue;
-        }
-        if (side->surface & SURF_SKIP) {
           continue;
         }
 
@@ -584,8 +580,14 @@ static void FindPortalBrushSide(portal_t *portal) {
     }
   }
 
-  if (portal->on_node->split_side && !portal->side && !leaked) {
-    Com_Warn("Brush side not found for portal @ %s\n", vtos(Cm_WindingCenter(portal->winding)));
+  // Only warn if the split side should have been findable
+  // Don't warn for sides that are intentionally excluded from portal matching
+  if (!portal->side && !leaked && portal->on_node->split_side) {
+    const int32_t surf = portal->on_node->split_side->surface;
+    // These surface types are intentionally excluded from portal matching
+    if (!(surf & (SURF_NO_DRAW | SURF_SKIP))) {
+      Com_Warn("Brush side not found for portal @ %s\n", vtos(Cm_WindingCenter(portal->winding)));
+    }
   }
 }
 
