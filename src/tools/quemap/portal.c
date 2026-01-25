@@ -535,6 +535,7 @@ static void FindPortalBrushSide(portal_t *portal) {
   }
 
   float best_dot = 0.0;
+  double best_dist = DBL_MAX;
 
   for (int32_t j = 0; j < 2; j++) {
     const node_t *n = portal->nodes[j];
@@ -572,8 +573,12 @@ static void FindPortalBrushSide(portal_t *portal) {
 
         const float dot = Vec3_Dot(p1->normal, p2->normal);
         if (dot > best_dot) {
-          portal->side = side;
-          best_dot = dot;
+          const double dist = fabs(p1->dist - p2->dist);
+          if (dist < best_dist) {
+            best_dot = dot;
+            best_dist = dist;
+            portal->side = side;
+          }
         }
       }
     }
