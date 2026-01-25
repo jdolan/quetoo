@@ -633,6 +633,10 @@ static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
     return NULL; // portal does not bridge different visible contents
   }
 
+  if (side->surface & (SURF_NO_DRAW | SURF_SKIP)) {
+    return NULL; // not a visible face
+  }
+
   face_t *f = AllocFace();
 
   f->brush_side = side;
