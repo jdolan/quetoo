@@ -462,8 +462,7 @@ static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 /**
  * @brief
  */
-static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other,
-                            g_entity_t *activator) {
+static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
   if (ent->Think) {
     return; // already down
@@ -507,13 +506,13 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
   trigger->solid = SOLID_TRIGGER;
   trigger->enemy = ent;
 
-  box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-25.f, -25.f, 0.f));
-  bounds.maxs.z += 8;
+  box3_t bounds = Box3_Expand3(ent->bounds, Vec3(-16.f, -16.f, 0.f));
+  bounds.maxs.z += lip;
 
   bounds.mins.z = bounds.maxs.z - (ent->pos1.z - ent->pos2.z + lip);
 
   if (ent->spawn_flags & PLAT_LOW_TRIGGER) {
-    bounds.maxs.z = bounds.mins.z + 8.0;
+    bounds.maxs.z = bounds.mins.z + lip;
   }
 
   if (bounds.maxs.x - bounds.mins.x <= 0) {

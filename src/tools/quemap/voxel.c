@@ -405,7 +405,7 @@ void ExposureVoxel(int32_t voxel_num) {
   
   for (size_t i = 0; i < lengthof(dome_vectors); i++) {
     const vec3_t start = voxel->origin;
-    const vec3_t dir = Vec3_Scale(dome_vectors[i], 32768.f);
+    const vec3_t dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
     const vec3_t end = Vec3_Add(start, dir);
     
     const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_SOLID);
