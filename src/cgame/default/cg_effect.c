@@ -176,12 +176,27 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
       s = Cg_AddSprite(&(cg_sprite_t) {
         .origin = org,
         .atlas_image = cg_sprite_rain,
-        .color = Vec3(1.f, 1.f, 1.f),
-        .size = 128.f,
+        .color = Vec3(.3f, .3f, .4f),
+        .size = 32.f,
         .velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
         .axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
         .softness = 5.f,
       });
+
+      if (Randomf() > .8f) {
+        Cg_AddSprite(&(cg_sprite_t) {
+          .atlas_image = cg_sprite_water_ring,
+          .lifetime = 300.f,
+          .origin = Vec3(org_xy.x, org_xy.y, origin.w),
+          .size = 4.f,
+          .size_velocity = 4.f * 6.f,
+          .rotation = RandomRadian(),
+          .dir = Vec3_Up(),
+          .color = Vec3(.8f, .8f, .8f),
+          .lighting = 1.f
+        });
+      }
+
     } else if (cg_state.weather & WEATHER_SNOW) {
       s = Cg_AddSprite(&(cg_sprite_t) {
         .origin = org,
