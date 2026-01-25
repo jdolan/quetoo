@@ -192,23 +192,11 @@ vec4 sample_material_stage(in vec2 texcoord) {
 /**
  * @brief Calculates caustics based on voxel contents.
  */
+/**
+ * @brief Samples the pre-calculated caustics intensity from the voxel texture.
+ */
 float sample_voxel_caustics() {
-  vec3 projected = vertex.model_position + normalize(vertex.model_normal) * BSP_VOXEL_SIZE;
-  ivec3 voxel = voxel_xyz(projected);
-  
-  const int num_samples = 4;
-  float caustics_sum = 0.0;
-  
-  for (int i = 0; i < num_samples; i++) {
-    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
-    int contents = voxel_contents(sample_voxel);
-    
-    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
-      caustics_sum += 1.0 - (float(i) / float(num_samples));
-    }
-  }
-  
-  return (caustics_sum / float(num_samples)) * caustics;
+  return voxel_caustics(vertex.voxel) * caustics;
 }
 
 /**
@@ -403,7 +391,7 @@ void light_and_shadow(void) {
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
-  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
+  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 

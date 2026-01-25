@@ -274,7 +274,6 @@ size_t BuildVoxels(void) {
 void LightVoxel(int32_t voxel_num) {
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
-  voxel->contents = Cm_BoxContents(voxel->bounds, 0);
 
   vec3_t points[9];
   points[0] = voxel->origin;
@@ -339,6 +338,91 @@ void FogVoxel(int32_t voxel_num) {
 }
 
 /**
+ * @brief Calculates caustics intensity based on proximity to liquid contents.
+ */
+void CausticsVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+  
+  const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
+  
+  // If this voxel is liquid, full caustics
+  if (contents & CONTENTS_MASK_LIQUID) {
+    voxel->caustics = 1.f;
+    return;
+  }
+  
+  // Search nearby voxels for liquid, attenuate by distance
+  const int32_t search_radius = 4; // Search up to 4 voxels away
+  float min_dist = (float)(search_radius + 1);
+  
+  for (int32_t dz = -search_radius; dz <= search_radius; dz++) {
+    for (int32_t dy = -search_radius; dy <= search_radius; dy++) {
+      for (int32_t dx = -search_radius; dx <= search_radius; dx++) {
+        
+        if (dx == 0 && dy == 0 && dz == 0) continue;
+        
+        const vec3i_t neighbor_xyz = Vec3i_Add(voxel->xyz, Vec3i(dx, dy, dz));
+        
+        // Check bounds
+        if (neighbor_xyz.x < 0 || neighbor_xyz.x >= voxels.size.x ||
+            neighbor_xyz.y < 0 || neighbor_xyz.y >= voxels.size.y ||
+            neighbor_xyz.z < 0 || neighbor_xyz.z >= voxels.size.z) {
+          continue;
+        }
+        
+        const int32_t neighbor_index = (neighbor_xyz.z * voxels.size.y + neighbor_xyz.y) * voxels.size.x + neighbor_xyz.x;
+        const voxel_t *neighbor = &voxels.voxels[neighbor_index];
+        
+        const int32_t neighbor_contents = Cm_BoxContents(neighbor->bounds, 0);
+        if (neighbor_contents & CONTENTS_MASK_LIQUID) {
+          const float dist = sqrtf((float)(dx * dx + dy * dy + dz * dz));
+          if (dist < min_dist) {
+            min_dist = dist;
+          }
+        }
+      }
+    }
+  }
+  
+  // Linear attenuation: 1.0 at distance 0, 0.0 at search_radius
+  if (min_dist <= search_radius) {
+    voxel->caustics = Clampf01(1.f - min_dist / (float)search_radius);
+  }
+}
+
+/**
+ * @brief Calculates exposure based on sky visibility.
+ */
+void ExposureVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+  
+  // Use dome vectors to sample hemisphere for better coverage
+  static const vec3_t dome_vectors[] = DOME_COSINE_16X;
+  
+  float exposure_sum = 0.f;
+  
+  for (size_t i = 0; i < lengthof(dome_vectors); i++) {
+    const vec3_t start = voxel->origin;
+    const vec3_t dir = Vec3_Scale(dome_vectors[i], 32768.f);
+    const vec3_t end = Vec3_Add(start, dir);
+    
+    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_SOLID);
+    
+    // If we hit sky or nothing, count as exposed
+    if (trace.surface & SURF_SKY || trace.fraction == 1.f) {
+      exposure_sum += 1.f;
+    } else {
+      // Partial exposure based on distance traveled
+      exposure_sum += trace.fraction * 0.5f;
+    }
+  }
+  
+  voxel->exposure = exposure_sum / (float)lengthof(dome_vectors);
+}
+
+/**
  * @brief
  */
 void EmitVoxels(void) {
@@ -366,7 +450,7 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t); // contents (1 sample per voxel)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // caustics + exposure (RG)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
@@ -379,8 +463,8 @@ void EmitVoxels(void) {
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
-  int32_t *out_contents = (int32_t *) out;
-  out += voxels.num_voxels * sizeof(int32_t);
+  byte *out_caustics = out;
+  out += voxels.num_voxels * sizeof(byte) * 2; // RG = caustics + exposure
 
   color32_t *out_fog = (color32_t *) out;
   out += voxels.num_voxels * sizeof(color32_t);
@@ -397,7 +481,8 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        *out_contents++ = voxel->contents;
+        *out_caustics++ = (byte)(Clampf01(voxel->caustics) * 255.f);
+        *out_caustics++ = (byte)(Clampf01(voxel->exposure) * 255.f);
 
         *out_fog++ = Color_Color32(Color4fv(voxel->fog));
       }

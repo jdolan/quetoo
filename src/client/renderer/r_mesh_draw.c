@@ -38,7 +38,7 @@ static struct {
 
   GLint texture_material;
   GLint texture_stage;
-  GLint texture_voxel_contents;
+  GLint texture_voxel_data;
   GLint texture_voxel_fog;
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
@@ -406,7 +406,7 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
   r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
-  r_mesh_program.texture_voxel_contents = glGetUniformLocation(r_mesh_program.name, "texture_voxel_contents");
+  r_mesh_program.texture_voxel_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_data");
   r_mesh_program.texture_voxel_fog = glGetUniformLocation(r_mesh_program.name, "texture_voxel_fog");
   r_mesh_program.texture_voxel_light_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_data");
   r_mesh_program.texture_voxel_light_indices = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_indices");
@@ -434,7 +434,7 @@ void R_InitMeshProgram(void) {
 
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
-  glUniform1i(r_mesh_program.texture_voxel_contents, TEXTURE_VOXEL_CONTENTS);
+  glUniform1i(r_mesh_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
   glUniform1i(r_mesh_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
   glUniform1i(r_mesh_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_mesh_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);

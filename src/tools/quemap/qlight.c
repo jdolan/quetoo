@@ -408,6 +408,12 @@ static void LightWorld(void) {
   // bake fog into the voxel
   Work("Fog", FogVoxel, (int32_t) num_voxel);
 
+  // calculate caustics from liquid contents
+  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
+
+  // calculate exposure from sky visibility
+  Work("Exposure", ExposureVoxel, (int32_t) num_voxel);
+
   // free the fog volumes
   FreeFog();
 

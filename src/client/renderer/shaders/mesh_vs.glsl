@@ -53,25 +53,10 @@ out vertex_data {
 invariant gl_Position;
 
 /**
- * @brief Calculates caustics based on voxel contents with vertical multisampling attenuation.
- * Samples upward (positive Z) from the current voxel to check for liquid above.
+ * @brief Samples the pre-calculated caustics intensity from the voxel texture.
  */
 float sample_voxel_caustics(in vec3 texcoord) {
-  ivec3 voxel = ivec3(texcoord * voxels.size.xyz);
-  
-  const int num_samples = 4;
-  float caustics_sum = 0.0;
-
-  for (int i = 0; i < num_samples; i++) {
-    ivec3 sample_voxel = voxel + ivec3(0, 0, -i);
-    int contents = voxel_contents(sample_voxel);
-
-    if ((contents & CONTENTS_MASK_LIQUID) != 0) {
-      caustics_sum += 1.0 - (float(i) / float(num_samples));
-    }
-  }
-
-  return (caustics_sum / float(num_samples)) * caustics;
+  return voxel_caustics(texcoord) * caustics;
 }
 
 /**

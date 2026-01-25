@@ -368,24 +368,25 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
-  const int32_t *contents_data = (const int32_t *) data;
-  data += out->num_voxels * sizeof(int32_t);
+  const byte *data_data = data;
+  data += out->num_voxels * sizeof(byte) * 2; // RG
 
-  out->contents = (r_image_t *) R_AllocMedia("voxel_contents", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->contents->media.Free = R_FreeImage;
-  out->contents->type = IMG_VOXELS;
-  out->contents->width = out->size.x;
-  out->contents->height = out->size.y;
-  out->contents->depth = out->size.z;
-  out->contents->target = GL_TEXTURE_3D;
-  out->contents->minify = GL_NEAREST;
-  out->contents->magnify = GL_NEAREST;
-  out->contents->internal_format = GL_R32I;
-  out->contents->format = GL_RED_INTEGER;
-  out->contents->pixel_type = GL_INT;
+  out->data = (r_image_t *) R_AllocMedia("voxel_data", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->data->media.Free = R_FreeImage;
+  out->data->type = IMG_VOXELS;
+  out->data->width = out->size.x;
+  out->data->height = out->size.y;
+  out->data->depth = out->size.z;
+  out->data->target = GL_TEXTURE_3D;
+  out->data->levels = levels;
+  out->data->minify = GL_LINEAR_MIPMAP_LINEAR;
+  out->data->magnify = GL_LINEAR;
+  out->data->internal_format = GL_RG8;
+  out->data->format = GL_RG;
+  out->data->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CONTENTS);
-  R_UploadImage(out->contents, (const byte *) contents_data);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DATA);
+  R_UploadImage(out->data, data_data);
 
   const color32_t *fog_data = (const color32_t *) data;
   data += out->num_voxels * sizeof(color32_t);
@@ -461,8 +462,6 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
           const vec3_t voxel_maxs = Vec3_Add(voxel_mins, Vec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
           voxel->bounds = Box3(voxel_mins, voxel_maxs);
-
-          voxel->contents = contents_data[voxel_index];
 
           const int32_t first_light_index = light_data[voxel_index * 2 + 0];
           const int32_t num_light_indices = light_data[voxel_index * 2 + 1];
@@ -656,7 +655,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->contents);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_indices);

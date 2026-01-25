@@ -766,9 +766,9 @@ typedef struct {
   r_bsp_voxel_t *voxels;
 
   /**
-   * @brief The contents 3D texture (R32I).
+   * @brief The voxel data 3D texture (RG8): caustics and exposure.
    */
-  r_image_t *contents;
+  r_image_t *data;
 
   /**
    * @brief The fog 3D texture (RGBA8).
@@ -1810,7 +1810,7 @@ typedef enum {
    * @brief The voxel textures, used by the BSP, mesh, sprite and sky programs.
    */
   TEXTURE_VOXEL,
-  TEXTURE_VOXEL_CONTENTS,
+  TEXTURE_VOXEL_DATA,
   TEXTURE_VOXEL_FOG,
   TEXTURE_VOXEL_LIGHT_DATA,
   TEXTURE_VOXEL_LIGHT_INDICES,

@@ -215,7 +215,7 @@ uniform sampler2D texture_warp;
 /**
  * @brief The voxel textures.
  */
-uniform isampler3D texture_voxel_contents;
+uniform sampler3D texture_voxel_data;
 uniform sampler3D texture_voxel_fog;
 uniform isampler3D texture_voxel_light_data;
 uniform isamplerBuffer texture_voxel_light_indices;

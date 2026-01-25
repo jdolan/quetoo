@@ -177,10 +177,19 @@ int voxel_light_index(in int index) {
 }
 
 /**
- * @brief Fetches the BSP contents at the given voxel cell.
- * @param voxel The voxel coordinate.
- * @return The CONTENTS_ flags for that voxel.
+ * @brief Samples the caustics intensity at the given voxel texture coordinate.
+ * @param texcoord The voxel texture coordinate (0-1 range).
+ * @return The caustics intensity (R channel, 0-1).
  */
-int voxel_contents(in ivec3 voxel) {
-  return texelFetch(texture_voxel_contents, voxel, 0).r;
+float voxel_caustics(in vec3 texcoord) {
+  return texture(texture_voxel_data, texcoord).r;
+}
+
+/**
+ * @brief Samples the exposure at the given voxel texture coordinate.
+ * @param texcoord The voxel texture coordinate (0-1 range).
+ * @return The exposure (G channel, 0-1).
+ */
+float voxel_exposure(in vec3 texcoord) {
+  return texture(texture_voxel_data, texcoord).g;
 }

@@ -38,7 +38,7 @@ static struct {
   GLint texture_stage;
   GLint texture_warp;
 
-  GLint texture_voxel_contents;
+  GLint texture_voxel_data;
   GLint texture_voxel_fog;
 
   GLint texture_sky;
@@ -519,7 +519,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_stage = glGetUniformLocation(r_bsp_program.name, "texture_stage");
   r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-  r_bsp_program.texture_voxel_contents = glGetUniformLocation(r_bsp_program.name, "texture_voxel_contents");
+  r_bsp_program.texture_voxel_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_data");
   r_bsp_program.texture_voxel_fog = glGetUniformLocation(r_bsp_program.name, "texture_voxel_fog");
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
@@ -552,7 +552,7 @@ void R_InitBspProgram(void) {
   glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);
   glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 
-  glUniform1i(r_bsp_program.texture_voxel_contents, TEXTURE_VOXEL_CONTENTS);
+  glUniform1i(r_bsp_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
   glUniform1i(r_bsp_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
