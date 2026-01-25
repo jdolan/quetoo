@@ -554,6 +554,12 @@ static void FindPortalBrushSide(portal_t *portal) {
         if (side->surface & SURF_NODE) {
           continue;
         }
+        if (side->surface & SURF_NO_DRAW) {
+          continue;
+        }
+        if (side->surface & SURF_SKIP) {
+          continue;
+        }
 
         if ((side->plane & ~1) == portal->on_node->plane) { // exact match
           portal->side = side;
