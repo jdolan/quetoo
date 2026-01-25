@@ -40,7 +40,7 @@ static cvar_t *editor_grid_size;
 static void setEntityOriginFromClientView(cm_entity_t *entity) {
 
   vec3_t origin = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-  const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
   origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cl_view.forward));
   origin = Vec3_Quantize(origin, editor_grid_size->value);
