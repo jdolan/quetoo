@@ -129,7 +129,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map claustrophobopolis"
+            argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -139,6 +139,10 @@
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set cg_add_flares 0"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"

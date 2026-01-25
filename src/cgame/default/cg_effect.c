@@ -135,7 +135,7 @@ static void Cg_LoadWeather(void) {
     const r_bsp_brush_side_t *side = face->brush_side;
 
     // for downward facing sky brushes, create an emitter
-    if ((side->surface & SURF_SKY) && side->plane->cm->normal.z < -0.1) {
+    if ((side->surface & SURF_SKY) && side->plane->cm->normal.z < -0.1f) {
       Cg_LoadWeather_(face);
       j++;
     }
