@@ -126,7 +126,7 @@ static void viewWillAppear(ViewController *self) {
       break;
     }
 
-    if (g_str_has_prefix(tr.material->name, "common/")) {
+    if (!g_strcmp0(tr.material->name, "common/fog")) {
       start = Vec3_Add(tr.end, cl_view.forward);
       continue;
     }
