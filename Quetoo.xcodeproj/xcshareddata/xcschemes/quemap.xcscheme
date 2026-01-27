@@ -146,7 +146,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/gehenna.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/hallways2.map"
@@ -162,7 +162,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/mitred.map"

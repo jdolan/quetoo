@@ -98,11 +98,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set verbose 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
@@ -129,12 +129,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map torn"
+            argument = "+map chthon"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cg_add_flares 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+g_ai_add 16"

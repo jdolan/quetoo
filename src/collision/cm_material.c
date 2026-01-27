@@ -1163,43 +1163,43 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
   }
 
   if (stage->flags & STAGE_COLOR) {
-    Fs_Print(file, "\t\tcolor %g %g %g %g\n", stage->color.r, stage->color.g, stage->color.b, stage->color.a);
+    Fs_Print(file, "\t\tcolor %0.2f %0.2f %0.2f %0.2f\n", stage->color.r, stage->color.g, stage->color.b, stage->color.a);
   }
 
   if (stage->flags & STAGE_PULSE) {
-    Fs_Print(file, "\t\tpulse %g\n", stage->pulse.hz);
+    Fs_Print(file, "\t\tpulse %0.2f\n", stage->pulse.hz);
   }
 
   if (stage->flags & STAGE_STRETCH) {
-    Fs_Print(file, "\t\tstretch %g %g\n", stage->stretch.amplitude, stage->stretch.hz);
+    Fs_Print(file, "\t\tstretch %0.3f %0.3f\n", stage->stretch.amplitude, stage->stretch.hz);
   }
 
   if (stage->flags & STAGE_ROTATE) {
-    Fs_Print(file, "\t\trotate %g\n", stage->rotate.hz);
+    Fs_Print(file, "\t\trotate %0.3f\n", stage->rotate.hz);
   }
 
   if (stage->flags & STAGE_SCROLL_S) {
-    Fs_Print(file, "\t\tscroll.s %g\n", stage->scroll.s);
+    Fs_Print(file, "\t\tscroll.s %0.3f\n", stage->scroll.s);
   }
 
   if (stage->flags & STAGE_SCROLL_T) {
-    Fs_Print(file, "\t\tscroll.t %g\n", stage->scroll.t);
+    Fs_Print(file, "\t\tscroll.t %0.3f\n", stage->scroll.t);
   }
 
   if (stage->flags & STAGE_SCALE_S) {
-    Fs_Print(file, "\t\tscale.s %g\n", stage->scale.s);
+    Fs_Print(file, "\t\tscale.s %0.3f\n", stage->scale.s);
   }
 
   if (stage->flags & STAGE_SCALE_T) {
-    Fs_Print(file, "\t\tscale.t %g\n", stage->scale.t);
+    Fs_Print(file, "\t\tscale.t %0.3f\n", stage->scale.t);
   }
 
   if (stage->flags & STAGE_TERRAIN) {
-    Fs_Print(file, "\t\tterrain %g %g\n", stage->terrain.floor, stage->terrain.ceil);
+    Fs_Print(file, "\t\tterrain %0.2f %0.2f\n", stage->terrain.floor, stage->terrain.ceil);
   }
 
   if (stage->flags & STAGE_DIRTMAP) {
-    Fs_Print(file, "\t\tdirtmap %g\n", stage->dirtmap.intensity);
+    Fs_Print(file, "\t\tdirtmap %0.2f\n", stage->dirtmap.intensity);
   }
 
   if (stage->flags & STAGE_ENVMAP) {
@@ -1207,11 +1207,11 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
   }
 
   if (stage->flags & STAGE_WARP) {
-    Fs_Print(file, "\t\twarp %g %g\n", stage->warp.hz, stage->warp.amplitude);
+    Fs_Print(file, "\t\twarp %0.2f %0.2f\n", stage->warp.hz, stage->warp.amplitude);
   }
 
   if (stage->flags & STAGE_SHELL) {
-    Fs_Print(file, "\t\tshell %g\n", stage->shell.radius);
+    Fs_Print(file, "\t\tshell %0.2f\n", stage->shell.radius);
   }
 
   if (stage->flags & STAGE_FLARE) {
@@ -1219,7 +1219,7 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
    }
 
   if (stage->flags & STAGE_ANIMATION) {
-    Fs_Print(file, "\t\tanim %u %g\n", stage->animation.num_frames, stage->animation.fps);
+    Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
   }
 
   Fs_Print(file, "\t}\n");
@@ -1246,11 +1246,11 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
     Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
   }
 
-  Fs_Print(file, "\troughness %g\n", material->roughness);
-  Fs_Print(file, "\thardness %g\n", material->hardness);
-  Fs_Print(file, "\tspecularity %g\n", material->specularity);
-  Fs_Print(file, "\tparallax %g\n", material->parallax);
-  Fs_Print(file, "\tshadow %g\n", material->shadow);
+  Fs_Print(file, "\troughness %0.2f\n", material->roughness);
+  Fs_Print(file, "\thardness %0.2f\n", material->hardness);
+  Fs_Print(file, "\tspecularity %0.2f\n", material->specularity);
+  Fs_Print(file, "\tparallax %0.2f\n", material->parallax);
+  Fs_Print(file, "\tshadow %0.2f\n", material->shadow);
 
   if (material->contents) {
     Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
@@ -1263,7 +1263,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
   if (material->surface & SURF_ALPHA_TEST) {
 
     if (material->alpha_test != MATERIAL_ALPHA_TEST) {
-      Fs_Print(file, "\talpha_test %g\n", material->alpha_test);
+      Fs_Print(file, "\talpha_test %0.2f\n", material->alpha_test);
     }
   }
 
