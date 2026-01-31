@@ -53,7 +53,7 @@ static struct {
 #define MAX_SCREENSHOTS 1000
 
 /**
- * @brief ThreadRunFunc for R_Screenshot.
+ * @brief ThreadRunFunc for `R_Screenshot`.
  */
 static void R_Screenshot_encode(void *data) {
   static int32_t last_screenshot;
@@ -80,6 +80,8 @@ static void R_Screenshot_encode(void *data) {
 
   if (!g_strcmp0(r_screenshot_format->string, "tga")) {
     screenshot_saved = Img_WriteTGA(filename, surface->pixels, surface->w, surface->h);
+  } else if (!g_strcmp0(r_screenshot_format->string, "jpg")) {
+    screenshot_saved = Img_WriteJPG(filename, surface->pixels, surface->w, surface->h, 95);
   } else {
     screenshot_saved = Img_WritePNG(filename, surface->pixels, surface->w, surface->h);
   }
@@ -107,7 +109,7 @@ void R_Screenshot(r_view_t *view) {
       R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
       break;
     default:
-      surface = SDL_CreateSurface(view->framebuffer->width, view->framebuffer->height, SDL_PIXELFORMAT_RGB24);
+      surface = SDL_CreateSurface(view->framebuffer->width, view->framebuffer->height, SDL_PIXELFORMAT_BGR24);
       glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
       break;
   }

@@ -52,6 +52,11 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);
 
 /**
+* @brief Write pixel data to a JPEG file.
+*/
+bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
+
+/**
 * @brief Write pixel data to a TGA file.
 */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height);

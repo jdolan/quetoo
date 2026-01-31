@@ -198,8 +198,36 @@ bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height)
     memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
   }
 
-  SDL_Surface *ss = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_RGB24, buffer, width * 3);
+  SDL_Surface *ss = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_BGR24, buffer, width * 3);
   IMG_SavePNG_IO(ss, f, 0);
+
+  SDL_DestroySurface(ss);
+  Mem_Free(buffer);
+  SDL_CloseIO(f);
+  return true;
+}
+
+/**
+* @brief Write pixel data to a JPEG file.
+*/
+bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
+  SDL_IOStream *f;
+  const char *real_path = Fs_RealPath(path);
+
+  if (!(f = SDL_IOFromFile(real_path, "wb"))) {
+    Com_Warn("Failed to open to %s\n", real_path);
+    return false;
+  }
+
+  byte *buffer = Mem_Malloc(width * height * 3);
+
+  // Flip pixels vertically
+  for (size_t i = 0; i < height; i++) {
+    memcpy(buffer + (height - i - 1) * width * 3, data + i * width * 3, 3 * width);
+  }
+
+  SDL_Surface *ss = SDL_CreateSurfaceFrom(width, height, SDL_PIXELFORMAT_BGR24, buffer, width * 3);
+  IMG_SaveJPG_IO(ss, f, 0, quality);
 
   SDL_DestroySurface(ss);
   Mem_Free(buffer);
