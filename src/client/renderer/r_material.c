@@ -332,6 +332,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
       diffusemap = Img_LoadSurface("textures/common/notex");
     }
   } else {
+    Com_Warn("Failed to load diffusemap for %s\n", cm->basename);
     diffusemap = Img_LoadSurface("textures/common/notex");
   }
 
