@@ -46,7 +46,8 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
     cl.entity_definitions[number] = NULL;
   }
 
-  cl_editor_shadow_cached[number] = false;
+  const size_t count = MAX_ENTITIES - number;
+  memset(&cl_editor_shadow_cached[number], 0, sizeof(bool) * count);
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
