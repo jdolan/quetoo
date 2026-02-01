@@ -608,6 +608,11 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
   memset(&g_level, 0, sizeof(g_level));
 
+  // Clear client entity pointers before freeing entities to prevent dangling references
+  G_ForEachClient(cl, {
+    cl->entity = NULL;
+  });
+
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
     G_FreeEntity(ge.entities[i]);
   }
