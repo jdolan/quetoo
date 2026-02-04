@@ -1319,29 +1319,19 @@ typedef struct {
   uint32_t time;
 
   /**
-   * @brief The decal lifetime in milliseconds (0 = permanent).
+   * @brief The decal lifetime in ticks (0 = permanent).
    */
   uint32_t lifetime;
 
   /**
-   * @brief The offset into the vertex buffer for this decal's geometry.
+   * @brief Linked list of faces for this decal (renderer-private).
    */
-  int32_t vertex_offset;
+  void *faces;
 
   /**
-   * @brief The number of vertexes for this decal.
+   * @brief Number of faces (for stats/debugging).
    */
-  int32_t num_vertexes;
-
-  /**
-   * @brief The offset into the element buffer for this decal's geometry.
-   */
-  int32_t element_offset;
-
-  /**
-   * @brief The number of elements for this decal.
-   */
-  int32_t num_elements;
+  int32_t num_faces;
 } r_decal_t;
 
 #define MAX_DECALS 0x400

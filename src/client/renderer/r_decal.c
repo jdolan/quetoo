@@ -34,6 +34,21 @@ typedef struct {
 } r_decal_vertex_t;
 
 /**
+ * @brief A decal face represents a single quad of decal geometry.
+ */
+typedef struct r_decal_face_s {
+  /**
+   * @brief The quad vertices for this face.
+   */
+  r_decal_vertex_t vertexes[4];
+
+  /**
+   * @brief Next face in the linked list.
+   */
+  struct r_decal_face_s *next;
+} r_decal_face_t;
+
+/**
  * @brief Decal storage and rendering state.
  */
 static struct {
@@ -140,15 +155,7 @@ static void R_DecalTextureCoordinates(const r_media_t *media, vec2_t *tl, vec2_t
 /**
  * @brief Generate decal geometry on a BSP face.
  */
-static void R_DecalFace(const r_decal_t *decal, r_bsp_face_t *face) {
-
-  if (r_decals.num_vertexes + 4 > lengthof(r_decals.vertexes)) {
-    return;
-  }
-
-  if (r_decals.num_elements + 6 > lengthof(r_decals.elements)) {
-    return;
-  }
+static void R_DecalFace(r_decal_t *decal, r_bsp_face_t *face) {
 
   // Calculate decal basis vectors
   vec3_t tangent, bitangent;
@@ -175,28 +182,28 @@ static void R_DecalFace(const r_decal_t *decal, r_bsp_face_t *face) {
   // A full implementation would intersect the quad with the face polygon
 
   const color32_t color = Color_Color32(decal->color);
-  const int32_t base_vertex = r_decals.num_vertexes;
 
+  // Allocate a new face and populate it
+  r_decal_face_t *decal_face = Mem_TagMalloc(sizeof(r_decal_face_t), MEM_TAG_RENDERER);
+  
   for (int32_t i = 0; i < 4; i++) {
-    r_decals.vertexes[r_decals.num_vertexes++] = (r_decal_vertex_t) {
+    decal_face->vertexes[i] = (r_decal_vertex_t) {
       .position = extents[i],
       .texcoord = texcoords[i],
       .color = color
     };
   }
 
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 1;
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
-  r_decals.elements[r_decals.num_elements++] = base_vertex + 3;
+  // Link it to the decal
+  decal_face->next = decal->faces;
+  decal->faces = decal_face;
+  decal->num_faces++;
 }
 
 /**
  * @brief Recursively traverse BSP tree to project decal onto faces.
  */
-static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
+static void R_DecalNode(r_decal_t *decal, const r_bsp_node_t *node) {
 
   if (node->contents > CONTENTS_NODE) {
     return;
@@ -215,16 +222,10 @@ static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
     return;
   }
 
-  // Project the decal onto the node's plane
-  const r_decal_t projected = {
-    .origin = Vec3_Fmaf(decal->origin, -dist, plane->normal),
-    .normal = decal->normal,
-    .radius = decal->radius - fabsf(dist),
-    .color = decal->color,
-    .media = decal->media,
-    .time = decal->time,
-    .lifetime = decal->lifetime
-  };
+  // Project the decal onto the node's plane and add faces
+  r_decal_t projected = *decal;
+  projected.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
+  projected.radius = decal->radius - fabsf(dist);
 
   r_bsp_face_t *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
@@ -237,7 +238,7 @@ static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
       continue;
     }
 
-    R_DecalFace(&projected, face);
+    R_DecalFace(decal, face);
   }
 
   // Recurse down both sides
@@ -255,12 +256,10 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
   r_decal_t *d = R_AllocDecal();
   *d = *decal;
+  d->faces = NULL;
+  d->num_faces = 0;
 
-  // Store the starting position for this decal's geometry
-  d->vertex_offset = r_decals.num_vertexes;
-  d->element_offset = r_decals.num_elements;
-
-  // Generate geometry for this decal
+  // Generate face geometry for this decal
   if (r_models.world && r_models.world->bsp) {
     R_DecalNode(d, r_models.world->bsp->nodes);
 
@@ -269,28 +268,37 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
     for (int32_t j = 0; j < view->num_entities; j++, e++) {
       if (e->model && e->model->type == MODEL_BSP_INLINE) {
         r_decal_t inline_decal = *d;
+        inline_decal.faces = NULL;
+        inline_decal.num_faces = 0;
         inline_decal.origin = Mat4_Transform(e->inverse_matrix, d->origin);
         inline_decal.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(d->origin, d->normal));
         inline_decal.normal = Vec3_Normalize(Vec3_Subtract(inline_decal.normal, inline_decal.origin));
         R_DecalNode(&inline_decal, e->model->bsp_inline->head_node);
+        
+        // Merge inline decal faces into main decal
+        if (inline_decal.faces) {
+          r_decal_face_t *last_face = inline_decal.faces;
+          while (last_face->next) {
+            last_face = last_face->next;
+          }
+          last_face->next = d->faces;
+          d->faces = inline_decal.faces;
+          d->num_faces += inline_decal.num_faces;
+        }
       }
     }
   }
-
-  // Record how much geometry this decal generated
-  d->num_vertexes = r_decals.num_vertexes - d->vertex_offset;
-  d->num_elements = r_decals.num_elements - d->element_offset;
 
   g_queue_push_tail(r_decals.allocated, d);
   
   r_decals.dirty = true;
   
-  Com_Debug(DEBUG_RENDERER, "R_AddDecal: Generated %d verts, %d elements (total decals: %u)\n", 
-    d->num_vertexes, d->num_elements, g_queue_get_length(r_decals.allocated));
+  Com_Debug(DEBUG_RENDERER, "R_AddDecal: Generated %d faces (total decals: %u)\n", 
+    d->num_faces, g_queue_get_length(r_decals.allocated));
 }
 
 /**
- * @brief Update persistent decals - remove expired ones and upload geometry if dirty.
+ * @brief Update persistent decals - remove expired ones and rebuild geometry if dirty.
  */
 void R_UpdateDecals(r_view_t *view) {
 
@@ -312,12 +320,46 @@ void R_UpdateDecals(r_view_t *view) {
 
   r_stats.decals = g_queue_get_length(r_decals.allocated);
 
-  // Only upload geometry if dirty
+  // Only rebuild geometry if dirty
   if (!r_decals.dirty) {
     return;
   }
 
-  // Upload geometry to GPU
+  // Rebuild vertex and element buffers from face lists
+  r_decals.num_vertexes = 0;
+  r_decals.num_elements = 0;
+
+  for (GList *link = r_decals.allocated->head; link; link = link->next) {
+    r_decal_t *decal = link->data;
+
+    for (r_decal_face_t *face = decal->faces; face; face = face->next) {
+      
+      if (r_decals.num_vertexes + 4 > lengthof(r_decals.vertexes)) {
+        break;
+      }
+      
+      if (r_decals.num_elements + 6 > lengthof(r_decals.elements)) {
+        break;
+      }
+
+      const int32_t base_vertex = r_decals.num_vertexes;
+
+      // Copy face vertices
+      for (int32_t i = 0; i < 4; i++) {
+        r_decals.vertexes[r_decals.num_vertexes++] = face->vertexes[i];
+      }
+
+      // Generate indices for this quad
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 1;
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
+      r_decals.elements[r_decals.num_elements++] = base_vertex + 3;
+    }
+  }
+
+  // Upload to GPU
   if (r_decals.num_vertexes > 0) {
     r_stats.decal_draw_elements = r_decals.num_elements;
     
@@ -332,7 +374,7 @@ void R_UpdateDecals(r_view_t *view) {
 }
 
 /**
- * @brief Draw decals, batched by texture.
+ * @brief Draw decals.
  */
 void R_DrawDecals(const r_view_t *view) {
 
@@ -349,43 +391,19 @@ void R_DrawDecals(const r_view_t *view) {
   glUseProgram(r_decal_program.name);
   glBindVertexArray(r_decals.vertex_array);
 
-  // Draw decals batched by texture
-  // Since decals are sorted by texture in the allocated queue, we can batch consecutive decals
-  for (GList *link = r_decals.allocated->head; link;) {
-    r_decal_t *first = link->data;
-
-    if (!first || !first->media || first->num_elements == 0) {
-      link = link->next;
-      continue;
+  // Simple rendering - draw all decals at once
+  // TODO: Batch by texture for efficiency
+  if (g_queue_get_length(r_decals.allocated) > 0) {
+    r_decal_t *first = g_queue_peek_head(r_decals.allocated);
+    if (first && first->media) {
+      const r_image_t *image = (const r_image_t *) first->media;
+      glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+      glBindTexture(GL_TEXTURE_2D, image->texnum);
     }
-
-    const r_image_t *image = (const r_image_t *) first->media;
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-    glBindTexture(GL_TEXTURE_2D, image->texnum);
-
-    // Find consecutive decals with the same texture
-    int32_t batch_first = first->element_offset;
-    int32_t batch_count = first->num_elements;
-
-    link = link->next;
-    while (link) {
-      r_decal_t *next = link->data;
-      if (next->media == first->media && next->num_elements > 0) {
-        // Ensure they're contiguous in the element buffer
-        if (next->element_offset == batch_first + batch_count) {
-          batch_count += next->num_elements;
-          link = link->next;
-        } else {
-          break;
-        }
-      } else {
-        break;
-      }
-    }
-
-    glDrawElements(GL_TRIANGLES, batch_count, GL_UNSIGNED_INT, (void*)(batch_first * sizeof(GLuint)));
-    r_stats.decal_draw_elements++;
   }
+
+  glDrawElements(GL_TRIANGLES, r_decals.num_elements, GL_UNSIGNED_INT, NULL);
+  r_stats.decal_draw_elements++;
 
   glUseProgram(0);
 
