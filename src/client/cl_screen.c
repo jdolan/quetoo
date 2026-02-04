@@ -214,6 +214,21 @@ static void Cl_DrawRendererStats(void) {
     y += ch;
     R_Draw2DString(x, y, draw_elements, color_yellow);
     y += ch;
+
+    static char decals[64], decal_draw_elements[64];
+    static uint32_t decal_time;
+
+    if (quetoo.ticks - decal_time > 100) {
+      decal_time = quetoo.ticks;
+
+      g_snprintf(decals, sizeof(decals), " %d decals", r_stats.decals);
+      g_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", r_stats.decal_draw_elements);
+    }
+
+    R_Draw2DString(x, y, decals, color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, decal_draw_elements, color_yellow);
+    y += ch;
   }
 
   y += ch;

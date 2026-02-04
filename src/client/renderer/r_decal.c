@@ -251,6 +251,9 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
  */
 void R_UpdateDecals(r_view_t *view) {
 
+  r_stats.decals = 0;
+  r_stats.decal_draw_elements = 0;
+
   // Remove expired decals
   for (GList *link = r_decals.allocated->head; link;) {
     r_decal_t *decal = link->data;
@@ -267,7 +270,7 @@ void R_UpdateDecals(r_view_t *view) {
     link = next;
   }
 
-  Com_Debug(DEBUG_RENDERER, "Persistent decals: %u\n", g_queue_get_length(r_decals.allocated));
+  r_stats.decals = g_queue_get_length(r_decals.allocated);
 
   // Add active decals to the view
   for (GList *link = r_decals.allocated->head; link; link = link->next) {
@@ -315,7 +318,8 @@ void R_UpdateDecals(r_view_t *view) {
 
   // Upload geometry to GPU
   if (r_decals.num_vertexes > 0) {
-    Com_Debug(DEBUG_RENDERER, "Uploading %d decal vertexes, %d elements\n", r_decals.num_vertexes, r_decals.num_elements);
+    r_stats.decal_draw_elements = r_decals.num_elements;
+    
     glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
     glBufferSubData(GL_ARRAY_BUFFER, 0, r_decals.num_vertexes * sizeof(r_decal_vertex_t), r_decals.vertexes);
 
@@ -335,8 +339,6 @@ void R_DrawDecals(const r_view_t *view) {
     return;
   }
 
-  Com_Debug(DEBUG_RENDERER, "Drawing %d decal elements (%d vertexes)\n", r_decals.num_elements, r_decals.num_vertexes);
-
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDepthMask(GL_FALSE);
@@ -355,10 +357,7 @@ void R_DrawDecals(const r_view_t *view) {
       const r_image_t *image = (const r_image_t *) first->media;
       glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
       glBindTexture(GL_TEXTURE_2D, image->texnum);
-      Com_Debug(DEBUG_RENDERER, "Binding decal texture %u\n", image->texnum);
     }
-  } else {
-    Com_Debug(DEBUG_RENDERER, "No decals to bind texture for\n");
   }
 
   glDrawElements(GL_TRIANGLES, r_decals.num_elements, GL_UNSIGNED_INT, NULL);

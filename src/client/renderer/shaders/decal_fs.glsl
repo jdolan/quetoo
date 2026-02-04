@@ -33,5 +33,5 @@ void main(void) {
 
   vec4 diffuse = texture(texture_diffusemap, vertex.texcoord);
 
-  out_color = vertex.color;
+  out_color = diffuse * vertex.color;
 }
