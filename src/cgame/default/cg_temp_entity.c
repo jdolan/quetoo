@@ -25,6 +25,18 @@
 /**
  * @brief
  */
+void Cg_AddDecal(const r_decal_t *decal) {
+
+  if (!cg_add_decals->value) {
+    return;
+  }
+
+  cgi.AddDecal(cgi.view, decal);
+}
+
+/**
+ * @brief
+ */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t color) {
 
   for (int32_t i = 0; i < 2; i++) {

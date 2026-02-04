@@ -34,24 +34,46 @@ typedef struct {
 } r_decal_vertex_t;
 
 /**
- * @brief Persistent decal storage.
+ * @brief Decal storage and rendering state.
  */
-typedef struct {
-  r_decal_t decals[MAX_DECALS];
-  int32_t num_decals;
+static struct {
+  /**
+   * @brief The queue of allocated decals.
+   */
+  GQueue *allocated;
 
-  r_decal_vertex_t vertexes[MAX_DECAL_VERTS];
+  /**
+   * @brief The queue of free decals.
+   */
+  GQueue *free;
+
+  /**
+   * @brief The vertex buffer object.
+   */
+  GLuint vertex_buffer;
+
+  /**
+   * @brief The elements buffer object.
+   */
+  GLuint elements_buffer;
+
+  /**
+   * @brief The vertex array object.
+   */
+  GLuint vertex_array;
+
+  /**
+   * @brief Dynamic vertex buffer for decals.
+   */
+  r_decal_vertex_t vertexes[MAX_DECALS * 4];
   int32_t num_vertexes;
 
-  GLuint elements[MAX_DECAL_ELEMENTS];
+  /**
+   * @brief Dynamic element buffer for decals.
+   */
+  GLuint elements[MAX_DECALS * 6];
   int32_t num_elements;
-
-  GLuint vertex_buffer;
-  GLuint elements_buffer;
-  GLuint vertex_array;
-} r_decals_t;
-
-static r_decals_t r_decals;
+} r_decals;
 
 /**
  * @brief The decal program.
@@ -62,8 +84,27 @@ static struct {
   GLint texture_diffusemap;
 } r_decal_program;
 
-static cvar_t *r_decals_cvar;
-static cvar_t *r_decals_max;
+/**
+ * @brief Allocate a decal from the pool.
+ */
+static r_decal_t *R_AllocDecal(void) {
+
+  r_decal_t *decal = g_queue_pop_head(r_decals.free);
+  if (decal == NULL) {
+    decal = Mem_TagMalloc(sizeof(r_decal_t), MEM_TAG_RENDERER);
+  }
+
+  g_queue_push_tail(r_decals.allocated, decal);
+  return decal;
+}
+
+/**
+ * @brief Free a decal back to the pool.
+ */
+static void R_FreeDecal(r_decal_t *decal) {
+  g_queue_remove(r_decals.allocated, decal);
+  g_queue_push_head(r_decals.free, decal);
+}
 
 /**
  * @brief Generate decal geometry on a BSP face.
@@ -183,10 +224,6 @@ static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
  */
 void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
-  if (!r_decals_cvar->value) {
-    return;
-  }
-
   if (view->num_decals == MAX_DECALS) {
     Com_Warn("MAX_DECALS\n");
     return;
@@ -197,17 +234,8 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
   // Add to persistent decals if it has lifetime >= 0
   if ((int32_t)decal->lifetime >= 0) {
-    const int32_t max = Mini(r_decals_max->integer, MAX_DECALS);
-    
-    if (r_decals.num_decals >= max) {
-      // Replace oldest decal
-      for (int32_t i = 0; i < r_decals.num_decals - 1; i++) {
-        r_decals.decals[i] = r_decals.decals[i + 1];
-      }
-      r_decals.num_decals = max - 1;
-    }
-
-    r_decals.decals[r_decals.num_decals++] = *decal;
+    r_decal_t *d = R_AllocDecal();
+    *d = *decal;
   }
 }
 
@@ -216,32 +244,25 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
  */
 void R_UpdateDecals(r_view_t *view) {
 
-  if (!r_decals_cvar->value) {
-    return;
-  }
-
   // Remove expired decals
-  for (int32_t i = 0; i < r_decals.num_decals; ) {
-    r_decal_t *decal = &r_decals.decals[i];
+  for (GList *link = r_decals.allocated->head; link; ) {
+    r_decal_t *decal = link->data;
+    GList *next = link->next;
 
-    // Check if decal has expired
     if (decal->lifetime > 0) {
       const uint32_t age = view->ticks - decal->time;
       if (age >= decal->lifetime) {
-        // Remove by shifting array
-        for (int32_t j = i; j < r_decals.num_decals - 1; j++) {
-          r_decals.decals[j] = r_decals.decals[j + 1];
-        }
-        r_decals.num_decals--;
+        R_FreeDecal(decal);
+        link = next;
         continue;
       }
     }
-    i++;
+    link = next;
   }
 
   // Add active decals to the view
-  for (int32_t i = 0; i < r_decals.num_decals; i++) {
-    r_decal_t *decal = &r_decals.decals[i];
+  for (GList *link = r_decals.allocated->head; link; link = link->next) {
+    r_decal_t *decal = link->data;
     
     if (view->num_decals < MAX_DECALS) {
       // Apply fade effect near end of life
@@ -300,10 +321,6 @@ void R_UpdateDecals(r_view_t *view) {
  */
 void R_DrawDecals(const r_view_t *view) {
 
-  if (!r_decals_cvar->value) {
-    return;
-  }
-
   if (r_decals.num_elements == 0) {
     return;
   }
@@ -343,8 +360,8 @@ void R_InitDecals(void) {
 
   memset(&r_decals, 0, sizeof(r_decals));
 
-  r_decals_cvar = Cvar_Add("r_decals", "1", CVAR_ARCHIVE, "Enable decals (bullet marks, blood stains, etc)");
-  r_decals_max = Cvar_Add("r_decals_max", "512", CVAR_ARCHIVE, "Maximum number of persistent decals");
+  r_decals.allocated = g_queue_new();
+  r_decals.free = g_queue_new();
 
   // Load shader program
   r_decal_program.name = R_LoadProgram(
