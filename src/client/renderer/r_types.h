@@ -1309,9 +1309,9 @@ typedef struct {
   color_t color;
 
   /**
-   * @brief The decal texture.
+   * @brief The decal media (image or atlas image).
    */
-  r_image_t *image;
+  r_media_t *media;
 
   /**
    * @brief The creation time in ticks.
