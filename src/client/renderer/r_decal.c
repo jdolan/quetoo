@@ -48,6 +48,11 @@ static struct {
   GQueue *free;
 
   /**
+   * @brief If true, rebuild the vertex buffer at next frame.
+   */
+  bool dirty;
+
+  /**
    * @brief The vertex buffer object.
    */
   GLuint vertex_buffer;
@@ -94,7 +99,7 @@ static r_decal_t *R_AllocDecal(void) {
     decal = Mem_TagMalloc(sizeof(r_decal_t), MEM_TAG_RENDERER);
   }
 
-  g_queue_push_tail(r_decals.allocated, decal);
+  r_decals.dirty = true;
   return decal;
 }
 
@@ -102,8 +107,11 @@ static r_decal_t *R_AllocDecal(void) {
  * @brief Free a decal back to the pool.
  */
 static void R_FreeDecal(r_decal_t *decal) {
+
   g_queue_remove(r_decals.allocated, decal);
   g_queue_push_head(r_decals.free, decal);
+
+  r_decals.dirty = true;
 }
 
 /**
@@ -111,18 +119,22 @@ static void R_FreeDecal(r_decal_t *decal) {
  */
 static void R_DecalTextureCoordinates(const r_media_t *media, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
-  if (media && media->type == R_MEDIA_ATLAS_IMAGE) {
-    const r_atlas_image_t *atlas_image = (r_atlas_image_t *) media;
-    *tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
-    *tr = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
-    *br = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
-    *bl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
-  } else {
-    *tl = Vec2(0.f, 0.f);
-    *tr = Vec2(1.f, 0.f);
-    *br = Vec2(1.f, 1.f);
-    *bl = Vec2(0.f, 1.f);
+  if (media) {
+    if (media->type == R_MEDIA_ATLAS_IMAGE) {
+      const r_atlas_image_t *atlas_image = (r_atlas_image_t *) media;
+      *tl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
+      *tr = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
+      *br = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
+      *bl = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
+      return;
+    }
   }
+  
+  // Default texcoords for regular images or NULL media
+  *tl = Vec2(0.f, 0.f);
+  *tr = Vec2(1.f, 0.f);
+  *br = Vec2(1.f, 1.f);
+  *bl = Vec2(0.f, 1.f);
 }
 
 /**
@@ -234,25 +246,53 @@ static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
 }
 
 /**
- * @brief Adds a decal to the persistent pool.
+ * @brief Adds a decal to the persistent pool and generates its geometry.
  */
 void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
-  Com_Debug(DEBUG_RENDERER, "R_AddDecal: lifetime=%u, media=%p\n", decal->lifetime, (void*)decal->media);
+  Com_Debug(DEBUG_RENDERER, "R_AddDecal: origin=(%.1f,%.1f,%.1f) lifetime=%u media=%p\n", 
+    decal->origin.x, decal->origin.y, decal->origin.z, decal->lifetime, (void*)decal->media);
 
   r_decal_t *d = R_AllocDecal();
   *d = *decal;
+
+  // Store the starting position for this decal's geometry
+  d->vertex_offset = r_decals.num_vertexes;
+  d->element_offset = r_decals.num_elements;
+
+  // Generate geometry for this decal
+  if (r_models.world && r_models.world->bsp) {
+    R_DecalNode(d, r_models.world->bsp->nodes);
+
+    // Also check BSP inline models (func_* entities)
+    const r_entity_t *e = view->entities;
+    for (int32_t j = 0; j < view->num_entities; j++, e++) {
+      if (e->model && e->model->type == MODEL_BSP_INLINE) {
+        r_decal_t inline_decal = *d;
+        inline_decal.origin = Mat4_Transform(e->inverse_matrix, d->origin);
+        inline_decal.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(d->origin, d->normal));
+        inline_decal.normal = Vec3_Normalize(Vec3_Subtract(inline_decal.normal, inline_decal.origin));
+        R_DecalNode(&inline_decal, e->model->bsp_inline->head_node);
+      }
+    }
+  }
+
+  // Record how much geometry this decal generated
+  d->num_vertexes = r_decals.num_vertexes - d->vertex_offset;
+  d->num_elements = r_decals.num_elements - d->element_offset;
+
+  g_queue_push_tail(r_decals.allocated, d);
   
-  Com_Debug(DEBUG_RENDERER, "  Added persistent decal (total=%u)\n", g_queue_get_length(r_decals.allocated));
+  r_decals.dirty = true;
+  
+  Com_Debug(DEBUG_RENDERER, "R_AddDecal: Generated %d verts, %d elements (total decals: %u)\n", 
+    d->num_vertexes, d->num_elements, g_queue_get_length(r_decals.allocated));
 }
 
 /**
- * @brief Update persistent decals - remove expired ones and add active ones to view.
+ * @brief Update persistent decals - remove expired ones and upload geometry if dirty.
  */
 void R_UpdateDecals(r_view_t *view) {
-
-  r_stats.decals = 0;
-  r_stats.decal_draw_elements = 0;
 
   // Remove expired decals
   for (GList *link = r_decals.allocated->head; link;) {
@@ -272,48 +312,9 @@ void R_UpdateDecals(r_view_t *view) {
 
   r_stats.decals = g_queue_get_length(r_decals.allocated);
 
-  // Add active decals to the view
-  for (GList *link = r_decals.allocated->head; link; link = link->next) {
-    r_decal_t *decal = link->data;
-    
-    if (view->num_decals < MAX_DECALS) {
-      // Apply fade effect near end of life
-      r_decal_t d = *decal;
-      if (d.lifetime > 0) {
-        const uint32_t age = view->ticks - d.time;
-        const uint32_t fade_duration = d.lifetime / 5; // Fade during last 20% of life
-        const uint32_t fade_start = d.lifetime - fade_duration;
-        if (age > fade_start) {
-          const float fade = 1.0 - ((float) (age - fade_start) / (float) fade_duration);
-          d.color.a *= fade;
-        }
-      }
-      view->decals[view->num_decals++] = d;
-    }
-  }
-
-  // Regenerate decal geometry
-  r_decals.num_vertexes = 0;
-  r_decals.num_elements = 0;
-
-  if (r_models.world && r_models.world->bsp) {
-    const r_decal_t *decal = view->decals;
-    for (int32_t i = 0; i < view->num_decals; i++, decal++) {
-      R_DecalNode(decal, r_models.world->bsp->nodes);
-
-      // Also check BSP inline models (func_* entities)
-      const r_entity_t *e = view->entities;
-      for (int32_t j = 0; j < view->num_entities; j++, e++) {
-        if (e->model && e->model->type == MODEL_BSP_INLINE) {
-          r_decal_t inline_decal = *decal;
-          inline_decal.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
-          // Transform normal (direction) - w=0 means no translation
-          inline_decal.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
-          inline_decal.normal = Vec3_Normalize(Vec3_Subtract(inline_decal.normal, inline_decal.origin));
-          R_DecalNode(&inline_decal, e->model->bsp_inline->head_node);
-        }
-      }
-    }
+  // Only upload geometry if dirty
+  if (!r_decals.dirty) {
+    return;
   }
 
   // Upload geometry to GPU
@@ -327,11 +328,11 @@ void R_UpdateDecals(r_view_t *view) {
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, r_decals.num_elements * sizeof(GLuint), r_decals.elements);
   }
 
-  R_GetError(NULL);
+  r_decals.dirty = false;
 }
 
 /**
- * @brief Draw decals.
+ * @brief Draw decals, batched by texture.
  */
 void R_DrawDecals(const r_view_t *view) {
 
@@ -346,21 +347,45 @@ void R_DrawDecals(const r_view_t *view) {
   glPolygonOffset(-1.0, -1.0);
 
   glUseProgram(r_decal_program.name);
-
   glBindVertexArray(r_decals.vertex_array);
-  
-  // Bind texture from first persistent decal (they should all share atlas for now)
-  // TODO: Batch by texture for better performance
-  if (g_queue_get_length(r_decals.allocated) > 0) {
-    r_decal_t *first = g_queue_peek_head(r_decals.allocated);
-    if (first && first->media) {
-      const r_image_t *image = (const r_image_t *) first->media;
-      glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-      glBindTexture(GL_TEXTURE_2D, image->texnum);
-    }
-  }
 
-  glDrawElements(GL_TRIANGLES, r_decals.num_elements, GL_UNSIGNED_INT, NULL);
+  // Draw decals batched by texture
+  // Since decals are sorted by texture in the allocated queue, we can batch consecutive decals
+  for (GList *link = r_decals.allocated->head; link;) {
+    r_decal_t *first = link->data;
+
+    if (!first || !first->media || first->num_elements == 0) {
+      link = link->next;
+      continue;
+    }
+
+    const r_image_t *image = (const r_image_t *) first->media;
+    glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+    glBindTexture(GL_TEXTURE_2D, image->texnum);
+
+    // Find consecutive decals with the same texture
+    int32_t batch_first = first->element_offset;
+    int32_t batch_count = first->num_elements;
+
+    link = link->next;
+    while (link) {
+      r_decal_t *next = link->data;
+      if (next->media == first->media && next->num_elements > 0) {
+        // Ensure they're contiguous in the element buffer
+        if (next->element_offset == batch_first + batch_count) {
+          batch_count += next->num_elements;
+          link = link->next;
+        } else {
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+
+    glDrawElements(GL_TRIANGLES, batch_count, GL_UNSIGNED_INT, (void*)(batch_first * sizeof(GLuint)));
+    r_stats.decal_draw_elements++;
+  }
 
   glUseProgram(0);
 

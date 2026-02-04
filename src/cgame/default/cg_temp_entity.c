@@ -334,7 +334,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .media = (r_media_t *) cg_decal_bullet[Randomi() & 3],
       .origin = org,
       .normal = dir,
-      .radius = RandomRangef(8.f, 12.f),
+      .radius = RandomRangef(32.f, 64.f),
       .color = color_white,
       .lifetime = 30000
     });

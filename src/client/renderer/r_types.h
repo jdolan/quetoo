@@ -1322,6 +1322,26 @@ typedef struct {
    * @brief The decal lifetime in milliseconds (0 = permanent).
    */
   uint32_t lifetime;
+
+  /**
+   * @brief The offset into the vertex buffer for this decal's geometry.
+   */
+  int32_t vertex_offset;
+
+  /**
+   * @brief The number of vertexes for this decal.
+   */
+  int32_t num_vertexes;
+
+  /**
+   * @brief The offset into the element buffer for this decal's geometry.
+   */
+  int32_t element_offset;
+
+  /**
+   * @brief The number of elements for this decal.
+   */
+  int32_t num_elements;
 } r_decal_t;
 
 #define MAX_DECALS 0x400
@@ -1744,12 +1764,6 @@ typedef struct {
    */
   r_light_t lights[MAX_LIGHTS];
   int32_t num_lights;
-
-  /**
-   * @brief The decals to render for the current frame.
-   */
-  r_decal_t decals[MAX_DECALS];
-  int32_t num_decals;
 
   /**
    * @brief The view frustum, for box and sphere culling.
