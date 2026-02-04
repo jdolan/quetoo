@@ -307,6 +307,10 @@
 		CE5A6AC32EC60286005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5A6AC42EC6028E005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5A6AC52EC60296005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
+		CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAD72F32D86C00D05D09 /* r_decal.c */; };
+		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
+		CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
+		CE5ABADB2F32D8BD00D05D09 /* decal_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
 		CE5CDC381D9F51A90034757D /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB31D9F45090034757D /* ui_main.h */; };
@@ -976,6 +980,8 @@
 				CEFD07FB2B671E1700642169 /* bsp_fs.glsl in CopyFiles */,
 				CEFD07FD2B671E2100642169 /* bsp_vs.glsl in CopyFiles */,
 				CE3CFD3625A2994F003D6148 /* common.glsl in CopyFiles */,
+				CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */,
+				CE5ABADB2F32D8BD00D05D09 /* decal_vs.glsl in CopyFiles */,
 				CE2CECA82585B9CD0001E599 /* depth_pass_fs.glsl in CopyFiles */,
 				CE2CEC4C25852FF80001E599 /* depth_pass_vs.glsl in CopyFiles */,
 				CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */,
@@ -1631,6 +1637,10 @@
 		CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoModeSelect.h; sourceTree = "<group>"; };
 		CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.2.26/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
 		CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.2.4.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.2.4/lib/libSDL3_image.0.2.4.dylib; sourceTree = "<group>"; };
+		CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_fs.glsl; sourceTree = "<group>"; };
+		CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_vs.glsl; sourceTree = "<group>"; };
+		CE5ABAD62F32D86C00D05D09 /* r_decal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_decal.h; sourceTree = "<group>"; };
+		CE5ABAD72F32D86C00D05D09 /* r_decal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_decal.c; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -2640,6 +2650,8 @@
 				CE12D5BB1C5C58C300CD0B13 /* r_context.h */,
 				CEA153B2296B4BE100916F83 /* r_cull.c */,
 				CEA153B1296B4BE100916F83 /* r_cull.h */,
+				CE5ABAD62F32D86C00D05D09 /* r_decal.h */,
+				CE5ABAD72F32D86C00D05D09 /* r_decal.c */,
 				CE2CEB9225852E110001E599 /* r_depth_pass.c */,
 				CE2CEB9125852E110001E599 /* r_depth_pass.h */,
 				CED5BB142406A95800784D93 /* r_draw_3d.c */,
@@ -2699,6 +2711,8 @@
 				CEFD07F72B671DE700642169 /* bsp_fs.glsl */,
 				CEFD07F62B671DE600642169 /* bsp_vs.glsl */,
 				CE3CFD3525A29932003D6148 /* common.glsl */,
+				CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */,
+				CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */,
 				CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */,
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
@@ -3741,6 +3755,7 @@
 				CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */,
 				CED438841D9D34450052BAFA /* r_context.h in Headers */,
 				CEA153B3296B4BE100916F83 /* r_cull.h in Headers */,
+				CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */,
 				CE2CEB9325852E110001E599 /* r_depth_pass.h in Headers */,
 				CED438861D9D34450052BAFA /* r_draw_2d.h in Headers */,
 				CED5BB152406A95800784D93 /* r_draw_3d.h in Headers */,
@@ -4935,6 +4950,7 @@
 				CED4383B1D9D34450052BAFA /* r_bsp_model.c in Sources */,
 				CED4383D1D9D34450052BAFA /* r_context.c in Sources */,
 				CEA153B4296B4BE100916F83 /* r_cull.c in Sources */,
+				CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */,
 				CE2CEB9425852E110001E599 /* r_depth_pass.c in Sources */,
 				CED4383F1D9D34450052BAFA /* r_draw_2d.c in Sources */,
 				CED5BB162406A95800784D93 /* r_draw_3d.c in Sources */,

@@ -315,6 +315,15 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     float spark_life = 200.f;
     float spark_size = RandomRangef(35.f, 45.f);
 
+    cgi.AddDecal(cgi.view, &(r_decal_t) {
+      .image = (r_image_t *) cg_decal_bullet[0],
+      .origin = org,
+      .normal = dir,
+      .radius = RandomRangef(8.f, 12.f),
+      .color = color_white,
+      .lifetime = 30000
+    });
+
     // spark spikes billboard
     Cg_AddSprite(&(cg_sprite_t) {
       .animation = cg_sprite_impact_spark_01,

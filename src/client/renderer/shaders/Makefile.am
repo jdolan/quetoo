@@ -4,6 +4,8 @@ shaders_DATA = \
 	bsp_fs.glsl \
 	bsp_vs.glsl \
 	common.glsl \
+	decal_fs.glsl \
+	decal_vs.glsl \
 	depth_pass_fs.glsl \
 	depth_pass_vs.glsl \
 	draw_2d_fs.glsl \

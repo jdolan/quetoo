@@ -87,6 +87,8 @@ extern r_atlas_image_t *cg_sprite_water_ring2;
 extern r_atlas_image_t *cg_sprite_abstract_01;
 extern r_atlas_image_t *cg_sprite_node_wait;
 extern r_atlas_image_t *cg_sprite_node_slow;
+extern r_atlas_image_t *cg_decal_bullet[3];
+
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_arrow;
 extern r_image_t *cg_beam_line;
@@ -94,6 +96,7 @@ extern r_image_t *cg_beam_rail;
 extern r_image_t *cg_beam_lightning;
 extern r_image_t *cg_beam_tracer;
 extern r_image_t *cg_beam_tail;
+
 extern r_animation_t *cg_sprite_explosion;
 extern r_animation_t *cg_sprite_explosion_ring_02;
 extern r_animation_t *cg_sprite_rocket_flame;

@@ -1285,6 +1285,48 @@ typedef struct {
 #define MAX_BEAMS 0x200
 
 /**
+ * @brief Decals are projected textures that conform to BSP geometry.
+ */
+typedef struct {
+  /**
+   * @brief The decal origin.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The decal surface normal.
+   */
+  vec3_t normal;
+
+  /**
+   * @brief The decal radius.
+   */
+  float radius;
+
+  /**
+   * @brief The decal color.
+   */
+  color_t color;
+
+  /**
+   * @brief The decal texture.
+   */
+  r_image_t *image;
+
+  /**
+   * @brief The creation time in ticks.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The decal lifetime in milliseconds (0 = permanent).
+   */
+  uint32_t lifetime;
+} r_decal_t;
+
+#define MAX_DECALS 0x400
+
+/**
  * @brief The sprite instance vertex structure.
  */
 typedef struct {
@@ -1702,6 +1744,12 @@ typedef struct {
    */
   r_light_t lights[MAX_LIGHTS];
   int32_t num_lights;
+
+  /**
+   * @brief The decals to render for the current frame.
+   */
+  r_decal_t decals[MAX_DECALS];
+  int32_t num_decals;
 
   /**
    * @brief The view frustum, for box and sphere culling.

@@ -1,0 +1,421 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "r_local.h"
+
+#define MAX_DECAL_VERTS 2048
+#define MAX_DECAL_ELEMENTS 4096
+
+/**
+ * @brief Decal vertex structure.
+ */
+typedef struct {
+  vec3_t position;
+  vec2_t texcoord;
+  color32_t color;
+} r_decal_vertex_t;
+
+/**
+ * @brief Persistent decal storage.
+ */
+typedef struct {
+  r_decal_t decals[MAX_DECALS];
+  int32_t num_decals;
+
+  r_decal_vertex_t vertexes[MAX_DECAL_VERTS];
+  int32_t num_vertexes;
+
+  GLuint elements[MAX_DECAL_ELEMENTS];
+  int32_t num_elements;
+
+  GLuint vertex_buffer;
+  GLuint elements_buffer;
+  GLuint vertex_array;
+} r_decals_t;
+
+static r_decals_t r_decals;
+
+/**
+ * @brief The decal program.
+ */
+static struct {
+  GLuint name;
+  GLuint uniforms_block;
+  GLint texture_diffusemap;
+} r_decal_program;
+
+static cvar_t *r_decals_cvar;
+static cvar_t *r_decals_max;
+
+/**
+ * @brief Generate decal geometry on a BSP face.
+ */
+static void R_DecalFace(const r_decal_t *decal, r_bsp_face_t *face) {
+
+  if (r_decals.num_vertexes + 4 > MAX_DECAL_VERTS) {
+    return;
+  }
+
+  if (r_decals.num_elements + 6 > MAX_DECAL_ELEMENTS) {
+    return;
+  }
+
+  // Calculate decal basis vectors
+  vec3_t tangent, bitangent;
+  if (fabsf(decal->normal.z) > 0.9) {
+    tangent = Vec3_Cross(decal->normal, Vec3(1.0, 0.0, 0.0));
+  } else {
+    tangent = Vec3_Cross(decal->normal, Vec3(0.0, 0.0, 1.0));
+  }
+  tangent = Vec3_Normalize(tangent);
+  bitangent = Vec3_Cross(decal->normal, tangent);
+
+  // Generate decal quad
+  const vec3_t extents[4] = {
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent, -decal->radius)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent, -decal->radius)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent,  decal->radius)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent,  decal->radius))
+  };
+
+  const vec2_t texcoords[4] = {
+    Vec2(0.0, 0.0),
+    Vec2(1.0, 0.0),
+    Vec2(1.0, 1.0),
+    Vec2(0.0, 1.0)
+  };
+
+  // TODO: Clip decal quad to face bounds - for now just add the quad
+  // A full implementation would intersect the quad with the face polygon
+
+  const color32_t color = Color_Color32(decal->color);
+  const int32_t base_vertex = r_decals.num_vertexes;
+
+  for (int32_t i = 0; i < 4; i++) {
+    r_decals.vertexes[r_decals.num_vertexes++] = (r_decal_vertex_t) {
+      .position = extents[i],
+      .texcoord = texcoords[i],
+      .color = color
+    };
+  }
+
+  // Add two triangles (quad)
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 1;
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
+  r_decals.elements[r_decals.num_elements++] = base_vertex + 3;
+}
+
+/**
+ * @brief Recursively traverse BSP tree to project decal onto faces.
+ */
+static void R_DecalNode(const r_decal_t *decal, const r_bsp_node_t *node) {
+
+  if (node->contents > CONTENTS_NODE) {
+    return;
+  }
+
+  const cm_bsp_plane_t *plane = node->plane->cm;
+  const float dist = Cm_DistanceToPlane(decal->origin, plane);
+
+  if (dist > decal->radius) {
+    R_DecalNode(decal, node->children[0]);
+    return;
+  }
+
+  if (dist < -decal->radius) {
+    R_DecalNode(decal, node->children[1]);
+    return;
+  }
+
+  // Project the decal onto the node's plane
+  const r_decal_t projected = {
+    .origin = Vec3_Fmaf(decal->origin, -dist, plane->normal),
+    .normal = decal->normal,
+    .radius = decal->radius - fabsf(dist),
+    .color = decal->color,
+    .image = decal->image,
+    .time = decal->time,
+    .lifetime = decal->lifetime
+  };
+
+  r_bsp_face_t *face = node->faces;
+  for (int32_t i = 0; i < node->num_faces; i++, face++) {
+
+    if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
+      continue;
+    }
+
+    if (face->brush_side->surface & (SURF_SKY | SURF_NO_DRAW)) {
+      continue;
+    }
+
+    R_DecalFace(&projected, face);
+  }
+
+  // Recurse down both sides
+  R_DecalNode(decal, node->children[0]);
+  R_DecalNode(decal, node->children[1]);
+}
+
+/**
+ * @brief Adds a decal to the view for the current frame.
+ */
+void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
+
+  if (!r_decals_cvar->value) {
+    return;
+  }
+
+  if (view->num_decals == MAX_DECALS) {
+    Com_Warn("MAX_DECALS\n");
+    return;
+  }
+
+  // Add to frame decals (temporary)
+  view->decals[view->num_decals++] = *decal;
+
+  // Add to persistent decals if it has lifetime >= 0
+  if ((int32_t)decal->lifetime >= 0) {
+    const int32_t max = Mini(r_decals_max->integer, MAX_DECALS);
+    
+    if (r_decals.num_decals >= max) {
+      // Replace oldest decal
+      for (int32_t i = 0; i < r_decals.num_decals - 1; i++) {
+        r_decals.decals[i] = r_decals.decals[i + 1];
+      }
+      r_decals.num_decals = max - 1;
+    }
+
+    r_decals.decals[r_decals.num_decals++] = *decal;
+  }
+}
+
+/**
+ * @brief Update persistent decals - remove expired ones and add active ones to view.
+ */
+void R_UpdateDecals(r_view_t *view) {
+
+  if (!r_decals_cvar->value) {
+    return;
+  }
+
+  // Remove expired decals
+  for (int32_t i = 0; i < r_decals.num_decals; ) {
+    r_decal_t *decal = &r_decals.decals[i];
+
+    // Check if decal has expired
+    if (decal->lifetime > 0) {
+      const uint32_t age = view->ticks - decal->time;
+      if (age >= decal->lifetime) {
+        // Remove by shifting array
+        for (int32_t j = i; j < r_decals.num_decals - 1; j++) {
+          r_decals.decals[j] = r_decals.decals[j + 1];
+        }
+        r_decals.num_decals--;
+        continue;
+      }
+    }
+    i++;
+  }
+
+  // Add active decals to the view
+  for (int32_t i = 0; i < r_decals.num_decals; i++) {
+    r_decal_t *decal = &r_decals.decals[i];
+    
+    if (view->num_decals < MAX_DECALS) {
+      // Apply fade effect near end of life
+      r_decal_t d = *decal;
+      if (d.lifetime > 0) {
+        const uint32_t age = view->ticks - d.time;
+        const uint32_t fade_duration = d.lifetime / 5; // Fade during last 20% of life
+        const uint32_t fade_start = d.lifetime - fade_duration;
+        if (age > fade_start) {
+          const float fade = 1.0 - ((float)(age - fade_start) / (float)fade_duration);
+          d.color.a *= fade;
+        }
+      }
+      view->decals[view->num_decals++] = d;
+    }
+  }
+
+  // Regenerate decal geometry
+  r_decals.num_vertexes = 0;
+  r_decals.num_elements = 0;
+
+  if (r_models.world && r_models.world->bsp) {
+    const r_decal_t *decal = view->decals;
+    for (int32_t i = 0; i < view->num_decals; i++, decal++) {
+      R_DecalNode(decal, r_models.world->bsp->nodes);
+
+      // Also check BSP inline models (func_* entities)
+      const r_entity_t *e = view->entities;
+      for (int32_t j = 0; j < view->num_entities; j++, e++) {
+        if (e->model && e->model->type == MODEL_BSP_INLINE) {
+          r_decal_t d = *decal;
+          d.origin = Mat4_Transform(e->inverse_matrix, d.origin);
+          // Transform normal (direction) - w=0 means no translation
+          d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(d.origin, d.normal));
+          d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
+          R_DecalNode(&d, e->model->bsp_inline->head_node);
+        }
+      }
+    }
+  }
+
+  // Upload geometry to GPU
+  if (r_decals.num_vertexes > 0) {
+    glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, r_decals.num_vertexes * sizeof(r_decal_vertex_t), r_decals.vertexes);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, r_decals.num_elements * sizeof(GLuint), r_decals.elements);
+  }
+
+  R_GetError(NULL);
+}
+
+/**
+ * @brief Draw decals.
+ */
+void R_DrawDecals(const r_view_t *view) {
+
+  if (!r_decals_cvar->value) {
+    return;
+  }
+
+  if (r_decals.num_elements == 0) {
+    return;
+  }
+
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDepthMask(GL_FALSE);
+  glEnable(GL_POLYGON_OFFSET_FILL);
+  glPolygonOffset(-1.0, -1.0);
+
+  glUseProgram(r_decal_program.name);
+
+  glBindVertexArray(r_decals.vertex_array);
+  
+  // TODO: Batch by texture for better performance
+  // For now just bind first decal's texture if it exists
+  if (view->num_decals > 0 && view->decals[0].image) {
+    glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+    glBindTexture(GL_TEXTURE_2D, view->decals[0].image->texnum);
+  }
+
+  glDrawElements(GL_TRIANGLES, r_decals.num_elements, GL_UNSIGNED_INT, NULL);
+
+  glUseProgram(0);
+
+  glDisable(GL_POLYGON_OFFSET_FILL);
+  glDepthMask(GL_TRUE);
+  glDisable(GL_BLEND);
+
+  R_GetError(NULL);
+}
+
+/**
+ * @brief Initialize the decals subsystem.
+ */
+void R_InitDecals(void) {
+
+  memset(&r_decals, 0, sizeof(r_decals));
+
+  r_decals_cvar = Cvar_Add("r_decals", "1", CVAR_ARCHIVE, "Enable decals (bullet marks, blood stains, etc)");
+  r_decals_max = Cvar_Add("r_decals_max", "512", CVAR_ARCHIVE, "Maximum number of persistent decals");
+
+  // Load shader program
+  r_decal_program.name = R_LoadProgram(
+    R_ShaderDescriptor(GL_VERTEX_SHADER, "decal_vs.glsl", NULL),
+    R_ShaderDescriptor(GL_FRAGMENT_SHADER, "decal_fs.glsl", NULL),
+    NULL);
+
+  glUseProgram(r_decal_program.name);
+
+  r_decal_program.uniforms_block = glGetUniformBlockIndex(r_decal_program.name, "uniforms_block");
+  glUniformBlockBinding(r_decal_program.name, r_decal_program.uniforms_block, 0);
+
+  r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
+  glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+
+  glUseProgram(0);
+
+  // Create vertex buffer
+  glGenBuffers(1, &r_decals.vertex_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, MAX_DECAL_VERTS * sizeof(r_decal_vertex_t), NULL, GL_DYNAMIC_DRAW);
+
+  // Create element buffer
+  glGenBuffers(1, &r_decals.elements_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, MAX_DECAL_ELEMENTS * sizeof(GLuint), NULL, GL_DYNAMIC_DRAW);
+
+  // Create vertex array object
+  glGenVertexArrays(1, &r_decals.vertex_array);
+  glBindVertexArray(r_decals.vertex_array);
+
+  glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
+
+  // Position attribute
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *)offsetof(r_decal_vertex_t, position));
+
+  // Texcoord attribute
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *)offsetof(r_decal_vertex_t, texcoord));
+
+  // Color attribute
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *)offsetof(r_decal_vertex_t, color));
+
+  glBindVertexArray(0);
+
+  R_GetError("R_InitDecals");
+}
+
+/**
+ * @brief Shutdown the decals subsystem.
+ */
+void R_ShutdownDecals(void) {
+
+  if (r_decal_program.name) {
+    glDeleteProgram(r_decal_program.name);
+  }
+
+  if (r_decals.vertex_array) {
+    glDeleteVertexArrays(1, &r_decals.vertex_array);
+  }
+
+  if (r_decals.vertex_buffer) {
+    glDeleteBuffers(1, &r_decals.vertex_buffer);
+  }
+
+  if (r_decals.elements_buffer) {
+    glDeleteBuffers(1, &r_decals.elements_buffer);
+  }
+
+  memset(&r_decals, 0, sizeof(r_decals));
+}

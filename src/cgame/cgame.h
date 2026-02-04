@@ -759,6 +759,11 @@ typedef struct cg_import_s {
   r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
 
   /**
+   * @brief Adds a decal to the scene.
+   */
+  void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
+
+  /**
    * @brief Draws the player model view.
    */
   void (*DrawPlayerModelView)(r_view_t *view);

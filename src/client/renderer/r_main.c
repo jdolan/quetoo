@@ -247,6 +247,8 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateLights(view);
 
+  R_UpdateDecals(view);
+
   R_DrawShadows(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
@@ -263,6 +265,8 @@ void R_DrawMainView(r_view_t *view) {
   Thread_Wait(sprites);
   
   R_DrawSprites(view);
+
+  R_DrawDecals(view);
 
   if (r_draw_wireframe->value) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -479,6 +483,8 @@ void R_Init(void) {
 
   R_InitLights();
 
+  R_InitDecals();
+
   R_InitSky();
 
   R_GetError("Video initialization");
@@ -506,6 +512,8 @@ void R_Shutdown(void) {
   R_ShutdownModels();
 
   R_ShutdownLights();
+
+  R_ShutdownDecals();
 
   R_ShutdownSprites();
 
