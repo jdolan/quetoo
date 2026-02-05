@@ -200,6 +200,7 @@ void R_InitView(r_view_t *view) {
   view->num_lights = 0;
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
+  view->num_decals = 0;
 }
 
 /**
@@ -265,8 +266,6 @@ void R_DrawMainView(r_view_t *view) {
   Thread_Wait(sprites);
   
   R_DrawSprites(view);
-
-  R_DrawDecals(view);
 
   if (r_draw_wireframe->value) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

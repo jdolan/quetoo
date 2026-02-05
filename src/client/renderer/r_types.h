@@ -649,6 +649,16 @@ typedef struct r_bsp_inline_model_s {
   r_bsp_block_t *blocks;
   int32_t num_blocks;
 
+  /**
+   * @brief Decals attached to this inline model.
+   */
+  GQueue *decals;
+
+  /**
+   * @brief True if decals need VAO rebuild.
+   */
+  bool decals_dirty;
+
 } r_bsp_inline_model_t;
 
 /**
@@ -841,6 +851,16 @@ typedef struct {
   r_bsp_light_t *lights;
 
   r_bsp_voxels_t *voxels;
+
+  /**
+   * @brief Decals attached to this BSP model.
+   */
+  GQueue *decals;
+
+  /**
+   * @brief True if decals need VAO rebuild.
+   */
+  bool decals_dirty;
 
   /**
    * @brief The vertex array (VAO) name.
@@ -1754,6 +1774,12 @@ typedef struct {
    */
   r_light_t lights[MAX_LIGHTS];
   int32_t num_lights;
+
+  /**
+   * @brief New decals added this frame, to be processed during R_UpdateDecals.
+   */
+  r_decal_t decals[MAX_DECALS];
+  int32_t num_decals;
 
   /**
    * @brief The view frustum, for box and sphere culling.

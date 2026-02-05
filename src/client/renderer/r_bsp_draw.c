@@ -471,6 +471,11 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
       glUniformMatrix4fv(r_bsp_program.model, 1, GL_FALSE, e->matrix.array);
 
       R_DrawBlendBspEntity(view, e);
+
+      if (!g_queue_is_empty(e->model->bsp_inline->decals)) {
+        R_DrawBspEntityDecals(view, e);
+        glBindVertexArray(bsp->vertex_array);
+      }
     }
   }
 
