@@ -599,6 +599,68 @@ typedef struct {
 } r_bsp_block_t;
 
 /**
+ * @brief Decals are projected textures that conform to BSP geometry.
+ */
+typedef struct r_decal_s {
+  /**
+   * @brief The decal origin.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The decal surface normal.
+   */
+  vec3_t normal;
+
+  /**
+   * @brief The decal radius.
+   */
+  float radius;
+
+  /**
+   * @brief The decal color.
+   */
+  color_t color;
+
+  /**
+   * @brief The decal media (image or atlas image).
+   */
+  r_media_t *media;
+
+  /**
+   * @brief The decal creation time in ticks.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The decal lifetime in ticks (0 = permanent).
+   */
+  uint32_t lifetime;
+
+  /**
+   * @brief The `r_decal_face_t`s for this decal (renderer-private).
+   */
+  void *faces;
+
+  /**
+   * @brief The count of `r_decal_face_t`, for batched rendering (renderer-private).
+   */
+  int32_t num_faces;
+
+  /**
+   * @brief The previous decal on the model (set by renderer).
+   */
+  struct r_decal_s *prev;
+
+  /**
+   * @brief The next decal on the model (set by renderer).
+   */
+  struct r_decal_s *next;
+} r_decal_t;
+
+#define MAX_DECALS 0x400
+
+/**
  * @brief The BSP is organized into one or more models (trees). The first model is
  * the worldspawn model, and typically is the largest. An additional model exists
  * for each entity that contains brushes. Non-worldspawn models can move and rotate.
@@ -650,15 +712,14 @@ typedef struct r_bsp_inline_model_s {
   int32_t num_blocks;
 
   /**
-   * @brief Decals attached to this inline model.
+   * @brief Decals attached to this inline model (linked list).
    */
-  GQueue *decals;
+  r_decal_t *decals;
 
   /**
-   * @brief True if decals need VAO rebuild.
+   * @brief An offset pointer (in bytes) into the decal elements array for decal geometry.
    */
-  bool decals_dirty;
-
+  GLvoid *decal_elements;
 } r_bsp_inline_model_t;
 
 /**
@@ -851,16 +912,6 @@ typedef struct {
   r_bsp_light_t *lights;
 
   r_bsp_voxels_t *voxels;
-
-  /**
-   * @brief Decals attached to this BSP model.
-   */
-  GQueue *decals;
-
-  /**
-   * @brief True if decals need VAO rebuild.
-   */
-  bool decals_dirty;
 
   /**
    * @brief The vertex array (VAO) name.
@@ -1303,58 +1354,6 @@ typedef struct {
 } r_beam_t;
 
 #define MAX_BEAMS 0x200
-
-/**
- * @brief Decals are projected textures that conform to BSP geometry.
- */
-typedef struct {
-  /**
-   * @brief The decal origin.
-   */
-  vec3_t origin;
-
-  /**
-   * @brief The decal surface normal.
-   */
-  vec3_t normal;
-
-  /**
-   * @brief The decal radius.
-   */
-  float radius;
-
-  /**
-   * @brief The decal color.
-   */
-  color_t color;
-
-  /**
-   * @brief The decal media (image or atlas image).
-   */
-  r_media_t *media;
-
-  /**
-   * @brief The creation time in ticks.
-   */
-  uint32_t time;
-
-  /**
-   * @brief The decal lifetime in ticks (0 = permanent).
-   */
-  uint32_t lifetime;
-
-  /**
-   * @brief Linked list of faces for this decal (renderer-private).
-   */
-  void *faces;
-
-  /**
-   * @brief Number of faces (for stats/debugging).
-   */
-  int32_t num_faces;
-} r_decal_t;
-
-#define MAX_DECALS 0x400
 
 /**
  * @brief The sprite instance vertex structure.

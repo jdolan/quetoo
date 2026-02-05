@@ -313,9 +313,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->blocks = bsp->blocks + in->first_block;
     out->num_blocks = in->num_blocks;
 
-    out->decals = g_queue_new();
-    out->decals_dirty = false;
-
     R_SetupBspNode(out, NULL, out->head_node);
   }
 }
@@ -618,8 +615,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
   mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
   mod->bsp->cm = Cm_Bsp();
-  mod->bsp->decals = g_queue_new();
-  mod->bsp->decals_dirty = false;
 
   // load in lumps that the renderer needs
   Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
@@ -675,19 +670,6 @@ static void R_FreeBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
 
   r_bsp_model_t *bsp = mod->bsp;
-
-  // Free decals from worldspawn
-  if (bsp->decals) {
-    g_queue_free_full(bsp->decals, (GDestroyNotify) R_FreeDecal);
-  }
-
-  // Free decals from inline models
-  r_bsp_inline_model_t *inline_model = bsp->inline_models;
-  for (int32_t i = 0; i < bsp->num_inline_models; i++, inline_model++) {
-    if (inline_model->decals) {
-      g_queue_free_full(inline_model->decals, (GDestroyNotify) R_FreeDecal);
-    }
-  }
 
   glDeleteBuffers(1, &bsp->vertex_buffer);
   glDeleteBuffers(1, &bsp->elements_buffer);
