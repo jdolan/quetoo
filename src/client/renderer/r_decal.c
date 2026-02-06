@@ -118,6 +118,7 @@ static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *decal) {
 
   f->next = decal->faces;
   decal->faces = f;
+  decal->num_faces++;
 }
 
 /**
