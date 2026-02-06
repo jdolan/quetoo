@@ -63,47 +63,35 @@ static struct {
    * @brief The vertex array object (shared).
    */
   GLuint vertex_array;
-
-  /**
-   * @brief Dynamic vertex buffer for decals.
-   */
-  r_decal_vertex_t vertexes[1024 * 4];
-  int32_t num_vertexes;
-
-  /**
-   * @brief Dynamic element buffer for decals.
-   */
-  GLuint elements[1024 * 6];
-  int32_t num_elements;
 } r_decals;
 
 /**
  * @brief
  */
-static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *d) {
+static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *decal) {
 
-  r_decal_face_t *f = Mem_LinkMalloc(sizeof(r_decal_face_t), d);
+  r_decal_face_t *f = Mem_LinkMalloc(sizeof(r_decal_face_t), decal);
 
   vec3_t tangent, bitangent;
-  if (fabsf(d->normal.z) > 0.9f) {
-    tangent = Vec3_Cross(d->normal, Vec3(1.f, 0.f, 0.f));
+  if (fabsf(decal->normal.z) > 0.9f) {
+    tangent = Vec3_Cross(decal->normal, Vec3(1.f, 0.f, 0.f));
   } else {
-    tangent = Vec3_Cross(d->normal, Vec3(0.f, 0.f, 1.f));
+    tangent = Vec3_Cross(decal->normal, Vec3(0.f, 0.f, 1.f));
   }
 
   tangent = Vec3_Normalize(tangent);
-  bitangent = Vec3_Cross(d->normal, tangent);
+  bitangent = Vec3_Cross(decal->normal, tangent);
 
-  f->vertexes[0].position = Vec3_Add(Vec3_Add(d->origin, Vec3_Scale(tangent, -d->radius)), Vec3_Scale(bitangent, -d->radius));
-  f->vertexes[0].position = Vec3_Add(Vec3_Add(d->origin, Vec3_Scale(tangent,  d->radius)), Vec3_Scale(bitangent, -d->radius));
-  f->vertexes[0].position = Vec3_Add(Vec3_Add(d->origin, Vec3_Scale(tangent,  d->radius)), Vec3_Scale(bitangent,  d->radius));
-  f->vertexes[0].position = Vec3_Add(Vec3_Add(d->origin, Vec3_Scale(tangent, -d->radius)), Vec3_Scale(bitangent,  d->radius));
+  f->vertexes[0].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent, -decal->radius));
+  f->vertexes[1].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent, -decal->radius));
+  f->vertexes[2].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent,  decal->radius));
+  f->vertexes[3].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent,  decal->radius));
 
   // TODO: Clip decal quad to face bounds; might be able to just Box3_Clamp()?
 
-  switch (d->media->type) {
+  switch (decal->media->type) {
     case R_MEDIA_ATLAS_IMAGE: {
-      const r_atlas_image_t *atlas_image = (r_atlas_image_t *) d->media;
+      const r_atlas_image_t *atlas_image = (r_atlas_image_t *) decal->media;
       f->vertexes[0].texcoord = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
       f->vertexes[1].texcoord = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
       f->vertexes[2].texcoord = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
@@ -121,15 +109,15 @@ static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *d) {
       break;
   }
 
-  const color32_t color = Color_Color32(d->color);
+  const color32_t color = Color_Color32(decal->color);
 
   f->vertexes[0].color = color;
   f->vertexes[1].color = color;
   f->vertexes[2].color = color;
   f->vertexes[3].color = color;
 
-  f->next = d->faces;
-  d->faces = f;
+  f->next = decal->faces;
+  decal->faces = f;
 }
 
 /**
@@ -213,7 +201,6 @@ static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
       (*insert)->prev = d;
     }
     *insert = d;
-    Com_Print("Inserted decal %p into model %p, in->decals now %p\n", d, in, in->decals);
   } else {
     Mem_Free(d);
   }
@@ -257,10 +244,18 @@ void R_UpdateDecals(r_view_t *view) {
         continue;
       }
 
+      const box3_t bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
+
+      if (!Box3_Intersects(e->abs_model_bounds, bounds)) {
+        continue;
+      }
+
       r_bsp_inline_model_t *in = e->model->bsp_inline;
 
       r_decal_t d = *decal;
+
       d.time = view->ticks;
+
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
       d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
       d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
@@ -272,6 +267,8 @@ void R_UpdateDecals(r_view_t *view) {
   }
 
   // expire existing decals
+
+  uint32_t num_decals = 0;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -302,6 +299,7 @@ void R_UpdateDecals(r_view_t *view) {
       }
 
       decal = next;
+      num_decals++;
     }
   }
 
@@ -311,8 +309,11 @@ void R_UpdateDecals(r_view_t *view) {
 
   // and finally, upload the geometry if it has changed
 
-  r_decals.num_vertexes = 0;
-  r_decals.num_elements = 0;
+  r_decal_vertex_t *vertexes = malloc(num_decals * 4 * sizeof(r_decal_vertex_t));
+  GLuint *elements = malloc(num_decals * 6 * sizeof(GLuint));
+
+  GLuint num_vertexes = 0;
+  GLuint num_elements = 0;
 
   e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -323,37 +324,37 @@ void R_UpdateDecals(r_view_t *view) {
 
     r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-    Com_Print("Updating geometry for model %p, in->decals now %p\n", in, in->decals);
-
-
-    in->decal_elements = (GLvoid *) (r_decals.num_elements * sizeof(GLuint));
+    in->decal_elements = (GLvoid *) (num_elements * sizeof(GLuint));
 
     for (r_decal_t *decal = in->decals; decal; decal = decal->next) {
 
       r_stats.decals++;
 
-      for (r_decal_face_t *face = (r_decal_face_t*) decal->faces; face; face = face->next) {
-        const int32_t base_vertex = r_decals.num_vertexes;
+      for (r_decal_face_t *face = decal->faces; face; face = face->next) {
+        const GLuint base_vertex = num_vertexes;
 
-        for (int32_t i = 0; i < 4; i++) {
-          r_decals.vertexes[r_decals.num_vertexes++] = face->vertexes[i];
+        for (int32_t j = 0; j < 4; j++) {
+          vertexes[num_vertexes++] = face->vertexes[i];
         }
 
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 1;
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 0;
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 2;
-        r_decals.elements[r_decals.num_elements++] = base_vertex + 3;
+        elements[num_elements++] = base_vertex + 0;
+        elements[num_elements++] = base_vertex + 1;
+        elements[num_elements++] = base_vertex + 2;
+        elements[num_elements++] = base_vertex + 0;
+        elements[num_elements++] = base_vertex + 2;
+        elements[num_elements++] = base_vertex + 3;
       }
     }
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, r_decals.num_vertexes * sizeof(r_decal_vertex_t), r_decals.vertexes);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, num_vertexes * sizeof(r_decal_vertex_t), vertexes);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
-  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, r_decals.num_elements * sizeof(GLuint), r_decals.elements);
+  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, num_elements * sizeof(GLuint), elements);
+
+  free(vertexes);
+  free(elements);
 }
 
 /**
@@ -421,11 +422,11 @@ void R_InitDecals(void) {
 
   glGenBuffers(1, &r_decals.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_decals.vertexes), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
 
   glGenBuffers(1, &r_decals.elements_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(r_decals.elements), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
 
   glGenVertexArrays(1, &r_decals.vertex_array);
   glBindVertexArray(r_decals.vertex_array);

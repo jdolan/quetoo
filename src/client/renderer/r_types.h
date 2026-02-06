@@ -640,7 +640,7 @@ typedef struct r_decal_s {
   /**
    * @brief The `r_decal_face_t`s for this decal (renderer-private).
    */
-  void *faces;
+  struct r_decal_face_s *faces;
 
   /**
    * @brief The count of `r_decal_face_t`, for batched rendering (renderer-private).
