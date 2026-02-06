@@ -227,7 +227,7 @@ static void BuildVoxelVoxels(void) {
  * @brief Authors a .map file which can be imported into Radiant to view the voxel projections.
  */
 static void DebugVoxels(void) {
-#if 1
+#if 0
   const char *path = va("maps/%s.voxel.map", map_base);
 
   file_t *file = Fs_OpenWrite(path);
