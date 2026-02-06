@@ -70,7 +70,7 @@ static struct {
  */
 static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *decal) {
 
-  r_decal_face_t *f = Mem_LinkMalloc(sizeof(r_decal_face_t), decal);
+  r_decal_face_t *f = calloc(1, sizeof(r_decal_face_t));
 
   vec3_t tangent, bitangent;
   if (fabsf(decal->normal.z) > 0.9f) {
@@ -174,7 +174,7 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal) {
  */
 static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
 
-  r_decal_t *d = Mem_LinkMalloc(sizeof(r_decal_t), r_models.world->bsp);
+  r_decal_t *d = calloc(1, sizeof(r_decal_t));
 
   *d = *decal;
 
@@ -203,7 +203,7 @@ static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
     }
     *insert = d;
   } else {
-    Mem_Free(d);
+    free(d);
   }
 }
 
@@ -283,21 +283,21 @@ void R_UpdateDecals(r_view_t *view) {
 
       r_decal_t *next = decal->next;
 
-      if (decal->lifetime > 0) {
-        const uint32_t age = view->ticks - decal->time;
-        if (age >= decal->lifetime) {
-          if (decal->prev) {
-            decal->prev->next = decal->next;
-          } else {
-            in->decals = decal->next;
-          }
-          if (decal->next) {
-            decal->next->prev = decal->prev;
-          }
-          Mem_Free(decal);
-          dirty = true;
-        }
-      }
+//      if (decal->lifetime > 0) {
+//        const uint32_t age = view->ticks - decal->time;
+//        if (age >= decal->lifetime) {
+//          if (decal->prev) {
+//            decal->prev->next = decal->next;
+//          } else {
+//            in->decals = decal->next;
+//          }
+//          if (decal->next) {
+//            decal->next->prev = decal->prev;
+//          }
+//          free(decal);
+//          dirty = true;
+//        }
+//      }
 
       decal = next;
       num_decals++;
@@ -335,7 +335,7 @@ void R_UpdateDecals(r_view_t *view) {
         const GLuint base_vertex = num_vertexes;
 
         for (int32_t j = 0; j < 4; j++) {
-          vertexes[num_vertexes++] = face->vertexes[i];
+          vertexes[num_vertexes++] = face->vertexes[j];
         }
 
         elements[num_elements++] = base_vertex + 0;
@@ -374,7 +374,7 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-1.f, -1.f);
 
-  glBindVertexArray(r_decals.vertex_array);
+  /*glBindVertexArray(r_decals.vertex_array);
 
   GLvoid *elements = in->decal_elements;
 
@@ -404,7 +404,7 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
     elements = (GLvoid *) ((intptr_t) elements + batch_num_faces * 6 * sizeof(GLuint));
 
     decal = batch;
-  }
+  }*/
 
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDepthMask(GL_TRUE);
