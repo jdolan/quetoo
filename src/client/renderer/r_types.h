@@ -193,7 +193,7 @@ typedef struct {
 } r_atlas_t;
 
 /**
- * @brief An atlas image, castable to r_image_t and r_media_t.
+ * @brief An atlas image, castable to `r_image_t` and `r_media_t`.
  */
 typedef struct {
   /**

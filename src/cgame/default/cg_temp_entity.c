@@ -31,10 +31,7 @@ void Cg_AddDecal(const r_decal_t *decal) {
     return;
   }
 
-  r_decal_t d = *decal;
-  d.time = cgi.client->time;
-
-  cgi.AddDecal(cgi.view, &d);
+  cgi.AddDecal(cgi.view, decal);
 }
 
 /**

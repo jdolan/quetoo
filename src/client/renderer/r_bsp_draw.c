@@ -472,10 +472,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 
       R_DrawBlendBspEntity(view, e);
 
-      if (e->model->bsp_inline->decals) {
-        R_DrawBspEntityDecals(view, e);
-        glBindVertexArray(bsp->vertex_array);
-      }
+      R_DrawBspEntityDecals(view, e);
     }
   }
 

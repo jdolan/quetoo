@@ -67,13 +67,13 @@ static struct {
   /**
    * @brief Dynamic vertex buffer for decals.
    */
-  r_decal_vertex_t vertexes[MAX_DECALS * 4];
+  r_decal_vertex_t vertexes[1024 * 4];
   int32_t num_vertexes;
 
   /**
    * @brief Dynamic element buffer for decals.
    */
-  GLuint elements[MAX_DECALS * 6];
+  GLuint elements[1024 * 6];
   int32_t num_elements;
 } r_decals;
 
@@ -101,7 +101,6 @@ static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *d) {
 
   // TODO: Clip decal quad to face bounds; might be able to just Box3_Clamp()?
 
-  vec2_t texcoords[4];
   switch (d->media->type) {
     case R_MEDIA_ATLAS_IMAGE: {
       const r_atlas_image_t *atlas_image = (r_atlas_image_t *) d->media;
@@ -157,8 +156,8 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal) {
 
   r_decal_t d = *decal;
 
-  d.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
-  d.radius = decal->radius - fabsf(dist);
+  decal->origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
+  decal->radius = decal->radius - fabsf(dist);
 
   r_bsp_face_t *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
@@ -171,8 +170,11 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal) {
       continue;
     }
 
-    R_DecalBspFace(face, &d);
+    R_DecalBspFace(face, decal);
   }
+
+  decal->origin = d.origin;
+  decal->radius = d.radius;
 
   R_DecalBspNode(node->children[0], decal);
   R_DecalBspNode(node->children[1], decal);
@@ -185,30 +187,33 @@ static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
 
   r_decal_t *d = Mem_LinkMalloc(sizeof(r_decal_t), r_models.world->bsp);
 
-  d->origin = decal->origin;
-  d->normal = decal->normal;
-  d->radius = decal->radius;
-  d->color = decal->color;
-  d->media = decal->media;
-  d->time = decal->time;
-  d->lifetime = decal->lifetime;
+  *d = *decal;
 
   R_DecalBspNode(in->head_node, d);
 
   if (d->faces) {
+
     const GLuint texnum = ((const r_image_t *) d->media)->texnum;
 
     r_decal_t **insert = &in->decals;
+    r_decal_t *prev = NULL;
+
     while (*insert) {
       const GLuint insert_texnum = ((const r_image_t *) (*insert)->media)->texnum;
       if (texnum < insert_texnum) {
         break;
       }
+      prev = *insert;
       insert = &(*insert)->next;
     }
 
     d->next = *insert;
+    d->prev = prev;
+    if (*insert) {
+      (*insert)->prev = d;
+    }
     *insert = d;
+    Com_Print("Inserted decal %p into model %p, in->decals now %p\n", d, in, in->decals);
   } else {
     Mem_Free(d);
   }
@@ -224,7 +229,13 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
     return;
   }
 
-  view->decals[view->num_decals++] = *decal;
+  assert(decal);
+  assert(decal->media);
+  assert(decal->radius > 0.f);
+
+  view->decals[view->num_decals] = *decal;
+
+  view->num_decals++;
 }
 
 /**
@@ -233,6 +244,8 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 void R_UpdateDecals(r_view_t *view) {
 
   bool dirty = false;
+
+  // add new decals from the view
 
   for (int32_t i = 0; i < view->num_decals; i++) {
     const r_decal_t *decal = &view->decals[i];
@@ -245,8 +258,9 @@ void R_UpdateDecals(r_view_t *view) {
       }
 
       r_bsp_inline_model_t *in = e->model->bsp_inline;
-      r_decal_t d = *decal;
 
+      r_decal_t d = *decal;
+      d.time = view->ticks;
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
       d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
       d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
@@ -257,6 +271,8 @@ void R_UpdateDecals(r_view_t *view) {
     }
   }
 
+  // expire existing decals
+
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
@@ -265,7 +281,9 @@ void R_UpdateDecals(r_view_t *view) {
     }
 
     r_bsp_inline_model_t *in = e->model->bsp_inline;
-    for (r_decal_t *decal = in->decals; decal; decal = decal->next) {
+    for (r_decal_t *decal = in->decals; decal;) {
+
+      r_decal_t *next = decal->next;
 
       if (decal->lifetime > 0) {
         const uint32_t age = view->ticks - decal->time;
@@ -275,17 +293,23 @@ void R_UpdateDecals(r_view_t *view) {
           } else {
             in->decals = decal->next;
           }
+          if (decal->next) {
+            decal->next->prev = decal->prev;
+          }
           Mem_Free(decal);
           dirty = true;
-          continue;
         }
       }
+
+      decal = next;
     }
   }
 
   if (!dirty) {
     return;
   }
+
+  // and finally, upload the geometry if it has changed
 
   r_decals.num_vertexes = 0;
   r_decals.num_elements = 0;
@@ -299,9 +323,14 @@ void R_UpdateDecals(r_view_t *view) {
 
     r_bsp_inline_model_t *in = e->model->bsp_inline;
 
+    Com_Print("Updating geometry for model %p, in->decals now %p\n", in, in->decals);
+
+
     in->decal_elements = (GLvoid *) (r_decals.num_elements * sizeof(GLuint));
 
     for (r_decal_t *decal = in->decals; decal; decal = decal->next) {
+
+      r_stats.decals++;
 
       for (r_decal_face_t *face = (r_decal_face_t*) decal->faces; face; face = face->next) {
         const int32_t base_vertex = r_decals.num_vertexes;
@@ -328,10 +357,10 @@ void R_UpdateDecals(r_view_t *view) {
 }
 
 /**
- * @brief Draw decals for a BSP entity using the BSP shader (must already be bound).
- * @remarks Decals are already sorted by texture, so we batch by texture changes.
+ * @brief Draws decals for a BSP entity using the bound shader.
  */
 void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
+  const r_bsp_model_t *bsp = r_models.world->bsp;
 
   const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
@@ -341,7 +370,7 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
 
   glDepthMask(GL_FALSE);
   glEnable(GL_POLYGON_OFFSET_FILL);
-  glPolygonOffset(-1.0, -1.0);
+  glPolygonOffset(-1.f, -1.f);
 
   glBindVertexArray(r_decals.vertex_array);
 
@@ -377,6 +406,8 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
 
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDepthMask(GL_TRUE);
+
+  glBindVertexArray(bsp->vertex_array);
 
   R_GetError(NULL);
 }
