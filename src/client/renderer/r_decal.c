@@ -349,10 +349,10 @@ void R_UpdateDecals(r_view_t *view) {
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, num_vertexes * sizeof(r_decal_vertex_t), vertexes);
+  glBufferData(GL_ARRAY_BUFFER, num_vertexes * sizeof(r_decal_vertex_t), vertexes, GL_DYNAMIC_DRAW);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
-  glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, num_elements * sizeof(GLuint), elements);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, num_elements * sizeof(GLuint), elements, GL_DYNAMIC_DRAW);
 
   free(vertexes);
   free(elements);
@@ -422,12 +422,8 @@ void R_InitDecals(void) {
   memset(&r_decals, 0, sizeof(r_decals));
 
   glGenBuffers(1, &r_decals.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
 
   glGenBuffers(1, &r_decals.elements_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_decals.elements_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 0, NULL, GL_DYNAMIC_DRAW);
 
   glGenVertexArrays(1, &r_decals.vertex_array);
   glBindVertexArray(r_decals.vertex_array);
