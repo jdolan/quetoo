@@ -269,7 +269,7 @@ void R_UpdateDecals(r_view_t *view) {
 
   // expire existing decals
 
-  uint32_t num_decals = 0;
+  uint32_t num_faces = 0;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -299,8 +299,8 @@ void R_UpdateDecals(r_view_t *view) {
 //        }
 //      }
 
+      num_faces += decal->num_faces;
       decal = next;
-      num_decals++;
     }
   }
 
@@ -310,8 +310,8 @@ void R_UpdateDecals(r_view_t *view) {
 
   // and finally, upload the geometry if it has changed
 
-  r_decal_vertex_t *vertexes = malloc(num_decals * 4 * sizeof(r_decal_vertex_t));
-  GLuint *elements = malloc(num_decals * 6 * sizeof(GLuint));
+  r_decal_vertex_t *vertexes = malloc(num_faces * 4 * sizeof(r_decal_vertex_t));
+  GLuint *elements = malloc(num_faces * 6 * sizeof(GLuint));
 
   GLuint num_vertexes = 0;
   GLuint num_elements = 0;
