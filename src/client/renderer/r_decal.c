@@ -63,14 +63,77 @@ static struct {
    * @brief The vertex array object (shared).
    */
   GLuint vertex_array;
+
+  /**
+   * @brief Object pool for r_decal_t instances.
+   */
+  GQueue *decal_pool;
+
+  /**
+   * @brief Object pool for r_decal_face_t instances.
+   */
+  GQueue *face_pool;
 } r_decals;
+
+#define DECAL_POOL_BATCH_SIZE 64
+#define FACE_POOL_BATCH_SIZE 64
+
+/**
+ * @brief Allocate a decal from the pool.
+ */
+static r_decal_t *R_AllocDecal(void) {
+
+  r_decal_t *d = g_queue_pop_head(r_decals.decal_pool);
+  if (!d) {
+    r_decal_t *decals = calloc(DECAL_POOL_BATCH_SIZE, sizeof(r_decal_t));
+    r_decal_t *decal = decals;
+    for (int32_t i = 0; i < DECAL_POOL_BATCH_SIZE; i++, decal++) {
+      decal->faces = g_ptr_array_new();
+      g_queue_push_tail(r_decals.decal_pool, decal);
+    }
+    d = g_queue_pop_head(r_decals.decal_pool);
+  }
+  
+  return d;
+}
+
+/**
+ * @brief Return a decal to the pool, freeing all its faces.
+ */
+static void R_FreeDecal(r_decal_t *d) {
+  if (d->faces) {
+    for (guint i = 0; i < d->faces->len; i++) {
+      g_queue_push_tail(r_decals.face_pool, g_ptr_array_index(d->faces, i));
+    }
+    g_ptr_array_set_size(d->faces, 0);
+  }
+  g_queue_push_tail(r_decals.decal_pool, d);
+}
+
+/**
+ * @brief Allocate a decal face from the pool.
+ */
+static r_decal_face_t *R_AllocDecalFace(void) {
+  r_decal_face_t *f = g_queue_pop_head(r_decals.face_pool);
+  
+  if (!f) {
+    r_decal_face_t *faces = calloc(FACE_POOL_BATCH_SIZE, sizeof(r_decal_face_t));
+    r_decal_face_t *face = faces;
+    for (int32_t i = 0; i < FACE_POOL_BATCH_SIZE; i++, face++) {
+      g_queue_push_tail(r_decals.face_pool, face);
+    }
+    f = g_queue_pop_head(r_decals.face_pool);
+  }
+  
+  return f;
+}
 
 /**
  * @brief
  */
 static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *decal) {
 
-  r_decal_face_t *f = calloc(1, sizeof(r_decal_face_t));
+  r_decal_face_t *f = R_AllocDecalFace();
 
   vec3_t tangent, bitangent;
   if (fabsf(decal->normal.z) > 0.9f) {
@@ -116,9 +179,7 @@ static void R_DecalBspFace(const r_bsp_face_t *face, r_decal_t *decal) {
   f->vertexes[2].color = color;
   f->vertexes[3].color = color;
 
-  f->next = decal->faces;
-  decal->faces = f;
-  decal->num_faces++;
+  g_ptr_array_add(decal->faces, f);
 }
 
 /**
@@ -143,7 +204,8 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal) {
     return;
   }
 
-  r_decal_t d = *decal;
+  const vec3_t origin = decal->origin;
+  const float radius = decal->radius;
 
   decal->origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
   decal->radius = decal->radius - fabsf(dist);
@@ -162,48 +224,34 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal) {
     R_DecalBspFace(face, decal);
   }
 
-  decal->origin = d.origin;
-  decal->radius = d.radius;
+  decal->origin = origin;
+  decal->radius = radius;
 
   R_DecalBspNode(node->children[0], decal);
   R_DecalBspNode(node->children[1], decal);
 }
 
 /**
- * @brief Allocate a decal, generate faces via BSP traversal, and insert sorted into model's list.
+ * @brief Allocate a decal, generate faces via BSP traversal, and add to model's list.
  */
 static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
 
-  r_decal_t *d = calloc(1, sizeof(r_decal_t));
+  r_decal_t *d = R_AllocDecal();
 
-  *d = *decal;
+  d->origin = decal->origin;
+  d->radius = decal->radius;
+  d->normal = decal->normal;
+  d->color = decal->color;
+  d->media = decal->media;
+  d->lifetime = decal->lifetime;
 
   R_DecalBspNode(in->head_node, d);
 
-  if (d->faces) {
-
-    const GLuint texnum = ((const r_image_t *) d->media)->texnum;
-
-    r_decal_t **insert = &in->decals;
-    r_decal_t *prev = NULL;
-
-    while (*insert) {
-      const GLuint insert_texnum = ((const r_image_t *) (*insert)->media)->texnum;
-      if (texnum < insert_texnum) {
-        break;
-      }
-      prev = *insert;
-      insert = &(*insert)->next;
-    }
-
-    d->next = *insert;
-    d->prev = prev;
-    if (*insert) {
-      (*insert)->prev = d;
-    }
-    *insert = d;
+  if (d->faces->len > 0) {
+    g_ptr_array_add(in->decals, d);
+    in->decals_dirty = true;
   } else {
-    free(d);
+    R_FreeDecal(d);
   }
 }
 
@@ -212,26 +260,35 @@ static void R_DecalBspModel(r_bsp_inline_model_t *in, const r_decal_t *decal) {
  */
 void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
+  assert(decal);
+  assert(decal->media);
+  assert(decal->radius > 0.f);
+
   if (view->num_decals == MAX_DECALS) {
     Com_Warn("MAX_DECALS\n");
     return;
   }
 
-  assert(decal);
-  assert(decal->media);
-  assert(decal->radius > 0.f);
+  view->decals[view->num_decals++] = *decal;
+}
 
-  view->decals[view->num_decals] = *decal;
-
-  view->num_decals++;
+/**
+ * @brief Comparison function for sorting decals by texture.
+ */
+static gint R_CompareDecalsByTexture(gconstpointer a, gconstpointer b) {
+  const r_decal_t *da = *(const r_decal_t **) a;
+  const r_decal_t *db = *(const r_decal_t **) b;
+  
+  const GLuint tex_a = ((const r_image_t *) da->media)->texnum;
+  const GLuint tex_b = ((const r_image_t *) db->media)->texnum;
+  
+  return (gint)tex_a - (gint)tex_b;
 }
 
 /**
  * @brief Update all decals in the view.
  */
 void R_UpdateDecals(r_view_t *view) {
-
-  bool dirty = false;
 
   // add new decals from the view
 
@@ -256,20 +313,20 @@ void R_UpdateDecals(r_view_t *view) {
       r_decal_t d = *decal;
 
       d.time = view->ticks;
+      d.faces = NULL;  // Will be set by R_AllocDecal
 
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
       d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
       d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
 
       R_DecalBspModel(in, &d);
-
-      dirty = true;
     }
   }
 
-  // expire existing decals
+  // expire existing decals and count faces
 
   uint32_t num_faces = 0;
+  bool needs_upload = false;
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -279,36 +336,38 @@ void R_UpdateDecals(r_view_t *view) {
     }
 
     r_bsp_inline_model_t *in = e->model->bsp_inline;
-    for (r_decal_t *decal = in->decals; decal;) {
-
-      r_decal_t *next = decal->next;
-
+    
+    // Expire old decals
+    for (guint j = 0; j < in->decals->len; ) {
+      r_decal_t *decal = g_ptr_array_index(in->decals, j);
+      
       if (decal->lifetime > 0) {
         const uint32_t age = view->ticks - decal->time;
         if (age >= decal->lifetime) {
-          if (decal->prev) {
-            decal->prev->next = decal->next;
-          } else {
-            in->decals = decal->next;
-          }
-          if (decal->next) {
-            decal->next->prev = decal->prev;
-          }
-          free(decal);
-          dirty = true;
+          R_FreeDecal(decal);
+          g_ptr_array_remove_index_fast(in->decals, j);
+          in->decals_dirty = true;
+          continue;
         }
       }
-
-      num_faces += decal->num_faces;
-      decal = next;
+      
+      num_faces += decal->faces->len;
+      j++;
+    }
+    
+    // Sort if dirty
+    if (in->decals_dirty) {
+      g_ptr_array_sort(in->decals, R_CompareDecalsByTexture);
+      in->decals_dirty = false;
+      needs_upload = true;
     }
   }
 
-  if (!dirty) {
+  if (!needs_upload) {
     return;
   }
 
-  // and finally, upload the geometry if it has changed
+  // Upload geometry
 
   r_decal_vertex_t *vertexes = malloc(num_faces * 4 * sizeof(r_decal_vertex_t));
   GLuint *elements = malloc(num_faces * 6 * sizeof(GLuint));
@@ -327,15 +386,17 @@ void R_UpdateDecals(r_view_t *view) {
 
     in->decal_elements = (GLvoid *) (num_elements * sizeof(GLuint));
 
-    for (r_decal_t *decal = in->decals; decal; decal = decal->next) {
+    for (guint j = 0; j < in->decals->len; j++) {
+      r_decal_t *decal = g_ptr_array_index(in->decals, j);
 
       r_stats.decals++;
 
-      for (r_decal_face_t *face = decal->faces; face; face = face->next) {
+      for (guint k = 0; k < decal->faces->len; k++) {
+        r_decal_face_t *face = g_ptr_array_index(decal->faces, k);
         const GLuint base_vertex = num_vertexes;
 
-        for (int32_t j = 0; j < 4; j++) {
-          vertexes[num_vertexes++] = face->vertexes[j];
+        for (int32_t l = 0; l < 4; l++) {
+          vertexes[num_vertexes++] = face->vertexes[l];
         }
 
         elements[num_elements++] = base_vertex + 0;
@@ -366,7 +427,7 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
 
   const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-  if (!in->decals) {
+  if (!in->decals || in->decals->len == 0) {
     return;
   }
 
@@ -374,25 +435,25 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-1.f, -1.f);
 
-  /*glBindVertexArray(r_decals.vertex_array);
+  glBindVertexArray(r_decals.vertex_array);
 
   GLvoid *elements = in->decal_elements;
 
-  const r_decal_t *decal = in->decals;
-  while (decal) {
-
+  for (guint i = 0; i < in->decals->len; ) {
+    r_decal_t *decal = g_ptr_array_index(in->decals, i);
     const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
 
     glBindTexture(GL_TEXTURE_2D, texnum);
 
+    // Batch decals with the same texture
     int32_t batch_num_faces = 0;
-
-    const r_decal_t *batch = decal;
-    while (batch) {
+    guint j = i;
+    while (j < in->decals->len) {
+      r_decal_t *batch = g_ptr_array_index(in->decals, j);
       const GLuint batch_texnum = ((const r_image_t *) batch->media)->texnum;
       if (batch_texnum == texnum) {
-        batch_num_faces += batch->num_faces;
-        batch = batch->next;
+        batch_num_faces += batch->faces->len;
+        j++;
       } else {
         break;
       }
@@ -403,8 +464,8 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
 
     elements = (GLvoid *) ((intptr_t) elements + batch_num_faces * 6 * sizeof(GLuint));
 
-    decal = batch;
-  }*/
+    i = j;
+  }
 
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDepthMask(GL_TRUE);
@@ -415,11 +476,27 @@ void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
 }
 
 /**
+ * @brief Free all decals associated with an inline model.
+ */
+void R_FreeInlineModelDecals(r_bsp_inline_model_t *in) {
+  if (in->decals) {
+    for (guint i = 0; i < in->decals->len; i++) {
+      R_FreeDecal(g_ptr_array_index(in->decals, i));
+    }
+    g_ptr_array_free(in->decals, TRUE);
+    in->decals = NULL;
+  }
+}
+
+/**
  * @brief Initialize the decals subsystem.
  */
 void R_InitDecals(void) {
 
   memset(&r_decals, 0, sizeof(r_decals));
+
+  r_decals.decal_pool = g_queue_new();
+  r_decals.face_pool = g_queue_new();
 
   glGenBuffers(1, &r_decals.vertex_buffer);
 
@@ -448,6 +525,26 @@ void R_InitDecals(void) {
  * @brief Shutdown the decals subsystem.
  */
 void R_ShutdownDecals(void) {
+
+  // Free all pool contents
+  if (r_decals.decal_pool) {
+    r_decal_t *d;
+    while ((d = g_queue_pop_head(r_decals.decal_pool))) {
+      if (d->faces) {
+        g_ptr_array_free(d->faces, TRUE);
+      }
+      free(d);
+    }
+    g_queue_free(r_decals.decal_pool);
+  }
+
+  if (r_decals.face_pool) {
+    r_decal_face_t *f;
+    while ((f = g_queue_pop_head(r_decals.face_pool))) {
+      free(f);
+    }
+    g_queue_free(r_decals.face_pool);
+  }
 
   if (r_decals.vertex_array) {
     glDeleteVertexArrays(1, &r_decals.vertex_array);

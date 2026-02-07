@@ -608,14 +608,14 @@ typedef struct r_decal_s {
   vec3_t origin;
 
   /**
-   * @brief The decal surface normal.
-   */
-  vec3_t normal;
-
-  /**
    * @brief The decal radius.
    */
   float radius;
+
+  /**
+   * @brief The decal surface normal.
+   */
+  vec3_t normal;
 
   /**
    * @brief The decal color.
@@ -628,34 +628,19 @@ typedef struct r_decal_s {
   r_media_t *media;
 
   /**
-   * @brief The decal creation time in ticks.
-   */
-  uint32_t time;
-
-  /**
    * @brief The decal lifetime in ticks (0 = permanent).
    */
   uint32_t lifetime;
 
   /**
-   * @brief The `r_decal_face_t`s for this decal (renderer-private).
+   * @brief The decal creation time in ticks (set by renderer).
    */
-  struct r_decal_face_s *faces;
+  uint32_t time;
 
   /**
-   * @brief The count of `r_decal_face_t`, for batched rendering (renderer-private).
+   * @brief The `r_decal_face_t`s for this decal (set by renderer).
    */
-  int32_t num_faces;
-
-  /**
-   * @brief The previous decal on the model (set by renderer).
-   */
-  struct r_decal_s *prev;
-
-  /**
-   * @brief The next decal on the model (set by renderer).
-   */
-  struct r_decal_s *next;
+  GPtrArray *faces;
 } r_decal_t;
 
 #define MAX_DECALS 0x400
@@ -712,9 +697,14 @@ typedef struct r_bsp_inline_model_s {
   int32_t num_blocks;
 
   /**
-   * @brief Decals attached to this inline model (linked list).
+   * @brief Decals attached to this inline model.
    */
-  r_decal_t *decals;
+  GPtrArray *decals;
+
+  /**
+   * @brief Whether the decals need to be re-sorted and re-uploaded.
+   */
+  bool decals_dirty;
 
   /**
    * @brief An offset pointer (in bytes) into the decal elements array for decal geometry.

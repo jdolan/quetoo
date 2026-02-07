@@ -313,6 +313,9 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->blocks = bsp->blocks + in->first_block;
     out->num_blocks = in->num_blocks;
 
+    out->decals = g_ptr_array_new();
+    out->decals_dirty = false;
+
     R_SetupBspNode(out, NULL, out->head_node);
   }
 }
@@ -670,6 +673,12 @@ static void R_FreeBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
 
   r_bsp_model_t *bsp = mod->bsp;
+
+  // Free decals from all inline models
+  r_bsp_inline_model_t *in = bsp->inline_models;
+  for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
+    R_FreeInlineModelDecals(in);
+  }
 
   glDeleteBuffers(1, &bsp->vertex_buffer);
   glDeleteBuffers(1, &bsp->elements_buffer);
