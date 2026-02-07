@@ -33,7 +33,7 @@ static portal_t *AllocPortal(void) {
 
   SDL_AddAtomicInt(&c_active_portals, 1);
 
-  return Mem_TagMalloc(sizeof(portal_t), MEM_TAG_PORTAL);
+  return Mem_TagMalloc(sizeof(portal_t), (mem_tag_t) MEM_TAG_PORTAL);
 }
 
 /**

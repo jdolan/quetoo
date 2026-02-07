@@ -31,7 +31,7 @@
  */
 face_t *AllocFace(void) {
 
-  return Mem_TagMalloc(sizeof(face_t), MEM_TAG_FACE);
+  return Mem_TagMalloc(sizeof(face_t), (mem_tag_t) MEM_TAG_FACE);
 }
 
 /**

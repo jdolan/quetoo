@@ -670,7 +670,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
   const int32_t new_brushes = ent->num_brushes;
   const int32_t world_brushes = entities[0].num_brushes;
 
-  brush_t *temp = Mem_TagMalloc(new_brushes * sizeof(brush_t), MEM_TAG_BRUSH);
+  brush_t *temp = Mem_TagMalloc(new_brushes * sizeof(brush_t), (mem_tag_t) MEM_TAG_BRUSH);
   memcpy(temp, brushes + ent->first_brush, new_brushes * sizeof(brush_t));
 
   // make space to move the brushes (overlapped copy)
@@ -742,7 +742,7 @@ static entity_t *ParseEntity(parser_t *parser) {
         }
 
       } else {
-        entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
+        entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), (mem_tag_t) MEM_TAG_EPAIR);
 
         if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
           Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", num_entities);

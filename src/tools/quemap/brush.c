@@ -29,7 +29,7 @@ static SDL_AtomicInt c_active_brushes;
  */
 csg_brush_t *AllocBrush(int32_t num_brush_sides) {
 
-  csg_brush_t *brush = Mem_TagMalloc(sizeof(csg_brush_t), MEM_TAG_BRUSH);
+  csg_brush_t *brush = Mem_TagMalloc(sizeof(csg_brush_t), (mem_tag_t) MEM_TAG_BRUSH);
 
   brush->brush_sides = Mem_LinkMalloc(sizeof(brush_side_t) * num_brush_sides, brush);
 
