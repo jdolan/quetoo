@@ -29,7 +29,7 @@ GPtrArray *lights = NULL;
  * @brief
  */
 static light_t *AllocLight(void) {
-  return Mem_TagMalloc(sizeof(light_t), MEM_TAG_LIGHT);
+  return Mem_TagMalloc(sizeof(light_t), (mem_tag_t) MEM_TAG_LIGHT);
 }
 
 /**

@@ -34,7 +34,7 @@ node_t *AllocNode(void) {
 
   SDL_AddAtomicInt(&c_active_nodes, 1);
 
-  return Mem_TagMalloc(sizeof(node_t), MEM_TAG_NODE);
+  return Mem_TagMalloc(sizeof(node_t), (mem_tag_t) MEM_TAG_NODE);
 }
 
 /**
@@ -52,7 +52,7 @@ void FreeNode(node_t *node) {
  */
 tree_t *AllocTree(void) {
 
-  return Mem_TagMalloc(sizeof(tree_t), MEM_TAG_TREE);
+  return Mem_TagMalloc(sizeof(tree_t), (mem_tag_t) MEM_TAG_TREE);
 }
 
 /**

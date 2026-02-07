@@ -106,7 +106,7 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
   assert(in);
   assert(in->pixels);
 
-  SDL_Surface *out;
+  SDL_Surface *out = NULL;
 
   const size_t voxel_size = (size_t) in->reserved;
   switch (voxel_size) {
@@ -154,6 +154,10 @@ int32_t WriteVoxelSurface(const SDL_Surface *in, const char *name) {
       break;
   }
 
+  if (!out) {
+    return -1;
+  }
+
   const int32_t err = IMG_SavePNG(out, name);
 
   SDL_DestroySurface(out);
@@ -196,7 +200,7 @@ static void BuildVoxelVoxels(void) {
     Com_Error(ERROR_FATAL, "MAX_BSP_VOXELS\n");
   }
 
-  voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(voxel_t), MEM_TAG_VOXEL);
+  voxels.voxels = Mem_TagMalloc(voxels.num_voxels * sizeof(voxel_t), (mem_tag_t) MEM_TAG_VOXEL);
 
   voxel_t *v = voxels.voxels;
 
@@ -547,5 +551,5 @@ void FreeVoxels(void) {
     g_hash_table_destroy(v->lights);
   }
 
-  Mem_FreeTag(MEM_TAG_VOXEL);
+  Mem_FreeTag((mem_tag_t) MEM_TAG_VOXEL);
 }

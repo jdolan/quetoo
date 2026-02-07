@@ -66,10 +66,11 @@ static
 void* get_proc(const char *namez) {
   void* proc = (void*)alGetProcAddress(namez);
 
-  if (!proc)
+  if (!proc) {
     proc = (void*)alcGetProcAddress(device, namez);
+  }
 
-    return proc;
+  return proc;
 }
 
 static int has_ext(const char *ext) {

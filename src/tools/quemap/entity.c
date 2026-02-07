@@ -33,7 +33,7 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
     }
   }
 
-  entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
+  entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), (mem_tag_t) MEM_TAG_EPAIR);
   e->next = ent->values;
   ent->values = e;
 
