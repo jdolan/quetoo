@@ -674,11 +674,14 @@ static void R_FreeBspModel(r_media_t *self) {
 
   r_bsp_model_t *bsp = mod->bsp;
 
-  // Free decals from all inline models
   r_bsp_inline_model_t *in = bsp->inline_models;
   for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
-    R_FreeInlineModelDecals(in);
+    if (in->decals) {
+      g_ptr_array_free(in->decals, true);
+    }
   }
+  
+  R_FreeDecals();
 
   glDeleteBuffers(1, &bsp->vertex_buffer);
   glDeleteBuffers(1, &bsp->elements_buffer);
@@ -687,7 +690,7 @@ static void R_FreeBspModel(r_media_t *self) {
   glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
 
   r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t j = 0; j < bsp->inline_models->num_blocks; j++, block++) {
+  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
     R_FreeOcclusionQuery(block->query);
   }
 
