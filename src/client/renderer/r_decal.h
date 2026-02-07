@@ -28,7 +28,7 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal);
 #ifdef __R_LOCAL_H__
 void R_FreeDecals(void);
 void R_UpdateDecals(r_view_t *view);
-void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e);
+void R_DrawDecals(const r_view_t *view);
 void R_InitDecals(void);
 void R_ShutdownDecals(void);
 #endif

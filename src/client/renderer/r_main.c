@@ -266,6 +266,8 @@ void R_DrawMainView(r_view_t *view) {
   Thread_Wait(sprites);
   
   R_DrawSprites(view);
+  
+  R_DrawDecals(view);
 
   if (r_draw_wireframe->value) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

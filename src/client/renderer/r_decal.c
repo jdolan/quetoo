@@ -85,6 +85,15 @@ static struct {
   GQueue *free_faces;
 } r_decals;
 
+/**
+ * @brief The decal shader program.
+ */
+static struct {
+  GLuint name;
+  GLuint uniforms_block;
+  GLint texture_diffusemap;
+} r_decal_program;
+
 #define DECAL_POOL_BATCH_SIZE 64
 #define FACE_POOL_BATCH_SIZE 64
 
@@ -399,8 +408,6 @@ void R_UpdateDecals(r_view_t *view) {
     for (guint j = 0; j < in->decals->len; j++) {
       r_decal_t *decal = g_ptr_array_index(in->decals, j);
 
-      r_stats.decals++;
-
       for (guint k = 0; k < decal->faces->len; k++) {
         r_decal_face_t *face = g_ptr_array_index(decal->faces, k);
         const GLuint base_vertex = num_vertexes;
@@ -432,56 +439,76 @@ void R_UpdateDecals(r_view_t *view) {
 }
 
 /**
- * @brief Draws decals for a BSP entity using the bound shader.
+ * @brief Draws all decals in the view using the decal shader.
  */
-void R_DrawBspEntityDecals(const r_view_t *view, const r_entity_t *e) {
-  const r_bsp_model_t *bsp = r_models.world->bsp;
-
-  const r_bsp_inline_model_t *in = e->model->bsp_inline;
-
-  if (in->decals->len == 0) {
-    return;
-  }
-
+void R_DrawDecals(const r_view_t *view) {
+  
+  r_stats.decals = 0;
+  
   glDepthMask(GL_FALSE);
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-1.f, -1.f);
+  
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  glUseProgram(r_decal_program.name);
+  
   glBindVertexArray(r_decals.vertex_array);
 
-  GLvoid *elements = in->decal_elements;
-
-  for (guint i = 0; i < in->decals->len; ) {
-    r_decal_t *decal = g_ptr_array_index(in->decals, i);
-    const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
-
-    glBindTexture(GL_TEXTURE_2D, texnum);
-
-    int32_t batch_num_faces = 0;
-    guint j = i;
-    while (j < in->decals->len) {
-      r_decal_t *batch = g_ptr_array_index(in->decals, j);
-      const GLuint batch_texnum = ((const r_image_t *) batch->media)->texnum;
-      if (batch_texnum == texnum) {
-        batch_num_faces += batch->faces->len;
-        j++;
-      } else {
-        break;
-      }
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+    
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
     }
 
-    glDrawElements(GL_TRIANGLES, batch_num_faces * 6, GL_UNSIGNED_INT, elements);
-    r_stats.decal_draw_elements++;
+    if (R_CullEntity(view, e)) {
+      continue;
+    }
 
-    elements = (GLvoid *) ((intptr_t) elements + batch_num_faces * 6 * sizeof(GLuint));
+    const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-    i = j;
+    if (in->decals->len == 0) {
+      continue;
+    }
+
+    GLvoid *elements = in->decal_elements;
+
+    for (guint j = 0; j < in->decals->len; ) {
+      r_decal_t *decal = g_ptr_array_index(in->decals, j);
+      const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
+
+      glBindTexture(GL_TEXTURE_2D, texnum);
+
+      int32_t batch_num_faces = 0;
+      guint k = j;
+      while (k < in->decals->len) {
+        r_decal_t *batch = g_ptr_array_index(in->decals, k);
+        const GLuint batch_texnum = ((const r_image_t *) batch->media)->texnum;
+        if (batch_texnum == texnum) {
+          batch_num_faces += batch->faces->len;
+          r_stats.decals++;
+          k++;
+        } else {
+          break;
+        }
+      }
+
+      glDrawElements(GL_TRIANGLES, batch_num_faces * 6, GL_UNSIGNED_INT, elements);
+      r_stats.decal_draw_elements++;
+
+      elements = (GLvoid *) ((intptr_t) elements + batch_num_faces * 6 * sizeof(GLuint));
+
+      j = k;
+    }
   }
-
+  
+  glBlendFunc(GL_ONE, GL_ZERO);
+  glDisable(GL_BLEND);
+  
   glDisable(GL_POLYGON_OFFSET_FILL);
   glDepthMask(GL_TRUE);
-
-  glBindVertexArray(bsp->vertex_array);
 
   R_GetError(NULL);
 }
@@ -502,6 +529,29 @@ static void R_ShutdownDecal(gpointer data) {
  */
 static void R_ShutdownDecalFace(gpointer data) {
   Mem_Free(data);
+}
+
+/**
+ * @brief Initialize the decal shader program.
+ */
+static void R_InitDecalProgram(void) {
+
+  memset(&r_decal_program, 0, sizeof(r_decal_program));
+
+  r_decal_program.name = R_LoadProgram(
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "decal_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "decal_fs.glsl", NULL),
+      NULL);
+
+  glUseProgram(r_decal_program.name);
+
+  r_decal_program.uniforms_block = glGetUniformBlockIndex(r_decal_program.name, "uniforms_block");
+  glUniformBlockBinding(r_decal_program.name, r_decal_program.uniforms_block, 0);
+
+  r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
+  glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
+
+  R_GetError(NULL);
 }
 
 /**
@@ -535,6 +585,8 @@ void R_InitDecals(void) {
   glEnableVertexAttribArray(2);
 
   glBindVertexArray(0);
+  
+  R_InitDecalProgram();
 
   R_GetError("R_InitDecals");
 }
