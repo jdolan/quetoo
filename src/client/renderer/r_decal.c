@@ -280,7 +280,11 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
     return;
   }
 
-  view->decals[view->num_decals++] = *decal;
+  r_decal_t *out = &view->decals[view->num_decals++];
+
+  *out = *decal;
+
+  out->time = view->ticks;
 }
 
 /**
@@ -301,7 +305,7 @@ static gint R_DecalsCmp(gconstpointer a, gconstpointer b) {
  */
 void R_UpdateDecals(r_view_t *view) {
 
-  // add new decals from the view
+  // Create new decal geometry from those defined in the view
 
   for (int32_t i = 0; i < view->num_decals; i++) {
     const r_decal_t *decal = &view->decals[i];
@@ -323,9 +327,6 @@ void R_UpdateDecals(r_view_t *view) {
 
       r_decal_t d = *decal;
 
-      d.time = view->ticks;
-      d.faces = NULL;  // Will be set by R_AllocDecal
-
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
       d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
       d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
@@ -334,7 +335,7 @@ void R_UpdateDecals(r_view_t *view) {
     }
   }
 
-  // expire existing decals and count faces
+  // Expire existing decals and count faces
 
   uint32_t num_faces = 0;
   bool decals_dirty = false;
@@ -364,12 +365,8 @@ void R_UpdateDecals(r_view_t *view) {
       num_faces += decal->faces->len;
       j++;
     }
-    
-    if (in->decals_dirty) {
-      g_ptr_array_sort(in->decals, R_DecalsCmp);
-      in->decals_dirty = false;
-      decals_dirty = true;
-    }
+
+    decals_dirty |= in->decals_dirty;
   }
 
   if (!decals_dirty) {
@@ -392,6 +389,10 @@ void R_UpdateDecals(r_view_t *view) {
     }
 
     r_bsp_inline_model_t *in = e->model->bsp_inline;
+
+    if (in->decals_dirty) {
+      g_ptr_array_sort(in->decals, R_DecalsCmp);
+    }
 
     in->decal_elements = (GLvoid *) (num_elements * sizeof(GLuint));
 
@@ -416,6 +417,8 @@ void R_UpdateDecals(r_view_t *view) {
         elements[num_elements++] = base_vertex + 3;
       }
     }
+
+    in->decals_dirty = false;
   }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
