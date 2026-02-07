@@ -283,21 +283,21 @@ void R_UpdateDecals(r_view_t *view) {
 
       r_decal_t *next = decal->next;
 
-//      if (decal->lifetime > 0) {
-//        const uint32_t age = view->ticks - decal->time;
-//        if (age >= decal->lifetime) {
-//          if (decal->prev) {
-//            decal->prev->next = decal->next;
-//          } else {
-//            in->decals = decal->next;
-//          }
-//          if (decal->next) {
-//            decal->next->prev = decal->prev;
-//          }
-//          free(decal);
-//          dirty = true;
-//        }
-//      }
+      if (decal->lifetime > 0) {
+        const uint32_t age = view->ticks - decal->time;
+        if (age >= decal->lifetime) {
+          if (decal->prev) {
+            decal->prev->next = decal->next;
+          } else {
+            in->decals = decal->next;
+          }
+          if (decal->next) {
+            decal->next->prev = decal->prev;
+          }
+          free(decal);
+          dirty = true;
+        }
+      }
 
       num_faces += decal->num_faces;
       decal = next;
