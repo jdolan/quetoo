@@ -275,7 +275,6 @@
 		CE51FC062148214300ABE14F /* check_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D11C5C58C300CD0B13 /* check_master.c */; };
 		CE51FC072148219900ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE5333F22DA164EC00E47B5B /* libopenal.1.24.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5333F12DA164EC00E47B5B /* libopenal.1.24.3.dylib */; };
 		CE548C7F25B79F17003677ED /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE548C7D25B79F17003677ED /* r_framebuffer.h */; };
 		CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE548C7E25B79F17003677ED /* r_framebuffer.c */; };
 		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
@@ -311,6 +310,9 @@
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
 		CE5ABADB2F32D8BD00D05D09 /* decal_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */; };
+		CE5ABADF2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */; };
+		CE5ABAE02F37E79E00D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */; };
+		CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
 		CE5CDC381D9F51A90034757D /* ui_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB31D9F45090034757D /* ui_main.h */; };
@@ -534,9 +536,7 @@
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
-		CE85F47D2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */; };
 		CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */; };
-		CE85F4812F12CA4A005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -1641,6 +1641,8 @@
 		CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_vs.glsl; sourceTree = "<group>"; };
 		CE5ABAD62F32D86C00D05D09 /* r_decal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_decal.h; sourceTree = "<group>"; };
 		CE5ABAD72F32D86C00D05D09 /* r_decal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_decal.c; sourceTree = "<group>"; };
+		CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.0/lib/libSDL3_image.0.4.0.dylib; sourceTree = "<group>"; };
+		CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.25.1.dylib; path = "../../../../opt/homebrew/Cellar/openal-soft/1.25.1/lib/libopenal.1.25.1.dylib"; sourceTree = "<group>"; };
 		CE5CDBAC1D9F45090034757D /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE5CDBAE1D9F45090034757D /* ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui.h; sourceTree = "<group>"; };
 		CE5CDBB11D9F45090034757D /* ui_local.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_local.h; sourceTree = "<group>"; };
@@ -1885,10 +1887,10 @@
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CEC2339E2C3B0320005C826C /* libncursesw.6.dylib in Frameworks */,
-				CE5333F22DA164EC00E47B5B /* libopenal.1.24.3.dylib in Frameworks */,
+				CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */,
-				CE85F4812F12CA4A005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */,
+				CE5ABADF2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */,
 				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2069,8 +2071,8 @@
 				CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */,
 				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
 				CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
-				CE85F47D2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib in Frameworks */,
 				CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */,
+				CE5ABAE02F37E79E00D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
 				CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */,
 			);
@@ -3107,6 +3109,8 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */,
+				CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */,
 				CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */,
 				CE85F47B2F12C3C6005D2F9C /* libSDL3_ttf.0.2.2.dylib */,
 				CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */,
@@ -5341,10 +5345,6 @@
 		CE12D73B1C5C5B9300CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.2.6/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5352,10 +5352,6 @@
 		CE12D73C1C5C5B9300CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.2.6/lib,
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
