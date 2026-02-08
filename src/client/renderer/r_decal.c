@@ -303,19 +303,6 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 }
 
 /**
- * @brief Comparison function for sorting decals by texture.
- */
-static gint R_DecalsCmp(gconstpointer a, gconstpointer b) {
-  const r_decal_t *da = *(const r_decal_t **) a;
-  const r_decal_t *db = *(const r_decal_t **) b;
-  
-  const GLuint tex_a = ((const r_image_t *) da->media)->texnum;
-  const GLuint tex_b = ((const r_image_t *) db->media)->texnum;
-  
-  return (gint)tex_a - (gint)tex_b;
-}
-
-/**
  * @brief Update all decals in the view.
  */
 void R_UpdateDecals(r_view_t *view) {
@@ -372,7 +359,7 @@ void R_UpdateDecals(r_view_t *view) {
     return;
   }
 
-  // Clear all batches on all models
+  // Clear draw lists on all models
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -382,110 +369,65 @@ void R_UpdateDecals(r_view_t *view) {
     }
     
     r_bsp_inline_model_t *in = e->model->bsp_inline;
-    
-    for (guint j = 0; j < in->decals.batches->len; j++) {
-      Mem_Free(g_ptr_array_index(in->decals.batches, j));
-    }
-    g_ptr_array_set_size(in->decals.batches, 0);
+    g_hash_table_remove_all(in->decals);
   }
 
-  // Build per-model decal arrays by scanning global queue
+  // Build draw lists from allocated queue
 
-  GHashTable *model_decals = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) g_ptr_array_unref);
+  uint32_t num_faces = 0;
 
   it = r_decals.allocated_decals->head;
   while (it) {
     r_decal_t *decal = it->data;
+    r_bsp_inline_model_t *in = decal->model;
     
-    GPtrArray *decals = g_hash_table_lookup(model_decals, decal->model);
-    if (!decals) {
-      decals = g_ptr_array_new();
-      g_hash_table_insert(model_decals, decal->model, decals);
-    }
+    const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
     
-    g_ptr_array_add(decals, decal);
-    it = it->next;
-  }
-
-  // Build batches and count faces
-
-  uint32_t total_faces = 0;
-
-  GHashTableIter hash_iter;
-  gpointer key, value;
-  g_hash_table_iter_init(&hash_iter, model_decals);
-  
-  while (g_hash_table_iter_next(&hash_iter, &key, &value)) {
-    r_bsp_inline_model_t *in = key;
-    GPtrArray *decals = value;
-
-    // Sort decals by texture
-    g_ptr_array_sort(decals, R_DecalsCmp);
-
-    // Build batches
-    for (guint j = 0; j < decals->len; ) {
-      r_decal_t *decal = g_ptr_array_index(decals, j);
-      const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
-
-      r_decal_batch_t *batch = Mem_TagMalloc(sizeof(r_decal_batch_t), MEM_TAG_RENDERER);
+    r_bsp_decals_t *batch = g_hash_table_lookup(in->decals, GUINT_TO_POINTER(texnum));
+    if (!batch) {
+      batch = Mem_TagMalloc(sizeof(r_bsp_decals_t), MEM_TAG_RENDERER);
       batch->texnum = texnum;
       batch->num_elements = 0;
-      batch->elements_offset = (GLvoid *) (total_faces * 6 * sizeof(GLuint));
-
-      // Count faces for this batch
-      guint k = j;
-      while (k < decals->len) {
-        r_decal_t *batch_decal = g_ptr_array_index(decals, k);
-        const GLuint batch_texnum = ((const r_image_t *) batch_decal->media)->texnum;
-        if (batch_texnum == texnum) {
-          batch->num_elements += batch_decal->faces->len * 6;
-          total_faces += batch_decal->faces->len;
-          k++;
-        } else {
-          break;
-        }
-      }
-
-      g_ptr_array_add(in->decals.batches, batch);
-      j = k;
+      batch->elements = (GLvoid *) (num_faces * 6 * sizeof(GLuint));
+      g_hash_table_insert(in->decals, GUINT_TO_POINTER(texnum), batch);
     }
+    
+    batch->num_elements += decal->faces->len * 6;
+    num_faces += decal->faces->len;
+    
+    it = it->next;
   }
 
   // Upload all geometry
 
-  r_decal_vertex_t *vertexes = malloc(total_faces * 4 * sizeof(r_decal_vertex_t));
-  GLuint *elements = malloc(total_faces * 6 * sizeof(GLuint));
+  r_decal_vertex_t *vertexes = malloc(num_faces * 4 * sizeof(r_decal_vertex_t));
+  GLuint *elements = malloc(num_faces * 6 * sizeof(GLuint));
 
   GLuint num_vertexes = 0;
   GLuint num_elements = 0;
 
-  g_hash_table_iter_init(&hash_iter, model_decals);
-  
-  while (g_hash_table_iter_next(&hash_iter, &key, &value)) {
-    GPtrArray *decals = value;
+  it = r_decals.allocated_decals->head;
+  while (it) {
+    r_decal_t *decal = it->data;
 
-    for (guint j = 0; j < decals->len; j++) {
-      r_decal_t *decal = g_ptr_array_index(decals, j);
+    for (guint i = 0; i < decal->faces->len; i++) {
+      r_decal_face_t *face = g_ptr_array_index(decal->faces, i);
+      const GLuint base_vertex = num_vertexes;
 
-      for (guint k = 0; k < decal->faces->len; k++) {
-        r_decal_face_t *face = g_ptr_array_index(decal->faces, k);
-        const GLuint base_vertex = num_vertexes;
-
-        for (int32_t l = 0; l < 4; l++) {
-          vertexes[num_vertexes++] = face->vertexes[l];
-        }
-
-        elements[num_elements++] = base_vertex + 0;
-        elements[num_elements++] = base_vertex + 1;
-        elements[num_elements++] = base_vertex + 2;
-        elements[num_elements++] = base_vertex + 0;
-        elements[num_elements++] = base_vertex + 2;
-        elements[num_elements++] = base_vertex + 3;
+      for (int32_t j = 0; j < 4; j++) {
+        vertexes[num_vertexes++] = face->vertexes[j];
       }
-    }
-  }
 
-  g_hash_table_destroy(model_decals);
+      elements[num_elements++] = base_vertex + 0;
+      elements[num_elements++] = base_vertex + 1;
+      elements[num_elements++] = base_vertex + 2;
+      elements[num_elements++] = base_vertex + 0;
+      elements[num_elements++] = base_vertex + 2;
+      elements[num_elements++] = base_vertex + 3;
+    }
+    
+    it = it->next;
+  }
 
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, num_vertexes * sizeof(r_decal_vertex_t), vertexes, GL_DYNAMIC_DRAW);
@@ -530,17 +472,21 @@ void R_DrawDecals(const r_view_t *view) {
 
     const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-    if (in->decals.batches->len == 0) {
+    if (g_hash_table_size(in->decals) == 0) {
       continue;
     }
 
     glUniformMatrix4fv(r_decal_program.model, 1, GL_FALSE, e->matrix.array);
 
-    for (guint j = 0; j < in->decals.batches->len; j++) {
-      const r_decal_batch_t *batch = g_ptr_array_index(in->decals.batches, j);
+    GHashTableIter it;
+    gpointer key, value;
+    g_hash_table_iter_init(&it, in->decals);
+    
+    while (g_hash_table_iter_next(&it, &key, &value)) {
+      const r_bsp_decals_t *d = value;
 
-      glBindTexture(GL_TEXTURE_2D, batch->texnum);
-      glDrawElements(GL_TRIANGLES, batch->num_elements, GL_UNSIGNED_INT, batch->elements_offset);
+      glBindTexture(GL_TEXTURE_2D, d->texnum);
+      glDrawElements(GL_TRIANGLES, d->num_elements, GL_UNSIGNED_INT, d->elements);
       
       r_stats.decal_draw_elements++;
     }

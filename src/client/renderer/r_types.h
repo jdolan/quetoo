@@ -667,17 +667,7 @@ typedef struct {
   /**
    * @brief Offset into the elements buffer for this batch.
    */
-  GLvoid *elements_offset;
-} r_decal_batch_t;
-
-/**
- * @brief Decal batches for a BSP inline model.
- */
-typedef struct {
-  /**
-   * @brief Array of r_decal_batch_t.
-   */
-  GPtrArray *batches;
+  GLvoid *elements;
 } r_bsp_decals_t;
 
 /**
@@ -734,7 +724,7 @@ typedef struct r_bsp_inline_model_s {
   /**
    * @brief Decal batches for this inline model.
    */
-  r_bsp_decals_t decals;
+  GHashTable *decals;
 } r_bsp_inline_model_t;
 
 /**
