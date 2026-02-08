@@ -374,12 +374,6 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The plane index.
-   * @details Alpha blended elements are grouped by plane so that they may be depth sorted.
-   */
-  int32_t plane;
-
-  /**
    * @brief The material index.
    */
   int32_t material;

@@ -451,12 +451,6 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The plane, for blended draw elements.
-   * @details Alpha blended draw elements are sorted by plane so that they may be depth sorted.
-   */
-  r_bsp_plane_t *plane;
-
-  /**
    * @brief The material.
    */
   r_material_t *material;

@@ -234,7 +234,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
   const bsp_draw_elements_t *in = bsp->cm->file->draw_elements;
   for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-    out->plane = bsp->planes + in->plane;
     out->material = bsp->materials[in->material];
     out->surface = in->surface;
 
