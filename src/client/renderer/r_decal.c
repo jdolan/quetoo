@@ -114,6 +114,9 @@ static r_decal_t *R_AllocDecal(void) {
   }
   
   g_queue_push_head(r_decals.allocated_decals, d);
+
+  r_decals.dirty = true;
+
   return d;
 }
 
@@ -133,6 +136,8 @@ static void R_FreeDecal(r_decal_t *d) {
   
   g_queue_remove(r_decals.allocated_decals, d);
   g_queue_push_head(r_decals.free_decals, d);
+
+  r_decals.dirty = true;
 }
 
 /**
@@ -294,8 +299,6 @@ static void R_DecalBspModel(const r_view_t *view, r_bsp_inline_model_t *in, r_de
 
     d->faces = faces;
     d->model = in;
-
-    r_decals.dirty = true;
   } else {
     g_ptr_array_free(faces, TRUE);
   }
@@ -365,7 +368,6 @@ void R_UpdateDecals(r_view_t *view) {
       const uint32_t age = view->ticks - decal->time;
       if (age >= decal->lifetime) {
         R_FreeDecal(decal);
-        r_decals.dirty = true;
       }
     }
     
@@ -376,7 +378,7 @@ void R_UpdateDecals(r_view_t *view) {
     return;
   }
 
-  // Clear draw lists on all models
+  // Clear draw lists
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -386,10 +388,11 @@ void R_UpdateDecals(r_view_t *view) {
     }
     
     r_bsp_inline_model_t *in = e->model->bsp_inline;
+
     g_hash_table_remove_all(in->decals);
   }
 
-  // First pass: Build draw lists, count faces
+  // Rebuild draw lists, hashing decals onto models by texture
 
   list = r_decals.allocated_decals->head;
   while (list) {
@@ -410,7 +413,7 @@ void R_UpdateDecals(r_view_t *view) {
     list = list->next;
   }
 
-  // Rebuild VBOs, setting decals' elements offset as we go
+  // Rebuild VBOs in _model_ order, setting decals' elements offset as we go
 
   const uint32_t num_faces = g_queue_get_length(r_decals.allocated_faces);
 
