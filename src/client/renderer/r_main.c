@@ -161,7 +161,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->wireframe = r_draw_wireframe->integer;
 
     if (r_models.world) {
-      const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+      const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
 
       out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
       out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);

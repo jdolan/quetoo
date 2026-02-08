@@ -281,27 +281,8 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
   }
-}
 
-/**
- * @brief GDestroyNotify for decals cleanup.
- */
-static void R_FreeBspDecals(gpointer data) {
-  r_bsp_decal_draw_elements_t *draw = data;
-  if (draw->decals) {
-    for (guint i = 0; i < draw->decals->len; i++) {
-      r_decal_t *decal = g_ptr_array_index(draw->decals, i);
-      if (decal->faces) {
-        for (guint j = 0; j < decal->faces->len; j++) {
-          Mem_Free(g_ptr_array_index(decal->faces, j));
-        }
-        g_ptr_array_free(decal->faces, true);
-      }
-      Mem_Free(decal);
-    }
-    g_ptr_array_free(draw->decals, true);
-  }
-  Mem_Free(draw);
+  bsp->decals = Mem_LinkMalloc(bsp->num_blocks * MAX_BSP_BLOCK_DECALS * sizeof(r_bsp_decal_t), bsp);
 }
 
 /**
@@ -333,8 +314,6 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
     out->blocks = bsp->blocks + in->first_block;
     out->num_blocks = in->num_blocks;
-
-    out->decals = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, R_FreeBspDecals);
 
     R_SetupBspNode(out, NULL, out->head_node);
   }
@@ -373,7 +352,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const bsp_voxels_t *in = mod->bsp->cm->file->voxels;
   const byte *data = (byte *) in + sizeof(bsp_voxels_t);
 
-  r_bsp_voxels_t *out = mod->bsp->voxels = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+  r_bsp_voxels_t *out = &mod->bsp->voxels;
 
   out->size = in->size;
   out->num_voxels = out->size.x * out->size.y * out->size.z;
@@ -678,10 +657,10 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_indices);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.fog);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
 
   r_models.world = mod;
 }
@@ -693,11 +672,6 @@ static void R_FreeBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
 
   r_bsp_model_t *bsp = mod->bsp;
-
-  r_bsp_inline_model_t *in = bsp->inline_models;
-  for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
-    g_hash_table_destroy(in->decals);
-  }
 
   glDeleteBuffers(1, &bsp->vertex_buffer);
   glDeleteBuffers(1, &bsp->elements_buffer);
@@ -715,7 +689,7 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  glDeleteBuffers(1, &bsp->voxels->light_indices_buffer);
+  glDeleteBuffers(1, &bsp->voxels.light_indices_buffer);
 
   R_GetError(NULL);
 }

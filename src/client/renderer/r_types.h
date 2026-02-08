@@ -288,6 +288,43 @@ typedef struct r_material_s {
 } r_material_t;
 
 /**
+ * @brief Decals are projected textures that conform to BSP geometry.
+ */
+typedef struct r_decal_s {
+  /**
+   * @brief The decal origin.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The decal radius.
+   */
+  float radius;
+
+  /**
+   * @brief The decal surface normal.
+   */
+  vec3_t normal;
+
+  /**
+   * @brief The decal color.
+   */
+  color_t color;
+
+  /**
+   * @brief The decal media (image or atlas image).
+   */
+  r_media_t *media;
+
+  /**
+   * @brief The decal lifetime in ticks (0 = permanent).
+   */
+  uint32_t lifetime;
+} r_decal_t;
+
+#define MAX_DECALS 0x400
+
+/**
  * @brief OpenGL occlusion queries.
  */
 typedef struct r_occlusion_query_s {
@@ -562,6 +599,58 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
+ * @brief BSP decal vertex structure.
+ */
+typedef struct {
+  /**
+   * @brief The position.
+   */
+  vec3_t position;
+
+  /**
+   * @brief The diffusemap texture coordinate.
+   */
+  vec2_t diffusemap;
+
+  /**
+   * @brief The color.
+   */
+  color32_t color;
+
+  /**
+   * @brief The decal creation time, for GPU decal expiration.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The decal lifetime, for GPU decal expiration.
+   */
+  uint32_t lifetime;
+} r_bsp_decal_vertex_t;
+
+/**
+ * @brief The BSP decal structure, representing one or more clipped quads resulting from a decal.
+ */
+typedef struct {
+  /**
+   * @brief The decal definition.
+   */
+  r_decal_t def;
+
+  /**
+   * @brief The decal creation time.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The projected decal vertexes.
+   */
+  r_bsp_decal_vertex_t vertexes[4];
+} r_bsp_decal_t;
+
+#define MAX_BSP_BLOCK_DECALS 256
+
+/**
  * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
  */
 typedef struct {
@@ -581,6 +670,26 @@ typedef struct {
   int32_t num_draw_elements;
 
   /**
+   * @brief The projected decals within this block, sorted by texture.
+   */
+  r_bsp_decal_t decals[MAX_BSP_BLOCK_DECALS];
+
+  /**
+   * @brief The count of projected decals.
+   */
+  int32_t num_decals;
+
+  /**
+   * @brief The decal draw elements within this block.
+   */
+  r_bsp_draw_elements_t *decal_draw_elements;
+
+  /**
+   * @brief The count of decal draw elements.
+   */
+  int32_t num_decal_draw_elements;
+
+  /**
    * @brief The visible bounds of this block, used for occlusion query and culling.
    * @remarks This is different from the node's bounds, and the node's visible bounds.
    */
@@ -591,84 +700,6 @@ typedef struct {
    */
   r_occlusion_query_t *query;
 } r_bsp_block_t;
-
-/**
- * @brief Decals are projected textures that conform to BSP geometry.
- */
-typedef struct r_decal_s {
-  /**
-   * @brief The decal origin.
-   */
-  vec3_t origin;
-
-  /**
-   * @brief The decal radius.
-   */
-  float radius;
-
-  /**
-   * @brief The decal surface normal.
-   */
-  vec3_t normal;
-
-  /**
-   * @brief The decal color.
-   */
-  color_t color;
-
-  /**
-   * @brief The decal media (image or atlas image).
-   */
-  r_media_t *media;
-
-  /**
-   * @brief The decal lifetime in ticks (0 = permanent).
-   */
-  uint32_t lifetime;
-
-  /**
-   * @brief The decal creation time in ticks (set by renderer).
-   */
-  uint32_t time;
-
-  /**
-   * @brief The decal model attacment (set by renderer).
-   */
-  struct r_bsp_inline_model_s *model;
-
-  /**
-   * @brief The `r_decal_face_t`s for this decal (set by renderer).
-   */
-  GPtrArray *faces;
-} r_decal_t;
-
-#define MAX_DECALS 0x400
-
-/**
- * @brief A draw list of decals sharing a common texture.
- */
-typedef struct {
-
-  /**
-   * @brief The decals in this batch (GPtrArray of r_decal_t*).
-   */
-  GPtrArray *decals;
-
-  /**
-   * @brief The texture (diffusemap) for this batch.
-   */
-  GLuint texnum;
-
-  /**
-   * @brief Number of elements (indices) to draw.
-   */
-  GLsizei num_elements;
-  
-  /**
-   * @brief Offset into the elements buffer for this batch.
-   */
-  GLvoid *elements;
-} r_bsp_decal_draw_elements_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is
@@ -721,10 +752,6 @@ typedef struct r_bsp_inline_model_s {
   r_bsp_block_t *blocks;
   int32_t num_blocks;
 
-  /**
-   * @brief Decal batches for this inline model.
-   */
-  GHashTable *decals;
 } r_bsp_inline_model_t;
 
 /**
@@ -907,8 +934,8 @@ typedef struct {
   int32_t num_leafs;
   r_bsp_leaf_t *leafs;
 
-  r_bsp_block_t *blocks;
   int32_t num_blocks;
+  r_bsp_block_t *blocks;
 
   int32_t num_inline_models;
   r_bsp_inline_model_t *inline_models;
@@ -916,7 +943,10 @@ typedef struct {
   int32_t num_lights;
   r_bsp_light_t *lights;
 
-  r_bsp_voxels_t *voxels;
+  /**
+   * @brief The voxel data.
+   */
+  r_bsp_voxels_t voxels;
 
   /**
    * @brief The vertex array (VAO) name.

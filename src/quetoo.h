@@ -243,7 +243,7 @@ typedef enum {
  * @brief Leafs will have some combination of the above flags; nodes will always be negative.
  */
 #define CONTENTS_NODE        -1
-#define CONTENTS_BLOCK        -2
+#define CONTENTS_BLOCK       -2
 
 /**
  * @brief Contents masks: frequently combined contents flags.
