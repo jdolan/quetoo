@@ -448,7 +448,9 @@ void R_DrawDecals(const r_view_t *view) {
   
   r_stats.decals = g_queue_get_length(r_decals.allocated_decals);
   
+  glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
+  
   glEnable(GL_POLYGON_OFFSET_FILL);
   glPolygonOffset(-1.f, -1.f);
   
@@ -496,6 +498,8 @@ void R_DrawDecals(const r_view_t *view) {
   glDisable(GL_BLEND);
   
   glDisable(GL_POLYGON_OFFSET_FILL);
+
+  glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
 
   R_GetError(NULL);
