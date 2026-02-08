@@ -654,6 +654,12 @@ typedef struct r_decal_s {
  * @brief A draw list of decals sharing a common texture.
  */
 typedef struct {
+
+  /**
+   * @brief The decals in this batch (GPtrArray of r_decal_t*).
+   */
+  GPtrArray *decals;
+
   /**
    * @brief The texture (diffusemap) for this batch.
    */
@@ -668,7 +674,7 @@ typedef struct {
    * @brief Offset into the elements buffer for this batch.
    */
   GLvoid *elements;
-} r_bsp_decals_t;
+} r_bsp_decal_draw_elements_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is

@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_local.h"
 
 /**
  * @brief
@@ -284,6 +285,27 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 }
 
 /**
+ * @brief GDestroyNotify for decals cleanup.
+ */
+static void R_FreeBspDecals(gpointer data) {
+  r_bsp_decal_draw_elements_t *draw = data;
+  if (draw->decals) {
+    for (guint i = 0; i < draw->decals->len; i++) {
+      r_decal_t *decal = g_ptr_array_index(draw->decals, i);
+      if (decal->faces) {
+        for (guint j = 0; j < decal->faces->len; j++) {
+          Mem_Free(g_ptr_array_index(decal->faces, j));
+        }
+        g_ptr_array_free(decal->faces, true);
+      }
+      Mem_Free(decal);
+    }
+    g_ptr_array_free(draw->decals, true);
+  }
+  Mem_Free(draw);
+}
+
+/**
  * @brief
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
@@ -313,7 +335,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
     out->blocks = bsp->blocks + in->first_block;
     out->num_blocks = in->num_blocks;
 
-    out->decals = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, Mem_Free);
+    out->decals = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, R_FreeBspDecals);
 
     R_SetupBspNode(out, NULL, out->head_node);
   }
@@ -677,8 +699,6 @@ static void R_FreeBspModel(r_media_t *self) {
   for (int32_t i = 0; i < bsp->num_inline_models; i++, in++) {
     g_hash_table_destroy(in->decals);
   }
-  
-  R_FreeDecals();
 
   glDeleteBuffers(1, &bsp->vertex_buffer);
   glDeleteBuffers(1, &bsp->elements_buffer);
