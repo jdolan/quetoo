@@ -372,33 +372,9 @@ void R_UpdateDecals(r_view_t *view) {
     g_hash_table_remove_all(in->decals);
   }
 
-  // Build draw lists from allocated queue
+  // Allocate buffers for all faces
 
-  uint32_t num_faces = 0;
-
-  it = r_decals.allocated_decals->head;
-  while (it) {
-    r_decal_t *decal = it->data;
-    r_bsp_inline_model_t *in = decal->model;
-    
-    const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
-    
-    r_bsp_decals_t *batch = g_hash_table_lookup(in->decals, GUINT_TO_POINTER(texnum));
-    if (!batch) {
-      batch = Mem_TagMalloc(sizeof(r_bsp_decals_t), MEM_TAG_RENDERER);
-      batch->texnum = texnum;
-      batch->num_elements = 0;
-      batch->elements = (GLvoid *) (num_faces * 6 * sizeof(GLuint));
-      g_hash_table_insert(in->decals, GUINT_TO_POINTER(texnum), batch);
-    }
-    
-    batch->num_elements += decal->faces->len * 6;
-    num_faces += decal->faces->len;
-    
-    it = it->next;
-  }
-
-  // Upload all geometry
+  const uint32_t num_faces = g_queue_get_length(r_decals.allocated_faces);
 
   r_decal_vertex_t *vertexes = malloc(num_faces * 4 * sizeof(r_decal_vertex_t));
   GLuint *elements = malloc(num_faces * 6 * sizeof(GLuint));
@@ -409,6 +385,17 @@ void R_UpdateDecals(r_view_t *view) {
   it = r_decals.allocated_decals->head;
   while (it) {
     r_decal_t *decal = it->data;
+    r_bsp_inline_model_t *in = decal->model;
+    const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
+    
+    r_bsp_decals_t *batch = g_hash_table_lookup(in->decals, GUINT_TO_POINTER(texnum));
+    if (!batch) {
+      batch = Mem_TagMalloc(sizeof(r_bsp_decals_t), MEM_TAG_RENDERER);
+      batch->texnum = texnum;
+      batch->num_elements = 0;
+      batch->elements = (GLvoid *) (num_elements * sizeof(GLuint));
+      g_hash_table_insert(in->decals, GUINT_TO_POINTER(texnum), batch);
+    }
 
     for (guint i = 0; i < decal->faces->len; i++) {
       r_decal_face_t *face = g_ptr_array_index(decal->faces, i);
@@ -426,6 +413,7 @@ void R_UpdateDecals(r_view_t *view) {
       elements[num_elements++] = base_vertex + 3;
     }
     
+    batch->num_elements += decal->faces->len * 6;
     it = it->next;
   }
 
