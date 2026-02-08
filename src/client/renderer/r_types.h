@@ -651,14 +651,14 @@ typedef struct r_decal_s {
 #define MAX_DECALS 0x400
 
 /**
- * @brief A single decal batch (contiguous decals with the same texture).
+ * @brief A draw list of decals sharing a common texture.
  */
 typedef struct {
   /**
    * @brief The texture (diffusemap) for this batch.
    */
   GLuint texnum;
-  
+
   /**
    * @brief Number of elements (indices) to draw.
    */
