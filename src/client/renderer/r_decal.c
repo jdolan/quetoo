@@ -158,37 +158,56 @@ static void R_DecalBspFace(const r_bsp_face_t *face, const r_decal_t *decal, GPt
 
   r_decal_face_t *f = R_AllocDecalFace();
 
-  vec3_t tangent, bitangent;
-  if (fabsf(decal->normal.z) > 0.9f) {
-    tangent = Vec3_Cross(decal->normal, Vec3(1.f, 0.f, 0.f));
+  const vec3_t n = decal->normal;
+  const float r = decal->radius;
+
+  vec3_t t, b;
+  if (fabsf(n.z) > 0.9f) {
+    t = Vec3_Cross(n, Vec3(1.f, 0.f, 0.f));
   } else {
-    tangent = Vec3_Cross(decal->normal, Vec3(0.f, 0.f, 1.f));
+    t = Vec3_Cross(n, Vec3(0.f, 0.f, 1.f));
   }
 
-  tangent = Vec3_Normalize(tangent);
-  bitangent = Vec3_Cross(decal->normal, tangent);
+  t = Vec3_Normalize(t);
+  b = Vec3_Cross(n, t);
 
-  f->vertexes[0].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent, -decal->radius));
-  f->vertexes[1].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent, -decal->radius));
-  f->vertexes[2].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent,  decal->radius)), Vec3_Scale(bitangent,  decal->radius));
-  f->vertexes[3].position = Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(tangent, -decal->radius)), Vec3_Scale(bitangent,  decal->radius));
+  // Build initial quad corners
+  const vec3_t positions[4] = {
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(t,  r)), Vec3_Scale(b, -r)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(t,  r)), Vec3_Scale(b,  r)),
+    Vec3_Add(Vec3_Add(decal->origin, Vec3_Scale(t, -r)), Vec3_Scale(b,  r))
+  };
 
-  // TODO: Clip decal quad to face bounds; might be able to just Box3_Clamp()?
+  // Clip vertices to face bounds
+  for (int32_t i = 0; i < 4; i++) {
+    f->vertexes[i].position = Box3_ClampPoint(face->bounds, positions[i]);
+  }
+
+  vec2_t uv[4];
+  for (int32_t i = 0; i < 4; i++) {
+    const vec3_t delta = Vec3_Subtract(f->vertexes[i].position, decal->origin);
+    const float u = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f; // -radius to +radius → 0 to 1
+    const float v = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
+    uv[i] = Vec2(u, v);
+  }
 
   switch (decal->media->type) {
     case R_MEDIA_ATLAS_IMAGE: {
       const r_atlas_image_t *atlas_image = (r_atlas_image_t *) decal->media;
-      f->vertexes[0].texcoord = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
-      f->vertexes[1].texcoord = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.y);
-      f->vertexes[2].texcoord = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
-      f->vertexes[3].texcoord = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.w);
+      const vec2_t atlas_min = Vec2(atlas_image->texcoords.x, atlas_image->texcoords.y);
+      const vec2_t atlas_max = Vec2(atlas_image->texcoords.z, atlas_image->texcoords.w);
+      const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
+      
+      for (int32_t i = 0; i < 4; i++) {
+        f->vertexes[i].texcoord = Vec2_Add(atlas_min, Vec2(uv[i].x * atlas_size.x, uv[i].y * atlas_size.y));
+      }
     }
       break;
     case R_MEDIA_IMAGE: {
-      f->vertexes[0].texcoord = Vec2(0.f, 0.f);
-      f->vertexes[1].texcoord = Vec2(1.f, 0.f);
-      f->vertexes[2].texcoord = Vec2(1.f, 1.f);
-      f->vertexes[3].texcoord = Vec2(0.f, 1.f);
+      for (int32_t i = 0; i < 4; i++) {
+        f->vertexes[i].texcoord = uv[i];
+      }
     }
       break;
     default:
