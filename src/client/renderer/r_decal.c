@@ -85,6 +85,11 @@ static struct {
    * @brief The queue of free decal faces (available for reuse).
    */
   GQueue *free_faces;
+
+  /**
+   * @brief Whether decals have been added or removed (need to rebuild batches).
+   */
+  bool dirty;
 } r_decals;
 
 /**
@@ -93,6 +98,7 @@ static struct {
 static struct {
   GLuint name;
   GLuint uniforms_block;
+  GLint model;
   GLint texture_diffusemap;
 } r_decal_program;
 
@@ -270,11 +276,11 @@ static void R_DecalBspModel(const r_view_t *view, r_bsp_inline_model_t *in, r_de
     d->lifetime = decal->lifetime;
 
     d->faces = faces;
+    d->model = in;
 
-    g_ptr_array_add(in->decals, d);
-    in->decals_dirty = true;
+    r_decals.dirty = true;
   } else {
-    g_ptr_array_free(faces, true);
+    g_ptr_array_free(faces, TRUE);
   }
 }
 
@@ -344,10 +350,29 @@ void R_UpdateDecals(r_view_t *view) {
     }
   }
 
-  // Expire existing decals and count faces
+  // Expire decals by iterating the global allocated queue
 
-  uint32_t num_faces = 0;
-  bool decals_dirty = false;
+  GList *it = r_decals.allocated_decals->head;
+  while (it) {
+    r_decal_t *decal = it->data;
+    GList *next = it->next;
+    
+    if (decal->lifetime > 0) {
+      const uint32_t age = view->ticks - decal->time;
+      if (age >= decal->lifetime) {
+        R_FreeDecal(decal);
+        r_decals.dirty = true;
+      }
+    }
+    
+    it = next;
+  }
+
+  if (!r_decals.dirty) {
+    return;
+  }
+
+  // Clear all batches on all models
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -355,58 +380,92 @@ void R_UpdateDecals(r_view_t *view) {
     if (!IS_BSP_INLINE_MODEL(e->model)) {
       continue;
     }
-
+    
     r_bsp_inline_model_t *in = e->model->bsp_inline;
     
-    for (guint j = 0; j < in->decals->len; ) {
-      r_decal_t *decal = g_ptr_array_index(in->decals, j);
-      
-      if (decal->lifetime > 0) {
-        const uint32_t age = view->ticks - decal->time;
-        if (age >= decal->lifetime) {
-          R_FreeDecal(decal);
-          g_ptr_array_remove_index_fast(in->decals, j);
-          in->decals_dirty = true;
-          continue;
+    for (guint j = 0; j < in->decals.batches->len; j++) {
+      Mem_Free(g_ptr_array_index(in->decals.batches, j));
+    }
+    g_ptr_array_set_size(in->decals.batches, 0);
+  }
+
+  // Build per-model decal arrays by scanning global queue
+
+  GHashTable *model_decals = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify) g_ptr_array_unref);
+
+  it = r_decals.allocated_decals->head;
+  while (it) {
+    r_decal_t *decal = it->data;
+    
+    GPtrArray *decals = g_hash_table_lookup(model_decals, decal->model);
+    if (!decals) {
+      decals = g_ptr_array_new();
+      g_hash_table_insert(model_decals, decal->model, decals);
+    }
+    
+    g_ptr_array_add(decals, decal);
+    it = it->next;
+  }
+
+  // Build batches and count faces
+
+  uint32_t total_faces = 0;
+
+  GHashTableIter hash_iter;
+  gpointer key, value;
+  g_hash_table_iter_init(&hash_iter, model_decals);
+  
+  while (g_hash_table_iter_next(&hash_iter, &key, &value)) {
+    r_bsp_inline_model_t *in = key;
+    GPtrArray *decals = value;
+
+    // Sort decals by texture
+    g_ptr_array_sort(decals, R_DecalsCmp);
+
+    // Build batches
+    for (guint j = 0; j < decals->len; ) {
+      r_decal_t *decal = g_ptr_array_index(decals, j);
+      const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
+
+      r_decal_batch_t *batch = Mem_TagMalloc(sizeof(r_decal_batch_t), MEM_TAG_RENDERER);
+      batch->texnum = texnum;
+      batch->num_elements = 0;
+      batch->elements_offset = (GLvoid *) (total_faces * 6 * sizeof(GLuint));
+
+      // Count faces for this batch
+      guint k = j;
+      while (k < decals->len) {
+        r_decal_t *batch_decal = g_ptr_array_index(decals, k);
+        const GLuint batch_texnum = ((const r_image_t *) batch_decal->media)->texnum;
+        if (batch_texnum == texnum) {
+          batch->num_elements += batch_decal->faces->len * 6;
+          total_faces += batch_decal->faces->len;
+          k++;
+        } else {
+          break;
         }
       }
-      
-      num_faces += decal->faces->len;
-      j++;
+
+      g_ptr_array_add(in->decals.batches, batch);
+      j = k;
     }
-
-    decals_dirty |= in->decals_dirty;
   }
 
-  if (!decals_dirty) {
-    return;
-  }
+  // Upload all geometry
 
-  // Upload geometry
-
-  r_decal_vertex_t *vertexes = malloc(num_faces * 4 * sizeof(r_decal_vertex_t));
-  GLuint *elements = malloc(num_faces * 6 * sizeof(GLuint));
+  r_decal_vertex_t *vertexes = malloc(total_faces * 4 * sizeof(r_decal_vertex_t));
+  GLuint *elements = malloc(total_faces * 6 * sizeof(GLuint));
 
   GLuint num_vertexes = 0;
   GLuint num_elements = 0;
 
-  e = view->entities;
-  for (int32_t i = 0; i < view->num_entities; i++, e++) {
+  g_hash_table_iter_init(&hash_iter, model_decals);
+  
+  while (g_hash_table_iter_next(&hash_iter, &key, &value)) {
+    GPtrArray *decals = value;
 
-    if (!IS_BSP_INLINE_MODEL(e->model)) {
-      continue;
-    }
-
-    r_bsp_inline_model_t *in = e->model->bsp_inline;
-
-    if (in->decals_dirty) {
-      g_ptr_array_sort(in->decals, R_DecalsCmp);
-    }
-
-    in->decal_elements = (GLvoid *) (num_elements * sizeof(GLuint));
-
-    for (guint j = 0; j < in->decals->len; j++) {
-      r_decal_t *decal = g_ptr_array_index(in->decals, j);
+    for (guint j = 0; j < decals->len; j++) {
+      r_decal_t *decal = g_ptr_array_index(decals, j);
 
       for (guint k = 0; k < decal->faces->len; k++) {
         r_decal_face_t *face = g_ptr_array_index(decal->faces, k);
@@ -424,9 +483,9 @@ void R_UpdateDecals(r_view_t *view) {
         elements[num_elements++] = base_vertex + 3;
       }
     }
-
-    in->decals_dirty = false;
   }
+
+  g_hash_table_destroy(model_decals);
 
   glBindBuffer(GL_ARRAY_BUFFER, r_decals.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, num_vertexes * sizeof(r_decal_vertex_t), vertexes, GL_DYNAMIC_DRAW);
@@ -436,6 +495,8 @@ void R_UpdateDecals(r_view_t *view) {
 
   free(vertexes);
   free(elements);
+
+  r_decals.dirty = false;
 }
 
 /**
@@ -443,7 +504,7 @@ void R_UpdateDecals(r_view_t *view) {
  */
 void R_DrawDecals(const r_view_t *view) {
   
-  r_stats.decals = 0;
+  r_stats.decals = g_queue_get_length(r_decals.allocated_decals);
   
   glDepthMask(GL_FALSE);
   glEnable(GL_POLYGON_OFFSET_FILL);
@@ -469,38 +530,19 @@ void R_DrawDecals(const r_view_t *view) {
 
     const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-    if (in->decals->len == 0) {
+    if (in->decals.batches->len == 0) {
       continue;
     }
 
-    GLvoid *elements = in->decal_elements;
+    glUniformMatrix4fv(r_decal_program.model, 1, GL_FALSE, e->matrix.array);
 
-    for (guint j = 0; j < in->decals->len; ) {
-      r_decal_t *decal = g_ptr_array_index(in->decals, j);
-      const GLuint texnum = ((const r_image_t *) decal->media)->texnum;
+    for (guint j = 0; j < in->decals.batches->len; j++) {
+      const r_decal_batch_t *batch = g_ptr_array_index(in->decals.batches, j);
 
-      glBindTexture(GL_TEXTURE_2D, texnum);
-
-      int32_t batch_num_faces = 0;
-      guint k = j;
-      while (k < in->decals->len) {
-        r_decal_t *batch = g_ptr_array_index(in->decals, k);
-        const GLuint batch_texnum = ((const r_image_t *) batch->media)->texnum;
-        if (batch_texnum == texnum) {
-          batch_num_faces += batch->faces->len;
-          r_stats.decals++;
-          k++;
-        } else {
-          break;
-        }
-      }
-
-      glDrawElements(GL_TRIANGLES, batch_num_faces * 6, GL_UNSIGNED_INT, elements);
+      glBindTexture(GL_TEXTURE_2D, batch->texnum);
+      glDrawElements(GL_TRIANGLES, batch->num_elements, GL_UNSIGNED_INT, batch->elements_offset);
+      
       r_stats.decal_draw_elements++;
-
-      elements = (GLvoid *) ((intptr_t) elements + batch_num_faces * 6 * sizeof(GLuint));
-
-      j = k;
     }
   }
   
@@ -547,6 +589,8 @@ static void R_InitDecalProgram(void) {
 
   r_decal_program.uniforms_block = glGetUniformBlockIndex(r_decal_program.name, "uniforms_block");
   glUniformBlockBinding(r_decal_program.name, r_decal_program.uniforms_block, 0);
+
+  r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
   glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);

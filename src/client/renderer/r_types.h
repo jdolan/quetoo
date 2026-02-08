@@ -638,12 +638,47 @@ typedef struct r_decal_s {
   uint32_t time;
 
   /**
+   * @brief The decal model attacment (set by renderer).
+   */
+  struct r_bsp_inline_model_s *model;
+
+  /**
    * @brief The `r_decal_face_t`s for this decal (set by renderer).
    */
   GPtrArray *faces;
 } r_decal_t;
 
 #define MAX_DECALS 0x400
+
+/**
+ * @brief A single decal batch (contiguous decals with the same texture).
+ */
+typedef struct {
+  /**
+   * @brief The texture (diffusemap) for this batch.
+   */
+  GLuint texnum;
+  
+  /**
+   * @brief Number of elements (indices) to draw.
+   */
+  GLsizei num_elements;
+  
+  /**
+   * @brief Offset into the elements buffer for this batch.
+   */
+  GLvoid *elements_offset;
+} r_decal_batch_t;
+
+/**
+ * @brief Decal batches for a BSP inline model.
+ */
+typedef struct {
+  /**
+   * @brief Array of r_decal_batch_t.
+   */
+  GPtrArray *batches;
+} r_bsp_decals_t;
 
 /**
  * @brief The BSP is organized into one or more models (trees). The first model is
@@ -697,19 +732,9 @@ typedef struct r_bsp_inline_model_s {
   int32_t num_blocks;
 
   /**
-   * @brief Decals attached to this inline model.
+   * @brief Decal batches for this inline model.
    */
-  GPtrArray *decals;
-
-  /**
-   * @brief Whether the decals need to be re-sorted and re-uploaded.
-   */
-  bool decals_dirty;
-
-  /**
-   * @brief An offset pointer (in bytes) into the decal elements array for decal geometry.
-   */
-  GLvoid *decal_elements;
+  r_bsp_decals_t decals;
 } r_bsp_inline_model_t;
 
 /**

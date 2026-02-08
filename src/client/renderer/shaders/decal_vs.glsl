@@ -32,12 +32,14 @@ out vertex_data {
   flat uint lifetime;
 } vertex;
 
+uniform mat4 model;
+
 /**
  * @brief Decal vertex shader.
  */
 void main(void) {
 
-  gl_Position = projection3D * view * vec4(in_position, 1.0);
+  gl_Position = projection3D * view * model * vec4(in_position, 1.0);
 
   vertex.texcoord = in_texcoord;
   vertex.color = in_color;
