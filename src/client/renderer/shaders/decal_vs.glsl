@@ -22,10 +22,14 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec2 in_texcoord;
 layout (location = 2) in vec4 in_color;
+layout (location = 3) in uint in_time;
+layout (location = 4) in uint in_lifetime;
 
 out vertex_data {
   vec2 texcoord;
   vec4 color;
+  flat uint time;
+  flat uint lifetime;
 } vertex;
 
 /**
@@ -37,4 +41,6 @@ void main(void) {
 
   vertex.texcoord = in_texcoord;
   vertex.color = in_color;
+  vertex.time = in_time;
+  vertex.lifetime = in_lifetime;
 }

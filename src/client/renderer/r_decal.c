@@ -28,6 +28,8 @@ typedef struct {
   vec3_t position;
   vec2_t texcoord;
   color32_t color;
+  uint32_t time;
+  uint32_t lifetime;
 } r_decal_vertex_t;
 
 /**
@@ -189,10 +191,11 @@ static void R_DecalBspFace(const r_bsp_face_t *face, const r_decal_t *decal, GPt
 
   const color32_t color = Color_Color32(decal->color);
 
-  f->vertexes[0].color = color;
-  f->vertexes[1].color = color;
-  f->vertexes[2].color = color;
-  f->vertexes[3].color = color;
+  for (int32_t i = 0; i < 4; i++) {
+    f->vertexes[i].color = color;
+    f->vertexes[i].time = decal->time;
+    f->vertexes[i].lifetime = decal->lifetime;
+  }
 
   g_ptr_array_add(faces, f);
 }
@@ -249,7 +252,7 @@ static void R_DecalBspNode(const r_bsp_node_t *node, r_decal_t *decal, GPtrArray
 /**
  * @brief Generate faces via BSP traversal, and if any are created, allocate a decal and add to model.
  */
-static void R_DecalBspModel(r_bsp_inline_model_t *in, r_decal_t *decal) {
+static void R_DecalBspModel(const r_view_t *view, r_bsp_inline_model_t *in, r_decal_t *decal) {
 
   GPtrArray *faces = g_ptr_array_new();
 
@@ -257,15 +260,15 @@ static void R_DecalBspModel(r_bsp_inline_model_t *in, r_decal_t *decal) {
 
   if (faces->len > 0) {
     r_decal_t *d = R_AllocDecal();
+    d->time = view->ticks;
 
     d->origin = decal->origin;
     d->normal = decal->normal;
     d->radius = decal->radius;
     d->color = decal->color;
     d->media = decal->media;
-    d->time = decal->time;
     d->lifetime = decal->lifetime;
-    
+
     d->faces = faces;
 
     g_ptr_array_add(in->decals, d);
@@ -290,10 +293,7 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
   }
 
   r_decal_t *out = &view->decals[view->num_decals++];
-
   *out = *decal;
-
-  out->time = view->ticks;
 }
 
 /**
@@ -340,7 +340,7 @@ void R_UpdateDecals(r_view_t *view) {
       d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
       d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
 
-      R_DecalBspModel(in, &d);
+      R_DecalBspModel(view, in, &d);
     }
   }
 
@@ -579,10 +579,14 @@ void R_InitDecals(void) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
   glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
+  glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
+  glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
+  glEnableVertexAttribArray(3);
+  glEnableVertexAttribArray(4);
 
   glBindVertexArray(0);
   

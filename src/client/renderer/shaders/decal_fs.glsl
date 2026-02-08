@@ -22,6 +22,8 @@
 in vertex_data {
   vec2 texcoord;
   vec4 color;
+  flat uint time;
+  flat uint lifetime;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -34,4 +36,16 @@ void main(void) {
   vec4 diffuse = texture(texture_diffusemap, vertex.texcoord);
 
   out_color = diffuse * vertex.color;
+  
+  // Fade out over the last 20% of lifetime
+  if (vertex.lifetime > 0u) {
+    float age = float(uint(ticks) - vertex.time);
+    float fade_start = float(vertex.lifetime) * 0.8;
+    float fade_duration = float(vertex.lifetime) * 0.2;
+    
+    if (age > fade_start) {
+      float fade = 1.0 - clamp((age - fade_start) / fade_duration, 0.0, 1.0);
+      out_color.a *= fade;
+    }
+  }
 }
