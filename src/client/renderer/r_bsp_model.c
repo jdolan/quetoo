@@ -303,11 +303,12 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     decals->elements_buffer = elements_buffer;
 
-    glGenBuffers(1, &decals->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, decals->vertex_buffer);
-
     glGenVertexArrays(1, &decals->vertex_array);
     glBindVertexArray(decals->vertex_array);
+
+    glGenBuffers(1, &decals->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, decals->vertex_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_buffer);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
