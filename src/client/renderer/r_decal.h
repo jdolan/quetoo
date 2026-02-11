@@ -26,6 +26,40 @@
 void R_AddDecal(r_view_t *view, const r_decal_t *decal);
 
 #ifdef __R_LOCAL_H__
+
+#define DECAL_TEXTURE_SIZE 256
+#define DECAL_TEXTURE_LAYERS 64
+
+/**
+ * @brief BSP decal vertex structure.
+ */
+typedef struct {
+  /**
+   * @brief The position.
+   */
+  vec3_t position;
+
+  /**
+   * @brief The diffusemap texture coordinate.
+   */
+  vec2_t texcoord;
+
+  /**
+   * @brief The color.
+   */
+  color32_t color;
+
+  /**
+   * @brief The decal creation time, for GPU decal expiration.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The decal lifetime, for GPU decal expiration.
+   */
+  uint32_t lifetime;
+} r_decal_vertex_t;
+
 void R_UpdateDecals(r_view_t *view);
 void R_DrawDecals(const r_view_t *view);
 void R_InitDecals(void);

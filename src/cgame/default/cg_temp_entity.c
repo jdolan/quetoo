@@ -328,10 +328,10 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     float spark_size = RandomRangef(35.f, 45.f);
 
     Cg_AddDecal(&(r_decal_t) {
-      .media = (r_media_t *) cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
+      .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
       .origin = org,
       .normal = dir,
-      .radius = RandomRangef(32.f, 64.f),
+      .radius = RandomRangef(8.f, 16.f),
       .color = color_white,
       .lifetime = 30000
     });

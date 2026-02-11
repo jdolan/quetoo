@@ -312,9 +312,14 @@ typedef struct r_decal_s {
   color_t color;
 
   /**
-   * @brief The decal media (image or atlas image).
+   * @brief The decal atlas image.
    */
-  r_media_t *media;
+  r_atlas_image_t *image;
+
+  /**
+   * @brief The decal creation time in ticks.
+   */
+  uint32_t time;
 
   /**
    * @brief The decal lifetime in ticks (0 = permanent).
@@ -599,56 +604,46 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
- * @brief BSP decal vertex structure.
+ * @brief The maximum number of decals that can be attached to a single BSP block.
  */
-typedef struct {
-  /**
-   * @brief The position.
-   */
-  vec3_t position;
-
-  /**
-   * @brief The diffusemap texture coordinate.
-   */
-  vec2_t diffusemap;
-
-  /**
-   * @brief The color.
-   */
-  color32_t color;
-
-  /**
-   * @brief The decal creation time, for GPU decal expiration.
-   */
-  uint32_t time;
-
-  /**
-   * @brief The decal lifetime, for GPU decal expiration.
-   */
-  uint32_t lifetime;
-} r_bsp_decal_vertex_t;
+#define MAX_BSP_BLOCK_DECALS 0x1000
 
 /**
- * @brief The BSP decal structure, representing one or more clipped quads resulting from a decal.
+ * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {
-  /**
-   * @brief The decal definition.
-   */
-  r_decal_t def;
 
   /**
-   * @brief The decal creation time.
+   * @brief The decal instances.
    */
-  uint32_t time;
+  GArray *instances;
 
   /**
-   * @brief The projected decal vertexes.
+   * @brief The vertexes of the decals attached to the containing block.
    */
-  r_bsp_decal_vertex_t vertexes[4];
-} r_bsp_decal_t;
+  GArray *vertexes;
 
-#define MAX_BSP_BLOCK_DECALS 256
+  /**
+   * @brief The decal vertex buffer object.
+   */
+  GLuint vertex_buffer;
+
+  /**
+   * @brief The decal elements buffer object.
+   */
+  GLuint elements_buffer;
+
+  /**
+   * @brief The decal vertex array object.
+   */
+  GLuint vertex_array;
+
+  /**
+   * @brief True if te containing block's decals require uploading.
+   */
+  bool dirty;
+
+} r_bsp_block_decals_t;
 
 /**
  * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
@@ -670,26 +665,6 @@ typedef struct {
   int32_t num_draw_elements;
 
   /**
-   * @brief The projected decals within this block, sorted by texture.
-   */
-  r_bsp_decal_t decals[MAX_BSP_BLOCK_DECALS];
-
-  /**
-   * @brief The count of projected decals.
-   */
-  int32_t num_decals;
-
-  /**
-   * @brief The decal draw elements within this block.
-   */
-  r_bsp_draw_elements_t *decal_draw_elements;
-
-  /**
-   * @brief The count of decal draw elements.
-   */
-  int32_t num_decal_draw_elements;
-
-  /**
    * @brief The visible bounds of this block, used for occlusion query and culling.
    * @remarks This is different from the node's bounds, and the node's visible bounds.
    */
@@ -699,6 +674,12 @@ typedef struct {
    * @brief The occlusion query for this block.
    */
   r_occlusion_query_t *query;
+
+  /**
+   * @brief The decals for this block.
+   */
+  r_bsp_block_decals_t decals;
+
 } r_bsp_block_t;
 
 /**

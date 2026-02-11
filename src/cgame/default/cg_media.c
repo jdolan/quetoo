@@ -85,7 +85,6 @@ r_atlas_image_t *cg_sprite_water_ring2;
 r_atlas_image_t *cg_sprite_abstract_01;
 r_atlas_image_t *cg_sprite_node_wait;
 r_atlas_image_t *cg_sprite_node_slow;
-r_atlas_image_t *cg_decal_bullet[3];
 
 r_image_t *cg_beam_hook;
 r_image_t *cg_beam_arrow;
@@ -112,6 +111,10 @@ r_animation_t *cg_sprite_electro_01;
 r_animation_t *cg_sprite_fireball_01;
 r_animation_t *cg_sprite_impact_spark_01;
 r_animation_t *cg_sprite_hyperball_01;
+
+static r_atlas_t *cg_decal_atlas;
+
+r_atlas_image_t *cg_decal_bullet[3];
 
 r_framebuffer_t cg_framebuffer;
 
@@ -236,11 +239,6 @@ void Cg_LoadMedia(void) {
 
   cgi.LoadingProgress(-1, "sprites");
 
-  for (size_t i = 0; i < lengthof(cg_decal_bullet); i++) {
-    g_snprintf(name, sizeof(name), "sprites/bullet_%zd", i);
-    cg_decal_bullet[i] = cgi.LoadAtlasImage(cg_sprite_atlas, name, IMG_SPRITE);
-  }
-
   cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
   cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
   cg_sprite_explosion_ring_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
@@ -259,6 +257,17 @@ void Cg_LoadMedia(void) {
   cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 
   cgi.CompileAtlas(cg_sprite_atlas);
+
+  cg_decal_atlas = cgi.LoadAtlas("cg_decal_atlas");
+
+  for (size_t i = 0; i < lengthof(cg_decal_bullet); i++) {
+    g_snprintf(name, sizeof(name), "sprites/bullet_%zd", i);
+    cg_decal_bullet[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+  }
+
+  cgi.LoadingProgress(-1, "decals");
+
+  cgi.CompileAtlas(cg_decal_atlas);
 
   const int32_t w = cgi.context->pw, h = cgi.context->ph;
   cg_framebuffer = cgi.CreateFramebuffer(w, h, ATTACHMENT_ALL);

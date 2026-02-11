@@ -36,12 +36,16 @@ static void R_SetEntityBounds(r_entity_t *e) {
  * @brief
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
-  
+
   if (e->parent) {
     return false;
   }
 
   if (e->effects & (EF_SELF | EF_WEAPON)) {
+    return false;
+  }
+
+  if (e->model == r_models.world->bsp->worldspawn) {
     return false;
   }
 
