@@ -69,7 +69,7 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 /**
  * @brief Append clipped vertexes to a projected BSP decal.
  */
-static void R_ClipDecalToFace(const r_view_t *view,
+static bool R_ClipDecalToFace(const r_view_t *view,
                               const r_bsp_face_t *face,
                               const r_decal_t *decal,
                               r_decal_vertex_t *vertexes) {
@@ -88,45 +88,62 @@ static void R_ClipDecalToFace(const r_view_t *view,
   t = Vec3_Normalize(t);
   b = Vec3_Cross(t, n);
 
-  const vec3_t positions[4] = {
-    Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
-    Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r)),
-    Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b,  r)),
-    Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r))
-  };
+  cm_winding_t *dw = Cm_AllocWinding(4);
+  dw->num_points = 4;
+  dw->points[0] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r));
+  dw->points[1] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r));
+  dw->points[2] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b,  r));
+  dw->points[3] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r));
+
+  cm_winding_t *fw = Cm_AllocWinding(face->num_vertexes);
+  fw->num_points = face->num_vertexes;
+  for (int32_t i = 0; i < face->num_vertexes; i++) {
+    fw->points[i] = face->vertexes[i].position;
+  }
+
+  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, face->plane->cm->normal, SIDE_EPSILON);
+
+  Cm_FreeWinding(dw);
+  Cm_FreeWinding(fw);
+
+  if (w == NULL || w->num_points < 3) {
+    if (w) {
+      Cm_FreeWinding(w);
+    }
+    return false;
+  }
 
   const color32_t color = Color_Color32(decal->color);
+  const vec2_t atlas_min = decal->image->texcoords.xy;
+  const vec2_t atlas_max = decal->image->texcoords.zw;
+  const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
 
-  r_decal_vertex_t *v = vertexes;
-  for (int32_t i = 0; i < 4; i++, v++) {
+  for (int32_t i = 0; i < 4; i++) {
+    const vec3_t pos = (i < w->num_points) ? w->points[i] : w->points[w->num_points - 1];
+    vertexes[i].position = pos;
 
-    v->position = Box3_ClampPoint(face->bounds, positions[i]);
-
-    const vec3_t delta = Vec3_Subtract(v->position, org);
-
-    const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f; // -radius to +radius → 0 to 1
+    const vec3_t delta = Vec3_Subtract(pos, org);
+    const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
     const float y = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
 
-    const vec2_t atlas_min = decal->image->texcoords.xy;
-    const vec2_t atlas_max = decal->image->texcoords.zw;
-    const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
-
-    v->texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
-
-    v->color = color;
-    v->time = decal->time;
-    v->lifetime = decal->lifetime;
+    vertexes[i].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
+    vertexes[i].color = color;
+    vertexes[i].time = decal->time;
+    vertexes[i].lifetime = decal->lifetime;
   }
+
+  Cm_FreeWinding(w);
+  return true;
 }
 
 /**
  * @brief Recurses down the tree to project the decal onto faces. The resulting `r_bsp_decal_t`s
  * are accumulated on the `r_bsp_block_t` node.
  */
-static void R_AddBspBlockDecals(const r_view_t *view,
-                                const r_bsp_node_t *node,
-                                const r_decal_t *decal,
-                                r_bsp_block_decals_t *decals) {
+static void R_ClipDecalToNode(const r_view_t *view,
+                              const r_bsp_node_t *node,
+                              const r_decal_t *decal,
+                              r_bsp_block_decals_t *decals) {
 
   if (node->contents > CONTENTS_NODE) {
     return;
@@ -136,12 +153,12 @@ static void R_AddBspBlockDecals(const r_view_t *view,
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
   if (dist > decal->radius) {
-    R_AddBspBlockDecals(view, node->children[0], decal, decals);
+    R_ClipDecalToNode(view, node->children[0], decal, decals);
     return;
   }
 
   if (dist < -decal->radius) {
-    R_AddBspBlockDecals(view, node->children[1], decal, decals);
+    R_ClipDecalToNode(view, node->children[1], decal, decals);
     return;
   }
 
@@ -156,30 +173,24 @@ static void R_AddBspBlockDecals(const r_view_t *view,
       continue;
     }
 
-    // Only allow back-facing decals on translucent surfaces
     if (Vec3_Dot(decal->normal, face->plane->cm->normal) < SIDE_EPSILON) {
       if (!(face->brush_side->surface & SURF_MASK_TRANSLUCENT)) {
         continue;
       }
     }
 
-    if (decals->vertexes->len == MAX_BSP_BLOCK_DECALS) {
-      Com_Warn("MAX_BSP_BLOCK_DECALS\n");
-      continue;
-    }
-
-    g_array_append_val(decals->instances, *decal);
-
     r_decal_vertex_t vertexes[4];
-    R_ClipDecalToFace(view, face, decal, vertexes);
+    if (R_ClipDecalToFace(view, face, decal, vertexes)) {
 
-    decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
+      decals->instances = g_array_append_val(decals->instances, *decal);
+      decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
 
-    decals->dirty = true;
+      decals->dirty = true;
+    }
   }
 
-  R_AddBspBlockDecals(view, node->children[0], decal, decals);
-  R_AddBspBlockDecals(view, node->children[1], decal, decals);
+  R_ClipDecalToNode(view, node->children[0], decal, decals);
+  R_ClipDecalToNode(view, node->children[1], decal, decals);
 }
 
 /**
@@ -196,7 +207,7 @@ static void R_AddBspModelDecals(const r_view_t *view, r_bsp_inline_model_t *in, 
       continue;
     }
 
-    R_AddBspBlockDecals(view, block->node, decal, &block->decals);
+    R_ClipDecalToNode(view, block->node, decal, &block->decals);
   }
 }
 

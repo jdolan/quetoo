@@ -528,6 +528,46 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
 }
 
 /**
+ * @brief Clips a winding against all edges of another winding using Sutherland-Hodgman algorithm.
+ * @param in The winding to be clipped.
+ * @param clip The winding whose edges define the clipping region.
+ * @param normal The shared plane normal (must match for both windings).
+ * @param epsilon The epsilon for plane distance tests.
+ * @return The clipped winding, or NULL if fully clipped away.
+ * @remarks The input winding is NOT freed. The returned winding must be freed by caller.
+ */
+cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip,
+                                       const vec3_t normal, double epsilon) {
+  
+  assert(in);
+  assert(clip);
+  assert(in->num_points >= 3);
+  assert(clip->num_points >= 3);
+  
+  cm_winding_t *current = Cm_CopyWinding(in);
+  
+  // Clip against each edge of the clipping winding
+  for (int32_t edge = 0; edge < clip->num_points; edge++) {
+    if (current == NULL) {
+      return NULL;
+    }
+    
+    const vec3_t edge_start = clip->points[edge];
+    const vec3_t edge_end = clip->points[(edge + 1) % clip->num_points];
+    
+    // Build edge plane (perpendicular to edge, in the winding plane)
+    const vec3_t edge_dir = Vec3_Normalize(Vec3_Subtract(edge_end, edge_start));
+    const vec3_t edge_normal = Vec3_Cross(edge_dir, normal);
+    const double edge_dist = Vec3_Dot(edge_normal, edge_start);
+    
+    // Clip against this edge plane (keep front side)
+    Cm_ClipWinding(&current, edge_normal, edge_dist, epsilon);
+  }
+  
+  return current;
+}
+
+/**
  * @brief If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
  *

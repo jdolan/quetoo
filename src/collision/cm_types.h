@@ -27,7 +27,7 @@
 
 /**
  * @brief Plane side epsilon. Because plane side tests scrutinize values around
- * and across zero, FLT_EPSILON is appropriate and accurate.
+ * and across zero, `FLT_EPSILON` is appropriate and accurate.
  */
 #define SIDE_EPSILON      FLT_EPSILON
 

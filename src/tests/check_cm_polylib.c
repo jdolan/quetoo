@@ -353,6 +353,124 @@ START_TEST(check_Cm_Barycentric) {
 
 } END_TEST
 
+START_TEST(check_Cm_ClipWindingToWinding_full_inside) {
+  // Clip a small quad completely inside a larger quad
+  cm_winding_t *large = Cm_AllocWinding(4);
+  large->num_points = 4;
+  large->points[0] = Vec3(0, 0, 0);
+  large->points[1] = Vec3(100, 0, 0);
+  large->points[2] = Vec3(100, 0, 100);
+  large->points[3] = Vec3(0, 0, 100);
+
+  cm_winding_t *small = Cm_AllocWinding(4);
+  small->num_points = 4;
+  small->points[0] = Vec3(25, 0, 25);
+  small->points[1] = Vec3(75, 0, 25);
+  small->points[2] = Vec3(75, 0, 75);
+  small->points[3] = Vec3(25, 0, 75);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(small, large, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  // Should be unchanged since it's fully inside
+  for (int32_t i = 0; i < 4; i++) {
+    ck_assert(Vec3_EqualEpsilon(small->points[i], result->points[i], 0.01f));
+  }
+
+  Cm_FreeWinding(large);
+  Cm_FreeWinding(small);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_full_outside) {
+  // Clip a quad completely outside another quad
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 0, 0);
+  clip->points[1] = Vec3(50, 0, 0);
+  clip->points[2] = Vec3(50, 0, 50);
+  clip->points[3] = Vec3(0, 0, 50);
+
+  cm_winding_t *outside = Cm_AllocWinding(4);
+  outside->num_points = 4;
+  outside->points[0] = Vec3(100, 0, 100);
+  outside->points[1] = Vec3(150, 0, 100);
+  outside->points[2] = Vec3(150, 0, 150);
+  outside->points[3] = Vec3(100, 0, 150);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(outside, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_null(result);
+
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(outside);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_partial_overlap) {
+  // Clip a quad partially overlapping another
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 0, 0);
+  clip->points[1] = Vec3(50, 0, 0);
+  clip->points[2] = Vec3(50, 0, 50);
+  clip->points[3] = Vec3(0, 0, 50);
+
+  cm_winding_t *overlap = Cm_AllocWinding(4);
+  overlap->num_points = 4;
+  overlap->points[0] = Vec3(25, 0, 25);
+  overlap->points[1] = Vec3(75, 0, 25);
+  overlap->points[2] = Vec3(75, 0, 75);
+  overlap->points[3] = Vec3(25, 0, 75);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(overlap, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_ge(result->num_points, 3); // At least a triangle
+  
+  // Verify all result points are within the clip bounds
+  for (int32_t i = 0; i < result->num_points; i++) {
+    ck_assert_float_ge(result->points[i].x, -SIDE_EPSILON);
+    ck_assert_float_le(result->points[i].x, 50.f + SIDE_EPSILON);
+    ck_assert_float_ge(result->points[i].z, -SIDE_EPSILON);
+    ck_assert_float_le(result->points[i].z, 50.f + SIDE_EPSILON);
+  }
+
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(overlap);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_triangle) {
+  // Clip a quad to a triangular region
+  cm_winding_t *triangle = Cm_AllocWinding(3);
+  triangle->num_points = 3;
+  triangle->points[0] = Vec3(0, 0, 0);
+  triangle->points[1] = Vec3(100, 0, 0);
+  triangle->points[2] = Vec3(50, 0, 100);
+
+  cm_winding_t *quad = Cm_AllocWinding(4);
+  quad->num_points = 4;
+  quad->points[0] = Vec3(10, 0, 10);
+  quad->points[1] = Vec3(90, 0, 10);
+  quad->points[2] = Vec3(90, 0, 90);
+  quad->points[3] = Vec3(10, 0, 90);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(quad, triangle, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_ge(result->num_points, 3); // At least a triangle
+
+  Cm_FreeWinding(triangle);
+  Cm_FreeWinding(quad);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
 START_TEST(check_Cm_DistanceToWinding) {
 
   cm_winding_t *w = Cm_AllocWinding(3);
@@ -416,6 +534,16 @@ int32_t main(int32_t argc, char **argv) {
     TCase *tcase = tcase_create("Cm_Barycentric");
     tcase_add_checked_fixture(tcase, setup, teardown);
     tcase_add_test(tcase, check_Cm_Barycentric);
+    suite_add_tcase(suite, tcase);
+  }
+
+  {
+    TCase *tcase = tcase_create("Cm_ClipWindingToWinding");
+    tcase_add_checked_fixture(tcase, setup, teardown);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_full_inside);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_full_outside);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_partial_overlap);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_triangle);
     suite_add_tcase(suite, tcase);
   }
 

@@ -26,7 +26,7 @@
 
 static SDL_Surface *CreateSurface(int32_t w, int32_t h, int32_t color) {
 
-  SDL_Surface *surface = SDL_CreateRGBSurface(0, w, h, 32, 0, 0, 0, 0);
+  SDL_Surface *surface = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_RGBA32);
 
   SDL_FillSurfaceRect(surface, &(SDL_Rect) {
     0, 0, surface->w, surface->h

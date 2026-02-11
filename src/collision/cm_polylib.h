@@ -72,6 +72,7 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist);
 void Cm_SplitWinding(const cm_winding_t *w, const vec3_t normal, double dist, double epsilon, cm_winding_t **front, cm_winding_t **back);
 void Cm_ClipWinding(cm_winding_t **w, const vec3_t normal, double dist, double epsilon);
+cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon);
 cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal);
 int32_t Cm_ElementsForWinding(const cm_winding_t *w, int32_t *elements);
 float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
@@ -112,6 +113,5 @@ typedef struct {
    */
   int32_t num_tris;
 } cm_vertex_t;
-
 
 void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexes, const int32_t *elements, int32_t num_elements);
