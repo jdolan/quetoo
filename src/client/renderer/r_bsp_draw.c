@@ -118,7 +118,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
     return;
   }
 
-  if (!bsp->voxels) {
+  if (!bsp->voxels.voxels) {
     return;
   }
 
@@ -127,7 +127,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   if (tr.fraction < 1.0f) {
 
-    const r_bsp_voxels_t *voxels = bsp->voxels;
+    const r_bsp_voxels_t *voxels = &bsp->voxels;
 
     const vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
     const vec3_t xyz = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
