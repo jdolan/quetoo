@@ -86,7 +86,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
   }
 
   t = Vec3_Normalize(t);
-  b = Vec3_Cross(n, t);
+  b = Vec3_Cross(t, n);
 
   const vec3_t positions[4] = {
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
@@ -266,7 +266,9 @@ void R_DrawDecals(const r_view_t *view) {
 
   glUseProgram(r_decal_program.name);
 
+  glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
+
   glDepthMask(GL_FALSE);
 
   glEnable(GL_POLYGON_OFFSET_FILL);
@@ -330,7 +332,9 @@ void R_DrawDecals(const r_view_t *view) {
 
   glDisable(GL_POLYGON_OFFSET_FILL);
 
+  glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
+
   glDepthMask(GL_TRUE);
 
   glBindVertexArray(0);
