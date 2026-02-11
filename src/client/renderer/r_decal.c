@@ -156,6 +156,13 @@ static void R_AddBspBlockDecals(const r_view_t *view,
       continue;
     }
 
+    // Only allow back-facing decals on translucent surfaces
+    if (Vec3_Dot(decal->normal, face->plane->cm->normal) < SIDE_EPSILON) {
+      if (!(face->brush_side->surface & SURF_MASK_TRANSLUCENT)) {
+        continue;
+      }
+    }
+
     if (decals->vertexes->len == MAX_BSP_BLOCK_DECALS) {
       Com_Warn("MAX_BSP_BLOCK_DECALS\n");
       continue;
@@ -256,7 +263,6 @@ void R_UpdateDecals(r_view_t *view) {
   }
 
   R_GetError(NULL);
-
 }
 
 /**
