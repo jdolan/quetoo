@@ -456,8 +456,8 @@ GArray *Mem_Stats(void) {
 
   stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
     .tag = -1,
-     .size = mem_state.size,
-      .count = 0
+    .size = mem_state.size,
+    .count = 0
   }, 1);
 
   g_hash_table_iter_init(&it, mem_state.blocks);
@@ -479,8 +479,8 @@ GArray *Mem_Stats(void) {
     if (stats == NULL) {
       stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
         .tag = b->tag,
-         .size = Mem_CalculateBlockSize(b),
-          .count = 1
+        .size = Mem_CalculateBlockSize(b),
+        .count = 1
       }, 1);
     } else {
       stats->size += Mem_CalculateBlockSize(b);

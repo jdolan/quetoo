@@ -145,7 +145,7 @@ void Cg_LoadEntities(void) {
 
         e.clazz->Init(&e);
 
-        g_array_append_val(cg_entities, e);
+        cg_entities = g_array_append_val(cg_entities, e);
       }
     }
   }

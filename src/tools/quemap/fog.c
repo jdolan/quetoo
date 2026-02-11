@@ -83,7 +83,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 
       fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
 
-      g_array_append_val(fogs, fog);
+      fogs = g_array_append_val(fogs, fog);
     }
   } else if (!g_strcmp0(classname, "misc_fog")) {
 
@@ -121,7 +121,7 @@ static void FogForEntity(const cm_entity_t *entity) {
 
     fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
 
-    g_array_append_val(fogs, fog);
+    fogs = g_array_append_val(fogs, fog);
   }
 }
 

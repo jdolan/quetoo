@@ -53,7 +53,7 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
         }
       }
 
-      g_array_append_val(ai_skins, name);
+      ai_skins = g_array_append_val(ai_skins, name);
     }
   }
 }

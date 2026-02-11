@@ -229,7 +229,7 @@ static uint32_t Ai_FuncGoal_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
 
     float weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority;
 
-    g_array_append_vals(items_visible, &(const ai_item_pick_t) {
+    items_visible = g_array_append_vals(items_visible, &(const ai_item_pick_t) {
       .entity = ent,
       .item = item,
       .weight = weight
@@ -1385,7 +1385,7 @@ static uint32_t Ai_FuncGoal_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
     weight = Randomf() * weight;
 
     // add!!
-    g_array_append_vals(goal_possibilities, &(ai_item_pick_t) {
+    goal_possibilities = g_array_append_vals(goal_possibilities, &(ai_item_pick_t) {
       .weight = weight,
       .entity = ent
     }, 1);
@@ -1514,7 +1514,7 @@ static void Ai_TestPath_f(void) {
         continue;
       }
 
-      g_array_append_vals(path_to_start, &g_array_index(path, ai_node_id_t, 1), path->len - 1);
+      path_to_start = g_array_append_vals(path_to_start, &g_array_index(path, ai_node_id_t, 1), path->len - 1);
       Ai_SetPathGoal(cl, &cl->ai->move_target, 1.0, path_to_start, NULL);
       g_array_unref(path_to_start);
     }
