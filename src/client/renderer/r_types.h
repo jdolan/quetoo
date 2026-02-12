@@ -302,11 +302,6 @@ typedef struct r_decal_s {
   float radius;
 
   /**
-   * @brief The decal surface normal.
-   */
-  vec3_t normal;
-
-  /**
    * @brief The decal color.
    */
   color_t color;

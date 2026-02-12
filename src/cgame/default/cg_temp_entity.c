@@ -330,7 +330,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_AddDecal(&(r_decal_t) {
       .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
       .origin = org,
-      .normal = dir,
       .radius = RandomRangef(8.f, 16.f),
       .color = color_white,
       .lifetime = 30000

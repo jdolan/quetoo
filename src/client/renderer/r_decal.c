@@ -75,7 +75,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
                               r_decal_vertex_t *vertexes) {
 
   const vec3_t org = decal->origin;
-  const vec3_t n = decal->normal;
+  const vec3_t n = face->plane->cm->normal;
   const float r = decal->radius;
 
   vec3_t t, b;
@@ -137,8 +137,8 @@ static bool R_ClipDecalToFace(const r_view_t *view,
 }
 
 /**
- * @brief Recurses down the tree to project the decal onto faces. The resulting `r_bsp_decal_t`s
- * are accumulated on the `r_bsp_block_t` node.
+ * @brief Recurses down the tree to project the decal onto faces. Decal geometry is accumulated on
+ * the containing `r_bsp_block_t` node.
  */
 static void R_ClipDecalToNode(const r_view_t *view,
                               const r_bsp_node_t *node,
@@ -162,6 +162,15 @@ static void R_ClipDecalToNode(const r_view_t *view,
     return;
   }
 
+  // Project the decal onto this node's plane
+  r_decal_t projected = *decal;
+  
+  // Project origin onto plane
+  projected.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
+  
+  // Reduce radius using Pythagorean theorem (circle projection)
+  projected.radius = sqrtf(decal->radius * decal->radius - dist * dist);
+
   const r_bsp_face_t *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
@@ -169,18 +178,12 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    if (face->brush_side->surface & (SURF_SKY | SURF_NO_DRAW)) {
+    if (face->brush_side->surface & SURF_SKY) {
       continue;
     }
 
-    if (Vec3_Dot(decal->normal, face->plane->cm->normal) < SIDE_EPSILON) {
-      if (!(face->brush_side->surface & SURF_MASK_TRANSLUCENT)) {
-        continue;
-      }
-    }
-
     r_decal_vertex_t vertexes[4];
-    if (R_ClipDecalToFace(view, face, decal, vertexes)) {
+    if (R_ClipDecalToFace(view, face, &projected, vertexes)) {
 
       decals->image = (r_image_t *) decal->image;
       decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
@@ -233,8 +236,6 @@ void R_UpdateDecals(r_view_t *view) {
       r_decal_t d = *decal;
 
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
-      d.normal = Mat4_Transform(e->inverse_matrix, Vec3_Add(decal->origin, decal->normal));
-      d.normal = Vec3_Normalize(Vec3_Subtract(d.normal, d.origin));
 
       R_AddBspModelDecals(view, in, &d);
     }
