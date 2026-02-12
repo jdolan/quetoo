@@ -440,9 +440,9 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
     }
 
     Cg_AddDecal(&(r_decal_t) {
-      .image = cg_decal_blood[Randomi() % lengthof(cg_decal_bullet)],
+      .image = cg_decal_blood[Randomi() % lengthof(cg_decal_blood)],
       .origin = org,
-      .radius = RandomRangef(16.f, 64.f),
+      .radius = RandomRangef(32.f, 64.f),
       .color = color_red,
       .lifetime = 10000,
       .rotation = RandomRadian()
@@ -492,6 +492,15 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
       }
     }
   }
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_blood[Randomi() % lengthof(cg_decal_blood)],
+    .origin = org,
+    .radius = RandomRangef(64.f, 128.f),
+    .color = color_red,
+    .lifetime = 10000,
+    .rotation = RandomRadian()
+  });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_gib,
@@ -639,6 +648,15 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .color = Vec3(1.f, 1.f, 1.f),
     .softness = 2.f,
     .lighting = 1.f
+  });
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = org,
+    .radius = RandomRangef(64.f, 128.f),
+    .color = color_black,
+    .lifetime = 10000,
+    .rotation = RandomRadian()
   });
 
   Cg_AddLight(&(const cg_light_t) {

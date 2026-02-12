@@ -244,8 +244,8 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateEntities(view);
 
-  thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, view, THREAD_NONE);
+  thread_t *sprites = Thread_Create((ThreadRunFunc) R_UpdateSprites, view, THREAD_NONE);
 
   R_UpdateLights(view);
 
@@ -262,13 +262,13 @@ void R_DrawMainView(r_view_t *view) {
 
   R_DrawEntities(view);
 
-  Thread_Wait(sprites);
-  
-  R_DrawSprites(view);
-
   Thread_Wait(decals);
 
   R_DrawDecals(view);
+
+  Thread_Wait(sprites);
+  
+  R_DrawSprites(view);
 
   if (r_draw_wireframe->value) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

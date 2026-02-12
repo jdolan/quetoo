@@ -345,7 +345,6 @@ void R_DrawDecals(const r_view_t *view) {
     }
   }
 
-
   glBlendFunc(GL_ONE, GL_ZERO);
   glDisable(GL_BLEND);
 
