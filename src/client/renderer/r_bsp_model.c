@@ -298,7 +298,6 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     r_bsp_block_decals_t *decals = &out->decals;
 
-    decals->instances = g_array_new(true, true, sizeof(r_decal_t));
     decals->vertexes = g_array_new(true, true, sizeof(r_decal_vertex_t[4]));
 
     decals->elements_buffer = elements_buffer;
@@ -723,7 +722,6 @@ static void R_FreeBspModel(r_media_t *self) {
   r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-    g_array_free(block->decals.instances, true);
     g_array_free(block->decals.vertexes, true);
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);

@@ -614,9 +614,9 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief The decal instances.
+   * @brief The decal atlas.
    */
-  GArray *instances;
+  r_image_t *image;
 
   /**
    * @brief The vertexes of the decals attached to the containing block.

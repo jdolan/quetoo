@@ -182,7 +182,7 @@ static void R_ClipDecalToNode(const r_view_t *view,
     r_decal_vertex_t vertexes[4];
     if (R_ClipDecalToFace(view, face, decal, vertexes)) {
 
-      decals->instances = g_array_append_val(decals->instances, *decal);
+      decals->image = (r_image_t *) decal->image;
       decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
 
       decals->dirty = true;
@@ -253,15 +253,6 @@ void R_UpdateDecals(r_view_t *view) {
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
       r_bsp_block_decals_t *decals = &block->decals;
 
-      for (guint k = 0; k < decals->instances->len; k++) {
-        r_decal_t *d = &g_array_index(decals->instances, r_decal_t, k);
-
-        if (view->ticks - d->time >= d->lifetime) {
-          decals->instances = g_array_remove_index_fast(decals->instances, k);
-          decals->dirty = true;
-        }
-      }
-
       for (guint k = 0; k < decals->vertexes->len; k++) {
         r_decal_vertex_t *v = &g_array_index(decals->vertexes, r_decal_vertex_t, k);
 
@@ -318,7 +309,7 @@ void R_DrawDecals(const r_view_t *view) {
 
       r_bsp_block_decals_t *d = &block->decals;
 
-      if (d->instances->len == 0) {
+      if (d->vertexes->len == 0) {
         continue;
       }
 
@@ -332,9 +323,8 @@ void R_DrawDecals(const r_view_t *view) {
 
       glBindVertexArray(d->vertex_array);
 
-      const r_decal_t *decal = &g_array_index(d->instances, r_decal_t, 0);
-      const r_image_t *image = (r_image_t *) decal->image;
-      glBindTexture(GL_TEXTURE_2D, image->texnum);
+      assert(d->image->texnum);
+      glBindTexture(GL_TEXTURE_2D, d->image->texnum);
 
       glDrawElements(GL_TRIANGLES, d->vertexes->len * 6, GL_UNSIGNED_INT, NULL);
 
