@@ -612,9 +612,9 @@ typedef struct {
  * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {
-
   /**
-   * @brief The decal atlas.
+   * @brief The decal atlas, cast to `r_image_t` for texture binding.
+   * @details All decals must belong to the same atlas.
    */
   r_image_t *image;
 

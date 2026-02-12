@@ -60,6 +60,16 @@ typedef struct {
   uint32_t lifetime;
 } r_decal_vertex_t;
 
+/**
+ * @brief The decal quad type.
+ */
+typedef struct {
+  /**
+   * @brief The vertexes.
+   */
+  r_decal_vertex_t vertexes[4];
+} r_decal_vertexes_t;
+
 void R_UpdateDecals(r_view_t *view);
 void R_DrawDecals(const r_view_t *view);
 void R_InitDecals(void);

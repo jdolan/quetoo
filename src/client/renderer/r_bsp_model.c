@@ -298,7 +298,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     r_bsp_block_decals_t *decals = &out->decals;
 
-    decals->vertexes = g_array_new(true, true, sizeof(r_decal_vertex_t[4]));
+    decals->vertexes = g_array_new(true, true, sizeof(r_decal_vertexes_t));
 
     decals->elements_buffer = elements_buffer;
 

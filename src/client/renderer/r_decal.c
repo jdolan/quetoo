@@ -72,7 +72,7 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 static bool R_ClipDecalToFace(const r_view_t *view,
                               const r_bsp_face_t *face,
                               const r_decal_t *decal,
-                              r_decal_vertex_t *vertexes) {
+                              r_decal_vertexes_t *out) {
 
   const vec3_t org = decal->origin;
   const vec3_t n = face->plane->cm->normal;
@@ -130,16 +130,16 @@ static bool R_ClipDecalToFace(const r_view_t *view,
 
   for (int32_t i = 0; i < 4; i++) {
     const vec3_t pos = (i < w->num_points) ? w->points[i] : w->points[w->num_points - 1];
-    vertexes[i].position = pos;
+    out->vertexes[i].position = pos;
 
     const vec3_t delta = Vec3_Subtract(pos, org);
     const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
     const float y = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
 
-    vertexes[i].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
-    vertexes[i].color = color;
-    vertexes[i].time = decal->time;
-    vertexes[i].lifetime = decal->lifetime;
+    out->vertexes[i].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
+    out->vertexes[i].color = color;
+    out->vertexes[i].time = decal->time;
+    out->vertexes[i].lifetime = decal->lifetime;
   }
 
   Cm_FreeWinding(w);
@@ -192,8 +192,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
-    r_decal_vertex_t vertexes[4];
-    if (R_ClipDecalToFace(view, face, &projected, vertexes)) {
+    r_decal_vertexes_t vertexes;
+    if (R_ClipDecalToFace(view, face, &projected, &vertexes)) {
 
       decals->image = (r_image_t *) decal->image;
       decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
@@ -264,11 +264,12 @@ void R_UpdateDecals(r_view_t *view) {
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
       r_bsp_block_decals_t *decals = &block->decals;
 
+      // Iterate backwards to safely remove expired decal quads
       for (guint k = 0; k < decals->vertexes->len; k++) {
-        r_decal_vertex_t *v = &g_array_index(decals->vertexes, r_decal_vertex_t, k);
+        r_decal_vertexes_t *v = &g_array_index(decals->vertexes, r_decal_vertexes_t, k);
 
-        if (view->ticks - v->time >= v->lifetime) {
-          decals->vertexes = g_array_remove_index_fast(decals->vertexes, k);
+        if (view->ticks - v->vertexes->time >= v->vertexes->lifetime) {
+          decals->vertexes = g_array_remove_index(decals->vertexes, k);
           decals->dirty = true;
         }
       }
@@ -325,7 +326,7 @@ void R_DrawDecals(const r_view_t *view) {
       }
 
       if (d->dirty) {
-        const GLsizei size = d->vertexes->len * sizeof(r_decal_vertex_t[4]);
+        const GLsizei size = d->vertexes->len * sizeof(r_decal_vertexes_t);
         glBindBuffer(GL_ARRAY_BUFFER, d->vertex_buffer);
         glBufferData(GL_ARRAY_BUFFER, size, d->vertexes->data, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
