@@ -535,9 +535,10 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   }
 
   ent->solid = SOLID_DEAD;
+  ent->dead = true;
 
   ent->s.event = EV_NONE;
-  ent->s.effects = EF_NONE;
+  ent->s.effects = EF_CLIENT;
   ent->s.trail = TRAIL_NONE;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
