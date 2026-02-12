@@ -438,6 +438,15 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
       })) {
       break;
     }
+
+    Cg_AddDecal(&(r_decal_t) {
+      .image = cg_decal_blood[Randomi() % lengthof(cg_decal_bullet)],
+      .origin = org,
+      .radius = RandomRangef(16.f, 64.f),
+      .color = color_red,
+      .lifetime = 10000,
+      .rotation = RandomRadian()
+    });
   }
 }
 

@@ -115,6 +115,7 @@ r_animation_t *cg_sprite_hyperball_01;
 static r_atlas_t *cg_decal_atlas;
 
 r_atlas_image_t *cg_decal_bullet[3];
+r_atlas_image_t *cg_decal_blood[4];
 
 r_framebuffer_t cg_framebuffer;
 
@@ -263,6 +264,11 @@ void Cg_LoadMedia(void) {
   for (size_t i = 0; i < lengthof(cg_decal_bullet); i++) {
     g_snprintf(name, sizeof(name), "sprites/bullet_%zd", i);
     cg_decal_bullet[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
+  }
+
+  for (size_t i = 0; i < lengthof(cg_decal_blood); i++) {
+    g_snprintf(name, sizeof(name), "sprites/blood_01/blood_01_%zd", i + 4);
+    cg_decal_blood[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 
   cgi.LoadingProgress(-1, "decals");

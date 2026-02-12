@@ -87,7 +87,6 @@ extern r_atlas_image_t *cg_sprite_water_ring2;
 extern r_atlas_image_t *cg_sprite_abstract_01;
 extern r_atlas_image_t *cg_sprite_node_wait;
 extern r_atlas_image_t *cg_sprite_node_slow;
-extern r_atlas_image_t *cg_decal_bullet[3];
 
 extern r_image_t *cg_beam_hook;
 extern r_image_t *cg_beam_arrow;
@@ -114,6 +113,9 @@ extern r_animation_t *cg_sprite_electro_01;
 extern r_animation_t *cg_sprite_fireball_01;
 extern r_animation_t *cg_sprite_impact_spark_01;
 extern r_animation_t *cg_sprite_hyperball_01;
+
+extern r_atlas_image_t *cg_decal_bullet[3];
+extern r_atlas_image_t *cg_decal_blood[4];
 
 extern r_framebuffer_t cg_framebuffer;
 
