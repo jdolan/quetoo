@@ -88,6 +88,16 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   t = Vec3_Normalize(t);
   b = Vec3_Cross(t, n);
 
+  // Apply rotation around face normal
+  if (decal->rotation != 0.f) {
+    const float cos_rot = cosf(decal->rotation);
+    const float sin_rot = sinf(decal->rotation);
+    const vec3_t t_rot = Vec3_Add(Vec3_Scale(t, cos_rot), Vec3_Scale(b, sin_rot));
+    const vec3_t b_rot = Vec3_Add(Vec3_Scale(b, cos_rot), Vec3_Scale(t, -sin_rot));
+    t = t_rot;
+    b = b_rot;
+  }
+
   cm_winding_t *dw = Cm_AllocWinding(4);
   dw->num_points = 4;
   dw->points[0] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r));

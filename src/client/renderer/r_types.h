@@ -320,6 +320,11 @@ typedef struct r_decal_s {
    * @brief The decal lifetime in ticks (0 = permanent).
    */
   uint32_t lifetime;
+
+  /**
+   * @brief The decal rotation angle in radians.
+   */
+  float rotation;
 } r_decal_t;
 
 #define MAX_DECALS 0x400

@@ -330,16 +330,17 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_AddDecal(&(r_decal_t) {
       .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
       .origin = org,
-      .radius = RandomRangef(8.f, 16.f),
-      .color = color_white,
-      .lifetime = 30000
+      .radius = RandomRangef(2.f, 4.f),
+      .color = color_black,
+      .lifetime = 10000,
+      .rotation = RandomRadian()
     });
 
     // spark spikes billboard
     Cg_AddSprite(&(cg_sprite_t) {
       .animation = cg_sprite_impact_spark_01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
-      .rotation = Randomf() * 2.f * M_PI,
+      .rotation = RandomRadian(),
       .size = spark_size,
       .lifetime = spark_life,
       .color = Vec3(1.f, 1.f, 1.f),
