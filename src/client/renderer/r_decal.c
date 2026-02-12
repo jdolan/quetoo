@@ -220,7 +220,7 @@ static void R_AddBspModelDecals(const r_view_t *view, r_bsp_inline_model_t *in, 
       continue;
     }
 
-    R_ClipDecalToNode(view, block->node, decal, &block->decals);
+    R_ClipDecalToNode(view, in->head_node, decal, &block->decals);
   }
 }
 
