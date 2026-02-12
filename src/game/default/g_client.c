@@ -444,7 +444,7 @@ static void G_ClientCorpse(g_client_t *cl) {
   ent->s.animation1 = cl->entity->s.animation1;
   ent->s.animation2 = cl->entity->s.animation2;
 
-  ent->s.effects = EF_CORPSE;
+  ent->s.effects = EF_CLIENT | EF_CORPSE;
 
   ent->velocity = cl->entity->velocity;
 
