@@ -98,12 +98,18 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     b = b_rot;
   }
 
+  const vec3_t positions[] = {
+    Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
+    Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r)),
+    Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b,  r)),
+    Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r)),
+  };
+
   cm_winding_t *dw = Cm_AllocWinding(4);
   dw->num_points = 4;
-  dw->points[0] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r));
-  dw->points[1] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r));
-  dw->points[2] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b,  r));
-  dw->points[3] = Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b,  r));
+  for (int32_t i = 0; i < dw->num_points; i++) {
+    dw->points[i] = positions[i];
+  }
 
   cm_winding_t *fw = Cm_AllocWinding(face->num_vertexes);
   fw->num_points = face->num_vertexes;
