@@ -46,6 +46,9 @@ static struct {
   GLint texture_diffusemap;
 } r_decal_program;
 
+static vec3_t debug_points[1024];
+static int32_t num_debug_points;
+
 /**
  * @brief
  */
@@ -75,9 +78,9 @@ static bool R_ClipDecalToFace(const r_view_t *view,
                               r_decal_vertexes_t *out) {
 
   const vec3_t org = decal->origin;
-  const vec3_t n = face->plane->cm->normal;
   const float r = decal->radius;
 
+  const vec3_t n = face->plane->cm->normal;
   vec3_t t, b;
   if (fabsf(n.z) > 0.9f) {
     t = Vec3_Cross(n, Vec3(1.f, 0.f, 0.f));
@@ -89,6 +92,22 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   b = Vec3_Cross(t, n);
 
   // Apply rotation around face normal
+  debug_points[num_debug_points++] = org;
+  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, n);
+  debug_points[num_debug_points++] = org;
+  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, t);
+  debug_points[num_debug_points++] = org;
+  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, b);
+
+  if (num_debug_points > 1024 - 6) {
+    num_debug_points = 0;
+  }
+  
+  // Verify tangent space is orthogonal (all vectors perpendicular to each other)
+  assert(fabsf(Vec3_Dot(n, t)) < 0.01f);  // n ⊥ t
+  assert(fabsf(Vec3_Dot(n, b)) < 0.01f);  // n ⊥ b
+  assert(fabsf(Vec3_Dot(t, b)) < 0.01f);  // t ⊥ b
+
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
     const float sin_rot = sinf(decal->rotation);
@@ -364,6 +383,12 @@ void R_DrawDecals(const r_view_t *view) {
   glBindVertexArray(0);
 
   glUseProgram(0);
+
+  for (int32_t i = 0; i < num_debug_points; i += 6) {
+    R_Draw3DLines(&debug_points[i + 0], 2, color_red, true);
+    R_Draw3DLines(&debug_points[i + 2], 2, color_green, true);
+    R_Draw3DLines(&debug_points[i + 4], 2, color_blue, true);
+  }
 
   R_GetError(NULL);
 }
