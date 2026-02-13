@@ -217,6 +217,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
+    if (Cm_DistanceToPlane(decal->origin, face->plane->cm) < -SIDE_EPSILON) {
+      continue;
+    }
+
     r_decal_vertexes_t vertexes;
     if (R_ClipDecalToFace(view, face, &projected, &vertexes)) {
 
