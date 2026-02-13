@@ -443,7 +443,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
       .image = cg_decal_blood[Randomi() % lengthof(cg_decal_blood)],
       .origin = org,
       .radius = RandomRangef(32.f, 64.f),
-      .color = color_red,
+      .color = Color3f(.6f, 0.f, 0.f),
       .lifetime = 10000,
       .rotation = RandomRadian()
     });
@@ -653,7 +653,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddDecal(&(r_decal_t) {
     .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
     .origin = org,
-    .radius = RandomRangef(64.f, 128.f),
+    .radius = RandomRangef(24.f, 32.f),
     .color = color_black,
     .lifetime = 10000,
     .rotation = RandomRadian()

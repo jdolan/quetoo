@@ -91,7 +91,6 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   t = Vec3_Normalize(t);
   b = Vec3_Cross(t, n);
 
-  // Apply rotation around face normal
   debug_points[num_debug_points++] = org;
   debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, n);
   debug_points[num_debug_points++] = org;
@@ -137,6 +136,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   }
 
   cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, face->plane->cm->normal, SIDE_EPSILON);
+//  cm_winding_t *w = Cm_CopyWinding(dw);
 
   Cm_FreeWinding(dw);
   Cm_FreeWinding(fw);
@@ -202,9 +202,11 @@ static void R_ClipDecalToNode(const r_view_t *view,
   
   // Project origin onto plane
   projected.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
-  
+
   // Reduce radius using Pythagorean theorem (circle projection)
   projected.radius = sqrtf(decal->radius * decal->radius - dist * dist);
+
+  const box3_t bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
 
   const r_bsp_face_t *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
@@ -218,6 +220,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
     }
 
     if (Cm_DistanceToPlane(decal->origin, face->plane->cm) < -SIDE_EPSILON) {
+      continue;
+    }
+
+    if (!Box3_Intersects(face->bounds, bounds)) {
       continue;
     }
 
@@ -388,11 +394,11 @@ void R_DrawDecals(const r_view_t *view) {
 
   glUseProgram(0);
 
-  for (int32_t i = 0; i < num_debug_points; i += 6) {
-    R_Draw3DLines(&debug_points[i + 0], 2, color_red, true);
-    R_Draw3DLines(&debug_points[i + 2], 2, color_green, true);
-    R_Draw3DLines(&debug_points[i + 4], 2, color_blue, true);
-  }
+//  for (int32_t i = 0; i < num_debug_points; i += 6) {
+//    R_Draw3DLines(&debug_points[i + 0], 2, color_red, true);
+//    R_Draw3DLines(&debug_points[i + 2], 2, color_green, true);
+//    R_Draw3DLines(&debug_points[i + 4], 2, color_blue, true);
+//  }
 
   R_GetError(NULL);
 }
