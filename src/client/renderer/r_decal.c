@@ -74,9 +74,6 @@ static bool R_ClipDecalToFace(const r_view_t *view,
                               const r_decal_t *decal,
                               r_decal_vertexes_t *out) {
 
-  const vec3_t org = decal->origin;
-  const float r = decal->radius;
-
   const vec3_t n = face->plane->cm->normal;
   const vec3_t sdir = face->brush_side->axis[0].xyz;
   const vec3_t tdir = face->brush_side->axis[1].xyz;
@@ -93,6 +90,8 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     b = b_rot;
   }
 
+  const vec3_t org = decal->origin;
+  const float r = decal->radius;
   const vec3_t positions[] = {
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t, -r)), Vec3_Scale(b, -r)),
     Vec3_Add(Vec3_Add(org, Vec3_Scale(t,  r)), Vec3_Scale(b, -r)),
@@ -281,9 +280,7 @@ void R_DrawDecals(const r_view_t *view) {
 
   glUseProgram(r_decal_program.name);
 
-  glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
-
   glDepthMask(GL_FALSE);
 
   glEnable(GL_POLYGON_OFFSET_FILL);
@@ -345,9 +342,7 @@ void R_DrawDecals(const r_view_t *view) {
 
   glDisable(GL_POLYGON_OFFSET_FILL);
 
-  glDisable(GL_CULL_FACE);
   glDisable(GL_DEPTH_TEST);
-
   glDepthMask(GL_TRUE);
 
   glBindVertexArray(0);
