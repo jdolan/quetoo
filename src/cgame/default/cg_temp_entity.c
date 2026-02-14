@@ -102,6 +102,15 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
     .color = Vec3_Scale(color, flame_sat),
   });
 
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = org,
+    .radius = RandomRangef(6.f, 12.f),
+    .color = Color3fv(color),
+    .lifetime = 3000 + Randomf() * 3000,
+    .rotation = RandomRadian()
+  });
+
   Cg_AddLight(&(const cg_light_t) {
     .origin = Vec3_Fmaf(org, 8.f, dir),
     .radius = 180.f,
@@ -327,15 +336,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     float spark_life = 200.f;
     float spark_size = RandomRangef(35.f, 45.f);
 
-    Cg_AddDecal(&(r_decal_t) {
-      .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
-      .origin = org,
-      .radius = RandomRangef(2.f, 4.f),
-      .color = color_black,
-      .lifetime = 10000,
-      .rotation = RandomRadian()
-    });
-
     // spark spikes billboard
     Cg_AddSprite(&(cg_sprite_t) {
       .animation = cg_sprite_impact_spark_01,
@@ -400,6 +400,15 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .color = ColorHSV(color_hue_orange, 0.8f, 1.f).vec3,
       .softness = -1.f
     });
+
+    Cg_AddDecal(&(r_decal_t) {
+      .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
+      .origin = org,
+      .radius = RandomRangef(1.f, 3.f),
+      .color = color_black,
+      .lifetime = 12000 + Randomf() * 10000,
+      .rotation = RandomRadian()
+    });
   }
 
   if (cgi.client->unclamped_time < last_ric_time) {
@@ -444,7 +453,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
       .origin = org,
       .radius = RandomRangef(32.f, 64.f),
       .color = Color3f(.6f, 0.f, 0.f),
-      .lifetime = 10000,
+      .lifetime = 6000 + Randomf() * 6000,
       .rotation = RandomRadian()
     });
   }
@@ -498,7 +507,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
     .origin = org,
     .radius = RandomRangef(64.f, 128.f),
     .color = color_red,
-    .lifetime = 10000,
+    .lifetime = 6000 + Randomf() * 6000,
     .rotation = RandomRadian()
   });
 
@@ -653,9 +662,9 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddDecal(&(r_decal_t) {
     .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
     .origin = org,
-    .radius = RandomRangef(24.f, 32.f),
-    .color = color_black,
-    .lifetime = 10000,
+    .radius = RandomRangef(24.f, 48.f),
+    .color = Color4f(0.f, 0.f, 0.f, .5f + Randomf() * .4f),
+    .lifetime = 16000 + Randomf() * 8000,
     .rotation = RandomRadian()
   });
 
@@ -723,6 +732,15 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
       .softness = 1.f
     });
   }
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = org,
+    .radius = RandomRangef(16.f, 24.f),
+    .color = Color3fv(color),
+    .lifetime = 8000 + Randomf() * 8000,
+    .rotation = RandomRadian()
+  });
 
   Cg_AddLight(&(cg_light_t) {
     .origin = Vec3_Add(org, dir),
@@ -889,6 +907,15 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       }
     }
   }
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = end,
+    .radius = RandomRangef(16.f, 24.f),
+    .color = Color3fv(color),
+    .lifetime = 12000 + Randomf() * 4000,
+    .rotation = RandomRadian()
+  });
 }
 
 /**
@@ -948,6 +975,15 @@ static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_ent
     .color = Vec3(.8f, 1.f, .5f),
     .intensity = 3.f,
     .decay = 50,
+  });
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = end,
+    .radius = RandomRangef(12.f, 24.f),
+    .color = ColorHSV(color_hue_green, 1.f, 1.f),
+    .lifetime = 10000 + Randomf() * 4000,
+    .rotation = RandomRadian()
   });
 }
 
@@ -1026,6 +1062,15 @@ static void Cg_BfgEffect(const vec3_t org) {
     .color = Vec3(.6f, 1.f, .6f),
     .softness = 6.f,
     .lighting = .2f,
+  });
+
+  Cg_AddDecal(&(r_decal_t) {
+    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .origin = org,
+    .radius = RandomRangef(96.f, 128.f),
+    .color = Color3f(.6f, 1.f, .6f),
+    .lifetime = 18000 + Randomf() * 10000,
+    .rotation = RandomRadian()
   });
 
   Cg_AddLight(&(const cg_light_t) {

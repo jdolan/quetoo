@@ -952,7 +952,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
       .origin = Vec3_Mix(end, origin, step * i),
       .radius = RandomRangef(8.f, 32.f),
       .color = color_red,
-      .lifetime = 10000,
+      .lifetime = 8000 + Randomf() * 4000,
       .rotation = RandomRadian()
     });
   }
