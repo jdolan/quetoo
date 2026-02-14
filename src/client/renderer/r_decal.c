@@ -288,8 +288,6 @@ void R_UpdateDecals(r_view_t *view) {
       }
     }
   }
-
-  R_GetError(NULL);
 }
 
 /**
