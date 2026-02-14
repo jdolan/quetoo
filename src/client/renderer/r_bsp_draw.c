@@ -89,7 +89,7 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
   for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 
     const vec3_t pos = v->position;
-    if (Vec3_Distance(pos, view->origin) > 256.f) {
+    if (Vec3_Distance(pos, view->origin) > 512.f) {
       continue;
     }
 
@@ -97,13 +97,13 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
     const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(normal, 2, color_red, false);
+    R_Draw3DLines(normal, 2, color_red, true);
 
     if (r_draw_bsp_normals->integer > 1) {
-      R_Draw3DLines(tangent, 2, color_green, false);
+      R_Draw3DLines(tangent, 2, color_green, true);
 
       if (r_draw_bsp_normals->integer > 2) {
-        R_Draw3DLines(bitangent, 2, color_blue, false);
+        R_Draw3DLines(bitangent, 2, color_blue, true);
       }
     }
   }
