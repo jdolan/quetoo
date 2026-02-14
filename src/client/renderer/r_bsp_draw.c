@@ -376,7 +376,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
+
+  if (r_draw_wireframe->integer != 2) {
+    glEnable(GL_DEPTH_TEST);
+  }
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -394,7 +397,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }
 
   glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
+
+  if (r_draw_wireframe->integer != 2) {
+    glDisable(GL_DEPTH_TEST);
+  }
 
   glBindVertexArray(0);
 
