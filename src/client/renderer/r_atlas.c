@@ -157,7 +157,7 @@ void R_CompileAtlas(r_atlas_t *atlas) {
 
   atlas->image->width = 0;
 
-  for (int32_t width = 256; atlas->image->width == 0; width += 512) {
+  for (int32_t width = 1024; atlas->image->width == 0; width += 512) {
 
     if (width > r_config.max_texture_size) {
       Com_Error(ERROR_DROP, "Atlas exceeds GL_MAX_TEXTURE_SIZE\n");
