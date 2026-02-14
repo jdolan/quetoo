@@ -450,6 +450,11 @@ typedef struct {
   struct r_bsp_node_s *node;
 
   /**
+   * @brief The block containing this face.
+   */
+  struct r_bsp_block_s *block;
+
+  /**
    * @brief The brush side which generated this face.
    */
   r_bsp_brush_side_t *brush_side;
@@ -648,7 +653,7 @@ typedef struct {
 /**
  * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
  */
-typedef struct {
+typedef struct r_bsp_block_s {
   /**
    * @brief The `CONTENTS_BLOCK` node defining this block.
    */

@@ -323,6 +323,14 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     glBindVertexArray(0);
   }
+
+  const bsp_face_t *in_face = bsp->cm->file->faces;
+  r_bsp_face_t *out_face = bsp->faces;
+  for (int32_t i = 0; i < bsp->num_faces; i++, in_face++, out_face++) {
+    if (in_face->block >= 0 && in_face->block < bsp->num_blocks) {
+      out_face->block = &bsp->blocks[in_face->block];
+    }
+  }
 }
 
 /**

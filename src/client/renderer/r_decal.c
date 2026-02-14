@@ -177,8 +177,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
  */
 static void R_ClipDecalToNode(const r_view_t *view,
                               const r_bsp_node_t *node,
-                              const r_decal_t *decal,
-                              r_bsp_block_decals_t *decals) {
+                              const r_decal_t *decal) {
 
   if (node->contents > CONTENTS_NODE) {
     return;
@@ -188,22 +187,18 @@ static void R_ClipDecalToNode(const r_view_t *view,
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
   if (dist > decal->radius) {
-    R_ClipDecalToNode(view, node->children[0], decal, decals);
+    R_ClipDecalToNode(view, node->children[0], decal);
     return;
   }
 
   if (dist < -decal->radius) {
-    R_ClipDecalToNode(view, node->children[1], decal, decals);
+    R_ClipDecalToNode(view, node->children[1], decal);
     return;
   }
 
-  // Project the decal onto this node's plane
   r_decal_t projected = *decal;
   
-  // Project origin onto plane
   projected.origin = Vec3_Fmaf(decal->origin, -dist, plane->normal);
-
-  // Reduce radius using Pythagorean theorem (circle projection)
   projected.radius = sqrtf(decal->radius * decal->radius - dist * dist);
 
   const box3_t bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
@@ -230,6 +225,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
     r_decal_vertexes_t vertexes;
     if (R_ClipDecalToFace(view, face, &projected, &vertexes)) {
 
+      r_bsp_block_decals_t *decals = &face->block->decals;
+
       decals->image = (r_image_t *) decal->image;
       decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
 
@@ -237,26 +234,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
     }
   }
 
-  R_ClipDecalToNode(view, node->children[0], decal, decals);
-  R_ClipDecalToNode(view, node->children[1], decal, decals);
-}
-
-/**
- * @brief Generate `r_bsp_decal_t` and `r_draw_elements_t` for the given `r_decal_t` via BSP recursion.
- */
-static void R_AddBspModelDecals(const r_view_t *view, r_bsp_inline_model_t *in, r_decal_t *decal) {
-
-  const box3_t bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
-
-  r_bsp_block_t *block = in->blocks;
-  for (int32_t i = 0; i < in->num_blocks; i++, block++) {
-
-    if (!Box3_Intersects(block->visible_bounds, bounds)) {
-      continue;
-    }
-
-    R_ClipDecalToNode(view, in->head_node, decal, &block->decals);
-  }
+  R_ClipDecalToNode(view, node->children[0], decal);
+  R_ClipDecalToNode(view, node->children[1], decal);
 }
 
 /**
@@ -282,7 +261,7 @@ void R_UpdateDecals(r_view_t *view) {
 
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
 
-      R_AddBspModelDecals(view, in, &d);
+      R_ClipDecalToNode(view, in->head_node, &d);
     }
   }
 
@@ -299,7 +278,6 @@ void R_UpdateDecals(r_view_t *view) {
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
       r_bsp_block_decals_t *decals = &block->decals;
 
-      // Iterate backwards to safely remove expired decal quads
       for (guint k = 0; k < decals->vertexes->len; k++) {
         r_decal_vertexes_t *v = &g_array_index(decals->vertexes, r_decal_vertexes_t, k);
 

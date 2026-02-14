@@ -256,7 +256,7 @@ void R_DrawMainView(r_view_t *view) {
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-  if (r_draw_wireframe->value) {
+  if (r_draw_wireframe->integer) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
 
@@ -270,7 +270,7 @@ void R_DrawMainView(r_view_t *view) {
   
   R_DrawSprites(view);
 
-  if (r_draw_wireframe->value) {
+  if (r_draw_wireframe->integer) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
