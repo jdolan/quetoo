@@ -536,9 +536,8 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
  * @return The clipped winding, or NULL if fully clipped away.
  * @remarks The input winding is NOT freed. The returned winding must be freed by caller.
  */
-cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip,
-                                       const vec3_t normal, double epsilon) {
-  
+cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon) {
+
   assert(in);
   assert(clip);
   assert(in->num_points >= 3);
@@ -547,10 +546,7 @@ cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t
   cm_winding_t *current = Cm_CopyWinding(in);
   
   // Clip against each edge of the clipping winding
-  for (int32_t edge = 0; edge < clip->num_points; edge++) {
-    if (current == NULL) {
-      return NULL;
-    }
+  for (int32_t edge = 0; edge < clip->num_points && current != NULL; edge++) {
     
     const vec3_t edge_start = clip->points[edge];
     const vec3_t edge_end = clip->points[(edge + 1) % clip->num_points];
