@@ -85,19 +85,18 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   const float r = decal->radius;
 
   const vec3_t n = face->plane->cm->normal;
+  const vec3_t sdir = face->brush_side->axis[0].xyz;
+  const vec3_t tdir = face->brush_side->axis[1].xyz;
+
   vec3_t t, b;
-  if (fabsf(n.z) > 0.9f) {
-    t = Vec3_Cross(n, Vec3(1.f, 0.f, 0.f));
-  } else {
-    t = Vec3_Cross(n, Vec3(0.f, 0.f, 1.f));
+  Vec3_Tangents(n, sdir, tdir, &t, &b);
+
 #if DEBUG_DECALS
 
   if (num_debug_points > 1024 - face->num_vertexes * 2) {
     num_debug_points = 0;
   }
 
-  t = Vec3_Normalize(t);
-  b = Vec3_Cross(t, n);
   for (int32_t i = 0; i < face->num_vertexes; i++) {
     debug_points[num_debug_points++] = face->vertexes[(i + 0) % face->num_vertexes].position;
     debug_points[num_debug_points++] = face->vertexes[(i + 1) % face->num_vertexes].position;
