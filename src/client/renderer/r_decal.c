@@ -46,13 +46,6 @@ static struct {
   GLint texture_diffusemap;
 } r_decal_program;
 
-#define DEBUG_DECALS 0
-
-#if DEBUG_DECALS
-static vec3_t debug_points[1024];
-static int32_t num_debug_points;
-#endif
-
 /**
  * @brief
  */
@@ -90,19 +83,6 @@ static bool R_ClipDecalToFace(const r_view_t *view,
 
   vec3_t t, b;
   Vec3_Tangents(n, sdir, tdir, &t, &b);
-
-#if DEBUG_DECALS
-
-  if (num_debug_points > 1024 - face->num_vertexes * 2) {
-    num_debug_points = 0;
-  }
-
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
-    debug_points[num_debug_points++] = face->vertexes[(i + 0) % face->num_vertexes].position;
-    debug_points[num_debug_points++] = face->vertexes[(i + 1) % face->num_vertexes].position;
-  }
-
-#endif
 
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
@@ -373,17 +353,6 @@ void R_DrawDecals(const r_view_t *view) {
   glBindVertexArray(0);
 
   glUseProgram(0);
-
-#if DEBUG_DECALS
-
-  R_Draw3DLines(GL_LINES, debug_points, num_debug_points, color_red, true);
-
-//  for (int32_t i = 0; i < num_debug_points; i += 6) {
-//    R_Draw3DLines(GL_LINES, &debug_points[i + 0], 2, color_red, true);
-//    R_Draw3DLines(GL_LINES, &debug_points[i + 2], 2, color_green, true);
-//    R_Draw3DLines(GL_LINES, &debug_points[i + 4], 2, color_blue, true);
-//  }
-#endif
 
   R_GetError(NULL);
 }
