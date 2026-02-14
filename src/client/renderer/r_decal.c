@@ -46,8 +46,8 @@ static struct {
   GLint texture_diffusemap;
 } r_decal_program;
 
-static vec3_t debug_points[1024];
-static int32_t num_debug_points;
+//static vec3_t debug_points[1024];
+//static int32_t num_debug_points;
 
 /**
  * @brief
@@ -91,21 +91,21 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   t = Vec3_Normalize(t);
   b = Vec3_Cross(t, n);
 
-  debug_points[num_debug_points++] = org;
-  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, n);
-  debug_points[num_debug_points++] = org;
-  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, t);
-  debug_points[num_debug_points++] = org;
-  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, b);
-
-  if (num_debug_points > 1024 - 6) {
-    num_debug_points = 0;
-  }
-  
-  // Verify tangent space is orthogonal (all vectors perpendicular to each other)
-  assert(fabsf(Vec3_Dot(n, t)) < 0.01f);  // n ⊥ t
-  assert(fabsf(Vec3_Dot(n, b)) < 0.01f);  // n ⊥ b
-  assert(fabsf(Vec3_Dot(t, b)) < 0.01f);  // t ⊥ b
+//  for (int32_t i = 0; i < face->num_vertexes; i++) {
+//    debug_points[num_debug_points++] = face->vertexes[(i + 0) % face->num_vertexes].position;
+//    debug_points[num_debug_points++] = face->vertexes[(i + 1) % face->num_vertexes].position;
+//  }
+//
+//  debug_points[num_debug_points++] = Box3_Center(face->bounds);
+//  debug_points[num_debug_points++] = Vec3_Fmaf(Box3_Center(face->bounds), 32, n);
+//  debug_points[num_debug_points++] = org;
+//  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, t);
+//  debug_points[num_debug_points++] = org;
+//  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, b);
+//
+//  if (num_debug_points > 1024 - 12) {
+//    num_debug_points = 0;
+//  }
 
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
@@ -172,8 +172,8 @@ static bool R_ClipDecalToFace(const r_view_t *view,
 }
 
 /**
- * @brief Recurses down the tree to project the decal onto faces. Decal geometry is accumulated on
- * the containing `r_bsp_block_t` node.
+ * @brief Recurses down the tree to project the decal onto faces.
+ * @details Decal geometry is accumulated on the containing `r_bsp_block_t` node.
  */
 static void R_ClipDecalToNode(const r_view_t *view,
                               const r_bsp_node_t *node,
@@ -220,6 +220,13 @@ static void R_ClipDecalToNode(const r_view_t *view,
 
     if (!Box3_Intersects(face->bounds, bounds)) {
       continue;
+    }
+
+    if (projected.radius >= 16.f) {
+      const vec3_t center = Box3_Center(face->bounds);
+      if (Cm_BoxTrace(decal->origin, center, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
+        continue;
+      }
     }
 
     r_decal_vertexes_t vertexes;
@@ -370,6 +377,8 @@ void R_DrawDecals(const r_view_t *view) {
 
   glUseProgram(0);
 
+//  R_Draw3DLines(debug_points, num_debug_points, color_red, true);
+//
 //  for (int32_t i = 0; i < num_debug_points; i += 6) {
 //    R_Draw3DLines(&debug_points[i + 0], 2, color_red, true);
 //    R_Draw3DLines(&debug_points[i + 2], 2, color_green, true);
