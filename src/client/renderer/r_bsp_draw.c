@@ -97,13 +97,13 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
     const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(normal, 2, color_red, true);
+    R_Draw3DLines(GL_LINES, normal, 2, color_red, true);
 
     if (r_draw_bsp_normals->integer > 1) {
-      R_Draw3DLines(tangent, 2, color_green, true);
+      R_Draw3DLines(GL_LINES, tangent, 2, color_green, true);
 
       if (r_draw_bsp_normals->integer > 2) {
-        R_Draw3DLines(bitangent, 2, color_blue, true);
+        R_Draw3DLines(GL_LINES, bitangent, 2, color_blue, true);
       }
     }
   }
@@ -152,7 +152,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
         const color_t color = Color3fv(light->color);
 
         const vec3_t line_points[2] = { voxel_world, light->origin };
-        R_Draw3DLines(line_points, 2, color, true);
+        R_Draw3DLines(GL_LINES, line_points, 2, color, true);
       }
     }
   }

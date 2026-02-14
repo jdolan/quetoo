@@ -46,8 +46,12 @@ static struct {
   GLint texture_diffusemap;
 } r_decal_program;
 
-//static vec3_t debug_points[1024];
-//static int32_t num_debug_points;
+#define DEBUG_DECALS 0
+
+#if DEBUG_DECALS
+static vec3_t debug_points[1024];
+static int32_t num_debug_points;
+#endif
 
 /**
  * @brief
@@ -86,26 +90,20 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     t = Vec3_Cross(n, Vec3(1.f, 0.f, 0.f));
   } else {
     t = Vec3_Cross(n, Vec3(0.f, 0.f, 1.f));
+#if DEBUG_DECALS
+
+  if (num_debug_points > 1024 - face->num_vertexes * 2) {
+    num_debug_points = 0;
   }
 
   t = Vec3_Normalize(t);
   b = Vec3_Cross(t, n);
+  for (int32_t i = 0; i < face->num_vertexes; i++) {
+    debug_points[num_debug_points++] = face->vertexes[(i + 0) % face->num_vertexes].position;
+    debug_points[num_debug_points++] = face->vertexes[(i + 1) % face->num_vertexes].position;
+  }
 
-//  for (int32_t i = 0; i < face->num_vertexes; i++) {
-//    debug_points[num_debug_points++] = face->vertexes[(i + 0) % face->num_vertexes].position;
-//    debug_points[num_debug_points++] = face->vertexes[(i + 1) % face->num_vertexes].position;
-//  }
-//
-//  debug_points[num_debug_points++] = Box3_Center(face->bounds);
-//  debug_points[num_debug_points++] = Vec3_Fmaf(Box3_Center(face->bounds), 32, n);
-//  debug_points[num_debug_points++] = org;
-//  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, t);
-//  debug_points[num_debug_points++] = org;
-//  debug_points[num_debug_points++] = Vec3_Fmaf(org, 32, b);
-//
-//  if (num_debug_points > 1024 - 12) {
-//    num_debug_points = 0;
-//  }
+#endif
 
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
@@ -135,8 +133,8 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     fw->points[i] = face->vertexes[i].position;
   }
 
-  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, face->plane->cm->normal, SIDE_EPSILON);
-//  cm_winding_t *w = Cm_CopyWinding(dw);
+  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f);
+  //cm_winding_t *w = Cm_CopyWinding(dw);
 
   Cm_FreeWinding(dw);
   Cm_FreeWinding(fw);
@@ -377,13 +375,16 @@ void R_DrawDecals(const r_view_t *view) {
 
   glUseProgram(0);
 
-//  R_Draw3DLines(debug_points, num_debug_points, color_red, true);
-//
+#if DEBUG_DECALS
+
+  R_Draw3DLines(GL_LINES, debug_points, num_debug_points, color_red, true);
+
 //  for (int32_t i = 0; i < num_debug_points; i += 6) {
-//    R_Draw3DLines(&debug_points[i + 0], 2, color_red, true);
-//    R_Draw3DLines(&debug_points[i + 2], 2, color_green, true);
-//    R_Draw3DLines(&debug_points[i + 4], 2, color_blue, true);
+//    R_Draw3DLines(GL_LINES, &debug_points[i + 0], 2, color_red, true);
+//    R_Draw3DLines(GL_LINES, &debug_points[i + 2], 2, color_green, true);
+//    R_Draw3DLines(GL_LINES, &debug_points[i + 4], 2, color_blue, true);
 //  }
+#endif
 
   R_GetError(NULL);
 }

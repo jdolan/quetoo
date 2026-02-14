@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color, bool depth_test);
+void R_Draw3DLines(GLenum mode, const vec3_t *points, size_t count, const color_t color, bool depth_test);
 void R_Draw3DBox(const box3_t bounds, const color_t color, bool depth_test);
 void R_Draw3D(void);
 
