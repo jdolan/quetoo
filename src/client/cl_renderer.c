@@ -32,13 +32,13 @@ void Cl_R_Restart_f(void) {
     return;
   }
 
-  Ui_HandleEvent(&(const SDL_Event) {
-    .type = SDL_EVENT_WINDOW_CLOSE_REQUESTED,
-  });
+  Ui_Shutdown();
 
   R_Shutdown();
 
   R_Init();
+
+  Ui_Init();
 
   if (cls.state == CL_ACTIVE) {
     Cl_LoadMedia();
