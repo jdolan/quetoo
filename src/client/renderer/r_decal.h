@@ -61,14 +61,14 @@ typedef struct {
 } r_decal_vertex_t;
 
 /**
- * @brief The decal quad type.
+ * @brief The decal triangle type.
  */
 typedef struct {
   /**
    * @brief The vertexes.
    */
-  r_decal_vertex_t vertexes[4];
-} r_decal_vertexes_t;
+  r_decal_vertex_t vertexes[3];
+} r_decal_triangle_t;
 
 void R_UpdateDecals(r_view_t *view);
 void R_DrawDecals(const r_view_t *view);

@@ -67,12 +67,12 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 }
 
 /**
- * @brief Append clipped vertexes to a projected BSP decal.
+ * @brief Clips a decal to a face and adds the resulting triangles to the face's block.
  */
-static bool R_ClipDecalToFace(const r_view_t *view,
+static void R_ClipDecalToFace(const r_view_t *view,
                               const r_bsp_face_t *face,
                               const r_decal_t *decal,
-                              r_decal_vertexes_t *out) {
+                              r_bsp_block_decals_t *decals) {
 
   const vec3_t n = face->plane->cm->normal;
   const vec3_t sdir = face->brush_side->axis[0].xyz;
@@ -111,8 +111,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     fw->points[i] = face->vertexes[i].position;
   }
 
-  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f);
-  //cm_winding_t *w = Cm_CopyWinding(dw);
+  cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f - ON_EPSILON);
 
   Cm_FreeWinding(dw);
   Cm_FreeWinding(fw);
@@ -121,7 +120,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
     if (w) {
       Cm_FreeWinding(w);
     }
-    return false;
+    return;
   }
 
   const color32_t color = Color_Color32(decal->color);
@@ -129,22 +128,34 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   const vec2_t atlas_max = decal->image->texcoords.zw;
   const vec2_t atlas_size = Vec2_Subtract(atlas_max, atlas_min);
 
-  for (int32_t i = 0; i < 4; i++) {
-    const vec3_t pos = (i < w->num_points) ? w->points[i] : w->points[w->num_points - 1];
-    out->vertexes[i].position = pos;
+  const int32_t num_triangles = w->num_points - 2;
+  
+  for (int32_t i = 0; i < num_triangles; i++) {
+    r_decal_triangle_t triangle;
+    
+    const int32_t indices[3] = { 0, i + 1, i + 2 };
 
-    const vec3_t delta = Vec3_Subtract(pos, org);
-    const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
-    const float y = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
+    for (int32_t j = 0; j < 3; j++) {
+      const vec3_t pos = w->points[indices[j]];
+      triangle.vertexes[j].position = pos;
 
-    out->vertexes[i].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
-    out->vertexes[i].color = color;
-    out->vertexes[i].time = decal->time;
-    out->vertexes[i].lifetime = decal->lifetime;
+      const vec3_t delta = Vec3_Subtract(pos, org);
+      const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
+      const float y = (Vec3_Dot(delta, b) / r) * 0.5f + 0.5f;
+
+      triangle.vertexes[j].texcoord = Vec2_Add(atlas_min, Vec2(x * atlas_size.x, y * atlas_size.y));
+      triangle.vertexes[j].color = color;
+      triangle.vertexes[j].time = decal->time;
+      triangle.vertexes[j].lifetime = decal->lifetime;
+    }
+    
+    decals->image = (r_image_t *) decal->image;
+    decals->triangles = g_array_append_val(decals->triangles, triangle);
   }
 
+  decals->dirty = true;
+
   Cm_FreeWinding(w);
-  return true;
 }
 
 /**
@@ -205,16 +216,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
       }
     }
 
-    r_decal_vertexes_t vertexes;
-    if (R_ClipDecalToFace(view, face, &projected, &vertexes)) {
-
-      r_bsp_block_decals_t *decals = &face->block->decals;
-
-      decals->image = (r_image_t *) decal->image;
-      decals->vertexes = g_array_append_val(decals->vertexes, vertexes);
-
-      decals->dirty = true;
-    }
+    r_bsp_block_decals_t *decals = &face->block->decals;
+    R_ClipDecalToFace(view, face, &projected, decals);
   }
 
   R_ClipDecalToNode(view, node->children[0], decal);
@@ -261,11 +264,11 @@ void R_UpdateDecals(r_view_t *view) {
     for (int32_t j = 0; j < in->num_blocks; j++, block++) {
       r_bsp_block_decals_t *decals = &block->decals;
 
-      for (guint k = 0; k < decals->vertexes->len; k++) {
-        r_decal_vertexes_t *v = &g_array_index(decals->vertexes, r_decal_vertexes_t, k);
+      for (guint k = 0; k < decals->triangles->len; k++) {
+        r_decal_triangle_t *v = &g_array_index(decals->triangles, r_decal_triangle_t, k);
 
         if (view->ticks - v->vertexes->time >= v->vertexes->lifetime) {
-          decals->vertexes = g_array_remove_index(decals->vertexes, k);
+          decals->triangles = g_array_remove_index(decals->triangles, k);
           decals->dirty = true;
         }
       }
@@ -310,14 +313,14 @@ void R_DrawDecals(const r_view_t *view) {
 
       r_bsp_block_decals_t *d = &block->decals;
 
-      if (d->vertexes->len == 0) {
+      if (d->triangles->len == 0) {
         continue;
       }
 
       if (d->dirty) {
-        const GLsizei size = d->vertexes->len * sizeof(r_decal_vertexes_t);
+        const GLsizei size = d->triangles->len * sizeof(r_decal_triangle_t);
         glBindBuffer(GL_ARRAY_BUFFER, d->vertex_buffer);
-        glBufferData(GL_ARRAY_BUFFER, size, d->vertexes->data, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, size, d->triangles->data, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         d->dirty = false;
       }
@@ -327,9 +330,9 @@ void R_DrawDecals(const r_view_t *view) {
       assert(d->image->texnum);
       glBindTexture(GL_TEXTURE_2D, d->image->texnum);
 
-      glDrawElements(GL_TRIANGLES, d->vertexes->len * 6, GL_UNSIGNED_INT, NULL);
+      glDrawElements(GL_TRIANGLES, d->triangles->len * 3, GL_UNSIGNED_INT, NULL);
 
-      r_stats.decals += d->vertexes->len;
+      r_stats.decals += d->triangles->len;
       r_stats.decal_draw_elements++;
     }
   }

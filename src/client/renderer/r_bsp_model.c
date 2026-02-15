@@ -277,14 +277,11 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
   glGenBuffers(1, &elements_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_buffer);
 
-  GLuint elements[MAX_BSP_BLOCK_DECALS * 6];
-  for (GLuint i = 0, v = 0, e = 0; i < MAX_BSP_BLOCK_DECALS; i++, v += 4, e += 6) {
+  GLuint elements[MAX_BSP_BLOCK_DECALS * 3];
+  for (GLuint i = 0, v = 0, e = 0; i < MAX_BSP_BLOCK_DECALS; i++, v += 3, e += 3) {
     elements[e + 0] = v + 0;
     elements[e + 1] = v + 1;
     elements[e + 2] = v + 2;
-    elements[e + 3] = v + 0;
-    elements[e + 4] = v + 2;
-    elements[e + 5] = v + 3;
   }
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
@@ -298,7 +295,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 
     r_bsp_block_decals_t *decals = &out->decals;
 
-    decals->vertexes = g_array_new(true, true, sizeof(r_decal_vertexes_t));
+    decals->triangles = g_array_new(true, true, sizeof(r_decal_triangle_t));
 
     decals->elements_buffer = elements_buffer;
 
@@ -730,7 +727,7 @@ static void R_FreeBspModel(r_media_t *self) {
   r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
 
-    g_array_free(block->decals.vertexes, true);
+    g_array_free(block->decals.triangles, true);
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);
     glDeleteBuffers(1, &block->decals.elements_buffer);

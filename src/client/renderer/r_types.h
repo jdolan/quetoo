@@ -624,9 +624,9 @@ typedef struct {
   r_image_t *image;
 
   /**
-   * @brief The vertexes of the decals attached to the containing block.
+   * @brief The triangles of the decals attached to the containing block.
    */
-  GArray *vertexes;
+  GArray *triangles;
 
   /**
    * @brief The decal vertex buffer object.
