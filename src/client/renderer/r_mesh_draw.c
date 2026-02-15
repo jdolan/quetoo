@@ -48,6 +48,7 @@ static struct {
 
   GLint color;
   GLint tint_colors;
+  GLint fog;
 
   struct {
     GLint alpha_test;
@@ -294,6 +295,19 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
 
+  bool fog = false;
+  const r_bsp_model_t *world = r_models.world->bsp;
+  for (int32_t i = 0; i < world->num_blocks && !fog; i++) {
+    const r_bsp_block_t *block = &world->blocks[i];
+    if (Box3_Intersects(e->abs_model_bounds, block->visible_bounds)) {
+      if (block->flags & BSP_BLOCK_FOG) {
+        fog = true;
+        break;
+      }
+    }
+  }
+  glUniform1i(r_mesh_program.fog, fog);
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
@@ -429,6 +443,7 @@ void R_InitMeshProgram(void) {
   r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
   r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
+  r_mesh_program.fog = glGetUniformLocation(r_mesh_program.name, "fog");
 
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);

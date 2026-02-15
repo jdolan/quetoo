@@ -292,6 +292,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->draw_elements = bsp->draw_elements + in->first_draw_element;
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
+    out->flags = in->flags;
 
     r_bsp_block_decals_t *decals = &out->decals;
 
@@ -683,7 +684,6 @@ static void R_RegisterBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
 
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.fog);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
 

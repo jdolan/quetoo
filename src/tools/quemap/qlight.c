@@ -411,6 +411,9 @@ static void LightWorld(void) {
   // bake fog into the voxel
   Work("Fog", FogVoxel, (int32_t) num_voxel);
 
+  // mark blocks that contain fog for rendering optimization
+  MarkBlocksWithFog();
+
   // calculate caustics from liquid contents
   Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
 

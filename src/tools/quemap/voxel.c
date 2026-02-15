@@ -356,6 +356,40 @@ void FeatherLights(void) {
 }
 
 /**
+ * @brief Marks blocks that contain fog by checking if any intersecting voxels have fog density.
+ * @remarks This should be called after all FogVoxel work is complete.
+ */
+void MarkBlocksWithFog(void) {
+
+  Com_Verbose("Marking blocks with fog...\n");
+
+  int32_t blocks_with_fog = 0;
+
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
+    bsp_block_t *block = &bsp_file.blocks[i];
+    const bsp_node_t *node = &bsp_file.nodes[block->node];
+
+    // Expand block bounds by voxel size to catch edge voxels
+    const box3_t check_bounds = Box3_Expand(node->visible_bounds, BSP_VOXEL_SIZE);
+
+    // Check all voxels for intersection
+    for (size_t v = 0; v < voxels.num_voxels; v++) {
+      const voxel_t *voxel = &voxels.voxels[v];
+
+      if (Box3_Intersects(check_bounds, voxel->bounds) && voxel->fog > 0.f) {
+        block->flags |= BSP_BLOCK_FOG;
+        blocks_with_fog++;
+        break;
+      }
+    }
+  }
+
+  Com_Verbose("Marked %d / %d blocks with fog (%.1f%%)\n",
+              blocks_with_fog, bsp_file.num_blocks,
+              100.f * blocks_with_fog / bsp_file.num_blocks);
+}
+
+/**
  * @brief Calculates caustics intensity based on proximity to liquid contents.
  */
 void CausticsVoxel(int32_t voxel_num) {

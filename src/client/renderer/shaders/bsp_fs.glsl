@@ -20,6 +20,7 @@
  */
 
 uniform mat4 model;
+uniform bool fog;
 
 in vertex_data {
   vec3 model_position;
@@ -203,6 +204,10 @@ float sample_voxel_caustics() {
  * @brief
  */
 vec4 sample_voxel_fog() {
+
+  if (!fog) {
+    return vec4(0.0);
+  }
 
   vec4 fog = vec4(0.0);
 

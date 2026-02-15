@@ -35,6 +35,7 @@ layout (location = 10) in vec3 in_next_bitangent;
 uniform mat4 model;
 
 uniform float lerp;
+uniform bool fog;
 
 out vertex_data {
   vec3 model_position;
@@ -63,6 +64,10 @@ float sample_voxel_caustics(in vec3 texcoord) {
  * @brief
  */
 vec4 sample_voxel_fog(in vec3 texcoord) {
+
+  if (!fog) {
+    return vec4(0.0);
+  }
 
   vec4 fog = vec4(0.0);
 
