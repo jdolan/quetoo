@@ -724,10 +724,12 @@ static void R_FreeBspModel(r_media_t *self) {
   glDeleteVertexArrays(1, &bsp->vertex_array);
   glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
 
-  r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
+  r_bsp_block_t *block = bsp->blocks;
+  for (int32_t i = 0; i < bsp->num_blocks; i++, block++) {
 
-    g_array_free(block->decals.triangles, true);
+    if (block->decals.triangles) {
+      g_array_free(block->decals.triangles, true);
+    }
 
     glDeleteBuffers(1, &block->decals.vertex_buffer);
     glDeleteBuffers(1, &block->decals.elements_buffer);
