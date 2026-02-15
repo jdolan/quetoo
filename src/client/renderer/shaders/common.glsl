@@ -205,10 +205,11 @@ float voxel_fog_density(in vec3 texcoord) {
 
 /**
  * @brief Calculate lighting at a specific world position for fog rendering.
+ * @details Computes unshadowed lighting for performance in volumetric fog raymarching.
  * @param position The world position to calculate lighting at.
  * @return The combined diffuse lighting from voxel lights and dynamic lights.
  */
-vec3 light_and_shadow_fog(in vec3 position) {
+vec3 light_fog(in vec3 position) {
 
   vec3 diffuse = vec3(0.0);
 
