@@ -112,6 +112,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
   }
 
   cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f - ON_EPSILON);
+  //cm_winding_t *w = Cm_CopyWinding(dw);
 
   Cm_FreeWinding(dw);
   Cm_FreeWinding(fw);
@@ -210,8 +211,8 @@ static void R_ClipDecalToNode(const r_view_t *view,
     }
 
     if (projected.radius >= 16.f) {
-      const vec3_t center = Box3_Center(face->bounds);
-      if (Cm_BoxTrace(decal->origin, center, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
+      const vec3_t pos = Vec3_Add(Box3_Center(face->bounds), face->plane->cm->normal);
+      if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
         continue;
       }
     }
