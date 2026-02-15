@@ -416,7 +416,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
   const byte *data_data = data;
-  data += out->num_voxels * sizeof(byte) * 2; // RG
+  data += out->num_voxels * sizeof(byte) * 3; // RGB
 
   out->data = (r_image_t *) R_AllocMedia("voxel_data", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->data->media.Free = R_FreeImage;
@@ -428,32 +428,12 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->data->levels = levels;
   out->data->minify = GL_LINEAR_MIPMAP_LINEAR;
   out->data->magnify = GL_LINEAR;
-  out->data->internal_format = GL_RG8;
-  out->data->format = GL_RG;
+  out->data->internal_format = GL_RGB8;
+  out->data->format = GL_RGB;
   out->data->pixel_type = GL_UNSIGNED_BYTE;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DATA);
   R_UploadImage(out->data, data_data);
-
-  const color32_t *fog_data = (const color32_t *) data;
-  data += out->num_voxels * sizeof(color32_t);
-
-  out->fog = (r_image_t *) R_AllocMedia("voxel_fog", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->fog->media.Free = R_FreeImage;
-  out->fog->type = IMG_VOXELS;
-  out->fog->width = out->size.x;
-  out->fog->height = out->size.y;
-  out->fog->depth = out->size.z;
-  out->fog->target = GL_TEXTURE_3D;
-  out->fog->levels = levels;
-  out->fog->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->fog->magnify = GL_LINEAR;
-  out->fog->internal_format = GL_RGBA8;
-  out->fog->format = GL_RGBA;
-  out->fog->pixel_type = GL_UNSIGNED_BYTE;
-
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_FOG);
-  R_UploadImage(out->fog, (const byte *) fog_data);
 
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;

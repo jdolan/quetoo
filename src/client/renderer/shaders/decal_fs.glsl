@@ -45,7 +45,7 @@ vec4 sample_voxel_fog() {
     vec3 xyz = mix((model * vec4(vertex.position, 1.0)).xyz, view[0].xyz, i / samples);
     vec3 uvw = mix(voxel_uvw(xyz), voxels.view_coordinate.xyz, i / samples);
 
-    float fog_density_sample = texture(texture_voxel_fog, uvw).a;
+    float fog_density_sample = voxel_fog_density(uvw);
     
     if (fog_density_sample > 0.0) {
       vec3 fog_lighting = calculate_fog_lighting(xyz);

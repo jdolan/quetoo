@@ -23,8 +23,6 @@
 
 #include "bsp.h"
 
-#define FOG_COLOR Vec3(1.f, 1.f, 1.f)
-
 /**
  * @brief The fog density, or alpha value.
  */
@@ -35,11 +33,6 @@
  * an object within the fog.
  */
 #define FOG_DENSITY_SCALAR 0.03125f
-
-/**
- * @brief Diffuse light is multiplied and scaled by the fog color to produce the final fog sample.
- */
-#define FOG_ABSORPTION 1.f
 
 /**
  * @brief Fog types.
@@ -59,7 +52,7 @@ typedef enum {
 } fog_type_t;
 
 /**
- * @details Fog is baked into the voxels as an additional RGBA 3D texture.
+ * @details Fog is baked into the voxels as density in the blue channel of the voxel data texture.
  */
 typedef struct {
 
@@ -79,19 +72,9 @@ typedef struct {
   GPtrArray *brushes;
 
   /**
-   * @brief The fog color.
-   */
-  vec3_t color;
-
-  /**
    * @brief The fog density.
    */
   float density;
-
-  /**
-   * @brief The fog absorption.
-   */
-  float absorption;
 
   /**
    * @brief The bounds of all brushes in this fog entity.

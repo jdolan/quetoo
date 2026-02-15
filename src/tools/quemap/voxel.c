@@ -28,16 +28,9 @@
 voxels_t voxels;
 
 /**
- * @brief Accumulates light color into the voxel for fog absorption calculations.
+ * @brief Adds a light to a voxel's light list and updates the light's visible bounds.
  */
 static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
-
-  const float dist = Vec3_Distance(voxel->origin, light->origin);
-  const float atten = Clampf01(1.f - dist / light->radius);
-  const float lumens = atten * atten;
-
-  const vec3_t color = Vec3_Scale(light->color, light->intensity);
-  voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
   light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
 
@@ -335,8 +328,7 @@ void FogVoxel(int32_t voxel_num) {
         continue;
       }
 
-      const vec3_t color = Vec3_Fmaf(fog->color, fog->absorption, voxel->diffuse.xyz);
-      voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
+      voxel->fog += density * weight;
     }
   }
 }
@@ -476,8 +468,7 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // caustics + exposure (RG)
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 3; // caustics + exposure + fog density (RGB)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
@@ -489,17 +480,12 @@ void EmitVoxels(void) {
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
-  byte *out_caustics = out;
-  out += voxels.num_voxels * sizeof(byte) * 2; // RG = caustics + exposure
-
-  color32_t *out_fog = (color32_t *) out;
-  out += voxels.num_voxels * sizeof(color32_t);
+  byte *out_data = out;
+  out += voxels.num_voxels * sizeof(byte) * 3; // RGB = caustics + exposure + fog density
   
   for (int32_t z = 0; z < voxels.size.z; z++) {
 
     Progress("Emitting voxels", 100.f * z / voxels.size.z);
-
-    SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
     for (int32_t y = 0; y < voxels.size.y; y++) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
@@ -507,18 +493,11 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        *out_caustics++ = (byte)(Clampf01(voxel->caustics) * 255.f);
-        *out_caustics++ = (byte)(Clampf01(voxel->exposure) * 255.f);
-
-        *out_fog++ = Color_Color32(Color4fv(voxel->fog));
+        *out_data++ = (byte)(Clampf01(voxel->caustics) * 255.f);
+        *out_data++ = (byte)(Clampf01(voxel->exposure) * 255.f);
+        *out_data++ = (byte)(Clampf01(voxel->fog) * 255.f);  // fog density
       }
     }
-
-    if (debug) {
-      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, z));
-    }
-
-    SDL_DestroySurface(fog);
   }
 
   int32_t *out_light_data = (int32_t *) out;

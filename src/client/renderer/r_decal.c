@@ -374,12 +374,10 @@ static void R_InitDecalProgram(void) {
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
-  const GLint texture_voxel_fog = glGetUniformLocation(r_decal_program.name, "texture_voxel_fog");
   const GLint texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
   const GLint texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
 
   glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(texture_voxel_fog, TEXTURE_VOXEL_FOG);
   glUniform1i(texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 

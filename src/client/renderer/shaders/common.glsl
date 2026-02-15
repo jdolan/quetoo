@@ -195,6 +195,15 @@ float voxel_exposure(in vec3 texcoord) {
 }
 
 /**
+ * @brief Samples the fog density at the given voxel texture coordinate.
+ * @param texcoord The voxel texture coordinate (0-1 range).
+ * @return The fog density (B channel, 0-1).
+ */
+float voxel_fog_density(in vec3 texcoord) {
+  return texture(texture_voxel_data, texcoord).b;
+}
+
+/**
  * @brief Calculate lighting at a specific world position for fog rendering.
  * @param position The world position to calculate lighting at.
  * @return The combined diffuse lighting from voxel lights and dynamic lights.
