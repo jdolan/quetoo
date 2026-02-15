@@ -27,8 +27,12 @@
 static struct {
   GLuint name;
   GLuint uniforms_block;
+  GLuint lights_block;
 
   GLint texture_diffusemap;
+  GLint texture_voxel_data;
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
 
   GLint model;
   GLint block;
@@ -356,19 +360,21 @@ static void R_InitDecalProgram(void) {
   r_decal_program.uniforms_block = glGetUniformBlockIndex(r_decal_program.name, "uniforms_block");
   glUniformBlockBinding(r_decal_program.name, r_decal_program.uniforms_block, 0);
 
-  const GLuint lights_block = glGetUniformBlockIndex(r_decal_program.name, "lights_block");
-  glUniformBlockBinding(r_decal_program.name, lights_block, 1);
+  r_decal_program.lights_block = glGetUniformBlockIndex(r_decal_program.name, "lights_block");
+  glUniformBlockBinding(r_decal_program.name, r_decal_program.lights_block, 1);
 
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
   r_decal_program.block = glGetUniformLocation(r_decal_program.name, "block");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
-  const GLint texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
-  const GLint texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
+  r_decal_program.texture_voxel_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_data");
+  r_decal_program.texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
+  r_decal_program.texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
 
   glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
+  glUniform1i(r_decal_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
+  glUniform1i(r_decal_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_decal_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 
   R_GetError(NULL);
 }
