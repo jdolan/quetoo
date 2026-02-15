@@ -138,7 +138,9 @@ r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds) {
  */
 void R_FreeOcclusionQuery(r_occlusion_query_t *query) {
 
-  assert(query);
+  if (!query) {
+    return;
+  }
 
   g_queue_remove(r_occlusion_queries.allocated, query);
   g_queue_push_head(r_occlusion_queries.free, query);
