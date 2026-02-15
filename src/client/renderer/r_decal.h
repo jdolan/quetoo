@@ -70,7 +70,7 @@ typedef struct {
   r_decal_vertex_t vertexes[3];
 } r_decal_triangle_t;
 
-void R_UpdateDecals(r_view_t *view);
+void R_UpdateDecals(const r_view_t *view);
 void R_DrawDecals(const r_view_t *view);
 void R_InitDecals(void);
 void R_ShutdownDecals(void);

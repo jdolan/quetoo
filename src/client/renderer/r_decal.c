@@ -228,12 +228,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
 /**
  * @brief Add new decals from the view and expiring the existing ones.
  */
-void R_UpdateDecals(r_view_t *view) {
+void R_UpdateDecals(const r_view_t *view) {
 
   for (int32_t i = 0; i < view->num_decals; i++) {
-    r_decal_t *decal = &view->decals[i];
-
-    decal->time = view->ticks;
+    const r_decal_t *decal = &view->decals[i];
 
     const r_entity_t *e = view->entities;
     for (int32_t j = 0; j < view->num_entities; j++, e++) {
@@ -245,6 +243,8 @@ void R_UpdateDecals(r_view_t *view) {
       r_bsp_inline_model_t *in = e->model->bsp_inline;
 
       r_decal_t d = *decal;
+
+      d.time = view->ticks;
 
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
 
