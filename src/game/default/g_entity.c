@@ -727,7 +727,7 @@ static void G_worldspawn(g_entity_t *ent) {
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
 
-  gi.SetModel(ent, ent->model);
+  gi.SetModel(ent, "*0");
 
   const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 
@@ -739,28 +739,6 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_NAME, g_level.title);
   gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
-
-  if (map && *map->sky) { // prefer maps.lst sky
-    gi.SetConfigString(CS_SKY, map->sky);
-  } else { // or fall back on worldspawn
-    const cm_entity_t *sky = gi.EntityValue(ent->def, "sky");
-    if (*sky->string) {
-      gi.SetConfigString(CS_SKY, sky->string);
-    } else { // or default to unit1_
-      gi.SetConfigString(CS_SKY, "unit1_");
-    }
-  }
-
-  if (map && *map->weather) { // prefer maps.lst weather
-    gi.SetConfigString(CS_WEATHER, map->weather);
-  } else { // or fall back on worldspawn
-    const cm_entity_t *weather = gi.EntityValue(ent->def, "weather");
-    if (*weather->string) {
-      gi.SetConfigString(CS_WEATHER, weather->string);
-    } else { // or default to none
-      gi.SetConfigString(CS_WEATHER, "none");
-    }
-  }
 
   if (map && map->gravity > 0) { // prefer maps.lst gravity
     g_level.gravity = map->gravity;

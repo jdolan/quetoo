@@ -92,20 +92,6 @@ static GList *G_MapList_Parse(const char *filename) {
       continue;
     }
 
-    if (!g_strcmp0(token, "sky")) {
-      if (!Parse_Token(&parser, PARSE_DEFAULT, map->sky, sizeof(map->sky))) {
-        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
-      }
-      continue;
-    }
-
-    if (!g_strcmp0(token, "weather")) {
-      if (!Parse_Token(&parser, PARSE_DEFAULT, map->weather, sizeof(map->weather))) {
-        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
-      }
-      continue;
-    }
-
     if (!g_strcmp0(token, "gravity")) {
       if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &map->gravity, 1)) {
         gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);

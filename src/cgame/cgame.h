@@ -504,6 +504,12 @@ typedef struct cg_import_s {
    */
 
   /**
+   * @brief Returns the worldspawn entity definition.
+   * @return The worldspawn entity definition.
+   */
+  const cm_entity_t *(*Worldspawn)(void);
+
+  /**
    * @brief Finds the entity pair for `key` within the specifed entity.
    * @param entity The entity.
    * @param key The entity key.

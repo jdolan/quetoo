@@ -62,8 +62,6 @@ typedef enum {
 typedef struct {
   char name[32];
   char message[128];
-  char sky[32];
-  char weather[64];
   int32_t gravity;
   int32_t gameplay;
   int32_t hook;
@@ -89,7 +87,8 @@ typedef struct {
 #define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
 #define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
 #define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
-#define CS_NAV_EDIT        (CS_GAME + 8)  // nav edit mode
+#define CS_WEAPONS         (CS_GAME + 8)  // weapon list, for the change weapon UI
+#define CS_NAV_EDIT        (CS_GAME + 9) // nav edit mode
 
 /**
  * @brief Player state statistics (inventory, score, etc).

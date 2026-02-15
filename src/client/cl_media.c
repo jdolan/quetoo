@@ -34,22 +34,22 @@ void Cl_RequestNextDownload(void) {
   }
 
   // check zip
-  if (cl.precache_check == CS_ZIP) {
-    cl.precache_check = CS_MODELS;
+  if (cl.precache_check == CS_PK3) {
+    cl.precache_check = CS_BSP;
 
-    if (*cl.config_strings[CS_ZIP] != '\0') {
-      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_ZIP])) {
+    if (*cl.config_strings[CS_PK3] != '\0') {
+      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_PK3])) {
         return;    // started a download
       }
     }
   }
 
   // check .bsp via models
-  if (cl.precache_check == CS_MODELS) { // the map is the only model we care about
+  if (cl.precache_check == CS_BSP) { // the map is the only model we care about
     cl.precache_check++;
 
-    if (*cl.config_strings[CS_MODELS] != '\0') {
-      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_MODELS])) {
+    if (*cl.config_strings[CS_BSP] != '\0') {
+      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_BSP])) {
         return; // started a download
       }
     }
@@ -127,6 +127,8 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
  */
 static void Cl_LoadModels(void) {
 
+  R_LoadModel(cl.config_strings[CS_BSP]);
+
   for (int32_t i = 0; i < MAX_MODELS; i++) {
 
     const char *str = cl.config_strings[CS_MODELS + i];
@@ -134,9 +136,7 @@ static void Cl_LoadModels(void) {
       break;
     }
 
-    if (i ^ 1) {
-      Cl_LoadingProgress(-1, str);
-    }
+    Cl_LoadingProgress(-1, str);
 
     cl.models[i] = R_LoadModel(str);
   }
@@ -155,7 +155,7 @@ static void Cl_LoadImages_Emoji(const char *path, void *data) {
 static void Cl_LoadImages(void) {
 
   Cl_LoadingProgress(-1, "sky");
-  R_LoadSky(cl.config_strings[CS_SKY]);
+  R_LoadSky();
 
   r_atlas_t *atlas = R_LoadAtlas("images");
   Fs_Enumerate("pics/emoji/*", Cl_LoadImages_Emoji, atlas);
@@ -244,7 +244,7 @@ void Cl_LoadMedia(void) {
 
   cls.state = CL_LOADING;
 
-  GList *mapshots = Cl_Mapshots(cl.config_strings[CS_MODELS]);
+  GList *mapshots = Cl_Mapshots(cl.config_strings[CS_BSP]);
   const size_t len = g_list_length(mapshots);
 
   if (len > 0) {
@@ -259,7 +259,7 @@ void Cl_LoadMedia(void) {
 
   R_BeginLoading();
 
-  Cl_LoadingProgress(0, cl.config_strings[CS_MODELS]);
+  Cl_LoadingProgress(0, cl.config_strings[CS_BSP]);
 
   Cl_LoadModels();
 

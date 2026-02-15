@@ -267,16 +267,18 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
     Com_Print("  Loaded demo %s.\n", sv.name);
   } else { // loading a map
-    g_snprintf(sv.config_strings[CS_MODELS], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
+    g_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
-    sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_MODELS], &bsp_size);
+    sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
 
-    const char *dir = Fs_RealDir(sv.config_strings[CS_MODELS]);
+    const char *dir = Fs_RealDir(sv.config_strings[CS_BSP]);
     if (g_str_has_suffix(dir, ".pk3")) {
-      g_strlcpy(sv.config_strings[CS_ZIP], Basename(dir), MAX_STRING_CHARS);
+      g_strlcpy(sv.config_strings[CS_PK3], Basename(dir), MAX_STRING_CHARS);
+    } else {
+      sv.config_strings[CS_PK3][0] = '\0';
     }
 
-    for (int32_t i = 1; i < Cm_NumModels(); i++) {
+    for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
       if (i == MAX_MODELS) {
         Com_Error(ERROR_DROP, "Sub-model count exceeds protocol limits\n");

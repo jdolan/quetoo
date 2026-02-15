@@ -34,19 +34,17 @@
  * length. The game module is free to populate `CS_GAME - MAX_CONFIG_STRINGS`.
  */
 #define CS_NAME     0 // the server name
-#define CS_SKY      1 // the sky box
-#define CS_WEATHER  2 // the weather string
-#define CS_ZIP      3 // zip name for current level
-#define CS_BSP_SIZE 4 // for catching incompatible maps
-#define CS_WEAPONS  5 // weapon list, for the change weapon UI
-#define CS_MODELS   6 // bsp, bsp sub-models, and mesh models
+#define CS_PK3      1 // pk3 name
+#define CS_BSP      2 // bsp name
+#define CS_BSP_SIZE 3 // for catching incompatible bsps
+#define CS_MODELS   4 // bsp inline models and mesh models
 #define CS_SOUNDS   (CS_MODELS + MAX_MODELS)
 #define CS_MUSICS   (CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES   (CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS    (CS_IMAGES + MAX_IMAGES)
 #define CS_CLIENTS  (CS_ITEMS  + MAX_ITEMS)
 #define CS_ENTITIES (CS_CLIENTS + MAX_CLIENTS) // for the in-game editor
-#define CS_GAME     (CS_ENTITIES + MAX_ENTITIES)
+#define CS_GAME     (CS_ENTITIES + MAX_ENTITIES) // game-module specific config strings
 
 #define MAX_GAME_CONFIG_STRINGS 256
 

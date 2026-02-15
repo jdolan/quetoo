@@ -319,7 +319,7 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 
   const int32_t num = atoi(name + 1);
 
-  if (num < 1 || num >= cm_bsp.num_models) {
+  if (num < 0 || num >= cm_bsp.num_models) {
     Com_Error(ERROR_DROP, "Bad number: %d\n", num);
   }
 
@@ -343,7 +343,7 @@ const char *Cm_EntityString(void) {
 /**
  * @brief
  */
-cm_entity_t *Cm_Worldspawn(void) {
+const cm_entity_t *Cm_Worldspawn(void) {
   return *cm_bsp.entities;
 }
 

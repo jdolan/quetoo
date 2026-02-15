@@ -37,7 +37,7 @@ typedef struct {
 static cg_weather_state_t cg_weather_state;
 
 /**
- * @brief Parses CS_WEATHER for weather, e.g. "rain," "snow."
+ * @brief Parses the weather worldspawn key, e.g. "rain," "snow."
  */
 int32_t Cg_ParseWeather(const char *string) {
 
@@ -120,7 +120,8 @@ static void Cg_LoadWeather(void) {
   cg_weather_state.emits = NULL;
   cg_weather_state.time = 0;
 
-  cg_state.weather = Cg_ParseWeather(cgi.ConfigString(CS_WEATHER));
+  const char *weather = cgi.EntityValue(cgi.Worldspawn(), "weather")->string;
+  cg_state.weather = Cg_ParseWeather(weather);
 
   if (!cg_state.weather) {
     return;

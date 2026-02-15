@@ -146,7 +146,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
       continue;
     }
 
-    if (s->number == trace->skip) {
+    if (s->number == 0 || s->number == trace->skip) {
       continue;
     }
 
@@ -310,7 +310,7 @@ void Cl_UpdatePrediction(void) {
   if (!Com_WasInit(QUETOO_SERVER) || cl.demo_server || !Cm_NumModels()) {
     int64_t bs;
 
-    const char *bsp_name = cl.config_strings[CS_MODELS];
+    const char *bsp_name = cl.config_strings[CS_BSP];
     const int64_t bsp_size = strtoll(cl.config_strings[CS_BSP_SIZE], NULL, 10);
 
     Cm_LoadBspModel(bsp_name, &bs);

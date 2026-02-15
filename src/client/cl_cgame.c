@@ -237,6 +237,7 @@ void Cl_InitCgame(void) {
   import.ReadAngle = Cl_ReadAngle;
   import.ReadAngles = Cl_ReadAngles;
 
+  import.Worldspawn = Cm_Worldspawn;
   import.EntityValue = Cm_EntityValue;
   import.EntityBrushes = Cm_EntityBrushes;
   import.PointContents = Cl_PointContents;
