@@ -53,7 +53,7 @@ size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
 void FeatherLights(void);
 void FogVoxel(int32_t voxel_num);
-void MarkBlocksWithFog(void);
+void FogBlocks(void);
 void CausticsVoxel(int32_t voxel_num);
 void ExposureVoxel(int32_t voxel_num);
 void EmitVoxels(void);

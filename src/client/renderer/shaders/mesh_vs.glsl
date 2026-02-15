@@ -33,9 +33,8 @@ layout (location = 9) in vec3 in_next_tangent;
 layout (location = 10) in vec3 in_next_bitangent;
 
 uniform mat4 model;
-
 uniform float lerp;
-uniform bool fog;
+uniform int block;
 
 out vertex_data {
   vec3 model_position;
@@ -65,7 +64,7 @@ float sample_voxel_caustics(in vec3 texcoord) {
  */
 vec4 sample_voxel_fog(in vec3 texcoord) {
 
-  if (!fog) {
+  if ((block & BSP_BLOCK_FOG) == 0) {
     return vec4(0.0);
   }
 
@@ -81,7 +80,7 @@ vec4 sample_voxel_fog(in vec3 texcoord) {
     float fog_density_sample = voxel_fog_density(uvw);
     
     if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = calculate_fog_lighting(xyz);
+      vec3 fog_lighting = light_and_shadow_fog(xyz);
       fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
     }
     

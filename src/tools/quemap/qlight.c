@@ -418,7 +418,7 @@ static void LightWorld(void) {
   Work("Fog", FogVoxel, (int32_t) num_voxel);
 
   // mark blocks that contain fog for rendering optimization
-  MarkBlocksWithFog();
+  FogBlocks();
 
   // free the fog volumes
   FreeFog();

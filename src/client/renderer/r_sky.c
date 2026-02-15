@@ -47,6 +47,10 @@ static struct {
   GLuint uniforms_block;
 
   GLint texture_sky;
+  GLint texture_voxel_light_data;
+  GLint texture_voxel_light_indices;
+
+  GLint block;
 } r_sky_program;
 
 /**
@@ -67,6 +71,8 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
     if (block->query->result == 0) {
       continue;
     }
+
+    glUniform1i(r_sky_program.block, block->flags);
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -110,12 +116,14 @@ static void R_InitSkyProgram(void) {
   glUniformBlockBinding(r_sky_program.name, lights_block, 1);
 
   r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
-  const GLint texture_voxel_light_data = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_data");
-  const GLint texture_voxel_light_indices = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_indices");
+  r_sky_program.texture_voxel_light_data = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_data");
+  r_sky_program.texture_voxel_light_indices = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_indices");
 
   glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
-  glUniform1i(texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
-  glUniform1i(texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
+  glUniform1i(r_sky_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(r_sky_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
+
+  r_sky_program.block = glGetUniformLocation(r_sky_program.name, "block");
 
   glUseProgram(0);
 

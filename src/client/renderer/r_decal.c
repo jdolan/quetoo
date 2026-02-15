@@ -25,25 +25,13 @@
  * @brief The decal shader program.
  */
 static struct {
-  /**
-   * @brief The program name.
-   */
   GLuint name;
-
-  /**
-   * @brief The uniform block binding location.
-   */
   GLuint uniforms_block;
 
-  /**
-   * @brief The model matrix.
-   */
-  GLint model;
-
-  /**
-   * @brief The decal texture sampler.
-   */
   GLint texture_diffusemap;
+
+  GLint model;
+  GLint block;
 } r_decal_program;
 
 /**
@@ -243,9 +231,7 @@ void R_UpdateDecals(const r_view_t *view) {
       r_bsp_inline_model_t *in = e->model->bsp_inline;
 
       r_decal_t d = *decal;
-
       d.time = view->ticks;
-
       d.origin = Mat4_Transform(e->inverse_matrix, decal->origin);
 
       R_ClipDecalToNode(view, in->head_node, &d);
@@ -326,6 +312,8 @@ void R_DrawDecals(const r_view_t *view) {
         d->dirty = false;
       }
 
+      glUniform1i(r_decal_program.block, block->flags);
+
       glBindVertexArray(d->vertex_array);
 
       assert(d->image->texnum);
@@ -372,6 +360,7 @@ static void R_InitDecalProgram(void) {
   glUniformBlockBinding(r_decal_program.name, lights_block, 1);
 
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
+  r_decal_program.block = glGetUniformLocation(r_decal_program.name, "block");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
   const GLint texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");

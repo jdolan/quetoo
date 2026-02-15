@@ -346,37 +346,22 @@ void FeatherLights(void) {
 }
 
 /**
- * @brief Marks blocks that contain fog by checking if any intersecting voxels have fog density.
- * @remarks This should be called after all FogVoxel work is complete.
+ * @brief Marks blocks that contain voxels with fog density.
  */
-void MarkBlocksWithFog(void) {
+void FogBlocks(void) {
 
-  Com_Verbose("Marking blocks with fog...\n");
+  bsp_block_t *b = bsp_file.blocks;
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++, b++) {
 
-  int32_t blocks_with_fog = 0;
+    const voxel_t *v = voxels.voxels;
+    for (size_t j = 0; j < voxels.num_voxels; j++, v++) {
 
-  for (int32_t i = 0; i < bsp_file.num_blocks; i++) {
-    bsp_block_t *block = &bsp_file.blocks[i];
-    const bsp_node_t *node = &bsp_file.nodes[block->node];
-
-    // Expand block bounds by voxel size to catch edge voxels
-    const box3_t check_bounds = Box3_Expand(node->visible_bounds, BSP_VOXEL_SIZE);
-
-    // Check all voxels for intersection
-    for (size_t v = 0; v < voxels.num_voxels; v++) {
-      const voxel_t *voxel = &voxels.voxels[v];
-
-      if (Box3_Intersects(check_bounds, voxel->bounds) && voxel->fog > 0.f) {
-        block->flags |= BSP_BLOCK_FOG;
-        blocks_with_fog++;
+      if (v->fog && Box3_Intersects(b->visible_bounds, v->bounds)) {
+        b->flags |= BSP_BLOCK_FOG;
         break;
       }
     }
   }
-
-  Com_Verbose("Marked %d / %d blocks with fog (%.1f%%)\n",
-              blocks_with_fog, bsp_file.num_blocks,
-              100.f * blocks_with_fog / bsp_file.num_blocks);
 }
 
 #define CAUSTICS_RADIUS 128.f

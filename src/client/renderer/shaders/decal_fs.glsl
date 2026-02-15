@@ -28,6 +28,7 @@ in vertex_data {
 } vertex;
 
 uniform mat4 model;
+uniform int block;
 
 layout (location = 0) out vec4 out_color;
 
@@ -36,6 +37,10 @@ layout (location = 0) out vec4 out_color;
  */
 vec4 sample_voxel_fog() {
 
+  if ((block & BSP_BLOCK_FOG) == 0) {
+    return vec4(0.0);
+  }
+  
   vec4 fog = vec4(0.0);
 
   float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
@@ -48,7 +53,7 @@ vec4 sample_voxel_fog() {
     float fog_density_sample = voxel_fog_density(uvw);
     
     if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = calculate_fog_lighting(xyz);
+      vec3 fog_lighting = light_and_shadow_fog(xyz);
       fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
     }
     
