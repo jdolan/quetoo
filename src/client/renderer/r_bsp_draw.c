@@ -435,7 +435,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
-    glUniform1i(r_bsp_program.block, (block->flags & BSP_BLOCK_FOG) != 0);
+    glUniform1i(r_bsp_program.block, block->flags);
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
