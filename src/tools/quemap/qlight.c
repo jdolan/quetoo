@@ -402,6 +402,9 @@ static void LightWorld(void) {
   // calculate direct lighting
   Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
+  // feather lights into neighboring voxels to smooth boundaries
+  FeatherLights();
+
   // build fog volumes out of brush entities
   BuildFog();
 

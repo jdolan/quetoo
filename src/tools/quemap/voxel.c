@@ -342,6 +342,28 @@ void FogVoxel(int32_t voxel_num) {
 }
 
 /**
+ * @brief Feathers lights into neighboring voxels to smooth boundaries.
+ */
+void FeatherLights(void) {
+
+  for (guint i = 0; i < lights->len; i++) {
+    light_t *light = g_ptr_array_index(lights, i);
+
+    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 0.5f);
+
+    for (size_t v = 0; v < voxels.num_voxels; v++) {
+      voxel_t *voxel = &voxels.voxels[v];
+
+      if (!Box3_Intersects(bounds, voxel->bounds)) {
+        continue;
+      }
+
+      g_hash_table_add(voxel->lights, light);
+    }
+  }
+}
+
+/**
  * @brief Calculates caustics intensity based on proximity to liquid contents.
  */
 void CausticsVoxel(int32_t voxel_num) {
