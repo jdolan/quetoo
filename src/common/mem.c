@@ -24,20 +24,6 @@
 
 #include "mem.h"
 
-#if defined(SUPER_MEMORY_CHECKS)
-  #define MAX_MEMORY_STACK 32
-
-  #if defined(WIN32)
-    #include <DbgHelp.h>
-  #else
-    #define OutputDebugString(s) fputs(s, stdout)
-  #endif
-
-  #if HAVE_EXECINFO
-    #include <execinfo.h>
-  #endif
-#endif
-
 #define MEM_MAGIC 0x69696969
 typedef uint32_t mem_magic_t;
 
@@ -47,9 +33,6 @@ typedef struct mem_block_s {
   struct mem_block_s *parent;
   GSList *children;
   size_t size;
-#if defined(SUPER_MEMORY_CHECKS)
-  void *stack[MAX_MEMORY_STACK];
-#endif
 } mem_block_t;
 
 typedef struct {
@@ -63,37 +46,6 @@ typedef struct {
 } mem_state_t;
 
 static mem_state_t mem_state;
-
-#if defined(SUPER_MEMORY_CHECKS)
-/**
- * @brief
- */
-static void Mem_SetStack(mem_block_t *block) {
-#if defined(WIN32)
-  CaptureStackBackTrace(0, MAX_MEMORY_STACK, block->stack, NULL);
-#elif HAVE_EXECINFO
-  backtrace(block->stack, MAX_MEMORY_STACK);
-#endif
-}
-
-/**
- * @brief
- */
-static void Mem_Print(const mem_block_t *block, const char *why) {
-  static char str[MAX_STRING_CHARS];
-  
-  g_snprintf(str, sizeof(str), "%s block %p tag %i\n", why, (block + 1), block->tag);
-  OutputDebugString(str);
-
-  for (int32_t i = 3; i < 5; i++) {
-    if (!block->stack[i]) {
-      break;
-    }
-    g_snprintf(str, sizeof(str), "  [%p]\n",  (block->stack[i]));
-    OutputDebugString(str);
-  }
-}
-#endif
 
 /**
  * @brief Throws a fatal error if the specified memory block is non-NULL but
@@ -133,12 +85,40 @@ void Mem_Check(void *p) {
  */
 static void Mem_Free_(mem_block_t *b) {
 
-#if defined(SUPER_MEMORY_CHECKS)
-  Mem_Print(b, "Freeing");
-#endif
+  // Validate this block before freeing its children
+  if (b->magic != MEM_MAGIC) {
+    fprintf(stderr, "Mem_Free_: Corrupted block %p (magic: %d, expected: %d)\n", 
+            (void *)b, b->magic, MEM_MAGIC);
+    raise(SIGABRT);
+  }
 
-  // recurse down the tree, freeing children
+  // Validate all children before freeing them
   if (b->children) {
+    GSList *child = b->children;
+    int child_num = 0;
+    bool has_corruption = false;
+    while (child) {
+      mem_block_t *child_block = (mem_block_t *)child->data;
+      if (child_block->magic != MEM_MAGIC) {
+        has_corruption = true;
+        fprintf(stderr, "Mem_Free_: Parent %p (tag: %d, size: %zu) has corrupted child #%d: %p (magic: %d)\n",
+                (void *)b, b->tag, b->size, child_num, (void *)child_block, child_block->magic);
+        fprintf(stderr, "  First 8 words of bad child: %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx\n",
+                ((unsigned long long *)child_block)[0], ((unsigned long long *)child_block)[1],
+                ((unsigned long long *)child_block)[2], ((unsigned long long *)child_block)[3],
+                ((unsigned long long *)child_block)[4], ((unsigned long long *)child_block)[5],
+                ((unsigned long long *)child_block)[6], ((unsigned long long *)child_block)[7]);
+      }
+      child = child->next;
+      child_num++;
+    }
+    
+    if (has_corruption) {
+      fprintf(stderr, "Mem_Free_: Parent details - address: %p, magic: %d, tag: %d, size: %zu, num_children: %d\n",
+              (void *)b, b->magic, b->tag, b->size, child_num);
+      raise(SIGABRT);
+    }
+    
     g_slist_free_full(b->children, (GDestroyNotify) Mem_Free_);
   }
 
@@ -243,10 +223,6 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
   }
 
   mem_state.size += size;
-  
-#if defined(SUPER_MEMORY_CHECKS)
-  Mem_SetStack(b);
-#endif
 
   SDL_UnlockSpinlock(&mem_state.lock);
 
@@ -316,10 +292,6 @@ void *Mem_Realloc(void *p, size_t size) {
 
   b->size = size;
 
-#if defined(SUPER_MEMORY_PRINTS)
-  Mem_Print(b, "Reallocating");
-#endif
-
   if (!(new_b = realloc(b, s))) {
     fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
     raise(SIGABRT);
@@ -352,14 +324,6 @@ void *Mem_Realloc(void *p, size_t size) {
 
   mem_state.size -= old_size;
   mem_state.size += size;
-  
-#if defined(SUPER_MEMORY_CHECKS)
-  Mem_SetStack(new_b);
-
-#if defined(SUPER_MEMORY_PRINTS)
-  Mem_Print(new_b, "Reallocated");
-#endif
-#endif
 
   SDL_UnlockSpinlock(&mem_state.lock);
 
