@@ -286,14 +286,43 @@ void LightVoxel(int32_t voxel_num) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
-
     if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
 
     for (size_t j = 0; j < lengthof(points); j++) {
-      const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
-      if (trace.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, trace.end)) {
+
+      const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
+      if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
+        IlluminateVoxel(voxel, light);
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * @brief Assigns lights to a voxel based on visibility traces to corners and center.
+ */
+void IndirectLightVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
+
+  for (guint i = 0; i < lights->len; i++) {
+
+    light_t *light = g_ptr_array_index(lights, i);
+    if (!Box3_Intersects(light->bounds, voxel->bounds)) {
+      continue;
+    }
+
+    for (size_t j = 0; j < lengthof(points); j++) {
+
+      const cm_trace_t to_light = Light_Trace(points[j], light->origin, 0, CONTENTS_SOLID);
+      if (to_light.fraction == 1.f || Box3_ContainsPoint(light->visible_bounds, to_light.end)) {
         IlluminateVoxel(voxel, light);
         break;
       }

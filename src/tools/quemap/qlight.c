@@ -402,6 +402,9 @@ static void LightWorld(void) {
   // calculate direct lighting
   Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
+  // and indirect lighting
+  Work("Indirect Lighting", IndirectLightVoxel, (int32_t) num_voxel);
+
   // build fog volumes out of brush entities
   BuildFog();
 
