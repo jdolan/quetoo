@@ -302,35 +302,6 @@ void LightVoxel(int32_t voxel_num) {
 }
 
 /**
- * @brief Assigns lights to a voxel based on visibility traces to corners and center.
- */
-void IndirectLightVoxel(int32_t voxel_num) {
-
-  voxel_t *voxel = &voxels.voxels[voxel_num];
-
-  vec3_t points[9];
-  points[0] = voxel->origin;
-  Box3_ToPoints(voxel->bounds, &points[1]);
-
-  for (guint i = 0; i < lights->len; i++) {
-
-    light_t *light = g_ptr_array_index(lights, i);
-    if (!Box3_Intersects(light->bounds, voxel->bounds)) {
-      continue;
-    }
-
-    for (size_t j = 0; j < lengthof(points); j++) {
-
-      const cm_trace_t to_light = Light_Trace(points[j], light->origin, 0, CONTENTS_SOLID);
-      if (to_light.fraction == 1.f || Box3_ContainsPoint(light->visible_bounds, to_light.end)) {
-        IlluminateVoxel(voxel, light);
-        break;
-      }
-    }
-  }
-}
-
-/**
  * @brief Applies fog to a voxel by sampling corners and center.
  */
 void FogVoxel(int32_t voxel_num) {

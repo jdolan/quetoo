@@ -69,7 +69,7 @@ static void Shutdown(const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
 
-  fprintf(stderr, "ERROR: Thread %lu: %s", SDL_GetCurrentThreadID(), msg);
+  fprintf(stderr, "ERROR: Thread %llu: %s", SDL_GetCurrentThreadID(), msg);
 
   fflush(stderr);
 
