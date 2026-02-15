@@ -431,7 +431,7 @@ static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) 
 
 /**
  * @brief Draw elements comparator to sort model faces by material.
- * @details Opaque faces are equal if they share material and contents.
+ * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
  */
 static gint FaceCmp(gconstpointer a, gconstpointer b) {
@@ -486,7 +486,6 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
     bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
     bsp_file.num_draw_elements++;
 
-    out->plane = a_side->plane;
     out->material = a_side->material;
     out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 

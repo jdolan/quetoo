@@ -27,6 +27,7 @@
 float Cg_GetHookPullSpeed(void);
 
 extern cvar_t *cg_add_atmospheric;
+extern cvar_t *cg_add_decals;
 extern cvar_t *cg_add_entities;
 extern cvar_t *cg_add_flares;
 extern cvar_t *cg_add_lights;

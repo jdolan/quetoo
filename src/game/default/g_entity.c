@@ -667,7 +667,7 @@ static void G_WorldspawnMusic(void) {
 
     GArray *tracks = g_array_new(0, 0, sizeof(int32_t));
     for (int32_t i = 1; i <= num_tracks; i++) {
-      g_array_append_val(tracks, i);
+      tracks = g_array_append_val(tracks, i);
     }
     g_array_sort(tracks, G_WorldspawnMusic_shuffle);
 

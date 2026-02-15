@@ -353,6 +353,281 @@ START_TEST(check_Cm_Barycentric) {
 
 } END_TEST
 
+START_TEST(check_Cm_ClipWindingToWinding_full_inside) {
+  // Clip a small quad completely inside a larger quad
+  cm_winding_t *large = Cm_AllocWinding(4);
+  large->num_points = 4;
+  large->points[0] = Vec3(0, 0, 0);
+  large->points[1] = Vec3(100, 0, 0);
+  large->points[2] = Vec3(100, 0, 100);
+  large->points[3] = Vec3(0, 0, 100);
+
+  cm_winding_t *small = Cm_AllocWinding(4);
+  small->num_points = 4;
+  small->points[0] = Vec3(25, 0, 25);
+  small->points[1] = Vec3(75, 0, 25);
+  small->points[2] = Vec3(75, 0, 75);
+  small->points[3] = Vec3(25, 0, 75);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(small, large, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  // Should be unchanged since it's fully inside
+  for (int32_t i = 0; i < 4; i++) {
+    ck_assert(Vec3_EqualEpsilon(small->points[i], result->points[i], 0.01f));
+  }
+
+  Cm_FreeWinding(large);
+  Cm_FreeWinding(small);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_full_outside) {
+  // Clip a quad completely outside another quad
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 0, 0);
+  clip->points[1] = Vec3(50, 0, 0);
+  clip->points[2] = Vec3(50, 0, 50);
+  clip->points[3] = Vec3(0, 0, 50);
+
+  cm_winding_t *outside = Cm_AllocWinding(4);
+  outside->num_points = 4;
+  outside->points[0] = Vec3(100, 0, 100);
+  outside->points[1] = Vec3(150, 0, 100);
+  outside->points[2] = Vec3(150, 0, 150);
+  outside->points[3] = Vec3(100, 0, 150);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(outside, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_null(result);
+
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(outside);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_partial_overlap) {
+  // Clip a quad partially overlapping another
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 0, 0);
+  clip->points[1] = Vec3(50, 0, 0);
+  clip->points[2] = Vec3(50, 0, 50);
+  clip->points[3] = Vec3(0, 0, 50);
+
+  cm_winding_t *overlap = Cm_AllocWinding(4);
+  overlap->num_points = 4;
+  overlap->points[0] = Vec3(25, 0, 25);
+  overlap->points[1] = Vec3(75, 0, 25);
+  overlap->points[2] = Vec3(75, 0, 75);
+  overlap->points[3] = Vec3(25, 0, 75);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(overlap, clip, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_ge(result->num_points, 3); // At least a triangle
+  
+  // Verify all result points are within the clip bounds
+  for (int32_t i = 0; i < result->num_points; i++) {
+    ck_assert_float_ge(result->points[i].x, -SIDE_EPSILON);
+    ck_assert_float_le(result->points[i].x, 50.f + SIDE_EPSILON);
+    ck_assert_float_ge(result->points[i].z, -SIDE_EPSILON);
+    ck_assert_float_le(result->points[i].z, 50.f + SIDE_EPSILON);
+  }
+
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(overlap);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_triangle) {
+  // Clip a quad to a triangular region
+  cm_winding_t *triangle = Cm_AllocWinding(3);
+  triangle->num_points = 3;
+  triangle->points[0] = Vec3(0, 0, 0);
+  triangle->points[1] = Vec3(100, 0, 0);
+  triangle->points[2] = Vec3(50, 0, 100);
+
+  cm_winding_t *quad = Cm_AllocWinding(4);
+  quad->num_points = 4;
+  quad->points[0] = Vec3(10, 0, 10);
+  quad->points[1] = Vec3(90, 0, 10);
+  quad->points[2] = Vec3(90, 0, 90);
+  quad->points[3] = Vec3(10, 0, 90);
+
+  cm_winding_t *result = Cm_ClipWindingToWinding(quad, triangle, Vec3(0, 1, 0), SIDE_EPSILON);
+
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_ge(result->num_points, 3); // At least a triangle
+
+  Cm_FreeWinding(triangle);
+  Cm_FreeWinding(quad);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_vertical_plane) {
+  // Test clipping on a vertical plane (wall)
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 0, 0);
+  clip->points[1] = Vec3(0, 0, 100);
+  clip->points[2] = Vec3(0, 100, 100);
+  clip->points[3] = Vec3(0, 100, 0);
+  
+  cm_winding_t *in = Cm_AllocWinding(4);
+  in->num_points = 4;
+  in->points[0] = Vec3(0, 25, 25);
+  in->points[1] = Vec3(0, 25, 75);
+  in->points[2] = Vec3(0, 75, 75);
+  in->points[3] = Vec3(0, 75, 25);
+  
+  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, Vec3(1, 0, 0), SIDE_EPSILON);
+  
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  // Result should be the same as input (fully inside)
+  for (int32_t i = 0; i < 4; i++) {
+    ck_assert(Vec3_EqualEpsilon(in->points[i], result->points[i], 0.01f));
+  }
+  
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(in);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_diagonal_plane) {
+  // Test clipping on a diagonal plane
+  const vec3_t normal = Vec3_Normalize(Vec3(1, 0, 1));
+  
+  // Create a square on the diagonal plane
+  const vec3_t tangent = Vec3_Normalize(Vec3(-1, 0, 1));
+  const vec3_t bitangent = Vec3(0, 1, 0);
+  
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -50), Vec3_Scale(bitangent, -50)), Vec3_Zero());
+  clip->points[1] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 50), Vec3_Scale(bitangent, -50)), Vec3_Zero());
+  clip->points[2] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 50), Vec3_Scale(bitangent, 50)), Vec3_Zero());
+  clip->points[3] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -50), Vec3_Scale(bitangent, 50)), Vec3_Zero());
+  
+  // Small square in the center
+  cm_winding_t *in = Cm_AllocWinding(4);
+  in->num_points = 4;
+  in->points[0] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -10), Vec3_Scale(bitangent, -10)), Vec3_Zero());
+  in->points[1] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 10), Vec3_Scale(bitangent, -10)), Vec3_Zero());
+  in->points[2] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, 10), Vec3_Scale(bitangent, 10)), Vec3_Zero());
+  in->points[3] = Vec3_Add(Vec3_Add(Vec3_Scale(tangent, -10), Vec3_Scale(bitangent, 10)), Vec3_Zero());
+  
+  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, normal, SIDE_EPSILON);
+  
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(in);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_offset_planes) {
+  // Test clipping windings that are offset from each other
+  cm_winding_t *clip = Cm_AllocWinding(4);
+  clip->num_points = 4;
+  clip->points[0] = Vec3(0, 1, 0);
+  clip->points[1] = Vec3(100, 1, 0);
+  clip->points[2] = Vec3(100, 1, 100);
+  clip->points[3] = Vec3(0, 1, 100);
+  
+  // Decal winding offset by 1 unit in normal direction
+  cm_winding_t *in = Cm_AllocWinding(4);
+  in->num_points = 4;
+  in->points[0] = Vec3(25, 2, 25);
+  in->points[1] = Vec3(75, 2, 25);
+  in->points[2] = Vec3(75, 2, 75);
+  in->points[3] = Vec3(25, 2, 75);
+  
+  // This should still work if we use a large enough epsilon
+  cm_winding_t *result = Cm_ClipWindingToWinding(in, clip, Vec3(0, 1, 0), 2.0);
+  
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  Cm_FreeWinding(clip);
+  Cm_FreeWinding(in);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_decal_scenario) {
+  // Simulate actual decal clipping scenario
+  // Face on a floor
+  cm_winding_t *face = Cm_AllocWinding(4);
+  face->num_points = 4;
+  face->points[0] = Vec3(-64, 0, -64);
+  face->points[1] = Vec3(64, 0, -64);
+  face->points[2] = Vec3(64, 0, 64);
+  face->points[3] = Vec3(-64, 0, 64);
+  
+  // Decal quad in center of face
+  cm_winding_t *decal = Cm_AllocWinding(4);
+  decal->num_points = 4;
+  decal->points[0] = Vec3(-16, 0, -16);
+  decal->points[1] = Vec3(16, 0, -16);
+  decal->points[2] = Vec3(16, 0, 16);
+  decal->points[3] = Vec3(-16, 0, 16);
+  
+  cm_winding_t *result = Cm_ClipWindingToWinding(decal, face, Vec3(0, 1, 0), SIDE_EPSILON);
+  
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  // Should be unchanged since decal is fully inside face
+  for (int32_t i = 0; i < 4; i++) {
+    ck_assert(Vec3_EqualEpsilon(decal->points[i], result->points[i], 0.01f));
+  }
+  
+  Cm_FreeWinding(face);
+  Cm_FreeWinding(decal);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
+START_TEST(check_Cm_ClipWindingToWinding_edge_aligned) {
+  // Test when decal edge aligns with face edge
+  cm_winding_t *face = Cm_AllocWinding(4);
+  face->num_points = 4;
+  face->points[0] = Vec3(0, 0, 0);
+  face->points[1] = Vec3(64, 0, 0);
+  face->points[2] = Vec3(64, 0, 64);
+  face->points[3] = Vec3(0, 0, 64);
+  
+  // Decal that extends to face edge
+  cm_winding_t *decal = Cm_AllocWinding(4);
+  decal->num_points = 4;
+  decal->points[0] = Vec3(0, 0, 16);
+  decal->points[1] = Vec3(32, 0, 16);
+  decal->points[2] = Vec3(32, 0, 48);
+  decal->points[3] = Vec3(0, 0, 48);
+  
+  cm_winding_t *result = Cm_ClipWindingToWinding(decal, face, Vec3(0, 1, 0), SIDE_EPSILON);
+  
+  ck_assert_ptr_nonnull(result);
+  ck_assert_int_eq(4, result->num_points);
+  
+  Cm_FreeWinding(face);
+  Cm_FreeWinding(decal);
+  Cm_FreeWinding(result);
+
+} END_TEST
+
 START_TEST(check_Cm_DistanceToWinding) {
 
   cm_winding_t *w = Cm_AllocWinding(3);
@@ -416,6 +691,21 @@ int32_t main(int32_t argc, char **argv) {
     TCase *tcase = tcase_create("Cm_Barycentric");
     tcase_add_checked_fixture(tcase, setup, teardown);
     tcase_add_test(tcase, check_Cm_Barycentric);
+    suite_add_tcase(suite, tcase);
+  }
+
+  {
+    TCase *tcase = tcase_create("Cm_ClipWindingToWinding");
+    tcase_add_checked_fixture(tcase, setup, teardown);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_full_inside);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_full_outside);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_partial_overlap);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_triangle);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_vertical_plane);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_diagonal_plane);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_offset_planes);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_decal_scenario);
+    tcase_add_test(tcase, check_Cm_ClipWindingToWinding_edge_aligned);
     suite_add_tcase(suite, tcase);
   }
 

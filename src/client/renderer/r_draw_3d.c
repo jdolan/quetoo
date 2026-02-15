@@ -26,7 +26,7 @@
  */
 typedef struct {
   /**
-   * @brief The mode, e.g. `GL_LINE_STRIP`.
+   * @brief The mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
    */
   GLenum mode;
 
@@ -129,10 +129,10 @@ static void R_AddDraw3DVertex(const r_draw_3d_vertex_t *v) {
 /**
  * @brief Draws line strips in 3D space.
  */
-void R_Draw3DLines(const vec3_t *points, size_t count, const color_t color, bool depth_test) {
+void R_Draw3DLines(GLenum mode, const vec3_t *points, size_t count, const color_t color, bool depth_test) {
 
   r_draw_3d_arrays_t draw = {
-    .mode = GL_LINE_STRIP,
+    .mode = mode,
     .depth_test = depth_test,
     .first_vertex = r_draw_3d.num_vertexes,
     .num_vertexes = (GLsizei) count,
@@ -159,7 +159,7 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, const bool depth_test
 
   Box3_ToPoints(bounds, points);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINE_STRIP, (const vec3_t []) {
     points[0],
     points[1],
     points[3],
@@ -167,7 +167,7 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, const bool depth_test
     points[0],
   }, 5, color, depth_test);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINE_STRIP, (const vec3_t []) {
     points[4],
     points[5],
     points[7],
@@ -175,22 +175,22 @@ void R_Draw3DBox(const box3_t bounds, const color_t color, const bool depth_test
     points[4],
   }, 5, color, depth_test);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINES, (const vec3_t []) {
     points[0],
     points[4],
   }, 2, color, depth_test);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINES, (const vec3_t []) {
     points[2],
     points[6],
   }, 2, color, depth_test);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINES, (const vec3_t []) {
     points[3],
     points[7],
   }, 2, color, depth_test);
 
-  R_Draw3DLines((const vec3_t []) {
+  R_Draw3DLines(GL_LINES, (const vec3_t []) {
     points[1],
     points[5],
   }, 2, color, depth_test);

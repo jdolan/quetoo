@@ -932,9 +932,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 
   for (int32_t i = 0; i <= count; i++) {
 
-    cg_sprite_t *s;
-
-    if (!(s = Cg_AddSprite(&(cg_sprite_t) {
+    if (!Cg_AddSprite(&(cg_sprite_t) {
         .animation = cg_sprite_blood_01,
         .lifetime = Cg_AnimationLifetime(cg_sprite_blood_01, 30) + Randomf() * 500,
         .size = RandomRangef(40.f, 64.f),
@@ -945,9 +943,18 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
         .color = Vec3(1.f, 1.f, .1f),
         .softness = 1.f,
         .lighting = 1.f
-      }))) {
+      })) {
       break;
     }
+
+    Cg_AddDecal(&(r_decal_t) {
+      .image = cg_decal_blood[Randomi() % lengthof(cg_decal_blood)],
+      .origin = Vec3_Mix(end, origin, step * i),
+      .radius = RandomRangef(8.f, 32.f),
+      .color = color_red,
+      .lifetime = 8000 + Randomf() * 4000,
+      .rotation = RandomRadian()
+    });
   }
 }
 

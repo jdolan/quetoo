@@ -20,6 +20,7 @@
  */
 
 #include "r_local.h"
+#include "r_local.h"
 
 /**
  * @brief
@@ -233,7 +234,6 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
   const bsp_draw_elements_t *in = bsp->cm->file->draw_elements;
   for (int32_t i = 0; i < bsp->num_draw_elements; i++, in++, out++) {
 
-    out->plane = bsp->planes + in->plane;
     out->material = bsp->materials[in->material];
     out->surface = in->surface;
 
@@ -273,6 +273,18 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
   bsp->num_blocks = bsp->cm->file->num_blocks;
   bsp->blocks = out = Mem_LinkMalloc(bsp->num_blocks * sizeof(r_bsp_block_t), bsp);
 
+  GLuint elements_buffer;
+  glGenBuffers(1, &elements_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_buffer);
+
+  GLuint elements[MAX_BSP_BLOCK_DECALS * 3];
+  for (GLuint i = 0, v = 0, e = 0; i < MAX_BSP_BLOCK_DECALS; i++, v += 3, e += 3) {
+    elements[e + 0] = v + 0;
+    elements[e + 1] = v + 1;
+    elements[e + 2] = v + 2;
+  }
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
+
   const bsp_block_t *in = bsp->cm->file->blocks;
   for (int32_t i = 0; i < bsp->num_blocks; i++, in++, out++) {
 
@@ -280,6 +292,41 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->draw_elements = bsp->draw_elements + in->first_draw_element;
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
+
+    r_bsp_block_decals_t *decals = &out->decals;
+
+    decals->triangles = g_array_new(true, true, sizeof(r_decal_triangle_t));
+
+    decals->elements_buffer = elements_buffer;
+
+    glGenVertexArrays(1, &decals->vertex_array);
+    glBindVertexArray(decals->vertex_array);
+
+    glGenBuffers(1, &decals->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, decals->vertex_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements_buffer);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
+    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
+    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+    glEnableVertexAttribArray(4);
+
+    glBindVertexArray(0);
+  }
+
+  const bsp_face_t *in_face = bsp->cm->file->faces;
+  r_bsp_face_t *out_face = bsp->faces;
+  for (int32_t i = 0; i < bsp->num_faces; i++, in_face++, out_face++) {
+    if (in_face->block >= 0 && in_face->block < bsp->num_blocks) {
+      out_face->block = &bsp->blocks[in_face->block];
+    }
   }
 }
 
@@ -350,7 +397,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const bsp_voxels_t *in = mod->bsp->cm->file->voxels;
   const byte *data = (byte *) in + sizeof(bsp_voxels_t);
 
-  r_bsp_voxels_t *out = mod->bsp->voxels = Mem_LinkMalloc(sizeof(*out), mod->bsp);
+  r_bsp_voxels_t *out = &mod->bsp->voxels;
 
   out->size = in->size;
   out->num_voxels = out->size.x * out->size.y * out->size.z;
@@ -655,10 +702,10 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->fog);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels->light_indices);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.fog);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
 
   r_models.world = mod;
 }
@@ -678,7 +725,15 @@ static void R_FreeBspModel(r_media_t *self) {
   glDeleteVertexArrays(1, &bsp->depth_pass.vertex_array);
 
   r_bsp_block_t *block = bsp->inline_models->blocks;
-  for (int32_t j = 0; j < bsp->inline_models->num_blocks; j++, block++) {
+  for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
+
+    g_array_free(block->decals.triangles, true);
+
+    glDeleteBuffers(1, &block->decals.vertex_buffer);
+    glDeleteBuffers(1, &block->decals.elements_buffer);
+
+    glDeleteVertexArrays(1, &block->decals.vertex_array);
+
     R_FreeOcclusionQuery(block->query);
   }
 
@@ -687,7 +742,7 @@ static void R_FreeBspModel(r_media_t *self) {
     R_FreeOcclusionQuery(light->query);
   }
 
-  glDeleteBuffers(1, &bsp->voxels->light_indices_buffer);
+  glDeleteBuffers(1, &bsp->voxels.light_indices_buffer);
 
   R_GetError(NULL);
 }

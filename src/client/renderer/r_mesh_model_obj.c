@@ -110,22 +110,22 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         // swap ordering to match Quetoo
         vec = Vec3(vec.x, vec.z, vec.y);
         mod->bounds = Box3_Append(mod->bounds, vec);
-        g_array_append_val(obj.v, vec);
+        obj.v = g_array_append_val(obj.v, vec);
       }
     } else if (strncmp("vt ", line, strlen("vt ")) == 0) {
       if (Parse_QuickPrimitive(line + strlen("vt "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 2) == 2) {
         vec.y = -vec.y;
-        g_array_append_val(obj.vt, vec);
+        obj.vt = g_array_append_val(obj.vt, vec);
       }
     } else if (strncmp("vn ", line, strlen("vn ")) == 0) {
       if (Parse_QuickPrimitive(line + strlen("vn "), PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &vec, 3) == 3) {
         // swap ordering to match Quetoo
         vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
-        g_array_append_val(obj.vn, vec);
+        obj.vn = g_array_append_val(obj.vn, vec);
       }
     } else if (strncmp("g ", line, strlen("g ")) == 0) {
       if (group.f->len) {
-        g_array_append_val(obj.g, group);
+        obj.g = g_array_append_val(obj.g, group);
       }
       g_strlcpy(group.name, line + strlen("g "), sizeof(group.name));
       group.f = g_array_new(FALSE, FALSE, sizeof(r_obj_face_t));
@@ -155,12 +155,12 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         }
       }
 
-      g_array_append_val(group.f, face);
+      group.f = g_array_append_val(group.f, face);
     }
   }
 
   if (group.f->len) {
-    g_array_append_val(obj.g, group);
+    obj.g = g_array_append_val(obj.g, group);
   }
 
   out->num_faces = obj.g->len;

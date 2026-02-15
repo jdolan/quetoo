@@ -151,10 +151,17 @@ typedef union {
    */
   vec3_t xyz;
 
-  /**
-   * @brief Swizzle.
-   */
-  vec2_t xy;
+  struct {
+    /**
+     * @brief Swizzle.
+     */
+    vec2_t xy;
+
+    /**
+     * @brief Swizzle.
+     */
+    vec2_t zw;
+  };
 } vec4_t;
 
 /**

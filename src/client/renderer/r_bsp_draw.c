@@ -89,7 +89,7 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
   for (int32_t i = 0; i < bsp->num_vertexes; i++, v++) {
 
     const vec3_t pos = v->position;
-    if (Vec3_Distance(pos, view->origin) > 256.f) {
+    if (Vec3_Distance(pos, view->origin) > 512.f) {
       continue;
     }
 
@@ -97,13 +97,13 @@ static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
     const vec3_t tangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->tangent) };
     const vec3_t bitangent[] = { pos, Vec3_Fmaf(pos, 8.f, v->bitangent) };
 
-    R_Draw3DLines(normal, 2, color_red, false);
+    R_Draw3DLines(GL_LINES, normal, 2, color_red, true);
 
     if (r_draw_bsp_normals->integer > 1) {
-      R_Draw3DLines(tangent, 2, color_green, false);
+      R_Draw3DLines(GL_LINES, tangent, 2, color_green, true);
 
       if (r_draw_bsp_normals->integer > 2) {
-        R_Draw3DLines(bitangent, 2, color_blue, false);
+        R_Draw3DLines(GL_LINES, bitangent, 2, color_blue, true);
       }
     }
   }
@@ -118,7 +118,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
     return;
   }
 
-  if (!bsp->voxels) {
+  if (!bsp->voxels.voxels) {
     return;
   }
 
@@ -127,7 +127,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   if (tr.fraction < 1.0f) {
 
-    const r_bsp_voxels_t *voxels = bsp->voxels;
+    const r_bsp_voxels_t *voxels = &bsp->voxels;
 
     const vec3_t pos = Vec3_Subtract(tr.end, voxels->bounds.mins);
     const vec3_t xyz = Vec3_Scale(pos, 1.0f / BSP_VOXEL_SIZE);
@@ -152,7 +152,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
         const color_t color = Color3fv(light->color);
 
         const vec3_t line_points[2] = { voxel_world, light->origin };
-        R_Draw3DLines(line_points, 2, color, true);
+        R_Draw3DLines(GL_LINES, line_points, 2, color, true);
       }
     }
   }
@@ -376,7 +376,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
+
+  if (r_draw_wireframe->integer != 2) {
+    glEnable(GL_DEPTH_TEST);
+  }
 
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
@@ -394,7 +397,10 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   }
 
   glDisable(GL_CULL_FACE);
-  glDisable(GL_DEPTH_TEST);
+
+  if (r_draw_wireframe->integer != 2) {
+    glDisable(GL_DEPTH_TEST);
+  }
 
   glBindVertexArray(0);
 

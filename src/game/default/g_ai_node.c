@@ -157,7 +157,7 @@ ai_node_id_t Ai_Node_CreateNode(const vec3_t position) {
     ai_nodes = g_array_new(false, true, sizeof(ai_node_t));
   }
 
-  g_array_append_val(ai_nodes, (ai_node_t) {
+  ai_nodes = g_array_append_val(ai_nodes, (ai_node_t) {
     .position = position
   });
 
@@ -221,7 +221,7 @@ void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float 
     node_a->links = g_array_new(false, false, sizeof(ai_link_t));
   }
 
-  g_array_append_vals(node_a->links, &(ai_link_t) {
+  node_a->links = g_array_append_vals(node_a->links, &(ai_link_t) {
     .id = b,
     .cost = cost
   }, 1);
@@ -1148,7 +1148,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
   GArray *queue = g_array_new(false, false, sizeof(ai_node_priority_t));
   bool finished = false;
 
-  g_array_append_vals(queue, &(ai_node_priority_t) {
+  queue = g_array_append_vals(queue, &(ai_node_priority_t) {
     .id = start,
     .priority = 0
   }, 1);
@@ -1186,7 +1186,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
         const float priority = new_cost + heuristic(link->id, end);
 
         if (!queue->len) {
-          g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
+          queue = g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
             .id = link->id,
             .priority = priority
           }, 1);
@@ -1194,7 +1194,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
           for (gint x = queue->len - 1; ; x--) {
 
             if (priority < g_array_index(queue, ai_node_priority_t, x).priority) {
-              g_array_insert_vals(queue, x + 1, &(ai_node_priority_t) {
+              queue = g_array_insert_vals(queue, x + 1, &(ai_node_priority_t) {
                 .id = link->id,
                 .priority = priority
               }, 1);
@@ -1202,7 +1202,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
             }
 
             if (x == 0) {
-              g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
+              queue = g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
                 .id = link->id,
                 .priority = priority
               }, 1);
@@ -1223,7 +1223,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
 
     return_path = g_array_sized_new(false, false, sizeof(ai_node_id_t), g_hash_table_size(costs_started));
 
-    g_array_prepend_val(return_path, end);
+    return_path = g_array_prepend_val(return_path, end);
 
     if (start != end) {
       ai_node_id_t from = end;
@@ -1231,7 +1231,7 @@ GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const
       for (;;) {
         const ai_node_t *from_node = &g_array_index(ai_nodes, ai_node_t, from);
         from = from_node->came_from;
-        g_array_prepend_val(return_path, from);
+        return_path = g_array_prepend_val(return_path, from);
 
         if (from == start) {
           break;

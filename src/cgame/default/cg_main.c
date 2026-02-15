@@ -24,6 +24,7 @@
 cg_state_t cg_state;
 
 cvar_t *cg_add_atmospheric;
+cvar_t *cg_add_decals;
 cvar_t *cg_add_entities;
 cvar_t *cg_add_flares;
 cvar_t *cg_add_lights;
@@ -114,6 +115,7 @@ static void Cg_Init(void) {
   Cg_InitInput();
 
   cg_add_atmospheric = cgi.AddCvar("cg_add_atmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
+  cg_add_decals = cgi.AddCvar("cg_add_decals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
   cg_add_entities = cgi.AddCvar("cg_add_entities", "1", 0, "Toggles adding entities to the scene.");
   cg_add_flares = cgi.AddCvar("cg_add_flares", "1", CVAR_ARCHIVE, "Toggles adding flare effects to light sources.");
   cg_add_lights = cgi.AddCvar("cg_add_lights", "1", 0, "Toggles adding dynamic lights to the scene.");

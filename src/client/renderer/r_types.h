@@ -193,7 +193,7 @@ typedef struct {
 } r_atlas_t;
 
 /**
- * @brief An atlas image, castable to r_image_t and r_media_t.
+ * @brief An atlas image, castable to `r_image_t` and `r_media_t`.
  */
 typedef struct {
   /**
@@ -286,6 +286,48 @@ typedef struct r_material_s {
    */
   color_t color;
 } r_material_t;
+
+/**
+ * @brief Decals are projected textures that conform to BSP geometry.
+ */
+typedef struct r_decal_s {
+  /**
+   * @brief The decal origin.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief The decal radius.
+   */
+  float radius;
+
+  /**
+   * @brief The decal color.
+   */
+  color_t color;
+
+  /**
+   * @brief The decal atlas image.
+   */
+  r_atlas_image_t *image;
+
+  /**
+   * @brief The decal creation time in ticks.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The decal lifetime in ticks (0 = permanent).
+   */
+  uint32_t lifetime;
+
+  /**
+   * @brief The decal rotation angle in radians.
+   */
+  float rotation;
+} r_decal_t;
+
+#define MAX_DECALS 0x400
 
 /**
  * @brief OpenGL occlusion queries.
@@ -408,6 +450,11 @@ typedef struct {
   struct r_bsp_node_s *node;
 
   /**
+   * @brief The block containing this face.
+   */
+  struct r_bsp_block_s *block;
+
+  /**
    * @brief The brush side which generated this face.
    */
   r_bsp_brush_side_t *brush_side;
@@ -450,12 +497,6 @@ typedef struct {
  * within a particular inline model.
  */
 typedef struct {
-  /**
-   * @brief The plane, for blended draw elements.
-   * @details Alpha blended draw elements are sorted by plane so that they may be depth sorted.
-   */
-  r_bsp_plane_t *plane;
-
   /**
    * @brief The material.
    */
@@ -568,9 +609,51 @@ typedef struct {
 } r_bsp_leaf_t;
 
 /**
- * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
+ * @brief The maximum number of decals that can be attached to a single BSP block.
+ */
+#define MAX_BSP_BLOCK_DECALS 0x1000
+
+/**
+ * @brief Decals are aggregated at the BSP block level.
  */
 typedef struct {
+  /**
+   * @brief The decal atlas, cast to `r_image_t` for texture binding.
+   * @details All decals must belong to the same atlas.
+   */
+  r_image_t *image;
+
+  /**
+   * @brief The triangles of the decals attached to the containing block.
+   */
+  GArray *triangles;
+
+  /**
+   * @brief The decal vertex buffer object.
+   */
+  GLuint vertex_buffer;
+
+  /**
+   * @brief The decal elements buffer object.
+   */
+  GLuint elements_buffer;
+
+  /**
+   * @brief The decal vertex array object.
+   */
+  GLuint vertex_array;
+
+  /**
+   * @brief True if te containing block's decals require uploading.
+   */
+  bool dirty;
+
+} r_bsp_block_decals_t;
+
+/**
+ * @brief BSP blocks are large, axial-aligned, gridded nodes used to aggregate rendering operations.
+ */
+typedef struct r_bsp_block_s {
   /**
    * @brief The `CONTENTS_BLOCK` node defining this block.
    */
@@ -596,6 +679,12 @@ typedef struct {
    * @brief The occlusion query for this block.
    */
   r_occlusion_query_t *query;
+
+  /**
+   * @brief The decals for this block.
+   */
+  r_bsp_block_decals_t decals;
+
 } r_bsp_block_t;
 
 /**
@@ -831,8 +920,8 @@ typedef struct {
   int32_t num_leafs;
   r_bsp_leaf_t *leafs;
 
-  r_bsp_block_t *blocks;
   int32_t num_blocks;
+  r_bsp_block_t *blocks;
 
   int32_t num_inline_models;
   r_bsp_inline_model_t *inline_models;
@@ -840,7 +929,10 @@ typedef struct {
   int32_t num_lights;
   r_bsp_light_t *lights;
 
-  r_bsp_voxels_t *voxels;
+  /**
+   * @brief The voxel data.
+   */
+  r_bsp_voxels_t voxels;
 
   /**
    * @brief The vertex array (VAO) name.
@@ -1704,6 +1796,12 @@ typedef struct {
   int32_t num_lights;
 
   /**
+   * @brief New decals added this frame, to be processed during R_UpdateDecals.
+   */
+  r_decal_t decals[MAX_DECALS];
+  int32_t num_decals;
+
+  /**
    * @brief The view frustum, for box and sphere culling.
    * @remarks This is populated by the renderer.
    */
@@ -1779,6 +1877,9 @@ typedef struct {
   int32_t mesh_triangles;
 
   int32_t sprite_draw_elements;
+
+  int32_t decals;
+  int32_t decal_draw_elements;
 
   int32_t draw_chars;
   int32_t draw_fills;

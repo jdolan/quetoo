@@ -36,12 +36,16 @@ static void R_SetEntityBounds(r_entity_t *e) {
  * @brief
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
-  
+
   if (e->parent) {
     return false;
   }
 
   if (e->effects & (EF_SELF | EF_WEAPON)) {
+    return false;
+  }
+
+  if (e->model == r_models.world->bsp->worldspawn) {
     return false;
   }
 
@@ -144,9 +148,15 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
  */
 void R_DrawEntities(const r_view_t *view) {
 
+  thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
+
   R_DrawOpaqueBspEntities(view);
 
   R_DrawMeshEntities(view);
+
+  Thread_Wait(decals);
+
+  R_DrawDecals(view);
 
   R_DrawBlendBspEntities(view);
 

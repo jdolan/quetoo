@@ -759,6 +759,11 @@ typedef struct cg_import_s {
   r_beam_t *(*AddBeam)(r_view_t *view, const r_beam_t *p);
 
   /**
+   * @brief Adds a decal to the scene.
+   */
+  void (*AddDecal)(r_view_t *view, const r_decal_t *decal);
+
+  /**
    * @brief Draws the player model view.
    */
   void (*DrawPlayerModelView)(r_view_t *view);
@@ -829,12 +834,13 @@ typedef struct cg_import_s {
 
   /**
    * @brief Draw 3D lines between the given point pairs.
+   * @param mode The mode, e.g. `GL_LINE_STRIP`, `GL_LINES`, ..
    * @param points The points array, in pairs.
    * @param count The length of points.
    * @param color Color.
    * @param depth_test Depth test.
   */
-  void (*Draw3DLines)(const vec3_t *points, size_t count, const color_t color, bool depth_test);
+  void (*Draw3DLines)(GLenum mode, const vec3_t *points, size_t count, const color_t color, bool depth_test);
 
   /**
    * @brief Draw a 3D bbox at the given coordinates.

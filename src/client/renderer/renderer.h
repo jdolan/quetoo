@@ -31,6 +31,7 @@
 #include "r_bsp_model.h"
 #include "r_context.h"
 #include "r_cull.h"
+#include "r_decal.h"
 #include "r_depth_pass.h"
 #include "r_draw_2d.h"
 #include "r_draw_3d.h"

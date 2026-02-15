@@ -161,7 +161,7 @@ static void R_UpdateUniforms(const r_view_t *view) {
     out->wireframe = r_draw_wireframe->integer;
 
     if (r_models.world) {
-      const r_bsp_voxels_t *voxels = r_models.world->bsp->voxels;
+      const r_bsp_voxels_t *voxels = &r_models.world->bsp->voxels;
 
       out->voxels.mins = Vec3_ToVec4(voxels->bounds.mins, 0.f);
       out->voxels.maxs = Vec3_ToVec4(voxels->bounds.maxs, 0.f);
@@ -200,6 +200,7 @@ void R_InitView(r_view_t *view) {
   view->num_lights = 0;
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
+  view->num_decals = 0;
 }
 
 /**
@@ -254,7 +255,7 @@ void R_DrawMainView(r_view_t *view) {
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
-  if (r_draw_wireframe->value) {
+  if (r_draw_wireframe->integer) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
 
@@ -264,7 +265,7 @@ void R_DrawMainView(r_view_t *view) {
   
   R_DrawSprites(view);
 
-  if (r_draw_wireframe->value) {
+  if (r_draw_wireframe->integer) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
@@ -479,6 +480,8 @@ void R_Init(void) {
 
   R_InitLights();
 
+  R_InitDecals();
+
   R_InitSky();
 
   R_GetError("Video initialization");
@@ -506,6 +509,8 @@ void R_Shutdown(void) {
   R_ShutdownModels();
 
   R_ShutdownLights();
+
+  R_ShutdownDecals();
 
   R_ShutdownSprites();
 

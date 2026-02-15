@@ -98,7 +98,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set verbose 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
@@ -129,12 +129,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map fragpipe"
+            argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
