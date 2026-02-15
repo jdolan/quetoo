@@ -326,6 +326,8 @@ void Cg_AddEntities(const cl_frame_t *frame) {
 
     e->clazz->Think(e);
 
-    e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
+    if (e->hz) {
+      e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
+    }
   }
 }

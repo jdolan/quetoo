@@ -333,6 +333,8 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
 
   if (cgi.EntityValue(self->def, "model")->parsed & ENTITY_STRING) {
     entity->model = cgi.LoadModel(cgi.EntityValue(self->def, "model")->string);
+    entity->bounds = Box3_Scale(entity->model->bounds, entity->scale);
+    entity->abs_bounds = Box3_Translate(entity->bounds, entity->origin);
   } else {
     Cg_Warn("%s @ %s has no model specified\n", self->clazz->classname, vtos(self->origin));
   }
