@@ -331,12 +331,12 @@ void FeatherLights(void) {
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
 
-    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 1.f);
+    light->visible_bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * .5f);
 
     for (size_t v = 0; v < voxels.num_voxels; v++) {
       voxel_t *voxel = &voxels.voxels[v];
 
-      if (!Box3_Intersects(bounds, voxel->bounds)) {
+      if (!Box3_Intersects(light->visible_bounds, voxel->bounds)) {
         continue;
       }
 
