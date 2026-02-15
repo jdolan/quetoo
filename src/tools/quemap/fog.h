@@ -29,6 +29,12 @@
 #define FOG_DENSITY 1.f
 
 /**
+ * @brief At 0.125 (1/8), it will take 8 fog samples, or 256 world units, to completely obscure
+ * an object within the fog.
+ */
+#define FOG_DENSITY_SCALAR 0.125f
+
+/**
  * @details Fog is baked into the voxels as density in the blue channel of the voxel data texture.
  */
 typedef struct {

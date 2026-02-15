@@ -318,7 +318,7 @@ void FogVoxel(int32_t voxel_num) {
 
       float density = Clampf01(fog->density * weight);
 
-      voxel->fog += density;
+      voxel->fog += density * FOG_DENSITY_SCALAR;
     }
   }
 }
