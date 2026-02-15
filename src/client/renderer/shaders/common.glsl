@@ -193,3 +193,44 @@ float voxel_caustics(in vec3 texcoord) {
 float voxel_exposure(in vec3 texcoord) {
   return texture(texture_voxel_data, texcoord).g;
 }
+
+/**
+ * @brief Calculate lighting at a specific world position for fog rendering.
+ * @param position The world position to calculate lighting at.
+ * @return The combined diffuse lighting from voxel lights and dynamic lights.
+ */
+vec3 calculate_fog_lighting(in vec3 position) {
+
+  vec3 diffuse = vec3(0.0);
+
+  ivec3 voxel = voxel_xyz(position);
+  ivec2 data = voxel_light_data(voxel);
+
+  for (int i = 0; i < data.y; i++) {
+    int index = voxel_light_index(data.x + i);
+    light_t light = lights[index];
+
+    float dist = distance(light.origin.xyz, position);
+    float radius = light.origin.w;
+    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+
+    diffuse += light.color.rgb * light.color.a * atten * modulate;
+  }
+
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = active_lights[i];
+    if (index == -1) {
+      break;
+    }
+
+    light_t light = lights[index];
+
+    float dist = distance(light.origin.xyz, position);
+    float radius = light.origin.w;
+    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+
+    diffuse += light.color.rgb * light.color.a * atten * modulate;
+  }
+
+  return diffuse;
+}

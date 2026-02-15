@@ -107,11 +107,18 @@ static void R_InitSkyProgram(void) {
   r_sky_program.uniforms_block = glGetUniformBlockIndex(r_sky_program.name, "uniforms_block");
   glUniformBlockBinding(r_sky_program.name, r_sky_program.uniforms_block, 0);
 
+  const GLuint lights_block = glGetUniformBlockIndex(r_sky_program.name, "lights_block");
+  glUniformBlockBinding(r_sky_program.name, lights_block, 1);
+
   r_sky_program.texture_sky = glGetUniformLocation(r_sky_program.name, "texture_sky");
   r_sky_program.texture_voxel_fog = glGetUniformLocation(r_sky_program.name, "texture_voxel_fog");
+  const GLint texture_voxel_light_data = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_data");
+  const GLint texture_voxel_light_indices = glGetUniformLocation(r_sky_program.name, "texture_voxel_light_indices");
 
   glUniform1i(r_sky_program.texture_sky, TEXTURE_SKY);
   glUniform1i(r_sky_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
+  glUniform1i(texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
+  glUniform1i(texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 
   glUseProgram(0);
 
