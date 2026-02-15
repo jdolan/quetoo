@@ -109,7 +109,7 @@ void R_Screenshot(r_view_t *view) {
       R_ReadFramebufferAttachment(view->framebuffer, ATTACHMENT_COLOR, &surface);
       break;
     default:
-      surface = SDL_CreateSurface(view->framebuffer->width, view->framebuffer->height, SDL_PIXELFORMAT_BGR24);
+      surface = SDL_CreateSurface(r_context.pw, r_context.ph, SDL_PIXELFORMAT_BGR24);
       glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
       break;
   }
