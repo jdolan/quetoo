@@ -102,7 +102,7 @@ static bool R_ClipDecalToFace(const r_view_t *view,
   cm_winding_t *dw = Cm_AllocWinding(4);
   dw->num_points = 4;
   for (int32_t i = 0; i < dw->num_points; i++) {
-    dw->points[i] = positions[i];
+    dw->points[i] = Vec3_Add(positions[i], n);
   }
 
   cm_winding_t *fw = Cm_AllocWinding(face->num_vertexes);
@@ -283,9 +283,6 @@ void R_DrawDecals(const r_view_t *view) {
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
 
-  glEnable(GL_POLYGON_OFFSET_FILL);
-  glPolygonOffset(-4.f, -4.f);
-
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -339,8 +336,6 @@ void R_DrawDecals(const r_view_t *view) {
 
   glBlendFunc(GL_ONE, GL_ZERO);
   glDisable(GL_BLEND);
-
-  glDisable(GL_POLYGON_OFFSET_FILL);
 
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
