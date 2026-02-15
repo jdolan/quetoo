@@ -37,6 +37,8 @@
 #define CONTENTS_MASK_SOLID  (CONTENTS_SOLID | CONTENTS_WINDOW)
 #define CONTENTS_MASK_LIQUID (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
 
+#define BSP_BLOCK_FOG   0x1
+
 /**
  * @brief The voxels struct.
  */
@@ -216,7 +218,6 @@ uniform sampler2D texture_warp;
  * @brief The voxel textures.
  */
 uniform sampler3D texture_voxel_data;
-uniform sampler3D texture_voxel_fog;
 uniform isampler3D texture_voxel_light_data;
 uniform isamplerBuffer texture_voxel_light_indices;
 

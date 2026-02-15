@@ -39,7 +39,6 @@ static struct {
   GLint texture_material;
   GLint texture_stage;
   GLint texture_voxel_data;
-  GLint texture_voxel_fog;
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
 
@@ -49,6 +48,7 @@ static struct {
 
   GLint color;
   GLint tint_colors;
+  GLint block;
 
   struct {
     GLint alpha_test;
@@ -295,6 +295,16 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   R_ActiveLights(view, e->abs_model_bounds, r_mesh_program.active_lights);
 
+  uint32_t block = 0;
+  const r_bsp_block_t *b = r_models.world->bsp->blocks;
+  for (int32_t i = 0; i < r_models.world->bsp->num_blocks; i++, b++) {
+    if (Box3_Intersects(e->abs_model_bounds, b->visible_bounds)) {
+      block |= b->flags;
+    }
+  }
+
+  glUniform1i(r_mesh_program.block, block);
+
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
@@ -407,7 +417,6 @@ void R_InitMeshProgram(void) {
   r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
   r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
   r_mesh_program.texture_voxel_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_data");
-  r_mesh_program.texture_voxel_fog = glGetUniformLocation(r_mesh_program.name, "texture_voxel_fog");
   r_mesh_program.texture_voxel_light_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_data");
   r_mesh_program.texture_voxel_light_indices = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_indices");
 
@@ -431,11 +440,11 @@ void R_InitMeshProgram(void) {
   r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
   r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
+  r_mesh_program.block = glGetUniformLocation(r_mesh_program.name, "block");
 
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
   glUniform1i(r_mesh_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
-  glUniform1i(r_mesh_program.texture_voxel_fog, TEXTURE_VOXEL_FOG);
   glUniform1i(r_mesh_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_mesh_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 

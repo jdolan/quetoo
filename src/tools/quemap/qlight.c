@@ -405,17 +405,20 @@ static void LightWorld(void) {
   // feather lights into neighboring voxels to smooth boundaries
   FeatherLights();
 
+  // calculate exposure from sky visibility
+  Work("Exposure", ExposureVoxel, (int32_t) num_voxel);
+
+  // calculate caustics from liquid contents
+  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
+
   // build fog volumes out of brush entities
   BuildFog();
 
   // bake fog into the voxel
   Work("Fog", FogVoxel, (int32_t) num_voxel);
 
-  // calculate caustics from liquid contents
-  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
-
-  // calculate exposure from sky visibility
-  Work("Exposure", ExposureVoxel, (int32_t) num_voxel);
+  // mark blocks that contain fog for rendering optimization
+  FogBlocks();
 
   // free the fog volumes
   FreeFog();

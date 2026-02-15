@@ -676,6 +676,11 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
+   * @brief Block flags (e.g., BSP_BLOCK_FOG).
+   */
+  uint32_t flags;
+
+  /**
    * @brief The occlusion query for this block.
    */
   r_occlusion_query_t *query;
@@ -858,11 +863,6 @@ typedef struct {
    * @brief The voxel data 3D texture (RG8): caustics and exposure.
    */
   r_image_t *data;
-
-  /**
-   * @brief The fog 3D texture (RGBA8).
-   */
-  r_image_t *fog;
 
   /**
    * @brief The light data 3D texture (RG32I) for offset and count pairs per voxel.
@@ -1912,7 +1912,6 @@ typedef enum {
    */
   TEXTURE_VOXEL,
   TEXTURE_VOXEL_DATA,
-  TEXTURE_VOXEL_FOG,
   TEXTURE_VOXEL_LIGHT_DATA,
   TEXTURE_VOXEL_LIGHT_INDICES,
 

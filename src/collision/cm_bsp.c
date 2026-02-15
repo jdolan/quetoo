@@ -254,6 +254,7 @@ static void Bsp_SwapBlocks(void *lump, const int32_t num) {
     block->first_draw_element = LittleLong(block->first_draw_element);
     block->num_draw_elements = LittleLong(block->num_draw_elements);
     block->visible_bounds = LittleBounds(block->visible_bounds);
+    block->flags = LittleLong(block->flags);
 
     block++;
   }

@@ -400,6 +400,11 @@ typedef struct {
 } bsp_draw_elements_t;
 
 /**
+ * @brief Block flags.
+ */
+#define BSP_BLOCK_FOG 0x1
+
+/**
  * @brief Blocks are large, uniform, axial-aligned and grid-like nodes used to aggregate
  * rendering operations.
  */
@@ -425,6 +430,11 @@ typedef struct {
    * only the faces on that node's plane.
    */
   box3_t visible_bounds;
+
+  /**
+   * @brief Block flags.
+   */
+  uint32_t flags;
 } bsp_block_t;
 
 /**

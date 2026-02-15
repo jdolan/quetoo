@@ -30,8 +30,7 @@ typedef struct {
   box3_t bounds;
   float caustics;
   float exposure;
-  vec4_t diffuse;
-  vec4_t fog;
+  float fog;
   GHashTable *lights;
   int32_t lights_offset;
   int32_t lights_count;
@@ -54,6 +53,7 @@ size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
 void FeatherLights(void);
 void FogVoxel(int32_t voxel_num);
+void FogBlocks(void);
 void CausticsVoxel(int32_t voxel_num);
 void ExposureVoxel(int32_t voxel_num);
 void EmitVoxels(void);

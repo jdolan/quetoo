@@ -28,16 +28,9 @@
 voxels_t voxels;
 
 /**
- * @brief Accumulates light color into the voxel for fog absorption calculations.
+ * @brief Adds a light to a voxel's light list and updates the light's visible bounds.
  */
 static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
-
-  const float dist = Vec3_Distance(voxel->origin, light->origin);
-  const float atten = Clampf01(1.f - dist / light->radius);
-  const float lumens = atten * atten;
-
-  const vec3_t color = Vec3_Scale(light->color, light->intensity);
-  voxel->diffuse.xyz = Vec3_Fmaf(voxel->diffuse.xyz, lumens, color);
 
   light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
 
@@ -319,24 +312,13 @@ void FogVoxel(int32_t voxel_num) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      float density = Clampf01(fog->density * weight * FOG_DENSITY_SCALAR);
-
-      switch (fog->type) {
-        case FOG_VOLUME:
-          if (!PointInsideFog(points[j], fog)) {
-            density = 0.f;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (density == 0.f) {
+      if (!PointInsideFog(points[j], fog)) {
         continue;
       }
 
-      const vec3_t color = Vec3_Fmaf(fog->color, fog->absorption, voxel->diffuse.xyz);
-      voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
+      float density = Clampf01(fog->density * weight);
+
+      voxel->fog += density;
     }
   }
 }
@@ -349,12 +331,12 @@ void FeatherLights(void) {
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
 
-    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 0.5f);
+    light->visible_bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * .5f);
 
     for (size_t v = 0; v < voxels.num_voxels; v++) {
       voxel_t *voxel = &voxels.voxels[v];
 
-      if (!Box3_Intersects(bounds, voxel->bounds)) {
+      if (!Box3_Intersects(light->visible_bounds, voxel->bounds)) {
         continue;
       }
 
@@ -364,56 +346,68 @@ void FeatherLights(void) {
 }
 
 /**
- * @brief Calculates caustics intensity based on proximity to liquid contents.
+ * @brief Marks blocks that contain voxels with fog density.
+ */
+void FogBlocks(void) {
+
+  bsp_block_t *b = bsp_file.blocks;
+  for (int32_t i = 0; i < bsp_file.num_blocks; i++, b++) {
+
+    const voxel_t *v = voxels.voxels;
+    for (size_t j = 0; j < voxels.num_voxels; j++, v++) {
+
+      if (v->fog && Box3_Intersects(b->visible_bounds, v->bounds)) {
+        b->flags |= BSP_BLOCK_FOG;
+        break;
+      }
+    }
+  }
+}
+
+#define CAUSTICS_RADIUS 128.f
+
+/**
+ * @brief Calculates caustics intensity based on visibility to nearby liquid brushes.
  */
 void CausticsVoxel(int32_t voxel_num) {
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
   
   const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
-  
-  // If this voxel is liquid, full caustics
+
   if (contents & CONTENTS_MASK_LIQUID) {
     voxel->caustics = 1.f;
     return;
   }
   
-  // Search nearby voxels for liquid, attenuate by distance
-  const int32_t search_radius = 4; // Search up to 4 voxels away
-  float min_dist = (float)(search_radius + 1);
-  
-  for (int32_t dz = -search_radius; dz <= search_radius; dz++) {
-    for (int32_t dy = -search_radius; dy <= search_radius; dy++) {
-      for (int32_t dx = -search_radius; dx <= search_radius; dx++) {
-        
-        if (dx == 0 && dy == 0 && dz == 0) continue;
-        
-        const vec3i_t neighbor_xyz = Vec3i_Add(voxel->xyz, Vec3i(dx, dy, dz));
-        
-        // Check bounds
-        if (neighbor_xyz.x < 0 || neighbor_xyz.x >= voxels.size.x ||
-            neighbor_xyz.y < 0 || neighbor_xyz.y >= voxels.size.y ||
-            neighbor_xyz.z < 0 || neighbor_xyz.z >= voxels.size.z) {
-          continue;
-        }
-        
-        const int32_t neighbor_index = (neighbor_xyz.z * voxels.size.y + neighbor_xyz.y) * voxels.size.x + neighbor_xyz.x;
-        const voxel_t *neighbor = &voxels.voxels[neighbor_index];
-        
-        const int32_t neighbor_contents = Cm_BoxContents(neighbor->bounds, 0);
-        if (neighbor_contents & CONTENTS_MASK_LIQUID) {
-          const float dist = sqrtf((float)(dx * dx + dy * dy + dz * dz));
-          if (dist < min_dist) {
-            min_dist = dist;
-          }
-        }
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
+
+  voxel->caustics = 0.f;
+  const float weight = 1.f / lengthof(points);
+
+  for (int32_t i = 0; i < bsp_file.num_brushes; i++) {
+    const bsp_brush_t *brush = &bsp_file.brushes[i];
+    
+    if (!(brush->contents & CONTENTS_MASK_LIQUID)) {
+      continue;
+    }
+    
+    for (size_t j = 0; j < lengthof(points); j++) {
+
+      const vec3_t point = Box3_ClampPoint(brush->bounds, points[j]);
+      const float dist = Vec3_Distance(points[j], point);
+      
+      if (dist > CAUSTICS_RADIUS) {
+        continue;
+      }
+      
+      const cm_trace_t trace = Cm_BoxTrace(points[j], point, Box3_Zero(), 0, CONTENTS_SOLID);
+      if (trace.fraction == 1.f) {
+        voxel->caustics += Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
       }
     }
-  }
-  
-  // Linear attenuation: 1.0 at distance 0, 0.0 at search_radius
-  if (min_dist <= search_radius) {
-    voxel->caustics = Clampf01(1.f - min_dist / (float)search_radius);
   }
 }
 
@@ -476,8 +470,7 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // caustics + exposure (RG)
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(color32_t); // fog
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 3; // caustics + exposure + fog density (RGB)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
@@ -489,17 +482,12 @@ void EmitVoxels(void) {
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
-  byte *out_caustics = out;
-  out += voxels.num_voxels * sizeof(byte) * 2; // RG = caustics + exposure
-
-  color32_t *out_fog = (color32_t *) out;
-  out += voxels.num_voxels * sizeof(color32_t);
+  byte *out_data = out;
+  out += voxels.num_voxels * sizeof(byte) * 3; // RGB = caustics + exposure + fog density
   
   for (int32_t z = 0; z < voxels.size.z; z++) {
 
     Progress("Emitting voxels", 100.f * z / voxels.size.z);
-
-    SDL_Surface *fog = CreateVoxelSurface(voxels.size.x, voxels.size.y, sizeof(color32_t), out_fog);
     
     for (int32_t y = 0; y < voxels.size.y; y++) {
       for (int32_t x = 0; x < voxels.size.x; x++) {
@@ -507,18 +495,11 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        *out_caustics++ = (byte)(Clampf01(voxel->caustics) * 255.f);
-        *out_caustics++ = (byte)(Clampf01(voxel->exposure) * 255.f);
-
-        *out_fog++ = Color_Color32(Color4fv(voxel->fog));
+        *out_data++ = (byte)(Clampf01(voxel->caustics) * 255.f);
+        *out_data++ = (byte)(Clampf01(voxel->exposure) * 255.f);
+        *out_data++ = (byte)(Clampf01(voxel->fog) * 255.f);  // fog density
       }
     }
-
-    if (debug) {
-      WriteVoxelSurface(fog, va("/tmp/%s_lg_fog_%d.png", map_base, z));
-    }
-
-    SDL_DestroySurface(fog);
   }
 
   int32_t *out_light_data = (int32_t *) out;

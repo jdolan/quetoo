@@ -62,61 +62,17 @@ void FreeFog(void) {
 static void FogForEntity(const cm_entity_t *entity) {
 
   const char *classname = Cm_EntityValue(entity, "classname")->string;
-  if (!g_strcmp0(classname, "worldspawn")) {
-
-    if (Cm_EntityValue(entity, "fog_absorption")->parsed ||
-      Cm_EntityValue(entity, "fog_color")->parsed ||
-      Cm_EntityValue(entity, "fog_density")->parsed) {
-
-      fog_t fog = {};
-      fog.type = FOG_GLOBAL;
-      fog.entity = entity;
-
-      fog.absorption = Cm_EntityValue(entity, "fog_absorption")->value ?: FOG_ABSORPTION;
-
-      const cm_entity_t *color = Cm_EntityValue(entity, "fog_color");
-      if (color->parsed & ENTITY_VEC3) {
-        fog.color = color->vec3;
-      } else {
-        fog.color = FOG_COLOR;
-      }
-
-      fog.density = Cm_EntityValue(entity, "fog_density")->value ?: FOG_DENSITY;
-
-      fogs = g_array_append_val(fogs, fog);
-    }
-  } else if (!g_strcmp0(classname, "misc_fog")) {
+  if (!g_strcmp0(classname, "misc_fog")) {
 
     fog_t fog = {};
-    fog.type = FOG_VOLUME;
     fog.entity = entity;
 
     fog.brushes = Cm_EntityBrushes(entity);
     fog.bounds = Box3_Null();
 
-    material_t *material = NULL;
-
     for (guint i = 0; i < fog.brushes->len; i++) {
       const cm_bsp_brush_t *brush = g_ptr_array_index(fog.brushes, i);
       fog.bounds = Box3_Union(fog.bounds, brush->bounds);
-
-      if (g_strcmp0(brush->brush_sides->material->name, "common/fog")) {
-        material = &materials[FindMaterial(brush->brush_sides->material->name)];
-      }
-    }
-
-    if (Cm_EntityValue(entity, "absorption")->parsed & ENTITY_FLOAT) {
-      fog.absorption = Cm_EntityValue(entity, "absorption")->value;
-    } else {
-      fog.absorption = FOG_ABSORPTION;
-    }
-
-    if (Cm_EntityValue(entity, "color")->parsed & ENTITY_VEC3) {
-      fog.color = Cm_EntityValue(entity, "color")->vec3;
-    } else if (material) {
-      fog.color = material->ambient;
-    } else {
-      fog.color = FOG_COLOR;
     }
 
     fog.density = Cm_EntityValue(entity, "density")->value ?: FOG_DENSITY;
