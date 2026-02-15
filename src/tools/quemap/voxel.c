@@ -286,14 +286,14 @@ void LightVoxel(int32_t voxel_num) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
-
     if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
 
     for (size_t j = 0; j < lengthof(points); j++) {
-      const cm_trace_t trace = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
-      if (trace.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, trace.end)) {
+
+      const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
+      if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
         IlluminateVoxel(voxel, light);
         break;
       }
@@ -337,6 +337,28 @@ void FogVoxel(int32_t voxel_num) {
 
       const vec3_t color = Vec3_Fmaf(fog->color, fog->absorption, voxel->diffuse.xyz);
       voxel->fog = Vec4_Add(voxel->fog, Vec3_ToVec4(color, density));
+    }
+  }
+}
+
+/**
+ * @brief Feathers lights into neighboring voxels to smooth boundaries.
+ */
+void FeatherLights(void) {
+
+  for (guint i = 0; i < lights->len; i++) {
+    light_t *light = g_ptr_array_index(lights, i);
+
+    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 0.5f);
+
+    for (size_t v = 0; v < voxels.num_voxels; v++) {
+      voxel_t *voxel = &voxels.voxels[v];
+
+      if (!Box3_Intersects(bounds, voxel->bounds)) {
+        continue;
+      }
+
+      g_hash_table_add(voxel->lights, light);
     }
   }
 }
