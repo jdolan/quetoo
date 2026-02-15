@@ -379,57 +379,50 @@ void MarkBlocksWithFog(void) {
               100.f * blocks_with_fog / bsp_file.num_blocks);
 }
 
+#define CAUSTICS_RADIUS 128.f
+
 /**
- * @brief Calculates caustics intensity based on proximity to liquid contents.
+ * @brief Calculates caustics intensity based on visibility to nearby liquid brushes.
  */
 void CausticsVoxel(int32_t voxel_num) {
 
   voxel_t *voxel = &voxels.voxels[voxel_num];
   
   const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
-  
-  // If this voxel is liquid, full caustics
+
   if (contents & CONTENTS_MASK_LIQUID) {
     voxel->caustics = 1.f;
     return;
   }
   
-  // Search nearby voxels for liquid, attenuate by distance
-  const int32_t search_radius = 4; // Search up to 4 voxels away
-  float min_dist = (float)(search_radius + 1);
-  
-  for (int32_t dz = -search_radius; dz <= search_radius; dz++) {
-    for (int32_t dy = -search_radius; dy <= search_radius; dy++) {
-      for (int32_t dx = -search_radius; dx <= search_radius; dx++) {
-        
-        if (dx == 0 && dy == 0 && dz == 0) continue;
-        
-        const vec3i_t neighbor_xyz = Vec3i_Add(voxel->xyz, Vec3i(dx, dy, dz));
-        
-        // Check bounds
-        if (neighbor_xyz.x < 0 || neighbor_xyz.x >= voxels.size.x ||
-            neighbor_xyz.y < 0 || neighbor_xyz.y >= voxels.size.y ||
-            neighbor_xyz.z < 0 || neighbor_xyz.z >= voxels.size.z) {
-          continue;
-        }
-        
-        const int32_t neighbor_index = (neighbor_xyz.z * voxels.size.y + neighbor_xyz.y) * voxels.size.x + neighbor_xyz.x;
-        const voxel_t *neighbor = &voxels.voxels[neighbor_index];
-        
-        const int32_t neighbor_contents = Cm_BoxContents(neighbor->bounds, 0);
-        if (neighbor_contents & CONTENTS_MASK_LIQUID) {
-          const float dist = sqrtf((float)(dx * dx + dy * dy + dz * dz));
-          if (dist < min_dist) {
-            min_dist = dist;
-          }
-        }
+  vec3_t points[9];
+  points[0] = voxel->origin;
+  Box3_ToPoints(voxel->bounds, &points[1]);
+
+  voxel->caustics = 0.f;
+  const float weight = 1.f / lengthof(points);
+
+  for (int32_t i = 0; i < bsp_file.num_brushes; i++) {
+    const bsp_brush_t *brush = &bsp_file.brushes[i];
+    
+    if (!(brush->contents & CONTENTS_MASK_LIQUID)) {
+      continue;
+    }
+    
+    for (size_t j = 0; j < lengthof(points); j++) {
+
+      const vec3_t point = Box3_ClampPoint(brush->bounds, points[j]);
+      const float dist = Vec3_Distance(points[j], point);
+      
+      if (dist > CAUSTICS_RADIUS) {
+        continue;
+      }
+      
+      const cm_trace_t trace = Cm_BoxTrace(points[j], point, Box3_Zero(), 0, CONTENTS_SOLID);
+      if (trace.fraction == 1.f) {
+        voxel->caustics += Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
       }
     }
-  }
-  
-  // Linear attenuation: 1.0 at distance 0, 0.0 at search_radius
-  if (min_dist <= search_radius) {
-    voxel->caustics = Clampf01(1.f - min_dist / (float)search_radius);
   }
 }
 
