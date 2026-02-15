@@ -29,38 +29,9 @@
 #define FOG_DENSITY 1.f
 
 /**
- * @brief At 0.03125 (1/32), it will take 32 samples, or 1024 world units, to completely obscure
- * an object within the fog.
- */
-#define FOG_DENSITY_SCALAR 0.03125f
-
-/**
- * @brief Fog types.
- */
-typedef enum {
-  FOG_INVALID = -1,
-
-  /**
-   * @brief Global fog defined in worldspawn.
-   */
-  FOG_GLOBAL,
-
-  /**
-   * @brief Fog volumes come from brush entities that are merged into worldspawn.
-   */
-  FOG_VOLUME
-} fog_type_t;
-
-/**
  * @details Fog is baked into the voxels as density in the blue channel of the voxel data texture.
  */
 typedef struct {
-
-  /**
-   * @brief The fog type.
-   */
-  fog_type_t type;
-
   /**
    * @brief The entity definition.
    */

@@ -312,21 +312,11 @@ void FogVoxel(int32_t voxel_num) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      float density = Clampf01(fog->density * weight * FOG_DENSITY_SCALAR);
-
-      switch (fog->type) {
-        case FOG_VOLUME:
-          if (!PointInsideFog(points[j], fog)) {
-            density = 0.f;
-          }
-          break;
-        default:
-          break;
-      }
-
-      if (density == 0.f) {
+      if (!PointInsideFog(points[j], fog)) {
         continue;
       }
+
+      float density = Clampf01(fog->density * weight);
 
       voxel->fog += density * weight;
     }
@@ -341,7 +331,7 @@ void FeatherLights(void) {
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
 
-    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 0.5f);
+    const box3_t bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * 1.f);
 
     for (size_t v = 0; v < voxels.num_voxels; v++) {
       voxel_t *voxel = &voxels.voxels[v];
