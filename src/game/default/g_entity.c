@@ -726,8 +726,11 @@ static void G_worldspawn(g_entity_t *ent) {
 
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
+  ent->s.effects = EF_WORLD;
 
   gi.SetModel(ent, "*0");
+
+  ent->s.bounds = ent->bounds;
 
   const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
 

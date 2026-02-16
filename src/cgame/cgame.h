@@ -569,11 +569,11 @@ typedef struct cg_import_s {
    * @param start The trace start point.
    * @param end The trace end point.
    * @param bounds The trace bounds, or `Box3_Zero()` for point/line trace.
-   * @param skip The entity number to skip (typically our own client).
+   * @param skip The entity to skip.
    * @param contents Solids matching this mask will clip the returned trace.
    * @return A trace result.
    */
-  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
+  cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
 
   /**
    * @}

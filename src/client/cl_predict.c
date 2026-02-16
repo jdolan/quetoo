@@ -128,7 +128,7 @@ typedef struct {
   box3_t bounds;
   box3_t abs_bounds;
   cm_trace_t trace;
-  int32_t skip;
+  const cl_entity_t *skip;
   int32_t contents;
 } cl_trace_t;
 
@@ -146,11 +146,11 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
       continue;
     }
 
-    if (s->number == 0 || s->number == trace->skip) {
+    cl_entity_t *ent = &cl.entities[s->number];
+
+    if (ent == trace->skip) {
       continue;
     }
-
-    const cl_entity_t *ent = &cl.entities[s->number];
 
     if (ent == cl.entity) {
       continue;
@@ -172,7 +172,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
     if (tr.start_solid || tr.fraction < trace->trace.fraction) {
       trace->trace = tr;
-      trace->trace.ent = (struct g_entity_s *) (intptr_t) s->number;
+      trace->trace.ent = ent;
 
       if (tr.start_solid) {
         return;
@@ -188,29 +188,19 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @param skip An optional entity number for which all tests are skipped. Pass
  * 0 for none, because entity 0 is the world, which we always test.
  */
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents) {
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents) {
 
-  cl_trace_t trace;
-
-  memset(&trace, 0, sizeof(trace));
-
-  // clip to world
-  trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
-  if (trace.trace.fraction < 1.f) {
-    trace.trace.ent = (struct g_entity_s *) (intptr_t) -1;
-
-    if (trace.trace.start_solid) { // blocked entirely
-      return trace.trace;
+  cl_trace_t trace = {
+    .start = start,
+    .end = end,
+    .bounds = bounds,
+    .abs_bounds = Cm_TraceBounds(start, end, bounds),
+    .skip = skip,
+    .contents = contents,
+    .trace = {
+      .fraction = FLT_MAX,
     }
-  }
-
-  trace.start = start;
-  trace.end = end;
-  trace.bounds = bounds;
-  trace.skip = skip;
-  trace.contents = contents;
-
-  trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
+  };
 
   Cl_ClipTraceToEntities(&trace);
 

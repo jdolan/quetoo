@@ -125,10 +125,10 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
   frame->num_entities = 0;
 
   entity_state_t *from = NULL;
-  uint16_t from_number;
+  int16_t from_number;
 
   if (delta_frame == NULL || delta_frame->num_entities == 0) {
-    from_number = UINT16_MAX;
+    from_number = INT16_MAX;
   } else {
     from = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
     from_number = from->number;
@@ -137,7 +137,11 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
   int32_t index = 0;
 
   while (true) {
-    const uint16_t number = Net_ReadShort(&net_message);
+    const int16_t number = Net_ReadShort(&net_message);
+
+    if (number == -1) {
+      break;
+    }
 
     if (number >= MAX_ENTITIES) {
       Com_Error(ERROR_DROP, "Bad number: %i\n", number);
@@ -145,10 +149,6 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
     if (net_message.read > net_message.size) {
       Com_Error(ERROR_DROP, "End of message\n");
-    }
-
-    if (!number) { // done
-      break;
     }
 
     // before dealing with new entities, copy unchanged entities into the frame
@@ -163,7 +163,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
       index++;
 
       if (index >= delta_frame->num_entities) {
-        from_number = UINT16_MAX;
+        from_number = INT16_MAX;
       } else {
         from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
         from_number = from->number;
@@ -186,7 +186,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
       index++;
 
       if (index >= delta_frame->num_entities) {
-        from_number = UINT16_MAX;
+        from_number = INT16_MAX;
       } else {
         from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
         from_number = from->number;
@@ -206,7 +206,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
       index++;
 
       if (index >= delta_frame->num_entities) {
-        from_number = UINT16_MAX;
+        from_number = INT16_MAX;
       } else {
         from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
         from_number = from->number;
@@ -228,7 +228,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
   }
 
   // any remaining entities in the old frame are copied over
-  while (from_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
+  while (from_number != INT16_MAX) { // one or more entities from the old packet are unchanged
 
     if (cl_draw_net_messages->integer == 3) {
       Com_Print("   unchanged: %i\n", from_number);
@@ -239,7 +239,7 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
     index++;
 
     if (index >= delta_frame->num_entities) {
-      from_number = UINT16_MAX;
+      from_number = INT16_MAX;
     } else {
       from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
       from_number = from->number;

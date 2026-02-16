@@ -120,8 +120,9 @@ typedef enum {
  * such as rotating, bobbing, etc. The game module may define up to 16 effect bits.
  */
 #define EF_NONE   (0)
-#define EF_CLIENT (1 << 0)
-#define EF_GAME   (1 << 1) // the game may extend from here
+#define EF_WORLD  (1 << 0)
+#define EF_CLIENT (1 << 1)
+#define EF_GAME   (1 << 2) // the game may extend from here
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities
@@ -523,7 +524,7 @@ char *vtos(const vec3_t v);
 void StrLower(const char *in, char *out);
 
 // a cute little hack for printing g_entity_t
-#define etos(e) (e ? va("%u: %s @ %s", e->s.number, e->classname, vtos(e->s.origin)) : "null")
+#define etos(e) (e ? va("%u: %s @ %s", ((g_entity_t *) e)->s.number, ((g_entity_t *) e)->classname, vtos(((g_entity_t *) e)->s.origin)) : "null")
 
 // key / value info strings
 #define MAX_INFO_STRING_KEY    32

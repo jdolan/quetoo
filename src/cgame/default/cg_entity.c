@@ -198,7 +198,7 @@ static void Cg_EntitySound(cl_entity_t *ent) {
     Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
       .sample = cgi.client->sounds[s->sound],
       .origin = s->origin,
-      .entity = s->number,
+      .entity = ent,
       .atten = SOUND_ATTEN_SQUARE,
       .flags = S_PLAY_LOOP | S_PLAY_FRAME
     });

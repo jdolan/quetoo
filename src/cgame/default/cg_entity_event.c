@@ -197,7 +197,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
   vec3_t end = start;
   end.z -= PM_STEP_HEIGHT;
 
-  cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent->current.number, CONTENTS_MASK_SOLID);
+  cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
 
   if (tr.material) {
     const cm_footsteps_t *footsteps = &cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES)->cm->footsteps;
@@ -231,7 +231,7 @@ void Cg_EntityEvent(cl_entity_t *ent) {
   s_play_sample_t play = {
     .origin = ent->current.origin,
     .atten = SOUND_ATTEN_SQUARE,
-    .entity = s->number,
+    .entity = ent,
   };
 
   switch (s->event) {

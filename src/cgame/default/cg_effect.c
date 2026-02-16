@@ -94,7 +94,7 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
     vec3_t end = org;
     end.z -= MAX_WORLD_DIST;
 
-    const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+    const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
     if (tr.fraction == 1.f) {
       continue;
     }
@@ -240,7 +240,7 @@ static void Cg_AddWeather(void) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = sample,
     .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-    .entity = Cg_Self()->current.number
+    .entity = Cg_Self()
   });
 
   if (cg_weather_state.time > cgi.client->unclamped_time) {
@@ -270,7 +270,7 @@ static void Cg_AddUnderwater(void) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
       .sample = cg_sample_underwater,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-      .entity = Cg_Self()->current.number
+      .entity = Cg_Self()
     });
   }
 }

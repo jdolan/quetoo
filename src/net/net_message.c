@@ -375,7 +375,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
   uint16_t bits = 0;
 
-  if (to->number <= 0) {
+  if (to->number < 0) {
     Com_Error(ERROR_FATAL, "Unset entity number\n");
   }
 

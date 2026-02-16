@@ -143,10 +143,6 @@ void Sv_SpawnEntities(void) {
  */
 void Sv_UnlinkEntity(g_entity_t *ent) {
 
-  if (ent->s.number == 0) {
-    return;
-  }
-
   sv_entity_t *sent = &sv.entities[ent->s.number];
 
   if (sent->sector) {
@@ -162,10 +158,6 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
  * the clipping hull.
  */
 void Sv_LinkEntity(g_entity_t *ent) {
-
-  if (ent->s.number == 0) { // never bother with the world
-    return;
-  }
 
   // remove it from its current sector
   Sv_UnlinkEntity(ent);
@@ -286,7 +278,7 @@ static void Sv_BoxEntities_r(sv_sector_t *sector) {
   }
 
   if (sector->axis == -1) {
-    return;    // terminal node
+    return; // terminal node
   }
 
   // recurse down both sides
@@ -507,28 +499,18 @@ static void Sv_ClipTraceToEntities(sv_trace_t *trace) {
 cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
                     const g_entity_t *skip, int32_t contents) {
 
-  sv_trace_t trace = { };
-
-  // clip to world
-  trace.trace = Cm_BoxTrace(start, end, bounds, 0, contents);
-  if (trace.trace.fraction < 1.f) {
-    trace.trace.ent = svs.game->entities[0];
-
-    if (trace.trace.start_solid) { // blocked entirely
-      return trace.trace;
+  sv_trace_t trace = {
+    .start = start,
+    .end = end,
+    .bounds = bounds,
+    .abs_bounds = Cm_TraceBounds(start, end, bounds),
+    .skip = skip,
+    .contents = contents,
+    .trace = {
+      .fraction = FLT_MAX,
     }
-  }
+  };
 
-  trace.start = start;
-  trace.end = end;
-  trace.bounds = bounds;
-  trace.skip = skip;
-  trace.contents = contents;
-
-  // create the bounding box of the entire move
-  trace.abs_bounds = Cm_TraceBounds(start, end, bounds);
-
-  // clip to other solid entities
   Sv_ClipTraceToEntities(&trace);
 
   return trace.trace;

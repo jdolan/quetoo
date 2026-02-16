@@ -461,6 +461,5 @@ typedef struct {
    * but rather by the `Sv_Trace` and `Cl_Trace` routines, which clip traces to their respective
    * known entities.
    */
-  struct g_entity_s *ent;
+  void *ent;
 } cm_trace_t;
-

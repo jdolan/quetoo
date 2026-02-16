@@ -87,7 +87,10 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
   const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, cl->forward);
   const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
 
-  if ((org_tr.fraction != 1.f && !org_tr.ent->take_damage) && distance_between_traces > 16.f && org_tr.brush_side != tr.brush_side) {
+  g_entity_t *other = org_tr.ent;
+  if ((org_tr.fraction != 1.f && !other->take_damage)
+      && distance_between_traces > 16.f
+      && org_tr.brush_side != tr.brush_side) {
     *org = start;
   }
 
@@ -323,6 +326,10 @@ void G_KillBox(g_entity_t *ent) {
   size_t i, len = gi.BoxEntities(bounds, ents, lengthof(ents), BOX_COLLIDE);
   for (i = 0; i < len; i++) {
 
+    if (ents[i] == ge.entities[0]) {
+      continue;
+    }
+
     if (ents[i] == ent) {
       continue;
     }
@@ -350,7 +357,7 @@ void G_KillBox(g_entity_t *ent) {
     }
   }
 
-  if (i < len) {
+  if (i < len && ents[i] != ent) {
     if (G_IsMeat(ent)) {
       G_Damage(&(g_damage_t) {
         .target = ent,

@@ -1105,7 +1105,7 @@ static uint32_t Ai_MoveToTarget(g_client_t *cl, pm_cmd_t *cmd) {
                && cl->ai->move_target.path.trick_jump != TRICK_JUMP_TURNING)
                || cl->ai->move_target.type != AI_GOAL_PATH)
                && !wait_politely
-               && (!ent->ground.ent || ent->ground.ent->s.number == 0)) {
+               && (!ent->ground.ent || ((g_entity_t *) ent->ground.ent)->s.number == 0)) {
 
     // we'll be pushed up against something
     float smol_dist = PM_SPEED_RUN * PM_SPEED_MOD_WALK * MILLIS_TO_SECONDS(cmd->msec);
@@ -1139,7 +1139,7 @@ static uint32_t Ai_MoveToTarget(g_client_t *cl, pm_cmd_t *cmd) {
 
       // if we're on a mover, distress differently so we don't unexpectedly
       // jump off of it
-      if (ent->ground.ent && ent->ground.ent->s.number != 0) {
+      if (ent->ground.ent && ((g_entity_t *) ent->ground.ent)->s.number != 0) {
         cl->ai->move_target.distress += 0.02f;
       } else {
         cl->ai->move_target.distress += 0.2f;

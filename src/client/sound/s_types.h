@@ -157,7 +157,7 @@ typedef struct s_play_sample_s {
   /**
    * @brief The entity associated with this sample, so that occlusion traces may skip it.
    */
-  int32_t entity;
+  const void *entity;
 
   /**
    * @brief An optional think function run once per frame.

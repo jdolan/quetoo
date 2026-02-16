@@ -316,7 +316,7 @@ static void viewWillAppear(ViewController *self) {
     .def = cl.entity_definitions[0]
   };
 
-  int16_t skip = 0;
+  cl_entity_t *ent = NULL;
   float best_radius = FLT_MAX;
 
   vec3_t start = cl_view.origin;
@@ -324,18 +324,18 @@ static void viewWillAppear(ViewController *self) {
 
   while (true) {
 
-    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), skip, CONTENTS_EDITOR);
+    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), ent, CONTENTS_EDITOR);
     if (tr.fraction == 1.f) {
       break;
     }
 
     start = Vec3_Add(tr.end, cl_view.forward);
-    skip = (int16_t) (intptr_t) tr.ent;
+    ent = tr.ent;
 
     EditorEntity e = {
-      .number = skip,
-      .ent = &cl.entities[skip],
-      .def = cl.entity_definitions[skip]
+      .number = ent->current.number,
+      .ent = ent,
+      .def = cl.entity_definitions[ent->current.number]
     };
 
     const float radius = Box3_Radius(e.ent->bounds);

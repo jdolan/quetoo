@@ -406,7 +406,7 @@ bool Ai_Node_CanPathTo(const vec3_t position) {
   // bad ground
   bool stuck_in_mover = tr.ent
       && (tr.start_solid || tr.all_solid)
-      && (tr.ent->s.number != 0
+      && (((g_entity_t *) tr.ent)->s.number != 0
       && !(tr.contents & CONTENTS_MASK_LIQUID));
 
   if (tr.fraction == 1.0 || stuck_in_mover) {
@@ -418,7 +418,10 @@ bool Ai_Node_CanPathTo(const vec3_t position) {
                  Box3(Vec3(-4.f, -4.f, PM_BOUNDS.mins.z), Vec3(4.f, 4.f, PM_BOUNDS.maxs.z)),
                  NULL,
                  CONTENTS_MASK_CLIP_CORPSE | CONTENTS_MASK_LIQUID);
-      stuck_in_mover = tr.ent && (tr.start_solid || tr.all_solid) && (tr.ent->s.number != 0 && !(tr.contents & CONTENTS_MASK_LIQUID));
+      stuck_in_mover = tr.ent
+          && (tr.start_solid || tr.all_solid)
+          && (((g_entity_t *) tr.ent)->s.number != 0
+          && !(tr.contents & CONTENTS_MASK_LIQUID));
 
       if (!stuck_in_mover) {
         return true;
@@ -591,7 +594,7 @@ void Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   // we're walkin'
 
   const ai_node_id_t closest_node = Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE / 4, true, false);
-  const bool on_mover = ent->ground.ent && ent->ground.ent->s.number != 0;
+  const bool on_mover = ent->ground.ent && ((g_entity_t *) ent->ground.ent)->s.number != 0;
 
   // attack button enables/disables placement
   if (allow_adjustments && (ai_player_roam.latched_buttons & BUTTON_ATTACK)) {
