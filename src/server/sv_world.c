@@ -508,6 +508,7 @@ cm_trace_t Sv_Trace(const vec3_t start, const vec3_t end, const box3_t bounds,
     .contents = contents,
     .trace = {
       .fraction = 1.f,
+      .end = end,
     }
   };
 

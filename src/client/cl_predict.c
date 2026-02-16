@@ -198,6 +198,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, c
     .contents = contents,
     .trace = {
       .fraction = 1.f,
+      .end = end,
     }
   };
 
