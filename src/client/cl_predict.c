@@ -185,8 +185,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
  * @brief Client-side collision model tracing. This is the reciprocal of
  * Sv_Trace.
  *
- * @param skip An optional entity number for which all tests are skipped. Pass
- * 0 for none, because entity 0 is the world, which we always test.
+ * @param skip An optional entity to skip.
  */
 cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents) {
 
@@ -198,7 +197,7 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, c
     .skip = skip,
     .contents = contents,
     .trace = {
-      .fraction = FLT_MAX,
+      .fraction = 1.f,
     }
   };
 
