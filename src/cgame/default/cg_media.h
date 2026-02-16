@@ -117,6 +117,7 @@ extern r_animation_t *cg_sprite_hyperball_01;
 extern r_atlas_image_t *cg_decal_bullet[3];
 extern r_atlas_image_t *cg_decal_blood[4];
 extern r_atlas_image_t *cg_decal_burn[4];
+extern r_atlas_image_t *cg_decal_slug[4];
 
 extern r_framebuffer_t cg_framebuffer;
 

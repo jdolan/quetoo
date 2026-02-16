@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_bsp_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_context.c" />
     <ClCompile Include="..\..\src\client\renderer\r_cull.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_decal.c" />
     <ClCompile Include="..\..\src\client\renderer\r_depth_pass.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_2d.c" />
     <ClCompile Include="..\..\src\client\renderer\r_draw_3d.c" />
@@ -47,7 +48,6 @@
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
-    <ClCompile Include="..\..\src\client\renderer\r_stain.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
@@ -57,6 +57,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_bsp_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_context.h" />
     <ClInclude Include="..\..\src\client\renderer\r_cull.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_decal.h" />
     <ClInclude Include="..\..\src\client\renderer\r_depth_pass.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_2d.h" />
     <ClInclude Include="..\..\src\client\renderer\r_draw_3d.h" />
@@ -81,7 +82,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sprite.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_stain.h" />
     <ClInclude Include="..\..\src\client\renderer\r_types.h" />
   </ItemGroup>
   <ItemGroup>

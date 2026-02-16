@@ -699,6 +699,16 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
     return;
   }
 
+  //hit face decal
+  Cg_AddDecal(&(r_decal_t) {
+      .image = cg_decal_bullet[Randomi() % lengthof(cg_decal_bullet)],
+          .origin = end,
+          .radius = RandomRangef(2.f, 4.f),
+          .color = Color3f(0.02f, 0.01f, 0.02f),
+          .lifetime = 7500 + Randomf() * 7500,
+          .rotation = RandomRadian()
+  });
+
   if (ent->timestamp < cgi.client->unclamped_time) {
 
     vec3_t dir;

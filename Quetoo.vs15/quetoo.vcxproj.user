@@ -7,9 +7,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommandArguments>+set r_get_error 1</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>+set r_get_error 1|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>+set r_get_error 1</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>+set r_get_error 1 +map longyard;give all</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArgumentsHistory>+set r_get_error 1|+set r_get_error 1 +map longyard;give all|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommandArguments>+set r_get_error 2 +set r_texture_storage 0</LocalDebuggerCommandArguments>
