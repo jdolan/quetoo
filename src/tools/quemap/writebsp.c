@@ -541,6 +541,7 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
     if (faces->len == 0) {
       g_ptr_array_free(faces, true);
+      node->contents = CONTENTS_NODE;
       return;
     }
 
@@ -563,10 +564,10 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
     return;
   }
 
-  assert(node->contents == CONTENTS_NODE);
-
-  EmitBlocks_r(mod, bsp_file.nodes + node->children[0]);
-  EmitBlocks_r(mod, bsp_file.nodes + node->children[1]);
+  if (node->contents == CONTENTS_NODE) {
+    EmitBlocks_r(mod, bsp_file.nodes + node->children[0]);
+    EmitBlocks_r(mod, bsp_file.nodes + node->children[1]);
+  }
 }
 
 /**

@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_ambient_volume 0"
