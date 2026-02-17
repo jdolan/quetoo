@@ -405,7 +405,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
     sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
   }
 
-  sound->play.entity = self;
+  sound->play.data = self;
 }
 
 /**

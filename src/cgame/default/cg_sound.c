@@ -89,17 +89,15 @@ void Cg_ParseSound(void) {
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
   
   if (play->entity) {
-    if ((ptrdiff_t) (play->entity - (void *) cgi.client->entities) < MAX_ENTITIES) {
-      const cl_entity_t *ent = play->entity;
-      if (ent == Cg_Self()) {
-        play->flags |= S_PLAY_RELATIVE;
-      } else if (ent->current.solid == SOLID_BSP) {
-        play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
-        play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-      } else {
-        play->origin = ent->origin;
-        play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-      }
+    const cl_entity_t *ent = play->entity;
+    if (ent == Cg_Self()) {
+      play->flags |= S_PLAY_RELATIVE;
+    } else if (ent->current.solid == SOLID_BSP) {
+      play->origin = Box3_ClampPoint(ent->abs_bounds, stage->origin);
+      play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+    } else {
+      play->origin = ent->origin;
+      play->velocity = Vec3_Subtract(ent->prev.origin, ent->current.origin);
     }
   }
 
