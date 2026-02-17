@@ -140,7 +140,7 @@ void Cl_Precache_f(void) {
 static void Cl_ParseBaseline(void) {
   static entity_state_t null_state;
 
-  const uint16_t number = Net_ReadShort(&net_message);
+  const int16_t number = Net_ReadShort(&net_message);
   const uint16_t bits = Net_ReadShort(&net_message);
 
   cl_entity_t *ent = &cl.entities[number];

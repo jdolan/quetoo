@@ -88,7 +88,7 @@ static void Cl_ResetTrails(cl_entity_t *ent) {
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, uint16_t number, uint16_t bits) {
+static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, int16_t number, uint16_t bits) {
 
   cl_entity_t *ent = &cl.entities[number];
 

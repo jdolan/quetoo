@@ -963,7 +963,7 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 /**
  * @brief
  */
-static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_entity) {
+static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entity) {
 
   const vec3_t org = cgi.client->entities[org_entity].origin;
   const vec3_t end = cgi.client->entities[dest_entity].origin;

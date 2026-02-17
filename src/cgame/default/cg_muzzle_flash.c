@@ -170,7 +170,7 @@ static void Cg_LogoutFlash(const cl_entity_t *ent) {
  */
 void Cg_ParseMuzzleFlash(void) {
 
-  const uint16_t entity = cgi.ReadShort();
+  const int16_t entity = cgi.ReadShort();
   const uint8_t flash = cgi.ReadByte();
 
   if (entity < 1 || entity >= MAX_ENTITIES) {

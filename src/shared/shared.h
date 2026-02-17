@@ -167,7 +167,7 @@ typedef struct {
   /**
    * @brief The entity number that this state update belongs to.
    */
-  uint16_t number;
+  int16_t number;
   
   /**
    * @brief The entity's spawn identifier; this will differ if an entity is replaced.
@@ -329,7 +329,7 @@ typedef struct player_state_s {
   /**
    * @brief The player's entity index.
    */
-  uint16_t entity;
+  int16_t entity;
 
   /**
    * @brief The player's movement state.
