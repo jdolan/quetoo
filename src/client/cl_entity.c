@@ -136,6 +136,18 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
   int32_t index = 0;
 
+  /*
+   * Parse entity updates from the server message, merging with the previous frame.
+   * The server sends a sorted list of entity numbers with delta updates. We walk through
+   * both the new message and the old frame in parallel by entity number:
+   *  - If from_number < number: unchanged entity from old frame, copy it forward
+   *  - If from_number == number: delta update, apply changes
+   *  - If from_number > number: new entity, delta from baseline
+   *  - If bits has U_REMOVE: entity removed, don't copy forward
+   * The server terminates the list with -1. Using INT16_MAX as sentinel when the
+   * old frame list is exhausted.
+   */
+  
   while (true) {
     const int16_t number = Net_ReadShort(&net_message);
 

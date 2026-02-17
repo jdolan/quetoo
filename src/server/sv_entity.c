@@ -22,7 +22,7 @@
 #include "sv_local.h"
 
 /**
- * @brief Writes a delta update of an entity_state_t list to the message.
+ * @brief Writes a delta update of an `entity_state_t` list to the message.
  */
 static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   entity_state_t *old_state = NULL, *new_state = NULL;
@@ -36,6 +36,15 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
     from_num_entities = from->num_entities;
   }
 
+  /*
+   * Merge-sort the old and new entity lists, writing delta updates to the message.
+   * Both lists are sorted by entity number, so we walk through them in parallel:
+   *  - If entity numbers match: send delta from old to new state
+   *  - If new_num < old_num: entity is new, send from baseline
+   *  - If new_num > old_num: entity was removed, send removal notice
+   * Using INT16_MAX as sentinel when we reach the end of either list.
+   */
+  
   new_index = 0;
   old_index = 0;
   while (new_index < to->num_entities || old_index < from_num_entities) {

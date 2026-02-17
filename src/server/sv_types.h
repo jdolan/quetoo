@@ -110,7 +110,7 @@ typedef struct {
   /**
    * @brief The number of delta-compressed entities in this frame.
    */
-  uint16_t num_entities;
+  int16_t num_entities;
 
   /**
    * @brief The index into the entity state circular buffer.
