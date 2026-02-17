@@ -158,6 +158,11 @@ typedef struct s_play_sample_s {
    * @brief The entity associated with this sample, so that occlusion traces may skip it.
    */
   const void *entity;
+  
+  /**
+   * @brief The user data associated with this sample.
+   */
+  void *data;
 
   /**
    * @brief An optional think function run once per frame.

@@ -213,11 +213,13 @@ void S_RenderStage(const s_stage_t *stage) {
       s_channel_t *ch = s_context.channels;
       int32_t j;
       for (j = 0; j < MAX_CHANNELS; j++, ch++) {
-        if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
-          if (ch->play.sample == s->sample && ch->play.entity == s->entity) {
-            ch->play = *s;
-            ch->timestamp = stage->ticks;
-            break;
+        if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) { // this is also a per-frame play
+          if (ch->play.sample == s->sample) { // and has the same sample
+            if (ch->play.entity == s->entity || ch->play.data == s->data) { // and entity or client entity
+              ch->play = *s;
+              ch->timestamp = stage->ticks;
+              break;
+            }
           }
         }
       }
