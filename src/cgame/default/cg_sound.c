@@ -49,8 +49,7 @@ void Cg_ParseSound(void) {
   assert(play.sample);
 
   if (flags & SOUND_ENTITY) {
-    const int16_t number = cgi.ReadShort();
-    assert(number >= 0);
+    const uint16_t number = cgi.ReadShort();
     assert(number < MAX_ENTITIES);
     const cl_entity_t *ent = &cgi.client->entities[number];
     play.entity = ent;
