@@ -303,6 +303,7 @@ void Cg_AddEntities(const cl_frame_t *frame) {
     cgi.AddEntity(cgi.view, &(const r_entity_t) {
       .model = cgi.WorldModel()->bsp->worldspawn,
       .scale = 1.f,
+      .effects = EF_WORLD
     });
     
     return;
