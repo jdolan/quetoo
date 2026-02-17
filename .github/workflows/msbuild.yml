@@ -13,7 +13,7 @@ on:
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE_PATH: Quetoo.vs15/quetoo.sln
+  SOLUTION_FILE_PATH: Quetoo.vs15/quetoo_all.sln
 
   # Configuration type to build.
   # You can convert this to a build matrix if you need coverage of multiple configuration types.
@@ -28,17 +28,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Objectively
+      uses: actions/checkout@v4
+      with:
+        repository: jdolan/Objectively
+        path: Objectively
+
+    - name: Checkout ObjectivelyMVC
+      uses: actions/checkout@v4
+      with:
+        repository: jdolan/ObjectivelyMVC
+        path: ObjectivelyMVC
+
+    - name: Checkout Quetoo
+      uses: actions/checkout@v4
+      with:
+        path: quetoo
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
 
     - name: Restore NuGet packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
+      working-directory: ${{github.workspace}}/quetoo
       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
 
     - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
+      working-directory: ${{github.workspace}}/quetoo
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}

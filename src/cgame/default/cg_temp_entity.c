@@ -650,7 +650,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   // blast glow
   Cg_AddSprite(&(cg_sprite_t) {
     .origin = org,
-    .lifetime = 325,
+    .lifetime = 600,//325,
     .size = 200.f,
     .rotation = Randomf() * 2.f * M_PI,
     .atlas_image = cg_sprite_explosion_glow,
@@ -666,6 +666,18 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .color = Color4f(0.f, 0.f, 0.f, .5f + Randomf() * .4f),
     .lifetime = 16000 + Randomf() * 8000,
     .rotation = RandomRadian()
+  });
+
+  // secondary blast glow (smaller + long last)
+  Cg_AddSprite(&(cg_sprite_t) {
+      .origin = org,
+          .lifetime = 1500,
+          .size = 48.f,
+          .rotation = Randomf() * 2.f * M_PI,
+          .atlas_image = cg_sprite_explosion_glow,
+          .color = Vec3(.9f, .6f, .3f),
+          .softness = 2.f,
+          .lighting = 1.f
   });
 
   Cg_AddLight(&(const cg_light_t) {
@@ -761,7 +773,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
  * @brief
  */
 static void Cg_LightningDischargeEffect(const vec3_t org) {
-
   for (int32_t i = 0; i < 40; i++) {
     Cg_BubbleTrail(NULL, org, Vec3_Add(org, Vec3_RandomRange(-48.f, 48.f)), 1.f);
   }
@@ -779,6 +790,8 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
     .origin = org,
     .atten = SOUND_ATTEN_LINEAR,
   });
+
+  
 }
 
 /**
@@ -822,17 +835,17 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
     }
 
     Cg_AddSprite(&(cg_sprite_t) {
-      .atlas_image = cg_sprite_particle3,
-      .origin = org,
-      .velocity = Vec3_Scale(forward, 256.f),
-      .acceleration = Vec3_Add(accel, Vec3_Scale(Vec3_RandomDir(), 192.f)),
-      .friction = 2048.f,
-      .lifetime = core_lifetime + Randomf() * 120,
-      .size = 1.f,
-      .size_velocity = 1.0 / MILLIS_TO_SECONDS(core_lifetime),
-      .color = color,
-      .softness = 1.f,
-      .lighting = .2f,
+        .atlas_image = cg_sprite_particle3,
+            .origin = org,
+            .velocity = Vec3_Scale(forward, 256.f),
+            .acceleration = Vec3_Add(accel, Vec3_Scale(Vec3_RandomDir(), 192.f)),
+            .friction = 2048.f,
+            .lifetime = core_lifetime + Randomf() * 120,
+            .size = 1.f,
+            .size_velocity = 1.0 / MILLIS_TO_SECONDS(core_lifetime),
+            .color = Color3f(color.x / 4, color.y / 4, color.z / 4).vec3,
+            .softness = 1.f,
+            .lighting = .2f,
     });
 
     if (i % 3 == 0) {
@@ -909,9 +922,9 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
   }
 
   Cg_AddDecal(&(r_decal_t) {
-    .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
+    .image = cg_decal_slug[Randomi() % lengthof(cg_decal_burn)],
     .origin = end,
-    .radius = RandomRangef(16.f, 24.f),
+    .radius = RandomRangef(8.f, 12.f),
     .color = Color3fv(color),
     .lifetime = 12000 + Randomf() * 4000,
     .rotation = RandomRadian()
