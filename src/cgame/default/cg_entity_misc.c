@@ -304,7 +304,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
       .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
       .pitch = RandomRangei(-1, 1),
-      .entity = self->id
+      .data = self
     });
   }
 }
@@ -405,7 +405,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
     sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
   }
 
-  sound->play.entity = self->id;
+  sound->play.data = self;
 }
 
 /**
@@ -713,7 +713,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .origin = self->origin,
       .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-      .entity = self->id,
+      .data = self,
     });
   }
 }

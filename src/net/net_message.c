@@ -375,10 +375,6 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
   uint16_t bits = 0;
 
-  if (to->number <= 0) {
-    Com_Error(ERROR_FATAL, "Unset entity number\n");
-  }
-
   if (to->number >= MAX_ENTITIES) {
     Com_Error(ERROR_FATAL, "Entity number >= MAX_ENTITIES\n");
   }
@@ -761,7 +757,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 
   *to = *from;
 
-  const int32_t bits = Net_ReadShort(msg);
+  const uint16_t bits = Net_ReadShort(msg);
 
   if (bits & PS_PM_CLIENT) {
     to->client = Net_ReadByte(msg);
@@ -832,7 +828,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
  * @brief
  */
 void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to,
-                         uint16_t number, uint16_t bits) {
+                         int16_t number, uint16_t bits) {
 
   *to = *from;
 

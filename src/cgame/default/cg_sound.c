@@ -49,21 +49,21 @@ void Cg_ParseSound(void) {
   assert(play.sample);
 
   if (flags & SOUND_ENTITY) {
-    play.entity = cgi.ReadShort();
-
-    const cl_entity_t *ent = &cgi.client->entities[play.entity];
+    const int16_t number = cgi.ReadShort();
+    assert(number < MAX_ENTITIES);
+    const cl_entity_t *ent = &cgi.client->entities[number];
+    play.entity = ent;
     if (ent->current.solid == SOLID_BSP) {
       play.origin = Box3_Center(ent->abs_bounds);
     } else {
       play.origin = ent->current.origin;
-
       if (play.sample->media.name[0] == '*') {
         const cg_client_info_t *info = &cg_state.clients[ent->current.client];
         play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
       }
     }
   } else {
-    play.entity = 0;
+    play.entity = NULL;
   }
 
   if (flags & SOUND_ORIGIN) {
@@ -87,8 +87,8 @@ void Cg_ParseSound(void) {
  */
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
   
-  if (play->entity > 0 && play->entity < MAX_ENTITIES) {
-    const cl_entity_t *ent = &cgi.client->entities[play->entity];
+  if (play->entity) {
+    const cl_entity_t *ent = play->entity;
     if (ent == Cg_Self()) {
       play->flags |= S_PLAY_RELATIVE;
     } else if (ent->current.solid == SOLID_BSP) {

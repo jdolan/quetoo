@@ -849,7 +849,7 @@ static void Cg_DrawBlend(const player_state_t *ps) {
   if ((contents & CONTENTS_MASK_LIQUID) && cg_draw_blend_liquid->value) {
     color_t color;
 
-    const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), 0, CONTENTS_MASK_LIQUID);
+    const cm_trace_t tr = cgi.Trace(cgi.view->origin, cgi.view->origin, Box3_Zero(), NULL, CONTENTS_MASK_LIQUID);
     if (tr.brush) {
       const char *name = tr.brush->brush_sides[0].material->name;
       color = cgi.LoadMaterial(name, ASSET_CONTEXT_TEXTURES)->color;
@@ -930,7 +930,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 
       Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
         .sample = dmg >= 25 ? cg_sample_hits[1] : cg_sample_hits[0],
-        .entity = Cg_Self()->current.number
+        .entity = Cg_Self()
       });
     }
   }
@@ -1206,10 +1206,10 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 
   vec3_t pos = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
 
-  const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
-  if (tr.fraction < 1.0) {
+  const cm_trace_t tr = cgi.Trace(cgi.view->origin, pos, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
+  if (tr.fraction < 1.f) {
 
-    const cl_entity_t *ent = &cgi.client->entities[(ptrdiff_t) tr.ent];
+    const cl_entity_t *ent = tr.ent;
     if (ent->current.model1 == MODEL_CLIENT) {
 
       const cg_client_info_t *client = &cg_state.clients[ent->current.client];

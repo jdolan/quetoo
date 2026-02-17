@@ -375,7 +375,6 @@ static void R_InitLocal(void) {
   Cmd_Add("r_list_media", R_ListMedia_f, CMD_RENDERER, "List all currently loaded media (developer tool)");
   Cmd_Add("r_save_materials", R_SaveMaterials_f, CMD_RENDERER, "Write all of the loaded map materials to disk (developer tool).");
   Cmd_Add("r_screenshot", R_Screenshot_f, CMD_SYSTEM | CMD_RENDERER, "Take a screenshot");
-  Cmd_Add("r_sky", R_Sky_f, CMD_RENDERER, "Sets the sky environment map");
 }
 
 /**

@@ -129,7 +129,7 @@ void Cl_Precache_f(void) {
 
   cls.spawn_count = (uint32_t) strtoul(Cmd_Argv(1), NULL, 0);
 
-  cl.precache_check = CS_ZIP;
+  cl.precache_check = CS_PK3;
 
   Cl_RequestNextDownload();
 }
@@ -140,7 +140,7 @@ void Cl_Precache_f(void) {
 static void Cl_ParseBaseline(void) {
   static entity_state_t null_state;
 
-  const uint16_t number = Net_ReadShort(&net_message);
+  const int16_t number = Net_ReadShort(&net_message);
   const uint16_t bits = Net_ReadShort(&net_message);
 
   cl_entity_t *ent = &cl.entities[number];
@@ -173,7 +173,7 @@ int32_t Cl_ParseConfigString(void) {
   strcpy(cl.config_strings[i], Net_ReadString(&net_message));
   const char *s = cl.config_strings[i];
 
-  if (i > CS_MODELS && i < CS_MODELS + MAX_MODELS) {
+  if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
     if (cls.state == CL_ACTIVE) {
       cl.models[i - CS_MODELS] = R_LoadModel(s);
       if (*s == '*') {

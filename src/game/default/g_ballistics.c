@@ -957,8 +957,9 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
       continue;
     }
 
-    if (tr.ent->client || tr.ent->solid == SOLID_BOX) {
-      ignore = tr.ent;
+    g_entity_t *other = tr.ent;
+    if (other->client || other->solid == SOLID_BOX) {
+      ignore = other;
     } else {
       ignore = NULL;
     }

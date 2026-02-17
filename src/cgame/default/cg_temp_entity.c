@@ -185,10 +185,10 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
   });
 
   // draw bbox representation
-  cm_trace_t tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_BOUNDS, 0, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+  cm_trace_t tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
 
   if (tr.start_solid) {
-    tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_CROUCHED_BOUNDS, 0, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
+    tr = cgi.Trace(start, Vec3_Subtract(start, Vec3(0, 0, MAX_WORLD_DIST)), PM_CROUCHED_BOUNDS, NULL, CONTENTS_MASK_CLIP_PLAYER | CONTENTS_MASK_LIQUID);
   }
 
   box3_t box = Box3_Translate(PM_BOUNDS, tr.end);
@@ -481,7 +481,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
     float dist = GIB_STREAM_DIST;
     vec3_t tmp = Vec3_Fmaf(o, dist, v);
 
-    const cm_trace_t tr = cgi.Trace(o, tmp, Box3_Zero(), 0, CONTENTS_MASK_CLIP_PROJECTILE);
+    const cm_trace_t tr = cgi.Trace(o, tmp, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE);
     dist = GIB_STREAM_DIST * tr.fraction;
 
     for (int32_t j = 1; j < GIB_STREAM_COUNT; j++) {
@@ -963,7 +963,7 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 /**
  * @brief
  */
-static void Cg_BfgLaserEffect(const uint16_t org_entity, const uint16_t dest_entity) {
+static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entity) {
 
   const vec3_t org = cgi.client->entities[org_entity].origin;
   const vec3_t end = cgi.client->entities[dest_entity].origin;

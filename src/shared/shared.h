@@ -34,19 +34,17 @@
  * length. The game module is free to populate `CS_GAME - MAX_CONFIG_STRINGS`.
  */
 #define CS_NAME     0 // the server name
-#define CS_SKY      1 // the sky box
-#define CS_WEATHER  2 // the weather string
-#define CS_ZIP      3 // zip name for current level
-#define CS_BSP_SIZE 4 // for catching incompatible maps
-#define CS_WEAPONS  5 // weapon list, for the change weapon UI
-#define CS_MODELS   6 // bsp, bsp sub-models, and mesh models
+#define CS_PK3      1 // pk3 name
+#define CS_BSP      2 // bsp name
+#define CS_BSP_SIZE 3 // for catching incompatible bsps
+#define CS_MODELS   4 // bsp inline models and mesh models
 #define CS_SOUNDS   (CS_MODELS + MAX_MODELS)
 #define CS_MUSICS   (CS_SOUNDS + MAX_SOUNDS)
 #define CS_IMAGES   (CS_MUSICS + MAX_MUSICS)
 #define CS_ITEMS    (CS_IMAGES + MAX_IMAGES)
 #define CS_CLIENTS  (CS_ITEMS  + MAX_ITEMS)
 #define CS_ENTITIES (CS_CLIENTS + MAX_CLIENTS) // for the in-game editor
-#define CS_GAME     (CS_ENTITIES + MAX_ENTITIES)
+#define CS_GAME     (CS_ENTITIES + MAX_ENTITIES) // game-module specific config strings
 
 #define MAX_GAME_CONFIG_STRINGS 256
 
@@ -122,8 +120,9 @@ typedef enum {
  * such as rotating, bobbing, etc. The game module may define up to 16 effect bits.
  */
 #define EF_NONE   (0)
-#define EF_CLIENT (1 << 0)
-#define EF_GAME   (1 << 1) // the game may extend from here
+#define EF_WORLD  (1 << 0)
+#define EF_CLIENT (1 << 1)
+#define EF_GAME   (1 << 2) // the game may extend from here
 
 /**
  * @brief Entity trails are used to apply unique trail effects to entities
@@ -168,7 +167,7 @@ typedef struct {
   /**
    * @brief The entity number that this state update belongs to.
    */
-  uint16_t number;
+  int16_t number;
   
   /**
    * @brief The entity's spawn identifier; this will differ if an entity is replaced.
@@ -330,7 +329,7 @@ typedef struct player_state_s {
   /**
    * @brief The player's entity index.
    */
-  uint16_t entity;
+  int16_t entity;
 
   /**
    * @brief The player's movement state.
@@ -524,8 +523,10 @@ char *vtos(const vec3_t v);
 
 void StrLower(const char *in, char *out);
 
-// a cute little hack for printing g_entity_t
-#define etos(e) (e ? va("%u: %s @ %s", e->s.number, e->classname, vtos(e->s.origin)) : "null")
+/**
+ * @brief A convenience macro for printing g_entity_t pointers in debug messages.
+ */
+#define etos(e) ((e) ? va("%u: %s @ %s", (e)->s.number, (e)->classname, vtos((e)->s.origin)) : "null")
 
 // key / value info strings
 #define MAX_INFO_STRING_KEY    32

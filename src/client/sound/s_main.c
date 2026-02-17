@@ -214,10 +214,13 @@ void S_RenderStage(const s_stage_t *stage) {
       int32_t j;
       for (j = 0; j < MAX_CHANNELS; j++, ch++) {
         if (ch->play.sample && (ch->play.flags & S_PLAY_FRAME)) {
-          if (ch->play.sample == s->sample && ch->play.entity == s->entity) {
-            ch->play = *s;
-            ch->timestamp = stage->ticks;
-            break;
+          if (ch->play.sample == s->sample) {
+            if ((ch->play.entity && ch->play.entity == s->entity)
+                || (ch->play.data && ch->play.data == s->data)) {
+              ch->play = *s;
+              ch->timestamp = stage->ticks;
+              break;
+            }
           }
         }
       }

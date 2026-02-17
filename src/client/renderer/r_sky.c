@@ -159,14 +159,14 @@ void R_ShutdownSky(void) {
 }
 
 /**
- * @brief Sets the sky to the specified environment map.
- * @param name The skybox cubemap name, e.g. `"edge/dragonheart"`.
+ * @brief Loads the sky cubemap specified in worldspawn.
  */
-void R_LoadSky(const char *name) {
+void R_LoadSky(void) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_SKY);
 
-  if (name && *name) {
+  const char *name = Cm_EntityValue(Cm_Worldspawn(), "sky")->nullable_string;
+  if (name) {
     r_sky.image = R_LoadImage(va("sky/%s", name), IMG_CUBEMAP);
   } else {
     r_sky.image = NULL;
@@ -182,17 +182,4 @@ void R_LoadSky(const char *name) {
   }
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
-}
-
-/**
- * @brief
- */
-void R_Sky_f(void) {
-
-  if (Cmd_Argc() != 2) {
-    Com_Print("Usage: %s <basename>\n", Cmd_Argv(0));
-    return;
-  }
-
-  R_LoadSky(Cmd_Argv(1));
 }

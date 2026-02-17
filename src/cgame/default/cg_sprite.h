@@ -82,7 +82,7 @@ enum {
  * @brief Type-safe mapping to entity & spawn ID
  */
 typedef struct {
-  uint16_t entity_id;
+  int16_t entity_id;
   uint8_t spawn_id;
 } cg_sprite_entity_t;
 

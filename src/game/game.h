@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 13
+#define GAME_API_VERSION 26
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -479,6 +479,12 @@ typedef struct g_import_s {
    * @return The BSP model for the currrently loaded map.
    */
   const cm_bsp_t *(*Bsp)(void);
+  
+  /**
+   * @brief Returns the worldspawn entity definition.
+   * @return The worldspawn entity definition.
+   */
+  const cm_entity_t *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.

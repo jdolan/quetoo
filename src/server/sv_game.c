@@ -267,6 +267,7 @@ void Sv_InitGame(void) {
   import.ImageIndex = Sv_ImageIndex;
 
   import.Bsp = Cm_Bsp;
+  import.Worldspawn = Cm_Worldspawn;
   import.EntityValue = Cm_EntityValue;
   import.EntityBrushes = Cm_EntityBrushes;
   import.PointContents = Sv_PointContents;

@@ -198,7 +198,7 @@ static void Cg_EntitySound(cl_entity_t *ent) {
     Cg_AddSample(cgi.stage, (const s_play_sample_t *) &(s_play_sample_t) {
       .sample = cgi.client->sounds[s->sound],
       .origin = s->origin,
-      .entity = s->number,
+      .entity = ent,
       .atten = SOUND_ATTEN_SQUARE,
       .flags = S_PLAY_LOOP | S_PLAY_FRAME
     });
@@ -245,15 +245,18 @@ static void Cg_AddEntity(cl_entity_t *ent) {
     .scale = 1.f,
     .bounds = ent->bounds,
     .abs_bounds = ent->abs_bounds,
+    .effects = ent->current.effects,
     .color = Color32_Vec4(ent->current.color),
   };
 
   // add effects, augmenting the renderer entity
   Cg_EntityEffects(ent, &e);
 
-  // if there's no model associated with the entity, we're done
-  if (!ent->current.model1) {
-    return;
+  // if we have no model, we're done
+  if (ent->current.model1 == 0) {
+    if (!(ent->current.effects & EF_WORLD)) {
+      return;
+    }
   }
 
   if (ent->current.effects & EF_CLIENT) {
@@ -294,13 +297,15 @@ static void Cg_AddEntity(cl_entity_t *ent) {
  */
 void Cg_AddEntities(const cl_frame_t *frame) {
 
-  // add the world model
-  cgi.AddEntity(cgi.view, &(const r_entity_t) {
-    .model = cgi.WorldModel()->bsp->worldspawn,
-    .scale = 1.f,
-  });
-
   if (!cg_add_entities->value) {
+    
+    // add the world model
+    cgi.AddEntity(cgi.view, &(const r_entity_t) {
+      .model = cgi.WorldModel()->bsp->worldspawn,
+      .scale = 1.f,
+      .effects = EF_WORLD
+    });
+    
     return;
   }
 

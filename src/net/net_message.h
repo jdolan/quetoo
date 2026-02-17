@@ -108,4 +108,4 @@ vec3_t Net_ReadDir(mem_buf_t *msg);
 box3_t Net_ReadBounds(mem_buf_t *msg);
 void Net_ReadDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, pm_cmd_t *to);
 void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player_state_t *to);
-void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to, uint16_t number, uint16_t bits);
+void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_state_t *to, int16_t number, uint16_t bits);

@@ -22,13 +22,13 @@
 #include "sv_local.h"
 
 /**
- * @brief Writes a delta update of an entity_state_t list to the message.
+ * @brief Writes a delta update of an `entity_state_t` list to the message.
  */
 static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   entity_state_t *old_state = NULL, *new_state = NULL;
-  uint32_t old_index, new_index;
-  uint16_t old_num, new_num;
-  uint16_t from_num_entities;
+  int32_t old_index, new_index;
+  int16_t old_num, new_num;
+  int16_t from_num_entities;
 
   if (!from) {
     from_num_entities = 0;
@@ -36,18 +36,27 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
     from_num_entities = from->num_entities;
   }
 
+  /*
+   * Merge-sort the old and new entity lists, writing delta updates to the message.
+   * Both lists are sorted by entity number, so we walk through them in parallel:
+   *  - If entity numbers match: send delta from old to new state
+   *  - If new_num < old_num: entity is new, send from baseline
+   *  - If new_num > old_num: entity was removed, send removal notice
+   * Using INT16_MAX as sentinel when we reach the end of either list.
+   */
+  
   new_index = 0;
   old_index = 0;
   while (new_index < to->num_entities || old_index < from_num_entities) {
     if (new_index >= to->num_entities) {
-      new_num = 0xffff;
+      new_num = INT16_MAX;
     } else {
       new_state = &svs.entity_states[(to->entity_state + new_index) % svs.num_entity_states];
       new_num = new_state->number;
     }
 
     if (old_index >= from_num_entities) {
-      old_num = 0xffff;
+      old_num = INT16_MAX;
     } else {
       old_state = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
       old_num = old_state->number;
@@ -77,7 +86,7 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
     }
   }
 
-  Net_WriteShort(msg, 0); // end of entities
+  Net_WriteShort(msg, -1); // end of entities
 }
 
 /**
@@ -150,7 +159,7 @@ void Sv_BuildClientFrame(sv_client_t *client) {
   frame->num_entities = 0;
   frame->entity_state = svs.next_entity_state;
 
-  for (int32_t i = 1; i < sv_max_entities->integer; i++) {
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
     const g_entity_t *ent = svs.game->entities[i];
 

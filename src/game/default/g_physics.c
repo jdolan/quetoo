@@ -42,12 +42,12 @@ static void G_CheckGround(g_entity_t *ent) {
 
     if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
       if (ent->ground.ent == NULL) {
-        G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
+        G_Debug("%s meeting ground %s\n", etos(ent), etos((g_entity_t *) trace.ent));
       }
       ent->ground = trace;
     } else {
       if (ent->ground.ent) {
-        G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->ground.ent));
+        G_Debug("%s leaving ground %s\n", etos(ent), etos((g_entity_t *) ent->ground.ent));
       }
       memset(&ent->ground, 0, sizeof(ent->ground));
     }
@@ -942,16 +942,17 @@ static void G_TouchEntity(g_entity_t *ent, const cm_trace_t *trace) {
 
   // run the interaction
 
+  g_entity_t *other = trace->ent;
   if (ent->Touch) {
-    G_Debug("%s touching %s\n", etos(ent), etos(trace->ent));
-    ent->Touch(ent, trace->ent, trace);
+    G_Debug("%s touching %s\n", etos(ent), etos(other));
+    ent->Touch(ent, other, trace);
   }
 
-  if (ent->in_use && trace->ent->in_use) {
+  if (ent->in_use && other->in_use) {
 
-    if (trace->ent->Touch) {
-      G_Debug("%s touching %s\n", etos(trace->ent), etos(ent));
-      trace->ent->Touch(trace->ent, ent, trace);
+    if (other->Touch) {
+      G_Debug("%s touching %s\n", etos(other), etos(ent));
+      other->Touch(other, ent, trace);
     }
   }
 }
@@ -999,7 +1000,8 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
 
     time_remaining -= time;
 
-    if (trace.ent && trace.ent->solid > SOLID_TRIGGER) {
+    g_entity_t *other = trace.ent;
+    if (other && other->solid > SOLID_TRIGGER) {
 
       G_TouchEntity(ent, &trace);
 
@@ -1007,7 +1009,7 @@ static bool G_Physics_Fly_Move(g_entity_t *ent, const float bounce) {
         return true;
       }
 
-      if (!trace.ent->in_use) {
+      if (!other->in_use) {
         continue;
       }
 

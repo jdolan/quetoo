@@ -122,6 +122,17 @@ static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t
 
 /**
  * @brief Clips the bounded box to all brush sides for the given brush.
+ *
+ * This implements swept box vs convex brush collision using the separating axis theorem.
+ * For each brush plane:
+ *  - Calculate signed distance from trace start/end to the plane (accounting for box size)
+ *  - Track the latest "enter" fraction (where we cross from front to back of a plane)
+ *  - Track the earliest "leave" fraction (where we cross from back to front)
+ *  - If start is in front of any plane and stays there, no collision
+ *  - If start is behind all planes: inside the brush (start_solid)
+ *  - If enter < leave: pierced the brush, record the impact at enter fraction
+ * The offsets[] array provides the box corner in the direction of each plane normal,
+ * effectively expanding each plane outward by the box's radius in that direction.
  */
 static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
@@ -327,7 +338,17 @@ static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 }
 
 /**
- * @brief
+ * @brief Recursively descends the BSP tree, testing brushes in leaves that the trace intersects.
+ *
+ * The BSP tree partitions 3D space with planes. Each node has two children representing the
+ * front and back half-spaces. This function:
+ *  - Projects the trace line segment onto the node's splitting plane
+ *  - Determines which side(s) of the plane the swept box intersects (accounting for box size)
+ *  - If entirely on one side, recurses to that child only (tail-call via goto)
+ *  - If straddling the plane, splits the trace at the plane and recurses to both children
+ *  - Negative child indices indicate leaves, which contain brushes to test
+ * The fractions p1f and p2f track how far along the original trace [0,1] each recursive
+ * segment represents, allowing early-out when we've already found a closer hit.
  */
 static void Cm_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
                            const vec3_t p1, const vec3_t p2) {
