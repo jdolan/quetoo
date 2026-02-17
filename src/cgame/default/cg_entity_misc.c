@@ -304,7 +304,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
       .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
       .pitch = RandomRangei(-1, 1),
-      .entity = self
+      .data = self
     });
   }
 }
@@ -713,7 +713,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .origin = self->origin,
       .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-      .entity = self,
+      .data = self,
     });
   }
 }
