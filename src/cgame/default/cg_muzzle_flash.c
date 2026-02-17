@@ -173,7 +173,7 @@ void Cg_ParseMuzzleFlash(void) {
   const int16_t entity = cgi.ReadShort();
   const uint8_t flash = cgi.ReadByte();
 
-  if (entity < 1 || entity >= MAX_ENTITIES) {
+  if (entity < 0 || entity >= MAX_ENTITIES) {
     Cg_Warn("Bad entity %u\n", entity);
     return;
   }
