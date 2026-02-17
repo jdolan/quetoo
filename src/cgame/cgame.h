@@ -502,6 +502,11 @@ typedef struct cg_import_s {
    * @defgroup collision Collision model
    * @{
    */
+  
+  /**
+   * @return The BSP model for the currrently loaded map.
+   */
+  const cm_bsp_t *(*Bsp)(void);
 
   /**
    * @brief Returns the worldspawn entity definition.

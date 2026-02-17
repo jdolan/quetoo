@@ -479,6 +479,12 @@ typedef struct g_import_s {
    * @return The BSP model for the currrently loaded map.
    */
   const cm_bsp_t *(*Bsp)(void);
+  
+  /**
+   * @brief Returns the worldspawn entity definition.
+   * @return The worldspawn entity definition.
+   */
+  const cm_entity_t *(*Worldspawn)(void);
 
   /**
    * @brief Finds the entity pair for `key` within the specifed entity.
