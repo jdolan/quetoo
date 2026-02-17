@@ -42,12 +42,12 @@ static void G_CheckGround(g_entity_t *ent) {
 
     if (trace.ent && trace.plane.normal.z >= PM_STEP_NORMAL) {
       if (ent->ground.ent == NULL) {
-        G_Debug("%s meeting ground %s\n", etos(ent), etos(trace.ent));
+        G_Debug("%s meeting ground %s\n", etos(ent), etos((g_entity_t *) trace.ent));
       }
       ent->ground = trace;
     } else {
       if (ent->ground.ent) {
-        G_Debug("%s leaving ground %s\n", etos(ent), etos(ent->ground.ent));
+        G_Debug("%s leaving ground %s\n", etos(ent), etos((g_entity_t *) ent->ground.ent));
       }
       memset(&ent->ground, 0, sizeof(ent->ground));
     }

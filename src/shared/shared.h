@@ -523,8 +523,10 @@ char *vtos(const vec3_t v);
 
 void StrLower(const char *in, char *out);
 
-// a cute little hack for printing g_entity_t
-#define etos(e) (e ? va("%u: %s @ %s", ((g_entity_t *) e)->s.number, ((g_entity_t *) e)->classname, vtos(((g_entity_t *) e)->s.origin)) : "null")
+/**
+ * @brief A convenience macro for printing g_entity_t pointers in debug messages.
+ */
+#define etos(e) ((e) ? va("%u: %s @ %s", (e)->s.number, (e)->classname, vtos((e)->s.origin)) : "null")
 
 // key / value info strings
 #define MAX_INFO_STRING_KEY    32
