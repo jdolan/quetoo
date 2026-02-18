@@ -115,21 +115,6 @@ float parallax_self_shadow(in vec3 light_dir) {
 }
 
 /**
- * @brief
- */
-vec4 sample_diffusemap() {
-  return sample_material_diffuse(fragment.parallax);
-}
-
-vec3 sample_normalmap() {
-  return sample_material_normal(fragment.parallax, vertex.tbn);
-}
-
-vec4 sample_specularmap() {
-  return sample_material_specular(fragment.parallax);
-}
-
-/**
  * @brief Calculates caustics based on voxel contents.
  */
 /**
@@ -257,8 +242,8 @@ void light_and_shadow(void) {
   }
 
   // For close fragments, do full per-fragment lighting
-  fragment.normal_sample = sample_normalmap();
-  fragment.specular_sample = sample_specularmap();
+  fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
+  fragment.specular_sample = sample_material_specular(fragment.parallax);
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
@@ -316,7 +301,7 @@ void main(void) {
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-    fragment.diffuse_sample = sample_diffusemap() * vertex.color;
+    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax) * vertex.color;
 
     if (fragment.diffuse_sample.a < material.alpha_test) {
       discard;

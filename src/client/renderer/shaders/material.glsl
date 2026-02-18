@@ -277,3 +277,12 @@ vec4 sample_material_specular(in vec2 texcoord) {
 vec4 sample_material_stage(in vec2 texcoord) {
   return texture(texture_stage, texcoord);
 }
+
+/**
+ * @brief Sample the tint map (layer 3 of material array).
+ * @param texcoord Texture coordinates.
+ * @return Tint color used for player model colorization.
+ */
+vec4 sample_material_tint(in vec2 texcoord) {
+  return texture(texture_material, vec3(texcoord, 3));
+}

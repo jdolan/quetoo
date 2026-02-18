@@ -32,29 +32,6 @@ uniform vec4 tint_colors[3];
 /**
  * @brief
  */
-vec4 sample_diffusemap() {
-  return sample_material_diffuse(vertex.diffusemap);
-}
-
-vec3 sample_normalmap() {
-  return sample_material_normal(vertex.diffusemap, fragment.tbn);
-}
-
-vec4 sample_specularmap() {
-  return sample_material_specular(vertex.diffusemap);
-}
-
-vec4 sample_tintmap() {
-  return texture(texture_material, vec3(vertex.diffusemap, 3));
-}
-
-vec4 sample_material_stage() {
-  return sample_material_stage(vertex.diffusemap);
-}
-
-/**
- * @brief
- */
 void light_and_shadow_light(in int index) {
 
   light_t light = lights[index];
@@ -122,8 +99,8 @@ void light_and_shadow(void) {
   }
 
   // For close fragments, do full per-fragment lighting
-  fragment.normal_sample = sample_normalmap();
-  fragment.specular_sample = sample_specularmap();
+  fragment.normal_sample = sample_material_normal(vertex.diffusemap, fragment.tbn);
+  fragment.specular_sample = sample_material_specular(vertex.diffusemap);
 
   fragment.ambient = vertex.ambient;
   fragment.diffuse = vec3(0.0);
@@ -165,13 +142,13 @@ void main(void) {
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-	  fragment.diffuse_sample = sample_diffusemap() * vertex.color;
+	  fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap) * vertex.color;
 
 	  if (fragment.diffuse_sample.a < material.alpha_test) {
   	  discard;
 	  }
 
-	  vec4 tintmap = sample_tintmap();
+	  vec4 tintmap = sample_material_tint(vertex.diffusemap);
 	  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
 	  fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
 	  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
@@ -187,7 +164,7 @@ void main(void) {
 
   } else {
 
-	  fragment.diffuse_sample = sample_material_stage() * vertex.color * color;
+	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color * color;
 
 	  out_color = fragment.diffuse_sample;
 
