@@ -309,6 +309,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       break;
 
     case SDL_EVENT_WINDOW_RESIZED:
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);
       SDL_GetWindowSizeInPixels(r_context.window, &r_context.pw, &r_context.ph);
       // TODO: Need a way for the cgame to recreate its framebuffer
