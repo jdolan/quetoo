@@ -71,7 +71,7 @@ void parallax_occlusion_mapping() {
  * @brief Calculate lighting and shadows for BSP with distance-based LOD.
  * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
  */
-void light_and_shadow(void) {
+void bsp_fragment_lighting(void) {
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
@@ -128,7 +128,7 @@ void main(void) {
       discard;
     }
 
-    light_and_shadow();
+    bsp_fragment_lighting();
 
     fragment.fog = fragment_fog(vertex, fragment);
 

@@ -32,7 +32,7 @@ uniform vec4 tint_colors[3];
 /**
  * @brief Calculate lighting and shadows for mesh with distance-based LOD.
  */
-void light_and_shadow(void) {
+void mesh_fragment_lighting(void) {
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
@@ -81,7 +81,7 @@ void main(void) {
 	  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
 	  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
-	  light_and_shadow();
+	  mesh_fragment_lighting();
 
 	  out_color = fragment.diffuse_sample;
 
