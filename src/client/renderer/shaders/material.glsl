@@ -228,3 +228,52 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	  color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
   }
 }
+
+/**
+ * @brief Sample the diffuse/albedo texture.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @return Diffuse color with alpha.
+ */
+vec4 sample_material_diffuse(in vec2 texcoord) {
+  return texture(texture_material, vec3(texcoord, 0));
+}
+
+/**
+ * @brief Sample and transform the normal map.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @param tbn Tangent-to-view matrix for transforming the normal.
+ * @return View-space normal.
+ */
+vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
+  vec3 normalmap = texture(texture_material, vec3(texcoord, 1)).xyz * 2.0 - 1.0;
+  vec3 roughness = vec3(vec2(material.roughness), 1.0);
+  return normalize(tbn * (normalmap * roughness));
+}
+
+/**
+ * @brief Sample the specular map with Toksvig anti-aliasing.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @return Specular color (rgb) and gloss/power (a).
+ */
+vec4 sample_material_specular(in vec2 texcoord) {
+  vec4 specularmap;
+  specularmap.rgb = texture(texture_material, vec3(texcoord, 2)).rgb * material.hardness;
+
+  vec3 roughness = vec3(vec2(material.roughness), 1.0);
+  vec3 normalmap0 = (textureLod(texture_material, vec3(texcoord, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+  vec3 normalmap1 = (textureLod(texture_material, vec3(texcoord, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+
+  float power = pow(1.0 + material.specularity, 4.0);
+  specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+
+  return specularmap;
+}
+
+/**
+ * @brief Sample a material stage texture.
+ * @param texcoord Texture coordinates.
+ * @return Stage texture color.
+ */
+vec4 sample_material_stage(in vec2 texcoord) {
+  return texture(texture_stage, texcoord);
+}

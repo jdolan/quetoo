@@ -118,40 +118,15 @@ float parallax_self_shadow(in vec3 light_dir) {
  * @brief
  */
 vec4 sample_diffusemap() {
-  return texture(texture_material, vec3(fragment.parallax, 0));
+  return sample_material_diffuse(fragment.parallax);
 }
 
-/**
- * @brief
- */
 vec3 sample_normalmap() {
-  vec3 normalmap = texture(texture_material, vec3(fragment.parallax, 1)).xyz * 2.0 - 1.0;
-  vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  return normalize(vertex.tbn * (normalmap * roughness));
+  return sample_material_normal(fragment.parallax, vertex.tbn);
 }
 
-/**
- * @brief
- */
 vec4 sample_specularmap() {
-  vec4 specularmap;
-  specularmap.rgb = texture(texture_material, vec3(fragment.parallax, 2)).rgb * material.hardness;
-
-  vec3 roughness = vec3(vec2(material.roughness), 1.0);
-  vec3 normalmap0 = (texture(texture_material, vec3(fragment.parallax, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
-  vec3 normalmap1 = (texture(texture_material, vec3(fragment.parallax, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
-
-  float power = pow(1.0 + material.specularity, 4.0);
-  specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
-
-  return specularmap;
-}
-
-/**
- * @brief
- */
-vec4 sample_material_stage(in vec2 texcoord) {
-  return texture(texture_stage, texcoord);
+  return sample_material_specular(fragment.parallax);
 }
 
 /**
