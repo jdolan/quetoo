@@ -20,7 +20,6 @@
  */
 
 uniform mat4 model;
-uniform int block;
 
 in common_vertex_t vertex;
 

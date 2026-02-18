@@ -48,7 +48,6 @@ static struct {
   GLint texture_voxel_light_indices;
 
   GLint alpha_test;
-  GLint block;
 
   struct {
     GLint alpha_test;
@@ -346,8 +345,6 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
-    glUniform1i(r_bsp_program.block, block->flags);
-
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
 
@@ -434,8 +431,6 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
-
-    glUniform1i(r_bsp_program.block, block->flags);
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
     for (int32_t j = 0; j < block->num_draw_elements; j++, draw++) {
@@ -539,7 +534,6 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
 
   r_bsp_program.alpha_test = glGetUniformLocation(r_bsp_program.name, "alpha_test");
-  r_bsp_program.block = glGetUniformLocation(r_bsp_program.name, "block");
 
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");

@@ -34,7 +34,6 @@ layout (location = 10) in vec3 in_next_bitangent;
 
 uniform mat4 model;
 uniform float lerp;
-uniform int block;
 
 out common_vertex_t vertex;
 

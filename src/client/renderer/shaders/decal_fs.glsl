@@ -27,7 +27,6 @@ in decal_data {
 } decal;
 
 uniform mat4 model;
-uniform int block;
 
 out vec4 out_color;
 

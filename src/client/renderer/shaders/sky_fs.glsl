@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-uniform int block;
-
 in common_vertex_t vertex;
 in vec3 cubemap_coord;
 
