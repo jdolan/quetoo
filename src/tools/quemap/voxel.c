@@ -345,25 +345,6 @@ void FeatherLights(void) {
   }
 }
 
-/**
- * @brief Marks blocks that contain voxels with fog density.
- */
-void FogBlocks(void) {
-
-  bsp_block_t *b = bsp_file.blocks;
-  for (int32_t i = 0; i < bsp_file.num_blocks; i++, b++) {
-
-    const voxel_t *v = voxels.voxels;
-    for (size_t j = 0; j < voxels.num_voxels; j++, v++) {
-
-      if (v->fog && Box3_Intersects(b->visible_bounds, v->bounds)) {
-        b->flags |= BSP_BLOCK_FOG;
-        break;
-      }
-    }
-  }
-}
-
 #define CAUSTICS_RADIUS 128.f
 
 /**

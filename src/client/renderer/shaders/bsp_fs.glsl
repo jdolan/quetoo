@@ -34,6 +34,7 @@ in vertex_data {
   vec2 diffusemap;
   vec3 voxel;
   vec4 color;
+  vec4 fog;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -201,14 +202,19 @@ float sample_voxel_caustics() {
 }
 
 /**
- * @brief
+ * @brief Sample volumetric fog with distance-based LOD.
+ * @details For distant fragments (>= 1024 units), uses pre-calculated vertex fog
+ * for performance. For close fragments, performs full per-fragment raymarching
+ * for high-quality dynamic lighting effects (e.g., rocket lighting fog).
  */
 vec4 sample_voxel_fog() {
 
-  if ((block & BSP_BLOCK_FOG) == 0) {
-    return vec4(0.0);
+  // For distant fragments, use interpolated vertex fog (much cheaper)
+  if (fragment.dist >= 1024.0) {
+    return vertex.fog;
   }
 
+  // For close fragments, do full per-fragment raymarching
   vec4 fog = vec4(0.0);
 
   float samples = clamp(fragment.dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
@@ -251,9 +257,6 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir) {
   return light_color * fragment.specularmap.rgb * blinn(light_dir);
 }
 
-/**
- * @brief
- */
 /**
  * @brief Poisson disk samples for PCF soft shadows
  */

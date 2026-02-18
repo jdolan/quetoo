@@ -36,10 +36,6 @@ layout (location = 0) out vec4 out_color;
  * @brief Samples voxel fog
  */
 vec4 sample_voxel_fog() {
-
-  if ((block & BSP_BLOCK_FOG) == 0) {
-    return vec4(0.0);
-  }
   
   vec4 fog = vec4(0.0);
 

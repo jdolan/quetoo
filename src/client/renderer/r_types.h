@@ -676,7 +676,7 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
-   * @brief Block flags (e.g., BSP_BLOCK_FOG).
+   * @brief Block flags.
    */
   uint32_t flags;
 

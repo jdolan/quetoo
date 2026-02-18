@@ -244,3 +244,45 @@ vec3 light_fog(in vec3 position) {
 
   return diffuse;
 }
+
+/**
+ * @brief Calculate volumetric fog for a vertex (used for distant geometry).
+ * @details Performs simplified raymarching from vertex to view with fewer samples
+ * than per-fragment fog. The result is interpolated across the triangle.
+ * @param world_pos The world-space position of the vertex.
+ * @return The fog color (rgb) and density (a).
+ */
+vec4 calculate_vertex_fog(in vec3 world_pos) {
+  vec4 fog = vec4(0.0);
+  
+  vec3 view_pos = view[0].xyz;
+  float dist = distance(world_pos, view_pos);
+  
+  float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+  
+  vec3 voxel_start = voxel_uvw(world_pos);
+  vec3 voxel_end = voxels.view_coordinate.xyz;
+  
+  for (float i = 0; i < samples; i++) {
+    vec3 xyz = mix(world_pos, view_pos, i / samples);
+    vec3 uvw = mix(voxel_start, voxel_end, i / samples);
+    
+    float fog_density_sample = voxel_fog_density(uvw);
+    
+    if (fog_density_sample > 0.0) {
+      vec3 fog_lighting = light_fog(xyz);
+      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+    }
+    
+    if (fog.a >= 0.95) {
+      fog.a = 1.0;
+      break;
+    }
+  }
+  
+  if (hmax(fog.rgb) > 1.0) {
+    fog.rgb /= hmax(fog.rgb);
+  }
+  
+  return clamp(fog, 0.0, 1.0);
+}

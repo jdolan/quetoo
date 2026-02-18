@@ -35,10 +35,6 @@ layout (location = 0) out vec4 out_color;
  */
 vec4 sample_voxel_fog() {
 
-  if ((block & BSP_BLOCK_FOG) == 0) {
-    return vec4(0.0);
-  }
-
   vec4 fog = vec4(0.0);
 
   float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
