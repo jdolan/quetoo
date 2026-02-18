@@ -1817,12 +1817,7 @@ typedef struct {
    * @brief The application window.
    */
   SDL_Window *window;
-
-  /**
-   * @brief The OpenGL 3.3 context.
-   */
-  SDL_GLContext context;
-
+  
   /**
    * @brief The window size, which may be smaller than the drawable size in pixels
    * on high pixel density (4K+) displays.
@@ -1835,19 +1830,24 @@ typedef struct {
   GLint pw, ph;
 
   /**
-   * @brief True if fullscreen, false if windowed.
+   * @brief The display associated with the application window.
    */
-  bool fullscreen;
-
+  SDL_DisplayID display;
+  
+  /**
+   * The display mode.
+   */
+  const SDL_DisplayMode *display_mode;
+  
   /**
    * @brief Greater than 1.0 if High DPI mode is enabled.
    */
-  float window_scale;
+  float display_scale;
 
   /**
-   * @brief The display refresh rate in Hz.
+   * @brief The OpenGL context.
    */
-  float refresh_rate;
+  SDL_GLContext context;
 } r_context_t;
 
 /**

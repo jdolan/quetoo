@@ -257,25 +257,22 @@ void R_InitContext(void) {
     Com_Warn("Failed to query displays: %s\n", SDL_GetError());
   }
 
-  int32_t w = Maxf(0, r_width->integer);
-  int32_t h = Maxf(0, r_height->integer);
-
-  if (w == 0 || h == 0) {
-    const SDL_DisplayMode *best = SDL_GetDesktopDisplayMode(display_id);
-    if (best) {
-      w = best->w;
-      h = best->h;
-    }
-  }
+  int32_t w, h;
+  
+  const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(display_id);
+  
+  w = mode->w;
+  h = mode->h;
 
   if (r_fullscreen->integer) {
+    window_flags |= SDL_WINDOW_FULLSCREEN;
     if (r_fullscreen->integer == 2) {
       window_flags |= SDL_WINDOW_BORDERLESS;
-    } else {
-      window_flags |= SDL_WINDOW_FULLSCREEN;
     }
   } else {
     window_flags |= SDL_WINDOW_RESIZABLE;
+    w = r_width->integer ?: w;
+    h = r_height->integer ?: h;
   }
 
   Com_Print("  Trying %dx%d..\n", w, h);
@@ -287,11 +284,11 @@ void R_InitContext(void) {
   SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);
   SDL_GetWindowSizeInPixels(r_context.window, &r_context.pw, &r_context.ph);
 
-  r_context.refresh_rate = SDL_GetCurrentDisplayMode(display_id)->refresh_rate;
-  r_context.fullscreen = SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN;
-  r_context.window_scale = SDL_GetWindowDisplayScale(r_context.window);
+  r_context.display = SDL_GetDisplayForWindow(r_context.window);
+  r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
+  r_context.display_scale = SDL_GetWindowDisplayScale(r_context.window);
 
-  Cvar_ForceSetInteger(r_display->name, (int32_t) SDL_GetDisplayForWindow(r_context.window));
+  Cvar_ForceSetInteger(r_display->name, (int32_t) r_context.display);
 
   R_SetWindowIcon();
 

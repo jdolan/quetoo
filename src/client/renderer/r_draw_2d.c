@@ -339,7 +339,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
     if (!g_strcmp0(name, r_draw_2d.fonts[i].name)) {
-      if (r_context.window_scale > 1.f && i < r_draw_2d.num_fonts - 1) {
+      if (r_context.display_scale > 1.f && i < r_draw_2d.num_fonts - 1) {
         r_draw_2d.font = &r_draw_2d.fonts[i + 1];
       } else {
         r_draw_2d.font = &r_draw_2d.fonts[i];
@@ -600,8 +600,8 @@ static void R_InitFont(char *name) {
   font->image = R_LoadImage(va("fonts/%s", name), IMG_FONT);
   assert(font->image);
 
-  font->char_width = font->image->width / r_context.window_scale / 16;
-  font->char_height = font->image->height / r_context.window_scale / 8;
+  font->char_width = font->image->width / r_context.display_scale / 16;
+  font->char_height = font->image->height / r_context.display_scale / 8;
 
   Com_Debug(DEBUG_RENDERER, "%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }

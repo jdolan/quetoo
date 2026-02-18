@@ -491,10 +491,7 @@ void R_Init(void) {
 
   R_GetError("Video initialization");
 
-  Com_Print("Video initialized %dx%d (%dx%d) %s\n",
-        r_context.w, r_context.h,
-        r_context.pw, r_context.ph,
-        r_context.fullscreen ? "fullscreen" : "windowed");
+  Com_Print("Video initialized %dx%d (%dx%d)\n", r_context.w, r_context.h, r_context.pw, r_context.ph);
 }
 
 /**
