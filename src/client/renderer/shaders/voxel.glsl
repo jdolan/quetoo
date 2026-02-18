@@ -277,3 +277,30 @@ vec3 calculate_vertex_lighting(in vec3 world_pos, in vec3 world_normal) {
 
   return diffuse;
 }
+
+/**
+ * @brief Calculate caustics lighting contribution.
+ * @details Applies animated noise-based caustics to the diffuse lighting.
+ * @param world_pos The world-space position.
+ * @param caustics_intensity The caustics intensity (0-1).
+ * @param ambient_light The ambient light contribution.
+ * @param diffuse_light The diffuse light contribution.
+ * @return The caustics contribution to add to diffuse.
+ */
+vec3 calculate_caustics_lighting(in vec3 world_pos, in float caustics_intensity, in vec3 ambient_light, in vec3 diffuse_light) {
+  
+  if (caustics_intensity == 0.0) {
+    return vec3(0.0);
+  }
+
+  float noise = noise3d(world_pos * .05 + (ticks / 1000.0) * 0.5);
+
+  // make the inner edges stronger, clamp to 0-1
+  float thickness = 0.02;
+  float glow = 5.0;
+
+  noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
+
+  vec3 light = ambient_light + diffuse_light;
+  return max(vec3(0.0), light * caustics_intensity * noise);
+}

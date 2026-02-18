@@ -52,17 +52,17 @@ void parallax_occlusion_mapping() {
 
   float depth = 0.0;
   float layer = 1.0 / num_samples;
-  float displacement = sample_material_displacement(texcoord);
+  float displacement = sample_material_displacement(texcoord, fragment.lod);
 
   for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
     depth += layer;
     prev_texcoord = texcoord;
     texcoord -= delta;
-    displacement = sample_material_displacement(texcoord);
+    displacement = sample_material_displacement(texcoord, fragment.lod);
   }
 
   float a = displacement - depth;
-  float b = sample_material_displacement(prev_texcoord) - depth + layer;
+  float b = sample_material_displacement(prev_texcoord, fragment.lod) - depth + layer;
 
   fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
 }
@@ -88,23 +88,16 @@ float parallax_self_shadow(in vec3 light_dir) {
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(vertex.inverse_tbn * light_dir);
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(fragment.parallax, sample_material_heightmap(fragment.parallax));
+  vec3 texcoord = vec3(fragment.parallax, sample_material_heightmap(fragment.parallax, fragment.lod));
 
   float max_height = texcoord.z;
   for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
     texcoord += delta;
-    max_height = max(max_height, sample_material_heightmap(texcoord.xy));
+    max_height = max(max_height, sample_material_heightmap(texcoord.xy, fragment.lod));
   }
 
   float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
   return clamp(shadow, 0.0, 1.0);
-}
-
-/**
- * @brief Samples the pre-calculated caustics intensity from the voxel texture.
- */
-float sample_voxel_caustics() {
-  return sample_voxel_caustics(vertex.model_position);
 }
 
 /**
@@ -152,27 +145,11 @@ void light_and_shadow_light(in int index) {
 }
 
 /**
- * @brief
+ * @brief Apply caustics lighting to this fragment.
  */
 void light_and_shadow_caustics() {
-
-  fragment.caustics = sample_voxel_caustics();
-
-  if (fragment.caustics == 0.0) {
-    return;
-  }
-
-  float noise = noise3d(vertex.model_position * .05 + (ticks / 1000.0) * 0.5);
-
-  // make the inner edges stronger, clamp to 0-1
-
-  float thickness = 0.02;
-  float glow = 5.0;
-
-  noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
-
-  vec3 light = fragment.ambient + fragment.diffuse;
-  fragment.diffuse += max(vec3(0.0), light * fragment.caustics * noise);
+  float caustics_intensity = sample_voxel_caustics(vertex.model_position);
+  fragment.diffuse += calculate_caustics_lighting(vertex.model_position, caustics_intensity, fragment.ambient, fragment.diffuse);
 }
 
 /**

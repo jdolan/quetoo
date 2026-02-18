@@ -58,25 +58,10 @@ void light_and_shadow_light(in int index) {
 }
 
 /**
- * @brief
+ * @brief Apply caustics lighting to this fragment.
  */
 void light_and_shadow_caustics() {
-
-  if (vertex.caustics == 0.0) {
-	  return;
-  }
-
-  float noise = noise3d(vertex.model_position * .05 + (ticks / 1000.0) * 0.5);
-
-  // make the inner edges stronger, clamp to 0-1
-
-  float thickness = 0.02;
-  float glow = 5.0;
-
-  noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
-
-  vec3 light = fragment.ambient + fragment.diffuse;
-  fragment.diffuse += max(vec3(0.0), light * vertex.caustics * noise);
+  fragment.diffuse += calculate_caustics_lighting(vertex.model_position, vertex.caustics, fragment.ambient, fragment.diffuse);
 }
 
 /**

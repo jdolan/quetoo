@@ -271,16 +271,20 @@ vec4 sample_material_specular(in vec2 texcoord) {
 
 /**
  * @brief Samples the heightmap at the given texture coordinate.
+ * @param texcoord Texture coordinates.
+ * @param lod Level of detail for texture sampling.
  */
-float sample_material_heightmap(vec2 texcoord) {
-  return textureLod(texture_material, vec3(texcoord, 1), fragment.lod).w;
+float sample_material_heightmap(in vec2 texcoord, in float lod) {
+  return textureLod(texture_material, vec3(texcoord, 1), lod).w;
 }
 
 /**
- * @brief Sampels the displacement map at the given texture coordinate and lod.
+ * @brief Samples the displacement map at the given texture coordinate and lod.
+ * @param texcoord Texture coordinates.
+ * @param lod Level of detail for texture sampling.
  */
-float sample_material_displacement(vec2 texcoord) {
-  return 1.0 - sample_material_heightmap(texcoord);
+float sample_material_displacement(in vec2 texcoord, in float lod) {
+  return 1.0 - sample_material_heightmap(texcoord, lod);
 }
 
 /**
