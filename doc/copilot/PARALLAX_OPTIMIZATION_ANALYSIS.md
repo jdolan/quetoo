@@ -94,10 +94,10 @@ Either way, this entire function call is wasted per light per fragment.
 **Problem:** The POM loop has branch prediction issues:
 
 ```glsl
-for (displacement = sample_displacement(texcoord); depth < displacement; depth += layer) {
+for (displacement = sample_material_displacement(texcoord); depth < displacement; depth += layer) {
     prev_texcoord = texcoord;
     texcoord -= delta;
-    displacement = sample_displacement(texcoord);
+    displacement = sample_material_displacement(texcoord);
 }
 ```
 
@@ -233,7 +233,7 @@ float shadow = sample_shadow_cubemap_array(light, index);
 // Then refine with 4-5 binary search steps
 for (int i = 0; i < 5; i++) {
     vec2 mid_texcoord = (prev_texcoord + texcoord) * 0.5;
-    float mid_displacement = sample_displacement(mid_texcoord);
+    float mid_displacement = sample_material_displacement(mid_texcoord);
     float mid_depth = (depth + depth - layer) * 0.5;
     
     if (mid_displacement > mid_depth) {
