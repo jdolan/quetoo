@@ -86,7 +86,7 @@ float sample_voxel_caustics(in vec3 position) {
  * @return The exposure (G channel, 0-1).
  */
 float voxel_exposure(in vec3 texcoord) {
-  return texture(texture_voxel_data, texcoord).g;
+  return max(0.25, texture(texture_voxel_data, texcoord).g);
 }
 
 /**
