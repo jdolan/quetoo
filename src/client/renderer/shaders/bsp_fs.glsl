@@ -92,33 +92,13 @@ void light_and_shadow(void) {
   fragment.specular = vec3(0.0);
 
   if (editor == 0) {
-    // Sample voxel lights
-    ivec3 voxel_coord = voxel_xyz(vertex.model_position);
-    ivec2 data = voxel_light_data(voxel_coord);
-
-    for (int i = 0; i < data.y; i++) {
-      int index = voxel_light_index(data.x + i);
-      calculate_light(vertex, fragment, index);
-    }
-
-    // Sample dynamic lights
-    for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-      int index = active_lights[i];
-      if (index == -1) {
-        break;
-      }
-      calculate_light(vertex, fragment, index);
-    }
-
-    // Add caustics
-    fragment.diffuse += calculate_caustics_lighting(vertex, fragment);
+    calculate_lighting(vertex, fragment);
   } else {
     for (int i = 0; i < MAX_LIGHTS; i++) {
       int index = active_lights[i];
       if (index == -1) {
         break;
       }
-
       calculate_light(vertex, fragment, index);
     }
   }

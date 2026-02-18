@@ -211,20 +211,7 @@ void calculate_light(in common_vertex_t v, inout common_fragment_t f, in int ind
  * @param f Fragment data.
  */
 void calculate_lighting(in common_vertex_t v, inout common_fragment_t f) {
-
-  // For distant fragments, use simple vertex lighting
-  if (f.view_dist >= lighting_distance) {
-    f.ambient = vec3(0.0);
-    f.diffuse = v.lighting;
-    f.specular = vec3(0.0);
-    return;
-  }
-
-  // For close fragments, do full per-fragment lighting
-  f.ambient = v.ambient;
-  f.diffuse = vec3(0.0);
-  f.specular = vec3(0.0);
-
+  
   // Sample voxel lights
   ivec3 voxel_coord = voxel_xyz(v.model_position);
   ivec2 data = voxel_light_data(voxel_coord);

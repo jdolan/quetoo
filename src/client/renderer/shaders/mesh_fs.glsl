@@ -47,6 +47,8 @@ void light_and_shadow(void) {
   fragment.specular_sample = sample_material_specular(vertex.diffusemap);
 
   fragment.ambient = vertex.ambient;
+  fragment.diffuse = vec3(0.0);
+  fragment.specular = vec3(0.0);
   
   calculate_lighting(vertex, fragment);
 }
