@@ -684,6 +684,7 @@
 		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
@@ -1001,6 +1002,7 @@
 				CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */,
 				CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */,
 				CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */,
+				CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1811,6 +1813,7 @@
 		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
+		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
@@ -2734,6 +2737,7 @@
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
 				CE45F4C625728264004DEFED /* uniforms.glsl */,
 				CE41019B242CE0B200BF482F /* version.glsl */,
+				CEF3B5FF2F455C990024F4DF /* voxel.glsl */,
 				CE12D5F61C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = shaders;

@@ -41,46 +41,6 @@ out common_vertex_t vertex;
 invariant gl_Position;
 
 /**
- * @brief Samples the pre-calculated caustics intensity from the voxel texture.
- */
-float sample_voxel_caustics(in vec3 texcoord) {
-  return voxel_caustics(texcoord) * caustics;
-}
-
-/**
- * @brief
- */
-vec4 sample_voxel_fog(in vec3 texcoord) {
-
-  vec4 fog = vec4(0.0);
-
-  float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
-
-  for (float i = 0; i < samples; i++) {
-
-    vec3 xyz = mix(vertex.model_position, view[0].xyz, i / samples);
-    vec3 uvw = mix(texcoord, voxels.view_coordinate.xyz, i / samples);
-
-    float fog_density_sample = voxel_fog_density(uvw);
-    
-    if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = light_fog(xyz);
-      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-    }
-    
-    if (fog.a >= 1.0) {
-      break;
-    }
-  }
-
-  if (hmax(fog.rgb) > 1.0) {
-    fog.rgb /= hmax(fog.rgb);
-  }
-
-  return clamp(fog, 0.0, 1.0);
-}
-
-/**
  * @brief
  */
 void main(void) {
@@ -116,13 +76,14 @@ void main(void) {
     vertex.lighting = vec3(0.0);
     vertex.voxel = vec3(0.0);
   } else {
-    vec3 texcoord = voxel_uvw(vec3(model * position));
+    vec3 world_pos = vec3(model * position);
+    vec3 texcoord = voxel_uvw(world_pos);
     vertex.voxel = texcoord;
 
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
-    vertex.caustics = sample_voxel_caustics(texcoord);
-    vertex.fog = sample_voxel_fog(texcoord);
+    vertex.caustics = sample_voxel_caustics(world_pos);
+    vertex.fog = calculate_vertex_fog(world_pos);
     
     // Calculate vertex lighting (used for distant meshes)
     vertex.lighting = calculate_vertex_lighting(vertex.model_position, model_normal);

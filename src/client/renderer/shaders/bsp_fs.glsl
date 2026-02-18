@@ -115,55 +115,19 @@ float parallax_self_shadow(in vec3 light_dir) {
 }
 
 /**
- * @brief Calculates caustics based on voxel contents.
- */
-/**
  * @brief Samples the pre-calculated caustics intensity from the voxel texture.
  */
 float sample_voxel_caustics() {
-  return voxel_caustics(vertex.voxel) * caustics;
+  return sample_voxel_caustics(vertex.model_position);
 }
 
 /**
  * @brief Sample volumetric fog with distance-based LOD.
- * @details For distant fragments (>= fog_distance), uses pre-calculated vertex fog
- * for performance. For close fragments, performs full per-fragment raymarching
- * for high-quality dynamic lighting effects (e.g., rocket lighting fog).
+ * @details For distant fragments, uses pre-calculated vertex fog.
+ * For close fragments, performs full per-fragment raymarching.
  */
 vec4 sample_voxel_fog() {
-
-  // For distant fragments, use interpolated vertex fog (much cheaper)
-  if (fragment.view_dist >= fog_distance) {
-    return vertex.fog;
-  }
-
-  // For close fragments, do full per-fragment raymarching
-  vec4 fog = vec4(0.0);
-
-  float samples = clamp(fragment.view_dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
-
-  for (float i = 0; i < samples; i++) {
-
-    vec3 xyz = mix(vertex.model_position, view[0].xyz, i / samples);
-    vec3 uvw = mix(vertex.voxel, voxels.view_coordinate.xyz, i / samples);
-
-    float fog_density_sample = voxel_fog_density(uvw);
-    
-    if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = light_fog(xyz);
-      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-    }
-    
-    if (fog.a >= 1.0) {
-      break;
-    }
-  }
-
-  if (hmax(fog.rgb) > 1.0) {
-    fog.rgb /= hmax(fog.rgb);
-  }
-
-  return clamp(fog, 0.0, 1.0);
+  return calculate_fragment_fog(vertex.model_position, vertex.voxel, fragment.view_dist, vertex.fog);
 }
 
 /**

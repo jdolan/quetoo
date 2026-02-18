@@ -24,4 +24,5 @@ shaders_DATA = \
 	sprite_fs.glsl \
 	sprite_vs.glsl \
 	uniforms.glsl \
-	version.glsl
+	version.glsl \
+  voxel.glsl
