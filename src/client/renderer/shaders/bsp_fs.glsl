@@ -35,6 +35,7 @@ in vertex_data {
   vec3 voxel;
   vec4 color;
   vec4 fog;
+  vec3 lighting;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -203,14 +204,14 @@ float sample_voxel_caustics() {
 
 /**
  * @brief Sample volumetric fog with distance-based LOD.
- * @details For distant fragments (>= 1024 units), uses pre-calculated vertex fog
+ * @details For distant fragments (>= fog_distance), uses pre-calculated vertex fog
  * for performance. For close fragments, performs full per-fragment raymarching
  * for high-quality dynamic lighting effects (e.g., rocket lighting fog).
  */
 vec4 sample_voxel_fog() {
 
   // For distant fragments, use interpolated vertex fog (much cheaper)
-  if (fragment.dist >= 1024.0) {
+  if (fragment.dist >= fog_distance) {
     return vertex.fog;
   }
 
@@ -396,10 +397,22 @@ void light_and_shadow_caustics() {
 }
 
 /**
- * @brief
+ * @brief Calculate lighting and shadows with distance-based LOD.
+ * @details For distant fragments (>= lighting_distance), uses pre-calculated vertex
+ * lighting (ambient + diffuse, no shadows or specular). For close fragments, performs
+ * full per-fragment lighting with shadows, specular, and caustics.
  */
 void light_and_shadow(void) {
 
+  // For distant fragments, use simple vertex lighting
+  if (fragment.dist >= lighting_distance) {
+    fragment.ambient = vec3(0.0);
+    fragment.diffuse = vertex.lighting;
+    fragment.specular = vec3(0.0);
+    return;
+  }
+
+  // For close fragments, do full per-fragment lighting
   fragment.normalmap = sample_normalmap();
   fragment.specularmap = sample_specularmap();
 

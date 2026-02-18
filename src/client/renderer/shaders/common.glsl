@@ -246,6 +246,63 @@ vec3 light_fog(in vec3 position) {
 }
 
 /**
+ * @brief Calculate diffuse lighting for a vertex (used for distant geometry).
+ * @details Calculates unshadowed diffuse lighting from voxel and dynamic lights.
+ * @param world_pos The world-space position of the vertex.
+ * @param world_normal The world-space normal of the vertex.
+ * @return The combined ambient + diffuse lighting (rgb).
+ */
+vec3 calculate_vertex_lighting(in vec3 world_pos, in vec3 world_normal) {
+  
+  // Ambient from sky
+  vec3 sky = textureLod(texture_sky, normalize(world_normal), 6).rgb;
+  vec3 lighting = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(voxel_uvw(world_pos));
+  
+  // Diffuse from voxel lights
+  ivec3 voxel = voxel_xyz(world_pos);
+  ivec2 data = voxel_light_data(voxel);
+  
+  for (int i = 0; i < data.y; i++) {
+    int index = voxel_light_index(data.x + i);
+    light_t light = lights[index];
+    
+    vec3 dir = light.origin.xyz - world_pos;
+    float dist = length(dir);
+    float radius = light.origin.w;
+    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+    
+    if (atten > 0.0) {
+      dir = normalize(dir);
+      float lambert = max(0.0, dot(dir, world_normal));
+      lighting += light.color.rgb * light.color.a * atten * modulate * lambert;
+    }
+  }
+  
+  // Diffuse from dynamic lights
+  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
+    int index = active_lights[i];
+    if (index == -1) {
+      break;
+    }
+    
+    light_t light = lights[index];
+    
+    vec3 dir = light.origin.xyz - world_pos;
+    float dist = length(dir);
+    float radius = light.origin.w;
+    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+    
+    if (atten > 0.0) {
+      dir = normalize(dir);
+      float lambert = max(0.0, dot(dir, world_normal));
+      lighting += light.color.rgb * light.color.a * atten * modulate * lambert;
+    }
+  }
+  
+  return lighting;
+}
+
+/**
  * @brief Calculate volumetric fog for a vertex (used for distant geometry).
  * @details Performs simplified raymarching from vertex to view with fewer samples
  * than per-fragment fog. The result is interpolated across the triangle.

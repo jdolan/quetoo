@@ -31,9 +31,11 @@ extern cvar_t *r_display;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
+extern cvar_t *r_fog_distance;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
 extern cvar_t *r_height;
+extern cvar_t *r_lighting_distance;
 extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_parallax;
@@ -191,6 +193,16 @@ typedef struct {
      * @brief The number of volumetric fog samples per fragment (quality).
      */
     float fog_samples;
+
+    /**
+     * @brief Distance threshold for switching to vertex fog.
+     */
+    float fog_distance;
+
+    /**
+     * @brief Distance threshold for switching to vertex lighting.
+     */
+    float lighting_distance;
 
     /**
      * @brief The editor flags.

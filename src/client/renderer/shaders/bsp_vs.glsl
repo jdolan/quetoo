@@ -41,6 +41,7 @@ out vertex_data {
   vec3 voxel;
   vec4 color;
   vec4 fog;
+  vec3 lighting;
 } vertex;
 
 invariant gl_Position;
@@ -77,4 +78,5 @@ void main(void) {
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 
   vertex.fog = calculate_vertex_fog(vertex.model_position);
+  vertex.lighting = calculate_vertex_lighting(vertex.model_position, vertex.model_normal);
 }

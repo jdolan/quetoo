@@ -142,6 +142,16 @@ layout (std140) uniform uniforms_block {
   float fog_samples;
 
   /**
+   * @brief Distance threshold for switching to vertex fog.
+   */
+  float fog_distance;
+
+  /**
+   * @brief Distance threshold for switching to vertex lighting.
+   */
+  float lighting_distance;
+
+  /**
    * @brief The editor flags, used for in-game lighting and more.
    */
   int editor;
