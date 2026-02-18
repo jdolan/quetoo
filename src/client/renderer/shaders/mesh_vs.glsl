@@ -48,6 +48,7 @@ out vertex_data {
   vec3 ambient;
   float caustics;
   vec4 fog;
+  vec3 lighting;
 } vertex;
 
 invariant gl_Position;
@@ -120,6 +121,7 @@ void main(void) {
     vertex.ambient = vec3(0.666);
     vertex.caustics = 0.0;
     vertex.fog = vec4(0.0);
+    vertex.lighting = vec3(0.0);
   } else {
     vec3 texcoord = voxel_uvw(vec3(model * position));
 
@@ -127,6 +129,10 @@ void main(void) {
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
     vertex.caustics = sample_voxel_caustics(texcoord);
     vertex.fog = sample_voxel_fog(texcoord);
+    
+    // Calculate vertex lighting (used for distant meshes)
+    vec3 model_normal = normalize(vec3(model * normal));
+    vertex.lighting = calculate_vertex_lighting(vertex.model_position, model_normal);
   }
 
   gl_Position = projection3D * view_model * position;

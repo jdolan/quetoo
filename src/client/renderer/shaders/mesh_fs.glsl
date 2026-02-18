@@ -31,6 +31,7 @@ in vertex_data {
   vec3 ambient;
   float caustics;
   vec4 fog;
+  vec3 lighting;
 } vertex;
 
 layout (location = 0) out vec4 out_color;
@@ -255,8 +256,23 @@ void light_and_shadow_caustics() {
 /**
  * @brief
  */
+/**
+ * @brief Calculate lighting and shadows with distance-based LOD.
+ * @details For distant fragments (>= lighting_distance), uses pre-calculated vertex
+ * lighting (ambient + diffuse, no shadows or specular). For close fragments, performs
+ * full per-fragment lighting with shadows, specular, and caustics.
+ */
 void light_and_shadow(void) {
 
+  // For distant fragments, use simple vertex lighting
+  if (fragment.dist >= lighting_distance) {
+    fragment.ambient = vec3(0.0);
+    fragment.diffuse = vertex.lighting;
+    fragment.specular = vec3(0.0);
+    return;
+  }
+
+  // For close fragments, do full per-fragment lighting
   fragment.normalmap = sample_normalmap();
   fragment.specularmap = sample_specularmap();
 
