@@ -169,7 +169,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
  * @param f Fragment data.
  * @param index The light index.
  */
-void calculate_light(in common_vertex_t v, inout common_fragment_t f, in int index) {
+void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int index) {
 
   light_t light = lights[index];
 
@@ -210,7 +210,7 @@ void calculate_light(in common_vertex_t v, inout common_fragment_t f, in int ind
  * @param v Vertex data.
  * @param f Fragment data.
  */
-void calculate_lighting(in common_vertex_t v, inout common_fragment_t f) {
+void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   
   // Sample voxel lights
   ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -218,7 +218,7 @@ void calculate_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
   for (int i = 0; i < data.y; i++) {
     int index = voxel_light_index(data.x + i);
-    calculate_light(v, f, index);
+    fragment_light(v, f, index);
   }
 
   // Sample dynamic lights
@@ -227,9 +227,9 @@ void calculate_lighting(in common_vertex_t v, inout common_fragment_t f) {
     if (index == -1) {
       break;
     }
-    calculate_light(v, f, index);
+    fragment_light(v, f, index);
   }
 
   // Add caustics
-  f.diffuse += calculate_caustics_lighting(v, f);
+  f.diffuse += fragment_caustics(v, f);
 }

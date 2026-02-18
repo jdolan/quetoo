@@ -83,10 +83,10 @@ void main(void) {
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
     vertex.caustics = sample_voxel_caustics(world_pos);
-    vertex.fog = calculate_vertex_fog(vertex);
+    vertex.fog = vertex_fog(vertex);
     
     // Calculate vertex lighting (used for distant meshes)
-    vertex.lighting = calculate_vertex_lighting(vertex);
+    vertex.lighting = vertex_lighting(vertex);
   }
 
   gl_Position = projection3D * view_model * position;

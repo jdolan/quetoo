@@ -50,7 +50,7 @@ void light_and_shadow(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
   
-  calculate_lighting(vertex, fragment);
+  fragment_lighting(vertex, fragment);
 }
 
 /**
@@ -99,7 +99,7 @@ void main(void) {
 //
 //  	  fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normal_sample));
 //
-//  	  calculate_lighting(vertex, fragment); // FIXME ambient?
+//  	  fragment_lighting(vertex, fragment); // FIXME ambient?
 //
 //  	  out_color.rgb *= (fragment.ambient + fragment.diffuse);
 //	  }

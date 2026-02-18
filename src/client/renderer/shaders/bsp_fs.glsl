@@ -92,14 +92,14 @@ void light_and_shadow(void) {
   fragment.specular = vec3(0.0);
 
   if (editor == 0) {
-    calculate_lighting(vertex, fragment);
+    fragment_lighting(vertex, fragment);
   } else {
     for (int i = 0; i < MAX_LIGHTS; i++) {
       int index = active_lights[i];
       if (index == -1) {
         break;
       }
-      calculate_light(vertex, fragment, index);
+      fragment_light(vertex, fragment, index);
     }
   }
 }
@@ -130,7 +130,7 @@ void main(void) {
 
     light_and_shadow();
 
-    fragment.fog = calculate_fragment_fog(vertex, fragment);
+    fragment.fog = fragment_fog(vertex, fragment);
 
     out_color = fragment.diffuse_sample;
 
@@ -152,13 +152,13 @@ void main(void) {
 
     //    if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
     //
-    //      calculate_lighting(vertex, fragment);
+    //      fragment_lighting(vertex, fragment);
     //
     //      out_color.rgb *= (fragment.ambient + fragment.diffuse);
     //    }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-      fragment.fog = calculate_fragment_fog(vertex, fragment);
+      fragment.fog = fragment_fog(vertex, fragment);
       out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
     }
   }

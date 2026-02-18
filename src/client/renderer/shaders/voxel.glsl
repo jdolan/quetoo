@@ -163,7 +163,7 @@ vec4 sample_voxel_fog(in vec3 position) {
  * @param max_samples Maximum number of raymarching samples.
  * @return The fog color (rgb) and density (a).
  */
-vec4 calculate_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
+vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
   vec4 fog = vec4(0.0);
   
   float dist = distance(world_pos, view_pos);
@@ -201,8 +201,8 @@ vec4 calculate_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
  * @param v Vertex data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 calculate_vertex_fog(in common_vertex_t v) {
-  return calculate_fog(v.model_position, view[0].xyz, fog_samples);
+vec4 vertex_fog(in common_vertex_t v) {
+  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
 }
 
 /**
@@ -214,14 +214,37 @@ vec4 calculate_vertex_fog(in common_vertex_t v) {
  * @param f Fragment data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 calculate_fragment_fog(in common_vertex_t v, in common_fragment_t f) {
+vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
   // For distant fragments, use interpolated vertex fog (much cheaper)
   if (f.view_dist >= fog_distance) {
     return v.fog;
   }
 
   // For close fragments, do full per-fragment raymarching
-  return calculate_fog(v.model_position, view[0].xyz, fog_samples);
+  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
+}
+
+/**
+ * @brief Calculate vertex lighting contribution from a single light (unshadowed diffuse only).
+ * @param v Vertex data.
+ * @param index The light index.
+ * @return The diffuse lighting contribution.
+ */
+vec3 vertex_light(in common_vertex_t v, in int index) {
+  light_t light = lights[index];
+
+  vec3 light_dir = light.origin.xyz - v.model_position;
+  float dist = length(light_dir);
+  float radius = light.origin.w;
+  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
+
+  if (atten <= 0.0) {
+    return vec3(0.0);
+  }
+
+  light_dir = normalize(light_dir);
+  float lambert = max(0.0, dot(v.model_normal, light_dir));
+  return light.color.rgb * light.color.a * atten * lambert * modulate;
 }
 
 /**
@@ -230,7 +253,7 @@ vec4 calculate_fragment_fog(in common_vertex_t v, in common_fragment_t f) {
  * @param v Vertex data.
  * @return The accumulated diffuse lighting.
  */
-vec3 calculate_vertex_lighting(in common_vertex_t v) {
+vec3 vertex_lighting(in common_vertex_t v) {
   vec3 diffuse = vec3(0.0);
 
   ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -238,18 +261,7 @@ vec3 calculate_vertex_lighting(in common_vertex_t v) {
 
   for (int i = 0; i < data.y; i++) {
     int index = voxel_light_index(data.x + i);
-    light_t light = lights[index];
-
-    vec3 light_dir = light.origin.xyz - v.model_position;
-    float dist = length(light_dir);
-    float radius = light.origin.w;
-    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-
-    if (atten > 0.0) {
-      light_dir = normalize(light_dir);
-      float lambert = max(0.0, dot(v.model_normal, light_dir));
-      diffuse += light.color.rgb * light.color.a * atten * lambert * modulate;
-    }
+    diffuse += vertex_light(v, index);
   }
 
   for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
@@ -257,19 +269,7 @@ vec3 calculate_vertex_lighting(in common_vertex_t v) {
     if (index == -1) {
       break;
     }
-
-    light_t light = lights[index];
-
-    vec3 light_dir = light.origin.xyz - v.model_position;
-    float dist = length(light_dir);
-    float radius = light.origin.w;
-    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-
-    if (atten > 0.0) {
-      light_dir = normalize(light_dir);
-      float lambert = max(0.0, dot(v.model_normal, light_dir));
-      diffuse += light.color.rgb * light.color.a * atten * lambert * modulate;
-    }
+    diffuse += vertex_light(v, index);
   }
 
   return diffuse;
@@ -283,7 +283,7 @@ vec3 calculate_vertex_lighting(in common_vertex_t v) {
  * @param f Fragment data.
  * @return The caustics contribution to add to diffuse.
  */
-vec3 calculate_caustics_lighting(in common_vertex_t v, in common_fragment_t f) {
+vec3 fragment_caustics(in common_vertex_t v, in common_fragment_t f) {
   
   if (f.caustics == 0.0) {
     return vec3(0.0);
