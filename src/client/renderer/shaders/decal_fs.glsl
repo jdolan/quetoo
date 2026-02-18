@@ -19,13 +19,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
-  vec3 position;
-  vec2 texcoord;
-  vec4 color;
+in common_vertex_t vertex;
+
+in decal_data {
   flat uint time;
   flat uint lifetime;
-} vertex;
+} decal;
 
 uniform mat4 model;
 uniform int block;
@@ -33,53 +32,22 @@ uniform int block;
 layout (location = 0) out vec4 out_color;
 
 /**
- * @brief Samples voxel fog
- */
-vec4 sample_voxel_fog() {
-  
-  vec4 fog = vec4(0.0);
-
-  float samples = clamp(length(vertex.position) / BSP_VOXEL_SIZE, 1.0, fog_samples);
-
-  for (float i = 0; i < samples; i++) {
-
-    vec3 xyz = mix((model * vec4(vertex.position, 1.0)).xyz, view[0].xyz, i / samples);
-    vec3 uvw = mix(voxel_uvw(xyz), voxels.view_coordinate.xyz, i / samples);
-
-    float fog_density_sample = voxel_fog_density(uvw);
-    
-    if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = light_fog(xyz);
-      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-    }
-    
-    if (fog.a >= 1.0) {
-      break;
-    }
-  }
-
-  if (hmax(fog.rgb) > 1.0) {
-    fog.rgb /= hmax(fog.rgb);
-  }
-
-  return clamp(fog, 0.0, 1.0);
-}
-
-/**
  * @brief Decal fragment shader.
  */
 void main(void) {
 
-  vec4 diffuse = texture(texture_diffusemap, vertex.texcoord);
+  vec4 diffuse = texture(texture_diffusemap, vertex.diffusemap);
 
+  // Apply vertex lighting
   out_color = diffuse * vertex.color;
+  out_color.rgb *= vertex.lighting;
 
-  if (vertex.lifetime > 0u) {
-    float age = float(uint(ticks) - vertex.time);
-    float fade = 1.0 - clamp(age / vertex.lifetime, 0.0, 1.0);
+  if (decal.lifetime > 0u) {
+    float age = float(uint(ticks) - decal.time);
+    float fade = 1.0 - clamp(age / decal.lifetime, 0.0, 1.0);
     out_color.a *= fade;
   }
 
-  vec4 fog = sample_voxel_fog();
-  out_color.rgb = mix(out_color.rgb, fog.rgb, fog.a);
+  // Use vertex fog (decals are always simple geometry)
+  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 }
