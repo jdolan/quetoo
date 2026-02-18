@@ -24,7 +24,7 @@ uniform int block;
 in common_vertex_t vertex;
 in vec3 cubemap_coord;
 
-layout (location = 0) out vec4 out_color;
+out vec4 out_color;
 
 /**
  * @brief

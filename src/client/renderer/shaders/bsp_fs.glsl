@@ -24,7 +24,7 @@ uniform int block;
 
 in common_vertex_t vertex;
 
-layout (location = 0) out vec4 out_color;
+out vec4 out_color;
 
 common_fragment_t fragment;
 
@@ -68,78 +68,8 @@ void parallax_occlusion_mapping() {
 }
 
 /**
- * @brief Returns the shadow scalar for parallax self shadowing.
- * @param light_dir The light direction in view space.
- * @return The self-shadowing scalar.
- */
-float parallax_self_shadow(in vec3 light_dir) {
-
-  // If the light angle is nearly perpendicular, skip self-shadowing
-  if (dot(light_dir, normalize(vertex.tbn[2])) > 0.9) {
-    return 1.0;
-  }
-
-  // LOD-based step count: 16 close, 4 far (bounded for performance)
-  int max_steps = int(mix(16.0, 4.0, min(fragment.lod * 0.33, 1.0)));
-
-  // Adaptive step size based on LOD (larger steps at distance)
-  float step_scale = mix(1.0, 2.5, min(fragment.lod * 0.5, 1.0));
-
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(vertex.inverse_tbn * light_dir);
-  vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(fragment.parallax, sample_material_heightmap(fragment.parallax, fragment.lod));
-
-  float max_height = texcoord.z;
-  for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
-    texcoord += delta;
-    max_height = max(max_height, sample_material_heightmap(texcoord.xy, fragment.lod));
-  }
-
-  float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
-  return clamp(shadow, 0.0, 1.0);
-}
-
-/**
- * @brief
- */
-void light_and_shadow_light(in int index) {
-
-  light_t light = lights[index];
-
-  vec3 dir = light.origin.xyz - vertex.model_position;
-  float dist = length(dir);
-  float radius = light.origin.w;
-  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-  if (atten <= 0.0) {
-    return;
-  }
-
-  dir = normalize(view * vec4(dir, 0.0)).xyz;
-
-  vec3 color = light.color.rgb * light.color.a * atten * modulate;
-
-  float shadow = sample_shadow_cubemap_array(light, index, vertex, fragment);
-
-  if (fragment.lod < 4.0 && material.shadow > 0.0) {
-    shadow *= parallax_self_shadow(dir);
-  }
-
-  if (shadow <= 0.0) {
-    return;
-  }
-
-  float lambert = max(0.0, dot(dir, fragment.normal_sample));
-
-  fragment.diffuse += color * lambert * shadow;
-  fragment.specular += blinn_phong(color * shadow, dir, fragment);
-}
-
-/**
- * @brief Calculate lighting and shadows with distance-based LOD.
- * @details For distant fragments (>= lighting_distance), uses pre-calculated vertex
- * lighting (ambient + diffuse, no shadows or specular). For close fragments, performs
- * full per-fragment lighting with shadows, specular, and caustics.
+ * @brief Calculate lighting and shadows for BSP with distance-based LOD.
+ * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
  */
 void light_and_shadow(void) {
 
@@ -162,26 +92,26 @@ void light_and_shadow(void) {
   fragment.specular = vec3(0.0);
 
   if (editor == 0) {
-    ivec3 voxel = voxel_xyz(vertex.model_position);
-    ivec2 data = voxel_light_data(voxel);
+    // Sample voxel lights
+    ivec3 voxel_coord = voxel_xyz(vertex.model_position);
+    ivec2 data = voxel_light_data(voxel_coord);
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      light_and_shadow_light(index);
+      calculate_light(vertex, fragment, index);
     }
 
+    // Sample dynamic lights
     for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
       int index = active_lights[i];
       if (index == -1) {
         break;
       }
-
-      light_and_shadow_light(index);
+      calculate_light(vertex, fragment, index);
     }
 
-    fragment.caustics = sample_voxel_caustics(vertex.model_position);
+    // Add caustics
     fragment.diffuse += calculate_caustics_lighting(vertex, fragment);
-
   } else {
     for (int i = 0; i < MAX_LIGHTS; i++) {
       int index = active_lights[i];
@@ -189,7 +119,7 @@ void light_and_shadow(void) {
         break;
       }
 
-      light_and_shadow_light(index);
+      calculate_light(vertex, fragment, index);
     }
   }
 }
@@ -242,7 +172,7 @@ void main(void) {
 
     //    if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
     //
-    //      light_and_shadow();
+    //      calculate_lighting(vertex, fragment);
     //
     //      out_color.rgb *= (fragment.ambient + fragment.diffuse);
     //    }

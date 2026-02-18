@@ -21,7 +21,7 @@
 
 in common_vertex_t vertex;
 
-layout (location = 0) out vec4 out_color;
+out vec4 out_color;
 
 common_fragment_t fragment;
 
@@ -30,41 +30,7 @@ uniform vec4 color;
 uniform vec4 tint_colors[3];
 
 /**
- * @brief
- */
-void light_and_shadow_light(in int index) {
-
-  light_t light = lights[index];
-
-  vec3 dir = light.origin.xyz - vertex.model_position;
-
-  float radius = light.origin.w;
-  float dist = length(dir);
-  float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-  if (atten <= 0.0) {
-	  return;
-  }
-
-  vec3 color = light.color.rgb * light.color.a * atten * modulate;
-
-  dir = normalize(view * vec4(dir, 0.0)).xyz;
-
-  float lambert = max(0.0, dot(dir, fragment.normal_sample));
-  
-  float shadow = sample_shadow_cubemap_array(light, index, vertex, fragment);
-
-  fragment.diffuse += color * lambert * shadow;
-  fragment.specular += blinn_phong(color * shadow, dir, fragment);
-}
-
-/**
- * @brief
- */
-/**
- * @brief Calculate lighting and shadows with distance-based LOD.
- * @details For distant fragments (>= lighting_distance), uses pre-calculated vertex
- * lighting (ambient + diffuse, no shadows or specular). For close fragments, performs
- * full per-fragment lighting with shadows, specular, and caustics.
+ * @brief Calculate lighting and shadows for mesh with distance-based LOD.
  */
 void light_and_shadow(void) {
 
@@ -81,28 +47,8 @@ void light_and_shadow(void) {
   fragment.specular_sample = sample_material_specular(vertex.diffusemap);
 
   fragment.ambient = vertex.ambient;
-  fragment.diffuse = vec3(0.0);
-  fragment.specular = vec3(0.0);;
-
-  ivec3 voxel = voxel_xyz(vertex.model_position);
-  ivec2 data = voxel_light_data(voxel);
-
-  for (int i = 0; i < data.y; i++) {
-    int index = voxel_light_index(data.x + i);
-    light_and_shadow_light(index);
-  }
-
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
-    }
-
-    light_and_shadow_light(index);
-  }
-
-  fragment.caustics = vertex.caustics;
-  fragment.diffuse += calculate_caustics_lighting(vertex, fragment);
+  
+  calculate_lighting(vertex, fragment);
 }
 
 /**
@@ -151,7 +97,7 @@ void main(void) {
 //
 //  	  fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normal_sample));
 //
-//  	  light_and_shadow(); // FIXME ambient?
+//  	  calculate_lighting(vertex, fragment); // FIXME ambient?
 //
 //  	  out_color.rgb *= (fragment.ambient + fragment.diffuse);
 //	  }

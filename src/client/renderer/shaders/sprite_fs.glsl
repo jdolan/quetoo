@@ -28,7 +28,7 @@ in vertex_data {
   float softness;
 } vertex;
 
-layout (location = 0) out vec3 out_color;
+out vec3 out_color;
 
 /**
  * @brief

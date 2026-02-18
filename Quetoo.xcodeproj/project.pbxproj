@@ -685,6 +685,7 @@
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
+		CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
 		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
@@ -989,6 +990,7 @@
 				CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */,
 				CED5BB192407163D00784D93 /* draw_3d_fs.glsl in CopyFiles */,
 				CED5BB1A2407164000784D93 /* draw_3d_vs.glsl in CopyFiles */,
+				CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */,
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CEFD07FE2B671E2900642169 /* mesh_fs.glsl in CopyFiles */,
 				CEFD08002B671E2F00642169 /* mesh_vs.glsl in CopyFiles */,
@@ -1814,6 +1816,7 @@
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
+		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
 		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
@@ -2724,6 +2727,7 @@
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
 				CED5BB172406B72E00784D93 /* draw_3d_vs.glsl */,
+				CEF3B6012F456F5A0024F4DF /* light.glsl */,
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,

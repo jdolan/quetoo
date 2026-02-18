@@ -29,7 +29,7 @@ in decal_data {
 uniform mat4 model;
 uniform int block;
 
-layout (location = 0) out vec4 out_color;
+out vec4 out_color;
 
 /**
  * @brief Decal fragment shader.
