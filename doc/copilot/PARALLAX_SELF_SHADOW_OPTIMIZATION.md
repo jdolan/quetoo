@@ -209,12 +209,12 @@ float parallax_self_shadow(in vec3 light_dir, in vec2 texel) {
   
   vec3 dir = normalize(vertex.inverse_tbn * light_dir);
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+  vec3 texcoord = vec3(fragment.parallax, sample_material_heightmap(fragment.parallax));
   
   // Ray march with bounded iterations
   for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
     texcoord += delta;
-    float sample_height = sample_heightmap(texcoord.xy);
+    float sample_height = sample_material_heightmap(texcoord.xy);
     
     if (sample_height > texcoord.z * 1.05) {
       // Hit! Return soft shadow based on distance

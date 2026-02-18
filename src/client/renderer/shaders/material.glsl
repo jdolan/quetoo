@@ -270,6 +270,20 @@ vec4 sample_material_specular(in vec2 texcoord) {
 }
 
 /**
+ * @brief Samples the heightmap at the given texture coordinate.
+ */
+float sample_material_heightmap(vec2 texcoord) {
+  return textureLod(texture_material, vec3(texcoord, 1), fragment.lod).w;
+}
+
+/**
+ * @brief Sampels the displacement map at the given texture coordinate and lod.
+ */
+float sample_material_displacement(vec2 texcoord) {
+  return 1.0 - sample_material_heightmap(texcoord);
+}
+
+/**
  * @brief Sample a material stage texture.
  * @param texcoord Texture coordinates.
  * @return Stage texture color.

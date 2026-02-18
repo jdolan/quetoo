@@ -29,20 +29,6 @@ layout (location = 0) out vec4 out_color;
 common_fragment_t fragment;
 
 /**
- * @brief Samples the heightmap at the given texture coordinate.
- */
-float sample_heightmap(vec2 texcoord) {
-  return textureLod(texture_material, vec3(texcoord, 1), fragment.lod).w;
-}
-
-/**
- * @brief Sampels the displacement map at the given texture coordinate and lod.
- */
-float sample_displacement(vec2 texcoord) {
-  return 1.0 - sample_heightmap(texcoord);
-}
-
-/**
  * @brief Calculates the augmented texcoord for parallax occlusion mapping.
  * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
@@ -66,17 +52,17 @@ void parallax_occlusion_mapping() {
 
   float depth = 0.0;
   float layer = 1.0 / num_samples;
-  float displacement = sample_displacement(texcoord);
+  float displacement = sample_material_displacement(texcoord);
 
   for (int i = 0; i < int(num_samples) && depth < displacement; i++) {
     depth += layer;
     prev_texcoord = texcoord;
     texcoord -= delta;
-    displacement = sample_displacement(texcoord);
+    displacement = sample_material_displacement(texcoord);
   }
 
   float a = displacement - depth;
-  float b = sample_displacement(prev_texcoord) - depth + layer;
+  float b = sample_material_displacement(prev_texcoord) - depth + layer;
 
   fragment.parallax = mix(prev_texcoord, texcoord, a / (a - b));
 }
@@ -102,12 +88,12 @@ float parallax_self_shadow(in vec3 light_dir) {
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(vertex.inverse_tbn * light_dir);
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
-  vec3 texcoord = vec3(fragment.parallax, sample_heightmap(fragment.parallax));
+  vec3 texcoord = vec3(fragment.parallax, sample_material_heightmap(fragment.parallax));
 
   float max_height = texcoord.z;
   for (int i = 0; i < max_steps && texcoord.z < 1.0; i++) {
     texcoord += delta;
-    max_height = max(max_height, sample_heightmap(texcoord.xy));
+    max_height = max(max_height, sample_material_heightmap(texcoord.xy));
   }
 
   float shadow = 1.0 - (max_height - texcoord.z) * material.shadow;
