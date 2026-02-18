@@ -96,6 +96,8 @@ void main(void) {
   stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
   vertex.model_position = vec3(model * position);
+  vec3 model_normal = normalize(vec3(model * normal));
+  vertex.model_normal = model_normal;
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
   vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
@@ -103,14 +105,19 @@ void main(void) {
   vertex.bitangent = normalize(vec3(view_model * bitangent));
   vertex.diffusemap = in_diffusemap;
   vertex.color = vec4(1.0);
+  
+  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
+  vertex.inverse_tbn = inverse(vertex.tbn);
 
   if (view_type == VIEW_PLAYER_MODEL) {
     vertex.ambient = vec3(0.666);
     vertex.caustics = 0.0;
     vertex.fog = vec4(0.0);
     vertex.lighting = vec3(0.0);
+    vertex.voxel = vec3(0.0);
   } else {
     vec3 texcoord = voxel_uvw(vec3(model * position));
+    vertex.voxel = texcoord;
 
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
@@ -118,7 +125,6 @@ void main(void) {
     vertex.fog = sample_voxel_fog(texcoord);
     
     // Calculate vertex lighting (used for distant meshes)
-    vec3 model_normal = normalize(vec3(model * normal));
     vertex.lighting = calculate_vertex_lighting(vertex.model_position, model_normal);
   }
 

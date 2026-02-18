@@ -23,20 +23,7 @@ in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
-struct fragment_t {
-  vec3 dir;
-  float dist;
-  vec3 normal;
-  vec3 tangent;
-  vec3 bitangent;
-  mat3 tbn;
-  vec4 diffusemap;
-  vec3 normalmap;
-  vec4 specularmap;
-  vec3 ambient;
-  vec3 diffuse;
-  vec3 specular;
-} fragment;
+common_fragment_t fragment;
 
 uniform mat4 model;
 uniform vec4 color;
@@ -110,18 +97,12 @@ void light_and_shadow_light(in int index) {
 
   dir = normalize(view * vec4(dir, 0.0)).xyz;
 
-  float lambert = max(0.0, dot(dir, fragment.normalmap));
+  float lambert = max(0.0, dot(dir, fragment.normal_sample));
   
-  common_fragment_t f;
-  f.view_dir = fragment.dir;
-  f.view_dist = fragment.dist;
-  f.normal_sample = fragment.normalmap;
-  f.specular_sample = fragment.specularmap;
-  
-  float shadow = sample_shadow_cubemap_array(light, index, vertex, f);
+  float shadow = sample_shadow_cubemap_array(light, index, vertex, fragment);
 
   fragment.diffuse += color * lambert * shadow;
-  fragment.specular += blinn_phong(color * shadow, dir, f);
+  fragment.specular += blinn_phong(color * shadow, dir, fragment);
 }
 
 /**
@@ -158,7 +139,7 @@ void light_and_shadow_caustics() {
 void light_and_shadow(void) {
 
   // For distant fragments, use simple vertex lighting
-  if (fragment.dist >= lighting_distance) {
+  if (fragment.view_dist >= lighting_distance) {
     fragment.ambient = vec3(0.0);
     fragment.diffuse = vertex.lighting;
     fragment.specular = vec3(0.0);
@@ -166,8 +147,8 @@ void light_and_shadow(void) {
   }
 
   // For close fragments, do full per-fragment lighting
-  fragment.normalmap = sample_normalmap();
-  fragment.specularmap = sample_specularmap();
+  fragment.normal_sample = sample_normalmap();
+  fragment.specular_sample = sample_specularmap();
 
   fragment.ambient = vertex.ambient;
   fragment.diffuse = vec3(0.0);
@@ -203,27 +184,27 @@ void main(void) {
     return;
   }
 
-  fragment.dir = normalize(-vertex.position);
-  fragment.dist = length(vertex.position);
+  fragment.view_dir = normalize(-vertex.position);
+  fragment.view_dist = length(vertex.position);
   fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-	  fragment.diffusemap = sample_diffusemap() * vertex.color;
+	  fragment.diffuse_sample = sample_diffusemap() * vertex.color;
 
-	  if (fragment.diffusemap.a < material.alpha_test) {
+	  if (fragment.diffuse_sample.a < material.alpha_test) {
   	  discard;
 	  }
 
 	  vec4 tintmap = sample_tintmap();
-	  fragment.diffusemap.rgb *= 1.0 - tintmap.a;
-	  fragment.diffusemap.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
-	  fragment.diffusemap.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
-	  fragment.diffusemap.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
+	  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
+	  fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+	  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+	  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
 	  light_and_shadow();
 
-	  out_color = fragment.diffusemap;
+	  out_color = fragment.diffuse_sample;
 
 	  out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 	  out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
@@ -231,13 +212,13 @@ void main(void) {
 
   } else {
 
-	  fragment.diffusemap = sample_material_stage() * vertex.color * color;
+	  fragment.diffuse_sample = sample_material_stage() * vertex.color * color;
 
-	  out_color = fragment.diffusemap;
+	  out_color = fragment.diffuse_sample;
 
 //	  if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
 //
-//  	  fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normalmap));
+//  	  fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normal_sample));
 //
 //  	  light_and_shadow(); // FIXME ambient?
 //

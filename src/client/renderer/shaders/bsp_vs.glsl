@@ -65,4 +65,9 @@ void main(void) {
 
   vertex.fog = calculate_vertex_fog(vertex.model_position);
   vertex.lighting = calculate_vertex_lighting(vertex.model_position, vertex.model_normal);
+  
+  // Initialize unused fields for mesh shaders
+  vertex.smooth_normal = vertex.normal;
+  vertex.ambient = vec3(0.0);
+  vertex.caustics = 0.0;
 }

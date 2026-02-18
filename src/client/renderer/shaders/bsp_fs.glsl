@@ -26,23 +26,7 @@ in common_vertex_t vertex;
 
 layout (location = 0) out vec4 out_color;
 
-struct fragment_t {
-  vec3 dir;
-  float dist;
-  float lod;
-  vec3 normal;
-  vec3 tangent;
-  vec3 bitangent;
-  vec2 parallax;
-  vec4 diffusemap;
-  vec3 normalmap;
-  vec4 specularmap;
-  vec3 ambient;
-  vec3 diffuse;
-  float caustics;
-  vec3 specular;
-  vec4 fog;
-} fragment;
+common_fragment_t fragment;
 
 /**
  * @brief Samples the heightmap at the given texture coordinate.
@@ -73,7 +57,7 @@ void parallax_occlusion_mapping() {
   float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.dir * vertex.tbn);
+  vec3 dir = normalize(fragment.view_dir * vertex.tbn);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
 
@@ -189,14 +173,14 @@ float sample_voxel_caustics() {
 vec4 sample_voxel_fog() {
 
   // For distant fragments, use interpolated vertex fog (much cheaper)
-  if (fragment.dist >= fog_distance) {
+  if (fragment.view_dist >= fog_distance) {
     return vertex.fog;
   }
 
   // For close fragments, do full per-fragment raymarching
   vec4 fog = vec4(0.0);
 
-  float samples = clamp(fragment.dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+  float samples = clamp(fragment.view_dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
 
   for (float i = 0; i < samples; i++) {
 
@@ -241,13 +225,7 @@ void light_and_shadow_light(in int index) {
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
-  common_fragment_t f;
-  f.view_dir = fragment.dir;
-  f.view_dist = fragment.dist;
-  f.normal_sample = fragment.normalmap;
-  f.specular_sample = fragment.specularmap;
-  
-  float shadow = sample_shadow_cubemap_array(light, index, vertex, f);
+  float shadow = sample_shadow_cubemap_array(light, index, vertex, fragment);
 
   if (fragment.lod < 4.0 && material.shadow > 0.0) {
     shadow *= parallax_self_shadow(dir);
@@ -257,10 +235,10 @@ void light_and_shadow_light(in int index) {
     return;
   }
 
-  float lambert = max(0.0, dot(dir, fragment.normalmap));
+  float lambert = max(0.0, dot(dir, fragment.normal_sample));
 
   fragment.diffuse += color * lambert * shadow;
-  fragment.specular += blinn_phong(color * shadow, dir, f);
+  fragment.specular += blinn_phong(color * shadow, dir, fragment);
 }
 
 /**
@@ -296,7 +274,7 @@ void light_and_shadow_caustics() {
 void light_and_shadow(void) {
 
   // For distant fragments, use simple vertex lighting
-  if (fragment.dist >= lighting_distance) {
+  if (fragment.view_dist >= lighting_distance) {
     fragment.ambient = vec3(0.0);
     fragment.diffuse = vertex.lighting;
     fragment.specular = vec3(0.0);
@@ -304,8 +282,8 @@ void light_and_shadow(void) {
   }
 
   // For close fragments, do full per-fragment lighting
-  fragment.normalmap = sample_normalmap();
-  fragment.specularmap = sample_specularmap();
+  fragment.normal_sample = sample_normalmap();
+  fragment.specular_sample = sample_specularmap();
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
@@ -355,17 +333,17 @@ void main(void) {
     return;
   }
 
-  fragment.dir = normalize(-vertex.position);
-  fragment.dist = length(vertex.position);
+  fragment.view_dir = normalize(-vertex.position);
+  fragment.view_dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
   parallax_occlusion_mapping();
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-    fragment.diffusemap = sample_diffusemap() * vertex.color;
+    fragment.diffuse_sample = sample_diffusemap() * vertex.color;
 
-    if (fragment.diffusemap.a < material.alpha_test) {
+    if (fragment.diffuse_sample.a < material.alpha_test) {
       discard;
     }
 
@@ -373,7 +351,7 @@ void main(void) {
 
     fragment.fog = sample_voxel_fog();
 
-    out_color = fragment.diffusemap;
+    out_color = fragment.diffuse_sample;
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
@@ -387,9 +365,9 @@ void main(void) {
       st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
     }
 
-    fragment.diffusemap = sample_material_stage(st) * vertex.color;
+    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
 
-    out_color = fragment.diffusemap;
+    out_color = fragment.diffuse_sample;
 
     //    if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
     //
