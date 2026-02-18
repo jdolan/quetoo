@@ -36,20 +36,7 @@ uniform mat4 model;
 uniform float lerp;
 uniform int block;
 
-out vertex_data {
-  vec3 model_position;
-  vec3 position;
-  vec3 normal;
-  vec3 smooth_normal;
-  vec3 tangent;
-  vec3 bitangent;
-  vec2 diffusemap;
-  vec4 color;
-  vec3 ambient;
-  float caustics;
-  vec4 fog;
-  vec3 lighting;
-} vertex;
+out common_vertex_t vertex;
 
 invariant gl_Position;
 

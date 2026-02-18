@@ -28,21 +28,7 @@ layout (location = 5) in vec4 in_color;
 
 uniform mat4 model;
 
-out vertex_data {
-  vec3 model_position;
-  vec3 model_normal;
-  vec3 position;
-  vec3 normal;
-  vec3 tangent;
-  vec3 bitangent;
-  mat3 tbn;
-  mat3 inverse_tbn;
-  vec2 diffusemap;
-  vec3 voxel;
-  vec4 color;
-  vec4 fog;
-  vec3 lighting;
-} vertex;
+out common_vertex_t vertex;
 
 invariant gl_Position;
 
