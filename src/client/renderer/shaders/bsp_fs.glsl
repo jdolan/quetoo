@@ -101,15 +101,6 @@ float parallax_self_shadow(in vec3 light_dir) {
 }
 
 /**
- * @brief Sample volumetric fog with distance-based LOD.
- * @details For distant fragments, uses pre-calculated vertex fog.
- * For close fragments, performs full per-fragment raymarching.
- */
-vec4 sample_voxel_fog() {
-  return calculate_fragment_fog(vertex, fragment);
-}
-
-/**
  * @brief
  */
 void light_and_shadow_light(in int index) {
@@ -142,14 +133,6 @@ void light_and_shadow_light(in int index) {
 
   fragment.diffuse += color * lambert * shadow;
   fragment.specular += blinn_phong(color * shadow, dir, fragment);
-}
-
-/**
- * @brief Apply caustics lighting to this fragment.
- */
-void light_and_shadow_caustics() {
-  float caustics_intensity = sample_voxel_caustics(vertex.model_position);
-  fragment.diffuse += calculate_caustics_lighting(vertex, fragment, caustics_intensity);
 }
 
 /**
@@ -196,7 +179,8 @@ void light_and_shadow(void) {
       light_and_shadow_light(index);
     }
 
-    light_and_shadow_caustics();
+    fragment.caustics = sample_voxel_caustics(vertex.model_position);
+    fragment.diffuse += calculate_caustics_lighting(vertex, fragment);
 
   } else {
     for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -236,7 +220,7 @@ void main(void) {
 
     light_and_shadow();
 
-    fragment.fog = sample_voxel_fog();
+    fragment.fog = calculate_fragment_fog(vertex, fragment);
 
     out_color = fragment.diffuse_sample;
 
@@ -264,7 +248,7 @@ void main(void) {
     //    }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-      fragment.fog = sample_voxel_fog();
+      fragment.fog = calculate_fragment_fog(vertex, fragment);
       out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
     }
   }

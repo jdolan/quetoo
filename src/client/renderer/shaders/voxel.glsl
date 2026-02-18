@@ -278,14 +278,14 @@ vec3 calculate_vertex_lighting(in common_vertex_t v) {
 /**
  * @brief Calculate caustics lighting contribution.
  * @details Applies animated noise-based caustics to the diffuse lighting.
+ * Uses pre-calculated vertex caustics if available, otherwise samples from voxel data.
  * @param v Vertex data.
  * @param f Fragment data.
- * @param caustics_intensity The caustics intensity (0-1).
  * @return The caustics contribution to add to diffuse.
  */
-vec3 calculate_caustics_lighting(in common_vertex_t v, in common_fragment_t f, in float caustics_intensity) {
+vec3 calculate_caustics_lighting(in common_vertex_t v, in common_fragment_t f) {
   
-  if (caustics_intensity == 0.0) {
+  if (f.caustics == 0.0) {
     return vec3(0.0);
   }
 
@@ -298,5 +298,5 @@ vec3 calculate_caustics_lighting(in common_vertex_t v, in common_fragment_t f, i
   noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
   vec3 light = f.ambient + f.diffuse;
-  return max(vec3(0.0), light * caustics_intensity * noise);
+  return max(vec3(0.0), light * f.caustics * noise);
 }
