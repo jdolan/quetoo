@@ -198,11 +198,11 @@ vec4 calculate_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
 
 /**
  * @brief Calculate vertex fog (pre-calculated in vertex shader).
- * @param world_pos The world-space position of the vertex.
+ * @param v Vertex data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 calculate_vertex_fog(in vec3 world_pos) {
-  return calculate_fog(world_pos, view[0].xyz, fog_samples);
+vec4 calculate_vertex_fog(in common_vertex_t v) {
+  return calculate_fog(v.model_position, view[0].xyz, fog_samples);
 }
 
 /**
@@ -210,47 +210,44 @@ vec4 calculate_vertex_fog(in vec3 world_pos) {
  * @details For distant fragments (>= fog_distance), uses pre-calculated vertex fog.
  * For close fragments, performs full per-fragment raymarching for high-quality
  * dynamic lighting effects (e.g., rocket lighting fog).
- * @param world_pos The world-space position.
- * @param voxel_uvw_coord The voxel texture coordinate.
- * @param view_dist The distance from camera.
- * @param vertex_fog The pre-calculated vertex fog.
+ * @param v Vertex data.
+ * @param f Fragment data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 calculate_fragment_fog(in vec3 world_pos, in vec3 voxel_uvw_coord, in float view_dist, in vec4 vertex_fog) {
+vec4 calculate_fragment_fog(in common_vertex_t v, in common_fragment_t f) {
   // For distant fragments, use interpolated vertex fog (much cheaper)
-  if (view_dist >= fog_distance) {
-    return vertex_fog;
+  if (f.view_dist >= fog_distance) {
+    return v.fog;
   }
 
   // For close fragments, do full per-fragment raymarching
-  return calculate_fog(world_pos, view[0].xyz, fog_samples);
+  return calculate_fog(v.model_position, view[0].xyz, fog_samples);
 }
 
 /**
  * @brief Calculate vertex lighting from voxel lights (unshadowed diffuse only).
  * @details Used for distant geometry where per-fragment lighting is too expensive.
- * @param world_pos The world-space position.
- * @param world_normal The world-space normal.
+ * @param v Vertex data.
  * @return The accumulated diffuse lighting.
  */
-vec3 calculate_vertex_lighting(in vec3 world_pos, in vec3 world_normal) {
+vec3 calculate_vertex_lighting(in common_vertex_t v) {
   vec3 diffuse = vec3(0.0);
 
-  ivec3 voxel_coord = voxel_xyz(world_pos);
+  ivec3 voxel_coord = voxel_xyz(v.model_position);
   ivec2 data = voxel_light_data(voxel_coord);
 
   for (int i = 0; i < data.y; i++) {
     int index = voxel_light_index(data.x + i);
     light_t light = lights[index];
 
-    vec3 light_dir = light.origin.xyz - world_pos;
+    vec3 light_dir = light.origin.xyz - v.model_position;
     float dist = length(light_dir);
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
     if (atten > 0.0) {
       light_dir = normalize(light_dir);
-      float lambert = max(0.0, dot(world_normal, light_dir));
+      float lambert = max(0.0, dot(v.model_normal, light_dir));
       diffuse += light.color.rgb * light.color.a * atten * lambert * modulate;
     }
   }
@@ -263,14 +260,14 @@ vec3 calculate_vertex_lighting(in vec3 world_pos, in vec3 world_normal) {
 
     light_t light = lights[index];
 
-    vec3 light_dir = light.origin.xyz - world_pos;
+    vec3 light_dir = light.origin.xyz - v.model_position;
     float dist = length(light_dir);
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
     if (atten > 0.0) {
       light_dir = normalize(light_dir);
-      float lambert = max(0.0, dot(world_normal, light_dir));
+      float lambert = max(0.0, dot(v.model_normal, light_dir));
       diffuse += light.color.rgb * light.color.a * atten * lambert * modulate;
     }
   }
@@ -281,19 +278,18 @@ vec3 calculate_vertex_lighting(in vec3 world_pos, in vec3 world_normal) {
 /**
  * @brief Calculate caustics lighting contribution.
  * @details Applies animated noise-based caustics to the diffuse lighting.
- * @param world_pos The world-space position.
+ * @param v Vertex data.
+ * @param f Fragment data.
  * @param caustics_intensity The caustics intensity (0-1).
- * @param ambient_light The ambient light contribution.
- * @param diffuse_light The diffuse light contribution.
  * @return The caustics contribution to add to diffuse.
  */
-vec3 calculate_caustics_lighting(in vec3 world_pos, in float caustics_intensity, in vec3 ambient_light, in vec3 diffuse_light) {
+vec3 calculate_caustics_lighting(in common_vertex_t v, in common_fragment_t f, in float caustics_intensity) {
   
   if (caustics_intensity == 0.0) {
     return vec3(0.0);
   }
 
-  float noise = noise3d(world_pos * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(v.model_position * .05 + (ticks / 1000.0) * 0.5);
 
   // make the inner edges stronger, clamp to 0-1
   float thickness = 0.02;
@@ -301,6 +297,6 @@ vec3 calculate_caustics_lighting(in vec3 world_pos, in float caustics_intensity,
 
   noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
-  vec3 light = ambient_light + diffuse_light;
+  vec3 light = f.ambient + f.diffuse;
   return max(vec3(0.0), light * caustics_intensity * noise);
 }

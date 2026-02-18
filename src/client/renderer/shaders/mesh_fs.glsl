@@ -61,7 +61,7 @@ void light_and_shadow_light(in int index) {
  * @brief Apply caustics lighting to this fragment.
  */
 void light_and_shadow_caustics() {
-  fragment.diffuse += calculate_caustics_lighting(vertex.model_position, vertex.caustics, fragment.ambient, fragment.diffuse);
+  fragment.diffuse += calculate_caustics_lighting(vertex, fragment, vertex.caustics);
 }
 
 /**

@@ -106,7 +106,7 @@ float parallax_self_shadow(in vec3 light_dir) {
  * For close fragments, performs full per-fragment raymarching.
  */
 vec4 sample_voxel_fog() {
-  return calculate_fragment_fog(vertex.model_position, vertex.voxel, fragment.view_dist, vertex.fog);
+  return calculate_fragment_fog(vertex, fragment);
 }
 
 /**
@@ -149,7 +149,7 @@ void light_and_shadow_light(in int index) {
  */
 void light_and_shadow_caustics() {
   float caustics_intensity = sample_voxel_caustics(vertex.model_position);
-  fragment.diffuse += calculate_caustics_lighting(vertex.model_position, caustics_intensity, fragment.ambient, fragment.diffuse);
+  fragment.diffuse += calculate_caustics_lighting(vertex, fragment, caustics_intensity);
 }
 
 /**
