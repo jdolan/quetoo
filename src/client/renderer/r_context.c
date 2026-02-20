@@ -243,20 +243,6 @@ void R_InitContext(void) {
 
   SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
 
-  int32_t num_displays = 0;
-  SDL_DisplayID *displays = SDL_GetDisplays(&num_displays);
-  if (displays && r_display->integer) {
-    for (int32_t i = 0; i < num_displays; i++) {
-      if (displays[i] == (SDL_DisplayID) r_display->integer) {
-        display_id = displays[i];
-        break;
-      }
-    }
-    SDL_free(displays);
-  } else {
-    Com_Warn("Failed to query displays: %s\n", SDL_GetError());
-  }
-
   int32_t w, h;
   
   const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(display_id);
@@ -287,8 +273,6 @@ void R_InitContext(void) {
   r_context.display = SDL_GetDisplayForWindow(r_context.window);
   r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
   r_context.display_scale = SDL_GetWindowDisplayScale(r_context.window);
-
-  Cvar_ForceSetInteger(r_display->name, (int32_t) r_context.display);
 
   R_SetWindowIcon();
 

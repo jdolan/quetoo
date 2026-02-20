@@ -27,7 +27,6 @@ extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_caustics;
-extern cvar_t *r_display;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;

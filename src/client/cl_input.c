@@ -297,17 +297,6 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       Cmd_ExecuteString("quit");
       return true;
 
-    case SDL_EVENT_WINDOW_EXPOSED:
-      {
-        const SDL_DisplayID display = SDL_GetDisplayForWindow(SDL_GL_GetCurrentWindow());
-        if ((int32_t) display != r_display->integer) {
-          Cvar_ForceSetInteger(r_display->name, (int32_t) display);
-          Cbuf_AddText("r_restart\n");
-          return true;
-        }
-      }
-      break;
-
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);

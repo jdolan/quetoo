@@ -46,7 +46,6 @@ cvar_t *r_allow_high_dpi;
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_caustics;
-cvar_t *r_display;
 cvar_t *r_finish;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
@@ -352,7 +351,6 @@ static void R_InitLocal(void) {
   r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
-  r_display = Cvar_Add("r_display", "0", CVAR_ARCHIVE, "Specifies the default display to use");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
   r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
