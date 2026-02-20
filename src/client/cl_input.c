@@ -298,8 +298,14 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       return true;
 
     case SDL_EVENT_WINDOW_EXPOSED:
+    case SDL_EVENT_WINDOW_MOVED:
     case SDL_EVENT_WINDOW_RESIZED:
+    case SDL_EVENT_WINDOW_MAXIMIZED:
+    case SDL_EVENT_WINDOW_RESTORED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+    case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
       R_UpdateContext();
       return false;
 

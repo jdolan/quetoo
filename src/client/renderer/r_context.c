@@ -65,6 +65,12 @@ void R_UpdateContext(void) {
     r_context.window_bounds.h * r_context.display_mode->pixel_density
   };
   
+  Com_Debug(DEBUG_RENDERER, "window bounds (%d, %d, %d, %d, viewport (%d, %d, %d, %d)\n",
+            r_context.window_bounds.x, r_context.window_bounds.y,
+            r_context.window_bounds.w, r_context.window_bounds.h,
+            r_context.viewport.x, r_context.viewport.y,
+            r_context.viewport.w, r_context.viewport.h);
+  
   R_SetWindowIcon();
 }
 

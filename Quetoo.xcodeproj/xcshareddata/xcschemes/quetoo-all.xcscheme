@@ -85,12 +85,12 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_fullscreen 1 +set r_width 1920 +set r_height 1080"
-            isEnabled = "NO">
+            argument = "+set r_fullscreen 0 +set r_width 1920 +set r_height 1080"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set +set r_fullscreen 2"
-            isEnabled = "YES">
+            argument = "+set +set r_fullscreen 1"
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_draw_occlusion_queries 1"

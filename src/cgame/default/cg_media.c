@@ -127,10 +127,9 @@ r_framebuffer_t cg_framebuffer;
 void Cg_CreateFramebuffer(void) {
   
   Cg_DestroyFramebuffer();
-  
-  SDL_Rect rect;
-  SDL_GetWindowSafeArea(SDL_GL_GetCurrentWindow(), &rect);
-  
+
+  const SDL_Rect rect = cgi.context->window_bounds;
+
   cg_framebuffer = cgi.CreateFramebuffer(rect.w, rect.h, ATTACHMENT_ALL);
 }
 
