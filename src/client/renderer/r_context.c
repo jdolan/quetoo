@@ -61,8 +61,8 @@ void R_UpdateContext(void) {
   r_context.viewport = (SDL_Rect) {
     0,
     0,
-    r_context.window_bounds.w *= r_context.display_mode->pixel_density,
-    r_context.window_bounds.h *= r_context.display_mode->pixel_density
+    r_context.window_bounds.w * r_context.display_mode->pixel_density,
+    r_context.window_bounds.h * r_context.display_mode->pixel_density
   };
   
   R_SetWindowIcon();
