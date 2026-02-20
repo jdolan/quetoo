@@ -115,11 +115,11 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
   const SDL_Rect r = *rect;
 
   const GLint points[][2] = {
-    { r.x,      r.y },
-    { r.x + r.w,  r.y },
-    { r.x + r.w,  r.y + r.h },
-    { r.x,      r.y + r.h },
-    { r.x,      r.y },
+    { r.x,       r.y },
+    { r.x + r.w, r.y },
+    { r.x + r.w, r.y + r.h },
+    { r.x,       r.y + r.h },
+    { r.x,       r.y },
   };
 
   R_Draw2DLines((GLint *) points, lengthof(points), drawColor);
@@ -232,4 +232,3 @@ Class *_QuetooRenderer(void) {
 }
 
 #undef _Class
-

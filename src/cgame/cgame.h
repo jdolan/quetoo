@@ -915,6 +915,14 @@ typedef struct cg_export_s {
    * @details This allows the game and client game to define their own custom message types.
    */
   bool (*ParseMessage)(int32_t cmd);
+  
+  /**
+   * @brief Called multiple times per frame for each system or user event.
+   * @param event The event.
+   * @details Most events such as mouse movement and key input are handled by the client, but this
+   * function allows the client game to augment them, or handle custom event types.
+   */
+  void (*HandleEvent)(const SDL_Event *event);
 
   /**
    * @brief Called each frame to update the current movement command angles.
@@ -972,6 +980,10 @@ typedef struct cg_export_s {
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
   void (*UpdateScreen)(const cl_frame_t *frame);
+  
+  /**
+   * @brief Called each frame to update Discord status.
+   */
   void (*UpdateDiscord)(void);
 
 } cg_export_t;

@@ -89,7 +89,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_allow_high_dpi 1 +set r_fullscreen 1"
+            argument = "+set +set r_fullscreen 2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

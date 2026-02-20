@@ -1812,37 +1812,48 @@ typedef struct {
  * @brief Window and OpenGL context information.
  */
 typedef struct {
-
-  /**
-   * @brief The application window.
-   */
-  SDL_Window *window;
   
-  /**
-   * @brief The window size, which may be smaller than the drawable size in pixels
-   * on high pixel density (4K+) displays.
-   */
-  GLint w, h;
-
-  /**
-   * @brief OpenGL context size in drawable pixels, as reported by `SDL_GetWindowSizeInPixels`.
-   */
-  GLint pw, ph;
-
   /**
    * @brief The display associated with the application window.
    */
   SDL_DisplayID display;
   
   /**
-   * The display mode.
+   * @brief The display mode.
    */
   const SDL_DisplayMode *display_mode;
   
   /**
-   * @brief Greater than 1.0 if High DPI mode is enabled.
+   * @brief The display usable bounds, which may be smaller than the display mode resolution.
    */
-  float display_scale;
+  SDL_Rect display_usable_bounds;
+  
+  /**
+   * @brief The application window.
+   */
+  SDL_Window *window;
+  
+  /**
+   * @brief The window flags.
+   */
+  SDL_WindowFlags window_flags;
+  
+  /**
+   * @brief The window position and size in logical pixels.
+   */
+  SDL_Rect window_bounds;
+  
+  /**
+   * @brief The window size, in logical pixels.
+   * @details These are set from `window_bounds` and are available for convenience.
+   */
+  GLint w, h;
+  
+  /**
+   * @brief The OpenGL viewport suitable for the current window.
+   * @details This is calculated in drawable pixels, which factors in pixel density for high-DPI displays.
+   */
+  SDL_Rect viewport;
 
   /**
    * @brief The OpenGL context.

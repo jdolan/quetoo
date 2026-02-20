@@ -121,6 +121,8 @@ extern r_atlas_image_t *cg_decal_slug[4];
 
 extern r_framebuffer_t cg_framebuffer;
 
+void Cg_CreateFramebuffer(void);
+void Cg_DestroyFramebuffer(void);
 void Cg_LoadMedia(void);
 void Cg_FreeMedia(void);
 #endif /* __CG_LOCAL_H__ */

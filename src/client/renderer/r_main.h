@@ -23,7 +23,6 @@
 
 #include "r_types.h"
 
-extern cvar_t *r_allow_high_dpi;
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_caustics;

@@ -124,6 +124,29 @@ r_framebuffer_t cg_framebuffer;
 /**
  * @brief
  */
+void Cg_CreateFramebuffer(void) {
+  
+  Cg_DestroyFramebuffer();
+  
+  SDL_Rect rect;
+  SDL_GetWindowSafeArea(SDL_GL_GetCurrentWindow(), &rect);
+  
+  cg_framebuffer = cgi.CreateFramebuffer(rect.w, rect.h, ATTACHMENT_ALL);
+}
+
+/**
+ * @brief
+ */
+void Cg_DestroyFramebuffer(void) {
+  
+  if (cg_framebuffer.name) {
+    cgi.DestroyFramebuffer(&cg_framebuffer);
+  }
+}
+
+/**
+ * @brief
+ */
 static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
   assert(last_frame > first_frame);
 
@@ -149,7 +172,7 @@ void Cg_LoadMedia(void) {
 
   cgi.FreeTag(MEM_TAG_CGAME);
   cgi.FreeTag(MEM_TAG_CGAME_LEVEL);
-
+  
   cgi.LoadingProgress(-1, "sounds");
 
   cg_sample_blaster_fire = cgi.LoadSample("weapons/blaster/fire");
@@ -287,9 +310,6 @@ void Cg_LoadMedia(void) {
 
   cgi.CompileAtlas(cg_decal_atlas);
 
-  const int32_t w = cgi.context->pw, h = cgi.context->ph;
-  cg_framebuffer = cgi.CreateFramebuffer(w, h, ATTACHMENT_ALL);
-
   Cg_LoadFlares();
 
   cgi.LoadingProgress(-1, "entities");
@@ -310,6 +330,8 @@ void Cg_LoadMedia(void) {
   cg_draw_crosshair_color->modified = true;
 
   Cg_LoadHudMedia();
+  
+  Cg_CreateFramebuffer();
 
   Cg_Debug("Complete\n");
 }
@@ -319,7 +341,7 @@ void Cg_LoadMedia(void) {
  */
 void Cg_FreeMedia(void) {
 
-  cgi.DestroyFramebuffer(&cg_framebuffer);
+  Cg_DestroyFramebuffer();
 
   Cg_FreeLights();
 

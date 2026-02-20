@@ -35,6 +35,19 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
+ * @brief
+ */
+void Cg_HandleEvent(const SDL_Event *event) {
+  
+  switch (event->type) {
+    case SDL_EVENT_WINDOW_EXPOSED:
+    case SDL_EVENT_WINDOW_RESIZED:
+      Cg_CreateFramebuffer();
+      break;
+  }
+}
+
+/**
  * @brief Parse a view kick message from the server, updating the interpolation target.
  */
 void Cg_ParseViewKick(void) {

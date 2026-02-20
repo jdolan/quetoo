@@ -77,8 +77,8 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
   const float scale = Clampf(r_supersample->value, 0.25f, 2.f);
 
   r_framebuffer_t framebuffer = {
-    .width = width * scale,
-    .height = height * scale,
+    .width = width * r_context.display_mode->pixel_density * scale,
+    .height = height * r_context.display_mode->pixel_density * scale,
     .attachments = attachments,
   };
 
@@ -177,8 +177,8 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
   assert(framebuffer);
 
-  w = w ?: r_context.pw;
-  h = h ?: r_context.ph;
+  w = w ?: r_context.viewport.w;
+  h = h ?: r_context.viewport.h;
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->name);
 
@@ -190,7 +190,8 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
       Com_Error(ERROR_DROP, "Can't blit attachment %d\n", attachment);
   }
 
-  glBlitFramebuffer(0,
+  glBlitFramebuffer(
+            0,
             0,
             framebuffer->width,
             framebuffer->height,

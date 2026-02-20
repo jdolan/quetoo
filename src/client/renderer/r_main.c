@@ -42,7 +42,6 @@ cvar_t *r_occlude;
 
 int32_t r_error_count;
 
-cvar_t *r_allow_high_dpi;
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_caustics;
@@ -230,7 +229,8 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_DrawOcclusionQueries(view);
 
-  glViewport(0, 0, r_context.pw, r_context.ph);
+  const SDL_Rect viewport = r_context.viewport;
+  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -274,8 +274,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_Draw3D();
 
-  glViewport(0, 0, r_context.pw, r_context.ph);
-
+  const SDL_Rect viewport = r_context.viewport;
+  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
+  
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -305,8 +306,9 @@ void R_DrawPlayerModelView(r_view_t *view) {
 
   R_DrawMeshEntities(view);
 
-  glViewport(0, 0, r_context.pw, r_context.ph);
-
+  const SDL_Rect viewport = r_context.viewport;
+  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
+  
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -347,7 +349,6 @@ static void R_InitLocal(void) {
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
   // settings and preferences
-  r_allow_high_dpi = Cvar_Add("r_allow_high_dpi", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Enables or disables support for High-DPI (Retina, 4K) display modes");
   r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
@@ -355,7 +356,7 @@ static void R_InitLocal(void) {
   r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
   r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
   r_fog_distance = Cvar_Add("r_fog_distance", "1024", CVAR_ARCHIVE, "Distance threshold for vertex fog");
-  r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = exclusive, 2 = borderless");
+  r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
   r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting");
@@ -489,7 +490,10 @@ void R_Init(void) {
 
   R_GetError("Video initialization");
 
-  Com_Print("Video initialized %dx%d (%dx%d)\n", r_context.w, r_context.h, r_context.pw, r_context.ph);
+  const SDL_Rect bounds = r_context.window_bounds;
+  const SDL_Rect viewport = r_context.viewport;
+  
+  Com_Print("Video initialized %dx%d (%dx%d)\n", bounds.w, bounds.h, viewport.w, viewport.h);
 }
 
 /**

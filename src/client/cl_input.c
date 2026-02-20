@@ -297,54 +297,37 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       Cmd_ExecuteString("quit");
       return true;
 
+    case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_RESIZED:
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
-      SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);
-      SDL_GetWindowSizeInPixels(r_context.window, &r_context.pw, &r_context.ph);
-      // TODO: Need a way for the cgame to recreate its framebuffer
-      break;
+      R_UpdateContext();
+      return false;
 
     case SDL_EVENT_KEY_DOWN:
 
-      if (event->key.key == SDLK_ESCAPE) { // escape can cancel a few things
+      if (event->key.key == SDLK_ESCAPE) {
 
-        // connecting to a server
         switch (cls.state) {
           case CL_CONNECTING:
           case CL_CONNECTED:
-            Com_Error(ERROR_DROP, "Connection aborted by user\n");
           case CL_LOADING:
-            return false;
+            Com_Error(ERROR_DROP, "Connection aborted by user\n");
+          case CL_ACTIVE:
+            switch (cls.key_state.dest) {
+              case KEY_CHAT:
+              case KEY_UI:
+                Cl_SetKeyDest(KEY_GAME);
+                return true;
+              case KEY_GAME:
+                Cl_SetKeyDest(KEY_UI);
+                return true;
+              case KEY_CONSOLE:
+                Cl_ToggleConsole_f();
+                return true;
+            }
           default:
             break;
         }
-
-        // message mode
-        if (cls.key_state.dest == KEY_CHAT) {
-          Cl_SetKeyDest(KEY_GAME);
-          return true;
-        }
-
-        // console
-        if (cls.key_state.dest == KEY_CONSOLE) {
-          Cl_ToggleConsole_f();
-          return true;
-        }
-
-        // and menus
-        if (cls.key_state.dest == KEY_UI) {
-
-          // if we're in the game, just hide the menus
-          if (cls.state == CL_ACTIVE) {
-            Cl_SetKeyDest(KEY_GAME);
-            return true;
-          }
-
-          return false;
-        }
-
-        Cl_SetKeyDest(KEY_UI);
-        return true;
       }
 
       // for everything other than ESC, check for system-level command binds
@@ -417,8 +400,11 @@ void Cl_HandleEvents(void) {
 
     if (SDL_PollEvent(&event)) {
       if (Cl_HandleSystemEvent(&event) == false) {
+        
         Ui_HandleEvent(&event);
         Cl_HandleEvent(&event);
+        
+        cls.cgame->HandleEvent(&event);
       }
     } else {
       break;
@@ -426,8 +412,9 @@ void Cl_HandleEvents(void) {
   }
 
   if (cls.key_state.dest == KEY_GAME) {
-    const GLint cx = r_context.w * 0.5f;
-    const GLint cy = r_context.h * 0.5f;
+    
+    const GLint cx = r_context.display_mode->w * 0.5f;
+    const GLint cy = r_context.display_mode->h * 0.5f;
 
     SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }

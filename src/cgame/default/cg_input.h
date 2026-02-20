@@ -28,6 +28,7 @@ extern button_t cg_buttons[4];
 #define in_hook cg_buttons[2]
 #define in_score cg_buttons[3]
 
+void Cg_HandleEvent(const SDL_Event *event);
 void Cg_ParseViewKick(void);
 void Cg_Look(pm_cmd_t *cmd);
 void Cg_Move(pm_cmd_t *cmd);

@@ -40,184 +40,36 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
- * @brief Convert error source into a string
-*/
-static const char *R_Debug_Source(const GLenum source) {
-  switch(source) {
-    case GL_DEBUG_SOURCE_API:
-      return "API";
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-      return "Window System";
-    case GL_DEBUG_SOURCE_SHADER_COMPILER:
-      return "Shader Compiler";
-    case GL_DEBUG_SOURCE_THIRD_PARTY:
-      return "Third Party";
-    case GL_DEBUG_SOURCE_APPLICATION:
-      return "Application";
-    case GL_DEBUG_SOURCE_OTHER:
-    default:
-      return "Other";
-  }
-}
-
-/**
- * @brief Convert error type into a string
-*/
-static const char *R_Debug_Type(const GLenum type) {
-  switch(type) {
-    case GL_DEBUG_TYPE_ERROR:
-      return "Error";
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-      return "Deprecated Behaviour";
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-      return "Undefined Behaviour";
-    case GL_DEBUG_TYPE_PORTABILITY:
-      return "Portability";
-    case GL_DEBUG_TYPE_PERFORMANCE:
-      return "Performance";
-    case GL_DEBUG_TYPE_MARKER:
-      return "Marker";
-    case GL_DEBUG_TYPE_PUSH_GROUP:
-      return "Push Group";
-    case GL_DEBUG_TYPE_POP_GROUP:
-      return "Pop Group";
-    case GL_DEBUG_TYPE_OTHER:
-    default:
-      return "Other";
-  }
-}
-
-/**
- * @brief Convert error severity into a string
-*/
-static const char *R_Debug_Severity(const GLenum severity) {
-  switch(severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-      return "High";
-    case GL_DEBUG_SEVERITY_MEDIUM:
-      return "Medium";
-    case GL_DEBUG_SEVERITY_LOW:
-      return "Low";
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-    default:
-      return "Notification";
-  }
-}
-
-/**
- * @brief Callback for OpenGL's debug system.
-*/
-static void GLAPIENTRY R_Debug_Callback(const GLenum source, const GLenum type, const GLuint id, const GLenum severity, const GLsizei length, const GLchar *message, const void *userParam) {
-
-  char temp[length + 1];
-  GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
-
-  if (length > 0) {
-    strncpy(temp, message, length);
-    temp[length] = 0;
-    message = temp;
-  } else if (!length) {
-    message = "";
-  }
-
-  const char *trace = backtrace->str;
-  // we have to do this a bit different because it's driver-dependent as
-  // to how deep in the call stack this function will be.
-  const char *last_gl_func = g_strrstr(backtrace->str, "???");
-
-  if (last_gl_func) {
-    last_gl_func = strchr(last_gl_func, '\n') + 1;
-
-    if (last_gl_func) {
-      trace = last_gl_func;
-      char* c = strchr(last_gl_func, '\n');
-      if (c) {
-        *c = 0;
-      }
-    }
-  }
-
-  const bool is_fatal = type == GL_DEBUG_TYPE_ERROR || type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR || type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR;
-
-  if (is_fatal) {
-    Com_Warn("^1OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
-
-    if (r_get_error->integer == 2) {
-      SDL_TriggerBreakpoint();
-    }
-  } else {
-    const int32_t error_relative_severity = (severity == GL_DEBUG_SEVERITY_HIGH) ? 3 : (severity == GL_DEBUG_SEVERITY_MEDIUM) ? 2 : (severity == GL_DEBUG_SEVERITY_LOW) ? 1 : 0;
-
-    if (error_relative_severity >= r_error_level->integer) {
-    Com_Warn("OpenGL (%s; %s) %s [id %i]: %s\n source: %s\n", R_Debug_Source(source), R_Debug_Severity(severity), R_Debug_Type(type), id, message, trace);
-  }
-  }
-
-  g_string_free(backtrace, true);
-}
-
-/**
- * @brief Convert error severity into a string
-*/
-static const char *R_Debug_Error(const GLenum error_code) {
-  switch(error_code) {
-    case GL_NO_ERROR:
-      return "No Error";
-    case GL_INVALID_ENUM:
-      return "INVALID_ENUM";
-    case GL_INVALID_OPERATION:
-      return "INVALID_OPERATION";
-    case GL_STACK_OVERFLOW:
-      return "STACK_OVERFLOW";
-    case GL_STACK_UNDERFLOW:
-      return "STACK_UNDERFLOW";
-    case GL_OUT_OF_MEMORY:
-      return "OUT_OF_MEMORY";
-    case GL_INVALID_FRAMEBUFFER_OPERATION:
-      return "INVALID_FRAMEBUFFER_OPERATION";
-    default:
-      return va("Unknown Error (%x)", error_code);
-  }
-}
-
-/**
- * @brief No-op callback
+ * @brief
  */
-static void R_Debug_GladPostCallbackNull(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
-}
+void R_UpdateContext(void) {
 
-/**
- * @brief No-op callback
- */
-static void R_Debug_GladPreCallbackNull(const char *name, GLADapiproc apiproc, int len_args, ...) {
-}
-
-/**
- * @brief Callback for non-`KHR_debug` GPUs to log debug error sources and callstacks.
- */
-void R_Debug_GladPostCallback(void *ret, const char *name, GLADapiproc apiproc, int len_args, ...) {
-  const GLenum error_code = glad_glGetError();
-
-  if (error_code != GL_NO_ERROR) {
-    GString *backtrace = Sys_Backtrace(0, UINT32_MAX);
-    Com_Warn("^1OpenGL (%s): %s\n source: %s\n", name, R_Debug_Error(error_code), backtrace->str);
-    g_string_free(backtrace, true);
+  r_context.window = SDL_GL_GetCurrentWindow();
+  assert(r_context.window);
   
-    if (r_get_error->integer == 2) {
-      SDL_TriggerBreakpoint();
-    }
-
-    r_error_count++;
-
-    if (r_error_count >= r_max_errors->integer) {
-      Com_Warn("Too many errors encountered; skipping handler until next error boundary.\n");
-      gladUninstallGLDebug();
-    }
-  }
+  r_context.window_flags = SDL_GetWindowFlags(r_context.window);
+  
+  SDL_GetWindowPosition(r_context.window, &r_context.window_bounds.x, &r_context.window_bounds.y);
+  SDL_GetWindowSize(r_context.window, &r_context.window_bounds.w, &r_context.window_bounds.h);
+  
+  r_context.w = r_context.window_bounds.w;
+  r_context.h = r_context.window_bounds.h;
+  
+  r_context.display = SDL_GetDisplayForWindow(r_context.window);
+  r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
+    
+  r_context.viewport = (SDL_Rect) {
+    0,
+    0,
+    r_context.window_bounds.w *= r_context.display_mode->pixel_density,
+    r_context.window_bounds.h *= r_context.display_mode->pixel_density
+  };
+  
+  R_SetWindowIcon();
 }
 
 /**
- * @brief Initialize the OpenGL context, returning true on success, false on failure.
+ * @brief Initialize the `SDL_Window` and OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
 
@@ -235,30 +87,29 @@ void R_InitContext(void) {
     }
   }
 
-  SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL;
+  r_context.display = SDL_GetPrimaryDisplay();
 
-  if (r_allow_high_dpi->value) {
-    window_flags |= SDL_WINDOW_HIGH_PIXEL_DENSITY;
-  }
-
-  SDL_DisplayID display_id = SDL_GetPrimaryDisplay();
-
-  int32_t w, h;
+    
+  SDL_Rect bounds;
+  SDL_GetDisplayUsableBounds(r_context.display, &bounds);
   
-  const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(display_id);
+  int32_t w = bounds.w;
+  int32_t h = bounds.h;
   
-  w = mode->w;
-  h = mode->h;
+  SDL_WindowFlags window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
-  if (r_fullscreen->integer) {
-    window_flags |= SDL_WINDOW_FULLSCREEN;
-    if (r_fullscreen->integer == 2) {
+  switch (r_fullscreen->integer) {
+    case 0:
+      window_flags |= SDL_WINDOW_RESIZABLE;
+      w = r_width->integer ?: w;
+      h = r_height->integer ?: h;
+      break;
+    case 1:
       window_flags |= SDL_WINDOW_BORDERLESS;
-    }
-  } else {
-    window_flags |= SDL_WINDOW_RESIZABLE;
-    w = r_width->integer ?: w;
-    h = r_height->integer ?: h;
+      break;
+    case 2:
+      window_flags |= SDL_WINDOW_FULLSCREEN;
+      break;
   }
 
   Com_Print("  Trying %dx%d..\n", w, h);
@@ -266,16 +117,7 @@ void R_InitContext(void) {
   if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
   }
-
-  SDL_GetWindowSize(r_context.window, &r_context.w, &r_context.h);
-  SDL_GetWindowSizeInPixels(r_context.window, &r_context.pw, &r_context.ph);
-
-  r_context.display = SDL_GetDisplayForWindow(r_context.window);
-  r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
-  r_context.display_scale = SDL_GetWindowDisplayScale(r_context.window);
-
-  R_SetWindowIcon();
-
+  
   Com_Print("  Setting up OpenGL context..\n");
 
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -349,27 +191,8 @@ void R_InitContext(void) {
   }
 
   gladLoaderLoadGL();
-
-  if (r_get_error->integer) {
-    if (GLAD_GL_KHR_debug) {
-      glEnable(GL_DEBUG_OUTPUT);
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(R_Debug_Callback, NULL);
-      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
-      gladUninstallGLDebug();
-      gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
-      gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
-    } else {
-      Com_Warn("GL_KHR_debug not supported: slower debug handler attached\n");
-      gladInstallGLDebug();
-      gladSetGLPostCallback(R_Debug_GladPostCallback);
-      gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
-    }
-  } else {
-    gladUninstallGLDebug();
-    gladSetGLPostCallback(R_Debug_GladPostCallbackNull);
-    gladSetGLPreCallback(R_Debug_GladPreCallbackNull);
-  }
+  
+  R_UpdateContext();
 
   glDepthFunc(GL_LEQUAL);
 

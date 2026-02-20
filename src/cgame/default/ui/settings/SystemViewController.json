@@ -46,18 +46,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "High DPI (4K)"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "r_allow_high_dpi"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Window mode"
                           }
                         },

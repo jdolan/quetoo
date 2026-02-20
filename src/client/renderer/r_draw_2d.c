@@ -339,7 +339,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
     if (!g_strcmp0(name, r_draw_2d.fonts[i].name)) {
-      if (r_context.display_scale > 1.f && i < r_draw_2d.num_fonts - 1) {
+      if (r_context.display_mode->pixel_density > 1.f && i < r_draw_2d.num_fonts - 1) {
         r_draw_2d.font = &r_draw_2d.fonts[i + 1];
       } else {
         r_draw_2d.font = &r_draw_2d.fonts[i];
@@ -532,7 +532,10 @@ void R_Draw2D(void) {
   if (r_draw_2d.num_draw_arrays == 0) {
     return;
   }
-
+  
+  const SDL_Rect viewport = r_context.viewport;
+  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+  
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -549,18 +552,19 @@ void R_Draw2D(void) {
 
     const r_draw_2d_clipping_frame_t *clip = &draw->clipping_frame;
 
-    if (clip->x || clip->y || clip->w || clip->h) {
+    if (clip->w || clip->h) {
       glScissor(clip->x, clip->y, clip->w, clip->h);
       glEnable(GL_SCISSOR_TEST);
+    } else {
+      glDisable(GL_SCISSOR_TEST);
     }
 
     glBindTexture(GL_TEXTURE_2D, draw->texture);
     glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
-
-    if (draw->clipping_frame.w || draw->clipping_frame.h) {
-      glDisable(GL_SCISSOR_TEST);
-    }
   }
+  
+  glScissor(viewport.x, viewport.y, viewport.w, viewport.h);
+  glDisable(GL_SCISSOR_TEST);
 
   glBindVertexArray(0);
 
@@ -599,9 +603,11 @@ static void R_InitFont(char *name) {
 
   font->image = R_LoadImage(va("fonts/%s", name), IMG_FONT);
   assert(font->image);
+  
+  const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
 
-  font->char_width = font->image->width / r_context.display_scale / 16;
-  font->char_height = font->image->height / r_context.display_scale / 8;
+  font->char_width = font->image->width / scale / 16.f;
+  font->char_height = font->image->height / scale / 8.f;
 
   Com_Debug(DEBUG_RENDERER, "%s (%dx%d)\n", font->name, font->char_width, font->char_height);
 }
