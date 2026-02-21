@@ -64,14 +64,8 @@ void R_UpdateContext(void) {
     r_context.window_bounds.w * r_context.display_mode->pixel_density,
     r_context.window_bounds.h * r_context.display_mode->pixel_density
   };
-  
-  Com_Debug(DEBUG_RENDERER, "window bounds (%d, %d, %d, %d, viewport (%d, %d, %d, %d)\n",
-            r_context.window_bounds.x, r_context.window_bounds.y,
-            r_context.window_bounds.w, r_context.window_bounds.h,
-            r_context.viewport.x, r_context.viewport.y,
-            r_context.viewport.w, r_context.viewport.h);
-  
-  R_SetWindowIcon();
+    
+  R_UpdateUniforms(NULL);
 }
 
 /**
@@ -123,6 +117,8 @@ void R_InitContext(void) {
   if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
   }
+  
+  R_SetWindowIcon();
   
   Com_Print("  Setting up OpenGL context..\n");
 

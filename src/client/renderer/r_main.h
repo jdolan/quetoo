@@ -58,6 +58,7 @@ void R_DrawViewDepth(r_view_t *view);
 void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
+void R_UpdateUniforms(const r_view_t *view);
 
 #ifdef __R_LOCAL_H__
 

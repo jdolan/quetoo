@@ -121,7 +121,7 @@ void R_GetError_(const char *function, const char *msg) {
 /**
  * @brief
  */
-static void R_UpdateUniforms(const r_view_t *view) {
+void R_UpdateUniforms(const r_view_t *view) {
 
   struct r_uniform_block_t *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
