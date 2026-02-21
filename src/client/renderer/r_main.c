@@ -230,7 +230,7 @@ void R_DrawViewDepth(r_view_t *view) {
   R_DrawOcclusionQueries(view);
 
   const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
+  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -275,7 +275,7 @@ void R_DrawMainView(r_view_t *view) {
   R_Draw3D();
 
   const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
+  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
   
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -307,7 +307,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
   R_DrawMeshEntities(view);
 
   const SDL_Rect viewport = r_context.viewport;
-  glViewport(viewport.x, viewport.h, viewport.w, viewport.h);
+  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
   
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
