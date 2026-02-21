@@ -31,6 +31,8 @@ void Cl_R_Restart_f(void) {
     cls.state == CL_LOADING) {
     return;
   }
+  
+  Cl_ShutdownCgame();
 
   Ui_Shutdown();
 
@@ -39,6 +41,8 @@ void Cl_R_Restart_f(void) {
   R_Init();
 
   Ui_Init();
+  
+  Cl_InitCgame();
 
   if (cls.state == CL_ACTIVE) {
     Cl_LoadMedia();
