@@ -262,8 +262,6 @@ void Cg_LoadMedia(void) {
   cg_sprite_node_wait = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/teamkill", IMG_SPRITE);
   cg_sprite_node_slow = cgi.LoadAtlasImage(cg_sprite_atlas, "pics/emoji/crush", IMG_SPRITE);
 
-  cgi.LoadingProgress(-1, "sprites");
-
   cg_sprite_blaster_ring = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
   cg_sprite_explosion = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
   cg_sprite_explosion_ring_02 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/explosion_ring_02/explosion_ring_02", "_%02" PRIu32, 1, 7);
@@ -281,7 +279,11 @@ void Cg_LoadMedia(void) {
   cg_sprite_impact_spark_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/impact_spark_01/impact_spark_01", "_%02" PRIu32, 0, 4);
   cg_sprite_hyperball_01 = Cg_LoadAnimatedSprite(cg_sprite_atlas, "sprites/hyperball_01/hyperball_01", "_%02" PRIu32, 1, 32);
 
+  cgi.LoadingProgress(-1, "compiling sprite atlas");
+
   cgi.CompileAtlas(cg_sprite_atlas);
+
+  cgi.LoadingProgress(-1, "decals");
 
   cg_decal_atlas = cgi.LoadAtlas("cg_decal_atlas");
 
@@ -305,7 +307,7 @@ void Cg_LoadMedia(void) {
       cg_decal_slug[i] = cgi.LoadAtlasImage(cg_decal_atlas, name, IMG_SPRITE);
   }
 
-  cgi.LoadingProgress(-1, "decals");
+  cgi.LoadingProgress(-1, "compiling decal atlas");
 
   cgi.CompileAtlas(cg_decal_atlas);
 

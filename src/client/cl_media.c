@@ -127,6 +127,8 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
  */
 static void Cl_LoadModels(void) {
 
+  Cl_LoadingProgress(0, cl.config_strings[CS_BSP]);
+
   R_LoadModel(cl.config_strings[CS_BSP]);
 
   for (int32_t i = 0; i < MAX_MODELS; i++) {
@@ -154,7 +156,8 @@ static void Cl_LoadImages_Emoji(const char *path, void *data) {
  */
 static void Cl_LoadImages(void) {
 
-  Cl_LoadingProgress(-1, "sky");
+  Cl_LoadingProgress(-1, "images");
+
   R_LoadSky();
 
   r_atlas_t *atlas = R_LoadAtlas("images");
@@ -170,7 +173,8 @@ static void Cl_LoadImages(void) {
     cl.images[i] = (r_image_t *) R_LoadAtlasImage(atlas, str, IMG_PIC);
   }
 
-  Cl_LoadingProgress(-1, "compiling images");
+  Cl_LoadingProgress(-1, "compiling image atlas");
+
   R_CompileAtlas(atlas);
 }
 
@@ -178,6 +182,8 @@ static void Cl_LoadImages(void) {
  * @brief
  */
 static void Cl_LoadSounds(void) {
+
+  Cl_LoadingProgress(-1, "sounds");
 
   if (*cl_chat_sound->string) {
     S_LoadSample(cl_chat_sound->string);
@@ -192,10 +198,6 @@ static void Cl_LoadSounds(void) {
     const char *str = cl.config_strings[CS_SOUNDS + i];
     if (*str == 0) {
       break;
-    }
-
-    if (i ^ 1) {
-      Cl_LoadingProgress(-1, str);
     }
 
     cl.sounds[i] = S_LoadSample(str);
@@ -216,6 +218,8 @@ static void Cl_LoadSounds(void) {
  */
 static void Cl_LoadMusics(void) {
 
+  Cl_LoadingProgress(-1, "music");
+
   S_ClearPlaylist();
 
   for (int32_t i = 0; i < MAX_MUSICS; i++) {
@@ -223,10 +227,6 @@ static void Cl_LoadMusics(void) {
     const char *str = cl.config_strings[CS_MUSICS + i];
     if (*str == 0) {
       break;
-    }
-
-    if (i ^ 1) {
-      Cl_LoadingProgress(-1, str);
     }
 
     cl.musics[i] = S_LoadMusic(str);
@@ -258,8 +258,6 @@ void Cl_LoadMedia(void) {
   Cl_UpdatePrediction();
 
   R_BeginLoading();
-
-  Cl_LoadingProgress(0, cl.config_strings[CS_BSP]);
 
   Cl_LoadModels();
 
