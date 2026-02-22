@@ -59,7 +59,10 @@ static struct {
 } r_occlusion_queries;
 
 /**
- * @brief Conservatively checks allocated occlusion queries to determine if the given box is occluded.
+ * @brief Checks BSP block occlusion queries to determine if the given box is occluded.
+ * @details Note that we check the node's bounds, not the query's bounds. This is because the query
+ * is tightly bound to just the BSP faces within each block, but here we want to test against each
+ * block's spatial partition.
  */
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 
@@ -77,13 +80,13 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (block->query->result == 0) {
-      if (Box3_Contains(block->query->bounds, bounds)) {
+      if (Box3_Contains(block->node->bounds, bounds)) {
         return true;
       }
       continue;
     }
 
-    if (Box3_Intersects(block->query->bounds, bounds)) {
+    if (Box3_Intersects(block->node->bounds, bounds)) {
       return false;
     }
   }
