@@ -165,34 +165,36 @@ vec4 sample_voxel_fog(in vec3 position) {
  */
 vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
   vec4 fog = vec4(0.0);
-  
-  float dist = distance(world_pos, view_pos);
-  float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, max_samples);
-  
-  vec3 voxel_start = voxel_uvw(world_pos);
-  vec3 voxel_end = voxels.view_coordinate.xyz;
-  
-  for (float i = 0; i < samples; i++) {
-    vec3 xyz = mix(world_pos, view_pos, i / samples);
-    vec3 uvw = mix(voxel_start, voxel_end, i / samples);
+
+  if (fog_density > 0.0) {
+    float dist = distance(world_pos, view_pos);
+    float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, max_samples);
     
-    float fog_density_sample = voxel_fog_density(uvw);
+    vec3 voxel_start = voxel_uvw(world_pos);
+    vec3 voxel_end = voxels.view_coordinate.xyz;
     
-    if (fog_density_sample > 0.0) {
-      vec3 fog_lighting = voxel_fog_lighting(xyz);
-      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+    for (float i = 0; i < samples; i++) {
+      vec3 xyz = mix(world_pos, view_pos, i / samples);
+      vec3 uvw = mix(voxel_start, voxel_end, i / samples);
+      
+      float fog_density_sample = voxel_fog_density(uvw);
+      
+      if (fog_density_sample > 0.0) {
+        vec3 fog_lighting = voxel_fog_lighting(xyz);
+        fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+      }
+      
+      if (fog.a >= 0.95) {
+        fog.a = 1.0;
+        break;
+      }
     }
     
-    if (fog.a >= 0.95) {
-      fog.a = 1.0;
-      break;
+    if (hmax(fog.rgb) > 1.0) {
+      fog.rgb /= hmax(fog.rgb);
     }
   }
-  
-  if (hmax(fog.rgb) > 1.0) {
-    fog.rgb /= hmax(fog.rgb);
-  }
-  
+
   return clamp(fog, 0.0, 1.0);
 }
 
