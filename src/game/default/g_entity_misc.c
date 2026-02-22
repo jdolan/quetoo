@@ -71,10 +71,16 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
 
   other->velocity.z = 150.0;
 
-  // draw the teleport effect at source and dest
-  ent->s.event = EV_CLIENT_TELEPORT;
-  other->s.event = EV_CLIENT_TELEPORT;
+  // create the effects at the teleporter
 
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_TELEPORT);
+  gi.WritePosition(Box3_Center(ent->abs_bounds));
+  gi.Multicast(ent->s.origin, MULTICAST_PHS);
+
+  // and set the event on the teleportee
+
+  other->s.event = EV_CLIENT_TELEPORT;
   other->s.angles = Vec3_Zero();
 
   G_KillBox(other); // telefrag anyone in our spot

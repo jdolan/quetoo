@@ -121,7 +121,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 /**
  * @brief
  */
-static void Cg_TeleporterEffect(const vec3_t org) {
+void Cg_TeleporterEffect(const vec3_t org) {
 
   for (int32_t i = 0; i < 64; i++) {
 
@@ -143,6 +143,12 @@ static void Cg_TeleporterEffect(const vec3_t org) {
     .color = Vec3(.9f, .9f, .9f),
     .intensity = 1.f,
     .decay = 1000
+  });
+
+  Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+    .origin = org,
+    .sample = cg_sample_teleport,
+    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -264,7 +270,6 @@ void Cg_EntityEvent(cl_entity_t *ent) {
       play.pitch = RandomRangei(-12, +12);
       break;
     case EV_CLIENT_TELEPORT:
-      play.sample = cg_sample_teleport;
       Cg_TeleporterEffect(s->origin);
       break;
 

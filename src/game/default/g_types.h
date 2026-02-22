@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1019
+#define PROTOCOL_MINOR 1020
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -153,6 +153,7 @@ typedef enum {
  * trails and other short-lived effects.
  */
 typedef enum {
+  TE_TELEPORT,
   TE_BLASTER,
   TE_TRACER,
   TE_BULLET,

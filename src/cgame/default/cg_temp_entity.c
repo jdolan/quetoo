@@ -1267,6 +1267,11 @@ void Cg_ParseTempEntity(void) {
 
   switch (type) {
 
+    case TE_TELEPORT:
+      pos = cgi.ReadPosition();
+      Cg_TeleporterEffect(pos);
+      break;
+
     case TE_BLASTER:
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
