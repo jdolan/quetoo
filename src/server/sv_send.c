@@ -157,6 +157,7 @@ static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
 void Sv_Unicast(const g_client_t *cl, const bool reliable) {
 
   if (cl->ai) {
+    Mem_ClearBuffer(&sv.multicast);
     return;
   }
 
