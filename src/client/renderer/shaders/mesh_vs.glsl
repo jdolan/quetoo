@@ -34,6 +34,7 @@ layout (location = 10) in vec3 in_next_bitangent;
 
 uniform mat4 model;
 uniform float lerp;
+uniform vec4 color;
 
 out common_vertex_t vertex;
 
@@ -63,8 +64,8 @@ void main(void) {
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
   vertex.diffusemap = in_diffusemap;
-  vertex.color = vec4(1.0);
-  
+  vertex.color = color;
+
   vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
   vertex.inverse_tbn = inverse(vertex.tbn);
 

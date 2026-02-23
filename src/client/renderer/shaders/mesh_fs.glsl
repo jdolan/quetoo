@@ -25,8 +25,6 @@ out vec4 out_color;
 
 common_fragment_t fragment;
 
-uniform mat4 model;
-uniform vec4 color;
 uniform vec4 tint_colors[3];
 
 /**
@@ -91,7 +89,7 @@ void main(void) {
 
   } else {
 
-	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color * color;
+	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
 
 	  out_color = fragment.diffuse_sample;
 
