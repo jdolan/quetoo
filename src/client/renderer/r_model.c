@@ -40,7 +40,7 @@ r_model_t *R_LoadModel(const char *name) {
   }
 
   r_model_t *mod = (r_model_t *) R_FindMedia(key, R_MEDIA_MODEL);
-  if (mod == NULL || Cvar_GetValue("editor")) {
+  if (mod == NULL) {
 
     const r_model_format_t formats[] = {
       r_obj_model_format,
