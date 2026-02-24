@@ -11,6 +11,16 @@ Quick reference for all optimization and bug fix documentation.
 
 ---
 
+## Features
+
+### Sky Material Stages
+**[SKY_MATERIAL_STAGES.md](SKY_MATERIAL_STAGES.md)** - Scrolling/animated material stages on sky surfaces
+- Two-pass rendering: cubemap + blended 2D stage overlays
+- Full `stage_vertex()` support (scroll, scale, rotate, stretch, warp, pulse, color)
+- Controlled by existing `r_materials` cvar
+
+---
+
 ## Performance Optimizations
 
 ### Shadow Mapping
@@ -56,11 +66,13 @@ Quick reference for all optimization and bug fix documentation.
 ### C Source Files
 - `src/client/renderer/r_shadow.c` → [SHADOWMAP_OPTIMIZATION.md](SHADOWMAP_OPTIMIZATION.md)
 - `src/client/renderer/r_cull.c` → [FRUSTUM_BUG_FIX.md](FRUSTUM_BUG_FIX.md)
+- `src/client/renderer/r_sky.c` → [SKY_MATERIAL_STAGES.md](SKY_MATERIAL_STAGES.md)
 - `src/cgame/default/cg_entity.c` → [ENTITY_STATE_BUG_FIX.md](ENTITY_STATE_BUG_FIX.md)
 
 ### GLSL Shaders
 - `bsp_fs.glsl` → [PARALLAX_FINAL_RESULTS.md](PARALLAX_FINAL_RESULTS.md), [PARALLAX_SELF_SHADOW_OPTIMIZATION.md](PARALLAX_SELF_SHADOW_OPTIMIZATION.md)
 - `bsp_vs.glsl` → [PARALLAX_FINAL_RESULTS.md](PARALLAX_FINAL_RESULTS.md)
+- `sky_vs.glsl`, `sky_fs.glsl` → [SKY_MATERIAL_STAGES.md](SKY_MATERIAL_STAGES.md)
 
 ---
 

@@ -20,6 +20,7 @@
  */
 
 layout (location = 0) in vec3 in_position;
+layout (location = 4) in vec2 in_diffusemap;
 
 out common_vertex_t vertex;
 
@@ -49,11 +50,13 @@ void main(void) {
   vertex.bitangent = vec3(0.0, 1.0, 0.0);
   vertex.tbn = mat3(1.0);
   vertex.inverse_tbn = mat3(1.0);
-  vertex.diffusemap = vec2(0.0);
+  vertex.diffusemap = in_diffusemap;
   vertex.color = vec4(1.0);
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
   vertex.lighting = vec3(1.0); // Sky is self-lit
+
+  stage_vertex(stage, in_position, vertex.position, vertex.diffusemap, vertex.color);
 
   gl_Position = projection3D * view * position;
 }

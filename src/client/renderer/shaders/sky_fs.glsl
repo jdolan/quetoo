@@ -29,8 +29,21 @@ out vec4 out_color;
  */
 void main(void) {
 
-  out_color = texture(texture_sky, normalize(cubemap_coord));
+  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-  // Use vertex fog (sky is simple geometry)
-  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
+    out_color = texture(texture_sky, normalize(cubemap_coord));
+
+    // Use vertex fog (sky is simple geometry)
+    out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
+
+  } else {
+
+    vec2 st = vertex.diffusemap;
+
+    if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
+      st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+    }
+
+    out_color = sample_material_stage(st) * vertex.color;
+  }
 }
