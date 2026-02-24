@@ -271,7 +271,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  if (event->type == SDL_EVENT_KEY_DOWN) {
+  if (event->type == SDL_EVENT_KEY_DOWN
+      && (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_GAME)) {
     respondToKeyEvent(this, event);
   }
 
