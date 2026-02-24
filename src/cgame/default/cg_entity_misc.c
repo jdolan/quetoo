@@ -330,6 +330,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
   entity->angles = cgi.EntityValue(self->def, "angles")->vec3;
   entity->scale = cgi.EntityValue(self->def, "scale")->value ?: 1.f;
   entity->lerp = 1.f;
+  entity->color = Vec4_One();
 
   const cm_entity_t *model = cgi.EntityValue(self->def, "model");
   if (model->parsed & ENTITY_STRING) {

@@ -206,14 +206,7 @@ static void setModelAndMaterial(MaterialViewController *self, const r_model_t *m
     $(self->specularity, setValue, (double) self->material->cm->specularity);
     $(self->parallax, setValue, (double) self->material->cm->parallax);
     $(self->shadow, setValue, (double) self->material->cm->shadow);
-
-    if (material->cm->surface & SURF_ALPHA_TEST) {
-      $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
-      self->alphaTest->control.state &= ~ControlStateDisabled;
-    } else {
-      $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
-      self->alphaTest->control.state |= ControlStateDisabled;
-    }
+    $(self->alphaTest, setValue, (double) self->material->cm->alpha_test);
 
   } else {
     $(self->name, setDefaultText, NULL);
@@ -222,10 +215,10 @@ static void setModelAndMaterial(MaterialViewController *self, const r_model_t *m
     $(self->specularmap, setDefaultText, NULL);
 
     $(self->roughness, setValue, MATERIAL_ROUGHNESS);
-    $(self->parallax, setValue, MATERIAL_PARALLAX);
-    $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->hardness, setValue, MATERIAL_HARDNESS);
     $(self->specularity, setValue, MATERIAL_SPECULARITY);
+    $(self->parallax, setValue, MATERIAL_PARALLAX);
+    $(self->shadow, setValue, MATERIAL_SHADOW);
     $(self->alphaTest, setValue, MATERIAL_ALPHA_TEST);
   }
 }

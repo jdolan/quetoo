@@ -639,6 +639,7 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
   mat->hardness = MATERIAL_HARDNESS;
   mat->specularity = MATERIAL_SPECULARITY;
   mat->parallax = MATERIAL_PARALLAX;
+  mat->shadow = MATERIAL_SHADOW;
   mat->alpha_test = MATERIAL_ALPHA_TEST;
 
   return mat;
@@ -1263,7 +1264,7 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
   if (material->surface & SURF_ALPHA_TEST) {
 
     if (material->alpha_test != MATERIAL_ALPHA_TEST) {
-      Fs_Print(file, "\talpha_test %0.2f\n", material->alpha_test);
+      Fs_Print(file, "\talpha_test %0.3f\n", material->alpha_test);
     }
   }
 

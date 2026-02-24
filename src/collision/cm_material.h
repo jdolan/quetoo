@@ -230,7 +230,7 @@ typedef struct {
 #define MATERIAL_SPECULARITY 1.f
 #define MATERIAL_PARALLAX 1.f
 #define MATERIAL_SHADOW 1.f
-#define MATERIAL_ALPHA_TEST .5f
+#define MATERIAL_ALPHA_TEST 0.f
 
 /**
  * @brief Materials define the rendering attributes of textures.
