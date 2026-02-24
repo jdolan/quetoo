@@ -111,14 +111,10 @@ void Sv_SpawnEntities(void) {
   Sv_InitWorld();
 
   if (editor->value) {
-
-    // Resolve the map brushes for the bsp entities
     Sv_LoadEditorMap();
 
-    // Let the game handle worldspawn to initialize the world
-    svs.game->SpawnEntities(sv.name, Cm_Bsp()->entities, 1);
+    svs.game->SpawnEntities(sv.name, NULL, 0);
 
-    // But in general, withhold all BSP entities from the game module
     for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
       Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
     }

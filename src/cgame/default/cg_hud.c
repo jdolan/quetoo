@@ -1262,6 +1262,12 @@ void Cg_DrawHud(const player_state_t *ps) {
     return;
   }
 
+  Cg_DrawCrosshair(ps);
+
+  if (editor->value) {
+    return;
+  }
+
   Cg_DrawVitals(ps);
 
   Cg_DrawPowerups(ps);
@@ -1285,8 +1291,6 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawChase(ps);
 
   Cg_DrawTime(ps);
-
-  Cg_DrawCrosshair(ps);
 
   Cg_DrawCenterPrint(ps);
 

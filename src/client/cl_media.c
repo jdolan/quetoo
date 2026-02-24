@@ -156,7 +156,7 @@ static void Cl_LoadImages_Emoji(const char *path, void *data) {
  */
 static void Cl_LoadImages(void) {
 
-  Cl_LoadingProgress(-1, "images");
+  Cl_LoadingProgress(-1, "compiling image atlas");
 
   R_LoadSky();
 

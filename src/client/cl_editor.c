@@ -26,19 +26,16 @@
 #define LIGHT_INTENSITY 1.f
 
 /**
- * @brief Persistent storage for editor light shadow cache state.
- * @details Indexed by entity number to track shadowmap caching per light.
+ * @brief The editor entities.
  */
-static bool cl_editor_shadow_cached[MAX_ENTITIES];
+static cl_editor_entity_t cl_editor_entities[MAX_ENTITIES];
 
 /**
  * @brief
  */
 void Cl_ParseEditorEntity(int16_t number, const char *info) {
 
-  if (cl.entity_definitions[number]) {
-    Cm_FreeEntity(cl.entity_definitions[number]);
-  }
+  Cm_FreeEntity(cl.entity_definitions[number]);
 
   if (strlen(info)) {
     cl.entity_definitions[number] = Cm_EntityFromInfoString(info);
@@ -46,20 +43,27 @@ void Cl_ParseEditorEntity(int16_t number, const char *info) {
     cl.entity_definitions[number] = NULL;
   }
 
-  const size_t count = MAX_ENTITIES - number;
-  memset(&cl_editor_shadow_cached[number], 0, sizeof(bool) * count);
+  cl_editor_entity_t *edit = &cl_editor_entities[number];
+  memset(edit, 0, sizeof(*edit));
+  edit->number = number;
+  edit->ent = &cl.entities[number];
+  edit->def = cl.entity_definitions[number];
+
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    cl_editor_entities[i].shadow_cached = false;
+  }
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
     .user.code = NOTIFICATION_ENTITY_PARSED,
-    .user.data1 = (void *) (intptr_t) number
+    .user.data1 = (void *) (intptr_t) edit->number
   });
 }
 
 /**
- * @brief Finds the `team_master` light entity for the given team.
+ * @brief Finds the `team_master` entity for the given classname and team.
  */
-int32_t Cl_FindTeamMaster(const char *team) {
+int32_t Cl_FindTeamMaster(const char *classname, const char *team) {
 
   if (!team) {
     return -1;
@@ -71,14 +75,63 @@ int32_t Cl_FindTeamMaster(const char *team) {
       continue;
     }
 
-    if (!g_strcmp0(Cm_EntityValue(e, "team")->string, team)) {
-      if (Cm_EntityValue(e, "team_master")->parsed) {
-        return i;
+    if (!g_strcmp0(Cm_EntityValue(e, "classname")->string, classname)) {
+      if (!g_strcmp0(Cm_EntityValue(e, "team")->string, team)) {
+        if (Cm_EntityValue(e, "team_master")->parsed) {
+          return i;
+        }
       }
     }
   }
 
   return -1;
+}
+
+/**
+ * @brief
+ */
+static void Cl_PopulateEditorLight(cl_editor_entity_t *edit, r_light_t *light) {
+
+  light->origin = Cm_EntityValue(edit->def, "origin")->vec3;
+  light->radius = Cm_EntityValue(edit->def, "radius")->value;
+  light->color = Cm_EntityValue(edit->def, "color")->vec3;
+  light->intensity = Cm_EntityValue(edit->def, "intensity")->value;
+
+  const char *style = Cm_EntityValue(edit->def, "style")->nullable_string;
+  const char *team = Cm_EntityValue(edit->def, "team")->nullable_string;
+
+  const int32_t team_master = Cl_FindTeamMaster("light", team);
+  if (team_master > -1) {
+    const cm_entity_t *master = cl.entity_definitions[team_master];
+    light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
+    light->color = Vec3_Equal(Vec3_Zero(), light->color) ? Cm_EntityValue(master, "color")->vec3 : light->color;
+    light->intensity = light->intensity ?: Cm_EntityValue(master, "intensity")->value;
+
+    if (!style) {
+      style = Cm_EntityValue(master, "style")->nullable_string;
+    }
+  }
+
+  light->radius = light->radius ?: LIGHT_RADIUS;
+  light->color = Vec3_Equal(Vec3_Zero(), light->color) ? LIGHT_COLOR : light->color;
+  light->intensity = light->intensity ?: LIGHT_INTENSITY;
+  light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
+
+  if (style && *style) {
+    const size_t len = strlen(style);
+    const uint32_t style_index = (cl.unclamped_time / 100) % len;
+    const uint32_t style_time = (cl.unclamped_time / 100) * 100;
+
+    const float lerp = (cl.unclamped_time - style_time) / 100.f;
+
+    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+    const float atten = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+    light->intensity *= atten;
+  }
+
+  light->shadow_cached = &edit->shadow_cached;
 }
 
 /**
@@ -97,17 +150,10 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
-  R_AddEntity(&cl_view, &(const r_entity_t) {
-    .model = R_WorldModel()->bsp->worldspawn,
-    .scale = 1.f
-  });
+  cl_editor_entity_t *edit = cl_editor_entities;
+  for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-
-    const cl_entity_t *ent = &cl.entities[i];
-    const cm_entity_t *def = cl.entity_definitions[i];
-
-    if (!def) {
+    if (!edit->def) {
       continue;
     }
 
@@ -115,7 +161,7 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
     for (int32_t j = 0; j < frame->num_entities; j++) {
       const uint32_t snum = (frame->entity_state + j) & ENTITY_STATE_MASK;
       const entity_state_t *s = &cl.entity_states[snum];
-      if (s->number == i) {
+      if (s->number == edit->number) {
         in_frame = true;
         break;
       }
@@ -125,75 +171,31 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       continue;
     }
 
-    vec4_t color = Color32_Vec4(ent->current.color);
+    vec4_t color = Color32_Vec4(edit->ent->current.color);
 
-    const char *classname = Cm_EntityValue(def, "classname")->string;
+    const char *classname = Cm_EntityValue(edit->def, "classname")->string;
     if (!g_strcmp0(classname, "light")) {
 
       r_light_t light = { 0 };
-
-      light.origin = Cm_EntityValue(def, "origin")->vec3;
-      light.radius = Cm_EntityValue(def, "radius")->value;
-      light.color = Cm_EntityValue(def, "color")->vec3;
-      light.intensity = Cm_EntityValue(def, "intensity")->value;
-
-      const char *style = Cm_EntityValue(def, "style")->nullable_string;
-
-      const int32_t team_master = Cl_FindTeamMaster(Cm_EntityValue(def, "team")->nullable_string);
-      if (team_master > -1) {
-        const cm_entity_t *master = cl.entity_definitions[team_master];
-        light.radius = light.radius ?: Cm_EntityValue(master, "radius")->value;
-
-        if (Vec3_Equal(Vec3_Zero(), light.color)) {
-          light.color = Cm_EntityValue(master, "color")->vec3;
-        }
-
-        light.intensity = light.intensity ?: Cm_EntityValue(master, "intensity")->value;
-
-        if (!style) {
-          style = Cm_EntityValue(master, "style")->nullable_string;
-        }
-      }
-
-      light.radius = light.radius ?: LIGHT_RADIUS;
-
-      if (Vec3_Equal(Vec3_Zero(), light.color)) {
-        light.color = LIGHT_COLOR;
-      }
-
-      light.intensity = light.intensity ?: LIGHT_INTENSITY;
-
-      light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
-
-      if (style && *style) {
-        const size_t len = strlen(style);
-        const uint32_t style_index = (cl.unclamped_time / 100) % len;
-        const uint32_t style_time = (cl.unclamped_time / 100) * 100;
-
-        const float lerp = (cl.unclamped_time - style_time) / 100.f;
-
-        const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-        const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
-
-        const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-        light.intensity *= style_value;
-      }
-
-      light.shadow_cached = &cl_editor_shadow_cached[i];
-
+      Cl_PopulateEditorLight(edit, &light);
       R_AddLight(&cl_view, &light);
 
       color = Vec3_ToVec4(light.color, 1.f);
     }
 
+    const char *mod = Cm_EntityValue(edit->def, "model")->string;
+    r_model_t *model = strlen(mod) ? R_LoadModel(mod) : NULL;
+
     R_AddEntity(&cl_view, &(const r_entity_t) {
-      .id = ent,
-      .origin = ent->origin,
-      .angles = ent->angles,
+      .id = edit,
+      .origin = edit->ent->origin,
+      .angles = edit->ent->angles,
       .scale = 1.f,
-      .bounds = ent->bounds,
-      .abs_bounds = ent->abs_bounds,
+      .bounds = edit->ent->bounds,
+      .abs_bounds = edit->ent->abs_bounds,
       .color = color,
+      .effects = edit->ent->current.effects,
+      .model = model
     });
   }
 }

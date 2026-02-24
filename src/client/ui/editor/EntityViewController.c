@@ -426,7 +426,7 @@ static void setEntity(EntityViewController *self, EditorEntity *entity) {
     if (!g_strcmp0(classname, "light")) {
 
       const char *team = Cm_EntityValue(self->entity.def, "team")->nullable_string;
-      const int32_t teamMaster = Cl_FindTeamMaster(team);
+      const int32_t teamMaster = Cl_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity.number) {
 
         self->teamEntity = (EditorEntity) {

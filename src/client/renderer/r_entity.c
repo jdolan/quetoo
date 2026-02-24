@@ -26,7 +26,11 @@
  */
 static void R_SetEntityBounds(r_entity_t *e) {
   if (e->model) {
-    e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+    if (Box3_IsNull(e->model->bounds)) {
+      e->abs_model_bounds = Box3_Null();
+    } else {
+      e->abs_model_bounds = Mat4_TransformBounds(e->matrix, e->model->bounds);
+    }
   } else {
     e->abs_model_bounds = e->abs_bounds;
   }
@@ -45,12 +49,12 @@ bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
     return false;
   }
 
-  if (e->effects & (EF_SELF | EF_WEAPON)) {
+  if (e->effects & (EF_WORLD | EF_SELF | EF_WEAPON)) {
     return false;
   }
 
-  if (e->model == r_models.world->bsp->worldspawn) {
-    return false;
+  if (Box3_IsNull(e->abs_model_bounds)) {
+    return true;
   }
 
   if (R_CulludeBox(view, e->abs_model_bounds)) {
@@ -127,15 +131,11 @@ static void R_DrawEntitiesBounds(const r_view_t *view) {
   const r_entity_t *e = view->entities;
   for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-    if (e->model == r_models.world->bsp->worldspawn) {
-      continue;
-    }
-
     if (e->parent) {
       continue;
     }
 
-    if (e->effects & (EF_SELF | EF_WEAPON)) {
+    if (e->effects & (EF_WORLD | EF_SELF | EF_WEAPON)) {
       continue;
     }
 

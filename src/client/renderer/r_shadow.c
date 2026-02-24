@@ -133,6 +133,10 @@ static void R_CullBspEntitiesForShadow(const r_view_t *view, const r_light_t *li
       continue;
     }
 
+    if (Box3_IsNull(e->abs_model_bounds)) {
+      continue;
+    }
+
     if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
       continue;
     }
@@ -299,7 +303,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
     r_shadow_entities.num_mesh_entities = 0;
   }
 
-  const bool is_shadow_cacheable = r_shadow_entities.num_bsp_entities == 1
+  const bool is_shadow_cacheable = r_shadow_entities.num_bsp_entities <= 1
                                 && r_shadow_entities.num_mesh_entities == 0;
 
   if (is_shadow_cacheable) {

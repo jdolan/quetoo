@@ -47,8 +47,13 @@ static int32_t Cl_HullForEntity(const entity_state_t *s) {
       return mod->head_node;
     }
 
-    case SOLID_EDITOR:
-      return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
+    case SOLID_EDITOR: {
+      if (s->effects & EF_WORLD) {
+        return 0;
+      } else {
+        return Cm_SetBoxHull(ent->bounds, CONTENTS_EDITOR);
+      }
+    }
 
     default:
       return -1;

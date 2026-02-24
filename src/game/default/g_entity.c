@@ -649,14 +649,14 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 /**
  * @brief CompareFunc to shuffle tracks.
  */
-gint G_WorldspawnMusic_shuffle(gconstpointer a, gconstpointer b) {
+gint G_worldspawn_MusicShuffle(gconstpointer a, gconstpointer b) {
   return RandomRangei(-1, 2);
 }
 
 /**
  * @brief
  */
-static void G_WorldspawnMusic(void) {
+static void G_worldspawn_Music(void) {
 
   if (*g_level.music == '\0') {
 
@@ -669,7 +669,7 @@ static void G_WorldspawnMusic(void) {
     for (int32_t i = 1; i <= num_tracks; i++) {
       tracks = g_array_append_val(tracks, i);
     }
-    g_array_sort(tracks, G_WorldspawnMusic_shuffle);
+    g_array_sort(tracks, G_worldspawn_MusicShuffle);
 
     for (int32_t i = 0; i < MAX_MUSICS; i++) {
       gi.SetConfigString(CS_MUSICS + i, va("track%d", g_array_index(tracks, int32_t, i)));
@@ -886,6 +886,6 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  G_WorldspawnMusic();
+  G_worldspawn_Music();
 }
 

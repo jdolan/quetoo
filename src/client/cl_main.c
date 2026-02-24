@@ -263,10 +263,6 @@ void Cl_ClearState(void) {
 
   memset(&cl, 0, sizeof(cl));
 
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    Cm_FreeEntity(cl.entity_definitions[i]);
-  }
-
   Mem_ClearBuffer(&cls.net_chan.message);
 }
 

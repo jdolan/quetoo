@@ -827,14 +827,14 @@ void LoadMapFile(const char *filename) {
 
   parser_t parser = Parse_Init(buffer, PARSER_DEFAULT);
 
-  for (int32_t i = 0, models = 1; i < MAX_BSP_ENTITIES; i++) {
+  for (int32_t i = 0, models = 0; i < MAX_BSP_ENTITIES; i++) {
 
     entity_t *entity = ParseEntity(&parser);
     if (!entity) {
       break;
     }
 
-    if (i > 0 && entity->num_brush_sides) {
+    if (entity->num_brush_sides) {
       SetValueForKey(entity, "model", va("*%d", models++));
     }
   }

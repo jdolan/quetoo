@@ -263,38 +263,45 @@ Dynamic lights (rockets, muzzle flashes) are:
 ### Editor Mode Compatibility
 
 In editor mode:
-- Uses a static bool array `cl_editor_lights_cached[MAX_ENTITIES]` for cache state
-- Indexed by entity number (stable identifier in editor)
-- Each light gets `.shadow_cached = &cl_editor_lights_cached[entity_number]`
-- **Does NOT set `.bsp_light`** - avoids R_ActiveLights skipping issue
-- Cache automatically invalidates when entity is modified via `Cl_ParseEditorEntity()`
+- Cache state is stored in `cl_editor_entity_t::shadow_cached` (a `bool` embedded directly in the per-entity struct)
+- `r_light_t::shadow_cached` points to `&cl_editor_entities[i].shadow_cached` — set once at parse time, stable for the lifetime of that entity slot
+- **Does NOT set `.bsp_light`** — avoids R_ActiveLights skipping issue
+- Cache is invalidated in `Cl_ParseEditorEntity()` whenever an entity definition changes
 
 **Implementation:**
 ```c
-// Static bool array for editor light cache state (very small!)
-static bool cl_editor_lights_cached[MAX_ENTITIES];
+typedef struct {
+  bool shadow_cached;  // pointed to by light.shadow_cached
+  bool is_light;
+  r_light_t light;     // light.shadow_cached = &this->shadow_cached
+  char style[64];
+  r_model_t *model;
+} cl_editor_entity_t;
 
-// Invalidate cache when entity modified
+static cl_editor_entity_t cl_editor_entities[MAX_ENTITIES];
+
 void Cl_ParseEditorEntity(int16_t number, const char *info) {
-    // ... parse entity ...
-    cl_editor_lights_cached[number] = false;
-}
+  // ... parse and cache all light/model data once ...
+  cached->light.shadow_cached = &cached->shadow_cached;
 
-// Link light to cache storage via pointer
-void Cl_PopulateEditorScene(const cl_frame_t *frame) {
-    // ... create light ...
-    light.shadow_cached = &cl_editor_lights_cached[s->number];  // Pointer!
-    R_AddLight(&cl_view, &light);
+  // Bulk-reset shadow caches from 'number' onward.
+  // When an entity is deleted the server repacks the list, so entities at
+  // slots >= number may now refer to different lights than the ones whose
+  // shadows were previously cached. Resetting all of them prevents stale
+  // shadowmaps from appearing on the wrong lights.
+  for (int32_t i = number; i < MAX_ENTITIES; i++) {
+    cl_editor_entities[i].shadow_cached = false;
+  }
 }
 ```
 
 **Why This Works:**
-- ✅ **No `.bsp_light` set** - editor lights work with R_ActiveLights
-- ✅ **Zero lookup cost** - direct array indexing by entity number
-- ✅ **Minimal memory** - MAX_ENTITIES bools (~2KB) vs ~200KB for r_bsp_light_t array
-- ✅ **Persistent state** - cache survives across frames
-- ✅ **Automatic invalidation** - when entities are modified
-- ✅ **Same caching logic** - works identically to gameplay mode
+- ✅ **No `.bsp_light` set** — editor lights work with R_ActiveLights
+- ✅ **Zero lookup cost** — direct array indexing by entity number
+- ✅ **Stable pointer** — `shadow_cached` lives in a static array, never moves
+- ✅ **Automatic invalidation** — when entities are modified or the list is repacked
+- ✅ **Same caching logic** — works identically to gameplay mode
+- ✅ **No per-frame parsing** — all `Cm_EntityValue` calls happen at parse time; only light style animation math runs per-frame
 
 ### Multi-Frame Caching Potential
 

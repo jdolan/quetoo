@@ -23,7 +23,32 @@
 
 #include "cl_types.h"
 
-int32_t Cl_FindTeamMaster(const char *team);
+/**
+ * @brief The editor entity type.
+ */
+typedef struct {
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+
+  /**
+   * @brief The client entity.
+   */
+  cl_entity_t *ent;
+
+  /**
+   * @brief The entity definition.
+   */
+  cm_entity_t *def;
+
+  /**
+   * @brief The persistent storage for shadowmap optimization (light entities only).
+   */
+  bool shadow_cached;
+} cl_editor_entity_t;
+
+int32_t Cl_FindTeamMaster(const char *classname, const char *team);
 
 #ifdef __CL_LOCAL_H__
 void Cl_ParseEditorEntity(int16_t number, const char *info);

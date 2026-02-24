@@ -188,7 +188,17 @@ static void setEntity(EntityView *self, EditorEntity *entity) {
   const cm_entity_t *def = self->entity.def;
   if (def) {
     $(self->key, setAttributedText, def->key);
-    $(self->value, setAttributedText, def->string);
+    if (def->parsed & ENTITY_VEC4) {
+      $(self->value, setAttributedText, va("%g %g %g %g", def->vec4.x, def->vec4.y, def->vec4.z, def->vec4.w));
+    } else if (def->parsed & ENTITY_VEC3) {
+      $(self->value, setAttributedText, va("%g %g %g", def->vec3.x, def->vec3.y, def->vec3.z));
+    } else if (def->parsed & ENTITY_VEC2) {
+      $(self->value, setAttributedText, va("%g %g", def->vec2.x, def->vec2.y));
+    } else if (def->parsed & ENTITY_FLOAT) {
+      $(self->value, setAttributedText, va("%g", def->value));
+    } else {
+      $(self->value, setAttributedText, def->string);
+    }
 
     if (!g_strcmp0(def->key, "classname")
         && !g_strcmp0(def->string, "worldspawn")) {

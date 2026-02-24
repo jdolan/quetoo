@@ -32,13 +32,16 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   ent->in_use = true;
   ent->classname = Cm_EntityValue(ent->def, "classname")->string;
   ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
+  ent->solid = SOLID_EDITOR;
 
   ent->s.number = number;
   ent->s.origin = Cm_EntityValue(ent->def, "origin")->vec3;
   ent->s.angles = Cm_EntityValue(ent->def, "angles")->vec3;
   ent->s.color = Color32i(0xffffffff);
 
-  if (g_str_has_prefix(ent->classname, "info_player")) {
+  if (g_str_equal(ent->classname, "worldspawn")) {
+    ent->s.effects = EF_WORLD;
+  } else if (g_str_has_prefix(ent->classname, "info_player")) {
     ent->bounds = Box3(Vec3(-16.f, -16.f, -24.f), Vec3(16.f, 16.f, 36.f));
     ent->s.color = Color32i(0xffff00ff);
   } else if (g_str_has_prefix(ent->classname, "light")) {
@@ -54,16 +57,13 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
   }
 
   // use the BSP inline model to set bounds
-  const char *model = Cm_EntityValue(ent->def, "model")->nullable_string;
-  if (model && *model == '*') {
+  const char *model = Cm_EntityValue(ent->def, "model")->string;
+  if (*model == '*') {
     const cm_bsp_model_t *mod = Cm_Model(model);
     ent->bounds = mod->bounds;
   }
 
-  if (number > 0) {
-    ent->solid = SOLID_EDITOR;
-    Sv_LinkEntity(ent);
-  }
+  Sv_LinkEntity(ent);
 
   char *info = Cm_EntityToInfoString(ent->def);
 
