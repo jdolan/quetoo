@@ -145,4 +145,5 @@ struct EntityViewInterface {
  * @return The EntityView Class.
  * @memberof EntityView
  */
-extern Class *_EntityView(void);
+//extern Class *_EntityView(void);
+__declspec(dllexport) Class* _EntityView(void);
