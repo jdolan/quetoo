@@ -801,7 +801,10 @@ void Ai_Node_Render(void) {
     }
   });
 
-  assert(client);
+  if (!client) { // probably just hasn't spawned yet
+    return;
+  }
+
   g_entity_t *ent = client->entity;
 
   GHashTable *unique_links = g_hash_table_new(g_direct_hash, g_direct_equal);
@@ -1090,6 +1093,24 @@ void Ai_SaveNodes(void) {
   gi.Print("Wrote nodes to %s.\n", gi.RealPath(filename));
 
   Ai_CheckNodes();
+}
+
+/**
+ * @brief
+ */
+void Ai_DeleteNodes(void) {
+
+  if (ai_nodes) {
+    for (guint i = 0; i < ai_nodes->len; i++) {
+      ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+
+      if (node->links) {
+        g_array_free(node->links, true);
+      }
+    }
+
+    g_array_set_size(ai_nodes, 0);
+  }
 }
 
 /**

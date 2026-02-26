@@ -101,16 +101,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2"
+            argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
             isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set cl_draw_renderer_stats 1"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set s_ambient_volume 0"
-            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_get_error 2 +set cl_draw_sound_stats 1"
@@ -133,6 +125,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set ai_node_dev 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+map edge"
             isEnabled = "YES">
          </CommandLineArgument>
@@ -145,15 +141,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set cg_add_flares 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+g_ai_add 16"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+connect localhost"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

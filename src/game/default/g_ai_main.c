@@ -1488,6 +1488,13 @@ static void Ai_SaveNodes_f(void) {
 }
 
 /**
+ * @brief
+ */
+static void Ai_DeleteNodes_f(void) {
+  Ai_DeleteNodes();
+}
+
+/**
  * @brief 
  */
 static void Ai_TestPath_f(void) {
@@ -1538,6 +1545,7 @@ void G_Ai_InitLocals(void) {
   gi.SetConfigString(CS_NAV_EDIT, ai_node_dev->string);
 
   gi.AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
+  gi.AddCmd("ai_delete_nodes", Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
   gi.AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
   gi.AddCmd("ai_offset_nodes", Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 

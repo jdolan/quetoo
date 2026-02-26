@@ -73,6 +73,11 @@ void Ai_SaveNodes(void);
 /**
  * @brief
  */
+void Ai_DeleteNodes(void);
+
+/**
+ * @brief
+ */
 void Ai_ShutdownNodes(void);
 
 /**
