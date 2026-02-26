@@ -78,6 +78,9 @@
     <None Include="..\..\src\client\renderer\shaders\version.glsl">
       <Filter>src\shaders</Filter>
     </None>
+    <None Include="..\..\src\client\renderer\shaders\voxel.glsl">
+      <Filter>src\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\renderer\r_mesh_draw.c">
