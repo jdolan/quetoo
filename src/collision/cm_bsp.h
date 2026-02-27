@@ -425,11 +425,6 @@ typedef struct {
    * only the faces on that node's plane.
    */
   box3_t visible_bounds;
-
-  /**
-   * @brief Block flags.
-   */
-  uint32_t flags;
 } bsp_block_t;
 
 /**

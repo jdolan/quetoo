@@ -288,7 +288,6 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->draw_elements = bsp->draw_elements + in->first_draw_element;
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
-    out->flags = in->flags;
 
     r_bsp_block_decals_t *decals = &out->decals;
 
