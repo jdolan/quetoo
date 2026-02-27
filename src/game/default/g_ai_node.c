@@ -335,7 +335,7 @@ static void Ai_Node_AdjustConnections(const ai_node_id_t id) {
 /**
  * @brief
  */
-static void Ai_Node_Destroy(const ai_node_id_t id) {
+void Ai_Node_Destroy(const ai_node_id_t id) {
 
   Ai_Node_DestroyLinks(id);
   ai_nodes = g_array_remove_index(ai_nodes, id);

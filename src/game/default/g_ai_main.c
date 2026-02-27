@@ -1490,6 +1490,19 @@ static void Ai_SaveNodes_f(void) {
 /**
  * @brief
  */
+static void Ai_DeleteNode_f(void) {
+
+  if (gi.Argc() != 2) {
+    gi.Print("Usage: %s [node_id]\n", gi.Argv(0));
+    return;
+  }
+
+  Ai_Node_Destroy((ai_node_id_t) atoi(gi.Argv(1)));
+}
+
+/**
+ * @brief
+ */
 static void Ai_DeleteNodes_f(void) {
   Ai_DeleteNodes();
 }
@@ -1545,6 +1558,7 @@ void G_Ai_InitLocals(void) {
   gi.SetConfigString(CS_NAV_EDIT, ai_node_dev->string);
 
   gi.AddCmd("ai_save_nodes", Ai_SaveNodes_f, CMD_AI, "Save current node data");
+  gi.AddCmd("ai_delete_node", Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
   gi.AddCmd("ai_delete_nodes", Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
   gi.AddCmd("ai_test_path", Ai_TestPath_f, CMD_AI, "Save current node data");
   gi.AddCmd("ai_offset_nodes", Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
