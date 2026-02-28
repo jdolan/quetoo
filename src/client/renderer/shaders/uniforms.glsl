@@ -72,11 +72,6 @@ layout (std140) uniform uniforms_block {
   ivec4 viewport;
 
   /**
-   * @brief The 2D projection matrix.
-   */
-  mat4 projection2D;
-
-  /**
    * @brief The 3D projection matrix.
    */
   mat4 projection3D;
