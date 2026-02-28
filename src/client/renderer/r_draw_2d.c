@@ -609,10 +609,9 @@ void R_Draw2D(void) {
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
     const float scale = (float) r_context.viewport.w / r_context.window_bounds.w;
-    r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;
+    const r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;
 
     for (int32_t i = 0; i < r_draw_2d.ui.num_draw_arrays; i++, d++) {
-      d->first_vertex += r_draw_2d.game.num_vertexes;
       const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
       if (c->w || c->h) {
         glScissor(c->x * scale, c->y * scale, c->w * scale, c->h * scale);
@@ -621,7 +620,7 @@ void R_Draw2D(void) {
         glDisable(GL_SCISSOR_TEST);
       }
       glBindTexture(GL_TEXTURE_2D, d->texture);
-      glDrawArrays(d->mode, d->first_vertex, d->num_vertexes);
+      glDrawArrays(d->mode, d->first_vertex + r_draw_2d.game.num_vertexes, d->num_vertexes);
     }
   }
 
