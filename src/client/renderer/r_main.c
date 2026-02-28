@@ -36,8 +36,6 @@ cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
-cvar_t *r_error_level;
-cvar_t *r_max_errors;
 cvar_t *r_occlude;
 
 int32_t r_error_count;
@@ -45,13 +43,14 @@ int32_t r_error_count;
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_caustics;
+cvar_t *r_draw_scale;
 cvar_t *r_finish;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fog_distance;
+cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_hardness;
-cvar_t *r_height;
 cvar_t *r_lighting_distance;
 cvar_t *r_materials;
 cvar_t *r_modulate;
@@ -63,9 +62,9 @@ cvar_t *r_shadows;
 cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_shadow_distance;
 cvar_t *r_specularity;
-cvar_t *r_supersample;
 cvar_t *r_swap_interval;
-cvar_t *r_width;
+cvar_t *r_window_height;
+cvar_t *r_window_width;
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -344,21 +343,20 @@ static void R_InitLocal(void) {
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
   r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
-  r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
-  r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
 
   // settings and preferences
-  r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
+  r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
+  r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
-  r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
-  r_fog_distance = Cvar_Add("r_fog_distance", "1024", CVAR_ARCHIVE, "Distance threshold for vertex fog");
+  r_fog_samples = Cvar_Add("r_fog_samples", "16", CVAR_ARCHIVE, "Controls the quality of fog effects");
+  r_fog_distance = Cvar_Add("r_fog_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex fog");
+  r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
-  r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting");
   r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
@@ -367,12 +365,12 @@ static void R_InitLocal(void) {
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshot_format = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
-  r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
+  r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_supersample = Cvar_Add("r_supersample", "1", CVAR_ARCHIVE, "Controls supersampling (anti-aliasing).");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
-  r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_window_height = Cvar_Add("r_window_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_window_width = Cvar_Add("r_window_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
   Cvar_ClearAll(CVAR_R_MASK);
 

@@ -34,9 +34,9 @@ static void didSelecVideoMode(Select *select, Option *option) {
 
   const SDL_DisplayMode *mode = option->value;
   if (mode) {
-    if (mode->w != cgi.context->w || mode->h != cgi.context->h) {
-      cgi.SetCvarInteger("r_width", mode->w);
-      cgi.SetCvarInteger("r_height", mode->h);
+    if (mode->w != cgi.context->window_bounds.w || mode->h != cgi.context->window_bounds.h) {
+      cgi.SetCvarInteger("r_window_width", mode->w);
+      cgi.SetCvarInteger("r_window_height", mode->h);
     }
   }
 }

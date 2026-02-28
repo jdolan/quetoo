@@ -26,13 +26,14 @@
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_caustics;
+extern cvar_t *r_draw_scale;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fog_distance;
+extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
-extern cvar_t *r_height;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
@@ -44,9 +45,9 @@ extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
-extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
-extern cvar_t *r_width;
+extern cvar_t *r_window_height;
+extern cvar_t *r_window_width;
 
 extern r_stats_t r_stats;
 
@@ -238,8 +239,6 @@ extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
-extern cvar_t *r_error_level;
-extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
 
 /**

@@ -74,7 +74,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
-  const float scale = Clampf(r_supersample->value, 0.25f, 2.f);
+  const float scale = Clampf(r_framebuffer_scale->value, 0.25f, 2.f);
 
   r_framebuffer_t framebuffer = {
     .width = width * r_context.display_mode->pixel_density * scale,

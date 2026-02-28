@@ -105,7 +105,7 @@
                         "control": {
                           "class": "CvarSlider",
                           "identifier": "supersample",
-                          "var": "r_supersample",
+                          "var": "r_framebuffer_scale",
                           "min": 0.25,
                           "max": 2.0,
                           "step": .25

@@ -101,8 +101,8 @@ void R_InitContext(void) {
   switch (r_fullscreen->integer) {
     case 0:
       window_flags |= SDL_WINDOW_RESIZABLE;
-      w = r_width->integer ?: w;
-      h = r_height->integer ?: h;
+      w = r_window_width->integer ?: w;
+      h = r_window_height->integer ?: h;
       break;
     case 1:
       window_flags |= SDL_WINDOW_BORDERLESS;
