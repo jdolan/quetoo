@@ -395,20 +395,6 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 }
 
 /**
- * @brief Switches subsequent 2D draw calls to the unscaled UI batch (for ObjectivelyMVC).
- */
-void R_BeginUIDrawing(void) {
-  r_draw_2d.active = &r_draw_2d.ui;
-}
-
-/**
- * @brief Resumes scaled 2D drawing for game UI.
- */
-void R_EndUIDrawing(void) {
-  r_draw_2d.active = &r_draw_2d.game;
-}
-
-/**
  * @brief
  */
 void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
