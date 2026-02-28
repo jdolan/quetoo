@@ -64,6 +64,7 @@ cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_shadow_distance;
 cvar_t *r_specularity;
 cvar_t *r_supersample;
+cvar_t *r_draw_scale;
 cvar_t *r_swap_interval;
 cvar_t *r_width;
 
@@ -126,8 +127,6 @@ void R_UpdateUniforms(const r_view_t *view) {
   struct r_uniform_block_t *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
 
-  out->projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
-
   if (view) {
     out->viewport = view->viewport;
 
@@ -185,6 +184,11 @@ void R_UpdateUniforms(const r_view_t *view) {
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
+
+  const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
+
+  r_context.w = r_context.window_bounds.w / scale;
+  r_context.h = r_context.window_bounds.h / scale;
 
   memset(&r_stats, 0, sizeof(r_stats));
 
@@ -371,6 +375,7 @@ static void R_InitLocal(void) {
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
   r_supersample = Cvar_Add("r_supersample", "1", CVAR_ARCHIVE, "Controls supersampling (anti-aliasing).");
+  r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Scales 2D UI elements. Use values > 1 on high resolution displays to enlarge the interface.");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
   r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 

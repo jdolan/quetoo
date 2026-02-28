@@ -1844,8 +1844,10 @@ typedef struct {
   SDL_Rect window_bounds;
   
   /**
-   * @brief The window size, in logical pixels.
-   * @details These are set from `window_bounds` and are available for convenience.
+   * @brief The virtual 2D drawing dimensions, accounting for `r_draw_scale`.
+   * @details At `r_draw_scale` 1 these equal `window_bounds.w`/`h`. At higher scales, these are
+   *   smaller, causing the ortho projection to enlarge all 2D elements proportionally. Use these
+   *   for all 2D UI layout (anchoring elements to screen edges, etc.).
    */
   GLint w, h;
   

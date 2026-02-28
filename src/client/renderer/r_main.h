@@ -45,6 +45,7 @@ extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
 extern cvar_t *r_supersample;
+extern cvar_t *r_draw_scale;
 extern cvar_t *r_swap_interval;
 extern cvar_t *r_width;
 
@@ -122,11 +123,6 @@ typedef struct {
      * @brief The viewport (x, y, w, h) in device pixels.
      */
     vec4i_t viewport;
-
-    /**
-     * @brief The 2D projection matrix.
-     */
-    mat4_t projection2D;
 
     /**
      * @brief The 3D projection matrix.

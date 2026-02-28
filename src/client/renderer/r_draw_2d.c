@@ -66,6 +66,17 @@ typedef struct {
 #define MAX_DRAW_2D_VERTEXES (MAX_DRAW_2D_ARRAYS * 6)
 
 /**
+ * @brief A list of 2D draw calls and their backing vertexes.
+ */
+typedef struct {
+  r_draw_2d_arrays_t draw_arrays[MAX_DRAW_2D_ARRAYS];
+  int32_t num_draw_arrays;
+
+  r_draw_2d_vertex_t vertexes[MAX_DRAW_2D_VERTEXES];
+  int32_t num_vertexes;
+} r_draw_2d_arrays_list_t;
+
+/**
  * @brief 2D draw struct.
  */
 static struct {
@@ -83,13 +94,14 @@ static struct {
   // the null texture
   r_image_t *null_texture;
 
-  // accumulated draw arrays to draw for this frame
-  r_draw_2d_arrays_t draw_arrays[MAX_DRAW_2D_ARRAYS];
-  int32_t num_draw_arrays;
+  // draw list for ui elements like menus, using raw window coordinates
+  r_draw_2d_arrays_list_t ui;
 
-  // accumulated vertexes backing the draw arrays
-  r_draw_2d_vertex_t vertexes[MAX_DRAW_2D_VERTEXES];
-  int32_t num_vertexes;
+  // draw list for in-game elements like console, hud, using r_draw_scale window coordinates
+  r_draw_2d_arrays_list_t game;
+
+  // active draw arrays list
+  r_draw_2d_arrays_list_t *active;
 
   // the vertex array
   GLuint vertex_array;
@@ -107,15 +119,34 @@ static struct {
 
   GLuint uniforms_block;
 
+  GLint projection2D;
+
   GLint texture_diffusemap;
 } r_draw_2d_program;
 
 /**
  * @brief
  */
+void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
+
+  switch (projection) {
+    case PROJECTION_GAME:
+      r_draw_2d.active = &r_draw_2d.game;
+      break;
+    case PROJECTION_UI:
+      r_draw_2d.active = &r_draw_2d.ui;
+      break;
+  }
+}
+
+/**
+ * @brief
+ */
 static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 
-  if (r_draw_2d.num_draw_arrays == MAX_DRAW_2D_ARRAYS) {
+  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+
+  if (list->num_draw_arrays == MAX_DRAW_2D_ARRAYS) {
     Com_Warn("MAX_DRAW_2D_ARRAYS\n");
     return;
   }
@@ -124,8 +155,8 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
     return;
   }
 
-  if (r_draw_2d.num_draw_arrays && (draw->mode == GL_LINES || draw->mode == GL_TRIANGLES || draw->mode == GL_POINTS)) {
-    r_draw_2d_arrays_t *last_draw = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays - 1];
+  if (list->num_draw_arrays && (draw->mode == GL_LINES || draw->mode == GL_TRIANGLES || draw->mode == GL_POINTS)) {
+    r_draw_2d_arrays_t *last_draw = &list->draw_arrays[list->num_draw_arrays - 1];
 
     if (last_draw->mode == draw->mode && last_draw->texture == draw->texture) {
       last_draw->num_vertexes += draw->num_vertexes;
@@ -133,13 +164,13 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
     }
   }
 
-  r_draw_2d_arrays_t *out = &r_draw_2d.draw_arrays[r_draw_2d.num_draw_arrays];
+  r_draw_2d_arrays_t *out = &list->draw_arrays[list->num_draw_arrays];
 
   *out = *draw;
 
   out->clipping_frame = r_draw_2d.clipping_frame;
 
-  r_draw_2d.num_draw_arrays++;
+  list->num_draw_arrays++;
 }
 
 /**
@@ -147,18 +178,20 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
  */
 static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 
-  if (r_draw_2d.num_vertexes + 6 > MAX_DRAW_2D_VERTEXES) {
+  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+
+  if (list->num_vertexes + 6 > MAX_DRAW_2D_VERTEXES) {
     Com_Warn("MAX_DRAW_2D_VERTEXES\n");
     return;
   }
 
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[0];
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[1];
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[2];
+  list->vertexes[list->num_vertexes++] = quad[0];
+  list->vertexes[list->num_vertexes++] = quad[1];
+  list->vertexes[list->num_vertexes++] = quad[2];
 
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[0];
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[2];
-  r_draw_2d.vertexes[r_draw_2d.num_vertexes++] = quad[3];
+  list->vertexes[list->num_vertexes++] = quad[0];
+  list->vertexes[list->num_vertexes++] = quad[2];
+  list->vertexes[list->num_vertexes++] = quad[3];
 }
 
 /**
@@ -215,7 +248,7 @@ void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = r_draw_2d.font->image->texnum,
-    .first_vertex = r_draw_2d.num_vertexes,
+    .first_vertex = r_draw_2d.active->num_vertexes,
     .num_vertexes = 6
   };
 
@@ -274,7 +307,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = r_draw_2d.font->image->texnum,
-    .first_vertex = r_draw_2d.num_vertexes
+    .first_vertex = r_draw_2d.active->num_vertexes
   };
 
   color_t c = color;
@@ -291,7 +324,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
 
     if (StrIsEmoji(s)) {
 
-      draw.num_vertexes = r_draw_2d.num_vertexes - draw.first_vertex;
+      draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
       R_AddDraw2DArrays(&draw);
 
       char name[MAX_QPATH];
@@ -308,7 +341,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
       i += 2;
       j += strlen(name) + 2;
 
-      draw.first_vertex = r_draw_2d.num_vertexes;
+      draw.first_vertex = r_draw_2d.active->num_vertexes;
       continue;
     }
 
@@ -320,7 +353,7 @@ size_t R_Draw2DSizedString(GLint x, GLint y, const char *s, size_t len, size_t s
     s++;
   }
 
-  draw.num_vertexes = r_draw_2d.num_vertexes - draw.first_vertex;
+  draw.num_vertexes = (r_draw_2d.active->num_vertexes) - draw.first_vertex;
   R_AddDraw2DArrays(&draw);
 
   return i;
@@ -362,6 +395,20 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 }
 
 /**
+ * @brief Switches subsequent 2D draw calls to the unscaled UI batch (for ObjectivelyMVC).
+ */
+void R_BeginUIDrawing(void) {
+  r_draw_2d.active = &r_draw_2d.ui;
+}
+
+/**
+ * @brief Resumes scaled 2D drawing for game UI.
+ */
+void R_EndUIDrawing(void) {
+  r_draw_2d.active = &r_draw_2d.game;
+}
+
+/**
  * @brief
  */
 void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
@@ -385,7 +432,7 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = image->texnum,
-    .first_vertex = r_draw_2d.num_vertexes,
+    .first_vertex = r_draw_2d.active->num_vertexes,
     .num_vertexes = 6
   };
 
@@ -433,7 +480,7 @@ void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = framebuffer->color_attachment,
-    .first_vertex = r_draw_2d.num_vertexes,
+    .first_vertex = r_draw_2d.active->num_vertexes,
     .num_vertexes = 6
   };
 
@@ -470,7 +517,7 @@ void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
   r_draw_2d_arrays_t draw = {
     .mode = GL_TRIANGLES,
     .texture = r_draw_2d.null_texture->texnum,
-    .first_vertex = r_draw_2d.num_vertexes,
+    .first_vertex = r_draw_2d.active->num_vertexes,
     .num_vertexes = 6
   };
 
@@ -500,11 +547,12 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
   r_draw_2d_arrays_t draw = {
     .mode = GL_LINE_STRIP,
     .texture = r_draw_2d.null_texture->texnum,
-    .first_vertex = r_draw_2d.num_vertexes,
+    .first_vertex = r_draw_2d.active->num_vertexes,
     .num_vertexes = (GLsizei) count
   };
 
-  r_draw_2d_vertex_t *out = r_draw_2d.vertexes + r_draw_2d.num_vertexes;
+  r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+  r_draw_2d_vertex_t *out = list->vertexes + list->num_vertexes;
 
   const GLint *in = points;
   for (size_t i = 0; i < count; i++, in += 2, out++) {
@@ -515,7 +563,7 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
     out->color = Color_Color32(color);
   }
 
-  r_draw_2d.num_vertexes += count;
+  list->num_vertexes += count;
 
   R_AddDraw2DArrays(&draw);
 
@@ -527,51 +575,81 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
  */
 void R_Draw2D(void) {
 
-  r_stats.draw_arrays = r_draw_2d.num_draw_arrays;
+  r_stats.draw_arrays = r_draw_2d.game.num_draw_arrays + r_draw_2d.ui.num_draw_arrays;
 
-  if (r_draw_2d.num_draw_arrays == 0) {
+  if (r_stats.draw_arrays == 0) {
     return;
   }
-  
+
   const SDL_Rect viewport = r_context.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-  
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glUseProgram(r_draw_2d_program.name);
-
   glBindVertexArray(r_draw_2d.vertex_array);
 
+  const size_t game_size = r_draw_2d.game.num_vertexes * sizeof(r_draw_2d_vertex_t);
+  const size_t ui_size = r_draw_2d.ui.num_vertexes * sizeof(r_draw_2d_vertex_t);
+
   glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.vertexes), NULL, GL_DYNAMIC_DRAW);
-  glBufferSubData(GL_ARRAY_BUFFER, 0, r_draw_2d.num_vertexes * sizeof(r_draw_2d_vertex_t), r_draw_2d.vertexes);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.game.vertexes) + sizeof(r_draw_2d.ui.vertexes), NULL, GL_DYNAMIC_DRAW);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, game_size, r_draw_2d.game.vertexes);
+  glBufferSubData(GL_ARRAY_BUFFER, game_size, ui_size, r_draw_2d.ui.vertexes);
 
-  const r_draw_2d_arrays_t *draw = r_draw_2d.draw_arrays;
-  for (int32_t i = 0; i < r_draw_2d.num_draw_arrays; i++, draw++) {
+  {
+    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
+    glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
-    const r_draw_2d_clipping_frame_t *clip = &draw->clipping_frame;
+    const float scale = (float) r_context.viewport.w / r_context.w;
+    const r_draw_2d_arrays_t *d = r_draw_2d.game.draw_arrays;
 
-    if (clip->w || clip->h) {
-      glScissor(clip->x, clip->y, clip->w, clip->h);
-      glEnable(GL_SCISSOR_TEST);
-    } else {
-      glDisable(GL_SCISSOR_TEST);
+    for (int32_t i = 0; i < r_draw_2d.game.num_draw_arrays; i++, d++) {
+      const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
+      if (c->w || c->h) {
+        glScissor(c->x * scale, c->y * scale, c->w * scale, c->h * scale);
+        glEnable(GL_SCISSOR_TEST);
+      } else {
+        glDisable(GL_SCISSOR_TEST);
+      }
+      glBindTexture(GL_TEXTURE_2D, d->texture);
+      glDrawArrays(d->mode, d->first_vertex, d->num_vertexes);
     }
-
-    glBindTexture(GL_TEXTURE_2D, draw->texture);
-    glDrawArrays(draw->mode, draw->first_vertex, draw->num_vertexes);
   }
-  
+
+  {
+    const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
+    glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
+
+    const float scale = (float) r_context.viewport.w / r_context.window_bounds.w;
+    r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;
+
+    for (int32_t i = 0; i < r_draw_2d.ui.num_draw_arrays; i++, d++) {
+      d->first_vertex += r_draw_2d.game.num_vertexes;
+      const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
+      if (c->w || c->h) {
+        glScissor(c->x * scale, c->y * scale, c->w * scale, c->h * scale);
+        glEnable(GL_SCISSOR_TEST);
+      } else {
+        glDisable(GL_SCISSOR_TEST);
+      }
+      glBindTexture(GL_TEXTURE_2D, d->texture);
+      glDrawArrays(d->mode, d->first_vertex, d->num_vertexes);
+    }
+  }
+
   glScissor(viewport.x, viewport.y, viewport.w, viewport.h);
   glDisable(GL_SCISSOR_TEST);
 
   glBindVertexArray(0);
-
   glUseProgram(0);
 
-  r_draw_2d.num_draw_arrays = 0;
-  r_draw_2d.num_vertexes = 0;
+  r_draw_2d.game.num_vertexes = 0;
+  r_draw_2d.game.num_draw_arrays = 0;
+
+  r_draw_2d.ui.num_vertexes = 0;
+  r_draw_2d.ui.num_draw_arrays = 0;
 
   glBlendFunc(GL_ONE, GL_ZERO);
   glDisable(GL_BLEND);
@@ -630,6 +708,7 @@ static void R_InitDraw2DProgram(void) {
   glUniformBlockBinding(r_draw_2d_program.name, r_draw_2d_program.uniforms_block, 0);
 
   r_draw_2d_program.texture_diffusemap = glGetUniformLocation(r_draw_2d_program.name, "texture_diffusemap");
+  r_draw_2d_program.projection2D = glGetUniformLocation(r_draw_2d_program.name, "projection2D");
 
   glUniform1i(r_draw_2d_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
 
@@ -659,7 +738,7 @@ void R_InitDraw2D(void) {
 
   glGenBuffers(1, &r_draw_2d.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, r_draw_2d.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.vertexes), NULL, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(r_draw_2d.game.vertexes) + sizeof(r_draw_2d.ui.vertexes), NULL, GL_DYNAMIC_DRAW);
 
   glVertexAttribPointer(0, 2, GL_SHORT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, position));
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_draw_2d_vertex_t), (void *) offsetof(r_draw_2d_vertex_t, diffusemap));
@@ -674,6 +753,8 @@ void R_InitDraw2D(void) {
   R_GetError(NULL);
 
   R_InitDraw2DProgram();
+
+  R_SetDraw2DProjection(PROJECTION_GAME);
 }
 
 /**
