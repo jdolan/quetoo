@@ -28,20 +28,6 @@
 #pragma mark - Delegates
 
 /**
- * @brief SelectDelegate callback for Video Mode.
- */
-static void didSelecVideoMode(Select *select, Option *option) {
-
-  const SDL_DisplayMode *mode = option->value;
-  if (mode) {
-    if (mode->w != cgi.context->window_bounds.w || mode->h != cgi.context->window_bounds.h) {
-      cgi.SetCvarInteger("r_window_width", mode->w);
-      cgi.SetCvarInteger("r_window_height", mode->h);
-    }
-  }
-}
-
-/**
  * @brief ButtonDelegate for the Apply button.
  */
 static void didClickApply(Button *button) {
@@ -57,12 +43,11 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  Select *videoMode, *windowMode, *verticalSync, *anisotropy;
+  Select *windowMode, *verticalSync, *anisotropy;
 
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("videoMode", &videoMode),
     MakeOutlet("windowMode", &windowMode),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
@@ -75,12 +60,9 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/settings/SystemViewController.css");
   assert(self->view->stylesheet);
 
-  videoMode->delegate.self = self;
-  videoMode->delegate.didSelectOption = didSelecVideoMode;
-
-  $(windowMode, addOption, "Windowed", (ident) 0);
+  $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);
-  $(windowMode, addOption, "Borderless", (ident) 2);
+  $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
 
   $(verticalSync, addOption, "Off", (ident) 0);
   $(verticalSync, addOption, "On", (ident) 1);

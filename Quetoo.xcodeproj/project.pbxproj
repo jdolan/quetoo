@@ -343,7 +343,6 @@
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE6EE3EA1F720D9A00FBC830 /* OptionsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708B1F5CDFE0004CAAB2 /* OptionsViewController.c */; };
 		CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
-		CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */; };
 		CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708F1F5CDFE0004CAAB2 /* SystemViewController.c */; };
 		CE6EE3F01F720DC300FBC830 /* CvarCheckbox.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */; };
 		CE6EE3F11F720DC300FBC830 /* CvarSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */; };
@@ -359,7 +358,6 @@
 		CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870841F5CDFE0004CAAB2 /* PlayViewController.h */; };
 		CE6EE4081F720DC300FBC830 /* OptionsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708C1F5CDFE0004CAAB2 /* OptionsViewController.h */; };
 		CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE58708E1F5CDFE0004CAAB2 /* SettingsViewController.h */; };
-		CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */; };
 		CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */; };
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
@@ -1637,8 +1635,6 @@
 		CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
 		CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionView.c; sourceTree = "<group>"; };
 		CE5870B11F5CE99C004CAAB2 /* MapListCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionView.h; sourceTree = "<group>"; };
-		CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = VideoModeSelect.c; sourceTree = "<group>"; };
-		CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VideoModeSelect.h; sourceTree = "<group>"; };
 		CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.2.26/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
 		CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.2.4.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.2.4/lib/libSDL3_image.0.2.4.dylib; sourceTree = "<group>"; };
 		CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_fs.glsl; sourceTree = "<group>"; };
@@ -3363,8 +3359,6 @@
 				CE4E07C820267EFA000B276C /* SystemViewController.css */,
 				CE5870901F5CDFE0004CAAB2 /* SystemViewController.h */,
 				CE7D2C31203107C6004BC58E /* SystemViewController.json */,
-				CE5870BC1F5CE9AE004CAAB2 /* VideoModeSelect.c */,
-				CE5870BD1F5CE9AE004CAAB2 /* VideoModeSelect.h */,
 				CE7D2C0C202EA40C004BC58E /* Makefile.am */,
 			);
 			path = settings;
@@ -3628,7 +3622,6 @@
 				CE6EE4081F720DC300FBC830 /* OptionsViewController.h in Headers */,
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
 				CE6EE40D1F720DC300FBC830 /* SystemViewController.h in Headers */,
-				CE6EE40C1F720DC300FBC830 /* VideoModeSelect.h in Headers */,
 				CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */,
 				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
 				CEAA78EC2775388700EAC853 /* TeamView.h in Headers */,
@@ -4758,7 +4751,6 @@
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CE6EE3EF1F720D9A00FBC830 /* SystemViewController.c in Sources */,
-				CE6EE3EE1F720D9A00FBC830 /* VideoModeSelect.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 			);

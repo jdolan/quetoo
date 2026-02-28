@@ -29,19 +29,6 @@
                     }
                   },
                   "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Window resolution"
-                          }
-                        },
-                        "control": {
-                          "class": "VideoModeSelect",
-                          "identifier": "videoMode"
-                        }
-                      },
                       {
                         "class": "Input",
                         "label": {

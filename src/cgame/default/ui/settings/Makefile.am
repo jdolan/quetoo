@@ -9,8 +9,7 @@ cguisettings_DATA = \
 noinst_HEADERS = \
 	OptionsViewController.h \
 	SettingsViewController.h \
-	SystemViewController.h \
-	VideoModeSelect.h
+	SystemViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguisettings.la
@@ -18,8 +17,7 @@ noinst_LTLIBRARIES = \
 libcguisettings_la_SOURCES = \
 	OptionsViewController.c \
 	SettingsViewController.c \
-	SystemViewController.c \
-	VideoModeSelect.c
+	SystemViewController.c
 
 libcguisettings_la_CFLAGS = \
 	-I$(top_srcdir)/src \

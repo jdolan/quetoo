@@ -369,8 +369,8 @@ static void R_InitLocal(void) {
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
   r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
-  r_window_height = Cvar_Add("r_window_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
-  r_window_width = Cvar_Add("r_window_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
   Cvar_ClearAll(CVAR_R_MASK);
 
