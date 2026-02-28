@@ -183,6 +183,11 @@ void R_UpdateUniforms(const r_view_t *view) {
  */
 void R_BeginFrame(void) {
 
+  const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
+
+  r_context.w = r_context.window_bounds.w / scale;
+  r_context.h = r_context.window_bounds.h / scale;
+
   memset(&r_stats, 0, sizeof(r_stats));
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -322,6 +327,13 @@ void R_EndFrame(void) {
   }
 
   SDL_GL_SwapWindow(r_context.window);
+
+  if (r_framebuffer_scale->modified) {
+    SDL_PushEvent(&(SDL_Event) {
+      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+    });
+    r_framebuffer_scale->modified = false;
+  }
 }
 
 /**
