@@ -1224,6 +1224,10 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
 void G_func_door(g_entity_t *ent) {
   vec3_t abs_move_dir;
 
+  if (!(gi.EntityValue(ent->def, "angle")->parsed & ENTITY_INTEGER)) {
+    ent->s.angles = Vec3(0.0, -1.0, 0.0); // default to sliding up
+  }
+
   G_SetMoveDir(ent);
   ent->move_type = MOVE_TYPE_PUSH;
   ent->solid = SOLID_BSP;
