@@ -1842,17 +1842,7 @@ typedef struct {
    * @brief The window position and size in logical pixels.
    */
   SDL_Rect window_bounds;
-  
-  /**
-   * @brief The virtual 2D drawing dimensions, accounting for `r_draw_scale`.
-   * @details At `r_draw_scale` 1 these equal `window_bounds.w`/`h`. At higher scales, these are
-   *   smaller, causing the ortho projection to enlarge all 2D elements proportionally. Use these
-   *   for all 2D UI layout (anchoring elements to screen edges, etc.).
-   *   Do not use these for APIs that expect actual window-space pixel coordinates; use
-   *   `window_bounds.w` / `window_bounds.h` instead.
-   */
-  GLint ui_width, ui_height;
-  
+
   /**
    * @brief The OpenGL viewport suitable for the current window.
    * @details This is calculated in drawable pixels, which factors in pixel density for high-DPI displays.
