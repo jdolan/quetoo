@@ -129,9 +129,6 @@
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h">
       <Filter>src\default\ui\play</Filter>
     </ClInclude>
@@ -303,9 +300,6 @@
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c">
