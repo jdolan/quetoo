@@ -369,10 +369,12 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
     name = "medium";
   }
 
+  const bool upscale = r_context.display_mode->pixel_density > 1.f || r_draw_scale->value > 1.f;
+
   int32_t i;
   for (i = 0; i < r_draw_2d.num_fonts; i++) {
     if (!g_strcmp0(name, r_draw_2d.fonts[i].name)) {
-      if (r_context.display_mode->pixel_density > 1.f && i < r_draw_2d.num_fonts - 1) {
+      if (upscale && i < r_draw_2d.num_fonts - 1) {
         r_draw_2d.font = &r_draw_2d.fonts[i + 1];
       } else {
         r_draw_2d.font = &r_draw_2d.fonts[i];
@@ -588,13 +590,11 @@ void R_Draw2D(void) {
     const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
-    const float scale = (float) r_context.viewport.w / r_context.w;
     const r_draw_2d_arrays_t *d = r_draw_2d.game.draw_arrays;
-
     for (int32_t i = 0; i < r_draw_2d.game.num_draw_arrays; i++, d++) {
       const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
       if (c->w || c->h) {
-        glScissor(c->x * scale, c->y * scale, c->w * scale, c->h * scale);
+        glScissor(c->x, c->y, c->w, c->h);
         glEnable(GL_SCISSOR_TEST);
       } else {
         glDisable(GL_SCISSOR_TEST);
@@ -608,13 +608,11 @@ void R_Draw2D(void) {
     const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f);
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);
 
-    const float scale = (float) r_context.viewport.w / r_context.window_bounds.w;
     const r_draw_2d_arrays_t *d = r_draw_2d.ui.draw_arrays;
-
     for (int32_t i = 0; i < r_draw_2d.ui.num_draw_arrays; i++, d++) {
       const r_draw_2d_clipping_frame_t *c = &d->clipping_frame;
       if (c->w || c->h) {
-        glScissor(c->x * scale, c->y * scale, c->w * scale, c->h * scale);
+        glScissor(c->x, c->y, c->w, c->h);
         glEnable(GL_SCISSOR_TEST);
       } else {
         glDisable(GL_SCISSOR_TEST);
