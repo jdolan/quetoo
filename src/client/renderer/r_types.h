@@ -1844,6 +1844,12 @@ typedef struct {
   SDL_Rect window_bounds;
 
   /**
+   * @brief The window size, in logical pixels.
+   * @details These are set from `window_bounds` and are available for convenience.
+   */
+  GLint w, h;
+
+  /**
    * @brief The OpenGL viewport suitable for the current window.
    * @details This is calculated in drawable pixels, which factors in pixel density for high-DPI displays.
    */
