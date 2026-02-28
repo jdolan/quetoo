@@ -168,7 +168,11 @@ void Ui_Draw(void) {
 
   Ui_CheckEditor();
 
+  R_SetDraw2DProjection(PROJECTION_UI);
+
   $(windowController, render);
+
+  R_SetDraw2DProjection(PROJECTION_GAME);
 }
 
 /**
