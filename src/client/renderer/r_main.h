@@ -125,11 +125,6 @@ typedef struct {
     vec4i_t viewport;
 
     /**
-     * @brief The 2D projection matrix.
-     */
-    mat4_t projection2D;
-
-    /**
      * @brief The 3D projection matrix.
      */
     mat4_t projection3D;

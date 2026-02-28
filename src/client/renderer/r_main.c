@@ -125,8 +125,6 @@ void R_UpdateUniforms(const r_view_t *view) {
   struct r_uniform_block_t *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
 
-  out->projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
-
   if (view) {
     out->viewport = view->viewport;
 
