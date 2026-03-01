@@ -50,11 +50,6 @@ struct SettingsViewController {
    * @private
    */
   SettingsViewControllerInterface *interface;
-
-  /**
-   * @brief TabView to contain tabs.
-   */
-  TabViewController *tabViewController;
 };
 
 /**
