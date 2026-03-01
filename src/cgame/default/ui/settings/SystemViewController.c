@@ -67,11 +67,11 @@ static void loadView(ViewController *self) {
   $(windowMode, addOption, "Fullscreen", (ident) 1);
   $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
 
-  $(verticalSync, addOption, "Off", (ident) 0);
-  $(verticalSync, addOption, "On", (ident) 1);
-  $(verticalSync, addOption, "Immediate", (ident) -1);
+  $(verticalSync, addOption, "Disabled", (ident) 0);
+  $(verticalSync, addOption, "Enabled", (ident) 1);
+  $(verticalSync, addOption, "Adaptive", (ident) -1);
 
-  $(anisotropy, addOption, "Off", (ident) 0);
+  $(anisotropy, addOption, "Disabled", (ident) 0);
   $(anisotropy, addOption, "2x", (ident) 2);
   $(anisotropy, addOption, "4x", (ident) 4);
   $(anisotropy, addOption, "8x", (ident) 8);

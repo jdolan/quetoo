@@ -183,10 +183,22 @@ void R_UpdateUniforms(const r_view_t *view) {
  */
 void R_BeginFrame(void) {
 
-  const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
+  if (r_draw_scale->modified) {
+    R_UpdateContext();
+    r_draw_scale->modified = false;
+  }
 
-  r_context.w = r_context.window_bounds.w / scale;
-  r_context.h = r_context.window_bounds.h / scale;
+  if (r_framebuffer_scale->modified) {
+    SDL_PushEvent(&(SDL_Event) {
+      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+    });
+    r_framebuffer_scale->modified = false;
+  }
+
+  if (r_swap_interval->modified) {
+    SDL_GL_SetSwapInterval(r_swap_interval->integer);
+    r_swap_interval->modified = false;
+  }
 
   memset(&r_stats, 0, sizeof(r_stats));
 
@@ -327,13 +339,6 @@ void R_EndFrame(void) {
   }
 
   SDL_GL_SwapWindow(r_context.window);
-
-  if (r_framebuffer_scale->modified) {
-    SDL_PushEvent(&(SDL_Event) {
-      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
-    });
-    r_framebuffer_scale->modified = false;
-  }
 }
 
 /**
@@ -378,7 +383,7 @@ static void R_InitLocal(void) {
   r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
   r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
   r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
