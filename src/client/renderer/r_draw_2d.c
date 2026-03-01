@@ -157,8 +157,10 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 
   if (list->num_draw_arrays && (draw->mode == GL_LINES || draw->mode == GL_TRIANGLES || draw->mode == GL_POINTS)) {
     r_draw_2d_arrays_t *last_draw = &list->draw_arrays[list->num_draw_arrays - 1];
-
-    if (last_draw->mode == draw->mode && last_draw->texture == draw->texture) {
+    const r_draw_2d_clipping_frame_t *f = &last_draw->clipping_frame;
+    if (last_draw->mode == draw->mode
+        && last_draw->texture == draw->texture
+        && memcmp(f, &r_draw_2d.clipping_frame, sizeof(*f)) == 0) {
       last_draw->num_vertexes += draw->num_vertexes;
       return;
     }
