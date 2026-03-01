@@ -29,6 +29,7 @@
                     }
                   },
                   "contentView": {
+                    "subviews": [
                       {
                         "class": "Input",
                         "label": {
@@ -95,7 +96,7 @@
                           "var": "r_framebuffer_scale",
                           "min": 0.25,
                           "max": 2.0,
-                          "step": .25
+                          "step": 0.25
                         }
                       },
                       {
