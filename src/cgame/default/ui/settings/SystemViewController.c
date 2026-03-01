@@ -44,11 +44,14 @@ static void loadView(ViewController *self) {
   super(ViewController, self, loadView);
 
   Select *windowMode, *verticalSync, *anisotropy;
+  Slider *framebufferScale, *drawScale;
 
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("windowMode", &windowMode),
+    MakeOutlet("framebufferScale", &framebufferScale),
+    MakeOutlet("drawScale", &drawScale),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("apply", &apply)
