@@ -46,6 +46,128 @@
 
 #define _Class _SettingsViewController
 
+#pragma mark - Quality presets
+
+typedef struct {
+  int32_t shadows;
+  int32_t shadowCubemapArraySize;
+  int32_t shadowDistance;
+  int32_t fogSamples;
+  int32_t lightingDistance;
+  int32_t parallax;
+  int32_t parallaxShadow;
+  int32_t caustics;
+  int32_t addWeather;
+  int32_t addAtmospheric;
+  int32_t spritesSoften;
+  int32_t spritesLerp;
+} QualityPreset;
+
+static const QualityPreset qualityPresets[] = {
+  [0] = { // Low
+    .shadows                = 0,
+    .shadowCubemapArraySize = 0,
+    .shadowDistance         = 0,
+    .fogSamples             = 0,
+    .lightingDistance       = 1024,
+    .parallax               = 0,
+    .parallaxShadow         = 0,
+    .caustics               = 0,
+    .addWeather             = 0,
+    .addAtmospheric         = 0,
+    .spritesSoften          = 0,
+    .spritesLerp            = 0,
+  },
+  [1] = { // Medium
+    .shadows                = 1,
+    .shadowCubemapArraySize = 256,
+    .shadowDistance         = 512,
+    .fogSamples             = 8,
+    .lightingDistance       = 2048,
+    .parallax               = 0,
+    .parallaxShadow         = 0,
+    .caustics               = 0,
+    .addWeather             = 1,
+    .addAtmospheric         = 1,
+    .spritesSoften          = 1,
+    .spritesLerp            = 0,
+  },
+  [2] = { // High
+    .shadows                = 1,
+    .shadowCubemapArraySize = 512,
+    .shadowDistance         = 1024,
+    .fogSamples             = 16,
+    .lightingDistance       = 4096,
+    .parallax               = 1,
+    .parallaxShadow         = 0,
+    .caustics               = 1,
+    .addWeather             = 1,
+    .addAtmospheric         = 1,
+    .spritesSoften          = 1,
+    .spritesLerp            = 1,
+  },
+  [3] = { // Highest
+    .shadows                = 1,
+    .shadowCubemapArraySize = 1024,
+    .shadowDistance         = 2048,
+    .fogSamples             = 32,
+    .lightingDistance       = 8192,
+    .parallax               = 1,
+    .parallaxShadow         = 1,
+    .caustics               = 1,
+    .addWeather             = 1,
+    .addAtmospheric         = 1,
+    .spritesSoften          = 1,
+    .spritesLerp            = 1,
+  },
+};
+
+/**
+ * @brief
+ */
+static void applyQualityPreset(const QualityPreset *p) {
+  cgi.SetCvarInteger("r_shadows",                   p->shadows);
+  cgi.SetCvarInteger("r_shadow_cubemap_array_size", p->shadowCubemapArraySize);
+  cgi.SetCvarInteger("r_shadow_distance",           p->shadowDistance);
+  cgi.SetCvarInteger("r_fog_samples",               p->fogSamples);
+  cgi.SetCvarInteger("r_lighting_distance",         p->lightingDistance);
+  cgi.SetCvarInteger("r_parallax",                  p->parallax);
+  cgi.SetCvarInteger("r_parallax_shadow",           p->parallaxShadow);
+  cgi.SetCvarInteger("r_caustics",                  p->caustics);
+  cgi.SetCvarInteger("cg_add_weather",              p->addWeather);
+  cgi.SetCvarInteger("cg_add_atmospheric",          p->addAtmospheric);
+  cgi.SetCvarInteger("r_sprites_soften",            p->spritesSoften);
+  cgi.SetCvarInteger("r_sprites_lerp",              p->spritesLerp);
+}
+
+/**
+ * @return The index of the matching preset, or -1 if no preset matches.
+ */
+static intptr_t detectQualityPreset(void) {
+  const QualityPreset current = {
+    .shadows                = cgi.GetCvarInteger("r_shadows"),
+    .shadowCubemapArraySize = cgi.GetCvarInteger("r_shadow_cubemap_array_size"),
+    .shadowDistance         = cgi.GetCvarInteger("r_shadow_distance"),
+    .fogSamples             = cgi.GetCvarInteger("r_fog_samples"),
+    .lightingDistance       = cgi.GetCvarInteger("r_lighting_distance"),
+    .parallax               = cgi.GetCvarInteger("r_parallax"),
+    .parallaxShadow         = cgi.GetCvarInteger("r_parallax_shadow"),
+    .caustics               = cgi.GetCvarInteger("r_caustics"),
+    .addWeather             = cgi.GetCvarInteger("cg_add_weather"),
+    .addAtmospheric         = cgi.GetCvarInteger("cg_add_atmospheric"),
+    .spritesSoften          = cgi.GetCvarInteger("r_sprites_soften"),
+    .spritesLerp            = cgi.GetCvarInteger("r_sprites_lerp"),
+  };
+
+  for (size_t i = 0; i < lengthof(qualityPresets); i++) {
+    if (memcmp(&current, &qualityPresets[i], sizeof(QualityPreset)) == 0) {
+      return (intptr_t) i;
+    }
+  }
+
+  return -1;
+}
+
 #pragma mark - Delegates
 
 /**
@@ -60,63 +182,9 @@ static void didClickApply(Button *button) {
  */
 static void didSelectQuality(Select *select, Option *option) {
 
-  switch ((intptr_t) option->value) {
-    case 0: // Low
-      cgi.SetCvarInteger("r_shadows", 0);
-      cgi.SetCvarInteger("r_fog_samples", 0);
-      cgi.SetCvarInteger("r_lighting_distance", 1024);
-      cgi.SetCvarInteger("r_parallax", 0);
-      cgi.SetCvarInteger("r_parallax_shadow", 0);
-      cgi.SetCvarInteger("r_caustics", 0);
-      cgi.SetCvarInteger("cg_add_weather", 0);
-      cgi.SetCvarInteger("cg_add_atmospheric", 0);
-      cgi.SetCvarInteger("r_sprites_soften", 0);
-      cgi.SetCvarInteger("r_sprites_lerp", 0);
-      break;
-    case 1: // Medium
-      cgi.SetCvarInteger("r_shadows", 1);
-      cgi.SetCvarInteger("r_shadow_cubemap_array_size", 256);
-      cgi.SetCvarInteger("r_shadow_distance", 512);
-      cgi.SetCvarInteger("r_fog_samples", 8);
-      cgi.SetCvarInteger("r_lighting_distance", 2048);
-      cgi.SetCvarInteger("r_parallax", 0);
-      cgi.SetCvarInteger("r_parallax_shadow", 0);
-      cgi.SetCvarInteger("r_caustics", 0);
-      cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_atmospheric", 1);
-      cgi.SetCvarInteger("r_sprites_soften", 1);
-      cgi.SetCvarInteger("r_sprites_lerp", 0);
-      break;
-    case 2: // High
-      cgi.SetCvarInteger("r_shadows", 1);
-      cgi.SetCvarInteger("r_shadow_cubemap_array_size", 512);
-      cgi.SetCvarInteger("r_shadow_distance", 1024);
-      cgi.SetCvarInteger("r_fog_samples", 16);
-      cgi.SetCvarInteger("r_lighting_distance", 4096);
-      cgi.SetCvarInteger("r_parallax", 1);
-      cgi.SetCvarInteger("r_parallax_shadow", 0);
-      cgi.SetCvarInteger("r_caustics", 1);
-      cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_atmospheric", 1);
-      cgi.SetCvarInteger("r_sprites_soften", 1);
-      cgi.SetCvarInteger("r_sprites_lerp", 1);
-      break;
-    case 3: // Highest
-      cgi.SetCvarInteger("r_shadows", 1);
-      cgi.SetCvarInteger("r_shadow_cubemap_array_size", 1024);
-      cgi.SetCvarInteger("r_shadow_distance", 2048);
-      cgi.SetCvarInteger("r_fog_samples", 32);
-      cgi.SetCvarInteger("r_lighting_distance", 8192);
-      cgi.SetCvarInteger("r_parallax", 1);
-      cgi.SetCvarInteger("r_parallax_shadow", 1);
-      cgi.SetCvarInteger("r_caustics", 1);
-      cgi.SetCvarInteger("cg_add_weather", 1);
-      cgi.SetCvarInteger("cg_add_atmospheric", 1);
-      cgi.SetCvarInteger("r_sprites_soften", 1);
-      cgi.SetCvarInteger("r_sprites_lerp", 1);
-      break;
-    default:
-      break;
+  const intptr_t index = (intptr_t) option->value;
+  if (index >= 0 && index < (intptr_t) lengthof(qualityPresets)) {
+    applyQualityPreset(&qualityPresets[index]);
   }
 
   ViewController *this = select->delegate.self;
@@ -175,6 +243,8 @@ static void loadView(ViewController *self) {
 
   quality->delegate.self = self;
   quality->delegate.didSelectOption = didSelectQuality;
+
+  $(quality, selectOptionWithValue, (ident) detectQualityPreset());
 
   apply->delegate.didClick = didClickApply;
   apply->delegate.self = self;
