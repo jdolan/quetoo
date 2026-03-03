@@ -204,13 +204,14 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
     for (GList *list = materials; list; list = list->next) {
       if (!g_strcmp0(((cm_material_t *) list->data)->name, in->name)) {
         *out = list->data;
-                materials = g_list_remove(materials, *out);
+        materials = g_list_remove(materials, *out);
         break;
       }
     }
 
     if (*out == NULL) {
       *out = Cm_AllocMaterial(in->name);
+      g_strlcpy((*out)->path, path, sizeof((*out)->path));
     }
 
     *out = Mem_Link(*out, bsp->materials);

@@ -60,6 +60,8 @@ static void R_LoadBspMaterials(r_model_t *mod) {
 
   for (int32_t i = 0; i < mod->bsp->num_materials; i++, in++, out++) {
     *out = R_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
+    cm_material_t *cm = (*out)->cm;
+    g_strlcpy(cm->path, path, sizeof(cm->path));
     R_RegisterDependency((r_media_t *) mod, (r_media_t *) *out);
   }
 }
