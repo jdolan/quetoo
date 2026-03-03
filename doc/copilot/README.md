@@ -6,6 +6,12 @@
 
 ---
 
+## Project Notes
+
+- **ObjectivelyMVC** is also jdolan's project. Source lives at `../ObjectivelyMVC` (sibling to quetoo). Check it directly for MVC internals, API details, or bugs rather than relying on installed headers alone.
+
+---
+
 ## Overview
 
 This directory contains comprehensive documentation from an AI pair programming session focused on optimizing the Quetoo game engine's renderer and fixing critical bugs. The work resulted in significant performance improvements and resolved several long-standing issues.
