@@ -4,9 +4,9 @@
 }
 
 PlayerModelView {
-  autoresizing-mask: height;
   padding: 4;
-  width: 780;
+  width: 900;
+  height: 680;
 }
 
 PlayerModelView > .iconView {

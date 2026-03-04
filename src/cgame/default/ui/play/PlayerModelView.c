@@ -80,7 +80,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.fov.y = Degrees(y) * a / 2.f;
 
-    this->view.origin = Vec3(196.f + (64.f * -this->zoom), 0.f, 64.f);
+    this->view.origin = Vec3(128.f + (32.f * -this->zoom), 0.f, 48.f);
 
     this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
 

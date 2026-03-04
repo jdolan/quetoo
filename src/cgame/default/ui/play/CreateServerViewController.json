@@ -128,6 +128,18 @@
                           "class": "CvarCheckbox",
                           "var": "g_match"
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapons Stay"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "g_weapon_stay"
+                        }
                       }
                     ]
                   }

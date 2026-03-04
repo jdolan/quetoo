@@ -12,7 +12,7 @@ Box > Label {
 }
 
 Box > .contentView > Input > Label {
-  min-width: 180;
+  min-width: 200;
 }
 
 Checkbox > Control {
@@ -37,8 +37,12 @@ Panel.menu {
 
 Panel.menu .tabPageView {
   autoresizing-mask: none;
-  width: 1200;
-  height: 600;
+  width: 1440;
+  height: 720;
+}
+
+Select {
+  min-width: 200;
 }
 
 Slider > .bar > .handle {
@@ -55,6 +59,7 @@ TabView > .tabSelectionView > Label.selected {
 
 TextView {
   background-color: #dedede10;
+  min-width: 200;
 }
 
 .options {
@@ -63,6 +68,7 @@ TextView {
 
 .options > Option {
   background-color: #08151a;
+  min-width: 200;
 }
 
 .options > Option:hover {
@@ -82,13 +88,13 @@ TextView {
 .columns > .column {
   autoresizing-mask: contain | height;
   distribution: fill;
-  width: 384;
+  width: 460;
 }
 
 .columns > .column-2 {
   autoresizing-mask: contain | height;
   distribution: fill;
-  width: 768;
+  width: 920;
 }
 
 .column Box {

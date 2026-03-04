@@ -31,7 +31,7 @@
 #pragma mark - Delegates
 
 /**
- * @brief Select teams mode
+ * @brief Select teams mode.
  */
 static void selectTeams(Select *select, Option *option) {
 

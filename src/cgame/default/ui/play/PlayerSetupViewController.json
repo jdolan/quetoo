@@ -60,26 +60,11 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Colors"
+                      "text": "Appearance"
                     }
                   },
                   "contentView": {
                     "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Effects"
-                          }
-                        },
-                        "control": {
-                          "class": "HueColorPicker",
-                          "identifier": "effects",
-                          "hueSlider": {
-                            "min": -1
-                          }
-                        }
-                      },
                       {
                         "class": "Input",
                         "label": {
@@ -132,6 +117,45 @@
                           "valueSlider": {
                             "min": 0.3
                           }
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Combat"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Effects"
+                          }
+                        },
+                        "control": {
+                          "class": "HueColorPicker",
+                          "identifier": "effects",
+                          "hueSlider": {
+                            "min": -1
+                          }
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Handedness"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "cg_hand"
                         }
                       }
                     ]
