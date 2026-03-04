@@ -190,7 +190,7 @@ void Cl_PopulateEditorScene(const cl_frame_t *frame) {
       .id = edit,
       .origin = edit->ent->origin,
       .angles = edit->ent->angles,
-      .scale = 1.f,
+      .scale = Cm_EntityValue(edit->def, "scale")->value ?: 1.f,
       .bounds = edit->ent->bounds,
       .abs_bounds = edit->ent->abs_bounds,
       .color = color,
