@@ -47,7 +47,7 @@ static const char *DEFAULT_BINDS =
     "bind e use\n"
 
     "bind t cl_message_mode\n"
-  "bind return cl_message_mode\n"
+    "bind return cl_message_mode\n"
     "bind y cl_message_mode_2\n"
 
     "bind \"mouse 1\" +attack\n"
@@ -60,7 +60,7 @@ static const char *DEFAULT_BINDS =
     "bind , slow_motion\n"
     "bind . fast_forward\n"
 
-  // score
+    // score
     "bind tab +score\n"
 
     // zoom alias for nubs
@@ -85,9 +85,7 @@ static const char *DEFAULT_BINDS =
     "bind f SPAM"
     "\"\n"
 
-  "bind f9 toggle cg_draw_weapon\n"
-    "bind f10 r_screenshot view\n"
-    "bind f11 r_toggle_fullscreen\n"
+    "bind f11 r_screenshot view\n"
     "bind f12 r_screenshot\n"
 
     // now execute the "default" configuration file
