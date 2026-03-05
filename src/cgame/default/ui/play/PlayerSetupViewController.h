@@ -55,14 +55,14 @@ struct PlayerSetupViewController {
   PlayerSetupViewControllerInterface *interface;
 
   /**
+   * @brief The skin Select.
+   */
+  Select *skinSelect;
+
+  /**
    * @brief The head HSVColorPicker.
    */
   HSVColorPicker *helmetColorPicker;
-
-  /**
-   * @brief The effects HueColorPicker.
-   */
-  HueColorPicker *effectsColorPicker;
 
   /**
    * @brief The pants HSVColorPicker.
@@ -80,9 +80,14 @@ struct PlayerSetupViewController {
   HSVColorPicker *shirtColorPicker;
 
   /**
-   * @brief The skin Select.
+   * @brief The effects HueColorPicker.
    */
-  Select *skinSelect;
+  HueColorPicker *effectsColorPicker;
+
+  /**
+   * @brief The handedness Select.
+   */
+  Select *hand;
 };
 
 /**

@@ -155,7 +155,8 @@
                         },
                         "control": {
                           "class": "CvarSelect",
-                          "identifier": "cg_hand"
+                          "identifier": "hand",
+                          "var": "hand"
                         }
                       }
                     ]
