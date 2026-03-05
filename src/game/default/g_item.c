@@ -859,7 +859,7 @@ static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
       }
     });
 
-    if (!tech) {
+    if (!ent) {
       continue;
     }
 
