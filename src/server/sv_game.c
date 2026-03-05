@@ -98,7 +98,7 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
   // change the string in sv.config_strings
   g_strlcpy(sv.config_strings[index], val, sizeof(sv.config_strings[0]));
 
-  if (svs.state != SV_LOADING) { // send the update to everyone
+  if (svs.state >= SV_ACTIVE_GAME) { // send the update to everyone
     Mem_ClearBuffer(&sv.multicast);
     Net_WriteByte(&sv.multicast, SV_CMD_CONFIG_STRING);
     Net_WriteShort(&sv.multicast, index);
