@@ -876,7 +876,7 @@ static const char *G_GameName(void) {
 
   g_strlcpy(name, G_GameplayName(g_level.gameplay), size);
 
-  // teams are implied for capture the flag and duel
+  // teams are implied for capture the flag
   if (g_level.ctf) {
     g_strlcat(name, " CTF", size);
   } else if (g_level.teams) {
@@ -933,7 +933,7 @@ void G_Init(void) {
 
   g_admin_password = gi.AddCvar("g_admin_password", "", CVAR_LATCH, "Password to authenticate as an admin.");
   g_ammo_respawn_time = gi.AddCvar("g_ammo_respawn_time", "20.0", CVAR_SERVER_INFO, "Ammo respawn interval in seconds.");
-  g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO, "Automatically assigns players to teams, ignored for duel mode.");
+  g_auto_join = gi.AddCvar("g_auto_join", "0", CVAR_SERVER_INFO, "Automatically assigns players to teams.");
   g_balance_armor_shard_respawn = gi.AddCvar("g_balance_armor_shard_respawn", "15", CVAR_SERVER_INFO, NULL);
   g_balance_armor_jacket_respawn = gi.AddCvar("g_balance_armor_jacket_respawn", "25", CVAR_SERVER_INFO, NULL);
   g_balance_armor_combat_respawn = gi.AddCvar("g_balance_armor_combat_respawn", "25", CVAR_SERVER_INFO, NULL);
@@ -1014,14 +1014,14 @@ void G_Init(void) {
   g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
-  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat.");
+  g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
   g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
   g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
   g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
-  g_respawn_protection = gi.AddCvar("g_respawn_protection", "0.0", 0, "Respawn protection in seconds.");
+  g_respawn_protection = gi.AddCvar("g_respawn_protection", "0", 0, "Respawn protection in seconds.");
   g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
   g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
   g_show_attacker_stats = gi.AddCvar("g_show_attacker_stats", "0", CVAR_SERVER_INFO, "Allows can see their attackers' health and armor when they die.");
@@ -1029,8 +1029,8 @@ void G_Init(void) {
   g_spectator_chat = gi.AddCvar("g_spectator_chat", "1", CVAR_SERVER_INFO, "If enabled, spectators can only talk to other spectators.");
   g_teams = gi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play.");
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
-  g_time_limit = gi.AddCvar("g_time_limit", "20.0", CVAR_SERVER_INFO, "The time limit per level in minutes.");
-  g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5.0", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
+  g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
+  g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "1", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {

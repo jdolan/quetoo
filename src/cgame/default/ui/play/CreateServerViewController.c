@@ -38,16 +38,16 @@ static void selectTeams(Select *select, Option *option) {
   const intptr_t value = (intptr_t) option->value;
   switch (value) {
     case 1:
-      cgi.SetCvarInteger(g_teams->name, 1);
-      cgi.SetCvarInteger(g_ctf->name, 0);
+      cgi.SetCvarInteger("g_teams", 1);
+      cgi.SetCvarInteger("g_ctf", 0);
       break;
     case 2:
-      cgi.SetCvarInteger(g_teams->name, 0);
-      cgi.SetCvarInteger(g_ctf->name, 1);
+      cgi.SetCvarInteger("g_teams", 0);
+      cgi.SetCvarInteger("g_ctf", 1);
       break;
     default:
-      cgi.SetCvarInteger(g_teams->name, 0);
-      cgi.SetCvarInteger(g_ctf->name, 1);
+      cgi.SetCvarInteger("g_teams", 0);
+      cgi.SetCvarInteger("g_ctf", 1);
       break;
   }
 }
@@ -134,7 +134,6 @@ static void loadView(ViewController *self) {
   $(this->gameplay, addOption, "Deathmatch", "deathmatch");
   $(this->gameplay, addOption, "Instagib", "instagib");
   $(this->gameplay, addOption, "Arena", "arena");
-  $(this->gameplay, addOption, "Duel", "duel");
 
   $(this->teams, addOption, "Free for all", (ident) 0);
   $(this->teams, addOption, "Team deathmatch", (ident) 1);

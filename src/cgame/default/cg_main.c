@@ -89,12 +89,6 @@ cvar_t *cg_pants;
 cvar_t *cg_shirt;
 cvar_t *cg_skin;
 
-cvar_t *g_gameplay;
-cvar_t *g_teams;
-cvar_t *g_ctf;
-cvar_t *g_match;
-cvar_t *g_ai_max_clients;
-
 cvar_t *editor;
 
 cg_import_t cgi;
@@ -179,12 +173,6 @@ static void Cg_Init(void) {
   cg_pants = cgi.AddCvar("pants", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your pants color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_shirt = cgi.AddCvar("shirt", "default", CVAR_USER_INFO | CVAR_ARCHIVE, "Specifies your shirt color, in the hex format \"rrggbb\". \"default\" uses the skin or team's defaults.");
   cg_skin = cgi.AddCvar("skin", "qforcer/default", CVAR_USER_INFO | CVAR_ARCHIVE, "Your player model and skin.");
-
-  g_gameplay = cgi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, duel, arena, or instagib combat");
-  g_teams = cgi.AddCvar("g_teams", "0", CVAR_SERVER_INFO, "Enables teams-based play");
-  g_ctf = cgi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay");
-  g_match = cgi.AddCvar("g_match", "0", CVAR_SERVER_INFO, "Enables match play requiring players to ready");
-  g_ai_max_clients = cgi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO, "The minimum amount player slots that will always be filled. Specify -1 to fill all available slots.");
 
   editor = cgi.GetCvar("editor");
 
