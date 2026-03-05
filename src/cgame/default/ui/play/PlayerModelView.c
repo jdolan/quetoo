@@ -53,7 +53,7 @@ static View *init(View *self) {
  */
 static void render(View *self, Renderer *renderer) {
 
-  super(View, self, render, renderer);
+  // Note we don't call super here, we don't want typical control bevels etc.
 
   PlayerModelView *this = (PlayerModelView *) self;
 
@@ -80,7 +80,7 @@ static void render(View *self, Renderer *renderer) {
 
     this->view.fov.y = Degrees(y) * a / 2.f;
 
-    this->view.origin = Vec3(128.f + (32.f * -this->zoom), 0.f, 48.f);
+    this->view.origin = Vec3(128.f + (48.f * -this->zoom), 0.f, 48.f);
 
     this->view.angles = Vec3_Euler(Vec3_Negate(this->view.origin));
 
@@ -140,34 +140,34 @@ static void updateBindings(View *self) {
   Cg_LoadClient(&this->client, this->info);
 
   this->legs.model = this->client.legs;
-  this->legs.scale = 1.0;
-  this->legs.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->legs.scale = 1.f;
+  this->legs.color = Vec4(1.f, 1.f, 1.f, 1.f);
   memcpy(this->legs.skins, this->client.legs_skins, sizeof(this->legs.skins));
 
   this->torso.model = this->client.torso;
-  this->torso.scale = 1.0;
-  this->torso.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->torso.scale = 1.f;
+  this->torso.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->torso.tag = "tag_torso";
   memcpy(this->torso.skins, this->client.torso_skins, sizeof(this->torso.skins));
 
   this->head.model = this->client.head;
-  this->head.scale = 1.0;
-  this->head.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->head.scale = 1.f;
+  this->head.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->head.tag = "tag_head";
   memcpy(this->head.skins, this->client.head_skins, sizeof(this->head.skins));
 
   this->weapon.model = cgi.LoadModel("models/weapons/rocketlauncher/tris");
-  this->weapon.scale = 1.0;
-  this->weapon.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->weapon.scale = 1.f;
+  this->weapon.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->weapon.tag = "tag_weapon";
 
   this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
-  this->platformBase.scale = 1.0;
-  this->platformBase.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->platformBase.scale = 1.f;
+  this->platformBase.color = Vec4(1.f, 1.f, 1.f, 1.f);
 
   this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
-  this->platformCenter.scale = 1.0;
-  this->platformCenter.color = Vec4(1.0, 1.0, 1.0, 1.0);
+  this->platformCenter.scale = 1.f;
+  this->platformCenter.color = Vec4(1.f, 1.f, 1.f, 1.f);
 
   SDL_Surface *surface = cgi.LoadSurface(this->client.icon->media.name);
   $(this->iconView, setImageWithSurface, surface);
@@ -240,8 +240,8 @@ static entity_animation_t nextAnimation(const entity_animation_t a) {
 static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_entity_t *e) {
 
   e->frame = e->old_frame = 0;
-  e->lerp = 1.0;
-  e->back_lerp = 0.0;
+  e->lerp = 1.f;
+  e->back_lerp = 0.f;
 
   const r_mesh_animation_t *anim = &model->animations[a->animation];
 
@@ -277,7 +277,7 @@ static void animate_(const r_mesh_model_t *model, cl_entity_animation_t *a, r_en
   e->frame = a->frame;
   e->old_frame = a->old_frame;
   e->lerp = a->lerp;
-  e->back_lerp = 1.0f - a->lerp;
+  e->back_lerp = 1.f - a->lerp;
 }
 
 /**
@@ -292,10 +292,10 @@ static void animate(PlayerModelView *self) {
   animate_(model, &self->animation2, &self->legs);
 
   self->head.frame = 0;
-  self->head.lerp = 1.0;
+  self->head.lerp = 1.f;
 
   self->weapon.frame = 0;
-  self->weapon.lerp = 1.0;
+  self->weapon.lerp = 1.f;
 
   vec4_t tints[TINT_TOTAL] = {
     Vec4_Zero(),
