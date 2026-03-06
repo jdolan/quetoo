@@ -297,6 +297,12 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       Cmd_ExecuteString("quit");
       return true;
 
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+      if (cls.key_state.dest == KEY_GAME) {
+        Cl_SetKeyDest(KEY_UI);
+      }
+      return false;
+
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_MOVED:
     case SDL_EVENT_WINDOW_RESIZED:
