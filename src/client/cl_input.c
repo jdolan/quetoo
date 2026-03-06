@@ -422,14 +422,6 @@ void Cl_HandleEvents(void) {
       break;
     }
   }
-
-  if (cls.key_state.dest == KEY_GAME) {
-    
-    const GLint cx = r_context.display_mode->w * 0.5f;
-    const GLint cy = r_context.display_mode->h * 0.5f;
-
-    SDL_WarpMouseInWindow(r_context.window, cx, cy);
-  }
 }
 
 /**
