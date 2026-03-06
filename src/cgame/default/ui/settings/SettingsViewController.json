@@ -142,6 +142,19 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Anisotropy"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "anisotropy",
+                            "var": "r_anisotropy"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Brightness"
                             }
                           },
@@ -157,13 +170,14 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Anisotropy"
+                              "text": "Field of View"
                             }
                           },
                           "control": {
-                            "class": "CvarSelect",
-                            "identifier": "anisotropy",
-                            "var": "r_anisotropy"
+                            "class": "CvarSlider",
+                            "var": "cg_fov",
+                            "min": 90,
+                            "max": 180
                           }
                         }
                       ]
