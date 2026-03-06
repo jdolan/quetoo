@@ -84,8 +84,8 @@ bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) 
 
 /**
  * @brief Updates the clipping planes for the view frustum for the current frame.
- * @details The frustum planes are outward facing. Thus, any object that appears
- * partially behind any of the frustum planes should be visible.
+ * @details The frustum plane normals point inward (toward the visible volume).
+ * A point with positive distance is inside the frustum; negative is outside.
  */
 void R_UpdateFrustum(r_view_t *view) {
 
@@ -95,31 +95,30 @@ void R_UpdateFrustum(r_view_t *view) {
 
   cm_bsp_plane_t *p = view->frustum;
 
-  // Use half of the FOV angle (from center to edge of frustum)
-  float half_ang = Radians(view->fov.x) * 0.5f;
-  float xs = sinf(half_ang);
-  float xc = cosf(half_ang);
+  // view->fov.x/y are half-angles (see Cg_UpdateFov).
+  // Plane normal sin(θ)*forward ∓ cos(θ)*right clips exactly at the half-FOV angle θ:
+  //   distance = sin(θ-φ), negative when φ > θ (outside frustum).
+  float hs = sinf(Radians(view->fov.x));
+  float hc = cosf(Radians(view->fov.x));
 
-  // Right frustum plane: normal = forward * cos + right * sin
-  p[0].normal = Vec3_Scale(view->forward, xc);
-  p[0].normal = Vec3_Fmaf(p[0].normal, xs, view->right);
+  // Right boundary plane (clips objects beyond the right edge)
+  p[0].normal = Vec3_Scale(view->forward, hs);
+  p[0].normal = Vec3_Fmaf(p[0].normal, -hc, view->right);
 
-  // Left frustum plane: normal = forward * cos - right * sin
-  p[1].normal = Vec3_Scale(view->forward, xc);
-  p[1].normal = Vec3_Fmaf(p[1].normal, -xs, view->right);
+  // Left boundary plane (clips objects beyond the left edge)
+  p[1].normal = Vec3_Scale(view->forward, hs);
+  p[1].normal = Vec3_Fmaf(p[1].normal, hc, view->right);
 
-  // Use half of the vertical FOV
-  half_ang = Radians(view->fov.y) * 0.5f;
-  xs = sinf(half_ang);
-  xc = cosf(half_ang);
+  float vs = sinf(Radians(view->fov.y));
+  float vc = cosf(Radians(view->fov.y));
 
-  // Top frustum plane: normal = forward * cos + up * sin
-  p[2].normal = Vec3_Scale(view->forward, xc);
-  p[2].normal = Vec3_Fmaf(p[2].normal, xs, view->up);
+  // Top boundary plane (clips objects beyond the top edge)
+  p[2].normal = Vec3_Scale(view->forward, vs);
+  p[2].normal = Vec3_Fmaf(p[2].normal, -vc, view->up);
 
-  // Bottom frustum plane: normal = forward * cos - up * sin
-  p[3].normal = Vec3_Scale(view->forward, xc);
-  p[3].normal = Vec3_Fmaf(p[3].normal, -xs, view->up);
+  // Bottom boundary plane (clips objects beyond the bottom edge)
+  p[3].normal = Vec3_Scale(view->forward, vs);
+  p[3].normal = Vec3_Fmaf(p[3].normal, vc, view->up);
 
   for (size_t i = 0; i < lengthof(view->frustum); i++) {
     p[i].normal = Vec3_Normalize(p[i].normal);
