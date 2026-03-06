@@ -79,6 +79,16 @@ Quick reference for all optimization and bug fix documentation.
 
 ---
 
+## Texture & Asset Processing
+
+**[TEXTURE_HEIGHTMAP_PROCESSING.md](TEXTURE_HEIGHTMAP_PROCESSING.md)** - Texture conversion & heightmap denoising
+- 885 JPG textures converted to TGA across `quetoo-data`
+- `clean_heightmaps.py` — median + bilateral + dual unsharp mask pipeline for normalmap alpha channels
+- `review_heightmaps.py` — interactive tkinter GUI for per-texture parameter tuning
+- 122/722 `common/quake` normalmaps reviewed interactively; remainder batch-processed
+
+---
+
 ## Quick Stats
 
 - **Total files:** 11
