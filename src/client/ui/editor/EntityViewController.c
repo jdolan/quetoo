@@ -72,6 +72,10 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
     $(this->add->key, setAttributedText, NULL);
     $(this->add->value, setAttributedText, NULL);
+
+    this->shouldUpdateEntity = false;
+  } else {
+    this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
   Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
@@ -94,6 +98,10 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
     $(this->teamAdd->key, setAttributedText, NULL);
     $(this->teamAdd->value, setAttributedText, NULL);
+
+    this->shouldUpdateEntity = false;
+  } else {
+    this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
   Cl_WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
@@ -284,17 +292,30 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
         const char *info = cl.config_strings[CS_ENTITIES + number];
 
-        if (number == this->entity.number || !g_strcmp0(this->created, info)) {
+        const EditorEntity entity = {
+          .number = number,
+          .ent = &cl.entities[number],
+          .def = cl.entity_definitions[number]
+        };
 
-          $(this, setEntity, &(EditorEntity) {
-            .number = number,
-            .ent = &cl.entities[number],
-            .def = cl.entity_definitions[number]
-          });
+        if (number == this->entity.number) {
+          if (this->shouldUpdateEntity) {
+            $(this, updateEntity, &entity);
+          } else {
+            $(this, setEntity, &entity);
+          }
+          this->shouldUpdateEntity = false;
+        } else if (!g_strcmp0(this->created, info)) {
+          $(this, setEntity, &entity);
         }
 
         if (number == this->teamEntity.number) {
-          $(this, setEntity, &this->entity);
+          if (this->shouldUpdateEntity) {
+            $(this, updateEntity, &this->entity);
+          } else {
+            $(this, setEntity, &this->entity);
+            this->shouldUpdateEntity = false;
+          }
         }
       }
         break;
@@ -390,10 +411,56 @@ static EntityViewController *init(EntityViewController *self) {
 }
 
 /**
- * @fn void EntityViewController::setEntity(EntityViewController *, EditorEntity *)
+ * @brief Updates the value TextViews of a StackView's EntityView subviews in-place,
+ * skipping any view that currently has keyboard focus.
+ */
+static void updatePairs(StackView *stackView, const EditorEntity *entity) {
+
+  Array *subviews = (Array *) ((View *) stackView)->subviews;
+
+  for (size_t i = 0; i < subviews->count; i++) {
+    EntityView *ev = $(subviews, objectAtIndex, i);
+
+    if ($((View *) ev->key, isKeyResponder) || $((View *) ev->value, isKeyResponder)) {
+      continue;
+    }
+
+    const char *evKey = ev->key->attributedText->string.chars;
+    for (const cm_entity_t *e = entity->def; e; e = e->next) {
+      if (!g_strcmp0(e->key, evKey)) {
+        $(ev, setEntity, &(EditorEntity) {
+          .number = entity->number,
+          .ent = entity->ent,
+          .def = (cm_entity_t *) e
+        });
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * @fn void EntityViewController::updateEntity(EntityViewController *, const EditorEntity *)
  * @memberof EntityViewController
  */
-static void setEntity(EntityViewController *self, EditorEntity *entity) {
+static void updateEntity(EntityViewController *self, const EditorEntity *entity) {
+
+  if (!entity) {
+    $(self, setEntity, NULL);
+    return;
+  }
+
+  self->entity = *entity;
+
+  updatePairs(self->pairs, &self->entity);
+  updatePairs(self->teamPairs, &self->teamEntity);
+}
+
+/**
+ * @fn void EntityViewController::setEntity(EntityViewController *, const EditorEntity *)
+ * @memberof EntityViewController
+ */
+static void setEntity(EntityViewController *self, const EditorEntity *entity) {
 
   $((View *) self->pairs, removeAllSubviews);
   $((View *) self->teamPairs, removeAllSubviews);
@@ -499,6 +566,7 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->deleteEntity = deleteEntity;
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
+  ((EntityViewControllerInterface *) clazz->interface)->updateEntity = updateEntity;
 
   editor_grid_size = Cvar_Add("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
 }
