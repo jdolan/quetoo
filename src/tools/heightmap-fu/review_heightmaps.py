@@ -51,10 +51,10 @@ MAX_DISPLAY = 512   # max px per image panel in the preview
 
 
 class ReviewApp:
-    def __init__(self, root: tk.Tk, files: list[Path]):
+    def __init__(self, root: tk.Tk, files: list[Path], start_index: int = 0):
         self.root = root
         self.files = files
-        self.index = 0
+        self.index = start_index
         self.original_alpha: np.ndarray | None = None   # pristine alpha from disk
         self.current_image: Image.Image | None = None   # full RGBA image from disk
 
@@ -298,6 +298,9 @@ def main():
     parser.add_argument("directory", help="Directory to search for normalmap files")
     parser.add_argument("--pattern", default="*_norm.tga",
                         help="Glob pattern (default: *_norm.tga)")
+    parser.add_argument("--start", default=None, metavar="FILENAME",
+                        help="Start from the first file whose name contains this string "
+                             "(e.g. --start bricka2_6)")
     args = parser.parse_args()
 
     directory = Path(args.directory).expanduser()
@@ -306,10 +309,19 @@ def main():
         print(f"No files matching '{args.pattern}' found in {directory}")
         sys.exit(1)
 
+    start_index = 0
+    if args.start:
+        matches = [i for i, f in enumerate(files) if args.start in f.name]
+        if matches:
+            start_index = matches[0]
+            print(f"Starting at file {start_index + 1}: {files[start_index].name}")
+        else:
+            print(f"Warning: --start '{args.start}' not found, starting from beginning")
+
     print(f"Found {len(files)} files.")
 
     root = tk.Tk()
-    app = ReviewApp(root, files)
+    app = ReviewApp(root, files, start_index=start_index)
     root.mainloop()
 
 
