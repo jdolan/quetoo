@@ -11,6 +11,106 @@ import numpy as np
 from PIL import Image
 import cv2
 
+def _hairline_fraction(alpha, k, threshold=20):
+    """Fraction of pixels that differ from their k×k median by more than threshold."""
+    med = cv2.medianBlur(alpha, k)
+    diff = np.abs(alpha.astype(np.int32) - med.astype(np.int32))
+    return (diff > threshold).sum() / diff.size
+
+
+def _dominant_feature_scale(alpha):
+    """
+    Estimate the dominant spatial feature size in pixels via the radial power
+    spectrum.  Returns the approximate wavelength (pixels) of the most energetic
+    non-DC spatial frequency.
+    """
+    psd = np.abs(np.fft.fftshift(np.fft.fft2(alpha.astype(np.float32)))) ** 2
+    h, w = psd.shape
+    cy, cx = h // 2, w // 2
+    y, x = np.ogrid[:h, :w]
+    r = np.sqrt((x - cx) ** 2 + (y - cy) ** 2).astype(int)
+    max_r = min(cx, cy)
+    radial = np.zeros(max_r)
+    for ri in range(max_r):
+        mask = r == ri
+        if mask.any():
+            radial[ri] = psd[mask].mean()
+    # Skip DC (r=0) and the adjacent bin (r=1); find the dominant frequency ring
+    peak_r = int(np.argmax(radial[2:])) + 2
+    # Wavelength in pixels: image_width / (2 * ring_radius)
+    return w / (2.0 * peak_r)
+
+
+def suggest_params(alpha):
+    """
+    Analyse a raw heightmap alpha channel and return a dict of suggested
+    processing parameters.
+
+    Heuristics
+    ----------
+    median
+        Try k=3 and k=5.  If the outlier fraction *increases* from k=3 to k=5
+        the "outliers" are structural features, not noise — cap at k=3 (or 0
+        when the texture is already very clean).  If the fraction genuinely
+        decreases, keep searching for the smallest k that brings it below 0.5 %.
+
+    bilateral_sigma
+        Proportional to the height-range std so textures with broad tonal
+        variation get enough smoothing.  Clamped to [30, 150].
+
+    sharpen_sigma
+        Derived from the dominant spatial feature scale via the power spectrum.
+        sigma ≈ feature_scale / 6, clamped to [2.0, 10.0] and rounded to the
+        nearest 0.5 step so it lands on a slider tick.
+
+    sharpen_amount / fine-sharpen
+        Left at the global defaults — these are style choices that are hard to
+        infer analytically.
+
+    Returns None if the heightmap appears flat (std < 1).
+    """
+    if np.std(alpha) < 1.0:
+        return None
+
+    std = float(np.std(alpha))
+
+    # ── median blur ──────────────────────────────────────────────────────────
+    frac3 = _hairline_fraction(alpha, 3)
+    frac5 = _hairline_fraction(alpha, 5)
+
+    if frac5 >= frac3:
+        # Fraction not shrinking → structural texture, not salt-and-pepper noise.
+        # k=3 gives minimal cleanup; 0 if already clean enough.
+        median = 3 if frac3 > 0.001 else 0
+    else:
+        # Genuine noise: find smallest k that brings outliers below 0.5 %.
+        median = 3
+        for k in [3, 5, 7, 9, 11]:
+            if _hairline_fraction(alpha, k) < 0.005:
+                median = k
+                break
+            median = k
+
+    # ── bilateral sigma ───────────────────────────────────────────────────────
+    bilateral_sigma = int(np.clip(std * 1.2, 30, 150))
+
+    # ── sharpen sigma (from dominant feature scale) ───────────────────────────
+    feat_scale = _dominant_feature_scale(alpha)
+    sharpen_sigma_raw = float(np.clip(feat_scale / 6.0, 2.0, 10.0))
+    # Round to nearest 0.5 to land on a slider tick
+    sharpen_sigma = round(sharpen_sigma_raw * 2.0) / 2.0
+
+    return dict(
+        median=median,
+        bilateral_d=9,
+        bilateral_sigma=bilateral_sigma,
+        sharpen_sigma=sharpen_sigma,
+        sharpen_amount=2.5,
+        sharpen2_sigma=0.0,
+        sharpen2_amount=1.0,
+    )
+
+
 def process_heightmap(alpha_channel, blur_size=5, bilateral_d=9, bilateral_sigma=75,
                       sharpen_sigma=5.0, sharpen_amount=2.5,
                       sharpen2_sigma=0.0, sharpen2_amount=1.0):

@@ -21,7 +21,7 @@ from PIL import Image, ImageTk
 import tkinter as tk
 from tkinter import ttk
 
-from clean_heightmaps import process_heightmap
+from clean_heightmaps import process_heightmap, suggest_params
 
 # ---------------------------------------------------------------------------
 # Defaults — must stay in sync with clean_heightmaps.py
@@ -131,14 +131,17 @@ class ReviewApp:
         btn_frame = tk.Frame(self.root)
         btn_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=8)
 
-        tk.Button(btn_frame, text="◀  Prev",  width=10, command=self._prev)\
+        tk.Button(btn_frame, text="◀ Prev",  width=10, command=self._prev)\
             .pack(side=tk.LEFT,  padx=4)
-        tk.Button(btn_frame, text="Skip  ▶",  width=10, command=self._skip)\
+        tk.Button(btn_frame, text="Skip ▶",  width=10, command=self._skip)\
             .pack(side=tk.LEFT,  padx=4)
         tk.Button(btn_frame, text="Revert",   width=10, command=self._revert,
                   fg="#a05000")\
             .pack(side=tk.LEFT,  padx=4)
-        tk.Button(btn_frame, text="💾  Save",  width=12, command=self._save,
+        tk.Button(btn_frame, text="⇅ Invert", width=10, command=self._invert,
+                  fg="#005080")\
+            .pack(side=tk.LEFT,  padx=4)
+        tk.Button(btn_frame, text="💾 Save",  width=12, command=self._save,
                   bg="#206020", fg="white", font=("Helvetica", 10, "bold"))\
             .pack(side=tk.RIGHT, padx=4)
 
@@ -147,6 +150,7 @@ class ReviewApp:
         self.root.bind("<Right>", lambda e: self._skip())
         self.root.bind("<Return>", lambda e: self._save())
         self.root.bind("r",       lambda e: self._revert())
+        self.root.bind("i",       lambda e: self._invert())
 
     # ------------------------------------------------------------------
     # File navigation
@@ -173,6 +177,14 @@ class ReviewApp:
         alpha = np.array(self.current_image)[:, :, 3]
         self.original_alpha = alpha.copy()
 
+        suggested = suggest_params(alpha)
+        if suggested:
+            for key, val in suggested.items():
+                if key in self.slider_vars:
+                    self.slider_vars[key].set(val)
+        else:
+            self._revert()  # flat heightmap — reset to defaults
+
         self._update_before_canvas()
         self._reprocess()
 
@@ -194,6 +206,13 @@ class ReviewApp:
     def _revert(self):
         for key, var in self.slider_vars.items():
             var.set(DEFAULTS[key])
+        self._reprocess()
+
+    def _invert(self):
+        if self.original_alpha is None:
+            return
+        self.original_alpha = 255 - self.original_alpha
+        self._update_before_canvas()
         self._reprocess()
 
     def _save(self):
