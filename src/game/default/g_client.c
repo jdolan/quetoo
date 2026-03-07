@@ -854,6 +854,10 @@ static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
 static void G_ClientRespawn_(g_client_t *cl) {
   vec3_t delta_angles;
 
+  if (!cl->entity) {
+    return;
+  }
+
   G_HookDetach(cl);
 
   gi.UnlinkEntity(cl->entity);

@@ -431,7 +431,7 @@ static void G_BeginIntermission(const char *map) {
 
   // respawn any dead clients
   G_ForEachClient(cl, {
-    if (cl->entity->dead) {
+    if (cl->entity && cl->entity->dead) {
       G_ClientRespawn(cl, false);
     }
   });

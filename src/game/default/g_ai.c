@@ -117,7 +117,7 @@ void G_Ai_Frame(void) {
 
   // run AI think functions
   G_ForEachClient(cl, {
-    if (cl->ai) {
+    if (cl->ai && cl->entity) {
       G_RunThink(cl->entity);
     }
   });

@@ -26,6 +26,10 @@
  */
 void G_ClientToIntermission(g_client_t *cl) {
 
+  if (!cl->entity) {
+    return;
+  }
+
   cl->entity->s.origin = g_level.intermission_origin;
   cl->ps.pm_state.origin = g_level.intermission_origin;
 
