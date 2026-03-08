@@ -29,12 +29,9 @@
  * serializes them back to the materials file for the current map.
  */
 int32_t MAT_Main(void) {
-  char path[MAX_QPATH];
-
-  g_snprintf(path, sizeof(path), "maps/%s.mat", map_base);
 
   Com_Print("\n------------------------------------------\n");
-  Com_Print("\nGenerating %s for %s\n\n", path, map_name);
+  Com_Print("\nGenerating per-texture .mat files for %s\n\n", map_name);
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
@@ -43,16 +40,16 @@ int32_t MAT_Main(void) {
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_MATERIALS, MAX_BSP_MATERIALS);
 
-  LoadMaterials(path);
-
   LoadMapFile(map_name);
 
-  const ssize_t count = WriteMaterialsFile(path);
+  LoadMaterials();
+
+  const ssize_t count = WriteMaterialsFile();
 
   FreeMaterials();
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
-  Com_Print("\nGenerated %" PRIoPTR " materials in %d ms\n", count, end - start);
+  Com_Print("\nWrote %" PRIoPTR " new per-texture .mat files in %d ms\n", count, end - start);
 
   return 0;
 }

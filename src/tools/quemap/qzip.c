@@ -132,36 +132,30 @@ static void AddMaterial(const cm_material_t *material) {
 }
 
 /**
- * @brief
- */
-static gint FindBspMaterial(gconstpointer a, gconstpointer b) {
-  return g_strcmp0(((cm_material_t *) a)->name, (char *) b);
-}
-
-/**
  * @brief Adds all world materials to the assets list.
  */
 static void AddBspMaterials(void) {
 
-  const char *path = va("maps/%s.mat", map_base);
-  Add(path);
-
-  GList *materials = NULL;
-  Cm_LoadMaterials(path, &materials);
-
   for (int32_t i = 0; i < bsp_file.num_materials; i++) {
-    if (!g_list_find_custom(materials, bsp_file.materials[i].name, FindBspMaterial)) {
-      materials = g_list_append(materials, Cm_AllocMaterial(bsp_file.materials[i].name));
-    }
-  }
+    const char *name = bsp_file.materials[i].name;
 
-  for (GList *e = materials; e; e = e->next) {
-    if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
-      AddMaterial(e->data);
-    }
-  }
+    char path[MAX_QPATH];
+    g_snprintf(path, sizeof(path), "textures/%s.mat", name);
+    Add(path);
 
-  Cm_FreeMaterials(materials);
+    GList *materials = NULL;
+    if (Cm_LoadMaterials(path, &materials) < 1) {
+      materials = g_list_append(materials, Cm_AllocMaterial(name));
+    }
+
+    for (GList *e = materials; e; e = e->next) {
+      if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
+        AddMaterial(e->data);
+      }
+    }
+
+    Cm_FreeMaterials(materials);
+  }
 }
 
 /**

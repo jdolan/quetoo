@@ -430,12 +430,29 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 
 /**
  * @brief Loads the r_material_t with the specified asset name and context.
+ * @details First attempts to load a per-texture .mat file for explicit
+ * normalmap/specularmap/stage overrides. Falls back to suffix-based
+ * asset resolution if no .mat file is found.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
   r_material_t *material = R_FindMaterial(name, context);
   if (material == NULL) {
-    material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
+
+    char path[MAX_QPATH];
+    char basename[MAX_QPATH];
+    StripExtension(name, basename);
+    g_snprintf(path, sizeof(path), "textures/%s.mat", basename);
+
+    GList *loaded = NULL;
+    if (R_LoadMaterials(path, context, &loaded) > 0) {
+      material = R_FindMaterial(name, context);
+    }
+    g_list_free(loaded);
+
+    if (material == NULL) {
+      material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
+    }
   }
 
   return material;
@@ -468,24 +485,32 @@ ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **ma
 
 /**
  * @brief Writes all r_material_t for the specified model to disk.
+ * @details For BSP models, each material is written to its own per-texture
+ * .mat file (e.g. textures/common/quake/cop1_1.mat). For mesh models, all
+ * materials are written to a single model-adjacent .mat file.
  */
 static ssize_t R_SaveMaterials(const r_model_t *mod) {
   char path[MAX_QPATH];
-
-  g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-  GList *materials = NULL;
+  ssize_t count = 0;
 
   switch (mod->type) {
     case MODEL_BSP: {
       r_material_t **mat = mod->bsp->materials;
       for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
         cm_material_t *cm = (*mat)->cm;
-        materials = g_list_prepend(materials, cm);
+        g_snprintf(path, sizeof(path), "textures/%s.mat", cm->name);
+        g_strlcpy(cm->path, path, sizeof(cm->path));
+        GList *single = g_list_prepend(NULL, cm);
+        if (Cm_WriteMaterials(path, single) > 0) {
+          count++;
+        }
+        g_list_free(single);
       }
     }
       break;
     case MODEL_MESH: {
+      GList *materials = NULL;
+      g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
       const r_mesh_face_t *face = mod->mesh->faces;
       for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
         cm_material_t *cm = face->material->cm;
@@ -493,6 +518,8 @@ static ssize_t R_SaveMaterials(const r_model_t *mod) {
           materials = g_list_prepend(materials, cm);
         }
       }
+      count = Cm_WriteMaterials(path, materials);
+      g_list_free(materials);
     }
       break;
     default:
@@ -500,9 +527,6 @@ static ssize_t R_SaveMaterials(const r_model_t *mod) {
       break;
   }
 
-  const ssize_t count = Cm_WriteMaterials(path, materials);
-
-  g_list_free(materials);
   return count;
 }
 

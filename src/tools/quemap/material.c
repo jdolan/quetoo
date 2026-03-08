@@ -29,12 +29,9 @@ int32_t num_materials;
 material_t materials[MAX_BSP_MATERIALS];
 
 /**
- * @brief The collision materials defined in maps/my.mat.
- */
-static GList *mat_file;
-
-/**
  * @brief Allocates a material_t for the specified name.
+ * @details Attempts to seed the material from its per-texture .mat file if
+ * one exists, otherwise allocates a fresh material for suffix-based resolution.
  */
 static material_t *AllocMaterial(const char *name) {
 
@@ -45,15 +42,14 @@ static material_t *AllocMaterial(const char *name) {
   material_t *material = materials + num_materials;
   num_materials++;
 
-  for (GList *e = mat_file; e; e = e->next) {
-    cm_material_t *cm = e->data;
-    if (!g_strcmp0(name, cm->name)) {
-      material->cm = cm;
-      break;
-    }
-  }
+  char path[MAX_QPATH];
+  g_snprintf(path, sizeof(path), "textures/%s.mat", name);
 
-  if (material->cm == NULL) {
+  GList *list = NULL;
+  if (Cm_LoadMaterials(path, &list) > 0) {
+    material->cm = list->data;
+    g_list_free(list);
+  } else {
     material->cm = Cm_AllocMaterial(name);
   }
 
@@ -95,18 +91,10 @@ static material_t *LoadMaterial(const char *name) {
 }
 
 /**
- * @brief Loads all materials defined in the specified file.
+ * @brief Loads all BSP materials, seeding each from its per-texture .mat file
+ * if one exists, then falling back to suffix-based asset resolution.
  */
-void LoadMaterials(const char *path) {
-
-  mat_file = NULL;
-  Cm_LoadMaterials(path, &mat_file);
-  if (mat_file) {
-    Com_Print("Loaded %d materials from %s\n", g_list_length(mat_file), path);
-  } else if (!do_mat) {
-    Com_Warn("Failed to load %s\n", path);
-    Com_Warn("Run `quemap -mat %s` to generate\n", map_name);
-  }
+void LoadMaterials(void) {
 
   const bsp_material_t *bsp = bsp_file.materials;
   for (int32_t i = 0; i < bsp_file.num_materials; i++, bsp++) {
@@ -145,25 +133,32 @@ void FreeMaterials(void) {
 
   num_materials = 0;
   memset(materials, 0, sizeof(materials));
-
-  g_list_free(mat_file);
-  mat_file = NULL;
 }
 
 /**
- * @brief Writes all known materials to the specified path.
+ * @brief Writes per-texture .mat files for all known materials.
+ * @details Non-destructive: skips any material whose .mat file already exists.
+ * Only writes newly discovered textures that lack an authored .mat file.
  */
-ssize_t WriteMaterialsFile(const char *path) {
+ssize_t WriteMaterialsFile(void) {
 
-  GList *list = NULL;
+  ssize_t count = 0;
   material_t *mat = materials;
   for (int32_t i = 0; i < num_materials; i++, mat++) {
+    char path[MAX_QPATH];
+    g_snprintf(path, sizeof(path), "textures/%s.mat", mat->cm->name);
+
+    if (Fs_Exists(path)) {
+      Com_Debug(DEBUG_ALL, "Skipping existing %s\n", path);
+      continue;
+    }
+
     g_strlcpy(mat->cm->path, path, sizeof(mat->cm->path));
-    list = g_list_prepend(list, mat->cm);
+    GList *single = g_list_prepend(NULL, mat->cm);
+    if (Cm_WriteMaterials(path, single) > 0) {
+      count++;
+    }
+    g_list_free(single);
   }
-
-  const ssize_t count = Cm_WriteMaterials(path, list);
-
-  g_list_free(list);
   return count;
 }
