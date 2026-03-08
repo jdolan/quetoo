@@ -48,7 +48,7 @@ typedef struct {
 extern int32_t num_materials;
 extern material_t materials[MAX_BSP_MATERIALS];
 
-void LoadMaterials(const char *path);
+void LoadMaterials(void);
 int32_t FindMaterial(const char *name);
-ssize_t WriteMaterialsFile(const char *path);
+ssize_t WriteMaterialsFile(void);
 void FreeMaterials(void);

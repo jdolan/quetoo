@@ -151,7 +151,7 @@ int32_t BSP_Main(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  LoadMaterials(va("maps/%s.mat", map_base));
+  LoadMaterials();
 
   Fs_Delete(va("maps/%s.prt", map_base));
   Fs_Delete(va("maps/%s.lin", map_base));

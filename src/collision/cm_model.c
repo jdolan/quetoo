@@ -187,13 +187,6 @@ static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
  */
 static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 
-  char path[MAX_QPATH];
-  StripExtension(bsp->name, path);
-  g_strlcat(path, ".mat", sizeof(path));
-
-  GList *materials = NULL;
-  Cm_LoadMaterials(path, &materials);
-
   bsp->num_materials = bsp->file->num_materials;
 
   cm_material_t **out = bsp->materials = Mem_TagMalloc(sizeof(cm_material_t *) * bsp->num_materials, MEM_TAG_COLLISION);
@@ -201,23 +194,20 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
   const bsp_material_t *in = bsp->file->materials;
   for (int32_t i = 0; i < bsp->num_materials; i++, in++, out++) {
 
-    for (GList *list = materials; list; list = list->next) {
-      if (!g_strcmp0(((cm_material_t *) list->data)->name, in->name)) {
-        *out = list->data;
-        materials = g_list_remove(materials, *out);
-        break;
-      }
-    }
+    char path[MAX_QPATH];
+    g_snprintf(path, sizeof(path), "textures/%s.mat", in->name);
 
-    if (*out == NULL) {
+    GList *materials = NULL;
+    if (Cm_LoadMaterials(path, &materials) > 0) {
+      *out = materials->data;
+      g_list_free(materials);
+    } else {
       *out = Cm_AllocMaterial(in->name);
       g_strlcpy((*out)->path, path, sizeof((*out)->path));
     }
 
     *out = Mem_Link(*out, bsp->materials);
   }
-    
-    g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
 }
 
 /**

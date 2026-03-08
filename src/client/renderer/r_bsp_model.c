@@ -42,15 +42,6 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
  * @brief
  */
 static void R_LoadBspMaterials(r_model_t *mod) {
-  char path[MAX_QPATH];
-
-  g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-  GList *materials = NULL;
-
-  R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, &materials);
-
-  g_list_free(materials);
 
   r_material_t **out;
   const bsp_material_t *in = mod->bsp->cm->file->materials;
@@ -60,8 +51,6 @@ static void R_LoadBspMaterials(r_model_t *mod) {
 
   for (int32_t i = 0; i < mod->bsp->num_materials; i++, in++, out++) {
     *out = R_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
-    cm_material_t *cm = (*out)->cm;
-    g_strlcpy(cm->path, path, sizeof(cm->path));
     R_RegisterDependency((r_media_t *) mod, (r_media_t *) *out);
   }
 }
