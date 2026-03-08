@@ -435,17 +435,26 @@ class TextureBrowser(tk.Frame):
         self._peer = peer
 
     def scroll_to_name(self, name: str) -> None:
-        """Scroll so the entry with the given base name is visible, and highlight it."""
+        """Scroll so the entry with the given base name is centered, and highlight it."""
         try:
             idx = next(i for i, e in enumerate(self._entries) if e.name == name)
         except StopIteration:
             return
-        cols = THUMB_COLS
-        row  = idx // cols
-        total_rows = math.ceil(len(self._entries) / cols)
-        frac = row / max(total_rows - 1, 1)
-        self._canvas.yview_moveto(max(0.0, frac - 0.1))
+        self._scroll_to_idx(idx)
         self._highlight_entry_name(name)
+
+    def _scroll_to_idx(self, idx: int) -> None:
+        """Scroll to center the cell at idx in the viewport."""
+        cols = THUMB_COLS
+        total_rows = math.ceil(max(len(self._entries), 1) / cols)
+        total_h = total_rows * self.CELL_H + CELL_PAD * 2
+        row = idx // cols
+        row_y = row * self.CELL_H + CELL_PAD          # top pixel of that row
+        viewport_h = self._canvas.winfo_height() or 600
+        # center the row in the viewport
+        target_top = row_y - (viewport_h - self.CELL_H) / 2
+        frac = max(0.0, min(1.0, target_top / total_h))
+        self._canvas.yview_moveto(frac)
 
     def _build(self, label: str) -> None:
         self._header = tk.Label(self, text=label, bg=BG2, fg=TEXT_COLOR,
@@ -688,17 +697,7 @@ class TextureBrowser(tk.Frame):
         self._on_select(entry)
         if self._peer:
             self._peer.scroll_to_name(entry.name)
-        # Ensure the newly selected cell is visible
-        cols = THUMB_COLS
-        total_rows = math.ceil(len(self._entries) / cols)
-        row = idx // cols
-        row_frac = row / max(total_rows - 1, 1)
-        lo, hi = self._canvas.yview()
-        span = hi - lo
-        if row_frac < lo:
-            self._canvas.yview_moveto(max(0.0, row_frac))
-        elif row_frac > hi - span * 0.1:
-            self._canvas.yview_moveto(min(1.0, row_frac - span * 0.9))
+        self._scroll_to_idx(idx)
         self._lazy_load_visible()
 
     def _select_current(self) -> None:
