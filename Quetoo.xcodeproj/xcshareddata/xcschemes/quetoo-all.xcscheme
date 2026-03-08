@@ -86,10 +86,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_window_width 1920 +set r_window_height 1080"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set +set r_fullscreen 0"
+            argument = "+set +set r_fullscreen 2"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -102,7 +102,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set cl_draw_renderer_stats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_get_error 2 +set cl_draw_sound_stats 1"
@@ -129,8 +129,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map claustrophobopolis"
-            isEnabled = "NO">
+            argument = "+map edge"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"

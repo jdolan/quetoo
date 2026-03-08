@@ -111,6 +111,45 @@ def suggest_params(alpha):
     )
 
 
+def deshadow_heightmap(alpha, light_angle_deg=315, shadow_reach=10, shadow_strength=1.0):
+    """
+    Remove baked-in directional lighting/shadows from a heightmap.
+
+    For each pixel, looks toward the light source by up to shadow_reach pixels
+    and computes a Gaussian-weighted average of upstream brightness.  Where the
+    current pixel is darker than that upstream estimate, it is brightened.
+    """
+    if shadow_strength <= 0 or shadow_reach < 1:
+        return alpha
+
+    h, w = alpha.shape
+    arr = alpha.astype(np.float32)
+
+    rad = np.radians(light_angle_deg)
+    ldx = float(np.cos(rad))
+    ldy = float(np.sin(rad))
+    sigma = shadow_reach / 2.5
+
+    yy, xx = np.meshgrid(np.arange(h, dtype=np.float32),
+                         np.arange(w, dtype=np.float32), indexing='ij')
+
+    illumination = np.zeros_like(arr)
+    total_weight = 0.0
+
+    for i in range(1, shadow_reach + 1):
+        weight = float(np.exp(-i * i / (2.0 * sigma * sigma)))
+        map_x = np.clip(xx + i * ldx, 0.0, w - 1.0)
+        map_y = np.clip(yy + i * ldy, 0.0, h - 1.0)
+        sampled = cv2.remap(arr, map_x, map_y, cv2.INTER_LINEAR)
+        illumination += weight * sampled
+        total_weight += weight
+
+    illumination /= total_weight
+    shadow_fill = np.maximum(illumination - arr, 0.0)
+    corrected = arr + shadow_strength * shadow_fill
+    return np.clip(corrected, 0, 255).astype(np.uint8)
+
+
 def process_heightmap(alpha_channel, blur_size=5, bilateral_d=9, bilateral_sigma=75,
                       sharpen_sigma=5.0, sharpen_amount=2.5,
                       sharpen2_sigma=0.0, sharpen2_amount=1.0):
