@@ -329,8 +329,18 @@ class TextureSlot(tk.Frame):
             w.bind('<Button-3>', self._on_clear)
 
     def accept_drop(self, entry: TextureEntry, role: str, path: str) -> None:
+        """Accept a dropped texture. If the dragged role is 'diffuse' but this
+        slot wants a different layer, resolve the matching variant from the entry."""
         self._entry = entry
-        self._path  = path
+        if role == 'diffuse' and self.role != 'diffuse':
+            # Resolve the variant this slot actually needs
+            resolved = entry.get_path(self.role)
+            if resolved is None:
+                # No matching variant — don't assign, leave slot as-is
+                return
+            self._path = resolved
+        else:
+            self._path = path
         self._refresh_thumb()
         self.on_change()
 
@@ -463,18 +473,31 @@ class TextureBrowser(tk.Frame):
                                  width=self.CELL_W * THUMB_COLS + 20)
         scrollbar = ttk.Scrollbar(frame, orient='vertical',
                                   command=self._canvas.yview)
-        self._canvas.configure(yscrollcommand=scrollbar.set)
+
+        def _yscroll(*args):
+            scrollbar.set(*args)
+            self._lazy_load_visible()
+
+        self._canvas.configure(yscrollcommand=_yscroll)
         self._canvas.grid(row=0, column=0, sticky='nsew')
         scrollbar.grid(row=0, column=1, sticky='ns')
 
         self._canvas.bind('<Configure>', self._on_configure)
         self._canvas.bind('<MouseWheel>', self._on_mousewheel)
-        self._canvas.bind('<Button-4>',  lambda e: self._canvas.yview_scroll(-3, 'units'))
-        self._canvas.bind('<Button-5>',  lambda e: self._canvas.yview_scroll(3, 'units'))
-        self._canvas.bind('<ButtonPress-1>',   self._on_press)
+        self._canvas.bind('<Button-4>',  lambda e: (self._canvas.yview_scroll(-3, 'units'), self._lazy_load_visible()))
+        self._canvas.bind('<Button-5>',  lambda e: (self._canvas.yview_scroll(3, 'units'),  self._lazy_load_visible()))
         self._canvas.bind('<Double-Button-1>', self._on_double_click)
         self._canvas.bind('<B1-Motion>',        self._on_drag_motion)
         self._canvas.bind('<ButtonRelease-1>',  self._on_drag_release)
+        self._canvas.bind('<Up>',      lambda e: self._navigate(-THUMB_COLS))
+        self._canvas.bind('<Down>',    lambda e: self._navigate(+THUMB_COLS))
+        self._canvas.bind('<Left>',    lambda e: self._navigate(-1))
+        self._canvas.bind('<Right>',   lambda e: self._navigate(+1))
+        self._canvas.bind('<space>',   lambda e: self._select_current())
+        self._canvas.bind('<Return>',  lambda e: self._select_current())
+        # Give canvas keyboard focus on click so arrow keys work immediately
+        self._canvas.bind('<ButtonPress-1>',
+                          lambda e: (self._canvas.focus_set(), self._on_press(e)))
 
         self._render_grid()
 
@@ -561,8 +584,9 @@ class TextureBrowser(tk.Frame):
             if not entry.diffuse:
                 continue
             path = entry.diffuse
+            # Skip if TK image already exists
             if path in self._tk_imgs:
-                continue   # already loaded
+                continue
             self._executor.submit(self._bg_load, path)
 
     def _bg_load(self, path: str) -> None:
@@ -571,6 +595,7 @@ class TextureBrowser(tk.Frame):
 
     def _schedule_queue_drain(self) -> None:
         self._drain_queue()
+        self._lazy_load_visible()   # catch any scroll that didn't fire an event
         self.after(80, self._schedule_queue_drain)
 
     def _drain_queue(self) -> None:
@@ -647,6 +672,42 @@ class TextureBrowser(tk.Frame):
         if self._peer:
             self._peer.scroll_to_name(entry.name)
 
+    def _navigate(self, delta: int) -> None:
+        """Move selection by delta positions and trigger single-click select."""
+        if not self._entries:
+            return
+        if self._selected and self._selected in self._entries:
+            idx = self._entries.index(self._selected)
+        else:
+            idx = 0
+            delta = 0
+        idx = max(0, min(len(self._entries) - 1, idx + delta))
+        entry = self._entries[idx]
+        self._selected = entry
+        self._highlight_entry_name(entry.name)
+        self._on_select(entry)
+        if self._peer:
+            self._peer.scroll_to_name(entry.name)
+        # Ensure the newly selected cell is visible
+        cols = THUMB_COLS
+        total_rows = math.ceil(len(self._entries) / cols)
+        row = idx // cols
+        row_frac = row / max(total_rows - 1, 1)
+        lo, hi = self._canvas.yview()
+        span = hi - lo
+        if row_frac < lo:
+            self._canvas.yview_moveto(max(0.0, row_frac))
+        elif row_frac > hi - span * 0.1:
+            self._canvas.yview_moveto(min(1.0, row_frac - span * 0.9))
+        self._lazy_load_visible()
+
+    def _select_current(self) -> None:
+        """Confirm the currently highlighted entry (same as double-click)."""
+        if self._selected:
+            self._on_select(self._selected, replace=True)
+            if self._peer:
+                self._peer.scroll_to_name(self._selected.name)
+
     def _on_drag_motion(self, event: tk.Event) -> None:
         self._drag.motion(event)
 
@@ -702,15 +763,19 @@ uniform int u_has_normal;
 uniform int u_has_specular;
 uniform int u_has_luma;
 
-// Hardcoded point light (upper-left)
-const vec3  LIGHT_POS   = vec3(-0.8, 0.8, 1.5);
-const vec3  LIGHT_COLOR = vec3(1.00, 0.95, 0.88);
-const float AMBIENT     = 0.18;
-const float SPEC_POWER  = 64.0;
+// Hardcoded key light (upper-left) + dim fill light (lower-right)
+const vec3  LIGHT_POS    = vec3(-0.7, 0.9, 1.2);
+const vec3  LIGHT_COLOR  = vec3(1.00, 0.96, 0.90);
+const vec3  FILL_POS     = vec3( 0.8, -0.6, 0.8);
+const vec3  FILL_COLOR   = vec3(0.20, 0.22, 0.28);
+const float AMBIENT      = 0.08;
+const float SPEC_POWER   = 64.0;
 
 void main() {
+    // Linearize sRGB diffuse before lighting
     vec4 diffuse_samp = texture(u_diffuse, v_uv);
     if (diffuse_samp.a < 0.05) discard;
+    vec3 diffuse_lin = pow(diffuse_samp.rgb, vec3(2.2));
 
     vec3 N;
     if (u_has_normal != 0) {
@@ -720,29 +785,35 @@ void main() {
         N = normalize(v_tbn[2]);
     }
 
-    vec3 L = normalize(LIGHT_POS - v_frag_pos);
-    float NdotL = max(dot(N, L), 0.0);
+    // Key light
+    vec3 L1     = normalize(LIGHT_POS - v_frag_pos);
+    float NdotL1 = max(dot(N, L1), 0.0);
 
+    // Fill light
+    vec3 L2     = normalize(FILL_POS - v_frag_pos);
+    float NdotL2 = max(dot(N, L2), 0.0);
+
+    // Specular (key light only)
     vec3 spec_contrib = vec3(0.0);
     if (u_has_specular != 0) {
-        vec3 H    = normalize(L + v_view_dir);
-        float sp  = pow(max(dot(N, H), 0.0), SPEC_POWER);
-        vec3  sc  = texture(u_specular, v_uv).rgb;
-        spec_contrib = LIGHT_COLOR * sp * sc;
+        vec3 H   = normalize(L1 + v_view_dir);
+        float sp = pow(max(dot(N, H), 0.0), SPEC_POWER);
+        vec3 sc  = texture(u_specular, v_uv).rgb;
+        spec_contrib = LIGHT_COLOR * sp * sc * 0.5;
     }
 
+    // Luma / self-illumination (already sRGB, linearize it too)
     vec3 luma_contrib = vec3(0.0);
     if (u_has_luma != 0) {
-        luma_contrib = texture(u_luma, v_uv).rgb;
+        luma_contrib = pow(texture(u_luma, v_uv).rgb, vec3(2.2));
     }
 
-    vec3 ambient = AMBIENT * LIGHT_COLOR;
-    vec3 color   = (ambient + LIGHT_COLOR * NdotL) * diffuse_samp.rgb
-                   + spec_contrib + luma_contrib;
+    vec3 ambient = AMBIENT * vec3(1.0);
+    vec3 color_lin = (ambient + LIGHT_COLOR * NdotL1 + FILL_COLOR * NdotL2) * diffuse_lin
+                     + spec_contrib + luma_contrib;
 
-    // Reinhard tone-map + gamma
-    color = color / (color + vec3(1.0));
-    color = pow(color, vec3(1.0 / 2.2));
+    // Re-encode to sRGB for display
+    vec3 color = pow(clamp(color_lin, 0.0, 1.0), vec3(1.0 / 2.2));
 
     out_color = vec4(color, diffuse_samp.a);
 }
@@ -1033,9 +1104,9 @@ class ActionPanel(tk.Frame):
             b.pack(side='left', padx=4)
             return b
 
-        _btn(left, "Use QRP",      self.BTN_COLORS['qrp'],      on_use_qrp)
-        _btn(left, "Use Combined", self.BTN_COLORS['combined'],  on_use_combined)
-        _btn(left, "Use Rygel",    self.BTN_COLORS['rygel'],     on_use_rygel)
+        _btn(left, "Use QRP  [Q]",      self.BTN_COLORS['qrp'],      on_use_qrp)
+        _btn(left, "Use Combined",       self.BTN_COLORS['combined'],  on_use_combined)
+        _btn(left, "Use Rygel  [R]",     self.BTN_COLORS['rygel'],     on_use_rygel)
 
         tk.Label(left, text="→", bg=BG2, fg='#666', font=('Helvetica', 12)).pack(side='left', padx=6)
         self._out_label = tk.Label(left, text=self._output_dir, bg=BG2,
@@ -1082,8 +1153,14 @@ class App(tk.Tk):
         self._current_entry: Optional[TextureEntry] = None
 
         self._build_ui(qrp_entries, quake_entries)
-        self.bind('<q>', lambda e: self._on_use_qrp())
-        self.bind('<r>', lambda e: self._on_use_rygel())
+        def _hotkey(fn):
+            def _handler(e):
+                if isinstance(self.focus_get(), tk.Entry):
+                    return
+                fn()
+            return _handler
+        self.bind('<q>', _hotkey(self._on_use_qrp))
+        self.bind('<r>', _hotkey(self._on_use_rygel))
         self.protocol('WM_DELETE_WINDOW', self._on_close)
 
     def _build_ui(self, qrp_entries: List[TextureEntry],
