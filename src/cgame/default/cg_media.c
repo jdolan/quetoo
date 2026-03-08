@@ -47,6 +47,7 @@ s_sample_t *cg_sample_steam;
 
 s_sample_t *cg_sample_rain;
 s_sample_t *cg_sample_snow;
+s_sample_t* cg_sample_ash;
 s_sample_t *cg_sample_underwater;
 s_sample_t *cg_sample_hits[2];
 s_sample_t *cg_sample_gib;
@@ -62,6 +63,7 @@ r_atlas_image_t *cg_sprite_blaster_flash;
 r_atlas_image_t *cg_sprite_aniso_flare_01;
 r_atlas_image_t *cg_sprite_rain;
 r_atlas_image_t *cg_sprite_snow;
+r_atlas_image_t* cg_sprite_ash;
 r_atlas_image_t *cg_sprite_bubble;
 r_atlas_image_t *cg_sprite_teleport;
 r_atlas_image_t *cg_sprite_smoke;
@@ -198,6 +200,7 @@ void Cg_LoadMedia(void) {
   cg_sample_steam = cgi.LoadSample("common/steam");
   cg_sample_rain = cgi.LoadSample("common/rain");
   cg_sample_snow = cgi.LoadSample("common/snow");
+  cg_sample_ash = cgi.LoadSample("common/ash");
   cg_sample_underwater = cgi.LoadSample("common/underwater");
   cg_sample_gib = cgi.LoadSample("gibs/common/gib");
 
@@ -243,6 +246,7 @@ void Cg_LoadMedia(void) {
   cg_sprite_spark = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/spark", IMG_SPRITE);
   cg_sprite_rain = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/rain", IMG_SPRITE);
   cg_sprite_snow = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/snow", IMG_SPRITE);
+  cg_sprite_ash = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/ash", IMG_SPRITE);
   cg_sprite_steam = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/steam", IMG_SPRITE);
   cg_sprite_bubble = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/bubble", IMG_SPRITE);
   cg_sprite_inactive = cgi.LoadAtlasImage(cg_sprite_atlas, "sprites/inactive", IMG_SPRITE);

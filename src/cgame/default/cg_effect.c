@@ -51,6 +51,10 @@ int32_t Cg_ParseWeather(const char *string) {
     weather |= WEATHER_SNOW;
   }
 
+  if (strstr(string, "ash")) {
+      weather |= WEATHER_ASH;
+  }
+
   return weather;
 }
 
@@ -92,14 +96,15 @@ static void Cg_LoadWeather_(const r_bsp_face_t *face) {
     const vec3_t org = Vec3_Add(Box3_RandomPoint(face->bounds), face->plane->cm->normal);
 
     vec3_t end = org;
-    end.z -= MAX_WORLD_DIST;
+    end.z -= 11586.f;//FIXME: is undefined. MAX_WORLD_DIST not exported??
 
-    const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+    const cm_trace_t tr = cgi.Trace(org, end, Box3_Zero(), NULL, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID | CONTENTS_MASK_SOLID);
     if (tr.fraction == 1.f) {
-      continue;
+        continue;
     }
 
     *origin = Vec3_ToVec4(org, tr.end.z);
+
     i++;
   }
 
@@ -209,6 +214,20 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
         .softness = 1.f
       });
     }
+    else if (cg_state.weather & WEATHER_ASH) {
+        float color = RandomRangef(0.25f, 0.75f);
+        float size = RandomRangef(1.f, 3.f);
+        s = Cg_AddSprite(&(cg_sprite_t) {
+            .origin = org,
+                .atlas_image = cg_sprite_ash,
+                .color = Vec3(color, color, color),
+                .size = size,
+                .velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 25.f)),
+                .acceleration = Vec3_RandomRange(-12.f, 12.f),
+                .softness = 1.f,
+                .rotation = RandomRadian()
+        });
+    }
 
     if (s) {
       s->lifetime = 1000 * (org.z - origin.w) / fabsf(s->velocity.z);
@@ -233,8 +252,12 @@ static void Cg_AddWeather(void) {
 
   if (cg_state.weather & WEATHER_RAIN) {
     sample = cg_sample_rain;
-  } else {
-    sample = cg_sample_snow;
+  }
+  else if (cg_state.weather & WEATHER_SNOW) {
+      sample = cg_sample_snow;
+  }
+  else if (cg_state.weather & WEATHER_ASH) {
+      sample = cg_sample_ash;
   }
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {

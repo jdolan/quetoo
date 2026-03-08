@@ -118,6 +118,7 @@ typedef struct {
 #define WEATHER_NONE 0x0
 #define WEATHER_RAIN 0x1
 #define WEATHER_SNOW 0x2
+#define WEATHER_ASH 0x4
 
 /**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.

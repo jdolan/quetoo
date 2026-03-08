@@ -51,6 +51,7 @@ extern s_sample_t *cg_sample_steam;
 
 extern s_sample_t *cg_sample_rain;
 extern s_sample_t *cg_sample_snow;
+extern s_sample_t *cg_sample_ash;
 extern s_sample_t *cg_sample_underwater;
 extern s_sample_t *cg_sample_hits[2];
 extern s_sample_t *cg_sample_gib;
@@ -64,6 +65,7 @@ extern r_atlas_image_t *cg_sprite_blaster_flash;
 extern r_atlas_image_t *cg_sprite_aniso_flare_01;
 extern r_atlas_image_t *cg_sprite_rain;
 extern r_atlas_image_t *cg_sprite_snow;
+extern r_atlas_image_t *cg_sprite_ash;
 extern r_atlas_image_t *cg_sprite_smoke;
 extern r_atlas_image_t *cg_sprite_flame;
 extern r_atlas_image_t *cg_sprite_spark;
