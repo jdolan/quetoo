@@ -248,23 +248,23 @@ static void Cg_AddWeather(void) {
     return;
   }
 
-  const s_sample_t *sample;
+  const s_sample_t *sample = NULL;
 
   if (cg_state.weather & WEATHER_RAIN) {
     sample = cg_sample_rain;
-  }
-  else if (cg_state.weather & WEATHER_SNOW) {
-      sample = cg_sample_snow;
-  }
-  else if (cg_state.weather & WEATHER_ASH) {
-      sample = cg_sample_ash;
+  } else if (cg_state.weather & WEATHER_SNOW) {
+    sample = cg_sample_snow;
+  } else if (cg_state.weather & WEATHER_ASH) {
+    sample = cg_sample_ash;
   }
 
-  Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
-    .sample = sample,
-    .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
-    .entity = Cg_Self()
-  });
+  if (sample) {
+    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      .sample = sample,
+      .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+      .entity = Cg_Self()
+    });
+  }
 
   if (cg_weather_state.time > cgi.client->unclamped_time) {
     return;
