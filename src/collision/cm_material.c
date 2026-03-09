@@ -1247,11 +1247,21 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
     Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
   }
 
-  Fs_Print(file, "\troughness %0.2f\n", material->roughness);
-  Fs_Print(file, "\thardness %0.2f\n", material->hardness);
-  Fs_Print(file, "\tspecularity %0.2f\n", material->specularity);
-  Fs_Print(file, "\tparallax %0.2f\n", material->parallax);
-  Fs_Print(file, "\tshadow %0.2f\n", material->shadow);
+  if (material->roughness != MATERIAL_ROUGHNESS) {
+    Fs_Print(file, "\troughness %0.2f\n", material->roughness);
+  }
+  if (material->hardness != MATERIAL_HARDNESS) {
+    Fs_Print(file, "\thardness %0.2f\n", material->hardness);
+  }
+  if (material->specularity != MATERIAL_SPECULARITY) {
+    Fs_Print(file, "\tspecularity %0.2f\n", material->specularity);
+  }
+  if (material->parallax != MATERIAL_PARALLAX) {
+    Fs_Print(file, "\tparallax %0.2f\n", material->parallax);
+  }
+  if (material->shadow != MATERIAL_SHADOW) {
+    Fs_Print(file, "\tshadow %0.2f\n", material->shadow);
+  }
 
   if (material->contents) {
     Fs_Print(file, "\tcontents \"%s\"\n", Cm_UnparseContents(material->contents));
