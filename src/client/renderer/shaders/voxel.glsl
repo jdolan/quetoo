@@ -101,6 +101,8 @@ float voxel_fog_density(in vec3 texcoord) {
 /**
  * @brief Calculate lighting at a specific world position for fog rendering.
  * @details Computes unshadowed lighting for performance in volumetric fog raymarching.
+ * Only chromatic (non-white) lights contribute meaningfully, so that ambient white
+ * light does not wash out the fog's tinted color.
  * @param position The world position to calculate lighting at.
  * @return The combined diffuse lighting from voxel lights and dynamic lights.
  */
@@ -119,7 +121,11 @@ vec3 voxel_fog_lighting(in vec3 position) {
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-    diffuse += light.color.rgb * light.color.a * atten * modulate;
+    vec3 c = light.color.rgb;
+    float chroma = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    float chroma_weight = clamp(chroma * 4.0, 0.0, 1.0);
+
+    diffuse += c * light.color.a * atten * modulate * chroma_weight;
   }
 
   for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
@@ -134,7 +140,11 @@ vec3 voxel_fog_lighting(in vec3 position) {
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-    diffuse += light.color.rgb * light.color.a * atten * modulate;
+    vec3 c = light.color.rgb;
+    float chroma = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    float chroma_weight = clamp(chroma * 4.0, 0.0, 1.0);
+
+    diffuse += c * light.color.a * atten * modulate * chroma_weight;
   }
 
   return diffuse;
@@ -181,7 +191,8 @@ vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
       
       if (fog_density_sample > 0.0) {
         vec3 fog_lighting = voxel_fog_lighting(xyz);
-        fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+        float near_fade = clamp(distance(xyz, view_pos) / (BSP_VOXEL_SIZE * 12.0), 0.0, 1.0);
+        fog += vec4(fog_lighting, fog_density_sample * fog_density) * near_fade * min(1.0, samples - i);
       }
       
       if (fog.a >= 0.95) {
