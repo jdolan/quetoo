@@ -310,7 +310,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         }
 
         if (number == this->teamEntity.number) {
-          if (this->shouldUpdateEntity) {
+          this->teamEntity.def = cl.entity_definitions[number];
+          if (this->shouldUpdateEntity && this->teamEntity.def) {
             $(this, updateEntity, &this->entity);
           } else {
             $(this, setEntity, &this->entity);
