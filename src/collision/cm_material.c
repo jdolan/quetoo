@@ -1051,6 +1051,19 @@ static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm
 static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, cm_asset_context_t context, const char **suffix) {
 
   if (*asset->name) {
+    // For explicit names, try type-specific suffixes first so that e.g.
+    // `normalmap common/foo/bar` finds `bar_norm.tga` before `bar.tga`.
+    char explicit_name[MAX_QPATH];
+    g_strlcpy(explicit_name, asset->name, sizeof(explicit_name));
+    for (const char **s = suffix; *s; s++) {
+      g_snprintf(asset->name, sizeof(asset->name), "%s%s", explicit_name, *s);
+      if (Cm_ResolveAsset(asset, context)) {
+        Com_Debug(DEBUG_COLLISION, "Resolved %s for %s\n", asset->path, material->name);
+        return true;
+      }
+    }
+    // Fall back to the bare explicit name.
+    g_strlcpy(asset->name, explicit_name, sizeof(asset->name));
     return Cm_ResolveAsset(asset, context);
   }
 
