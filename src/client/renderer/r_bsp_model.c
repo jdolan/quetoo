@@ -371,6 +371,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->bounds = in->bounds;
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
+    out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
 
     g_strlcpy(out->style, in->style, sizeof(out->style));
   }

@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 72
+#define BSP_VERSION 73
 
 /**
  * @brief BSP file format limits.
@@ -542,6 +542,14 @@ typedef struct {
    * @brief The count of depth pass geometry elements.
    */
   int32_t num_depth_pass_elements;
+
+  /**
+   * @brief The entity number of the inline model entity this light is attached to, or 0.
+   * @details When > 0, this light is treated as a dynamic light that moves with the
+   * entity. No shadow geometry is generated, and the origin is an offset from the
+   * entity's initial position.
+   */
+  int32_t target_entity;
 } bsp_light_t;
 
 /**

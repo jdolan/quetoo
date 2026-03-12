@@ -21,10 +21,6 @@
 
 #include "cg_local.h"
 
-#define ENTITY_LIGHT_RADIUS    300.f
-#define ENTITY_LIGHT_INTENSITY 1.f
-#define ENTITY_LIGHT_COLOR     Vec3(1.f, 1.f, 1.f)
-
 /**
  * @brief Dynamic light source accounting structure.
  */
@@ -39,43 +35,6 @@ static struct {
    */
   GQueue *free;
 } cg_lights;
-
-/**
- * @brief Cached data for a light entity attached to a BSP inline model entity.
- */
-typedef struct {
-  /**
-   * @brief The light origin as specified in the map, relative to the entity's initial origin.
-   */
-  vec3_t origin;
-
-  /**
-   * @brief The light color.
-   */
-  vec3_t color;
-
-  /**
-   * @brief The light radius.
-   */
-  float radius;
-
-  /**
-   * @brief The light intensity.
-   */
-  float intensity;
-
-  /**
-   * @brief The light style string (animated at 10Hz).
-   */
-  char style[MAX_BSP_ENTITY_VALUE];
-
-  /**
-   * @brief The model1 index of the target entity, used to find the cl_entity_t each frame.
-   */
-  int32_t model1;
-} cg_entity_light_t;
-
-static GArray *cg_entity_lights;
 
 /**
  * @brief Allocates a dynamic light source.
@@ -145,7 +104,24 @@ static float Cg_AnimateLight(float intensity, const char *style) {
 }
 
 /**
+ * @brief Resolves the model1 index for a BSP inline model string (e.g. "*3").
+ * @return The model1 index, or -1 if not found.
+ */
+static int32_t Cg_ResolveModel1(const char *model) {
+
+  for (int32_t i = 1; i < MAX_MODELS; i++) {
+    if (!g_strcmp0(cgi.client->config_strings[CS_MODELS + i], model)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * @brief Adds all BSP light sources to the view.
+ * @details For lights with a target_entity, resolves the current world position of the
+ * attached inline model entity each frame and adds the light as a dynamic (unshadowed) light.
  */
 static void Cg_AddBspLights(void) {
 
@@ -154,48 +130,46 @@ static void Cg_AddBspLights(void) {
 
     const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style);
 
-    cgi.AddLight(cgi.view, &(const r_light_t) {
-      .origin = l->origin,
-      .color = l->color,
-      .radius = l->radius,
-      .intensity = intensity,
-      .bounds = l->bounds,
-      .query = l->query,
-      .bsp_light = l,
-      .shadow_cached = &l->shadow_cached,
-    });
-  }
-}
-
-/**
- * @brief Adds all entity-attached light sources to the view.
- * @details Resolves the current world position of each entity light by finding
- * the `cl_entity_t` for its target inline model, then adds it as a dynamic light.
- */
-static void Cg_AddBspEntityLights(void) {
-
-  for (guint i = 0; i < cg_entity_lights->len; i++) {
-    const cg_entity_light_t *el = &g_array_index(cg_entity_lights, cg_entity_light_t, i);
-
-    // Find the cl_entity_t for this light's target model
-    vec3_t origin = el->origin;
-    for (int32_t j = 0; j < MAX_ENTITIES; j++) {
-      const cl_entity_t *ent = &cgi.client->entities[j];
-      if (ent->current.model1 == el->model1) {
-        origin = Vec3_Add(el->origin, ent->current.origin);
-        break;
+    if (l->target_entity) {
+      // Resolve the inline model string and find the matching cl_entity_t each frame.
+      const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
+      if (!model) {
+        continue;
       }
+
+      const int32_t model1 = Cg_ResolveModel1(model);
+      if (model1 == -1) {
+        continue;
+      }
+
+      vec3_t origin = l->origin;
+      for (int32_t j = 0; j < MAX_ENTITIES; j++) {
+        const cl_entity_t *ent = &cgi.client->entities[j];
+        if (ent->current.model1 == model1) {
+          origin = Vec3_Add(l->origin, ent->current.origin);
+          break;
+        }
+      }
+
+      cgi.AddLight(cgi.view, &(const r_light_t) {
+        .origin = origin,
+        .color = l->color,
+        .radius = l->radius,
+        .intensity = intensity,
+        .bounds = Box3_FromCenterRadius(origin, l->radius),
+      });
+    } else {
+      cgi.AddLight(cgi.view, &(const r_light_t) {
+        .origin = l->origin,
+        .color = l->color,
+        .radius = l->radius,
+        .intensity = intensity,
+        .bounds = l->bounds,
+        .query = l->query,
+        .bsp_light = l,
+        .shadow_cached = &l->shadow_cached,
+      });
     }
-
-    float intensity = Cg_AnimateLight(el->intensity ?: 1.f, el->style);
-
-    cgi.AddLight(cgi.view, &(const r_light_t) {
-      .origin = origin,
-      .color = el->color,
-      .radius = el->radius,
-      .intensity = intensity,
-      .bounds = Box3_FromCenterRadius(origin, el->radius),
-    });
   }
 }
 
@@ -205,7 +179,6 @@ static void Cg_AddBspEntityLights(void) {
 void Cg_AddLights(void) {
 
   Cg_AddBspLights();
-  Cg_AddBspEntityLights();
 
   GList *list = cg_lights.allocated->head;
   while (list != NULL) {
@@ -239,88 +212,6 @@ void Cg_AddLights(void) {
 }
 
 /**
- * @brief Loads light entities that target inline BSP models and should move with them.
- */
-static void Cg_InitBspEntityLights(void) {
-
-  cg_entity_lights = g_array_new(false, false, sizeof(cg_entity_light_t));
-
-  const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
-  for (int32_t i = 0; i < bsp->num_entities; i++) {
-    const cm_entity_t *def = bsp->entities[i];
-
-    if (g_strcmp0(cgi.EntityValue(def, "classname")->string, "light")) {
-      continue;
-    }
-
-    const char *target = cgi.EntityValue(def, "target")->nullable_string;
-    if (!target) {
-      continue;
-    }
-
-    // Find the entity with the matching targetname
-    const cm_entity_t *target_def = NULL;
-    for (int32_t j = 0; j < bsp->num_entities; j++) {
-      const char *targetname = cgi.EntityValue(bsp->entities[j], "targetname")->nullable_string;
-      if (!g_strcmp0(targetname, target)) {
-        target_def = bsp->entities[j];
-        break;
-      }
-    }
-
-    if (!target_def) {
-      Cg_Warn("Entity light @ %s: target \"%s\" not found\n",
-              vtos(cgi.EntityValue(def, "origin")->vec3), target);
-      continue;
-    }
-
-    // Resolve the target entity's model1 index from config strings
-    const char *model = cgi.EntityValue(target_def, "model")->nullable_string;
-    if (!model || model[0] != '*') {
-      Cg_Warn("Entity light @ %s: target \"%s\" has no inline model\n",
-              vtos(cgi.EntityValue(def, "origin")->vec3), target);
-      continue;
-    }
-
-    int32_t model1 = -1;
-    for (int32_t j = 1; j < MAX_MODELS; j++) {
-      if (!g_strcmp0(cgi.client->config_strings[CS_MODELS + j], model)) {
-        model1 = j;
-        break;
-      }
-    }
-
-    if (model1 == -1) {
-      Cg_Warn("Entity light @ %s: target model \"%s\" not in config strings\n",
-              vtos(cgi.EntityValue(def, "origin")->vec3), model);
-      continue;
-    }
-
-    const vec3_t light_origin = cgi.EntityValue(def, "origin")->vec3;
-    const vec3_t entity_origin = cgi.EntityValue(target_def, "origin")->vec3;
-
-    cg_entity_light_t el = {
-      .origin = Vec3_Subtract(light_origin, entity_origin),
-      .color = cgi.EntityValue(def, "color")->vec3,
-      .radius = cgi.EntityValue(def, "radius")->value ?: ENTITY_LIGHT_RADIUS,
-      .intensity = cgi.EntityValue(def, "intensity")->value ?: ENTITY_LIGHT_INTENSITY,
-      .model1 = model1,
-    };
-
-    if (Vec3_Equal(el.color, Vec3_Zero())) {
-      el.color = ENTITY_LIGHT_COLOR;
-    }
-
-    g_strlcpy(el.style, cgi.EntityValue(def, "style")->string, sizeof(el.style));
-
-    g_array_append_val(cg_entity_lights, el);
-
-    Cg_Debug("Entity light: %s -> %s model1=%d offset=%s\n",
-             vtos(light_origin), model, model1, vtos(el.origin));
-  }
-}
-
-/**
  * @brief
  */
 void Cg_InitLights(void) {
@@ -329,8 +220,6 @@ void Cg_InitLights(void) {
 
   cg_lights.allocated = g_queue_new();
   cg_lights.free = g_queue_new();
-
-  Cg_InitBspEntityLights();
 }
 
 /**
@@ -349,9 +238,4 @@ void Cg_FreeLights(void) {
   }
 
   cg_lights.free = NULL;
-
-  if (cg_entity_lights) {
-    g_array_free(cg_entity_lights, true);
-    cg_entity_lights = NULL;
-  }
 }
