@@ -72,8 +72,40 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
   const char *classname = Cm_EntityValue(entity, "classname")->string;
   if (!g_strcmp0(classname, "light")) {
 
-    // Entity-attached lights are handled as dynamic lights at runtime; skip static baking
+    // Entity-attached lights are handled as dynamic lights at runtime; skip static baking.
+    // Resolve team_master attributes now and stamp them back onto the cm_entity_t so that
+    // the runtime can read them without needing to know about teams.
     if (Cm_EntityValue(entity, "target")->nullable_string) {
+
+      float radius = Cm_EntityValue(entity, "radius")->value;
+      vec3_t color = Cm_EntityValue(entity, "color")->vec3;
+      float intensity = Cm_EntityValue(entity, "intensity")->value;
+      char style[MAX_BSP_ENTITY_VALUE];
+      g_strlcpy(style, Cm_EntityValue(entity, "style")->string, sizeof(style));
+
+      const cm_entity_t *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
+      if (master) {
+        radius = radius ?: Cm_EntityValue(master, "radius")->value;
+        if (Vec3_Equal(Vec3_Zero(), color)) {
+          color = Cm_EntityValue(master, "color")->vec3;
+        }
+        intensity = intensity ?: Cm_EntityValue(master, "intensity")->value;
+        if (!*style) {
+          g_strlcpy(style, Cm_EntityValue(master, "style")->string, sizeof(style));
+        }
+      }
+
+      radius = radius ?: LIGHT_RADIUS;
+      if (Vec3_Equal(Vec3_Zero(), color)) {
+        color = LIGHT_COLOR;
+      }
+      intensity = intensity ?: LIGHT_INTENSITY;
+
+      Cm_EntitySetKeyValue((cm_entity_t *) entity, "radius", ENTITY_FLOAT, &radius);
+      Cm_EntitySetKeyValue((cm_entity_t *) entity, "color", ENTITY_VEC3, &color);
+      Cm_EntitySetKeyValue((cm_entity_t *) entity, "intensity", ENTITY_FLOAT, &intensity);
+      Cm_EntitySetKeyValue((cm_entity_t *) entity, "style", ENTITY_STRING, style);
+
       return NULL;
     }
 
