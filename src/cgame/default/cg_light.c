@@ -146,7 +146,7 @@ static void Cg_AddBspLights(void) {
       for (int32_t j = 0; j < MAX_ENTITIES; j++) {
         const cl_entity_t *ent = &cgi.client->entities[j];
         if (ent->current.model1 == model1) {
-          origin = Vec3_Add(l->origin, ent->current.origin);
+          origin = Vec3_Add(l->origin, ent->origin);
           break;
         }
       }
