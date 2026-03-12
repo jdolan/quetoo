@@ -215,6 +215,10 @@ void EmitLights(void) {
         continue;
       }
 
+      if (side->surface & SURF_LIQUID) {
+        continue;
+      }
+
       if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
       }
