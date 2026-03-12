@@ -72,6 +72,11 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
   const char *classname = Cm_EntityValue(entity, "classname")->string;
   if (!g_strcmp0(classname, "light")) {
 
+    // Entity-attached lights are handled as dynamic lights at runtime; skip static baking
+    if (Cm_EntityValue(entity, "target")->nullable_string) {
+      return NULL;
+    }
+
     light_t *light = AllocLight();
 
     light->entity = Cm_EntityNumber(entity);
