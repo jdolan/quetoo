@@ -164,6 +164,34 @@ void FreeLights(void) {
 }
 
 /**
+ * @brief Re-serializes the BSP entity string from the parsed cm_entity_t definitions.
+ * @details Called after BuildLights so that any key-values stamped onto cm_entity_t
+ * during the light pass (e.g. team_master resolution on entity-attached lights) are
+ * flushed back to the on-disk entity lump.
+ */
+void EmitEntityString(void) {
+
+  char *out = bsp_file.entity_string;
+  *out = '\0';
+
+  const cm_bsp_t *bsp = Cm_Bsp();
+  for (int32_t i = 0; i < bsp->num_entities; i++) {
+    g_strlcat(out, "{\n", MAX_BSP_ENTITIES_SIZE);
+    for (const cm_entity_t *e = bsp->entities[i]; e; e = e->next) {
+      g_strlcat(out, va(" \"%s\" \"%s\"\n", e->key, e->string), MAX_BSP_ENTITIES_SIZE);
+    }
+    g_strlcat(out, "}\n", MAX_BSP_ENTITIES_SIZE);
+  }
+
+  const size_t len = strlen(out);
+  if (len == MAX_BSP_ENTITIES_SIZE - 1) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_ENTITIES_SIZE\n");
+  }
+
+  bsp_file.entity_string_size = (int32_t) len + 1;
+}
+
+/**
  * @brief
  */
 void BuildLights(void) {

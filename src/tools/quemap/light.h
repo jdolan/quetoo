@@ -82,4 +82,5 @@ extern GPtrArray *lights;
 void FreeLights(void);
 void BuildLights(void);
 void EmitLights(void);
+void EmitEntityString(void);
 void EmitLightGrid(void);

@@ -423,6 +423,9 @@ static void LightWorld(void) {
   // emit light sources to the bsp
   EmitLights();
 
+  // flush entity string with any compile-time mutations (e.g. team_master resolution)
+  EmitEntityString();
+
   // emit voxels
   EmitVoxels();
 
