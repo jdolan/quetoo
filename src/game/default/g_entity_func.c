@@ -1656,6 +1656,11 @@ void G_func_door_secret(g_entity_t *ent) {
     ent->Die = G_func_door_secret_Die;
   }
 
+  float lip = gi.EntityValue(ent->def, "lip")->value;
+  if (!lip) {
+      lip = 8.0;
+  }
+
   if (!ent->damage) {
     ent->damage = 2;
   }
@@ -1698,7 +1703,7 @@ void G_func_door_secret(g_entity_t *ent) {
     ent->pos1 = Vec3_Fmaf(ent->s.origin, side * width, right);
   }
 
-  ent->pos2 = Vec3_Fmaf(ent->pos1, length, forward);
+  ent->pos2 = Vec3_Fmaf(ent->pos1, length - lip, forward);
 
   if (ent->health) {
     ent->take_damage = true;
