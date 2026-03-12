@@ -121,6 +121,30 @@ void Cg_AddLight(const cg_light_t *in) {
 }
 
 /**
+ * @brief Applies light style animation to an intensity value.
+ * @param intensity The base intensity.
+ * @param style The style string (a-z, animated at 10Hz). May be empty.
+ * @return The animated intensity.
+ */
+static float Cg_LightStyleIntensity(float intensity, const char *style) {
+
+  if (*style) {
+    const size_t len = strlen(style);
+    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
+    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
+
+    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
+
+    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+    intensity *= Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+  }
+
+  return intensity;
+}
+
+/**
  * @brief Adds all BSP light sources to the view.
  */
 static void Cg_AddBspLights(void) {
@@ -128,21 +152,7 @@ static void Cg_AddBspLights(void) {
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    float intensity = l->intensity ?: 1.f;
-
-    if (*l->style) {
-      const size_t len = strlen(l->style);
-      const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-      const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
-
-      const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
-
-      const float s = (l->style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-      const float t = (l->style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
-
-      const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-      intensity *= style_value;
-    }
+    const float intensity = Cg_LightStyleIntensity(l->intensity ?: 1.f, l->style);
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
       .origin = l->origin,
@@ -181,21 +191,7 @@ static void Cg_AddEntityLights(void) {
       }
     }
 
-    float intensity = el->intensity ?: 1.f;
-
-    if (*el->style) {
-      const size_t len = strlen(el->style);
-      const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-      const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
-
-      const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
-
-      const float s = (el->style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-      const float t = (el->style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
-
-      const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-      intensity *= style_value;
-    }
+    float intensity = Cg_LightStyleIntensity(el->intensity ?: 1.f, el->style);
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
       .origin = origin,
