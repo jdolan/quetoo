@@ -258,8 +258,8 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           break;
       }
 
-      const char *classname = Cm_EntityValue(e, "classname")->string;
-      if (!Vec3_Equal(move, Vec3_Zero()) && g_strcmp0(classname, "worldspawn")) {
+      const char *model = Cm_EntityValue(e, "model")->string;
+      if (!Vec3_Equal(move, Vec3_Zero()) && *model != '*') {
 
         vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
         origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
