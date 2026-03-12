@@ -462,6 +462,12 @@ bool FloodEntities(tree_t *tree) {
       continue;
     }
 
+    // skip BSP inline model entities; their origin key is not meaningful for flood purposes
+    const char *model = ValueForKey(ent, "model", NULL);
+    if (model && *model == '*') {
+      continue;
+    }
+
     vec3_t origin = VectorForKey(ent, "origin", Vec3_Zero());
     origin = Vec3_Add(origin, Vec3_Up());
 
