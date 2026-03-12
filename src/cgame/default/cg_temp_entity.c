@@ -1182,7 +1182,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
     .dir = Vec3_Up(),
     .rotation = RandomRadian(),
     .color = color,
-    .lighting = .6f
+    .lighting = 1.f
   });
 
   // ring decal

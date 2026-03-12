@@ -47,7 +47,11 @@ vec3 sprite_fragment_lighting_light(in int index) {
   float radius = light.origin.w;
   float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-  return light.color.rgb * light.color.a * atten * modulate;
+  vec3 c = light.color.rgb;
+  float chroma = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+  float chroma_weight = clamp(chroma * 4.0, 0.0, 1.0);
+
+  return c * light.color.a * atten * modulate * chroma_weight;
 }
 
 /**
@@ -78,7 +82,7 @@ void sprite_fragment_lighting(void) {
     diffuse += sprite_fragment_lighting_light(index);
   }
 
-  vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
+  vertex.color.rgb *= diffuse * in_lighting;
 }
 
 /**
