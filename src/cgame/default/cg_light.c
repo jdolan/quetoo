@@ -126,7 +126,7 @@ void Cg_AddLight(const cg_light_t *in) {
  * @param style The style string (a-z, animated at 10Hz). May be empty.
  * @return The animated intensity.
  */
-static float Cg_LightStyleIntensity(float intensity, const char *style) {
+static float Cg_AnimateLight(float intensity, const char *style) {
 
   if (*style) {
     const size_t len = strlen(style);
@@ -152,7 +152,7 @@ static void Cg_AddBspLights(void) {
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    const float intensity = Cg_LightStyleIntensity(l->intensity ?: 1.f, l->style);
+    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style);
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
       .origin = l->origin,
@@ -170,13 +170,9 @@ static void Cg_AddBspLights(void) {
 /**
  * @brief Adds all entity-attached light sources to the view.
  * @details Resolves the current world position of each entity light by finding
- * the cl_entity_t for its target inline model, then adds it as a dynamic light.
+ * the `cl_entity_t` for its target inline model, then adds it as a dynamic light.
  */
-static void Cg_AddEntityLights(void) {
-
-  if (!cg_entity_lights) {
-    return;
-  }
+static void Cg_AddBspEntityLights(void) {
 
   for (guint i = 0; i < cg_entity_lights->len; i++) {
     const cg_entity_light_t *el = &g_array_index(cg_entity_lights, cg_entity_light_t, i);
@@ -191,7 +187,7 @@ static void Cg_AddEntityLights(void) {
       }
     }
 
-    float intensity = Cg_LightStyleIntensity(el->intensity ?: 1.f, el->style);
+    float intensity = Cg_AnimateLight(el->intensity ?: 1.f, el->style);
 
     cgi.AddLight(cgi.view, &(const r_light_t) {
       .origin = origin,
@@ -209,7 +205,7 @@ static void Cg_AddEntityLights(void) {
 void Cg_AddLights(void) {
 
   Cg_AddBspLights();
-  Cg_AddEntityLights();
+  Cg_AddBspEntityLights();
 
   GList *list = cg_lights.allocated->head;
   while (list != NULL) {
@@ -243,16 +239,12 @@ void Cg_AddLights(void) {
 }
 
 /**
- * @brief
+ * @brief Loads light entities that target inline BSP models and should move with them.
  */
-void Cg_InitLights(void) {
+static void Cg_InitBspEntityLights(void) {
 
-  memset(&cg_lights, 0, sizeof(cg_lights));
+  cg_entity_lights = g_array_new(false, false, sizeof(cg_entity_light_t));
 
-  cg_lights.allocated = g_queue_new();
-  cg_lights.free = g_queue_new();
-
-  // Scan BSP entities for light entities with a target key; cache them for per-frame updates
   const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
   for (int32_t i = 0; i < bsp->num_entities; i++) {
     const cm_entity_t *def = bsp->entities[i];
@@ -321,12 +313,24 @@ void Cg_InitLights(void) {
 
     g_strlcpy(el.style, cgi.EntityValue(def, "style")->string, sizeof(el.style));
 
-    cg_entity_lights = cg_entity_lights ?: g_array_new(false, false, sizeof(cg_entity_light_t));
     g_array_append_val(cg_entity_lights, el);
 
     Cg_Debug("Entity light: %s -> %s model1=%d offset=%s\n",
              vtos(light_origin), model, model1, vtos(el.origin));
   }
+}
+
+/**
+ * @brief
+ */
+void Cg_InitLights(void) {
+
+  memset(&cg_lights, 0, sizeof(cg_lights));
+
+  cg_lights.allocated = g_queue_new();
+  cg_lights.free = g_queue_new();
+
+  Cg_InitBspEntityLights();
 }
 
 /**
