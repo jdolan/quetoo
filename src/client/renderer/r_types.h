@@ -808,6 +808,11 @@ typedef struct {
    * @brief True if this light's shadowmap can be reused from the previous frame.
    */
   bool shadow_cached;
+
+  /**
+   * @brief The target entity for dynamic lights attached to inline model entities, or NULL.
+   */
+  cm_entity_t *target_entity;
 } r_bsp_light_t;
 
 /**
