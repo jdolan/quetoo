@@ -1903,6 +1903,14 @@ typedef struct {
   int32_t draw_lines;
   int32_t draw_arrays;
 
+  GLuint64 gpu_time_depth;
+  GLuint64 gpu_time_shadows;
+  GLuint64 gpu_time_bsp_opaque;
+  GLuint64 gpu_time_mesh;
+  GLuint64 gpu_time_decals;
+  GLuint64 gpu_time_bsp_blend;
+  GLuint64 gpu_time_sprites;
+
 } r_stats_t;
 
 #ifdef __R_LOCAL_H__

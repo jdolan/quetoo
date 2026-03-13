@@ -120,7 +120,7 @@ static void Cl_DrawNetGraph(void) {
 static void Cl_DrawRendererStats(void) {
   GLint ch, x = 1, y = 64;
 
-  if (!cl_draw_renderer_stats->value) {
+  if (!r_draw_stats->value) {
     return;
   }
 
@@ -253,6 +253,42 @@ static void Cl_DrawRendererStats(void) {
   R_Draw2DString(x, y, va("Leaf: %d", Cm_PointLeafnum(cl_view.origin, 0)), color_yellow);
   y += ch;
 
+  {
+    const GLuint64 depth     = r_stats.gpu_time_depth;
+    const GLuint64 shadows   = r_stats.gpu_time_shadows;
+    const GLuint64 bsp_op    = r_stats.gpu_time_bsp_opaque;
+    const GLuint64 mesh      = r_stats.gpu_time_mesh;
+    const GLuint64 decals    = r_stats.gpu_time_decals;
+    const GLuint64 bsp_bl    = r_stats.gpu_time_bsp_blend;
+    const GLuint64 sprites   = r_stats.gpu_time_sprites;
+    const GLuint64 total     = depth + shadows + bsp_op + mesh + decals + bsp_bl + sprites;
+
+    #define NS_TO_MS(ns) ((ns) / 1000000.0)
+
+    y += ch;
+    R_Draw2DString(x, y, "GPU timings:", color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" depth:      %.2fms", NS_TO_MS(depth)),    color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" shadows:    %.2fms", NS_TO_MS(shadows)),  color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" bsp opaque: %.2fms", NS_TO_MS(bsp_op)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" mesh:       %.2fms", NS_TO_MS(mesh)),     color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" decals:     %.2fms", NS_TO_MS(decals)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" bsp blend:  %.2fms", NS_TO_MS(bsp_bl)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" sprites:    %.2fms", NS_TO_MS(sprites)),  color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" total:      %.2fms", NS_TO_MS(total)),    color_white);
+    y += ch;
+
+    #undef NS_TO_MS
+  }
+  y += ch;
+
   const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
   const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
 
@@ -274,9 +310,9 @@ static void Cl_DrawRendererStats(void) {
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-  GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 600 : 64;
+  GLint ch, x = 1, y = r_draw_stats->value ? 600 : 64;
 
-  if (!cl_draw_sound_stats->value) {
+  if (!s_draw_stats->value) {
     return;
   }
 

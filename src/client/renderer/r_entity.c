@@ -154,15 +154,23 @@ void R_DrawEntities(const r_view_t *view) {
 
   thread_t *decals = Thread_Create((ThreadRunFunc) R_UpdateDecals, (void *) view, THREAD_NONE);
 
+  R_BeginTimerQuery(R_TIMER_BSP_OPAQUE);
   R_DrawOpaqueBspEntities(view);
+  R_EndTimerQuery();
 
+  R_BeginTimerQuery(R_TIMER_MESH);
   R_DrawMeshEntities(view);
+  R_EndTimerQuery();
 
   Thread_Wait(decals);
 
+  R_BeginTimerQuery(R_TIMER_DECALS);
   R_DrawDecals(view);
+  R_EndTimerQuery();
 
+  R_BeginTimerQuery(R_TIMER_BSP_BLEND);
   R_DrawBlendBspEntities(view);
+  R_EndTimerQuery();
 
   R_DrawEntitiesBounds(view);
 }

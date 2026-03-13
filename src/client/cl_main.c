@@ -48,8 +48,6 @@ cvar_t *rcon_address;
 cvar_t *rcon_password;
 
 cvar_t *cl_draw_net_messages;
-cvar_t *cl_draw_renderer_stats;
-cvar_t *cl_draw_sound_stats;
 
 cl_static_t cls;
 cl_client_t cl;
@@ -555,8 +553,6 @@ static void Cl_InitLocal(void) {
   rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
   cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
-  cl_draw_renderer_stats = Cvar_Add("cl_draw_renderer_stats", "0", CVAR_DEVELOPER, NULL);
-  cl_draw_sound_stats = Cvar_Add("cl_draw_sound_stats", "0", CVAR_DEVELOPER, NULL);
 
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

@@ -49,6 +49,8 @@ extern cvar_t *r_swap_interval;
 extern cvar_t *r_window_height;
 extern cvar_t *r_window_width;
 
+extern cvar_t *r_draw_stats;
+
 extern r_stats_t r_stats;
 
 void R_Init(void);
@@ -60,6 +62,23 @@ void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
 void R_UpdateUniforms(const r_view_t *view);
+
+/**
+ * @brief GPU timer query pass indices.
+ */
+typedef enum {
+  R_TIMER_DEPTH,
+  R_TIMER_SHADOWS,
+  R_TIMER_BSP_OPAQUE,
+  R_TIMER_MESH,
+  R_TIMER_DECALS,
+  R_TIMER_BSP_BLEND,
+  R_TIMER_SPRITES,
+  R_TIMER_COUNT
+} r_timer_query_index_t;
+
+void R_BeginTimerQuery(r_timer_query_index_t index);
+void R_EndTimerQuery(void);
 
 #ifdef __R_LOCAL_H__
 

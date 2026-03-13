@@ -57,8 +57,6 @@ extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
 
 extern cvar_t *cl_draw_net_messages;
-extern cvar_t *cl_draw_renderer_stats;
-extern cvar_t *cl_draw_sound_stats;
 
 extern cl_client_t cl;
 extern cl_static_t cls;
