@@ -292,10 +292,10 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     return image;
   }
 
-  SDL_Surface *surface = Img_LoadSurface(key);
+  SDL_Surface *surface = Img_LoadSurface(name);
 
   if (!surface) {
-    Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", key);
+    Com_Debug(DEBUG_RENDERER, "Couldn't load %s\n", name);
     return NULL;
   }
 
