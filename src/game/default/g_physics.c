@@ -100,7 +100,7 @@ static void G_CheckWater(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &pos,
-        .atten = SOUND_ATTEN_SQUARE,
+        .atten = SOUND_ATTEN_CUBIC,
         .pitch = pitch
       }, MULTICAST_PHS);
 
@@ -121,7 +121,7 @@ static void G_CheckWater(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_out,
         .origin = &pos,
-        .atten = SOUND_ATTEN_SQUARE,
+        .atten = SOUND_ATTEN_CUBIC,
         .pitch = pitch
       }, MULTICAST_PHS);
 
