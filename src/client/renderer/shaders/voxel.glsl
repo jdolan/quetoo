@@ -233,7 +233,14 @@ vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
     return v.fog;
   }
 
-  // For close fragments, do full per-fragment raymarching
+  // Vertex fog is computed per-vertex and interpolated across the triangle.
+  // If the interpolated vertex fog has zero density, no fog is present along
+  // any vertex-to-camera ray in this triangle, so skip the per-fragment march.
+  if (v.fog.a == 0.0) {
+    return vec4(0.0);
+  }
+
+  // For close fragments in a fog-touched triangle, do full per-fragment raymarching
   return voxel_fog(v.model_position, view[0].xyz, fog_samples);
 }
 
