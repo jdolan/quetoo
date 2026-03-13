@@ -31,6 +31,7 @@ r_stats_t r_stats;
 static struct {
   GLuint names[R_TIMER_COUNT][2];
   GLuint64 results[R_TIMER_COUNT];
+  bool pending[R_TIMER_COUNT][2];
   uint32_t frame;
 } r_timer_queries;
 
@@ -225,10 +226,14 @@ static void R_ReadTimerQueryResults(void) {
 
   const uint32_t read_slot = (r_timer_queries.frame - 1) & 1;
   for (int32_t i = 0; i < R_TIMER_COUNT; i++) {
+    if (!r_timer_queries.pending[i][read_slot]) {
+      continue;
+    }
     GLint available;
     glGetQueryObjectiv(r_timer_queries.names[i][read_slot], GL_QUERY_RESULT_AVAILABLE, &available);
     if (available) {
       glGetQueryObjectui64v(r_timer_queries.names[i][read_slot], GL_QUERY_RESULT, &r_timer_queries.results[i]);
+      r_timer_queries.pending[i][read_slot] = false;
     }
   }
 }
@@ -256,6 +261,7 @@ void R_BeginTimerQuery(r_timer_query_index_t index) {
     return;
   }
   glBeginQuery(GL_TIME_ELAPSED, r_timer_queries.names[index][r_timer_queries.frame & 1]);
+  r_timer_queries.pending[index][r_timer_queries.frame & 1] = true;
 }
 
 /**
