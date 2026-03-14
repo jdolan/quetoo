@@ -519,13 +519,6 @@ static void G_CheckRules(void) {
     return;
   }
 
-  // Don't check rules during the first second after level load. Clients carry
-  // stale scores from the previous map until G_ClientConnect resets them, which
-  // happens asynchronously as clients complete their reconnect handshake.
-  if (g_level.time < 1000) {
-    return;
-  }
-
   G_RunTimers();
 
   if (!g_level.ctf && g_level.frag_limit) { // check frag_limit
