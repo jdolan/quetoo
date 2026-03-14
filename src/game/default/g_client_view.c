@@ -305,11 +305,11 @@ static void G_ClientAnimation(g_client_t *cl) {
 
   if (ent->solid == SOLID_DEAD) {
     if (g_level.time >= cl->respawn_time) {
-      switch (ent->s.animation1) {
+      switch (ent->s.animation1 & ANIM_MASK_VALUE) {
         case ANIM_BOTH_DEATH1:
         case ANIM_BOTH_DEATH2:
         case ANIM_BOTH_DEATH3:
-          G_SetAnimation(cl, ent->s.animation1 + 1, false);
+          G_SetAnimation(cl, (ent->s.animation1 & ANIM_MASK_VALUE) + 1, false);
           break;
         default:
           break;

@@ -425,7 +425,7 @@ static void G_ClientCorpse(g_client_t *cl) {
     return;
   }
 
-  if (cl->entity->s.model1 == 0) {
+  if (cl->entity->s.model1 != MODEL_CLIENT) {
     return;
   }
 
