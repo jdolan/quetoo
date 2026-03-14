@@ -76,9 +76,10 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
     const player_state_t *ps1 = &cgi.client->frame.ps;
 
     if (ps0->pm_state.type == PM_DEAD && ps1->pm_state.type != PM_DEAD) {
-      // Subtract before clearing: cg_kick.kick tracks exactly what was added to angles
-      Cg_Debug("Respawned, clearing kick %s\n", vtos(cg_kick.kick));
-      cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
+      // Respawn: snap to the server-dictated view angles, which eliminates any
+      // residual kick that was baked into cl.angles from the death roll
+      Cg_Debug("Respawned, snapping angles to %s\n", vtos(ps1->pm_state.view_angles));
+      cgi.client->angles = ps1->pm_state.view_angles;
       memset(&cg_kick, 0, sizeof(cg_kick));
     } else {
       vec3_t delta0 = ps0->pm_state.delta_angles;
@@ -88,9 +89,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
         static int32_t frame;
 
         if (cgi.client->frame.frame_num != frame) {
-          // Subtract before clearing (teleport, pusher, etc.)
           Cg_Debug("Delta kick %s\n", vtos(cg_kick.kick));
-          cgi.client->angles = Vec3_Subtract(cgi.client->angles, cg_kick.kick);
           memset(&cg_kick, 0, sizeof(cg_kick));
 
           frame = cgi.client->frame.frame_num;

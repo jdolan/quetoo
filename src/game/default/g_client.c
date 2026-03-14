@@ -852,7 +852,6 @@ static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_client_t *cl) {
-  vec3_t delta_angles;
 
   if (!cl->entity) {
     return;
@@ -886,14 +885,15 @@ static void G_ClientRespawn_(g_client_t *cl) {
   ent->s.origin = spawn->s.origin;
   ent->s.origin.z += PM_STEP_HEIGHT;
 
-  // and calculate delta angles
+  // snap view angles directly to the spawn point; the client will snap
+  // cl.angles to match, so no delta_angles compensation is needed
   ent->s.angles = Vec3_Zero();
   cl->angles = spawn->s.angles;
-  delta_angles = Vec3_Subtract(spawn->s.angles, tmp.cmd_angles);
 
-  // pack the new origin and delta angles into the player state
+  // pack the new origin and view angles into the player state
   cl->ps.pm_state.origin = ent->s.origin;
-  cl->ps.pm_state.delta_angles = delta_angles;
+  cl->ps.pm_state.view_angles = spawn->s.angles;
+  cl->ps.pm_state.delta_angles = Vec3_Zero();
   cl->ps.entity = ent->s.number;
 
   ent->velocity = Vec3_Zero();
