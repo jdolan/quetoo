@@ -506,6 +506,8 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
   projectile->sv_flags &= ~SVF_NO_CLIENT;
   projectile->move_type = MOVE_TYPE_BOUNCE;
   projectile->Think = G_GrenadeProjectile_Explode;
+
+  gi.LinkEntity(projectile);
 }
 
 /**

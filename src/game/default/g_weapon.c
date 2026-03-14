@@ -58,6 +58,11 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
   cl->weapon_fire_time = g_level.time + 100; // enable fire
   cl->grenade_hold_time = 0; // put the pin back in
 
+  if (cl->held_grenade) {
+    G_FreeEntity(cl->held_grenade);
+    cl->held_grenade = NULL;
+  }
+
   G_SetAnimation(cl, ANIM_TORSO_DROP, true);
 
   G_MulticastSound(&(const g_play_sound_t) {
@@ -778,6 +783,7 @@ void G_FireHandGrenade(g_client_t *cl) {
 
   cl->grenade_hold_time = 0;
   cl->grenade_hold_frame = 0;
+  cl->held_grenade = NULL;
 }
 
 /**
