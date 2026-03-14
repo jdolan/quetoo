@@ -73,16 +73,13 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
   const player_state_t *ps1 = &cgi.client->frame.ps;
 
-  if (!cgi.client->previous_frame || cgi.client->previous_frame->ps.pm_state.type != PM_NORMAL) {
-    if (ps1->pm_state.type == PM_NORMAL) {
-      // Entering play from any non-playing state (initial spawn, respawn, spectator->player):
-      // snap to the server-dictated view angles, which eliminates any residual kick
-      // that may have been baked into cl.angles (e.g. from the death roll)
-      Cg_Debug("Spawned, snapping angles to %s\n", vtos(ps1->pm_state.view_angles));
-      cgi.client->angles = ps1->pm_state.view_angles;
-      memset(&cg_kick, 0, sizeof(cg_kick));
-    }
-  } else {
+  if (ps1->pm_state.flags & PMF_SNAP_ANGLES) {
+    // Server signals us to snap view angles (player spawn or respawn).
+    // This cleanly removes any residual kick baked into cl.angles.
+    Cg_Debug("Snap angles to %s\n", vtos(ps1->pm_state.view_angles));
+    cgi.client->angles = ps1->pm_state.view_angles;
+    memset(&cg_kick, 0, sizeof(cg_kick));
+  } else if (cgi.client->previous_frame) {
       const player_state_t *ps0 = &cgi.client->previous_frame->ps;
       vec3_t delta0 = ps0->pm_state.delta_angles;
       vec3_t delta1 = ps1->pm_state.delta_angles;

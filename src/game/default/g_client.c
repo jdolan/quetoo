@@ -896,6 +896,11 @@ static void G_ClientRespawn_(g_client_t *cl) {
   cl->ps.pm_state.delta_angles = Vec3_Zero();
   cl->ps.entity = ent->s.number;
 
+  // signal the client to snap to view_angles; only for player spawns, not spectators
+  if (!cl->persistent.spectator && !editor->value) {
+    cl->ps.pm_state.flags |= PMF_SNAP_ANGLES;
+  }
+
   ent->velocity = Vec3_Zero();
 
   ent->s.effects = EF_CLIENT;
@@ -1420,6 +1425,9 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
 
   // save the raw angles sent over in the command
   cl->cmd_angles = cmd->angles;
+
+  // snap_angles is a one-shot signal; clear it after the client has had a frame to see it
+  cl->ps.pm_state.flags &= ~PMF_SNAP_ANGLES;
 
   // set the move type
   if (ent->move_type == MOVE_TYPE_NO_CLIP) {
