@@ -185,13 +185,15 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-  const cg_client_info_t *info = &cg_state.clients[ent->current.client];
+  const int32_t client = ent->current.client;
+  const cg_client_info_t *info = &cg_state.clients[client];
 
   if (!*info->model) {
     return NULL;
   }
 
-  return cgi.LoadClientModelSample(info->model, name);
+  s_sample_t *result = cgi.LoadClientModelSample(info->model, name);
+  return result;
 }
 
 /**
@@ -225,7 +227,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
   }
 
   Cg_Debug("No ground found for footstep at %s\n", vtos(end));
-  return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(0, 4)));
+  return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(1, 5)));
 }
 
 /**
@@ -289,6 +291,10 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
   if (play.sample) {
     Cg_AddSample(cgi.stage, &play);
+  } else if (s->event != EV_CLIENT_FOOTSTEP && s->event != EV_CLIENT_TELEPORT &&
+             s->event != EV_ITEM_PICKUP && s->event != 0) {
+    Cg_Debug("NULL sample for ent #%d event=%d\n",
+             (int32_t) (ent - cgi.client->entities), s->event);
   }
 
   s->event = 0;
