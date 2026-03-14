@@ -294,10 +294,15 @@ static void Cg_UpdateConfigString(int32_t i) {
     cg_client_info_t *ci = &cg_state.clients[i - CS_CLIENTS];
     Cg_LoadClient(ci, s);
 
-    cl_entity_t *ent = &cgi.client->entities[i - CS_CLIENTS + 1];
-
-    ent->animation1.time = ent->animation2.time = 0;
-    ent->animation1.frame = ent->animation2.frame = -1;
+    const int32_t client_num = i - CS_CLIENTS;
+    for (int32_t j = 0; j < MAX_ENTITIES; j++) {
+      cl_entity_t *ent = &cgi.client->entities[j];
+      if ((ent->current.effects & EF_CLIENT) && ent->current.client == (uint8_t) client_num) {
+        ent->animation1.time = ent->animation2.time = 0;
+        ent->animation1.frame = ent->animation2.frame = -1;
+        break;
+      }
+    }
   }
 }
 

@@ -187,7 +187,9 @@ static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name
 
   const cg_client_info_t *info = &cg_state.clients[ent->current.client];
 
-  assert(info->model);
+  if (!*info->model) {
+    return NULL;
+  }
 
   return cgi.LoadClientModelSample(info->model, name);
 }

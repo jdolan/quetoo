@@ -289,11 +289,11 @@ void Cg_LoadClients(void) {
       continue;
     }
 
-    if (i ^ 1) {
+    Cg_LoadClient(ci, s);
+
+    if (i) {
       cgi.LoadingProgress(-1, ci->model);
     }
-
-    Cg_LoadClient(ci, s);
   }
 }
 
