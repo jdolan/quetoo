@@ -71,17 +71,19 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
     memset(&cg_kick, 0, sizeof(cg_kick));
   }
 
-  if (cgi.client->previous_frame) {
-    const player_state_t *ps0 = &cgi.client->previous_frame->ps;
-    const player_state_t *ps1 = &cgi.client->frame.ps;
+  const player_state_t *ps1 = &cgi.client->frame.ps;
 
-    if (ps0->pm_state.type == PM_DEAD && ps1->pm_state.type != PM_DEAD) {
-      // Respawn: snap to the server-dictated view angles, which eliminates any
-      // residual kick that was baked into cl.angles from the death roll
-      Cg_Debug("Respawned, snapping angles to %s\n", vtos(ps1->pm_state.view_angles));
+  if (!cgi.client->previous_frame || cgi.client->previous_frame->ps.pm_state.type != PM_NORMAL) {
+    if (ps1->pm_state.type == PM_NORMAL) {
+      // Entering play from any non-playing state (initial spawn, respawn, spectator->player):
+      // snap to the server-dictated view angles, which eliminates any residual kick
+      // that may have been baked into cl.angles (e.g. from the death roll)
+      Cg_Debug("Spawned, snapping angles to %s\n", vtos(ps1->pm_state.view_angles));
       cgi.client->angles = ps1->pm_state.view_angles;
       memset(&cg_kick, 0, sizeof(cg_kick));
-    } else {
+    }
+  } else {
+      const player_state_t *ps0 = &cgi.client->previous_frame->ps;
       vec3_t delta0 = ps0->pm_state.delta_angles;
       vec3_t delta1 = ps1->pm_state.delta_angles;
 
@@ -95,7 +97,6 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
           frame = cgi.client->frame.frame_num;
         }
       }
-    }
   }
 
   const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;
