@@ -604,11 +604,20 @@ void G_SpawnTechs(void) {
  */
 void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
 
+  // Disconnect AI clients before tearing down level state. Their g_client_t
+  // slots remain in_use and in the bot count between maps otherwise, causing
+  // G_Ai_Frame to see a full bot count and never respawn them.
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      G_ClientDisconnect(cl);
+    }
+  });
+
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
 
-  // Clear client entity pointers before freeing entities to prevent dangling references
+  // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
   });
