@@ -1036,6 +1036,8 @@ struct g_client_s {
   vec3_t cmd_angles; // angles sent over in the last command
   vec3_t kick_angles; // view kick accumulated each server frame
 
+  bool snap_angles; // signals client to snap view_angles (one-shot, cleared after G_EndClientFrames)
+
   uint32_t respawn_time; // eligible for respawn when time > this
   uint32_t respawn_protection_time; // respawn protected till this time
   uint32_t ground_time; // time when last touched ground

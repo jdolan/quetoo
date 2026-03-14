@@ -435,6 +435,13 @@ void G_ClientEndFrame(g_client_t *cl) {
   // send the kick angles
   G_ClientKickAngles(cl);
 
+  // apply the one-shot snap_angles signal into pm_state flags for this frame
+  if (cl->snap_angles) {
+    cl->ps.pm_state.flags |= PMF_SNAP_ANGLES;
+  } else {
+    cl->ps.pm_state.flags &= ~PMF_SNAP_ANGLES;
+  }
+
   // and the angles on the world model
   G_ClientWorldAngles(cl);
 

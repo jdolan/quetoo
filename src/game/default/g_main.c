@@ -865,6 +865,12 @@ static void G_Frame(void) {
 
   // build the player_state_t structures for all players
   G_EndClientFrames();
+
+  // snap_angles is a one-shot signal; clear it now that the frame has been built so
+  // it does not persist into the next frame.
+  G_ForEachClient(cl, {
+    cl->snap_angles = false;
+  });
 }
 
 /**
