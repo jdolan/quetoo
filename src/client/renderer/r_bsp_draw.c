@@ -584,8 +584,8 @@ void R_InitBspProgram(void) {
 
   for (int32_t i = 0; i < WARP_IMAGE_SIZE; i++) {
     for (int32_t j = 0; j < WARP_IMAGE_SIZE; j++) {
-      data[i][j][0] = RandomRangeu(0, 48);
-      data[i][j][1] = RandomRangeu(0, 48);
+      data[i][j][0] = RandomRangeu(0, 255);
+      data[i][j][1] = RandomRangeu(0, 255);
       data[i][j][2] = 0;
       data[i][j][3] = 255;
     }

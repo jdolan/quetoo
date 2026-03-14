@@ -142,7 +142,7 @@ void main(void) {
     vec2 st = fragment.parallax;
 
     if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+      st += (texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
     }
 
     fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
