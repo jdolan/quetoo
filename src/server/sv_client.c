@@ -441,8 +441,9 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
       case CL_CMD_MOVE:
 
         if (cl->state != SV_CLIENT_ACTIVE) {
-          Com_Warn("CL_CMD_MOVE from inactive client %s\n", Sv_NetaddrToString(cl));
-          Sv_DropClient(cl);
+          // Stale in-flight packets from the previous map arrive during level transitions
+          // before the client has processed our reconnect message. Ignore them quietly.
+          Com_Debug(DEBUG_SERVER, "CL_CMD_MOVE from inactive client %s\n", Sv_NetaddrToString(cl));
           return;
         }
 
