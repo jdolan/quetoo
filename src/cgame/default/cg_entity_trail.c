@@ -457,7 +457,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
           .lifetime = Cg_AnimationLifetime(cg_sprite_rocket_flame, 90) * particle_life_frac,
           .origin = Vec3_Mix(start, origin, step * i),
           .velocity = velocity,
-          .rotation = Randomf() * 2.f * M_PI,
+          .rotation = RandomRadian(),
           .size = 10.f,
           .size_velocity = -20.f,
           .color = Vec3(1.f, 1.f, 1.f),
@@ -485,7 +485,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
           .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_04, 60) * particle_life_frac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, step * i), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
-          .rotation = Randomf() * 2.f * M_PI,
+          .rotation = RandomRadian(),
           .size = Randomf() * 5.f + 10.f,
           .size_velocity = Randomf() * 5.f + 10.f,
           .color = Vec3(1.f, 1.f, 1.f),
@@ -500,7 +500,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
           .lifetime = Cg_AnimationLifetime(cg_sprite_smoke_05, 60) * particle_life_frac,
           .origin = Vec3_Add(Vec3_Mix(start, origin, (step * i) + (step * .5f)), Vec3_RandomRange(-2.5f, 2.5f)),
           .velocity = Vec3_Scale(velocity, 0.5),
-          .rotation = Randomf() * 2.f * M_PI,
+          .rotation = RandomRadian(),
           .size = Randomf() * 5.f + 10.f,
           .size_velocity = Randomf() * 5.f + 10.f,
           .color = Vec3(1.f, 1.f, 1.f),
@@ -646,7 +646,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
     .origin = Vec3_Fmaf(end, -10.f, dir),
     .lifetime = 30.f,
     .size = 50.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
   });
 
@@ -701,7 +701,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
           .lifetime = 60 * (i + 1),
           .size = RandomRangef(100.f, 200.f),
           .size_velocity = 400.f,
-          .rotation = Randomf() * 2.f * M_PI,
+          .rotation = RandomRadian(),
           .dir = Vec3_RandomRange(-1.f, 1.f),
           .color = Vec3(1.f, 1.f, 1.f),
         });
@@ -714,7 +714,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
         .lifetime = 120,
         .size = RandomRangef(100.f, 200.f),
         .size_velocity = 400.f,
-        .rotation = Randomf() * 2.f * M_PI,
+        .rotation = RandomRadian(),
         .dir = dir,
         .color = Vec3(1.f, 1.f, 1.f),
       });

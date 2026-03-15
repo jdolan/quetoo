@@ -138,7 +138,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
       .animation = cg_sprite_blaster_flame,
       .lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 70) + (i / flashlen * 20.f),
       .origin = Vec3_Fmaf(org, 3.f * (i / flashlen), forward),
-      .rotation = Randomf() * M_PI * 2.f,
+      .rotation = RandomRadian(),
       .size = 1.f + 2.f * (np - i / flashlen),
       .color = color,
     });

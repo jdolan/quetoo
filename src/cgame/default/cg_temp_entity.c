@@ -77,7 +77,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
       .animation = cg_sprite_blaster_flame,
       .lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 30),
       .origin = Vec3_Fmaf(org, 5.f, Vec3_RandomDir()),
-      .rotation = Randomf() * M_PI * 2.f,
+      .rotation = RandomRadian(),
       .rotation_velocity = Randomf() * .1f,
       .size = 25.f,
       .color = color,
@@ -91,7 +91,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
     .animation = cg_sprite_blaster_flame,
     .lifetime = Cg_AnimationLifetime(cg_sprite_blaster_flame, 30),
     .origin = Vec3_Fmaf(org, 5.f, Vec3_RandomDir()),
-    .rotation = Randomf() * M_PI * 2.f,
+    .rotation = RandomRadian(),
     .rotation_velocity = Randomf() * .1f,
     .dir = dir,
     .size = 25.f,
@@ -346,7 +346,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_AddSprite(&(cg_sprite_t) {
       .animation = cg_sprite_impact_spark_01,
       .origin = Vec3_Fmaf(org, 2.f, dir),
-      .rotation = Randomf() * 2.f * M_PI,
+      .rotation = RandomRadian(),
       .size = spark_size,
       .lifetime = spark_life,
       .color = Vec3(1.f, 1.f, 1.f),
@@ -375,7 +375,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .origin = Vec3_Fmaf(org, 5.f, dir),
       .velocity.z = 10.0f,
       .size = RandomRangef(30.f, 50.f),
-      .rotation = Randomf() * 2.f * M_PI,
+      .rotation = RandomRadian(),
       .size_velocity = 60.0f,
       .lifetime = 800.f,
       .color = Vec3(1.f, 1.f, 1.f),
@@ -386,7 +386,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_AddSprite(&(cg_sprite_t) {
       .atlas_image = cg_sprite_spark,
       .origin = Vec3_Fmaf(org, 0.5f, dir),
-      .rotation = Randomf() * 2.f * M_PI,
+      .rotation = RandomRadian(),
       .dir = dir,
       .size = 4.f,
       .lifetime = 650,
@@ -435,6 +435,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
         .velocity = Vec3_RandomRange(-30.f, 30.f),
         .acceleration.z = -SPRITE_GRAVITY / 2.0,
         .color = Vec3(1.f, 1.f, 1.f),
+        .lighting = .8f,
       })) {
       break;
     }
@@ -524,7 +525,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
         .lifetime = 1000 + Randomf() * 1000,
         .size = RandomRangef(.5f, 3.f),
         .size_velocity = 1.f,
-        .rotation = RandomRangef(-M_PI, M_PI),
+        .rotation = RandomRadian(),
         .rotation_velocity = 1.f,
         .bounce = .3f,
         .color = ColorHSV(hue, .4f, 1.f).vec3,
@@ -593,7 +594,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 40),
     .size = 100.f,
     .size_velocity = 25.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
   });
 
@@ -604,7 +605,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
     .size = 175.f,
     .size_velocity = 25.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
   });
 
@@ -615,7 +616,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
     .size = 175.f,
     .size_velocity = 25.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
     .dir = dir
   });
@@ -628,7 +629,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .size = 65.f,
     .size_velocity = 500.f,
     .size_acceleration = -500.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
     .dir = dir
   });
@@ -638,7 +639,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .origin = org,
     .lifetime = 600,//325,
     .size = 200.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .atlas_image = cg_sprite_explosion_glow,
     .color = Vec3(1.f, 1.f, 1.f),
     .lighting = 1.f
@@ -658,7 +659,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
       .origin = org,
           .lifetime = 1500,
           .size = 48.f,
-          .rotation = Randomf() * 2.f * M_PI,
+          .rotation = RandomRadian(),
           .atlas_image = cg_sprite_explosion_glow,
           .color = Vec3(.9f, .6f, .3f),
           .lighting = 1.f
@@ -694,7 +695,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
       .lifetime = Cg_AnimationLifetime(cg_sprite_electro_01, 20),
       .size = 50.f,
       .size_velocity = 400.f,
-      .rotation = Randomf() * 2.f * M_PI,
+      .rotation = RandomRadian(),
       .dir = Vec3_RandomRange(-1.f, 1.f),
       .color = color,
       .lighting = .3f
@@ -707,7 +708,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
     .lifetime = Cg_AnimationLifetime(cg_sprite_electro_01, 8),
     .size = 100.f,
     .size_velocity = 25.f,
-    .rotation = Randomf() * 2.f * M_PI,
+    .rotation = RandomRadian(),
     .dir = dir,
     .color = color,
     .lighting = 1.f
