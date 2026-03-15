@@ -626,19 +626,60 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
-  // TODO: The end sprites get kind of lost when firing and running into a wall at the same time.
-
   vec3_t dir = Vec3_Direction(end, start);
+  const float dist = Vec3_Distance(start, end);
 
-  cgi.AddBeam(cgi.view, &(const r_beam_t) {
-    .start = start,
-    .end = end,
-    .color = Vec3(1.f, 1.f, 1.f),
-    .image = cg_beam_lightning,
-    .size = 8.5f,
-    .flags = SPRITE_BEAM_REPEAT,
-    .translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-  });
+  // Perpendicular axes for oscillation
+  const vec3_t right = Vec3(dir.z, -dir.x, dir.y);
+  const vec3_t up = Vec3_Cross(dir, right);
+
+  // Break beam into oscillating segments
+  const float segment_length = 8.f;
+  const int32_t num_segments = Maxi(1, (int32_t)(dist / segment_length));
+  const float translate = cgi.client->unclamped_time * .006f;
+
+  // Smooth continuous time for fluid wave animation
+  const float time = cgi.client->unclamped_time * .01f;
+
+  // Precompute joint positions along the oscillating path
+  vec3_t joints[num_segments + 1];
+  joints[0] = start;
+  joints[num_segments] = end;
+
+  for (int32_t i = 1; i < num_segments; i++) {
+    const float frac = (float)i / (float)num_segments;
+    vec3_t point = Vec3_Mix(start, end, frac);
+
+    const float envelope = sinf(M_PI * frac);
+    const float along = frac * dist;
+    const float offset_r = sinf(along * .056f - time * 1.125f) * 8.f * envelope;
+    const float offset_u = sinf(along * .097f + time * 2.138f) * 8.f * envelope;
+    point = Vec3_Fmaf(point, offset_r, right);
+    point = Vec3_Fmaf(point, offset_u, up);
+
+    joints[i] = point;
+  }
+
+  // Draw segments with slight overlap to hide joints
+  for (int32_t i = 0; i < num_segments; i++) {
+    const vec3_t seg_start = joints[i];
+    const vec3_t seg_end = joints[i + 1];
+    const vec3_t seg_dir = Vec3_Normalize(Vec3_Subtract(seg_end, seg_start));
+
+    // Extend each segment by 4 units in both directions (except at endpoints)
+    const vec3_t draw_start = i > 0 ? Vec3_Fmaf(seg_start, -4.f, seg_dir) : seg_start;
+    const vec3_t draw_end = i < num_segments - 1 ? Vec3_Fmaf(seg_end, 4.f, seg_dir) : seg_end;
+
+    cgi.AddBeam(cgi.view, &(const r_beam_t) {
+      .start = draw_start,
+      .end = draw_end,
+      .color = Vec3(1.f, 1.f, 1.f),
+      .image = cg_beam_lightning,
+      .size = 5.5f,
+      .flags = SPRITE_BEAM_REPEAT,
+      .translate = translate,
+    });
+  }
 
   // beam endpoint cap
   Cg_AddSprite(&(cg_sprite_t) {
