@@ -256,36 +256,8 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
 }
 
-/**
- * @brief Break the beam into segments based on blend depth transitions.
- */
-void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
-  float length;
-
-  const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
-  length /= b->image->width * (b->size / b->image->height);
-
-  const float half_size = b->size * .5f;
-  const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(view->origin, b->end))), half_size);
-
-  vec2_t texcoords[4];
-  R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
-
-  if (b->flags & SPRITE_BEAM_REPEAT) {
-
-    if (b->stretch) {
-      length *= b->stretch;
-    }
-
-    texcoords[1].x *= length;
-    texcoords[2].x = texcoords[1].x;
-
-    if (b->translate) {
-      for (int32_t i = 0; i < 4; i++) {
-        texcoords[i].x += b->translate;
-      }
-    }
-  }
+static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
+                            const vec3_t right, const vec2_t texcoords[4]) {
 
   float step = 1.f;
   for (float frac = 0.f; frac < 1.f; ) {
@@ -345,6 +317,46 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
     frac += step;
     step = 1.f - frac;
   }
+}
+
+/**
+ * @brief Break the beam into segments based on blend depth transitions.
+ * Draws two perpendicular quads per segment for a volumetric cross section.
+ */
+void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
+  float length;
+
+  const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
+  length /= b->image->width * (b->size / b->image->height);
+
+  const float half_size = b->size * .5f;
+
+  // Two fixed perpendicular axes for cross-quad rendering
+  const vec3_t arbitrary = fabsf(up.z) < .9f ? Vec3(0.f, 0.f, 1.f) : Vec3(1.f, 0.f, 0.f);
+  const vec3_t right1 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, arbitrary)), half_size);
+  const vec3_t right2 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, right1)), half_size);
+
+  vec2_t texcoords[4];
+  R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
+
+  if (b->flags & SPRITE_BEAM_REPEAT) {
+
+    if (b->stretch) {
+      length *= b->stretch;
+    }
+
+    texcoords[1].x *= length;
+    texcoords[2].x = texcoords[1].x;
+
+    if (b->translate) {
+      for (int32_t i = 0; i < 4; i++) {
+        texcoords[i].x += b->translate;
+      }
+    }
+  }
+
+  R_UpdateBeamQuad(view, b, right1, texcoords);
+  R_UpdateBeamQuad(view, b, right2, texcoords);
 }
 
 /**
