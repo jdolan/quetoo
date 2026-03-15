@@ -1220,6 +1220,11 @@ enum {
   SPRITE_BEAM_REPEAT      = 1 << 0,
 
   /**
+   * @brief If set, the sprite renders as two perpendicular axial quads in world space.
+   */
+  SPRITE_AXIAL            = 1 << 1,
+
+  /**
    * @brief Beginning of flags reserved for cgame
    */
   SPRITE_CGAME      = 1 << 16

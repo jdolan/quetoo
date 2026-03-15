@@ -151,7 +151,8 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 /**
  * @brief
  */
-static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
+static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
+                              const vec3_t right, const vec3_t up) {
 
   r_sprite_instance_t *in = R_AllocSpriteInstance(view);
   if (!in) {
@@ -164,38 +165,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
   const float half_width = (s->size ?: s->width) * .5f;
   const float half_height = (s->size ?: s->height) * .5f;
-
-  vec3_t dir, right, up;
-
-  if (Vec3_Equal(s->dir, Vec3_Zero())) {
-
-    if (s->axis == SPRITE_AXIS_ALL) {
-      if (s->rotation) {
-        dir = view->angles;
-        dir.z = Degrees(s->rotation);
-        Vec3_Vectors(dir, NULL, &right, &up);
-      } else {
-        right = view->right;
-        up = view->up;
-      }
-    } else {
-      dir = Vec3_Zero();
-
-      for (int32_t i = 0; i < 3; i++) {
-        if (s->axis & (1 << i)) {
-          dir.xyz[i] = view->forward.xyz[i];
-        }
-      }
-
-      dir = Vec3_Euler(Vec3_Normalize(dir));
-      dir.z = Degrees(s->rotation);
-      Vec3_Vectors(dir, NULL, &right, &up);
-    }
-  } else {
-    dir = Vec3_Euler(s->dir);
-    dir.z = Degrees(s->rotation);
-    Vec3_Vectors(dir, NULL, &right, &up);
-  }
 
   const vec3_t u = Vec3_Scale(up, half_height),
          d = Vec3_Scale(up, -half_height),
@@ -254,6 +223,56 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   in->vertexes[3].lighting = Clampf01(s->lighting) * 255;
 
   in->bounds = Box3_FromPointsStride(in->vertexes, 4, sizeof(r_sprite_vertex_t));
+}
+
+/**
+ * @brief
+ */
+static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
+
+  if (s->flags & SPRITE_AXIAL) {
+    // Two perpendicular world-space quads
+    const vec3_t up1 = Vec3(0.f, 0.f, 1.f);
+    const vec3_t right1 = Vec3(1.f, 0.f, 0.f);
+    const vec3_t right2 = Vec3(0.f, 1.f, 0.f);
+
+    R_UpdateSpriteQuad(view, s, right1, up1);
+    R_UpdateSpriteQuad(view, s, right2, up1);
+  }
+
+  vec3_t dir, right, up;
+
+  if (Vec3_Equal(s->dir, Vec3_Zero())) {
+
+    if (s->axis == SPRITE_AXIS_ALL) {
+      if (s->rotation) {
+        dir = view->angles;
+        dir.z = Degrees(s->rotation);
+        Vec3_Vectors(dir, NULL, &right, &up);
+      } else {
+        right = view->right;
+        up = view->up;
+      }
+    } else {
+      dir = Vec3_Zero();
+
+      for (int32_t i = 0; i < 3; i++) {
+        if (s->axis & (1 << i)) {
+          dir.xyz[i] = view->forward.xyz[i];
+        }
+      }
+
+      dir = Vec3_Euler(Vec3_Normalize(dir));
+      dir.z = Degrees(s->rotation);
+      Vec3_Vectors(dir, NULL, &right, &up);
+    }
+  } else {
+    dir = Vec3_Euler(s->dir);
+    dir.z = Degrees(s->rotation);
+    Vec3_Vectors(dir, NULL, &right, &up);
+  }
+
+  R_UpdateSpriteQuad(view, s, right, up);
 }
 
 static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,

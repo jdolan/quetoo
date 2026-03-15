@@ -152,8 +152,27 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 
   flare->in.media = stage->media;
   flare->in.lighting = 1.f;
+  flare->in.flags = SPRITE_AXIAL;
 
   return flare;
+}
+
+/**
+ * @brief Returns true if two faces share a vertex position, indicating geometric adjacency.
+ */
+static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
+
+  const float epsilon = 1.f;
+
+  for (int32_t i = 0; i < a->num_vertexes; i++) {
+    for (int32_t j = 0; j < b->num_vertexes; j++) {
+      if (Vec3_Distance(a->vertexes[i].position, b->vertexes[j].position) < epsilon) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -167,7 +186,8 @@ static void Cg_MergeFlares(void) {
     for (guint j = i + 1; j < cg_flares->len; j++) {
       cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
-      if (a->face->brush_side == b->face->brush_side) {
+      if (a->face->brush_side == b->face->brush_side &&
+          Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
         g_ptr_array_remove_index(cg_flares, j);
