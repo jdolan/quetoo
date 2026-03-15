@@ -47,7 +47,7 @@ vec3 sprite_fragment_lighting_light(in int index) {
 
   vec3 c = light.color.rgb;
   float chroma = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-  float chroma_weight = clamp(chroma * 4.0, 0.0, 1.0);
+  float chroma_weight = max(0.25, clamp(chroma * 4.0, 0.0, 1.0));
 
   return c * light.color.a * atten * modulate * chroma_weight;
 }
