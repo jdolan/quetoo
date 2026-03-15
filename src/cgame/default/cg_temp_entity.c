@@ -565,15 +565,15 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     }
   } else {
     // ember sparks
-    for (int32_t i = 0; i < 100; i++) {
-      const uint32_t lifetime = 3000 + Randomf() * 300;
+    for (int32_t i = 0; i < 150; i++) {
+      const uint32_t lifetime = 3000 + Randomf() * 500;
       const float size = 2.f + Randomf() * 2.f;
       const float hue = RandomRangef(10.f, 50.f);
 
       if (!Cg_AddSprite(&(cg_sprite_t) {
           .atlas_image = cg_sprite_particle2,
-          .origin = Vec3_Add(org, Vec3_RandomRange(-10.f, 10.f)),
-          .velocity = Vec3_RandomRange(-300.f, 300.f),
+          .origin = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f)),
+          .velocity = Vec3_RandomRange(-400.f, 400.f),
           .acceleration.z = -SPRITE_GRAVITY * 2.f,
           .lifetime = lifetime,
           .size = size,
@@ -592,8 +592,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .origin = org,
     .animation = cg_sprite_explosion,
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 40),
-    .size = 100.f,
-    .size_velocity = 25.f,
+    .size = 150.f,
+    .size_velocity = 40.f,
     .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
   });
@@ -603,8 +603,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .origin = org,
     .animation = cg_sprite_explosion,
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
-    .size = 175.f,
-    .size_velocity = 25.f,
+    .size = 250.f,
+    .size_velocity = 40.f,
     .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
   });
@@ -614,8 +614,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .origin = org,
     .animation = cg_sprite_explosion,
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion, 30),
-    .size = 175.f,
-    .size_velocity = 25.f,
+    .size = 250.f,
+    .size_velocity = 40.f,
     .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
     .dir = dir
@@ -626,9 +626,9 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     .origin = org,
     .animation = cg_sprite_explosion_ring_02,
     .lifetime = Cg_AnimationLifetime(cg_sprite_explosion_ring_02, 20),
-    .size = 65.f,
-    .size_velocity = 500.f,
-    .size_acceleration = -500.f,
+    .size = 100.f,
+    .size_velocity = 700.f,
+    .size_acceleration = -700.f,
     .rotation = RandomRadian(),
     .color = Vec3(1.f, 1.f, 1.f),
     .dir = dir
@@ -637,8 +637,8 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   // blast glow
   Cg_AddSprite(&(cg_sprite_t) {
     .origin = org,
-    .lifetime = 600,//325,
-    .size = 200.f,
+    .lifetime = 600,
+    .size = 300.f,
     .rotation = RandomRadian(),
     .atlas_image = cg_sprite_explosion_glow,
     .color = Vec3(1.f, 1.f, 1.f),
@@ -648,7 +648,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddDecal(&(r_decal_t) {
     .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
     .origin = org,
-    .radius = RandomRangef(24.f, 48.f),
+    .radius = RandomRangef(32.f, 64.f),
     .color = Color4f(0.f, 0.f, 0.f, .5f + Randomf() * .4f),
     .lifetime = 16000 + Randomf() * 8000,
     .rotation = RandomRadian()
@@ -658,7 +658,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddSprite(&(cg_sprite_t) {
       .origin = org,
           .lifetime = 1500,
-          .size = 48.f,
+          .size = 72.f,
           .rotation = RandomRadian(),
           .atlas_image = cg_sprite_explosion_glow,
           .color = Vec3(.9f, .6f, .3f),
@@ -667,10 +667,10 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
   Cg_AddLight(&(const cg_light_t) {
     .origin = org,
-    .radius = 300.0,
+    .radius = 450.0,
     .color = Vec3(.9f, .6f, .3f),
-    .intensity = 6.f,
-    .decay = 1000
+    .intensity = 8.f,
+    .decay = 1200
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
