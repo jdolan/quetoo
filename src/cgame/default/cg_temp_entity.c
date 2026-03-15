@@ -730,8 +730,8 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddDecal(&(r_decal_t) {
     .image = cg_decal_burn[Randomi() % lengthof(cg_decal_burn)],
     .origin = org,
-    .radius = RandomRangef(6.f, 12.f),
-    .color = Color3fv(color),
+    .radius = RandomRangef(12.f, 18.f),
+    .color = Color3fv(ColorHSV(225.f, .7f, .8f).vec3),
     .lifetime = 3000 + Randomf() * 3000,
     .rotation = RandomRadian()
   });
