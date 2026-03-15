@@ -604,9 +604,7 @@ void G_SpawnTechs(void) {
  */
 void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
 
-  // Disconnect AI clients before tearing down level state. Their g_client_t
-  // slots remain in_use and in the bot count between maps otherwise, causing
-  // G_Ai_Frame to see a full bot count and never respawn them.
+  // Drop bots, they will reconnect via G_Ai_Frame
   G_ForEachClient(cl, {
     if (cl->ai) {
       G_ClientDisconnect(cl);
@@ -620,6 +618,10 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
+    cl->persistent.score = 0;
+    cl->persistent.captures = 0;
+    cl->persistent.deaths = 0;
+    cl->persistent.team = NULL;
   });
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {

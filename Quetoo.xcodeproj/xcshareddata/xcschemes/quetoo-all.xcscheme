@@ -122,14 +122,14 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set ai_node_dev 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map claustrophobopolis"
+            argument = "+map fragpipe"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
