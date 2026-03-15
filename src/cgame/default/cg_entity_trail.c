@@ -629,12 +629,12 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
   vec3_t dir = Vec3_Direction(end, start);
   const float dist = Vec3_Distance(start, end);
 
-  // Perpendicular axes for oscillation
-  const vec3_t right = Vec3(dir.z, -dir.x, dir.y);
-  const vec3_t up = Vec3_Cross(dir, right);
+  // World-space oscillation axes — reads clearly from any viewing angle
+  const vec3_t world_up = Vec3(0.f, 0.f, 1.f);
+  const vec3_t world_right = Vec3_Normalize(Vec3_Cross(dir, world_up));
 
   // Break beam into oscillating segments
-  const float segment_length = 8.f;
+  const float segment_length = 4.f;
   const int32_t num_segments = Maxi(1, (int32_t)(dist / segment_length));
   const float translate = cgi.client->unclamped_time * .006f;
 
@@ -650,12 +650,18 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
     const float frac = (float)i / (float)num_segments;
     vec3_t point = Vec3_Mix(start, end, frac);
 
-    const float envelope = sinf(M_PI * frac);
+    // Taper amplitude — sharper falloff near endpoints
+    const float envelope = sinf(M_PI * frac) * sinf(M_PI * frac);
     const float along = frac * dist;
-    const float offset_r = sinf(along * .056f - time * 1.125f) * 8.f * envelope;
-    const float offset_u = sinf(along * .097f + time * 2.138f) * 8.f * envelope;
-    point = Vec3_Fmaf(point, offset_r, right);
-    point = Vec3_Fmaf(point, offset_u, up);
+
+    // Dominant up/down wave in world Z
+    const float offset_z = sinf(along * .056f - time * 3.f) * 12.f * envelope;
+
+    // Small random sideways jitter in world horizontal
+    const float hash = sinf(along * .37f + time * 7.f) * sinf(along * .71f - time * 3.3f);
+    const float offset_h = hash * 5.f * envelope;
+    point = Vec3_Fmaf(point, offset_h, world_right);
+    point.z += offset_z;
 
     joints[i] = point;
   }
@@ -666,9 +672,9 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
     const vec3_t seg_end = joints[i + 1];
     const vec3_t seg_dir = Vec3_Normalize(Vec3_Subtract(seg_end, seg_start));
 
-    // Extend each segment by 4 units in both directions (except at endpoints)
-    const vec3_t draw_start = i > 0 ? Vec3_Fmaf(seg_start, -4.f, seg_dir) : seg_start;
-    const vec3_t draw_end = i < num_segments - 1 ? Vec3_Fmaf(seg_end, 4.f, seg_dir) : seg_end;
+    // Extend each segment slightly to hide joints
+    const vec3_t draw_start = i > 0 ? Vec3_Fmaf(seg_start, -2.f, seg_dir) : seg_start;
+    const vec3_t draw_end = i < num_segments - 1 ? Vec3_Fmaf(seg_end, 2.f, seg_dir) : seg_end;
 
     cgi.AddBeam(cgi.view, &(const r_beam_t) {
       .start = draw_start,
