@@ -52,7 +52,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
         .velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
         .color = Vec3(.1f, 1.f, .3f),
         .size = 10.f,
-        .softness = 1.f
       }))) {
       break;
     }
@@ -68,7 +67,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
     .size = 150.f,
     .atlas_image = cg_sprite_particle,
     .color = Vec3(.1f, 1.f, .3f),
-    .softness = 4.f
   });
 
   Cg_AddLight(&(cg_light_t) {
@@ -106,7 +104,6 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
     .size = 150,
     .atlas_image = cg_sprite_particle,
     .color = Vec3(.3f, 1.f, .6f),
-    .softness = 4.f
   });
 
   Cg_AddLight(&(cg_light_t) {
@@ -133,7 +130,6 @@ void Cg_TeleporterEffect(const vec3_t org) {
       .acceleration.z = -SPRITE_GRAVITY * .1f,
       .lifetime = 500,
       .color = Vec3(1.f, 1.f, 1.f),
-      .softness = 1.f
     });
   }
 

@@ -24,8 +24,7 @@ layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec2 in_next_diffusemap;
 layout (location = 3) in vec3 in_color;
 layout (location = 4) in float in_lerp;
-layout (location = 5) in float in_softness;
-layout (location = 6) in float in_lighting;
+layout (location = 5) in float in_lighting;
 
 out vertex_data {
   vec3 position;
@@ -33,7 +32,6 @@ out vertex_data {
   vec2 next_diffusemap;
   vec3 color;
   float lerp;
-  float softness;
 } vertex;
 
 /**
@@ -97,7 +95,6 @@ void main(void) {
   vertex.next_diffusemap = in_next_diffusemap;
   vertex.color = in_color;
   vertex.lerp = in_lerp;
-  vertex.softness = in_softness;
 
   vec3 texcoord = voxel_uvw(in_position);
 

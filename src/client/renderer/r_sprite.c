@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-static cvar_t *r_sprite_soften;
-
 /**
  * @brief
  */
@@ -250,11 +248,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   in->vertexes[2].color =
   in->vertexes[3].color = Color_Color24(Color3fv(s->color));
 
-  in->vertexes[0].softness =
-  in->vertexes[1].softness =
-  in->vertexes[2].softness =
-  in->vertexes[3].softness = Clampf01(r_sprite_soften->value * s->softness) * 255;
-
   in->vertexes[0].lighting =
   in->vertexes[1].lighting =
   in->vertexes[2].lighting =
@@ -342,11 +335,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
     in->vertexes[2].lerp =
     in->vertexes[3].lerp = 0.f;
 
-    in->vertexes[0].softness =
-    in->vertexes[1].softness =
-    in->vertexes[2].softness =
-    in->vertexes[3].softness = r_sprite_soften->value * b->softness;
-
     in->vertexes[0].lighting =
     in->vertexes[1].lighting =
     in->vertexes[2].lighting =
@@ -398,9 +386,7 @@ void R_DrawSprites(const r_view_t *view) {
 
   glBindVertexArray(r_sprites.vertex_array);
 
-  if (r_sprite_soften->value) {
-    R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
-  }
+  R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
@@ -527,8 +513,7 @@ void R_InitSprites(void) {
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
   glVertexAttribPointer(3, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
   glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
-  glVertexAttribPointer(6, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
@@ -536,15 +521,12 @@ void R_InitSprites(void) {
   glEnableVertexAttribArray(3);
   glEnableVertexAttribArray(4);
   glEnableVertexAttribArray(5);
-  glEnableVertexAttribArray(6);
 
   glBindVertexArray(0);
 
   R_GetError(NULL);
 
   R_InitSpriteProgram();
-
-  r_sprite_soften = Cvar_Add("r_sprite_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
 /**

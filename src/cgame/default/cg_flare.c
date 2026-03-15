@@ -151,7 +151,6 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
   }
 
   flare->in.media = stage->media;
-  flare->in.softness = 1.f;
   flare->in.lighting = 1.f;
 
   return flare;

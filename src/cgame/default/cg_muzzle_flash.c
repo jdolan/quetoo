@@ -99,7 +99,6 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
     .atlas_image = cg_sprite_steam,
     .rotation = RandomRangef(0.0f, 2.0 * M_PI),
     .color = Vec3(1.f, 1.f, 1.f),
-    .softness = 1.f
   });
 }
 
@@ -142,7 +141,6 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
       .rotation = Randomf() * M_PI * 2.f,
       .size = 1.f + 2.f * (np - i / flashlen),
       .color = color,
-      .softness = 1.f
     });
   }
 
@@ -153,7 +151,6 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
     .size = 30.f,
     .size_velocity = 30.f,
     .color = color,
-    .softness = 1.f
   });
 }
 

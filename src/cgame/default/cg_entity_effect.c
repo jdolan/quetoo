@@ -70,7 +70,6 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
     .color = color_white.vec3,
     .media = (r_media_t *) cg_sprite_inactive,
     .size = 32.f,
-    .softness = 1.f
   });
 }
 

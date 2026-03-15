@@ -1312,11 +1312,6 @@ typedef struct {
   r_sprite_flags_t flags;
 
   /**
-   * @brief Sprite softness scalar. Negative values apply an invert to the result.
-   */
-  float softness;
-
-  /**
    * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
@@ -1369,11 +1364,6 @@ typedef struct {
   r_sprite_flags_t flags;
 
   /**
-   * @brief Beam softness scalar. Negative values apply an invert to the result.
-   */
-  float softness;
-
-  /**
    * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
@@ -1390,7 +1380,6 @@ typedef struct {
   vec2_t next_diffusemap;
   color24_t color;
   uint8_t lerp;
-  uint8_t softness;
   uint8_t lighting;
 } r_sprite_vertex_t;
 

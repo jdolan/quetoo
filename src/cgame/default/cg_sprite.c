@@ -260,7 +260,6 @@ void Cg_AddSprites(void) {
           .flags = s->flags,
           .dir = s->dir,
           .axis = s->axis,
-          .softness = s->softness,
           .lighting = s->lighting,
         });
         break;
@@ -282,7 +281,6 @@ void Cg_AddSprites(void) {
           .image = (r_image_t *) s->image,
           .color = color,
           .flags = s->flags,
-          .softness = s->softness,
           .lighting = s->lighting,
         });
         break;

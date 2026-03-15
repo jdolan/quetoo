@@ -186,7 +186,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
         .size = 32.f,
         .velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f)),
         .axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
-        .softness = 5.f,
       });
 
       if (Randomf() > .8f) {
@@ -211,7 +210,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
         .size = 4.f,
         .velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f)),
         .acceleration = Vec3_RandomRange(-12.f, 12.f),
-        .softness = 1.f
       });
     }
     else if (cg_state.weather & WEATHER_ASH) {
@@ -224,7 +222,6 @@ static void Cg_AddWeather_(const cg_weather_emit_t *e) {
                 .size = size,
                 .velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 25.f)),
                 .acceleration = Vec3_RandomRange(-12.f, 12.f),
-                .softness = 1.f,
                 .rotation = RandomRadian()
         });
     }

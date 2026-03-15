@@ -96,7 +96,6 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.height = cgi.EntityValue(self->def, "height")->value;
   dust->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
   dust->sprite.lifetime = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "lifetime")->value ?: 10.f);
-  dust->sprite.softness = cgi.EntityValue(self->def, "softness")->value ?: 1.f;
   dust->sprite.lighting = cgi.EntityValue(self->def, "lighting")->value ?: 1.f;
 
   dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
@@ -277,7 +276,6 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
         .size_velocity = 16.f,
         .size_acceleration = 150.f * s,
         .color = ColorHSV(hue, sat, RandomRangef(.7f, 1.f)).vec3,
-        .softness = 1.f
       })) {
       break;
     }
@@ -574,7 +572,6 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   sprite->sprite.height = cgi.EntityValue(self->def, "height")->value;
   sprite->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
   sprite->sprite.lifetime = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "lifetime")->value ?: 10.f);
-  sprite->sprite.softness = cgi.EntityValue(self->def, "softness")->value ?: 1.f;
   sprite->sprite.lighting = cgi.EntityValue(self->def, "lighting")->value ?: 1.f;
 }
 
@@ -617,7 +614,6 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
       s.size_velocity = Mixf(this->sprite.size_velocity, that->sprite.size_velocity, Randomf());
       s.size_acceleration = Mixf(this->sprite.size_acceleration, that->sprite.size_acceleration, Randomf());
       s.bounce = Mixf(this->sprite.bounce, that->sprite.bounce, Randomf());
-      s.softness = Mixf(this->sprite.softness, that->sprite.softness, Randomf());
       s.lighting = Mixf(this->sprite.lighting, that->sprite.lighting, Randomf());
 
       Cg_AddSprite(&s);
@@ -707,7 +703,6 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .size_velocity = 10.f,
       .color = Vec3(1.f, 1.f, 1.f),
       .lighting = 1.f,
-      .softness = 1.f,
     })) {
       break;
     };
