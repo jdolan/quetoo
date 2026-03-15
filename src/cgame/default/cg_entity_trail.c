@@ -336,66 +336,47 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
     Cg_BubbleTrail(ent, start, end, 6.f);
   }
 
-  const float pulse1 = sinf(cgi.client->unclamped_time * .02f)  * .5f + .5f;
-  const float pulse2 = sinf(cgi.client->unclamped_time * .04f)  * .5f + .5f;
-  // vec3_t dir = Vec3_Normalize(Vec3_Subtract(end, start));
-
-  // ring
-  cgi.AddSprite(cgi.view, &(r_sprite_t) {
-    .media = (r_media_t *) cg_sprite_ring,
-    .origin = ent->origin,
-    .size = pulse1 * 10.f + 20.f,
-    .color = ColorHSV(120.f, .76f, .20f).vec3,
-  });
-  
-  // streak
-  cgi.AddSprite(cgi.view, &(r_sprite_t) {
-    .media = (r_media_t *) cg_sprite_aniso_flare_01,
-    .origin = ent->origin,
-    .size = pulse2 * 10.f + 10.f,
-    .color = ColorHSV(120.f, .76f, .20f + (pulse2 * .33f)).vec3,
-  });
-
-  // glow
-  for (int32_t i = 0; i < 2; i++) {
-    cgi.AddSprite(cgi.view, &(r_sprite_t) {
-      .media = (r_media_t *) cg_sprite_flash,
-      .origin = ent->origin,
-      .size = 40.f,
-      .color = ColorHSV(120.f, .76f, .20f).vec3,
-      .rotation = sinf(cgi.client->unclamped_time * (i == 0 ? .002f : -.001f)),
-    });
-  }
-
-  Cg_AddLight(&(cg_light_t) {
-    .origin = end, // TODO: find a way to nudge this away from the surface a bit
-    .radius = 40.f + 20.f * pulse1,
-    .color = Vec3(.05f, .5f, .05f),
-    .intensity = 1.f
-  });
-
-  /*mat4_t m = Mat4_FromTranslation(end);
-  m = Mat4_ConcatRotation(m, ent->angles.x, Vec3(1.f, 0.f, 0.f));
-  m = Mat4_ConcatRotation(m, ent->angles.y, Vec3(0.f, 1.f, 0.f));
-  m = Mat4_ConcatRotation(m, ent->angles.z, Vec3(0.f, 0.f, 1.f));
-  m = Mat4_ConcatTranslation(m, Vec3(0.f, 0.f, 3.f));
-
-  vec3_t trail_pos = Mat4_Transform(m, Vec3_Zero());
-
-  vec3_t org, dir;
-  const int32_t count = Cg_TrailFraction(trail_pos, 8.f, ent, TRAIL_PRIMARY, &org, &dir);
+  // Smoke trail
+  vec3_t origin, dir;
+  const int32_t count = Cg_TrailCount(end, 12.f, ent, TRAIL_PRIMARY, &origin, &dir);
 
   if (count) {
-    Cg_AddSprite(&(cg_sprite_t) {
-      .image = cg_beam_line,
-      .type = SPRITE_BEAM,
-      .origin = trail_pos,
-      .termination = org,
-      .size = 4.f,
-      .color = ColorHSV(color_hue_red, 1.f, 1.f).vec3,
-      .lifetime = 120
-    });
-  }*/
+    const float step = 1.f / count;
+
+    for (int32_t i = 0; i <= count; i++) {
+      Cg_AddSprite(&(cg_sprite_t) {
+        .atlas_image = cg_sprite_smoke,
+        .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
+        .velocity = Vec3(RandomRangef(-5.f, 5.f), RandomRangef(-5.f, 5.f), RandomRangef(10.f, 20.f)),
+        .lifetime = RandomRangef(600.f, 900.f),
+        .color = Vec3(.6f, .6f, .6f),
+        .size = 1.5f,
+        .size_velocity = 10.f,
+        .rotation = RandomRadian(),
+        .rotation_velocity = RandomRangef(.2f, .8f),
+        .lighting = 1.f,
+      });
+    }
+  }
+
+  // Dynamic lights — green glow with red detonator blink
+  const float pulse = sinf(cgi.client->unclamped_time * .02f) * .5f + .5f;
+
+  Cg_AddLight(&(cg_light_t) {
+    .origin = end,
+    .radius = 150.f + 30.f * pulse,
+    .color = Vec3(.2f, .8f, .2f),
+    .intensity = 2.f,
+    .source = ent,
+  });
+
+  Cg_AddLight(&(cg_light_t) {
+    .origin = end,
+    .radius = 60.f + 20.f * (1.f - pulse),
+    .color = Vec3(.8f, .1f, .05f),
+    .intensity = 2.f * (1.f - pulse),
+    .source = ent,
+  });
 }
 
 static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) {
