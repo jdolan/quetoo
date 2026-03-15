@@ -138,10 +138,9 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
     .image = cg_beam_tracer,
     .origin = start,
     .termination = Vec3_Fmaf(start, tracer_length, velocity),
-    .size = 5.f,
+    .size = 2.5f,
     .velocity = Vec3_Scale(velocity, tracer_speed),
     .lifetime = lifetime,
-    .color = Vec3(1.f, 1.f, 1.f),
   });
 }
 
@@ -524,7 +523,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
         .acceleration.z = -SPRITE_GRAVITY,
         .lifetime = 1000 + Randomf() * 1000,
         .size = RandomRangef(.5f, 3.f),
-        .size_velocity = 1.f,
+        .size_velocity = -1.f,
         .rotation = RandomRadian(),
         .rotation_velocity = 1.f,
         .bounce = .3f,
