@@ -537,7 +537,8 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
     Cg_BubbleTrail(ent, start, end, 1.f);
   }
 
-  const vec3_t color = ColorHSV(204.f, .75f, .44f).vec3;
+  const vec3_t color = ColorHSV(204.f, .8f, 1.f).vec3;
+  const vec3_t core_color = Vec3(.5f, .85f, 1.f);
 
   vec3_t dir = Vec3_Direction(start, end);
 
@@ -552,11 +553,11 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
     for (int32_t i = 0; i < 3; i++) {
       Cg_AddSprite(&(cg_sprite_t) {
         .atlas_image = variation[i],
-        .size = RandomRangef(10.f, 15.f),
+        .size = RandomRangef(12.f, 18.f),
         .rotation = RandomRadian(),
         .lifetime = 100.f,
         .color = color,
-        .lighting = .3f,
+        .lighting = .15f,
         .flags = SPRITE_FOLLOW_ENTITY | SPRITE_ENTITY_UNLINK_ON_DEATH,
         .entity = Cg_GetSpriteEntity(ent)
       });
@@ -568,37 +569,37 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
   cgi.AddSprite(cgi.view, &(r_sprite_t) {
     .media = (r_media_t *) cg_sprite_blob_01,
     .origin = ent->origin,
-    .size = RandomRangef(10.f, 15.f),
+    .size = RandomRangef(14.f, 18.f),
     .rotation = RandomRadian(),
-    .color = Vec3(.06f, .25f, .37f),
-    .lighting = .3f,
+    .color = core_color,
+    .lighting = .1f,
   });
 
-  // center core
+  // center core (bright hot spot)
   cgi.AddSprite(cgi.view, &(r_sprite_t) {
     .media = (r_media_t *) cg_sprite_particle,
     .origin = ent->origin,
-    .size = RandomRangef(4.5f, 7.f),
+    .size = RandomRangef(6.f, 9.f),
     .rotation = RandomRadian(),
-    .color = Vec3(.06f, .25f, .37f),
-    .lighting = .1f,
+    .color = Vec3(.8f, .95f, 1.f),
+    .lighting = .0f,
   });
 
   cgi.AddBeam(cgi.view, &(r_beam_t) {
     .start = Vec3_Fmaf(end, 70.f, dir),
     .end = start,
-    .color = Vec3(.06f, .25f, .37f),
+    .color = core_color,
     .image = cg_beam_tail,
-    .size = 5.0f,
+    .size = 6.0f,
     .translate = cgi.client->unclamped_time * RandomRangef(.003f, .009f),
-    .lighting = 1.f,
+    .lighting = .5f,
   });
 
   Cg_AddLight(&(cg_light_t) {
     .origin = ent->origin,
-    .radius = 150.f,
+    .radius = 250.f,
     .color = Vec3(.4f, .7f, 1.f),
-    .intensity = 2.f
+    .intensity = 3.f
   });
 }
 
