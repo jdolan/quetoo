@@ -141,6 +141,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
     .size = 2.5f,
     .velocity = Vec3_Scale(velocity, tracer_speed),
     .lifetime = lifetime,
+    .color = Vec3(1.f, .9f, .6f),
   });
 }
 
@@ -844,6 +845,18 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       });
     }
   }
+
+  // Core beam
+  Cg_AddSprite(&(cg_sprite_t) {
+    .type = SPRITE_BEAM,
+    .origin = start,
+    .termination = end,
+    .image = cg_beam_rail,
+    .flags = SPRITE_BEAM_REPEAT,
+    .size = 3.f,
+    .lifetime = 400,
+    .color = color,
+  });
 
   // Check for explosion effect on solids
 
