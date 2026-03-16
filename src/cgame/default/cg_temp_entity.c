@@ -559,7 +559,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
     for (int32_t i = 0; i < 16; i++) {
 
       const vec3_t start = Vec3_Add(org, Vec3_RandomRange(-16.f, 16.f));
-      const vec3_t end = Vec3_Fmaf(start, RandomRangef(48.f, 128.f), Vec3_RandomDir());
+      const vec3_t end = Vec3_Fmaf(start, RandomRangef(64.f, 192.f), Vec3_RandomDir());
 
       Cg_BubbleTrail(NULL, start, end, 1.f);
     }
@@ -667,10 +667,10 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
   Cg_AddLight(&(const cg_light_t) {
     .origin = org,
-    .radius = 450.0,
+    .radius = 360.0,
     .color = Vec3(.9f, .6f, .3f),
     .intensity = 8.f,
-    .decay = 1200
+    .decay = 1600
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
@@ -785,10 +785,10 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
   Cg_AddLight(&(cg_light_t) {
     .origin = start,
-    .radius = 100.f,
+    .radius = 140.f,
     .color = color,
-    .intensity = 1.f,
-    .decay = 500,
+    .intensity = 5.f,
+    .decay = 240,
   });
 
   if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { start, end }, 2)) & CONTENTS_MASK_LIQUID) {

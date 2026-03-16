@@ -77,9 +77,9 @@ static void Cg_SmokeFlash(const cl_entity_t *ent) {
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
-    .radius = 120.0,
+    .radius = 80.0,
     .color = Vec3(0.8, 0.7, 0.5),
-    .intensity = 1.f,
+    .intensity = 3.f,
     .decay = 300
   });
 
@@ -117,7 +117,7 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
     .origin = org,
     .radius = 120.0,
     .color = color,
-    .intensity = 1.f,
+    .intensity = 3.f,
     .decay = 300
   });
 
