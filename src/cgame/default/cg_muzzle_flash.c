@@ -156,6 +156,82 @@ static void Cg_BlasterFlash(const cl_entity_t *ent) {
 
 
 /**
+ * @brief
+ */
+static void Cg_RocketFlash(const cl_entity_t *ent) {
+
+  vec3_t org = Cg_MuzzleOrigin(ent, -2.f, 20.f);
+
+  vec3_t forward, right;
+  Vec3_Vectors(ent->angles, &forward, &right, NULL);
+
+  Cg_AddLight(&(cg_light_t) {
+    .origin = org,
+    .radius = 200.f,
+    .color = Vec3(.9f, .6f, .3f),
+    .intensity = 4.f,
+    .decay = 400
+  });
+
+  if (cgi.PointContents(ent->origin) & CONTENTS_MASK_LIQUID) {
+    const vec3_t org2 = Vec3_Fmaf(ent->origin, 40.f, forward);
+    Cg_BubbleTrail(NULL, org, org2, 2.f);
+    return;
+  }
+
+  // muzzle flash glow
+  Cg_AddSprite(&(cg_sprite_t) {
+    .atlas_image = cg_sprite_explosion_glow,
+    .origin = Vec3_Fmaf(org, 8.f, forward),
+    .lifetime = 300,
+    .size = 60.f,
+    .color = Vec3(.9f, .6f, .3f),
+  });
+
+  // muzzle flame burst
+  for (int32_t i = 0; i < 3; i++) {
+    Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_flame,
+      .origin = Vec3_Fmaf(org, 4.f + i * 4.f, forward),
+      .velocity = Vec3_Scale(forward, RandomRangef(40.f, 80.f)),
+      .lifetime = RandomRangef(200.f, 400.f),
+      .size = RandomRangef(10.f, 18.f),
+      .size_velocity = -20.f,
+      .rotation = RandomRadian(),
+      .color = ColorHSV(RandomRangef(20.f, 50.f), 1.f, 1.f).vec3,
+    });
+  }
+
+  // smoke puff
+  Cg_AddSprite(&(cg_sprite_t) {
+    .atlas_image = cg_sprite_smoke,
+    .origin = org,
+    .velocity = Vec3_Scale(forward, RandomRangef(15.f, 30.f)),
+    .lifetime = 800,
+    .size = 4.f,
+    .size_velocity = 36.f,
+    .rotation = RandomRadian(),
+    .rotation_velocity = RandomRangef(.2f, .8f),
+    .color = Vec3(.5f, .5f, .5f),
+    .lighting = 1.f,
+  });
+
+  // embers
+  for (int32_t i = 0; i < 24; i++) {
+    Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_particle2,
+      .origin = Vec3_Fmaf(org, 6.f, forward),
+      .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(100.f, 250.f)),
+                           Vec3_RandomRange(-60.f, 60.f)),
+      .acceleration.z = -SPRITE_GRAVITY,
+      .lifetime = RandomRangef(400.f, 800.f),
+      .size = RandomRangef(1.f, 2.f),
+      .color = ColorHSV(RandomRangef(15.f, 45.f), 1.f, 1.f).vec3,
+    });
+  }
+}
+
+/**
  * @brief FIXME: This should be a tentity instead; would make more sense.
  */
 static void Cg_LogoutFlash(const cl_entity_t *ent) {
@@ -204,7 +280,7 @@ void Cg_ParseMuzzleFlash(void) {
       break;
     case MZ_ROCKET_LAUNCHER:
       sample = cg_sample_rocketlauncher_fire;
-      Cg_SmokeFlash(ent);
+      Cg_RocketFlash(ent);
       pitch = 3;
       break;
     case MZ_GRENADE_LAUNCHER:
