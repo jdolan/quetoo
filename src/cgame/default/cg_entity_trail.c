@@ -143,38 +143,6 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 /**
  * @brief
  */
-void Cg_SmokeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
-
-  vec3_t origin, dir;
-  const int32_t count = Cg_TrailCount(end, 8.f, ent, TRAIL_SECONDARY, &origin, &dir);
-
-  if (!count) {
-    return;
-  }
-
-  const float step = 1.f / count;
-
-  for (int32_t i = 0; i <= count; i++) {
-
-    Cg_AddSprite(&(cg_sprite_t) {
-      .atlas_image = cg_sprite_smoke,
-      .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
-      .velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
-      .acceleration = Vec3_Scale(dir, -20.f),
-      .lifetime = RandomRangef(1000.f, 1400.f),
-      .color = Vec3(1.f, 1.f, 1.f),
-      .size = 2.5f,
-      .size_velocity = 15.f,
-      .rotation = RandomRangef(.0f, M_PI),
-      .rotation_velocity = RandomRangef(.2f, 1.f),
-      .lighting = 1.f,
-    });
-  }
-}
-
-/**
- * @brief
- */
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
   const float hue = RandomRangef(50.f, 60.f);
@@ -986,7 +954,28 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
     const float decay = Clampf01((cgi.client->unclamped_time - ent->timestamp) / 1000.f);
     l.radius *= (1.f - decay);
   } else {
-    Cg_SmokeTrail(ent, start, end);
+
+    vec3_t origin, dir;
+    const int32_t count = Cg_TrailCount(end, 8.f, ent, TRAIL_SECONDARY, &origin, &dir);
+    if (count) {
+      const float step = 1.f / count;
+      for (int32_t i = 0; i <= count; i++) {
+        Cg_AddSprite(&(cg_sprite_t) {
+          .atlas_image = cg_sprite_smoke,
+          .origin = Vec3_Mix(end, origin, (step * i) + RandomRangef(-.5f, .5f)),
+          .velocity = Vec3_Scale(dir, RandomRangef(20.f, 30.f)),
+          .acceleration = Vec3_Scale(dir, -20.f),
+          .lifetime = RandomRangef(600.f, 900.f),
+          .color = Vec3(.4f, .25f, .15f),
+          .size = 2.5f,
+          .size_velocity = 15.f,
+          .rotation = RandomRangef(.0f, M_PI),
+          .rotation_velocity = RandomRangef(.2f, 1.f),
+          .lighting = .5f,
+        });
+      }
+    }
+
     Cg_FlameTrail(ent, start, end);
     ent->timestamp = cgi.client->unclamped_time;
   }

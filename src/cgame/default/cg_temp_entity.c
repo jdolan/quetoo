@@ -1176,7 +1176,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
     .size_velocity = size * 6.f,
     .rotation = RandomRadian(),
     .dir = Vec3_Up(),
-    .color = Vec3(1.f, 1.f, 1.f),
+    .color = color,
     .lighting = 1.f
   });
 }
