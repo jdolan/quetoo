@@ -26,15 +26,35 @@
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
+  const vec3_t snap = Vec3_Subtract(ent->move_info.dest, ent->s.origin);
+
+  const box3_t old_bounds = ent->abs_bounds;
+
   ent->s.origin = ent->move_info.dest;
+
+  gi.LinkEntity(ent);
+
+  // Translate riding entities by the same snap delta so they
+  // maintain ground contact. Without this, the position snap
+  // bypasses G_Physics_Push_Translate and riders lose their
+  // ground entity reference.
+  if (!Vec3_Equal(snap, Vec3_Zero())) {
+    const box3_t total_bounds = Box3_Union(old_bounds, ent->abs_bounds);
+    g_entity_t *others[MAX_ENTITIES];
+    const size_t len = gi.BoxEntities(total_bounds, others, lengthof(others), BOX_ALL);
+    for (size_t i = 0; i < len; i++) {
+      if (others[i]->ground.ent == ent) {
+        others[i]->s.origin = Vec3_Add(others[i]->s.origin, snap);
+        gi.LinkEntity(others[i]);
+      }
+    }
+  }
 
   ent->velocity = Vec3_Zero();
 
   ent->move_info.current_speed = 0.0;
 
   ent->move_info.Done(ent);
-
-  gi.LinkEntity(ent);
 }
 
 /**
@@ -267,7 +287,7 @@ static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *))
 }
 
 /**
- * @brief When a MOVE_TYPE_PUSH or MOVE_TYPE_STOP is blocked, deal with the
+ * @brief When a `MOVE_TYPE_PUSH` or `MOVE_TYPE_STOP` is blocked, deal with the
  * obstacle by damaging it.
  */
 static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {

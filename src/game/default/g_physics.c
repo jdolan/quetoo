@@ -876,7 +876,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 }
 
 /**
- * @brief For G_MOVE_TYPE_PUSH, push all box entities intersected while moving.
+ * @brief For `G_MOVE_TYPE_PUSH`, push all box entities intersected while moving.
  * Generally speaking, only inline BSP models are pushers.
  */
 static void G_Physics_Push(g_entity_t *ent) {
