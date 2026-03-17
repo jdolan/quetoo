@@ -648,7 +648,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
   cg_misc_steam_t *steam = self->data;
 
-  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 24.f;
   self->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
 
   if (self->target) {
@@ -663,7 +663,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
     }
   }
 
-  steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+  steam->size = cgi.EntityValue(self->def, "size")->value ?: 32.f;
   steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
@@ -696,12 +696,12 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .origin = self->origin,
       .velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
       .acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
-      .lifetime = 4500 / (5.f + Randomf() * .5f),
+      .lifetime = 6500 / (5.f + Randomf() * .5f),
       .rotation = Randomf(),
       .rotation_velocity = RandomRangef(-1.f, 1.f),
       .size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
       .size_velocity = 10.f,
-      .color = Vec3(1.f, 1.f, 1.f),
+      .color = Vec3(.5f, .5f, .5f),
       .lighting = 1.f,
     })) {
       break;
