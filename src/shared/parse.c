@@ -444,7 +444,7 @@ static bool Parse_TypeParse(const parse_type_t type, const char *input, void *ou
     break;
   case PARSE_DOUBLE:
     result = sscanf(input, "%lf", (double *) scan_buffer);
-    if (isinf(*(float *) scan_buffer) || isnan(*(float *) scan_buffer)) {
+    if (isinf(*(double *) scan_buffer) || isnan(*(double *) scan_buffer)) {
       result = 0;
     }
     break;
