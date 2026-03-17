@@ -50,14 +50,14 @@ jobs:
 
     - name: Cache Objectively and ObjectivelyMVC
       id: cache-deps
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: /usr/local
         key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/Objectively
         path: Objectively
@@ -76,7 +76,7 @@ jobs:
 
     - name: Checkout ObjectivelyMVC
       if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/ObjectivelyMVC
         path: ObjectivelyMVC
@@ -94,7 +94,7 @@ jobs:
         sudo make install
 
     - name: Checkout Quetoo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: quetoo
 
@@ -131,7 +131,7 @@ jobs:
           -of -p @executable_path/lib
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: quetoo-${{ matrix.build }}
         path: quetoo/apple/target/Quetoo.app
@@ -160,7 +160,7 @@ jobs:
 
     - name: Cache from-source dependencies
       id: cache-deps
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: /usr/local
         key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
@@ -191,7 +191,7 @@ jobs:
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/Objectively
         path: Objectively
@@ -208,7 +208,7 @@ jobs:
 
     - name: Checkout ObjectivelyMVC
       if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/ObjectivelyMVC
         path: ObjectivelyMVC
@@ -227,7 +227,7 @@ jobs:
       run: sudo ldconfig
 
     - name: Checkout Quetoo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: quetoo
 
@@ -264,7 +264,7 @@ jobs:
         tar -czvf linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz -C linux/target quetoo
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: quetoo-x86_64-pc-linux
         path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
@@ -279,24 +279,24 @@ jobs:
 
     steps:
     - name: Checkout Objectively
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/Objectively
         path: Objectively
 
     - name: Checkout ObjectivelyMVC
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: jdolan/ObjectivelyMVC
         path: ObjectivelyMVC
 
     - name: Checkout Quetoo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         path: quetoo
 
     - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1.0.2
+      uses: microsoft/setup-msbuild@v2
 
     - name: Restore NuGet packages
       working-directory: ${{ github.workspace }}/quetoo
