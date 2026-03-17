@@ -128,6 +128,7 @@ jobs:
           libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
           libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
           libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
+          libfreetype-dev libharfbuzz-dev \
           check \
           chrpath \
           cmake
