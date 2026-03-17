@@ -35,13 +35,22 @@ jobs:
           openal-soft libsndfile physfs \
           curl dylibbundler
 
+    - name: Cache Objectively and ObjectivelyMVC
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: /usr/local
+        key: macos-deps-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build.yml') }}
+
     - name: Checkout Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
         repository: jdolan/Objectively
         path: Objectively
 
     - name: Build Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       working-directory: Objectively
       run: |
         export CFLAGS="-I${HOMEBREW_PREFIX}/include"
@@ -53,12 +62,14 @@ jobs:
         sudo make install
 
     - name: Checkout ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
         repository: jdolan/ObjectivelyMVC
         path: ObjectivelyMVC
 
     - name: Build ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       working-directory: ObjectivelyMVC
       run: |
         export CFLAGS="-I${HOMEBREW_PREFIX}/include"
@@ -133,7 +144,15 @@ jobs:
           chrpath \
           cmake
 
+    - name: Cache from-source dependencies
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: /usr/local
+        key: linux-deps-x64-${{ hashFiles('.github/workflows/build.yml') }}
+
     - name: Build SDL3
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
@@ -141,6 +160,7 @@ jobs:
         sudo cmake --install SDL3/build
 
     - name: Build SDL3_image
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         git clone --depth 1 --branch release-3.4.0 https://github.com/libsdl-org/SDL_image.git SDL3_image
         cmake -S SDL3_image -B SDL3_image/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
@@ -148,22 +168,22 @@ jobs:
         sudo cmake --install SDL3_image/build
 
     - name: Build SDL3_ttf
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       run: |
         git clone --depth 1 --branch release-3.2.2 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf
         cmake -S SDL3_ttf -B SDL3_ttf/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3_ttf/build -j$(nproc)
         sudo cmake --install SDL3_ttf/build
 
-    - name: Refresh shared library cache
-      run: sudo ldconfig
-
     - name: Checkout Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
         repository: jdolan/Objectively
         path: Objectively
 
     - name: Build Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       working-directory: Objectively
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
@@ -171,15 +191,16 @@ jobs:
         ./configure
         make -j$(nproc)
         sudo make install
-        sudo ldconfig
 
     - name: Checkout ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       uses: actions/checkout@v4
       with:
         repository: jdolan/ObjectivelyMVC
         path: ObjectivelyMVC
 
     - name: Build ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
       working-directory: ObjectivelyMVC
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
@@ -187,7 +208,9 @@ jobs:
         ./configure
         make -j$(nproc)
         sudo make install
-        sudo ldconfig
+
+    - name: Refresh shared library cache
+      run: sudo ldconfig
 
     - name: Checkout Quetoo
       uses: actions/checkout@v4
