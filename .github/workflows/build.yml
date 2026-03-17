@@ -126,8 +126,8 @@ jobs:
           libcurl4-openssl-dev \
           libgl-dev \
           libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
-          libxfixes-dev libxss-dev libwayland-dev libxkbcommon-dev \
-          libdrm-dev libgbm-dev libdecor-0-dev \
+          libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
+          libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
           check \
           chrpath \
           cmake
