@@ -35,12 +35,18 @@ jobs:
           openal-soft libsndfile physfs \
           curl dylibbundler
 
+    - name: Resolve dependency versions
+      id: dep-versions
+      run: |
+        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+
     - name: Cache Objectively and ObjectivelyMVC
       id: cache-deps
       uses: actions/cache@v4
       with:
         path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-${{ hashFiles('.github/workflows/build.yml') }}
+        key: macos-deps-${{ matrix.arch }}-${{ steps.dep-versions.outputs.objectively-sha }}-${{ steps.dep-versions.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -144,12 +150,18 @@ jobs:
           chrpath \
           cmake
 
+    - name: Resolve dependency versions
+      id: dep-versions
+      run: |
+        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+
     - name: Cache from-source dependencies
       id: cache-deps
       uses: actions/cache@v4
       with:
         path: /usr/local
-        key: linux-deps-x64-${{ hashFiles('.github/workflows/build.yml') }}
+        key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ steps.dep-versions.outputs.objectively-sha }}-${{ steps.dep-versions.outputs.objectivelymvc-sha }}
 
     - name: Build SDL3
       if: steps.cache-deps.outputs.cache-hit != 'true'
