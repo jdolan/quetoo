@@ -10,7 +10,20 @@ permissions:
   contents: read
 
 jobs:
+  resolve-deps:
+    runs-on: ubuntu-latest
+    outputs:
+      objectively-sha: ${{ steps.resolve.outputs.objectively-sha }}
+      objectivelymvc-sha: ${{ steps.resolve.outputs.objectivelymvc-sha }}
+    steps:
+    - name: Resolve dependency versions
+      id: resolve
+      run: |
+        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+
   build-macos:
+    needs: resolve-deps
     strategy:
       fail-fast: false
       matrix:
@@ -35,18 +48,12 @@ jobs:
           openal-soft libsndfile physfs \
           curl dylibbundler
 
-    - name: Resolve dependency versions
-      id: dep-versions
-      run: |
-        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
-        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
-
     - name: Cache Objectively and ObjectivelyMVC
       id: cache-deps
       uses: actions/cache@v4
       with:
         path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-${{ steps.dep-versions.outputs.objectively-sha }}-${{ steps.dep-versions.outputs.objectivelymvc-sha }}
+        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Checkout Objectively
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -130,6 +137,7 @@ jobs:
         path: quetoo/apple/target/Quetoo.app
 
   build-linux:
+    needs: resolve-deps
     runs-on: ubuntu-latest
 
     steps:
@@ -150,18 +158,12 @@ jobs:
           chrpath \
           cmake
 
-    - name: Resolve dependency versions
-      id: dep-versions
-      run: |
-        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
-        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
-
     - name: Cache from-source dependencies
       id: cache-deps
       uses: actions/cache@v4
       with:
         path: /usr/local
-        key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ steps.dep-versions.outputs.objectively-sha }}-${{ steps.dep-versions.outputs.objectivelymvc-sha }}
+        key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
 
     - name: Build SDL3
       if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -268,6 +270,7 @@ jobs:
         path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
 
   build-windows:
+    needs: resolve-deps
     runs-on: windows-latest
 
     env:
