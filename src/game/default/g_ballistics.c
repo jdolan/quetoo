@@ -26,12 +26,12 @@
  */
 static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
 
-	if (ent->owner) {
-		const float s = scale * g_player_projectile->value;
-		ent->locals.velocity = Vec3_Fmaf(ent->locals.velocity, s, ent->owner->locals.velocity);
-	} else {
-		G_Debug("No owner for %s\n", etos(ent));
-	}
+  if (ent->owner) {
+    const float s = scale * g_player_projectile->value;
+    ent->velocity = Vec3_Fmaf(ent->velocity, s, ent->owner->velocity);
+  } else {
+    G_Debug("No owner for %s\n", etos(ent));
+  }
 }
 
 /**
@@ -40,81 +40,73 @@ static void G_PlayerProjectile(g_entity_t *ent, const float scale) {
  */
 static bool G_ImmediateWall(g_entity_t *ent, g_entity_t *projectile) {
 
-	const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
-	                               ent, CONTENTS_MASK_SOLID);
+  const cm_trace_t tr = gi.Trace(ent->s.origin, projectile->s.origin, projectile->bounds,
+                                 ent, CONTENTS_MASK_SOLID);
 
-	return tr.fraction < 1.0;
+  return tr.fraction < 1.0;
 }
 
 /**
  * @brief Returns true if the specified entity takes damage.
  */
 static bool G_TakesDamage(g_entity_t *ent) {
-	return (ent && ent->locals.take_damage);
+  return (ent && ent->take_damage);
 }
 
 /**
  * @brief Used to add generic bubble trails to shots.
  */
 static void G_BubbleTrail(const vec3_t start, cm_trace_t *tr, float freq) {
-	vec3_t dir, pos;
+  vec3_t dir, pos;
 
-	if (Vec3_Equal(tr->end, start)) {
-		return;
-	}
+  if (Vec3_Equal(tr->end, start)) {
+    return;
+  }
 
-	dir = Vec3_Subtract(tr->end, start);
-	dir = Vec3_Normalize(dir);
-	pos = Vec3_Fmaf(tr->end, -2.f, dir);
+  dir = Vec3_Subtract(tr->end, start);
+  dir = Vec3_Normalize(dir);
+  pos = Vec3_Fmaf(tr->end, -2.f, dir);
 
-	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
-		tr->end = pos;
-	} else {
-		const cm_trace_t trace = gi.Trace(pos, start, Box3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
-		tr->end = trace.end;
-	}
+  if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
+    tr->end = pos;
+  } else {
+    const cm_trace_t trace = gi.Trace(pos, start, Box3_Zero(), tr->ent, CONTENTS_MASK_LIQUID);
+    tr->end = trace.end;
+  }
 
-	pos = Vec3_Add(start, tr->end);
-	pos = Vec3_Scale(pos, .5f);
+  pos = Vec3_Add(start, tr->end);
+  pos = Vec3_Scale(pos, .5f);
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_BUBBLES);
-	gi.WritePosition(start);
-	gi.WritePosition(tr->end);
-	gi.WriteByte((uint8_t) freq);
-	gi.Multicast(pos, MULTICAST_PHS, NULL);
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_BUBBLES);
+  gi.WritePosition(start);
+  gi.WritePosition(tr->end);
+  gi.WriteByte((uint8_t) freq);
+  gi.Multicast(pos, MULTICAST_PHS);
 }
 
 /**
  * @brief Used to add tracer trails to bullet shots.
  */
 static void G_Tracer(const vec3_t start, const vec3_t end) {
-	vec3_t dir, mid;
-	float len;
+  vec3_t dir, mid;
+  float len;
 
-	dir = Vec3_Subtract(end, start);
-	len = Vec3_Length(dir);
+  dir = Vec3_Subtract(end, start);
+  len = Vec3_Length(dir);
 
-	if (len < 128.f) {
-		return;
-	}
+  if (len < 128.f) {
+    return;
+  }
 
-	dir = Vec3_Normalize(dir);
-	mid = Vec3_Fmaf(end, -len + (Randomf() * .05f * len), dir);
+  dir = Vec3_Normalize(dir);
+  mid = Vec3_Fmaf(end, -len + (Randomf() * .05f * len), dir);
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_TRACER);
-	gi.WritePosition(mid);
-	gi.WritePosition(end);
-	gi.Multicast(start, MULTICAST_PHS, NULL);
-
-	if (!gi.inPHS(start, end)) { // send to both PHS's
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_TRACER);
-		gi.WritePosition(mid);
-		gi.WritePosition(end);
-		gi.Multicast(end, MULTICAST_PHS, NULL);
-	}
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_TRACER);
+  gi.WritePosition(mid);
+  gi.WritePosition(end);
+  gi.Multicast(start, MULTICAST_PHS);
 }
 
 /**
@@ -128,53 +120,53 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  */
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash) {
 
-	const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
-	if (!tr.brush_side) {
-		G_Debug("Failed to resolve water brush side for %s\n", etos(ent));
-		return;
-	}
+  const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+  if (!tr.brush_side) {
+    G_Debug("Failed to resolve water brush side for %s\n", etos(ent));
+    return;
+  }
 
-	const vec3_t pos = Vec3_Add(tr.end, Vec3_Up());
-	const vec3_t dir = tr.plane.normal;
+  const vec3_t pos = Vec3_Add(tr.end, Vec3_Up());
+  const vec3_t dir = tr.plane.normal;
 
-	if (ent) {
-		if (g_level.time - ent->locals.ripple_time < 400) {
-			return;
-		}
-		
-		ent->locals.ripple_time = g_level.time;
+  if (ent) {
+    if (g_level.time - ent->ripple_time < 400) {
+      return;
+    }
+    
+    ent->ripple_time = g_level.time;
 
-		if (size == 0.f) {
-			if (ent->locals.ripple_size) {
-				size = ent->locals.ripple_size;
-			} else {
-				size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
-			}
-		}
-	}
+    if (size == 0.f) {
+      if (ent->ripple_size) {
+        size = ent->ripple_size;
+      } else {
+        size = Clampf(Box3_Distance(ent->bounds), 12.0, 64.0);
+      }
+    }
+  }
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_RIPPLE);
-	gi.WritePosition(pos);
-	gi.WriteDir(dir);
-	gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
-	gi.WriteByte((uint8_t) size);
-	gi.WriteByte((uint8_t) splash);
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_RIPPLE);
+  gi.WritePosition(pos);
+  gi.WriteDir(dir);
+  gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
+  gi.WriteByte((uint8_t) size);
+  gi.WriteByte((uint8_t) splash);
 
-	gi.Multicast(pos, MULTICAST_PVS, NULL);
+  gi.Multicast(pos, MULTICAST_PVS);
 
-	if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
+  if (!(tr.contents & CONTENTS_TRANSLUCENT)) {
 
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_RIPPLE);
-		gi.WritePosition(Vec3_Add(pos, Vec3_Down()));
-		gi.WriteDir(Vec3_Negate(dir));
-		gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
-		gi.WriteByte((uint8_t) size);
-		gi.WriteByte((uint8_t) false);
+    gi.WriteByte(SV_CMD_TEMP_ENTITY);
+    gi.WriteByte(TE_RIPPLE);
+    gi.WritePosition(Vec3_Add(pos, Vec3_Down()));
+    gi.WriteDir(Vec3_Negate(dir));
+    gi.WriteLong((int32_t) (ptrdiff_t) (tr.brush_side - gi.Bsp()->brush_sides));
+    gi.WriteByte((uint8_t) size);
+    gi.WriteByte((uint8_t) false);
 
-		gi.Multicast(pos, MULTICAST_PVS, NULL);
-	}
+    gi.Multicast(pos, MULTICAST_PVS);
+  }
 }
 
 
@@ -183,137 +175,155 @@ void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size,
  */
 static void G_BulletImpact(const cm_trace_t *trace) {
 
-	if (trace->surface & SURF_ALPHA_TEST) {
-		return;
-	}
+  if (trace->surface & SURF_ALPHA_TEST) {
+    return;
+  }
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_BULLET);
-	gi.WritePosition(trace->end);
-	gi.WriteDir(trace->plane.normal);
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_BULLET);
+  gi.WritePosition(trace->end);
+  gi.WriteDir(trace->plane.normal);
 
-	gi.Multicast(trace->end, MULTICAST_PHS, NULL);
+  gi.Multicast(trace->end, MULTICAST_PHS);
 }
 
 /**
  * @brief
  */
-static void G_BlasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	if (!G_IsSky(trace)) {
+  if (!G_IsSky(trace)) {
 
-		G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
-		         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BLASTER);
+    G_Damage(&(g_damage_t) {
+      .target = other,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = ent->velocity,
+      .point = ent->s.origin,
+      .normal = trace->plane.normal,
+      .damage = ent->damage,
+      .knockback = ent->knockback,
+      .flags = DMG_ENERGY,
+      .mod = MOD_BLASTER
+    });
 
-		if (G_IsStructural(trace)) {
+    if (G_IsStructural(trace)) {
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_BLASTER);
-			gi.WritePosition(self->s.origin);
-			gi.WriteDir(trace->plane.normal);
-			gi.WriteByte(self->owner->s.client);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-		}
-	}
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_BLASTER);
+      gi.WritePosition(ent->s.origin);
+      gi.WriteDir(trace->plane.normal);
+      gi.WriteByte(ent->owner->s.client);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    }
+  }
 
-	G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-                         int32_t damage, int32_t knockback) {
+void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
 
-	const box3_t bounds = Box3f(2.f, 2.f, 2.f);
+  const box3_t bounds = Box3f(2.f, 2.f, 2.f);
 
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->s.angles = Vec3_Euler(dir);
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->s.angles = Vec3_Euler(dir);
+  projectile->velocity = Vec3_Scale(dir, speed);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.damage = damage;
-	projectile->locals.knockback = knockback;
-	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.next_think = g_level.time + 8000;
-	projectile->locals.Think = G_FreeEntity;
-	projectile->locals.Touch = G_BlasterProjectile_Touch;
-	projectile->s.client = ent->s.client; // player number, for trail color
-	projectile->s.trail = TRAIL_BLASTER;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = damage;
+  projectile->knockback = knockback;
+  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->next_think = g_level.time + 8000;
+  projectile->Think = G_FreeEntity;
+  projectile->Touch = G_BlasterProjectile_Touch;
+  projectile->s.client = ent->s.client;
+  projectile->s.trail = TRAIL_BLASTER;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 }
 
 /**
  * @brief
  */
-void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-                        int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
+void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3f(1.f, 1.f, 1.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
-	if (tr.fraction == 1.0) {
-		vec3_t angles, forward, right, up, end;
+  cm_trace_t tr = gi.Trace(ent->s.origin, start, Box3f(1.f, 1.f, 1.f), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+  if (tr.fraction == 1.0) {
+    vec3_t angles, forward, right, up, end;
 
-		angles = Vec3_Euler(dir);
-		Vec3_Vectors(angles, &forward, &right, &up);
+    angles = Vec3_Euler(dir);
+    Vec3_Vectors(angles, &forward, &right, &up);
 
-		end = Vec3_Fmaf(start, MAX_WORLD_DIST, forward);
-		end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
-		end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
+    end = Vec3_Fmaf(start, MAX_WORLD_DIST, forward);
+    end = Vec3_Fmaf(end, RandomRangef(-hspread, hspread), right);
+    end = Vec3_Fmaf(end, RandomRangef(-vspread, vspread), up);
 
-		tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+    tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
 
-		G_Tracer(start, tr.end);
-	}
+    G_Tracer(start, tr.end);
+  }
 
-	if (tr.fraction < 1.0) {
+  if (tr.fraction < 1.0) {
 
-		G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, DMG_BULLET, mod);
+    G_Damage(&(g_damage_t) {
+      .target = tr.ent,
+      .inflictor = ent,
+      .attacker = ent,
+      .dir = dir,
+      .point = tr.end,
+      .normal = tr.plane.normal,
+      .damage = damage,
+      .knockback = knockback,
+      .flags = DMG_BULLET,
+      .mod = mod
+    });
 
-		if (G_IsStructural(&tr)) {
-			G_BulletImpact(&tr);
-		}
+    if (G_IsStructural(&tr)) {
+      G_BulletImpact(&tr);
+    }
 
-		if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, tr.end, start, 8.f, false);
-			G_BubbleTrail(start, &tr, 12.f);
-		} else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
-			G_Ripple(NULL, start, tr.end, 8.f, true);
-			G_BubbleTrail(start, &tr, 12.f);
-		}
-	}
+    if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) {
+      G_Ripple(NULL, tr.end, start, 8.f, false);
+      G_BubbleTrail(start, &tr, 12.f);
+    } else if (gi.PointContents(tr.end) & CONTENTS_MASK_LIQUID) {
+      G_Ripple(NULL, start, tr.end, 8.f, true);
+      G_BubbleTrail(start, &tr, 12.f);
+    }
+  }
 }
 
 /**
  * @brief
  */
-void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-						  int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
+void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
 
-	for (int32_t i = 0; i < count; i++) {
-		G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
-	}
+  for (int32_t i = 0; i < count; i++) {
+    G_BulletProjectile(ent, start, dir, damage, knockback, hspread, vspread, mod);
+  }
 }
 
 #define HAND_GRENADE 1
@@ -322,809 +332,893 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 /**
  * @brief
  */
-static void G_GrenadeProjectile_Explode(g_entity_t *self) {
-	int32_t mod;
+static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
+  int32_t mod;
 
-	if (self->locals.enemy) { // direct hit
+  if (ent->enemy) { // direct hit
 
-		mod = self->locals.spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
+    mod = ent->spawn_flags & HAND_GRENADE ? MOD_HANDGRENADE : MOD_GRENADE;
 
-		G_Damage(self->locals.enemy, self, self->owner,
-				 self->locals.velocity, self->s.origin, Vec3_Negate(self->locals.velocity),
-				 self->locals.damage, self->locals.knockback, 0, mod);
-	}
+    G_Damage(&(g_damage_t) {
+      .target = ent->enemy,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = ent->velocity,
+      .point = ent->s.origin,
+      .normal = Vec3_Negate(ent->velocity),
+      .damage = ent->damage,
+      .knockback = ent->knockback,
+      .flags = 0,
+      .mod = mod
+    });
+  }
 
-	if (self->locals.spawn_flags & HAND_GRENADE) {
-		if (self->locals.spawn_flags & HAND_GRENADE_HELD) {
-			mod = MOD_HANDGRENADE_KAMIKAZE;
-		} else {
-			mod = MOD_HANDGRENADE_SPLASH;
-		}
-	} else {
-		mod = MOD_GRENADE_SPLASH;
-	}
+  if (ent->spawn_flags & HAND_GRENADE) {
+    if (ent->spawn_flags & HAND_GRENADE_HELD) {
+      mod = MOD_HANDGRENADE_KAMIKAZE;
+    } else {
+      mod = MOD_HANDGRENADE_SPLASH;
+    }
+  } else {
+    mod = MOD_GRENADE_SPLASH;
+  }
 
-	// hurt anything else nearby
-	G_RadiusDamage(self, self->owner, self->locals.enemy, self->locals.damage,
-	               self->locals.knockback, self->locals.damage_radius, mod);
+  // hurt anything else nearby
+  G_RadiusDamage(ent, ent->owner, ent->enemy, ent->damage, ent->knockback, ent->damage_radius, mod);
 
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_EXPLOSION);
-	gi.WritePosition(self->s.origin);
-	gi.WriteDir(Vec3_Up());
-	gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_EXPLOSION);
+  gi.WritePosition(ent->s.origin);
+  gi.WriteDir(Vec3_Up());
+  gi.Multicast(ent->s.origin, MULTICAST_PHS);
 
-	G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_GrenadeProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+void G_GrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	if (!G_TakesDamage(other)) { // bounce off of structural solids
+  if (!G_TakesDamage(other)) { // bounce off of structural solids
 
-		if (G_IsStructural(trace)) {
-			if (g_level.time - self->locals.touch_time > 200) {
-				if (Vec3_Length(self->locals.velocity) > 40.0) {
-					G_MulticastSound(&(const g_play_sound_t) {
-						.index = g_media.sounds.grenade_hit,
-						.entity = self,
-						.atten = SOUND_ATTEN_LINEAR,
-						.pitch = (int8_t) (Randomf() * 5.0)
-					}, MULTICAST_PHS, NULL);
-					self->locals.touch_time = g_level.time;
-				}
-			}
-		} else if (G_IsSky(trace)) {
-			G_FreeEntity(self);
-		}
+    if (G_IsStructural(trace)) {
+      if (g_level.time - ent->touch_time > 200) {
+        if (Vec3_Length(ent->velocity) > 40.0) {
+          G_MulticastSound(&(const g_play_sound_t) {
+            .index = g_media.sounds.grenade_hit,
+            .entity = ent,
+            .atten = SOUND_ATTEN_LINEAR,
+            .pitch = (int8_t) (Randomf() * 5.0)
+          }, MULTICAST_PHS);
+          ent->touch_time = g_level.time;
+        }
+      }
+    } else if (G_IsSky(trace)) {
+      G_FreeEntity(ent);
+    }
 
-		return;
-	}
-	self->locals.enemy = other;
-	G_GrenadeProjectile_Explode(self);
+    return;
+  }
+  ent->enemy = other;
+  G_GrenadeProjectile_Explode(ent);
 }
 
 /**
  * @brief
  */
-void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-						 int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
+void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
+  const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
-	vec3_t forward, right, up;
+  vec3_t forward, right, up;
 
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->s.angles = Vec3_Euler(dir);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->s.angles = Vec3_Euler(dir);
 
-	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
+  Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
+  projectile->velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(90.f, 110.f), up);
-	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(-10.f, 10.f), right);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(90.f, 110.f), up);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
-	G_PlayerProjectile(projectile, 0.33);
+  G_PlayerProjectile(projectile, 0.33);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.avelocity.x = RandomRangef(-310.f, -290.f);
-	projectile->locals.avelocity.y = RandomRangef(-50.f, 50.f);
-	projectile->locals.avelocity.z = RandomRangef(-25.f, 25.f);
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.damage = damage;
-	projectile->locals.damage_radius = damage_radius;
-	projectile->locals.knockback = knockback;
-	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
-	projectile->locals.next_think = g_level.time + timer;
-	projectile->locals.take_damage = true;
-	projectile->locals.Think = G_GrenadeProjectile_Explode;
-	projectile->locals.Touch = G_GrenadeProjectile_Touch;
-	projectile->locals.touch_time = g_level.time;
-	projectile->s.trail = TRAIL_GRENADE;
-	projectile->s.model1 = g_media.models.grenade;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->avelocity.x = RandomRangef(-310.f, -290.f);
+  projectile->avelocity.y = RandomRangef(-50.f, 50.f);
+  projectile->avelocity.z = RandomRangef(-25.f, 25.f);
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = damage;
+  projectile->damage_radius = damage_radius;
+  projectile->knockback = knockback;
+  projectile->move_type = MOVE_TYPE_BOUNCE;
+  projectile->next_think = g_level.time + timer;
+  projectile->take_damage = true;
+  projectile->Think = G_GrenadeProjectile_Explode;
+  projectile->Touch = G_GrenadeProjectile_Touch;
+  projectile->touch_time = g_level.time;
+  projectile->s.trail = TRAIL_GRENADE;
+  projectile->s.model1 = g_media.models.grenade;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 }
 
 // tossing a hand grenade
-void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile,
-                             vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage,
-							 int32_t knockback, float damage_radius, uint32_t timer) {
+void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t const start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
-	const box3_t bounds = Box3f(4.f, 4.f, 4.f);
+  const box3_t bounds = Box3f(4.f, 4.f, 4.f);
 
-	vec3_t forward, right, up;
+  vec3_t forward, right, up;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->s.angles = Vec3_Euler(dir);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->s.angles = Vec3_Euler(dir);
 
-	Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
+  Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
+  projectile->velocity = Vec3_Scale(dir, speed);
 
-	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(190.f, 210.f), up);
-	projectile->locals.velocity = Vec3_Fmaf(projectile->locals.velocity, RandomRangef(-10.f, 10.f), right);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(190.f, 210.f), up);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
-	// add some of the player's velocity to the projectile
-	G_PlayerProjectile(projectile, 0.33);
+  // add some of the player's velocity to the projectile
+  G_PlayerProjectile(projectile, 0.33);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->locals.spawn_flags = HAND_GRENADE;
+  projectile->spawn_flags = HAND_GRENADE;
 
-	// if client is holding it, let the nade know it's being held
-	if (ent->client->locals.grenade_hold_time) {
-		projectile->locals.spawn_flags |= HAND_GRENADE_HELD;
-	}
+  // if client is holding it, let the nade know it's being held
+  if (ent->client->grenade_hold_time) {
+    projectile->spawn_flags |= HAND_GRENADE_HELD;
+  }
 
-	projectile->locals.avelocity.x = RandomRangef(-310.f, -290.f);
-	projectile->locals.avelocity.y = RandomRangef(-50.f, 50.f);
-	projectile->locals.avelocity.z = RandomRangef(-25.f, 25.f);
-	projectile->locals.damage = damage;
-	projectile->locals.damage_radius = damage_radius;
-	projectile->locals.knockback = knockback;
-	projectile->locals.next_think = g_level.time + timer;
-	projectile->solid = SOLID_BOX;
-	projectile->sv_flags &= ~SVF_NO_CLIENT;
-	projectile->locals.move_type = MOVE_TYPE_BOUNCE;
-	projectile->locals.Think = G_GrenadeProjectile_Explode;
+  projectile->avelocity.x = RandomRangef(-310.f, -290.f);
+  projectile->avelocity.y = RandomRangef(-50.f, 50.f);
+  projectile->avelocity.z = RandomRangef(-25.f, 25.f);
+  projectile->damage = damage;
+  projectile->damage_radius = damage_radius;
+  projectile->knockback = knockback;
+  projectile->next_think = g_level.time + timer;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->sv_flags &= ~SVF_NO_CLIENT;
+  projectile->move_type = MOVE_TYPE_BOUNCE;
+  projectile->Think = G_GrenadeProjectile_Explode;
+
+  gi.LinkEntity(projectile);
 }
 
 /**
  * @brief
  */
-static void G_RocketProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	if (!G_IsSky(trace)) {
+  if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace) || G_IsMeat(other)) {
+    if (G_IsStructural(trace) || G_IsMeat(other)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
-			         self->locals.damage, self->locals.knockback, 0, MOD_ROCKET);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
+        .normal = trace->plane.normal,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
+        .flags = 0,
+        .mod = MOD_ROCKET
+      });
 
-			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
-			               self->locals.damage_radius, MOD_ROCKET_SPLASH);
+      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damage_radius, MOD_ROCKET_SPLASH);
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_EXPLOSION);
-			gi.WritePosition(self->s.origin);
-			gi.WriteDir(trace->plane.normal);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-		}
-	}
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_EXPLOSION);
+      gi.WritePosition(ent->s.origin);
+      gi.WriteDir(trace->plane.normal);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    }
+  }
 
-	G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-						int32_t damage, int32_t knockback, float damage_radius) {
+void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Box3f(8.f, 8.f, 8.f);
+  const box3_t bounds = Box3f(8.f, 8.f, 8.f);
 
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->s.angles = Vec3_Euler(dir);
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
-	projectile->locals.avelocity = Vec3(0.0, 0.0, 600.0);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->s.angles = Vec3_Euler(dir);
+  projectile->velocity = Vec3_Scale(dir, speed);
+  projectile->avelocity = Vec3(0.0, 0.0, 600.0);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.damage = damage;
-	projectile->locals.damage_radius = damage_radius;
-	projectile->locals.knockback = knockback;
-	projectile->locals.ripple_size = 32.0;
-	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.next_think = g_level.time + 8000;
-	projectile->locals.Think = G_FreeEntity;
-	projectile->locals.Touch = G_RocketProjectile_Touch;
-	projectile->s.model1 = g_media.models.rocket;
-	projectile->s.sound = g_media.sounds.rocket_fly;
-	projectile->s.trail = TRAIL_ROCKET;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = damage;
+  projectile->damage_radius = damage_radius;
+  projectile->knockback = knockback;
+  projectile->ripple_size = 32.0;
+  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->next_think = g_level.time + 8000;
+  projectile->Think = G_FreeEntity;
+  projectile->Touch = G_RocketProjectile_Touch;
+  projectile->s.model1 = g_media.models.rocket;
+  projectile->s.sound = g_media.sounds.rocket_fly;
+  projectile->s.trail = TRAIL_ROCKET;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 }
 
 /**
  * @brief
  */
-static void G_HyperblasterProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_HyperblasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	if (!G_IsSky(trace)) {
+  if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace) || G_IsMeat(other)) {
+    if (G_IsStructural(trace) || G_IsMeat(other)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
-			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_HYPERBLASTER);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
+        .normal = trace->plane.normal,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
+        .flags = DMG_ENERGY,
+        .mod = MOD_HYPERBLASTER
+      });
 
-			if (G_IsStructural(trace)) {
+      if (G_IsStructural(trace)) {
 
-				vec3_t v;
-				v = Vec3_Subtract(self->s.origin, self->owner->s.origin);
+        vec3_t v;
+        v = Vec3_Subtract(ent->s.origin, ent->owner->s.origin);
 
-				if (Vec3_Length(v) < 32.0) { // hyperblaster climbing
-					G_Damage(self->owner, self, self->owner,
-							 Vec3_Zero(), self->s.origin, trace->plane.normal,
-					        g_balance_hyperblaster_climb_damage->integer, 0, DMG_ENERGY, MOD_HYPERBLASTER_CLIMB);
+        if (Vec3_Length(v) < 32.0) { // hyperblaster climbing
+          G_Damage(&(g_damage_t) {
+            .target = ent->owner,
+            .inflictor = ent,
+            .attacker = ent->owner,
+            .dir = Vec3_Zero(),
+            .point = ent->s.origin,
+            .normal = trace->plane.normal,
+            .damage = g_balance_hyperblaster_climb_damage->integer,
+            .knockback = 0,
+            .flags = DMG_ENERGY,
+            .mod = MOD_HYPERBLASTER_CLIMB
+          });
 
-					self->owner->locals.velocity.z += g_balance_hyperblaster_climb_knockback->value;
-				}
-			}
+          ent->owner->velocity.z += g_balance_hyperblaster_climb_knockback->value;
+        }
+      }
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_HYPERBLASTER);
-			gi.WritePosition(self->s.origin);
-			gi.WriteDir(trace->plane.normal);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-		}
-	}
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_HYPERBLASTER);
+      gi.WritePosition(ent->s.origin);
+      gi.WriteDir(trace->plane.normal);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    }
+  }
 
-	G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-							  int32_t damage, int32_t knockback) {
+void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
 
-	const box3_t bounds = Box3f(6.f, 6.f, 6.f);
+  const box3_t bounds = Box3f(6.f, 6.f, 6.f);
 
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->s.angles = Vec3_Euler(dir);
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->s.angles = Vec3_Euler(dir);
+  projectile->velocity = Vec3_Scale(dir, speed);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.damage = damage;
-	projectile->locals.knockback = knockback;
-	projectile->locals.ripple_size = 22.0;
-	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.next_think = g_level.time + 6000;
-	projectile->locals.Think = G_FreeEntity;
-	projectile->locals.Touch = G_HyperblasterProjectile_Touch;
-	projectile->s.trail = TRAIL_HYPERBLASTER;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = damage;
+  projectile->knockback = knockback;
+  projectile->ripple_size = 22.0;
+  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->next_think = g_level.time + 6000;
+  projectile->Think = G_FreeEntity;
+  projectile->Touch = G_HyperblasterProjectile_Touch;
+  projectile->s.trail = TRAIL_HYPERBLASTER;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 }
 
 /**
  * @brief
  */
-static void G_LightningProjectile_Discharge(g_entity_t *self) {
+static void G_LightningProjectile_Discharge(g_entity_t *ent) {
 
-	// kill ourselves
-	G_Damage(self->owner, self, self->owner,
-			 Vec3_Zero(), self->s.origin, Vec3_Zero(),
-			 9999, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
+  // kill ourselves
+  G_Damage(&(g_damage_t) {
+    .target = ent->owner,
+    .inflictor = ent,
+    .attacker = ent->owner,
+    .dir = Vec3_Zero(),
+    .point = ent->s.origin,
+    .normal = Vec3_Zero(),
+    .damage = 9999,
+    .knockback = 100,
+    .flags = DMG_NO_ARMOR,
+    .mod = MOD_LIGHTNING_DISCHARGE
+  });
 
-	g_entity_t *ent = g_game.entities;
+  // and ruin the pool party for everyone else too
+  G_ForEachEntity(other, {
+    if (other == ent->owner) {
+      continue;
+    }
 
-	// and ruin the pool party for everyone else too
-	for (int32_t i = 0; i < ge.num_entities; i++, ent++) {
+    if (!G_IsMeat(other)) {
+      continue;
+    }
 
-		if (ent == self->owner) {
-			continue;
-		}
+    const float dist = Vec3_Distance(ent->s.origin, other->s.origin);
+    const float atten = Clampf01(1.f - (dist / 1024.f));
 
-		if (!G_IsMeat(ent)) {
-			continue;
-		}
+    if (ent->water_level > WATER_NONE) {
+      const int32_t dmg = 50 * ent->water_level * atten;
 
-		if (gi.inPVS(self->s.origin, ent->s.origin)) {
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = Vec3_Zero(),
+        .point = other->s.origin,
+        .normal = Vec3_Zero(),
+        .damage = dmg,
+        .knockback = 100 * atten,
+        .flags = DMG_NO_ARMOR,
+        .mod = MOD_LIGHTNING_DISCHARGE
+      });
+    }
+  });
 
-			if (ent->locals.water_level > WATER_NONE) {
-				const int32_t dmg = 50 * ent->locals.water_level;
-
-				G_Damage(ent, self, self->owner, Vec3_Zero(), ent->s.origin, Vec3_Zero(),
-						 dmg, 100, DMG_NO_ARMOR, MOD_LIGHTNING_DISCHARGE);
-			}
-		}
-	}
-
-	// send discharge event
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_LIGHTNING_DISCHARGE);
-	gi.WritePosition(self->s.origin);
+  // send discharge event
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_LIGHTNING_DISCHARGE);
+  gi.WritePosition(ent->s.origin);
 }
 
 /**
  * @brief
  */
-static bool G_LightningProjectile_Expire(g_entity_t *self) {
+static bool G_LightningProjectile_Expire(g_entity_t *ent) {
 
-	if (self->locals.timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
-		return true;
-	}
+  if (ent->timestamp < g_level.time - (SECONDS_TO_MILLIS(g_balance_lightning_refire->value) + 1)) {
+    return true;
+  }
 
-	if (self->owner->locals.dead) {
-		return true;
-	}
+  if (ent->owner->dead) {
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
 /**
  * @brief
  */
-static void G_LightningProjectile_Think(g_entity_t *self) {
-	vec3_t forward, right, up;
-	vec3_t start, end;
-	vec3_t water_start;
-	cm_trace_t tr;
+static void G_LightningProjectile_Think(g_entity_t *ent) {
+  vec3_t forward, right, up;
+  vec3_t start, end;
+  vec3_t water_start;
+  cm_trace_t tr;
 
-	if (G_LightningProjectile_Expire(self)) {
-		G_FreeEntity(self);
-		return;
-	}
+  if (G_LightningProjectile_Expire(ent)) {
+    G_FreeEntity(ent);
+    return;
+  }
 
-	// re-calculate end points based on owner's movement
-	G_InitProjectile(self->owner, &forward, &right, &up, &start, 1.0);
-	self->s.origin = start;
+  // re-calculate end points based on owner's movement
+  G_ClientProjectile(ent->owner->client, &forward, &right, &up, &start, 1.0);
+  ent->s.origin = start;
 
-	if (G_ImmediateWall(self->owner, self)) { // resolve start
-		start = self->owner->s.origin;
-	}
+  if (G_ImmediateWall(ent->owner, ent)) { // resolve start
+    start = ent->owner->s.origin;
+  }
 
-	if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) { // discharge and return
-		G_LightningProjectile_Discharge(self);
-		G_FreeEntity(self);
-		return;
-	}
+  if (gi.PointContents(start) & CONTENTS_MASK_LIQUID) { // discharge and return
+    G_LightningProjectile_Discharge(ent);
+    G_FreeEntity(ent);
+    return;
+  }
 
-	end = Vec3_Fmaf(start, g_balance_lightning_length->value, forward); // resolve end
-	end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
-	end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
+  end = Vec3_Fmaf(start, g_balance_lightning_length->value, forward); // resolve end
+  end = Vec3_Fmaf(end, 2.f * sinf(g_level.time / 4.f), up);
+  end = Vec3_Fmaf(end, RandomRangef(-2.f, 2.f), right);
 
-	tr = gi.Trace(start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
+  tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID);
 
-	if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
-		water_start = tr.end;
+  if (tr.contents & CONTENTS_MASK_LIQUID) { // entered water, play sound, leave trail
+    water_start = tr.end;
 
-		if (!self->locals.water_level) {
-			G_MulticastSound(&(const g_play_sound_t) {
-				.index = g_media.sounds.water_in,
-				.origin = &water_start,
-				.atten = SOUND_ATTEN_LINEAR
-			}, MULTICAST_PHS, NULL);
-			self->locals.water_level = WATER_FEET;
-		}
+    if (!ent->water_level) {
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = g_media.sounds.water_in,
+        .origin = &water_start,
+        .atten = SOUND_ATTEN_LINEAR
+      }, MULTICAST_PHS);
+      ent->water_level = WATER_FEET;
+    }
 
-		tr = gi.Trace(water_start, end, Box3_Zero(), self, CONTENTS_MASK_CLIP_PROJECTILE);
-		G_BubbleTrail(water_start, &tr, 4.f);
+    tr = gi.Trace(water_start, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+    G_BubbleTrail(water_start, &tr, 4.f);
 
-		G_Ripple(NULL, start, end, 16.f, true);
-	} else {
-		if (self->locals.water_level) { // exited water, play sound, no trail
-			G_MulticastSound(&(const g_play_sound_t) {
-				.index = g_media.sounds.water_out,
-				.origin = &start,
-				.atten = SOUND_ATTEN_LINEAR
-			}, MULTICAST_PHS, NULL);
-			self->locals.water_level = WATER_NONE;
-		}
-	}
+    G_Ripple(NULL, start, end, 16.f, true);
+  } else {
+    if (ent->water_level) { // exited water, play sound, no trail
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = g_media.sounds.water_out,
+        .origin = &start,
+        .atten = SOUND_ATTEN_LINEAR
+      }, MULTICAST_PHS);
+      ent->water_level = WATER_NONE;
+    }
+  }
 
-	// clear the angles for impact effects
-	self->s.angles = Vec3_Zero();
-	self->s.animation1 = LIGHTNING_NO_HIT;
+  // clear the angles for impact effects
+  ent->s.angles = Vec3_Zero();
+  ent->s.animation1 = LIGHTNING_NO_HIT;
 
-	if (self->locals.damage) { // shoot, removing our damage until it is renewed
-		if (G_TakesDamage(tr.ent)) { // try to damage what we hit
-			G_Damage(tr.ent, self, self->owner, forward, tr.end, tr.plane.normal,
-			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_LIGHTNING);
-			self->locals.damage = 0;
-		} else { // or leave a mark
-			if (tr.contents & CONTENTS_MASK_SOLID) {
-				if (G_IsStructural(&tr)) {
-					self->s.angles = Vec3_Euler(tr.plane.normal);
-					self->s.animation1 = LIGHTNING_SOLID_HIT;
-				}
-			}
-		}
-	}
+  if (ent->damage) { // shoot, removing our damage until it is renewed
+    if (G_TakesDamage(tr.ent)) { // try to damage what we hit
+      G_Damage(&(g_damage_t) {
+        .target = tr.ent,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = forward,
+        .point = tr.end,
+        .normal = tr.plane.normal,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
+        .flags = DMG_ENERGY,
+        .mod = MOD_LIGHTNING
+      });
+      ent->damage = 0;
+    } else { // or leave a mark
+      if (tr.contents & CONTENTS_MASK_SOLID) {
+        if (G_IsStructural(&tr)) {
+          ent->s.angles = Vec3_Euler(tr.plane.normal);
+          ent->s.animation1 = LIGHTNING_SOLID_HIT;
+        }
+      }
+    }
+  }
 
-	self->s.origin = start; // update end points
-	self->s.termination = tr.end;
+  ent->s.origin = start; // update end points
+  ent->s.termination = tr.end;
 
-	gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief
  */
-void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-						   int32_t knockback) {
+void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback) {
 
-	g_entity_t *projectile = NULL;
+  g_entity_t *projectile = NULL;
 
-	while ((projectile = G_Find(projectile, EOFS(class_name), __func__))) {
-		if (projectile->owner == ent) {
-			break;
-		}
-	}
+  while ((projectile = G_Find(projectile, EOFS(classname), __func__))) {
+    if (projectile->owner == ent) {
+      break;
+    }
+  }
 
-	if (!projectile) { // ensure a valid lightning entity exists
-		projectile = G_AllocEntity();
+  if (!projectile) { // ensure a valid lightning entity exists
+    projectile = G_AllocEntity(__func__);
 
-		projectile->s.origin = start;
+    projectile->s.origin = start;
 
-		if (G_ImmediateWall(ent, projectile)) {
-			projectile->s.origin = ent->s.origin;
-		}
+    if (G_ImmediateWall(ent, projectile)) {
+      projectile->s.origin = ent->s.origin;
+    }
 
-		projectile->s.termination = Vec3_Fmaf(start, g_balance_lightning_length->value, dir);
+    projectile->s.termination = Vec3_Fmaf(start, g_balance_lightning_length->value, dir);
 
-		projectile->owner = ent;
-		projectile->solid = SOLID_NOT;
-		projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-		projectile->locals.move_type = MOVE_TYPE_THINK;
-		projectile->locals.Think = G_LightningProjectile_Think;
-		projectile->locals.knockback = knockback;
-		projectile->s.client = ent->s.client; // player number, for client prediction fix
-		projectile->s.effects = EF_BEAM;
-		projectile->s.sound = g_media.sounds.lightning_fly;
-		projectile->s.trail = TRAIL_LIGHTNING;
+    projectile->owner = ent;
+    projectile->solid = SOLID_NOT;
+    projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+    projectile->move_type = MOVE_TYPE_THINK;
+    projectile->Think = G_LightningProjectile_Think;
+    projectile->knockback = knockback;
+    projectile->s.client = ent->s.client;
+    projectile->s.effects = EF_BEAM;
+    projectile->s.sound = g_media.sounds.lightning_fly;
+    projectile->s.trail = TRAIL_LIGHTNING;
 
-		gi.LinkEntity(projectile);
-	}
+    gi.LinkEntity(projectile);
+  }
 
-	// set the damage and think time
-	projectile->locals.damage = damage;
-	projectile->locals.next_think = g_level.time + 1;
-	projectile->locals.timestamp = g_level.time;
-	projectile->locals.water_level = WATER_NONE;
+  // set the damage and think time
+  projectile->damage = damage;
+  projectile->next_think = g_level.time + 1;
+  projectile->timestamp = g_level.time;
+  projectile->water_level = WATER_NONE;
 }
 
 /**
  * @brief
  */
 void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
-						 int32_t knockback) {
-	vec3_t pos, end;
+             int32_t knockback) {
+  vec3_t pos, end;
 
-	pos = start;
+  pos = start;
 
-	cm_trace_t tr = gi.Trace(ent->s.origin, pos, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
-	if (tr.fraction < 1.0) {
-		pos = ent->s.origin;
-	}
+  cm_trace_t tr = gi.Trace(ent->s.origin, pos, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PROJECTILE);
+  if (tr.fraction < 1.0) {
+    pos = ent->s.origin;
+  }
 
-	int32_t content_mask = CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID;
-	bool liquid = false;
+  int32_t content_mask = CONTENTS_MASK_CLIP_PROJECTILE | CONTENTS_MASK_LIQUID;
+  bool liquid = false;
 
-	// are we starting in water?
-	if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
-		content_mask &= ~CONTENTS_MASK_LIQUID;
-		liquid = true;
-	}
+  // are we starting in water?
+  if (gi.PointContents(pos) & CONTENTS_MASK_LIQUID) {
+    content_mask &= ~CONTENTS_MASK_LIQUID;
+    liquid = true;
+  }
 
-	end = Vec3_Fmaf(pos, MAX_WORLD_DIST, dir);
+  end = Vec3_Fmaf(pos, MAX_WORLD_DIST, dir);
 
-	G_Ripple(NULL, pos, end, 24.f, true);
+  G_Ripple(NULL, pos, end, 24.f, true);
 
-	g_entity_t *ignore = ent;
-	while (ignore) {
-		tr = gi.Trace(pos, end, Box3_Zero(), ignore, content_mask);
-		if (!tr.ent) {
-			break;
-		}
+  g_entity_t *ignore = ent;
+  while (ignore) {
+    tr = gi.Trace(pos, end, Box3_Zero(), ignore, content_mask);
+    if (!tr.ent) {
+      break;
+    }
 
-		if ((tr.contents & CONTENTS_MASK_LIQUID) && !liquid) {
+    if ((tr.contents & CONTENTS_MASK_LIQUID) && !liquid) {
 
-			content_mask &= ~CONTENTS_MASK_LIQUID;
-			liquid = true;
+      content_mask &= ~CONTENTS_MASK_LIQUID;
+      liquid = true;
 
-			G_MulticastSound(&(const g_play_sound_t) {
-				.index = g_media.sounds.water_in,
-				.origin = &tr.end,
-				.atten = SOUND_ATTEN_LINEAR
-			}, MULTICAST_PHS, NULL);
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = g_media.sounds.water_in,
+        .origin = &tr.end,
+        .atten = SOUND_ATTEN_LINEAR
+      }, MULTICAST_PHS);
 
-			ignore = ent;
-			continue;
-		}
+      ignore = ent;
+      continue;
+    }
 
-		if (tr.ent->client || tr.ent->solid == SOLID_BOX) {
-			ignore = tr.ent;
-		} else {
-			ignore = NULL;
-		}
+    g_entity_t *other = tr.ent;
+    if (other->client || other->solid == SOLID_BOX) {
+      ignore = other;
+    } else {
+      ignore = NULL;
+    }
 
-		// we've hit something, so damage it
-		if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
-			G_Damage(tr.ent, ent, ent, dir, tr.end, tr.plane.normal, damage, knockback, 0, MOD_RAILGUN);
-		}
+    // we've hit something, so damage it
+    if ((tr.ent != ent) && G_TakesDamage(tr.ent)) {
+      G_Damage(&(g_damage_t) {
+        .target = tr.ent,
+        .inflictor = ent,
+        .attacker = ent,
+        .dir = dir,
+        .point = tr.end,
+        .normal = tr.plane.normal,
+        .damage = damage,
+        .knockback = knockback,
+        .flags = 0,
+        .mod = MOD_RAILGUN
+      });
+    }
 
-		pos = tr.end;
-	}
+    pos = tr.end;
+  }
 
-	// send rail trail
-	gi.WriteByte(SV_CMD_TEMP_ENTITY);
-	gi.WriteByte(TE_RAIL);
-	gi.WritePosition(start);
-	gi.WritePosition(tr.end);
-	gi.WriteDir(tr.plane.normal);
-	gi.WriteLong(tr.surface);
-	gi.WriteByte(ent->s.client);
+  // send rail trail
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_RAIL);
+  gi.WritePosition(start);
+  gi.WritePosition(tr.end);
+  gi.WriteDir(tr.plane.normal);
+  gi.WriteLong(tr.surface);
+  gi.WriteByte(ent->s.client);
 
-	gi.Multicast(start, MULTICAST_PHS, NULL);
-
-	if (!gi.inPHS(start, tr.end)) { // send to both PHS's
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_RAIL);
-		gi.WritePosition(start);
-		gi.WritePosition(tr.end);
-		gi.WriteDir(tr.plane.normal);
-		gi.WriteLong(tr.surface);
-		gi.WriteByte(ent->s.client);
-
-		gi.Multicast(tr.end, MULTICAST_PHS, NULL);
-	}
+  gi.Multicast(start, MULTICAST_PHS);
 }
 
 /**
  * @brief
  */
-static void G_BfgProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_BfgProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	if (!G_IsSky(trace)) {
+  if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace) || G_IsMeat(other)) {
+    if (G_IsStructural(trace) || G_IsMeat(other)) {
 
-			G_Damage(other, self, self->owner, self->locals.velocity, self->s.origin, trace->plane.normal,
-			         self->locals.damage, self->locals.knockback, DMG_ENERGY, MOD_BFG_BLAST);
+      G_Damage(&(g_damage_t) {
+        .target = other,
+        .inflictor = ent,
+        .attacker = ent->owner,
+        .dir = ent->velocity,
+        .point = ent->s.origin,
+        .normal = trace->plane.normal,
+        .damage = ent->damage,
+        .knockback = ent->knockback,
+        .flags = DMG_ENERGY,
+        .mod = MOD_BFG_BLAST
+      });
 
-			G_RadiusDamage(self, self->owner, other, self->locals.damage, self->locals.knockback,
-			               self->locals.damage_radius, MOD_BFG_BLAST);
+      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damage_radius, MOD_BFG_BLAST);
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_BFG);
-			gi.WritePosition(self->s.origin);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-		}
-	}
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_BFG);
+      gi.WritePosition(ent->s.origin);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    }
+  }
 
-	G_FreeEntity(self);
+  G_FreeEntity(ent);
 }
 
 /**
  * @brief
  */
-static void G_BfgProjectile_Think(g_entity_t *self) {
+static void G_BfgProjectile_Think(g_entity_t *ent) {
 
-	const int32_t frame_damage = self->locals.damage * QUETOO_TICK_SECONDS;
-	const int32_t frame_knockback = self->locals.knockback * QUETOO_TICK_SECONDS;
+  const int32_t frame_damage = ent->damage * QUETOO_TICK_SECONDS;
+  const int32_t frame_knockback = ent->knockback * QUETOO_TICK_SECONDS;
 
-	g_entity_t *ent = NULL;
-	while ((ent = G_FindRadius(ent, self->s.origin, self->locals.damage_radius)) != NULL) {
+  G_ForEachEntity(other, {
 
-		if (ent == self || ent == self->owner) {
-			continue;
-		}
+    if (other == ent || other == ent->owner) {
+      continue;
+    }
 
-		if (!ent->locals.take_damage) {
-			continue;
-		}
+    if (!other->take_damage) {
+      continue;
+    }
 
-		if (!G_CanDamage(ent, self)) {
-			continue;
-		}
+    if (!G_CanDamage(ent, other)) {
+      continue;
+    }
 
-		const vec3_t end = G_GetOrigin(ent);
-		const vec3_t dir = Vec3_Subtract(end, self->s.origin);
-		const float dist = Vec3_Length(dir);
-		const vec3_t normal = Vec3_Normalize(Vec3_Negate(dir));
+    const vec3_t end = G_GetOrigin(other);
+    const vec3_t dir = Vec3_Subtract(end, ent->s.origin);
+    const float dist = Vec3_Length(dir) - Box3_Radius(ent->bounds);
+    const vec3_t normal = Vec3_Normalize(Vec3_Negate(dir));
 
-		const float f = 1.0 - dist / self->locals.damage_radius;
+    const float f = 1.0 - dist / ent->damage_radius;
 
-		if (f <= 0.f) {
-			continue;
-		}
+    if (f <= 0.f) {
+      continue;
+    }
 
-		G_Damage(ent, self, self->owner, dir, ent->s.origin, normal,
-				 frame_damage * f, frame_knockback * f, DMG_RADIUS, MOD_BFG_LASER);
+    G_Damage(&(g_damage_t) {
+      .target = other,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = dir,
+      .point = other->s.origin,
+      .normal = normal,
+      .damage = frame_damage * f,
+      .knockback = frame_knockback * f,
+      .flags = DMG_RADIUS,
+      .mod = MOD_BFG_LASER
+    });
 
-		gi.WriteByte(SV_CMD_TEMP_ENTITY);
-		gi.WriteByte(TE_BFG_LASER);
-		gi.WriteShort(self->s.number);
-		gi.WriteShort(ent->s.number);
-		gi.Multicast(self->s.origin, MULTICAST_PVS, NULL);
-	}
+    gi.WriteByte(SV_CMD_TEMP_ENTITY);
+    gi.WriteByte(TE_BFG_LASER);
+    gi.WriteShort(ent->s.number);
+    gi.WriteShort(other->s.number);
+    gi.Multicast(ent->s.origin, MULTICAST_PVS);
+  });
 
-	self->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 }
 
 /**
  * @brief
  */
-void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed,
-					 int32_t damage, int32_t knockback, float damage_radius) {
+void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
-	const box3_t bounds = Box3f(24.f, 24.f, 24.f);
+  const box3_t bounds = Box3f(24.f, 24.f, 24.f);
 
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->bounds = bounds;
-	projectile->locals.velocity = Vec3_Scale(dir, speed);
+  projectile->s.origin = start;
+  projectile->bounds = bounds;
+  projectile->velocity = Vec3_Scale(dir, speed);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.damage = damage;
-	projectile->locals.damage_radius = damage_radius;
-	projectile->locals.knockback = knockback;
-	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-	projectile->locals.Think = G_BfgProjectile_Think;
-	projectile->locals.Touch = G_BfgProjectile_Touch;
-	projectile->s.trail = TRAIL_BFG;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = damage;
+  projectile->damage_radius = damage_radius;
+  projectile->knockback = knockback;
+  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->next_think = g_level.time + QUETOO_TICK_MILLIS;
+  projectile->Think = G_BfgProjectile_Think;
+  projectile->Touch = G_BfgProjectile_Touch;
+  projectile->s.trail = TRAIL_BFG;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 }
 
 /**
  * @brief
  */
-static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other == self->owner) {
-		return;
-	}
+  if (other == ent->owner) {
+    return;
+  }
 
-	if (other->solid < SOLID_DEAD) {
-		return;
-	}
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
 
-	if (trace == NULL) {
-		return;
-	}
+  if (trace == NULL) {
+    return;
+  }
 
-	self->s.sound = 0;
+  ent->s.sound = 0;
 
-	if (!G_IsSky(trace)) {
+  if (!G_IsSky(trace)) {
 
-		if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other, self->owner))) {
+    if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
 
-			self->locals.velocity = Vec3_Zero();
-			self->locals.avelocity = Vec3_Zero();
+      ent->velocity = Vec3_Zero();
+      ent->avelocity = Vec3_Zero();
 
-			self->owner->client->locals.hook_pull = true;
+      ent->owner->client->hook_pull = true;
 
-			self->locals.move_type = MOVE_TYPE_THINK;
-			self->solid = SOLID_NOT;
-			self->bounds = Box3_Zero();
-			self->locals.enemy = other;
+      ent->move_type = MOVE_TYPE_THINK;
+      ent->solid = SOLID_NOT;
+      ent->bounds = Box3_Zero();
+      ent->enemy = other;
 
-			gi.LinkEntity(self);
+      gi.LinkEntity(ent);
 
-			self->owner->client->ps.pm_state.hook_position = self->s.origin;
+      ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
 
-			if (self->owner->client->locals.persistent.hook_style != HOOK_PULL) {
-				const float distance = Vec3_Distance(self->owner->s.origin, self->s.origin);
+      if (ent->owner->client->persistent.hook_style != HOOK_PULL) {
+        const float distance = Vec3_Distance(ent->owner->s.origin, ent->s.origin);
 
-				self->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
-			}
+        ent->owner->client->ps.pm_state.hook_length = Clampf(distance, PM_HOOK_MIN_DIST, g_hook_distance->value);
+      }
 
-			gi.WriteByte(SV_CMD_TEMP_ENTITY);
-			gi.WriteByte(TE_HOOK_IMPACT);
-			gi.WritePosition(self->s.origin);
-			gi.WriteDir(trace->plane.normal);
-			gi.Multicast(self->s.origin, MULTICAST_PHS, NULL);
-		} else {
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_HOOK_IMPACT);
+      gi.WritePosition(ent->s.origin);
+      gi.WriteDir(trace->plane.normal);
+      gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    } else {
 
-			G_MulticastSound(&(const g_play_sound_t) {
-				.index = g_media.sounds.hook_gibhit,
-				.entity = self,
-				.atten = SOUND_ATTEN_LINEAR,
-				.pitch = RandomRangei(-4, 5)
-			}, MULTICAST_PHS, NULL);
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = g_media.sounds.hook_gibhit,
+        .entity = ent,
+        .atten = SOUND_ATTEN_LINEAR,
+        .pitch = RandomRangei(-4, 5)
+      }, MULTICAST_PHS);
 
-			/*
-			if (g_hook_auto_refire->integer) {
-				G_ClientHookThink(self->owner, true);
-			} else {*/
-				self->locals.velocity = Vec3_Normalize(self->locals.velocity);
+      /*
+      if (g_hook_auto_refire->integer) {
+        G_HookThink(ent->owner, true);
+      } else {*/
+        ent->velocity = Vec3_Normalize(ent->velocity);
 
-				G_Damage(other, self, self->owner,
-						 self->locals.velocity, self->s.origin, Vec3_Zero(),
-						 5, 0, 0, MOD_HOOK);
+        G_Damage(&(g_damage_t) {
+          .target = other,
+          .inflictor = ent,
+          .attacker = ent->owner,
+          .dir = ent->velocity,
+          .point = ent->s.origin,
+          .normal = Vec3_Zero(),
+          .damage = 5,
+          .knockback = 0,
+          .flags = 0,
+          .mod = MOD_HOOK
+        });
 
-				G_ClientHookDetach(self->owner);
-//			}
-		}
-	} else {
-		/* Currently disabled due to bugs
-		if (g_hook_auto_refire->integer) {
-			G_ClientHookThink(self->owner, true);
-		} else {
-		*/
-			G_ClientHookDetach(self->owner);
-//		}
-	}
+        G_HookDetach(ent->owner->client);
+//      }
+    }
+  } else {
+    /* Currently disabled due to bugs
+    if (g_hook_auto_refire->integer) {
+      G_HookThink(ent->owner, true);
+    } else {
+    */
+      G_HookDetach(ent->owner->client);
+//    }
+  }
 }
 
 /**
@@ -1132,27 +1226,27 @@ static void G_HookProjectile_Touch(g_entity_t *self, g_entity_t *other, const cm
  */
 static void G_HookTrail_Think(g_entity_t *ent) {
 
-	const g_entity_t *hook = ent->locals.target_ent;
-	g_entity_t *player = ent->owner;
+  const g_entity_t *hook = ent->target_ent;
+  g_client_t *cl = ent->owner->client;
 
-	vec3_t forward, right, up, org;
+  vec3_t forward, right, up, org;
 
-	G_InitProjectile(player, &forward, &right, &up, &org, -1.0);
+  G_ClientProjectile(cl, &forward, &right, &up, &org, -1.0);
 
-	ent->s.origin = org;
-	ent->s.termination = hook->s.origin;
+  ent->s.origin = org;
+  ent->s.termination = hook->s.origin;
 
-	vec3_t distance;
-	distance = Vec3_Subtract(org, hook->s.origin);
+  vec3_t distance;
+  distance = Vec3_Subtract(org, hook->s.origin);
 
-	if (Vec3_Length(distance) > g_hook_distance->value) {
+  if (Vec3_Length(distance) > g_hook_distance->value) {
 
-		G_ClientHookDetach(player);
-		return;
-	}
+    G_HookDetach(cl);
+    return;
+  }
 
-	ent->locals.next_think = g_level.time + 1;
-	gi.LinkEntity(ent);
+  ent->next_think = g_level.time + 1;
+  gi.LinkEntity(ent);
 }
 
 /**
@@ -1160,100 +1254,100 @@ static void G_HookTrail_Think(g_entity_t *ent) {
  */
 static void G_HookProjectile_Think(g_entity_t *ent) {
 
-	// if we're attached to something, copy velocities
-	if (ent->locals.enemy) {
-		g_entity_t *mover = ent->locals.enemy;
-		vec3_t move, amove, inverse_amove, forward, right, up, rotate, translate, delta;
+  // if we're attached to something, copy velocities
+  if (ent->enemy) {
+    g_entity_t *mover = ent->enemy;
+    vec3_t move, amove, inverse_amove, forward, right, up, rotate, translate, delta;
 
-		move = Vec3_Scale(mover->locals.velocity, QUETOO_TICK_SECONDS);
-		amove = Vec3_Scale(mover->locals.avelocity, QUETOO_TICK_SECONDS);
+    move = Vec3_Scale(mover->velocity, QUETOO_TICK_SECONDS);
+    amove = Vec3_Scale(mover->avelocity, QUETOO_TICK_SECONDS);
 
-		if (!Vec3_Equal(move, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
-			inverse_amove = Vec3_Negate(amove);
-			Vec3_Vectors(inverse_amove, &forward, &right, &up);
+    if (!Vec3_Equal(move, Vec3_Zero()) || !Vec3_Equal(amove, Vec3_Zero())) {
+      inverse_amove = Vec3_Negate(amove);
+      Vec3_Vectors(inverse_amove, &forward, &right, &up);
 
-			// translate the pushed entity
-			ent->s.origin = Vec3_Add(ent->s.origin, move);
+      // translate the pushed entity
+      ent->s.origin = Vec3_Add(ent->s.origin, move);
 
-			// then rotate the movement to comply with the pusher's rotation
-			translate = Vec3_Subtract(ent->s.origin, mover->s.origin);
+      // then rotate the movement to comply with the pusher's rotation
+      translate = Vec3_Subtract(ent->s.origin, mover->s.origin);
 
-			rotate.x = Vec3_Dot(translate, forward);
-			rotate.y = -Vec3_Dot(translate, right);
-			rotate.z = Vec3_Dot(translate, up);
+      rotate.x = Vec3_Dot(translate, forward);
+      rotate.y = -Vec3_Dot(translate, right);
+      rotate.z = Vec3_Dot(translate, up);
 
-			delta = Vec3_Subtract(rotate, translate);
+      delta = Vec3_Subtract(rotate, translate);
 
-			ent->s.origin = Vec3_Add(ent->s.origin, delta);
+      ent->s.origin = Vec3_Add(ent->s.origin, delta);
 
-			// FIXME: any way we can have the hook move on all axis?
-			ent->s.angles.y += amove.y;
-			ent->locals.target_ent->s.angles.y += amove.y;
+      // FIXME: any way we can have the hook move on all axis?
+      ent->s.angles.y += amove.y;
+      ent->target_ent->s.angles.y += amove.y;
 
-			gi.LinkEntity(ent);
+      gi.LinkEntity(ent);
 
-			ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
-		}
+      ent->owner->client->ps.pm_state.hook_position = ent->s.origin;
+    }
 
-		if ((ent->owner->client->locals.persistent.hook_style == HOOK_PULL && Vec3_LengthSquared(ent->owner->locals.velocity) > 128.0) ||
-			ent->locals.knockback != ent->owner->client->ps.pm_state.hook_length) {
-			ent->s.sound = g_media.sounds.hook_pull;
-			ent->locals.knockback = ent->owner->client->ps.pm_state.hook_length;
-		} else {
-			ent->s.sound = 0;
-		}
-	}
+    if ((ent->owner->client->persistent.hook_style == HOOK_PULL && Vec3_LengthSquared(ent->owner->velocity) > 128.0) ||
+      ent->knockback != ent->owner->client->ps.pm_state.hook_length) {
+      ent->s.sound = g_media.sounds.hook_pull;
+      ent->knockback = ent->owner->client->ps.pm_state.hook_length;
+    } else {
+      ent->s.sound = 0;
+    }
+  }
 
-	ent->locals.next_think = g_level.time + 1;
+  ent->next_think = g_level.time + 1;
 }
 
 /**
  * @brief
  */
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
-	g_entity_t *projectile = G_AllocEntity();
-	projectile->owner = ent;
+  g_entity_t *projectile = G_AllocEntity(__func__);
+  projectile->owner = ent;
 
-	projectile->s.origin = start;
-	projectile->s.angles = Vec3_Euler(dir);
-	projectile->locals.velocity = Vec3_Scale(dir, g_hook_speed->value);
-	projectile->locals.avelocity = Vec3(0, 0, 500);
+  projectile->s.origin = start;
+  projectile->s.angles = Vec3_Euler(dir);
+  projectile->velocity = Vec3_Scale(dir, g_hook_speed->value);
+  projectile->avelocity = Vec3(0, 0, 500);
 
-	if (G_ImmediateWall(ent, projectile)) {
-		projectile->s.origin = ent->s.origin;
-	}
+  if (G_ImmediateWall(ent, projectile)) {
+    projectile->s.origin = ent->s.origin;
+  }
 
-	projectile->solid = SOLID_PROJECTILE;
-	projectile->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	projectile->locals.move_type = MOVE_TYPE_FLY;
-	projectile->locals.Touch = G_HookProjectile_Touch;
-	projectile->s.model1 = g_media.models.hook;
-	projectile->locals.Think = G_HookProjectile_Think;
-	projectile->locals.next_think = g_level.time + 1;
-	projectile->s.sound = g_media.sounds.hook_fly;
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->move_type = MOVE_TYPE_FLY;
+  projectile->Touch = G_HookProjectile_Touch;
+  projectile->s.model1 = g_media.models.hook;
+  projectile->Think = G_HookProjectile_Think;
+  projectile->next_think = g_level.time + 1;
+  projectile->s.sound = g_media.sounds.hook_fly;
 
-	gi.LinkEntity(projectile);
+  gi.LinkEntity(projectile);
 
-	g_entity_t *trail = G_AllocEntity();
+  g_entity_t *trail = G_AllocEntity(__func__);
 
-	projectile->locals.target_ent = trail;
-	trail->locals.target_ent = projectile;
+  projectile->target_ent = trail;
+  trail->target_ent = projectile;
 
-	trail->owner = ent;
-	trail->solid = SOLID_NOT;
-	trail->locals.clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
-	trail->locals.move_type = MOVE_TYPE_THINK;
-	trail->s.client = ent->s.client; // player number, for client prediction fix
-	trail->s.effects = EF_BEAM;
-	trail->s.trail = TRAIL_HOOK;
-	trail->locals.Think = G_HookTrail_Think;
-	trail->locals.next_think = g_level.time + 1;
+  trail->owner = ent;
+  trail->solid = SOLID_NOT;
+  trail->clip_mask = CONTENTS_MASK_CLIP_PROJECTILE;
+  trail->move_type = MOVE_TYPE_THINK;
+  trail->s.client = ent->s.client;
+  trail->s.effects = EF_BEAM;
+  trail->s.trail = TRAIL_HOOK;
+  trail->Think = G_HookTrail_Think;
+  trail->next_think = g_level.time + 1;
 
-	G_HookTrail_Think(trail);
+  G_HookTrail_Think(trail);
 
-	// angle is used for rendering on client side
-	trail->s.angles = projectile->s.angles;
+  // angle is used for rendering on client side
+  trail->s.angles = projectile->s.angles;
 
-	gi.LinkEntity(trail);
-	return projectile;
+  gi.LinkEntity(trail);
+  return projectile;
 }

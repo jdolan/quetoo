@@ -25,30 +25,30 @@
  * @brief Return true if the parser is at the end of the input.
  */
 bool Parse_IsEOF(const parser_t *parser) {
-	return (*parser->position.ptr) == '\0';
+  return (*parser->position.ptr) == '\0';
 }
 
 /**
  * @brief Return true if the parser is at a newline boundary.
  */
 bool Parse_IsEOL(const parser_t *parser) {
-	const char c = *parser->position.ptr;
-	return c == '\r' || c == '\n';
+  const char c = *parser->position.ptr;
+  return c == '\r' || c == '\n';
 }
 
 /**
  * @brief Trigger a column increase
  */
 static void Parse_NextColumn(parser_t *parser, const size_t len) {
-	parser->position.col += len;
+  parser->position.col += len;
 }
 
 /**
  * @brief Trigger a row increase
  */
 static void Parse_NextRow(parser_t *parser, const size_t len) {
-	parser->position.row += len;
-	parser->position.col = 0;
+  parser->position.row += len;
+  parser->position.col = 0;
 }
 
 /**
@@ -56,32 +56,32 @@ static void Parse_NextRow(parser_t *parser, const size_t len) {
  * at the start of a non-control character or at a newline if flags tell them not to traverse them.
  */
 static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
-	char c;
+  char c;
 
-	while ((c = *parser->position.ptr) <= ' ') {
+  while ((c = *parser->position.ptr) <= ' ') {
 
-		// end of parse
-		if (c == '\0') {
-			return false;
-		}
+    // end of parse
+    if (c == '\0') {
+      return false;
+    }
 
-		// see if we shouldn't traverse newlines
-		if (c == '\r' || c == '\n') {
-			if (flags & PARSE_NO_WRAP) {
-				return false;
-			}
+    // see if we shouldn't traverse newlines
+    if (c == '\r' || c == '\n') {
+      if (flags & PARSE_NO_WRAP) {
+        return false;
+      }
 
-			if (c == '\n') {
-				Parse_NextRow(parser, 1);
-			}
-		}
+      if (c == '\n') {
+        Parse_NextRow(parser, 1);
+      }
+    }
 
-		parser->position.ptr++;
-		Parse_NextColumn(parser, 1);
-	}
+    parser->position.ptr++;
+    Parse_NextColumn(parser, 1);
+  }
 
-	// made it!
-	return true;
+  // made it!
+  return true;
 }
 
 /**
@@ -90,41 +90,41 @@ static bool Parse_SkipWhitespace(parser_t *parser, const parse_flags_t flags) {
  */
 static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
 
-	if (strncmp(parser->position.ptr, identifier, strlen(identifier))) {
-		return false;
-	}
+  if (strncmp(parser->position.ptr, identifier, strlen(identifier))) {
+    return false;
+  }
 
-	parser->position.ptr += strlen(identifier);
-	Parse_NextColumn(parser, 2);
+  parser->position.ptr += strlen(identifier);
+  Parse_NextColumn(parser, 2);
 
-	while (true) {
-		char c = *parser->position.ptr;
+  while (true) {
+    char c = *parser->position.ptr;
 
-		if (c == '\0') {
-			return false;
-		}
+    if (c == '\0') {
+      return false;
+    }
 
-		size_t skipped = 0;
+    size_t skipped = 0;
 
-		while (c == '\r' || c == '\n') {
+    while (c == '\r' || c == '\n') {
 
-			if (c == '\n') {
-				skipped++; // reached one!
-			}
+      if (c == '\n') {
+        skipped++; // reached one!
+      }
 
-			c = *(++parser->position.ptr);
-		}
+      c = *(++parser->position.ptr);
+    }
 
-		if (skipped) {
-			Parse_NextRow(parser, skipped);
-			return true;
-		}
+    if (skipped) {
+      Parse_NextRow(parser, skipped);
+      return true;
+    }
 
-		parser->position.ptr++;
-		Parse_NextColumn(parser, 1);
-	}
+    parser->position.ptr++;
+    Parse_NextColumn(parser, 1);
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -133,36 +133,36 @@ static bool Parse_SkipCommentLine(parser_t *parser, const char *identifier) {
  */
 static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const char *end) {
 
-	if (strncmp(parser->position.ptr, start, strlen(start))) {
-		return false;
-	}
+  if (strncmp(parser->position.ptr, start, strlen(start))) {
+    return false;
+  }
 
-	parser->position.ptr += strlen(start);
-	Parse_NextColumn(parser, strlen(start));
+  parser->position.ptr += strlen(start);
+  Parse_NextColumn(parser, strlen(start));
 
-	while (true) {
-		char c = *parser->position.ptr;
+  while (true) {
+    char c = *parser->position.ptr;
 
-		if (c == '\0') {
-			return false;
-		}
+    if (c == '\0') {
+      return false;
+    }
 
-		if (!strncmp(parser->position.ptr, end, strlen(end))) {
-			parser->position.ptr += strlen(end); // found it!
-			Parse_NextColumn(parser, strlen(end));
-			return true;
-		}
+    if (!strncmp(parser->position.ptr, end, strlen(end))) {
+      parser->position.ptr += strlen(end); // found it!
+      Parse_NextColumn(parser, strlen(end));
+      return true;
+    }
 
-		parser->position.ptr++;
+    parser->position.ptr++;
 
-		if (c == '\n') {
-			Parse_NextRow(parser, 1);
-		} else {
-			Parse_NextColumn(parser, 1);
-		}
-	}
+    if (c == '\n') {
+      Parse_NextRow(parser, 1);
+    } else {
+      Parse_NextColumn(parser, 1);
+    }
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -172,36 +172,36 @@ static bool Parse_SkipCommentBlock(parser_t *parser, const char *start, const ch
  */
 static bool Parse_SkipComments(parser_t *parser) {
 
-	while (true) {
-		char c = *parser->position.ptr;
-		bool parsed_comments = false;
+  while (true) {
+    char c = *parser->position.ptr;
+    bool parsed_comments = false;
 
-		if (c == '/') {
+    if (c == '/') {
 
-			if (!parsed_comments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
-				parsed_comments = Parse_SkipCommentLine(parser, "//") || parsed_comments;
-			}
+      if (!parsed_comments && (parser->flags & PARSER_C_LINE_COMMENTS)) {
+        parsed_comments = Parse_SkipCommentLine(parser, "//") || parsed_comments;
+      }
 
-			if (!parsed_comments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
-				parsed_comments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsed_comments;
-			}
-		} else if (c == '#') {
+      if (!parsed_comments && (parser->flags & PARSER_C_BLOCK_COMMENTS)) {
+        parsed_comments = Parse_SkipCommentBlock(parser, "/*", "*/") || parsed_comments;
+      }
+    } else if (c == '#') {
 
-			if (!parsed_comments && (parser->flags & PARSER_POUND_LINE_COMMENTS)) {
-				parsed_comments = Parse_SkipCommentLine(parser, "#") || parsed_comments;
-			}
-		}
+      if (!parsed_comments && (parser->flags & PARSER_POUND_LINE_COMMENTS)) {
+        parsed_comments = Parse_SkipCommentLine(parser, "#") || parsed_comments;
+      }
+    }
 
-		if (!parsed_comments) {
-			break;
-		}
+    if (!parsed_comments) {
+      break;
+    }
 
-		if (!Parse_SkipWhitespace(parser, PARSE_DEFAULT)) {
-			return false;
-		}
-	}
+    if (!Parse_SkipWhitespace(parser, PARSE_DEFAULT)) {
+      return false;
+    }
+  }
 
-	return !Parse_IsEOF(parser);
+  return !Parse_IsEOF(parser);
 }
 
 /**
@@ -210,112 +210,112 @@ static bool Parse_SkipComments(parser_t *parser) {
  */
 static bool Parse_AppendOutputChar(parser_t *parser, const parse_flags_t flags, const char c, size_t *output_position, char *output, const size_t output_len) {
 
-	if (!output) {
-		return true;
-	}
+  if (!output) {
+    return true;
+  }
 
-	if (*output_position >= output_len - 1) { // buffer overrun
-		if (!(flags & PARSE_ALLOW_OVERRUN)) {
-			return false;
-		}
-	} else {
-		output[(*output_position)++] = c;
-	}
+  if (*output_position >= output_len - 1) { // buffer overrun
+    if (!(flags & PARSE_ALLOW_OVERRUN)) {
+      return false;
+    }
+  } else {
+    output[(*output_position)++] = c;
+  }
 
-	return true;
+  return true;
 }
 
 /**
  * @brief Handles parsing a quoted string.
  */
 static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags, size_t *output_position, char *output, const size_t output_len) {
-	char c = *parser->position.ptr;
+  char c = *parser->position.ptr;
 
-	if (c != '"') {
-		return false; // sanity check
-	}
+  if (c != '"') {
+    return false; // sanity check
+  }
 
-	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
-			return false;
-		}
-	}
+  if (flags & PARSE_RETAIN_QUOTES) {
+    if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
+      return false;
+    }
+  }
 
-	while (true) {
-		c = *(++parser->position.ptr);
-		Parse_NextColumn(parser, 1);
+  while (true) {
+    c = *(++parser->position.ptr);
+    Parse_NextColumn(parser, 1);
 
-		if (c == '\0') {
-			return false;
-		} else if (c == '\\') {
+    if (c == '\0') {
+      return false;
+    } else if (c == '\\') {
 
-			if (!(flags & PARSE_COPY_QUOTED_LITERALS)) {
-				// not copying literally, so let's parse the value we want
-				const char n = *(parser->position.ptr + 1);
-				char escaped;
+      if (!(flags & PARSE_COPY_QUOTED_LITERALS)) {
+        // not copying literally, so let's parse the value we want
+        const char n = *(parser->position.ptr + 1);
+        char escaped;
 
-				switch (n) {
-				default:
-					escaped = '\0';
-					break;
-				// requires special char
-				case 'n':
-					escaped = '\n';
-					break;
-				case 't':
-					escaped = '\t';
-					break;
-				// same as input char
-				case '"':
-				case '\'':
-				case '\\':
-					escaped = n;
-					break;
-				}
+        switch (n) {
+        default:
+          escaped = '\0';
+          break;
+        // requires special char
+        case 'n':
+          escaped = '\n';
+          break;
+        case 't':
+          escaped = '\t';
+          break;
+        // same as input char
+        case '"':
+        case '\'':
+        case '\\':
+          escaped = n;
+          break;
+        }
 
-				if (escaped != '\0') {
+        if (escaped != '\0') {
 
-					// copy it in
-					if (!Parse_AppendOutputChar(parser, flags, escaped, output_position, output, output_len)) {
-						return false;
-					}
+          // copy it in
+          if (!Parse_AppendOutputChar(parser, flags, escaped, output_position, output, output_len)) {
+            return false;
+          }
 
-					parser->position.ptr++; // skip the next one since we're valid and parsed it above
-					Parse_NextColumn(parser, 1);
-					continue; // go right from after this bit
-				}
-			}
+          parser->position.ptr++; // skip the next one since we're valid and parsed it above
+          Parse_NextColumn(parser, 1);
+          continue; // go right from after this bit
+        }
+      }
 
-			// if we reached here, we're copying them literally or was an invalid escape sequence.
-			if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
-				!Parse_AppendOutputChar(parser, flags, *(++parser->position.ptr), output_position, output, output_len)) {
-				return false;
-			}
+      // if we reached here, we're copying them literally or was an invalid escape sequence.
+      if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
+        !Parse_AppendOutputChar(parser, flags, *(++parser->position.ptr), output_position, output, output_len)) {
+        return false;
+      }
 
-			Parse_NextColumn(parser, 1);
-			continue; // go to next char
-		} else if (c == '"') {
-			// eat the char and we're done!
-			parser->position.ptr++;
-			Parse_NextColumn(parser, 1);
-			break;
-		} else if (c == '\n') {
-			Parse_NextRow(parser, 1);
-		}
+      Parse_NextColumn(parser, 1);
+      continue; // go to next char
+    } else if (c == '"') {
+      // eat the char and we're done!
+      parser->position.ptr++;
+      Parse_NextColumn(parser, 1);
+      break;
+    } else if (c == '\n') {
+      Parse_NextRow(parser, 1);
+    }
 
-		// regular char, just append
-		if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len)) {
-			return false;
-		}
-	}
+    // regular char, just append
+    if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len)) {
+      return false;
+    }
+  }
 
-	if (flags & PARSE_RETAIN_QUOTES) {
-		if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
-			return false;
-		}
-	}
+  if (flags & PARSE_RETAIN_QUOTES) {
+    if (!Parse_AppendOutputChar(parser, flags, '"', output_position, output, output_len)) {
+      return false;
+    }
+  }
 
-	return true;
+  return true;
 }
 
 /**
@@ -324,74 +324,74 @@ static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags,
  * @return false if the token cannot fit in the specified buffer, true if the parsing has succeeded.
  */
 bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, const size_t output_len) {
-	parser_position_t old_position = { NULL, 0, 0 };
+  parser_position_t old_position = { NULL, 0, 0 };
 
-	if (!parser) {
-		return false;
-	}
+  if (!parser) {
+    return false;
+  }
 
-	if (flags & PARSE_PEEK) {
-		old_position = parser->position;
-	}
+  if (flags & PARSE_PEEK) {
+    old_position = parser->position;
+  }
 
-	// empty out da token
-	if (output) {
+  // empty out da token
+  if (output) {
 
-		if (!output_len) {
-			return false; // why did you do this
-		}
+    if (!output_len) {
+      return false; // why did you do this
+    }
 
-		output[0] = '\0';
-	}
+    output[0] = '\0';
+  }
 
-	// nothing to parse
-	if (!parser->start) {
-		return false;
-	}
+  // nothing to parse
+  if (!parser->start) {
+    return false;
+  }
 
-	// start by skipping whitespace tokens
-	if (!Parse_SkipWhitespace(parser, flags)) {
-		return false;
-	}
+  // start by skipping whitespace tokens
+  if (!Parse_SkipWhitespace(parser, flags)) {
+    return false;
+  }
 
-	// check comments
-	if (!Parse_SkipComments(parser)) {
-		return false;
-	}
+  // check comments
+  if (!Parse_SkipComments(parser)) {
+    return false;
+  }
 
-	// now we're at the beginning of a token
-	// start parsing!
-	char c = *parser->position.ptr;
-	size_t i = 0;
+  // now we're at the beginning of a token
+  // start parsing!
+  char c = *parser->position.ptr;
+  size_t i = 0;
 
-	if (c == '"') { // handle quotes with special function
+  if (c == '"') { // handle quotes with special function
 
-		if (!Parse_ParseQuotedString(parser, flags, &i, output, output_len)) {
-			return false;
-		}
+    if (!Parse_ParseQuotedString(parser, flags, &i, output, output_len)) {
+      return false;
+    }
 
-	} else {
-		// regular token
-		while (c > 32) {
+  } else {
+    // regular token
+    while (c > 32) {
 
-			if (!Parse_AppendOutputChar(parser, flags, c, &i, output, output_len)) {
-				return false;
-			}
+      if (!Parse_AppendOutputChar(parser, flags, c, &i, output, output_len)) {
+        return false;
+      }
 
-			c = *(++parser->position.ptr);
-			Parse_NextColumn(parser, 1);
-		}
-	}
+      c = *(++parser->position.ptr);
+      Parse_NextColumn(parser, 1);
+    }
+  }
 
-	if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, output_len)) {
-		return false;
-	}
+  if (!Parse_AppendOutputChar(parser, flags, '\0', &i, output, output_len)) {
+    return false;
+  }
 
-	if (flags & PARSE_PEEK) {
-		parser->position = old_position;
-	}
+  if (flags & PARSE_PEEK) {
+    parser->position = old_position;
+  }
 
-	return true;
+  return true;
 }
 
 /**
@@ -399,62 +399,68 @@ bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, cons
  */
 static size_t Parse_TypeSize(const parse_type_t type) {
 
-	switch (type) {
-	case PARSE_UINT8:
-	case PARSE_INT8:
-		return 1;
-	case PARSE_UINT16:
-	case PARSE_INT16:
-		return 2;
-	case PARSE_UINT32:
-	case PARSE_INT32:
-	case PARSE_FLOAT:
-		return 4;
-	case PARSE_DOUBLE:
-		return 8;
-	default:
-		signal(SIGSEGV, NULL);
-		return 0;
-	}
+  switch (type) {
+  case PARSE_UINT8:
+  case PARSE_INT8:
+    return 1;
+  case PARSE_UINT16:
+  case PARSE_INT16:
+    return 2;
+  case PARSE_UINT32:
+  case PARSE_INT32:
+  case PARSE_FLOAT:
+    return 4;
+  case PARSE_DOUBLE:
+    return 8;
+  default:
+    signal(SIGSEGV, NULL);
+    return 0;
+  }
 }
 /**
  * @brief Parse the specified data type.
  */
 static bool Parse_TypeParse(const parse_type_t type, const char *input, void *output) {
-	int32_t result;
-	static byte scan_buffer[sizeof(double)];
-	const size_t type_size = Parse_TypeSize(type);
+  int32_t result;
+  static byte scan_buffer[sizeof(double)];
+  const size_t type_size = Parse_TypeSize(type);
 
-	switch (type) {
-	case PARSE_UINT8:
-	case PARSE_UINT16:
-	case PARSE_UINT32:
-		result = sscanf(input, "%" SCNu32, (uint32_t *) scan_buffer);
-		break;
-	case PARSE_INT8:
-	case PARSE_INT16:
-	case PARSE_INT32:
-		result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
-		break;
-	case PARSE_FLOAT:
-		result = sscanf(input, "%f", (float *) scan_buffer);
-		break;
-	case PARSE_DOUBLE:
-		result = sscanf(input, "%lf", (double *) scan_buffer);
-		break;
-	default:
-		result = 0;
-		signal(SIGSEGV, NULL);
-	}
+  switch (type) {
+  case PARSE_UINT8:
+  case PARSE_UINT16:
+  case PARSE_UINT32:
+    result = sscanf(input, "%" SCNu32, (uint32_t *) scan_buffer);
+    break;
+  case PARSE_INT8:
+  case PARSE_INT16:
+  case PARSE_INT32:
+    result = sscanf(input, "%" SCNi32, (int32_t *) scan_buffer);
+    break;
+  case PARSE_FLOAT:
+    result = sscanf(input, "%f", (float *) scan_buffer);
+    if (isinf(*(float *) scan_buffer) || isnan(*(float *) scan_buffer)) {
+      result = 0;
+    }
+    break;
+  case PARSE_DOUBLE:
+    result = sscanf(input, "%lf", (double *) scan_buffer);
+    if (isinf(*(double *) scan_buffer) || isnan(*(double *) scan_buffer)) {
+      result = 0;
+    }
+    break;
+  default:
+    result = 0;
+    signal(SIGSEGV, NULL);
+  }
 
-	if (result == 1) {
-		if (output) {
-			memcpy(output, scan_buffer, type_size);
-		}
-		return true;
-	}
+  if (result == 1) {
+    if (output) {
+      memcpy(output, scan_buffer, type_size);
+    }
+    return true;
+  }
 
-	return false;
+  return false;
 }
 
 static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
@@ -465,60 +471,60 @@ static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to h
  * @return The number of primitives successfully parsed.
  */
 size_t Parse_Primitive(parser_t *parser, const parse_flags_t flags, const parse_type_t type, void *output, const size_t count) {
-	parser_position_t old_position = { NULL, 0, 0 };
-	const size_t type_size = Parse_TypeSize(type);
-	size_t num_parsed = 0;
+  parser_position_t old_position = { NULL, 0, 0 };
+  const size_t type_size = Parse_TypeSize(type);
+  size_t num_parsed = 0;
 
-	if (flags & PARSE_PEEK) {
-		old_position = parser->position;
-	}
+  if (flags & PARSE_PEEK) {
+    old_position = parser->position;
+  }
 
-	const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
+  const parse_flags_t prim_flags = ((flags & PARSE_WITHIN_QUOTES) ? (flags | PARSE_RETAIN_QUOTES) : flags) & ~PARSE_PEEK;
 
-	if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+  if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
 
-		if (flags & PARSE_PEEK) {
-			parser->position = old_position;
-		}
+    if (flags & PARSE_PEEK) {
+      parser->position = old_position;
+    }
 
-		return num_parsed;
-	}
+    return num_parsed;
+  }
 
-	// if we had quotes...
-	if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
-		// init sub-parser without quotes
-		scratch[strlen(scratch) - 1] = '\0';
+  // if we had quotes...
+  if (*scratch == '"' && (flags & PARSE_WITHIN_QUOTES)) {
+    // init sub-parser without quotes
+    scratch[strlen(scratch) - 1] = '\0';
 
-		num_parsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
-	} else {
-		for (size_t i = 0; i < count; i++) {
+    num_parsed = Parse_QuickPrimitive(scratch + 1, parser->flags, flags & ~(PARSE_WITHIN_QUOTES | PARSE_PEEK), type, output, count);
+  } else {
+    for (size_t i = 0; i < count; i++) {
 
-			if (i != 0) { // 0 is parsed above for quote checking
-				if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
+      if (i != 0) { // 0 is parsed above for quote checking
+        if (!Parse_Token(parser, prim_flags, scratch, sizeof(scratch))) {
 
-					if (flags & PARSE_PEEK) {
-						parser->position = old_position;
-					}
+          if (flags & PARSE_PEEK) {
+            parser->position = old_position;
+          }
 
-					return num_parsed;
-				}
-			}
+          return num_parsed;
+        }
+      }
 
-			if (!Parse_TypeParse(type, scratch, output)) {
-				break;
-			}
+      if (!Parse_TypeParse(type, scratch, output)) {
+        break;
+      }
 
-			num_parsed++;
+      num_parsed++;
 
-			if (output) {
-				output = ((uint8_t *) output) + type_size;
-			}
-		}
-	}
+      if (output) {
+        output = ((uint8_t *) output) + type_size;
+      }
+    }
+  }
 
-	if (flags & PARSE_PEEK) {
-		parser->position = old_position;
-	}
+  if (flags & PARSE_PEEK) {
+    parser->position = old_position;
+  }
 
-	return num_parsed;
+  return num_parsed;
 }

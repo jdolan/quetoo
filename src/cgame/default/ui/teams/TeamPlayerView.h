@@ -37,31 +37,31 @@ typedef struct TeamPlayerViewInterface TeamPlayerViewInterface;
  */
 struct TeamPlayerView {
 
-	/**
-	 * @brief The superclass.
-	 */
-	View view;
+  /**
+   * @brief The superclass.
+   */
+  View view;
 
-	/**
-	 * @brief The interface.
-	 * @protected
-	 */
-	TeamPlayerViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @protected
+   */
+  TeamPlayerViewInterface *interface;
 
-	/**
-	 * @brief The player to render.
-	 */
-	const cg_client_info_t *client;
+  /**
+   * @brief The player to render.
+   */
+  const cg_client_info_t *client;
 
-	/**
-	 * The player icon image.
-	 */
-	ImageView *icon;
+  /**
+   * The player icon image.
+   */
+  ImageView *icon;
 
-	/**
-	 * @brief The player name.
-	 */
-	Label *name;
+  /**
+   * @brief The player name.
+   */
+  Label *name;
 };
 
 /**
@@ -69,30 +69,30 @@ struct TeamPlayerView {
  */
 struct TeamPlayerViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewInterface viewInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ViewInterface viewInterface;
 
-	/**
-	 * @fn TeamPlayerView *TeamPlayerView::init(TeamPlayerView *self)
-	 * @brief Initializes this TeamPlayerView.
-	 * @param self The TeamPlayerView.
-	 * @param frame The frame, or `NULL`.
-	 * @return The initialized TeamPlayerView, or `NULL` on error.
-	 * @memberof TeamPlayerView
-	 */
-	TeamPlayerView *(*initWithFrame)(TeamPlayerView *self, const SDL_Rect *frame);
+  /**
+   * @fn TeamPlayerView *TeamPlayerView::init(TeamPlayerView *self)
+   * @brief Initializes this TeamPlayerView.
+   * @param self The TeamPlayerView.
+   * @param frame The frame, or `NULL`.
+   * @return The initialized TeamPlayerView, or `NULL` on error.
+   * @memberof TeamPlayerView
+   */
+  TeamPlayerView *(*initWithFrame)(TeamPlayerView *self, const SDL_Rect *frame);
 
 
-	/**
-	 * @fn void TeamPlayerView::setTeam(TeamPlayerView *self, const cg_client_info_t *client)
-	 * @brief Sets the client info to render.
-	 * @param self The TeamPlayerView.
-	 * @param client The client info.
-	 * @memberof TeamPlayerView
-	 */
-	void (*setPlayer)(TeamPlayerView *self, const cg_client_info_t *client);
+  /**
+   * @fn void TeamPlayerView::setTeam(TeamPlayerView *self, const cg_client_info_t *client)
+   * @brief Sets the client info to render.
+   * @param self The TeamPlayerView.
+   * @param client The client info.
+   * @memberof TeamPlayerView
+   */
+  void (*setPlayer)(TeamPlayerView *self, const cg_client_info_t *client);
 };
 
 /**

@@ -25,7 +25,7 @@ libsound_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL2_CFLAGS@ \
+	@SDL3_CFLAGS@ \
 	@SNDFILE_CFLAGS@
 
 libsound_la_LDFLAGS = \
@@ -34,5 +34,5 @@ libsound_la_LDFLAGS = \
 libsound_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
 	@OPENAL_LIBS@ \
-	@SDL2_LIBS@ \
+	@SDL3_LIBS@ \
 	@SNDFILE_LIBS@

@@ -21,12 +21,15 @@
 
 #pragma once
 
-#include <ObjectivelyMVC/ViewController.h>
+#include "ui_types.h"
+#include "EntityViewController.h"
+#include "MaterialViewController.h"
+
+#include <ObjectivelyMVC.h>
 
 /**
  * @file
- *
- * @brief The EditorViewController.
+ * @brief Play ViewController.
  */
 
 typedef struct EditorViewController EditorViewController;
@@ -35,31 +38,51 @@ typedef struct EditorViewControllerInterface EditorViewControllerInterface;
 /**
  * @brief The EditorViewController type.
  * @extends ViewController
- * @ingroup ViewControllers
+ * @ingroup
  */
 struct EditorViewController {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	ViewController viewController;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  ViewController viewController;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	EditorViewControllerInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  EditorViewControllerInterface *interface;
 
-	/**
-	 * @brief The material being edited.
-	 */
-	r_material_t *material;
+  /**
+   * @brief TabViewController to contain tabs.
+   */
+  TabViewController *tabViewController;
 
-	/**
-	 * @brief The model being edited.
-	 */
-	const r_model_t *model;
+  /**
+   * @brief The EntityViewController.
+   */
+  EntityViewController *entityViewController;
+
+  /**
+   * @brief The MaterialViewController.
+   */
+  MaterialViewController *materialViewController;
+
+  /**
+   * @brief The Create Entity Button.
+   */
+  Button *createEntity;
+
+  /**
+   * @brief The Delete Entity Button.
+   */
+  Button *deleteEntity;
+
+  /**
+   * @brief The Save Button.
+   */
+  Button *save;
 };
 
 /**
@@ -67,18 +90,10 @@ struct EditorViewController {
  */
 struct EditorViewControllerInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ViewControllerInterface viewControllerInterface;
-
-	/**
-	 * @fn EditorViewController *EditorViewController::init(EditorViewController *self)
-	 * @brief Initializes this ViewController.
-	 * @return The initialized EditorViewController, or `NULL` on error.
-	 * @memberof EditorViewController
-	 */
-	EditorViewController *(*init)(EditorViewController *self);
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 };
 
 /**

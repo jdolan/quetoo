@@ -9,7 +9,7 @@ quetoo_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 quetoo_LDADD = \
 	$(top_builddir)/src/client/libclient.la \
 	$(top_builddir)/src/server/libserver.la
@@ -21,7 +21,7 @@ quetoo_dedicated_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 quetoo_dedicated_LDADD = \
 	$(top_builddir)/src/client/libclient_null.la \
 	$(top_builddir)/src/server/libserver.la

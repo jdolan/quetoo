@@ -28,7 +28,7 @@ r_model_t *R_WorldModel(void);
 
 #ifdef __R_LOCAL_H__
 
-extern r_model_t *r_world_model;
+extern r_models_t r_models;
 
 void R_InitModels(void);
 void R_ShutdownModels(void);

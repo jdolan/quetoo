@@ -40,57 +40,57 @@ typedef struct PlayerModelViewInterface PlayerModelViewInterface;
  */
 struct PlayerModelView {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	Control control;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  Control control;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	PlayerModelViewInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  PlayerModelViewInterface *interface;
 
-	/**
-	 * @brief The client information.
-	 */
-	cg_client_info_t client;
+  /**
+   * @brief The client information.
+   */
+  cg_client_info_t client;
 
-	/**
-	 * @brief The framebuffer to which the view is rendered.
-	 */
-	r_framebuffer_t framebuffer;
+  /**
+   * @brief The framebuffer to which the view is rendered.
+   */
+  r_framebuffer_t framebuffer;
 
-	/**
-	 * @brief The view to populate and pass to DrawPlayerModelView.
-	 */
-	r_view_t view;
+  /**
+   * @brief The view to populate and pass to DrawPlayerModelView.
+   */
+  r_view_t view;
 
-	/**
-	 * @brief The entity stubs.
-	 */
-	r_entity_t head, torso, legs, weapon, platformBase, platformCenter;
+  /**
+   * @brief The entity stubs.
+   */
+  r_entity_t head, torso, legs, weapon, platformBase, platformCenter;
 
-	/**
-	 * @brief The entity animations.
-	 */
-	cl_entity_animation_t animation1, animation2;
+  /**
+   * @brief The entity animations.
+   */
+  cl_entity_animation_t animation1, animation2;
 
-	/**
-	 * @brief The ImageView for the model icon.
-	 */
-	ImageView *iconView;
+  /**
+   * @brief The ImageView for the model icon.
+   */
+  ImageView *iconView;
 
-	/**
-	 * @brief The client info string, used to avoid load thrashing.
-	 */
-	char info[MAX_STRING_CHARS];
+  /**
+   * @brief The client info string, used to avoid load thrashing.
+   */
+  char info[MAX_STRING_CHARS];
 
-	/**
-	 * @brief The camera yaw and zoom.
-	 */
-	float yaw, zoom;
+  /**
+   * @brief The camera yaw and zoom.
+   */
+  float yaw, zoom;
 };
 
 /**
@@ -98,28 +98,28 @@ struct PlayerModelView {
  */
 struct PlayerModelViewInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	ControlInterface controlInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  ControlInterface controlInterface;
 
-	/**
-	 * @fn void PlayerModelView::animate(PlayerModelView *self)
-	 * @param self The PlayerModelView.
-	 * @brief Animates the model.
-	 * @memberof PlayerModelView
-	 */
-	void (*animate)(PlayerModelView *self);
+  /**
+   * @fn void PlayerModelView::animate(PlayerModelView *self)
+   * @param self The PlayerModelView.
+   * @brief Animates the model.
+   * @memberof PlayerModelView
+   */
+  void (*animate)(PlayerModelView *self);
 
-	/**
-	 * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self, const SDL_Rect *frame)
-	 * @brief Initializes this PlayerModelView with the given frame.
-	 * @param self The PlayerModelView.
-	 * @param frame The frame.
-	 * @return The initialized PlayerModelView, or `NULL` on error.
-	 * @memberof PlayerModelView
-	 */
-	PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);
+  /**
+   * @fn PlayerModelView *PlayerModelView::initWithFrame(PlayerModelView *self, const SDL_Rect *frame)
+   * @brief Initializes this PlayerModelView with the given frame.
+   * @param self The PlayerModelView.
+   * @param frame The frame.
+   * @return The initialized PlayerModelView, or `NULL` on error.
+   * @memberof PlayerModelView
+   */
+  PlayerModelView *(*initWithFrame)(PlayerModelView *self, const SDL_Rect *frame);
 };
 
 /**

@@ -27,35 +27,35 @@
  */
 bool R_CullBox(const r_view_t *view, const box3_t bounds) {
 
-	if (!r_cull->value) {
-		return false;
-	}
+  if (!r_cull->value) {
+    return false;
+  }
 
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return false;
-	}
+  if (view->type == VIEW_PLAYER_MODEL) {
+    return false;
+  }
 
-	vec3_t points[8];
+  vec3_t points[8];
 
-	Box3_ToPoints(bounds, points);
+  Box3_ToPoints(bounds, points);
 
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
+  const cm_bsp_plane_t *plane = view->frustum;
+  for (size_t i = 0; i < lengthof(view->frustum); i++, plane++) {
 
-		size_t j;
-		for (j = 0; j < lengthof(points); j++) {
-			const float dist = Cm_DistanceToPlane(points[j], plane);
-			if (dist >= 0.f) {
-				break;
-			}
-		}
+    size_t j;
+    for (j = 0; j < lengthof(points); j++) {
+      const float dist = Cm_DistanceToPlane(points[j], plane);
+      if (dist >= 0.f) {
+        break;
+      }
+    }
 
-		if (j == lengthof(points)) {
-			return true;
-		}
-	}
+    if (j == lengthof(points)) {
+      return true;
+    }
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -63,62 +63,67 @@ bool R_CullBox(const r_view_t *view, const box3_t bounds) {
  */
 bool R_CullSphere(const r_view_t *view, const vec3_t point, const float radius) {
 
-	if (!r_cull->value) {
-		return false;
-	}
+  if (!r_cull->value) {
+    return false;
+  }
 
-	if (view->type == VIEW_PLAYER_MODEL) {
-		return false;
-	}
+  if (view->type == VIEW_PLAYER_MODEL) {
+    return false;
+  }
 
-	const cm_bsp_plane_t *plane = view->frustum;
-	for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
-		const float dist = Cm_DistanceToPlane(point, plane);
-		if (dist < -radius) {
-			return true;
-		}
-	}
+  const cm_bsp_plane_t *plane = view->frustum;
+  for (size_t i = 0 ; i < lengthof(view->frustum) ; i++, plane++)  {
+    const float dist = Cm_DistanceToPlane(point, plane);
+    if (dist < -radius) {
+      return true;
+    }
+  }
 
-	return false;
+  return false;
 }
 
 /**
  * @brief Updates the clipping planes for the view frustum for the current frame.
- * @details The frustum planes are outward facing. Thus, any object that appears
- * partially behind any of the frustum planes should be visible.
+ * @details The frustum plane normals point inward (toward the visible volume).
+ * A point with positive distance is inside the frustum; negative is outside.
  */
 void R_UpdateFrustum(r_view_t *view) {
 
-	if (!r_cull->value) {
-		return;
-	}
+  if (!r_cull->value) {
+    return;
+  }
 
-	cm_bsp_plane_t *p = view->frustum;
+  cm_bsp_plane_t *p = view->frustum;
 
-	float ang = Radians(view->fov.x);
-	float xs = sinf(ang);
-	float xc = cosf(ang);
+  // view->fov.x/y are half-angles (see Cg_UpdateFov).
+  // Plane normal sin(θ)*forward ∓ cos(θ)*right clips exactly at the half-FOV angle θ:
+  //   distance = sin(θ-φ), negative when φ > θ (outside frustum).
+  float hs = sinf(Radians(view->fov.x));
+  float hc = cosf(Radians(view->fov.x));
 
-	p[0].normal = Vec3_Scale(view->forward, xs);
-	p[0].normal = Vec3_Fmaf(p[0].normal, xc, view->right);
+  // Right boundary plane (clips objects beyond the right edge)
+  p[0].normal = Vec3_Scale(view->forward, hs);
+  p[0].normal = Vec3_Fmaf(p[0].normal, -hc, view->right);
 
-	p[1].normal = Vec3_Scale(view->forward, xs);
-	p[1].normal = Vec3_Fmaf(p[1].normal, -xc, view->right);
+  // Left boundary plane (clips objects beyond the left edge)
+  p[1].normal = Vec3_Scale(view->forward, hs);
+  p[1].normal = Vec3_Fmaf(p[1].normal, hc, view->right);
 
-	ang = Radians(view->fov.y);
-	xs = sinf(ang);
-	xc = cosf(ang);
+  float vs = sinf(Radians(view->fov.y));
+  float vc = cosf(Radians(view->fov.y));
 
-	p[2].normal = Vec3_Scale(view->forward, xs);
-	p[2].normal = Vec3_Fmaf(p[2].normal, xc, view->up);
+  // Top boundary plane (clips objects beyond the top edge)
+  p[2].normal = Vec3_Scale(view->forward, vs);
+  p[2].normal = Vec3_Fmaf(p[2].normal, -vc, view->up);
 
-	p[3].normal = Vec3_Scale(view->forward, xs);
-	p[3].normal = Vec3_Fmaf(p[3].normal, -xc, view->up);
+  // Bottom boundary plane (clips objects beyond the bottom edge)
+  p[3].normal = Vec3_Scale(view->forward, vs);
+  p[3].normal = Vec3_Fmaf(p[3].normal, vc, view->up);
 
-	for (size_t i = 0; i < lengthof(view->frustum); i++) {
-		p[i].normal = Vec3_Normalize(p[i].normal);
-		p[i].dist = Vec3_Dot(view->origin, p[i].normal);
-		p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
-		p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
-	}
+  for (size_t i = 0; i < lengthof(view->frustum); i++) {
+    p[i].normal = Vec3_Normalize(p[i].normal);
+    p[i].dist = Vec3_Dot(view->origin, p[i].normal);
+    p[i].type = Cm_PlaneTypeForNormal(p[i].normal);
+    p[i].sign_bits = Cm_SignBitsForNormal(p[i].normal);
+  }
 }

@@ -32,7 +32,7 @@
  * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
-	return cg_state.num_teams ?: 1;
+  return cg_state.num_teams ?: 1;
 }
 
 /**
@@ -40,12 +40,12 @@ static size_t numberOfItems(const CollectionView *collectionView) {
  */
 static ident objectForItemAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	if (cg_state.num_teams == 0) {
-		return NULL;
-	}
+  if (cg_state.num_teams == 0) {
+    return NULL;
+  }
 
-	const size_t index = $(indexPath, indexAtPosition, 0);
-	return &cg_state.teams[index];
+  const size_t index = $(indexPath, indexAtPosition, 0);
+  return &cg_state.teams[index];
 }
 
 #pragma mark - CollectionViewDelegate
@@ -55,53 +55,53 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
  */
 static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collectionView, const IndexPath *indexPath) {
 
-	const cg_team_info_t *team = objectForItemAtIndexPath(collectionView, indexPath);
+  const cg_team_info_t *team = objectForItemAtIndexPath(collectionView, indexPath);
 
-	TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
-	$(teamView, setTeam, team);
+  TeamView *teamView = $(alloc(TeamView), initWithFrame, NULL);
+  $(teamView, setTeam, team);
 
-	CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
-	$((View *) item, addSubview, (View *) teamView);
+  CollectionItemView *item = $(alloc(CollectionItemView), initWithFrame, NULL);
+  $((View *) item, addSubview, (View *) teamView);
 
-	release(teamView);
-	return item;
+  release(teamView);
+  return item;
 }
 
-#pragma mark - Actions
+#pragma mark - Delegates
 
 /**
- * @brief ActionFunction for spectate Button.
+ * @brief ButtonDelegate for Spectate.
  */
-static void spectateAction(Control *control, const SDL_Event *event, ident sender, ident data) {
+static void didClickSpectate(Button *button) {
 
-	cgi.Cbuf("spectate\n");
+  cgi.Cbuf("spectate\n");
 
-	cgi.SetKeyDest(KEY_GAME);
+  cgi.SetKeyDest(KEY_GAME);
 }
 
 /**
- * @brief ActionFunction for join Button.
+ * @brief ButtonDelegate for Join.
  */
-static void joinAction(Control *self, const SDL_Event *event, ident sender, ident data) {
+static void didClickJoin(Button *button) {
 
-	TeamsViewController *this = sender;
+  TeamsViewController *this = button->delegate.self;
 
-	Array *paths = $(this->teamsCollectionView, selectionIndexPaths);
-	IndexPath *path = $(paths, firstObject);
+  Array *paths = $(this->teamsCollectionView, selectionIndexPaths);
+  IndexPath *path = $(paths, firstObject);
 
-	if (path) {
-		const cg_team_info_t *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
-		if (team) {
-			cgi.Cbuf(va("team %s\n", team->name));
-		} else {
-			cgi.Cbuf(va("join\n"));
-		}
+  if (path) {
+    const cg_team_info_t *team = objectForItemAtIndexPath(this->teamsCollectionView, path);
+    if (team) {
+      cgi.Cbuf(va("team %s\n", team->name));
+    } else {
+      cgi.Cbuf(va("join\n"));
+    }
 
-		cgi.SetKeyDest(KEY_GAME);
-	}
+    cgi.SetKeyDest(KEY_GAME);
+  }
 
-	release(path);
-	release(paths);
+  release(path);
+  release(paths);
 }
 
 #pragma mark - ViewController
@@ -111,32 +111,35 @@ static void joinAction(Control *self, const SDL_Event *event, ident sender, iden
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	TeamsViewController *this = (TeamsViewController *) self;
+  TeamsViewController *this = (TeamsViewController *) self;
 
-	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("teamsCollectionView", &this->teamsCollectionView),
-		MakeOutlet("spectate", &this->spectate),
-		MakeOutlet("join", &this->join)
-	);
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("teamsCollectionView", &this->teamsCollectionView),
+    MakeOutlet("spectate", &this->spectate),
+    MakeOutlet("join", &this->join)
+  );
 
-	View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
-	assert(view);
+  View *view = $$(View, viewWithResourceName, "ui/teams/TeamsViewController.json", outlets);
+  assert(view);
 
-	$((Control *) this->spectate, addActionForEventType, SDL_MOUSEBUTTONUP, spectateAction, self, NULL);
-	$((Control *) this->join, addActionForEventType, SDL_MOUSEBUTTONUP, joinAction, self, NULL);
+  this->spectate->delegate.didClick = didClickSpectate;
+  this->spectate->delegate.self = self;
 
-	$(self, setView, view);
-	release(view);
+  this->join->delegate.didClick = didClickJoin;
+  this->join->delegate.self = self;
 
-	this->teamsCollectionView->dataSource.numberOfItems = numberOfItems;
-	this->teamsCollectionView->dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
+  $(self, setView, view);
+  release(view);
 
-	this->teamsCollectionView->delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
+  this->teamsCollectionView->dataSource.numberOfItems = numberOfItems;
+  this->teamsCollectionView->dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
 
-	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/teams/TeamsViewController.css");
-	assert(self->view->stylesheet);
+  this->teamsCollectionView->delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
+
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/teams/TeamsViewController.css");
+  assert(self->view->stylesheet);
 }
 
 /**
@@ -144,15 +147,15 @@ static void loadView(ViewController *self) {
  */
 static void viewWillAppear(ViewController *self) {
 
-	super(ViewController, self, viewWillAppear);
+  super(ViewController, self, viewWillAppear);
 
-	TeamsViewController *this = (TeamsViewController *) self;
+  TeamsViewController *this = (TeamsViewController *) self;
 
-	$(this->teamsCollectionView, reloadData);
+  $(this->teamsCollectionView, reloadData);
 
-	IndexPath *index = $(alloc(IndexPath), initWithIndex, 0);
-	$(this->teamsCollectionView, selectItemAtIndexPath, index);
-	release(index);
+  IndexPath *index = $(alloc(IndexPath), initWithIndex, 0);
+  $(this->teamsCollectionView, selectItemAtIndexPath, index);
+  release(index);
 }
 
 #pragma mark - TeamsViewController
@@ -164,8 +167,8 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-	((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**
@@ -173,21 +176,21 @@ static void initialize(Class *clazz) {
  * @memberof TeamsViewController
  */
 Class *_TeamsViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "TeamsViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(TeamsViewController),
-			.interfaceOffset = offsetof(TeamsViewController, interface),
-			.interfaceSize = sizeof(TeamsViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "TeamsViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(TeamsViewController),
+      .interfaceOffset = offsetof(TeamsViewController, interface),
+      .interfaceSize = sizeof(TeamsViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

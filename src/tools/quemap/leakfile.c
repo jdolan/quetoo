@@ -28,44 +28,44 @@
  * outside leaf to a specifically occupied leaf.
  */
 void WriteLeakFile(const tree_t *tree) {
-	vec3_t point;
+  vec3_t point;
 
-	char path[MAX_OS_PATH];
-	g_snprintf(path, sizeof(path), "maps/%s.lin", map_base);
+  char path[MAX_OS_PATH];
+  g_snprintf(path, sizeof(path), "maps/%s.lin", map_base);
 
-	file_t *file = Fs_OpenWrite(path);
-	if (!file) {
-		Com_Error(ERROR_FATAL, "Couldn't open %s\n", path);
-	}
+  file_t *file = Fs_OpenWrite(path);
+  if (!file) {
+    Com_Error(ERROR_FATAL, "Couldn't open %s\n", path);
+  }
 
-	const node_t *node = &tree->outside_node;
-	while (node->occupied > 1) {
-		int32_t occupied = node->occupied;
+  const node_t *node = &tree->outside_node;
+  while (node->occupied > 1) {
+    int32_t occupied = node->occupied;
 
-		const portal_t *next_portal = NULL;
-		const node_t *next_node = NULL;
+    const portal_t *next_portal = NULL;
+    const node_t *next_node = NULL;
 
-		int32_t s;
+    int32_t s;
 
-		// find the most sparse portal in this node
-		for (const portal_t *p = node->portals; p; p = p->next[!s]) {
-			s = (p->nodes[0] == node);
-			if (p->nodes[s]->occupied && p->nodes[s]->occupied < occupied) {
-				next_portal = p;
-				next_node = p->nodes[s];
-				occupied = next_node->occupied;
-			}
-		}
-		node = next_node;
+    // find the most sparse portal in this node
+    for (const portal_t *p = node->portals; p; p = p->next[!s]) {
+      s = (p->nodes[0] == node);
+      if (p->nodes[s]->occupied && p->nodes[s]->occupied < occupied) {
+        next_portal = p;
+        next_node = p->nodes[s];
+        occupied = next_node->occupied;
+      }
+    }
+    node = next_node;
 
-		// add the portal center
-		point = Cm_WindingCenter(next_portal->winding);
-		Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
-	}
-	
-	// add the entity origin
-	point = VectorForKey(node->occupant, "origin", Vec3_Zero());
-	Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
+    // add the portal center
+    point = Cm_WindingCenter(next_portal->winding);
+    Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
+  }
+  
+  // add the entity origin
+  point = VectorForKey(node->occupant, "origin", Vec3_Zero());
+  Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
 
-	Fs_Close(file);
+  Fs_Close(file);
 }

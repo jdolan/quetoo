@@ -27,34 +27,34 @@
  */
 bool Cg_UsePrediction(void) {
 
-	if (!cg_predict->value) {
-		return false;
-	}
+  if (!cg_predict->value) {
+    return false;
+  }
 
-	if (cgi.client->demo_server) {
-		return false;
-	}
+  if (cgi.client->demo_server) {
+    return false;
+  }
 
-	if (cgi.client->third_person) {
-		return false;
-	}
+  if (cgi.client->third_person) {
+    return false;
+  }
 
-	if (cgi.client->delta_frame == NULL) {
-		return false;
-	}
+  if (cgi.client->delta_frame == NULL) {
+    return false;
+  }
 
-	if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
-		return false;
-	}
+  if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 /**
  * @brief Trace wrapper for Pm_Move.
  */
 static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end, const box3_t bounds) {
-	return cgi.Trace(start, end, bounds, 0, CONTENTS_MASK_CLIP_PLAYER);
+  return cgi.Trace(start, end, bounds, NULL, CONTENTS_MASK_CLIP_PLAYER);
 }
 
 /**
@@ -63,51 +63,59 @@ static cm_trace_t Cg_PredictMovement_Trace(const vec3_t start, const vec3_t end,
  */
 void Cg_PredictMovement(const GPtrArray *cmds) {
 
-	assert(cmds);
-	assert(cmds->len);
+  assert(cmds);
+  assert(cmds->len);
 
-	cl_predicted_state_t *pr = &cgi.client->predicted_state;
+  cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
-	// copy current state to into the move
-	pm_move_t pm = {};
-	pm.s = cgi.client->frame.ps.pm_state;
+  // copy current state to into the move
+  pm_move_t pm = {};
+  pm.s = cgi.client->frame.ps.pm_state;
 
-	pm.ground = pr->ground;
-	pm.hook_pull_speed = cg_state.hook_pull_speed;
+  pm.ground = pr->ground;
+  pm.hook_pull_speed = cg_state.hook_pull_speed;
 
-	pm.PointContents = cgi.PointContents;
-	pm.BoxContents = cgi.BoxContents;
-	
-	pm.Trace = Cg_PredictMovement_Trace;
+  pm.PointContents = cgi.PointContents;
+  pm.BoxContents = cgi.BoxContents;
+  
+  pm.Trace = Cg_PredictMovement_Trace;
 
-	pm.Debug = cgi.Debug_;
-	pm.DebugMask = cgi.DebugMask;
-	pm.debug_mask = DEBUG_PMOVE_CLIENT;
+  pm.Debug = cgi.Debug;
+  pm.DebugMask = cgi.DebugMask;
+  pm.debug_mask = DEBUG_PMOVE_CLIENT;
 
-	// run the commands
-	for (guint i = 0; i < cmds->len; i++) {
-		cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
+  // run the commands
+  for (guint i = 0; i < cmds->len; i++) {
+    cl_cmd_t *cmd = g_ptr_array_index(cmds, i);
 
-		if (cmd->cmd.msec) { // if the command has time, run it
+    if (cmd->cmd.msec) { // if the command has time, run it
 
-			// timestamp it so the client knows we have valid results
-			cmd->prediction.time = cgi.client->time;
+      // timestamp it so the client knows we have valid results
+      cmd->prediction.time = cgi.client->time;
 
-			// simulate the movement
-			pm.cmd = cmd->cmd;
-			Pm_Move(&pm);
-		}
+      // simulate the movement
+      pm.cmd = cmd->cmd;
+      Pm_Move(&pm);
+    }
 
-		// save for error detection
-		cmd->prediction.origin = pm.s.origin;
-	}
+    // save for error detection
+    cmd->prediction.origin = pm.s.origin;
+  }
 
-	// save for rendering
-	if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
-		pr->view.origin = pm.s.origin;
-	}
-	pr->view.offset = pm.s.view_offset;
-	pr->view.step_offset = pm.s.step_offset;
-	pr->view.angles = pm.cmd.angles;
-	pr->ground = pm.ground;
+  // save for rendering
+  if (Vec3_Distance(pr->view.origin, pm.s.origin) > TRACE_EPSILON) {
+    pr->view.origin = pm.s.origin;
+  }
+  pr->view.offset = pm.s.view_offset;
+  pr->view.step_offset = pm.s.step_offset;
+
+  // If the server is requesting a snap, use the authoritative angles rather than
+  // the last cmd angles, which may be stale (pre-snap) pending commands.
+  if (cgi.client->frame.ps.pm_state.flags & PMF_SNAP_ANGLES) {
+    pr->view.angles = cgi.client->frame.ps.pm_state.view_angles;
+  } else {
+    pr->view.angles = pm.cmd.angles;
+  }
+
+  pr->ground = pm.ground;
 }

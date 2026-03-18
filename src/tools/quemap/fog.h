@@ -23,80 +23,40 @@
 
 #include "bsp.h"
 
-#define FOG_COLOR Vec3(1.f, 1.f, 1.f)
-
 /**
  * @brief The fog density, or alpha value.
  */
 #define FOG_DENSITY 1.f
 
 /**
- * @brief At 0.03125 (1/32), it will take 32 samples, or 1024 world units, to completely obscure
+ * @brief At 0.125 (1/8), it will take 8 fog samples, or 256 world units, to completely obscure
  * an object within the fog.
  */
-#define FOG_DENSITY_SCALAR 0.03125f
+#define FOG_DENSITY_SCALAR 0.125f
 
 /**
- * @brief Diffuse light is multiplied and scaled by the fog color to produce the final fog sample.
- */
-#define FOG_ABSORPTION 1.f
-
-/**
- * @brief Fog types.
- */
-typedef enum {
-	FOG_INVALID = -1,
-
-	/**
-	 * @brief Global fog defined in worldspawn.
-	 */
-	FOG_GLOBAL,
-
-	/**
-	 * @brief Fog volumes come from brush entities that are merged into worldspawn.
-	 */
-	FOG_VOLUME
-} fog_type_t;
-
-/**
- * @details Fog is baked into the lightgrid as an additional RGBA 3D texture.
+ * @details Fog is baked into the voxels as density in the blue channel of the voxel data texture.
  */
 typedef struct {
+  /**
+   * @brief The entity definition.
+   */
+  const cm_entity_t *entity;
 
-	/**
-	 * @brief The fog type.
-	 */
-	fog_type_t type;
+  /**
+   * @brief The brushes originally belonging to this fog entity.
+   */
+  GPtrArray *brushes;
 
-	/**
-	 * @brief The entity definition.
-	 */
-	const cm_entity_t *entity;
+  /**
+   * @brief The fog density.
+   */
+  float density;
 
-	/**
-	 * @brief The brushes originally belonging to this fog entity.
-	 */
-	GPtrArray *brushes;
-
-	/**
-	 * @brief The fog color.
-	 */
-	vec3_t color;
-
-	/**
-	 * @brief The fog density.
-	 */
-	float density;
-
-	/**
-	 * @brief The fog absorption.
-	 */
-	float absorption;
-
-	/**
-	 * @brief The bounds of all brushes in this fog entity.
-	 */
-	box3_t bounds;
+  /**
+   * @brief The bounds of all brushes in this fog entity.
+   */
+  box3_t bounds;
 } fog_t;
 
 extern GArray *fogs;

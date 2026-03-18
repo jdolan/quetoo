@@ -20,112 +20,64 @@
  */
 
 #include <signal.h>
-#include <SDL_thread.h>
+#include <SDL3/SDL_thread.h>
 
 #include "mem.h"
-
-#if defined(SUPER_MEMORY_CHECKS)
-  #define MAX_MEMORY_STACK 32
-
-  #if defined(WIN32)
-    #include <DbgHelp.h>
-  #else
-    #define OutputDebugString(s) fputs(s, stdout)
-  #endif
-
-  #if HAVE_EXECINFO
-    #include <execinfo.h>
-  #endif
-#endif
 
 #define MEM_MAGIC 0x69696969
 typedef uint32_t mem_magic_t;
 
 typedef struct mem_block_s {
-	mem_magic_t magic;
-	mem_tag_t tag; // for group free
-	struct mem_block_s *parent;
-	GSList *children;
-	size_t size;
-#if defined(SUPER_MEMORY_CHECKS)
-	void *stack[MAX_MEMORY_STACK];
-#endif
+  mem_magic_t magic;
+  mem_tag_t tag; // for group free
+  struct mem_block_s *parent;
+  GSList *children;
+  size_t size;
 } mem_block_t;
 
 typedef struct {
-	mem_magic_t magic;
+  mem_magic_t magic;
 } mem_footer_t;
 
 typedef struct {
-	GHashTable *blocks;
-	size_t size;
-	SDL_SpinLock lock;
+  GHashTable *blocks;
+  size_t size;
+  SDL_SpinLock lock;
 } mem_state_t;
 
 static mem_state_t mem_state;
-
-#if defined(SUPER_MEMORY_CHECKS)
-/**
- * @brief
- */
-static void Mem_SetStack(mem_block_t *block) {
-#if defined(WIN32)
-	CaptureStackBackTrace(0, MAX_MEMORY_STACK, block->stack, NULL);
-#elif HAVE_EXECINFO
-	backtrace(block->stack, MAX_MEMORY_STACK);
-#endif
-}
-
-/**
- * @brief
- */
-static void Mem_Print(const mem_block_t *block, const char *why) {
-	static char str[MAX_STRING_CHARS];
-	
-	g_snprintf(str, sizeof(str), "%s block %p tag %i\n", why, (block + 1), block->tag);
-	OutputDebugString(str);
-
-	for (int32_t i = 3; i < 5; i++) {
-		if (!block->stack[i]) {
-			break;
-		}
-		g_snprintf(str, sizeof(str), "  [%p]\n",  (block->stack[i]));
-		OutputDebugString(str);
-	}
-}
-#endif
 
 /**
  * @brief Throws a fatal error if the specified memory block is non-NULL but
  * not owned by the memory subsystem.
  */
 static mem_block_t *Mem_CheckMagic(void *p) {
-	mem_block_t *b = NULL;
+  mem_block_t *b = NULL;
 
-	if (p) {
-		b = ((mem_block_t *) p) - 1;
+  if (p) {
+    b = ((mem_block_t *) p) - 1;
 
-		if (b->magic != MEM_MAGIC) {
-			fprintf(stderr, "Invalid magic (%d) for %p\n", b->magic, p);
-			raise(SIGABRT);
-		}
+    if (b->magic != MEM_MAGIC) {
+      fprintf(stderr, "Invalid magic (%d) for %p\n", b->magic, p);
+      raise(SIGABRT);
+    }
 
-		mem_footer_t *footer = (mem_footer_t *) (((byte *) p) + b->size);
+    mem_footer_t *footer = (mem_footer_t *) (((byte *) p) + b->size);
 
-		if (footer->magic != (MEM_MAGIC + b->size)) {
-			fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
-			raise(SIGABRT);
-		}
-	}
+    if (footer->magic != (MEM_MAGIC + b->size)) {
+      fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
+      raise(SIGABRT);
+    }
+  }
 
-	return b;
+  return b;
 }
 
 /**
  * @brief
  */
 void Mem_Check(void *p) {
-	Mem_CheckMagic(p);
+  Mem_CheckMagic(p);
 }
 
 /**
@@ -133,19 +85,47 @@ void Mem_Check(void *p) {
  */
 static void Mem_Free_(mem_block_t *b) {
 
-#if defined(SUPER_MEMORY_CHECKS)
-	Mem_Print(b, "Freeing");
-#endif
+  // Validate this block before freeing its children
+  if (b->magic != MEM_MAGIC) {
+    fprintf(stderr, "Mem_Free_: Corrupted block %p (magic: %d, expected: %d)\n", 
+            (void *)b, b->magic, MEM_MAGIC);
+    raise(SIGABRT);
+  }
 
-	// recurse down the tree, freeing children
-	if (b->children) {
-		g_slist_free_full(b->children, (GDestroyNotify) Mem_Free_);
-	}
+  // Validate all children before freeing them
+  if (b->children) {
+    GSList *child = b->children;
+    int child_num = 0;
+    bool has_corruption = false;
+    while (child) {
+      mem_block_t *child_block = (mem_block_t *)child->data;
+      if (child_block->magic != MEM_MAGIC) {
+        has_corruption = true;
+        fprintf(stderr, "Mem_Free_: Parent %p (tag: %d, size: %zu) has corrupted child #%d: %p (magic: %d)\n",
+                (void *)b, b->tag, b->size, child_num, (void *)child_block, child_block->magic);
+        fprintf(stderr, "  First 8 words of bad child: %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx\n",
+                ((unsigned long long *)child_block)[0], ((unsigned long long *)child_block)[1],
+                ((unsigned long long *)child_block)[2], ((unsigned long long *)child_block)[3],
+                ((unsigned long long *)child_block)[4], ((unsigned long long *)child_block)[5],
+                ((unsigned long long *)child_block)[6], ((unsigned long long *)child_block)[7]);
+      }
+      child = child->next;
+      child_num++;
+    }
+    
+    if (has_corruption) {
+      fprintf(stderr, "Mem_Free_: Parent details - address: %p, magic: %d, tag: %d, size: %zu, num_children: %d\n",
+              (void *)b, b->magic, b->tag, b->size, child_num);
+      raise(SIGABRT);
+    }
+    
+    g_slist_free_full(b->children, (GDestroyNotify) Mem_Free_);
+  }
 
-	// decrement the pool size and free the memory
-	mem_state.size -= b->size;
+  // decrement the pool size and free the memory
+  mem_state.size -= b->size;
 
-	free(b);
+  free(b);
 }
 
 /**
@@ -153,51 +133,51 @@ static void Mem_Free_(mem_block_t *b) {
  * automatically freed as well.
  */
 void Mem_Free(void *p) {
-	if (p) {
-		mem_block_t *b = Mem_CheckMagic(p);
+  if (p) {
+    mem_block_t *b = Mem_CheckMagic(p);
 
-		SDL_AtomicLock(&mem_state.lock);
+    SDL_LockSpinlock(&mem_state.lock);
 
-		if (b->parent) {
-			b->parent->children = g_slist_remove(b->parent->children, b);
-		} else {
-			g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
-		}
+    if (b->parent) {
+      b->parent->children = g_slist_remove(b->parent->children, b);
+    } else {
+      g_hash_table_remove(mem_state.blocks, (gconstpointer) b);
+    }
 
-		Mem_Free_(b);
+    Mem_Free_(b);
 
-		SDL_AtomicUnlock(&mem_state.lock);
-	}
+    SDL_UnlockSpinlock(&mem_state.lock);
+  }
 }
 
 /**
  * @brief Free all managed items allocated with the specified tag.
  */
 void Mem_FreeTag(mem_tag_t tag) {
-	GHashTableIter it;
-	gpointer key, value;
+  GHashTableIter it;
+  gpointer key, value;
 
-	SDL_AtomicLock(&mem_state.lock);
+  SDL_LockSpinlock(&mem_state.lock);
 
-	g_hash_table_iter_init(&it, mem_state.blocks);
+  g_hash_table_iter_init(&it, mem_state.blocks);
 
-	while (g_hash_table_iter_next(&it, &key, &value)) {
-		mem_block_t *b = (mem_block_t *) key;
+  while (g_hash_table_iter_next(&it, &key, &value)) {
+    mem_block_t *b = (mem_block_t *) key;
 
-		if (tag == MEM_TAG_ALL || b->tag == tag) {
-			g_hash_table_iter_remove(&it);
-			Mem_Free_(b);
-		}
-	}
+    if (tag == MEM_TAG_ALL || b->tag == tag) {
+      g_hash_table_iter_remove(&it);
+      Mem_Free_(b);
+    }
+  }
 
-	SDL_AtomicUnlock(&mem_state.lock);
+  SDL_UnlockSpinlock(&mem_state.lock);
 }
 
 /**
  * @brief Returns the total size of a memory block.
  */
 static size_t Mem_BlockSize(const size_t size) {
-	return sizeof(mem_block_t) + size + sizeof(mem_footer_t);
+  return sizeof(mem_block_t) + size + sizeof(mem_footer_t);
 }
 
 /**
@@ -212,46 +192,42 @@ static size_t Mem_BlockSize(const size_t size) {
  * @return A block of managed memory initialized to 0x0.
  */
 static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
-	mem_block_t *b, *p = Mem_CheckMagic(parent);
+  mem_block_t *b, *p = Mem_CheckMagic(parent);
 
-	// allocate the block plus the desired size
-	const size_t s = Mem_BlockSize(size);
+  // allocate the block plus the desired size
+  const size_t s = Mem_BlockSize(size);
 
-	if (!(b = calloc(1, s))) {
-		fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
-		raise(SIGABRT);
-		return NULL;
-	}
+  if (!(b = calloc(1, s))) {
+    fprintf(stderr, "Failed to allocate %u bytes\n", (uint32_t) s);
+    raise(SIGABRT);
+    return NULL;
+  }
 
-	b->magic = MEM_MAGIC;
-	b->tag = tag;
-	b->parent = p;
-	b->size = size;
+  b->magic = MEM_MAGIC;
+  b->tag = tag;
+  b->parent = p;
+  b->size = size;
 
-	void *data = (void *) (b + 1);
+  void *data = (void *) (b + 1);
 
-	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
-	footer->magic = (mem_magic_t) (MEM_MAGIC + b->size);
+  mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+  footer->magic = (mem_magic_t) (MEM_MAGIC + b->size);
 
-	// insert it into the managed memory structures
-	SDL_AtomicLock(&mem_state.lock);
+  // insert it into the managed memory structures
+  SDL_LockSpinlock(&mem_state.lock);
 
-	if (b->parent) {
-		b->parent->children = g_slist_prepend(b->parent->children, b);
-	} else {
-		g_hash_table_add(mem_state.blocks, b);
-	}
+  if (b->parent) {
+    b->parent->children = g_slist_prepend(b->parent->children, b);
+  } else {
+    g_hash_table_add(mem_state.blocks, b);
+  }
 
-	mem_state.size += size;
-	
-#if defined(SUPER_MEMORY_CHECKS)
-	Mem_SetStack(b);
-#endif
+  mem_state.size += size;
 
-	SDL_AtomicUnlock(&mem_state.lock);
+  SDL_UnlockSpinlock(&mem_state.lock);
 
-	// return the address in front of the block
-	return data;
+  // return the address in front of the block
+  return data;
 }
 
 /**
@@ -264,7 +240,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
  * @return A block of managed memory initialized to 0x0.
  */
 void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
-	return Mem_Malloc_(size, tag, NULL);
+  return Mem_Malloc_(size, tag, NULL);
 }
 
 /**
@@ -278,7 +254,7 @@ void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
  * @return A block of managed memory initialized to 0x0.
  */
 void *Mem_LinkMalloc(size_t size, void *parent) {
-	return Mem_Malloc_(size, MEM_TAG_DEFAULT, parent);
+  return Mem_Malloc_(size, MEM_TAG_DEFAULT, parent);
 }
 
 /**
@@ -288,7 +264,7 @@ void *Mem_LinkMalloc(size_t size, void *parent) {
  * @return A block of memory initialized to 0x0.
  */
 void *Mem_Malloc(size_t size) {
-	return Mem_Malloc_(size, MEM_TAG_DEFAULT, NULL);
+  return Mem_Malloc_(size, MEM_TAG_DEFAULT, NULL);
 }
 
 /**
@@ -299,71 +275,59 @@ void *Mem_Malloc(size_t size) {
  */
 void *Mem_Realloc(void *p, size_t size) {
 
-	if (!p) {
-		return Mem_Malloc(size);
-	}
+  if (!p) {
+    return Mem_Malloc(size);
+  }
 
-	mem_block_t *b = Mem_CheckMagic(p), *new_b;
+  mem_block_t *b = Mem_CheckMagic(p), *new_b;
 
-	// no change to size
-	if (b->size == size) {
-		return (void *) (b + 1);
-	}
+  // no change to size
+  if (b->size == size) {
+    return (void *) (b + 1);
+  }
 
-	// allocate the block plus the desired size
-	const size_t old_size = b->size;
-	const size_t s = Mem_BlockSize(size);
+  // allocate the block plus the desired size
+  const size_t old_size = b->size;
+  const size_t s = Mem_BlockSize(size);
 
-	b->size = size;
+  b->size = size;
 
-#if defined(SUPER_MEMORY_PRINTS)
-	Mem_Print(b, "Reallocating");
-#endif
+  if (!(new_b = realloc(b, s))) {
+    fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
+    raise(SIGABRT);
+    return NULL;
+  }
 
-	if (!(new_b = realloc(b, s))) {
-		fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
-		raise(SIGABRT);
-		return NULL;
-	}
+  void *data = (void *) (new_b + 1);
 
-	void *data = (void *) (new_b + 1);
+  mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+  footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
 
-	mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
-	footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
+  SDL_LockSpinlock(&mem_state.lock);
 
-	SDL_AtomicLock(&mem_state.lock);
+  // re-seat us in our parent or in global hash list
+  if (new_b->parent) {
+    new_b->parent->children = g_slist_remove(new_b->parent->children, b);
+    new_b->parent->children = g_slist_prepend(new_b->parent->children, new_b);
+  } else {
+    g_hash_table_remove(mem_state.blocks, b);
+    g_hash_table_add(mem_state.blocks, new_b);
+  }
 
-	// re-seat us in our parent or in global hash list
-	if (new_b->parent) {
-		new_b->parent->children = g_slist_remove(new_b->parent->children, b);
-		new_b->parent->children = g_slist_prepend(new_b->parent->children, new_b);
-	} else {
-		g_hash_table_remove(mem_state.blocks, b);
-		g_hash_table_add(mem_state.blocks, new_b);
-	}
+  // change our childrens' parent pointers
+  if (new_b->children) {
+    for (GSList *children = new_b->children; children; children = children->next) {
+      mem_block_t *child = (mem_block_t *) children->data;
+      child->parent = new_b;
+    }
+  }
 
-	// change our childrens' parent pointers
-	if (new_b->children) {
-		for (GSList *children = new_b->children; children; children = children->next) {
-			mem_block_t *child = (mem_block_t *) children->data;
-			child->parent = new_b;
-		}
-	}
+  mem_state.size -= old_size;
+  mem_state.size += size;
 
-	mem_state.size -= old_size;
-	mem_state.size += size;
-	
-#if defined(SUPER_MEMORY_CHECKS)
-	Mem_SetStack(new_b);
+  SDL_UnlockSpinlock(&mem_state.lock);
 
-#if defined(SUPER_MEMORY_PRINTS)
-	Mem_Print(new_b, "Reallocated");
-#endif
-#endif
-
-	SDL_AtomicUnlock(&mem_state.lock);
-
-	return data;
+  return data;
 }
 
 /**
@@ -376,57 +340,56 @@ void *Mem_Realloc(void *p, size_t size) {
  * @return The child, for convenience.
  */
 void *Mem_Link(void *child, void *parent) {
-	mem_block_t *c = Mem_CheckMagic(child);
-	mem_block_t *p = Mem_CheckMagic(parent);
+  mem_block_t *c = Mem_CheckMagic(child);
+  mem_block_t *p = Mem_CheckMagic(parent);
 
-	SDL_AtomicLock(&mem_state.lock);
+  SDL_LockSpinlock(&mem_state.lock);
 
-	if (c->parent) {
-		c->parent->children = g_slist_remove(c->parent->children, c);
-	} else {
-		g_hash_table_remove(mem_state.blocks, c);
-	}
+  if (c->parent) {
+    c->parent->children = g_slist_remove(c->parent->children, c);
+  } else {
+    g_hash_table_remove(mem_state.blocks, c);
+  }
 
-	c->parent = p;
-	p->children = g_slist_prepend(p->children, c);
+  c->parent = p;
+  p->children = g_slist_prepend(p->children, c);
 
-	SDL_AtomicUnlock(&mem_state.lock);
+  SDL_UnlockSpinlock(&mem_state.lock);
 
-	return child;
+  return child;
 }
 
 /**
  * @return The current size (user bytes) of the zone allocation pool.
  */
 size_t Mem_Size(void) {
-	return mem_state.size;
+  return mem_state.size;
 }
 
 /**
  * @brief Allocates and returns a copy of the specified string.
  */
 char *Mem_TagCopyString(const char *in, mem_tag_t tag) {
-	char *out;
+  char *out;
 
-	out = Mem_TagMalloc(strlen(in) + 1, tag);
-	strcpy(out, in);
+  out = Mem_TagMalloc(strlen(in) + 1, tag);
+  strcpy(out, in);
 
-	return out;
+  return out;
 }
 
 /**
  * @brief Allocates and returns a copy of the specified string.
  */
 char *Mem_CopyString(const char *in) {
-
-	return Mem_TagCopyString(in, MEM_TAG_DEFAULT);
+  return Mem_TagCopyString(in, MEM_TAG_DEFAULT);
 }
 
 /**
  * @brief
  */
 static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
-	return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
+  return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
 }
 
 /**
@@ -434,13 +397,13 @@ static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
  */
 static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
 
-	size_t size = b->size;
+  size_t size = b->size;
 
-	for (GSList *child = b->children; child; child = child->next) {
-		size += Mem_CalculateBlockSize((const mem_block_t *) child->data);
-	}
+  for (GSList *child = b->children; child; child = child->next) {
+    size += Mem_CalculateBlockSize((const mem_block_t *) child->data);
+  }
 
-	return size;
+  return size;
 }
 
 /**
@@ -448,52 +411,52 @@ static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
  */
 GArray *Mem_Stats(void) {
 
-	GHashTableIter it;
-	gpointer key, value;
+  GHashTableIter it;
+  gpointer key, value;
 
-	SDL_AtomicLock(&mem_state.lock);
+  SDL_LockSpinlock(&mem_state.lock);
 
-	GArray *stat_array = g_array_new(false, true, sizeof(mem_stat_t));
+  GArray *stat_array = g_array_new(false, true, sizeof(mem_stat_t));
 
-	stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
-		.tag = -1,
-		 .size = mem_state.size,
-		  .count = 0
-	}, 1);
+  stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
+    .tag = -1,
+    .size = mem_state.size,
+    .count = 0
+  }, 1);
 
-	g_hash_table_iter_init(&it, mem_state.blocks);
+  g_hash_table_iter_init(&it, mem_state.blocks);
 
-	while (g_hash_table_iter_next(&it, &key, &value)) {
-		const mem_block_t *b = (const mem_block_t *) key;
-		mem_stat_t *stats = NULL;
+  while (g_hash_table_iter_next(&it, &key, &value)) {
+    const mem_block_t *b = (const mem_block_t *) key;
+    mem_stat_t *stats = NULL;
 
-		for (size_t i = 0; i < stat_array->len; i++) {
+    for (size_t i = 0; i < stat_array->len; i++) {
 
-			mem_stat_t *stat_i = &g_array_index(stat_array, mem_stat_t, i);
+      mem_stat_t *stat_i = &g_array_index(stat_array, mem_stat_t, i);
 
-			if (stat_i->tag == b->tag) {
-				stats = stat_i;
-				break;
-			}
-		}
+      if (stat_i->tag == b->tag) {
+        stats = stat_i;
+        break;
+      }
+    }
 
-		if (stats == NULL) {
-			stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
-				.tag = b->tag,
-				 .size = Mem_CalculateBlockSize(b),
-				  .count = 1
-			}, 1);
-		} else {
-			stats->size += Mem_CalculateBlockSize(b);
-			stats->count++;
-		}
-	}
+    if (stats == NULL) {
+      stat_array = g_array_append_vals(stat_array, &(const mem_stat_t) {
+        .tag = b->tag,
+        .size = Mem_CalculateBlockSize(b),
+        .count = 1
+      }, 1);
+    } else {
+      stats->size += Mem_CalculateBlockSize(b);
+      stats->count++;
+    }
+  }
 
-	SDL_AtomicUnlock(&mem_state.lock);
+  SDL_UnlockSpinlock(&mem_state.lock);
 
-	g_array_sort(stat_array, Mem_Stats_Sort);
+  g_array_sort(stat_array, Mem_Stats_Sort);
 
-	return stat_array;
+  return stat_array;
 }
 
 /**
@@ -502,9 +465,9 @@ GArray *Mem_Stats(void) {
  */
 void Mem_Init(void) {
 
-	memset(&mem_state, 0, sizeof(mem_state));
+  memset(&mem_state, 0, sizeof(mem_state));
 
-	mem_state.blocks = g_hash_table_new(NULL, NULL);
+  mem_state.blocks = g_hash_table_new(NULL, NULL);
 }
 
 /**
@@ -513,7 +476,7 @@ void Mem_Init(void) {
  */
 void Mem_Shutdown(void) {
 
-	Mem_FreeTag(MEM_TAG_ALL);
+  Mem_FreeTag(MEM_TAG_ALL);
 
-	g_hash_table_destroy(mem_state.blocks);
+  g_hash_table_destroy(mem_state.blocks);
 }

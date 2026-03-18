@@ -22,164 +22,177 @@
 #include "sv_local.h"
 
 /**
- * @brief Writes a delta update of an entity_state_t list to the message.
+ * @brief Writes a delta update of an `entity_state_t` list to the message.
  */
-static void Sv_WriteEntities(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
-	entity_state_t *old_state = NULL, *new_state = NULL;
-	uint32_t old_index, new_index;
-	uint16_t old_num, new_num;
-	uint16_t from_num_entities;
+static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
+  entity_state_t *old_state = NULL, *new_state = NULL;
+  int32_t old_index, new_index;
+  int16_t old_num, new_num;
+  int16_t from_num_entities;
 
-	if (!from) {
-		from_num_entities = 0;
-	} else {
-		from_num_entities = from->num_entities;
-	}
+  if (!from) {
+    from_num_entities = 0;
+  } else {
+    from_num_entities = from->num_entities;
+  }
 
-	new_index = 0;
-	old_index = 0;
-	while (new_index < to->num_entities || old_index < from_num_entities) {
-		if (new_index >= to->num_entities) {
-			new_num = 0xffff;
-		} else {
-			new_state = &svs.entity_states[(to->entity_state + new_index) % svs.num_entity_states];
-			new_num = new_state->number;
-		}
+  /*
+   * Merge-sort the old and new entity lists, writing delta updates to the message.
+   * Both lists are sorted by entity number, so we walk through them in parallel:
+   *  - If entity numbers match: send delta from old to new state
+   *  - If new_num < old_num: entity is new, send from baseline
+   *  - If new_num > old_num: entity was removed, send removal notice
+   * Using INT16_MAX as sentinel when we reach the end of either list.
+   */
+  
+  new_index = 0;
+  old_index = 0;
+  while (new_index < to->num_entities || old_index < from_num_entities) {
+    if (new_index >= to->num_entities) {
+      new_num = INT16_MAX;
+    } else {
+      new_state = &svs.entity_states[(to->entity_state + new_index) % svs.num_entity_states];
+      new_num = new_state->number;
+    }
 
-		if (old_index >= from_num_entities) {
-			old_num = 0xffff;
-		} else {
-			old_state
-			    = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
-			old_num = old_state->number;
-		}
+    if (old_index >= from_num_entities) {
+      old_num = INT16_MAX;
+    } else {
+      old_state = &svs.entity_states[(from->entity_state + old_index) % svs.num_entity_states];
+      old_num = old_state->number;
+    }
 
-		if (new_num == old_num) { // delta update from old position
-			Net_WriteDeltaEntity(msg, old_state, new_state, false);
-			old_index++;
-			new_index++;
-			continue;
-		}
+    if (new_num == old_num) { // delta update from old position
+      Net_WriteDeltaEntity(msg, old_state, new_state, false);
+      old_index++;
+      new_index++;
+      continue;
+    }
 
-		if (new_num < old_num) { // this is a new entity, send it from the baseline
-			Net_WriteDeltaEntity(msg, &sv.baselines[new_num], new_state, true);
-			new_index++;
-			continue;
-		}
+    if (new_num < old_num) { // this is a new entity, send it from the baseline
+      Net_WriteDeltaEntity(msg, &sv.entities[new_num].baseline, new_state, true);
+      new_index++;
+      continue;
+    }
 
-		if (new_num > old_num) { // the old entity isn't present in the new message
-			const int16_t bits = U_REMOVE;
+    if (new_num > old_num) { // the old entity isn't present in the new message
+      const int16_t bits = U_REMOVE;
 
-			Net_WriteShort(msg, old_num);
-			Net_WriteShort(msg, bits);
+      Net_WriteShort(msg, old_num);
+      Net_WriteShort(msg, bits);
 
-			old_index++;
-			continue;
-		}
-	}
+      old_index++;
+      continue;
+    }
+  }
 
-	Net_WriteShort(msg, 0); // end of entities
+  Net_WriteShort(msg, -1); // end of entities
 }
 
 /**
  * @brief
  */
-static void Sv_WritePlayerState(sv_frame_t *from, sv_frame_t *to, mem_buf_t *msg) {
-	static player_state_t null_state;
+static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
+  static player_state_t null_state;
 
-	if (from) {
-		Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
-	} else {
-		Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
-	}
+  if (from) {
+    Net_WriteDeltaPlayerState(msg, &from->ps, &to->ps);
+  } else {
+    Net_WriteDeltaPlayerState(msg, &null_state, &to->ps);
+  }
 }
 
 /**
  * @brief
  */
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
-	sv_frame_t *frame, *delta_frame;
-	int32_t delta_frame_num;
+  sv_client_frame_t *frame, *delta_frame;
+  int32_t delta_frame_num;
 
-	// this is the frame we are creating
-	frame = &client->frames[sv.frame_num & PACKET_MASK];
+  // this is the frame we are creating
+  frame = &client->frames[sv.frame_num & PACKET_MASK];
 
-	if (client->last_frame < 0) {
-		// client is asking for a retransmit
-		delta_frame = NULL;
-		delta_frame_num = -1;
-	} else if (sv.frame_num - client->last_frame >= (PACKET_BACKUP - 3)) {
-		// client hasn't gotten a good message through in a long time
-		delta_frame = NULL;
-		delta_frame_num = -1;
-	} else {
-		// we have a valid message to delta from
-		delta_frame = &client->frames[client->last_frame & PACKET_MASK];
-		delta_frame_num = client->last_frame;
-	}
+  if (client->last_frame < 0) {
+    // client is asking for a retransmit
+    delta_frame = NULL;
+    delta_frame_num = -1;
+  } else if (sv.frame_num - client->last_frame >= (PACKET_BACKUP - 3)) {
+    // client hasn't gotten a good message through in a long time
+    delta_frame = NULL;
+    delta_frame_num = -1;
+  } else {
+    // we have a valid message to delta from
+    delta_frame = &client->frames[client->last_frame & PACKET_MASK];
+    delta_frame_num = client->last_frame;
+  }
 
-	Net_WriteByte(msg, SV_CMD_FRAME);
-	Net_WriteLong(msg, sv.frame_num);
-	Net_WriteLong(msg, delta_frame_num); // what we are delta'ing from
-	Net_WriteByte(msg, client->suppress_count); // rate dropped packets
-	client->suppress_count = 0;
+  Net_WriteByte(msg, SV_CMD_FRAME);
+  Net_WriteLong(msg, sv.frame_num);
+  Net_WriteLong(msg, delta_frame_num); // what we are delta'ing from
 
-	// delta encode the player state
-	Sv_WritePlayerState(delta_frame, frame, msg);
+  // delta encode the player state
+  Sv_WritePlayerState(delta_frame, frame, msg);
 
-	// delta encode the entities
-	Sv_WriteEntities(delta_frame, frame, msg);
+  // delta encode the entities
+  Sv_WriteEntities(delta_frame, frame, msg);
 }
 
 /**
- * @brief Decides which entities are going to be visible to the client, and
- * copies off the player state.
+ * @brief Decides which entities are going to be visible to the client and copies off the player state.
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
 
-	g_entity_t *cent = client->entity;
-	if (!cent->client) {
-		return;    // not in game yet
-	}
+  g_client_t *cl = svs.game->clients[client - svs.clients];
 
-	// this is the frame we are creating
-	sv_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
-	frame->sent_time = quetoo.ticks; // timestamp for ping calculation
+  if (!cl->in_use) {
+    return; // not in game yet
+  }
 
-	// grab the current player_state_t
-	frame->ps = cent->client->ps;
+  // this is the frame we are creating
+  sv_client_frame_t *frame = &client->frames[sv.frame_num & PACKET_MASK];
+  frame->sent_time = quetoo.ticks; // timestamp for ping calculation
 
-	// build up the list of relevant entities
-	frame->num_entities = 0;
-	frame->entity_state = svs.next_entity_state;
+  // grab the current player_state_t
+  frame->ps = cl->ps;
 
-	for (int32_t e = 1; e < svs.game->num_entities; e++) {
-		g_entity_t *ent = ENTITY_FOR_NUM(e);
+  // build up the list of relevant entities
+  frame->num_entities = 0;
+  frame->entity_state = svs.next_entity_state;
 
-		// ignore entities that are local to the server
-		if (ent->sv_flags & SVF_NO_CLIENT) {
-			continue;
-		}
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-		// ignore entities without visible presence unless they have an effect
-		if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
-			continue;
-		}
+    const g_entity_t *ent = svs.game->entities[i];
 
-		// copy it to the circular entity_state_t array
-		entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
-		if (ent->s.number != e) {
-			Com_Warn("Fixing entity number: %d -> %d\n", ent->s.number, e);
-			ent->s.number = e;
-		}
-		*s = ent->s;
+    if (!ent->in_use) {
+      continue;
+    }
 
-		// don't mark our own missiles as solid for prediction
-		if (ent->owner == client->entity) {
-			s->solid = SOLID_NOT;
-		}
+    assert(ent->s.number == i);
 
-		svs.next_entity_state++;
-		frame->num_entities++;
-	}
+    if (!editor->value) {
+
+      // ignore entities that are local to the server
+      if (ent->sv_flags & SVF_NO_CLIENT) {
+        continue;
+      }
+
+      // ignore entities without visible presence
+      if (!ent->s.event && !ent->s.effects && !ent->s.trail && !ent->s.model1 && !ent->s.sound) {
+        continue;
+      }
+    }
+
+    // copy it to the circular entity_state_t array
+    entity_state_t *s = &svs.entity_states[svs.next_entity_state % svs.num_entity_states];
+
+    *s = ent->s;
+
+    // make the client's own projectiles as not-solid for client side prediction
+    if (ent->owner == cl->entity) {
+      s->solid = SOLID_NOT;
+    }
+
+    svs.next_entity_state++;
+    frame->num_entities++;
+  }
 }

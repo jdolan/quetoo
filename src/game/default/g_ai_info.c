@@ -37,45 +37,45 @@ static GArray *ai_skins;
  * @brief Fs_Enumerator for resolving available skins for a given model.
  */
 static void Ai_EnumerateSkins(const char *path, void *data) {
-	char name[MAX_QPATH];
-	char *s = strstr(path, "players/");
+  char name[MAX_QPATH];
+  char *s = strstr(path, "players/");
 
-	if (s) {
-		StripExtension(s + strlen("players/"), name);
+  if (s) {
+    StripExtension(s + strlen("players/"), name);
 
-		if (g_str_has_suffix(name, "_i")) {
-			name[strlen(name) - strlen("_i")] = '\0';
+    if (g_str_has_suffix(name, "_i")) {
+      name[strlen(name) - strlen("_i")] = '\0';
 
-			for (size_t i = 0; i < ai_skins->len; i++) {
+      for (size_t i = 0; i < ai_skins->len; i++) {
 
-				if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
-					return;
-				}
-			}
+        if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
+          return;
+        }
+      }
 
-			g_array_append_val(ai_skins, name);
-		}
-	}
+      ai_skins = g_array_append_val(ai_skins, name);
+    }
+  }
 }
 
 /**
  * @brief Fs_Enumerator for resolving available models.
  */
 static void Ai_EnumerateModels(const char *path, void *data) {
-	gi.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+  gi.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
 }
 
 /**
  * @brief
  */
-static const char ai_names[][MAX_USER_INFO_VALUE] = {
-	"Stroggo",
-	"Enforcer",
-	"Berserker",
-	"Gunner",
-	"Gladiator",
-	"Makron",
-	"Brain"
+static const char ai_names[][MAX_INFO_STRING_VALUE] = {
+  "Stroggo",
+  "Enforcer",
+  "Berserker",
+  "Gunner",
+  "Gladiator",
+  "Makron",
+  "Brain"
 };
 
 /**
@@ -93,29 +93,29 @@ static uint32_t ai_name_suffix;
 /**
  * @brief Create the user info for the specified bot entity.
  */
-void Ai_GetUserInfo(const g_entity_t *self, char *info) {
+void Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
-	g_strlcpy(info, DEFAULT_BOT_INFO, MAX_USER_INFO_STRING);
+  g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
-	SetUserInfo(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
-	SetUserInfo(info, "color", va("%u", RandomRangeu(0, 360)));
-	SetUserInfo(info, "hand", va("%u", RandomRangeu(0, 3)));
-	SetUserInfo(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-	SetUserInfo(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-	SetUserInfo(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
+  InfoString_Set(info, "color", va("%u", RandomRangeu(0, 360)));
+  InfoString_Set(info, "hand", va("%u", RandomRangeu(0, 3)));
+  InfoString_Set(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
-	if (ai_name_suffix == 0) {
-		SetUserInfo(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
-	} else {
-		SetUserInfo(info, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
-	}
+  if (ai_name_suffix == 0) {
+    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
+  } else {
+    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
+  }
 
-	ai_name_index++;
+  ai_name_index++;
 
-	if (ai_name_index == ai_names_count) {
-		ai_name_index = 0;
-		ai_name_suffix++;
-	}
+  if (ai_name_index == ai_names_count) {
+    ai_name_index = 0;
+    ai_name_suffix++;
+  }
 }
 
 /**
@@ -123,17 +123,17 @@ void Ai_GetUserInfo(const g_entity_t *self, char *info) {
  */
 void Ai_InitSkins(void) {
 
-	ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+  ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 
-	ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
+  ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
 
-	gi.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+  gi.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**
  * @brief
  */
 void Ai_ShutdownSkins(void) {
-	g_array_free(ai_skins, true);
-	ai_skins = NULL;
+  g_array_free(ai_skins, true);
+  ai_skins = NULL;
 }

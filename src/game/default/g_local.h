@@ -25,7 +25,7 @@
 
 // this is the game name that we advertise to clients
 #ifndef GAME_NAME
-	#define GAME_NAME "default"
+  #define GAME_NAME "default"
 #endif
 
 #define G_Debug(...) ({ if (gi.DebugMask() & DEBUG_GAME) { gi.Debug_(DEBUG_GAME, __func__, __VA_ARGS__); } })

@@ -26,17 +26,17 @@
  * compression for all fields where possible.
  */
 static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
-	static player_state_t null_state;
+  static player_state_t null_state;
 
-	if (delta_frame && delta_frame->valid) {
-		Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
-	} else {
-		Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
-	}
+  if (delta_frame && delta_frame->valid) {
+    Net_ReadDeltaPlayerState(&net_message, &delta_frame->ps, &frame->ps);
+  } else {
+    Net_ReadDeltaPlayerState(&net_message, &null_state, &frame->ps);
+  }
 
-	if (cl.demo_server) { // if playing a demo, force freeze
-		frame->ps.pm_state.type = PM_FREEZE;
-	}
+  if (cl.demo_server) { // if playing a demo, force freeze
+    frame->ps.pm_state.type = PM_FREEZE;
+  }
 }
 
 /**
@@ -46,29 +46,29 @@ static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame
 static bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
                                  const entity_state_t *from, const entity_state_t *to) {
 
-	if (frame->delta_frame_num == -1) {
-		return false;
-	}
+  if (frame->delta_frame_num == -1) {
+    return false;
+  }
 
-	if (cl.previous_frame) {
-		if (ent->frame_num != cl.previous_frame->frame_num) {
-			return false;
-		}
-	}
+  if (cl.previous_frame) {
+    if (ent->frame_num != cl.previous_frame->frame_num) {
+      return false;
+    }
+  }
 
-	if (ent->current.spawn_id != to->spawn_id) {
-		return false;
-	}
+  if (ent->current.spawn_id != to->spawn_id) {
+    return false;
+  }
 
-	if (ent->current.model1 != to->model1) {
-		return false;
-	}
+  if (ent->current.model1 != to->model1) {
+    return false;
+  }
 
-	if (Vec3_Distance(ent->current.origin, to->origin) > MAX_DELTA_ORIGIN) {
-		return false;
-	}
+  if (Vec3_Distance(ent->current.origin, to->origin) > MAX_DELTA_ORIGIN) {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 /**
@@ -77,41 +77,43 @@ static bool Cl_ValidDeltaEntity(const cl_frame_t *frame, const cl_entity_t *ent,
  */
 static void Cl_ResetTrails(cl_entity_t *ent) {
 
-	for (vec3_t *trail = ent->trail_origins; trail < ent->trail_origins + lengthof(ent->trail_origins); trail++) {
-		*trail = ent->previous_origin;
-	}
+  for (vec3_t *trail = ent->trail_origins;
+       trail < ent->trail_origins + lengthof(ent->trail_origins);
+       trail++) {
+    *trail = ent->previous_origin;
+  }
 }
 
 /**
  * @brief Reads deltas from the given base and adds the resulting entity to the
  * current frame.
  */
-static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, uint16_t number, uint16_t bits) {
+static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, int16_t number, uint16_t bits) {
 
-	cl_entity_t *ent = &cl.entities[number];
+  cl_entity_t *ent = &cl.entities[number];
 
-	entity_state_t *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
-	cl.entity_state++;
+  entity_state_t *to = &cl.entity_states[cl.entity_state & ENTITY_STATE_MASK];
+  cl.entity_state++;
 
-	frame->num_entities++;
+  frame->num_entities++;
 
-	Net_ReadDeltaEntity(&net_message, from, to, number, bits);
+  Net_ReadDeltaEntity(&net_message, from, to, number, bits);
 
-	// check to see if the delta was successful and valid
-	if (!Cl_ValidDeltaEntity(frame, ent, from, to)) {
-		ent->prev = *to; // copy the current state to the previous
-		ent->animation1.time = ent->animation2.time = 0;
-		ent->animation1.frame = ent->animation2.frame = -1;
-		ent->previous_origin = to->origin;
-		Cl_ResetTrails(ent);
-		ent->legs_current_yaw = to->angles.y;
-	} else { // shuffle the last state to previous
-		ent->prev = ent->current;
-	}
+  // check to see if the delta was successful and valid
+  if (!Cl_ValidDeltaEntity(frame, ent, from, to)) {
+    ent->prev = *to; // copy the current state to the previous
+    ent->animation1.time = ent->animation2.time = 0;
+    ent->animation1.frame = ent->animation2.frame = -1;
+    ent->previous_origin = to->origin;
+    Cl_ResetTrails(ent);
+    ent->legs_current_yaw = to->angles.y;
+  } else { // shuffle the last state to previous
+    ent->prev = ent->current;
+  }
 
-	// set the current frame number and entity state
-	ent->frame_num = cl.frame.frame_num;
-	ent->current = *to;
+  // set the current frame number and entity state
+  ent->frame_num = cl.frame.frame_num;
+  ent->current = *to;
 }
 
 /**
@@ -119,130 +121,142 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, ui
  */
 static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 
-	frame->entity_state = cl.entity_state;
-	frame->num_entities = 0;
+  frame->entity_state = cl.entity_state;
+  frame->num_entities = 0;
 
-	entity_state_t *from = NULL;
-	uint16_t from_number;
+  entity_state_t *from = NULL;
+  int16_t from_number;
 
-	if (delta_frame == NULL || delta_frame->num_entities == 0) {
-		from_number = UINT16_MAX;
-	} else {
-		from = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
-		from_number = from->number;
-	}
+  if (delta_frame == NULL || delta_frame->num_entities == 0) {
+    from_number = INT16_MAX;
+  } else {
+    from = &cl.entity_states[delta_frame->entity_state & ENTITY_STATE_MASK];
+    from_number = from->number;
+  }
 
-	int32_t index = 0;
+  int32_t index = 0;
 
-	while (true) {
-		const uint16_t number = Net_ReadShort(&net_message);
+  /*
+   * Parse entity updates from the server message, merging with the previous frame.
+   * The server sends a sorted list of entity numbers with delta updates. We walk through
+   * both the new message and the old frame in parallel by entity number:
+   *  - If from_number < number: unchanged entity from old frame, copy it forward
+   *  - If from_number == number: delta update, apply changes
+   *  - If from_number > number: new entity, delta from baseline
+   *  - If bits has U_REMOVE: entity removed, don't copy forward
+   * The server terminates the list with -1. Using INT16_MAX as sentinel when the
+   * old frame list is exhausted.
+   */
+  
+  while (true) {
+    const int16_t number = Net_ReadShort(&net_message);
 
-		if (number >= MAX_ENTITIES) {
-			Com_Error(ERROR_DROP, "Bad number: %i\n", number);
-		}
+    if (number == -1) {
+      break;
+    }
 
-		if (net_message.read > net_message.size) {
-			Com_Error(ERROR_DROP, "End of message\n");
-		}
+    if (number >= MAX_ENTITIES) {
+      Com_Error(ERROR_DROP, "Bad number: %i\n", number);
+    }
 
-		if (!number) { // done
-			break;
-		}
+    if (net_message.read > net_message.size) {
+      Com_Error(ERROR_DROP, "End of message\n");
+    }
 
-		// before dealing with new entities, copy unchanged entities into the frame
-		while (from_number < number) {
+    // before dealing with new entities, copy unchanged entities into the frame
+    while (from_number < number) {
 
-			if (cl_draw_net_messages->integer == 3) {
-				Com_Print("   unchanged: %i\n", from_number);
-			}
+      if (cl_draw_net_messages->integer == 3) {
+        Com_Print("   unchanged: %i\n", from_number);
+      }
 
-			Cl_ReadDeltaEntity(frame, from, from_number, 0);
+      Cl_ReadDeltaEntity(frame, from, from_number, 0);
 
-			index++;
+      index++;
 
-			if (index >= delta_frame->num_entities) {
-				from_number = UINT16_MAX;
-			} else {
-				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				from_number = from->number;
-			}
-		}
+      if (index >= delta_frame->num_entities) {
+        from_number = INT16_MAX;
+      } else {
+        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+        from_number = from->number;
+      }
+    }
 
-		// now deal with the new entity
-		const uint16_t bits = Net_ReadShort(&net_message);
+    // now deal with the new entity
+    const uint16_t bits = Net_ReadShort(&net_message);
 
-		if (bits & U_REMOVE) { // remove it, no delta
+    if (bits & U_REMOVE) { // remove it, no delta
 
-			if (cl_draw_net_messages->integer == 3) {
-				Com_Print("   remove: %i\n", number);
-			}
+      if (cl_draw_net_messages->integer == 3) {
+        Com_Print("   remove: %i\n", number);
+      }
 
-			if (from_number != number) {
-				Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", from_number, number);
-			}
+      if (from_number != number) {
+        Com_Debug(DEBUG_CLIENT, "U_REMOVE: %u != %u\n", from_number, number);
+      }
 
-			index++;
+      index++;
 
-			if (index >= delta_frame->num_entities) {
-				from_number = UINT16_MAX;
-			} else {
-				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				from_number = from->number;
-			}
+      if (index >= delta_frame->num_entities) {
+        from_number = INT16_MAX;
+      } else {
+        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+        from_number = from->number;
+      }
 
-			continue;
-		}
+      continue;
+    }
 
-		if (from_number == number) { // delta from previous state
+    if (from_number == number) { // delta from previous state
 
-			if (cl_draw_net_messages->integer == 3) {
-				Com_Print("   delta: %i\n", number);
-			}
+      if (cl_draw_net_messages->integer == 3) {
+        Com_Print("   delta: %i\n", number);
+      }
 
-			Cl_ReadDeltaEntity(frame, from, number, bits);
+      Cl_ReadDeltaEntity(frame, from, number, bits);
 
-			index++;
+      index++;
 
-			if (index >= delta_frame->num_entities) {
-				from_number = UINT16_MAX;
-			} else {
-				from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-				from_number = from->number;
-			}
+      if (index >= delta_frame->num_entities) {
+        from_number = INT16_MAX;
+      } else {
+        from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+        from_number = from->number;
+      }
 
-			continue;
-		}
+      continue;
+    }
 
-		if (from_number > number) { // delta from baseline
+    if (from_number > number) { // delta from baseline
 
-			if (cl_draw_net_messages->integer == 3) {
-				Com_Print("   baseline: %i\n", number);
-			}
+      if (cl_draw_net_messages->integer == 3) {
+        Com_Print("   baseline: %i\n", number);
+      }
 
-			Cl_ReadDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
+      Cl_ReadDeltaEntity(frame, &cl.entities[number].baseline, number, bits);
 
-			continue;
-		}
-	}
+      continue;
+    }
+  }
 
-	// any remaining entities in the old frame are copied over
-	while (from_number != UINT16_MAX) { // one or more entities from the old packet are unchanged
+  // any remaining entities in the old frame are copied over
+  while (from_number != INT16_MAX) { // one or more entities from the old packet are unchanged
 
-		if (cl_draw_net_messages->integer == 3) {
-			Com_Print("   unchanged: %i\n", from_number);
-		}
+    if (cl_draw_net_messages->integer == 3) {
+      Com_Print("   unchanged: %i\n", from_number);
+    }
 
-		Cl_ReadDeltaEntity(frame, from, from_number, 0);
+    Cl_ReadDeltaEntity(frame, from, from_number, 0);
 
-		index++;
+    index++;
 
-		if (index >= delta_frame->num_entities) {
-			from_number = UINT16_MAX;
-		} else {
-			from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
-			from_number = from->number;
-		}
-	}
+    if (index >= delta_frame->num_entities) {
+      from_number = INT16_MAX;
+    } else {
+      from = &cl.entity_states[(delta_frame->entity_state + index) & ENTITY_STATE_MASK];
+      from_number = from->number;
+    }
+  }
 }
 
 /**
@@ -252,69 +266,67 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
  */
 void Cl_ParseFrame(void) {
 
-	if (cl.frame.valid && !cl.frame.interpolated) {
-		Cl_Interpolate();
-	}
+  if (cl.frame.valid && !cl.frame.interpolated) {
+    Cl_Interpolate();
+  }
 
-	memset(&cl.frame, 0, sizeof(cl.frame));
+  memset(&cl.frame, 0, sizeof(cl.frame));
 
-	cl.frame.frame_num = Net_ReadLong(&net_message);
-	cl.frame.delta_frame_num = Net_ReadLong(&net_message);
+  cl.frame.frame_num = Net_ReadLong(&net_message);
+  cl.frame.delta_frame_num = Net_ReadLong(&net_message);
 
-	cl.suppress_count += Net_ReadByte(&net_message);
+  if (cl_draw_net_messages->integer == 3) {
+    Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
+  }
 
-	if (cl_draw_net_messages->integer == 3) {
-		Com_Print("   frame:%i  delta:%i\n", cl.frame.frame_num, cl.frame.delta_frame_num);
-	}
+  if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
+    cl.delta_frame = cl.previous_frame = NULL;
+  } else { // delta compressed frame
+    cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
 
-	if (cl.frame.delta_frame_num <= 0) { // uncompressed frame
-		cl.delta_frame = cl.previous_frame = NULL;
-	} else { // delta compressed frame
-		cl.delta_frame = &cl.frames[cl.frame.delta_frame_num & PACKET_MASK];
+    if (!cl.delta_frame->valid) {
+      Com_Error(ERROR_DROP, "Delta from invalid frame\n");
+    } else if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
+      Com_Error(ERROR_DROP, "Delta frame too old\n");
+    } else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
+      Com_Error(ERROR_DROP, "Delta entity state too old\n");
+    }
 
-		if (!cl.delta_frame->valid) {
-			Com_Error(ERROR_DROP, "Delta from invalid frame\n");
-		} else if (cl.delta_frame->frame_num != cl.frame.delta_frame_num) {
-			Com_Error(ERROR_DROP, "Delta frame too old\n");
-		} else if (cl.entity_state - cl.delta_frame->entity_state > ENTITY_STATE_BACKUP - PACKET_BACKUP) {
-			Com_Error(ERROR_DROP, "Delta entity state too old\n");
-		}
+    cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
 
-		cl.previous_frame = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
+    if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
+      Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
+      cl.previous_frame = NULL;
+    } else if (!cl.previous_frame->valid) {
+      Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
+      cl.previous_frame = NULL;
+    }
+  }
 
-		if (cl.previous_frame->frame_num != (cl.frame.frame_num - 1)) {
-			Com_Debug(DEBUG_CLIENT, "Previous frame too old\n");
-			cl.previous_frame = NULL;
-		} else if (!cl.previous_frame->valid) {
-			Com_Debug(DEBUG_CLIENT, "Previous frame invalid\n");
-			cl.previous_frame = NULL;
-		}
-	}
+  cl.frame.valid = true;
 
-	cl.frame.valid = true;
+  Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
 
-	Cl_ParsePlayerState(cl.delta_frame, &cl.frame);
+  Cl_ParseEntities(cl.delta_frame, &cl.frame);
 
-	Cl_ParseEntities(cl.delta_frame, &cl.frame);
+  // set the simulation time for the frame
+  cl.frame.time = cl.frame.frame_num * QUETOO_TICK_MILLIS;
 
-	// set the simulation time for the frame
-	cl.frame.time = cl.frame.frame_num * QUETOO_TICK_MILLIS;
+  // save the frame off in the backup array for later delta comparisons
+  cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
 
-	// save the frame off in the backup array for later delta comparisons
-	cl.frames[cl.frame.frame_num & PACKET_MASK] = cl.frame;
+  if (cl.frame.valid) {
 
-	if (cl.frame.valid) {
+    // receiving a valid server frame means that loading completed on the
+    // previous client frame; set the client to active and key dest to game
+    if (cls.state == CL_LOADING) {
+      cls.state = CL_ACTIVE;
 
-		// receiving a valid server frame means that loading completed on the
-		// previous client frame; set the client to active and key dest to game
-		if (cls.state == CL_LOADING) {
-			cls.state = CL_ACTIVE;
+      Cl_SetKeyDest(KEY_GAME);
+    }
 
-			Cl_SetKeyDest(KEY_GAME);
-		}
-
-		Cl_CheckPredictionError();
-	}
+    Cl_CheckPredictionError();
+  }
 }
 
 /**
@@ -330,32 +342,32 @@ void Cl_ParseFrame(void) {
  */
 static void Cl_UpdateLerp(void) {
 
-	bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
+  bool no_lerp = cl.delta_frame == NULL || cl_no_lerp->value || time_demo->value;
 
-	if (cl.previous_frame) {
-		const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
-		if (dist > MAX_DELTA_ORIGIN) {
-			Com_Debug(DEBUG_CLIENT, "MAX_ORIGIN_DELTA: %.2f\n", dist);
-			no_lerp = true;
-		}
-	}
+  if (cl.previous_frame) {
+    const float dist = Vec3_Distance(cl.frame.ps.pm_state.origin, cl.previous_frame->ps.pm_state.origin);
+    if (dist > MAX_DELTA_ORIGIN) {
+      Com_Debug(DEBUG_CLIENT, "MAX_ORIGIN_DELTA: %.2f\n", dist);
+      no_lerp = true;
+    }
+  }
 
-	if (no_lerp) {
-		cl.time = cl.frame.time;
-		cl.lerp = 1.0;
-	} else {
-		if (cl.time > cl.frame.time) {
-			Com_Debug(DEBUG_CLIENT, "High clamp: %dms\n", cl.time - cl.frame.time);
-			cl.time = cl.frame.time;
-			cl.lerp = 1.0;
-		} else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
-			Com_Debug(DEBUG_CLIENT, "Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
-			cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
-			cl.lerp = 0.0;
-		} else {
-			cl.lerp = 1.0 - (cl.frame.time - cl.time) / (float) QUETOO_TICK_MILLIS;
-		}
-	}
+  if (no_lerp) {
+    cl.time = cl.frame.time;
+    cl.lerp = 1.0;
+  } else {
+    if (cl.time > cl.frame.time) {
+      Com_Debug(DEBUG_CLIENT, "High clamp: %dms\n", cl.time - cl.frame.time);
+      cl.time = cl.frame.time;
+      cl.lerp = 1.0;
+    } else if (cl.time < cl.frame.time - QUETOO_TICK_MILLIS) {
+      Com_Debug(DEBUG_CLIENT, "Low clamp: %dms\n", (cl.frame.time - QUETOO_TICK_MILLIS) - cl.time);
+      cl.time = cl.frame.time - QUETOO_TICK_MILLIS;
+      cl.lerp = 0.0;
+    } else {
+      cl.lerp = 1.0 - (cl.frame.time - cl.time) / (float) QUETOO_TICK_MILLIS;
+    }
+  }
 }
 
 /**
@@ -366,87 +378,87 @@ static void Cl_UpdateLerp(void) {
  */
 void Cl_Interpolate(void) {
 
-	if (cls.state != CL_ACTIVE) {
-		return;
-	}
+  if (cls.state != CL_ACTIVE) {
+    return;
+  }
 
-	if (!cl.frame.valid) {
-		return;
-	}
+  if (!cl.frame.valid) {
+    return;
+  }
 
-	Cl_UpdateLerp();
+  Cl_UpdateLerp();
 
-	for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
 
-		const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-		cl_entity_t *ent = &cl.entities[cl.entity_states[snum].number];
+    const uint32_t s = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    cl_entity_t *ent = &cl.entities[cl.entity_states[s].number];
 
-		if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
-			ent->previous_origin = ent->origin;
-			ent->origin = Vec3_Mix(ent->prev.origin, ent->current.origin, cl.lerp);
-		} else {
-			ent->origin = ent->current.origin;
-		}
+    if (!Vec3_Equal(ent->prev.origin, ent->current.origin)) {
+      ent->previous_origin = ent->origin;
+      ent->origin = Vec3_Mix(ent->prev.origin, ent->current.origin, cl.lerp);
+    } else {
+      ent->origin = ent->current.origin;
+    }
 
-		if (!Vec3_Equal(ent->prev.termination, ent->current.termination)) {
-			ent->termination = Vec3_Mix(ent->prev.termination, ent->current.termination, cl.lerp);
-		} else {
-			ent->termination = ent->current.termination;
-		}
+    if (!Vec3_Equal(ent->prev.termination, ent->current.termination)) {
+      ent->termination = Vec3_Mix(ent->prev.termination, ent->current.termination, cl.lerp);
+    } else {
+      ent->termination = ent->current.termination;
+    }
 
-		if (!Vec3_Equal(ent->prev.angles, ent->current.angles)) {
-			ent->angles = Vec3_MixEuler(ent->prev.angles, ent->current.angles, cl.lerp);
-		} else {
-			ent->angles = ent->current.angles;
-		}
+    if (!Vec3_Equal(ent->prev.angles, ent->current.angles)) {
+      ent->angles = Vec3_MixEuler(ent->prev.angles, ent->current.angles, cl.lerp);
+    } else {
+      ent->angles = ent->current.angles;
+    }
 
-		if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
-			ent->animation1.animation = ent->current.animation1 & ANIM_MASK_VALUE;
-			ent->animation1.time = cl.unclamped_time;
-			ent->animation1.reverse = ent->current.animation1 & ANIM_REVERSE_BIT;
-		}
+    if (ent->current.animation1 != ent->prev.animation1 || !ent->animation1.time) {
+      ent->animation1.animation = ent->current.animation1 & ANIM_MASK_VALUE;
+      ent->animation1.time = cl.unclamped_time;
+      ent->animation1.reverse = ent->current.animation1 & ANIM_REVERSE_BIT;
+    }
 
-		if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
-			ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
-			ent->animation2.time = cl.unclamped_time;
-			ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
-		}
+    if (ent->current.animation2 != ent->prev.animation2 || !ent->animation2.time) {
+      ent->animation2.animation = ent->current.animation2 & ANIM_MASK_VALUE;
+      ent->animation2.time = cl.unclamped_time;
+      ent->animation2.reverse = ent->current.animation2 & ANIM_REVERSE_BIT;
+    }
 
-		if (ent->prev.step_offset != ent->current.step_offset) {
-			ent->step_offset = Mixf(ent->prev.step_offset, ent->current.step_offset, cl.lerp);
-		} else {
-			ent->step_offset = ent->current.step_offset;
-		}
+    if (ent->prev.step_offset != ent->current.step_offset) {
+      ent->step_offset = Mixf(ent->prev.step_offset, ent->current.step_offset, cl.lerp);
+    } else {
+      ent->step_offset = ent->current.step_offset;
+    }
 
-		vec3_t angles;
-		if (ent->current.solid == SOLID_BSP) {
-			angles = ent->current.angles;
+    vec3_t angles;
+    if (ent->current.solid == SOLID_BSP) {
+      angles = ent->current.angles;
 
-			const r_model_t *mod = cl.models[ent->current.model1];
+      const r_model_t *mod = cl.models[ent->current.model1];
 
-			assert(mod);
-			assert(mod->bsp_inline);
+      assert(mod);
+      assert(mod->bsp_inline);
 
-			ent->bounds = mod->bsp_inline->bounds;
-		} else {
-			angles = Vec3_Zero();
-			ent->bounds = ent->current.bounds;
-		}
+      ent->bounds = mod->bsp_inline->visible_bounds;
+    } else {
+      angles = Vec3_Zero();
+      ent->bounds = ent->current.bounds;
+    }
 
-		// jdolan: Note that we use the latest snapshot state, not the interpolated state.
-		// This is so client side prediction can work, and the client and server are working
-		// with the same entity positions at their respective intervals. A side effect of this
-		// is that client side traces are usually _ahead_ of the rendered simulation, so you'll
-		// see artifacts like player shadows glitching on func_plats, etc.
+    // jdolan: Note that we use the latest snapshot state, not the interpolated state.
+    // This is so client side prediction can work, and the client and server are working
+    // with the same entity positions at their respective intervals. A side effect of this
+    // is that client side traces are usually _ahead_ of the rendered simulation, so you'll
+    // see artifacts like player shadows glitching on func_plats, etc.
 
-		ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
+    ent->matrix = Mat4_FromRotationTranslationScale(angles, ent->current.origin, 1.f);
 
-		ent->inverse_matrix = Mat4_Inverse(ent->matrix);
+    ent->inverse_matrix = Mat4_Inverse(ent->matrix);
 
-		ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
-	}
+    ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
+  }
 
-	cls.cgame->Interpolate(&cl.frame);
+  cls.cgame->Interpolate(&cl.frame);
 
-	cl.frame.interpolated = true;
+  cl.frame.interpolated = true;
 }

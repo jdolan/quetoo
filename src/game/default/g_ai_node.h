@@ -1,116 +1,74 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
 #pragma once
 
-/**
- * @brief
- */
+#ifdef __GAME_LOCAL_H__
+
 guint Ai_Node_Count(void);
-
-/**
- * @brief
- */
 ai_node_id_t Ai_Node_CreateNode(const vec3_t position);
-
-/**
- * @brief
- */
 bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
-
-/**
- * @brief
- */
 GArray *Ai_Node_GetLinks(const ai_node_id_t a);
-
-/**
- * @brief
- */
 vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
-
-/**
- * @brief
- */
 ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
-
-/**
- * @brief Check if the node we want to move towards is currently pathable.
- */
 bool Ai_Node_CanPathTo(const vec3_t position);
-
-/**
- * @brief Check if the node we want to move towards along the path is currently pathable.
- */
 bool Ai_Path_CanPathTo(const GArray *path, const guint index);
-
-/**
- * @brief
- */
 void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float cost);
-
-/**
- * @brief
- */
-void Ai_Node_PlayerRoam(g_entity_t *player, const pm_cmd_t *cmd);
-
-/**
- * @brief
- */
+void Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd);
 void Ai_Node_Render(void);
-
-/**
- * @brief
- */
 void Ai_InitNodes(void);
-
-/**
- * @brief
- */
 void Ai_NodesReady(void);
-
-/**
- * @brief
- */
 void Ai_SaveNodes(void);
-
-/**
- * @brief
- */
+void Ai_Node_Destroy(const ai_node_id_t id);
+void Ai_DeleteNodes(void);
 void Ai_ShutdownNodes(void);
 
-/**
- * @brief
- */
 typedef float (*Ai_NodeCost_Func)(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
  * @brief
  */
 static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_node_id_t end) {
-	const vec3_t av = Ai_Node_GetPosition(link);
-	const vec3_t bv = Ai_Node_GetPosition(end);
-	float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
+  const vec3_t av = Ai_Node_GetPosition(link);
+  const vec3_t bv = Ai_Node_GetPosition(end);
+  float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 
-	if (!Ai_Node_CanPathTo(av)) {
-		cost *= 8.f;
-	}
+  if (!Ai_Node_CanPathTo(av)) {
+    cost *= 8.f;
+  }
 
-	return cost;
+  return cost;
 }
 
 /**
  * @brief
  */
 static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t b) {
-	const vec3_t av = Ai_Node_GetPosition(a);
-	const vec3_t bv = Ai_Node_GetPosition(b);
+  const vec3_t av = Ai_Node_GetPosition(a);
+  const vec3_t bv = Ai_Node_GetPosition(b);
 
-	return Vec3_Distance(av, bv);
+  return Vec3_Distance(av, bv);
 }
 
-/**
- * @brief
- */
 GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic, float *length);
-
-/**
- * @brief
- */
 GArray *Ai_Node_TestPath(void);
+
+#endif

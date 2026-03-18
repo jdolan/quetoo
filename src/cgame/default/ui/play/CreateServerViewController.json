@@ -77,6 +77,18 @@
                           "class": "CvarTextView",
                           "var": "password"
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Message of the Day"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "g_motd"
+                        }
                       }
                     ]
                   }
@@ -121,12 +133,72 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Match mode"
+                            "text": "Time limit"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "g_time_limit"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Frag limit"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "g_frag_limit"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapons Stay"
                           }
                         },
                         "control": {
                           "class": "CvarCheckbox",
-                          "var": "g_match"
+                          "var": "g_weapon_stay"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Spawn Farthest"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "g_spawn_farthest"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Grapple Hook"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "g_hook"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Powerups"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "g_techs"
                         }
                       }
                     ]

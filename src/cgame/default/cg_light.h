@@ -29,49 +29,45 @@
  * @brief Light sources that optionally persistent over multiple frames.
  */
 typedef struct {
-	/**
-	 * @brief The light type.
-	 */
-	light_type_t type;
+  /**
+   * @brief The light origin.
+   */
+  vec3_t origin;
 
-	/**
-	 * @brief The light origin.
-	 */
-	vec3_t origin;
+  /**
+   * @brief The light radius.
+   */
+  float radius;
 
-	/**
-	 * @brief The light radius.
-	 */
-	float radius;
+  /**
+   * @brief The light color.
+   */
+  vec3_t color;
 
-	/**
-	 * @brief The light color.
-	 */
-	vec3_t color;
+  /**
+   * @brief The light intensity.
+   */
+  float intensity;
 
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
+  /**
+   * @brief The decay period in milliseconds.
+   */
+  uint32_t decay;
 
-	/**
-	 * @brief The decay period in milliseconds.
-	 */
-	uint32_t decay;
+  /**
+   * @brief The time when this light was added.
+   */
+  uint32_t time;
 
-	/**
-	 * @brief The time when this light was added.
-	 */
-	uint32_t time;
-
-	/**
-	 * @brief The identifier of the light source entity, which will not cast shadow.
-	 */
-	void *source;
+  /**
+   * @brief The identifier of the light source entity, which will not cast shadow.
+   */
+  void *source;
 } cg_light_t;
 
 void Cg_AddLight(const cg_light_t *s);
 void Cg_AddLights(void);
 void Cg_InitLights(void);
+void Cg_FreeLights(void);
 
 #endif /* __CG_LOCAL_H__ */

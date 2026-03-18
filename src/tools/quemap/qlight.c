@@ -23,55 +23,55 @@
 
 bool antialias = false;
 
-// we use the collision detection facilities for lighting
+// we use a subset of the collision detection facilities for lighting
 static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
 
 /**
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
-	/**
-	 * @brief The trace start and end points, as provided by the user.
-	 */
-	vec3_t start, end;
+  /**
+   * @brief The trace start and end points, as provided by the user.
+   */
+  vec3_t start, end;
 
-	/**
-	 * @brief The absolute bounds of the trace, spanning the start and end points.
-	 */
-	box3_t abs_bounds;
+  /**
+   * @brief The absolute bounds of the trace, spanning the start and end points.
+   */
+  box3_t abs_bounds;
 
-	/**
-	 * @brief The contents mask to collide with, as provided by the user.
-	 */
-	int32_t contents;
+  /**
+   * @brief The contents mask to collide with, as provided by the user.
+   */
+  int32_t contents;
 
-	/**
-	 * @brief The brush cache, to avoid multiple tests against the same brush.
-	 */
-	int32_t brush_cache[128];
+  /**
+   * @brief The brush cache, to avoid multiple tests against the same brush.
+   */
+  int32_t brush_cache[128];
 
-	/**
-	 * @brief The trace result.
-	 */
-	cm_trace_t trace;
+  /**
+   * @brief The trace result.
+   */
+  cm_trace_t trace;
 
-	/**
-	 * @brief The trace fraction not taking any epsilon nudging into account.
-	 */
-	float unnudged_fraction;
+  /**
+   * @brief The trace fraction not taking any epsilon nudging into account.
+   */
+  float unnudged_fraction;
 } cm_trace_data_t;
 
 /**
  * @brief
  */
 static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
-	const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
+  const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
 
-	const bool skip = (data->brush_cache[hash] == brush_num);
+  const bool skip = (data->brush_cache[hash] == brush_num);
 
-	data->brush_cache[hash] = brush_num;
+  data->brush_cache[hash] = brush_num;
 
-	return skip;
+  return skip;
 }
 
 /**
@@ -79,90 +79,90 @@ static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush
  */
 static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
-	if (!brush->num_brush_sides) {
-		return;
-	}
+  if (!brush->num_brush_sides) {
+    return;
+  }
 
-	if (!Box3_Intersects(data->abs_bounds, brush->bounds)) {
-		return;
-	}
+  if (!Box3_Intersects(data->abs_bounds, brush->bounds)) {
+    return;
+  }
 
-	float enter_fraction = -1.f;
-	float leave_fraction = 1.f;
-	float nudged_enter_fraction = -1.f;
+  float enter_fraction = -1.f;
+  float leave_fraction = 1.f;
+  float nudged_enter_fraction = -1.f;
 
-	cm_bsp_plane_t plane = { };
-	const cm_bsp_brush_side_t *side = NULL;
+  cm_bsp_plane_t plane = { };
+  const cm_bsp_brush_side_t *side = NULL;
 
-	bool start_outside = false, end_outside = false;
+  bool start_outside = false, end_outside = false;
 
-	const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
-	for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
+  const cm_bsp_brush_side_t *s = brush->brush_sides + brush->num_brush_sides - 1;
+  for (int32_t i = brush->num_brush_sides - 1; i >= 0; i--, s--) {
 
-		cm_bsp_plane_t *p = s->plane;
+    cm_bsp_plane_t *p = s->plane;
 
-		const float dist = p->dist;
+    const float dist = p->dist;
 
-		const float d1 = Vec3_Dot(data->start, p->normal) - dist;
-		const float d2 = Vec3_Dot(data->end, p->normal) - dist;
+    const float d1 = Vec3_Dot(data->start, p->normal) - dist;
+    const float d2 = Vec3_Dot(data->end, p->normal) - dist;
 
-		if (d1 > 0.f) {
-			start_outside = true;
-		}
-		if (d2 > 0.f) {
-			end_outside = true;
-		}
+    if (d1 > 0.f) {
+      start_outside = true;
+    }
+    if (d2 > 0.f) {
+      end_outside = true;
+    }
 
-		// if completely in front of plane, the trace does not intersect with the brush
-		if (d1 > 0.f && d2 >= d1) {
-			return;
-		}
+    // if completely in front of plane, the trace does not intersect with the brush
+    if (d1 > 0.f && d2 >= d1) {
+      return;
+    }
 
-		// if completely behind plane, the trace does not intersect with this side
-		if (d1 <= 0.f && d2 <= d1) {
-			continue;
-		}
+    // if completely behind plane, the trace does not intersect with this side
+    if (d1 <= 0.f && d2 <= d1) {
+      continue;
+    }
 
-		// the trace intersects this side
-		const float d2d1_dist = (d1 - d2);
+    // the trace intersects this side
+    const float d2d1_dist = (d1 - d2);
 
-		if (d1 > d2) { // enter
-			const float f = d1 / d2d1_dist;
-			if (f > enter_fraction) {
-				enter_fraction = f;
-				plane = *p;
-				side = s;
-				nudged_enter_fraction = (d1 - TRACE_EPSILON) / d2d1_dist;
-			}
-		} else { // leave
-			const float f = d1 / d2d1_dist;
-			if (f < leave_fraction) {
-				leave_fraction = f;
-			}
-		}
-	}
+    if (d1 > d2) { // enter
+      const float f = d1 / d2d1_dist;
+      if (f > enter_fraction) {
+        enter_fraction = f;
+        plane = *p;
+        side = s;
+        nudged_enter_fraction = (d1 - TRACE_EPSILON) / d2d1_dist;
+      }
+    } else { // leave
+      const float f = d1 / d2d1_dist;
+      if (f < leave_fraction) {
+        leave_fraction = f;
+      }
+    }
+  }
 
-	// some sort of collision has occurred
+  // some sort of collision has occurred
 
-	if (!start_outside) { // original point was inside brush
-		data->trace.start_solid = true;
-		if (!end_outside) {
-			data->trace.all_solid = true;
-			data->trace.contents = brush->contents;
-			data->trace.fraction = 0.f;
-			data->unnudged_fraction = 0.f;
-		}
-	} else if (enter_fraction < leave_fraction) { // pierced brush
-		if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
-			data->unnudged_fraction = enter_fraction;
-			data->trace.fraction = nudged_enter_fraction;
-			data->trace.brush_side = side;
-			data->trace.plane = plane;
-			data->trace.contents = side->contents;
-			data->trace.surface = side->surface;
-			data->trace.material = side->material;
-		}
-	}
+  if (!start_outside) { // original point was inside brush
+    data->trace.start_solid = true;
+    if (!end_outside) {
+      data->trace.all_solid = true;
+      data->trace.contents = brush->contents;
+      data->trace.fraction = 0.f;
+      data->unnudged_fraction = 0.f;
+    }
+  } else if (enter_fraction < leave_fraction) { // pierced brush
+    if (enter_fraction > -1.f && enter_fraction < data->unnudged_fraction && nudged_enter_fraction < data->trace.fraction) {
+      data->unnudged_fraction = enter_fraction;
+      data->trace.fraction = nudged_enter_fraction;
+      data->trace.brush_side = side;
+      data->trace.plane = plane;
+      data->trace.contents = side->contents;
+      data->trace.surface = side->surface;
+      data->trace.material = side->material;
+    }
+  }
 }
 
 /**
@@ -170,133 +170,133 @@ static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_
  */
 static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
-	const cm_bsp_leaf_t *leaf = &Cm_Bsp()->leafs[leaf_num];
+  const cm_bsp_leaf_t *leaf = &Cm_Bsp()->leafs[leaf_num];
 
-	if (!(leaf->contents & data->contents)) {
-		return;
-	}
+  if (!(leaf->contents & data->contents)) {
+    return;
+  }
 
-	// trace line against all brushes in the leaf
-	for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
-		const int32_t brush_num = Cm_Bsp()->leaf_brushes[leaf->first_leaf_brush + i];
+  // trace line against all brushes in the leaf
+  for (int32_t i = 0; i < leaf->num_leaf_brushes; i++) {
+    const int32_t brush_num = Cm_Bsp()->leaf_brushes[leaf->first_leaf_brush + i];
 
-		if (Light_BrushAlreadyTested(data, brush_num)) {
-			continue; // already checked this brush in another leaf
-		}
+    if (Light_BrushAlreadyTested(data, brush_num)) {
+      continue; // already checked this brush in another leaf
+    }
 
-		const cm_bsp_brush_t *b = &Cm_Bsp()->brushes[brush_num];
+    const cm_bsp_brush_t *b = &Cm_Bsp()->brushes[brush_num];
 
-		if (!(b->contents & data->contents)) {
-			continue;
-		}
+    if (!(b->contents & data->contents)) {
+      continue;
+    }
 
-		Light_TraceToBrush(data, b);
+    Light_TraceToBrush(data, b);
 
-		if (data->trace.all_solid) {
-			return;
-		}
-	}
+    if (data->trace.all_solid) {
+      return;
+    }
+  }
 }
 
 /**
  * @brief
  */
 static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
-									 const vec3_t p1, const vec3_t p2) {
+                                     const vec3_t p1, const vec3_t p2) {
 
-next:;
-	// find the point distances to the separating plane
-	// and the offset for the size of the box
-	const cm_bsp_node_t *node = Cm_Bsp()->nodes + num;
-	const cm_bsp_plane_t plane = *node->plane;
+  next:;
+  // find the point distances to the separating plane
+  // and the offset for the size of the box
+  const cm_bsp_node_t *node = Cm_Bsp()->nodes + num;
+  const cm_bsp_plane_t plane = *node->plane;
 
-	float d1, d2;
-	if (AXIAL(&plane)) {
-		d1 = p1.xyz[plane.type] - plane.dist;
-		d2 = p2.xyz[plane.type] - plane.dist;
-	} else {
-		d1 = Vec3_Dot(plane.normal, p1) - plane.dist;
-		d2 = Vec3_Dot(plane.normal, p2) - plane.dist;
-	}
+  float d1, d2;
+  if (AXIAL(&plane)) {
+    d1 = p1.xyz[plane.type] - plane.dist;
+    d2 = p2.xyz[plane.type] - plane.dist;
+  } else {
+    d1 = Vec3_Dot(plane.normal, p1) - plane.dist;
+    d2 = Vec3_Dot(plane.normal, p2) - plane.dist;
+  }
 
-	// see which sides we need to consider
-	if (d1 >= 0 && d2 >= 0) {
-		num = node->children[0];
+  // see which sides we need to consider
+  if (d1 >= 0 && d2 >= 0) {
+    num = node->children[0];
 
-		// if < 0, we are in a leaf node
-		if (num < 0) {
-			Light_TraceToLeaf(data, -1 - num);
-			return;
-		}
+    // if < 0, we are in a leaf node
+    if (num < 0) {
+      Light_TraceToLeaf(data, -1 - num);
+      return;
+    }
 
-		goto next;
-	}
-	if (d1 < -0 && d2 < -0) {
-		num = node->children[1];
+    goto next;
+  }
+  if (d1 < -0 && d2 < -0) {
+    num = node->children[1];
 
-		// if < 0, we are in a leaf node
-		if (num < 0) {
-			Light_TraceToLeaf(data, -1 - num);
-			return;
-		}
+    // if < 0, we are in a leaf node
+    if (num < 0) {
+      Light_TraceToLeaf(data, -1 - num);
+      return;
+    }
 
-		goto next;
-	}
+    goto next;
+  }
 
-	int32_t side;
-	float frac1, frac2;
+  int32_t side;
+  float frac1, frac2;
 
-	if (d1 < d2) {
-		const float idist = 1.f / (d1 - d2);
-		side = 1;
-		frac2 = d1 * idist;
-		frac1 = d1 * idist;
-	} else if (d1 > d2) {
-		const float idist = 1.f / (d1 - d2);
-		side = 0;
-		frac2 = d1 * idist;
-		frac1 = d1 * idist;
-	} else {
-		side = 0;
-		frac1 = 1.f;
-		frac2 = 0.f;
-	}
+  if (d1 < d2) {
+    const float idist = 1.f / (d1 - d2);
+    side = 1;
+    frac2 = d1 * idist;
+    frac1 = d1 * idist;
+  } else if (d1 > d2) {
+    const float idist = 1.f / (d1 - d2);
+    side = 0;
+    frac2 = d1 * idist;
+    frac1 = d1 * idist;
+  } else {
+    side = 0;
+    frac1 = 1.f;
+    frac2 = 0.f;
+  }
 
-	// move up to the node if we can potentially hit it
-	if (p1f < data->unnudged_fraction) {
-		frac1 = Clampf(frac1, 0.f, 1.f);
+  // move up to the node if we can potentially hit it
+  if (p1f < data->unnudged_fraction) {
+    frac1 = Clampf01(frac1);
 
-		const float midf1 = p1f + (p2f - p1f) * frac1;
+    const float midf1 = p1f + (p2f - p1f) * frac1;
 
-		const vec3_t mid = Vec3_Mix(p1, p2, frac1);
-		
-		num = node->children[side];
+    const vec3_t mid = Vec3_Mix(p1, p2, frac1);
 
-		// if < 0, we are in a leaf node
-		if (num < 0) {
-			Light_TraceToLeaf(data, -1 - num);
-		} else {
-			Light_TraceToNode(data, num, p1f, midf1, p1, mid);
-		}
-	}
+    num = node->children[side];
 
-	// go past the node
-	frac2 = Clampf(frac2, 0.f, 1.f);
+    // if < 0, we are in a leaf node
+    if (num < 0) {
+      Light_TraceToLeaf(data, -1 - num);
+    } else {
+      Light_TraceToNode(data, num, p1f, midf1, p1, mid);
+    }
+  }
 
-	const float midf2 = p1f + (p2f - p1f) * frac2;
+  // go past the node
+  frac2 = Clampf01(frac2);
 
-	if (midf2 < data->unnudged_fraction) {
-		const vec3_t mid = Vec3_Mix(p1, p2, frac2);
-		
-		num = node->children[side ^ 1];
+  const float midf2 = p1f + (p2f - p1f) * frac2;
 
-		// if < 0, we are in a leaf node
-		if (num < 0) {
-			Light_TraceToLeaf(data, -1 - num);
-		} else {
-			Light_TraceToNode(data, num, midf2, p2f, mid, p2);
-		}
-	}
+  if (midf2 < data->unnudged_fraction) {
+    const vec3_t mid = Vec3_Mix(p1, p2, frac2);
+
+    num = node->children[side ^ 1];
+
+    // if < 0, we are in a leaf node
+    if (num < 0) {
+      Light_TraceToLeaf(data, -1 - num);
+    } else {
+      Light_TraceToNode(data, num, midf2, p2f, mid, p2);
+    }
+  }
 }
 
 /**
@@ -317,33 +317,33 @@ next:;
  */
 static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_node, int32_t contents) {
 
-	cm_trace_data_t data;
+  cm_trace_data_t data;
 
-	data.trace = (cm_trace_t) {
-		.fraction = 1.f
-	};
-	
-	data.start = start;
-	data.end = end;
-	data.abs_bounds = Box3_FromPoints((const vec3_t []) { start, end }, 2);
-	data.contents = contents;
-	data.unnudged_fraction = 1.f + TRACE_EPSILON;
+  data.trace = (cm_trace_t) {
+    .fraction = 1.f
+  };
 
-	memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
+  data.start = start;
+  data.end = end;
+  data.abs_bounds = Box3_FromPoints((const vec3_t []) { start, end }, 2);
+  data.contents = contents;
+  data.unnudged_fraction = 1.f + TRACE_EPSILON;
 
-	Light_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
+  memset(data.brush_cache, 0xff, sizeof(data.brush_cache));
 
-	data.trace.fraction = Maxf(0.f, data.trace.fraction);
+  Light_TraceToNode(&data, head_node, 0.f, 1.f, data.start, data.end);
 
-	if (data.trace.fraction == 0.f) {
-		data.trace.end = data.start;
-	} else if (data.trace.fraction == 1.f) {
-		data.trace.end = data.end;
-	} else {
-		data.trace.end = Vec3_Mix(data.start, data.end, data.trace.fraction);
-	}
+  data.trace.fraction = Maxf(0.f, data.trace.fraction);
 
-	return data.trace;
+  if (data.trace.fraction == 0.f) {
+    data.trace.end = data.start;
+  } else if (data.trace.fraction == 1.f) {
+    data.trace.end = data.end;
+  } else {
+    data.trace.end = Vec3_Mix(data.start, data.end, data.trace.fraction);
+  }
+
+  return data.trace;
 }
 
 /**
@@ -351,43 +351,39 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
  */
 int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
-	int32_t contents = Cm_PointContents(p, 0, Mat4_Identity());
+  int32_t contents = Cm_PointContents(p, 0, Mat4_Identity());
 
-	if (head_node) {
-		contents |= Cm_PointContents(p, head_node, Mat4_Identity());
-	}
+  if (head_node) {
+    contents |= Cm_PointContents(p, head_node, Mat4_Identity());
+  }
 
-	return contents;
+  return contents;
 }
 
 /**
  * @brief Lighting collision detection.
- * @details Lighting traces are clipped to the world, and to the entity for the given lightmap.
- * This way, inline models will self-shadow, but will not cast shadows on each other or on the
- * world.
- * @param lm The lightmap.
  * @param start The starting point.
  * @param end The desired end point.
  * @param mask The contents mask to clip to.
  * @return The trace.
  */
 cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, int32_t mask) {
-	cm_trace_t trace = Light_Trace_(start, end, 0, mask);
-	if (trace.start_solid) {
-		trace.fraction = 0.f;
-	}
+  cm_trace_t trace = Light_Trace_(start, end, 0, mask);
+  if (trace.start_solid) {
+    trace.fraction = 0.f;
+  }
 
-	if (head_node) {
-		cm_trace_t tr = Light_Trace_(start, end, head_node, mask);
-		if (tr.start_solid) {
-			tr.fraction = 0.f;
-		}
-		if (tr.fraction < trace.fraction) {
-			trace = tr;
-		}
-	}
+  if (head_node) {
+    cm_trace_t tr = Light_Trace_(start, end, head_node, mask);
+    if (tr.start_solid) {
+      tr.fraction = 0.f;
+    }
+    if (tr.fraction < trace.fraction) {
+      trace = tr;
+    }
+  }
 
-	return trace;
+  return trace;
 }
 
 /**
@@ -395,76 +391,49 @@ cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, 
  */
 static void LightWorld(void) {
 
-	if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
-		Com_Error(ERROR_FATAL, "Empty map\n");
-	}
+  LoadMaterials();
 
-	// load the bsp for tracing
-	bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
-	for (int32_t i = 1; i < Cm_NumModels(); i++) {
-		bsp_models[i] = Cm_Model(va("*%d", i));
-	}
+  // build voxel
+  const size_t num_voxel = BuildVoxels();
 
-	// build lightmaps
-	BuildLightmaps();
+  // build lights out of entities and brush sides
+  BuildLights();
 
-	// build lightgrid
-	const size_t num_lightgrid = BuildLightgrid();
+  // calculate direct lighting
+  Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
-	// build lights out of entities and emissive faces
-	BuildDirectLights();
+  // feather lights into neighboring voxels to smooth boundaries
+  FeatherLights();
 
-	// calculate direct lighting
-	Work("Direct lightmaps", DirectLightmap, bsp_file.num_faces);
-	Work("Direct lightgrid", DirectLightgrid, (int32_t) num_lightgrid);
+  // calculate exposure from sky visibility
+  Work("Exposure", ExposureVoxel, (int32_t) num_voxel);
 
-	// indirect lighting
-	// build lights out of lightmapped faces
-	BuildIndirectLights();
+  // calculate caustics from liquid contents
+  Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
 
-	// calculate indirect lighting
-	Work("Indirect lightmaps", IndirectLightmap, bsp_file.num_faces);
-	Work("Indirect lightgrid", IndirectLightgrid, (int32_t) num_lightgrid);
+  // build fog volumes out of brush entities
+  BuildFog();
 
-	// caustic effects
-	Work("Caustics lightmap", CausticsLightmap, bsp_file.num_faces);
-	Work("Caustics lightgrid", CausticsLightgrid, (int32_t) num_lightgrid);
+  // bake fog into the voxel
+  Work("Fog", FogVoxel, (int32_t) num_voxel);
 
-	// save the light sources to the BSP
-	EmitLights();
+  // free the fog volumes
+  FreeFog();
 
-	// free the light sources
-	FreeLights();
+  // emit light sources to the bsp
+  EmitLights();
 
-	// build fog volumes out of brush entities
-	BuildFog();
+  // emit voxels
+  EmitVoxels();
 
-	// bake fog into the lightgrid
-	Work("Fog volumes", FogLightgrid, (int32_t) num_lightgrid);
+  // free the voxels
+  FreeVoxels();
 
-	// free the fog volumes
-	FreeFog();
+  // free the light sources
+  FreeLights();
 
-	// finalize it and write it to per-face textures
-	Work("Finalizing lightmaps", FinalizeLightmap, bsp_file.num_faces);
-
-	// generate atlased lightmaps
-	EmitLightmap();
-
-	// and vertex lightmap texcoords
-	EmitLightmapTexcoords();
-
-	// free the lightmaps
-	Mem_FreeTag(MEM_TAG_LIGHTMAP);
-
-	// finalize the lightgrid
-	Work("Finalizing lightgrid", FinalizeLightgrid, (int32_t) num_lightgrid);
-
-	// write it to the bsp
-	EmitLightgrid();
-
-	// free the lightgrid
-	Mem_FreeTag(MEM_TAG_LIGHTGRID);
+  // free the materials
+  FreeMaterials();
 }
 
 /**
@@ -472,29 +441,31 @@ static void LightWorld(void) {
  */
 int32_t LIGHT_Main(void) {
 
-	Com_Print("\n------------------------------------------\n");
-	Com_Print("\nLighting %s\n\n", bsp_name);
+  Com_Print("\n------------------------------------------\n");
+  Com_Print("\nLighting %s\n\n", bsp_name);
 
-	const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
-	LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+  LoadBSPFile(bsp_name, BSP_LUMPS_ALL);
+  if (bsp_file.num_nodes == 0 || bsp_file.num_faces == 0) {
+    Com_Error(ERROR_FATAL, "Empty map\n");
+  }
 
-	LoadMaterials(va("maps/%s.mat", map_base));
+  bsp_models[0] = Cm_LoadBspModel(bsp_name, NULL);
+  for (int32_t i = 1; i < Cm_NumModels(); i++) {
+    bsp_models[i] = Cm_Model(va("*%d", i));
+  }
 
-	LightWorld();
+  LightWorld();
 
-	FreeMaterials();
+  WriteBSPFile(va("maps/%s.bsp", map_base));
 
-	WriteBSPFile(va("maps/%s.bsp", map_base));
+  for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
+    Mem_FreeTag(tag);
+  }
 
-	FreeWindings();
+  const uint32_t end = (uint32_t) SDL_GetTicks();
+  Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
 
-	for (int32_t tag = MEM_TAG_QLIGHT; tag < MEM_TAG_QMAT; tag++) {
-		Mem_FreeTag(tag);
-	}
-
-	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nLit %s in %d ms\n", bsp_name, (end - start));
-
-	return 0;
+  return 0;
 }

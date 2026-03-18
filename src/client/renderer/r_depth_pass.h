@@ -29,12 +29,10 @@
  * @brief The depth program.
  */
 typedef struct {
-	GLuint name;
-	GLuint uniforms_block;
+  GLuint name;
+  GLuint uniforms_block;
 
-	GLint in_position;
-
-	GLint model;
+  GLint model;
 } r_depth_pass_program_t;
 
 extern r_depth_pass_program_t r_depth_pass_program;

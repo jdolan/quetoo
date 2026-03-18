@@ -24,24 +24,11 @@ layout (location = 1) in vec3 in_normal;
 layout (location = 2) in vec3 in_tangent;
 layout (location = 3) in vec3 in_bitangent;
 layout (location = 4) in vec2 in_diffusemap;
-layout (location = 5) in vec2 in_lightmap;
-layout (location = 6) in vec4 in_color;
-
-uniform int model_type;
+layout (location = 5) in vec4 in_color;
 
 uniform mat4 model;
 
-out vertex_data {
-	vec3 model;
-	vec3 position;
-	vec3 normal;
-	vec3 tangent;
-	vec3 bitangent;
-	vec2 diffusemap;
-	vec2 lightmap;
-	vec3 lightgrid;
-	vec4 color;
-} vertex;
+out common_vertex_t vertex;
 
 invariant gl_Position;
 
@@ -50,28 +37,37 @@ invariant gl_Position;
  */
 void main(void) {
 
-	mat4 view_model = view * model;
+  mat4 view_model = view * model;
 
-	vec4 position = vec4(in_position, 1.0);
-	vec4 normal = vec4(in_normal, 0.0);
-	vec4 tangent = vec4(in_tangent, 0.0);
-	vec4 bitangent = vec4(in_bitangent, 0.0);
+  vec4 position = vec4(in_position, 1.0);
+  vec4 normal = vec4(in_normal, 0.0);
+  vec4 tangent = vec4(in_tangent, 0.0);
+  vec4 bitangent = vec4(in_bitangent, 0.0);
 
-	stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
+  stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
-	vertex.model = vec3(model * position);
-	vertex.position = vec3(view_model * position);
-	vertex.normal = normalize(vec3(view_model * normal));
-	vertex.tangent = normalize(vec3(view_model * tangent));
-	vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.model_position = vec3(model * position);
+  vertex.model_normal = vec3(model * normal);
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
+  vertex.tangent = normalize(vec3(view_model * tangent));
+  vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.diffusemap = in_diffusemap;
+  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.color = in_color;
 
-	vertex.diffusemap = in_diffusemap;
-	vertex.lightmap = in_lightmap;
-	vertex.lightgrid = lightgrid_uvw(vec3(model * position));
-	vertex.color = in_color;
+  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
+  vertex.inverse_tbn = inverse(vertex.tbn);
 
-	gl_Position = projection3D * view_model * vec4(in_position, 1.0);
+  gl_Position = projection3D * view_model * position;
 
-	stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+  stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+
+  vertex.fog = vertex_fog(vertex);
+  vertex.lighting = vertex_lighting(vertex);
+  
+  // Initialize unused fields for mesh shaders
+  vertex.smooth_normal = vertex.normal;
+  vertex.ambient = vec3(0.0);
+  vertex.caustics = 0.0;
 }
-

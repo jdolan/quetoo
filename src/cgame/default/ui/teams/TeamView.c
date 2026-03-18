@@ -33,33 +33,33 @@
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	TeamView *this = (TeamView *) self;
+  TeamView *this = (TeamView *) self;
 
-	if (this->team) {
-		const color32_t c = Color_Color32(this->team->color);
+  if (this->team) {
+    const color32_t c = Color_Color32(this->team->color);
 
-		$(this->name->text, setText, this->team->name);
-		$(this->name->text->view.style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
-	} else {
-		$(this->name->text, setText, "All players");
-		$(this->name->text->view.style, removeAttribute, "color");
-	}
+    $(this->name->text, setText, this->team->name);
+    $(this->name->text->view.style, addColorAttribute, "color", &MakeColor(c.r, c.g, c.b, c.a));
+  } else {
+    $(this->name->text, setText, "All players");
+    $(this->name->text->view.style, removeAttribute, "color");
+  }
 
-	$((View *) this->players, removeAllSubviews);
+  $((View *) this->players, removeAllSubviews);
 
-	const cg_client_info_t *client = cg_state.clients;
-	for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
+  const cg_client_info_t *client = cg_state.clients;
+  for (int32_t i = 0; i < MAX_CLIENTS; i++, client++) {
 
-		if (*client->info && client->team == this->team) {
-			TeamPlayerView *player = $(alloc(TeamPlayerView), initWithFrame, NULL);
-			$(player, setPlayer, client);
+    if (*client->info && client->team == this->team) {
+      TeamPlayerView *player = $(alloc(TeamPlayerView), initWithFrame, NULL);
+      $(player, setPlayer, client);
 
-			$((View *) this->players, addSubview, (View *) player);
-			release(player);
-		}
-	}
+      $((View *) this->players, addSubview, (View *) player);
+      release(player);
+    }
+  }
 }
 
 #pragma mark - TeamView
@@ -70,21 +70,21 @@ static void updateBindings(View *self) {
  */
 static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
 
-	self = (TeamView *) super(View, self, initWithFrame, frame);
-	if (self) {
+  self = (TeamView *) super(View, self, initWithFrame, frame);
+  if (self) {
 
-		Outlet outlets[] = MakeOutlets(
-			MakeOutlet("name", &self->name),
-			MakeOutlet("players", &self->players)
-		);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("name", &self->name),
+      MakeOutlet("players", &self->players)
+    );
 
-		View *this = (View *) self;
+    View *this = (View *) self;
 
-		$(this, awakeWithResourceName, "ui/teams/TeamView.json");
-		$(this, resolve, outlets);
-	}
+    $(this, awakeWithResourceName, "ui/teams/TeamView.json");
+    $(this, resolve, outlets);
+  }
 
-	return self;
+  return self;
 }
 
 /**
@@ -93,9 +93,9 @@ static TeamView *initWithFrame(TeamView *self, const SDL_Rect *frame) {
  */
 static void setTeam(TeamView *self, const cg_team_info_t *team) {
 
-	self->team = team;
+  self->team = team;
 
-	$((View *) self, updateBindings);
+  $((View *) self, updateBindings);
 }
 
 #pragma mark - Class lifecycle
@@ -105,10 +105,10 @@ static void setTeam(TeamView *self, const cg_team_info_t *team) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((TeamViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((TeamViewInterface *) clazz->interface)->setTeam = setTeam;
+  ((TeamViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((TeamViewInterface *) clazz->interface)->setTeam = setTeam;
 }
 
 /**
@@ -116,21 +116,21 @@ static void initialize(Class *clazz) {
  * @memberof TeamView
  */
 Class *_TeamView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "TeamView",
-			.superclass = _View(),
-			.instanceSize = sizeof(TeamView),
-			.interfaceOffset = offsetof(TeamView, interface),
-			.interfaceSize = sizeof(TeamViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "TeamView",
+      .superclass = _View(),
+      .instanceSize = sizeof(TeamView),
+      .interfaceOffset = offsetof(TeamView, interface),
+      .interfaceSize = sizeof(TeamViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

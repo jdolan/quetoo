@@ -26,19 +26,19 @@
  */
 void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 
-	for (entity_key_value_t *e = ent->values; e; e = e->next) {
-		if (!g_strcmp0(e->key, key)) {
-			g_strlcpy(e->value, value, sizeof(e->value));
-			return;
-		}
-	}
+  for (entity_key_value_t *e = ent->values; e; e = e->next) {
+    if (!g_strcmp0(e->key, key)) {
+      g_strlcpy(e->value, value, sizeof(e->value));
+      return;
+    }
+  }
 
-	entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), MEM_TAG_EPAIR);
-	e->next = ent->values;
-	ent->values = e;
+  entity_key_value_t *e = Mem_TagMalloc(sizeof(*e), (mem_tag_t) MEM_TAG_EPAIR);
+  e->next = ent->values;
+  ent->values = e;
 
-	g_strlcpy(e->key, key, sizeof(e->key));
-	g_strlcpy(e->value, value, sizeof(e->value));
+  g_strlcpy(e->key, key, sizeof(e->key));
+  g_strlcpy(e->value, value, sizeof(e->value));
 }
 
 /**
@@ -46,13 +46,13 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
  */
 const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 
-	for (const entity_key_value_t *e = ent->values; e; e = e->next) {
-		if (!g_strcmp0(e->key, key)) {
-			return e->value;
-		}
-	}
+  for (const entity_key_value_t *e = ent->values; e; e = e->next) {
+    if (!g_strcmp0(e->key, key)) {
+      return e->value;
+    }
+  }
 
-	return def;
+  return def;
 }
 
 /**
@@ -60,13 +60,13 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
  */
 vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
 
-	const char *value = ValueForKey(ent, key, NULL);
-	if (value) {
-		vec3_t out;
-		if (Parse_QuickPrimitive(value, PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &out, 3) == 3) {
-			return out;
-		}
-	}
+  const char *value = ValueForKey(ent, key, NULL);
+  if (value) {
+    vec3_t out;
+    if (Parse_QuickPrimitive(value, PARSER_NO_COMMENTS, PARSE_DEFAULT, PARSE_FLOAT, &out, 3) == 3) {
+      return out;
+    }
+  }
 
-	return def;
+  return def;
 }

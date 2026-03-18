@@ -32,16 +32,16 @@
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	MainView *this = (MainView *) self;
+  MainView *this = (MainView *) self;
 
-	const bool isActive = *cgi.state == CL_ACTIVE;
+  const bool isActive = *cgi.state == CL_ACTIVE;
 
-	this->background->view.hidden = isActive;
-	this->logo->view.hidden = isActive;
-	this->version->view.hidden = isActive;
-	this->secondaryMenu->view.hidden = !isActive;
+  this->background->view.hidden = isActive;
+  this->logo->view.hidden = isActive;
+  this->version->view.hidden = isActive;
+  this->secondaryMenu->view.hidden = !isActive;
 }
 
 #pragma mark - MainView
@@ -52,33 +52,33 @@ static void updateBindings(View *self) {
  */
 static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
 
-	self = (MainView *) super(View, self, initWithFrame, frame);
-	if (self) {
+  self = (MainView *) super(View, self, initWithFrame, frame);
+  if (self) {
 
-		Outlet outlets[] = MakeOutlets(
-			MakeOutlet("background", &self->background),
-			MakeOutlet("logo", &self->logo),
-			MakeOutlet("version", &self->version),
-			MakeOutlet("contentView", &self->contentView),
-			MakeOutlet("primaryMenu", &self->primaryMenu),
-			MakeOutlet("secondaryMenu", &self->secondaryMenu)
-		);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("background", &self->background),
+      MakeOutlet("logo", &self->logo),
+      MakeOutlet("version", &self->version),
+      MakeOutlet("contentView", &self->contentView),
+      MakeOutlet("primaryMenu", &self->primaryMenu),
+      MakeOutlet("secondaryMenu", &self->secondaryMenu)
+    );
 
-		View *this = (View *) self;
+    View *this = (View *) self;
 
-		$(this, awakeWithResourceName, "ui/main/MainView.json");
-		$(this, resolve, outlets);
+    $(this, awakeWithResourceName, "ui/main/MainView.json");
+    $(this, resolve, outlets);
 
-		this->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/MainView.css");
-		assert(this->stylesheet);
-		
-		$(self->background, setImageWithResourceName, va("ui/backgrounds/%u.tga", RandomRangeu(0, 6)));
-		$(self->logo, setImageWithResourceName, "ui/logo.tga");
+    this->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/MainView.css");
+    assert(this->stylesheet);
+    
+    $(self->background, setImageWithResourceName, va("ui/backgrounds/%u.tga", RandomRangeu(0, 6)));
+    $(self->logo, setImageWithResourceName, "ui/logo.tga");
 
-		$(self->version->text, setText, va("Quetoo %s", cgi.GetCvarString("version")));
-	}
+    $(self->version->text, setText, va("Quetoo %s", cgi.GetCvarString("version")));
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -88,9 +88,9 @@ static MainView *initWithFrame(MainView *self, const SDL_Rect *frame) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((MainViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((MainViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
 }
 
 /**
@@ -98,21 +98,21 @@ static void initialize(Class *clazz) {
  * @memberof MainView
  */
 Class *_MainView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "MainView",
-			.superclass = _View(),
-			.instanceSize = sizeof(MainView),
-			.interfaceOffset = offsetof(MainView, interface),
-			.interfaceSize = sizeof(MainViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "MainView",
+      .superclass = _View(),
+      .instanceSize = sizeof(MainView),
+      .interfaceOffset = offsetof(MainView, interface),
+      .interfaceSize = sizeof(MainViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

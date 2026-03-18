@@ -1,0 +1,597 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#include "ui_local.h"
+#include "client.h"
+
+extern cl_client_t cl;
+extern cl_static_t cls;
+
+static cvar_t *editor_grid_size;
+
+#include "EntityViewController.h"
+#include "EntityView.h"
+
+#define _Class _EntityViewController
+
+#pragma mark - Utilities
+
+/**
+ * @brief Sets the given entity's origin to where the client is looking.
+ */
+static void setEntityOriginFromClientView(cm_entity_t *entity) {
+
+  vec3_t origin = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
+
+  origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cl_view.forward));
+  origin = Vec3_Quantize(origin, editor_grid_size->value);
+
+  if (Cm_PointLeafnum(origin, 0) == -1) {
+    origin = Vec3_Fmaf(cl_view.origin, 256.f, cl_view.forward);
+    origin = Vec3_Quantize(origin, editor_grid_size->value);
+  }
+
+  Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
+}
+
+#pragma mark - Delegates
+
+/**
+ * @brief EntityViewDelegate.
+ */
+static void didEditEntity(EntityView *view, cm_entity_t *def) {
+
+  EntityViewController *this = view->delegate.self;
+
+  if (view == this->add) {
+
+    if (!strlen(def->key) || !strlen(def->string)) {
+      return;
+    }
+
+    Cm_EntitySetKeyValue(this->entity.def, def->key, ENTITY_STRING, def->string);
+
+    $(this->add->key, setAttributedText, NULL);
+    $(this->add->value, setAttributedText, NULL);
+
+    this->shouldUpdateEntity = false;
+  } else {
+    this->shouldUpdateEntity = strlen(def->key) > 0;
+  }
+
+  Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
+}
+
+/**
+ * @brief EntityViewDelegate.
+ */
+static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
+
+  EntityViewController *this = view->delegate.self;
+
+  if (view == this->teamAdd) {
+
+    if (!strlen(def->key) || !strlen(def->string)) {
+      return;
+    }
+
+    Cm_EntitySetKeyValue(this->teamEntity.def, def->key, ENTITY_STRING, def->string);
+
+    $(this->teamAdd->key, setAttributedText, NULL);
+    $(this->teamAdd->value, setAttributedText, NULL);
+
+    this->shouldUpdateEntity = false;
+  } else {
+    this->shouldUpdateEntity = strlen(def->key) > 0;
+  }
+
+  Cl_WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  Mem_Free(this->created);
+
+  super(Object, self, dealloc);
+}
+
+#pragma mark - ViewController
+
+/**
+ * @see ViewController::loadView(ViewController *)
+ */
+static void loadView(ViewController *self) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("pairs", &this->pairs),
+    MakeOutlet("add", &this->add),
+    MakeOutlet("teamPairs", &this->teamPairs),
+    MakeOutlet("teamAdd", &this->teamAdd)
+  );
+
+  View *view = $$(View, viewWithResourceName, "ui/editor/EntityViewController.json", outlets);
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/editor/EntityViewController.css");
+
+  $(self, setView, view);
+  release(view);
+
+  this->add->delegate.self = this;
+  this->add->delegate.didEditEntity = didEditEntity;
+
+  this->teamAdd->delegate.self = this;
+  this->teamAdd->delegate.didEditEntity = didEditTeamEntity;
+}
+
+/**
+ * @brief
+ */
+static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
+
+  cm_entity_t *e = self->entity.def;
+
+  const SDL_Keycode key = event->key.key;
+  const int32_t mod = event->key.mod;
+
+  if (mod & SDL_KMOD_CLIPBOARD) {
+    switch (key) {
+      case SDLK_C:
+        if (cls.key_state.dest == KEY_UI && e) {
+          char *info = Cm_EntityToInfoString(e);
+          SDL_SetClipboardText(info);
+          Mem_Free(info);
+          Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
+        }
+        break;
+
+      case SDLK_X:
+        if (cls.key_state.dest == KEY_UI && e) {
+          char *info = Cm_EntityToInfoString(e);
+          SDL_SetClipboardText(info);
+          Mem_Free(info);
+          $(self, deleteEntity);
+          Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
+        }
+        break;
+
+      case SDLK_V:
+        if (SDL_HasClipboardText()) {
+          char *info = SDL_GetClipboardText();
+          cm_entity_t *entity = Cm_EntityFromInfoString(info);
+          if (entity) {
+            setEntityOriginFromClientView(entity);
+            Mem_Free(self->created);
+            self->created = Cm_EntityToInfoString(entity);
+            Cl_WriteEntityInfoCommand(-1, entity);
+            Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
+            Cm_FreeEntity(entity);
+          }
+          SDL_free(info);
+        }
+        break;
+    }
+  } else if (mod == SDL_KMOD_NONE) {
+
+    if (key >= SDLK_1 && key <= SDLK_8) {
+      Cvar_SetValue(editor_grid_size->name, (1 << (key - SDLK_1)));
+      Com_Print("Editor grid size set to %g\n", editor_grid_size->value);
+    }
+
+    if (cls.key_state.dest == KEY_UI && e) {
+
+      vec3_t move = Vec3_Zero();
+      vec3_t forward = Vec3_Zero();
+      vec3_t right = Vec3_Zero();
+
+      if (fabsf(cl_view.forward.x) > fabsf(cl_view.forward.y)) {
+        forward.x = SignOf(cl_view.forward.x);
+        right.y = SignOf(cl_view.right.y);
+      } else {
+        forward.y = SignOf(cl_view.forward.y);
+        right.x = SignOf(cl_view.right.x);
+      }
+
+      const float step = editor_grid_size->value;
+
+      switch (key) {
+        case SDLK_W:
+        case SDLK_KP_8:
+        case SDLK_UP:
+          move = Vec3_Scale(forward, +step);
+          break;
+
+        case SDLK_S:
+        case SDLK_KP_2:
+        case SDLK_DOWN:
+          move = Vec3_Scale(forward, -step);
+          break;
+
+        case SDLK_D:
+        case SDLK_KP_6:
+        case SDLK_RIGHT:
+          move = Vec3_Scale(right, +step);
+          break;
+
+        case SDLK_A:
+        case SDLK_KP_4:
+        case SDLK_LEFT:
+          move = Vec3_Scale(right, -step);
+          break;
+
+        case SDLK_Q:
+        case SDLK_KP_9:
+        case SDLK_PAGEUP:
+          move = Vec3_Scale(Vec3_Up(), +step);
+          break;
+
+        case SDLK_E:
+        case SDLK_KP_3:
+        case SDLK_PAGEDOWN:
+          move = Vec3_Scale(Vec3_Up(), -step);
+          break;
+      }
+
+      const char *model = Cm_EntityValue(e, "model")->string;
+      if (!Vec3_Equal(move, Vec3_Zero()) && *model != '*') {
+
+        vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
+        origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
+
+        Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
+
+        Cl_WriteEntityInfoCommand(self->entity.number, e);
+      }
+    }
+  }
+}
+
+/**
+ * @see ViewContrxoller::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  if (event->type == SDL_EVENT_KEY_DOWN
+      && (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_GAME)) {
+    respondToKeyEvent(this, event);
+  }
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+
+    switch (event->user.code) {
+      case NOTIFICATION_ENTITY_PARSED: {
+
+        const int16_t number = (int16_t) (intptr_t) event->user.data1;
+        const char *info = cl.config_strings[CS_ENTITIES + number];
+
+        const EditorEntity entity = {
+          .number = number,
+          .ent = &cl.entities[number],
+          .def = cl.entity_definitions[number]
+        };
+
+        if (number == this->entity.number) {
+          if (this->shouldUpdateEntity) {
+            $(this, updateEntity, &entity);
+          } else {
+            $(this, setEntity, &entity);
+          }
+          this->shouldUpdateEntity = false;
+        } else if (!g_strcmp0(this->created, info)) {
+          $(this, setEntity, &entity);
+        }
+
+        if (number == this->teamEntity.number) {
+          this->teamEntity.def = cl.entity_definitions[number];
+          if (this->shouldUpdateEntity && this->teamEntity.def) {
+            $(this, updateEntity, &this->entity);
+          } else {
+            $(this, setEntity, &this->entity);
+            this->shouldUpdateEntity = false;
+          }
+        }
+      }
+        break;
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+  EntityViewController *this = (EntityViewController *) self;
+
+  EditorEntity entity = {
+    .number = 0,
+    .ent = cl.entities,
+    .def = cl.entity_definitions[0]
+  };
+
+  cl_entity_t *ent = NULL;
+  float best_radius = FLT_MAX;
+
+  vec3_t start = cl_view.origin;
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+
+  while (true) {
+
+    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), ent, CONTENTS_EDITOR);
+    if (tr.fraction == 1.f) {
+      break;
+    }
+
+    start = Vec3_Add(tr.end, cl_view.forward);
+    ent = tr.ent;
+
+    EditorEntity e = {
+      .number = ent->current.number,
+      .ent = ent,
+      .def = cl.entity_definitions[ent->current.number]
+    };
+
+    const float radius = Box3_Radius(e.ent->bounds);
+    if (radius < best_radius) {
+      best_radius = radius;
+      entity = e;
+    }
+  }
+
+  $(this, setEntity, &entity);
+
+  super(ViewController, self, viewWillAppear);
+}
+
+#pragma mark - EntityViewController
+
+/**
+ * @fn void EntityViewController::createEntity(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static void createEntity(EntityViewController *self) {
+
+  cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
+  setEntityOriginFromClientView(entity);
+
+  Mem_Free(self->created);
+  self->created = Cm_EntityToInfoString(entity);
+
+  Cl_WriteEntityInfoCommand(-1, entity);
+  Cm_FreeEntity(entity);
+}
+
+/**
+ * @fn void EntityViewController::deleteEntity(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static void deleteEntity(EntityViewController *self) {
+
+  if (self->entity.number) {
+    Cl_WriteEntityInfoCommand(self->entity.number, NULL);
+    $(self, setEntity, NULL);
+  }
+}
+
+/**
+ * @fn EntityViewController *EntityViewController::init(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static EntityViewController *init(EntityViewController *self) {
+  return (EntityViewController *) super(ViewController, self, init);
+}
+
+/**
+ * @brief Updates the value TextViews of a StackView's EntityView subviews in-place,
+ * skipping any view that currently has keyboard focus.
+ */
+static void updatePairs(StackView *stackView, const EditorEntity *entity) {
+
+  Array *subviews = (Array *) ((View *) stackView)->subviews;
+
+  for (size_t i = 0; i < subviews->count; i++) {
+    EntityView *ev = $(subviews, objectAtIndex, i);
+
+    if ($((View *) ev->key, isKeyResponder) || $((View *) ev->value, isKeyResponder)) {
+      continue;
+    }
+
+    const char *evKey = ev->key->attributedText->string.chars;
+    for (const cm_entity_t *e = entity->def; e; e = e->next) {
+      if (!g_strcmp0(e->key, evKey)) {
+        $(ev, setEntity, &(EditorEntity) {
+          .number = entity->number,
+          .ent = entity->ent,
+          .def = (cm_entity_t *) e
+        });
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * @fn void EntityViewController::updateEntity(EntityViewController *, const EditorEntity *)
+ * @memberof EntityViewController
+ */
+static void updateEntity(EntityViewController *self, const EditorEntity *entity) {
+
+  if (!entity) {
+    $(self, setEntity, NULL);
+    return;
+  }
+
+  self->entity = *entity;
+
+  updatePairs(self->pairs, &self->entity);
+  updatePairs(self->teamPairs, &self->teamEntity);
+}
+
+/**
+ * @fn void EntityViewController::setEntity(EntityViewController *, const EditorEntity *)
+ * @memberof EntityViewController
+ */
+static void setEntity(EntityViewController *self, const EditorEntity *entity) {
+
+  $((View *) self->pairs, removeAllSubviews);
+  $((View *) self->teamPairs, removeAllSubviews);
+
+  if (entity) {
+
+    self->entity = *entity;
+    self->teamEntity = *entity;
+
+    for (cm_entity_t *e = self->entity.def; e; e = e->next) {
+
+      if (g_str_has_prefix(e->key, "_tb_")) {
+        continue;
+      }
+
+      EntityView *view = $(alloc(EntityView), initWithEntity, &(EditorEntity) {
+        .number = self->entity.number,
+        .ent = self->entity.ent,
+        .def = e
+      });
+
+      view->delegate.self = self;
+      view->delegate.didEditEntity = didEditEntity;
+
+      $((View *) self->pairs, addSubview, (View *) view);
+
+      release(view);
+    }
+
+    const char *classname = Cm_EntityValue(self->entity.def, "classname")->string;
+    if (!g_strcmp0(classname, "light")) {
+
+      const char *team = Cm_EntityValue(self->entity.def, "team")->nullable_string;
+      const int32_t teamMaster = Cl_FindTeamMaster(classname, team);
+      if (teamMaster != -1 && teamMaster != self->entity.number) {
+
+        self->teamEntity = (EditorEntity) {
+          .number = teamMaster,
+          .ent = &cl.entities[teamMaster],
+          .def = cl.entity_definitions[teamMaster]
+        };
+
+        for (cm_entity_t *e = self->teamEntity.def; e; e = e->next) {
+
+          if (g_str_has_prefix(e->key, "_tb_")
+              || !g_strcmp0(e->key, "classname")
+              || !g_strcmp0(e->key, "origin")
+              || !g_strcmp0(e->key, "team")
+              || !g_strcmp0(e->key, "team_master")) {
+            continue;
+          }
+
+          EntityView *view = $(alloc(EntityView), initWithEntity, &(EditorEntity) {
+            .number = self->teamEntity.number,
+            .ent = self->teamEntity.ent,
+            .def = e
+          });
+
+          view->delegate.self = self;
+          view->delegate.didEditEntity = didEditTeamEntity;
+
+          $((View *) self->teamPairs, addSubview, (View *) view);
+
+          release(view);
+        }
+      }
+    }
+
+  } else {
+    self->entity.number = -1;
+    self->entity.ent = NULL;
+    self->entity.def = NULL;
+
+    self->teamEntity.number = -1;
+    self->teamEntity.ent = NULL;
+    self->teamEntity.def = NULL;
+  }
+
+  $((View *) self->pairs, sizeToFit);
+  $((View *) self->teamPairs, sizeToFit);
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_ENTITY_SELECTED,
+    .user.data1 = (void *) (intptr_t) self->entity.number
+  });
+}
+
+#pragma mark - Class lifecycle
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+
+  ((EntityViewControllerInterface *) clazz->interface)->createEntity = createEntity;
+  ((EntityViewControllerInterface *) clazz->interface)->deleteEntity = deleteEntity;
+  ((EntityViewControllerInterface *) clazz->interface)->init = init;
+  ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
+  ((EntityViewControllerInterface *) clazz->interface)->updateEntity = updateEntity;
+
+  editor_grid_size = Cvar_Add("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+}
+
+/**
+ * @fn Class *EntityViewController::_EntityViewController(void)
+ * @memberof EntityViewController
+ */
+Class *_EntityViewController(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "EntityViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(EntityViewController),
+      .interfaceOffset = offsetof(EntityViewController, interface),
+      .interfaceSize = sizeof(EntityViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class

@@ -1,5 +1,4 @@
-[![Linux Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64-master)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64-master/)
-[![Windows Build Status](https://ci.appveyor.com/api/projects/status/647d2fdblb63rkhy?svg=true)](https://ci.appveyor.com/project/Paril/quetoo)
+[![Build Status](https://github.com/jdolan/quetoo/actions/workflows/build.yml/badge.svg)](https://github.com/jdolan/quetoo/actions/workflows/build.yml)
 [![GPLv2 License](https://img.shields.io/badge/license-GPL%20v2-brightgreen.svg)](https://opensource.org/licenses/GPL-2.0)
 ![This software is BETA](https://img.shields.io/badge/development_stage-BETA-yellowgreen.svg)
 
@@ -13,9 +12,9 @@
 
 ## Features
 
- * Deathmatch, Capture, Instagib, Duel and Rocket Arena gameplay modes
+ * Deathmatch, Capture, Instagib and Rocket Arena gameplay modes
  * Teams Play and Match Mode support
- * High quality remakes of id Software's legendary _Quake II_ deathmatch levels, as well as originals
+ * High quality remakes of id Software's legendary _Quake_, _Quake II_ and _Quake III_ deathmatch levels, as well as originals
  * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>, <a href="http://anthonywebbmusic.com/">Anthony Webb</a> and Jacob Zammit.
  * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
 
@@ -39,7 +38,6 @@ The following dependencies are required:
  * [libsndfile](http://mega-nerd.com/libsndfile/)
  * [glib2](https://developer.gnome.org/glib/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
- * [libxml2](http://xmlsoft.org/)
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 

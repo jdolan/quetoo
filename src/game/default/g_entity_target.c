@@ -27,41 +27,41 @@
  * @brief For singular lights, simply toggle them. For teamed lights,
  * advance through the team, toggling two at a time.
  */
-static void G_target_light_Cycle(g_entity_t *self) {
+static void G_target_light_Cycle(g_entity_t *ent) {
 
-	g_entity_t *master = self->locals.team_master;
-	if (master) {
-		G_Debug("Cycling %s\n", etos(master->locals.enemy));
+  g_entity_t *master = ent->team_master;
+  if (master) {
+    G_Debug("Cycling %s\n", etos(master->enemy));
 
-		master->locals.enemy->s.effects ^= EF_LIGHT;
-		master->locals.enemy = master->locals.enemy->locals.team_next;
+    master->enemy->s.effects ^= EF_LIGHT;
+    master->enemy = master->enemy->team_next;
 
-		if (master->locals.enemy == NULL) {
-			master->locals.enemy = master;
-		}
+    if (master->enemy == NULL) {
+      master->enemy = master;
+    }
 
-		master->locals.enemy->s.effects ^= EF_LIGHT;
-	} else {
-		self->s.effects ^= EF_LIGHT;
-	}
+    master->enemy->s.effects ^= EF_LIGHT;
+  } else {
+    ent->s.effects ^= EF_LIGHT;
+  }
 }
 
 /**
  * @brief
  */
-static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *activator) {
+static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
-	if (self->locals.delay) {
-		self->locals.Think = G_target_light_Cycle;
-		self->locals.next_think = g_level.time + self->locals.delay * 1000.0;
-	} else {
-		G_target_light_Cycle(self);
-	}
+  if (ent->delay) {
+    ent->Think = G_target_light_Cycle;
+    ent->next_think = g_level.time + ent->delay * 1000.0;
+  } else {
+    G_target_light_Cycle(ent);
+  }
 
-	if (self->locals.wait) {
-		self->locals.Think = G_target_light_Cycle;
-		self->locals.next_think = g_level.time + (self->locals.delay + self->locals.wait) * 1000.0;
-	}
+  if (ent->wait) {
+    ent->Think = G_target_light_Cycle;
+    ent->next_think = g_level.time + (ent->delay + ent->wait) * 1000.0;
+  }
 }
 
 /*QUAKED target_light (1 1 1) (-4 -4 -4) (4 4 4) start_on
@@ -82,25 +82,27 @@ static void G_target_light_Use(g_entity_t *self, g_entity_t *other, g_entity_t *
  Use this entity to add switched lights. Use the wait key to synchronize
  color cycles with other entities.
 */
-void G_target_light(g_entity_t *self) {
+void G_target_light(g_entity_t *ent) {
 
-	if (Vec3_Equal(self->locals.color, Vec3_Zero())) {
-		self->locals.color = Vec3_One();
-	}
+  vec3_t color = gi.EntityValue(ent->def, "color")->vec3;
+  if (Vec3_Equal(color, Vec3_Zero())) {
+    color = Vec3_One();
+  }
 
-	self->locals.light = self->locals.light ?: 300.f;
+  float radius = gi.EntityValue(ent->def, "radius")->value;
+  radius = radius ?: 300.f;
 
-	self->s.color = Color_Color32(Color3fv(self->locals.color));
-	self->s.termination.x = self->locals.light;
+  ent->s.color = Color_Color32(Color3fv(color));
+  ent->s.termination.x = radius;
 
-	if (self->locals.spawn_flags & LIGHT_START_ON) {
-		self->s.effects |= EF_LIGHT;
-	}
+  if (ent->spawn_flags & LIGHT_START_ON) {
+    ent->s.effects |= EF_LIGHT;
+  }
 
-	self->locals.enemy = self;
-	self->locals.Use = G_target_light_Use;
+  ent->enemy = ent;
+  ent->Use = G_target_light_Use;
 
-	gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }
 
 #define SPEAKER_LOOP_ON 1
@@ -113,19 +115,24 @@ void G_target_light(g_entity_t *self) {
  */
 static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
-	if (ent->locals.spawn_flags & SPEAKER_LOOP) { // looping sound toggles
-		if (ent->s.sound) {
-			ent->s.sound = 0;
-		} else {
-			ent->s.sound = ent->locals.sound;
-		}
-	} else { // intermittent sound
-		G_MulticastSound(&(const g_play_sound_t) {
-			.index = ent->locals.sound,
-			.origin = &ent->s.origin,
-			.atten = ent->locals.atten
-		}, MULTICAST_PHS, NULL);
-	}
+  if (ent->spawn_flags & SPEAKER_LOOP) { // looping sound toggles
+    if (ent->s.sound) {
+      ent->s.sound = 0;
+    } else {
+      ent->s.sound = ent->sound;
+    }
+  } else { // intermittent sound
+    const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
+    int16_t atten_value = SOUND_ATTEN_LINEAR;
+    if (atten->parsed & ENTITY_INTEGER) {
+      atten_value = atten->integer;
+    }
+    G_MulticastSound(&(const g_play_sound_t) {
+      .index = ent->sound,
+      .origin = &ent->s.origin,
+      .atten = atten_value
+    }, MULTICAST_PHS);
+  }
 }
 
 /*QUAKED target_speaker (1 0 0) (-8 -8 -8) (8 8 8) loop_on loop_off
@@ -150,32 +157,25 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 */
 void G_target_speaker(g_entity_t *ent) {
 
-	const char *sound = gi.EntityValue(ent->def, "sound")->string;
-	if (!strlen(sound)) {
-		gi.Warn("No sound specified for %s\n", etos(ent));
-		return;
-	}
+  const char *sound = gi.EntityValue(ent->def, "sound")->string;
+  if (!strlen(sound)) {
+    gi.Warn("No sound specified for %s\n", etos(ent));
+    return;
+  }
 
-	ent->locals.sound = gi.SoundIndex(sound);
+  ent->sound = gi.SoundIndex(sound);
 
-	const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
-	if (atten->parsed & ENTITY_INTEGER) {
-		ent->locals.atten = atten->integer;
-	} else {
-		ent->locals.atten = SOUND_ATTEN_LINEAR;
-	}
+  const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
 
-	const int32_t spawn_flags = gi.EntityValue(ent->def, "spawnflags")->integer;
+  // check for looping sound
+  if (spawn_flags & SPEAKER_LOOP_ON) {
+    ent->s.sound = ent->sound;
+  }
 
-	// check for looping sound
-	if (spawn_flags & SPEAKER_LOOP_ON) {
-		ent->s.sound = ent->locals.sound;
-	}
+  ent->Use = G_target_speaker_Use;
 
-	ent->locals.Use = G_target_speaker_Use;
-
-	// link the entity so the server can determine who to send updates to
-	gi.LinkEntity(ent);
+  // link the entity so the server can determine who to send updates to
+  gi.LinkEntity(ent);
 }
 
 /*QUAKED target_string (0 0 1) (-8 -8 -8) (8 8 8)
@@ -184,11 +184,11 @@ void G_target_speaker(g_entity_t *ent) {
  message : The message to display.
  targetname : The target name of this entity.
  */
-void G_target_string(g_entity_t *self) {
+void G_target_string(g_entity_t *ent) {
 
-	if (!self->locals.message) {
-		self->locals.message = "";
-	}
+  if (!ent->message) {
+    ent->message = "";
+  }
 
-	// the rest is handled by G_UseTargets
+  // the rest is handled by G_UseTargets
 }

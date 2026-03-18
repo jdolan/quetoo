@@ -24,12 +24,12 @@
 #include "quemap.h"
 
 /**
- * @brief Entity key-value pairs.
+ * @brief Entity pairs.
  */
 typedef struct entity_key_value_s {
-	struct entity_key_value_s *next;
-	char key[MAX_BSP_ENTITY_KEY];
-	char value[MAX_BSP_ENTITY_VALUE];
+  struct entity_key_value_s *next;
+  char key[MAX_BSP_ENTITY_KEY];
+  char value[MAX_BSP_ENTITY_VALUE];
 } entity_key_value_t;
 
 /**
@@ -37,13 +37,15 @@ typedef struct entity_key_value_s {
  */
 typedef struct {
 
-	entity_key_value_t *values;
+  entity_key_value_t *values;
 
-	int32_t first_brush;
-	int32_t num_brushes;
+  int32_t first_brush;
+  int32_t num_brushes;
 
-	int32_t first_brush_side;
-	int32_t num_brush_sides;
+  int32_t first_brush_side;
+  int32_t num_brush_sides;
+
+  box3_t bounds;
 
 } entity_t;
 

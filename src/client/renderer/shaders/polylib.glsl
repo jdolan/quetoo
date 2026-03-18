@@ -24,17 +24,24 @@
  */
 vec4 plane_from_points(in vec3 a, in vec3 b, in vec3 c) {
 
-	vec3 normal = normalize(cross(a - b, c - b));
-	float dist = dot(a, normal);
+  vec3 normal = normalize(cross(a - b, c - b));
+  float dist = dot(a, normal);
 
-	return vec4(normal, dist);
+  return vec4(normal, dist);
 }
 
 /**
  * @return The distance from `p` to `plane`.
  */
 float distance_to_plane(in vec4 plane, in vec3 p) {
-	return dot(p, plane.xyz) - plane.w;
+  return dot(p, plane.xyz) - plane.w;
+}
+
+/**
+ * @return The point `p` projected onto `plane`.
+ */
+vec3 project_point_to_plane(in vec4 plane, in vec3 p) {
+  return p - plane.xyz * distance_to_plane(plane, p);
 }
 
 /**
@@ -43,26 +50,26 @@ float distance_to_plane(in vec4 plane, in vec3 p) {
  */
 float distance_to_line(in vec3 a, in vec3 b, in vec3 p) {
 
-	float dist_squared = dot(b - a, b - a);
+  float dist_squared = dot(b - a, b - a);
 
-	float fraction = clamp(dot(p - a, b - a) / dist_squared, 0.0, 1.0);
-	return distance(p, a + fraction * (b - a));
+  float fraction = clamp(dot(p - a, b - a) / dist_squared, 0.0, 1.0);
+  return distance(p, a + fraction * (b - a));
 }
 
 /**
  * @return The distance from `p` to the triangle `abc`.
  */
 float distance_to_triangle(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
-	return min(abs(distance_to_line(a, b, p)),
-		   min(abs(distance_to_line(b, c, p)),
-			   abs(distance_to_line(c, a, p))));
+  return min(abs(distance_to_line(a, b, p)),
+       min(abs(distance_to_line(b, c, p)),
+         abs(distance_to_line(c, a, p))));
 }
 
 /**
  * @return The area of the triangle `abc`.
  */
 float triangle_area(in vec3 a, in vec3 b, in vec3 c) {
-	return length(cross(b - a, c - a)) * 0.5;
+  return length(cross(b - a, c - a)) * 0.5;
 }
 
 /**
@@ -70,28 +77,28 @@ float triangle_area(in vec3 a, in vec3 b, in vec3 c) {
  */
 bool barycentric(in vec3 a, in vec3 b, in vec3 c, in vec3 p) {
 
-	float abc = triangle_area(a, b, c);
+  float abc = triangle_area(a, b, c);
 
-	vec3 bary = vec3(triangle_area(b, c, p),
-					 triangle_area(c, a, p),
-					 triangle_area(a, b, p)) / abc;
+  vec3 bary = vec3(triangle_area(b, c, p),
+           triangle_area(c, a, p),
+           triangle_area(a, b, p)) / abc;
 
-	if (bary.x < 0.0 || bary.x > 1.0 ||
-		bary.y < 0.0 || bary.y > 1.0 ||
-		bary.z < 0.0 || bary.z > 1.0) {
-		return false;
-	}
+  if (bary.x < 0.0 || bary.x > 1.0 ||
+    bary.y < 0.0 || bary.y > 1.0 ||
+    bary.z < 0.0 || bary.z > 1.0) {
+    return false;
+  }
 
-	return true;
+  return true;
 }
 
 /**
  * @brief The AABB normal vectors.
  */
 vec3[] box_normals = vec3[](
-	vec3(1.0, 0.0, 0.0),
-	vec3(0.0, 1.0, 0.0),
-	vec3(0.0, 0.0, 1.0));
+  vec3(1.0, 0.0, 0.0),
+  vec3(0.0, 1.0, 0.0),
+  vec3(0.0, 0.0, 1.0));
 
 /**
  * @brief Separating axis test.
@@ -99,17 +106,24 @@ vec3[] box_normals = vec3[](
  */
 bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
 
-	vec3 p = vec3(dot(a, axis), dot(b, axis), dot(c, axis));
+  vec3 p = vec3(dot(a, axis), dot(b, axis), dot(c, axis));
 
-	float r = extents.x * abs(dot(box_normals[0], axis)) +
-			  extents.y * abs(dot(box_normals[1], axis)) +
-			  extents.z * abs(dot(box_normals[2], axis));
+  float r = extents.x * abs(dot(box_normals[0], axis)) +
+        extents.y * abs(dot(box_normals[1], axis)) +
+        extents.z * abs(dot(box_normals[2], axis));
 
-	if (max(-hmax(p), hmin(p)) > r) {
-		return true; // separating axis
-	}
+  if (max(-hmax(p), hmin(p)) > r) {
+    return true; // separating axis
+  }
 
-	return false;
+  return false;
+}
+
+/**
+ * @return True if the bounding box contains the specified point.
+ */
+bool box_contains(in vec3 mins, in vec3 maxs, in vec3 point) {
+  return all(greaterThanEqual(point, mins)) && all(lessThanEqual(point, maxs));
 }
 
 /**
@@ -118,34 +132,54 @@ bool sat(in vec3 a, in vec3 b, in vec3 c, vec3 extents, in vec3 axis) {
  */
 bool triangle_intersects(in vec3 a, in vec3 b, in vec3 c, in vec3 mins, in vec3 maxs) {
 
-	vec3 center = mix(mins, maxs, 0.5);
-	vec3 extents = maxs - center;
+  vec3 center = mix(mins, maxs, 0.5);
+  vec3 extents = maxs - center;
 
-	a -= center;
-	b -= center;
-	c -= center;
+  a -= center;
+  b -= center;
+  c -= center;
 
-	vec3[] tri_edges = vec3[](b - a, c - b, a - c);
+  vec3[] tri_edges = vec3[](b - a, c - b, a - c);
 
-	for (int i = 0; i < 3; i++) {
-		for (int j = 0; j < 3; j++) {
-			vec3 axis = cross(box_normals[i], tri_edges[j]);
-			if (sat(a, b, c, extents, axis)) {
-				return false;
-			}
-		}
-	}
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+      vec3 axis = cross(box_normals[i], tri_edges[j]);
+      if (sat(a, b, c, extents, axis)) {
+        return false;
+      }
+    }
+  }
 
-	for (int i = 0; i < 3; i++) {
-		if (sat(a, b, c, extents, box_normals[i])) {
-			return false;
-		}
-	}
+  for (int i = 0; i < 3; i++) {
+    if (sat(a, b, c, extents, box_normals[i])) {
+      return false;
+    }
+  }
 
-	vec3 tri_normal = cross(b - a, c - b);
-	if (sat(a, b, c, extents, tri_normal)) {
-		return false;
-	}
+  vec3 tri_normal = cross(b - a, c - b);
+  if (sat(a, b, c, extents, tri_normal)) {
+    return false;
+  }
 
-	return true;
+  return true;
+}
+
+/**
+ * @return The minimal vector from `p` to the bounding box.
+ * @see https://stackoverflow.com/a/40579370/1982239
+ */
+vec3 direction_to_bounds(in vec3 mins, in vec3 maxs, in vec3 p) {
+
+  vec3 c = (mins + maxs) * 0.5;
+
+  if (all(greaterThanEqual(p, mins)) && all(lessThanEqual(p, maxs))) {
+    return p - c;
+  }
+
+  vec3 s = (maxs - mins) * 0.5;
+  vec3 v = p - c;
+  vec3 m = abs(v);
+  vec3 r = c + (v / m * s);
+
+  return r - p;
 }

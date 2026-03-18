@@ -32,6 +32,7 @@
 #include "cl_cmd.h"
 #include "cl_console.h"
 #include "cl_demo.h"
+#include "cl_editor.h"
 #include "cl_entity.h"
 #include "cl_input.h"
 #include "cl_keys.h"

@@ -38,7 +38,7 @@ static color_t drawColor;
  */
 static void beginFrame(Renderer *self) {
 
-	drawColor = color_white;
+  drawColor = color_white;
 }
 
 /**
@@ -47,35 +47,35 @@ static void beginFrame(Renderer *self) {
  */
 static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 
-	assert(surface);
+  assert(surface);
 
-	GLenum internal_format;
-	GLenum format;
-	switch (surface->format->BytesPerPixel) {
-		case 3:
-			internal_format = GL_RGB8;
-			format = GL_RGB;
-			break;
-		case 4:
-			internal_format = GL_RGBA8;
-			format = GL_RGBA;
-			break;
-		default:
-			MVC_LogError("Invalid surface format: %s\n", SDL_GetPixelFormatName(surface->format->format));
-			return 0;
-	}
+  GLenum internal_format;
+  GLenum format;
+  switch (SDL_BYTESPERPIXEL(surface->format)) {
+    case 3:
+      internal_format = GL_RGB8;
+      format = GL_RGB;
+      break;
+    case 4:
+      internal_format = GL_RGBA8;
+      format = GL_RGBA;
+      break;
+    default:
+      MVC_LogError("Invalid surface format: %s\n", SDL_GetPixelFormatName(surface->format));
+      return 0;
+  }
 
-	GLuint texture;
-	glGenTextures(1, &texture);
+  GLuint texture;
+  glGenTextures(1, &texture);
 
-	glBindTexture(GL_TEXTURE_2D, texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, internal_format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+  glTexImage2D(GL_TEXTURE_2D, 0, internal_format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
 
-	return texture;
+  return texture;
 }
 
 /**
@@ -83,25 +83,25 @@ static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
  */
 static void drawLine(const Renderer *self, const SDL_Point *points) {
 
-	assert(points);
+  assert(points);
 
-	$(self, drawLines, points, 2);
+  $(self, drawLines, points, 2);
 }
 
 /**
  * @see Renderer::drawLines(const Renderer *self, const SDL_Point *points, size_t count)
  */
 static void drawLines(const Renderer *self, const SDL_Point *points, size_t count) {
-	assert(points);
+  assert(points);
 
-	GLint p[count][2];
+  GLint p[count][2];
 
-	for (size_t i = 0; i < count; i++) {
-		p[i][0] = points[i].x;
-		p[i][1] = points[i].y;
-	}
+  for (size_t i = 0; i < count; i++) {
+    p[i][0] = points[i].x;
+    p[i][1] = points[i].y;
+  }
 
-	R_Draw2DLines((GLint *) p, count, drawColor);
+  R_Draw2DLines((GLint *) p, count, drawColor);
 }
 
 
@@ -110,19 +110,19 @@ static void drawLines(const Renderer *self, const SDL_Point *points, size_t coun
  */
 static void drawRect(const Renderer *self, const SDL_Rect *rect) {
 
-	assert(rect);
+  assert(rect);
 
-	const SDL_Rect r = *rect;
+  const SDL_Rect r = *rect;
 
-	const GLint points[][2] = {
-		{ r.x,			r.y },
-		{ r.x + r.w,	r.y },
-		{ r.x + r.w,	r.y + r.h },
-		{ r.x,			r.y + r.h },
-		{ r.x,			r.y },
-	};
+  const GLint points[][2] = {
+    { r.x,       r.y },
+    { r.x + r.w, r.y },
+    { r.x + r.w, r.y + r.h },
+    { r.x,       r.y + r.h },
+    { r.x,       r.y },
+  };
 
-	R_Draw2DLines((GLint *) points, lengthof(points), drawColor);
+  R_Draw2DLines((GLint *) points, lengthof(points), drawColor);
 }
 
 /**
@@ -130,9 +130,9 @@ static void drawRect(const Renderer *self, const SDL_Rect *rect) {
  */
 static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
 
-	assert(rect);
+  assert(rect);
 
-	R_Draw2DFill(rect->x, rect->y, rect->w, rect->h, drawColor);
+  R_Draw2DFill(rect->x, rect->y, rect->w, rect->h, drawColor);
 }
 
 /**
@@ -140,11 +140,11 @@ static void drawRectFilled(const Renderer *self, const SDL_Rect *rect) {
  */
 static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *rect) {
 
-	assert(rect);
+  assert(rect);
 
-	const r_image_t image = { .texnum = texture };
+  const r_image_t image = { .texnum = texture };
 
-	R_Draw2DImage(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
+  R_Draw2DImage(rect->x, rect->y, rect->w, rect->h, &image, drawColor);
 }
 
 /**
@@ -152,7 +152,7 @@ static void drawTexture(const Renderer *self, GLuint texture, const SDL_Rect *re
  */
 static void endFrame(Renderer *self) {
 
-	$(self, setClippingFrame, NULL);
+  $(self, setClippingFrame, NULL);
 }
 
 /**
@@ -160,11 +160,11 @@ static void endFrame(Renderer *self) {
  */
 static void setDrawColor(Renderer *self, const SDL_Color *color) {
 
-	if (color) {
-		drawColor = Color4b(color->r, color->g, color->b, color->a);
-	} else {
-		drawColor = color_white;
-	}
+  if (color) {
+    drawColor = Color4b(color->r, color->g, color->b, color->a);
+  } else {
+    drawColor = color_white;
+  }
 }
 
 /**
@@ -172,12 +172,12 @@ static void setDrawColor(Renderer *self, const SDL_Color *color) {
  */
 static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
 
-	if (frame) {
-		const SDL_Rect clip = MVC_TransformToWindow(r_context.window, frame);
-		R_SetClippingFrame(clip.x, clip.y, clip.w, clip.h);
-	} else {
-		R_SetClippingFrame(0, 0, 0, 0);
-	}
+  if (frame) {
+    const SDL_Rect clip = MVC_TransformToWindow(r_context.window, frame);
+    R_SetClippingFrame(clip.x, clip.y, clip.w, clip.h);
+  } else {
+    R_SetClippingFrame(0, 0, 0, 0);
+  }
 }
 
 /**
@@ -185,7 +185,7 @@ static void setClippingFrame(Renderer *self, const SDL_Rect *frame) {
  * @memberof QuetooRenderer
  */
 static QuetooRenderer *init(QuetooRenderer *self) {
-	return (QuetooRenderer *) super(Renderer, self, init);
+  return (QuetooRenderer *) super(Renderer, self, init);
 }
 
 #pragma mark - Class lifecycle
@@ -195,18 +195,18 @@ static QuetooRenderer *init(QuetooRenderer *self) {
  */
 static void initialize(Class *clazz) {
 
-	((RendererInterface *) clazz->interface)->beginFrame = beginFrame;
-	((RendererInterface *) clazz->interface)->drawLine = drawLine;
-	((RendererInterface *) clazz->interface)->drawLines = drawLines;
-	((RendererInterface *) clazz->interface)->createTexture = createTexture;
-	((RendererInterface *) clazz->interface)->drawRect = drawRect;
-	((RendererInterface *) clazz->interface)->drawRectFilled = drawRectFilled;
-	((RendererInterface *) clazz->interface)->drawTexture = drawTexture;
-	((RendererInterface *) clazz->interface)->endFrame = endFrame;
-	((RendererInterface *) clazz->interface)->setDrawColor = setDrawColor;
-	((RendererInterface *) clazz->interface)->setClippingFrame = setClippingFrame;
+  ((RendererInterface *) clazz->interface)->beginFrame = beginFrame;
+  ((RendererInterface *) clazz->interface)->drawLine = drawLine;
+  ((RendererInterface *) clazz->interface)->drawLines = drawLines;
+  ((RendererInterface *) clazz->interface)->createTexture = createTexture;
+  ((RendererInterface *) clazz->interface)->drawRect = drawRect;
+  ((RendererInterface *) clazz->interface)->drawRectFilled = drawRectFilled;
+  ((RendererInterface *) clazz->interface)->drawTexture = drawTexture;
+  ((RendererInterface *) clazz->interface)->endFrame = endFrame;
+  ((RendererInterface *) clazz->interface)->setDrawColor = setDrawColor;
+  ((RendererInterface *) clazz->interface)->setClippingFrame = setClippingFrame;
 
-	((QuetooRendererInterface *) clazz->interface)->init = init;
+  ((QuetooRendererInterface *) clazz->interface)->init = init;
 }
 
 /**
@@ -214,22 +214,21 @@ static void initialize(Class *clazz) {
  * @memberof QuetooRenderer
  */
 Class *_QuetooRenderer(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "QuetooRenderer",
-			.superclass = _Renderer(),
-			.instanceSize = sizeof(QuetooRenderer),
-			.interfaceOffset = offsetof(QuetooRenderer, interface),
-			.interfaceSize = sizeof(QuetooRendererInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "QuetooRenderer",
+      .superclass = _Renderer(),
+      .instanceSize = sizeof(QuetooRenderer),
+      .interfaceOffset = offsetof(QuetooRenderer, interface),
+      .interfaceSize = sizeof(QuetooRendererInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class
-

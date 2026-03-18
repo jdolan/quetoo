@@ -19,28 +19,27 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define STAGE_TEXTURE      0
-#define STAGE_BLEND        4
-#define STAGE_COLOR        8
-#define STAGE_PULSE        16
-#define STAGE_STRETCH      32
-#define STAGE_ROTATE       64
-#define STAGE_SCROLL_S     128
-#define STAGE_SCROLL_T     256
-#define STAGE_SCALE_S      512
-#define STAGE_SCALE_T      1024
-#define STAGE_TERRAIN      2048
-#define STAGE_ANIM         4096
-#define STAGE_LIGHTMAP     8192
-#define STAGE_DIRTMAP      16384
-#define STAGE_ENVMAP       32768
-#define STAGE_WARP         65536
-#define STAGE_FLARE        131072
-#define STAGE_FOG          262144
-#define STAGE_SHELL        524288
+#define STAGE_TEXTURE  (1 << 0)
+#define STAGE_BLEND    (1 << 1)
+#define STAGE_COLOR    (1 << 2)
+#define STAGE_PULSE    (1 << 3)
+#define STAGE_STRETCH  (1 << 4)
+#define STAGE_ROTATE   (1 << 5)
+#define STAGE_SCROLL_S (1 << 6)
+#define STAGE_SCROLL_T (1 << 7)
+#define STAGE_SCALE_S  (1 << 8)
+#define STAGE_SCALE_T  (1 << 9)
+#define STAGE_TERRAIN  (1 << 10)
+#define STAGE_ANIM     (1 << 11)
+#define STAGE_DIRTMAP  (1 << 12)
+#define STAGE_ENVMAP   (1 << 13)
+#define STAGE_WARP     (1 << 14)
+#define STAGE_FLARE    (1 << 15)
+#define STAGE_FOG      (1 << 16)
+#define STAGE_SHELL    (1 << 17)
 
-#define STAGE_DRAW         268435456
-#define STAGE_MATERIAL     536870912
+#define STAGE_DRAW     (1 << 28)
+#define STAGE_MATERIAL (1 << 29)
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;
@@ -51,35 +50,35 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
  * @brief The material type.
  */
 struct material_t {
-	/**
-	 * @brief The material alpha test threshold.
-	 */
-	float alpha_test;
+  /**
+   * @brief The material alpha test threshold.
+   */
+  float alpha_test;
 
-	/**
-	 * @brief The material roughness.
-	 */
-	float roughness;
+  /**
+   * @brief The material roughness.
+   */
+  float roughness;
 
-	/**
-	 * @brief The material hardness.
-	 */
-	float hardness;
+  /**
+   * @brief The material hardness.
+   */
+  float hardness;
 
-	/**
-	 * @brief The material specularity.
-	 */
-	float specularity;
+  /**
+   * @brief The material specularity.
+   */
+  float specularity;
 
-	/**
-	 * @brief The material parallax.
-	 */
-	float parallax;
+  /**
+   * @brief The material parallax.
+   */
+  float parallax;
 
-	/**
-	 * @brief The material bloom.
-	 */
-	float bloom;
+  /**
+   * @brief The material self-shadowing.
+   */
+  float shadow;
 };
 
 uniform material_t material;
@@ -88,65 +87,65 @@ uniform material_t material;
  * @brief The stage type.
  */
 struct stage_t {
-	/**
-	 * @brief The stage flags.
-	 */
-	int flags;
+  /**
+   * @brief The stage flags.
+   */
+  int flags;
 
-	/**
-	 * @brief The stage color.
-	 */
-	vec4 color;
+  /**
+   * @brief The stage color.
+   */
+  vec4 color;
 
-	/**
-	 * @brief The stage alpha pulse.
-	 */
-	float pulse;
+  /**
+   * @brief The stage alpha pulse.
+   */
+  float pulse;
 
-	/**
-	 * @brief The stage texture coordinate origin for rotations and stretches.
-	 */
-	vec2 st_origin;
+  /**
+   * @brief The stage texture coordinate origin for rotations and stretches.
+   */
+  vec2 st_origin;
 
-	/**
-	 * @brief The stage stretch amplitude and frequency.
-	 */
-	vec2 stretch;
+  /**
+   * @brief The stage stretch amplitude and frequency.
+   */
+  vec2 stretch;
 
-	/**
-	 * @brief The stage rotation rate in radians per second.
-	 */
-	float rotate;
+  /**
+   * @brief The stage rotation rate in radians per second.
+   */
+  float rotate;
 
-	/**
-	 * @brief The stage scroll rate.
-	 */
-	vec2 scroll;
+  /**
+   * @brief The stage scroll rate.
+   */
+  vec2 scroll;
 
-	/**
-	 * @brief The stage scale factor.
-	 */
-	vec2 scale;
+  /**
+   * @brief The stage scale factor.
+   */
+  vec2 scale;
 
-	/**
-	 * @brief The stage terrain blending floor and ceiling.
-	 */
-	vec2 terrain;
+  /**
+   * @brief The stage terrain blending floor and ceiling.
+   */
+  vec2 terrain;
 
-	/**
-	 * @brief The stage dirtmap intensity.
-	 */
-	float dirtmap;
+  /**
+   * @brief The stage dirtmap intensity.
+   */
+  float dirtmap;
 
-	/**
-	 * @brief The stage warp rate and intensity.
-	 */
-	vec2 warp;
+  /**
+   * @brief The stage warp rate and intensity.
+   */
+  vec2 warp;
 
-	/**
-	 * @brief The stage shell radius.
-	 */
-	float shell;
+  /**
+   * @brief The stage shell radius.
+   */
+  float shell;
 };
 
 uniform stage_t stage;
@@ -156,9 +155,9 @@ uniform stage_t stage;
  */
 void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, inout vec3 tangent, inout vec3 bitangent) {
 
-	if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
-		position += normal * stage.shell;
-	}
+  if ((stage.flags & STAGE_SHELL) == STAGE_SHELL) {
+	  position += normal * stage.shell;
+  }
 }
 
 /**
@@ -166,66 +165,142 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
  */
 void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
 
-	if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-		float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
+  if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
+	  float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
 
-		mat2 matrix;
-		vec2 translate;
-		matrix[0][0] = p;
-		matrix[1][0] = 0;
-		translate[0] = stage.st_origin.x - stage.st_origin.x * p;
+	  mat2 matrix;
+	  vec2 translate;
+	  matrix[0][0] = p;
+	  matrix[1][0] = 0;
+	  translate[0] = stage.st_origin.x - stage.st_origin.x * p;
 
-		matrix[0][1] = 0;
-		matrix[1][1] = p;
-		translate[1] = stage.st_origin.y - stage.st_origin.y * p;
+	  matrix[0][1] = 0;
+	  matrix[1][1] = p;
+	  translate[1] = stage.st_origin.y - stage.st_origin.y * p;
 
-		diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
-		diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
-	}
+	  diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
+	  diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
+  }
 
-	if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-		float theta = ticks * 0.001 * stage.rotate * TWO_PI;
+  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+	  float theta = ticks * 0.001 * stage.rotate * TWO_PI;
 
-		diffusemap = diffusemap - stage.st_origin;
-		diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
-		diffusemap = diffusemap + stage.st_origin;
-	}
+	  diffusemap = diffusemap - stage.st_origin;
+	  diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
+	  diffusemap = diffusemap + stage.st_origin;
+  }
 
-	if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-		diffusemap.s += stage.scroll.s * ticks * 0.001;
-	}
+  if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+	  diffusemap.s += stage.scroll.s * ticks * 0.001;
+  }
 
-	if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-		diffusemap.t += stage.scroll.t * ticks * 0.001;
-	}
+  if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+	  diffusemap.t += stage.scroll.t * ticks * 0.001;
+  }
 
-	if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-		diffusemap.s *= stage.scale.s;
-	}
+  if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+	  diffusemap.s *= stage.scale.s;
+  }
 
-	if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-		diffusemap.t *= stage.scale.t;
-	}
+  if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+	  diffusemap.t *= stage.scale.t;
+  }
 
-	if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
-		diffusemap *= normalize(position).xy;
-	}
+  if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
+	  diffusemap *= normalize(position).xy;
+  }
 
-	if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-		color *= stage.color;
-	}
+  if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+	  color *= stage.color;
+  }
 
-	if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-		color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
-	}
+  if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+	  color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
+  }
 
-	if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
-		float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
-		color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
-	}
+  if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
+	  float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
+	  color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
+  }
 
-	if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
-		int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
-		color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
-	}
+  if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
+	  int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
+	  color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
+  }
+}
+
+/**
+ * @brief Sample the diffuse/albedo texture.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @return Diffuse color with alpha.
+ */
+vec4 sample_material_diffuse(in vec2 texcoord) {
+  return texture(texture_material, vec3(texcoord, 0));
+}
+
+/**
+ * @brief Sample and transform the normal map.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @param tbn Tangent-to-view matrix for transforming the normal.
+ * @return View-space normal.
+ */
+vec3 sample_material_normal(in vec2 texcoord, in mat3 tbn) {
+  vec3 normalmap = texture(texture_material, vec3(texcoord, 1)).xyz * 2.0 - 1.0;
+  vec3 roughness = vec3(vec2(material.roughness), 1.0);
+  return normalize(tbn * (normalmap * roughness));
+}
+
+/**
+ * @brief Sample the specular map with Toksvig anti-aliasing.
+ * @param texcoord Texture coordinates (may be parallax-offset for BSP).
+ * @return Specular color (rgb) and gloss/power (a).
+ */
+vec4 sample_material_specular(in vec2 texcoord) {
+  vec4 specularmap;
+  specularmap.rgb = texture(texture_material, vec3(texcoord, 2)).rgb * material.hardness;
+
+  vec3 roughness = vec3(vec2(material.roughness), 1.0);
+  vec3 normalmap0 = (textureLod(texture_material, vec3(texcoord, 1), 0.0).xyz * 2.0 - 1.0) * roughness;
+  vec3 normalmap1 = (textureLod(texture_material, vec3(texcoord, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
+
+  float power = pow(1.0 + material.specularity, 4.0);
+  specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+
+  return specularmap;
+}
+
+/**
+ * @brief Samples the heightmap at the given texture coordinate.
+ * @param texcoord Texture coordinates.
+ * @param lod Level of detail for texture sampling.
+ */
+float sample_material_heightmap(in vec2 texcoord, in float lod) {
+  return textureLod(texture_material, vec3(texcoord, 1), lod).w;
+}
+
+/**
+ * @brief Samples the displacement map at the given texture coordinate and lod.
+ * @param texcoord Texture coordinates.
+ * @param lod Level of detail for texture sampling.
+ */
+float sample_material_displacement(in vec2 texcoord, in float lod) {
+  return 1.0 - sample_material_heightmap(texcoord, lod);
+}
+
+/**
+ * @brief Sample a material stage texture.
+ * @param texcoord Texture coordinates.
+ * @return Stage texture color.
+ */
+vec4 sample_material_stage(in vec2 texcoord) {
+  return texture(texture_stage, texcoord);
+}
+
+/**
+ * @brief Sample the tint map (layer 3 of material array).
+ * @param texcoord Texture coordinates.
+ * @return Tint color used for player model colorization.
+ */
+vec4 sample_material_tint(in vec2 texcoord) {
+  return texture(texture_material, vec3(texcoord, 3));
 }

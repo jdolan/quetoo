@@ -27,12 +27,12 @@
  * @brief A fixed-sized buffer, used for accumulating e.g. net messages.
  */
 typedef struct {
-	bool allow_overflow; // error if false and overflow occurs
-	bool overflowed; // set to true when a write exceeds max_size
-	byte *data;
-	size_t max_size; // maximum size before overflow
-	size_t size; // current size
-	size_t read;
+  bool allow_overflow; // error if false and overflow occurs
+  bool overflowed; // set to true when a write exceeds max_size
+  byte *data;
+  size_t max_size; // maximum size before overflow
+  size_t size; // current size
+  size_t read;
 } mem_buf_t;
 
 void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len);

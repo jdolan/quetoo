@@ -1,0 +1,38 @@
+Panel.editor {
+  alignment: middle-right;
+  draggable: true;
+}
+
+Panel.editor .tabPageView {
+  autoresizing-mask: none;
+  width: 420;
+  height: 500;
+}
+
+#entity {
+  padding: 4;
+}
+
+#entity .entity {
+  axis: StackViewAxisHorizontal;
+}
+
+#entity .entity .value {
+  min-width: 230;
+}
+
+#entity #add {
+
+}
+
+#teamEntity {
+  background-color: #22222244;
+}
+
+#teamEntity .entity .value {
+  min-width: 210;
+}
+
+#material Input Label {
+  width: 200;
+}

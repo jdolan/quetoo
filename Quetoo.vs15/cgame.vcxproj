@@ -73,10 +73,7 @@
     <ClInclude Include="..\src\cgame\default\ui\play\PlayerModelView.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\PlayerSetupViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\play\PlayViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h" />
-    <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h" />
     <ClInclude Include="..\src\cgame\default\ui\teams\TeamPlayerView.h" />
     <ClInclude Include="..\src\cgame\default\ui\teams\TeamsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\teams\TeamView.h" />
@@ -132,10 +129,7 @@
     <ClCompile Include="..\src\cgame\default\ui\play\PlayerModelView.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\PlayerSetupViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\play\PlayViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c" />
-    <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c" />
     <ClCompile Include="..\src\cgame\default\ui\teams\TeamPlayerView.c" />
     <ClCompile Include="..\src\cgame\default\ui\teams\TeamsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\teams\TeamView.c" />
@@ -179,7 +173,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>
-      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL2.lib;SDL2_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Objectively.lib;ObjectivelyMVC.lib;glib-2.0.lib;intl.lib;SDL3.lib;SDL3_image.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_CGAME "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>

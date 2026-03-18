@@ -1,16 +1,16 @@
 
 #Player {
-	autoresizing-mask: contain;
+  autoresizing-mask: contain;
 }
 
 PlayerModelView {
-	autoresizing-mask: height;
-	padding: 4;
-	width: 780;
+  padding: 4;
+  width: 900;
+  height: 680;
 }
 
 PlayerModelView > .iconView {
-	alignment: top-right;
-	width: 64;
-	height: 64;
+  alignment: top-right;
+  width: 64;
+  height: 64;
 }

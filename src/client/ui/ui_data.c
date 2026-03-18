@@ -27,25 +27,25 @@
  */
 Data *Ui_Data(const char *path) {
 
-	Data *data = NULL;
+  Data *data = NULL;
 
-	void *buffer;
-	const int64_t length = Fs_Load(path, &buffer);
-	if (length != -1) {
-		data = $$(Data, dataWithBytes, buffer, length);
-		assert(data);
+  void *buffer;
+  const int64_t length = Fs_Load(path, &buffer);
+  if (length != -1) {
+    data = $$(Data, dataWithBytes, buffer, length);
+    assert(data);
 
-		Fs_Free(buffer);
-	} else {
-		Com_Warn("Failed to load %s\n", path);
-	}
+    Fs_Free(buffer);
+  } else {
+    Com_Warn("Failed to load %s\n", path);
+  }
 
-	return data;
+  return data;
 }
 
 /**
  * @brief
  */
 Theme *Ui_Theme(void) {
-	return $$(Theme, theme, r_context.window);
+  return $$(Theme, theme, r_context.window);
 }

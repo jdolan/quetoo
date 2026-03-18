@@ -1,8 +1,8 @@
 {
   "class": "Panel",
-	"classNames": [
-		"menu"
-	],
+  "classNames": [
+    "menu"
+  ],
   "contentView": {
     "subviews": [
       {
@@ -17,9 +17,9 @@
             {
               "class": "Label",
               "identifier": "motd",
-			  "text": {
-				  "lineWrap": true
-			  }
+        "text": {
+          "lineWrap": true
+        }
             }
           ]
         }

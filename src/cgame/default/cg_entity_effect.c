@@ -22,28 +22,38 @@
 #include "cg_local.h"
 
 /**
- * @brief Resolve HSV from the given hue value
+ * @brief
  */
-vec3_t Cg_ResolveEffectHSV(const float hue, const float default_hue) {
+vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 
-	if (hue < 0) {
-		return Vec3(default_hue, 1.f, 1.f);
-	} else if (hue > 360.f) {
-		return Vec3(0.f, 0.f, 1.f);
-	}
-
-	return Vec3(hue, 1.f, 1.f);
+  if (hue) {
+    if (*hue < 0.f) {
+      *hue = default_hue;
+    }
+    return ColorHSV(*hue, 1.f, 1.f).vec3;
+  } else {
+    return ColorHSV(default_hue, 1.f, 1.f).vec3;
+  }
 }
 
 /**
- * @brief Resolve a client hue from the entity index given in the effect
+ * @brief
  */
-vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) {
+vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
-	const cg_client_info_t *ci = &cg_state.clients[client];
-	const float hue = ci->team ? ci->team->hue : ci->hue;
+  assert(client >= 0);
+  assert(client < MAX_CLIENTS);
 
-	return Cg_ResolveEffectHSV(hue, default_hue);
+  const cg_client_info_t *ci = &cg_state.clients[client];
+  float client_hue = ci->team ? ci->team->hue : ci->hue;
+
+  const vec3_t color = Cg_EffectColor(&client_hue, default_hue);
+
+  if (hue) {
+    *hue = client_hue;
+  }
+
+  return color;
 }
 
 /**
@@ -51,17 +61,16 @@ vec3_t Cg_ResolveEntityEffectHSV(const uint8_t client, const float default_hue) 
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 
-	if (Cg_IsSelf(ent) && !cgi.client->third_person) {
-		return;
-	}
+  if (ent == cgi.client->entity && !cgi.client->third_person) {
+    return;
+  }
 
-	cgi.AddSprite(cgi.view, &(const r_sprite_t) {
-		.origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
-		.color = color_white,
-		.media = (r_media_t *) cg_sprite_inactive,
-		.size = 32.f,
-		.softness = 1.f
-	});
+  cgi.AddSprite(cgi.view, &(const r_sprite_t) {
+    .origin = Vec3_Add(org, Vec3(0.f, 0.f, 50.f)),
+    .color = color_white.vec3,
+    .media = (r_media_t *) cg_sprite_inactive,
+    .size = 32.f,
+  });
 }
 
 /**
@@ -69,106 +78,103 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
  */
 void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
-	e->effects = ent->current.effects;
+  e->effects = ent->current.effects;
 
-	if (e->effects & EF_ROTATE) {
-		const float rotate = cgi.client->unclamped_time;
-		e->angles.y = cg_entity_rotate->value * rotate / M_PI;
-	}
+  if (e->effects & EF_ROTATE) {
+    const float rotate = cgi.client->unclamped_time;
+    e->angles.y = cg_entity_rotate->value * rotate / M_PI;
+  }
 
-	if (e->effects & EF_BOB) {
-		e->termination = e->origin;
-		const float bob = sinf(cgi.client->unclamped_time * 0.005f + ent->current.number);
-		e->origin.z += cg_entity_bob->value * bob;
-	}
+  if (e->effects & EF_BOB) {
+    e->termination = e->origin;
+    const float bob = sinf(cgi.client->unclamped_time * 0.005f + ent->current.number);
+    e->origin.z += cg_entity_bob->value * bob;
+  }
 
-	if (e->effects & EF_INACTIVE) {
-		Cg_InactiveEffect(ent, e->origin);
-	}
+  if (e->effects & EF_INACTIVE) {
+    Cg_InactiveEffect(ent, e->origin);
+  }
 
-	if (e->effects & EF_RESPAWN) {
-		const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
-		e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
-	}
+  if (e->effects & EF_RESPAWN) {
+    const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
+    e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
+  }
 
-	if (e->effects & EF_QUAD) {
-		const cg_light_t l = {
-			.origin = e->origin,
-			.radius = 80.0,
-			.color = Vec3(0.3f, 0.7f, 0.7f),
-			.intensity = .333f,
-			.source = ent,
-		};
+  if (e->effects & EF_QUAD) {
+    const cg_light_t l = {
+      .origin = e->origin,
+      .radius = 180.0,
+      .color = Vec3(.3f, .7f, .7f),
+      .intensity = 1.5f,
+      .source = ent,
+    };
 
-		Cg_AddLight(&l);
+    Cg_AddLight(&l);
 
-		e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
-	}
+    e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
+  }
 
-	if (e->effects & EF_CTF_MASK) {
+  if (e->effects & EF_CTF_MASK) {
 
-		for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
-			if (e->effects & (EF_CTF_RED << team)) {
-				const vec3_t effect_color = Cg_ResolveEffectHSV(cg_state.teams[team].hue, 0.f);
+    for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
+      if (e->effects & (EF_CTF_RED << team)) {
+        const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
 
-				const cg_light_t l = {
-					.origin = e->origin,
-					.radius = 128.f,
-					.color = ColorHSV(effect_color.x, effect_color.y, effect_color.z).vec3,
-					.intensity = .333f,
-					.source = ent,
-				};
+        const cg_light_t l = {
+          .origin = e->origin,
+          .radius = 180.f,
+          .color = color,
+          .intensity = 1.5f,
+          .source = ent,
+        };
 
-				Cg_AddLight(&l);
+        Cg_AddLight(&l);
 
-				e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
-			}
-		}
-	}
+        e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
+      }
+    }
+  }
 
-	if (Vec3_Length(e->shell) > 0.0) {
-		e->shell = Vec3_Normalize(e->shell);
-		e->effects |= EF_SHELL;
-	}
+  if (Vec3_Length(e->shell) > 0.0) {
+    e->shell = Vec3_Normalize(e->shell);
+    e->effects |= EF_SHELL;
+  }
 
-	e->color = Vec4_One();
+  e->color = Vec4_One();
 
-	if (e->effects & EF_DESPAWN) {
+  if (e->effects & EF_DESPAWN) {
 
-		if (!(ent->prev.effects & EF_DESPAWN)) {
-			ent->timestamp = cgi.client->unclamped_time;
-		}
+    if (!(ent->prev.effects & EF_DESPAWN)) {
+      ent->timestamp = cgi.client->unclamped_time;
+    }
 
-		e->effects |= (EF_BLEND | EF_NO_SHADOW);
+    e->effects |= (EF_BLEND | EF_NO_SHADOW);
 
-		const float fade = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 2000.f);
-		e->color = Vec4_Scale(e->color, fade);
-	}
+    const float fade = 1.f - ((cgi.client->unclamped_time - ent->timestamp) / 2000.f);
+    e->color = Vec4_Scale(e->color, fade);
+  }
 
-	if (e->effects & EF_LIGHT) {
-		const color_t color = Color32_Color(ent->current.color);
-		const cg_light_t l = {
-			.origin = e->origin,
-			.radius = e->termination.x,
-			.color = color.vec3,
-			.intensity = .5f,
-		};
+  if (e->effects & EF_LIGHT) {
+    const color_t color = Color32_Color(ent->current.color);
+    const cg_light_t l = {
+      .origin = e->origin,
+      .radius = e->termination.x,
+      .color = color.vec3,
+      .intensity = 1.f,
+      .source = ent
+    };
 
-		Cg_AddLight(&l);
-	}
+    Cg_AddLight(&l);
+  }
 
-	if (e->effects & EF_TEAM_TINT) {
-		assert(ent->current.animation1 < MAX_TEAMS);
+  if (e->effects & EF_TEAM_TINT) {
+    assert(ent->current.animation1 < MAX_TEAMS);
 
-		const cg_team_info_t *team = cg_state.teams + ent->current.animation1;
-		e->tints[0] = Vec4(team->color.r, team->color.g, team->color.b, 1.f);
+    const cg_team_info_t *team = cg_state.teams + ent->current.animation1;
+    e->tints[0] = Vec4(team->color.r, team->color.g, team->color.b, 1.f);
 
-		for (int32_t i = 1; i < 3; i++) {
-			e->tints[i] = e->tints[0];
-		}
-	}
-
-	if (ent->current.trail == TRAIL_ROCKET) {
-		e->effects |= EF_NO_SHADOW; // FIXME: Make this entity the light's source instead
-	}
+    for (int32_t i = 1; i < 3; i++) {
+      e->tints[i] = e->tints[0];
+    }
+  }
 }

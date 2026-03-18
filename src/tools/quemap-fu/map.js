@@ -249,7 +249,7 @@ export class Entity {
       case "ambient_drip":
         return Object.assign(that, {
           classname: "misc_sound",
-          sound: "world/drip"
+          sound: "common/drip"
         });
       case "info_intermission":
         return Object.assign(that, {
@@ -371,7 +371,7 @@ export class Light {
     stream.write(format(` "classname" "light"\n`));
     stream.write(format(` "origin" "%f %f %f"\n`, this.origin[0], this.origin[1], this.origin[2]));
     stream.write(format(` "light" "%f"\n`, this.radius));
-    stream.write(format(` "_color" "%f %f %f"\n`, this.color[0], this.color[1], this.color[2]));
+    stream.write(format(` "color" "%f %f %f"\n`, this.color[0], this.color[1], this.color[2]));
     stream.write("}\n");
   }
 }

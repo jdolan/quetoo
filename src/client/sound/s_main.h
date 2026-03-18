@@ -31,13 +31,14 @@ void S_Stop(void);
 
 #ifdef __S_LOCAL_H__
 extern cvar_t *s_get_error;
+extern cvar_t *s_draw_stats;
 
 void S_GetError_(const char *function, const char *msg);
 
 #define S_GetError(msg) { \
-	if (s_get_error->integer) { \
-		S_GetError_(__func__, msg); \
-	} \
+  if (s_get_error->integer) { \
+    S_GetError_(__func__, msg); \
+  } \
 }
 
 #endif /* __S_LOCAL_H__ */

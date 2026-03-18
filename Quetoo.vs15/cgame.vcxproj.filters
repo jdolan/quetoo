@@ -123,13 +123,7 @@
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h">
       <Filter>src\default\ui\main</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\OptionsViewController.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\settings\SettingsViewController.h">
-      <Filter>src\default\ui\settings</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\VideoModeSelect.h">
       <Filter>src\default\ui\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\play\CreateServerViewController.h">
@@ -152,9 +146,6 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h">
       <Filter>src\default\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\default\ui\settings\SystemViewController.h">
-      <Filter>src\default\ui\settings</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\play\PlayerModelView.h">
       <Filter>src\default\ui\play</Filter>
@@ -299,13 +290,7 @@
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c">
       <Filter>src\default\ui\main</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\OptionsViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\settings\SettingsViewController.c">
-      <Filter>src\default\ui\settings</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\VideoModeSelect.c">
       <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\play\CreateServerViewController.c">
@@ -328,9 +313,6 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c">
       <Filter>src\default\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\default\ui\settings\SystemViewController.c">
-      <Filter>src\default\ui\settings</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\play\PlayerModelView.c">
       <Filter>src\default\ui\play</Filter>

@@ -39,7 +39,7 @@ libcguiplay_la_CFLAGS = \
 	@GLIB_CFLAGS@ \
 	@OPENAL_CFLAGS@ \
 	@OBJECTIVELYMVC_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 
 libcguiplay_la_LDFLAGS = \
 	-shared

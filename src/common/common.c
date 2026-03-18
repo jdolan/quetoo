@@ -34,12 +34,12 @@
  */
 void Com_LogString(const char *str) {
 
-	if (!str || !*str || !quetoo.log_file) {
-		return;
-	}
+  if (!str || !*str || !quetoo.log_file) {
+    return;
+  }
 
-	fputs(str, quetoo.log_file);
-	fflush(quetoo.log_file);
+  fputs(str, quetoo.log_file);
+  fflush(quetoo.log_file);
 }
 
 /**
@@ -48,69 +48,70 @@ void Com_LogString(const char *str) {
  */
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
-	quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
+  quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
 
-	Com_LogString(va("Quetoo %s %s %s\n", VERSION, BUILD, REVISION));
+  Com_LogString(va("Quetoo %s %s %s\n", VERSION, BUILD, REVISION));
 
-	if (argc)
-	{
-		Com_LogString("Launch arguments:\n");
-		
-		for (int32_t i = 0; i < argc; i++)
-			Com_LogString(va("%s\n", argv[i]));
-	}
+  if (argc)
+  {
+    Com_LogString("Launch arguments:\n");
+    
+    for (int32_t i = 0; i < argc; i++)
+      Com_LogString(va("%s\n", argv[i]));
+  }
 }
 
 // max len we'll try to parse for a category
-#define DEBUG_CATEGORY_MAX_LEN	32
+#define DEBUG_CATEGORY_MAX_LEN  32
 
 const char *DEBUG_CATEGORIES[DEBUG_TOTAL] = {
-	"ai",
-	"cgame",
-	"client",
-	"collision",
-	"common",
-	"console",
-	"filesystem",
-	"game",
-	"net",
-	"pmove_client",
-	"pmove_server",
-	"renderer",
-	"server",
-	"sound",
-	"ui"
+  "ai",
+  "cgame",
+  "client",
+  "collision",
+  "common",
+  "console",
+  "filesystem",
+  "game",
+  "net",
+  "pmove_client",
+  "pmove_server",
+  "renderer",
+  "server",
+  "sound",
+  "ui",
+  "editor",
 };
 
 /**
  * @return True if the specified debug flag(s) are enabled.
  */
 bool Com_IsDebug(const debug_t debug) {
-	return (quetoo.debug_mask & debug) != 0;
+  return (quetoo.debug_mask & debug) != 0;
 }
 
 /**
  * @return A string containing all enabled debug categories.
  */
 const char *Com_GetDebug(void) {
-	static char debug[MAX_STRING_CHARS];
+  static char debug[MAX_STRING_CHARS];
 
-	debug[0] = '\0';
+  debug[0] = '\0';
 
-	for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-		if (quetoo.debug_mask & (1 << i)) {
-			if (strlen(debug)) {
-				g_strlcat(debug, " ", sizeof(debug));
-			}
-			g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
-		}
-	}
+  for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+    if (quetoo.debug_mask & (1 << i)) {
+      if (strlen(debug)) {
+        g_strlcat(debug, " ", sizeof(debug));
+      }
+      g_strlcat(debug, DEBUG_CATEGORIES[i], sizeof(debug));
+    }
+  }
 
-	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
-		g_strlcat(debug, " breakpoint", sizeof(debug));
-	}
+  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+    g_strlcat(debug, " breakpoint", sizeof(debug));
+  }
 
-	return debug;
+  return debug;
 }
 
 /**
@@ -118,30 +119,30 @@ const char *Com_GetDebug(void) {
  */
 void Com_SetDebug(const char *debug) {
 
-	static char token[DEBUG_CATEGORY_MAX_LEN];
+  static char token[DEBUG_CATEGORY_MAX_LEN];
 
-	parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
+  parser_t parser = Parse_Init(debug, PARSER_NO_COMMENTS);
 
-	while (true) {
+  while (true) {
 
-		if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
-			break;
-		}
+    if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
+      break;
+    }
 
-		if (!g_strcmp0(token, "none") || !g_strcmp0(token, "0")) {
-			quetoo.debug_mask = 0;
-		} else if (!g_strcmp0(token, "breakpoint") || !g_strcmp0(token, "bp")) {
-			quetoo.debug_mask ^= DEBUG_BREAKPOINT;
-		} else if (!g_strcmp0(token, "any") || !g_strcmp0(token, "all")) {
-			quetoo.debug_mask ^= DEBUG_ALL;
-		} else {
-			for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-				if (!g_strcmp0(token, DEBUG_CATEGORIES[i])) {
-					quetoo.debug_mask ^= (1 << i);
-				}
-			}
-		}
-	}
+    if (!g_strcmp0(token, "none") || !g_strcmp0(token, "0")) {
+      quetoo.debug_mask = 0;
+    } else if (!g_strcmp0(token, "breakpoint") || !g_strcmp0(token, "bp")) {
+      quetoo.debug_mask ^= DEBUG_BREAKPOINT;
+    } else if (!g_strcmp0(token, "any") || !g_strcmp0(token, "all")) {
+      quetoo.debug_mask ^= DEBUG_ALL;
+    } else {
+      for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+        if (!g_strcmp0(token, DEBUG_CATEGORIES[i])) {
+          quetoo.debug_mask ^= (1 << i);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -156,32 +157,32 @@ void Com_SetDebug(const char *debug) {
 __attribute__((format(printf, 4, 0)))
 static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char *fmt, va_list args) {
 
-	assert(str);
-	assert(size);
-	assert(fmt);
+  assert(str);
+  assert(size);
+  assert(fmt);
 
-	size_t len = 0;
+  size_t len = 0;
 
-	if (func) {
-		if (fmt[0] == '!') { // skip it
-			fmt++;
-		} else {
-			g_snprintf(str, (gulong) size, "%s: ", func);
-			len = strlen(str);
-		}
-	}
+  if (func) {
+    if (fmt[0] == '!') { // skip it
+      fmt++;
+    } else {
+      g_snprintf(str, (gulong) size, "%s: ", func);
+      len = strlen(str);
+    }
+  }
 
-	const int32_t count = vsnprintf(str + len, size - len, fmt, args);
+  const int32_t count = vsnprintf(str + len, size - len, fmt, args);
 
-	/*
-	 * FIXME: This is a hack. I'd rather see this implemented as a Windows-only console appender
-	 * in console.c or something.
-	 */
+  /*
+   * FIXME: This is a hack. I'd rather see this implemented as a Windows-only console appender
+   * in console.c or something.
+   */
 #if defined(_WIN32) && defined(_DEBUG) && defined(_MSC_VER)
-	OutputDebugString(str);
+  OutputDebugString(str);
 #endif
 
-	return count;
+  return count;
 }
 
 /**
@@ -189,12 +190,12 @@ static int32_t Com_Sprintfv(char *str, size_t size, const char *func, const char
  */
 void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
 
-	va_list args;
-	va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-	Com_Debugv_(debug, func, fmt, args);
+  Com_Debugv_(debug, func, fmt, args);
 
-	va_end(args);
+  va_end(args);
 }
 
 /**
@@ -202,21 +203,21 @@ void Com_Debug_(const debug_t debug, const char *func, const char *fmt, ...) {
  */
 void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list args) {
 
-	if ((quetoo.debug_mask & debug) == 0) {
-		return;
-	}
+  if ((quetoo.debug_mask & debug) == 0) {
+    return;
+  }
 
-	char msg[MAX_PRINT_MSG];
-	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
+  char msg[MAX_PRINT_MSG];
+  Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
-	Com_LogString(msg);
+  Com_LogString(msg);
 
-	if (quetoo.Debug) {
-		quetoo.Debug(debug, (const char *) msg);
-	} else {
-		fputs(msg, stdout);
-		fflush(stdout);
-	}
+  if (quetoo.Debug) {
+    quetoo.Debug(debug, (const char *) msg);
+  } else {
+    fputs(msg, stdout);
+    fflush(stdout);
+  }
 }
 
 /**
@@ -224,47 +225,47 @@ void Com_Debugv_(const debug_t debug, const char *func, const char *fmt, va_list
  */
 void Com_Error_(err_t error, const char *func, const char *fmt, ...) {
 
-	va_list args;
-	va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-	Com_Errorv_(error, func, fmt, args);
+  Com_Errorv_(error, func, fmt, args);
 
-	va_end(args);
+  va_end(args);
 }
 
-#include <SDL_assert.h>
+#include <SDL3/SDL_assert.h>
 
 /**
  * @brief An error condition has occurred. This function does not return.
  */
 void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
 
-	if (quetoo.recursive_error) {
-		if (quetoo.Error) {
-			quetoo.Error(ERROR_FATAL, "Recursive error\n");
-		} else {
-			fputs("Recursive error\n", stderr);
-			fflush(stderr);
-			exit(error);
-		}
-	} else {
-		quetoo.recursive_error = true;
-	}
+  if (quetoo.recursive_error) {
+    if (quetoo.Error) {
+      quetoo.Error(ERROR_FATAL, "Recursive error\n");
+    } else {
+      fputs("Recursive error\n", stderr);
+      fflush(stderr);
+      exit(error);
+    }
+  } else {
+    quetoo.recursive_error = true;
+  }
 
-	char msg[MAX_PRINT_MSG];
-	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
+  char msg[MAX_PRINT_MSG];
+  Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
-	Com_LogString(msg);
+  Com_LogString(msg);
 
-	if (quetoo.Error) {
-		quetoo.Error(error, msg);
-	} else {
-		fputs(msg, stderr);
-		fflush(stderr);
-		exit(error);
-	}
+  if (quetoo.Error) {
+    quetoo.Error(error, msg);
+  } else {
+    fputs(msg, stderr);
+    fflush(stderr);
+    exit(error);
+  }
 
-	quetoo.recursive_error = false;
+  quetoo.recursive_error = false;
 }
 
 /**
@@ -272,12 +273,12 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
  */
 void Com_Print(const char *fmt, ...) {
 
-	va_list args;
-	va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-	Com_Printv(fmt, args);
+  Com_Printv(fmt, args);
 
-	va_end(args);
+  va_end(args);
 }
 
 /**
@@ -285,17 +286,17 @@ void Com_Print(const char *fmt, ...) {
  */
 void Com_Printv(const char *fmt, va_list args) {
 
-	char msg[MAX_PRINT_MSG];
-	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
+  char msg[MAX_PRINT_MSG];
+  Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
-	Com_LogString(msg);
+  Com_LogString(msg);
 
-	if (quetoo.Print) {
-		quetoo.Print(msg);
-	} else {
-		fputs(msg, stdout);
-		fflush(stdout);
-	}
+  if (quetoo.Print) {
+    quetoo.Print(msg);
+  } else {
+    fputs(msg, stdout);
+    fflush(stdout);
+  }
 }
 
 /**
@@ -303,12 +304,12 @@ void Com_Printv(const char *fmt, va_list args) {
  */
 void Com_Warn_(const char *func, const char *fmt, ...) {
 
-	va_list args;
-	va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-	Com_Warnv_(func, fmt, args);
+  Com_Warnv_(func, fmt, args);
 
-	va_end(args);
+  va_end(args);
 }
 
 /**
@@ -316,17 +317,17 @@ void Com_Warn_(const char *func, const char *fmt, ...) {
  */
 void Com_Warnv_(const char *func, const char *fmt, va_list args) {
 
-	char msg[MAX_PRINT_MSG];
-	Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
+  char msg[MAX_PRINT_MSG];
+  Com_Sprintfv(msg, sizeof(msg), func, fmt, args);
 
-	Com_LogString(msg);
+  Com_LogString(msg);
 
-	if (quetoo.Warn) {
-		quetoo.Warn(msg);
-	} else {
-		fprintf(stderr, "WARNING: %s", msg);
-		fflush(stderr);
-	}
+  if (quetoo.Warn) {
+    quetoo.Warn(msg);
+  } else {
+    fprintf(stderr, "WARNING: %s", msg);
+    fflush(stderr);
+  }
 }
 
 /**
@@ -334,12 +335,12 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) {
  */
 void Com_Verbose(const char *fmt, ...) {
 
-	va_list args;
-	va_start(args, fmt);
+  va_list args;
+  va_start(args, fmt);
 
-	Com_Verbosev(fmt, args);
+  Com_Verbosev(fmt, args);
 
-	va_end(args);
+  va_end(args);
 }
 
 /**
@@ -347,17 +348,17 @@ void Com_Verbose(const char *fmt, ...) {
  */
 void Com_Verbosev(const char *fmt, va_list args) {
 
-	char msg[MAX_PRINT_MSG];
-	Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
+  char msg[MAX_PRINT_MSG];
+  Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
 
-	Com_LogString(msg);
+  Com_LogString(msg);
 
-	if (quetoo.Verbose) {
-		quetoo.Verbose((const char *) msg);
-	} else {
-		fputs(msg, stdout);
-		fflush(stdout);
-	}
+  if (quetoo.Verbose) {
+    quetoo.Verbose((const char *) msg);
+  } else {
+    fputs(msg, stdout);
+    fflush(stdout);
+  }
 }
 
 /**
@@ -367,30 +368,28 @@ void Com_Verbosev(const char *fmt, va_list args) {
  */
 void Com_Init(int32_t argc, char *argv[]) {
 
-	quetoo.argc = argc;
-	quetoo.argv = argv;
+  quetoo.argc = argc;
+  quetoo.argv = argv;
 
-	// options that any Com_* implementation can use
-	for (int32_t i = 1; i < Com_Argc(); i++) {
+  // options that any Com_* implementation can use
+  for (int32_t i = 1; i < Com_Argc(); i++) {
 
-		// if we specified debug mode, quickly set it to all here
-		// so that early systems prior to init can write stuff out
-		if (!g_strcmp0(Com_Argv(i), "-debug") ||
-		        !g_strcmp0(Com_Argv(i), "+debug")) {
-			Com_SetDebug("all");
-			continue;
-		}
+    // if we specified debug mode, quickly set it to all here
+    // so that early systems prior to init can write stuff out
+    if (!g_strcmp0(Com_Argv(i), "-debug") || !g_strcmp0(Com_Argv(i), "+debug")) {
+      Com_SetDebug("all");
+      continue;
+    }
 
-		if (!g_strcmp0(Com_Argv(i), "-log") ||
-		        !g_strcmp0(Com_Argv(i), "+log")) {
-			Com_InitLog(argc, argv);
-			continue;
-		}
-	}
+    if (!g_strcmp0(Com_Argv(i), "-log") || !g_strcmp0(Com_Argv(i), "+log")) {
+      Com_InitLog(argc, argv);
+      continue;
+    }
+  }
 
-	if (quetoo.Init) {
-		quetoo.Init();
-	}
+  if (quetoo.Init) {
+    quetoo.Init();
+  }
 }
 
 /**
@@ -399,109 +398,109 @@ void Com_Init(int32_t argc, char *argv[]) {
  * exits. This function does not return.
  */
 void Com_Shutdown(const char *fmt, ...) {
-	va_list args;
-	char msg[MAX_PRINT_MSG];
+  va_list args;
+  char msg[MAX_PRINT_MSG];
 
-	fmt = fmt ? : ""; // normal shutdown will actually pass NULL
+  fmt = fmt ? : ""; // normal shutdown will actually pass NULL
 
-	va_start(args, fmt);
-	vsnprintf(msg, sizeof(msg), fmt, args);
-	va_end(args);
+  va_start(args, fmt);
+  vsnprintf(msg, sizeof(msg), fmt, args);
+  va_end(args);
 
-	if (quetoo.Shutdown) {
-		quetoo.Shutdown(msg);
-	} else {
-		Com_Print("%s", msg);
-	}
+  if (quetoo.Shutdown) {
+    quetoo.Shutdown(msg);
+  } else {
+    Com_Print("%s", msg);
+  }
 
-	// close log file
-	if (quetoo.log_file) {
-		fclose(quetoo.log_file);
-	}
+  // close log file
+  if (quetoo.log_file) {
+    fclose(quetoo.log_file);
+  }
 
-	exit(0);
+  exit(0);
 }
 
 /**
  * @brief
  */
 uint32_t Com_WasInit(uint32_t s) {
-	return quetoo.subsystems & s;
+  return quetoo.subsystems & s;
 }
 
 /**
  * @brief
  */
 void Com_InitSubsystem(uint32_t s) {
-	quetoo.subsystems |= s;
+  quetoo.subsystems |= s;
 }
 
 /**
  * @brief
  */
 void Com_QuitSubsystem(uint32_t s) {
-	quetoo.subsystems &= ~s;
+  quetoo.subsystems &= ~s;
 }
 
 /**
  * @brief Returns the command line argument count.
  */
 int32_t Com_Argc(void) {
-	return quetoo.argc;
+  return quetoo.argc;
 }
 
 /**
  * @brief Returns the command line argument at the specified index.
  */
 char *Com_Argv(int32_t arg) {
-	if (arg < 0 || arg >= Com_Argc()) {
-		return "";
-	}
-	return quetoo.argv[arg];
+  if (arg < 0 || arg >= Com_Argc()) {
+    return "";
+  }
+  return quetoo.argv[arg];
 }
 
 /**
  * @brief
  */
 void Com_PrintInfo(const char *s) {
-	char key[512];
-	char value[512];
-	char *o;
-	intptr_t l;
+  char key[512];
+  char value[512];
+  char *o;
+  intptr_t l;
 
-	if (*s == '\\') {
-		s++;
-	}
-	while (*s) {
-		o = key;
-		while (*s && *s != '\\') {
-			*o++ = *s++;
-		}
+  if (*s == '\\') {
+    s++;
+  }
+  while (*s) {
+    o = key;
+    while (*s && *s != '\\') {
+      *o++ = *s++;
+    }
 
-		l = o - key;
-		if (l < 20) {
-			memset(o, ' ', 20 - l);
-			key[20] = 0;
-		} else {
-			*o = 0;
-		}
-		Com_Print("%s", key);
+    l = o - key;
+    if (l < 20) {
+      memset(o, ' ', 20 - l);
+      key[20] = 0;
+    } else {
+      *o = 0;
+    }
+    Com_Print("%s", key);
 
-		if (!*s) {
-			Com_Print("MISSING VALUE\n");
-			return;
-		}
+    if (!*s) {
+      Com_Print("MISSING VALUE\n");
+      return;
+    }
 
-		o = value;
-		s++;
-		while (*s && *s != '\\') {
-			*o++ = *s++;
-		}
-		*o = 0;
+    o = value;
+    s++;
+    while (*s && *s != '\\') {
+      *o++ = *s++;
+    }
+    *o = 0;
 
-		if (*s) {
-			s++;
-		}
-		Com_Print("%s\n", value);
-	}
+    if (*s) {
+      s++;
+    }
+    Com_Print("%s\n", value);
+  }
 }

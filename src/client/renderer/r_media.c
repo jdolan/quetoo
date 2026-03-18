@@ -22,8 +22,8 @@
 #include "r_local.h"
 
 typedef struct {
-	GHashTable *media;
-	int32_t seed; // for tracking stale assets
+  GHashTable *media;
+  int32_t seed; // for tracking stale assets
 } r_media_state_t;
 
 static r_media_state_t r_media_state;
@@ -33,33 +33,33 @@ static r_media_state_t r_media_state;
  */
 void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
 
-	GList *keys = g_hash_table_get_keys(r_media_state.media);
-	keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
+  GList *keys = g_hash_table_get_keys(r_media_state.media);
+  keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
 
-	const GList *key = keys;
-	while (key) {
-		const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
-		if (enumerator) {
-			enumerator(media, data);
-		}
-		key = key->next;
-	}
+  const GList *key = keys;
+  while (key) {
+    const r_media_t *media = g_hash_table_lookup(r_media_state.media, key->data);
+    if (enumerator) {
+      enumerator(media, data);
+    }
+    key = key->next;
+  }
 
-	g_list_free(keys);
+  g_list_free(keys);
 }
 
 /**
  * @brief R_MediaEnumerator for R_ListMedia_f.
  */
 static void R_ListMedia_enumerator(const r_media_t *media, void *data) {
-	Com_Print("%s\n", media->name);
+  Com_Print("%s\n", media->name);
 }
 
 /**
  * @brief Prints information about all currently loaded media to the console.
  */
 void R_ListMedia_f(void) {
-	R_EnumerateMedia(R_ListMedia_enumerator, NULL);
+  R_EnumerateMedia(R_ListMedia_enumerator, NULL);
 }
 
 /**
@@ -68,14 +68,14 @@ void R_ListMedia_f(void) {
  */
 r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
 
-	assert(dependent);
-	assert(dependency);
+  assert(dependent);
+  assert(dependency);
 
-	if (!g_list_find(dependent->dependencies, dependency)) {
-		dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
-	}
+  if (!g_list_find(dependent->dependencies, dependency)) {
+    dependent->dependencies = g_list_prepend(dependent->dependencies, dependency);
+  }
 
-	return R_RegisterMedia(dependency);
+  return R_RegisterMedia(dependency);
 }
 
 /**
@@ -84,34 +84,34 @@ r_media_t *R_RegisterDependency(r_media_t *dependent, r_media_t *dependency) {
  */
 r_media_t *R_RegisterMedia(r_media_t *media) {
 
-	assert(media);
+  assert(media);
 
-	if (media->seed != r_media_state.seed) {
+  if (media->seed != r_media_state.seed) {
 
-		if (g_hash_table_contains(r_media_state.media, media)) {
-			r_media_t *other = g_hash_table_lookup(r_media_state.media, media);
-			if (other != media) {
-				R_FreeMedia(other);
-				g_hash_table_insert(r_media_state.media, media, media);
-			}
-		} else {
-			g_hash_table_insert(r_media_state.media, media, media);
-		}
+    if (g_hash_table_contains(r_media_state.media, media)) {
+      r_media_t *other = g_hash_table_lookup(r_media_state.media, media);
+      if (other != media) {
+        R_FreeMedia(other);
+        g_hash_table_insert(r_media_state.media, media, media);
+      }
+    } else {
+      g_hash_table_insert(r_media_state.media, media, media);
+    }
 
-		media->seed = r_media_state.seed;
-	}
+    media->seed = r_media_state.seed;
+  }
 
-	if (media->Register) {
-		media->Register(media);
-	}
+  if (media->Register) {
+    media->Register(media);
+  }
 
-	GList *d = media->dependencies;
-	while (d) {
-		R_RegisterMedia((r_media_t *) d->data);
-		d = d->next;
-	}
+  GList *d = media->dependencies;
+  while (d) {
+    R_RegisterMedia((r_media_t *) d->data);
+    d = d->next;
+  }
 
-	return media;
+  return media;
 }
 
 /**
@@ -119,18 +119,18 @@ r_media_t *R_RegisterMedia(r_media_t *media) {
  */
 r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 
-	r_media_t lookup = {
-		.type = type
-	};
-	
-	g_strlcpy(lookup.name, name, sizeof(lookup.name));
+  r_media_t lookup = {
+    .type = type
+  };
+  
+  g_strlcpy(lookup.name, name, sizeof(lookup.name));
 
-	r_media_t *media = g_hash_table_lookup(r_media_state.media, &lookup);
-	if (media) {
-		R_RegisterMedia(media);
-	}
+  r_media_t *media = g_hash_table_lookup(r_media_state.media, &lookup);
+  if (media) {
+    R_RegisterMedia(media);
+  }
 
-	return media;
+  return media;
 }
 
 /**
@@ -140,16 +140,16 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
  */
 r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 
-	if (!name || !*name) {
-		Com_Error(ERROR_DROP, "NULL name\n");
-	}
+  if (!name || !*name) {
+    Com_Error(ERROR_DROP, "NULL name\n");
+  }
 
-	r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
+  r_media_t *media = Mem_TagMalloc(size, MEM_TAG_RENDERER);
 
-	g_strlcpy(media->name, name, sizeof(media->name));
-	media->type = type;
+  g_strlcpy(media->name, name, sizeof(media->name));
+  media->type = type;
 
-	return media;
+  return media;
 }
 
 /**
@@ -158,25 +158,25 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
  * retainment are freed.
  */
 static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
-	r_media_t *media = (r_media_t *) value;
+  r_media_t *media = (r_media_t *) value;
 
-	if (!data) {
-		if (media->seed == r_media_state.seed) {
-			return false;
-		}
+  if (!data) {
+    if (media->seed == r_media_state.seed) {
+      return false;
+    }
 
-		if (media->Retain && media->Retain(media)) {
-			return false;
-		}
-	}
+    if (media->Retain && media->Retain(media)) {
+      return false;
+    }
+  }
 
-	if (media->Free) {
-		media->Free(media);
-	}
+  if (media->Free) {
+    media->Free(media);
+  }
 
-	g_list_free(media->dependencies);
+  g_list_free(media->dependencies);
 
-	return true;
+  return true;
 }
 
 /**
@@ -184,51 +184,51 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
  */
 void R_FreeMedia(r_media_t *media) {
 
-	R_FreeMedia_(NULL, media, (void *) 1);
+  R_FreeMedia_(NULL, media, (void *) 1);
 
-	g_hash_table_remove(r_media_state.media, media->name);
+  g_hash_table_remove(r_media_state.media, media->name);
 }
 
 /**
  * @brief Prepares the media subsystem for loading.
  */
 void R_BeginLoading(void) {
-	int32_t s;
+  int32_t s;
 
-	do {
-		s = Randomi();
-	} while (s == r_media_state.seed);
+  do {
+    s = Randomi();
+  } while (s == r_media_state.seed);
 
-	r_media_state.seed = s;
+  r_media_state.seed = s;
 }
 
 /**
  * @brief Frees any media that has a stale seed and is not explicitly retained.
  */
 void R_EndLoading(void) {
-	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 0);
+  g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 0);
 }
 
 /**
  * @brief
  */
 static guint R_MediaHash(gconstpointer key) {
-	const r_media_t *media = key;
+  const r_media_t *media = key;
 
-	return g_str_hash(media->name) + media->type;
+  return g_str_hash(media->name) + media->type;
 }
 
 /**
  * @brief
  */
 static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
-	const r_media_t *_a = a, *_b = b;
+  const r_media_t *_a = a, *_b = b;
 
-	if (_a->type == _b->type) {
-		return g_str_equal(_a->name, _b->name);
-	}
+  if (_a->type == _b->type) {
+    return g_str_equal(_a->name, _b->name);
+  }
 
-	return false;
+  return false;
 }
 
 /**
@@ -236,11 +236,11 @@ static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
  */
 void R_InitMedia(void) {
 
-	memset(&r_media_state, 0, sizeof(r_media_state));
+  memset(&r_media_state, 0, sizeof(r_media_state));
 
-	r_media_state.media = g_hash_table_new_full(R_MediaHash, R_MediaEqual, NULL, Mem_Free);
+  r_media_state.media = g_hash_table_new_full(R_MediaHash, R_MediaEqual, NULL, Mem_Free);
 
-	R_BeginLoading();
+  R_BeginLoading();
 }
 
 /**
@@ -248,7 +248,7 @@ void R_InitMedia(void) {
  */
 void R_ShutdownMedia(void) {
 
-	g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 1);
-	g_hash_table_destroy(r_media_state.media);
+  g_hash_table_foreach_remove(r_media_state.media, R_FreeMedia_, (void *) 1);
+  g_hash_table_destroy(r_media_state.media);
 }
 

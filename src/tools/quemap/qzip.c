@@ -37,54 +37,54 @@ static GHashTable *paths;
  */
 static bool Add(const char *name) {
 
-	assert(name);
+  assert(name);
 
-	if (strlen(name) && Fs_Exists(name)) {
-		if (!g_hash_table_contains(paths, name)) {
-			g_hash_table_insert(paths, g_strdup(name), g_strdup(name));
-		}
-		return true;
-	} else {
-		Com_Verbose("Failed to add %s\n", name);
-		return false;
-	}
+  if (strlen(name) && Fs_Exists(name)) {
+    if (!g_hash_table_contains(paths, name)) {
+      g_hash_table_insert(paths, g_strdup(name), g_strdup(name));
+    }
+    return true;
+  } else {
+    Com_Verbose("Failed to add %s\n", name);
+    return false;
+  }
 }
 
 /**
  * @brief Adds the first resource found by name, trying the specified file extensions in order.
  */
 static bool AddFirstWithExtensions(const char *name, const char **extensions) {
-	char base[MAX_QPATH];
+  char base[MAX_QPATH];
 
-	StripExtension(name, base);
+  StripExtension(name, base);
 
-	if (g_hash_table_contains(paths, base)) {
-		return true;
-	}
+  if (g_hash_table_contains(paths, base)) {
+    return true;
+  }
 
-	const char **ext = extensions;
-	while (*ext) {
-		const char *path = va("%s.%s", base, *ext);
-		if (Fs_Exists(path)) {
-			g_hash_table_insert(paths, g_strdup(base), g_strdup(path));
-			return true;
-		}
-		ext++;
-	}
+  const char **ext = extensions;
+  while (*ext) {
+    const char *path = va("%s.%s", base, *ext);
+    if (Fs_Exists(path)) {
+      g_hash_table_insert(paths, g_strdup(base), g_strdup(path));
+      return true;
+    }
+    ext++;
+  }
 
-	g_hash_table_insert(paths, g_strdup(base), g_strdup(MISSING));
-	return false;
+  g_hash_table_insert(paths, g_strdup(base), g_strdup(MISSING));
+  return false;
 }
 
 /**
  * @brief Attempts to add the specified sound in any available format.
  */
 static void AddSound(const char *sound) {
-	const char *sound_extensions[] = { "ogg", "wav", NULL };
+  const char *sound_extensions[] = { "ogg", "wav", NULL };
 
-	if (!AddFirstWithExtensions(va("sounds/%s", sound), sound_extensions)) {
-		Com_Warn("Failed to add %s\n", sound);
-	}
+  if (!AddFirstWithExtensions(va("sounds/%s", sound), sound_extensions)) {
+    Com_Warn("Failed to add %s\n", sound);
+  }
 }
 
 /**
@@ -92,11 +92,11 @@ static void AddSound(const char *sound) {
  * a warning will be issued should we fail to resolve the specified image.
  */
 static void AddImage(const char *image) {
-	const char *image_extensions[] = { "tga", "png", "jpg", NULL };
+  const char *image_extensions[] = { "tga", "png", "jpg", NULL };
 
-	if (!AddFirstWithExtensions(image, image_extensions)) {
-		Com_Warn("Failed to add %s\n", image);
-	}
+  if (!AddFirstWithExtensions(image, image_extensions)) {
+    Com_Warn("Failed to add %s\n", image);
+  }
 }
 
 /**
@@ -104,9 +104,9 @@ static void AddImage(const char *image) {
  */
 static void AddSky(const char *sky) {
 
-	Com_Debug(DEBUG_ALL, "Adding sky %s\n", sky);
+  Com_Debug(DEBUG_ALL, "Adding sky %s\n", sky);
 
-	AddImage(va("sky/%s", sky));
+  AddImage(va("sky/%s", sky));
 }
 
 /**
@@ -114,28 +114,21 @@ static void AddSky(const char *sky) {
  */
 static void AddMaterial(const cm_material_t *material) {
 
-	if (Add(material->diffusemap.path)) {
-		Add(material->normalmap.path);
-		Add(material->heightmap.path);
-		Add(material->specularmap.path);
-		Add(material->tintmap.path);
+  if (Add(material->diffusemap.path)) {
+    Add(material->normalmap.path);
+    Add(material->heightmap.path);
+    Add(material->specularmap.path);
+    Add(material->tintmap.path);
 
-		for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
-			Add(stage->asset.path);
-			for (int32_t i = 0; i < stage->animation.num_frames; i++) {
-				Add(stage->animation.frames[i].path);
-			}
-		}
-	} else {
-		Com_Warn("Failed to add %s\n", material->name);
-	}
-}
-
-/**
- * @brief
- */
-static gint FindBspMaterial(gconstpointer a, gconstpointer b) {
-	return g_strcmp0(((cm_material_t *) a)->name, (char *) b);
+    for (const cm_stage_t *stage = material->stages; stage; stage = stage->next) {
+      Add(stage->asset.path);
+      for (int32_t i = 0; i < stage->animation.num_frames; i++) {
+        Add(stage->animation.frames[i].path);
+      }
+    }
+  } else {
+    Com_Warn("Failed to add %s\n", material->name);
+  }
 }
 
 /**
@@ -143,25 +136,26 @@ static gint FindBspMaterial(gconstpointer a, gconstpointer b) {
  */
 static void AddBspMaterials(void) {
 
-	const char *path = va("maps/%s.mat", map_base);
-	Add(path);
+  for (int32_t i = 0; i < bsp_file.num_materials; i++) {
+    const char *name = bsp_file.materials[i].name;
 
-	GList *materials = NULL;
-	Cm_LoadMaterials(path, &materials);
+    char path[MAX_QPATH];
+    g_snprintf(path, sizeof(path), "textures/%s.mat", name);
+    Add(path);
 
-	for (int32_t i = 0; i < bsp_file.num_materials; i++) {
-		if (!g_list_find_custom(materials, bsp_file.materials[i].name, FindBspMaterial)) {
-			materials = g_list_append(materials, Cm_AllocMaterial(bsp_file.materials[i].name));
-		}
-	}
+    GList *materials = NULL;
+    if (Cm_LoadMaterials(path, &materials) < 1) {
+      materials = g_list_append(materials, Cm_AllocMaterial(name));
+    }
 
-	for (GList *e = materials; e; e = e->next) {
-		if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
-			AddMaterial(e->data);
-		}
-	}
+    for (GList *e = materials; e; e = e->next) {
+      if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
+        AddMaterial(e->data);
+      }
+    }
 
-	Cm_FreeMaterials(materials);
+    Cm_FreeMaterials(materials);
+  }
 }
 
 /**
@@ -169,50 +163,50 @@ static void AddBspMaterials(void) {
  */
 static void AddMeshMaterials(const char *path) {
 
-	Add(path);
+  Add(path);
 
-	GList *materials = NULL;
-	Cm_LoadMaterials(path, &materials);
+  GList *materials = NULL;
+  Cm_LoadMaterials(path, &materials);
 
-	for (GList *e = materials; e; e = e->next) {
-		if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_MODELS)) {
-			AddMaterial(e->data);
-		}
-	}
+  for (GList *e = materials; e; e = e->next) {
+    if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_MODELS)) {
+      AddMaterial(e->data);
+    }
+  }
 
-	Cm_FreeMaterials(materials);
+  Cm_FreeMaterials(materials);
 }
 
 /**
  * @brief Attempts to add the specified mesh model.
  */
 static void AddModel(const char *model) {
-	const char *model_formats[] = { "md3", "obj", NULL };
-	char path[MAX_QPATH];
+  const char *model_formats[] = { "md3", "obj", NULL };
+  char path[MAX_QPATH];
 
-	if (model[0] == '*') { // inline bsp model
-		return;
-	}
+  if (model[0] == '*') { // inline bsp model
+    return;
+  }
 
-	if (!AddFirstWithExtensions(model, model_formats)) {
-		Com_Warn("Failed to resolve %s\n", model);
-		return;
-	}
+  if (!AddFirstWithExtensions(model, model_formats)) {
+    Com_Warn("Failed to resolve %s\n", model);
+    return;
+  }
 
-	Dirname(model, path);
-	g_strlcat(path, "skin", sizeof(path));
+  Dirname(model, path);
+  g_strlcat(path, "skin", sizeof(path));
 
-	AddImage(path);
+  AddImage(path);
 
-	Dirname(model, path);
-	g_strlcat(path, "world.cfg", sizeof(path));
+  Dirname(model, path);
+  g_strlcat(path, "world.cfg", sizeof(path));
 
-	Add(path);
+  Add(path);
 
-	StripExtension(model, path);
-	g_strlcat(path, ".mat", sizeof(path));
+  StripExtension(model, path);
+  g_strlcat(path, ".mat", sizeof(path));
 
-	AddMeshMaterials(path);
+  AddMeshMaterials(path);
 }
 
 /**
@@ -220,46 +214,46 @@ static void AddModel(const char *model) {
  */
 static void AddEntities(void) {
 
-	GList *entities = Cm_LoadEntities(bsp_file.entity_string);
+  GList *entities = Cm_LoadEntities(bsp_file.entity_string);
 
-	for (GList *entity = entities; entity; entity = entity->next) {
-		const cm_entity_t *e = entity->data;
-		while (e) {
+  for (GList *entity = entities; entity; entity = entity->next) {
+    const cm_entity_t *e = entity->data;
+    while (e) {
 
-			if (!g_strcmp0(e->key, "sound")) {
-				AddSound(e->string);
-			} else if (!g_strcmp0(e->key, "model")) {
-				AddModel(e->string);
-			} else if (!g_strcmp0(e->key, "sky")) {
-				AddSky(e->string);
-			}
+      if (!g_strcmp0(e->key, "sound")) {
+        AddSound(e->string);
+      } else if (!g_strcmp0(e->key, "model")) {
+        AddModel(e->string);
+      } else if (!g_strcmp0(e->key, "sky")) {
+        AddSky(e->string);
+      }
 
-			e = e->next;
-		}
-	}
+      e = e->next;
+    }
+  }
 
-	g_list_free_full(entities, Mem_Free);
+  g_list_free_full(entities, Mem_Free);
 }
 
 /**
  * @brief
  */
 static void AddNavigation(void) {
-	Add(va("maps/%s.nav", map_base));
+  Add(va("maps/%s.nav", map_base));
 }
 
 /**
  * @brief
  */
 static void AddLocation(void) {
-	Add(va("maps/%s.loc", map_base));
+  Add(va("maps/%s.loc", map_base));
 }
 
 /**
  * @brief
  */
 static void AddDocumentation(void) {
-	Add(va("docs/map-%s.txt", map_base));
+  Add(va("docs/map-%s.txt", map_base));
 }
 
 /**
@@ -267,18 +261,18 @@ static void AddDocumentation(void) {
  */
 static void AddMapshots_enumerate(const char *path, void *data) {
 
-	if (g_str_has_suffix(path, ".jpg") ||
-		g_str_has_suffix(path, ".png") ||
-		g_str_has_suffix(path, ".tga")) {
-		Add(path);
-	}
+  if (g_str_has_suffix(path, ".jpg") ||
+    g_str_has_suffix(path, ".png") ||
+    g_str_has_suffix(path, ".tga")) {
+    Add(path);
+  }
 }
 
 /**
  * @brief
  */
 static void AddMapshots(void) {
-	Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
+  Fs_Enumerate(va("mapshots/%s/*", map_base), AddMapshots_enumerate, NULL);
 }
 
 /**
@@ -287,134 +281,134 @@ static void AddMapshots(void) {
  * but straightforward implementation.
  */
 int32_t ZIP_Main(void) {
-	char path[MAX_OS_PATH];
+  char path[MAX_OS_PATH];
 
-	Com_Print("\n------------------------------------------\n");
-	Com_Print("\nCreating archive for %s\n\n", bsp_name);
+  Com_Print("\n------------------------------------------\n");
+  Com_Print("\nCreating archive for %s\n\n", bsp_name);
 
-	const uint32_t start = SDL_GetTicks();
+  const uint32_t start = (uint32_t) SDL_GetTicks();
 
-	paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+  paths = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
-	LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
+  LoadBSPFile(bsp_name, (1 << BSP_LUMP_MATERIALS) | (1 << BSP_LUMP_ENTITIES));
 
-	// add the materials
-	AddBspMaterials();
+  // add the materials
+  AddBspMaterials();
 
-	// add the sounds, models, sky, ..
-	AddEntities();
+  // add the sounds, models, sky, ..
+  AddEntities();
 
-	// add navigation, location, docs and mapshots
-	AddNavigation();
-	AddLocation();
-	AddDocumentation();
-	AddMapshots();
+  // add navigation, location, docs and mapshots
+  AddNavigation();
+  AddLocation();
+  AddDocumentation();
+  AddMapshots();
 
-	// and of course the bsp and map
-	if (!Add(va("maps/%s.bsp", map_base))) {
-		Com_Warn("Failed to add maps/%s.bsp", map_base);
-	}
-	if (!Add(va("maps/%s.map", map_base))) {
-		Com_Warn("Failed to add maps/%s.map", map_base);
-	};
+  // and of course the bsp and map
+  if (!Add(va("maps/%s.bsp", map_base))) {
+    Com_Warn("Failed to add maps/%s.bsp\n", map_base);
+  }
+  if (!Add(va("maps/%s.map", map_base))) {
+    Com_Warn("Failed to add maps/%s.map\n", map_base);
+  };
 
-	// sort the assets for output readability
-	GList *assets = g_hash_table_get_values(paths);
-	assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
+  // sort the assets for output readability
+  GList *assets = g_hash_table_get_values(paths);
+  assets = g_list_sort(assets, (GCompareFunc) g_strcmp0);
 
-	mz_zip_archive zip;
-	memset(&zip, 0, sizeof(zip));
+  mz_zip_archive zip;
+  memset(&zip, 0, sizeof(zip));
 
-	// write to a "temporary" archive name
-	g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
+  // write to a "temporary" archive name
+  g_snprintf(path, sizeof(path), "%s/map-%s-%d.pk3", Fs_WriteDir(), map_base, getpid());
 
-	if (mz_zip_writer_init_file(&zip, path, 0)) {
-		Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
+  if (mz_zip_writer_init_file(&zip, path, 0)) {
+    Com_Print("Compressing %d resources to %s...\n", g_list_length(assets), path);
 
-		GList *a = assets;
-		while (a) {
-			const char *filename = (char *) a->data;
-			if (g_strcmp0(filename, MISSING)) {
+    GList *a = assets;
+    while (a) {
+      const char *filename = (char *) a->data;
+      if (g_strcmp0(filename, MISSING)) {
 
-				if (include_shared == false) {
-					const char *dir = Fs_RealDir(filename);
+        if (include_shared == false) {
+          const char *dir = Fs_RealDir(filename);
 
-					if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
-						GlobMatch("sounds-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
-						GlobMatch("textures-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
-						GlobMatch("*/common/*", filename, GLOB_CASE_INSENSITIVE) ||
+          if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+            GlobMatch("sounds-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+            GlobMatch("textures-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
+            GlobMatch("*/common/*", filename, GLOB_CASE_INSENSITIVE) ||
 
-						// If the file comes from the official game data, and is not in a pk3,
-						// skip it. This allows us to rebuild our official maps easily, but without
-						// pulling in flares, envmaps, etc.
+            // If the file comes from the official game data, and is not in a pk3,
+            // skip it. This allows us to rebuild our official maps easily, but without
+            // pulling in flares, envmaps, etc.
 
-						(g_str_has_prefix(dir, PKGDATADIR) && !g_str_has_suffix(dir, ".pk3"))) {
+            (g_str_has_prefix(dir, PKGDATADIR) && !g_str_has_suffix(dir, ".pk3"))) {
 
-						Com_Print("[S] %s (%s)\n", filename, dir);
-						a = a->next;
-						continue;
-					}
-				}
+            Com_Print("[S] %s (%s)\n", filename, dir);
+            a = a->next;
+            continue;
+          }
+        }
 
-				void *buffer;
-				const int64_t len = Fs_Load(filename, &buffer);
-				if (len == -1) {
-					Com_Warn("Failed to read %s\n", filename);
-					a = a->next;
-					continue;
-				}
+        void *buffer;
+        const int64_t len = Fs_Load(filename, &buffer);
+        if (len == -1) {
+          Com_Warn("Failed to read %s\n", filename);
+          a = a->next;
+          continue;
+        }
 
-				if (!mz_zip_writer_add_mem(&zip, filename, buffer, len, MZ_DEFAULT_COMPRESSION)) {
-					Com_Error(ERROR_FATAL, "Failed to add %s to %s: %s\n",
-							  filename,
-							  path,
-							  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
-				}
+        if (!mz_zip_writer_add_mem(&zip, filename, buffer, len, MZ_DEFAULT_COMPRESSION)) {
+          Com_Error(ERROR_FATAL, "Failed to add %s to %s: %s\n",
+                filename,
+                path,
+                mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
+        }
 
-				Com_Print("[A] %s\n", filename);
+        Com_Print("[A] %s\n", filename);
 
-				Fs_Free(buffer);
-			}
-			a = a->next;
-		}
+        Fs_Free(buffer);
+      }
+      a = a->next;
+    }
 
-		if (!mz_zip_writer_finalize_archive(&zip)) {
-			Com_Error(ERROR_FATAL, "Failed to finalize %s: %s\n",
-					  path,
-					  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
-		}
-	} else {
-		Com_Error(ERROR_FATAL, "Failed to open %s: %s\n",
-				  path,
-				  mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
-	}
+    if (!mz_zip_writer_finalize_archive(&zip)) {
+      Com_Error(ERROR_FATAL, "Failed to finalize %s: %s\n",
+            path,
+            mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
+    }
+  } else {
+    Com_Error(ERROR_FATAL, "Failed to open %s: %s\n",
+          path,
+          mz_zip_get_error_string(mz_zip_get_last_error(&zip)));
+  }
 
-	g_list_free(assets);
-	g_hash_table_destroy(paths);
+  g_list_free(assets);
+  g_hash_table_destroy(paths);
 
-	const uint32_t end = SDL_GetTicks();
-	Com_Print("\nWrote %s in %d ms\n", path, end - start);
+  const uint32_t end = (uint32_t) SDL_GetTicks();
+  Com_Print("\nWrote %s in %d ms\n", path, end - start);
 
-	if (update_zip) {
-		const char *existing = va("map-%s.pk3", map_base);
+  if (update_zip) {
+    const char *existing = va("map-%s.pk3", map_base);
 
-		if (Fs_Exists(existing)) {
-			const char *dir = Fs_RealDir(existing);
+    if (Fs_Exists(existing)) {
+      const char *dir = Fs_RealDir(existing);
 
-			if (dir) {
-				gchar *to_update = g_build_filename(dir, existing, NULL);
+      if (dir) {
+        gchar *to_update = g_build_filename(dir, existing, NULL);
 
-				rename(path, to_update);
-				Com_Print("Renamed %s to %s\n", path, to_update);
+        rename(path, to_update);
+        Com_Print("Renamed %s to %s\n", path, to_update);
 
-				g_free(to_update);
-			} else {
-				Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
-			}
-		} else {
-			Com_Warn("Can't update %s: file not found\n", existing);
-		}
-	}
+        g_free(to_update);
+      } else {
+        Com_Warn("Can't update %s: Failed to resolve real path\n", existing);
+      }
+    } else {
+      Com_Warn("Can't update %s: file not found\n", existing);
+    }
+  }
 
-	return 0;
+  return 0;
 }

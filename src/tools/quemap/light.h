@@ -26,140 +26,65 @@
 #define LIGHT_COLOR Vec3(1.f, 1.f, 1.f)
 #define LIGHT_RADIUS 300.f
 #define LIGHT_INTENSITY 1.f
-#define LIGHT_SIZE 1.f
-#define LIGHT_SHADOW 1.f
-
-#define LIGHT_AMBIENT_RADIUS 256.f
-
-#define LIGHT_SUN_DIST 1024.f
-#define LIGHT_SUN_SIZE 32.f
-
-#define LIGHT_SPOT_ANGLE_UP -1.f
-#define LIGHT_SPOT_ANGLE_DOWN -2.f
-#define LIGHT_SPOT_CONE 30.f
-#define LIGHT_SPOT_FALLOFF 30.f
-
-/**
- * @brief Patch (indirect) light size in luxels.
- */
-#define LIGHT_PATCH_SIZE 16.f
 
 /**
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {
-	/**
-	 * @brief The type.
-	 */
-	light_type_t type;
+  /**
+   * @brief The entity number.
+   */
+  int32_t entity;
 
-	/**
-	 * @brief The attenuation.
-	 */
-	light_atten_t atten;
+  /**
+   * @brief The origin.
+   */
+  vec3_t origin;
 
-	/**
-	 * @brief The origin.
-	 */
-	vec3_t origin;
+  /**
+   * @brief The color.
+   */
+  vec3_t color;
 
-	/**
-	 * @brief The color.
-	 */
-	vec3_t color;
+  /**
+   * @brief The light radius in units.
+   */
+  float radius;
 
-	/**
-	 * @brief The normal vector for spotlights and sunlights.
-	 */
-	vec3_t normal;
+  /**
+   * @brief The light intensity.
+   */
+  float intensity;
 
-	/**
-	 * @brief The light radius in units.
-	 */
-	float radius;
+  /**
+   * @brief The unclipped light bounds.
+   */
+  box3_t bounds;
 
-	/**
-	 * @brief The light intensity.
-	 */
-	float intensity;
+  /**
+   * @brief The visible light bounds.
+   */
+  box3_t visible_bounds;
 
-	/**
-	 * @brief The light cone for angular attenuation in degrees.
-	 */
-	float cone;
+  /**
+   * @brief The light style.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
 
-	/**
-	 * @brief The angular attenuation interval in degrees.
-	 */
-	float falloff;
+  /**
+   * @brief The output light in the BSP, so that voxels may reference them.
+   */
+  bsp_light_t *out;
 
-	/**
-	 * @brief The cosine of the light cone.
-	 */
-	float theta;
-
-	/**
-	 * @brief The cosine of the light falloff.
-	 */
-	float phi;
-
-	/**
-	 * @brief The light shadow scalar.
-	 */
-	float shadow;
-
-	/**
-	 * @brief The size of the light, in world units, to simulate area lights.
-	 */
-	float size;
-
-	/**
-	 * @brief The bounds of the light source.
-	 */
-	box3_t bounds;
-
-	/**
-	 * @brief The visible bounds of the light source; that is, the bounding box of
-	 * all luxels that this light source contributed to.
-	 */
-	box3_t visible_bounds;
-
-	/**
-	 * @brief The sample points (origins) to be traced to for this light.
-	 * @remarks For directional lights, these are directional vectors, not points.
-	 */
-	vec3_t *points;
-
-	/**
-	 * @brief The number of sample points.
-	 */
-	int32_t num_points;
-
-	/**
-	 * @brief The light source winding for face lights.
-	 */
-	cm_winding_t *winding;
-
-	/**
-	 * @brief The light source brush side for face and patch lights.
-	 */
-	const bsp_brush_side_t *brush_side;
-
-	/**
-	 * @brief The light source plane for face and patch lights.
-	 */
-	const bsp_plane_t *plane;
-
-	/**
-	 * @brief The light source model for face and patch lights.
-	 */
-	const bsp_model_t *model;
+  /**
+   * @brief The entity number of the inline model entity this light is attached to, or 0.
+   */
+  int32_t target_entity;
 } light_t;
 
-extern GPtrArray *node_lights[MAX_BSP_NODES];
-extern GPtrArray *leaf_lights[MAX_BSP_LEAFS];
+extern GPtrArray *lights;
 
 void FreeLights(void);
-void BuildDirectLights(void);
-void BuildIndirectLights(void);
+void BuildLights(void);
 void EmitLights(void);
+void EmitLightGrid(void);

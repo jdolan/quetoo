@@ -1,28 +1,28 @@
 
 #loading {
-	autoresizing-mask: fill;
+  autoresizing-mask: fill;
 }
 
 #mapShot {
-	autoresizing-mask: fill;
+  autoresizing-mask: fill;
 }
 
 #logo {
-	alignment: middle-center;
-	width: 480;
-	height: 360;
+  alignment: middle-center;
+  width: 480;
+  height: 360;
 }
 
 #progress {
-	alignment: bottom-center;
-	autoresizing-mask: width;
-	height: 32;
+  alignment: bottom-center;
+  autoresizing-mask: width;
+  height: 32;
 }
 
 #progress .background {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 #progress > Label {
-	alignment: middle-left;
+  alignment: middle-left;
 }

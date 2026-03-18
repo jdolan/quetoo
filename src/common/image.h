@@ -24,12 +24,17 @@
 #include "files.h"
 #include "filesystem.h"
 
-#include <SDL_image.h>
+#include <SDL3_image/SDL_image.h>
 
 /**
  * @brief Loads an image by the specified Quake path to the given surface.
  */
 SDL_Surface *Img_LoadSurface(const char *name);
+
+/**
+ * @brief Resolves the average color of the texels which exceed the highpass filter.
+ */
+color_t Img_ColorHighPass(const SDL_Surface *surf, float filter);
 
 /**
  * @brief Resolves the average color of the specified surface.
@@ -45,6 +50,11 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations);
 * @brief Write pixel data to a PNG file.
 */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height);
+
+/**
+* @brief Write pixel data to a JPEG file.
+*/
+bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality);
 
 /**
 * @brief Write pixel data to a TGA file.

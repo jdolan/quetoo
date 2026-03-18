@@ -26,21 +26,21 @@
 
 int32_t main(int32_t argc, char **argv) {
 
-	Suite *suite = suite_create("color");
-	TCase *tcase;
+  Suite *suite = suite_create("color");
+  TCase *tcase;
 
-	tcase = tcase_create("color");
-	suite_add_tcase(suite, tcase);
+  tcase = tcase_create("color");
+  suite_add_tcase(suite, tcase);
 
-	tcase = tcase_create("color32");
-	suite_add_tcase(suite, tcase);
+  tcase = tcase_create("color32");
+  suite_add_tcase(suite, tcase);
 
-	SRunner *runner = srunner_create(suite);
+  SRunner *runner = srunner_create(suite);
 
-	srunner_run_all(runner, CK_VERBOSE);
-	const int32_t failed = srunner_ntests_failed(runner);
+  srunner_run_all(runner, CK_VERBOSE);
+  const int32_t failed = srunner_ntests_failed(runner);
 
-	srunner_free(runner);
-	return failed;
+  srunner_free(runner);
+  return failed;
 }
 

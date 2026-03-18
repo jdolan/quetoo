@@ -48,6 +48,9 @@
     <ClInclude Include="..\..\src\server\sv_world.h">
       <Filter>src\server</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_editor.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\server\sv_admin.c">
@@ -78,6 +81,9 @@
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\server\sv_world.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_editor.c">
       <Filter>src\server</Filter>
     </ClCompile>
   </ItemGroup>

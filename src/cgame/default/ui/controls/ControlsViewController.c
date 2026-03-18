@@ -32,11 +32,11 @@
 
 static void dealloc(Object *self) {
 
-	ControlsViewController *this = (ControlsViewController *) self;
+  ControlsViewController *this = (ControlsViewController *) self;
 
-	release(this->tabViewController);
+  release(this->tabViewController);
 
-	super(Object, self, dealloc);
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -46,31 +46,31 @@ static void dealloc(Object *self) {
  */
 static void loadView(ViewController *self) {
 
-	super(ViewController, self, loadView);
+  super(ViewController, self, loadView);
 
-	ControlsViewController *this = (ControlsViewController *) self;
+  ControlsViewController *this = (ControlsViewController *) self;
 
-	View *view = $$(View, viewWithResourceName, "ui/controls/ControlsViewController.json", NULL);
-	assert(view);
+  View *view = $$(View, viewWithResourceName, "ui/controls/ControlsViewController.json", NULL);
+  assert(view);
 
-	$(self, setView, view);
-	release(view);
+  $(self, setView, view);
+  release(view);
 
-	this->tabViewController = $(alloc(TabViewController), init);
-	assert(this->tabViewController);
+  this->tabViewController = $(alloc(TabViewController), init);
+  assert(this->tabViewController);
 
-	ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
+  ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
 
-	viewController = $((ViewController *) alloc(MovementCombatViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
+  viewController = $((ViewController *) alloc(MovementCombatViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
-	viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
-	$(tabViewController, addChildViewController, viewController);
-	release(viewController);
+  viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
 
-	$(self, addChildViewController, tabViewController);
-	$((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
+  $(self, addChildViewController, tabViewController);
+  $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
 
 #pragma mark - Class lifecycle
@@ -80,9 +80,9 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
 
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 }
 
 /**
@@ -90,21 +90,21 @@ static void initialize(Class *clazz) {
  * @memberof ControlsViewController
  */
 Class *_ControlsViewController(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "ControlsViewController",
-			.superclass = _ViewController(),
-			.instanceSize = sizeof(ControlsViewController),
-			.interfaceOffset = offsetof(ControlsViewController, interface),
-			.interfaceSize = sizeof(ControlsViewControllerInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "ControlsViewController",
+      .superclass = _ViewController(),
+      .instanceSize = sizeof(ControlsViewController),
+      .interfaceOffset = offsetof(ControlsViewController, interface),
+      .interfaceSize = sizeof(ControlsViewControllerInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

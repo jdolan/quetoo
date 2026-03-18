@@ -25,154 +25,159 @@
  * @brief The shadow program.
  */
 static struct {
-	GLuint name;
+  GLuint name;
 
-	/**
-	 * @brief The uniform blocks.
-	 */
-	GLuint uniforms_block;
-	GLuint lights_block;
+  /**
+   * @brief The uniform blocks.
+   */
+  GLuint uniforms_block;
+  GLuint lights_block;
 
-	/**
-	 * @brief The vertex attributes.
-	 */
-	GLint in_position;
-	GLint in_next_position;
+  /**
+   * @brief The model matrix.
+   */
+  GLint model;
 
-	/**
-	 * @brief The model matrix.
-	 */
-	GLint model;
+  /**
+   * @brief The frame interpolation fraction.
+   */
+  GLint lerp;
 
-	/**
-	 * @brief The frame interpolation fraction.
-	 */
-	GLint lerp;
+  /**
+   * @brief The light view matrices for 6-pass rendering without geometry shader.
+   */
+  GLint light_view;
 
-	/**
-	 * @brief The light index and shadow layer.
-	 */
-	GLint light_index;
+  /**
+   * @brief The light index.
+   */
+  GLint light_index;
+
+  /**
+   * @brief The face index.
+   */
+  GLint face_index;
 } r_shadow_program;
 
 /**
  * @brief The shadows.
  */
 static struct {
-	/**
-	 * @brief Each light source targets a layer in the cubemap array.
-	 */
-	GLuint cubemap_array;
+  /**
+   * @brief Each light source targets a layer in the cubemap array texture.
+   */
+  GLuint cubemap_array;
 
-	/**
-	 * @brief The depth pass framebuffer.
-	 */
-	GLuint framebuffer;
-} r_shadows;
+  /**
+   * @brief The depth pass framebuffer.
+   */
+  GLuint framebuffer;
+} r_shadow_textures;
+
+/**
+ * @brief Pre-culled entities for shadow rendering.
+ * @details Populated once per light to avoid redundant culling tests across 6 cubemap faces.
+ */
+static struct {
+  const r_entity_t *bsp_entities[MAX_ENTITIES];
+  int32_t num_bsp_entities;
+
+  const r_entity_t *mesh_entities[MAX_ENTITIES];
+  int32_t num_mesh_entities;
+} r_shadow_entities;
 
 /**
  * @brief
  */
-static void R_DrawBspInlineModelShadow(const r_bsp_inline_model_t *in) {
+static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
+  while (e) {
+    if (light->source == e->id) {
+      return true;
+    }
+    e = e->parent;
+  }
 
-	glBindVertexArray(bsp->vertex_array);
-
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glDisableVertexAttribArray(r_shadow_program.in_next_position);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, in->depth_pass_elements_buffer);
-	glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, NULL);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
+  return false;
 }
 
 /**
  * @brief
  */
-static void R_DrawBspInlineModelEntityShadow(const r_view_t *view, const r_entity_t *e) {
+static void R_DrawBspEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
-	const r_bsp_inline_model_t *in = e->model->bsp_inline;
-	assert(in);
+  const r_bsp_inline_model_t *in = e->model->bsp_inline;
 
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
+  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
 
-	R_DrawBspInlineModelShadow(in);
+  if (light->bsp_light && in == r_models.world->bsp->inline_models) {
+    glDrawElements(GL_TRIANGLES, light->bsp_light->num_depth_pass_elements, GL_UNSIGNED_INT, light->bsp_light->depth_pass_elements);
+  } else {
+    glDrawElements(GL_TRIANGLES, in->num_depth_pass_elements, GL_UNSIGNED_INT, in->depth_pass_elements);
+  }
 }
 
 /**
- * @brief
+ * @brief Culls BSP entities for shadow rendering against the specified light.
+ * @details Performs all culling tests once and builds a list of visible entities.
+ * This avoids redundant testing across all 6 cubemap faces.
  */
-static void R_DrawBspNodeShadow_r(const r_light_t *light, const r_bsp_node_t *node) {
+static void R_CullBspEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
 
-	if (node->contents != CONTENTS_NODE) {
-		return;
-	}
+  r_shadow_entities.num_bsp_entities = 0;
 
-	if (node->query.name && node->query.result == 0) {
-		return;
-	}
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-	const r_bsp_face_t *face = node->faces;
-	for (int32_t i = 0; i < node->num_faces; i++, face++) {
+    if (!IS_BSP_INLINE_MODEL(e->model)) {
+      continue;
+    }
 
-		if (face->brush_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
-			continue;
-		}
+    if (Box3_IsNull(e->abs_model_bounds)) {
+      continue;
+    }
 
-		if (face->brush_side->surface & SURF_MASK_TRANSLUCENT) {
-			continue;
-		}
+    if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+      continue;
+    }
 
-		if (!Box3_Intersects(light->bounds, face->bounds)) {
-			continue;
-		}
+    vec3_t corners[8];
+    Box3_ToPoints(e->abs_model_bounds, corners);
 
-		glDrawElements(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements);
-	}
+    box3_t shadow_bounds = e->abs_model_bounds;
+    for (int32_t j = 0; j < 8; j++) {
+      const vec3_t to_corner = Vec3_Subtract(corners[j], light->origin);
+      const vec3_t dir = Vec3_Normalize(to_corner);
+      shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
+    }
 
-	const int32_t side = Cm_BoxOnPlaneSide(light->bounds, node->plane->cm);
+    shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
 
-	if (side & SIDE_FRONT) {
-		R_DrawBspNodeShadow_r(light, node->children[0]);
-	}
-	
-	if (side & SIDE_BACK) {
-		R_DrawBspNodeShadow_r(light, node->children[1]);
-	}
+    if (R_CulludeBox(view, shadow_bounds)) {
+      continue;
+    }
+
+    r_shadow_entities.bsp_entities[r_shadow_entities.num_bsp_entities++] = e;
+  }
 }
 
 /**
- * @brief
+ * @brief Draws BSP entity shadows for the specified light.
+ * @details Iterates the pre-culled list built by R_CullBspEntitiesForShadow().
  */
-static void R_DrawBspNodeShadow(const r_light_t *light) {
+static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
-	const r_bsp_model_t *bsp = r_world_model->bsp;
+  const r_bsp_model_t *bsp = r_models.world->bsp;
+  glBindVertexArray(bsp->depth_pass.vertex_array);
 
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
-	glUniform1f(r_shadow_program.lerp, 0.f);
+  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, Mat4_Identity().array);
+  glUniform1f(r_shadow_program.lerp, 0.f);
 
-	glBindVertexArray(bsp->vertex_array);
+  for (int32_t i = 0; i < r_shadow_entities.num_bsp_entities; i++) {
+    R_DrawBspEntityShadow(view, light, r_shadow_entities.bsp_entities[i]);
+  }
 
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glDisableVertexAttribArray(r_shadow_program.in_next_position);
-
-	glBindBuffer(GL_ARRAY_BUFFER, bsp->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsp->elements_buffer);
-
-	R_DrawBspNodeShadow_r(light, bsp->nodes + light->node);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	glBindVertexArray(0);
+  glBindVertexArray(0);
 }
 
 /**
@@ -180,70 +185,104 @@ static void R_DrawBspNodeShadow(const r_light_t *light) {
  */
 static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
-	const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
-	
-	const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (void *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-	
-	const GLint base_vertex = (GLint) (face->vertexes - mesh->vertexes);
-	glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->elements, base_vertex);
+  const ptrdiff_t old_frame_offset = e->old_frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+  const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+
+  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 }
 
 /**
  * @brief
  */
-static void R_DrawMeshEntityShadow(const r_entity_t *e) {
+static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
-	const r_mesh_model_t *mesh = e->model->mesh;
-	assert(mesh);
+  const r_mesh_model_t *mesh = e->model->mesh;
+  assert(mesh);
 
-	glBindVertexArray(mesh->vertex_array);
+  glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
+  glUniform1f(r_shadow_program.lerp, e->lerp);
 
-	glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->elements_buffer);
+  if (mesh->num_frames == 1) {
+    glDrawElementsBaseVertex(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, mesh->indices, mesh->base_vertex);
+  } else {
 
-	glEnableVertexAttribArray(r_shadow_program.in_position);
-	glEnableVertexAttribArray(r_shadow_program.in_next_position);
-	
-	glUniformMatrix4fv(r_shadow_program.model, 1, GL_FALSE, e->matrix.array);
-	glUniform1f(r_shadow_program.lerp, e->lerp);
+    const r_mesh_face_t *face = mesh->faces;
+    for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
+      R_DrawMeshFaceShadow(e, mesh, face);
+    }
 
-	{
-		const r_mesh_face_t *face = mesh->faces;
-		for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
-
-			const r_material_t *material = e->skins[i] ?: face->material;
-			if ((material->cm->surface & SURF_MASK_BLEND) || (e->effects & EF_BLEND)) {
-				continue;
-			}
-
-			R_DrawMeshFaceShadow(e, mesh, face);
-		}
-	}
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
-	glBindVertexArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+  }
 }
 
 /**
- * @brief Clears the shadow texture for the specified light.
+ * @brief Culls mesh entities for shadow rendering against the specified light.
+ * @details Performs all culling tests once and builds a list of visible entities.
+ * This avoids redundant testing across all 6 cubemap faces.
  */
-static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
+static void R_CullMeshEntitiesForShadow(const r_view_t *view, const r_light_t *light) {
 
-	for (int32_t i = 0; i < 6; i++) {
-		glFramebufferTextureLayer(GL_FRAMEBUFFER,
-								  GL_DEPTH_ATTACHMENT,
-								  r_shadows.cubemap_array,
-								  0,
-								  light->index * 6 + i);
+  r_shadow_entities.num_mesh_entities = 0;
 
-		glClear(GL_DEPTH_BUFFER_BIT);
-	}
+  const r_entity_t *e = view->entities;
+  for (int32_t i = 0; i < view->num_entities; i++, e++) {
 
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadows.cubemap_array, 0);
+    if (!IS_MESH_MODEL(e->model)) {
+      continue;
+    }
+
+    if (e->effects & (EF_NO_SHADOW | EF_BLEND)) {
+      continue;
+    }
+
+    if (R_IsLightSource(light, e)) {
+      continue;
+    }
+
+    if (!Box3_Intersects(light->bounds, e->abs_model_bounds)) {
+      continue;
+    }
+
+    vec3_t corners[8];
+    Box3_ToPoints(e->abs_model_bounds, corners);
+
+    box3_t shadow_bounds = e->abs_model_bounds;
+    for (int32_t j = 0; j < 8; j++) {
+      const vec3_t to_corner = Vec3_Subtract(corners[j], light->origin);
+      const vec3_t dir = Vec3_Normalize(to_corner);
+      shadow_bounds = Box3_Append(shadow_bounds, Vec3_Fmaf(light->origin, light->radius, dir));
+    }
+
+    shadow_bounds = Box3_Expand(shadow_bounds, 32.f);
+
+    if (R_CulludeBox(view, shadow_bounds)) {
+      continue;
+    }
+
+    r_shadow_entities.mesh_entities[r_shadow_entities.num_mesh_entities++] = e;
+  }
+}
+
+/**
+ * @brief Draws mesh entity shadows for the specified light.
+ * @details Iterates the pre-culled list built by R_CullMeshEntitiesForShadow().
+ */
+static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
+
+  glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
+
+  glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_models.mesh.elements_buffer);
+
+  for (int32_t i = 0; i < r_shadow_entities.num_mesh_entities; i++) {
+    R_DrawMeshEntityShadow(view, light, r_shadow_entities.mesh_entities[i]);
+  }
+
+  glBindVertexArray(0);
 }
 
 /**
@@ -251,108 +290,142 @@ static void R_ClearShadow(const r_view_t *view, const r_light_t *light) {
  */
 static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
-	glUniform1i(r_shadow_program.light_index, light->index);
+  const vec3_t closest_point = Box3_ClampPoint(light->bounds, view->origin);
+  const float dist = Vec3_Distance(closest_point, view->origin);
 
-	if (light->type == LIGHT_DYNAMIC) {
-		R_DrawBspNodeShadow(light);
-	}
+  R_CullBspEntitiesForShadow(view, light);
 
-	for (int32_t i = 0; i < light->num_entities; i++) {
-		const r_entity_t *e = light->entities[i];
+  if (r_shadows->value && dist <= r_shadow_distance->value) {
+    R_CullMeshEntitiesForShadow(view, light);
+  } else {
+    r_shadow_entities.num_mesh_entities = 0;
+  }
 
-		if (IS_MESH_MODEL(e->model)) {
-			R_DrawMeshEntityShadow(e);
-		} else if (IS_BSP_INLINE_MODEL(e->model)) {
-			R_DrawBspInlineModelEntityShadow(view, e);
-		} else {
-			assert(false);
-		}
-	}
+  const bool is_shadow_cacheable = r_shadow_entities.num_bsp_entities <= 1
+                                && r_shadow_entities.num_mesh_entities == 0;
 
-	R_GetError(NULL);
-}
+  if (is_shadow_cacheable) {
+    if (light->shadow_cached && *light->shadow_cached) {
+      return;
+    }
+  }
 
-/**
- * @brief 
- */
-void R_DrawShadows(const r_view_t *view) {
+  const GLint index = (GLint) (light - view->lights);
 
-	if (!r_shadowmap->integer) {
-		return;
-	}
+  glUniform1i(r_shadow_program.light_index, index);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
+  for (GLint face = 0; face < 6; face++) {
 
-	glUseProgram(r_shadow_program.name);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER,
+                              GL_DEPTH_ATTACHMENT,
+                              r_shadow_textures.cubemap_array,
+                              0,
+                              index * 6 + face);
 
-	const GLsizei size = r_shadowmap_size->integer;
-	glViewport(0, 0, size, size);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_FRONT);
+    glUniform1i(r_shadow_program.face_index, face);
 
-	const r_light_t *l = view->lights;
-	for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    if (r_shadow_entities.num_bsp_entities > 0) {
+      R_DrawBspEntitiesShadow(view, light);
+    }
 
-		if (l->index == -1) {
-			continue;
-		}
+    if (r_shadow_entities.num_mesh_entities > 0) {
+      R_DrawMeshEntitiesShadow(view, light);
+    }
+  }
 
-		R_ClearShadow(view, l);
+  if (light->shadow_cached) {
+    *light->shadow_cached = is_shadow_cacheable;
+  }
 
-		if (l->num_entities == 0 && l->type != LIGHT_DYNAMIC) {
-			continue;
-		}
-
-		R_DrawShadow(view, l);
-	}
-
-	glCullFace(GL_BACK);
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-
-	glViewport(0, 0, r_context.drawable_width, r_context.drawable_height);
-
-	glUseProgram(0);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
  * @brief
  */
+void R_DrawShadows(const r_view_t *view) {
+
+  glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_textures.framebuffer);
+
+  glUseProgram(r_shadow_program.name);
+
+  const GLsizei size = r_shadow_cubemap_array_size->integer;
+  glViewport(0, 0, size, size);
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_DEPTH_CLAMP);
+
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_FRONT);
+
+  const r_light_t *l = view->lights;
+  for (int32_t i = 0; i < view->num_lights; i++, l++) {
+
+    if (l->occluded) {
+      continue;
+    }
+
+    R_DrawShadow(view, l);
+  }
+
+  glCullFace(GL_BACK);
+  glDisable(GL_CULL_FACE);
+
+  glDisable(GL_DEPTH_CLAMP);
+  glDisable(GL_DEPTH_TEST);
+
+  const SDL_Rect viewport = r_context.viewport;
+  glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+
+  glUseProgram(0);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  R_GetError(NULL);
+}
+
+/**
+ * @brief Initializes the shadow program with optimized shaders (no geometry shader).
+ */
 static void R_InitShadowProgram(void) {
 
-	memset(&r_shadow_program, 0, sizeof(r_shadow_program));
+  memset(&r_shadow_program, 0, sizeof(r_shadow_program));
 
-	r_shadow_program.name = R_LoadProgram(
-			R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_vs.glsl", NULL),
-			R_ShaderDescriptor(GL_GEOMETRY_SHADER, "shadow_gs.glsl", NULL),
-			R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_fs.glsl", NULL),
-			NULL);
+  r_shadow_program.name = R_LoadProgram(
+        R_ShaderDescriptor(GL_VERTEX_SHADER, "shadow_vs.glsl", NULL),
+        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "shadow_fs.glsl", NULL),
+        NULL);
 
-	glUseProgram(r_shadow_program.name);
+  glUseProgram(r_shadow_program.name);
 
-	r_shadow_program.uniforms_block = glGetUniformBlockIndex(r_shadow_program.name, "uniforms_block");
-	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.uniforms_block, 0);
+  r_shadow_program.uniforms_block = glGetUniformBlockIndex(r_shadow_program.name, "uniforms_block");
+  glUniformBlockBinding(r_shadow_program.name, r_shadow_program.uniforms_block, 0);
 
-	r_shadow_program.lights_block = glGetUniformBlockIndex(r_shadow_program.name, "lights_block");
-	glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
+  r_shadow_program.lights_block = glGetUniformBlockIndex(r_shadow_program.name, "lights_block");
+  glUniformBlockBinding(r_shadow_program.name, r_shadow_program.lights_block, 1);
 
-	r_shadow_program.in_position = glGetAttribLocation(r_shadow_program.name, "in_position");
-	r_shadow_program.in_next_position = glGetAttribLocation(r_shadow_program.name, "in_next_position");
+  r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
+  r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");
+  r_shadow_program.light_view = glGetUniformLocation(r_shadow_program.name, "light_view");
+  r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
+  r_shadow_program.face_index = glGetUniformLocation(r_shadow_program.name, "face_index");
 
-	r_shadow_program.model = glGetUniformLocation(r_shadow_program.name, "model");
-	r_shadow_program.lerp = glGetUniformLocation(r_shadow_program.name, "lerp");
+  const mat4_t light_view[6] = {
+    Mat4_LookAt(Vec3_Zero(), Vec3( 1.f,  0.f,  0.f), Vec3(0.f, -1.f,  0.f)),
+    Mat4_LookAt(Vec3_Zero(), Vec3(-1.0,  0.0,  0.0), Vec3(0.0, -1.0,  0.0)),
+    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  1.0,  0.0), Vec3(0.0,  0.0,  1.0)),
+    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0, -1.0,  0.0), Vec3(0.0,  0.0, -1.0)),
+    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  0.0,  1.0), Vec3(0.0, -1.0,  0.0)),
+    Mat4_LookAt(Vec3_Zero(), Vec3( 0.0,  0.0, -1.0), Vec3(0.0, -1.0,  0.0))
+  };
 
-	r_shadow_program.light_index = glGetUniformLocation(r_shadow_program.name, "light_index");
+  glUniformMatrix4fv(r_shadow_program.light_view, 6, false, (float *) light_view);
 
-	glUseProgram(0);
+  glUseProgram(0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -360,28 +433,28 @@ static void R_InitShadowProgram(void) {
  */
 static void R_InitShadowTextures(void) {
 
-	const GLsizei size = r_shadowmap_size->integer;
+  const GLsizei size = r_shadow_cubemap_array_size->integer;
 
-	glGenTextures(1, &r_shadows.cubemap_array);
-	
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOWMAP_CUBE);
-	glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadows.cubemap_array);
+  glGenTextures(1, &r_shadow_textures.cubemap_array);
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOW_CUBEMAP_ARRAY);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, r_shadow_textures.cubemap_array);
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-	glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHT_UNIFORMS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-	glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+  glTexImage3D(GL_TEXTURE_CUBE_MAP_ARRAY, 0, GL_DEPTH_COMPONENT, size, size, MAX_LIGHTS * 6, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
-	R_GetError(NULL);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+
+  R_GetError(NULL);
 }
 
 /**
@@ -389,28 +462,28 @@ static void R_InitShadowTextures(void) {
  */
 static void R_InitShadowFramebuffer(void) {
 
-	glGenFramebuffers(1, &r_shadows.framebuffer);
+  glGenFramebuffers(1, &r_shadow_textures.framebuffer);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, r_shadows.framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_textures.framebuffer);
 
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
- * @brief 
+ * @brief
  */
 void R_InitShadows(void) {
 
-	R_InitShadowProgram();
+  R_InitShadowProgram();
 
-	R_InitShadowTextures();
+  R_InitShadowTextures();
 
-	R_InitShadowFramebuffer();
+  R_InitShadowFramebuffer();
 }
 
 /**
@@ -418,11 +491,11 @@ void R_InitShadows(void) {
  */
 static void R_ShutdownShadowProgram(void) {
 
-	glDeleteProgram(r_shadow_program.name);
+  glDeleteProgram(r_shadow_program.name);
 
-	r_shadow_program.name = 0;
+  r_shadow_program.name = 0;
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -430,11 +503,11 @@ static void R_ShutdownShadowProgram(void) {
  */
 static void R_ShutdownShadowTexture(void) {
 
-	glDeleteTextures(1, &r_shadows.cubemap_array);
+  glDeleteTextures(1, &r_shadow_textures.cubemap_array);
 
-	r_shadows.cubemap_array = 0;
+  r_shadow_textures.cubemap_array = 0;
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
@@ -442,21 +515,21 @@ static void R_ShutdownShadowTexture(void) {
  */
 static void R_ShutdownShadowFramebuffer(void) {
 
-	glDeleteFramebuffers(1, &r_shadows.framebuffer);
+  glDeleteFramebuffers(1, &r_shadow_textures.framebuffer);
 
-	r_shadows.framebuffer = 0;
+  r_shadow_textures.framebuffer = 0;
 
-	R_GetError(NULL);
+  R_GetError(NULL);
 }
 
 /**
- * @brief 
+ * @brief
  */
 void R_ShutdownShadows(void) {
 
-	R_ShutdownShadowProgram();
+  R_ShutdownShadowProgram();
 
-	R_ShutdownShadowTexture();
+  R_ShutdownShadowTexture();
 
-	R_ShutdownShadowFramebuffer();
+  R_ShutdownShadowFramebuffer();
 }

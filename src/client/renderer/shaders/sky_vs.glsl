@@ -21,14 +21,10 @@
 
 layout (location = 0) in vec3 in_position;
 
-uniform mat4 cube;
+out common_vertex_t vertex;
 
-out vertex_data {
-	vec3 model;
-	vec3 position;
-	vec3 cubemap;
-	vec3 lightgrid;
-} vertex;
+// Sky-specific cubemap coordinate
+out vec3 cubemap_coord;
 
 invariant gl_Position;
 
@@ -37,12 +33,27 @@ invariant gl_Position;
  */
 void main(void) {
 
-	vec4 position = vec4(in_position, 1.0);
+  vec4 position = vec4(in_position, 1.0);
 
-	vertex.model = in_position;
-	vertex.position = vec3(view * position);
-	vertex.cubemap = vec3(cube * position);
-	vertex.lightgrid = lightgrid_uvw(in_position);
+  vertex.model_position = in_position;
+  vertex.position = vec3(view * position);
+  cubemap_coord = vec3(sky_projection * position);
+  vertex.voxel = voxel_uvw(in_position);
+  vertex.fog = vertex_fog(vertex);
+  
+  // Initialize unused fields
+  vertex.model_normal = normalize(in_position);
+  vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
+  vertex.smooth_normal = vertex.normal;
+  vertex.tangent = vec3(1.0, 0.0, 0.0);
+  vertex.bitangent = vec3(0.0, 1.0, 0.0);
+  vertex.tbn = mat3(1.0);
+  vertex.inverse_tbn = mat3(1.0);
+  vertex.diffusemap = vec2(0.0);
+  vertex.color = vec4(1.0);
+  vertex.ambient = vec3(0.0);
+  vertex.caustics = 0.0;
+  vertex.lighting = vec3(1.0); // Sky is self-lit
 
-	gl_Position = projection3D * view * position;
+  gl_Position = projection3D * view * position;
 }

@@ -25,7 +25,7 @@
 
 int32_t Cl_PointContents(const vec3_t point);
 int32_t Cl_BoxContents(const box3_t bounds);
-cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t skip, int32_t contents);
+cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
 
 #ifdef __CL_LOCAL_H__
 void Cl_PredictMovement(void);

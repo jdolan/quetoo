@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include <SDL_mutex.h>
+#include <SDL3/SDL_mutex.h>
 
 #include "cmd.h"
 #include "cvar.h"
@@ -33,30 +33,30 @@
  */
 typedef struct {
 
-	/**
-	 * @brief The print level (e.g. PRINT_HIGH).
-	 */
-	uint32_t level;
+  /**
+   * @brief The print level (e.g. PRINT_HIGH).
+   */
+  uint32_t level;
 
-	/**
-	 * @brief The null-terminated C string.
-	 */
-	char *chars;
+  /**
+   * @brief The null-terminated C string.
+   */
+  char *chars;
 
-	/**
-	 * @brief The size of this string in bytes.
-	 */
-	size_t size;
+  /**
+   * @brief The size of this string in bytes.
+   */
+  size_t size;
 
-	/**
-	 * @brief The length of this string in printable characters.
-	 */
-	size_t length;
+  /**
+   * @brief The length of this string in printable characters.
+   */
+  size_t length;
 
-	/**
-	 * @brief The timestamp.
-	 */
-	uint32_t timestamp;
+  /**
+   * @brief The timestamp.
+   */
+  uint32_t timestamp;
 
 } console_string_t;
 
@@ -69,25 +69,25 @@ typedef struct {
  * @brief The console state.
  */
 typedef struct {
-	/**
-	 * @brief The console strings.
-	 */
-	GQueue strings;
+  /**
+   * @brief The console strings.
+   */
+  GQueue strings;
 
-	/**
-	 * @brief The length of the console strings in characters.
-	 */
-	size_t size;
+  /**
+   * @brief The length of the console strings in characters.
+   */
+  size_t size;
 
-	/**
-	 * @brief The configured consoles.
-	 */
-	GList *consoles;
+  /**
+   * @brief The configured consoles.
+   */
+  GList *consoles;
 
-	/**
-	 * @brief A lock for coordinating thread access to the console.
-	 */
-	SDL_mutex *lock;
+  /**
+   * @brief A lock for coordinating thread access to the console.
+   */
+  SDL_Mutex *lock;
 
 } console_state_t;
 
@@ -99,8 +99,8 @@ extern console_state_t console_state;
 #define CON_HISTORY_SIZE 64
 
 typedef enum {
-	CON_HISTORY_PREV = 1,
-	CON_HISTORY_NEXT
+  CON_HISTORY_PREV = 1,
+  CON_HISTORY_NEXT
 } console_history_nav_t;
 
 /**
@@ -108,20 +108,20 @@ typedef enum {
  */
 typedef struct {
 
-	/**
-	 * @brief The circular buffer of history strings.
-	 */
-	char strings[CON_HISTORY_SIZE][MAX_PRINT_MSG];
+  /**
+   * @brief The circular buffer of history strings.
+   */
+  char strings[CON_HISTORY_SIZE][MAX_PRINT_MSG];
 
-	/**
-	 * @brief The always-increasing, un-clamped insert index.
-	 */
-	size_t index;
+  /**
+   * @brief The always-increasing, un-clamped insert index.
+   */
+  size_t index;
 
-	/**
-	 * @brief The circularly clamped history position for up-scrolling.
-	 */
-	size_t pos;
+  /**
+   * @brief The circularly clamped history position for up-scrolling.
+   */
+  size_t pos;
 
 } console_history_t;
 
@@ -130,15 +130,15 @@ typedef struct {
  */
 typedef struct {
 
-	/**
-	 * @brief The input buffer.
-	 */
-	char buffer[MAX_PRINT_MSG];
+  /**
+   * @brief The input buffer.
+   */
+  char buffer[MAX_PRINT_MSG];
 
-	/**
-	 * @brief The cursor offset into `buffer`.
-	 */
-	size_t pos;
+  /**
+   * @brief The cursor offset into `buffer`.
+   */
+  size_t pos;
 
 } console_input_t;
 
@@ -147,65 +147,65 @@ typedef struct {
  */
 typedef struct {
 
-	/**
-	 * @brief Console width in characters.
-	 */
-	size_t width;
+  /**
+   * @brief Console width in characters.
+   */
+  size_t width;
 
-	/**
-	 * @brief Console height in characters.
-	 */
-	size_t height;
+  /**
+   * @brief Console height in characters.
+   */
+  size_t height;
 
-	/**
-	 * @brief The scroll offset in lines.
-	 */
-	size_t scroll;
+  /**
+   * @brief The scroll offset in lines.
+   */
+  size_t scroll;
 
-	/**
-	 * @brief The minimum timestamp for tail operations.
-	 */
-	uint32_t whence;
+  /**
+   * @brief The minimum timestamp for tail operations.
+   */
+  uint32_t whence;
 
-	/**
-	 * @brief The level mask for tail operations.
-	 */
-	uint32_t level;
+  /**
+   * @brief The level mask for tail operations.
+   */
+  uint32_t level;
 
-	/**
-	 * @brief The history structure.
-	 */
-	console_history_t history;
+  /**
+   * @brief The history structure.
+   */
+  console_history_t history;
 
-	/**
-	 * @brief The input structure.
-	 */
-	console_input_t input;
+  /**
+   * @brief The input structure.
+   */
+  console_input_t input;
 
-	/**
-	 * @brief If true, input is echoed to the console subsystem.
-	 */
-	bool echo;
+  /**
+   * @brief If true, input is echoed to the console subsystem.
+   */
+  bool echo;
 
-	/**
-	 * @brief An optional print callback.
-	 */
-	void (*Append)(const console_string_t *str);
+  /**
+   * @brief An optional print callback.
+   */
+  void (*Append)(const console_string_t *str);
 } console_t;
 
 /**
  * @brief The structure used for autocomplete values.
  */
 typedef struct {
-	/**
-	 * @brief The match itself
-	 */
-	char *name;
+  /**
+   * @brief The match itself
+   */
+  char *name;
 
-	/**
-	 * @brief The value printed to the screen. If null, name isused.
-	 */
-	char *description;
+  /**
+   * @brief The value printed to the screen. If null, name isused.
+   */
+  char *description;
 } con_autocomplete_match_t;
 
 void Con_Append(int32_t level, const char *string);

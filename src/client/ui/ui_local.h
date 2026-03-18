@@ -22,4 +22,13 @@
 #pragma once
 
 #define __UI_LOCAL_H__
+
+#ifndef UI_EXPORT
+#if defined(_WIN32)
+#define UI_EXPORT __declspec(dllexport)
+#else
+#define UI_EXPORT extern
+#endif
+#endif
+
 #include "ui.h"

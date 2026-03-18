@@ -31,15 +31,15 @@ typedef struct cg_sprite_s cg_sprite_t;
  * @brief Sprite types.
  */
 typedef enum {
-	/**
-	 * @brief A normal sprite, billboard or directional.
-	 */
-	SPRITE_NORMAL	= 0,
+  /**
+   * @brief A normal sprite, billboard or directional.
+   */
+  SPRITE_NORMAL  = 0,
 
-	/**
-	 * @brief A beam, or segmented sprite with origin and termination points.
-	 */
-	SPRITE_BEAM		= 1,
+  /**
+   * @brief A beam, or segmented sprite with origin and termination points.
+   */
+  SPRITE_BEAM    = 1,
 
 } cg_sprite_type_t;
 
@@ -52,40 +52,38 @@ typedef void (*Cg_SpriteThink)(cg_sprite_t *sprite, float life, float delta);
  * @brief CGame-specific sprite flags.
  */
 enum {
-	/**
-	 * @brief Beam's velocity does not affect the end point.
-	 */
-	SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME,
+  /**
+   * @brief Beam's velocity does not affect the end point.
+   */
+  SPRITE_BEAM_VELOCITY_NO_END = SPRITE_CGAME,
 
-	/**
-	 * @brief Life time is calculated based on server time rather than client time.
-	 */
-	SPRITE_SERVER_TIME = SPRITE_CGAME << 1,
+  /**
+   * @brief Life time is calculated based on server time rather than client time.
+   */
+  SPRITE_SERVER_TIME = SPRITE_CGAME << 1,
 
-	/**
-	 * @brief Data is not heap-allocated, so don't free.
-	 */
-	SPRITE_DATA_NOFREE = SPRITE_CGAME << 2,
+  /**
+   * @brief Data is not heap-allocated, so don't free.
+   */
+  SPRITE_DATA_NOFREE = SPRITE_CGAME << 2,
 
-	/**
-	 * @brief Sprite is relative to entity ID specified in the structure.
-	 */
-	SPRITE_FOLLOW_ENTITY = SPRITE_CGAME << 3,
+  /**
+   * @brief Sprite is relative to entity ID specified in the structure.
+   */
+  SPRITE_FOLLOW_ENTITY = SPRITE_CGAME << 3,
 
-	/**
-	 * @brief Rather than despawning, the sprite will "unlink" from its entity when it dies
-	 */
-	SPRITE_ENTITY_UNLINK_ON_DEATH = SPRITE_CGAME << 4
+  /**
+   * @brief Rather than despawning, the sprite will "unlink" from its entity when it dies
+   */
+  SPRITE_ENTITY_UNLINK_ON_DEATH = SPRITE_CGAME << 4
 };
-
-typedef uint32_t cg_r_sprite_flags_t;
 
 /**
  * @brief Type-safe mapping to entity & spawn ID
  */
 typedef struct {
-	uint16_t entity_id;
-	uint8_t spawn_id;
+  int16_t entity_id;
+  uint8_t spawn_id;
 } cg_sprite_entity_t;
 
 /**
@@ -94,179 +92,167 @@ typedef struct {
  * @return The sprite entity
  */
 static inline cg_sprite_entity_t Cg_GetSpriteEntity(const cl_entity_t *ent) {
-	return (cg_sprite_entity_t) {
-		.entity_id = ent->current.number,
-		.spawn_id = ent->current.spawn_id
-	};
+  return (cg_sprite_entity_t) {
+    .entity_id = ent->current.number,
+    .spawn_id = ent->current.spawn_id
+  };
 }
 
 /**
  * @brief Client game sprites can persist over multiple frames.
  */
 struct cg_sprite_s {
-	/**
-	 * @brief Type of sprite.
-	 */
-	cg_sprite_type_t type;
+  /**
+   * @brief Type of sprite.
+   */
+  cg_sprite_type_t type;
 
-	/**
-	 * @brief The sprite origin.
-	 */
-	vec3_t origin;
+  /**
+   * @brief The sprite origin.
+   */
+  vec3_t origin;
 
-	/**
-	 * @brief The sprite termination, for beams.
-	 */
-	vec3_t termination;
+  /**
+   * @brief The sprite termination, for beams.
+   */
+  vec3_t termination;
 
-	/**
-	 * @brief The sprite velocity.
-	 */
-	vec3_t velocity;
+  /**
+   * @brief The sprite velocity.
+   */
+  vec3_t velocity;
 
-	/**
-	 * @brief The sprite acceleration.
-	 */
-	vec3_t acceleration;
+  /**
+   * @brief The sprite acceleration.
+   */
+  vec3_t acceleration;
 
-	/**
-	 * @brief The sprite friction.
-	 */
-	float friction;
+  /**
+   * @brief The sprite friction.
+   */
+  float friction;
 
-	/**
-	 * @brief The sprite rotation, in radians.
-	 */
-	float rotation;
+  /**
+   * @brief The sprite rotation, in radians.
+   */
+  float rotation;
 
-	/**
-	 * @brief The sprite rotation velocity.
-	 */
-	float rotation_velocity;
+  /**
+   * @brief The sprite rotation velocity.
+   */
+  float rotation_velocity;
 
-	/**
-	 * @brief The sprite direction. { 0, 0, 0 } is billboard.
-	 */
-	vec3_t dir;
+  /**
+   * @brief The sprite direction. { 0, 0, 0 } is billboard.
+   */
+  vec3_t dir;
 
-	/**
-	 * @brief The sprite color, in HSVA.
-	 * @details For alpha-blended sprites, the colors are used as "normal". For additive sprites,
-	 * alpha *must* be zero at all times.
-	 */
-	vec4_t color;
+  /**
+   * @brief The sprite color.
+   */
+  vec3_t color;
 
-	/**
-	 * @brief The sprite's end color, in HSVA.
-	 * @see color
-	 */
-	vec4_t end_color;
+  /**
+   * @brief The sprite's end color.
+   * @see color
+   */
+  vec3_t end_color;
 
-	/**
-	 * @brief The sprite size, in world units. If this is specified, width/height are not used.
-	 */
-	float size;
+  /**
+   * @brief The sprite size, in world units. If this is specified, width/height are not used.
+   */
+  float size;
 
-	/**
-	 * @brief The sprite width, in world units.
-	 */
-	float width;
+  /**
+   * @brief The sprite width, in world units.
+   */
+  float width;
 
-	/**
-	 * @brief The sprite height, in world units.
-	 */
-	float height;
+  /**
+   * @brief The sprite height, in world units.
+   */
+  float height;
 
-	/**
-	 * @brief The sprite size velocity.
-	 */
-	float size_velocity;
+  /**
+   * @brief The sprite size velocity.
+   */
+  float size_velocity;
 
-	/**
-	 * @brief The sprite size acceleration.
-	 */
-	float size_acceleration;
+  /**
+   * @brief The sprite size acceleration.
+   */
+  float size_acceleration;
 
-	/**
-	 * @brief The sprite bounce factor.
-	 */
-	float bounce;
+  /**
+   * @brief The sprite bounce factor.
+   */
+  float bounce;
 
-	/**
-	 * @brief The client time when the sprite was allocated.
-	 */
-	uint32_t time;
+  /**
+   * @brief The client time when the sprite was allocated.
+   */
+  uint32_t time;
 
-	/**
-	 * @brief The lifetime, after which point it decays.
-	 */
-	uint32_t lifetime;
+  /**
+   * @brief The lifetime, after which point it decays.
+   */
+  uint32_t lifetime;
 
-	/**
-	 * @brief The time when this sprite was last updated.
-	 */
-	uint32_t timestamp;
+  /**
+   * @brief The time when this sprite was last updated.
+   */
+  uint32_t timestamp;
 
-	/**
-	 * @brief Think function for custom logic.
-	 */
-	Cg_SpriteThink Think;
+  /**
+   * @brief Think function for custom logic.
+   */
+  Cg_SpriteThink Think;
 
-	/**
-	 * @brief Custom data allocated on a sprite. Automatically freed unless
-	 * SPRITE_DATA_NOFREE is set.
-	 */
-	void *data;
+  /**
+   * @brief Custom data allocated on a sprite. Automatically freed unless
+   * SPRITE_DATA_NOFREE is set.
+   */
+  void *data;
 
-	/**
-	 * @brief The sprite's media.
-	 */
-	union {
-		r_media_t *media;
-		r_image_t *image;
-		r_atlas_image_t *atlas_image;
-		r_animation_t *animation;
-	};
+  /**
+   * @brief The sprite's media.
+   */
+  union {
+    r_media_t *media;
+    r_image_t *image;
+    r_atlas_image_t *atlas_image;
+    r_animation_t *animation;
+  };
 
-	/**
-	 * @brief Sprite flags.
-	 */
-	cg_r_sprite_flags_t flags;
+  /**
+   * @brief Sprite flags.
+   */
+  r_sprite_flags_t flags;
 
-	/**
-	 * @brief Sprite billboard axis.
-	 */
-	r_sprite_billboard_axis_t axis;
-	
-	/**
-	 * @brief Sprite softness scalar. Negative values invert the scalar.
-	 */
-	float softness;
+  /**
+   * @brief Sprite billboard axis.
+   */
+  r_sprite_billboard_axis_t axis;
 
-	/**
-	 * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
-	 */
-	float lighting;
+  /**
+   * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
+   */
+  float lighting;
 
-	/**
-	 * @brief Sprite bloom scalar.
-	 */
-	float bloom;
+  /**
+   * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
+   */
+  cg_sprite_entity_t entity;
 
-	/**
-	 * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
-	 */
-	cg_sprite_entity_t entity;
-
-	cg_sprite_t *prev;
-	cg_sprite_t *next;
+  cg_sprite_t *prev;
+  cg_sprite_t *next;
 };
 
 /**
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
  */
 static inline uint32_t Cg_AnimationLifetime(const r_animation_t *animation, const float fps) {
-	return animation->num_frames * FRAMES_TO_SECONDS(fps);
+  return animation->num_frames * FRAMES_TO_SECONDS(fps);
 }
 
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s);

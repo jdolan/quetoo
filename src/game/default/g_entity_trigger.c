@@ -28,23 +28,23 @@
 /**
  * @brief
  */
-static void G_Trigger_Init(g_entity_t *self) {
+static void G_Trigger_Init(g_entity_t *ent) {
 
-	if (!Vec3_Equal(self->s.angles, Vec3_Zero())) {
-		G_SetMoveDir(self);
-	}
+  if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
+    G_SetMoveDir(ent);
+  }
 
-	self->solid = SOLID_TRIGGER;
-	self->locals.move_type = MOVE_TYPE_NONE;
-	gi.SetModel(self, self->model);
-	self->sv_flags = SVF_NO_CLIENT;
+  ent->solid = SOLID_TRIGGER;
+  ent->move_type = MOVE_TYPE_NONE;
+  gi.SetModel(ent, ent->model);
+  ent->sv_flags = SVF_NO_CLIENT;
 }
 
 /**
  * @brief The wait time has passed, so set back up for another activation
  */
 static void G_trigger_multiple_Wait(g_entity_t *ent) {
-	ent->locals.next_think = 0;
+  ent->next_think = 0;
 }
 
 /**
@@ -52,20 +52,20 @@ static void G_trigger_multiple_Wait(g_entity_t *ent) {
  */
 static void G_trigger_multiple_Think(g_entity_t *ent) {
 
-	if (ent->locals.next_think) {
-		return; // already been triggered
-	}
+  if (ent->next_think) {
+    return; // already been triggered
+  }
 
-	G_UseTargets(ent, ent->locals.activator);
+  G_UseTargets(ent, ent->activator);
 
-	if (ent->locals.wait > 0) {
-		ent->locals.Think = G_trigger_multiple_Wait;
-		ent->locals.next_think = g_level.time + ent->locals.wait * 1000;
-	} else {
-		ent->locals.Touch = NULL;
-		ent->locals.next_think = g_level.time + QUETOO_TICK_MILLIS;
-		ent->locals.Think = G_FreeEntity;
-	}
+  if (ent->wait > 0) {
+    ent->Think = G_trigger_multiple_Wait;
+    ent->next_think = g_level.time + ent->wait * 1000;
+  } else {
+    ent->Touch = NULL;
+    ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+    ent->Think = G_FreeEntity;
+  }
 }
 
 /**
@@ -74,47 +74,47 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
                                    g_entity_t *activator) {
 
-	ent->locals.activator = activator;
+  ent->activator = activator;
 
-	G_trigger_multiple_Think(ent);
+  G_trigger_multiple_Think(ent);
 }
 
 /**
  * @brief
  */
-static void G_trigger_multiple_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (!other->client) {
-		const bool isProjectile = other->owner && other->owner->client;
-		if (isProjectile && (self->locals.spawn_flags & SHOOTABLE)) {
-			// we're a shootable trigger, and we've been shot
-		} else {
-			return;
-		}
-	}
+  if (!other->client) {
+    const bool isProjectile = other->owner && other->owner->client;
+    if (isProjectile && (ent->spawn_flags & SHOOTABLE)) {
+      // we're a shootable trigger, and we've been shot
+    } else {
+      return;
+    }
+  }
 
-	if (!Vec3_Equal(self->locals.move_dir, Vec3_Zero())) {
-		vec3_t forward;
+  if (!Vec3_Equal(ent->move_dir, Vec3_Zero())) {
+    vec3_t forward;
 
-		Vec3_Vectors(other->s.angles, &forward, NULL, NULL);
+    Vec3_Vectors(other->s.angles, &forward, NULL, NULL);
 
-		if (Vec3_Dot(forward, self->locals.move_dir) < 0.0) {
-			return;
-		}
-	}
+    if (Vec3_Dot(forward, ent->move_dir) < 0.0) {
+      return;
+    }
+  }
 
-	self->locals.activator = other;
-	G_trigger_multiple_Think(self);
+  ent->activator = other;
+  G_trigger_multiple_Think(ent);
 }
 
 /**
  * @brief
  */
-static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other,
+static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
                                       g_entity_t *activator) {
-	self->solid = SOLID_TRIGGER;
-	self->locals.Use = G_trigger_multiple_Use;
-	gi.LinkEntity(self);
+  ent->solid = SOLID_TRIGGER;
+  ent->Use = G_trigger_multiple_Use;
+  gi.LinkEntity(ent);
 }
 
 /*QUAKED trigger_multiple (.5 .5 .5) ? triggered shootable
@@ -134,30 +134,30 @@ static void G_trigger_multiple_Enable(g_entity_t *self, g_entity_t *other,
  */
 void G_trigger_multiple(g_entity_t *ent) {
 
-	ent->locals.sound = gi.SoundIndex("misc/chat");
+  ent->sound = gi.SoundIndex("misc/chat");
 
-	if (!ent->locals.wait) {
-		ent->locals.wait = 0.2;
-	}
+  if (!ent->wait) {
+    ent->wait = 0.2;
+  }
 
-	ent->locals.Touch = G_trigger_multiple_Touch;
-	ent->locals.move_type = MOVE_TYPE_NONE;
-	ent->sv_flags |= SVF_NO_CLIENT;
+  ent->Touch = G_trigger_multiple_Touch;
+  ent->move_type = MOVE_TYPE_NONE;
+  ent->sv_flags |= SVF_NO_CLIENT;
 
-	if (ent->locals.spawn_flags & TRIGGERED) {
-		ent->solid = SOLID_NOT;
-		ent->locals.Use = G_trigger_multiple_Enable;
-	} else {
-		ent->solid = SOLID_TRIGGER;
-		ent->locals.Use = G_trigger_multiple_Use;
-	}
+  if (ent->spawn_flags & TRIGGERED) {
+    ent->solid = SOLID_NOT;
+    ent->Use = G_trigger_multiple_Enable;
+  } else {
+    ent->solid = SOLID_TRIGGER;
+    ent->Use = G_trigger_multiple_Use;
+  }
 
-	if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
-		G_SetMoveDir(ent);
-	}
+  if (!Vec3_Equal(ent->s.angles, Vec3_Zero())) {
+    G_SetMoveDir(ent);
+  }
 
-	gi.SetModel(ent, ent->model);
-	gi.LinkEntity(ent);
+  gi.SetModel(ent, ent->model);
+  gi.LinkEntity(ent);
 }
 
 /*QUAKED trigger_once (.5 .5 .5) ? triggered
@@ -174,16 +174,16 @@ void G_trigger_multiple(g_entity_t *ent) {
  triggered : If set, this trigger must be targeted before it will activate.
  */
 void G_trigger_once(g_entity_t *ent) {
-	ent->locals.wait = -1;
-	G_trigger_multiple(ent);
+  ent->wait = -1;
+  G_trigger_multiple(ent);
 }
 
 /**
  * @brief
  */
-static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other,
+static void G_trigger_relay_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
-	G_UseTargets(self, activator);
+  G_UseTargets(ent, activator);
 }
 
 /*QUAKED trigger_relay (.5 .5 .5) (-8 -8 -8) (8 8 8)
@@ -196,8 +196,8 @@ static void G_trigger_relay_Use(g_entity_t *self, g_entity_t *other,
  killtarget : The name of the entity or team to kill on activation.
  targetname : The target name of this entity.
  */
-void G_trigger_relay(g_entity_t *self) {
-	self->locals.Use = G_trigger_relay_Use;
+void G_trigger_relay(g_entity_t *ent) {
+  ent->Use = G_trigger_relay_Use;
 }
 
 /*QUAKED trigger_always (.5 .5 .5) (-8 -8 -8) (8 8 8)
@@ -211,12 +211,12 @@ void G_trigger_relay(g_entity_t *self) {
  */
 void G_trigger_always(g_entity_t *ent) {
 
-	// we must have some delay to make sure our use targets are present
-	if (ent->locals.delay < 0.2) {
-		ent->locals.delay = 0.2;
-	}
+  // we must have some delay to make sure our use targets are present
+  if (ent->delay < 0.2) {
+    ent->delay = 0.2;
+  }
 
-	G_UseTargets(ent, ent);
+  G_UseTargets(ent, ent);
 }
 
 #define PUSH_ONCE 1
@@ -225,45 +225,45 @@ void G_trigger_always(g_entity_t *ent) {
 /**
  * @brief
  */
-static void G_trigger_push_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (other->locals.move_type == MOVE_TYPE_WALK || other->locals.move_type == MOVE_TYPE_BOUNCE) {
+  if (other->move_type == MOVE_TYPE_WALK || other->move_type == MOVE_TYPE_BOUNCE) {
 
-		other->locals.velocity = Vec3_Scale(self->locals.move_dir, self->locals.speed * 10.0);
+    other->velocity = Vec3_Scale(ent->move_dir, ent->speed * 10.0);
 
-		if (other->client) {
-			other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
-			other->client->ps.pm_state.time = 240;
-		}
+    if (other->client) {
+      other->client->ps.pm_state.flags |= PMF_TIME_PUSHED;
+      other->client->ps.pm_state.time = 240;
+    }
 
-		if (other->locals.push_time < g_level.time) {
-			other->locals.push_time = g_level.time + 1500;
-			G_MulticastSound(&(const g_play_sound_t) {
-				.index = self->locals.move_info.sound_start,
-				.origin = &other->s.origin,
-				.atten = SOUND_ATTEN_SQUARE
-			}, MULTICAST_PHS, NULL);
-		}
-	}
+    if (other->push_time < g_level.time) {
+      other->push_time = g_level.time + 1500;
+      G_MulticastSound(&(const g_play_sound_t) {
+        .index = ent->move_info.sound_start,
+        .origin = &other->s.origin,
+        .atten = SOUND_ATTEN_SQUARE
+      }, MULTICAST_PHS);
+    }
+  }
 
-	if (self->locals.spawn_flags & PUSH_ONCE) {
-		G_FreeEntity(self);
-	}
+  if (ent->spawn_flags & PUSH_ONCE) {
+    G_FreeEntity(ent);
+  }
 }
 
 /**
  * @brief Creates an effect trail for the specified entity.
  */
-static void G_trigger_push_Effect(g_entity_t *self) {
+static void G_trigger_push_Effect(g_entity_t *ent) {
 
-	g_entity_t *ent = G_AllocEntity();
+  g_entity_t *effect = G_AllocEntity(__func__);
 
-	ent->s.origin = Box3_Center(self->bounds);
+  effect->s.origin = Box3_Center(ent->bounds);
 
-	ent->locals.move_type = MOVE_TYPE_NONE;
-	ent->s.trail = TRAIL_TELEPORTER;
+  effect->move_type = MOVE_TYPE_NONE;
+  effect->s.trail = TRAIL_TELEPORTER;
 
-	gi.LinkEntity(ent);
+  gi.LinkEntity(effect);
 }
 
 /*QUAKED trigger_push (.5 .5 .5) ? push_once push_effects
@@ -271,95 +271,110 @@ static void G_trigger_push_Effect(g_entity_t *self) {
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
- sound : The sound effect to play when the player is pushed (default "world/jumppad").
+ sound : The sound effect to play when the player is pushed (default "common/jumppad").
  speed : The speed with which to push the player (default 100).
 
  -------- Spawn flags --------
  push_once : If set, the pusher is freed after it is used once.
  push_effects : If set, emit particle effects to indicate that a pusher is here.
  */
-void G_trigger_push(g_entity_t *self) {
+void G_trigger_push(g_entity_t *ent) {
 
-	G_Trigger_Init(self);
+  G_Trigger_Init(ent);
 
-	self->locals.Touch = G_trigger_push_Touch;
+  ent->Touch = G_trigger_push_Touch;
 
-	const cm_entity_t *sound = gi.EntityValue(self->def, "sound");
-	if (sound->parsed & ENTITY_STRING) {
-		self->locals.move_info.sound_start = gi.SoundIndex(sound->string);
-	} else {
-		self->locals.move_info.sound_start = gi.SoundIndex("world/jumppad");
-	}
+  const cm_entity_t *sound = gi.EntityValue(ent->def, "sound");
+  if (sound->parsed & ENTITY_STRING) {
+    ent->move_info.sound_start = gi.SoundIndex(sound->string);
+  } else {
+    ent->move_info.sound_start = gi.SoundIndex("common/jumppad");
+  }
 
-	if (!self->locals.speed) {
-		self->locals.speed = 100;
-	}
+  if (!ent->speed) {
+    ent->speed = 100;
+  }
 
-	gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 
-	if (self->locals.spawn_flags & PUSH_EFFECT) {
-		G_trigger_push_Effect(self);
-	}
+  if (ent->spawn_flags & PUSH_EFFECT) {
+    G_trigger_push_Effect(ent);
+  }
 }
 
 /**
  * @brief
  */
-static void G_trigger_hurt_Use(g_entity_t *self, g_entity_t *other,
-                               g_entity_t *activator) {
+static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
-	if (self->solid == SOLID_NOT) {
-		self->solid = SOLID_TRIGGER;
-	} else {
-		self->solid = SOLID_NOT;
-	}
-	gi.LinkEntity(self);
+  if (ent->solid == SOLID_NOT) {
+    ent->solid = SOLID_TRIGGER;
+  } else {
+    ent->solid = SOLID_NOT;
+  }
 
-	if (!(self->locals.spawn_flags & 2)) {
-		self->locals.Use = NULL;
-	}
+  gi.LinkEntity(ent);
+
+  if (!(ent->spawn_flags & 2)) {
+    ent->Use = NULL;
+  }
 }
 
 /**
  * @brief
  */
-static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (!other->locals.take_damage) { // deal with items that land on us
+  if (!other->take_damage) { // deal with items that land on us
 
-		if (other->locals.item) {
-			if (other->locals.item->type == ITEM_FLAG) {
-				G_ResetDroppedFlag(other);
-			} else if (other->locals.item->type == ITEM_TECH) {
-				G_ResetDroppedTech(other);
-			} else {
-				G_FreeEntity(other);
-			}
-		}
+    if (other->item) {
+      if (other->item->type == ITEM_FLAG) {
+        G_ResetDroppedFlag(other);
+      } else if (other->item->type == ITEM_TECH) {
+        G_ResetDroppedTech(other);
+      } else {
+        G_FreeEntity(other);
+      }
+    }
 
-		G_Debug("%s\n", etos(other));
-		return;
-	}
+    G_Debug("%s\n", etos(other));
+    return;
+  }
 
-	if (self->locals.timestamp > g_level.time) {
-		return;
-	}
+  if (other->dead) {
+    return;
+  }
 
-	if (self->locals.spawn_flags & 16) {
-		self->locals.timestamp = g_level.time + 1000;
-	} else {
-		self->locals.timestamp = g_level.time + 100;
-	}
+  if (ent->timestamp > g_level.time) {
+    return;
+  }
 
-	const int16_t d = self->locals.damage;
+  if (ent->spawn_flags & 16) {
+    ent->timestamp = g_level.time + 1000;
+  } else {
+    ent->timestamp = g_level.time + 100;
+  }
 
-	int32_t dflags = DMG_NO_ARMOR;
+  const int16_t d = ent->damage;
 
-	if (self->locals.spawn_flags & 8) {
-		dflags = DMG_NO_GOD;
-	}
+  int32_t dflags = DMG_NO_ARMOR;
 
-	G_Damage(other, self, NULL, Vec3_Zero(), other->s.origin, Vec3_Zero(), d, d, dflags, MOD_TRIGGER_HURT);
+  if (ent->spawn_flags & 8) {
+    dflags = DMG_NO_GOD;
+  }
+
+  G_Damage(&(g_damage_t) {
+    .target = other,
+    .inflictor = ent,
+    .attacker = NULL,
+    .dir = Vec3_Zero(),
+    .point = other->s.origin,
+    .normal = Vec3_Zero(),
+    .damage = d,
+    .knockback = d >> 2,
+    .flags = dflags,
+    .mod = MOD_TRIGGER_HURT
+  });
 }
 
 /*QUAKED trigger_hurt (.5 .5 .5) ? start_off toggle ? no_protection slow
@@ -376,47 +391,51 @@ static void G_trigger_hurt_Touch(g_entity_t *self, g_entity_t *other, const cm_t
  no_protection : If set, armor will not be used to absorb damage inflicted by this entity.
  slow : Decreases the damage rate to once per second.
  */
-void G_trigger_hurt(g_entity_t *self) {
+void G_trigger_hurt(g_entity_t *ent) {
 
-	G_Trigger_Init(self);
+  G_Trigger_Init(ent);
 
-	self->locals.Touch = G_trigger_hurt_Touch;
+  ent->Touch = G_trigger_hurt_Touch;
 
-	if (!self->locals.damage) {
-		self->locals.damage = 2;
-	}
+  if (!ent->damage) {
+    ent->damage = 2;
+  }
 
-	if (self->locals.spawn_flags & 1) {
-		self->solid = SOLID_NOT;
-	} else {
-		self->solid = SOLID_TRIGGER;
-	}
+  if (ent->spawn_flags & 1) {
+    ent->solid = SOLID_NOT;
+  } else {
+    ent->solid = SOLID_TRIGGER;
+  }
 
-	if (self->locals.spawn_flags & 2) {
-		self->locals.Use = G_trigger_hurt_Use;
-	}
+  if (ent->spawn_flags & 2) {
+    ent->Use = G_trigger_hurt_Use;
+  }
 
-	gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }
 
 /**
  * @brief
  */
-static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other, const cm_trace_t *trace) {
+static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
-	if (self->locals.timestamp > g_level.time) {
-		return;
-	}
+  if (ent->timestamp > g_level.time) {
+    return;
+  }
 
-	self->locals.timestamp = g_level.time + self->locals.delay * 1000;
+  ent->timestamp = g_level.time + ent->delay * 1000;
 
-	if (self->locals.command) {
-		gi.Cbuf(va("%s\n", self->locals.command));
-	}
+  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
+  if (command) {
+    gi.Cbuf(va("%s\n", command));
+  }
 
-	else if (self->locals.script) {
-		gi.Cbuf(va("exec %s\n", self->locals.script));
-	}
+  else {
+    const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+    if (script) {
+      gi.Cbuf(va("exec %s\n", script));
+    }
+  }
 }
 
 /*QUAKED trigger_exec (0 1 0) ?
@@ -427,17 +446,19 @@ static void G_trigger_exec_Touch(g_entity_t *self, g_entity_t *other, const cm_t
  script : The script file (.cfg) to execute.
  delay : The delay in seconds between activation and execution of the commands.
  */
-void G_trigger_exec(g_entity_t *self) {
+void G_trigger_exec(g_entity_t *ent) {
 
-	if (!self->locals.command && !self->locals.script) {
-		G_Debug("No command or script at %s", vtos(self->s.origin));
-		G_FreeEntity(self);
-		return;
-	}
+  const char *command = gi.EntityValue(ent->def, "command")->nullable_string;
+  const char *script = gi.EntityValue(ent->def, "script")->nullable_string;
+  if (!command && !script) {
+    G_Debug("No command or script at %s", vtos(ent->s.origin));
+    G_FreeEntity(ent);
+    return;
+  }
 
-	G_Trigger_Init(self);
+  G_Trigger_Init(ent);
 
-	self->locals.Touch = G_trigger_exec_Touch;
+  ent->Touch = G_trigger_exec_Touch;
 
-	gi.LinkEntity(self);
+  gi.LinkEntity(ent);
 }

@@ -22,7 +22,7 @@
 #include <setjmp.h>
 #include <signal.h>
 
-#include <SDL_assert.h>
+#include <SDL3/SDL_assert.h>
 
 #include "config.h"
 #include "client/client.h"
@@ -37,8 +37,9 @@ static cvar_t *verbose;
 cvar_t *version;
 cvar_t *revision;
 cvar_t *dedicated;
+cvar_t *developer;
+cvar_t *editor;
 cvar_t *game;
-cvar_t *ai;
 cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -55,51 +56,51 @@ static void Warn(const char *msg);
  */
 static void Debug_f(void) {
 
-	if (Cmd_Argc() == 1) {
-		Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
-		Com_Print("Categories:\n");
-		Com_Print("  none\n");
+  if (Cmd_Argc() == 1) {
+    Com_Print("Set or toggle debug categories.\nUsage: debug [category] ..\n");
+    Com_Print("Categories:\n");
+    Com_Print("  none\n");
 
-		for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
-			int32_t color = ESC_COLOR_WHITE;
-			switch (1 << i) {
-				case DEBUG_AI:
-				case DEBUG_GAME:
-				case DEBUG_SERVER:
-					color = ESC_COLOR_CYAN;
-					break;
-				case DEBUG_CGAME:
-				case DEBUG_CLIENT:
-				case DEBUG_RENDERER:
-				case DEBUG_SOUND:
-				case DEBUG_UI:
-					color = ESC_COLOR_MAGENTA;
-					break;
-				case DEBUG_COLLISION:
-				case DEBUG_CONSOLE:
-				case DEBUG_FILESYSTEM:
-				case DEBUG_NET:
-					color = ESC_COLOR_YELLOW;
-					break;
-				case DEBUG_PMOVE_CLIENT:
-				case DEBUG_PMOVE_SERVER:
-					color = ESC_COLOR_BLUE;
-					break;
-				default:
-					break;
-			}
-			Com_Print("  ^%d%s^7\n", color, DEBUG_CATEGORIES[i]);
-		}
+    for (size_t i = 0; i < lengthof(DEBUG_CATEGORIES); i++) {
+      int32_t color = ESC_COLOR_WHITE;
+      switch (1 << i) {
+        case DEBUG_AI:
+        case DEBUG_GAME:
+        case DEBUG_SERVER:
+          color = ESC_COLOR_CYAN;
+          break;
+        case DEBUG_CGAME:
+        case DEBUG_CLIENT:
+        case DEBUG_RENDERER:
+        case DEBUG_SOUND:
+        case DEBUG_UI:
+          color = ESC_COLOR_MAGENTA;
+          break;
+        case DEBUG_COLLISION:
+        case DEBUG_CONSOLE:
+        case DEBUG_FILESYSTEM:
+        case DEBUG_NET:
+          color = ESC_COLOR_YELLOW;
+          break;
+        case DEBUG_PMOVE_CLIENT:
+        case DEBUG_PMOVE_SERVER:
+          color = ESC_COLOR_BLUE;
+          break;
+        default:
+          break;
+      }
+      Com_Print("  ^%d%s^7\n", color, DEBUG_CATEGORIES[i]);
+    }
 
-		Com_Print("  ^2all^7\n");
-		Com_Print("  ^1breakpoint^7\n");
+    Com_Print("  ^2all^7\n");
+    Com_Print("  ^1breakpoint^7\n");
 
-		return;
-	}
+    return;
+  }
 
-	Com_SetDebug(Cmd_Args());
+  Com_SetDebug(Cmd_Args());
 
-	Com_Print("Debug mask: %s\n", Com_GetDebug());
+  Com_Print("Debug mask: %s\n", Com_GetDebug());
 }
 
 /**
@@ -107,35 +108,35 @@ static void Debug_f(void) {
  */
 static void Debug(const debug_t debug, const char *msg) {
 
-	int32_t color = ESC_COLOR_WHITE;
-	switch (debug) {
-		case DEBUG_AI:
-		case DEBUG_GAME:
-		case DEBUG_SERVER:
-			color = ESC_COLOR_CYAN;
-			break;
-		case DEBUG_CGAME:
-		case DEBUG_CLIENT:
-		case DEBUG_RENDERER:
-		case DEBUG_SOUND:
-		case DEBUG_UI:
-			color = ESC_COLOR_MAGENTA;
-			break;
-		case DEBUG_COLLISION:
-		case DEBUG_CONSOLE:
-		case DEBUG_FILESYSTEM:
-		case DEBUG_NET:
-			color = ESC_COLOR_YELLOW;
-			break;
-		case DEBUG_PMOVE_CLIENT:
-		case DEBUG_PMOVE_SERVER:
-			color = ESC_COLOR_BLUE;
-			break;
-		default:
-			break;
-	}
+  int32_t color = ESC_COLOR_WHITE;
+  switch (debug) {
+    case DEBUG_AI:
+    case DEBUG_GAME:
+    case DEBUG_SERVER:
+      color = ESC_COLOR_CYAN;
+      break;
+    case DEBUG_CGAME:
+    case DEBUG_CLIENT:
+    case DEBUG_RENDERER:
+    case DEBUG_SOUND:
+    case DEBUG_UI:
+      color = ESC_COLOR_MAGENTA;
+      break;
+    case DEBUG_COLLISION:
+    case DEBUG_CONSOLE:
+    case DEBUG_FILESYSTEM:
+    case DEBUG_NET:
+      color = ESC_COLOR_YELLOW;
+      break;
+    case DEBUG_PMOVE_CLIENT:
+    case DEBUG_PMOVE_SERVER:
+      color = ESC_COLOR_BLUE;
+      break;
+    default:
+      break;
+  }
 
-	Print(va("^%d%s", color, msg));
+  Print(va("^%d%s", color, msg));
 }
 
 static bool jmp_set = false;
@@ -146,30 +147,30 @@ static bool jmp_set = false;
  */
 static void Error(err_t err, const char *msg) {
 
-	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
-		SDL_TriggerBreakpoint();
-	}
+  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+    SDL_TriggerBreakpoint();
+  }
 
-	Print(va("^1%s\n", msg));
+  Print(va("^1%s\n", msg));
 
-	if (err == ERROR_DROP && !jmp_set) {
-		err = ERROR_FATAL;
-	}
+  if (err == ERROR_DROP && !jmp_set) {
+    err = ERROR_FATAL;
+  }
 
-	switch (err) {
-		case ERROR_DROP:
-			Sv_ShutdownServer(msg);
-			Cl_Disconnect();
-			Cl_Drop(msg);
-			quetoo.recursive_error = false;
-			longjmp(env, err);
+  switch (err) {
+    case ERROR_DROP:
+      Sv_ShutdownServer(msg);
+      Cl_Disconnect();
+      Cl_Drop(msg);
+      quetoo.recursive_error = false;
+      longjmp(env, err);
 
-		case ERROR_FATAL:
-		default:
-			Sys_Raise(msg);
-			Shutdown(msg);
-			exit(err);
-	}
+    case ERROR_FATAL:
+    default:
+      Sys_Raise(msg);
+      Shutdown(msg);
+      exit(err);
+  }
 }
 
 /**
@@ -177,11 +178,11 @@ static void Error(err_t err, const char *msg) {
  */
 static void Print(const char *msg) {
 
-	if (console_state.lock) {
-		Con_Append(PRINT_HIGH, msg);
-	} else {
-		printf("%s", msg);
-	}
+  if (console_state.lock) {
+    Con_Append(PRINT_HIGH, msg);
+  } else {
+    printf("%s", msg);
+  }
 }
 
 /**
@@ -189,9 +190,9 @@ static void Print(const char *msg) {
  */
 static void Verbose(const char *msg) {
 
-	if (verbose->integer) {
-		Print(msg);
-	}
+  if (verbose->integer) {
+    Print(msg);
+  }
 }
 
 /**
@@ -199,11 +200,11 @@ static void Verbose(const char *msg) {
  */
 static void Warn(const char *msg) {
 
-	if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
-		SDL_TriggerBreakpoint();
-	}
+  if (quetoo.debug_mask & DEBUG_BREAKPOINT) {
+    SDL_TriggerBreakpoint();
+  }
 
-	Print(va("^3%s", msg));
+  Print(va("^3%s", msg));
 }
 
 /**
@@ -211,27 +212,27 @@ static void Warn(const char *msg) {
  */
 static void Quit_f(void) __attribute__((noreturn));
 static void Quit_f(void) {
-	Com_Shutdown("Server quit\n");
+  Com_Shutdown("Server quit\n");
 }
 
 static const char *mem_tag_names[MEM_TAG_TOTAL] = {
-	"default",
-	"server",
-	"ai",
-	"game",
-	"game_level",
-	"client",
-	"renderer",
-	"sound",
-	"ui",
-	"cgame",
-	"cgame_level",
-	"material",
-	"cmd",
-	"cvar",
-	"collision",
-	"bsp",
-	"fs"
+  "default",
+  "server",
+  "ai",
+  "game",
+  "game_level",
+  "client",
+  "renderer",
+  "sound",
+  "ui",
+  "cgame",
+  "cgame_level",
+  "material",
+  "cmd",
+  "cvar",
+  "collision",
+  "bsp",
+  "fs"
 };
 
 /**
@@ -239,38 +240,38 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
  */
 static void MemStats_f(void) {
 
-	GArray *stats = Mem_Stats();
+  GArray *stats = Mem_Stats();
 
-	Com_Print("Memory stats:\n");
+  Com_Print("Memory stats:\n");
 
-	size_t sum = 0, reported_total = 0;
+  size_t sum = 0, reported_total = 0;
 
-	for (size_t i = 0; i < stats->len; i++) {
+  for (size_t i = 0; i < stats->len; i++) {
 
-		mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
-		const char *tag_name;
+    mem_stat_t *stat_i = &g_array_index(stats, mem_stat_t, i);
+    const char *tag_name;
 
-		if (stat_i->tag == -1) {
-			Com_Print("total: %" PRIuPTR " bytes\n", stat_i->size);
-			reported_total = stat_i->size;
-			continue;
-		} else if (stat_i->tag < MEM_TAG_TOTAL) {
-			tag_name = mem_tag_names[stat_i->tag];
-		} else {
-			tag_name = va("#%d", stat_i->tag);
-		}
+    if (stat_i->tag == -1) {
+      Com_Print("total: %" PRIuPTR " bytes\n", stat_i->size);
+      reported_total = stat_i->size;
+      continue;
+    } else if (stat_i->tag < MEM_TAG_TOTAL) {
+      tag_name = mem_tag_names[stat_i->tag];
+    } else {
+      tag_name = va("#%d", stat_i->tag);
+    }
 
-		Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tag_name, stat_i->size, stat_i->count);
-		sum += stat_i->size;
-	}
+    Com_Print(" [%s] %" PRIuPTR " bytes - %" PRIuPTR " blocks\n", tag_name, stat_i->size, stat_i->count);
+    sum += stat_i->size;
+  }
 
-	if (sum != reported_total) {
-		Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
-	}
+  if (sum != reported_total) {
+    Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
+  }
 
-	Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings.length);
 
-	g_array_free(stats, true);
+  g_array_free(stats, true);
 }
 
 /**
@@ -278,74 +279,74 @@ static void MemStats_f(void) {
  */
 static void Init(void) {
 
-	SDL_Init(SDL_INIT_TIMER);
+  SDL_Init(SDL_INIT_EVENTS);
 
-	Mem_Init();
+  Mem_Init();
 
-	Cmd_Init();
+  Cmd_Init();
 
-	Cvar_Init();
+  Cvar_Init();
 
-	char *s = va("%s %s %s", VERSION, BUILD, REVISION);
-	version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-	
-	revision = Cvar_Add("revision", REVISION, CVAR_SERVER_INFO, NULL);
+  char *s = va("%s %s %s", VERSION, BUILD, REVISION);
+  version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  
+  revision = Cvar_Add("revision", REVISION, CVAR_SERVER_INFO, NULL);
 
-	verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
+  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
-	dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
-	if (strstr(Sys_ExecutablePath(), "-dedicated")) {
-		Cvar_ForceSetInteger(dedicated->name, 1);
-	}
+  dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
+  if (strstr(Sys_ExecutablePath(), "-dedicated")) {
+    Cvar_ForceSetInteger(dedicated->name, 1);
+  }
 
-	game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
-	game->modified = g_strcmp0(game->string, DEFAULT_GAME);
+  developer = Cvar_Add("developer", "0", CVAR_DEVELOPER, "Enables shader debugging tools (developer tool)");
+  editor = Cvar_Add("editor", "0", CVAR_LATCH | CVAR_SERVER_INFO, "Enables the in-game editor.");
 
-	ai = Cvar_Add("ai", DEFAULT_AI, CVAR_LATCH | CVAR_SERVER_INFO, "The AI module name");
-	ai->modified = g_strcmp0(ai->string, DEFAULT_AI);
+  game = Cvar_Add("game", DEFAULT_GAME, CVAR_LATCH | CVAR_SERVER_INFO, "The game module name");
+  game->modified = g_strcmp0(game->string, DEFAULT_GAME);
 
-	threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
-	threads->modified = false;
+  threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
+  threads->modified = false;
 
-	time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
-	time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
+  time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
+  time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
-	quetoo.Debug = Debug;
-	quetoo.Error = Error;
-	quetoo.Print = Print;
-	quetoo.Verbose = Verbose;
-	quetoo.Warn = Warn;
+  quetoo.Debug = Debug;
+  quetoo.Error = Error;
+  quetoo.Print = Print;
+  quetoo.Verbose = Verbose;
+  quetoo.Warn = Warn;
 
-	Fs_Init(FS_AUTO_LOAD_ARCHIVES);
+  Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-	Thread_Init(threads->integer);
+  Thread_Init(threads->integer);
 
-	Con_Init();
+  Con_Init();
 
-	Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
-	Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
-	Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
+  Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
+  Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
+  Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
 
-	Netchan_Init();
+  Netchan_Init();
 
-	Sv_Init();
+  Sv_Init();
 
-	Cl_Init();
+  Cl_Init();
 
-	Com_Print("Quetoo %s initialized", version->string);
+  Com_Print("Quetoo %s initialized", version->string);
 
-	// reset debug value since Cbuf may change it from Com's "all" init
-	Com_SetDebug("0");
+  // reset debug value since Cbuf may change it from Com's "all" init
+  Com_SetDebug("0");
 
-	// execute any +commands specified on the command line
-	Cbuf_InsertFromDefer();
-	Cbuf_Execute();
+  // execute any +commands specified on the command line
+  Cbuf_InsertFromDefer();
+  Cbuf_Execute();
 
-	// dedicated server, nothing specified, use Edge
-	if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
-		Cbuf_AddText("map edge\n");
-		Cbuf_Execute();
-	}
+  // dedicated server, nothing specified, use Edge
+  if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
+    Cbuf_AddText("map edge\n");
+    Cbuf_Execute();
+  }
 }
 
 /**
@@ -353,31 +354,31 @@ static void Init(void) {
  */
 static void Shutdown(const char *msg) {
 
-	Com_Print("%s", msg);
+  Com_Print("%s", msg);
 
-	if (Com_WasInit(QUETOO_SERVER)) {
-		Sv_Shutdown(msg);
-	}
+  if (Com_WasInit(QUETOO_SERVER)) {
+    Sv_Shutdown(msg);
+  }
 
-	if (Com_WasInit(QUETOO_CLIENT)) {
-		Cl_Shutdown();
-	}
+  if (Com_WasInit(QUETOO_CLIENT)) {
+    Cl_Shutdown();
+  }
 
-	Netchan_Shutdown();
+  Netchan_Shutdown();
 
-	Thread_Shutdown();
+  Thread_Shutdown();
 
-	Con_Shutdown();
+  Con_Shutdown();
 
-	Cvar_Shutdown();
+  Cvar_Shutdown();
 
-	Cmd_Shutdown();
+  Cmd_Shutdown();
 
-	Fs_Shutdown();
+  Fs_Shutdown();
 
-	Mem_Shutdown();
+  Mem_Shutdown();
 
-	SDL_Quit();
+  SDL_Quit();
 }
 
 /**
@@ -385,79 +386,79 @@ static void Shutdown(const char *msg) {
  */
 static void Frame(const uint32_t msec) {
 
-	Cbuf_Execute();
+  Cbuf_Execute();
 
-	if (threads->modified) {
-		threads->modified = false;
+  if (threads->modified) {
+    threads->modified = false;
 
-		Thread_Shutdown();
-		Thread_Init(threads->integer);
-	}
+    Thread_Shutdown();
+    Thread_Init(threads->integer);
+  }
 
-	if (game->modified) {
-		game->modified = false;
+  if (game->modified) {
+    game->modified = false;
 
-		Fs_SetGame(game->string);
+    Fs_SetGame(game->string);
 
-		if (Fs_Exists("autoexec.cfg")) {
-			Cbuf_AddText("exec autoexec.cfg\n");
-			Cbuf_Execute();
-		}
-	}
+    if (Fs_Exists("autoexec.cfg")) {
+      Cbuf_AddText("exec autoexec.cfg\n");
+      Cbuf_Execute();
+    }
+  }
 
-	Sv_Frame(msec);
+  Sv_Frame(msec);
 
-	Cl_Frame(msec);
+  Cl_Frame(msec);
 }
 
 /**
  * @brief The entry point of the program.
  */
 int32_t main(int32_t argc, char *argv[]) {
-	static uint32_t old_time;
-	uint32_t msec;
+  static uint32_t old_time;
+  uint32_t msec;
 
-	printf("Quetoo %s %s %s\n", VERSION, BUILD, REVISION);
+  printf("Quetoo %s %s %s\n", VERSION, BUILD, REVISION);
 
-	memset(&quetoo, 0, sizeof(quetoo));
+  memset(&quetoo, 0, sizeof(quetoo));
 
-	quetoo.Init = Init;
-	quetoo.Shutdown = Shutdown;
+  quetoo.Init = Init;
+  quetoo.Shutdown = Shutdown;
 
-	signal(SIGINT, Sys_Signal);
-	signal(SIGILL, Sys_Signal);
-	signal(SIGABRT, Sys_Signal);
-	signal(SIGFPE, Sys_Signal);
-	signal(SIGSEGV, Sys_Signal);
-	signal(SIGTERM, Sys_Signal);
+  signal(SIGINT, Sys_Signal);
+  signal(SIGILL, Sys_Signal);
+  signal(SIGABRT, Sys_Signal);
+  signal(SIGFPE, Sys_Signal);
+  signal(SIGSEGV, Sys_Signal);
+  signal(SIGTERM, Sys_Signal);
 #ifndef _WIN32
-	signal(SIGHUP, Sys_Signal);
-	signal(SIGQUIT, Sys_Signal);
+  signal(SIGHUP, Sys_Signal);
+  signal(SIGQUIT, Sys_Signal);
 #endif
 
-	Com_Init(argc, argv); // let's get it started in here
+  Com_Init(argc, argv); // let's get it started in here
 
-	jmp_set = true;
+  jmp_set = true;
 
-	while (true) { // this is our main loop
+  while (true) { // this is our main loop
 
-		if (setjmp(env)) { // an ERROR_DROP was thrown
-			Com_Warn("Error detected, recovering..\n");
-			continue;
-		}
+    if (setjmp(env)) { // an ERROR_DROP was thrown
+      Com_Warn("Error detected, recovering..\n");
+      continue;
+    }
 
-		if (time_scale->modified) {
-			time_scale->modified = false;
-			time_scale->value = Clampf(time_scale->value, 0.1, 3.0);
-		}
+    if (time_scale->modified) {
+      time_scale->modified = false;
+      time_scale->value = Clampf(time_scale->value, 0.1, 3.0);
+    }
 
-		do {
-			quetoo.ticks = SDL_GetTicks();
-			msec = (quetoo.ticks - old_time) * time_scale->value;
-		} while (msec < 1);
+    do {
+      quetoo.ticks = (uint32_t) SDL_GetTicks();
+      msec = (quetoo.ticks - old_time) * time_scale->value;
+    } while (msec < 1);
 
-		Frame(msec);
+    Frame(msec);
 
-		old_time = quetoo.ticks;
-	}
+    old_time = quetoo.ticks;
+  }
 }

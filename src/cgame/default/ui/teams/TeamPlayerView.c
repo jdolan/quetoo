@@ -32,25 +32,25 @@
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	TeamPlayerView *this = (TeamPlayerView *) self;
+  TeamPlayerView *this = (TeamPlayerView *) self;
 
-	if (this->client && strlen(this->client->info)) {
+  if (this->client && strlen(this->client->info)) {
 
-		char name[MAX_USER_INFO_VALUE];
-		StrStrip(this->client->name, name);
+    char name[MAX_INFO_STRING_VALUE];
+    StrStrip(this->client->name, name);
 
-		$(this->name->text, setText, name);
+    $(this->name->text, setText, name);
 
-		SDL_Surface *surface = cgi.LoadSurface(this->client->icon->media.name);
-		$(this->icon, setImageWithSurface, surface);
-		SDL_FreeSurface(surface);
-		
-	} else {
-		$(this->name->text, setText, NULL);
-		$(this->icon, setImage, NULL);
-	}
+    SDL_Surface *surface = cgi.LoadSurface(this->client->icon->media.name);
+    $(this->icon, setImageWithSurface, surface);
+    SDL_DestroySurface(surface);
+    
+  } else {
+    $(this->name->text, setText, NULL);
+    $(this->icon, setImage, NULL);
+  }
 }
 
 #pragma mark - TeamPlayerView
@@ -61,21 +61,21 @@ static void updateBindings(View *self) {
  */
 static TeamPlayerView *initWithFrame(TeamPlayerView *self, const SDL_Rect *frame) {
 
-	self = (TeamPlayerView *) super(View, self, initWithFrame, frame);
-	if (self) {
+  self = (TeamPlayerView *) super(View, self, initWithFrame, frame);
+  if (self) {
 
-		Outlet outlets[] = MakeOutlets(
-			MakeOutlet("icon", &self->icon),
-			MakeOutlet("name", &self->name)
-		);
+    Outlet outlets[] = MakeOutlets(
+      MakeOutlet("icon", &self->icon),
+      MakeOutlet("name", &self->name)
+    );
 
-		View *this = (View *) self;
+    View *this = (View *) self;
 
-		$(this, awakeWithResourceName, "ui/teams/TeamPlayerView.json");
-		$(this, resolve, outlets);
-	}
+    $(this, awakeWithResourceName, "ui/teams/TeamPlayerView.json");
+    $(this, resolve, outlets);
+  }
 
-	return self;
+  return self;
 }
 
 /**
@@ -84,9 +84,9 @@ static TeamPlayerView *initWithFrame(TeamPlayerView *self, const SDL_Rect *frame
  */
 static void setPlayer(TeamPlayerView *self, const cg_client_info_t *client) {
 
-	self->client = client;
+  self->client = client;
 
-	$((View *) self, updateBindings);
+  $((View *) self, updateBindings);
 }
 
 #pragma mark - Class lifecycle
@@ -96,10 +96,10 @@ static void setPlayer(TeamPlayerView *self, const cg_client_info_t *client) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((TeamPlayerViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
-	((TeamPlayerViewInterface *) clazz->interface)->setPlayer = setPlayer;
+  ((TeamPlayerViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
+  ((TeamPlayerViewInterface *) clazz->interface)->setPlayer = setPlayer;
 }
 
 /**
@@ -107,21 +107,21 @@ static void initialize(Class *clazz) {
  * @memberof TeamPlayerView
  */
 Class *_TeamPlayerView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "TeamPlayerView",
-			.superclass = _View(),
-			.instanceSize = sizeof(TeamPlayerView),
-			.interfaceOffset = offsetof(TeamPlayerView, interface),
-			.interfaceSize = sizeof(TeamPlayerViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "TeamPlayerView",
+      .superclass = _View(),
+      .instanceSize = sizeof(TeamPlayerView),
+      .interfaceOffset = offsetof(TeamPlayerView, interface),
+      .interfaceSize = sizeof(TeamPlayerViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

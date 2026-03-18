@@ -4,6 +4,8 @@
  * Copyright (C) 2004, Matthias Clasen <mclasen@redhat.com>
  * Copyright (C) 2005 - 2007, Marco Barisione <marco@barisione.org>
  *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
@@ -216,6 +218,7 @@ GQuark g_regex_error_quark (void);
 
 /**
  * GRegexCompileFlags:
+ * @G_REGEX_DEFAULT: No special options set. Since: 2.74
  * @G_REGEX_CASELESS: Letters in the pattern match both upper- and
  *     lowercase letters. This option can be changed within a pattern
  *     by a "(?i)" option setting.
@@ -224,8 +227,8 @@ GQuark g_regex_error_quark (void);
  *     newlines). The "start of line" metacharacter ("^") matches only
  *     at the start of the string, while the "end of line" metacharacter
  *     ("$") matches only at the end of the string, or before a terminating
- *     newline (unless #G_REGEX_DOLLAR_ENDONLY is set). When
- *     #G_REGEX_MULTILINE is set, the "start of line" and "end of line"
+ *     newline (unless %G_REGEX_DOLLAR_ENDONLY is set). When
+ *     %G_REGEX_MULTILINE is set, the "start of line" and "end of line"
  *     constructs match immediately following or immediately before any
  *     newline in the string, respectively, as well as at the very start
  *     and end. This can be changed within a pattern by a "(?m)" option
@@ -248,7 +251,7 @@ GQuark g_regex_error_quark (void);
  *     matches only at the end of the string. Without this option, a
  *     dollar also matches immediately before the final character if
  *     it is a newline (but not before any other newlines). This option
- *     is ignored if #G_REGEX_MULTILINE is set.
+ *     is ignored if %G_REGEX_MULTILINE is set.
  * @G_REGEX_UNGREEDY: Inverts the "greediness" of the quantifiers so that
  *     they are not greedy by default, but become greedy if followed by "?".
  *     It can also be set by a "(?U)" option setting within the pattern.
@@ -259,9 +262,13 @@ GQuark g_regex_error_quark (void);
  *     followed by "?" behaves as if it were followed by "?:" but named
  *     parentheses can still be used for capturing (and they acquire numbers
  *     in the usual way).
- * @G_REGEX_OPTIMIZE: Optimize the regular expression. If the pattern will
- *     be used many times, then it may be worth the effort to optimize it
- *     to improve the speed of matches.
+ * @G_REGEX_OPTIMIZE: Since 2.74 and the port to pcre2, requests JIT
+ *     compilation, which, if the just-in-time compiler is available, further
+ *     processes a compiled pattern into machine code that executes much
+ *     faster. However, it comes at the cost of extra processing before the
+ *     match is performed, so it is most beneficial to use this when the same
+ *     compiled pattern is used for matching many times. Before 2.74 this
+ *     option used the built-in non-JIT optimizations in pcre1.
  * @G_REGEX_FIRSTLINE: Limits an unanchored pattern to match before (or at) the
  *     first newline. Since: 2.34
  * @G_REGEX_DUPNAMES: Names used to identify capturing subpatterns need not
@@ -284,7 +291,8 @@ GQuark g_regex_error_quark (void);
  *     is recognised. If this option is set, then "\R" only recognizes the newline
  *    characters '\r', '\n' and '\r\n'. Since: 2.34
  * @G_REGEX_JAVASCRIPT_COMPAT: Changes behaviour so that it is compatible with
- *     JavaScript rather than PCRE. Since: 2.34
+ *     JavaScript rather than PCRE. Since GLib 2.74 this is no longer supported,
+ *     as libpcre2 does not support it. Since: 2.34 Deprecated: 2.74
  *
  * Flags specifying compile-time options.
  *
@@ -295,6 +303,7 @@ GQuark g_regex_error_quark (void);
  */
 typedef enum
 {
+  G_REGEX_DEFAULT GLIB_AVAILABLE_ENUMERATOR_IN_2_74 = 0,
   G_REGEX_CASELESS          = 1 << 0,
   G_REGEX_MULTILINE         = 1 << 1,
   G_REGEX_DOTALL            = 1 << 2,
@@ -312,11 +321,12 @@ typedef enum
   G_REGEX_NEWLINE_CRLF      = G_REGEX_NEWLINE_CR | G_REGEX_NEWLINE_LF,
   G_REGEX_NEWLINE_ANYCRLF   = G_REGEX_NEWLINE_CR | 1 << 22,
   G_REGEX_BSR_ANYCRLF       = 1 << 23,
-  G_REGEX_JAVASCRIPT_COMPAT = 1 << 25
+  G_REGEX_JAVASCRIPT_COMPAT GLIB_DEPRECATED_ENUMERATOR_IN_2_74 = 1 << 25
 } GRegexCompileFlags;
 
 /**
  * GRegexMatchFlags:
+ * @G_REGEX_MATCH_DEFAULT: No special options set. Since: 2.74
  * @G_REGEX_MATCH_ANCHORED: The pattern is forced to be "anchored", that is,
  *     it is constrained to match only at the first matching point in the
  *     string that is being searched. This effect can also be achieved by
@@ -324,14 +334,14 @@ typedef enum
  *     metacharacter.
  * @G_REGEX_MATCH_NOTBOL: Specifies that first character of the string is
  *     not the beginning of a line, so the circumflex metacharacter should
- *     not match before it. Setting this without #G_REGEX_MULTILINE (at
+ *     not match before it. Setting this without %G_REGEX_MULTILINE (at
  *     compile time) causes circumflex never to match. This option affects
  *     only the behaviour of the circumflex metacharacter, it does not
  *     affect "\A".
  * @G_REGEX_MATCH_NOTEOL: Specifies that the end of the subject string is
  *     not the end of a line, so the dollar metacharacter should not match
  *     it nor (except in multiline mode) a newline immediately before it.
- *     Setting this without #G_REGEX_MULTILINE (at compile time) causes
+ *     Setting this without %G_REGEX_MULTILINE (at compile time) causes
  *     dollar never to match. This option affects only the behaviour of
  *     the dollar metacharacter, it does not affect "\Z" or "\z".
  * @G_REGEX_MATCH_NOTEMPTY: An empty string is not considered to be a valid
@@ -368,12 +378,12 @@ typedef enum
  *     single characters U+000B LINE TABULATION, U+000C FORM FEED (FF),
  *     U+0085 NEXT LINE (NEL), U+2028 LINE SEPARATOR and
  *     U+2029 PARAGRAPH SEPARATOR. Since: 2.34
- * @G_REGEX_MATCH_PARTIAL_SOFT: An alias for #G_REGEX_MATCH_PARTIAL. Since: 2.34
+ * @G_REGEX_MATCH_PARTIAL_SOFT: An alias for %G_REGEX_MATCH_PARTIAL. Since: 2.34
  * @G_REGEX_MATCH_PARTIAL_HARD: Turns on the partial matching feature. In contrast to
- *     to #G_REGEX_MATCH_PARTIAL_SOFT, this stops matching as soon as a partial match
+ *     to %G_REGEX_MATCH_PARTIAL_SOFT, this stops matching as soon as a partial match
  *     is found, without continuing to search for a possible complete match. See
  *     g_match_info_is_partial_match() for more information. Since: 2.34
- * @G_REGEX_MATCH_NOTEMPTY_ATSTART: Like #G_REGEX_MATCH_NOTEMPTY, but only applied to
+ * @G_REGEX_MATCH_NOTEMPTY_ATSTART: Like %G_REGEX_MATCH_NOTEMPTY, but only applied to
  *     the start of the matched string. For anchored
  *     patterns this can only happen for pattern containing "\K". Since: 2.34
  *
@@ -385,6 +395,7 @@ typedef enum
  * adding a new flag. */
 typedef enum
 {
+  G_REGEX_MATCH_DEFAULT GLIB_AVAILABLE_ENUMERATOR_IN_2_74 = 0,
   G_REGEX_MATCH_ANCHORED         = 1 << 4,
   G_REGEX_MATCH_NOTBOL           = 1 << 7,
   G_REGEX_MATCH_NOTEOL           = 1 << 8,
@@ -402,14 +413,6 @@ typedef enum
   G_REGEX_MATCH_NOTEMPTY_ATSTART = 1 << 28
 } GRegexMatchFlags;
 
-/**
- * GRegex:
- *
- * A GRegex is the "compiled" form of a regular expression pattern.
- * This structure is opaque and its fields cannot be accessed directly.
- *
- * Since: 2.14
- */
 typedef struct _GRegex		GRegex;
 
 

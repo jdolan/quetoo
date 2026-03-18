@@ -32,22 +32,22 @@
  */
 static void awakeWithDictionary(View *self, const Dictionary *dictionary) {
 
-	super(View, self, awakeWithDictionary, dictionary);
+  super(View, self, awakeWithDictionary, dictionary);
 
-	CvarTextView *this = (CvarTextView *) self;
+  CvarTextView *this = (CvarTextView *) self;
 
-	const Inlet inlets[] = MakeInlets(
-		MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
-	);
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("var", InletTypeApplicationDefined, &this->var, Cg_BindCvar)
+  );
 
-	$(self, bind, inlets, dictionary);
+  $(self, bind, inlets, dictionary);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *init(View *self) {
-	return (View *) $((CvarTextView *) self, initWithVariable, NULL);
+  return (View *) $((CvarTextView *) self, initWithVariable, NULL);
 }
 
 /**
@@ -55,14 +55,14 @@ static View *init(View *self) {
  */
 static void updateBindings(View *self) {
 
-	super(View, self, updateBindings);
+  super(View, self, updateBindings);
 
-	CvarTextView *this = (CvarTextView *) self;
-	if (this->var) {
-		$((TextView *) self, setDefaultText, this->var->string);
-	} else {
-		$((TextView *) self, setDefaultText, NULL);
-	}
+  CvarTextView *this = (CvarTextView *) self;
+  if (this->var) {
+    $((TextView *) self, setDefaultText, this->var->string);
+  } else {
+    $((TextView *) self, setDefaultText, NULL);
+  }
 }
 
 #pragma mark - Control
@@ -72,15 +72,17 @@ static void updateBindings(View *self) {
  */
 static void stateDidChange(Control *self) {
 
-	super(Control, self, stateDidChange);
+  super(Control, self, stateDidChange);
 
-	const CvarTextView *this = (CvarTextView *) self;
-	if (this->var) {
-		if (!$(self, isFocused)) {
-			const String *string = (String *) this->textView.attributedText;
-			cgi.SetCvarString(this->var->name, string->chars);
-		}
-	}
+  CvarTextView *this = (CvarTextView *) self;
+  if (this->var) {
+    if ($(self, isFocused)) {
+      $(&this->textView, setAttributedText, this->var->string);
+    } else {
+      const String *string = (String *) this->textView.attributedText;
+      cgi.SetCvarString(this->var->name, string->chars);
+    }
+  }
 }
 
 #pragma mark - CvarTextView
@@ -92,12 +94,12 @@ static void stateDidChange(Control *self) {
  */
 static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
 
-	self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
-	if (self) {
-		self->var = var;
-	}
+  self = (CvarTextView *) super(TextView, self, initWithFrame, NULL);
+  if (self) {
+    self->var = var;
+  }
 
-	return self;
+  return self;
 }
 
 #pragma mark - Class lifecycle
@@ -107,13 +109,13 @@ static CvarTextView *initWithVariable(CvarTextView *self, cvar_t *var) {
  */
 static void initialize(Class *clazz) {
 
-	((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
-	((ViewInterface *) clazz->interface)->init = init;
-	((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
-	((ControlInterface *) clazz->interface)->stateDidChange = stateDidChange;
+  ((ControlInterface *) clazz->interface)->stateDidChange = stateDidChange;
 
-	((CvarTextViewInterface *) clazz->interface)->initWithVariable = initWithVariable;
+  ((CvarTextViewInterface *) clazz->interface)->initWithVariable = initWithVariable;
 }
 
 /**
@@ -121,21 +123,21 @@ static void initialize(Class *clazz) {
  * @memberof CvarTextView
  */
 Class *_CvarTextView(void) {
-	static Class *clazz;
-	static Once once;
+  static Class *clazz;
+  static Once once;
 
-	do_once(&once, {
-		clazz = _initialize(&(const ClassDef) {
-			.name = "CvarTextView",
-			.superclass = _TextView(),
-			.instanceSize = sizeof(CvarTextView),
-			.interfaceOffset = offsetof(CvarTextView, interface),
-			.interfaceSize = sizeof(CvarTextViewInterface),
-			.initialize = initialize,
-		});
-	});
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "CvarTextView",
+      .superclass = _TextView(),
+      .instanceSize = sizeof(CvarTextView),
+      .interfaceOffset = offsetof(CvarTextView, interface),
+      .interfaceSize = sizeof(CvarTextViewInterface),
+      .initialize = initialize,
+    });
+  });
 
-	return clazz;
+  return clazz;
 }
 
 #undef _Class

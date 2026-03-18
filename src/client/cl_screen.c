@@ -26,8 +26,8 @@
 
 // net graph samples
 typedef struct {
-	float value;
-	color_t color;
+  float value;
+  color_t color;
 } net_graph_sample_t;
 
 static net_graph_sample_t net_graph_samples[NET_GRAPH_WIDTH];
@@ -38,18 +38,18 @@ static int32_t num_net_graph_samples;
  */
 static void Cl_NetGraph(float value, const color_t color) {
 
-	net_graph_samples[num_net_graph_samples].value = value;
-	net_graph_samples[num_net_graph_samples].color = color;
+  net_graph_samples[num_net_graph_samples].value = value;
+  net_graph_samples[num_net_graph_samples].color = color;
 
-	if (net_graph_samples[num_net_graph_samples].value > 1.0) {
-		net_graph_samples[num_net_graph_samples].value = 1.0;
-	}
+  if (net_graph_samples[num_net_graph_samples].value > 1.0) {
+    net_graph_samples[num_net_graph_samples].value = 1.0;
+  }
 
-	num_net_graph_samples++;
+  num_net_graph_samples++;
 
-	if (num_net_graph_samples == NET_GRAPH_WIDTH) {
-		num_net_graph_samples = 0;
-	}
+  if (num_net_graph_samples == NET_GRAPH_WIDTH) {
+    num_net_graph_samples = 0;
+  }
 }
 
 /**
@@ -58,26 +58,22 @@ static void Cl_NetGraph(float value, const color_t color) {
  * recorded over a range of 0-300ms.
  */
 void Cl_AddNetGraph(void) {
-	uint32_t i;
+  uint32_t i;
 
-	// we only need to do our accounting when asked to
-	if (!cl_draw_net_graph->value) {
-		return;
-	}
+  // we only need to do our accounting when asked to
+  if (!cl_draw_net_graph->value) {
+    return;
+  }
 
-	for (i = 0; i < cls.net_chan.dropped; i++) {
-		Cl_NetGraph(1.0, color_red);
-	}
+  for (i = 0; i < cls.net_chan.dropped; i++) {
+    Cl_NetGraph(1.0, color_red);
+  }
 
-	for (i = 0; i < cl.suppress_count; i++) {
-		Cl_NetGraph(1.0, color_yellow);
-	}
+  // see what the latency was on this packet
+  const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
+  const uint32_t ping = cl.unclamped_time - cl.cmds[frame].timestamp;
 
-	// see what the latency was on this packet
-	const uint32_t frame = cls.net_chan.incoming_acknowledged & CMD_MASK;
-	const uint32_t ping = cl.unclamped_time - cl.cmds[frame].timestamp;
-
-	Cl_NetGraph(ping / 300.0, color_green); // 300ms is lagged out
+  Cl_NetGraph(ping / 300.0, color_green); // 300ms is lagged out
 }
 
 /**
@@ -85,343 +81,403 @@ void Cl_AddNetGraph(void) {
  * via a small graph drawn on screen.
  */
 static void Cl_DrawNetGraph(void) {
-	int32_t x, y;
+  int32_t x, y;
 
-	if (!cl_draw_net_graph->value) {
-		return;
-	}
+  if (!cl_draw_net_graph->value) {
+    return;
+  }
 
-	GLint ch;
-	R_BindFont("small", NULL, &ch);
+  GLint ch;
+  R_BindFont("small", NULL, &ch);
 
-	const GLint netgraph_height = ch * 3;
+  const GLint netgraph_height = ch * 3;
 
-	x = r_context.width - NET_GRAPH_WIDTH;
-	y = r_context.height - NET_GRAPH_Y - netgraph_height;
+  x = r_context.w - NET_GRAPH_WIDTH;
+  y = r_context.h - NET_GRAPH_Y - netgraph_height;
 
-	R_Draw2DFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x80404040));
+  R_Draw2DFill(x, y, NET_GRAPH_WIDTH, netgraph_height, Color4bv(0x80404040));
 
-	for (int32_t i = 0; i < NET_GRAPH_WIDTH; i++) {
+  for (int32_t i = 0; i < NET_GRAPH_WIDTH; i++) {
 
-		const int32_t j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
-		const int32_t h = net_graph_samples[j].value * netgraph_height;
+    const int32_t j = (num_net_graph_samples - i) & (NET_GRAPH_WIDTH - 1);
+    const int32_t h = net_graph_samples[j].value * netgraph_height;
 
-		if (!h) {
-			continue;
-		}
+    if (!h) {
+      continue;
+    }
 
-		x = r_context.width - i;
-		y = r_context.height - NET_GRAPH_Y;
+    x = r_context.w - i;
+    y = r_context.h - NET_GRAPH_Y;
 
-		const GLint points[4] = { x, y, x, y - h };
-		R_Draw2DLines(points, 2, net_graph_samples[j].color);
-	}
+    const GLint points[4] = { x, y, x, y - h };
+    R_Draw2DLines(points, 2, net_graph_samples[j].color);
+  }
 }
 
 /**
  * @brief Draws counters and performance information about the renderer.
  */
 static void Cl_DrawRendererStats(void) {
-	GLint ch, x = 1, y = 64;
+  GLint ch, x = 1, y = 64;
 
-	if (!cl_draw_renderer_stats->value) {
-		return;
-	}
+  if (!r_draw_stats->value) {
+    return;
+  }
 
-	if (cls.state != CL_ACTIVE) {
-		return;
-	}
+  if (cls.state != CL_ACTIVE) {
+    return;
+  }
 
-	if (cls.key_state.dest != KEY_GAME) {
-		y = Cl_GetConsoleHeight();
-	}
+  if (cls.key_state.dest != KEY_GAME) {
+    y = Cl_GetConsoleHeight();
+  }
 
-	R_BindFont("small", NULL, &ch);
+  R_BindFont("small", NULL, &ch);
 
-	{
-		R_Draw2DString(x, y, "BSP:", color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d inline models", r_stats.bsp_inline_models), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d blend draw elements", r_stats.bsp_blend_draw_elements), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d blend depth types", r_stats.blend_depth_types), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.bsp_triangles), color_yellow);
-		y += ch;
-	}
+  {
+    R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
+    y += ch;
 
-	y += ch;
+    R_Draw2DString(x, y, va(" %d queries allocated", r_stats.queries_allocated), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d queries visible", r_stats.queries_visible), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d queries occluded", r_stats.queries_occluded), color_yellow);
+    y += ch;
+  }
 
-	{
-		R_Draw2DString(x, y, "Mesh:", color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d models", r_stats.mesh_models), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d triangles", r_stats.mesh_triangles), color_yellow);
-		y += ch;
-	}
+  y += ch;
 
-	y += ch;
+  {
+    R_Draw2DString(x, y, "Lights:", color_yellow);
+    y += ch;
 
-	{
-		R_Draw2DString(x, y, "Sprites:", color_yellow);
-		y += ch;
+    R_Draw2DString(x, y, va(" %d lights visible", r_stats.lights_visible), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d lights occluded", r_stats.lights_occluded), color_yellow);
+    y += ch;
+  }
 
-		static char sprites[64], beams[64], instances[64], draw_elements[64];
-		static uint32_t sprite_time;
+  y += ch;
 
-		if (quetoo.ticks - sprite_time > 100) {
-			sprite_time = quetoo.ticks;
+  {
+    R_Draw2DString(x, y, "BSP:", color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d entities", r_stats.bsp_inline_models), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d blocks visible", r_stats.blocks_visible), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d blocks occluded", r_stats.blocks_occluded), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d draw elements", r_stats.bsp_draw_elements), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d triangles", r_stats.bsp_triangles), color_yellow);
+    y += ch;
+  }
 
-			g_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
-			g_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
-			g_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
-			g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
-		}
+  y += ch;
 
-		R_Draw2DString(x, y, sprites, color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, beams, color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, instances, color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, draw_elements, color_yellow);
-		y += ch;
-	}
+  {
+    R_Draw2DString(x, y, "Mesh:", color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d entities", r_stats.mesh_models), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d draw elements", r_stats.mesh_draw_elements), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d triangles", r_stats.mesh_triangles), color_yellow);
+    y += ch;
+  }
 
-	y += ch;
+  y += ch;
 
-	{
-		R_Draw2DString(x, y, "Occlusion queries:", color_yellow);
-		y += ch;
+  {
+    R_Draw2DString(x, y, "Sprites:", color_yellow);
+    y += ch;
 
-		R_Draw2DString(x, y, va(" %d visible", r_stats.occlusion_queries_visible), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d occluded", r_stats.occlusion_queries_occluded), color_yellow);
-		y += ch;
-	}
+    static char sprites[64], beams[64], instances[64], draw_elements[64];
+    static uint32_t sprite_time;
 
-	y += ch;
+    if (quetoo.ticks - sprite_time > 100) {
+      sprite_time = quetoo.ticks;
 
-	{
-		R_Draw2DString(x, y, "Lights:", color_yellow);
-		y += ch;
+      g_snprintf(sprites, sizeof(sprites),      " %d sprites", cl_view.num_sprites);
+      g_snprintf(beams, sizeof(beams),          " %d beams", cl_view.num_beams);
+      g_snprintf(instances, sizeof(instances),  " %d instances", cl_view.num_sprite_instances);
+      g_snprintf(draw_elements, sizeof(draw_elements), " %d draw elements", r_stats.sprite_draw_elements);
+    }
 
-		R_Draw2DString(x, y, va(" %d lights", r_stats.lights), color_yellow);
-		y += ch;
-	}
+    R_Draw2DString(x, y, sprites, color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, beams, color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, instances, color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, draw_elements, color_yellow);
+    y += ch;
 
-	y += ch;
+    static char decals[64], decal_draw_elements[64];
+    static uint32_t decal_time;
 
-	{
-		R_Draw2DString(x, y, "Draw 2D:", color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d chars", r_stats.draw_chars), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d fills", r_stats.draw_fills), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d images", r_stats.draw_images), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d lines", r_stats.draw_lines), color_yellow);
-		y += ch;
-		R_Draw2DString(x, y, va(" %d arrays", r_stats.draw_arrays), color_yellow);
-		y += ch;
-	}
+    if (quetoo.ticks - decal_time > 100) {
+      decal_time = quetoo.ticks;
 
-	y += ch;
+      g_snprintf(decals, sizeof(decals), " %d decals", r_stats.decals);
+      g_snprintf(decal_draw_elements, sizeof(decal_draw_elements), " %d draw elements", r_stats.decal_draw_elements);
+    }
 
-	const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-	const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+    R_Draw2DString(x, y, decals, color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, decal_draw_elements, color_yellow);
+    y += ch;
+  }
 
-	if (tr.material) {
-		y += ch;
+  y += ch;
 
-		R_Draw2DString(x, y, va("%s (%g %g %g) %g",
-								tr.material->name,
-								tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
-								tr.plane.dist
-								), color_white);
-		y += ch;
-	}
+  {
+    R_Draw2DString(x, y, "Draw 2D:", color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d chars", r_stats.draw_chars), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d fills", r_stats.draw_fills), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d images", r_stats.draw_images), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d lines", r_stats.draw_lines), color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" %d arrays", r_stats.draw_arrays), color_yellow);
+    y += ch;
+  }
 
-	R_BindFont(NULL, NULL, NULL);
+  y += ch;
+
+  R_Draw2DString(x, y, va("Leaf: %d", Cm_PointLeafnum(cl_view.origin, 0)), color_yellow);
+  y += ch;
+
+  {
+    const GLuint64 depth     = r_stats.gpu_time_depth;
+    const GLuint64 shadows   = r_stats.gpu_time_shadows;
+    const GLuint64 bsp_op    = r_stats.gpu_time_bsp_opaque;
+    const GLuint64 mesh      = r_stats.gpu_time_mesh;
+    const GLuint64 decals    = r_stats.gpu_time_decals;
+    const GLuint64 bsp_bl    = r_stats.gpu_time_bsp_blend;
+    const GLuint64 sprites   = r_stats.gpu_time_sprites;
+    const GLuint64 total     = depth + shadows + bsp_op + mesh + decals + bsp_bl + sprites;
+
+    #define NS_TO_MS(ns) ((ns) / 1000000.0)
+
+    y += ch;
+    R_Draw2DString(x, y, "GPU timings:", color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" depth:      %.2fms", NS_TO_MS(depth)),    color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" shadows:    %.2fms", NS_TO_MS(shadows)),  color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" bsp opaque: %.2fms", NS_TO_MS(bsp_op)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" mesh:       %.2fms", NS_TO_MS(mesh)),     color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" decals:     %.2fms", NS_TO_MS(decals)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" bsp blend:  %.2fms", NS_TO_MS(bsp_bl)),   color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" sprites:    %.2fms", NS_TO_MS(sprites)),  color_yellow);
+    y += ch;
+    R_Draw2DString(x, y, va(" total:      %.2fms", NS_TO_MS(total)),    color_white);
+    y += ch;
+
+    #undef NS_TO_MS
+  }
+  y += ch;
+
+  const vec3_t forward = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
+  const cm_trace_t tr = Cl_Trace(cl_view.origin, forward, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+
+  if (tr.material) {
+    y += ch;
+
+    R_Draw2DString(x, y, va("%s (%g %g %g) %g",
+                tr.material->name,
+                tr.plane.normal.x, tr.plane.normal.y, tr.plane.normal.z,
+                tr.plane.dist
+                ), color_white);
+    y += ch;
+  }
+
+  R_BindFont(NULL, NULL, NULL);
 }
 
 /**
  * @brief Draws counters and performance information about the sound subsystem.
  */
 static void Cl_DrawSoundStats(void) {
-	GLint ch, x = 1, y = cl_draw_renderer_stats->value ? 600 : 64;
+  GLint ch, x = 1, y = r_draw_stats->value ? 600 : 64;
 
-	if (!cl_draw_sound_stats->value) {
-		return;
-	}
+  if (!s_draw_stats->value) {
+    return;
+  }
 
-	if (cls.state != CL_ACTIVE) {
-		return;
-	}
+  if (cls.state != CL_ACTIVE) {
+    return;
+  }
 
-	if (cls.key_state.dest != KEY_GAME) {
-		return;
-	}
+  if (cls.key_state.dest != KEY_GAME) {
+    return;
+  }
 
-	R_BindFont("small", NULL, &ch);
+  R_BindFont("small", NULL, &ch);
 
-	R_Draw2DString(x, y, "Sound:", color_magenta);
-	y += ch;
+  R_Draw2DString(x, y, "Sound:", color_magenta);
+  y += ch;
 
-	R_Draw2DString(x, y, va("%d channels", s_context.num_active_channels), color_magenta);
-	y += ch;
+  R_Draw2DString(x, y, va("%d channels", s_context.num_active_channels), color_magenta);
+  y += ch;
 
-	for (int32_t i = 0; i < MAX_CHANNELS; i++) {
-		const s_channel_t *channel = &s_context.channels[i];
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    const s_channel_t *channel = &s_context.channels[i];
 
-		if (!channel->play.sample) {
-			continue;
-		}
+    if (!channel->play.sample) {
+      continue;
+    }
 
-		ALenum state;
-		alGetSourcei(s_context.sources[i], AL_SOURCE_STATE, &state);
+    ALenum state;
+    alGetSourcei(s_context.sources[i], AL_SOURCE_STATE, &state);
 
-		if (state != AL_PLAYING)
-			continue;
+    if (state != AL_PLAYING)
+      continue;
 
-		R_Draw2DString(x + ch, y, va("%i: %s @ (%f %f %f) : %i", i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y, channel->play.origin.z, channel->play.flags), color_magenta);
-		y += ch;
-	}
+    R_Draw2DString(x + ch, y, va("%i: %s @ (%f %f %f) : %i", i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y, channel->play.origin.z, channel->play.flags), color_magenta);
+    y += ch;
+  }
 
-	R_BindFont(NULL, NULL, NULL);
+  R_BindFont(NULL, NULL, NULL);
 }
 
 /**
  * @brief 
  */
 static void Cl_DrawSampleCounter(char *buffer, gulong buffer_length, const char *title, uint16_t *samples) {
-	uint16_t min, max;
+  uint16_t min, max;
 
-	if (!cl.sample_count) {
-		min = max = samples[cl.sample_index];
-	} else {
-		min = UINT16_MAX;
-		max = 0;
+  if (!cl.sample_count) {
+    min = max = samples[cl.sample_index];
+  } else {
+    min = UINT16_MAX;
+    max = 0;
 
-		for (uint32_t i = 0; i < cl.sample_count; i++) {
-			int32_t index = (cl.sample_index - i);
+    for (uint32_t i = 0; i < cl.sample_count; i++) {
+      int32_t index = (cl.sample_index - i);
 
-			if (index < 0) {
-				index = STAT_COUNTER_SAMPLE_COUNT - (-index);
-			}
+      if (index < 0) {
+        index = STAT_COUNTER_SAMPLE_COUNT - (-index);
+      }
 
-			uint16_t sample = samples[index];
-			min = min(min, sample);
-			max = max(max, sample);
-		}
-	}
+      uint16_t sample = samples[index];
+      min = min(min, sample);
+      max = max(max, sample);
+    }
+  }
 
-	g_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.sample_index], title, min, max);
+  g_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.sample_index], title, min, max);
 }
 
 /**
  * @brief 
  */
 static void Cl_DrawFrameTimeSampleCounter(char *buffer, gulong buffer_length, const char *title, uint8_t *samples) {
-	uint16_t min, max;
+  uint16_t min, max;
 
-	if (!cl.sample_count) {
-		min = max = samples[cl.frametime_index];
-	} else {
-		min = UINT8_MAX;
-		max = 0;
+  if (!cl.sample_count) {
+    min = max = samples[cl.frametime_index];
+  } else {
+    min = UINT8_MAX;
+    max = 0;
 
-		for (uint32_t i = 0; i < cl.frametime_count; i++) {
-			int32_t index = (cl.frametime_index - i);
+    for (uint32_t i = 0; i < cl.frametime_count; i++) {
+      int32_t index = (cl.frametime_index - i);
 
-			if (index < 0) {
-				index = FRAMETIME_COUNTER_SAMPLE_COUNT - (-index);
-			}
+      if (index < 0) {
+        index = FRAMETIME_COUNTER_SAMPLE_COUNT - (-index);
+      }
 
-			uint16_t sample = samples[index];
-			min = min(min, sample);
-			max = max(max, sample);
-		}
-	}
+      uint16_t sample = samples[index];
+      min = min(min, sample);
+      max = max(max, sample);
+    }
+  }
 
-	g_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.frametime_index], title, min, max);
+  g_snprintf(buffer, buffer_length, "%3u%s (^1%3u ^2%3u^7)", samples[cl.frametime_index], title, min, max);
 }
 
 /**
  * @brief
  */
 static void Cl_DrawCounters(void) {
-	static vec3_t velocity;
-	static char ft[28], pps[28], fps[28], spd[8];
-	static int32_t last_draw_time, last_speed_time;
-	GLint cw, ch;
+  static vec3_t velocity;
+  static char ft[28], pps[28], fps[28], spd[8];
+  static int32_t last_draw_time, last_speed_time;
+  GLint cw, ch;
 
-	if (!cl_draw_counters->integer) {
-		return;
-	}
+  if (!cl_draw_counters->integer) {
+    return;
+  }
 
-	R_BindFont("small", &cw, &ch);
+  R_BindFont("small", &cw, &ch);
 
-	GLint x = r_context.width - 7 * cw;
-	GLint y = r_context.height - 4 * ch;
-	
-	cl.frame_counter[cl.sample_index]++;
+  GLint x = r_context.w - 7 * cw;
+  GLint y = r_context.h - 4 * ch;
 
-	cl.frametime_counter[cl.frametime_index] = cl.frame_msec;
-	cl.frametime_index = (cl.frametime_index + 1) % FRAMETIME_COUNTER_SAMPLE_COUNT;
-	cl.frametime_count = min(FRAMETIME_COUNTER_SAMPLE_COUNT, cl.frametime_count + 1);
+  cl.frame_counter[cl.sample_index]++;
 
-	if (quetoo.ticks - last_speed_time >= 100) {
+  cl.frametime_counter[cl.frametime_index] = cl.frame_msec;
+  cl.frametime_index = (cl.frametime_index + 1) % FRAMETIME_COUNTER_SAMPLE_COUNT;
+  cl.frametime_count = min(FRAMETIME_COUNTER_SAMPLE_COUNT, cl.frametime_count + 1);
 
-		velocity = cl.frame.ps.pm_state.velocity;
-		velocity.z = 0.0;
+  if (quetoo.ticks - last_speed_time >= 100) {
 
-		g_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
+    velocity = cl.frame.ps.pm_state.velocity;
+    velocity.z = 0.0;
 
-		last_speed_time = quetoo.ticks;
-	}
+    g_snprintf(spd, sizeof(spd), "%4.0fspd", Vec3_Length(velocity));
 
-	if (quetoo.ticks - last_draw_time >= 1000) {
-		
-		Cl_DrawSampleCounter(fps, sizeof(fps), "fps", cl.frame_counter);
-		Cl_DrawSampleCounter(pps, sizeof(pps), "pps", cl.packet_counter);
-		Cl_DrawFrameTimeSampleCounter(ft, sizeof(ft), " ft", cl.frametime_counter);
+    last_speed_time = quetoo.ticks;
+  }
 
-		last_draw_time = quetoo.ticks;
+  if (quetoo.ticks - last_draw_time >= 1000) {
+    
+    Cl_DrawSampleCounter(fps, sizeof(fps), "fps", cl.frame_counter);
+    Cl_DrawSampleCounter(pps, sizeof(pps), "pps", cl.packet_counter);
+    Cl_DrawFrameTimeSampleCounter(ft, sizeof(ft), " ft", cl.frametime_counter);
 
-		cl.sample_index = (cl.sample_index + 1) % STAT_COUNTER_SAMPLE_COUNT;
-		cl.sample_count = min(STAT_COUNTER_SAMPLE_COUNT, cl.sample_count + 1);
+    last_draw_time = quetoo.ticks;
 
-		cl.frame_counter[cl.sample_index] = 0;
-		cl.packet_counter[cl.sample_index] = 0;
-	}
+    cl.sample_index = (cl.sample_index + 1) % STAT_COUNTER_SAMPLE_COUNT;
+    cl.sample_count = min(STAT_COUNTER_SAMPLE_COUNT, cl.sample_count + 1);
 
-	if (cl_draw_position->integer) {
-		R_Draw2DString(r_context.width - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
-														   cl.frame.ps.pm_state.origin.x,
-														   cl.frame.ps.pm_state.origin.y,
-														   cl.frame.ps.pm_state.origin.z), color_white);
-	}
+    cl.frame_counter[cl.sample_index] = 0;
+    cl.packet_counter[cl.sample_index] = 0;
+  }
 
-	R_Draw2DString(x, y, spd, color_white);
-	y += ch;
+  if (cl_draw_position->integer) {
+    R_Draw2DString(r_context.w - 14 * cw, y - ch, va("%4.0f %4.0f %4.0f",
+                               cl.frame.ps.pm_state.origin.x,
+                               cl.frame.ps.pm_state.origin.y,
+                               cl.frame.ps.pm_state.origin.z), color_white);
+  }
 
-	x = r_context.width - 16 * cw;
+  R_Draw2DString(x, y, spd, color_white);
+  y += ch;
 
-	R_Draw2DString(x, y, ft, color_white);
-	y += ch;
+  x = r_context.w - 16 * cw;
 
-	R_Draw2DString(x, y, fps, color_white);
-	y += ch;
+  R_Draw2DString(x, y, ft, color_white);
+  y += ch;
 
-	R_Draw2DString(x, y, pps, color_white);
+  R_Draw2DString(x, y, fps, color_white);
+  y += ch;
 
-	R_BindFont(NULL, NULL, NULL);
+  R_Draw2DString(x, y, pps, color_white);
+
+  R_BindFont(NULL, NULL, NULL);
 }
 
 /**
@@ -429,64 +485,64 @@ static void Cl_DrawCounters(void) {
  */
 void Cl_UpdateScreen(void) {
 
-	static cl_key_dest_t previous_key_dest = KEY_UI;
-	if (cls.key_state.dest == KEY_UI) {
-		if (previous_key_dest != KEY_UI) {
-			Ui_ViewWillAppear();
-		}
-	} else {
-		if (previous_key_dest == KEY_UI) {
-			Ui_ViewWillDisappear();
-		}
-	}
-	previous_key_dest = cls.key_state.dest;
+  static cl_key_dest_t previous_key_dest = KEY_UI;
+  if (cls.key_state.dest == KEY_UI) {
+    if (previous_key_dest != KEY_UI) {
+      Ui_ViewWillAppear();
+    }
+  } else {
+    if (previous_key_dest == KEY_UI) {
+      Ui_ViewWillDisappear();
+    }
+  }
+  previous_key_dest = cls.key_state.dest;
 
-	switch (cls.state) {
-		case CL_UNINITIALIZED:
-		case CL_DISCONNECTED:
-		case CL_CONNECTING:
-		case CL_CONNECTED:
-			switch (cls.key_state.dest) {
-				case KEY_UI:
-					Ui_Draw();
-					break;
-				case KEY_CONSOLE:
-					Cl_DrawConsole();
-					break;
-				default:
-					break;
-			}
-			break;
+  switch (cls.state) {
+    case CL_UNINITIALIZED:
+    case CL_DISCONNECTED:
+    case CL_CONNECTING:
+    case CL_CONNECTED:
+      switch (cls.key_state.dest) {
+        case KEY_UI:
+          Ui_Draw();
+          break;
+        case KEY_CONSOLE:
+          Cl_DrawConsole();
+          break;
+        default:
+          break;
+      }
+      break;
 
-		case CL_LOADING:
-			Ui_Draw();
-			break;
+    case CL_LOADING:
+      Ui_Draw();
+      break;
 
-		case CL_ACTIVE:
-			Cl_DrawNetGraph();
-			Cl_DrawCounters();
+    case CL_ACTIVE:
+      Cl_DrawNetGraph();
+      Cl_DrawCounters();
 
-			if (cls.key_state.dest != KEY_UI) {
-				cls.cgame->UpdateScreen(&cl.frame);
-			}
+      if (cls.key_state.dest != KEY_UI) {
+        cls.cgame->UpdateScreen(&cl.frame);
+      }
 
-			switch (cls.key_state.dest) {
-				case KEY_UI:
-					Ui_Draw();
-					break;
-				case KEY_CONSOLE:
-					Cl_DrawConsole();
-					break;
-				case KEY_GAME:
-					Cl_DrawChat();
-					Cl_DrawNotify();
-					Cl_DrawRendererStats();
-					Cl_DrawSoundStats();
-					break;
-				case KEY_CHAT:
-					Cl_DrawChat();
-					break;
-			}
-			break;
-	}
+      switch (cls.key_state.dest) {
+        case KEY_UI:
+          Ui_Draw();
+          break;
+        case KEY_CONSOLE:
+          Cl_DrawConsole();
+          break;
+        case KEY_GAME:
+          Cl_DrawChat();
+          Cl_DrawNotify();
+          Cl_DrawRendererStats();
+          Cl_DrawSoundStats();
+          break;
+        case KEY_CHAT:
+          Cl_DrawChat();
+          break;
+      }
+      break;
+  }
 }

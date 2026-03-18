@@ -25,30 +25,30 @@
  * @brief The flare type.
  */
 typedef struct {
-	/**
-	 * @brief The face this flare is anchored to.
-	 */
-	const r_bsp_face_t *face;
+  /**
+   * @brief The face this flare is anchored to.
+   */
+  const r_bsp_face_t *face;
 
-	/**
-	 * @brief The material stage defining this flare.
-	 */
-	const r_stage_t *stage;
+  /**
+   * @brief The material stage defining this flare.
+   */
+  const r_stage_t *stage;
 
-	/**
-	 * @brief The bounds of all faces represented by this flare.
-	 */
-	box3_t bounds;
+  /**
+   * @brief The bounds of all faces represented by this flare.
+   */
+  box3_t bounds;
 
-	/**
-	 * @brief The sprite input and output instances.
-	 */
-	r_sprite_t in, out;
+  /**
+   * @brief The sprite input and output instances.
+   */
+  r_sprite_t in, out;
 
-	/**
-	 * @brief The entity referencing the model containin this flare, if any.
-	 */
-	const cl_entity_t *entity;
+  /**
+   * @brief The entity referencing the model containin this flare, if any.
+   */
+  const cl_entity_t *entity;
 } cg_flare_t;
 
 static GPtrArray *cg_flares;
@@ -60,71 +60,71 @@ static GPtrArray *cg_flares;
  */
 void Cg_AddFlares(void) {
 
-	if (!cg_add_flares->value) {
-		return;
-	}
+  if (!cg_add_flares->value) {
+    return;
+  }
 
-	for (guint i = 0; i < cg_flares->len; i++) {
-		cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
+  for (guint i = 0; i < cg_flares->len; i++) {
+    cg_flare_t *flare = g_ptr_array_index(cg_flares, i);
 
-		mat4_t matrix = Mat4_Identity();
-		flare->entity = NULL;
+    mat4_t matrix = Mat4_Identity();
+    flare->entity = NULL;
 
-		const r_bsp_inline_model_t *in = flare->face->node->model;
+    const r_bsp_inline_model_t *in = flare->face->node->model;
 
-		if (in != cgi.WorldModel()->bsp->inline_models) {
+    if (in != cgi.WorldModel()->bsp->inline_models && !editor->value) {
 
-			const cl_entity_t *e = cgi.client->entities;
-			for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
+      const cl_entity_t *e = cgi.client->entities;
+      for (int32_t j = 0; j < MAX_ENTITIES; j++, e++) {
 
-				if (!e->current.model1) {
-					continue;
-				}
+        if (!e->current.model1) {
+          continue;
+        }
 
-				if (e->current.model1 == MODEL_CLIENT) {
-					continue;
-				}
+        if (e->current.model1 == MODEL_CLIENT) {
+          continue;
+        }
 
-				const r_model_t *mod = cgi.client->models[e->current.model1];
+        const r_model_t *mod = cgi.client->models[e->current.model1];
 
-				if (mod && mod->type == MODEL_BSP_INLINE) {
-					if (in == mod->bsp_inline) {
-						matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
-						flare->entity = e;
-						break;
-					}
-				}
-			}
+        if (mod && mod->type == MODEL_BSP_INLINE) {
+          if (in == mod->bsp_inline) {
+            matrix = Mat4_FromRotationTranslationScale(e->angles, e->origin, 1.f);
+            flare->entity = e;
+            break;
+          }
+        }
+      }
 
-			assert(flare->entity);
-		}
+      assert(flare->entity);
+    }
 
-		cm_bsp_plane_t plane = *(flare->face->plane->cm);
+    cm_bsp_plane_t plane = *(flare->face->plane->cm);
 
-		if (flare->entity) {
-			flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
+    if (flare->entity) {
+      flare->out.origin = Mat4_Transform(matrix, flare->in.origin);
 
-			const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
+      const vec4_t out = Mat4_TransformPlane(matrix, plane.normal, plane.dist);
 
-			plane.normal = Vec4_XYZ(out);
-			plane.dist = out.w;
-		}
+      plane.normal = out.xyz;
+      plane.dist = out.w;
+    }
 
-		if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
-			continue;
-		}
+    if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
+      continue;
+    }
 
-		const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
-		const float alpha = Clampf(dot * cg_add_flares->value, 0.f, 1.f);
+    const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
+    const float alpha = Clampf01(dot * cg_add_flares->value);
 
-		if (alpha == 0.f) {
-			continue;
-		}
+    if (alpha == 0.f) {
+      continue;
+    }
 
-		flare->out.color = Color_Scale(flare->in.color, alpha);
+    flare->out.color = Vec3_Scale(flare->in.color, alpha);
 
-		cgi.AddSprite(cgi.view, &flare->out);
-	}
+    cgi.AddSprite(cgi.view, &flare->out);
+  }
 }
 
 /**
@@ -132,29 +132,47 @@ void Cg_AddFlares(void) {
  */
 cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 
-	cg_flare_t *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
+  cg_flare_t *flare = cgi.Malloc(sizeof(*flare), MEM_TAG_CGAME_LEVEL);
 
-	flare->face = face;
-	flare->stage = stage;
+  flare->face = face;
+  flare->stage = stage;
 
-	flare->bounds = Box3_Null();
-	for (int32_t i = 0; i < face->num_vertexes; i++) {
-		flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
-	}
+  flare->bounds = Box3_Null();
+  for (int32_t i = 0; i < face->num_vertexes; i++) {
+    flare->bounds = Box3_Append(flare->bounds, face->vertexes[i].position);
+  }
 
-	flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
+  flare->bounds = Box3_Expand(flare->bounds, Box3_Distance(flare->bounds) * .1f);
 
-	if (stage->cm->flags & STAGE_COLOR) {
-		flare->in.color = stage->cm->color;
-	} else {
-		flare->in.color = color_white;
-	}
+  if (stage->cm->flags & STAGE_COLOR) {
+    flare->in.color = stage->cm->color.vec3;
+  } else {
+    flare->in.color = color_white.vec3;
+  }
 
-	flare->in.media = stage->media;
-	flare->in.softness = 1.f;
-	flare->in.lighting = 1.f;
+  flare->in.media = stage->media;
+  flare->in.lighting = 1.f;
+  flare->in.flags = SPRITE_AXIAL;
 
-	return flare;
+  return flare;
+}
+
+/**
+ * @brief Returns true if two faces share a vertex position, indicating geometric adjacency.
+ */
+static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
+
+  const float epsilon = 1.f;
+
+  for (int32_t i = 0; i < a->num_vertexes; i++) {
+    for (int32_t j = 0; j < b->num_vertexes; j++) {
+      if (Vec3_Distance(a->vertexes[i].position, b->vertexes[j].position) < epsilon) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -162,31 +180,32 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
  */
 static void Cg_MergeFlares(void) {
 
-	for (guint i = 0; i < cg_flares->len; i++) {
-		cg_flare_t *a = g_ptr_array_index(cg_flares, i);
+  for (guint i = 0; i < cg_flares->len; i++) {
+    cg_flare_t *a = g_ptr_array_index(cg_flares, i);
 
-		for (guint j = i + 1; j < cg_flares->len; j++) {
-			cg_flare_t *b = g_ptr_array_index(cg_flares, j);
+    for (guint j = i + 1; j < cg_flares->len; j++) {
+      cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
-			if (a->face->brush_side == b->face->brush_side) {
-				a->bounds = Box3_Union(a->bounds, b->bounds);
+      if (a->face->brush_side == b->face->brush_side &&
+          Cg_FacesShareVertex(a->face, b->face)) {
+        a->bounds = Box3_Union(a->bounds, b->bounds);
 
-				g_ptr_array_remove_index(cg_flares, j);
-				cgi.Free(b);
+        g_ptr_array_remove_index(cg_flares, j);
+        cgi.Free(b);
 
-				j--;
-			}
-		}
+        j--;
+      }
+    }
 
-		a->in.origin = Box3_Center(a->bounds);
-		a->in.size = Box3_Distance(a->bounds);
+    a->in.origin = Box3_Center(a->bounds);
+    a->in.size = Box3_Distance(a->bounds);
 
-		if (a->stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
-			a->in.size *= (a->stage->cm->scale.s ? a->stage->cm->scale.s : a->stage->cm->scale.t);
-		}
+    if (a->stage->cm->flags & (STAGE_SCALE_S | STAGE_SCALE_T)) {
+      a->in.size *= (a->stage->cm->scale.s ? a->stage->cm->scale.s : a->stage->cm->scale.t);
+    }
 
-		a->out = a->in;
-	}
+    a->out = a->in;
+  }
 }
 
 /**
@@ -194,37 +213,37 @@ static void Cg_MergeFlares(void) {
  */
 void Cg_LoadFlares(void) {
 
-	cg_flares = g_ptr_array_new();
+  cg_flares = g_ptr_array_new();
 
-	const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
+  const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 
-	const r_bsp_face_t *face = bsp->faces;
-	for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
+  const r_bsp_face_t *face = bsp->faces;
+  for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
 
-		const r_material_t *material = face->brush_side->material;
-		if (material->cm->stage_flags & STAGE_FLARE) {
+    const r_material_t *material = face->brush_side->material;
+    if (material->cm->stage_flags & STAGE_FLARE) {
 
-			const r_stage_t *stage = material->stages;
-			while (stage) {
-				if (stage->cm->flags & STAGE_FLARE) {
-					break;
-				}
-				stage = stage->next;
-			}
-			assert(stage);
+      const r_stage_t *stage = material->stages;
+      while (stage) {
+        if (stage->cm->flags & STAGE_FLARE) {
+          break;
+        }
+        stage = stage->next;
+      }
+      assert(stage);
 
-			if (stage->media == NULL) {
-				continue;
-			}
+      if (stage->media == NULL) {
+        continue;
+      }
 
-			cg_flare_t *flare = Cg_LoadFlare(face, stage);
-			g_ptr_array_add(cg_flares, flare);
-		}
-	}
+      cg_flare_t *flare = Cg_LoadFlare(face, stage);
+      g_ptr_array_add(cg_flares, flare);
+    }
+  }
 
-	Cg_MergeFlares();
+  Cg_MergeFlares();
 
-	Cg_Debug("Loaded %u flares\n", cg_flares->len);
+  Cg_Debug("Loaded %u flares\n", cg_flares->len);
 }
 
 /**
@@ -232,8 +251,8 @@ void Cg_LoadFlares(void) {
  */
 void Cg_FreeFlares(void) {
 
-	if (cg_flares) {
-		g_ptr_array_free(cg_flares, 1);
-		cg_flares = NULL;
-	}
+  if (cg_flares) {
+    g_ptr_array_free(cg_flares, 1);
+    cg_flares = NULL;
+  }
 }

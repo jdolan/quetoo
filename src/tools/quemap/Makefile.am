@@ -10,15 +10,10 @@ noinst_HEADERS = \
 	fog.h \
 	leakfile.h \
 	light.h \
-	lightgrid.h \
-	lightmap.h \
-	luxel.h \
 	material.h \
-	monitor.h \
 	points.h \
 	polylib.h \
 	portal.h \
-	prtfile.h \
 	qbsp.h \
 	qlight.h \
 	qmat.h \
@@ -28,6 +23,7 @@ noinst_HEADERS = \
 	texture.h \
 	tjunction.h \
 	tree.h \
+	voxel.h \
 	work.h \
 	writebsp.h
 
@@ -40,16 +36,11 @@ quemap_SOURCES = \
 	fog.c \
 	leakfile.c \
 	light.c \
-	lightgrid.c \
-	lightmap.c \
-	luxel.c \
 	main.c \
 	map.c \
 	material.c \
-	monitor.c \
 	polylib.c \
 	portal.c \
-	prtfile.c \
 	qbsp.c \
 	qmat.c \
 	qlight.c \
@@ -58,6 +49,7 @@ quemap_SOURCES = \
 	texture.c \
 	tjunction.c \
 	tree.c \
+	voxel.c \
 	work.c \
 	writebsp.c
 
@@ -67,16 +59,14 @@ quemap_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@ \
-	@XML_CFLAGS@
+	@SDL3_CFLAGS@
 
 quemap_LDADD = \
 	$(top_builddir)/deps/minizip/libminizip.la \
 	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/net/libnet.la \
 	@CURSES_LIBS@ \
-	@SDL2_LIBS@ \
-	@XML_LIBS@
+	@SDL3_LIBS@
 
 if MINGW
 

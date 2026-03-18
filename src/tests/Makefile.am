@@ -5,14 +5,14 @@ TESTS_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CHECK_CFLAGS@ \
 	@GLIB_CFLAGS@ \
-	@SDL2_CFLAGS@
+	@SDL3_CFLAGS@
 	
 TESTS_LIBS = \
 	libtests.la \
 	@BASE_LIBS@ \
 	@CHECK_LIBS@ \
 	@GLIB_LIBS@ \
-	@SDL2_LIBS@
+	@SDL3_LIBS@
 
 noinst_LTLIBRARIES = \
 	libtests.la
@@ -31,6 +31,8 @@ libtests_la_LIBADD = \
 
 TESTS = \
 	check_atlas \
+	check_box \
+	check_cm_entity \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
@@ -53,12 +55,27 @@ check_atlas_CFLAGS = \
 check_atlas_LDADD = \
 	$(TESTS_LIBS)
 
+check_box_SOURCES = \
+	check_box.c
+check_box_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_box_LDADD = \
+	$(TESTS_LIBS)
+
 check_cmd_SOURCES = \
 	check_cmd.c
 check_cmd_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cmd_LDADD = \
 	$(TESTS_LIBS)
+
+check_cm_entity_SOURCES = \
+	check_cm_entity.c
+check_cm_entity_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cm_entity_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
 
 check_cm_polylib_SOURCES = \
 	check_cm_polylib.c

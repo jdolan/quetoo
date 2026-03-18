@@ -23,10 +23,18 @@
 
 #include "cm_types.h"
 
+void Cm_FreeEntity(cm_entity_t *entity);
+cm_entity_t *Cm_AllocEntity(void);
+cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity);
+void Cm_ParseEntity(cm_entity_t *pair);
+cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
 GList *Cm_LoadEntities(const char *entity_string);
 int32_t Cm_EntityNumber(const cm_entity_t *entity);
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key);
+cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
 GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity);
+char *Cm_EntityToInfoString(const cm_entity_t *entity);
+cm_entity_t *Cm_EntityFromInfoString(const char *str);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

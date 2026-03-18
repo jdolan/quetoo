@@ -39,22 +39,22 @@ typedef struct CvarSliderInterface CvarSliderInterface;
  */
 struct CvarSlider {
 
-	/**
-	 * @brief The superclass.
-	 * @private
-	 */
-	Slider slider;
+  /**
+   * @brief The superclass.
+   * @private
+   */
+  Slider slider;
 
-	/**
-	 * @brief The interface.
-	 * @private
-	 */
-	CvarSliderInterface *interface;
+  /**
+   * @brief The interface.
+   * @private
+   */
+  CvarSliderInterface *interface;
 
-	/**
-	 * @brief The variable.
-	 */
-	cvar_t *var;
+  /**
+   * @brief The variable.
+   */
+  cvar_t *var;
 };
 
 /**
@@ -62,22 +62,22 @@ struct CvarSlider {
  */
 struct CvarSliderInterface {
 
-	/**
-	 * @brief The superclass interface.
-	 */
-	SliderInterface sliderInterface;
+  /**
+   * @brief The superclass interface.
+   */
+  SliderInterface sliderInterface;
 
-	/**
-	 * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
-	 * @brief Initializes this Slider with the given variable.
-	 * @param var The variable.
-	 * @param min The minimum value.
-	 * @param max The maximum value.
-	 * @param step The step.
-	 * @return The initialized CvarSlider, or `NULL` on error.
-	 * @memberof CvarSlider
-	 */
-	CvarSlider *(*initWithVariable)(CvarSlider *self, cvar_t *var, double min, double max, double step);
+  /**
+   * @fn CvarSlider *CvarSlider::initWithVariable(CvarSlider *self, cvar_t *var, double min, double max, double step)
+   * @brief Initializes this Slider with the given variable.
+   * @param var The variable.
+   * @param min The minimum value.
+   * @param max The maximum value.
+   * @param step The step.
+   * @return The initialized CvarSlider, or `NULL` on error.
+   * @memberof CvarSlider
+   */
+  CvarSlider *(*initWithVariable)(CvarSlider *self, cvar_t *var, double min, double max, double step);
 };
 
 /**

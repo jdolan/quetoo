@@ -23,6 +23,15 @@
 
 #include "r_types.h"
 
+/**
+ * @brief Draw 2D projection types.
+ */
+typedef enum {
+  PROJECTION_GAME,
+  PROJECTION_UI,
+} r_draw_2d_projection_t;
+
+void R_SetDraw2DProjection(r_draw_2d_projection_t projection);
 void R_BindFont(const char *name, GLint *cw, GLint *ch);
 void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h);
 void R_Draw2DChar(GLint x, GLint y, char c, const color_t color);

@@ -29,49 +29,45 @@ bsp_file_t bsp_file;
  */
 static void PrintBSPFileSizes(void) {
 
-	Com_Verbose("--- Wrote %s ---\n", bsp_name);
+  Com_Verbose("--- Wrote %s ---\n", bsp_name);
 
-	Com_Verbose("%5i entities      %7i bytes\n", num_entities,
-				bsp_file.entity_string_size);
+  Com_Verbose("%5i entities      %7i bytes\n", num_entities,
+        bsp_file.entity_string_size);
 
-	Com_Verbose("%5i materials     %7i bytes\n", bsp_file.num_materials,
-				(int32_t) (bsp_file.num_materials * sizeof(bsp_material_t)));
+  Com_Verbose("%5i materials     %7i bytes\n", bsp_file.num_materials,
+        (int32_t) (bsp_file.num_materials * sizeof(bsp_material_t)));
 
-	Com_Verbose("%5i planes        %7i bytes\n", bsp_file.num_planes,
-				(int32_t) (bsp_file.num_planes * sizeof(bsp_plane_t)));
+  Com_Verbose("%5i planes        %7i bytes\n", bsp_file.num_planes,
+        (int32_t) (bsp_file.num_planes * sizeof(bsp_plane_t)));
 
-	Com_Verbose("%5i brush_sides   %7i bytes\n", bsp_file.num_brush_sides,
-				(int32_t) (bsp_file.num_brush_sides * sizeof(bsp_brush_side_t)));
+  Com_Verbose("%5i brush_sides   %7i bytes\n", bsp_file.num_brush_sides,
+        (int32_t) (bsp_file.num_brush_sides * sizeof(bsp_brush_side_t)));
 
-	Com_Verbose("%5i brushes       %7i bytes\n", bsp_file.num_brushes,
-				(int32_t) (bsp_file.num_brushes * sizeof(bsp_brush_t)));
+  Com_Verbose("%5i brushes       %7i bytes\n", bsp_file.num_brushes,
+        (int32_t) (bsp_file.num_brushes * sizeof(bsp_brush_t)));
 
-	Com_Verbose("%5i vertexes      %7i bytes\n", bsp_file.num_vertexes,
-				(int32_t) (bsp_file.num_vertexes * sizeof(bsp_vertex_t)));
+  Com_Verbose("%5i vertexes      %7i bytes\n", bsp_file.num_vertexes,
+        (int32_t) (bsp_file.num_vertexes * sizeof(bsp_vertex_t)));
 
-	Com_Verbose("%5i elements      %7i bytes\n", bsp_file.num_elements,
-				(int32_t) (bsp_file.num_elements * sizeof(int32_t)));
+  Com_Verbose("%5i elements      %7i bytes\n", bsp_file.num_elements,
+        (int32_t) (bsp_file.num_elements * sizeof(int32_t)));
 
-	Com_Verbose("%5i faces         %7i bytes\n", bsp_file.num_faces,
-				(int32_t) (bsp_file.num_faces * sizeof(bsp_face_t)));
+  Com_Verbose("%5i faces         %7i bytes\n", bsp_file.num_faces,
+        (int32_t) (bsp_file.num_faces * sizeof(bsp_face_t)));
 
-	Com_Verbose("%5i nodes         %7i bytes\n", bsp_file.num_nodes,
-				(int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
+  Com_Verbose("%5i nodes         %7i bytes\n", bsp_file.num_nodes,
+        (int32_t) (bsp_file.num_nodes * sizeof(bsp_node_t)));
 
-	Com_Verbose("%5i leaf_faces    %7i bytes\n", bsp_file.num_leaf_faces,
-				(int32_t) (bsp_file.num_leaf_faces * sizeof(bsp_file.leaf_faces[0])));
+  Com_Verbose("%5i leaf_brushes  %7i bytes\n", bsp_file.num_leaf_brushes,
+        (int32_t) (bsp_file.num_leaf_brushes * sizeof(bsp_file.leaf_brushes[0])));
 
-	Com_Verbose("%5i leaf_brushes  %7i bytes\n", bsp_file.num_leaf_brushes,
-				(int32_t) (bsp_file.num_leaf_brushes * sizeof(bsp_file.leaf_brushes[0])));
+  Com_Verbose("%5i leafs         %7i bytes\n", bsp_file.num_leafs,
+        (int32_t) (bsp_file.num_leafs * sizeof(bsp_leaf_t)));
 
-	Com_Verbose("%5i leafs         %7i bytes\n", bsp_file.num_leafs,
-				(int32_t) (bsp_file.num_leafs * sizeof(bsp_leaf_t)));
+  Com_Verbose("%5i models        %7i bytes\n", bsp_file.num_models,
+        (int32_t) (bsp_file.num_models * sizeof(bsp_model_t)));
 
-	Com_Verbose("%5i models        %7i bytes\n", bsp_file.num_models,
-				(int32_t) (bsp_file.num_models * sizeof(bsp_model_t)));
-
-	Com_Verbose("      lightmap    %7i bytes\n", bsp_file.lightmap_size);
-	Com_Verbose("      lightgrid   %7i bytes\n", bsp_file.lightgrid_size);
+  Com_Verbose("      voxels        %7i bytes\n", bsp_file.voxels_size);
 }
 
 /**
@@ -79,21 +75,21 @@ static void PrintBSPFileSizes(void) {
  */
 void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 
-	memset(&bsp_file, 0, sizeof(bsp_file));
+  memset(&bsp_file, 0, sizeof(bsp_file));
 
-	bsp_header_t *file;
+  bsp_header_t *file;
 
-	if (Fs_Load(filename, (void **) &file) == -1) {
-		Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
-	}
+  if (Fs_Load(filename, (void **) &file) == -1) {
+    Com_Error(ERROR_FATAL, "Failed to load %s\n", filename);
+  }
 
-	if (Bsp_Verify(file) == -1) {
-		Fs_Free(file);
-		Com_Error(ERROR_FATAL, "Failed to verify %s\n", filename);
-	}
+  if (Bsp_Verify(file) == -1) {
+    Fs_Free(file);
+    Com_Error(ERROR_FATAL, "Failed to verify %s\n", filename);
+  }
 
-	Bsp_LoadLumps(file, &bsp_file, lumps);
-	Fs_Free(file);
+  Bsp_LoadLumps(file, &bsp_file, lumps);
+  Fs_Free(file);
 }
 
 /**
@@ -101,13 +97,13 @@ void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
  */
 void WriteBSPFile(const char *filename) {
 
-	file_t *file = Fs_OpenWrite(filename);
+  file_t *file = Fs_OpenWrite(filename);
 
-	Bsp_Write(file, &bsp_file);
+  Bsp_Write(file, &bsp_file);
 
-	Fs_Close(file);
+  Fs_Close(file);
 
-	if (verbose) {
-		PrintBSPFileSizes();
-	}
+  if (verbose) {
+    PrintBSPFileSizes();
+  }
 }

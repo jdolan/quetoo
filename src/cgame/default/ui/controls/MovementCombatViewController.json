@@ -11,7 +11,7 @@
           "class": "StackView",
           "classNames": [
             "columns",
-						"container"
+            "container"
           ],
           "subviews": [
             {
@@ -183,7 +183,7 @@
                           "bind": "+attack"
                         }
                       },
-											{
+                      {
                         "class": "Input",
                         "label": {
                           "text": {
@@ -231,7 +231,7 @@
                           "bind": "drop weapon"
                         }
                       },
-											{
+                      {
                         "class": "Input",
                         "label": {
                           "text": {
