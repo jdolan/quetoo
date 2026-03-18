@@ -7,7 +7,7 @@ on:
     branches: [ "develop" ]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   resolve-deps:
@@ -141,6 +141,18 @@ jobs:
       with:
         name: quetoo-${{ matrix.build }}
         path: quetoo/apple/target/Quetoo.app
+
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      working-directory: quetoo
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete apple/target/Quetoo.app s3://quetoo/${{ matrix.build }}
+        git rev-parse --short HEAD > apple/target/revision
+        aws s3 cp apple/target/revision s3://quetoo/revisions/${{ matrix.build }}
 
   build-linux:
     needs: resolve-deps
@@ -281,6 +293,19 @@ jobs:
         name: quetoo-x86_64-pc-linux
         path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
 
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      working-directory: quetoo
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete linux/target/quetoo s3://quetoo/x86_64-pc-linux
+        git rev-parse --short HEAD > linux/target/revision
+        aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
+        aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
+
   build-windows:
     needs: resolve-deps
     runs-on: windows-latest
@@ -323,40 +348,3 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path bin/x64Release/lib | Out-Null
         Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
-
-  publish-release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    needs: [ build-macos, build-linux, build-windows ]
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v6
-
-    - name: Create revision files
-      run: |
-        REV="${GITHUB_SHA::7}"
-        echo -n "$REV" > revision-arm64-apple-darwin
-        echo -n "$REV" > revision-x86_64-pc-linux
-
-    - name: Package macOS artifact
-      run: |
-        cd quetoo-arm64-apple-darwin
-        zip -r ../quetoo-BETA-arm64-apple-darwin.zip Quetoo.app
-
-    - name: Publish release
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        gh release delete latest --yes --cleanup-tag -R ${{ github.repository }} 2>/dev/null || true
-        gh release create latest \
-          --repo ${{ github.repository }} \
-          --title "Latest Build" \
-          --notes "Automatically updated on every push to develop.
-
-        Revision: ${GITHUB_SHA::7}" \
-          --prerelease \
-          revision-arm64-apple-darwin \
-          revision-x86_64-pc-linux \
-          quetoo-BETA-arm64-apple-darwin.zip \
-          quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz

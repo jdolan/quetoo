@@ -24,8 +24,8 @@
 #include "filesystem.h"
 #include "net/net_http.h"
 
-#define QUETOO_REVISION_URL "https://github.com/jdolan/quetoo/releases/latest/download/revision-" BUILD
-#define QUETOO_DATA_REVISION_URL "https://github.com/jdolan/quetoo-data/releases/latest/download/revision"
+#define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
+#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
 
 #define QUETOO_INSTALLER "quetoo-installer-small.jar"
 
