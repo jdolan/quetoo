@@ -4,7 +4,7 @@
 
 # Quetoo BETA
 
-![Quetoo BETA!](https://user-images.githubusercontent.com/643118/147579456-f045a7a3-38ed-4a51-88e3-d9ca6e4f132c.jpg)
+![Quetoo BETA!](https://raw.githubusercontent.com/jdolan/quetoo/main/quetoo-edge.jpg)
 
 ## Overview
 

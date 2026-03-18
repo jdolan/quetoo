@@ -44,7 +44,7 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
-      useCustomWorkingDirectory = "NO"
+      useCustomWorkingDirectory = "YES"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
@@ -60,6 +60,10 @@
          </BuildableReference>
       </BuildableProductRunnable>
       <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-w target/default"
+            isEnabled = "NO">
+         </CommandLineArgument>
          <CommandLineArgument
             argument = "--threads -1"
             isEnabled = "NO">
@@ -138,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/fragpipe.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/fractures.map"
@@ -167,6 +171,10 @@
          <CommandLineArgument
             argument = "maps/mitred.map"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/omf.map"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/pits.map"
