@@ -12,10 +12,13 @@
 
 ## Features
 
- * Deathmatch, Capture, Instagib and Rocket Arena gameplay modes
- * Teams Play and Match Mode support
- * High quality remakes of id Software's legendary _Quake_, _Quake II_ and _Quake III_ deathmatch levels, as well as originals
- * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>, <a href="http://anthonywebbmusic.com/">Anthony Webb</a> and Jacob Zammit.
+ * Deathmatch, Team DM, Capture the Flag, Instagib and Rocket Arena gameplay modes
+ * High quality remakes of id Software's legendary _Quake_ series deathmatch levels, as well as many originals
+ * Realtime lighting with soft shadowmapping
+ * Bump mapping with parallax occlusion mapping and self-shadowing
+ * Volumetric fog
+ * Dramatically improved artwork pipeline with in-game editor for level artists
+ * TrenchBroom support
  * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
 
 ## Downloads
@@ -28,7 +31,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
+Compiling _Quetoo_ is only recommended for developers and mappers. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
 
 The following dependencies are required:
 
@@ -50,9 +53,7 @@ Quetoo builds with GNU Autotools. To build it, run the following:
 To have a working game, you must install the game data using `git`:
 
     git clone https://github.com/jdolan/quetoo-data.git
-    sudo ln -s quetoo-data/target /usr/local/share/quetoo
-
-More information on hacking on _Quetoo_ is available [on the project website](http://quetoo.org/books/documentation/developing-and-modding).
+    sudo ln -s $(pwd)/quetoo-data/target /usr/local/share/quetoo
 
 ## Support
 
