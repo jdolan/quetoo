@@ -7,7 +7,7 @@ on:
     branches: [ "develop" ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   resolve-deps:
@@ -323,3 +323,40 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path bin/x64Release/lib | Out-Null
         Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
+
+  publish-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    needs: [ build-macos, build-linux, build-windows ]
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v6
+
+    - name: Create revision files
+      run: |
+        REV="${GITHUB_SHA::7}"
+        echo -n "$REV" > revision-arm64-apple-darwin
+        echo -n "$REV" > revision-x86_64-pc-linux
+
+    - name: Package macOS artifact
+      run: |
+        cd quetoo-arm64-apple-darwin
+        zip -r ../quetoo-BETA-arm64-apple-darwin.zip Quetoo.app
+
+    - name: Publish release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh release delete latest --yes --cleanup-tag -R ${{ github.repository }} 2>/dev/null || true
+        gh release create latest \
+          --repo ${{ github.repository }} \
+          --title "Latest Build" \
+          --notes "Automatically updated on every push to develop.
+
+        Revision: ${GITHUB_SHA::7}" \
+          --prerelease \
+          revision-arm64-apple-darwin \
+          revision-x86_64-pc-linux \
+          quetoo-BETA-arm64-apple-darwin.zip \
+          quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz
