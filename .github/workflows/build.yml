@@ -136,11 +136,17 @@ jobs:
           -d apple/target/Quetoo.app/Contents/MacOS/lib \
           -of -p @executable_path/lib
 
+    - name: Create archive
+      working-directory: quetoo
+      run: |
+        cd apple/target
+        zip -r ../../quetoo-BETA-${{ matrix.build }}.zip Quetoo.app
+
     - name: Upload artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-${{ matrix.build }}
-        path: quetoo/apple/target/Quetoo.app
+        path: quetoo/quetoo-BETA-${{ matrix.build }}.zip
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -369,11 +375,6 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v6
 
-    - name: Create macOS archive
-      run: |
-        cd quetoo-arm64-apple-darwin
-        zip -r ../quetoo-BETA-arm64-apple-darwin.zip Quetoo.app
-
     - name: Delete existing release
       run: gh release delete latest --yes --cleanup-tag || true
       env:
@@ -392,7 +393,7 @@ jobs:
         | Linux (x86_64) | quetoo-BETA-x86_64-pc-linux.tar.gz |
         | Windows (x86_64) | quetoo-BETA-x86_64-pc-windows.zip |" \
           --prerelease \
-          quetoo-BETA-arm64-apple-darwin.zip \
+          quetoo-arm64-apple-darwin/quetoo-BETA-arm64-apple-darwin.zip \
           quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz \
           quetoo-x86_64-pc-windows/quetoo-BETA-x86_64-pc-windows.zip
       env:
