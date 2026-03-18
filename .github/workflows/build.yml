@@ -117,6 +117,12 @@ jobs:
         make DESTDIR=$(pwd)/apple/target/Quetoo.app install
         rm -f apple/target/Quetoo.app/bin apple/target/Quetoo.app/lib apple/target/Quetoo.app/share
 
+    - name: Download installer
+      working-directory: quetoo
+      run: |
+        curl -fsSL -o apple/target/Quetoo.app/Contents/MacOS/lib/quetoo-installer-small.jar \
+          https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar
+
     - name: Bundle libraries
       working-directory: quetoo
       run: |
@@ -257,6 +263,12 @@ jobs:
           linux/target/quetoo/bin/quetoo-master \
           linux/target/quetoo/lib/default/cgame.so \
           linux/target/quetoo/lib/default/game.so
+
+    - name: Download installer
+      working-directory: quetoo
+      run: |
+        curl -fsSL -o linux/target/quetoo/lib/quetoo-installer-small.jar \
+          https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar
 
     - name: Create archive
       working-directory: quetoo
