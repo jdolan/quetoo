@@ -1074,6 +1074,11 @@ static void Cm_ResolveFootsteps_Enumerate(const char *file, void *data) {
 
   cm_footsteps_t *footsteps = data;
 
+  if (footsteps->num_samples == lengthof(footsteps->samples)) {
+    Com_Debug(DEBUG_COLLISION, "MAX_FOOTSTEP_SAMPLES\n");
+    return;
+  }
+
   cm_asset_t *out = footsteps->samples + footsteps->num_samples;
 
   out->name[0] = '#';
