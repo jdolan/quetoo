@@ -354,20 +354,18 @@ int32_t main(int32_t argc, char **argv) {
   }
 
   if (!do_bsp && !do_mat && !do_zip) {
-    Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
+    PrintHelpMessage();
+    Com_Error(ERROR_FATAL, "No action specified.\n");
   }
 
   Thread_Init(num_threads);
   Com_Print("Using %d threads\n", Thread_Count());
 
   const char *filename = Com_Argv(Com_Argc() - 1);
-  if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
-    gchar *dirname = g_path_get_dirname(filename);
-    if (dirname) {
-      Fs_AddToSearchPath(dirname);
-      filename += strlen(dirname);
-      g_free(dirname);
-    }
+
+  if (!g_str_has_prefix(filename, "maps/")) {
+    PrintHelpMessage();
+    Com_Error(ERROR_FATAL, "Invalid Quake path for %s.\n", filename);
   }
 
   // resolve the base name, used for all output files
