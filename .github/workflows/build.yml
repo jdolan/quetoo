@@ -2,9 +2,9 @@ name: Build
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "develop" ]
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -143,7 +143,7 @@ jobs:
         path: quetoo/apple/target/Quetoo.app
 
     - name: Publish to S3
-      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       working-directory: quetoo
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -294,7 +294,7 @@ jobs:
         path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
 
     - name: Publish to S3
-      if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       working-directory: quetoo
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
