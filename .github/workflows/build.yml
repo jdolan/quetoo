@@ -121,7 +121,7 @@ jobs:
       working-directory: quetoo
       run: |
         curl -fsSL -o apple/target/Quetoo.app/Contents/MacOS/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar
+          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
 
     - name: Bundle libraries
       working-directory: quetoo
@@ -280,7 +280,7 @@ jobs:
       working-directory: quetoo
       run: |
         curl -fsSL -o linux/target/quetoo/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar
+          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
 
     - name: Create archive
       working-directory: quetoo
@@ -347,4 +347,4 @@ jobs:
       working-directory: ${{ github.workspace }}/quetoo
       run: |
         New-Item -ItemType Directory -Force -Path bin/x64Release/lib | Out-Null
-        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/latest/download/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
+        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
