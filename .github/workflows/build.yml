@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   resolve-deps:
@@ -348,3 +348,53 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path bin/x64Release/lib | Out-Null
         Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
+
+    - name: Create archive
+      working-directory: ${{ github.workspace }}/quetoo
+      run: |
+        Compress-Archive -Path bin/x64Release/* -DestinationPath quetoo-BETA-x86_64-pc-windows.zip
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-windows
+        path: quetoo/quetoo-BETA-x86_64-pc-windows.zip
+
+  release:
+    needs: [build-macos, build-linux, build-windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v6
+
+    - name: Create macOS archive
+      run: |
+        cd quetoo-arm64-apple-darwin
+        zip -r ../quetoo-BETA-arm64-apple-darwin.zip Quetoo.app
+
+    - name: Delete existing release
+      run: gh release delete latest --yes --cleanup-tag || true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+
+    - name: Create release
+      run: |
+        gh release create latest \
+          --title "Quetoo BETA Snapshot" \
+          --notes "Latest snapshot build from the \`main\` branch.
+
+        | Platform | Archive |
+        |----------|---------|
+        | macOS (Apple Silicon) | quetoo-BETA-arm64-apple-darwin.zip |
+        | Linux (x86_64) | quetoo-BETA-x86_64-pc-linux.tar.gz |
+        | Windows (x86_64) | quetoo-BETA-x86_64-pc-windows.zip |" \
+          --prerelease \
+          quetoo-BETA-arm64-apple-darwin.zip \
+          quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz \
+          quetoo-x86_64-pc-windows/quetoo-BETA-x86_64-pc-windows.zip
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
