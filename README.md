@@ -23,7 +23,13 @@
 
 ## Downloads
 
-Preview releases of _Quetoo_ for all platforms are available for download on the [project website](http://quetoo.org/pages/downloads). Installation instructions are available there as well.
+Snapshot releases of _Quetoo_ for all platforms are available on the [GitHub Releases](https://github.com/jdolan/quetoo/releases) page. Download the latest release for your platform and run the included _Quetoo Installer_ to install or update the game.
+
+### macOS
+Because _Quetoo_ is not signed with an Apple Developer certificate, macOS will block it on first launch. To allow it, right-click the application and select **Open**, then click **Open** again in the dialog that appears.
+
+### Windows
+Windows SmartScreen may block the installer on first launch. Click **More info**, then **Run anyway** to proceed.
 
 ## Community
 
