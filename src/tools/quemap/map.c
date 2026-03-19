@@ -442,6 +442,8 @@ static void SetMaterialFlags(brush_side_t *side) {
     side->surface |= SURF_SKY;
   } else if (!g_strcmp0(side->texture, "common/trigger")) {
     side->surface |= SURF_NO_DRAW;
+  } else if (!g_strcmp0(side->texture, "common/weather")) {
+    side->contents |= CONTENTS_ATMOSPHERIC;
   }
 
   if (side->contents & CONTENTS_MASK_LIQUID) {
