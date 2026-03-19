@@ -480,7 +480,10 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
           break;
         }
       }
-      assert(w);
+
+      if (!w) {
+        continue;
+      }
 
       v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
     }

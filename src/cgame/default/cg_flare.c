@@ -218,7 +218,11 @@ void Cg_LoadFlares(void) {
   const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 
   const r_bsp_face_t *face = bsp->faces;
-  for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
+  for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+
+    if (!face->node) {
+      continue; // patch faces do not have node references
+    }
 
     const r_material_t *material = face->brush_side->material;
     if (material->cm->stage_flags & STAGE_FLARE) {

@@ -23,6 +23,7 @@
 #include "bsp.h"
 #include "map.h"
 #include "material.h"
+#include "patch.h"
 #include "qbsp.h"
 #include "texture.h"
 
@@ -460,6 +461,18 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     return NULL;
   }
 
+  // Check if this is a patchDef2 block
+  if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
+    if (!g_strcmp0(token, "patchDef2")) {
+      const int32_t entity_num = (int32_t) (entity - entities);
+      patch_t *patch = ParsePatch(parser, entity_num);
+      if (patch) {
+        entity->num_patches++;
+      }
+      return NULL;
+    }
+  }
+
   if (num_brushes == MAX_BSP_BRUSHES) {
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
   }
@@ -719,6 +732,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 
     entity->first_brush = num_brushes;
     entity->first_brush_side = num_brush_sides;
+    entity->first_patch = num_patches;
 
     while (true) {
 
@@ -737,8 +751,6 @@ static entity_t *ParseEntity(parser_t *parser) {
           entity->num_brushes++;
           entity->num_brush_sides += brush->num_brush_sides;
           entity->bounds = Box3_Union(entity->bounds, brush->bounds);
-        } else {
-          Com_Error(ERROR_FATAL, "Invalid brush %d in entity %d\n", num_brushes, num_entities);
         }
 
       } else {
@@ -819,6 +831,9 @@ void LoadMapFile(const char *filename) {
   memset(planes, 0, sizeof(planes));
   num_planes = 0;
 
+  memset(patches, 0, sizeof(patches));
+  num_patches = 0;
+
   memset(plane_hash, 0, sizeof(plane_hash));
 
   void *buffer;
@@ -844,6 +859,7 @@ void LoadMapFile(const char *filename) {
 
   Com_Verbose("%5i brushes\n", num_brushes);
   Com_Verbose("%5i brush sides\n", num_brush_sides);
+  Com_Verbose("%5i patches\n", num_patches);
   Com_Verbose("%5i entities\n", num_entities);
   Com_Verbose("%5i planes\n", num_planes);
   Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",

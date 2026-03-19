@@ -139,7 +139,7 @@ void Sv_LoadEditorMap(void) {
 
     const char *brushes = NULL;
     bool in_entity = false;
-    bool in_brush = false;
+    int32_t brush_depth = 0;
     char token[MAX_TOKEN_CHARS] = "";
 
     while (Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
@@ -147,17 +147,17 @@ void Sv_LoadEditorMap(void) {
       if (!g_strcmp0(token, "{")) {
         if (!in_entity) {
           in_entity = true;
-        } else if (!in_brush) {
-          in_brush = true;
-          if (!brushes) {
+        } else {
+          brush_depth++;
+          if (brush_depth == 1 && !brushes) {
             brushes = parser.position.ptr - 1;
           }
         }
       }
 
       if (!g_strcmp0(token, "}")) {
-        if (in_brush) {
-          in_brush = false;
+        if (brush_depth > 0) {
+          brush_depth--;
         } else if (in_entity) {
           in_entity = false;
           break;

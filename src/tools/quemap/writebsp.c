@@ -22,6 +22,7 @@
 #include "bsp.h"
 #include "map.h"
 #include "material.h"
+#include "patch.h"
 #include "portal.h"
 #include "qbsp.h"
 #include "writebsp.h"
@@ -589,6 +590,10 @@ void EndModel(bsp_model_t *mod) {
   const bsp_node_t *head_node = &bsp_file.nodes[mod->head_node];
 
   mod->visible_bounds = head_node->visible_bounds;
+
+  // Emit tessellated patch faces for this entity
+  EmitPatchFaces(mod->entity);
+
   mod->num_faces = bsp_file.num_faces - mod->first_face;
 
   EmitDepthPassElements(mod);
