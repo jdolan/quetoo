@@ -4,6 +4,9 @@
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerWorkingDirectory>$(QUETOO_HOME)\bin\</LocalDebuggerWorkingDirectory>
     <LocalDebuggerCommand>$(QUETOO_HOME)\bin\quemap.exe</LocalDebuggerCommand>
-    <LocalDebuggerCommandArguments>-p "$(SolutionDir)../../quetoo-data/src/default" -bsp -light tokays</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp test</LocalDebuggerCommandArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArgumentsHistory>-p "D:\quetoo_dev\github\quetoo\Quetoo.vs15\../../quetoo-data/src/default" -bsp -light tokays|-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp test|</LocalDebuggerCommandArgumentsHistory>
   </PropertyGroup>
 </Project>
