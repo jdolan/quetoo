@@ -124,19 +124,6 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 
       ent->timestamp = cgi.client->unclamped_time + 800;
     }
-  } else if (cg_state.weather) {
-
-    Cg_AddSprite(&(cg_sprite_t) {
-      .atlas_image = cg_sprite_smoke,
-      .lifetime = 4000 - Randomf() * 100,
-      .size = 12.5f,
-      .origin = pos,
-      .velocity = Vec3_Add(Vec3_Scale(forward, 5.0), Vec3_RandomRange(-2.f, 2.f)),
-      .color = Vec3(1.f, 1.f, 1.f),
-      .lighting = 1.f
-    });
-
-    ent->timestamp = cgi.client->unclamped_time + 3000;
   }
 }
 

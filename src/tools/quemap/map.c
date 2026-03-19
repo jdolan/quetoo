@@ -791,7 +791,8 @@ static entity_t *ParseEntity(parser_t *parser) {
     if (!g_strcmp0(classname, "func_group") ||
       !g_strcmp0(classname, "misc_fog") ||
       !g_strcmp0(classname, "misc_dust") ||
-      !g_strcmp0(classname, "misc_sprite")) {
+      !g_strcmp0(classname, "misc_sprite") ||
+      !g_strcmp0(classname, "misc_weather")) {
       MoveBrushesToWorld(entity);
     }
   }

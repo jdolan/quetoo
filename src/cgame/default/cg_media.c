@@ -321,8 +321,6 @@ void Cg_LoadMedia(void) {
 
   Cg_LoadEntities();
 
-  Cg_LoadEffects();
-
   Cg_InitLights();
 
   cgi.LoadingProgress(-1, "clients");

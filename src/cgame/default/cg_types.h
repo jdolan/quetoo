@@ -155,11 +155,6 @@ typedef struct {
   float hook_pull_speed;
 
   /**
-   * @brief The current weather bitmask.
-   */
-  int32_t weather;
-  
-  /**
    * @brief The current `sv_max_clients` value of the server.
    */
   int32_t max_clients;

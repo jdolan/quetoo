@@ -39,6 +39,10 @@ typedef struct {
    * @brief The sprite origins, clipped to the backing entity's brushes.
    */
   vec3_t *origins;
+
+  /**
+   * @brief The count of sprite origins.
+   */
   int32_t num_origins;
 
   /**
@@ -191,6 +195,227 @@ const cg_entity_class_t cg_misc_dust = {
   .Init = Cg_misc_dust_Init,
   .Think = Cg_misc_dust_Think,
   .data_size = sizeof(cg_dust_t)
+};
+
+/**
+ * @brief The misc_weather type.
+ */
+typedef struct {
+  /**
+   * @brief The weather type bitmask.
+   */
+  int32_t weather;
+
+  /**
+   * @brief The sprite origins, clipped to the backing entity's brushes.
+   */
+  vec3_t *origins;
+
+  /**
+   * @brief The count of sprite origins.
+   */
+  int32_t num_origins;
+
+  /**
+   * @brief The density multiplier.
+   */
+  float density;
+
+  /**
+   * @brief The count of active sprites.
+   */
+  int32_t num_active;
+
+  /**
+   * @brief The ambient sound sample.
+   */
+  s_sample_t *sample;
+} cg_weather_t;
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_Init(cg_entity_t *self) {
+
+  cg_weather_t *weather = self->data;
+
+  const char *type = cgi.EntityValue(self->def, "weather")->nullable_string;
+  if (type) {
+    if (strstr(type, "rain")) {
+      weather->weather |= WEATHER_RAIN;
+    }
+    if (strstr(type, "snow")) {
+      weather->weather |= WEATHER_SNOW;
+    }
+    if (strstr(type, "ash")) {
+      weather->weather |= WEATHER_ASH;
+    }
+  }
+
+  if (!weather->weather) {
+    weather->weather = WEATHER_RAIN;
+  }
+
+  const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+  if (sound) {
+    if (g_strcmp0(sound, "none")) {
+      weather->sample = cgi.LoadSample(sound);
+    }
+  } else {
+    if (weather->weather & WEATHER_RAIN) {
+      weather->sample = cg_sample_rain;
+    } else if (weather->weather & WEATHER_SNOW) {
+      weather->sample = cg_sample_snow;
+    } else if (weather->weather & WEATHER_ASH) {
+      weather->sample = cg_sample_ash;
+    }
+  }
+
+  weather->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
+
+  if (weather->weather & WEATHER_RAIN) {
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 5.f;
+  } else {
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 2.f;
+  }
+
+  self->bounds = Box3_Null();
+
+  GPtrArray *brushes = cgi.EntityBrushes(self->def);
+  for (guint i = 0; i < brushes->len; i++) {
+
+    const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+    self->bounds = Box3_Union(self->bounds, brush->bounds);
+
+    const vec3_t brush_size = Box3_Size(brush->bounds);
+    const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * weather->density / 16.f, 1);
+
+    if (weather->origins) {
+      weather->origins = cgi.Realloc(weather->origins, (weather->num_origins + brush_origins) * sizeof(vec3_t));
+    } else {
+      weather->origins = cgi.LinkMalloc(brush_origins * sizeof(vec3_t), weather);
+    }
+
+    int32_t j = weather->num_origins;
+    while (j < weather->num_origins + brush_origins) {
+
+      const vec3_t point = Box3_RandomPoint(brush->bounds);
+
+      if (cgi.PointInsideBrush(point, brush)) {
+        weather->origins[j++] = point;
+      }
+    }
+
+    weather->num_origins += brush_origins;
+  }
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_SpriteThink(cg_sprite_t *sprite, float life, float delta) {
+
+  cg_weather_t *weather = sprite->data;
+
+  if (life >= 1.f) {
+    weather->num_active--;
+  }
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_Think(cg_entity_t *self) {
+
+  if (!cg_add_weather->value) {
+    return;
+  }
+
+  if (cgi.CulludeBox(cgi.view, self->bounds)) {
+    return;
+  }
+
+  cg_weather_t *weather = self->data;
+
+  if (weather->sample) {
+    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      .sample = weather->sample,
+      .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+      .entity = Cg_Self()
+    });
+  }
+
+  while (weather->num_active < weather->num_origins) {
+
+    const vec3_t origin = weather->origins[RandomRangei(0, weather->num_origins)];
+
+    if (Vec3_DistanceSquared(Vec3(origin.x, origin.y, cgi.view->origin.z),
+                             cgi.view->origin) > 1024.f * 1024.f) {
+      weather->num_active++;
+      continue;
+    }
+
+    const float height = Box3_Size(self->bounds).z;
+    cg_sprite_t s = {
+      .origin = origin,
+      .Think = Cg_misc_weather_SpriteThink,
+      .data = weather,
+      .flags = SPRITE_DATA_NOFREE,
+    };
+
+    if (weather->weather & WEATHER_RAIN) {
+      s.atlas_image = cg_sprite_rain;
+      s.color = Vec3(.3f, .3f, .4f);
+      s.size = 32.f;
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f));
+      s.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y;
+      s.lifetime = 1000.f * height / 800.f;
+
+      if (Randomf() > .8f) {
+        Cg_AddSprite(&(cg_sprite_t) {
+          .atlas_image = cg_sprite_water_ring,
+          .lifetime = 300,
+          .origin = Vec3(origin.x, origin.y, self->bounds.mins.z),
+          .size = 4.f,
+          .size_velocity = 4.f * 6.f,
+          .rotation = RandomRadian(),
+          .dir = Vec3_Up(),
+          .color = Vec3(.8f, .8f, .8f),
+          .lighting = 1.f
+        });
+      }
+    } else if (weather->weather & WEATHER_SNOW) {
+      s.atlas_image = cg_sprite_snow;
+      s.color = Vec3(1.f, 1.f, 1.f);
+      s.size = 4.f;
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f));
+      s.acceleration = Vec3_RandomRange(-12.f, 12.f);
+      s.lifetime = 1000.f * height / 120.f;
+    } else if (weather->weather & WEATHER_ASH) {
+      const float color = RandomRangef(0.25f, 0.75f);
+      s.atlas_image = cg_sprite_ash;
+      s.color = Vec3(color, color, color);
+      s.size = RandomRangef(1.f, 3.f);
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 25.f));
+      s.acceleration = Vec3_RandomRange(-12.f, 12.f);
+      s.rotation = RandomRadian();
+      s.lifetime = 1000.f * height / 25.f;
+    }
+
+    Cg_AddSprite(&s);
+
+    weather->num_active++;
+  }
+}
+
+/**
+ * @brief
+ */
+const cg_entity_class_t cg_misc_weather = {
+  .classname = "misc_weather",
+  .Init = Cg_misc_weather_Init,
+  .Think = Cg_misc_weather_Think,
+  .data_size = sizeof(cg_weather_t)
 };
 
 /**

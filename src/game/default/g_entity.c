@@ -103,6 +103,7 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_sparks", G_FreeEntity },
   { "misc_sprite", G_FreeEntity },
   { "misc_steam", G_FreeEntity },
+  { "misc_weather", G_FreeEntity },
 };
 
 /**
@@ -720,7 +721,6 @@ static void G_worldspawn_Music(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
