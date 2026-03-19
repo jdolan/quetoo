@@ -366,6 +366,20 @@ jobs:
         name: quetoo-x86_64-pc-windows
         path: quetoo/quetoo-BETA-x86_64-pc-windows.zip
 
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      working-directory: ${{ github.workspace }}/quetoo
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete bin/x64Release s3://quetoo/x86_64-pc-windows
+        git rev-parse --short HEAD > bin/revision
+        aws s3 cp bin/revision s3://quetoo/revisions/x86_64-pc-windows
+        aws s3 cp quetoo-BETA-x86_64-pc-windows.zip s3://quetoo/snapshots/
+
   release:
     needs: [build-macos, build-linux, build-windows]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
