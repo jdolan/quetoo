@@ -68,8 +68,8 @@ static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
  Emits a user-defined light when used. Lights can be chained with teams.
 
  -------- Keys --------
- _color : The light color (default 1.0 1.0 1.0).
- light : The radius of the light in units (default 300).
+ color : The light color (default 1.0 1.0 1.0).
+ radius : The radius of the light in units (default 300).
  delay : The delay before activating, in seconds (default 0).
  targetname : The target name of this entity.
  team : The team name for alternating lights.
