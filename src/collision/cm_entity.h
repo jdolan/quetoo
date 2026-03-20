@@ -35,6 +35,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
 GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity);
 char *Cm_EntityToInfoString(const cm_entity_t *entity);
 cm_entity_t *Cm_EntityFromInfoString(const char *str);
+void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t num_entities);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

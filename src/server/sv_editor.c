@@ -132,46 +132,7 @@ void Sv_LoadEditorMap(void) {
     return;
   }
 
-  parser_t parser = Parse_Init(buffer, PARSER_DEFAULT);
-
-  for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
-    cm_entity_t *e = Cm_Bsp()->entities[i];
-
-    const char *brushes = NULL;
-    bool in_entity = false;
-    int32_t brush_depth = 0;
-    char token[MAX_TOKEN_CHARS] = "";
-
-    while (Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-
-      if (!g_strcmp0(token, "{")) {
-        if (!in_entity) {
-          in_entity = true;
-        } else {
-          brush_depth++;
-          if (brush_depth == 1 && !brushes) {
-            brushes = parser.position.ptr - 1;
-          }
-        }
-      }
-
-      if (!g_strcmp0(token, "}")) {
-        if (brush_depth > 0) {
-          brush_depth--;
-        } else if (in_entity) {
-          in_entity = false;
-          break;
-        }
-      }
-    }
-
-    if (brushes) {
-      const size_t len = parser.position.ptr - brushes - 1;
-      e->brushes = Mem_TagMalloc(len + strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
-      strcpy(e->brushes, "// brush 0\n");
-      memcpy(e->brushes + strlen(e->brushes), brushes, len);
-    }
-  }
+  Cm_ParseMapBrushes(buffer, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
 
   Fs_Free(buffer);
 }
@@ -220,7 +181,13 @@ void Sv_SaveEditorMap_f(void) {
       Fs_Print(file, "\"%s\" \"%s\"\n", e->key, e->string);
     }
 
-    const char *brushes = ent->def->brushes ?: "";
+    const char *brushes = "";
+    for (const cm_entity_t *e = ent->def; e; e = e->next) {
+      if (e->brushes) {
+        brushes = e->brushes;
+        break;
+      }
+    }
     Fs_Write(file, brushes, sizeof(char), strlen(brushes));
 
     Fs_Print(file, "}\n");

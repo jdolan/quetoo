@@ -388,3 +388,53 @@ cm_entity_t *Cm_EntityFromInfoString(const char *str) {
   Com_Debug(DEBUG_COLLISION, "Invalid entity info string: %s\n", str);
   return NULL;
 }
+
+/**
+ * @brief Parses .map file text and assigns brush/patch text to entities.
+ * @details Iterates sequentially through the .map text, capturing the raw brush
+ * definitions (including patchDef2 blocks) for each entity. Entity ordering in
+ * the map text must match the entities array.
+ */
+void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t num_entities) {
+
+  parser_t parser = Parse_Init(map_text, PARSER_DEFAULT);
+
+  for (int32_t i = 0; i < num_entities; i++) {
+    cm_entity_t *e = entities[i];
+
+    const char *brushes = NULL;
+    bool in_entity = false;
+    int32_t brush_depth = 0;
+    char token[MAX_TOKEN_CHARS] = "";
+
+    while (Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
+
+      if (!g_strcmp0(token, "{")) {
+        if (!in_entity) {
+          in_entity = true;
+        } else {
+          brush_depth++;
+          if (brush_depth == 1 && !brushes) {
+            brushes = parser.position.ptr - 1;
+          }
+        }
+      }
+
+      if (!g_strcmp0(token, "}")) {
+        if (brush_depth > 0) {
+          brush_depth--;
+        } else if (in_entity) {
+          in_entity = false;
+          break;
+        }
+      }
+    }
+
+    if (brushes) {
+      const size_t len = parser.position.ptr - brushes - 1;
+      e->brushes = Mem_TagMalloc(len + strlen("// brush 0\n") + 1, MEM_TAG_COLLISION);
+      strcpy(e->brushes, "// brush 0\n");
+      memcpy(e->brushes + strlen(e->brushes), brushes, len);
+    }
+  }
+}
