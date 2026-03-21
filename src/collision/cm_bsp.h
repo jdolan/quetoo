@@ -628,12 +628,12 @@ typedef struct {
   bsp_patch_control_point_t control_points[MAX_BSP_PATCH_CONTROL_POINTS];
 
   /**
-   * @brief The index of the first tessellated face belonging to this patch.
+   * @brief The index of the first face belonging to this patch.
    */
   int32_t first_face;
 
   /**
-   * @brief The count of tessellated faces.
+   * @brief The count of faces.
    */
   int32_t num_faces;
 } bsp_patch_t;

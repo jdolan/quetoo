@@ -306,20 +306,6 @@ void TessellatePatches(int32_t entity_num) {
     patch->brush_side = bsp_file.num_brush_sides;
     bsp_file.num_brush_sides++;
 
-    // Create a synthetic brush for this patch
-    if (bsp_file.num_brushes >= MAX_BSP_BRUSHES) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
-    }
-
-    bsp_brush_t *bsp_brush = &bsp_file.brushes[bsp_file.num_brushes];
-    memset(bsp_brush, 0, sizeof(*bsp_brush));
-    bsp_brush->entity = patch->entity;
-    bsp_brush->contents = patch->contents;
-    bsp_brush->first_brush_side = patch->brush_side;
-    bsp_brush->num_brush_sides = 1;
-    bsp_brush->bounds = Box3_Null();
-    bsp_file.num_brushes++;
-
     // Tessellate each 3×3 sub-patch in the control grid
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
@@ -391,7 +377,6 @@ void TessellatePatches(int32_t entity_num) {
         }
 
         patch->bounds = Box3_Union(patch->bounds, pf->bounds);
-        bsp_brush->bounds = Box3_Union(bsp_brush->bounds, pf->bounds);
       }
     }
   }
