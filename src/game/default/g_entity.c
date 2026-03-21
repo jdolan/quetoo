@@ -739,6 +739,11 @@ static void G_worldspawn(g_entity_t *ent) {
   ent->move_type = MOVE_TYPE_NONE;
   ent->s.effects = EF_WORLD;
 
+  // ensure worldspawn has no origin or angles, as these would cause the
+  // entire world model to be rendered offset or rotated as an entity
+  ent->s.origin = Vec3_Zero();
+  ent->s.angles = Vec3_Zero();
+
   gi.SetModel(ent, "*0");
 
   ent->s.bounds = ent->bounds;
