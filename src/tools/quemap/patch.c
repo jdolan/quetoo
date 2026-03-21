@@ -28,31 +28,6 @@ int32_t num_patches;
 patch_t patches[MAX_PATCHES];
 
 /**
- * @brief Finds the nearest interior BSP node containing the given point.
- */
-static int32_t FindNodeForPoint(int32_t head_node, const vec3_t point) {
-
-  int32_t node_index = head_node;
-  int32_t last_node = head_node;
-
-  while (node_index >= 0) {
-    last_node = node_index;
-
-    const bsp_node_t *node = &bsp_file.nodes[node_index];
-    const bsp_plane_t *plane = &bsp_file.planes[node->plane];
-    const float dist = Vec3_Dot(plane->normal, point) - plane->dist;
-
-    if (dist >= 0.f) {
-      node_index = node->children[0];
-    } else {
-      node_index = node->children[1];
-    }
-  }
-
-  return last_node;
-}
-
-/**
  * @brief Parses a patchDef2 block from the map file.
  * @details Expected format:
  * ```
@@ -296,18 +271,19 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 }
 
 /**
- * @brief Emits tessellated patch faces for all patches belonging to the given entity.
+ * @brief Pre-tessellates all patches belonging to the given entity.
+ * @details Creates synthetic brush sides and brushes, and tessellates each 3×3
+ * sub-patch into patch_face_t structures stored on the patch_t. These are later
+ * emitted to BSP nodes during EmitNode.
  */
-void EmitPatchFaces(bsp_model_t *mod) {
-
-  mod->first_patch_face = bsp_file.num_faces;
+void TessellatePatches(int32_t entity_num) {
 
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
   for (int32_t p = 0; p < num_patches; p++) {
     patch_t *patch = &patches[p];
 
-    if (patch->entity != mod->entity) {
+    if (patch->entity != entity_num) {
       continue;
     }
 
@@ -315,7 +291,7 @@ void EmitPatchFaces(bsp_model_t *mod) {
       continue;
     }
 
-    // Emit a synthetic brush side for this patch
+    // Create a synthetic brush side for this patch
     if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
     }
@@ -327,10 +303,10 @@ void EmitPatchFaces(bsp_model_t *mod) {
     bsp_side->contents = patch->contents;
     bsp_side->surface = patch->surface;
 
-    const int32_t brush_side_index = bsp_file.num_brush_sides;
+    patch->brush_side = bsp_file.num_brush_sides;
     bsp_file.num_brush_sides++;
 
-    // Emit a synthetic brush for this patch
+    // Create a synthetic brush for this patch
     if (bsp_file.num_brushes >= MAX_BSP_BRUSHES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
     }
@@ -339,17 +315,20 @@ void EmitPatchFaces(bsp_model_t *mod) {
     memset(bsp_brush, 0, sizeof(*bsp_brush));
     bsp_brush->entity = patch->entity;
     bsp_brush->contents = patch->contents;
-    bsp_brush->first_brush_side = brush_side_index;
+    bsp_brush->first_brush_side = patch->brush_side;
     bsp_brush->num_brush_sides = 1;
     bsp_brush->bounds = Box3_Null();
     bsp_file.num_brushes++;
 
-    patch->first_face = bsp_file.num_faces;
-
-    // Process each 3×3 sub-patch in the control grid
+    // Tessellate each 3×3 sub-patch in the control grid
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
 
+    patch->num_faces = num_sub_patches_s * num_sub_patches_t;
+    patch->faces = Mem_TagMalloc(patch->num_faces * sizeof(patch_face_t), MEM_TAG_QBSP);
+    patch->bounds = Box3_Null();
+
+    int32_t face_index = 0;
     for (int32_t sub_t = 0; sub_t < num_sub_patches_t; sub_t++) {
       for (int32_t sub_s = 0; sub_s < num_sub_patches_s; sub_s++) {
 
@@ -363,34 +342,20 @@ void EmitPatchFaces(bsp_model_t *mod) {
           }
         }
 
-        // Emit a face for this sub-patch
-        if (bsp_file.num_faces >= MAX_BSP_FACES) {
-          Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
-        }
+        patch_face_t *pf = &patch->faces[face_index++];
+        memset(pf, 0, sizeof(*pf));
+        pf->bounds = Box3_Null();
 
-        bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
-        memset(out, 0, sizeof(*out));
-        bsp_file.num_faces++;
-
-        out->brush_side = brush_side_index;
-        out->plane = -1;
-        out->bounds = Box3_Null();
-        out->first_vertex = bsp_file.num_vertexes;
-
-        // Tessellate: generate (subdivisions+1)² vertices
         const int32_t verts_per_edge = subdivisions + 1;
 
+        // Tessellate: generate (subdivisions+1)² vertices
         for (int32_t j = 0; j <= subdivisions; j++) {
           const float t = (float) j / (float) subdivisions;
 
           for (int32_t i = 0; i <= subdivisions; i++) {
             const float s = (float) i / (float) subdivisions;
 
-            if (bsp_file.num_vertexes >= MAX_BSP_VERTEXES) {
-              Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
-            }
-
-            bsp_vertex_t *v = &bsp_file.vertexes[bsp_file.num_vertexes];
+            bsp_vertex_t *v = &pf->vertexes[pf->num_vertexes];
             memset(v, 0, sizeof(*v));
 
             vec3_t normal;
@@ -402,48 +367,54 @@ void EmitPatchFaces(bsp_model_t *mod) {
             v->diffusemap.y = st.y;
             v->color = Color32(255, 255, 255, 255);
 
-            out->bounds = Box3_Append(out->bounds, v->position);
-            bsp_brush->bounds = Box3_Append(bsp_brush->bounds, v->position);
+            pf->bounds = Box3_Append(pf->bounds, v->position);
 
-            bsp_file.num_vertexes++;
+            pf->num_vertexes++;
           }
         }
 
-        out->num_vertexes = verts_per_edge * verts_per_edge;
+        assert(pf->num_vertexes == verts_per_edge * verts_per_edge);
 
-        out->node = FindNodeForPoint(mod->head_node, Box3_Center(out->bounds));
-
-        // Emit triangle elements
-        out->first_element = bsp_file.num_elements;
-
+        // Generate triangle elements (local 0-based indices)
         for (int32_t j = 0; j < subdivisions; j++) {
           for (int32_t i = 0; i < subdivisions; i++) {
-            const int32_t base = out->first_vertex + j * verts_per_edge + i;
+            const int32_t base = j * verts_per_edge + i;
 
-            if (bsp_file.num_elements + 6 >= MAX_BSP_ELEMENTS) {
-              Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-            }
+            pf->elements[pf->num_elements++] = base;
+            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
+            pf->elements[pf->num_elements++] = base + verts_per_edge;
 
-            // Triangle 1
-            bsp_file.elements[bsp_file.num_elements++] = base;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge + 1;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge;
-
-            // Triangle 2
-            bsp_file.elements[bsp_file.num_elements++] = base;
-            bsp_file.elements[bsp_file.num_elements++] = base + 1;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge + 1;
+            pf->elements[pf->num_elements++] = base;
+            pf->elements[pf->num_elements++] = base + 1;
+            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
           }
         }
 
-        out->num_elements = subdivisions * subdivisions * 6;
+        patch->bounds = Box3_Union(patch->bounds, pf->bounds);
+        bsp_brush->bounds = Box3_Union(bsp_brush->bounds, pf->bounds);
       }
     }
-
-    patch->num_faces = bsp_file.num_faces - patch->first_face;
   }
+}
 
-  mod->num_patch_faces = bsp_file.num_faces - mod->first_patch_face;
+/**
+ * @brief Frees pre-tessellated patch face data for the given entity.
+ */
+void FreePatchFaces(int32_t entity_num) {
+
+  for (int32_t p = 0; p < num_patches; p++) {
+    patch_t *patch = &patches[p];
+
+    if (patch->entity != entity_num) {
+      continue;
+    }
+
+    if (patch->faces) {
+      Mem_Free(patch->faces);
+      patch->faces = NULL;
+      patch->num_faces = 0;
+    }
+  }
 }
 
 /**
@@ -464,7 +435,7 @@ void EmitPatches(const bsp_model_t *mod) {
       continue;
     }
 
-    if (patch->num_faces == 0) {
+    if (patch->num_bsp_faces == 0) {
       continue;
     }
 
@@ -482,8 +453,8 @@ void EmitPatches(const bsp_model_t *mod) {
     out->surface = patch->surface;
     out->width = patch->width;
     out->height = patch->height;
-    out->first_face = patch->first_face;
-    out->num_faces = patch->num_faces;
+    out->first_face = patch->first_bsp_face;
+    out->num_faces = patch->num_bsp_faces;
 
     const int32_t num_points = patch->width * patch->height;
     for (int32_t i = 0; i < num_points; i++) {

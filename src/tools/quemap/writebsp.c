@@ -65,8 +65,10 @@ void EmitMaterials(void) {
   }
 }
 
+static int32_t emit_entity;
+
 /**
- * @brief
+ * @brief Emits brush faces for the given node.
  */
 static int32_t EmitFaces(const node_t *node, int32_t node_num) {
 
@@ -80,6 +82,81 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
 
     face->out = EmitFace(face);
     face->out->node = node_num;
+  }
+
+  // Emit pre-tessellated patch faces that intersect this node
+  for (int32_t p = 0; p < num_patches; p++) {
+    patch_t *patch = &patches[p];
+
+    if (patch->entity != emit_entity) {
+      continue;
+    }
+
+    if (!patch->faces) {
+      continue;
+    }
+
+    if (!Box3_Intersects(patch->bounds, node->bounds)) {
+      continue;
+    }
+
+    for (int32_t f = 0; f < patch->num_faces; f++) {
+      patch_face_t *pf = &patch->faces[f];
+
+      if (pf->emitted) {
+        continue;
+      }
+
+      if (!Box3_Intersects(pf->bounds, node->bounds)) {
+        continue;
+      }
+
+      // Emit this patch face to bsp_file
+      if (bsp_file.num_faces >= MAX_BSP_FACES) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
+      }
+
+      bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
+      memset(out, 0, sizeof(*out));
+      bsp_file.num_faces++;
+
+      out->brush_side = patch->brush_side;
+      out->plane = -1;
+      out->node = node_num;
+      out->bounds = pf->bounds;
+
+      // Copy vertexes to bsp_file
+      out->first_vertex = bsp_file.num_vertexes;
+      out->num_vertexes = pf->num_vertexes;
+
+      if (bsp_file.num_vertexes + pf->num_vertexes >= MAX_BSP_VERTEXES) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
+      }
+
+      memcpy(&bsp_file.vertexes[bsp_file.num_vertexes], pf->vertexes,
+             pf->num_vertexes * sizeof(bsp_vertex_t));
+      bsp_file.num_vertexes += pf->num_vertexes;
+
+      // Copy elements to bsp_file, adjusting indices
+      out->first_element = bsp_file.num_elements;
+      out->num_elements = pf->num_elements;
+
+      if (bsp_file.num_elements + pf->num_elements >= MAX_BSP_ELEMENTS) {
+        Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+      }
+
+      for (int32_t e = 0; e < pf->num_elements; e++) {
+        bsp_file.elements[bsp_file.num_elements++] = out->first_vertex + pf->elements[e];
+      }
+
+      // Track emitted BSP face range on the patch
+      if (patch->num_bsp_faces == 0) {
+        patch->first_bsp_face = (int32_t) (out - bsp_file.faces);
+      }
+      patch->num_bsp_faces++;
+
+      pf->emitted = true;
+    }
   }
 
   return bsp_file.num_faces - num_faces;
@@ -159,10 +236,8 @@ static int32_t EmitNode(const node_t *node) {
   out->bounds = node->bounds;
   out->visible_bounds = node->visible_bounds;
 
-  if (node->faces) {
-    out->first_face = bsp_file.num_faces;
-    out->num_faces = EmitFaces(node, node_num);
-  }
+  out->first_face = bsp_file.num_faces;
+  out->num_faces = EmitFaces(node, node_num);
 
   // recursively output the other nodes
   for (int32_t i = 0; i < 2; i++) {
@@ -364,8 +439,9 @@ bsp_model_t *BeginModel(const entity_t *e) {
   bsp_file.num_models++;
 
   mod->entity = (int32_t) (ptrdiff_t) (e - entities);
+  emit_entity = mod->entity;
 
-  mod->first_brush_face = bsp_file.num_faces;
+  mod->first_face = bsp_file.num_faces;
   mod->first_draw_elements = bsp_file.num_draw_elements;
   mod->first_block = bsp_file.num_blocks;
 
@@ -393,9 +469,8 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
 
   mod->first_depth_pass_element = bsp_file.num_elements;
 
-  const int32_t total_faces = mod->num_brush_faces + mod->num_patch_faces;
-  const bsp_face_t *face = &bsp_file.faces[mod->first_brush_face];
-  for (int32_t i = 0; i < total_faces; i++, face++) {
+  const bsp_face_t *face = &bsp_file.faces[mod->first_face];
+  for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 
     const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
     if (side->contents & CONTENTS_MIST) {
@@ -541,9 +616,8 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
     GPtrArray *faces = g_ptr_array_new();
 
-    const int32_t total_faces = mod->num_brush_faces + mod->num_patch_faces;
-    bsp_face_t *face = bsp_file.faces + mod->first_brush_face;
-    for (int32_t i = 0; i < total_faces; i++, face++) {
+    bsp_face_t *face = bsp_file.faces + mod->first_face;
+    for (int32_t i = 0; i < mod->num_faces; i++, face++) {
       if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
         g_ptr_array_add(faces, face);
       }
@@ -596,17 +670,17 @@ void EndModel(bsp_model_t *mod) {
 
   mod->visible_bounds = head_node->visible_bounds;
 
-  // Brush faces were emitted during EmitNode
-  mod->num_brush_faces = bsp_file.num_faces - mod->first_brush_face;
+  // Faces (brush + patch) were emitted during EmitNode
+  mod->num_faces = bsp_file.num_faces - mod->first_face;
 
-  // Phong shade brush faces before emitting patch faces
+  // Phong shade brush faces (skip patch faces via plane == -1)
   PhongShading(mod);
-
-  // Emit tessellated patch faces for this entity
-  EmitPatchFaces(mod);
 
   // Emit patch definitions to the patches lump
   EmitPatches(mod);
+
+  // Free pre-tessellated patch face data
+  FreePatchFaces(mod->entity);
 
   EmitDepthPassElements(mod);
 

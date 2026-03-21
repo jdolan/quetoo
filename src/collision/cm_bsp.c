@@ -276,11 +276,8 @@ static void Bsp_SwapModels(void *lump, const int32_t num) {
     model->bounds = LittleBounds(model->bounds);
     model->visible_bounds = LittleBounds(model->visible_bounds);
 
-    model->first_brush_face = LittleLong(model->first_brush_face);
-    model->num_brush_faces = LittleLong(model->num_brush_faces);
-
-    model->first_patch_face = LittleLong(model->first_patch_face);
-    model->num_patch_faces = LittleLong(model->num_patch_faces);
+    model->first_face = LittleLong(model->first_face);
+    model->num_faces = LittleLong(model->num_faces);
 
     model->first_depth_pass_element = LittleLong(model->first_depth_pass_element);
     model->num_depth_pass_elements = LittleLong(model->num_depth_pass_elements);

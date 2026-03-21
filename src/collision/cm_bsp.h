@@ -461,24 +461,14 @@ typedef struct {
   box3_t visible_bounds;
 
   /**
-   * @brief The index of the first brush face belonging to this model.
+   * @brief The index of the first face belonging to this model.
    */
-  int32_t first_brush_face;
+  int32_t first_face;
 
   /**
-   * @brief The count of brush faces belonging to this model.
+   * @brief The count of faces belonging to this model.
    */
-  int32_t num_brush_faces;
-
-  /**
-   * @brief The index of the first patch face belonging to this model.
-   */
-  int32_t first_patch_face;
-
-  /**
-   * @brief The count of patch faces belonging to this model.
-   */
-  int32_t num_patch_faces;
+  int32_t num_faces;
 
   /**
    * @brief The index of the first depth pass element belonging to this model.

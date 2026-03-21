@@ -216,9 +216,8 @@ void EmitLights(void) {
       out->first_depth_pass_element = bsp_file.num_elements;
 
       const bsp_model_t *worldspawn = bsp_file.models;
-      const int32_t total_faces = worldspawn->num_brush_faces + worldspawn->num_patch_faces;
-      const bsp_face_t *face = &bsp_file.faces[worldspawn->first_brush_face];
-      for (int32_t j = 0; j < total_faces; j++, face++) {
+      const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
+      for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
 
         if (!Box3_Intersects(face->bounds, out->bounds)) {
           continue;

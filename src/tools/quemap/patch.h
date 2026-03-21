@@ -37,6 +37,43 @@ typedef struct {
 } patch_control_point_t;
 
 /**
+ * @brief A pre-tessellated patch face (one per 3×3 sub-patch).
+ */
+typedef struct {
+
+  /**
+   * @brief The AABB of this tessellated face.
+   */
+  box3_t bounds;
+
+  /**
+   * @brief The tessellated vertexes.
+   */
+  bsp_vertex_t vertexes[(PATCH_SUBDIVISIONS + 1) * (PATCH_SUBDIVISIONS + 1)];
+
+  /**
+   * @brief The count of vertexes.
+   */
+  int32_t num_vertexes;
+
+  /**
+   * @brief The tessellated triangle elements (local 0-based indices).
+   */
+  int32_t elements[PATCH_SUBDIVISIONS * PATCH_SUBDIVISIONS * 6];
+
+  /**
+   * @brief The count of elements.
+   */
+  int32_t num_elements;
+
+  /**
+   * @brief True if this face has been emitted to a BSP node.
+   */
+  bool emitted;
+
+} patch_face_t;
+
+/**
  * @brief The map file representation of a Bézier surface patch (patchDef2).
  */
 typedef struct {
@@ -77,14 +114,34 @@ typedef struct {
   int32_t surface;
 
   /**
-   * @brief The index of the first tessellated BSP face.
+   * @brief The AABB of all tessellated faces.
    */
-  int32_t first_face;
+  box3_t bounds;
 
   /**
-   * @brief The count of tessellated BSP faces.
+   * @brief The synthetic brush side index in bsp_file.
+   */
+  int32_t brush_side;
+
+  /**
+   * @brief The pre-tessellated faces.
+   */
+  patch_face_t *faces;
+
+  /**
+   * @brief The count of pre-tessellated faces.
    */
   int32_t num_faces;
+
+  /**
+   * @brief The index of the first emitted BSP face (set during EmitNode).
+   */
+  int32_t first_bsp_face;
+
+  /**
+   * @brief The count of emitted BSP faces (set during EmitNode).
+   */
+  int32_t num_bsp_faces;
 
 } patch_t;
 
@@ -92,5 +149,6 @@ extern int32_t num_patches;
 extern patch_t patches[MAX_PATCHES];
 
 patch_t *ParsePatch(parser_t *parser, int32_t entity);
-void EmitPatchFaces(bsp_model_t *mod);
+void TessellatePatches(int32_t entity_num);
+void FreePatchFaces(int32_t entity_num);
 void EmitPatches(const bsp_model_t *mod);

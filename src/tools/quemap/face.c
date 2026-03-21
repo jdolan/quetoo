@@ -386,8 +386,12 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
 
   size_t count = 0;
 
-  const bsp_face_t *f = &bsp_file.faces[phong_model->first_brush_face];
-  for (int32_t i = 0; i < phong_model->num_brush_faces; i++, f++) {
+  const bsp_face_t *f = &bsp_file.faces[phong_model->first_face];
+  for (int32_t i = 0; i < phong_model->num_faces; i++, f++) {
+
+    if (f->plane == -1) {
+      continue;
+    }
 
     const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
     for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
@@ -498,14 +502,20 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
  */
 static void PhongFace(int32_t local_face_num) {
 
-  const int32_t face_num = phong_model->first_brush_face + local_face_num;
+  const int32_t face_num = phong_model->first_face + local_face_num;
+
+  const bsp_face_t *face = bsp_file.faces + face_num;
+
+  // Skip patch faces (they have correct normals from Bézier evaluation)
+  if (face->plane == -1) {
+    return;
+  }
 
   const entity_t *entity = &entities[phong_model->entity];
 
   const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
   const float phong_cosine = cosf(Radians(phong_angle));
 
-  const bsp_face_t *face = bsp_file.faces + face_num;
   bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
 
   for (int32_t i = 0; i < face->num_vertexes; i++) {
@@ -560,13 +570,13 @@ void PhongShading(const bsp_model_t *mod) {
     return;
   }
 
-  if (mod->num_brush_faces == 0) {
+  if (mod->num_faces == 0) {
     return;
   }
 
   phong_model = mod;
 
-  Work("Phong shading", PhongFace, mod->num_brush_faces);
+  Work("Phong shading", PhongFace, mod->num_faces);
 
   phong_model = NULL;
 }
@@ -576,19 +586,18 @@ void PhongShading(const bsp_model_t *mod) {
  */
 static void TangentVectors_(bsp_model_t *model) {
 
-  const int32_t total_faces = model->num_brush_faces + model->num_patch_faces;
-  if (total_faces == 0) {
+  if (model->num_faces == 0) {
     return;
   }
 
-  bsp_face_t *face = bsp_file.faces + model->first_brush_face;
+  bsp_face_t *face = bsp_file.faces + model->first_face;
   int32_t base_vertex = face->first_vertex;
 
   bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
   int32_t *elements = bsp_file.elements + face->first_element;
 
   int32_t num_vertexes = 0, num_elements = 0;
-  for (int32_t i = 0; i < total_faces; i++, face++) {
+  for (int32_t i = 0; i < model->num_faces; i++, face++) {
     num_vertexes += face->num_vertexes;
     num_elements += face->num_elements;
   }
