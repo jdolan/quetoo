@@ -194,6 +194,10 @@ static void R_ClipDecalToNode(const r_view_t *view,
       continue;
     }
 
+    if (!face->plane) {
+      continue;
+    }
+
     if (Cm_DistanceToPlane(decal->origin, face->plane->cm) < -SIDE_EPSILON) {
       continue;
     }

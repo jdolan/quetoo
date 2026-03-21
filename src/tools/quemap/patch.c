@@ -28,6 +28,31 @@ int32_t num_patches;
 patch_t patches[MAX_PATCHES];
 
 /**
+ * @brief Finds the nearest interior BSP node containing the given point.
+ */
+static int32_t FindNodeForPoint(int32_t head_node, const vec3_t point) {
+
+  int32_t node_index = head_node;
+  int32_t last_node = head_node;
+
+  while (node_index >= 0) {
+    last_node = node_index;
+
+    const bsp_node_t *node = &bsp_file.nodes[node_index];
+    const bsp_plane_t *plane = &bsp_file.planes[node->plane];
+    const float dist = Vec3_Dot(plane->normal, point) - plane->dist;
+
+    if (dist >= 0.f) {
+      node_index = node->children[0];
+    } else {
+      node_index = node->children[1];
+    }
+  }
+
+  return last_node;
+}
+
+/**
  * @brief Parses a patchDef2 block from the map file.
  * @details Expected format:
  * ```
@@ -273,14 +298,14 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 /**
  * @brief Emits tessellated patch faces for all patches belonging to the given entity.
  */
-void EmitPatchFaces(int32_t entity_num) {
+void EmitPatchFaces(bsp_model_t *mod) {
 
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
   for (int32_t p = 0; p < num_patches; p++) {
-    const patch_t *patch = &patches[p];
+    patch_t *patch = &patches[p];
 
-    if (patch->entity != entity_num) {
+    if (patch->entity != mod->entity) {
       continue;
     }
 
@@ -317,6 +342,8 @@ void EmitPatchFaces(int32_t entity_num) {
     bsp_brush->bounds = Box3_Null();
     bsp_file.num_brushes++;
 
+    patch->first_face = bsp_file.num_faces;
+
     // Process each 3×3 sub-patch in the control grid
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
@@ -344,7 +371,7 @@ void EmitPatchFaces(int32_t entity_num) {
         bsp_file.num_faces++;
 
         out->brush_side = brush_side_index;
-        out->plane = 0;
+        out->plane = -1;
         out->bounds = Box3_Null();
         out->first_vertex = bsp_file.num_vertexes;
 
@@ -382,6 +409,8 @@ void EmitPatchFaces(int32_t entity_num) {
 
         out->num_vertexes = verts_per_edge * verts_per_edge;
 
+        out->node = FindNodeForPoint(mod->head_node, Box3_Center(out->bounds));
+
         // Emit triangle elements
         out->first_element = bsp_file.num_elements;
 
@@ -408,5 +437,50 @@ void EmitPatchFaces(int32_t entity_num) {
         out->num_elements = subdivisions * subdivisions * 6;
       }
     }
+
+    patch->num_faces = bsp_file.num_faces - patch->first_face;
   }
+}
+
+/**
+ * @brief Emits all patches to the BSP patches lump.
+ */
+void EmitPatches(void) {
+
+  for (int32_t p = 0; p < num_patches; p++) {
+    const patch_t *patch = &patches[p];
+
+    if (patch->material < 0) {
+      continue;
+    }
+
+    if (patch->num_faces == 0) {
+      continue;
+    }
+
+    if (bsp_file.num_patches >= MAX_BSP_PATCHES) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
+    }
+
+    bsp_patch_t *out = &bsp_file.patches[bsp_file.num_patches];
+    memset(out, 0, sizeof(*out));
+    bsp_file.num_patches++;
+
+    out->entity = patch->entity;
+    out->material = patch->material;
+    out->contents = patch->contents;
+    out->surface = patch->surface;
+    out->width = patch->width;
+    out->height = patch->height;
+    out->first_face = patch->first_face;
+    out->num_faces = patch->num_faces;
+
+    const int32_t num_points = patch->width * patch->height;
+    for (int32_t i = 0; i < num_points; i++) {
+      out->control_points[i].position = patch->control_points[i].position;
+      out->control_points[i].st = patch->control_points[i].st;
+    }
+  }
+
+  Com_Verbose("%5i patches\n", bsp_file.num_patches);
 }

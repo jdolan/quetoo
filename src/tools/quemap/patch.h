@@ -76,10 +76,21 @@ typedef struct {
    */
   int32_t surface;
 
+  /**
+   * @brief The index of the first tessellated BSP face.
+   */
+  int32_t first_face;
+
+  /**
+   * @brief The count of tessellated BSP faces.
+   */
+  int32_t num_faces;
+
 } patch_t;
 
 extern int32_t num_patches;
 extern patch_t patches[MAX_PATCHES];
 
 patch_t *ParsePatch(parser_t *parser, int32_t entity);
-void EmitPatchFaces(int32_t entity_num);
+void EmitPatchFaces(bsp_model_t *mod);
+void EmitPatches(void);

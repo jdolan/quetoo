@@ -67,5 +67,5 @@ void FreeFace(face_t *f);
 face_t *MergeFaces(face_t *a, face_t *b);
 void ClearWeldingSpatialHash(void);
 bsp_face_t *EmitFace(const face_t *face);
-void PhongShading(void);
+void PhongShading(const bsp_model_t *mod);
 void TangentVectors(void);

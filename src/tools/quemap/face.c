@@ -376,7 +376,7 @@ bsp_face_t *EmitFace(const face_t *face) {
 
 #define MAX_VERTEX_FACES 32
 
-static entity_t **face_entities;
+static const bsp_model_t *phong_model;
 
 /**
  * @brief Populates faces with pointers to all those referencing the vertex.
@@ -386,14 +386,8 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
 
   size_t count = 0;
 
-  const entity_t *face_entity = face_entities[face - bsp_file.faces];
-
-  const bsp_face_t *f = bsp_file.faces;
-  for (int32_t i = 0; i < bsp_file.num_faces; i++, f++) {
-
-    if (face_entity != face_entities[i]) {
-      continue;
-    }
+  const bsp_face_t *f = &bsp_file.faces[phong_model->first_brush_face];
+  for (int32_t i = 0; i < phong_model->num_brush_faces; i++, f++) {
 
     const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
     for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
@@ -502,10 +496,11 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
  * and not from BSP splits or T-junctions. That is, it only applies to corners of faces, not to
  * vertexes with colinear neighbors.
  */
-static void PhongFace(int32_t face_num) {
+static void PhongFace(int32_t local_face_num) {
 
-  const entity_t *entity = face_entities[face_num];
-  assert(entity);
+  const int32_t face_num = phong_model->first_brush_face + local_face_num;
+
+  const entity_t *entity = &entities[phong_model->entity];
 
   const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
   const float phong_cosine = cosf(Radians(phong_angle));
@@ -557,35 +552,23 @@ static void PhongFace(int32_t face_num) {
 }
 
 /**
- * @brief Calculates Phong shading, updating vertex normal vectors.
+ * @brief Calculates Phong shading for the brush faces of the given model.
  */
-void PhongShading(void) {
+void PhongShading(const bsp_model_t *mod) {
 
   if (no_phong) {
     return;
   }
 
-  face_entities = Mem_Malloc(sizeof(entity_t *) * bsp_file.num_faces);
-
-  const bsp_face_t *face = bsp_file.faces;
-  for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
-
-    const bsp_brush_t *brush = bsp_file.brushes;
-    for (int32_t j = 0; j < bsp_file.num_brushes; j++, brush++) {
-
-      if (face->brush_side >= brush->first_brush_side
-        && face->brush_side < brush->first_brush_side + brush->num_brush_sides) {
-        face_entities[i] = entities + brush->entity;
-        break;
-      }
-    }
-
-    assert(face_entities[i]);
+  if (mod->num_brush_faces == 0) {
+    return;
   }
 
-  Work("Phong shading", PhongFace, bsp_file.num_faces);
+  phong_model = mod;
 
-  Mem_Free(face_entities);
+  Work("Phong shading", PhongFace, mod->num_brush_faces);
+
+  phong_model = NULL;
 }
 
 /**
@@ -593,14 +576,19 @@ void PhongShading(void) {
  */
 static void TangentVectors_(bsp_model_t *model) {
 
-  bsp_face_t *face = bsp_file.faces + model->first_face;
+  const int32_t total_faces = model->num_brush_faces + model->num_patch_faces;
+  if (total_faces == 0) {
+    return;
+  }
+
+  bsp_face_t *face = bsp_file.faces + model->first_brush_face;
   int32_t base_vertex = face->first_vertex;
 
   bsp_vertex_t *vertexes = bsp_file.vertexes + base_vertex;
   int32_t *elements = bsp_file.elements + face->first_element;
 
   int32_t num_vertexes = 0, num_elements = 0;
-  for (int32_t i = 0; i < model->num_faces; i++, face++) {
+  for (int32_t i = 0; i < total_faces; i++, face++) {
     num_vertexes += face->num_vertexes;
     num_elements += face->num_elements;
   }

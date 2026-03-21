@@ -20,6 +20,7 @@
  */
 
 #include "bsp.h"
+#include "face.h"
 #include "map.h"
 #include "material.h"
 #include "patch.h"
@@ -67,7 +68,7 @@ void EmitMaterials(void) {
 /**
  * @brief
  */
-static int32_t EmitFaces(const node_t *node) {
+static int32_t EmitFaces(const node_t *node, int32_t node_num) {
 
   const int32_t num_faces = bsp_file.num_faces;
 
@@ -78,6 +79,7 @@ static int32_t EmitFaces(const node_t *node) {
     }
 
     face->out = EmitFace(face);
+    face->out->node = node_num;
   }
 
   return bsp_file.num_faces - num_faces;
@@ -159,7 +161,7 @@ static int32_t EmitNode(const node_t *node) {
 
   if (node->faces) {
     out->first_face = bsp_file.num_faces;
-    out->num_faces = EmitFaces(node);
+    out->num_faces = EmitFaces(node, node_num);
   }
 
   // recursively output the other nodes
@@ -328,6 +330,7 @@ void BeginBSPFile(void) {
   Bsp_AllocLump(&bsp_file, BSP_LUMP_DRAW_ELEMENTS, MAX_BSP_DRAW_ELEMENTS);
   Bsp_AllocLump(&bsp_file, BSP_LUMP_BLOCKS, MAX_BSP_BLOCKS);
   Bsp_AllocLump(&bsp_file, BSP_LUMP_MODELS, MAX_BSP_MODELS);
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_PATCHES, MAX_BSP_PATCHES);
 
   /*
    * jdolan 2019-01-01
@@ -362,7 +365,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
 
   mod->entity = (int32_t) (ptrdiff_t) (e - entities);
 
-  mod->first_face = bsp_file.num_faces;
+  mod->first_brush_face = bsp_file.num_faces;
   mod->first_draw_elements = bsp_file.num_draw_elements;
   mod->first_block = bsp_file.num_blocks;
 
@@ -390,8 +393,9 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
 
   mod->first_depth_pass_element = bsp_file.num_elements;
 
-  const bsp_face_t *face = &bsp_file.faces[mod->first_face];
-  for (int32_t i = 0; i < mod->num_faces; i++, face++) {
+  const int32_t total_faces = mod->num_brush_faces + mod->num_patch_faces;
+  const bsp_face_t *face = &bsp_file.faces[mod->first_brush_face];
+  for (int32_t i = 0; i < total_faces; i++, face++) {
 
     const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
     if (side->contents & CONTENTS_MIST) {
@@ -537,8 +541,9 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
     GPtrArray *faces = g_ptr_array_new();
 
-    bsp_face_t *face = bsp_file.faces + mod->first_face;
-    for (int32_t i = 0; i < mod->num_faces; i++, face++) {
+    const int32_t total_faces = mod->num_brush_faces + mod->num_patch_faces;
+    bsp_face_t *face = bsp_file.faces + mod->first_brush_face;
+    for (int32_t i = 0; i < total_faces; i++, face++) {
       if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
         g_ptr_array_add(faces, face);
       }
@@ -591,10 +596,16 @@ void EndModel(bsp_model_t *mod) {
 
   mod->visible_bounds = head_node->visible_bounds;
 
-  // Emit tessellated patch faces for this entity
-  EmitPatchFaces(mod->entity);
+  // Brush faces were emitted during EmitNode
+  mod->num_brush_faces = bsp_file.num_faces - mod->first_brush_face;
 
-  mod->num_faces = bsp_file.num_faces - mod->first_face;
+  // Phong shade brush faces before emitting patch faces
+  PhongShading(mod);
+
+  // Emit tessellated patch faces for this entity
+  mod->first_patch_face = bsp_file.num_faces;
+  EmitPatchFaces(mod);
+  mod->num_patch_faces = bsp_file.num_faces - mod->first_patch_face;
 
   EmitDepthPassElements(mod);
 

@@ -131,7 +131,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
   for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
     out->brush_side = bsp->brush_sides + in->brush_side;
-    out->plane = bsp->planes + in->plane;
+    out->plane = in->plane >= 0 ? bsp->planes + in->plane : NULL;
 
     out->bounds = in->bounds;
 
@@ -211,6 +211,29 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 
   R_SetupBspNode(model, node, node->children[0]);
   R_SetupBspNode(model, node, node->children[1]);
+}
+
+/**
+ * @brief Assigns patch faces to their BSP nodes using the node index stored on each face.
+ */
+static void R_SetupBspPatchFaces(r_bsp_model_t *bsp) {
+
+  const bsp_file_t *file = bsp->cm->file;
+
+  for (int32_t i = 0; i < file->num_patches; i++) {
+    const bsp_patch_t *patch = &file->patches[i];
+
+    for (int32_t j = 0; j < patch->num_faces; j++) {
+      const int32_t face_index = patch->first_face + j;
+
+      r_bsp_face_t *face = &bsp->faces[face_index];
+      const bsp_face_t *in = &file->faces[face_index];
+
+      if (in->node >= 0 && in->node < bsp->num_nodes) {
+        face->node = &bsp->nodes[in->node];
+      }
+    }
+  }
 }
 
 /**
@@ -335,8 +358,8 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 
     out->visible_bounds = in->visible_bounds;
 
-    out->faces = bsp->faces + in->first_face;
-    out->num_faces = in->num_faces;
+    out->faces = bsp->faces + in->first_brush_face;
+    out->num_faces = in->num_brush_faces + in->num_patch_faces;
 
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
@@ -618,7 +641,8 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
   (1 << BSP_LUMP_DRAW_ELEMENTS) | \
   (1 << BSP_LUMP_BLOCKS) | \
   (1 << BSP_LUMP_LIGHTS) | \
-  (1 << BSP_LUMP_VOXELS) \
+  (1 << BSP_LUMP_VOXELS) | \
+  (1 << BSP_LUMP_PATCHES) \
 )
 
 /**
@@ -645,6 +669,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspDrawElements(mod->bsp);
   R_LoadBspBlocks(mod->bsp);
   R_LoadBspInlineModels(mod->bsp);
+  R_SetupBspPatchFaces(mod->bsp);
   R_LoadBspVertexArray(mod);
   R_LoadBspDepthPassVertexArray(mod);
   R_SetupBspInlineModels(mod);
