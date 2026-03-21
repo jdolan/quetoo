@@ -603,9 +603,10 @@ void EndModel(bsp_model_t *mod) {
   PhongShading(mod);
 
   // Emit tessellated patch faces for this entity
-  mod->first_patch_face = bsp_file.num_faces;
   EmitPatchFaces(mod);
-  mod->num_patch_faces = bsp_file.num_faces - mod->first_patch_face;
+
+  // Emit patch definitions to the patches lump
+  EmitPatches(mod);
 
   EmitDepthPassElements(mod);
 

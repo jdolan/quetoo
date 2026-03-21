@@ -25,7 +25,6 @@
 #include "leakfile.h"
 #include "map.h"
 #include "material.h"
-#include "patch.h"
 #include "portal.h"
 #include "tjunction.h"
 #include "writebsp.h"
@@ -167,8 +166,6 @@ int32_t BSP_Main(void) {
   EmitEntities();
 
   ProcessModels();
-
-  EmitPatches();
 
   EndBSPFile();
 

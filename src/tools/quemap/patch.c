@@ -300,6 +300,8 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
  */
 void EmitPatchFaces(bsp_model_t *mod) {
 
+  mod->first_patch_face = bsp_file.num_faces;
+
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
   for (int32_t p = 0; p < num_patches; p++) {
@@ -440,15 +442,23 @@ void EmitPatchFaces(bsp_model_t *mod) {
 
     patch->num_faces = bsp_file.num_faces - patch->first_face;
   }
+
+  mod->num_patch_faces = bsp_file.num_faces - mod->first_patch_face;
 }
 
 /**
- * @brief Emits all patches to the BSP patches lump.
+ * @brief Emits patches belonging to the given model to the BSP patches lump.
  */
-void EmitPatches(void) {
+void EmitPatches(const bsp_model_t *mod) {
+
+  const int32_t entity_num = mod->entity;
 
   for (int32_t p = 0; p < num_patches; p++) {
     const patch_t *patch = &patches[p];
+
+    if (patch->entity != entity_num) {
+      continue;
+    }
 
     if (patch->material < 0) {
       continue;
@@ -481,6 +491,4 @@ void EmitPatches(void) {
       out->control_points[i].st = patch->control_points[i].st;
     }
   }
-
-  Com_Verbose("%5i patches\n", bsp_file.num_patches);
 }

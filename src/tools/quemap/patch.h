@@ -93,4 +93,4 @@ extern patch_t patches[MAX_PATCHES];
 
 patch_t *ParsePatch(parser_t *parser, int32_t entity);
 void EmitPatchFaces(bsp_model_t *mod);
-void EmitPatches(void);
+void EmitPatches(const bsp_model_t *mod);
