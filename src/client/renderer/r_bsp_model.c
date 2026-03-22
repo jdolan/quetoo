@@ -101,8 +101,6 @@ static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 
     out->contents = in->contents;
     out->surface = in->surface;
-
-    out->num_faces = in->num_faces;
   }
 }
 
@@ -159,10 +157,6 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
     } else {
       out->patch = bsp->patches + in->patch;
       out->plane = NULL;
-      
-      if (out->patch->faces == NULL) {
-        out->patch->faces = out;
-      }
     }
 
     out->bounds = in->bounds;

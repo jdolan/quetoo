@@ -142,9 +142,6 @@ static void Bsp_SwapPatches(void *lump, const int32_t num) {
       patch->control_points[j].st = LittleVec2(patch->control_points[j].st);
     }
 
-    patch->first_face = LittleLong(patch->first_face);
-    patch->num_faces = LittleLong(patch->num_faces);
-
     patch++;
   }
 }

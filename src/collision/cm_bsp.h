@@ -292,16 +292,6 @@ typedef struct {
    * @brief The control points in row-major order (width × height).
    */
   bsp_patch_control_point_t control_points[MAX_PATCH_CONTROL_POINTS];
-
-  /**
-   * @brief The index of the first face belonging to this patch.
-   */
-  int32_t first_face;
-
-  /**
-   * @brief The count of faces.
-   */
-  int32_t num_faces;
 } bsp_patch_t;
 
 

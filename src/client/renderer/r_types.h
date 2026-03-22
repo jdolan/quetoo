@@ -422,16 +422,6 @@ typedef struct {
    * @brief The surface flags.
    */
   int32_t surface;
-
-  /**
-   * @brief The faces belonging to this patch.
-   */
-  struct r_bsp_face_s *faces;
-
-  /**
-   * @brief The count of faces.
-   */
-  int32_t num_faces;
 } r_bsp_patch_t;
 
 /**

@@ -659,24 +659,14 @@ void EmitPatches(const bsp_model_t *mod) {
     patch->out->width = patch->width;
     patch->out->height = patch->height;
 
-    // Set the patch index on all emitted BSP faces, and find first_face/num_faces
+    // Set the patch index on all emitted BSP faces
     const int32_t patch_index = (int32_t) (patch->out - bsp_file.patches);
-    int32_t first_face = -1;
-    int32_t num_faces = 0;
 
     for (int32_t f = 0; f < patch->num_faces; f++) {
       if (patch->faces[f].out) {
         patch->faces[f].out->patch = patch_index;
-        const int32_t face_index = (int32_t) (patch->faces[f].out - bsp_file.faces);
-        if (first_face < 0 || face_index < first_face) {
-          first_face = face_index;
-        }
-        num_faces++;
       }
     }
-
-    patch->out->first_face = first_face;
-    patch->out->num_faces = num_faces;
 
     const int32_t num_points = patch->width * patch->height;
     for (int32_t i = 0; i < num_points; i++) {
