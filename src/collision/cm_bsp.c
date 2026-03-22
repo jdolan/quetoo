@@ -340,6 +340,10 @@ static void Bsp_SwapPatches(void *lump, const int32_t num) {
     patch->width = LittleLong(patch->width);
     patch->height = LittleLong(patch->height);
 
+    if (patch->width > MAX_PATCH_SIZE || patch->height > MAX_PATCH_SIZE) {
+      Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
+    }
+
     const int32_t num_points = patch->width * patch->height;
     for (int32_t j = 0; j < num_points; j++) {
       patch->control_points[j].position = LittleVec3(patch->control_points[j].position);

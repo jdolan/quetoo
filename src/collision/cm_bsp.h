@@ -582,13 +582,12 @@ typedef struct {
 /**
  * @brief The maximum patch control point grid dimensions.
  */
-#define MAX_BSP_PATCH_WIDTH   15
-#define MAX_BSP_PATCH_HEIGHT  15
+#define MAX_PATCH_SIZE 31
 
 /**
  * @brief The maximum number of control points in a patch.
  */
-#define MAX_BSP_PATCH_CONTROL_POINTS (MAX_BSP_PATCH_WIDTH * MAX_BSP_PATCH_HEIGHT)
+#define MAX_PATCH_CONTROL_POINTS (MAX_PATCH_SIZE * MAX_PATCH_SIZE)
 
 /**
  * @brief A patch control point for the BSP patches lump.
@@ -630,7 +629,7 @@ typedef struct {
   /**
    * @brief The control points in row-major order (width × height).
    */
-  bsp_patch_control_point_t control_points[MAX_BSP_PATCH_CONTROL_POINTS];
+  bsp_patch_control_point_t control_points[MAX_PATCH_CONTROL_POINTS];
 
   /**
    * @brief The index of the first face belonging to this patch.
