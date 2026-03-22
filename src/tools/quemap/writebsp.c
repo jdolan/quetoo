@@ -65,8 +65,6 @@ void EmitMaterials(void) {
   }
 }
 
-static int32_t emit_entity;
-
 /**
  * @brief Resolves the material index for the given BSP face.
  */
@@ -438,7 +436,6 @@ bsp_model_t *BeginModel(const entity_t *e) {
   bsp_file.num_models++;
 
   mod->entity = (int32_t) (ptrdiff_t) (e - entities);
-  emit_entity = mod->entity;
 
   mod->first_face = bsp_file.num_faces;
   mod->first_draw_elements = bsp_file.num_draw_elements;
