@@ -378,6 +378,7 @@ bsp_face_t *EmitFace(const face_t *face) {
 #define MAX_VERTEX_FACES 32
 
 static const bsp_model_t *phong_model;
+static float phong_cosine;
 
 /**
  * @brief Populates faces with pointers to all those referencing the vertex.
@@ -500,21 +501,15 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
  * and not from BSP splits or T-junctions. That is, it only applies to corners of faces, not to
  * vertexes with colinear neighbors.
  */
-static void PhongFace(int32_t local_face_num) {
+static void PhongFace(int32_t model_face_num) {
 
-  const int32_t face_num = phong_model->first_face + local_face_num;
-
+  const int32_t face_num = phong_model->first_face + model_face_num;
   const bsp_face_t *face = bsp_file.faces + face_num;
 
   // Skip patch faces (they have correct normals from Bézier evaluation)
   if (face->plane == -1) {
     return;
   }
-
-  const entity_t *entity = &entities[phong_model->entity];
-
-  const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
-  const float phong_cosine = cosf(Radians(phong_angle));
 
   bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
 
@@ -576,9 +571,15 @@ void PhongShading(const bsp_model_t *mod) {
 
   phong_model = mod;
 
+  const entity_t *entity = &entities[mod->entity];
+  const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
+
+  phong_cosine = cosf(Radians(phong_angle));
+
   Work("Phong shading", PhongFace, mod->num_faces);
 
   phong_model = NULL;
+  phong_cosine = 0.f;
 }
 
 /**
