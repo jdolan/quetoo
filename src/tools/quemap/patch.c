@@ -272,9 +272,9 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 
 /**
  * @brief Pre-tessellates all patches belonging to the given entity.
- * @details Creates synthetic brush sides and brushes, and tessellates each 3×3
- * sub-patch into patch_face_t structures stored on the patch_t. These are later
- * emitted to BSP nodes during EmitNode.
+ * @details Tessellates each 3×3 sub-patch into patch_face_t structures stored
+ * on the patch_t, and updates the patch bounds accordingly. These precomputed
+ * faces are later used when emitting BSP geometry.
  */
 void TessellatePatches(int32_t entity_num) {
 
