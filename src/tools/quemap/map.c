@@ -277,7 +277,7 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
  * against axial bounding boxes. Ensures that the first 6 sides of every brush
  * are axial, which allows some optimizations in collision detection.
  */
-static void AddBrushBevels(brush_t *b) {
+void AddBrushBevels(brush_t *b) {
 
   for (int32_t axis = 0; axis < 3; axis++) {
     for (int32_t side = -1; side <= 1; side += 2) {
@@ -343,7 +343,7 @@ static void UnparseBrush(brush_t *brush, parser_t *parser) {
 /**
  * @brief Makes windings for sides and mins / maxs for the brush
  */
-static void MakeBrushWindings(brush_t *brush) {
+void MakeBrushWindings(brush_t *brush) {
 
   assert(brush->num_brush_sides);
 
@@ -470,6 +470,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       patch_t *patch = ParsePatch(parser, entity_num);
       if (patch) {
         entity->num_patches++;
+        //EmitPatchCollisionBrushes(patch, entity);
       }
       return NULL;
     }

@@ -179,4 +179,6 @@ extern brush_side_t brush_sides[MAX_BSP_BRUSH_SIDES];
 extern box3_t map_bounds;
 
 int32_t FindPlane(const vec3_t normal, double dist);
+void MakeBrushWindings(brush_t *brush);
+void AddBrushBevels(brush_t *b);
 void LoadMapFile(const char *filename);

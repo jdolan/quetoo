@@ -28,6 +28,12 @@
 int32_t num_patches;
 patch_t patches[MAX_PATCHES];
 
+static void EvaluatePatch(const patch_control_point_t cp[3][3],
+              float s, float t,
+              vec3_t *out_position,
+              vec2_t *out_st,
+              vec3_t *out_normal);
+
 /**
  * @brief Parses a patchDef2 block from the map file.
  * @details Expected format:
@@ -173,6 +179,199 @@ patch_t *ParsePatch(parser_t *parser, int32_t entity_num) {
 
   num_patches++;
   return patch;
+}
+
+#define PATCH_COLLISION_FACET_SIZE 32.f
+#define PATCH_COLLISION_THICKNESS 16.f
+
+/**
+ * @brief Creates a single collision brush from a triangle on the patch surface.
+ * @param entity The entity to add the brush to.
+ * @param v Triangle vertices (3 points on the surface).
+ * @param normal The outward-facing surface normal.
+ */
+static void EmitPatchCollisionBrush(entity_t *entity,
+                                    const vec3_t v[3],
+                                    const vec3_t normal) {
+
+  // Check for degenerate triangle
+  const vec3_t edge1 = Vec3_Subtract(v[1], v[0]);
+  const vec3_t edge2 = Vec3_Subtract(v[2], v[0]);
+  const vec3_t cross = Vec3_Cross(edge1, edge2);
+  if (Vec3_Length(cross) < 1.f) {
+    return;
+  }
+
+  if (num_brushes >= MAX_BSP_BRUSHES) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
+  }
+  if (num_brush_sides + 5 >= MAX_BSP_BRUSH_SIDES) {
+    Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
+  }
+
+  const int32_t caulk_material = FindMaterial("common/caulk");
+
+  brush_t *brush = &brushes[num_brushes];
+  memset(brush, 0, sizeof(*brush));
+  brush->entity = (int32_t) (entity - entities);
+  brush->brush = num_brushes - entity->first_brush;
+  brush->brush_sides = &brush_sides[num_brush_sides];
+
+  // Front face: derive from triangle vertices so all 3 lie exactly on the plane.
+  // Flip to match the outward Bézier surface normal direction.
+  const bool flip = Vec3_Dot(cross, normal) < 0.f;
+  const vec3_t front_normal = flip ? Vec3_Negate(Vec3_Normalize(cross))
+                                   : Vec3_Normalize(cross);
+  const double front_dist = Vec3_Dot(front_normal, v[0]);
+
+  // Back face: opposite normal, offset by thickness
+  const vec3_t back_normal = Vec3_Negate(front_normal);
+  const double back_dist = -front_dist + PATCH_COLLISION_THICKNESS;
+
+  // Side planes: for each edge, the outward normal is edge × front_normal.
+  // When we flipped front_normal, we must also flip edges to keep side normals outward.
+  const float ws = flip ? -1.f : 1.f;
+  const vec3_t edges[3] = {
+    Vec3_Scale(Vec3_Subtract(v[1], v[0]), ws),
+    Vec3_Scale(Vec3_Subtract(v[2], v[1]), ws),
+    Vec3_Scale(Vec3_Subtract(v[0], v[2]), ws),
+  };
+
+  int32_t num_sides = 0;
+  brush_side_t *side;
+
+  // Front
+  side = &brush->brush_sides[num_sides];
+  memset(side, 0, sizeof(*side));
+  side->plane = FindPlane(front_normal, front_dist);
+  side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
+  side->surface = SURF_NO_DRAW;
+  side->material = caulk_material;
+  g_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  side->scale = Vec2(1.f, 1.f);
+  num_sides++;
+
+  // Back
+  side = &brush->brush_sides[num_sides];
+  memset(side, 0, sizeof(*side));
+  side->plane = FindPlane(back_normal, back_dist);
+  side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
+  side->surface = SURF_NO_DRAW;
+  side->material = caulk_material;
+  g_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+  side->scale = Vec2(1.f, 1.f);
+  num_sides++;
+
+  // 3 side planes
+  for (int32_t i = 0; i < 3; i++) {
+    vec3_t side_normal = Vec3_Cross(edges[i], front_normal);
+    const float len = Vec3_Length(side_normal);
+    if (len < 0.1f) {
+      continue;
+    }
+    side_normal = Vec3_Scale(side_normal, 1.f / len);
+    const double side_dist = Vec3_Dot(side_normal, v[i]);
+
+    side = &brush->brush_sides[num_sides];
+    memset(side, 0, sizeof(*side));
+    side->plane = FindPlane(side_normal, side_dist);
+    side->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
+    side->surface = SURF_NO_DRAW;
+    side->material = caulk_material;
+    g_strlcpy(side->texture, "common/caulk", sizeof(side->texture));
+    side->scale = Vec2(1.f, 1.f);
+    num_sides++;
+  }
+
+  if (num_sides < 4) {
+    return;
+  }
+
+  brush->num_brush_sides = num_sides;
+  num_brush_sides += num_sides;
+  num_brushes++;
+
+  brush->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
+
+  MakeBrushWindings(brush);
+
+  if (brush->num_brush_sides) {
+    AddBrushBevels(brush);
+    entity->num_brushes++;
+    entity->num_brush_sides += brush->num_brush_sides;
+    entity->bounds = Box3_Union(entity->bounds, brush->bounds);
+  }
+}
+
+/**
+ * @brief Generates collision brushes for a patch by tessellating at a coarse
+ * resolution and emitting caulk brushes for each quad cell.
+ */
+void EmitPatchCollisionBrushes(patch_t *patch, entity_t *entity) {
+
+  if (patch->material < 0) {
+    return;
+  }
+
+  const int32_t num_sub_patches_s = (patch->width - 1) / 2;
+  const int32_t num_sub_patches_t = (patch->height - 1) / 2;
+
+  for (int32_t sub_t = 0; sub_t < num_sub_patches_t; sub_t++) {
+    for (int32_t sub_s = 0; sub_s < num_sub_patches_s; sub_s++) {
+
+      // Extract the 3×3 control point sub-grid
+      patch_control_point_t sub_cp[3][3];
+      for (int32_t row = 0; row < 3; row++) {
+        for (int32_t col = 0; col < 3; col++) {
+          const int32_t src_row = sub_t * 2 + row;
+          const int32_t src_col = sub_s * 2 + col;
+          sub_cp[row][col] = patch->control_points[src_row * patch->width + src_col];
+        }
+      }
+
+      // Determine subdivision count based on sub-patch size
+      vec3_t corner00, corner10, corner01;
+      vec2_t st_dummy;
+      EvaluatePatch(sub_cp, 0.f, 0.f, &corner00, &st_dummy, NULL);
+      EvaluatePatch(sub_cp, 1.f, 0.f, &corner10, &st_dummy, NULL);
+      EvaluatePatch(sub_cp, 0.f, 1.f, &corner01, &st_dummy, NULL);
+
+      const float size_s = Vec3_Distance(corner00, corner10);
+      const float size_t = Vec3_Distance(corner00, corner01);
+
+      const int32_t subdivs_s = Maxi(1, (int32_t) (size_s / PATCH_COLLISION_FACET_SIZE));
+      const int32_t subdivs_t = Maxi(1, (int32_t) (size_t / PATCH_COLLISION_FACET_SIZE));
+
+      // Tessellate and emit a brush for each quad cell
+      for (int32_t j = 0; j < subdivs_t; j++) {
+        for (int32_t i = 0; i < subdivs_s; i++) {
+
+          const float s0 = (float) i / (float) subdivs_s;
+          const float s1 = (float) (i + 1) / (float) subdivs_s;
+          const float t0 = (float) j / (float) subdivs_t;
+          const float t1 = (float) (j + 1) / (float) subdivs_t;
+
+          vec3_t verts[4], normal;
+          vec2_t st;
+          vec3_t n00, n10, n01, n11;
+
+          EvaluatePatch(sub_cp, s0, t0, &verts[0], &st, &n00);
+          EvaluatePatch(sub_cp, s1, t0, &verts[1], &st, &n10);
+          EvaluatePatch(sub_cp, s0, t1, &verts[2], &st, &n01);
+          EvaluatePatch(sub_cp, s1, t1, &verts[3], &st, &n11);
+
+          // Average normal for extrusion direction
+          normal = Vec3_Normalize(Vec3_Add(Vec3_Add(n00, n10), Vec3_Add(n01, n11)));
+
+          // Split quad into two triangles and emit a prism brush for each
+          const vec3_t tri0[3] = { verts[0], verts[1], verts[2] };
+          const vec3_t tri1[3] = { verts[1], verts[3], verts[2] };
+          EmitPatchCollisionBrush(entity, tri0, normal);
+          EmitPatchCollisionBrush(entity, tri1, normal);
+        }
+      }
+    }
+  }
 }
 
 /**

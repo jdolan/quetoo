@@ -151,6 +151,7 @@ extern int32_t num_patches;
 extern patch_t patches[MAX_PATCHES];
 
 patch_t *ParsePatch(parser_t *parser, int32_t entity);
+void EmitPatchCollisionBrushes(patch_t *patch, entity_t *entity);
 void TessellatePatches(int32_t entity_num);
 void AssignPatchFacesToNodes(struct node_s *head_node, int32_t entity_num);
 void FreePatchFaces(int32_t entity_num);
