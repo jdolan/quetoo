@@ -23,6 +23,8 @@
 
 #include "quemap.h"
 
+struct node_s;
+
 #define MAX_PATCH_WIDTH   15
 #define MAX_PATCH_HEIGHT  15
 #define MAX_PATCHES       0x4000
@@ -39,7 +41,7 @@ typedef struct {
 /**
  * @brief A pre-tessellated patch face (one per 3×3 sub-patch).
  */
-typedef struct {
+typedef struct patch_face_s {
 
   /**
    * @brief The AABB of this tessellated face.
@@ -67,16 +69,26 @@ typedef struct {
   int32_t num_elements;
 
   /**
-   * @brief True if this face has been emitted to a BSP node.
+   * @brief The owning patch.
    */
-  bool emitted;
+  struct patch_s *patch;
+
+  /**
+   * @brief The emitted BSP face.
+   */
+  bsp_face_t *out;
+
+  /**
+   * @brief Linked list pointer for node assignment.
+   */
+  struct patch_face_s *next;
 
 } patch_face_t;
 
 /**
  * @brief The map file representation of a Bézier surface patch (patchDef2).
  */
-typedef struct {
+typedef struct patch_s {
 
   /**
    * @brief The texture name.
@@ -133,16 +145,6 @@ typedef struct {
    */
   int32_t num_faces;
 
-  /**
-   * @brief The index of the first emitted BSP face (set during EmitNode).
-   */
-  int32_t first_bsp_face;
-
-  /**
-   * @brief The count of emitted BSP faces (set during EmitNode).
-   */
-  int32_t num_bsp_faces;
-
 } patch_t;
 
 extern int32_t num_patches;
@@ -150,5 +152,6 @@ extern patch_t patches[MAX_PATCHES];
 
 patch_t *ParsePatch(parser_t *parser, int32_t entity);
 void TessellatePatches(int32_t entity_num);
+void AssignPatchFacesToNodes(struct node_s *head_node, int32_t entity_num);
 void FreePatchFaces(int32_t entity_num);
 void EmitPatches(const bsp_model_t *mod);

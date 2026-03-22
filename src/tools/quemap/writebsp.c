@@ -114,78 +114,47 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
     face->out->node = node_num;
   }
 
-  // Emit pre-tessellated patch faces that intersect this node
-  for (int32_t p = 0; p < num_patches; p++) {
-    patch_t *patch = &patches[p];
+  // Emit pre-tessellated patch faces assigned to this node
+  for (patch_face_t *pf = node->patch_faces; pf; pf = pf->next) {
 
-    if (patch->entity != emit_entity) {
-      continue;
+    if (bsp_file.num_faces >= MAX_BSP_FACES) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
     }
 
-    if (!patch->faces) {
-      continue;
+    bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
+    memset(out, 0, sizeof(*out));
+    bsp_file.num_faces++;
+
+    pf->out = out;
+
+    out->brush_side = -1;
+    out->patch = -1;  // set by EmitPatches after BSP patch index is assigned
+    out->plane = -1;
+    out->node = node_num;
+    out->bounds = pf->bounds;
+
+    // Copy vertexes to bsp_file
+    out->first_vertex = bsp_file.num_vertexes;
+    out->num_vertexes = pf->num_vertexes;
+
+    if (bsp_file.num_vertexes + pf->num_vertexes > MAX_BSP_VERTEXES) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
     }
 
-    if (!Box3_Intersects(patch->bounds, node->bounds)) {
-      continue;
+    memcpy(&bsp_file.vertexes[bsp_file.num_vertexes], pf->vertexes,
+           pf->num_vertexes * sizeof(bsp_vertex_t));
+    bsp_file.num_vertexes += pf->num_vertexes;
+
+    // Copy elements to bsp_file, adjusting indices
+    out->first_element = bsp_file.num_elements;
+    out->num_elements = pf->num_elements;
+
+    if (bsp_file.num_elements + pf->num_elements > MAX_BSP_ELEMENTS) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
     }
 
-    for (int32_t f = 0; f < patch->num_faces; f++) {
-      patch_face_t *pf = &patch->faces[f];
-
-      if (pf->emitted) {
-        continue;
-      }
-
-      if (!Box3_Intersects(pf->bounds, node->bounds)) {
-        continue;
-      }
-
-      if (bsp_file.num_faces >= MAX_BSP_FACES) {
-        Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
-      }
-
-      bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
-      memset(out, 0, sizeof(*out));
-      bsp_file.num_faces++;
-
-      out->brush_side = -1;
-      out->patch = -1;  // set by EmitPatches after BSP patch index is assigned
-      out->plane = -1;
-      out->node = node_num;
-      out->bounds = pf->bounds;
-
-      // Copy vertexes to bsp_file
-      out->first_vertex = bsp_file.num_vertexes;
-      out->num_vertexes = pf->num_vertexes;
-
-      if (bsp_file.num_vertexes + pf->num_vertexes > MAX_BSP_VERTEXES) {
-        Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
-      }
-
-      memcpy(&bsp_file.vertexes[bsp_file.num_vertexes], pf->vertexes,
-             pf->num_vertexes * sizeof(bsp_vertex_t));
-      bsp_file.num_vertexes += pf->num_vertexes;
-
-      // Copy elements to bsp_file, adjusting indices
-      out->first_element = bsp_file.num_elements;
-      out->num_elements = pf->num_elements;
-
-      if (bsp_file.num_elements + pf->num_elements > MAX_BSP_ELEMENTS) {
-        Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-      }
-
-      for (int32_t e = 0; e < pf->num_elements; e++) {
-        bsp_file.elements[bsp_file.num_elements++] = out->first_vertex + pf->elements[e];
-      }
-
-      // Track emitted BSP face range on the patch
-      if (patch->num_bsp_faces == 0) {
-        patch->first_bsp_face = (int32_t) (out - bsp_file.faces);
-      }
-      patch->num_bsp_faces++;
-
-      pf->emitted = true;
+    for (int32_t e = 0; e < pf->num_elements; e++) {
+      bsp_file.elements[bsp_file.num_elements++] = out->first_vertex + pf->elements[e];
     }
   }
 

@@ -23,6 +23,7 @@
 #include "map.h"
 #include "material.h"
 #include "patch.h"
+#include "tree.h"
 
 int32_t num_patches;
 patch_t patches[MAX_PATCHES];
@@ -314,6 +315,7 @@ void TessellatePatches(int32_t entity_num) {
 
         patch_face_t *pf = &patch->faces[face_index++];
         memset(pf, 0, sizeof(*pf));
+        pf->patch = patch;
         pf->bounds = Box3_Null();
 
         const int32_t verts_per_edge = subdivisions + 1;
@@ -367,6 +369,47 @@ void TessellatePatches(int32_t entity_num) {
 }
 
 /**
+ * @brief Assigns a patch face to the deepest BSP node containing its center.
+ */
+static void AssignPatchFaceToNode_r(node_t *node, patch_face_t *pf) {
+
+  if (node->plane == PLANE_LEAF) {
+    return;
+  }
+
+  const vec3_t center = Box3_Center(pf->bounds);
+
+  for (int32_t i = 0; i < 2; i++) {
+    if (node->children[i]->plane != PLANE_LEAF &&
+        Box3_ContainsPoint(node->children[i]->bounds, center)) {
+      AssignPatchFaceToNode_r(node->children[i], pf);
+      return;
+    }
+  }
+
+  pf->next = node->patch_faces;
+  node->patch_faces = pf;
+}
+
+/**
+ * @brief Assigns pre-tessellated patch faces to BSP tree nodes.
+ */
+void AssignPatchFacesToNodes(node_t *head_node, int32_t entity_num) {
+
+  for (int32_t p = 0; p < num_patches; p++) {
+    patch_t *patch = &patches[p];
+
+    if (patch->entity != entity_num) {
+      continue;
+    }
+
+    for (int32_t f = 0; f < patch->num_faces; f++) {
+      AssignPatchFaceToNode_r(head_node, &patch->faces[f]);
+    }
+  }
+}
+
+/**
  * @brief Frees pre-tessellated patch face data for the given entity.
  */
 void FreePatchFaces(int32_t entity_num) {
@@ -378,11 +421,9 @@ void FreePatchFaces(int32_t entity_num) {
       continue;
     }
 
-    if (patch->faces) {
-      Mem_Free(patch->faces);
-      patch->faces = NULL;
-      patch->num_faces = 0;
-    }
+    Mem_Free(patch->faces);
+    patch->faces = NULL;
+    patch->num_faces = 0;
   }
 }
 
@@ -404,10 +445,6 @@ void EmitPatches(const bsp_model_t *mod) {
       continue;
     }
 
-    if (patch->num_bsp_faces == 0) {
-      continue;
-    }
-
     if (bsp_file.num_patches >= MAX_BSP_PATCHES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
     }
@@ -422,14 +459,25 @@ void EmitPatches(const bsp_model_t *mod) {
     patch->out->surface = patch->surface;
     patch->out->width = patch->width;
     patch->out->height = patch->height;
-    patch->out->first_face = patch->first_bsp_face;
-    patch->out->num_faces = patch->num_bsp_faces;
 
-    // Set the patch index on all emitted BSP faces for this patch
+    // Set the patch index on all emitted BSP faces, and find first_face/num_faces
     const int32_t patch_index = (int32_t) (patch->out - bsp_file.patches);
-    for (int32_t f = 0; f < patch->num_bsp_faces; f++) {
-      bsp_file.faces[patch->first_bsp_face + f].patch = patch_index;
+    int32_t first_face = -1;
+    int32_t num_faces = 0;
+
+    for (int32_t f = 0; f < patch->num_faces; f++) {
+      if (patch->faces[f].out) {
+        patch->faces[f].out->patch = patch_index;
+        const int32_t face_index = (int32_t) (patch->faces[f].out - bsp_file.faces);
+        if (first_face < 0 || face_index < first_face) {
+          first_face = face_index;
+        }
+        num_faces++;
+      }
     }
+
+    patch->out->first_face = first_face;
+    patch->out->num_faces = num_faces;
 
     const int32_t num_points = patch->width * patch->height;
     for (int32_t i = 0; i < num_points; i++) {

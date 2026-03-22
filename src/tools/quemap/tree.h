@@ -40,6 +40,7 @@ typedef struct node_s {
   const brush_side_t *split_side; // the side that created the node
   struct node_s *children[2];
   face_t *faces;
+  struct patch_face_s *patch_faces;
 
   // leafs only
   csg_brush_t *brushes; // fragments of all brushes in this leaf

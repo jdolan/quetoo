@@ -81,6 +81,8 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
   TessellatePatches(out->entity);
 
+  AssignPatchFacesToNodes(tree->head_node, out->entity);
+
   out->head_node = EmitNodes(tree);
 
   FreeTree(tree);
@@ -113,6 +115,8 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
   }
 
   TessellatePatches(out->entity);
+
+  AssignPatchFacesToNodes(tree->head_node, out->entity);
 
   out->head_node = EmitNodes(tree);
 
