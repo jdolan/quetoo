@@ -295,7 +295,7 @@ void TessellatePatches(int32_t entity_num) {
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
 
     patch->num_faces = num_sub_patches_s * num_sub_patches_t;
-    patch->faces = Mem_TagMalloc(patch->num_faces * sizeof(patch_face_t), MEM_TAG_QBSP);
+    patch->faces = Mem_TagMalloc(patch->num_faces * sizeof(patch_face_t), MEM_TAG_PATCH);
     patch->bounds = Box3_Null();
 
     int32_t face_index = 0;
