@@ -697,7 +697,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   Com_Debug(DEBUG_RENDERER, "!  Elements:      %d\n", mod->bsp->num_elements);
   Com_Debug(DEBUG_RENDERER, "!  Faces:         %d\n", mod->bsp->num_faces);
   Com_Debug(DEBUG_RENDERER, "!  Leafs:         %d\n", mod->bsp->num_leafs);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:      %d\n", mod->bsp->num_nodes);
+  Com_Debug(DEBUG_RENDERER, "!  Nodes:         %d\n", mod->bsp->num_nodes);
   Com_Debug(DEBUG_RENDERER, "!  Draw elements: %d\n", mod->bsp->num_draw_elements);
   Com_Debug(DEBUG_RENDERER, "!  Blocks:        %d\n", mod->bsp->num_blocks);
   Com_Debug(DEBUG_RENDERER, "!  Inline models: %d\n", mod->bsp->num_inline_models);
