@@ -186,15 +186,15 @@ static void R_ClipDecalToNode(const r_view_t *view,
   const r_bsp_face_t *face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
 
+    if (face->patch) {
+      continue;
+    }
+
     if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
       continue;
     }
 
     if (face->brush_side->surface & SURF_SKY) {
-      continue;
-    }
-
-    if (!face->plane) {
       continue;
     }
 
