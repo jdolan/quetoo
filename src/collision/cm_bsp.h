@@ -91,6 +91,7 @@ typedef enum {
   BSP_LUMP_PLANES,
   BSP_LUMP_BRUSH_SIDES,
   BSP_LUMP_BRUSHES,
+  BSP_LUMP_PATCHES,
   BSP_LUMP_VERTEXES,
   BSP_LUMP_ELEMENTS,
   BSP_LUMP_FACES,
@@ -102,7 +103,6 @@ typedef enum {
   BSP_LUMP_MODELS,
   BSP_LUMP_LIGHTS,
   BSP_LUMP_VOXELS,
-  BSP_LUMP_PATCHES,
   BSP_LUMP_LAST
 } bsp_lump_id_t;
 
@@ -240,6 +240,70 @@ typedef struct {
    */
   box3_t bounds;
 } bsp_brush_t;
+
+/**
+ * @brief The maximum patch control point grid dimensions.
+ */
+#define MAX_PATCH_SIZE 31
+
+/**
+ * @brief The maximum number of control points in a patch.
+ */
+#define MAX_PATCH_CONTROL_POINTS (MAX_PATCH_SIZE * MAX_PATCH_SIZE)
+
+/**
+ * @brief A patch control point for the BSP patches lump.
+ */
+typedef struct {
+  vec3_t position;
+  vec2_t st;
+} bsp_patch_control_point_t;
+
+/**
+ * @brief BSP representation of a patchDef2 Bézier surface.
+ */
+typedef struct {
+  /**
+   * @brief The entity number that defined this patch.
+   */
+  int32_t entity;
+
+  /**
+   * @brief The material index.
+   */
+  int32_t material;
+
+  /**
+   * @brief The contents bitmask.
+   */
+  int32_t contents;
+
+  /**
+   * @brief The surface bitmask.
+   */
+  int32_t surface;
+
+  /**
+   * @brief The control point grid dimensions.
+   */
+  int32_t width, height;
+
+  /**
+   * @brief The control points in row-major order (width × height).
+   */
+  bsp_patch_control_point_t control_points[MAX_PATCH_CONTROL_POINTS];
+
+  /**
+   * @brief The index of the first face belonging to this patch.
+   */
+  int32_t first_face;
+
+  /**
+   * @brief The count of faces.
+   */
+  int32_t num_faces;
+} bsp_patch_t;
+
 
 /**
  * @brief The BSP vertex type.
@@ -580,69 +644,6 @@ typedef struct {
 } bsp_voxels_t;
 
 /**
- * @brief The maximum patch control point grid dimensions.
- */
-#define MAX_PATCH_SIZE 31
-
-/**
- * @brief The maximum number of control points in a patch.
- */
-#define MAX_PATCH_CONTROL_POINTS (MAX_PATCH_SIZE * MAX_PATCH_SIZE)
-
-/**
- * @brief A patch control point for the BSP patches lump.
- */
-typedef struct {
-  vec3_t position;
-  vec2_t st;
-} bsp_patch_control_point_t;
-
-/**
- * @brief BSP representation of a patchDef2 Bézier surface.
- */
-typedef struct {
-  /**
-   * @brief The entity number that defined this patch.
-   */
-  int32_t entity;
-
-  /**
-   * @brief The material index.
-   */
-  int32_t material;
-
-  /**
-   * @brief The contents bitmask.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The surface bitmask.
-   */
-  int32_t surface;
-
-  /**
-   * @brief The control point grid dimensions.
-   */
-  int32_t width, height;
-
-  /**
-   * @brief The control points in row-major order (width × height).
-   */
-  bsp_patch_control_point_t control_points[MAX_PATCH_CONTROL_POINTS];
-
-  /**
-   * @brief The index of the first face belonging to this patch.
-   */
-  int32_t first_face;
-
-  /**
-   * @brief The count of faces.
-   */
-  int32_t num_faces;
-} bsp_patch_t;
-
-/**
  * @brief BSP file lumps in their native file formats. The data is stored as pointers
  * so that we don't take up an ungodly amount of space.
  */
@@ -661,6 +662,9 @@ typedef struct bsp_file_s {
 
   int32_t num_brushes;
   bsp_brush_t *brushes;
+
+  int32_t num_patches;
+  bsp_patch_t *patches;
 
   int32_t num_vertexes;
   bsp_vertex_t *vertexes;
@@ -694,9 +698,6 @@ typedef struct bsp_file_s {
 
   int32_t voxels_size;
   bsp_voxels_t *voxels;
-
-  int32_t num_patches;
-  bsp_patch_t *patches;
 
   bsp_lump_id_t loaded_lumps;
 } bsp_file_t;

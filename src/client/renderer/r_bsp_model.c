@@ -644,14 +644,14 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
+  (1 << BSP_LUMP_PATCHES) | \
   (1 << BSP_LUMP_VERTEXES) | \
   (1 << BSP_LUMP_ELEMENTS) | \
   (1 << BSP_LUMP_FACES) | \
   (1 << BSP_LUMP_DRAW_ELEMENTS) | \
   (1 << BSP_LUMP_BLOCKS) | \
   (1 << BSP_LUMP_LIGHTS) | \
-  (1 << BSP_LUMP_VOXELS) | \
-  (1 << BSP_LUMP_PATCHES) \
+  (1 << BSP_LUMP_VOXELS) \
 )
 
 /**
@@ -664,7 +664,6 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
   mod->bsp->cm = Cm_Bsp();
 
-  // load in lumps that the renderer needs
   Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
 
   R_LoadBspPlanes(mod->bsp);
@@ -689,11 +688,21 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
-  Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:          %d\n", mod->bsp->num_vertexes);
-  Com_Debug(DEBUG_RENDERER, "!  Elements:          %d\n", mod->bsp->num_elements);
-  Com_Debug(DEBUG_RENDERER, "!  Faces:             %d\n", mod->bsp->num_faces);
-  Com_Debug(DEBUG_RENDERER, "!  Draw elements:     %d\n", mod->bsp->num_draw_elements);
+  Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:  %s\n", mod->media.name);
+  Com_Debug(DEBUG_RENDERER, "!  Planes:        %d\n", mod->bsp->num_planes);
+  Com_Debug(DEBUG_RENDERER, "!  Materials:     %d\n", mod->bsp->num_materials);
+  Com_Debug(DEBUG_RENDERER, "!  Brush sides:   %d\n", mod->bsp->num_brush_sides);
+  Com_Debug(DEBUG_RENDERER, "!  Patches:       %d\n", mod->bsp->num_patches);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:      %d\n", mod->bsp->num_vertexes);
+  Com_Debug(DEBUG_RENDERER, "!  Elements:      %d\n", mod->bsp->num_elements);
+  Com_Debug(DEBUG_RENDERER, "!  Faces:         %d\n", mod->bsp->num_faces);
+  Com_Debug(DEBUG_RENDERER, "!  Leafs:         %d\n", mod->bsp->num_leafs);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:      %d\n", mod->bsp->num_nodes);
+  Com_Debug(DEBUG_RENDERER, "!  Draw elements: %d\n", mod->bsp->num_draw_elements);
+  Com_Debug(DEBUG_RENDERER, "!  Blocks:        %d\n", mod->bsp->num_blocks);
+  Com_Debug(DEBUG_RENDERER, "!  Inline models: %d\n", mod->bsp->num_inline_models);
+  Com_Debug(DEBUG_RENDERER, "!  Lights:        %d\n", mod->bsp->num_lights);
+  Com_Debug(DEBUG_RENDERER, "!  Voxels:        %d\n", mod->bsp->voxels.num_voxels);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 

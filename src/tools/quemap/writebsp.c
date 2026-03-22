@@ -141,7 +141,6 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
         continue;
       }
 
-      // Emit this patch face to bsp_file
       if (bsp_file.num_faces >= MAX_BSP_FACES) {
         Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
       }

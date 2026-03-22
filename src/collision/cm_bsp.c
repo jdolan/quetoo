@@ -115,6 +115,39 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapPatches(void *lump, const int32_t num) {
+
+  bsp_patch_t *patch = (bsp_patch_t *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+
+    patch->entity = LittleLong(patch->entity);
+    patch->material = LittleLong(patch->material);
+    patch->contents = LittleLong(patch->contents);
+    patch->surface = LittleLong(patch->surface);
+    patch->width = LittleLong(patch->width);
+    patch->height = LittleLong(patch->height);
+
+    if (patch->width > MAX_PATCH_SIZE || patch->height > MAX_PATCH_SIZE) {
+      Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
+    }
+
+    const int32_t num_points = patch->width * patch->height;
+    for (int32_t j = 0; j < num_points; j++) {
+      patch->control_points[j].position = LittleVec3(patch->control_points[j].position);
+      patch->control_points[j].st = LittleVec2(patch->control_points[j].st);
+    }
+
+    patch->first_face = LittleLong(patch->first_face);
+    patch->num_faces = LittleLong(patch->num_faces);
+
+    patch++;
+  }
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 
   bsp_vertex_t *vertex = (bsp_vertex_t *) lump;
@@ -325,39 +358,6 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
 }
 
 /**
- * @brief Swap function.
- */
-static void Bsp_SwapPatches(void *lump, const int32_t num) {
-
-  bsp_patch_t *patch = (bsp_patch_t *) lump;
-
-  for (int32_t i = 0; i < num; i++) {
-
-    patch->entity = LittleLong(patch->entity);
-    patch->material = LittleLong(patch->material);
-    patch->contents = LittleLong(patch->contents);
-    patch->surface = LittleLong(patch->surface);
-    patch->width = LittleLong(patch->width);
-    patch->height = LittleLong(patch->height);
-
-    if (patch->width > MAX_PATCH_SIZE || patch->height > MAX_PATCH_SIZE) {
-      Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
-    }
-
-    const int32_t num_points = patch->width * patch->height;
-    for (int32_t j = 0; j < num_points; j++) {
-      patch->control_points[j].position = LittleVec3(patch->control_points[j].position);
-      patch->control_points[j].st = LittleVec2(patch->control_points[j].st);
-    }
-
-    patch->first_face = LittleLong(patch->first_face);
-    patch->num_faces = LittleLong(patch->num_faces);
-
-    patch++;
-  }
-}
-
-/**
  * @brief Swap entry point.
  */
 static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count) {
@@ -368,6 +368,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
     Bsp_SwapPlanes,
     Bsp_SwapBrushSides,
     Bsp_SwapBrushes,
+    Bsp_SwapPatches,
     Bsp_SwapVertexes,
     Bsp_SwapElements,
     Bsp_SwapFaces,
@@ -379,7 +380,6 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
     Bsp_SwapModels,
     Bsp_SwapLights,
     Bsp_SwapVoxels,
-    Bsp_SwapPatches,
   };
 
   if (swap[lump_id]) {
