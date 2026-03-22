@@ -37,6 +37,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
   BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
   BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(patches, MAX_BSP_PATCHES),
   BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
   BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
   BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
@@ -48,7 +49,6 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
   BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
   BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE),
-  BSP_LUMP_NUM_STRUCT(patches, MAX_BSP_PATCHES)
 };
 
 /**
