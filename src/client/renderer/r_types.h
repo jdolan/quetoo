@@ -422,6 +422,16 @@ typedef struct {
    * @brief The surface flags.
    */
   int32_t surface;
+
+  /**
+   * @brief The faces belonging to this patch.
+   */
+  struct r_bsp_face_s *faces;
+
+  /**
+   * @brief The count of faces.
+   */
+  int32_t num_faces;
 } r_bsp_patch_t;
 
 /**
@@ -463,7 +473,22 @@ typedef struct {
 /**
  * @brief BSP faces, which may reside on the front or back of their node.
  */
-typedef struct {
+typedef struct r_bsp_face_s {
+  /**
+   * @brief The brush side which generated this face, or NULL for patch faces.
+   */
+  r_bsp_brush_side_t *brush_side;
+
+  /**
+   * @brief The plane on which this face resides (to disambiguiate `node`).
+   */
+  r_bsp_plane_t *plane;
+
+  /**
+   * @brief The patch which generated this face, or NULL for brush faces.
+   */
+  r_bsp_patch_t *patch;
+
   /**
    * @brief The node containing this face.
    */
@@ -473,21 +498,6 @@ typedef struct {
    * @brief The block containing this face.
    */
   struct r_bsp_block_s *block;
-
-  /**
-   * @brief The brush side which generated this face, or NULL for patch faces.
-   */
-  r_bsp_brush_side_t *brush_side;
-
-  /**
-   * @brief The patch which generated this face, or NULL for brush faces.
-   */
-  r_bsp_patch_t *patch;
-
-  /**
-   * @brief The plane on which this face resides (to disambiguiate `node`).
-   */
-  r_bsp_plane_t *plane;
 
   /**
    * @brief The AABB of this face.
