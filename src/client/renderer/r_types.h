@@ -405,6 +405,26 @@ typedef struct {
 } r_bsp_brush_side_t;
 
 /**
+ * @brief BSP patch structure, resolved from bsp_patch_t.
+ */
+typedef struct {
+  /**
+   * @brief The material.
+   */
+  const r_material_t *material;
+
+  /**
+   * @brief The brush contents.
+   */
+  int32_t contents;
+
+  /**
+   * @brief The surface flags.
+   */
+  int32_t surface;
+} r_bsp_patch_t;
+
+/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -455,9 +475,14 @@ typedef struct {
   struct r_bsp_block_s *block;
 
   /**
-   * @brief The brush side which generated this face.
+   * @brief The brush side which generated this face, or NULL for patch faces.
    */
   r_bsp_brush_side_t *brush_side;
+
+  /**
+   * @brief The patch which generated this face, or NULL for brush faces.
+   */
+  r_bsp_patch_t *patch;
 
   /**
    * @brief The plane on which this face resides (to disambiguiate `node`).
@@ -906,6 +931,9 @@ typedef struct {
 
   int32_t num_brush_sides;
   r_bsp_brush_side_t *brush_sides;
+
+  int32_t num_patches;
+  r_bsp_patch_t *patches;
 
   int32_t num_vertexes;
   r_bsp_vertex_t *vertexes;

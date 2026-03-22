@@ -354,6 +354,7 @@ bsp_face_t *EmitFace(const face_t *face) {
   bsp_file.num_faces++;
 
   out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
+  out->patch = -1;
   out->plane = face->plane;
   
   out->bounds = Box3_Null();
@@ -431,8 +432,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
 
       size_t j;
       for (j = 0; j < i; j++) {
-        if (faces[j]->brush_side == (*f)->brush_side &&
-          faces[j]->plane == (*f)->plane) {
+        if (faces[j]->brush_side == (*f)->brush_side && faces[j]->plane == (*f)->plane) {
           break;
         }
       }

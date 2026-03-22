@@ -258,7 +258,7 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The index of the brush side which created this face.
+   * @brief The index of the brush side which created this face, or -1 for patch faces.
    */
   int32_t brush_side;
 
@@ -267,6 +267,11 @@ typedef struct {
    * @details For translucent brushes, this may be the negation of the node's plane.
    */
   int32_t plane;
+
+  /**
+   * @brief The index of the patch which created this face, or -1 for brush faces.
+   */
+  int32_t patch;
 
   /**
    * @brief The index of the BSP node containing this face.

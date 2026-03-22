@@ -291,20 +291,6 @@ void TessellatePatches(int32_t entity_num) {
       continue;
     }
 
-    if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-    }
-
-    bsp_brush_side_t *bsp_side = &bsp_file.brush_sides[bsp_file.num_brush_sides];
-    memset(bsp_side, 0, sizeof(*bsp_side));
-    bsp_side->plane = 0;
-    bsp_side->material = patch->material;
-    bsp_side->contents = patch->contents;
-    bsp_side->surface = patch->surface;
-
-    patch->brush_side = bsp_file.num_brush_sides;
-    bsp_file.num_brush_sides++;
-
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
 
@@ -408,7 +394,7 @@ void EmitPatches(const bsp_model_t *mod) {
   const int32_t entity_num = mod->entity;
 
   for (int32_t p = 0; p < num_patches; p++) {
-    const patch_t *patch = &patches[p];
+    patch_t *patch = &patches[p];
 
     if (patch->entity != entity_num) {
       continue;
@@ -426,23 +412,29 @@ void EmitPatches(const bsp_model_t *mod) {
       Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
     }
 
-    bsp_patch_t *out = &bsp_file.patches[bsp_file.num_patches];
-    memset(out, 0, sizeof(*out));
+    patch->out = &bsp_file.patches[bsp_file.num_patches];
+    memset(patch->out, 0, sizeof(*patch->out));
     bsp_file.num_patches++;
 
-    out->entity = patch->entity;
-    out->material = patch->material;
-    out->contents = patch->contents;
-    out->surface = patch->surface;
-    out->width = patch->width;
-    out->height = patch->height;
-    out->first_face = patch->first_bsp_face;
-    out->num_faces = patch->num_bsp_faces;
+    patch->out->entity = patch->entity;
+    patch->out->material = patch->material;
+    patch->out->contents = patch->contents;
+    patch->out->surface = patch->surface;
+    patch->out->width = patch->width;
+    patch->out->height = patch->height;
+    patch->out->first_face = patch->first_bsp_face;
+    patch->out->num_faces = patch->num_bsp_faces;
+
+    // Set the patch index on all emitted BSP faces for this patch
+    const int32_t patch_index = (int32_t) (patch->out - bsp_file.patches);
+    for (int32_t f = 0; f < patch->num_bsp_faces; f++) {
+      bsp_file.faces[patch->first_bsp_face + f].patch = patch_index;
+    }
 
     const int32_t num_points = patch->width * patch->height;
     for (int32_t i = 0; i < num_points; i++) {
-      out->control_points[i].position = patch->control_points[i].position;
-      out->control_points[i].st = patch->control_points[i].st;
+      patch->out->control_points[i].position = patch->control_points[i].position;
+      patch->out->control_points[i].st = patch->control_points[i].st;
     }
   }
 }

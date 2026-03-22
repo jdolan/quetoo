@@ -86,6 +86,27 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspPatches(r_bsp_model_t *bsp) {
+
+  const bsp_patch_t *in = bsp->cm->file->patches;
+
+  bsp->num_patches = bsp->cm->file->num_patches;
+  r_bsp_patch_t *out = bsp->patches = Mem_LinkMalloc(bsp->num_patches * sizeof(*out), bsp);
+
+  for (int32_t i = 0; i < bsp->num_patches; i++, in++, out++) {
+
+    if (in->material > -1) {
+      out->material = bsp->materials[in->material];
+    }
+
+    out->contents = in->contents;
+    out->surface = in->surface;
+  }
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
   bsp->num_vertexes = bsp->cm->file->num_vertexes;
@@ -130,8 +151,13 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-    out->brush_side = bsp->brush_sides + in->brush_side;
-    out->plane = in->plane >= 0 ? bsp->planes + in->plane : NULL;
+    if (in->brush_side >= 0) {
+      out->brush_side = bsp->brush_sides + in->brush_side;
+      out->plane = bsp->planes + in->plane;
+    } else {
+      out->patch = bsp->patches + in->patch;
+      out->plane = NULL;
+    }
 
     out->bounds = in->bounds;
 
@@ -181,6 +207,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
+    r_bsp_face_t *f = out->faces;
+    for (int32_t j = 0; j < out->num_faces; j++, f++) {
+      f->node = out;
+    }
+
     for (int32_t j = 0; j < 2; j++) {
       const int32_t c = in->children[j];
       if (c >= 0) {
@@ -202,11 +233,6 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 
   if (node->contents > CONTENTS_NODE) {
     return;
-  }
-
-  r_bsp_face_t *face = node->faces;
-  for (int32_t i = 0; i < node->num_faces; i++, face++) {
-    face->node = node;
   }
 
   R_SetupBspNode(model, node, node->children[0]);
@@ -638,6 +664,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspPlanes(mod->bsp);
   R_LoadBspMaterials(mod);
   R_LoadBspBrushSides(mod->bsp);
+  R_LoadBspPatches(mod->bsp);
   R_LoadBspVertexes(mod->bsp);
   R_LoadBspElements(mod->bsp);
   R_LoadBspFaces(mod->bsp);

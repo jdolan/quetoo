@@ -68,6 +68,36 @@ void EmitMaterials(void) {
 static int32_t emit_entity;
 
 /**
+ * @brief Resolves the material index for the given BSP face.
+ */
+static inline int32_t FaceMaterial(const bsp_face_t *face) {
+  if (face->brush_side >= 0) {
+    return bsp_file.brush_sides[face->brush_side].material;
+  }
+  return bsp_file.patches[face->patch].material;
+}
+
+/**
+ * @brief Resolves the contents mask for the given BSP face.
+ */
+static inline int32_t FaceContents(const bsp_face_t *face) {
+  if (face->brush_side >= 0) {
+    return bsp_file.brush_sides[face->brush_side].contents;
+  }
+  return bsp_file.patches[face->patch].contents;
+}
+
+/**
+ * @brief Resolves the surface mask for the given BSP face.
+ */
+static inline int32_t FaceSurface(const bsp_face_t *face) {
+  if (face->brush_side >= 0) {
+    return bsp_file.brush_sides[face->brush_side].surface;
+  }
+  return bsp_file.patches[face->patch].surface;
+}
+
+/**
  * @brief Emits brush faces for the given node.
  */
 static int32_t EmitFaces(const node_t *node, int32_t node_num) {
@@ -120,7 +150,8 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
       memset(out, 0, sizeof(*out));
       bsp_file.num_faces++;
 
-      out->brush_side = patch->brush_side;
+      out->brush_side = -1;
+      out->patch = -1;  // set by EmitPatches after BSP patch index is assigned
       out->plane = -1;
       out->node = node_num;
       out->bounds = pf->bounds;
@@ -472,20 +503,21 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
   const bsp_face_t *face = &bsp_file.faces[mod->first_face];
   for (int32_t i = 0; i < mod->num_faces; i++, face++) {
 
-    const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-    if (side->contents & CONTENTS_MIST) {
+    const int32_t contents = FaceContents(face);
+    if (contents & CONTENTS_MIST) {
       continue;
     }
 
-    if (side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+    const int32_t surface = FaceSurface(face);
+    if (surface & SURF_MASK_NO_DRAW_ELEMENTS) {
       continue;
     }
 
-    if (side->surface & SURF_MASK_TRANSLUCENT) {
+    if (surface & SURF_MASK_TRANSLUCENT) {
       continue;
     }
 
-    if (side->surface & SURF_LIQUID) {
+    if (surface & SURF_LIQUID) {
       continue;
     }
 
@@ -503,17 +535,6 @@ static void EmitDepthPassElements(bsp_model_t *mod) {
 }
 
 /**
- * @brief Draw elements comparator to sort faces by surface mask.
- */
-static int32_t SurfaceCmp(const bsp_brush_side_t *a, const bsp_brush_side_t *b) {
-
-  const int32_t a_surface = (a->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
-  const int32_t b_surface = (b->surface & SURF_MASK_DRAW_ELEMENTS_CMP);
-
-  return a_surface - b_surface;
-}
-
-/**
  * @brief Draw elements comparator to sort model faces by material.
  * @details Opaque and blended faces are equal if they share material and contents.
  * @details Material faces equal if they share blend equality and brush side.
@@ -523,17 +544,21 @@ static gint FaceCmp(gconstpointer a, gconstpointer b) {
   const bsp_face_t *a_face = a;
   const bsp_face_t *b_face = b;
 
-  const bsp_brush_side_t *a_side = bsp_file.brush_sides + a_face->brush_side;
-  const bsp_brush_side_t *b_side = bsp_file.brush_sides + b_face->brush_side;
+  const int32_t a_material = FaceMaterial(a_face);
+  const int32_t b_material = FaceMaterial(b_face);
 
-  gint order = a_side->material - b_side->material;
+  gint order = a_material - b_material;
   if (order == 0) {
 
-    order = SurfaceCmp(a_side, b_side);
+    const int32_t a_surface = FaceSurface(a_face) & SURF_MASK_DRAW_ELEMENTS_CMP;
+    const int32_t b_surface = FaceSurface(b_face) & SURF_MASK_DRAW_ELEMENTS_CMP;
+
+    order = a_surface - b_surface;
     if (order == 0) {
 
-      if (a_side->surface & SURF_MATERIAL) {
-        return (gint) (ptrdiff_t) (a_side - b_side);
+      if (a_surface & SURF_MATERIAL) {
+        // Brush side faces with SURF_MATERIAL are unique per brush side
+        return a_face->brush_side - b_face->brush_side;
       }
     }
   }
@@ -561,17 +586,17 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
     }
 
     const bsp_face_t *a = g_ptr_array_index(faces, i);
-    const bsp_brush_side_t *a_side = bsp_file.brush_sides + a->brush_side;
+    const int32_t a_surface = FaceSurface(a);
 
-    if (a_side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+    if (a_surface & SURF_MASK_NO_DRAW_ELEMENTS) {
       continue;
     }
 
     bsp_draw_elements_t *out = bsp_file.draw_elements + bsp_file.num_draw_elements;
     bsp_file.num_draw_elements++;
 
-    out->material = a_side->material;
-    out->surface = a_side->surface & SURF_MASK_DRAW_ELEMENTS_CMP;
+    out->material = FaceMaterial(a);
+    out->surface = a_surface & SURF_MASK_DRAW_ELEMENTS_CMP;
 
     out->bounds = Box3_Null();
 
