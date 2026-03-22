@@ -128,6 +128,10 @@ static void Bsp_SwapPatches(void *lump, const int32_t num) {
     patch->width = LittleLong(patch->width);
     patch->height = LittleLong(patch->height);
 
+    if (patch->width < 1 || patch->height < 1) {
+      Com_Error(ERROR_DROP, "MIN_PATCH_SIZE\n");
+    }
+
     if (patch->width > MAX_PATCH_SIZE || patch->height > MAX_PATCH_SIZE) {
       Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
     }
