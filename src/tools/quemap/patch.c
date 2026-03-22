@@ -291,7 +291,6 @@ void TessellatePatches(int32_t entity_num) {
       continue;
     }
 
-    // Create a synthetic brush side for this patch
     if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
       Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
     }
@@ -306,7 +305,6 @@ void TessellatePatches(int32_t entity_num) {
     patch->brush_side = bsp_file.num_brush_sides;
     bsp_file.num_brush_sides++;
 
-    // Tessellate each 3×3 sub-patch in the control grid
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
 

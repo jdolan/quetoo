@@ -119,7 +119,9 @@ typedef struct {
   box3_t bounds;
 
   /**
-   * @brief The synthetic brush side index in bsp_file.
+   * @brief The synthetic brush side index.
+   * @details Patches allocate a brush side that their tessellated faces can reference
+   * for material, contents and surface attributes.
    */
   int32_t brush_side;
 
