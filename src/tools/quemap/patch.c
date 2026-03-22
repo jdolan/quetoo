@@ -271,14 +271,17 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 }
 
 /**
- * @brief Emits tessellated patch faces for all patches belonging to the given entity.
+ * @brief Pre-tessellates all patches belonging to the given entity.
+ * @details Tessellates each 3×3 sub-patch into patch_face_t structures stored
+ * on the patch_t, and updates the patch bounds accordingly. These precomputed
+ * faces are later used when emitting BSP geometry.
  */
-void EmitPatchFaces(int32_t entity_num) {
+void TessellatePatches(int32_t entity_num) {
 
   const int32_t subdivisions = PATCH_SUBDIVISIONS;
 
   for (int32_t p = 0; p < num_patches; p++) {
-    const patch_t *patch = &patches[p];
+    patch_t *patch = &patches[p];
 
     if (patch->entity != entity_num) {
       continue;
@@ -288,39 +291,14 @@ void EmitPatchFaces(int32_t entity_num) {
       continue;
     }
 
-    // Emit a synthetic brush side for this patch
-    if (bsp_file.num_brush_sides >= MAX_BSP_BRUSH_SIDES) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
-    }
-
-    bsp_brush_side_t *bsp_side = &bsp_file.brush_sides[bsp_file.num_brush_sides];
-    memset(bsp_side, 0, sizeof(*bsp_side));
-    bsp_side->plane = 0;
-    bsp_side->material = patch->material;
-    bsp_side->contents = patch->contents;
-    bsp_side->surface = patch->surface;
-
-    const int32_t brush_side_index = bsp_file.num_brush_sides;
-    bsp_file.num_brush_sides++;
-
-    // Emit a synthetic brush for this patch
-    if (bsp_file.num_brushes >= MAX_BSP_BRUSHES) {
-      Com_Error(ERROR_FATAL, "MAX_BSP_BRUSHES\n");
-    }
-
-    bsp_brush_t *bsp_brush = &bsp_file.brushes[bsp_file.num_brushes];
-    memset(bsp_brush, 0, sizeof(*bsp_brush));
-    bsp_brush->entity = patch->entity;
-    bsp_brush->contents = patch->contents;
-    bsp_brush->first_brush_side = brush_side_index;
-    bsp_brush->num_brush_sides = 1;
-    bsp_brush->bounds = Box3_Null();
-    bsp_file.num_brushes++;
-
-    // Process each 3×3 sub-patch in the control grid
     const int32_t num_sub_patches_s = (patch->width - 1) / 2;
     const int32_t num_sub_patches_t = (patch->height - 1) / 2;
 
+    patch->num_faces = num_sub_patches_s * num_sub_patches_t;
+    patch->faces = Mem_TagMalloc(patch->num_faces * sizeof(patch_face_t), MEM_TAG_PATCH);
+    patch->bounds = Box3_Null();
+
+    int32_t face_index = 0;
     for (int32_t sub_t = 0; sub_t < num_sub_patches_t; sub_t++) {
       for (int32_t sub_s = 0; sub_s < num_sub_patches_s; sub_s++) {
 
@@ -334,34 +312,20 @@ void EmitPatchFaces(int32_t entity_num) {
           }
         }
 
-        // Emit a face for this sub-patch
-        if (bsp_file.num_faces >= MAX_BSP_FACES) {
-          Com_Error(ERROR_FATAL, "MAX_BSP_FACES\n");
-        }
+        patch_face_t *pf = &patch->faces[face_index++];
+        memset(pf, 0, sizeof(*pf));
+        pf->bounds = Box3_Null();
 
-        bsp_face_t *out = &bsp_file.faces[bsp_file.num_faces];
-        memset(out, 0, sizeof(*out));
-        bsp_file.num_faces++;
-
-        out->brush_side = brush_side_index;
-        out->plane = 0;
-        out->bounds = Box3_Null();
-        out->first_vertex = bsp_file.num_vertexes;
-
-        // Tessellate: generate (subdivisions+1)² vertices
         const int32_t verts_per_edge = subdivisions + 1;
 
+        // Tessellate: generate (subdivisions+1)² vertices
         for (int32_t j = 0; j <= subdivisions; j++) {
           const float t = (float) j / (float) subdivisions;
 
           for (int32_t i = 0; i <= subdivisions; i++) {
             const float s = (float) i / (float) subdivisions;
 
-            if (bsp_file.num_vertexes >= MAX_BSP_VERTEXES) {
-              Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
-            }
-
-            bsp_vertex_t *v = &bsp_file.vertexes[bsp_file.num_vertexes];
+            bsp_vertex_t *v = &pf->vertexes[pf->num_vertexes];
             memset(v, 0, sizeof(*v));
 
             vec3_t normal;
@@ -373,40 +337,104 @@ void EmitPatchFaces(int32_t entity_num) {
             v->diffusemap.y = st.y;
             v->color = Color32(255, 255, 255, 255);
 
-            out->bounds = Box3_Append(out->bounds, v->position);
-            bsp_brush->bounds = Box3_Append(bsp_brush->bounds, v->position);
+            pf->bounds = Box3_Append(pf->bounds, v->position);
 
-            bsp_file.num_vertexes++;
+            pf->num_vertexes++;
           }
         }
 
-        out->num_vertexes = verts_per_edge * verts_per_edge;
+        assert(pf->num_vertexes == verts_per_edge * verts_per_edge);
 
-        // Emit triangle elements
-        out->first_element = bsp_file.num_elements;
-
+        // Generate triangle elements (local 0-based indices)
         for (int32_t j = 0; j < subdivisions; j++) {
           for (int32_t i = 0; i < subdivisions; i++) {
-            const int32_t base = out->first_vertex + j * verts_per_edge + i;
+            const int32_t base = j * verts_per_edge + i;
 
-            if (bsp_file.num_elements + 6 >= MAX_BSP_ELEMENTS) {
-              Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-            }
+            pf->elements[pf->num_elements++] = base;
+            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
+            pf->elements[pf->num_elements++] = base + verts_per_edge;
 
-            // Triangle 1
-            bsp_file.elements[bsp_file.num_elements++] = base;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge + 1;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge;
-
-            // Triangle 2
-            bsp_file.elements[bsp_file.num_elements++] = base;
-            bsp_file.elements[bsp_file.num_elements++] = base + 1;
-            bsp_file.elements[bsp_file.num_elements++] = base + verts_per_edge + 1;
+            pf->elements[pf->num_elements++] = base;
+            pf->elements[pf->num_elements++] = base + 1;
+            pf->elements[pf->num_elements++] = base + verts_per_edge + 1;
           }
         }
 
-        out->num_elements = subdivisions * subdivisions * 6;
+        patch->bounds = Box3_Union(patch->bounds, pf->bounds);
       }
+    }
+  }
+}
+
+/**
+ * @brief Frees pre-tessellated patch face data for the given entity.
+ */
+void FreePatchFaces(int32_t entity_num) {
+
+  for (int32_t p = 0; p < num_patches; p++) {
+    patch_t *patch = &patches[p];
+
+    if (patch->entity != entity_num) {
+      continue;
+    }
+
+    if (patch->faces) {
+      Mem_Free(patch->faces);
+      patch->faces = NULL;
+      patch->num_faces = 0;
+    }
+  }
+}
+
+/**
+ * @brief Emits patches belonging to the given model to the BSP patches lump.
+ */
+void EmitPatches(const bsp_model_t *mod) {
+
+  const int32_t entity_num = mod->entity;
+
+  for (int32_t p = 0; p < num_patches; p++) {
+    patch_t *patch = &patches[p];
+
+    if (patch->entity != entity_num) {
+      continue;
+    }
+
+    if (patch->material < 0) {
+      continue;
+    }
+
+    if (patch->num_bsp_faces == 0) {
+      continue;
+    }
+
+    if (bsp_file.num_patches >= MAX_BSP_PATCHES) {
+      Com_Error(ERROR_FATAL, "MAX_BSP_PATCHES\n");
+    }
+
+    patch->out = &bsp_file.patches[bsp_file.num_patches];
+    memset(patch->out, 0, sizeof(*patch->out));
+    bsp_file.num_patches++;
+
+    patch->out->entity = patch->entity;
+    patch->out->material = patch->material;
+    patch->out->contents = patch->contents;
+    patch->out->surface = patch->surface;
+    patch->out->width = patch->width;
+    patch->out->height = patch->height;
+    patch->out->first_face = patch->first_bsp_face;
+    patch->out->num_faces = patch->num_bsp_faces;
+
+    // Set the patch index on all emitted BSP faces for this patch
+    const int32_t patch_index = (int32_t) (patch->out - bsp_file.patches);
+    for (int32_t f = 0; f < patch->num_bsp_faces; f++) {
+      bsp_file.faces[patch->first_bsp_face + f].patch = patch_index;
+    }
+
+    const int32_t num_points = patch->width * patch->height;
+    for (int32_t i = 0; i < num_points; i++) {
+      patch->out->control_points[i].position = patch->control_points[i].position;
+      patch->out->control_points[i].st = patch->control_points[i].st;
     }
   }
 }

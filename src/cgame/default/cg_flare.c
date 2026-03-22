@@ -220,8 +220,8 @@ void Cg_LoadFlares(void) {
   const r_bsp_face_t *face = bsp->faces;
   for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
 
-    if (!face->node) {
-      continue; // patch faces do not have node references
+    if (!face->brush_side) {
+      continue;
     }
 
     const r_material_t *material = face->brush_side->material;
