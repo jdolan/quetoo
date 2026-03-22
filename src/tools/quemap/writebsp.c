@@ -160,7 +160,7 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
       out->first_vertex = bsp_file.num_vertexes;
       out->num_vertexes = pf->num_vertexes;
 
-      if (bsp_file.num_vertexes + pf->num_vertexes >= MAX_BSP_VERTEXES) {
+      if (bsp_file.num_vertexes + pf->num_vertexes > MAX_BSP_VERTEXES) {
         Com_Error(ERROR_FATAL, "MAX_BSP_VERTEXES\n");
       }
 
@@ -172,7 +172,7 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
       out->first_element = bsp_file.num_elements;
       out->num_elements = pf->num_elements;
 
-      if (bsp_file.num_elements + pf->num_elements >= MAX_BSP_ELEMENTS) {
+      if (bsp_file.num_elements + pf->num_elements > MAX_BSP_ELEMENTS) {
         Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
       }
 
