@@ -37,6 +37,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(planes, MAX_BSP_PLANES),
   BSP_LUMP_NUM_STRUCT(brush_sides, MAX_BSP_BRUSH_SIDES),
   BSP_LUMP_NUM_STRUCT(brushes, MAX_BSP_BRUSHES),
+  BSP_LUMP_NUM_STRUCT(patches, MAX_BSP_PATCHES),
   BSP_LUMP_NUM_STRUCT(vertexes, MAX_BSP_VERTEXES),
   BSP_LUMP_NUM_STRUCT(elements, MAX_BSP_ELEMENTS),
   BSP_LUMP_NUM_STRUCT(faces, MAX_BSP_FACES),
@@ -47,7 +48,7 @@ static bsp_lump_meta_t bsp_lump_meta[BSP_LUMP_LAST] = {
   BSP_LUMP_NUM_STRUCT(blocks, MAX_BSP_BLOCKS),
   BSP_LUMP_NUM_STRUCT(models, MAX_BSP_MODELS),
   BSP_LUMP_NUM_STRUCT(lights, MAX_BSP_LIGHTS),
-  BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE)
+  BSP_LUMP_SIZE_STRUCT(voxels, MAX_BSP_VOXELS_SIZE),
 };
 
 /**
@@ -114,6 +115,40 @@ static void Bsp_SwapBrushes(void *lump, const int32_t num) {
 /**
  * @brief Swap function.
  */
+static void Bsp_SwapPatches(void *lump, const int32_t num) {
+
+  bsp_patch_t *patch = (bsp_patch_t *) lump;
+
+  for (int32_t i = 0; i < num; i++) {
+
+    patch->entity = LittleLong(patch->entity);
+    patch->material = LittleLong(patch->material);
+    patch->contents = LittleLong(patch->contents);
+    patch->surface = LittleLong(patch->surface);
+    patch->width = LittleLong(patch->width);
+    patch->height = LittleLong(patch->height);
+
+    if (patch->width < 1 || patch->height < 1) {
+      Com_Error(ERROR_DROP, "MIN_PATCH_SIZE\n");
+    }
+
+    if (patch->width > MAX_PATCH_SIZE || patch->height > MAX_PATCH_SIZE) {
+      Com_Error(ERROR_DROP, "MAX_PATCH_SIZE\n");
+    }
+
+    const int32_t num_points = patch->width * patch->height;
+    for (int32_t j = 0; j < num_points; j++) {
+      patch->control_points[j].position = LittleVec3(patch->control_points[j].position);
+      patch->control_points[j].st = LittleVec2(patch->control_points[j].st);
+    }
+
+    patch++;
+  }
+}
+
+/**
+ * @brief Swap function.
+ */
 static void Bsp_SwapVertexes(void *lump, const int32_t num) {
 
   bsp_vertex_t *vertex = (bsp_vertex_t *) lump;
@@ -154,6 +189,8 @@ static void Bsp_SwapFaces(void *lump, const int32_t num) {
 
     face->brush_side = LittleLong(face->brush_side);
     face->plane = LittleLong(face->plane);
+    face->patch = LittleLong(face->patch);
+    face->node = LittleLong(face->node);
     face->block = LittleLong(face->block);
 
     face->bounds = LittleBounds(face->bounds);
@@ -332,6 +369,7 @@ static void Bsp_SwapLump(const bsp_lump_id_t lump_id, void *lump, int32_t count)
     Bsp_SwapPlanes,
     Bsp_SwapBrushSides,
     Bsp_SwapBrushes,
+    Bsp_SwapPatches,
     Bsp_SwapVertexes,
     Bsp_SwapElements,
     Bsp_SwapFaces,

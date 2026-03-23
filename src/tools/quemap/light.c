@@ -156,15 +156,13 @@ void BuildLights(void) {
 
   lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
 
-  const int32_t count = Cm_Bsp()->num_entities + Cm_Bsp()->num_brush_sides;
-
   cm_entity_t **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
       g_ptr_array_add(lights, light);
     }
-    Progress("Building lights", i * 100.f / count);
+    Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
@@ -223,21 +221,30 @@ void EmitLights(void) {
           continue;
         }
 
-        const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+        int32_t contents, surface;
+        if (face->brush_side >= 0) {
+          const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+          contents = side->contents;
+          surface = side->surface;
+        } else {
+          const bsp_patch_t *patch = &bsp_file.patches[face->patch];
+          contents = patch->contents;
+          surface = patch->surface;
+        }
 
-        if (side->contents & CONTENTS_MIST) {
+        if (contents & CONTENTS_MIST) {
           continue;
         }
 
-        if (side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+        if (surface & SURF_MASK_NO_DRAW_ELEMENTS) {
           continue;
         }
 
-        if (side->surface & SURF_MASK_TRANSLUCENT) {
+        if (surface & SURF_MASK_TRANSLUCENT) {
           continue;
         }
 
-        if (side->surface & SURF_LIQUID) {
+        if (surface & SURF_LIQUID) {
           continue;
         }
 

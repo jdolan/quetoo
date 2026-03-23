@@ -277,7 +277,7 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
  * against axial bounding boxes. Ensures that the first 6 sides of every brush
  * are axial, which allows some optimizations in collision detection.
  */
-static void AddBrushBevels(brush_t *b) {
+void AddBrushBevels(brush_t *b) {
 
   for (int32_t axis = 0; axis < 3; axis++) {
     for (int32_t side = -1; side <= 1; side += 2) {
@@ -343,7 +343,7 @@ static void UnparseBrush(brush_t *brush, parser_t *parser) {
 /**
  * @brief Makes windings for sides and mins / maxs for the brush
  */
-static void MakeBrushWindings(brush_t *brush) {
+void MakeBrushWindings(brush_t *brush) {
 
   assert(brush->num_brush_sides);
 
@@ -470,6 +470,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       patch_t *patch = ParsePatch(parser, entity_num);
       if (patch) {
         entity->num_patches++;
+        //EmitPatchCollisionBrushes(patch, entity);
       }
       return NULL;
     }
@@ -708,6 +709,40 @@ static void MoveBrushesToWorld(entity_t *ent) {
 }
 
 /**
+ * @brief Some entities are merged into the world, e.g. func_group.
+ */
+static void MovePatchesToWorld(entity_t *ent) {
+
+  const int32_t new_patches = ent->num_patches;
+  const int32_t world_patches = entities[0].num_patches;
+
+  patch_t *temp = Mem_TagMalloc(new_patches * sizeof(patch_t), (mem_tag_t) MEM_TAG_PATCH);
+  memcpy(temp, patches + ent->first_patch, new_patches * sizeof(patch_t));
+
+  // make space to move the patches (overlapped copy)
+  memmove(patches + world_patches + new_patches,
+          patches + world_patches,
+          sizeof(patch_t) * (num_patches - world_patches - new_patches));
+
+  // copy the new patches down
+  memcpy(patches + world_patches, temp, sizeof(patch_t) * new_patches);
+
+  // fix up entity references
+  for (int32_t i = 0; i < new_patches; i++) {
+    patches[world_patches + i].entity = 0;
+  }
+
+  // fix up indexes
+  entities[0].num_patches += new_patches;
+  for (int32_t i = 1; i < num_entities; i++) {
+    entities[i].first_patch += new_patches;
+  }
+  Mem_Free(temp);
+
+  ent->num_patches = 0;
+}
+
+/**
  * @brief
  */
 static entity_t *ParseEntity(parser_t *parser) {
@@ -808,6 +843,7 @@ static entity_t *ParseEntity(parser_t *parser) {
       !g_strcmp0(classname, "misc_sprite") ||
       !g_strcmp0(classname, "misc_weather")) {
       MoveBrushesToWorld(entity);
+      MovePatchesToWorld(entity);
     }
   }
 

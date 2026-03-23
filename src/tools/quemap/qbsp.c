@@ -25,6 +25,7 @@
 #include "leakfile.h"
 #include "map.h"
 #include "material.h"
+#include "patch.h"
 #include "portal.h"
 #include "tjunction.h"
 #include "writebsp.h"
@@ -78,6 +79,10 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
     FixTJunctions(tree);
   }
 
+  TessellatePatches(out->entity);
+
+  AssignPatchFacesToNodes(tree->head_node, out->entity);
+
   out->head_node = EmitNodes(tree);
 
   FreeTree(tree);
@@ -108,6 +113,10 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
   if (!no_tjunc) {
     FixTJunctions(tree);
   }
+
+  TessellatePatches(out->entity);
+
+  AssignPatchFacesToNodes(tree->head_node, out->entity);
 
   out->head_node = EmitNodes(tree);
 
@@ -169,7 +178,6 @@ int32_t BSP_Main(void) {
 
   EndBSPFile();
 
-  PhongShading();
   TangentVectors();
 
   WriteBSPFile(bsp_name);
