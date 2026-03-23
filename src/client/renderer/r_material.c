@@ -88,35 +88,33 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
 
   *key = '\0';
 
-  if (*name) {
-    switch (context) {
-      case ASSET_CONTEXT_NONE:
-        break;
-      case ASSET_CONTEXT_TEXTURES:
-        if (!g_str_has_prefix(name, "textures/")) {
-          g_strlcat(key, "textures/", len);
-        }
-        break;
-      case ASSET_CONTEXT_MODELS:
-        if (!g_str_has_prefix(name, "models/")) {
-          g_strlcat(key, "models/", len);
-        }
-        break;
-      case ASSET_CONTEXT_PLAYERS:
-        if (!g_str_has_prefix(name, "players/")) {
-          g_strlcat(key, "players/", len);
-        }
-        break;
-      case ASSET_CONTEXT_SPRITES:
-        if (!g_str_has_prefix(name, "sprites/")) {
-          g_strlcat(key, "sprites/", len);
-        }
-        break;
-    }
-
-    g_strlcat(key, name, len);
-    g_strlcat(key, ".mat", len);
+  switch (context) {
+    case ASSET_CONTEXT_NONE:
+      break;
+    case ASSET_CONTEXT_TEXTURES:
+      if (!g_str_has_prefix(name, "textures/")) {
+        g_strlcat(key, "textures/", len);
+      }
+      break;
+    case ASSET_CONTEXT_MODELS:
+      if (!g_str_has_prefix(name, "models/")) {
+        g_strlcat(key, "models/", len);
+      }
+      break;
+    case ASSET_CONTEXT_PLAYERS:
+      if (!g_str_has_prefix(name, "players/")) {
+        g_strlcat(key, "players/", len);
+      }
+      break;
+    case ASSET_CONTEXT_SPRITES:
+      if (!g_str_has_prefix(name, "sprites/")) {
+        g_strlcat(key, "sprites/", len);
+      }
+      break;
   }
+
+  g_strlcat(key, name, len);
+  g_strlcat(key, ".mat", len);
 }
 
 /**
