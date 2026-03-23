@@ -57,9 +57,6 @@
     <ClCompile Include="..\src\tools\quemap\qlight.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\qmat.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\tools\quemap\qzip.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\qlight.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\qmat.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\quemap.h">
