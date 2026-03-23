@@ -11,7 +11,7 @@
           "class": "Input",
           "label": {
             "text": {
-              "text": "Material name"
+              "text": "Material"
             }
           },
           "control": {
@@ -23,7 +23,7 @@
           "class": "Input",
           "label": {
             "text": {
-              "text": "Diffusemap texture"
+              "text": "Diffusemap"
             }
           },
           "control": {
@@ -35,7 +35,7 @@
           "class": "Input",
           "label": {
             "text": {
-              "text": "Normalmap texture"
+              "text": "Normalmap"
             }
           },
           "control": {
@@ -47,7 +47,7 @@
           "class": "Input",
           "label": {
             "text": {
-              "text": "Specularmap texture"
+              "text": "Specularmap"
             }
           },
           "control": {
