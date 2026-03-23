@@ -423,9 +423,9 @@ static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
     r_material_t *material = (r_material_t *) media;
     if (material->cm->dirty) {
       if (Cm_SaveMaterial(material->cm)) {
+        material->cm->dirty = false;
         (*(int32_t *) data)++;
       }
-      material->cm->dirty = false;
     }
   }
 }
