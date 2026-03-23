@@ -423,10 +423,7 @@ r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Loads the r_material_t with the specified asset name and context.
- * @details First attempts to load a per-texture .mat file for explicit
- * normalmap/specularmap/stage overrides. Falls back to suffix-based
- * asset resolution if no .mat file is found.
+ * @brief Loads the `r_material_t` with the specified asset name and context.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
@@ -440,16 +437,11 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
     R_MaterialKey(basename, path, sizeof(path), context);
 
     cm_material_t *cm = Cm_LoadMaterial(path);
-    if (cm) {
-      material = R_FindMaterial(cm->basename, context);
-      if (material == NULL) {
-        material = R_ResolveMaterial(cm, context);
-      }
+    if (cm == NULL) {
+      cm = Cm_AllocMaterial(path);
     }
 
-    if (material == NULL) {
-      material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
-    }
+    material = R_ResolveMaterial(cm, context);
   }
 
   return material;
