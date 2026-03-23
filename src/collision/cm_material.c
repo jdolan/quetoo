@@ -874,38 +874,57 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
 }
 
 /**
+ * @brief Prepends the context prefix to a name if not already present.
+ */
+static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context) {
+
+  *out = '\0';
+
+  switch (context) {
+    case ASSET_CONTEXT_NONE:
+      break;
+    case ASSET_CONTEXT_TEXTURES:
+      if (!g_str_has_prefix(name, "textures/")) {
+        g_strlcat(out, "textures/", len);
+      }
+      break;
+    case ASSET_CONTEXT_MODELS:
+      if (!g_str_has_prefix(name, "models/")) {
+        g_strlcat(out, "models/", len);
+      }
+      break;
+    case ASSET_CONTEXT_PLAYERS:
+      if (!g_str_has_prefix(name, "players/")) {
+        g_strlcat(out, "players/", len);
+      }
+      break;
+    case ASSET_CONTEXT_SPRITES:
+      if (!g_str_has_prefix(name, "sprites/")) {
+        g_strlcat(out, "sprites/", len);
+      }
+      break;
+  }
+
+  g_strlcat(out, name, len);
+}
+
+/**
+ * @brief Returns the .mat file path for the given material name and context.
+ */
+void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context) {
+
+  Cm_AssetPath(name, path, len, context);
+  g_strlcat(path, ".mat", len);
+}
+
+/**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
 static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
   const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
   char name[MAX_QPATH];
 
-  g_strlcpy(name, asset->name, sizeof(name));
-
-  switch (context) {
-    case ASSET_CONTEXT_NONE:
-      break;
-    case ASSET_CONTEXT_TEXTURES:
-      if (!g_str_has_prefix(asset->name, "textures/")) {
-        g_snprintf(name, sizeof(name), "textures/%s", asset->name);
-      }
-      break;
-    case ASSET_CONTEXT_MODELS:
-      if (!g_str_has_prefix(asset->name, "models/")) {
-        g_snprintf(name, sizeof(name), "models/%s", asset->name);
-      }
-      break;
-    case ASSET_CONTEXT_PLAYERS:
-      if (!g_str_has_prefix(asset->name, "players/")) {
-        g_snprintf(name, sizeof(name), "players/%s", asset->name);
-      }
-      break;
-    case ASSET_CONTEXT_SPRITES:
-      if (!g_str_has_prefix(asset->name, "sprites/")) {
-        g_snprintf(name, sizeof(name), "sprites/%s", asset->name);
-      }
-      break;
-  }
+  Cm_AssetPath(asset->name, name, sizeof(name), context);
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
     g_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
@@ -1259,16 +1278,16 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 /**
  * @brief Serialize the material into the specified file path.
  */
-bool Cm_SaveMaterial(const char *path, const cm_material_t *material) {
+bool Cm_SaveMaterial(const cm_material_t *material) {
 
-  file_t *file = Fs_OpenWrite(path);
+  file_t *file = Fs_OpenWrite(material->path);
   if (file) {
     Cm_WriteMaterial(material, file);
     Fs_Close(file);
-    Com_Print("Wrote material %s to %s\n", material->name, path);
+    Com_Print("Wrote material %s to %s\n", material->name, material->path);
     return true;
   }
 
-  Com_Warn("Failed to open %s for write\n", path);
+  Com_Warn("Failed to open %s for write\n", material->path);
   return false;
 }

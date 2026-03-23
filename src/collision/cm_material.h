@@ -237,7 +237,7 @@ typedef struct {
  */
 typedef struct cm_material_s {
   /**
-   * @brief The materials file path defining this material, if any.
+   * @brief The material file path defining this material, if any.
    */
   char path[MAX_QPATH];
 
@@ -340,15 +340,15 @@ typedef struct cm_material_s {
    * @brief True if this material has been modified and needs to be saved.
    */
   bool dirty;
-
 } cm_material_t;
 
 cm_material_t *Cm_AllocMaterial(const char *name);
 void Cm_FreeMaterial(cm_material_t *material);
 cm_material_t *Cm_LoadMaterial(const char *path);
 bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
-bool Cm_SaveMaterial(const char *path, const cm_material_t *material);
+bool Cm_SaveMaterial(const cm_material_t *material);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
+void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

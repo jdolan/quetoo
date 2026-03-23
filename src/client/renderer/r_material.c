@@ -84,39 +84,6 @@ static void R_AppendStage(r_material_t *m, r_stage_t *s) {
  * @brief Normalizes material names to their context, returning the unique media key for subsequent
  * material lookups.
  */
-static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_context_t context) {
-
-  *key = '\0';
-
-  switch (context) {
-    case ASSET_CONTEXT_NONE:
-      break;
-    case ASSET_CONTEXT_TEXTURES:
-      if (!g_str_has_prefix(name, "textures/")) {
-        g_strlcat(key, "textures/", len);
-      }
-      break;
-    case ASSET_CONTEXT_MODELS:
-      if (!g_str_has_prefix(name, "models/")) {
-        g_strlcat(key, "models/", len);
-      }
-      break;
-    case ASSET_CONTEXT_PLAYERS:
-      if (!g_str_has_prefix(name, "players/")) {
-        g_strlcat(key, "players/", len);
-      }
-      break;
-    case ASSET_CONTEXT_SPRITES:
-      if (!g_str_has_prefix(name, "sprites/")) {
-        g_strlcat(key, "sprites/", len);
-      }
-      break;
-  }
-
-  g_strlcat(key, name, len);
-  g_strlcat(key, ".mat", len);
-}
-
 /**
  * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
  */
@@ -294,7 +261,7 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t context) {
   char key[MAX_QPATH];
 
-  R_MaterialKey(cm->name, key, sizeof(key), context);
+  Cm_MaterialPath(cm->name, key, sizeof(key), context);
 
   r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), R_MEDIA_MATERIAL);
   material->cm = cm;
@@ -410,14 +377,14 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 }
 
 /**
- * @brief Finds an existing r_material_t from the specified texture, and registers it again if it exists.
+ * @brief Finds an existing `r_material_t` from the specified diffusemap.
  */
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];
   
   StripExtension(name, basename);
-  R_MaterialKey(basename, key, sizeof(key), context);
+  Cm_MaterialPath(basename, key, sizeof(key), context);
 
   return (r_material_t *) R_FindMedia(key, R_MEDIA_MATERIAL);
 }
@@ -432,9 +399,9 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
     char path[MAX_QPATH];
     char basename[MAX_QPATH];
-    StripExtension(name, basename);
 
-    R_MaterialKey(basename, path, sizeof(path), context);
+    StripExtension(name, basename);
+    Cm_MaterialPath(basename, path, sizeof(path), context);
 
     cm_material_t *cm = Cm_LoadMaterial(path);
     if (cm == NULL) {
@@ -448,34 +415,14 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Saves a single material to its per-texture .mat file.
- */
-static bool R_SaveMaterial(cm_material_t *cm) {
-  char path[MAX_QPATH];
-
-  if (g_str_has_prefix(cm->name, "textures/")) {
-    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
-  } else if (g_str_has_prefix(cm->name, "models/")) {
-    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
-  } else if (g_str_has_prefix(cm->name, "players/")) {
-    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
-  } else {
-    g_snprintf(path, sizeof(path), "textures/%s.mat", cm->name);
-  }
-
-  g_strlcpy(cm->path, path, sizeof(cm->path));
-
-  return Cm_SaveMaterial(path, cm);
-}
-
-/**
- * @brief R_EnumerateMedia callback that saves dirty materials.
+ * @brief `R_EnumerateMedia` callback that saves dirty materials.
  */
 static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
+
   if (media->type == R_MEDIA_MATERIAL) {
     r_material_t *material = (r_material_t *) media;
     if (material->cm->dirty) {
-      if (R_SaveMaterial(material->cm)) {
+      if (Cm_SaveMaterial(material->cm)) {
         (*(int32_t *) data)++;
       }
       material->cm->dirty = false;
