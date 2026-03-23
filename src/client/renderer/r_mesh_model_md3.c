@@ -308,8 +308,6 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 
   mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 
-  R_LoadMeshMaterials(mod);
-
   {
     mod->mesh->num_frames = md3.num_frames;
     mod->mesh->frames = Mem_LinkMalloc(mod->mesh->num_frames * sizeof(r_mesh_frame_t), mod->mesh);

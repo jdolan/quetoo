@@ -45,7 +45,7 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @return The number of frames resolved, or -1 on error.
  */
-static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t context) {
+static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage, cm_asset_context_t context) {
 
   const r_image_t *images[stage->cm->animation.num_frames];
   const r_image_t **out = images;
@@ -61,7 +61,7 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
     }
   }
 
-  return R_CreateAnimation(va("%s_animation", stage->cm->asset.name), stage->cm->animation.num_frames, images);
+  return R_CreateAnimation(va("%s_%s_animation", material->name, stage->cm->asset.name), stage->cm->animation.num_frames, images);
 }
 
 /**
@@ -89,37 +89,33 @@ static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_cont
   *key = '\0';
 
   if (*name) {
-    if (*name == '#') {
-      name++;
-    } else {
-      switch (context) {
-        case ASSET_CONTEXT_NONE:
-          break;
-        case ASSET_CONTEXT_TEXTURES:
-          if (!g_str_has_prefix(name, "textures/")) {
-            g_strlcat(key, "textures/", len);
-          }
-          break;
-        case ASSET_CONTEXT_MODELS:
-          if (!g_str_has_prefix(name, "models/")) {
-            g_strlcat(key, "models/", len);
-          }
-          break;
-        case ASSET_CONTEXT_PLAYERS:
-          if (!g_str_has_prefix(name, "players/")) {
-            g_strlcat(key, "players/", len);
-          }
-          break;
-        case ASSET_CONTEXT_SPRITES:
-          if (!g_str_has_prefix(name, "sprites/")) {
-            g_strlcat(key, "sprites/", len);
-          }
-          break;
-      }
+    switch (context) {
+      case ASSET_CONTEXT_NONE:
+        break;
+      case ASSET_CONTEXT_TEXTURES:
+        if (!g_str_has_prefix(name, "textures/")) {
+          g_strlcat(key, "textures/", len);
+        }
+        break;
+      case ASSET_CONTEXT_MODELS:
+        if (!g_str_has_prefix(name, "models/")) {
+          g_strlcat(key, "models/", len);
+        }
+        break;
+      case ASSET_CONTEXT_PLAYERS:
+        if (!g_str_has_prefix(name, "players/")) {
+          g_strlcat(key, "players/", len);
+        }
+        break;
+      case ASSET_CONTEXT_SPRITES:
+        if (!g_str_has_prefix(name, "sprites/")) {
+          g_strlcat(key, "sprites/", len);
+        }
+        break;
     }
 
     g_strlcat(key, name, len);
-    g_strlcat(key, "_mat", len);
+    g_strlcat(key, ".mat", len);
   }
 }
 
@@ -275,7 +271,7 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
-        stage->media = (r_media_t *) R_LoadStageAnimation(stage, context);
+        stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage, context);
       } else if (stage->cm->flags & STAGE_MATERIAL) {
         stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
       } else {
@@ -442,13 +438,16 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
     char path[MAX_QPATH];
     char basename[MAX_QPATH];
     StripExtension(name, basename);
-    g_snprintf(path, sizeof(path), "textures/%s.mat", basename);
 
-    GList *loaded = NULL;
-    if (R_LoadMaterials(path, context, &loaded) > 0) {
-      material = R_FindMaterial(name, context);
+    R_MaterialKey(basename, path, sizeof(path), context);
+
+    cm_material_t *cm = Cm_LoadMaterial(path);
+    if (cm) {
+      material = R_FindMaterial(cm->basename, context);
+      if (material == NULL) {
+        material = R_ResolveMaterial(cm, context);
+      }
     }
-    g_list_free(loaded);
 
     if (material == NULL) {
       material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
@@ -459,96 +458,49 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 }
 
 /**
- * @brief Loads all materials defined in the given file.
+ * @brief Saves a single material to its per-texture .mat file.
  */
-ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
-  GList *source = NULL;
-  const ssize_t count = Cm_LoadMaterials(path, &source);
-
-  if (count > 0) {
-
-    for (GList *list = source; list; list = list->next) {
-      cm_material_t *cm = (cm_material_t *) list->data;
-
-      r_material_t *material = R_FindMaterial(cm->basename, context);
-      if (material == NULL) {
-        material = R_ResolveMaterial(cm, context);
-      }
-
-      *materials = g_list_prepend(*materials, material);
-    }
-  }
-
-  g_list_free(source);
-  return count;
-}
-
-/**
- * @brief Writes all r_material_t for the specified model to disk.
- * @details For BSP models, each material is written to its own per-texture
- * .mat file (e.g. textures/common/quake/cop1_1.mat). For mesh models, all
- * materials are written to a single model-adjacent .mat file.
- */
-static ssize_t R_SaveMaterials(const r_model_t *mod) {
+static bool R_SaveMaterial(cm_material_t *cm) {
   char path[MAX_QPATH];
-  ssize_t count = 0;
 
-  switch (mod->type) {
-    case MODEL_BSP: {
-      r_material_t **mat = mod->bsp->materials;
-      for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
-        cm_material_t *cm = (*mat)->cm;
-        g_snprintf(path, sizeof(path), "textures/%s.mat", cm->name);
-        g_strlcpy(cm->path, path, sizeof(cm->path));
-        GList *single = g_list_prepend(NULL, cm);
-        if (Cm_WriteMaterials(path, single) > 0) {
-          count++;
-        }
-        g_list_free(single);
-      }
-    }
-      break;
-    case MODEL_MESH: {
-      GList *materials = NULL;
-      g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-      const r_mesh_face_t *face = mod->mesh->faces;
-      for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-        cm_material_t *cm = face->material->cm;
-        if (face->material && g_list_find(materials, cm) == NULL) {
-          materials = g_list_prepend(materials, cm);
-        }
-      }
-      count = Cm_WriteMaterials(path, materials);
-      g_list_free(materials);
-    }
-      break;
-    default:
-      Com_Warn("Unsupported model: %s\n", mod->media.name);
-      break;
+  if (g_str_has_prefix(cm->name, "textures/")) {
+    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
+  } else if (g_str_has_prefix(cm->name, "models/")) {
+    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
+  } else if (g_str_has_prefix(cm->name, "players/")) {
+    g_snprintf(path, sizeof(path), "%s.mat", cm->name);
+  } else {
+    g_snprintf(path, sizeof(path), "textures/%s.mat", cm->name);
   }
 
-  return count;
+  g_strlcpy(cm->path, path, sizeof(cm->path));
+
+  return Cm_SaveMaterial(path, cm);
 }
 
 /**
- * @brief
+ * @brief R_EnumerateMedia callback that saves dirty materials.
+ */
+static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
+  if (media->type == R_MEDIA_MATERIAL) {
+    r_material_t *material = (r_material_t *) media;
+    if (material->cm->dirty) {
+      if (R_SaveMaterial(material->cm)) {
+        (*(int32_t *) data)++;
+      }
+      material->cm->dirty = false;
+    }
+  }
+}
+
+/**
+ * @brief Saves all dirty materials to disk and clears their dirty flags.
  */
 void R_SaveMaterials_f(void) {
 
-  if (!r_models.world) {
-    Com_Print("No map loaded\n");
-    return;
-  }
+  int32_t count = 0;
 
-  const r_model_t *model = r_models.world;
+  R_EnumerateMedia(R_SaveMaterials_enumerator, &count);
 
-  if (Cmd_Argc() > 1) {
-    model = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
-    if (model == NULL) {
-      Com_Warn("Failed to save materials for %s\n", Cmd_Argv(1));
-    }
-  }
-
-  assert(model);
-  R_SaveMaterials(model);
+  Com_Print("Saved %d material(s)\n", count);
 }

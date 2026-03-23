@@ -31,13 +31,6 @@ void Cm_FreeMaterial(cm_material_t *material) {
 }
 
 /**
- * @brief Free the specified list and all included materials.
- */
-void Cm_FreeMaterials(GList *materials) {
-  g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
-}
-
-/**
  * @brief Just a tuple for string-int
  */
 typedef struct {
@@ -645,19 +638,19 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 }
 
 /**
- * @brief Loads the materials defined in the specified file.
- * @param path The Quake path of the materials file.
- * @param materials The list to append to.
- * @return The number of materials parsed, or -1 on error.
+ * @brief Loads a material from the specified file.
+ * @param path The Quake path of the material file.
+ * @return The parsed material, or NULL on error.
  */
-ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
+cm_material_t *Cm_LoadMaterial(const char *path) {
   void *buf;
-  ssize_t count = 0;
 
   if (Fs_Load(path, &buf) == -1) {
     Com_Debug(DEBUG_COLLISION, "Couldn't load %s\n", path);
-    return -1;
+    return NULL;
   }
+
+  GList *materials = NULL;
 
   parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
@@ -686,11 +679,11 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
       m = Cm_AllocMaterial(token);
       assert(m);
 
-      for (const GList *list = *materials; list; list = list->next) {
+      for (const GList *list = materials; list; list = list->next) {
         cm_material_t *material = list->data;
         if (!g_strcmp0(m->basename, material->basename)) {
           Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
-                    *materials = g_list_remove(*materials, material);
+          materials = g_list_remove(materials, material);
           Cm_FreeMaterial(material);
           break;
         }
@@ -875,9 +868,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
     }
 
     if (*token == '}' && in_material) {
-      *materials = g_list_prepend(*materials, m);
+      materials = g_list_prepend(materials, m);
       in_material = false;
-      count++;
 
       Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m->name);
 
@@ -887,7 +879,15 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
   Fs_Free(buf);
 
-  return count;
+  cm_material_t *result = materials ? materials->data : NULL;
+
+  // Free any extra materials parsed (legacy multi-material files)
+  for (GList *list = materials ? materials->next : NULL; list; list = list->next) {
+    Cm_FreeMaterial(list->data);
+  }
+  g_list_free(materials);
+
+  return result;
 }
 
 /**
@@ -897,35 +897,31 @@ static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
   const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
   char name[MAX_QPATH];
 
-  if (asset->name[0] == '#') {
-    g_strlcpy(name, asset->name + 1, sizeof(name));
-  } else {
-    g_strlcpy(name, asset->name, sizeof(name));
+  g_strlcpy(name, asset->name, sizeof(name));
 
-    switch (context) {
-      case ASSET_CONTEXT_NONE:
-        break;
-      case ASSET_CONTEXT_TEXTURES:
-        if (!g_str_has_prefix(asset->name, "textures/")) {
-          g_snprintf(name, sizeof(name), "textures/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_MODELS:
-        if (!g_str_has_prefix(asset->name, "models/")) {
-          g_snprintf(name, sizeof(name), "models/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_PLAYERS:
-        if (!g_str_has_prefix(asset->name, "players/")) {
-          g_snprintf(name, sizeof(name), "players/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_SPRITES:
-        if (!g_str_has_prefix(asset->name, "sprites/")) {
-          g_snprintf(name, sizeof(name), "sprites/%s", asset->name);
-        }
-        break;
-    }
+  switch (context) {
+    case ASSET_CONTEXT_NONE:
+      break;
+    case ASSET_CONTEXT_TEXTURES:
+      if (!g_str_has_prefix(asset->name, "textures/")) {
+        g_snprintf(name, sizeof(name), "textures/%s", asset->name);
+      }
+      break;
+    case ASSET_CONTEXT_MODELS:
+      if (!g_str_has_prefix(asset->name, "models/")) {
+        g_snprintf(name, sizeof(name), "models/%s", asset->name);
+      }
+      break;
+    case ASSET_CONTEXT_PLAYERS:
+      if (!g_str_has_prefix(asset->name, "players/")) {
+        g_snprintf(name, sizeof(name), "players/%s", asset->name);
+      }
+      break;
+    case ASSET_CONTEXT_SPRITES:
+      if (!g_str_has_prefix(asset->name, "sprites/")) {
+        g_snprintf(name, sizeof(name), "sprites/%s", asset->name);
+      }
+      break;
   }
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
@@ -1278,41 +1274,18 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 }
 
 /**
- * @brief GCompareFunc for Cm_WriteMaterials.
+ * @brief Serialize the material into the specified file path.
  */
-static gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
-  return g_strcmp0(((const cm_material_t *) a)->name, ((const cm_material_t *) b)->name);
-}
+bool Cm_SaveMaterial(const char *path, const cm_material_t *material) {
 
-/**
- * @brief Serialize the material(s) into the specified file.
- */
-ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
-
-  ssize_t count = -1;
   file_t *file = Fs_OpenWrite(path);
   if (file) {
-    count = 0;
-
-    GList *sorted = g_list_sort(g_list_copy(materials), Cm_WriteMaterials_compare);
-
-    for (const GList *list = sorted; list; list = list->next) {
-      const cm_material_t *m = list->data;
-      if (!g_strcmp0(path, m->path)) {
-        Cm_WriteMaterial(m, file);
-        count++;
-      } else {
-        Com_Debug(DEBUG_COLLISION, "Skipping %s with path %s\n", m->name, m->path);
-      }
-    }
-
-    g_list_free(sorted);
-
+    Cm_WriteMaterial(material, file);
     Fs_Close(file);
-    Com_Print("Wrote %" PRIuPTR " materials to %s\n", count, path);
-  } else {
-    Com_Warn("Failed to open %s for write\n", path);
+    Com_Print("Wrote material %s to %s\n", material->name, path);
+    return true;
   }
 
-  return count;
+  Com_Warn("Failed to open %s for write\n", path);
+  return false;
 }

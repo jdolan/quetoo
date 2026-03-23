@@ -50,5 +50,4 @@ extern material_t materials[MAX_BSP_MATERIALS];
 
 void LoadMaterials(void);
 int32_t FindMaterial(const char *name);
-ssize_t WriteMaterialsFile(void);
 void FreeMaterials(void);

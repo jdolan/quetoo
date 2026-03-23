@@ -336,14 +336,18 @@ typedef struct cm_material_s {
    */
   vec4_t tintmap_defaults[TINT_TOTAL];
 
+  /**
+   * @brief True if this material has been modified and needs to be saved.
+   */
+  bool dirty;
+
 } cm_material_t;
 
 cm_material_t *Cm_AllocMaterial(const char *name);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterials(GList *materials);
-ssize_t Cm_LoadMaterials(const char *path, GList **materials);
+cm_material_t *Cm_LoadMaterial(const char *path);
 bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
-ssize_t Cm_WriteMaterials(const char *path, GList *materials);
+bool Cm_SaveMaterial(const char *path, const cm_material_t *material);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 
 #ifdef __CM_LOCAL_H__

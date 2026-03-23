@@ -51,13 +51,7 @@ static void didClickDeleteEntity(Button *button) {
 static void didClickSave(Button *button) {
 
   Cbuf_AddText("save_editor_map\n");
-
-  EditorViewController *this = button->delegate.self;
-
-  const r_model_t *model = this->materialViewController->model;
-  if (model) {
-    Cmd_ExecuteString(va("r_save_materials %s", model->media.name));
-  }
+  Cbuf_AddText("r_save_materials\n");
 }
 
 #define _Class _EditorViewController

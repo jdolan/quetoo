@@ -197,11 +197,8 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
     char path[MAX_QPATH];
     g_snprintf(path, sizeof(path), "textures/%s.mat", in->name);
 
-    GList *materials = NULL;
-    if (Cm_LoadMaterials(path, &materials) > 0) {
-      *out = materials->data;
-      g_list_free(materials);
-    } else {
+    *out = Cm_LoadMaterial(path);
+    if (*out == NULL) {
       *out = Cm_AllocMaterial(in->name);
       g_strlcpy((*out)->path, path, sizeof((*out)->path));
     }

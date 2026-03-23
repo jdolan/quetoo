@@ -17,7 +17,6 @@ noinst_HEADERS = \
 	portal.h \
 	qbsp.h \
 	qlight.h \
-	qmat.h \
 	quemap.h \
 	qzip.h \
 	simplex.h \
@@ -44,7 +43,6 @@ quemap_SOURCES = \
 	polylib.c \
 	portal.c \
 	qbsp.c \
-	qmat.c \
 	qlight.c \
 	qzip.c \
 	simplex.c \

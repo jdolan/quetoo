@@ -54,11 +54,6 @@ struct MaterialViewController {
   MaterialViewControllerInterface *interface;
 
   /**
-   * @brief The model being edited.
-   */
-  const r_model_t *model;
-
-  /**
    * @brief The material being edited.
    */
   r_material_t *material;
@@ -134,14 +129,13 @@ struct MaterialViewControllerInterface {
   MaterialViewController *(*init)(MaterialViewController *self);
 
   /**
-   * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material)
+   * @fn void MaterialViewController::setMaterial(MaterialViewController *self, r_material_t *material)
    * @brief Sets the material to edit.
    * @param self The MaterialViewController.
-   * @param model The model owning the material to edit.
    * @param material The material to edit.
    * @memberof MaterialViewController
    */
-  void (*setModelAndMaterial)(MaterialViewController *self, const r_model_t *model, r_material_t *material);
+  void (*setMaterial)(MaterialViewController *self, r_material_t *material);
 };
 
 /**
