@@ -650,8 +650,6 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
     return NULL;
   }
 
-  GList *materials = NULL;
-
   parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
   cm_material_t *m = NULL;
@@ -676,18 +674,13 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         break;
       }
 
+      if (m) {
+        Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
+        Cm_FreeMaterial(m);
+      }
+
       m = Cm_AllocMaterial(token);
       assert(m);
-
-      for (const GList *list = materials; list; list = list->next) {
-        cm_material_t *material = list->data;
-        if (!g_strcmp0(m->basename, material->basename)) {
-          Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
-          materials = g_list_remove(materials, material);
-          Cm_FreeMaterial(material);
-          break;
-        }
-      }
 
       g_strlcpy(m->path, path, sizeof(m->path));
       continue;
@@ -868,26 +861,16 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
     }
 
     if (*token == '}' && in_material) {
-      materials = g_list_prepend(materials, m);
       in_material = false;
 
       Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m->name);
-
-      m = NULL;
+      break;
     }
   }
 
   Fs_Free(buf);
 
-  cm_material_t *result = materials ? materials->data : NULL;
-
-  // Free any extra materials parsed (legacy multi-material files)
-  for (GList *list = materials ? materials->next : NULL; list; list = list->next) {
-    Cm_FreeMaterial(list->data);
-  }
-  g_list_free(materials);
-
-  return result;
+  return m;
 }
 
 /**
