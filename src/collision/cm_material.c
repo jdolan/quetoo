@@ -921,7 +921,7 @@ void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_
  * @brief Resolves the path of the specified asset by name within the given context.
  */
 static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
-  const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
+  const char *extensions[] = { "tga", "png", "jpg" };
   char name[MAX_QPATH];
 
   Cm_AssetPath(asset->name, name, sizeof(name), context);
