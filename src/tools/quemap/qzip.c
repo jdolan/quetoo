@@ -143,18 +143,16 @@ static void AddBspMaterials(void) {
     g_snprintf(path, sizeof(path), "textures/%s.mat", name);
     Add(path);
 
-    GList *materials = NULL;
-    if (Cm_LoadMaterials(path, &materials) < 1) {
-      materials = g_list_append(materials, Cm_AllocMaterial(name));
+    cm_material_t *material = Cm_LoadMaterial(path);
+    if (material == NULL) {
+      material = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
     }
 
-    for (GList *e = materials; e; e = e->next) {
-      if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
-        AddMaterial(e->data);
-      }
+    if (Cm_ResolveMaterial(material, ASSET_CONTEXT_TEXTURES)) {
+      AddMaterial(material);
     }
 
-    Cm_FreeMaterials(materials);
+    Cm_FreeMaterial(material);
   }
 }
 
@@ -165,16 +163,13 @@ static void AddMeshMaterials(const char *path) {
 
   Add(path);
 
-  GList *materials = NULL;
-  Cm_LoadMaterials(path, &materials);
-
-  for (GList *e = materials; e; e = e->next) {
-    if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_MODELS)) {
-      AddMaterial(e->data);
+  cm_material_t *material = Cm_LoadMaterial(path);
+  if (material) {
+    if (Cm_ResolveMaterial(material, ASSET_CONTEXT_MODELS)) {
+      AddMaterial(material);
     }
+    Cm_FreeMaterial(material);
   }
-
-  Cm_FreeMaterials(materials);
 }
 
 /**

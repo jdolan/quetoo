@@ -45,12 +45,9 @@ static material_t *AllocMaterial(const char *name) {
   char path[MAX_QPATH];
   g_snprintf(path, sizeof(path), "textures/%s.mat", name);
 
-  GList *list = NULL;
-  if (Cm_LoadMaterials(path, &list) > 0) {
-    material->cm = list->data;
-    g_list_free(list);
-  } else {
-    material->cm = Cm_AllocMaterial(name);
+  material->cm = Cm_LoadMaterial(path);
+  if (material->cm == NULL) {
+    material->cm = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
   }
 
   return material;
@@ -133,32 +130,4 @@ void FreeMaterials(void) {
 
   num_materials = 0;
   memset(materials, 0, sizeof(materials));
-}
-
-/**
- * @brief Writes per-texture .mat files for all known materials.
- * @details Non-destructive: skips any material whose .mat file already exists.
- * Only writes newly discovered textures that lack an authored .mat file.
- */
-ssize_t WriteMaterialsFile(void) {
-
-  ssize_t count = 0;
-  material_t *mat = materials;
-  for (int32_t i = 0; i < num_materials; i++, mat++) {
-    char path[MAX_QPATH];
-    g_snprintf(path, sizeof(path), "textures/%s.mat", mat->cm->name);
-
-    if (Fs_Exists(path)) {
-      Com_Debug(DEBUG_ALL, "Skipping existing %s\n", path);
-      continue;
-    }
-
-    g_strlcpy(mat->cm->path, path, sizeof(mat->cm->path));
-    GList *single = g_list_prepend(NULL, mat->cm);
-    if (Cm_WriteMaterials(path, single) > 0) {
-      count++;
-    }
-    g_list_free(single);
-  }
-  return count;
 }

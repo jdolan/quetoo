@@ -518,7 +518,6 @@
 		CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6F71C5C58C300CD0B13 /* portal.c */; };
 		CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FA1C5C58C300CD0B13 /* qbsp.c */; };
 		CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FC1C5C58C300CD0B13 /* qlight.c */; };
-		CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6FE1C5C58C300CD0B13 /* qmat.c */; };
 		CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7021C5C58C300CD0B13 /* qzip.c */; };
 		CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7051C5C58C300CD0B13 /* texture.c */; };
 		CE80FFF91C5E4D1800A21A51 /* work.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D7061C5C58C300CD0B13 /* work.c */; };
@@ -1403,7 +1402,6 @@
 		CE12D6FB1C5C58C300CD0B13 /* qbsp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qbsp.h; sourceTree = "<group>"; };
 		CE12D6FC1C5C58C300CD0B13 /* qlight.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = qlight.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6FD1C5C58C300CD0B13 /* qlight.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = qlight.h; sourceTree = "<group>"; };
-		CE12D6FE1C5C58C300CD0B13 /* qmat.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qmat.c; sourceTree = "<group>"; };
 		CE12D6FF1C5C58C300CD0B13 /* quemap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = quemap.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		CE12D7021C5C58C300CD0B13 /* qzip.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = qzip.c; sourceTree = "<group>"; };
 		CE12D7051C5C58C300CD0B13 /* texture.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = texture.c; sourceTree = "<group>"; };
@@ -1772,7 +1770,6 @@
 		CEC74B3725C8EE94009C6218 /* installer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = installer.h; sourceTree = "<group>"; };
 		CEC74B3825C8EE94009C6218 /* installer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = installer.c; sourceTree = "<group>"; };
 		CEC986931D3835420002B714 /* libmysqlclient.18.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libmysqlclient.18.dylib; path = /opt/local/lib/mysql56/mysql/libmysqlclient.18.dylib; sourceTree = "<absolute>"; };
-		CECA8CAD1E4EC027005E97E8 /* qmat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qmat.h; sourceTree = "<group>"; };
 		CECA8CAE1E50B5F1005E97E8 /* material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = material.c; sourceTree = "<group>"; };
 		CECA8CAF1E50B5F1005E97E8 /* material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = material.h; sourceTree = "<group>"; };
 		CED438AD1D9D34450052BAFA /* libclient-renderer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libclient-renderer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2984,8 +2981,6 @@
 				CE12D6FB1C5C58C300CD0B13 /* qbsp.h */,
 				CE12D6FC1C5C58C300CD0B13 /* qlight.c */,
 				CE12D6FD1C5C58C300CD0B13 /* qlight.h */,
-				CE12D6FE1C5C58C300CD0B13 /* qmat.c */,
-				CECA8CAD1E4EC027005E97E8 /* qmat.h */,
 				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
@@ -4747,7 +4742,6 @@
 				CE80FFEF1C5E4D1800A21A51 /* portal.c in Sources */,
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
-				CE80FFF41C5E4D1800A21A51 /* qmat.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunction.c in Sources */,

@@ -52,7 +52,10 @@ static void didSetValue(Slider *slider, double value) {
     this->material->cm->alpha_test = slider->value;
   } else {
     Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
+    return;
   }
+
+  this->material->cm->dirty = true;
 }
 
 #pragma mark - ViewController
@@ -112,7 +115,6 @@ static void viewWillAppear(ViewController *self) {
   MaterialViewController *this = (MaterialViewController *) self;
 
   r_material_t *material = NULL;
-  const r_model_t *model = NULL;
 
   float distance = MAX_WORLD_DIST;
 
@@ -132,7 +134,6 @@ static void viewWillAppear(ViewController *self) {
     }
 
     material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
-    model = R_WorldModel();
 
     distance = Vec3_Distance(cl_view.origin, tr.end);
   }
@@ -164,14 +165,13 @@ static void viewWillAppear(ViewController *self) {
       const float dist = Vec3_Distance(cl_view.origin, tr.end);
       if (dist < distance) {
         material = e->model->mesh->faces->material;
-        model = e->model;
 
         distance = dist;
       }
     }
   }
 
-  $(this, setModelAndMaterial, model, material);
+  $(this, setMaterial, material);
 
   super(ViewController, self, viewWillAppear);
 }
@@ -187,15 +187,14 @@ static MaterialViewController *init(MaterialViewController *self) {
 }
 
 /**
- * @fn void MaterialViewController::setModelAndMaterial(MaterialViewController *self, r_material_t *material)
+ * @fn void MaterialViewController::setMaterial(MaterialViewController *self, r_material_t *material)
  * @memberof MaterialViewController
  */
-static void setModelAndMaterial(MaterialViewController *self, const r_model_t *model, r_material_t *material) {
+static void setMaterial(MaterialViewController *self, r_material_t *material) {
 
-  self->model = model;
   self->material = material;
 
-  if (self->model && self->material) {
+  if (self->material) {
     $(self->name, setDefaultText, self->material->cm->basename);
     $(self->diffusemap, setDefaultText, self->material->cm->diffusemap.name);
     $(self->normalmap, setDefaultText, self->material->cm->normalmap.name);
@@ -234,7 +233,7 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((MaterialViewControllerInterface *) clazz->interface)->init = init;
-  ((MaterialViewControllerInterface *) clazz->interface)->setModelAndMaterial = setModelAndMaterial;
+  ((MaterialViewControllerInterface *) clazz->interface)->setMaterial = setMaterial;
 }
 
 /**

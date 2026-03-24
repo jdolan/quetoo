@@ -31,13 +31,6 @@ void Cm_FreeMaterial(cm_material_t *material) {
 }
 
 /**
- * @brief Free the specified list and all included materials.
- */
-void Cm_FreeMaterials(GList *materials) {
-  g_list_free_full(materials, (GDestroyNotify) Cm_FreeMaterial);
-}
-
-/**
  * @brief Just a tuple for string-int
  */
 typedef struct {
@@ -619,10 +612,12 @@ static int32_t Cm_StageIndex(const cm_material_t *m, const cm_stage_t *stage) {
   return -1;
 }
 
+static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context);
+
 /**
  * @brief Allocates a material, setting up the diffuse stage.
  */
-cm_material_t *Cm_AllocMaterial(const char *name) {
+cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context) {
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL diffuse name\n");
@@ -630,9 +625,12 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
   cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
 
-  StripExtension(name, mat->name);
+  char stripped[MAX_QPATH];
+  StripExtension(name, stripped);
 
+  Cm_AssetPath(stripped, mat->name, sizeof(mat->name), context);
   Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
+  Cm_MaterialPath(stripped, mat->path, sizeof(mat->path), context);
 
   mat->roughness = MATERIAL_ROUGHNESS;
   mat->hardness = MATERIAL_HARDNESS;
@@ -645,35 +643,39 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 }
 
 /**
- * @brief Loads the materials defined in the specified file.
- * @param path The Quake path of the materials file.
- * @param materials The list to append to.
- * @return The number of materials parsed, or -1 on error.
+ * @brief Loads a material from the specified file.
+ * @param path The Quake path of the material file.
+ * @return The parsed material, or NULL on error.
  */
-ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
+cm_material_t *Cm_LoadMaterial(const char *path) {
   void *buf;
-  ssize_t count = 0;
 
   if (Fs_Load(path, &buf) == -1) {
     Com_Debug(DEBUG_COLLISION, "Couldn't load %s\n", path);
-    return -1;
+    return NULL;
   }
 
   parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
+  char token[MAX_TOKEN_CHARS];
+
+  if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) || *token != '{') {
+    Com_Warn("Expected '{' in %s\n", path);
+    Fs_Free(buf);
+    return NULL;
+  }
+
   cm_material_t *m = NULL;
-  bool in_material = false;
 
   while (true) {
-    char token[MAX_TOKEN_CHARS];
 
     if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
       break;
     }
 
-    if (*token == '{' && !in_material) {
-      in_material = true;
-      continue;
+    if (*token == '}') {
+      Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m ? m->name : path);
+      break;
     }
 
     if (!g_strcmp0(token, "material") || !g_strcmp0(token, "diffusemap")) {
@@ -683,21 +685,9 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         break;
       }
 
-      m = Cm_AllocMaterial(token);
+      m = Cm_AllocMaterial(token, ASSET_CONTEXT_NONE);
       assert(m);
 
-      for (const GList *list = *materials; list; list = list->next) {
-        cm_material_t *material = list->data;
-        if (!g_strcmp0(m->basename, material->basename)) {
-          Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
-                    *materials = g_list_remove(*materials, material);
-          Cm_FreeMaterial(material);
-          break;
-        }
-      }
-
-      g_strlcpy(m->path, path, sizeof(m->path));
-      continue;
     }
 
     if (!m) {
@@ -708,35 +698,27 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->normalmap.name, sizeof(m->normalmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "heightmap")) {
+    } else if (!g_strcmp0(token, "heightmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "specularmap")) {
+    } else if (!g_strcmp0(token, "specularmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "tintmap")) {
+    } else if (!g_strcmp0(token, "tintmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->tintmap.name, sizeof(m->tintmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
+    } else if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
       static vec4_t unused_color;
       vec4_t *color = &unused_color;
 
@@ -765,10 +747,7 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         }
       }
 
-      continue;
-    }
-
-    if (!g_strcmp0(token, "roughness")) {
+    } else if (!g_strcmp0(token, "roughness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No roughness specified");
@@ -776,9 +755,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
         m->roughness = MATERIAL_ROUGHNESS;
       }
-    }
 
-    if (!g_strcmp0(token, "hardness")) {
+    } else if (!g_strcmp0(token, "hardness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No hardness specified");
@@ -786,9 +764,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
         m->hardness = MATERIAL_HARDNESS;
       }
-    }
 
-    if (!g_strcmp0(token, "specularity")) {
+    } else if (!g_strcmp0(token, "specularity")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No specularity specified");
@@ -796,9 +773,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
         m->specularity = MATERIAL_SPECULARITY;
       }
-    }
 
-    if (!g_strcmp0(token, "alpha_test")) {
+    } else if (!g_strcmp0(token, "alpha_test")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No alpha test specified");
@@ -808,36 +784,30 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
       }
 
       m->surface |= SURF_ALPHA_TEST;
-    }
 
-    if (!g_strcmp0(token, "contents")) {
+    } else if (!g_strcmp0(token, "contents")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Cm_MaterialWarn(path, &parser, "No contents specified");
       } else {
         m->contents |= Cm_ParseContents(token);
       }
-      continue;
-    }
 
-    if (!g_strcmp0(token, "surface")) {
+    } else if (!g_strcmp0(token, "surface")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Cm_MaterialWarn(path, &parser, "No surface flags specified");
       } else {
         m->surface |= Cm_ParseSurface(token);
       }
-      continue;
-    }
 
-    if (!g_strcmp0(token, "footsteps")) {
+    } else if (!g_strcmp0(token, "footsteps")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
         Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
       }
-    }
 
-    if (!g_strcmp0(token, "parallax")) {
+    } else if (!g_strcmp0(token, "parallax")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No parallax specified");
@@ -845,9 +815,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
         m->parallax = MATERIAL_PARALLAX;
       }
-    }
 
-    if (!g_strcmp0(token, "shadow")) {
+    } else if (!g_strcmp0(token, "shadow")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->shadow, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No shadow specified");
@@ -855,9 +824,8 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         Cm_MaterialWarn(path, &parser, "Invalid shadow, must be >= 0.0");
         m->shadow = MATERIAL_SHADOW;
       }
-    }
 
-    if (*token == '{' && in_material) {
+    } else if (*token == '{') {
 
       cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
@@ -867,66 +835,69 @@ ssize_t Cm_LoadMaterials(const char *path, GList **materials) {
         continue;
       }
 
-      // append the stage to the chain
       Cm_AppendStage(m, s);
 
       m->stage_flags |= s->flags;
-      continue;
-    }
-
-    if (*token == '}' && in_material) {
-      *materials = g_list_prepend(*materials, m);
-      in_material = false;
-      count++;
-
-      Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m->name);
-
-      m = NULL;
     }
   }
 
   Fs_Free(buf);
 
-  return count;
+  return m;
+}
+
+/**
+ * @brief Prepends the context prefix to a name if not already present.
+ */
+static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context) {
+
+  *out = '\0';
+
+  switch (context) {
+    case ASSET_CONTEXT_NONE:
+      break;
+    case ASSET_CONTEXT_TEXTURES:
+      if (!g_str_has_prefix(name, "textures/")) {
+        g_strlcat(out, "textures/", len);
+      }
+      break;
+    case ASSET_CONTEXT_MODELS:
+      if (!g_str_has_prefix(name, "models/")) {
+        g_strlcat(out, "models/", len);
+      }
+      break;
+    case ASSET_CONTEXT_PLAYERS:
+      if (!g_str_has_prefix(name, "players/")) {
+        g_strlcat(out, "players/", len);
+      }
+      break;
+    case ASSET_CONTEXT_SPRITES:
+      if (!g_str_has_prefix(name, "sprites/")) {
+        g_strlcat(out, "sprites/", len);
+      }
+      break;
+  }
+
+  g_strlcat(out, name, len);
+}
+
+/**
+ * @brief Returns the .mat file path for the given material name and context.
+ */
+void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context) {
+
+  Cm_AssetPath(name, path, len, context);
+  g_strlcat(path, ".mat", len);
 }
 
 /**
  * @brief Resolves the path of the specified asset by name within the given context.
  */
 static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
-  const char *extensions[] = { "tga", "png", "jpg", "pcx", "wal" };
+  const char *extensions[] = { "tga", "png", "jpg" };
   char name[MAX_QPATH];
 
-  if (asset->name[0] == '#') {
-    g_strlcpy(name, asset->name + 1, sizeof(name));
-  } else {
-    g_strlcpy(name, asset->name, sizeof(name));
-
-    switch (context) {
-      case ASSET_CONTEXT_NONE:
-        break;
-      case ASSET_CONTEXT_TEXTURES:
-        if (!g_str_has_prefix(asset->name, "textures/")) {
-          g_snprintf(name, sizeof(name), "textures/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_MODELS:
-        if (!g_str_has_prefix(asset->name, "models/")) {
-          g_snprintf(name, sizeof(name), "models/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_PLAYERS:
-        if (!g_str_has_prefix(asset->name, "players/")) {
-          g_snprintf(name, sizeof(name), "players/%s", asset->name);
-        }
-        break;
-      case ASSET_CONTEXT_SPRITES:
-        if (!g_str_has_prefix(asset->name, "sprites/")) {
-          g_snprintf(name, sizeof(name), "sprites/%s", asset->name);
-        }
-        break;
-    }
-  }
+  Cm_AssetPath(asset->name, name, sizeof(name), context);
 
   for (size_t i = 0; i < lengthof(extensions); i++) {
     g_snprintf(asset->path, sizeof(asset->path), "%s.%s", name, extensions[i]);
@@ -1278,41 +1249,18 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 }
 
 /**
- * @brief GCompareFunc for Cm_WriteMaterials.
+ * @brief Serialize the material into the specified file path.
  */
-static gint Cm_WriteMaterials_compare(gconstpointer a, gconstpointer b) {
-  return g_strcmp0(((const cm_material_t *) a)->name, ((const cm_material_t *) b)->name);
-}
+bool Cm_SaveMaterial(const cm_material_t *material) {
 
-/**
- * @brief Serialize the material(s) into the specified file.
- */
-ssize_t Cm_WriteMaterials(const char *path, GList *materials) {
-
-  ssize_t count = -1;
-  file_t *file = Fs_OpenWrite(path);
+  file_t *file = Fs_OpenWrite(material->path);
   if (file) {
-    count = 0;
-
-    GList *sorted = g_list_sort(g_list_copy(materials), Cm_WriteMaterials_compare);
-
-    for (const GList *list = sorted; list; list = list->next) {
-      const cm_material_t *m = list->data;
-      if (!g_strcmp0(path, m->path)) {
-        Cm_WriteMaterial(m, file);
-        count++;
-      } else {
-        Com_Debug(DEBUG_COLLISION, "Skipping %s with path %s\n", m->name, m->path);
-      }
-    }
-
-    g_list_free(sorted);
-
+    Cm_WriteMaterial(material, file);
     Fs_Close(file);
-    Com_Print("Wrote %" PRIuPTR " materials to %s\n", count, path);
-  } else {
-    Com_Warn("Failed to open %s for write\n", path);
+    Com_Print("Wrote material %s to %s\n", material->name, material->path);
+    return true;
   }
 
-  return count;
+  Com_Warn("Failed to open %s for write\n", material->path);
+  return false;
 }

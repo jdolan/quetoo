@@ -37,7 +37,6 @@ extern char bsp_name[MAX_OS_PATH];
 
 extern bool verbose;
 extern bool debug;
-extern bool do_mat;
 extern bool do_bsp;
 extern bool do_zip;
 
