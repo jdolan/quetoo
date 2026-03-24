@@ -405,7 +405,7 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
     cm_material_t *cm = Cm_LoadMaterial(path);
     if (cm == NULL) {
-      cm = Cm_AllocMaterial(path);
+      cm = Cm_AllocMaterial(basename, context);
     }
 
     material = R_ResolveMaterial(cm, context);

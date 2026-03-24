@@ -612,10 +612,12 @@ static int32_t Cm_StageIndex(const cm_material_t *m, const cm_stage_t *stage) {
   return -1;
 }
 
+static void Cm_AssetPath(const char *name, char *out, size_t len, cm_asset_context_t context);
+
 /**
  * @brief Allocates a material, setting up the diffuse stage.
  */
-cm_material_t *Cm_AllocMaterial(const char *name) {
+cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context) {
 
   if (!name || !name[0]) {
     Com_Error(ERROR_DROP, "NULL diffuse name\n");
@@ -623,9 +625,12 @@ cm_material_t *Cm_AllocMaterial(const char *name) {
 
   cm_material_t *mat = Mem_TagMalloc(sizeof(cm_material_t), MEM_TAG_MATERIAL);
 
-  StripExtension(name, mat->name);
+  char stripped[MAX_QPATH];
+  StripExtension(name, stripped);
 
+  Cm_AssetPath(stripped, mat->name, sizeof(mat->name), context);
   Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
+  Cm_MaterialPath(stripped, mat->path, sizeof(mat->path), context);
 
   mat->roughness = MATERIAL_ROUGHNESS;
   mat->hardness = MATERIAL_HARDNESS;
@@ -652,19 +657,25 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
 
   parser_t parser = Parse_Init((const char *) buf, PARSER_C_LINE_COMMENTS | PARSER_C_BLOCK_COMMENTS);
 
+  char token[MAX_TOKEN_CHARS];
+
+  if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) || *token != '{') {
+    Com_Warn("Expected '{' in %s\n", path);
+    Fs_Free(buf);
+    return NULL;
+  }
+
   cm_material_t *m = NULL;
-  bool in_material = false;
 
   while (true) {
-    char token[MAX_TOKEN_CHARS];
 
     if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
       break;
     }
 
-    if (*token == '{' && !in_material) {
-      in_material = true;
-      continue;
+    if (*token == '}') {
+      Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m ? m->name : path);
+      break;
     }
 
     if (!g_strcmp0(token, "material") || !g_strcmp0(token, "diffusemap")) {
@@ -674,16 +685,9 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         break;
       }
 
-      if (m) {
-        Com_Debug(DEBUG_COLLISION, "Overriding material definition %s\n", m->basename);
-        Cm_FreeMaterial(m);
-      }
-
-      m = Cm_AllocMaterial(token);
+      m = Cm_AllocMaterial(token, ASSET_CONTEXT_NONE);
       assert(m);
 
-      g_strlcpy(m->path, path, sizeof(m->path));
-      continue;
     }
 
     if (!m) {
@@ -694,35 +698,27 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->normalmap.name, sizeof(m->normalmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "heightmap")) {
+    } else if (!g_strcmp0(token, "heightmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "specularmap")) {
+    } else if (!g_strcmp0(token, "specularmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!g_strcmp0(token, "tintmap")) {
+    } else if (!g_strcmp0(token, "tintmap")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->tintmap.name, sizeof(m->tintmap.name))) {
         Cm_MaterialWarn(path, &parser, "Missing path or too many characters");
-        continue;
       }
-    }
 
-    if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
+    } else if (!strncmp(token, "tintmap.", strlen("tintmap."))) {
       static vec4_t unused_color;
       vec4_t *color = &unused_color;
 
@@ -751,10 +747,7 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         }
       }
 
-      continue;
-    }
-
-    if (!g_strcmp0(token, "roughness")) {
+    } else if (!g_strcmp0(token, "roughness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->roughness, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No roughness specified");
@@ -762,9 +755,8 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         Cm_MaterialWarn(path, &parser, "Invalid roughness value, must be >= 0.0");
         m->roughness = MATERIAL_ROUGHNESS;
       }
-    }
 
-    if (!g_strcmp0(token, "hardness")) {
+    } else if (!g_strcmp0(token, "hardness")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->hardness, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No hardness specified");
@@ -772,9 +764,8 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         Cm_MaterialWarn(path, &parser, "Invalid hardness value, must be >= 0.0");
         m->hardness = MATERIAL_HARDNESS;
       }
-    }
 
-    if (!g_strcmp0(token, "specularity")) {
+    } else if (!g_strcmp0(token, "specularity")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->specularity, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No specularity specified");
@@ -782,9 +773,8 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         Cm_MaterialWarn(path, &parser, "Invalid specularity value, must be >= 0.0");
         m->specularity = MATERIAL_SPECULARITY;
       }
-    }
 
-    if (!g_strcmp0(token, "alpha_test")) {
+    } else if (!g_strcmp0(token, "alpha_test")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->alpha_test, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No alpha test specified");
@@ -794,36 +784,30 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
       }
 
       m->surface |= SURF_ALPHA_TEST;
-    }
 
-    if (!g_strcmp0(token, "contents")) {
+    } else if (!g_strcmp0(token, "contents")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Cm_MaterialWarn(path, &parser, "No contents specified");
       } else {
         m->contents |= Cm_ParseContents(token);
       }
-      continue;
-    }
 
-    if (!g_strcmp0(token, "surface")) {
+    } else if (!g_strcmp0(token, "surface")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, token, sizeof(token))) {
         Cm_MaterialWarn(path, &parser, "No surface flags specified");
       } else {
         m->surface |= Cm_ParseSurface(token);
       }
-      continue;
-    }
 
-    if (!g_strcmp0(token, "footsteps")) {
+    } else if (!g_strcmp0(token, "footsteps")) {
 
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->footsteps.name, sizeof(m->footsteps.name))) {
         Cm_MaterialWarn(path, &parser, "Invalid footsteps value");
       }
-    }
 
-    if (!g_strcmp0(token, "parallax")) {
+    } else if (!g_strcmp0(token, "parallax")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->parallax, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No parallax specified");
@@ -831,9 +815,8 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         Cm_MaterialWarn(path, &parser, "Invalid parallax, must be >= 0.0");
         m->parallax = MATERIAL_PARALLAX;
       }
-    }
 
-    if (!g_strcmp0(token, "shadow")) {
+    } else if (!g_strcmp0(token, "shadow")) {
 
       if (Parse_Primitive(&parser, PARSE_NO_WRAP, PARSE_FLOAT, &m->shadow, 1) != 1) {
         Cm_MaterialWarn(path, &parser, "No shadow specified");
@@ -841,9 +824,8 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         Cm_MaterialWarn(path, &parser, "Invalid shadow, must be >= 0.0");
         m->shadow = MATERIAL_SHADOW;
       }
-    }
 
-    if (*token == '{' && in_material) {
+    } else if (*token == '{') {
 
       cm_stage_t *s = (cm_stage_t *) Mem_LinkMalloc(sizeof(*s), m);
 
@@ -853,18 +835,9 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         continue;
       }
 
-      // append the stage to the chain
       Cm_AppendStage(m, s);
 
       m->stage_flags |= s->flags;
-      continue;
-    }
-
-    if (*token == '}' && in_material) {
-      in_material = false;
-
-      Com_Debug(DEBUG_COLLISION, "Parsed material %s\n", m->name);
-      break;
     }
   }
 

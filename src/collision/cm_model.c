@@ -199,8 +199,7 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 
     *out = Cm_LoadMaterial(path);
     if (*out == NULL) {
-      *out = Cm_AllocMaterial(in->name);
-      g_strlcpy((*out)->path, path, sizeof((*out)->path));
+      *out = Cm_AllocMaterial(in->name, ASSET_CONTEXT_TEXTURES);
     }
 
     *out = Mem_Link(*out, bsp->materials);

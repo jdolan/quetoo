@@ -145,7 +145,7 @@ static void AddBspMaterials(void) {
 
     cm_material_t *material = Cm_LoadMaterial(path);
     if (material == NULL) {
-      material = Cm_AllocMaterial(name);
+      material = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
     }
 
     if (Cm_ResolveMaterial(material, ASSET_CONTEXT_TEXTURES)) {

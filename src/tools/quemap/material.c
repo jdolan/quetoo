@@ -47,7 +47,7 @@ static material_t *AllocMaterial(const char *name) {
 
   material->cm = Cm_LoadMaterial(path);
   if (material->cm == NULL) {
-    material->cm = Cm_AllocMaterial(name);
+    material->cm = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
   }
 
   return material;

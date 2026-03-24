@@ -342,7 +342,7 @@ typedef struct cm_material_s {
   bool dirty;
 } cm_material_t;
 
-cm_material_t *Cm_AllocMaterial(const char *name);
+cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context);
 void Cm_FreeMaterial(cm_material_t *material);
 cm_material_t *Cm_LoadMaterial(const char *path);
 bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
