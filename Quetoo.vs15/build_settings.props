@@ -101,15 +101,15 @@
     <QuetooFreeTypeLibraryPath>$(QuetooFreeTypePath)lib\$(Platform)\</QuetooFreeTypeLibraryPath>
 
     <QuetooSDLPath>$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLPath>
-    <QuetooSDLIncludePath>$(QuetooSDLPath);$(QuetooSDLPath)SDL2\</QuetooSDLIncludePath>
+    <QuetooSDLIncludePath>$(QuetooSDLPath)</QuetooSDLIncludePath>
     <QuetooSDLLibraryPath>$(QuetooSDLPath)lib\$(Platform)\</QuetooSDLLibraryPath>
 
-    <QuetooSDLTTFPath>$(QuetooObjectivelyMVCLibsPath)sdl_ttf\</QuetooSDLTTFPath>
-    <QuetooSDLTTFIncludePath>$(QuetooSDLTTFPath)SDL2</QuetooSDLTTFIncludePath>
+    <QuetooSDLTTFPath>$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLTTFPath>
+    <QuetooSDLTTFIncludePath>$(QuetooSDLTTFPath)</QuetooSDLTTFIncludePath>
     <QuetooSDLTTFLibraryPath>$(QuetooSDLTTFPath)lib\$(Platform)\</QuetooSDLTTFLibraryPath>
 
-    <QuetooSDLImagePath>$(QuetooObjectivelyMVCLibsPath)sdl_image\</QuetooSDLImagePath>
-    <QuetooSDLImageIncludePath>$(QuetooSDLImagePath)SDL2</QuetooSDLImageIncludePath>
+    <QuetooSDLImagePath>$(QuetooObjectivelyMVCLibsPath)sdl\</QuetooSDLImagePath>
+    <QuetooSDLImageIncludePath>$(QuetooSDLImagePath)</QuetooSDLImageIncludePath>
     <QuetooSDLImageLibraryPath>$(QuetooSDLImagePath)lib\$(Platform)\</QuetooSDLImageLibraryPath>
 
     <QuetoolibsndfilePath>$(QuetooLibsPath)libsndfile\</QuetoolibsndfilePath>
