@@ -349,16 +349,61 @@ jobs:
       working-directory: ${{ github.workspace }}/quetoo
       run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} ${{ env.SOLUTION_FILE_PATH }}
 
+    - name: Install Quetoo
+      working-directory: ${{ github.workspace }}/quetoo
+      run: |
+        $staging = "windows\target\quetoo"
+
+        New-Item -ItemType Directory -Force -Path "$staging\bin" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\default\shaders" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
+
+        # Executables
+        Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\quemap.exe" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\quetoo-dedicated.exe" "$staging\bin\"
+
+        # Game modules
+        Copy-Item "Quetoo.vs15\bin\x64Release\cgame.dll" "$staging\lib\default\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\game.dll" "$staging\lib\default\"
+
+        # Objectively and ObjectivelyMVC
+        Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
+        Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.dll" "$staging\bin\"
+
+        # Dependency DLLs
+        Copy-Item "..\Objectively\Objectively.vs15\libs\dlfcn\x64\dlfcn.dll" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\libs\glib\x64\bin\glib-2.0-0.dll" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\libs\gettext\x64\bin\intl.dll" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\libs\openal\bin\x64\OpenAL32.dll" "$staging\bin\"
+
+        # SDL3 DLLs
+        Get-ChildItem "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\x64\*.dll" -ErrorAction SilentlyContinue |
+          Copy-Item -Destination "$staging\bin\"
+
+        # Shaders
+        Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
+
+        # UI files (CSS and JSON, preserving directory structure)
+        foreach ($uiSource in @("src\cgame\default\ui", "src\client\ui")) {
+          Get-ChildItem -Path $uiSource -Include "*.css","*.json" -Recurse | ForEach-Object {
+            $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
+            $destPath = Join-Path "$staging\lib\default\ui" $relativePath
+            $destDir = Split-Path $destPath -Parent
+            if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
+            Copy-Item $_.FullName -Destination $destPath
+          }
+        }
+
     - name: Download installer
       working-directory: ${{ github.workspace }}/quetoo
       run: |
-        New-Item -ItemType Directory -Force -Path bin/x64Release/lib | Out-Null
-        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "bin/x64Release/lib/quetoo-installer-small.jar"
+        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "windows/target/quetoo/lib/quetoo-installer-small.jar"
 
     - name: Create archive
       working-directory: ${{ github.workspace }}/quetoo
       run: |
-        Compress-Archive -Path bin/x64Release/* -DestinationPath quetoo-BETA-x86_64-pc-windows.zip
+        Compress-Archive -Path windows\target\quetoo\* -DestinationPath quetoo-BETA-x86_64-pc-windows.zip
 
     - name: Upload artifact
       uses: actions/upload-artifact@v6
@@ -375,9 +420,9 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws s3 sync --delete bin/x64Release s3://quetoo/x86_64-pc-windows
-        git rev-parse --short HEAD > bin/revision
-        aws s3 cp bin/revision s3://quetoo/revisions/x86_64-pc-windows
+        aws s3 sync --delete windows/target/quetoo s3://quetoo/x86_64-pc-windows
+        git rev-parse --short HEAD > windows/target/revision
+        aws s3 cp windows/target/revision s3://quetoo/revisions/x86_64-pc-windows
         aws s3 cp quetoo-BETA-x86_64-pc-windows.zip s3://quetoo/snapshots/
 
   release:
