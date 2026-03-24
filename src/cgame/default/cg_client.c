@@ -31,15 +31,10 @@
 #define DEFAULT_CLIENT_INFO "-1\\newbie\\qforcer/default\\default\\default\\default\\default"
 
 /**
- * @brief Parses a single line of a .skin definition file. Note that, unlike Quake3,
- * our skin paths start with players/, not models/players/.
+ * @brief Resolves a single skin line, matching the surface name against
+ * all three mesh models and storing the material in the appropriate skins array.
  */
-static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model, char *line) {
-  int32_t i;
-
-  if (strstr(line, "tag_")) {
-    return;
-  }
+static void Cg_LoadClientSkin(cg_client_info_t *ci, char *line) {
 
   char *skin_name, *face_name = line;
 
@@ -53,70 +48,92 @@ static void Cg_LoadClientSkin(r_material_t **skins, const r_mesh_model_t *model,
     return;
   }
 
-  const r_mesh_face_t *face = model->faces;
-  for (i = 0; i < model->num_faces; i++, face++) {
+  if (!*skin_name) {
+    return;
+  }
 
-    if (!g_ascii_strcasecmp(face_name, face->name)) {
-      skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
-      break;
+  const struct {
+    const r_model_t *model;
+    r_material_t **skins;
+  } meshes[] = {
+    { ci->head, ci->head_skins },
+    { ci->torso, ci->torso_skins },
+    { ci->legs, ci->legs_skins },
+  };
+
+  for (size_t m = 0; m < 3; m++) {
+    if (!meshes[m].model) {
+      continue;
+    }
+
+    const r_mesh_face_t *face = meshes[m].model->mesh->faces;
+    for (int32_t i = 0; i < meshes[m].model->mesh->num_faces; i++, face++) {
+      if (!g_ascii_strcasecmp(face_name, face->name)) {
+        meshes[m].skins[i] = cgi.LoadMaterial(skin_name, ASSET_CONTEXT_PLAYERS);
+        return;
+      }
     }
   }
 }
 
 /**
- * @brief Parses the appropriate .skin file, resolving skins for each face
- * within the model. If a skin can not be resolved for any face, the entire
- * skins array is invalidated so that the default will be loaded.
+ * @brief Parses a .skin file, resolving skins for each face across all three
+ * mesh models (head, torso, legs). Returns false if any face is missing a skin.
  */
-static bool Cg_LoadClientSkins(const r_model_t *mod, r_material_t **skins, const char *skin) {
+static bool Cg_LoadClientSkins(cg_client_info_t *ci, const char *skin) {
   char path[MAX_QPATH], line[MAX_STRING_CHARS];
   char *buffer;
-  int32_t i, j;
   int64_t len;
 
-  // load the skin definition file
-  g_snprintf(path, sizeof(path), "%s_%s.skin", mod->media.name, skin);
+  g_snprintf(path, sizeof(path), "players/%s/%s.skin", ci->model, skin);
 
   if ((len = cgi.LoadFile(path, (void *) &buffer)) == -1) {
     Cg_Debug("%s not found\n", path);
-
-    skins[0] = NULL;
     return false;
   }
 
-  const r_mesh_model_t *model = mod->mesh;
-
-  i = j = 0;
+  int32_t i = 0, j = 0;
   memset(line, 0, sizeof(line));
 
-  // parse the skin definition file line-by-line
   while (i < len) {
     const char c = buffer[i++];
     line[j++] = c;
 
     if (c == '\n' || c == '\r' || i == len) {
-
-      Cg_LoadClientSkin(skins, model, g_strstrip(line));
+      Cg_LoadClientSkin(ci, g_strstrip(line));
 
       j = 0;
       memset(line, 0, sizeof(line));
     }
   }
 
-  // ensure that a skin was resolved for each face, nullifying if not
-  const r_mesh_face_t *face = model->faces;
-  for (i = 0; i < model->num_faces; i++, face++) {
+  cgi.FreeFile(buffer);
 
-    if (!skins[i]) {
-      Cg_Debug("%s: %s has no skin\n", path, face->name);
+  const struct {
+    const r_model_t *model;
+    r_material_t **skins;
+    const char *name;
+  } meshes[] = {
+    { ci->head, ci->head_skins, "head" },
+    { ci->torso, ci->torso_skins, "torso" },
+    { ci->legs, ci->legs_skins, "legs" },
+  };
 
-      skins[0] = NULL;
-      break;
+  for (size_t m = 0; m < 3; m++) {
+    if (!meshes[m].model) {
+      continue;
+    }
+
+    const r_mesh_face_t *face = meshes[m].model->mesh->faces;
+    for (int32_t f = 0; f < meshes[m].model->mesh->num_faces; f++, face++) {
+      if (!meshes[m].skins[f]) {
+        Cg_Debug("%s: %s %s has no skin\n", path, meshes[m].name, face->name);
+        return false;
+      }
     }
   }
 
-  cgi.FreeFile(buffer);
-  return skins[0] != NULL;
+  return true;
 }
 
 /**
@@ -146,31 +163,33 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
   char path[MAX_QPATH];
 
   g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
-  if ((ci->head = cgi.LoadModel(path)) &&
-    Cg_LoadClientSkins(ci->head, ci->head_skins, ci->skin)) {
+  ci->head = cgi.LoadModel(path);
 
-    g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
-    if ((ci->torso = cgi.LoadModel(path)) &&
-      Cg_LoadClientSkins(ci->torso, ci->torso_skins, ci->skin)) {
+  g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+  ci->torso = cgi.LoadModel(path);
 
-      g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
-      if ((ci->legs = cgi.LoadModel(path)) &&
-        Cg_LoadClientSkins(ci->legs, ci->legs_skins, ci->skin)) {
+  g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+  ci->legs = cgi.LoadModel(path);
 
-        g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
-        ci->icon = cgi.LoadImage(path, IMG_PIC);
-
-        if (ci->icon) {
-          return true;
-        }
-      }
-    }
+  if (!ci->head || !ci->torso || !ci->legs) {
+    Cg_Debug("Could not load client model %s/%s\n", model, skin);
+    return false;
   }
 
-  Cg_Debug("Could not load client model %s/%s\n", model, skin);
+  if (!Cg_LoadClientSkins(ci, ci->skin)) {
+    Cg_Debug("Could not load client skins %s/%s\n", model, skin);
+    return false;
+  }
 
-  // if we reach here, something up above didn't load
-  return false;
+  g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
+  ci->icon = cgi.LoadImage(path, IMG_PIC);
+
+  if (!ci->icon) {
+    Cg_Debug("Could not load client icon %s/%s\n", model, skin);
+    return false;
+  }
+
+  return true;
 }
 
 /**

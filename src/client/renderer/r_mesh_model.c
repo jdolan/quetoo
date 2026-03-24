@@ -22,44 +22,6 @@
 #include "r_local.h"
 
 /**
- * @brief Resolves a material for the specified mesh model.
- * @remarks First, it will attempt to use the material explicitly designated on the face, if
- * one exists. If that material is not found, it will attempt to load a material based on the face name.
- * Finally, if that fails, it will fall back to using model path + "skin".
- */
-r_material_t *R_ResolveMeshMaterial(const r_model_t *mod, const r_mesh_face_t *face, const char *name) {
-
-  const cm_asset_context_t context = g_str_has_prefix(mod->media.name, "players/")
-    ? ASSET_CONTEXT_PLAYERS : ASSET_CONTEXT_MODELS;
-
-  r_material_t *material;
-
-  if (name && name[0]) {
-    material = R_LoadMaterial(name, context);
-    R_RegisterDependency((r_media_t *) mod, (r_media_t *) material);
-    return material;
-  }
-
-  if (face->name[0]) {
-    char path[MAX_QPATH];
-    Dirname(mod->media.name, path);
-    g_strlcat(path, face->name, sizeof(path));
-
-    material = R_LoadMaterial(path, context);
-    R_RegisterDependency((r_media_t *) mod, (r_media_t *) material);
-    return material;
-  }
-
-  char path[MAX_QPATH];
-  Dirname(mod->media.name, path);
-  g_strlcat(path, "skin", sizeof(path));
-
-  material = R_LoadMaterial(path, context);
-  R_RegisterDependency((r_media_t *) mod, (r_media_t *) material);
-  return material;
-}
-
-/**
  * @brief Loads the specified r_mesh_config_t from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {

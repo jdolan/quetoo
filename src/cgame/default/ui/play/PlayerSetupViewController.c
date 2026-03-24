@@ -47,7 +47,7 @@ static void enumerateSkins(const char *path, void *data) {
 
   Select *select = (Select *) data;
 
-  Regexp *regexp = re("players/([a-z]+)/upper_([a-z]+)\\.skin", 0);
+  Regexp *regexp = re("players/([a-z]+)/([a-z]+)\\.skin", 0);
 
   Range *matches;
   if ($(regexp, matchesCharacters, path, 0, &matches)) {

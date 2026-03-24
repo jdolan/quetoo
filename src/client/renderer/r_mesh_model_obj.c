@@ -177,7 +177,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     r_mesh_face_t *face = out->faces + i;
 
     g_strlcpy(face->name, group->name, sizeof(face->name));
-    face->material = R_ResolveMeshMaterial(mod, face, face->name);
+    face->material = R_LoadMaterial(face->name, ASSET_CONTEXT_MODELS);
+    R_RegisterDependency((r_media_t *) mod, (r_media_t *) face->material);
 
     for (int32_t j = 0; j < (int32_t) group->f->len; j++) {
       r_obj_face_t *f = &g_array_index(group->f, r_obj_face_t, j);
