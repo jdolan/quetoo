@@ -104,9 +104,16 @@ void LoadMaterials(void) {
  */
 int32_t FindMaterial(const char *name) {
 
+  char normalized[MAX_QPATH];
+  if (!g_str_has_prefix(name, "textures/")) {
+    g_snprintf(normalized, sizeof(normalized), "textures/%s", name);
+  } else {
+    g_strlcpy(normalized, name, sizeof(normalized));
+  }
+
   material_t *material = NULL;
   for (int32_t i = 0; i < num_materials; i++) {
-    if (!g_strcmp0(name, materials[i].cm->name)) {
+    if (!g_strcmp0(normalized, materials[i].cm->name)) {
       material = &materials[i];
       break;
     }
