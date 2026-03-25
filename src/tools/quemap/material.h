@@ -30,11 +30,6 @@
  */
 typedef struct {
   /**
-   * @brief The name used to look up this material (the raw texture name from the .map file).
-   */
-  char name[MAX_QPATH];
-
-  /**
    * @brief The collision material backing this material.
    */
   cm_material_t *cm;

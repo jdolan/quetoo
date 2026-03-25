@@ -33,25 +33,17 @@ material_t materials[MAX_BSP_MATERIALS];
  * @details Attempts to seed the material from its per-texture .mat file if
  * one exists, otherwise allocates a fresh material for suffix-based resolution.
  */
-static const char *StripTexturesPrefix(const char *name) {
-  return g_str_has_prefix(name, "textures/") ? name + strlen("textures/") : name;
-}
-
 static material_t *AllocMaterial(const char *name) {
 
   if (num_materials == MAX_BSP_MATERIALS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MATERIALS\n");
   }
 
-  name = StripTexturesPrefix(name);
-
   material_t *material = materials + num_materials;
   num_materials++;
 
-  g_strlcpy(material->name, name, sizeof(material->name));
-
   char path[MAX_QPATH];
-  g_snprintf(path, sizeof(path), "textures/%s.mat", name);
+  Cm_MaterialPath(name, path, sizeof(path), ASSET_CONTEXT_TEXTURES);
 
   material->cm = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
   if (material->cm == NULL) {
@@ -112,11 +104,16 @@ void LoadMaterials(void) {
  */
 int32_t FindMaterial(const char *name) {
 
-  name = StripTexturesPrefix(name);
+  char normalized[MAX_QPATH];
+  if (!g_str_has_prefix(name, "textures/")) {
+    g_snprintf(normalized, sizeof(normalized), "textures/%s", name);
+  } else {
+    g_strlcpy(normalized, name, sizeof(normalized));
+  }
 
   material_t *material = NULL;
   for (int32_t i = 0; i < num_materials; i++) {
-    if (!g_strcmp0(name, materials[i].name)) {
+    if (!g_strcmp0(normalized, materials[i].cm->name)) {
       material = &materials[i];
       break;
     }
