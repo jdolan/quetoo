@@ -45,7 +45,7 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @return The number of frames resolved, or -1 on error.
  */
-static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage, cm_asset_context_t context) {
+static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage) {
 
   const r_image_t *images[stage->cm->animation.num_frames];
   const r_image_t **out = images;
@@ -225,7 +225,7 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 /**
  * @brief Resolves all asset references in the specified render material's stages
  */
-static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+static void R_ResolveMaterialStages(r_material_t *material) {
   int32_t num_stages = 0;
 
   const cm_material_t *cm = material->cm;
@@ -236,9 +236,9 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
-        stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage, context);
+        stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
       } else if (stage->cm->flags & STAGE_MATERIAL) {
-        stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
+        stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, cm->context);
       } else {
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
@@ -258,10 +258,10 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
-static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t context) {
+static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
   char key[MAX_QPATH];
 
-  Cm_MaterialPath(cm->name, key, sizeof(key), context);
+  Cm_MaterialPath(cm->name, key, sizeof(key), cm->context);
 
   r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), R_MEDIA_MATERIAL);
   material->cm = cm;
@@ -282,7 +282,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
-  Cm_ResolveMaterial(cm, context);
+  Cm_ResolveMaterial(cm);
   
   SDL_Surface *diffusemap = NULL;
   if (*cm->diffusemap.path) {
@@ -302,7 +302,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
   const size_t layer_size = w * h * 4;
 
-  switch (context) {
+  switch (cm->context) {
     case ASSET_CONTEXT_TEXTURES:
     case ASSET_CONTEXT_MODELS:
     case ASSET_CONTEXT_PLAYERS: {
@@ -371,7 +371,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
   
   SDL_DestroySurface(diffusemap);
 
-  R_ResolveMaterialStages(material, context);
+  R_ResolveMaterialStages(material);
 
   return material;
 }
@@ -403,12 +403,12 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
     StripExtension(name, basename);
     Cm_MaterialPath(basename, path, sizeof(path), context);
 
-    cm_material_t *cm = Cm_LoadMaterial(path);
+    cm_material_t *cm = Cm_LoadMaterial(path, context);
     if (cm == NULL) {
       cm = Cm_AllocMaterial(basename, context);
     }
 
-    material = R_ResolveMaterial(cm, context);
+    material = R_ResolveMaterial(cm);
   }
 
   return material;

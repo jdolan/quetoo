@@ -252,6 +252,11 @@ typedef struct cm_material_s {
   char basename[MAX_QPATH];
 
   /**
+   * @brief The asset context for this material (e.g. textures, models, players).
+   */
+  cm_asset_context_t context;
+
+  /**
    * @brief The diffusemap asset.
    */
   cm_asset_t diffusemap;
@@ -344,8 +349,8 @@ typedef struct cm_material_s {
 
 cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context);
 void Cm_FreeMaterial(cm_material_t *material);
-cm_material_t *Cm_LoadMaterial(const char *path);
-bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
+cm_material_t *Cm_LoadMaterial(const char *path, cm_asset_context_t context);
+bool Cm_ResolveMaterial(cm_material_t *material);
 bool Cm_SaveMaterial(const cm_material_t *material);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);

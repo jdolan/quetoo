@@ -143,12 +143,12 @@ static void AddBspMaterials(void) {
     g_snprintf(path, sizeof(path), "textures/%s.mat", name);
     Add(path);
 
-    cm_material_t *material = Cm_LoadMaterial(path);
+    cm_material_t *material = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
     if (material == NULL) {
       material = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
     }
 
-    if (Cm_ResolveMaterial(material, ASSET_CONTEXT_TEXTURES)) {
+    if (Cm_ResolveMaterial(material)) {
       AddMaterial(material);
     }
 
@@ -163,9 +163,9 @@ static void AddMeshMaterials(const char *path) {
 
   Add(path);
 
-  cm_material_t *material = Cm_LoadMaterial(path);
+  cm_material_t *material = Cm_LoadMaterial(path, ASSET_CONTEXT_MODELS);
   if (material) {
-    if (Cm_ResolveMaterial(material, ASSET_CONTEXT_MODELS)) {
+    if (Cm_ResolveMaterial(material)) {
       AddMaterial(material);
     }
     Cm_FreeMaterial(material);

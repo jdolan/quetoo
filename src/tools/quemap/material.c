@@ -53,7 +53,7 @@ static material_t *AllocMaterial(const char *name) {
   char path[MAX_QPATH];
   g_snprintf(path, sizeof(path), "textures/%s.mat", name);
 
-  material->cm = Cm_LoadMaterial(path);
+  material->cm = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
   if (material->cm == NULL) {
     material->cm = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
   }
@@ -78,7 +78,7 @@ static material_t *LoadMaterial(const char *name) {
 
   material_t *material = AllocMaterial(name);
 
-  if (Cm_ResolveMaterial(material->cm, ASSET_CONTEXT_TEXTURES)) {
+  if (Cm_ResolveMaterial(material->cm)) {
     material->diffusemap = Img_LoadSurface(material->cm->diffusemap.path);
     if (material->diffusemap) {
       Com_Verbose("Loaded %s\n", material->cm->diffusemap.path);

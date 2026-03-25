@@ -632,6 +632,8 @@ cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context) {
   Cm_MaterialBasename(mat->name, mat->basename, sizeof(mat->basename));
   Cm_MaterialPath(stripped, mat->path, sizeof(mat->path), context);
 
+  mat->context = context;
+
   mat->roughness = MATERIAL_ROUGHNESS;
   mat->hardness = MATERIAL_HARDNESS;
   mat->specularity = MATERIAL_SPECULARITY;
@@ -647,7 +649,7 @@ cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t context) {
  * @param path The Quake path of the material file.
  * @return The parsed material, or NULL on error.
  */
-cm_material_t *Cm_LoadMaterial(const char *path) {
+cm_material_t *Cm_LoadMaterial(const char *path, cm_asset_context_t context) {
   void *buf;
 
   if (Fs_Load(path, &buf) == -1) {
@@ -685,7 +687,7 @@ cm_material_t *Cm_LoadMaterial(const char *path) {
         break;
       }
 
-      m = Cm_AllocMaterial(token, ASSET_CONTEXT_NONE);
+      m = Cm_AllocMaterial(token, context);
       assert(m);
 
     }
@@ -1073,35 +1075,35 @@ static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 /**
  * @brief Resolves all asset references within the specified material.
  */
-bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context) {
+bool Cm_ResolveMaterial(cm_material_t *m) {
 
-  assert(material);
+  assert(m);
 
-  if (!Cm_ResolveMaterialAsset(material, &material->diffusemap, context, (const char *[]) { "", "_d", NULL })) {
+  if (!Cm_ResolveMaterialAsset(m, &m->diffusemap, m->context, (const char *[]) { "", "_d", NULL })) {
     return false;
   }
 
-  Cm_ResolveMaterialAsset(material, &material->normalmap, context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
-  Cm_ResolveMaterialAsset(material, &material->specularmap, context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
+  Cm_ResolveMaterialAsset(m, &m->normalmap, m->context, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+  Cm_ResolveMaterialAsset(m, &m->specularmap, m->context, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
 
-  if (context == ASSET_CONTEXT_TEXTURES) {
-    Cm_ResolveMaterialAsset(material, &material->heightmap, context, (const char *[]) { "_h", "_height", NULL });
+  if (m->context == ASSET_CONTEXT_TEXTURES) {
+    Cm_ResolveMaterialAsset(m, &m->heightmap, m->context, (const char *[]) { "_h", "_height", NULL });
   }
 
-  if (context == ASSET_CONTEXT_PLAYERS || context == ASSET_CONTEXT_MODELS) {
-    Cm_ResolveMaterialAsset(material, &material->tintmap, context, (const char *[]) { "_tint", NULL });
+  if (m->context == ASSET_CONTEXT_PLAYERS || m->context == ASSET_CONTEXT_MODELS) {
+    Cm_ResolveMaterialAsset(m, &m->tintmap, m->context, (const char *[]) { "_tint", NULL });
   }
 
-  cm_stage_t *stage = material->stages;
+  cm_stage_t *stage = m->stages;
   while (stage) {
-    if (Cm_ResolveStageAssets(material, stage, context)) {
+    if (Cm_ResolveStageAssets(m, stage, m->context)) {
       stage = stage->next;
     } else {
       return false;
     }
   }
 
-  Cm_ResolveFootsteps(&material->footsteps);
+  Cm_ResolveFootsteps(&m->footsteps);
 
   return true;
 }
