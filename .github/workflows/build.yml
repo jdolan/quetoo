@@ -341,6 +341,9 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
+    - name: Install vcpkg packages
+      run: vcpkg install glib:x64-windows
+
     - name: Restore NuGet packages
       working-directory: ${{ github.workspace }}/quetoo
       run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
@@ -373,9 +376,14 @@ jobs:
 
         # Dependency DLLs
         Copy-Item "..\Objectively\Objectively.vs15\libs\dlfcn\x64\dlfcn.dll" "$staging\bin\"
-        Copy-Item "Quetoo.vs15\libs\glib\x64\bin\glib-2.0-0.dll" "$staging\bin\"
-        Copy-Item "Quetoo.vs15\libs\gettext\x64\bin\intl.dll" "$staging\bin\"
         Copy-Item "Quetoo.vs15\libs\openal\bin\x64\OpenAL32.dll" "$staging\bin\"
+
+        # GLib and its dependencies from vcpkg
+        $vcpkgBin = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin"
+        Copy-Item "$vcpkgBin\glib-2.0-0.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\intl-8.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\iconv-2.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\pcre2-8.dll" "$staging\bin\"
 
         # SDL3 DLLs
         Get-ChildItem "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\x64\*.dll" -ErrorAction SilentlyContinue |
