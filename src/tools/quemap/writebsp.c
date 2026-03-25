@@ -57,7 +57,7 @@ void EmitMaterials(void) {
   for (int32_t i = 0; i < num_materials; i++, m++) {
     bsp_material_t *out = &bsp_file.materials[bsp_file.num_materials];
 
-    g_strlcpy(out->name, m->cm->name, sizeof(out->name));
+    g_strlcpy(out->name, m->name, sizeof(out->name));
 
     bsp_file.num_materials++;
 
