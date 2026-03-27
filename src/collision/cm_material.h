@@ -78,6 +78,14 @@ typedef struct {
 } cm_stage_warp_t;
 
 typedef struct {
+  float density;
+} cm_stage_fog_t;
+
+typedef struct {
+  float intensity;
+} cm_stage_lighting_t;
+
+typedef struct {
   float radius;
 } cm_stage_shell_t;
 
@@ -109,14 +117,15 @@ typedef enum {
   STAGE_SCROLL_T  = (1 << 7),
   STAGE_SCALE_S   = (1 << 8),
   STAGE_SCALE_T   = (1 << 9),
-  STAGE_TERRAIN   = (1 << 10),
-  STAGE_ANIMATION = (1 << 11),
+  STAGE_ANIMATION = (1 << 10),
+  STAGE_TERRAIN   = (1 << 11),
   STAGE_DIRTMAP   = (1 << 12),
   STAGE_ENVMAP    = (1 << 13),
   STAGE_WARP      = (1 << 14),
   STAGE_FLARE     = (1 << 15),
-  STAGE_FOG       = (1 << 16),
-  STAGE_SHELL     = (1 << 17),
+  STAGE_LIGHTING  = (1 << 16),
+  STAGE_FOG       = (1 << 17),
+  STAGE_SHELL     = (1 << 18),
 
   STAGE_DRAW      = (1 << 28),
   STAGE_MATERIAL  = (1 << 29),
@@ -148,54 +157,64 @@ typedef struct cm_stage_s {
   color_t color;
 
   /**
-   * @brief The stage pulse effect.
+   * @brief The stage pulse parameters.
    */
   cm_stage_pulse_t pulse;
 
   /**
-   * @brief The stage stretch effect.
+   * @brief The stage stretch parameters.
    */
   cm_stage_stretch_t stretch;
 
   /**
-   * @brief The stage rotate effect.
+   * @brief The stage rotate parameters.
    */
   cm_stage_rotate_t rotate;
 
   /**
-   * @brief The stage scroll effect.
+   * @brief The stage scroll parameters.
    */
   cm_stage_scroll_t scroll;
 
   /**
-   * @brief The stage scale effect.
+   * @brief The stage scale parameters.
    */
   cm_stage_scale_t scale;
 
   /**
-   * @brief The stage terrain effect.
+   * @brief The stage animation parameters.
+   */
+  cm_stage_animation_t animation;
+
+  /**
+   * @brief The stage terrain parameters.
    */
   cm_stage_terrain_t terrain;
 
   /**
-   * @brief The stage dirtmap effect.
+   * @brief The stage dirtmap parameters.
    */
   cm_stage_dirtmap_t dirtmap;
 
   /**
-   * @brief The stage warp effect.
+   * @brief The stage warp parameters.
    */
   cm_stage_warp_t warp;
 
   /**
-   * @brief The stage shell effect.
+   * @brief The stage fog parameters.
    */
-  cm_stage_shell_t shell;
+  cm_stage_fog_t fog;
 
   /**
-   * @brief The stage animation effect.
+   * @brief The stage lighting parameters.
    */
-  cm_stage_animation_t animation;
+  cm_stage_lighting_t lighting;
+
+  /**
+   * @brief The stage shell parameters.
+   */
+  cm_stage_shell_t shell;
 
   /**
    * @brief The next stage, or NULL.

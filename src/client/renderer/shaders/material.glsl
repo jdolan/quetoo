@@ -19,27 +19,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define STAGE_TEXTURE  (1 << 0)
-#define STAGE_BLEND    (1 << 1)
-#define STAGE_COLOR    (1 << 2)
-#define STAGE_PULSE    (1 << 3)
-#define STAGE_STRETCH  (1 << 4)
-#define STAGE_ROTATE   (1 << 5)
-#define STAGE_SCROLL_S (1 << 6)
-#define STAGE_SCROLL_T (1 << 7)
-#define STAGE_SCALE_S  (1 << 8)
-#define STAGE_SCALE_T  (1 << 9)
-#define STAGE_TERRAIN  (1 << 10)
-#define STAGE_ANIM     (1 << 11)
-#define STAGE_DIRTMAP  (1 << 12)
-#define STAGE_ENVMAP   (1 << 13)
-#define STAGE_WARP     (1 << 14)
-#define STAGE_FLARE    (1 << 15)
-#define STAGE_FOG      (1 << 16)
-#define STAGE_SHELL    (1 << 17)
+#define STAGE_TEXTURE   (1 << 0)
+#define STAGE_BLEND     (1 << 1)
+#define STAGE_COLOR     (1 << 2)
+#define STAGE_PULSE     (1 << 3)
+#define STAGE_STRETCH   (1 << 4)
+#define STAGE_ROTATE    (1 << 5)
+#define STAGE_SCROLL_S  (1 << 6)
+#define STAGE_SCROLL_T  (1 << 7)
+#define STAGE_SCALE_S   (1 << 8)
+#define STAGE_SCALE_T   (1 << 9)
+#define STAGE_ANIMATION (1 << 10)
+#define STAGE_TERRAIN   (1 << 11)
+#define STAGE_DIRTMAP   (1 << 12)
+#define STAGE_ENVMAP    (1 << 13)
+#define STAGE_WARP      (1 << 14)
+#define STAGE_FLARE     (1 << 15)
+#define STAGE_LIGHTING  (1 << 16)
+#define STAGE_FOG       (1 << 17)
+#define STAGE_SHELL     (1 << 18)
 
-#define STAGE_DRAW     (1 << 28)
-#define STAGE_MATERIAL (1 << 29)
+#define STAGE_DRAW      (1 << 28)
+#define STAGE_MATERIAL  (1 << 29)
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;
@@ -141,6 +142,16 @@ struct stage_t {
    * @brief The stage warp rate and intensity.
    */
   vec2 warp;
+
+  /**
+   * @brief The stage lighting intensity.
+   */
+  float lighting;
+
+  /**
+   * @brief The stage fog density.
+   */
+  float fog;
 
   /**
    * @brief The stage shell radius.

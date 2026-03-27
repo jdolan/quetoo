@@ -188,8 +188,10 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
   float shadow = sample_shadow_cubemap_array(light, index, v, f);
 
   // Apply parallax self-shadowing for close, high-detail fragments
-  if (f.lod < 4.0 && material.shadow > 0.0) {
-    shadow *= parallax_self_shadow(dir, v, f);
+  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+    if (f.lod < 4.0 && material.shadow > 0.0) {
+      shadow *= parallax_self_shadow(dir, v, f);
+    }
   }
 
   if (shadow <= 0.0) {
@@ -211,7 +213,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
  * @param f Fragment data.
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
-  
+
   // Sample voxel lights
   ivec3 voxel_coord = voxel_xyz(v.model_position);
   ivec2 data = voxel_light_data(voxel_coord);

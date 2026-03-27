@@ -488,8 +488,23 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
       continue;
     }
 
+    if (!g_strcmp0(token, "lighting")) {
+      s->flags |= STAGE_LIGHTING;
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->lighting.intensity, 1) != 1) {
+        s->lighting.intensity = 1.f;
+      }
+
+      continue;
+    }
+
     if (!g_strcmp0(token, "fog")) {
       s->flags |= STAGE_FOG;
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->fog.density, 1) != 1) {
+        s->fog.density = 1.f;
+      }
+
       continue;
     }
 
@@ -517,7 +532,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser, con
 
         // terrain and dirtmapping use lighting
         if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
-          s->flags |= STAGE_MATERIAL;
+          s->flags |= STAGE_LIGHTING;
         }
       }
 
