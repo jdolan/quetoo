@@ -52,6 +52,13 @@ void R_UpdateContext(void) {
   SDL_GetWindowPosition(r_context.window, &r_context.window_bounds.x, &r_context.window_bounds.y);
   SDL_GetWindowSize(r_context.window, &r_context.window_bounds.w, &r_context.window_bounds.h);
 
+  if (!(r_context.window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_window_width", r_context.window_bounds.w);
+    Cvar_ForceSetInteger("r_window_height", r_context.window_bounds.h);
+    r_window_width->modified = false;
+    r_window_height->modified = false;
+  }
+
   const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
 
   r_context.w = r_context.window_bounds.w / scale;
@@ -114,14 +121,6 @@ void R_InitContext(void) {
       break;
   }
 
-  Com_Print("  Trying %dx%d..\n", w, h);
-
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
-    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
-  }
-  
-  R_SetWindowIcon();
-  
   Com_Print("  Setting up OpenGL context..\n");
 
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -143,6 +142,14 @@ void R_InitContext(void) {
   }
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
+
+  Com_Print("  Trying %dx%d..\n", w, h);
+
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
+  }
+  
+  R_SetWindowIcon();
 
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
     Com_Warn("Failed to create 32 bit OpenGL context: %s\n", SDL_GetError());
