@@ -882,11 +882,13 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
     });
   }
 
+  const bool seed = weather->num_active == 0;
+
   while (weather->num_active < weather->num_origins * cg_add_weather->value) {
 
     const int32_t index = RandomRangei(0, weather->num_origins);
     vec4_t *origin = &weather->origins[index];
-    const vec3_t pos = Vec3(origin->x, origin->y, origin->z);
+    vec3_t pos = Vec3(origin->x, origin->y, origin->z);
 
     if (origin->w == 0.f) {
       const vec3_t end = Vec3(pos.x, pos.y, pos.z - MAX_WORLD_AXIAL);
@@ -895,7 +897,15 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
       self->bounds = Box3_Append(self->bounds, trace.end);
     }
 
-    const float height = origin->w;
+    float height = origin->w;
+
+    // Pre-age sprites on first frame so rain appears mid-fall
+    float age = 0.f;
+    if (seed) {
+      age = Randomf();
+      pos.z -= height * age;
+      height *= (1.f - age);
+    }
 
     cg_sprite_t s = {
       .origin = pos,
