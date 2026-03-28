@@ -183,9 +183,12 @@ vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
     vec3 voxel_start = voxel_uvw(world_pos);
     vec3 voxel_end = voxels.view_coordinate.xyz;
     
+    float jitter = fract(sin(dot(world_pos, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+
     for (float i = 0; i < samples; i++) {
-      vec3 xyz = mix(world_pos, view_pos, i / samples);
-      vec3 uvw = mix(voxel_start, voxel_end, i / samples);
+      float t = (i + jitter) / samples;
+      vec3 xyz = mix(world_pos, view_pos, t);
+      vec3 uvw = mix(voxel_start, voxel_end, t);
       
       float fog_density_sample = voxel_fog_density(uvw);
       
