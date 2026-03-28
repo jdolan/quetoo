@@ -268,4 +268,3 @@ void EmitLights(void) {
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }
-

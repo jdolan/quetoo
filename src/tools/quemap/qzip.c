@@ -115,6 +115,7 @@ static void AddSky(const char *sky) {
 static void AddMaterial(const cm_material_t *material) {
 
   if (Add(material->diffusemap.path)) {
+    Add(material->path);
     Add(material->normalmap.path);
     Add(material->heightmap.path);
     Add(material->specularmap.path);
@@ -139,18 +140,9 @@ static void AddBspMaterials(void) {
   for (int32_t i = 0; i < bsp_file.num_materials; i++) {
     const char *name = bsp_file.materials[i].name;
 
-    char path[MAX_QPATH];
-    g_snprintf(path, sizeof(path), "textures/%s.mat", name);
-    Add(path);
+    cm_material_t *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
-    cm_material_t *material = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
-    if (material == NULL) {
-      material = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
-    }
-
-    if (Cm_ResolveMaterial(material)) {
-      AddMaterial(material);
-    }
+    AddMaterial(material);
 
     Cm_FreeMaterial(material);
   }
@@ -159,17 +151,13 @@ static void AddBspMaterials(void) {
 /**
  * @brief Adds the specified mesh materials to the assets list.
  */
-static void AddMeshMaterials(const char *path) {
+static void AddMeshMaterials(const char *name) {
 
-  Add(path);
+  cm_material_t *material = Cm_LoadMaterial(name, ASSET_CONTEXT_MODELS);
 
-  cm_material_t *material = Cm_LoadMaterial(path, ASSET_CONTEXT_MODELS);
-  if (material) {
-    if (Cm_ResolveMaterial(material)) {
-      AddMaterial(material);
-    }
-    Cm_FreeMaterial(material);
-  }
+  AddMaterial(material);
+
+  Cm_FreeMaterial(material);
 }
 
 /**
@@ -199,7 +187,6 @@ static void AddModel(const char *model) {
   Add(path);
 
   StripExtension(model, path);
-  g_strlcat(path, ".mat", sizeof(path));
 
   AddMeshMaterials(path);
 }

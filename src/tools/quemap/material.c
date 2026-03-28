@@ -29,101 +29,35 @@ int32_t num_materials;
 material_t materials[MAX_BSP_MATERIALS];
 
 /**
- * @brief Allocates a material_t for the specified name.
- * @details Attempts to seed the material from its per-texture .mat file if
- * one exists, otherwise allocates a fresh material for suffix-based resolution.
+ * @brief Finds the material with the specified name, allocating a new one if necessary.
  */
-static material_t *AllocMaterial(const char *name) {
+int32_t LoadMaterial(const char *name) {
+
+  material_t *m = materials;
+  for (int32_t i = 0; i < num_materials; i++) {
+    if (!g_strcmp0(name, m->cm->name)) {
+      return i;
+    }
+  }
 
   if (num_materials == MAX_BSP_MATERIALS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_MATERIALS\n");
   }
 
-  material_t *material = materials + num_materials;
+  m = materials + num_materials;
   num_materials++;
 
-  char path[MAX_QPATH];
-  Cm_MaterialPath(name, path, sizeof(path), ASSET_CONTEXT_TEXTURES);
+  m->cm = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
-  material->cm = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
-  if (material->cm == NULL) {
-    material->cm = Cm_AllocMaterial(name, ASSET_CONTEXT_TEXTURES);
-  }
-
-  return material;
-}
-
-/**
- * @brief
- */
-static void FreeMaterial(material_t *material) {
-
-  Cm_FreeMaterial(material->cm);
-
-  SDL_DestroySurface(material->diffusemap);
-}
-
-/**
- * @brief
- */
-static material_t *LoadMaterial(const char *name) {
-
-  material_t *material = AllocMaterial(name);
-
-  if (Cm_ResolveMaterial(material->cm)) {
-    material->diffusemap = Img_LoadSurface(material->cm->diffusemap.path);
-    if (material->diffusemap) {
-      Com_Verbose("Loaded %s\n", material->cm->diffusemap.path);
-      material->ambient = Img_Color(material->diffusemap).vec3;
-    } else {
-      Com_Warn("Failed to load %s\n", material->cm->diffusemap.path);
-    }
+  m->diffusemap = Img_LoadSurface(m->cm->diffusemap.path);
+  if (m->diffusemap) {
+    Com_Verbose("Loaded %s\n", m->cm->diffusemap.path);
   } else {
     Com_Warn("Failed to resolve %s\n", name);
+    m->diffusemap = Img_LoadSurface("textures/common/notex");
   }
 
-  material->diffusemap = material->diffusemap ?: Img_LoadSurface("textures/common/notex");
-
-  return material;
-}
-
-/**
- * @brief Loads all BSP materials, seeding each from its per-texture .mat file
- * if one exists, then falling back to suffix-based asset resolution.
- */
-void LoadMaterials(void) {
-
-  const bsp_material_t *bsp = bsp_file.materials;
-  for (int32_t i = 0; i < bsp_file.num_materials; i++, bsp++) {
-    LoadMaterial(bsp->name);
-  }
-}
-
-/**
- * @brief Finds the material with the specified name, allocating a new one if necessary.
- */
-int32_t FindMaterial(const char *name) {
-
-  char normalized[MAX_QPATH];
-  if (!g_str_has_prefix(name, "textures/")) {
-    g_snprintf(normalized, sizeof(normalized), "textures/%s", name);
-  } else {
-    g_strlcpy(normalized, name, sizeof(normalized));
-  }
-
-  material_t *material = NULL;
-  for (int32_t i = 0; i < num_materials; i++) {
-    if (!g_strcmp0(normalized, materials[i].cm->name)) {
-      material = &materials[i];
-      break;
-    }
-  }
-
-  if (material == NULL) {
-    material = LoadMaterial(name);
-  }
-
-  return (int32_t) (ptrdiff_t) (material - materials);
+  return (int32_t) (ptrdiff_t) (m - materials);
 }
 
 /**
@@ -131,8 +65,10 @@ int32_t FindMaterial(const char *name) {
  */
 void FreeMaterials(void) {
 
-  for (int32_t i = 0; i < num_materials; i++) {
-    FreeMaterial(materials + i);
+  material_t *m = materials;
+  for (int32_t i = 0; i < num_materials; i++, m++) {
+    Cm_FreeMaterial(m->cm);
+    SDL_DestroySurface(m->diffusemap);
   }
 
   num_materials = 0;

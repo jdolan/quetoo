@@ -397,16 +397,7 @@ r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
   r_material_t *material = R_FindMaterial(name, context);
   if (material == NULL) {
 
-    char path[MAX_QPATH];
-    char basename[MAX_QPATH];
-
-    StripExtension(name, basename);
-    Cm_MaterialPath(basename, path, sizeof(path), context);
-
-    cm_material_t *cm = Cm_LoadMaterial(path, context);
-    if (cm == NULL) {
-      cm = Cm_AllocMaterial(basename, context);
-    }
+    cm_material_t *cm = Cm_LoadMaterial(name, context);
 
     material = R_ResolveMaterial(cm);
   }

@@ -194,13 +194,7 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
   const bsp_material_t *in = bsp->file->materials;
   for (int32_t i = 0; i < bsp->num_materials; i++, in++, out++) {
 
-    char path[MAX_QPATH];
-    g_snprintf(path, sizeof(path), "textures/%s.mat", in->name);
-
-    *out = Cm_LoadMaterial(path, ASSET_CONTEXT_TEXTURES);
-    if (*out == NULL) {
-      *out = Cm_AllocMaterial(in->name, ASSET_CONTEXT_TEXTURES);
-    }
+    *out = Cm_LoadMaterial(in->name, ASSET_CONTEXT_TEXTURES);
 
     *out = Mem_Link(*out, bsp->materials);
   }

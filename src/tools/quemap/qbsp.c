@@ -160,8 +160,6 @@ int32_t BSP_Main(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  LoadMaterials();
-
   Fs_Delete(va("maps/%s.prt", map_base));
   Fs_Delete(va("maps/%s.lin", map_base));
 
@@ -181,8 +179,6 @@ int32_t BSP_Main(void) {
   TangentVectors();
 
   WriteBSPFile(bsp_name);
-
-  FreeMaterials();
 
   FreeWindings();
 

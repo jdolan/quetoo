@@ -173,7 +173,7 @@ patch_t *ParsePatch(parser_t *parser, int32_t entity_num) {
   }
 
   // resolve material
-  patch->material = FindMaterial(patch->texture);
+  patch->material = LoadMaterial(patch->texture);
   patch->contents = CONTENTS_SOLID | CONTENTS_DETAIL;
   patch->surface = 0;
 
@@ -209,7 +209,7 @@ static void EmitPatchCollisionBrush(entity_t *entity,
     Com_Error(ERROR_FATAL, "MAX_BSP_BRUSH_SIDES\n");
   }
 
-  const int32_t caulk_material = FindMaterial("common/caulk");
+  const int32_t caulk_material = LoadMaterial("common/caulk");
 
   brush_t *brush = &brushes[num_brushes];
   memset(brush, 0, sizeof(*brush));
