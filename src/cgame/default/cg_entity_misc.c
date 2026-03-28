@@ -810,9 +810,9 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
   weather->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
 
   if (weather->weather & WEATHER_RAIN) {
-    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 30.f;
   } else {
-    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 5.f;
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
   }
 
   self->bounds = Box3_Null();
@@ -824,7 +824,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
     self->bounds = Box3_Union(self->bounds, brush->bounds);
 
     const vec3_t brush_size = Box3_Size(brush->bounds);
-    const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * weather->density / 16.f, 1);
+    const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * weather->density, 1);
 
     if (weather->origins) {
       weather->origins = cgi.Realloc(weather->origins, (weather->num_origins + brush_origins) * sizeof(vec4_t));
@@ -882,11 +882,7 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
     });
   }
 
-  for (int32_t i = 0; i < weather->num_origins * cg_add_weather->value; i++) {
-
-    if (weather->num_active >= weather->num_origins * cg_add_weather->value) {
-      break;
-    }
+  while (weather->num_active < weather->num_origins * cg_add_weather->value) {
 
     const int32_t index = RandomRangei(0, weather->num_origins);
     vec4_t *origin = &weather->origins[index];
@@ -896,13 +892,10 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
       const vec3_t end = Vec3(pos.x, pos.y, pos.z - MAX_WORLD_AXIAL);
       const cm_trace_t trace = cgi.Trace(pos, end, Box3_Zero(), NULL, CONTENTS_SOLID);
       origin->w = pos.z - trace.end.z;
+      self->bounds = Box3_Append(self->bounds, trace.end);
     }
 
     const float height = origin->w;
-
-    if (Vec3_DistanceSquared(Vec3(pos.x, pos.y, cgi.view->origin.z), cgi.view->origin) > 1024.f * 1024.f) {
-      continue;
-    }
 
     cg_sprite_t s = {
       .origin = pos,
@@ -913,13 +906,14 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
 
     if (weather->weather & WEATHER_RAIN) {
       s.atlas_image = cg_sprite_rain;
-      s.color = Vec3(.3f, .3f, .4f);
+      s.color = Vec3(1.f, 1.f, 1.f);
       s.size = 32.f;
       s.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f));
       s.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y;
       s.lifetime = 1000.f * height / 800.f * RandomRangef(.8f, 1.2f);
+      s.lighting = 1.f;
 
-      if (Randomf() > .8f) {
+      if (Randomf() > .5f) {
         Cg_AddSprite(&(cg_sprite_t) {
           .atlas_image = cg_sprite_water_ring,
           .lifetime = 300,
@@ -928,7 +922,7 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
           .size_velocity = 4.f * 6.f,
           .rotation = RandomRadian(),
           .dir = Vec3_Up(),
-          .color = Vec3(.8f, .8f, .8f),
+          .color = Vec3(1.f, 1.f, 1.f),
           .lighting = 1.f
         });
       }
