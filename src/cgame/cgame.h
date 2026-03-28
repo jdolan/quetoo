@@ -701,7 +701,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads the material with the given name.
-   * @param name The material name, e.g. `"objects/rocket/skin"`.
+   * @param name The material name, e.g. `"rocket/skin"`.
    * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
    * @return The material.
    */
@@ -709,7 +709,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads the model with the given name.
-   * @param name The model name (e.g. `"models/objects/rocket/tris"`).
+   * @param name The model name (e.g. `"models/rocket/tris"`).
    * @return The model.
    */
   r_model_t *(*LoadModel)(const char *name);

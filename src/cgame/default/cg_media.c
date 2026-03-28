@@ -190,7 +190,7 @@ void Cg_LoadMedia(void) {
   cg_sample_bfg_fire = cgi.LoadSample("weapons/bfg/fire");
   cg_sample_bfg_hit = cgi.LoadSample("weapons/bfg/hit");
 
-  cg_sample_hook_hit = cgi.LoadSample("objects/hook/hit");
+  cg_sample_hook_hit = cgi.LoadSample("hook/hit");
 
   cg_sample_explosion = cgi.LoadSample("weapons/common/explosion");
   cg_sample_teleport = cgi.LoadSample("common/teleport");

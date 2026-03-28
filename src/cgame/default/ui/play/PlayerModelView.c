@@ -161,11 +161,11 @@ static void updateBindings(View *self) {
   this->weapon.color = Vec4(1.f, 1.f, 1.f, 1.f);
   this->weapon.tag = "tag_weapon";
 
-  this->platformBase.model = cgi.LoadModel("models/objects/platform/base/tris");
+  this->platformBase.model = cgi.LoadModel("models/platform/base/tris");
   this->platformBase.scale = 1.f;
   this->platformBase.color = Vec4(1.f, 1.f, 1.f, 1.f);
 
-  this->platformCenter.model = cgi.LoadModel("models/objects/platform/center/tris");
+  this->platformCenter.model = cgi.LoadModel("models/platform/center/tris");
   this->platformCenter.scale = 1.f;
   this->platformCenter.color = Vec4(1.f, 1.f, 1.f, 1.f);
 

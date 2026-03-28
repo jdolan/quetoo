@@ -1495,7 +1495,7 @@ static g_item_t g_items[] = {
    hover : Item will spawn where it was placed in the map and won't drop the floor.
 
    -------- Radiant config --------
-   model="models/objects/grenade/tris.md3"
+   model="models/grenade/tris.md3"
    */
   {
     .classname = "weapon_handgrenades",
@@ -1504,7 +1504,7 @@ static g_item_t g_items[] = {
     .Drop = NULL,
     .Think = G_FireHandGrenade,
     .pickup_sound = "weapons/common/pickup.wav",
-    .model = "models/objects/grenade/tris.md3",
+    .model = "models/grenade/tris.md3",
     .effects = EF_ROTATE | EF_BOB,
     .icon = "pics/a_handgrenades",
     .name = "Hand Grenades",
@@ -1549,7 +1549,7 @@ static g_item_t g_items[] = {
     .tag = WEAPON_GRENADE_LAUNCHER,
     .flags = WF_PROJECTILE | WF_EXPLOSIVE,
     .priority = 0.40,
-    .precaches = "models/objects/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
+    .precaches = "models/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
   },
 
   /*QUAKED weapon_rocketlauncher (.8 .2 .2) (-16 -16 -16) (16 16 16) triggered no_touch hover
@@ -1583,7 +1583,7 @@ static g_item_t g_items[] = {
     .tag = WEAPON_ROCKET_LAUNCHER,
     .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE | WF_LONG_RANGE,
     .priority = 0.50,
-    .precaches = "models/objects/rocket/tris.obj objects/rocket/fly.wav "
+    .precaches = "models/rocket/tris.obj rocket/fly.wav "
     "weapons/rocketlauncher/fire.wav"
   },
 
