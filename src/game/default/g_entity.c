@@ -282,10 +282,10 @@ static void G_InitMedia(void) {
   g_media.sounds.hook_detach = gi.SoundIndex("hook/detach");
   g_media.sounds.hook_gibhit = gi.SoundIndex("hook/gibhit");
 
-  g_media.sounds.teleport = gi.SoundIndex("common/teleport");
+  g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
-  g_media.sounds.water_in = gi.SoundIndex("common/water_in");
-  g_media.sounds.water_out = gi.SoundIndex("common/water_out");
+  g_media.sounds.water_in = gi.SoundIndex("misc/water_in");
+  g_media.sounds.water_out = gi.SoundIndex("misc/water_out");
 
   g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
@@ -301,10 +301,10 @@ static void G_InitMedia(void) {
   }
 
   for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
-    g_media.sounds.countdown[i] = gi.SoundIndex(va("common/countdown_%d", i));
+    g_media.sounds.countdown[i] = gi.SoundIndex(va("misc/countdown_%d", i));
   }
 
-  g_media.sounds.roar = gi.SoundIndex("common/ominous_bwah");
+  g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
   g_media.sounds.techs[TECH_HASTE] = gi.SoundIndex("tech/haste");
   g_media.sounds.techs[TECH_REGEN] = gi.SoundIndex("tech/regen");

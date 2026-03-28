@@ -631,9 +631,9 @@ void G_func_plat(g_entity_t *ent) {
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("common/plat_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("common/plat_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("common/plat_end_%d", s + 1));
+    ent->move_info.sound_start = gi.SoundIndex(va("func/plat_start_%d", s + 1));
+    ent->move_info.sound_middle = gi.SoundIndex(va("func/plat_middle_%d", s + 1));
+    ent->move_info.sound_end = gi.SoundIndex(va("func/plat_end_%d", s + 1));
   }
 }
 
@@ -872,7 +872,7 @@ void G_func_button(g_entity_t *ent) {
   gi.LinkEntity(ent);
 
   if (gi.EntityValue(ent->def, "sounds")->integer != -1) {
-    ent->move_info.sound_start = gi.SoundIndex("common/switch");
+    ent->move_info.sound_start = gi.SoundIndex("func/switch");
   }
 
   if (!ent->speed) {
@@ -1321,9 +1321,9 @@ void G_func_door(g_entity_t *ent) {
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("common/door_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("common/door_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("common/door_end_%d", s + 1));
+    ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
+    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
+    ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1438,7 +1438,7 @@ void G_func_door_rotating(g_entity_t *ent) {
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_middle = gi.SoundIndex(va("common/door_middle_%d", s + 1));
+    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1697,9 +1697,9 @@ void G_func_door_secret(g_entity_t *ent) {
 
   const int32_t s = gi.EntityValue(ent->def, "sounds")->integer;
   if (s != -1) {
-    ent->move_info.sound_start = gi.SoundIndex(va("common/door_start_%d", s + 1));
-    ent->move_info.sound_middle = gi.SoundIndex(va("common/door_middle_%d", s + 1));
-    ent->move_info.sound_end = gi.SoundIndex(va("common/door_end_%d", s + 1));
+    ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
+    ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
+    ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
   }
 
   // calculate positions
