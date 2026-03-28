@@ -196,8 +196,8 @@ void Cg_LoadMedia(void) {
   cg_sample_teleport = cgi.LoadSample("misc/teleport");
   cg_sample_respawn = cgi.LoadSample("misc/respawn");
   cg_sample_sparks = cgi.LoadSample("ambient/sparks");
-  cg_sample_fire = cgi.LoadSample("ambient/fire");
-  cg_sample_steam = cgi.LoadSample("ambient/steam");
+  cg_sample_fire = cgi.LoadSample("ambient/fire_1");
+  cg_sample_steam = cgi.LoadSample("ambient/steam_1");
   cg_sample_rain = cgi.LoadSample("ambient/rain");
   cg_sample_snow = cgi.LoadSample("ambient/snow");
   cg_sample_ash = cgi.LoadSample("ambient/ash");
