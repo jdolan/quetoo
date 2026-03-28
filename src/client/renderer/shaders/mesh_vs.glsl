@@ -81,7 +81,7 @@ void main(void) {
     vertex.voxel = texcoord;
 
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
-    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient;
+    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(texcoord);
     vertex.caustics = sample_voxel_caustics(world_pos);
     vertex_fog(vertex);
     vertex_lighting(vertex);
