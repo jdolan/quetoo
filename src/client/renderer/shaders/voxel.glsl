@@ -211,11 +211,10 @@ vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
 
 /**
  * @brief Calculate vertex fog (pre-calculated in vertex shader).
- * @param v Vertex data.
- * @return The fog color (rgb) and density (a).
+ * @param v Vertex data (fog field is written).
  */
-vec4 vertex_fog(in common_vertex_t v) {
-  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
+void vertex_fog(inout common_vertex_t v) {
+  v.fog = voxel_fog(v.model_position, view[0].xyz, fog_samples);
 }
 
 /**
@@ -270,10 +269,9 @@ vec3 vertex_light(in common_vertex_t v, in int index) {
 /**
  * @brief Calculate vertex lighting from voxel lights (unshadowed diffuse only).
  * @details Used for distant geometry where per-fragment lighting is too expensive.
- * @param v Vertex data.
- * @return The accumulated diffuse lighting.
+ * @param v Vertex data (lighting field is written).
  */
-vec3 vertex_lighting(in common_vertex_t v) {
+void vertex_lighting(inout common_vertex_t v) {
   vec3 diffuse = vec3(0.0);
 
   ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -292,7 +290,7 @@ vec3 vertex_lighting(in common_vertex_t v) {
     diffuse += vertex_light(v, index);
   }
 
-  return diffuse;
+  v.lighting = diffuse;
 }
 
 /**

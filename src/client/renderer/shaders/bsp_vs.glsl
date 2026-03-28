@@ -63,8 +63,8 @@ void main(void) {
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 
-  vertex.fog = vertex_fog(vertex);
-  vertex.lighting = vertex_lighting(vertex);
+  vertex_fog(vertex);
+  vertex_lighting(vertex);
   
   // Initialize unused fields for mesh shaders
   vertex.smooth_normal = vertex.normal;
