@@ -149,19 +149,14 @@ static void AddBspMaterials(void) {
 }
 
 /**
- * @brief Adds the specified mesh materials to the assets list.
+ * @brief Fs_Enumerate callback that adds all files in a model directory.
  */
-static void AddMeshMaterials(const char *name) {
-
-  cm_material_t *material = Cm_LoadMaterial(name, ASSET_CONTEXT_MODELS);
-
-  AddMaterial(material);
-
-  Cm_FreeMaterial(material);
+static void AddModel_enumerate(const char *path, void *data) {
+  Add(path);
 }
 
 /**
- * @brief Attempts to add the specified mesh model.
+ * @brief Adds the specified model and all assets in its directory.
  */
 static void AddModel(const char *model) {
   const char *model_formats[] = { "md3", "obj", NULL };
@@ -177,18 +172,8 @@ static void AddModel(const char *model) {
   }
 
   Dirname(model, path);
-  g_strlcat(path, "skin", sizeof(path));
 
-  AddImage(path);
-
-  Dirname(model, path);
-  g_strlcat(path, "world.cfg", sizeof(path));
-
-  Add(path);
-
-  StripExtension(model, path);
-
-  AddMeshMaterials(path);
+  Fs_Enumerate(va("%s*", path), AddModel_enumerate, NULL);
 }
 
 /**
