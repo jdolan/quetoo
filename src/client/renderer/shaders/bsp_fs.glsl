@@ -43,6 +43,7 @@ void parallax_occlusion_mapping() {
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(fragment.view_dir * vertex.tbn);
+  dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
 
