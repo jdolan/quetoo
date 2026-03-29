@@ -1001,7 +1001,7 @@ void G_ResetItem(g_entity_t *ent) {
 
   if (ent->item->type == ITEM_FLAG) {
     if (g_level.ctf == false ||
-      ent->item->tag > g_level.num_teams) {
+      ent->item->tag >= g_level.num_teams) {
       ent->sv_flags |= SVF_NO_CLIENT;
       ent->solid = SOLID_NOT;
     }
