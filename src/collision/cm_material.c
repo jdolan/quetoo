@@ -1081,7 +1081,7 @@ bool Cm_ResolveMaterial(cm_material_t *m) {
     return false;
   }
 
-  Cm_ResolveMaterialAsset(m, &m->normalmap, (const char *[]) { "_nm", "_norm", "_local", "_bump", NULL });
+  Cm_ResolveMaterialAsset(m, &m->normalmap, (const char *[]) { "_n", "_nm", "_norm", "_local", "_bump", NULL });
   Cm_ResolveMaterialAsset(m, &m->specularmap, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
 
   if (m->context == ASSET_CONTEXT_TEXTURES) {
