@@ -1050,9 +1050,10 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_Radians(const vec
 /**
  * @return A vector with random values between the respective ranges.
  */
-static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_RandomRanges(float x_begin, float x_end,
-                                      float y_begin, float y_end,
-                                      float z_begin, float z_end) {
+static inline vec3_t __attribute__ ((warn_unused_result)) Vec3_RandomRanges(
+        float x_begin, float x_end,
+        float y_begin, float y_end,
+        float z_begin, float z_end) {
   return Vec3(RandomRangef(x_begin, x_end),
         RandomRangef(y_begin, y_end),
         RandomRangef(z_begin, z_end));

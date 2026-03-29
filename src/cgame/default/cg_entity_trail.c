@@ -973,6 +973,34 @@ static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t 
 /**
  * @brief
  */
+static void Cg_QuadEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
+
+  const vec3_t color = Vec3(.3f, .7f, .7f);
+  const vec3_t velocity = Vec3_Scale(Vec3_Subtract(end, start), 100.f / cgi.client->frame_msec);
+
+  const int32_t count = Cg_TrailCount(end, 1.f, ent, TRAIL_PRIMARY, NULL, NULL);
+  for (int32_t i = 0; i < count; i++) {
+
+    if (!Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_particle,
+      .lifetime = RandomRangeu(800, 2000),
+      .size = RandomRangef(1.f, 2.f),
+      .size_velocity = RandomRangef(-2.f, 0.f),
+      .origin = Vec3_Add(start, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 8.f, 32.f)),
+      .velocity = Vec3_Add(velocity, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 0.f, 24.f)),
+      .acceleration = Vec3_RandomizeDir(Vec3_Scale(Vec3_Up(), 30.f), .33f),
+      .friction = 50.f,
+      .color = color,
+      .lighting = .5f
+    })) {
+      break;
+    };
+  }
+}
+
+/**
+ * @brief
+ */
 static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
   const cg_team_info_t *team = cg_state.teams;
@@ -994,7 +1022,7 @@ static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
         .lifetime = RandomRangeu(800, 2000),
         .size = RandomRangef(1.f, 2.f),
         .size_velocity = RandomRangef(-2.f, 0.f),
-        .origin = Vec3_Add(start, Vec3_RandomRanges(-18.f, 18.f, -18.f, 18.f, 8.f, 32.f)),
+        .origin = Vec3_Add(start, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 8.f, 32.f)),
         .velocity = Vec3_Add(velocity, Vec3_RandomRanges(-24.f, 24.f, -24.f, 24.f, 0.f, 24.f)),
         .acceleration = Vec3_RandomizeDir(Vec3_Scale(Vec3_Up(), 30.f), .33f),
         .friction = 50.f,
@@ -1143,6 +1171,10 @@ void Cg_EntityTrail(cl_entity_t *ent) {
       break;
     default:
       break;
+  }
+
+  if (s->effects & EF_QUAD) {
+    Cg_QuadEffectTrail(ent, start, end);
   }
 
   if (s->effects & EF_CTF_MASK) {

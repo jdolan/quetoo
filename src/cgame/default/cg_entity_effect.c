@@ -103,15 +103,15 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   if (e->effects & EF_QUAD) {
     const cg_light_t l = {
       .origin = e->origin,
-      .radius = 180.0,
+      .radius = 250.0,
       .color = Vec3(.3f, .7f, .7f),
-      .intensity = 1.5f,
+      .intensity = 3.f,
       .source = ent,
     };
 
     Cg_AddLight(&l);
 
-    e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
+    e->shell = Vec3_Fmaf(e->shell, 1.f, l.color);
   }
 
   if (e->effects & EF_CTF_MASK) {
@@ -122,15 +122,15 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
 
         const cg_light_t l = {
           .origin = e->origin,
-          .radius = 180.f,
+          .radius = 250.0,
           .color = color,
-          .intensity = 1.5f,
+          .intensity = 3.f,
           .source = ent,
         };
 
         Cg_AddLight(&l);
 
-        e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
+        e->shell = Vec3_Fmaf(e->shell, 1.f, l.color);
       }
     }
   }
