@@ -184,6 +184,10 @@ static void G_NoClip_f(g_client_t *cl) {
     return;
   }
 
+  if (cl->persistent.spectator) {
+    return;
+  }
+
   if (sv_max_clients->integer > 1 && !g_cheats->value) {
     gi.ClientPrint(cl, PRINT_HIGH, "Cheats are disabled\n");
   } else if (cl->entity->move_type == MOVE_TYPE_NO_CLIP) {
