@@ -77,7 +77,7 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
  */
 bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
 
-  if (g_weapon_stay->integer && cl->inventory[ent->item->index]) {
+  if (g_weapon_stay->integer && ent->team == NULL && cl->inventory[ent->item->index]) {
     return false;
   }
 
@@ -97,9 +97,13 @@ bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
     }
   }
 
-  // setup respawn if it's not a dropped item
-  if (!(ent->spawn_flags & SF_ITEM_DROPPED) && !g_weapon_stay->integer) {
-    G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_weapon_respawn_time->value));
+  // if this is an map-placed item, not a dropped one
+  if (!(ent->spawn_flags & SF_ITEM_DROPPED)) {
+
+    // if weapons stay is disabled, or this is a team weapon, setup respawn
+    if (!g_weapon_stay->integer || ent->team) {
+      G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_weapon_respawn_time->value));
+    }
   }
 
   // auto-switch the weapon if applicable

@@ -1037,7 +1037,7 @@ void G_Init(void) {
   g_techs = gi.AddCvar("g_techs", "default", CVAR_SERVER_INFO, "Whether to allow techs or not. \"default\" only allows techs in CTF; 1 is always allow, 0 is never allow.");
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
-  g_weapon_stay = gi.AddCvar("g_weapon_stay", "1", CVAR_SERVER_INFO, "Controls whether weapons will respawn like normal or always stay.");
+  g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_team_defaults[i].name, 0, NULL);
