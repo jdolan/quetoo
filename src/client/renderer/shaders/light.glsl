@@ -137,11 +137,6 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // If the light angle is nearly perpendicular, skip self-shadowing
-  if (dot(light_dir, normalize(v.tbn[2])) > 0.9) {
-    return 1.0;
-  }
-
   // LOD-based step count: 16 close, 4 far (bounded for performance)
   int max_steps = int(mix(16.0, 4.0, min(f.lod * 0.33, 1.0)));
 
