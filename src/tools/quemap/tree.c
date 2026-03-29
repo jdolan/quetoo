@@ -142,7 +142,8 @@ static node_t *LeafNode(node_t *node, csg_brush_t *brushes) {
 }
 
 /**
- * @return A heuristic value for splitting the
+ * @return A heuristic value for splitting the brushes list by the given side. Higher values mean
+ * that this face produces a more balanced tree while splitting as few brushes as possible.
  */
 static int32_t SelectSplitSideHeuristic(const brush_side_t *side, const csg_brush_t *brushes) {
 
