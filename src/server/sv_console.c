@@ -70,7 +70,8 @@ static void Sv_HandleEvents(void) {
         Con_CompleteInput(&sv_console);
         break;
 
-      case 127: // OS X backspace
+      case '\b':   // Windows backspace
+      case 127:    // macOS backspace
       case KEY_BACKSPACE:
         if (in->pos > 0) {
           char *c = in->buffer + in->pos - 1;
@@ -137,7 +138,7 @@ static void Sv_HandleEvents(void) {
         break;
 
       default:
-        if (isascii(key)) {
+        if (isascii(key) && isprint(key)) {
           if (strlen(in->buffer) < sizeof(in->buffer) - 1) {
             char tmp[MAX_STRING_CHARS];
             g_strlcpy(tmp, in->buffer + in->pos, sizeof(tmp));
