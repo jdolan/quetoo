@@ -1210,7 +1210,7 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
     return;
   }
 
-  ent->touch_time = g_level.time + 3000;
+  ent->touch_time = g_level.time + 10000;
 
   if (ent->message && strlen(ent->message)) {
     gi.WriteByte(SV_CMD_CENTER_PRINT);
