@@ -151,8 +151,8 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
   // decelerate
   else if (move->decel_frames) {
     move->current_speed -= move->decel * QUETOO_TICK_SECONDS;
-    if (move->current_speed < sqrtf(move->speed)) {
-      move->current_speed = sqrtf(move->speed);
+    if (move->current_speed < move->speed * 0.05f) {
+      move->current_speed = move->speed * 0.05f;
     }
     move->decel_frames--;
   }
