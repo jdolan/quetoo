@@ -96,7 +96,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_RESPAWN) {
-    const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
+    const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, 0.167f);
     e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
   }
 
