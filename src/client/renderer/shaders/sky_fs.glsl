@@ -24,6 +24,8 @@ in vec3 cubemap_coord;
 
 out vec4 out_color;
 
+common_fragment_t fragment;
+
 /**
  * @brief
  */
@@ -31,6 +33,8 @@ void main(void) {
 
   out_color = texture(texture_sky, normalize(cubemap_coord));
 
-  // Use vertex fog (sky is simple geometry)
-  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
+  fragment.view_dist = length(vertex.position);
+  fragment.fog = fragment_fog(vertex, fragment);
+
+  out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 }
