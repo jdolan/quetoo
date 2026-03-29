@@ -155,84 +155,112 @@ vec4 sample_voxel_fog(in vec3 position) {
 }
 
 /**
- * @brief Calculate volumetric fog with raymarching.
- * @details Raymarches from world_pos to the camera, accumulating fog density and lighting.
- * Supports both vertex (pre-calculated) and fragment (dynamic) fog based on distance.
- * @param world_pos The world-space position to calculate fog from.
- * @param view_pos The camera position in world space.
- * @param max_samples Maximum number of raymarching samples.
- * @return The fog color (rgb) and density (a).
- */
-vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
-  vec4 fog = vec4(0.0);
-
-  if (fog_density > 0.0) {
-    float dist = distance(world_pos, view_pos);
-    float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, max_samples);
-    
-    vec3 voxel_start = voxel_uvw(world_pos);
-    vec3 voxel_end = voxels.view_coordinate.xyz;
-    
-    float jitter = fract(sin(dot(world_pos, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
-
-    for (float i = 0; i < samples; i++) {
-      float t = (i + jitter) / samples;
-      vec3 xyz = mix(world_pos, view_pos, t);
-      vec3 uvw = mix(voxel_start, voxel_end, t);
-      
-      float fog_density_sample = voxel_fog_density(uvw);
-      
-      if (fog_density_sample > 0.0) {
-        vec3 fog_lighting = voxel_fog_lighting(xyz);
-        fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-      }
-      
-      if (fog.a >= 0.95) {
-        fog.a = 1.0;
-        break;
-      }
-    }
-    
-    if (hmax(fog.rgb) > 1.0) {
-      fog.rgb /= hmax(fog.rgb);
-    }
-  }
-
-  return clamp(fog, 0.0, 1.0);
-}
-
-/**
  * @brief Calculate vertex fog (pre-calculated in vertex shader).
+ * @details Simple raymarch without jitter or animation, used as a cheap
+ * boolean test to determine if per-fragment fog is needed.
  * @param v Vertex data (fog field is written).
  */
 void vertex_fog(inout common_vertex_t v) {
-  v.fog = voxel_fog(v.model_position, view[0].xyz, fog_samples);
+  v.fog = vec4(0.0);
+
+  if (fog_density > 0.0) {
+    float dist = distance(v.model_position, view[0].xyz);
+    float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+
+    vec3 voxel_start = voxel_uvw(v.model_position);
+    vec3 voxel_end = voxels.view_coordinate.xyz;
+
+    for (float i = 0; i < samples; i++) {
+      float t = i / samples;
+      vec3 xyz = mix(v.model_position, view[0].xyz, t);
+      vec3 uvw = mix(voxel_start, voxel_end, t);
+
+      float fog_density_sample = voxel_fog_density(uvw);
+      if (fog_density_sample > 0.0) {
+        vec3 fog_lighting = voxel_fog_lighting(xyz);
+        v.fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+      }
+
+      if (v.fog.a >= 0.95) {
+        v.fog.a = 1.0;
+        break;
+      }
+    }
+
+    if (hmax(v.fog.rgb) > 1.0) {
+      v.fog.rgb /= hmax(v.fog.rgb);
+    }
+
+    v.fog = clamp(v.fog, 0.0, 1.0);
+  }
 }
 
 /**
- * @brief Calculate fragment fog with distance-based LOD.
+ * @brief Calculate fragment fog with full raymarching, jitter, and animation.
  * @details For distant fragments (>= fog_distance), uses pre-calculated vertex fog.
- * For close fragments, performs full per-fragment raymarching for high-quality
- * dynamic lighting effects (e.g., rocket lighting fog).
+ * For close fragments, performs per-fragment raymarching with spatial jitter,
+ * coherent sway, and animated density wisps.
  * @param v Vertex data.
  * @param f Fragment data.
  * @return The fog color (rgb) and density (a).
  */
 vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
-  // For distant fragments, use interpolated vertex fog (much cheaper)
+
   if (f.view_dist >= fog_distance) {
     return v.fog;
   }
 
-  // Vertex fog is computed per-vertex and interpolated across the triangle.
-  // If the interpolated vertex fog has zero density, no fog is present along
-  // any vertex-to-camera ray in this triangle, so skip the per-fragment march.
   if (v.fog.a == 0.0) {
     return vec4(0.0);
   }
 
-  // For close fragments in a fog-touched triangle, do full per-fragment raymarching
-  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
+  vec4 fog = vec4(0.0);
+
+  float dist = distance(v.model_position, view[0].xyz);
+  float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+
+  vec3 voxel_start = voxel_uvw(v.model_position);
+  vec3 voxel_end = voxels.view_coordinate.xyz;
+
+  float jitter = fract(sin(dot(v.model_position, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+
+  vec3 uvw_per_unit = 1.0 / (voxels.maxs.xyz - voxels.mins.xyz);
+  float sway_time = ticks * 0.000625;
+
+  for (float i = 0; i < samples; i++) {
+    float t = (i + jitter) / samples;
+    vec3 xyz = mix(v.model_position, view[0].xyz, t);
+    vec3 uvw = mix(voxel_start, voxel_end, t);
+
+    // Height-dependent phase creates a swirling drift
+    vec3 sway = vec3(sin(sway_time + xyz.z * 0.01),
+                     cos(sway_time * 0.7 + xyz.z * 0.013),
+                     0.0) * BSP_VOXEL_SIZE * 0.5 * uvw_per_unit;
+
+    float fog_density_sample = voxel_fog_density(uvw + sway);
+
+    // Animated density variation for visible interior movement
+    float wisp = 0.8 + 0.2 * sin(xyz.x * 0.03 + sway_time)
+                            * sin(xyz.y * 0.025 + sway_time * 0.8)
+                            * sin(xyz.z * 0.02 + sway_time * 0.6);
+    fog_density_sample *= wisp;
+
+    if (fog_density_sample > 0.0) {
+      vec3 fog_lighting = voxel_fog_lighting(xyz);
+      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+    }
+
+    if (fog.a >= 0.95) {
+      fog.a = 1.0;
+      break;
+    }
+  }
+
+  if (hmax(fog.rgb) > 1.0) {
+    fog.rgb /= hmax(fog.rgb);
+  }
+
+  return clamp(fog, 0.0, 1.0);
 }
 
 /**
