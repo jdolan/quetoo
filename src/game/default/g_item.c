@@ -620,7 +620,7 @@ g_entity_t *G_TossFlag(g_client_t *cl) {
   cl->entity->s.model3 = 0;
   cl->entity->s.effects &= ~EF_CTF_MASK;
 
-  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id);
+  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.net_name, team->name, team->id + 1);
 
   return G_DropItem(cl, flag);
 }
