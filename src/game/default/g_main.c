@@ -348,8 +348,7 @@ void G_ResetSpawnPoints(void) {
     G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, 0, 0);
   }
 
-  // then apply team-based trails, this is done twice
-  // so neutrality gets applied properly
+  // then apply team-based trails, this is done twice so neutrality gets applied properly
   for (int32_t t = 0; t < MAX_TEAMS; t++) {
     G_ResetTeamSpawnPoints(&g_team_list[t].spawn_points, TRAIL_PLAYER_SPAWN, t);
   }

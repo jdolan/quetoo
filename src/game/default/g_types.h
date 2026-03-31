@@ -262,12 +262,12 @@ typedef enum {
 #define EF_CTF_RED    (EF_GAME << 7) // carrying the red flag
 #define EF_CTF_BLUE   (EF_GAME << 8) // carrying the blue flag
 #define EF_CTF_YELLOW (EF_GAME << 9) // carrying the yellow flag
-#define EF_CTF_WHITE  (EF_GAME << 10) // carrying the white flag
+#define EF_CTF_GREEN  (EF_GAME << 10) // carrying the green flag
 #define EF_DESPAWN    (EF_GAME << 11) // translucent
 #define EF_LIGHT      (EF_GAME << 12) // colored light
 #define EF_TEAM_TINT  (EF_GAME << 13) // tint by the team color provided
 
-#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_WHITE)
+#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
