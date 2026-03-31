@@ -101,11 +101,12 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_QUAD) {
+    const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.006f) * .5f;
     const cg_light_t l = {
       .origin = e->origin,
       .radius = 250.0,
       .color = Vec3(.3f, .7f, .7f),
-      .intensity = 3.f,
+      .intensity = pulse,
       .source = ent,
     };
 
@@ -119,12 +120,13 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
         const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
+        const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.005f) * .5f;
 
         const cg_light_t l = {
           .origin = e->origin,
           .radius = 250.0,
           .color = color,
-          .intensity = 3.f,
+          .intensity = pulse,
           .source = ent,
         };
 

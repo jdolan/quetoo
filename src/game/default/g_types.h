@@ -258,7 +258,7 @@ typedef enum {
 #define EF_BEAM       (EF_GAME << 3) // overloads old_origin for endpoint
 #define EF_CORPSE     (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN    (EF_GAME << 5) // yellow shell
-#define EF_QUAD       (EF_GAME << 6) // green shell
+#define EF_QUAD       (EF_GAME << 6) // blue-green shell
 #define EF_CTF_RED    (EF_GAME << 7) // carrying the red flag
 #define EF_CTF_BLUE   (EF_GAME << 8) // carrying the blue flag
 #define EF_CTF_YELLOW (EF_GAME << 9) // carrying the yellow flag
