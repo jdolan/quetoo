@@ -329,7 +329,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_BubbleTrail(NULL, org, Vec3_Fmaf(org, 8.f, dir), 2.f);
   } else {
 
-    float spark_life = 200.f;
+    float spark_life = 240.f;
     float spark_size = RandomRangef(35.f, 45.f);
 
     // spark spikes billboard
@@ -357,7 +357,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     vec3_t spark_origin = Vec3_Fmaf(org, 2.f, dir);
     for (int32_t i = 0; i < 6; i++) {
       float size = RandomRangef(3.f, 6.f);
-      float lifetime = RandomRangef(150.f, 300.f);
+      float lifetime = RandomRangef(400.f, 600.f);
       Cg_AddSprite(&(cg_sprite_t) {
         .atlas_image = cg_sprite_impact_spark_01_dot,
         .origin = spark_origin,
@@ -378,8 +378,8 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .rotation = RandomRadian(),
       .size_velocity = 60.0f,
       .lifetime = 800.f,
-      .color = Vec3(1.f, 1.f, 1.f),
-      .lighting = 0.65f
+      .color = Vec3(.125f, .125f, .125f),
+      .lighting = 1.f
     });
 
     // impact hotness
