@@ -514,6 +514,54 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
+  const vec3_t offset_org = Vec3_Fmaf(org, 2.f, dir);
+
+  // spark flash billboard
+  Cg_AddSprite(&(cg_sprite_t) {
+    .animation = cg_sprite_impact_spark_01,
+    .origin = offset_org,
+    .rotation = RandomRadian(),
+    .size = RandomRangef(30.f, 40.f),
+    .lifetime = 240.f,
+    .color = Vec3(1.f, .9f, .7f),
+  });
+
+  // spark flash decal
+  Cg_AddSprite(&(cg_sprite_t) {
+    .animation = cg_sprite_impact_spark_01,
+    .origin = offset_org,
+    .rotation = RandomRadian(),
+    .size = RandomRangef(30.f, 40.f),
+    .lifetime = 240.f,
+    .color = Vec3(1.f, .9f, .7f),
+    .dir = dir,
+  });
+
+  // spark dots
+  for (int32_t i = 0; i < 8; i++) {
+    Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_impact_spark_01_dot,
+      .origin = offset_org,
+      .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, .33f), RandomRangef(40.f, 80.f)),
+      .size = RandomRangef(3.f, 6.f),
+      .size_velocity = -8.f,
+      .lifetime = RandomRangef(300.f, 500.f),
+      .color = Vec3(1.f, .9f, .7f),
+    });
+  }
+
+  // hot spot glow on surface
+  Cg_AddSprite(&(cg_sprite_t) {
+    .atlas_image = cg_sprite_spark,
+    .origin = Vec3_Fmaf(org, .5f, dir),
+    .rotation = RandomRadian(),
+    .dir = dir,
+    .size = 4.f,
+    .lifetime = 650,
+    .color = ColorHSV(color_hue_orange, .8f, 1.f).vec3,
+  });
+
+  // bouncing sparks
   for (int32_t i = 0; i < count; i++) {
     const float hue = color_hue_yellow - RandomRangef(4.f, 40.f);
 
@@ -539,7 +587,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
     .origin = org,
     .radius = 100.0,
     .color = Vec3(.7f, .5f, .5f),
-    .intensity = 1.f,
+    .intensity = 2.f,
     .decay = RandomRangeu(120, 180),
   });
 
