@@ -66,7 +66,7 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
   vec3_t ent_forward, ent_right, ent_up;
   Vec3_Vectors(cl->angles, &ent_forward, &ent_right, &ent_up);
 
-  *org = Vec3_Fmaf(start, 12.f, ent_forward);
+  *org = Vec3_Fmaf(start, 24.f, ent_forward);
 
   switch (cl->persistent.hand) {
     case HAND_RIGHT:
@@ -80,19 +80,6 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
   }
 
   *org = Vec3_Fmaf(*org, -12.f, ent_up);
-
-  // if there's something non-damageable immediately blocking the shot, prefer to
-  // avoid the blocker
-  const cm_trace_t org_tr = gi.Trace(*org, end, Box3_Expand(Box3_Zero(), 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-  const vec3_t fake_end = Vec3_Fmaf(org_tr.end, 8.f, cl->forward);
-  const float distance_between_traces = Vec3_Distance(fake_end, tr.end);
-
-  g_entity_t *other = org_tr.ent;
-  if ((org_tr.fraction != 1.f && !other->take_damage)
-      && distance_between_traces > 16.f
-      && org_tr.brush_side != tr.brush_side) {
-    *org = start;
-  }
 
   // if the projected origin is invalid, use the entity's origin
   if (gi.Trace(*org, *org, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
