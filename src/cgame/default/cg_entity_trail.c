@@ -788,7 +788,7 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
   cgi.AddSprite(cgi.view, &(r_sprite_t) {
     .origin = ent->origin,
     .size = 100.f,
-    .media = (r_media_t*) cg_sprite_hyperball_01,
+    .media = (r_media_t *) cg_sprite_hyperball_01,
     .rotation = mod * 200.f * M_PI,
     .color = Vec3(1.f, 1.f, 1.f),
     .life = fmod(cgi.client->unclamped_time * 0.001f, 1.0f),
@@ -821,33 +821,80 @@ static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
- * @brief
+ * @brief Think function for teleporter helix sprites.
  */
+static void Cg_TeleporterTrail_Think(cg_sprite_t *sprite, float life, float delta) {
+
+  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+  const float phase = sprite->rotation;
+  const float orbit_speed = 5.f;
+  const float max_radius = 20.f;
+  const float radius = max_radius * (1.f - life * .6f);
+
+  const float angle = phase + t * orbit_speed;
+  sprite->origin.x = cosf(angle) * radius;
+  sprite->origin.y = sinf(angle) * radius;
+  sprite->origin.z = -16.f + life * 56.f;
+
+  sprite->size = (2.5f + sinf(t * 6.f + phase) * .5f) * (1.f - life * .4f);
+}
+
 static void Cg_TeleporterTrail(cl_entity_t *ent) {
-  const float value = .7f + (sinf(cgi.client->unclamped_time * .02f) / M_PI) * .3f;
-  
+
+  const vec3_t gold = ColorHSV(color_hue_yellow, .7f, 1.f).vec3;
+  const float t = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
+
   Cg_AddSprite(&(cg_sprite_t) {
-    .atlas_image = cg_sprite_splash_02_03,
+    .atlas_image = cg_sprite_teleport_core,
     .origin = Vec3_Fmaf(ent->origin, 8.f, Vec3_Up()),
     .size = 64.f,
-    .color = Vec3(value, value, value),
-    .axis = SPRITE_AXIS_X | SPRITE_AXIS_Y,
+    .color = Vec3_Scale(gold, .7f + sinf(t * 3.f) * .15f),
   });
 
+  // Helix sprites
   if (ent->timestamp <= cgi.client->unclamped_time) {
-    ent->timestamp = cgi.client->unclamped_time + 100;
-    
+    ent->timestamp = cgi.client->unclamped_time + 32;
+
+    Cg_AddSprite(&(cg_sprite_t) {
+      .atlas_image = cg_sprite_spark,
+      .origin = Vec3_Zero(),
+      .size = 2.5f,
+      .color = gold,
+      .end_color = Vec3(1.f, 1.f, .8f),
+      .lifetime = 1200,
+      .rotation = RandomRangef(0.f, 2.f * M_PI),
+      .flags = SPRITE_FOLLOW_ENTITY | SPRITE_DATA_NOFREE,
+      .Think = Cg_TeleporterTrail_Think,
+      .entity = Cg_GetSpriteEntity(ent),
+      .data = ent,
+      .lighting = .25f,
+    });
+  }
+
+  // Rising rings
+  if ((cgi.client->unclamped_time % 200) < cgi.client->frame_msec) {
     Cg_AddSprite(&(cg_sprite_t) {
       .atlas_image = cg_sprite_ring,
       .dir = Vec3_Up(),
       .origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
-      .velocity.z = RandomRangef(80.f, 120.f),
-      .lifetime = 450,
-      .size = 64.f,
-      .size_velocity = 48.f,
-      .color = Vec3(1.f, 1.f, 1.f),
+      .velocity.z = RandomRangef(60.f, 100.f),
+      .lifetime = 600,
+      .size = 48.f,
+      .size_velocity = 32.f,
+      .color = gold,
+      .end_color = Vec3_Scale(gold, .2f),
     });
   }
+
+  // Pulsating light
+  const float pulse = 1.5f + sinf(t * 4.f) * .5f;
+  Cg_AddLight(&(const cg_light_t) {
+    .origin = ent->origin,
+    .radius = 150.0,
+    .color = gold,
+    .intensity = pulse,
+    .source = ent,
+  });
 }
 
 /**
