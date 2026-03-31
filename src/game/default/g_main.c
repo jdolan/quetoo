@@ -317,10 +317,12 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
     if (trail && (g_level.teams || g_level.ctf)) {
 
       if (ent->s.trail) {
-        ent->s.client = MAX_TEAMS;
+        // Shared spawn point (already claimed by another team): use yellow
+        ent->s.color = Color_Color32(ColorHSV(color_hue_yellow, 1.f, 1.f));
       } else {
-        ent->s.client = team_id;
+        ent->s.color = Color_Color32(ColorHSV(g_team_list[team_id].color, 1.f, 1.f));
       }
+
       ent->s.trail = trail;
       ent->sv_flags = 0;
 
@@ -328,6 +330,7 @@ static void G_ResetTeamSpawnPoints(g_spawn_points_t *points, const g_entity_trai
     } else {
 
       ent->s.trail = 0;
+      ent->s.color = (color32_t) { .rgba = 0 };
       ent->sv_flags = SVF_NO_CLIENT;
 
       gi.UnlinkEntity(ent);

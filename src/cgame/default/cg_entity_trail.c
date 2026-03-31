@@ -863,13 +863,16 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
  */
 static void Cg_PlayerSpawnTrail(const cl_entity_t *ent) {
 
-  const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, color_hue_yellow);
+  const color_t color = Color32_Color(ent->current.color);
+  const vec3_t rgb = color.r > 0.f || color.g > 0.f || color.b > 0.f
+    ? color.vec3
+    : ColorHSV(color_hue_yellow, 1.f, 1.f).vec3;
 
   cgi.AddSprite(cgi.view, &(r_sprite_t) {
     .media = (r_media_t *) cg_sprite_ring,
     .origin = Vec3_Fmaf(ent->origin, 16.f, Vec3_Down()),
     .size = 48.f + Cg_Oscillate(1, 12.f, 1.f, 0.f),
-    .color = color,
+    .color = rgb,
     .dir = Vec3_Up()
   });
 }
