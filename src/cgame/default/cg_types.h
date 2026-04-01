@@ -113,6 +113,12 @@ typedef struct {
    * @brief The team identifier.
    */
   cg_team_info_t *team;
+
+  /**
+   * @brief The cached weapon tag origin and angles, for muzzle flash alignment.
+   */
+  vec3_t weapon_origin;
+  vec3_t weapon_angles;
 } cg_client_info_t;
 
 #define WEATHER_NONE 0x0

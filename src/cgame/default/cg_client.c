@@ -501,7 +501,7 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   const entity_state_t *s = &ent->current;
 
-  const cg_client_info_t *ci = &cg_state.clients[s->client];
+  cg_client_info_t *ci = &cg_state.clients[s->client];
   if (!ci->head || !ci->torso || !ci->legs) {
     Cg_Debug("Invalid client info: %d\n", s->client);
     return;
@@ -657,6 +657,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     });
 
     assert(r_weapon);
+
+    ci->weapon_origin = r_weapon->origin;
+    ci->weapon_angles = r_weapon->angles;
   }
 
   r_entity_t *r_flag = NULL;
