@@ -7,6 +7,7 @@
     <LocalDebuggerCommandArguments>-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp test</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArgumentsHistory>-p "D:\quetoo_dev\github\quetoo\Quetoo.vs15\../../quetoo-data/src/default" -bsp -light tokays|-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp test|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArgumentsHistory>-p "D:\quetoo_dev\github\quetoo\Quetoo.vs15\../../quetoo-data/src/default" -bsp -light tokays|-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp test|-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp longyard|-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp maps/longyard|</LocalDebuggerCommandArgumentsHistory>
+    <LocalDebuggerCommandArguments>-p "C:\Users\chrisg\OneDrive\Documents\My Games\Quetoo\default" -bsp maps/longyard</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
