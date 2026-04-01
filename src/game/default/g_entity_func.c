@@ -100,37 +100,68 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
 
   if (move->current_speed == 0.0) { // starting or restarting after being blocked
 
-    // http://www.ajdesigner.com/constantacceleration/cavelocitya.php
-
     const float distance = Vec3_Distance(move->dest, ent->s.origin);
 
     const float accel_time = move->speed / move->accel;
     const float decel_time = move->speed / move->decel;
 
-    move->accel_frames = accel_time * QUETOO_TICK_RATE;
-    move->decel_frames = decel_time * QUETOO_TICK_RATE;
+    move->accel_frames = (int32_t)(accel_time * QUETOO_TICK_RATE);
+    move->decel_frames = (int32_t)(decel_time * QUETOO_TICK_RATE);
 
-    const float avg_speed = move->speed * 0.5;
+    const float avg_speed = move->speed * 0.5f;
 
-    float accel_distance = avg_speed * accel_time;
-    float decel_distance = avg_speed * decel_time;
+    const float accel_distance = avg_speed * accel_time;
+    const float decel_distance = avg_speed * decel_time;
 
     if (accel_distance + decel_distance > distance) {
       G_Debug("Clamping acceleration for %s\n", etos(ent));
 
-      const float scale = distance / (accel_distance + decel_distance);
+      // The continuous-time ramp formula is inaccurate for the small frame
+      // counts that arise when the travel distance is shorter than the full
+      // acceleration ramp.  Derive the correct frame counts directly from
+      // the discrete per-tick physics model instead:
+      //
+      //   accel distance over N_a frames:  accel * dt^2 * N_a * (N_a+1) / 2
+      //   decel distance over N_d frames:  decel * dt^2 * N_d * (N_d-1) / 2
+      //   peak-speed constraint:           N_d = floor(N_a * accel / decel)
+      //
+      // Any gap not covered by accel/decel is padded with const frames at
+      // peak speed so Final is only called with a sub-frame residual.
+      const float dt2 = QUETOO_TICK_SECONDS * QUETOO_TICK_SECONDS;
 
-      accel_distance *= scale;
-      decel_distance *= scale;
+      move->accel_frames = 0;
+      move->decel_frames = 0;
+      move->const_frames = 0;
 
-      move->accel_frames = accel_distance / avg_speed * QUETOO_TICK_RATE;
-      move->decel_frames = decel_distance / avg_speed * QUETOO_TICK_RATE;
+      for (int32_t n = 1; ; n++) {
+        const float peak = (float)n * move->accel * QUETOO_TICK_SECONDS;
+        if (peak >= move->speed) {
+          break; // reached full speed — should not occur in the clamped path
+        }
+
+        const int32_t nd = (int32_t)(peak / (move->decel * QUETOO_TICK_SECONDS));
+        const float ad = move->accel * dt2 * (float)(n * (n + 1)) * 0.5f;
+        const float dd = move->decel * dt2 * (float)(nd * (nd - 1)) * 0.5f;
+
+        if (ad + dd > distance) {
+          break;
+        }
+
+        move->accel_frames = n;
+        move->decel_frames = nd;
+      }
+
+      const float peak_speed = (float)move->accel_frames * move->accel * QUETOO_TICK_SECONDS;
+      if (peak_speed > 0.f) {
+        const float ad = move->accel * dt2 * (float)(move->accel_frames * (move->accel_frames + 1)) * 0.5f;
+        const float dd = move->decel * dt2 * (float)(move->decel_frames * (move->decel_frames - 1)) * 0.5f;
+        const float remaining = distance - ad - dd;
+        move->const_frames = remaining > 0.f ? (int32_t)floorf(remaining / (peak_speed * QUETOO_TICK_SECONDS)) : 0;
+      }
+    } else {
+      const float const_distance = distance - accel_distance - decel_distance;
+      move->const_frames = (int32_t)(const_distance / move->speed * QUETOO_TICK_RATE);
     }
-
-    const float const_distance = (distance - (accel_distance + decel_distance));
-    const float const_time = const_distance / move->speed;
-
-    move->const_frames = const_time * QUETOO_TICK_RATE;
   }
 
   // accelerate
@@ -142,9 +173,9 @@ static void G_MoveInfo_Linear_Accelerate(g_entity_t *ent) {
     move->accel_frames--;
   }
 
-  // maintain speed
+  // maintain speed — current_speed carries forward from the accel phase:
+  // move->speed for the non-clamped path, or peak speed for the clamped path.
   else if (move->const_frames) {
-    move->current_speed = move->speed;
     move->const_frames--;
   }
 
