@@ -82,7 +82,9 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
   const box3_t bounds = Box3f(32.f, 32.f, 32.f);
 
-  if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
+  if (cg_third_person->value && Cg_Self()->current.model1) {
+    cgi.client->third_person = true;
+  } else if (cg_third_person_chasecam->value && ps->stats[STAT_CHASE]) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
