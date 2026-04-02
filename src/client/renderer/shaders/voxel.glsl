@@ -141,20 +141,6 @@ vec3 voxel_fog_lighting(in vec3 position) {
 }
 
 /**
- * @brief Sample voxel fog at a world-space position (convenience function).
- * @param position The world-space position.
- * @return The fog color (rgb) and density (a).
- */
-vec4 sample_voxel_fog(in vec3 position) {
-  float density = voxel_fog_density(voxel_uvw(position));
-  if (density > 0.0) {
-    vec3 lighting = voxel_fog_lighting(position);
-    return vec4(lighting, density * fog_density);
-  }
-  return vec4(0.0);
-}
-
-/**
  * @brief Calculate vertex fog (pre-calculated in vertex shader).
  * @details Simple raymarch without jitter or animation, used as a cheap
  * boolean test to determine if per-fragment fog is needed.
@@ -180,11 +166,6 @@ void vertex_fog(inout common_vertex_t v) {
         vec3 fog_lighting = voxel_fog_lighting(xyz);
         v.fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
       }
-
-      if (v.fog.a >= 0.95) {
-        v.fog.a = 1.0;
-        break;
-      }
     }
 
     if (hmax(v.fog.rgb) > 1.0) {
@@ -204,17 +185,15 @@ void vertex_fog(inout common_vertex_t v) {
  * @param f Fragment data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
+void fragment_fog(in common_vertex_t v, inout common_fragment_t f) {
 
-  if (f.view_dist >= fog_distance) {
-    return v.fog;
+  f.fog = v.fog;
+
+  if (f.fog.a == 0.0 || f.view_dist >= fog_distance) {
+    return;
   }
 
-  if (v.fog.a == 0.0) {
-    return vec4(0.0);
-  }
-
-  vec4 fog = vec4(0.0);
+  f.fog = vec4(0.0);
 
   float dist = distance(v.model_position, view[0].xyz);
   float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
@@ -233,34 +212,25 @@ vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
     vec3 uvw = mix(voxel_start, voxel_end, t);
 
     // Height-dependent phase creates a swirling drift
-    vec3 sway = vec3(sin(sway_time + xyz.z * 0.01),
-                     cos(sway_time * 0.7 + xyz.z * 0.013),
-                     0.0) * BSP_VOXEL_SIZE * 0.5 * uvw_per_unit;
+    vec3 sway = vec3(sin(sway_time + xyz.z * 0.01), cos(sway_time * 0.7 + xyz.z * 0.013), 0.0) * BSP_VOXEL_SIZE * 0.5 * uvw_per_unit;
 
     float fog_density_sample = voxel_fog_density(uvw + sway);
-
-    // Animated density variation for visible interior movement
-    float wisp = 0.8 + 0.2 * sin(xyz.x * 0.03 + sway_time)
-                            * sin(xyz.y * 0.025 + sway_time * 0.8)
-                            * sin(xyz.z * 0.02 + sway_time * 0.6);
-    fog_density_sample *= wisp;
-
     if (fog_density_sample > 0.0) {
+
+      // Animated density variation for visible interior movement
+      float wisp = 0.85 + 0.15 * sin(dot(xyz, vec3(0.03, 0.025, 0.02)) + sway_time);
+      fog_density_sample *= wisp;
+
       vec3 fog_lighting = voxel_fog_lighting(xyz);
-      fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-    }
-
-    if (fog.a >= 0.95) {
-      fog.a = 1.0;
-      break;
+      f.fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
     }
   }
 
-  if (hmax(fog.rgb) > 1.0) {
-    fog.rgb /= hmax(fog.rgb);
+  if (hmax(f.fog.rgb) > 1.0) {
+    f.fog.rgb /= hmax(f.fog.rgb);
   }
 
-  return clamp(fog, 0.0, 1.0);
+  f.fog = clamp(f.fog, 0.0, 1.0);
 }
 
 /**

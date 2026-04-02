@@ -134,14 +134,15 @@ void main(void) {
       discard;
     }
 
-    bsp_fragment_lighting();
-
-    fragment.fog = fragment_fog(vertex, fragment);
-
     out_color = fragment.diffuse_sample;
+
+    bsp_fragment_lighting();
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
+
+    fragment_fog(vertex, fragment);
+
     out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
@@ -157,13 +158,18 @@ void main(void) {
     out_color = fragment.diffuse_sample;
 
     if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+
       bsp_fragment_lighting();
+
       out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
+      out_color.rgb += fragment.specular * stage.lighting;
     }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-      fragment.fog = fragment_fog(vertex, fragment) * stage.fog;
-      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
+
+      fragment_fog(vertex, fragment);
+
+      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
     }
   }
 }

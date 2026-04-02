@@ -34,7 +34,8 @@ void main(void) {
   out_color = texture(texture_sky, normalize(cubemap_coord));
 
   fragment.view_dist = length(vertex.position);
-  fragment.fog = fragment_fog(vertex, fragment);
+
+  fragment_fog(vertex, fragment);
 
   out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 }
