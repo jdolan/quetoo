@@ -195,10 +195,14 @@ static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surfac
     min = Minf(min, in_normalmap->a);
     max = Maxf(max, in_normalmap->a);
   }
-
-  in_normalmap = normalmap->pixels;
-  for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
-    in_normalmap->a = (in_normalmap->a - min) / (max - min) * 255;
+  
+  const float range = max - min;
+  
+  if (range > 0.f) {
+    in_normalmap = normalmap->pixels;
+    for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+      in_normalmap->a = (in_normalmap->a - min) / range * 255.f;
+    }
   }
 }
 
