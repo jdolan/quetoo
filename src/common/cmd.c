@@ -229,10 +229,12 @@ void Cmd_TokenizeString(const char *text) {
 
       // strip off any trailing whitespace
       size_t l = strlen(cmd_state.args.args);
-      char *c = &cmd_state.args.args[l - 1];
+      if (l > 0) {
+        char *c = &cmd_state.args.args[l - 1];
 
-      while (*c <= ' ') {
-        *c-- = '\0';
+        while (*c <= ' ') {
+          *c-- = '\0';
+        }
       }
     }
 
