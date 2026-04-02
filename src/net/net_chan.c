@@ -177,8 +177,8 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
   // write the packet header
   Mem_InitBuffer(&send, send_buffer, sizeof(send_buffer));
 
-  const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31)) | (send_reliable << 31);
-  const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | (chan->reliable_incoming << 31);
+  const uint32_t w1 = (chan->outgoing_sequence & ~(1u << 31)) | ((uint32_t) send_reliable << 31);
+  const uint32_t w2 = (chan->incoming_sequence & ~(1u << 31)) | ((uint32_t) chan->reliable_incoming << 31);
 
   chan->outgoing_sequence++;
   chan->last_sent = quetoo.ticks;
