@@ -730,7 +730,7 @@ void G_TeamCenterPrint(const g_team_t *team, const char *fmt, ...) {
   va_list args;
 
   va_start(args, fmt);
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
   va_end(args);
 
   G_ForEachClient(cl, {

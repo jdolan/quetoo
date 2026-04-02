@@ -46,7 +46,7 @@ void Sv_ClientPrint(const g_client_t *cl, const int32_t level, const char *fmt, 
   va_start(args, fmt);
 
   char string[MAX_STRING_CHARS];
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
 
   va_end(args);
 
@@ -64,7 +64,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
   va_start(args, fmt);
 
   char string[MAX_STRING_CHARS];
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
 
   va_end(args);
 
@@ -110,7 +110,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
   }
 
   va_start(args, fmt);
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
   va_end(args);
 
   Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
