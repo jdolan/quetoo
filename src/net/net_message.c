@@ -593,10 +593,10 @@ int32_t Net_ReadLong(mem_buf_t *msg) {
   if (msg->read + 4 > msg->size) {
     c = -1;
   } else
-    c = (msg->data[msg->read + 0] << 0)
-      + (msg->data[msg->read + 1] << 8)
-      + (msg->data[msg->read + 2] << 16)
-      + (msg->data[msg->read + 3] << 24);
+    c = ((uint32_t) msg->data[msg->read + 0] << 0)
+      + ((uint32_t) msg->data[msg->read + 1] << 8)
+      + ((uint32_t) msg->data[msg->read + 2] << 16)
+      + ((uint32_t) msg->data[msg->read + 3] << 24);
 
   msg->read += 4;
 
