@@ -122,20 +122,20 @@ color_t Img_Color(const SDL_Surface *surf) {
   return Img_ColorHighPass(surf, 0.f);
 }
 
-// Quick access of a pixel
-#define SDL_PIXEL_AT(surf, type, x, y) \
-  *(type *)((byte *)surf->pixels + ((y) * surf->pitch) + (x) * SDL_BYTESPERPIXEL(surf->format))
+// Quick access of a pixel address
+#define SDL_PIXEL_AT(surf, x, y) \
+((byte *)surf->pixels + ((y) * surf->pitch) + (x) * SDL_BYTESPERPIXEL(surf->format))
 
 // helper macro which copies an SDL pixel from one surf to another
-#define SDL_COPY_PIXEL(from, to, type, src_x, src_y, dst_x, dst_y) \
-    SDL_PIXEL_AT(to, type, dst_x, dst_y) = SDL_PIXEL_AT(from, type, src_x, src_y)
+#define SDL_COPY_PIXEL(from, to, src_x, src_y, dst_x, dst_y) \
+memcpy(SDL_PIXEL_AT(to, dst_x, dst_y), SDL_PIXEL_AT(from, src_x, src_y), SDL_BYTESPERPIXEL(from->format))
 
 /**
  * @brief Rotate an SDL surface counter-clockwise by the number of rotations specified.
  * @param surf Surface to rotate. It is not modified.
  * @param num_rotations Number of 90-degree rotations to rotate by.
  * @return Either a reference to "surf" if the surface was not rotated, or a new surface.
-*/
+ */
 SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 
   num_rotations %= 4;
@@ -155,21 +155,27 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
   SDL_LockSurface(output);
 
   switch (num_rotations) {
-  case 1:
-    for (int32_t y = 0; y < surf->h; y++)
-      for (int32_t x = 0; x < surf->w; x++)
-        SDL_COPY_PIXEL(surf, output, int32_t, surf->w - y - 1, x, x, y);
-    break;
-  case 2:
-    for (int32_t y = 0; y < surf->h; y++)
-      for (int32_t x = 0; x < surf->w; x++)
-        SDL_COPY_PIXEL(surf, output, int32_t, surf->w - x - 1, surf->h - y - 1, x, y);
-    break;
-  case 3:
-    for (int32_t y = 0; y < surf->h; y++)
-      for (int32_t x = 0; x < surf->w; x++)
-        SDL_COPY_PIXEL(surf, output, int32_t, y, surf->h - x - 1, x, y);
-    break;
+    case 1:
+      for (int32_t y = 0; y < surf->h; y++) {
+        for (int32_t x = 0; x < surf->w; x++) {
+          SDL_COPY_PIXEL(surf, output, surf->w - y - 1, x, x, y);
+        }
+      }
+      break;
+    case 2:
+      for (int32_t y = 0; y < surf->h; y++) {
+        for (int32_t x = 0; x < surf->w; x++) {
+          SDL_COPY_PIXEL(surf, output, surf->w - x - 1, surf->h - y - 1, x, y);
+        }
+      }
+      break;
+    case 3:
+      for (int32_t y = 0; y < surf->h; y++) {
+        for (int32_t x = 0; x < surf->w; x++) {
+          SDL_COPY_PIXEL(surf, output, y, surf->h - x - 1, x, y);
+        }
+      }
+      break;
   }
 
   SDL_UnlockSurface(output);
@@ -180,8 +186,8 @@ SDL_Surface *Img_RotateSurface(SDL_Surface *surf, int32_t num_rotations) {
 }
 
 /**
-* @brief Write pixel data to a PNG file.
-*/
+ * @brief Write pixel data to a PNG file.
+ */
 bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height) {
   SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
@@ -208,8 +214,8 @@ bool Img_WritePNG(const char *path, byte *data, uint32_t width, uint32_t height)
 }
 
 /**
-* @brief Write pixel data to a JPEG file.
-*/
+ * @brief Write pixel data to a JPEG file.
+ */
 bool Img_WriteJPG(const char *path, byte *data, uint32_t width, uint32_t height, int32_t quality) {
   SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
@@ -253,8 +259,8 @@ typedef struct {
 } r_tga_header_t;
 
 /**
-* @brief Write pixel data to a TGA file.
-*/
+ * @brief Write pixel data to a TGA file.
+ */
 bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height) {
   SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
@@ -290,8 +296,8 @@ bool Img_WriteTGA(const char *path, byte *data, uint32_t width, uint32_t height)
 }
 
 /**
-* @brief Write pixel data to a PBM file.
-*/
+ * @brief Write pixel data to a PBM file.
+ */
 bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height, uint32_t bpp) {
   SDL_IOStream *f;
   const char *real_path = Fs_RealPath(path);
@@ -328,7 +334,7 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
   float *buffer_float_out = (float *)buffer;
 
   const uint8_t *chunk = NULL;
-  
+
   // swap to big endian and flip pixels vertically (if needed)
   for (size_t i = 0; i < height; i++) {
     for (size_t j = 0; j < width * 3; j++) {
@@ -336,16 +342,16 @@ bool Img_WritePBM(const char *path, byte *data, uint32_t width, uint32_t height,
       size_t index_out = (height - i - 1) * width * 3 + j;
 
       switch (bpp) {
-      case 1:
-        buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
-        break;
-      case 2:
-        chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
-        buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
-        break;
-      case 4:
-        buffer_float_out[index_out] = buffer_float_in[index_in];
-        break;
+        case 1:
+          buffer_uint8_out[index_out] = buffer_uint8_in[index_in];
+          break;
+        case 2:
+          chunk = (const uint8_t *)(&buffer_uint16_in[index_in]);
+          buffer_uint16_out[index_out] = (chunk[1] << 0) | (chunk[0] << 8);
+          break;
+        case 4:
+          buffer_float_out[index_out] = buffer_float_in[index_in];
+          break;
       }
     }
   }
