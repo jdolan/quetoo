@@ -320,14 +320,23 @@ void Sv_InitConsole(void) {
 
   if (has_colors() == TRUE) {
     start_color();
-    use_default_colors();
-    init_pair(ESC_COLOR_RED, COLOR_RED, -1);
-    init_pair(ESC_COLOR_GREEN, COLOR_GREEN, -1);
-    init_pair(ESC_COLOR_YELLOW, COLOR_YELLOW, -1);
-    init_pair(ESC_COLOR_BLUE, COLOR_BLUE, -1);
-    init_pair(ESC_COLOR_CYAN, COLOR_CYAN, -1);
-    init_pair(ESC_COLOR_MAGENTA, COLOR_MAGENTA, -1);
-    init_pair(ESC_COLOR_WHITE, COLOR_WHITE, -1);
+    if (use_default_colors() == OK) {
+      init_pair(ESC_COLOR_RED, COLOR_RED, -1);
+      init_pair(ESC_COLOR_GREEN, COLOR_GREEN, -1);
+      init_pair(ESC_COLOR_YELLOW, COLOR_YELLOW, -1);
+      init_pair(ESC_COLOR_BLUE, COLOR_BLUE, -1);
+      init_pair(ESC_COLOR_CYAN, COLOR_CYAN, -1);
+      init_pair(ESC_COLOR_MAGENTA, COLOR_MAGENTA, -1);
+      init_pair(ESC_COLOR_WHITE, COLOR_WHITE, -1);
+    } else {
+      init_pair(ESC_COLOR_RED, COLOR_RED, COLOR_BLACK);
+      init_pair(ESC_COLOR_GREEN, COLOR_GREEN, COLOR_BLACK);
+      init_pair(ESC_COLOR_YELLOW, COLOR_YELLOW, COLOR_BLACK);
+      init_pair(ESC_COLOR_BLUE, COLOR_BLUE, COLOR_BLACK);
+      init_pair(ESC_COLOR_CYAN, COLOR_CYAN, COLOR_BLACK);
+      init_pair(ESC_COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+      init_pair(ESC_COLOR_WHITE, COLOR_WHITE, COLOR_BLACK);
+    }
   }
 
 #ifdef SIGWINCH
