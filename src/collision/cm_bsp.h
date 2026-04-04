@@ -54,7 +54,7 @@
 /**
  * @brief The BSP block node size.
  */
-#define BSP_BLOCK_SIZE 512.f
+#define BSP_BLOCK_SIZE 1024.f
 
 /**
  * @brief Voxel voxel size in world units.
