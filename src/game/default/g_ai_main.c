@@ -455,6 +455,10 @@ static bool Ai_ShouldChaseEnemy(const g_client_t *cl, const g_entity_t *target) 
     return false;
   }
 
+  if (!target->client) {
+    return false;
+  }
+
   // base chance is our weapon's weight
   const g_item_t *const weapon = cl->weapon;
   float chance = weapon->priority;
