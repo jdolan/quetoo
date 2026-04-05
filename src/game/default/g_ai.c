@@ -106,7 +106,7 @@ void G_Ai_Frame(void) {
     } else if (count > desired) {
       G_ForEachClient(cl, {
         if (cl->ai) {
-          G_Ai_Disconnect(cl);
+          G_ClientDisconnect(cl);
           break;
         }
       });

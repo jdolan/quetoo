@@ -214,7 +214,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     // check to see if the thing we are moving to has been taken
     if (target && target->item) {
 
-      if (!G_Ai_IsTargetable(cl, target) ||
+      if (target->solid != SOLID_TRIGGER ||
         !G_Ai_CanPickup(cl, target)) {
 
         G_Ai_ClearGoal(&cl->ai->move_target);
