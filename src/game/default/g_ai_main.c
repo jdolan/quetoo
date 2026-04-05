@@ -538,8 +538,30 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
   // we have somebody to kill; go get'em!
   if (cl->ai->combat_target.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->move_target, cl->ai->combat_target.entity.ent) && G_Ai_ChaseEnemy(cl, cl->ai->combat_target.entity.ent)) {
-    G_Ai_CopyGoal(&cl->ai->combat_target, &cl->ai->move_target);
-    G_Ai_Debug("Decided to chase/close in on enemy\n");
+
+    const g_entity_t *enemy = cl->ai->combat_target.entity.ent;
+    const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
+
+    // try to find a safe path to the enemy via navigation nodes
+    const ai_node_id_t my_node = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
+    const ai_node_id_t enemy_node = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
+    bool pathed = false;
+
+    if (my_node != AI_NODE_INVALID && enemy_node != AI_NODE_INVALID && my_node != enemy_node) {
+      GArray *path = G_Ai_Node_FindPath(my_node, enemy_node, G_Ai_Node_Heuristic, NULL);
+      if (path) {
+        G_Ai_SetPathGoal(cl, &cl->ai->move_target, 0.7f, path, enemy);
+        g_array_unref(path);
+        pathed = true;
+        G_Ai_Debug("Chasing enemy via path\n");
+      }
+    }
+
+    // fall back to direct movement only at close range
+    if (!pathed && dist < 256.f) {
+      G_Ai_CopyGoal(&cl->ai->combat_target, &cl->ai->move_target);
+      G_Ai_Debug("Chasing enemy directly (close range)\n");
+    }
   }
 
   // still have an enemy
