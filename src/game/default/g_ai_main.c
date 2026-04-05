@@ -55,7 +55,7 @@ static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
  */
 static inline bool G_Ai_IsTargetable(const g_client_t *cl, const g_entity_t *other) {
 
-  if (G_IsMeat(other) && !G_OnSameTeam(cl, other->client)) {
+  if (other->client && other->solid == SOLID_BOX && !G_OnSameTeam(cl, other->client)) {
     return true;
   }
 
