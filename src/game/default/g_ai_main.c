@@ -673,8 +673,17 @@ static inline float G_Ai_Wander(g_client_t *cl, pm_cmd_t *cmd) {
   const vec3_t end = Vec3_Fmaf(ent->s.origin, Box3_Size(ent->bounds).x * 2.0f, forward);
   const cm_trace_t tr = gi.Trace(ent->s.origin, end, Box3_Zero(), ent, CONTENTS_MASK_CLIP_PLAYER);
 
-  if (tr.fraction < 1.0f) { // hit a wall
-  
+  bool blocked = tr.fraction < 1.0f;
+
+  // check for ground ahead to avoid walking off edges
+  if (!blocked) {
+    const vec3_t drop_start = end;
+    const vec3_t drop_end = Vec3_Subtract(drop_start, Vec3(0, 0, PM_STEP_HEIGHT * 4.f));
+    const cm_trace_t ground_tr = gi.Trace(drop_start, drop_end, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+    blocked = ground_tr.fraction >= 1.0f;
+  }
+
+  if (blocked) {
     if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
       if (cl->ai->combat_target.entity.combat_type == AI_COMBAT_FLANK && Randomb()) {
         cl->ai->combat_target.entity.combat_type = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
@@ -1037,39 +1046,46 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
   pm_ahead.cmd.msec = 100;
   Pm_Move(&pm_ahead);
 
-  // we weren't trying to jump and predicted ground is gone
-  if (cmd->up <= 0 && ent->ground.ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
-
-    //G_Ai_Debug("Lacking ground entity. In 5 frames: %s, in 1 frame: %s\n", pm_ahead.ground_entity ? "no" : "yes", pm.ground_entity ? "no" : "yes");
+  // predicted ground is gone
+  if (ent->ground.ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
 
     if (cl->ai->move_target.type == AI_GOAL_PATH) {
-      const float xy_dist = Vec2_Distance(Vec3_XY(cl->ai->move_target.path.path_position), Vec3_XY(ent->s.origin));
-      
-      // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-      if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->move_target.path.path, cl->ai->move_target.path.path_index)) {
-        cmd->forward = -cmd->forward;
-        cmd->right = -cmd->right; // stop for now
-        G_Ai_Debug("Stopping early to prevent mover issues\n");
-      // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
-      } else if (((cl->ai->move_target.path.path_position.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
-        (xy_dist > fabsf(cl->ai->move_target.path.path_position.z - ent->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
-        cmd->up = PM_SPEED_JUMP;
-      }
-    } else if (move_wander) {
-      const float angle = 45 + Randomf() * 45;
 
-      if (target_enemy) {
-        cl->ai->move_target.entity.combat_type = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
-        cl->ai->move_target.entity.flank_angle += Randomb() ? -angle : angle;
-      } else {
-        cl->ai->move_target.wander.angle += Randomb() ? -angle : angle;
+      // path goals: only apply edge logic when not intentionally jumping
+      if (cmd->up <= 0) {
+        const float xy_dist = Vec2_Distance(Vec3_XY(cl->ai->move_target.path.path_position), Vec3_XY(ent->s.origin));
+        
+        // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
+        if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->move_target.path.path, cl->ai->move_target.path.path_index)) {
+          cmd->forward = -cmd->forward;
+          cmd->right = -cmd->right; // stop for now
+          G_Ai_Debug("Stopping early to prevent mover issues\n");
+        // if the node is above us step-wise OR it's not far below us & across a big distance, we gotta jump
+        } else if (((cl->ai->move_target.path.path_position.z - ent->s.origin.z) > -PM_STEP_HEIGHT ||
+          (xy_dist > fabsf(cl->ai->move_target.path.path_position.z - ent->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
+          cmd->up = PM_SPEED_JUMP;
+        }
       }
+
     } else {
-      const float xy_dist = Vec2_Distance(Vec3_XY(dest), Vec3_XY(ent->s.origin));
 
-      if (((dest.z - ent->s.origin.z) > -PM_STEP_HEIGHT &&
-        (xy_dist > fabsf(cl->ai->move_target.path.path_position.z - ent->s.origin.z) && (xy_dist >= PM_STEP_HEIGHT * 6.f))) && !pm.ground.ent) {
-        cmd->up = PM_SPEED_JUMP;
+      // non-path movement: back away from edges, cancel acrobatics jumps
+      cmd->forward = -cmd->forward;
+      cmd->right = -cmd->right;
+      cmd->up = 0;
+
+      if (move_wander) {
+        const float angle = 45 + Randomf() * 45;
+
+        if (target_enemy) {
+          cl->ai->move_target.entity.combat_type = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+          cl->ai->move_target.entity.flank_angle += Randomb() ? -angle : angle;
+        } else {
+          cl->ai->move_target.wander.angle += Randomb() ? -angle : angle;
+        }
+      } else if (target_enemy) {
+        // charging toward enemy would go off edge - switch to flanking
+        cl->ai->move_target.entity.combat_type = AI_COMBAT_WANDER;
       }
     }
   // trick jump code
