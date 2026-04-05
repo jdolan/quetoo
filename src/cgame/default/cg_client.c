@@ -294,11 +294,41 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
 }
 
 /**
+ * @brief Fs_Enumerator for preloading player models.
+ */
+static void Cg_PreloadClientModel(const char *path, void *data) {
+
+  char model[MAX_QPATH];
+  g_strlcpy(model, path, sizeof(model));
+
+  char *slash = strrchr(model, '/');
+  if (!slash) {
+    return;
+  }
+  *slash = '\0';
+
+  const char *name = strrchr(model, '/');
+  if (!name) {
+    return;
+  }
+  name++;
+
+  cg_client_info_t ci = {};
+
+  if (Cg_LoadClientModel(&ci, name, DEFAULT_SKIN)) {
+    cgi.LoadClientModelSamples(name);
+    cgi.LoadingProgress(-1, name);
+  }
+}
+
+/**
  * @brief Load all client info strings from the server.
  */
 void Cg_LoadClients(void) {
 
   memset(cg_state.clients, 0, sizeof(cg_state.clients));
+
+  cgi.EnumerateFiles("players/*/upper.md3", Cg_PreloadClientModel, NULL);
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
     cg_client_info_t *ci = &cg_state.clients[i];
