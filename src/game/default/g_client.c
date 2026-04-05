@@ -490,7 +490,9 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_TossTech(cl);
   }
 
-  if (ent->health <= -CLIENT_CORPSE_HEALTH) {
+  const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
+
+  if (gibbed) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
     G_MulticastSound(&(const g_play_sound_t) {
@@ -538,7 +540,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   ent->dead = true;
 
   ent->s.event = EV_NONE;
-  ent->s.effects = EF_CLIENT;
+  ent->s.effects = gibbed ? 0 : EF_CLIENT;
   ent->s.trail = TRAIL_NONE;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
