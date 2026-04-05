@@ -26,6 +26,44 @@ cvar_t *ai_no_target;
 cvar_t *ai_node_dev;
 
 /**
+ * @brief Minimum weapon priority to be considered "armed" for combat.
+ * Below this (e.g. Blaster 0.10, Shotgun 0.15), bots prioritize gathering items.
+ */
+#define AI_ARMED_PRIORITY 0.25f
+
+/**
+ * @brief Health threshold below which bots disengage to seek health/armor.
+ */
+#define AI_RETREAT_HEALTH 40
+
+/**
+ * @brief Distance within which an unarmed or retreating bot will still fight back.
+ */
+#define AI_SELF_DEFENSE_DISTANCE 256.f
+
+/**
+ * @return True if the bot has at least a mid-tier weapon (Super Shotgun or better).
+ */
+static bool G_Ai_IsArmed(const g_client_t *cl) {
+
+  for (size_t i = 0; i < g_num_items; i++) {
+    const g_item_t *item = G_ItemByIndex(i);
+    if (item->type == ITEM_WEAPON && cl->inventory[i] && item->priority >= AI_ARMED_PRIORITY) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @return True if the bot should disengage from combat to seek health/armor.
+ */
+static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
+  return cl->entity->health < AI_RETREAT_HEALTH;
+}
+
+/**
  * @brief
  */
 static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
@@ -160,10 +198,12 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     return cl->ai->reacquire_time - g_level.time; 
   }
 
-  // see if we're already hunting something.
-  // early exit if we're under water or in air; we have a goal already
-  // in that case.
-  if (cl->ai->combat_target.type || !cl->entity->ground.ent) {
+  // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
+  if (!cl->entity->ground.ent) {
+    return 5;
+  }
+
+  if (cl->ai->combat_target.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl)) {
     return 5;
   }
   
@@ -220,6 +260,13 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
     }
 
     float weight = (AI_MAX_ITEM_DISTANCE - distance) * item->priority;
+
+    // boost weapons when unarmed, health/armor when retreating
+    if (!G_Ai_IsArmed(cl) && item->type == ITEM_WEAPON) {
+      weight *= 3.f;
+    } else if (G_Ai_ShouldRetreat(cl) && (item->type == ITEM_HEALTH || item->type == ITEM_ARMOR)) {
+      weight *= 3.f;
+    }
 
     items_visible = g_array_append_vals(items_visible, &(const ai_item_pick_t) {
       .entity = ent,
@@ -521,6 +568,34 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
     }
 
     return 1;
+  }
+
+  // disengage if we're unarmed or low health (except self-defense)
+  const bool armed = G_Ai_IsArmed(cl);
+  const bool retreat = G_Ai_ShouldRetreat(cl);
+
+  if (!armed || retreat) {
+
+    if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
+      const float dist = Vec3_Distance(cl->entity->s.origin,
+          cl->ai->combat_target.entity.ent->s.origin);
+
+      // keep fighting if they're right on top of us
+      if (dist > AI_SELF_DEFENSE_DISTANCE) {
+
+        if (cl->ai->move_target.type == AI_GOAL_ENTITY &&
+          cl->ai->move_target.entity.ent == cl->ai->combat_target.entity.ent) {
+          G_Ai_ClearGoal(&cl->ai->move_target);
+        }
+
+        G_Ai_ClearGoal(&cl->ai->combat_target);
+        G_Ai_Debug("%s: disengaging\n", !armed ? "Unarmed" : "Low health");
+        return 5;
+      }
+    } else {
+      // don't acquire new targets; focus on items
+      return 5;
+    }
   }
 
   // see if we're already hunting
@@ -1439,8 +1514,14 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
         continue;
       }
 
-      // TODO: situational weighting
+      // situational weighting: boost weapons when unarmed, health/armor when low
       weight = ent->item->priority;
+
+      if (!G_Ai_IsArmed(cl) && ent->item->type == ITEM_WEAPON) {
+        weight *= 3.f;
+      } else if (G_Ai_ShouldRetreat(cl) && (ent->item->type == ITEM_HEALTH || ent->item->type == ITEM_ARMOR)) {
+        weight *= 3.f;
+      }
     }
 
     // didn't want this
