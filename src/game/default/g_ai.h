@@ -35,7 +35,7 @@
 #include "g_ai_node.h"
 #include "g_ai_types.h"
 
-extern cvar_t *g_ai_max_clients;
+extern cvar_t *g_ai_clients;
 
 void G_Ai_Init(void);
 void G_Ai_Frame(void);

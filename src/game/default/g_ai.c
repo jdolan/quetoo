@@ -22,8 +22,7 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-cvar_t *g_ai_min_clients;
-cvar_t *g_ai_max_clients;
+cvar_t *g_ai_clients;
 
 /**
  * @brief
@@ -97,15 +96,14 @@ void G_Ai_Frame(void) {
       }
     });
 
-    const int32_t min = Maxi(0, g_ai_min_clients->integer);
-    const int32_t max = Maxi(min, g_ai_max_clients->integer);
+    const int32_t desired = Maxi(0, g_ai_clients->integer);
 
-    if (count < min) {
+    if (count < desired) {
       G_ForEachFreeClient(cl, {
         G_Ai_Connect(cl);
         break;
       });
-    } else if (count > max) {
+    } else if (count > desired) {
       G_ForEachClient(cl, {
         if (cl->ai) {
           G_Ai_Disconnect(cl);
@@ -128,8 +126,7 @@ void G_Ai_Frame(void) {
  */
 void G_Ai_Init(void) {
 
-  g_ai_min_clients = gi.AddCvar("g_ai_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of bots to spawn.");
-  g_ai_max_clients = gi.AddCvar("g_ai_max_clients", "0", CVAR_SERVER_INFO, "The maximum number of bots to spawn.");
+  g_ai_clients = gi.AddCvar("g_ai_clients", "0", CVAR_SERVER_INFO, "The number of bots to maintain.");
 
   G_Ai_InitLocals();
 }
