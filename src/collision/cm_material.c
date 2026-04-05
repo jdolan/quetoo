@@ -1152,6 +1152,10 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
     Fs_Print(file, "\t\tscale.t %0.3f\n", stage->scale.t);
   }
 
+  if (stage->flags & STAGE_ANIMATION) {
+    Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
+  }
+
   if (stage->flags & STAGE_TERRAIN) {
     Fs_Print(file, "\t\tterrain %0.2f %0.2f\n", stage->terrain.floor, stage->terrain.ceil);
   }
@@ -1168,16 +1172,20 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
     Fs_Print(file, "\t\twarp %0.2f %0.2f\n", stage->warp.hz, stage->warp.amplitude);
   }
 
-  if (stage->flags & STAGE_SHELL) {
-    Fs_Print(file, "\t\tshell %0.2f\n", stage->shell.radius);
+  if (stage->flags & STAGE_FLARE) {
+    Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
   }
 
-  if (stage->flags & STAGE_FLARE) {
-     Fs_Print(file, "\t\tflare %s\n", stage->asset.name);
-   }
+  if (stage->flags & STAGE_LIGHTING) {
+    Fs_Print(file, "\t\tlighting %0.2f\n", stage->lighting.intensity);
+  }
 
-  if (stage->flags & STAGE_ANIMATION) {
-    Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
+  if (stage->flags & STAGE_FOG) {
+    Fs_Print(file, "\t\tfog %0.2f\n", stage->fog.density);
+  }
+
+  if (stage->flags & STAGE_SHELL) {
+    Fs_Print(file, "\t\tshell %0.2f\n", stage->shell.radius);
   }
 
   Fs_Print(file, "\t}\n");
