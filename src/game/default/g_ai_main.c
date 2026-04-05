@@ -433,10 +433,30 @@ static void G_Ai_PickWeapon(g_client_t *cl) {
  */
 static float G_Ai_EnemyPriority(const g_client_t *cl, const g_entity_t *target, const bool visible) {
 
-  // TODO: all of this function. Enemies with more powerful weapons need a higher weight.
-  // Enemies with lower health need a higher weight. Enemies carrying flags need an even higher weight.
+  float priority = 1.f;
 
-  return 10.0;
+  // closer enemies are higher priority
+  const float dist = Vec3_Distance(cl->entity->s.origin, target->s.origin);
+  priority += Clampf(1.f - dist / 1024.f, 0.f, 1.f) * 3.f;
+
+  // low health enemies are higher priority
+  if (target->health < 50) {
+    priority += 2.f;
+  }
+
+  // flag carriers are highest priority
+  if (target->client) {
+    const int16_t *inventory = target->client->inventory;
+    for (size_t i = 0; i < g_num_items; i++) {
+      const g_item_t *item = G_ItemByIndex(i);
+      if (item->type == ITEM_FLAG && inventory[i]) {
+        priority += 5.f;
+        break;
+      }
+    }
+  }
+
+  return priority;
 }
 
 /**
@@ -532,8 +552,41 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
       G_Ai_ClearGoal(&cl->ai->combat_target);
     }
+  }
 
-    // TODO: we should change targets here based on priority.
+  // scan for the best visible enemy, even if we already have a target
+  g_entity_t *best_enemy = NULL;
+  float best_priority = 0.f;
+
+  G_ForEachEntity(ent, {
+    if (G_Ai_CanTarget(cl, ent)) {
+      const float priority = G_Ai_EnemyPriority(cl, ent, true);
+      if (priority > best_priority) {
+        best_priority = priority;
+        best_enemy = ent;
+      }
+    }
+  });
+
+  // switch targets if we found a significantly better one
+  if (best_enemy) {
+    const float current_priority = cl->ai->combat_target.type == AI_GOAL_ENTITY
+        ? G_Ai_EnemyPriority(cl, cl->ai->combat_target.entity.ent, true)
+        : 0.f;
+
+    if (best_priority > current_priority + 1.f || cl->ai->combat_target.type != AI_GOAL_ENTITY) {
+
+      G_Ai_SetEntityGoal(cl, &cl->ai->combat_target, best_priority, best_enemy);
+
+      G_Ai_PickWeapon(cl);
+
+      cl->ai->combat_target.entity.combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+      cl->ai->combat_target.entity.lock_on_time = g_level.time + RandomRangeu(250, 1000);
+
+      if (cl->ai->combat_target.entity.combat_type == AI_COMBAT_FLANK) {
+        cl->ai->combat_target.entity.flank_angle = Randomb() ? -90 : 90;
+      }
+    }
   }
 
   // we have somebody to kill; go get'em!
@@ -566,36 +619,7 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
   // still have an enemy
   if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
-
     return 3;
-  }
-
-  // we lost our enemy, start looking for a new one
-  g_entity_t *enemy = NULL;
-
-  G_ForEachEntity(ent, {
-    if (G_Ai_CanTarget(cl, ent)) {
-      enemy = ent;
-      break;
-    }
-  });
-
-  // found one, set it up
-  if (enemy) {
-
-    G_Ai_SetEntityGoal(cl, &cl->ai->combat_target, G_Ai_EnemyPriority(cl, enemy, true), enemy);
-
-    G_Ai_PickWeapon(cl);
-
-    cl->ai->combat_target.entity.combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
-    cl->ai->combat_target.entity.lock_on_time = g_level.time + RandomRangeu(250, 1000);
-
-    if (cl->ai->combat_target.entity.combat_type == AI_COMBAT_FLANK) {
-      cl->ai->combat_target.entity.flank_angle = Randomb() ? -90 : 90;
-    }
-
-    // re-run hunt with the new target
-    return G_Ai_Hunt(cl, cmd);
   }
 
   return 5;
@@ -624,13 +648,19 @@ static uint32_t G_Ai_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
   if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
     if (cl->ai->combat_target.entity.lock_on_time < g_level.time) {
 
-      const uint32_t grenade_hold_time = cl->grenade_hold_time;
-      if (grenade_hold_time) {
-        if (g_level.time - grenade_hold_time < RandomRangeu(1500, 2500)) {
+      const vec3_t eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+      const vec3_t to_enemy = Vec3_Normalize(Vec3_Subtract(
+          Box3_Center(cl->ai->combat_target.entity.ent->abs_bounds), eye_origin));
+
+      if (Vec3_Dot(cl->forward, to_enemy) > cosf(Radians(15.f))) {
+        const uint32_t grenade_hold_time = cl->grenade_hold_time;
+        if (grenade_hold_time) {
+          if (g_level.time - grenade_hold_time < RandomRangeu(1500, 2500)) {
+            cmd->buttons |= BUTTON_ATTACK;
+          }
+        } else {
           cmd->buttons |= BUTTON_ATTACK;
         }
-      } else {
-        cmd->buttons |= BUTTON_ATTACK;
       }
     }
   }
@@ -1305,20 +1335,22 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
       }
     }
   } else {
-    vec3_t aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, cl->entity->s.origin);
+    const vec3_t eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+    const vec3_t enemy_center = Box3_Center(combat_target->entity.ent->abs_bounds);
 
+    vec3_t aim_direction;
     const g_item_t *const weapon = cl->weapon;
 
     if (weapon->flags & WF_PROJECTILE) {
-      const float dist = Vec3_Length(aim_direction);
+      const float dist = Vec3_Distance(eye_origin, enemy_center);
       // FIXME: *real* projectile speed generally factors into this...
       const float speed = RandomRangef(900, 1200);
       const float time = dist / speed;
       const vec3_t target_velocity = combat_target->entity.ent->velocity;
-      const vec3_t target_pos = Vec3_Fmaf(combat_target->entity.ent->s.origin, time, target_velocity);
-      aim_direction = Vec3_Subtract(target_pos, cl->entity->s.origin);
+      const vec3_t target_pos = Vec3_Fmaf(enemy_center, time, target_velocity);
+      aim_direction = Vec3_Subtract(target_pos, eye_origin);
     } else {
-      aim_direction = Vec3_Subtract(combat_target->entity.ent->s.origin, cl->entity->s.origin);
+      aim_direction = Vec3_Subtract(enemy_center, eye_origin);
     }
 
     aim_direction = Vec3_Normalize(aim_direction);
