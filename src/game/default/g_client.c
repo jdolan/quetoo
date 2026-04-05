@@ -1758,7 +1758,7 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
   // if we're the first player in a game, send our client over
   // to the AI system in case it needs to make nodes
   if (cl->ps.client == 0) {
-    Ai_Node_PlayerRoam(cl, cmd);
+    G_Ai_Node_PlayerRoam(cl, cmd);
   }
 }
 

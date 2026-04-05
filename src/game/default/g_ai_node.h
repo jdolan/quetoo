@@ -23,9 +23,9 @@
 
 #ifdef __GAME_LOCAL_H__
 
-guint Ai_Node_Count(void);
-ai_node_id_t Ai_Node_CreateNode(const vec3_t position);
-bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
+guint G_Ai_Node_Count(void);
+ai_node_id_t G_Ai_Node_Create(const vec3_t position);
+bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
 /**
  * @brief A link from one AI node to another, with traversal cost.
  */
@@ -34,32 +34,32 @@ typedef struct {
   float cost;
 } ai_link_t;
 
-const GArray *Ai_Node_GetLinks(const ai_node_id_t a);
-vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
-ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
-bool Ai_Node_CanPathTo(const vec3_t position);
-bool Ai_Path_CanPathTo(const GArray *path, const guint index);
-void Ai_Node_CreateLink(const ai_node_id_t a, const ai_node_id_t b, const float cost);
-void Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd);
-void Ai_Node_Render(void);
-void Ai_InitNodes(void);
-void Ai_NodesReady(void);
-void Ai_SaveNodes(void);
-void Ai_Node_Destroy(const ai_node_id_t id);
-void Ai_DeleteNodes(void);
-void Ai_ShutdownNodes(void);
+const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a);
+vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node);
+ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
+bool G_Ai_Node_CanPathTo(const vec3_t position);
+bool G_Ai_Path_CanPathTo(const GArray *path, const guint index);
+void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost);
+void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd);
+void G_Ai_Node_Render(void);
+void G_Ai_InitNodes(void);
+void G_Ai_NodesReady(void);
+void G_Ai_SaveNodes(void);
+void G_Ai_Node_Destroy(const ai_node_id_t id);
+void G_Ai_DeleteNodes(void);
+void G_Ai_ShutdownNodes(void);
 
-typedef float (*Ai_NodeCost_Func)(const ai_node_id_t a, const ai_node_id_t b);
+typedef float (*G_Ai_NodeCostFunc)(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
  * @brief
  */
-static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_node_id_t end) {
-  const vec3_t av = Ai_Node_GetPosition(link);
-  const vec3_t bv = Ai_Node_GetPosition(end);
+static inline float G_Ai_Node_Heuristic(const ai_node_id_t link, const ai_node_id_t end) {
+  const vec3_t av = G_Ai_Node_GetPosition(link);
+  const vec3_t bv = G_Ai_Node_GetPosition(end);
   float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 
-  if (!Ai_Node_CanPathTo(av)) {
+  if (!G_Ai_Node_CanPathTo(av)) {
     cost *= 8.f;
   }
 
@@ -69,14 +69,14 @@ static inline float Ai_Node_DefaultHeuristic(const ai_node_id_t link, const ai_n
 /**
  * @brief
  */
-static inline float Ai_Node_DefaultCost(const ai_node_id_t a, const ai_node_id_t b) {
-  const vec3_t av = Ai_Node_GetPosition(a);
-  const vec3_t bv = Ai_Node_GetPosition(b);
+static inline float G_Ai_Node_Cost(const ai_node_id_t a, const ai_node_id_t b) {
+  const vec3_t av = G_Ai_Node_GetPosition(a);
+  const vec3_t bv = G_Ai_Node_GetPosition(b);
 
   return Vec3_Distance(av, bv);
 }
 
-GArray *Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const Ai_NodeCost_Func heuristic, float *length);
-GArray *Ai_Node_TestPath(void);
+GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length);
+GArray *G_Ai_Node_TestPath(void);
 
 #endif

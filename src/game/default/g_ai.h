@@ -26,7 +26,7 @@
 #ifdef __GAME_LOCAL_H__
 #define AI_NAME "default"
 
-#define Ai_Debug(...) ({ if (gi.DebugMask() & DEBUG_AI) { gi.Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
+#define G_Ai_Debug(...) ({ if (gi.DebugMask() & DEBUG_AI) { gi.Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
 
 #include "g_ai_goal.h"
 #include "g_ai_info.h"

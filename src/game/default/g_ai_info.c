@@ -36,7 +36,7 @@ static GArray *ai_skins;
 /**
  * @brief Fs_Enumerator for resolving available skins for a given model.
  */
-static void Ai_EnumerateSkins(const char *path, void *data) {
+static void G_Ai_EnumerateSkins(const char *path, void *data) {
   char name[MAX_QPATH];
   char *s = strstr(path, "players/");
 
@@ -61,8 +61,8 @@ static void Ai_EnumerateSkins(const char *path, void *data) {
 /**
  * @brief Fs_Enumerator for resolving available models.
  */
-static void Ai_EnumerateModels(const char *path, void *data) {
-  gi.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
+static void G_Ai_EnumerateModels(const char *path, void *data) {
+  gi.EnumerateFiles(va("%s/*.tga", path), G_Ai_EnumerateSkins, NULL);
 }
 
 /**
@@ -93,7 +93,7 @@ static uint32_t ai_name_suffix;
 /**
  * @brief Create the user info for the specified bot entity.
  */
-void Ai_GetUserInfo(const g_client_t *cl, char *info) {
+void G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
@@ -121,19 +121,19 @@ void Ai_GetUserInfo(const g_client_t *cl, char *info) {
 /**
  * @brief
  */
-void Ai_InitSkins(void) {
+void G_Ai_InitSkins(void) {
 
   ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 
   ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
 
-  gi.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
+  gi.EnumerateFiles("players/*", G_Ai_EnumerateModels, NULL);
 }
 
 /**
  * @brief
  */
-void Ai_ShutdownSkins(void) {
+void G_Ai_ShutdownSkins(void) {
   g_array_free(ai_skins, true);
   ai_skins = NULL;
 }

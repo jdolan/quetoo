@@ -164,7 +164,7 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
+typedef uint32_t (*G_Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
 
 /**
  * @brief Functional AI goal IDs.

@@ -100,21 +100,21 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
   }
 
   // find nodes closest to src and dst
-  const ai_node_id_t src_node = Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
-  const ai_node_id_t dst_node = Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const ai_node_id_t src_node = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const ai_node_id_t dst_node = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
   if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
 
     // make a new node on top of src so we touch the teleporter, connect
     // it to dst with a small cost
 
-    const ai_node_id_t new_node = Ai_Node_CreateNode(ent->s.origin);
+    const ai_node_id_t new_node = G_Ai_Node_Create(ent->s.origin);
 
     // use default cost for the entrance
-    Ai_Node_CreateLink(src_node, new_node, Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin));
+    G_Ai_Node_Link(src_node, new_node, Vec3_Distance(G_Ai_Node_GetPosition(src_node), ent->s.origin));
 
     // small cost for teleport node
-    Ai_Node_CreateLink(new_node, dst_node, 1.f);
+    G_Ai_Node_Link(new_node, dst_node, 1.f);
 
     ent->node = src_node;
   }
