@@ -187,17 +187,12 @@ typedef enum {
 typedef struct ai_s {
   uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 
-  vec3_t last_origin;
-  vec3_t aim_forward; // calculated at start of thinking
-  vec3_t eye_origin; //  ^^^
-
   ai_goal_t move_target, backup_move_target;
   ai_goal_t combat_target;
 
   uint32_t weapon_check_time;
   uint32_t reacquire_time;
   uint32_t distress_jump_offset;
-  vec3_t ideal_angles;
 } ai_t;
 
 #endif /* __GAME_LOCAL_H__ */

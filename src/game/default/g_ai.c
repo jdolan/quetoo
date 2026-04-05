@@ -162,7 +162,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
   }
 
   // grab all the links of the node that brought us here
-  GArray *src_links = Ai_Node_GetLinks(src_node);
+  const GArray *src_links = Ai_Node_GetLinks(src_node);
 
   const ai_node_id_t new_node = Ai_Node_CreateNode(pos);
   const float dist = Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin);
@@ -176,14 +176,14 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
   if (src_links) {
 
     for (guint i = 0; i < src_links->len; i++) {
-      ai_node_id_t src_link = g_array_index(src_links, ai_node_id_t, i);
+      const ai_link_t *link = &g_array_index(src_links, ai_link_t, i);
 
       // not bidirectional
-      if (!Ai_Node_IsLinked(src_link, src_node)) {
+      if (!Ai_Node_IsLinked(link->id, src_node)) {
         continue;
       }
 
-      const vec3_t link_pos = Ai_Node_GetPosition(src_link);
+      const vec3_t link_pos = Ai_Node_GetPosition(link->id);
 
       // can't see 
       if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
@@ -193,11 +193,9 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
       const float dist = Vec3_Distance(link_pos, ent->s.origin);
 
       // bidirectionally connect us to source
-      Ai_Node_CreateLink(src_link, new_node, dist);
-      Ai_Node_CreateLink(new_node, src_link, dist);
+      Ai_Node_CreateLink(link->id, new_node, dist);
+      Ai_Node_CreateLink(new_node, link->id, dist);
     }
-
-    g_array_free(src_links, true);
   }
 
   ent->node = new_node;

@@ -26,7 +26,15 @@
 guint Ai_Node_Count(void);
 ai_node_id_t Ai_Node_CreateNode(const vec3_t position);
 bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
-GArray *Ai_Node_GetLinks(const ai_node_id_t a);
+/**
+ * @brief A link from one AI node to another, with traversal cost.
+ */
+typedef struct {
+  ai_node_id_t id;
+  float cost;
+} ai_link_t;
+
+const GArray *Ai_Node_GetLinks(const ai_node_id_t a);
 vec3_t Ai_Node_GetPosition(const ai_node_id_t node);
 ai_node_id_t Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level);
 bool Ai_Node_CanPathTo(const vec3_t position);

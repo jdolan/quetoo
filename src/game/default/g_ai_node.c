@@ -69,15 +69,6 @@ GArray *Ai_Node_TestPath(void) {
  * @brief
  */
 typedef struct {
-
-  ai_node_id_t id;
-  float cost;
-} ai_link_t;
-
-/**
- * @brief
- */
-typedef struct {
   // persisted to disk
 
   vec3_t position;
@@ -188,22 +179,9 @@ bool Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
 /**
  * @brief
  */
-GArray *Ai_Node_GetLinks(const ai_node_id_t a) {
+const GArray *Ai_Node_GetLinks(const ai_node_id_t a) {
   const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
-
-  if (!node_a->links) {
-    return NULL;
-  }
-
-  GArray *node_copy = g_array_sized_new(false, false, sizeof(ai_node_id_t), node_a->links->len);
-  g_array_set_size(node_copy, node_a->links->len);
-
-  for (guint i = 0; i < node_a->links->len; i++) {
-    const ai_link_t *link = &g_array_index(node_a->links, ai_link_t, i);
-    *(((ai_node_id_t *)node_copy->data) + i) = link->id;
-  }
-
-  return node_copy;
+  return node_a->links;
 }
 
 /**

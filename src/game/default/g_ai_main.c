@@ -32,15 +32,16 @@ static bool Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
 
   // see if we're even facing the object
 
-  const vec3_t dir = Vec3_Normalize(Vec3_Subtract(other->s.origin, cl->ai->eye_origin));
+  const vec3_t eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+  const vec3_t dir = Vec3_Normalize(Vec3_Subtract(other->s.origin, eye_origin));
 
-  float dot = Vec3_Dot(cl->ai->aim_forward, dir);
+  float dot = Vec3_Dot(cl->forward, dir);
 
   if (dot < 0.1f) {
     return false;
   }
 
-  cm_trace_t tr = gi.Trace(cl->ai->eye_origin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  cm_trace_t tr = gi.Trace(eye_origin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.ent == other) {
     return true;
@@ -66,15 +67,6 @@ static inline bool Ai_IsTargetable(const g_client_t *cl, const g_entity_t *other
  */
 static inline bool Ai_CanTarget(const g_client_t *cl, const g_entity_t *other) {
   return Ai_IsTargetable(cl, other) && Ai_CanSee(cl, other);
-}
-
-/**
- * @brief Executes a console command as if the bot typed it.
- */
-static void Ai_Command(g_client_t *cl, const char *command) {
-
-  gi.TokenizeString(command);
-  ge.ClientCommand(cl);
 }
 
 /**
@@ -430,7 +422,8 @@ static void Ai_PickBestWeapon(g_client_t *cl) {
     return;
   }
 
-  Ai_Command(cl, va("use %s", best_weapon->item->name));
+  gi.TokenizeString(va("use %s", best_weapon->item->name));
+  ge.ClientCommand(cl);
   cl->ai->weapon_check_time = g_level.time + 300; // don't try again for a bit
   Ai_Debug("weapon choice: %s (%d choices)\n", best_weapon->item->name, (int32_t) num_weapons);
 }
@@ -793,7 +786,8 @@ static bool Ai_CheckGoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t d
     }
 
     // something is blocking our destination
-    const cm_trace_t tr = gi.Trace(cl->ai->eye_origin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
+    const vec3_t eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
+    const cm_trace_t tr = gi.Trace(eye_origin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f) {
       goal->distress += 0.25f;
@@ -1307,7 +1301,6 @@ static uint32_t Ai_TurnToTarget(g_client_t *cl, pm_cmd_t *cmd) {
     cl->ai->move_target.path.trick_jump = TRICK_JUMP_NONE;
   }
 
-  cl->ai->ideal_angles = ideal_angles;
   cmd->angles = Vec3_Subtract(ideal_angles, cl->ps.pm_state.delta_angles);
   return 0;
 }
@@ -1442,9 +1435,6 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
     Ai_ClearGoal(&cl->ai->combat_target);
     Ai_ClearGoal(&cl->ai->move_target);
     Ai_ClearGoal(&cl->ai->backup_move_target);
-  } else {
-    Vec3_Vectors(cl->angles, &cl->ai->aim_forward, NULL, NULL);
-    cl->ai->eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
   }
 
   // run functional goals
@@ -1455,8 +1445,6 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
     }
   }
 
-  cl->ai->last_origin = cl->entity->s.origin;
-  
   // run client think
   G_ClientThink(cl, cmd);
 

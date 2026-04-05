@@ -87,22 +87,41 @@ bool Ai_GoalHasEntity(const ai_goal_t *goal, const g_entity_t *ent) {
 }
 
 /**
- * @brief Copy a goal from one target to another
+ * @brief Copy a goal from one target to another, resetting time-dependent state.
  */
 void Ai_CopyGoal(const ai_goal_t *from, ai_goal_t *to) {
 
   Ai_ClearGoal(to);
 
-  memcpy(to, from, sizeof(ai_goal_t));
-
-  // reset state-dependent objects
+  to->type = from->type;
+  to->priority = from->priority;
   to->time = g_level.time;
   to->last_distance = FLT_MAX;
-  to->distress = 0;
-  to->distress_extension = false;
 
-  if (from->type == AI_GOAL_PATH) {
-    to->path.path = g_array_ref(from->path.path);
+  switch (from->type) {
+    case AI_GOAL_NONE:
+      to->wander.angle = from->wander.angle;
+      break;
+    case AI_GOAL_POSITION:
+      to->position.pos = from->position.pos;
+      break;
+    case AI_GOAL_ENTITY:
+      to->entity.ent = from->entity.ent;
+      to->entity.spawn_id = from->entity.spawn_id;
+      to->entity.combat_type = from->entity.combat_type;
+      to->entity.lock_on_time = from->entity.lock_on_time;
+      to->entity.flank_angle = from->entity.flank_angle;
+      break;
+    case AI_GOAL_PATH:
+      to->path.path = g_array_ref(from->path.path);
+      to->path.path_index = from->path.path_index;
+      to->path.path_position = from->path.path_position;
+      to->path.next_path_position = from->path.next_path_position;
+      to->path.trick_jump = from->path.trick_jump;
+      to->path.trick_position = from->path.trick_position;
+      to->path.path_target = from->path.path_target;
+      to->path.path_target_spawn_id = from->path.path_target_spawn_id;
+      break;
   }
 }
 
