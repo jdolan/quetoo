@@ -72,6 +72,10 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
       continue;
     }
 
+    if (R_CulludeBox(view, block->visible_bounds)) {
+      continue;
+    }
+
     glUniform1i(r_sky_program.block, block->flags);
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;

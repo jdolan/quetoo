@@ -625,7 +625,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
   r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
-    block->query = R_AllocOcclusionQuery(block->visible_bounds);
+    block->query = R_AllocOcclusionQuery(block->node->bounds);
   }
 
   r_bsp_light_t *light = bsp->lights;

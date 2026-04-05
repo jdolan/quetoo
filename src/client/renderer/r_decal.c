@@ -379,6 +379,10 @@ void R_DrawDecals(const r_view_t *view) {
         continue;
       }
 
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        continue;
+      }
+
       r_bsp_block_decals_t *d = &block->decals;
 
       if (d->triangles->len == 0) {

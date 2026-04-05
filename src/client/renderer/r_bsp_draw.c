@@ -347,6 +347,11 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       continue;
     }
 
+    if (R_CulludeBox(view, block->visible_bounds)) {
+      r_stats.blocks_occluded++;
+      continue;
+    }
+
     r_stats.blocks_visible++;
 
     if (entity->model == r_models.world) {
@@ -433,6 +438,10 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (block->query && block->query->result == 0) {
+      continue;
+    }
+
+    if (R_CulludeBox(view, block->visible_bounds)) {
       continue;
     }
 
