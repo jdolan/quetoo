@@ -35,7 +35,6 @@ static struct {
   GLint texture_voxel_light_indices;
 
   GLint model;
-  GLint block;
 } r_decal_program;
 
 /**
@@ -397,8 +396,6 @@ void R_DrawDecals(const r_view_t *view) {
         d->dirty = false;
       }
 
-      glUniform1i(r_decal_program.block, block->flags);
-
       glBindVertexArray(d->vertex_array);
 
       assert(d->image->texnum);
@@ -445,7 +442,6 @@ static void R_InitDecalProgram(void) {
   glUniformBlockBinding(r_decal_program.name, r_decal_program.lights_block, 1);
 
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
-  r_decal_program.block = glGetUniformLocation(r_decal_program.name, "block");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
   r_decal_program.texture_voxel_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_data");

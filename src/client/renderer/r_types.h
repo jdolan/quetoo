@@ -701,9 +701,7 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
-   * @brief Block flags.
    */
-  uint32_t flags;
 
   /**
    * @brief The occlusion query for this block.
