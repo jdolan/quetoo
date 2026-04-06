@@ -97,7 +97,6 @@
 		CE052A88214832E1003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE0C0752260CC75700FFE27B /* box.h in Headers */ = {isa = PBXBuildFile; fileRef = CE0C0751260CC75700FFE27B /* box.h */; };
 		CE12D7A91C5C5C3200CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
-		CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6431C5C58C300CD0B13 /* g_ai.c */; };
 		CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6471C5C58C300CD0B13 /* g_ballistics.c */; };
 		CE12D7D41C5C5D6A00CD0B13 /* g_client.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6491C5C58C300CD0B13 /* g_client.c */; };
 		CE12D7D51C5C5D6A00CD0B13 /* g_client_chase.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */; };
@@ -404,7 +403,6 @@
 		CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D62F1C5C58C300CD0B13 /* cm_trace.h */; };
 		CE80FE761C5E437F00A21A51 /* cm_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6301C5C58C300CD0B13 /* cm_types.h */; };
 		CE80FE781C5E439200A21A51 /* shared.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B91C5C58C300CD0B13 /* shared.h */; };
-		CE80FE7C1C5E442700A21A51 /* g_ai.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6441C5C58C300CD0B13 /* g_ai.h */; };
 		CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6481C5C58C300CD0B13 /* g_ballistics.h */; };
 		CE80FE7F1C5E442700A21A51 /* g_client.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64A1C5C58C300CD0B13 /* g_client.h */; };
 		CE80FE801C5E442700A21A51 /* g_client_chase.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D64C1C5C58C300CD0B13 /* g_client_chase.h */; };
@@ -1272,8 +1270,6 @@
 		CE12D63E1C5C58C300CD0B13 /* filesystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = filesystem.h; sourceTree = "<group>"; };
 		CE12D6411C5C58C300CD0B13 /* bg_pmove.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_pmove.c; sourceTree = "<group>"; };
 		CE12D6421C5C58C300CD0B13 /* bg_pmove.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_pmove.h; sourceTree = "<group>"; };
-		CE12D6431C5C58C300CD0B13 /* g_ai.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = g_ai.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		CE12D6441C5C58C300CD0B13 /* g_ai.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = g_ai.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		CE12D6471C5C58C300CD0B13 /* g_ballistics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ballistics.c; sourceTree = "<group>"; };
 		CE12D6481C5C58C300CD0B13 /* g_ballistics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ballistics.h; sourceTree = "<group>"; };
 		CE12D6491C5C58C300CD0B13 /* g_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_client.c; sourceTree = "<group>"; };
@@ -2795,8 +2791,6 @@
 				CE27E9F827BDA2AE003D56AC /* g_ai_node.c */,
 				CE27E9F927BDA2AE003D56AC /* g_ai_node.h */,
 				CE27E9F627BDA2AE003D56AC /* g_ai_types.h */,
-				CE12D6431C5C58C300CD0B13 /* g_ai.c */,
-				CE12D6441C5C58C300CD0B13 /* g_ai.h */,
 				CE12D6471C5C58C300CD0B13 /* g_ballistics.c */,
 				CE12D6481C5C58C300CD0B13 /* g_ballistics.h */,
 				CE12D64B1C5C58C300CD0B13 /* g_client_chase.c */,
@@ -3459,7 +3453,6 @@
 			files = (
 				CE80FE941C5E443D00A21A51 /* game.h in Headers */,
 				CE27E9FE27BDA2AE003D56AC /* g_ai_goal.h in Headers */,
-				CE80FE7C1C5E442700A21A51 /* g_ai.h in Headers */,
 				CE80FE7E1C5E442700A21A51 /* g_ballistics.h in Headers */,
 				CE80FE7F1C5E442700A21A51 /* g_client.h in Headers */,
 				CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */,
@@ -4528,7 +4521,6 @@
 				CE27E9FD27BDA2AE003D56AC /* g_ai_item.c in Sources */,
 				CE27EA0027BDA2AE003D56AC /* g_ai_main.c in Sources */,
 				CE27EA0327BDA2AF003D56AC /* g_ai_node.c in Sources */,
-				CE12D7D11C5C5D6A00CD0B13 /* g_ai.c in Sources */,
 				CE12D7D31C5C5D6A00CD0B13 /* g_ballistics.c in Sources */,
 				CE12D7D41C5C5D6A00CD0B13 /* g_client.c in Sources */,
 				CE12D7D51C5C5D6A00CD0B13 /* g_client_chase.c in Sources */,
