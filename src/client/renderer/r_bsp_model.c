@@ -306,6 +306,10 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
 
+    for (int32_t j = 0; j < out->num_draw_elements; j++) {
+      out->surface |= out->draw_elements[j].surface;
+    }
+
     r_bsp_block_decals_t *decals = &out->decals;
 
     decals->triangles = g_array_new(true, true, sizeof(r_decal_triangle_t));

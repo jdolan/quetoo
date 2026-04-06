@@ -701,7 +701,9 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
+   * @brief The bitwise OR of all draw element surface flags for this block.
    */
+  int32_t surface;
 
   /**
    * @brief The occlusion query for this block.

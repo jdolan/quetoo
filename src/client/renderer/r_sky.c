@@ -70,6 +70,10 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
       continue;
     }
 
+    if (!(block->surface & SURF_SKY)) {
+      continue;
+    }
+
     if (R_CulludeBox(view, block->visible_bounds)) {
       continue;
     }

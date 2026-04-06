@@ -440,6 +440,10 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
+    if (!(block->surface & SURF_MASK_BLEND)) {
+      continue;
+    }
+
     if (entity->model == r_models.world) {
 
       if (block->query->result == 0) {
