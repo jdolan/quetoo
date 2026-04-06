@@ -193,7 +193,8 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
     return;
   }
 
-  float lambert = max(0.0, dot(dir, f.normal_sample));
+  float lambert = dot(dir, f.normal_sample);
+  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
 
   f.diffuse += color * lambert * shadow;
   f.specular += blinn_phong(color * shadow, dir, f);

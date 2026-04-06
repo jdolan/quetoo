@@ -432,7 +432,7 @@ static void R_InitDecalProgram(void) {
   memset(&r_decal_program, 0, sizeof(r_decal_program));
 
   r_decal_program.name = R_LoadProgram(
-       R_ShaderDescriptor(GL_VERTEX_SHADER, "decal_vs.glsl", NULL),
+       R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "decal_vs.glsl", NULL),
        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "decal_fs.glsl", NULL),
        NULL);
 

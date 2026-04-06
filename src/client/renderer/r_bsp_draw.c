@@ -47,9 +47,9 @@ static struct {
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
 
-  GLint alpha_test;
 
   struct {
+    GLint alpha_blend;
     GLint alpha_test;
     GLint roughness;
     GLint hardness;
@@ -387,6 +387,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  glUniform1i(r_bsp_program.material.alpha_blend, 0);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
@@ -474,6 +476,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  glUniform1i(r_bsp_program.material.alpha_blend, 1);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
@@ -523,8 +527,8 @@ void R_InitBspProgram(void) {
   memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
   r_bsp_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "light.glsl", "bsp_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "light.glsl", "bsp_fs.glsl", NULL),
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_fs.glsl", NULL),
       NULL);
 
   glUseProgram(r_bsp_program.name);
@@ -552,8 +556,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
   r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
 
-  r_bsp_program.alpha_test = glGetUniformLocation(r_bsp_program.name, "alpha_test");
-
+  r_bsp_program.material.alpha_blend = glGetUniformLocation(r_bsp_program.name, "material.alpha_blend");
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
   r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");

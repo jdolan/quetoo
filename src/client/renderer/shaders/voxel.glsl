@@ -252,7 +252,8 @@ vec3 vertex_light(in common_vertex_t v, in int index) {
   }
 
   light_dir = normalize(light_dir);
-  float lambert = max(0.0, dot(v.model_normal, light_dir));
+  float lambert = dot(v.model_normal, light_dir);
+  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
   return light.color.rgb * light.color.a * atten * lambert * modulate;
 }
 
