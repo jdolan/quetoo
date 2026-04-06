@@ -341,8 +341,19 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
 
+    - name: Cache vcpkg binary packages
+      uses: actions/cache@v5
+      with:
+        path: ${{ github.workspace }}/vcpkg-cache
+        key: vcpkg-x64-windows-glib-${{ hashFiles('.github/workflows/build.yml') }}
+        restore-keys: vcpkg-x64-windows-glib-
+
     - name: Install vcpkg packages
-      run: vcpkg install glib:x64-windows
+      env:
+        VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+      run: |
+        New-Item -ItemType Directory -Force -Path "$env:VCPKG_DEFAULT_BINARY_CACHE" | Out-Null
+        vcpkg install glib:x64-windows
 
     - name: Restore NuGet packages
       working-directory: ${{ github.workspace }}/quetoo
