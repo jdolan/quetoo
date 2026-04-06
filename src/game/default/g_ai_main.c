@@ -24,6 +24,7 @@
 
 cvar_t *g_ai_no_target;
 cvar_t *g_ai_node_dev;
+cvar_t *g_ai_clients;
 
 /**
  * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
@@ -1685,6 +1686,104 @@ void G_Ai_Begin(g_client_t *cl) {
 }
 
 /**
+ * @brief
+ */
+static void G_Ai_ClientThink(g_entity_t *ent) {
+  const int32_t num_runs = 3;
+  uint8_t msec_left = QUETOO_TICK_MILLIS;
+
+  for (int32_t i = 0; i < num_runs; i++) {
+    pm_cmd_t cmd = { 0 };
+
+    cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
+
+    G_Ai_Think(ent->client, &cmd);
+
+    msec_left -= cmd.msec;
+  }
+
+  ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @brief
+ */
+static void G_Ai_ClientBegin(g_client_t *cl) {
+
+  G_ClientBegin(cl);
+
+  G_Ai_Begin(cl);
+
+  G_Debug("Spawned %s at %s", cl->persistent.net_name, vtos(cl->entity->s.origin));
+
+  cl->entity->Think = G_Ai_ClientThink;
+  cl->entity->next_think = g_level.time + QUETOO_TICK_MILLIS;
+}
+
+/**
+ * @brief
+ */
+static void G_Ai_Connect(g_client_t *cl) {
+
+  char user_info[MAX_INFO_STRING_STRING];
+  const g_ai_roster_t *roster = G_Ai_GetUserInfo(cl, user_info);
+
+  cl->ai = gi.Malloc(sizeof(ai_t), MEM_TAG_AI);
+  cl->ai->roster = roster;
+
+  G_ClientConnect(cl, user_info);
+
+  G_Ai_ClientBegin(cl);
+}
+
+/**
+ * @brief
+ */
+void G_Ai_Frame(void) {
+
+  if (g_level.intermission_time) {
+    return;
+  }
+
+  if (g_level.time % 1000 == 0) {
+
+    if (g_level.time == 1000) {
+      G_Ai_NodesReady();
+    }
+
+    int32_t count = 0;
+    G_ForEachClient(cl, {
+      if (cl->ai) {
+        count++;
+      }
+    });
+
+    const int32_t desired = Maxi(0, g_ai_clients->integer);
+
+    if (count < desired) {
+      G_ForEachFreeClient(cl, {
+        G_Ai_Connect(cl);
+        break;
+      });
+    } else if (count > desired) {
+      G_ForEachClient(cl, {
+        if (cl->ai) {
+          G_ClientDisconnect(cl);
+          break;
+        }
+      });
+    }
+  }
+
+  // run AI think functions
+  G_ForEachClient(cl, {
+    if (cl->ai && cl->entity) {
+      G_RunThink(cl->entity);
+    }
+  });
+}
+
+/**
  * @brief 
  */
 static void G_Ai_SaveNodes_f(void) {
@@ -1750,8 +1849,9 @@ void G_Ai_OffsetNodes_f(void);
 /**
  * @brief Initializes the AI subsystem.
  */
-void G_Ai_InitLocals(void) {
+void G_Ai_Init(void) {
 
+  g_ai_clients = gi.AddCvar("g_ai_clients", "0", CVAR_SERVER_INFO, "The number of bots to maintain.");
   g_ai_no_target = gi.AddCvar("g_ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
   g_ai_node_dev = gi.AddCvar("g_ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   

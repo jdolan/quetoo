@@ -1284,3 +1284,71 @@ void G_Ai_OffsetNodes_f(void) {
     node->position = Vec3_Add(node->position, translate);
   }
 }
+
+/**
+ * @brief Drops a node on top of this object and connects it to any nearby
+ * nodes.
+ */
+bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
+
+  if (G_Ai_InDeveloperMode()) {
+    return false;
+  }
+
+  // find node closest to us
+  const ai_node_id_t src_node = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+
+  if (src_node == AI_NODE_INVALID) {
+    return false;
+  }
+
+  // make a new node on the item
+  cm_trace_t down = gi.Trace(ent->s.origin, Vec3_Subtract(ent->s.origin, Vec3(0, 0, MAX_WORLD_COORD)), Box3_Zero(), NULL, CONTENTS_MASK_SOLID);
+  vec3_t pos;
+
+  if (down.fraction == 1.0) {
+    pos = ent->s.origin;
+  } else {
+    pos = Vec3_Subtract(down.end, Vec3(0.f, 0.f, PM_BOUNDS.mins.z));
+  }
+
+  // grab all the links of the node that brought us here
+  const GArray *src_links = G_Ai_Node_GetLinks(src_node);
+
+  const ai_node_id_t new_node = G_Ai_Node_Create(pos);
+  const float dist = Vec3_Distance(G_Ai_Node_GetPosition(src_node), ent->s.origin);
+
+  // bidirectionally connect us to source
+  G_Ai_Node_Link(src_node, new_node, dist);
+  G_Ai_Node_Link(new_node, src_node, dist);
+
+  // if we had source links, link any connected bi-directional nodes
+  // to the item as well
+  if (src_links) {
+
+    for (guint i = 0; i < src_links->len; i++) {
+      const ai_link_t *link = &g_array_index(src_links, ai_link_t, i);
+
+      // not bidirectional
+      if (!G_Ai_Node_IsLinked(link->id, src_node)) {
+        continue;
+      }
+
+      const vec3_t link_pos = G_Ai_Node_GetPosition(link->id);
+
+      // can't see 
+      if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
+        continue;
+      }
+
+      const float dist = Vec3_Distance(link_pos, ent->s.origin);
+
+      // bidirectionally connect us to source
+      G_Ai_Node_Link(link->id, new_node, dist);
+      G_Ai_Node_Link(new_node, link->id, dist);
+    }
+  }
+
+  ent->node = new_node;
+  return true;
+}

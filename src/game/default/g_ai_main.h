@@ -21,20 +21,32 @@
 
 #pragma once
 
+#include "g_types.h"
+
+#ifdef __GAME_LOCAL_H__
+#define AI_NAME "default"
+
+#define G_Ai_Debug(...) ({ if (gi.DebugMask() & DEBUG_AI) { gi.Debug_(DEBUG_AI, __func__, __VA_ARGS__); } })
+
+#include "g_ai_goal.h"
+#include "g_ai_info.h"
+#include "g_ai_item.h"
+#include "g_ai_node.h"
+#include "g_ai_types.h"
+
+extern cvar_t *g_ai_clients;
+extern cvar_t *g_ai_no_target;
+extern cvar_t *g_ai_node_dev;
+
 void G_Ai_Disconnect(g_client_t *cl);
 void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd);
 void G_Ai_Respawn(g_client_t *cl);
 void G_Ai_Begin(g_client_t *cl);
-void G_Ai_InitLocals(void);
+void G_Ai_Init(void);
+void G_Ai_Frame(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
 bool G_Ai_InDeveloperMode(void);
-
-#ifdef __GAME_LOCAL_H__
-
-extern cvar_t *g_ai_no_target;
-extern cvar_t *g_ai_node_dev;
-
 bool G_Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
 
 #endif /* __GAME_LOCAL_H__ */

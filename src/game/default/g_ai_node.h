@@ -78,5 +78,6 @@ static inline float G_Ai_Node_Cost(const ai_node_id_t a, const ai_node_id_t b) {
 
 GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length);
 GArray *G_Ai_Node_TestPath(void);
+bool G_Ai_DropItemLikeNode(g_entity_t *ent);
 
 #endif
