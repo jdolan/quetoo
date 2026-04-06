@@ -65,8 +65,11 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
     case ATTACHMENT_DEPTH_COPY:
       return R_CreateFramebufferTexture(f, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
     default:
-      assert(0);
+      break;
   }
+
+  assert(0);
+  return 0;
 }
 
 /**
