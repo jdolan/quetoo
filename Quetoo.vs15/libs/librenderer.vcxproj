@@ -97,7 +97,6 @@
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\polylib.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />

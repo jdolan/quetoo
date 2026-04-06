@@ -45,9 +45,6 @@
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl">
       <Filter>src\shaders</Filter>
     </None>
-    <None Include="..\..\src\client\renderer\shaders\polylib.glsl">
-      <Filter>src\shaders</Filter>
-    </None>
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl">
       <Filter>src\shaders</Filter>
     </None>

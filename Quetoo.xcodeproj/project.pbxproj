@@ -356,7 +356,6 @@
 		CE6EE40E1F720F3A00FBC830 /* libcgame-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */; };
 		CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6EE40F1F72919800FBC830 /* cg_ui.c */; };
 		CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6EE4101F72919800FBC830 /* cg_ui.h */; };
-		CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE79596F293F7812001B52F3 /* polylib.glsl */; };
 		CE795973294E4207001B52F3 /* r_occlude.h in Headers */ = {isa = PBXBuildFile; fileRef = CE795971294E4207001B52F3 /* r_occlude.h */; };
 		CE795974294E4207001B52F3 /* r_occlude.c in Sources */ = {isa = PBXBuildFile; fileRef = CE795972294E4207001B52F3 /* r_occlude.c */; };
 		CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C0D202F6134004BC58E /* MainView.json */; };
@@ -982,7 +981,6 @@
 				CE57E13D2462572900F8902F /* material.glsl in CopyFiles */,
 				CEFD07FE2B671E2900642169 /* mesh_fs.glsl in CopyFiles */,
 				CEFD08002B671E2F00642169 /* mesh_vs.glsl in CopyFiles */,
-				CE795970293F7829001B52F3 /* polylib.glsl in CopyFiles */,
 				CEF7B4A72ED9500E00B551CA /* shadow_fs.glsl in CopyFiles */,
 				CEF7B4A82ED9501000B551CA /* shadow_vs.glsl in CopyFiles */,
 				CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */,
@@ -1647,7 +1645,6 @@
 		CE6EE40F1F72919800FBC830 /* cg_ui.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_ui.c; sourceTree = "<group>"; };
 		CE6EE4101F72919800FBC830 /* cg_ui.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_ui.h; sourceTree = "<group>"; };
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
-		CE79596F293F7812001B52F3 /* polylib.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = polylib.glsl; sourceTree = "<group>"; };
 		CE795971294E4207001B52F3 /* r_occlude.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_occlude.h; sourceTree = "<group>"; };
 		CE795972294E4207001B52F3 /* r_occlude.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_occlude.c; sourceTree = "<group>"; };
 		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2701,7 +2698,6 @@
 				CE57E13C246255D100F8902F /* material.glsl */,
 				CEFD07FA2B671DE700642169 /* mesh_fs.glsl */,
 				CEFD07F92B671DE700642169 /* mesh_vs.glsl */,
-				CE79596F293F7812001B52F3 /* polylib.glsl */,
 				CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */,
 				CEF7B4A62ED94FED00B551CA /* shadow_vs.glsl */,
 				CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */,
