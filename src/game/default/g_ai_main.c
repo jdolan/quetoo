@@ -24,6 +24,14 @@
 
 cvar_t *ai_no_target;
 cvar_t *ai_node_dev;
+cvar_t *g_ai_skill;
+
+/**
+ * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
+ */
+static inline float Lerpf(float a, float b, float t) {
+  return a + (b - a) * t;
+}
 
 /**
  * @brief Minimum weapon priority to be considered "armed" for combat.
@@ -43,12 +51,15 @@ cvar_t *ai_node_dev;
 
 /**
  * @return True if the bot has at least a mid-tier weapon (Super Shotgun or better).
+ * Aggressive bots will fight with weaker weapons.
  */
 static bool G_Ai_IsArmed(const g_client_t *cl) {
 
+  const float threshold = AI_ARMED_PRIORITY * Lerpf(1.25f, .6f, cl->ai->personality.aggression);
+
   for (size_t i = 0; i < g_num_items; i++) {
     const g_item_t *item = G_ItemByIndex(i);
-    if (item->type == ITEM_WEAPON && cl->inventory[i] && item->priority >= AI_ARMED_PRIORITY) {
+    if (item->type == ITEM_WEAPON && cl->inventory[i] && item->priority >= threshold) {
       return true;
     }
   }
@@ -58,9 +69,11 @@ static bool G_Ai_IsArmed(const g_client_t *cl) {
 
 /**
  * @return True if the bot should disengage from combat to seek health/armor.
+ * Aggressive bots retreat at lower health; cautious bots retreat earlier.
  */
 static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
-  return cl->entity->health < AI_RETREAT_HEALTH;
+  const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Lerpf(1.5f, .5f, cl->ai->personality.aggression));
+  return cl->entity->health < threshold;
 }
 
 /**
@@ -141,7 +154,10 @@ static float G_Ai_ItemReachable(const g_client_t *cl, const g_entity_t *other) {
 
   const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
 
-  if (dist > AI_MAX_ITEM_DISTANCE) {
+  // aware bots spot items from farther away (512 to 1024)
+  const float range = AI_MAX_ITEM_DISTANCE * Lerpf(.67f, 1.33f, cl->ai->personality.awareness);
+
+  if (dist > range) {
     return AI_ITEM_UNREACHABLE;
   }
 
@@ -451,6 +467,11 @@ static void G_Ai_PickWeapon(g_client_t *cl) {
       weight /= 2.f;
     }
 
+    // less aware bots have noisier weapon scoring
+    if (cl->ai->personality.awareness < .5f) {
+      weight *= RandomRangef(.7f, 1.3f);
+    }
+
     weapons[num_weapons++] = (ai_item_pick_t) {
       .item = item,
       .weight = weight
@@ -544,6 +565,9 @@ static bool G_Ai_ChaseEnemy(const g_client_t *cl, const g_entity_t *target) {
     break;
   }
 
+  // aggressive bots are more willing to chase
+  chance *= Lerpf(.6f, 1.4f, cl->ai->personality.aggression);
+
   return Randomf() < chance;
 }
 
@@ -580,8 +604,9 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
       const float dist = Vec3_Distance(cl->entity->s.origin,
           cl->ai->combat_target.entity.ent->s.origin);
 
-      // keep fighting if they're right on top of us
-      if (dist > AI_SELF_DEFENSE_DISTANCE) {
+      // keep fighting if they're right on top of us (aggressive bots fight at longer range)
+      const float defense_dist = AI_SELF_DEFENSE_DISTANCE * Lerpf(.5f, 1.5f, cl->ai->personality.aggression);
+      if (dist > defense_dist) {
 
         if (cl->ai->move_target.type == AI_GOAL_ENTITY &&
           cl->ai->move_target.entity.ent == cl->ai->combat_target.entity.ent) {
@@ -655,8 +680,19 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
       G_Ai_PickWeapon(cl);
 
-      cl->ai->combat_target.entity.combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
-      cl->ai->combat_target.entity.lock_on_time = g_level.time + RandomRangeu(250, 1000);
+      // aggressive bots prefer close combat; cautious bots flank/wander
+      if (cl->ai->personality.aggression > .6f) {
+        cl->ai->combat_target.entity.combat_type = Randomb() ? AI_COMBAT_CLOSE : RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+      } else if (cl->ai->personality.aggression < .3f) {
+        cl->ai->combat_target.entity.combat_type = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+      } else {
+        cl->ai->combat_target.entity.combat_type = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+      }
+
+      // skilled bots react faster (100-400ms vs 500-1200ms)
+      const uint32_t lock_min = (uint32_t) Lerpf(500.f, 100.f, cl->ai->personality.skill);
+      const uint32_t lock_max = (uint32_t) Lerpf(1200.f, 400.f, cl->ai->personality.skill);
+      cl->ai->combat_target.entity.lock_on_time = g_level.time + RandomRangeu(lock_min, lock_max);
 
       if (cl->ai->combat_target.entity.combat_type == AI_COMBAT_FLANK) {
         cl->ai->combat_target.entity.flank_angle = Randomb() ? -90 : 90;
@@ -727,7 +763,9 @@ static uint32_t G_Ai_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
       const vec3_t to_enemy = Vec3_Normalize(Vec3_Subtract(
           Box3_Center(cl->ai->combat_target.entity.ent->abs_bounds), eye_origin));
 
-      if (Vec3_Dot(cl->forward, to_enemy) > cosf(Radians(15.f))) {
+      // skilled bots fire with tighter aim cone (10° to 25°)
+      const float fire_cone = Lerpf(25.f, 10.f, cl->ai->personality.skill);
+      if (Vec3_Dot(cl->forward, to_enemy) > cosf(Radians(fire_cone))) {
         const uint32_t grenade_hold_time = cl->grenade_hold_time;
         if (grenade_hold_time) {
           if (g_level.time - grenade_hold_time < RandomRangeu(1500, 2500)) {
@@ -757,21 +795,24 @@ static uint32_t G_Ai_Acrobatics(g_client_t *cl, pm_cmd_t *cmd) {
     return 200;
   }
 
-  // do some acrobatics
+  // do some acrobatics (aggressive bots dodge more)
+  const uint32_t crouch_freq = (uint32_t) Lerpf(48.f, 20.f, cl->ai->personality.aggression);
+  const uint32_t jump_freq = (uint32_t) Lerpf(120.f, 50.f, cl->ai->personality.aggression);
+
   if (cl->entity->ground.ent) {
 
     if (cl->ps.pm_state.flags & PMF_DUCKED) {
 
-      if ((RandomRangeu(0, 32)) == 0) { // uncrouch eventually
+      if ((RandomRangeu(0, crouch_freq)) == 0) { // uncrouch eventually
         cmd->up = 0;
       } else {
         cmd->up = -PM_SPEED_JUMP;
       }
     } else {
 
-      if ((RandomRangeu(0, 32)) == 0) { // randomly crouch
+      if ((RandomRangeu(0, crouch_freq)) == 0) { // randomly crouch
         cmd->up = -PM_SPEED_JUMP;
-      } else if ((RandomRangeu(0, 86)) == 0) { // randomly pop, to confuse our enemies
+      } else if ((RandomRangeu(0, jump_freq)) == 0) { // randomly pop
         cmd->up = PM_SPEED_JUMP;
       }
     }
@@ -1418,8 +1459,9 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
 
     if (weapon->flags & WF_PROJECTILE) {
       const float dist = Vec3_Distance(eye_origin, enemy_center);
-      // FIXME: *real* projectile speed generally factors into this...
-      const float speed = RandomRangef(900, 1200);
+      // skilled bots predict more accurately (tighter speed estimate range)
+      const float spread = Lerpf(300.f, 100.f, cl->ai->personality.skill);
+      const float speed = RandomRangef(1050.f - spread, 1050.f + spread);
       const float time = dist / speed;
       const vec3_t target_velocity = combat_target->entity.ent->velocity;
       const vec3_t target_pos = Vec3_Fmaf(enemy_center, time, target_velocity);
@@ -1431,15 +1473,20 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
     aim_direction = Vec3_Normalize(aim_direction);
     ideal_angles = Vec3_Euler(aim_direction);
 
-    // fuzzy angle
-    ideal_angles.x += sinf(g_level.time / 128.0f) * 4.3f;
-    ideal_angles.y += cosf(g_level.time / 164.0f) * 4.0f;
+    // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
+    const float wobble = (1.f - cl->ai->personality.skill) * 2.f;
+    const float phase = cl->ai->personality.aim_phase;
+    ideal_angles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
+    ideal_angles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;
   }
 
   const vec3_t view_angles = cl->angles;
 
+  // turn speed: skilled bots turn faster (range 6.25 to 18.75)
+  const float turn_speed = Lerpf(.5f, 1.5f, cl->ai->personality.skill) * 12.5f;
+
   for (int32_t i = 0; i < 2; ++i) {
-    ideal_angles.xyz[i] = G_Ai_CalcAngle(cl, 12.5f * (cmd->msec / (float)QUETOO_TICK_MILLIS), view_angles.xyz[i], ideal_angles.xyz[i]);
+    ideal_angles.xyz[i] = G_Ai_CalcAngle(cl, turn_speed * (cmd->msec / (float)QUETOO_TICK_MILLIS), view_angles.xyz[i], ideal_angles.xyz[i]);
   }
 
   if (cl->ai->move_target.type == AI_GOAL_PATH && cl->ai->move_target.path.trick_jump == TRICK_JUMP_TURNING && view_angles.y == ideal_angles.y) {
@@ -1621,6 +1668,20 @@ void G_Ai_Respawn(g_client_t *cl) {
  * @brief Called when an AI is first spawned and is ready to go.
  */
 void G_Ai_Begin(g_client_t *cl) {
+
+  const float base = Clampf(g_ai_skill->value, 0.f, 1.f);
+
+  cl->ai->personality = (ai_personality_t) {
+    .skill      = Clampf(base + RandomRangef(-.2f, .2f), 0.f, 1.f),
+    .aggression = Clampf(RandomRangef(.2f, .8f), 0.f, 1.f),
+    .awareness  = Clampf(RandomRangef(.2f, .8f), 0.f, 1.f),
+    .aim_phase  = RandomRangef(0.f, 1000.f),
+  };
+
+  G_Ai_Debug("Personality: skill=%.2f aggression=%.2f awareness=%.2f\n",
+    cl->ai->personality.skill,
+    cl->ai->personality.aggression,
+    cl->ai->personality.awareness);
 }
 
 /**
@@ -1693,6 +1754,7 @@ void G_Ai_InitLocals(void) {
 
   ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
   ai_node_dev = gi.AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
+  g_ai_skill = gi.AddCvar("g_ai_skill", "0.5", CVAR_SERVER_INFO, "Base bot skill level (0.0 = easy, 1.0 = hard)");
   
   if (ai_node_dev->integer) {
     gi.SetCvarInteger("g_cheats", 1);
