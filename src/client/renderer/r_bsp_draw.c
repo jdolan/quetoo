@@ -342,19 +342,20 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query && block->query->result == 0) {
-      r_stats.blocks_occluded++;
-      continue;
-    }
-
-    if (R_CulludeBox(view, block->visible_bounds)) {
-      r_stats.blocks_occluded++;
-      continue;
-    }
-
-    r_stats.blocks_visible++;
-
     if (entity->model == r_models.world) {
+
+      if (block->query->result == 0) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
+
+      r_stats.blocks_visible++;
+
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
@@ -439,15 +440,16 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query && block->query->result == 0) {
-      continue;
-    }
-
-    if (R_CulludeBox(view, block->visible_bounds)) {
-      continue;
-    }
-
     if (entity->model == r_models.world) {
+
+      if (block->query->result == 0) {
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        continue;
+      }
+
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
