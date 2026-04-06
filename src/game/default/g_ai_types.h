@@ -182,35 +182,31 @@ typedef enum {
 } ai_func_goal_t;
 
 /**
- * @brief Per-bot personality traits that differentiate behavior and difficulty.
- * All values range from 0.0 (worst) to 1.0 (best).
+ * @brief Static bot definition from the roster.
  */
 typedef struct {
-  /**
-   * @brief Mechanical ability: aim accuracy, turn speed, projectile prediction.
-   */
+  const char *name;
+  const char *skin;
+  float skill;       ///< 0.0 (easy) to 1.0 (hard): aim, turn speed, reaction time
+  float aggression;  ///< 0.0 (cautious) to 1.0 (reckless): retreat/chase/combat style
+  float awareness;   ///< 0.0 (oblivious) to 1.0 (perceptive): item range, weapon choice
+} g_ai_roster_t;
+
+/**
+ * @brief Per-bot runtime personality, initialized from roster entry.
+ */
+typedef struct {
   float skill;
-
-  /**
-   * @brief Combat eagerness: retreat threshold, chase willingness, armed threshold.
-   */
   float aggression;
-
-  /**
-   * @brief Strategic sense: item detection range, weapon selection quality.
-   */
   float awareness;
-
-  /**
-   * @brief Per-bot phase offset for aim wobble so bots don't oscillate in sync.
-   */
-  float aim_phase;
+  float aim_phase;   ///< Per-bot phase offset for aim wobble
 } ai_personality_t;
 
 /**
  * @brief AI-specific locals
  */
 typedef struct ai_s {
+  const g_ai_roster_t *roster;
   ai_personality_t personality;
 
   uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];

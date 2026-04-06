@@ -32,8 +32,8 @@ bool G_Ai_InDeveloperMode(void);
 
 #ifdef __GAME_LOCAL_H__
 
-extern cvar_t *ai_no_target;
-extern cvar_t *ai_node_dev;
+extern cvar_t *g_ai_no_target;
+extern cvar_t *g_ai_node_dev;
 
 bool G_Ai_ShouldSlowDrop(const ai_node_id_t from_node, const ai_node_id_t to_node);
 

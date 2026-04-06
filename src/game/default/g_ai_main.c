@@ -22,9 +22,8 @@
 #include "g_local.h"
 #include "bg_pmove.h"
 
-cvar_t *ai_no_target;
-cvar_t *ai_node_dev;
-cvar_t *g_ai_skill;
+cvar_t *g_ai_no_target;
+cvar_t *g_ai_node_dev;
 
 /**
  * @brief Linear interpolation between a and b by fraction t (0.0 to 1.0).
@@ -330,7 +329,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
         }
       }
 
-      if (!path_found && ai_node_dev->integer) {
+      if (!path_found && g_ai_node_dev->integer) {
         gi.WriteByte(SV_CMD_TEMP_ENTITY);
         gi.WriteByte(TE_TRACER);
         gi.WritePosition(cl->entity->s.origin);
@@ -581,7 +580,7 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
   }
 
 
-  if (ai_no_target->integer || ai_node_dev->integer) {
+  if (g_ai_no_target->integer || g_ai_node_dev->integer) {
 
     if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
       G_Ai_ClearGoal(&cl->ai->combat_target);
@@ -1669,16 +1668,17 @@ void G_Ai_Respawn(g_client_t *cl) {
  */
 void G_Ai_Begin(g_client_t *cl) {
 
-  const float base = Clampf(g_ai_skill->value, 0.f, 1.f);
+  const g_ai_roster_t *r = cl->ai->roster;
 
   cl->ai->personality = (ai_personality_t) {
-    .skill      = Clampf(base + RandomRangef(-.2f, .2f), 0.f, 1.f),
-    .aggression = Clampf(RandomRangef(.2f, .8f), 0.f, 1.f),
-    .awareness  = Clampf(RandomRangef(.2f, .8f), 0.f, 1.f),
+    .skill      = r->skill,
+    .aggression = r->aggression,
+    .awareness  = r->awareness,
     .aim_phase  = RandomRangef(0.f, 1000.f),
   };
 
-  G_Ai_Debug("Personality: skill=%.2f aggression=%.2f awareness=%.2f\n",
+  G_Ai_Debug("%s: skill=%.2f aggression=%.2f awareness=%.2f\n",
+    r->name,
     cl->ai->personality.skill,
     cl->ai->personality.aggression,
     cl->ai->personality.awareness);
@@ -1752,15 +1752,14 @@ void G_Ai_OffsetNodes_f(void);
  */
 void G_Ai_InitLocals(void) {
 
-  ai_no_target = gi.AddCvar("ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
-  ai_node_dev = gi.AddCvar("ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
-  g_ai_skill = gi.AddCvar("g_ai_skill", "0.5", CVAR_SERVER_INFO, "Base bot skill level (0.0 = easy, 1.0 = hard)");
+  g_ai_no_target = gi.AddCvar("g_ai_no_target", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
+  g_ai_node_dev = gi.AddCvar("g_ai_node_dev", "0", CVAR_DEVELOPER | CVAR_LATCH, "Toggles node development mode. '1' is full development mode, '2' is live debug mode.");
   
-  if (ai_node_dev->integer) {
+  if (g_ai_node_dev->integer) {
     gi.SetCvarInteger("g_cheats", 1);
   }
 
-  gi.SetConfigString(CS_NAV_EDIT, ai_node_dev->string);
+  gi.SetConfigString(CS_NAV_EDIT, g_ai_node_dev->string);
 
   gi.AddCmd("ai_save_nodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
   gi.AddCmd("ai_delete_node", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
@@ -1794,5 +1793,5 @@ void G_Ai_Shutdown(void) {
  */
 bool G_Ai_InDeveloperMode(void) {
 
-  return ai_node_dev->integer == 1;
+  return g_ai_node_dev->integer == 1;
 }

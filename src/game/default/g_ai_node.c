@@ -48,7 +48,7 @@ static struct {
  */
 GArray *G_Ai_Node_TestPath(void) {
 
-  if (!ai_node_dev->integer) {
+  if (!g_ai_node_dev->integer) {
     return NULL;
   }
 
@@ -442,7 +442,7 @@ bool G_Ai_Path_CanPathTo(const GArray *path, const guint index) {
  */
 void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
 
-  if (!ai_node_dev->integer) {
+  if (!g_ai_node_dev->integer) {
     return;
   }
 
@@ -452,7 +452,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   ai_player_roam.buttons = cmd->buttons;
   ai_player_roam.latched_buttons |= ai_player_roam.buttons & ~ai_player_roam.old_buttons;
   
-  const bool allow_adjustments = ai_node_dev->integer == 1;
+  const bool allow_adjustments = g_ai_node_dev->integer == 1;
   const bool do_noding = allow_adjustments && ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;  
 
   // we just switched between noclip/not noclip, clear some stuff
@@ -763,7 +763,7 @@ static bool G_Ai_NodeInPath(GArray *path, ai_node_id_t node) {
  */
 void G_Ai_Node_Render(void) {
 
-  if (!ai_node_dev->integer) {
+  if (!g_ai_node_dev->integer) {
     return;
   }
 
@@ -895,7 +895,7 @@ void G_Ai_InitNodes(void) {
   g_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
   if (!gi.FileExists(filename)) {
-    gi.Warn("No navigation file exists for this map; bots will be dumb!\nUse `ai_node_dev` to set up nodes.\n");
+    gi.Warn("No navigation file exists for this map; bots will be dumb!\nUse `g_ai_node_dev` to set up nodes.\n");
     return;
   }
 
@@ -967,7 +967,7 @@ void G_Ai_InitNodes(void) {
  */
 static void G_Ai_CheckNodes(void) {
 
-  if (ai_node_dev->integer) {
+  if (g_ai_node_dev->integer) {
     G_ForEachEntity(ent, {
 
       // only warn for item nodes
@@ -1016,7 +1016,7 @@ void G_Ai_NodesReady(void) {
   added_links -= ai_player_roam.file_links;
   gi.Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
 
-  /*if (ai_node_dev->integer != 1) {
+  /*if (g_ai_node_dev->integer != 1) {
     const guint optimized = Ai_OptimizeNodes();
     gi.Print("  %u nodes optimized\n", optimized);
   }*/
@@ -1029,8 +1029,8 @@ void G_Ai_NodesReady(void) {
  */
 void G_Ai_SaveNodes(void) {
 
-  if (ai_node_dev->integer != 1) {
-    gi.Warn("This command only works with `ai_node_dev` set to 1.\n");
+  if (g_ai_node_dev->integer != 1) {
+    gi.Warn("This command only works with `g_ai_node_dev` set to 1.\n");
     return;
   }
 
