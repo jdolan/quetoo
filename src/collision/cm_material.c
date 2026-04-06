@@ -1015,6 +1015,10 @@ static bool Cm_ResolveMaterialAsset(cm_material_t *material, cm_asset_t *asset, 
     }
   }
 
+  if (*asset->path == '\0') {
+    *asset->name = '\0';
+  }
+
   return *asset->path != '\0';
 }
 
@@ -1199,16 +1203,16 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
   Fs_Print(file, "\tdiffusemap %s\n", material->name);
 
-  if (*material->normalmap.name) {
+  if (*material->normalmap.name && !g_str_has_prefix(material->normalmap.name, material->basename)) {
     Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
   }
-  if (*material->heightmap.name) {
+  if (*material->heightmap.name && !g_str_has_prefix(material->heightmap.name, material->basename)) {
     Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
   }
-  if (*material->specularmap.name) {
+  if (*material->specularmap.name && !g_str_has_prefix(material->specularmap.name, material->basename)) {
     Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);
   }
-  if (*material->tintmap.name) {
+  if (*material->tintmap.name && !g_str_has_prefix(material->tintmap.name, material->basename)) {
     Fs_Print(file, "\ttintmap %s\n", material->tintmap.name);
   }
 
