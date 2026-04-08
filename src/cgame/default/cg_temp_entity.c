@@ -845,6 +845,18 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 
   vec3_t forward;
   const float dist = Vec3_DistanceDir(end, start, &forward);
+  
+  // Add lights along the trail at regular intervals
+  for (float f = 128.f; f < dist; f += 128.f) {
+    Cg_AddLight(&(const cg_light_t) {
+      .origin = Vec3_Fmaf(start, f, forward),
+      .radius = 120.f,
+      .color = color,
+      .intensity = 2.5f,
+      .decay = 150.f,
+    });
+  }
+
   const vec3_t right = Vec3(forward.z, -forward.x, forward.y);
   const vec3_t up = Vec3_Cross(forward, right);
 
@@ -874,7 +886,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
             .size = 1.f,
             .size_velocity = 1.0 / MILLIS_TO_SECONDS(core_lifetime),
             .color = Color3f(color.x / 2, color.y / 2, color.z / 2).vec3,
-            .lighting = .2f,
+            .lighting = 1.f,
     });
 
     if (i % 3 == 0) {
@@ -952,7 +964,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
           .size_velocity = -size / MILLIS_TO_SECONDS(lifetime),
           .bounce = .4f,
           .color = color,
-          .lighting = .5f,
+          .lighting = 1.f,
         })) {
         break;
       }
