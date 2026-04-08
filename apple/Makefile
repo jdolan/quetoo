@@ -3,7 +3,7 @@
 
 CODESIGN_IDENTITY = "F43DBDE48E6ACE15193C42883170FB0D35C38A2B"
 
-ARCH = x86_64
+ARCH = arm64
 BUILD = $(ARCH)-apple-darwin
 TARGET = target
 INSTALL = $(TARGET)/Quetoo.app
@@ -43,7 +43,6 @@ install-lib:
 		-x $(BINDIR)/quetoo \
 		-x $(BINDIR)/quetoo-dedicated \
 		-x $(BINDIR)/quetoo-master \
-		-x $(LIBDIR)/default/ai.so \
 		-x $(LIBDIR)/default/cgame.so \
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
