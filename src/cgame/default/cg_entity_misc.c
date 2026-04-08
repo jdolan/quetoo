@@ -882,8 +882,6 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
     });
   }
 
-  const bool seed = weather->num_active == 0;
-
   while (weather->num_active < weather->num_origins * cg_add_weather->value) {
 
     const int32_t index = RandomRangei(0, weather->num_origins);
@@ -899,13 +897,10 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
 
     float height = origin->w;
 
-    // Pre-age sprites on first frame so rain appears mid-fall
-    float age = 0.f;
-    if (seed) {
-      age = Randomf();
-      pos.z -= height * age;
-      height *= (1.f - age);
-    }
+    // Distribute spawn origins randomly along the vertical axis to avoid "sheet" effect
+    const float vertical_offset = Randomf() * origin->w;
+    pos.z -= vertical_offset;
+    height = origin->w - vertical_offset;
 
     cg_sprite_t s = {
       .origin = pos,
