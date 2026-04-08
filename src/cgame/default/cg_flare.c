@@ -110,12 +110,10 @@ void Cg_AddFlares(void) {
       plane.dist = out.w;
     }
 
-    if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
-      continue;
-    }
-
+    // Dot product gives us facing: positive=front, negative=back
     const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
-    const float alpha = Clampf01(Maxf(dot, 0.25f) * cg_add_flares->value);
+    // Use absolute value to allow sprites from behind, but abs(dot) reduces visibility for grazing angles
+    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value);
 
     if (alpha == 0.f) {
       continue;
@@ -152,7 +150,7 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
 
   flare->in.media = stage->media;
   flare->in.lighting = 1.f;
-  flare->in.flags = SPRITE_AXIAL;
+  // Use frustum-aligned billboard without the two perpendicular axial quads
 
   return flare;
 }
