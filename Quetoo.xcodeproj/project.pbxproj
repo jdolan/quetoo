@@ -307,8 +307,6 @@
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
 		CE5ABADB2F32D8BD00D05D09 /* decal_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */; };
-		CE5ABADF2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */; };
-		CE5ABAE02F37E79E00D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */; };
 		CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */; };
 		CE5ABAE52F6CA9AD00D05D09 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAE42F6CA9AD00D05D09 /* patch.c */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
@@ -591,6 +589,8 @@
 		CEAC32BD24212553007E1253 /* r_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32BB24212553007E1253 /* r_sprite.h */; };
 		CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32C0242125ED007E1253 /* sprite_fs.glsl */; };
 		CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
+		CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
+		CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -1743,6 +1743,7 @@
 		CEAC32BB24212553007E1253 /* r_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_sprite.h; sourceTree = "<group>"; };
 		CEAC32BF242125ED007E1253 /* sprite_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_vs.glsl; sourceTree = "<group>"; };
 		CEAC32C0242125ED007E1253 /* sprite_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_fs.glsl; sourceTree = "<group>"; };
+		CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.2/lib/libSDL3_image.0.4.2.dylib; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -1863,7 +1864,7 @@
 				CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */,
-				CE5ABADF2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */,
+				CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */,
 				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2045,7 +2046,7 @@
 				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
 				CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */,
-				CE5ABAE02F37E79E00D05D09 /* libSDL3_image.0.4.0.dylib in Frameworks */,
+				CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
 				CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */,
 			);
@@ -3079,6 +3080,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */,
 				CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */,
 				CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */,
 				CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */,
@@ -5297,6 +5299,10 @@
 		CE12D73B1C5C5B9300CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5304,6 +5310,10 @@
 		CE12D73C1C5C5B9300CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -5545,6 +5555,10 @@
 		CE80FD8B1C5E3B6F00A21A51 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -5552,6 +5566,10 @@
 		CE80FD8C1C5E3B6F00A21A51 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

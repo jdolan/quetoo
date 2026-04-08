@@ -128,11 +128,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set ai_node_dev 1"
-            isEnabled = "NO">
+            argument = "+set g_ai_node_dev 1"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map longyard"
+            argument = "+map aerowalk"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -141,7 +141,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +set g_auto_join 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
