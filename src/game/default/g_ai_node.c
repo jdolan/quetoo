@@ -144,6 +144,11 @@ ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distan
  */
 ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
 
+  if (gi.PointContents(position) & CONTENTS_MASK_SOLID) {
+    G_Ai_Debug("Rejected node at %s (inside solid)\n", vtos(position));
+    return AI_NODE_INVALID;
+  }
+
   if (!ai_nodes) {
     ai_nodes = g_array_new(false, true, sizeof(ai_node_t));
   }
@@ -188,6 +193,10 @@ const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a) {
  * @brief
  */
 void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost) {
+
+  if (!ai_nodes || a >= ai_nodes->len || b >= ai_nodes->len) {
+    return;
+  }
 
   if (a == b || G_Ai_Node_IsLinked(a, b)) {
     return;
@@ -314,6 +323,11 @@ static void G_Ai_Node_Adjust(const ai_node_id_t id) {
  * @brief
  */
 void G_Ai_Node_Destroy(const ai_node_id_t id) {
+
+  if (!ai_nodes || id >= ai_nodes->len) {
+    gi.Warn("Invalid node id %u\n", id);
+    return;
+  }
 
   G_Ai_Node_UnlinkAll(id);
   ai_nodes = g_array_remove_index(ai_nodes, id);
