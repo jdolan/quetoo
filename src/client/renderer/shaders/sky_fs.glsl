@@ -35,7 +35,11 @@ void main(void) {
 
     fragment.view_dist = length(vertex.position);
 
+    fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
+
     fragment_fog(vertex, fragment);
+
+    out_color = fragment.diffuse_sample;
 
     out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
@@ -46,14 +50,6 @@ void main(void) {
     fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
 
     out_color = fragment.diffuse_sample;
-
-    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
-
-      bsp_fragment_lighting();
-
-      out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
-      out_color.rgb += fragment.specular * stage.lighting;
-    }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
 
