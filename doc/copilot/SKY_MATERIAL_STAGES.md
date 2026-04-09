@@ -132,22 +132,22 @@ by flag and issues the draw call.
 
 ## Supported Stage Features on Sky
 
-All features handled by `stage_vertex()` and the stage fragment path work on sky
-surfaces:
+The current sky stage implementation supports only the subset of stage features
+for which the sky renderer uploads uniforms and the sky shaders apply matching
+logic:
 
 | Feature | Flag(s) | Notes |
 |---------|---------|-------|
 | Scrolling | `STAGE_SCROLL_S`, `STAGE_SCROLL_T` | Texture units per second |
 | Scaling | `STAGE_SCALE_S`, `STAGE_SCALE_T` | UV multiplier |
-| Rotation | `STAGE_ROTATE` | Hz, around `st_origin` |
-| Stretch | `STAGE_STRETCH` | Sinusoidal amplitude modulation |
 | Color tint | `STAGE_COLOR` | RGBA multiply |
 | Alpha pulse | `STAGE_PULSE` | Sinusoidal alpha |
-| Warp | `STAGE_WARP` | UV distortion via warp texture |
-| Animation | `STAGE_ANIM` | Frame from animation array |
-| Terrain | `STAGE_TERRAIN` | Z-based alpha blend |
-| Dirtmap | `STAGE_DIRTMAP` | Position-based alpha variation |
 
+The following stage features are **not currently implemented** on sky surfaces:
+`STAGE_ROTATE`, `STAGE_STRETCH`, `STAGE_WARP`, `STAGE_ANIM`,
+`STAGE_TERRAIN`, and `STAGE_DIRTMAP`. Sky stages also do not use the full BSP
+stage fragment path, so fog and BSP-style lighting/warp handling are not applied
+here.
 `STAGE_ENVMAP` and `STAGE_SHELL` have no meaningful mapping to sky surfaces and
 are silently ignored (their flags will never appear on a sky material in practice).
 
