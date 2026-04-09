@@ -22,7 +22,6 @@
 in common_vertex_t vertex;
 
 in vec3 cubemap_coord;
-in vec3 view_direction;
 
 out vec4 out_color;
 
@@ -81,7 +80,7 @@ void main(void) {
 
   } else {
 
-    vec2 st = direction_to_equirectangular(view_direction);
+    vec2 st = direction_to_equirectangular(normalize(cubemap_coord));
     
     st = transform_stage_uv(st);
     

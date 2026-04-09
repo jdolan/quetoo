@@ -24,7 +24,6 @@ layout (location = 0) in vec3 in_position;
 out common_vertex_t vertex;
 
 out vec3 cubemap_coord;
-out vec3 view_direction;
 
 invariant gl_Position;
 
@@ -59,10 +58,6 @@ void main(void) {
   vertex.model_position = in_position;
   vertex.position = vec3(view * position);
   cubemap_coord = vec3(sky_projection * position);
-
-  // Export normalized view-space direction for overlay stages
-  // This is consistent regardless of camera position
-  view_direction = normalize(in_position);
 
   vertex.voxel = voxel_uvw(in_position);
   vertex_fog(vertex);
