@@ -28,15 +28,19 @@ out vec4 out_color;
 common_fragment_t fragment;
 
 /**
- * @brief Convert normalized direction to equirectangular UV coordinates.
+ * @brief Convert normalized direction to azimuthal equidistant projection.
+ * Maps direction to a circular disk: center = straight up, edge = horizon.
+ * Avoids pole singularities by placing them at the texture edge.
  */
-vec2 direction_to_equirectangular(vec3 direction) {
-  vec3 normalized = normalize(direction);
+vec2 direction_to_azimuthal_equidistant(vec3 direction) {
+  vec3 n = normalize(direction);
   
-  float lon = atan(normalized.y, normalized.x);
-  float lat = asin(normalized.z);
-
-  return vec2((lon + PI) / (2.0 * PI), (lat + PI / 2.0) / PI);
+  float theta = acos(clamp(n.z, -1.0, 1.0));  // Angle from +Z (up)
+  float phi = atan(n.y, n.x);                  // Azimuth
+  
+  float r = theta / PI;  // Radial distance (0 at center, 1 at edge)
+  
+  return 0.5 + r * vec2(cos(phi), sin(phi)) * 0.5;
 }
 
 /**
@@ -80,7 +84,7 @@ void main(void) {
 
   } else {
 
-    vec2 st = direction_to_equirectangular(normalize(cubemap_coord));
+    vec2 st = direction_to_azimuthal_equidistant(normalize(cubemap_coord));
     
     st = transform_stage_uv(st);
     
