@@ -20,11 +20,38 @@
  */
 
 in common_vertex_t vertex;
+
 in vec3 cubemap_coord;
+in vec2 overlay_uv;
 
 out vec4 out_color;
 
 common_fragment_t fragment;
+
+/**
+ * @brief Apply stage transforms (rotation, scroll, scale) to UV coordinates.
+ */
+vec2 transform_stage_uv(vec2 uv) {
+  vec2 center = uv - 0.5;
+  
+  if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
+    float cos_a = cos(stage.rotate * ticks * 0.001);
+    float sin_a = sin(stage.rotate * ticks * 0.001);
+    center = mat2(cos_a, -sin_a, sin_a, cos_a) * center;
+  }
+  
+  uv = center + 0.5;
+  
+  uv += stage.scroll * ticks * 0.001;
+  
+  if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) > 0) {
+    center = uv - 0.5;
+    center /= stage.scale;
+    uv = center + 0.5;
+  }
+  
+  return uv;
+}
 
 /**
  * @brief
@@ -32,32 +59,27 @@ common_fragment_t fragment;
 void main(void) {
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
-
     fragment.view_dist = length(vertex.position);
-
     fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
 
     fragment_fog(vertex, fragment);
 
     out_color = fragment.diffuse_sample;
-
     out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
 
-    vec2 st = vertex.diffusemap;
-
-    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
-
-    out_color = fragment.diffuse_sample;
-
-    if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-
-      fragment_fog(vertex, fragment);
-
-      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
-    }
-
+    vec2 st = transform_stage_uv(overlay_uv);
+    
     out_color = sample_material_stage(st) * vertex.color;
+
+    if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
+      out_color *= stage.color;
+    }
+    
+    if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
+      out_color.a *= sin(ticks * 0.001 * stage.pulse * PI) * 0.5 + 0.5;
+    }
   }
 }
+

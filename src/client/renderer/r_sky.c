@@ -55,6 +55,7 @@ static struct {
     GLint flags;
     GLint color;
     GLint pulse;
+    GLint rotate;
     GLint scroll;
     GLint scale;
   } stage;
@@ -78,6 +79,10 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
     glUniform1f(r_sky_program.stage.pulse, stage->cm->pulse.hz);
   }
 
+  if (stage->cm->flags & STAGE_ROTATE) {
+    glUniform1f(r_sky_program.stage.rotate, stage->cm->rotate.hz);
+  }
+
   if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
     glUniform2f(r_sky_program.stage.scroll, stage->cm->scroll.s, stage->cm->scroll.t);
   }
@@ -89,8 +94,6 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
   glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
   const r_image_t *image = (r_image_t *) stage->media;
-  assert(image);
-
   glBindTexture(GL_TEXTURE_2D, image->texnum);
 
   glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
@@ -222,6 +225,7 @@ static void R_InitSkyProgram(void) {
   r_sky_program.stage.flags = glGetUniformLocation(r_sky_program.name, "stage.flags");
   r_sky_program.stage.color = glGetUniformLocation(r_sky_program.name, "stage.color");
   r_sky_program.stage.pulse = glGetUniformLocation(r_sky_program.name, "stage.pulse");
+  r_sky_program.stage.rotate = glGetUniformLocation(r_sky_program.name, "stage.rotate");
   r_sky_program.stage.scroll = glGetUniformLocation(r_sky_program.name, "stage.scroll");
   r_sky_program.stage.scale = glGetUniformLocation(r_sky_program.name, "stage.scale");
 

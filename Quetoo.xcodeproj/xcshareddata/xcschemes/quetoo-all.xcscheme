@@ -105,7 +105,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_get_error 2 +set r_draw_stats 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_get_error 2 +set s_draw_stats 1"
@@ -129,10 +129,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ai_node_dev 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map aerowalk"
+            argument = "+map darkzone"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

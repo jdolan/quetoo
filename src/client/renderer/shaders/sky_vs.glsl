@@ -24,10 +24,31 @@ layout (location = 4) in vec2 in_diffusemap;
 
 out common_vertex_t vertex;
 
-// Sky-specific cubemap coordinate
 out vec3 cubemap_coord;
+out vec2 overlay_uv;
 
 invariant gl_Position;
+
+/**
+ * @brief Convert normalized cubemap direction to equirectangular (lat-long) coordinates.
+ * Maps [-1,1] cubemap space to [0,1] texture space.
+ */
+vec2 cubemap_to_equirectangular(vec3 direction) {
+  vec3 normalized = normalize(direction);
+  
+  // Calculate latitude (y) and longitude (x) from the direction vector
+  // atan(y, x) gives longitude in [-pi, pi]
+  // asin(z) gives latitude in [-pi/2, pi/2]
+  float longitude = atan(normalized.y, normalized.x);
+  float latitude = asin(normalized.z);
+  
+  // Convert to [0,1] texture coordinates
+  vec2 uv;
+  uv.x = (longitude + PI) / (2.0 * PI);
+  uv.y = (latitude + PI / 2.0) / PI;
+  
+  return uv;
+}
 
 /**
  * @brief
@@ -39,10 +60,13 @@ void main(void) {
   vertex.model_position = in_position;
   vertex.position = vec3(view * position);
   cubemap_coord = vec3(sky_projection * position);
+  
+  // Convert cubemap direction to equirectangular UVs for overlay stages
+  overlay_uv = cubemap_to_equirectangular(cubemap_coord);
+  
   vertex.voxel = voxel_uvw(in_position);
   vertex_fog(vertex);
   
-  // Initialize unused fields
   vertex.model_normal = normalize(in_position);
   vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
   vertex.smooth_normal = vertex.normal;
@@ -50,11 +74,11 @@ void main(void) {
   vertex.bitangent = vec3(0.0, 1.0, 0.0);
   vertex.tbn = mat3(1.0);
   vertex.inverse_tbn = mat3(1.0);
-  vertex.diffusemap = in_diffusemap;
+  vertex.diffusemap = vec2(0.0);
   vertex.color = vec4(1.0);
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.lighting = vec3(1.0); // Sky is self-lit
+  vertex.lighting = vec3(0.0);
 
   stage_vertex(stage, in_position, vertex.position, vertex.diffusemap, vertex.color);
 
