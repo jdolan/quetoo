@@ -93,8 +93,18 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
 
   glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
-  const r_image_t *image = (r_image_t *) stage->media;
-  glBindTexture(GL_TEXTURE_2D, image->texnum);
+  if (stage->media) {
+    switch (stage->media->type) {
+      case R_MEDIA_IMAGE: {
+        const r_image_t *image = (r_image_t *) stage->media;
+        glBindTexture(GL_TEXTURE_2D, image->texnum);
+      }
+        break;
+      default:
+        Com_Warn("Unsupported stage media in material %s\n", material->media.name);
+        break;
+    }
+  }
 
   glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
