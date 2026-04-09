@@ -138,7 +138,7 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
     R_DrawSkyDrawElementsMaterialStage(view, draw, material, stage);
   }
 
-  glUniform1i(r_sky_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
   glDisable(GL_BLEND);
@@ -168,7 +168,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
   glBindVertexArray(bsp->vertex_array);
 
-  glUniform1i(r_sky_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
 
   const r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
@@ -239,7 +239,7 @@ static void R_InitSkyProgram(void) {
   r_sky_program.stage.scroll = glGetUniformLocation(r_sky_program.name, "stage.scroll");
   r_sky_program.stage.scale = glGetUniformLocation(r_sky_program.name, "stage.scale");
 
-  glUniform1i(r_sky_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_sky_program.stage.flags, STAGE_NONE);
 
   glUseProgram(0);
 

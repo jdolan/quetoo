@@ -241,8 +241,6 @@ static void R_ResolveMaterialStages(r_material_t *material) {
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
         stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
-      } else if (stage->cm->flags & STAGE_MATERIAL) {
-        stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, cm->context);
       } else {
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }

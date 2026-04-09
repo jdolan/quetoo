@@ -289,7 +289,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
     R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage);
   }
 
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -385,8 +385,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-  glUniform1i(r_bsp_program.material.alpha_blend, 0);
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.material.alpha_blend, GL_FALSE);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glEnable(GL_CULL_FACE);
 
@@ -475,8 +475,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-  glUniform1i(r_bsp_program.material.alpha_blend, 1);
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.material.alpha_blend, GL_TRUE);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);

@@ -73,7 +73,7 @@ vec2 transform_stage_uv(vec2 uv) {
  */
 void main(void) {
 
-  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+  if (stage.flags == STAGE_NONE) {
     fragment.view_dist = length(vertex.position);
     fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
 

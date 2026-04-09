@@ -107,6 +107,7 @@ typedef enum {
  * @brief Stage flags indicate what assets and effects a material or stage may include.
  */
 typedef enum {
+  STAGE_NONE      = (0),
   STAGE_TEXTURE   = (1 << 0),
   STAGE_BLEND     = (1 << 1),
   STAGE_COLOR     = (1 << 2),
@@ -127,8 +128,7 @@ typedef enum {
   STAGE_FOG       = (1 << 17),
   STAGE_SHELL     = (1 << 18),
 
-  STAGE_DRAW      = (1 << 28),
-  STAGE_MATERIAL  = (1 << 29),
+  STAGE_DRAW      = (1 << 30),
 
 } cm_stage_flags_t;
 

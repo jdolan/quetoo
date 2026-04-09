@@ -173,7 +173,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 
   R_DrawMeshEntityShellEffect(e, face, mesh);
 
-  glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_mesh_program.stage.flags, STAGE_NONE);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -443,7 +443,7 @@ void R_InitMeshProgram(void) {
 
   glUniform1i(r_mesh_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
 
-  glUniform1i(r_mesh_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_mesh_program.stage.flags, STAGE_NONE);
 
   glUseProgram(0);
 

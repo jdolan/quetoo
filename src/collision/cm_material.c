@@ -521,13 +521,8 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
     if (*token == '}') {
 
-      // a warp stage with no texture will use the material texture
-      if ((s->flags & STAGE_WARP) && !(s->flags & STAGE_TEXTURE)) {
-        s->asset = m->diffusemap;
-      }
-
       // a texture or envmap mean draw it
-      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_WARP | STAGE_SHELL)) {
+      if (s->flags & (STAGE_TEXTURE | STAGE_ENVMAP | STAGE_SHELL)) {
         s->flags |= STAGE_DRAW;
 
         // terrain and dirtmapping use lighting
@@ -554,7 +549,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
                 "Parsed stage\n"
                 "  flags: %d\n"
                 "  texture: %s\n"
-                "   -> material: %s\n"
                 "  blend: %d %d\n"
                 "  color: %.1f %.1f %.1f %.1f\n"
                 "  pulse: %.1f\n"
@@ -567,12 +561,18 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
                 "  terrain.floor: %.1f\n"
                 "  terrain.ceil: %.1f\n"
                 "  anim.num_frames: %d\n"
-                "  anim.fps: %.1f\n", s->flags, (*s->asset.name ? s->asset.name : "NULL"),
-                ((s->flags & STAGE_MATERIAL) ? "true" : "false"), s->blend.src,
-                s->blend.dest, s->color.r, s->color.g, s->color.b, s->color.a, s->pulse.hz,
-                s->stretch.amplitude, s->stretch.hz, s->rotate.hz, s->scroll.s, s->scroll.t,
-                s->scale.s, s->scale.t, s->terrain.floor, s->terrain.ceil, s->animation.num_frames,
-                s->animation.fps);
+                "  anim.fps: %.1f\n",
+                s->flags,
+                (*s->asset.name ? s->asset.name : "NULL"),
+                s->blend.src, s->blend.dest,
+                s->color.r, s->color.g, s->color.b, s->color.a,
+                s->pulse.hz,
+                s->stretch.amplitude, s->stretch.hz,
+                s->rotate.hz,
+                s->scroll.s, s->scroll.t,
+                s->scale.s, s->scale.t,
+                s->terrain.floor, s->terrain.ceil,
+                s->animation.num_frames, s->animation.fps);
 
       return true;
     }
