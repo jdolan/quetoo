@@ -80,39 +80,96 @@ void Cg_AddLight(const cg_light_t *in) {
 }
 
 /**
+ * @brief Applies light style animation to an intensity value.
+ * @param intensity The base intensity.
+ * @param style The style string (a-z, animated at 10Hz). May be empty.
+ * @return The animated intensity.
+ */
+static float Cg_AnimateLight(float intensity, const char *style) {
+
+  if (*style) {
+    const size_t len = strlen(style);
+    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
+    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
+
+    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
+
+    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+
+    intensity *= Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+  }
+
+  return intensity;
+}
+
+/**
+ * @brief Resolves the model1 index for a BSP inline model string (e.g. "*3").
+ * @return The model1 index, or -1 if not found.
+ */
+static int32_t Cg_ResolveModel1(const char *model) {
+
+  for (int32_t i = 1; i < MAX_MODELS; i++) {
+    if (!g_strcmp0(cgi.client->config_strings[CS_MODELS + i], model)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
  * @brief Adds all BSP light sources to the view.
+ * @details For lights with a target_entity, resolves the current world position of the
+ * attached inline model entity each frame and adds the light as a dynamic (unshadowed) light.
  */
 static void Cg_AddBspLights(void) {
 
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    float intensity = l->intensity ?: 1.f;
+    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style);
 
-    if (*l->style) {
-      const size_t len = strlen(l->style);
-      const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-      const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
+    if (l->target_entity) {
+      // Resolve the inline model string and find the matching cl_entity_t each frame.
+      const char *model = cgi.EntityValue(l->target_entity, "model")->nullable_string;
+      if (!model) {
+        continue;
+      }
 
-      const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
+      const int32_t model1 = Cg_ResolveModel1(model);
+      if (model1 == -1) {
+        continue;
+      }
 
-      const float s = (l->style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-      const float t = (l->style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+      vec3_t origin = l->origin;
+      for (int32_t j = 0; j < MAX_ENTITIES; j++) {
+        const cl_entity_t *ent = &cgi.client->entities[j];
+        if (ent->current.model1 == model1) {
+          origin = Vec3_Add(l->origin, ent->origin);
+          break;
+        }
+      }
 
-      const float style_value = Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-      intensity *= style_value;
+      cgi.AddLight(cgi.view, &(const r_light_t) {
+        .origin = origin,
+        .color = l->color,
+        .radius = l->radius,
+        .intensity = intensity,
+        .bounds = Box3_FromCenterRadius(origin, l->radius),
+      });
+    } else {
+      cgi.AddLight(cgi.view, &(const r_light_t) {
+        .origin = l->origin,
+        .color = l->color,
+        .radius = l->radius,
+        .intensity = intensity,
+        .bounds = l->bounds,
+        .query = l->query,
+        .bsp_light = l,
+        .shadow_cached = &l->shadow_cached,
+      });
     }
-
-    cgi.AddLight(cgi.view, &(const r_light_t) {
-      .origin = l->origin,
-      .color = l->color,
-      .radius = l->radius,
-      .intensity = intensity,
-      .bounds = l->bounds,
-      .query = l->query,
-      .bsp_light = l,
-      .shadow_cached = &l->shadow_cached,
-    });
   }
 }
 

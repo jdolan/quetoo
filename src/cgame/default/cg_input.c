@@ -42,6 +42,7 @@ void Cg_HandleEvent(const SDL_Event *event) {
   switch (event->type) {
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_RESIZED:
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
       break;
   }
@@ -70,14 +71,13 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
     memset(&cg_kick, 0, sizeof(cg_kick));
   }
 
-  if (cgi.client->previous_frame) {
-    const player_state_t *ps0 = &cgi.client->previous_frame->ps;
-    const player_state_t *ps1 = &cgi.client->frame.ps;
+  const player_state_t *ps1 = &cgi.client->frame.ps;
 
-    if (ps0->pm_state.type == PM_DEAD && ps1->pm_state.type != PM_DEAD) {
-      Cg_Debug("Respawned, clearing kick %s\n", vtos(cg_kick.kick));
-      memset(&cg_kick, 0, sizeof(cg_kick));
-    } else {
+  if (ps1->pm_state.flags & PMF_SNAP_ANGLES) {
+    // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
+    memset(&cg_kick, 0, sizeof(cg_kick));
+  } else if (cgi.client->previous_frame) {
+      const player_state_t *ps0 = &cgi.client->previous_frame->ps;
       vec3_t delta0 = ps0->pm_state.delta_angles;
       vec3_t delta1 = ps1->pm_state.delta_angles;
 
@@ -86,18 +86,11 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
         if (cgi.client->frame.frame_num != frame) {
           Cg_Debug("Delta kick %s\n", vtos(cg_kick.kick));
-
-          cg_kick.next = cg_kick.kick;
-          cg_kick.kick = Vec3_Zero();
-          cg_kick.prev = Vec3_Zero();
-
-          cg_kick.timestamp = cgi.client->unclamped_time;
-          cg_kick.interval = 1;
+          memset(&cg_kick, 0, sizeof(cg_kick));
 
           frame = cgi.client->frame.frame_num;
         }
       }
-    }
   }
 
   const uint32_t delta = cgi.client->unclamped_time - cg_kick.timestamp;

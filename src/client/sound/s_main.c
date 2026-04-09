@@ -26,6 +26,7 @@
 s_context_t s_context;
 
 cvar_t *s_get_error;
+cvar_t *s_draw_stats;
 
 cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
@@ -261,6 +262,7 @@ static void S_Stop_f(void) {
 static void S_InitLocal(void) {
 
   s_get_error = Cvar_Add("s_get_error", "0", CVAR_DEVELOPER, "Log OpenAL errors to the console (developer tool");
+  s_draw_stats = Cvar_Add("s_draw_stats", "0", CVAR_DEVELOPER, "Draw sound performance statistics (developer tool)");
 
   s_ambient_volume = Cvar_Add("s_ambient_volume", "1", CVAR_ARCHIVE, "Ambient sound volume.");
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");

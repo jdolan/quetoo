@@ -21,7 +21,6 @@
 
 #include "qbsp.h"
 #include "qlight.h"
-#include "qmat.h"
 #include "qzip.h"
 
 #if defined(_WIN32)
@@ -43,7 +42,6 @@ char bsp_name[MAX_OS_PATH]; // the input bsp name (e.g. "maps/edge.bsp")
 
 bool verbose = false;
 bool debug = false;
-bool do_mat = false;
 bool do_bsp = false;
 bool do_zip = false;
 
@@ -225,12 +223,6 @@ static void Check_ZIP_Options(int32_t argc) {
 /**
  * @brief
  */
-static void Check_MAT_Options(int32_t argc) {
-}
-
-/**
- * @brief
- */
 static void PrintHelpMessage(void) {
   Com_Print("General options\n");
   Com_Print("-v --verbose\n");
@@ -238,9 +230,6 @@ static void PrintHelpMessage(void) {
   Com_Print("-t --threads <int> - Specify the number of worker threads (default auto)\n");
   Com_Print("-p --path <game directory> - add the path to the search directory\n");
   Com_Print("-w --wpath <game directory> - add the write path to the search directory\n");
-  Com_Print("\n");
-
-  Com_Print("-mat               MAT stage options:\n");
   Com_Print("\n");
 
   Com_Print("-bsp               BSP stage options:\n");
@@ -264,8 +253,6 @@ static void PrintHelpMessage(void) {
   Com_Print("\n");
 
   Com_Print("Examples:\n");
-  Com_Print("Materials file generation:\n"
-        " quemap -mat maps/my.map\n");
   Com_Print("Development compile:\n"
         " quemap -bsp -light maps/my.map\n");
   Com_Print("Release compile with high quality lighting:\n"
@@ -336,11 +323,6 @@ int32_t main(int32_t argc, char **argv) {
   // read compiling options
   for (int32_t i = 1; i < Com_Argc(); i++) {
 
-    if (!g_strcmp0(Com_Argv(i), "-mat")) {
-      do_mat = true;
-      Check_MAT_Options(i + 1);
-    }
-
     if (!g_strcmp0(Com_Argv(i), "-bsp")) {
       do_bsp = true;
       Check_BSP_Options(i + 1);
@@ -353,21 +335,19 @@ int32_t main(int32_t argc, char **argv) {
     }
   }
 
-  if (!do_bsp && !do_mat && !do_zip) {
-    Com_Error(ERROR_FATAL, "No action specified. Try %s --help\n", Com_Argv(0));
+  if (!do_bsp && !do_zip) {
+    PrintHelpMessage();
+    Com_Error(ERROR_FATAL, "No action specified.\n");
   }
 
   Thread_Init(num_threads);
   Com_Print("Using %d threads\n", Thread_Count());
 
   const char *filename = Com_Argv(Com_Argc() - 1);
-  if (g_file_test(filename, G_FILE_TEST_EXISTS | G_FILE_TEST_IS_REGULAR)) {
-    gchar *dirname = g_path_get_dirname(filename);
-    if (dirname) {
-      Fs_AddToSearchPath(dirname);
-      filename += strlen(dirname);
-      g_free(dirname);
-    }
+
+  if (!g_str_has_prefix(filename, "maps/")) {
+    PrintHelpMessage();
+    Com_Error(ERROR_FATAL, "Invalid Quake path for %s.\n", filename);
   }
 
   // resolve the base name, used for all output files
@@ -392,15 +372,13 @@ int32_t main(int32_t argc, char **argv) {
   // start timer
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  if (do_mat) {
-    MAT_Main();
-  }
-
   if (do_bsp) {
 
     BSP_Main();
 
     LIGHT_Main();
+
+    FreeMaterials();
   }
 
   if (do_zip) {

@@ -100,7 +100,7 @@ static void G_CheckWater(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &pos,
-        .atten = SOUND_ATTEN_SQUARE,
+        .atten = SOUND_ATTEN_CUBIC,
         .pitch = pitch
       }, MULTICAST_PHS);
 
@@ -121,7 +121,7 @@ static void G_CheckWater(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_out,
         .origin = &pos,
-        .atten = SOUND_ATTEN_SQUARE,
+        .atten = SOUND_ATTEN_CUBIC,
         .pitch = pitch
       }, MULTICAST_PHS);
 
@@ -876,7 +876,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 }
 
 /**
- * @brief For G_MOVE_TYPE_PUSH, push all box entities intersected while moving.
+ * @brief For `G_MOVE_TYPE_PUSH`, push all box entities intersected while moving.
  * Generally speaking, only inline BSP models are pushers.
  */
 static void G_Physics_Push(g_entity_t *ent) {

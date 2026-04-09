@@ -31,6 +31,7 @@ void S_Stop(void);
 
 #ifdef __S_LOCAL_H__
 extern cvar_t *s_get_error;
+extern cvar_t *s_draw_stats;
 
 void S_GetError_(const char *function, const char *msg);
 

@@ -233,11 +233,6 @@ struct cg_sprite_s {
    * @brief Sprite billboard axis.
    */
   r_sprite_billboard_axis_t axis;
-  
-  /**
-   * @brief Sprite softness scalar. Negative values invert the scalar.
-   */
-  float softness;
 
   /**
    * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.

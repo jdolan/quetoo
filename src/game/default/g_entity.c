@@ -103,6 +103,7 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_sparks", G_FreeEntity },
   { "misc_sprite", G_FreeEntity },
   { "misc_steam", G_FreeEntity },
+  { "misc_weather", G_FreeEntity },
 };
 
 /**
@@ -260,31 +261,31 @@ static void G_InitMedia(void) {
   gi.SoundIndex("*pain75_1");
   gi.SoundIndex("*pain100_1");
 
-  g_media.models.grenade = gi.ModelIndex("models/objects/grenade/tris");
-  g_media.models.rocket = gi.ModelIndex("models/objects/rocket/tris");
-  g_media.models.hook = gi.ModelIndex("models/objects/grapplehook/tris");
-  g_media.models.fireball = gi.ModelIndex("models/objects/fireball/tris");
+  g_media.models.grenade = gi.ModelIndex("models/grenade/tris");
+  g_media.models.rocket = gi.ModelIndex("models/rocket/tris");
+  g_media.models.hook = gi.ModelIndex("models/grapplehook/tris");
+  g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
 
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
-  g_media.sounds.grenade_hit = gi.SoundIndex("objects/grenade/hit");
+  g_media.sounds.grenade_hit = gi.SoundIndex("grenade/hit");
   g_media.sounds.grenade_throw = gi.SoundIndex("weapons/handgrenades/hg_throw");
-  g_media.sounds.rocket_fly = gi.SoundIndex("objects/rocket/fly");
+  g_media.sounds.rocket_fly = gi.SoundIndex("rocket/fly");
   g_media.sounds.lightning_fly = gi.SoundIndex("weapons/lightning/fly");
   g_media.sounds.quad_attack = gi.SoundIndex("quad/attack");
   g_media.sounds.quad_expire = gi.SoundIndex("quad/expire");
 
-  g_media.sounds.hook_fire = gi.SoundIndex("objects/hook/fire");
-  g_media.sounds.hook_fly = gi.SoundIndex("objects/hook/fly");
-  g_media.sounds.hook_hit = gi.SoundIndex("objects/hook/hit");
-  g_media.sounds.hook_pull = gi.SoundIndex("objects/hook/pull");
-  g_media.sounds.hook_detach = gi.SoundIndex("objects/hook/detach");
-  g_media.sounds.hook_gibhit = gi.SoundIndex("objects/hook/gibhit");
+  g_media.sounds.hook_fire = gi.SoundIndex("hook/fire");
+  g_media.sounds.hook_fly = gi.SoundIndex("hook/fly");
+  g_media.sounds.hook_hit = gi.SoundIndex("hook/hit");
+  g_media.sounds.hook_pull = gi.SoundIndex("hook/pull");
+  g_media.sounds.hook_detach = gi.SoundIndex("hook/detach");
+  g_media.sounds.hook_gibhit = gi.SoundIndex("hook/gibhit");
 
-  g_media.sounds.teleport = gi.SoundIndex("common/teleport");
+  g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
-  g_media.sounds.water_in = gi.SoundIndex("common/water_in");
-  g_media.sounds.water_out = gi.SoundIndex("common/water_out");
+  g_media.sounds.water_in = gi.SoundIndex("misc/water_in");
+  g_media.sounds.water_out = gi.SoundIndex("misc/water_out");
 
   g_media.sounds.weapon_no_ammo = gi.SoundIndex("weapons/common/no_ammo");
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
@@ -300,10 +301,10 @@ static void G_InitMedia(void) {
   }
 
   for (i = 1; i < lengthof(g_media.sounds.countdown); i++) {
-    g_media.sounds.countdown[i] = gi.SoundIndex(va("common/countdown_%d", i));
+    g_media.sounds.countdown[i] = gi.SoundIndex(va("misc/countdown_%d", i));
   }
 
-  g_media.sounds.roar = gi.SoundIndex("common/ominous_bwah");
+  g_media.sounds.roar = gi.SoundIndex("misc/ominous_bwah");
 
   g_media.sounds.techs[TECH_HASTE] = gi.SoundIndex("tech/haste");
   g_media.sounds.techs[TECH_REGEN] = gi.SoundIndex("tech/regen");
@@ -604,13 +605,24 @@ void G_SpawnTechs(void) {
  */
 void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
 
+  // Drop bots, they will reconnect via G_Ai_Frame
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      G_ClientDisconnect(cl);
+    }
+  });
+
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
 
-  // Clear client entity pointers before freeing entities to prevent dangling references
+  // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;
+    cl->persistent.score = 0;
+    cl->persistent.captures = 0;
+    cl->persistent.deaths = 0;
+    cl->persistent.team = NULL;
   });
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
@@ -709,7 +721,6 @@ static void G_worldspawn_Music(void) {
  message : The map title.
  sky : The sky environment map (default unit1_).
  ambient : The ambient light level (e.g. 0.14 0.11 0.12).
- weather : Weather effects, one of "none, rain, snow" followed optionally by "fog r g b."
  gravity : Gravity for the level (default 800).
  gameplay : The gameplay mode, one of "deathmatch, instagib, arena."
  hook : Enables the grappling hook (unset for gameplay default, 0 = disabled, 1 = enabled)."
@@ -727,6 +738,11 @@ static void G_worldspawn(g_entity_t *ent) {
   ent->solid = SOLID_BSP;
   ent->move_type = MOVE_TYPE_NONE;
   ent->s.effects = EF_WORLD;
+
+  // ensure worldspawn has no origin or angles, as these would cause the
+  // entire world model to be rendered offset or rotated as an entity
+  ent->s.origin = Vec3_Zero();
+  ent->s.angles = Vec3_Zero();
 
   gi.SetModel(ent, "*0");
 

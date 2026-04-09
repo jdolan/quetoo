@@ -46,7 +46,7 @@ void Sv_ClientPrint(const g_client_t *cl, const int32_t level, const char *fmt, 
   va_start(args, fmt);
 
   char string[MAX_STRING_CHARS];
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
 
   va_end(args);
 
@@ -64,7 +64,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
   va_start(args, fmt);
 
   char string[MAX_STRING_CHARS];
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
 
   va_end(args);
 
@@ -110,7 +110,7 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
   }
 
   va_start(args, fmt);
-  vsprintf(string, fmt, args);
+  vsnprintf(string, sizeof(string), fmt, args);
   va_end(args);
 
   Net_WriteByte(&sv.multicast, SV_CMD_CBUF_TEXT);
@@ -122,6 +122,12 @@ void Sv_BroadcastCommand(const char *fmt, ...) {
  * @brief Writes to the specified datagram, noting the offset of the message.
  */
 static void Sv_ClientDatagramMessage(sv_client_t *cl, byte *data, size_t len) {
+
+  // Ensure the datagram buffer is initialized
+  if (!cl->datagram.buffer.data) {
+    Mem_InitBuffer(&cl->datagram.buffer, cl->datagram.data, sizeof(cl->datagram.data));
+    cl->datagram.buffer.allow_overflow = true;
+  }
 
   if (len > MAX_MSG_SIZE_UDP) {
     Com_Debug(DEBUG_SERVER, "Single datagram message exceeds MAX_MSG_SIZE_UDP\n");

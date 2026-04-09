@@ -297,6 +297,12 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       Cmd_ExecuteString("quit");
       return true;
 
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+      if (cls.key_state.dest == KEY_GAME) {
+        Cl_SetKeyDest(KEY_UI);
+      }
+      return false;
+
     case SDL_EVENT_WINDOW_EXPOSED:
     case SDL_EVENT_WINDOW_MOVED:
     case SDL_EVENT_WINDOW_RESIZED:
@@ -415,14 +421,6 @@ void Cl_HandleEvents(void) {
     } else {
       break;
     }
-  }
-
-  if (cls.key_state.dest == KEY_GAME) {
-    
-    const GLint cx = r_context.display_mode->w * 0.5f;
-    const GLint cy = r_context.display_mode->h * 0.5f;
-
-    SDL_WarpMouseInWindow(r_context.window, cx, cy);
   }
 }
 

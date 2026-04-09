@@ -120,7 +120,7 @@ static void SetBrushBounds(csg_brush_t *brush) {
 /**
  * @brief
  */
-static void MakeBrushWindings(csg_brush_t *brush) {
+static void MakeCsgBrushWindings(csg_brush_t *brush) {
 
   brush_side_t *side = brush->brush_sides;
   for (int32_t i = 0; i < brush->num_brush_sides; i++, side++) {
@@ -163,7 +163,7 @@ csg_brush_t *BrushFromBounds(const box3_t bounds) {
     b->brush_sides[3 + i].surface = SURF_NODE;
   }
 
-  MakeBrushWindings(b);
+  MakeCsgBrushWindings(b);
   return b;
 }
 

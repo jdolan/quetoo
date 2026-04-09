@@ -354,6 +354,7 @@ bsp_face_t *EmitFace(const face_t *face) {
   bsp_file.num_faces++;
 
   out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
+  out->patch = -1;
   out->plane = face->plane;
   
   out->bounds = Box3_Null();
@@ -376,7 +377,8 @@ bsp_face_t *EmitFace(const face_t *face) {
 
 #define MAX_VERTEX_FACES 32
 
-static entity_t **face_entities;
+static const bsp_model_t *phong_model;
+static float phong_cosine;
 
 /**
  * @brief Populates faces with pointers to all those referencing the vertex.
@@ -386,12 +388,10 @@ static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex,
 
   size_t count = 0;
 
-  const entity_t *face_entity = face_entities[face - bsp_file.faces];
+  const bsp_face_t *f = &bsp_file.faces[phong_model->first_face];
+  for (int32_t i = 0; i < phong_model->num_faces; i++, f++) {
 
-  const bsp_face_t *f = bsp_file.faces;
-  for (int32_t i = 0; i < bsp_file.num_faces; i++, f++) {
-
-    if (face_entity != face_entities[i]) {
+    if (f->plane == -1) {
       continue;
     }
 
@@ -433,8 +433,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
 
       size_t j;
       for (j = 0; j < i; j++) {
-        if (faces[j]->brush_side == (*f)->brush_side &&
-          faces[j]->plane == (*f)->plane) {
+        if (faces[j]->brush_side == (*f)->brush_side && faces[j]->plane == (*f)->plane) {
           break;
         }
       }
@@ -480,7 +479,10 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
           break;
         }
       }
-      assert(w);
+
+      if (!w) {
+        continue;
+      }
 
       v->normal = Vec3_Fmaf(v->normal, Cm_WindingArea(w), p->normal);
     }
@@ -499,15 +501,16 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
  * and not from BSP splits or T-junctions. That is, it only applies to corners of faces, not to
  * vertexes with colinear neighbors.
  */
-static void PhongFace(int32_t face_num) {
+static void PhongFace(int32_t model_face_num) {
 
-  const entity_t *entity = face_entities[face_num];
-  assert(entity);
-
-  const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
-  const float phong_cosine = cosf(Radians(phong_angle));
-
+  const int32_t face_num = phong_model->first_face + model_face_num;
   const bsp_face_t *face = bsp_file.faces + face_num;
+
+  // Skip patch faces (they have correct normals from Bézier evaluation)
+  if (face->plane == -1) {
+    return;
+  }
+
   bsp_vertex_t *v = bsp_file.vertexes + face->first_vertex;
 
   for (int32_t i = 0; i < face->num_vertexes; i++) {
@@ -554,41 +557,39 @@ static void PhongFace(int32_t face_num) {
 }
 
 /**
- * @brief Calculates Phong shading, updating vertex normal vectors.
+ * @brief Calculates Phong shading for the brush faces of the given model.
  */
-void PhongShading(void) {
+void PhongShading(const bsp_model_t *mod) {
 
   if (no_phong) {
     return;
   }
 
-  face_entities = Mem_Malloc(sizeof(entity_t *) * bsp_file.num_faces);
-
-  const bsp_face_t *face = bsp_file.faces;
-  for (int32_t i = 0; i < bsp_file.num_faces; i++, face++) {
-
-    const bsp_brush_t *brush = bsp_file.brushes;
-    for (int32_t j = 0; j < bsp_file.num_brushes; j++, brush++) {
-
-      if (face->brush_side >= brush->first_brush_side
-        && face->brush_side < brush->first_brush_side + brush->num_brush_sides) {
-        face_entities[i] = entities + brush->entity;
-        break;
-      }
-    }
-
-    assert(face_entities[i]);
+  if (mod->num_faces == 0) {
+    return;
   }
 
-  Work("Phong shading", PhongFace, bsp_file.num_faces);
+  phong_model = mod;
 
-  Mem_Free(face_entities);
+  const entity_t *entity = &entities[mod->entity];
+  const float phong_angle = atof(ValueForKey(entity, "phong", "60"));
+
+  phong_cosine = cosf(Radians(phong_angle));
+
+  Work("Phong shading", PhongFace, mod->num_faces);
+
+  phong_model = NULL;
+  phong_cosine = 0.f;
 }
 
 /**
  * @brief
  */
 static void TangentVectors_(bsp_model_t *model) {
+
+  if (model->num_faces == 0) {
+    return;
+  }
 
   bsp_face_t *face = bsp_file.faces + model->first_face;
   int32_t base_vertex = face->first_vertex;

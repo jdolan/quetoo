@@ -23,6 +23,7 @@
 #include "bsp.h"
 #include "map.h"
 #include "material.h"
+#include "patch.h"
 #include "qbsp.h"
 #include "texture.h"
 
@@ -276,7 +277,7 @@ static void AddBrushBevel(brush_t *b, int32_t plane) {
  * against axial bounding boxes. Ensures that the first 6 sides of every brush
  * are axial, which allows some optimizations in collision detection.
  */
-static void AddBrushBevels(brush_t *b) {
+void AddBrushBevels(brush_t *b) {
 
   for (int32_t axis = 0; axis < 3; axis++) {
     for (int32_t side = -1; side <= 1; side += 2) {
@@ -342,7 +343,7 @@ static void UnparseBrush(brush_t *brush, parser_t *parser) {
 /**
  * @brief Makes windings for sides and mins / maxs for the brush
  */
-static void MakeBrushWindings(brush_t *brush) {
+void MakeBrushWindings(brush_t *brush) {
 
   assert(brush->num_brush_sides);
 
@@ -404,16 +405,14 @@ static void MakeBrushWindings(brush_t *brush) {
 static void SetMaterialFlags(brush_side_t *side) {
 
   const material_t *material = &materials[side->material];
-  if (material) {
-    if (material->cm->contents) {
-      if (side->contents == 0) {
-        side->contents = material->cm->contents;
-      }
+  if (material->cm->contents) {
+    if (side->contents == 0) {
+      side->contents = material->cm->contents;
     }
-    if (material->cm->surface) {
-      if (side->surface == 0) {
-        side->surface = material->cm->surface;
-      }
+  }
+  if (material->cm->surface) {
+    if (side->surface == 0) {
+      side->surface = material->cm->surface;
     }
   }
 
@@ -441,6 +440,8 @@ static void SetMaterialFlags(brush_side_t *side) {
     side->surface |= SURF_SKY;
   } else if (!g_strcmp0(side->texture, "common/trigger")) {
     side->surface |= SURF_NO_DRAW;
+  } else if (!g_strcmp0(side->texture, "common/weather")) {
+    side->contents |= CONTENTS_ATMOSPHERIC;
   }
 
   if (side->contents & CONTENTS_MASK_LIQUID) {
@@ -458,6 +459,19 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
   if (g_strcmp0(token, "{")) {
     return NULL;
+  }
+
+  // Check if this is a patchDef2 block
+  if (Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
+    if (!g_strcmp0(token, "patchDef2")) {
+      const int32_t entity_num = (int32_t) (entity - entities);
+      patch_t *patch = ParsePatch(parser, entity_num);
+      if (patch) {
+        entity->num_patches++;
+        //EmitPatchCollisionBrushes(patch, entity);
+      }
+      return NULL;
+    }
   }
 
   if (num_brushes == MAX_BSP_BRUSHES) {
@@ -563,7 +577,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
     }
 
     // resolve the material
-    side->material = FindMaterial(side->texture);
+    side->material = LoadMaterial(side->texture);
 
     // resolve the texture vectors
     TextureVectorsForBrushSide(side, Vec3_Zero());
@@ -693,6 +707,40 @@ static void MoveBrushesToWorld(entity_t *ent) {
 }
 
 /**
+ * @brief Some entities are merged into the world, e.g. func_group.
+ */
+static void MovePatchesToWorld(entity_t *ent) {
+
+  const int32_t new_patches = ent->num_patches;
+  const int32_t world_patches = entities[0].num_patches;
+
+  patch_t *temp = Mem_TagMalloc(new_patches * sizeof(patch_t), (mem_tag_t) MEM_TAG_PATCH);
+  memcpy(temp, patches + ent->first_patch, new_patches * sizeof(patch_t));
+
+  // make space to move the patches (overlapped copy)
+  memmove(patches + world_patches + new_patches,
+          patches + world_patches,
+          sizeof(patch_t) * (num_patches - world_patches - new_patches));
+
+  // copy the new patches down
+  memcpy(patches + world_patches, temp, sizeof(patch_t) * new_patches);
+
+  // fix up entity references
+  for (int32_t i = 0; i < new_patches; i++) {
+    patches[world_patches + i].entity = 0;
+  }
+
+  // fix up indexes
+  entities[0].num_patches += new_patches;
+  for (int32_t i = 1; i < num_entities; i++) {
+    entities[i].first_patch += new_patches;
+  }
+  Mem_Free(temp);
+
+  ent->num_patches = 0;
+}
+
+/**
  * @brief
  */
 static entity_t *ParseEntity(parser_t *parser) {
@@ -719,6 +767,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 
     entity->first_brush = num_brushes;
     entity->first_brush_side = num_brush_sides;
+    entity->first_patch = num_patches;
 
     while (true) {
 
@@ -737,8 +786,6 @@ static entity_t *ParseEntity(parser_t *parser) {
           entity->num_brushes++;
           entity->num_brush_sides += brush->num_brush_sides;
           entity->bounds = Box3_Union(entity->bounds, brush->bounds);
-        } else {
-          Com_Error(ERROR_FATAL, "Invalid brush %d in entity %d\n", num_brushes, num_entities);
         }
 
       } else {
@@ -791,8 +838,10 @@ static entity_t *ParseEntity(parser_t *parser) {
     if (!g_strcmp0(classname, "func_group") ||
       !g_strcmp0(classname, "misc_fog") ||
       !g_strcmp0(classname, "misc_dust") ||
-      !g_strcmp0(classname, "misc_sprite")) {
+      !g_strcmp0(classname, "misc_sprite") ||
+      !g_strcmp0(classname, "misc_weather")) {
       MoveBrushesToWorld(entity);
+      MovePatchesToWorld(entity);
     }
   }
 
@@ -817,6 +866,9 @@ void LoadMapFile(const char *filename) {
 
   memset(planes, 0, sizeof(planes));
   num_planes = 0;
+
+  memset(patches, 0, sizeof(patches));
+  num_patches = 0;
 
   memset(plane_hash, 0, sizeof(plane_hash));
 
@@ -843,6 +895,7 @@ void LoadMapFile(const char *filename) {
 
   Com_Verbose("%5i brushes\n", num_brushes);
   Com_Verbose("%5i brush sides\n", num_brush_sides);
+  Com_Verbose("%5i patches\n", num_patches);
   Com_Verbose("%5i entities\n", num_entities);
   Com_Verbose("%5i planes\n", num_planes);
   Com_Verbose("size: %5.0f,%5.0f,%5.0f to %5.0f,%5.0f,%5.0f\n",

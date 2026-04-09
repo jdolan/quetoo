@@ -82,7 +82,7 @@ static void loadView(ViewController *self) {
   this->okButton->delegate.didClick = didClickButton;
 
   this->cancelButton->delegate.self = self;
-  this->okButton->delegate.didClick = didClickButton;
+  this->cancelButton->delegate.didClick = didClickButton;
 }
 
 #pragma mark - DialogViewController

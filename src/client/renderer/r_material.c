@@ -45,7 +45,7 @@ static void R_FreeMaterial(r_media_t *self) {
 /**
  * @return The number of frames resolved, or -1 on error.
  */
-static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t context) {
+static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stage_t *stage) {
 
   const r_image_t *images[stage->cm->animation.num_frames];
   const r_image_t **out = images;
@@ -61,7 +61,7 @@ static r_animation_t *R_LoadStageAnimation(r_stage_t *stage, cm_asset_context_t 
     }
   }
 
-  return R_CreateAnimation(va("%s_animation", stage->cm->asset.name), stage->cm->animation.num_frames, images);
+  return R_CreateAnimation(va("%s_%s_animation", material->name, stage->cm->asset.name), stage->cm->animation.num_frames, images);
 }
 
 /**
@@ -84,45 +84,6 @@ static void R_AppendStage(r_material_t *m, r_stage_t *s) {
  * @brief Normalizes material names to their context, returning the unique media key for subsequent
  * material lookups.
  */
-static void R_MaterialKey(const char *name, char *key, size_t len, cm_asset_context_t context) {
-
-  *key = '\0';
-
-  if (*name) {
-    if (*name == '#') {
-      name++;
-    } else {
-      switch (context) {
-        case ASSET_CONTEXT_NONE:
-          break;
-        case ASSET_CONTEXT_TEXTURES:
-          if (!g_str_has_prefix(name, "textures/")) {
-            g_strlcat(key, "textures/", len);
-          }
-          break;
-        case ASSET_CONTEXT_MODELS:
-          if (!g_str_has_prefix(name, "models/")) {
-            g_strlcat(key, "models/", len);
-          }
-          break;
-        case ASSET_CONTEXT_PLAYERS:
-          if (!g_str_has_prefix(name, "players/")) {
-            g_strlcat(key, "players/", len);
-          }
-          break;
-        case ASSET_CONTEXT_SPRITES:
-          if (!g_str_has_prefix(name, "sprites/")) {
-            g_strlcat(key, "sprites/", len);
-          }
-          break;
-      }
-    }
-
-    g_strlcat(key, name, len);
-    g_strlcat(key, "_mat", len);
-  }
-}
-
 /**
  * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
  */
@@ -234,10 +195,14 @@ static void R_ResolveMaterialHeightmap(const cm_material_t *cm, const SDL_Surfac
     min = Minf(min, in_normalmap->a);
     max = Maxf(max, in_normalmap->a);
   }
-
-  in_normalmap = normalmap->pixels;
-  for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
-    in_normalmap->a = (in_normalmap->a - min) / (max - min) * 255;
+  
+  const float range = max - min;
+  
+  if (range > 0.f) {
+    in_normalmap = normalmap->pixels;
+    for (int32_t i = 0; i < w * h; i++, in_normalmap++) {
+      in_normalmap->a = (in_normalmap->a - min) / range * 255.f;
+    }
   }
 }
 
@@ -264,7 +229,7 @@ static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 /**
  * @brief Resolves all asset references in the specified render material's stages
  */
-static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t context) {
+static void R_ResolveMaterialStages(r_material_t *material) {
   int32_t num_stages = 0;
 
   const cm_material_t *cm = material->cm;
@@ -275,9 +240,9 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
 
     if (*stage->cm->asset.path) {
       if (stage->cm->flags & STAGE_ANIMATION) {
-        stage->media = (r_media_t *) R_LoadStageAnimation(stage, context);
+        stage->media = (r_media_t *) R_LoadStageAnimation(cm, stage);
       } else if (stage->cm->flags & STAGE_MATERIAL) {
-        stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, context);
+        stage->media = (r_media_t *) R_LoadMaterial(stage->cm->asset.name, cm->context);
       } else {
         stage->media = (r_media_t *) R_LoadImage(stage->cm->asset.path, IMG_MATERIAL);
       }
@@ -297,10 +262,10 @@ static void R_ResolveMaterialStages(r_material_t *material, cm_asset_context_t c
  * @brief Resolves all asset references in the specified collision material, yielding a usable
  * renderer material.
  */
-static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t context) {
+static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
   char key[MAX_QPATH];
 
-  R_MaterialKey(cm->name, key, sizeof(key), context);
+  Cm_MaterialPath(cm->name, key, sizeof(key), cm->context);
 
   r_material_t *material = (r_material_t *) R_AllocMedia(key, sizeof(r_material_t), R_MEDIA_MATERIAL);
   material->cm = cm;
@@ -321,7 +286,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
-  Cm_ResolveMaterial(cm, context);
+  Cm_ResolveMaterial(cm);
   
   SDL_Surface *diffusemap = NULL;
   if (*cm->diffusemap.path) {
@@ -341,7 +306,7 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
 
   const size_t layer_size = w * h * 4;
 
-  switch (context) {
+  switch (cm->context) {
     case ASSET_CONTEXT_TEXTURES:
     case ASSET_CONTEXT_MODELS:
     case ASSET_CONTEXT_PLAYERS: {
@@ -410,121 +375,64 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm, cm_asset_context_t con
   
   SDL_DestroySurface(diffusemap);
 
-  R_ResolveMaterialStages(material, context);
+  R_ResolveMaterialStages(material);
 
   return material;
 }
 
 /**
- * @brief Finds an existing r_material_t from the specified texture, and registers it again if it exists.
+ * @brief Finds an existing `r_material_t` from the specified diffusemap.
  */
 r_material_t *R_FindMaterial(const char *name, cm_asset_context_t context) {
   char key[MAX_QPATH];
   char basename[MAX_QPATH];
   
   StripExtension(name, basename);
-  R_MaterialKey(basename, key, sizeof(key), context);
+  Cm_MaterialPath(basename, key, sizeof(key), context);
 
   return (r_material_t *) R_FindMedia(key, R_MEDIA_MATERIAL);
 }
 
 /**
- * @brief Loads the r_material_t with the specified asset name and context.
+ * @brief Loads the `r_material_t` with the specified asset name and context.
  */
 r_material_t *R_LoadMaterial(const char *name, cm_asset_context_t context) {
 
   r_material_t *material = R_FindMaterial(name, context);
   if (material == NULL) {
-    material = R_ResolveMaterial(Cm_AllocMaterial(name), context);
+
+    cm_material_t *cm = Cm_LoadMaterial(name, context);
+
+    material = R_ResolveMaterial(cm);
   }
 
   return material;
 }
 
 /**
- * @brief Loads all materials defined in the given file.
+ * @brief `R_EnumerateMedia` callback that saves dirty materials.
  */
-ssize_t R_LoadMaterials(const char *path, cm_asset_context_t context, GList **materials) {
-  GList *source = NULL;
-  const ssize_t count = Cm_LoadMaterials(path, &source);
+static void R_SaveMaterials_enumerator(const r_media_t *media, void *data) {
 
-  if (count > 0) {
-
-    for (GList *list = source; list; list = list->next) {
-      cm_material_t *cm = (cm_material_t *) list->data;
-
-      r_material_t *material = R_FindMaterial(cm->basename, context);
-      if (material == NULL) {
-        material = R_ResolveMaterial(cm, context);
+  if (media->type == R_MEDIA_MATERIAL) {
+    r_material_t *material = (r_material_t *) media;
+    if (material->cm->dirty) {
+      if (Cm_SaveMaterial(material->cm)) {
+        material->cm->dirty = false;
+        (*(int32_t *) data)++;
       }
-
-      *materials = g_list_prepend(*materials, material);
     }
   }
-
-  g_list_free(source);
-  return count;
 }
 
 /**
- * @brief Writes all r_material_t for the specified model to disk.
- */
-static ssize_t R_SaveMaterials(const r_model_t *mod) {
-  char path[MAX_QPATH];
-
-  g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-  GList *materials = NULL;
-
-  switch (mod->type) {
-    case MODEL_BSP: {
-      r_material_t **mat = mod->bsp->materials;
-      for (int32_t i = 0; i < mod->bsp->num_materials; i++, mat++) {
-        cm_material_t *cm = (*mat)->cm;
-        materials = g_list_prepend(materials, cm);
-      }
-    }
-      break;
-    case MODEL_MESH: {
-      const r_mesh_face_t *face = mod->mesh->faces;
-      for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-        cm_material_t *cm = face->material->cm;
-        if (face->material && g_list_find(materials, cm) == NULL) {
-          materials = g_list_prepend(materials, cm);
-        }
-      }
-    }
-      break;
-    default:
-      Com_Warn("Unsupported model: %s\n", mod->media.name);
-      break;
-  }
-
-  const ssize_t count = Cm_WriteMaterials(path, materials);
-
-  g_list_free(materials);
-  return count;
-}
-
-/**
- * @brief
+ * @brief Saves all dirty materials to disk and clears their dirty flags.
  */
 void R_SaveMaterials_f(void) {
 
-  if (!r_models.world) {
-    Com_Print("No map loaded\n");
-    return;
-  }
+  int32_t count = 0;
 
-  const r_model_t *model = r_models.world;
+  R_EnumerateMedia(R_SaveMaterials_enumerator, &count);
 
-  if (Cmd_Argc() > 1) {
-    model = (r_model_t *) R_FindMedia(Cmd_Argv(1), R_MEDIA_MODEL);
-    if (model == NULL) {
-      Com_Warn("Failed to save materials for %s\n", Cmd_Argv(1));
-    }
-  }
-
-  assert(model);
-  R_SaveMaterials(model);
+  Com_Print("Saved %d material(s)\n", count);
 }

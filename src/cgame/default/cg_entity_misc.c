@@ -39,6 +39,10 @@ typedef struct {
    * @brief The sprite origins, clipped to the backing entity's brushes.
    */
   vec3_t *origins;
+
+  /**
+   * @brief The count of sprite origins.
+   */
   int32_t num_origins;
 
   /**
@@ -96,7 +100,6 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.height = cgi.EntityValue(self->def, "height")->value;
   dust->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
   dust->sprite.lifetime = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "lifetime")->value ?: 10.f);
-  dust->sprite.softness = cgi.EntityValue(self->def, "softness")->value ?: 1.f;
   dust->sprite.lighting = cgi.EntityValue(self->def, "lighting")->value ?: 1.f;
 
   dust->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
@@ -277,7 +280,6 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
         .size_velocity = 16.f,
         .size_acceleration = 150.f * s,
         .color = ColorHSV(hue, sat, RandomRangef(.7f, 1.f)).vec3,
-        .softness = 1.f
       })) {
       break;
     }
@@ -411,7 +413,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
     sound->play.flags |= S_PLAY_LOOP | S_PLAY_FRAME;
   }
 
-  sound->play.data = self;
+  sound->play.data = sound;
 }
 
 /**
@@ -574,7 +576,6 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
   sprite->sprite.height = cgi.EntityValue(self->def, "height")->value;
   sprite->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
   sprite->sprite.lifetime = SECONDS_TO_MILLIS(cgi.EntityValue(self->def, "lifetime")->value ?: 10.f);
-  sprite->sprite.softness = cgi.EntityValue(self->def, "softness")->value ?: 1.f;
   sprite->sprite.lighting = cgi.EntityValue(self->def, "lighting")->value ?: 1.f;
 }
 
@@ -617,7 +618,6 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
       s.size_velocity = Mixf(this->sprite.size_velocity, that->sprite.size_velocity, Randomf());
       s.size_acceleration = Mixf(this->sprite.size_acceleration, that->sprite.size_acceleration, Randomf());
       s.bounce = Mixf(this->sprite.bounce, that->sprite.bounce, Randomf());
-      s.softness = Mixf(this->sprite.softness, that->sprite.softness, Randomf());
       s.lighting = Mixf(this->sprite.lighting, that->sprite.lighting, Randomf());
 
       Cg_AddSprite(&s);
@@ -652,7 +652,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 
   cg_misc_steam_t *steam = self->data;
 
-  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 24.f;
   self->drift = cgi.EntityValue(self->def, "drift")->value ?: .01f;
 
   if (self->target) {
@@ -667,7 +667,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
     }
   }
 
-  steam->size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
+  steam->size = cgi.EntityValue(self->def, "size")->value ?: 32.f;
   steam->count = cgi.EntityValue(self->def, "count")->integer ?: 1;
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
@@ -700,14 +700,13 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
       .origin = self->origin,
       .velocity = Vec3_Add(steam->velocity, Vec3_RandomRange(-2.f, 2.f)),
       .acceleration = Vec3_Add(Vec3_Scale(Vec3_Up(), 20.f), Vec3_RandomDir()),
-      .lifetime = 4500 / (5.f + Randomf() * .5f),
+      .lifetime = 6500 / (5.f + Randomf() * .5f),
       .rotation = Randomf(),
       .rotation_velocity = RandomRangef(-1.f, 1.f),
       .size = RandomRangef(.9f * steam->size, 1.1f * steam->size),
       .size_velocity = 10.f,
-      .color = Vec3(1.f, 1.f, 1.f),
+      .color = Vec3(.5f, .5f, .5f),
       .lighting = 1.f,
-      .softness = 1.f,
     })) {
       break;
     };
@@ -732,4 +731,235 @@ const cg_entity_class_t cg_misc_steam = {
   .Init = Cg_misc_steam_Init,
   .Think = Cg_misc_steam_Think,
   .data_size = sizeof(s_play_sample_t)
+};
+
+/**
+ * @brief The misc_weather type.
+ */
+typedef struct {
+  /**
+   * @brief The weather type bitmask.
+   */
+  int32_t weather;
+
+  /**
+   * @brief The sprite origins (xyz) and fall heights (w).
+   */
+  vec4_t *origins;
+
+  /**
+   * @brief The count of sprite origins.
+   */
+  int32_t num_origins;
+
+  /**
+   * @brief The density multiplier.
+   */
+  float density;
+
+  /**
+   * @brief The count of active sprites.
+   */
+  int32_t num_active;
+
+  /**
+   * @brief The ambient sound sample.
+   */
+  s_sample_t *sample;
+} cg_weather_t;
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_Init(cg_entity_t *self) {
+
+  cg_weather_t *weather = self->data;
+
+  const char *type = cgi.EntityValue(self->def, "weather")->nullable_string;
+  if (type) {
+    if (strstr(type, "rain")) {
+      weather->weather |= WEATHER_RAIN;
+    }
+    if (strstr(type, "snow")) {
+      weather->weather |= WEATHER_SNOW;
+    }
+    if (strstr(type, "ash")) {
+      weather->weather |= WEATHER_ASH;
+    }
+  }
+
+  if (!weather->weather) {
+    weather->weather = WEATHER_RAIN;
+  }
+
+  const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
+  if (sound) {
+    if (g_strcmp0(sound, "none")) {
+      weather->sample = cgi.LoadSample(sound);
+    }
+  } else {
+    if (weather->weather & WEATHER_RAIN) {
+      weather->sample = cg_sample_rain;
+    } else if (weather->weather & WEATHER_SNOW) {
+      weather->sample = cg_sample_snow;
+    } else if (weather->weather & WEATHER_ASH) {
+      weather->sample = cg_sample_ash;
+    }
+  }
+
+  weather->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
+
+  if (weather->weather & WEATHER_RAIN) {
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 30.f;
+  } else {
+    self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+  }
+
+  self->bounds = Box3_Null();
+
+  GPtrArray *brushes = cgi.EntityBrushes(self->def);
+  for (guint i = 0; i < brushes->len; i++) {
+
+    const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
+    self->bounds = Box3_Union(self->bounds, brush->bounds);
+
+    const vec3_t brush_size = Box3_Size(brush->bounds);
+    const int32_t brush_origins = Maxi(Vec3_Length(brush_size) * weather->density, 1);
+
+    if (weather->origins) {
+      weather->origins = cgi.Realloc(weather->origins, (weather->num_origins + brush_origins) * sizeof(vec4_t));
+    } else {
+      weather->origins = cgi.LinkMalloc(brush_origins * sizeof(vec4_t), weather);
+    }
+
+    int32_t j = weather->num_origins;
+    while (j < weather->num_origins + brush_origins) {
+
+      vec3_t point = Box3_RandomPoint(brush->bounds);
+      point.z = brush->bounds.maxs.z;
+
+      if (cgi.PointInsideBrush(point, brush)) {
+        weather->origins[j++] = Vec4(point.x, point.y, point.z, 0.f);
+      }
+    }
+
+    weather->num_origins += brush_origins;
+  }
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_SpriteThink(cg_sprite_t *sprite, float life, float delta) {
+
+  cg_weather_t *weather = sprite->data;
+
+  if (life >= 1.f) {
+    weather->num_active--;
+  }
+}
+
+/**
+ * @brief
+ */
+static void Cg_misc_weather_Think(cg_entity_t *self) {
+
+  if (!cg_add_weather->value) {
+    return;
+  }
+
+  if (cgi.CulludeBox(cgi.view, self->bounds)) {
+    return;
+  }
+
+  cg_weather_t *weather = self->data;
+
+  if (weather->sample) {
+    Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
+      .sample = weather->sample,
+      .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
+      .entity = Cg_Self()
+    });
+  }
+
+  while (weather->num_active < weather->num_origins * cg_add_weather->value) {
+
+    const int32_t index = RandomRangei(0, weather->num_origins);
+    vec4_t *origin = &weather->origins[index];
+    vec3_t pos = Vec3(origin->x, origin->y, origin->z);
+
+    if (origin->w == 0.f) {
+      const vec3_t end = Vec3(pos.x, pos.y, pos.z - MAX_WORLD_AXIAL);
+      const cm_trace_t trace = cgi.Trace(pos, end, Box3_Zero(), NULL, CONTENTS_SOLID);
+      origin->w = pos.z - trace.end.z;
+      self->bounds = Box3_Append(self->bounds, trace.end);
+    }
+
+    float height = origin->w;
+
+    // Distribute spawn origins randomly along the vertical axis to avoid "sheet" effect
+    const float vertical_offset = Randomf() * origin->w;
+    pos.z -= vertical_offset;
+    height = origin->w - vertical_offset;
+
+    cg_sprite_t s = {
+      .origin = pos,
+      .Think = Cg_misc_weather_SpriteThink,
+      .data = weather,
+      .flags = SPRITE_DATA_NOFREE,
+    };
+
+    if (weather->weather & WEATHER_RAIN) {
+      s.atlas_image = cg_sprite_rain;
+      s.color = Vec3(1.f, 1.f, 1.f);
+      s.size = 32.f;
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-2.f, 2.f), Vec3(0.f, 0.f, 800.f));
+      s.axis = SPRITE_AXIS_X | SPRITE_AXIS_Y;
+      s.lifetime = 1000.f * height / 800.f * RandomRangef(.8f, 1.2f);
+      s.lighting = 1.f;
+
+      if (Randomf() > .5f) {
+        Cg_AddSprite(&(cg_sprite_t) {
+          .atlas_image = cg_sprite_water_ring,
+          .lifetime = 300,
+          .origin = Vec3(pos.x, pos.y, pos.z - height),
+          .size = 4.f,
+          .size_velocity = 4.f * 6.f,
+          .rotation = RandomRadian(),
+          .dir = Vec3_Up(),
+          .color = Vec3(1.f, 1.f, 1.f),
+          .lighting = 1.f
+        });
+      }
+    } else if (weather->weather & WEATHER_SNOW) {
+      s.atlas_image = cg_sprite_snow;
+      s.color = Vec3(1.f, 1.f, 1.f);
+      s.size = 4.f;
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 120.f));
+      s.acceleration = Vec3_RandomRange(-12.f, 12.f);
+      s.lifetime = 1000.f * height / 120.f * RandomRangef(.8f, 1.2f);
+    } else if (weather->weather & WEATHER_ASH) {
+      const float color = RandomRangef(0.25f, 0.75f);
+      s.atlas_image = cg_sprite_ash;
+      s.color = Vec3(color, color, color);
+      s.size = RandomRangef(1.f, 3.f);
+      s.velocity = Vec3_Subtract(Vec3_RandomRange(-12.f, 12.f), Vec3(0.f, 0.f, 25.f));
+      s.acceleration = Vec3_RandomRange(-12.f, 12.f);
+      s.rotation = RandomRadian();
+      s.lifetime = 1000.f * height / 25.f * RandomRangef(.8f, 1.2f);
+    }
+
+    Cg_AddSprite(&s);
+    weather->num_active++;
+  }
+}
+
+/**
+ * @brief
+ */
+const cg_entity_class_t cg_misc_weather = {
+  .classname = "misc_weather",
+  .Init = Cg_misc_weather_Init,
+  .Think = Cg_misc_weather_Think,
+  .data_size = sizeof(cg_weather_t)
 };

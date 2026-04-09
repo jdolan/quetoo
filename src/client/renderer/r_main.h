@@ -26,15 +26,15 @@
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_caustics;
+extern cvar_t *r_draw_scale;
 extern cvar_t *r_finish;
 extern cvar_t *r_fog_density;
 extern cvar_t *r_fog_samples;
 extern cvar_t *r_fog_distance;
+extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
-extern cvar_t *r_height;
 extern cvar_t *r_lighting_distance;
-extern cvar_t *r_materials;
 extern cvar_t *r_modulate;
 extern cvar_t *r_parallax;
 extern cvar_t *r_parallax_shadow;
@@ -44,9 +44,11 @@ extern cvar_t *r_shadows;
 extern cvar_t *r_shadow_cubemap_array_size;
 extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
-extern cvar_t *r_supersample;
 extern cvar_t *r_swap_interval;
-extern cvar_t *r_width;
+extern cvar_t *r_window_height;
+extern cvar_t *r_window_width;
+
+extern cvar_t *r_draw_stats;
 
 extern r_stats_t r_stats;
 
@@ -59,6 +61,23 @@ void R_DrawMainView(r_view_t *view);
 void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
 void R_UpdateUniforms(const r_view_t *view);
+
+/**
+ * @brief GPU timer query pass indices.
+ */
+typedef enum {
+  R_TIMER_DEPTH,
+  R_TIMER_SHADOWS,
+  R_TIMER_BSP_OPAQUE,
+  R_TIMER_MESH,
+  R_TIMER_DECALS,
+  R_TIMER_BSP_BLEND,
+  R_TIMER_SPRITES,
+  R_TIMER_COUNT
+} r_timer_query_index_t;
+
+void R_BeginTimerQuery(r_timer_query_index_t index);
+void R_EndTimerQuery(void);
 
 #ifdef __R_LOCAL_H__
 
@@ -122,11 +141,6 @@ typedef struct {
      * @brief The viewport (x, y, w, h) in device pixels.
      */
     vec4i_t viewport;
-
-    /**
-     * @brief The 2D projection matrix.
-     */
-    mat4_t projection2D;
 
     /**
      * @brief The 3D projection matrix.
@@ -236,10 +250,9 @@ extern cvar_t *r_draw_bsp_normals;
 extern cvar_t *r_draw_bsp_voxels;
 extern cvar_t *r_draw_entity_bounds;
 extern cvar_t *r_draw_light_bounds;
+extern cvar_t *r_draw_material_stages;
 extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
-extern cvar_t *r_error_level;
-extern cvar_t *r_max_errors;
 extern cvar_t *r_occlude;
 
 /**

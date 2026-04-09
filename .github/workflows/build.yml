@@ -1,0 +1,479 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-deps:
+    runs-on: ubuntu-latest
+    outputs:
+      objectively-sha: ${{ steps.resolve.outputs.objectively-sha }}
+      objectivelymvc-sha: ${{ steps.resolve.outputs.objectivelymvc-sha }}
+    steps:
+    - name: Resolve dependency versions
+      id: resolve
+      run: |
+        echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+        echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
+
+  build-macos:
+    needs: resolve-deps
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            arch: arm64
+            build: arm64-apple-darwin
+
+    runs-on: ${{ matrix.runner }}
+
+    env:
+      HOMEBREW_PREFIX: ${{ matrix.arch == 'arm64' && '/opt/homebrew' || '/usr/local' }}
+
+    steps:
+    - name: Install dependencies
+      run: |
+        brew update
+        brew install \
+          autoconf automake libtool pkg-config \
+          glib ncurses check \
+          sdl3 sdl3_image sdl3_ttf \
+          openal-soft libsndfile physfs \
+          curl dylibbundler
+
+    - name: Cache Objectively and ObjectivelyMVC
+      id: cache-deps
+      uses: actions/cache@v5
+      with:
+        path: /usr/local
+        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+
+    - name: Checkout Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/Objectively
+        path: Objectively
+
+    - name: Build Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      working-directory: Objectively
+      run: |
+        export CFLAGS="-I${HOMEBREW_PREFIX}/include"
+        export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
+        export PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(sysctl -n hw.logicalcpu)
+        sudo make install
+
+    - name: Checkout ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyMVC
+        path: ObjectivelyMVC
+
+    - name: Build ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      working-directory: ObjectivelyMVC
+      run: |
+        export CFLAGS="-I${HOMEBREW_PREFIX}/include"
+        export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
+        export PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig:${HOMEBREW_PREFIX}/opt/openal-soft/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(sysctl -n hw.logicalcpu)
+        sudo make install
+
+    - name: Checkout Quetoo
+      uses: actions/checkout@v6
+      with:
+        path: quetoo
+
+    - name: Build Quetoo
+      working-directory: quetoo
+      run: |
+        autoreconf -i
+        ./configure CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
+        make -j$(sysctl -n hw.logicalcpu)
+
+    - name: Install Quetoo
+      working-directory: quetoo
+      run: |
+        install -d apple/target/Quetoo.app
+        cp -r apple/Quetoo.app/* apple/target/Quetoo.app/
+        find apple/target/Quetoo.app -name .turd -delete
+        ln -f -s Contents/MacOS apple/target/Quetoo.app/bin
+        ln -f -s Contents/MacOS/lib apple/target/Quetoo.app/lib
+        ln -f -s Contents/Resources apple/target/Quetoo.app/share
+        make DESTDIR=$(pwd)/apple/target/Quetoo.app install
+        rm -f apple/target/Quetoo.app/bin apple/target/Quetoo.app/lib apple/target/Quetoo.app/share
+
+    - name: Download installer
+      working-directory: quetoo
+      run: |
+        curl -fsSL -o apple/target/Quetoo.app/Contents/MacOS/lib/quetoo-installer-small.jar \
+          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
+
+    - name: Bundle libraries
+      working-directory: quetoo
+      run: |
+        dylibbundler -b \
+          -x apple/target/Quetoo.app/Contents/MacOS/quemap \
+          -x apple/target/Quetoo.app/Contents/MacOS/quetoo \
+          -x apple/target/Quetoo.app/Contents/MacOS/quetoo-dedicated \
+          -x apple/target/Quetoo.app/Contents/MacOS/quetoo-master \
+          -x apple/target/Quetoo.app/Contents/MacOS/lib/default/cgame.so \
+          -x apple/target/Quetoo.app/Contents/MacOS/lib/default/game.so \
+          -d apple/target/Quetoo.app/Contents/MacOS/lib \
+          -of -p @executable_path/lib
+
+    - name: Create archive
+      working-directory: quetoo
+      run: |
+        cd apple/target
+        zip -r ../../quetoo-BETA-${{ matrix.build }}.zip Quetoo.app
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-${{ matrix.build }}
+        path: quetoo/quetoo-BETA-${{ matrix.build }}.zip
+
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      working-directory: quetoo
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete apple/target/Quetoo.app s3://quetoo/${{ matrix.build }}
+        git rev-parse --short HEAD > apple/target/revision
+        aws s3 cp apple/target/revision s3://quetoo/revisions/${{ matrix.build }}
+
+  build-linux:
+    needs: resolve-deps
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential autoconf automake libtool pkg-config \
+          libglib2.0-dev libncurses-dev \
+          libopenal-dev libsndfile1-dev libphysfs-dev zlib1g-dev \
+          libcurl4-openssl-dev \
+          libgl-dev \
+          libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+          libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
+          libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
+          libfreetype-dev libharfbuzz-dev \
+          check \
+          chrpath \
+          cmake
+
+    - name: Cache from-source dependencies
+      id: cache-deps
+      uses: actions/cache@v5
+      with:
+        path: /usr/local
+        key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+
+    - name: Build SDL3
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL.git SDL3
+        cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+        cmake --build SDL3/build -j$(nproc)
+        sudo cmake --install SDL3/build
+
+    - name: Build SDL3_image
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 --branch release-3.4.0 https://github.com/libsdl-org/SDL_image.git SDL3_image
+        cmake -S SDL3_image -B SDL3_image/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+        cmake --build SDL3_image/build -j$(nproc)
+        sudo cmake --install SDL3_image/build
+
+    - name: Build SDL3_ttf
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        git clone --depth 1 --branch release-3.2.2 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf
+        cmake -S SDL3_ttf -B SDL3_ttf/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+        cmake --build SDL3_ttf/build -j$(nproc)
+        sudo cmake --install SDL3_ttf/build
+
+    - name: Checkout Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/Objectively
+        path: Objectively
+
+    - name: Build Objectively
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      working-directory: Objectively
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(nproc)
+        sudo make install
+
+    - name: Checkout ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyMVC
+        path: ObjectivelyMVC
+
+    - name: Build ObjectivelyMVC
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      working-directory: ObjectivelyMVC
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure
+        make -j$(nproc)
+        sudo make install
+
+    - name: Refresh shared library cache
+      run: sudo ldconfig
+
+    - name: Checkout Quetoo
+      uses: actions/checkout@v6
+      with:
+        path: quetoo
+
+    - name: Build Quetoo
+      working-directory: quetoo
+      run: |
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        autoreconf -i
+        ./configure CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        make -j$(nproc)
+
+    - name: Install Quetoo
+      working-directory: quetoo
+      run: |
+        install -d linux/target/quetoo
+        cp -r linux/quetoo/* linux/target/quetoo/
+        find linux/target/quetoo -name .turd -delete
+        make DESTDIR=$(pwd)/linux/target/quetoo install
+
+    - name: Bundle libraries
+      working-directory: quetoo
+      run: |
+        ./linux/sobundler.sh -d linux/target/quetoo/lib \
+          linux/target/quetoo/bin/quemap \
+          linux/target/quetoo/bin/quetoo \
+          linux/target/quetoo/bin/quetoo-dedicated \
+          linux/target/quetoo/bin/quetoo-master \
+          linux/target/quetoo/lib/default/cgame.so \
+          linux/target/quetoo/lib/default/game.so
+
+    - name: Download installer
+      working-directory: quetoo
+      run: |
+        curl -fsSL -o linux/target/quetoo/lib/quetoo-installer-small.jar \
+          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
+
+    - name: Create archive
+      working-directory: quetoo
+      run: |
+        tar -czvf linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz -C linux/target quetoo
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-linux
+        path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
+
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      working-directory: quetoo
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete linux/target/quetoo s3://quetoo/x86_64-pc-linux
+        git rev-parse --short HEAD > linux/target/revision
+        aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
+        aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
+
+  build-windows:
+    needs: resolve-deps
+    runs-on: windows-latest
+
+    env:
+      SOLUTION_FILE_PATH: Quetoo.vs15/quetoo_all.sln
+      BUILD_CONFIGURATION: Release
+
+    steps:
+    - name: Checkout Objectively
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/Objectively
+        path: Objectively
+
+    - name: Checkout ObjectivelyMVC
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/ObjectivelyMVC
+        path: ObjectivelyMVC
+
+    - name: Checkout Quetoo
+      uses: actions/checkout@v6
+      with:
+        path: quetoo
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Cache vcpkg binary packages
+      uses: actions/cache@v5
+      with:
+        path: ${{ github.workspace }}/vcpkg-cache
+        key: vcpkg-x64-windows-glib-${{ hashFiles('.github/workflows/build.yml') }}
+        restore-keys: vcpkg-x64-windows-glib-
+
+    - name: Install vcpkg packages
+      env:
+        VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+      run: |
+        New-Item -ItemType Directory -Force -Path "$env:VCPKG_DEFAULT_BINARY_CACHE" | Out-Null
+        vcpkg install glib:x64-windows
+
+    - name: Restore NuGet packages
+      working-directory: ${{ github.workspace }}/quetoo
+      run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+    - name: Build
+      working-directory: ${{ github.workspace }}/quetoo
+      run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} ${{ env.SOLUTION_FILE_PATH }}
+
+    - name: Install Quetoo
+      working-directory: ${{ github.workspace }}/quetoo
+      run: |
+        $staging = "windows\target\quetoo"
+
+        New-Item -ItemType Directory -Force -Path "$staging\bin" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\default\shaders" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
+
+        # Executables
+        Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\quemap.exe" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\quetoo-dedicated.exe" "$staging\bin\"
+
+        # Game modules
+        Copy-Item "Quetoo.vs15\bin\x64Release\cgame.dll" "$staging\lib\default\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\game.dll" "$staging\lib\default\"
+
+        # Objectively and ObjectivelyMVC
+        Copy-Item "..\Objectively\Objectively.vs15\bin\x64Release\Objectively.dll" "$staging\bin\"
+        Copy-Item "..\ObjectivelyMVC\ObjectivelyMVC.vs15\bin\x64Release\ObjectivelyMVC.dll" "$staging\bin\"
+
+        # Dependency DLLs
+        Copy-Item "..\Objectively\Objectively.vs15\libs\dlfcn\x64\dlfcn.dll" "$staging\bin\"
+        Copy-Item "Quetoo.vs15\libs\openal\bin\x64\OpenAL32.dll" "$staging\bin\"
+
+        # GLib and its dependencies from vcpkg
+        $vcpkgBin = "$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\bin"
+        Copy-Item "$vcpkgBin\glib-2.0-0.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\intl-8.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\iconv-2.dll" "$staging\bin\"
+        Copy-Item "$vcpkgBin\pcre2-8.dll" "$staging\bin\"
+
+        # SDL3 DLLs
+        Get-ChildItem "..\ObjectivelyMVC\ObjectivelyMVC.vs15\libs\sdl\lib\x64\*.dll" -ErrorAction SilentlyContinue |
+          Copy-Item -Destination "$staging\bin\"
+
+        # Shaders
+        Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
+
+        # UI files (CSS and JSON, preserving directory structure)
+        foreach ($uiSource in @("src\cgame\default\ui", "src\client\ui")) {
+          Get-ChildItem -Path $uiSource -Include "*.css","*.json" -Recurse | ForEach-Object {
+            $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
+            $destPath = Join-Path "$staging\lib\default\ui" $relativePath
+            $destDir = Split-Path $destPath -Parent
+            if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Path $destDir -Force | Out-Null }
+            Copy-Item $_.FullName -Destination $destPath
+          }
+        }
+
+    - name: Download installer
+      working-directory: ${{ github.workspace }}/quetoo
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "windows/target/quetoo/lib/quetoo-installer-small.jar"
+
+    - name: Create archive
+      working-directory: ${{ github.workspace }}/quetoo
+      run: |
+        Compress-Archive -Path windows\target\quetoo\* -DestinationPath quetoo-BETA-x86_64-pc-windows.zip
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-windows
+        path: quetoo/quetoo-BETA-x86_64-pc-windows.zip
+
+    - name: Publish to S3
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      working-directory: ${{ github.workspace }}/quetoo
+      shell: bash
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        aws s3 sync --delete windows/target/quetoo s3://quetoo/x86_64-pc-windows
+        git rev-parse --short HEAD > windows/target/revision
+        aws s3 cp windows/target/revision s3://quetoo/revisions/x86_64-pc-windows
+        aws s3 cp quetoo-BETA-x86_64-pc-windows.zip s3://quetoo/snapshots/
+
+  release:
+    needs: [build-macos, build-linux, build-windows]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v6
+
+    - name: Delete existing release
+      run: gh release delete latest --yes --cleanup-tag || true
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+
+    - name: Create release
+      run: |
+        gh release create latest \
+          --title "Quetoo BETA Snapshot" \
+          --notes "Latest snapshot build from the \`main\` branch.
+
+        | Platform | Archive |
+        |----------|---------|
+        | macOS (Apple Silicon) | quetoo-BETA-arm64-apple-darwin.zip |
+        | Linux (x86_64) | quetoo-BETA-x86_64-pc-linux.tar.gz |
+        | Windows (x86_64) | quetoo-BETA-x86_64-pc-windows.zip |" \
+          --prerelease \
+          quetoo-arm64-apple-darwin/quetoo-BETA-arm64-apple-darwin.zip \
+          quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz \
+          quetoo-x86_64-pc-windows/quetoo-BETA-x86_64-pc-windows.zip
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}

@@ -330,8 +330,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
   }
 
   if (!Fs_Exists(path)) {
-    Com_Print("Couldn't open %s\n", path);
-    return;
+    Com_Error(ERROR_DROP, "Failed to load %s\n", path);
   }
 
   // inform any connected clients to reconnect to us

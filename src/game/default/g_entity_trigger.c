@@ -271,7 +271,7 @@ static void G_trigger_push_Effect(g_entity_t *ent) {
 
  -------- Keys --------
  angles : The direction to push the player in "pitch yaw roll" notation (e.g. -80 270 0).
- sound : The sound effect to play when the player is pushed (default "common/jumppad").
+ sound : The sound effect to play when the player is pushed (default "trigger/push").
  speed : The speed with which to push the player (default 100).
 
  -------- Spawn flags --------
@@ -288,7 +288,7 @@ void G_trigger_push(g_entity_t *ent) {
   if (sound->parsed & ENTITY_STRING) {
     ent->move_info.sound_start = gi.SoundIndex(sound->string);
   } else {
-    ent->move_info.sound_start = gi.SoundIndex("common/jumppad");
+    ent->move_info.sound_start = gi.SoundIndex("trigger/push");
   }
 
   if (!ent->speed) {

@@ -279,6 +279,9 @@ void LightVoxel(int32_t voxel_num) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
+    if (light->target_entity) {
+      continue;
+    }
     if (!Box3_Intersects(light->bounds, voxel->bounds)) {
       continue;
     }
@@ -330,6 +333,10 @@ void FeatherLights(void) {
 
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
+
+    if (light->target_entity) {
+      continue;
+    }
 
     light->visible_bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * .5f);
 

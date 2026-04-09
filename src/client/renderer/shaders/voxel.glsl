@@ -141,89 +141,96 @@ vec3 voxel_fog_lighting(in vec3 position) {
 }
 
 /**
- * @brief Sample voxel fog at a world-space position (convenience function).
- * @param position The world-space position.
- * @return The fog color (rgb) and density (a).
+ * @brief Calculate vertex fog (pre-calculated in vertex shader).
+ * @details Simple raymarch without jitter or animation, used as a cheap
+ * boolean test to determine if per-fragment fog is needed.
+ * @param v Vertex data (fog field is written).
  */
-vec4 sample_voxel_fog(in vec3 position) {
-  float density = voxel_fog_density(voxel_uvw(position));
-  if (density > 0.0) {
-    vec3 lighting = voxel_fog_lighting(position);
-    return vec4(lighting, density * fog_density);
-  }
-  return vec4(0.0);
-}
-
-/**
- * @brief Calculate volumetric fog with raymarching.
- * @details Raymarches from world_pos to the camera, accumulating fog density and lighting.
- * Supports both vertex (pre-calculated) and fragment (dynamic) fog based on distance.
- * @param world_pos The world-space position to calculate fog from.
- * @param view_pos The camera position in world space.
- * @param max_samples Maximum number of raymarching samples.
- * @return The fog color (rgb) and density (a).
- */
-vec4 voxel_fog(in vec3 world_pos, in vec3 view_pos, in float max_samples) {
-  vec4 fog = vec4(0.0);
+void vertex_fog(inout common_vertex_t v) {
+  v.fog = vec4(0.0);
 
   if (fog_density > 0.0) {
-    float dist = distance(world_pos, view_pos);
-    float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, max_samples);
-    
-    vec3 voxel_start = voxel_uvw(world_pos);
+    float dist = distance(v.model_position, view[0].xyz);
+    float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+
+    vec3 voxel_start = voxel_uvw(v.model_position);
     vec3 voxel_end = voxels.view_coordinate.xyz;
-    
+
     for (float i = 0; i < samples; i++) {
-      vec3 xyz = mix(world_pos, view_pos, i / samples);
-      vec3 uvw = mix(voxel_start, voxel_end, i / samples);
-      
+      float t = i / samples;
+      vec3 xyz = mix(v.model_position, view[0].xyz, t);
+      vec3 uvw = mix(voxel_start, voxel_end, t);
+
       float fog_density_sample = voxel_fog_density(uvw);
-      
       if (fog_density_sample > 0.0) {
         vec3 fog_lighting = voxel_fog_lighting(xyz);
-        fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
-      }
-      
-      if (fog.a >= 0.95) {
-        fog.a = 1.0;
-        break;
+        v.fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
       }
     }
-    
-    if (hmax(fog.rgb) > 1.0) {
-      fog.rgb /= hmax(fog.rgb);
+
+    if (hmax(v.fog.rgb) > 1.0) {
+      v.fog.rgb /= hmax(v.fog.rgb);
     }
+
+    v.fog = clamp(v.fog, 0.0, 1.0);
   }
-
-  return clamp(fog, 0.0, 1.0);
 }
 
 /**
- * @brief Calculate vertex fog (pre-calculated in vertex shader).
- * @param v Vertex data.
- * @return The fog color (rgb) and density (a).
- */
-vec4 vertex_fog(in common_vertex_t v) {
-  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
-}
-
-/**
- * @brief Calculate fragment fog with distance-based LOD.
+ * @brief Calculate fragment fog with full raymarching, jitter, and animation.
  * @details For distant fragments (>= fog_distance), uses pre-calculated vertex fog.
- * For close fragments, performs full per-fragment raymarching for high-quality
- * dynamic lighting effects (e.g., rocket lighting fog).
+ * For close fragments, performs per-fragment raymarching with spatial jitter,
+ * coherent sway, and animated density wisps.
  * @param v Vertex data.
  * @param f Fragment data.
  * @return The fog color (rgb) and density (a).
  */
-vec4 fragment_fog(in common_vertex_t v, in common_fragment_t f) {
-  // For distant fragments, use interpolated vertex fog (much cheaper)
-  if (f.view_dist >= fog_distance) {
-    return v.fog;
+void fragment_fog(in common_vertex_t v, inout common_fragment_t f) {
+
+  f.fog = v.fog;
+
+  if (f.fog.a == 0.0 || f.view_dist >= fog_distance) {
+    return;
   }
 
-  // For close fragments, do full per-fragment raymarching
-  return voxel_fog(v.model_position, view[0].xyz, fog_samples);
+  f.fog = vec4(0.0);
+
+  float dist = distance(v.model_position, view[0].xyz);
+  float samples = clamp(dist / BSP_VOXEL_SIZE, 1.0, fog_samples);
+
+  vec3 voxel_start = voxel_uvw(v.model_position);
+  vec3 voxel_end = voxels.view_coordinate.xyz;
+
+  float jitter = fract(sin(dot(v.model_position, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+
+  vec3 uvw_per_unit = 1.0 / (voxels.maxs.xyz - voxels.mins.xyz);
+  float sway_time = ticks * 0.000625;
+
+  for (float i = 0; i < samples; i++) {
+    float t = (i + jitter) / samples;
+    vec3 xyz = mix(v.model_position, view[0].xyz, t);
+    vec3 uvw = mix(voxel_start, voxel_end, t);
+
+    // Height-dependent phase creates a swirling drift
+    vec3 sway = vec3(sin(sway_time + xyz.z * 0.01), cos(sway_time * 0.7 + xyz.z * 0.013), 0.0) * BSP_VOXEL_SIZE * 0.5 * uvw_per_unit;
+
+    float fog_density_sample = voxel_fog_density(uvw + sway);
+    if (fog_density_sample > 0.0) {
+
+      // Animated density variation for visible interior movement
+      float wisp = 0.85 + 0.15 * sin(dot(xyz, vec3(0.03, 0.025, 0.02)) + sway_time);
+      fog_density_sample *= wisp;
+
+      vec3 fog_lighting = voxel_fog_lighting(xyz);
+      f.fog += vec4(fog_lighting, fog_density_sample * fog_density) * min(1.0, samples - i);
+    }
+  }
+
+  if (hmax(f.fog.rgb) > 1.0) {
+    f.fog.rgb /= hmax(f.fog.rgb);
+  }
+
+  f.fog = clamp(f.fog, 0.0, 1.0);
 }
 
 /**
@@ -245,17 +252,17 @@ vec3 vertex_light(in common_vertex_t v, in int index) {
   }
 
   light_dir = normalize(light_dir);
-  float lambert = max(0.0, dot(v.model_normal, light_dir));
+  float lambert = dot(v.model_normal, light_dir);
+  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
   return light.color.rgb * light.color.a * atten * lambert * modulate;
 }
 
 /**
  * @brief Calculate vertex lighting from voxel lights (unshadowed diffuse only).
  * @details Used for distant geometry where per-fragment lighting is too expensive.
- * @param v Vertex data.
- * @return The accumulated diffuse lighting.
+ * @param v Vertex data (lighting field is written).
  */
-vec3 vertex_lighting(in common_vertex_t v) {
+void vertex_lighting(inout common_vertex_t v) {
   vec3 diffuse = vec3(0.0);
 
   ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -274,7 +281,7 @@ vec3 vertex_lighting(in common_vertex_t v) {
     diffuse += vertex_light(v, index);
   }
 
-  return diffuse;
+  v.lighting = diffuse;
 }
 
 /**

@@ -45,6 +45,9 @@ typedef struct {
   int32_t first_brush_side;
   int32_t num_brush_sides;
 
+  int32_t first_patch;
+  int32_t num_patches;
+
   box3_t bounds;
 
 } entity_t;

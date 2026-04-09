@@ -35,7 +35,6 @@ static struct {
   GLint texture_voxel_light_indices;
 
   GLint model;
-  GLint block;
 } r_decal_program;
 
 /**
@@ -64,14 +63,13 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 static void R_ClipDecalToFace(const r_view_t *view,
                               const r_bsp_face_t *face,
                               const r_decal_t *decal,
+                              const vec3_t normal,
+                              const vec3_t tangent,
+                              const vec3_t bitangent,
                               r_bsp_block_decals_t *decals) {
 
-  const vec3_t n = face->plane->cm->normal;
-  const vec3_t sdir = face->brush_side->axis[0].xyz;
-  const vec3_t tdir = face->brush_side->axis[1].xyz;
-
-  vec3_t t, b;
-  Vec3_Tangents(n, sdir, tdir, &t, &b);
+  vec3_t n = normal;
+  vec3_t t = tangent, b = bitangent;
 
   if (decal->rotation != 0.f) {
     const float cos_rot = cosf(decal->rotation);
@@ -97,10 +95,28 @@ static void R_ClipDecalToFace(const r_view_t *view,
     dw->points[i] = Vec3_Add(positions[i], n);
   }
 
-  cm_winding_t *fw = Cm_AllocWinding(face->num_vertexes);
-  fw->num_points = face->num_vertexes;
-  for (int32_t i = 0; i < face->num_vertexes; i++) {
-    fw->points[i] = face->vertexes[i].position;
+  cm_winding_t *fw;
+  if (face->patch) {
+    // Patch face vertices are a row-major grid, not a polygon winding.
+    // Extract the perimeter vertices in winding order.
+    const int32_t n_edge = (int32_t) sqrtf((float) face->num_vertexes);
+    const int32_t perimeter = 4 * (n_edge - 1);
+    fw = Cm_AllocWinding(perimeter);
+    fw->num_points = 0;
+    for (int32_t i = 0; i < n_edge; i++)
+      fw->points[fw->num_points++] = face->vertexes[i].position;
+    for (int32_t j = 1; j < n_edge; j++)
+      fw->points[fw->num_points++] = face->vertexes[j * n_edge + (n_edge - 1)].position;
+    for (int32_t i = n_edge - 2; i >= 0; i--)
+      fw->points[fw->num_points++] = face->vertexes[(n_edge - 1) * n_edge + i].position;
+    for (int32_t j = n_edge - 2; j >= 1; j--)
+      fw->points[fw->num_points++] = face->vertexes[j * n_edge].position;
+  } else {
+    fw = Cm_AllocWinding(face->num_vertexes);
+    fw->num_points = face->num_vertexes;
+    for (int32_t i = 0; i < face->num_vertexes; i++) {
+      fw->points[i] = face->vertexes[i].position;
+    }
   }
 
   cm_winding_t *w = Cm_ClipWindingToWinding(dw, fw, n, -1.f - ON_EPSILON);
@@ -163,6 +179,56 @@ static void R_ClipDecalToNode(const r_view_t *view,
     return;
   }
 
+  // Patch faces may be at any orientation relative to the node plane,
+  // so we must check them before the BSP plane early-outs below.
+
+  const box3_t decal_bounds = Box3_FromCenterRadius(decal->origin, decal->radius);
+
+  const r_bsp_face_t *face = node->faces;
+  for (int32_t i = 0; i < node->num_faces; i++, face++) {
+
+    if (!face->patch) {
+      continue;
+    }
+
+    if (!(face->patch->contents & CONTENTS_MASK_SOLID)) {
+      continue;
+    }
+
+    if (face->patch->surface & SURF_SKY) {
+      continue;
+    }
+
+    if (!Box3_Intersects(face->bounds, decal_bounds)) {
+      continue;
+    }
+
+    const vec3_t normal = face->vertexes[0].normal;
+    const vec3_t tangent = face->vertexes[0].tangent;
+    const vec3_t bitangent = face->vertexes[0].bitangent;
+
+    const float face_dist = Vec3_Dot(Vec3_Subtract(decal->origin, face->vertexes[0].position), normal);
+    if (fabsf(face_dist) > decal->radius) {
+      continue;
+    }
+
+    r_decal_t face_projected = *decal;
+    face_projected.origin = Vec3_Fmaf(decal->origin, -face_dist, normal);
+    face_projected.radius = sqrtf(decal->radius * decal->radius - face_dist * face_dist);
+
+    if (face_projected.radius >= 16.f) {
+      const vec3_t pos = Vec3_Add(Box3_Center(face->bounds), normal);
+      if (Cm_BoxTrace(decal->origin, pos, Box3_Zero(), 0, CONTENTS_SOLID).fraction < 1.f) {
+        continue;
+      }
+    }
+
+    r_bsp_block_decals_t *decals = &face->block->decals;
+    R_ClipDecalToFace(view, face, &face_projected, normal, tangent, bitangent, decals);
+  }
+
+  // BSP plane recursion for brush faces
+
   const cm_bsp_plane_t *plane = node->plane->cm;
   const float dist = Cm_DistanceToPlane(decal->origin, plane);
 
@@ -183,8 +249,12 @@ static void R_ClipDecalToNode(const r_view_t *view,
 
   const box3_t bounds = Box3_FromCenterRadius(projected.origin, projected.radius);
 
-  const r_bsp_face_t *face = node->faces;
+  face = node->faces;
   for (int32_t i = 0; i < node->num_faces; i++, face++) {
+
+    if (face->patch) {
+      continue;
+    }
 
     if (!(face->brush_side->contents & CONTENTS_MASK_SOLID)) {
       continue;
@@ -209,8 +279,14 @@ static void R_ClipDecalToNode(const r_view_t *view,
       }
     }
 
+    const vec3_t normal = face->plane->cm->normal;
+    const vec3_t sdir = face->brush_side->axis[0].xyz;
+    const vec3_t tdir = face->brush_side->axis[1].xyz;
+    vec3_t tangent, bitangent;
+    Vec3_Tangents(normal, sdir, tdir, &tangent, &bitangent);
+
     r_bsp_block_decals_t *decals = &face->block->decals;
-    R_ClipDecalToFace(view, face, &projected, decals);
+    R_ClipDecalToFace(view, face, &projected, normal, tangent, bitangent, decals);
   }
 
   R_ClipDecalToNode(view, node->children[0], decal);
@@ -302,6 +378,10 @@ void R_DrawDecals(const r_view_t *view) {
         continue;
       }
 
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        continue;
+      }
+
       r_bsp_block_decals_t *d = &block->decals;
 
       if (d->triangles->len == 0) {
@@ -315,8 +395,6 @@ void R_DrawDecals(const r_view_t *view) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         d->dirty = false;
       }
-
-      glUniform1i(r_decal_program.block, block->flags);
 
       glBindVertexArray(d->vertex_array);
 
@@ -351,7 +429,7 @@ static void R_InitDecalProgram(void) {
   memset(&r_decal_program, 0, sizeof(r_decal_program));
 
   r_decal_program.name = R_LoadProgram(
-       R_ShaderDescriptor(GL_VERTEX_SHADER, "decal_vs.glsl", NULL),
+       R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "decal_vs.glsl", NULL),
        R_ShaderDescriptor(GL_FRAGMENT_SHADER, "decal_fs.glsl", NULL),
        NULL);
 
@@ -364,7 +442,6 @@ static void R_InitDecalProgram(void) {
   glUniformBlockBinding(r_decal_program.name, r_decal_program.lights_block, 1);
 
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
-  r_decal_program.block = glGetUniformLocation(r_decal_program.name, "block");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
   r_decal_program.texture_voxel_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_data");

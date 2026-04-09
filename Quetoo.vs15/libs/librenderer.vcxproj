@@ -97,7 +97,6 @@
     <None Include="..\..\src\client\renderer\shaders\material.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\mesh_vs.glsl" />
-    <None Include="..\..\src\client\renderer\shaders\polylib.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_fs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_gs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\shadow_vs.glsl" />
@@ -108,6 +107,7 @@
     <None Include="..\..\src\client\renderer\shaders\sprite_vs.glsl" />
     <None Include="..\..\src\client\renderer\shaders\uniforms.glsl" />
     <None Include="..\..\src\client\renderer\shaders\version.glsl" />
+    <None Include="..\..\src\client\renderer\shaders\voxel.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B26D4D9-B320-4D6F-B4D1-9A2487BBD0B3}</ProjectGuid>

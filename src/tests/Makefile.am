@@ -38,6 +38,7 @@ TESTS = \
 	check_cmd \
 	check_color \
 	check_cvar \
+	check_editor_map \
 	check_filesystem \
 	check_master \
 	check_mem \
@@ -74,6 +75,14 @@ check_cm_entity_SOURCES = \
 check_cm_entity_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cm_entity_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
+check_editor_map_SOURCES = \
+	check_editor_map.c
+check_editor_map_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_editor_map_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
 

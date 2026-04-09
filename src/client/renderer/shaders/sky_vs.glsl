@@ -40,7 +40,7 @@ void main(void) {
   vertex.position = vec3(view * position);
   cubemap_coord = vec3(sky_projection * position);
   vertex.voxel = voxel_uvw(in_position);
-  vertex.fog = vertex_fog(vertex);
+  vertex_fog(vertex);
   
   // Initialize unused fields
   vertex.model_normal = normalize(in_position);

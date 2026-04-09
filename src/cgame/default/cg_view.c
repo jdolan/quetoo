@@ -82,7 +82,9 @@ static void Cg_UpdateThirdPerson(const player_state_t *ps) {
 
   const box3_t bounds = Box3f(32.f, 32.f, 32.f);
 
-  if (cg_third_person->value || (cg_third_person_chasecam->value && ps->stats[STAT_CHASE])) {
+  if (cg_third_person->value && Cg_Self()->current.model1) {
+    cgi.client->third_person = true;
+  } else if (cg_third_person_chasecam->value && ps->stats[STAT_CHASE]) {
     cgi.client->third_person = true;
   } else {
     cgi.client->third_person = false;
@@ -245,6 +247,18 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
  */
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
+
+  if (ps1->pm_state.flags & PMF_SNAP_ANGLES) {
+    // Server requests an immediate snap to the authoritative view angles.
+    // Bypass all interpolation and prediction, and also fix up cl.angles so
+    // that subsequent input and prediction frames start from the right place.
+    cgi.view->angles = ps1->pm_state.view_angles;
+    cgi.client->angles = ps1->pm_state.view_angles;
+    Cg_ClearInput();
+
+    Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+    return;
+  }
 
   if (Cg_UsePrediction()) {
     const cl_predicted_state_t *pr = &cgi.client->predicted_state;

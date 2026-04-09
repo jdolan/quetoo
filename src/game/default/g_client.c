@@ -425,7 +425,7 @@ static void G_ClientCorpse(g_client_t *cl) {
     return;
   }
 
-  if (cl->entity->s.model1 == 0) {
+  if (cl->entity->s.model1 != MODEL_CLIENT) {
     return;
   }
 
@@ -490,7 +490,9 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_TossTech(cl);
   }
 
-  if (ent->health <= -CLIENT_CORPSE_HEALTH) {
+  const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
+
+  if (gibbed) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
     G_MulticastSound(&(const g_play_sound_t) {
@@ -538,7 +540,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
   ent->dead = true;
 
   ent->s.event = EV_NONE;
-  ent->s.effects = EF_CLIENT;
+  ent->s.effects = gibbed ? 0 : EF_CLIENT;
   ent->s.trail = TRAIL_NONE;
   ent->s.model2 = 0;
   ent->s.model3 = 0;
@@ -852,7 +854,10 @@ static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
  * @brief The grunt work of putting the client into the server on [re]spawn.
  */
 static void G_ClientRespawn_(g_client_t *cl) {
-  vec3_t delta_angles;
+
+  if (!cl->entity) {
+    return;
+  }
 
   G_HookDetach(cl);
 
@@ -882,15 +887,21 @@ static void G_ClientRespawn_(g_client_t *cl) {
   ent->s.origin = spawn->s.origin;
   ent->s.origin.z += PM_STEP_HEIGHT;
 
-  // and calculate delta angles
+  // snap view angles directly to the spawn point; the client will snap
+  // cl.angles to match, so no delta_angles compensation is needed
   ent->s.angles = Vec3_Zero();
   cl->angles = spawn->s.angles;
-  delta_angles = Vec3_Subtract(spawn->s.angles, tmp.cmd_angles);
 
-  // pack the new origin and delta angles into the player state
+  // pack the new origin and view angles into the player state
   cl->ps.pm_state.origin = ent->s.origin;
-  cl->ps.pm_state.delta_angles = delta_angles;
+  cl->ps.pm_state.view_angles = spawn->s.angles;
+  cl->ps.pm_state.delta_angles = Vec3_Zero();
   cl->ps.entity = ent->s.number;
+
+  // signal the client to snap to view_angles; only for player spawns, not spectators
+  if (!cl->persistent.spectator && !editor->value) {
+    cl->snap_angles = true;
+  }
 
   ent->velocity = Vec3_Zero();
 
@@ -1749,7 +1760,7 @@ void G_ClientThink(g_client_t *cl, pm_cmd_t *cmd) {
   // if we're the first player in a game, send our client over
   // to the AI system in case it needs to make nodes
   if (cl->ps.client == 0) {
-    Ai_Node_PlayerRoam(cl, cmd);
+    G_Ai_Node_PlayerRoam(cl, cmd);
   }
 }
 

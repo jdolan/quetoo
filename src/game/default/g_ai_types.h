@@ -164,7 +164,7 @@ typedef struct {
  * @brief A functional AI goal. It returns the amount of time to wait
  * until the goal should be run again.
  */
-typedef uint32_t (*Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
+typedef uint32_t (*G_Ai_GoalFunc)(g_client_t *cl, pm_cmd_t *cmd);
 
 /**
  * @brief Functional AI goal IDs.
@@ -182,14 +182,34 @@ typedef enum {
 } ai_func_goal_t;
 
 /**
+ * @brief Static bot definition from the roster.
+ */
+typedef struct {
+  const char *name;
+  const char *skin;
+  float skill;       ///< 0.0 (easy) to 1.0 (hard): aim, turn speed, reaction time
+  float aggression;  ///< 0.0 (cautious) to 1.0 (reckless): retreat/chase/combat style
+  float awareness;   ///< 0.0 (oblivious) to 1.0 (perceptive): item range, weapon choice
+} g_ai_roster_t;
+
+/**
+ * @brief Per-bot runtime personality, initialized from roster entry.
+ */
+typedef struct {
+  float skill;
+  float aggression;
+  float awareness;
+  float aim_phase;   ///< Per-bot phase offset for aim wobble
+} ai_personality_t;
+
+/**
  * @brief AI-specific locals
  */
 typedef struct ai_s {
-  uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
+  const g_ai_roster_t *roster;
+  ai_personality_t personality;
 
-  vec3_t last_origin;
-  vec3_t aim_forward; // calculated at start of thinking
-  vec3_t eye_origin; //  ^^^
+  uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 
   ai_goal_t move_target, backup_move_target;
   ai_goal_t combat_target;
@@ -197,7 +217,6 @@ typedef struct ai_s {
   uint32_t weapon_check_time;
   uint32_t reacquire_time;
   uint32_t distress_jump_offset;
-  vec3_t ideal_angles;
 } ai_t;
 
 #endif /* __GAME_LOCAL_H__ */

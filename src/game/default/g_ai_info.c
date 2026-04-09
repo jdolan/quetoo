@@ -24,116 +24,75 @@
 static cvar_t *ai_name_prefix;
 
 /**
- * @brief Type for a single skin string
+ * @brief The static roster of bot definitions.
+ * Each entry defines a unique bot with its own name, appearance, and personality.
  */
-typedef char ai_skin_t[MAX_QPATH];
-
-/**
- * @brief List of AI skins.
- */
-static GArray *ai_skins;
-
-/**
- * @brief Fs_Enumerator for resolving available skins for a given model.
- */
-static void Ai_EnumerateSkins(const char *path, void *data) {
-  char name[MAX_QPATH];
-  char *s = strstr(path, "players/");
-
-  if (s) {
-    StripExtension(s + strlen("players/"), name);
-
-    if (g_str_has_suffix(name, "_i")) {
-      name[strlen(name) - strlen("_i")] = '\0';
-
-      for (size_t i = 0; i < ai_skins->len; i++) {
-
-        if (g_strcmp0(g_array_index(ai_skins, ai_skin_t, i), name) == 0) {
-          return;
-        }
-      }
-
-      ai_skins = g_array_append_val(ai_skins, name);
-    }
-  }
-}
-
-/**
- * @brief Fs_Enumerator for resolving available models.
- */
-static void Ai_EnumerateModels(const char *path, void *data) {
-  gi.EnumerateFiles(va("%s/*.tga", path), Ai_EnumerateSkins, NULL);
-}
-
-/**
- * @brief
- */
-static const char ai_names[][MAX_INFO_STRING_VALUE] = {
-  "Stroggo",
-  "Enforcer",
-  "Berserker",
-  "Gunner",
-  "Gladiator",
-  "Makron",
-  "Brain"
+static const g_ai_roster_t g_ai_roster[] = {
+  // name          skin                skill  aggr   aware
+  { "Stroggo",    "qforcer/default",   .50f,  .50f,  .50f },
+  { "Enforcer",   "guard/default",     .65f,  .60f,  .55f },
+  { "Berserker",  "gork/default",      .40f,  .85f,  .30f },
+  { "Gunner",     "guard/mgss",        .70f,  .45f,  .70f },
+  { "Gladiator",  "dragoon/default",   .55f,  .70f,  .45f },
+  { "Makron",     "dragoon/baron",     .85f,  .55f,  .80f },
+  { "Brain",      "gork/ctf",          .75f,  .25f,  .90f },
+  { "Widow",      "bunker/default",    .60f,  .40f,  .65f },
+  { "Tank",       "bunker/hax",        .35f,  .80f,  .35f },
+  { "Medic",      "guard/sggrd",       .45f,  .30f,  .75f },
+  { "Parasite",   "dragoon/bastard",   .80f,  .75f,  .60f },
+  { "Flyer",      "bunker/fidget",     .55f,  .65f,  .40f },
 };
 
-/**
- * @brief
- */
-static const uint32_t ai_names_count = lengthof(ai_names);
+static const uint32_t ai_roster_count = lengthof(g_ai_roster);
 
 /**
- * @brief Integers for current name index in g_ai_names table
- * and number of times we've wrapped around it.
+ * @brief Round-robin index for assigning bots from the roster.
  */
-static uint32_t ai_name_index;
-static uint32_t ai_name_suffix;
+static uint32_t ai_roster_index;
+static uint32_t ai_roster_suffix;
 
 /**
- * @brief Create the user info for the specified bot entity.
+ * @brief Create the user info for the specified bot and return its roster entry.
  */
-void Ai_GetUserInfo(const g_client_t *cl, char *info) {
+const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
+
+  const g_ai_roster_t *entry = &g_ai_roster[ai_roster_index];
 
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
-  InfoString_Set(info, "skin", g_array_index(ai_skins, ai_skin_t, RandomRangeu(0, ai_skins->len)));
+  InfoString_Set(info, "skin", entry->skin);
   InfoString_Set(info, "color", va("%u", RandomRangeu(0, 360)));
   InfoString_Set(info, "hand", va("%u", RandomRangeu(0, 3)));
   InfoString_Set(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
   InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
-  if (ai_name_suffix == 0) {
-    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, ai_names[ai_name_index]));
+  if (ai_roster_suffix == 0) {
+    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, entry->name));
   } else {
-    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, ai_names[ai_name_index], ai_name_suffix + 1));
+    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, entry->name, ai_roster_suffix + 1));
   }
 
-  ai_name_index++;
+  ai_roster_index++;
 
-  if (ai_name_index == ai_names_count) {
-    ai_name_index = 0;
-    ai_name_suffix++;
+  if (ai_roster_index == ai_roster_count) {
+    ai_roster_index = 0;
+    ai_roster_suffix++;
   }
+
+  return entry;
 }
 
 /**
  * @brief
  */
-void Ai_InitSkins(void) {
+void G_Ai_InitSkins(void) {
 
   ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
-
-  ai_skins = g_array_new(false, false, sizeof(ai_skin_t));
-
-  gi.EnumerateFiles("players/*", Ai_EnumerateModels, NULL);
 }
 
 /**
  * @brief
  */
-void Ai_ShutdownSkins(void) {
-  g_array_free(ai_skins, true);
-  ai_skins = NULL;
+void G_Ai_ShutdownSkins(void) {
 }

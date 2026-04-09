@@ -24,6 +24,8 @@ in vec3 cubemap_coord;
 
 out vec4 out_color;
 
+common_fragment_t fragment;
+
 /**
  * @brief
  */
@@ -31,17 +33,33 @@ void main(void) {
 
   if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
 
-    out_color = texture(texture_sky, normalize(cubemap_coord));
+    fragment.view_dist = length(vertex.position);
 
-    // Use vertex fog (sky is simple geometry)
-    out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
+    fragment_fog(vertex, fragment);
+
+    out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
 
     vec2 st = vertex.diffusemap;
 
-    if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+    fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
+
+    out_color = fragment.diffuse_sample;
+
+    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+
+      bsp_fragment_lighting();
+
+      out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
+      out_color.rgb += fragment.specular * stage.lighting;
+    }
+
+    if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
+
+      fragment_fog(vertex, fragment);
+
+      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
     }
 
     out_color = sample_material_stage(st) * vertex.color;

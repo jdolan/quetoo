@@ -42,15 +42,6 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
  * @brief
  */
 static void R_LoadBspMaterials(r_model_t *mod) {
-  char path[MAX_QPATH];
-
-  g_snprintf(path, sizeof(path), "%s.mat", mod->media.name);
-
-  GList *materials = NULL;
-
-  R_LoadMaterials(path, ASSET_CONTEXT_TEXTURES, &materials);
-
-  g_list_free(materials);
 
   r_material_t **out;
   const bsp_material_t *in = mod->bsp->cm->file->materials;
@@ -95,6 +86,27 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 /**
  * @brief
  */
+static void R_LoadBspPatches(r_bsp_model_t *bsp) {
+
+  const bsp_patch_t *in = bsp->cm->file->patches;
+
+  bsp->num_patches = bsp->cm->file->num_patches;
+  r_bsp_patch_t *out = bsp->patches = Mem_LinkMalloc(bsp->num_patches * sizeof(*out), bsp);
+
+  for (int32_t i = 0; i < bsp->num_patches; i++, in++, out++) {
+
+    if (in->material > -1) {
+      out->material = bsp->materials[in->material];
+    }
+
+    out->contents = in->contents;
+    out->surface = in->surface;
+  }
+}
+
+/**
+ * @brief
+ */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
   bsp->num_vertexes = bsp->cm->file->num_vertexes;
@@ -127,7 +139,7 @@ static void R_LoadBspElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_face_t for the specified BSP model.
+ * @brief Loads all `r_bsp_face_t` for the specified BSP model.
  */
 static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
@@ -139,8 +151,13 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_faces; i++, in++, out++) {
 
-    out->brush_side = bsp->brush_sides + in->brush_side;
-    out->plane = bsp->planes + in->plane;
+    if (in->brush_side >= 0) {
+      out->brush_side = bsp->brush_sides + in->brush_side;
+      out->plane = bsp->planes + in->plane;
+    } else {
+      out->patch = bsp->patches + in->patch;
+      out->plane = NULL;
+    }
 
     out->bounds = in->bounds;
 
@@ -190,6 +207,11 @@ static void R_LoadBspNodes(r_bsp_model_t *bsp) {
     out->faces = bsp->faces + in->first_face;
     out->num_faces = in->num_faces;
 
+    r_bsp_face_t *f = out->faces;
+    for (int32_t j = 0; j < out->num_faces; j++, f++) {
+      f->node = out;
+    }
+
     for (int32_t j = 0; j < 2; j++) {
       const int32_t c = in->children[j];
       if (c >= 0) {
@@ -211,11 +233,6 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 
   if (node->contents > CONTENTS_NODE) {
     return;
-  }
-
-  r_bsp_face_t *face = node->faces;
-  for (int32_t i = 0; i < node->num_faces; i++, face++) {
-    face->node = node;
   }
 
   R_SetupBspNode(model, node, node->children[0]);
@@ -288,7 +305,10 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     out->draw_elements = bsp->draw_elements + in->first_draw_element;
     out->num_draw_elements = in->num_draw_elements;
     out->visible_bounds = in->visible_bounds;
-    out->flags = in->flags;
+
+    for (int32_t j = 0; j < out->num_draw_elements; j++) {
+      out->surface |= out->draw_elements[j].surface;
+    }
 
     r_bsp_block_decals_t *decals = &out->decals;
 
@@ -381,6 +401,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->bounds = in->bounds;
     out->depth_pass_elements = (GLvoid *) (in->first_depth_pass_element * sizeof(GLuint));
     out->num_depth_pass_elements = in->num_depth_pass_elements;
+    out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
 
     g_strlcpy(out->style, in->style, sizeof(out->style));
   }
@@ -608,7 +629,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
   r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
-    block->query = R_AllocOcclusionQuery(block->visible_bounds);
+    block->query = R_AllocOcclusionQuery(block->node->bounds);
   }
 
   r_bsp_light_t *light = bsp->lights;
@@ -621,6 +642,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
  * @brief Extra lumps we need to load for the renderer.
  */
 #define R_BSP_LUMPS ( \
+  (1 << BSP_LUMP_PATCHES) | \
   (1 << BSP_LUMP_VERTEXES) | \
   (1 << BSP_LUMP_ELEMENTS) | \
   (1 << BSP_LUMP_FACES) | \
@@ -640,12 +662,12 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   mod->bsp = Mem_LinkMalloc(sizeof(r_bsp_model_t), mod);
   mod->bsp->cm = Cm_Bsp();
 
-  // load in lumps that the renderer needs
   Bsp_LoadLumps(header, mod->bsp->cm->file, R_BSP_LUMPS);
 
   R_LoadBspPlanes(mod->bsp);
   R_LoadBspMaterials(mod);
   R_LoadBspBrushSides(mod->bsp);
+  R_LoadBspPatches(mod->bsp);
   R_LoadBspVertexes(mod->bsp);
   R_LoadBspElements(mod->bsp);
   R_LoadBspFaces(mod->bsp);
@@ -664,11 +686,21 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
   Com_Debug(DEBUG_RENDERER, "!================================\n");
-  Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:      %s\n", mod->media.name);
-  Com_Debug(DEBUG_RENDERER, "!  Vertexes:          %d\n", mod->bsp->num_vertexes);
-  Com_Debug(DEBUG_RENDERER, "!  Elements:          %d\n", mod->bsp->num_elements);
-  Com_Debug(DEBUG_RENDERER, "!  Faces:             %d\n", mod->bsp->num_faces);
-  Com_Debug(DEBUG_RENDERER, "!  Draw elements:     %d\n", mod->bsp->num_draw_elements);
+  Com_Debug(DEBUG_RENDERER, "!R_LoadBspModel:  %s\n", mod->media.name);
+  Com_Debug(DEBUG_RENDERER, "!  Planes:        %d\n", mod->bsp->num_planes);
+  Com_Debug(DEBUG_RENDERER, "!  Materials:     %d\n", mod->bsp->num_materials);
+  Com_Debug(DEBUG_RENDERER, "!  Brush sides:   %d\n", mod->bsp->num_brush_sides);
+  Com_Debug(DEBUG_RENDERER, "!  Patches:       %d\n", mod->bsp->num_patches);
+  Com_Debug(DEBUG_RENDERER, "!  Vertexes:      %d\n", mod->bsp->num_vertexes);
+  Com_Debug(DEBUG_RENDERER, "!  Elements:      %d\n", mod->bsp->num_elements);
+  Com_Debug(DEBUG_RENDERER, "!  Faces:         %d\n", mod->bsp->num_faces);
+  Com_Debug(DEBUG_RENDERER, "!  Leafs:         %d\n", mod->bsp->num_leafs);
+  Com_Debug(DEBUG_RENDERER, "!  Nodes:         %d\n", mod->bsp->num_nodes);
+  Com_Debug(DEBUG_RENDERER, "!  Draw elements: %d\n", mod->bsp->num_draw_elements);
+  Com_Debug(DEBUG_RENDERER, "!  Blocks:        %d\n", mod->bsp->num_blocks);
+  Com_Debug(DEBUG_RENDERER, "!  Inline models: %d\n", mod->bsp->num_inline_models);
+  Com_Debug(DEBUG_RENDERER, "!  Lights:        %d\n", mod->bsp->num_lights);
+  Com_Debug(DEBUG_RENDERER, "!  Voxels:        %d\n", mod->bsp->voxels.num_voxels);
   Com_Debug(DEBUG_RENDERER, "!================================\n");
 }
 

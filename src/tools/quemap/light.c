@@ -107,6 +107,25 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
     light->visible_bounds = Box3_Null();
 
+    // Entity-attached lights target an inline model entity and move with it at runtime.
+    // Resolve the target entity number now so the BSP carries the reference.
+    const char *target = Cm_EntityValue(entity, "target")->nullable_string;
+    if (target) {
+      const cm_bsp_t *bsp = Cm_Bsp();
+      for (int32_t i = 0; i < bsp->num_entities; i++) {
+        const char *targetname = Cm_EntityValue(bsp->entities[i], "targetname")->nullable_string;
+        if (!g_strcmp0(targetname, target)) {
+          light->target_entity = i;
+          break;
+        }
+      }
+
+      if (!light->target_entity) {
+        Com_Warn("Entity light @ %s: target \"%s\" not found\n",
+                 vtos(light->origin), target);
+      }
+    }
+
     return light;
   } else {
     return NULL;
@@ -137,15 +156,13 @@ void BuildLights(void) {
 
   lights = lights ?: g_ptr_array_new_with_free_func((GDestroyNotify) FreeLight);
 
-  const int32_t count = Cm_Bsp()->num_entities + Cm_Bsp()->num_brush_sides;
-
   cm_entity_t **entity = Cm_Bsp()->entities;
   for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++, entity++) {
     light_t *light = LightForEntity(*entity);
     if (light) {
       g_ptr_array_add(lights, light);
     }
-    Progress("Building lights", i * 100.f / count);
+    Progress("Building lights", i * 100.f / Cm_Bsp()->num_entities);
   }
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Building lights", (uint32_t) SDL_GetTicks() - start);
@@ -178,7 +195,7 @@ void EmitLights(void) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    if (Box3_IsNull(light->visible_bounds)) {
+    if (Box3_IsNull(light->visible_bounds) && !light->target_entity) {
       continue;
     }
 
@@ -190,41 +207,58 @@ void EmitLights(void) {
     out->color = light->color;
     out->intensity = light->intensity;
     out->bounds = light->visible_bounds;
+    out->target_entity = light->target_entity;
     g_strlcpy(out->style, light->style, sizeof(out->style));
 
-    out->first_depth_pass_element = bsp_file.num_elements;
+    if (!light->target_entity) {
+      out->first_depth_pass_element = bsp_file.num_elements;
 
-    const bsp_model_t *worldspawn = bsp_file.models;
-    const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
-    for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
+      const bsp_model_t *worldspawn = bsp_file.models;
+      const bsp_face_t *face = &bsp_file.faces[worldspawn->first_face];
+      for (int32_t j = 0; j < worldspawn->num_faces; j++, face++) {
 
-      if (!Box3_Intersects(face->bounds, out->bounds)) {
-        continue;
+        if (!Box3_Intersects(face->bounds, out->bounds)) {
+          continue;
+        }
+
+        int32_t contents, surface;
+        if (face->brush_side >= 0) {
+          const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
+          contents = side->contents;
+          surface = side->surface;
+        } else {
+          const bsp_patch_t *patch = &bsp_file.patches[face->patch];
+          contents = patch->contents;
+          surface = patch->surface;
+        }
+
+        if (contents & CONTENTS_MIST) {
+          continue;
+        }
+
+        if (surface & SURF_MASK_NO_DRAW_ELEMENTS) {
+          continue;
+        }
+
+        if (surface & SURF_MASK_TRANSLUCENT) {
+          continue;
+        }
+
+        if (surface & SURF_LIQUID) {
+          continue;
+        }
+
+        if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
+          Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
+        }
+
+        memcpy(bsp_file.elements + bsp_file.num_elements,
+               bsp_file.elements + face->first_element,
+               sizeof(int32_t) * face->num_elements);
+
+        bsp_file.num_elements += face->num_elements;
+        out->num_depth_pass_elements += face->num_elements;
       }
-
-      const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-      if (side->contents & CONTENTS_MIST) {
-        continue;
-      }
-
-      if (side->surface & SURF_MASK_NO_DRAW_ELEMENTS) {
-        continue;
-      }
-
-      if (side->surface & SURF_MASK_TRANSLUCENT) {
-        continue;
-      }
-
-      if (bsp_file.num_elements + face->num_elements >= MAX_BSP_ELEMENTS) {
-        Com_Error(ERROR_FATAL, "MAX_BSP_ELEMENTS\n");
-      }
-
-      memcpy(bsp_file.elements + bsp_file.num_elements,
-             bsp_file.elements + face->first_element,
-             sizeof(int32_t) * face->num_elements);
-
-      bsp_file.num_elements += face->num_elements;
-      out->num_depth_pass_elements += face->num_elements;
     }
 
     out++;
@@ -234,4 +268,3 @@ void EmitLights(void) {
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }
-

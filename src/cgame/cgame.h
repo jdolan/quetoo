@@ -701,24 +701,15 @@ typedef struct cg_import_s {
 
   /**
    * @brief Loads the material with the given name.
-   * @param name The material name, e.g. `"objects/rocket/skin"`.
+   * @param name The material name, e.g. `"rocket/skin"`.
    * @param context The asset context, e.g. `ASSET_CONTEXT_PLAYERS`.
    * @return The material.
    */
   r_material_t *(*LoadMaterial)(const char *name, cm_asset_context_t context);
 
   /**
-   * @brief Loads all materials defined in the given file.
-   * @param path The materials file path, e.g. `"maps/torn.mat"`.
-   * @param context The asset context, e.g. `ASSET_CONTEXT_TEXTURES`.
-   * @param materials The list of materials to prepend.
-   * @return The number of materials loaded.
-   */
-  ssize_t (*LoadMaterials)(const char *path, cm_asset_context_t context, GList **materials);
-
-  /**
    * @brief Loads the model with the given name.
-   * @param name The model name (e.g. `"models/objects/rocket/tris"`).
+   * @param name The model name (e.g. `"models/rocket/tris"`).
    * @return The model.
    */
   r_model_t *(*LoadModel)(const char *name);

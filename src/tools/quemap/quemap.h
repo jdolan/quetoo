@@ -37,7 +37,6 @@ extern char bsp_name[MAX_OS_PATH];
 
 extern bool verbose;
 extern bool debug;
-extern bool do_mat;
 extern bool do_bsp;
 extern bool do_zip;
 
@@ -45,6 +44,7 @@ enum {
   MEM_TAG_QBSP = 1000,
   MEM_TAG_EPAIR,
   MEM_TAG_BRUSH,
+  MEM_TAG_PATCH,
   MEM_TAG_NODE,
   MEM_TAG_TREE,
   MEM_TAG_PORTAL,

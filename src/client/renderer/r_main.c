@@ -25,6 +25,16 @@ r_config_t r_config;
 r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
+/**
+ * @brief Double-buffered GPU timer query state.
+ */
+static struct {
+  GLuint names[R_TIMER_COUNT][2];
+  GLuint64 results[R_TIMER_COUNT];
+  bool pending[R_TIMER_COUNT][2];
+  uint32_t frame;
+} r_timer_queries;
+
 cvar_t *r_alpha_test;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
@@ -34,10 +44,9 @@ cvar_t *r_draw_bsp_normals;
 cvar_t *r_draw_bsp_voxels;
 cvar_t *r_draw_entity_bounds;
 cvar_t *r_draw_light_bounds;
+cvar_t *r_draw_material_stages;
 cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
-cvar_t *r_error_level;
-cvar_t *r_max_errors;
 cvar_t *r_occlude;
 
 int32_t r_error_count;
@@ -45,15 +54,15 @@ int32_t r_error_count;
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_caustics;
+cvar_t *r_draw_scale;
 cvar_t *r_finish;
 cvar_t *r_fog_density;
 cvar_t *r_fog_samples;
 cvar_t *r_fog_distance;
+cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_hardness;
-cvar_t *r_height;
 cvar_t *r_lighting_distance;
-cvar_t *r_materials;
 cvar_t *r_modulate;
 cvar_t *r_parallax;
 cvar_t *r_parallax_shadow;
@@ -63,9 +72,10 @@ cvar_t *r_shadows;
 cvar_t *r_shadow_cubemap_array_size;
 cvar_t *r_shadow_distance;
 cvar_t *r_specularity;
-cvar_t *r_supersample;
 cvar_t *r_swap_interval;
-cvar_t *r_width;
+cvar_t *r_window_height;
+cvar_t *r_window_width;
+cvar_t *r_draw_stats;
 
 /**
  * @brief Queries OpenGL for any errors and prints them as warnings.
@@ -126,8 +136,6 @@ void R_UpdateUniforms(const r_view_t *view) {
   struct r_uniform_block_t *out = &r_uniforms.block;
   memset(out, 0, sizeof(*out));
 
-  out->projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
-
   if (view) {
     out->viewport = view->viewport;
 
@@ -184,9 +192,111 @@ void R_UpdateUniforms(const r_view_t *view) {
 /**
  * @brief Called at the beginning of each render frame.
  */
+/**
+ * @brief Allocates double-buffered GL_TIME_ELAPSED queries for each render pass.
+ */
+static void R_InitTimerQueries(void) {
+  for (int32_t i = 0; i < R_TIMER_COUNT; i++) {
+    glGenQueries(2, r_timer_queries.names[i]);
+  }
+}
+
+/**
+ * @brief Deletes all timer query objects.
+ */
+static void R_ShutdownTimerQueries(void) {
+  for (int32_t i = 0; i < R_TIMER_COUNT; i++) {
+    glDeleteQueries(2, r_timer_queries.names[i]);
+  }
+  memset(&r_timer_queries, 0, sizeof(r_timer_queries));
+}
+
+/**
+ * @brief Non-blocking read-back of the previous frame's timer query results.
+ * @details Uses the frame counter to ping-pong between two query slots so we
+ * never stall the GPU pipeline waiting for a result.
+ */
+static void R_ReadTimerQueryResults(void) {
+  if (!r_draw_stats->value) {
+    return;
+  }
+  if (r_timer_queries.frame == 0) {
+    return;
+  }
+
+  const uint32_t read_slot = (r_timer_queries.frame - 1) & 1;
+  for (int32_t i = 0; i < R_TIMER_COUNT; i++) {
+    if (!r_timer_queries.pending[i][read_slot]) {
+      continue;
+    }
+    GLint available;
+    glGetQueryObjectiv(r_timer_queries.names[i][read_slot], GL_QUERY_RESULT_AVAILABLE, &available);
+    if (available) {
+      glGetQueryObjectui64v(r_timer_queries.names[i][read_slot], GL_QUERY_RESULT, &r_timer_queries.results[i]);
+      r_timer_queries.pending[i][read_slot] = false;
+    }
+  }
+}
+
+/**
+ * @brief Copies the latest timer query results into r_stats.
+ * @details Called after memset(&r_stats) to restore the persistent gpu timings.
+ */
+static void R_CopyTimerQueryStats(void) {
+  r_stats.gpu_time_depth      = r_timer_queries.results[R_TIMER_DEPTH];
+  r_stats.gpu_time_shadows    = r_timer_queries.results[R_TIMER_SHADOWS];
+  r_stats.gpu_time_bsp_opaque = r_timer_queries.results[R_TIMER_BSP_OPAQUE];
+  r_stats.gpu_time_mesh       = r_timer_queries.results[R_TIMER_MESH];
+  r_stats.gpu_time_decals     = r_timer_queries.results[R_TIMER_DECALS];
+  r_stats.gpu_time_bsp_blend  = r_timer_queries.results[R_TIMER_BSP_BLEND];
+  r_stats.gpu_time_sprites    = r_timer_queries.results[R_TIMER_SPRITES];
+}
+
+/**
+ * @brief Begins a GL_TIME_ELAPSED query for the given render pass.
+ * @details Writes into the current frame's ping-pong slot.
+ */
+void R_BeginTimerQuery(r_timer_query_index_t index) {
+  if (!r_draw_stats->value) {
+    return;
+  }
+  glBeginQuery(GL_TIME_ELAPSED, r_timer_queries.names[index][r_timer_queries.frame & 1]);
+  r_timer_queries.pending[index][r_timer_queries.frame & 1] = true;
+}
+
+/**
+ * @brief Ends the active GL_TIME_ELAPSED query.
+ */
+void R_EndTimerQuery(void) {
+  if (!r_draw_stats->value) {
+    return;
+  }
+  glEndQuery(GL_TIME_ELAPSED);
+}
+
 void R_BeginFrame(void) {
 
+  if (r_draw_scale->modified) {
+    R_UpdateContext();
+    r_draw_scale->modified = false;
+  }
+
+  if (r_framebuffer_scale->modified) {
+    SDL_PushEvent(&(SDL_Event) {
+      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+    });
+    r_framebuffer_scale->modified = false;
+  }
+
+  if (r_swap_interval->modified) {
+    SDL_GL_SetSwapInterval(r_swap_interval->integer);
+    r_swap_interval->modified = false;
+  }
+
   memset(&r_stats, 0, sizeof(r_stats));
+
+  R_ReadTimerQueryResults();
+  R_CopyTimerQueryStats();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -225,7 +335,9 @@ void R_DrawViewDepth(r_view_t *view) {
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
+  R_BeginTimerQuery(R_TIMER_DEPTH);
   R_DrawDepthPass(view);
+  R_EndTimerQuery();
 
   R_DrawOcclusionQueries(view);
 
@@ -251,7 +363,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_UpdateLights(view);
 
+  R_BeginTimerQuery(R_TIMER_SHADOWS);
   R_DrawShadows(view);
+  R_EndTimerQuery();
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
@@ -266,7 +380,9 @@ void R_DrawMainView(r_view_t *view) {
 
   Thread_Wait(sprites);
   
+  R_BeginTimerQuery(R_TIMER_SPRITES);
   R_DrawSprites(view);
+  R_EndTimerQuery();
 
   if (r_draw_wireframe->integer) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -325,6 +441,8 @@ void R_EndFrame(void) {
   }
 
   SDL_GL_SwapWindow(r_context.window);
+
+  r_timer_queries.frame++;
 }
 
 /**
@@ -341,38 +459,38 @@ static void R_InitLocal(void) {
   r_draw_bsp_voxels = Cvar_Add("r_draw_bsp_voxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool)");
   r_draw_entity_bounds = Cvar_Add("r_draw_entity_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool)");
   r_draw_light_bounds = Cvar_Add("r_draw_light_bounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool)");
+  r_draw_material_stages = Cvar_Add("r_draw_material_stages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
   r_draw_wireframe = Cvar_Add("r_draw_wireframe", "0", CVAR_DEVELOPER, "Controls the rendering of polygons as wireframe (developer tool)");
   r_depth_pass = Cvar_Add("r_depth_pass", "1", CVAR_DEVELOPER, "Controls the rendering of the depth pass (developer tool");
   r_get_error = Cvar_Add("r_get_error", "0", CVAR_DEVELOPER | CVAR_R_CONTEXT, "Log OpenGL information to the console. 2 will also cause a breakpoint for errors. (developer tool)");
-  r_error_level = Cvar_Add("r_error_level", "2", CVAR_DEVELOPER, "Error level for more fine-tuned control over KHR_debug reporting. 0 will report all, up to 3 which will only report errors. (developer tool)");
-  r_max_errors = Cvar_Add("r_max_errors", "8", CVAR_DEVELOPER, "The max number of errors before skipping error handlers (developer tool)");
   r_occlude = Cvar_Add("r_occlude", "1", CVAR_DEVELOPER, "Controls the rendering of occlusion queries (developer tool)");
+  r_draw_stats = Cvar_Add("r_draw_stats", "0", CVAR_DEVELOPER, "Draw renderer performance statistics (developer tool)");
 
   // settings and preferences
-  r_ambient = Cvar_Add("r_ambient", "1.0", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
+  r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
+  r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
-  r_fog_samples = Cvar_Add("r_fog_samples", "8", CVAR_ARCHIVE, "Controls the quality of fog effects");
-  r_fog_distance = Cvar_Add("r_fog_distance", "1024", CVAR_ARCHIVE, "Distance threshold for vertex fog");
+  r_fog_samples = Cvar_Add("r_fog_samples", "16", CVAR_ARCHIVE, "Controls the quality of fog effects");
+  r_fog_distance = Cvar_Add("r_fog_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex fog");
+  r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
-  r_height = Cvar_Add("r_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting");
-  r_materials = Cvar_Add("r_materials", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
   r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshot_format = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
-  r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "128", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
+  r_shadow_cubemap_array_size = Cvar_Add("r_shadow_cubemap_array_size", "512", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls shadowmap resolution.");
   r_shadow_distance = Cvar_Add("r_shadow_distance", "1024", CVAR_ARCHIVE, "Controls the distance at which mesh shadows are culled.");
   r_specularity = Cvar_Add("r_specularity", "1", CVAR_ARCHIVE, "Controls the specularity of bump-mapping effects.");
-  r_supersample = Cvar_Add("r_supersample", "1", CVAR_ARCHIVE, "Controls supersampling (anti-aliasing).");
-  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
-  r_width = Cvar_Add("r_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_swap_interval = Cvar_Add("r_swap_interval", "1", CVAR_ARCHIVE, "Controls vertical refresh synchronization. 0 disables, 1 enables, -1 enables adaptive VSync.");
+  r_window_height = Cvar_Add("r_window_height", "1080", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
+  r_window_width = Cvar_Add("r_window_width", "1920", CVAR_ARCHIVE | CVAR_R_CONTEXT, NULL);
 
   Cvar_ClearAll(CVAR_R_MASK);
 
@@ -488,6 +606,8 @@ void R_Init(void) {
 
   R_InitSky();
 
+  R_InitTimerQueries();
+
   R_GetError("Video initialization");
 
   const SDL_Rect bounds = r_context.window_bounds;
@@ -523,6 +643,8 @@ void R_Shutdown(void) {
   R_ShutdownShadows();
 
   R_ShutdownDepthPass();
+
+  R_ShutdownTimerQueries();
 
   R_ShutdownOcclusionQueries();
 

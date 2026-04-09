@@ -59,7 +59,7 @@ static void updateBindings(View *self) {
 
   CvarSlider *this = (CvarSlider *) self;
 
-  if (this->slider.step >= 1.0) {
+  if (this->slider.step >= 1.f) {
     $((Slider *) this, setLabelFormat, "%g");
   }
 

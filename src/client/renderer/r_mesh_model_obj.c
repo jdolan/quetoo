@@ -83,8 +83,6 @@ static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint 
 static void R_LoadObjModel(r_model_t *mod, void *buffer) {
   r_mesh_model_t *out;
 
-  R_LoadMeshMaterials(mod);
-
   mod->mesh = out = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
   out->num_frames = 1;
 
@@ -123,6 +121,12 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
         vec = Vec3_Normalize(Vec3(vec.x, vec.z, vec.y));
         obj.vn = g_array_append_val(obj.vn, vec);
       }
+    } else if (strncmp("usemtl ", line, strlen("usemtl ")) == 0) {
+      if (group.f->len) {
+        obj.g = g_array_append_val(obj.g, group);
+      }
+      g_strlcpy(group.name, line + strlen("usemtl "), sizeof(group.name));
+      group.f = g_array_new(FALSE, FALSE, sizeof(r_obj_face_t));
     } else if (strncmp("g ", line, strlen("g ")) == 0) {
       if (group.f->len) {
         obj.g = g_array_append_val(obj.g, group);
@@ -173,7 +177,8 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
     r_mesh_face_t *face = out->faces + i;
 
     g_strlcpy(face->name, group->name, sizeof(face->name));
-    face->material = R_ResolveMeshMaterial(mod, face, NULL);
+    face->material = R_LoadMaterial(face->name, ASSET_CONTEXT_MODELS);
+    R_RegisterDependency((r_media_t *) mod, (r_media_t *) face->material);
 
     for (int32_t j = 0; j < (int32_t) group->f->len; j++) {
       r_obj_face_t *f = &g_array_index(group->f, r_obj_face_t, j);

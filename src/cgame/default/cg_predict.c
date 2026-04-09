@@ -108,6 +108,14 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
   }
   pr->view.offset = pm.s.view_offset;
   pr->view.step_offset = pm.s.step_offset;
-  pr->view.angles = pm.cmd.angles;
+
+  // If the server is requesting a snap, use the authoritative angles rather than
+  // the last cmd angles, which may be stale (pre-snap) pending commands.
+  if (cgi.client->frame.ps.pm_state.flags & PMF_SNAP_ANGLES) {
+    pr->view.angles = cgi.client->frame.ps.pm_state.view_angles;
+  } else {
+    pr->view.angles = pm.cmd.angles;
+  }
+
   pr->ground = pm.ground;
 }

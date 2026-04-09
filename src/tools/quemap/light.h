@@ -75,6 +75,11 @@ typedef struct light_s {
    * @brief The output light in the BSP, so that voxels may reference them.
    */
   bsp_light_t *out;
+
+  /**
+   * @brief The entity number of the inline model entity this light is attached to, or 0.
+   */
+  int32_t target_entity;
 } light_t;
 
 extern GPtrArray *lights;

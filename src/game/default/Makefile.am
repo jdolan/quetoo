@@ -6,7 +6,6 @@ noinst_HEADERS = \
 	g_ai_main.h \
 	g_ai_node.h \
 	g_ai_types.h \
-	g_ai.h \
 	g_ballistics.h \
 	g_client_chase.h \
 	g_client_stats.h \
@@ -56,7 +55,6 @@ game_la_SOURCES = \
 	g_ai_item.c \
 	g_ai_main.c \
 	g_ai_node.c \
-	g_ai.c \
 	g_ballistics.c \
 	g_client_chase.c \
 	g_client_stats.c \

@@ -115,6 +115,7 @@ static void AddSky(const char *sky) {
 static void AddMaterial(const cm_material_t *material) {
 
   if (Add(material->diffusemap.path)) {
+    Add(material->path);
     Add(material->normalmap.path);
     Add(material->heightmap.path);
     Add(material->specularmap.path);
@@ -132,59 +133,30 @@ static void AddMaterial(const cm_material_t *material) {
 }
 
 /**
- * @brief
- */
-static gint FindBspMaterial(gconstpointer a, gconstpointer b) {
-  return g_strcmp0(((cm_material_t *) a)->name, (char *) b);
-}
-
-/**
  * @brief Adds all world materials to the assets list.
  */
 static void AddBspMaterials(void) {
 
-  const char *path = va("maps/%s.mat", map_base);
-  Add(path);
-
-  GList *materials = NULL;
-  Cm_LoadMaterials(path, &materials);
-
   for (int32_t i = 0; i < bsp_file.num_materials; i++) {
-    if (!g_list_find_custom(materials, bsp_file.materials[i].name, FindBspMaterial)) {
-      materials = g_list_append(materials, Cm_AllocMaterial(bsp_file.materials[i].name));
-    }
-  }
+    const char *name = bsp_file.materials[i].name;
 
-  for (GList *e = materials; e; e = e->next) {
-    if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_TEXTURES)) {
-      AddMaterial(e->data);
-    }
-  }
+    cm_material_t *material = Cm_LoadMaterial(name, ASSET_CONTEXT_TEXTURES);
 
-  Cm_FreeMaterials(materials);
+    AddMaterial(material);
+
+    Cm_FreeMaterial(material);
+  }
 }
 
 /**
- * @brief Adds the specified mesh materials to the assets list.
+ * @brief Fs_Enumerate callback that adds all files in a model directory.
  */
-static void AddMeshMaterials(const char *path) {
-
+static void AddModel_enumerate(const char *path, void *data) {
   Add(path);
-
-  GList *materials = NULL;
-  Cm_LoadMaterials(path, &materials);
-
-  for (GList *e = materials; e; e = e->next) {
-    if (Cm_ResolveMaterial(e->data, ASSET_CONTEXT_MODELS)) {
-      AddMaterial(e->data);
-    }
-  }
-
-  Cm_FreeMaterials(materials);
 }
 
 /**
- * @brief Attempts to add the specified mesh model.
+ * @brief Adds the specified model and all assets in its directory.
  */
 static void AddModel(const char *model) {
   const char *model_formats[] = { "md3", "obj", NULL };
@@ -200,19 +172,8 @@ static void AddModel(const char *model) {
   }
 
   Dirname(model, path);
-  g_strlcat(path, "skin", sizeof(path));
 
-  AddImage(path);
-
-  Dirname(model, path);
-  g_strlcat(path, "world.cfg", sizeof(path));
-
-  Add(path);
-
-  StripExtension(model, path);
-  g_strlcat(path, ".mat", sizeof(path));
-
-  AddMeshMaterials(path);
+  Fs_Enumerate(va("%s*", path), AddModel_enumerate, NULL);
 }
 
 /**

@@ -47,7 +47,7 @@ static void enumerateSkins(const char *path, void *data) {
 
   Select *select = (Select *) data;
 
-  Regexp *regexp = re("players/([a-z]+)/upper_([a-z]+)\\.skin", 0);
+  Regexp *regexp = re("players/([a-z]+)/([a-z]+)\\.skin", 0);
 
   Range *matches;
   if ($(regexp, matchesCharacters, path, 0, &matches)) {
@@ -165,10 +165,11 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("skin", &this->skinSelect),
-    MakeOutlet("effects", &this->effectsColorPicker),
     MakeOutlet("helmet", &this->helmetColorPicker),
     MakeOutlet("shirt", &this->shirtColorPicker),
     MakeOutlet("pants", &this->pantsColorPicker),
+    MakeOutlet("effects", &this->effectsColorPicker),
+    MakeOutlet("hand", &this->hand),
     MakeOutlet("player", &this->playerModelView)
   );
 
@@ -195,6 +196,10 @@ static void loadView(ViewController *self) {
 
   this->pantsColorPicker->delegate.self = self;
   this->pantsColorPicker->delegate.didPickColor = didPickPlayerColor;
+
+  $(this->hand, addOption, "Center", (ident) 0);
+  $(this->hand, addOption, "Right", (ident) 1);
+  $(this->hand, addOption, "Left", (ident) 2);
 }
 
 /**

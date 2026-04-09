@@ -405,6 +405,26 @@ typedef struct {
 } r_bsp_brush_side_t;
 
 /**
+ * @brief BSP patch structure, resolved from bsp_patch_t.
+ */
+typedef struct {
+  /**
+   * @brief The material.
+   */
+  const r_material_t *material;
+
+  /**
+   * @brief The brush contents.
+   */
+  int32_t contents;
+
+  /**
+   * @brief The surface flags.
+   */
+  int32_t surface;
+} r_bsp_patch_t;
+
+/**
  * @brief BSP vertex structure.
  */
 typedef struct {
@@ -443,7 +463,22 @@ typedef struct {
 /**
  * @brief BSP faces, which may reside on the front or back of their node.
  */
-typedef struct {
+typedef struct r_bsp_face_s {
+  /**
+   * @brief The brush side which generated this face, or NULL for patch faces.
+   */
+  r_bsp_brush_side_t *brush_side;
+
+  /**
+   * @brief The plane on which this face resides (to disambiguiate `node`).
+   */
+  r_bsp_plane_t *plane;
+
+  /**
+   * @brief The patch which generated this face, or NULL for brush faces.
+   */
+  r_bsp_patch_t *patch;
+
   /**
    * @brief The node containing this face.
    */
@@ -453,16 +488,6 @@ typedef struct {
    * @brief The block containing this face.
    */
   struct r_bsp_block_s *block;
-
-  /**
-   * @brief The brush side which generated this face.
-   */
-  r_bsp_brush_side_t *brush_side;
-
-  /**
-   * @brief The plane on which this face resides (to disambiguiate `node`).
-   */
-  r_bsp_plane_t *plane;
 
   /**
    * @brief The AABB of this face.
@@ -676,9 +701,9 @@ typedef struct r_bsp_block_s {
   box3_t visible_bounds;
 
   /**
-   * @brief Block flags.
+   * @brief The bitwise OR of all draw element surface flags for this block.
    */
-  uint32_t flags;
+  int32_t surface;
 
   /**
    * @brief The occlusion query for this block.
@@ -808,6 +833,11 @@ typedef struct {
    * @brief True if this light's shadowmap can be reused from the previous frame.
    */
   bool shadow_cached;
+
+  /**
+   * @brief The target entity for dynamic lights attached to inline model entities, or NULL.
+   */
+  cm_entity_t *target_entity;
 } r_bsp_light_t;
 
 /**
@@ -901,6 +931,9 @@ typedef struct {
 
   int32_t num_brush_sides;
   r_bsp_brush_side_t *brush_sides;
+
+  int32_t num_patches;
+  r_bsp_patch_t *patches;
 
   int32_t num_vertexes;
   r_bsp_vertex_t *vertexes;
@@ -1215,6 +1248,11 @@ enum {
   SPRITE_BEAM_REPEAT      = 1 << 0,
 
   /**
+   * @brief If set, the sprite renders as two perpendicular axial quads in world space.
+   */
+  SPRITE_AXIAL            = 1 << 1,
+
+  /**
    * @brief Beginning of flags reserved for cgame
    */
   SPRITE_CGAME      = 1 << 16
@@ -1307,11 +1345,6 @@ typedef struct {
   r_sprite_flags_t flags;
 
   /**
-   * @brief Sprite softness scalar. Negative values apply an invert to the result.
-   */
-  float softness;
-
-  /**
    * @brief Sprite lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
@@ -1364,11 +1397,6 @@ typedef struct {
   r_sprite_flags_t flags;
 
   /**
-   * @brief Beam softness scalar. Negative values apply an invert to the result.
-   */
-  float softness;
-
-  /**
    * @brief Beam lighting mix factor. 0 is fullbright, 1 is fully affected by light.
    */
   float lighting;
@@ -1385,7 +1413,6 @@ typedef struct {
   vec2_t next_diffusemap;
   color24_t color;
   uint8_t lerp;
-  uint8_t softness;
   uint8_t lighting;
 } r_sprite_vertex_t;
 
@@ -1842,13 +1869,13 @@ typedef struct {
    * @brief The window position and size in logical pixels.
    */
   SDL_Rect window_bounds;
-  
+
   /**
    * @brief The window size, in logical pixels.
    * @details These are set from `window_bounds` and are available for convenience.
    */
   GLint w, h;
-  
+
   /**
    * @brief The OpenGL viewport suitable for the current window.
    * @details This is calculated in drawable pixels, which factors in pixel density for high-DPI displays.
@@ -1897,6 +1924,14 @@ typedef struct {
   int32_t draw_images;
   int32_t draw_lines;
   int32_t draw_arrays;
+
+  GLuint64 gpu_time_depth;
+  GLuint64 gpu_time_shadows;
+  GLuint64 gpu_time_bsp_opaque;
+  GLuint64 gpu_time_mesh;
+  GLuint64 gpu_time_decals;
+  GLuint64 gpu_time_bsp_blend;
+  GLuint64 gpu_time_sprites;
 
 } r_stats_t;
 

@@ -110,12 +110,10 @@ void Cg_AddFlares(void) {
       plane.dist = out.w;
     }
 
-    if (Vec3_Dot(cgi.view->origin, plane.normal) - plane.dist < 0.f) {
-      continue;
-    }
-
+    // Dot product gives us facing: positive=front, negative=back
     const float dot = Vec3_Dot(Vec3_Direction(cgi.view->origin, flare->out.origin), plane.normal);
-    const float alpha = Clampf01(dot * cg_add_flares->value);
+    // Use absolute value to allow sprites from behind, but abs(dot) reduces visibility for grazing angles
+    const float alpha = Clampf01(Maxf(fabsf(dot), 0.25f) * cg_add_flares->value);
 
     if (alpha == 0.f) {
       continue;
@@ -151,10 +149,28 @@ cg_flare_t *Cg_LoadFlare(const r_bsp_face_t *face, const r_stage_t *stage) {
   }
 
   flare->in.media = stage->media;
-  flare->in.softness = 1.f;
   flare->in.lighting = 1.f;
+  // Use frustum-aligned billboard without the two perpendicular axial quads
 
   return flare;
+}
+
+/**
+ * @brief Returns true if two faces share a vertex position, indicating geometric adjacency.
+ */
+static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
+
+  const float epsilon = 1.f;
+
+  for (int32_t i = 0; i < a->num_vertexes; i++) {
+    for (int32_t j = 0; j < b->num_vertexes; j++) {
+      if (Vec3_Distance(a->vertexes[i].position, b->vertexes[j].position) < epsilon) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -168,7 +184,8 @@ static void Cg_MergeFlares(void) {
     for (guint j = i + 1; j < cg_flares->len; j++) {
       cg_flare_t *b = g_ptr_array_index(cg_flares, j);
 
-      if (a->face->brush_side == b->face->brush_side) {
+      if (a->face->brush_side == b->face->brush_side &&
+          Cg_FacesShareVertex(a->face, b->face)) {
         a->bounds = Box3_Union(a->bounds, b->bounds);
 
         g_ptr_array_remove_index(cg_flares, j);
@@ -199,7 +216,11 @@ void Cg_LoadFlares(void) {
   const r_bsp_model_t *bsp = cgi.WorldModel()->bsp;
 
   const r_bsp_face_t *face = bsp->faces;
-  for (int32_t i= 0; i < bsp->num_faces; i++, face++) {
+  for (int32_t i = 0; i < bsp->num_faces; i++, face++) {
+
+    if (!face->brush_side) {
+      continue;
+    }
 
     const r_material_t *material = face->brush_side->material;
     if (material->cm->stage_flags & STAGE_FLARE) {

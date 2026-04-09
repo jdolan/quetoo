@@ -2,5 +2,298 @@
   "class": "Panel",
   "classNames": [
     "menu"
-  ]
+  ],
+  "contentView": {
+    "subviews": [
+      {
+        "class": "StackView",
+        "classNames": [
+          "container"
+        ],
+        "subviews": [
+          {
+            "class": "StackView",
+            "classNames": [
+              "columns",
+              "container"
+            ],
+            "subviews": [
+              {
+                "class": "StackView",
+                "classNames": [
+                  "column",
+                  "container"
+                ],
+                "subviews": [
+                  {
+                    "class": "Box",
+                    "label": {
+                      "text": {
+                        "text": "Display"
+                      }
+                    },
+                    "contentView": {
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Window mode"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "windowMode",
+                            "var": "r_fullscreen"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Render scale"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_framebuffer_scale",
+                            "min": 0.25,
+                            "max": 2.0,
+                            "step": 0.25
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Interface scale"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_draw_scale",
+                            "min": 0.5,
+                            "max": 3.0,
+                            "step": 0.25
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Vertical sync"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "verticalSync",
+                            "var": "r_swap_interval"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Frame limiter"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "cl_max_fps",
+                            "min": 0,
+                            "max": 250,
+                            "step": 5
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "class": "StackView",
+                "classNames": [
+                  "column",
+                  "container"
+                ],
+                "subviews": [
+                  {
+                    "class": "Box",
+                    "label": {
+                      "text": {
+                        "text": "Graphics"
+                      }
+                    },
+                    "contentView": {
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Quality"
+                            }
+                          },
+                          "control": {
+                            "class": "Select",
+                            "identifier": "quality"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Anisotropy"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "anisotropy",
+                            "var": "r_anisotropy"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Brightness"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_modulate",
+                            "min": 0.1,
+                            "max": 2.0,
+                            "step": 0.1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Field of View"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "cg_fov",
+                            "min": 90,
+                            "max": 180
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              {
+                "class": "StackView",
+                "classNames": [
+                  "column",
+                  "container"
+                ],
+                "subviews": [
+                  {
+                    "class": "Box",
+                    "label": {
+                      "text": {
+                        "text": "Sound"
+                      }
+                    },
+                    "contentView": {
+                      "subviews": [
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Master"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "s_volume",
+                            "min": 0,
+                            "max": 1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Effects"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "s_effects_volume",
+                            "min": 0,
+                            "max": 1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Ambient"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "s_ambient_volume",
+                            "min": 0,
+                            "max": 1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Music"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "s_music_volume",
+                            "min": 0,
+                            "max": 1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Enhanced effects"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarCheckbox",
+                            "var": "s_effects"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "class": "StackView",
+            "classNames": [
+              "accessoryView",
+              "container"
+            ],
+            "subviews": [
+              {
+                "class": "Button",
+                "identifier": "apply",
+                "title": {
+                  "text": "Apply"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
 }

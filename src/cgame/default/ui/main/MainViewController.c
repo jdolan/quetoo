@@ -189,6 +189,23 @@ static void loadView(ViewController *self) {
   $(this, navigateToViewController, _HomeViewController());
 }
 
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+  super(ViewController, self, viewWillAppear);
+
+  MainViewController *this = (MainViewController *) self;
+
+  if (cg_state.num_teams > 0) {
+    const int16_t team = cgi.client->frame.ps.stats[STAT_TEAM];
+    if (team == TEAM_NONE) {
+      $(this, navigateToViewController, _TeamsViewController());
+    }
+  }
+}
+
 #pragma mark - MainViewController
 
 /**
@@ -270,6 +287,7 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((MainViewControllerInterface *) clazz->interface)->init = init;
   ((MainViewControllerInterface *) clazz->interface)->navigateToViewController = navigateToViewController;

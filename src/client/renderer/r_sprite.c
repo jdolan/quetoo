@@ -21,8 +21,6 @@
 
 #include "r_local.h"
 
-static cvar_t *r_sprite_soften;
-
 /**
  * @brief
  */
@@ -153,7 +151,8 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 /**
  * @brief
  */
-static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
+static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
+                              const vec3_t right, const vec3_t up) {
 
   r_sprite_instance_t *in = R_AllocSpriteInstance(view);
   if (!in) {
@@ -166,38 +165,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   const float aspect_ratio = (float) in->diffusemap->width / (float) in->diffusemap->height;
   const float half_width = (s->size ?: s->width) * .5f;
   const float half_height = (s->size ?: s->height) * .5f;
-
-  vec3_t dir, right, up;
-
-  if (Vec3_Equal(s->dir, Vec3_Zero())) {
-
-    if (s->axis == SPRITE_AXIS_ALL) {
-      if (s->rotation) {
-        dir = view->angles;
-        dir.z = Degrees(s->rotation);
-        Vec3_Vectors(dir, NULL, &right, &up);
-      } else {
-        right = view->right;
-        up = view->up;
-      }
-    } else {
-      dir = Vec3_Zero();
-
-      for (int32_t i = 0; i < 3; i++) {
-        if (s->axis & (1 << i)) {
-          dir.xyz[i] = view->forward.xyz[i];
-        }
-      }
-
-      dir = Vec3_Euler(Vec3_Normalize(dir));
-      dir.z = Degrees(s->rotation);
-      Vec3_Vectors(dir, NULL, &right, &up);
-    }
-  } else {
-    dir = Vec3_Euler(s->dir);
-    dir.z = Degrees(s->rotation);
-    Vec3_Vectors(dir, NULL, &right, &up);
-  }
 
   const vec3_t u = Vec3_Scale(up, half_height),
          d = Vec3_Scale(up, -half_height),
@@ -250,11 +217,6 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
   in->vertexes[2].color =
   in->vertexes[3].color = Color_Color24(Color3fv(s->color));
 
-  in->vertexes[0].softness =
-  in->vertexes[1].softness =
-  in->vertexes[2].softness =
-  in->vertexes[3].softness = Clampf01(r_sprite_soften->value * s->softness) * 255;
-
   in->vertexes[0].lighting =
   in->vertexes[1].lighting =
   in->vertexes[2].lighting =
@@ -264,35 +226,57 @@ static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 }
 
 /**
- * @brief Break the beam into segments based on blend depth transitions.
+ * @brief
  */
-void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
-  float length;
+static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 
-  const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
-  length /= b->image->width * (b->size / b->image->height);
+  if (s->flags & SPRITE_AXIAL) {
+    // Two perpendicular world-space quads
+    const vec3_t up1 = Vec3(0.f, 0.f, 1.f);
+    const vec3_t right1 = Vec3(1.f, 0.f, 0.f);
+    const vec3_t right2 = Vec3(0.f, 1.f, 0.f);
 
-  const float half_size = b->size * .5f;
-  const vec3_t right = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, Vec3_Subtract(view->origin, b->end))), half_size);
-
-  vec2_t texcoords[4];
-  R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
-
-  if (b->flags & SPRITE_BEAM_REPEAT) {
-
-    if (b->stretch) {
-      length *= b->stretch;
-    }
-
-    texcoords[1].x *= length;
-    texcoords[2].x = texcoords[1].x;
-
-    if (b->translate) {
-      for (int32_t i = 0; i < 4; i++) {
-        texcoords[i].x += b->translate;
-      }
-    }
+    R_UpdateSpriteQuad(view, s, right1, up1);
+    R_UpdateSpriteQuad(view, s, right2, up1);
   }
+
+  vec3_t dir, right, up;
+
+  if (Vec3_Equal(s->dir, Vec3_Zero())) {
+
+    if (s->axis == SPRITE_AXIS_ALL) {
+      if (s->rotation) {
+        dir = view->angles;
+        dir.z = Degrees(s->rotation);
+        Vec3_Vectors(dir, NULL, &right, &up);
+      } else {
+        right = view->right;
+        up = view->up;
+      }
+    } else {
+      dir = Vec3_Zero();
+
+      for (int32_t i = 0; i < 3; i++) {
+        if (s->axis & (1 << i)) {
+          dir.xyz[i] = view->forward.xyz[i];
+        }
+      }
+
+      dir = Vec3_Euler(Vec3_Normalize(dir));
+      dir.z = Degrees(s->rotation);
+      Vec3_Vectors(dir, NULL, &right, &up);
+    }
+  } else {
+    dir = Vec3_Euler(s->dir);
+    dir.z = Degrees(s->rotation);
+    Vec3_Vectors(dir, NULL, &right, &up);
+  }
+
+  R_UpdateSpriteQuad(view, s, right, up);
+}
+
+static void R_UpdateBeamQuad(r_view_t *view, const r_beam_t *b,
+                            const vec3_t right, const vec2_t texcoords[4]) {
 
   float step = 1.f;
   for (float frac = 0.f; frac < 1.f; ) {
@@ -342,11 +326,6 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
     in->vertexes[2].lerp =
     in->vertexes[3].lerp = 0.f;
 
-    in->vertexes[0].softness =
-    in->vertexes[1].softness =
-    in->vertexes[2].softness =
-    in->vertexes[3].softness = r_sprite_soften->value * b->softness;
-
     in->vertexes[0].lighting =
     in->vertexes[1].lighting =
     in->vertexes[2].lighting =
@@ -357,6 +336,46 @@ void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
     frac += step;
     step = 1.f - frac;
   }
+}
+
+/**
+ * @brief Break the beam into segments based on blend depth transitions.
+ * Draws two perpendicular quads per segment for a volumetric cross section.
+ */
+void R_UpdateBeam(r_view_t *view, const r_beam_t *b) {
+  float length;
+
+  const vec3_t up = Vec3_NormalizeLength(Vec3_Subtract(b->start, b->end), &length);
+  length /= b->image->width * (b->size / b->image->height);
+
+  const float half_size = b->size * .5f;
+
+  // Two fixed perpendicular axes for cross-quad rendering
+  const vec3_t arbitrary = fabsf(up.z) < .9f ? Vec3(0.f, 0.f, 1.f) : Vec3(1.f, 0.f, 0.f);
+  const vec3_t right1 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, arbitrary)), half_size);
+  const vec3_t right2 = Vec3_Scale(Vec3_Normalize(Vec3_Cross(up, right1)), half_size);
+
+  vec2_t texcoords[4];
+  R_SpriteTextureCoordinates(b->image, &texcoords[0], &texcoords[1], &texcoords[2], &texcoords[3]);
+
+  if (b->flags & SPRITE_BEAM_REPEAT) {
+
+    if (b->stretch) {
+      length *= b->stretch;
+    }
+
+    texcoords[1].x *= length;
+    texcoords[2].x = texcoords[1].x;
+
+    if (b->translate) {
+      for (int32_t i = 0; i < 4; i++) {
+        texcoords[i].x += b->translate;
+      }
+    }
+  }
+
+  R_UpdateBeamQuad(view, b, right1, texcoords);
+  R_UpdateBeamQuad(view, b, right2, texcoords);
 }
 
 /**
@@ -398,9 +417,7 @@ void R_DrawSprites(const r_view_t *view) {
 
   glBindVertexArray(r_sprites.vertex_array);
 
-  if (r_sprite_soften->value) {
-    R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
-  }
+  R_CopyFramebufferAttachment(view->framebuffer, ATTACHMENT_DEPTH, &view->framebuffer->depth_attachment_copy);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT_COPY);
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->depth_attachment_copy);
@@ -463,7 +480,7 @@ static void R_InitSpriteProgram(void) {
   memset(&r_sprite_program, 0, sizeof(r_sprite_program));
 
   r_sprite_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "sprite_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "sprite_vs.glsl", NULL),
       R_ShaderDescriptor(GL_FRAGMENT_SHADER, "soften_fs.glsl", "sprite_fs.glsl", NULL),
       NULL);
   
@@ -527,8 +544,7 @@ void R_InitSprites(void) {
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, next_diffusemap));
   glVertexAttribPointer(3, 3, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, color));
   glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lerp));
-  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, softness));
-  glVertexAttribPointer(6, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
+  glVertexAttribPointer(5, 1, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_sprite_vertex_t), (void *) offsetof(r_sprite_vertex_t, lighting));
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
@@ -536,15 +552,12 @@ void R_InitSprites(void) {
   glEnableVertexAttribArray(3);
   glEnableVertexAttribArray(4);
   glEnableVertexAttribArray(5);
-  glEnableVertexAttribArray(6);
 
   glBindVertexArray(0);
 
   R_GetError(NULL);
 
   R_InitSpriteProgram();
-
-  r_sprite_soften = Cvar_Add("r_sprite_soften", "1", 0, "Whether sprite softening is enabled");
 }
 
 /**

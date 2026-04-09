@@ -209,12 +209,13 @@ static void Cl_KeyConsole(const SDL_Event *event) {
         char *tail = g_strdup(in->buffer + in->pos);
         in->buffer[in->pos] = '\0';
 
-        const char *text = SDL_GetClipboardText();
+        char *text = SDL_GetClipboardText();
         g_strlcat(in->buffer, text, sizeof(in->buffer));
         g_strlcat(in->buffer, tail, sizeof(in->buffer));
         g_free(tail);
 
         in->pos = Minf(in->pos + strlen(text), sizeof(in->buffer) - 1);
+        SDL_free(text);
       }
       break;
 

@@ -11,12 +11,12 @@ noinst_HEADERS = \
 	leakfile.h \
 	light.h \
 	material.h \
+	patch.h \
 	points.h \
 	polylib.h \
 	portal.h \
 	qbsp.h \
 	qlight.h \
-	qmat.h \
 	quemap.h \
 	qzip.h \
 	simplex.h \
@@ -39,10 +39,10 @@ quemap_SOURCES = \
 	main.c \
 	map.c \
 	material.c \
+	patch.c \
 	polylib.c \
 	portal.c \
 	qbsp.c \
-	qmat.c \
 	qlight.c \
 	qzip.c \
 	simplex.c \

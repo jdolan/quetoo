@@ -100,21 +100,21 @@ static void G_misc_teleporter_Think(g_entity_t *ent) {
   }
 
   // find nodes closest to src and dst
-  const ai_node_id_t src_node = Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
-  const ai_node_id_t dst_node = Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const ai_node_id_t src_node = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
+  const ai_node_id_t dst_node = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
 
   if (src_node != AI_NODE_INVALID && dst_node != AI_NODE_INVALID) {
 
     // make a new node on top of src so we touch the teleporter, connect
     // it to dst with a small cost
 
-    const ai_node_id_t new_node = Ai_Node_CreateNode(ent->s.origin);
+    const ai_node_id_t new_node = G_Ai_Node_Create(ent->s.origin);
 
     // use default cost for the entrance
-    Ai_Node_CreateLink(src_node, new_node, Vec3_Distance(Ai_Node_GetPosition(src_node), ent->s.origin));
+    G_Ai_Node_Link(src_node, new_node, Vec3_Distance(G_Ai_Node_GetPosition(src_node), ent->s.origin));
 
     // small cost for teleport node
-    Ai_Node_CreateLink(new_node, dst_node, 1.f);
+    G_Ai_Node_Link(new_node, dst_node, 1.f);
 
     ent->node = src_node;
   }
@@ -151,7 +151,7 @@ void G_misc_teleporter(g_entity_t *ent) {
 
     // add effect if ent is not buried and effect is not inhibited
     if (!gi.PointContents(v) && !(ent->spawn_flags & 1)) {
-      ent->s.sound = gi.SoundIndex("common/teleport_hum");
+      ent->s.sound = gi.SoundIndex("misc/teleport_hum");
       ent->s.trail = TRAIL_TELEPORTER;
     }
   }
@@ -261,7 +261,7 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
 
   if (Randomf() < 0.33) {
     G_MulticastSound(&(const g_play_sound_t) {
-      .index = gi.SoundIndex(va("common/lava_%d", (count++ % 3) + 1)),
+      .index = gi.SoundIndex(va("ambient/lava_%d", (count++ % 3) + 1)),
       .entity = ent,
       .atten = SOUND_ATTEN_SQUARE
     }, MULTICAST_PHS);
@@ -283,7 +283,7 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
 void G_misc_fireball(g_entity_t *ent) {
 
   for (int32_t i = 1; i < 4; i++) {
-    gi.SoundIndex(va("common/lava_%d", i));
+    gi.SoundIndex(va("ambient/lava_%d", i));
   }
 
   if (Vec3_Equal(ent->s.angles, Vec3_Zero())) {

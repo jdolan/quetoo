@@ -100,7 +100,8 @@ void Cg_LoadEntities(void) {
     &cg_misc_sound,
     &cg_misc_sparks,
     &cg_misc_sprite,
-    &cg_misc_steam
+    &cg_misc_steam,
+    &cg_misc_weather
   };
 
   Cg_FreeEntities();

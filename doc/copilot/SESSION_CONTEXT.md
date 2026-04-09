@@ -7,6 +7,7 @@ This file captures context for continuing work on the Quetoo renderer, particula
 ## High-level summary
 
 - **Project**: Quetoo game engine (C/OpenGL renderer)
+- **ObjectivelyMVC**: Also jdolan's project. Source lives at `../ObjectivelyMVC` (sibling to quetoo repo). Check it directly for MVC internals, API details, or bugs — don't rely solely on installed headers.
 - **Recent work**: Clustered forward lighting using voxel grid for light culling
 - **Latest fix** (Dec 31, 2024): Fixed voxel boundary lighting artifacts by correcting sphere-box intersection test in quemap light assignment
 

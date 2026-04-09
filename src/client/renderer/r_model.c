@@ -62,10 +62,17 @@ r_model_t *R_LoadModel(const char *name) {
     }
 
     if (i == lengthof(formats)) {
-      if (strstr(name, "players/")) {
-        Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
-      } else {
-        Com_Warn("Failed to load %s\n", name);
+      static GHashTable *warned;
+      if (!warned) {
+        warned = g_hash_table_new(g_str_hash, g_str_equal);
+      }
+      if (!g_hash_table_contains(warned, key)) {
+        g_hash_table_add(warned, g_strdup(key));
+        if (strstr(name, "players/")) {
+          Com_Debug(DEBUG_RENDERER, "Failed to load player %s\n", name);
+        } else {
+          Com_Warn("Failed to load %s\n", name);
+        }
       }
       return NULL;
     }

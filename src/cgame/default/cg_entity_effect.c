@@ -70,7 +70,6 @@ static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
     .color = color_white.vec3,
     .media = (r_media_t *) cg_sprite_inactive,
     .size = 32.f,
-    .softness = 1.f
   });
 }
 
@@ -97,22 +96,23 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_RESPAWN) {
-    const vec3_t color = Vec3(0.5f, 0.5f, 0.f);
+    const vec3_t color = Cg_ClientEffectColor(ent->current.client, NULL, 0.167f);
     e->shell = Vec3_Fmaf(e->shell, 0.5f, color);
   }
 
   if (e->effects & EF_QUAD) {
+    const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.006f) * .5f;
     const cg_light_t l = {
       .origin = e->origin,
-      .radius = 180.0,
+      .radius = 250.0,
       .color = Vec3(.3f, .7f, .7f),
-      .intensity = 1.5f,
+      .intensity = pulse,
       .source = ent,
     };
 
     Cg_AddLight(&l);
 
-    e->shell = Vec3_Fmaf(e->shell, 0.5f, l.color);
+    e->shell = Vec3_Fmaf(e->shell, 1.f, l.color);
   }
 
   if (e->effects & EF_CTF_MASK) {
@@ -120,18 +120,19 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
     for (g_team_id_t team = TEAM_RED; team < MAX_TEAMS; team++) {
       if (e->effects & (EF_CTF_RED << team)) {
         const vec3_t color = Cg_EffectColor(&cg_state.teams[team].hue, 0.f);
+        const float pulse = 2.5f + sinf(cgi.client->unclamped_time * 0.005f) * .5f;
 
         const cg_light_t l = {
           .origin = e->origin,
-          .radius = 180.f,
+          .radius = 250.0,
           .color = color,
-          .intensity = 1.5f,
+          .intensity = pulse,
           .source = ent,
         };
 
         Cg_AddLight(&l);
 
-        e->shell = Vec3_Fmaf(e->shell, 0.66f, l.color);
+        e->shell = Vec3_Fmaf(e->shell, 1.f, l.color);
       }
     }
   }

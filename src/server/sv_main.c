@@ -868,7 +868,10 @@ void Sv_Init(void) {
 
   Sv_InitMasters();
 
+  Sv_InitGame();
+
   if (dedicated->value && Fs_Exists("server.cfg")) {
+    Com_Print("Executing server.cfg\n");
     Cbuf_AddText("exec server.cfg\n");
     Cbuf_Execute();
   }

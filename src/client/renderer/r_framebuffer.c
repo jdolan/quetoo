@@ -65,8 +65,11 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
     case ATTACHMENT_DEPTH_COPY:
       return R_CreateFramebufferTexture(f, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
     default:
-      assert(0);
+      break;
   }
+
+  assert(0);
+  return 0;
 }
 
 /**
@@ -74,7 +77,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
-  const float scale = Clampf(r_supersample->value, 0.25f, 2.f);
+  const float scale = Clampf(r_framebuffer_scale->value, 0.125f, 4.f);
 
   r_framebuffer_t framebuffer = {
     .width = width * r_context.display_mode->pixel_density * scale,

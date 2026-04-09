@@ -25,7 +25,6 @@ in vertex_data {
   vec2 next_diffusemap;
   vec3 color;
   float lerp;
-  float softness;
 } vertex;
 
 out vec3 out_color;
@@ -42,6 +41,5 @@ void main(void) {
 
   out_color = texture_color * vertex.color;
 
-  float softness = soften(vertex.softness);
-  out_color *= softness;
+  out_color *= soften();
 }

@@ -70,13 +70,14 @@ case "$host" in
 		AC_MSG_RESULT(apple)
 
 		HOST_NAME="APPLE"
+		host_cpu="arm64"
 		host_os="darwin"
 
-		HOMEBREW_PREFIX=/usr/local
+		HOMEBREW_PREFIX=/opt/homebrew
 
 		AC_ARG_WITH([homebrew],
 			[AS_HELP_STRING(
-				[--with-homebrew=/usr/local],
+				[--with-homebrew=/opt/homebrew],
 				[On macOS, specify the HOMEBREW_PREFIX for package dependencies]
 			)],
 			[HOMEBREW_PREFIX=$withval],

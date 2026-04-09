@@ -145,4 +145,4 @@ struct EntityViewInterface {
  * @return The EntityView Class.
  * @memberof EntityView
  */
-extern Class *_EntityView(void);
+UI_EXPORT Class *_EntityView(void);

@@ -24,7 +24,5 @@
 #include "cg_types.h"
 
 #ifdef __CG_LOCAL_H__
-int32_t Cg_ParseWeather(const char *string);
 void Cg_AddEffects(void);
-void Cg_LoadEffects(void);
 #endif /* __CG_LOCAL_H__ */

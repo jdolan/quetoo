@@ -23,6 +23,8 @@ layout (location = 0) in vec2 in_position;
 layout (location = 1) in vec2 in_diffusemap;
 layout (location = 2) in vec4 in_color;
 
+uniform mat4 projection2D;
+
 out vertex_data {
   vec2 diffusemap;
   vec4 color;

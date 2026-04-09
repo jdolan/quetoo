@@ -74,9 +74,11 @@ static void stateDidChange(Control *self) {
 
   super(Control, self, stateDidChange);
 
-  const CvarTextView *this = (CvarTextView *) self;
+  CvarTextView *this = (CvarTextView *) self;
   if (this->var) {
-    if (!$(self, isFocused)) {
+    if ($(self, isFocused)) {
+      $(&this->textView, setAttributedText, this->var->string);
+    } else {
       const String *string = (String *) this->textView.attributedText;
       cgi.SetCvarString(this->var->name, string->chars);
     }

@@ -113,11 +113,18 @@ typedef struct {
    * @brief The team identifier.
    */
   cg_team_info_t *team;
+
+  /**
+   * @brief The cached weapon tag origin and angles, for muzzle flash alignment.
+   */
+  vec3_t weapon_origin;
+  vec3_t weapon_angles;
 } cg_client_info_t;
 
 #define WEATHER_NONE 0x0
 #define WEATHER_RAIN 0x1
 #define WEATHER_SNOW 0x2
+#define WEATHER_ASH  0x4
 
 /**
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
@@ -153,11 +160,6 @@ typedef struct {
    */
   float hook_pull_speed;
 
-  /**
-   * @brief The current weather bitmask.
-   */
-  int32_t weather;
-  
   /**
    * @brief The current `sv_max_clients` value of the server.
    */

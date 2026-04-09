@@ -31,18 +31,8 @@ float calc_depth(in float z) {
 /**
  * @brief Calculate the soft edge factor for the current fragment.
  */
-float soften(in float scalar) {
-
-  if (scalar == 0) {
-	  return 1.f;
-  }
+float soften(void) {
 
   vec4 depth_sample = texture(texture_depth_attachment_copy, gl_FragCoord.xy / viewport.zw);
-  float softness = smoothstep(0.0, TRANSITION_SIZE * abs(scalar), clamp(calc_depth(depth_sample.r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
-
-  if (scalar < 0) {
-	  softness = 1.0 - softness;
-  }
-
-  return softness;
+  return smoothstep(0.0, TRANSITION_SIZE, clamp(calc_depth(depth_sample.r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
 }

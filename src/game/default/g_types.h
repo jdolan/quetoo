@@ -258,16 +258,16 @@ typedef enum {
 #define EF_BEAM       (EF_GAME << 3) // overloads old_origin for endpoint
 #define EF_CORPSE     (EF_GAME << 4) // to differentiate own corpse from self
 #define EF_RESPAWN    (EF_GAME << 5) // yellow shell
-#define EF_QUAD       (EF_GAME << 6) // green shell
+#define EF_QUAD       (EF_GAME << 6) // blue-green shell
 #define EF_CTF_RED    (EF_GAME << 7) // carrying the red flag
 #define EF_CTF_BLUE   (EF_GAME << 8) // carrying the blue flag
 #define EF_CTF_YELLOW (EF_GAME << 9) // carrying the yellow flag
-#define EF_CTF_WHITE  (EF_GAME << 10) // carrying the white flag
+#define EF_CTF_GREEN  (EF_GAME << 10) // carrying the green flag
 #define EF_DESPAWN    (EF_GAME << 11) // translucent
 #define EF_LIGHT      (EF_GAME << 12) // colored light
 #define EF_TEAM_TINT  (EF_GAME << 13) // tint by the team color provided
 
-#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_WHITE)
+#define EF_CTF_MASK   (EF_CTF_RED | EF_CTF_BLUE | EF_CTF_YELLOW | EF_CTF_GREEN)
 
 /**
  * @brief The lightning gun overrides animation1 to inform the client what
@@ -1035,6 +1035,8 @@ struct g_client_s {
   vec3_t forward, right, up; // aiming direction vectors
   vec3_t cmd_angles; // angles sent over in the last command
   vec3_t kick_angles; // view kick accumulated each server frame
+
+  bool snap_angles; // signals client to snap view_angles (one-shot, cleared after G_EndClientFrames)
 
   uint32_t respawn_time; // eligible for respawn when time > this
   uint32_t respawn_protection_time; // respawn protected till this time

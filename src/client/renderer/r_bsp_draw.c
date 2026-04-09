@@ -47,9 +47,9 @@ static struct {
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
 
-  GLint alpha_test;
 
   struct {
+    GLint alpha_blend;
     GLint alpha_test;
     GLint roughness;
     GLint hardness;
@@ -70,6 +70,8 @@ static struct {
     GLint terrain;
     GLint dirtmap;
     GLint warp;
+    GLint lighting;
+    GLint fog;
   } stage;
 
   r_image_t *warp_image;
@@ -207,6 +209,14 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
     glUniform2f(r_bsp_program.stage.warp, stage->cm->warp.hz, stage->cm->warp.amplitude);
   }
 
+  if (stage->cm->flags & STAGE_LIGHTING) {
+    glUniform1f(r_bsp_program.stage.lighting, stage->cm->lighting.intensity);
+  }
+
+  if (stage->cm->flags & STAGE_FOG) {
+    glUniform1f(r_bsp_program.stage.fog, stage->cm->fog.density);
+  }
+
   glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
 
   if (stage->media) {
@@ -253,7 +263,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
                         const r_bsp_draw_elements_t *draw,
                         const r_material_t *material) {
 
-  if (!r_materials->value) {
+  if (!r_draw_material_stages->value) {
     return;
   }
 
@@ -332,14 +342,20 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query && block->query->result == 0) {
-      r_stats.blocks_occluded++;
-      continue;
-    }
-
-    r_stats.blocks_visible++;
-
     if (entity->model == r_models.world) {
+
+      if (block->query->result == 0) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        r_stats.blocks_occluded++;
+        continue;
+      }
+
+      r_stats.blocks_visible++;
+
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
@@ -372,6 +388,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  glUniform1i(r_bsp_program.material.alpha_blend, 0);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
@@ -422,11 +440,20 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (block->query && block->query->result == 0) {
+    if (!(block->surface & SURF_MASK_BLEND)) {
       continue;
     }
 
     if (entity->model == r_models.world) {
+
+      if (block->query->result == 0) {
+        continue;
+      }
+
+      if (R_CulludeBox(view, block->visible_bounds)) {
+        continue;
+      }
+
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
@@ -455,6 +482,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  glUniform1i(r_bsp_program.material.alpha_blend, 1);
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
 
   glEnable(GL_CULL_FACE);
@@ -504,8 +533,8 @@ void R_InitBspProgram(void) {
   memset(&r_bsp_program, 0, sizeof(r_bsp_program));
 
   r_bsp_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "light.glsl", "bsp_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "light.glsl", "bsp_fs.glsl", NULL),
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "bsp_fs.glsl", NULL),
       NULL);
 
   glUseProgram(r_bsp_program.name);
@@ -533,8 +562,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
   r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
 
-  r_bsp_program.alpha_test = glGetUniformLocation(r_bsp_program.name, "alpha_test");
-
+  r_bsp_program.material.alpha_blend = glGetUniformLocation(r_bsp_program.name, "material.alpha_blend");
   r_bsp_program.material.alpha_test = glGetUniformLocation(r_bsp_program.name, "material.alpha_test");
   r_bsp_program.material.roughness = glGetUniformLocation(r_bsp_program.name, "material.roughness");
   r_bsp_program.material.hardness = glGetUniformLocation(r_bsp_program.name, "material.hardness");
@@ -553,6 +581,8 @@ void R_InitBspProgram(void) {
   r_bsp_program.stage.terrain = glGetUniformLocation(r_bsp_program.name, "stage.terrain");
   r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
   r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
+  r_bsp_program.stage.lighting = glGetUniformLocation(r_bsp_program.name, "stage.lighting");
+  r_bsp_program.stage.fog = glGetUniformLocation(r_bsp_program.name, "stage.fog");
 
   glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);

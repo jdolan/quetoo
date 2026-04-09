@@ -1,11 +1,10 @@
-[![Linux Build Status](http://ci.quetoo.org/buildStatus/icon?job=Quetoo-Linux-x86_64-develop)](http://ci.quetoo.org/job/Quetoo-Linux-x86_64-develop/)
-[![Windows Build Status](https://ci.appveyor.com/api/projects/status/647d2fdblb63rkhy?svg=true)](https://ci.appveyor.com/project/Paril/quetoo)
+[![Build Status](https://github.com/jdolan/quetoo/actions/workflows/build.yml/badge.svg)](https://github.com/jdolan/quetoo/actions/workflows/build.yml)
 [![GPLv2 License](https://img.shields.io/badge/license-GPL%20v2-brightgreen.svg)](https://opensource.org/licenses/GPL-2.0)
 ![This software is BETA](https://img.shields.io/badge/development_stage-BETA-yellowgreen.svg)
 
 # Quetoo BETA
 
-![Quetoo BETA!](https://user-images.githubusercontent.com/643118/147579456-f045a7a3-38ed-4a51-88e3-d9ca6e4f132c.jpg)
+![Quetoo BETA!](https://raw.githubusercontent.com/jdolan/quetoo/main/quetoo-edge.jpg)
 
 ## Overview
 
@@ -13,15 +12,24 @@
 
 ## Features
 
- * Deathmatch, Capture, Instagib, Duel and Rocket Arena gameplay modes
- * Teams Play and Match Mode support
- * High quality remakes of id Software's legendary _Quake II_ deathmatch levels, as well as originals
- * Original sounds and game music by <a href="http://rolandshaw.wordpress.com/">Roland Shaw</a>, <a href="http://anthonywebbmusic.com/">Anthony Webb</a> and Jacob Zammit.
+ * Deathmatch, Team DM, Capture the Flag, Instagib and Rocket Arena gameplay modes
+ * High quality remakes of id Software's legendary _Quake_ series deathmatch levels, as well as many originals
+ * Realtime lighting with soft shadowmapping
+ * Bump mapping with parallax occlusion mapping and self-shadowing
+ * Volumetric fog
+ * Dramatically improved artwork pipeline with in-game editor for level artists
+ * TrenchBroom support
  * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
 
 ## Downloads
 
-Preview releases of _Quetoo_ for all platforms are available for download on the [project website](http://quetoo.org/pages/downloads). Installation instructions are available there as well.
+Snapshot releases of _Quetoo_ for all platforms are available on the [GitHub Releases](https://github.com/jdolan/quetoo/releases) page. Download the latest release for your platform and run the included _Quetoo Installer_ to install or update the game.
+
+### macOS
+Because _Quetoo_ is not signed with an Apple Developer certificate, macOS will block it on first launch. To allow it, right-click the application and select **Open**, then click **Open** again in the dialog that appears.
+
+### Windows
+Windows SmartScreen may block the installer on first launch. Click **More info**, then **Run anyway** to proceed.
 
 ## Community
 
@@ -29,7 +37,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for advanced users. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
+Compiling _Quetoo_ is only recommended for developers and mappers. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
 
 The following dependencies are required:
 
@@ -51,9 +59,7 @@ Quetoo builds with GNU Autotools. To build it, run the following:
 To have a working game, you must install the game data using `git`:
 
     git clone https://github.com/jdolan/quetoo-data.git
-    sudo ln -s quetoo-data/target /usr/local/share/quetoo
-
-More information on hacking on _Quetoo_ is available [on the project website](http://quetoo.org/books/documentation/developing-and-modding).
+    sudo ln -s $(pwd)/quetoo-data/target /usr/local/share/quetoo
 
 ## Support
 

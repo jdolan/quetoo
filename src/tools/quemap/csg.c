@@ -193,6 +193,10 @@ static inline bool BrushGE(const csg_brush_t *b1, const csg_brush_t *b2) {
   if ((b1->original->contents & CONTENTS_DETAIL) && !(b2->original->contents & CONTENTS_DETAIL)) {
     return false;
   }
+//   caulk (nodraw) brushes never bite anything
+//  if (b1->original->brush_sides[0].surface & SURF_NO_DRAW) {
+//    return false;
+//  }
   if (b1->original->contents & CONTENTS_SOLID) {
     return true;
   }

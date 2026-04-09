@@ -210,20 +210,6 @@ static d_md3_tag_t R_SwapMd3Tag(const d_md3_tag_t *in) {
 /**
  * @brief Swap function.
  */
-static d_md3_shader_t R_SwapMd3Shader(const d_md3_shader_t *in) {
-
-  d_md3_shader_t out = *in;
-
-#if SDL_BYTEORDER != SDL_LIL_ENDIAN
-  out.index = LittleLong(out.index);
-#endif
-
-  return out;
-}
-
-/**
- * @brief Swap function.
- */
 static d_md3_surface_t R_SwapMd3Surface(const d_md3_surface_t *in) {
 
   d_md3_surface_t out = *in;
@@ -306,9 +292,12 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
     Com_Error(ERROR_DROP, "%s MD3_MAX_SURFACES %d\n", mod->media.name, md3.num_surfaces);
   }
 
-  mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
+  if (!g_str_has_prefix(mod->media.name, "players/")) {
+    Com_Warn("%s: MD3 is only supported for player models; use OBJ instead\n", mod->media.name);
+    return;
+  }
 
-  R_LoadMeshMaterials(mod);
+  mod->mesh = Mem_LinkMalloc(sizeof(r_mesh_model_t), mod);
 
   {
     mod->mesh->num_frames = md3.num_frames;
@@ -375,16 +364,6 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
       g_strlcpy(out->name, surface.name, MD3_MAX_PATH);
 
       const byte *surface_base = (byte *) in;
-
-      if (surface.num_shaders) {
-        const d_md3_shader_t *in_shader = (d_md3_shader_t *) (surface_base + surface.ofs_shaders);
-        for (int32_t j = 0; j < surface.num_shaders; j++, in_shader++) {
-          const d_md3_shader_t skin = R_SwapMd3Shader(in_shader);
-          out->material = R_ResolveMeshMaterial(mod, out, skin.name);
-        }
-      } else {
-        out->material = R_ResolveMeshMaterial(mod, out, NULL);
-      }
 
       {
         out->num_vertexes = surface.num_vertexes;

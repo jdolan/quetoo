@@ -48,6 +48,15 @@ typedef struct {
 static mem_state_t mem_state;
 
 /**
+ * @brief Returns a properly aligned pointer to the footer for a data block.
+ */
+static inline mem_footer_t *Mem_Footer(const void *data, size_t size) {
+  const uintptr_t addr = (uintptr_t) ((const byte *) data + size);
+  const uintptr_t aligned = (addr + _Alignof(mem_footer_t) - 1) & ~((uintptr_t) _Alignof(mem_footer_t) - 1);
+  return (mem_footer_t *) aligned;
+}
+
+/**
  * @brief Throws a fatal error if the specified memory block is non-NULL but
  * not owned by the memory subsystem.
  */
@@ -62,7 +71,7 @@ static mem_block_t *Mem_CheckMagic(void *p) {
       raise(SIGABRT);
     }
 
-    mem_footer_t *footer = (mem_footer_t *) (((byte *) p) + b->size);
+    mem_footer_t *footer = Mem_Footer(p, b->size);
 
     if (footer->magic != (MEM_MAGIC + b->size)) {
       fprintf(stderr, "Invalid footer magic (%d) for %p\n", b->magic, p);
@@ -177,7 +186,8 @@ void Mem_FreeTag(mem_tag_t tag) {
  * @brief Returns the total size of a memory block.
  */
 static size_t Mem_BlockSize(const size_t size) {
-  return sizeof(mem_block_t) + size + sizeof(mem_footer_t);
+  const size_t aligned = (size + _Alignof(mem_footer_t) - 1) & ~(_Alignof(mem_footer_t) - 1);
+  return sizeof(mem_block_t) + aligned + sizeof(mem_footer_t);
 }
 
 /**
@@ -210,7 +220,7 @@ static void *Mem_Malloc_(size_t size, mem_tag_t tag, void *parent) {
 
   void *data = (void *) (b + 1);
 
-  mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+  mem_footer_t *footer = Mem_Footer(data, size);
   footer->magic = (mem_magic_t) (MEM_MAGIC + b->size);
 
   // insert it into the managed memory structures
@@ -300,7 +310,7 @@ void *Mem_Realloc(void *p, size_t size) {
 
   void *data = (void *) (new_b + 1);
 
-  mem_footer_t *footer = (mem_footer_t *) (((byte *) data) + size);
+  mem_footer_t *footer = Mem_Footer(data, size);
   footer->magic = (mem_magic_t) (MEM_MAGIC + new_b->size);
 
   SDL_LockSpinlock(&mem_state.lock);

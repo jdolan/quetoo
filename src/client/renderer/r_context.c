@@ -51,10 +51,19 @@ void R_UpdateContext(void) {
   
   SDL_GetWindowPosition(r_context.window, &r_context.window_bounds.x, &r_context.window_bounds.y);
   SDL_GetWindowSize(r_context.window, &r_context.window_bounds.w, &r_context.window_bounds.h);
-  
-  r_context.w = r_context.window_bounds.w;
-  r_context.h = r_context.window_bounds.h;
-  
+
+  if (!(r_context.window_flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_BORDERLESS))) {
+    Cvar_ForceSetInteger("r_window_width", r_context.window_bounds.w);
+    Cvar_ForceSetInteger("r_window_height", r_context.window_bounds.h);
+    r_window_width->modified = false;
+    r_window_height->modified = false;
+  }
+
+  const float scale = Clampf(r_draw_scale->value, .5f, 4.f);
+
+  r_context.w = r_context.window_bounds.w / scale;
+  r_context.h = r_context.window_bounds.h / scale;
+
   r_context.display = SDL_GetDisplayForWindow(r_context.window);
   r_context.display_mode = SDL_GetCurrentDisplayMode(r_context.display);
     
@@ -101,8 +110,8 @@ void R_InitContext(void) {
   switch (r_fullscreen->integer) {
     case 0:
       window_flags |= SDL_WINDOW_RESIZABLE;
-      w = r_width->integer ?: w;
-      h = r_height->integer ?: h;
+      w = r_window_width->integer ?: w;
+      h = r_window_height->integer ?: h;
       break;
     case 1:
       window_flags |= SDL_WINDOW_BORDERLESS;
@@ -119,7 +128,7 @@ void R_InitContext(void) {
   }
   
   R_SetWindowIcon();
-  
+
   Com_Print("  Setting up OpenGL context..\n");
 
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -192,7 +201,9 @@ void R_InitContext(void) {
     Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
   }
 
-  gladLoaderLoadGL();
+  if (!gladLoaderLoadGL()) {
+    Com_Error(ERROR_FATAL, "Failed to load OpenGL functions\n");
+  }
   
   R_UpdateContext();
 

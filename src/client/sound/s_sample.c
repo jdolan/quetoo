@@ -181,6 +181,15 @@ static void S_FreeSample(s_media_t *self) {
 }
 
 /**
+ * @brief Free event listener for aliased s_sample_t. Does not delete the
+ * OpenAL buffer, which is owned by the sample being aliased.
+ */
+static void S_FreeAliasedSample(s_media_t *self) {
+  s_sample_t *sample = (s_sample_t *) self;
+  sample->buffer = 0;
+}
+
+/**
  * @brief
  */
 s_sample_t *S_LoadSample(const char *name) {
@@ -245,6 +254,7 @@ s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
         sample->buffer = aliased->buffer;
         sample->num_samples = aliased->num_samples;
         sample->stereo = aliased->stereo;
+        sample->media.Free = S_FreeAliasedSample;
 
         Com_Debug(DEBUG_SOUND, "Aliased %s for %s\n", aliased->media.name, key);
       } else {

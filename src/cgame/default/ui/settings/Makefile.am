@@ -1,25 +1,15 @@
 cguisettingsdir = @PKGLIBDIR@/default/ui/settings
 cguisettings_DATA = \
-	OptionsViewController.css \
-	OptionsViewController.json \
-	SettingsViewController.json \
-	SystemViewController.css \
-	SystemViewController.json
+	SettingsViewController.json
 
 noinst_HEADERS = \
-	OptionsViewController.h \
-	SettingsViewController.h \
-	SystemViewController.h \
-	VideoModeSelect.h
+	SettingsViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguisettings.la
 
 libcguisettings_la_SOURCES = \
-	OptionsViewController.c \
-	SettingsViewController.c \
-	SystemViewController.c \
-	VideoModeSelect.c
+	SettingsViewController.c
 
 libcguisettings_la_CFLAGS = \
 	-I$(top_srcdir)/src \

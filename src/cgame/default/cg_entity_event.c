@@ -52,7 +52,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
         .velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
         .color = Vec3(.1f, 1.f, .3f),
         .size = 10.f,
-        .softness = 1.f
       }))) {
       break;
     }
@@ -68,7 +67,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
     .size = 150.f,
     .atlas_image = cg_sprite_particle,
     .color = Vec3(.1f, 1.f, .3f),
-    .softness = 4.f
   });
 
   Cg_AddLight(&(cg_light_t) {
@@ -106,7 +104,6 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
     .size = 150,
     .atlas_image = cg_sprite_particle,
     .color = Vec3(.3f, 1.f, .6f),
-    .softness = 4.f
   });
 
   Cg_AddLight(&(cg_light_t) {
@@ -133,7 +130,6 @@ void Cg_TeleporterEffect(const vec3_t org) {
       .acceleration.z = -SPRITE_GRAVITY * .1f,
       .lifetime = 500,
       .color = Vec3(1.f, 1.f, 1.f),
-      .softness = 1.f
     });
   }
 
@@ -185,11 +181,15 @@ static void Cg_DrownEffect(cl_entity_t *ent) {
  */
 static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name) {
 
-  const cg_client_info_t *info = &cg_state.clients[ent->current.client];
+  const int32_t client = ent->current.client;
+  const cg_client_info_t *info = &cg_state.clients[client];
 
-  assert(info->model);
+  if (!*info->model) {
+    return NULL;
+  }
 
-  return cgi.LoadClientModelSample(info->model, name);
+  s_sample_t *result = cgi.LoadClientModelSample(info->model, name);
+  return result;
 }
 
 /**
@@ -223,7 +223,7 @@ static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
   }
 
   Cg_Debug("No ground found for footstep at %s\n", vtos(end));
-  return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(0, 4)));
+  return cgi.LoadSample(va("#players/common/step_default_%d", RandomRangei(1, 5)));
 }
 
 /**
@@ -287,6 +287,10 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
   if (play.sample) {
     Cg_AddSample(cgi.stage, &play);
+  } else if (s->event != EV_CLIENT_FOOTSTEP && s->event != EV_CLIENT_TELEPORT &&
+             s->event != EV_ITEM_PICKUP && s->event != 0) {
+    Cg_Debug("NULL sample for ent #%d event=%d\n",
+             (int32_t) (ent - cgi.client->entities), s->event);
   }
 
   s->event = 0;

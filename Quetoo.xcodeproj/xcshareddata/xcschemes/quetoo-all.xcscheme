@@ -57,11 +57,14 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableASanStackUseAfterReturn = "YES"
+      disableMainThreadChecker = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "YES"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
+      enableGPUValidationMode = "1"
       allowLocationSimulation = "NO"
       consoleMode = "0"
       structuredConsoleMode = "2">
@@ -85,7 +88,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_width 1920 +set r_height 1080"
+            argument = "+set r_window_width 1920 +set r_window_height 1080"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -101,19 +104,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set r_get_error 2"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set cl_draw_renderer_stats 1"
+            argument = "+set r_get_error 2 +set r_draw_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set s_ambient_volume 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set s_get_error 2 +set cl_draw_sound_stats 1"
+            argument = "+set s_get_error 2 +set s_draw_stats 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -133,7 +128,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+set g_ai_node_dev 1"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+map aerowalk"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -141,19 +140,15 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set g_cheats 1 +give all +set g_auto_join 1"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+set g_gameplay arena +set g_teams 1 +g_ai_add 1"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set cg_add_flares 0"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "+g_ai_add 16"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+connect localhost"
             isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>

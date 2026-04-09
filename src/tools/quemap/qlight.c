@@ -391,8 +391,6 @@ cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, 
  */
 static void LightWorld(void) {
 
-  LoadMaterials(va("maps/%s.mat", map_base));
-
   // build voxel
   const size_t num_voxel = BuildVoxels();
 
@@ -431,9 +429,6 @@ static void LightWorld(void) {
 
   // free the light sources
   FreeLights();
-
-  // free the materials
-  FreeMaterials();
 }
 
 /**

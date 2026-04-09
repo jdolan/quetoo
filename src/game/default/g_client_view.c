@@ -305,11 +305,11 @@ static void G_ClientAnimation(g_client_t *cl) {
 
   if (ent->solid == SOLID_DEAD) {
     if (g_level.time >= cl->respawn_time) {
-      switch (ent->s.animation1) {
+      switch (ent->s.animation1 & ANIM_MASK_VALUE) {
         case ANIM_BOTH_DEATH1:
         case ANIM_BOTH_DEATH2:
         case ANIM_BOTH_DEATH3:
-          G_SetAnimation(cl, ent->s.animation1 + 1, false);
+          G_SetAnimation(cl, (ent->s.animation1 & ANIM_MASK_VALUE) + 1, false);
           break;
         default:
           break;
@@ -435,6 +435,13 @@ void G_ClientEndFrame(g_client_t *cl) {
   // send the kick angles
   G_ClientKickAngles(cl);
 
+  // apply the one-shot snap_angles signal into pm_state flags for this frame
+  if (cl->snap_angles) {
+    cl->ps.pm_state.flags |= PMF_SNAP_ANGLES;
+  } else {
+    cl->ps.pm_state.flags &= ~PMF_SNAP_ANGLES;
+  }
+
   // and the angles on the world model
   G_ClientWorldAngles(cl);
 
@@ -460,7 +467,7 @@ void G_EndClientFrames(void) {
   });
 
   // render the nodes to the clients
-  Ai_Node_Render();
+  G_Ai_Node_Render();
 
   // now loop through again, and for chase camera users, copy the final player state
   G_ForEachClient(cl, {

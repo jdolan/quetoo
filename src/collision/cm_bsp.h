@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 72
+#define BSP_VERSION 74
 
 /**
  * @brief BSP file format limits.
@@ -48,12 +48,13 @@
 #define MAX_BSP_BLOCKS        0x400
 #define MAX_BSP_MODELS        0x100
 #define MAX_BSP_LIGHTS        0x100
+#define MAX_BSP_PATCHES       0x400
 #define MAX_BSP_VOXELS_SIZE   0x4000000
 
 /**
  * @brief The BSP block node size.
  */
-#define BSP_BLOCK_SIZE 512.f
+#define BSP_BLOCK_SIZE 1024.f
 
 /**
  * @brief Voxel voxel size in world units.
@@ -90,6 +91,7 @@ typedef enum {
   BSP_LUMP_PLANES,
   BSP_LUMP_BRUSH_SIDES,
   BSP_LUMP_BRUSHES,
+  BSP_LUMP_PATCHES,
   BSP_LUMP_VERTEXES,
   BSP_LUMP_ELEMENTS,
   BSP_LUMP_FACES,
@@ -240,6 +242,60 @@ typedef struct {
 } bsp_brush_t;
 
 /**
+ * @brief The maximum patch control point grid dimensions.
+ */
+#define MAX_PATCH_SIZE 31
+
+/**
+ * @brief The maximum number of control points in a patch.
+ */
+#define MAX_PATCH_CONTROL_POINTS (MAX_PATCH_SIZE * MAX_PATCH_SIZE)
+
+/**
+ * @brief A patch control point for the BSP patches lump.
+ */
+typedef struct {
+  vec3_t position;
+  vec2_t st;
+} bsp_patch_control_point_t;
+
+/**
+ * @brief BSP representation of a patchDef2 Bézier surface.
+ */
+typedef struct {
+  /**
+   * @brief The entity number that defined this patch.
+   */
+  int32_t entity;
+
+  /**
+   * @brief The material index.
+   */
+  int32_t material;
+
+  /**
+   * @brief The contents bitmask.
+   */
+  int32_t contents;
+
+  /**
+   * @brief The surface bitmask.
+   */
+  int32_t surface;
+
+  /**
+   * @brief The control point grid dimensions.
+   */
+  int32_t width, height;
+
+  /**
+   * @brief The control points in row-major order (width × height).
+   */
+  bsp_patch_control_point_t control_points[MAX_PATCH_CONTROL_POINTS];
+} bsp_patch_t;
+
+
+/**
  * @brief The BSP vertex type.
  */
 typedef struct {
@@ -256,15 +312,25 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The index of the brush side which created this face.
+   * @brief The index of the brush side which created this face, or -1 for patch faces.
    */
   int32_t brush_side;
 
   /**
-   * @brief The index of the plane.
+   * @brief The index of the plane, or -1 for patch faces.
    * @details For translucent brushes, this may be the negation of the node's plane.
    */
   int32_t plane;
+
+  /**
+   * @brief The index of the patch which created this face, or -1 for brush faces.
+   */
+  int32_t patch;
+
+  /**
+   * @brief The index of the BSP node containing this face.
+   */
+  int32_t node;
 
   /**
    * @brief The index of the block node containing this face.
@@ -425,11 +491,6 @@ typedef struct {
    * only the faces on that node's plane.
    */
   box3_t visible_bounds;
-
-  /**
-   * @brief Block flags.
-   */
-  uint32_t flags;
 } bsp_block_t;
 
 /**
@@ -547,6 +608,14 @@ typedef struct {
    * @brief The count of depth pass geometry elements.
    */
   int32_t num_depth_pass_elements;
+
+  /**
+   * @brief The entity number of the inline model entity this light is attached to, or 0.
+   * @details When > 0, this light is treated as a dynamic light that moves with the
+   * entity. No shadow geometry is generated, and the origin is an offset from the
+   * entity's initial position.
+   */
+  int32_t target_entity;
 } bsp_light_t;
 
 /**
@@ -583,6 +652,9 @@ typedef struct bsp_file_s {
 
   int32_t num_brushes;
   bsp_brush_t *brushes;
+
+  int32_t num_patches;
+  bsp_patch_t *patches;
 
   int32_t num_vertexes;
   bsp_vertex_t *vertexes;

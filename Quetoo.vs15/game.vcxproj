@@ -22,7 +22,6 @@
     <None Include="game.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\game\default\g_ai.h" />
     <ClInclude Include="..\src\game\default\g_ai_goal.h" />
     <ClInclude Include="..\src\game\default\g_ai_info.h" />
     <ClInclude Include="..\src\game\default\g_ai_item.h" />
@@ -54,7 +53,6 @@
     <ClInclude Include="..\src\game\game.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\game\default\g_ai.c" />
     <ClCompile Include="..\src\game\default\g_ai_goal.c" />
     <ClCompile Include="..\src\game\default\g_ai_info.c" />
     <ClCompile Include="..\src\game\default\g_ai_item.c" />

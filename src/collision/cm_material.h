@@ -78,6 +78,14 @@ typedef struct {
 } cm_stage_warp_t;
 
 typedef struct {
+  float density;
+} cm_stage_fog_t;
+
+typedef struct {
+  float intensity;
+} cm_stage_lighting_t;
+
+typedef struct {
   float radius;
 } cm_stage_shell_t;
 
@@ -109,14 +117,15 @@ typedef enum {
   STAGE_SCROLL_T  = (1 << 7),
   STAGE_SCALE_S   = (1 << 8),
   STAGE_SCALE_T   = (1 << 9),
-  STAGE_TERRAIN   = (1 << 10),
-  STAGE_ANIMATION = (1 << 11),
+  STAGE_ANIMATION = (1 << 10),
+  STAGE_TERRAIN   = (1 << 11),
   STAGE_DIRTMAP   = (1 << 12),
   STAGE_ENVMAP    = (1 << 13),
   STAGE_WARP      = (1 << 14),
   STAGE_FLARE     = (1 << 15),
-  STAGE_FOG       = (1 << 16),
-  STAGE_SHELL     = (1 << 17),
+  STAGE_LIGHTING  = (1 << 16),
+  STAGE_FOG       = (1 << 17),
+  STAGE_SHELL     = (1 << 18),
 
   STAGE_DRAW      = (1 << 28),
   STAGE_MATERIAL  = (1 << 29),
@@ -148,54 +157,64 @@ typedef struct cm_stage_s {
   color_t color;
 
   /**
-   * @brief The stage pulse effect.
+   * @brief The stage pulse parameters.
    */
   cm_stage_pulse_t pulse;
 
   /**
-   * @brief The stage stretch effect.
+   * @brief The stage stretch parameters.
    */
   cm_stage_stretch_t stretch;
 
   /**
-   * @brief The stage rotate effect.
+   * @brief The stage rotate parameters.
    */
   cm_stage_rotate_t rotate;
 
   /**
-   * @brief The stage scroll effect.
+   * @brief The stage scroll parameters.
    */
   cm_stage_scroll_t scroll;
 
   /**
-   * @brief The stage scale effect.
+   * @brief The stage scale parameters.
    */
   cm_stage_scale_t scale;
 
   /**
-   * @brief The stage terrain effect.
+   * @brief The stage animation parameters.
+   */
+  cm_stage_animation_t animation;
+
+  /**
+   * @brief The stage terrain parameters.
    */
   cm_stage_terrain_t terrain;
 
   /**
-   * @brief The stage dirtmap effect.
+   * @brief The stage dirtmap parameters.
    */
   cm_stage_dirtmap_t dirtmap;
 
   /**
-   * @brief The stage warp effect.
+   * @brief The stage warp parameters.
    */
   cm_stage_warp_t warp;
 
   /**
-   * @brief The stage shell effect.
+   * @brief The stage fog parameters.
    */
-  cm_stage_shell_t shell;
+  cm_stage_fog_t fog;
 
   /**
-   * @brief The stage animation effect.
+   * @brief The stage lighting parameters.
    */
-  cm_stage_animation_t animation;
+  cm_stage_lighting_t lighting;
+
+  /**
+   * @brief The stage shell parameters.
+   */
+  cm_stage_shell_t shell;
 
   /**
    * @brief The next stage, or NULL.
@@ -237,7 +256,7 @@ typedef struct {
  */
 typedef struct cm_material_s {
   /**
-   * @brief The materials file path defining this material, if any.
+   * @brief The material file path defining this material, if any.
    */
   char path[MAX_QPATH];
 
@@ -250,6 +269,11 @@ typedef struct cm_material_s {
    * @brief The base name of this material without any diffusemap suffix.
    */
   char basename[MAX_QPATH];
+
+  /**
+   * @brief The asset context for this material (e.g. textures, models, players).
+   */
+  cm_asset_context_t context;
 
   /**
    * @brief The diffusemap asset.
@@ -336,15 +360,18 @@ typedef struct cm_material_s {
    */
   vec4_t tintmap_defaults[TINT_TOTAL];
 
+  /**
+   * @brief True if this material has been modified and needs to be saved.
+   */
+  bool dirty;
 } cm_material_t;
 
-cm_material_t *Cm_AllocMaterial(const char *name);
+cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context);
 void Cm_FreeMaterial(cm_material_t *material);
-void Cm_FreeMaterials(GList *materials);
-ssize_t Cm_LoadMaterials(const char *path, GList **materials);
-bool Cm_ResolveMaterial(cm_material_t *material, cm_asset_context_t context);
-ssize_t Cm_WriteMaterials(const char *path, GList *materials);
+bool Cm_ResolveMaterial(cm_material_t *material);
+bool Cm_SaveMaterial(const cm_material_t *material);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
+void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);
 
 #ifdef __CM_LOCAL_H__
 #endif /* __CM_LOCAL_H__ */

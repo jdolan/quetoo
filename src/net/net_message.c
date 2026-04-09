@@ -118,11 +118,11 @@ void Net_WriteAngle(mem_buf_t *msg, float angle) {
     angle += 360.f;
   }
 
-  while (angle > 360.f) {
+  while (angle >= 360.f) {
     angle -= 360.f;
   }
 
-  Net_WriteShort(msg, (int16_t) ((angle / 360.0f) * UINT16_MAX));
+  Net_WriteShort(msg, (uint16_t) ((angle / 360.0f) * UINT16_MAX));
 }
 
 /**
@@ -362,7 +362,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   Net_WriteLong(msg, stat_bits);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1 << i)) {
+    if (stat_bits & (1U << i)) {
       Net_WriteShort(msg, to->stats[i]);
     }
   }
@@ -588,17 +588,19 @@ int32_t Net_ReadShort(mem_buf_t *msg) {
  * @brief
  */
 int32_t Net_ReadLong(mem_buf_t *msg) {
-  int32_t c;
+  uint32_t c;
 
   if (msg->read + 4 > msg->size) {
     c = -1;
   } else
-    c = msg->data[msg->read] + (msg->data[msg->read + 1] << 8) + (msg->data[msg->read + 2]
-            << 16) + (msg->data[msg->read + 3] << 24);
+    c = ((uint32_t) msg->data[msg->read + 0] << 0)
+      + ((uint32_t) msg->data[msg->read + 1] << 8)
+      + ((uint32_t) msg->data[msg->read + 2] << 16)
+      + ((uint32_t) msg->data[msg->read + 3] << 24);
 
   msg->read += 4;
 
-  return c;
+  return (int32_t) c;
 }
 
 /**
@@ -818,7 +820,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   const int32_t stat_bits = Net_ReadLong(msg);
 
   for (int32_t i = 0; i < MAX_STATS; i++) {
-    if (stat_bits & (1 << i)) {
+    if (stat_bits & (1U << i)) {
       to->stats[i] = Net_ReadShort(msg);
     }
   }

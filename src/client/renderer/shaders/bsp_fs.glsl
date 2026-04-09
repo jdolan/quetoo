@@ -43,6 +43,7 @@ void parallax_occlusion_mapping() {
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
   vec3 dir = normalize(fragment.view_dir * vertex.tbn);
+  dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
 
@@ -81,8 +82,14 @@ void bsp_fragment_lighting(void) {
   }
 
   // For close fragments, do full per-fragment lighting
-  fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
-  fragment.specular_sample = sample_material_specular(fragment.parallax);
+
+  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+    fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
+    fragment.specular_sample = sample_material_specular(fragment.parallax);
+  } else {
+    fragment.normal_sample = vertex.normal;
+    fragment.specular_sample = vec4(0.5);
+  }
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
@@ -127,14 +134,15 @@ void main(void) {
       discard;
     }
 
-    bsp_fragment_lighting();
-
-    fragment.fog = fragment_fog(vertex, fragment);
-
     out_color = fragment.diffuse_sample;
+
+    bsp_fragment_lighting();
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
+
+    fragment_fog(vertex, fragment);
+
     out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
@@ -142,23 +150,26 @@ void main(void) {
     vec2 st = fragment.parallax;
 
     if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy * stage.warp.y;
+      st += (texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
     }
 
     fragment.diffuse_sample = sample_material_stage(st) * vertex.color;
 
     out_color = fragment.diffuse_sample;
 
-    //    if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-    //
-    //      fragment_lighting(vertex, fragment);
-    //
-    //      out_color.rgb *= (fragment.ambient + fragment.diffuse);
-    //    }
+    if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
+
+      bsp_fragment_lighting();
+
+      out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
+      out_color.rgb += fragment.specular * stage.lighting;
+    }
 
     if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-      fragment.fog = fragment_fog(vertex, fragment);
-      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
+
+      fragment_fog(vertex, fragment);
+
+      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
     }
   }
 }

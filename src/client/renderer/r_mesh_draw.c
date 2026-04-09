@@ -50,6 +50,7 @@ static struct {
   GLint tint_colors;
 
   struct {
+    GLint alpha_blend;
     GLint alpha_test;
     GLint roughness;
     GLint hardness;
@@ -141,7 +142,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
-  if (!r_materials->value) {
+  if (!r_draw_material_stages->value) {
     return;
   }
 
@@ -295,6 +296,8 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
+  glUniform1i(r_mesh_program.material.alpha_blend, 0);
+
   {
     const r_mesh_face_t *face = mesh->faces;
     for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -312,6 +315,8 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glUniform1i(r_mesh_program.material.alpha_blend, 1);
 
   {
     const r_mesh_face_t *face = mesh->faces;
@@ -383,8 +388,8 @@ void R_InitMeshProgram(void) {
   memset(&r_mesh_program, 0, sizeof(r_mesh_program));
 
   r_mesh_program.name = R_LoadProgram(
-      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "light.glsl", "mesh_vs.glsl", NULL),
-      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "light.glsl", "mesh_fs.glsl", NULL),
+      R_ShaderDescriptor(GL_VERTEX_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "mesh_vs.glsl", NULL),
+      R_ShaderDescriptor(GL_FRAGMENT_SHADER, "material.glsl", "voxel.glsl", "light.glsl", "mesh_fs.glsl", NULL),
       NULL);
 
   glUseProgram(r_mesh_program.name);
@@ -413,6 +418,7 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
+  r_mesh_program.material.alpha_blend = glGetUniformLocation(r_mesh_program.name, "material.alpha_blend");
   r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
   r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
   r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");

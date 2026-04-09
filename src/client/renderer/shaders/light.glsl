@@ -137,11 +137,6 @@ vec3 blinn_phong(in vec3 light_color, in vec3 light_dir, in common_fragment_t f)
  */
 float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fragment_t f) {
 
-  // If the light angle is nearly perpendicular, skip self-shadowing
-  if (dot(light_dir, normalize(v.tbn[2])) > 0.9) {
-    return 1.0;
-  }
-
   // LOD-based step count: 16 close, 4 far (bounded for performance)
   int max_steps = int(mix(16.0, 4.0, min(f.lod * 0.33, 1.0)));
 
@@ -188,15 +183,18 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
   float shadow = sample_shadow_cubemap_array(light, index, v, f);
 
   // Apply parallax self-shadowing for close, high-detail fragments
-  if (f.lod < 4.0 && material.shadow > 0.0) {
-    shadow *= parallax_self_shadow(dir, v, f);
+  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+    if (f.lod < 4.0 && material.shadow > 0.0) {
+      shadow *= parallax_self_shadow(dir, v, f);
+    }
   }
 
   if (shadow <= 0.0) {
     return;
   }
 
-  float lambert = max(0.0, dot(dir, f.normal_sample));
+  float lambert = dot(dir, f.normal_sample);
+  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
 
   f.diffuse += color * lambert * shadow;
   f.specular += blinn_phong(color * shadow, dir, f);
@@ -211,7 +209,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
  * @param f Fragment data.
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
-  
+
   // Sample voxel lights
   ivec3 voxel_coord = voxel_xyz(v.model_position);
   ivec2 data = voxel_light_data(voxel_coord);

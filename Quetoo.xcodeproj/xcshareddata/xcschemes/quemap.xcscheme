@@ -61,6 +61,10 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
+            argument = "-w target/default"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "--threads -1"
             isEnabled = "NO">
          </CommandLineArgument>
@@ -78,7 +82,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-bsp"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--no-csg"
@@ -110,7 +114,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "-zip"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "--update"
@@ -157,15 +161,19 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/lighttest.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "maps/lavatomb.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "maps/loonies.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "maps/mitred.map"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/omf.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
@@ -177,19 +185,11 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "maps/sandbox.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
             argument = "maps/slimyplace.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/torn.map"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "maps/test.map"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

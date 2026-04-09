@@ -22,7 +22,7 @@
 #pragma once
 
 #ifdef __GAME_LOCAL_H__
-void Ai_InitSkins(void);
-void Ai_ShutdownSkins(void);
-void Ai_GetUserInfo(const g_client_t *cl, char *info);
+void G_Ai_InitSkins(void);
+void G_Ai_ShutdownSkins(void);
+const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info);
 #endif /* __GAME_LOCAL_H__ */

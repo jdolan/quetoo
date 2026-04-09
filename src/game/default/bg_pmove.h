@@ -150,6 +150,7 @@ extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
 #define PMF_GIBLET           (PMF_GAME << 11) // player is a giblet
 #define PMF_HOOK_RELEASED    (PMF_GAME << 12) // player's hook key was released
 #define PMF_TIME_TRICK_START (PMF_GAME << 13) // time until we can initiate a trick jump
+#define PMF_SNAP_ANGLES      (PMF_GAME << 14) // snap view angles to pm_state.view_angles
 
 /**
  * @brief The mask of pm_state_t.flags affecting pm_state_t.time.

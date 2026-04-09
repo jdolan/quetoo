@@ -93,15 +93,6 @@ void main(void) {
 
 	  out_color = fragment.diffuse_sample;
 
-//	  if ((stage.flags & STAGE_LIGHTMAP) == STAGE_LIGHTMAP) {
-//
-//  	  fragment.ambient = vertex.ambient * max(0.0, dot(fragment.normal, fragment.normal_sample));
-//
-//  	  fragment_lighting(vertex, fragment); // FIXME ambient?
-//
-//  	  out_color.rgb *= (fragment.ambient + fragment.diffuse);
-//	  }
-
 	  if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
   	  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 	  }
