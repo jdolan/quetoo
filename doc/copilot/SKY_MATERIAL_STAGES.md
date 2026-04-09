@@ -177,9 +177,10 @@ This scrolls a cloud overlay horizontally at 0.02 tex-units/sec and vertically a
 - **Two-pass, not one:** The stage pass is a separate draw over the sky geometry
   with blending enabled, exactly like BSP material stages. This avoids complicating
   the cubemap path.
-- **No fog on stage pass:** Sky stage textures are not fogged. The cubemap pass
-  applies fog as before. Adding per-stage fog to sky stages would require a full
-  `fragment_t` setup; it is not worth the complexity.
+- **Optional fog on stage pass:** Sky stage textures can be fogged when
+  `STAGE_FOG` is set; the stage branch in `sky_fs.glsl` applies fog using
+  `stage.fog`. The cubemap pass still applies fog as before, so fog behavior now
+  matches the active stage flags instead of being unconditionally disabled.
 - **`r_draw_material_stages 0` skips stages:** Controlled by the
   `r_draw_material_stages` cvar used by the implementation.
 - **Vertex shader includes `material.glsl`:** Required for `stage_vertex()` and
