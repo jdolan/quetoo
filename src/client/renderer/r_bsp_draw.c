@@ -163,9 +163,10 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
  * @brief
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
-                         const r_entity_t *entity,
-                         const r_bsp_draw_elements_t *draw,
-                         const r_stage_t *stage) {
+                                               const r_entity_t *entity,
+                                               const r_bsp_draw_elements_t *draw,
+                                               const r_material_t *material,
+                                               const r_stage_t *stage) {
 
   glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
 
@@ -252,16 +253,16 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-  R_GetError(draw->material->media.name);
+  R_GetError(material->media.name);
 }
 
 /**
  * @brief
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
-                        const r_entity_t *entity,
-                        const r_bsp_draw_elements_t *draw,
-                        const r_material_t *material) {
+                                                const r_entity_t *entity,
+                                                const r_bsp_draw_elements_t *draw,
+                                                const r_material_t *material) {
 
   if (!r_draw_material_stages->value) {
     return;
@@ -285,7 +286,7 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage);
   }
 
   glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
@@ -345,11 +346,6 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
     if (entity->model == r_models.world) {
 
       if (block->query->result == 0) {
-        r_stats.blocks_occluded++;
-        continue;
-      }
-
-      if (R_CulludeBox(view, block->visible_bounds)) {
         r_stats.blocks_occluded++;
         continue;
       }
@@ -447,10 +443,6 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
     if (entity->model == r_models.world) {
 
       if (block->query->result == 0) {
-        continue;
-      }
-
-      if (R_CulludeBox(view, block->visible_bounds)) {
         continue;
       }
 
