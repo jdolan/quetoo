@@ -36,7 +36,7 @@ vec2 direction_to_azimuthal_equidistant(vec3 direction) {
   vec3 n = normalize(direction);
   
   float theta = acos(clamp(n.z, -1.0, 1.0));  // Angle from +Z (up)
-  float phi = atan(n.y, n.x);                  // Azimuth
+  float phi = atan(n.y, n.x);                 // Azimuth
   
   float r = theta / PI;  // Radial distance (0 at center, 1 at edge)
   

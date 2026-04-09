@@ -28,27 +28,6 @@ out vec3 cubemap_coord;
 invariant gl_Position;
 
 /**
- * @brief Convert normalized direction to equirectangular (lat-long) coordinates.
- * Maps direction space to [0,1] texture space using spherical projection.
- */
-vec2 direction_to_equirectangular(vec3 direction) {
-  vec3 normalized = normalize(direction);
-  
-  // Calculate latitude (y) and longitude (x) from the direction vector
-  // atan(y, x) gives longitude in [-pi, pi]
-  // asin(z) gives latitude in [-pi/2, pi/2]
-  float longitude = atan(normalized.y, normalized.x);
-  float latitude = asin(normalized.z);
-  
-  // Convert to [0,1] texture coordinates
-  vec2 uv;
-  uv.x = (longitude + PI) / (2.0 * PI);
-  uv.y = (latitude + PI / 2.0) / PI;
-  
-  return uv;
-}
-
-/**
  * @brief
  */
 void main(void) {
