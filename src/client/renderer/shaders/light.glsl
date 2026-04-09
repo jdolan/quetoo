@@ -210,7 +210,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
-  // Sample voxel lights
+  // Sample static voxel lights
   ivec3 voxel_coord = voxel_xyz(v.model_position);
   ivec2 data = voxel_light_data(voxel_coord);
 
