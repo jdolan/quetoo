@@ -96,6 +96,7 @@ void main(void) {
   vertex.voxel = voxel_uvw(in_position);
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
+  vertex_caustics(vertex);
 
   gl_Position = projection3D * view * model * position;
 }

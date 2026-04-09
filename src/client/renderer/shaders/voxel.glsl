@@ -292,6 +292,8 @@ void vertex_caustics(inout common_vertex_t v) {
  */
 void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 
+  f.caustics = v.caustics;
+
   if (f.caustics == 0.0) {
     return;
   }

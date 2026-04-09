@@ -65,6 +65,7 @@ void main(void) {
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 
+  vertex_caustics(vertex);
   vertex_fog(vertex);
   vertex_lighting(vertex);
 
