@@ -20,20 +20,19 @@
  */
 
 layout (location = 0) in vec3 in_position;
-layout (location = 4) in vec2 in_diffusemap;
 
 out common_vertex_t vertex;
 
 out vec3 cubemap_coord;
-out vec2 overlay_uv;
+out vec3 view_direction;
 
 invariant gl_Position;
 
 /**
- * @brief Convert normalized cubemap direction to equirectangular (lat-long) coordinates.
- * Maps [-1,1] cubemap space to [0,1] texture space.
+ * @brief Convert normalized direction to equirectangular (lat-long) coordinates.
+ * Maps direction space to [0,1] texture space using spherical projection.
  */
-vec2 cubemap_to_equirectangular(vec3 direction) {
+vec2 direction_to_equirectangular(vec3 direction) {
   vec3 normalized = normalize(direction);
   
   // Calculate latitude (y) and longitude (x) from the direction vector
@@ -60,13 +59,14 @@ void main(void) {
   vertex.model_position = in_position;
   vertex.position = vec3(view * position);
   cubemap_coord = vec3(sky_projection * position);
-  
-  // Convert cubemap direction to equirectangular UVs for overlay stages
-  overlay_uv = cubemap_to_equirectangular(cubemap_coord);
-  
+
+  // Export normalized view-space direction for overlay stages
+  // This is consistent regardless of camera position
+  view_direction = normalize(in_position);
+
   vertex.voxel = voxel_uvw(in_position);
   vertex_fog(vertex);
-  
+
   vertex.model_normal = normalize(in_position);
   vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
   vertex.smooth_normal = vertex.normal;
