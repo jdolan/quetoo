@@ -65,7 +65,7 @@ void main(void) {
   fragment.view_dist = length(vertex.position);
   fragment.tbn = mat3(normalize(vertex.tangent), normalize(vertex.bitangent), normalize(vertex.normal));
 
-  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+  if (stage.flags == STAGE_NONE) {
 
 	  fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap) * vertex.color;
 

@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define STAGE_NONE      (0)
 #define STAGE_TEXTURE   (1 << 0)
 #define STAGE_BLEND     (1 << 1)
 #define STAGE_COLOR     (1 << 2)
@@ -39,8 +40,7 @@
 #define STAGE_FOG       (1 << 17)
 #define STAGE_SHELL     (1 << 18)
 
-#define STAGE_DRAW      (1 << 28)
-#define STAGE_MATERIAL  (1 << 29)
+#define STAGE_DRAW      (1 << 30)
 
 const float PI = 3.141592653589793115997963468544185161590576171875;
 const float TWO_PI = PI * 2.0;

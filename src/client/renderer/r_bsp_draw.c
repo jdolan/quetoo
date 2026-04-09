@@ -163,9 +163,10 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
  * @brief
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
-                         const r_entity_t *entity,
-                         const r_bsp_draw_elements_t *draw,
-                         const r_stage_t *stage) {
+                                               const r_entity_t *entity,
+                                               const r_bsp_draw_elements_t *draw,
+                                               const r_material_t *material,
+                                               const r_stage_t *stage) {
 
   glUniform1i(r_bsp_program.stage.flags, stage->cm->flags);
 
@@ -252,16 +253,16 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   glDrawElements(GL_TRIANGLES, draw->num_elements, GL_UNSIGNED_INT, draw->elements);
 
-  R_GetError(draw->material->media.name);
+  R_GetError(material->media.name);
 }
 
 /**
  * @brief
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
-                        const r_entity_t *entity,
-                        const r_bsp_draw_elements_t *draw,
-                        const r_material_t *material) {
+                                                const r_entity_t *entity,
+                                                const r_bsp_draw_elements_t *draw,
+                                                const r_material_t *material) {
 
   if (!r_draw_material_stages->value) {
     return;
@@ -285,10 +286,10 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
       continue;
     }
 
-    R_DrawBspDrawElementsMaterialStage(view, entity, draw, stage);
+    R_DrawBspDrawElementsMaterialStage(view, entity, draw, material, stage);
   }
 
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
@@ -349,11 +350,6 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
         continue;
       }
 
-      if (R_CulludeBox(view, block->visible_bounds)) {
-        r_stats.blocks_occluded++;
-        continue;
-      }
-
       r_stats.blocks_visible++;
 
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
@@ -389,8 +385,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-  glUniform1i(r_bsp_program.material.alpha_blend, 0);
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.material.alpha_blend, GL_FALSE);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glEnable(GL_CULL_FACE);
 
@@ -450,10 +446,6 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
         continue;
       }
 
-      if (R_CulludeBox(view, block->visible_bounds)) {
-        continue;
-      }
-
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
     } else {
       R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
@@ -483,8 +475,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
 
-  glUniform1i(r_bsp_program.material.alpha_blend, 1);
-  glUniform1i(r_bsp_program.stage.flags, STAGE_MATERIAL);
+  glUniform1i(r_bsp_program.material.alpha_blend, GL_TRUE);
+  glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
 
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);

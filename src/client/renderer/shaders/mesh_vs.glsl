@@ -56,33 +56,31 @@ void main(void) {
   stage_transform(stage, position.xyz, normal.xyz, tangent.xyz, bitangent.xyz);
 
   vertex.model_position = vec3(model * position);
-  vec3 model_normal = normalize(vec3(model * normal));
-  vertex.model_normal = model_normal;
+  vertex.model_normal = normalize(vec3(model * normal));
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
   vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
-  vertex.diffusemap = in_diffusemap;
-  vertex.color = color;
-
   vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
   vertex.inverse_tbn = inverse(vertex.tbn);
+  vertex.diffusemap = in_diffusemap;
+  vertex.voxel = vec3(0.0);
+  vertex.color = color;
+  vertex.ambient = vec3(0.0);
+  vertex.caustics = 0.0;
+  vertex.fog = vec4(0.0);
+  vertex.lighting = vec3(0.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
     vertex.ambient = vec3(0.666);
-    vertex.caustics = 0.0;
-    vertex.fog = vec4(0.0);
-    vertex.lighting = vec3(0.0);
-    vertex.voxel = vec3(0.0);
   } else {
-    vec3 world_pos = vec3(model * position);
-    vec3 texcoord = voxel_uvw(world_pos);
-    vertex.voxel = texcoord;
+    vertex.voxel = voxel_uvw(vertex.model_position);
 
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
-    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(texcoord);
-    vertex.caustics = sample_voxel_caustics(world_pos);
+    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
+
+    vertex_caustics(vertex);
     vertex_fog(vertex);
     vertex_lighting(vertex);
   }

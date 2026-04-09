@@ -129,15 +129,15 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ai_node_dev 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map aerowalk"
+            argument = "+map darkzone"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +god +no_clip"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1 +give all +set g_auto_join 1"

@@ -68,16 +68,7 @@ int voxel_light_index(in int index) {
  * @return The caustics intensity (R channel, 0-1).
  */
 float voxel_caustics(in vec3 texcoord) {
-  return texture(texture_voxel_data, texcoord).r;
-}
-
-/**
- * @brief Sample voxel caustics at a world-space position (convenience function).
- * @param position The world-space position.
- * @return The caustics intensity.
- */
-float sample_voxel_caustics(in vec3 position) {
-  return voxel_caustics(voxel_uvw(position)) * caustics;
+  return texture(texture_voxel_data, texcoord).r * caustics;
 }
 
 /**
@@ -286,16 +277,25 @@ void vertex_lighting(inout common_vertex_t v) {
 
 /**
  * @brief Calculate caustics lighting contribution.
+ */
+void vertex_caustics(inout common_vertex_t v) {
+  v.caustics = voxel_caustics(v.voxel);
+}
+
+/**
+ * @brief Calculate caustics lighting contribution.
  * @details Applies animated noise-based caustics to the diffuse lighting.
  * Uses pre-calculated vertex caustics if available, otherwise samples from voxel data.
  * @param v Vertex data.
  * @param f Fragment data.
  * @return The caustics contribution to add to diffuse.
  */
-vec3 fragment_caustics(in common_vertex_t v, in common_fragment_t f) {
-  
+void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
+
+  f.caustics = v.caustics;
+
   if (f.caustics == 0.0) {
-    return vec3(0.0);
+    return;
   }
 
   float noise = noise3d(v.model_position * .05 + (ticks / 1000.0) * 0.5);
@@ -307,5 +307,5 @@ vec3 fragment_caustics(in common_vertex_t v, in common_fragment_t f) {
   noise = clamp(pow((1.0 - abs(noise)) + thickness, glow), 0.0, 1.0);
 
   vec3 light = f.ambient + f.diffuse;
-  return max(vec3(0.0), light * f.caustics * noise);
+  f.diffuse += max(vec3(0.0), light * f.caustics * noise);
 }

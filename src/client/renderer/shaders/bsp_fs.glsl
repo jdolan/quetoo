@@ -83,7 +83,7 @@ void bsp_fragment_lighting(void) {
 
   // For close fragments, do full per-fragment lighting
 
-  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+  if (stage.flags == STAGE_NONE) {
     fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   } else {
@@ -126,7 +126,7 @@ void main(void) {
 
   parallax_occlusion_mapping();
 
-  if ((stage.flags & STAGE_MATERIAL) == STAGE_MATERIAL) {
+  if (stage.flags == STAGE_NONE) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax) * vertex.color;
 
