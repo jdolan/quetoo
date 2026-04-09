@@ -180,7 +180,7 @@ This scrolls a cloud overlay horizontally at 0.02 tex-units/sec and vertically a
 - **No fog on stage pass:** Sky stage textures are not fogged. The cubemap pass
   applies fog as before. Adding per-stage fog to sky stages would require a full
   `fragment_t` setup; it is not worth the complexity.
-- **`r_materials 0` skips stages:** Controlled by the existing `r_materials` cvar,
-  consistent with BSP and mesh behaviour.
+- **`r_draw_material_stages 0` skips stages:** Controlled by the
+  `r_draw_material_stages` cvar used by the implementation.
 - **Vertex shader includes `material.glsl`:** Required for `stage_vertex()` and
   `stage_transform()` access, matching the BSP program descriptor pattern.
