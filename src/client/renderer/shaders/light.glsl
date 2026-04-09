@@ -229,5 +229,5 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   }
 
   // Add caustics
-  f.diffuse += fragment_caustics(v, f);
+  fragment_caustics(v, f);
 }

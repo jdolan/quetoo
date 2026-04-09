@@ -50,24 +50,23 @@ void main(void) {
   vertex.model_normal = vec3(model * normal);
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
+  vertex.smooth_normal = vertex.normal;
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
+  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
+  vertex.inverse_tbn = inverse(vertex.tbn);
   vertex.diffusemap = in_diffusemap;
   vertex.voxel = voxel_uvw(vec3(model * position));
   vertex.color = in_color;
-
-  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
-  vertex.inverse_tbn = inverse(vertex.tbn);
-
-  gl_Position = projection3D * view_model * position;
+  vertex.ambient = vec3(0.0);
+  vertex.caustics = 0.0;
+  vertex.fog = vec4(0.0);
+  vertex.lighting = vec3(0.0);
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 
   vertex_fog(vertex);
   vertex_lighting(vertex);
-  
-  // Initialize unused fields for mesh shaders
-  vertex.smooth_normal = vertex.normal;
-  vertex.ambient = vec3(0.0);
-  vertex.caustics = 0.0;
+
+  gl_Position = projection3D * view_model * position;
 }

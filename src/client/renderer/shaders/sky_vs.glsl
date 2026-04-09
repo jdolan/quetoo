@@ -22,7 +22,6 @@
 layout (location = 0) in vec3 in_position;
 
 out common_vertex_t vertex;
-
 out vec3 cubemap_coord;
 
 invariant gl_Position;
@@ -33,15 +32,11 @@ invariant gl_Position;
 void main(void) {
 
   vec4 position = vec4(in_position, 1.0);
-
-  vertex.model_position = in_position;
-  vertex.position = vec3(view * position);
   cubemap_coord = vec3(sky_projection * position);
 
-  vertex.voxel = voxel_uvw(in_position);
-  vertex_fog(vertex);
-
+  vertex.model_position = in_position;
   vertex.model_normal = normalize(in_position);
+  vertex.position = vec3(view * position);
   vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
   vertex.smooth_normal = vertex.normal;
   vertex.tangent = vec3(1.0, 0.0, 0.0);
@@ -49,12 +44,16 @@ void main(void) {
   vertex.tbn = mat3(1.0);
   vertex.inverse_tbn = mat3(1.0);
   vertex.diffusemap = vec2(0.0);
+  vertex.voxel = voxel_uvw(in_position);
   vertex.color = vec4(1.0);
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
+  vertex.fog = vec4(0.0);
   vertex.lighting = vec3(0.0);
 
   stage_vertex(stage, in_position, vertex.position, vertex.diffusemap, vertex.color);
+
+  vertex_fog(vertex);
 
   gl_Position = projection3D * view * position;
 }
