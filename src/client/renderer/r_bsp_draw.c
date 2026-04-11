@@ -303,6 +303,11 @@ static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
+ * @brief The last bound material, to avoid redundant state changes.
+ */
+static const r_material_t *r_bsp_bound_material;
+
+/**
  * @brief Draws the specified draw elements for the given entity.
  * @param entity The entity, or NULL for the world model.
  * @param draw The draw elements command.
@@ -311,14 +316,18 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
                      const r_entity_t *entity,
                      const r_bsp_draw_elements_t *draw) {
 
-  glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
+  if (draw->material != r_bsp_bound_material) {
+    r_bsp_bound_material = draw->material;
 
-  glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
-  glUniform1f(r_bsp_program.material.roughness, draw->material->cm->roughness * r_roughness->value);
-  glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
-  glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
-  glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
-  glUniform1f(r_bsp_program.material.shadow, draw->material->cm->shadow * r_parallax_shadow->value);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, draw->material->texture->texnum);
+
+    glUniform1f(r_bsp_program.material.alpha_test, draw->material->cm->alpha_test * r_alpha_test->value);
+    glUniform1f(r_bsp_program.material.roughness, draw->material->cm->roughness * r_roughness->value);
+    glUniform1f(r_bsp_program.material.hardness, draw->material->cm->hardness * r_hardness->value);
+    glUniform1f(r_bsp_program.material.specularity, draw->material->cm->specularity * r_specularity->value);
+    glUniform1f(r_bsp_program.material.parallax, draw->material->cm->parallax * r_parallax->value);
+    glUniform1f(r_bsp_program.material.shadow, draw->material->cm->shadow * r_parallax_shadow->value);
+  }
 
   if (!(draw->surface & SURF_MATERIAL)) {
 
@@ -340,6 +349,10 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
+  if (entity->model != r_models.world) {
+    R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+  }
+
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
@@ -353,8 +366,6 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
       r_stats.blocks_visible++;
 
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
-    } else {
-      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -384,6 +395,8 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  r_bsp_bound_material = NULL;
 
   glUniform1i(r_bsp_program.material.alpha_blend, GL_FALSE);
   glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
@@ -433,6 +446,10 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
+  if (entity->model != r_models.world) {
+    R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
+  }
+
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
@@ -447,8 +464,6 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
       }
 
       R_ActiveLights(view, block->node->visible_bounds, r_bsp_program.active_lights);
-    } else {
-      R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
     }
 
     const r_bsp_draw_elements_t *draw = block->draw_elements;
@@ -474,6 +489,8 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
   glBindVertexArray(bsp->vertex_array);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_MATERIAL);
+
+  r_bsp_bound_material = NULL;
 
   glUniform1i(r_bsp_program.material.alpha_blend, GL_TRUE);
   glUniform1i(r_bsp_program.stage.flags, STAGE_NONE);
