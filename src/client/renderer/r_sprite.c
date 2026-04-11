@@ -440,8 +440,8 @@ void R_DrawSprites(const r_view_t *view) {
     const r_sprite_instance_t *batch = in + 1;
     for (int32_t j = i + 1; j < view->num_sprite_instances; j++, batch++) {
 
-      if (batch->diffusemap == in->diffusemap &&
-        batch->next_diffusemap == in->next_diffusemap) {
+      if (batch->diffusemap->texnum == in->diffusemap->texnum &&
+        batch->next_diffusemap->texnum == in->next_diffusemap->texnum) {
         bounds = Box3_Union(bounds, in->bounds);
         batch_size++;
       } else {
