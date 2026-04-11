@@ -23,7 +23,7 @@
 
 #include "collision/collision.h"
 
-#include "r_gl_types.h"
+#include "r_gl.h"
 
 #include "r_atlas.h"
 #include "r_animation.h"

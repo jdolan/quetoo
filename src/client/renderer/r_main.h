@@ -255,12 +255,6 @@ extern cvar_t *r_draw_wireframe;
 extern cvar_t *r_get_error;
 extern cvar_t *r_occlude;
 
-/**
- * @brief Keeps track of how many errors we've run into, so we can
- * break out of expensive error handlers if too many have happened.
- */
-extern int32_t r_error_count;
-
 void R_GetError_(const char *function, const char *msg);
 
 #define R_GetError(msg) { \

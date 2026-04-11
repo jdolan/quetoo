@@ -49,8 +49,6 @@ cvar_t *r_draw_wireframe;
 cvar_t *r_get_error;
 cvar_t *r_occlude;
 
-int32_t r_error_count;
-
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
 cvar_t *r_caustics;
@@ -85,16 +83,6 @@ void R_GetError_(const char *function, const char *msg) {
   if (!r_get_error->integer) {
     return;
   }
-
-  if (GLAD_GL_KHR_debug) {
-    return;
-  }
-  
-  // reset error count, so as-it-happens errors can happen again.
-  r_error_count = 0;
-
-  // reinstall debug handler.
-  gladInstallGLDebug();
 
   while (true) {
     const GLenum err = glGetError();

@@ -26,7 +26,7 @@
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
-#include "r_gl_types.h"
+#include "r_gl.h"
 
 /**
  * @brief Media types.

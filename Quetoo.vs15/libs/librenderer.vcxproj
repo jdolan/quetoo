@@ -64,7 +64,6 @@
     <ClInclude Include="..\..\src\client\renderer\r_entity.h" />
     <ClInclude Include="..\..\src\client\renderer\r_framebuffer.h" />
     <ClInclude Include="..\..\src\client\renderer\r_gl.h" />
-    <ClInclude Include="..\..\src\client\renderer\r_gl_types.h" />
     <ClInclude Include="..\..\src\client\renderer\r_image.h" />
     <ClInclude Include="..\..\src\client\renderer\r_light.h" />
     <ClInclude Include="..\..\src\client\renderer\r_local.h" />
