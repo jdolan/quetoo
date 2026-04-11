@@ -1967,9 +1967,9 @@ typedef enum {
   TEXTURE_SKY,
 
   /**
-   * @brief The shadowmap cubemap array texture.
+   * @brief The shadow atlas texture.
    */
-  TEXTURE_SHADOW_CUBEMAP_ARRAY,
+  TEXTURE_SHADOW_ATLAS,
 
   /**
    * @brief Sprite specific textures.

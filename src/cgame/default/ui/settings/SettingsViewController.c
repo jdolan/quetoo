@@ -50,7 +50,7 @@
 
 typedef struct {
   int32_t shadows;
-  int32_t shadowCubemapArraySize;
+  int32_t shadowTileSize;
   int32_t shadowDistance;
   int32_t fogSamples;
   int32_t lightingDistance;
@@ -66,7 +66,7 @@ typedef struct {
 static const QualityPreset qualityPresets[] = {
   [0] = { // Low
     .shadows                = 0,
-    .shadowCubemapArraySize = 0,
+    .shadowTileSize = 0,
     .shadowDistance         = 0,
     .fogSamples             = 0,
     .lightingDistance       = 1024,
@@ -80,7 +80,7 @@ static const QualityPreset qualityPresets[] = {
   },
   [1] = { // Medium
     .shadows                = 1,
-    .shadowCubemapArraySize = 256,
+    .shadowTileSize = 128,
     .shadowDistance         = 512,
     .fogSamples             = 8,
     .lightingDistance       = 2048,
@@ -94,7 +94,7 @@ static const QualityPreset qualityPresets[] = {
   },
   [2] = { // High
     .shadows                = 1,
-    .shadowCubemapArraySize = 512,
+    .shadowTileSize = 256,
     .shadowDistance         = 1024,
     .fogSamples             = 16,
     .lightingDistance       = 4096,
@@ -108,7 +108,7 @@ static const QualityPreset qualityPresets[] = {
   },
   [3] = { // Highest
     .shadows                = 1,
-    .shadowCubemapArraySize = 1024,
+    .shadowTileSize = 512,
     .shadowDistance         = 2048,
     .fogSamples             = 32,
     .lightingDistance       = 8192,
@@ -127,7 +127,7 @@ static const QualityPreset qualityPresets[] = {
  */
 static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",                   p->shadows);
-  cgi.SetCvarInteger("r_shadow_cubemap_array_size", p->shadowCubemapArraySize);
+  cgi.SetCvarInteger("r_shadow_tile_size", p->shadowTileSize);
   cgi.SetCvarInteger("r_shadow_distance",           p->shadowDistance);
   cgi.SetCvarInteger("r_fog_samples",               p->fogSamples);
   cgi.SetCvarInteger("r_lighting_distance",         p->lightingDistance);
@@ -146,7 +146,7 @@ static void applyQualityPreset(const QualityPreset *p) {
 static intptr_t detectQualityPreset(void) {
   const QualityPreset current = {
     .shadows                = cgi.GetCvarInteger("r_shadows"),
-    .shadowCubemapArraySize = cgi.GetCvarInteger("r_shadow_cubemap_array_size"),
+    .shadowTileSize = cgi.GetCvarInteger("r_shadow_tile_size"),
     .shadowDistance         = cgi.GetCvarInteger("r_shadow_distance"),
     .fogSamples             = cgi.GetCvarInteger("r_fog_samples"),
     .lightingDistance       = cgi.GetCvarInteger("r_lighting_distance"),

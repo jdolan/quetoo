@@ -41,6 +41,11 @@ typedef struct {
    * @brief The light color and intensity.
    */
   vec4_t color;
+
+  /**
+   * @brief The shadow atlas tile (xy = base origin normalized, z = tile size normalized, w = unused).
+   */
+  vec4_t shadow;
 } r_light_uniform_t;
 
 /**

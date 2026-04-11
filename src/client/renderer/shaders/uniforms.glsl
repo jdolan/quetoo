@@ -175,6 +175,13 @@ struct light_t {
    * @brief The light color and intensity.
    */
   vec4 color;
+
+  /**
+   * @brief The shadow atlas tile info.
+   * @details xy = normalized base UV of 3x2 tile block, z = tile width in UV, w = tile height in UV.
+   * @details If z == 0, no shadow map is available for this light.
+   */
+  vec4 shadow;
 };
 
 #define MAX_BSP_LIGHTS 256
@@ -230,9 +237,9 @@ uniform isamplerBuffer texture_voxel_light_indices;
 uniform samplerCube texture_sky;
 
 /**
- * @brief The shadow cubemap array texture.
+ * @brief The shadow atlas texture.
  */
-uniform samplerCubeArrayShadow texture_shadow_cubemap_array;
+uniform sampler2DShadow texture_shadow_atlas;
 
 /**
  * @brief The framebuffer attachment textures.

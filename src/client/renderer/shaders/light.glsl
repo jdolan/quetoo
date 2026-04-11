@@ -25,25 +25,25 @@
  */
 
 /**
- * @brief Poisson disk samples for PCF soft shadows.
+ * @brief 2D Poisson disk samples for PCF soft shadows.
  */
-const vec3 poisson_disk[16] = vec3[](
-  vec3( 0.2770745,  0.6951455,  0.6638531),
-  vec3(-0.5932785, -0.1203284,  0.7954771),
-  vec3( 0.4494750,  0.2469098, -0.8414080),
-  vec3(-0.1460639, -0.5679667, -0.8098297),
-  vec3( 0.6400498, -0.4071948,  0.6527679),
-  vec3(-0.3631914,  0.7935778, -0.4889667),
-  vec3( 0.1248857, -0.8975238,  0.4223446),
-  vec3(-0.7720318,  0.4438458,  0.4568679),
-  vec3( 0.8851806,  0.1653373, -0.4349109),
-  vec3(-0.5238012, -0.7260296,  0.4437121),
-  vec3( 0.3642682,  0.5968054,  0.7145538),
-  vec3(-0.8331701, -0.3328346, -0.4437121),
-  vec3( 0.5527260, -0.6985809, -0.4568679),
-  vec3(-0.2407123,  0.3153157,  0.9181205),
-  vec3( 0.7269405, -0.1430640,  0.6718765),
-  vec3(-0.6444675,  0.6444675, -0.4076138)
+const vec2 poisson_disk[16] = vec2[](
+  vec2( 0.2770745,  0.6951455),
+  vec2(-0.5932785, -0.1203284),
+  vec2( 0.4494750,  0.2469098),
+  vec2(-0.1460639, -0.5679667),
+  vec2( 0.6400498, -0.4071948),
+  vec2(-0.3631914,  0.7935778),
+  vec2( 0.1248857, -0.8975238),
+  vec2(-0.7720318,  0.4438458),
+  vec2( 0.8851806,  0.1653373),
+  vec2(-0.5238012, -0.7260296),
+  vec2( 0.3642682,  0.5968054),
+  vec2(-0.8331701, -0.3328346),
+  vec2( 0.5527260, -0.6985809),
+  vec2(-0.2407123,  0.3153157),
+  vec2( 0.7269405, -0.1430640),
+  vec2(-0.6444675,  0.6444675)
 );
 
 /**
@@ -54,42 +54,94 @@ float random_angle(vec3 seed) {
 }
 
 /**
- * @brief Rotate a 3D vector around a normalized axis with precomputed sin/cos.
+ * @brief Determine cubemap face index and compute face UV from direction vector.
+ * @details Face UV mapping derived from the light_view matrices in r_shadow.c:
+ *   Face 0 (+X): sc = -dz, tc = -dy, ma = |dx|
+ *   Face 1 (-X): sc =  dz, tc = -dy, ma = |dx|
+ *   Face 2 (+Y): sc =  dx, tc =  dz, ma = |dy|
+ *   Face 3 (-Y): sc =  dx, tc = -dz, ma = |dy|
+ *   Face 4 (+Z): sc =  dx, tc = -dy, ma = |dz|
+ *   Face 5 (-Z): sc = -dx, tc = -dy, ma = |dz|
+ * @param dir Direction vector from light to fragment (world space).
+ * @param face Output face index (0-5).
+ * @param face_uv Output UV coordinates within the face tile [0, 1].
+ * @param ma Output dominant axis magnitude (for filter radius computation).
  */
-vec3 rotate_around_axis(vec3 v, vec3 axis, float s, float c) {
-  float oc = 1.0 - c;
+void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) {
 
-  return vec3(
-    (oc * axis.x * axis.x + c) * v.x + (oc * axis.x * axis.y - axis.z * s) * v.y + (oc * axis.z * axis.x + axis.y * s) * v.z,
-    (oc * axis.x * axis.y + axis.z * s) * v.x + (oc * axis.y * axis.y + c) * v.y + (oc * axis.y * axis.z - axis.x * s) * v.z,
-    (oc * axis.z * axis.x - axis.y * s) * v.x + (oc * axis.y * axis.z + axis.x * s) * v.y + (oc * axis.z * axis.z + c) * v.z
-  );
+  vec3 ad = abs(dir);
+  float sc, tc;
+
+  if (ad.x >= ad.y && ad.x >= ad.z) {
+    ma = ad.x;
+    if (dir.x > 0.0) {
+      face = 0; sc = -dir.z; tc = -dir.y;
+    } else {
+      face = 1; sc = dir.z; tc = -dir.y;
+    }
+  } else if (ad.y >= ad.x && ad.y >= ad.z) {
+    ma = ad.y;
+    if (dir.y > 0.0) {
+      face = 2; sc = dir.x; tc = dir.z;
+    } else {
+      face = 3; sc = dir.x; tc = -dir.z;
+    }
+  } else {
+    ma = ad.z;
+    if (dir.z > 0.0) {
+      face = 4; sc = dir.x; tc = -dir.y;
+    } else {
+      face = 5; sc = -dir.x; tc = -dir.y;
+    }
+  }
+
+  face_uv = vec2(sc, tc) / (2.0 * ma) + 0.5;
 }
 
 /**
- * @brief Sample the shadow cubemap array with PCF filtering.
+ * @brief Sample the shadow atlas with PCF filtering.
  * @param light The light source.
  * @param index The light index.
  * @param v Vertex data.
  * @param f Fragment data.
  * @return Shadow term (0 = fully shadowed, 1 = fully lit).
  */
-float sample_shadow_cubemap_array(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f) {
+float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f) {
+
+  if (light.shadow.z == 0.0) {
+    return 1.0;
+  }
 
   vec3 light_to_frag = v.model_position - light.origin.xyz;
   float current_depth = length(light_to_frag) / depth_range.y;
 
-  // Estimate penumbra size based on light radius (treat as light size)
-  float light_size = light.origin.w * 3.0; // 3x radius term used for penumbra heuristic
+  int face;
+  vec2 fuv;
+  float ma;
+  cubemap_face_uv(light_to_frag, face, fuv, ma);
+
+  // Atlas tile origin for this face within the light's 3×2 block
+  int face_col = face - (face / 3) * 3;
+  int face_row = face / 3;
+  vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * light.shadow.z,
+                                             float(face_row) * light.shadow.w);
+
+  // Half-texel inset to prevent cross-tile bleeding
+  ivec2 atlas_size = textureSize(texture_shadow_atlas, 0);
+  vec2 half_texel = 0.5 / vec2(atlas_size);
+  vec2 tile_min = tile_origin + half_texel;
+  vec2 tile_max = tile_origin + vec2(light.shadow.z, light.shadow.w) - half_texel;
+
+  // Filter radius in face UV space [0..1]
+  float light_size = light.origin.w * 3.0;
   float dist_to_light = length(light_to_frag);
-  float penumbra = light_size * (dist_to_light / light.origin.w);
-  float filter_radius = penumbra * 0.005;  // Scale to texel units
+  float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
+  float filter_uv = filter_radius / (2.0 * max(ma, 0.001));
 
   // Distance-based sample count (close = more samples, far = fewer)
   int num_samples = f.view_dist < 512.0 ? 16 : (f.view_dist < 1024.0 ? 8 : 4);
 
   // Per-pixel rotation to eliminate banding
-  vec3 rotation_axis = normalize(light_to_frag);
   float angle = random_angle(v.model_position);
   float s = sin(angle);
   float c = cos(angle);
@@ -97,12 +149,16 @@ float sample_shadow_cubemap_array(in light_t light, in int index, in common_vert
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
-    // Rotate Poisson sample to eliminate banding patterns
-    vec3 rotated_offset = rotate_around_axis(poisson_disk[i], rotation_axis, s, c);
-    vec3 sample_dir = light_to_frag + rotated_offset * filter_radius;
-    vec4 shadowmap = vec4(sample_dir, index);
+    vec2 rotated = vec2(c * poisson_disk[i].x - s * poisson_disk[i].y,
+                        s * poisson_disk[i].x + c * poisson_disk[i].y);
 
-    shadow += texture(texture_shadow_cubemap_array, shadowmap, current_depth);
+    vec2 sample_fuv = fuv + rotated * filter_uv;
+
+    vec2 atlas_uv = tile_origin + sample_fuv * vec2(light.shadow.z, light.shadow.w);
+
+    atlas_uv = clamp(atlas_uv, tile_min, tile_max);
+
+    shadow += texture(texture_shadow_atlas, vec3(atlas_uv, current_depth));
   }
 
   return shadow / float(num_samples);
@@ -180,7 +236,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
-  float shadow = sample_shadow_cubemap_array(light, index, v, f);
+  float shadow = sample_shadow_atlas(light, index, v, f);
 
   // Apply parallax self-shadowing for close, high-detail fragments
   if (stage.flags == STAGE_NONE) {

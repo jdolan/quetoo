@@ -27,4 +27,5 @@
 void R_DrawShadows(const r_view_t *view);
 void R_InitShadows(void);
 void R_ShutdownShadows(void);
+void R_ShadowAtlasInfo(int32_t *lights_per_row, int32_t *tile_size, int32_t *atlas_width, int32_t *atlas_height, int32_t *max_lights);
 #endif

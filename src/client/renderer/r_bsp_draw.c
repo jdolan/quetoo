@@ -42,7 +42,7 @@ static struct {
 
   GLint texture_sky;
 
-  GLint texture_shadow_cubemap_array;
+  GLint texture_shadow_atlas;
 
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
@@ -549,7 +549,7 @@ void R_InitBspProgram(void) {
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
 
-  r_bsp_program.texture_shadow_cubemap_array = glGetUniformLocation(r_bsp_program.name, "texture_shadow_cubemap_array");
+  r_bsp_program.texture_shadow_atlas = glGetUniformLocation(r_bsp_program.name, "texture_shadow_atlas");
 
   r_bsp_program.texture_voxel_light_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_data");
   r_bsp_program.texture_voxel_light_indices = glGetUniformLocation(r_bsp_program.name, "texture_voxel_light_indices");
@@ -584,7 +584,7 @@ void R_InitBspProgram(void) {
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 
-  glUniform1i(r_bsp_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
+  glUniform1i(r_bsp_program.texture_shadow_atlas, TEXTURE_SHADOW_ATLAS);
 
   glUniform1i(r_bsp_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_bsp_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);

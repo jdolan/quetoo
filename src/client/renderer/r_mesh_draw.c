@@ -44,7 +44,7 @@ static struct {
 
   GLint texture_sky;
 
-  GLint texture_shadow_cubemap_array;
+  GLint texture_shadow_atlas;
 
   GLint color;
   GLint tint_colors;
@@ -414,7 +414,7 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.texture_sky = glGetUniformLocation(r_mesh_program.name, "texture_sky");
 
-  r_mesh_program.texture_shadow_cubemap_array = glGetUniformLocation(r_mesh_program.name, "texture_shadow_cubemap_array");
+  r_mesh_program.texture_shadow_atlas = glGetUniformLocation(r_mesh_program.name, "texture_shadow_atlas");
 
   r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
@@ -441,7 +441,7 @@ void R_InitMeshProgram(void) {
 
   glUniform1i(r_mesh_program.texture_sky, TEXTURE_SKY);
 
-  glUniform1i(r_mesh_program.texture_shadow_cubemap_array, TEXTURE_SHADOW_CUBEMAP_ARRAY);
+  glUniform1i(r_mesh_program.texture_shadow_atlas, TEXTURE_SHADOW_ATLAS);
 
   glUniform1i(r_mesh_program.stage.flags, STAGE_NONE);
 
