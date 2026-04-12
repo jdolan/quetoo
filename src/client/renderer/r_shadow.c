@@ -93,6 +93,11 @@ static struct {
    * @brief The maximum number of lights that fit in the atlas.
    */
   int32_t max_lights;
+
+  /**
+   * @brief Frame counter for temporal face amortization.
+   */
+  uint32_t frame_count;
 } r_shadow_atlas;
 
 /**
@@ -354,15 +359,32 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
   glUniform1i(r_shadow_program.light_index, index);
 
-  // Clear this light's 3×2 tile block with scissor
-  GLint block_x, block_y;
-  R_ShadowAtlasTile(index, 0, &block_x, &block_y);
-
   glEnable(GL_SCISSOR_TEST);
-  glScissor(block_x, block_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size * 2);
-  glClear(GL_DEPTH_BUFFER_BIT);
 
-  for (GLint face = 0; face < 6; face++) {
+  // Cacheable lights render all 6 faces; uncacheable lights amortize
+  // across 2 frames, rendering one row of the 3×2 tile block per frame
+  GLint face_start, face_end;
+
+  if (is_shadow_cacheable) {
+    face_start = 0;
+    face_end = 6;
+
+    GLint block_x, block_y;
+    R_ShadowAtlasTile(index, 0, &block_x, &block_y);
+    glScissor(block_x, block_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size * 2);
+    glClear(GL_DEPTH_BUFFER_BIT);
+  } else {
+    const GLint face_row = r_shadow_atlas.frame_count & 1;
+    face_start = face_row * 3;
+    face_end = face_start + 3;
+
+    GLint row_x, row_y;
+    R_ShadowAtlasTile(index, face_start, &row_x, &row_y);
+    glScissor(row_x, row_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size);
+    glClear(GL_DEPTH_BUFFER_BIT);
+  }
+
+  for (GLint face = face_start; face < face_end; face++) {
 
     GLint tile_x, tile_y;
     R_ShadowAtlasTile(index, face, &tile_x, &tile_y);
@@ -394,6 +416,8 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
  * @brief
  */
 void R_DrawShadows(const r_view_t *view) {
+
+  r_shadow_atlas.frame_count++;
 
   glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_atlas.framebuffer);
 
