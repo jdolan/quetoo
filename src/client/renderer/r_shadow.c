@@ -361,30 +361,14 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
   glEnable(GL_SCISSOR_TEST);
 
-  // Cacheable lights render all 6 faces; uncacheable lights amortize
-  // across 2 frames, rendering one row of the 3×2 tile block per frame
-  GLint face_start, face_end;
+  GLint block_x, block_y;
+  R_ShadowAtlasTile(index, 0, &block_x, &block_y);
 
-  if (is_shadow_cacheable) {
-    face_start = 0;
-    face_end = 6;
+  glScissor(block_x, block_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size * 2);
 
-    GLint block_x, block_y;
-    R_ShadowAtlasTile(index, 0, &block_x, &block_y);
-    glScissor(block_x, block_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size * 2);
-    glClear(GL_DEPTH_BUFFER_BIT);
-  } else {
-    const GLint face_row = r_shadow_atlas.frame_count & 1;
-    face_start = face_row * 3;
-    face_end = face_start + 3;
+  glClear(GL_DEPTH_BUFFER_BIT);
 
-    GLint row_x, row_y;
-    R_ShadowAtlasTile(index, face_start, &row_x, &row_y);
-    glScissor(row_x, row_y, r_shadow_atlas.tile_size * 3, r_shadow_atlas.tile_size);
-    glClear(GL_DEPTH_BUFFER_BIT);
-  }
-
-  for (GLint face = face_start; face < face_end; face++) {
+  for (GLint face = 0; face < 6; face++) {
 
     GLint tile_x, tile_y;
     R_ShadowAtlasTile(index, face, &tile_x, &tile_y);
