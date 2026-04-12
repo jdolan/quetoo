@@ -52,11 +52,7 @@ void R_UpdateLights(r_view_t *view) {
     tr = Cm_BoxTrace(view->origin, end, Box3_Zero(), 0, CONTENTS_SOLID);
   }
 
-  int32_t lights_per_row, tile_size, atlas_width, atlas_height, max_lights;
-  R_ShadowAtlasInfo(&lights_per_row, &tile_size, &atlas_width, &atlas_height, &max_lights);
-
-  const float inv_atlas_w = atlas_width > 0 ? 1.f / (float) atlas_width : 0.f;
-  const float inv_atlas_h = atlas_height > 0 ? 1.f / (float) atlas_height : 0.f;
+  const float inv_layer = r_shadow_atlas.layer_size > 0 ? 1.f / (float) r_shadow_atlas.layer_size : 0.f;
 
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
@@ -76,14 +72,15 @@ void R_UpdateLights(r_view_t *view) {
       uniform->origin = Vec3_ToVec4(l->origin, l->radius);
       uniform->color = Vec3_ToVec4(l->color, l->intensity);
 
-      if (i < max_lights && tile_size > 0) {
-        const int32_t light_col = i % lights_per_row;
-        const int32_t light_row = i / lights_per_row;
-        const float base_x = (float) (light_col * 3 * tile_size) * inv_atlas_w;
-        const float base_y = (float) (light_row * 2 * tile_size) * inv_atlas_h;
-        const float tile_uv = (float) tile_size * inv_atlas_w;
-        const float tile_uv_v = (float) tile_size * inv_atlas_h;
-        uniform->shadow = Vec4(base_x, base_y, tile_uv, tile_uv_v);
+      if (r_shadow_atlas.tile_size > 0) {
+        const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
+        const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
+        const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
+        const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
+        const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
+        const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
+        const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
+        uniform->shadow = Vec4(base_x, base_y, tile_uv, layer);
       } else {
         uniform->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
       }

@@ -59,46 +59,7 @@ static struct {
   GLint face_index;
 } r_shadow_program;
 
-/**
- * @brief The shadow atlas.
- */
-static struct {
-  /**
-   * @brief The 2D depth texture atlas.
-   */
-  GLuint texture;
-
-  /**
-   * @brief The depth pass framebuffer.
-   */
-  GLuint framebuffer;
-
-  /**
-   * @brief The atlas dimensions in pixels.
-   */
-  GLsizei width;
-  GLsizei height;
-
-  /**
-   * @brief The tile size in pixels.
-   */
-  GLsizei tile_size;
-
-  /**
-   * @brief The number of lights per row in the atlas grid.
-   */
-  int32_t lights_per_row;
-
-  /**
-   * @brief The maximum number of lights that fit in the atlas.
-   */
-  int32_t max_lights;
-
-  /**
-   * @brief Frame counter for temporal face amortization.
-   */
-  uint32_t frame_count;
-} r_shadow_atlas;
+r_shadow_atlas_t r_shadow_atlas;
 
 /**
  * @brief Pre-culled entities for shadow rendering.
@@ -113,12 +74,15 @@ static struct {
 } r_shadow_entities;
 
 /**
- * @brief Computes the atlas tile origin for a given light index and face.
+ * @brief Computes the tile origin within a layer for a given light index and face.
+ * @details Uses the local index (light_index % lights_per_layer) so that tile
+ * positions repeat across layers.
  */
 static void R_ShadowAtlasTile(int32_t light_index, int32_t face, GLint *x, GLint *y) {
 
-  const int32_t light_col = light_index % r_shadow_atlas.lights_per_row;
-  const int32_t light_row = light_index / r_shadow_atlas.lights_per_row;
+  const int32_t local_index = light_index % r_shadow_atlas.lights_per_layer;
+  const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
+  const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
   const int32_t face_col = face % 3;
   const int32_t face_row = face / 3;
   const GLsizei ts = r_shadow_atlas.tile_size;
@@ -353,7 +317,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 
   const GLint index = (GLint) (light - view->lights);
 
-  if (index >= r_shadow_atlas.max_lights) {
+  if (index >= MAX_LIGHTS) {
     return;
   }
 
@@ -413,11 +377,20 @@ void R_DrawShadows(const r_view_t *view) {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_FRONT);
 
+  GLint current_layer = -1;
+
   const r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
 
     if (l->occluded) {
       continue;
+    }
+
+    const GLint layer = i / r_shadow_atlas.lights_per_layer;
+    if (layer != current_layer) {
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                                r_shadow_atlas.texture, 0, layer);
+      current_layer = layer;
     }
 
     R_DrawShadow(view, l);
@@ -483,7 +456,9 @@ static void R_InitShadowProgram(void) {
 
 /**
  * @brief Initializes the shadow atlas texture.
- * @details Computes atlas dimensions from tile_size and GL_MAX_TEXTURE_SIZE to fit MAX_LIGHTS.
+ * @details Computes square layer dimensions from tile_size and GL_MAX_TEXTURE_SIZE,
+ * then allocates a GL_TEXTURE_2D_ARRAY with enough layers for MAX_LIGHTS.
+ * Layers are forced square by choosing lights_per_col = lights_per_row * 3 / 2.
  */
 static void R_InitShadowTextures(void) {
 
@@ -492,48 +467,48 @@ static void R_InitShadowTextures(void) {
 
   r_shadow_atlas.tile_size = r_shadow_tile_size->integer;
 
+  // Find the largest lights_per_row such that the layer is square and fits in max_texture_size.
+  // Square constraint: lights_per_row * 3 * tile_size == lights_per_col * 2 * tile_size
+  // So lights_per_col = lights_per_row * 3 / 2 (must be integer, so lights_per_row must be even).
+  // Layer dimension = lights_per_row * 3 * tile_size.
+
   r_shadow_atlas.lights_per_row = max_texture_size / (3 * r_shadow_atlas.tile_size);
-  if (r_shadow_atlas.lights_per_row < 1) {
-    r_shadow_atlas.lights_per_row = 1;
+  if (r_shadow_atlas.lights_per_row < 2) {
+    r_shadow_atlas.lights_per_row = 2;
   }
 
-  const int32_t needed_rows = (MAX_LIGHTS + r_shadow_atlas.lights_per_row - 1) / r_shadow_atlas.lights_per_row;
-  const int32_t max_rows = max_texture_size / (2 * r_shadow_atlas.tile_size);
-  const int32_t lights_per_col = needed_rows < max_rows ? needed_rows : max_rows;
+  // Force even so that lights_per_col = lights_per_row * 3 / 2 is integer
+  r_shadow_atlas.lights_per_row &= ~1;
 
-  r_shadow_atlas.max_lights = r_shadow_atlas.lights_per_row * lights_per_col;
-  if (r_shadow_atlas.max_lights > MAX_LIGHTS) {
-    r_shadow_atlas.max_lights = MAX_LIGHTS;
-  }
+  r_shadow_atlas.lights_per_col = r_shadow_atlas.lights_per_row * 3 / 2;
+  r_shadow_atlas.layer_size = r_shadow_atlas.lights_per_row * 3 * r_shadow_atlas.tile_size;
 
-  r_shadow_atlas.width = r_shadow_atlas.lights_per_row * 3 * r_shadow_atlas.tile_size;
-  r_shadow_atlas.height = lights_per_col * 2 * r_shadow_atlas.tile_size;
+  r_shadow_atlas.lights_per_layer = r_shadow_atlas.lights_per_row * r_shadow_atlas.lights_per_col;
+  r_shadow_atlas.num_layers = (MAX_LIGHTS + r_shadow_atlas.lights_per_layer - 1) / r_shadow_atlas.lights_per_layer;
 
-  if (r_shadow_atlas.max_lights < MAX_LIGHTS) {
-    Com_Warn("Shadow atlas supports %d of %d lights at tile size %d\n",
-             r_shadow_atlas.max_lights, MAX_LIGHTS, r_shadow_atlas.tile_size);
-  }
-
-  Com_Print("  Shadow atlas: %dx%d (%d tiles of %d, %d lights max)\n",
-            r_shadow_atlas.width, r_shadow_atlas.height,
-            r_shadow_atlas.max_lights * 6, r_shadow_atlas.tile_size,
-            r_shadow_atlas.max_lights);
+  Com_Print("  Shadow atlas: %dx%d x %d layers (%d lights/layer, tile %d)\n",
+            r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
+            r_shadow_atlas.num_layers,
+            r_shadow_atlas.lights_per_layer, r_shadow_atlas.tile_size);
 
   glGenTextures(1, &r_shadow_atlas.texture);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_SHADOW_ATLAS);
-  glBindTexture(GL_TEXTURE_2D, r_shadow_atlas.texture);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, r_shadow_atlas.texture);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, r_shadow_atlas.width, r_shadow_atlas.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_DEPTH_COMPONENT16,
+               r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
+               r_shadow_atlas.num_layers, 0,
+               GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -549,7 +524,7 @@ static void R_InitShadowFramebuffer(void) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, r_shadow_atlas.framebuffer);
 
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, r_shadow_atlas.texture, 0);
+  glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_atlas.texture, 0, 0);
 
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
@@ -624,13 +599,3 @@ void R_ShutdownShadows(void) {
   R_ShutdownShadowFramebuffer();
 }
 
-/**
- * @brief Returns the shadow atlas layout metadata for use by R_UpdateLights.
- */
-void R_ShadowAtlasInfo(int32_t *lights_per_row, int32_t *tile_size, int32_t *atlas_width, int32_t *atlas_height, int32_t *max_lights) {
-  *lights_per_row = r_shadow_atlas.lights_per_row;
-  *tile_size = r_shadow_atlas.tile_size;
-  *atlas_width = r_shadow_atlas.width;
-  *atlas_height = r_shadow_atlas.height;
-  *max_lights = r_shadow_atlas.max_lights;
-}

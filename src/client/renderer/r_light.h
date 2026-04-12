@@ -43,7 +43,8 @@ typedef struct {
   vec4_t color;
 
   /**
-   * @brief The shadow atlas tile (xy = base origin normalized, z = tile size normalized, w = unused).
+   * @brief The shadow atlas tile (xy = base UV origin, z = tile UV size, w = layer).
+   * @details Layers are square, so z is the tile size in both U and V.
    */
   vec4_t shadow;
 } r_light_uniform_t;

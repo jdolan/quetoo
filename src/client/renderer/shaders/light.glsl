@@ -109,7 +109,9 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
  */
 float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
-  if (light.shadow.z == 0.0) {
+  float tile_uv = light.shadow.z;
+
+  if (tile_uv == 0.0) {
     return 1.0;
   }
 
@@ -122,16 +124,16 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
   float ma;
   cubemap_face_uv(light_to_frag, face, fuv, ma);
 
-  // Atlas tile origin for this face within the light's 3×2 block
+  // Tile origin within the layer for this face of the light's 3×2 block
   int face_col = face - (face / 3) * 3;
   int face_row = face / 3;
-  vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * light.shadow.z,
-                                             float(face_row) * light.shadow.w);
+  vec2 tile_origin = light.shadow.xy + vec2(float(face_col) * tile_uv,
+                                             float(face_row) * tile_uv);
 
   // Half-texel inset to prevent cross-tile bleeding
-  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0));
+  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0).xy);
   vec2 tile_min = tile_origin + half_texel;
-  vec2 tile_max = tile_origin + vec2(light.shadow.z, light.shadow.w) - half_texel;
+  vec2 tile_max = tile_origin + vec2(tile_uv) - half_texel;
 
   // Filter radius in face UV space
   float light_size = light.origin.w * 3.0;
@@ -146,6 +148,7 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
   float s = f.shadow_sin_cos.x;
   float c = f.shadow_sin_cos.y;
 
+  float layer = light.shadow.w;
   float shadow = 0.0;
 
   for (int i = 0; i < num_samples; i++) {
@@ -154,11 +157,11 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
 
     vec2 sample_fuv = fuv + rotated * filter_uv;
 
-    vec2 atlas_uv = tile_origin + sample_fuv * vec2(light.shadow.z, light.shadow.w);
+    vec2 atlas_uv = tile_origin + sample_fuv * vec2(tile_uv);
 
     atlas_uv = clamp(atlas_uv, tile_min, tile_max);
 
-    shadow += texture(texture_shadow_atlas, vec3(atlas_uv, current_depth));
+    shadow += texture(texture_shadow_atlas, vec4(atlas_uv, layer, current_depth));
   }
 
   return shadow / float(num_samples);
