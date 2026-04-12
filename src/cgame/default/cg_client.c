@@ -613,7 +613,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
       }
     }
 
-    ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
+    ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED
+        * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
 
     const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
 
@@ -683,6 +684,8 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
     });
 
     assert(r_weapon);
+
+    // cache these post-animation so that we can place muzzle flashes
 
     ci->weapon_origin = r_weapon->origin;
     ci->weapon_angles = r_weapon->angles;

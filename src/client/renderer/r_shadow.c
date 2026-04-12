@@ -133,7 +133,7 @@ static void R_ShadowAtlasTile(int32_t light_index, int32_t face, GLint *x, GLint
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
   while (e) {
-    if (light->source == e->id) {
+    if (light->source && light->source == e->id) {
       return true;
     }
     e = e->parent;
