@@ -104,16 +104,18 @@ void cubemap_face_uv(in vec3 dir, out int face, out vec2 face_uv, out float ma) 
  * @param index The light index.
  * @param v Vertex data.
  * @param f Fragment data.
+ * @param atten Light attenuation at this fragment (0-1).
  * @return Shadow term (0 = fully shadowed, 1 = fully lit).
  */
-float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f) {
+float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, in common_fragment_t f, in float atten) {
 
   if (light.shadow.z == 0.0) {
     return 1.0;
   }
 
   vec3 light_to_frag = v.model_position - light.origin.xyz;
-  float current_depth = length(light_to_frag) / depth_range.y;
+  float dist_to_light = length(light_to_frag);
+  float current_depth = dist_to_light / depth_range.y;
 
   int face;
   vec2 fuv;
@@ -127,24 +129,22 @@ float sample_shadow_atlas(in light_t light, in int index, in common_vertex_t v, 
                                              float(face_row) * light.shadow.w);
 
   // Half-texel inset to prevent cross-tile bleeding
-  ivec2 atlas_size = textureSize(texture_shadow_atlas, 0);
-  vec2 half_texel = 0.5 / vec2(atlas_size);
+  vec2 half_texel = 0.5 / vec2(textureSize(texture_shadow_atlas, 0));
   vec2 tile_min = tile_origin + half_texel;
   vec2 tile_max = tile_origin + vec2(light.shadow.z, light.shadow.w) - half_texel;
 
-  // Filter radius in face UV space [0..1]
+  // Filter radius in face UV space
   float light_size = light.origin.w * 3.0;
-  float dist_to_light = length(light_to_frag);
   float filter_radius = light_size * (dist_to_light / light.origin.w) * 0.005;
   float filter_uv = filter_radius / (2.0 * max(ma, 0.001));
 
-  // Distance-based sample count (close = more samples, far = fewer)
-  int num_samples = f.view_dist < 512.0 ? 16 : (f.view_dist < 1024.0 ? 8 : 4);
+  // Adaptive sample count based on screen contribution (attenuation × proximity)
+  // Strong, close lights get full samples; weak or distant lights get fewer
+  float importance = atten * clamp(1.0 - f.view_dist / 2048.0, 0.0, 1.0);
+  int num_samples = importance > 0.3 ? 8 : (importance > 0.1 ? 4 : 2);
 
-  // Per-pixel rotation to eliminate banding
-  float angle = random_angle(v.model_position);
-  float s = sin(angle);
-  float c = cos(angle);
+  float s = f.shadow_sin_cos.x;
+  float c = f.shadow_sin_cos.y;
 
   float shadow = 0.0;
 
@@ -236,7 +236,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
-  float shadow = sample_shadow_atlas(light, index, v, f);
+  float shadow = sample_shadow_atlas(light, index, v, f, atten);
 
   // Apply parallax self-shadowing for close, high-detail fragments
   if (stage.flags == STAGE_NONE) {

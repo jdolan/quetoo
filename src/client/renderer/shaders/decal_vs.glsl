@@ -79,7 +79,6 @@ void main(void) {
   }
   
   vertex.lighting = diffuse;
-  vertex_fog(vertex);
   
   // Decal-specific data
   decal.time = in_time;

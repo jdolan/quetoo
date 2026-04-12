@@ -28,9 +28,6 @@ extern cvar_t *r_anisotropy;
 extern cvar_t *r_caustics;
 extern cvar_t *r_draw_scale;
 extern cvar_t *r_finish;
-extern cvar_t *r_fog_density;
-extern cvar_t *r_fog_samples;
-extern cvar_t *r_fog_distance;
 extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
@@ -196,21 +193,6 @@ typedef struct {
      * @brief The caustics scalar.
      */
     float caustics;
-
-    /**
-     * @brief The fog density scalar.
-     */
-    float fog_density;
-
-    /**
-     * @brief The number of volumetric fog samples per fragment (quality).
-     */
-    float fog_samples;
-
-    /**
-     * @brief Distance threshold for switching to vertex fog.
-     */
-    float fog_distance;
 
     /**
      * @brief Distance threshold for switching to vertex lighting.

@@ -54,9 +54,6 @@ cvar_t *r_anisotropy;
 cvar_t *r_caustics;
 cvar_t *r_draw_scale;
 cvar_t *r_finish;
-cvar_t *r_fog_density;
-cvar_t *r_fog_samples;
-cvar_t *r_fog_distance;
 cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
 cvar_t *r_hardness;
@@ -150,9 +147,6 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->ambient = r_ambient->value * view->ambient;
     out->modulate = r_modulate->value;
     out->caustics = r_caustics->value;
-    out->fog_density = r_fog_density->value;
-    out->fog_samples = r_fog_samples->value;
-    out->fog_distance = r_fog_distance->value;
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
@@ -172,9 +166,11 @@ void R_UpdateUniforms(const r_view_t *view) {
     }
   }
 
-  glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  if (r_uniforms.buffer) {
+    glBindBuffer(GL_UNIFORM_BUFFER, r_uniforms.buffer);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(r_uniforms.block), &r_uniforms.block);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  }
 }
 
 /**
@@ -460,9 +456,6 @@ static void R_InitLocal(void) {
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
-  r_fog_density = Cvar_Add("r_fog_density", "1", CVAR_ARCHIVE, "Controls the density of fog effects");
-  r_fog_samples = Cvar_Add("r_fog_samples", "16", CVAR_ARCHIVE, "Controls the quality of fog effects");
-  r_fog_distance = Cvar_Add("r_fog_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex fog");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");

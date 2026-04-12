@@ -37,7 +37,6 @@
 #define STAGE_WARP      (1 << 14)
 #define STAGE_FLARE     (1 << 15)
 #define STAGE_LIGHTING  (1 << 16)
-#define STAGE_FOG       (1 << 17)
 #define STAGE_SHELL     (1 << 18)
 
 #define STAGE_DRAW      (1 << 30)
@@ -152,11 +151,6 @@ struct stage_t {
    * @brief The stage lighting intensity.
    */
   float lighting;
-
-  /**
-   * @brief The stage fog density.
-   */
-  float fog;
 
   /**
    * @brief The stage shell radius.

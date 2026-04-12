@@ -96,9 +96,6 @@
     <ClCompile Include="..\src\tools\quemap\face.c">
       <Filter>src\tools\quemap</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\tools\quemap\fog.c">
-      <Filter>src\tools\quemap</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\deps\minizip\miniz.h">
@@ -174,9 +171,6 @@
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
     <ClInclude Include="..\src\tools\quemap\face.h">
-      <Filter>src\tools\quemap</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\tools\quemap\fog.h">
       <Filter>src\tools\quemap</Filter>
     </ClInclude>
   </ItemGroup>

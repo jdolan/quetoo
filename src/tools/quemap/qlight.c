@@ -409,15 +409,6 @@ static void LightWorld(void) {
   // calculate caustics from liquid contents
   Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
 
-  // build fog volumes out of brush entities
-  BuildFog();
-
-  // bake fog into the voxel
-  Work("Fog", FogVoxel, (int32_t) num_voxel);
-
-  // free the fog volumes
-  FreeFog();
-
   // emit light sources to the bsp
   EmitLights();
 

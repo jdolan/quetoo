@@ -672,7 +672,6 @@
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
-		CEF3C9462570732300BA332E /* fog.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF3C9452570732300BA332E /* fog.c */; };
 		CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEF75F402EB996E80026CCA4 /* sv_editor.c */; };
 		CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEF75F3F2EB996E80026CCA4 /* sv_editor.h */; };
 		CEF7B4A72ED9500E00B551CA /* shadow_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */; };
@@ -1783,8 +1782,6 @@
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
-		CEF3C9442570732300BA332E /* fog.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fog.h; sourceTree = "<group>"; };
-		CEF3C9452570732300BA332E /* fog.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = fog.c; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
 		CEF75F402EB996E80026CCA4 /* sv_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_editor.c; sourceTree = "<group>"; };
 		CEF7B4A52ED94FED00B551CA /* shadow_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = shadow_fs.glsl; sourceTree = "<group>"; };
@@ -2947,8 +2944,6 @@
 				CE34098E21C2D52500989FC9 /* entity.h */,
 				CE12D6EA1C5C58C300CD0B13 /* face.c */,
 				CE42657421C3EDB400F768DD /* face.h */,
-				CEF3C9452570732300BA332E /* fog.c */,
-				CEF3C9442570732300BA332E /* fog.h */,
 				CE12D6EC1C5C58C300CD0B13 /* leakfile.c */,
 				CEBCE0C521CFC6CE00976E76 /* leakfile.h */,
 				CEBDB0C5214A02B500A7AC3D /* light.c */,
@@ -4715,7 +4710,6 @@
 				CE80FFE51C5E4D1800A21A51 /* csg.c in Sources */,
 				CE34099021C2D52500989FC9 /* entity.c in Sources */,
 				CE80FFE61C5E4D1800A21A51 /* face.c in Sources */,
-				CEF3C9462570732300BA332E /* fog.c in Sources */,
 				CE80FFE81C5E4D1800A21A51 /* leakfile.c in Sources */,
 				CEBDB0C6214A02B500A7AC3D /* light.c in Sources */,
 				CEEC203025B3265700E49614 /* simplex.c in Sources */,

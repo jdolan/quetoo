@@ -46,7 +46,4 @@ void main(void) {
     float fade = 1.0 - clamp(age / decal.lifetime, 0.0, 1.0);
     out_color.a *= fade;
   }
-
-  // Use vertex fog (decals are always simple geometry)
-  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 }

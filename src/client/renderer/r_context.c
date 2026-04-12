@@ -204,7 +204,10 @@ void R_InitContext(void) {
   if (!gladLoaderLoadGL()) {
     Com_Error(ERROR_FATAL, "Failed to load OpenGL functions\n");
   }
-  
+
+  // Drain any stale GL errors left by GLAD's loader probing
+  while (glGetError() != GL_NO_ERROR) { }
+
   R_UpdateContext();
 
   glDepthFunc(GL_LEQUAL);

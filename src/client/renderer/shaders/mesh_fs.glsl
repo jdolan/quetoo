@@ -47,7 +47,11 @@ void mesh_fragment_lighting(void) {
   fragment.ambient = vertex.ambient;
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
-  
+
+  // Precompute per-pixel Poisson rotation for shadow PCF
+  float angle = random_angle(vertex.model_position);
+  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
+
   fragment_lighting(vertex, fragment);
 }
 
@@ -85,16 +89,11 @@ void main(void) {
 
 	  out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 	  out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
-	  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
 
   } else {
 
 	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
 
 	  out_color = fragment.diffuse_sample;
-
-	  if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-  	  out_color.rgb = mix(out_color.rgb, vertex.fog.rgb, vertex.fog.a);
-	  }
   }
 }

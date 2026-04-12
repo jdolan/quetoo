@@ -127,21 +127,6 @@ layout (std140) uniform uniforms_block {
   float caustics;
 
   /**
-   * @brief The volumetric fog density scalar.
-   */
-  float fog_density;
-
-  /**
-   * @brief The number of volumetric fog samples per fragment (quality).
-   */
-  float fog_samples;
-
-  /**
-   * @brief Distance threshold for switching to vertex fog.
-   */
-  float fog_distance;
-
-  /**
    * @brief Distance threshold for switching to vertex lighting.
    */
   float lighting_distance;

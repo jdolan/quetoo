@@ -60,13 +60,11 @@ void main(void) {
   vertex.color = in_color;
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.fog = vec4(0.0);
   vertex.lighting = vec3(0.0);
 
   stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
 
   vertex_caustics(vertex);
-  vertex_fog(vertex);
   vertex_lighting(vertex);
 
   gl_Position = projection3D * view_model * position;

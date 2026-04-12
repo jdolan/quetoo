@@ -78,10 +78,6 @@ typedef struct {
 } cm_stage_warp_t;
 
 typedef struct {
-  float density;
-} cm_stage_fog_t;
-
-typedef struct {
   float intensity;
 } cm_stage_lighting_t;
 
@@ -125,7 +121,6 @@ typedef enum {
   STAGE_WARP      = (1 << 14),
   STAGE_FLARE     = (1 << 15),
   STAGE_LIGHTING  = (1 << 16),
-  STAGE_FOG       = (1 << 17),
   STAGE_SHELL     = (1 << 18),
 
   STAGE_DRAW      = (1 << 30),
@@ -200,11 +195,6 @@ typedef struct cm_stage_s {
    * @brief The stage warp parameters.
    */
   cm_stage_warp_t warp;
-
-  /**
-   * @brief The stage fog parameters.
-   */
-  cm_stage_fog_t fog;
 
   /**
    * @brief The stage lighting parameters.

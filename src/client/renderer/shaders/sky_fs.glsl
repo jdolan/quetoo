@@ -77,10 +77,7 @@ void main(void) {
     fragment.view_dist = length(vertex.position);
     fragment.diffuse_sample = texture(texture_sky, normalize(cubemap_coord));
 
-    fragment_fog(vertex, fragment);
-
     out_color = fragment.diffuse_sample;
-    out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
 
   } else {
 
@@ -91,13 +88,6 @@ void main(void) {
     fragment.diffuse_sample = sample_material_stage(st);
 
     out_color = fragment.diffuse_sample * vertex.color;
-
-    if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-
-      fragment_fog(vertex, fragment);
-
-      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
-    }
   }
 }
 

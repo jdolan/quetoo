@@ -498,16 +498,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
       continue;
     }
 
-    if (!g_strcmp0(token, "fog")) {
-      s->flags |= STAGE_FOG;
-
-      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->fog.density, 1) != 1) {
-        s->fog.density = 1.f;
-      }
-
-      continue;
-    }
-
     if (!g_strcmp0(token, "flare")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
@@ -538,11 +528,6 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
 
       if (s->blend.dest == 0) {
         s->blend.dest = GL_ONE_MINUS_SRC_ALPHA;
-      }
-
-      // a blend dest other than GL_ONE should use fog by default
-      if (s->blend.dest != GL_ONE) {
-        s->flags |= STAGE_FOG;
       }
 
       Com_Debug(DEBUG_COLLISION,
@@ -1182,10 +1167,6 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
 
   if (stage->flags & STAGE_LIGHTING) {
     Fs_Print(file, "\t\tlighting %0.2f\n", stage->lighting.intensity);
-  }
-
-  if (stage->flags & STAGE_FOG) {
-    Fs_Print(file, "\t\tfog %0.2f\n", stage->fog.density);
   }
 
   if (stage->flags & STAGE_SHELL) {

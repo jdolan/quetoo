@@ -298,35 +298,6 @@ void LightVoxel(int32_t voxel_num) {
 }
 
 /**
- * @brief Applies fog to a voxel by sampling corners and center.
- */
-void FogVoxel(int32_t voxel_num) {
-
-  voxel_t *voxel = &voxels.voxels[voxel_num];
-
-  vec3_t points[9];
-  points[0] = voxel->origin;
-  Box3_ToPoints(voxel->bounds, &points[1]);
-
-  const float weight = 1.f / lengthof(points);
-
-  const fog_t *fog = (fog_t *) fogs->data;
-  for (guint i = 0; i < fogs->len; i++, fog++) {
-
-    for (size_t j = 0; j < lengthof(points); j++) {
-
-      if (!PointInsideFog(points[j], fog)) {
-        continue;
-      }
-
-      float density = Clampf01(fog->density * weight);
-
-      voxel->fog += density * FOG_DENSITY_SCALAR;
-    }
-  }
-}
-
-/**
  * @brief Feathers lights into neighboring voxels to smooth boundaries.
  */
 void FeatherLights(void) {
@@ -446,19 +417,23 @@ void EmitVoxels(void) {
   for (size_t i = 0; i < voxels.num_voxels; i++, v++) {
     v->lights_offset = (int32_t) voxels.num_light_indices;
     v->lights_count = (int32_t) g_hash_table_size(v->lights);
+
     voxels.num_light_indices += v->lights_count;
     
-    // Track statistics
     total_lights += v->lights_count;
-    if (v->lights_count < min_lights) min_lights = v->lights_count;
-    if (v->lights_count > max_lights) max_lights = v->lights_count;
+    if (v->lights_count < min_lights) {
+      min_lights = v->lights_count;
+    }
+    if (v->lights_count > max_lights) {
+      max_lights = v->lights_count;
+    }
   }
   
   Com_Verbose("Voxel light stats: min=%d max=%d avg=%.1f total=%zd\n",
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 3; // caustics + exposure + fog density (RGB)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // caustics + exposure (RG)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
@@ -471,7 +446,7 @@ void EmitVoxels(void) {
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
   byte *out_data = out;
-  out += voxels.num_voxels * sizeof(byte) * 3; // RGB = caustics + exposure + fog density
+  out += voxels.num_voxels * sizeof(byte) * 2; // RG = caustics + exposure
   
   for (int32_t z = 0; z < voxels.size.z; z++) {
 
@@ -485,7 +460,6 @@ void EmitVoxels(void) {
 
         *out_data++ = (byte)(Clampf01(voxel->caustics) * 255.f);
         *out_data++ = (byte)(Clampf01(voxel->exposure) * 255.f);
-        *out_data++ = (byte)(Clampf01(voxel->fog) * 255.f);  // fog density
       }
     }
   }

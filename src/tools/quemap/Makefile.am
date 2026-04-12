@@ -7,7 +7,6 @@ noinst_HEADERS = \
 	csg.h \
 	entity.h \
 	face.h \
-	fog.h \
 	leakfile.h \
 	light.h \
 	material.h \
@@ -33,7 +32,6 @@ quemap_SOURCES = \
 	csg.c \
 	entity.c \
 	face.c \
-	fog.c \
 	leakfile.c \
 	light.c \
 	main.c \

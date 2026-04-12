@@ -72,16 +72,6 @@
 #define MAX_BSP_VOXELS (MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL * MAX_BSP_VOXELS_AXIAL)
 
 /**
- * @brief The voxel textures.
- */
-typedef enum {
-  BSP_VOXELS_FIRST,
-  BSP_VOXELS_DATA = BSP_VOXELS_FIRST,
-  BSP_VOXELS_FOG,
-  BSP_VOXELS_LAST
-} bsp_voxel_texture_t;
-
-/**
  * @brief BSP file format lump identifiers.
  */
 typedef enum {

@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "fog.h"
 #include "light.h"
 #include "material.h"
 #include "quemap.h"

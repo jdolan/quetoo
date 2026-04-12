@@ -71,7 +71,6 @@ static struct {
     GLint dirtmap;
     GLint warp;
     GLint lighting;
-    GLint fog;
   } stage;
 
   r_image_t *warp_image;
@@ -212,10 +211,6 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   if (stage->cm->flags & STAGE_LIGHTING) {
     glUniform1f(r_bsp_program.stage.lighting, stage->cm->lighting.intensity);
-  }
-
-  if (stage->cm->flags & STAGE_FOG) {
-    glUniform1f(r_bsp_program.stage.fog, stage->cm->fog.density);
   }
 
   glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -591,7 +586,6 @@ void R_InitBspProgram(void) {
   r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
   r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
   r_bsp_program.stage.lighting = glGetUniformLocation(r_bsp_program.name, "stage.lighting");
-  r_bsp_program.stage.fog = glGetUniformLocation(r_bsp_program.name, "stage.fog");
 
   glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_bsp_program.texture_stage, TEXTURE_STAGE);

@@ -52,73 +52,58 @@ typedef struct {
   int32_t shadows;
   int32_t shadowTileSize;
   int32_t shadowDistance;
-  int32_t fogSamples;
   int32_t lightingDistance;
   int32_t parallax;
   int32_t parallaxShadow;
   int32_t caustics;
   int32_t addWeather;
   int32_t addAtmospheric;
-  int32_t spritesSoften;
-  int32_t spritesLerp;
 } QualityPreset;
 
 static const QualityPreset qualityPresets[] = {
   [0] = { // Low
     .shadows                = 0,
-    .shadowTileSize = 0,
+    .shadowTileSize         = 0,
     .shadowDistance         = 0,
-    .fogSamples             = 0,
     .lightingDistance       = 1024,
     .parallax               = 0,
     .parallaxShadow         = 0,
     .caustics               = 0,
     .addWeather             = 0,
     .addAtmospheric         = 0,
-    .spritesSoften          = 0,
-    .spritesLerp            = 0,
   },
   [1] = { // Medium
     .shadows                = 1,
-    .shadowTileSize = 128,
+    .shadowTileSize         = 128,
     .shadowDistance         = 512,
-    .fogSamples             = 8,
     .lightingDistance       = 2048,
     .parallax               = 0,
     .parallaxShadow         = 0,
     .caustics               = 0,
     .addWeather             = 1,
     .addAtmospheric         = 1,
-    .spritesSoften          = 1,
-    .spritesLerp            = 0,
   },
   [2] = { // High
     .shadows                = 1,
     .shadowTileSize = 256,
     .shadowDistance         = 1024,
-    .fogSamples             = 16,
     .lightingDistance       = 4096,
     .parallax               = 1,
     .parallaxShadow         = 0,
     .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
-    .spritesSoften          = 1,
-    .spritesLerp            = 1,
   },
   [3] = { // Highest
     .shadows                = 1,
     .shadowTileSize = 512,
     .shadowDistance         = 2048,
-    .fogSamples             = 32,
     .lightingDistance       = 8192,
     .parallax               = 1,
     .parallaxShadow         = 1,
     .caustics               = 1,
     .addWeather             = 1,
     .addAtmospheric         = 1,
-    .spritesSoften          = 1,
-    .spritesLerp            = 1,
   },
 };
 
@@ -129,15 +114,12 @@ static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",                   p->shadows);
   cgi.SetCvarInteger("r_shadow_tile_size", p->shadowTileSize);
   cgi.SetCvarInteger("r_shadow_distance",           p->shadowDistance);
-  cgi.SetCvarInteger("r_fog_samples",               p->fogSamples);
   cgi.SetCvarInteger("r_lighting_distance",         p->lightingDistance);
   cgi.SetCvarInteger("r_parallax",                  p->parallax);
   cgi.SetCvarInteger("r_parallax_shadow",           p->parallaxShadow);
   cgi.SetCvarInteger("r_caustics",                  p->caustics);
   cgi.SetCvarInteger("cg_add_weather",              p->addWeather);
   cgi.SetCvarInteger("cg_add_atmospheric",          p->addAtmospheric);
-  cgi.SetCvarInteger("r_sprites_soften",            p->spritesSoften);
-  cgi.SetCvarInteger("r_sprites_lerp",              p->spritesLerp);
 }
 
 /**
@@ -146,17 +128,14 @@ static void applyQualityPreset(const QualityPreset *p) {
 static intptr_t detectQualityPreset(void) {
   const QualityPreset current = {
     .shadows                = cgi.GetCvarInteger("r_shadows"),
-    .shadowTileSize = cgi.GetCvarInteger("r_shadow_tile_size"),
+    .shadowTileSize         = cgi.GetCvarInteger("r_shadow_tile_size"),
     .shadowDistance         = cgi.GetCvarInteger("r_shadow_distance"),
-    .fogSamples             = cgi.GetCvarInteger("r_fog_samples"),
     .lightingDistance       = cgi.GetCvarInteger("r_lighting_distance"),
     .parallax               = cgi.GetCvarInteger("r_parallax"),
     .parallaxShadow         = cgi.GetCvarInteger("r_parallax_shadow"),
     .caustics               = cgi.GetCvarInteger("r_caustics"),
     .addWeather             = cgi.GetCvarInteger("cg_add_weather"),
     .addAtmospheric         = cgi.GetCvarInteger("cg_add_atmospheric"),
-    .spritesSoften          = cgi.GetCvarInteger("r_sprites_soften"),
-    .spritesLerp            = cgi.GetCvarInteger("r_sprites_lerp"),
   };
 
   for (size_t i = 0; i < lengthof(qualityPresets); i++) {

@@ -69,7 +69,6 @@ void main(void) {
   vertex.color = color;
   vertex.ambient = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.fog = vec4(0.0);
   vertex.lighting = vec3(0.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
@@ -81,7 +80,6 @@ void main(void) {
     vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
 
     vertex_caustics(vertex);
-    vertex_fog(vertex);
     vertex_lighting(vertex);
   }
 

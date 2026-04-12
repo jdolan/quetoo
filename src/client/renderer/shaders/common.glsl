@@ -94,7 +94,6 @@ struct common_vertex_t {
   vec4 color;            // Vertex color
   vec3 ambient;          // Ambient lighting
   float caustics;        // Caustics intensity
-  vec4 fog;              // Volumetric fog (rgb = color, a = density)
   vec3 lighting;         // Pre-calculated vertex lighting
 };
 
@@ -118,7 +117,7 @@ struct common_fragment_t {
   vec3 diffuse;          // Diffuse lighting contribution
   float caustics;        // Caustics contribution (BSP only)
   vec3 specular;         // Specular lighting contribution
-  vec4 fog;              // Fog contribution (BSP only)
+  vec2 shadow_sin_cos;   // Per-pixel Poisson rotation (sin, cos)
 };
 
 /**

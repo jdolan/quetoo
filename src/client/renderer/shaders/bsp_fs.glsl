@@ -97,6 +97,10 @@ void bsp_fragment_lighting(void) {
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 
+  // Precompute per-pixel Poisson rotation for shadow PCF
+  float angle = random_angle(vertex.model_position);
+  fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
+
   if (editor == 0) {
     fragment_lighting(vertex, fragment);
   } else {
@@ -141,10 +145,6 @@ void main(void) {
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
 
-    fragment_fog(vertex, fragment);
-
-    out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a);
-
   } else {
 
     vec2 st = fragment.parallax;
@@ -163,13 +163,6 @@ void main(void) {
 
       out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
       out_color.rgb += fragment.specular * stage.lighting;
-    }
-
-    if ((stage.flags & STAGE_FOG) == STAGE_FOG) {
-
-      fragment_fog(vertex, fragment);
-
-      out_color.rgb = mix(out_color.rgb, fragment.fog.rgb, fragment.fog.a * stage.fog);
     }
   }
 }
