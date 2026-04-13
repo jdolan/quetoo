@@ -29,7 +29,6 @@ sv_server_t sv; // per-level server info
 sv_client_t *sv_client; // current client
 
 cvar_t *sv_demo_list;
-cvar_t *sv_download_url;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
@@ -37,7 +36,6 @@ cvar_t *sv_max_entities;
 cvar_t *sv_public;
 cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
-cvar_t *sv_udp_download;
 
 /**
  * @brief Called when the player is totally leaving the server, either willingly
@@ -63,9 +61,7 @@ void Sv_DropClient(sv_client_t *cl) {
     Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
   }
 
-  if (cl->download.buffer) {
-    Fs_Free(cl->download.buffer);
-  }
+  Sv_HttpClientDisconnect(&cl->http);
 
   memset(cl, 0, sizeof(*cl));
 
@@ -332,7 +328,7 @@ static void Sv_Connect_f(void) {
   Sv_UserInfoChanged(client);
 
   // send the connect packet to the client
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect %s", sv_download_url->string);
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, addr, "client_connect");
 
   Netchan_Setup(NS_UDP_SERVER, &client->net_chan, addr, qport);
 
@@ -784,6 +780,9 @@ void Sv_Frame(const uint32_t msec) {
   // clear entity flags, etc for next frame
   Sv_ResetEntities();
 
+  // service HTTP file downloads
+  Sv_HttpThink();
+
   // redraw the console
   Sv_DrawConsole();
 }
@@ -794,7 +793,6 @@ void Sv_Frame(const uint32_t msec) {
 static void Sv_InitLocal(void) {
 
   sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
-  sv_download_url = Cvar_Add("sv_download_url", "", CVAR_SERVER_INFO, "The base URL for in-game HTTP downloads");
   sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
@@ -802,7 +800,6 @@ static void Sv_InitLocal(void) {
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
   sv_rcon_password = Cvar_Add("rcon_password", "", 0, "The remote console password. If set, only give this to trusted clients");
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
-  sv_udp_download = Cvar_Add("sv_udp_download", "1", CVAR_ARCHIVE, "If set, in-game UDP downloads will be allowed when HTTP downloads fail");
 
   sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);
   sv_max_entities->integer = Mini(sv_max_entities->integer, MAX_ENTITIES);
@@ -870,6 +867,8 @@ void Sv_Init(void) {
 
   Sv_InitGame();
 
+  Sv_InitHttp();
+
   if (dedicated->value && Fs_Exists("server.cfg")) {
     Com_Print("Executing server.cfg\n");
     Cbuf_AddText("exec server.cfg\n");
@@ -881,6 +880,8 @@ void Sv_Init(void) {
  * @brief Called when server is shutting down due to error or an explicit `quit`.
  */
 void Sv_Shutdown(const char *msg) {
+
+  Sv_ShutdownHttp();
 
   Sv_ShutdownServer(msg);
 

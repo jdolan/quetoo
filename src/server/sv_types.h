@@ -177,15 +177,16 @@ typedef struct {
 } sv_client_datagram_t;
 
 /**
- * @brief Each client my download a single file at a time via the game's UDP
- * protocol. This only serves as a fallback for when HTTP downloading is not
- * configured or unavailable.
+ * @brief Tracks a client's HTTP file download connection.
  */
 typedef struct {
-  byte *buffer;
+  int32_t socket;
+  char request[1024];
+  int32_t request_len;
+  byte *data;
   int32_t size;
   int32_t count;
-} sv_client_download_t;
+} sv_http_client_t;
 
 /**
  * @brief The server client type.
@@ -244,9 +245,9 @@ typedef struct {
   sv_client_frame_t frames[PACKET_BACKUP];
 
   /**
-   * @brief UDP file downloads.
+   * @brief HTTP file download connection.
    */
-  sv_client_download_t download;
+  sv_http_client_t http;
 
   /**
    * @brief The network channel.

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "net.h"
+#include "net_sock.h"
 
 bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf);
 bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len);

@@ -20,6 +20,38 @@
  */
 
 #include "cl_local.h"
+#include "net/net_http.h"
+
+#include <SDL3/SDL_atomic.h>
+#include <SDL3/SDL_timer.h>
+
+/**
+ * @brief State for an in-progress async HTTP download.
+ */
+static struct {
+	SDL_AtomicInt complete;
+	int32_t status;
+	void *data;
+	size_t length;
+} cl_download;
+
+/**
+ * @brief Net_HttpCallback for Cl_CheckOrDownloadFile.
+ */
+static void Cl_DownloadComplete(int32_t status, void *data, size_t length) {
+
+	if (data && length) {
+		cl_download.data = Mem_Malloc(length);
+		memcpy(cl_download.data, data, length);
+		cl_download.length = length;
+	} else {
+		cl_download.data = NULL;
+		cl_download.length = 0;
+	}
+
+	cl_download.status = status;
+	SDL_SetAtomicInt(&cl_download.complete, 1);
+}
 
 static char *sv_cmd_names[32] = {
   "SV_CMD_BAD",
@@ -27,7 +59,6 @@ static char *sv_cmd_names[32] = {
   "SV_CMD_CBUF_TEXT",
   "SV_CMD_CONFIG_STRING",
   "SV_CMD_DISCONNECT",
-  "SV_CMD_DOWNLOAD",
   "SV_CMD_DROP",
   "SV_CMD_FRAME",
   "SV_CMD_PRINT",
@@ -37,11 +68,10 @@ static char *sv_cmd_names[32] = {
 };
 
 /**
- * @brief Returns true if the file exists, otherwise it attempts to start a download
- * from the server.
+ * @brief Returns true if the file exists, otherwise it attempts to download
+ * it from the server via HTTP.
  */
 bool Cl_CheckOrDownloadFile(const char *filename) {
-  char cmd[MAX_STRING_CHARS];
 
   if (cls.state == CL_DISCONNECTED) {
     Com_Print("Not connected\n");
@@ -55,52 +85,70 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
 
   Com_Debug(DEBUG_CLIENT, "Checking for %s\n", filename);
 
-  if (Fs_Exists(filename)) { // it exists, no need to download
+  if (Fs_Exists(filename)) {
     return true;
   }
 
-  Com_Debug(DEBUG_CLIENT, "Attempting to download %s\n", filename);
+  // derive the download URL from the server address we're connected to
+  char url[MAX_OS_PATH];
+  Net_HttpUrl(&cls.net_chan.remote_address, filename, url, sizeof(url));
 
-  g_strlcpy(cls.download.name, filename, sizeof(cls.download.name));
+  Com_Print("Downloading %s...\n", filename);
 
-  // UDP downloads to a temp name, and only renames when done
-  StripExtension(cls.download.name, cls.download.tempname);
-  g_strlcat(cls.download.tempname, ".tmp", sizeof(cls.download.tempname));
+  SDL_SetAtomicInt(&cl_download.complete, 0);
+  cl_download.status = 0;
+  cl_download.data = NULL;
+  cl_download.length = 0;
 
-  // attempt an HTTP download if available
-  if (cls.download_url[0]) {
-//    return false; FIXME: Re-enable this when we have 3rd party HTTP servers in play
-  }
+  Net_HttpGetAsync(url, Cl_DownloadComplete);
 
-  // check to see if we already have a temp for this file, if so, try to resume
-  // open the file if not opened yet
+  const char *base = Basename(filename);
+  while (!SDL_GetAtomicInt(&cl_download.complete)) {
 
-  if (Fs_Exists(cls.download.tempname)) { // a temp file exists, resume download
-    int64_t len = Fs_Load(cls.download.tempname, NULL);
-
-    if ((cls.download.file = Fs_OpenAppend(cls.download.tempname))) {
-
-      if (Fs_Seek(cls.download.file, len - 1)) {
-        // give the server the offset to start the download
-        Com_Debug(DEBUG_CLIENT, "Resuming %s...\n", cls.download.name);
-
-        g_snprintf(cmd, sizeof(cmd), "download %s %u", cls.download.name, (uint32_t) len);
-        Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-        Net_WriteString(&cls.net_chan.message, cmd);
-
-        return false;
-      }
+    if (cls.state == CL_DISCONNECTED) {
+      Com_Warn("Disconnected during download of %s\n", filename);
+      return true;
     }
+
+    Cl_LoadingProgress(-1, va("Downloading %s", base));
+    SDL_Delay(16);
   }
 
-  // or start if from the beginning
-  Com_Debug(DEBUG_CLIENT, "Downloading %s...\n", cls.download.name);
+  if (cl_download.status != 200 || !cl_download.data || !cl_download.length) {
+    Com_Warn("Failed to download %s (HTTP %d)\n", filename, cl_download.status);
+    if (cl_download.data) {
+      Mem_Free(cl_download.data);
+    }
+    return true;
+  }
 
-  g_snprintf(cmd, sizeof(cmd), "download %s", cls.download.name);
-  Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-  Net_WriteString(&cls.net_chan.message, cmd);
+  // write to a temp file, then rename
+  char tempname[MAX_OS_PATH];
+  StripExtension(filename, tempname);
+  g_strlcat(tempname, ".tmp", sizeof(tempname));
 
-  return false;
+  file_t *file = Fs_OpenWrite(tempname);
+  if (!file) {
+    Com_Warn("Failed to open %s for writing\n", tempname);
+    Mem_Free(cl_download.data);
+    return true;
+  }
+
+  Fs_Write(file, cl_download.data, 1, cl_download.length);
+  Fs_Close(file);
+  Mem_Free(cl_download.data);
+
+  if (Fs_Rename(tempname, filename)) {
+    Com_Print("Downloaded %s (%zu bytes)\n", filename, cl_download.length);
+
+    if (strstr(filename, ".pk3")) {
+      Fs_AddToSearchPath(filename);
+    }
+  } else {
+    Com_Error(ERROR_DROP, "Failed to rename %s\n", tempname);
+  }
+
+  return true;
 }
 
 /**
@@ -195,62 +243,6 @@ int32_t Cl_ParseConfigString(void) {
   }
 
   return i;
-}
-
-/**
- * @brief A download message has been received from the server.
- */
-static void Cl_ParseDownload(void) {
-  int32_t size, percent;
-
-  // read the data
-  size = Net_ReadShort(&net_message);
-  percent = Net_ReadByte(&net_message);
-  if (size < 0) {
-    Com_Debug(DEBUG_CLIENT, "Server does not have this file\n");
-    if (cls.download.file) {
-      // if here, we tried to resume a file but the server said no
-      Fs_Close(cls.download.file);
-      cls.download.file = NULL;
-    }
-    Cl_RequestNextDownload();
-    return;
-  }
-
-  // open the file if not opened yet
-  if (!cls.download.file) {
-
-    if (!(cls.download.file = Fs_OpenWrite(cls.download.tempname))) {
-      net_message.read += size;
-      Com_Warn("Failed to open %s\n", cls.download.tempname);
-      Cl_RequestNextDownload();
-      return;
-    }
-  }
-
-  Fs_Write(cls.download.file, net_message.data + net_message.read, 1, size);
-
-  net_message.read += size;
-
-  if (percent != 100) {
-    Net_WriteByte(&cls.net_chan.message, CL_CMD_STRING);
-    Net_WriteString(&cls.net_chan.message, "next_download");
-  } else {
-    Fs_Close(cls.download.file);
-    cls.download.file = NULL;
-
-    // add new archives to the search path
-    if (Fs_Rename(cls.download.tempname, cls.download.name)) {
-      if (strstr(cls.download.name, ".pk3")) {
-        Fs_AddToSearchPath(cls.download.name);
-      }
-    } else {
-      Com_Error(ERROR_DROP, "Failed to rename %s\n", cls.download.name);
-    }
-
-    // get another file if needed
-    Cl_RequestNextDownload();
-  }
 }
 
 /**
@@ -408,10 +400,6 @@ void Cl_ParseServerMessage(void) {
 
       case SV_CMD_DISCONNECT:
         Cl_Disconnect();
-        break;
-
-      case SV_CMD_DOWNLOAD:
-        Cl_ParseDownload();
         break;
 
       case SV_CMD_DROP:

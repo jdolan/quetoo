@@ -412,9 +412,9 @@ typedef enum {
 } cl_notification_t;
 
 /**
- * @brief The cl_static_t structure is persistent for the execution of the
- * game. It is only cleared when Cl_Init is called. It is not exposed to the
- * client game module, but is (rarely) visible to other subsystems (renderer).
+ * @brief The `cl_static_t` structure is persistent for the execution of the
+ * game. It is only cleared when `Cl_Init` is called. It is not exposed to the
+ * client game module.
  */
 typedef struct {
   cl_state_t state;
@@ -436,8 +436,7 @@ typedef struct {
 
   cl_loading_t loading; // loading status
 
-  char download_url[MAX_OS_PATH]; // for http downloads
-  cl_download_t download; // current download (udp or http)
+  cl_download_t download;
 
   char demo_filename[MAX_OS_PATH];
   file_t *demo_file;

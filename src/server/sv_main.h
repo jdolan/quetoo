@@ -30,7 +30,6 @@ void Sv_Frame(const uint32_t msec);
 #ifdef __SV_LOCAL_H__
 // cvars
 extern cvar_t *sv_demo_list;
-extern cvar_t *sv_download_url;
 extern cvar_t *sv_enforce_time;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_max_clients;
@@ -38,7 +37,6 @@ extern cvar_t *sv_max_entities;
 extern cvar_t *sv_public;
 extern cvar_t *sv_rcon_password;
 extern cvar_t *sv_timeout;
-extern cvar_t *sv_udp_download;
 
 // per-level and static server structures
 extern sv_server_t sv;

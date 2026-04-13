@@ -37,7 +37,7 @@
   #include <sys/socket.h>
 #endif
 
-#include "net.h"
+#include "net_sock.h"
 
 in_addr_t net_lo;
 
@@ -105,6 +105,18 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
   static char s[64];
 
   g_snprintf(s, sizeof(s), "%s:%i", inet_ntoa(*(const struct in_addr *) &a->addr), ntohs(a->port));
+
+  return s;
+}
+
+/**
+ * @brief Returns the IP address of a net_addr_t as a string, without port.
+ * @remarks Uses a static buffer; not reentrant.
+ */
+const char *Net_NetaddrToIpString(const net_addr_t *a) {
+  static char s[INET_ADDRSTRLEN];
+
+  g_strlcpy(s, inet_ntoa(*(const struct in_addr *) &a->addr), sizeof(s));
 
   return s;
 }
@@ -219,6 +231,92 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
   }
 
   return sock;
+}
+
+/**
+ * @brief Creates a non-blocking TCP listen socket with SO_REUSEADDR.
+ * @return The socket descriptor, or -1 on failure.
+ */
+int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
+  int32_t opt = 1;
+
+  const int32_t sock = socket(PF_INET, SOCK_STREAM, 0);
+  if (sock == -1) {
+    Com_Warn("socket: %s\n", Net_GetErrorString());
+    return -1;
+  }
+
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const void *) &opt, sizeof(opt));
+  setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (const void *) &opt, sizeof(opt));
+
+  net_sockaddr addr;
+  memset(&addr, 0, sizeof(addr));
+
+  if (iface) {
+    Net_StringToSockaddr(iface, &addr);
+  } else {
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = INADDR_ANY;
+  }
+
+  addr.sin_port = htons(port);
+
+  if (bind(sock, (void *) &addr, sizeof(addr)) == -1) {
+    Com_Warn("bind: %s\n", Net_GetErrorString());
+    Net_CloseSocket(sock);
+    return -1;
+  }
+
+  Net_SetNonBlocking(sock, true);
+
+  if (listen(sock, backlog) == -1) {
+    Com_Warn("listen: %s\n", Net_GetErrorString());
+    Net_CloseSocket(sock);
+    return -1;
+  }
+
+  return sock;
+}
+
+/**
+ * @brief Accept a connection on a listening socket.
+ * @param from If non-NULL, receives the remote address.
+ * @return The accepted socket descriptor, or -1 if none pending.
+ */
+int32_t Net_Accept(int32_t sock, net_addr_t *from) {
+  net_sockaddr addr;
+  socklen_t addr_len = sizeof(addr);
+
+  const int32_t client = accept(sock, (struct sockaddr *) &addr, &addr_len);
+  if (client == -1) {
+    return -1;
+  }
+
+  Net_SetNonBlocking(client, true);
+
+  if (from) {
+    from->type = NA_STREAM;
+    from->addr = addr.sin_addr.s_addr;
+    from->port = addr.sin_port;
+  }
+
+  return client;
+}
+
+/**
+ * @brief Send data on a connected socket.
+ * @return Bytes sent, or -1 on error.
+ */
+ssize_t Net_Send(int32_t sock, const void *data, size_t len) {
+  return send(sock, data, len, 0);
+}
+
+/**
+ * @brief Receive data from a connected socket.
+ * @return Bytes received, 0 on close, or -1 on error.
+ */
+ssize_t Net_Recv(int32_t sock, void *data, size_t len) {
+  return recv(sock, data, len, 0);
 }
 
 /**

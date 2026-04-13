@@ -26,6 +26,7 @@
     <ClInclude Include="..\..\src\server\sv_editor.h" />
     <ClInclude Include="..\..\src\server\sv_entity.h" />
     <ClInclude Include="..\..\src\server\sv_game.h" />
+    <ClInclude Include="..\..\src\server\sv_http.h" />
     <ClInclude Include="..\..\src\server\sv_init.h" />
     <ClInclude Include="..\..\src\server\sv_local.h" />
     <ClInclude Include="..\..\src\server\sv_main.h" />
@@ -41,6 +42,7 @@
     <ClCompile Include="..\..\src\server\sv_editor.c" />
     <ClCompile Include="..\..\src\server\sv_entity.c" />
     <ClCompile Include="..\..\src\server\sv_game.c" />
+    <ClCompile Include="..\..\src\server\sv_http.c" />
     <ClCompile Include="..\..\src\server\sv_init.c" />
     <ClCompile Include="..\..\src\server\sv_main.c" />
     <ClCompile Include="..\..\src\server\sv_master.c" />

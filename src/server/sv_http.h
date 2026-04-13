@@ -21,9 +21,13 @@
 
 #pragma once
 
-#include "net.h"
+#include "sv_types.h"
 
-int32_t Net_Connect(const char *host, struct timeval *timeout);
+#ifdef __SV_LOCAL_H__
 
-bool Net_SendStream(int32_t sock, const void *data, size_t len);
-bool Net_ReceiveStream(int32_t sock, mem_buf_t *buf);
+void Sv_InitHttp(void);
+void Sv_ShutdownHttp(void);
+void Sv_HttpThink(void);
+void Sv_HttpClientDisconnect(sv_http_client_t *http);
+
+#endif /* __SV_LOCAL_H__ */

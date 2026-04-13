@@ -48,6 +48,7 @@ src/tests/check_color
 src/tests/check_cvar
 src/tests/check_editor_map
 src/tests/check_filesystem
+src/tests/check_http
 src/tests/check_master
 src/tests/check_mem
 src/tests/check_r_media

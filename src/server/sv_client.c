@@ -190,118 +190,6 @@ static void Sv_Begin_f(void) {
 }
 
 /**
- * @brief
- */
-static void Sv_NextDownload_f(void) {
-  byte buf[MAX_MSG_SIZE];
-  mem_buf_t msg;
-
-  sv_client_download_t *download = &sv_client->download;
-
-  if (!download->buffer) {
-    return;
-  }
-
-  Mem_InitBuffer(&msg, buf, sizeof(buf));
-
-  int32_t len = Clampf(download->size - download->count, 0, 1024);
-
-  Net_WriteByte(&msg, SV_CMD_DOWNLOAD);
-  Net_WriteShort(&msg, len);
-
-  int32_t percent = download->count * 100 / (Clampf(download->size, 1, download->size));
-  Net_WriteByte(&msg, percent);
-
-  Mem_WriteBuffer(&msg, download->buffer + download->count, len);
-  Mem_WriteBuffer(&sv_client->net_chan.message, msg.data, msg.size);
-
-  download->count += len;
-
-  if (download->count == download->size) {
-    Com_Debug(DEBUG_SERVER, "Finished download to %s\n", Sv_NetaddrToString(sv_client));
-
-    Fs_Free(download->buffer);
-    download->buffer = NULL;
-  }
-}
-
-/**
- * @brief
- */
-static void Sv_Download_f(void) {
-  const char *allowed_patterns[] = {
-    "*.pk3",
-    "maps/*",
-    "models/*",
-    "sounds/*",
-    "sky/*",
-    "textures/*",
-    NULL
-  };
-
-  const char *filename = Cmd_Argv(1);
-
-  // catch illegal offset or filenames
-  if (IS_INVALID_DOWNLOAD(filename)) {
-    Com_Warn("Malicious download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
-    Sv_KickClient(sv_client, NULL);
-    return;
-  }
-
-  const char **pattern = allowed_patterns;
-  while (pattern) { // ensure download name is allowed
-    if (GlobMatch(*pattern, filename, GLOB_FLAGS_NONE)) {
-      break;
-    }
-    pattern++;
-  }
-
-  if (!pattern) { // it wasn't
-    Com_Warn("Illegal download (%s) from %s\n", filename, Sv_NetaddrToString(sv_client));
-    Sv_KickClient(sv_client, NULL);
-    return;
-  }
-
-  if (!sv_udp_download->value) { // ensure server wishes to allow
-    Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
-    Net_WriteShort(&sv_client->net_chan.message, -1);
-    Net_WriteByte(&sv_client->net_chan.message, 0);
-    return;
-  }
-
-  sv_client_download_t *download = &sv_client->download;
-
-  if (download->buffer) { // free last download
-    Fs_Free(download->buffer);
-  }
-
-  memset(download, 0, sizeof(*download));
-
-  // try to load the file
-  download->size = (int32_t) Fs_Load(filename, (void *) &download->buffer);
-
-  if (download->size == -1) {
-    Com_Warn("Couldn't download %s to %s\n", filename, Sv_NetaddrToString(sv_client));
-    Net_WriteByte(&sv_client->net_chan.message, SV_CMD_DOWNLOAD);
-    Net_WriteShort(&sv_client->net_chan.message, -1);
-    Net_WriteByte(&sv_client->net_chan.message, 0);
-    return;
-  }
-
-  if (Cmd_Argc() > 2) {
-    download->count = (int32_t) strtol(Cmd_Argv(2), NULL, 0);
-    if (download->count < 0 || download->count > download->size) {
-      Com_Warn("Invalid offset (%d) from %s\n", download->count,
-               Sv_NetaddrToString(sv_client));
-      download->count = download->size;
-    }
-  }
-
-  Sv_NextDownload_f();
-  Com_Debug(DEBUG_SERVER, "Downloading %s to %s\n", filename, sv_client->name);
-}
-
-/**
  * @brief The client is going to disconnect, so remove the connection immediately
  */
 static void Sv_Disconnect_f(void) {
@@ -347,8 +235,6 @@ static sv_user_string_cmd_t sv_user_string_cmds[] = { // mapping command names t
   { "begin", Sv_Begin_f },
   { "disconnect", Sv_Disconnect_f },
   { "info", Sv_Info_f },
-  { "download", Sv_Download_f },
-  { "next_download", Sv_NextDownload_f },
   { NULL, NULL }
 };
 

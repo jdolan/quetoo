@@ -383,15 +383,13 @@
 		CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62A1C5C58C300CD0B13 /* cm_model.c */; };
 		CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62C1C5C58C300CD0B13 /* cm_test.c */; };
 		CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D62E1C5C58C300CD0B13 /* cm_trace.c */; };
-		CE80FE671C5E433F00A21A51 /* net.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6901C5C58C300CD0B13 /* net.c */; };
+		CE80FE671C5E433F00A21A51 /* net_sock.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6901C5C58C300CD0B13 /* net_sock.c */; };
 		CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6921C5C58C300CD0B13 /* net_chan.c */; };
 		CE80FE691C5E433F00A21A51 /* net_message.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6941C5C58C300CD0B13 /* net_message.c */; };
-		CE80FE6A1C5E433F00A21A51 /* net_tcp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6961C5C58C300CD0B13 /* net_tcp.c */; };
 		CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6991C5C58C300CD0B13 /* net_udp.c */; };
-		CE80FE6C1C5E435C00A21A51 /* net.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6911C5C58C300CD0B13 /* net.h */; };
+		CE80FE6C1C5E435C00A21A51 /* net_sock.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6911C5C58C300CD0B13 /* net_sock.h */; };
 		CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6931C5C58C300CD0B13 /* net_chan.h */; };
 		CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6951C5C58C300CD0B13 /* net_message.h */; };
-		CE80FE6F1C5E435C00A21A51 /* net_tcp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6971C5C58C300CD0B13 /* net_tcp.h */; };
 		CE80FE701C5E435C00A21A51 /* net_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6981C5C58C300CD0B13 /* net_types.h */; };
 		CE80FE711C5E435C00A21A51 /* net_udp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D69A1C5C58C300CD0B13 /* net_udp.h */; };
 		CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6291C5C58C300CD0B13 /* cm_local.h */; };
@@ -582,6 +580,8 @@
 		CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA79542775396800EAC853 /* TeamView.json */; };
 		CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */; };
 		CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */; };
+		CEAB00032EC1A00000000003 /* sv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00012EC1A00000000001 /* sv_http.c */; };
+		CEAB00042EC1A00000000004 /* sv_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00022EC1A00000000002 /* sv_http.h */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
@@ -590,6 +590,16 @@
 		CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
 		CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
 		CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
+		CEAD8F912F8D765F0087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
+		CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEAD8F962F8D765F0087A850 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CEAD8F972F8D765F0087A850 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CEAD8F982F8D765F0087A850 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
+		CEAD8F992F8D765F0087A850 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CEAD8FA02F8D76830087A850 /* check_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8F8C2F8D76260087A850 /* check_http.c */; };
+		CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
+		CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -884,6 +894,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
+		};
+		CEAD8F9E2F8D76790087A850 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FE431C5E431000A21A51;
+			remoteInfo = net;
 		};
 		CEB384F129A3D24D006DEA13 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1322,14 +1339,12 @@
 		CE12D68B1C5C58C300CD0B13 /* mem_buf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mem_buf.c; sourceTree = "<group>"; };
 		CE12D68C1C5C58C300CD0B13 /* mem_buf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mem_buf.h; sourceTree = "<group>"; };
 		CE12D68E1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D6901C5C58C300CD0B13 /* net.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net.c; sourceTree = "<group>"; };
-		CE12D6911C5C58C300CD0B13 /* net.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net.h; sourceTree = "<group>"; };
+		CE12D6901C5C58C300CD0B13 /* net_sock.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_sock.c; sourceTree = "<group>"; };
+		CE12D6911C5C58C300CD0B13 /* net_sock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_sock.h; sourceTree = "<group>"; };
 		CE12D6921C5C58C300CD0B13 /* net_chan.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = net_chan.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6931C5C58C300CD0B13 /* net_chan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_chan.h; sourceTree = "<group>"; };
 		CE12D6941C5C58C300CD0B13 /* net_message.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_message.c; sourceTree = "<group>"; };
 		CE12D6951C5C58C300CD0B13 /* net_message.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_message.h; sourceTree = "<group>"; };
-		CE12D6961C5C58C300CD0B13 /* net_tcp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_tcp.c; sourceTree = "<group>"; };
-		CE12D6971C5C58C300CD0B13 /* net_tcp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_tcp.h; sourceTree = "<group>"; };
 		CE12D6981C5C58C300CD0B13 /* net_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_types.h; sourceTree = "<group>"; };
 		CE12D6991C5C58C300CD0B13 /* net_udp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = net_udp.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D69A1C5C58C300CD0B13 /* net_udp.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_udp.h; sourceTree = "<group>"; };
@@ -1734,6 +1749,8 @@
 		CEAA7A0B27753AEF00EAC853 /* TeamsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = TeamsViewController.css; sourceTree = "<group>"; };
 		CEAAA4AF25C6E65100EE81B3 /* libObjectivelyMVC.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectivelyMVC.0.dylib; path = ../../../../usr/local/lib/libObjectivelyMVC.0.dylib; sourceTree = "<group>"; };
 		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
+		CEAB00012EC1A00000000001 /* sv_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_http.c; sourceTree = "<group>"; };
+		CEAB00022EC1A00000000002 /* sv_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_http.h; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
 		CEAC32B7242124BB007E1253 /* cg_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_sprite.c; sourceTree = "<group>"; };
 		CEAC32BA24212553007E1253 /* r_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_sprite.c; sourceTree = "<group>"; };
@@ -1741,6 +1758,8 @@
 		CEAC32BF242125ED007E1253 /* sprite_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_vs.glsl; sourceTree = "<group>"; };
 		CEAC32C0242125ED007E1253 /* sprite_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_fs.glsl; sourceTree = "<group>"; };
 		CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.2/lib/libSDL3_image.0.4.2.dylib; sourceTree = "<group>"; };
+		CEAD8F8C2F8D76260087A850 /* check_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_http.c; sourceTree = "<group>"; };
+		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -2148,6 +2167,21 @@
 				CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5A6ABD2EC60258005F3C92 /* libSDL3.0.dylib in Frameworks */,
 				CEA509012EA5D20A00F27205 /* libcheck.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAD8F932F8D765F0087A850 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */,
+				CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */,
+				CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */,
+				CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */,
+				CEAD8F962F8D765F0087A850 /* libglib-2.0.0.dylib in Frameworks */,
+				CEAD8F972F8D765F0087A850 /* libphysfs.3.2.0.dylib in Frameworks */,
+				CEAD8F982F8D765F0087A850 /* libSDL3.0.dylib in Frameworks */,
+				CEAD8F992F8D765F0087A850 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2851,13 +2885,11 @@
 				CE04FB1725CEDCD400C31433 /* net_http.h */,
 				CE12D6941C5C58C300CD0B13 /* net_message.c */,
 				CE12D6951C5C58C300CD0B13 /* net_message.h */,
-				CE12D6961C5C58C300CD0B13 /* net_tcp.c */,
-				CE12D6971C5C58C300CD0B13 /* net_tcp.h */,
+				CE12D6901C5C58C300CD0B13 /* net_sock.c */,
+				CE12D6911C5C58C300CD0B13 /* net_sock.h */,
 				CE12D6981C5C58C300CD0B13 /* net_types.h */,
 				CE12D6991C5C58C300CD0B13 /* net_udp.c */,
 				CE12D69A1C5C58C300CD0B13 /* net_udp.h */,
-				CE12D6901C5C58C300CD0B13 /* net.c */,
-				CE12D6911C5C58C300CD0B13 /* net.h */,
 				CE12D68E1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = net;
@@ -2879,6 +2911,8 @@
 				CE12D6A81C5C58C300CD0B13 /* sv_entity.h */,
 				CE12D6A91C5C58C300CD0B13 /* sv_game.c */,
 				CE12D6AA1C5C58C300CD0B13 /* sv_game.h */,
+				CEAB00012EC1A00000000001 /* sv_http.c */,
+				CEAB00022EC1A00000000002 /* sv_http.h */,
 				CE12D6AB1C5C58C300CD0B13 /* sv_init.c */,
 				CE12D6AC1C5C58C300CD0B13 /* sv_init.h */,
 				CE12D6AD1C5C58C300CD0B13 /* sv_local.h */,
@@ -2908,6 +2942,7 @@
 				CEB384ED29A3A76C006DEA13 /* check_color.c */,
 				CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */,
 				CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */,
+				CEAD8F8C2F8D76260087A850 /* check_http.c */,
 				CE12D6D11C5C58C300CD0B13 /* check_master.c */,
 				CE12D6D31C5C58C300CD0B13 /* check_mem.c */,
 				CE12D6D51C5C58C300CD0B13 /* check_r_media.c */,
@@ -3044,6 +3079,7 @@
 				CEB384EC29A3A73B006DEA13 /* check_color */,
 				CE9A67152D2589020068D720 /* check_box */,
 				CEA509052EA5D20A00F27205 /* check_cm_polylib */,
+				CEAD8F9D2F8D765F0087A850 /* check_http */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3633,11 +3669,10 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FE6C1C5E435C00A21A51 /* net.h in Headers */,
+				CE80FE6C1C5E435C00A21A51 /* net_sock.h in Headers */,
 				CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */,
 				CE04FB1925CEDCD400C31433 /* net_http.h in Headers */,
 				CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */,
-				CE80FE6F1C5E435C00A21A51 /* net_tcp.h in Headers */,
 				CE80FE701C5E435C00A21A51 /* net_types.h in Headers */,
 				CE80FE711C5E435C00A21A51 /* net_udp.h in Headers */,
 			);
@@ -3689,6 +3724,7 @@
 				CEF75F422EB996E80026CCA4 /* sv_editor.h in Headers */,
 				CE80FFB61C5E4A3100A21A51 /* sv_entity.h in Headers */,
 				CE80FFB71C5E4A3100A21A51 /* sv_game.h in Headers */,
+				CEAB00042EC1A00000000004 /* sv_http.h in Headers */,
 				CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */,
 				CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */,
 				CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */,
@@ -4282,6 +4318,23 @@
 			productReference = CEA509052EA5D20A00F27205 /* check_cm_polylib */;
 			productType = "com.apple.product-type.tool";
 		};
+		CEAD8F8D2F8D765F0087A850 /* check_http */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEAD8F9A2F8D765F0087A850 /* Build configuration list for PBXNativeTarget "check_http" */;
+			buildPhases = (
+				CEAD8F902F8D765F0087A850 /* Sources */,
+				CEAD8F932F8D765F0087A850 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CEAD8F9F2F8D76790087A850 /* PBXTargetDependency */,
+			);
+			name = check_http;
+			productName = "test-r_media";
+			productReference = CEAD8F9D2F8D765F0087A850 /* check_http */;
+			productType = "com.apple.product-type.tool";
+		};
 		CEB384DE29A3A73B006DEA13 /* check_color */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEB384E929A3A73B006DEA13 /* Build configuration list for PBXNativeTarget "check_color" */;
@@ -4447,6 +4500,7 @@
 				CEB384DE29A3A73B006DEA13 /* check_color */,
 				CE51FBB321481F2500ABE14F /* check_cvar */,
 				CE51FBCC21481FC100ABE14F /* check_filesystem */,
+				CEAD8F8D2F8D765F0087A850 /* check_http */,
 				CE51FBE42148207700ABE14F /* check_master */,
 				CE052A5B214831FE003446C9 /* check_mem */,
 				CE51FB89214819B000ABE14F /* check_r_media */,
@@ -4780,11 +4834,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE80FE671C5E433F00A21A51 /* net.c in Sources */,
+				CE80FE671C5E433F00A21A51 /* net_sock.c in Sources */,
 				CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */,
 				CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */,
 				CE80FE691C5E433F00A21A51 /* net_message.c in Sources */,
-				CE80FE6A1C5E433F00A21A51 /* net_tcp.c in Sources */,
 				CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4831,6 +4884,7 @@
 				CEF75F412EB996E80026CCA4 /* sv_editor.c in Sources */,
 				CE80FFAB1C5E4A2800A21A51 /* sv_entity.c in Sources */,
 				CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */,
+				CEAB00032EC1A00000000003 /* sv_http.c in Sources */,
 				CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */,
 				CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */,
 				CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */,
@@ -4877,6 +4931,15 @@
 			files = (
 				CEA508F92EA5D20A00F27205 /* tests.c in Sources */,
 				CEA508FA2EA5D20A00F27205 /* check_cm_polylib.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAD8F902F8D765F0087A850 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEAD8F912F8D765F0087A850 /* tests.c in Sources */,
+				CEAD8FA02F8D76830087A850 /* check_http.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5091,6 +5154,11 @@
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEA508F72EA5D20A00F27205 /* PBXContainerItemProxy */;
+		};
+		CEAD8F9F2F8D76790087A850 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FE431C5E431000A21A51 /* net */;
+			targetProxy = CEAD8F9E2F8D76790087A850 /* PBXContainerItemProxy */;
 		};
 		CEB384F229A3D24D006DEA13 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5760,6 +5828,20 @@
 			};
 			name = Release;
 		};
+		CEAD8F9B2F8D765F0087A850 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CEAD8F9C2F8D765F0087A850 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CEB384EA29A3A73B006DEA13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6132,6 +6214,15 @@
 			buildConfigurations = (
 				CEA509032EA5D20A00F27205 /* Debug */,
 				CEA509042EA5D20A00F27205 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEAD8F9A2F8D765F0087A850 /* Build configuration list for PBXNativeTarget "check_http" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEAD8F9B2F8D765F0087A850 /* Debug */,
+				CEAD8F9C2F8D765F0087A850 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

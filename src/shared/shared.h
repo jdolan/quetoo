@@ -441,7 +441,6 @@ typedef enum {
   SV_CMD_CBUF_TEXT, // [string] stuffed into client's console buffer, should be \n terminated
   SV_CMD_CONFIG_STRING, // [short] [string]
   SV_CMD_DISCONNECT,
-  SV_CMD_DOWNLOAD, // [short] size [size bytes]
   SV_CMD_DROP,
   SV_CMD_FRAME,
   SV_CMD_PRINT, // [byte] id [string] null terminated string

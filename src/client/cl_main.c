@@ -390,12 +390,6 @@ static void Cl_ConnectionlessPacket(void) {
 
     cls.state = CL_CONNECTED;
 
-    if (Cmd_Argc() == 2) { // http download url
-      g_strlcpy(cls.download_url, Cmd_Argv(1), sizeof(cls.download_url));
-    } else {
-      cls.download_url[0] = '\0';
-    }
-
     return;
   }
 

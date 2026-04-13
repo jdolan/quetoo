@@ -40,6 +40,7 @@ TESTS = \
 	check_cvar \
 	check_editor_map \
 	check_filesystem \
+	check_http \
 	check_master \
 	check_mem \
 	check_r_media \
@@ -122,6 +123,15 @@ check_filesystem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_filesystem_LDADD = \
 	$(TESTS_LIBS)
+
+check_http_SOURCES = \
+	check_http.c
+check_http_CFLAGS = \
+	$(TESTS_CFLAGS) \
+	@OBJECTIVELY_CFLAGS@
+check_http_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/net/libnet.la
 
 check_master_SOURCES = \
 	check_master.c

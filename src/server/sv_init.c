@@ -191,10 +191,7 @@ static void Sv_ShutdownClients(void) {
 
   sv_client_t *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
-
-    if (cl->download.buffer) {
-      Fs_Free(cl->download.buffer);
-    }
+    Sv_HttpClientDisconnect(&cl->http);
   }
 
   Mem_Free(svs.clients);

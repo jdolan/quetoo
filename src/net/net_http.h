@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "net_types.h"
+#include "net_sock.h"
 
 /**
  * @brief The asynchronous HTTP callback type.
@@ -46,3 +46,47 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length);
  * @param callback The completion callback.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback);
+
+/**
+ * @brief Construct an HTTP URL from a net_addr_t and path.
+ * @param addr The server address.
+ * @param path The URL path (e.g. "maps/foo.bsp").
+ * @param buf The output buffer.
+ * @param buf_size The size of the output buffer.
+ * @return The number of characters written, or -1 on error.
+ */
+int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size);
+
+/**
+ * @brief Parse the request line of an HTTP request.
+ * @param request The raw HTTP request buffer (must be null-terminated).
+ * @param method The parsed method (e.g. "GET").
+ * @param method_size The size of the method buffer.
+ * @param path The parsed path (e.g. "maps/foo.bsp"), without leading slash.
+ * @param path_size The size of the path buffer.
+ * @return True if the request line was successfully parsed.
+ */
+bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_size,
+                              char *path, size_t path_size);
+
+/**
+ * @brief Format an HTTP/1.0 response header into a buffer.
+ * @param status The HTTP status code.
+ * @param reason The HTTP reason phrase.
+ * @param content_type The Content-Type header value, or NULL for none.
+ * @param content_length The Content-Length value.
+ * @param buf The output buffer.
+ * @param buf_size The size of the output buffer.
+ * @return The number of characters written.
+ */
+int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
+                               const char *content_type, int64_t content_length,
+                               char *buf, size_t buf_size);
+
+/**
+ * @brief Send an HTTP error response on a socket.
+ * @param sock The socket to send on.
+ * @param status The HTTP status code.
+ * @param reason The HTTP reason phrase.
+ */
+void Net_HttpSendError(int32_t sock, int32_t status, const char *reason);

@@ -32,6 +32,7 @@
 #include "sv_editor.h"
 #include "sv_entity.h"
 #include "sv_game.h"
+#include "sv_http.h"
 #include "sv_init.h"
 #include "sv_main.h"
 #include "sv_master.h"
