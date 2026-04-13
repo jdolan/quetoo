@@ -45,6 +45,16 @@ static bool Add(const char *name) {
 		return false;
 	}
 
+	if (*name == '/') {
+		Com_Warn("Rejecting absolute path: %s\n", name);
+		return false;
+	}
+
+	if (strchr(name, ' ')) {
+		Com_Warn("Rejecting path with spaces: %s\n", name);
+		return false;
+	}
+
 	if (strstr(name, "..")) {
 		Com_Warn("Rejecting path with '..': %s\n", name);
 		return false;
@@ -79,10 +89,7 @@ static bool AddFirstWithExtensions(const char *name, const char **extensions) {
 	const char **ext = extensions;
 	while (*ext) {
 		const char *path = va("%s.%s", base, *ext);
-		if (Fs_Exists(path)) {
-			if (!g_hash_table_contains(paths, path)) {
-				g_hash_table_insert(paths, g_strdup(path), g_strdup(path));
-			}
+		if (Add(path)) {
 			return true;
 		}
 		ext++;
