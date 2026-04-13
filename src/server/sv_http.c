@@ -264,11 +264,7 @@ void Sv_HttpClientDisconnect(sv_http_client_t *http) {
  */
 void Sv_InitHttp(void) {
 
-	const cvar_t *net_port = Cvar_Get("net_port");
-	if (!net_port) {
-		Com_Warn("HTTP: net_port not available\n");
-		return;
-	}
+	const cvar_t *net_port = Cvar_Add("net_port", va("%i", PORT_SERVER), CVAR_NO_SET, NULL);
 
 	const in_port_t port = net_port->integer;
 
