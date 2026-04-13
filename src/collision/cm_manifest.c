@@ -112,6 +112,8 @@ GList *Cm_ReadManifest(const char *path) {
 	Fs_Free(data);
 
 	for (gchar **line = lines; *line; line++) {
+		g_strstrip(*line);
+
 		if (**line == '\0') {
 			continue;
 		}
