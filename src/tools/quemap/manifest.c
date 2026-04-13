@@ -299,6 +299,7 @@ int32_t WriteManifest(void) {
 
 		void *data = NULL;
 		const int64_t len = Fs_Load(path, &data);
+		// zero-length assets are intentionally skipped (no valid game assets are empty)
 		if (len > 0 && data) {
 			Cm_AddManifestEntry(&manifest, path, data, len);
 			Com_Verbose("  %s\n", path);
