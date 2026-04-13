@@ -52,7 +52,7 @@ typedef struct {
   GLsizei num_vertexes;
 } r_draw_2d_arrays_t;
 
-#define MAX_DRAW_2D_ARRAYS 4096
+#define MAX_DRAW_2D_ARRAYS 8192
 
 /**
  * @brief 2D vertex struct.
