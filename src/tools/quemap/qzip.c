@@ -48,9 +48,11 @@ int32_t ZIP_Main(void) {
     Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mf_path);
   }
 
-  // always include the bsp itself
+  // the manifest includes the bsp and all referenced assets
   GList *assets = NULL;
-  assets = g_list_append(assets, g_strdup(va("maps/%s.bsp", map_base)));
+
+  // include the manifest itself so the pk3 is self-contained
+  assets = g_list_append(assets, g_strdup(mf_path));
 
   for (GList *e = manifest; e; e = e->next) {
     const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;

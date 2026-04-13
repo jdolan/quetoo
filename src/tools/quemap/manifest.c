@@ -276,6 +276,10 @@ int32_t WriteManifest(void) {
 	AddDocumentation();
 	AddMapshots();
 
+	// add the bsp itself to the manifest
+	const char *bsp_path = va("maps/%s.bsp", map_base);
+	Add(bsp_path);
+
 	// sort the asset paths
 	GList *asset_paths = g_hash_table_get_values(paths);
 	asset_paths = g_list_sort(asset_paths, (GCompareFunc) g_strcmp0);
