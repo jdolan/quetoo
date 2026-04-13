@@ -442,7 +442,7 @@ void R_DrawSprites(const r_view_t *view) {
 
       if (batch->diffusemap->texnum == in->diffusemap->texnum &&
         batch->next_diffusemap->texnum == in->next_diffusemap->texnum) {
-        bounds = Box3_Union(bounds, in->bounds);
+        bounds = Box3_Union(bounds, batch->bounds);
         batch_size++;
       } else {
         break;
