@@ -237,6 +237,13 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
 
   dir = normalize(view * vec4(dir, 0.0)).xyz;
 
+  float lambert = dot(dir, f.normal_sample);
+  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
+
+  if (atten * lambert <= 0.0) {
+    return;
+  }
+
   vec3 color = light.color.rgb * light.color.a * atten * modulate;
 
   float shadow = sample_shadow_atlas(light, index, v, f, atten);
@@ -251,9 +258,6 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
   if (shadow <= 0.0) {
     return;
   }
-
-  float lambert = dot(dir, f.normal_sample);
-  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
 
   f.diffuse += color * lambert * shadow;
   f.specular += blinn_phong(color * shadow, dir, f);
