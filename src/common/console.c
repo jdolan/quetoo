@@ -179,10 +179,10 @@ void Con_Append(int32_t level, const char *string) {
 
   while (console_state.size > CON_MAX_SIZE) {
     GList *first = console_state.strings.head;
-    str = first->data;
+    console_string_t *old = first->data;
 
     g_queue_unlink(&console_state.strings, first);
-    console_state.size -= str->size;
+    console_state.size -= old->size;
 
     g_list_free_full(first, Con_FreeString_GDestroyNotify);
   }
