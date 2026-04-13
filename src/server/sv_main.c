@@ -865,9 +865,9 @@ void Sv_Init(void) {
 
   Sv_InitMasters();
 
-  Sv_InitGame();
-
   Sv_InitHttp();
+
+  Sv_InitGame();
 
   if (dedicated->value && Fs_Exists("server.cfg")) {
     Com_Print("Executing server.cfg\n");
