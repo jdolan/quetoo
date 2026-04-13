@@ -38,9 +38,7 @@ void Cl_RequestNextDownload(void) {
     cl.precache_check = CS_BSP;
 
     if (*cl.config_strings[CS_PK3] != '\0') {
-      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_PK3])) {
-        return;    // started a download
-      }
+      Cl_CheckOrDownloadFile(cl.config_strings[CS_PK3]);
     }
   }
 
@@ -49,9 +47,7 @@ void Cl_RequestNextDownload(void) {
     cl.precache_check++;
 
     if (*cl.config_strings[CS_BSP] != '\0') {
-      if (!Cl_CheckOrDownloadFile(cl.config_strings[CS_BSP])) {
-        return; // started a download
-      }
+      Cl_CheckOrDownloadFile(cl.config_strings[CS_BSP]);
     }
   }
 

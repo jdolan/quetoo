@@ -68,25 +68,29 @@ static char *sv_cmd_names[32] = {
 };
 
 /**
- * @brief Returns true if the file exists, otherwise it attempts to download
- * it from the server via HTTP.
+ * @brief Maximum download size (128 MB).
  */
-bool Cl_CheckOrDownloadFile(const char *filename) {
+#define MAX_DOWNLOAD_SIZE (128 * 1024 * 1024)
+
+/**
+ * @brief If the file does not exist locally, download it from the server via HTTP.
+ */
+void Cl_CheckOrDownloadFile(const char *filename) {
 
   if (cls.state == CL_DISCONNECTED) {
     Com_Print("Not connected\n");
-    return true;
+    return;
   }
 
   if (IS_INVALID_DOWNLOAD(filename)) {
     Com_Warn("Refusing to download \"%s\"\n", filename);
-    return true;
+    return;
   }
 
   Com_Debug(DEBUG_CLIENT, "Checking for %s\n", filename);
 
   if (Fs_Exists(filename)) {
-    return true;
+    return;
   }
 
   // derive the download URL from the server address we're connected to
@@ -107,7 +111,7 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
 
     if (cls.state == CL_DISCONNECTED) {
       Com_Warn("Disconnected during download of %s\n", filename);
-      return true;
+      return;
     }
 
     Cl_LoadingProgress(-1, va("Downloading %s", base));
@@ -119,7 +123,13 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
     if (cl_download.data) {
       Mem_Free(cl_download.data);
     }
-    return true;
+    return;
+  }
+
+  if (cl_download.length > MAX_DOWNLOAD_SIZE) {
+    Com_Warn("Download %s exceeds maximum size (%zu bytes)\n", filename, cl_download.length);
+    Mem_Free(cl_download.data);
+    return;
   }
 
   // write to a temp file, then rename
@@ -131,7 +141,7 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
   if (!file) {
     Com_Warn("Failed to open %s for writing\n", tempname);
     Mem_Free(cl_download.data);
-    return true;
+    return;
   }
 
   Fs_Write(file, cl_download.data, 1, cl_download.length);
@@ -147,8 +157,6 @@ bool Cl_CheckOrDownloadFile(const char *filename) {
   } else {
     Com_Error(ERROR_DROP, "Failed to rename %s\n", tempname);
   }
-
-  return true;
 }
 
 /**
