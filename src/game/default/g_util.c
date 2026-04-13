@@ -293,7 +293,9 @@ g_entity_t *G_AllocEntity(const char *classname) {
  */
 void G_FreeEntity(g_entity_t *ent) {
 
-  G_Debug("%s\n", etos(ent));
+  if (ent->classname) {
+    G_Debug("%s\n", etos(ent));
+  }
 
   gi.UnlinkEntity(ent);
 
