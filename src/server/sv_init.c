@@ -320,19 +320,6 @@ void Sv_InitServer(const char *server, sv_state_t state) {
 
   Cbuf_CopyToDefer();
 
-  // ensure that the requested map or demo exists
-  char path[MAX_QPATH];
-
-  if (state == SV_ACTIVE_DEMO) {
-    g_snprintf(path, sizeof(path), "demos/%s.demo", server);
-  } else {
-    g_snprintf(path, sizeof(path), "maps/%s.bsp", server);
-  }
-
-  if (!Fs_Exists(path)) {
-    Com_Error(ERROR_DROP, "Failed to load %s\n", path);
-  }
-
   // inform any connected clients to reconnect to us
   Sv_ShutdownMessage("Server restarting...\n", true);
 

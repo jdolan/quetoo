@@ -144,8 +144,13 @@ static void Sv_Demo_f(void) {
     return;
   }
 
-  // start up the demo
-  Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
+  const char *path = va("demos/%s.demo", Cmd_Argv(1));
+
+  if (Fs_Exists(path)) {
+    Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
+  } else {
+    Com_Warn("%s does not exist\n", path);
+  }
 }
 
 /**
@@ -166,8 +171,13 @@ static void Sv_Map_f(void) {
     return;
   }
 
-  // start up the map
-  Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_GAME);
+  const char *path = va("maps/%s.bsp", Cmd_Argv(1));
+
+  if (Fs_Exists(path)) {
+    Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_GAME);
+  } else {
+    Com_Warn("%s does not exist\n", path);
+  }
 }
 
 /**
