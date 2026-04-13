@@ -29,7 +29,9 @@ static int32_t sv_http_socket = -1;
  */
 static const char *sv_http_allowed_patterns[] = {
 	"*.pk3",
+	"docs/*",
 	"maps/*",
+	"mapshots/*",
 	"models/*",
 	"sounds/*",
 	"sky/*",

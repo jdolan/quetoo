@@ -19,10 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#if defined(_WIN32)
-  #include <winsock2.h>
-  #include <ws2tcpip.h>
-#elif !defined(_MSC_VER)
+#if !defined(_WIN32) && !defined(_MSC_VER)
   #include <sys/time.h>
 #endif
 

@@ -22,9 +22,6 @@
 #include <errno.h>
 
 #if defined(_WIN32)
-  #include <winsock2.h>
-  #include <ws2tcpip.h>
-
   #define ioctl ioctlsocket
 
   #include <Objectively/URLSession.h>

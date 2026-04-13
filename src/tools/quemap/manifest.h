@@ -21,14 +21,6 @@
 
 #pragma once
 
-#include "common/common.h"
+#include "quemap.h"
 
-#include "cm_bsp.h"
-#include "cm_entity.h"
-#include "cm_manifest.h"
-#include "cm_material.h"
-#include "cm_model.h"
-#include "cm_polylib.h"
-#include "cm_test.h"
-#include "cm_trace.h"
-#include "cm_types.h"
+int32_t WriteManifest(void);

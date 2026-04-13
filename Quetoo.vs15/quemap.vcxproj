@@ -28,6 +28,7 @@
     <ClCompile Include="..\src\tools\quemap\leakfile.c" />
     <ClCompile Include="..\src\tools\quemap\light.c" />
     <ClCompile Include="..\src\tools\quemap\main.c" />
+    <ClCompile Include="..\src\tools\quemap\manifest.c" />
     <ClCompile Include="..\src\tools\quemap\map.c" />
     <ClCompile Include="..\src\tools\quemap\material.c" />
     <ClCompile Include="..\src\tools\quemap\patch.c" />
@@ -63,6 +64,7 @@
     <ClInclude Include="..\src\tools\quemap\qbsp.h" />
     <ClInclude Include="..\src\tools\quemap\qlight.h" />
     <ClInclude Include="..\src\tools\quemap\quemap.h" />
+    <ClInclude Include="..\src\tools\quemap\manifest.h" />
     <ClInclude Include="..\src\tools\quemap\qzip.h" />
     <ClInclude Include="..\src\tools\quemap\simplex.h" />
     <ClInclude Include="..\src\tools\quemap\texture.h" />

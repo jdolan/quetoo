@@ -51,6 +51,8 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
+		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
 		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
 		CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
@@ -600,6 +602,15 @@
 		CEAD8FA02F8D76830087A850 /* check_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8F8C2F8D76260087A850 /* check_http.c */; };
 		CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
+		CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
+		CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
+		CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
+		CEAD8FAD2F8D8DE30087A850 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
+		CEAD8FAE2F8D8DE30087A850 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
+		CEAD8FAF2F8D8DE30087A850 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
+		CEAD8FB02F8D8DE30087A850 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
+		CEAD8FB52F8D8DF70087A850 /* check_cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */; };
+		CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -702,6 +713,7 @@
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1378277FB721001E1500 /* TeamPlayerView.h */; };
 		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
+		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 /* End PBXBuildFile section */
 
@@ -901,6 +913,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = CE80FE431C5E431000A21A51;
 			remoteInfo = net;
+		};
+		CEAD8FA62F8D8DE30087A850 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
+			remoteInfo = collision;
 		};
 		CEB384F129A3D24D006DEA13 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1116,6 +1135,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
+		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
 		CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../usr/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1760,6 +1781,8 @@
 		CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.2/lib/libSDL3_image.0.4.2.dylib; sourceTree = "<group>"; };
 		CEAD8F8C2F8D76260087A850 /* check_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_http.c; sourceTree = "<group>"; };
 		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_manifest.c; sourceTree = "<group>"; };
+		CEAD8FB42F8D8DE30087A850 /* check_cm_manifest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_manifest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -1827,6 +1850,8 @@
 		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
 		CEFF1377277FB721001E1500 /* TeamPlayerView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamPlayerView.json; sourceTree = "<group>"; };
 		CEFF1378277FB721001E1500 /* TeamPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamPlayerView.h; sourceTree = "<group>"; };
+		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
+		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2182,6 +2207,20 @@
 				CEAD8F972F8D765F0087A850 /* libphysfs.3.2.0.dylib in Frameworks */,
 				CEAD8F982F8D765F0087A850 /* libSDL3.0.dylib in Frameworks */,
 				CEAD8F992F8D765F0087A850 /* libcheck.0.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAD8FAA2F8D8DE30087A850 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */,
+				CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */,
+				CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */,
+				CEAD8FAD2F8D8DE30087A850 /* libglib-2.0.0.dylib in Frameworks */,
+				CEAD8FAE2F8D8DE30087A850 /* libphysfs.3.2.0.dylib in Frameworks */,
+				CEAD8FAF2F8D8DE30087A850 /* libSDL3.0.dylib in Frameworks */,
+				CEAD8FB02F8D8DE30087A850 /* libcheck.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2775,6 +2814,8 @@
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
 				CEA3B4851E057569004A6CF3 /* cm_material.c */,
 				CEA3B4861E057569004A6CF3 /* cm_material.h */,
+				D126FFD46C343DDC86C13E17 /* cm_manifest.c */,
+				9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */,
 				CE12D62A1C5C58C300CD0B13 /* cm_model.c */,
 				CE12D62B1C5C58C300CD0B13 /* cm_model.h */,
 				CE3C529321E4DF2500FEDBED /* cm_polylib.c */,
@@ -2936,6 +2977,7 @@
 				CE354EEE22075054008AE0C2 /* check_atlas.c */,
 				CE9A67092D2588B20068D720 /* check_box.c */,
 				CEA509062EA5D21F00F27205 /* check_cm_entity.c */,
+				CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */,
 				CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */,
 				CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */,
 				CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */,
@@ -3002,6 +3044,8 @@
 				CE92B3A91D2FF72200E9153A /* quemap-icon.rc */,
 				CE12D6FF1C5C58C300CD0B13 /* quemap.h */,
 				CE92B3AA1D2FF77800E9153A /* quemap.ico */,
+				57941D4E858E897A2E3083ED /* manifest.c */,
+				DF0B9374573E39DECA0D8E4C /* manifest.h */,
 				CE12D7021C5C58C300CD0B13 /* qzip.c */,
 				CE6FF29C1E9E6FBA00F3C160 /* qzip.h */,
 				CEEC202F25B3265700E49614 /* simplex.c */,
@@ -3080,6 +3124,7 @@
 				CE9A67152D2589020068D720 /* check_box */,
 				CEA509052EA5D20A00F27205 /* check_cm_polylib */,
 				CEAD8F9D2F8D765F0087A850 /* check_http */,
+				CEAD8FB42F8D8DE30087A850 /* check_cm_manifest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -3658,6 +3703,7 @@
 				CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */,
 				CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */,
 				CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */,
+				F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */,
 				CE80FE731C5E437F00A21A51 /* cm_model.h in Headers */,
 				CE80FE741C5E437F00A21A51 /* cm_test.h in Headers */,
 				CE80FE751C5E437F00A21A51 /* cm_trace.h in Headers */,
@@ -4335,6 +4381,23 @@
 			productReference = CEAD8F9D2F8D765F0087A850 /* check_http */;
 			productType = "com.apple.product-type.tool";
 		};
+		CEAD8FA42F8D8DE30087A850 /* check_cm_manifest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CEAD8FB12F8D8DE30087A850 /* Build configuration list for PBXNativeTarget "check_cm_manifest" */;
+			buildPhases = (
+				CEAD8FA72F8D8DE30087A850 /* Sources */,
+				CEAD8FAA2F8D8DE30087A850 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CEAD8FA52F8D8DE30087A850 /* PBXTargetDependency */,
+			);
+			name = check_cm_manifest;
+			productName = "test-r_media";
+			productReference = CEAD8FB42F8D8DE30087A850 /* check_cm_manifest */;
+			productType = "com.apple.product-type.tool";
+		};
 		CEB384DE29A3A73B006DEA13 /* check_color */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEB384E929A3A73B006DEA13 /* Build configuration list for PBXNativeTarget "check_color" */;
@@ -4495,6 +4558,7 @@
 				CE9A670B2D2589020068D720 /* check_box */,
 				CE51FB9D21481DD300ABE14F /* check_cmd */,
 				CEE3A0F021EE2B3F0070FD3E /* check_cm_entity */,
+				CEAD8FA42F8D8DE30087A850 /* check_cm_manifest */,
 				CEA508F52EA5D20A00F27205 /* check_cm_polylib */,
 				CE4DCF8C256F0DAD00FECAFC /* check_cm_test */,
 				CEB384DE29A3A73B006DEA13 /* check_color */,
@@ -4777,6 +4841,7 @@
 				CE80FFF21C5E4D1800A21A51 /* qbsp.c in Sources */,
 				CE80FFF31C5E4D1800A21A51 /* qlight.c in Sources */,
 				CE80FFF61C5E4D1800A21A51 /* qzip.c in Sources */,
+				997E573805B0DCF96FB8C299 /* manifest.c in Sources */,
 				CE80FFF81C5E4D1800A21A51 /* texture.c in Sources */,
 				CE91924D2055731E007AC8FF /* tjunction.c in Sources */,
 				CE80FFFA1C5E4D1800A21A51 /* tree.c in Sources */,
@@ -4823,6 +4888,7 @@
 				CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */,
 				CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */,
 				CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */,
+				522B158EA7384E83CD005789 /* cm_manifest.c in Sources */,
 				CE80FE3B1C5E424300A21A51 /* cm_model.c in Sources */,
 				CE80FE3C1C5E424300A21A51 /* cm_test.c in Sources */,
 				CE80FE3D1C5E424300A21A51 /* cm_trace.c in Sources */,
@@ -4940,6 +5006,15 @@
 			files = (
 				CEAD8F912F8D765F0087A850 /* tests.c in Sources */,
 				CEAD8FA02F8D76830087A850 /* check_http.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAD8FA72F8D8DE30087A850 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */,
+				CEAD8FB52F8D8DF70087A850 /* check_cm_manifest.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5159,6 +5234,11 @@
 			isa = PBXTargetDependency;
 			target = CE80FE431C5E431000A21A51 /* net */;
 			targetProxy = CEAD8F9E2F8D76790087A850 /* PBXContainerItemProxy */;
+		};
+		CEAD8FA52F8D8DE30087A850 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE80FE0E1C5E421900A21A51 /* collision */;
+			targetProxy = CEAD8FA62F8D8DE30087A850 /* PBXContainerItemProxy */;
 		};
 		CEB384F229A3D24D006DEA13 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5842,6 +5922,20 @@
 			};
 			name = Release;
 		};
+		CEAD8FB22F8D8DE30087A850 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CEAD8FB32F8D8DE30087A850 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		CEB384EA29A3A73B006DEA13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -6223,6 +6317,15 @@
 			buildConfigurations = (
 				CEAD8F9B2F8D765F0087A850 /* Debug */,
 				CEAD8F9C2F8D765F0087A850 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CEAD8FB12F8D8DE30087A850 /* Build configuration list for PBXNativeTarget "check_cm_manifest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CEAD8FB22F8D8DE30087A850 /* Debug */,
+				CEAD8FB32F8D8DE30087A850 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
