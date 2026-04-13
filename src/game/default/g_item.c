@@ -783,16 +783,13 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   if (tr.start_solid) {
     if (item->type == ITEM_TECH) {
       G_ResetDroppedTech(it);
+    } else if (item->type == ITEM_FLAG) {
+      G_ResetDroppedFlag(it);
+    } else {
+      G_FreeEntity(it);
     }
-    else {
-      if (item->type == ITEM_FLAG) {
-        G_ResetDroppedFlag(it);
-      } else {
-        G_FreeEntity(it);
-      }
 
-      return NULL;
-    }
+    return NULL;
   }
 
   it->s.origin = tr.end;
