@@ -918,8 +918,8 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
 			proxyType = 1;
-			remoteGlobalIDString = CE80FDD91C5E3E1100A21A51;
-			remoteInfo = common;
+			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
+			remoteInfo = collision;
 		};
 		CEB384F129A3D24D006DEA13 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -5237,7 +5237,7 @@
 		};
 		CEAD8FA52F8D8DE30087A850 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = CE80FDD91C5E3E1100A21A51 /* common */;
+			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEAD8FA62F8D8DE30087A850 /* PBXContainerItemProxy */;
 		};
 		CEB384F229A3D24D006DEA13 /* PBXTargetDependency */ = {
