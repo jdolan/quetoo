@@ -19,6 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "manifest.h"
 #include "qbsp.h"
 #include "qlight.h"
 #include "qzip.h"
@@ -380,6 +381,9 @@ int32_t main(int32_t argc, char **argv) {
 
     FreeMaterials();
   }
+
+  // always write the manifest after compilation (or before -zip)
+  WriteManifest();
 
   if (do_zip) {
     ZIP_Main();

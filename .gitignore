@@ -41,6 +41,7 @@ src/tests/*.trs
 src/tests/check_atlas
 src/tests/check_box
 src/tests/check_cm_entity
+src/tests/check_cm_manifest
 src/tests/check_cm_polylib
 src/tests/check_cm_test
 src/tests/check_cmd

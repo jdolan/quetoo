@@ -23,9 +23,9 @@
 
 /**
  * @brief Entry point for file downloads, or "precache" from server. Attempt to
- * download .pk3 and .bsp from server. Archive is preferred. Once all precache
- * checks are completed, we load media and ask the server to begin sending
- * us frames.
+ * download the .pk3 archive, then the .mf manifest and all assets it references.
+ * Once all precache checks are completed, we load media and ask the server to
+ * begin sending us frames.
  */
 void Cl_RequestNextDownload(void) {
 
@@ -33,22 +33,40 @@ void Cl_RequestNextDownload(void) {
     return;
   }
 
-  // check zip
+  // check pk3 archive (may contain everything including manifest and bsp)
   if (cl.precache_check == CS_PK3) {
-    cl.precache_check = CS_BSP;
+    cl.precache_check = CS_MANIFEST;
 
     if (*cl.config_strings[CS_PK3] != '\0') {
       Cl_CheckOrDownloadFile(cl.config_strings[CS_PK3]);
     }
   }
 
-  // check .bsp via models
-  if (cl.precache_check == CS_BSP) { // the map is the only model we care about
+  // download the manifest and all assets it references (including the bsp)
+  if (cl.precache_check == CS_MANIFEST) {
     cl.precache_check++;
 
-    if (*cl.config_strings[CS_BSP] != '\0') {
-      Cl_CheckOrDownloadFile(cl.config_strings[CS_BSP]);
+    Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
+
+    GList *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
+    if (!manifest) {
+      Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
     }
+
+    for (GList *e = manifest; e; e = e->next) {
+      const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
+
+      if (Fs_Exists(entry->path)) {
+        if (!Cm_CheckManifestEntry(entry)) {
+          Com_Warn("%s differs from server (expected %s)\n",
+                   entry->path, entry->hash);
+        }
+      } else {
+        Cl_CheckOrDownloadFile(entry->path);
+      }
+    }
+
+    Cm_FreeManifest(manifest);
   }
 
   // we're good to go, lock and load (literally)

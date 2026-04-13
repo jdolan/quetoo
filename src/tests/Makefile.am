@@ -33,6 +33,7 @@ TESTS = \
 	check_atlas \
 	check_box \
 	check_cm_entity \
+	check_cm_manifest \
 	check_cm_polylib \
 	check_cm_test \
 	check_cmd \
@@ -76,6 +77,14 @@ check_cm_entity_SOURCES = \
 check_cm_entity_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cm_entity_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/collision/libcollision.la
+
+check_cm_manifest_SOURCES = \
+	check_cm_manifest.c
+check_cm_manifest_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_cm_manifest_LDADD = \
 	$(TESTS_LIBS) \
 	$(top_builddir)/src/collision/libcollision.la
 

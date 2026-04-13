@@ -275,6 +275,8 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
       sv.config_strings[CS_PK3][0] = '\0';
     }
 
+    g_snprintf(sv.config_strings[CS_MANIFEST], MAX_STRING_CHARS, "maps/%s.mf", sv.name);
+
     for (int32_t i = 0; i < Cm_NumModels(); i++) {
 
       if (i == MAX_MODELS) {
