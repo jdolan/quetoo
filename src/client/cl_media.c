@@ -46,27 +46,29 @@ void Cl_RequestNextDownload(void) {
   if (cl.precache_check == CS_MANIFEST) {
     cl.precache_check++;
 
-    Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
+    if (*cl.config_strings[CS_MANIFEST] != '\0') {
+      Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
 
-    GList *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
-    if (!manifest) {
-      Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
-    }
-
-    for (GList *e = manifest; e; e = e->next) {
-      const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
-
-      if (Fs_Exists(entry->path)) {
-        if (!Cm_CheckManifestEntry(entry)) {
-          Com_Warn("%s differs from server (expected %s)\n",
-                   entry->path, entry->hash);
-        }
-      } else {
-        Cl_CheckOrDownloadFile(entry->path);
+      GList *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
+      if (!manifest) {
+        Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
       }
-    }
 
-    Cm_FreeManifest(manifest);
+      for (GList *e = manifest; e; e = e->next) {
+        const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
+
+        if (Fs_Exists(entry->path)) {
+          if (!Cm_CheckManifestEntry(entry)) {
+            Com_Warn("%s differs from server (expected %s)\n",
+                     entry->path, entry->hash);
+          }
+        } else {
+          Cl_CheckOrDownloadFile(entry->path);
+        }
+      }
+
+      Cm_FreeManifest(manifest);
+    }
   }
 
   // we're good to go, lock and load (literally)
