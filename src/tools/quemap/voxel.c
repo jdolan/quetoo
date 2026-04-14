@@ -402,6 +402,13 @@ void ExposureVoxel(int32_t voxel_num) {
 }
 
 /**
+ * @brief qsort comparator for deterministic voxel light index ordering.
+ */
+static int IntCompare(const void *a, const void *b) {
+  return *(const int32_t *) a - *(const int32_t *) b;
+}
+
+/**
  * @brief
  */
 void EmitVoxels(void) {
@@ -493,9 +500,16 @@ void EmitVoxels(void) {
         GHashTableIter iter;
         light_t *light;
 
+        int32_t *indices = out_light_indices;
+
         g_hash_table_iter_init(&iter, voxel->lights);
         while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
           *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
+        }
+
+        const int32_t count = (int32_t) (out_light_indices - indices);
+        if (count > 1) {
+          qsort(indices, count, sizeof(int32_t), IntCompare);
         }
       }
     }
