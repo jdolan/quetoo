@@ -1158,6 +1158,7 @@ typedef struct r_model_s {
 
 #define IS_BSP_MODEL(m) (m && m->type == MODEL_BSP)
 #define IS_BSP_INLINE_MODEL(m) (m && m->type == MODEL_BSP_INLINE)
+#define IS_WORLDSPAWN(m) (m && m == r_models.world->bsp->worldspawn)
 #define IS_MESH_MODEL(m) (m && m->type == MODEL_MESH)
 
 /**
