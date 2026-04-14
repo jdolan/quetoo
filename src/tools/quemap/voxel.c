@@ -28,11 +28,9 @@
 voxels_t voxels;
 
 /**
- * @brief Adds a light to a voxel's light list and updates the light's visible bounds.
+ * @brief Adds a light to a voxel's light list.
  */
 static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
-
-  light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
 
   g_hash_table_add(voxel->lights, light);
 }
@@ -301,6 +299,21 @@ void LightVoxel(int32_t voxel_num) {
  * @brief Feathers lights into neighboring voxels to smooth boundaries.
  */
 void FeatherLights(void) {
+
+  // Compute each light's visible_bounds from voxel assignments.
+  // This was previously done in IlluminateVoxel during threaded LightVoxel,
+  // but Box3_Union on shared light state is a data race.
+  for (size_t v = 0; v < voxels.num_voxels; v++) {
+    voxel_t *voxel = &voxels.voxels[v];
+
+    GHashTableIter iter;
+    light_t *light;
+
+    g_hash_table_iter_init(&iter, voxel->lights);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
+      light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
+    }
+  }
 
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
