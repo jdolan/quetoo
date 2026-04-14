@@ -169,7 +169,7 @@ struct light_t {
   vec4 shadow;
 };
 
-#define MAX_BSP_LIGHTS 256
+#define MAX_BSP_LIGHTS 512
 #define MAX_DYNAMIC_LIGHTS 64
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
