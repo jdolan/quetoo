@@ -344,16 +344,14 @@ static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
-  const bool is_worldspawn = IS_WORLDSPAWN(entity->model);
-
-  if (!is_worldspawn) {
+  if (!IS_WORLDSPAWN(entity->model)) {
     R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
   }
 
   const r_bsp_block_t *block = in->blocks;
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
-    if (is_worldspawn) {
+    if (IS_WORLDSPAWN(entity->model)) {
 
       if (block->query->result == 0) {
         r_stats.blocks_occluded++;
@@ -443,9 +441,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
 
   const r_bsp_inline_model_t *in = entity->model->bsp_inline;
 
-  const bool is_worldspawn = IS_WORLDSPAWN(entity->model);
-
-  if (!is_worldspawn) {
+  if (!IS_WORLDSPAWN(entity->model)) {
     R_ActiveLights(view, entity->abs_model_bounds, r_bsp_program.active_lights);
   }
 
@@ -456,7 +452,7 @@ static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity)
       continue;
     }
 
-    if (is_worldspawn) {
+    if (IS_WORLDSPAWN(entity->model)) {
 
       if (block->query->result == 0) {
         continue;
