@@ -196,6 +196,9 @@ int32_t num_welds = 0;
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
   static const int32_t offsets[] = { 0, 1, -1 };
 
+  float best_dist = VERTEX_EPSILON * VERTEX_EPSILON;
+  int32_t best_index = -1;
+
   for (int32_t z = 0; z < (int32_t) lengthof(offsets); z++) {
     for (int32_t y = 0; y < (int32_t) lengthof(offsets); y++) {
       for (int32_t x = 0; x < (int32_t) lengthof(offsets); x++) {
@@ -210,20 +213,26 @@ static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
         gpointer iter_key;
         g_hash_table_iter_init(&iter, array);
 
-        while (g_hash_table_iter_next (&iter, &iter_key, NULL)) {
-          const vec3_t pos = bsp_file.vertexes[GPOINTER_TO_INT(iter_key)].position;
+        while (g_hash_table_iter_next(&iter, &iter_key, NULL)) {
+          const int32_t idx = GPOINTER_TO_INT(iter_key);
+          const vec3_t pos = bsp_file.vertexes[idx].position;
+          const float dist = Vec3_DistanceSquared(pos, in);
 
-          if (Vec3_DistanceSquared(pos, in) < VERTEX_EPSILON * VERTEX_EPSILON) {
-            *out = pos;
-            num_welds++;
-            return;
+          if (dist < best_dist || (dist == best_dist && idx < best_index)) {
+            best_dist = dist;
+            best_index = idx;
           }
         }
       }
     }
   }
 
-  *out = in;
+  if (best_index >= 0) {
+    *out = bsp_file.vertexes[best_index].position;
+    num_welds++;
+  } else {
+    *out = in;
+  }
 }
 
 /**
