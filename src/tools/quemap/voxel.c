@@ -490,45 +490,12 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        const int32_t count = voxel->lights_count;
-        if (count == 0) {
-          continue;
-        }
-
-        // Collect lights with their estimated contribution to this voxel
-        typedef struct {
-          int32_t index;
-          float contribution;
-        } light_sort_t;
-
-        light_sort_t *sorted = alloca(count * sizeof(light_sort_t));
-        int32_t n = 0;
-
         GHashTableIter iter;
         light_t *light;
 
         g_hash_table_iter_init(&iter, voxel->lights);
         while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
-          const float dist = Vec3_Distance(light->origin, voxel->origin);
-          const float atten = Clampf(1.f - dist / light->radius, 0.f, 1.f);
-          sorted[n].index = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
-          sorted[n].contribution = light->intensity * atten;
-          n++;
-        }
-
-        // Sort descending by contribution
-        for (int32_t i = 0; i < n - 1; i++) {
-          for (int32_t j = i + 1; j < n; j++) {
-            if (sorted[j].contribution > sorted[i].contribution) {
-              const light_sort_t tmp = sorted[i];
-              sorted[i] = sorted[j];
-              sorted[j] = tmp;
-            }
-          }
-        }
-
-        for (int32_t i = 0; i < n; i++) {
-          *out_light_indices++ = sorted[i].index;
+          *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
         }
       }
     }
