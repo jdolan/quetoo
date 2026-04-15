@@ -302,7 +302,19 @@ void Sys_Raise(const char *msg) {
 }
 
 /**
+ * @brief Signal received flag, checked by the main loop.
+ */
+volatile sig_atomic_t sys_signal_received = 0;
+
+/**
  * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
+ *
+ * For graceful signals (SIGINT, SIGTERM, etc.), we set a flag and return so
+ * the main loop can shut down safely — calling Com_Shutdown from signal
+ * context risks crashing inside the GL driver or other non-reentrant code.
+ *
+ * For fatal signals (SIGSEGV, SIGILL, etc.), we reset to SIG_DFL and
+ * re-raise to produce a clean crash with a core dump.
  */
 void Sys_Signal(int32_t s) {
 
@@ -313,8 +325,11 @@ void Sys_Signal(int32_t s) {
     case SIGHUP:
     case SIGQUIT:
 #endif
-      Com_Shutdown("Received signal %d, quitting...\n", s);
+      sys_signal_received = s;
+      return;
     default:
-      Com_Error(ERROR_FATAL, "Received signal %d\n", s);
+      signal(s, SIG_DFL);
+      raise(s);
+      break;
   }
 }

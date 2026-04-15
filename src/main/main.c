@@ -442,6 +442,10 @@ int32_t main(int32_t argc, char *argv[]) {
 
   while (true) { // this is our main loop
 
+    if (sys_signal_received) {
+      Com_Shutdown("Received signal %d, quitting...\n", sys_signal_received);
+    }
+
     if (setjmp(env)) { // an ERROR_DROP was thrown
       Com_Warn("Error detected, recovering..\n");
       continue;
