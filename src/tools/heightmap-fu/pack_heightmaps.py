@@ -31,7 +31,7 @@ from pathlib import Path
 from PIL import Image
 import numpy as np
 
-NORMAL_SUFFIXES = ("_nm", "_norm", "_n", "_local", "_bump")
+NORMAL_SUFFIXES = ("_norm",)
 HEIGHT_SUFFIXES = ("_h", "_height")
 IMAGE_EXTENSIONS = (".tga", ".png", ".jpg", ".jpeg")
 

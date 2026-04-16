@@ -55,7 +55,7 @@ PARAM_SPECS = [
 MAX_DISPLAY  = 380   # max canvas px per panel
 LIGHT_RADIUS = 10    # handle circle radius (px)
 
-_SKIP_SUFFIXES = ("_norm", "_gloss", "_spec", "_emit", "_local", "_height")
+_SKIP_SUFFIXES = ("_norm", "_spec", "_emit")
 
 
 def is_diffuse(path: Path) -> bool:

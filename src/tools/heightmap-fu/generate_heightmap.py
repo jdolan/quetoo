@@ -134,7 +134,7 @@ def generate_heightmap(
 
 MAX_DISPLAY = 512
 THUMB_SIZE = 96
-NORMAL_SUFFIXES = ("_nm", "_norm", "_n", "_local", "_bump")
+NORMAL_SUFFIXES = ("_norm",)
 
 PARAM_SPECS = [
     # (key,            label,                   lo,   hi,   default,  step,  is_int)
@@ -473,7 +473,7 @@ class HeightmapApp:
             parent = path.parent
             has_external = any(
                 (parent / (base + ext + path.suffix)).exists()
-                for ext in ("_h", "_height")
+                for ext in ("_h",)
             )
             needs_height = not has_external
 
@@ -659,7 +659,7 @@ class HeightmapApp:
         default_name = ""
         if self.source_path:
             stem = self.source_path.stem
-            for suffix in ("_norm", "_local", "_bump", "_nm", "_n"):
+            for suffix in ("_norm",):
                 if stem.endswith(suffix):
                     stem = stem[:-len(suffix)]
                     break

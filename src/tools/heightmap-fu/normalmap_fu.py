@@ -211,7 +211,7 @@ def normals_from_diffuse(diffuse_img: np.ndarray, strength: float = 1.0,
 
 MAX_DISPLAY = 196
 THUMB_SIZE = 96
-NORMAL_SUFFIXES = ("_nm", "_norm", "_n", "_local", "_bump")
+NORMAL_SUFFIXES = ("_norm",)
 DIFFUSE_SUFFIXES = ("_d", "")
 
 PARAM_SPECS = [
