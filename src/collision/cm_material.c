@@ -692,10 +692,6 @@ cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->normalmap.name, sizeof(m->normalmap.name))) {
         Cm_MaterialWarn(m, &parser, "Invalid normalmap path");
       }
-    } else if (!g_strcmp0(token, "heightmap")) {
-      if (!Parse_Token(&parser, PARSE_NO_WRAP, m->heightmap.name, sizeof(m->heightmap.name))) {
-        Cm_MaterialWarn(m, &parser, "Invalid heightmap path");
-      }
     } else if (!g_strcmp0(token, "specularmap")) {
       if (!Parse_Token(&parser, PARSE_NO_WRAP, m->specularmap.name, sizeof(m->specularmap.name))) {
         Cm_MaterialWarn(m, &parser, "Invalid specularmap path");
@@ -1070,12 +1066,8 @@ bool Cm_ResolveMaterial(cm_material_t *m) {
     return false;
   }
 
-  Cm_ResolveMaterialAsset(m, &m->normalmap, (const char *[]) { "_n", "_nm", "_norm", "_local", "_bump", NULL });
-  Cm_ResolveMaterialAsset(m, &m->specularmap, (const char *[]) { "_s", "_spec", "_g", "_gloss", NULL });
-
-  if (m->context == ASSET_CONTEXT_TEXTURES) {
-    Cm_ResolveMaterialAsset(m, &m->heightmap, (const char *[]) { "_h", "_height", NULL });
-  }
+  Cm_ResolveMaterialAsset(m, &m->normalmap, (const char *[]) { "_norm", NULL });
+  Cm_ResolveMaterialAsset(m, &m->specularmap, (const char *[]) { "_spec", NULL });
 
   if (m->context == ASSET_CONTEXT_PLAYERS || m->context == ASSET_CONTEXT_MODELS) {
     Cm_ResolveMaterialAsset(m, &m->tintmap, (const char *[]) { "_tint", NULL });
@@ -1186,9 +1178,6 @@ static void Cm_WriteMaterial(const cm_material_t *material, file_t *file) {
 
   if (*material->normalmap.name && !g_str_has_prefix(material->normalmap.name, material->basename)) {
     Fs_Print(file, "\tnormalmap %s\n", material->normalmap.name);
-  }
-  if (*material->heightmap.name && !g_str_has_prefix(material->heightmap.name, material->basename)) {
-    Fs_Print(file, "\theightmap %s\n", material->heightmap.name);
   }
   if (*material->specularmap.name && !g_str_has_prefix(material->specularmap.name, material->basename)) {
     Fs_Print(file, "\tspecularmap %s\n", material->specularmap.name);

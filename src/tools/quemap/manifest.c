@@ -138,7 +138,6 @@ static void AddMaterial(const cm_material_t *material) {
 	if (Add(material->diffusemap.path)) {
 		Add(material->path);
 		Add(material->normalmap.path);
-		Add(material->heightmap.path);
 		Add(material->specularmap.path);
 		Add(material->tintmap.path);
 

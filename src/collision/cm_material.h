@@ -276,11 +276,6 @@ typedef struct cm_material_s {
   cm_asset_t normalmap;
 
   /**
-   * @brief The heightmap asset.
-   */
-  cm_asset_t heightmap;
-
-  /**
    * @brief The specularmap asset.
    */
   cm_asset_t specularmap;
@@ -331,12 +326,12 @@ typedef struct cm_material_s {
   float specularity;
 
   /**
-   * @brief The parallax factor to use for the heightmap.
+   * @brief The parallax factor for the normalmap heightmap.
    */
   float parallax;
 
   /**
-   * @brief The self-shadow factor to use for the heightmap.
+   * @brief The self-shadow factor for the normalmap heightmap.
    */
   float shadow;
 
