@@ -402,33 +402,6 @@ typedef struct {
 } cl_loading_t;
 
 /**
- * @brief Phase of an in-progress data sync.
- */
-typedef enum {
-  CL_SYNC_IDLE,
-  CL_SYNC_CHECKING,
-  CL_SYNC_LISTING,
-  CL_SYNC_DOWNLOADING,
-  CL_SYNC_PRUNING,
-  CL_SYNC_DONE,
-  CL_SYNC_ERROR,
-} cl_sync_phase_t;
-
-/**
- * @brief Progress snapshot for an in-progress data sync.
- * Sent to cgame via cge.UpdateSync each client frame while sync is active.
- */
-typedef struct {
-  cl_sync_phase_t phase;
-  int32_t files_done;
-  int32_t files_total;
-  int32_t kbytes_done;
-  int32_t kbytes_total;
-  char current_file[MAX_OS_PATH];
-  char error[MAX_STRING_CHARS];
-} cl_sync_status_t;
-
-/**
  * Custom Notification names.
  */
 typedef enum {

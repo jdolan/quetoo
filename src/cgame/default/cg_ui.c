@@ -93,7 +93,7 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  * @brief Routes sync progress to the HomeViewController's progress bar.
  * No-ops if the HomeViewController is not the current top view controller.
  */
-void Cg_UpdateSync(const cl_sync_status_t sync) {
+void Cg_UpdateSync(const installer_sync_status_t sync) {
 
   if (mainViewController == NULL) {
     return;

@@ -31,6 +31,7 @@
 #endif
 
 #include "client/cl_types.h"
+#include "common/installer.h"
 
 #define CGAME_API_VERSION 26
 
@@ -961,7 +962,7 @@ typedef struct cg_export_s {
   /**
    * @brief Called each client frame while a data sync is in progress.
    */
-  void (*UpdateSync)(const cl_sync_status_t sync);
+  void (*UpdateSync)(const installer_sync_status_t sync);
 
   /**
    * @brief Called each frame to update the view definition and sound stage.

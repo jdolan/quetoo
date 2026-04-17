@@ -41,14 +41,14 @@ static void openReleasesPage(ident data) {
 /**
  * @see HomeViewControllerInterface::setSyncStatus
  */
-static void setSyncStatus(HomeViewController *self, const cl_sync_status_t sync) {
+static void setSyncStatus(HomeViewController *self, const installer_sync_status_t sync) {
 
   switch (sync.phase) {
-    case CL_SYNC_IDLE:
-    case CL_SYNC_DONE:
+    case INSTALLER_SYNC_IDLE:
+    case INSTALLER_SYNC_DONE:
       self->syncProgress->view.hidden = true;
       break;
-    case CL_SYNC_ERROR:
+    case INSTALLER_SYNC_ERROR:
       $(self->syncProgress, setLabelFormat, va("Error: %s", sync.error));
       $(self->syncProgress, setValue, 0.0);
       self->syncProgress->view.hidden = false;

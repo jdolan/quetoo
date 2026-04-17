@@ -498,9 +498,15 @@ const installer_status_t *Installer_SyncData(void) {
 
 /**
  * @brief Returns a pointer to the live installer status struct for polling.
- * Does not start or restart a sync. The pointer is valid for the lifetime of
- * the process.
+ * @brief Populates @a out with a plain snapshot of the current sync status.
+ * Does not start or restart a sync. Safe to call from any thread.
  */
-const installer_status_t *Installer_Status(void) {
-return &installer_status;
+void Installer_Status(installer_sync_status_t *out) {
+	out->phase       = (installer_sync_phase_t) SDL_GetAtomicInt(&installer_status.phase);
+	out->files_done  = SDL_GetAtomicInt(&installer_status.files_done);
+	out->files_total = SDL_GetAtomicInt(&installer_status.files_total);
+	out->kbytes_done  = SDL_GetAtomicInt(&installer_status.kbytes_done);
+	out->kbytes_total = SDL_GetAtomicInt(&installer_status.kbytes_total);
+	g_strlcpy(out->current_file, installer_status.current_file, sizeof(out->current_file));
+	g_strlcpy(out->error, installer_status.error, sizeof(out->error));
 }

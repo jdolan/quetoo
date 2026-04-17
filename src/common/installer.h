@@ -54,7 +54,21 @@ typedef struct {
 	char error[MAX_STRING_CHARS];
 } installer_status_t;
 
+/**
+ * @brief Plain (non-atomic) snapshot of installer sync progress.
+ * Safe to pass by value across subsystem boundaries.
+ */
+typedef struct {
+	installer_sync_phase_t phase;
+	int32_t files_done;
+	int32_t files_total;
+	int32_t kbytes_done;
+	int32_t kbytes_total;
+	char current_file[MAX_OS_PATH];
+	char error[MAX_STRING_CHARS];
+} installer_sync_status_t;
+
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
 const installer_status_t *Installer_SyncData(void);
-const installer_status_t *Installer_Status(void);
+void Installer_Status(installer_sync_status_t *out);

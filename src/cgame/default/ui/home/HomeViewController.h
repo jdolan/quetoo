@@ -74,10 +74,10 @@ struct HomeViewControllerInterface {
   ViewControllerInterface viewControllerInterface;
 
   /**
-   * @fn void HomeViewController::setSyncStatus(HomeViewController *self, const cl_sync_status_t sync)
+   * @fn void HomeViewController::setSyncStatus(HomeViewController *self, const installer_sync_status_t sync)
    * @brief Updates the sync progress bar with the current installer status.
    */
-  void (*setSyncStatus)(HomeViewController *self, const cl_sync_status_t sync);
+  void (*setSyncStatus)(HomeViewController *self, const installer_sync_status_t sync);
 };
 
 /**

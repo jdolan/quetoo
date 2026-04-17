@@ -788,24 +788,21 @@ void Sv_Frame(const uint32_t msec) {
     static installer_sync_phase_t last_phase = INSTALLER_SYNC_IDLE;
     static int32_t last_files_done = 0;
 
-    const installer_status_t *sync = Installer_Status();
-    const installer_sync_phase_t phase = (installer_sync_phase_t) SDL_GetAtomicInt((SDL_AtomicInt *) &sync->phase);
+    installer_sync_status_t sync;
+    Installer_Status(&sync);
 
-    if (phase != last_phase || (phase == INSTALLER_SYNC_DOWNLOADING &&
-                                SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_done) != last_files_done)) {
-      switch (phase) {
+    if (sync.phase != last_phase || (sync.phase == INSTALLER_SYNC_DOWNLOADING &&
+                                     sync.files_done != last_files_done)) {
+      switch (sync.phase) {
         case INSTALLER_SYNC_CHECKING:
           Com_Print("Data sync: checking revision...\n");
           break;
         case INSTALLER_SYNC_LISTING:
           Com_Print("Data sync: listing S3 objects...\n");
           break;
-        case INSTALLER_SYNC_DOWNLOADING: {
-          const int32_t done = SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_done);
-          const int32_t total = SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_total);
-          Com_Print("Data sync: downloading %s (%d/%d)...\n", sync->current_file, done, total);
-          last_files_done = done;
-        }
+        case INSTALLER_SYNC_DOWNLOADING:
+          Com_Print("Data sync: downloading %s (%d/%d)...\n", sync.current_file, sync.files_done, sync.files_total);
+          last_files_done = sync.files_done;
           break;
         case INSTALLER_SYNC_PRUNING:
           Com_Print("Data sync: pruning stale files...\n");
@@ -814,12 +811,12 @@ void Sv_Frame(const uint32_t msec) {
           Com_Print("Data sync: complete.\n");
           break;
         case INSTALLER_SYNC_ERROR:
-          Com_Warn("Data sync error: %s\n", sync->error);
+          Com_Warn("Data sync error: %s\n", sync.error);
           break;
         default:
           break;
       }
-      last_phase = phase;
+      last_phase = sync.phase;
     }
   }
 
