@@ -826,21 +826,9 @@ static void Sv_CheckForUpdates(void) {
       Com_Print("Quetoo %s is up to date.\n", REVISION);
       break;
     case 1:
-      while (true) {
-        Com_Print("A new version of Quetoo is available. Update now? Y/n ");
-        const int32_t c = tolower(getc(stdin));
-        if (c == 'y' || c == '\n') {
-          Installer_LaunchInstaller();
-        } else if (c == 'n' || c == -1) {
-          Com_Warn("Your server will not be public until you update.\n");
-          Cvar_ForceSetInteger("sv_public", 0);
-          break;
-        }
-      }
-      break;
-    case 2:
-      Com_Warn("A new version of Quetoo is available on Flathub.\n"
-           "Your server will not be public until you update.\n");
+      Com_Warn("A new version of Quetoo is available.\n"
+               "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
+               "Your server will not be public until you update.\n");
       Cvar_ForceSetInteger("sv_public", 0);
       break;
   }

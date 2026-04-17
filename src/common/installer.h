@@ -24,4 +24,4 @@
 #include "quetoo.h"
 
 int32_t Installer_CheckForUpdates(void);
-int32_t Installer_LaunchInstaller(void);
+void Installer_OpenReleasesPage(void);

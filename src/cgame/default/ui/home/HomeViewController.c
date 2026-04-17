@@ -29,12 +29,11 @@
 #pragma mark - Delegates
 
 /**
- * @brief Dialog::okFunction for launching the installer to fetch updates.
+ * @brief Dialog::okFunction for opening the releases page.
  */
-static void launchInstaller(ident data) {
+static void openReleasesPage(ident data) {
 
-  cgi.Print("Launching installer..\n");
-  cgi.LaunchInstaller();
+  cgi.OpenReleasesPage();
 }
 
 #pragma mark - ViewController
@@ -66,18 +65,15 @@ static void loadView(ViewController *self) {
       $(this->motd->text, setText, "A new version of Quetoo is available.");
 
       const Dialog dialog = {
-        .message = "A new version of Quetoo is available. Update now?",
+        .message = "A new version of Quetoo is available. Download now?",
         .ok = "Yes",
         .cancel = "No",
-        .okFunction = launchInstaller
+        .okFunction = openReleasesPage
       };
 
       ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
       $(self, addChildViewController, viewController);
     }
-      break;
-    case 2:
-      $(this->motd->text, setText, "A new version of Quetoo is available from Flathub.");
       break;
   }
 }

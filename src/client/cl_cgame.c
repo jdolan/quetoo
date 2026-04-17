@@ -170,7 +170,7 @@ void Cl_InitCgame(void) {
   import.Error = Cl_CgameError;
 
   import.CheckForUpdates = Installer_CheckForUpdates;
-  import.LaunchInstaller = Installer_LaunchInstaller;
+  import.OpenReleasesPage = Installer_OpenReleasesPage;
   
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;

@@ -19,18 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <SDL3/SDL_misc.h>
+
 #include "console.h"
 #include "installer.h"
 #include "filesystem.h"
 #include "net/net_http.h"
 
 #define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
-
-#define QUETOO_INSTALLER "quetoo-installer-small.jar"
+#define QUETOO_RELEASES_URL "https://github.com/jdolan/quetoo/releases/latest"
 
 /**
- * @brief
+ * @brief Compares a local revision string against a remote revision URL.
+ * @return 0 if they match, non-zero otherwise.
  */
 static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
   void *data;
@@ -55,78 +56,33 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
 }
 
 /**
- * @brief
+ * @brief Checks whether a newer engine build is available.
+ * @return 0 if the engine is up to date, 1 if an update is available.
  */
 int32_t Installer_CheckForUpdates(void) {
 
   if (revision->integer == -1) {
-    Com_Debug(DEBUG_COMMON, "Skipping revisions check\n");
+    Com_Debug(DEBUG_COMMON, "Skipping revision check\n");
     return 0;
   }
 
   if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
     Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
-
-    void *buffer;
-    if (Fs_Load("revision", &buffer) > 0) {
-
-      char *data_revision = g_strstrip((gchar *) buffer);
-      if (Installer_CompareRevision(data_revision, QUETOO_DATA_REVISION_URL) == 0) {
-        Com_Debug(DEBUG_COMMON, "Data revision %s is latest.\n", data_revision);
-        return 0;
-      } else {
-        Com_Debug(DEBUG_COMMON, "Data revision %s did not match.\n", data_revision);
-      }
-
-      Fs_Free(buffer);
-    } else {
-      Com_Debug(DEBUG_COMMON, "Data revision not found.\n");
-    }
-  } else {
-    Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
+    return 0;
   }
 
-  // A newer remote revision is available
-
-  FILE *flatpak_info = fopen("/.flatpak-info", "r");
-  if (flatpak_info) {
-    fclose(flatpak_info);
-    return 2;
-  }
-
+  Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
   return 1;
 }
 
 /**
- * @brief
+ * @brief Opens the GitHub releases page in the user's web browser.
  */
-int32_t Installer_LaunchInstaller(void) {
+void Installer_OpenReleasesPage(void) {
 
-  Com_Print("Quetoo is out of date, launching installer..\n");
-  
-  gchar *path = g_build_path(G_DIR_SEPARATOR_S, Fs_LibDir(), QUETOO_INSTALLER, NULL);
-  GError *error = NULL;
+  Com_Print("Opening %s\n", QUETOO_RELEASES_URL);
 
-  if (!g_spawn_async(NULL,
-      (gchar *[]) { "java",
-        "-jar", path,
-        "--build", BUILD,
-        "--dir", (gchar *) Fs_BaseDir(),
-        "--prune", NULL },
-      NULL,
-      G_SPAWN_SEARCH_PATH |
-      G_SPAWN_DO_NOT_REAP_CHILD |
-      G_SPAWN_CHILD_INHERITS_STDIN |
-      G_SPAWN_LEAVE_DESCRIPTORS_OPEN,
-      NULL,
-      NULL,
-      NULL,
-      &error)) {
-
-    g_free(path);
-    Com_Error(ERROR_DROP, "Failed: %d: %s\n", error->code, error->message);
+  if (!SDL_OpenURL(QUETOO_RELEASES_URL)) {
+    Com_Warn("Failed to open browser: %s\n", SDL_GetError());
   }
-  
-  g_free(path);
-  Com_Shutdown("Installer launched successfully.\n");
 }

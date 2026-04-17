@@ -114,9 +114,8 @@ typedef struct cg_import_s {
 
   /**
    * @brief Launches the installer to fetch available updates.
-   * @return Zero if the installer was successfully launched, non-zero on error.
    */
-  int32_t (*LaunchInstaller)(void);
+  void (*OpenReleasesPage)(void);
 
   /**
    * @}
