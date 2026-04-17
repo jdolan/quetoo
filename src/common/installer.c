@@ -22,37 +22,44 @@
 #include <SDL3/SDL_misc.h>
 
 #include "console.h"
-#include "installer.h"
 #include "filesystem.h"
+#include "installer.h"
 #include "net/net_http.h"
+#include "thread.h"
 
-#define QUETOO_REVISION_URL "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_RELEASES_URL "https://github.com/jdolan/quetoo/releases/latest"
+#define QUETOO_REVISION_URL      "https://quetoo.s3.amazonaws.com/revisions/" BUILD
+#define QUETOO_RELEASES_URL      "https://github.com/jdolan/quetoo/releases/latest"
+
+#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
+#define QUETOO_DATA_BASE_URL     "https://quetoo-data.s3.amazonaws.com/"
+#define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
+
+static installer_status_t installer_status;
+static SDL_AtomicInt installer_running;
 
 /**
  * @brief Compares a local revision string against a remote revision URL.
  * @return 0 if they match, non-zero otherwise.
  */
 static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
-  void *data;
-  size_t length;
+	void *data;
+	size_t length;
 
-  int32_t status = Net_HttpGet(rev_url, &data, &length);
-  if (status == 200) {
-    char *remote_rev = g_strchomp(g_strndup(data, length));
-    Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
-    status = g_strcmp0(rev, remote_rev);
-    g_free(remote_rev);
-  } else {
-    Com_Warn("%s: HTTP %d\n", rev_url, status);
-    if (length) {
-      Com_Debug(DEBUG_COMMON, "%s\n", (gchar *) data);
-    }
-  }
+	int32_t status = Net_HttpGet(rev_url, &data, &length);
+	if (status == 200) {
+		char *remote_rev = g_strchomp(g_strndup(data, length));
+		Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
+		status = g_strcmp0(rev, remote_rev);
+		g_free(remote_rev);
+	} else {
+		Com_Warn("%s: HTTP %d\n", rev_url, status);
+		if (length) {
+			Com_Debug(DEBUG_COMMON, "%s\n", (gchar *) data);
+		}
+	}
 
-  Mem_Free(data);
-
-  return status;
+	Mem_Free(data);
+	return status;
 }
 
 /**
@@ -61,18 +68,18 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
  */
 int32_t Installer_CheckForUpdates(void) {
 
-  if (revision->integer == -1) {
-    Com_Debug(DEBUG_COMMON, "Skipping revision check\n");
-    return 0;
-  }
+	if (revision->integer == -1) {
+		Com_Debug(DEBUG_COMMON, "Skipping revision check\n");
+		return 0;
+	}
 
-  if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
-    Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
-    return 0;
-  }
+	if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
+		Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
+		return 0;
+	}
 
-  Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
-  return 1;
+	Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
+	return 1;
 }
 
 /**
@@ -80,9 +87,411 @@ int32_t Installer_CheckForUpdates(void) {
  */
 void Installer_OpenReleasesPage(void) {
 
-  Com_Print("Opening %s\n", QUETOO_RELEASES_URL);
+	Com_Print("Opening %s\n", QUETOO_RELEASES_URL);
 
-  if (!SDL_OpenURL(QUETOO_RELEASES_URL)) {
-    Com_Warn("Failed to open browser: %s\n", SDL_GetError());
-  }
+	if (!SDL_OpenURL(QUETOO_RELEASES_URL)) {
+		Com_Warn("Failed to open browser: %s\n", SDL_GetError());
+	}
+}
+
+// ---------------------------------------------------------------------------
+// S3 data sync
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief An object entry from the S3 bucket listing.
+ */
+typedef struct {
+	char key[MAX_OS_PATH];
+	char etag[64]; // MD5 hex, 32 chars; may be empty for multipart uploads
+	int64_t size;
+} s3_object_t;
+
+/**
+ * @brief GMarkupParser context for S3 ListObjectsV2 XML responses.
+ */
+typedef struct {
+	GList *objects;         // accumulated list of s3_object_t*
+	s3_object_t *current;   // object being built inside <Contents>
+	char next_token[512];   // NextContinuationToken for pagination
+	bool is_truncated;
+	GString *text;          // accumulated character data for current element
+} s3_parse_ctx_t;
+
+static void s3_start_element(GMarkupParseContext *ctx, const gchar *element_name,
+	const gchar **attr_names, const gchar **attr_values,
+	gpointer user_data, GError **error) {
+
+	s3_parse_ctx_t *c = user_data;
+
+	g_string_truncate(c->text, 0);
+
+	if (!g_strcmp0(element_name, "Contents")) {
+		c->current = Mem_Malloc(sizeof(s3_object_t));
+	}
+}
+
+static void s3_text(GMarkupParseContext *ctx, const gchar *text, gsize text_len,
+	gpointer user_data, GError **error) {
+
+	s3_parse_ctx_t *c = user_data;
+	g_string_append_len(c->text, text, (gssize) text_len);
+}
+
+static void s3_end_element(GMarkupParseContext *ctx, const gchar *element_name,
+	gpointer user_data, GError **error) {
+
+	s3_parse_ctx_t *c = user_data;
+	const char *value = c->text->str;
+
+	if (!g_strcmp0(element_name, "Contents")) {
+		if (c->current) {
+			c->objects = g_list_prepend(c->objects, c->current);
+			c->current = NULL;
+		}
+	} else if (c->current) {
+		if (!g_strcmp0(element_name, "Key")) {
+			g_strlcpy(c->current->key, value, sizeof(c->current->key));
+		} else if (!g_strcmp0(element_name, "ETag")) {
+			// ETags arrive as "&quot;md5hex&quot;" decoded to "md5hex" by GMarkup.
+			// Strip the surrounding quotes.
+			const char *etag = value;
+			if (*etag == '"') {
+				etag++;
+			}
+			g_strlcpy(c->current->etag, etag, sizeof(c->current->etag));
+			const size_t len = strlen(c->current->etag);
+			if (len > 0 && c->current->etag[len - 1] == '"') {
+				c->current->etag[len - 1] = '\0';
+			}
+		} else if (!g_strcmp0(element_name, "Size")) {
+			c->current->size = (int64_t) g_ascii_strtoull(value, NULL, 10);
+		}
+	} else {
+		if (!g_strcmp0(element_name, "NextContinuationToken")) {
+			g_strlcpy(c->next_token, value, sizeof(c->next_token));
+		} else if (!g_strcmp0(element_name, "IsTruncated")) {
+			c->is_truncated = !g_strcmp0(value, "true");
+		}
+	}
+
+	g_string_truncate(c->text, 0);
+}
+
+static const GMarkupParser s3_parser = {
+	.start_element = s3_start_element,
+	.text          = s3_text,
+	.end_element   = s3_end_element,
+};
+
+/**
+ * @brief Fetches and parses all pages of the S3 bucket listing.
+ * @return A GList of s3_object_t*, caller must free with g_list_free + Mem_Free per node.
+ */
+static GList *Installer_ListObjects(void) {
+
+	s3_parse_ctx_t ctx = {
+		.text = g_string_new(NULL),
+	};
+
+	char url[MAX_OS_PATH * 2];
+	g_strlcpy(url, QUETOO_DATA_LIST_URL, sizeof(url));
+
+	do {
+		void *data = NULL;
+		size_t length = 0;
+
+		const int32_t http_status = Net_HttpGet(url, &data, &length);
+		if (http_status != 200) {
+			Com_Warn("S3 listing failed: HTTP %d\n", http_status);
+			Mem_Free(data);
+			g_list_free_full(ctx.objects, Mem_Free);
+			g_string_free(ctx.text, TRUE);
+			return NULL;
+		}
+
+		ctx.is_truncated = false;
+		ctx.next_token[0] = '\0';
+
+		GError *parse_error = NULL;
+		GMarkupParseContext *mctx = g_markup_parse_context_new(&s3_parser, 0, &ctx, NULL);
+
+		const bool ok =
+			g_markup_parse_context_parse(mctx, data, (gssize) length, &parse_error) &&
+			g_markup_parse_context_end_parse(mctx, &parse_error);
+
+		g_markup_parse_context_free(mctx);
+		Mem_Free(data);
+
+		if (!ok) {
+			Com_Warn("S3 XML parse error: %s\n", parse_error ? parse_error->message : "unknown");
+			if (parse_error) {
+				g_error_free(parse_error);
+			}
+			g_list_free_full(ctx.objects, Mem_Free);
+			g_string_free(ctx.text, TRUE);
+			return NULL;
+		}
+
+		if (ctx.is_truncated && ctx.next_token[0]) {
+			gchar *encoded = g_uri_escape_string(ctx.next_token, NULL, FALSE);
+			g_snprintf(url, sizeof(url), QUETOO_DATA_LIST_URL "&continuation-token=%s", encoded);
+			g_free(encoded);
+		}
+
+	} while (ctx.is_truncated);
+
+	g_string_free(ctx.text, TRUE);
+
+	return g_list_reverse(ctx.objects);
+}
+
+/**
+ * @brief Computes the MD5 hex digest of a local file via the PhysicsFS search path.
+ * @return True and fills hex[33] on success, false if the file does not exist.
+ */
+static bool Installer_LocalMD5(const char *key, char hex[33]) {
+
+	void *data = NULL;
+	const int64_t size = Fs_Load(key, &data);
+
+	if (size <= 0) {
+		return false;
+	}
+
+	GChecksum *md5 = g_checksum_new(G_CHECKSUM_MD5);
+	g_checksum_update(md5, (const guchar *) data, (gssize) size);
+	g_strlcpy(hex, g_checksum_get_string(md5), 33);
+	g_checksum_free(md5);
+
+	Mem_Free(data);
+	return true;
+}
+
+/**
+ * @brief Downloads a single S3 object and writes it to the PhysicsFS write dir.
+ * @return True on success.
+ */
+static bool Installer_Download(const s3_object_t *obj) {
+
+	char url[MAX_OS_PATH * 2];
+	g_snprintf(url, sizeof(url), "%s%s", QUETOO_DATA_BASE_URL, obj->key);
+
+	void *data = NULL;
+	size_t length = 0;
+
+	const int32_t http_status = Net_HttpGet(url, &data, &length);
+	if (http_status != 200) {
+		Com_Warn("Download failed %s: HTTP %d\n", obj->key, http_status);
+		Mem_Free(data);
+		return false;
+	}
+
+	file_t *file = Fs_OpenWrite(obj->key);
+	if (!file) {
+		Com_Warn("Failed to open for writing: %s\n", obj->key);
+		Mem_Free(data);
+		return false;
+	}
+
+	const int64_t written = Fs_Write(file, data, 1, length);
+	Fs_Close(file);
+	Mem_Free(data);
+
+	if (written != (int64_t) length) {
+		Com_Warn("Short write for %s: %"PRId64" of %zu bytes\n", obj->key, written, length);
+		return false;
+	}
+
+	return true;
+}
+
+/**
+ * @brief Prune local files in the write dir that are absent from the S3 index.
+ * Only files that PhysicsFS resolves to the write directory are removed.
+ */
+typedef struct {
+	GHashTable *s3_keys;
+	int32_t count;
+} prune_ctx_t;
+
+static void Installer_PruneFile(const char *filename, void *data) {
+
+	prune_ctx_t *ctx = data;
+
+	if (g_hash_table_contains(ctx->s3_keys, filename)) {
+		return;
+	}
+
+	const char *real_dir = Fs_RealDir(filename);
+	if (real_dir && !g_strcmp0(real_dir, Fs_WriteDir())) {
+		Com_Debug(DEBUG_COMMON, "Pruning: %s\n", filename);
+		Fs_Delete(filename);
+		ctx->count++;
+	}
+}
+
+/**
+ * @brief Background thread that performs the full S3 data sync.
+ */
+static void Installer_SyncThread(void *data) {
+
+	installer_status_t *status = (installer_status_t *) data;
+
+	// Phase 1: check whether the data revision has changed.
+	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_CHECKING);
+
+	char local_rev[64] = {};
+	{
+		void *rev_data = NULL;
+		if (Fs_Load("revision", &rev_data) > 0) {
+			g_strlcpy(local_rev, g_strchomp((char *) rev_data), sizeof(local_rev));
+		}
+		Mem_Free(rev_data);
+	}
+
+	void *remote_rev_data = NULL;
+	size_t remote_rev_length = 0;
+	const int32_t rev_status = Net_HttpGet(QUETOO_DATA_REVISION_URL, &remote_rev_data, &remote_rev_length);
+
+	if (rev_status != 200) {
+		Com_Warn("Failed to fetch data revision: HTTP %d\n", rev_status);
+		Mem_Free(remote_rev_data);
+		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
+		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
+		SDL_SetAtomicInt(&installer_running, 0);
+		return;
+	}
+
+	char remote_rev[64] = {};
+	g_strlcpy(remote_rev, g_strchomp(g_strndup(remote_rev_data, remote_rev_length)), sizeof(remote_rev));
+	Mem_Free(remote_rev_data);
+
+	if (!g_strcmp0(local_rev, remote_rev)) {
+		Com_Print("Data is current at revision %s.\n", local_rev);
+		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DONE);
+		SDL_SetAtomicInt(&installer_running, 0);
+		return;
+	}
+
+	Com_Print("Data revision %s → %s, syncing...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
+
+	// Phase 2: list all S3 objects.
+	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_LISTING);
+
+	GList *objects = Installer_ListObjects();
+	if (!objects) {
+		g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
+		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
+		SDL_SetAtomicInt(&installer_running, 0);
+		return;
+	}
+
+	// Phase 3: compute delta — which files need downloading.
+	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DOWNLOADING);
+
+	GList *delta = NULL;
+	int32_t kbytes_total = 0;
+
+	for (GList *l = objects; l; l = l->next) {
+		const s3_object_t *obj = l->data;
+
+		bool needs_update = true;
+
+		char local_md5[33] = {};
+		if (Installer_LocalMD5(obj->key, local_md5)) {
+			if (strchr(obj->etag, '-')) {
+				// Multipart upload: ETag is not a plain MD5; fall back to size.
+				void *local_data = NULL;
+				const int64_t local_size = Fs_Load(obj->key, &local_data);
+				Mem_Free(local_data);
+				needs_update = (local_size != obj->size);
+			} else {
+				needs_update = !!g_strcmp0(local_md5, obj->etag);
+			}
+		}
+
+		if (needs_update) {
+			delta = g_list_prepend(delta, (gpointer) obj);
+			kbytes_total += (int32_t) ((obj->size + 1023) / 1024);
+		}
+	}
+
+	delta = g_list_reverse(delta);
+
+	SDL_SetAtomicInt(&status->files_total, (int32_t) g_list_length(delta));
+	SDL_SetAtomicInt(&status->kbytes_total, kbytes_total);
+	SDL_SetAtomicInt(&status->files_done, 0);
+	SDL_SetAtomicInt(&status->kbytes_done, 0);
+
+	// Phase 3 (continued): download the delta.
+	bool download_ok = true;
+
+	for (GList *l = delta; l; l = l->next) {
+		const s3_object_t *obj = l->data;
+
+		g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
+		Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
+
+		if (!Installer_Download(obj)) {
+			g_snprintf(status->error, sizeof(status->error),
+				"Download failed: %s", obj->key);
+			download_ok = false;
+			break;
+		}
+
+		SDL_AddAtomicInt(&status->files_done, 1);
+		SDL_AddAtomicInt(&status->kbytes_done, (int32_t) ((obj->size + 1023) / 1024));
+	}
+
+	g_list_free(delta);
+
+	if (!download_ok) {
+		g_list_free_full(objects, Mem_Free);
+		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
+		SDL_SetAtomicInt(&installer_running, 0);
+		return;
+	}
+
+	// Phase 4: prune local files absent from the S3 index.
+	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_PRUNING);
+
+	GHashTable *s3_keys = g_hash_table_new(g_str_hash, g_str_equal);
+	for (GList *l = objects; l; l = l->next) {
+		s3_object_t *obj = l->data;
+		g_hash_table_add(s3_keys, obj->key);
+	}
+
+	prune_ctx_t prune_ctx = { .s3_keys = s3_keys };
+	Fs_Enumerate("*", Installer_PruneFile, &prune_ctx);
+	if (prune_ctx.count) {
+		Com_Print("Pruned %d stale file(s).\n", prune_ctx.count);
+	}
+
+	g_hash_table_destroy(s3_keys);
+	g_list_free_full(objects, Mem_Free);
+
+	Com_Print("Data sync complete (revision %s).\n", remote_rev);
+	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DONE);
+	SDL_SetAtomicInt(&installer_running, 0);
+	return;
+}
+
+/**
+ * @brief Begins an asynchronous S3 data sync if one is not already running.
+ * @return A pointer to the live status struct, which the caller should poll
+ *         on its own frame loop to display progress. The pointer is valid
+ *         for the lifetime of the process.
+ */
+const installer_status_t *Installer_SyncData(void) {
+
+	if (!SDL_CompareAndSwapAtomicInt(&installer_running, 0, 1)) {
+		return &installer_status; // already running
+	}
+
+	memset(&installer_status, 0, sizeof(installer_status));
+
+	Thread_Create(Installer_SyncThread, &installer_status, THREAD_NO_WAIT);
+
+	return &installer_status;
 }

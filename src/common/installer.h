@@ -23,5 +23,37 @@
 
 #include "quetoo.h"
 
+#include <SDL3/SDL_atomic.h>
+
+/**
+ * @brief The phase of an in-progress data sync operation.
+ */
+typedef enum {
+	INSTALLER_SYNC_IDLE,
+	INSTALLER_SYNC_CHECKING,
+	INSTALLER_SYNC_LISTING,
+	INSTALLER_SYNC_DOWNLOADING,
+	INSTALLER_SYNC_PRUNING,
+	INSTALLER_SYNC_DONE,
+	INSTALLER_SYNC_ERROR,
+} installer_sync_phase_t;
+
+/**
+ * @brief Live progress state for an in-progress data sync.
+ * Numeric fields are updated atomically by the background thread.
+ * String fields (current_file, error) are written by the background thread
+ * and read by the main thread for display; minor races are acceptable.
+ */
+typedef struct {
+	SDL_AtomicInt phase;        // installer_sync_phase_t
+	SDL_AtomicInt files_total;  // files that need downloading
+	SDL_AtomicInt files_done;   // files downloaded so far
+	SDL_AtomicInt kbytes_total; // total KiB to download
+	SDL_AtomicInt kbytes_done;  // KiB downloaded so far
+	char current_file[MAX_OS_PATH];
+	char error[MAX_STRING_CHARS];
+} installer_status_t;
+
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
+const installer_status_t *Installer_SyncData(void);
