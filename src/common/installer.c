@@ -20,6 +20,7 @@
  */
 
 #include <SDL3/SDL_misc.h>
+#include <SDL3/SDL_mutex.h>
 
 #include "console.h"
 #include "filesystem.h"
@@ -34,8 +35,7 @@
 #define QUETOO_DATA_BASE_URL     "https://quetoo-data.s3.amazonaws.com/"
 #define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
 
-static installer_status_t installer_status;
-static SDL_AtomicInt installer_running;
+static installer_sync_status_t installer_status;
 
 /**
  * @brief Compares a local revision string against a remote revision URL.
@@ -336,10 +336,13 @@ static void Installer_PruneFile(const char *filename, void *data) {
  */
 static void Installer_SyncThread(void *data) {
 
-	installer_status_t *status = (installer_status_t *) data;
+	installer_sync_status_t *status = (installer_sync_status_t *) data;
+
+#define SYNC_SET(...) \
+	do { SDL_LockMutex(status->lock); __VA_ARGS__; SDL_UnlockMutex(status->lock); } while (0)
 
 	// Phase 1: check whether the data revision has changed.
-	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_CHECKING);
+	SYNC_SET(status->phase = INSTALLER_SYNC_CHECKING);
 
 	char local_rev[64] = {};
 	{
@@ -357,9 +360,10 @@ static void Installer_SyncThread(void *data) {
 	if (rev_status != 200) {
 		Com_Warn("Failed to fetch data revision: HTTP %d\n", rev_status);
 		Mem_Free(remote_rev_data);
-		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
-		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
-		SDL_SetAtomicInt(&installer_running, 0);
+		SYNC_SET(
+			g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
+			status->phase = INSTALLER_SYNC_ERROR
+		);
 		return;
 	}
 
@@ -369,26 +373,26 @@ static void Installer_SyncThread(void *data) {
 
 	if (!g_strcmp0(local_rev, remote_rev)) {
 		Com_Print("Data is current at revision %s.\n", local_rev);
-		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DONE);
-		SDL_SetAtomicInt(&installer_running, 0);
+		SYNC_SET(status->phase = INSTALLER_SYNC_DONE);
 		return;
 	}
 
 	Com_Print("Data revision %s → %s, syncing...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
 
 	// Phase 2: list all S3 objects.
-	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_LISTING);
+	SYNC_SET(status->phase = INSTALLER_SYNC_LISTING);
 
 	GList *objects = Installer_ListObjects();
 	if (!objects) {
-		g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
-		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
-		SDL_SetAtomicInt(&installer_running, 0);
+		SYNC_SET(
+			g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
+			status->phase = INSTALLER_SYNC_ERROR
+		);
 		return;
 	}
 
 	// Phase 3: compute delta — which files need downloading.
-	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DOWNLOADING);
+	SYNC_SET(status->phase = INSTALLER_SYNC_DOWNLOADING);
 
 	GList *delta = NULL;
 	int32_t kbytes_total = 0;
@@ -419,10 +423,12 @@ static void Installer_SyncThread(void *data) {
 
 	delta = g_list_reverse(delta);
 
-	SDL_SetAtomicInt(&status->files_total, (int32_t) g_list_length(delta));
-	SDL_SetAtomicInt(&status->kbytes_total, kbytes_total);
-	SDL_SetAtomicInt(&status->files_done, 0);
-	SDL_SetAtomicInt(&status->kbytes_done, 0);
+	SYNC_SET(
+		status->files_total = (int32_t) g_list_length(delta);
+		status->kbytes_total = kbytes_total;
+		status->files_done = 0;
+		status->kbytes_done = 0
+	);
 
 	// Phase 3 (continued): download the delta.
 	bool download_ok = true;
@@ -430,31 +436,31 @@ static void Installer_SyncThread(void *data) {
 	for (GList *l = delta; l; l = l->next) {
 		const s3_object_t *obj = l->data;
 
-		g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
+		SYNC_SET(g_strlcpy(status->current_file, obj->key, sizeof(status->current_file)));
 		Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
 
 		if (!Installer_Download(obj)) {
-			g_snprintf(status->error, sizeof(status->error),
-				"Download failed: %s", obj->key);
+			SYNC_SET(g_snprintf(status->error, sizeof(status->error), "Download failed: %s", obj->key));
 			download_ok = false;
 			break;
 		}
 
-		SDL_AddAtomicInt(&status->files_done, 1);
-		SDL_AddAtomicInt(&status->kbytes_done, (int32_t) ((obj->size + 1023) / 1024));
+		SYNC_SET(
+			status->files_done++;
+			status->kbytes_done += (int32_t) ((obj->size + 1023) / 1024)
+		);
 	}
 
 	g_list_free(delta);
 
 	if (!download_ok) {
 		g_list_free_full(objects, Mem_Free);
-		SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_ERROR);
-		SDL_SetAtomicInt(&installer_running, 0);
+		SYNC_SET(status->phase = INSTALLER_SYNC_ERROR);
 		return;
 	}
 
 	// Phase 4: prune local files absent from the S3 index.
-	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_PRUNING);
+	SYNC_SET(status->phase = INSTALLER_SYNC_PRUNING);
 
 	GHashTable *s3_keys = g_hash_table_new(g_str_hash, g_str_equal);
 	for (GList *l = objects; l; l = l->next) {
@@ -472,41 +478,54 @@ static void Installer_SyncThread(void *data) {
 	g_list_free_full(objects, Mem_Free);
 
 	Com_Print("Data sync complete (revision %s).\n", remote_rev);
-	SDL_SetAtomicInt(&status->phase, INSTALLER_SYNC_DONE);
-	SDL_SetAtomicInt(&installer_running, 0);
-	return;
+	SYNC_SET(status->phase = INSTALLER_SYNC_DONE);
+
+#undef SYNC_SET
 }
 
 /**
  * @brief Begins an asynchronous S3 data sync if one is not already running.
- * @return A pointer to the live status struct, which the caller should poll
- *         on its own frame loop to display progress. The pointer is valid
- *         for the lifetime of the process.
  */
-const installer_status_t *Installer_SyncData(void) {
+void Installer_SyncData(void) {
 
-	if (!SDL_CompareAndSwapAtomicInt(&installer_running, 0, 1)) {
-		return &installer_status; // already running
+	if (!installer_status.lock) {
+		installer_status.lock = SDL_CreateMutex();
 	}
 
-	memset(&installer_status, 0, sizeof(installer_status));
+	SDL_LockMutex(installer_status.lock);
+	const bool already_running = (installer_status.phase != INSTALLER_SYNC_IDLE &&
+	                               installer_status.phase != INSTALLER_SYNC_DONE &&
+	                               installer_status.phase != INSTALLER_SYNC_ERROR);
+	if (!already_running) {
+		installer_status.phase       = INSTALLER_SYNC_IDLE;
+		installer_status.files_done  = 0;
+		installer_status.files_total = 0;
+		installer_status.kbytes_done  = 0;
+		installer_status.kbytes_total = 0;
+		installer_status.current_file[0] = '\0';
+		installer_status.error[0]        = '\0';
+	}
+	SDL_UnlockMutex(installer_status.lock);
 
-	Thread_Create(Installer_SyncThread, &installer_status, THREAD_NO_WAIT);
-
-	return &installer_status;
+	if (!already_running) {
+		Thread_Create(Installer_SyncThread, &installer_status, THREAD_NO_WAIT);
+	}
 }
 
 /**
- * @brief Returns a pointer to the live installer status struct for polling.
- * @brief Populates @a out with a plain snapshot of the current sync status.
- * Does not start or restart a sync. Safe to call from any thread.
+ * @brief Populates @a out with a snapshot of the current sync status.
+ * Safe to call from any thread.
  */
 void Installer_Status(installer_sync_status_t *out) {
-	out->phase       = (installer_sync_phase_t) SDL_GetAtomicInt(&installer_status.phase);
-	out->files_done  = SDL_GetAtomicInt(&installer_status.files_done);
-	out->files_total = SDL_GetAtomicInt(&installer_status.files_total);
-	out->kbytes_done  = SDL_GetAtomicInt(&installer_status.kbytes_done);
-	out->kbytes_total = SDL_GetAtomicInt(&installer_status.kbytes_total);
-	g_strlcpy(out->current_file, installer_status.current_file, sizeof(out->current_file));
-	g_strlcpy(out->error, installer_status.error, sizeof(out->error));
+
+	if (!installer_status.lock) {
+		*out = (installer_sync_status_t) {};
+		return;
+	}
+
+	SDL_LockMutex(installer_status.lock);
+	*out = installer_status;
+	SDL_UnlockMutex(installer_status.lock);
+
+	out->lock = NULL; // callers never need the lock pointer
 }

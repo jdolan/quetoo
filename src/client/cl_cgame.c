@@ -128,8 +128,7 @@ static GList *Cl_Servers(void) {
 }
 
 /**
- * @brief Starts an asynchronous S3 data sync; discards the status pointer since
- * progress is delivered each frame via cge.UpdateSync.
+ * @brief Starts an asynchronous S3 data sync; progress is delivered each frame via cge.UpdateSync.
  */
 static void Cl_SyncData(void) {
   Installer_SyncData();
