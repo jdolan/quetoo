@@ -27,6 +27,7 @@ void Cg_InitUi(void);
 void Cg_ShutdownUi(void);
 void Cg_ClearUi(void);
 void Cg_UpdateLoading(const cl_loading_t loading);
+void Cg_UpdateSync(const cl_sync_status_t sync);
 
 #ifdef __CG_LOCAL_H__
 void Cg_BindCvar(const Inlet *inlet, ident obj);

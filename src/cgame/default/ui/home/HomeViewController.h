@@ -56,6 +56,11 @@ struct HomeViewController {
    * @brief The message of the day.
    */
   Label *motd;
+
+  /**
+   * @brief Data sync progress bar, shown while Installer_SyncData is running.
+   */
+  ProgressBar *syncProgress;
 };
 
 /**
@@ -67,6 +72,12 @@ struct HomeViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
+
+  /**
+   * @fn void HomeViewController::setSyncStatus(HomeViewController *self, const cl_sync_status_t sync)
+   * @brief Updates the sync progress bar with the current installer status.
+   */
+  void (*setSyncStatus)(HomeViewController *self, const cl_sync_status_t sync);
 };
 
 /**

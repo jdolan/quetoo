@@ -486,6 +486,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.UsePrediction = Cg_UsePrediction;
   cge.PredictMovement = Cg_PredictMovement;
   cge.UpdateLoading = Cg_UpdateLoading;
+  cge.UpdateSync = Cg_UpdateSync;
   cge.PrepareScene = Cg_PrepareScene;
   cge.PopulateScene = Cg_PopulateScene;
   cge.UpdateScreen = Cg_UpdateScreen;

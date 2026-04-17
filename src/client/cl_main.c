@@ -676,6 +676,21 @@ void Cl_Frame(const uint32_t msec) {
 
   cls.cgame->UpdateDiscord();
 
+  const installer_status_t *status = Installer_Status();
+  const installer_sync_phase_t phase = (installer_sync_phase_t) SDL_GetAtomicInt((SDL_AtomicInt *) &status->phase);
+  if (phase != INSTALLER_SYNC_IDLE) {
+    cl_sync_status_t sync = {
+      .phase       = (cl_sync_phase_t) phase,
+      .files_done  = SDL_GetAtomicInt((SDL_AtomicInt *) &status->files_done),
+      .files_total = SDL_GetAtomicInt((SDL_AtomicInt *) &status->files_total),
+      .kbytes_done  = SDL_GetAtomicInt((SDL_AtomicInt *) &status->kbytes_done),
+      .kbytes_total = SDL_GetAtomicInt((SDL_AtomicInt *) &status->kbytes_total),
+    };
+    g_strlcpy(sync.current_file, status->current_file, sizeof(sync.current_file));
+    g_strlcpy(sync.error, status->error, sizeof(sync.error));
+    cls.cgame->UpdateSync(sync);
+  }
+
   frame_timestamp = quetoo.ticks;
   cl.frame_msec = 0;
 }

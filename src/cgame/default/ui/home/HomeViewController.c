@@ -36,6 +36,41 @@ static void openReleasesPage(ident data) {
   cgi.OpenReleasesPage();
 }
 
+#pragma mark - HomeViewController
+
+/**
+ * @see HomeViewControllerInterface::setSyncStatus
+ */
+static void setSyncStatus(HomeViewController *self, const cl_sync_status_t sync) {
+
+  switch (sync.phase) {
+    case CL_SYNC_IDLE:
+    case CL_SYNC_DONE:
+      self->syncProgress->view.hidden = true;
+      break;
+    case CL_SYNC_ERROR:
+      $(self->syncProgress, setLabelFormat, va("Error: %s", sync.error));
+      $(self->syncProgress, setValue, 0.0);
+      self->syncProgress->view.hidden = false;
+      break;
+    default: {
+      double pct = 0.0;
+      if (sync.kbytes_total > 0) {
+        pct = 100.0 * sync.kbytes_done / sync.kbytes_total;
+      } else if (sync.files_total > 0) {
+        pct = 100.0 * sync.files_done / sync.files_total;
+      }
+      const char *label = sync.current_file[0]
+        ? va("Syncing %s (%d/%d)…", sync.current_file, sync.files_done, sync.files_total)
+        : "Checking for data updates…";
+      $(self->syncProgress, setLabelFormat, label);
+      $(self->syncProgress, setValue, pct);
+      self->syncProgress->view.hidden = false;
+    }
+      break;
+  }
+}
+
 #pragma mark - ViewController
 
 /**
@@ -48,7 +83,8 @@ static void loadView(ViewController *self) {
   HomeViewController *this = (HomeViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("motd", &this->motd)
+    MakeOutlet("motd", &this->motd),
+    MakeOutlet("syncProgress", &this->syncProgress)
   );
 
   View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
@@ -76,6 +112,8 @@ static void loadView(ViewController *self) {
     }
       break;
   }
+
+  cgi.SyncData();
 }
 
 #pragma mark - Class lifecycle
@@ -85,6 +123,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((HomeViewControllerInterface *) clazz->interface)->setSyncStatus = setSyncStatus;
 }
 
 /**

@@ -783,6 +783,46 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
+  // report data sync progress to server console
+  if (dedicated->value) {
+    static installer_sync_phase_t last_phase = INSTALLER_SYNC_IDLE;
+    static int32_t last_files_done = 0;
+
+    const installer_status_t *sync = Installer_Status();
+    const installer_sync_phase_t phase = (installer_sync_phase_t) SDL_GetAtomicInt((SDL_AtomicInt *) &sync->phase);
+
+    if (phase != last_phase || (phase == INSTALLER_SYNC_DOWNLOADING &&
+                                SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_done) != last_files_done)) {
+      switch (phase) {
+        case INSTALLER_SYNC_CHECKING:
+          Com_Print("Data sync: checking revision...\n");
+          break;
+        case INSTALLER_SYNC_LISTING:
+          Com_Print("Data sync: listing S3 objects...\n");
+          break;
+        case INSTALLER_SYNC_DOWNLOADING: {
+          const int32_t done = SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_done);
+          const int32_t total = SDL_GetAtomicInt((SDL_AtomicInt *) &sync->files_total);
+          Com_Print("Data sync: downloading %s (%d/%d)...\n", sync->current_file, done, total);
+          last_files_done = done;
+        }
+          break;
+        case INSTALLER_SYNC_PRUNING:
+          Com_Print("Data sync: pruning stale files...\n");
+          break;
+        case INSTALLER_SYNC_DONE:
+          Com_Print("Data sync: complete.\n");
+          break;
+        case INSTALLER_SYNC_ERROR:
+          Com_Warn("Data sync error: %s\n", sync->error);
+          break;
+        default:
+          break;
+      }
+      last_phase = phase;
+    }
+  }
+
   // redraw the console
   Sv_DrawConsole();
 }

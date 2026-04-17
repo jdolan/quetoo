@@ -495,3 +495,12 @@ const installer_status_t *Installer_SyncData(void) {
 
 	return &installer_status;
 }
+
+/**
+ * @brief Returns a pointer to the live installer status struct for polling.
+ * Does not start or restart a sync. The pointer is valid for the lifetime of
+ * the process.
+ */
+const installer_status_t *Installer_Status(void) {
+return &installer_status;
+}

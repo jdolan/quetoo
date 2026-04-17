@@ -23,6 +23,7 @@
 
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
+#include "ui/home/HomeViewController.h"
 
 static MainViewController *mainViewController;
 static Stylesheet *stylesheet;
@@ -86,6 +87,25 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
   if (loadingViewController) {
     $(loadingViewController, setProgress, loading);
   }
+}
+
+/**
+ * @brief Routes sync progress to the HomeViewController's progress bar.
+ * No-ops if the HomeViewController is not the current top view controller.
+ */
+void Cg_UpdateSync(const cl_sync_status_t sync) {
+
+  if (mainViewController == NULL) {
+    return;
+  }
+
+  ViewController *top = $(mainViewController->navigationViewController, topViewController);
+  if (top == NULL || cast(Object, top)->clazz != _HomeViewController()) {
+    return;
+  }
+
+  HomeViewController *home = (HomeViewController *) top;
+  $(home, setSyncStatus, sync);
 }
 
 /**

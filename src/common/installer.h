@@ -57,3 +57,4 @@ typedef struct {
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
 const installer_status_t *Installer_SyncData(void);
+const installer_status_t *Installer_Status(void);
