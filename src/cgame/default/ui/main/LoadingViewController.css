@@ -23,6 +23,6 @@
   background-color: transparent;
 }
 
-#progress > Label {
+#progress > Text {
   alignment: middle-left;
 }
