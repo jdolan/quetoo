@@ -56,9 +56,34 @@ struct UpdateViewController {
 	UpdateViewControllerInterface *interface;
 
 	/**
-	 * @brief The hero background image.
+	 * @brief The current hero background image (bottom layer).
 	 */
 	ImageView *heroShot;
+
+	/**
+	 * @brief The incoming hero background image (top layer, cross-fades in).
+	 */
+	ImageView *heroShotNext;
+
+	/**
+	 * @brief Filenames parsed from the S3 hero-images listing.
+	 */
+	GPtrArray *heroNames;
+
+	/**
+	 * @brief Index into heroNames of the currently displayed image.
+	 */
+	uint32_t heroIndex;
+
+	/**
+	 * @brief SDL ticks at which the next image cycle should begin.
+	 */
+	uint32_t heroCycleAt;
+
+	/**
+	 * @brief SDL ticks at which the current cross-fade began (0 = not fading).
+	 */
+	uint32_t heroFadeStart;
 
 	/**
 	 * @brief The Quetoo logo.

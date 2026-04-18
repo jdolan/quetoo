@@ -7,6 +7,10 @@
     },
     {
       "class": "ImageView",
+      "identifier": "heroShotNext"
+    },
+    {
+      "class": "ImageView",
       "identifier": "logo"
     },
     {
