@@ -117,12 +117,6 @@ jobs:
         make DESTDIR=$(pwd)/apple/target/Quetoo.app install
         rm -f apple/target/Quetoo.app/bin apple/target/Quetoo.app/lib apple/target/Quetoo.app/share
 
-    - name: Download installer
-      working-directory: quetoo
-      run: |
-        curl -fsSL -o apple/target/Quetoo.app/Contents/MacOS/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
-
     - name: Bundle libraries
       working-directory: quetoo
       run: |
@@ -304,12 +298,6 @@ jobs:
         ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run \
           Quetoo.AppDir linux/target/quetoo-BETA-x86_64-pc-linux.AppImage
 
-    - name: Download installer
-      working-directory: quetoo
-      run: |
-        curl -fsSL -o linux/target/quetoo/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
-
     - name: Create archive
       working-directory: quetoo
       run: |
@@ -442,11 +430,6 @@ jobs:
             Copy-Item $_.FullName -Destination $destPath
           }
         }
-
-    - name: Download installer
-      working-directory: ${{ github.workspace }}/quetoo
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "windows/target/quetoo/lib/quetoo-installer-small.jar"
 
     - name: Create archive
       working-directory: ${{ github.workspace }}/quetoo

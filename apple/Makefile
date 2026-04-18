@@ -10,13 +10,12 @@ INSTALL = $(TARGET)/Quetoo.app
 BINDIR = $(INSTALL)/Contents/MacOS
 LIBDIR = $(INSTALL)/Contents/MacOS/lib
 DATADIR = $(INSTALL)/Contents/Resources
-INSTALLER = quetoo-installer-small.jar
 SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).dmg
 VOLUME_NAME = "Quetoo BETA $(BUILD)"
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 
-all: clean configure compile pre-install install install-lib install-installer post-install
+all: clean configure compile pre-install install install-lib post-install
 continuous-integration: all release install-data snapshot snapshot-release
 
 configure:
@@ -47,11 +46,7 @@ install-lib:
 		-x $(LIBDIR)/default/game.so \
 	-d $(LIBDIR) -of -p @executable_path/lib
 
-install-installer:
-	aws s3 cp $(QUETOO_S3_BUCKET)/snapshots/$(INSTALLER) $(LIBDIR)/
-
 post-install:
-	xattr -cr $(QUETOO)
 	codesign -s $(CODESIGN_IDENTITY) --verbose --deep --force $(INSTALL)
 
 release:
@@ -73,4 +68,4 @@ snapshot-release:
 clean:
 	rm -rf $(TARGET)/*
 
-.PHONY: all configure compile pre-install install install-lib install-installer post-install release install-data snapshot snapshot-release clean
+.PHONY: all configure compile pre-install install install-lib post-install release install-data snapshot snapshot-release clean

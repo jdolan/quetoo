@@ -27,14 +27,6 @@ $QUETOO_RELEASE_SRC = "Quetoo/";
 
 if ($IS_MASTER)
 {
-	$QUETOO_LIB_DIR = $QUETOO_RELEASE_SRC + "lib/"
-	$QUETOO_UPDATE = "quetoo-installer-small.jar"
-	$QUETOO_UPDATER_JAR = $QUETOO_BUCKET + "snapshots/" + $QUETOO_UPDATE
-
-	# copy updater from s3 to lib
-	echo "Copy updater.jar from s3"
-	&$aws_exe s3 cp $QUETOO_UPDATER_JAR $QUETOO_LIB_DIR
-
 	$QUETOO_RELEASE_BUCKET = $QUETOO_BUCKET + $QUETOO_ARCH + "-pc-windows"
 
 	# sync from Quetoo/ to quetoo/<arch>/ bucket
