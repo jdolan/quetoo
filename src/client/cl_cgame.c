@@ -20,7 +20,6 @@
  */
 
 #include "cl_local.h"
-#include "net/net_http.h"
 
 static void *cgame_handle;
 

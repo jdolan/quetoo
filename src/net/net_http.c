@@ -26,7 +26,7 @@
 /**
  * @brief
  */
-int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
+int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
 
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
@@ -44,11 +44,11 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
         task->data ? (int32_t) task->data->length : 0);
 
   if (task->data) {
-    *data = Mem_Malloc(task->data->length);
-    memcpy(*data, task->data->bytes, task->data->length);
+    *body = Mem_Malloc(task->data->length);
+    memcpy(*body, task->data->bytes, task->data->length);
     *length = task->data->length;
   } else {
-    *data = NULL;
+    *body = NULL;
     *length = 0;
   }
 

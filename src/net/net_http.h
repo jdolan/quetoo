@@ -33,13 +33,13 @@
 typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void *user_data);
 
 /**
- * @brief Synchronously GET the specified URL string, writing data and len.
+ * @brief Synchronously GET the specified URL string.
  * @param url_string The URL string to GET.
- * @param data The returned data, which should be Mem_Free'd when no longer needed.
- * @param length The returned data length in bytes.
+ * @param body Receives a newly allocated buffer containing the response body. Caller must Mem_Free.
+ * @param length The response body length in bytes.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGet(const char *url_string, void **data, size_t *length);
+int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
 
 /**
  * @brief Asynchronously GET the specified URL string.
