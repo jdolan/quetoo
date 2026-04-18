@@ -122,7 +122,7 @@ typedef struct cg_import_s {
    * @brief Starts an asynchronous S3 data sync in the background.
    * Progress is delivered each client frame via cge.UpdateSync.
    */
-  void (*SyncData)(void);
+  void (*Update)(void);
 
   /**
    * @}
@@ -962,7 +962,7 @@ typedef struct cg_export_s {
   /**
    * @brief Called each client frame while a data sync is in progress.
    */
-  void (*UpdateSync)(const installer_sync_status_t sync);
+  void (*UpdateSync)(const installer_state_t sync);
 
   /**
    * @brief Called each frame to update the view definition and sound stage.

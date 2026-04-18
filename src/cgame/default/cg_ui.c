@@ -23,9 +23,10 @@
 
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
-#include "ui/home/HomeViewController.h"
+#include "ui/main/UpdateViewController.h"
 
 static MainViewController *mainViewController;
+static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
 
 /**
@@ -42,6 +43,8 @@ void Cg_InitUi(void) {
   assert(mainViewController);
 
   cgi.PushViewController((ViewController *) mainViewController);
+
+  cgi.Update();
 }
 
 /**
@@ -50,6 +53,9 @@ void Cg_InitUi(void) {
 void Cg_ShutdownUi(void) {
 
   cgi.PopAllViewControllers();
+
+  release(updateViewController);
+  updateViewController = NULL;
 
   release(mainViewController);
   mainViewController = NULL;
@@ -90,22 +96,40 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
 }
 
 /**
- * @brief Routes sync progress to the HomeViewController's progress bar.
- * No-ops if the HomeViewController is not the current top view controller.
+ * @brief Manages the UpdateViewController lifecycle and routes sync progress to it.
+ * Pushes UpdateViewController when a sync is active, pops it on completion.
  */
-void Cg_UpdateSync(const installer_sync_status_t sync) {
+void Cg_UpdateSync(const installer_state_t sync) {
 
   if (mainViewController == NULL) {
     return;
   }
 
-  ViewController *top = $(mainViewController->navigationViewController, topViewController);
-  if (top == NULL || cast(Object, top)->clazz != _HomeViewController()) {
-    return;
+  if (updateViewController == NULL) {
+    // Only push for phases that represent active work — skip IDLE/DONE/ERROR.
+    if (sync.phase == INSTALLER_IDLE ||
+        sync.phase == INSTALLER_DONE ||
+        sync.phase == INSTALLER_ERROR) {
+      return;
+    }
+    updateViewController = $(alloc(UpdateViewController), init);
+    cgi.PushViewController((ViewController *) updateViewController);
   }
 
-  HomeViewController *home = (HomeViewController *) top;
-  $(home, setSyncStatus, sync);
+  $(updateViewController, setStatus, sync);
+
+  if (sync.phase == INSTALLER_DONE || sync.phase == INSTALLER_ERROR) {
+    static uint64_t done_at = 0;
+    if (done_at == 0) {
+      done_at = SDL_GetTicks();
+    }
+    if (SDL_GetTicks() - done_at > 2000) {
+      cgi.PopViewController();
+      release(updateViewController);
+      updateViewController = NULL;
+      done_at = 0;
+    }
+  }
 }
 
 /**

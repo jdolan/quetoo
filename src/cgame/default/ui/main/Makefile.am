@@ -3,12 +3,15 @@ cguimain_DATA = \
 	LoadingViewController.css \
 	LoadingViewController.json \
 	MainView.css \
-	MainView.json
+	MainView.json \
+	UpdateViewController.css \
+	UpdateViewController.json
 
 noinst_HEADERS = \
 	LoadingViewController.h \
 	MainView.h \
-	MainViewController.h
+	MainViewController.h \
+	UpdateViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguimain.la
@@ -16,7 +19,8 @@ noinst_LTLIBRARIES = \
 libcguimain_la_SOURCES = \
 	LoadingViewController.c \
 	MainView.c \
-	MainViewController.c
+	MainViewController.c \
+	UpdateViewController.c
 
 libcguimain_la_CFLAGS = \
 	-I$(top_srcdir)/src \

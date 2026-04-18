@@ -130,8 +130,8 @@ static GList *Cl_Servers(void) {
 /**
  * @brief Starts an asynchronous S3 data sync; progress is delivered each frame via cge.UpdateSync.
  */
-static void Cl_SyncData(void) {
-  Installer_SyncData();
+static void Cl_Update(void) {
+  Installer_Update();
 }
 
 /**
@@ -178,7 +178,7 @@ void Cl_InitCgame(void) {
 
   import.CheckForUpdates = Installer_CheckForUpdates;
   import.OpenReleasesPage = Installer_OpenReleasesPage;
-  import.SyncData = Cl_SyncData;
+  import.Update = Cl_Update;
   
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;

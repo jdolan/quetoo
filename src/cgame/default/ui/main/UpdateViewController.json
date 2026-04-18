@@ -1,0 +1,17 @@
+{
+  "identifier": "updating",
+  "subviews": [
+    {
+      "class": "ImageView",
+      "identifier": "heroShot"
+    },
+    {
+      "class": "ImageView",
+      "identifier": "logo"
+    },
+    {
+      "class": "ProgressBar",
+      "identifier": "progress"
+    }
+  ]
+}

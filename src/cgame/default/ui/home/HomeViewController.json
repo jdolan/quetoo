@@ -20,11 +20,6 @@
               "text": {
                 "lineWrap": true
               }
-            },
-            {
-              "class": "ProgressBar",
-              "identifier": "syncProgress",
-              "hidden": true
             }
           ]
         }

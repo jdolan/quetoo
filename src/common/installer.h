@@ -29,13 +29,13 @@
  * @brief The phase of an in-progress data sync operation.
  */
 typedef enum {
-	INSTALLER_SYNC_IDLE,
-	INSTALLER_SYNC_CHECKING,
-	INSTALLER_SYNC_LISTING,
-	INSTALLER_SYNC_DOWNLOADING,
-	INSTALLER_SYNC_PRUNING,
-	INSTALLER_SYNC_DONE,
-	INSTALLER_SYNC_ERROR,
+	INSTALLER_IDLE,
+	INSTALLER_CHECKING,
+	INSTALLER_LISTING,
+	INSTALLER_DOWNLOADING,
+	INSTALLER_PRUNING,
+	INSTALLER_DONE,
+	INSTALLER_ERROR,
 } installer_sync_phase_t;
 
 /**
@@ -50,10 +50,10 @@ typedef struct {
 	int32_t kbytes_done;
 	int32_t kbytes_total;
 	char current_file[MAX_OS_PATH];
-	char error[MAX_STRING_CHARS];
-} installer_sync_status_t;
+  char error[MAX_STRING_CHARS];
+} installer_state_t;
 
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
-void Installer_SyncData(void);
-void Installer_Status(installer_sync_status_t *out);
+void Installer_Update(void);
+void Installer_Status(installer_state_t *out);

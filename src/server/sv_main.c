@@ -785,32 +785,32 @@ void Sv_Frame(const uint32_t msec) {
 
   // report data sync progress to server console
   if (dedicated->value) {
-    static installer_sync_phase_t last_phase = INSTALLER_SYNC_IDLE;
+    static installer_sync_phase_t last_phase = INSTALLER_IDLE;
     static int32_t last_files_done = 0;
 
-    installer_sync_status_t sync;
+    installer_state_t sync;
     Installer_Status(&sync);
 
-    if (sync.phase != last_phase || (sync.phase == INSTALLER_SYNC_DOWNLOADING &&
+    if (sync.phase != last_phase || (sync.phase == INSTALLER_DOWNLOADING &&
                                      sync.files_done != last_files_done)) {
       switch (sync.phase) {
-        case INSTALLER_SYNC_CHECKING:
+        case INSTALLER_CHECKING:
           Com_Print("Data sync: checking revision...\n");
           break;
-        case INSTALLER_SYNC_LISTING:
+        case INSTALLER_LISTING:
           Com_Print("Data sync: listing S3 objects...\n");
           break;
-        case INSTALLER_SYNC_DOWNLOADING:
+        case INSTALLER_DOWNLOADING:
           Com_Print("Data sync: downloading %s (%d/%d)...\n", sync.current_file, sync.files_done, sync.files_total);
           last_files_done = sync.files_done;
           break;
-        case INSTALLER_SYNC_PRUNING:
+        case INSTALLER_PRUNING:
           Com_Print("Data sync: pruning stale files...\n");
           break;
-        case INSTALLER_SYNC_DONE:
+        case INSTALLER_DONE:
           Com_Print("Data sync: complete.\n");
           break;
-        case INSTALLER_SYNC_ERROR:
+        case INSTALLER_ERROR:
           Com_Warn("Data sync error: %s\n", sync.error);
           break;
         default:

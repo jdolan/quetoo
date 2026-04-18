@@ -35,7 +35,7 @@
 #define QUETOO_DATA_BASE_URL     "https://quetoo-data.s3.amazonaws.com/"
 #define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
 
-static installer_sync_status_t installer_status;
+static installer_state_t state;
 
 /**
  * @brief Compares a local revision string against a remote revision URL.
@@ -93,10 +93,6 @@ void Installer_OpenReleasesPage(void) {
 		Com_Warn("Failed to open browser: %s\n", SDL_GetError());
 	}
 }
-
-// ---------------------------------------------------------------------------
-// S3 data sync
-// ---------------------------------------------------------------------------
 
 /**
  * @brief An object entry from the S3 bucket listing.
@@ -334,15 +330,14 @@ static void Installer_PruneFile(const char *filename, void *data) {
 /**
  * @brief Background thread that performs the full S3 data sync.
  */
-static void Installer_SyncThread(void *data) {
+static void Installer_UpdateThread(void *data) {
 
-	installer_sync_status_t *status = (installer_sync_status_t *) data;
-
-#define SYNC_SET(...) \
-	do { SDL_LockMutex(status->lock); __VA_ARGS__; SDL_UnlockMutex(status->lock); } while (0)
+	installer_state_t *status = (installer_state_t *) data;
 
 	// Phase 1: check whether the data revision has changed.
-	SYNC_SET(status->phase = INSTALLER_SYNC_CHECKING);
+	SDL_LockMutex(status->lock);
+	status->phase = INSTALLER_CHECKING;
+	SDL_UnlockMutex(status->lock);
 
 	char local_rev[64] = {};
 	{
@@ -360,10 +355,10 @@ static void Installer_SyncThread(void *data) {
 	if (rev_status != 200) {
 		Com_Warn("Failed to fetch data revision: HTTP %d\n", rev_status);
 		Mem_Free(remote_rev_data);
-		SYNC_SET(
-			g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
-			status->phase = INSTALLER_SYNC_ERROR
-		);
+		SDL_LockMutex(status->lock);
+		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
+		status->phase = INSTALLER_ERROR;
+		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
@@ -373,26 +368,32 @@ static void Installer_SyncThread(void *data) {
 
 	if (!g_strcmp0(local_rev, remote_rev)) {
 		Com_Print("Data is current at revision %s.\n", local_rev);
-		SYNC_SET(status->phase = INSTALLER_SYNC_DONE);
+		SDL_LockMutex(status->lock);
+		status->phase = INSTALLER_DONE;
+		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
 	Com_Print("Data revision %s → %s, syncing...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
 
 	// Phase 2: list all S3 objects.
-	SYNC_SET(status->phase = INSTALLER_SYNC_LISTING);
+	SDL_LockMutex(status->lock);
+	status->phase = INSTALLER_LISTING;
+	SDL_UnlockMutex(status->lock);
 
 	GList *objects = Installer_ListObjects();
 	if (!objects) {
-		SYNC_SET(
-			g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
-			status->phase = INSTALLER_SYNC_ERROR
-		);
+		SDL_LockMutex(status->lock);
+		g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
+		status->phase = INSTALLER_ERROR;
+		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
 	// Phase 3: compute delta — which files need downloading.
-	SYNC_SET(status->phase = INSTALLER_SYNC_DOWNLOADING);
+	SDL_LockMutex(status->lock);
+	status->phase = INSTALLER_DOWNLOADING;
+	SDL_UnlockMutex(status->lock);
 
 	GList *delta = NULL;
 	int32_t kbytes_total = 0;
@@ -423,12 +424,12 @@ static void Installer_SyncThread(void *data) {
 
 	delta = g_list_reverse(delta);
 
-	SYNC_SET(
-		status->files_total = (int32_t) g_list_length(delta);
-		status->kbytes_total = kbytes_total;
-		status->files_done = 0;
-		status->kbytes_done = 0
-	);
+	SDL_LockMutex(status->lock);
+	status->files_total = (int32_t) g_list_length(delta);
+	status->kbytes_total = kbytes_total;
+	status->files_done = 0;
+	status->kbytes_done = 0;
+	SDL_UnlockMutex(status->lock);
 
 	// Phase 3 (continued): download the delta.
 	bool download_ok = true;
@@ -436,31 +437,39 @@ static void Installer_SyncThread(void *data) {
 	for (GList *l = delta; l; l = l->next) {
 		const s3_object_t *obj = l->data;
 
-		SYNC_SET(g_strlcpy(status->current_file, obj->key, sizeof(status->current_file)));
+		SDL_LockMutex(status->lock);
+		g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
+		SDL_UnlockMutex(status->lock);
 		Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
 
 		if (!Installer_Download(obj)) {
-			SYNC_SET(g_snprintf(status->error, sizeof(status->error), "Download failed: %s", obj->key));
+			SDL_LockMutex(status->lock);
+			g_snprintf(status->error, sizeof(status->error), "Download failed: %s", obj->key);
+			SDL_UnlockMutex(status->lock);
 			download_ok = false;
 			break;
 		}
 
-		SYNC_SET(
-			status->files_done++;
-			status->kbytes_done += (int32_t) ((obj->size + 1023) / 1024)
-		);
+		SDL_LockMutex(status->lock);
+		status->files_done++;
+		status->kbytes_done += (int32_t) ((obj->size + 1023) / 1024);
+		SDL_UnlockMutex(status->lock);
 	}
 
 	g_list_free(delta);
 
 	if (!download_ok) {
 		g_list_free_full(objects, Mem_Free);
-		SYNC_SET(status->phase = INSTALLER_SYNC_ERROR);
+		SDL_LockMutex(status->lock);
+		status->phase = INSTALLER_ERROR;
+		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
 	// Phase 4: prune local files absent from the S3 index.
-	SYNC_SET(status->phase = INSTALLER_SYNC_PRUNING);
+	SDL_LockMutex(status->lock);
+	status->phase = INSTALLER_PRUNING;
+	SDL_UnlockMutex(status->lock);
 
 	GHashTable *s3_keys = g_hash_table_new(g_str_hash, g_str_equal);
 	for (GList *l = objects; l; l = l->next) {
@@ -478,37 +487,44 @@ static void Installer_SyncThread(void *data) {
 	g_list_free_full(objects, Mem_Free);
 
 	Com_Print("Data sync complete (revision %s).\n", remote_rev);
-	SYNC_SET(status->phase = INSTALLER_SYNC_DONE);
-
-#undef SYNC_SET
+	SDL_LockMutex(status->lock);
+	status->phase = INSTALLER_DONE;
+	SDL_UnlockMutex(status->lock);
 }
 
 /**
  * @brief Begins an asynchronous S3 data sync if one is not already running.
  */
-void Installer_SyncData(void) {
+void Installer_Update(void) {
 
-	if (!installer_status.lock) {
-		installer_status.lock = SDL_CreateMutex();
+	if (revision->integer == -1) {
+		Com_Debug(DEBUG_COMMON, "Skipping data sync\n");
+		return;
 	}
 
-	SDL_LockMutex(installer_status.lock);
-	const bool already_running = (installer_status.phase != INSTALLER_SYNC_IDLE &&
-	                               installer_status.phase != INSTALLER_SYNC_DONE &&
-	                               installer_status.phase != INSTALLER_SYNC_ERROR);
-	if (!already_running) {
-		installer_status.phase       = INSTALLER_SYNC_IDLE;
-		installer_status.files_done  = 0;
-		installer_status.files_total = 0;
-		installer_status.kbytes_done  = 0;
-		installer_status.kbytes_total = 0;
-		installer_status.current_file[0] = '\0';
-		installer_status.error[0]        = '\0';
+	if (!state.lock) {
+		state.lock = SDL_CreateMutex();
 	}
-	SDL_UnlockMutex(installer_status.lock);
+
+	SDL_LockMutex(state.lock);
+
+  const bool already_running = (state.phase != INSTALLER_IDLE &&
+	                               state.phase != INSTALLER_DONE &&
+	                               state.phase != INSTALLER_ERROR);
+	if (!already_running) {
+		state.phase           = INSTALLER_IDLE;
+		state.files_done      = 0;
+		state.files_total     = 0;
+		state.kbytes_done     = 0;
+		state.kbytes_total    = 0;
+		state.current_file[0] = '\0';
+		state.error[0]        = '\0';
+	}
+
+	SDL_UnlockMutex(state.lock);
 
 	if (!already_running) {
-		Thread_Create(Installer_SyncThread, &installer_status, THREAD_NO_WAIT);
+		Thread_Create(Installer_UpdateThread, &state, THREAD_NO_WAIT);
 	}
 }
 
@@ -516,16 +532,16 @@ void Installer_SyncData(void) {
  * @brief Populates @a out with a snapshot of the current sync status.
  * Safe to call from any thread.
  */
-void Installer_Status(installer_sync_status_t *out) {
+void Installer_Status(installer_state_t *out) {
 
-	if (!installer_status.lock) {
-		*out = (installer_sync_status_t) {};
+	if (!state.lock) {
+		*out = (installer_state_t) {};
 		return;
 	}
 
-	SDL_LockMutex(installer_status.lock);
-	*out = installer_status;
-	SDL_UnlockMutex(installer_status.lock);
+	SDL_LockMutex(state.lock);
+	*out = state;
+	SDL_UnlockMutex(state.lock);
 
 	out->lock = NULL; // callers never need the lock pointer
 }

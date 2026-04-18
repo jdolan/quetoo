@@ -676,9 +676,9 @@ void Cl_Frame(const uint32_t msec) {
 
   cls.cgame->UpdateDiscord();
 
-  installer_sync_status_t sync;
+  installer_state_t sync;
   Installer_Status(&sync);
-  if (sync.phase != INSTALLER_SYNC_IDLE) {
+  if (sync.phase != INSTALLER_IDLE) {
     cls.cgame->UpdateSync(sync);
   }
 

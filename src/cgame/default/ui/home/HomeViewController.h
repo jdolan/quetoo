@@ -35,8 +35,8 @@ typedef struct HomeViewControllerInterface HomeViewControllerInterface;
 
 /**
  * @brief The HomeViewController type.
- * @extends HomeViewController
- * @ingroup
+ * @extends ViewController
+ * @ingroup ViewControllers
  */
 struct HomeViewController {
 
@@ -53,14 +53,9 @@ struct HomeViewController {
   HomeViewControllerInterface *interface;
 
   /**
-   * @brief The message of the day.
+   * @brief The message of the day / version status label.
    */
   Label *motd;
-
-  /**
-   * @brief Data sync progress bar, shown while Installer_SyncData is running.
-   */
-  ProgressBar *syncProgress;
 };
 
 /**
@@ -72,12 +67,6 @@ struct HomeViewControllerInterface {
    * @brief The superclass interface.
    */
   ViewControllerInterface viewControllerInterface;
-
-  /**
-   * @fn void HomeViewController::setSyncStatus(HomeViewController *self, const installer_sync_status_t sync)
-   * @brief Updates the sync progress bar with the current installer status.
-   */
-  void (*setSyncStatus)(HomeViewController *self, const installer_sync_status_t sync);
 };
 
 /**
