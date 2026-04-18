@@ -6,7 +6,7 @@ if (-not $env:APPVEYOR_REPO_BRANCH)
 
 echo "AWS for $env:APPVEYOR_REPO_BRANCH..."
 
-$IS_MASTER = $env:APPVEYOR_REPO_BRANCH -eq "master"
+$IS_MAIN = $env:APPVEYOR_REPO_BRANCH -eq "main"
 
 $aws_exe = "aws.exe"
 
@@ -14,7 +14,7 @@ $QUETOO_REVISION_SRC = "revision"
 $QUETOO_BUCKET = "s3://quetoo/"
 $QUETOO_ARCH = If ($env:Platform -Match "Win32") {"i686"} Else {"x86_64"}
 
-if ($IS_MASTER)
+if ($IS_MAIN)
 {
 	$QUETOO_REVISION_BUCKET = $QUETOO_BUCKET + "revisions/" + $QUETOO_ARCH + "-pc-windows"
 
@@ -25,7 +25,7 @@ if ($IS_MASTER)
 
 $QUETOO_RELEASE_SRC = "Quetoo/";
 
-if ($IS_MASTER)
+if ($IS_MAIN)
 {
 	$QUETOO_RELEASE_BUCKET = $QUETOO_BUCKET + $QUETOO_ARCH + "-pc-windows"
 
@@ -34,7 +34,7 @@ if ($IS_MASTER)
 	&$aws_exe s3 sync $QUETOO_RELEASE_SRC $QUETOO_RELEASE_BUCKET --delete
 }
 
-if ($IS_MASTER)
+if ($IS_MAIN)
 {
 	$QUETOO_DATA_BUCKET = "s3://quetoo-data/"
 	$QUETOO_DATA_DIR = $QUETOO_RELEASE_SRC + "share/"
@@ -45,7 +45,7 @@ if ($IS_MASTER)
 }
 
 $QUETOO_SNAPSHOT_SRC = "Quetoo.zip"
-if ($IS_MASTER)
+if ($IS_MAIN)
 {
 	$QUETOO_SNAPSHOT_BUCKET = $QUETOO_BUCKET + "snapshots/Quetoo-BETA-" + $QUETOO_ARCH + "-pc-windows.zip"
 }
