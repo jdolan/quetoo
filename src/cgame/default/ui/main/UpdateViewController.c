@@ -48,14 +48,14 @@ static const char *hero_images[] = {
  * @brief Net_HttpCallback for the hero image fetch.
  * Called on a background thread; decodes and sets the heroShot image.
  */
-static void heroImageCallback(int32_t status, void *data, size_t length, void *context) {
+static void heroImageCallback(int32_t status, void *body, size_t length, void *user_data) {
 
-	if (status == 200 && data && length) {
-		Data *imageData = $$(Data, dataWithBytes, data, length);
+	if (status == 200 && body && length) {
+		Data *imageData = $$(Data, dataWithBytes, body, length);
 		Image *image = $$(Image, imageWithData, imageData);
 		release(imageData);
 		if (image) {
-			UpdateViewController *this = (UpdateViewController *) context;
+			UpdateViewController *this = (UpdateViewController *) user_data;
 			$(this->heroShot, setImage, image);
 			release(image);
 		}

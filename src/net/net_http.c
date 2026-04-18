@@ -58,7 +58,7 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
 
 typedef struct {
   Net_HttpCallback callback;
-  void *context;
+  void *user_data;
 } Net_HttpGetAsync_State;
 
 /**
@@ -74,9 +74,9 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
   const Data *data = ((URLSessionDataTask *) task)->data;
   if (data) {
-    state->callback(status, (void *) data->bytes, data->length, state->context);
+    state->callback(status, (void *) data->bytes, data->length, state->user_data);
   } else {
-    state->callback(status, NULL, 0, state->context);
+    state->callback(status, NULL, 0, state->user_data);
   }
 
   Mem_Free(state);
@@ -86,7 +86,7 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 /**
  * @brief
  */
-void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *context) {
+void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data) {
 
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
@@ -97,7 +97,7 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *c
 
   Net_HttpGetAsync_State *state = Mem_Malloc(sizeof(Net_HttpGetAsync_State));
   state->callback = callback;
-  state->context = context;
+  state->user_data = user_data;
   task->urlSessionTask.data = state;
 
   $((URLSessionTask *) task, resume);
