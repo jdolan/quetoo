@@ -32,6 +32,7 @@
 
 #include "client/cl_types.h"
 #include "common/installer.h"
+#include "net/net_http.h"
 
 #define CGAME_API_VERSION 26
 
@@ -180,6 +181,32 @@ typedef struct cg_import_s {
    * @param thread The thread.
    */
   void (*Wait)(thread_t *thread);
+
+  /**
+   * @}
+   * @defgroup http HTTP
+   * @{
+   */
+
+  /**
+   * @brief Performs a synchronous HTTP GET request.
+   * @param url The URL to fetch.
+   * @param data Receives a newly allocated buffer containing the response body. Caller must free.
+   * @param length Receives the length of the response body in bytes.
+   * @return The HTTP status code, or 0 on network error.
+   * @remarks This call blocks until the request completes. Use on a dedicated thread (see Thread)
+   * to avoid stalling the frame loop.
+   */
+  int32_t (*HttpGet)(const char *url, void **data, size_t *length);
+
+  /**
+   * @brief Performs an asynchronous HTTP GET request.
+   * @param url The URL to fetch.
+   * @param callback Invoked on a background thread when the request completes.
+   * @param context User context pointer passed through to the callback.
+   * @remarks The response buffer is valid only for the duration of the callback; copy it if needed.
+   */
+  void (*HttpGetAsync)(const char *url, Net_HttpCallback callback, void *context);
 
   /**
    * @}

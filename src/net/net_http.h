@@ -28,8 +28,9 @@
  * @param status The HTTP response code.
  * @param data The returned data.
  * @param length The returned data length in bytes.
+ * @param context The user context pointer passed to Net_HttpGetAsync.
  */
-typedef void (*Net_HttpCallback)(int32_t status, void *data, size_t length);
+typedef void (*Net_HttpCallback)(int32_t status, void *data, size_t length, void *context);
 
 /**
  * @brief Synchronously GET the specified URL string, writing data and len.
@@ -44,8 +45,9 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length);
  * @brief Asynchronously GET the specified URL string.
  * @param url_string The URL string to GET.
  * @param callback The completion callback.
+ * @param context User context pointer passed through to the callback.
  */
-void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback);
+void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *context);
 
 /**
  * @brief Construct an HTTP URL from a net_addr_t and path.

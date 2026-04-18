@@ -20,6 +20,7 @@
  */
 
 #include "cl_local.h"
+#include "net/net_http.h"
 
 static void *cgame_handle;
 
@@ -188,6 +189,9 @@ void Cl_InitCgame(void) {
 
   import.Thread = Thread_Create_;
   import.Wait = Thread_Wait;
+
+  import.HttpGet = Net_HttpGet;
+  import.HttpGetAsync = Net_HttpGetAsync;
 
   import.OpenFile = Fs_OpenRead;
   import.SeekFile = Fs_Seek;

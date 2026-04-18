@@ -21,8 +21,6 @@
 
 #include "cg_local.h"
 
-#include <Objectively/URLSession.h>
-
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
@@ -46,19 +44,18 @@ static const char *hero_images[] = {
 	"quetoo038.jpg",
 };
 
-#pragma mark - URLSession completion
-
 /**
- * @brief URLSessionTaskCompletion for the hero image fetch.
- * Called on a background thread; sets the heroShot image when data arrives.
+ * @brief Net_HttpCallback for the hero image fetch.
+ * Called on a background thread; decodes and sets the heroShot image.
  */
-static void heroImageCompletion(URLSessionTask *task, bool success) {
+static void heroImageCallback(int32_t status, void *data, size_t length, void *context) {
 
-	if (success) {
-		URLSessionDataTask *dataTask = (URLSessionDataTask *) task;
-		Image *image = $$(Image, imageWithData, dataTask->data);
+	if (status == 200 && data && length) {
+		Data *imageData = $$(Data, dataWithBytes, data, length);
+		Image *image = $$(Image, imageWithData, imageData);
+		release(imageData);
 		if (image) {
-			UpdateViewController *this = task->data;
+			UpdateViewController *this = (UpdateViewController *) context;
 			$(this->heroShot, setImage, image);
 			release(image);
 		}
@@ -91,20 +88,14 @@ static void loadView(ViewController *self) {
 	$(this->logo, setImageWithResourceName, "ui/loading.tga");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 
-	// Fetch a random hero image asynchronously via URLSession.
+	// Fetch a random hero image asynchronously.
 	const int n = sizeof(hero_images) / sizeof(hero_images[0]);
 	const char *name = hero_images[SDL_GetTicks() % n];
 
 	char hero_url[256];
 	g_snprintf(hero_url, sizeof(hero_url), "%s%s", QUETOO_HERO_BASE_URL, name);
 
-	URL *url = $(alloc(URL), initWithCharacters, hero_url);
-	URLSession *session = $$(URLSession, sharedInstance);
-	URLSessionDataTask *task = $(session, dataTaskWithURL, url, heroImageCompletion);
-	task->urlSessionTask.data = self;
-	$((URLSessionTask *) task, resume);
-	release(task);
-	release(url);
+	cgi.HttpGetAsync(hero_url, heroImageCallback, this);
 }
 
 #pragma mark - UpdateViewController
