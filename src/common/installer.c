@@ -260,7 +260,7 @@ static bool Installer_LocalMD5(const char *key, char hex[33]) {
 	g_strlcpy(hex, g_checksum_get_string(md5), 33);
 	g_checksum_free(md5);
 
-	Mem_Free(data);
+	Fs_Free(data);
 	return true;
 }
 
@@ -345,7 +345,7 @@ static void Installer_UpdateThread(void *data) {
 		if (Fs_Load("revision", &rev_data) > 0) {
 			g_strlcpy(local_rev, g_strchomp((char *) rev_data), sizeof(local_rev));
 		}
-		Mem_Free(rev_data);
+		Fs_Free(rev_data);
 	}
 
 	void *remote_rev_data = NULL;
@@ -409,7 +409,7 @@ static void Installer_UpdateThread(void *data) {
 				// Multipart upload: ETag is not a plain MD5; fall back to size.
 				void *local_data = NULL;
 				const int64_t local_size = Fs_Load(obj->key, &local_data);
-				Mem_Free(local_data);
+				Fs_Free(local_data);
 				needs_update = (local_size != obj->size);
 			} else {
 				needs_update = !!g_strcmp0(local_md5, obj->etag);
