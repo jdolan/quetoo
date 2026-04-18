@@ -25,24 +25,8 @@
 
 #define _Class _UpdateViewController
 
-#define QUETOO_HERO_BASE_URL "https://quetoo.s3.amazonaws.com/hero-images/"
-
-static const char *hero_images[] = {
-	"chthon05.jpg",
-	"fraggin05.jpg",
-	"longyard01.jpg",
-	"quetoo000.jpg",
-	"quetoo014.jpg",
-	"quetoo019.jpg",
-	"quetoo020.jpg",
-	"quetoo022.jpg",
-	"quetoo024.jpg",
-	"quetoo027.jpg",
-	"quetoo030.jpg",
-	"quetoo033.jpg",
-	"quetoo035.jpg",
-	"quetoo038.jpg",
-};
+#define QUETOO_HERO_BASE_URL  "https://quetoo.s3.amazonaws.com/hero-images/"
+#define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
 
 /**
  * @brief Net_HttpCallback for the hero image fetch.
@@ -60,6 +44,48 @@ static void heroImageCallback(int32_t status, void *body, size_t length, void *u
 			release(image);
 		}
 	}
+}
+
+/**
+ * @brief Net_HttpCallback for the S3 hero-images directory listing.
+ * Parses <Key> entries from the XML response, picks one at random, then
+ * fires heroImageCallback to fetch and display it.
+ */
+static void heroListCallback(int32_t status, void *body, size_t length, void *user_data) {
+
+	if (status != 200 || !body || !length) {
+		return;
+	}
+
+	// Collect filenames by scanning for <Key>hero-images/name</Key> in the XML.
+	GPtrArray *names = g_ptr_array_new_with_free_func(g_free);
+
+	static const char prefix[] = "<Key>hero-images/";
+	static const char suffix[] = "</Key>";
+	const size_t prefix_len = sizeof(prefix) - 1;
+
+	const char *p = (const char *) body;
+	while ((p = strstr(p, prefix)) != NULL) {
+		p += prefix_len;
+		const char *end = strstr(p, suffix);
+		if (!end) {
+			break;
+		}
+		const size_t name_len = end - p;
+		if (name_len > 0 && name_len < 128) {
+			g_ptr_array_add(names, g_strndup(p, name_len));
+		}
+		p = end + sizeof(suffix) - 1;
+	}
+
+	if (names->len > 0) {
+		const char *name = g_ptr_array_index(names, SDL_GetTicks() % names->len);
+		char hero_url[256];
+		g_snprintf(hero_url, sizeof(hero_url), "%s%s", QUETOO_HERO_BASE_URL, name);
+		cgi.HttpGetAsync(hero_url, heroImageCallback, user_data);
+	}
+
+	g_ptr_array_free(names, true);
 }
 
 #pragma mark - ViewController
@@ -88,14 +114,8 @@ static void loadView(ViewController *self) {
 	$(this->logo, setImageWithResourceName, "ui/loading.tga");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 
-	// Fetch a random hero image asynchronously.
-	const int n = sizeof(hero_images) / sizeof(hero_images[0]);
-	const char *name = hero_images[SDL_GetTicks() % n];
-
-	char hero_url[256];
-	g_snprintf(hero_url, sizeof(hero_url), "%s%s", QUETOO_HERO_BASE_URL, name);
-
-	cgi.HttpGetAsync(hero_url, heroImageCallback, this);
+	// Fetch the hero-images directory listing, then display a random image.
+	cgi.HttpGetAsync(QUETOO_HERO_LIST_URL, heroListCallback, this);
 }
 
 #pragma mark - UpdateViewController
