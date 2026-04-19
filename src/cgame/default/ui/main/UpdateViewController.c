@@ -148,11 +148,17 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 
 	SDL_LockMutex(self->pendingImagesLock);
 	const Array *pending = (Array *) self->pendingImages;
-	for (size_t i = 0; i < pending->count; i++) {
-		Image *image = $(pending, objectAtIndex, i);
-		$(self->slideShow, addImage, image);
+	if (pending->count) {
+		for (size_t i = 0; i < pending->count; i++) {
+			Image *image = $(pending, objectAtIndex, i);
+			$(self->slideShow, addImage, image);
+		}
+		$(self->pendingImages, removeAllObjects);
+		const size_t count = ((Array *) self->slideShow->images)->count;
+		if (count > 1) {
+			self->slideShow->index = (size_t) rand() % count;
+		}
 	}
-	$(self->pendingImages, removeAllObjects);
 	SDL_UnlockMutex(self->pendingImagesLock);
 
 	switch (status.state) {
