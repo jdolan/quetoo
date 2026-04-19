@@ -678,9 +678,7 @@ void Cl_Frame(const uint32_t msec) {
 
   installer_status_t status;
   Installer_Status(&status);
-  if (status.state != INSTALLER_IDLE &&
-      status.state != INSTALLER_DONE &&
-      status.state != INSTALLER_ERROR) {
+  if (status.state != INSTALLER_IDLE) {
     cls.cgame->UpdateInstaller(status);
   }
 

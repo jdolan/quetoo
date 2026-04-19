@@ -107,7 +107,8 @@ void Cg_UpdateInstaller(const installer_status_t status) {
 
   if (updateViewController == NULL) {
     if (status.state == INSTALLER_IDLE ||
-        status.state == INSTALLER_DONE) {
+        status.state == INSTALLER_DONE ||
+        status.state == INSTALLER_ERROR) {
       return;
     }
     updateViewController = $(alloc(UpdateViewController), init);

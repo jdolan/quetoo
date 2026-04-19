@@ -454,6 +454,10 @@ static void Installer_UpdateThread(void *data) {
 	for (GList *l = objects; l; l = l->next) {
 		const s3_object_t *obj = l->data;
 
+		if (!g_strcmp0(obj->key, "revision")) {
+			continue;
+		}
+
 		bool needs_update = true;
 
 		char local_md5[33] = {};
@@ -535,6 +539,16 @@ static void Installer_UpdateThread(void *data) {
 
 	g_hash_table_destroy(s3_keys);
 	g_list_free_full(objects, Mem_Free);
+
+	char rev_path[MAX_OS_PATH];
+	g_snprintf(rev_path, sizeof(rev_path), "%s%crevision", Fs_DataDir(), G_DIR_SEPARATOR);
+	FILE *rev_file = g_fopen(rev_path, "wb");
+	if (rev_file) {
+		fputs(remote_rev, rev_file);
+		fclose(rev_file);
+	} else {
+		Com_Warn("Failed to write revision file: %s\n", rev_path);
+	}
 
 	Com_Print("Data sync complete (revision %s).\n", remote_rev);
 	SDL_LockMutex(status->lock);
