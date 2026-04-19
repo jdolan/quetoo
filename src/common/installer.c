@@ -27,7 +27,6 @@
 #include "filesystem.h"
 #include "installer.h"
 #include "net/net_http.h"
-#include "thread.h"
 
 #define QUETOO_REVISION_URL      "https://quetoo.s3.amazonaws.com/revisions/" BUILD
 #define QUETOO_RELEASES_URL      "https://github.com/jdolan/quetoo/releases/latest"
@@ -37,6 +36,7 @@
 #define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
 
 static installer_status_t status;
+static SDL_Thread *installer_thread;
 
 /**
  * @brief Compares a local revision string against a remote revision URL.
@@ -293,7 +293,7 @@ static int64_t Installer_LocalSize(const char *key) {
 /**
  * @brief The number of concurrent download threads.
  */
-#define INSTALLER_DOWNLOAD_THREADS 4
+#define INSTALLER_DOWNLOAD_THREADS 8
 
 /**
  * @brief Shared state for parallel download workers.
@@ -359,7 +359,7 @@ static bool Installer_Download(const s3_object_t *obj) {
  * @brief Worker thread for parallel downloads. Pops items from the shared
  * queue until it is empty or a download failure is recorded.
  */
-static int Installer_DownloadWorker(void *data) {
+static int Installer_WorkerThread(void *data) {
 
   installer_worker_t *worker = (installer_worker_t *) data;
   installer_status_t *status = worker->status;
@@ -375,6 +375,14 @@ static int Installer_DownloadWorker(void *data) {
     GList *item = *worker->queue;
     *worker->queue = item->next;
     SDL_UnlockMutex(worker->queue_lock);
+
+    SDL_LockMutex(status->lock);
+    const bool cancelled = status->cancelled;
+    SDL_UnlockMutex(status->lock);
+
+    if (cancelled) {
+      break;
+    }
 
     const s3_object_t *obj = item->data;
 
@@ -448,7 +456,7 @@ static void Installer_PruneDir(const char *base, const char *rel, prune_ctx_t *c
 /**
  * @brief Background thread that performs the full S3 data sync.
  */
-static void Installer_UpdateThread(void *data) {
+static int Installer_UpdateThread(void *data) {
 
 	installer_status_t *status = (installer_status_t *) data;
 
@@ -476,7 +484,7 @@ static void Installer_UpdateThread(void *data) {
 		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
 		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
-		return;
+		return 0;
 	}
 
 	char remote_rev[64] = {};
@@ -485,12 +493,20 @@ static void Installer_UpdateThread(void *data) {
 	g_free(remote_rev_tmp);
 	Mem_Free(remote_rev_data);
 
+	SDL_LockMutex(status->lock);
+	const bool cancelled_after_check = status->cancelled;
+	SDL_UnlockMutex(status->lock);
+
+	if (cancelled_after_check) {
+		return 0;
+	}
+
 	if (!g_strcmp0(local_rev, remote_rev)) {
 		Com_Print("Revision %s is up to date.\n", local_rev);
 		SDL_LockMutex(status->lock);
 		status->state = INSTALLER_DONE;
 		SDL_UnlockMutex(status->lock);
-		return;
+		return 0;
 	}
 
 	Com_Print("Updating revision %s → %s...\n", local_rev, remote_rev);
@@ -505,7 +521,16 @@ static void Installer_UpdateThread(void *data) {
 		g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
 		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
-		return;
+		return 0;
+	}
+
+	SDL_LockMutex(status->lock);
+	const bool cancelled_after_list = status->cancelled;
+	SDL_UnlockMutex(status->lock);
+
+	if (cancelled_after_list) {
+		g_list_free_full(objects, Mem_Free);
+		return 0;
 	}
 
 	SDL_LockMutex(status->lock);
@@ -568,7 +593,7 @@ static void Installer_UpdateThread(void *data) {
 			.queue      = &queue,
 			.ok         = &download_ok,
 		};
-		threads[i] = SDL_CreateThread(Installer_DownloadWorker, "installer", &workers[i]);
+		threads[i] = SDL_CreateThread(Installer_WorkerThread, "installer", &workers[i]);
 	}
 
 	for (int32_t i = 0; i < INSTALLER_DOWNLOAD_THREADS; i++) {
@@ -578,12 +603,21 @@ static void Installer_UpdateThread(void *data) {
 	SDL_DestroyMutex(queue_lock);
 	g_list_free(delta);
 
+	SDL_LockMutex(status->lock);
+	const bool cancelled_after_dl = status->cancelled;
+	SDL_UnlockMutex(status->lock);
+
+	if (cancelled_after_dl) {
+		g_list_free_full(objects, Mem_Free);
+		return 0;
+	}
+
 	if (!download_ok) {
 		g_list_free_full(objects, Mem_Free);
 		SDL_LockMutex(status->lock);
 		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
-		return;
+		return 0;
 	}
 
 	SDL_LockMutex(status->lock);
@@ -619,6 +653,7 @@ static void Installer_UpdateThread(void *data) {
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_DONE;
 	SDL_UnlockMutex(status->lock);
+	return 0;
 }
 
 /**
@@ -645,6 +680,7 @@ void Installer_Update(void) {
 	                              status.state != INSTALLER_ERROR);
 	if (!already_running) {
 		status.state           = INSTALLER_IDLE;
+		status.cancelled       = false;
 		status.files_done      = 0;
 		status.files_total     = 0;
 		status.kbytes_done     = 0;
@@ -652,10 +688,28 @@ void Installer_Update(void) {
 		status.current_file[0] = '\0';
 		status.error[0]        = '\0';
 
-    Thread_Create(Installer_UpdateThread, &status, THREAD_NO_WAIT);
+		installer_thread = SDL_CreateThread(Installer_UpdateThread, "installer", &status);
   }
 
 	SDL_UnlockMutex(status.lock);
+}
+
+/**
+ * @brief Cancels any in-progress data update and waits for it to finish.
+ * Safe to call when no update is running.
+ */
+void Installer_Shutdown(void) {
+
+	if (status.lock) {
+		SDL_LockMutex(status.lock);
+		status.cancelled = true;
+		SDL_UnlockMutex(status.lock);
+	}
+
+	if (installer_thread) {
+		SDL_WaitThread(installer_thread, NULL);
+		installer_thread = NULL;
+	}
 }
 
 /**

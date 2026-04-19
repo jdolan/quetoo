@@ -45,6 +45,7 @@ typedef enum {
 typedef struct {
 	SDL_Mutex *lock;
 	installer_state_t state;
+	bool cancelled;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;
@@ -56,4 +57,5 @@ typedef struct {
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
 void Installer_Update(void);
+void Installer_Shutdown(void);
 void Installer_Status(installer_status_t *out);
