@@ -4,6 +4,23 @@ cguicommon_DATA = \
 	DialogViewController.css \
 	DialogViewController.json
 
+bootstrapfontsdir = @PKGLIBDIR@/default/fonts
+bootstrapfonts_DATA = \
+	fonts/coda.heavy.ttf \
+	fonts/coda.regular.ttf \
+	fonts/large.tga \
+	fonts/medium.tga \
+	fonts/small.tga
+
+bootstrapuidir = @PKGLIBDIR@/default/ui
+bootstrapui_DATA = \
+	ui/conback.tga \
+	ui/loading.tga
+
+bootstrapuipicsdir = @PKGLIBDIR@/default/ui/pics
+bootstrapuipics_DATA = \
+	ui/pics/progress_bar.tga
+
 noinst_HEADERS = \
 	BindTextView.h \
 	CvarCheckbox.h \
