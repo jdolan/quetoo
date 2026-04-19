@@ -37,20 +37,22 @@
  */
 static void heroImageCallback(int32_t status, void *body, size_t length, void *user_data) {
 
-	if (status == 200 && body && length) {
-		Data *imageData = $$(Data, dataWithBytes, body, length);
-		Image *image = $$(Image, imageWithData, imageData);
-		release(imageData);
-		if (image) {
-			UpdateViewController *this = (UpdateViewController *) user_data;
-			$(this->heroImages, addObject, image);
-			release(image);
-			if (this->heroImages->array.count == 1) {
-				$(this->heroShot, setImage, image);
-				this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
-			}
-		}
-	}
+	if (status == 200) {
+		Image *image = $$(Image, imageWithBytes, body, length);
+    assert(image);
+
+    UpdateViewController *this = (UpdateViewController *) user_data;
+    $(this->heroImages, addObject, image);
+
+    release(image);
+
+    if (this->heroImages->array.count == 1) {
+      $(this->heroImage, setImage, image);
+      this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+    }
+  } else {
+    Cg_Warn("Failed to fetch hero image: %d", status);
+  }
 }
 
 /**
@@ -59,31 +61,27 @@ static void heroImageCallback(int32_t status, void *body, size_t length, void *u
  */
 static void heroListCallback(int32_t status, void *body, size_t length, void *user_data) {
 
-	if (status != 200 || !body || !length) {
-		return;
-	}
+  const char prefix[] = "<Key>hero-images/";
+  const char suffix[] = "</Key>";
 
-	UpdateViewController *this = (UpdateViewController *) user_data;
+  UpdateViewController *this = (UpdateViewController *) user_data;
 
-	static const char prefix[] = "<Key>hero-images/";
-	static const char suffix[] = "</Key>";
-	const size_t prefix_len = sizeof(prefix) - 1;
-
-	const char *p = (const char *) body;
-	while ((p = strstr(p, prefix)) != NULL) {
-		p += prefix_len;
-		const char *end = strstr(p, suffix);
-		if (!end) {
-			break;
-		}
-		const size_t name_len = end - p;
-		if (name_len > 0 && name_len < 128) {
-			char url[256];
-			g_snprintf(url, sizeof(url), "%s%.*s", QUETOO_HERO_BASE_URL, (int) name_len, p);
-			cgi.HttpGetAsync(url, heroImageCallback, this);
-		}
-		p = end + sizeof(suffix) - 1;
-	}
+  if (status == 200) {
+    char *p = (char *) body;
+    while ((p = strstr(p, prefix)) != NULL) {
+      char *name = p + strlen(prefix);
+      char *s = strstr(name, suffix);
+      if (!s) {
+        Cg_Warn("Malformed hero image list");
+        break;
+      }
+      *s = '\0';
+      cgi.HttpGetAsync(va("%s%s", QUETOO_HERO_BASE_URL, name), heroImageCallback, this);
+      p = s + strlen(suffix);
+    }
+  } else {
+    Cg_Warn("Failed to fetch hero image list: %d", status);
+  }
 }
 
 #pragma mark - Object
@@ -112,8 +110,8 @@ static void loadView(ViewController *self) {
 	UpdateViewController *this = (UpdateViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("heroShot", &this->heroShot),
-		MakeOutlet("heroShotNext", &this->heroShotNext),
+		MakeOutlet("heroShot", &this->heroImage),
+		MakeOutlet("heroShotNext", &this->nextHeroImage),
 		MakeOutlet("logo", &this->logo),
 		MakeOutlet("progress", &this->progressBar)
 	);
@@ -128,9 +126,8 @@ static void loadView(ViewController *self) {
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 
 	this->heroImages = $(alloc(MutableArray), init);
-	this->heroShotNext->color.a = 0;
+	this->nextHeroImage->color.a = 0;
 
-	// Fetch the hero-images directory listing, then display a random image.
 	cgi.HttpGetAsync(QUETOO_HERO_LIST_URL, heroListCallback, this);
 }
 
@@ -152,16 +149,15 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 
 	UpdateViewController *this = self;
 
-	// Per-frame hero image cycling and cross-fade.
 	const size_t heroCount = this->heroImages->array.count;
 	if (heroCount > 1) {
 		if (this->heroFadeStart) {
-			const float t = (float)(SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
-			this->heroShotNext->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
+			const float t = (float) (SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
+			this->nextHeroImage->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
 			if (t >= 1.0f) {
-				$(this->heroShot, setImage, this->heroShotNext->image);
-				$(this->heroShotNext, setImage, NULL);
-				this->heroShotNext->color.a = 0;
+				$(this->heroImage, setImage, this->nextHeroImage->image);
+				$(this->nextHeroImage, setImage, NULL);
+				this->nextHeroImage->color.a = 0;
 				this->heroFadeStart = 0;
 				this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
 			}
@@ -169,7 +165,7 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 			this->heroCycleAt = 0;
 			this->heroIndex = (this->heroIndex + 1) % heroCount;
 			Image *next = $((Array *) this->heroImages, objectAtIndex, this->heroIndex);
-			$(this->heroShotNext, setImage, next);
+			$(this->nextHeroImage, setImage, next);
 			this->heroFadeStart = SDL_GetTicks();
 		}
 	}
