@@ -21,9 +21,6 @@
 
 #include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
-#ifdef _WIN32
-  #include <sys/stat.h>
-#endif
 #include <glib/gstdio.h>
 
 #include "console.h"
@@ -282,8 +279,15 @@ static int64_t Installer_LocalSize(const char *key) {
   char path[MAX_OS_PATH];
   g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, key);
 
-  GStatBuf st;
-  return g_stat(path, &st) == 0 ? (int64_t) st.st_size : -1;
+  FILE *f = g_fopen(path, "rb");
+  if (!f) {
+    return -1;
+  }
+
+  fseek(f, 0, SEEK_END);
+  const int64_t size = (int64_t) ftell(f);
+  fclose(f);
+  return size;
 }
 
 /**
