@@ -2,12 +2,8 @@
   "identifier": "updating",
   "subviews": [
     {
-      "class": "ImageView",
+      "class": "SlideShowView",
       "identifier": "heroShot"
-    },
-    {
-      "class": "ImageView",
-      "identifier": "heroShotNext"
     },
     {
       "class": "ImageView",

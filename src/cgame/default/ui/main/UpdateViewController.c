@@ -28,13 +28,10 @@
 #define QUETOO_HERO_BASE_URL  "https://quetoo.s3.amazonaws.com/hero-images/"
 #define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
 
-#define HERO_CYCLE_MSEC 5000
-#define HERO_FADE_MSEC  1000
-
 /**
  * @brief ThreadRunFunc that pre-fetches all hero images synchronously.
  * Fetches the S3 directory listing, then fetches each image in sequence,
- * appending decoded Image* instances to heroImages.
+ * adding each decoded Image to the SlideShowView.
  */
 static void fetchHeroImages(void *data) {
 
@@ -44,7 +41,7 @@ static void fetchHeroImages(void *data) {
 	size_t list_length;
 
 	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
-    Cg_Warn("Failed to fetch hero image list");
+		Cg_Warn("Failed to fetch hero image list");
 		return;
 	}
 
@@ -56,27 +53,27 @@ static void fetchHeroImages(void *data) {
 
 		p += strlen(prefix);
 		char *s = strstr(p, suffix);
-    assert(s);
-    *s = '\0';
+		assert(s);
+		*s = '\0';
 
-    char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
+		char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
 
-    void *image_body;
-    size_t image_length;
+		void *image_body;
+		size_t image_length;
 
-    if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
-      Image *image = $$(Image, imageWithBytes, image_body, image_length);
-      if (image) {
-        $(this->heroImages, addObject, image);
-      }
-      release(image);
-    } else {
-      Cg_Warn("Failed to fetch hero image: %s", url);
-    }
+		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
+			Image *image = $$(Image, imageWithBytes, image_body, image_length);
+			if (image) {
+				$(this->slideShow, addImage, image);
+			}
+			release(image);
+		} else {
+			Cg_Warn("Failed to fetch hero image: %s", url);
+		}
 
-    cgi.Free(image_body);
+		cgi.Free(image_body);
 
-    p = s + strlen(suffix);
+		p = s + strlen(suffix);
 	}
 
 	cgi.Free(list_body);
@@ -88,10 +85,6 @@ static void fetchHeroImages(void *data) {
  * @see Object::dealloc(Object *)
  */
 static void dealloc(Object *self) {
-
-	UpdateViewController *this = (UpdateViewController *) self;
-
-	release(this->heroImages);
 
 	super(Object, self, dealloc);
 }
@@ -108,8 +101,7 @@ static void loadView(ViewController *self) {
 	UpdateViewController *this = (UpdateViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("heroShot", &this->heroImage),
-		MakeOutlet("heroShotNext", &this->nextHeroImage),
+		MakeOutlet("heroShot", &this->slideShow),
 		MakeOutlet("logo", &this->logo),
 		MakeOutlet("progress", &this->progressBar)
 	);
@@ -122,9 +114,6 @@ static void loadView(ViewController *self) {
 
 	$(this->logo, setImageWithResourceName, "ui/loading.tga");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
-
-	this->heroImages = $(alloc(MutableArray), init);
-	this->nextHeroImage->color.a = 0;
 
 	cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
 }
@@ -144,35 +133,6 @@ static UpdateViewController *init(UpdateViewController *self) {
  * @memberof UpdateViewController
  */
 static void setStatus(UpdateViewController *self, installer_status_t status) {
-
-	UpdateViewController *this = self;
-
-	const size_t heroCount = this->heroImages->array.count;
-	if (heroCount > 0) {
-		if (this->heroImage->image == NULL) {
-			Image *first = $((Array *) this->heroImages, firstObject);
-			$(this->heroImage, setImage, first);
-			this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
-		} else if (heroCount > 1) {
-			if (this->heroFadeStart) {
-				const float t = (float) (SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
-				this->nextHeroImage->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
-				if (t >= 1.0f) {
-					$(this->heroImage, setImage, this->nextHeroImage->image);
-					$(this->nextHeroImage, setImage, NULL);
-					this->nextHeroImage->color.a = 0;
-					this->heroFadeStart = 0;
-					this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
-				}
-			} else if (this->heroCycleAt && SDL_GetTicks() >= this->heroCycleAt) {
-				this->heroCycleAt = 0;
-				this->heroIndex = (this->heroIndex + 1) % heroCount;
-				Image *next = $((Array *) this->heroImages, objectAtIndex, this->heroIndex);
-				$(this->nextHeroImage, setImage, next);
-				this->heroFadeStart = SDL_GetTicks();
-			}
-		}
-	}
 
 	switch (status.phase) {
 		case INSTALLER_CHECKING:
