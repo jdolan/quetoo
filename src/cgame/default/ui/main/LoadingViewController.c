@@ -49,7 +49,7 @@ static void loadView(ViewController *self) {
   assert(self->view->stylesheet);
 
   $(this->logo, setImageWithResourceName, "ui/loading.tga");
-  $(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
+  $(this->progressBar->foreground, setImageWithResourceName, "ui/progress_bar.tga");
 }
 
 #pragma mark - LoadingViewController

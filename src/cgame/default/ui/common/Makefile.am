@@ -4,22 +4,14 @@ cguicommon_DATA = \
 	DialogViewController.css \
 	DialogViewController.json
 
-bootstrapfontsdir = @PKGLIBDIR@/default/fonts
-bootstrapfonts_DATA = \
-	fonts/coda.heavy.ttf \
-	fonts/coda.regular.ttf \
-	fonts/large.tga \
-	fonts/medium.tga \
-	fonts/small.tga
-
 bootstrapuidir = @PKGLIBDIR@/default/ui
 bootstrapui_DATA = \
 	conback.tga \
-	loading.tga
-
-bootstrapuipicsdir = @PKGLIBDIR@/default/ui/pics
-bootstrapuipics_DATA = \
-	pics/progress_bar.tga
+	large.tga \
+	loading.tga \
+	medium.tga \
+	progress_bar.tga \
+	small.tga
 
 noinst_HEADERS = \
 	BindTextView.h \
