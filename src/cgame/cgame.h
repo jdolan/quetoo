@@ -115,15 +115,15 @@ typedef struct cg_import_s {
   int32_t (*CheckForUpdates)(void);
 
   /**
-   * @brief Launches the installer to fetch available updates.
+   * @brief Opens the GitHub Releases page so the user may download a newer snapshot.
    */
   void (*OpenReleasesPage)(void);
 
   /**
-   * @brief Starts an asynchronous S3 data sync in the background.
-   * Progress is delivered each client frame via cge.UpdateSync.
+   * @brief Begins installing available updates on a background thread. Progress is delivered
+   * each client frame via cge.UpdateInstaller.
    */
-  void (*Update)(void);
+  void (*InstallUpdates)(void);
 
   /**
    * @}

@@ -44,7 +44,7 @@ void Cg_InitUi(void) {
 
   cgi.PushViewController((ViewController *) mainViewController);
 
-  cgi.Update();
+  cgi.InstallUpdates();
 }
 
 /**
