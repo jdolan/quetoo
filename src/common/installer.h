@@ -56,6 +56,7 @@ typedef struct {
 
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
+void Installer_Init(void);
 void Installer_Update(void);
 void Installer_Shutdown(void);
 void Installer_Status(installer_status_t *out);

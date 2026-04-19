@@ -957,8 +957,6 @@ void Sv_Init(void) {
  */
 void Sv_Shutdown(const char *msg) {
 
-  Installer_Shutdown();
-
   Sv_ShutdownHttp();
 
   Sv_ShutdownServer(msg);

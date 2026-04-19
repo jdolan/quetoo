@@ -738,8 +738,6 @@ void Cl_Shutdown(void) {
 
   Com_Print("Client shutdown...\n");
 
-  Installer_Shutdown();
-
   Cl_Disconnect();
 
   Cl_ShutdownCgame();

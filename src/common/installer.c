@@ -359,7 +359,7 @@ static bool Installer_Download(const s3_object_t *obj) {
  * @brief Worker thread for parallel downloads. Pops items from the shared
  * queue until it is empty or a download failure is recorded.
  */
-static int Installer_WorkerThread(void *data) {
+static int Installer_DownloadThread(void *data) {
 
   installer_worker_t *worker = (installer_worker_t *) data;
   installer_status_t *status = worker->status;
@@ -593,7 +593,7 @@ static int Installer_UpdateThread(void *data) {
 			.queue      = &queue,
 			.ok         = &download_ok,
 		};
-		threads[i] = SDL_CreateThread(Installer_WorkerThread, "installer", &workers[i]);
+		threads[i] = SDL_CreateThread(Installer_DownloadThread, "installer", &workers[i]);
 	}
 
 	for (int32_t i = 0; i < INSTALLER_DOWNLOAD_THREADS; i++) {
@@ -661,10 +661,6 @@ static int Installer_UpdateThread(void *data) {
  */
 void Installer_Update(void) {
 
-	if (!status.lock) {
-		status.lock = SDL_CreateMutex();
-	}
-
 	if (revision->integer == -1) {
 		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
 		SDL_LockMutex(status.lock);
@@ -695,8 +691,15 @@ void Installer_Update(void) {
 }
 
 /**
+ * @brief Initializes the installer subsystem.
+ */
+void Installer_Init(void) {
+
+	status.lock = SDL_CreateMutex();
+}
+
+/**
  * @brief Cancels any in-progress data update and waits for it to finish.
- * Safe to call when no update is running.
  */
 void Installer_Shutdown(void) {
 
@@ -710,18 +713,18 @@ void Installer_Shutdown(void) {
 		SDL_WaitThread(installer_thread, NULL);
 		installer_thread = NULL;
 	}
+
+	if (status.lock) {
+		SDL_DestroyMutex(status.lock);
+		status.lock = NULL;
+	}
 }
 
 /**
- * @brief Populates @a out with a snapshot of the current sync status.
+ * @brief Populates `out` with a snapshot of the current sync status.
  * Safe to call from any thread.
  */
 void Installer_Status(installer_status_t *out) {
-
-	if (!status.lock) {
-		*out = (installer_status_t) {};
-		return;
-	}
 
 	SDL_LockMutex(status.lock);
 	*out = status;

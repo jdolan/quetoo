@@ -323,6 +323,8 @@ static void Init(void) {
 
   Con_Init();
 
+  Installer_Init();
+
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
   Cmd_Add("quit", Quit_f, CMD_SYSTEM, "Quit Quetoo");
@@ -355,6 +357,8 @@ static void Init(void) {
 static void Shutdown(const char *msg) {
 
   Com_Print("%s", msg);
+
+  Installer_Shutdown();
 
   if (Com_WasInit(QUETOO_SERVER)) {
     Sv_Shutdown(msg);
