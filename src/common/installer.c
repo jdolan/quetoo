@@ -21,6 +21,9 @@
 
 #include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
+#ifdef _WIN32
+  #include <sys/stat.h>
+#endif
 #include <glib/gstdio.h>
 
 #include "console.h"
