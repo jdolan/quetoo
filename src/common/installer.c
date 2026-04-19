@@ -291,6 +291,21 @@ static int64_t Installer_LocalSize(const char *key) {
 }
 
 /**
+ * @brief The number of concurrent download threads.
+ */
+#define INSTALLER_DOWNLOAD_THREADS 4
+
+/**
+ * @brief Shared state for parallel download workers.
+ */
+typedef struct {
+	installer_status_t *status;
+	SDL_Mutex *queue_lock;
+	GList **queue;
+	bool *ok;
+} installer_worker_t;
+
+/**
  * @brief Downloads a single S3 object and writes it to the data directory.
  * @return True on success.
  */
@@ -338,6 +353,53 @@ static bool Installer_Download(const s3_object_t *obj) {
   }
 
   return true;
+}
+
+/**
+ * @brief Worker thread for parallel downloads. Pops items from the shared
+ * queue until it is empty or a download failure is recorded.
+ */
+static int Installer_DownloadWorker(void *data) {
+
+  installer_worker_t *worker = (installer_worker_t *) data;
+  installer_status_t *status = worker->status;
+
+  while (true) {
+
+    SDL_LockMutex(worker->queue_lock);
+    if (!*worker->queue || !*worker->ok) {
+      SDL_UnlockMutex(worker->queue_lock);
+      break;
+    }
+    GList *item = *worker->queue;
+    *worker->queue = item->next;
+    SDL_UnlockMutex(worker->queue_lock);
+
+    const s3_object_t *obj = item->data;
+
+    SDL_LockMutex(status->lock);
+    g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
+    SDL_UnlockMutex(status->lock);
+
+    Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
+
+    if (!Installer_Download(obj)) {
+      SDL_LockMutex(status->lock);
+      g_snprintf(status->error, sizeof(status->error), "Download failed: %s", obj->key);
+      SDL_UnlockMutex(status->lock);
+
+      SDL_LockMutex(worker->queue_lock);
+      *worker->ok = false;
+      SDL_UnlockMutex(worker->queue_lock);
+    } else {
+      SDL_LockMutex(status->lock);
+      status->files_done++;
+      status->kbytes_done += (int32_t) ((obj->size + 1023) / 1024);
+      SDL_UnlockMutex(status->lock);
+    }
+  }
+
+  return 0;
 }
 
 /**
@@ -489,32 +551,34 @@ static void Installer_UpdateThread(void *data) {
 	status->kbytes_done = 0;
 	SDL_UnlockMutex(status->lock);
 
-	// Phase 3 (continued): download the delta.
+	// Phase 3 (continued): download the delta in parallel.
+	SDL_LockMutex(status->lock);
+	status->state = INSTALLER_DOWNLOADING;
+	SDL_UnlockMutex(status->lock);
+
 	bool download_ok = true;
 
-	for (GList *l = delta; l; l = l->next) {
-		const s3_object_t *obj = l->data;
+	SDL_Mutex *queue_lock = SDL_CreateMutex();
+	GList *queue = delta;
 
-		SDL_LockMutex(status->lock);
-		status->state = INSTALLER_DOWNLOADING;
-		g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
-		SDL_UnlockMutex(status->lock);
-		Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
+	installer_worker_t workers[INSTALLER_DOWNLOAD_THREADS];
+	SDL_Thread *threads[INSTALLER_DOWNLOAD_THREADS];
 
-		if (!Installer_Download(obj)) {
-			SDL_LockMutex(status->lock);
-			g_snprintf(status->error, sizeof(status->error), "Download failed: %s", obj->key);
-			SDL_UnlockMutex(status->lock);
-			download_ok = false;
-			break;
-		}
-
-		SDL_LockMutex(status->lock);
-		status->files_done++;
-		status->kbytes_done += (int32_t) ((obj->size + 1023) / 1024);
-		SDL_UnlockMutex(status->lock);
+	for (int32_t i = 0; i < INSTALLER_DOWNLOAD_THREADS; i++) {
+		workers[i] = (installer_worker_t) {
+			.status     = status,
+			.queue_lock = queue_lock,
+			.queue      = &queue,
+			.ok         = &download_ok,
+		};
+		threads[i] = SDL_CreateThread(Installer_DownloadWorker, "installer", &workers[i]);
 	}
 
+	for (int32_t i = 0; i < INSTALLER_DOWNLOAD_THREADS; i++) {
+		SDL_WaitThread(threads[i], NULL);
+	}
+
+	SDL_DestroyMutex(queue_lock);
 	g_list_free(delta);
 
 	if (!download_ok) {
