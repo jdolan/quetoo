@@ -615,6 +615,12 @@
 		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
 		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
+		CEAD8FC52F9552510087A850 /* conback.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBF2F9550DA0087A850 /* conback.tga */; };
+		CEAD8FC62F9552580087A850 /* large.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC02F9550DA0087A850 /* large.tga */; };
+		CEAD8FC72F95525A0087A850 /* loading.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC12F9550DA0087A850 /* loading.tga */; };
+		CEAD8FC82F95525D0087A850 /* medium.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC22F9550DA0087A850 /* medium.tga */; };
+		CEAD8FC92F95525F0087A850 /* progress_bar.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC32F9550DA0087A850 /* progress_bar.tga */; };
+		CEAD8FCA2F9552610087A850 /* small.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC42F9550DA0087A850 /* small.tga */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -1038,9 +1044,15 @@
 			dstPath = ui/common;
 			dstSubfolderSpec = 16;
 			files = (
-				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
 				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
 				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
+				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
+				CEAD8FC52F9552510087A850 /* conback.tga in CopyFiles */,
+				CEAD8FC62F9552580087A850 /* large.tga in CopyFiles */,
+				CEAD8FC72F95525A0087A850 /* loading.tga in CopyFiles */,
+				CEAD8FC82F95525D0087A850 /* medium.tga in CopyFiles */,
+				CEAD8FC92F95525F0087A850 /* progress_bar.tga in CopyFiles */,
+				CEAD8FCA2F9552610087A850 /* small.tga in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1793,6 +1805,12 @@
 		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
 		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
 		CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = UpdateViewController.json; sourceTree = "<group>"; };
+		CEAD8FBF2F9550DA0087A850 /* conback.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = conback.tga; sourceTree = "<group>"; };
+		CEAD8FC02F9550DA0087A850 /* large.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = large.tga; sourceTree = "<group>"; };
+		CEAD8FC12F9550DA0087A850 /* loading.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = loading.tga; sourceTree = "<group>"; };
+		CEAD8FC22F9550DA0087A850 /* medium.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = medium.tga; sourceTree = "<group>"; };
+		CEAD8FC32F9550DA0087A850 /* progress_bar.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = progress_bar.tga; sourceTree = "<group>"; };
+		CEAD8FC42F9550DA0087A850 /* small.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = small.tga; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -3347,21 +3365,27 @@
 		CE5870781F5CDFE0004CAAB2 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				CE32529B1F760D3F00512523 /* BindTextView.c */,
 				CE32529C1F760D3F00512523 /* BindTextView.h */,
-				CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */,
+				CE32529B1F760D3F00512523 /* BindTextView.c */,
 				CE58709D1F5CE97C004CAAB2 /* CvarCheckbox.h */,
-				CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */,
+				CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */,
 				CE58709F1F5CE97C004CAAB2 /* CvarSelect.h */,
-				CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */,
+				CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */,
 				CE5870A11F5CE97C004CAAB2 /* CvarSlider.h */,
-				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
+				CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */,
 				CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */,
+				CE5870A21F5CE97C004CAAB2 /* CvarTextView.c */,
+				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
+				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
-				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
-				CE8819591F882D9F000D5AB7 /* DialogViewController.h */,
 				CE4E07B320264B15000B276C /* common.css */,
+				CEAD8FBF2F9550DA0087A850 /* conback.tga */,
+				CEAD8FC02F9550DA0087A850 /* large.tga */,
+				CEAD8FC12F9550DA0087A850 /* loading.tga */,
+				CEAD8FC22F9550DA0087A850 /* medium.tga */,
+				CEAD8FC32F9550DA0087A850 /* progress_bar.tga */,
+				CEAD8FC42F9550DA0087A850 /* small.tga */,
 				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
 			path = common;

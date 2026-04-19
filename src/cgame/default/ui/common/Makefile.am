@@ -1,13 +1,10 @@
 cguicommondir = @PKGLIBDIR@/default/ui/common
 cguicommon_DATA = \
-	common.css \
 	DialogViewController.css \
-	DialogViewController.json
-
-bootstrapuidir = @PKGLIBDIR@/default/ui
-bootstrapui_DATA = \
+	DialogViewController.json \
+  common.css \
 	conback.tga \
-	large.tga \
+  large.tga \
 	loading.tga \
 	medium.tga \
 	progress_bar.tga \
