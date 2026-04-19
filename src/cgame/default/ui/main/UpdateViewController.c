@@ -32,8 +32,8 @@
 #define HERO_FADE_MSEC  1000
 
 /**
- * @brief `Net_HttpCallback` for the initial hero image fetch.
- * Sets heroShot and schedules the first cycle.
+ * @brief `Net_HttpCallback` for each pre-fetched hero image.
+ * Decodes and appends the image to heroImages; shows the first one immediately.
  */
 static void heroImageCallback(int32_t status, void *body, size_t length, void *user_data) {
 
@@ -43,35 +43,19 @@ static void heroImageCallback(int32_t status, void *body, size_t length, void *u
 		release(imageData);
 		if (image) {
 			UpdateViewController *this = (UpdateViewController *) user_data;
-			$(this->heroShot, setImage, image);
+			$(this->heroImages, addObject, image);
 			release(image);
-			this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+			if (this->heroImages->array.count == 1) {
+				$(this->heroShot, setImage, image);
+				this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+			}
 		}
 	}
 }
 
 /**
- * @brief Net_HttpCallback for cycling hero image fetches.
- * Sets heroShotNext and triggers the cross-fade.
- */
-static void heroNextImageCallback(int32_t status, void *body, size_t length, void *user_data) {
-
-	if (status == 200 && body && length) {
-		Data *imageData = $$(Data, dataWithBytes, body, length);
-		Image *image = $$(Image, imageWithData, imageData);
-		release(imageData);
-		if (image) {
-			UpdateViewController *this = (UpdateViewController *) user_data;
-			$(this->heroShotNext, setImage, image);
-			release(image);
-			this->heroFadeStart = SDL_GetTicks();
-		}
-	}
-}
-
-/**
- * @brief Net_HttpCallback for the S3 hero-images directory listing.
- * Parses <Key> entries from the XML response, then fetches the first image.
+ * @brief `Net_HttpCallback` for the S3 hero-images directory listing.
+ * Fires one `HttpGetAsync` per image to pre-fetch the full set into `heroImages`.
  */
 static void heroListCallback(int32_t status, void *body, size_t length, void *user_data) {
 
@@ -80,8 +64,6 @@ static void heroListCallback(int32_t status, void *body, size_t length, void *us
 	}
 
 	UpdateViewController *this = (UpdateViewController *) user_data;
-
-	GPtrArray *names = g_ptr_array_new_with_free_func(g_free);
 
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
@@ -96,24 +78,12 @@ static void heroListCallback(int32_t status, void *body, size_t length, void *us
 		}
 		const size_t name_len = end - p;
 		if (name_len > 0 && name_len < 128) {
-			g_ptr_array_add(names, g_strndup(p, name_len));
+			char url[256];
+			g_snprintf(url, sizeof(url), "%s%.*s", QUETOO_HERO_BASE_URL, (int) name_len, p);
+			cgi.HttpGetAsync(url, heroImageCallback, this);
 		}
 		p = end + sizeof(suffix) - 1;
 	}
-
-	if (names->len == 0) {
-		g_ptr_array_free(names, true);
-		return;
-	}
-
-	this->heroNames = names;
-	this->heroIndex = SDL_GetTicks() % names->len;
-
-	const char *name = g_ptr_array_index(names, this->heroIndex);
-	char hero_url[256];
-	g_snprintf(hero_url, sizeof(hero_url), "%s%s", QUETOO_HERO_BASE_URL, name);
-
-	cgi.HttpGetAsync(hero_url, heroImageCallback, this);
 }
 
 #pragma mark - Object
@@ -125,9 +95,7 @@ static void dealloc(Object *self) {
 
 	UpdateViewController *this = (UpdateViewController *) self;
 
-	if (this->heroNames) {
-		g_ptr_array_free(this->heroNames, true);
-	}
+	release(this->heroImages);
 
 	super(Object, self, dealloc);
 }
@@ -159,6 +127,7 @@ static void loadView(ViewController *self) {
 	$(this->logo, setImageWithResourceName, "ui/loading.tga");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 
+	this->heroImages = $(alloc(MutableArray), init);
 	this->heroShotNext->color.a = 0;
 
 	// Fetch the hero-images directory listing, then display a random image.
@@ -181,26 +150,27 @@ static UpdateViewController *init(UpdateViewController *self) {
  */
 static void setStatus(UpdateViewController *self, installer_status_t status) {
 
+	UpdateViewController *this = self;
+
 	// Per-frame hero image cycling and cross-fade.
-	if (self->heroNames) {
-		if (self->heroFadeStart) {
-			const float t = (float)(SDL_GetTicks() - self->heroFadeStart) / HERO_FADE_MSEC;
-			self->heroShotNext->color.a = (Uint8)((t < 1.0f ? t : 1.0f) * 255.0f);
+	const size_t heroCount = this->heroImages->array.count;
+	if (heroCount > 1) {
+		if (this->heroFadeStart) {
+			const float t = (float)(SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
+			this->heroShotNext->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
 			if (t >= 1.0f) {
-				// Fade complete: promote heroShotNext to heroShot.
-				$(self->heroShot, setImage, self->heroShotNext->image);
-				$(self->heroShotNext, setImage, NULL);
-				self->heroShotNext->color.a = 0;
-				self->heroFadeStart = 0;
-				self->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+				$(this->heroShot, setImage, this->heroShotNext->image);
+				$(this->heroShotNext, setImage, NULL);
+				this->heroShotNext->color.a = 0;
+				this->heroFadeStart = 0;
+				this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
 			}
-		} else if (self->heroCycleAt && SDL_GetTicks() >= self->heroCycleAt) {
-			self->heroCycleAt = 0; // prevent re-triggering while fetch is in flight
-			self->heroIndex = (self->heroIndex + 1) % self->heroNames->len;
-			const char *name = g_ptr_array_index(self->heroNames, self->heroIndex);
-			char url[256];
-			g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, name);
-			cgi.HttpGetAsync(url, heroNextImageCallback, self);
+		} else if (this->heroCycleAt && SDL_GetTicks() >= this->heroCycleAt) {
+			this->heroCycleAt = 0;
+			this->heroIndex = (this->heroIndex + 1) % heroCount;
+			Image *next = $((Array *) this->heroImages, objectAtIndex, this->heroIndex);
+			$(this->heroShotNext, setImage, next);
+			this->heroFadeStart = SDL_GetTicks();
 		}
 	}
 

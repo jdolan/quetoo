@@ -66,14 +66,14 @@ struct UpdateViewController {
 	ImageView *heroShotNext;
 
 	/**
-	 * @brief Filenames parsed from the S3 hero-images listing.
+	 * @brief Pre-fetched hero images, populated asynchronously on load.
 	 */
-	GPtrArray *heroNames;
+	MutableArray *heroImages;
 
 	/**
-	 * @brief Index into heroNames of the currently displayed image.
+	 * @brief Index of the currently displayed hero image.
 	 */
-	uint32_t heroIndex;
+	size_t heroIndex;
 
 	/**
 	 * @brief SDL ticks at which the next image cycle should begin.
@@ -115,11 +115,11 @@ struct UpdateViewControllerInterface {
 	UpdateViewController *(*init)(UpdateViewController *self);
 
 	/**
-	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, installer_state_t status)
+	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, installer_status_t status)
 	 * @brief Updates progress display with the current installer status.
 	 * @memberof UpdateViewController
 	 */
-	void (*setStatus)(UpdateViewController *self, installer_state_t status);
+	void (*setStatus)(UpdateViewController *self, installer_status_t status);
 };
 
 /**
