@@ -197,7 +197,7 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 				pct = 100.0 * status.files_done / status.files_total;
 			}
 			const char *label = status.current_file[0]
-				? va("Updating %s (%d / %d)\u2026", status.current_file, status.files_done, status.files_total)
+				? va("Updating (%d / %d) %s \u2026", status.files_done, status.files_total, status.current_file)
 				: "Downloading updates\u2026";
 			$(self->progressBar, setLabelFormat, label);
 			$(self->progressBar, setValue, pct);
