@@ -125,6 +125,13 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
     return;
   }
 
+  if (!r_mesh_program.shell) {
+    r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
+    if (!r_mesh_program.shell) {
+      return;
+    }
+  }
+
   R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
     .cm = &(const cm_stage_t) {
       .flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T,
@@ -449,8 +456,6 @@ void R_InitMeshProgram(void) {
 
   R_GetError(NULL);
 
-  r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
-  assert(r_mesh_program.shell);
 }
 
 /**
