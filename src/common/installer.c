@@ -243,63 +243,92 @@ static GList *Installer_ListObjects(void) {
 }
 
 /**
- * @brief Computes the MD5 hex digest of a local file via the PhysicsFS search path.
+ * @brief Computes the MD5 hex digest of a local file under the data directory.
  * @return True and fills hex[33] on success, false if the file does not exist.
  */
 static bool Installer_LocalMD5(const char *key, char hex[33]) {
 
-	void *data = NULL;
-	const int64_t size = Fs_Load(key, &data);
+  char path[MAX_OS_PATH];
+  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, key);
 
-	if (size <= 0) {
-		return false;
-	}
+  FILE *f = fopen(path, "rb");
+  if (!f) {
+    return false;
+  }
 
-	GChecksum *md5 = g_checksum_new(G_CHECKSUM_MD5);
-	g_checksum_update(md5, (const guchar *) data, (gssize) size);
-	g_strlcpy(hex, g_checksum_get_string(md5), 33);
-	g_checksum_free(md5);
+  GChecksum *md5 = g_checksum_new(G_CHECKSUM_MD5);
+  uint8_t buf[65536];
+  size_t n;
+  while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
+    g_checksum_update(md5, buf, (gssize) n);
+  }
+  fclose(f);
 
-	Fs_Free(data);
-	return true;
+  g_strlcpy(hex, g_checksum_get_string(md5), 33);
+  g_checksum_free(md5);
+  return true;
 }
 
 /**
- * @brief Downloads a single S3 object and writes it to the PhysicsFS write dir.
+ * @brief Returns the size in bytes of a local file under the data directory, or -1 if absent.
+ */
+static int64_t Installer_LocalSize(const char *key) {
+
+  char path[MAX_OS_PATH];
+  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, key);
+
+  GStatBuf st;
+  return g_stat(path, &st) == 0 ? (int64_t) st.st_size : -1;
+}
+
+/**
+ * @brief Downloads a single S3 object and writes it to the data directory.
  * @return True on success.
  */
 static bool Installer_Download(const s3_object_t *obj) {
 
-	char url[MAX_OS_PATH * 2];
-	g_snprintf(url, sizeof(url), "%s%s", QUETOO_DATA_BASE_URL, obj->key);
+  char url[MAX_OS_PATH * 2];
+  g_snprintf(url, sizeof(url), "%s%s", QUETOO_DATA_BASE_URL, obj->key);
 
-	void *data = NULL;
-	size_t length = 0;
+  void *data = NULL;
+  size_t length = 0;
 
-	const int32_t http_status = Net_HttpGet(url, &data, &length);
-	if (http_status != 200) {
-		Com_Warn("Download failed %s: HTTP %d\n", obj->key, http_status);
-		Mem_Free(data);
-		return false;
-	}
+  const int32_t http_status = Net_HttpGet(url, &data, &length);
+  if (http_status != 200) {
+    Com_Warn("Download failed %s: HTTP %d\n", obj->key, http_status);
+    Mem_Free(data);
+    return false;
+  }
 
-	file_t *file = Fs_OpenWrite(obj->key);
-	if (!file) {
-		Com_Warn("Failed to open for writing: %s\n", obj->key);
-		Mem_Free(data);
-		return false;
-	}
+  char path[MAX_OS_PATH];
+  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, obj->key);
 
-	const int64_t written = Fs_Write(file, data, 1, length);
-	Fs_Close(file);
-	Mem_Free(data);
+  gchar *dir = g_path_get_dirname(path);
+  const int mkdir_result = g_mkdir_with_parents(dir, 0755);
+  g_free(dir);
+  if (mkdir_result != 0) {
+    Com_Warn("Failed to create directory for: %s\n", path);
+    Mem_Free(data);
+    return false;
+  }
 
-	if (written != (int64_t) length) {
-		Com_Warn("Short write for %s: %"PRId64" of %zu bytes\n", obj->key, written, length);
-		return false;
-	}
+  FILE *f = fopen(path, "wb");
+  if (!f) {
+    Com_Warn("Failed to open for writing: %s\n", path);
+    Mem_Free(data);
+    return false;
+  }
 
-	return true;
+  const size_t written = fwrite(data, 1, length, f);
+  fclose(f);
+  Mem_Free(data);
+
+  if (written != length) {
+    Com_Warn("Short write for %s: %zu of %zu bytes\n", obj->key, written, length);
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -311,20 +340,37 @@ typedef struct {
 	int32_t count;
 } prune_ctx_t;
 
-static void Installer_PruneFile(const char *filename, void *data) {
+/**
+ * @brief Prune local files under base/rel that are absent from the S3 index.
+ */
+static void Installer_PruneDir(const char *base, const char *rel, prune_ctx_t *ctx) {
 
-	prune_ctx_t *ctx = data;
+  char abs[MAX_OS_PATH];
+  g_snprintf(abs, sizeof(abs), "%s%c%s", base, G_DIR_SEPARATOR, rel);
 
-	if (g_hash_table_contains(ctx->s3_keys, filename)) {
-		return;
-	}
+  GDir *dir = g_dir_open(abs, 0, NULL);
+  if (!dir) {
+    return;
+  }
 
-	const char *real_dir = Fs_RealDir(filename);
-	if (real_dir && !g_strcmp0(real_dir, Fs_WriteDir())) {
-		Com_Debug(DEBUG_COMMON, "Pruning: %s\n", filename);
-		Fs_Delete(filename);
-		ctx->count++;
-	}
+  const char *name;
+  while ((name = g_dir_read_name(dir)) != NULL) {
+    char rel_child[MAX_OS_PATH];
+    g_snprintf(rel_child, sizeof(rel_child), "%s/%s", rel, name);
+
+    char abs_child[MAX_OS_PATH];
+    g_snprintf(abs_child, sizeof(abs_child), "%s%c%s", base, G_DIR_SEPARATOR, rel_child);
+
+    if (g_file_test(abs_child, G_FILE_TEST_IS_DIR)) {
+      Installer_PruneDir(base, rel_child, ctx);
+    } else if (!g_hash_table_contains(ctx->s3_keys, rel_child)) {
+      Com_Debug(DEBUG_COMMON, "Pruning: %s\n", rel_child);
+      g_remove(abs_child);
+      ctx->count++;
+    }
+  }
+
+  g_dir_close(dir);
 }
 
 /**
@@ -407,10 +453,7 @@ static void Installer_UpdateThread(void *data) {
 		if (Installer_LocalMD5(obj->key, local_md5)) {
 			if (strchr(obj->etag, '-')) {
 				// Multipart upload: ETag is not a plain MD5; fall back to size.
-				void *local_data = NULL;
-				const int64_t local_size = Fs_Load(obj->key, &local_data);
-				Fs_Free(local_data);
-				needs_update = (local_size != obj->size);
+				needs_update = (Installer_LocalSize(obj->key) != obj->size);
 			} else {
 				needs_update = !!g_strcmp0(local_md5, obj->etag);
 			}
