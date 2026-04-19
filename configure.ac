@@ -440,6 +440,7 @@ AC_CONFIG_FILES([
 	src/collision/Makefile
 	src/cgame/Makefile
 	src/cgame/default/Makefile
+	src/cgame/default/common/Makefile
 	src/cgame/default/ui/Makefile
 	src/cgame/default/ui/common/Makefile
 	src/cgame/default/ui/controls/Makefile

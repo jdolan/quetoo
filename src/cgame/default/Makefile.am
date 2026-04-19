@@ -1,4 +1,5 @@
 SUBDIRS = \
+	common \
 	ui
 
 noinst_HEADERS = \
