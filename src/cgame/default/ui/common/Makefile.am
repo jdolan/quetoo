@@ -14,12 +14,12 @@ bootstrapfonts_DATA = \
 
 bootstrapuidir = @PKGLIBDIR@/default/ui
 bootstrapui_DATA = \
-	ui/conback.tga \
-	ui/loading.tga
+	conback.tga \
+	loading.tga
 
 bootstrapuipicsdir = @PKGLIBDIR@/default/ui/pics
 bootstrapuipics_DATA = \
-	ui/pics/progress_bar.tga
+	pics/progress_bar.tga
 
 noinst_HEADERS = \
 	BindTextView.h \
