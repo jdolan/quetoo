@@ -61,6 +61,16 @@ struct UpdateViewController {
 	SlideShowView *slideShow;
 
 	/**
+	 * @brief Pending hero images fetched by the background thread, then added to slideShow on the main thread.
+	 */
+	MutableArray *pendingImages;
+
+  /**
+   * @brief A mutex for ensuring consistent access to the pendingImages array.
+   */
+  SDL_Mutex *pendingImagesLock;
+
+	/**
 	 * @brief The Quetoo logo.
 	 */
 	ImageView *logo;

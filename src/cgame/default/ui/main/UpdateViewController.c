@@ -65,7 +65,9 @@ static void fetchHeroImages(void *data) {
 		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
 			Image *image = $$(Image, imageWithBytes, image_body, image_length);
 			if (image) {
-				$(this->slideShow, addImage, image);
+				SDL_LockMutex(this->pendingImagesLock);
+				$(this->pendingImages, addObject, image);
+				SDL_UnlockMutex(this->pendingImagesLock);
 			}
 			release(image);
 		} else {
@@ -77,6 +79,21 @@ static void fetchHeroImages(void *data) {
 	}
 
 	cgi.Free(list_body);
+}
+
+#pragma mark - Object
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void dealloc(Object *self) {
+
+  UpdateViewController *this = (UpdateViewController *) self;
+
+  SDL_DestroyMutex(this->pendingImagesLock);
+  release(this->pendingImages);
+
+  super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -102,6 +119,11 @@ static void loadView(ViewController *self) {
 	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/UpdateViewController.css");
 	assert(self->view->stylesheet);
 
+	this->pendingImagesLock = SDL_CreateMutex();
+	assert(this->pendingImagesLock);
+	this->pendingImages = $(alloc(MutableArray), init);
+	assert(this->pendingImages);
+
 	$(this->logo, setImageWithResourceName, "ui/loading.tga");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/pics/progress_bar.tga");
 
@@ -123,6 +145,15 @@ static UpdateViewController *init(UpdateViewController *self) {
  * @memberof UpdateViewController
  */
 static void setStatus(UpdateViewController *self, installer_status_t status) {
+
+	SDL_LockMutex(self->pendingImagesLock);
+	const Array *pending = (Array *) self->pendingImages;
+	for (size_t i = 0; i < pending->count; i++) {
+		Image *image = $(pending, objectAtIndex, i);
+		$(self->slideShow, addImage, image);
+	}
+	$(self->pendingImages, removeAllObjects);
+	SDL_UnlockMutex(self->pendingImagesLock);
 
 	switch (status.state) {
 		case INSTALLER_CHECKING:
@@ -164,6 +195,8 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
