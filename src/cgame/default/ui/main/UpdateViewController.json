@@ -3,7 +3,7 @@
   "subviews": [
     {
       "class": "SlideShowView",
-      "identifier": "heroShot"
+      "identifier": "slideShow"
     },
     {
       "class": "ImageView",

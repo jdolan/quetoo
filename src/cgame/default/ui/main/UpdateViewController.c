@@ -29,16 +29,14 @@
 #define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
 
 /**
- * @brief ThreadRunFunc that pre-fetches all hero images synchronously.
- * Fetches the S3 directory listing, then fetches each image in sequence,
- * adding each decoded Image to the SlideShowView.
+ * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
  */
 static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	void *list_body;
-	size_t list_length;
+	void *list_body, *image_body;
+  size_t list_length, image_length;
 
 	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
 		Cg_Warn("Failed to fetch hero image list");
@@ -56,11 +54,7 @@ static void fetchHeroImages(void *data) {
 		assert(s);
 		*s = '\0';
 
-		char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
-
-		void *image_body;
-		size_t image_length;
-
+		const char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
 		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
 			Image *image = $$(Image, imageWithBytes, image_body, image_length);
 			if (image) {
@@ -72,21 +66,10 @@ static void fetchHeroImages(void *data) {
 		}
 
 		cgi.Free(image_body);
-
 		p = s + strlen(suffix);
 	}
 
 	cgi.Free(list_body);
-}
-
-#pragma mark - Object
-
-/**
- * @see Object::dealloc(Object *)
- */
-static void dealloc(Object *self) {
-
-	super(Object, self, dealloc);
 }
 
 #pragma mark - ViewController
@@ -101,7 +84,7 @@ static void loadView(ViewController *self) {
 	UpdateViewController *this = (UpdateViewController *) self;
 
 	Outlet outlets[] = MakeOutlets(
-		MakeOutlet("heroShot", &this->slideShow),
+		MakeOutlet("slideShow", &this->slideShow),
 		MakeOutlet("logo", &this->logo),
 		MakeOutlet("progress", &this->progressBar)
 	);
@@ -174,8 +157,6 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
-
-	((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
 	((ViewControllerInterface *) clazz->interface)->loadView = loadView;
 
