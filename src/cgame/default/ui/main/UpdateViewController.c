@@ -35,11 +35,12 @@ static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	void *list_body, *image_body;
-  size_t list_length, image_length;
+	void *list_body = NULL, *image_body = NULL;
+	size_t list_length, image_length;
 
 	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
 		Cg_Warn("Failed to fetch hero image list");
+		cgi.Free(list_body);
 		return;
 	}
 
