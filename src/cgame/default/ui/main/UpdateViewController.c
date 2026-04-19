@@ -55,7 +55,13 @@ static void fetchHeroImages(void *data) {
 		assert(s);
 		*s = '\0';
 
-		const char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
+		char url[MAX_STRING_CHARS];
+		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
+			Cg_Warn("Failed to build hero image URL: %s", p);
+			p = s + strlen(suffix);
+			continue;
+		}
 		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
 			Image *image = $$(Image, imageWithBytes, image_body, image_length);
 			if (image) {
