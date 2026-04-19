@@ -23,6 +23,8 @@
 
 #include "sv_local.h"
 
+#define SV_DATA_SYNC_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
+
 sv_static_t svs; // persistent server info
 sv_server_t sv; // per-level server info
 
@@ -783,6 +785,19 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
+  // hourly data sync check on dedicated servers
+  if (dedicated->value) {
+    static Uint64 last_update_time = 0;
+    const Uint64 now = SDL_GetTicks();
+    if (last_update_time == 0) {
+      last_update_time = now;
+    } else if (now - last_update_time >= SV_DATA_SYNC_INTERVAL) {
+      Installer_CheckForUpdates();
+      Installer_Update();
+      last_update_time = now;
+    }
+  }
+
   // report data sync progress to server console
   if (dedicated->value) {
     static installer_sync_phase_t last_phase = INSTALLER_IDLE;
@@ -869,6 +884,43 @@ static void Sv_CheckForUpdates(void) {
       Cvar_ForceSetInteger("sv_public", 0);
       break;
   }
+
+  Installer_Update();
+
+  installer_status_t sync;
+  installer_sync_phase_t last_phase = INSTALLER_IDLE;
+
+  do {
+    Installer_Status(&sync);
+    if (sync.phase != last_phase) {
+      switch (sync.phase) {
+        case INSTALLER_CHECKING:
+          Com_Print("Data sync: checking revision...\n");
+          break;
+        case INSTALLER_LISTING:
+          Com_Print("Data sync: listing S3 objects...\n");
+          break;
+        case INSTALLER_DOWNLOADING:
+          Com_Print("Data sync: downloading files...\n");
+          break;
+        case INSTALLER_PRUNING:
+          Com_Print("Data sync: pruning stale files...\n");
+          break;
+        case INSTALLER_DONE:
+          Com_Print("Data sync: complete.\n");
+          break;
+        case INSTALLER_ERROR:
+          Com_Warn("Data sync error: %s\n", sync.error);
+          break;
+        default:
+          break;
+      }
+      last_phase = sync.phase;
+    }
+    if (sync.phase != INSTALLER_DONE && sync.phase != INSTALLER_ERROR) {
+      SDL_Delay(100);
+    }
+  } while (sync.phase != INSTALLER_DONE && sync.phase != INSTALLER_ERROR);
 }
 
 /**

@@ -21,6 +21,7 @@
 
 #include <SDL3/SDL_misc.h>
 #include <SDL3/SDL_mutex.h>
+#include <glib/gstdio.h>
 
 #include "console.h"
 #include "filesystem.h"
@@ -251,7 +252,7 @@ static bool Installer_LocalMD5(const char *key, char hex[33]) {
   char path[MAX_OS_PATH];
   g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, key);
 
-  FILE *f = fopen(path, "rb");
+  FILE *f = g_fopen(path, "rb");
   if (!f) {
     return false;
   }
@@ -312,7 +313,7 @@ static bool Installer_Download(const s3_object_t *obj) {
     return false;
   }
 
-  FILE *f = fopen(path, "wb");
+  FILE *f = g_fopen(path, "wb");
   if (!f) {
     Com_Warn("Failed to open for writing: %s\n", path);
     Mem_Free(data);
@@ -521,7 +522,7 @@ static void Installer_UpdateThread(void *data) {
 	}
 
 	prune_ctx_t prune_ctx = { .s3_keys = s3_keys };
-	Fs_Enumerate("*", Installer_PruneFile, &prune_ctx);
+	Installer_PruneDir(Fs_DataDir(), DEFAULT_GAME, &prune_ctx);
 	if (prune_ctx.count) {
 		Com_Print("Pruned %d stale file(s).\n", prune_ctx.count);
 	}
