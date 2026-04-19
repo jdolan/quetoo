@@ -32,56 +32,54 @@
 #define HERO_FADE_MSEC  1000
 
 /**
- * @brief `Net_HttpCallback` for each pre-fetched hero image.
- * Decodes and appends the image to heroImages; shows the first one immediately.
+ * @brief ThreadRunFunc that pre-fetches all hero images synchronously.
+ * Fetches the S3 directory listing, then fetches each image in sequence,
+ * appending decoded Image* instances to heroImages.
  */
-static void heroImageCallback(int32_t status, void *body, size_t length, void *user_data) {
+static void fetchHeroImages(void *data) {
 
-	if (status == 200) {
-		Image *image = $$(Image, imageWithBytes, body, length);
-    assert(image);
+	UpdateViewController *this = data;
 
-    UpdateViewController *this = (UpdateViewController *) user_data;
-    $(this->heroImages, addObject, image);
+	void *list_body;
+	size_t list_length;
 
-    release(image);
+	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
+		return;
+	}
 
-    if (this->heroImages->array.count == 1) {
-      $(this->heroImage, setImage, image);
-      this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
-    }
-  } else {
-    Cg_Warn("Failed to fetch hero image: %d", status);
-  }
-}
+	static const char prefix[] = "<Key>hero-images/";
+	static const char suffix[] = "</Key>";
+	const size_t prefix_len = sizeof(prefix) - 1;
 
-/**
- * @brief `Net_HttpCallback` for the S3 hero-images directory listing.
- * Fires one `HttpGetAsync` per image to pre-fetch the full set into `heroImages`.
- */
-static void heroListCallback(int32_t status, void *body, size_t length, void *user_data) {
+	const char *p = (const char *) list_body;
+	while ((p = strstr(p, prefix)) != NULL) {
+		p += prefix_len;
+		const char *end = strstr(p, suffix);
+		if (!end) {
+			break;
+		}
+		const size_t name_len = end - p;
+		if (name_len > 0 && name_len < 128) {
+			char url[256];
+			g_snprintf(url, sizeof(url), "%s%.*s", QUETOO_HERO_BASE_URL, (int) name_len, p);
 
-  const char prefix[] = "<Key>hero-images/";
-  const char suffix[] = "</Key>";
+			void *img_body;
+			size_t img_length;
+			if (cgi.HttpGet(url, &img_body, &img_length) == 200) {
+				Data *imageData = $$(Data, dataWithBytes, img_body, img_length);
+				Image *image = $$(Image, imageWithData, imageData);
+				release(imageData);
+				cgi.Free(img_body);
+				if (image) {
+					$(this->heroImages, addObject, image);
+					release(image);
+				}
+			}
+		}
+		p = end + sizeof(suffix) - 1;
+	}
 
-  UpdateViewController *this = (UpdateViewController *) user_data;
-
-  if (status == 200) {
-    char *p = (char *) body;
-    while ((p = strstr(p, prefix)) != NULL) {
-      char *name = p + strlen(prefix);
-      char *s = strstr(name, suffix);
-      if (!s) {
-        Cg_Warn("Malformed hero image list");
-        break;
-      }
-      *s = '\0';
-      cgi.HttpGetAsync(va("%s%s", QUETOO_HERO_BASE_URL, name), heroImageCallback, this);
-      p = s + strlen(suffix);
-    }
-  } else {
-    Cg_Warn("Failed to fetch hero image list: %d", status);
-  }
+	cgi.Free(list_body);
 }
 
 #pragma mark - Object
@@ -128,7 +126,7 @@ static void loadView(ViewController *self) {
 	this->heroImages = $(alloc(MutableArray), init);
 	this->nextHeroImage->color.a = 0;
 
-	cgi.HttpGetAsync(QUETOO_HERO_LIST_URL, heroListCallback, this);
+	cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
 }
 
 #pragma mark - UpdateViewController
@@ -150,23 +148,29 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 	UpdateViewController *this = self;
 
 	const size_t heroCount = this->heroImages->array.count;
-	if (heroCount > 1) {
-		if (this->heroFadeStart) {
-			const float t = (float) (SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
-			this->nextHeroImage->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
-			if (t >= 1.0f) {
-				$(this->heroImage, setImage, this->nextHeroImage->image);
-				$(this->nextHeroImage, setImage, NULL);
-				this->nextHeroImage->color.a = 0;
-				this->heroFadeStart = 0;
-				this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+	if (heroCount > 0) {
+		if (this->heroImage->image == NULL) {
+			Image *first = $((Array *) this->heroImages, objectAtIndex, 0);
+			$(this->heroImage, setImage, first);
+			this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+		} else if (heroCount > 1) {
+			if (this->heroFadeStart) {
+				const float t = (float) (SDL_GetTicks() - this->heroFadeStart) / HERO_FADE_MSEC;
+				this->nextHeroImage->color.a = (Uint8) (MIN(t, 1.0f) * 255.0f);
+				if (t >= 1.0f) {
+					$(this->heroImage, setImage, this->nextHeroImage->image);
+					$(this->nextHeroImage, setImage, NULL);
+					this->nextHeroImage->color.a = 0;
+					this->heroFadeStart = 0;
+					this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
+				}
+			} else if (this->heroCycleAt && SDL_GetTicks() >= this->heroCycleAt) {
+				this->heroCycleAt = 0;
+				this->heroIndex = (this->heroIndex + 1) % heroCount;
+				Image *next = $((Array *) this->heroImages, objectAtIndex, this->heroIndex);
+				$(this->nextHeroImage, setImage, next);
+				this->heroFadeStart = SDL_GetTicks();
 			}
-		} else if (this->heroCycleAt && SDL_GetTicks() >= this->heroCycleAt) {
-			this->heroCycleAt = 0;
-			this->heroIndex = (this->heroIndex + 1) % heroCount;
-			Image *next = $((Array *) this->heroImages, objectAtIndex, this->heroIndex);
-			$(this->nextHeroImage, setImage, next);
-			this->heroFadeStart = SDL_GetTicks();
 		}
 	}
 
