@@ -83,13 +83,8 @@ void bsp_fragment_lighting(void) {
 
   // For close fragments, do full per-fragment lighting
 
-  if (stage.flags == STAGE_NONE) {
-    fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
-    fragment.specular_sample = sample_material_specular(fragment.parallax);
-  } else {
-    fragment.normal_sample = vertex.normal;
-    fragment.specular_sample = vec4(0.5);
-  }
+  fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
+  fragment.specular_sample = sample_material_specular(fragment.parallax);
 
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
@@ -161,7 +156,7 @@ void main(void) {
 
       bsp_fragment_lighting();
 
-      out_color.rgb *= (fragment.ambient + fragment.diffuse) * stage.lighting;
+      out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
       out_color.rgb += fragment.specular * stage.lighting;
     }
   }

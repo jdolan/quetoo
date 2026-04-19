@@ -51,6 +51,11 @@ typedef struct {
   float density;
 
   /**
+   * @brief Per-particle random acceleration range, applied symmetrically on each axis.
+   */
+  vec3_t acceleration_spread;
+
+  /**
    * @brief The count of active sprites.
    */
   int32_t num_active;
@@ -96,6 +101,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
   dust->sprite.size = cgi.EntityValue(self->def, "size")->value ?: 1.f;
   dust->sprite.size_velocity = cgi.EntityValue(self->def, "size_velocity")->value;
   dust->sprite.size_acceleration = cgi.EntityValue(self->def, "size_acceleration")->value;
+  dust->acceleration_spread = cgi.EntityValue(self->def, "acceleration_spread")->vec3;
   dust->sprite.width = cgi.EntityValue(self->def, "width")->value;
   dust->sprite.height = cgi.EntityValue(self->def, "height")->value;
   dust->sprite.bounce = cgi.EntityValue(self->def, "bounce")->value;
@@ -176,6 +182,10 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
     s.origin = Vec3_Add(s.origin, Vec3_RandomDir());
     s.size = RandomRangef(s.size * .9f, s.size * 1.1f);
     s.velocity = Vec3_Add(s.velocity, Vec3_RandomDir());
+    s.acceleration = Vec3_Add(s.acceleration, Vec3_RandomRanges(
+      -dust->acceleration_spread.x, dust->acceleration_spread.x,
+      -dust->acceleration_spread.y, dust->acceleration_spread.y,
+      -dust->acceleration_spread.z, dust->acceleration_spread.z));
     s.lifetime = RandomRangeu(s.lifetime * .666f, s.lifetime * 1.333f);
     s.Think = Cg_misc_dust_SpriteThink;
     s.data = dust;
