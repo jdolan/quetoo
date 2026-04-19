@@ -35,11 +35,12 @@ static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	void *list_body, *image_body;
-  size_t list_length, image_length;
+	void *list_body = NULL, *image_body = NULL;
+	size_t list_length, image_length;
 
 	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
 		Cg_Warn("Failed to fetch hero image list");
+		cgi.Free(list_body);
 		return;
 	}
 
@@ -54,7 +55,13 @@ static void fetchHeroImages(void *data) {
 		assert(s);
 		*s = '\0';
 
-		const char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
+		char url[MAX_STRING_CHARS];
+		const int url_len = g_snprintf(url, sizeof(url), "%s%s", QUETOO_HERO_BASE_URL, p);
+		if (url_len < 0 || (size_t) url_len >= sizeof(url)) {
+			Cg_Warn("Failed to build hero image URL: %s", p);
+			p = s + strlen(suffix);
+			continue;
+		}
 		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
 			Image *image = $$(Image, imageWithBytes, image_body, image_length);
 			if (image) {
