@@ -44,39 +44,39 @@ static void fetchHeroImages(void *data) {
 	size_t list_length;
 
 	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
+    Cg_Warn("Failed to fetch hero image list");
 		return;
 	}
 
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
-	const size_t prefix_len = sizeof(prefix) - 1;
 
-	const char *p = (const char *) list_body;
+	char *p = (char *) list_body;
 	while ((p = strstr(p, prefix)) != NULL) {
-		p += prefix_len;
-		const char *end = strstr(p, suffix);
-		if (!end) {
-			break;
-		}
-		const size_t name_len = end - p;
-		if (name_len > 0 && name_len < 128) {
-			char url[256];
-			g_snprintf(url, sizeof(url), "%s%.*s", QUETOO_HERO_BASE_URL, (int) name_len, p);
 
-			void *img_body;
-			size_t img_length;
-			if (cgi.HttpGet(url, &img_body, &img_length) == 200) {
-				Data *imageData = $$(Data, dataWithBytes, img_body, img_length);
-				Image *image = $$(Image, imageWithData, imageData);
-				release(imageData);
-				cgi.Free(img_body);
-				if (image) {
-					$(this->heroImages, addObject, image);
-					release(image);
-				}
-			}
-		}
-		p = end + sizeof(suffix) - 1;
+		p += strlen(prefix);
+		char *s = strstr(p, suffix);
+    assert(s);
+    *s = '\0';
+
+    char *url = va("%s%s", QUETOO_HERO_BASE_URL, p);
+
+    void *image_body;
+    size_t image_length;
+
+    if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
+      Image *image = $$(Image, imageWithBytes, image_body, image_length);
+      if (image) {
+        $(this->heroImages, addObject, image);
+      }
+      release(image);
+    } else {
+      Cg_Warn("Failed to fetch hero image: %s", url);
+    }
+
+    cgi.Free(image_body);
+
+    p = s + strlen(suffix);
 	}
 
 	cgi.Free(list_body);
@@ -150,7 +150,7 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 	const size_t heroCount = this->heroImages->array.count;
 	if (heroCount > 0) {
 		if (this->heroImage->image == NULL) {
-			Image *first = $((Array *) this->heroImages, objectAtIndex, 0);
+			Image *first = $((Array *) this->heroImages, firstObject);
 			$(this->heroImage, setImage, first);
 			this->heroCycleAt = SDL_GetTicks() + HERO_CYCLE_MSEC;
 		} else if (heroCount > 1) {
