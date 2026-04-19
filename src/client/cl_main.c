@@ -676,6 +676,14 @@ void Cl_Frame(const uint32_t msec) {
 
   cls.cgame->UpdateDiscord();
 
+  installer_status_t status;
+  Installer_Status(&status);
+  if (status.state != INSTALLER_IDLE &&
+      status.state != INSTALLER_DONE &&
+      status.state != INSTALLER_ERROR) {
+    cls.cgame->UpdateInstaller(status);
+  }
+
   frame_timestamp = quetoo.ticks;
   cl.frame_msec = 0;
 }

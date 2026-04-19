@@ -117,12 +117,6 @@ jobs:
         make DESTDIR=$(pwd)/apple/target/Quetoo.app install
         rm -f apple/target/Quetoo.app/bin apple/target/Quetoo.app/lib apple/target/Quetoo.app/share
 
-    - name: Download installer
-      working-directory: quetoo
-      run: |
-        curl -fsSL -o apple/target/Quetoo.app/Contents/MacOS/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
-
     - name: Bundle libraries
       working-directory: quetoo
       run: |
@@ -180,7 +174,8 @@ jobs:
           libfreetype-dev libharfbuzz-dev \
           check \
           chrpath \
-          cmake
+          cmake \
+          imagemagick
 
     - name: Cache from-source dependencies
       id: cache-deps
@@ -282,11 +277,26 @@ jobs:
           linux/target/quetoo/lib/default/cgame.so \
           linux/target/quetoo/lib/default/game.so
 
-    - name: Download installer
+    - name: Build AppImage
       working-directory: quetoo
       run: |
-        curl -fsSL -o linux/target/quetoo/lib/quetoo-installer-small.jar \
-          https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar
+        curl -fsSL -o appimagetool-x86_64.AppImage \
+          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+
+        mkdir -p Quetoo.AppDir
+        cp -a linux/target/quetoo/bin Quetoo.AppDir/
+        cp -a linux/target/quetoo/lib Quetoo.AppDir/
+        cp -a linux/target/quetoo/share Quetoo.AppDir/
+
+        cp linux/AppRun Quetoo.AppDir/
+        chmod +x Quetoo.AppDir/AppRun
+        cp linux/quetoo/Quetoo.desktop Quetoo.AppDir/quetoo.desktop
+
+        convert src/main/quetoo.ico[0] Quetoo.AppDir/quetoo.png
+
+        ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run \
+          Quetoo.AppDir linux/target/quetoo-BETA-x86_64-pc-linux.AppImage
 
     - name: Create archive
       working-directory: quetoo
@@ -298,6 +308,12 @@ jobs:
       with:
         name: quetoo-x86_64-pc-linux
         path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
+
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-linux-appimage
+        path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.AppImage
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -311,6 +327,7 @@ jobs:
         git rev-parse --short HEAD > linux/target/revision
         aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
         aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
+        aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
 
   build-windows:
     needs: resolve-deps
@@ -414,11 +431,6 @@ jobs:
           }
         }
 
-    - name: Download installer
-      working-directory: ${{ github.workspace }}/quetoo
-      run: |
-        Invoke-WebRequest -Uri "https://github.com/jdolan/quetoo-installer-java/releases/download/latest/quetoo-installer-small.jar" -OutFile "windows/target/quetoo/lib/quetoo-installer-small.jar"
-
     - name: Create archive
       working-directory: ${{ github.workspace }}/quetoo
       run: |
@@ -469,10 +481,12 @@ jobs:
         |----------|---------|
         | macOS (Apple Silicon) | quetoo-BETA-arm64-apple-darwin.zip |
         | Linux (x86_64) | quetoo-BETA-x86_64-pc-linux.tar.gz |
+        | Linux (x86_64 AppImage) | quetoo-BETA-x86_64-pc-linux.AppImage |
         | Windows (x86_64) | quetoo-BETA-x86_64-pc-windows.zip |" \
           --prerelease \
           quetoo-arm64-apple-darwin/quetoo-BETA-arm64-apple-darwin.zip \
           quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz \
+          quetoo-x86_64-pc-linux-appimage/quetoo-BETA-x86_64-pc-linux.AppImage \
           quetoo-x86_64-pc-windows/quetoo-BETA-x86_64-pc-windows.zip
       env:
         GH_TOKEN: ${{ github.token }}

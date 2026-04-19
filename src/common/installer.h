@@ -23,5 +23,37 @@
 
 #include "quetoo.h"
 
+#include <SDL3/SDL_mutex.h>
+
+/**
+ * @brief The installer lifecycle.
+ */
+typedef enum {
+  INSTALLER_IDLE,
+  INSTALLER_CHECKING,
+  INSTALLER_LISTING,
+  INSTALLER_DOWNLOADING,
+  INSTALLER_PRUNING,
+  INSTALLER_DONE,
+  INSTALLER_ERROR,
+} installer_state_t;
+
+/**
+ * @brief The installer status snapshot.
+ * All fields are guarded by @c lock; hold it when reading or writing.
+ */
+typedef struct {
+	SDL_Mutex *lock;
+	installer_state_t state;
+	int32_t files_done;
+	int32_t files_total;
+	int32_t kbytes_done;
+	int32_t kbytes_total;
+	char current_file[MAX_OS_PATH];
+  char error[MAX_STRING_CHARS];
+} installer_status_t;
+
 int32_t Installer_CheckForUpdates(void);
-int32_t Installer_LaunchInstaller(void);
+void Installer_OpenReleasesPage(void);
+void Installer_Update(void);
+void Installer_Status(installer_status_t *out);

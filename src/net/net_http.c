@@ -26,7 +26,7 @@
 /**
  * @brief
  */
-int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
+int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
 
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
@@ -44,11 +44,11 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
         task->data ? (int32_t) task->data->length : 0);
 
   if (task->data) {
-    *data = Mem_Malloc(task->data->length);
-    memcpy(*data, task->data->bytes, task->data->length);
+    *body = Mem_Malloc(task->data->length);
+    memcpy(*body, task->data->bytes, task->data->length);
     *length = task->data->length;
   } else {
-    *data = NULL;
+    *body = NULL;
     *length = 0;
   }
 
@@ -56,8 +56,13 @@ int32_t Net_HttpGet(const char *url_string, void **data, size_t *length) {
   return status;
 }
 
+typedef struct {
+  Net_HttpCallback callback;
+  void *user_data;
+} Net_HttpGetAsync_State;
+
 /**
- * @brief URLSessionTaskCompletionn for Net_HttpGetAsync.
+ * @brief URLSessionTaskCompletion for Net_HttpGetAsync.
  */
 static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
@@ -65,22 +70,23 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
   Com_Debug(DEBUG_NET, "%s: HTTP %d\n", task->request->url->urlString->chars, status);
 
-  const Net_HttpCallback callback = (Net_HttpCallback) task->data;
+  Net_HttpGetAsync_State *state = (Net_HttpGetAsync_State *) task->data;
 
   const Data *data = ((URLSessionDataTask *) task)->data;
   if (data) {
-    callback(task->response->httpStatusCode, data->bytes, data->length);
+    state->callback(status, (void *) data->bytes, data->length, state->user_data);
   } else {
-    callback(task->response->httpStatusCode, NULL, 0);
+    state->callback(status, NULL, 0, state->user_data);
   }
 
+  Mem_Free(state);
   release(task);
 }
 
 /**
  * @brief
  */
-void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback) {
+void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data) {
 
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
@@ -89,7 +95,10 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback) {
   URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
   release(url);
 
-  task->urlSessionTask.data = (ident) callback;
+  Net_HttpGetAsync_State *state = Mem_Malloc(sizeof(Net_HttpGetAsync_State));
+  state->callback = callback;
+  state->user_data = user_data;
+  task->urlSessionTask.data = state;
 
   $((URLSessionTask *) task, resume);
 }

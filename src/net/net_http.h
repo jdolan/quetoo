@@ -26,26 +26,28 @@
 /**
  * @brief The asynchronous HTTP callback type.
  * @param status The HTTP response code.
- * @param data The returned data.
- * @param length The returned data length in bytes.
+ * @param body The response body.
+ * @param length The response body length in bytes.
+ * @param user_data The user data pointer passed to Net_HttpGetAsync.
  */
-typedef void (*Net_HttpCallback)(int32_t status, void *data, size_t length);
+typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void *user_data);
 
 /**
- * @brief Synchronously GET the specified URL string, writing data and len.
+ * @brief Synchronously GET the specified URL string.
  * @param url_string The URL string to GET.
- * @param data The returned data, which should be Mem_Free'd when no longer needed.
- * @param length The returned data length in bytes.
+ * @param body Receives a newly allocated buffer containing the response body. Caller must Mem_Free.
+ * @param length The response body length in bytes.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGet(const char *url_string, void **data, size_t *length);
+int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
 
 /**
  * @brief Asynchronously GET the specified URL string.
  * @param url_string The URL string to GET.
  * @param callback The completion callback.
+ * @param user_data User data pointer passed through to the callback.
  */
-void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback);
+void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data);
 
 /**
  * @brief Construct an HTTP URL from a net_addr_t and path.

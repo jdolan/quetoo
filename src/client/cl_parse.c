@@ -38,11 +38,11 @@ static struct {
 /**
  * @brief Net_HttpCallback for Cl_CheckOrDownloadFile.
  */
-static void Cl_DownloadComplete(int32_t status, void *data, size_t length) {
+static void Cl_DownloadComplete(int32_t status, void *body, size_t length, void *user_data) {
 
-	if (data && length) {
+	if (body && length) {
 		cl_download.data = Mem_Malloc(length);
-		memcpy(cl_download.data, data, length);
+		memcpy(cl_download.data, body, length);
 		cl_download.length = length;
 	} else {
 		cl_download.data = NULL;
@@ -104,7 +104,7 @@ void Cl_CheckOrDownloadFile(const char *filename) {
   cl_download.data = NULL;
   cl_download.length = 0;
 
-  Net_HttpGetAsync(url, Cl_DownloadComplete);
+  Net_HttpGetAsync(url, Cl_DownloadComplete, NULL);
 
   const char *base = Basename(filename);
   while (!SDL_GetAtomicInt(&cl_download.complete)) {

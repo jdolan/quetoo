@@ -85,7 +85,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set revision -1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_window_width 1920 +set r_window_height 1080"
@@ -117,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set developer 1"
@@ -141,11 +141,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1 +set g_ai_clients 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
-            isEnabled = "YES">
+            argument = "+map torn"
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

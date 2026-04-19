@@ -23,6 +23,8 @@
 
 #include "sv_local.h"
 
+#define INSTALLER_UPDATE_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
+
 sv_static_t svs; // persistent server info
 sv_server_t sv; // per-level server info
 
@@ -783,6 +785,52 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
+  // periodically check for updates
+  if (dedicated->value) {
+    static uint64_t update_time = 0;
+    const uint64_t now = SDL_GetTicks();
+    if (update_time == 0) {
+      update_time = now;
+    } else if (now - update_time >= INSTALLER_UPDATE_INTERVAL) {
+      Installer_Update();
+      update_time = now;
+    }
+
+    static installer_state_t state = INSTALLER_IDLE;
+    static char current_file[MAX_OS_PATH] = {};
+
+    installer_status_t status;
+    Installer_Status(&status);
+
+    if (status.state != state ||
+        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
+      switch (status.state) {
+        case INSTALLER_CHECKING:
+          Com_Print("Update: Checking revision...\n");
+          break;
+        case INSTALLER_LISTING:
+          Com_Print("Update: Listing S3 objects...\n");
+          break;
+        case INSTALLER_DOWNLOADING:
+          Com_Print("Update: Downloading %s (%d/%d)...\n", status.current_file, status.files_done, status.files_total);
+          g_strlcpy(current_file, status.current_file, sizeof(current_file));
+          break;
+        case INSTALLER_PRUNING:
+          Com_Print("Update: Pruning stale files...\n");
+          break;
+        case INSTALLER_DONE:
+          Com_Print("Update: Complete.\n");
+          break;
+        case INSTALLER_ERROR:
+          Com_Warn("Update: %s\n", status.error);
+          break;
+        default:
+          break;
+      }
+      state = status.state;
+    }
+  }
+
   // redraw the console
   Sv_DrawConsole();
 }
@@ -826,24 +874,52 @@ static void Sv_CheckForUpdates(void) {
       Com_Print("Quetoo %s is up to date.\n", REVISION);
       break;
     case 1:
-      while (true) {
-        Com_Print("A new version of Quetoo is available. Update now? Y/n ");
-        const int32_t c = tolower(getc(stdin));
-        if (c == 'y' || c == '\n') {
-          Installer_LaunchInstaller();
-        } else if (c == 'n' || c == -1) {
-          Com_Warn("Your server will not be public until you update.\n");
-          Cvar_ForceSetInteger("sv_public", 0);
-          break;
-        }
-      }
-      break;
-    case 2:
-      Com_Warn("A new version of Quetoo is available on Flathub.\n"
-           "Your server will not be public until you update.\n");
+      Com_Warn("A new version of Quetoo is available.\n"
+               "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
+               "Your server will not be public until you update.\n");
       Cvar_ForceSetInteger("sv_public", 0);
       break;
   }
+
+  Installer_Update();
+
+  installer_status_t status;
+  installer_state_t state = INSTALLER_IDLE;
+  char current_file[MAX_OS_PATH] = {};
+
+  do {
+    Installer_Status(&status);
+    if (status.state != state ||
+        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
+      switch (status.state) {
+        case INSTALLER_CHECKING:
+          Com_Print("Update: Checking revision...\n");
+          break;
+        case INSTALLER_LISTING:
+          Com_Print("Update: Listing S3 objects...\n");
+          break;
+        case INSTALLER_DOWNLOADING:
+          Com_Print("Update: Downloading %s...\n", status.current_file);
+          g_strlcpy(current_file, status.current_file, sizeof(current_file));
+          break;
+        case INSTALLER_PRUNING:
+          Com_Print("Update: Pruning stale files...\n");
+          break;
+        case INSTALLER_DONE:
+          Com_Print("Update: Complete.\n");
+          break;
+        case INSTALLER_ERROR:
+          Com_Warn("Update: %s\n", status.error);
+          break;
+        default:
+          break;
+      }
+      state = status.state;
+    }
+    if (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR) {
+      SDL_Delay(100);
+    }
+  } while (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR);
 }
 
 /**

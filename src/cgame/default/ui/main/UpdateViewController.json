@@ -1,0 +1,17 @@
+{
+  "identifier": "updating",
+  "subviews": [
+    {
+      "class": "SlideShowView",
+      "identifier": "slideShow"
+    },
+    {
+      "class": "ImageView",
+      "identifier": "logo"
+    },
+    {
+      "class": "ProgressBar",
+      "identifier": "progress"
+    }
+  ]
+}

@@ -170,8 +170,9 @@ void Cl_InitCgame(void) {
   import.Error = Cl_CgameError;
 
   import.CheckForUpdates = Installer_CheckForUpdates;
-  import.LaunchInstaller = Installer_LaunchInstaller;
-  
+  import.OpenReleasesPage = Installer_OpenReleasesPage;
+  import.InstallUpdates = Installer_Update;
+
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;
   import.Realloc = Mem_Realloc;
@@ -180,6 +181,9 @@ void Cl_InitCgame(void) {
 
   import.Thread = Thread_Create_;
   import.Wait = Thread_Wait;
+
+  import.HttpGet = Net_HttpGet;
+  import.HttpGetAsync = Net_HttpGetAsync;
 
   import.OpenFile = Fs_OpenRead;
   import.SeekFile = Fs_Seek;

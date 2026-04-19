@@ -31,8 +31,10 @@
 #endif
 
 #include "client/cl_types.h"
+#include "common/installer.h"
+#include "net/net_http.h"
 
-#define CGAME_API_VERSION 26
+#define CGAME_API_VERSION 27
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -113,10 +115,15 @@ typedef struct cg_import_s {
   int32_t (*CheckForUpdates)(void);
 
   /**
-   * @brief Launches the installer to fetch available updates.
-   * @return Zero if the installer was successfully launched, non-zero on error.
+   * @brief Opens the GitHub Releases page so the user may download a newer snapshot.
    */
-  int32_t (*LaunchInstaller)(void);
+  void (*OpenReleasesPage)(void);
+
+  /**
+   * @brief Begins installing available updates on a background thread. Progress is delivered
+   * each client frame via cge.UpdateInstaller.
+   */
+  void (*InstallUpdates)(void);
 
   /**
    * @}
@@ -174,6 +181,32 @@ typedef struct cg_import_s {
    * @param thread The thread.
    */
   void (*Wait)(thread_t *thread);
+
+  /**
+   * @}
+   * @defgroup http HTTP
+   * @{
+   */
+
+  /**
+   * @brief Performs a synchronous HTTP GET request.
+   * @param url The URL to fetch.
+   * @param body Receives a newly allocated buffer containing the response body. Caller must free.
+   * @param length Receives the length of the response body in bytes.
+   * @return The HTTP status code, or 0 on network error.
+   * @remarks This call blocks until the request completes. Use on a dedicated thread (see Thread)
+   * to avoid stalling the frame loop.
+   */
+  int32_t (*HttpGet)(const char *url, void **body, size_t *length);
+
+  /**
+   * @brief Performs an asynchronous HTTP GET request.
+   * @param url The URL to fetch.
+   * @param callback Invoked on a background thread when the request completes.
+   * @param user_data User data pointer passed through to the callback.
+   * @remarks The response body is valid only for the duration of the callback; copy it if needed.
+   */
+  void (*HttpGetAsync)(const char *url, Net_HttpCallback callback, void *user_data);
 
   /**
    * @}
@@ -971,7 +1004,12 @@ typedef struct cg_export_s {
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
   void (*UpdateScreen)(const cl_frame_t *frame);
-  
+
+  /**
+   * @brief Called each client frame when the in-game installer is active.
+   */
+  void (*UpdateInstaller)(const installer_status_t status);
+
   /**
    * @brief Called each frame to update Discord status.
    */

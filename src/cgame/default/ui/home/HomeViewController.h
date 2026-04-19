@@ -35,8 +35,8 @@ typedef struct HomeViewControllerInterface HomeViewControllerInterface;
 
 /**
  * @brief The HomeViewController type.
- * @extends HomeViewController
- * @ingroup
+ * @extends ViewController
+ * @ingroup ViewControllers
  */
 struct HomeViewController {
 
@@ -53,7 +53,7 @@ struct HomeViewController {
   HomeViewControllerInterface *interface;
 
   /**
-   * @brief The message of the day.
+   * @brief The message of the day / version status label.
    */
   Label *motd;
 };

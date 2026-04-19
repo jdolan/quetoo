@@ -23,8 +23,10 @@
 
 #include "ui/main/MainViewController.h"
 #include "ui/main/LoadingViewController.h"
+#include "ui/main/UpdateViewController.h"
 
 static MainViewController *mainViewController;
+static UpdateViewController *updateViewController;
 static Stylesheet *stylesheet;
 
 /**
@@ -41,6 +43,8 @@ void Cg_InitUi(void) {
   assert(mainViewController);
 
   cgi.PushViewController((ViewController *) mainViewController);
+
+  cgi.InstallUpdates();
 }
 
 /**
@@ -49,6 +53,9 @@ void Cg_InitUi(void) {
 void Cg_ShutdownUi(void) {
 
   cgi.PopAllViewControllers();
+
+  release(updateViewController);
+  updateViewController = NULL;
 
   release(mainViewController);
   mainViewController = NULL;
@@ -85,6 +92,41 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
 
   if (loadingViewController) {
     $(loadingViewController, setProgress, loading);
+  }
+}
+
+/**
+ * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
+ * Pushes UpdateViewController when updating, pops it on completion.
+ */
+void Cg_UpdateInstaller(const installer_status_t status) {
+
+  if (mainViewController == NULL) {
+    return;
+  }
+
+  if (updateViewController == NULL) {
+    if (status.state == INSTALLER_IDLE ||
+        status.state == INSTALLER_DONE) {
+      return;
+    }
+    updateViewController = $(alloc(UpdateViewController), init);
+    cgi.PushViewController((ViewController *) updateViewController);
+  }
+
+  $(updateViewController, setStatus, status);
+
+  if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
+    static uint64_t done_at = 0;
+    if (done_at == 0) {
+      done_at = SDL_GetTicks();
+    }
+    if (SDL_GetTicks() - done_at > 2000) {
+      cgi.PopViewController();
+      release(updateViewController);
+      updateViewController = NULL;
+      done_at = 0;
+    }
   }
 }
 

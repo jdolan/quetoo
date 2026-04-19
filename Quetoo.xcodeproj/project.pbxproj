@@ -611,6 +611,10 @@
 		CEAD8FB02F8D8DE30087A850 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CEAD8FB52F8D8DF70087A850 /* check_cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */; };
 		CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
+		CEAD8FBB2F93A4990087A850 /* UpdateViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAD8FB72F93A4990087A850 /* UpdateViewController.h */; };
+		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
+		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
+		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -1080,6 +1084,8 @@
 				CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */,
 				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
 				CE7D2C0F202F6170004BC58E /* MainView.json in CopyFiles */,
+				CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */,
+				CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1783,6 +1789,10 @@
 		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_manifest.c; sourceTree = "<group>"; };
 		CEAD8FB42F8D8DE30087A850 /* check_cm_manifest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_manifest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEAD8FB72F93A4990087A850 /* UpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateViewController.h; sourceTree = "<group>"; };
+		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
+		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
+		CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = UpdateViewController.json; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -3400,16 +3410,20 @@
 		CE5870931F5CE7D2004CAAB2 /* main */ = {
 			isa = PBXGroup;
 			children = (
+				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
-				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE7D2C2D2030FD9C004BC58E /* LoadingViewController.json */,
+				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
 				CE5870AC1F5CE98D004CAAB2 /* MainView.c */,
 				CE4E07C120267ED9000B276C /* MainView.css */,
-				CE5870AD1F5CE98D004CAAB2 /* MainView.h */,
 				CE7D2C0D202F6134004BC58E /* MainView.json */,
-				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
+				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
+				CEAD8FB72F93A4990087A850 /* UpdateViewController.h */,
+				CEAD8FB82F93A4990087A850 /* UpdateViewController.c */,
+				CEAD8FB92F93A4990087A850 /* UpdateViewController.css */,
+				CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */,
 				CE7D2C0A202EA0FB004BC58E /* Makefile.am */,
 			);
 			path = main;
@@ -3655,6 +3669,7 @@
 				CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */,
 				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
 				CEAA78EC2775388700EAC853 /* TeamView.h in Headers */,
+				CEAD8FBB2F93A4990087A850 /* UpdateViewController.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4816,6 +4831,7 @@
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
+				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
