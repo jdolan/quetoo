@@ -106,10 +106,11 @@ void Cg_UpdateSync(const installer_status_t sync) {
   }
 
   if (updateViewController == NULL) {
-    // Only push for phases that represent active work — skip IDLE/DONE/ERROR.
+    // Only skip phases that do not need to present the update UI.
+    // Allow INSTALLER_ERROR so failures are visible even if the first
+    // status received is an error.
     if (sync.phase == INSTALLER_IDLE ||
-        sync.phase == INSTALLER_DONE ||
-        sync.phase == INSTALLER_ERROR) {
+        sync.phase == INSTALLER_DONE) {
       return;
     }
     updateViewController = $(alloc(UpdateViewController), init);
