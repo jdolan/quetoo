@@ -371,6 +371,7 @@ static int Installer_DownloadWorker(void *data) {
       SDL_UnlockMutex(worker->queue_lock);
       break;
     }
+
     GList *item = *worker->queue;
     *worker->queue = item->next;
     SDL_UnlockMutex(worker->queue_lock);
@@ -451,12 +452,11 @@ static void Installer_UpdateThread(void *data) {
 
 	installer_status_t *status = (installer_status_t *) data;
 
-	// Phase 1: check whether the data revision has changed.
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_CHECKING;
 	SDL_UnlockMutex(status->lock);
 
-	char local_rev[64] = {};
+	char local_rev[64] = "unknown";
 	{
 		void *rev_data = NULL;
 		if (Fs_Load("revision", &rev_data) > 0) {
@@ -486,16 +486,15 @@ static void Installer_UpdateThread(void *data) {
 	Mem_Free(remote_rev_data);
 
 	if (!g_strcmp0(local_rev, remote_rev)) {
-		Com_Print("Data is current at revision %s.\n", local_rev);
+		Com_Print("Revision %s is up to date.\n", local_rev);
 		SDL_LockMutex(status->lock);
 		status->state = INSTALLER_DONE;
 		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
-	Com_Print("Data revision %s → %s, updating...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
+	Com_Print("Updating revision %s → %s...\n", local_rev, remote_rev);
 
-	// Phase 2: list all S3 objects.
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_LISTING;
 	SDL_UnlockMutex(status->lock);
@@ -509,7 +508,6 @@ static void Installer_UpdateThread(void *data) {
 		return;
 	}
 
-	// Phase 3: compute delta — which files need downloading.
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_LISTING;
 	SDL_UnlockMutex(status->lock);
@@ -551,7 +549,6 @@ static void Installer_UpdateThread(void *data) {
 	status->kbytes_done = 0;
 	SDL_UnlockMutex(status->lock);
 
-	// Phase 3 (continued): download the delta in parallel.
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_DOWNLOADING;
 	SDL_UnlockMutex(status->lock);
@@ -589,7 +586,6 @@ static void Installer_UpdateThread(void *data) {
 		return;
 	}
 
-	// Phase 4: prune local files absent from the S3 index.
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_PRUNING;
 	SDL_UnlockMutex(status->lock);
