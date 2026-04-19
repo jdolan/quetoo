@@ -715,8 +715,20 @@ void R_InitDraw2D(void) {
 
   R_BindFont(NULL, NULL, NULL);
 
-  r_draw_2d.null_texture = R_LoadImage("textures/effects/white", IMG_PROGRAM);
-  assert(r_draw_2d.null_texture);
+  r_draw_2d.null_texture = (r_image_t *) R_AllocMedia("null", sizeof(r_image_t), R_MEDIA_IMAGE);
+  r_draw_2d.null_texture->media.Retain = R_RetainImage;
+  r_draw_2d.null_texture->media.Free = R_FreeImage;
+  r_draw_2d.null_texture->type = IMG_PROGRAM;
+  r_draw_2d.null_texture->width = 1;
+  r_draw_2d.null_texture->height = 1;
+  r_draw_2d.null_texture->target = GL_TEXTURE_2D;
+  r_draw_2d.null_texture->internal_format = GL_RGBA8;
+  r_draw_2d.null_texture->format = GL_RGBA;
+  r_draw_2d.null_texture->pixel_type = GL_UNSIGNED_BYTE;
+  r_draw_2d.null_texture->magnify = GL_LINEAR;
+  r_draw_2d.null_texture->minify = GL_LINEAR;
+  r_draw_2d.null_texture->levels = 1;
+  R_UploadImage(r_draw_2d.null_texture, &(const uint32_t) { 0xffffffff });
 
   glGenVertexArrays(1, &r_draw_2d.vertex_array);
   glBindVertexArray(r_draw_2d.vertex_array);
