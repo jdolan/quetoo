@@ -678,7 +678,9 @@ void Cl_Frame(const uint32_t msec) {
 
   installer_status_t sync;
   Installer_Status(&sync);
-  if (sync.phase != INSTALLER_IDLE) {
+  if (sync.phase != INSTALLER_IDLE &&
+      sync.phase != INSTALLER_DONE &&
+      sync.phase != INSTALLER_ERROR) {
     cls.cgame->UpdateSync(sync);
   }
 

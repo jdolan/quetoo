@@ -225,6 +225,7 @@ static GList *Installer_ListObjects(void) {
 			if (parse_error) {
 				g_error_free(parse_error);
 			}
+			Mem_Free(ctx.current);
 			g_list_free_full(ctx.objects, Mem_Free);
 			g_string_free(ctx.text, TRUE);
 			return NULL;
@@ -410,7 +411,9 @@ static void Installer_UpdateThread(void *data) {
 	}
 
 	char remote_rev[64] = {};
-	g_strlcpy(remote_rev, g_strchomp(g_strndup(remote_rev_data, remote_rev_length)), sizeof(remote_rev));
+	gchar *remote_rev_tmp = g_strndup(remote_rev_data, remote_rev_length);
+	g_strlcpy(remote_rev, g_strchomp(remote_rev_tmp), sizeof(remote_rev));
+	g_free(remote_rev_tmp);
 	Mem_Free(remote_rev_data);
 
 	if (!g_strcmp0(local_rev, remote_rev)) {

@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include "net/net_http.h"
 
-#define CGAME_API_VERSION 26
+#define CGAME_API_VERSION 27
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
