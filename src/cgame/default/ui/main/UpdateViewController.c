@@ -47,6 +47,8 @@ static void fetchHeroImages(void *data) {
 	static const char prefix[] = "<Key>hero-images/";
 	static const char suffix[] = "</Key>";
 
+	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
+
 	char *p = (char *) list_body;
 	while ((p = strstr(p, prefix)) != NULL) {
 
@@ -62,7 +64,22 @@ static void fetchHeroImages(void *data) {
 			p = s + strlen(suffix);
 			continue;
 		}
-		if (cgi.HttpGet(url, &image_body, &image_length) == 200) {
+
+		g_ptr_array_add(urls, g_strdup(url));
+		p = s + strlen(suffix);
+	}
+
+	cgi.Free(list_body);
+
+	for (guint i = urls->len - 1; i > 0; i--) {
+		const guint j = (guint) rand() % (i + 1);
+		gpointer tmp = urls->pdata[i];
+		urls->pdata[i] = urls->pdata[j];
+		urls->pdata[j] = tmp;
+	}
+
+	for (guint i = 0; i < urls->len; i++) {
+		if (cgi.HttpGet(urls->pdata[i], &image_body, &image_length) == 200) {
 			Image *image = $$(Image, imageWithBytes, image_body, image_length);
 			if (image) {
 				SDL_LockMutex(this->pendingImagesLock);
@@ -71,14 +88,12 @@ static void fetchHeroImages(void *data) {
 			}
 			release(image);
 		} else {
-			Cg_Warn("Failed to fetch hero image: %s", url);
+			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
 		}
-
 		cgi.Free(image_body);
-		p = s + strlen(suffix);
 	}
 
-	cgi.Free(list_body);
+	g_ptr_array_free(urls, true);
 }
 
 #pragma mark - Object
@@ -154,10 +169,6 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 			$(self->slideShow, addImage, image);
 		}
 		$(self->pendingImages, removeAllObjects);
-		const size_t count = ((Array *) self->slideShow->images)->count;
-		if (count > 1) {
-			self->slideShow->index = (size_t) rand() % count;
-		}
 	}
 	SDL_UnlockMutex(self->pendingImagesLock);
 
