@@ -546,6 +546,7 @@ void Installer_Update(void) {
 
 	if (revision->integer == -1) {
 		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
+    status.state = INSTALLER_DONE;
 		return;
 	}
 
@@ -566,13 +567,11 @@ void Installer_Update(void) {
 		status.kbytes_total    = 0;
 		status.current_file[0] = '\0';
 		status.error[0]        = '\0';
-	}
+
+    Thread_Create(Installer_UpdateThread, &status, THREAD_NO_WAIT);
+  }
 
 	SDL_UnlockMutex(status.lock);
-
-	if (!already_running) {
-		Thread_Create(Installer_UpdateThread, &status, THREAD_NO_WAIT);
-	}
 }
 
 /**

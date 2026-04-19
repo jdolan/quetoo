@@ -785,14 +785,13 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
-  // periodic update check on dedicated servers
+  // periodically check for updates
   if (dedicated->value) {
     static uint64_t update_time = 0;
     const uint64_t now = SDL_GetTicks();
     if (update_time == 0) {
       update_time = now;
     } else if (now - update_time >= INSTALLER_UPDATE_INTERVAL) {
-      Installer_CheckForUpdates();
       Installer_Update();
       update_time = now;
     }
