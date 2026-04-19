@@ -987,11 +987,6 @@ typedef struct cg_export_s {
   void (*UpdateLoading)(const cl_loading_t loading);
 
   /**
-   * @brief Called each client frame while a data sync is in progress.
-   */
-  void (*UpdateSync)(const installer_status_t sync);
-
-  /**
    * @brief Called each frame to update the view definition and sound stage.
    * @details This function should perform the minimal amount of work required to dispatch
    * the depth pre-pass render. The scene should not be populated with entities, samples, etc.
@@ -1009,7 +1004,12 @@ typedef struct cg_export_s {
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.
    */
   void (*UpdateScreen)(const cl_frame_t *frame);
-  
+
+  /**
+   * @brief Called each client frame when the in-game installer is active.
+   */
+  void (*UpdateInstaller)(const installer_status_t status);
+
   /**
    * @brief Called each frame to update Discord status.
    */

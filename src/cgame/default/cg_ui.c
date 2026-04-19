@@ -96,30 +96,27 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
 }
 
 /**
- * @brief Manages the UpdateViewController lifecycle and routes sync progress to it.
- * Pushes UpdateViewController when a sync is active, pops it on completion.
+ * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
+ * Pushes UpdateViewController when updating, pops it on completion.
  */
-void Cg_UpdateSync(const installer_status_t sync) {
+void Cg_UpdateInstaller(const installer_status_t status) {
 
   if (mainViewController == NULL) {
     return;
   }
 
   if (updateViewController == NULL) {
-    // Only skip phases that do not need to present the update UI.
-    // Allow INSTALLER_ERROR so failures are visible even if the first
-    // status received is an error.
-    if (sync.phase == INSTALLER_IDLE ||
-        sync.phase == INSTALLER_DONE) {
+    if (status.state == INSTALLER_IDLE ||
+        status.state == INSTALLER_DONE) {
       return;
     }
     updateViewController = $(alloc(UpdateViewController), init);
     cgi.PushViewController((ViewController *) updateViewController);
   }
 
-  $(updateViewController, setStatus, sync);
+  $(updateViewController, setStatus, status);
 
-  if (sync.phase == INSTALLER_DONE || sync.phase == INSTALLER_ERROR) {
+  if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
     static uint64_t done_at = 0;
     if (done_at == 0) {
       done_at = SDL_GetTicks();

@@ -26,7 +26,7 @@
 #include <SDL3/SDL_mutex.h>
 
 /**
- * @brief The phase of an in-progress data sync operation.
+ * @brief The installer lifecycle.
  */
 typedef enum {
 	INSTALLER_IDLE,
@@ -36,15 +36,15 @@ typedef enum {
 	INSTALLER_PRUNING,
 	INSTALLER_DONE,
 	INSTALLER_ERROR,
-} installer_sync_phase_t;
+} installer_state_t;
 
 /**
- * @brief Progress state for an in-progress data sync.
+ * @brief The installer status snapshot.
  * All fields are guarded by @c lock; hold it when reading or writing.
  */
 typedef struct {
 	SDL_Mutex *lock;
-	installer_sync_phase_t phase;
+	installer_state_t state;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;

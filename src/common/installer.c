@@ -384,7 +384,7 @@ static void Installer_UpdateThread(void *data) {
 
 	// Phase 1: check whether the data revision has changed.
 	SDL_LockMutex(status->lock);
-	status->phase = INSTALLER_CHECKING;
+	status->state = INSTALLER_CHECKING;
 	SDL_UnlockMutex(status->lock);
 
 	char local_rev[64] = {};
@@ -405,7 +405,7 @@ static void Installer_UpdateThread(void *data) {
 		Mem_Free(remote_rev_data);
 		SDL_LockMutex(status->lock);
 		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
-		status->phase = INSTALLER_ERROR;
+		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
 		return;
 	}
@@ -419,30 +419,30 @@ static void Installer_UpdateThread(void *data) {
 	if (!g_strcmp0(local_rev, remote_rev)) {
 		Com_Print("Data is current at revision %s.\n", local_rev);
 		SDL_LockMutex(status->lock);
-		status->phase = INSTALLER_DONE;
+		status->state = INSTALLER_DONE;
 		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
-	Com_Print("Data revision %s → %s, syncing...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
+	Com_Print("Data revision %s → %s, updating...\n", local_rev[0] ? local_rev : "(none)", remote_rev);
 
 	// Phase 2: list all S3 objects.
 	SDL_LockMutex(status->lock);
-	status->phase = INSTALLER_LISTING;
+	status->state = INSTALLER_LISTING;
 	SDL_UnlockMutex(status->lock);
 
 	GList *objects = Installer_ListObjects();
 	if (!objects) {
 		SDL_LockMutex(status->lock);
 		g_strlcpy(status->error, "Failed to list S3 objects", sizeof(status->error));
-		status->phase = INSTALLER_ERROR;
+		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
 	// Phase 3: compute delta — which files need downloading.
 	SDL_LockMutex(status->lock);
-	status->phase = INSTALLER_DOWNLOADING;
+	status->state = INSTALLER_DOWNLOADING;
 	SDL_UnlockMutex(status->lock);
 
 	GList *delta = NULL;
@@ -508,14 +508,14 @@ static void Installer_UpdateThread(void *data) {
 	if (!download_ok) {
 		g_list_free_full(objects, Mem_Free);
 		SDL_LockMutex(status->lock);
-		status->phase = INSTALLER_ERROR;
+		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
 		return;
 	}
 
 	// Phase 4: prune local files absent from the S3 index.
 	SDL_LockMutex(status->lock);
-	status->phase = INSTALLER_PRUNING;
+	status->state = INSTALLER_PRUNING;
 	SDL_UnlockMutex(status->lock);
 
 	GHashTable *s3_keys = g_hash_table_new(g_str_hash, g_str_equal);
@@ -535,17 +535,17 @@ static void Installer_UpdateThread(void *data) {
 
 	Com_Print("Data sync complete (revision %s).\n", remote_rev);
 	SDL_LockMutex(status->lock);
-	status->phase = INSTALLER_DONE;
+	status->state = INSTALLER_DONE;
 	SDL_UnlockMutex(status->lock);
 }
 
 /**
- * @brief Begins an asynchronous S3 data sync if one is not already running.
+ * @brief Begins an asynchronous S3 data update if one is not already running.
  */
 void Installer_Update(void) {
 
 	if (revision->integer == -1) {
-		Com_Debug(DEBUG_COMMON, "Skipping data sync\n");
+		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
 		return;
 	}
 
@@ -555,11 +555,11 @@ void Installer_Update(void) {
 
 	SDL_LockMutex(status.lock);
 
-  const bool already_running = (status.phase != INSTALLER_IDLE &&
-	                               status.phase != INSTALLER_DONE &&
-	                               status.phase != INSTALLER_ERROR);
+  const bool already_running = (status.state != INSTALLER_IDLE &&
+                                status.state != INSTALLER_DONE &&
+	                              status.state != INSTALLER_ERROR);
 	if (!already_running) {
-		status.phase           = INSTALLER_IDLE;
+		status.state           = INSTALLER_IDLE;
 		status.files_done      = 0;
 		status.files_total     = 0;
 		status.kbytes_done     = 0;

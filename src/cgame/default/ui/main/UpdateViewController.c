@@ -124,7 +124,7 @@ static UpdateViewController *init(UpdateViewController *self) {
  */
 static void setStatus(UpdateViewController *self, installer_status_t status) {
 
-	switch (status.phase) {
+	switch (status.state) {
 		case INSTALLER_CHECKING:
 			$(self->progressBar, setLabelFormat, "Checking for updates\u2026");
 			$(self->progressBar, setValue, 0.0);

@@ -23,7 +23,7 @@
 
 #include "sv_local.h"
 
-#define SV_DATA_SYNC_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
+#define INSTALLER_UPDATE_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
 
 sv_static_t svs; // persistent server info
 sv_server_t sv; // per-level server info
@@ -785,53 +785,50 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
-  // hourly data sync check on dedicated servers
+  // periodic update check on dedicated servers
   if (dedicated->value) {
-    static Uint64 last_update_time = 0;
-    const Uint64 now = SDL_GetTicks();
-    if (last_update_time == 0) {
-      last_update_time = now;
-    } else if (now - last_update_time >= SV_DATA_SYNC_INTERVAL) {
+    static uint64_t update_time = 0;
+    const uint64_t now = SDL_GetTicks();
+    if (update_time == 0) {
+      update_time = now;
+    } else if (now - update_time >= INSTALLER_UPDATE_INTERVAL) {
       Installer_CheckForUpdates();
       Installer_Update();
-      last_update_time = now;
+      update_time = now;
     }
-  }
 
-  // report data sync progress to server console
-  if (dedicated->value) {
-    static installer_sync_phase_t last_phase = INSTALLER_IDLE;
-    static int32_t last_files_done = 0;
+    static installer_state_t state = INSTALLER_IDLE;
+    static char current_file[MAX_OS_PATH] = {};
 
-    installer_status_t sync;
-    Installer_Status(&sync);
+    installer_status_t status;
+    Installer_Status(&status);
 
-    if (sync.phase != last_phase || (sync.phase == INSTALLER_DOWNLOADING &&
-                                     sync.files_done != last_files_done)) {
-      switch (sync.phase) {
+    if (status.state != state ||
+        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
+      switch (status.state) {
         case INSTALLER_CHECKING:
-          Com_Print("Data sync: checking revision...\n");
+          Com_Print("Update: Checking revision...\n");
           break;
         case INSTALLER_LISTING:
-          Com_Print("Data sync: listing S3 objects...\n");
+          Com_Print("Update: Listing S3 objects...\n");
           break;
         case INSTALLER_DOWNLOADING:
-          Com_Print("Data sync: downloading %s (%d/%d)...\n", sync.current_file, sync.files_done, sync.files_total);
-          last_files_done = sync.files_done;
+          Com_Print("Update: Downloading %s (%d/%d)...\n", status.current_file, status.files_done, status.files_total);
+          g_strlcpy(current_file, status.current_file, sizeof(current_file));
           break;
         case INSTALLER_PRUNING:
-          Com_Print("Data sync: pruning stale files...\n");
+          Com_Print("Update: Pruning stale files...\n");
           break;
         case INSTALLER_DONE:
-          Com_Print("Data sync: complete.\n");
+          Com_Print("Update: Complete.\n");
           break;
         case INSTALLER_ERROR:
-          Com_Warn("Data sync error: %s\n", sync.error);
+          Com_Warn("Update: %s\n", status.error);
           break;
         default:
           break;
       }
-      last_phase = sync.phase;
+      state = status.state;
     }
   }
 
@@ -887,40 +884,43 @@ static void Sv_CheckForUpdates(void) {
 
   Installer_Update();
 
-  installer_status_t sync;
-  installer_sync_phase_t last_phase = INSTALLER_IDLE;
+  installer_status_t status;
+  installer_state_t state = INSTALLER_IDLE;
+  char current_file[MAX_OS_PATH] = {};
 
   do {
-    Installer_Status(&sync);
-    if (sync.phase != last_phase) {
-      switch (sync.phase) {
+    Installer_Status(&status);
+    if (status.state != state ||
+        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
+      switch (status.state) {
         case INSTALLER_CHECKING:
-          Com_Print("Data sync: checking revision...\n");
+          Com_Print("Update: Checking revision...\n");
           break;
         case INSTALLER_LISTING:
-          Com_Print("Data sync: listing S3 objects...\n");
+          Com_Print("Update: Listing S3 objects...\n");
           break;
         case INSTALLER_DOWNLOADING:
-          Com_Print("Data sync: downloading files...\n");
+          Com_Print("Update: Downloading %s...\n", status.current_file);
+          g_strlcpy(current_file, status.current_file, sizeof(current_file));
           break;
         case INSTALLER_PRUNING:
-          Com_Print("Data sync: pruning stale files...\n");
+          Com_Print("Update: Pruning stale files...\n");
           break;
         case INSTALLER_DONE:
-          Com_Print("Data sync: complete.\n");
+          Com_Print("Update: Complete.\n");
           break;
         case INSTALLER_ERROR:
-          Com_Warn("Data sync error: %s\n", sync.error);
+          Com_Warn("Update: %s\n", status.error);
           break;
         default:
           break;
       }
-      last_phase = sync.phase;
+      state = status.state;
     }
-    if (sync.phase != INSTALLER_DONE && sync.phase != INSTALLER_ERROR) {
+    if (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR) {
       SDL_Delay(100);
     }
-  } while (sync.phase != INSTALLER_DONE && sync.phase != INSTALLER_ERROR);
+  } while (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR);
 }
 
 /**

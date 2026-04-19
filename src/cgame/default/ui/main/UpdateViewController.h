@@ -30,7 +30,7 @@
 /**
  * @file
  *
- * @brief The UpdateViewController — shown while data sync is in progress.
+ * @brief The UpdateViewController — Shown while the in-game installer is running, displaying progress and hero images.
  */
 
 typedef struct UpdateViewController UpdateViewController;
@@ -66,7 +66,7 @@ struct UpdateViewController {
 	ImageView *logo;
 
 	/**
-	 * @brief The sync progress bar.
+	 * @brief The progress bar.
 	 */
 	ProgressBar *progressBar;
 };
