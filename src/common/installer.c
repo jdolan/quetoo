@@ -445,7 +445,7 @@ static void Installer_UpdateThread(void *data) {
 
 	// Phase 3: compute delta — which files need downloading.
 	SDL_LockMutex(status->lock);
-	status->state = INSTALLER_DOWNLOADING;
+	status->state = INSTALLER_LISTING;
 	SDL_UnlockMutex(status->lock);
 
 	GList *delta = NULL;
@@ -492,6 +492,7 @@ static void Installer_UpdateThread(void *data) {
 		const s3_object_t *obj = l->data;
 
 		SDL_LockMutex(status->lock);
+		status->state = INSTALLER_DOWNLOADING;
 		g_strlcpy(status->current_file, obj->key, sizeof(status->current_file));
 		SDL_UnlockMutex(status->lock);
 		Com_Debug(DEBUG_COMMON, "Downloading: %s\n", obj->key);
@@ -561,14 +562,16 @@ static void Installer_UpdateThread(void *data) {
  */
 void Installer_Update(void) {
 
-	if (revision->integer == -1) {
-		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
-    status.state = INSTALLER_DONE;
-		return;
-	}
-
 	if (!status.lock) {
 		status.lock = SDL_CreateMutex();
+	}
+
+	if (revision->integer == -1) {
+		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
+		SDL_LockMutex(status.lock);
+		status.state = INSTALLER_DONE;
+		SDL_UnlockMutex(status.lock);
+		return;
 	}
 
 	SDL_LockMutex(status.lock);
