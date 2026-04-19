@@ -788,7 +788,7 @@ void Sv_Frame(const uint32_t msec) {
     static installer_sync_phase_t last_phase = INSTALLER_IDLE;
     static int32_t last_files_done = 0;
 
-    installer_state_t sync;
+    installer_status_t sync;
     Installer_Status(&sync);
 
     if (sync.phase != last_phase || (sync.phase == INSTALLER_DOWNLOADING &&

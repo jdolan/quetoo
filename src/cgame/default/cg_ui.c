@@ -99,7 +99,7 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  * @brief Manages the UpdateViewController lifecycle and routes sync progress to it.
  * Pushes UpdateViewController when a sync is active, pops it on completion.
  */
-void Cg_UpdateSync(const installer_state_t sync) {
+void Cg_UpdateSync(const installer_status_t sync) {
 
   if (mainViewController == NULL) {
     return;

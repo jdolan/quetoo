@@ -117,7 +117,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+debug all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set developer 1"
@@ -141,10 +141,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1 +set g_ai_clients 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map tokays"
+            argument = "+map torn"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

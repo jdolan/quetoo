@@ -51,9 +51,9 @@ typedef struct {
 	int32_t kbytes_total;
 	char current_file[MAX_OS_PATH];
   char error[MAX_STRING_CHARS];
-} installer_state_t;
+} installer_status_t;
 
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
 void Installer_Update(void);
-void Installer_Status(installer_state_t *out);
+void Installer_Status(installer_status_t *out);

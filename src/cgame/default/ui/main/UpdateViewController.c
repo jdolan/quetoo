@@ -32,7 +32,7 @@
 #define HERO_FADE_MSEC  1000
 
 /**
- * @brief Net_HttpCallback for the initial hero image fetch.
+ * @brief `Net_HttpCallback` for the initial hero image fetch.
  * Sets heroShot and schedules the first cycle.
  */
 static void heroImageCallback(int32_t status, void *body, size_t length, void *user_data) {
@@ -179,7 +179,7 @@ static UpdateViewController *init(UpdateViewController *self) {
  * @fn void UpdateViewController::setStatus(UpdateViewController *self, installer_state_t status)
  * @memberof UpdateViewController
  */
-static void setStatus(UpdateViewController *self, installer_state_t status) {
+static void setStatus(UpdateViewController *self, installer_status_t status) {
 
 	// Per-frame hero image cycling and cross-fade.
 	if (self->heroNames) {

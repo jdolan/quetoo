@@ -989,7 +989,7 @@ typedef struct cg_export_s {
   /**
    * @brief Called each client frame while a data sync is in progress.
    */
-  void (*UpdateSync)(const installer_state_t sync);
+  void (*UpdateSync)(const installer_status_t sync);
 
   /**
    * @brief Called each frame to update the view definition and sound stage.

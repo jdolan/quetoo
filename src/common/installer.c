@@ -35,7 +35,7 @@
 #define QUETOO_DATA_BASE_URL     "https://quetoo-data.s3.amazonaws.com/"
 #define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
 
-static installer_state_t state;
+static installer_status_t status;
 
 /**
  * @brief Compares a local revision string against a remote revision URL.
@@ -332,7 +332,7 @@ static void Installer_PruneFile(const char *filename, void *data) {
  */
 static void Installer_UpdateThread(void *data) {
 
-	installer_state_t *status = (installer_state_t *) data;
+	installer_status_t *status = (installer_status_t *) data;
 
 	// Phase 1: check whether the data revision has changed.
 	SDL_LockMutex(status->lock);
@@ -502,29 +502,29 @@ void Installer_Update(void) {
 		return;
 	}
 
-	if (!state.lock) {
-		state.lock = SDL_CreateMutex();
+	if (!status.lock) {
+		status.lock = SDL_CreateMutex();
 	}
 
-	SDL_LockMutex(state.lock);
+	SDL_LockMutex(status.lock);
 
-  const bool already_running = (state.phase != INSTALLER_IDLE &&
-	                               state.phase != INSTALLER_DONE &&
-	                               state.phase != INSTALLER_ERROR);
+  const bool already_running = (status.phase != INSTALLER_IDLE &&
+	                               status.phase != INSTALLER_DONE &&
+	                               status.phase != INSTALLER_ERROR);
 	if (!already_running) {
-		state.phase           = INSTALLER_IDLE;
-		state.files_done      = 0;
-		state.files_total     = 0;
-		state.kbytes_done     = 0;
-		state.kbytes_total    = 0;
-		state.current_file[0] = '\0';
-		state.error[0]        = '\0';
+		status.phase           = INSTALLER_IDLE;
+		status.files_done      = 0;
+		status.files_total     = 0;
+		status.kbytes_done     = 0;
+		status.kbytes_total    = 0;
+		status.current_file[0] = '\0';
+		status.error[0]        = '\0';
 	}
 
-	SDL_UnlockMutex(state.lock);
+	SDL_UnlockMutex(status.lock);
 
 	if (!already_running) {
-		Thread_Create(Installer_UpdateThread, &state, THREAD_NO_WAIT);
+		Thread_Create(Installer_UpdateThread, &status, THREAD_NO_WAIT);
 	}
 }
 
@@ -532,16 +532,16 @@ void Installer_Update(void) {
  * @brief Populates @a out with a snapshot of the current sync status.
  * Safe to call from any thread.
  */
-void Installer_Status(installer_state_t *out) {
+void Installer_Status(installer_status_t *out) {
 
-	if (!state.lock) {
-		*out = (installer_state_t) {};
+	if (!status.lock) {
+		*out = (installer_status_t) {};
 		return;
 	}
 
-	SDL_LockMutex(state.lock);
-	*out = state;
-	SDL_UnlockMutex(state.lock);
+	SDL_LockMutex(status.lock);
+	*out = status;
+	SDL_UnlockMutex(status.lock);
 
 	out->lock = NULL; // callers never need the lock pointer
 }
