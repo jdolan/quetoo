@@ -1,10 +1,8 @@
 [![Build Status](https://github.com/jdolan/quetoo/actions/workflows/build.yml/badge.svg)](https://github.com/jdolan/quetoo/actions/workflows/build.yml)
 [![GPLv2 License](https://img.shields.io/badge/license-GPL%20v2-brightgreen.svg)](https://opensource.org/licenses/GPL-2.0)
-![This software is BETA](https://img.shields.io/badge/development_stage-BETA-yellowgreen.svg)
+# Quetoo
 
-# Quetoo BETA
-
-![Quetoo BETA!](https://raw.githubusercontent.com/jdolan/quetoo/main/quetoo-edge.jpg)
+![Quetoo](https://raw.githubusercontent.com/jdolan/quetoo/main/quetoo-edge.jpg)
 
 ## Overview
 

@@ -7,7 +7,7 @@ INSTALL = $(TARGET)/quetoo
 BINDIR = $(INSTALL)/bin
 LIBDIR = $(INSTALL)/lib
 DATADIR = $(INSTALL)/share
-SNAPSHOT = $(TARGET)/quetoo-BETA-$(BUILD).tar.gz
+SNAPSHOT = $(TARGET)/quetoo-$(BUILD).tar.gz
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 

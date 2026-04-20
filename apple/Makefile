@@ -10,8 +10,8 @@ INSTALL = $(TARGET)/Quetoo.app
 BINDIR = $(INSTALL)/Contents/MacOS
 LIBDIR = $(INSTALL)/Contents/MacOS/lib
 DATADIR = $(INSTALL)/Contents/Resources
-SNAPSHOT = $(TARGET)/Quetoo-BETA-$(BUILD).dmg
-VOLUME_NAME = "Quetoo BETA $(BUILD)"
+SNAPSHOT = $(TARGET)/Quetoo-$(BUILD).dmg
+VOLUME_NAME = "Quetoo $(BUILD)"
 QUETOO_S3_BUCKET = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
 

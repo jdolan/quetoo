@@ -134,13 +134,13 @@ jobs:
       working-directory: quetoo
       run: |
         cd apple/target
-        zip -r ../../quetoo-BETA-${{ matrix.build }}.zip Quetoo.app
+        zip -r ../../quetoo-${{ matrix.build }}.zip Quetoo.app
 
     - name: Upload artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-${{ matrix.build }}
-        path: quetoo/quetoo-BETA-${{ matrix.build }}.zip
+        path: quetoo/quetoo-${{ matrix.build }}.zip
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -296,24 +296,24 @@ jobs:
         convert src/main/quetoo.ico[0] Quetoo.AppDir/quetoo.png
 
         ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run \
-          Quetoo.AppDir linux/target/quetoo-BETA-x86_64-pc-linux.AppImage
+          Quetoo.AppDir linux/target/quetoo-x86_64-pc-linux.AppImage
 
     - name: Create archive
       working-directory: quetoo
       run: |
-        tar -czvf linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz -C linux/target quetoo
+        tar -czvf linux/target/quetoo-x86_64-pc-linux.tar.gz -C linux/target quetoo
 
     - name: Upload artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-x86_64-pc-linux
-        path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz
+        path: quetoo/linux/target/quetoo-x86_64-pc-linux.tar.gz
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-x86_64-pc-linux-appimage
-        path: quetoo/linux/target/quetoo-BETA-x86_64-pc-linux.AppImage
+        path: quetoo/linux/target/quetoo-x86_64-pc-linux.AppImage
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -326,8 +326,8 @@ jobs:
         aws s3 sync --delete linux/target/quetoo s3://quetoo/x86_64-pc-linux
         git rev-parse --short HEAD > linux/target/revision
         aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
-        aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
-        aws s3 cp linux/target/quetoo-BETA-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
+        aws s3 cp linux/target/quetoo-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
+        aws s3 cp linux/target/quetoo-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
 
   build-windows:
     needs: resolve-deps
@@ -434,13 +434,13 @@ jobs:
     - name: Create archive
       working-directory: ${{ github.workspace }}/quetoo
       run: |
-        Compress-Archive -Path windows\target\quetoo\* -DestinationPath quetoo-BETA-x86_64-pc-windows.zip
+        Compress-Archive -Path windows\target\quetoo\* -DestinationPath quetoo-x86_64-pc-windows.zip
 
     - name: Upload artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-x86_64-pc-windows
-        path: quetoo/quetoo-BETA-x86_64-pc-windows.zip
+        path: quetoo/quetoo-x86_64-pc-windows.zip
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -454,7 +454,7 @@ jobs:
         aws s3 sync --delete windows/target/quetoo s3://quetoo/x86_64-pc-windows
         git rev-parse --short HEAD > windows/target/revision
         aws s3 cp windows/target/revision s3://quetoo/revisions/x86_64-pc-windows
-        aws s3 cp quetoo-BETA-x86_64-pc-windows.zip s3://quetoo/snapshots/
+        aws s3 cp quetoo-x86_64-pc-windows.zip s3://quetoo/snapshots/
 
   release:
     needs: [build-macos, build-linux, build-windows]
@@ -474,20 +474,20 @@ jobs:
     - name: Create release
       run: |
         gh release create latest \
-          --title "Quetoo BETA Snapshot" \
+          --title "Quetoo Snapshot" \
           --notes "Latest snapshot build from the \`main\` branch.
 
         | Platform | Archive |
         |----------|---------|
-        | macOS (Apple Silicon) | quetoo-BETA-arm64-apple-darwin.zip |
-        | Linux (x86_64) | quetoo-BETA-x86_64-pc-linux.tar.gz |
-        | Linux (x86_64 AppImage) | quetoo-BETA-x86_64-pc-linux.AppImage |
-        | Windows (x86_64) | quetoo-BETA-x86_64-pc-windows.zip |" \
+        | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
+        | Linux (x86_64) | quetoo-x86_64-pc-linux.tar.gz |
+        | Linux (x86_64 AppImage) | quetoo-x86_64-pc-linux.AppImage |
+        | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
           --prerelease \
-          quetoo-arm64-apple-darwin/quetoo-BETA-arm64-apple-darwin.zip \
-          quetoo-x86_64-pc-linux/quetoo-BETA-x86_64-pc-linux.tar.gz \
-          quetoo-x86_64-pc-linux-appimage/quetoo-BETA-x86_64-pc-linux.AppImage \
-          quetoo-x86_64-pc-windows/quetoo-BETA-x86_64-pc-windows.zip
+          quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
+          quetoo-x86_64-pc-linux/quetoo-x86_64-pc-linux.tar.gz \
+          quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
+          quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
