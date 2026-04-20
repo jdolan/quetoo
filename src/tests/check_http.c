@@ -122,11 +122,11 @@ START_TEST(check_Net_HttpParseRequestLine_strip_slash) {
 
 	char method[16], path[256];
 
-	const bool ok = Net_HttpParseRequestLine("GET /textures/common/clip.tga HTTP/1.0\r\n",
+	const bool ok = Net_HttpParseRequestLine("GET /textures/common/clip.png HTTP/1.0\r\n",
 	                                         method, sizeof(method),
 	                                         path, sizeof(path));
 	ck_assert(ok);
-	ck_assert_str_eq(path, "textures/common/clip.tga");
+	ck_assert_str_eq(path, "textures/common/clip.png");
 
 } END_TEST
 

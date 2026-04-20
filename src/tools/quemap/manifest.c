@@ -248,9 +248,7 @@ static void AddDocumentation(void) {
  */
 static void AddMapshots_enumerate(const char *path, void *data) {
 
-	if (g_str_has_suffix(path, ".jpg") ||
-		g_str_has_suffix(path, ".png") ||
-		g_str_has_suffix(path, ".tga")) {
+	if (g_str_has_suffix(path, ".png") || g_str_has_suffix(path, ".jpg") || g_str_has_suffix(path, ".tga")) {
 		Add(path);
 	}
 }

@@ -1150,8 +1150,7 @@ void G_PrecacheItem(const g_item_t *it) {
       gi.ModelIndex(data);
     } else if (g_str_has_suffix(data, ".wav") || g_str_has_suffix(data, ".ogg")) {
       gi.SoundIndex(data);
-    } else if (g_str_has_suffix(data, ".tga") || g_str_has_suffix(data, ".png")
-               || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".pcx")) {
+    } else if (g_str_has_suffix(data, ".png") || g_str_has_suffix(data, ".jpg") || g_str_has_suffix(data, ".tga")) {
       gi.ImageIndex(data);
     } else {
       gi.Error("%s has unknown data type\n", it->classname);

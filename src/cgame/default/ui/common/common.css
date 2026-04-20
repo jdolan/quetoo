@@ -20,14 +20,14 @@ Checkbox > Control {
 }
 
 Control {
-  -sound-on-click: ui/click;
-  -sound-on-change: ui/change;
-  -sound-on-mouse-enter: ui/clack;
+  -sound-on-click: #ui/common/click;
+  -sound-on-change: #ui/common/change;
+  -sound-on-mouse-enter: #ui/common/clack;
 }
 
 Panel {
   background-color: #08151aaa;
-  -sound-on-mouse-enter: ui/clack;
+  -sound-on-mouse-enter: #ui/common/clack;
 }
 
 Panel.menu {
@@ -50,7 +50,7 @@ Slider > .bar > .handle {
 }
 
 TabView > .tabSelectionView {
-  -sound-on-click: ui/click;
+  -sound-on-click: #ui/common/click;
 }
 
 TabView > .tabSelectionView > Label.selected {

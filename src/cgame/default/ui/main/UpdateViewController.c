@@ -139,8 +139,8 @@ static void loadView(ViewController *self) {
 	this->pendingImages = $(alloc(MutableArray), init);
 	assert(this->pendingImages);
 
-	$(this->logo, setImageWithResourceName, "ui/common/loading.tga");
-	$(this->progressBar->foreground, setImageWithResourceName, "ui/common/progress_bar.tga");
+	$(this->logo, setImageWithResourceName, "ui/common/loading.png");
+	$(this->progressBar->foreground, setImageWithResourceName, "ui/common/progress_bar.png");
 
 	cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
 }

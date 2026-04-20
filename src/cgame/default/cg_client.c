@@ -162,13 +162,13 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
 
   char path[MAX_QPATH];
 
-  g_snprintf(path, sizeof(path), "players/%s/head.md3", ci->model);
+  g_snprintf(path, sizeof(path), "players/%s/head", ci->model);
   ci->head = cgi.LoadModel(path);
 
-  g_snprintf(path, sizeof(path), "players/%s/upper.md3", ci->model);
+  g_snprintf(path, sizeof(path), "players/%s/upper", ci->model);
   ci->torso = cgi.LoadModel(path);
 
-  g_snprintf(path, sizeof(path), "players/%s/lower.md3", ci->model);
+  g_snprintf(path, sizeof(path), "players/%s/lower", ci->model);
   ci->legs = cgi.LoadModel(path);
 
   if (!ci->head || !ci->torso || !ci->legs) {
@@ -181,7 +181,7 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
     return false;
   }
 
-  g_snprintf(path, sizeof(path), "players/%s/%s_i.tga", ci->model, ci->skin);
+  g_snprintf(path, sizeof(path), "players/%s/%s_i", ci->model, ci->skin);
   ci->icon = cgi.LoadImage(path, IMG_PIC);
 
   if (!ci->icon) {
