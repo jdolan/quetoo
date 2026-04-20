@@ -123,7 +123,7 @@ typedef struct cg_import_s {
    * @brief Begins installing available updates on a background thread. Progress is delivered
    * each client frame via cge.UpdateInstaller.
    */
-  void (*InstallUpdates)(void);
+  void (*Update)(void);
 
   /**
    * @}

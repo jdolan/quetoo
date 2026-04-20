@@ -171,7 +171,7 @@ void Cl_InitCgame(void) {
 
   import.CheckForUpdates = Installer_CheckForUpdates;
   import.OpenReleasesPage = Installer_OpenReleasesPage;
-  import.InstallUpdates = Installer_Update;
+  import.Update = Installer_Update;
 
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;

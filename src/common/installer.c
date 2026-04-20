@@ -695,6 +695,8 @@ void Installer_Update(void) {
  */
 void Installer_Init(void) {
 
+  memset(&status, 0, sizeof(status));
+
 	status.lock = SDL_CreateMutex();
 }
 
