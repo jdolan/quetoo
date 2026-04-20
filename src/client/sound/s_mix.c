@@ -242,6 +242,49 @@ void S_MixChannels(const s_stage_t *stage) {
 }
 
 /**
+ * @brief Plays a sample immediately without spatialization or stage processing.
+ * Use for UI sounds that must work regardless of client connection state.
+ */
+void S_PlaySample(s_sample_t *sample) {
+
+  if (!s_context.context) {
+    return;
+  }
+
+  if (!s_volume->value || !s_effects_volume->value) {
+    return;
+  }
+
+  if (!sample || !sample->buffer) {
+    return;
+  }
+
+  const int32_t c = S_AllocChannel();
+  if (c == -1) {
+    return;
+  }
+
+  s_context.channels[c].play = (s_play_sample_t) {
+    .sample = sample,
+    .flags = S_PLAY_UI,
+  };
+  s_context.channels[c].gain = 1.f;
+  s_context.channels[c].pitch = 1.f;
+  s_context.channels[c].start_time = (uint32_t) SDL_GetTicks();
+
+  const ALuint src = s_context.sources[c];
+  alSourcef(src, AL_GAIN, s_volume->value * s_effects_volume->value);
+  alSourcef(src, AL_PITCH, 1.f);
+  alSourcei(src, AL_SOURCE_RELATIVE, 1);
+  alSourcei(src, AL_LOOPING, 0);
+  alSourcei(src, AL_BUFFER, sample->buffer);
+  if (s_context.effects.loaded) {
+    alSourcei(src, AL_DIRECT_FILTER, AL_FILTER_NULL);
+  }
+  alSourcePlay(src);
+}
+
+/**
  * @brief
  */
 void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {

@@ -21,6 +21,7 @@
 
 #pragma once
 
+void S_PlaySample(s_sample_t *sample);
 void S_AddSample(s_stage_t *stage, const s_play_sample_t *play);
 
 #ifdef __S_LOCAL_H__

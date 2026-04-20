@@ -89,10 +89,7 @@ static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 
   const String *sound = $(view->computedStyle, attributeValue, attr);
   if (sound) {
-    S_AddSample(&cl_stage, &(s_play_sample_t) {
-      .sample = Ui_LoadSample(sound->chars),
-      .flags = S_PLAY_UI,
-    });
+    S_PlaySample(Ui_LoadSample(sound->chars));
   }
 }
 
@@ -262,9 +259,9 @@ void Ui_Init(void) {
   navigationViewController = $(alloc(NavigationViewController), init);
   $(windowController, setViewController, (ViewController *) navigationViewController);
 
-  Ui_LoadSample("ui/change");
-  Ui_LoadSample("ui/click");
-  Ui_LoadSample("ui/clack");
+  Ui_LoadSample("#ui/common/change");
+  Ui_LoadSample("#ui/common/click");
+  Ui_LoadSample("#ui/common/clack");
 
   Ui_InitEditor();
 }
