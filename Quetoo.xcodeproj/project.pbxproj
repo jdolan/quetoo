@@ -615,12 +615,12 @@
 		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
 		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
-		CEAD8FC52F9552510087A850 /* conback.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBF2F9550DA0087A850 /* conback.tga */; };
-		CEAD8FC62F9552580087A850 /* large.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC02F9550DA0087A850 /* large.tga */; };
-		CEAD8FC72F95525A0087A850 /* loading.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC12F9550DA0087A850 /* loading.tga */; };
-		CEAD8FC82F95525D0087A850 /* medium.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC22F9550DA0087A850 /* medium.tga */; };
-		CEAD8FC92F95525F0087A850 /* progress_bar.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC32F9550DA0087A850 /* progress_bar.tga */; };
-		CEAD8FCA2F9552610087A850 /* small.tga in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC42F9550DA0087A850 /* small.tga */; };
+		CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCB2F9650560087A850 /* conback.png */; };
+		CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
+		CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCD2F9650560087A850 /* loading.png */; };
+		CEAD8FD42F9650AB0087A850 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
+		CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCF2F9650560087A850 /* progress_bar.png */; };
+		CEAD8FD62F9650AF0087A850 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -1047,12 +1047,12 @@
 				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
 				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
 				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
-				CEAD8FC52F9552510087A850 /* conback.tga in CopyFiles */,
-				CEAD8FC62F9552580087A850 /* large.tga in CopyFiles */,
-				CEAD8FC72F95525A0087A850 /* loading.tga in CopyFiles */,
-				CEAD8FC82F95525D0087A850 /* medium.tga in CopyFiles */,
-				CEAD8FC92F95525F0087A850 /* progress_bar.tga in CopyFiles */,
-				CEAD8FCA2F9552610087A850 /* small.tga in CopyFiles */,
+				CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */,
+				CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */,
+				CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */,
+				CEAD8FD42F9650AB0087A850 /* medium.png in CopyFiles */,
+				CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */,
+				CEAD8FD62F9650AF0087A850 /* small.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1805,12 +1805,12 @@
 		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
 		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
 		CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = UpdateViewController.json; sourceTree = "<group>"; };
-		CEAD8FBF2F9550DA0087A850 /* conback.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = conback.tga; sourceTree = "<group>"; };
-		CEAD8FC02F9550DA0087A850 /* large.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = large.tga; sourceTree = "<group>"; };
-		CEAD8FC12F9550DA0087A850 /* loading.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = loading.tga; sourceTree = "<group>"; };
-		CEAD8FC22F9550DA0087A850 /* medium.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = medium.tga; sourceTree = "<group>"; };
-		CEAD8FC32F9550DA0087A850 /* progress_bar.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = progress_bar.tga; sourceTree = "<group>"; };
-		CEAD8FC42F9550DA0087A850 /* small.tga */ = {isa = PBXFileReference; lastKnownFileType = file; path = small.tga; sourceTree = "<group>"; };
+		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
+		CEAD8FCC2F9650560087A850 /* large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = large.png; sourceTree = "<group>"; };
+		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
+		CEAD8FCE2F9650560087A850 /* medium.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = medium.png; sourceTree = "<group>"; };
+		CEAD8FCF2F9650560087A850 /* progress_bar.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = progress_bar.png; sourceTree = "<group>"; };
+		CEAD8FD02F9650560087A850 /* small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = small.png; sourceTree = "<group>"; };
 		CEB112AE22544B3800CE65F6 /* voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voxel.h; sourceTree = "<group>"; };
 		CEB112AF22544B3900CE65F6 /* voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = voxel.c; sourceTree = "<group>"; };
 		CEB3038D2247A59F000FCB07 /* points.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = points.h; sourceTree = "<group>"; };
@@ -3380,12 +3380,12 @@
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
 				CE4E07B320264B15000B276C /* common.css */,
-				CEAD8FBF2F9550DA0087A850 /* conback.tga */,
-				CEAD8FC02F9550DA0087A850 /* large.tga */,
-				CEAD8FC12F9550DA0087A850 /* loading.tga */,
-				CEAD8FC22F9550DA0087A850 /* medium.tga */,
-				CEAD8FC32F9550DA0087A850 /* progress_bar.tga */,
-				CEAD8FC42F9550DA0087A850 /* small.tga */,
+				CEAD8FCB2F9650560087A850 /* conback.png */,
+				CEAD8FCC2F9650560087A850 /* large.png */,
+				CEAD8FCD2F9650560087A850 /* loading.png */,
+				CEAD8FCE2F9650560087A850 /* medium.png */,
+				CEAD8FCF2F9650560087A850 /* progress_bar.png */,
+				CEAD8FD02F9650560087A850 /* small.png */,
 				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
 			path = common;
