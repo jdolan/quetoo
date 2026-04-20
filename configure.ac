@@ -1,6 +1,6 @@
 AC_PREREQ([2.69])
 
-AC_INIT([quetoo], [0.1.0], [jay@jaydolan.com])
+AC_INIT([quetoo], [1.0.0], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
