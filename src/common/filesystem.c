@@ -725,8 +725,8 @@ void Fs_Init(const uint32_t flags) {
       g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
     }
 #elif defined(__linux__)
-    if ((c = strstr(path, "quetoo/bin"))) {
-      *(c + strlen("quetoo")) = '\0';
+    if ((c = strstr(path, "/bin/"))) {
+      *c = '\0';
       g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
