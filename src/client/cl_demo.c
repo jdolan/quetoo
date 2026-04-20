@@ -60,7 +60,7 @@ static void Cl_WriteDemoHeader(void) {
   // and baselines
   for (size_t i = 0; i < lengthof(cl.entities); i++) {
     entity_state_t *ent = &cl.entities[i].baseline;
-    if (!ent->number) {
+    if (i != 0 && !ent->number) { // entity 0 is worldspawn; never skip it
       continue;
     }
 
