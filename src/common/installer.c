@@ -311,8 +311,11 @@ typedef struct {
  */
 static bool Installer_Download(const s3_object_t *obj) {
 
+  gchar *encoded_key = g_uri_escape_string(obj->key, "/", FALSE);
+
   char url[MAX_OS_PATH * 2];
-  g_snprintf(url, sizeof(url), "%s%s", QUETOO_DATA_BASE_URL, obj->key);
+  g_snprintf(url, sizeof(url), "%s%s", QUETOO_DATA_BASE_URL, encoded_key);
+  g_free(encoded_key);
 
   void *data = NULL;
   size_t length = 0;
