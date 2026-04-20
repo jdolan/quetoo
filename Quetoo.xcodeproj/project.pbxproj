@@ -615,6 +615,9 @@
 		CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FB82F93A4990087A850 /* UpdateViewController.c */; };
 		CEAD8FBD2F93A5400087A850 /* UpdateViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */; };
 		CEAD8FBE2F93A5430087A850 /* UpdateViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FB92F93A4990087A850 /* UpdateViewController.css */; };
+		CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC52F9650560087A850 /* change.wav */; };
+		CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC62F9650560087A850 /* clack.wav */; };
+		CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FC72F9650560087A850 /* click.wav */; };
 		CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCB2F9650560087A850 /* conback.png */; };
 		CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
 		CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCD2F9650560087A850 /* loading.png */; };
@@ -1047,6 +1050,9 @@
 				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
 				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
 				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
+				CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */,
+				CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */,
+				CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */,
 				CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */,
 				CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */,
 				CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */,
@@ -1805,6 +1811,9 @@
 		CEAD8FB82F93A4990087A850 /* UpdateViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = UpdateViewController.c; sourceTree = "<group>"; };
 		CEAD8FB92F93A4990087A850 /* UpdateViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = UpdateViewController.css; sourceTree = "<group>"; };
 		CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = UpdateViewController.json; sourceTree = "<group>"; };
+		CEAD8FC52F9650560087A850 /* change.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = change.wav; sourceTree = "<group>"; };
+		CEAD8FC62F9650560087A850 /* clack.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = clack.wav; sourceTree = "<group>"; };
+		CEAD8FC72F9650560087A850 /* click.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = click.wav; sourceTree = "<group>"; };
 		CEAD8FCB2F9650560087A850 /* conback.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = conback.png; sourceTree = "<group>"; };
 		CEAD8FCC2F9650560087A850 /* large.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = large.png; sourceTree = "<group>"; };
 		CEAD8FCD2F9650560087A850 /* loading.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = loading.png; sourceTree = "<group>"; };
@@ -3380,6 +3389,9 @@
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
 				CE4E07B320264B15000B276C /* common.css */,
+				CEAD8FC52F9650560087A850 /* change.wav */,
+				CEAD8FC62F9650560087A850 /* clack.wav */,
+				CEAD8FC72F9650560087A850 /* click.wav */,
 				CEAD8FCB2F9650560087A850 /* conback.png */,
 				CEAD8FCC2F9650560087A850 /* large.png */,
 				CEAD8FCD2F9650560087A850 /* loading.png */,

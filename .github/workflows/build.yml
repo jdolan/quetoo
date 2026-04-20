@@ -420,9 +420,9 @@ jobs:
         # Shaders
         Copy-Item -Path "src\client\renderer\shaders\*" -Destination "$staging\lib\default\shaders\" -Recurse
 
-        # UI files (CSS, JSON and PNG assets, preserving directory structure)
+        # UI files (CSS, JSON, PNG and WAV assets, preserving directory structure)
         foreach ($uiSource in @("src\cgame\default\ui", "src\client\ui")) {
-          Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png" -Recurse | ForEach-Object {
+          Get-ChildItem -Path $uiSource -Include "*.css","*.json","*.png","*.wav" -Recurse | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $uiSource).Path.Length).TrimStart('\')
             $destPath = Join-Path "$staging\lib\default\ui" $relativePath
             $destDir = Split-Path $destPath -Parent
