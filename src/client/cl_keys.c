@@ -31,6 +31,9 @@ static char **cl_key_names;
 void Cl_SetKeyDest(cl_key_dest_t dest) {
 
   if (dest == cls.key_state.dest) {
+    if (dest == KEY_CONSOLE || dest == KEY_CHAT) {
+      SDL_StartTextInput(r_context.window);
+    }
     return;
   }
 
