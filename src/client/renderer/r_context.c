@@ -122,10 +122,6 @@ void R_InitContext(void) {
   }
 
   Com_Print("  Trying %dx%d..\n", w, h);
-
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
-    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
-  }
   
   R_SetWindowIcon();
 
@@ -142,6 +138,10 @@ void R_InitContext(void) {
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
+  }
 
   SDL_GLContextFlag context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 
