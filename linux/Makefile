@@ -136,8 +136,8 @@ rpm: $(TARGET)/.pkg-stamp
 
 release: all
 	aws s3 sync --delete $(STAGING) $(QUETOO_S3_BUCKET)/$(BUILD)
-	git rev-parse --short HEAD > $(TARGET)/revision
-	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
+	git rev-list --count HEAD > $(TARGET)/version
+	aws s3 cp $(TARGET)/version $(QUETOO_S3_BUCKET)/versions/$(BUILD)
 	aws s3 cp $(APPIMAGE) $(QUETOO_S3_BUCKET)/snapshots/
 	aws s3 cp $(DEB)      $(QUETOO_S3_BUCKET)/snapshots/
 	aws s3 cp $(RPM)      $(QUETOO_S3_BUCKET)/snapshots/

@@ -35,7 +35,6 @@ quetoo_t quetoo;
 static cvar_t *verbose;
 
 cvar_t *version;
-cvar_t *revision;
 cvar_t *dedicated;
 cvar_t *developer;
 cvar_t *editor;
@@ -287,10 +286,7 @@ static void Init(void) {
 
   Cvar_Init();
 
-  char *s = va("%s %s", VERSION, BUILD);
-  version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-  
-  revision = Cvar_Add("revision", VERSION, CVAR_SERVER_INFO, NULL);
+  version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 

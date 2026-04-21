@@ -28,10 +28,10 @@
 #include "installer.h"
 #include "net/net_http.h"
 
-#define QUETOO_REVISION_URL      "https://quetoo.s3.amazonaws.com/revisions/" BUILD
-#define QUETOO_RELEASES_URL      "https://github.com/jdolan/quetoo/releases/latest"
+#define QUETOO_VERSION_URL        "https://quetoo.s3.amazonaws.com/versions/" BUILD
+#define QUETOO_RELEASES_URL       "https://github.com/jdolan/quetoo/releases/latest"
 
-#define QUETOO_DATA_REVISION_URL "https://quetoo-data.s3.amazonaws.com/revision"
+#define QUETOO_DATA_VERSION_URL   "https://quetoo-data.s3.amazonaws.com/version"
 #define QUETOO_DATA_BASE_URL     "https://quetoo-data.s3.amazonaws.com/"
 #define QUETOO_DATA_LIST_URL     "https://quetoo-data.s3.amazonaws.com/?list-type=2&max-keys=1000"
 
@@ -39,19 +39,19 @@ static installer_status_t status;
 static SDL_Thread *installer_thread;
 
 /**
- * @brief Compares a local revision string against a remote revision URL.
+ * @brief Compares a local version string against a remote version URL.
  * @return 0 if they match, non-zero otherwise.
  */
-static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
+static int32_t Installer_CompareVersion(const char *ver, const char *ver_url) {
 	void *data;
 	size_t length;
 
-	int32_t status = Net_HttpGet(rev_url, &data, &length);
+	int32_t status = Net_HttpGet(ver_url, &data, &length);
 	if (status == 200) {
-		char *remote_rev = g_strchomp(g_strndup(data, length));
-		Com_Debug(DEBUG_COMMON, "%s == %s\n", rev, remote_rev);
-		status = g_strcmp0(rev, remote_rev);
-		g_free(remote_rev);
+		char *remote_ver = g_strchomp(g_strndup(data, length));
+		Com_Debug(DEBUG_COMMON, "%s == %s\n", ver, remote_ver);
+		status = g_strcmp0(ver, remote_ver);
+		g_free(remote_ver);
 	} else {
 		Com_Warn("%s: HTTP %d\n", rev_url, status);
 		if (length) {
@@ -69,17 +69,17 @@ static int32_t Installer_CompareRevision(const char *rev, const char *rev_url) {
  */
 int32_t Installer_CheckForUpdates(void) {
 
-	if (revision->integer == -1) {
-		Com_Debug(DEBUG_COMMON, "Skipping revision check\n");
+	if (version->integer == -1) {
+		Com_Debug(DEBUG_COMMON, "Skipping version check\n");
 		return 0;
 	}
 
-	if (Installer_CompareRevision(revision->string, QUETOO_REVISION_URL) == 0) {
-		Com_Debug(DEBUG_COMMON, "Build revision %s is latest.\n", revision->string);
+	if (Installer_CompareVersion(version->string, QUETOO_VERSION_URL) == 0) {
+		Com_Debug(DEBUG_COMMON, "Build version %s is latest.\n", version->string);
 		return 0;
 	}
 
-	Com_Debug(DEBUG_COMMON, "Build revision %s is out of date.\n", revision->string);
+	Com_Debug(DEBUG_COMMON, "Build version %s is out of date.\n", version->string);
 	return 1;
 }
 
@@ -470,7 +470,7 @@ static int Installer_UpdateThread(void *data) {
 	char local_rev[64] = "unknown";
 	{
 		void *rev_data = NULL;
-		if (Fs_Load("revision", &rev_data) > 0) {
+		if (Fs_Load("version", &rev_data) > 0) {
 			g_strlcpy(local_rev, g_strchomp((char *) rev_data), sizeof(local_rev));
 		}
 		Fs_Free(rev_data);
@@ -478,13 +478,13 @@ static int Installer_UpdateThread(void *data) {
 
 	void *remote_rev_data = NULL;
 	size_t remote_rev_length = 0;
-	const int32_t rev_status = Net_HttpGet(QUETOO_DATA_REVISION_URL, &remote_rev_data, &remote_rev_length);
+	const int32_t rev_status = Net_HttpGet(QUETOO_DATA_VERSION_URL, &remote_rev_data, &remote_rev_length);
 
 	if (rev_status != 200) {
-		Com_Warn("Failed to fetch data revision: HTTP %d\n", rev_status);
+		Com_Warn("Failed to fetch data version: HTTP %d\n", rev_status);
 		Mem_Free(remote_rev_data);
 		SDL_LockMutex(status->lock);
-		g_strlcpy(status->error, "Failed to fetch data revision", sizeof(status->error));
+		g_strlcpy(status->error, "Failed to fetch data version", sizeof(status->error));
 		status->state = INSTALLER_ERROR;
 		SDL_UnlockMutex(status->lock);
 		return 0;
@@ -512,7 +512,7 @@ static int Installer_UpdateThread(void *data) {
 		return 0;
 	}
 
-	Com_Print("Updating revision %s → %s...\n", local_rev, remote_rev);
+	Com_Print("Updating version %s → %s...\n", local_rev, remote_rev);
 
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_LISTING;
@@ -546,7 +546,7 @@ static int Installer_UpdateThread(void *data) {
 	for (GList *l = objects; l; l = l->next) {
 		const s3_object_t *obj = l->data;
 
-		if (!g_strcmp0(obj->key, "revision")) {
+		if (!g_strcmp0(obj->key, "version")) {
 			continue;
 		}
 
@@ -643,16 +643,16 @@ static int Installer_UpdateThread(void *data) {
 	g_list_free_full(objects, Mem_Free);
 
 	char rev_path[MAX_OS_PATH];
-	g_snprintf(rev_path, sizeof(rev_path), "%s%crevision", Fs_DataDir(), G_DIR_SEPARATOR);
+	g_snprintf(rev_path, sizeof(rev_path), "%s%cversion", Fs_DataDir(), G_DIR_SEPARATOR);
 	FILE *rev_file = g_fopen(rev_path, "wb");
 	if (rev_file) {
 		fputs(remote_rev, rev_file);
 		fclose(rev_file);
 	} else {
-		Com_Warn("Failed to write revision file: %s\n", rev_path);
+		Com_Warn("Failed to write version file: %s\n", rev_path);
 	}
 
-	Com_Print("Data sync complete (revision %s).\n", remote_rev);
+	Com_Print("Data sync complete (version %s).\n", remote_rev);
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_DONE;
 	SDL_UnlockMutex(status->lock);
@@ -664,7 +664,7 @@ static int Installer_UpdateThread(void *data) {
  */
 void Installer_Update(void) {
 
-	if (revision->integer == -1) {
+	if (version->integer == -1) {
 		Com_Debug(DEBUG_COMMON, "Skipping data update\n");
 		SDL_LockMutex(status.lock);
 		status.state = INSTALLER_DONE;
