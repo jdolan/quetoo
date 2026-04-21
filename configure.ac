@@ -41,6 +41,9 @@ dnl ---------------
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_OBJC
+# libtool 2.5+ dropped the ObjC tag; set OBJC=$CC so libtool infers the CC
+# tag for Objective-C files (.m), which clang/gcc handles via file extension.
+OBJC="$CC"
 LT_INIT
 
 dnl --------------------
