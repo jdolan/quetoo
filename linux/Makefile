@@ -7,8 +7,7 @@ BUILD     = $(ARCH)-pc-linux
 TARGET    = target
 STAGING   = $(TARGET)/staging
 PKGDIR    = $(TARGET)/pkg
-REVCOUNT := $(shell cd .. && git rev-list --count HEAD 2>/dev/null || echo 0)
-VERSION  := 1.0.$(REVCOUNT)
+VERSION  := $(shell cd .. && git rev-list --count HEAD 2>/dev/null || echo 0)
 
 QUETOO_S3_BUCKET      = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data

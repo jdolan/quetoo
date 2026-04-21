@@ -51,7 +51,7 @@ post-install:
 
 release:
 	aws s3 sync --delete $(INSTALL) $(QUETOO_S3_BUCKET)/$(BUILD)
-	git rev-parse --short HEAD > $(TARGET)/revision
+	git rev-list --count HEAD > $(TARGET)/revision
 	aws s3 cp $(TARGET)/revision $(QUETOO_S3_BUCKET)/revisions/$(BUILD)
 
 install-data:

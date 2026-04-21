@@ -15,9 +15,9 @@ AC_SUBST(VERSION)
 AC_CHECK_PROG(GIT, git, 1)
 
 if [[ ! -z "${GIT}" ]]; then
-	REVISION=`git rev-parse --short HEAD`
+	REVISION=`git rev-list --count HEAD`
 else
-	REVISION="unversioned"
+	REVISION="0"
 fi
 
 AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])

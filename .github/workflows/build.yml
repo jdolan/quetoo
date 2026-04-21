@@ -151,7 +151,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         aws s3 sync --delete apple/target/Quetoo.app s3://quetoo/${{ matrix.build }}
-        git rev-parse --short HEAD > apple/target/revision
+        git rev-list --count HEAD > apple/target/revision
         aws s3 cp apple/target/revision s3://quetoo/revisions/${{ matrix.build }}
 
   build-linux:
@@ -293,7 +293,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         aws s3 sync --delete linux/target/staging s3://quetoo/x86_64-pc-linux
-        git rev-parse --short HEAD > linux/target/revision
+        git rev-list --count HEAD > linux/target/revision
         aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
         aws s3 cp linux/target/quetoo-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
         aws s3 cp linux/target/quetoo_*_amd64.deb                s3://quetoo/snapshots/
@@ -422,7 +422,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         aws s3 sync --delete windows/target/quetoo s3://quetoo/x86_64-pc-windows
-        git rev-parse --short HEAD > windows/target/revision
+        git rev-list --count HEAD > windows/target/revision
         aws s3 cp windows/target/revision s3://quetoo/revisions/x86_64-pc-windows
         aws s3 cp quetoo-x86_64-pc-windows.zip s3://quetoo/snapshots/
 
