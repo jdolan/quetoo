@@ -21,6 +21,8 @@
 
 #if !defined(_WIN32) && !defined(_MSC_VER)
   #include <sys/time.h>
+  #include <ifaddrs.h>
+  #include <net/if.h>
 #endif
 
 #include "net_udp.h"
@@ -163,6 +165,57 @@ static bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t len
 }
 
 /**
+ * @brief Sends a datagram to the specified socket address.
+ */
+static bool Net_SendDatagramToAddr(int32_t sock, const net_sockaddr *to_addr, const void *data, size_t len) {
+  const ssize_t sent = sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) to_addr, sizeof(*to_addr));
+  if (sent == -1) {
+    Com_Warn("%s\n", Net_GetErrorString());
+    return false;
+  }
+  return true;
+}
+
+/**
+ * @brief Sends a broadcast datagram by enumerating interfaces and sending to
+ * each interface's subnet-directed broadcast address. This avoids EHOSTUNREACH,
+ * which occurs when sending to 255.255.255.255 on a socket bound to INADDR_ANY
+ * because the kernel cannot determine the outgoing interface.
+ */
+static bool Net_SendBroadcastDatagram(int32_t sock, const net_addr_t *to, const void *data, size_t len) {
+
+#if !defined(_WIN32) && !defined(_MSC_VER)
+  struct ifaddrs *ifap;
+  if (getifaddrs(&ifap) == 0) {
+    bool sent = false;
+    for (const struct ifaddrs *ifa = ifap; ifa; ifa = ifa->ifa_next) {
+      if (!ifa->ifa_addr || ifa->ifa_addr->sa_family != AF_INET) {
+        continue;
+      }
+      if (!(ifa->ifa_flags & IFF_BROADCAST) || !ifa->ifa_broadaddr) {
+        continue;
+      }
+      net_sockaddr addr;
+      memcpy(&addr, ifa->ifa_broadaddr, sizeof(struct sockaddr_in));
+      addr.sin_port = to->port;
+      if (sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) &addr, sizeof(addr)) != -1) {
+        sent = true;
+      }
+    }
+    freeifaddrs(ifap);
+    if (sent) {
+      return true;
+    }
+  }
+#endif
+
+  net_sockaddr to_addr;
+  Net_NetAddrToSockaddr(to, &to_addr);
+  return Net_SendDatagramToAddr(sock, &to_addr, data, len);
+}
+
+
+/**
  * @brief Send a datagram to the specified address.
  */
 bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, size_t len) {
@@ -180,17 +233,13 @@ bool Net_SendDatagram(net_src_t source, const net_addr_t *to, const void *data, 
     Com_Error(ERROR_DROP, "Bad address type\n");
   }
 
-  net_sockaddr to_addr;
-  Net_NetAddrToSockaddr(to, &to_addr);
-
-  ssize_t sent = sendto(sock, data, (int32_t) len, 0, (const struct sockaddr *) &to_addr, sizeof(to_addr));
-
-  if (sent == -1) {
-    Com_Warn("%s to %s\n", Net_GetErrorString(), Net_NetaddrToString(to));
-    return false;
+  if (to->type == NA_BROADCAST) {
+    return Net_SendBroadcastDatagram(sock, to, data, len);
   }
 
-  return true;
+  net_sockaddr to_addr;
+  Net_NetAddrToSockaddr(to, &to_addr);
+  return Net_SendDatagramToAddr(sock, &to_addr, data, len);
 }
 
 /**
