@@ -42,18 +42,18 @@ static SDL_Thread *installer_thread;
  * @brief Compares a local version string against a remote version URL.
  * @return 0 if they match, non-zero otherwise.
  */
-static int32_t Installer_CompareVersion(const char *ver, const char *ver_url) {
+static int32_t Installer_CompareVersion(const char *version, const char *remote_version_url) {
 	void *data;
 	size_t length;
 
-	int32_t status = Net_HttpGet(ver_url, &data, &length);
+	int32_t status = Net_HttpGet(remote_version_url, &data, &length);
 	if (status == 200) {
 		char *remote_ver = g_strchomp(g_strndup(data, length));
-		Com_Debug(DEBUG_COMMON, "%s == %s\n", ver, remote_ver);
-		status = g_strcmp0(ver, remote_ver);
+		Com_Debug(DEBUG_COMMON, "%s == %s\n", version, remote_ver);
+		status = g_strcmp0(version, remote_ver);
 		g_free(remote_ver);
 	} else {
-		Com_Warn("%s: HTTP %d\n", rev_url, status);
+		Com_Warn("%s: HTTP %d\n", remote_version_url, status);
 		if (length) {
 			Com_Debug(DEBUG_COMMON, "%s\n", (gchar *) data);
 		}

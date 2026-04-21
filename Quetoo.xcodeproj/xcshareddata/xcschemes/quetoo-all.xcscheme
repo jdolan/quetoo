@@ -84,7 +84,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set revision -1"
+            argument = "+set version -1"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -116,7 +116,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+debug all"
+            argument = "+debug sound"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
