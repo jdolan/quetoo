@@ -173,9 +173,11 @@ jobs:
           libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
           libfreetype-dev libharfbuzz-dev \
           check \
-          chrpath \
+          patchelf \
           cmake \
-          imagemagick
+          imagemagick \
+          ruby ruby-dev rubygems rpm
+        sudo gem install fpm --no-document
 
     - name: Cache from-source dependencies
       id: cache-deps
@@ -258,62 +260,29 @@ jobs:
         ./configure CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
 
-    - name: Install Quetoo
-      working-directory: quetoo
+    - name: Package Quetoo
+      working-directory: quetoo/linux
       run: |
-        install -d linux/target/quetoo
-        cp -r linux/quetoo/* linux/target/quetoo/
-        find linux/target/quetoo -name .turd -delete
-        make DESTDIR=$(pwd)/linux/target/quetoo install
-
-    - name: Bundle libraries
-      working-directory: quetoo
-      run: |
-        ./linux/sobundler.sh -d linux/target/quetoo/lib \
-          linux/target/quetoo/bin/quemap \
-          linux/target/quetoo/bin/quetoo \
-          linux/target/quetoo/bin/quetoo-dedicated \
-          linux/target/quetoo/bin/quetoo-master \
-          linux/target/quetoo/lib/default/cgame.so \
-          linux/target/quetoo/lib/default/game.so
-
-    - name: Build AppImage
-      working-directory: quetoo
-      run: |
-        curl -fsSL -o appimagetool-x86_64.AppImage \
-          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-        chmod +x appimagetool-x86_64.AppImage
-
-        mkdir -p Quetoo.AppDir
-        cp -a linux/target/quetoo/bin Quetoo.AppDir/
-        cp -a linux/target/quetoo/lib Quetoo.AppDir/
-        cp -a linux/target/quetoo/share Quetoo.AppDir/
-
-        cp linux/AppRun Quetoo.AppDir/
-        chmod +x Quetoo.AppDir/AppRun
-        cp linux/quetoo/Quetoo.desktop Quetoo.AppDir/quetoo.desktop
-
-        convert src/main/quetoo.ico[0] Quetoo.AppDir/quetoo.png
-
-        ARCH=x86_64 ./appimagetool-x86_64.AppImage --appimage-extract-and-run \
-          Quetoo.AppDir linux/target/quetoo-x86_64-pc-linux.AppImage
-
-    - name: Create archive
-      working-directory: quetoo
-      run: |
-        tar -czvf linux/target/quetoo-x86_64-pc-linux.tar.gz -C linux/target quetoo
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v6
-      with:
-        name: quetoo-x86_64-pc-linux
-        path: quetoo/linux/target/quetoo-x86_64-pc-linux.tar.gz
+        export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
+        make bundle appimage deb rpm
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v6
       with:
         name: quetoo-x86_64-pc-linux-appimage
         path: quetoo/linux/target/quetoo-x86_64-pc-linux.AppImage
+
+    - name: Upload .deb artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-linux-deb
+        path: quetoo/linux/target/quetoo_*_amd64.deb
+
+    - name: Upload .rpm artifact
+      uses: actions/upload-artifact@v6
+      with:
+        name: quetoo-x86_64-pc-linux-rpm
+        path: quetoo/linux/target/quetoo-*.x86_64.rpm
 
     - name: Publish to S3
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -323,11 +292,12 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws s3 sync --delete linux/target/quetoo s3://quetoo/x86_64-pc-linux
+        aws s3 sync --delete linux/target/staging s3://quetoo/x86_64-pc-linux
         git rev-parse --short HEAD > linux/target/revision
         aws s3 cp linux/target/revision s3://quetoo/revisions/x86_64-pc-linux
-        aws s3 cp linux/target/quetoo-x86_64-pc-linux.tar.gz s3://quetoo/snapshots/
         aws s3 cp linux/target/quetoo-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
+        aws s3 cp linux/target/quetoo_*_amd64.deb                s3://quetoo/snapshots/
+        aws s3 cp linux/target/quetoo-*.x86_64.rpm                s3://quetoo/snapshots/
 
   build-windows:
     needs: resolve-deps
@@ -477,16 +447,18 @@ jobs:
           --title "Quetoo Snapshot" \
           --notes "Latest snapshot build from the \`main\` branch.
 
-        | Platform | Archive |
-        |----------|---------|
+        | Platform | Download |
+        |----------|----------|
         | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
-        | Linux (x86_64) | quetoo-x86_64-pc-linux.tar.gz |
         | Linux (x86_64 AppImage) | quetoo-x86_64-pc-linux.AppImage |
+        | Linux (x86_64 .deb) | quetoo_*_amd64.deb |
+        | Linux (x86_64 .rpm) | quetoo-*.x86_64.rpm |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
           --prerelease \
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
-          quetoo-x86_64-pc-linux/quetoo-x86_64-pc-linux.tar.gz \
           quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
+          quetoo-x86_64-pc-linux-deb/quetoo_*_amd64.deb \
+          quetoo-x86_64-pc-linux-rpm/quetoo-*.x86_64.rpm \
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
       env:
         GH_TOKEN: ${{ github.token }}
