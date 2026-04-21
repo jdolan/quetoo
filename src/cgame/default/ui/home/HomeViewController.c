@@ -58,7 +58,7 @@ static void loadView(ViewController *self) {
 
   switch (cgi.CheckForUpdates()) {
     case 0:
-      $(this->motd->text, setTextWithFormat, "Quetoo %s is up to date.\n", REVISION);
+      $(this->motd->text, setTextWithFormat, "Quetoo %s is up to date.\n", VERSION);
       break;
     case 1: {
       $(this->motd->text, setText, "A new version of Quetoo is available.");

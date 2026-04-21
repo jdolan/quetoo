@@ -287,10 +287,10 @@ static void Init(void) {
 
   Cvar_Init();
 
-  char *s = va("%s %s %s", VERSION, BUILD, REVISION);
+  char *s = va("%s %s", VERSION, BUILD);
   version = Cvar_Add("version", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
   
-  revision = Cvar_Add("revision", REVISION, CVAR_SERVER_INFO, NULL);
+  revision = Cvar_Add("revision", VERSION, CVAR_SERVER_INFO, NULL);
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
 
@@ -422,7 +422,7 @@ int32_t main(int32_t argc, char *argv[]) {
   static uint32_t old_time;
   uint32_t msec;
 
-  printf("Quetoo %s %s %s\n", VERSION, BUILD, REVISION);
+  printf("Quetoo %s %s\n", VERSION, BUILD);
 
   memset(&quetoo, 0, sizeof(quetoo));
 

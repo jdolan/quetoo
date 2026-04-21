@@ -50,7 +50,7 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
 
   quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
 
-  Com_LogString(va("Quetoo %s %s %s\n", VERSION, BUILD, REVISION));
+  Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
   if (argc)
   {

@@ -127,7 +127,7 @@ static void Init(void) {
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
-  Com_Print("Quemap %s %s %s initialized\n", VERSION, BUILD, REVISION);
+  Com_Print("Quemap %s %s initialized\n", VERSION, BUILD);
 }
 
 /**
@@ -269,7 +269,7 @@ static void PrintHelpMessage(void) {
 int32_t main(int32_t argc, char **argv) {
   int32_t num_threads = 0;
 
-  printf("Quemap %s %s %s\n", VERSION, BUILD, REVISION);
+  printf("Quemap %s %s\n", VERSION, BUILD);
 
   memset(&quetoo, 0, sizeof(quetoo));
 

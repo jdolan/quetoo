@@ -1,6 +1,6 @@
 AC_PREREQ([2.69])
 
-AC_INIT([quetoo], [1.0.0], [jay@jaydolan.com])
+AC_INIT([quetoo], [0], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
@@ -10,18 +10,17 @@ AC_CONFIG_SRCDIR(src/quetoo.h)
 AC_CANONICAL_HOST
 
 AC_SUBST(PROGRAM)
-AC_SUBST(VERSION)
 
 AC_CHECK_PROG(GIT, git, 1)
 
 if [[ ! -z "${GIT}" ]]; then
-	REVISION=`git rev-list --count HEAD`
+	VERSION=`git rev-list --count HEAD`
 else
-	REVISION="0"
+	VERSION="0"
 fi
 
-AC_DEFINE_UNQUOTED(REVISION, "$REVISION", [Git revision])
-AC_SUBST(REVISION)
+AC_DEFINE_UNQUOTED(VERSION, "$VERSION", [Build version])
+AC_SUBST(VERSION)
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])

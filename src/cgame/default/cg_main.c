@@ -101,7 +101,7 @@ static void Cg_Init(void) {
 
   cgi.Print("Client game module initialization...\n");
 
-  const char *s = va("%s %s %s", VERSION, BUILD, REVISION);
+  const char *s = va("%s %s", VERSION, BUILD);
   cvar_t *cgame_version = cgi.AddCvar("cgame_version", s, CVAR_NO_SET, NULL);
 
   cgi.Print("  Version:    ^2%s^7\n", cgame_version->string);

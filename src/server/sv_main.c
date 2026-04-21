@@ -871,7 +871,7 @@ static void Sv_CheckForUpdates(void) {
 
   switch (Installer_CheckForUpdates()) {
     case 0:
-      Com_Print("Quetoo %s is up to date.\n", REVISION);
+      Com_Print("Quetoo %s is up to date.\n", VERSION);
       break;
     case 1:
       Com_Warn("A new version of Quetoo is available.\n"
