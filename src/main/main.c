@@ -287,7 +287,7 @@ static void Init(void) {
 
   Cvar_Init();
 
-  version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
+  version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
