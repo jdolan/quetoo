@@ -61,6 +61,11 @@ struct UpdateViewController {
 	SlideShowView *slideShow;
 
 	/**
+	 * @brief The background thread fetching hero images.
+	 */
+	thread_t *fetchThread;
+
+	/**
 	 * @brief Pending hero images fetched by the background thread, then added to slideShow on the main thread.
 	 */
 	MutableArray *pendingImages;

@@ -105,6 +105,8 @@ static void dealloc(Object *self) {
 
   UpdateViewController *this = (UpdateViewController *) self;
 
+  cgi.Wait(this->fetchThread);
+
   SDL_DestroyMutex(this->pendingImagesLock);
   release(this->pendingImages);
 
@@ -142,7 +144,7 @@ static void loadView(ViewController *self) {
 	$(this->logo, setImageWithResourceName, "ui/common/loading.png");
 	$(this->progressBar->foreground, setImageWithResourceName, "ui/common/progress_bar.png");
 
-	cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
+	this->fetchThread = cgi.Thread(__func__, fetchHeroImages, this, THREAD_NO_WAIT);
 }
 
 #pragma mark - UpdateViewController
