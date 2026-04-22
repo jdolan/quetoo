@@ -53,22 +53,64 @@ vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
   return color * max(rq, brightness - threshold) / max(brightness, 0.00001);
 }
 
+uniform int tonemap;
+
+/**
+ * @brief Reinhard tonemapping.
+ *
+ * Per-channel x/(1+x).  Gentle and warm; passes normal LDR values through
+ * almost unchanged and softly compresses HDR overflow from additive stages.
+ * Closest in appearance to the untonemapped (r_post 0) path.
+ */
+vec3 TonemapReinhard(vec3 color) {
+  return color / (color + 1.0);
+}
+
+/**
+ * @brief Uncharted 2 / Hable filmic tonemapping.
+ *
+ * John Hable's "Uncharted 2" curve.  Richer mids and stronger contrast
+ * S-curve than Reinhard; avoids the pale/washed look of ACES on dark scenes.
+ *
+ * @see http://filmicworlds.com/blog/filmic-tonemapping-operators/
+ */
+vec3 TonemapUncharted2(vec3 color) {
+  const float A = 0.15, B = 0.50, C = 0.10, D = 0.20, E = 0.02, F = 0.30;
+  const float W = 11.2;
+  color = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
+  float white = ((W * (A * W + C * B) + D * E) / (W * (A * W + B) + D * F)) - E / F;
+  return color / white;
+}
+
 /**
  * @brief ACES filmic tonemapping (Krzysztof Narkowicz approximation).
  *
- * Maps HDR scene values to the LDR display range [0, 1] with a pleasing
- * filmic S-curve: highlights compress gracefully instead of hard-clipping,
- * and shadows/mids retain contrast.
+ * Strong S-curve with bright highlights and slightly warm colour shift.
+ * Can look pale on scenes where most values are well below 1.0.
  *
  * @see https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
  */
-vec3 ACESTonemap(vec3 x) {
-  const float a = 2.51;
-  const float b = 0.03;
-  const float c = 2.43;
-  const float d = 0.59;
-  const float e = 0.14;
+vec3 TonemapACES(vec3 x) {
+  const float a = 2.51, b = 0.03, c = 2.43, d = 0.59, e = 0.14;
   return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+/**
+ * @brief Linear tonemapping — clamp only.
+ *
+ * Identical to the r_post 0 passthrough; HDR overflow from additive stages
+ * is hard-clipped to 1.0 with no artistic processing.  Useful as a
+ * reference when comparing tonemapping operators.
+ */
+vec3 TonemapLinear(vec3 color) {
+  return clamp(color, 0.0, 1.0);
+}
+
+vec3 Tonemap(vec3 color) {
+  if (tonemap == 1) return TonemapUncharted2(color);
+  if (tonemap == 2) return TonemapACES(color);
+  if (tonemap == 3) return TonemapLinear(color);
+  return TonemapReinhard(color);  // default: 0
 }
 
 /**
@@ -95,7 +137,7 @@ void bloom_extract(void) {
 void bloom_composite(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
-  out_color = vec4(ACESTonemap(color + glow * bloom), 1.0);
+  out_color = vec4(Tonemap(color + glow * bloom), 1.0);
 }
 
 /**
