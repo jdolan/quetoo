@@ -1184,12 +1184,6 @@
 		CE12D5191C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D51A1C5C58C300CD0B13 /* sobundler.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = sobundler.sh; sourceTree = "<group>"; };
 		CE12D51B1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE12D51D1C5C58C300CD0B13 /* dllbundler.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = dllbundler.sh; sourceTree = "<group>"; };
-		CE12D51E1C5C58C300CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		CE12D5251C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5291C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5311C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D5351C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CE12D55C1C5C58C300CD0B13 /* cgame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cgame.h; sourceTree = "<group>"; };
 		CE12D55E1C5C58C300CD0B13 /* cg_client.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_client.c; sourceTree = "<group>"; };
@@ -2381,7 +2375,6 @@
 				CE12D5091C5C58C300CD0B13 /* doc */,
 				CE12D7231C5C58C300CD0B13 /* jenkins */,
 				CE12D50D1C5C58C300CD0B13 /* linux */,
-				CE12D51C1C5C58C300CD0B13 /* mingw-cross */,
 				CE12D5381C5C58C300CD0B13 /* src */,
 				CE12D4A71C5C58C300CD0B13 /* config.h */,
 				CE12D4A81C5C58C300CD0B13 /* configure.ac */,
@@ -2467,115 +2460,6 @@
 				CE12D5191C5C58C300CD0B13 /* .turd */,
 			);
 			path = share;
-			sourceTree = "<group>";
-		};
-		CE12D51C1C5C58C300CD0B13 /* mingw-cross */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D51F1C5C58C300CD0B13 /* Quetoo-i686 */,
-				CE12D52B1C5C58C300CD0B13 /* Quetoo-x86_64 */,
-				CE12D51D1C5C58C300CD0B13 /* dllbundler.sh */,
-				CE12D51E1C5C58C300CD0B13 /* Makefile */,
-			);
-			path = "mingw-cross";
-			sourceTree = "<group>";
-		};
-		CE12D51F1C5C58C300CD0B13 /* Quetoo-i686 */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5201C5C58C300CD0B13 /* bin */,
-				CE12D5231C5C58C300CD0B13 /* lib */,
-				CE12D5271C5C58C300CD0B13 /* share */,
-			);
-			path = "Quetoo-i686";
-			sourceTree = "<group>";
-		};
-		CE12D5201C5C58C300CD0B13 /* bin */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = bin;
-			sourceTree = "<group>";
-		};
-		CE12D5231C5C58C300CD0B13 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5241C5C58C300CD0B13 /* default */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
-		CE12D5241C5C58C300CD0B13 /* default */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5251C5C58C300CD0B13 /* .turd */,
-			);
-			path = default;
-			sourceTree = "<group>";
-		};
-		CE12D5271C5C58C300CD0B13 /* share */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5281C5C58C300CD0B13 /* default */,
-			);
-			path = share;
-			sourceTree = "<group>";
-		};
-		CE12D5281C5C58C300CD0B13 /* default */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5291C5C58C300CD0B13 /* .turd */,
-			);
-			path = default;
-			sourceTree = "<group>";
-		};
-		CE12D52B1C5C58C300CD0B13 /* Quetoo-x86_64 */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D52C1C5C58C300CD0B13 /* bin */,
-				CE12D52F1C5C58C300CD0B13 /* lib */,
-				CE12D5331C5C58C300CD0B13 /* share */,
-			);
-			path = "Quetoo-x86_64";
-			sourceTree = "<group>";
-		};
-		CE12D52C1C5C58C300CD0B13 /* bin */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = bin;
-			sourceTree = "<group>";
-		};
-		CE12D52F1C5C58C300CD0B13 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5301C5C58C300CD0B13 /* default */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
-		CE12D5301C5C58C300CD0B13 /* default */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5311C5C58C300CD0B13 /* .turd */,
-			);
-			path = default;
-			sourceTree = "<group>";
-		};
-		CE12D5331C5C58C300CD0B13 /* share */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5341C5C58C300CD0B13 /* default */,
-			);
-			path = share;
-			sourceTree = "<group>";
-		};
-		CE12D5341C5C58C300CD0B13 /* default */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5351C5C58C300CD0B13 /* .turd */,
-			);
-			path = default;
 			sourceTree = "<group>";
 		};
 		CE12D5381C5C58C300CD0B13 /* src */ = {
