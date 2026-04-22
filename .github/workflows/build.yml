@@ -166,7 +166,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           build-essential autoconf automake libtool pkg-config \
-          libglib2.0-dev libncurses-dev \
+          libncurses-dev \
+          libpcre2-dev libffi-dev \
           libopenal-dev libsndfile1-dev libphysfs-dev zlib1g-dev \
           libcurl4-openssl-dev \
           libgl-dev \
@@ -176,9 +177,10 @@ jobs:
           libfreetype-dev libharfbuzz-dev \
           check \
           patchelf \
-          cmake \
+          cmake ninja-build python3-pip \
           imagemagick \
           ruby ruby-dev rubygems rpm
+        sudo pip3 install meson
         sudo gem install fpm --no-document
 
     - name: Cache from-source dependencies
@@ -186,7 +188,21 @@ jobs:
       uses: actions/cache@v5
       with:
         path: /usr/local
-        key: linux-deps-x64-sdl-3.4.2-3.4.0-3.2.2-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+        key: linux-deps-x64-glib-2.88.0-sdl-3.4.2-3.4.0-3.2.2-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
+
+    - name: Build GLib
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      run: |
+        curl -fsSL -o glib-2.88.0.tar.xz https://download.gnome.org/sources/glib/2.88/glib-2.88.0.tar.xz
+        tar -xf glib-2.88.0.tar.xz
+        meson setup glib-2.88.0/_build glib-2.88.0 \
+          --prefix=/usr/local \
+          --buildtype=release \
+          -Dtests=false \
+          -Dintrospection=disabled \
+          -Ddocumentation=false
+        ninja -C glib-2.88.0/_build -j$(nproc)
+        sudo ninja -C glib-2.88.0/_build install
 
     - name: Build SDL3
       if: steps.cache-deps.outputs.cache-hit != 'true'
