@@ -227,8 +227,7 @@ void R_DrawPost(const r_view_t *view) {
   // --- Pass 3: composite bloom onto scene → post_attachment ---
 
   glUseProgram(r_post_program.name);
-  glUniform1i(r_post_program.mode, 1);
-  glUniform1f(r_post_program.bloom, r_post->integer ? r_bloom->value : 0.f);
+  glUniform1i(r_post_program.mode, r_post->integer ? 1 : 2);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
@@ -237,8 +236,11 @@ void R_DrawPost(const r_view_t *view) {
   glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D, (r_post->integer && r_bloom->value > 0.f) ? r_bloom_fbo[0].color_attachment : 0);
+  if (r_post->integer) {
+    glUniform1f(r_post_program.bloom, r_bloom->value);
+    glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
+    glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_fbo[0].color_attachment : 0);
+  }
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 

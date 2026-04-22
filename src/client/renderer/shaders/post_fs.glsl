@@ -91,14 +91,23 @@ void bloom_extract(void) {
  * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene
  * color, then applies ACES filmic tonemapping to produce the final LDR
  * output written to the RGBA8 post attachment.
- *
- * When bloom is disabled (bloom uniform == 0), this pass still runs to
- * perform the mandatory HDR → LDR conversion.
  */
 void bloom_composite(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
   out_color = vec4(ACESTonemap(color + glow * bloom), 1.0);
+}
+
+/**
+ * @brief Mode 2: passthrough — clamp HDR to LDR with no tonemapping or bloom.
+ *
+ * Used when r_post is disabled.  R_DrawPost must still run to write the
+ * HDR color attachment into the RGBA8 post attachment (the display cannot
+ * receive the float format directly), but this mode preserves the exact
+ * pre-tonemapped appearance so disabling r_post has no visual side-effects.
+ */
+void bloom_passthrough(void) {
+  out_color = vec4(clamp(texture(texture_color_attachment, vertex.texcoord).rgb, 0.0, 1.0), 1.0);
 }
 
 /**
@@ -108,7 +117,9 @@ void main(void) {
 
   if (mode == 0) {
     bloom_extract();
-  } else {
+  } else if (mode == 1) {
     bloom_composite();
+  } else {
+    bloom_passthrough();
   }
 }
