@@ -61,6 +61,8 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
   switch (attachment) {
     case ATTACHMENT_COLOR:
       return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+    case ATTACHMENT_POST:
+      return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     case ATTACHMENT_DEPTH:
     case ATTACHMENT_DEPTH_COPY:
       return R_CreateFramebufferTexture(f, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
@@ -100,6 +102,11 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
   if (attachments & ATTACHMENT_DEPTH_COPY) {
     framebuffer.depth_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
+  }
+
+  if (attachments & ATTACHMENT_POST) {
+    framebuffer.post_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_POST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.post_attachment, 0);
   }
 
   const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -189,6 +196,9 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
     case ATTACHMENT_COLOR:
       glReadBuffer(GL_COLOR_ATTACHMENT0);
       break;
+    case ATTACHMENT_POST:
+      glReadBuffer(GL_COLOR_ATTACHMENT1);
+      break;
     default:
       Com_Error(ERROR_DROP, "Can't blit attachment %d\n", attachment);
   }
@@ -214,9 +224,14 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 
 /**
  * @brief Blits the framebuffer object to the specified screen rect.
+ *
+ * If the framebuffer has a post-processing attachment (written by R_DrawPost),
+ * it is blitted in preference to the raw color attachment.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
-  R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_COLOR, x, y, w, h);
+
+  const r_attachment_t attachment = framebuffer->post_attachment ? ATTACHMENT_POST : ATTACHMENT_COLOR;
+  R_BlitFramebufferAttachment(framebuffer, attachment, x, y, w, h);
 }
 
 /**
@@ -268,6 +283,10 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
     if (framebuffer->depth_attachment_copy) {
       glDeleteTextures(1, &framebuffer->depth_attachment_copy);
+    }
+
+    if (framebuffer->post_attachment) {
+      glDeleteTextures(1, &framebuffer->post_attachment);
     }
 
     R_GetError(NULL);

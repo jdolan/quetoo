@@ -1657,6 +1657,7 @@ typedef enum {
   ATTACHMENT_COLOR      = 0x1,
   ATTACHMENT_DEPTH      = 0x2,
   ATTACHMENT_DEPTH_COPY = 0x4,
+  ATTACHMENT_POST       = 0x8,
   ATTACHMENT_ALL        = 0xFF
 } r_attachment_t;
 
@@ -1688,6 +1689,15 @@ typedef struct r_framebuffer_s {
    * @brief The depth attachment copy texture name.
    */
   GLuint depth_attachment_copy;
+
+  /**
+   * @brief The post-processing composite attachment texture name (GL_COLOR_ATTACHMENT1).
+   *
+   * Created when ATTACHMENT_POST is requested.  R_DrawPost composites the
+   * bloom-blurred scene into this attachment; R_BlitFramebuffer then blits it
+   * to the screen instead of the raw color attachment.
+   */
+  GLuint post_attachment;
 
   /**
    * @brief The framebuffer width.
@@ -1973,6 +1983,7 @@ typedef enum {
    * @brief Framebuffer specific textures.
    */
   TEXTURE_COLOR_ATTACHMENT,
+  TEXTURE_BLOOM_ATTACHMENT,
   TEXTURE_DEPTH_ATTACHMENT,
   TEXTURE_DEPTH_ATTACHMENT_COPY,
 } r_texture_t;

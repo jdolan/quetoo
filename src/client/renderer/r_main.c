@@ -41,6 +41,10 @@ cvar_t *r_occlude;
 
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
+cvar_t *r_bloom;
+cvar_t *r_bloom_iterations;
+cvar_t *r_bloom_knee;
+cvar_t *r_bloom_threshold;
 cvar_t *r_caustics;
 cvar_t *r_draw_scale;
 cvar_t *r_finish;
@@ -51,6 +55,7 @@ cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
 cvar_t *r_parallax;
 cvar_t *r_parallax_shadow;
+cvar_t *r_post;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -253,7 +258,7 @@ void R_DrawMainView(r_view_t *view) {
   R_DrawShadows(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
@@ -297,7 +302,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
   R_UpdateEntities(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -350,6 +355,10 @@ static void R_InitLocal(void) {
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
+  r_bloom = Cvar_Add("r_bloom", "1", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
+  r_bloom_iterations = Cvar_Add("r_bloom_iterations", "2", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
+  r_bloom_knee = Cvar_Add("r_bloom_knee", "0.5", CVAR_ARCHIVE, "Controls the soft-knee width of the bloom threshold curve.");
+  r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
@@ -360,6 +369,7 @@ static void R_InitLocal(void) {
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
   r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
+  r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Enables post-processing effects such as bloom.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshot_format = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
@@ -484,6 +494,8 @@ void R_Init(void) {
 
   R_InitSky();
 
+  R_InitPost();
+
   R_GetError("Video initialization");
 
   const SDL_Rect bounds = r_context.window_bounds;
@@ -515,6 +527,8 @@ void R_Shutdown(void) {
   R_ShutdownSprites();
 
   R_ShutdownSky();
+
+  R_ShutdownPost();
 
   R_ShutdownShadows();
 
