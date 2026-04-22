@@ -806,7 +806,7 @@ void Sv_Frame(const uint32_t msec) {
         (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
       switch (status.state) {
         case INSTALLER_CHECKING:
-          Com_Print("Update: Checking revision...\n");
+          Com_Print("Update: Checking version...\n");
           break;
         case INSTALLER_LISTING:
           Com_Print("Update: Listing S3 objects...\n");
@@ -893,7 +893,7 @@ static void Sv_CheckForUpdates(void) {
         (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
       switch (status.state) {
         case INSTALLER_CHECKING:
-          Com_Print("Update: Checking revision...\n");
+          Com_Print("Update: Checking version...\n");
           break;
         case INSTALLER_LISTING:
           Com_Print("Update: Listing S3 objects...\n");
