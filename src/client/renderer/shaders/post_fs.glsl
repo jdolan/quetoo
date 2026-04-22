@@ -25,7 +25,6 @@ in vertex_data {
 
 out vec4 out_color;
 
-uniform sampler2D texture_color_attachment;
 uniform sampler2D texture_bloom_attachment;
 
 uniform int mode;
