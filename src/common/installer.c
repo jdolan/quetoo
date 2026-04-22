@@ -467,22 +467,22 @@ static int Installer_UpdateThread(void *data) {
 	status->state = INSTALLER_CHECKING;
 	SDL_UnlockMutex(status->lock);
 
-	char local_rev[64] = "unknown";
+	char local_version[64] = "unknown";
 	{
-		void *rev_data = NULL;
-		if (Fs_Load("version", &rev_data) > 0) {
-			g_strlcpy(local_rev, g_strchomp((char *) rev_data), sizeof(local_rev));
+		void *version_data = NULL;
+		if (Fs_Load("version", &version_data) > 0) {
+			g_strlcpy(local_version, g_strchomp((char *) version_data), sizeof(local_version));
 		}
-		Fs_Free(rev_data);
+		Fs_Free(version_data);
 	}
 
-	void *remote_rev_data = NULL;
-	size_t remote_rev_length = 0;
-	const int32_t rev_status = Net_HttpGet(QUETOO_DATA_VERSION_URL, &remote_rev_data, &remote_rev_length);
+	void *remote_version_data = NULL;
+	size_t remote_version_length = 0;
+	const int32_t version_status = Net_HttpGet(QUETOO_DATA_VERSION_URL, &remote_version_data, &remote_version_length);
 
-	if (rev_status != 200) {
-		Com_Warn("Failed to fetch data version: HTTP %d\n", rev_status);
-		Mem_Free(remote_rev_data);
+	if (version_status != 200) {
+		Com_Warn("Failed to fetch data version: HTTP %d\n", version_status);
+		Mem_Free(remote_version_data);
 		SDL_LockMutex(status->lock);
 		g_strlcpy(status->error, "Failed to fetch data version", sizeof(status->error));
 		status->state = INSTALLER_ERROR;
@@ -490,11 +490,11 @@ static int Installer_UpdateThread(void *data) {
 		return 0;
 	}
 
-	char remote_rev[64] = {};
-	gchar *remote_rev_tmp = g_strndup(remote_rev_data, remote_rev_length);
-	g_strlcpy(remote_rev, g_strchomp(remote_rev_tmp), sizeof(remote_rev));
-	g_free(remote_rev_tmp);
-	Mem_Free(remote_rev_data);
+	char remote_version[64] = {};
+	gchar *remote_version_tmp = g_strndup(remote_version_data, remote_version_length);
+	g_strlcpy(remote_version, g_strchomp(remote_version_tmp), sizeof(remote_version));
+	g_free(remote_version_tmp);
+	Mem_Free(remote_version_data);
 
 	SDL_LockMutex(status->lock);
 	const bool cancelled_after_check = status->cancelled;
@@ -504,15 +504,15 @@ static int Installer_UpdateThread(void *data) {
 		return 0;
 	}
 
-	if (!g_strcmp0(local_rev, remote_rev)) {
-		Com_Print("Revision %s is up to date.\n", local_rev);
+	if (!g_strcmp0(local_version, remote_version)) {
+		Com_Print("Version %s is up to date.\n", local_version);
 		SDL_LockMutex(status->lock);
 		status->state = INSTALLER_DONE;
 		SDL_UnlockMutex(status->lock);
 		return 0;
 	}
 
-	Com_Print("Updating version %s → %s...\n", local_rev, remote_rev);
+	Com_Print("Updating version %s → %s...\n", local_version, remote_version);
 
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_LISTING;
@@ -642,17 +642,17 @@ static int Installer_UpdateThread(void *data) {
 	g_hash_table_destroy(s3_keys);
 	g_list_free_full(objects, Mem_Free);
 
-	char rev_path[MAX_OS_PATH];
-	g_snprintf(rev_path, sizeof(rev_path), "%s%cversion", Fs_DataDir(), G_DIR_SEPARATOR);
-	FILE *rev_file = g_fopen(rev_path, "wb");
-	if (rev_file) {
-		fputs(remote_rev, rev_file);
-		fclose(rev_file);
+	char version_path[MAX_OS_PATH];
+	g_snprintf(version_path, sizeof(version_path), "%s%cversion", Fs_DataDir(), G_DIR_SEPARATOR);
+	FILE *version_file = g_fopen(version_path, "wb");
+	if (version_file) {
+		fputs(remote_version, version_file);
+		fclose(version_file);
 	} else {
-		Com_Warn("Failed to write version file: %s\n", rev_path);
+		Com_Warn("Failed to write version file: %s\n", version_path);
 	}
 
-	Com_Print("Data sync complete (version %s).\n", remote_rev);
+	Com_Print("Data sync complete (version %s).\n", remote_version);
 	SDL_LockMutex(status->lock);
 	status->state = INSTALLER_DONE;
 	SDL_UnlockMutex(status->lock);
