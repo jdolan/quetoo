@@ -356,7 +356,7 @@ static void R_InitLocal(void) {
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
-  r_bloom = Cvar_Add("r_bloom", "2", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
+  r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_knee = Cvar_Add("r_bloom_knee", "0.5", CVAR_ARCHIVE, "Controls the soft-knee width of the bloom threshold curve.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
