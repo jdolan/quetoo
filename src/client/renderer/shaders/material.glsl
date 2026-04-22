@@ -274,7 +274,9 @@ vec4 sample_material_specular(in vec2 texcoord) {
   vec3 normalmap1 = (textureLod(texture_material, vec3(texcoord, 1), 1.0).xyz * 2.0 - 1.0) * roughness;
 
   float power = pow(1.0 + material.specularity, 4.0);
-  specularmap.w = power * min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+  float toksvig = min(toksvig_gloss(normalmap0, power), toksvig_gloss(normalmap1, power));
+  float flatness = pow(saturate(normalmap0.z), 4.0);
+  specularmap.w = power * toksvig * flatness;
 
   return specularmap;
 }
