@@ -97,6 +97,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         path: quetoo
+        fetch-depth: 0
 
     - name: Build Quetoo
       working-directory: quetoo
@@ -251,6 +252,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         path: quetoo
+        fetch-depth: 0
 
     - name: Build Quetoo
       working-directory: quetoo
@@ -324,6 +326,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         path: quetoo
+        fetch-depth: 0
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v2
