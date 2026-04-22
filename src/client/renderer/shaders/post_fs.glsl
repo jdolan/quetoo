@@ -30,7 +30,6 @@ uniform sampler2D texture_bloom_attachment;
 uniform int mode;
 uniform float bloom;
 uniform float bloom_threshold;
-uniform float bloom_knee;
 
 /**
  * @brief Quadratic soft-knee threshold for smooth bloom extraction.
@@ -55,41 +54,24 @@ vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
 
 /**
  * @brief Mode 0: extract bright regions from the HDR scene color buffer.
- *
- * The color attachment is GL_R11F_G11F_B10F, so values from additive
- * material stages can exceed 1.0 and bloom naturally.  A soft-knee
- * quadratic threshold avoids hard-cutoff banding.
- *
- * The output feeds the first bloom blur ping-pong pass.
  */
 void bloom_extract(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
-  out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
+  out_color = vec4(QuadraticThreshold(color, bloom_threshold, 1.0), 1.0);
 }
 
 /**
- * @brief Mode 1: composite blurred bloom onto scene color, then tonemap.
+ * @brief Mode 1: composite blurred bloom onto scene color and clamp to LDR.
  *
- * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene
- * color, then applies ACES filmic tonemapping to produce the final LDR
- * output written to the RGBA8 post attachment.
+ * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene color,
+ * then clamps to [0, 1] to produce the final LDR output.  When r_bloom is 0
+ * the bloom texture is not bound, glow evaluates to (0, 0, 0), and this
+ * reduces to a plain HDR clamp.
  */
 void bloom_composite(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
   out_color = vec4(clamp(color + glow * bloom, 0.0, 1.0), 1.0);
-}
-
-/**
- * @brief Mode 2: passthrough — clamp HDR to LDR with no tonemapping or bloom.
- *
- * Used when r_post is disabled.  R_DrawPost must still run to write the
- * HDR color attachment into the RGBA8 post attachment (the display cannot
- * receive the float format directly), but this mode preserves the exact
- * pre-tonemapped appearance so disabling r_post has no visual side-effects.
- */
-void bloom_passthrough(void) {
-  out_color = vec4(clamp(texture(texture_color_attachment, vertex.texcoord).rgb, 0.0, 1.0), 1.0);
 }
 
 /**
@@ -99,9 +81,7 @@ void main(void) {
 
   if (mode == 0) {
     bloom_extract();
-  } else if (mode == 1) {
-    bloom_composite();
   } else {
-    bloom_passthrough();
+    bloom_composite();
   }
 }

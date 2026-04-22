@@ -74,7 +74,6 @@ static struct {
   GLint mode;
   GLint bloom;
   GLint bloom_threshold;
-  GLint bloom_knee;
 } r_post_program;
 
 /**
@@ -186,12 +185,11 @@ void R_DrawPost(const r_view_t *view) {
 
   // --- Pass 1: bloom extract → bloom_fbo[0] ---
 
-  if (r_post->integer && r_bloom->value > 0.f) {
+  if (r_bloom->value > 0.f) {
 
     glUseProgram(r_post_program.name);
     glUniform1i(r_post_program.mode, 0);
     glUniform1f(r_post_program.bloom_threshold, r_bloom_threshold->value);
-    glUniform1f(r_post_program.bloom_knee, r_bloom_knee->value);
 
     glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_fbo[0].name);
     glViewport(0, 0, r_bloom_width, r_bloom_height);
@@ -227,7 +225,8 @@ void R_DrawPost(const r_view_t *view) {
   // --- Pass 3: composite bloom onto scene → post_attachment ---
 
   glUseProgram(r_post_program.name);
-  glUniform1i(r_post_program.mode, r_post->integer ? 1 : 2);
+  glUniform1i(r_post_program.mode, 1);
+  glUniform1f(r_post_program.bloom, r_bloom->value);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
@@ -236,11 +235,8 @@ void R_DrawPost(const r_view_t *view) {
   glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
-  if (r_post->integer) {
-    glUniform1f(r_post_program.bloom, r_bloom->value);
-    glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-    glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_fbo[0].color_attachment : 0);
-  }
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_fbo[0].color_attachment : 0);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -294,7 +290,6 @@ static void R_InitPostProgram(void) {
   r_post_program.mode                     = glGetUniformLocation(r_post_program.name, "mode");
   r_post_program.bloom                    = glGetUniformLocation(r_post_program.name, "bloom");
   r_post_program.bloom_threshold          = glGetUniformLocation(r_post_program.name, "bloom_threshold");
-  r_post_program.bloom_knee               = glGetUniformLocation(r_post_program.name, "bloom_knee");
 
   glUniform1i(r_post_program.texture_color_attachment, TEXTURE_COLOR_ATTACHMENT);
   glUniform1i(r_post_program.texture_bloom_attachment, TEXTURE_BLOOM_ATTACHMENT);
