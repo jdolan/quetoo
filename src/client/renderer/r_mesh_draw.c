@@ -96,7 +96,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
     glUniform1f(r_mesh_program.stage.shell, stage->cm->shell.radius);
   }
 
-  glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+  glBlendFuncSeparate(stage->cm->blend.src, stage->cm->blend.dest, GL_ONE, GL_ZERO);
 
   if (stage->media) {
     switch (stage->media->type) {

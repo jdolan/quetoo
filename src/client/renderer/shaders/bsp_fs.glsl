@@ -139,6 +139,7 @@ void main(void) {
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
+    out_color.a = 0.0;
 
   } else {
 
@@ -159,6 +160,8 @@ void main(void) {
       out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
       out_color.rgb += fragment.specular * stage.lighting;
     }
+
+    out_color.a = 1.0;
   }
 }
 

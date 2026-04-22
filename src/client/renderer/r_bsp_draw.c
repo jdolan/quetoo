@@ -213,7 +213,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
     glUniform1f(r_bsp_program.stage.lighting, stage->cm->lighting.intensity);
   }
 
-  glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
+  glBlendFuncSeparate(stage->cm->blend.src, stage->cm->blend.dest, GL_ONE, GL_ZERO);
 
   if (stage->media) {
     switch (stage->media->type) {

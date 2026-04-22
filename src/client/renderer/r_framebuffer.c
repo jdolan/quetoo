@@ -225,12 +225,12 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 /**
  * @brief Blits the framebuffer object to the specified screen rect.
  *
- * If the framebuffer has a post-processing attachment (written by R_DrawPost),
- * it is blitted in preference to the raw color attachment.
+ * Blits the post-processing attachment when r_post is enabled and the
+ * framebuffer has one; otherwise blits the raw color attachment.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
 
-  const r_attachment_t attachment = framebuffer->post_attachment ? ATTACHMENT_POST : ATTACHMENT_COLOR;
+  const r_attachment_t attachment = (r_post->integer && framebuffer->post_attachment) ? ATTACHMENT_POST : ATTACHMENT_COLOR;
   R_BlitFramebufferAttachment(framebuffer, attachment, x, y, w, h);
 }
 

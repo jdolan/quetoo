@@ -56,11 +56,21 @@ vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
 /**
  * @brief Mode 0: extract bright regions from the scene color buffer.
  *
+ * The alpha channel of the color attachment encodes a per-pixel bloom flag
+ * written by the scene shaders: alpha=1.0 means the pixel was drawn by a
+ * material stage (emissive / glowing accent) and should bloom unconditionally;
+ * alpha=0.0 means the pixel is ordinary geometry subject to the threshold.
+ *
  * The output feeds the first bloom blur ping-pong pass.
  */
 void bloom_extract(void) {
-  vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
-  out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
+  vec4 sample = texture(texture_color_attachment, vertex.texcoord);
+  vec3 color = sample.rgb;
+  if (sample.a > 0.5) {
+    out_color = vec4(color, 1.0);
+  } else {
+    out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
+  }
 }
 
 /**
