@@ -32,32 +32,13 @@ uniform float bloom;
 uniform float bloom_threshold;
 
 /**
- * @brief Quadratic soft-knee threshold for smooth bloom extraction.
- *
- * Pixels dimmer than (threshold - knee) contribute nothing.
- * Pixels between (threshold - knee) and (threshold + knee) are ramped up
- * smoothly via a quadratic curve.  Pixels above (threshold + knee) pass
- * through at full brightness minus the threshold.
- *
- * This avoids the hard-cutoff banding visible when thresholding at a fixed
- * luminance value.
- *
- * @see "Next Generation Post Processing in Call of Duty: Advanced Warfare"
- *      Jimenez et al., SIGGRAPH 2014.
- */
-vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
-  float brightness = max(max(color.r, color.g), color.b);
-  float rq = clamp(brightness - threshold + knee, 0.0, 2.0 * knee);
-  rq = (rq * rq) / (4.0 * knee + 0.00001);
-  return color * max(rq, brightness - threshold) / max(brightness, 0.00001);
-}
-
-/**
  * @brief Mode 0: extract bright regions from the HDR scene color buffer.
+ *
+ * Subtracts bloom_threshold from each channel and clamps to zero, so only
+ * HDR-range pixels (above the threshold) feed the blur passes.
  */
 void bloom_extract(void) {
-  vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
-  out_color = vec4(QuadraticThreshold(color, bloom_threshold, 1.0), 1.0);
+  out_color = vec4(max(texture(texture_color_attachment, vertex.texcoord).rgb - bloom_threshold, 0.0), 1.0);
 }
 
 /**
