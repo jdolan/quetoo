@@ -446,6 +446,8 @@ jobs:
 
     - name: Create release
       run: |
+        cp quetoo-x86_64-pc-linux-deb/quetoo_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
+        cp quetoo-x86_64-pc-linux-rpm/quetoo-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
         gh release create latest \
           --title "Quetoo Snapshot" \
           --notes "Latest snapshot build from the \`main\` branch.
@@ -454,14 +456,14 @@ jobs:
         |----------|----------|
         | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
         | Linux (x86_64 AppImage) | quetoo-x86_64-pc-linux.AppImage |
-        | Linux (x86_64 .deb) | quetoo_*_amd64.deb |
-        | Linux (x86_64 .rpm) | quetoo-*.x86_64.rpm |
+        | Linux (x86_64 .deb) | quetoo-x86_64-pc-linux.deb |
+        | Linux (x86_64 .rpm) | quetoo-x86_64-pc-linux.rpm |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
           --prerelease \
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
           quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
-          quetoo-x86_64-pc-linux-deb/quetoo_*_amd64.deb \
-          quetoo-x86_64-pc-linux-rpm/quetoo-*.x86_64.rpm \
+          quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb \
+          quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm \
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
       env:
         GH_TOKEN: ${{ github.token }}
