@@ -19,6 +19,22 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#define SURF_SLICK      0x2
+#define SURF_SKY        0x4
+#define SURF_LIQUID     0x8
+#define SURF_BLEND_33   0x10
+#define SURF_BLEND_66   0x20
+#define SURF_BLEND_100  0x40
+#define SURF_NO_DRAW    0x80
+#define SURF_HINT       0x100
+#define SURF_SKIP       0x200
+#define SURF_ALPHA_TEST 0x400
+#define SURF_PHONG      0x800
+#define SURF_MATERIAL   0x1000
+
+#define SURF_MASK_BLEND       (SURF_BLEND_33 | SURF_BLEND_66 | SURF_BLEND_100)
+#define SURF_MASK_TRANSLUCENT (SURF_MASK_BLEND | SURF_ALPHA_TEST | SURF_MATERIAL)
+
 #define STAGE_NONE      (0)
 #define STAGE_TEXTURE   (1 << 0)
 #define STAGE_BLEND     (1 << 1)
@@ -51,9 +67,9 @@ const float DIRTMAP[8] = float[](0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875
  */
 struct material_t {
   /**
-   * @brief The material alpha blend.
+   * @brief The material surface flags (SURF_*).
    */
-  bool alpha_blend;
+  int surface;
 
   /**
    * @brief The material alpha test threshold.

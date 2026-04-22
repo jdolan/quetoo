@@ -50,7 +50,7 @@ static struct {
   GLint tint_colors;
 
   struct {
-    GLint alpha_blend;
+    GLint surface;
     GLint alpha_test;
     GLint roughness;
     GLint hardness;
@@ -229,6 +229,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
   glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
   glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
   glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
+  glUniform1i(r_mesh_program.material.surface, material->cm->surface);
 
   if (*material->cm->tintmap.path) {
     vec4_t tints[3];
@@ -303,8 +304,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
 
-  glUniform1i(r_mesh_program.material.alpha_blend, 0);
-
   {
     const r_mesh_face_t *face = mesh->faces;
     for (int32_t i = 0; i < mesh->num_faces; i++, face++) {
@@ -322,8 +321,6 @@ static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glUniform1i(r_mesh_program.material.alpha_blend, 1);
 
   {
     const r_mesh_face_t *face = mesh->faces;
@@ -425,7 +422,7 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
 
-  r_mesh_program.material.alpha_blend = glGetUniformLocation(r_mesh_program.name, "material.alpha_blend");
+  r_mesh_program.material.surface = glGetUniformLocation(r_mesh_program.name, "material.surface");
   r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
   r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
   r_mesh_program.material.hardness = glGetUniformLocation(r_mesh_program.name, "material.hardness");

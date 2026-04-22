@@ -238,7 +238,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
   dir = normalize(view * vec4(dir, 0.0)).xyz;
 
   float lambert = dot(dir, f.normal_sample);
-  lambert = material.alpha_blend ? abs(lambert) : max(0.0, lambert);
+  lambert = bool(material.surface & (SURF_MASK_BLEND | SURF_LIQUID)) ? abs(lambert) : max(0.0, lambert);
 
   if (atten * lambert <= 0.0) {
     return;
