@@ -75,7 +75,6 @@ static struct {
   GLint bloom;
   GLint bloom_threshold;
   GLint bloom_knee;
-  GLint tonemap;
 } r_post_program;
 
 /**
@@ -229,9 +228,6 @@ void R_DrawPost(const r_view_t *view) {
 
   glUseProgram(r_post_program.name);
   glUniform1i(r_post_program.mode, r_post->integer ? 1 : 2);
-  if (r_post->integer) {
-    glUniform1i(r_post_program.tonemap, r_tonemap->integer);
-  }
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
@@ -299,7 +295,6 @@ static void R_InitPostProgram(void) {
   r_post_program.bloom                    = glGetUniformLocation(r_post_program.name, "bloom");
   r_post_program.bloom_threshold          = glGetUniformLocation(r_post_program.name, "bloom_threshold");
   r_post_program.bloom_knee               = glGetUniformLocation(r_post_program.name, "bloom_knee");
-  r_post_program.tonemap                  = glGetUniformLocation(r_post_program.name, "tonemap");
 
   glUniform1i(r_post_program.texture_color_attachment, TEXTURE_COLOR_ATTACHMENT);
   glUniform1i(r_post_program.texture_bloom_attachment, TEXTURE_BLOOM_ATTACHMENT);

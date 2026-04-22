@@ -56,7 +56,6 @@ cvar_t *r_modulate;
 cvar_t *r_parallax;
 cvar_t *r_parallax_shadow;
 cvar_t *r_post;
-cvar_t *r_tonemap;
 cvar_t *r_roughness;
 cvar_t *r_screenshot_format;
 cvar_t *r_shadows;
@@ -371,7 +370,6 @@ static void R_InitLocal(void) {
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
   r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_post = Cvar_Add("r_post", "1", CVAR_ARCHIVE, "Enables post-processing effects such as bloom.");
-  r_tonemap = Cvar_Add("r_tonemap", "3", CVAR_ARCHIVE, "Tonemapping operator: 0=Reinhard, 1=Uncharted2, 2=ACES, 3=Linear.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");
   r_screenshot_format = Cvar_Add("r_screenshot_format", "jpg", CVAR_ARCHIVE, "Set your preferred screenshot format. Supports \"jpg\", \"png\", or \"tga\".");
   r_shadows = Cvar_Add("r_shadows", "1", CVAR_ARCHIVE, "Controls shadowmap rendering.");
