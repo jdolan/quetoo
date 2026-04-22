@@ -89,13 +89,11 @@ void main(void) {
 
 	  out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
 	  out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
-	  out_color.a = 0.0;
 
   } else {
 
 	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
 
 	  out_color = fragment.diffuse_sample;
-	  out_color.a = 1.0;
   }
 }

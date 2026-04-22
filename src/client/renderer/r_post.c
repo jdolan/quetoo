@@ -174,10 +174,6 @@ static void R_DestroyBloomFbos(void) {
  */
 void R_DrawPost(const r_view_t *view) {
 
-  if (!r_post->integer) {
-    return;
-  }
-
   assert(view->framebuffer);
   assert(view->framebuffer->post_attachment);
 
@@ -190,7 +186,7 @@ void R_DrawPost(const r_view_t *view) {
 
   // --- Pass 1: bloom extract → bloom_fbo[0] ---
 
-  if (r_bloom->value > 0.f) {
+  if (r_post->integer && r_bloom->value > 0.f) {
 
     glUseProgram(r_post_program.name);
     glUniform1i(r_post_program.mode, 0);
@@ -232,7 +228,7 @@ void R_DrawPost(const r_view_t *view) {
 
   glUseProgram(r_post_program.name);
   glUniform1i(r_post_program.mode, 1);
-  glUniform1f(r_post_program.bloom, r_bloom->value);
+  glUniform1f(r_post_program.bloom, r_post->integer ? r_bloom->value : 0.f);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
@@ -242,7 +238,7 @@ void R_DrawPost(const r_view_t *view) {
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_fbo[0].color_attachment : 0);
+  glBindTexture(GL_TEXTURE_2D, (r_post->integer && r_bloom->value > 0.f) ? r_bloom_fbo[0].color_attachment : 0);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 

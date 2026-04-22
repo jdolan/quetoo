@@ -60,7 +60,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 
   switch (attachment) {
     case ATTACHMENT_COLOR:
-      return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+      return R_CreateFramebufferTexture(f, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT);
     case ATTACHMENT_POST:
       return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     case ATTACHMENT_DEPTH:
@@ -225,13 +225,13 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 /**
  * @brief Blits the framebuffer object to the specified screen rect.
  *
- * Blits the post-processing attachment when r_post is enabled and the
- * framebuffer has one; otherwise blits the raw color attachment.
+ * Blits the post-processing attachment to the display. The post attachment
+ * is always the final output — R_DrawPost always runs to convert the HDR
+ * color attachment to the LDR post attachment, even when r_post is disabled.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
 
-  const r_attachment_t attachment = (r_post->integer && framebuffer->post_attachment) ? ATTACHMENT_POST : ATTACHMENT_COLOR;
-  R_BlitFramebufferAttachment(framebuffer, attachment, x, y, w, h);
+  R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_POST, x, y, w, h);
 }
 
 /**

@@ -54,36 +54,51 @@ vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
 }
 
 /**
- * @brief Mode 0: extract bright regions from the scene color buffer.
+ * @brief ACES filmic tonemapping (Krzysztof Narkowicz approximation).
  *
- * The alpha channel of the color attachment encodes a per-pixel bloom flag
- * written by the scene shaders: alpha=1.0 means the pixel was drawn by a
- * material stage (emissive / glowing accent) and should bloom unconditionally;
- * alpha=0.0 means the pixel is ordinary geometry subject to the threshold.
+ * Maps HDR scene values to the LDR display range [0, 1] with a pleasing
+ * filmic S-curve: highlights compress gracefully instead of hard-clipping,
+ * and shadows/mids retain contrast.
+ *
+ * @see https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
+ */
+vec3 ACESTonemap(vec3 x) {
+  const float a = 2.51;
+  const float b = 0.03;
+  const float c = 2.43;
+  const float d = 0.59;
+  const float e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+/**
+ * @brief Mode 0: extract bright regions from the HDR scene color buffer.
+ *
+ * The color attachment is GL_R11F_G11F_B10F, so values from additive
+ * material stages can exceed 1.0 and bloom naturally.  A soft-knee
+ * quadratic threshold avoids hard-cutoff banding.
  *
  * The output feeds the first bloom blur ping-pong pass.
  */
 void bloom_extract(void) {
-  vec4 texel = texture(texture_color_attachment, vertex.texcoord);
-  vec3 color = texel.rgb;
-  if (texel.a > 0.5) {
-    out_color = vec4(color, 1.0);
-  } else {
-    out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
-  }
+  vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
+  out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
 }
 
 /**
- * @brief Mode 1: composite the blurred bloom back onto the scene color.
+ * @brief Mode 1: composite blurred bloom onto scene color, then tonemap.
  *
- * The bloom texture has already been blurred by the separable Gaussian passes
- * in blur_fs.glsl.  We simply add it to the scene color, scaled by the bloom
- * intensity cvar.
+ * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene
+ * color, then applies ACES filmic tonemapping to produce the final LDR
+ * output written to the RGBA8 post attachment.
+ *
+ * When bloom is disabled (bloom uniform == 0), this pass still runs to
+ * perform the mandatory HDR → LDR conversion.
  */
 void bloom_composite(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
-  out_color = vec4(color + glow * bloom, 1.0);
+  out_color = vec4(ACESTonemap(color + glow * bloom), 1.0);
 }
 
 /**
