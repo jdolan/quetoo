@@ -64,9 +64,9 @@ vec3 QuadraticThreshold(vec3 color, float threshold, float knee) {
  * The output feeds the first bloom blur ping-pong pass.
  */
 void bloom_extract(void) {
-  vec4 sample = texture(texture_color_attachment, vertex.texcoord);
-  vec3 color = sample.rgb;
-  if (sample.a > 0.5) {
+  vec4 texel = texture(texture_color_attachment, vertex.texcoord);
+  vec3 color = texel.rgb;
+  if (texel.a > 0.5) {
     out_color = vec4(color, 1.0);
   } else {
     out_color = vec4(QuadraticThreshold(color, bloom_threshold, bloom_knee), 1.0);
