@@ -227,8 +227,6 @@ void R_DrawPost(const r_view_t *view) {
 
   // --- Pass 3: composite bloom onto scene → post_attachment ---
 
-  glDisable(GL_DEPTH_TEST);
-
   glUseProgram(r_post_program.name);
   glUniform1i(r_post_program.mode, r_post->integer ? 1 : 2);
   if (r_post->integer) {
