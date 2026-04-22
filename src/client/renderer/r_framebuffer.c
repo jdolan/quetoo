@@ -101,7 +101,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
   }
 
   if (attachments & ATTACHMENT_DEPTH_COPY) {
-    framebuffer.depth_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
+    framebuffer.depth_attachment_copy = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
   }
 
   if (attachments & ATTACHMENT_POST) {
