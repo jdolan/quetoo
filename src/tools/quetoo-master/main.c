@@ -129,7 +129,7 @@ static bool Ms_BlacklistServer(struct sockaddr_in *from) {
   while ((c - buffer) < len) {
     char line[256];
 
-    sscanf(c, "%s\n", line);
+    sscanf(c, "%255s\n", line);
     c += strlen(line) + 1;
 
     const char *l = g_strstrip(line);
@@ -199,6 +199,7 @@ static void Ms_Frame(void) {
 
   GList *s = ms_servers;
   while (s) {
+    GList *next = s->next;
     ms_server_t *server = (ms_server_t *) s->data;
     if (now - server->last_heartbeat > 30) {
 
@@ -219,7 +220,7 @@ static void Ms_Frame(void) {
       }
     }
 
-    s = s->next;
+    s = next;
   }
 }
 
