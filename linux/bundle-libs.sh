@@ -2,6 +2,8 @@
 #
 # Scans executables and shared libraries for runtime dependencies and copies
 # them to the specified output directory. Uses patchelf to rewrite RPATHs.
+# Recursively scans newly-copied libraries so that transitive dependencies
+# (e.g. libsndfile → libFLAC → libogg) are all included.
 #
 
 set -e
@@ -55,26 +57,48 @@ skip_lib() {
   return 1
 }
 
-libs=$(ldd "$@" 2>/dev/null | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort -u)
+bundle_lib() {
+  local lib="${1}"
 
-echo "Bundling libraries into ${dir}..."
-
-for lib in ${libs}; do
   if skip_lib "${lib}"; then
     echo "  Skipping $(basename "${lib}")"
-    continue
+    return
   fi
 
+  local real_lib
   real_lib=$(realpath "${lib}")
+  local real_name
   real_name=$(basename "${real_lib}")
+  local soname
   soname=$(basename "${lib}")
+  local dest="${dir}/${real_name}"
+
+  # Already bundled — skip to avoid infinite loops.
+  if [ -f "${dest}" ]; then
+    return
+  fi
 
   echo "  Bundling ${real_name}"
-  cp -f "${real_lib}" "${dir}/${real_name}"
+  cp -f "${real_lib}" "${dest}"
 
   if [ "${soname}" != "${real_name}" ]; then
     ln -sf "${real_name}" "${dir}/${soname}"
   fi
+
+  # Recurse into this library's own dependencies.
+  local transitive
+  transitive=$(ldd "${real_lib}" 2>/dev/null | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p')
+  for dep in ${transitive}; do
+    bundle_lib "${dep}"
+  done
+}
+
+echo "Bundling libraries into ${dir}..."
+
+libs=$(ldd "$@" 2>/dev/null | grep ' => ' | sed -rn 's:.* => ([^ ]+) .*:\1:p' | sort -u)
+
+for lib in ${libs}; do
+  bundle_lib "${lib}"
 done
 
 echo
