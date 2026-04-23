@@ -223,14 +223,9 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 }
 
 /**
- * @brief Blits the framebuffer object to the specified screen rect.
- *
- * Blits the post-processing attachment to the display. The post attachment
- * is always the final output — R_DrawPost always runs to convert the HDR
- * color attachment to the LDR post attachment, even when r_post is disabled.
+ * @brief Blits the framebuffer's post-processing attachment object to the specified screen rect.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
-
   R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_POST, x, y, w, h);
 }
 

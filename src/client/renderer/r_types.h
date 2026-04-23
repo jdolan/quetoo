@@ -1691,11 +1691,7 @@ typedef struct r_framebuffer_s {
   GLuint depth_attachment_copy;
 
   /**
-   * @brief The post-processing composite attachment texture name (GL_COLOR_ATTACHMENT1).
-   *
-   * Created when ATTACHMENT_POST is requested.  R_DrawPost composites the
-   * bloom-blurred scene into this attachment; R_BlitFramebuffer then blits it
-   * to the screen instead of the raw color attachment.
+   * @brief The post-processing composite attachment texture name.
    */
   GLuint post_attachment;
 
