@@ -46,8 +46,10 @@ cvar_t *time_scale;
 
 static void Debug(const debug_t debug, const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Frame(const uint32_t msec);
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
+static void WaitForInstaller(void);
 static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
@@ -340,6 +342,9 @@ static void Init(void) {
   // reset debug value since Cbuf may change it from Com's "all" init
   Com_SetDebug("0");
 
+  // block until the data installer finishes before executing user commands
+  WaitForInstaller();
+
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();
   Cbuf_Execute();
@@ -383,6 +388,40 @@ static void Shutdown(const char *msg) {
   Mem_Shutdown();
 
   SDL_Quit();
+}
+
+/**
+ * @brief Starts the data installer and pumps the frame loop until it completes
+ * or errors, blocking all user commands until data is current.
+ * Skipped for dedicated servers (Sv_CheckForUpdates handles that path).
+ * Skipped automatically when +set version -1 is passed on the command line.
+ */
+static void WaitForInstaller(void) {
+
+  if (dedicated->value) {
+    return;
+  }
+
+  Installer_Update();
+
+  uint32_t old_time = (uint32_t) SDL_GetTicks();
+
+  while (true) {
+    installer_status_t status;
+    Installer_Status(&status);
+    if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
+      break;
+    }
+
+    do {
+      quetoo.ticks = (uint32_t) SDL_GetTicks();
+    } while (quetoo.ticks == old_time);
+
+    const uint32_t msec = quetoo.ticks - old_time;
+    old_time = quetoo.ticks;
+
+    Frame(msec);
+  }
 }
 
 /**
