@@ -43,12 +43,26 @@ void Com_LogString(const char *str) {
 }
 
 /**
- * @brief Sets up a log file that will be used for debugging issues
- * with the game's initialization routines.
+ * @brief Sets up a log file in the user's data directory.
+ * @details Scans argv for `+set game <name>` to match the write path that
+ * Fs_Init will use, so the log lands in the right place even for game mods.
  */
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
-  quetoo.log_file = fopen(va("quetoo_%" PRIiMAX ".log", (intmax_t) time(NULL)), "w");
+  const char *game = DEFAULT_GAME;
+  for (int32_t i = 1; i < argc - 2; i++) {
+    if (!g_strcmp0(argv[i], "+set") && !g_strcmp0(argv[i + 1], "game")) {
+      game = argv[i + 2];
+      break;
+    }
+  }
+
+  gchar *path = g_build_filename(Sys_UserDir(), game, "quetoo.log", NULL);
+  gchar *dir = g_path_get_dirname(path);
+  g_mkdir_with_parents(dir, 0700);
+  g_free(dir);
+  quetoo.log_file = fopen(path, "w");
+  g_free(path);
 
   Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
@@ -389,12 +403,9 @@ void Com_Init(int32_t argc, char *argv[]) {
       Com_SetDebug("all");
       continue;
     }
-
-    if (!g_strcmp0(Com_Argv(i), "-log") || !g_strcmp0(Com_Argv(i), "+log")) {
-      Com_InitLog(argc, argv);
-      continue;
-    }
   }
+
+  Com_InitLog(argc, argv);
 
   if (quetoo.Init) {
     quetoo.Init();
