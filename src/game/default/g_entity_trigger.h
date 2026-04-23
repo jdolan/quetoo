@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_trigger_always(g_entity_t *ent);
 void G_trigger_exec(g_entity_t *ent);
 void G_trigger_hurt(g_entity_t *ent);

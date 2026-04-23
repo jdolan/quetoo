@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 
 void G_KillBox(g_entity_t *ent);
 void G_Explode(g_entity_t *ent, int16_t damage, int16_t knockback, float radius, uint32_t mod);

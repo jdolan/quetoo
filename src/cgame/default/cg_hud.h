@@ -38,7 +38,7 @@ typedef enum {
 #define CROSSHAIR_SCALE 0.125f
 #define CROSSHAIR_PULSE_ALPHA 0.5f
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 void Cg_ParseCenterPrint(void);
 void Cg_ParseWeaponInfo(const char *s);
 bool Cg_AttemptSelectWeapon(const player_state_t *ps);

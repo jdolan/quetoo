@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_misc_teleporter(g_entity_t *ent);
 void G_misc_teleporter_dest(g_entity_t *ent);
 void G_misc_fireball(g_entity_t *ent);

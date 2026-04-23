@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 void Cl_R_Restart_f(void);
 void Cl_R_ToggleFullscreen_f(void);
 #endif /* __CL_LOCAL_H__ */

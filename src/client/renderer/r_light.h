@@ -25,7 +25,7 @@
 
 void R_AddLight(r_view_t *view, const r_light_t *l);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 /**
  * @brief The light uniform type.

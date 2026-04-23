@@ -21,7 +21,7 @@
 
 #pragma once
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 
 #define SPRITE_GRAVITY 180.f
 

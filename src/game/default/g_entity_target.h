@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_target_light(g_entity_t *ent);
 void G_target_speaker(g_entity_t *ent);
 void G_target_string(g_entity_t *ent);

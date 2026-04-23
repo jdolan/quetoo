@@ -28,7 +28,7 @@ bool R_CulludeSphere(const r_view_t *view, const vec3_t point, const float radiu
 bool R_OccludeBox(const r_view_t *view, const box3_t bounds);
 bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 r_occlusion_query_t *R_AllocOcclusionQuery(const box3_t bounds);
 void R_FreeOcclusionQuery(r_occlusion_query_t *query);

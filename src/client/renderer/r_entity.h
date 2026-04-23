@@ -25,7 +25,7 @@
 
 r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *e);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e);
 void R_UpdateEntities(r_view_t *view);
 void R_DrawEntities(const r_view_t *view);

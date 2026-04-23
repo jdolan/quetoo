@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_func_button(g_entity_t *ent);
 void G_func_conveyor(g_entity_t *ent);
 void G_func_door(g_entity_t *ent);

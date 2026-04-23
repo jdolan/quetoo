@@ -10,7 +10,7 @@ typedef struct {
   size_t max_count; // the max size of this lump (in elements, not bytes)
 } bsp_lump_meta_t;
 
-#ifndef BSP_SIZEOF
+#if !defined(BSP_SIZEOF)
 #define BSP_SIZEOF(T, F) \
 sizeof(*((T *) 0)->F)
 #endif

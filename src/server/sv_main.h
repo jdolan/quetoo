@@ -27,7 +27,7 @@ void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
 void Sv_Frame(const uint32_t msec);
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 // cvars
 extern cvar_t *sv_demo_list;
 extern cvar_t *sv_enforce_time;

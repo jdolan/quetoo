@@ -26,7 +26,7 @@
 r_model_t *R_LoadModel(const char *name);
 r_model_t *R_WorldModel(void);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 extern r_models_t r_models;
 

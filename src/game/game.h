@@ -40,7 +40,7 @@
 
 #define BOX_ALL       (BOX_COLLIDE | BOX_OCCUPY)
 
-#ifndef __GAME_LOCAL_H__
+#if !defined(__GAME_LOCAL_H__)
 
 /**
  * @brief This is the server's definition of the client and entity structures. The

@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_ClientScores(g_client_t *cl);
 void G_ClientSpectatorStats(g_client_t *cl);
 void G_ClientStats(g_client_t *cl);

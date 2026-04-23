@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 extern cvar_t *m_sensitivity;
 extern cvar_t *m_sensitivity_zoom;

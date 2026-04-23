@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 /**
  * @brief For delta compression to be valid, the player's origin must be within

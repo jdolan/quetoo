@@ -343,7 +343,7 @@ typedef struct s_stage_s {
   int32_t num_samples;
 } s_stage_t;
 
-#ifdef __S_LOCAL_H__
+#if defined(__S_LOCAL_H__)
 
 extern SF_VIRTUAL_IO s_rwops_io;
 extern SF_VIRTUAL_IO s_physfs_io;

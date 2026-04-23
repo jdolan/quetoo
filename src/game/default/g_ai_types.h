@@ -29,7 +29,7 @@
  */
 #define AI_NODE_INVALID ((ai_node_id_t)-1)
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 
 /**
  * @brief The default user info string (name and skin).

@@ -25,6 +25,6 @@
 
 r_animation_t *R_CreateAnimation(const char *name, int32_t num_images, const r_image_t **images);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 const r_image_t *R_ResolveAnimation(const r_animation_t *animation, float time, int32_t offset);
 #endif

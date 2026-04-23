@@ -21,7 +21,7 @@
 
 #pragma once
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 extern button_t cg_buttons[4];
 #define in_speed cg_buttons[0]
 #define in_attack cg_buttons[1]

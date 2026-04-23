@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_DrawMeshEntities(const r_view_t *view);
 void R_InitMeshProgram(void);
 void R_ShutdownMeshProgram(void);

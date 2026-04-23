@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 bool G_OnSameTeam(const g_client_t *a, const g_client_t *b);
 bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor);
 vec3_t G_GetOrigin(const g_entity_t *ent);

@@ -27,5 +27,5 @@ void Ui_CheckEditor(void);
 void Ui_InitEditor(void);
 void Ui_ShutdownEditor(void);
 
-#ifdef __UI_LOCAL_H__
+#if defined(__UI_LOCAL_H__)
 #endif /* __UI_LOCAL_H__ */

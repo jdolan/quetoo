@@ -469,7 +469,7 @@ typedef enum {
   TECH_TOTAL
 } g_tech_t;
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 
 /**
  * @brief This file will define the game-visible definitions of g_client_t

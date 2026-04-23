@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_ClientChaseThink(g_client_t *cl);
 void G_ClientChaseNext(g_client_t *cl);
 void G_ClientChasePrevious(g_client_t *cl);

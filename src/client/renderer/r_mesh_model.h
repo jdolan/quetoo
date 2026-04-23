@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_LoadMeshConfigs(r_model_t *mod);
 void R_LoadMeshVertexArray(r_model_t *mod);
 void R_RegisterMeshModel(r_media_t *self);

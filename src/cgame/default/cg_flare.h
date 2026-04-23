@@ -23,7 +23,7 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 void Cg_AddFlares(void);
 void Cg_LoadFlares(void);
 void Cg_FreeFlares(void);

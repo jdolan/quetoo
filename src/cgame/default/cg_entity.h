@@ -23,7 +23,7 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 
 typedef struct cg_entity_s cg_entity_t;
 

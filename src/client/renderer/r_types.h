@@ -1934,7 +1934,7 @@ typedef struct {
 
 } r_stats_t;
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 /**
  * @brief OpenGL texture unit reservations.

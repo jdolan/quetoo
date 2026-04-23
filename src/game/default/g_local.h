@@ -24,7 +24,7 @@
 #define __GAME_LOCAL_H__
 
 // this is the game name that we advertise to clients
-#ifndef GAME_NAME
+#if !defined(GAME_NAME)
   #define GAME_NAME "default"
 #endif
 

@@ -26,7 +26,7 @@
 void R_BeginLoading(void);
 void R_EndLoading(void);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 typedef void (*R_MediaEnumerator)(const r_media_t *media, void *data);
 void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data);

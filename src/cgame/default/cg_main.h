@@ -23,7 +23,7 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 float Cg_GetHookPullSpeed(void);
 
 extern cvar_t *cg_add_atmospheric;

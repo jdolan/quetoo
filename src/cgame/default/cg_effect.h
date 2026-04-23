@@ -23,6 +23,6 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 void Cg_AddEffects(void);
 #endif /* __CG_LOCAL_H__ */

@@ -28,7 +28,7 @@ SDL_Scancode Cl_KeyForName(const char *name);
 SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *bind);
 void Cl_Bind(SDL_Scancode key, const char *bind);
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 void Cl_SetKeyDest(cl_key_dest_t dest);
 void Cl_KeyEvent(const SDL_Event *event);

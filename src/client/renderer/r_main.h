@@ -62,7 +62,7 @@ void R_DrawPlayerModelView(r_view_t *view);
 void R_EndFrame(void);
 void R_UpdateUniforms(const r_view_t *view);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 /**
  * @brief OpenGL driver information.

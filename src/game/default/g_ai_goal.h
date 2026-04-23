@@ -21,7 +21,7 @@
 
 #pragma once
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 #include "g_ai_types.h"
 
 void G_Ai_SetPositionGoal(const g_client_t *cl, ai_goal_t *goal, float priority, const vec3_t position);

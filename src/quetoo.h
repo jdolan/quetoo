@@ -43,14 +43,14 @@
   #include <shlobj.h>
 #endif
 
-#ifndef byte
+#if !defined(byte)
   typedef uint8_t byte;
 #endif
 
 /**
  * @return The number of elements, rather than the number of bytes.
  */
-#ifndef lengthof
+#if !defined(lengthof)
   #define lengthof(x) (sizeof(x) / sizeof(x[0]))
 #endif
 

@@ -25,7 +25,7 @@
 
 void R_AddDecal(r_view_t *view, const r_decal_t *decal);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 #define DECAL_TEXTURE_SIZE 256
 #define DECAL_TEXTURE_LAYERS 64

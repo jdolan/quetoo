@@ -23,7 +23,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 void Sv_SetConfigString(const int32_t index, const char *val);
 const char *Sv_GetConfigString(const int32_t index);
 void Sv_InitGame(void);

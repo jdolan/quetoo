@@ -49,7 +49,7 @@ void Cl_Shutdown(void);
 extern r_view_t cl_view;
 extern s_stage_t cl_stage;
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 extern cvar_t *qport;
 

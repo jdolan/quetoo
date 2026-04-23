@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 extern console_t cl_console;
 extern console_t cl_chat_console;
 

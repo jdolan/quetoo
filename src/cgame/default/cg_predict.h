@@ -23,7 +23,7 @@
 
 #include "cg_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 bool Cg_UsePrediction(void);
 void Cg_PredictMovement(const GPtrArray *cmds);
 #endif /* __CG_LOCAL_H__ */

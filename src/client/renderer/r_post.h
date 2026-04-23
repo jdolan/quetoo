@@ -25,7 +25,7 @@
 
 void R_DrawPost(const r_view_t *view);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 void R_InitPost(void);
 void R_ShutdownPost(void);

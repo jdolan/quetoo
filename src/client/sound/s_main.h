@@ -29,7 +29,7 @@ void S_Init(void);
 void S_Shutdown(void);
 void S_Stop(void);
 
-#ifdef __S_LOCAL_H__
+#if defined(__S_LOCAL_H__)
 extern cvar_t *s_get_error;
 extern cvar_t *s_draw_stats;
 

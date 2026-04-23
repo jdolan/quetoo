@@ -23,7 +23,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 void Sv_SendClientPackets(void);
 void Sv_Unicast(const g_client_t *cl, const bool reliable);
 void Sv_Multicast(const vec3_t origin, multicast_t to);

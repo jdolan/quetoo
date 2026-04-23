@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_InitBspProgram(void);
 void R_ShutdownBspProgram(void);
 void R_DrawOpaqueBspEntities(const r_view_t *view);

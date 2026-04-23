@@ -26,7 +26,7 @@
 GList *Cl_Mapshots(const char *mapname);
 void Cl_LoadingProgress(int32_t percent, const char *file);
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 void Cl_RequestNextDownload(void);
 void Cl_LoadMedia(void);

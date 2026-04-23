@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 /**
  * @brief The shadow atlas.

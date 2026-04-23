@@ -269,7 +269,7 @@ void Sv_DrawConsole(void) {
   }
 }
 
-#ifdef SIGWINCH
+#if defined(SIGWINCH)
 /**
  * @brief Window resize signal handler
  */
@@ -339,7 +339,7 @@ void Sv_InitConsole(void) {
     }
   }
 
-#ifdef SIGWINCH
+#if defined(SIGWINCH)
   signal(SIGWINCH, Sv_ResizeConsole);
 #endif
 

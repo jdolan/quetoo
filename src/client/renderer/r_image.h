@@ -26,7 +26,7 @@
 r_image_t *R_LoadImage(const char *name, r_image_type_t type);
 void R_Screenshot(r_view_t *view);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_SetupImage(r_image_t *image);
 void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data);
 void R_UploadImage(r_image_t *image, const void *data);

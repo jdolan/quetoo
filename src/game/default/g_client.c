@@ -1367,7 +1367,7 @@ static cm_trace_t G_ClientMove_Trace(const vec3_t start, const vec3_t end, const
   return gi.Trace(start, end, bounds, self, self->clip_mask);
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
 static bool g_recording_pmove = false;
 static bool g_play_pmove = false;
 static file_t *g_pmove_file;
@@ -1443,7 +1443,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   pm_move_t pm;
   memset(&pm, 0, sizeof(pm));
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
   if (g_play_pmove) {
     if (!gi.ReadFile(g_pmove_file, &pm, sizeof(pm), 1)) {
       g_play_pmove = false;
@@ -1479,7 +1479,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
     pm.cmd = *cmd;
     pm.ground = ent->ground;
     pm.hook_pull_speed = g_hook_pull_speed->value;
-#ifdef _DEBUG
+#if defined(_DEBUG)
   }
 #endif
 
@@ -1492,7 +1492,7 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   pm.DebugMask = gi.DebugMask;
   pm.debug_mask = DEBUG_PMOVE_SERVER;
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
   if (g_recording_pmove) {
     gi.WriteFile(g_pmove_file, &pm, sizeof(pm), 1);
   }

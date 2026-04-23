@@ -23,7 +23,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 void Sv_SpawnEntities(void);
 void Sv_LinkEntity(g_entity_t *ent);
 void Sv_UnlinkEntity(g_entity_t *ent);

@@ -709,7 +709,7 @@ static void G_Admin_f(g_client_t *cl) {
   }
 }
 
-#ifdef _DEBUG
+#if defined(_DEBUG)
 void G_RecordPmove(void);
 void G_PlayPmove(void);
 #endif
@@ -769,7 +769,7 @@ void G_ClientCommand(g_client_t *cl) {
   } else if (g_strcmp0(cmd, "chase_next") == 0) {
     G_ClientChaseNext(cl);
   }
-#ifdef _DEBUG
+#if defined(_DEBUG)
   else if (g_strcmp0(cmd, "pmove_record") == 0) {
     G_RecordPmove();
   } else if (g_strcmp0(cmd, "pmove_play") == 0) {

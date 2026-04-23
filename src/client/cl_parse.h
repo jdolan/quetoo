@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 void Cl_CheckOrDownloadFile(const char *filename);
 int32_t Cl_ParseConfigString(void);
 void Cl_ParseServerMessage(void);

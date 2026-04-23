@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_ClientBegin(g_client_t *cl);
 void G_ClientBeginFrame(g_client_t *cl);
 bool G_ClientConnect(g_client_t *cl, char *user_info);

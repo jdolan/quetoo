@@ -448,5 +448,5 @@ typedef struct {
   struct cg_export_s *cgame;
 } cl_static_t;
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 #endif /* __CL_LOCAL_H__ */

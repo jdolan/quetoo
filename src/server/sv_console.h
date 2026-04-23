@@ -23,7 +23,7 @@
 
 #include "sv_types.h"
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 void Sv_DrawConsole(void);
 void Sv_InitConsole(void);
 void Sv_ShutdownConsole(void);

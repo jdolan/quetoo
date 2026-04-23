@@ -358,5 +358,5 @@ bool Cm_SaveMaterial(const cm_material_t *material);
 void Cm_MaterialBasename(const char *in, char *out, size_t len);
 void Cm_MaterialPath(const char *name, char *path, size_t len, cm_asset_context_t context);
 
-#ifdef __CM_LOCAL_H__
+#if defined(__CM_LOCAL_H__)
 #endif /* __CM_LOCAL_H__ */

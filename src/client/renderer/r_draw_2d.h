@@ -45,7 +45,7 @@ size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color);
 void R_Draw2D(void);
 GLint R_StringWidth(const char *s);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_InitDraw2D(void);
 void R_ShutdownDraw2D(void);
 #endif

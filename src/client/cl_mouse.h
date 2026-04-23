@@ -23,7 +23,7 @@
 
 #include "cl_types.h"
 
-#ifdef __CL_LOCAL_H__
+#if defined(__CL_LOCAL_H__)
 
 void Cl_MouseButtonEvent(const SDL_Event *event);
 void Cl_MouseWheelEvent(const SDL_Event *event);

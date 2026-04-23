@@ -25,7 +25,7 @@
 
 void Sv_ShutdownServer(const char *msg);
 
-#ifdef __SV_LOCAL_H__
+#if defined(__SV_LOCAL_H__)
 int32_t Sv_ModelIndex(const char *name);
 int32_t Sv_SoundIndex(const char *name);
 int32_t Sv_ImageIndex(const char *name);

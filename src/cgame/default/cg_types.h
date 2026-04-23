@@ -24,7 +24,7 @@
 #include "cgame/cgame.h"
 #include "game/default/g_types.h"
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 
 /**
  * @brief The client game reprensetation of teams.

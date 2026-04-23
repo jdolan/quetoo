@@ -19,10 +19,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#ifndef __CGAME_H__
+#if !defined(__CGAME_H__)
 #define __CGAME_H__
 
-#ifndef CGAME_EXPORT
+#if !defined(CGAME_EXPORT)
  #if defined(_WIN32)
   #define CGAME_EXPORT __declspec(dllexport)
  #else

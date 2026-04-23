@@ -27,7 +27,7 @@ void S_BeginLoading(void);
 void S_LoadClientModelSamples(const char *model);
 void S_EndLoading(void);
 
-#ifdef __S_LOCAL_H__
+#if defined(__S_LOCAL_H__)
 
 void S_ListMedia_f(void);
 void S_RegisterMedia(s_media_t *media);

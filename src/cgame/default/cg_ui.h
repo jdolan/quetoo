@@ -29,6 +29,6 @@ void Cg_ClearUi(void);
 void Cg_UpdateLoading(const cl_loading_t loading);
 void Cg_UpdateInstaller(const installer_status_t status);
 
-#ifdef __CG_LOCAL_H__
+#if defined(__CG_LOCAL_H__)
 void Cg_BindCvar(const Inlet *inlet, ident obj);
 #endif /* __CG_LOCAL_H__ */

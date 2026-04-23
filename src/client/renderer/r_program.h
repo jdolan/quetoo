@@ -23,7 +23,7 @@
 
 #include "r_types.h"
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 #define MAX_SHADER_DESCRIPTOR_FILENAMES 8
 

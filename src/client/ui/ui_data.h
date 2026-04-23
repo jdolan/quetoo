@@ -26,5 +26,5 @@
 Data *Ui_Data(const char *path);
 Theme *Ui_Theme(void);
 
-#ifdef __UI_LOCAL_H__
+#if defined(__UI_LOCAL_H__)
 #endif /* __UI_LOCAL_H__ */

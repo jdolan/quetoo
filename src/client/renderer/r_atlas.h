@@ -27,6 +27,6 @@ r_atlas_t *R_LoadAtlas(const char *name);
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type);
 void R_CompileAtlas(r_atlas_t *atlas);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 
 #endif

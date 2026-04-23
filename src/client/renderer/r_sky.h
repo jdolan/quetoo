@@ -25,7 +25,7 @@
 
 void R_LoadSky(void);
 
-#ifdef __R_LOCAL_H__
+#if defined(__R_LOCAL_H__)
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp);
 void R_InitSky(void);
 void R_ShutdownSky(void);

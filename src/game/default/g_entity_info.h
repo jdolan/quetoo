@@ -23,7 +23,7 @@
 
 #include "g_types.h"
 
-#ifdef __GAME_LOCAL_H__
+#if defined(__GAME_LOCAL_H__)
 void G_info_player_deathmatch(g_entity_t *ent);
 void G_info_player_intermission(g_entity_t *ent);
 void G_info_notnull(g_entity_t *ent);
