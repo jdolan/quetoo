@@ -54,9 +54,17 @@ typedef struct {
   char error[MAX_STRING_CHARS];
 } installer_status_t;
 
+/**
+ * @brief Callback invoked by Installer_Wait each iteration while the installer
+ * is in progress. The client pumps a render frame; the dedicated server delays
+ * and logs progress to console.
+ */
+typedef void (*installer_frame_func_t)(void);
+
 int32_t Installer_CheckForUpdates(void);
 void Installer_OpenReleasesPage(void);
 void Installer_Init(void);
 void Installer_Update(void);
+void Installer_Wait(installer_frame_func_t frame_func);
 void Installer_Shutdown(void);
 void Installer_Status(installer_status_t *out);

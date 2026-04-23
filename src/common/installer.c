@@ -694,6 +694,24 @@ void Installer_Update(void) {
 }
 
 /**
+ * @brief Starts an asynchronous data update and blocks until it completes,
+ * calling @c frame_func each iteration while the installer is in progress.
+ */
+void Installer_Wait(installer_frame_func_t frame_func) {
+
+  Installer_Update();
+
+  while (true) {
+    installer_status_t s;
+    Installer_Status(&s);
+    if (s.state == INSTALLER_DONE || s.state == INSTALLER_ERROR) {
+      break;
+    }
+    frame_func();
+  }
+}
+
+/**
  * @brief Initializes the installer subsystem.
  */
 void Installer_Init(void) {

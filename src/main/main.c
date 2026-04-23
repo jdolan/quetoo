@@ -391,9 +391,68 @@ static void Shutdown(const char *msg) {
 }
 
 /**
- * @brief Starts the data installer and blocks until it completes or errors,
- * preventing user commands from racing with in-progress file downloads.
- * For dedicated servers, polls with console progress output.
+ * @brief Per-iteration frame callback for the dedicated server installer loop.
+ * Delays 100 ms and logs state transitions to the console.
+ */
+static void InstallerFrame_Dedicated(void) {
+
+  static installer_state_t last_state = INSTALLER_IDLE;
+  static char last_file[MAX_OS_PATH];
+
+  installer_status_t s;
+  Installer_Status(&s);
+
+  if (s.state != last_state ||
+      (s.state == INSTALLER_DOWNLOADING && strcmp(s.current_file, last_file) != 0)) {
+    switch (s.state) {
+      case INSTALLER_CHECKING:
+        Com_Print("Update: Checking version...\n");
+        break;
+      case INSTALLER_LISTING:
+        Com_Print("Update: Listing S3 objects...\n");
+        break;
+      case INSTALLER_DOWNLOADING:
+        Com_Print("Update: Downloading %s...\n", s.current_file);
+        g_strlcpy(last_file, s.current_file, sizeof(last_file));
+        break;
+      case INSTALLER_PRUNING:
+        Com_Print("Update: Pruning stale files...\n");
+        break;
+      default:
+        break;
+    }
+    last_state = s.state;
+  }
+
+  SDL_Delay(100);
+}
+
+/**
+ * @brief Per-iteration frame callback for the client installer loop.
+ * Pumps the client frame loop to keep the UpdateViewController responsive.
+ */
+static void InstallerFrame_Client(void) {
+
+  static uint32_t old_time;
+
+  if (old_time == 0) {
+    old_time = (uint32_t) SDL_GetTicks();
+  }
+
+  do {
+    quetoo.ticks = (uint32_t) SDL_GetTicks();
+  } while (quetoo.ticks == old_time);
+
+  const uint32_t msec = quetoo.ticks - old_time;
+  old_time = quetoo.ticks;
+
+  Frame(msec);
+}
+
+/**
+ * @brief Blocks until the data installer completes or errors, preventing user
+ * commands from racing with in-progress file downloads.
+ * For dedicated servers, checks for binary updates and logs console progress.
  * For clients, pumps the frame loop to keep the UpdateViewController responsive.
  * Bypassed automatically when +set version -1 is passed on the command line.
  */
@@ -413,60 +472,15 @@ static void WaitForInstaller(void) {
     }
   }
 
-  Installer_Update();
+  Installer_Wait(dedicated->value ? InstallerFrame_Dedicated : InstallerFrame_Client);
 
-  installer_state_t last_state = INSTALLER_IDLE;
-  char last_file[MAX_OS_PATH] = {};
-  uint32_t old_time = (uint32_t) SDL_GetTicks();
-
-  while (true) {
-    installer_status_t status;
-    Installer_Status(&status);
-
-    if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
-      if (dedicated->value) {
-        if (status.state == INSTALLER_DONE) {
-          Com_Print("Update: Complete.\n");
-        } else {
-          Com_Warn("Update: %s\n", status.error);
-        }
-      }
-      break;
-    }
-
-    if (dedicated->value) {
-      if (status.state != last_state ||
-          (status.state == INSTALLER_DOWNLOADING &&
-           strcmp(status.current_file, last_file) != 0)) {
-        switch (status.state) {
-          case INSTALLER_CHECKING:
-            Com_Print("Update: Checking version...\n");
-            break;
-          case INSTALLER_LISTING:
-            Com_Print("Update: Listing S3 objects...\n");
-            break;
-          case INSTALLER_DOWNLOADING:
-            Com_Print("Update: Downloading %s...\n", status.current_file);
-            g_strlcpy(last_file, status.current_file, sizeof(last_file));
-            break;
-          case INSTALLER_PRUNING:
-            Com_Print("Update: Pruning stale files...\n");
-            break;
-          default:
-            break;
-        }
-        last_state = status.state;
-      }
-      SDL_Delay(100);
+  if (dedicated->value) {
+    installer_status_t s;
+    Installer_Status(&s);
+    if (s.state == INSTALLER_DONE) {
+      Com_Print("Update: Complete.\n");
     } else {
-      do {
-        quetoo.ticks = (uint32_t) SDL_GetTicks();
-      } while (quetoo.ticks == old_time);
-
-      const uint32_t msec = quetoo.ticks - old_time;
-      old_time = quetoo.ticks;
-
-      Frame(msec);
+      Com_Warn("Update: %s\n", s.error);
     }
   }
 }
