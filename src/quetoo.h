@@ -41,6 +41,7 @@
 #if defined(_WIN32)
   #include <windows.h>
   #include <shlobj.h>
+  #undef interface // COM headers define this, breaking Objectively struct members and macros
 #endif
 
 #if !defined(byte)

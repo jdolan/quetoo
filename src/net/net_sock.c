@@ -366,6 +366,7 @@ void Net_Shutdown(void) {
   // before normal Objectively teardown and destroy operations can get to it.
   // As a workaround, we explicitly cancel the URLSession's worker thread here,
   // from the main thread, well before exit().
+  #undef interface // Windows COM headers redefine this, breaking Objectively macros
   URLSession *session = $$(URLSession, sharedInstance);
   $(session, invalidateAndCancel);
   #endif
