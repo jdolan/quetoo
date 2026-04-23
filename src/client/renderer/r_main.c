@@ -41,6 +41,9 @@ cvar_t *r_occlude;
 
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
+cvar_t *r_bloom;
+cvar_t *r_bloom_iterations;
+cvar_t *r_bloom_threshold;
 cvar_t *r_caustics;
 cvar_t *r_draw_scale;
 cvar_t *r_finish;
@@ -253,7 +256,7 @@ void R_DrawMainView(r_view_t *view) {
   R_DrawShadows(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
@@ -297,7 +300,7 @@ void R_DrawPlayerModelView(r_view_t *view) {
   R_UpdateEntities(view);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
-  glDrawBuffers(2, (const GLenum []) { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 });
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -350,6 +353,9 @@ static void R_InitLocal(void) {
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
+  r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
+  r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
+  r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
@@ -484,6 +490,8 @@ void R_Init(void) {
 
   R_InitSky();
 
+  R_InitPost();
+
   R_GetError("Video initialization");
 
   const SDL_Rect bounds = r_context.window_bounds;
@@ -515,6 +523,8 @@ void R_Shutdown(void) {
   R_ShutdownSprites();
 
   R_ShutdownSky();
+
+  R_ShutdownPost();
 
   R_ShutdownShadows();
 

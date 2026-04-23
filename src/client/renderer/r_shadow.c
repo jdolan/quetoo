@@ -456,9 +456,9 @@ static void R_InitShadowProgram(void) {
 
 /**
  * @brief Initializes the shadow atlas texture.
- * @details Computes square layer dimensions from tile_size and GL_MAX_TEXTURE_SIZE,
- * then allocates a GL_TEXTURE_2D_ARRAY with enough layers for MAX_LIGHTS.
- * Layers are forced square by choosing lights_per_col = lights_per_row * 3 / 2.
+ * @details Computes square layer dimensions from `tile_size` and `GL_MAX_TEXTURE_SIZE`,
+ * then allocates a `GL_TEXTURE_2D_ARRAY` with enough layers for `MAX_LIGHTS`.
+ * Layers are forced square by choosing `lights_per_col = lights_per_row * 3 / 2`.
  */
 static void R_InitShadowTextures(void) {
 
@@ -486,10 +486,12 @@ static void R_InitShadowTextures(void) {
   r_shadow_atlas.lights_per_layer = r_shadow_atlas.lights_per_row * r_shadow_atlas.lights_per_col;
   r_shadow_atlas.num_layers = (MAX_LIGHTS + r_shadow_atlas.lights_per_layer - 1) / r_shadow_atlas.lights_per_layer;
 
-  Com_Print("  Shadow atlas: %dx%d x %d layers (%d lights/layer, tile %d)\n",
-            r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
-            r_shadow_atlas.num_layers,
-            r_shadow_atlas.lights_per_layer, r_shadow_atlas.tile_size);
+  Com_Verbose("   Shadow atlas: %dx%d x %d layers (%d lights/layer, %d tile size)\n",
+      r_shadow_atlas.layer_size,
+      r_shadow_atlas.layer_size,
+      r_shadow_atlas.num_layers,
+      r_shadow_atlas.lights_per_layer,
+      r_shadow_atlas.tile_size);
 
   glGenTextures(1, &r_shadow_atlas.texture);
 

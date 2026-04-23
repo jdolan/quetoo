@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\src\client\renderer\r_mesh_model_obj.c" />
     <ClCompile Include="..\..\src\client\renderer\r_model.c" />
     <ClCompile Include="..\..\src\client\renderer\r_occlude.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_post.c" />
     <ClCompile Include="..\..\src\client\renderer\r_program.c" />
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
@@ -77,6 +78,7 @@
     <ClInclude Include="..\..\src\client\renderer\r_mesh_model_obj.h" />
     <ClInclude Include="..\..\src\client\renderer\r_model.h" />
     <ClInclude Include="..\..\src\client\renderer\r_occlude.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_post.h" />
     <ClInclude Include="..\..\src\client\renderer\r_program.h" />
     <ClInclude Include="..\..\src\client\renderer\r_shadow.h" />
     <ClInclude Include="..\..\src\client\renderer\r_sky.h" />

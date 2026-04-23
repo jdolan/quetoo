@@ -60,6 +60,8 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 
   switch (attachment) {
     case ATTACHMENT_COLOR:
+      return R_CreateFramebufferTexture(f, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT);
+    case ATTACHMENT_POST:
       return R_CreateFramebufferTexture(f, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     case ATTACHMENT_DEPTH:
     case ATTACHMENT_DEPTH_COPY:
@@ -99,7 +101,12 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
   }
 
   if (attachments & ATTACHMENT_DEPTH_COPY) {
-    framebuffer.depth_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
+    framebuffer.depth_attachment_copy = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_DEPTH_COPY);
+  }
+
+  if (attachments & ATTACHMENT_POST) {
+    framebuffer.post_attachment = R_CreateFramebufferAttachment(&framebuffer, ATTACHMENT_POST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, framebuffer.post_attachment, 0);
   }
 
   const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -189,6 +196,9 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
     case ATTACHMENT_COLOR:
       glReadBuffer(GL_COLOR_ATTACHMENT0);
       break;
+    case ATTACHMENT_POST:
+      glReadBuffer(GL_COLOR_ATTACHMENT1);
+      break;
     default:
       Com_Error(ERROR_DROP, "Can't blit attachment %d\n", attachment);
   }
@@ -213,10 +223,10 @@ void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer,
 }
 
 /**
- * @brief Blits the framebuffer object to the specified screen rect.
+ * @brief Blits the framebuffer's post-processing attachment object to the specified screen rect.
  */
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h) {
-  R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_COLOR, x, y, w, h);
+  R_BlitFramebufferAttachment(framebuffer, ATTACHMENT_POST, x, y, w, h);
 }
 
 /**
@@ -235,6 +245,9 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   switch (attachment) {
     case ATTACHMENT_COLOR:
       in = framebuffer->color_attachment;
+      break;
+    case ATTACHMENT_POST:
+      in = framebuffer->post_attachment;
       break;
     default:
       break;
@@ -268,6 +281,10 @@ void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
     if (framebuffer->depth_attachment_copy) {
       glDeleteTextures(1, &framebuffer->depth_attachment_copy);
+    }
+
+    if (framebuffer->post_attachment) {
+      glDeleteTextures(1, &framebuffer->post_attachment);
     }
 
     R_GetError(NULL);
