@@ -603,6 +603,28 @@ static void Cl_UpdateScene(void) {
 }
 
 /**
+ * @brief Installer frame callback for clients. Pumps the frame loop to keep
+ * the UpdateViewController responsive.
+ */
+void Cl_InstallerFrame(void) {
+
+  static uint32_t old_time;
+
+  if (old_time == 0) {
+    old_time = (uint32_t) SDL_GetTicks();
+  }
+
+  do {
+    quetoo.ticks = (uint32_t) SDL_GetTicks();
+  } while (quetoo.ticks == old_time);
+
+  const uint32_t msec = quetoo.ticks - old_time;
+  old_time = quetoo.ticks;
+
+  Cl_Frame(msec);
+}
+
+/**
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {

@@ -23,6 +23,7 @@
 
 #include "sv_types.h"
 
+void Sv_InstallerFrame(void);
 void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
 void Sv_Frame(const uint32_t msec);

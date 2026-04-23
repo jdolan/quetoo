@@ -26,6 +26,13 @@ cl_static_t cls;
 /**
  * @brief
  */
+void Cl_InstallerFrame(void) {
+
+}
+
+/**
+ * @brief
+ */
 void Cl_Disconnect(void) {
 
 }
