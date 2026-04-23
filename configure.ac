@@ -12,13 +12,6 @@ AC_CANONICAL_HOST
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AM_SILENT_RULES([yes])
 
-case $host in
-	*-*-mingw*)
-		dnl work around libtool refusing to link libdl statically
-		AC_CACHE_VAL(lt_cv_deplibs_check_method,
-			[lt_cv_deplibs_check_method=pass_all])
-		;;
-esac
 
 dnl ---------------
 dnl Check for tools
@@ -87,20 +80,6 @@ case "$host" in
 		HOST_NAME="BSD"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		;;
-	*-*-mingw*)
-		AC_MSG_RESULT(mingw)
-		HOST_NAME="MINGW"
-		HOST_CFLAGS="-mfpmath=sse -msse2"
-		HOST_LIBS="-ldl -lws2_32 -lole32"
-		DEFAULT_PREFIX="/"
-		
-		AC_PATH_PROGS([WINDRES],
-			[windres $host-windres],
-		)
-		if test "x$WINDRES" = "x"; then
-			AC_MSG_ERROR([Could not find windres, please install windres])
-		fi
-		;;
 	*)
 		AC_MSG_RESULT(linux)
 		HOST_NAME="LINUX"
@@ -137,7 +116,6 @@ AC_SUBST(CPPFLAGS)
 
 AM_CONDITIONAL([APPLE], [test "x$HOST_NAME" = "xAPPLE"])
 AM_CONDITIONAL([BSD], [test "x$HOST_NAME" = "xBSD"])
-AM_CONDITIONAL([MINGW], [test "x$HOST_NAME" = "xMINGW"])
 AM_CONDITIONAL([LINUX], [test "x$HOST_NAME" = "xLINUX"])
 
 dnl -----------------
@@ -205,9 +183,6 @@ HOST_OPENGL_LIBS=""
 case "$host" in
 	*-apple-*)
 		HOST_OPENGL_LIBS="-framework OpenGL"
-		;;
-	*-mingw*)
-		HOST_OPENGL_LIBS="-lopengl32"
 		;;
 	*)
 		HOST_OPENGL_LIBS="-lGL"

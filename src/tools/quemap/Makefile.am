@@ -67,16 +67,3 @@ quemap_LDADD = \
 	$(top_builddir)/src/net/libnet.la \
 	@CURSES_LIBS@ \
 	@SDL3_LIBS@
-
-if MINGW
-
-.rc.o:
-	@WINDRES@ $^ -o $@
-
-quemap_SOURCES += \
-	quemap-icon.rc
-
-quemap_LDFLAGS = \
-	-mconsole
-
-endif

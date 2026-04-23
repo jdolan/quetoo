@@ -25,10 +25,6 @@
 #include "qzip.h"
 
 #if defined(_WIN32)
-  #if defined(__MINGW32__)
-   #define SDL_MAIN_HANDLED
-  #endif
-
   #include <windows.h>
 #endif
 

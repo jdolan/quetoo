@@ -28,9 +28,7 @@
 #if defined(_WIN32)
   #include <windows.h>
   #include <shlobj.h>
-#if !defined(__MINGW32__)
-    #include <DbgHelp.h>
-#endif
+  #include <DbgHelp.h>
 #endif
 
 #if defined(__APPLE__)
@@ -48,6 +46,10 @@
 
 #if HAVE_SYS_TIME_H
   #include <sys/time.h>
+#endif
+
+#ifndef _WIN32
+  #include <fcntl.h>
 #endif
 
 #include <SDL3/SDL.h>
@@ -188,7 +190,7 @@ GString *Sys_Backtrace(uint32_t start, uint32_t max_count)
   }
 
   free(strings);
-#elif defined(_WIN32) && !defined(__MINGW32__)
+#elif defined(_WIN32)
   static bool symbols_initialized = false;
   void *symbols[32];
   const int name_length = 256;

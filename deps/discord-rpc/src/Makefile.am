@@ -31,12 +31,6 @@ libdiscord_rpc_la_SOURCES += \
 	discord_register_linux.cpp
 endif
 
-if MINGW
-libdiscord_rpc_la_SOURCES += \
-	connection_win.cpp \
-	discord_register_win.cpp
-endif
-
 if LINUX
 libdiscord_rpc_la_SOURCES += \
 	connection_unix.cpp \
