@@ -36,4 +36,5 @@ void Sys_CloseLibrary(void *handle);
 GString *Sys_Backtrace(uint32_t start, uint32_t max_count);
 void Sys_Raise(const char *msg);
 void Sys_Signal(int32_t s);
+void Sys_InitCrashSignals(void);
 extern volatile sig_atomic_t sys_signal_received;

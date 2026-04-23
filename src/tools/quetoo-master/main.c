@@ -381,11 +381,11 @@ int32_t main(int32_t argc, char **argv) {
   quetoo.Shutdown = Shutdown;
 
   signal(SIGINT, Sys_Signal);
-  signal(SIGSEGV, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
 
-#ifdef SIGQUIT
+#if !defined(_WIN32)
   signal(SIGQUIT, Sys_Signal);
+  Sys_InitCrashSignals();
 #endif
 
   Com_Init(argc, argv);
