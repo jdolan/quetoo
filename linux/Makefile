@@ -1,11 +1,12 @@
 # Makefile for Quetoo Linux distributable packages.
 # Produces: AppImage, .deb, and .rpm
-# Requires: appimagetool, patchelf, fpm, imagemagick
+# Requires: linuxdeploy, fpm, imagemagick
 
 ARCH      = x86_64
 BUILD     = $(ARCH)-pc-linux
 TARGET    = target
 STAGING   = $(TARGET)/staging
+APPDIR    = $(TARGET)/Quetoo.AppDir
 PKGDIR    = $(TARGET)/pkg
 VERSION  := $(shell cd .. && git rev-list --count HEAD 2>/dev/null || echo 0)
 
@@ -26,6 +27,9 @@ APPIMAGE = $(TARGET)/quetoo-$(BUILD).AppImage
 DEB      = $(TARGET)/quetoo_$(VERSION)_amd64.deb
 RPM      = $(TARGET)/quetoo-$(VERSION)-1.x86_64.rpm
 
+LINUXDEPLOY     = $(TARGET)/linuxdeploy-$(ARCH).AppImage
+APPIMAGETOOL    = $(TARGET)/appimagetool-$(ARCH).AppImage
+
 all: appimage deb rpm
 
 configure:
@@ -43,44 +47,59 @@ $(STAGING): compile
 	find $(STAGING) -name .turd -delete
 	$(MAKE) -C .. DESTDIR=$(abspath $(STAGING)) install
 
-bundle: $(STAGING)
-	./bundle-libs.sh -d $(STAGING)/lib \
-		$(BINARIES) \
-		$(MODULES)
+$(LINUXDEPLOY):
+	curl -fsSL -o $@ \
+		https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(ARCH).AppImage
+	chmod +x $@
+
+$(APPIMAGETOOL):
+	curl -fsSL -o $@ \
+		https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(ARCH).AppImage
+	chmod +x $@
+
+# ---------------------------------------------------------------------------
+# AppDir: populate with our layout under usr/, then let linuxdeploy bundle
+# all shared library dependencies and rewrite RPATHs.
+
+$(APPDIR): $(STAGING) $(LINUXDEPLOY)
+	rm -rf $(APPDIR)
+	install -d $(APPDIR)/usr
+
+	cp -a $(STAGING)/bin   $(APPDIR)/usr/
+	cp -a $(STAGING)/lib   $(APPDIR)/usr/
+	cp -a $(STAGING)/share $(APPDIR)/usr/
+
+	convert ../src/main/quetoo.ico[0] $(APPDIR)/quetoo.png
+
+	ARCH=$(ARCH) $(LINUXDEPLOY) --appimage-extract-and-run \
+		--appdir $(APPDIR) \
+		$(foreach b,$(notdir $(BINARIES)),--executable $(APPDIR)/usr/bin/$(b)) \
+		--desktop-file quetoo/Quetoo.desktop \
+		--icon-file $(APPDIR)/quetoo.png
+
+	# Install our custom AppRun (overrides linuxdeploy's default symlink).
+	cp AppRun $(APPDIR)/AppRun
+	chmod +x $(APPDIR)/AppRun
 
 # ---------------------------------------------------------------------------
 # AppImage
 
-appimage: bundle
-	curl -fsSL -o $(TARGET)/appimagetool-$(ARCH).AppImage \
-		https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(ARCH).AppImage
-	chmod +x $(TARGET)/appimagetool-$(ARCH).AppImage
-
-	rm -rf $(TARGET)/Quetoo.AppDir
-	install -d $(TARGET)/Quetoo.AppDir
-	cp -a $(STAGING)/bin $(TARGET)/Quetoo.AppDir/
-	cp -a $(STAGING)/lib $(TARGET)/Quetoo.AppDir/
-	cp -a $(STAGING)/share $(TARGET)/Quetoo.AppDir/
-
-	cp AppRun $(TARGET)/Quetoo.AppDir/AppRun
-	chmod +x $(TARGET)/Quetoo.AppDir/AppRun
-	cp quetoo/Quetoo.desktop $(TARGET)/Quetoo.AppDir/quetoo.desktop
-	convert ../src/main/quetoo.ico[0] $(TARGET)/Quetoo.AppDir/quetoo.png
-
-	ARCH=$(ARCH) $(TARGET)/appimagetool-$(ARCH).AppImage --appimage-extract-and-run \
-		$(TARGET)/Quetoo.AppDir $(APPIMAGE)
+appimage: $(APPDIR) $(APPIMAGETOOL)
+	ARCH=$(ARCH) $(APPIMAGETOOL) --appimage-extract-and-run \
+		$(APPDIR) $(APPIMAGE)
 
 # ---------------------------------------------------------------------------
-# .deb / .rpm shared package directory
+# .deb / .rpm — reuse the linuxdeploy-bundled AppDir content so we don't
+# need a separate library-bundling pass.
 
-$(TARGET)/.pkg-stamp: bundle
+$(TARGET)/.pkg-stamp: $(APPDIR)
 	rm -rf $(PKGDIR)
 
 	# Install game under private prefix /usr/lib/quetoo so that the engine's
 	# runtime path detection (strip at /bin/) resolves to /usr/lib/quetoo/lib.
 	install -d $(PKGDIR)/usr/lib/quetoo
-	cp -a $(STAGING)/bin $(PKGDIR)/usr/lib/quetoo/
-	cp -a $(STAGING)/lib $(PKGDIR)/usr/lib/quetoo/
+	cp -a $(APPDIR)/usr/bin $(PKGDIR)/usr/lib/quetoo/
+	cp -a $(APPDIR)/usr/lib $(PKGDIR)/usr/lib/quetoo/
 
 	# Desktop integration
 	install -Dm644 quetoo/Quetoo.desktop \
@@ -148,4 +167,4 @@ install-data:
 clean:
 	rm -rf $(TARGET)
 
-.PHONY: all configure compile bundle appimage deb rpm release install-data clean
+.PHONY: all configure compile appimage deb rpm release install-data clean

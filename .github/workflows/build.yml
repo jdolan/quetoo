@@ -176,7 +176,6 @@ jobs:
           libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
           libfreetype-dev libharfbuzz-dev \
           check \
-          patchelf \
           cmake ninja-build python3-pip \
           imagemagick \
           ruby ruby-dev rubygems rpm
@@ -268,7 +267,7 @@ jobs:
       working-directory: quetoo/linux
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
-        make bundle appimage deb rpm
+        make appimage deb rpm
 
     - name: Upload AppImage artifact
       uses: actions/upload-artifact@v6
