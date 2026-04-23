@@ -135,6 +135,7 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) __attribute__((
 
 void Com_Init(int32_t argc, char *argv[]);
 void Com_Shutdown(const char *fmt, ...) __attribute__((noreturn, format(printf, 1, 2)));
+void Com_Error_f(void);
 
 // subsystems
 #define QUETOO_SERVER 0x1

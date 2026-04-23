@@ -285,6 +285,8 @@ static void Init(void) {
 
   Cmd_Init();
 
+  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
+
   Cvar_Init();
 
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);

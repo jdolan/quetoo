@@ -285,7 +285,7 @@ void Com_Errorv_(err_t error, const char *func, const char *fmt, va_list args) {
 /**
  * @brief Console command to trigger a test error. Usage: `com_error [drop|fatal]`
  */
-static void Com_Error_f(void) {
+void Com_Error_f(void) {
 
   const err_t err = !g_strcmp0(Cmd_Argv(1), "fatal") ? ERROR_FATAL : ERROR_DROP;
   Com_Error(err, "Test error (%s)\n", err == ERROR_FATAL ? "fatal" : "drop");
@@ -410,8 +410,6 @@ void Com_Init(int32_t argc, char *argv[]) {
   if (quetoo.Init) {
     quetoo.Init();
   }
-
-  Cmd_Add("com_error", Com_Error_f, 0, "Trigger a test error: com_error [drop|fatal]");
 }
 
 /**
