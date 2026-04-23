@@ -41,7 +41,7 @@ static struct {
  * @brief Half-resolution bloom ping-pong framebuffers.
  *
  * bloom_fbo[0] receives the bloom extract pass and every second blur result.
- * bloom_fbo[1] receives every first blur result.  They ping-pong across
+ * bloom_fbo[1] receives every first blur result. They ping-pong across
  * the horizontal and vertical Gaussian passes.
  *
  * Stored dimensions let R_DrawPost detect viewport resizes and recreate.
@@ -49,7 +49,7 @@ static struct {
 static struct {
   GLuint name;
   GLuint color_attachment;
-} r_bloom_fbo[2];
+} r_bloom_framebuffers[2];
 
 static GLint r_bloom_width, r_bloom_height;
 
@@ -79,7 +79,7 @@ static struct {
 /**
  * @brief Create or recreate the half-resolution bloom ping-pong FBOs.
  */
-static void R_CreateBloomFbos(GLint width, GLint height) {
+static void R_CreateBloomFramebuffers(GLint width, GLint height) {
 
   r_bloom_width  = width  / 2;
   r_bloom_height = height / 2;
@@ -89,16 +89,16 @@ static void R_CreateBloomFbos(GLint width, GLint height) {
 
   for (int32_t i = 0; i < 2; i++) {
 
-    if (r_bloom_fbo[i].name) {
-      glDeleteFramebuffers(1, &r_bloom_fbo[i].name);
-      glDeleteTextures(1, &r_bloom_fbo[i].color_attachment);
+    if (r_bloom_framebuffers[i].name) {
+      glDeleteFramebuffers(1, &r_bloom_framebuffers[i].name);
+      glDeleteTextures(1, &r_bloom_framebuffers[i].color_attachment);
     }
 
-    glGenFramebuffers(1, &r_bloom_fbo[i].name);
-    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_fbo[i].name);
+    glGenFramebuffers(1, &r_bloom_framebuffers[i].name);
+    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[i].name);
 
-    glGenTextures(1, &r_bloom_fbo[i].color_attachment);
-    glBindTexture(GL_TEXTURE_2D, r_bloom_fbo[i].color_attachment);
+    glGenTextures(1, &r_bloom_framebuffers[i].color_attachment);
+    glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[i].color_attachment);
 
     glTexImage2D(GL_TEXTURE_2D,
            0,
@@ -115,7 +115,7 @@ static void R_CreateBloomFbos(GLint width, GLint height) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_bloom_fbo[i].color_attachment, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, r_bloom_framebuffers[i].color_attachment, 0);
 
     const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -132,14 +132,14 @@ static void R_CreateBloomFbos(GLint width, GLint height) {
 /**
  * @brief Destroy the half-resolution bloom ping-pong FBOs.
  */
-static void R_DestroyBloomFbos(void) {
+static void R_DestroyBloomFramebuffers(void) {
 
   for (int32_t i = 0; i < 2; i++) {
-    if (r_bloom_fbo[i].name) {
-      glDeleteFramebuffers(1, &r_bloom_fbo[i].name);
-      glDeleteTextures(1, &r_bloom_fbo[i].color_attachment);
-      r_bloom_fbo[i].name = 0;
-      r_bloom_fbo[i].color_attachment = 0;
+    if (r_bloom_framebuffers[i].name) {
+      glDeleteFramebuffers(1, &r_bloom_framebuffers[i].name);
+      glDeleteTextures(1, &r_bloom_framebuffers[i].color_attachment);
+      r_bloom_framebuffers[i].name = 0;
+      r_bloom_framebuffers[i].color_attachment = 0;
     }
   }
 
@@ -178,7 +178,7 @@ void R_DrawPost(const r_view_t *view) {
 
   if (view->framebuffer->width  != r_bloom_width  * 2 ||
       view->framebuffer->height != r_bloom_height * 2) {
-    R_CreateBloomFbos(view->framebuffer->width, view->framebuffer->height);
+    R_CreateBloomFramebuffers(view->framebuffer->width, view->framebuffer->height);
   }
 
   glBindVertexArray(r_post_data.vertex_array);
@@ -191,7 +191,7 @@ void R_DrawPost(const r_view_t *view) {
     glUniform1i(r_post_program.mode, 0);
     glUniform1f(r_post_program.bloom_threshold, r_bloom_threshold->value);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_fbo[0].name);
+    glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
     glViewport(0, 0, r_bloom_width, r_bloom_height);
 
     glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
@@ -207,17 +207,17 @@ void R_DrawPost(const r_view_t *view) {
     for (int32_t i = 0; i < iterations; i++) {
 
       // Horizontal pass: bloom_fbo[0] → bloom_fbo[1]
-      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_fbo[1].name);
+      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[1].name);
       glUniform1i(r_blur_program.axis, 0);
       glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-      glBindTexture(GL_TEXTURE_2D, r_bloom_fbo[0].color_attachment);
+      glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[0].color_attachment);
       glDrawArrays(GL_TRIANGLES, 0, 6);
 
       // Vertical pass: bloom_fbo[1] → bloom_fbo[0]
-      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_fbo[0].name);
+      glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
       glUniform1i(r_blur_program.axis, 1);
       glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-      glBindTexture(GL_TEXTURE_2D, r_bloom_fbo[1].color_attachment);
+      glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[1].color_attachment);
       glDrawArrays(GL_TRIANGLES, 0, 6);
     }
   }
@@ -236,7 +236,7 @@ void R_DrawPost(const r_view_t *view) {
   glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
-  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_fbo[0].color_attachment : 0);
+  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_framebuffers[0].color_attachment : 0);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -307,7 +307,7 @@ void R_InitPost(void) {
   memset(&r_post_data,    0, sizeof(r_post_data));
   memset(&r_blur_program, 0, sizeof(r_blur_program));
   memset(&r_post_program, 0, sizeof(r_post_program));
-  memset(r_bloom_fbo,     0, sizeof(r_bloom_fbo));
+  memset(r_bloom_framebuffers,     0, sizeof(r_bloom_framebuffers));
 
   glGenVertexArrays(1, &r_post_data.vertex_array);
   glBindVertexArray(r_post_data.vertex_array);
@@ -350,7 +350,7 @@ void R_InitPost(void) {
  */
 void R_ShutdownPost(void) {
 
-  R_DestroyBloomFbos();
+  R_DestroyBloomFramebuffers();
 
   glDeleteProgram(r_blur_program.name);
   glDeleteProgram(r_post_program.name);
