@@ -456,6 +456,10 @@ int32_t main(int32_t argc, char **argv) {
       }
     }
 
+    if (sys_signal_received) {
+      Com_Shutdown("Received signal %d, quitting...\n", sys_signal_received);
+    }
+
     Ms_Frame();
   }
 }
