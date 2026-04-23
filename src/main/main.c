@@ -391,36 +391,83 @@ static void Shutdown(const char *msg) {
 }
 
 /**
- * @brief Starts the data installer and pumps the frame loop until it completes
- * or errors, blocking all user commands until data is current.
- * Skipped for dedicated servers (Sv_CheckForUpdates handles that path).
- * Skipped automatically when +set version -1 is passed on the command line.
+ * @brief Starts the data installer and blocks until it completes or errors,
+ * preventing user commands from racing with in-progress file downloads.
+ * For dedicated servers, polls with console progress output.
+ * For clients, pumps the frame loop to keep the UpdateViewController responsive.
+ * Bypassed automatically when +set version -1 is passed on the command line.
  */
 static void WaitForInstaller(void) {
 
   if (dedicated->value) {
-    return;
+    switch (Installer_CheckForUpdates()) {
+      case 0:
+        Com_Print("Quetoo %s is up to date.\n", VERSION);
+        break;
+      case 1:
+        Com_Warn("A new version of Quetoo is available.\n"
+                 "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
+                 "Your server will not be public until you update.\n");
+        Cvar_ForceSetInteger("sv_public", 0);
+        break;
+    }
   }
 
   Installer_Update();
 
+  installer_state_t last_state = INSTALLER_IDLE;
+  char last_file[MAX_OS_PATH] = {};
   uint32_t old_time = (uint32_t) SDL_GetTicks();
 
   while (true) {
     installer_status_t status;
     Installer_Status(&status);
+
     if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
+      if (dedicated->value) {
+        if (status.state == INSTALLER_DONE) {
+          Com_Print("Update: Complete.\n");
+        } else {
+          Com_Warn("Update: %s\n", status.error);
+        }
+      }
       break;
     }
 
-    do {
-      quetoo.ticks = (uint32_t) SDL_GetTicks();
-    } while (quetoo.ticks == old_time);
+    if (dedicated->value) {
+      if (status.state != last_state ||
+          (status.state == INSTALLER_DOWNLOADING &&
+           strcmp(status.current_file, last_file) != 0)) {
+        switch (status.state) {
+          case INSTALLER_CHECKING:
+            Com_Print("Update: Checking version...\n");
+            break;
+          case INSTALLER_LISTING:
+            Com_Print("Update: Listing S3 objects...\n");
+            break;
+          case INSTALLER_DOWNLOADING:
+            Com_Print("Update: Downloading %s...\n", status.current_file);
+            g_strlcpy(last_file, status.current_file, sizeof(last_file));
+            break;
+          case INSTALLER_PRUNING:
+            Com_Print("Update: Pruning stale files...\n");
+            break;
+          default:
+            break;
+        }
+        last_state = status.state;
+      }
+      SDL_Delay(100);
+    } else {
+      do {
+        quetoo.ticks = (uint32_t) SDL_GetTicks();
+      } while (quetoo.ticks == old_time);
 
-    const uint32_t msec = quetoo.ticks - old_time;
-    old_time = quetoo.ticks;
+      const uint32_t msec = quetoo.ticks - old_time;
+      old_time = quetoo.ticks;
 
-    Frame(msec);
+      Frame(msec);
+    }
   }
 }
 

@@ -861,68 +861,6 @@ static void Sv_InitLocal(void) {
 }
 
 /**
- * @brief
- */
-static void Sv_CheckForUpdates(void) {
-
-  if (!dedicated->value) {
-    return;
-  }
-
-  switch (Installer_CheckForUpdates()) {
-    case 0:
-      Com_Print("Quetoo %s is up to date.\n", VERSION);
-      break;
-    case 1:
-      Com_Warn("A new version of Quetoo is available.\n"
-               "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
-               "Your server will not be public until you update.\n");
-      Cvar_ForceSetInteger("sv_public", 0);
-      break;
-  }
-
-  Installer_Update();
-
-  installer_status_t status;
-  installer_state_t state = INSTALLER_IDLE;
-  char current_file[MAX_OS_PATH] = {};
-
-  do {
-    Installer_Status(&status);
-    if (status.state != state ||
-        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
-      switch (status.state) {
-        case INSTALLER_CHECKING:
-          Com_Print("Update: Checking version...\n");
-          break;
-        case INSTALLER_LISTING:
-          Com_Print("Update: Listing S3 objects...\n");
-          break;
-        case INSTALLER_DOWNLOADING:
-          Com_Print("Update: Downloading %s...\n", status.current_file);
-          g_strlcpy(current_file, status.current_file, sizeof(current_file));
-          break;
-        case INSTALLER_PRUNING:
-          Com_Print("Update: Pruning stale files...\n");
-          break;
-        case INSTALLER_DONE:
-          Com_Print("Update: Complete.\n");
-          break;
-        case INSTALLER_ERROR:
-          Com_Warn("Update: %s\n", status.error);
-          break;
-        default:
-          break;
-      }
-      state = status.state;
-    }
-    if (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR) {
-      SDL_Delay(100);
-    }
-  } while (status.state != INSTALLER_DONE && status.state != INSTALLER_ERROR);
-}
-
-/**
  * @brief Only called at Quetoo startup, not for each game.
  */
 void Sv_Init(void) {
@@ -930,8 +868,6 @@ void Sv_Init(void) {
   memset(&svs, 0, sizeof(svs));
 
   Cm_LoadBspModel(NULL, NULL);
-
-  Sv_CheckForUpdates();
 
   Sv_InitConsole();
 
