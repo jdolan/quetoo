@@ -105,11 +105,11 @@ struct UpdateViewControllerInterface {
 	UpdateViewController *(*init)(UpdateViewController *self);
 
 	/**
-	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, installer_status_t status)
+	 * @fn void UpdateViewController::setStatus(UpdateViewController *self, const installer_status_t *in*)
 	 * @brief Updates progress display with the current installer status.
 	 * @memberof UpdateViewController
 	 */
-	void (*setStatus)(UpdateViewController *self, installer_status_t status);
+	void (*setStatus)(UpdateViewController *self, const installer_status_t *in);
 };
 
 /**

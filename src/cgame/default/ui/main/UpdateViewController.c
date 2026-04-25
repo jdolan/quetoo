@@ -21,12 +21,22 @@
 
 #include "cg_local.h"
 
+#include "DialogViewController.h"
 #include "UpdateViewController.h"
 
 #define _Class _UpdateViewController
 
 #define QUETOO_HERO_BASE_URL  "https://quetoo.s3.amazonaws.com/hero-images/"
 #define QUETOO_HERO_LIST_URL  "https://quetoo.s3.amazonaws.com/?prefix=hero-images/&delimiter=/"
+
+#pragma mark - Delegates
+
+/**
+ * @brief Dialog::okFunction for opening the releases page.
+ */
+static void openReleasesPage(ident data) {
+  SDL_OpenURL(QUETOO_RELEASES_URL);
+}
 
 /**
  * @brief `ThreadRunFunc` that pre-fetches all hero images synchronously.
@@ -158,10 +168,10 @@ static UpdateViewController *init(UpdateViewController *self) {
 }
 
 /**
- * @fn void UpdateViewController::setStatus(UpdateViewController *self, installer_state_t status)
+ * @fn void UpdateViewController::setStatus(UpdateViewController *self, const installer_state_t status)
  * @memberof UpdateViewController
  */
-static void setStatus(UpdateViewController *self, installer_status_t status) {
+static void setStatus(UpdateViewController *self, const installer_status_t *in) {
 
 	SDL_LockMutex(self->pendingImagesLock);
 	const Array *pending = (Array *) self->pendingImages;
@@ -174,13 +184,29 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 	}
 	SDL_UnlockMutex(self->pendingImagesLock);
 
-	switch (status.state) {
-		case INSTALLER_CHECKING:
-			$(self->progressBar, setLabelFormat, "Checking for updates\u2026");
+	switch (in->state) {
+    case INSTALLER_CHECKING_BIN:
+      $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
+      $(self->progressBar, setValue, 0.0);
+      break;
+    case INSTALLER_UPDATE_AVAILABLE_BIN: {
+      const Dialog dialog = {
+        .message = "A new version of Quetoo is available. Download now?",
+        .ok = "Yes",
+        .cancel = "No",
+        .okFunction = openReleasesPage
+      };
+
+      ViewController *viewController = (ViewController *) $(alloc(DialogViewController), initWithDialog, &dialog);
+      $((ViewController *) self, addChildViewController, viewController);
+    }
+      break;
+		case INSTALLER_CHECKING_DATA:
+			$(self->progressBar, setLabelFormat, "Checking for data updates\u2026");
 			$(self->progressBar, setValue, 0.0);
 			break;
-		case INSTALLER_LISTING:
-			$(self->progressBar, setLabelFormat, "Listing files\u2026");
+		case INSTALLER_COMPARING_DATA:
+			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");
 			$(self->progressBar, setValue, 0.0);
 			break;
 		case INSTALLER_DONE:
@@ -188,23 +214,23 @@ static void setStatus(UpdateViewController *self, installer_status_t status) {
 			$(self->progressBar, setValue, 100.0);
 			break;
 		case INSTALLER_ERROR:
-			$(self->progressBar, setLabelFormat, va("Error: %s", status.error));
+			$(self->progressBar, setLabelFormat, in->error);
 			$(self->progressBar, setValue, 0.0);
 			break;
-		default: {
+		case INSTALLER_DOWNLOADING_DATA: {
 			double pct = 0.0;
-			if (status.kbytes_total > 0) {
-				pct = 100.0 * status.kbytes_done / status.kbytes_total;
-			} else if (status.files_total > 0) {
-				pct = 100.0 * status.files_done / status.files_total;
+			if (in->kbytes_total > 0) {
+				pct = 100.0 * in->kbytes_done / in->kbytes_total;
+			} else if (in->files_total > 0) {
+				pct = 100.0 * in->files_done / in->files_total;
 			}
-			const char *label = status.current_file[0]
-				? va("Updating (%d / %d) %s \u2026", status.files_done, status.files_total, status.current_file)
-				: "Downloading updates\u2026";
+			const char *label = va("Downloading (%d / %d) %s \u2026", in->files_done, in->files_total, in->current_file);
 			$(self->progressBar, setLabelFormat, label);
 			$(self->progressBar, setValue, pct);
-			break;
 		}
+      break;
+    default:
+      break;
 	}
 }
 

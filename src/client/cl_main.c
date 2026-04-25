@@ -603,25 +603,29 @@ static void Cl_UpdateScene(void) {
 }
 
 /**
- * @brief Installer frame callback for clients. Pumps the frame loop to keep
- * the UpdateViewController responsive.
+ * @brief InstallerFrame callback.
  */
-void Cl_InstallerFrame(void) {
+int32_t Cl_InstallerFrame(const installer_status_t *in) {
 
-  static uint32_t old_time;
+  R_InitView(&cl_view);
 
-  if (old_time == 0) {
-    old_time = (uint32_t) SDL_GetTicks();
-  }
+  S_InitStage(&cl_stage);
 
-  do {
-    quetoo.ticks = (uint32_t) SDL_GetTicks();
-  } while (quetoo.ticks == old_time);
+  Cl_HandleEvents();
 
-  const uint32_t msec = quetoo.ticks - old_time;
-  old_time = quetoo.ticks;
+  R_BeginFrame();
 
-  Cl_Frame(msec);
+  const int32_t res = cls.cgame->UpdateInstaller(in);
+
+  Cl_UpdateScreen();
+
+  R_EndFrame();
+
+  S_RenderStage(&cl_stage);
+
+  R_Screenshot(&cl_view);
+
+  return res;
 }
 
 /**
@@ -699,12 +703,6 @@ void Cl_Frame(const uint32_t msec) {
   R_Screenshot(&cl_view);
 
   cls.cgame->UpdateDiscord();
-
-  installer_status_t status;
-  Installer_Status(&status);
-  if (status.state != INSTALLER_IDLE) {
-    cls.cgame->UpdateInstaller(status);
-  }
 
   frame_timestamp = quetoo.ticks;
   cl.frame_msec = 0;

@@ -19,48 +19,19 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "cl_local.h"
+#pragma once
 
-cl_static_t cls;
-
-/**
- * @brief
- */
-int32_t Cl_InstallerFrame(const installer_status_t *in) {
-  return 0;
-}
+#include "net/net_http.h"
 
 /**
- * @brief
+ * @brief An object entry from the S3 bucket listing.
  */
-void Cl_Disconnect(void) {
+typedef struct {
+  char bucket[MAX_QPATH];
+  char key[MAX_OS_PATH];
+  char etag[MAX_QPATH];
+  int64_t size;
+} s3_object_t;
 
-}
-
-/**
- * @brief
- */
-void Cl_Drop(const char *text) {
-
-}
-
-/**
- * @brief
- */
-void Cl_Frame(const uint32_t msec) {
-
-}
-
-/**
- * @brief
- */
-void Cl_Init(void) {
-  memset(&cls, 0, sizeof(cls));
-}
-
-/**
- * @brief
- */
-void Cl_Shutdown(void) {
-
-}
+extern GList *S3_ListObjects(const char *bucket);
+extern bool S3_GetObject(const s3_object_t *obj);

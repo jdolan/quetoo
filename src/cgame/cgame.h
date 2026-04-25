@@ -104,29 +104,6 @@ typedef struct cg_import_s {
 
   /**
    * @}
-   * @defgroup installer Installer
-   * @{
-   */
-
-  /**
-   * @brief Checks for available updates via the official distribution site.
-   * @return Zero if no updates are available, non-zero if updates are available.
-   */
-  int32_t (*CheckForUpdates)(void);
-
-  /**
-   * @brief Opens the GitHub Releases page so the user may download a newer snapshot.
-   */
-  void (*OpenReleasesPage)(void);
-
-  /**
-   * @brief Begins installing available updates on a background thread. Progress is delivered
-   * each client frame via cge.UpdateInstaller.
-   */
-  void (*Update)(void);
-
-  /**
-   * @}
    * @defgroup memory-management Memory management
    * @{
    */
@@ -1008,7 +985,7 @@ typedef struct cg_export_s {
   /**
    * @brief Called each client frame when the in-game installer is active.
    */
-  void (*UpdateInstaller)(const installer_status_t status);
+  int32_t (*UpdateInstaller)(const installer_status_t *in);
 
   /**
    * @brief Called each frame to update Discord status.

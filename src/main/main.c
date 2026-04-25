@@ -35,6 +35,7 @@ quetoo_t quetoo;
 static cvar_t *verbose;
 
 cvar_t *version;
+cvar_t *data_version;
 cvar_t *build;
 cvar_t *dedicated;
 cvar_t *developer;
@@ -49,7 +50,6 @@ static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Frame(const uint32_t msec);
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
-static void WaitForInstaller(void);
 static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
@@ -294,8 +294,6 @@ static void Init(void) {
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
-
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
   if (strstr(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
@@ -313,6 +311,8 @@ static void Init(void) {
   time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
   time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
+  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
+
   quetoo.Debug = Debug;
   quetoo.Error = Error;
   quetoo.Print = Print;
@@ -321,11 +321,17 @@ static void Init(void) {
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
 
+  void *buf;
+  if (Fs_Load("version", &buf) > 0) {
+    data_version = Cvar_Add("data_version", (char *) buf, CVAR_SERVER_INFO, NULL);
+    Mem_Free(buf);
+  } else {
+    data_version = Cvar_Add("data_version", "-1", CVAR_SERVER_INFO, NULL);
+  }
+
   Thread_Init(threads->integer);
 
   Con_Init();
-
-  Installer_Init();
 
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
@@ -343,7 +349,7 @@ static void Init(void) {
   Com_SetDebug("0");
 
   // block until the data installer finishes before executing user commands
-  WaitForInstaller();
+  Installer_Init(dedicated->value ? Sv_InstallerFrame : Cl_InstallerFrame);
 
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();
@@ -388,42 +394,6 @@ static void Shutdown(const char *msg) {
   Mem_Shutdown();
 
   SDL_Quit();
-}
-
-/**
- * @brief Blocks until the data installer completes or errors, preventing user
- * commands from racing with in-progress file downloads.
- * For dedicated servers, checks for binary updates and logs console progress.
- * For clients, pumps the frame loop to keep the UpdateViewController responsive.
- * Bypassed automatically when +set version -1 is passed on the command line.
- */
-static void WaitForInstaller(void) {
-
-  if (dedicated->value) {
-    switch (Installer_CheckForUpdates()) {
-      case 0:
-        Com_Print("Quetoo %s is up to date.\n", VERSION);
-        break;
-      case 1:
-        Com_Warn("A new version of Quetoo is available.\n"
-                 "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
-                 "Your server will not be public until you update.\n");
-        Cvar_ForceSetInteger("sv_public", 0);
-        break;
-    }
-  }
-
-  Installer_Wait(dedicated->value ? Sv_InstallerFrame : Cl_InstallerFrame);
-
-  if (dedicated->value) {
-    installer_status_t s;
-    Installer_Status(&s);
-    if (s.state == INSTALLER_DONE) {
-      Com_Print("Update: Complete.\n");
-    } else {
-      Com_Warn("Update: %s\n", s.error);
-    }
-  }
 }
 
 /**

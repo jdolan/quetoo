@@ -724,6 +724,53 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
 }
 
 /**
+ * @brief Installer frame callback for dedicated servers. Delays 100 ms and
+ * logs state transitions to the console.
+ */
+int32_t Sv_InstallerFrame(const installer_status_t *in) {
+  static installer_status_t last;
+
+  if (in->state != last.state || strcmp(in->current_file, last.current_file)) {
+    switch (in->state) {
+      case INSTALLER_CHECKING_BIN:
+        Com_Print("Checking binary version\u2026\n");
+        break;
+      case INSTALLER_UPDATE_AVAILABLE_BIN:
+        Com_Warn("A new version of Quetoo is available.\n"
+                 "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
+                 "Your server will not be public until you update.\n");
+        Cvar_ForceSetInteger("sv_public", 0);
+        break;
+      case INSTALLER_CHECKING_DATA:
+        Com_Print("Checking data version\u2026\n");
+        break;
+      case INSTALLER_COMPARING_DATA:
+        Com_Print("Comparing data with remote\u2026\n");
+        break;
+      case INSTALLER_DOWNLOADING_DATA:
+        Com_Print("Downloading %s\u2026\n", in->current_file);
+        break;
+      case INSTALLER_CANCELLED:
+        Com_Print("Update cancelled.\n");
+        break;
+      case INSTALLER_DONE:
+        Com_Print("Update complete.\n");
+        break;
+      case INSTALLER_ERROR:
+        Com_Warn("Update failed: %s\n", in->error);
+        break;
+      default:
+        break;
+    }
+
+    last = *in;
+  }
+
+  SDL_Delay(100);
+  return 0;
+}
+
+/**
  * @brief
  */
 void Sv_Frame(const uint32_t msec) {
@@ -785,52 +832,6 @@ void Sv_Frame(const uint32_t msec) {
   // service HTTP file downloads
   Sv_HttpThink();
 
-  // periodically check for updates
-  if (dedicated->value) {
-    static uint64_t update_time = 0;
-    const uint64_t now = SDL_GetTicks();
-    if (update_time == 0) {
-      update_time = now;
-    } else if (now - update_time >= INSTALLER_UPDATE_INTERVAL) {
-      Installer_Update();
-      update_time = now;
-    }
-
-    static installer_state_t state = INSTALLER_IDLE;
-    static char current_file[MAX_OS_PATH] = {};
-
-    installer_status_t status;
-    Installer_Status(&status);
-
-    if (status.state != state ||
-        (status.state == INSTALLER_DOWNLOADING && strcmp(status.current_file, current_file) != 0)) {
-      switch (status.state) {
-        case INSTALLER_CHECKING:
-          Com_Print("Update: Checking version...\n");
-          break;
-        case INSTALLER_LISTING:
-          Com_Print("Update: Listing S3 objects...\n");
-          break;
-        case INSTALLER_DOWNLOADING:
-          Com_Print("Update: Downloading %s (%d/%d)...\n", status.current_file, status.files_done, status.files_total);
-          g_strlcpy(current_file, status.current_file, sizeof(current_file));
-          break;
-        case INSTALLER_PRUNING:
-          Com_Print("Update: Pruning stale files...\n");
-          break;
-        case INSTALLER_DONE:
-          Com_Print("Update: Complete.\n");
-          break;
-        case INSTALLER_ERROR:
-          Com_Warn("Update: %s\n", status.error);
-          break;
-        default:
-          break;
-      }
-      state = status.state;
-    }
-  }
-
   // redraw the console
   Sv_DrawConsole();
 }
@@ -858,43 +859,6 @@ static void Sv_InitLocal(void) {
 
   // set this so clients and server browsers can see it
   Cvar_Add("sv_protocol", va("%i", PROTOCOL_MAJOR), CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
-}
-
-/**
- * @brief Installer frame callback for dedicated servers. Delays 100 ms and
- * logs state transitions to the console.
- */
-void Sv_InstallerFrame(void) {
-
-  static installer_state_t last_state = INSTALLER_IDLE;
-  static char last_file[MAX_OS_PATH];
-
-  installer_status_t s;
-  Installer_Status(&s);
-
-  if (s.state != last_state ||
-      (s.state == INSTALLER_DOWNLOADING && strcmp(s.current_file, last_file) != 0)) {
-    switch (s.state) {
-      case INSTALLER_CHECKING:
-        Com_Print("Update: Checking version...\n");
-        break;
-      case INSTALLER_LISTING:
-        Com_Print("Update: Listing S3 objects...\n");
-        break;
-      case INSTALLER_DOWNLOADING:
-        Com_Print("Update: Downloading %s...\n", s.current_file);
-        g_strlcpy(last_file, s.current_file, sizeof(last_file));
-        break;
-      case INSTALLER_PRUNING:
-        Com_Print("Update: Pruning stale files...\n");
-        break;
-      default:
-        break;
-    }
-    last_state = s.state;
-  }
-
-  SDL_Delay(100);
 }
 
 /**

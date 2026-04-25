@@ -6,6 +6,8 @@ noinst_HEADERS = \
 	cvar.h \
 	filesystem.h \
 	image.h \
+	installer.h \
+	installer-s3.h \
 	mem.h \
 	mem_buf.h \
 	rgb9e5.h \
@@ -24,11 +26,13 @@ libcommon_la_SOURCES = \
 	filesystem.c \
 	image.c \
 	installer.c \
+	installer-s3.c \
 	mem.c \
 	mem_buf.c \
 	rgb9e5.c \
 	sys.c \
 	thread.c
+
 libcommon_la_CFLAGS = \
 	-I$(top_srcdir)/src \
 	@BASE_CFLAGS@ \
