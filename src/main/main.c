@@ -342,6 +342,10 @@ static void Init(void) {
   // block until the data installer finishes before executing user commands
   Installer_Init(dedicated->value ? Sv_InstallerFrame : Cl_InstallerFrame);
 
+  // Re-add data search paths in case the installer just created them
+  Fs_AddToSearchPathv(Fs_DataDir(), NULL);
+  Fs_AddToSearchPathv(Fs_DataDir(), game->string, NULL);
+
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();
   Cbuf_Execute();
