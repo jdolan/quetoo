@@ -28,7 +28,6 @@
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
 #define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/versions/" BUILD
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
-#define QUETOO_DATA_MANIFEST_URL QUETOO_DATA_BASE_URL "/manifest.mf"
 
 /**
  * @brief The installer lifecycle.

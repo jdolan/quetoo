@@ -102,7 +102,7 @@ static void Installer_Commit(void) {
       const cm_manifest_entry_t *entry = val;
       if (entry->status == ENTRY_STALE) {
         char full_path[MAX_OS_PATH];
-        g_snprintf(full_path, sizeof(full_path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, entry->path);
+        g_snprintf(full_path, sizeof(full_path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
         if (g_remove(full_path) != 0) {
           Com_Warn("Failed to remove stale file: %s\n", full_path);
         } else {
@@ -116,7 +116,7 @@ static void Installer_Commit(void) {
 
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
-    g_snprintf(mf_path, sizeof(mf_path), "%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR);
+    g_snprintf(mf_path, sizeof(mf_path), "%s%c%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR);
 
     FILE *f = g_fopen(mf_path, "wb");
     if (f) {
@@ -145,7 +145,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 
   gchar *encoded = g_uri_escape_string(entry->path, "/", FALSE);
   char url[MAX_OS_PATH * 2];
-  g_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s", encoded);
+  g_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
   g_free(encoded);
 
   void *data = NULL;
@@ -159,7 +159,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   }
 
   char path[MAX_OS_PATH];
-  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, entry->path);
+  g_snprintf(path, sizeof(path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
 
   gchar *dir = g_path_get_dirname(path);
   const int mkdir_result = g_mkdir_with_parents(dir, 0755);
@@ -280,7 +280,9 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_COMPARING: {
         void *data = NULL;
         size_t length = 0;
-        const int32_t http_status = Net_HttpGet(QUETOO_DATA_MANIFEST_URL, &data, &length);
+        char manifest_url[MAX_OS_PATH];
+        g_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
+        const int32_t http_status = Net_HttpGet(manifest_url, &data, &length);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
