@@ -415,7 +415,7 @@ void Installer_Init(Installer_FrameFunction frame) {
       break;
     }
 
-    SDL_Delay(1);
+    SDL_Delay(QUETOO_TICK_MILLIS); // 40Hz should be plenty for progress bar updates etc
   }
 
   SDL_LockMutex(installer.mutex);
