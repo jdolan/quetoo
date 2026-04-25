@@ -57,16 +57,18 @@ START_TEST(check_Cm_ReadManifest) {
 		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 5678 sounds/weapons/rg_fire.ogg\n"
 	);
 
-	GList *manifest = Cm_ReadManifest("test.mf");
+	GHashTable *manifest = Cm_ReadManifest("test.mf");
 	ck_assert_msg(manifest != NULL, "Cm_ReadManifest returned NULL");
-	ck_assert_int_eq(g_list_length(manifest), 2);
+	ck_assert_int_eq(g_hash_table_size(manifest), 2);
 
-	const cm_manifest_entry_t *e0 = (const cm_manifest_entry_t *) manifest->data;
+	const cm_manifest_entry_t *e0 = g_hash_table_lookup(manifest, "textures/edge/floor01_d.tga");
+	ck_assert_msg(e0 != NULL, "Missing textures/edge/floor01_d.tga");
 	ck_assert_str_eq(e0->hash, "d41d8cd98f00b204e9800998ecf8427e");
 	ck_assert_int_eq(e0->size, 1234);
 	ck_assert_str_eq(e0->path, "textures/edge/floor01_d.tga");
 
-	const cm_manifest_entry_t *e1 = (const cm_manifest_entry_t *) manifest->next->data;
+	const cm_manifest_entry_t *e1 = g_hash_table_lookup(manifest, "sounds/weapons/rg_fire.ogg");
+	ck_assert_msg(e1 != NULL, "Missing sounds/weapons/rg_fire.ogg");
 	ck_assert_str_eq(e1->hash, "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
 	ck_assert_int_eq(e1->size, 5678);
 	ck_assert_str_eq(e1->path, "sounds/weapons/rg_fire.ogg");
@@ -86,9 +88,9 @@ START_TEST(check_Cm_ReadManifest_empty_lines) {
 		"\n"
 	);
 
-	GList *manifest = Cm_ReadManifest("test_empty.mf");
+	GHashTable *manifest = Cm_ReadManifest("test_empty.mf");
 	ck_assert_msg(manifest != NULL, "Cm_ReadManifest returned NULL");
-	ck_assert_int_eq(g_list_length(manifest), 2);
+	ck_assert_int_eq(g_hash_table_size(manifest), 2);
 
 	Cm_FreeManifest(manifest);
 
@@ -96,7 +98,7 @@ START_TEST(check_Cm_ReadManifest_empty_lines) {
 
 START_TEST(check_Cm_ReadManifest_missing_file) {
 
-	GList *manifest = Cm_ReadManifest("nonexistent.mf");
+	GHashTable *manifest = Cm_ReadManifest("nonexistent.mf");
 	ck_assert_msg(manifest == NULL, "Expected NULL for missing manifest");
 
 } END_TEST
@@ -106,9 +108,9 @@ START_TEST(check_Cm_WriteManifest) {
 	const char *content1 = "hello";
 	const char *content2 = "world";
 
-	GList *manifest = NULL;
-	Cm_AddManifestEntry(&manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
-	Cm_AddManifestEntry(&manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
+	GHashTable *manifest = Cm_AllocManifest();
+	Cm_AddManifestEntry(manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
+	Cm_AddManifestEntry(manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
 
 	const int32_t count = Cm_WriteManifest("test_write.mf", manifest);
 	ck_assert_int_eq(count, 2);
@@ -133,32 +135,39 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	const char *content2 = "file2data";
 	const char *content3 = "file3data";
 
-	GList *manifest = NULL;
-	Cm_AddManifestEntry(&manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
-	Cm_AddManifestEntry(&manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
-	Cm_AddManifestEntry(&manifest, "maps/edge.nav", content3, strlen(content3));
+	GHashTable *manifest = Cm_AllocManifest();
+	Cm_AddManifestEntry(manifest, "textures/edge/floor01_d.tga", content1, strlen(content1));
+	Cm_AddManifestEntry(manifest, "sounds/weapons/rg_fire.ogg", content2, strlen(content2));
+	Cm_AddManifestEntry(manifest, "maps/edge.nav", content3, strlen(content3));
 
-	// save original hashes for comparison
-	cm_manifest_entry_t orig[3];
-	GList *e = manifest;
-	for (int32_t i = 0; i < 3; i++, e = e->next) {
-		orig[i] = *(const cm_manifest_entry_t *) e->data;
-	}
+	// save original entries for comparison
+	const cm_manifest_entry_t orig_tex  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "textures/edge/floor01_d.tga"));
+	const cm_manifest_entry_t orig_snd  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "sounds/weapons/rg_fire.ogg"));
+	const cm_manifest_entry_t orig_nav  = *((cm_manifest_entry_t *) g_hash_table_lookup(manifest, "maps/edge.nav"));
 
 	Cm_WriteManifest("test_roundtrip.mf", manifest);
 	Cm_FreeManifest(manifest);
 
-	GList *loaded = Cm_ReadManifest("test_roundtrip.mf");
+	GHashTable *loaded = Cm_ReadManifest("test_roundtrip.mf");
 	ck_assert_msg(loaded != NULL, "Cm_ReadManifest returned NULL after write");
-	ck_assert_int_eq(g_list_length(loaded), 3);
+	ck_assert_int_eq(g_hash_table_size(loaded), 3);
 
-	e = loaded;
-	for (int32_t i = 0; i < 3; i++, e = e->next) {
-		const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
-		ck_assert_str_eq(entry->hash, orig[i].hash);
-		ck_assert_int_eq(entry->size, orig[i].size);
-		ck_assert_str_eq(entry->path, orig[i].path);
-	}
+	const cm_manifest_entry_t *e;
+
+	e = g_hash_table_lookup(loaded, "textures/edge/floor01_d.tga");
+	ck_assert_msg(e != NULL, "Missing textures/edge/floor01_d.tga after roundtrip");
+	ck_assert_str_eq(e->hash, orig_tex.hash);
+	ck_assert_int_eq(e->size, orig_tex.size);
+
+	e = g_hash_table_lookup(loaded, "sounds/weapons/rg_fire.ogg");
+	ck_assert_msg(e != NULL, "Missing sounds/weapons/rg_fire.ogg after roundtrip");
+	ck_assert_str_eq(e->hash, orig_snd.hash);
+	ck_assert_int_eq(e->size, orig_snd.size);
+
+	e = g_hash_table_lookup(loaded, "maps/edge.nav");
+	ck_assert_msg(e != NULL, "Missing maps/edge.nav after roundtrip");
+	ck_assert_str_eq(e->hash, orig_nav.hash);
+	ck_assert_int_eq(e->size, orig_nav.size);
 
 	Cm_FreeManifest(loaded);
 
@@ -170,10 +179,10 @@ START_TEST(check_Cm_CheckManifestEntry) {
 	const char *content = "test file content";
 	write_file("test_asset.tga", content);
 
-	GList *manifest = NULL;
-	Cm_AddManifestEntry(&manifest, "test_asset.tga", content, strlen(content));
+	GHashTable *manifest = Cm_AllocManifest();
+	Cm_AddManifestEntry(manifest, "test_asset.tga", content, strlen(content));
 
-	const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) manifest->data;
+	const cm_manifest_entry_t *entry = g_hash_table_lookup(manifest, "test_asset.tga");
 
 	// local file matches — should return true
 	ck_assert(Cm_CheckManifestEntry(entry));

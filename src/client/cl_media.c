@@ -49,13 +49,16 @@ void Cl_RequestNextDownload(void) {
     if (*cl.config_strings[CS_MANIFEST] != '\0') {
       Cl_CheckOrDownloadFile(cl.config_strings[CS_MANIFEST]);
 
-      GList *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
+      GHashTable *manifest = Cm_ReadManifest(cl.config_strings[CS_MANIFEST]);
       if (!manifest) {
         Com_Error(ERROR_DROP, "Failed to read %s\n", cl.config_strings[CS_MANIFEST]);
       }
 
-      for (GList *e = manifest; e; e = e->next) {
-        const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
+      GHashTableIter iter;
+      gpointer key, val;
+      g_hash_table_iter_init(&iter, manifest);
+      while (g_hash_table_iter_next(&iter, &key, &val)) {
+        const cm_manifest_entry_t *entry = val;
 
         if (Fs_Exists(entry->path)) {
           if (!Cm_CheckManifestEntry(entry)) {

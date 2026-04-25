@@ -35,7 +35,6 @@ quetoo_t quetoo;
 static cvar_t *verbose;
 
 cvar_t *version;
-cvar_t *data_version;
 cvar_t *build;
 cvar_t *dedicated;
 cvar_t *developer;
@@ -320,14 +319,6 @@ static void Init(void) {
   quetoo.Warn = Warn;
 
   Fs_Init(FS_AUTO_LOAD_ARCHIVES);
-
-  void *buf;
-  if (Fs_Load("version", &buf) > 0) {
-    data_version = Cvar_Add("data_version", (char *) buf, CVAR_SERVER_INFO, NULL);
-    Mem_Free(buf);
-  } else {
-    data_version = Cvar_Add("data_version", "-1", CVAR_SERVER_INFO, NULL);
-  }
 
   Thread_Init(threads->integer);
 

@@ -36,7 +36,7 @@
 typedef enum {
   INSTALLER_CHECKING,          ///< Fetches binary version; skips if version == -1
   INSTALLER_UPDATE_AVAILABLE,  ///< Binary is outdated; warns and stops
-  INSTALLER_COMPARING,         ///< Fetches manifest.mf and diffs vs local; skips if data_version == -1
+  INSTALLER_COMPARING,         ///< Fetches remote manifest.mf and diffs against local copy
   INSTALLER_DOWNLOADING,       ///< Parallel file downloads
   INSTALLER_COMMITTING,        ///< Prunes stale files and writes manifest.mf
   INSTALLER_CANCELLED,
@@ -46,7 +46,6 @@ typedef enum {
 
 /**
  * @brief The installer status snapshot.
- * All fields are guarded by @c lock; hold it when reading or writing.
  */
 typedef struct {
 	installer_state_t state;
@@ -61,7 +60,7 @@ typedef struct {
 
 /**
  * @brief Frame callback type for `Installer_Wait`.
- * @details Returning 0 will terminate the installer process and resume startup.
+ * @details Returning non-zero will terminate the installer process and resume startup.
  */
 typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
 

@@ -30,20 +30,38 @@
 #include "installer.h"
 #include "net/net_http.h"
 
+/**
+ * @brief The installer type.
+ * @details The installer runs a dedicated thread that steps through the `installer_state_t`
+ * lifecycle. `Installer_Main` is called on the main thread via `Init`, which pumps an
+ * `Installer_FrameFunction` in loop to show progress. When the `Installer_Main` returns, the
+ * standard `Frame` loop begins.
+ */
 static struct {
-
+  /**
+   * @brief Enforces mutex across the main thread, installer thread, and download threads.
+   */
   SDL_Mutex *mutex;
+
+  /**
+   * @brief The installer thread that advances the state machine.
+   */
   SDL_Thread *thread;
 
-  installer_status_t status;  ///< Shared state; always access under mutex.
+  /**
+   * @brief The remote data manifest.
+   */
+  GHashTable *remote_manifest;
 
-  struct {
-    GList *pending;      ///< cm_manifest_entry_t * remaining to download
-    GList *prune;        ///< g_strdup'd paths to remove on commit
-    char *manifest;      ///< Raw remote manifest bytes to write on commit
-    size_t manifest_len;
-  } locals;              ///< Installer thread-private; never touch from outside.
+  /**
+   * @brief The local data manifest.
+   */
+  GHashTable *local_manifest;
 
+  /**
+   * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
+   */
+  installer_status_t status;
 } installer;
 
 /**
@@ -71,36 +89,51 @@ static int32_t Installer_GetVersion(const char *version_url) {
 }
 
 /**
- * @brief Prunes stale files and writes the cached manifest on a successful update.
+ * @brief Prunes stale files and writes the updated manifest on a successful update.
  * @details Must be called from the installer thread without holding the mutex.
  */
 static void Installer_Commit(void) {
 
-  for (GList *e = installer.locals.prune; e; e = e->next) {
-    const char *path = e->data;
-    char full_path[MAX_OS_PATH];
-    g_snprintf(full_path, sizeof(full_path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, path);
-    if (g_remove(full_path) != 0) {
-      Com_Warn("Failed to remove stale file: %s\n", full_path);
-    } else {
-      Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", path);
+  if (installer.local_manifest) {
+    GHashTableIter iter;
+    gpointer key, val;
+    g_hash_table_iter_init(&iter, installer.local_manifest);
+    while (g_hash_table_iter_next(&iter, &key, &val)) {
+      const cm_manifest_entry_t *entry = val;
+      if (entry->status == ENTRY_STALE) {
+        char full_path[MAX_OS_PATH];
+        g_snprintf(full_path, sizeof(full_path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, entry->path);
+        if (g_remove(full_path) != 0) {
+          Com_Warn("Failed to remove stale file: %s\n", full_path);
+        } else {
+          Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
+        }
+      }
     }
+    Cm_FreeManifest(installer.local_manifest);
+    installer.local_manifest = NULL;
   }
-  g_list_free_full(installer.locals.prune, g_free);
-  installer.locals.prune = NULL;
 
-  if (installer.locals.manifest) {
+  if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
     g_snprintf(mf_path, sizeof(mf_path), "%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR);
+
     FILE *f = g_fopen(mf_path, "wb");
     if (f) {
-      fwrite(installer.locals.manifest, 1, installer.locals.manifest_len, f);
+      GList *keys = g_hash_table_get_keys(installer.remote_manifest);
+      keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
+      for (GList *k = keys; k; k = k->next) {
+        const cm_manifest_entry_t *entry = g_hash_table_lookup(installer.remote_manifest, k->data);
+        fprintf(f, "%s %" G_GINT64_FORMAT " %s\n", entry->hash, entry->size, entry->path);
+      }
+      g_list_free(keys);
       fclose(f);
     } else {
       Com_Warn("Failed to write manifest: %s\n", mf_path);
     }
-    Mem_Free(installer.locals.manifest);
-    installer.locals.manifest = NULL;
+
+    Cm_FreeManifest(installer.remote_manifest);
+    installer.remote_manifest = NULL;
   }
 }
 
@@ -157,10 +190,10 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 }
 
 /**
- * @brief Worker thread for parallel downloads. Pops items from the shared
- * queue until it is empty, cancelled, or a download failure is recorded.
+ * @brief Worker thread for parallel downloads. Iterates the remote manifest for
+ * PENDING entries, claims each by marking it CURRENT, then downloads it.
  */
-static int Installer_DownloadThread(void *data) {
+static int Installer_DownloadThread(void *unused) {
 
   installer_status_t *in = &installer.status;
 
@@ -168,18 +201,30 @@ static int Installer_DownloadThread(void *data) {
 
     SDL_LockMutex(installer.mutex);
 
-    if (installer.locals.pending == NULL || in->state == INSTALLER_CANCELLED) {
+    if (in->state != INSTALLER_DOWNLOADING) {
       SDL_UnlockMutex(installer.mutex);
       break;
     }
 
-    GList *item = installer.locals.pending;
-    installer.locals.pending = item->next;
-
-    const cm_manifest_entry_t *entry = item->data;
-    g_strlcpy(in->current_file, entry->path, sizeof(in->current_file));
+    const cm_manifest_entry_t *entry = NULL;
+    GHashTableIter iter;
+    gpointer key, val;
+    g_hash_table_iter_init(&iter, installer.remote_manifest);
+    while (g_hash_table_iter_next(&iter, &key, &val)) {
+      cm_manifest_entry_t *e = val;
+      if (e->status == ENTRY_PENDING) {
+        e->status = ENTRY_DOWNLOADING;
+        g_strlcpy(in->current_file, e->path, sizeof(in->current_file));
+        entry = e;
+        break;
+      }
+    }
 
     SDL_UnlockMutex(installer.mutex);
+
+    if (!entry) {
+      break;
+    }
 
     const bool ok = Installer_DownloadFile(entry);
 
@@ -188,19 +233,13 @@ static int Installer_DownloadThread(void *data) {
     if (ok) {
       in->files_done++;
       in->kbytes_done += (int32_t) ((entry->size + 1023) / 1024);
+      ((cm_manifest_entry_t *) entry)->status = ENTRY_CURRENT;
     } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
       g_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
-
-      if (installer.locals.pending) {
-        g_list_free_full(installer.locals.pending, Mem_Free);
-        installer.locals.pending = NULL;
-      }
     }
 
     SDL_UnlockMutex(installer.mutex);
-
-    g_list_free_full(item, Mem_Free);
   }
 
   return 0;
@@ -239,13 +278,6 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_COMPARING: {
-        if (data_version->integer == -1) {
-          SDL_LockMutex(installer.mutex);
-          in->state = INSTALLER_DONE;
-          SDL_UnlockMutex(installer.mutex);
-          break;
-        }
-
         void *data = NULL;
         size_t length = 0;
         const int32_t http_status = Net_HttpGet(QUETOO_DATA_MANIFEST_URL, &data, &length);
@@ -258,58 +290,60 @@ static int Installer_Thread(void *unused) {
           break;
         }
 
-        GList *remote = Cm_ParseManifest((const char *) data, length);
+        GHashTable *remote = Cm_ParseManifest((const char *) data, length);
+        Mem_Free(data);
 
-        GHashTable *remote_table = g_hash_table_new(g_str_hash, g_str_equal);
-        for (GList *e = remote; e; e = e->next) {
-          const cm_manifest_entry_t *entry = e->data;
-          g_hash_table_insert(remote_table, (gpointer) entry->path, (gpointer) entry);
+        {
+          GHashTableIter iter;
+          gpointer key, val;
+          g_hash_table_iter_init(&iter, remote);
+          while (g_hash_table_iter_next(&iter, &key, &val)) {
+            ((cm_manifest_entry_t *) val)->status = ENTRY_PENDING;
+          }
         }
 
-        GHashTable *local_table = g_hash_table_new(g_str_hash, g_str_equal);
-        GList *local = Cm_ReadManifest("manifest.mf");
-        for (GList *e = local; e; e = e->next) {
-          const cm_manifest_entry_t *entry = e->data;
-          g_hash_table_insert(local_table, (gpointer) entry->path, (gpointer) entry);
+        GHashTable *local = Cm_ReadManifest("manifest.mf");
+
+        if (local) {
+          GHashTableIter iter;
+          gpointer key, val;
+          g_hash_table_iter_init(&iter, local);
+          while (g_hash_table_iter_next(&iter, &key, &val)) {
+            ((cm_manifest_entry_t *) val)->status = ENTRY_STALE;
+          }
         }
 
-        GList *pending = NULL;
+        int32_t files_total = 0;
         int32_t kbytes_total = 0;
-        for (GList *e = remote; e; e = e->next) {
-          cm_manifest_entry_t *entry = e->data;
-          const cm_manifest_entry_t *local_entry = g_hash_table_lookup(local_table, entry->path);
-          if (!local_entry || g_strcmp0(local_entry->hash, entry->hash) != 0) {
-            pending = g_list_append(pending, entry);
-            kbytes_total += (int32_t) ((entry->size + 1023) / 1024);
-          } else {
-            Mem_Free(entry);
+        {
+          GHashTableIter iter;
+          gpointer key, val;
+          g_hash_table_iter_init(&iter, remote);
+          while (g_hash_table_iter_next(&iter, &key, &val)) {
+            cm_manifest_entry_t *re = val;
+            const cm_manifest_entry_t *le = local ? g_hash_table_lookup(local, re->path) : NULL;
+            if (le) {
+              ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
+              if (g_strcmp0(le->hash, re->hash) == 0) {
+                re->status = ENTRY_CURRENT;
+              }
+            }
+            if (re->status == ENTRY_PENDING) {
+              files_total++;
+              kbytes_total += (int32_t) ((re->size + 1023) / 1024);
+            }
           }
         }
-        g_list_free(remote);
 
-        GList *prune = NULL;
-        for (GList *e = local; e; e = e->next) {
-          const cm_manifest_entry_t *entry = e->data;
-          if (!g_hash_table_contains(remote_table, entry->path)) {
-            prune = g_list_append(prune, g_strdup(entry->path));
-          }
-        }
-
-        g_hash_table_destroy(remote_table);
-        g_hash_table_destroy(local_table);
-        Cm_FreeManifest(local);
-
-        installer.locals.pending = pending;
-        installer.locals.prune = prune;
-        installer.locals.manifest = data;
-        installer.locals.manifest_len = length;
+        installer.remote_manifest = remote;
+        installer.local_manifest = local;
 
         SDL_LockMutex(installer.mutex);
-        if (installer.locals.pending == NULL) {
+        if (files_total == 0) {
           in->state = INSTALLER_COMMITTING;
         } else {
           in->state = INSTALLER_DOWNLOADING;
-          in->files_total = (int32_t) g_list_length(installer.locals.pending);
+          in->files_total = files_total;
           in->kbytes_total = kbytes_total;
           in->files_done = 0;
           in->kbytes_done = 0;
@@ -329,15 +363,6 @@ static int Installer_Thread(void *unused) {
         SDL_LockMutex(installer.mutex);
         if (in->state == INSTALLER_DOWNLOADING) {
           in->state = INSTALLER_COMMITTING;
-        } else {
-          g_list_free_full(installer.locals.prune, g_free);
-          installer.locals.prune = NULL;
-          Mem_Free(installer.locals.manifest);
-          installer.locals.manifest = NULL;
-        }
-        if (installer.locals.pending) {
-          g_list_free_full(installer.locals.pending, Mem_Free);
-          installer.locals.pending = NULL;
         }
         SDL_UnlockMutex(installer.mutex);
       }
@@ -423,13 +448,10 @@ void Installer_Shutdown(void) {
     installer.mutex = NULL;
   }
 
-  g_list_free_full(installer.locals.pending, Mem_Free);
-  installer.locals.pending = NULL;
+  Cm_FreeManifest(installer.remote_manifest);
+  installer.remote_manifest = NULL;
 
-  g_list_free_full(installer.locals.prune, g_free);
-  installer.locals.prune = NULL;
-
-  Mem_Free(installer.locals.manifest);
-  installer.locals.manifest = NULL;
+  Cm_FreeManifest(installer.local_manifest);
+  installer.local_manifest = NULL;
 }
 

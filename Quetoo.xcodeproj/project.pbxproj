@@ -707,8 +707,6 @@
 		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
 		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
-		CEEEEEA42F9C42A100665A30 /* installer-s3.h in Headers */ = {isa = PBXBuildFile; fileRef = CEEEEEA22F9C42A100665A30 /* installer-s3.h */; };
-		CEEEEEA52F9C42A100665A30 /* installer-s3.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEEEEA32F9C42A100665A30 /* installer-s3.c */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
@@ -1871,8 +1869,6 @@
 		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
-		CEEEEEA22F9C42A100665A30 /* installer-s3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "installer-s3.h"; sourceTree = "<group>"; };
-		CEEEEEA32F9C42A100665A30 /* installer-s3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = "installer-s3.c"; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
@@ -2342,8 +2338,6 @@
 				CE12D6771C5C58C300CD0B13 /* image.c */,
 				CEC74B3725C8EE94009C6218 /* installer.h */,
 				CEC74B3825C8EE94009C6218 /* installer.c */,
-				CEEEEEA22F9C42A100665A30 /* installer-s3.h */,
-				CEEEEEA32F9C42A100665A30 /* installer-s3.c */,
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
 				CE12D6891C5C58C300CD0B13 /* mem.c */,
 				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
@@ -3649,7 +3643,6 @@
 				CE04F18B25CADF6900C31433 /* filesystem.h in Headers */,
 				CE04F1B025CADF6C00C31433 /* image.h in Headers */,
 				CE04F1D525CADF6F00C31433 /* installer.h in Headers */,
-				CEEEEEA42F9C42A100665A30 /* installer-s3.h in Headers */,
 				CE04F21E25CADF7700C31433 /* mem_buf.h in Headers */,
 				CE04F24325CADF7A00C31433 /* mem.h in Headers */,
 				CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */,
@@ -4839,7 +4832,6 @@
 				CE04F2B225CADF8D00C31433 /* filesystem.c in Sources */,
 				CE04F2D725CADF9000C31433 /* image.c in Sources */,
 				CE04F2FC25CADF9300C31433 /* installer.c in Sources */,
-				CEEEEEA52F9C42A100665A30 /* installer-s3.c in Sources */,
 				CE04F32125CADF9800C31433 /* mem_buf.c in Sources */,
 				CE04F34625CADF9B00C31433 /* mem.c in Sources */,
 				CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */,

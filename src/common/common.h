@@ -202,7 +202,6 @@ void Com_InitSubsystem(uint32_t s);
 void Com_QuitSubsystem(uint32_t s);
 
 extern cvar_t *version;
-extern cvar_t *data_version;
 extern cvar_t *build;
 extern cvar_t *dedicated;
 extern cvar_t *developer;
