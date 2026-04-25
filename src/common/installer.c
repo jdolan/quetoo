@@ -24,10 +24,10 @@
 
 #include <glib/gstdio.h>
 
+#include "collision/cm_manifest.h"
 #include "console.h"
 #include "filesystem.h"
 #include "installer.h"
-#include "installer-s3.h"
 #include "net/net_http.h"
 
 static struct {
@@ -35,9 +35,15 @@ static struct {
   SDL_Mutex *mutex;
   SDL_Thread *thread;
 
-  installer_status_t status;
+  installer_status_t status;  ///< Shared state; always access under mutex.
 
-  GList *pending;
+  struct {
+    GList *pending;      ///< cm_manifest_entry_t * remaining to download
+    GList *prune;        ///< g_strdup'd paths to remove on commit
+    char *manifest;      ///< Raw remote manifest bytes to write on commit
+    size_t manifest_len;
+  } locals;              ///< Installer thread-private; never touch from outside.
+
 } installer;
 
 /**
@@ -65,41 +71,94 @@ static int32_t Installer_GetVersion(const char *version_url) {
 }
 
 /**
- * @return True if the object should be [re]downloaded, false if it is up to date.
+ * @brief Prunes stale files and writes the cached manifest on a successful update.
+ * @details Must be called from the installer thread without holding the mutex.
  */
-static bool Installer_IsPending(const s3_object_t *obj) {
+static void Installer_Commit(void) {
 
-  char path[MAX_OS_PATH];
-  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, obj->key);
-
-  bool result = true;
-
-  FILE *f = g_fopen(path, "rb");
-  if (f) {
-    if (strchr(obj->etag, '-') == NULL) {
-      GChecksum *checksum = g_checksum_new(G_CHECKSUM_MD5);
-      uint8_t buf[65536];
-      size_t n;
-      while ((n = fread(buf, 1, sizeof(buf), f)) > 0) {
-        g_checksum_update(checksum, buf, (gssize) n);
-      }
-      char md5[MAX_QPATH];
-      g_strlcpy(md5, g_checksum_get_string(checksum), sizeof(md5));
-      g_checksum_free(checksum);
-      result = g_strcmp0(md5, obj->etag);
+  for (GList *e = installer.locals.prune; e; e = e->next) {
+    const char *path = e->data;
+    char full_path[MAX_OS_PATH];
+    g_snprintf(full_path, sizeof(full_path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, path);
+    if (g_remove(full_path) != 0) {
+      Com_Warn("Failed to remove stale file: %s\n", full_path);
     } else {
-      fseek(f, 0, SEEK_END);
-      result = ftell(f) != obj->size;
+      Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", path);
     }
   }
+  g_list_free_full(installer.locals.prune, g_free);
+  installer.locals.prune = NULL;
 
+  if (installer.locals.manifest) {
+    char mf_path[MAX_OS_PATH];
+    g_snprintf(mf_path, sizeof(mf_path), "%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR);
+    FILE *f = g_fopen(mf_path, "wb");
+    if (f) {
+      fwrite(installer.locals.manifest, 1, installer.locals.manifest_len, f);
+      fclose(f);
+    } else {
+      Com_Warn("Failed to write manifest: %s\n", mf_path);
+    }
+    Mem_Free(installer.locals.manifest);
+    installer.locals.manifest = NULL;
+  }
+}
+
+/**
+ * @brief Downloads a single data file to the data directory.
+ * @return True on success, false on failure.
+ */
+static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
+
+  gchar *encoded = g_uri_escape_string(entry->path, "/", FALSE);
+  char url[MAX_OS_PATH * 2];
+  g_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s", encoded);
+  g_free(encoded);
+
+  void *data = NULL;
+  size_t length = 0;
+
+  const int32_t status = Net_HttpGet(url, &data, &length);
+  if (status != 200) {
+    Com_Warn("Downloading %s failed: HTTP %d\n", url, status);
+    Mem_Free(data);
+    return false;
+  }
+
+  char path[MAX_OS_PATH];
+  g_snprintf(path, sizeof(path), "%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, entry->path);
+
+  gchar *dir = g_path_get_dirname(path);
+  const int mkdir_result = g_mkdir_with_parents(dir, 0755);
+  g_free(dir);
+  if (mkdir_result != 0) {
+    Com_Warn("Failed to create directory for: %s\n", path);
+    Mem_Free(data);
+    return false;
+  }
+
+  FILE *f = g_fopen(path, "wb");
+  if (!f) {
+    Com_Warn("Failed to open for writing: %s\n", path);
+    Mem_Free(data);
+    return false;
+  }
+
+  const size_t written = fwrite(data, 1, length, f);
   fclose(f);
-  return result;
+  Mem_Free(data);
+
+  if (written != length) {
+    Com_Warn("Failed to write %s: %zu of %zu bytes\n", path, written, length);
+    return false;
+  }
+
+  return true;
 }
 
 /**
  * @brief Worker thread for parallel downloads. Pops items from the shared
- * queue until it is empty or a download failure is recorded.
+ * queue until it is empty, cancelled, or a download failure is recorded.
  */
 static int Installer_DownloadThread(void *data) {
 
@@ -109,32 +168,34 @@ static int Installer_DownloadThread(void *data) {
 
     SDL_LockMutex(installer.mutex);
 
-    if (installer.pending == NULL) {
+    if (installer.locals.pending == NULL || in->state == INSTALLER_CANCELLED) {
       SDL_UnlockMutex(installer.mutex);
       break;
     }
 
-    GList *item = installer.pending;
-    installer.pending = item->next;
+    GList *item = installer.locals.pending;
+    installer.locals.pending = item->next;
 
-    const s3_object_t *obj = item->data;
-    g_strlcpy(in->current_file, obj->key, sizeof(in->current_file));
+    const cm_manifest_entry_t *entry = item->data;
+    g_strlcpy(in->current_file, entry->path, sizeof(in->current_file));
 
     SDL_UnlockMutex(installer.mutex);
 
-    const bool ok = S3_GetObject(obj);
+    const bool ok = Installer_DownloadFile(entry);
 
     SDL_LockMutex(installer.mutex);
 
     if (ok) {
       in->files_done++;
-      in->kbytes_done += (int32_t) ((obj->size + 1023) / 1024);
-    } else if (in->state == INSTALLER_DOWNLOADING_DATA) {
+      in->kbytes_done += (int32_t) ((entry->size + 1023) / 1024);
+    } else if (in->state == INSTALLER_DOWNLOADING) {
       in->state = INSTALLER_ERROR;
-      g_snprintf(in->error, sizeof(in->error), "Download failed: %s", obj->key);
+      g_snprintf(in->error, sizeof(in->error), "Download failed: %s", entry->path);
 
-      g_list_free_full(installer.pending, Mem_Free);
-      installer.pending = NULL;
+      if (installer.locals.pending) {
+        g_list_free_full(installer.locals.pending, Mem_Free);
+        installer.locals.pending = NULL;
+      }
     }
 
     SDL_UnlockMutex(installer.mutex);
@@ -157,86 +218,98 @@ static int Installer_Thread(void *unused) {
 
     switch (in->state) {
 
-      case INSTALLER_INIT_BIN:
-        SDL_LockMutex(installer.mutex);
+      case INSTALLER_CHECKING: {
         if (version->integer == -1) {
+          SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_DONE;
-        } else {
-          in->state = INSTALLER_CHECKING_BIN;
+          SDL_UnlockMutex(installer.mutex);
+          break;
         }
-        SDL_UnlockMutex(installer.mutex);
-        break;
-
-      case INSTALLER_CHECKING_BIN: {
         const int32_t v = Installer_GetVersion(QUETOO_VERSION_URL);
         SDL_LockMutex(installer.mutex);
         if (v < 0) {
           in->state = INSTALLER_ERROR;
           g_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_VERSION_URL);
         } else {
-          in->versions.bin = v;
-          if (in->versions.bin < version->integer) {
-            in->state = INSTALLER_UPDATE_AVAILABLE_BIN;
-          } else {
-            in->state = INSTALLER_INIT_DATA;
-          }
+          in->bin_version = v;
+          in->state = in->bin_version > version->integer ? INSTALLER_UPDATE_AVAILABLE : INSTALLER_COMPARING;
         }
         SDL_UnlockMutex(installer.mutex);
       }
         break;
 
-      case INSTALLER_INIT_DATA:
-        SDL_LockMutex(installer.mutex);
+      case INSTALLER_COMPARING: {
         if (data_version->integer == -1) {
+          SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_DONE;
-        } else {
-          in->state = INSTALLER_CHECKING_DATA;
+          SDL_UnlockMutex(installer.mutex);
+          break;
         }
-        SDL_UnlockMutex(installer.mutex);
-        break;
 
-      case INSTALLER_CHECKING_DATA: {
-        const int32_t v = Installer_GetVersion(QUETOO_DATA_VERSION_URL);
-        SDL_LockMutex(installer.mutex);
-        if (v < 0) {
+        void *data = NULL;
+        size_t length = 0;
+        const int32_t http_status = Net_HttpGet(QUETOO_DATA_MANIFEST_URL, &data, &length);
+        if (http_status != 200 || !data) {
+          SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
-          g_snprintf(in->error, sizeof(in->error), "Failed to fetch %s", QUETOO_DATA_VERSION_URL);
-        } else {
-          in->versions.data = v;
-          if (in->versions.data < data_version->integer) {
-            in->state = INSTALLER_COMPARING_DATA;
-          } else {
-            in->state = INSTALLER_DONE;
-          }
+          g_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
+          SDL_UnlockMutex(installer.mutex);
+          Mem_Free(data);
+          break;
         }
-        SDL_UnlockMutex(installer.mutex);
-      }
-        break;
 
-      case INSTALLER_COMPARING_DATA: {
-        GList *list = S3_ListObjects("quetoo-data");
+        GList *remote = Cm_ParseManifest((const char *) data, length);
+
+        GHashTable *remote_table = g_hash_table_new(g_str_hash, g_str_equal);
+        for (GList *e = remote; e; e = e->next) {
+          const cm_manifest_entry_t *entry = e->data;
+          g_hash_table_insert(remote_table, (gpointer) entry->path, (gpointer) entry);
+        }
+
+        GHashTable *local_table = g_hash_table_new(g_str_hash, g_str_equal);
+        GList *local = Cm_ReadManifest("manifest.mf");
+        for (GList *e = local; e; e = e->next) {
+          const cm_manifest_entry_t *entry = e->data;
+          g_hash_table_insert(local_table, (gpointer) entry->path, (gpointer) entry);
+        }
+
+        GList *pending = NULL;
         int32_t kbytes_total = 0;
-
-        GList *it = list;
-        while (it) {
-          GList *next = it->next;
-          const s3_object_t *obj = it->data;
-          if (Installer_IsPending(obj)) {
-            kbytes_total += (int32_t) ((obj->size + 1023) / 1024);
+        for (GList *e = remote; e; e = e->next) {
+          cm_manifest_entry_t *entry = e->data;
+          const cm_manifest_entry_t *local_entry = g_hash_table_lookup(local_table, entry->path);
+          if (!local_entry || g_strcmp0(local_entry->hash, entry->hash) != 0) {
+            pending = g_list_append(pending, entry);
+            kbytes_total += (int32_t) ((entry->size + 1023) / 1024);
           } else {
-            list = g_list_remove_link(list, it);
-            g_list_free_full(it, Mem_Free);
+            Mem_Free(entry);
           }
-          it = next;
         }
+        g_list_free(remote);
+
+        GList *prune = NULL;
+        for (GList *e = local; e; e = e->next) {
+          const cm_manifest_entry_t *entry = e->data;
+          if (!g_hash_table_contains(remote_table, entry->path)) {
+            prune = g_list_append(prune, g_strdup(entry->path));
+          }
+        }
+
+        g_hash_table_destroy(remote_table);
+        g_hash_table_destroy(local_table);
+        Cm_FreeManifest(local);
+
+        installer.locals.pending = pending;
+        installer.locals.prune = prune;
+        installer.locals.manifest = data;
+        installer.locals.manifest_len = length;
 
         SDL_LockMutex(installer.mutex);
-        installer.pending = list;
-        if (installer.pending == NULL) {
-          in->state = INSTALLER_DONE;
+        if (installer.locals.pending == NULL) {
+          in->state = INSTALLER_COMMITTING;
         } else {
-          in->state = INSTALLER_DOWNLOADING_DATA;
-          in->files_total = (int32_t) g_list_length(installer.pending);
+          in->state = INSTALLER_DOWNLOADING;
+          in->files_total = (int32_t) g_list_length(installer.locals.pending);
           in->kbytes_total = kbytes_total;
           in->files_done = 0;
           in->kbytes_done = 0;
@@ -245,7 +318,7 @@ static int Installer_Thread(void *unused) {
       }
         break;
 
-      case INSTALLER_DOWNLOADING_DATA: {
+      case INSTALLER_DOWNLOADING: {
         SDL_Thread *threads[8];
         for (size_t i = 0; i < lengthof(threads); i++) {
           threads[i] = SDL_CreateThread(Installer_DownloadThread, "Installer_DownloadThread", NULL);
@@ -254,17 +327,30 @@ static int Installer_Thread(void *unused) {
           SDL_WaitThread(threads[i], NULL);
         }
         SDL_LockMutex(installer.mutex);
-        if (in->state == INSTALLER_DOWNLOADING_DATA) {
-          in->state = INSTALLER_DONE;
+        if (in->state == INSTALLER_DOWNLOADING) {
+          in->state = INSTALLER_COMMITTING;
         } else {
-          // We already have our error
+          g_list_free_full(installer.locals.prune, g_free);
+          installer.locals.prune = NULL;
+          Mem_Free(installer.locals.manifest);
+          installer.locals.manifest = NULL;
         }
-        g_list_free_full(installer.pending, Mem_Free);
+        if (installer.locals.pending) {
+          g_list_free_full(installer.locals.pending, Mem_Free);
+          installer.locals.pending = NULL;
+        }
         SDL_UnlockMutex(installer.mutex);
       }
         break;
 
-      case INSTALLER_UPDATE_AVAILABLE_BIN:
+      case INSTALLER_COMMITTING:
+        Installer_Commit();
+        SDL_LockMutex(installer.mutex);
+        in->state = INSTALLER_DONE;
+        SDL_UnlockMutex(installer.mutex);
+        break;
+
+      case INSTALLER_UPDATE_AVAILABLE:
       case INSTALLER_CANCELLED:
       case INSTALLER_DONE:
       case INSTALLER_ERROR:
@@ -283,6 +369,7 @@ static int Installer_Thread(void *unused) {
 void Installer_Init(Installer_FrameFunction frame) {
 
   memset(&installer, 0, sizeof(installer));
+  installer.status.state = INSTALLER_CHECKING;
 
   installer.mutex = SDL_CreateMutex();
   assert(installer.mutex);
@@ -311,8 +398,10 @@ void Installer_Init(Installer_FrameFunction frame) {
   SDL_UnlockMutex(installer.mutex);
 
   SDL_WaitThread(installer.thread, NULL);
+  installer.thread = NULL;
 
   SDL_DestroyMutex(installer.mutex);
+  installer.mutex = NULL;
 }
 
 /**
@@ -320,8 +409,27 @@ void Installer_Init(Installer_FrameFunction frame) {
  */
 void Installer_Shutdown(void) {
 
+  if (installer.thread) {
+    SDL_LockMutex(installer.mutex);
+    if (installer.status.state < INSTALLER_DONE) {
+      installer.status.state = INSTALLER_CANCELLED;
+    }
+    SDL_UnlockMutex(installer.mutex);
 
-  // TODO: Lock mutex, cancel installer so that thread terminates, wait?
+    SDL_WaitThread(installer.thread, NULL);
+    installer.thread = NULL;
 
+    SDL_DestroyMutex(installer.mutex);
+    installer.mutex = NULL;
+  }
+
+  g_list_free_full(installer.locals.pending, Mem_Free);
+  installer.locals.pending = NULL;
+
+  g_list_free_full(installer.locals.prune, g_free);
+  installer.locals.prune = NULL;
+
+  Mem_Free(installer.locals.manifest);
+  installer.locals.manifest = NULL;
 }
 

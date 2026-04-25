@@ -185,11 +185,11 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
 	SDL_UnlockMutex(self->pendingImagesLock);
 
 	switch (in->state) {
-    case INSTALLER_CHECKING_BIN:
+    case INSTALLER_CHECKING:
       $(self->progressBar, setLabelFormat, "Checking for binary updates\u2026");
       $(self->progressBar, setValue, 0.0);
       break;
-    case INSTALLER_UPDATE_AVAILABLE_BIN: {
+    case INSTALLER_UPDATE_AVAILABLE: {
       const Dialog dialog = {
         .message = "A new version of Quetoo is available. Download now?",
         .ok = "Yes",
@@ -201,13 +201,13 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
       $((ViewController *) self, addChildViewController, viewController);
     }
       break;
-		case INSTALLER_CHECKING_DATA:
-			$(self->progressBar, setLabelFormat, "Checking for data updates\u2026");
-			$(self->progressBar, setValue, 0.0);
-			break;
-		case INSTALLER_COMPARING_DATA:
+		case INSTALLER_COMPARING:
 			$(self->progressBar, setLabelFormat, "Comparing data files\u2026");
 			$(self->progressBar, setValue, 0.0);
+			break;
+		case INSTALLER_COMMITTING:
+			$(self->progressBar, setLabelFormat, "Committing update\u2026");
+			$(self->progressBar, setValue, 99.0);
 			break;
 		case INSTALLER_DONE:
 			$(self->progressBar, setLabelFormat, "Data is up to date.");
@@ -217,7 +217,7 @@ static void setStatus(UpdateViewController *self, const installer_status_t *in) 
 			$(self->progressBar, setLabelFormat, in->error);
 			$(self->progressBar, setValue, 0.0);
 			break;
-		case INSTALLER_DOWNLOADING_DATA: {
+		case INSTALLER_DOWNLOADING: {
 			double pct = 0.0;
 			if (in->kbytes_total > 0) {
 				pct = 100.0 * in->kbytes_done / in->kbytes_total;

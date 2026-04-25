@@ -732,23 +732,23 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
 
   if (in->state != last.state || strcmp(in->current_file, last.current_file)) {
     switch (in->state) {
-      case INSTALLER_CHECKING_BIN:
+      case INSTALLER_CHECKING:
         Com_Print("Checking binary version\u2026\n");
         break;
-      case INSTALLER_UPDATE_AVAILABLE_BIN:
+      case INSTALLER_UPDATE_AVAILABLE:
         Com_Warn("A new version of Quetoo is available.\n"
                  "Download it at: https://github.com/jdolan/quetoo/releases/latest\n"
                  "Your server will not be public until you update.\n");
         Cvar_ForceSetInteger("sv_public", 0);
         break;
-      case INSTALLER_CHECKING_DATA:
-        Com_Print("Checking data version\u2026\n");
-        break;
-      case INSTALLER_COMPARING_DATA:
+      case INSTALLER_COMPARING:
         Com_Print("Comparing data with remote\u2026\n");
         break;
-      case INSTALLER_DOWNLOADING_DATA:
+      case INSTALLER_DOWNLOADING:
         Com_Print("Downloading %s\u2026\n", in->current_file);
+        break;
+      case INSTALLER_COMMITTING:
+        Com_Print("Committing update\u2026\n");
         break;
       case INSTALLER_CANCELLED:
         Com_Print("Update cancelled.\n");

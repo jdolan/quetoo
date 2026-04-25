@@ -53,8 +53,8 @@ static void write_file(const char *path, const char *content) {
 START_TEST(check_Cm_ReadManifest) {
 
 	write_file("test.mf",
-		"d41d8cd98f00b204e9800998ecf8427e textures/edge/floor01_d.tga\n"
-		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 sounds/weapons/rg_fire.ogg\n"
+		"d41d8cd98f00b204e9800998ecf8427e 1234 textures/edge/floor01_d.tga\n"
+		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 5678 sounds/weapons/rg_fire.ogg\n"
 	);
 
 	GList *manifest = Cm_ReadManifest("test.mf");
@@ -62,12 +62,14 @@ START_TEST(check_Cm_ReadManifest) {
 	ck_assert_int_eq(g_list_length(manifest), 2);
 
 	const cm_manifest_entry_t *e0 = (const cm_manifest_entry_t *) manifest->data;
-	ck_assert_str_eq(e0->path, "textures/edge/floor01_d.tga");
 	ck_assert_str_eq(e0->hash, "d41d8cd98f00b204e9800998ecf8427e");
+	ck_assert_int_eq(e0->size, 1234);
+	ck_assert_str_eq(e0->path, "textures/edge/floor01_d.tga");
 
 	const cm_manifest_entry_t *e1 = (const cm_manifest_entry_t *) manifest->next->data;
-	ck_assert_str_eq(e1->path, "sounds/weapons/rg_fire.ogg");
 	ck_assert_str_eq(e1->hash, "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6");
+	ck_assert_int_eq(e1->size, 5678);
+	ck_assert_str_eq(e1->path, "sounds/weapons/rg_fire.ogg");
 
 	Cm_FreeManifest(manifest);
 
@@ -77,10 +79,10 @@ START_TEST(check_Cm_ReadManifest_empty_lines) {
 
 	write_file("test_empty.mf",
 		"\n"
-		"d41d8cd98f00b204e9800998ecf8427e textures/foo.tga\n"
+		"d41d8cd98f00b204e9800998ecf8427e 100 textures/foo.tga\n"
 		"\n"
 		"\n"
-		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 sounds/bar.ogg\n"
+		"a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6 200 sounds/bar.ogg\n"
 		"\n"
 	);
 
@@ -117,9 +119,9 @@ START_TEST(check_Cm_WriteManifest) {
 	void *data = NULL;
 	const int64_t len = Fs_Load("test_write.mf", &data);
 	ck_assert_msg(len > 0, "Failed to load written manifest");
-	ck_assert_msg(strstr((const char *) data, "5d41402abc4b2a76b9719d911017c592 textures/edge/floor01_d.tga") != NULL,
+	ck_assert_msg(strstr((const char *) data, "5d41402abc4b2a76b9719d911017c592 5 textures/edge/floor01_d.tga") != NULL,
 		"Missing first entry in written manifest");
-	ck_assert_msg(strstr((const char *) data, "7d793037a0760186574b0282f2f435e7 sounds/weapons/rg_fire.ogg") != NULL,
+	ck_assert_msg(strstr((const char *) data, "7d793037a0760186574b0282f2f435e7 5 sounds/weapons/rg_fire.ogg") != NULL,
 		"Missing second entry in written manifest");
 	Fs_Free(data);
 
@@ -153,8 +155,9 @@ START_TEST(check_Cm_Manifest_roundtrip) {
 	e = loaded;
 	for (int32_t i = 0; i < 3; i++, e = e->next) {
 		const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
-		ck_assert_str_eq(entry->path, orig[i].path);
 		ck_assert_str_eq(entry->hash, orig[i].hash);
+		ck_assert_int_eq(entry->size, orig[i].size);
+		ck_assert_str_eq(entry->path, orig[i].path);
 	}
 
 	Cm_FreeManifest(loaded);

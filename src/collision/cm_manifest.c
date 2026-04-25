@@ -44,6 +44,7 @@ void Cm_AddManifestEntry(GList **manifest, const char *path, const void *data, s
 
 	cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
 	g_strlcpy(entry->path, path, sizeof(entry->path));
+	entry->size = (int64_t) len;
 	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
 
 	*manifest = g_list_append(*manifest, entry);
@@ -86,13 +87,60 @@ int32_t Cm_WriteManifest(const char *path, GList *manifest) {
 	int32_t count = 0;
 	for (GList *e = manifest; e; e = e->next) {
 		const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
-		Fs_Print(file, "%s %s\n", entry->hash, entry->path);
+		Fs_Print(file, "%s %" G_GINT64_FORMAT " %s\n", entry->hash, entry->size, entry->path);
 		count++;
 	}
 
 	Fs_Close(file);
 
 	return count;
+}
+
+/**
+ * @brief Parses a manifest from an in-memory buffer.
+ */
+GList *Cm_ParseManifest(const char *data, size_t len) {
+
+	if (!data || len == 0) {
+		return NULL;
+	}
+
+	GList *manifest = NULL;
+
+	gchar **lines = g_strsplit((const char *) data, "\n", -1);
+
+	for (gchar **line = lines; *line; line++) {
+		g_strstrip(*line);
+
+		if (**line == '\0') {
+			continue;
+		}
+
+		char *space1 = strchr(*line, ' ');
+		if (!space1) {
+			Com_Warn("Malformed manifest line: %s\n", *line);
+			continue;
+		}
+		*space1 = '\0';
+
+		char *space2 = strchr(space1 + 1, ' ');
+		if (!space2) {
+			Com_Warn("Malformed manifest line: %s\n", *line);
+			continue;
+		}
+		*space2 = '\0';
+
+		cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
+		g_strlcpy(entry->hash, *line, sizeof(entry->hash));
+		entry->size = (int64_t) g_ascii_strtoll(space1 + 1, NULL, 10);
+		g_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
+
+		manifest = g_list_append(manifest, entry);
+	}
+
+	g_strfreev(lines);
+
+	return manifest;
 }
 
 /**
@@ -106,34 +154,8 @@ GList *Cm_ReadManifest(const char *path) {
 		return NULL;
 	}
 
-	GList *manifest = NULL;
-
-	gchar **lines = g_strsplit((const char *) data, "\n", -1);
+	GList *manifest = Cm_ParseManifest((const char *) data, (size_t) len);
 	Fs_Free(data);
-
-	for (gchar **line = lines; *line; line++) {
-		g_strstrip(*line);
-
-		if (**line == '\0') {
-			continue;
-		}
-
-		char *space = strchr(*line, ' ');
-		if (!space) {
-			Com_Warn("Malformed manifest line: %s\n", *line);
-			continue;
-		}
-
-		*space = '\0';
-
-		cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
-		g_strlcpy(entry->path, space + 1, sizeof(entry->path));
-		g_strlcpy(entry->hash, *line, sizeof(entry->hash));
-
-		manifest = g_list_append(manifest, entry);
-	}
-
-	g_strfreev(lines);
 
 	return manifest;
 }

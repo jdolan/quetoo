@@ -27,19 +27,18 @@
 
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
 #define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/versions/" BUILD
-#define QUETOO_DATA_VERSION_URL "https://quetoo-data.s3.amazonaws.com/version"
+#define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
+#define QUETOO_DATA_MANIFEST_URL QUETOO_DATA_BASE_URL "/manifest.mf"
 
 /**
  * @brief The installer lifecycle.
  */
 typedef enum {
-  INSTALLER_INIT_BIN,
-  INSTALLER_CHECKING_BIN,
-  INSTALLER_UPDATE_AVAILABLE_BIN,
-  INSTALLER_INIT_DATA,
-  INSTALLER_CHECKING_DATA,
-  INSTALLER_COMPARING_DATA,
-  INSTALLER_DOWNLOADING_DATA,
+  INSTALLER_CHECKING,          ///< Fetches binary version; skips if version == -1
+  INSTALLER_UPDATE_AVAILABLE,  ///< Binary is outdated; warns and stops
+  INSTALLER_COMPARING,         ///< Fetches manifest.mf and diffs vs local; skips if data_version == -1
+  INSTALLER_DOWNLOADING,       ///< Parallel file downloads
+  INSTALLER_COMMITTING,        ///< Prunes stale files and writes manifest.mf
   INSTALLER_CANCELLED,
   INSTALLER_DONE,
   INSTALLER_ERROR,
@@ -51,10 +50,7 @@ typedef enum {
  */
 typedef struct {
 	installer_state_t state;
-  struct {
-    int32_t bin;
-    int32_t data;
-  } versions;
+  int32_t bin_version;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;

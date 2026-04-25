@@ -25,10 +25,12 @@
 
 /**
  * @brief A single entry in a map manifest.
+ * Fields are ordered to match the on-disk format: <hash> <size> <path>
  */
 typedef struct {
-	char path[MAX_QPATH];
 	char hash[33]; // 32 hex chars + NUL (MD5)
+	int64_t size;  // file size in bytes
+	char path[MAX_QPATH];
 } cm_manifest_entry_t;
 
 /**
@@ -54,6 +56,15 @@ bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry);
  * @return The number of entries written, or -1 on failure.
  */
 int32_t Cm_WriteManifest(const char *path, GList *manifest);
+
+/**
+ * @brief Parses a manifest from an in-memory buffer.
+ * @details The buffer must be NUL-terminated (or zero-padded past @c len).
+ * @param data The manifest text data.
+ * @param len The length of @c data in bytes.
+ * @return A GList of cm_manifest_entry_t, or NULL if the data is empty or unparseable.
+ */
+GList *Cm_ParseManifest(const char *data, size_t len);
 
 /**
  * @brief Reads a manifest file and returns a GList of cm_manifest_entry_t.
