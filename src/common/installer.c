@@ -414,6 +414,8 @@ void Installer_Init(Installer_FrameFunction frame) {
     if (frame(&s)) {
       break;
     }
+
+    SDL_Delay(1);
   }
 
   SDL_LockMutex(installer.mutex);
