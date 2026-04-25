@@ -258,12 +258,6 @@ static int Installer_Thread(void *unused) {
     switch (in->state) {
 
       case INSTALLER_CHECKING: {
-        if (version->integer == -1) {
-          SDL_LockMutex(installer.mutex);
-          in->state = INSTALLER_DONE;
-          SDL_UnlockMutex(installer.mutex);
-          break;
-        }
         const int32_t v = Installer_GetVersion(QUETOO_VERSION_URL);
         SDL_LockMutex(installer.mutex);
         if (v < 0) {
@@ -394,6 +388,10 @@ static int Installer_Thread(void *unused) {
  * calling @c frame each iteration while the installer is in progress.
  */
 void Installer_Init(Installer_FrameFunction frame) {
+
+  if (version->integer == -1) {
+    return;
+  }
 
   memset(&installer, 0, sizeof(installer));
   installer.status.state = INSTALLER_CHECKING;
