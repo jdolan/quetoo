@@ -349,10 +349,10 @@ jobs:
 
     - name: Build
       working-directory: ${{ github.workspace }}/quetoo
-      shell: bash
+      shell: pwsh
       run: |
-        VERSION=$(git rev-list --count HEAD)
-        msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:ExtraPreprocessorDefinitions="VERSION=\"$VERSION\"" ${{ env.SOLUTION_FILE_PATH }}
+        $version = (git rev-list --count HEAD).Trim()
+        msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION "/p:ExtraPreprocessorDefinitions=VERSION=`"$version`"" $env:SOLUTION_FILE_PATH
 
     - name: Install Quetoo
       working-directory: ${{ github.workspace }}/quetoo
