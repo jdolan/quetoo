@@ -77,9 +77,11 @@ $(APPDIR): $(STAGING) $(LINUXDEPLOY)
 		--desktop-file quetoo/Quetoo.desktop \
 		--icon-file $(APPDIR)/quetoo.png
 
-	# Install our custom AppRun (overrides linuxdeploy's default symlink).
-	cp AppRun $(APPDIR)/AppRun
-	chmod +x $(APPDIR)/AppRun
+	# Install our custom AppRun.  Remove any symlink linuxdeploy created first,
+	# because cp(1) follows symlinks and would otherwise overwrite the binary it
+	# points to instead of replacing the symlink itself.
+	rm -f $(APPDIR)/AppRun
+	install -m755 AppRun $(APPDIR)/AppRun
 
 # ---------------------------------------------------------------------------
 # AppImage
@@ -108,10 +110,14 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 	convert ../src/main/quetoo.ico[0] \
 		$(PKGDIR)/usr/share/icons/hicolor/256x256/apps/quetoo.png
 
-	# Thin wrapper scripts in /usr/bin that exec the real binaries
+	# Symlinks in /usr/bin pointing at the real binaries under /usr/lib/quetoo/bin/.
+	# The kernel resolves /proc/self/exe to the real path, so the engine correctly
+	# derives lib_dir and data_dir from /usr/lib/quetoo regardless of how it was invoked.
+	# The RPATH ($ORIGIN/../lib) baked in by linuxdeploy also resolves from the real
+	# binary location, so no LD_LIBRARY_PATH wrapper is needed.
 	for bin in quetoo quetoo-dedicated quemap quetoo-master; do \
-		printf '#!/bin/sh\nexec /usr/lib/quetoo/bin/%s "$$@"\n' $$bin \
-			| install -Dm755 /dev/stdin $(PKGDIR)/usr/bin/$$bin; \
+		install -d $(PKGDIR)/usr/bin; \
+		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR)/usr/bin/$$bin; \
 	done
 
 	touch $@

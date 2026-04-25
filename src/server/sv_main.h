@@ -25,6 +25,7 @@
 
 void Sv_Init(void);
 void Sv_Shutdown(const char *msg);
+int32_t Sv_InstallerFrame(const installer_status_t *s);
 void Sv_Frame(const uint32_t msec);
 
 #if defined(__SV_LOCAL_H__)

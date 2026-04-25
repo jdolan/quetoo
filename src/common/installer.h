@@ -25,27 +25,30 @@
 
 #include <SDL3/SDL_mutex.h>
 
+#define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
+#define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/versions/" BUILD
+#define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
+
 /**
  * @brief The installer lifecycle.
  */
 typedef enum {
-  INSTALLER_IDLE,
-  INSTALLER_CHECKING,
-  INSTALLER_LISTING,
-  INSTALLER_DOWNLOADING,
-  INSTALLER_PRUNING,
+  INSTALLER_CHECKING,          ///< Fetches binary version from S3
+  INSTALLER_UPDATE_AVAILABLE,  ///< Binary is outdated; warns and stops
+  INSTALLER_COMPARING,         ///< Fetches remote manifest.mf and diffs against local copy
+  INSTALLER_DOWNLOADING,       ///< Parallel file downloads
+  INSTALLER_COMMITTING,        ///< Prunes stale files and writes manifest.mf
+  INSTALLER_CANCELLED,
   INSTALLER_DONE,
   INSTALLER_ERROR,
 } installer_state_t;
 
 /**
  * @brief The installer status snapshot.
- * All fields are guarded by @c lock; hold it when reading or writing.
  */
 typedef struct {
-	SDL_Mutex *lock;
 	installer_state_t state;
-	bool cancelled;
+  int32_t bin_version;
 	int32_t files_done;
 	int32_t files_total;
 	int32_t kbytes_done;
@@ -54,9 +57,11 @@ typedef struct {
   char error[MAX_STRING_CHARS];
 } installer_status_t;
 
-int32_t Installer_CheckForUpdates(void);
-void Installer_OpenReleasesPage(void);
-void Installer_Init(void);
-void Installer_Update(void);
+/**
+ * @brief Frame callback type for `Installer_Wait`.
+ * @details Returning non-zero will terminate the installer process and resume startup.
+ */
+typedef int32_t (*Installer_FrameFunction)(const installer_status_t *status);
+
+void Installer_Init(Installer_FrameFunction frame);
 void Installer_Shutdown(void);
-void Installer_Status(installer_status_t *out);

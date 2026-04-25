@@ -33,9 +33,16 @@ static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) 
 }
 
 /**
- * @brief Appends an entry to a manifest list, computing the MD5 checksum of the given data.
+ * @brief Allocates an empty manifest table.
  */
-void Cm_AddManifestEntry(GList **manifest, const char *path, const void *data, size_t len) {
+GHashTable *Cm_AllocManifest(void) {
+	return g_hash_table_new_full(g_str_hash, g_str_equal, NULL, Mem_Free);
+}
+
+/**
+ * @brief Inserts an entry into a manifest table, computing the MD5 checksum of the given data.
+ */
+void Cm_AddManifestEntry(GHashTable *manifest, const char *path, const void *data, size_t len) {
 
 	assert(manifest);
 	assert(path);
@@ -44,9 +51,10 @@ void Cm_AddManifestEntry(GList **manifest, const char *path, const void *data, s
 
 	cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
 	g_strlcpy(entry->path, path, sizeof(entry->path));
+	entry->size = (int64_t) len;
 	Cm_Md5Hex(data, len, entry->hash, sizeof(entry->hash));
 
-	*manifest = g_list_append(*manifest, entry);
+	g_hash_table_insert(manifest, entry->path, entry);
 }
 
 /**
@@ -73,9 +81,9 @@ bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry) {
 }
 
 /**
- * @brief Writes a manifest list to a file.
+ * @brief Writes a manifest table to a file, sorted by path.
  */
-int32_t Cm_WriteManifest(const char *path, GList *manifest) {
+int32_t Cm_WriteManifest(const char *path, GHashTable *manifest) {
 
 	file_t *file = Fs_OpenWrite(path);
 	if (!file) {
@@ -83,33 +91,34 @@ int32_t Cm_WriteManifest(const char *path, GList *manifest) {
 		return -1;
 	}
 
+	GList *keys = g_hash_table_get_keys(manifest);
+	keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
+
 	int32_t count = 0;
-	for (GList *e = manifest; e; e = e->next) {
-		const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
-		Fs_Print(file, "%s %s\n", entry->hash, entry->path);
+	for (GList *k = keys; k; k = k->next) {
+		const cm_manifest_entry_t *entry = g_hash_table_lookup(manifest, k->data);
+		Fs_Print(file, "%s %" G_GINT64_FORMAT " %s\n", entry->hash, entry->size, entry->path);
 		count++;
 	}
 
+	g_list_free(keys);
 	Fs_Close(file);
 
 	return count;
 }
 
 /**
- * @brief Reads a manifest file and returns a GList of cm_manifest_entry_t.
+ * @brief Parses a manifest from an in-memory buffer.
  */
-GList *Cm_ReadManifest(const char *path) {
+GHashTable *Cm_ParseManifest(const char *data, size_t len) {
 
-	void *data = NULL;
-	const int64_t len = Fs_Load(path, &data);
-	if (len <= 0 || !data) {
-		return NULL;
+	GHashTable *manifest = Cm_AllocManifest();
+
+	if (!data || len == 0) {
+		return manifest;
 	}
 
-	GList *manifest = NULL;
-
 	gchar **lines = g_strsplit((const char *) data, "\n", -1);
-	Fs_Free(data);
 
 	for (gchar **line = lines; *line; line++) {
 		g_strstrip(*line);
@@ -118,19 +127,26 @@ GList *Cm_ReadManifest(const char *path) {
 			continue;
 		}
 
-		char *space = strchr(*line, ' ');
-		if (!space) {
+		char *space1 = strchr(*line, ' ');
+		if (!space1) {
 			Com_Warn("Malformed manifest line: %s\n", *line);
 			continue;
 		}
+		*space1 = '\0';
 
-		*space = '\0';
+		char *space2 = strchr(space1 + 1, ' ');
+		if (!space2) {
+			Com_Warn("Malformed manifest line: %s\n", *line);
+			continue;
+		}
+		*space2 = '\0';
 
 		cm_manifest_entry_t *entry = Mem_Malloc(sizeof(*entry));
-		g_strlcpy(entry->path, space + 1, sizeof(entry->path));
 		g_strlcpy(entry->hash, *line, sizeof(entry->hash));
+		entry->size = (int64_t) g_ascii_strtoll(space1 + 1, NULL, 10);
+		g_strlcpy(entry->path, space2 + 1, sizeof(entry->path));
 
-		manifest = g_list_append(manifest, entry);
+		g_hash_table_insert(manifest, entry->path, entry);
 	}
 
 	g_strfreev(lines);
@@ -139,8 +155,27 @@ GList *Cm_ReadManifest(const char *path) {
 }
 
 /**
- * @brief Frees a manifest list.
+ * @brief Reads a manifest file into a table.
  */
-void Cm_FreeManifest(GList *manifest) {
-	g_list_free_full(manifest, Mem_Free);
+GHashTable *Cm_ReadManifest(const char *path) {
+
+	void *data = NULL;
+	const int64_t len = Fs_Load(path, &data);
+	if (len <= 0 || !data) {
+		return NULL;
+	}
+
+	GHashTable *manifest = Cm_ParseManifest((const char *) data, (size_t) len);
+	Fs_Free(data);
+
+	return manifest;
+}
+
+/**
+ * @brief Frees a manifest table and all its entries.
+ */
+void Cm_FreeManifest(GHashTable *manifest) {
+	if (manifest) {
+		g_hash_table_destroy(manifest);
+	}
 }

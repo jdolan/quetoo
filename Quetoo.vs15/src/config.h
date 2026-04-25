@@ -74,7 +74,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.1.0"
+#define PACKAGE_VERSION "-1"
 
 /* Define to path containing the game data.
  */
@@ -92,7 +92,9 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.1.0"
+#ifndef VERSION
+#define VERSION "-1"
+#endif
 
 #undef HAVE_UNISTD_H
 

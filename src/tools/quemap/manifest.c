@@ -289,7 +289,7 @@ int32_t WriteManifest(void) {
 	asset_paths = g_list_sort(asset_paths, (GCompareFunc) g_strcmp0);
 
 	// build the manifest entries with checksums
-	GList *manifest = NULL;
+	GHashTable *manifest = Cm_AllocManifest();
 
 	for (GList *a = asset_paths; a; a = a->next) {
 		const char *path = (const char *) a->data;
@@ -298,7 +298,7 @@ int32_t WriteManifest(void) {
 		const int64_t len = Fs_Load(path, &data);
 		// zero-length assets are intentionally skipped (no valid game assets are empty)
 		if (len > 0 && data) {
-			Cm_AddManifestEntry(&manifest, path, data, len);
+			Cm_AddManifestEntry(manifest, path, data, len);
 			Com_Verbose("  %s\n", path);
 		} else {
 			Com_Warn("Failed to load %s\n", path);

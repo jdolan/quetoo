@@ -1,6 +1,6 @@
 AC_PREREQ([2.69])
 
-AC_INIT([quetoo], [m4_esyscmd_s([git rev-list --count HEAD])], [jay@jaydolan.com])
+AC_INIT([quetoo], [-1], [jay@jaydolan.com])
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_CONFIG_HEADERS(config.h)
@@ -91,6 +91,12 @@ esac
 
 BUILD="${host_cpu}-${host_vendor}-${host_os}"
 AC_DEFINE_UNQUOTED(BUILD, "${BUILD}", [The canonical name of the build])
+
+AC_ARG_WITH([version],
+  [AS_HELP_STRING([--with-version=N], [game version number; -1 disables the installer (default: -1)])],
+  [VERSION=$withval],
+  [VERSION=$PACKAGE_VERSION])
+AC_DEFINE_UNQUOTED(VERSION, "${VERSION}", [The game version number])
 
 AC_SUBST(ARCH)
 AC_SUBST(HOST)
@@ -437,7 +443,7 @@ AC_MSG_RESULT([
 Automatic configuration OK.
 
   Configuration summary:
-    Version: ........... $PACKAGE_VERSION
+    Version: ........... $VERSION
     Build: ............. $BUILD
     Compiler: .......... $CC
     C flags: ........... $BASE_CFLAGS

@@ -51,7 +51,11 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
+		2674BBB566394C8280B03A25 /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */; };
+		35C2993851DA4824B6A904B8 /* blur_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5E84B535C5B44601A1B88B0A /* blur_vs.glsl */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
+		70F03B6EE0C7429DBAF4D6D0 /* blur_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 95CAE34F3F8B463BAE46E558 /* blur_fs.glsl */; };
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
 		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
 		CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
@@ -656,7 +660,6 @@
 		CED4384C1D9D34450052BAFA /* r_mesh_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D91C5C58C300CD0B13 /* r_mesh_model.c */; };
 		CED4384F1D9D34450052BAFA /* r_model.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5DF1C5C58C300CD0B13 /* r_model.c */; };
 		CED438561D9D34450052BAFA /* r_sky.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5ED1C5C58C300CD0B13 /* r_sky.c */; };
-		014684FA691B4EB0944ACDCB /* r_post.c in Sources */ = {isa = PBXBuildFile; fileRef = 26FE8732000C404A8AFA1688 /* r_post.c */; };
 		CED438821D9D34450052BAFA /* r_bsp_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B71C5C58C300CD0B13 /* r_bsp_model.h */; };
 		CED438831D9D34450052BAFA /* r_bsp_draw.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5B91C5C58C300CD0B13 /* r_bsp_draw.h */; };
 		CED438841D9D34450052BAFA /* r_context.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5BB1C5C58C300CD0B13 /* r_context.h */; };
@@ -672,7 +675,6 @@
 		CED438941D9D34450052BAFA /* r_mesh_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5DA1C5C58C300CD0B13 /* r_mesh_model.h */; };
 		CED438971D9D34450052BAFA /* r_model.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5E01C5C58C300CD0B13 /* r_model.h */; };
 		CED4389E1D9D34450052BAFA /* r_sky.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5EE1C5C58C300CD0B13 /* r_sky.h */; };
-		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 		CED438A01D9D34450052BAFA /* r_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F11C5C58C300CD0B13 /* r_types.h */; };
 		CED438A11D9D34450052BAFA /* renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D5F21C5C58C300CD0B13 /* renderer.h */; };
 		CED438E61D9D344E0052BAFA /* s_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6021C5C58C300CD0B13 /* s_main.c */; };
@@ -728,12 +730,10 @@
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1378277FB721001E1500 /* TeamPlayerView.h */; };
 		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
+		D081469FB0034668B00C4DB3 /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
-		70F03B6EE0C7429DBAF4D6D0 /* blur_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 95CAE34F3F8B463BAE46E558 /* blur_fs.glsl */; };
-		35C2993851DA4824B6A904B8 /* blur_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 5E84B535C5B44601A1B88B0A /* blur_vs.glsl */; };
-		2674BBB566394C8280B03A25 /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */; };
-		D081469FB0034668B00C4DB3 /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */; };
+		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1169,8 +1169,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
+		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
+		5E84B535C5B44601A1B88B0A /* blur_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blur_vs.glsl; sourceTree = "<group>"; };
+		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
+		95CAE34F3F8B463BAE46E558 /* blur_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blur_fs.glsl; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
+		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
 		CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../usr/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1291,9 +1297,7 @@
 		CE12D5DF1C5C58C300CD0B13 /* r_model.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_model.c; sourceTree = "<group>"; };
 		CE12D5E01C5C58C300CD0B13 /* r_model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_model.h; sourceTree = "<group>"; };
 		CE12D5ED1C5C58C300CD0B13 /* r_sky.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_sky.c; sourceTree = "<group>"; };
-		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		CE12D5EE1C5C58C300CD0B13 /* r_sky.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_sky.h; sourceTree = "<group>"; };
-		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
 		CE12D5F11C5C58C300CD0B13 /* r_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_types.h; sourceTree = "<group>"; };
 		CE12D5F21C5C58C300CD0B13 /* renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
 		CE12D5F61C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1896,10 +1900,6 @@
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
-		95CAE34F3F8B463BAE46E558 /* blur_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blur_fs.glsl; sourceTree = "<group>"; };
-		5E84B535C5B44601A1B88B0A /* blur_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = blur_vs.glsl; sourceTree = "<group>"; };
-		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
-		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2321,33 +2321,33 @@
 		CE04EF3A25CA0E8600C31433 /* common */ = {
 			isa = PBXGroup;
 			children = (
-				CE354EDA220738BF008AE0C2 /* atlas.c */,
 				CE354ED9220738BF008AE0C2 /* atlas.h */,
-				CE12D6261C5C58C300CD0B13 /* cmd.c */,
+				CE354EDA220738BF008AE0C2 /* atlas.c */,
 				CE12D6271C5C58C300CD0B13 /* cmd.h */,
-				CE12D6361C5C58C300CD0B13 /* common.c */,
+				CE12D6261C5C58C300CD0B13 /* cmd.c */,
 				CE12D6371C5C58C300CD0B13 /* common.h */,
-				CE12D6381C5C58C300CD0B13 /* console.c */,
+				CE12D6361C5C58C300CD0B13 /* common.c */,
 				CE12D6391C5C58C300CD0B13 /* console.h */,
-				CE12D63A1C5C58C300CD0B13 /* cvar.c */,
+				CE12D6381C5C58C300CD0B13 /* console.c */,
 				CE12D63B1C5C58C300CD0B13 /* cvar.h */,
+				CE12D63A1C5C58C300CD0B13 /* cvar.c */,
 				CE12D63C1C5C58C300CD0B13 /* files.h */,
-				CE12D63D1C5C58C300CD0B13 /* filesystem.c */,
 				CE12D63E1C5C58C300CD0B13 /* filesystem.h */,
-				CE12D6771C5C58C300CD0B13 /* image.c */,
+				CE12D63D1C5C58C300CD0B13 /* filesystem.c */,
 				CE12D6781C5C58C300CD0B13 /* image.h */,
-				CEC74B3825C8EE94009C6218 /* installer.c */,
+				CE12D6771C5C58C300CD0B13 /* image.c */,
 				CEC74B3725C8EE94009C6218 /* installer.h */,
-				CE12D68B1C5C58C300CD0B13 /* mem_buf.c */,
-				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
-				CE12D6891C5C58C300CD0B13 /* mem.c */,
+				CEC74B3825C8EE94009C6218 /* installer.c */,
 				CE12D68A1C5C58C300CD0B13 /* mem.h */,
-				CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */,
+				CE12D6891C5C58C300CD0B13 /* mem.c */,
+				CE12D68C1C5C58C300CD0B13 /* mem_buf.h */,
+				CE12D68B1C5C58C300CD0B13 /* mem_buf.c */,
 				CEE7508A2D6A3253004CDBCA /* rgb9e5.h */,
-				CE12D6BC1C5C58C300CD0B13 /* sys.c */,
+				CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */,
 				CE12D6BD1C5C58C300CD0B13 /* sys.h */,
-				CE12D6DE1C5C58C300CD0B13 /* thread.c */,
+				CE12D6BC1C5C58C300CD0B13 /* sys.c */,
 				CE12D6DF1C5C58C300CD0B13 /* thread.h */,
+				CE12D6DE1C5C58C300CD0B13 /* thread.c */,
 				CE04EF9325CA0EE400C31433 /* Makefile.am */,
 			);
 			path = common;

@@ -42,6 +42,7 @@ extern cvar_t *rate;
 void Cl_Connect(const net_addr_t *addr);
 void Cl_Disconnect(void);
 void Cl_Drop(const char *text);
+int32_t Cl_InstallerFrame(const installer_status_t *in);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);
 void Cl_Shutdown(void);

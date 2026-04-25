@@ -603,6 +603,32 @@ static void Cl_UpdateScene(void) {
 }
 
 /**
+ * @brief InstallerFrame callback.
+ */
+int32_t Cl_InstallerFrame(const installer_status_t *in) {
+
+  R_InitView(&cl_view);
+
+  S_InitStage(&cl_stage);
+
+  Cl_HandleEvents();
+
+  R_BeginFrame();
+
+  const int32_t res = cls.cgame->UpdateInstaller(in);
+
+  Cl_UpdateScreen();
+
+  R_EndFrame();
+
+  S_RenderStage(&cl_stage);
+
+  R_Screenshot(&cl_view);
+
+  return res;
+}
+
+/**
  * @brief
  */
 void Cl_Frame(const uint32_t msec) {
@@ -677,12 +703,6 @@ void Cl_Frame(const uint32_t msec) {
   R_Screenshot(&cl_view);
 
   cls.cgame->UpdateDiscord();
-
-  installer_status_t status;
-  Installer_Status(&status);
-  if (status.state != INSTALLER_IDLE) {
-    cls.cgame->UpdateInstaller(status);
-  }
 
   frame_timestamp = quetoo.ticks;
   cl.frame_msec = 0;

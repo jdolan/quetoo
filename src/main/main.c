@@ -46,6 +46,7 @@ cvar_t *time_scale;
 
 static void Debug(const debug_t debug, const char *msg);
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
+static void Frame(const uint32_t msec);
 static void Print(const char *msg);
 static void Shutdown(const char *msg);
 static void Verbose(const char *msg);
@@ -292,8 +293,6 @@ static void Init(void) {
   version = Cvar_Add("version", VERSION, CVAR_SERVER_INFO, NULL);
   build = Cvar_Add("build", BUILD, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
-  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
-
   dedicated = Cvar_Add("dedicated", "0", CVAR_NO_SET, "Run a dedicated server");
   if (strstr(Sys_ExecutablePath(), "-dedicated")) {
     Cvar_ForceSetInteger(dedicated->name, 1);
@@ -311,6 +310,8 @@ static void Init(void) {
   time_demo = Cvar_Add("time_demo", "0", CVAR_DEVELOPER, "Benchmark and stress test");
   time_scale = Cvar_Add("time_scale", "1.0", CVAR_DEVELOPER, "Controls time lapse");
 
+  verbose = Cvar_Add("verbose", "0", 0, "Print verbose debugging information");
+
   quetoo.Debug = Debug;
   quetoo.Error = Error;
   quetoo.Print = Print;
@@ -322,8 +323,6 @@ static void Init(void) {
   Thread_Init(threads->integer);
 
   Con_Init();
-
-  Installer_Init();
 
   Cmd_Add("mem_stats", MemStats_f, CMD_SYSTEM, "Print memory stats");
   Cmd_Add("debug", Debug_f, CMD_SYSTEM, "Control debugging output");
@@ -339,6 +338,9 @@ static void Init(void) {
 
   // reset debug value since Cbuf may change it from Com's "all" init
   Com_SetDebug("0");
+
+  // block until the data installer finishes before executing user commands
+  Installer_Init(dedicated->value ? Sv_InstallerFrame : Cl_InstallerFrame);
 
   // execute any +commands specified on the command line
   Cbuf_InsertFromDefer();

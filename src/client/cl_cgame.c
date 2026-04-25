@@ -169,10 +169,6 @@ void Cl_InitCgame(void) {
   import.Warn = Cl_CgameWarn;
   import.Error = Cl_CgameError;
 
-  import.CheckForUpdates = Installer_CheckForUpdates;
-  import.OpenReleasesPage = Installer_OpenReleasesPage;
-  import.Update = Installer_Update;
-
   import.Malloc = Mem_TagMalloc;
   import.LinkMalloc = Mem_LinkMalloc;
   import.Realloc = Mem_Realloc;

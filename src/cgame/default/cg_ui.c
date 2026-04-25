@@ -43,8 +43,6 @@ void Cg_InitUi(void) {
   assert(mainViewController);
 
   cgi.PushViewController((ViewController *) mainViewController);
-
-  cgi.Update();
 }
 
 /**
@@ -99,25 +97,16 @@ void Cg_UpdateLoading(const cl_loading_t loading) {
  * @brief Manages the UpdateViewController lifecycle and routes installer progress to it.
  * Pushes UpdateViewController when updating, pops it on completion.
  */
-void Cg_UpdateInstaller(const installer_status_t status) {
-
-  if (mainViewController == NULL) {
-    return;
-  }
+int32_t Cg_UpdateInstaller(const installer_status_t *in) {
 
   if (updateViewController == NULL) {
-    if (status.state == INSTALLER_IDLE ||
-        status.state == INSTALLER_DONE ||
-        status.state == INSTALLER_ERROR) {
-      return;
-    }
     updateViewController = $(alloc(UpdateViewController), init);
     cgi.PushViewController((ViewController *) updateViewController);
   }
 
-  $(updateViewController, setStatus, status);
+  $(updateViewController, setStatus, in);
 
-  if (status.state == INSTALLER_DONE || status.state == INSTALLER_ERROR) {
+  if (in->state == INSTALLER_DONE || in->state == INSTALLER_ERROR) {
     static uint64_t done_at = 0;
     if (done_at == 0) {
       done_at = SDL_GetTicks();
@@ -127,8 +116,11 @@ void Cg_UpdateInstaller(const installer_status_t status) {
       release(updateViewController);
       updateViewController = NULL;
       done_at = 0;
+      return 1;
     }
   }
+
+  return 0;
 }
 
 /**

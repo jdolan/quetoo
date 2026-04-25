@@ -26,6 +26,13 @@ cl_static_t cls;
 /**
  * @brief
  */
+int32_t Cl_InstallerFrame(const installer_status_t *in) {
+  return 0;
+}
+
+/**
+ * @brief
+ */
 void Cl_Disconnect(void) {
 
 }

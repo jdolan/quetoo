@@ -43,7 +43,7 @@ int32_t ZIP_Main(void) {
   char mf_path[MAX_OS_PATH];
   g_snprintf(mf_path, sizeof(mf_path), "maps/%s.mf", map_base);
 
-  GList *manifest = Cm_ReadManifest(mf_path);
+  GHashTable *manifest = Cm_ReadManifest(mf_path);
   if (!manifest) {
     Com_Error(ERROR_FATAL, "Failed to load %s. Run -bsp first to generate the manifest.\n", mf_path);
   }
@@ -54,8 +54,11 @@ int32_t ZIP_Main(void) {
   // include the manifest itself so the pk3 is self-contained
   assets = g_list_append(assets, g_strdup(mf_path));
 
-  for (GList *e = manifest; e; e = e->next) {
-    const cm_manifest_entry_t *entry = (const cm_manifest_entry_t *) e->data;
+  GHashTableIter iter;
+  gpointer key, val;
+  g_hash_table_iter_init(&iter, manifest);
+  while (g_hash_table_iter_next(&iter, &key, &val)) {
+    const cm_manifest_entry_t *entry = val;
     assets = g_list_append(assets, g_strdup(entry->path));
   }
 
