@@ -767,7 +767,8 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
   }
 
   SDL_Delay(100);
-  return 0;
+
+  return in->state >= INSTALLER_DONE;
 }
 
 /**

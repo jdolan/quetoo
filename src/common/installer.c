@@ -394,7 +394,7 @@ void Installer_Init(Installer_FrameFunction frame) {
   }
 
   memset(&installer, 0, sizeof(installer));
-  installer.status.state = INSTALLER_CHECKING;
+  installer.status.state = INSTALLER_COMPARING;
 
   installer.mutex = SDL_CreateMutex();
   assert(installer.mutex);
