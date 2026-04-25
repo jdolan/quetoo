@@ -439,6 +439,34 @@ jobs:
     - name: Download all artifacts
       uses: actions/download-artifact@v6
 
+    - name: Checkout quetoo-data
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/quetoo-data
+        path: quetoo-data
+        fetch-depth: 1
+        sparse-checkout: target
+
+    - name: Create bundles
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        # macOS bundle: data into Quetoo.app/Contents/Resources/default/
+        mkdir bundle-macos && cd bundle-macos
+        unzip ../quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip
+        mkdir -p Quetoo.app/Contents/Resources/default
+        cp -r ../quetoo-data/target/default/. Quetoo.app/Contents/Resources/default/
+        zip -r ../quetoo-bundle-arm64-apple-darwin.zip Quetoo.app
+        cd ..
+
+        # Windows bundle: data as share/default/ alongside bin/ and lib/
+        mkdir bundle-windows && cd bundle-windows
+        unzip ../quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
+        mkdir -p share/default
+        cp -r ../quetoo-data/target/default/. share/default/
+        zip -r ../quetoo-bundle-x86_64-pc-windows.zip .
+        cd ..
+
     - name: Delete existing snapshot release
       if: github.ref == 'refs/heads/main'
       run: gh release delete latest --yes --cleanup-tag || true
@@ -481,6 +509,13 @@ jobs:
           --title "Quetoo ${{ github.ref_name }}" \
           --notes "Quetoo ${{ github.ref_name }}
 
+        ### Bundles (binaries + game data, ready to play)
+        | Platform | Download |
+        |----------|----------|
+        | macOS (Apple Silicon) | quetoo-bundle-arm64-apple-darwin.zip |
+        | Windows (x86_64) | quetoo-bundle-x86_64-pc-windows.zip |
+
+        ### Binaries only (for updates)
         | Platform | Download |
         |----------|----------|
         | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
@@ -488,6 +523,8 @@ jobs:
         | Linux (x86_64 .deb) | quetoo-x86_64-pc-linux.deb |
         | Linux (x86_64 .rpm) | quetoo-x86_64-pc-linux.rpm |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
+          quetoo-bundle-arm64-apple-darwin.zip \
+          quetoo-bundle-x86_64-pc-windows.zip \
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
           quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
           quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb \
