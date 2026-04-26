@@ -741,9 +741,14 @@ void Fs_Init(const uint32_t flags) {
       *c = '\0';
       g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
-      g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/" PACKAGE, fs_state.base_dir);
-      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", fs_state.base_dir);
+      char bin_dir[MAX_OS_PATH];
+      g_snprintf(bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
+
+      if (g_strcmp0(bin_dir, fs_state.bin_dir) != 0) {
+        g_strlcpy(fs_state.bin_dir, bin_dir, MAX_OS_PATH);
+        g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/quetoo", fs_state.base_dir);
+        g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share/quetoo", fs_state.base_dir);
+      }
     }
 #elif defined(_WIN32)
     if ((c = strstr(path, "\\bin\\"))) {
