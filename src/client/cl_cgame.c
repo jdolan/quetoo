@@ -263,6 +263,7 @@ void Cl_InitCgame(void) {
   import.DestroyFramebuffer = R_DestroyFramebuffer;
 
   import.LoadSurface = Img_LoadSurface;
+  import.BlurSurface = Img_BlurSurface;
   import.LoadImage = R_LoadImage;
   import.LoadAtlas = R_LoadAtlas;
   import.LoadAtlasImage = R_LoadAtlasImage;

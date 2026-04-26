@@ -72,7 +72,14 @@ static void setProgress(LoadingViewController *self, const cl_loading_t loading)
   $(self->progressBar, setValue, loading.percent);
 
   if (loading.percent == 0 && loading.mapshot[0] != '\0') {
-    $(self->mapShot, setImageWithResourceName, loading.mapshot);
+    SDL_Surface *surf = cgi.LoadSurface(loading.mapshot);
+    if (surf) {
+      cgi.BlurSurface(surf, 3);
+      $(self->mapShot, setImageWithSurface, surf);
+      SDL_DestroySurface(surf);
+    } else {
+      $(self->mapShot, setImageWithResourceName, loading.mapshot);
+    }
   }
 }
 

@@ -671,6 +671,13 @@ typedef struct cg_import_s {
   SDL_Surface *(*LoadSurface)(const char *name);
 
   /**
+   * @brief Applies a Gaussian blur to the specified surface, in-place.
+   * @param surf The surface to blur.
+   * @param radius The blur radius in pixels.
+   */
+  void (*BlurSurface)(SDL_Surface *surf, int32_t radius);
+
+  /**
    * @brief Loads the image with the given name and type.
    * @param name The image name, e.g. `"pics/health_i"`.
    * @param type The image type, e.g. `IT_PIC`.
