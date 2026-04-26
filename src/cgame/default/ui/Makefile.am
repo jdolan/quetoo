@@ -1,4 +1,5 @@
 SUBDIRS = \
+	backgrounds \
 	common \
 	controls \
 	home \
