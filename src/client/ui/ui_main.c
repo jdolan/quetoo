@@ -259,9 +259,9 @@ void Ui_Init(void) {
   navigationViewController = $(alloc(NavigationViewController), init);
   $(windowController, setViewController, (ViewController *) navigationViewController);
 
-  Ui_LoadSample("#ui/common/change");
-  Ui_LoadSample("#ui/common/click");
-  Ui_LoadSample("#ui/common/clack");
+  Ui_LoadSample("#ui/change");
+  Ui_LoadSample("#ui/click");
+  Ui_LoadSample("#ui/clack");
 
   Ui_InitEditor();
 }
