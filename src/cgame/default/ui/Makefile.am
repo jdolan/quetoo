@@ -1,6 +1,7 @@
 SUBDIRS = \
 	backgrounds \
 	common \
+	fonts \
 	controls \
 	home \
 	main \
@@ -14,9 +15,6 @@ cgui_DATA = \
 	clack.wav \
 	click.wav \
 	conback.png \
-	large.png \
 	loading.png \
 	logo.png \
-	medium.png \
-	progress_bar.png \
-	small.png
+	progress_bar.png
