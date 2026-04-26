@@ -143,17 +143,6 @@ jobs:
         name: quetoo-${{ matrix.build }}
         path: quetoo/quetoo-${{ matrix.build }}.zip
 
-    - name: Publish to S3
-      if: github.event_name == 'push'
-      working-directory: quetoo
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
-      run: |
-        git rev-list --count HEAD > apple/target/version
-        aws s3 cp apple/target/version s3://quetoo/version
-
   build-linux:
     needs: resolve-deps
     runs-on: ubuntu-22.04
@@ -285,17 +274,6 @@ jobs:
         name: quetoo-x86_64-pc-linux-rpm
         path: quetoo/linux/target/quetoo-*.x86_64.rpm
 
-    - name: Publish to S3
-      if: github.event_name == 'push'
-      working-directory: quetoo
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
-      run: |
-        git rev-list --count HEAD > linux/target/version
-        aws s3 cp linux/target/version s3://quetoo/version
-
   build-windows:
     needs: resolve-deps
     runs-on: windows-latest
@@ -410,26 +388,28 @@ jobs:
         name: quetoo-x86_64-pc-windows
         path: quetoo/quetoo-x86_64-pc-windows.zip
 
-    - name: Publish to S3
-      if: github.event_name == 'push'
-      working-directory: ${{ github.workspace }}/quetoo
-      shell: bash
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_DEFAULT_REGION: us-east-1
-      run: |
-        git rev-list --count HEAD > windows/target/version
-        aws s3 cp windows/target/version s3://quetoo/version
-
   release:
     needs: [build-macos, build-linux, build-windows]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
     - name: Download all artifacts
       uses: actions/download-artifact@v6
+
+    - name: Publish version to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_DEFAULT_REGION: us-east-1
+      run: |
+        git rev-list --count HEAD > version
+        aws s3 cp version s3://quetoo/version
 
     - name: Delete existing snapshot release
       if: github.ref == 'refs/heads/main'
