@@ -403,6 +403,7 @@ jobs:
       uses: actions/download-artifact@v6
 
     - name: Publish version to S3
+      continue-on-error: true
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
