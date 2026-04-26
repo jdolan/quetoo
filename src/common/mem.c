@@ -302,6 +302,7 @@ void *Mem_Realloc(void *p, size_t size) {
 
   b->size = size;
 
+  mem_block_t *const old_b = b;
   if (!(new_b = realloc(b, s))) {
     fprintf(stderr, "Failed to re-allocate %u bytes\n", (uint32_t) s);
     raise(SIGABRT);
@@ -317,10 +318,10 @@ void *Mem_Realloc(void *p, size_t size) {
 
   // re-seat us in our parent or in global hash list
   if (new_b->parent) {
-    new_b->parent->children = g_slist_remove(new_b->parent->children, b);
+    new_b->parent->children = g_slist_remove(new_b->parent->children, old_b);
     new_b->parent->children = g_slist_prepend(new_b->parent->children, new_b);
   } else {
-    g_hash_table_remove(mem_state.blocks, b);
+    g_hash_table_remove(mem_state.blocks, old_b);
     g_hash_table_add(mem_state.blocks, new_b);
   }
 
