@@ -152,7 +152,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         git rev-list --count HEAD > apple/target/version
-        aws s3 cp apple/target/version s3://quetoo/versions/${{ matrix.build }}
+        aws s3 cp apple/target/version s3://quetoo/version
 
   build-linux:
     needs: resolve-deps
@@ -294,7 +294,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         git rev-list --count HEAD > linux/target/version
-        aws s3 cp linux/target/version s3://quetoo/versions/x86_64-pc-linux
+        aws s3 cp linux/target/version s3://quetoo/version
 
   build-windows:
     needs: resolve-deps
@@ -420,7 +420,7 @@ jobs:
         AWS_DEFAULT_REGION: us-east-1
       run: |
         git rev-list --count HEAD > windows/target/version
-        aws s3 cp windows/target/version s3://quetoo/versions/x86_64-pc-windows
+        aws s3 cp windows/target/version s3://quetoo/version
 
   release:
     needs: [build-macos, build-linux, build-windows]
