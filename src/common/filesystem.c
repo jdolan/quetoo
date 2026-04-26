@@ -20,10 +20,7 @@
  */
 
 #include <physfs.h>
-
-#if defined(__APPLE__)
 #include <SDL3/SDL.h>
-#endif
 
 #include "console.h"
 #include "filesystem.h"
