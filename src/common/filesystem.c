@@ -742,7 +742,7 @@ void Fs_Init(const uint32_t flags) {
       g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 
       g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/bin", fs_state.base_dir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib", fs_state.base_dir);
+      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/lib/" PACKAGE, fs_state.base_dir);
       g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", fs_state.base_dir);
     }
 #elif defined(_WIN32)
