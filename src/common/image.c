@@ -122,6 +122,74 @@ color_t Img_Color(const SDL_Surface *surf) {
   return Img_ColorHighPass(surf, 0.f);
 }
 
+/**
+ * @brief Applies a Gaussian blur to the specified surface, in-place.
+ * @param surf The surface to blur.
+ * @param radius The blur radius in pixels. Three passes of box blur are applied to approximate a Gaussian.
+ */
+void Img_BlurSurface(SDL_Surface *surf, int32_t radius) {
+
+  if (!surf || radius <= 0) {
+    return;
+  }
+
+  const int32_t w = surf->w;
+  const int32_t h = surf->h;
+  const int32_t bpp = SDL_BYTESPERPIXEL(surf->format);
+
+  uint8_t *temp = Mem_Malloc(w * h * bpp);
+
+  SDL_LockSurface(surf);
+
+  const int32_t pitch = surf->pitch;
+
+  for (int32_t pass = 0; pass < 3; pass++) {
+
+    // Horizontal pass: surface -> temp
+    for (int32_t y = 0; y < h; y++) {
+      for (int32_t x = 0; x < w; x++) {
+        int32_t sum[4] = { 0, 0, 0, 0 };
+        int32_t count = 0;
+        for (int32_t dx = -radius; dx <= radius; dx++) {
+          const int32_t sx = Maxi(0, Mini(x + dx, w - 1));
+          const uint8_t *p = (uint8_t *) surf->pixels + y * pitch + sx * bpp;
+          for (int32_t c = 0; c < bpp; c++) {
+            sum[c] += p[c];
+          }
+          count++;
+        }
+        uint8_t *dst = temp + (y * w + x) * bpp;
+        for (int32_t c = 0; c < bpp; c++) {
+          dst[c] = (uint8_t) (sum[c] / count);
+        }
+      }
+    }
+
+    // Vertical pass: temp -> surface
+    for (int32_t y = 0; y < h; y++) {
+      for (int32_t x = 0; x < w; x++) {
+        int32_t sum[4] = { 0, 0, 0, 0 };
+        int32_t count = 0;
+        for (int32_t dy = -radius; dy <= radius; dy++) {
+          const int32_t sy = Maxi(0, Mini(y + dy, h - 1));
+          const uint8_t *p = temp + (sy * w + x) * bpp;
+          for (int32_t c = 0; c < bpp; c++) {
+            sum[c] += p[c];
+          }
+          count++;
+        }
+        uint8_t *dst = (uint8_t *) surf->pixels + y * pitch + x * bpp;
+        for (int32_t c = 0; c < bpp; c++) {
+          dst[c] = (uint8_t) (sum[c] / count);
+        }
+      }
+    }
+  }
+
+  SDL_UnlockSurface(surf);
+  Mem_Free(temp);
+}
+
 // Quick access of a pixel address
 #define SDL_PIXEL_AT(surf, x, y) \
 ((byte *)surf->pixels + ((y) * surf->pitch) + (x) * SDL_BYTESPERPIXEL(surf->format))
