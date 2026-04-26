@@ -54,7 +54,7 @@ bool WindingIsLarge(const cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Frees all windings allocated from the polylib memory pool.
  */
 void FreeWindings(void) {
   Mem_FreeTag(MEM_TAG_POLYLIB);

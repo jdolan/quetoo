@@ -181,7 +181,7 @@ static void BuildVoxelExtents(void) {
 }
 
 /**
- * @brief
+ * @brief Allocates voxel cells for the entire grid, computing origins and bounds for each cell.
  */
 static void BuildVoxelVoxels(void) {
 
@@ -248,7 +248,8 @@ static void DebugVoxels(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the voxel grid, assigns lights to voxels, and returns the total voxel count.
+ * @return The number of voxels in the grid.
  */
 size_t BuildVoxels(void) {
 
@@ -422,7 +423,7 @@ static int IntCompare(const void *a, const void *b) {
 }
 
 /**
- * @brief
+ * @brief Serializes the voxel grid (caustics, exposure, and light indices) into the BSP voxels lump.
  */
 void EmitVoxels(void) {
 
@@ -534,7 +535,7 @@ void EmitVoxels(void) {
 }
 
 /**
- * @brief
+ * @brief Frees all per-voxel light hash tables and releases the voxel memory pool.
  */
 void FreeVoxels(void) {
 

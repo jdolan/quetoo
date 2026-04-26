@@ -62,7 +62,7 @@ typedef struct {
 } cm_trace_data_t;
 
 /**
- * @brief
+ * @brief Returns true if the given brush number has already been tested in this trace, using a hash cache.
  */
 static inline bool Light_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
   const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
@@ -166,7 +166,7 @@ static inline void Light_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_
 }
 
 /**
- * @brief
+ * @brief Traces through a single BSP leaf, testing all brushes within against the bounding box.
  */
 static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
@@ -199,7 +199,7 @@ static inline void Light_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 }
 
 /**
- * @brief
+ * @brief Recursively traces the bounding box through the BSP tree from p1 to p2.
  */
 static inline void Light_TraceToNode(cm_trace_data_t *data, int32_t num, float p1f, float p2f,
                                      const vec3_t p1, const vec3_t p2) {
@@ -347,7 +347,7 @@ static inline cm_trace_t Light_Trace_(vec3_t start, vec3_t end, int32_t head_nod
 }
 
 /**
- * @brief
+ * @brief Returns the combined brush contents at point p for the world and the optional inline model head node.
  */
 int32_t Light_PointContents(const vec3_t p, int32_t head_node) {
 
@@ -387,7 +387,7 @@ cm_trace_t Light_Trace(const vec3_t start, const vec3_t end, int32_t head_node, 
 }
 
 /**
- * @brief
+ * @brief Builds voxels, bakes light, and emits all lightmap, voxel, and entity data into the BSP file.
  */
 static void LightWorld(void) {
 
@@ -423,7 +423,7 @@ static void LightWorld(void) {
 }
 
 /**
- * @brief
+ * @brief LIGHT stage entry point: loads the BSP, builds and bakes all lights, and writes the updated BSP.
  */
 int32_t LIGHT_Main(void) {
 

@@ -27,7 +27,7 @@
 static SDL_AtomicInt c_active_portals;
 
 /**
- * @brief
+ * @brief Allocates and returns a new portal.
  */
 static portal_t *AllocPortal(void) {
 
@@ -37,7 +37,7 @@ static portal_t *AllocPortal(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the portal's winding and the portal itself.
  */
 void FreePortal(portal_t *p) {
 
@@ -86,7 +86,7 @@ static bool Portal_EntityFlood(const portal_t *p) {
 static int32_t c_small_portals;
 
 /**
- * @brief
+ * @brief Links the portal into the portal lists of both front and back nodes.
  */
 static void AddPortalToNodes(portal_t *p, node_t *front, node_t *back) {
 
@@ -104,7 +104,7 @@ static void AddPortalToNodes(portal_t *p, node_t *front, node_t *back) {
 }
 
 /**
- * @brief
+ * @brief Unlinks the portal from the given node's portal list.
  */
 void RemovePortalFromNode(portal_t *portal, node_t *node) {
 
@@ -191,7 +191,7 @@ void MakeHeadnodePortals(tree_t *tree) {
 }
 
 /**
- * @brief
+ * @brief Returns the full-plane winding for the node clipped by all of its ancestors.
  */
 static cm_winding_t *BaseWindingForNode(const node_t *node) {
 
@@ -359,7 +359,7 @@ static void CalcNodeBounds(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Recursively generates portals for all nodes in the tree, then propagates bounds upward.
  */
 static void MakeTreePortals_r(node_t *node) {
 
@@ -388,7 +388,7 @@ static void MakeTreePortals_r(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Generates the initial bounding portals at the head node and recursively creates portals for the full tree.
  */
 void MakeTreePortals(tree_t *tree) {
 
@@ -398,7 +398,7 @@ void MakeTreePortals(tree_t *tree) {
 }
 
 /**
- * @brief
+ * @brief Recursively flood-fills reachable nodes from the given node, marking each with its flood distance.
  */
 static void FloodPortals_r(node_t *node, int32_t occupied) {
   int32_t s;
@@ -598,7 +598,7 @@ static void FindPortalBrushSide(portal_t *portal) {
 }
 
 /**
- * @brief
+ * @brief Traverses all portals in the tree to associate each portal with the nearest matching brush side.
  */
 static void FindPortalBrushSides_r(const node_t *node) {
   int32_t s;
@@ -625,14 +625,14 @@ static void FindPortalBrushSides_r(const node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Walks the BSP tree and calls FindPortalBrushSide for every portal in every leaf.
  */
 void FindPortalBrushSides(tree_t *tree) {
   FindPortalBrushSides_r(tree->head_node);
 }
 
 /**
- * @brief
+ * @brief Creates a face from the portal's winding for the given portal side, or NULL if the portal is not a visible boundary.
  */
 static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 
@@ -699,7 +699,7 @@ static void MakeFaces_r(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Creates faces for all visible leaf portals in the tree and attaches them to the portal's on-node.
  */
 void MakeTreeFaces(tree_t *tree) {
   Com_Verbose("--- MakeTreeFaces ---\n");

@@ -49,7 +49,7 @@
  */
 
 /**
- * @brief
+ * @brief Subtracts brush B from brush A by clipping A against all of B's planes.
  * @return A list of brushes that remain after B is subtracted from A.
  * @remark May by empty if A is contained inside B.
  * @remark The originals are undisturbed.
@@ -151,7 +151,7 @@ csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 }
 
 /**
- * @brief
+ * @brief Appends brushes from the list tail onto the accumulator list; returns the new tail.
  */
 static csg_brush_t *AddBrushToBrushes(csg_brush_t *list, csg_brush_t *tail) {
   csg_brush_t *walk, *next;

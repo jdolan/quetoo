@@ -44,7 +44,7 @@ bool no_tjunc = false;
 bool no_weld = false;
 
 /**
- * @brief
+ * @brief Compiles the world model entity, performing CSG, BSP, portal, and face generation.
  */
 static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 
@@ -89,7 +89,7 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 }
 
 /**
- * @brief
+ * @brief Compiles a brush entity as an inline BSP model (e.g. func_door, func_plat).
  */
 static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 
@@ -124,7 +124,7 @@ static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 }
 
 /**
- * @brief
+ * @brief Iterates all brush entities and compiles each as either a world model or an inline model.
  */
 static void ProcessModels(void) {
 
@@ -151,7 +151,8 @@ static void ProcessModels(void) {
 }
 
 /**
- * @brief
+ * @brief Entry point for the BSP compilation stage; loads the map, builds the BSP tree, and writes the .bsp file.
+ * @return The exit code for the BSP stage.
  */
 int32_t BSP_Main(void) {
 

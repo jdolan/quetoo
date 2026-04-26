@@ -26,14 +26,14 @@
 GPtrArray *lights = NULL;
 
 /**
- * @brief
+ * @brief Allocates and returns a new light structure.
  */
 static light_t *AllocLight(void) {
   return Mem_TagMalloc(sizeof(light_t), (mem_tag_t) MEM_TAG_LIGHT);
 }
 
 /**
- * @brief
+ * @brief Frees a single light structure.
  */
 static void FreeLight(light_t *light) {
   Mem_Free(light);
@@ -65,7 +65,7 @@ static const cm_entity_t *FindTeamMaster(const char *team) {
 }
 
 /**
- * @brief
+ * @brief Parses a light entity and returns a populated light_t, or NULL if the entity is not a light.
  */
 static light_t *LightForEntity(const cm_entity_t *entity) {
 
@@ -133,7 +133,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
 }
 
 /**
- * @brief
+ * @brief Frees all lights and releases the lights array.
  */
 void FreeLights(void) {
 
@@ -146,7 +146,7 @@ void FreeLights(void) {
 }
 
 /**
- * @brief
+ * @brief Parses all light entities from the BSP and populates the lights array.
  */
 void BuildLights(void) {
 
@@ -171,7 +171,7 @@ void BuildLights(void) {
 }
 
 /**
- * @brief
+ * @brief Writes the lights array to the BSP lights lump.
  */
 void EmitLights(void) {
 

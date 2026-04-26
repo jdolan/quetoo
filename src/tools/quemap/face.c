@@ -27,7 +27,7 @@
 #include "qbsp.h"
 
 /**
- * @brief
+ * @brief Allocates a new face.
  */
 face_t *AllocFace(void) {
 
@@ -35,7 +35,7 @@ face_t *AllocFace(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the face and its winding.
  */
 void FreeFace(face_t *f) {
 
@@ -89,21 +89,21 @@ static GHashTable* welding_spatial_hash;
 static GSList* welding_hash_keys;
 
 /**
- * @brief 
+ * @brief Destroys a GHashTable stored as a value in the welding spatial hash.
  */
 static void WeldingSpatialHashValueDestroyFunc(GHashTable *ptr) {
   g_hash_table_destroy(ptr);
 }
 
 /**
- * @brief
+ * @brief Rounds a floating-point position to the nearest integer grid cell for spatial hashing.
  */
 static vec3i_t GetWeldingPoint(const vec3_t p) {
   return Vec3i(roundf(p.x), roundf(p.y), roundf(p.z));
 }
 
 /**
- * @brief
+ * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
 static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
   const uint16_t x = roundf((MAX_WORLD_COORD + ptr->x) * .5f);
@@ -114,14 +114,14 @@ static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
 }
 
 /**
- * @brief
+ * @brief Equality function for integer grid-cell keys used by the welding spatial hash.
  */
 static gboolean WeldingSpatialHashEqualFunc(const vec3i_t* a, const vec3i_t* b) {
   return a->x == b->x && a->y == b->y && a->z == b->z;
 }
 
 /**
- * @brief
+ * @brief Clears all entries from the welding spatial hash, or initializes it on first call.
  */
 void ClearWeldingSpatialHash(void) {
 
@@ -139,7 +139,7 @@ void ClearWeldingSpatialHash(void) {
 }
 
 /**
- * @brief
+ * @brief GEqualFunc comparing two vertex indices by their BSP vertex positions for use within a hash bucket.
  */
 static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
   const int32_t key_a = GPOINTER_TO_INT(a);
@@ -153,7 +153,7 @@ static gboolean WeldingHashKeyEquals(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief
+ * @brief GHashFunc hashing a vertex index by its quantized BSP vertex position.
  */
 static guint WeldingHashKeyHash(gconstpointer a) {
   const int32_t key_a = GPOINTER_TO_INT(a);
@@ -167,7 +167,7 @@ static guint WeldingHashKeyHash(gconstpointer a) {
 }
 
 /**
- * @brief
+ * @brief Inserts a vertex position and its BSP index into the welding spatial hash.
  */
 static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
   const vec3i_t spatial = GetWeldingPoint(v);
@@ -191,7 +191,7 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 int32_t num_welds = 0;
 
 /**
- * @brief
+ * @brief Searches the welding spatial hash for an existing vertex within VERTEX_EPSILON of the input, returning it in out.
  */
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
   static const int32_t offsets[] = { 0, 1, -1 };
@@ -347,7 +347,7 @@ static int32_t EmitFaceElements(const face_t *face, int32_t first_vertex) {
 }
 
 /**
- * @brief
+ * @brief Emits the given face into the BSP file, writing its vertex array and element indices.
  */
 bsp_face_t *EmitFace(const face_t *face) {
 
@@ -592,7 +592,7 @@ void PhongShading(const bsp_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Computes per-vertex tangent and bitangent vectors for all faces in the BSP file.
  */
 static void TangentVectors_(bsp_model_t *model) {
 

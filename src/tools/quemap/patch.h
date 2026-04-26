@@ -42,109 +42,31 @@ typedef struct {
  * @brief A pre-tessellated patch face (one per 3×3 sub-patch).
  */
 typedef struct patch_face_s {
-
-  /**
-   * @brief The AABB of this tessellated face.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief The tessellated vertexes.
-   */
-  bsp_vertex_t vertexes[(PATCH_SUBDIVISIONS + 1) * (PATCH_SUBDIVISIONS + 1)];
-
-  /**
-   * @brief The count of vertexes.
-   */
-  int32_t num_vertexes;
-
-  /**
-   * @brief The tessellated triangle elements (local 0-based indices).
-   */
-  int32_t elements[PATCH_SUBDIVISIONS * PATCH_SUBDIVISIONS * 6];
-
-  /**
-   * @brief The count of elements.
-   */
-  int32_t num_elements;
-
-  /**
-   * @brief The owning patch.
-   */
-  struct patch_s *patch;
-
-  /**
-   * @brief The emitted BSP face.
-   */
-  bsp_face_t *out;
-
-  /**
-   * @brief Linked list pointer for node assignment.
-   */
-  struct patch_face_s *next;
-
+  box3_t bounds; ///< The AABB of this tessellated face.
+  bsp_vertex_t vertexes[(PATCH_SUBDIVISIONS + 1) * (PATCH_SUBDIVISIONS + 1)]; ///< The tessellated vertexes.
+  int32_t num_vertexes; ///< The count of vertexes.
+  int32_t elements[PATCH_SUBDIVISIONS * PATCH_SUBDIVISIONS * 6]; ///< The tessellated triangle elements (local 0-based indices).
+  int32_t num_elements; ///< The count of elements.
+  struct patch_s *patch; ///< The owning patch.
+  bsp_face_t *out; ///< The emitted BSP face.
+  struct patch_face_s *next; ///< Linked list pointer for node assignment.
 } patch_face_t;
 
 /**
  * @brief The map file representation of a Bézier surface patch (patchDef2).
  */
 typedef struct patch_s {
-
-  /**
-   * @brief The texture name.
-   */
-  char texture[MAX_QPATH];
-
-  /**
-   * @brief The control point grid dimensions.
-   */
-  int32_t width, height;
-
-  /**
-   * @brief The control point grid.
-   */
-  patch_control_point_t control_points[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT];
-
-  /**
-   * @brief The entity number within the map.
-   */
-  int32_t entity;
-
-  /**
-   * @brief The BSP material number.
-   */
-  int32_t material;
-
-  /**
-   * @brief The CONTENTS_* mask.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The SURF_* mask.
-   */
-  int32_t surface;
-
-  /**
-   * @brief The AABB of all tessellated faces.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief The emitted BSP patch, assigned during EmitPatches.
-   */
-  bsp_patch_t *out;
-
-  /**
-   * @brief The pre-tessellated faces.
-   */
-  patch_face_t *faces;
-
-  /**
-   * @brief The count of pre-tessellated faces.
-   */
-  int32_t num_faces;
-
+  char texture[MAX_QPATH]; ///< The texture name.
+  int32_t width, height; ///< The control point grid dimensions.
+  patch_control_point_t control_points[MAX_PATCH_WIDTH * MAX_PATCH_HEIGHT]; ///< The control point grid.
+  int32_t entity; ///< The entity number within the map.
+  int32_t material; ///< The BSP material number.
+  int32_t contents; ///< The CONTENTS_* mask.
+  int32_t surface; ///< The SURF_* mask.
+  box3_t bounds; ///< The AABB of all tessellated faces.
+  bsp_patch_t *out; ///< The emitted BSP patch, assigned during EmitPatches.
+  patch_face_t *faces; ///< The pre-tessellated faces.
+  int32_t num_faces; ///< The count of pre-tessellated faces.
 } patch_t;
 
 extern int32_t num_patches;

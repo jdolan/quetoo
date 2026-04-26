@@ -48,7 +48,7 @@ box3_t map_bounds;
 #define DIST_EPSILON   0.005
 
 /**
- * @brief
+ * @brief Returns true if the two planes are equal within NORMAL_EPSILON and DIST_EPSILON.
  */
 static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
@@ -61,7 +61,7 @@ static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 }
 
 /**
- * @brief
+ * @brief Inserts a plane into the hash table for fast lookup by distance.
  */
 static inline void AddPlaneToHash(plane_t *p) {
 
@@ -72,7 +72,7 @@ static inline void AddPlaneToHash(plane_t *p) {
 }
 
 /**
- * @brief
+ * @brief Creates and registers a new plane and its mirror in the global planes table.
  */
 static int32_t CreatePlane(const vec3_t normal, double dist) {
 
@@ -156,7 +156,7 @@ static void SnapPlane(vec3_t *normal, double *dist) {
 }
 
 /**
- * @brief
+ * @brief Finds or creates a plane matching the given normal and distance; returns its index.
  */
 int32_t FindPlane(const vec3_t normal, double dist) {
 
@@ -182,7 +182,7 @@ int32_t FindPlane(const vec3_t normal, double dist) {
 }
 
 /**
- * @brief
+ * @brief Derives a plane index from three coplanar points, or returns -1 if the points are degenerate.
  */
 static int32_t PlaneFromPoints(const vec3d_t p0, const vec3d_t p1, const vec3d_t p2) {
 
@@ -400,7 +400,7 @@ void MakeBrushWindings(brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Applies material-derived surface and contents flags to a brush side.
  */
 static void SetMaterialFlags(brush_side_t *side) {
 
@@ -448,7 +448,7 @@ static void SetMaterialFlags(brush_side_t *side) {
 }
 
 /**
- * @brief
+ * @brief Parses a single brush or patchDef2 block from the map file and adds it to the entity.
  */
 static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
   char token[MAX_TOKEN_CHARS];
@@ -739,7 +739,7 @@ static void MovePatchesToWorld(entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Parses one entity block (key-value pairs and brushes) from the map file.
  */
 static entity_t *ParseEntity(parser_t *parser) {
   char token[MAX_TOKEN_CHARS];
@@ -847,7 +847,7 @@ static entity_t *ParseEntity(parser_t *parser) {
 }
 
 /**
- * @brief
+ * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
  */
 void LoadMapFile(const char *filename) {
 

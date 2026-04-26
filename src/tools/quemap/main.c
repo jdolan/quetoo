@@ -45,7 +45,7 @@ bool do_zip = false;
 static void Print(const char *msg);
 
 /**
- * @brief
+ * @brief Prints a debug message to stdout when the debug flag is set.
  */
 static void Debug(const debug_t debug, const char *msg) {
 
@@ -59,7 +59,7 @@ static void Debug(const debug_t debug, const char *msg) {
 static void Shutdown(const char *msg);
 
 /**
- * @brief
+ * @brief Prints an error message to stderr and terminates the process.
  */
 static void Error(err_t err, const char *msg) __attribute__((noreturn));
 static void Error(err_t err, const char *msg) {
@@ -147,7 +147,7 @@ static void Shutdown(const char *msg) {
 }
 
 /**
- * @brief
+ * @brief Parses command-line options for the BSP compilation stage beginning at argv index argc.
  */
 static void Check_BSP_Options(int32_t argc) {
 
@@ -184,7 +184,7 @@ static void Check_BSP_Options(int32_t argc) {
 }
 
 /**
- * @brief
+ * @brief Parses command-line options for the light compilation stage beginning at argv index argc.
  */
 static void Check_LIGHT_Options(int32_t argc) {
 
@@ -199,7 +199,7 @@ static void Check_LIGHT_Options(int32_t argc) {
 }
 
 /**
- * @brief
+ * @brief Parses command-line options for the zip packaging stage beginning at argv index argc.
  */
 static void Check_ZIP_Options(int32_t argc) {
 
@@ -218,7 +218,7 @@ static void Check_ZIP_Options(int32_t argc) {
 }
 
 /**
- * @brief
+ * @brief Prints usage and available command-line options for all quemap stages.
  */
 static void PrintHelpMessage(void) {
   Com_Print("General options\n");
@@ -260,7 +260,8 @@ static void PrintHelpMessage(void) {
 }
 
 /**
- * @brief
+ * @brief Program entry point; parses arguments and invokes the requested compilation stages.
+ * @return Exit code.
  */
 int32_t main(int32_t argc, char **argv) {
   int32_t num_threads = 0;

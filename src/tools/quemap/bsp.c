@@ -74,7 +74,7 @@ static void PrintBSPFileSizes(void) {
 }
 
 /**
- * @brief
+ * @brief Loads the specified lumps from a BSP file into the global bsp_file structure.
  */
 void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 
@@ -96,7 +96,7 @@ void LoadBSPFile(const char *filename, const bsp_lump_id_t lumps) {
 }
 
 /**
- * @brief
+ * @brief Writes the global bsp_file structure to the specified BSP file on disk.
  */
 void WriteBSPFile(const char *filename) {
 

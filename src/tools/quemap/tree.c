@@ -28,7 +28,7 @@
 static SDL_AtomicInt c_active_nodes;
 
 /**
- * @brief
+ * @brief Allocates a new BSP tree node with default values.
  */
 node_t *AllocNode(void) {
 
@@ -38,7 +38,7 @@ node_t *AllocNode(void) {
 }
 
 /**
- * @brief
+ * @brief Frees a single BSP tree node and releases its brush list.
  */
 void FreeNode(node_t *node) {
 
@@ -48,7 +48,7 @@ void FreeNode(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Allocates a new BSP tree and its head node.
  */
 tree_t *AllocTree(void) {
 
@@ -56,7 +56,7 @@ tree_t *AllocTree(void) {
 }
 
 /**
- * @brief
+ * @brief Recursively frees all portals connected to the subtree rooted at node.
  */
 static void FreeTreePortals_r(node_t *node) {
 
@@ -82,7 +82,7 @@ void FreeTreePortals(tree_t *tree) {
 }
 
 /**
- * @brief
+ * @brief Recursively frees all nodes, faces, and brushes in the subtree rooted at node.
  */
 void FreeTree_r(node_t *node) {
 
@@ -111,7 +111,7 @@ void FreeTree_r(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Frees all portals and all nodes in the tree, then frees the tree itself.
  */
 void FreeTree(tree_t *tree) {
 
@@ -123,7 +123,7 @@ void FreeTree(tree_t *tree) {
 }
 
 /**
- * @brief
+ * @brief Marks the node as a leaf, recording its contents and the brushes that generated it.
  */
 static node_t *LeafNode(node_t *node, csg_brush_t *brushes) {
 
@@ -258,7 +258,7 @@ static const brush_side_t *SelectSplitSide(node_t *node, csg_brush_t *brushes) {
 }
 
 /**
- * @brief
+ * @brief Splits the brush list against the given plane into front and back sub-lists.
  */
 static void SplitBrushes(csg_brush_t *brushes, const node_t *node, csg_brush_t **front, csg_brush_t **back) {
 
@@ -363,7 +363,7 @@ static node_t *BuildTree_r(node_t *node, csg_brush_t *brushes) {
 }
 
 /**
- * @brief
+ * @brief Recursively partitions the brush list into a BSP tree, selecting the best split plane at each step.
  * @remark The incoming list will be freed before exiting
  */
 tree_t *BuildTree(csg_brush_t *brushes) {
@@ -422,7 +422,7 @@ tree_t *BuildTree(csg_brush_t *brushes) {
 static int32_t c_merged_faces;
 
 /**
- * @brief
+ * @brief Recursively merges coplanar, co-material faces in the subtree rooted at node.
  */
 static void MergeFaces_r(node_t *node) {
 
@@ -463,7 +463,7 @@ again:
 }
 
 /**
- * @brief
+ * @brief Recursively computes the visible bounds of each node from its children's visible bounds.
  */
 static box3_t CalcNodeVisibleBounds_r(node_t *node) {
 
@@ -492,7 +492,7 @@ static box3_t CalcNodeVisibleBounds_r(node_t *node) {
 
 
 /**
- * @brief
+ * @brief Merges coplanar faces across the entire tree, then recalculates each node's visible bounds.
  */
 void MergeTreeFaces(tree_t *tree) {
   Com_Verbose("--- MergeTreeFaces ---\n");

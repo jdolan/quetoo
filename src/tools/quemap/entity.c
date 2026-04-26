@@ -22,7 +22,7 @@
 #include "entity.h"
 
 /**
- * @brief
+ * @brief Sets or creates the key-value pair with the given key on the entity.
  */
 void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 
@@ -42,7 +42,7 @@ void SetValueForKey(entity_t *ent, const char *key, const char *value) {
 }
 
 /**
- * @brief
+ * @brief Returns the value for the given key on the entity, or def if not found.
  */
 const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 
@@ -56,7 +56,7 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 }
 
 /**
- * @brief
+ * @brief Returns the vec3_t value for the given key on the entity, or def if not found or not parseable.
  */
 vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
 

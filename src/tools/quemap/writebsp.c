@@ -29,7 +29,7 @@
 #include "writebsp.h"
 
 /**
- * @brief
+ * @brief Writes all compiler planes to the BSP planes lump.
  */
 void EmitPlanes(void) {
 
@@ -49,7 +49,7 @@ void EmitPlanes(void) {
 }
 
 /**
- * @brief
+ * @brief Writes all loaded materials to the BSP materials lump.
  */
 void EmitMaterials(void) {
 
@@ -164,7 +164,8 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
 }
 
 /**
- * @brief
+ * @brief Emits a leaf node into the BSP leaves lump, writing its contents, bounds, and leaf-brush references.
+ * @return The index of the new leaf in bsp_file.leafs.
  */
 static int32_t EmitLeaf(node_t *node) {
 
@@ -211,7 +212,8 @@ static int32_t EmitLeaf(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Recursively emits a BSP node and its children into the BSP nodes and leafs lumps.
+ * @return The index of the emitted node in bsp_file.nodes.
  */
 static int32_t EmitNode(const node_t *node) {
 
@@ -255,7 +257,8 @@ static int32_t EmitNode(const node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Emits the entire BSP tree rooted at tree->head_node into the BSP file.
+ * @return The index of the head node in bsp_file.nodes.
  */
 int32_t EmitNodes(const tree_t *tree) {
 
@@ -277,7 +280,7 @@ int32_t EmitNodes(const tree_t *tree) {
 }
 
 /**
- * @brief
+ * @brief Emits a single brush side into the BSP brush sides lump and returns a pointer to it.
  */
 static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 
@@ -298,7 +301,8 @@ static bsp_brush_side_t *EmitBrushSide(const brush_side_t *side) {
 }
 
 /**
- * @brief
+ * @brief Emits all sides of a brush into the BSP brush sides lump.
+ * @return The number of brush sides emitted.
  */
 static int32_t EmitBrushSides(const brush_t *brush) {
 
@@ -313,7 +317,7 @@ static int32_t EmitBrushSides(const brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Emits a single brush and its sides into the BSP brushes lump and returns a pointer to the emitted brush.
  */
 static bsp_brush_t *EmitBrush(const brush_t *brush) {
 
@@ -331,7 +335,7 @@ static bsp_brush_t *EmitBrush(const brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Emits all brushes to the BSP brushes and brush sides lumps.
  */
 void EmitBrushes(void) {
 
@@ -387,7 +391,7 @@ void EmitEntities(void) {
 }
 
 /**
- * @brief
+ * @brief Allocates BSP lumps and initializes the BSP file structure for writing.
  */
 void BeginBSPFile(void) {
 
@@ -421,14 +425,14 @@ void BeginBSPFile(void) {
 }
 
 /**
- * @brief
+ * @brief Called after all BSP data has been emitted; reserved for any final BSP file finalization.
  */
 void EndBSPFile(void) {
 
 }
 
 /**
- * @brief
+ * @brief Allocates a new BSP model entry for the given entity and initializes its face and element offsets.
  */
 bsp_model_t *BeginModel(const entity_t *e) {
 
@@ -463,7 +467,7 @@ bsp_model_t *BeginModel(const entity_t *e) {
 }
 
 /**
- * @brief
+ * @brief Emits depth-pass element indices for all opaque, non-liquid, non-sky faces of the model.
  */
 static void EmitDepthPassElements(bsp_model_t *mod) {
 
@@ -602,7 +606,7 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
 }
 
 /**
- * @brief
+ * @brief Recursively emits block draw-element groups for all CONTENTS_BLOCK nodes in the BSP tree.
  */
 static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
@@ -649,14 +653,14 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Emits all block draw-element groups for the given model.
  */
 static void EmitBlocks(bsp_model_t *mod) {
   EmitBlocks_r(mod, bsp_file.nodes + mod->head_node);
 }
 
 /**
- * @brief
+ * @brief Finalizes a BSP model: computes face counts, runs Phong shading, emits patches, depth-pass elements, and blocks.
  */
 void EndModel(bsp_model_t *mod) {
 

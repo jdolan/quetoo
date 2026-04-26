@@ -29,7 +29,7 @@ static SDL_SpinLock *faces_locks;
 static int32_t largest_winding = 0;
 
 /**
- * @brief
+ * @brief Processes a single face, inserting vertices from all other coplanar faces that lie on its edges to eliminate T-junctions.
  */
 static void FixTJunctions_(int32_t face_num) {
   static _Thread_local cm_winding_t *face_winding, *f_winding;
@@ -124,7 +124,7 @@ static void FixTJunctions_(int32_t face_num) {
 }
 
 /**
- * @brief
+ * @brief Recursively traverses the tree and collects all unmerged faces into the faces array.
  */
 static void FixTJunctions_r(node_t *node) {
 
@@ -150,7 +150,7 @@ static void FixTJunctions_r(node_t *node) {
 }
 
 /**
- * @brief
+ * @brief Fixes all T-junctions in the tree by inserting missing vertices into face windings along shared edges.
  */
 void FixTJunctions(tree_t *tree) {
 

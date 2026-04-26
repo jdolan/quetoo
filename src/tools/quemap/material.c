@@ -23,7 +23,7 @@
 #include "bsp.h"
 
 /**
- * @brief
+ * @brief The global material count and array used by the map compiler.
  */
 int32_t num_materials;
 material_t materials[MAX_BSP_MATERIALS];

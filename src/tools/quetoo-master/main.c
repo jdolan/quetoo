@@ -192,7 +192,7 @@ static void Ms_RemoveServer(struct sockaddr_in *from) {
 }
 
 /**
- * @brief
+ * @brief Processes one master-server tick: evicts stale servers, handles pending pings, and cycles to the next server.
  */
 static void Ms_Frame(void) {
   const time_t now = time(NULL);
@@ -291,7 +291,7 @@ static void Ms_Heartbeat(struct sockaddr_in *from) {
 }
 
 /**
- * @brief
+ * @brief Parses and dispatches an incoming UDP message (heartbeat, ping, ack, or getservers) from a game server.
  */
 static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   char *cmd = data;
@@ -366,7 +366,7 @@ static void Shutdown(const char *msg) {
 }
 
 /**
- * @brief
+ * @brief Master server entry point: opens the UDP socket and runs the main receive/dispatch loop.
  */
 int32_t main(int32_t argc, char **argv) {
 

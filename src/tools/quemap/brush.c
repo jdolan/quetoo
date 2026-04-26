@@ -25,7 +25,7 @@
 static SDL_AtomicInt c_active_brushes;
 
 /**
- * @brief
+ * @brief Allocates a new CSG brush with the given number of sides.
  */
 csg_brush_t *AllocBrush(int32_t num_brush_sides) {
 
@@ -39,7 +39,7 @@ csg_brush_t *AllocBrush(int32_t num_brush_sides) {
 }
 
 /**
- * @brief
+ * @brief Frees all side windings and the brush itself.
  */
 void FreeBrush(csg_brush_t *brush) {
 
@@ -57,7 +57,7 @@ void FreeBrush(csg_brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Frees the entire linked list of brushes.
  */
 void FreeBrushes(csg_brush_t *brushes) {
   csg_brush_t *next;
@@ -69,7 +69,7 @@ void FreeBrushes(csg_brush_t *brushes) {
 }
 
 /**
- * @brief
+ * @brief Returns the number of brushes in the linked list.
  */
 size_t CountBrushes(const csg_brush_t *brushes) {
 
@@ -118,7 +118,7 @@ static void SetBrushBounds(csg_brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Builds face windings for each side of the brush and computes the bounding box.
  */
 static void MakeCsgBrushWindings(csg_brush_t *brush) {
 
@@ -168,7 +168,7 @@ csg_brush_t *BrushFromBounds(const box3_t bounds) {
 }
 
 /**
- * @brief
+ * @brief Returns the approximate volume of the brush by summing tetrahedra to each face.
  */
 float BrushVolume(csg_brush_t *brush) {
   int32_t i;
@@ -212,7 +212,7 @@ float BrushVolume(csg_brush_t *brush) {
 }
 
 /**
- * @brief
+ * @brief Returns a side classification (SIDE_FRONT, SIDE_BACK, SIDE_ON, or SIDE_BOTH) for the brush relative to the given plane.
  */
 int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane) {
 
@@ -233,7 +233,7 @@ int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane) {
 }
 
 /**
- * @brief
+ * @brief Returns the plane-side classification of the brush and sets num_split_sides to the count of sides straddling the plane.
  */
 int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t *num_split_sides) {
 
@@ -277,7 +277,7 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t 
 }
 
 /**
- * @brief
+ * @brief Returns SIDE_FRONT or SIDE_BACK indicating which side of the plane contains most of the brush's vertices.
  */
 static int32_t BrushMostlyOnSide(const csg_brush_t *brush, const plane_t *plane) {
 

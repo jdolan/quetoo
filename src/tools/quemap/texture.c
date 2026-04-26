@@ -24,7 +24,7 @@
 #include "texture.h"
 
 /**
- * @brief
+ * @brief Selects the best-fitting axis-aligned texture projection axes for the given plane.
  */
 static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
   static const vec3_t base_axis[18] = {
@@ -64,7 +64,7 @@ static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 }
 
 /**
- * @brief
+ * @brief Computes the world-space texture projection vectors for a brush side, accounting for shift, scale, and rotation.
  */
 void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
