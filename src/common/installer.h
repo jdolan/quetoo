@@ -26,7 +26,7 @@
 #include <SDL3/SDL_mutex.h>
 
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
-#define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/versions/" BUILD
+#define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/version"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
 
 /**

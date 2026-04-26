@@ -1,10 +1,8 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags: [ "v*" ]
 
 permissions:
   contents: write
@@ -390,7 +388,6 @@ jobs:
 
   release:
     needs: [build-macos, build-linux, build-windows]
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -411,22 +408,59 @@ jobs:
         git rev-list --count HEAD > version
         aws s3 cp version s3://quetoo/version
 
-    - name: Delete existing snapshot release
-      if: github.ref == 'refs/heads/main'
-      run: gh release delete latest --yes --cleanup-tag || true
-      env:
-        GH_TOKEN: ${{ github.token }}
-        GH_REPO: ${{ github.repository }}
+    - name: Checkout quetoo-data
+      uses: actions/checkout@v6
+      with:
+        repository: jdolan/quetoo-data
+        path: quetoo-data
+        fetch-depth: 1
+        sparse-checkout: target
 
-    - name: Create snapshot release
-      if: github.ref == 'refs/heads/main'
+    - name: Create bundles
+      run: |
+        # macOS bundle: data into Quetoo.app/Contents/Resources/default/
+        mkdir bundle-macos && cd bundle-macos
+        unzip ../quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip
+        mkdir -p Quetoo.app/Contents/Resources/default
+        cp -r ../quetoo-data/target/default/. Quetoo.app/Contents/Resources/default/
+        zip -r ../quetoo-bundle-arm64-apple-darwin.zip Quetoo.app
+        cd ..
+
+        # Linux bundle: extract AppImage, inject data into usr/share/default/, repack
+        chmod +x quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage
+        ./quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage --appimage-extract
+        mkdir -p squashfs-root/usr/share/default
+        cp -r quetoo-data/target/default/. squashfs-root/usr/share/default/
+        curl -fsSL -o appimagetool \
+          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+        chmod +x appimagetool
+        ARCH=x86_64 ./appimagetool --appimage-extract-and-run \
+          squashfs-root quetoo-bundle-x86_64-pc-linux.AppImage
+
+        # Windows bundle: data as share/default/ alongside bin/ and lib/
+        mkdir bundle-windows && cd bundle-windows
+        unzip ../quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
+        mkdir -p share/default
+        cp -r ../quetoo-data/target/default/. share/default/
+        zip -r ../quetoo-bundle-x86_64-pc-windows.zip .
+        cd ..
+
+    - name: Create versioned release
       run: |
         cp quetoo-x86_64-pc-linux-deb/quetoo_*_amd64.deb quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb
         cp quetoo-x86_64-pc-linux-rpm/quetoo-*.x86_64.rpm quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm
-        gh release create latest \
-          --title "Quetoo Snapshot" \
-          --notes "Latest snapshot build from the \`main\` branch.
+        gh release create ${{ github.ref_name }} \
+          --title "Quetoo ${{ github.ref_name }}" \
+          --notes "Quetoo ${{ github.ref_name }}
 
+        ### Bundles (binaries + game data, ready to play)
+        | Platform | Download |
+        |----------|----------|
+        | macOS (Apple Silicon) | quetoo-bundle-arm64-apple-darwin.zip |
+        | Linux (x86_64 AppImage) | quetoo-bundle-x86_64-pc-linux.AppImage |
+        | Windows (x86_64) | quetoo-bundle-x86_64-pc-windows.zip |
+
+        ### Binaries only (for updates)
         | Platform | Download |
         |----------|----------|
         | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
@@ -434,7 +468,9 @@ jobs:
         | Linux (x86_64 .deb) | quetoo-x86_64-pc-linux.deb |
         | Linux (x86_64 .rpm) | quetoo-x86_64-pc-linux.rpm |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
-          --prerelease \
+          quetoo-bundle-arm64-apple-darwin.zip \
+          quetoo-bundle-x86_64-pc-linux.AppImage \
+          quetoo-bundle-x86_64-pc-windows.zip \
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
           quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
           quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb \

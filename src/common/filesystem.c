@@ -20,6 +20,7 @@
  */
 
 #include <physfs.h>
+#include <SDL3/SDL.h>
 
 #include "console.h"
 #include "filesystem.h"
@@ -719,6 +720,17 @@ void Fs_Init(const uint32_t flags) {
     if ((c = strstr(path, "Quetoo.app"))) {
       *(c + strlen("Quetoo.app")) = '\0';
       g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
+
+      if (strstr(fs_state.base_dir, "AppTranslocation")) {
+        SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+          "Move Quetoo to Applications",
+          "Quetoo cannot run from this location.\n\n"
+          "Please move Quetoo.app to your Applications folder and try again.",
+          NULL);
+        Com_Error(ERROR_FATAL,
+          "Quetoo cannot run from this location.\n\n"
+          "Please move Quetoo.app to your Applications folder and try again.\n");
+      }
 
       g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
       g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib", fs_state.base_dir);

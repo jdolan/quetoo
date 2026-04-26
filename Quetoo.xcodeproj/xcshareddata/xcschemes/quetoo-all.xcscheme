@@ -145,7 +145,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map fragpipe"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
