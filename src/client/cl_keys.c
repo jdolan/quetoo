@@ -228,7 +228,7 @@ static void Cl_KeyConsole(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Executes the bound command for the current key event in game mode.
  */
 static void Cl_KeyGame(const SDL_Event *event) {
   char cmd[MAX_STRING_CHARS];
@@ -266,7 +266,7 @@ static void Cl_KeyGame(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Handles key events while in chat mode, submitting or editing the chat input.
  */
 static void Cl_KeyChat(const SDL_Event *event) {
 
@@ -395,7 +395,7 @@ void Cl_Bind(SDL_Scancode key, const char *bind) {
 
 
 /**
- * @brief
+ * @brief Handles the `unbind` console command, removing the binding for a named key.
  */
 static void Cl_Unbind_f(void) {
 
@@ -415,7 +415,7 @@ static void Cl_Unbind_f(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `unbind_all` console command, clearing all key bindings.
  */
 static void Cl_UnbindAll_f(void) {
 
@@ -449,7 +449,7 @@ static void Cl_Bind_Autocomplete_f(const uint32_t argi, GList **matches) {
 }
 
 /**
- * @brief
+ * @brief Handles the `bind` console command, assigning a command string to a named key.
  */
 static void Cl_Bind_f(void) {
   char cmd[MAX_STRING_CHARS];
@@ -507,7 +507,7 @@ void Cl_WriteBindings(file_t *f) {
 }
 
 /**
- * @brief
+ * @brief Handles the `bind_list` console command, printing all active key bindings.
  */
 static void Cl_BindList_f(void) {
 
@@ -521,7 +521,7 @@ static void Cl_BindList_f(void) {
 #include "cl_binds.h"
 
 /**
- * @brief
+ * @brief Initializes key name tables, default bindings, and key-related console commands.
  */
 void Cl_InitKeys(void) {
 
@@ -560,7 +560,7 @@ void Cl_InitKeys(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the key name table allocated during initialization.
  */
 void Cl_ShutdownKeys(void) {
 
@@ -568,7 +568,7 @@ void Cl_ShutdownKeys(void) {
 }
 
 /**
- * @brief
+ * @brief Routes an SDL key event to the appropriate destination handler (UI, game, or chat).
  */
 void Cl_KeyEvent(const SDL_Event *event) {
 

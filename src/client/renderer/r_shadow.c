@@ -27,36 +27,14 @@
 static struct {
   GLuint name;
 
-  /**
-   * @brief The uniform blocks.
-   */
-  GLuint uniforms_block;
-  GLuint lights_block;
+  GLuint uniforms_block; ///< The uniforms UBO binding.
+  GLuint lights_block; ///< The lights UBO binding.
 
-  /**
-   * @brief The model matrix.
-   */
-  GLint model;
-
-  /**
-   * @brief The frame interpolation fraction.
-   */
-  GLint lerp;
-
-  /**
-   * @brief The light view matrices for 6-pass rendering without geometry shader.
-   */
-  GLint light_view;
-
-  /**
-   * @brief The light index.
-   */
-  GLint light_index;
-
-  /**
-   * @brief The face index.
-   */
-  GLint face_index;
+  GLint model; ///< The model matrix uniform location.
+  GLint lerp; ///< The frame interpolation fraction uniform location.
+  GLint light_view; ///< The light view matrices for 6-pass rendering without geometry shader.
+  GLint light_index; ///< The light index uniform location.
+  GLint face_index; ///< The face index uniform location.
 } r_shadow_program;
 
 r_shadow_atlas_t r_shadow_atlas;
@@ -92,7 +70,7 @@ static void R_ShadowAtlasTile(int32_t light_index, int32_t face, GLint *x, GLint
 }
 
 /**
- * @brief
+ * @brief Returns true if the given entity is the source of the specified light.
  */
 static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 
@@ -107,7 +85,7 @@ static bool R_IsLightSource(const r_light_t *light, const r_entity_t *e) {
 }
 
 /**
- * @brief
+ * @brief Draws shadow geometry for a single BSP inline model entity.
  */
 static void R_DrawBspEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
@@ -186,7 +164,7 @@ static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light
 }
 
 /**
- * @brief
+ * @brief Draws shadow geometry for a single mesh model face.
  */
 static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh, const r_mesh_face_t *face) {
 
@@ -200,7 +178,7 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
 }
 
 /**
- * @brief
+ * @brief Draws shadow geometry for a single mesh entity, handling both static and animated meshes.
  */
 static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light, const r_entity_t *e) {
 
@@ -361,7 +339,7 @@ static void R_DrawShadow(const r_view_t *view, const r_light_t *light) {
 }
 
 /**
- * @brief
+ * @brief Renders shadow maps for all visible, non-occluded lights into the shadow atlas.
  */
 void R_DrawShadows(const r_view_t *view) {
 
@@ -518,7 +496,7 @@ static void R_InitShadowTextures(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the shadow atlas framebuffer and attaches the first texture layer.
  */
 static void R_InitShadowFramebuffer(void) {
 
@@ -542,7 +520,7 @@ static void R_InitShadowFramebuffer(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes all shadow mapping resources: program, textures, and framebuffer.
  */
 void R_InitShadows(void) {
 
@@ -554,7 +532,7 @@ void R_InitShadows(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the shadow GLSL program.
  */
 static void R_ShutdownShadowProgram(void) {
 
@@ -566,7 +544,7 @@ static void R_ShutdownShadowProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the shadow atlas depth texture.
  */
 static void R_ShutdownShadowTexture(void) {
 
@@ -578,7 +556,7 @@ static void R_ShutdownShadowTexture(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the shadow atlas framebuffer object.
  */
 static void R_ShutdownShadowFramebuffer(void) {
 
@@ -590,7 +568,7 @@ static void R_ShutdownShadowFramebuffer(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down all shadow mapping resources: program, texture, and framebuffer.
  */
 void R_ShutdownShadows(void) {
 

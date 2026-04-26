@@ -107,7 +107,7 @@ void R_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @brief
+ * @brief Updates the global uniform buffer object with view and projection matrices for the current frame.
  */
 void R_UpdateUniforms(const r_view_t *view) {
 
@@ -208,7 +208,7 @@ void R_InitView(r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Renders the view depth pre-pass, updating frustum and uploading uniforms.
  */
 void R_DrawViewDepth(r_view_t *view) {
 
@@ -425,7 +425,7 @@ static void R_InitConfig(void) {
 }
 
 /**
- * @brief
+ * @brief Creates the global uniform buffer object and binds it to binding point 0.
  */
 static void R_InitUniforms(void) {
 
@@ -444,7 +444,7 @@ static void R_InitUniforms(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the global uniform buffer object.
  */
 static void R_ShutdownUniforms(void) {
 

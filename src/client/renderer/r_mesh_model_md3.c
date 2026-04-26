@@ -447,7 +447,7 @@ static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 }
 
 /**
- * @brief
+ * @brief The MD3 model format descriptor.
  */
 const r_model_format_t r_md3_model_format = {
   .extension = "md3",

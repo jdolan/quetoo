@@ -27,7 +27,7 @@
 r_depth_pass_program_t r_depth_pass_program;
 
 /**
- * @brief
+ * @brief Renders the world BSP geometry into the depth buffer only (no color output).
  */
 static void R_DrawBspDepthPass(const r_view_t *view) {
 
@@ -43,7 +43,7 @@ static void R_DrawBspDepthPass(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Performs the depth pre-pass, writing depth values for all opaque world geometry.
  */
 void R_DrawDepthPass(r_view_t *view) {
 
@@ -71,7 +71,7 @@ void R_DrawDepthPass(r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Compiles and links the depth pre-pass GLSL program.
  */
 static void R_InitDepthPassProgram(void) {
 
@@ -95,7 +95,7 @@ static void R_InitDepthPassProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the depth pre-pass GLSL program object.
  */
 static void R_ShutdownDepthPassProgram(void) {
 
@@ -105,14 +105,14 @@ static void R_ShutdownDepthPassProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the depth pre-pass subsystem.
  */
 void R_InitDepthPass(void) {
   R_InitDepthPassProgram();
 }
 
 /**
- * @brief
+ * @brief Shuts down the depth pre-pass subsystem.
  */
 void R_ShutdownDepthPass(void) {
   R_ShutdownDepthPassProgram();

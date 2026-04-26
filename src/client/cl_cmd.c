@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief
+ * @brief Initializes the current movement command for the outgoing sequence slot.
  */
 static void Cl_InitMovementCommand(void) {
 

@@ -24,42 +24,42 @@
 cl_static_t cls;
 
 /**
- * @brief
+ * @brief Null client stub: returns whether the installer is complete.
  */
 int32_t Cl_InstallerFrame(const installer_status_t *in) {
   return in->state >= INSTALLER_DONE;
 }
 
 /**
- * @brief
+ * @brief Null client stub: no-op disconnect.
  */
 void Cl_Disconnect(void) {
 
 }
 
 /**
- * @brief
+ * @brief Null client stub: no-op drop handler.
  */
 void Cl_Drop(const char *text) {
 
 }
 
 /**
- * @brief
+ * @brief Null client stub: no-op frame tick.
  */
 void Cl_Frame(const uint32_t msec) {
 
 }
 
 /**
- * @brief
+ * @brief Null client stub: minimal init that clears the client state.
  */
 void Cl_Init(void) {
   memset(&cls, 0, sizeof(cls));
 }
 
 /**
- * @brief
+ * @brief Null client stub: no-op shutdown.
  */
 void Cl_Shutdown(void) {
 

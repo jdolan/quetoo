@@ -27,35 +27,12 @@
  * of the scene. Queues make allocating and freeing queries a constant O(1) operation.
  */
 static struct {
-  /**
-   * @brief The queue of allocated occlusion queries.
-   */
-  GQueue *allocated;
-
-  /**
-   * @brief The queue of free occlusion queries.
-   */
-  GQueue *free;
-
-  /**
-   * @brief If true, rebuild the vertex buffer at next frame.
-   */
-  bool dirty;
-
-  /**
-   * @brief The vertex array object.
-   */
-  GLuint vertex_array;
-
-  /**
-   * @brief The vertex buffer object.
-   */
-  GLuint vertex_buffer;
-
-  /**
-   * @brief The elements buffer object.
-   */
-  GLuint elements_buffer;
+  GQueue *allocated; ///< The queue of allocated occlusion queries.
+  GQueue *free; ///< The queue of free occlusion queries.
+  bool dirty; ///< If true, rebuild the vertex buffer at next frame.
+  GLuint vertex_array; ///< The vertex array object.
+  GLuint vertex_buffer; ///< The vertex buffer object.
+  GLuint elements_buffer; ///< The elements buffer object.
 } r_occlusion_queries;
 
 /**
@@ -95,7 +72,7 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
 }
 
 /**
- * @brief
+ * @brief Tests whether the given sphere origin is occluded by any occlusion query result.
  */
 bool R_OccludeSphere(const r_view_t *view, const vec3_t origin, float radius) {
   return R_OccludeBox(view, Box3_FromCenterRadius(origin, radius));
@@ -298,7 +275,7 @@ void R_DrawOcclusionQueries(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Initializes occlusion query state, allocating GPU buffers for bounding box rendering.
  */
 void R_InitOcclusionQueries(void) {
 
@@ -353,7 +330,7 @@ static void R_ShutdownOcclusionQuery(gpointer data) {
 }
 
 /**
- * @brief
+ * @brief Shuts down occlusion query state, freeing all GPU resources and allocated queries.
  */
 void R_ShutdownOcclusionQueries(void) {
 

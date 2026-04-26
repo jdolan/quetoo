@@ -142,7 +142,7 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 }
 
 /**
- * @brief
+ * @brief Loads the BSP and inline models listed in the current config strings.
  */
 static void Cl_LoadModels(void) {
 
@@ -171,7 +171,7 @@ static void Cl_LoadImages_Emoji(const char *path, void *data) {
 }
 
 /**
- * @brief
+ * @brief Loads all images, the sky, and compiles the emoji image atlas.
  */
 static void Cl_LoadImages(void) {
 
@@ -198,7 +198,7 @@ static void Cl_LoadImages(void) {
 }
 
 /**
- * @brief
+ * @brief Loads all sound samples listed in the current config strings.
  */
 static void Cl_LoadSounds(void) {
 
@@ -233,7 +233,7 @@ static void Cl_LoadSounds(void) {
 }
 
 /**
- * @brief
+ * @brief Loads all music tracks listed in the current config strings.
  */
 static void Cl_LoadMusics(void) {
 

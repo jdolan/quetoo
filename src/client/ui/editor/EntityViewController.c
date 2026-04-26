@@ -151,7 +151,7 @@ static void loadView(ViewController *self) {
 }
 
 /**
- * @brief
+ * @brief Handles keyboard events for the EntityViewController, supporting copy/paste of entity definitions.
  */
 static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 

@@ -38,7 +38,7 @@ static struct {
 } r_decal_program;
 
 /**
- * @brief
+ * @brief Adds a decal to the view for rendering in the current frame.
  */
 void R_AddDecal(r_view_t *view, const r_decal_t *decal) {
 
@@ -465,7 +465,7 @@ void R_InitDecals(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the decal GLSL program object.
  */
 static void R_ShutdownDecalProgram(void) {
 

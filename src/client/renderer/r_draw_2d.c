@@ -125,7 +125,7 @@ static struct {
 } r_draw_2d_program;
 
 /**
- * @brief
+ * @brief Sets the active 2D projection context (game or UI).
  */
 void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
 
@@ -140,7 +140,7 @@ void R_SetDraw2DProjection(r_draw_2d_projection_t projection) {
 }
 
 /**
- * @brief
+ * @brief Appends a draw arrays batch to the active 2D draw list, merging adjacent compatible draws.
  */
 static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 
@@ -197,7 +197,7 @@ static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 }
 
 /**
- * @brief
+ * @brief Emits quad vertices for the given character at the specified screen position.
  */
 static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 
@@ -239,7 +239,7 @@ static void R_Draw2DChar_(GLint x, GLint y, char c, const color_t color) {
 }
 
 /**
- * @brief
+ * @brief Draws a single character at the specified screen position using the current font.
  */
 void R_Draw2DChar(GLint x, GLint y, char c, const color_t color) {
 
@@ -286,14 +286,14 @@ GLint R_StringWidth(const char *s) {
 }
 
 /**
- * @brief
+ * @brief Draws a null-terminated string at the specified screen position.
  */
 size_t R_Draw2DString(GLint x, GLint y, const char *s, const color_t color) {
   return R_Draw2DSizedString(x, y, s, UINT16_MAX, UINT16_MAX, color);
 }
 
 /**
- * @brief
+ * @brief Draws up to `size` bytes of a string at the specified screen position.
  */
 size_t R_Draw2DBytes(GLint x, GLint y, const char *s, size_t size, const color_t color) {
   return R_Draw2DSizedString(x, y, s, size, size, color);
@@ -399,7 +399,7 @@ void R_BindFont(const char *name, GLint *cw, GLint *ch) {
 }
 
 /**
- * @brief
+ * @brief Sets the active 2D scissor clipping rectangle.
  */
 void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 
@@ -410,7 +410,7 @@ void R_SetClippingFrame(GLint x, GLint y, GLint w, GLint h) {
 }
 
 /**
- * @brief
+ * @brief Draws a 2D image or atlas image at the specified screen rectangle.
  */
 void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, const color_t color) {
 
@@ -458,7 +458,7 @@ void R_Draw2DImage(GLint x, GLint y, GLint w, GLint h, const r_image_t *image, c
 }
 
 /**
- * @brief
+ * @brief Draws a framebuffer color attachment as a 2D image at the specified screen rectangle.
  */
 void R_Draw2DFramebuffer(GLint x, GLint y, GLint w, GLint h, const r_framebuffer_t *framebuffer, const color_t color) {
 
@@ -530,7 +530,7 @@ void R_Draw2DFill(GLint x, GLint y, GLint w, GLint h, const color_t color) {
 }
 
 /**
- * @brief
+ * @brief Draws a polyline through the given screen-space point list.
  */
 void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
 
@@ -676,7 +676,7 @@ static void R_InitFont(char *name) {
 }
 
 /**
- * @brief
+ * @brief Compiles and links the 2D draw GLSL program, binding texture and projection uniforms.
  */
 static void R_InitDraw2DProgram(void) {
 
@@ -703,7 +703,7 @@ static void R_InitDraw2DProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the 2D draw subsystem, loading fonts and creating GPU buffers.
  */
 void R_InitDraw2D(void) {
 
@@ -754,7 +754,7 @@ void R_InitDraw2D(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the 2D draw GLSL program object.
  */
 static void R_ShutdownDraw2DProgram(void) {
 
@@ -764,7 +764,7 @@ static void R_ShutdownDraw2DProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the 2D draw subsystem, freeing GPU buffers.
  */
 void R_ShutdownDraw2D(void) {
 

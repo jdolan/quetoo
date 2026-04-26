@@ -191,7 +191,7 @@ void Cl_Precache_f(void) {
 }
 
 /**
- * @brief
+ * @brief Parses the baseline entity state for the given entity number.
  */
 static void Cl_ParseBaseline(void) {
   static entity_state_t null_state;
@@ -205,7 +205,7 @@ static void Cl_ParseBaseline(void) {
 }
 
 /**
- * @brief
+ * @brief Reads a command buffer text string from the server and appends it to the client cbuf.
  */
 static const char *Cl_ParseCbufText(void) {
 
@@ -217,7 +217,7 @@ static const char *Cl_ParseCbufText(void) {
 }
 
 /**
- * @brief
+ * @brief Parses a config string update from the server message and applies it to the client.
  */
 int32_t Cl_ParseConfigString(void) {
   const int32_t i = Net_ReadShort(&net_message);
@@ -254,7 +254,7 @@ int32_t Cl_ParseConfigString(void) {
 }
 
 /**
- * @brief
+ * @brief Parses the initial server data packet, resetting client state and loading the game.
  */
 static void Cl_ParseServerData(void) {
 
@@ -350,7 +350,7 @@ static void Cl_ParsePrint(void) {
 }
 
 /**
- * @brief
+ * @brief Prints a network message label when `cl_draw_net_messages` >= 2.
  */
 static void Cl_ShowNet(const char *s) {
   if (cl_draw_net_messages->integer >= 2) {
@@ -359,7 +359,7 @@ static void Cl_ShowNet(const char *s) {
 }
 
 /**
- * @brief
+ * @brief Parses a complete server message, dispatching each command to its handler.
  */
 void Cl_ParseServerMessage(void) {
   int32_t cmd, old_cmd;

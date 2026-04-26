@@ -77,7 +77,7 @@ static struct {
 } r_bsp_program;
 
 /**
- * @brief
+ * @brief Draws per-vertex normal, tangent, and bitangent lines for nearby BSP vertices when enabled.
  */
 static void R_DrawBspNormals(const r_view_t *view, const r_bsp_model_t *bsp) {
 
@@ -159,7 +159,7 @@ static void R_DrawBspVoxels(const r_view_t *view, const r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Draws a single material stage pass for a BSP draw elements batch.
  */
 static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
                                                const r_entity_t *entity,
@@ -252,7 +252,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 }
 
 /**
- * @brief
+ * @brief Draws all active material stages for a BSP draw elements batch.
  */
 static void R_DrawBspDrawElementsMaterialStages(const r_view_t *view,
                                                 const r_entity_t *entity,
@@ -340,7 +340,7 @@ static inline void R_DrawBspDrawElements(const r_view_t *view,
 }
 
 /**
- * @brief
+ * @brief Draws all opaque surfaces for a BSP inline model entity.
  */
 static void R_DrawOpaqueBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
@@ -436,7 +436,7 @@ void R_DrawOpaqueBspEntities(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Draws all blended (translucent) surfaces for a BSP inline model entity.
  */
 static void R_DrawBlendBspEntity(const r_view_t *view, const r_entity_t *entity) {
 
@@ -530,7 +530,7 @@ void R_DrawBlendBspEntities(const r_view_t *view) {
 #define WARP_IMAGE_SIZE 16
 
 /**
- * @brief
+ * @brief Compiles and links the BSP GLSL program, binding all uniforms and buffer blocks.
  */
 void R_InitBspProgram(void) {
 
@@ -634,7 +634,7 @@ void R_InitBspProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the BSP GLSL program object.
  */
 void R_ShutdownBspProgram(void) {
 

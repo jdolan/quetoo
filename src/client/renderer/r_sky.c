@@ -29,13 +29,10 @@
 #define SKY_ST_MAX   (1.0 - SKY_ST_EPSILON)
 
 /**
- * @brief
+ * @brief Sky state holding the cubemap image.
  */
 static struct {
-  /**
-   * @brief The sky cubemap.
-   */
-  r_image_t *image;
+  r_image_t *image; ///< The sky cubemap.
 } r_sky;
 
 /**
@@ -62,7 +59,7 @@ static struct {
 } r_sky_program;
 
 /**
- * @brief
+ * @brief Binds material stage uniforms and draws elements for a single sky draw elements material stage.
  */
 static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
                                                const r_bsp_draw_elements_t *draw,
@@ -112,7 +109,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
 }
 
 /**
- * @brief
+ * @brief Iterates and draws all active material stages for sky draw elements.
  */
 static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
                                                 const r_bsp_draw_elements_t *draw,
@@ -147,7 +144,7 @@ static void R_DrawSkyDrawElementsMaterialStages(const r_view_t *view,
 }
 
 /**
- * @brief
+ * @brief Draws a single sky BSP draw elements group, including any material stages.
  */
 static void R_DrawSkyDrawElements(const r_view_t *view, const r_bsp_draw_elements_t *draw) {
 
@@ -157,7 +154,7 @@ static void R_DrawSkyDrawElements(const r_view_t *view, const r_bsp_draw_element
 }
 
 /**
- * @brief
+ * @brief Renders all sky surfaces in the BSP model for the current view.
  */
 void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 
@@ -203,7 +200,7 @@ void R_DrawSky(const r_view_t *view, const r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Initializes the sky GLSL program and resolves its uniform locations.
  */
 static void R_InitSkyProgram(void) {
 
@@ -247,7 +244,7 @@ static void R_InitSkyProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the sky subsystem and sky GLSL program.
  */
 void R_InitSky(void) {
 
@@ -257,7 +254,7 @@ void R_InitSky(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the sky GLSL program object.
  */
 static void R_ShutdownSkyProgram(void) {
 
@@ -267,7 +264,7 @@ static void R_ShutdownSkyProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the sky subsystem, releasing the sky program.
  */
 void R_ShutdownSky(void) {
 

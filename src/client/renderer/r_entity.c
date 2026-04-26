@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Computes and stores the entity's transformed world-space bounds.
  */
 static void R_SetEntityBounds(r_entity_t *e) {
   if (e->model) {
@@ -37,7 +37,7 @@ static void R_SetEntityBounds(r_entity_t *e) {
 }
 
 /**
- * @brief
+ * @brief Returns true if the entity is outside the view frustum and should be skipped.
  */
 bool R_CullEntity(const r_view_t *view, const r_entity_t *e) {
 
@@ -101,14 +101,14 @@ r_entity_t *R_AddEntity(r_view_t *view, const r_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Updates entity state each frame (currently a no-op placeholder).
  */
 void R_UpdateEntities(r_view_t *view) {
   
 }
 
 /**
- * @brief
+ * @brief Draws debug bounding box visualization for a single entity.
  */
 static void R_DrawEntityBounds(const r_entity_t *e) {
 
@@ -120,7 +120,7 @@ static void R_DrawEntityBounds(const r_entity_t *e) {
 }
 
 /**
- * @brief
+ * @brief Draws debug bounding boxes for all entities in the view.
  */
 static void R_DrawEntitiesBounds(const r_view_t *view) {
 

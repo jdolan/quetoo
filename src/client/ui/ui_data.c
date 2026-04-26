@@ -23,7 +23,7 @@
 #include "client.h"
 
 /**
- * @brief
+ * @brief Loads a file from the virtual filesystem and returns it as an ObjectivelyMVC Data object.
  */
 Data *Ui_Data(const char *path) {
 
@@ -44,7 +44,7 @@ Data *Ui_Data(const char *path) {
 }
 
 /**
- * @brief
+ * @brief Creates and returns a theme for the current SDL window.
  */
 Theme *Ui_Theme(void) {
   return $$(Theme, theme, r_context.window);

@@ -65,7 +65,7 @@ static r_animation_t *R_LoadStageAnimation(const cm_material_t *material, r_stag
 }
 
 /**
- * @brief
+ * @brief Appends a stage to the end of the material's stage list.
  */
 static void R_AppendStage(r_material_t *m, r_stage_t *s) {
 
@@ -108,7 +108,7 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
 }
 
 /**
- * @brief
+ * @brief Creates a solid-color SDL_Surface of the given dimensions.
  */
 static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
 
@@ -161,7 +161,7 @@ static void R_NormalizeMaterialHeightmap(SDL_Surface *normalmap) {
 }
 
 /**
- * @brief
+ * @brief Derives a greyscale specularmap surface from the given diffusemap.
  */
 static SDL_Surface *R_CreateSpecularmap(const SDL_Surface *diffusemap) {
 

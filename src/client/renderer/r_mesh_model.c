@@ -359,7 +359,7 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Registers the mesh model's material dependencies with the media system.
  */
 void R_RegisterMeshModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;

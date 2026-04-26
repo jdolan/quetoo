@@ -36,7 +36,7 @@ void Cl_MouseButtonEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Handles an SDL mouse wheel event, scrolling the console or dispatching key events.
  */
 void Cl_MouseWheelEvent(const SDL_Event *event) {
 
@@ -76,7 +76,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Handles an SDL mouse motion event, applying sensitivity and updating view angles.
  */
 void Cl_MouseMotionEvent(const SDL_Event *event) {
 

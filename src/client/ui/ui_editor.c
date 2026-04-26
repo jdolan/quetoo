@@ -29,7 +29,7 @@ extern cl_static_t cls;
 static ViewController *editorViewController;
 
 /**
- * @brief
+ * @brief Pushes or pops the editor view controller based on the current editor cvar state.
  */
 void Ui_CheckEditor(void) {
 

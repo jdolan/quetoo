@@ -183,14 +183,14 @@ static void Cl_AdjustDemoPlayback(float delta) {
 }
 
 /**
- * @brief
+ * @brief Handles the `cl_fast_forward` command, increasing demo playback speed.
  */
 void Cl_FastForward_f(void) {
   Cl_AdjustDemoPlayback(DEMO_PLAYBACK_STEP);
 }
 
 /**
- * @brief
+ * @brief Handles the `cl_slow_motion` command, decreasing demo playback speed.
  */
 void Cl_SlowMotion_f(void) {
   Cl_AdjustDemoPlayback(-DEMO_PLAYBACK_STEP);

@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief
+ * @brief Handles the `s_restart` console command, reloading the sound subsystem.
  */
 void Cl_S_Restart_f(void) {
 

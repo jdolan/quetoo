@@ -22,10 +22,9 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Sprite vertex buffer state holding vertices and GPU buffer objects.
  */
 static struct {
-  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
   GLuint vertex_array;
   GLuint vertex_buffer;
@@ -55,7 +54,7 @@ static struct {
 } r_sprite_program;
 
 /**
- * @brief
+ * @brief Computes the texture coordinates for the given image, handling both atlas and regular images.
  */
 static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_t *tr, vec2_t *br, vec2_t *bl) {
 
@@ -74,7 +73,7 @@ static void R_SpriteTextureCoordinates(const r_image_t *image, vec2_t *tl, vec2_
 }
 
 /**
- * @brief
+ * @brief Resolves the image for a sprite, animating it if the media is an animation.
  */
 static const r_image_t *R_ResolveSpriteImage(const r_media_t *media, const float life) {
 
@@ -128,7 +127,7 @@ r_beam_t *R_AddBeam(r_view_t *view, const r_beam_t *b) {
 }
 
 /**
- * @brief
+ * @brief Allocates the next available sprite instance slot in the view.
  */
 static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 
@@ -149,7 +148,7 @@ static r_sprite_instance_t *R_AllocSpriteInstance(r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Builds a billboard quad sprite instance from the sprite definition, right, and up vectors.
  */
 static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
                               const vec3_t right, const vec3_t up) {
@@ -226,7 +225,7 @@ static void R_UpdateSpriteQuad(r_view_t *view, const r_sprite_t *s,
 }
 
 /**
- * @brief
+ * @brief Computes orientation vectors and builds sprite quad instance(s) for a single sprite.
  */
 static void R_UpdateSprite(r_view_t *view, const r_sprite_t *s) {
 
@@ -395,7 +394,7 @@ void R_UpdateSprites(r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Renders all batched sprite instances to the framebuffer.
  */
 void R_DrawSprites(const r_view_t *view) {
 
@@ -473,7 +472,7 @@ void R_DrawSprites(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Initializes the sprite draw GLSL program and resolves its uniform locations.
  */
 static void R_InitSpriteProgram(void) {
 
@@ -512,7 +511,7 @@ static void R_InitSpriteProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the sprite subsystem, allocating vertex buffers and the sprite program.
  */
 void R_InitSprites(void) {
 
@@ -561,7 +560,7 @@ void R_InitSprites(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the sprite GLSL program object.
  */
 static void R_ShutdownSpriteProgram(void) {
 
@@ -571,7 +570,7 @@ static void R_ShutdownSpriteProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the sprite subsystem, releasing GPU buffers and the sprite program.
  */
 void R_ShutdownSprites(void) {
 

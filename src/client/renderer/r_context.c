@@ -24,7 +24,7 @@
 r_context_t r_context;
 
 /**
- * @brief
+ * @brief Loads and sets the application window icon from `icons/quetoo`.
  */
 static void R_SetWindowIcon(void) {
 
@@ -40,7 +40,7 @@ static void R_SetWindowIcon(void) {
 }
 
 /**
- * @brief
+ * @brief Updates the renderer context to reflect the current SDL window state and size.
  */
 void R_UpdateContext(void) {
 
@@ -216,7 +216,7 @@ void R_InitContext(void) {
 }
 
 /**
- * @brief
+ * @brief Destroys the OpenGL context and SDL window.
  */
 void R_ShutdownContext(void) {
 

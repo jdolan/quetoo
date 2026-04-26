@@ -232,7 +232,7 @@ void S_BeginLoading(void) {
 }
 
 /**
- * @brief
+ * @brief Hash function for sound media entries keyed by name and type.
  */
 static guint S_MediaHash(gconstpointer key) {
   const s_media_t *media = key;
@@ -241,7 +241,7 @@ static guint S_MediaHash(gconstpointer key) {
 }
 
 /**
- * @brief
+ * @brief Equality function for sound media entries keyed by name and type.
  */
 static gboolean S_MediaEqual(gconstpointer a, gconstpointer b) {
   const s_media_t *_a = a, *_b = b;

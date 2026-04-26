@@ -37,7 +37,7 @@ static cvar_t *cl_notify_lines;
 static cvar_t *cl_notify_time;
 
 /**
- * @brief
+ * @brief Draws the console background image scaled to fill the console area.
  */
 static void Cl_DrawConsole_Background(void) {
 
@@ -75,7 +75,7 @@ static void Cl_DrawConsole_Background(void) {
 }
 
 /**
- * @brief
+ * @brief Draws the visible console text buffer lines above the input line.
  */
 static void Cl_DrawConsole_Buffer(void) {
   GLint ch;
@@ -127,14 +127,14 @@ static void Cl_DrawConsole_Input(void) {
 }
 
 /**
- * @brief
+ * @brief Returns the console height in pixels based on the current window size and state.
  */
 GLint Cl_GetConsoleHeight(void) {
   return r_context.h * (cls.state == CL_ACTIVE ? Clampf01(cl_console_height->value) : 1.f);
 }
 
 /**
- * @brief
+ * @brief Draws the full console overlay including background, buffer, and input line.
  */
 void Cl_DrawConsole(void) {
   const GLint height = Cl_GetConsoleHeight();
@@ -251,7 +251,7 @@ void Cl_DrawChat(void) {
 }
 
 /**
- * @brief
+ * @brief Outputs a stripped (color-code-free) console string to stdout.
  */
 static void Cl_Print(const console_string_t *str) {
   char stripped[strlen(str->chars) + 1];
@@ -261,7 +261,7 @@ static void Cl_Print(const console_string_t *str) {
 }
 
 /**
- * @brief
+ * @brief Handles the `toggleconsole` command, toggling the console open or closed.
  */
 void Cl_ToggleConsole_f(void) {
 
@@ -283,7 +283,7 @@ void Cl_ToggleConsole_f(void) {
 }
 
 /**
- * @brief
+ * @brief Switches key destination to chat mode, optionally for team chat.
  */
 static void Cl_MessageMode(bool team_chat) {
 
@@ -296,7 +296,7 @@ static void Cl_MessageMode(bool team_chat) {
 }
 
 /**
- * @brief
+ * @brief Handles the `messagemode` console command, opening the global chat input.
  */
 static void Cl_MessageMode_f(void) {
 
@@ -304,7 +304,7 @@ static void Cl_MessageMode_f(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `messagemode2` console command, opening the team chat input.
  */
 static void Cl_MessageMode2_f(void) {
 
@@ -321,7 +321,7 @@ static void Cl_Backtrace_f(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `error` console command, triggering a Com_Error with the given type.
  */
 __attribute__((noreturn))
 static void Cl_Error_f(void) {

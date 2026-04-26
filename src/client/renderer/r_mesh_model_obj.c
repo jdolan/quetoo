@@ -45,7 +45,7 @@ typedef struct {
 } r_obj_t;
 
 /**
- * @brief
+ * @brief Finds an existing vertex in the face or appends a new one, returning its index.
  */
 static GLuint R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t *v) {
 
@@ -63,7 +63,7 @@ static GLuint R_FindOrAppendObjVertex(r_mesh_face_t *face, const r_mesh_vertex_t
 }
 
 /**
- * @brief
+ * @brief Appends three element indices forming a triangle to the face's element list.
  */
 static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint c) {
 
@@ -78,7 +78,7 @@ static void R_AppendObjElements(r_mesh_face_t *face, GLuint a, GLuint b, GLuint 
 }
 
 /**
- * @brief
+ * @brief Parses and loads an OBJ model from the given buffer into the render model.
  */
 static void R_LoadObjModel(r_model_t *mod, void *buffer) {
   r_mesh_model_t *out;
@@ -239,7 +239,7 @@ static void R_LoadObjModel(r_model_t *mod, void *buffer) {
 }
 
 /**
- * @brief
+ * @brief The OBJ model format descriptor.
  */
 const r_model_format_t r_obj_model_format = {
   .extension = "obj",

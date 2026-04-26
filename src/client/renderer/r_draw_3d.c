@@ -25,25 +25,10 @@
  * @brief glDrawArrays commands.
  */
 typedef struct {
-  /**
-   * @brief The mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
-   */
-  GLenum mode;
-
-  /**
-   * @brief The depth test flag.
-   */
-  GLboolean depth_test;
-
-  /**
-   * @brief The first vertex.
-   */
-  GLint first_vertex;
-
-  /**
-   * @brief The number of vertexes.
-   */
-  GLsizei num_vertexes;
+  GLenum mode; ///< The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
+  GLboolean depth_test; ///< The depth test flag.
+  GLint first_vertex; ///< The first vertex.
+  GLsizei num_vertexes; ///< The number of vertexes.
 } r_draw_3d_arrays_t;
 
 #define MAX_DRAW_3D_ARRAYS 0x100000
@@ -52,15 +37,8 @@ typedef struct {
  * @brief 3D vertex struct.
  */
 typedef struct {
-  /**
-   * @brief The vertex position.
-   */
-  vec3_t position;
-
-  /**
-   * @brief The vertex color.
-   */
-  color32_t color;
+  vec3_t position; ///< The vertex position.
+  color32_t color; ///< The vertex color.
 } r_draw_3d_vertex_t;
 
 #define MAX_DRAW_3D_VERTEXES (MAX_DRAW_3D_ARRAYS * 2)
@@ -95,7 +73,7 @@ static struct {
 } r_draw_3d_program;
 
 /**
- * @brief
+ * @brief Appends a draw arrays batch to the 3D draw list.
  */
 static void R_AddDraw3DArrays(const r_draw_3d_arrays_t *draw) {
 
@@ -113,7 +91,7 @@ static void R_AddDraw3DArrays(const r_draw_3d_arrays_t *draw) {
 }
 
 /**
- * @brief
+ * @brief Appends a single vertex to the 3D draw vertex buffer.
  */
 static void R_AddDraw3DVertex(const r_draw_3d_vertex_t *v) {
 
@@ -247,7 +225,7 @@ void R_Draw3D(void) {
 }
 
 /**
- * @brief
+ * @brief Compiles and links the 3D draw GLSL program.
  */
 static void R_InitDraw3DProgram(void) {
 
@@ -269,7 +247,7 @@ static void R_InitDraw3DProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the 3D draw subsystem, creating GPU vertex buffers.
  */
 void R_InitDraw3D(void) {
 
@@ -296,7 +274,7 @@ void R_InitDraw3D(void) {
 }
 
 /**
- * @brief
+ * @brief Deletes the 3D draw GLSL program object.
  */
 static void R_ShutdownDraw3DProgram(void) {
 
@@ -306,7 +284,7 @@ static void R_ShutdownDraw3DProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the 3D draw subsystem, freeing GPU buffers.
  */
 void R_ShutdownDraw3D(void) {
 

@@ -38,37 +38,17 @@ typedef struct EntityViewInterface EntityViewInterface;
  * @brief The Editor entity type.
  */
 typedef struct {
-  /**
-   * @brief The entity number.
-   */
-  int16_t number;
-
-  /**
-   * @brief The client entity.
-   */
-  cl_entity_t *ent;
-
-  /**
-   * @brief The entity definition.
-   */
-  cm_entity_t *def;
+  int16_t number; ///< The entity number.
+  cl_entity_t *ent; ///< The client entity.
+  cm_entity_t *def; ///< The entity definition.
 } EditorEntity;
 
 /**
  * @brief The EntityViewDelegate type.
  */
 typedef struct EntityViewDelegate {
-
-  /**
-   * @brief The Delegate self-reference.
-   */
-  ident self;
-
-  /**
-   * @brief The Delegate callback.
-   */
-  void (*didEditEntity)(EntityView *view, cm_entity_t *def);
-
+  ident self; ///< The delegate self-reference.
+  void (*didEditEntity)(EntityView *view, cm_entity_t *def); ///< Callback invoked when the entity is edited.
 } EntityViewDelegate;
 
 /**
@@ -77,36 +57,13 @@ typedef struct EntityViewDelegate {
  */
 struct EntityView {
 
-  /**
-   * @brief The superclass.
-   */
-  StackView stackView;
+  StackView stackView; ///< The superclass.
+  EntityViewInterface *interface; ///< The interface. @protected
 
-  /**
-   * @brief The interface.
-   * @protected
-   */
-  EntityViewInterface *interface;
-
-  /**
-   * @brief The EntityViewDelegate.
-   */
-  EntityViewDelegate delegate;
-
-  /**
-   * @brief The entity to edit.
-   */
-  EditorEntity entity;
-
-  /**
-   * @brief The entity key.
-   */
-  TextView *key;
-
-  /**
-   * @brief The entity value.
-   */
-  TextView *value;
+  EntityViewDelegate delegate; ///< The EntityViewDelegate.
+  EditorEntity entity; ///< The entity being edited.
+  TextView *key; ///< The entity key text field.
+  TextView *value; ///< The entity value text field.
 };
 
 /**
@@ -114,10 +71,7 @@ struct EntityView {
  */
 struct EntityViewInterface {
 
-  /**
-   * @brief The superclass interface.
-   */
-  StackViewInterface stackViewInterface;
+  StackViewInterface stackViewInterface; ///< The superclass interface.
 
   /**
    * @fn EntityView *EntityView::init(EntityView *self, cm_entity_t *EditorEntity)

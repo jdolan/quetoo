@@ -26,7 +26,7 @@
 #include "cl_local.h"
 
 /**
- * @brief
+ * @brief Allocates and prepends a new server info entry for the given network address.
  */
 static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
   cl_server_info_t *s;
@@ -42,7 +42,7 @@ static cl_server_info_t *Cl_AddServer(const net_addr_t *addr) {
 }
 
 /**
- * @brief
+ * @brief Finds the server info entry matching the given network address.
  */
 static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
   const GList *e = cls.servers;
@@ -61,7 +61,7 @@ static cl_server_info_t *Cl_ServerForNetaddr(const net_addr_t *addr) {
 }
 
 /**
- * @brief
+ * @brief Frees the list of known servers and clears the pointer.
  */
 void Cl_FreeServers(void) {
 
@@ -71,7 +71,7 @@ void Cl_FreeServers(void) {
 }
 
 /**
- * @brief
+ * @brief Parses a server info response and updates or creates the matching server entry.
  */
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
@@ -122,7 +122,7 @@ void Cl_ParseServerInfo(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `ping` console command, pinging a specific server address.
  */
 void Cl_Ping_f(void) {
   net_addr_t addr;
@@ -160,7 +160,7 @@ void Cl_Ping_f(void) {
 }
 
 /**
- * @brief
+ * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
  */
 static void Cl_SendBroadcast(void) {
   const GList *e = cls.servers;
@@ -189,7 +189,7 @@ static void Cl_SendBroadcast(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `servers` console command, querying the master server and sending a LAN broadcast.
  */
 void Cl_Servers_f(void) {
   net_addr_t addr;
@@ -210,7 +210,7 @@ void Cl_Servers_f(void) {
 }
 
 /**
- * @brief
+ * @brief Parses the server list from a master server response and pings each entry.
  */
 void Cl_ParseServers(void) {
   cl_server_info_t *server;
@@ -282,7 +282,7 @@ void Cl_ParseServers(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `servers_list` console command, printing all known servers to the console.
  */
 void Cl_Servers_List_f(void) {
   char string[256];

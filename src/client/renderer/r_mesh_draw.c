@@ -70,7 +70,7 @@ static struct {
 } r_mesh_program;
 
 /**
- * @brief
+ * @brief Binds the material stage uniforms and draws elements for a single mesh face material stage.
  */
 static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_stage_t *stage) {
 
@@ -117,7 +117,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 }
 
 /**
- * @brief
+ * @brief Draws the shell effect on a mesh face if the entity has the EF_SHELL flag set.
  */
 static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh) {
 
@@ -145,7 +145,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 }
 
 /**
- * @brief
+ * @brief Iterates and draws all active material stages for a mesh face, including the shell effect.
  */
 static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
@@ -196,7 +196,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 }
 
 /**
- * @brief
+ * @brief Binds material and vertex attributes, then draws elements for a single mesh face.
  */
 static void R_DrawMeshEntityFace(const r_entity_t *e,
                  const r_mesh_model_t *mesh,
@@ -284,7 +284,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 }
 
 /**
- * @brief
+ * @brief Sets up per-entity uniforms and draws all faces of a mesh entity.
  */
 static void R_DrawMeshEntity(const r_view_t *view, const r_entity_t *e) {
 
@@ -385,7 +385,7 @@ void R_DrawMeshEntities(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Initializes the mesh draw program, loading shaders and resolving uniform locations.
  */
 void R_InitMeshProgram(void) {
 
@@ -456,7 +456,7 @@ void R_InitMeshProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the mesh draw program and releases the GL program object.
  */
 void R_ShutdownMeshProgram(void) {
 

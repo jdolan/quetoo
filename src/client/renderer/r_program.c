@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Creates a shader descriptor struct with the standard preamble filenames prepended.
  */
 r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 
@@ -54,7 +54,7 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 }
 
 /**
- * @brief
+ * @brief Compiles a GLSL shader from the files listed in the descriptor, aborting on error.
  */
 GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 
@@ -128,7 +128,7 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 }
 
 /**
- * @brief
+ * @brief Links a GLSL program from a NULL-terminated list of shader descriptors.
  */
 GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 

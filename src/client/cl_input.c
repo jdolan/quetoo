@@ -47,7 +47,7 @@ static button_t cl_buttons[10];
 #define in_down cl_buttons[9]
 
 /**
- * @brief
+ * @brief Registers a key-down event for the given button, tracking which keys hold it.
  */
 void Cl_KeyDown(button_t *b) {
   SDL_Scancode k;
@@ -84,7 +84,7 @@ void Cl_KeyDown(button_t *b) {
 }
 
 /**
- * @brief
+ * @brief Registers a key-up event for the given button, releasing it when all keys are up.
  */
 void Cl_KeyUp(button_t *b) {
 
@@ -265,7 +265,7 @@ static size_t Cl_TextEvent_Insert(char *dest, const char *src, const size_t ofs,
 }
 
 /**
- * @brief
+ * @brief Handles a text input SDL event, inserting typed characters into the active console.
  */
 static void Cl_TextEvent(const SDL_Event *event) {
 
@@ -363,7 +363,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Routes an SDL input event to the appropriate key, mouse, or text handler.
  */
 static void Cl_HandleEvent(const SDL_Event *event) {
 
@@ -394,7 +394,7 @@ static void Cl_HandleEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Polls and dispatches all pending SDL events for the current frame.
  */
 void Cl_HandleEvents(void) {
 
@@ -425,7 +425,7 @@ void Cl_HandleEvents(void) {
 }
 
 /**
- * @brief
+ * @brief Clamps the player pitch angle to prevent looking too far up or down.
  */
 static void Cl_ClampPitch(const player_state_t *ps) {
 
@@ -489,7 +489,7 @@ void Cl_Move(pm_cmd_t *cmd) {
 }
 
 /**
- * @brief
+ * @brief Resets all button states, clearing any held inputs.
  */
 void Cl_ClearInput(void) {
 
@@ -497,7 +497,7 @@ void Cl_ClearInput(void) {
 }
 
 /**
- * @brief
+ * @brief Registers all movement, look, and weapon button commands.
  */
 void Cl_InitInput(void) {
 

@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Applies the mesh configuration transform to the entity's matrix.
  */
 void R_ApplyMeshConfig(r_entity_t *e) {
 

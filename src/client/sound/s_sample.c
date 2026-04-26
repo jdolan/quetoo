@@ -54,7 +54,7 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 }
 
 /**
- * @brief
+ * @brief Converts floating-point audio samples to 16-bit signed integers.
  */
 void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, int16_t **out_samples, size_t *out_size) {
   const size_t size = sizeof(int16_t) * num_samples;
@@ -70,7 +70,7 @@ void S_ConvertSamples(const float *input_samples, const sf_count_t num_samples, 
 }
 
 /**
- * @brief
+ * @brief Attempts to load a sample's audio data from the given file path into an OpenAL buffer.
  */
 static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 
@@ -133,7 +133,7 @@ static int32_t S_LoadSampleBuffer_(s_sample_t *sample, char *path) {
 }
 
 /**
- * @brief
+ * @brief Searches for and loads the audio file for the given sample, trying supported formats in order.
  */
 static void S_LoadSampleBuffer(s_sample_t *sample) {
   const char *snd_formats[] = { "ogg", "wav", NULL };
@@ -190,7 +190,7 @@ static void S_FreeAliasedSample(s_media_t *self) {
 }
 
 /**
- * @brief
+ * @brief Loads or returns a cached sound sample by name.
  */
 s_sample_t *S_LoadSample(const char *name) {
 
@@ -221,7 +221,7 @@ s_sample_t *S_LoadSample(const char *name) {
 }
 
 /**
- * @brief
+ * @brief Loads or returns a cached player-model sound sample from the given model and name.
  */
 s_sample_t *S_LoadClientModelSample(const char *model, const char *name) {
 

@@ -24,7 +24,7 @@
 r_lights_t r_lights;
 
 /**
- * @brief
+ * @brief Adds a light source to the view's light list.
  */
 void R_AddLight(r_view_t *view, const r_light_t *l) {
 
@@ -132,7 +132,7 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 }
 
 /**
- * @brief
+ * @brief Initializes the light uniform buffer object.
  */
 void R_InitLights(void) {
 
@@ -148,7 +148,7 @@ void R_InitLights(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the light uniform buffer object.
  */
 void R_ShutdownLights(void) {
 

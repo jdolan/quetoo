@@ -31,7 +31,7 @@
 static cl_editor_entity_t cl_editor_entities[MAX_ENTITIES];
 
 /**
- * @brief
+ * @brief Parses an editor entity update from the server and notifies the UI.
  */
 void Cl_ParseEditorEntity(int16_t number, const char *info) {
 
@@ -88,7 +88,7 @@ int32_t Cl_FindTeamMaster(const char *classname, const char *team) {
 }
 
 /**
- * @brief
+ * @brief Populates a renderer light from an editor entity's key/value data.
  */
 static void Cl_PopulateEditorLight(cl_editor_entity_t *edit, r_light_t *light) {
 
@@ -135,7 +135,7 @@ static void Cl_PopulateEditorLight(cl_editor_entity_t *edit, r_light_t *light) {
 }
 
 /**
- * @brief
+ * @brief Populates the renderer scene with editor entities for the current frame.
  */
 void Cl_PopulateEditorScene(const cl_frame_t *frame) {
   static bool did_print_help = false;

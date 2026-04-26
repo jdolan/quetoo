@@ -252,7 +252,7 @@ void R_DrawPost(const r_view_t *view) {
 }
 
 /**
- * @brief
+ * @brief Initializes the bloom blur GLSL program and resolves its uniform locations.
  */
 static void R_InitBlurProgram(void) {
 
@@ -274,7 +274,7 @@ static void R_InitBlurProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the post-processing GLSL program and resolves its uniform locations.
  */
 static void R_InitPostProgram(void) {
 
@@ -300,7 +300,7 @@ static void R_InitPostProgram(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the post-processing subsystem, including vertex buffers, bloom framebuffers, and programs.
  */
 void R_InitPost(void) {
 
@@ -346,7 +346,7 @@ void R_InitPost(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the post-processing subsystem, releasing all GPU resources.
  */
 void R_ShutdownPost(void) {
 

@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Allocates a 2D texture with the given format parameters for use as a framebuffer attachment.
  */
 static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
                      GLenum internal_format,
@@ -54,7 +54,7 @@ static GLuint R_CreateFramebufferTexture(const r_framebuffer_t *f,
 }
 
 /**
- * @brief
+ * @brief Creates a GL texture for the given framebuffer attachment type.
  */
 static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachment_t attachment) {
 
@@ -75,7 +75,7 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
 }
 
 /**
- * @brief
+ * @brief Allocates a new framebuffer object with the specified width, height, and attachment mask.
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
@@ -122,7 +122,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 }
 
 /**
- * @brief
+ * @brief Clears all color and depth attachments of the framebuffer.
  */
 void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
 
@@ -146,7 +146,7 @@ void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
 }
 
 /**
- * @brief
+ * @brief Copies the specified framebuffer attachment into a destination texture.
  */
 void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture) {
 
@@ -230,7 +230,7 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLi
 }
 
 /**
- * @brief
+ * @brief Reads the specified framebuffer attachment pixels into an SDL_Surface.
  */
 void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface) {
 
@@ -262,7 +262,7 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 }
 
 /**
- * @brief
+ * @brief Destroys the framebuffer object and all of its GPU texture attachments.
  */
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 

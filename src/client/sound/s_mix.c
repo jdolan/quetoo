@@ -22,7 +22,7 @@
 #include "s_local.h"
 
 /**
- * @brief
+ * @brief Returns the index of a free channel, or -1 if all channels are in use.
  */
 int32_t S_AllocChannel(void) {
 
@@ -37,7 +37,7 @@ int32_t S_AllocChannel(void) {
 }
 
 /**
- * @brief
+ * @brief Stops playback and clears state for the given channel index.
  */
 void S_FreeChannel(int32_t c) {
 
@@ -285,7 +285,7 @@ void S_PlaySample(s_sample_t *sample) {
 }
 
 /**
- * @brief
+ * @brief Adds a sample to the sound stage for mixing in the current frame.
  */
 void S_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 

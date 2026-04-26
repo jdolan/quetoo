@@ -42,47 +42,15 @@ typedef struct EditorViewControllerInterface EditorViewControllerInterface;
  */
 struct EditorViewController {
 
-  /**
-   * @brief The superclass.
-   * @private
-   */
-  ViewController viewController;
+  ViewController viewController; ///< The superclass.
+  EditorViewControllerInterface *interface; ///< The interface. @private
 
-  /**
-   * @brief The interface.
-   * @private
-   */
-  EditorViewControllerInterface *interface;
-
-  /**
-   * @brief TabViewController to contain tabs.
-   */
-  TabViewController *tabViewController;
-
-  /**
-   * @brief The EntityViewController.
-   */
-  EntityViewController *entityViewController;
-
-  /**
-   * @brief The MaterialViewController.
-   */
-  MaterialViewController *materialViewController;
-
-  /**
-   * @brief The Create Entity Button.
-   */
-  Button *createEntity;
-
-  /**
-   * @brief The Delete Entity Button.
-   */
-  Button *deleteEntity;
-
-  /**
-   * @brief The Save Button.
-   */
-  Button *save;
+  TabViewController *tabViewController; ///< TabViewController containing the editor tabs.
+  EntityViewController *entityViewController; ///< The EntityViewController.
+  MaterialViewController *materialViewController; ///< The MaterialViewController.
+  Button *createEntity; ///< The Create Entity button.
+  Button *deleteEntity; ///< The Delete Entity button.
+  Button *save; ///< The Save button.
 };
 
 /**
@@ -90,10 +58,7 @@ struct EditorViewController {
  */
 struct EditorViewControllerInterface {
 
-  /**
-   * @brief The superclass interface.
-   */
-  ViewControllerInterface viewControllerInterface;
+  ViewControllerInterface viewControllerInterface; ///< The superclass interface.
 };
 
 /**

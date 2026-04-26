@@ -68,14 +68,14 @@ void R_UpdateUniforms(const r_view_t *view);
  * @brief OpenGL driver information.
  */
 typedef struct {
-  const char *renderer;
-  const char *vendor;
-  const char *version;
+  const char *renderer; ///< The renderer string reported by the GL driver.
+  const char *vendor; ///< The vendor string reported by the GL driver.
+  const char *version; ///< The version string reported by the GL driver.
 
-  GLint max_texunits;
-  GLint max_texture_size;
-  GLint max_3d_texture_size;
-  GLint max_uniform_block_size;
+  GLint max_texunits; ///< The maximum number of simultaneous texture units.
+  GLint max_texture_size; ///< The maximum 2D texture dimension in texels.
+  GLint max_3d_texture_size; ///< The maximum 3D texture dimension in texels.
+  GLint max_uniform_block_size; ///< The maximum uniform block size in bytes.
 } r_config_t;
 
 extern r_config_t r_config;
@@ -85,120 +85,39 @@ extern r_config_t r_config;
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-  /**
-   * @brief The voxel mins, in world space.
-   */
-  vec4_t mins;
-
-  /**
-   * @brief The voxel maxs, in world space.
-   */
-  vec4_t maxs;
-
-  /**
-   * @brief The view origin, in voxel space.
-   */
-  vec4_t view_coordinate;
-
-  /**
-   * @brief The voxel grid size, in voxels.
-   */
-  vec4_t size;
+  vec4_t mins; ///< The voxel grid minimum corner in world space (xyz, w unused).
+  vec4_t maxs; ///< The voxel grid maximum corner in world space (xyz, w unused).
+  vec4_t view_coordinate; ///< The view origin expressed in voxel-space coordinates (xyz, w unused).
+  vec4_t size; ///< The voxel grid dimensions in voxels (xyz, w unused).
 } r_voxels_t;
 
 /**
  * @brief The uniforms block type.
  */
 typedef struct {
-  /**
-   * @brief The name of the uniform buffer.
-   */
-  GLuint buffer;
+  GLuint buffer; ///< The uniform buffer object name.
 
   /**
    * @brief The uniform block struct.
    * @remarks This struct is vec4 aligned.
    */
   struct r_uniform_block_t {
-    /**
-     * @brief The viewport (x, y, w, h) in device pixels.
-     */
-    vec4i_t viewport;
-
-    /**
-     * @brief The 3D projection matrix.
-     */
-    mat4_t projection3D;
-
-    /**
-     * @brief The view matrix.
-     */
-    mat4_t view;
-
-    /**
-     * @brief The projection matrix for environment cubemaps.
-     */
-    mat4_t sky_projection;
-
-    /**
-     * @brief The projection matrix for point light shadows.
-     */
-    mat4_t light_projection;
-
-    /**
-     * @brief The voxel uniforms.
-     */
-    r_voxels_t voxels;
-
-    /**
-     * @brief The depth range, in world units.
-     */
-    vec2_t depth_range;
-
-    /**
-     * @brief The view type, e.g. VIEW_MAIN.
-     */
-    int32_t view_type;
-
-    /**
-     * @brief The renderer time, in milliseconds.
-     */
-    int32_t ticks;
-
-    /**
-     * @brief The ambient scalar.
-     */
-    float ambient;
-
-    /**
-     * @brief The modulate scalar.
-     */
-    float modulate;
-
-    /**
-     * @brief The caustics scalar.
-     */
-    float caustics;
-
-    /**
-     * @brief Distance threshold for switching to vertex lighting.
-     */
-    float lighting_distance;
-
-    /**
-     * @brief The editor flags.
-     */
-    int editor;
-
-    /**
-     * @brief The developer flags.
-     */
-    int developer;
-
-    /**
-     * @brief The wireframe mode flag.
-     */
-    int wireframe;
+    vec4i_t viewport; ///< The viewport (x, y, w, h) in device pixels.
+    mat4_t projection3D; ///< The 3D projection matrix.
+    mat4_t view; ///< The view matrix.
+    mat4_t sky_projection; ///< The projection matrix for environment cubemaps.
+    mat4_t light_projection; ///< The projection matrix for point light shadow passes.
+    r_voxels_t voxels; ///< The voxel uniforms.
+    vec2_t depth_range; ///< The depth range (near, far) in world units.
+    int32_t view_type; ///< The view type, e.g. `VIEW_MAIN`.
+    int32_t ticks; ///< The renderer time in milliseconds.
+    float ambient; ///< The ambient scalar.
+    float modulate; ///< The light modulation scalar.
+    float caustics; ///< The caustics intensity scalar.
+    float lighting_distance; ///< Distance threshold beyond which vertex lighting is used.
+    int editor; ///< Non-zero when the in-game editor is active.
+    int developer; ///< Non-zero when developer mode is enabled.
+    int wireframe; ///< Non-zero when wireframe rendering is enabled.
   } block;
 
 } r_uniforms_t;

@@ -210,7 +210,7 @@ void R_EndLoading(void) {
 }
 
 /**
- * @brief
+ * @brief Computes the hash value for a media entry by name and type.
  */
 static guint R_MediaHash(gconstpointer key) {
   const r_media_t *media = key;
@@ -219,7 +219,7 @@ static guint R_MediaHash(gconstpointer key) {
 }
 
 /**
- * @brief
+ * @brief Tests whether two media entries are equal by type and name.
  */
 static gboolean R_MediaEqual(gconstpointer a, gconstpointer b) {
   const r_media_t *_a = a, *_b = b;

@@ -52,7 +52,7 @@ static s_sample_t *Ui_LoadSample(const char *name) {
 }
 
 /**
- * @brief
+ * @brief Plays UI sound effects in response to view interaction events.
  */
 static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 
@@ -124,7 +124,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
- * @brief
+ * @brief Notifies the UI that the active view controller is about to appear.
  */
 void Ui_ViewWillAppear(void) {
 
@@ -137,7 +137,7 @@ void Ui_ViewWillAppear(void) {
 }
 
 /**
- * @brief
+ * @brief Notifies the UI that the active view controller is about to disappear, resigning responders.
  */
 void Ui_ViewWillDisappear(void) {
 
@@ -157,7 +157,7 @@ void Ui_ViewWillDisappear(void) {
 }
 
 /**
- * @brief
+ * @brief Renders the UI window controller into the UI 2D projection.
  */
 void Ui_Draw(void) {
 
@@ -173,7 +173,7 @@ void Ui_Draw(void) {
 }
 
 /**
- * @brief
+ * @brief Returns the top-most view controller on the navigation stack.
  */
 ViewController *Ui_TopViewController(void) {
 
@@ -186,7 +186,7 @@ ViewController *Ui_TopViewController(void) {
 }
 
 /**
- * @brief
+ * @brief Pushes a view controller onto the navigation stack.
  */
 void Ui_PushViewController(ViewController *viewController) {
 
@@ -202,7 +202,7 @@ void Ui_PushViewController(ViewController *viewController) {
 }
 
 /**
- * @brief
+ * @brief Pops the navigation stack back to the specified view controller.
  */
 void Ui_PopToViewController(ViewController *viewController) {
 
@@ -218,7 +218,7 @@ void Ui_PopToViewController(ViewController *viewController) {
 }
 
 /**
- * @brief
+ * @brief Pops the top view controller from the navigation stack.
  */
 void Ui_PopViewController(void) {
 
@@ -230,7 +230,7 @@ void Ui_PopViewController(void) {
 }
 
 /**
- * @brief
+ * @brief Pops all view controllers from the navigation stack, returning to the root.
  */
 void Ui_PopAllViewControllers(void) {
 

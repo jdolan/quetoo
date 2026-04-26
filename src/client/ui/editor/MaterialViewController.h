@@ -41,72 +41,20 @@ typedef struct MaterialViewControllerInterface MaterialViewControllerInterface;
  */
 struct MaterialViewController {
 
-  /**
-   * @brief The superclass.
-   * @private
-   */
-  ViewController viewController;
+  ViewController viewController; ///< The superclass.
+  MaterialViewControllerInterface *interface; ///< The interface. @private
 
-  /**
-   * @brief The interface.
-   * @private
-   */
-  MaterialViewControllerInterface *interface;
-
-  /**
-   * @brief The material being edited.
-   */
-  r_material_t *material;
-
-  /**
-   * @brief The material name.
-   */
-  TextView *name;
-
-  /**
-   * @brief The diffusemap texture.
-   */
-  TextView *diffusemap;
-
-  /**
-   * @brief The normalmap texture.
-   */
-  TextView *normalmap;
-
-  /**
-   * @brief The specularmap texture.
-   */
-  TextView *specularmap;
-
-  /**
-   * @brief The roughness slider.
-   */
-  Slider *roughness;
-
-  /**
-   * @brief The hardness slider.
-   */
-  Slider *hardness;
-
-  /**
-   * @brief The specularity slider.
-   */
-  Slider *specularity;
-
-  /**
-   * @brief The parallax amplitude slider.
-   */
-  Slider *parallax;
-
-  /**
-   * @brief The shadow amplitude slider.
-   */
-  Slider *shadow;
-
-  /**
-   * @brief The alpha test slider.
-   */
-  Slider *alphaTest;
+  r_material_t *material; ///< The material being edited.
+  TextView *name; ///< The material name text field.
+  TextView *diffusemap; ///< The diffusemap texture name text field.
+  TextView *normalmap; ///< The normalmap texture name text field.
+  TextView *specularmap; ///< The specularmap texture name text field.
+  Slider *roughness; ///< The roughness slider.
+  Slider *hardness; ///< The hardness slider.
+  Slider *specularity; ///< The specularity slider.
+  Slider *parallax; ///< The parallax amplitude slider.
+  Slider *shadow; ///< The shadow amplitude slider.
+  Slider *alphaTest; ///< The alpha test threshold slider.
 };
 
 /**
@@ -114,10 +62,7 @@ struct MaterialViewController {
  */
 struct MaterialViewControllerInterface {
 
-  /**
-   * @brief The superclass interface.
-   */
-  ViewControllerInterface viewControllerInterface;
+  ViewControllerInterface viewControllerInterface; ///< The superclass interface.
 
   /**
    * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)

@@ -23,7 +23,7 @@
 #include "r_local.h"
 
 /**
- * @brief
+ * @brief Loads BSP plane data from the collision model into renderer plane structures.
  */
 static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
   r_bsp_plane_t *out;
@@ -39,7 +39,7 @@ static void R_LoadBspPlanes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and registers all BSP materials referenced in the map file.
  */
 static void R_LoadBspMaterials(r_model_t *mod) {
 
@@ -56,7 +56,7 @@ static void R_LoadBspMaterials(r_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Loads BSP brush side data, linking planes and materials.
  */
 static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
   r_bsp_brush_side_t *out;
@@ -84,7 +84,7 @@ static void R_LoadBspBrushSides(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads BSP patch (curved surface) data, linking materials.
  */
 static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 
@@ -105,7 +105,7 @@ static void R_LoadBspPatches(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads BSP vertex data (positions, normals, tangents, diffuse UVs, colors).
  */
 static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 
@@ -125,7 +125,7 @@ static void R_LoadBspVertexes(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads BSP triangle element (index) data.
  */
 static void R_LoadBspElements(r_bsp_model_t *bsp) {
 
@@ -240,7 +240,7 @@ static void R_SetupBspNode(r_bsp_inline_model_t *model, r_bsp_node_t *parent, r_
 }
 
 /**
- * @brief
+ * @brief Loads draw elements batches, computing texture coordinate origins for animated stages.
  */
 static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
   r_bsp_draw_elements_t *out;
@@ -278,7 +278,7 @@ static void R_LoadBspDrawElements(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads BSP blocks and allocates GPU buffers for per-block decal geometry.
  */
 static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
   r_bsp_block_t *out;
@@ -348,7 +348,7 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads all BSP inline (brush) models and sets up their visible bounds and draw data.
  */
 static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
   r_bsp_inline_model_t *out;
@@ -382,7 +382,7 @@ static void R_LoadBspInlineModels(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads static BSP lights from the map file for dynamic shadow and lighting.
  */
 static void R_LoadBspLights(r_bsp_model_t *bsp) {
 
@@ -408,7 +408,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads the voxel grid and light assignment data for clustered forward lighting.
  */
 static void R_LoadBspVoxels(r_model_t *mod) {
 
@@ -539,7 +539,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Creates and configures the BSP vertex array object and associated GPU buffers.
  */
 static void R_LoadBspVertexArray(r_model_t *mod) {
 
@@ -577,7 +577,7 @@ static void R_LoadBspVertexArray(r_model_t *mod) {
 }
 
 /**
- * @brief
+ * @brief Creates a position-only VAO for the BSP depth pre-pass.
  */
 static void R_LoadBspDepthPassVertexArray(r_model_t *mod) {
 
@@ -653,7 +653,7 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 )
 
 /**
- * @brief
+ * @brief Loads a BSP model from a binary file buffer, initializing all renderer structures.
  */
 static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 
@@ -705,7 +705,7 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
 }
 
 /**
- * @brief
+ * @brief Registers BSP model media dependencies (voxel data and index textures).
  */
 static void R_RegisterBspModel(r_media_t *self) {
 
@@ -719,7 +719,7 @@ static void R_RegisterBspModel(r_media_t *self) {
 }
 
 /**
- * @brief
+ * @brief Frees all GPU resources allocated for the BSP model.
  */
 static void R_FreeBspModel(r_media_t *self) {
   r_model_t *mod = (r_model_t *) self;
@@ -758,7 +758,7 @@ static void R_FreeBspModel(r_media_t *self) {
 }
 
 /**
- * @brief
+ * @brief BSP model format descriptor registering load, register, and free callbacks.
  */
 const r_model_format_t r_bsp_model_format = {
   .extension = "bsp",

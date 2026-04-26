@@ -31,7 +31,7 @@ static debug_t Cl_CgameDebugMask(void) {
 }
 
 /**
- * @brief
+ * @brief Forwards a debug message from the client game module to the engine console.
  */
 static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
@@ -45,7 +45,7 @@ static void Cl_CgameDebug(const debug_t debug, const char *func, const char *fmt
 }
 
 /**
- * @brief
+ * @brief Forwards a warning message from the client game module to the engine console.
  */
 static void Cl_CgameWarn(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 static void Cl_CgameWarn(const char *func, const char *fmt, ...) {
@@ -121,14 +121,14 @@ static vec3_t Cl_ReadAngles(void) {
 }
 
 /**
- * @brief
+ * @brief Returns the current list of known servers for the client game module.
  */
 static GList *Cl_Servers(void) {
   return cls.servers;
 }
 
 /**
- * @brief
+ * @brief Returns the config string at the given index for the client game module.
  */
 static char *Cl_ConfigString(int32_t index) {
 

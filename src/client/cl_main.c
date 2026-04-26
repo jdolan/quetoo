@@ -149,7 +149,7 @@ void Cl_Connect(const net_addr_t *addr) {
 }
 
 /**
- * @brief
+ * @brief Handles the `connect` console command, connecting to the specified server address.
  */
 static void Cl_Connect_f(void) {
   net_addr_t addr;
@@ -239,7 +239,7 @@ static void Cl_ForwardCmdToServer(void) {
 }
 
 /**
- * @brief
+ * @brief Resets all client state, clearing entities, sounds, and the network channel.
  */
 void Cl_ClearState(void) {
 
@@ -319,7 +319,7 @@ void Cl_Disconnect(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `disconnect` console command, disconnecting and shutting down any local server.
  */
 static void Cl_Disconnect_f(void) {
 
@@ -331,7 +331,7 @@ static void Cl_Disconnect_f(void) {
 }
 
 /**
- * @brief
+ * @brief Handles the `reconnect` command, re-initiating a connection to the last known server.
  */
 void Cl_Reconnect_f(void) {
 
@@ -433,7 +433,7 @@ static void Cl_ConnectionlessPacket(void) {
 }
 
 /**
- * @brief
+ * @brief Reads and dispatches all incoming network packets from the server.
  */
 static void Cl_ReadPackets(void) {
 
@@ -484,7 +484,7 @@ static void Cl_ReadPackets(void) {
 }
 
 /**
- * @brief
+ * @brief Returns the system username, falling back to "newbie" if none is set.
  */
 static const char *Cl_Username(void) {
   const char *username = Sys_Username();
@@ -518,7 +518,7 @@ static void Cl_WriteConfiguration(void) {
 }
 
 /**
- * @brief
+ * @brief Registers client-side cvars, user info vars, and console commands.
  */
 static void Cl_InitLocal(void) {
 
@@ -574,7 +574,7 @@ static void Cl_InitLocal(void) {
 }
 
 /**
- * @brief
+ * @brief Populates the renderer scene and issues main draw calls for the current frame.
  */
 static void Cl_UpdateScene(void) {
   thread_t *thread;
@@ -629,7 +629,7 @@ int32_t Cl_InstallerFrame(const installer_status_t *in) {
 }
 
 /**
- * @brief
+ * @brief Executes one client frame tick: networking, input, prediction, and rendering.
  */
 void Cl_Frame(const uint32_t msec) {
   static uint32_t frame_timestamp;
@@ -709,7 +709,7 @@ void Cl_Frame(const uint32_t msec) {
 }
 
 /**
- * @brief
+ * @brief Initializes all client subsystems: console, renderer, sound, UI, and cgame.
  */
 void Cl_Init(void) {
 
@@ -750,7 +750,7 @@ void Cl_Init(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down all client subsystems in reverse initialization order.
  */
 void Cl_Shutdown(void) {
 
