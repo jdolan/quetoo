@@ -25,6 +25,7 @@
  * @brief Sprite vertex buffer state holding vertices and GPU buffer objects.
  */
 static struct {
+  r_sprite_vertex_t vertexes[MAX_SPRITE_INSTANCES * 4];
 
   GLuint vertex_array;
   GLuint vertex_buffer;

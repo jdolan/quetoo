@@ -649,6 +649,11 @@ const cg_entity_class_t cg_misc_sprite = {
  * @brief Data struct holding velocity, size, count, and sound sample for a misc_steam entity.
  */
 typedef struct {
+  vec3_t velocity;
+  float size;
+  int32_t count;
+  s_sample_t *sample;
+} cg_misc_steam_t;
 
 /**
  * @brief Initializes a misc_steam entity by resolving velocity, size, count, and optional sound.

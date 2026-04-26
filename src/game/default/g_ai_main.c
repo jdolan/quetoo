@@ -931,6 +931,7 @@ static bool G_Ai_CheckNav(g_client_t *cl, ai_goal_t *goal) {
 /**
  * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
  */
+static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest) {
   const float path_dist = Vec3_Distance(cl->entity->s.origin, dest);
 
   // wander's distress is handled elsewhere
@@ -999,6 +1000,7 @@ static inline bool G_Ai_Path_IsLinked(const GArray *path, const guint a, const g
 /**
  * @brief Returns true if the bot is roughly facing the given target (within ~37 degrees).
  */
+static bool G_Ai_FacingTarget(const g_client_t *cl, const vec3_t target) {
   vec3_t sub = Vec3_Subtract(target, cl->entity->s.origin);
   sub.z = 0;
 
