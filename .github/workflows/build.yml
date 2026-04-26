@@ -151,7 +151,6 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws s3 sync --delete apple/target/Quetoo.app s3://quetoo/${{ matrix.build }}
         git rev-list --count HEAD > apple/target/version
         aws s3 cp apple/target/version s3://quetoo/versions/${{ matrix.build }}
 
@@ -294,12 +293,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws s3 sync --delete linux/target/staging s3://quetoo/x86_64-pc-linux
         git rev-list --count HEAD > linux/target/version
         aws s3 cp linux/target/version s3://quetoo/versions/x86_64-pc-linux
-        aws s3 cp linux/target/quetoo-x86_64-pc-linux.AppImage s3://quetoo/snapshots/
-        aws s3 cp linux/target/quetoo_*_amd64.deb                s3://quetoo/snapshots/
-        aws s3 cp linux/target/quetoo-*.x86_64.rpm                s3://quetoo/snapshots/
 
   build-windows:
     needs: resolve-deps
@@ -424,10 +419,8 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: us-east-1
       run: |
-        aws s3 sync --delete windows/target/quetoo s3://quetoo/x86_64-pc-windows
         git rev-list --count HEAD > windows/target/version
         aws s3 cp windows/target/version s3://quetoo/versions/x86_64-pc-windows
-        aws s3 cp quetoo-x86_64-pc-windows.zip s3://quetoo/snapshots/
 
   release:
     needs: [build-macos, build-linux, build-windows]
