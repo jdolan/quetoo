@@ -68,7 +68,7 @@ static void Cg_FreeLight(cg_light_t *light) {
 }
 
 /**
- * @brief
+ * @brief Adds a dynamic light source to the current view if dynamic lights are enabled.
  */
 void Cg_AddLight(const cg_light_t *in) {
 
@@ -174,7 +174,7 @@ static void Cg_AddBspLights(void) {
 }
 
 /**
- * @brief
+ * @brief Adds all BSP and allocated dynamic lights to the current view.
  */
 void Cg_AddLights(void) {
 
@@ -212,7 +212,7 @@ void Cg_AddLights(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the allocated and free dynamic light queues.
  */
 void Cg_InitLights(void) {
 
@@ -223,7 +223,7 @@ void Cg_InitLights(void) {
 }
 
 /**
- * @brief
+ * @brief Frees all allocated and free dynamic light queue memory.
  */
 void Cg_FreeLights(void) {
 

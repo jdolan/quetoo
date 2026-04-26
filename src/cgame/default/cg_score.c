@@ -124,7 +124,7 @@ static GLint Cg_DrawScoresHeader(void) {
 }
 
 /**
- * @brief
+ * @brief Draws a single player score row including icon, name, frags, deaths, and captures.
  */
 static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
   GLint cw, ch;
@@ -191,7 +191,7 @@ static bool Cg_DrawScore(GLint x, GLint y, const g_score_t *s) {
 }
 
 /**
- * @brief
+ * @brief Draws the scores screen layout arranged by team for team-based game modes.
  */
 static void Cg_DrawTeamScores(const GLint start_y) {
 
@@ -250,7 +250,7 @@ static void Cg_DrawTeamScores(const GLint start_y) {
 }
 
 /**
- * @brief
+ * @brief Draws the scores screen layout for deathmatch game modes.
  */
 static void Cg_DrawDmScores(const GLint start_y) {
 
@@ -279,7 +279,7 @@ static void Cg_DrawDmScores(const GLint start_y) {
 }
 
 /**
- * @brief
+ * @brief Draws the full scores overlay when the scores stat is active.
  */
 void Cg_DrawScores(const player_state_t *ps) {
 

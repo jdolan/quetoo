@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 /**
- * @brief
+ * @brief Returns an HSV color from a hue pointer, substituting a default hue if the pointer is NULL or negative.
  */
 vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 
@@ -37,7 +37,7 @@ vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 }
 
 /**
- * @brief
+ * @brief Returns the effect color for the given client, using their team or personal hue.
  */
 vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
@@ -57,7 +57,7 @@ vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float defaul
 }
 
 /**
- * @brief
+ * @brief Adds an inactive player indicator sprite above the entity's position.
  */
 static void Cg_InactiveEffect(cl_entity_t *ent, const vec3_t org) {
 

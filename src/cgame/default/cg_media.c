@@ -125,7 +125,7 @@ r_atlas_image_t *cg_decal_slug[4];
 r_framebuffer_t cg_framebuffer;
 
 /**
- * @brief
+ * @brief Creates the client game framebuffer sized to the current window dimensions.
  */
 void Cg_CreateFramebuffer(void) {
   
@@ -137,7 +137,7 @@ void Cg_CreateFramebuffer(void) {
 }
 
 /**
- * @brief
+ * @brief Destroys the client game framebuffer if it exists.
  */
 void Cg_DestroyFramebuffer(void) {
   
@@ -147,7 +147,7 @@ void Cg_DestroyFramebuffer(void) {
 }
 
 /**
- * @brief
+ * @brief Loads a numbered atlas image sequence and returns it as an animation.
  */
 static r_animation_t *Cg_LoadAnimatedSprite(r_atlas_t *atlas, char *base_path, char *seq_num_fmt, uint32_t first_frame, uint32_t last_frame) {
   assert(last_frame > first_frame);
@@ -342,7 +342,7 @@ void Cg_LoadMedia(void) {
 }
 
 /**
- * @brief
+ * @brief Frees all client game media and resets per-level subsystem state.
  */
 void Cg_FreeMedia(void) {
 

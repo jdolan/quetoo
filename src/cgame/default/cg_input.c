@@ -35,7 +35,7 @@ typedef struct {
 static cg_kick_t cg_kick;
 
 /**
- * @brief
+ * @brief Handles SDL events, recreating the framebuffer on window resize or expose.
  */
 void Cg_HandleEvent(const SDL_Event *event) {
   
@@ -126,7 +126,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 }
 
 /**
- * @brief
+ * @brief Applies weapon fire recoil animation to the view model.
  */
 static void Cg_WeaponKick(const pm_cmd_t *cmd) {
   static float kick;

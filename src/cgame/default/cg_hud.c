@@ -288,7 +288,7 @@ static void Cg_DrawHeldTech(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the recently picked up item icon and name in the top-right corner.
  */
 static void Cg_DrawPickup(const player_state_t *ps) {
   GLint x, y, cw, ch;
@@ -318,7 +318,7 @@ static void Cg_DrawPickup(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the player's frag count in the top-right corner of the HUD.
  */
 static void Cg_DrawFrags(const player_state_t *ps) {
   const int16_t frags = ps->stats[STAT_FRAGS];
@@ -350,7 +350,7 @@ static void Cg_DrawFrags(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the player's death count in the top-right corner of the HUD.
  */
 static void Cg_DrawDeaths(const player_state_t *ps) {
   const int16_t deaths = ps->stats[STAT_DEATHS];
@@ -383,7 +383,7 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 
 
 /**
- * @brief
+ * @brief Draws the player's flag capture count in the top-right corner for CTF games.
  */
 static void Cg_DrawCaptures(const player_state_t *ps) {
   const int16_t captures = ps->stats[STAT_CAPTURES];
@@ -419,7 +419,7 @@ static void Cg_DrawCaptures(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the "Spectating" label when the player is a spectator not in chase mode.
  */
 static void Cg_DrawSpectator(const player_state_t *ps) {
   GLint x, y, cw;
@@ -439,7 +439,7 @@ static void Cg_DrawSpectator(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the name of the player currently being chased in chasecam mode.
  */
 static void Cg_DrawChase(const player_state_t *ps) {
   GLint x, y, ch;
@@ -483,7 +483,7 @@ static void Cg_DrawChase(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the current match time string from the server config string.
  */
 static void Cg_DrawTime(const player_state_t *ps) {
   GLint x, y, ch;
@@ -512,7 +512,7 @@ static void Cg_DrawTime(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws a translucent team-color banner strip at the bottom of the screen.
  */
 static void Cg_DrawTeamBanner(const player_state_t *ps) {
   const int16_t team = ps->stats[STAT_TEAM];
@@ -535,7 +535,7 @@ static void Cg_DrawTeamBanner(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the player's crosshair image centered on screen.
  */
 static void Cg_DrawCrosshair(const player_state_t *ps) {
 
@@ -715,7 +715,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Parses a center print message from the server into the center print state.
  */
 void Cg_ParseCenterPrint(void) {
   char *c, *out, *line;
@@ -745,7 +745,7 @@ void Cg_ParseCenterPrint(void) {
 }
 
 /**
- * @brief
+ * @brief Draws the current center print message centered on screen.
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
   GLint cw, ch, x, y;
@@ -937,7 +937,7 @@ static void Cg_DrawDamageInflicted(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Parses weapon info config string from the server and populates the HUD weapon array.
  */
 void Cg_ParseWeaponInfo(const char *s) {
 
@@ -977,7 +977,7 @@ static int16_t Cg_ActiveWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Ensures the currently selected weapon tag refers to a weapon the player actually carries.
  */
 static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 
@@ -1012,7 +1012,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Scrolls the weapon selection bar forward or backward by one weapon slot.
  */
 static void Cg_SelectWeapon(const int8_t dir) {
   const player_state_t *ps = &cgi.client->frame.ps;
@@ -1055,7 +1055,7 @@ static void Cg_SelectWeapon(const int8_t dir) {
 }
 
 /**
- * @brief
+ * @brief Issues a use command for the pending selected weapon if the selection timer has expired.
  */
 bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 
@@ -1082,7 +1082,7 @@ bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the weapon selection bar when the player is cycling through available weapons.
  */
 static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
@@ -1190,7 +1190,7 @@ static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Draws the name of the player under the crosshair when aimed at a teammate or enemy.
  */
 static void Cg_DrawTargetName(const player_state_t *ps) {
   static uint32_t time;
@@ -1236,14 +1236,14 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
 }
 
 /**
- * @brief
+ * @brief Console command handler to select the next weapon in the weapon bar.
  */
 static void Cg_Weapon_Next_f(void) {
   Cg_SelectWeapon(1);
 }
 
 /**
- * @brief
+ * @brief Console command handler to select the previous weapon in the weapon bar.
  */
 static void Cg_Weapon_Prev_f(void) {
   Cg_SelectWeapon(-1);
@@ -1313,7 +1313,7 @@ void Cg_ClearHud(void) {
 }
 
 /**
- * @brief
+ * @brief Loads HUD image assets including the weapon select bar and blend overlay images.
  */
 void Cg_LoadHudMedia(void) {
   cg_select_weapon_image = cgi.LoadImage("pics/w_select", IMG_PIC);
@@ -1323,7 +1323,7 @@ void Cg_LoadHudMedia(void) {
 }
 
 /**
- * @brief
+ * @brief Registers HUD console commands and initializes HUD-related console variables.
  */
 void Cg_InitHud(void) {
   cgi.AddCmd("cg_weapon_next", Cg_Weapon_Next_f, CMD_CGAME,

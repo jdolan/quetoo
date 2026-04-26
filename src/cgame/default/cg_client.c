@@ -485,7 +485,7 @@ static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity
 #define CLIENT_LEGS_YAW_LERP_SPEED    240.f
 
 /**
- * @brief
+ * @brief Rotates a current angle toward an ideal value at the given angular speed in degrees per second.
  */
 static inline float Cg_CalculateAngle(const float speed, float current, float ideal) {
   current = AngleMod(current);

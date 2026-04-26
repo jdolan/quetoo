@@ -42,7 +42,7 @@ static void dealloc(Object *self) {
 #pragma mark - View
 
 /**
- * @brief
+ * @brief Initializes the player model view by delegating to initWithFrame.
  */
 static View *init(View *self) {
   return (View *) $((PlayerModelView *) self, initWithFrame, NULL);

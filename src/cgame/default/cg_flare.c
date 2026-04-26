@@ -56,7 +56,7 @@ static GPtrArray *cg_flares;
 #define FLARE_ALPHA_RAMP 0.01
 
 /**
- * @brief
+ * @brief Adds all loaded flare sprites to the view, attenuated by their surface angle to the camera.
  */
 void Cg_AddFlares(void) {
 
@@ -174,7 +174,7 @@ static _Bool Cg_FacesShareVertex(const r_bsp_face_t *a, const r_bsp_face_t *b) {
 }
 
 /**
- * @brief
+ * @brief Merges adjacent flares on the same brush side into unified flares by union of bounds.
  */
 static void Cg_MergeFlares(void) {
 
@@ -207,7 +207,7 @@ static void Cg_MergeFlares(void) {
 }
 
 /**
- * @brief
+ * @brief Loads all flare stages from BSP faces and merges adjacent flares on the same brush side.
  */
 void Cg_LoadFlares(void) {
 
@@ -249,7 +249,7 @@ void Cg_LoadFlares(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the flare array and sets the pointer to NULL.
  */
 void Cg_FreeFlares(void) {
 

@@ -36,7 +36,7 @@ void Cg_PrepareStage(const cl_frame_t *frame) {
 }
 
 /**
- * @brief
+ * @brief Parses a positioned sound message from the server and plays it.
  */
 void Cg_ParseSound(void) {
 

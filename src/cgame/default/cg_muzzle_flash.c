@@ -49,7 +49,7 @@ static vec3_t Cg_MuzzleOrigin(const cl_entity_t *ent, const vec3_t offset) {
 }
 
 /**
- * @brief
+ * @brief Renders the blaster muzzle flash with a dynamic light and optional bubble trail.
  */
 static void Cg_BlasterFlash(const cl_entity_t *ent) {
 
@@ -374,7 +374,7 @@ static void Cg_GrenadeFlash(const cl_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Renders the rocket launcher muzzle flash with a dynamic light and optional bubble trail.
  */
 static void Cg_RocketFlash(const cl_entity_t *ent) {
 
@@ -547,7 +547,7 @@ static void Cg_LogoutFlash(const cl_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Parses a muzzle flash message from the server and dispatches the appropriate flash effect.
  */
 void Cg_ParseMuzzleFlash(void) {
 

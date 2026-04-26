@@ -23,14 +23,14 @@
 #include "game/default/bg_pmove.h"
 
 /**
- * @brief
+ * @brief Returns the BSP contents flags for the bounding box spanning the given trail segment.
  */
 int32_t Cg_TrailContents(const vec3_t start, const vec3_t end) {
   return cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { start, end }, 2));
 }
 
 /**
- * @brief
+ * @brief Calculates the life start fraction and fractional step for trail particle spawning.
  */
 static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float speed, float step, float *life_start, float *life_frac) {
   *life_start = (speed - Vec3_Distance(start, end)) / 1000;
@@ -81,7 +81,7 @@ static int32_t Cg_TrailCount(const vec3_t end, float freq, cl_entity_t *ent, cl_
 }
 
 /**
- * @brief
+ * @brief Emits a breath bubble from the entity's mouth when the entity is submerged in liquid.
  */
 void Cg_BreathTrail(cl_entity_t *ent) {
 
@@ -128,7 +128,7 @@ void Cg_BreathTrail(cl_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Emits a flame sprite at the trail endpoint for fire trail effects.
  */
 void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -155,7 +155,7 @@ void Cg_FlameTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 }
 
 /**
- * @brief
+ * @brief Think callback that stops a bubble sprite once it exits liquid.
  */
 static void Cg_BubbleTrail_Think(cg_sprite_t *s, float life, float delta) {
 
@@ -170,7 +170,7 @@ static void Cg_BubbleTrail_Think(cg_sprite_t *s, float life, float delta) {
 }
 
 /**
- * @brief
+ * @brief Emits bubble sprites along the portion of a trail that passes through liquid.
  */
 void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, float freq) {
 
@@ -224,7 +224,7 @@ void Cg_BubbleTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end, floa
 }
 
 /**
- * @brief
+ * @brief Renders the blaster projectile trail with energy particles and a dynamic light.
  */
 static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -283,7 +283,7 @@ static void Cg_BlasterTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 }
 
 /**
- * @brief
+ * @brief Renders the grenade projectile trail with smoke and a pulsing dynamic light.
  */
 static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -340,7 +340,7 @@ static void Cg_FireFlyTrail_Think(cg_sprite_t *sprite, float life, float delta) 
 }
 
 /**
- * @brief
+ * @brief Renders the rocket projectile trail with flame, smoke, and firefly spark effects.
  */
 static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
   int32_t count;
@@ -484,7 +484,7 @@ static void Cg_RocketTrail(cl_entity_t *ent, const vec3_t start, const vec3_t en
 }
 
 /**
- * @brief
+ * @brief Renders the hyperblaster projectile trail with plasma glow and a beam sprite.
  */
 static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 
@@ -559,7 +559,7 @@ static void Cg_HyperblasterTrail(cl_entity_t *ent, vec3_t start, vec3_t end) {
 }
 
 /**
- * @brief
+ * @brief Renders the lightning beam with oscillating segments, sparks, and impact effects.
  */
 static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -723,7 +723,7 @@ static void Cg_LightningTrail(cl_entity_t *ent, const vec3_t start, const vec3_t
 }
 
 /**
- * @brief
+ * @brief Renders the grappling hook cable as a beam between the entity and its attachment point.
  */
 static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -745,7 +745,7 @@ static void Cg_HookTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end)
 #define BFG_BALLS_SPEED  400.f
 
 /**
- * @brief
+ * @brief Think callback that applies centripetal acceleration to orbiting BFG ball sprites.
  */
 static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 
@@ -775,7 +775,7 @@ static void Cg_BfgTrail_Think(cg_sprite_t *sprite, float life, float delta) {
 }
 
 /**
- * @brief
+ * @brief Renders the BFG projectile trail with a core sphere and orbiting ball sprites.
  */
 static void Cg_BfgTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
   const float mod = fmodf((float)cgi.client->unclamped_time, 100.f) / 100.f;
@@ -898,7 +898,7 @@ static void Cg_TeleporterTrail(cl_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Returns a sinusoidally oscillating value at the given frequency, amplitude, base, and phase.
  */
 static inline float Cg_Oscillate(const float freq, const float amplitude, const float base, const float phase) {
   const float seconds = MILLIS_TO_SECONDS(cgi.client->unclamped_time);
@@ -906,7 +906,7 @@ static inline float Cg_Oscillate(const float freq, const float amplitude, const 
 }
 
 /**
- * @brief
+ * @brief Renders a pulsing ring sprite beneath a player spawn point to mark its location.
  */
 static void Cg_PlayerSpawnTrail(const cl_entity_t *ent) {
 
@@ -925,7 +925,7 @@ static void Cg_PlayerSpawnTrail(const cl_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Renders a gib trail with blood sprites and decals along the trajectory.
  */
 static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -971,7 +971,7 @@ static void Cg_GibTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) 
 }
 
 /**
- * @brief
+ * @brief Renders the fireball projectile trail with flame sprites and a decaying dynamic light.
  */
 static void Cg_FireballTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 
@@ -1097,14 +1097,14 @@ static void Cg_OrbitalTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
 }
 
 /**
- * @brief
+ * @brief Renders the quad damage powerup orbital particle trail in cyan-teal.
  */
 static void Cg_QuadEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
   Cg_OrbitalTrail(ent, start, end, Vec3(.3f, .7f, .7f));
 }
 
 /**
- * @brief
+ * @brief Renders the CTF flag carrier orbital particle trail in the carrier's team color.
  */
 static void Cg_CtfEffectTrail(cl_entity_t *ent, const vec3_t start, const vec3_t end) {
 

@@ -406,7 +406,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 }
 
 /**
- * @brief
+ * @brief Returns the colored key name bound to the given command, or red "UNBOUND" if not set.
  */
 static const char *Cg_Nav_KeyBind(const char *bind) {
   SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);
@@ -419,7 +419,7 @@ static const char *Cg_Nav_KeyBind(const char *bind) {
 }
 
 /**
- * @brief
+ * @brief Draws the HUD and scores overlay, or navigation edit mode instructions if active.
  */
 static void Cg_UpdateScreen(const cl_frame_t *frame) {
 
@@ -462,7 +462,7 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
 }
 
 /**
- * @brief
+ * @brief Entry point that populates and returns the cgame export table with all function pointers.
  */
 cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   static cg_export_t cge;

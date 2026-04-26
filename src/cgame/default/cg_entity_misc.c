@@ -62,7 +62,7 @@ typedef struct {
 } cg_dust_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_dust entity by loading its sprite and computing spawn origins from brushes.
  */
 static void Cg_misc_dust_Init(cg_entity_t *self) {
 
@@ -144,7 +144,7 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Think callback that fades dust sprites in at birth and decrements the active count at death.
  */
 static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delta) {
 
@@ -160,7 +160,7 @@ static void Cg_misc_dust_SpriteThink(cg_sprite_t *sprite, float life, float delt
 }
 
 /**
- * @brief
+ * @brief Emits dust sprites to maintain the active count up to the number of configured origins.
  */
 static void Cg_misc_dust_Think(cg_entity_t *self) {
 
@@ -198,7 +198,7 @@ static void Cg_misc_dust_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_dust ambient dust emitter.
  */
 const cg_entity_class_t cg_misc_dust = {
   .classname = "misc_dust",
@@ -238,7 +238,7 @@ typedef struct {
 } cg_flame_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_flame entity by reading radius, density, and sound from the entity definition.
  */
 static void Cg_misc_flame_Init(cg_entity_t *self) {
 
@@ -263,7 +263,7 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Emits flame sprites and a flickering dynamic light for a misc_flame entity each frame.
  */
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
@@ -322,7 +322,7 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_flame ambient fire effect.
  */
 const cg_entity_class_t cg_misc_flame = {
   .classname = "misc_flame",
@@ -332,7 +332,7 @@ const cg_entity_class_t cg_misc_flame = {
 };
 
 /**
- * @brief
+ * @brief Initializes a misc_model entity by loading its model from the entity definition.
  */
 static void Cg_misc_model_Init(cg_entity_t *self) {
 
@@ -359,7 +359,7 @@ static void Cg_misc_model_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Adds the misc_model entity's render entity to the view each frame.
  */
 static void Cg_misc_model_Think(cg_entity_t *self) {
 
@@ -374,7 +374,7 @@ static void Cg_misc_model_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_model static model renderer.
  */
 const cg_entity_class_t cg_misc_model = {
   .classname = "misc_model",
@@ -394,7 +394,7 @@ typedef struct {
 } cg_misc_sound_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_sound entity by loading its sample and configuring play parameters.
  */
 static void Cg_misc_sound_Init(cg_entity_t *self) {
 
@@ -427,7 +427,7 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Plays the configured ambient sound sample for a misc_sound entity each frame.
  */
 static void Cg_misc_sound_Think(cg_entity_t *self) {
 
@@ -439,7 +439,7 @@ static void Cg_misc_sound_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_sound ambient sound emitter.
  */
 const cg_entity_class_t cg_misc_sound = {
   .classname = "misc_sound",
@@ -464,7 +464,7 @@ typedef struct {
 } cg_misc_sparks_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_sparks entity by resolving its emission direction and spark count.
  */
 static void Cg_misc_sparks_Init(cg_entity_t *self) {
 
@@ -495,7 +495,7 @@ static void Cg_misc_sparks_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Emits sparks from the entity's origin using the configured direction and count.
  */
 static void Cg_misc_sparks_Think(cg_entity_t *self) {
 
@@ -505,7 +505,7 @@ static void Cg_misc_sparks_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_sparks spark emitter.
  */
 const cg_entity_class_t cg_misc_sparks = {
   .classname = "misc_sparks",
@@ -530,7 +530,7 @@ typedef struct {
 } cg_misc_sprite_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_sprite entity by loading the sprite and reading emission parameters.
  */
 static void Cg_misc_sprite_Init(cg_entity_t *self) {
 
@@ -590,7 +590,7 @@ static void Cg_misc_sprite_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Emits interpolated sprites between the entity and its team counterpart each frame.
  */
 static void Cg_misc_sprite_Think(cg_entity_t *self) {
 
@@ -636,7 +636,7 @@ static void Cg_misc_sprite_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_sprite configurable sprite emitter.
  */
 const cg_entity_class_t cg_misc_sprite = {
   .classname = "misc_sprite",
@@ -646,17 +646,12 @@ const cg_entity_class_t cg_misc_sprite = {
 };
 
 /**
- * @brief
+ * @brief Data struct holding velocity, size, count, and sound sample for a misc_steam entity.
  */
 typedef struct {
-  vec3_t velocity;
-  float size;
-  int32_t count;
-  s_sample_t *sample;
-} cg_misc_steam_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_steam entity by resolving velocity, size, count, and optional sound.
  */
 static void Cg_misc_steam_Init(cg_entity_t *self) {
 
@@ -691,7 +686,7 @@ static void Cg_misc_steam_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Emits steam puff sprites or a bubble trail and plays the steam loop sound each frame.
  */
 static void Cg_misc_steam_Think(cg_entity_t *self) {
 
@@ -734,7 +729,7 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_steam steam vent emitter.
  */
 const cg_entity_class_t cg_misc_steam = {
   .classname = "misc_steam",
@@ -779,7 +774,7 @@ typedef struct {
 } cg_weather_t;
 
 /**
- * @brief
+ * @brief Initializes a misc_weather entity by reading weather type, sound, and brush spawn origins.
  */
 static void Cg_misc_weather_Init(cg_entity_t *self) {
 
@@ -858,7 +853,7 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief Think callback that decrements the active weather sprite count when a sprite expires.
  */
 static void Cg_misc_weather_SpriteThink(cg_sprite_t *sprite, float life, float delta) {
 
@@ -870,7 +865,7 @@ static void Cg_misc_weather_SpriteThink(cg_sprite_t *sprite, float life, float d
 }
 
 /**
- * @brief
+ * @brief Emits rain, snow, or ash sprites to fill the weather volume each frame.
  */
 static void Cg_misc_weather_Think(cg_entity_t *self) {
 
@@ -965,7 +960,7 @@ static void Cg_misc_weather_Think(cg_entity_t *self) {
 }
 
 /**
- * @brief
+ * @brief The client-side entity class descriptor for the misc_weather ambient weather system.
  */
 const cg_entity_class_t cg_misc_weather = {
   .classname = "misc_weather",

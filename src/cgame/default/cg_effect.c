@@ -36,7 +36,7 @@ static void Cg_AddUnderwater(void) {
 }
 
 /**
- * @brief
+ * @brief Adds per-frame ambient visual and audio effects such as underwater ambience.
  */
 void Cg_AddEffects(void) {
 

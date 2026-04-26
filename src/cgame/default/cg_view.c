@@ -304,7 +304,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 }
 
 /**
- * @brief
+ * @brief Updates the view ambient light level from the worldspawn entity definition.
  */
 static void Cg_UpdateAmbient(void) {
 

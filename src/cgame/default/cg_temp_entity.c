@@ -23,7 +23,7 @@
 #include "game/default/bg_pmove.h"
 
 /**
- * @brief
+ * @brief Adds a decal to the view if decals are enabled.
  */
 void Cg_AddDecal(const r_decal_t *decal) {
 
@@ -35,7 +35,7 @@ void Cg_AddDecal(const r_decal_t *decal) {
 }
 
 /**
- * @brief
+ * @brief Spawns blaster impact sprites, a burn decal, a brief dynamic light, and plays the hit sound.
  */
 static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t color) {
 
@@ -124,7 +124,7 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
 }
 
 /**
- * @brief
+ * @brief Spawns a fast-moving tracer beam sprite between two points.
  */
 static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
   const float tracer_speed = 4000.f;
@@ -146,7 +146,7 @@ static void Cg_TracerEffect(const vec3_t start, const vec3_t end) {;
 }
 
 /**
- * @brief
+ * @brief Renders an AI navigation node visualization with a colored marker and bounding box outline.
  */
 static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint16_t id) {
   const uint8_t color_id = color & 0x7;
@@ -234,7 +234,7 @@ static void Cg_AiNodeEffect(const vec3_t start, const uint8_t color, const uint1
 }
 
 /**
- * @brief
+ * @brief Renders an AI navigation node link showing direction and connection type as a colored beam.
  */
 static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint8_t bits) {
 
@@ -320,7 +320,7 @@ static void Cg_AiNodeLinkEffect(const vec3_t start, const vec3_t end, const uint
 }
 
 /**
- * @brief
+ * @brief Spawns bullet impact sparks, smoke, a decal, and plays a ricochet sound.
  */
 static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
   static uint32_t last_ric_time;
@@ -420,7 +420,7 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
 }
 
 /**
- * @brief
+ * @brief Spawns blood splatter sprites and decals at the impact point.
  */
 static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
@@ -455,7 +455,7 @@ static void Cg_BloodEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 #define GIB_STREAM_COUNT 12
 
 /**
- * @brief
+ * @brief Spawns gib stream sprites, a large blood decal, and plays the gib sound.
  */
 void Cg_GibEffect(const vec3_t org, int32_t count) {
 
@@ -510,7 +510,7 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
 }
 
 /**
- * @brief
+ * @brief Spawns spark flash billboards, bouncing sparks, a light, and plays the sparks sound.
  */
 void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 
@@ -599,7 +599,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
 }
 
 /**
- * @brief
+ * @brief Spawns explosion sprites, ember particles, a burn decal, a bright decaying light, and plays the explosion sound.
  */
 static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 
@@ -729,7 +729,7 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
 }
 
 /**
- * @brief
+ * @brief Spawns hyperblaster impact sprites, a flash, a burn decal, a light, and plays the hit sound.
  */
 static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
   
@@ -800,7 +800,7 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
 }
 
 /**
- * @brief
+ * @brief Spawns bubble trails for a lightning discharge in liquid and plays the discharge sound.
  */
 static void Cg_LightningDischargeEffect(const vec3_t org) {
   for (int32_t i = 0; i < 40; i++) {
@@ -825,7 +825,7 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
 }
 
 /**
- * @brief
+ * @brief Renders a railgun trail with a core beam, helix particles, lights, and impact effects.
  */
 static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir, int32_t flags, float hue) {
 
@@ -982,7 +982,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
 }
 
 /**
- * @brief 
+ * @brief Packs two entity indices into a void pointer for use as BFG laser sprite data.
  */
 typedef union {
   struct {
@@ -993,7 +993,7 @@ typedef union {
 } cg_bfg_laser_data_t;
 
 /**
- * @brief
+ * @brief Think callback that updates a BFG laser beam's endpoints from the linked entity origins each frame.
  */
 static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 
@@ -1011,7 +1011,7 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 }
 
 /**
- * @brief
+ * @brief Spawns a persistent BFG laser beam sprite between two entities with a light and burn decal.
  */
 static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entity) {
 
@@ -1050,7 +1050,7 @@ static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entit
 }
 
 /**
- * @brief
+ * @brief Spawns BFG explosion sprites, flash billboards, a large burn decal, and a decaying light.
  */
 static void Cg_BfgEffect(const vec3_t org) {
   // explosion 1
@@ -1146,14 +1146,14 @@ static void Cg_BfgEffect(const vec3_t org) {
 }
 
 /**
- * @brief
+ * @brief Think callback that translates the splash sprite upward proportional to its growth rate.
  */
 static void Cg_SplashEffect_Think(cg_sprite_t *s, float life, float delta) {
   s->origin.z += .5f * delta * s->size_velocity;
 }
 
 /**
- * @brief
+ * @brief Spawns a vertical splash column sprite and droplet particles at a liquid surface impact.
  */
 static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, const vec3_t dir, float size) {
 
@@ -1197,7 +1197,7 @@ static void Cg_SplashEffect(const r_bsp_brush_side_t *side, const vec3_t org, co
 }
 
 /**
- * @brief
+ * @brief Spawns a ripple poof animation and an expanding ring decal on a liquid surface.
  */
 static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, float size) {
 
@@ -1242,7 +1242,7 @@ static void Cg_RippleEffect(const r_bsp_brush_side_t *side, const vec3_t org, fl
 }
 
 /**
- * @brief
+ * @brief Spawns a ripple and optional splash effect at a liquid BSP brush side impact.
  */
 static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t brush_side, float size, bool splash) {
 
@@ -1261,7 +1261,7 @@ static void Cg_RippleSplashEffect(const vec3_t org, const vec3_t dir, int32_t br
 }
 
 /**
- * @brief
+ * @brief Spawns hook impact spark particles, a brief light, and plays the hook impact sound.
  */
 static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 
@@ -1298,7 +1298,7 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
 }
 
 /**
- * @brief
+ * @brief Parses a temporary entity message from the server and dispatches the appropriate visual effect.
  */
 void Cg_ParseTempEntity(void) {
   vec3_t pos, pos2, dir;

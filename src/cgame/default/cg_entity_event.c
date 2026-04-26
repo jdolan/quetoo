@@ -32,7 +32,7 @@ static vec3_t Cg_FibonacciLatticeDir(int32_t count, int32_t index) {
 }
 
 /**
- * @brief
+ * @brief Spawns particle sphere and glow effects for an item respawn event.
  */
 static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 
@@ -79,7 +79,7 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 }
 
 /**
- * @brief
+ * @brief Spawns a ring and glow sprite for an item pickup event.
  */
 static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 
@@ -116,7 +116,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 }
 
 /**
- * @brief
+ * @brief Spawns particles and a brief light for a teleporter activation event.
  */
 void Cg_TeleporterEffect(const vec3_t org) {
 
@@ -193,7 +193,7 @@ static s_sample_t *Cg_ClientModelSample(const cl_entity_t *ent, const char *name
 }
 
 /**
- * @brief
+ * @brief Resolves the appropriate footstep sound sample for the entity's current ground material.
  */
 static s_sample_t *Cg_Footstep(cl_entity_t *ent) {
 

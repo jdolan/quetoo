@@ -108,7 +108,7 @@ static const QualityPreset qualityPresets[] = {
 };
 
 /**
- * @brief
+ * @brief Applies a graphics quality preset by setting all related renderer and game cvars.
  */
 static void applyQualityPreset(const QualityPreset *p) {
   cgi.SetCvarInteger("r_shadows",                   p->shadows);

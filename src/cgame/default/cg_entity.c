@@ -58,14 +58,14 @@ static const cm_entity_t *Cg_FindEntity(const cm_entity_t *from, const Cg_Entity
 }
 
 /**
- * @brief
+ * @brief Predicate function testing whether an entity's targetname matches the given string.
  */
 static bool Cg_EntityTarget_Predicate(const cm_entity_t *e, void *data) {
   return !g_strcmp0(cgi.EntityValue(e, "targetname")->nullable_string, data);
 }
 
 /**
- * @brief
+ * @brief Predicate function testing whether an entity's team key matches the given string.
  */
 static bool Cg_EntityTeam_Predicate(const cm_entity_t *e, void *data) {
   return !g_strcmp0(cgi.EntityValue(e, "team")->nullable_string, data);
@@ -153,7 +153,7 @@ void Cg_LoadEntities(void) {
 }
 
 /**
- * @brief
+ * @brief Frees the client-side entity array and sets the pointer to NULL.
  */
 void Cg_FreeEntities(void) {
 
