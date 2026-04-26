@@ -33,11 +33,11 @@
  * @brief The installer lifecycle.
  */
 typedef enum {
-  INSTALLER_CHECKING,         ///< Fetches binary version from S3
-  INSTALLER_UPDATE_AVAILABLE, ///< Binary is outdated; warns and stops
-  INSTALLER_COMPARING,        ///< Fetches remote manifest.mf and diffs against local copy
-  INSTALLER_DOWNLOADING,      ///< Parallel file downloads
-  INSTALLER_COMMITTING,       ///< Prunes stale files and writes manifest.mf
+  INSTALLER_CHECKING,
+  INSTALLER_UPDATE_AVAILABLE,
+  INSTALLER_COMPARING,
+  INSTALLER_DOWNLOADING,
+  INSTALLER_COMMITTING,
   INSTALLER_CANCELLED,
   INSTALLER_DONE,
   INSTALLER_ERROR,

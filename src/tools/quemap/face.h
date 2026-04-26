@@ -27,12 +27,30 @@
  * @brief The in-tree representation of BSP faces.
  */
 typedef struct face_s {
-  struct face_s *next;                   ///< Faces are chained on the node on which they reside (either side may be chained together).
-  struct face_s *merged;                 ///< If set, this face has been merged and should not be emitted to the BSP.
-  const struct brush_side_s *brush_side; ///< The original brush side that created this face.
-  int32_t plane;                         ///< The plane number.
-  cm_winding_t *w;                       ///< The ordered, welded face winding, used to emit BSP vertexes.
-  bsp_face_t *out;                       ///< The output face in the BSP, so that node faces may emit leaf faces.
+  /**
+   * @brief Faces are chained on the node on which they reside (either side may be chained together).
+   */
+  struct face_s *next;
+  /**
+   * @brief If set, this face has been merged and should not be emitted to the BSP.
+   */
+  struct face_s *merged;
+  /**
+   * @brief The original brush side that created this face.
+   */
+  const struct brush_side_s *brush_side;
+  /**
+   * @brief The plane number.
+   */
+  int32_t plane;
+  /**
+   * @brief The ordered, welded face winding, used to emit BSP vertexes.
+   */
+  cm_winding_t *w;
+  /**
+   * @brief The output face in the BSP, so that node faces may emit leaf faces.
+   */
+  bsp_face_t *out;
 } face_t;
 
 extern int32_t num_welds;

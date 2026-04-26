@@ -27,14 +27,35 @@
 static struct {
   GLuint name;
 
-  GLuint uniforms_block; ///< The uniforms UBO binding.
-  GLuint lights_block;   ///< The lights UBO binding.
+  /**
+   * @brief The uniforms UBO binding.
+   */
+  GLuint uniforms_block;
+  /**
+   * @brief The lights UBO binding.
+   */
+  GLuint lights_block;
 
-  GLint model;           ///< The model matrix uniform location.
-  GLint lerp;            ///< The frame interpolation fraction uniform location.
-  GLint light_view;      ///< The light view matrices for 6-pass rendering without geometry shader.
-  GLint light_index;     ///< The light index uniform location.
-  GLint face_index;      ///< The face index uniform location.
+  /**
+   * @brief The model matrix uniform location.
+   */
+  GLint model;
+  /**
+   * @brief The frame interpolation fraction uniform location.
+   */
+  GLint lerp;
+  /**
+   * @brief The light view matrices for 6-pass rendering without geometry shader.
+   */
+  GLint light_view;
+  /**
+   * @brief The light index uniform location.
+   */
+  GLint light_index;
+  /**
+   * @brief The face index uniform location.
+   */
+  GLint face_index;
 } r_shadow_program;
 
 r_shadow_atlas_t r_shadow_atlas;

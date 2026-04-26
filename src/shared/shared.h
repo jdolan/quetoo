@@ -165,37 +165,85 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct {
-  int16_t number;                         ///< Entity slot number this state update belongs to.
+  /**
+   * @brief Entity slot number this state update belongs to.
+   */
+  int16_t number;
   
-  uint8_t spawn_id;                       ///< Spawn identifier; changes when an entity slot is reused for a new entity.
+  /**
+   * @brief Spawn identifier; changes when an entity slot is reused for a new entity.
+   */
+  uint8_t spawn_id;
 
-  vec3_t origin;                          ///< World-space position of the entity.
+  /**
+   * @brief World-space position of the entity.
+   */
+  vec3_t origin;
 
-  vec3_t termination;                     ///< Far end of a beam entity.
+  /**
+   * @brief Far end of a beam entity.
+   */
+  vec3_t termination;
 
-  vec3_t angles;                          ///< Euler orientation angles.
+  /**
+   * @brief Euler orientation angles.
+   */
+  vec3_t angles;
 
-  uint8_t animation1, animation2;         ///< Primary and secondary animation sequence identifiers.
+  /**
+   * @brief Primary and secondary animation sequence identifiers.
+   */
+  uint8_t animation1, animation2;
 
-  uint8_t event;                          ///< Instantaneous entity event (`entity_event_t`) for this frame.
+  /**
+   * @brief Instantaneous entity event (`entity_event_t`) for this frame.
+   */
+  uint8_t event;
 
-  uint16_t effects;                       ///< Bit mask of active visual effects (EF_ROTATE, EF_BOB, etc.).
+  /**
+   * @brief Bit mask of active visual effects (EF_ROTATE, EF_BOB, etc.).
+   */
+  uint16_t effects;
 
-  uint8_t trail;                          ///< Trail effect identifier (`entity_trail_t`).
+  /**
+   * @brief Trail effect identifier (`entity_trail_t`).
+   */
+  uint8_t trail;
 
-  uint8_t model1, model2, model3, model4; ///< Precached model indexes (primary and up to three linked models).
+  /**
+   * @brief Precached model indexes (primary and up to three linked models).
+   */
+  uint8_t model1, model2, model3, model4;
 
-  color32_t color;                        ///< Entity tint color.
+  /**
+   * @brief Entity tint color.
+   */
+  color32_t color;
 
-  uint8_t client;                         ///< Client info index, used to look up player skins and names.
+  /**
+   * @brief Client info index, used to look up player skins and names.
+   */
+  uint8_t client;
 
-  uint8_t sound;                          ///< Ambient looping sound index.
+  /**
+   * @brief Ambient looping sound index.
+   */
+  uint8_t sound;
 
-  uint8_t solid;                          ///< Solid type; determines which entities the client will predict collisions against.
+  /**
+   * @brief Solid type; determines which entities the client will predict collisions against.
+   */
+  uint8_t solid;
 
-  box3_t bounds;                          ///< Bounding box for mesh entities, enabling client-side collision prediction.
+  /**
+   * @brief Bounding box for mesh entities, enabling client-side collision prediction.
+   */
+  box3_t bounds;
 
-  int8_t step_offset;                     ///< Vertical position offset from stair-step interpolation.
+  /**
+   * @brief Vertical position offset from stair-step interpolation.
+   */
+  int8_t step_offset;
 } entity_state_t;
 
 /**
@@ -271,13 +319,25 @@ typedef struct {
  * contains.
  */
 typedef struct player_state_s {
-  uint8_t client;           ///< Client index for this player.
+  /**
+   * @brief Client index for this player.
+   */
+  uint8_t client;
 
-  int16_t entity;           ///< Entity index associated with this player.
+  /**
+   * @brief Entity index associated with this player.
+   */
+  int16_t entity;
 
-  pm_state_t pm_state;      ///< Quantized player movement state snapshot.
+  /**
+   * @brief Quantized player movement state snapshot.
+   */
+  pm_state_t pm_state;
 
-  int16_t stats[MAX_STATS]; ///< Game-defined statistics array (health, ammo, scores, etc.).
+  /**
+   * @brief Game-defined statistics array (health, ammo, scores, etc.).
+   */
+  int16_t stats[MAX_STATS];
 } player_state_t;
 
 /*

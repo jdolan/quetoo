@@ -38,17 +38,32 @@ typedef struct EntityViewInterface EntityViewInterface;
  * @brief The Editor entity type.
  */
 typedef struct {
-  int16_t number;   ///< The entity number.
-  cl_entity_t *ent; ///< The client entity.
-  cm_entity_t *def; ///< The entity definition.
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+  /**
+   * @brief The client entity.
+   */
+  cl_entity_t *ent;
+  /**
+   * @brief The entity definition.
+   */
+  cm_entity_t *def;
 } EditorEntity;
 
 /**
  * @brief The EntityViewDelegate type.
  */
 typedef struct EntityViewDelegate {
-  ident self;                                                ///< The delegate self-reference.
-  void (*didEditEntity)(EntityView *view, cm_entity_t *def); ///< Callback invoked when the entity is edited.
+  /**
+   * @brief The delegate self-reference.
+   */
+  ident self;
+  /**
+   * @brief Callback invoked when the entity is edited.
+   */
+  void (*didEditEntity)(EntityView *view, cm_entity_t *def);
 } EntityViewDelegate;
 
 /**
@@ -57,13 +72,31 @@ typedef struct EntityViewDelegate {
  */
 struct EntityView {
 
-  StackView stackView;            ///< The superclass.
-  EntityViewInterface *interface; ///< The interface. @protected
+  /**
+   * @brief The superclass.
+   */
+  StackView stackView;
+  /**
+   * @brief The interface. @protected
+   */
+  EntityViewInterface *interface;
 
-  EntityViewDelegate delegate;    ///< The EntityViewDelegate.
-  EditorEntity entity;            ///< The entity being edited.
-  TextView *key;                  ///< The entity key text field.
-  TextView *value;                ///< The entity value text field.
+  /**
+   * @brief The EntityViewDelegate.
+   */
+  EntityViewDelegate delegate;
+  /**
+   * @brief The entity being edited.
+   */
+  EditorEntity entity;
+  /**
+   * @brief The entity key text field.
+   */
+  TextView *key;
+  /**
+   * @brief The entity value text field.
+   */
+  TextView *value;
 };
 
 /**
@@ -71,7 +104,10 @@ struct EntityView {
  */
 struct EntityViewInterface {
 
-  StackViewInterface stackViewInterface; ///< The superclass interface.
+  /**
+   * @brief The superclass interface.
+   */
+  StackViewInterface stackViewInterface;
 
   /**
    * @fn EntityView *EntityView::init(EntityView *self, cm_entity_t *EditorEntity)

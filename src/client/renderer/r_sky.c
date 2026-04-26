@@ -32,7 +32,10 @@
  * @brief Sky state holding the cubemap image.
  */
 static struct {
-  r_image_t *image; ///< The sky cubemap.
+  /**
+   * @brief The sky cubemap.
+   */
+  r_image_t *image;
 } r_sky;
 
 /**

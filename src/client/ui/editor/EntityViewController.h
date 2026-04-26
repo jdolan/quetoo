@@ -43,15 +43,39 @@ typedef struct EntityViewControllerInterface EntityViewControllerInterface;
  */
 struct EntityViewController {
 
-  ViewController viewController;            ///< The superclass.
-  EntityViewControllerInterface *interface; ///< The interface. @private
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
+  /**
+   * @brief The interface. @private
+   */
+  EntityViewControllerInterface *interface;
 
-  StackView *pairs;                         ///< The StackView containing the entity key-value pairs.
-  StackView *teamPairs;                     ///< The StackView containing the team entity key-value pairs.
-  EntityView *add;                          ///< The EntityView for adding a new key-value pair to the current entity.
-  EntityView *teamAdd;                      ///< The EntityView for adding a new key-value pair to the current team entity.
-  EditorEntity entity;                      ///< The entity being edited.
-  EditorEntity teamEntity;                  ///< The team entity being edited.
+  /**
+   * @brief The StackView containing the entity key-value pairs.
+   */
+  StackView *pairs;
+  /**
+   * @brief The StackView containing the team entity key-value pairs.
+   */
+  StackView *teamPairs;
+  /**
+   * @brief The EntityView for adding a new key-value pair to the current entity.
+   */
+  EntityView *add;
+  /**
+   * @brief The EntityView for adding a new key-value pair to the current team entity.
+   */
+  EntityView *teamAdd;
+  /**
+   * @brief The entity being edited.
+   */
+  EditorEntity entity;
+  /**
+   * @brief The team entity being edited.
+   */
+  EditorEntity teamEntity;
 
   /**
    * @brief The info string of the most recently created entity. When this entity returns to us
@@ -72,7 +96,10 @@ struct EntityViewController {
  */
 struct EntityViewControllerInterface {
 
-  ViewControllerInterface viewControllerInterface; ///< The superclass interface.
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
   /**
    * @fn void EntityViewController::createEntity(EntityViewController *self)

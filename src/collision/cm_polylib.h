@@ -27,17 +27,32 @@
  * @brief An ordered collection of coplanar points describing a convex volume.
  */
 typedef struct {
-  int32_t num_points; ///< The number of points in the winding.
-  vec3_t points[0];   ///< The actual number of points will vary.
+  /**
+   * @brief The number of points in the winding.
+   */
+  int32_t num_points;
+  /**
+   * @brief The actual number of points will vary.
+   */
+  vec3_t points[0];
 } cm_winding_t;
 
 /**
  * @brief A winding point, clipped against a specific plane.
  */
 typedef struct {
-  vec3_t point; ///< The clipped point.
-  double dist;  ///< The distance from the plane.
-  int32_t side; ///< The plane side.
+  /**
+   * @brief The clipped point.
+   */
+  vec3_t point;
+  /**
+   * @brief The distance from the plane.
+   */
+  double dist;
+  /**
+   * @brief The plane side.
+   */
+  int32_t side;
 } cm_clip_point_t;
 
 /**
@@ -149,12 +164,30 @@ box3_t Cm_ClipBox(const box3_t in, const vec4_t plane);
  * @brief A UV mapped vertex primitive.
  */
 typedef struct {
-  vec3_t *position;  ///< The vertex position.
-  vec3_t *normal;    ///< The vertex normal.
-  vec3_t *tangent;   ///< The vertex tangent.
-  vec3_t *bitangent; ///< The vertex bitangent.
-  vec2_t *st;        ///< The vertex texture coordinate.
-  int32_t num_tris;  ///< The number of triangles referencing this vertex.
+  /**
+   * @brief The vertex position.
+   */
+  vec3_t *position;
+  /**
+   * @brief The vertex normal.
+   */
+  vec3_t *normal;
+  /**
+   * @brief The vertex tangent.
+   */
+  vec3_t *tangent;
+  /**
+   * @brief The vertex bitangent.
+   */
+  vec3_t *bitangent;
+  /**
+   * @brief The vertex texture coordinate.
+   */
+  vec2_t *st;
+  /**
+   * @brief The number of triangles referencing this vertex.
+   */
+  int32_t num_tris;
 } cm_vertex_t;
 
 /**

@@ -25,10 +25,22 @@
  * @brief glDrawArrays commands.
  */
 typedef struct {
-  GLenum mode;          ///< The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
-  GLboolean depth_test; ///< The depth test flag.
-  GLint first_vertex;   ///< The first vertex.
-  GLsizei num_vertexes; ///< The number of vertexes.
+  /**
+   * @brief The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
+   */
+  GLenum mode;
+  /**
+   * @brief The depth test flag.
+   */
+  GLboolean depth_test;
+  /**
+   * @brief The first vertex.
+   */
+  GLint first_vertex;
+  /**
+   * @brief The number of vertexes.
+   */
+  GLsizei num_vertexes;
 } r_draw_3d_arrays_t;
 
 #define MAX_DRAW_3D_ARRAYS 0x100000
@@ -37,8 +49,14 @@ typedef struct {
  * @brief 3D vertex struct.
  */
 typedef struct {
-  vec3_t position; ///< The vertex position.
-  color32_t color; ///< The vertex color.
+  /**
+   * @brief The vertex position.
+   */
+  vec3_t position;
+  /**
+   * @brief The vertex color.
+   */
+  color32_t color;
 } r_draw_3d_vertex_t;
 
 #define MAX_DRAW_3D_VERTEXES (MAX_DRAW_3D_ARRAYS * 2)

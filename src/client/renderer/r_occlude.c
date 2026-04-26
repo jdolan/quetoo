@@ -27,12 +27,30 @@
  * of the scene. Queues make allocating and freeing queries a constant O(1) operation.
  */
 static struct {
-  GQueue *allocated;      ///< The queue of allocated occlusion queries.
-  GQueue *free;           ///< The queue of free occlusion queries.
-  bool dirty;             ///< If true, rebuild the vertex buffer at next frame.
-  GLuint vertex_array;    ///< The vertex array object.
-  GLuint vertex_buffer;   ///< The vertex buffer object.
-  GLuint elements_buffer; ///< The elements buffer object.
+  /**
+   * @brief The queue of allocated occlusion queries.
+   */
+  GQueue *allocated;
+  /**
+   * @brief The queue of free occlusion queries.
+   */
+  GQueue *free;
+  /**
+   * @brief If true, rebuild the vertex buffer at next frame.
+   */
+  bool dirty;
+  /**
+   * @brief The vertex array object.
+   */
+  GLuint vertex_array;
+  /**
+   * @brief The vertex buffer object.
+   */
+  GLuint vertex_buffer;
+  /**
+   * @brief The elements buffer object.
+   */
+  GLuint elements_buffer;
 } r_occlusion_queries;
 
 /**

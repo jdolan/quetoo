@@ -29,15 +29,30 @@
  */
 typedef struct {
 
-  SDL_Surface **surfaces; ///< Layered surfaces, all of the same size; the first (layer 0) must not be NULL.
+  /**
+   * @brief Layered surfaces, all of the same size; the first (layer 0) must not be NULL.
+   */
+  SDL_Surface **surfaces;
 
-  int32_t x, y;           ///< Node coordinates within the compiled atlas.
+  /**
+   * @brief Node coordinates within the compiled atlas.
+   */
+  int32_t x, y;
 
-  int32_t w, h;           ///< Node width and height in the compiled atlas image.
+  /**
+   * @brief Node width and height in the compiled atlas image.
+   */
+  int32_t w, h;
 
-  int32_t tag;            ///< Atlas iteration tag written to this node when it is compiled.
+  /**
+   * @brief Atlas iteration tag written to this node when it is compiled.
+   */
+  int32_t tag;
 
-  void *data;             ///< User data pointer.
+  /**
+   * @brief User data pointer.
+   */
+  void *data;
 
 } atlas_node_t;
 
@@ -65,15 +80,30 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  */
 typedef struct atlas_s {
 
-  int32_t layers;                 ///< Number of surface layers in the atlas.
+  /**
+   * @brief Number of surface layers in the atlas.
+   */
+  int32_t layers;
 
-  GPtrArray *nodes;               ///< Array of atlas_node_t pointers to be packed.
+  /**
+   * @brief Array of atlas_node_t pointers to be packed.
+   */
+  GPtrArray *nodes;
 
-  AtlasNodeComparator comparator; ///< Comparator used to sort nodes before packing (default: sort by height).
+  /**
+   * @brief Comparator used to sort nodes before packing (default: sort by height).
+   */
+  AtlasNodeComparator comparator;
 
-  AtlasBlit blit;                 ///< Blit function used to copy packed nodes into the atlas surfaces (default: SDL_BlitSurfaceScaled).
+  /**
+   * @brief Blit function used to copy packed nodes into the atlas surfaces (default: SDL_BlitSurfaceScaled).
+   */
+  AtlasBlit blit;
 
-  int32_t tag;                    ///< Iteration identifier written to each node as it is compiled.
+  /**
+   * @brief Iteration identifier written to each node as it is compiled.
+   */
+  int32_t tag;
 
 } atlas_t;
 

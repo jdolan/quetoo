@@ -41,20 +41,59 @@ typedef struct MaterialViewControllerInterface MaterialViewControllerInterface;
  */
 struct MaterialViewController {
 
-  ViewController viewController;              ///< The superclass.
-  MaterialViewControllerInterface *interface; ///< The interface. @private
+  /**
+   * @brief The superclass.
+   */
+  ViewController viewController;
+  /**
+   * @brief The interface. @private
+   */
+  MaterialViewControllerInterface *interface;
 
-  r_material_t *material;                     ///< The material being edited.
-  TextView *name;                             ///< The material name text field.
-  TextView *diffusemap;                       ///< The diffusemap texture name text field.
-  TextView *normalmap;                        ///< The normalmap texture name text field.
-  TextView *specularmap;                      ///< The specularmap texture name text field.
-  Slider *roughness;                          ///< The roughness slider.
-  Slider *hardness;                           ///< The hardness slider.
-  Slider *specularity;                        ///< The specularity slider.
-  Slider *parallax;                           ///< The parallax amplitude slider.
-  Slider *shadow;                             ///< The shadow amplitude slider.
-  Slider *alphaTest;                          ///< The alpha test threshold slider.
+  /**
+   * @brief The material being edited.
+   */
+  r_material_t *material;
+  /**
+   * @brief The material name text field.
+   */
+  TextView *name;
+  /**
+   * @brief The diffusemap texture name text field.
+   */
+  TextView *diffusemap;
+  /**
+   * @brief The normalmap texture name text field.
+   */
+  TextView *normalmap;
+  /**
+   * @brief The specularmap texture name text field.
+   */
+  TextView *specularmap;
+  /**
+   * @brief The roughness slider.
+   */
+  Slider *roughness;
+  /**
+   * @brief The hardness slider.
+   */
+  Slider *hardness;
+  /**
+   * @brief The specularity slider.
+   */
+  Slider *specularity;
+  /**
+   * @brief The parallax amplitude slider.
+   */
+  Slider *parallax;
+  /**
+   * @brief The shadow amplitude slider.
+   */
+  Slider *shadow;
+  /**
+   * @brief The alpha test threshold slider.
+   */
+  Slider *alphaTest;
 };
 
 /**
@@ -62,7 +101,10 @@ struct MaterialViewController {
  */
 struct MaterialViewControllerInterface {
 
-  ViewControllerInterface viewControllerInterface; ///< The superclass interface.
+  /**
+   * @brief The superclass interface.
+   */
+  ViewControllerInterface viewControllerInterface;
 
   /**
    * @fn MaterialViewController *MaterialViewController::init(MaterialViewController *self)

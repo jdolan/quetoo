@@ -29,8 +29,14 @@
  * @brief The quemap representation of materials.
  */
 typedef struct {
-  cm_material_t *cm;       ///< The collision material backing this material.
-  SDL_Surface *diffusemap; ///< The diffusemap texture.
+  /**
+   * @brief The collision material backing this material.
+   */
+  cm_material_t *cm;
+  /**
+   * @brief The diffusemap texture.
+   */
+  SDL_Surface *diffusemap;
 } material_t;
 
 extern int32_t num_materials;

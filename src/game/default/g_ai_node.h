@@ -30,8 +30,14 @@ bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
  * @brief A link from one AI node to another, with traversal cost.
  */
 typedef struct {
-  ai_node_id_t id; ///< Destination node ID.
-  float cost;      ///< Traversal cost to reach the destination node.
+  /**
+   * @brief Destination node ID.
+   */
+  ai_node_id_t id;
+  /**
+   * @brief Traversal cost to reach the destination node.
+   */
+  float cost;
 } ai_link_t;
 
 const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a);

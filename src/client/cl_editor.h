@@ -27,10 +27,22 @@
  * @brief The editor entity type.
  */
 typedef struct {
-  int16_t number;     ///< The entity number.
-  cl_entity_t *ent;   ///< The client entity.
-  cm_entity_t *def;   ///< The entity definition.
-  bool shadow_cached; ///< Persistent shadow cache flag for shadowmap optimization (light entities only).
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+  /**
+   * @brief The client entity.
+   */
+  cl_entity_t *ent;
+  /**
+   * @brief The entity definition.
+   */
+  cm_entity_t *def;
+  /**
+   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
+   */
+  bool shadow_cached;
 } cl_editor_entity_t;
 
 int32_t Cl_FindTeamMaster(const char *classname, const char *team);
