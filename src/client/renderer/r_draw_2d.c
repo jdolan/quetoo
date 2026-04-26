@@ -664,7 +664,7 @@ static void R_InitFont(char *name) {
 
   g_strlcpy(font->name, name, sizeof(font->name));
 
-  font->image = R_LoadImage(va("ui/common/%s", name), IMG_FONT);
+  font->image = R_LoadImage(va("ui/%s", name), IMG_FONT);
   assert(font->image);
   
   const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());

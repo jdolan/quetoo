@@ -48,8 +48,8 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/LoadingViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->logo, setImageWithResourceName, "ui/common/loading.png");
-  $(this->progressBar->foreground, setImageWithResourceName, "ui/common/progress_bar.png");
+  $(this->logo, setImageWithResourceName, "ui/loading.png");
+  $(this->progressBar->foreground, setImageWithResourceName, "ui/progress_bar.png");
 }
 
 #pragma mark - LoadingViewController

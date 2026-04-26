@@ -567,6 +567,13 @@
 		CEA153B4296B4BE100916F83 /* r_cull.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA153B2296B4BE100916F83 /* r_cull.c */; };
 		CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA3B4851E057569004A6CF3 /* cm_material.c */; };
 		CEA3B48E1E0576E7004A6CF3 /* cm_material.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA3B4861E057569004A6CF3 /* cm_material.h */; };
+		CEA400082F9800000087B100 /* logo.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400012F9800000087B100 /* logo.png */; };
+		CEA400092F9800000087B100 /* 0.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400022F9800000087B100 /* 0.png */; };
+		CEA4000A2F9800000087B100 /* 1.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400032F9800000087B100 /* 1.png */; };
+		CEA4000B2F9800000087B100 /* 2.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400042F9800000087B100 /* 2.png */; };
+		CEA4000C2F9800000087B100 /* 3.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400052F9800000087B100 /* 3.png */; };
+		CEA4000D2F9800000087B100 /* 4.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400062F9800000087B100 /* 4.png */; };
+		CEA4000E2F9800000087B100 /* 5.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400072F9800000087B100 /* 5.png */; };
 		CEA508F92EA5D20A00F27205 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEA508FA2EA5D20A00F27205 /* check_cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE3A0EF21EE2A5E0070FD3E /* check_cm_polylib.c */; };
 		CEA508FC2EA5D20A00F27205 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
@@ -628,13 +635,6 @@
 		CEAD8FD42F9650AB0087A850 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
 		CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCF2F9650560087A850 /* progress_bar.png */; };
 		CEAD8FD62F9650AF0087A850 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
-		CEA400082F9800000087B100 /* logo.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400012F9800000087B100 /* logo.png */; };
-		CEA400092F9800000087B100 /* 0.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400022F9800000087B100 /* 0.png */; };
-		CEA4000A2F9800000087B100 /* 1.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400032F9800000087B100 /* 1.png */; };
-		CEA4000B2F9800000087B100 /* 2.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400042F9800000087B100 /* 2.png */; };
-		CEA4000C2F9800000087B100 /* 3.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400052F9800000087B100 /* 3.png */; };
-		CEA4000D2F9800000087B100 /* 4.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400062F9800000087B100 /* 4.png */; };
-		CEA4000E2F9800000087B100 /* 5.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA400072F9800000087B100 /* 5.png */; };
 		CEADA4A2278237D800E19745 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEADA4A3278237D800E19745 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
@@ -1067,15 +1067,6 @@
 				CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */,
 				CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */,
 				CE4E07B52026524A000B276C /* common.css in CopyFiles */,
-				CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */,
-				CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */,
-				CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */,
-				CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */,
-				CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */,
-				CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */,
-				CEAD8FD42F9650AB0087A850 /* medium.png in CopyFiles */,
-				CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */,
-				CEAD8FD62F9650AF0087A850 /* small.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1160,19 +1151,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CEAA78A5277535F100EAC853 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = ui/teams;
-			dstSubfolderSpec = 16;
-			files = (
-				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
-				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
-				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
-				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CEA400102F9800000087B100 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1180,6 +1158,15 @@
 			dstSubfolderSpec = 16;
 			files = (
 				CEA400082F9800000087B100 /* logo.png in CopyFiles */,
+				CEAD8FC82F9650560087A850 /* change.wav in CopyFiles */,
+				CEAD8FC92F9650560087A850 /* clack.wav in CopyFiles */,
+				CEAD8FCA2F9650560087A850 /* click.wav in CopyFiles */,
+				CEAD8FD12F96509A0087A850 /* conback.png in CopyFiles */,
+				CEAD8FD22F96509E0087A850 /* large.png in CopyFiles */,
+				CEAD8FD32F9650A90087A850 /* loading.png in CopyFiles */,
+				CEAD8FD42F9650AB0087A850 /* medium.png in CopyFiles */,
+				CEAD8FD52F9650AD0087A850 /* progress_bar.png in CopyFiles */,
+				CEAD8FD62F9650AF0087A850 /* small.png in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1195,6 +1182,19 @@
 				CEA4000C2F9800000087B100 /* 3.png in CopyFiles */,
 				CEA4000D2F9800000087B100 /* 4.png in CopyFiles */,
 				CEA4000E2F9800000087B100 /* 5.png in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAA78A5277535F100EAC853 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/teams;
+			dstSubfolderSpec = 16;
+			files = (
+				CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */,
+				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
+				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
+				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1821,6 +1821,13 @@
 		CEA153B2296B4BE100916F83 /* r_cull.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_cull.c; sourceTree = "<group>"; };
 		CEA3B4851E057569004A6CF3 /* cm_material.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_material.c; sourceTree = "<group>"; };
 		CEA3B4861E057569004A6CF3 /* cm_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_material.h; sourceTree = "<group>"; };
+		CEA400012F9800000087B100 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
+		CEA400022F9800000087B100 /* 0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 0.png; sourceTree = "<group>"; };
+		CEA400032F9800000087B100 /* 1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 1.png; sourceTree = "<group>"; };
+		CEA400042F9800000087B100 /* 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 2.png; sourceTree = "<group>"; };
+		CEA400052F9800000087B100 /* 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 3.png; sourceTree = "<group>"; };
+		CEA400062F9800000087B100 /* 4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 4.png; sourceTree = "<group>"; };
+		CEA400072F9800000087B100 /* 5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 5.png; sourceTree = "<group>"; };
 		CEA509052EA5D20A00F27205 /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA509062EA5D21F00F27205 /* check_cm_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_entity.c; sourceTree = "<group>"; };
 		CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../opt/homebrew/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
@@ -1901,6 +1908,7 @@
 		CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rgb9e5.c; sourceTree = "<group>"; };
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
+		CEEEEEA62F9DB2F400665A30 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
@@ -1932,13 +1940,6 @@
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
-		CEA400012F9800000087B100 /* logo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = logo.png; sourceTree = "<group>"; };
-		CEA400022F9800000087B100 /* 0.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 0.png; sourceTree = "<group>"; };
-		CEA400032F9800000087B100 /* 1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 1.png; sourceTree = "<group>"; };
-		CEA400042F9800000087B100 /* 2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 2.png; sourceTree = "<group>"; };
-		CEA400052F9800000087B100 /* 3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 3.png; sourceTree = "<group>"; };
-		CEA400062F9800000087B100 /* 4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 4.png; sourceTree = "<group>"; };
-		CEA400072F9800000087B100 /* 5.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 5.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -3312,22 +3313,19 @@
 				CE58707E1F5CDFE0004CAAB2 /* play */,
 				CE5870861F5CDFE0004CAAB2 /* settings */,
 				CEAA78172775337300EAC853 /* teams */,
+				CEA400012F9800000087B100 /* logo.png */,
+				CEAD8FC52F9650560087A850 /* change.wav */,
+				CEAD8FC62F9650560087A850 /* clack.wav */,
+				CEAD8FC72F9650560087A850 /* click.wav */,
+				CEAD8FCB2F9650560087A850 /* conback.png */,
+				CEAD8FCC2F9650560087A850 /* large.png */,
+				CEAD8FCD2F9650560087A850 /* loading.png */,
+				CEAD8FCE2F9650560087A850 /* medium.png */,
+				CEAD8FCF2F9650560087A850 /* progress_bar.png */,
+				CEAD8FD02F9650560087A850 /* small.png */,
 				CE6EE3CE1F72018C00FBC830 /* Makefile.am */,
 			);
 			path = ui;
-			sourceTree = "<group>";
-		};
-		CEA4000F2F9800000087B100 /* backgrounds */ = {
-			isa = PBXGroup;
-			children = (
-				CEA400022F9800000087B100 /* 0.png */,
-				CEA400032F9800000087B100 /* 1.png */,
-				CEA400042F9800000087B100 /* 2.png */,
-				CEA400052F9800000087B100 /* 3.png */,
-				CEA400062F9800000087B100 /* 4.png */,
-				CEA400072F9800000087B100 /* 5.png */,
-			);
-			path = backgrounds;
 			sourceTree = "<group>";
 		};
 		CE5870781F5CDFE0004CAAB2 /* common */ = {
@@ -3348,15 +3346,6 @@
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
 				CE4E07B320264B15000B276C /* common.css */,
-				CEAD8FC52F9650560087A850 /* change.wav */,
-				CEAD8FC62F9650560087A850 /* clack.wav */,
-				CEAD8FC72F9650560087A850 /* click.wav */,
-				CEAD8FCB2F9650560087A850 /* conback.png */,
-				CEAD8FCC2F9650560087A850 /* large.png */,
-				CEAD8FCD2F9650560087A850 /* loading.png */,
-				CEAD8FCE2F9650560087A850 /* medium.png */,
-				CEAD8FCF2F9650560087A850 /* progress_bar.png */,
-				CEAD8FD02F9650560087A850 /* small.png */,
 				CE7D2C07202E9C6D004BC58E /* Makefile.am */,
 			);
 			path = common;
@@ -3419,7 +3408,6 @@
 				CEAD8FB82F93A4990087A850 /* UpdateViewController.c */,
 				CEAD8FB92F93A4990087A850 /* UpdateViewController.css */,
 				CEAD8FBA2F93A4990087A850 /* UpdateViewController.json */,
-				CEA400012F9800000087B100 /* logo.png */,
 				CE7D2C0A202EA0FB004BC58E /* Makefile.am */,
 			);
 			path = main;
@@ -3486,6 +3474,20 @@
 				CE7D2C13202F690A004BC58E /* Makefile.am */,
 			);
 			path = home;
+			sourceTree = "<group>";
+		};
+		CEA4000F2F9800000087B100 /* backgrounds */ = {
+			isa = PBXGroup;
+			children = (
+				CEA400022F9800000087B100 /* 0.png */,
+				CEA400032F9800000087B100 /* 1.png */,
+				CEA400042F9800000087B100 /* 2.png */,
+				CEA400052F9800000087B100 /* 3.png */,
+				CEA400062F9800000087B100 /* 4.png */,
+				CEA400072F9800000087B100 /* 5.png */,
+				CEEEEEA62F9DB2F400665A30 /* Makefile.am */,
+			);
+			path = backgrounds;
 			sourceTree = "<group>";
 		};
 		CEAA78172775337300EAC853 /* teams */ = {

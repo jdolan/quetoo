@@ -2,16 +2,7 @@ cguicommondir = @PKGLIBDIR@/default/ui/common
 cguicommon_DATA = \
 	DialogViewController.css \
 	DialogViewController.json \
-	change.wav \
-	clack.wav \
-	click.wav \
-	common.css \
-	conback.png \
-	large.png \
-	loading.png \
-	medium.png \
-	progress_bar.png \
-	small.png
+	common.css
 
 noinst_HEADERS = \
 	BindTextView.h \

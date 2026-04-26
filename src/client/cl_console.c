@@ -45,7 +45,7 @@ static void Cl_DrawConsole_Background(void) {
     return;
   }
 
-  const r_image_t *conback = R_LoadImage("ui/common/conback", IMG_UI);
+  const r_image_t *conback = R_LoadImage("ui/conback", IMG_UI);
   if (!conback) {
     return;
   }

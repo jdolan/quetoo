@@ -7,10 +7,6 @@ cguimain_DATA = \
 	UpdateViewController.css \
 	UpdateViewController.json
 
-cguilogodir = @PKGLIBDIR@/default/ui
-cguilogo_DATA = \
-	logo.png
-
 noinst_HEADERS = \
 	LoadingViewController.h \
 	MainView.h \
