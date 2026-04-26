@@ -270,6 +270,7 @@ void Sv_DrawConsole(void) {
 }
 
 #if defined(SIGWINCH)
+
 /**
  * @brief Window resize signal handler
  */

@@ -288,6 +288,7 @@ bool StrIsEmoji(const char *c) {
   }
   return false;
 }
+
 /**
  * @return A color_t for the color specified escape sequence.
  */

@@ -32,14 +32,17 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
+
   /**
    * @brief The light origin in model space (xyz) and radius (w).
    */
   vec4_t origin;
+
   /**
    * @brief The light color (xyz) and intensity (w).
    */
   vec4_t color;
+
   /**
    * @brief Shadow atlas tile: xy = base UV origin, z = tile UV size, w = layer index.
    */
@@ -51,6 +54,7 @@ typedef struct {
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
+
   /**
    * @brief The light sources for the current frame.
    */
@@ -61,10 +65,12 @@ typedef struct {
  * @brief The lights uniform block type.
  */
 typedef struct {
+
   /**
    * @brief The uniform buffer name.
    */
   GLuint buffer;
+
   /**
    * @brief The uniform buffer interface block.
    */

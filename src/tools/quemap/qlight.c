@@ -30,6 +30,7 @@ static cm_bsp_model_t *bsp_models[MAX_BSP_MODELS];
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
+
   /**
    * @brief The trace start and end points, as provided by the user.
    */

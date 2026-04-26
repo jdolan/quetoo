@@ -417,6 +417,7 @@ static size_t Parse_TypeSize(const parse_type_t type) {
     return 0;
   }
 }
+
 /**
  * @brief Parse the specified data type.
  */

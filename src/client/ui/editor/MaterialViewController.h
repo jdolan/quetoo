@@ -45,6 +45,7 @@ struct MaterialViewController {
    * @brief The superclass.
    */
   ViewController viewController;
+
   /**
    * @brief The interface. @private
    */
@@ -54,42 +55,52 @@ struct MaterialViewController {
    * @brief The material being edited.
    */
   r_material_t *material;
+
   /**
    * @brief The material name text field.
    */
   TextView *name;
+
   /**
    * @brief The diffusemap texture name text field.
    */
   TextView *diffusemap;
+
   /**
    * @brief The normalmap texture name text field.
    */
   TextView *normalmap;
+
   /**
    * @brief The specularmap texture name text field.
    */
   TextView *specularmap;
+
   /**
    * @brief The roughness slider.
    */
   Slider *roughness;
+
   /**
    * @brief The hardness slider.
    */
   Slider *hardness;
+
   /**
    * @brief The specularity slider.
    */
   Slider *specularity;
+
   /**
    * @brief The parallax amplitude slider.
    */
   Slider *parallax;
+
   /**
    * @brief The shadow amplitude slider.
    */
   Slider *shadow;
+
   /**
    * @brief The alpha test threshold slider.
    */

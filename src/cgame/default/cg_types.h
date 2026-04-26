@@ -30,6 +30,7 @@
  * @brief The client game reprensetation of teams.
  */
 typedef struct {
+
   /**
    * @brief Team ID.
    */
@@ -56,6 +57,7 @@ typedef struct {
  * @brief The client game representation of clients (players).
  */
 typedef struct {
+
   /**
    * @brief The client info string, e.g. "newbie\qforcer/default."
    */
@@ -130,6 +132,7 @@ typedef struct {
  * @brief Client game state. Most of this is parsed from ConfigStrings when they change.
  */
 typedef struct {
+
   /**
    * @brief The clients (players).
    */

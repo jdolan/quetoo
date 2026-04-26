@@ -32,6 +32,7 @@
  * @brief Sky state holding the cubemap image.
  */
 static struct {
+
   /**
    * @brief The sky cubemap.
    */

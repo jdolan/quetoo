@@ -25,54 +25,67 @@
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
+
   /**
    * @brief The trace start and end points, as provided by the user.
    */
   vec3_t start, end;
+
   /**
    * @brief The trace bounds, as provided by the user.
    */
   box3_t bounds;
+
   /**
    * @brief The head node, as provided by the user.
    */
   int32_t head_node;
+
   /**
    * @brief The absolute bounds of the trace, spanning the start and end points.
    */
   box3_t abs_bounds;
+
   /**
    * @brief The trace size, expanded to a symmetrical box to account for rotations.
    */
   vec3_t size;
+
   /**
    * @brief The "corners" of the trace bounds, used for fast plane sidedness tests.
    */
   vec3_t offsets[8];
+
   /**
    * @brief The contents mask to collide with, as provided by the user.
    */
   int32_t contents;
+
   /**
    * @brief The transformation matrix for plane collisions, as provided by the user.
    */
   mat4_t matrix;
+
   /**
    * @brief The transformation matrix for start/end/bounds, for the node tests.
    */
   mat4_t inverse_matrix;
+
   /**
    * @brief True if matrix is not the identity.
    */
   bool is_transformed;
+
   /**
    * @brief The brush cache, to avoid multiple tests against the same brush.
    */
   int32_t brush_cache[256];
+
   /**
    * @brief The trace result.
    */
   cm_trace_t trace;
+
   /**
    * @brief The trace fraction not taking any epsilon nudging into account.
    */

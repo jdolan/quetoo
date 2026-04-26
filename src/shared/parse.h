@@ -27,6 +27,7 @@
  * @brief Bitflags applied globally to the parser itself.
  */
 typedef enum {
+
   /**
    * @brief No comments allowed
    */
@@ -84,6 +85,7 @@ typedef struct {
  * @brief Bitflags applied to a single parse routine call.
  */
 typedef enum {
+
   /**
    * @brief All characters in a quoted string are copied literally
    */

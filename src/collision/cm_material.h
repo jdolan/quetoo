@@ -38,10 +38,12 @@ typedef enum {
  * @brief A named asset with a resolved file path.
  */
 typedef struct {
+
   /**
    * @brief The asset name as referenced in material files.
    */
   char name[MAX_QPATH];
+
   /**
    * @brief The resolved filesystem path, or empty if unresolved.
    */
@@ -52,6 +54,7 @@ typedef struct {
  * @brief Blend function source and destination factors.
  */
 typedef struct {
+
   /**
    * @brief OpenGL blend function constants (GL_SRC_ALPHA, etc.).
    */
@@ -62,6 +65,7 @@ typedef struct {
  * @brief Pulse animation parameters.
  */
 typedef struct {
+
   /**
    * @brief Pulse frequency in Hz.
    */
@@ -72,10 +76,12 @@ typedef struct {
  * @brief Stretch animation parameters.
  */
 typedef struct {
+
   /**
    * @brief Stretch frequency in Hz.
    */
   float hz;
+
   /**
    * @brief Stretch amplitude.
    */
@@ -86,6 +92,7 @@ typedef struct {
  * @brief Rotation animation parameters.
  */
 typedef struct {
+
   /**
    * @brief Rotation frequency in Hz.
    */
@@ -96,6 +103,7 @@ typedef struct {
  * @brief Texture scrolling parameters.
  */
 typedef struct {
+
   /**
    * @brief Scroll speed along S and T axes.
    */
@@ -106,6 +114,7 @@ typedef struct {
  * @brief Texture scale parameters.
  */
 typedef struct {
+
   /**
    * @brief Scale factors along S and T axes.
    */
@@ -116,6 +125,7 @@ typedef struct {
  * @brief Terrain blending parameters.
  */
 typedef struct {
+
   /**
    * @brief World-space Z range for blending.
    */
@@ -126,6 +136,7 @@ typedef struct {
  * @brief Dirtmap effect parameters.
  */
 typedef struct {
+
   /**
    * @brief Dirtmap blend intensity.
    */
@@ -136,10 +147,12 @@ typedef struct {
  * @brief Warp (liquid) animation parameters.
  */
 typedef struct {
+
   /**
    * @brief Warp frequency in Hz.
    */
   float hz;
+
   /**
    * @brief Warp amplitude.
    */
@@ -150,6 +163,7 @@ typedef struct {
  * @brief Stage lighting parameters.
  */
 typedef struct {
+
   /**
    * @brief Lighting intensity scalar.
    */
@@ -160,6 +174,7 @@ typedef struct {
  * @brief Shell effect parameters.
  */
 typedef struct {
+
   /**
    * @brief Shell expansion radius.
    */
@@ -170,14 +185,17 @@ typedef struct {
  * @brief Frame animation parameters.
  */
 typedef struct {
+
   /**
    * @brief Total number of animation frames.
    */
   int32_t num_frames;
+
   /**
    * @brief Resolved per-frame asset array.
    */
   cm_asset_t *frames;
+
   /**
    * @brief Playback rate in frames per second.
    */
@@ -224,66 +242,82 @@ typedef enum {
  * @brief Stages are ordered layers of visual effects rendered on top of their material.
  */
 typedef struct cm_stage_s {
+
   /**
    * @brief The stage flags.
    */
   cm_stage_flags_t flags;
+
   /**
    * @brief The stage asset.
    */
   cm_asset_t asset;
+
   /**
    * @brief The stage alpha blend function.
    */
   cm_stage_blend_t blend;
+
   /**
    * @brief The stage color.
    */
   color_t color;
+
   /**
    * @brief The stage pulse parameters.
    */
   cm_stage_pulse_t pulse;
+
   /**
    * @brief The stage stretch parameters.
    */
   cm_stage_stretch_t stretch;
+
   /**
    * @brief The stage rotate parameters.
    */
   cm_stage_rotate_t rotate;
+
   /**
    * @brief The stage scroll parameters.
    */
   cm_stage_scroll_t scroll;
+
   /**
    * @brief The stage scale parameters.
    */
   cm_stage_scale_t scale;
+
   /**
    * @brief The stage animation parameters.
    */
   cm_stage_animation_t animation;
+
   /**
    * @brief The stage terrain parameters.
    */
   cm_stage_terrain_t terrain;
+
   /**
    * @brief The stage dirtmap parameters.
    */
   cm_stage_dirtmap_t dirtmap;
+
   /**
    * @brief The stage warp parameters.
    */
   cm_stage_warp_t warp;
+
   /**
    * @brief The stage lighting parameters.
    */
   cm_stage_lighting_t lighting;
+
   /**
    * @brief The stage shell parameters.
    */
   cm_stage_shell_t shell;
+
   /**
    * @brief The next stage, or NULL.
    */
@@ -296,14 +330,17 @@ typedef struct cm_stage_s {
  * @brief Materials may optionally reference footstep samples.
  */
 typedef struct {
+
   /**
    * @brief The footstep name, e.g. "metal3".
    */
   char name[MAX_QPATH];
+
   /**
    * @brief The footstep sample assets.
    */
   cm_asset_t samples[MAX_FOOTSTEP_SAMPLES];
+
   /**
    * @brief The number of footstep sample assets.
    */
@@ -321,86 +358,107 @@ typedef struct {
  * @brief Materials define the rendering attributes of textures.
  */
 typedef struct cm_material_s {
+
   /**
    * @brief The material file path defining this material, if any.
    */
   char path[MAX_QPATH];
+
   /**
    * @brief The material name, as it appears in the materials file.
    */
   char name[MAX_QPATH];
+
   /**
    * @brief The base name of this material without any diffusemap suffix.
    */
   char basename[MAX_QPATH];
+
   /**
    * @brief The asset context for this material (e.g. textures, models, players).
    */
   cm_asset_context_t context;
+
   /**
    * @brief The diffusemap asset.
    */
   cm_asset_t diffusemap;
+
   /**
    * @brief The normalmap asset.
    */
   cm_asset_t normalmap;
+
   /**
    * @brief The specularmap asset.
    */
   cm_asset_t specularmap;
+
   /**
    * @brief The tintmap asset.
    */
   cm_asset_t tintmap;
+
   /**
    * @brief Flags for the material.
    */
   cm_stage_flags_t stage_flags;
+
   /**
    * @brief The material stages, if any.
    */
   cm_stage_t *stages;
+
   /**
    * @brief Contents flags applied to brush sides referencing this material.
    */
   int32_t contents;
+
   /**
    * @brief Surface flags applied to surfaces referencing this material.
    */
   int32_t surface;
+
   /**
    * @brief The alpha test threshold.
    */
   float alpha_test;
+
   /**
    * @brief The roughness factor to use for the normalmap.
    */
   float roughness;
+
   /**
    * @brief The hardness factor to use for the specularmap.
    */
   float hardness;
+
   /**
    * @brief The specular factor to use for the specularmap.
    */
   float specularity;
+
   /**
    * @brief The parallax factor for the normalmap heightmap.
    */
   float parallax;
+
   /**
    * @brief The self-shadow factor for the normalmap heightmap.
    */
   float shadow;
+
   /**
    * @brief The footsteps to play when the player walks on this material.
    */
   cm_footsteps_t footsteps;
+
   /**
    * @brief Default tint colors
    */
   vec4_t tintmap_defaults[TINT_TOTAL];
+
   /**
    * @brief True if this material has been modified and needs to be saved.
    */

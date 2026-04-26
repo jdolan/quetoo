@@ -25,18 +25,22 @@
  * @brief glDrawArrays commands.
  */
 typedef struct {
+
   /**
    * @brief The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
    */
   GLenum mode;
+
   /**
    * @brief The depth test flag.
    */
   GLboolean depth_test;
+
   /**
    * @brief The first vertex.
    */
   GLint first_vertex;
+
   /**
    * @brief The number of vertexes.
    */
@@ -49,10 +53,12 @@ typedef struct {
  * @brief 3D vertex struct.
  */
 typedef struct {
+
   /**
    * @brief The vertex position.
    */
   vec3_t position;
+
   /**
    * @brief The vertex color.
    */

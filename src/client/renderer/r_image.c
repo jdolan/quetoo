@@ -34,14 +34,17 @@ typedef enum {
  * @brief Image state.
  */
 static struct {
+
   /**
    * @brief The maximum supported texture sampling anisotropy level.
    */
   GLfloat max_anisotropy;
+
   /**
    * @brief The current anisotropy level, clamped to `max_anisotropy`.
    */
   GLfloat anisotropy;
+
   /**
    * @brief If set, take a screenshot at the end of the frame.
    */

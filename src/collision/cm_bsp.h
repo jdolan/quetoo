@@ -102,10 +102,12 @@ typedef enum {
  * @brief The BSP lump type.
  */
 typedef struct {
+
   /**
    * @brief The lump offset in bytes.
    */
   int32_t file_ofs;
+
   /**
    * @brief The lump length in bytes.
    */
@@ -116,14 +118,17 @@ typedef struct {
  * @brief The BSP header type.
  */
 typedef struct {
+
   /**
    * @brief `BSP_IDENT`
    */
   int32_t ident;
+
   /**
    * @brief `BSP_VERSION`
    */
   int32_t version;
+
   /**
    * @brief The lump table of contents.
    */
@@ -134,6 +139,7 @@ typedef struct {
  * @brief Material references.
  */
 typedef struct {
+
   /**
    * @brief The material name path.
    */
@@ -144,10 +150,12 @@ typedef struct {
  * @brief Planes are stored in opposing pairs, with positive normal vectors first in each pair.
  */
 typedef struct {
+
   /**
    * @brief The normal vector.
    */
   vec3_t normal;
+
   /**
    * @brief The distance, or offset, from the origin.
    */
@@ -166,26 +174,32 @@ typedef struct {
  * to optimize collision detection.
  */
 typedef struct {
+
   /**
    * @brief The index of the plane of this brush side.
    */
   int32_t plane;
+
   /**
    * @brief The index of the material.
    */
   int32_t material;
+
   /**
    * @brief Texture projection in .map format: two 4-element vectors [s/t][xyz + offset].
    */
   vec4_t axis[2];
+
   /**
    * @brief Contents bitmask; must be uniform across all sides of a given brush.
    */
   int32_t contents;
+
   /**
    * @brief Surface bitmask; may vary from side to side on a given brush.
    */
   int32_t surface;
+
   /**
    * @brief The surface value, used for light emission, Phong grouping, etc.
    */
@@ -196,22 +210,27 @@ typedef struct {
  * @brief Brushes are convex volumes defined by four or more clipping planes.
  */
 typedef struct {
+
   /**
    * @brief The index of the entity that defined this brush in the source .map.
    */
   int32_t entity;
+
   /**
    * @brief The contents bitmask.
    */
   int32_t contents;
+
   /**
    * @brief The index of the first brush side belonging to this brush.
    */
   int32_t first_brush_side;
+
   /**
    * @brief The count of brush sides, including bevels.
    */
   int32_t num_brush_sides;
+
   /**
    * @brief The AABB of this brush.
    */
@@ -232,10 +251,12 @@ typedef struct {
  * @brief A patch control point for the BSP patches lump.
  */
 typedef struct {
+
   /**
    * @brief Control point position in model space.
    */
   vec3_t position;
+
   /**
    * @brief Texture coordinates at this control point.
    */
@@ -246,26 +267,32 @@ typedef struct {
  * @brief BSP representation of a patchDef2 Bézier surface.
  */
 typedef struct {
+
   /**
    * @brief The entity number that defined this patch.
    */
   int32_t entity;
+
   /**
    * @brief The material index.
    */
   int32_t material;
+
   /**
    * @brief The contents bitmask.
    */
   int32_t contents;
+
   /**
    * @brief The surface bitmask.
    */
   int32_t surface;
+
   /**
    * @brief The control point grid dimensions.
    */
   int32_t width, height;
+
   /**
    * @brief The control points in row-major order (width × height).
    */
@@ -277,26 +304,32 @@ typedef struct {
  * @brief The BSP vertex type.
  */
 typedef struct {
+
   /**
    * @brief Vertex position in model space.
    */
   vec3_t position;
+
   /**
    * @brief Vertex normal vector.
    */
   vec3_t normal;
+
   /**
    * @brief Tangent vector for normal mapping.
    */
   vec3_t tangent;
+
   /**
    * @brief Bitangent vector for normal mapping.
    */
   vec3_t bitangent;
+
   /**
    * @brief Diffusemap texture coordinates.
    */
   vec2_t diffusemap;
+
   /**
    * @brief Vertex color (lightmap contribution).
    */
@@ -307,42 +340,52 @@ typedef struct {
  * @brief Faces are polygon primitives, stored as both vertex and element arrays.
  */
 typedef struct {
+
   /**
    * @brief The index of the brush side which created this face, or -1 for patch faces.
    */
   int32_t brush_side;
+
   /**
    * @brief Index of the plane, or -1 for patch faces; may be negated for translucent brushes.
    */
   int32_t plane;
+
   /**
    * @brief The index of the patch which created this face, or -1 for brush faces.
    */
   int32_t patch;
+
   /**
    * @brief The index of the BSP node containing this face.
    */
   int32_t node;
+
   /**
    * @brief The index of the block node containing this face.
    */
   int32_t block;
+
   /**
    * @brief The AABB of this face.
    */
   box3_t bounds;
+
   /**
    * @brief The index of the first vertex within this face.
    */
   int32_t first_vertex;
+
   /**
    * @brief The count of vertexes.
    */
   int32_t num_vertexes;
+
   /**
    * @brief The index of the first element of this face.
    */
   int32_t first_element;
+
   /**
    * @brief The count of elements.
    */
@@ -355,30 +398,37 @@ typedef struct {
  * planes which include visible faces and split as few brushes as possible.
  */
 typedef struct {
+
   /**
    * @brief The index of the plane that created this node.
    */
   int32_t plane;
+
   /**
    * @brief Child node indexes; negative values are leaf indexes encoded as -(index + 1).
    */
   int32_t children[2];
+
   /**
    * @brief The node contents, either `CONTENTS_NODE` or `CONTENTS_BLOCK`.
    */
   int32_t contents;
+
   /**
    * @brief The AABB of this node used for collision.
    */
   box3_t bounds;
+
   /**
    * @brief AABB of visible faces on this node; typically smaller than bounds, used for frustum culling.
    */
   box3_t visible_bounds;
+
   /**
    * @brief The index of the first face within this node.
    */
   int32_t first_face;
+
   /**
    * @brief The count of faces, front and back, on this node.
    */
@@ -389,18 +439,22 @@ typedef struct {
  * @brief The BSP leaf type.
  */
 typedef struct {
+
   /**
    * @brief The contents of the leaf, which is the bitwise OR of all brushes inside the leaf.
    */
   int32_t contents;
+
   /**
    * @brief The AABB of this leaf used for collision.
    */
   box3_t bounds;
+
   /**
    * @brief The index of the first leaf-brush reference.
    */
   int32_t first_leaf_brush;
+
   /**
    * @brief The number of leaf-brush references for this leaf.
    */
@@ -414,22 +468,27 @@ typedef struct {
  * are also grouped.
  */
 typedef struct {
+
   /**
    * @brief The material index.
    */
   int32_t material;
+
   /**
    * @brief The surface flags bitmask.
    */
   int32_t surface;
+
   /**
    * @brief The AABB for occlusion and frustum culling.
    */
   box3_t bounds;
+
   /**
    * @brief The index of the first element.
    */
   int32_t first_element;
+
   /**
    * @brief The count of elements.
    */
@@ -441,18 +500,22 @@ typedef struct {
  * rendering operations.
  */
 typedef struct {
+
   /**
    * @brief The `CONTENTS_BLOCK` node defining this block.
    */
   int32_t node;
+
   /**
    * @brief The index of the first draw elements within this block.
    */
   int32_t first_draw_element;
+
   /**
    * @brief The count of draw elements within this block.
    */
   int32_t num_draw_elements;
+
   /**
    * @brief AABB of all draw elements within this block; larger than the node's own visible_bounds.
    */
@@ -464,14 +527,17 @@ typedef struct {
  * @details Each map is comprised of 1 or more inline models. The first is the _worldspawn_ entity.
  */
 typedef struct {
+
   /**
    * @brief The index of the entity that defined this model.
    */
   int32_t entity;
+
   /**
    * @brief The index of the head node of this model's BSP tree.
    */
   int32_t head_node;
+
   /**
    * @brief The AABB of this model.
    */
@@ -482,34 +548,42 @@ typedef struct {
    * @remarks Often smaller than `bounds`, and useful for frustum culling.
    */
   box3_t visible_bounds;
+
   /**
    * @brief The index of the first face belonging to this model.
    */
   int32_t first_face;
+
   /**
    * @brief The count of faces belonging to this model.
    */
   int32_t num_faces;
+
   /**
    * @brief The index of the first depth pass element belonging to this model.
    */
   int32_t first_depth_pass_element;
+
   /**
    * @brief The count of depth pass elements.
    */
   int32_t num_depth_pass_elements;
+
   /**
    * @brief The index of the first draw element of this model.
    */
   int32_t first_draw_elements;
+
   /**
    * @brief The count of draw elements.
    */
   int32_t num_draw_elements;
+
   /**
    * @brief The index of the first block of this model.
    */
   int32_t first_block;
+
   /**
    * @brief The count of blocks.
    */
@@ -520,38 +594,47 @@ typedef struct {
  * @brief BSP representation of light sources.
  */
 typedef struct {
+
   /**
    * @brief The entity number.
    */
   int32_t entity;
+
   /**
    * @brief The light origin.
    */
   vec3_t origin;
+
   /**
    * @brief The light radius.
    */
   float radius;
+
   /**
    * @brief The light color.
    */
   vec3_t color;
+
   /**
    * @brief The light intensity.
    */
   float intensity;
+
   /**
    * @brief The light's visible bounds, clipped to world geometry.
    */
   box3_t bounds;
+
   /**
    * @brief The style string, a-z (26 levels), animated at 10Hz.
    */
   char style[MAX_BSP_ENTITY_VALUE];
+
   /**
    * @brief The index of the first element of this light's depth pass geometry.
    */
   int32_t first_depth_pass_element;
+
   /**
    * @brief The count of depth pass geometry elements.
    */
@@ -570,10 +653,12 @@ typedef struct {
  * @brief The voxels lump header.
  */
 typedef struct {
+
   /**
    * @brief The voxel grid dimensions.
    */
   vec3i_t size;
+
   /**
    * @brief The total count of light indices for all voxels.
    */
@@ -585,10 +670,12 @@ typedef struct {
  * so that we don't take up an ungodly amount of space.
  */
 typedef struct bsp_file_s {
+
   /**
    * @brief Length of the entity string in bytes.
    */
   int32_t entity_string_size;
+
   /**
    * @brief The raw entity string.
    */
@@ -598,6 +685,7 @@ typedef struct bsp_file_s {
    * @brief Number of material references.
    */
   int32_t num_materials;
+
   /**
    * @brief Material reference array.
    */
@@ -607,6 +695,7 @@ typedef struct bsp_file_s {
    * @brief Number of planes.
    */
   int32_t num_planes;
+
   /**
    * @brief Plane array.
    */
@@ -616,6 +705,7 @@ typedef struct bsp_file_s {
    * @brief Number of brush sides.
    */
   int32_t num_brush_sides;
+
   /**
    * @brief Brush side array.
    */
@@ -625,6 +715,7 @@ typedef struct bsp_file_s {
    * @brief Number of brushes.
    */
   int32_t num_brushes;
+
   /**
    * @brief Brush array.
    */
@@ -634,6 +725,7 @@ typedef struct bsp_file_s {
    * @brief Number of Bezier patch surfaces.
    */
   int32_t num_patches;
+
   /**
    * @brief Patch array.
    */
@@ -643,6 +735,7 @@ typedef struct bsp_file_s {
    * @brief Number of vertices.
    */
   int32_t num_vertexes;
+
   /**
    * @brief Vertex array.
    */
@@ -652,6 +745,7 @@ typedef struct bsp_file_s {
    * @brief Number of element indices.
    */
   int32_t num_elements;
+
   /**
    * @brief Element index array.
    */
@@ -661,6 +755,7 @@ typedef struct bsp_file_s {
    * @brief Number of faces.
    */
   int32_t num_faces;
+
   /**
    * @brief Face array.
    */
@@ -670,6 +765,7 @@ typedef struct bsp_file_s {
    * @brief Number of BSP nodes.
    */
   int32_t num_nodes;
+
   /**
    * @brief BSP node array.
    */
@@ -679,6 +775,7 @@ typedef struct bsp_file_s {
    * @brief Number of leaf-brush references.
    */
   int32_t num_leaf_brushes;
+
   /**
    * @brief Leaf-brush reference index array.
    */
@@ -688,6 +785,7 @@ typedef struct bsp_file_s {
    * @brief Number of BSP leafs.
    */
   int32_t num_leafs;
+
   /**
    * @brief BSP leaf array.
    */
@@ -697,6 +795,7 @@ typedef struct bsp_file_s {
    * @brief Number of draw element commands.
    */
   int32_t num_draw_elements;
+
   /**
    * @brief Draw element array.
    */
@@ -706,6 +805,7 @@ typedef struct bsp_file_s {
    * @brief Number of block nodes.
    */
   int32_t num_blocks;
+
   /**
    * @brief Block node array.
    */
@@ -715,6 +815,7 @@ typedef struct bsp_file_s {
    * @brief Number of inline models.
    */
   int32_t num_models;
+
   /**
    * @brief Inline model array.
    */
@@ -724,6 +825,7 @@ typedef struct bsp_file_s {
    * @brief Number of light sources.
    */
   int32_t num_lights;
+
   /**
    * @brief Light source array.
    */
@@ -733,6 +835,7 @@ typedef struct bsp_file_s {
    * @brief Total size of the voxels lump in bytes.
    */
   int32_t voxels_size;
+
   /**
    * @brief Voxel light grid header.
    */

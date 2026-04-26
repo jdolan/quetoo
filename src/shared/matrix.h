@@ -28,6 +28,7 @@
  * @brief Sixteen-component single precision 4x4 matrix type.
  */
 typedef union {
+
   /**
    * @brief Flat array accessor.
    */

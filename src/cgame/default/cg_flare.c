@@ -25,6 +25,7 @@
  * @brief The flare type.
  */
 typedef struct {
+
   /**
    * @brief The face this flare is anchored to.
    */

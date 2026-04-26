@@ -38,6 +38,7 @@
  * standard `Frame` loop begins.
  */
 static struct {
+
   /**
    * @brief Enforces mutex across the main thread, installer thread, and download threads.
    */

@@ -28,6 +28,7 @@
 #define FS_FILE_BUFFER (1024 * 1024 * 2)
 
 typedef struct {
+
   /**
    * @brief The FS_* flags.
    */

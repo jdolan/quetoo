@@ -31,6 +31,7 @@ typedef struct cg_sprite_s cg_sprite_t;
  * @brief Sprite types.
  */
 typedef enum {
+
   /**
    * @brief A normal sprite, billboard or directional.
    */
@@ -52,6 +53,7 @@ typedef void (*Cg_SpriteThink)(cg_sprite_t *sprite, float life, float delta);
  * @brief CGame-specific sprite flags.
  */
 enum {
+
   /**
    * @brief Beam's velocity does not affect the end point.
    */
@@ -102,6 +104,7 @@ static inline cg_sprite_entity_t Cg_GetSpriteEntity(const cl_entity_t *ent) {
  * @brief Client game sprites can persist over multiple frames.
  */
 struct cg_sprite_s {
+
   /**
    * @brief Type of sprite.
    */

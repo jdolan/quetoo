@@ -187,18 +187,22 @@ int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *p) {
  * @brief Bounding box to BSP tree structure for box positional testing.
  */
 typedef struct {
+
   /**
    * @brief Head node of the appended box hull subtree.
    */
   int32_t head_node;
+
   /**
    * @brief The 12 planes defining the box hull faces.
    */
   cm_bsp_plane_t *planes;
+
   /**
    * @brief The single brush representing the box.
    */
   cm_bsp_brush_t *brush;
+
   /**
    * @brief The single leaf enclosing the box.
    */
@@ -374,22 +378,27 @@ int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse
  * @brief Data binding structure for box to leaf tests.
  */
 typedef struct {
+
   /**
    * @brief The AABB being tested.
    */
   box3_t bounds;
+
   /**
    * @brief Output list of leaf numbers.
    */
   int32_t *list;
+
   /**
    * @brief Number of leafs found and maximum list capacity.
    */
   size_t count, length;
+
   /**
    * @brief Index of the topmost node that fully contains the box.
    */
   int32_t top_node;
+
   /**
    * @brief Accumulated contents from all touched leafs.
    */

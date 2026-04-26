@@ -60,58 +60,72 @@ typedef enum {
  * @brief Map list entries describe available gameplay parameters for a given map.
  */
 typedef struct {
+
   /**
    * @brief Map file name.
    */
   char name[32];
+
   /**
    * @brief Descriptive map title shown in the UI.
    */
   char message[128];
+
   /**
    * @brief Override gravity, or 0 for default.
    */
   int32_t gravity;
+
   /**
    * @brief Override gameplay mode, or -1 for default.
    */
   int32_t gameplay;
+
   /**
    * @brief Override hook setting, or -1 for default.
    */
   int32_t hook;
+
   /**
    * @brief Override teams setting, or -1 for default.
    */
   int32_t teams;
+
   /**
    * @brief Number of teams, or 0 for default.
    */
   int32_t num_teams;
+
   /**
    * @brief Override techs setting, or -1 for default.
    */
   int32_t techs;
+
   /**
    * @brief Override CTF setting, or -1 for default.
    */
   int32_t ctf;
+
   /**
    * @brief Override frag limit, or 0 for default.
    */
   int32_t frag_limit;
+
   /**
    * @brief Override capture limit, or 0 for default.
    */
   int32_t capture_limit;
+
   /**
    * @brief Override time limit in minutes, or 0 for default.
    */
   float time_limit;
+
   /**
    * @brief Items to give to all players on spawn.
    */
   char give[MAX_STRING_CHARS];
+
   /**
    * @brief Background music track.
    */
@@ -227,22 +241,27 @@ typedef enum {
  * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
  */
 typedef struct {
+
   /**
    * @brief ConfigString index of the sample to play.
    */
   int32_t index;
+
   /**
    * @brief Entity to bind the sound to for positioning.
    */
   const struct g_entity_s *entity;
+
   /**
    * @brief Sound origin, takes precedence over the entity origin.
    */
   const vec3_t *origin;
+
   /**
    * @brief Attenuation model.
    */
   sound_atten_t atten;
+
   /**
    * @brief Pitch shift in tones; 8 tones per octave.
    */
@@ -253,34 +272,42 @@ typedef struct {
  * @brief Player scores are transmitted as binary to the client game module.
  */
 typedef struct {
+
   /**
    * @brief Client number.
    */
   uint16_t client;
+
   /**
    * @brief Round-trip latency in milliseconds.
    */
   int16_t ping;
+
   /**
    * @brief Team or player color hue.
    */
   int16_t color;
+
   /**
    * @brief Frag or point score.
    */
   int16_t score;
+
   /**
    * @brief Number of flag captures.
    */
   int16_t captures;
+
   /**
    * @brief Number of deaths.
    */
   uint16_t deaths;
+
   /**
    * @brief Score flags (SCORE_CTF_FLAG, etc.).
    */
   uint8_t flags;
+
   /**
    * @brief Team index.
    */
@@ -491,14 +518,17 @@ typedef enum {
  * @brief Armor attributes.
  */
 typedef struct {
+
   /**
    * @brief Armor type tag.
    */
   g_armor_t tag;
+
   /**
    * @brief Protection fraction against normal damage.
    */
   float normal_protection;
+
   /**
    * @brief Protection fraction against energy damage.
    */
@@ -597,94 +627,117 @@ typedef enum {
  * @brief Items are touchable entities that players visit to acquire inventory.
  */
 typedef struct g_item_s {
+
   /**
    * @brief Entity classname used for map spawning.
    */
   const char *classname;
+
   /**
    * @brief Called when a player touches the item; return false to prevent pickup.
    */
   bool (*Pickup)(g_client_t *cl, g_entity_t *it);
+
   /**
    * @brief Called when the item is activated from inventory.
    */
   void (*Use)(g_client_t *cl, const struct g_item_s *item);
+
   /**
    * @brief Called to drop the item; returns the dropped entity or NULL.
    */
   g_entity_t *(*Drop)(g_client_t *cl, const struct g_item_s *item);
+
   /**
    * @brief Called every frame for a player holding this weapon.
    */
   void (*Think)(g_client_t *cl);
+
   /**
    * @brief Name of the ammo item this weapon consumes.
    */
   const char *ammo;
+
   /**
    * @brief Sound to play on pickup.
    */
   const char *pickup_sound;
+
   /**
    * @brief World model path.
    */
   const char *model;
+
   /**
    * @brief Entity effect flags on the pickup entity.
    */
   uint32_t effects;
+
   /**
    * @brief Icon image path, used on HUD and in pickup messages.
    */
   const char *icon;
+
   /**
    * @brief Display name.
    */
   const char *name;
+
   /**
    * @brief Amount provided or consumed, depending on type.
    */
   uint16_t quantity;
+
   /**
    * @brief Maximum amount the player can carry (ammo/armor).
    */
   uint16_t max;
+
   /**
    * @brief Type-specific tag (e.g. g_weapon_tag_t, g_ammo_t).
    */
   uint16_t tag;
+
   /**
    * @brief Type-specific flags (e.g. g_weapon_flags_t).
    */
   uint16_t flags;
+
   /**
    * @brief Item type category.
    */
   g_item_type_t type;
+
   /**
    * @brief Relative priority used by AI for item selection.
    */
   float priority;
+
   /**
    * @brief Space-separated list of assets to precache.
    */
   const char *precaches;
+
   /**
    * @brief Index in the global item list; calculated at init.
    */
   uint16_t index;
+
   /**
    * @brief Pointer to the ammo item; calculated at init.
    */
   const struct g_item_s *ammo_item;
+
   /**
    * @brief Precached icon image index; calculated at init.
    */
   uint16_t icon_index;
+
   /**
    * @brief Precached model index; calculated at init.
    */
   uint16_t model_index;
+
   /**
    * @brief Precached pickup sound index; calculated at init.
    */
@@ -707,18 +760,22 @@ typedef enum {
  * @brief Physics parameters and think functions for entities which move.
  */
 typedef struct {
+
   /**
    * @brief Starting origin.
    */
   vec3_t start_origin;
+
   /**
    * @brief Starting angles.
    */
   vec3_t start_angles;
+
   /**
    * @brief Ending origin.
    */
   vec3_t end_origin;
+
   /**
    * @brief Ending angles.
    */
@@ -728,10 +785,12 @@ typedef struct {
    * @brief Sound played when movement begins.
    */
   uint16_t sound_start;
+
   /**
    * @brief Sound played while moving.
    */
   uint16_t sound_middle;
+
   /**
    * @brief Sound played when movement ends.
    */
@@ -741,14 +800,17 @@ typedef struct {
    * @brief Acceleration rate.
    */
   float accel;
+
   /**
    * @brief Constant travel speed.
    */
   float speed;
+
   /**
    * @brief Deceleration rate.
    */
   float decel;
+
   /**
    * @brief Total distance to travel.
    */
@@ -763,30 +825,37 @@ typedef struct {
    * @brief Current movement state.
    */
   g_move_state_t state;
+
   /**
    * @brief Current target destination.
    */
   vec3_t dest;
+
   /**
    * @brief Direction of travel.
    */
   vec3_t dir;
+
   /**
    * @brief Current movement speed.
    */
   float current_speed;
+
   /**
    * @brief Number of frames the move uses constant speed.
    */
   int32_t const_frames;
+
   /**
    * @brief Number of frames the move is accelerating.
    */
   int32_t accel_frames;
+
   /**
    * @brief Number of frames the move is decelerating.
    */
   int32_t decel_frames;
+
   /**
    * @brief Callback invoked when the move completes.
    */
@@ -865,10 +934,12 @@ typedef struct {
  * @brief A list of spawn point entities available for player spawning.
  */
 typedef struct {
+
   /**
    * @brief Number of spawn point entities.
    */
   uint32_t count;
+
   /**
    * @brief Array of spawn point entity pointers.
    */
@@ -880,10 +951,12 @@ typedef struct {
  * level load.
  */
 typedef struct {
+
   /**
    * @brief Current server frame number.
    */
   uint32_t frame_num;
+
   /**
    * @brief Level time in milliseconds.
    */
@@ -893,62 +966,77 @@ typedef struct {
    * @brief Descriptive map name (e.g. "Stress Fractures").
    */
   char title[MAX_STRING_CHARS];
+
   /**
    * @brief Short server map name (e.g. "fractures").
    */
   char name[MAX_QPATH];
+
   /**
    * @brief Gravity override.
    */
   int16_t gravity;
+
   /**
    * @brief Active gameplay mode.
    */
   g_gameplay_t gameplay;
+
   /**
    * @brief True if team play is active.
    */
   bool teams;
+
   /**
    * @brief True if capture the flag is active.
    */
   bool ctf;
+
   /**
    * @brief True if tech powerups are enabled.
    */
   bool techs;
+
   /**
    * @brief True if the grappling hook is enabled.
    */
   bool hook;
+
   /**
    * @brief Number of active teams.
    */
   int32_t num_teams;
+
   /**
    * @brief Map-specified hook allowance, used for voting and restarts.
    */
   int32_t hook_map;
+
   /**
    * @brief Map-specified techs allowance.
    */
   int32_t techs_map;
+
   /**
    * @brief Frag limit; game ends when a player reaches this.
    */
   int32_t frag_limit;
+
   /**
    * @brief Capture limit; game ends when a team reaches this.
    */
   int32_t capture_limit;
+
   /**
    * @brief Time limit in minutes; game ends when exceeded.
    */
   int32_t time_limit;
+
   /**
    * @brief Items to give all players on spawn.
    */
   char give[MAX_STRING_CHARS];
+
   /**
    * @brief Background music track.
    */
@@ -963,14 +1051,17 @@ typedef struct {
    * @brief Level time when intermission began.
    */
   uint32_t intermission_time;
+
   /**
    * @brief Camera origin during intermission.
    */
   vec3_t intermission_origin;
+
   /**
    * @brief Camera angles during intermission.
    */
   vec3_t intermission_angle;
+
   /**
    * @brief Next map name to load after intermission.
    */
@@ -1039,42 +1130,52 @@ typedef struct {
  * @brief Damage parameters for G_Damage.
  */
 typedef struct {
+
  /**
   * @brief Entity receiving the damage.
   */
 	g_entity_t *target;
+
  /**
   * @brief Entity that dealt the damage (projectile, explosion, etc.).
   */
 	g_entity_t *inflictor;
+
  /**
   * @brief Entity responsible for the damage (player, etc.).
   */
 	g_entity_t *attacker;
+
  /**
   * @brief Direction the damage came from.
   */
 	vec3_t dir;
+
  /**
   * @brief World point where the damage was applied.
   */
 	vec3_t point;
+
  /**
   * @brief Surface normal at the damage point.
   */
 	vec3_t normal;
+
  /**
   * @brief Amount of damage to apply.
   */
 	int32_t damage;
+
  /**
   * @brief Knockback force to apply.
   */
 	int32_t knockback;
+
  /**
   * @brief Damage flags (DMG_RADIUS, DMG_ENERGY, etc.).
   */
 	int32_t flags;
+
  /**
   * @brief Means of death identifier.
   */
@@ -1090,6 +1191,7 @@ typedef struct {
  * @brief There are four teams in the default game module.
  */
 typedef struct {
+
   /**
    * @brief Team identifier, used for comparison instead of pointer equality.
    */
@@ -1099,14 +1201,17 @@ typedef struct {
    * @brief Short team name for HUD display.
    */
   char name[16];
+
   /**
    * @brief Team skin name.
    */
   char skin[32];
+
   /**
    * @brief Flag entity classname.
    */
   char flag[32];
+
   /**
    * @brief Spawn point classname.
    */
@@ -1121,6 +1226,7 @@ typedef struct {
    * @brief Team color hue.
    */
   int16_t color;
+
   /**
    * @brief Entity effect for the team flag.
    */
@@ -1130,6 +1236,7 @@ typedef struct {
    * @brief Team score.
    */
   int16_t score;
+
   /**
    * @brief Team capture count.
    */
@@ -1139,6 +1246,7 @@ typedef struct {
    * @brief Spawn points for this team.
    */
   g_spawn_points_t spawn_points;
+
   /**
    * @brief The team's flag entity.
    */
@@ -1174,6 +1282,7 @@ typedef struct {
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
+
   /**
    * @brief Frame number when the client first entered the game.
    */
@@ -1183,14 +1292,17 @@ typedef struct {
    * @brief Raw user info key-value string.
    */
   char user_info[MAX_INFO_STRING_STRING];
+
   /**
    * @brief Display name.
    */
   char net_name[MAX_NET_NAME];
+
   /**
    * @brief Player model/skin path.
    */
   char skin[MAX_QPATH];
+
   /**
    * @brief Weapon handedness preference.
    */
@@ -1215,6 +1327,7 @@ typedef struct {
    * @brief Player effect color hue.
    */
   int16_t color;
+
   /**
    * @brief Player clothing colors.
    */
@@ -1224,10 +1337,12 @@ typedef struct {
    * @brief Current score.
    */
   int16_t score;
+
   /**
    * @brief Number of flag captures.
    */
   int16_t captures;
+
   /**
    * @brief Number of deaths.
    */
@@ -1237,10 +1352,12 @@ typedef struct {
    * @brief True if the player has admin privileges.
    */
   bool admin;
+
   /**
    * @brief True if the player is a spectator.
    */
   bool spectator;
+
   /**
    * @brief True if the player is muted.
    */
@@ -1254,30 +1371,37 @@ typedef struct {
  * the game module requires.
  */
 struct g_client_s {
+
   /**
    * @brief The entity bound to this client.
    */
   g_entity_t *entity;
+
   /**
    * @brief Player state communicated to clients by the server.
    */
   player_state_t ps;
+
   /**
    * @brief Current round-trip latency in milliseconds.
    */
   uint32_t ping;
+
   /**
    * @brief True if this client slot is currently active.
    */
   bool in_use;
+
   /**
    * @brief Non-null if this client is a bot.
    */
   struct ai_s *ai;
+
   /**
    * @brief Data that persists across respawns.
    */
   g_client_persistent_t persistent;
+
   /**
    * @brief Most recently received movement command.
    */
@@ -1292,10 +1416,12 @@ struct g_client_s {
    * @brief Currently active weapon.
    */
   const g_item_t *weapon;
+
   /**
    * @brief Previously active weapon.
    */
   const g_item_t *prev_weapon;
+
   /**
    * @brief Weapon currently being switched to.
    */
@@ -1310,10 +1436,12 @@ struct g_client_s {
    * @brief Current frame button state.
    */
   uint32_t buttons;
+
   /**
    * @brief Previous frame button state.
    */
   uint32_t old_buttons;
+
   /**
    * @brief Buttons pressed this frame (edge-triggered).
    */
@@ -1323,14 +1451,17 @@ struct g_client_s {
    * @brief Level time when the weapon think was last called.
    */
   uint32_t weapon_think_time;
+
   /**
    * @brief Weapon may fire again when time exceeds this.
    */
   uint32_t weapon_fire_time;
+
   /**
    * @brief Level time when the weapon was last fired.
    */
   uint32_t weapon_fired_time;
+
   /**
    * @brief Level time when the weapon was last changed.
    */
@@ -1345,14 +1476,17 @@ struct g_client_s {
    * @brief Level time when the hook think was last called.
    */
   uint32_t hook_think_time;
+
   /**
    * @brief Hook may fire again when time exceeds this.
    */
   uint32_t hook_fire_time;
+
   /**
    * @brief The hook entity the client is attached to.
    */
   g_entity_t *hook_entity;
+
   /**
    * @brief True if the client is currently pulling toward the hook.
    */
@@ -1362,10 +1496,12 @@ struct g_client_s {
    * @brief Damage absorbed by armor this frame.
    */
   int16_t damage_armor;
+
   /**
    * @brief Damage taken to health this frame.
    */
   int16_t damage_health;
+
   /**
    * @brief Damage inflicted on other clients this frame.
    */
@@ -1375,6 +1511,7 @@ struct g_client_s {
    * @brief Maximum armor the client can carry.
    */
   int16_t max_armor;
+
   /**
    * @brief Maximum health the client can be boosted to.
    */
@@ -1384,18 +1521,22 @@ struct g_client_s {
    * @brief Horizontal speed after the last move.
    */
   float speed;
+
   /**
    * @brief Current aiming direction angles.
    */
   vec3_t angles;
+
   /**
    * @brief Aiming direction vectors.
    */
   vec3_t forward, right, up;
+
   /**
    * @brief Angles received in the last movement command.
    */
   vec3_t cmd_angles;
+
   /**
    * @brief View kick angles accumulated this frame.
    */
@@ -1410,62 +1551,77 @@ struct g_client_s {
    * @brief Client may respawn when time exceeds this.
    */
   uint32_t respawn_time;
+
   /**
    * @brief Respawn protection expires at this time.
    */
   uint32_t respawn_protection_time;
+
   /**
    * @brief Level time when the client last touched the ground.
    */
   uint32_t ground_time;
+
   /**
    * @brief Falling damage becomes eligible when time exceeds this.
    */
   uint32_t boost_time;
+
   /**
    * @brief Drowning damage becomes eligible when time exceeds this.
    */
   uint32_t drown_time;
+
   /**
    * @brief Sizzle damage becomes eligible when time exceeds this.
    */
   uint32_t sizzle_time;
+
   /**
    * @brief Landing event fires when time exceeds this.
    */
   uint32_t land_time;
+
   /**
    * @brief Client may jump when time exceeds this.
    */
   uint32_t jump_time;
+
   /**
    * @brief Pain sound may play when time exceeds this.
    */
   uint32_t pain_time;
+
   /**
    * @brief Footstep sound plays when time exceeds this.
    */
   uint32_t footstep_time;
+
   /**
    * @brief Primary animation may update when time exceeds this.
    */
   uint32_t animation1_time;
+
   /**
    * @brief Secondary animation may update when time exceeds this.
    */
   uint32_t animation2_time;
+
   /**
    * @brief Held grenade detonates when time exceeds this.
    */
   uint32_t grenade_time;
+
   /**
    * @brief Level time when the client began holding a primed grenade.
    */
   uint32_t grenade_hold_time;
+
   /**
    * @brief Frame number when the grenade pin was pulled.
    */
   uint32_t grenade_hold_frame;
+
   /**
    * @brief The grenade entity the client is currently holding.
    */
@@ -1475,10 +1631,12 @@ struct g_client_s {
    * @brief Pickup message is displayed until time exceeds this.
    */
   uint32_t pickup_msg_time;
+
   /**
    * @brief Last usable item picked up.
    */
   const g_item_t *last_pickup;
+
   /**
    * @brief Client may chat when time exceeds this.
    */
@@ -1488,10 +1646,12 @@ struct g_client_s {
    * @brief Quad damage is active while time is less than this.
    */
   uint32_t quad_damage_time;
+
   /**
    * @brief Quad damage countdown warning threshold.
    */
   uint32_t quad_countdown_time;
+
   /**
    * @brief Quad attack sound plays when time exceeds this.
    */
@@ -1501,6 +1661,7 @@ struct g_client_s {
    * @brief Client being chased in spectator mode.
    */
   g_client_t *chase_target;
+
   /**
    * @brief Previously chased client.
    */
@@ -1515,6 +1676,7 @@ struct g_client_s {
    * @brief True if the scoreboard layout flag should be set.
    */
   bool show_scores;
+
   /**
    * @brief Scores may be sent when time exceeds this.
    */
@@ -1524,6 +1686,7 @@ struct g_client_s {
    * @brief Next regeneration tick time.
    */
   uint32_t regen_time;
+
   /**
    * @brief Next time a tech powerup sound may play.
    */
@@ -1537,50 +1700,62 @@ typedef struct g_client_s g_client_t;
  * provide all of the state management the game module requires.
  */
 struct g_entity_s {
+
   /**
    * @brief Entity definition parsed from the BSP file.
    */
   const cm_entity_t *def;
+
   /**
    * @brief Entity class name; guaranteed set through G_Spawn.
    */
   const char *classname;
+
   /**
    * @brief Model name; for SOLID_BSP entities this is the inline model name.
    */
   const char *model;
+
   /**
    * @brief Entity state written by the game and delta-compressed by the server.
    */
   entity_state_t s;
+
   /**
    * @brief True if the entity is currently allocated and active.
    */
   bool in_use;
+
   /**
    * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
    */
   uint32_t sv_flags;
+
   /**
    * @brief Game-set bounding box in entity-local space.
    */
   box3_t bounds;
+
   /**
    * @brief Server-set bounding box in world space; set by gi.LinkEntity.
    */
   box3_t abs_bounds;
+
   /**
    * @brief Server-set entity size; set by gi.LinkEntity.
    */
   vec3_t size;
+
   /**
    * @brief Solid type defining clipping behavior.
    */
   solid_t solid;
+
   /**
    * @brief Entity that spawned this one (e.g. player for projectiles).
    */
   g_entity_t *owner;
+
   /**
    * @brief Non-null for entities 1..sv_max_clients.
    */
@@ -1590,6 +1765,7 @@ struct g_entity_s {
    * @brief Spawn flags (SF_ITEM_HOVER, etc.).
    */
   uint32_t spawn_flags;
+
   /**
    * @brief Entity flags (FL_GOD_MODE, etc.).
    */
@@ -1599,6 +1775,7 @@ struct g_entity_s {
    * @brief Physics move type.
    */
   g_move_type_t move_type;
+
   /**
    * @brief Physics move parameters and state.
    */
@@ -1618,14 +1795,17 @@ struct g_entity_s {
    * @brief Target name to fire when triggered.
    */
   const char *target;
+
   /**
    * @brief This entity's target name.
    */
   const char *target_name;
+
   /**
    * @brief Message to print when triggered.
    */
   const char *message;
+
   /**
    * @brief Team name for multi-entity grouping.
    */
@@ -1640,10 +1820,12 @@ struct g_entity_s {
    * @brief Movement speed and acceleration parameters.
    */
   float speed, accel, decel;
+
   /**
    * @brief Direction of movement derived from angles.
    */
   vec3_t move_dir;
+
   /**
    * @brief Start and end positions for movers.
    */
@@ -1653,6 +1835,7 @@ struct g_entity_s {
    * @brief Linear velocity.
    */
   vec3_t velocity;
+
   /**
    * @brief Angular velocity.
    */
@@ -1667,26 +1850,32 @@ struct g_entity_s {
    * @brief Level time of the next Think invocation.
    */
   uint32_t next_think;
+
   /**
    * @brief Per-frame think callback.
    */
   void (*Think)(g_entity_t *ent);
+
   /**
    * @brief Called when a mover is blocked.
    */
   void (*Blocked)(g_entity_t *ent, g_entity_t *other);
+
   /**
    * @brief Called on entity contact.
    */
   void (*Touch)(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace);
+
   /**
    * @brief Called when triggered.
    */
   void (*Use)(g_entity_t *ent, g_entity_t *other, g_entity_t *activator);
+
   /**
    * @brief Called when damaged.
    */
   void (*Pain)(g_entity_t *ent, g_entity_t *other, int16_t damage, int16_t knockback);
+
   /**
    * @brief Called when health drops to zero.
    */
@@ -1696,14 +1885,17 @@ struct g_entity_s {
    * @brief Cooldown timer for Touch events.
    */
   uint32_t touch_time;
+
   /**
    * @brief Time of the last push interaction.
    */
   uint32_t push_time;
+
   /**
    * @brief Time of the last water ripple.
    */
   uint32_t ripple_time;
+
   /**
    * @brief Radius of the last water ripple.
    */
@@ -1713,10 +1905,12 @@ struct g_entity_s {
    * @brief Current health.
    */
   int16_t health;
+
   /**
    * @brief Maximum health.
    */
   int16_t max_health;
+
   /**
    * @brief True if the entity is dead.
    */
@@ -1726,18 +1920,22 @@ struct g_entity_s {
    * @brief True if the entity can receive damage.
    */
   bool take_damage;
+
   /**
    * @brief Damage dealt on contact.
    */
   int16_t damage;
+
   /**
    * @brief Knockback applied on contact.
    */
   int16_t knockback;
+
   /**
    * @brief Radius for splash damage.
    */
   float damage_radius;
+
   /**
    * @brief General-purpose counter (usage varies by entity type).
    */
@@ -1747,14 +1945,17 @@ struct g_entity_s {
    * @brief Current enemy entity.
    */
   g_entity_t *enemy;
+
   /**
    * @brief Entity that last activated/triggered this entity.
    */
   g_entity_t *activator;
+
   /**
    * @brief First entity in a team chain.
    */
   g_entity_t *team_master;
+
   /**
    * @brief Next entity in the team chain.
    */
@@ -1769,10 +1970,12 @@ struct g_entity_s {
    * @brief Time to wait between activations.
    */
   float wait;
+
   /**
    * @brief Delay before firing targets after activation.
    */
   float delay;
+
   /**
    * @brief Random time added to the delay.
    */
@@ -1787,6 +1990,7 @@ struct g_entity_s {
    * @brief Content type of water the entity is submerged in.
    */
   int32_t water_type;
+
   /**
    * @brief Current water immersion level.
    */
@@ -1796,10 +2000,12 @@ struct g_entity_s {
    * @brief Item definition for bonus item entities.
    */
   const g_item_t *item;
+
   /**
    * @brief AI navigation node for item path tracking.
    */
   ai_node_id_t node;
+
   /**
    * @brief True if the entity should advance along the item path.
    */

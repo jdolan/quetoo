@@ -69,6 +69,7 @@ typedef struct {
  * @brief The console state.
  */
 typedef struct {
+
   /**
    * @brief The console strings.
    */
@@ -197,6 +198,7 @@ typedef struct {
  * @brief The structure used for autocomplete values.
  */
 typedef struct {
+
   /**
    * @brief The match itself
    */

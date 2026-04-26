@@ -32,38 +32,47 @@
  * sequentially: layer = light_index / lights_per_layer.
  */
 typedef struct {
+
   /**
    * @brief The 2D array depth texture atlas.
    */
   GLuint texture;
+
   /**
    * @brief The depth pass framebuffer.
    */
   GLuint framebuffer;
+
   /**
    * @brief Per-layer dimensions in pixels (square: layer_size × layer_size).
    */
   GLsizei layer_size;
+
   /**
    * @brief The tile size in pixels.
    */
   GLsizei tile_size;
+
   /**
    * @brief The number of lights per row in each layer's grid.
    */
   int32_t lights_per_row;
+
   /**
    * @brief The number of lights per column in each layer's grid.
    */
   int32_t lights_per_col;
+
   /**
    * @brief The number of lights per layer (lights_per_row × lights_per_col).
    */
   int32_t lights_per_layer;
+
   /**
    * @brief The number of layers in the array texture.
    */
   int32_t num_layers;
+
   /**
    * @brief Frame counter for temporal face amortization.
    */

@@ -54,6 +54,7 @@
  * @brief A clamped floating point RGBA color.
  */
 typedef union {
+
   /**
    * @brief Component accessors.
    */

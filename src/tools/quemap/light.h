@@ -31,42 +31,52 @@
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {
+
   /**
    * @brief The entity number.
    */
   int32_t entity;
+
   /**
    * @brief The origin.
    */
   vec3_t origin;
+
   /**
    * @brief The color.
    */
   vec3_t color;
+
   /**
    * @brief The light radius in units.
    */
   float radius;
+
   /**
    * @brief The light intensity.
    */
   float intensity;
+
   /**
    * @brief The unclipped light bounds.
    */
   box3_t bounds;
+
   /**
    * @brief The visible light bounds.
    */
   box3_t visible_bounds;
+
   /**
    * @brief The light style.
    */
   char style[MAX_BSP_ENTITY_VALUE];
+
   /**
    * @brief The output light in the BSP, so that voxels may reference them.
    */
   bsp_light_t *out;
+
   /**
    * @brief The entity number of the inline model entity this light is attached to, or 0.
    */

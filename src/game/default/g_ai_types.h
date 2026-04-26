@@ -72,30 +72,37 @@ typedef enum {
  * @brief The variant structure of a goal.
  */
 typedef struct {
+
   /**
    * @brief Type of this goal; controls which union variant is active.
    */
   ai_goal_type_t type;
+
   /**
    * @brief Priority used to replace this goal with a more important one.
    */
   float priority;
+
   /**
    * @brief Level time when this goal was set.
    */
   uint32_t time;
+
   /**
    * @brief Accumulated distress; when threshold is reached the goal is abandoned.
    */
   float distress;
+
   /**
    * @brief Previous distress value, used for debug logging.
    */
   float last_distress;
+
   /**
    * @brief Last recorded distance to the goal destination.
    */
   float last_distance;
+
   /**
    * @brief When true, extends the distress timeout from 1s to 15s.
    */
@@ -103,6 +110,7 @@ typedef struct {
   
   union {
     struct {
+
       /**
        * @brief Wander direction angle in degrees.
        */
@@ -110,6 +118,7 @@ typedef struct {
     } wander;
 
     struct {
+
       /**
        * @brief Target world-space position.
        */
@@ -117,10 +126,12 @@ typedef struct {
     } position;
 
     struct {
+
       /**
        * @brief Target entity.
        */
       const g_entity_t *ent;
+
       /**
        * @brief Spawn ID at goal-set time; used to detect entity reuse.
        */
@@ -132,10 +143,12 @@ typedef struct {
        * @brief Active combat style against this entity.
        */
       ai_combat_type_t combat_type;
+
       /**
        * @brief Level time when the bot first locked on to this enemy.
        */
       uint32_t lock_on_time;
+
       /**
        * @brief Current flank offset angle for circle-strafing.
        */
@@ -143,30 +156,37 @@ typedef struct {
     } entity;
 
     struct {
+
       /**
        * @brief Array of ai_node_id_t forming the route.
        */
       GArray *path;
+
       /**
        * @brief Index of the current node being navigated toward.
        */
       guint path_index;
+
       /**
        * @brief World positions of current and next node.
        */
       vec3_t path_position, next_path_position;
+
       /**
        * @brief Current trick jump state for this path segment.
        */
       ai_trick_jump_t trick_jump;
+
       /**
        * @brief World position used as the trick jump target.
        */
       vec3_t trick_position;
+
       /**
        * @brief Optional entity the path is leading to.
        */
       const g_entity_t *path_target;
+
       /**
        * @brief Spawn ID of path_target at goal-set time.
        */
@@ -199,22 +219,27 @@ typedef enum {
  * @brief Static bot definition from the roster.
  */
 typedef struct {
+
   /**
    * @brief Bot display name.
    */
   const char *name;
+
   /**
    * @brief Player model/skin path.
    */
   const char *skin;
+
   /**
    * @brief 0.0 (easy) to 1.0 (hard): aim, turn speed, reaction time.
    */
   float skill;
+
   /**
    * @brief 0.0 (cautious) to 1.0 (reckless): retreat/chase/combat style.
    */
   float aggression;
+
   /**
    * @brief 0.0 (oblivious) to 1.0 (perceptive): item range, weapon choice.
    */
@@ -225,18 +250,22 @@ typedef struct {
  * @brief Per-bot runtime personality, initialized from the roster entry on spawn.
  */
 typedef struct {
+
   /**
    * @brief Aim accuracy and reaction speed (0.0–1.0).
    */
   float skill;
+
   /**
    * @brief Tendency to chase vs. retreat (0.0–1.0).
    */
   float aggression;
+
   /**
    * @brief Item-detection range and weapon-selection quality (0.0–1.0).
    */
   float awareness;
+
   /**
    * @brief Per-bot phase offset for sinusoidal aim wobble.
    */
@@ -247,10 +276,12 @@ typedef struct {
  * @brief AI-specific per-client state.
  */
 typedef struct ai_s {
+
   /**
    * @brief Pointer to this bot's static roster definition.
    */
   const g_ai_roster_t *roster;
+
   /**
    * @brief Runtime personality derived from the roster.
    */
@@ -265,10 +296,12 @@ typedef struct ai_s {
    * @brief Current movement/navigation goal.
    */
   ai_goal_t move_target;
+
   /**
    * @brief Saved movement goal, restored after a detour.
    */
   ai_goal_t backup_move_target;
+
   /**
    * @brief Current combat/enemy goal.
    */
@@ -278,10 +311,12 @@ typedef struct ai_s {
    * @brief Next level time to re-evaluate weapon selection.
    */
   uint32_t weapon_check_time;
+
   /**
    * @brief Level time before the bot attempts to reacquire a goal.
    */
   uint32_t reacquire_time;
+
   /**
    * @brief Random per-bot offset applied to distress jump timing.
    */

@@ -27,6 +27,7 @@
  * @brief Two component signed short vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -44,6 +45,7 @@ typedef union {
  * @brief Three component signed short vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -61,6 +63,7 @@ typedef union {
  * @brief Three component signed integer vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -78,6 +81,7 @@ typedef union {
  * @brief Four component signed integer vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -95,6 +99,7 @@ typedef union {
  * @brief Two component single precision vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -112,6 +117,7 @@ typedef union {
  * @brief Three component single precision vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -134,6 +140,7 @@ typedef union {
  * @brief Four component single precision vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */
@@ -152,6 +159,7 @@ typedef union {
   vec3_t xyz;
 
   struct {
+
     /**
      * @brief Swizzle.
      */
@@ -168,6 +176,7 @@ typedef union {
  * @brief Three component double precision vector type.
  */
 typedef union {
+
   /**
    * @brief Array accessor.
    */

@@ -29,14 +29,17 @@
  * @brief The depth program.
  */
 typedef struct {
+
   /**
    * @brief The program object name.
    */
   GLuint name;
+
   /**
    * @brief The uniforms UBO binding.
    */
   GLuint uniforms_block;
+
   /**
    * @brief The model matrix uniform location.
    */

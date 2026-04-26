@@ -29,6 +29,7 @@
  * @brief The client game view structure.
  */
 typedef struct {
+
   /**
    * @brief View bob.
    */

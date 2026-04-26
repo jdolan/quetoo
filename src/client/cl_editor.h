@@ -27,18 +27,22 @@
  * @brief The editor entity type.
  */
 typedef struct {
+
   /**
    * @brief The entity number.
    */
   int16_t number;
+
   /**
    * @brief The client entity.
    */
   cl_entity_t *ent;
+
   /**
    * @brief The entity definition.
    */
   cm_entity_t *def;
+
   /**
    * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
    */

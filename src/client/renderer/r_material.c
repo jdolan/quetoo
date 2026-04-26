@@ -84,6 +84,7 @@ static void R_AppendStage(r_material_t *m, r_stage_t *s) {
  * @brief Normalizes material names to their context, returning the unique media key for subsequent
  * material lookups.
  */
+
 /**
  * @brief Loads the material asset, ensuring it is the specified dimensions for texture layering.
  */

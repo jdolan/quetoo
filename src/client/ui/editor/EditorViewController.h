@@ -46,6 +46,7 @@ struct EditorViewController {
    * @brief The superclass.
    */
   ViewController viewController;
+
   /**
    * @brief The interface. @private
    */
@@ -55,22 +56,27 @@ struct EditorViewController {
    * @brief TabViewController containing the editor tabs.
    */
   TabViewController *tabViewController;
+
   /**
    * @brief The EntityViewController.
    */
   EntityViewController *entityViewController;
+
   /**
    * @brief The MaterialViewController.
    */
   MaterialViewController *materialViewController;
+
   /**
    * @brief The Create Entity button.
    */
   Button *createEntity;
+
   /**
    * @brief The Delete Entity button.
    */
   Button *deleteEntity;
+
   /**
    * @brief The Save button.
    */

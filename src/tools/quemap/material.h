@@ -29,10 +29,12 @@
  * @brief The quemap representation of materials.
  */
 typedef struct {
+
   /**
    * @brief The collision material backing this material.
    */
   cm_material_t *cm;
+
   /**
    * @brief The diffusemap texture.
    */

@@ -34,6 +34,7 @@ typedef void (*EntityThink)(cg_entity_t *self);
  * @brief The client game entity class type.
  */
 typedef struct {
+
   /**
    * @brief The entity class name.
    */
@@ -62,6 +63,7 @@ typedef struct {
  * fields, etc.
  */
 struct cg_entity_s {
+
   /**
    * @brief The entity identifier, for persistent effects such as sounds.
    */

@@ -43,6 +43,7 @@ struct QuetooRenderer {
    * @brief The superclass.
    */
   Renderer renderer;
+
   /**
    * @brief The interface. @protected
    */

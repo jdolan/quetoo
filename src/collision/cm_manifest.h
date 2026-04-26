@@ -38,18 +38,22 @@ typedef enum {
  * @details Fields are ordered to match the on-disk format: <hash> <size> <path>
  */
 typedef struct {
+
  /**
   * @brief MD5 hex digest of the file contents.
   */
 	char hash[MAX_QPATH];
+
  /**
   * @brief File size in bytes.
   */
 	int64_t size;
+
  /**
   * @brief Asset path used as the table key (e.g. "maps/edge.bsp").
   */
 	char path[MAX_QPATH];
+
  /**
   * @brief Current update status of this entry.
   */
