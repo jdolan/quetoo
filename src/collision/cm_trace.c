@@ -105,7 +105,7 @@ static inline bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_nu
 }
 
 /**
- * @brief 
+ * @brief Returns true if the trace's absolute bounds intersect the brush bounds.
  */
 static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 

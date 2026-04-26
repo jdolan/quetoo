@@ -351,48 +351,37 @@ typedef struct {
  * @brief The BSP model structure.
  */
 typedef struct {
-  /**
-   * @brief The Quake path of the .bsp, e.g. `maps/edge.bsp`.
-   */
-  char name[MAX_QPATH];
+  char name[MAX_QPATH]; ///< The Quake path of the .bsp, e.g. `maps/edge.bsp`.
+  struct bsp_file_s *file; ///< A pointer to the backing file on disk.
+  int64_t size; ///< File size, for compatibility checking.
+  int64_t mod_time; ///< File modification time, for compatibility checking.
 
-  /**
-   * @brief A pointer to the backing file on disk.
-   */
-  struct bsp_file_s *file;
+  int32_t num_planes; ///< Number of planes.
+  cm_bsp_plane_t *planes; ///< Plane array.
 
-  /**
-   * @brief For compatibility checking.
-   */
-  int64_t size;
-  int64_t mod_time;
+  int32_t num_nodes; ///< Number of BSP nodes.
+  cm_bsp_node_t *nodes; ///< Node array.
 
-  int32_t num_planes;
-  cm_bsp_plane_t *planes;
+  int32_t num_leafs; ///< Number of BSP leafs.
+  cm_bsp_leaf_t *leafs; ///< Leaf array.
 
-  int32_t num_nodes;
-  cm_bsp_node_t *nodes;
+  int32_t num_brushes; ///< Number of brushes.
+  cm_bsp_brush_t *brushes; ///< Brush array.
 
-  int32_t num_leafs;
-  cm_bsp_leaf_t *leafs;
+  int32_t num_brush_sides; ///< Number of brush sides.
+  cm_bsp_brush_side_t *brush_sides; ///< Brush side array.
 
-  int32_t num_brushes;
-  cm_bsp_brush_t *brushes;
+  int32_t num_leaf_brushes; ///< Number of leaf-brush references.
+  int32_t *leaf_brushes; ///< Leaf-brush reference array.
 
-  int32_t num_brush_sides;
-  cm_bsp_brush_side_t *brush_sides;
+  int32_t num_models; ///< Number of inline models.
+  cm_bsp_model_t *models; ///< Inline model array.
 
-  int32_t num_leaf_brushes;
-  int32_t *leaf_brushes;
+  int32_t num_entities; ///< Number of parsed entities.
+  cm_entity_t **entities; ///< Parsed entity array.
 
-  int32_t num_models;
-  cm_bsp_model_t *models;
-
-  int32_t num_entities;
-  cm_entity_t **entities;
-
-  int32_t num_materials;
-  cm_material_t **materials;
+  int32_t num_materials; ///< Number of materials referenced by brush sides.
+  cm_material_t **materials; ///< Material pointer array.
 
 } cm_bsp_t;
 
@@ -402,64 +391,15 @@ typedef struct {
  * within Quake.
  */
 typedef struct {
-  /**
-   * @brief If true, the trace started and ended within the same solid.
-   */
-  bool all_solid;
-
-  /**
-   * @brief If true, the trace started within a solid, but exited it.
-   */
-  bool start_solid;
-
-  /**
-   * @brief The fraction of the desired distance traveled (0.0 - 1.0).
-   */
-  float fraction;
-
-  /**
-   * @brief The destination position.
-   */
-  vec3_t end;
-
-  /**
-   * @brief The brush the trace either impacted, or was completely inside of.
-   * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
-   * so that they need not worry about NULL checking and dereferencing.
-   */
-  const struct cm_bsp_brush_s *brush;
-
-  /**
-   * @brief The impacted brush side.
-   * @remarks Callers should typically use the derived fields (plane, contents, surface, ..),
-   * so that they need not worry about NULL checking and dereferencing.
-   */
-  const struct cm_bsp_brush_side_s *brush_side;
-
-  /**
-   * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
-   */
-  cm_bsp_plane_t plane;
-
-  /**
-   * @brief The contents mask of the impacted brush side.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The surface mask of the impacted brush side.
-   */
-  int32_t surface;
-
-  /**
-   * @brief The material of the impacted brush side.
-   */
-  const struct cm_material_s *material;
-
-  /**
-   * @brief The impacted entity, or `NULL`. This is not set by the collision routines directly,
-   * but rather by the `Sv_Trace` and `Cl_Trace` routines, which clip traces to their respective
-   * known entities.
-   */
-  void *ent;
+  bool all_solid; ///< True if the trace started and ended within the same solid.
+  bool start_solid; ///< True if the trace started within a solid but exited it.
+  float fraction; ///< The fraction of the desired distance traveled (0.0 - 1.0).
+  vec3_t end; ///< The destination position.
+  const struct cm_bsp_brush_s *brush; ///< The impacted or enclosing brush; prefer derived fields.
+  const struct cm_bsp_brush_side_s *brush_side; ///< The impacted brush side; prefer derived fields.
+  cm_bsp_plane_t plane; ///< The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
+  int32_t contents; ///< The contents mask of the impacted brush side.
+  int32_t surface; ///< The surface mask of the impacted brush side.
+  const struct cm_material_s *material; ///< The material of the impacted brush side.
+  void *ent; ///< The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by Cm_BoxTrace.
 } cm_trace_t;
