@@ -68,13 +68,13 @@ void R_UpdateUniforms(const r_view_t *view);
  * @brief OpenGL driver information.
  */
 typedef struct {
-  const char *renderer; ///< The renderer string reported by the GL driver.
-  const char *vendor; ///< The vendor string reported by the GL driver.
-  const char *version; ///< The version string reported by the GL driver.
+  const char *renderer;         ///< The renderer string reported by the GL driver.
+  const char *vendor;           ///< The vendor string reported by the GL driver.
+  const char *version;          ///< The version string reported by the GL driver.
 
-  GLint max_texunits; ///< The maximum number of simultaneous texture units.
-  GLint max_texture_size; ///< The maximum 2D texture dimension in texels.
-  GLint max_3d_texture_size; ///< The maximum 3D texture dimension in texels.
+  GLint max_texunits;           ///< The maximum number of simultaneous texture units.
+  GLint max_texture_size;       ///< The maximum 2D texture dimension in texels.
+  GLint max_3d_texture_size;    ///< The maximum 3D texture dimension in texels.
   GLint max_uniform_block_size; ///< The maximum uniform block size in bytes.
 } r_config_t;
 
@@ -85,10 +85,10 @@ extern r_config_t r_config;
  * @remarks This struct is vec4 aligned.
  */
 typedef struct {
-  vec4_t mins; ///< The voxel grid minimum corner in world space (xyz, w unused).
-  vec4_t maxs; ///< The voxel grid maximum corner in world space (xyz, w unused).
+  vec4_t mins;            ///< The voxel grid minimum corner in world space (xyz, w unused).
+  vec4_t maxs;            ///< The voxel grid maximum corner in world space (xyz, w unused).
   vec4_t view_coordinate; ///< The view origin expressed in voxel-space coordinates (xyz, w unused).
-  vec4_t size; ///< The voxel grid dimensions in voxels (xyz, w unused).
+  vec4_t size;            ///< The voxel grid dimensions in voxels (xyz, w unused).
 } r_voxels_t;
 
 /**
@@ -102,22 +102,22 @@ typedef struct {
    * @remarks This struct is vec4 aligned.
    */
   struct r_uniform_block_t {
-    vec4i_t viewport; ///< The viewport (x, y, w, h) in device pixels.
-    mat4_t projection3D; ///< The 3D projection matrix.
-    mat4_t view; ///< The view matrix.
-    mat4_t sky_projection; ///< The projection matrix for environment cubemaps.
+    vec4i_t viewport;        ///< The viewport (x, y, w, h) in device pixels.
+    mat4_t projection3D;     ///< The 3D projection matrix.
+    mat4_t view;             ///< The view matrix.
+    mat4_t sky_projection;   ///< The projection matrix for environment cubemaps.
     mat4_t light_projection; ///< The projection matrix for point light shadow passes.
-    r_voxels_t voxels; ///< The voxel uniforms.
-    vec2_t depth_range; ///< The depth range (near, far) in world units.
-    int32_t view_type; ///< The view type, e.g. `VIEW_MAIN`.
-    int32_t ticks; ///< The renderer time in milliseconds.
-    float ambient; ///< The ambient scalar.
-    float modulate; ///< The light modulation scalar.
-    float caustics; ///< The caustics intensity scalar.
+    r_voxels_t voxels;       ///< The voxel uniforms.
+    vec2_t depth_range;      ///< The depth range (near, far) in world units.
+    int32_t view_type;       ///< The view type, e.g. `VIEW_MAIN`.
+    int32_t ticks;           ///< The renderer time in milliseconds.
+    float ambient;           ///< The ambient scalar.
+    float modulate;          ///< The light modulation scalar.
+    float caustics;          ///< The caustics intensity scalar.
     float lighting_distance; ///< Distance threshold beyond which vertex lighting is used.
-    int editor; ///< Non-zero when the in-game editor is active.
-    int developer; ///< Non-zero when developer mode is enabled.
-    int wireframe; ///< Non-zero when wireframe rendering is enabled.
+    int editor;              ///< Non-zero when the in-game editor is active.
+    int developer;           ///< Non-zero when developer mode is enabled.
+    int wireframe;           ///< Non-zero when wireframe rendering is enabled.
   } block;
 
 } r_uniforms_t;

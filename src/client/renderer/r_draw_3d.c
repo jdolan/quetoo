@@ -25,9 +25,9 @@
  * @brief glDrawArrays commands.
  */
 typedef struct {
-  GLenum mode; ///< The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
+  GLenum mode;          ///< The draw mode, e.g. `GL_LINE_STRIP`, `GL_LINES`.
   GLboolean depth_test; ///< The depth test flag.
-  GLint first_vertex; ///< The first vertex.
+  GLint first_vertex;   ///< The first vertex.
   GLsizei num_vertexes; ///< The number of vertexes.
 } r_draw_3d_arrays_t;
 

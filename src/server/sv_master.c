@@ -60,7 +60,7 @@ void Sv_HeartbeatMasters(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the master server list with the default master address.
  */
 void Sv_InitMasters(void) {
 

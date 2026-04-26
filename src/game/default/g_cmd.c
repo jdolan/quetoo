@@ -155,7 +155,7 @@ static void G_Give_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Toggles god mode (invulnerability) for the client if cheats are enabled.
  */
 static void G_God_f(g_client_t *cl) {
   char *msg;
@@ -176,7 +176,7 @@ static void G_God_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Toggles no-clip movement mode for the client if cheats are enabled.
  */
 static void G_NoClip_f(g_client_t *cl) {
 
@@ -200,7 +200,7 @@ static void G_NoClip_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Plays a gesture animation on the client's character model.
  */
 static void G_Wave_f(g_client_t *cl) {
 
@@ -216,7 +216,7 @@ static void G_Wave_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Activates an item from the client's inventory by name or last pickup.
  */
 static void G_Use_f(g_client_t *cl) {
 
@@ -259,7 +259,7 @@ static void G_Use_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Drops an item from the client's inventory to the ground.
  */
 static void G_Drop_f(g_client_t *cl) {
   const g_item_t *it;
@@ -330,7 +330,7 @@ static void G_Drop_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Switches the client back to their previously held weapon.
  */
 static void G_WeaponLast_f(g_client_t *cl) {
 
@@ -358,7 +358,7 @@ static void G_WeaponLast_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Kills the client via suicide, respecting rate limiting and spectator state.
  */
 static void G_Kill_f(g_client_t *cl) {
 
@@ -434,7 +434,7 @@ static const char *G_ExpandVariable(g_client_t *cl, char v) {
 }
 
 /**
- * @brief
+ * @brief Expands percent-prefixed variable tokens in the given text string.
  */
 static char *G_ExpandVariables(g_client_t *cl, const char *text) {
   static char expanded[MAX_STRING_CHARS];
@@ -464,7 +464,7 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
 }
 
 /**
- * @brief
+ * @brief Handles the say and say_team chat commands, broadcasting text to other clients.
  */
 static void G_Say_f(g_client_t *cl) {
   char text[MAX_STRING_CHARS];
@@ -542,7 +542,7 @@ static void G_Say_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Prints a formatted list of connected players to the requesting client.
  */
 static void G_PlayerList_f(g_client_t *cl) {
   char text[MAX_PRINT_MSG] = "";
@@ -603,7 +603,7 @@ bool G_AddClientToTeam(g_client_t *cl, const char *team_name) {
 }
 
 /**
- * @brief
+ * @brief Handles the team command, assigning the client to the named team.
  */
 static void G_Team_f(g_client_t *cl) {
 
@@ -625,7 +625,7 @@ static void G_Team_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Handles the spectate and join commands to toggle a client's spectator state.
  */
 static void G_Spectate_f(g_client_t *cl) {
 
@@ -673,7 +673,7 @@ static void G_Spectate_f(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Handles the admin command for server administration and privilege escalation.
  */
 static void G_Admin_f(g_client_t *cl) {
 
@@ -715,7 +715,7 @@ void G_PlayPmove(void);
 #endif
 
 /**
- * @brief
+ * @brief Dispatches an incoming client command string to the appropriate handler.
  */
 void G_ClientCommand(g_client_t *cl) {
 

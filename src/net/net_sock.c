@@ -96,7 +96,8 @@ bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 }
 
 /**
- * @brief
+ * @brief Converts a net_addr_t to a "host:port" string.
+ * @remarks Uses a static buffer; not reentrant.
  */
 const char *Net_NetaddrToString(const net_addr_t *a) {
   static char s[64];
@@ -328,7 +329,7 @@ void Net_SetNonBlocking(int32_t sock, bool non_blocking) {
 }
 
 /**
- * @brief
+ * @brief Closes a network socket.
  */
 void Net_CloseSocket(int32_t sock) {
 #if defined(_WIN32)
@@ -339,7 +340,7 @@ void Net_CloseSocket(int32_t sock) {
 }
 
 /**
- * @brief
+ * @brief Initializes the network subsystem; on Windows, starts up Winsock and caches the loopback address.
  */
 void Net_Init(void) {
 
@@ -355,7 +356,7 @@ void Net_Init(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the network subsystem; on Windows, cleans up Winsock resources.
  */
 void Net_Shutdown(void) {
 

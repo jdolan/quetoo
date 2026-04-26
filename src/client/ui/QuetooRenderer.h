@@ -39,7 +39,7 @@ typedef struct QuetooRendererInterface QuetooRendererInterface;
  */
 struct QuetooRenderer {
 
-  Renderer renderer; ///< The superclass.
+  Renderer renderer;                  ///< The superclass.
   QuetooRendererInterface *interface; ///< The interface. @protected
 };
 

@@ -29,7 +29,7 @@ const box3_t ITEM_BOUNDS = {
 #define ITEM_SCALE 1.0
 
 /**
- * @brief
+ * @brief Finds an item by its entity class name.
  */
 const g_item_t *G_FindItemByClassName(const char *classname) {
 
@@ -49,7 +49,7 @@ const g_item_t *G_FindItemByClassName(const char *classname) {
 }
 
 /**
- * @brief
+ * @brief Finds an item by its display name.
  */
 const g_item_t *G_FindItem(const char *name) {
 
@@ -91,7 +91,7 @@ const g_item_t *G_ClientArmor(const g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Think function that respawns an item entity after its delay expires.
  */
 static void G_ItemRespawn(g_entity_t *ent) {
 
@@ -113,7 +113,7 @@ static void G_ItemRespawn(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Schedules an item entity to respawn after the specified delay in milliseconds.
  */
 void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 
@@ -127,7 +127,7 @@ void G_SetItemRespawn(g_entity_t *ent, uint32_t delay) {
 }
 
 /**
- * @brief
+ * @brief Handles pickup of the adrenaline powerup, restoring the player to max health.
  */
 static bool G_PickupAdrenaline(g_client_t *cl, g_entity_t *ent) {
 
@@ -143,7 +143,7 @@ static bool G_PickupAdrenaline(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles pickup of the quad damage powerup, granting the player quad damage for its duration.
  */
 static bool G_PickupQuadDamage(g_client_t *cl, g_entity_t *ent) {
 
@@ -171,7 +171,7 @@ static bool G_PickupQuadDamage(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Drops the quad damage powerup from the client's inventory as a world entity.
  */
 g_entity_t *G_TossQuadDamage(g_client_t *cl) {
   g_entity_t *quad;
@@ -193,7 +193,7 @@ g_entity_t *G_TossQuadDamage(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
  */
 bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
   uint16_t index;
@@ -217,7 +217,7 @@ bool G_AddAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
 }
 
 /**
- * @brief
+ * @brief Sets the client's ammo count for the given item to an absolute value, clamped to its maximum.
  */
 bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
   uint16_t index;
@@ -241,7 +241,7 @@ bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count) {
 }
 
 /**
- * @brief
+ * @brief Handles pickup of an ammo item, adding its quantity to the client's inventory.
  */
 static bool G_PickupAmmo(g_client_t *cl, g_entity_t *ent) {
   int32_t count;
@@ -305,7 +305,7 @@ static bool G_PickupGrenadeLauncher(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles pickup of a health item, healing the player according to health type rules.
  */
 static bool G_PickupHealth(g_client_t *cl, g_entity_t *ent) {
   int32_t h, max;
@@ -381,7 +381,7 @@ const g_armor_info_t *G_ArmorInfo(const g_item_t *armor) {
 }
 
 /**
- * @brief
+ * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
  */
 static bool G_PickupArmor(g_client_t *cl, g_entity_t *ent) {
 
@@ -598,7 +598,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Drops the CTF flag currently carried by the client as a world entity.
  */
 g_entity_t *G_TossFlag(g_client_t *cl) {
 
@@ -626,14 +626,14 @@ g_entity_t *G_TossFlag(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Drop command callback that tosses the client's carried CTF flag.
  */
 static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {
   return G_TossFlag(cl);
 }
 
 /**
- * @brief
+ * @brief Sets the expiration timer and think function for a dropped item entity.
  */
 static void G_DropItem_SetExpiration(g_entity_t *ent) {
 
@@ -665,7 +665,7 @@ static void G_DropItem_SetExpiration(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Think function for dropped items that waits until the item lands before setting its expiration.
  */
 static void G_DropItem_Think(g_entity_t *ent) {
 
@@ -678,7 +678,7 @@ static void G_DropItem_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Touch callback that handles item pickup when a player contacts an item entity.
  */
 void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -821,7 +821,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
 }
 
 /**
- * @brief
+ * @brief Use callback that reveals a hidden item and enables it for pickup.
  */
 static void G_UseItem(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
@@ -878,7 +878,7 @@ static float G_TechRangeFromSpawn(const g_entity_t *spawn) {
 }
 
 /**
- * @brief
+ * @brief Finds the spawn point farthest from all existing tech items within the given set.
  */
 static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points, g_entity_t **point, float *point_dist) {
 
@@ -894,7 +894,7 @@ static void G_SelectFarthestTechSpawnPoint(const g_spawn_points_t *spawn_points,
 }
 
 /**
- * @brief
+ * @brief Selects the optimal spawn point for a tech item by maximizing distance from all other techs.
  */
 g_entity_t *G_SelectTechSpawnPoint(void) {
   float point_dist = -FLT_MAX;
@@ -916,7 +916,7 @@ g_entity_t *G_SelectTechSpawnPoint(void) {
 }
 
 /**
- * @brief
+ * @brief Respawns a tech item at a new spawn point and frees the dropped entity.
  */
 void G_ResetDroppedTech(g_entity_t *ent) {
 
@@ -951,7 +951,7 @@ static bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Returns the tech item currently held by the client, or NULL if none.
  */
 const g_item_t *G_GetTech(const g_client_t *cl) {
 
@@ -966,7 +966,7 @@ const g_item_t *G_GetTech(const g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Drops the tech item currently carried by the client as a world entity.
  */
 g_entity_t *G_TossTech(g_client_t *cl) {
   const g_item_t *tech = G_GetTech(cl);

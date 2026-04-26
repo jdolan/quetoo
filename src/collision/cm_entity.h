@@ -23,18 +23,71 @@
 
 #include "cm_types.h"
 
+/**
+ * @brief Frees the entity and all subsequent pairs in its linked list.
+ */
 void Cm_FreeEntity(cm_entity_t *entity);
+
+/**
+ * @brief Allocates and returns a new zeroed entity key-value pair.
+ */
 cm_entity_t *Cm_AllocEntity(void);
+
+/**
+ * @brief Returns a deep copy of the entity linked list.
+ */
 cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity);
+
+/**
+ * @brief Parses the string field of an entity pair into its typed fields.
+ */
 void Cm_ParseEntity(cm_entity_t *pair);
+
+/**
+ * @brief Sorts the entity key-value pairs, placing classname first.
+ */
 cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
+
+/**
+ * @brief Parses the BSP entity string into a GList of entity linked lists.
+ * @return A GList of cm_entity_t* head pointers (one per entity).
+ */
 GList *Cm_LoadEntities(const char *entity_string);
+
+/**
+ * @brief Returns the index of the entity in the BSP entities array, or -1 if not found.
+ */
 int32_t Cm_EntityNumber(const cm_entity_t *entity);
+
+/**
+ * @brief Returns the entity pair matching key, or a null entity if not found.
+ */
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key);
+
+/**
+ * @brief Sets or adds the key-value pair on the entity.
+ * @return The updated or newly created entity pair.
+ */
 cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
+
+/**
+ * @brief Returns a GPtrArray of brushes belonging to the given entity.
+ */
 GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity);
+
+/**
+ * @brief Serializes the entity linked list to a Quake info string.
+ */
 char *Cm_EntityToInfoString(const cm_entity_t *entity);
+
+/**
+ * @brief Parses a Quake info string into an entity linked list.
+ */
 cm_entity_t *Cm_EntityFromInfoString(const char *str);
+
+/**
+ * @brief Parses brushes from .map text and attaches them to the corresponding entities.
+ */
 void Cm_ParseMapBrushes(const char *map_text, cm_entity_t **entities, int32_t num_entities);
 
 #if defined(__CM_LOCAL_H__)

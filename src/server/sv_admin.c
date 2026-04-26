@@ -26,7 +26,7 @@
 #include "sv_local.h"
 
 /**
- * @brief
+ * @brief Sets the master servers for this dedicated server and sends an initial ping.
  */
 static void Sv_SetMaster_f(void) {
   int32_t i, slot;
@@ -74,7 +74,7 @@ static void Sv_SetMaster_f(void) {
 }
 
 /**
- * @brief
+ * @brief Forces an immediate heartbeat to all registered master servers.
  */
 static void Sv_Heartbeat_f(void) {
   svs.next_heartbeat = 0;
@@ -203,7 +203,7 @@ static void Sv_Kick_f(void) {
 }
 
 /**
- * @brief
+ * @brief Prints server status including the current map and all connected clients.
  */
 static void Sv_Status_f(void) {
 
@@ -262,7 +262,7 @@ static void Sv_ListEntities_f(void) {
 }
 
 /**
- * @brief
+ * @brief Broadcasts a chat message from the server console to all active clients.
  */
 static void Sv_Say_f(void) {
   char text[MAX_STRING_CHARS];
@@ -298,7 +298,7 @@ static void Sv_Say_f(void) {
 }
 
 /**
- * @brief
+ * @brief Sends a private chat message from the server console to a specific client.
  */
 static void Sv_Tell_f(void) {
   char text[MAX_STRING_CHARS];
@@ -335,7 +335,7 @@ static void Sv_Tell_f(void) {
 }
 
 /**
- * @brief
+ * @brief Prints all current server info settings.
  */
 static void Sv_ServerInfo_f(void) {
 
@@ -349,7 +349,7 @@ static void Sv_ServerInfo_f(void) {
 }
 
 /**
- * @brief
+ * @brief Prints user info for a specific connected client.
  */
 static void Sv_UserInfo_f(void) {
 
@@ -401,7 +401,7 @@ static void Sv_Stuff_f(void) {
 }
 
 /**
- * @brief
+ * @brief Registers all administrative console commands.
  */
 void Sv_InitAdmin(void) {
 

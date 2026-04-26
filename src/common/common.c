@@ -292,7 +292,7 @@ void Com_Error_f(void) {
 }
 
 /**
- * @brief
+ * @brief Formats and prints a message to the console or stdout.
  */
 void Com_Print(const char *fmt, ...) {
 
@@ -305,7 +305,7 @@ void Com_Print(const char *fmt, ...) {
 }
 
 /**
- * @brief
+ * @brief Formats and prints a `va_list` message to the console or stdout.
  */
 void Com_Printv(const char *fmt, va_list args) {
 
@@ -354,7 +354,7 @@ void Com_Warnv_(const char *func, const char *fmt, va_list args) {
 }
 
 /**
- * @brief
+ * @brief Formats and prints a verbose diagnostic message (only visible when verbose output is enabled).
  */
 void Com_Verbose(const char *fmt, ...) {
 
@@ -367,7 +367,7 @@ void Com_Verbose(const char *fmt, ...) {
 }
 
 /**
- * @brief
+ * @brief Formats and prints a verbose diagnostic `va_list` message (only visible when verbose output is enabled).
  */
 void Com_Verbosev(const char *fmt, va_list args) {
 
@@ -442,21 +442,21 @@ void Com_Shutdown(const char *fmt, ...) {
 }
 
 /**
- * @brief
+ * @brief Returns non-zero if all bits of `s` are set in the initialized subsystems mask.
  */
 uint32_t Com_WasInit(uint32_t s) {
   return quetoo.subsystems & s;
 }
 
 /**
- * @brief
+ * @brief Marks the specified subsystem bits as initialized in the global state.
  */
 void Com_InitSubsystem(uint32_t s) {
   quetoo.subsystems |= s;
 }
 
 /**
- * @brief
+ * @brief Clears the specified subsystem bits from the initialized subsystems mask.
  */
 void Com_QuitSubsystem(uint32_t s) {
   quetoo.subsystems &= ~s;
@@ -480,7 +480,7 @@ char *Com_Argv(int32_t arg) {
 }
 
 /**
- * @brief
+ * @brief Prints a key-value info string in human-readable form to the console.
  */
 void Com_PrintInfo(const char *s) {
   char key[512];

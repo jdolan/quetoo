@@ -83,7 +83,7 @@ static mem_block_t *Mem_CheckMagic(void *p) {
 }
 
 /**
- * @brief
+ * @brief Validates the magic number of the specified managed memory block, aborting on corruption.
  */
 void Mem_Check(void *p) {
   Mem_CheckMagic(p);
@@ -396,14 +396,14 @@ char *Mem_CopyString(const char *in) {
 }
 
 /**
- * @brief
+ * @brief Comparison function for sorting `mem_stat_t` entries by descending allocated size.
  */
 static gint Mem_Stats_Sort(gconstpointer a, gconstpointer b) {
   return (gint) (((const mem_stat_t *) b)->size - ((const mem_stat_t *) a)->size);
 }
 
 /**
- * @brief
+ * @brief Recursively calculates the total allocated size of a block, including all child blocks.
  */
 static size_t Mem_CalculateBlockSize(const mem_block_t *b) {
 

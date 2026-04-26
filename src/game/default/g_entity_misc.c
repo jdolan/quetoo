@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief
+ * @brief Handles touch events on a misc_teleporter, warping the touching entity to the destination.
  */
 static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -179,7 +179,7 @@ void G_misc_teleporter_dest(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Think callback for a flying fireball, destroying it when it lands or freeing it otherwise.
  */
 static void G_misc_fireball_Think(g_entity_t *ent) {
 
@@ -201,7 +201,7 @@ static void G_misc_fireball_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles touch events on a fireball projectile, dealing damage to entities it strikes.
  */
 static void G_misc_fireball_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -224,7 +224,7 @@ static void G_misc_fireball_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
 }
 
 /**
- * @brief
+ * @brief Spawns a new fireball projectile and schedules the next emission from the emitter.
  */
 static void G_misc_fireball_Fly(g_entity_t *ent) {
   static uint32_t count;

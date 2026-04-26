@@ -25,74 +25,24 @@
  * @brief Box trace data encapsulation and context management.
  */
 typedef struct {
-  /**
-   * @brief The trace start and end points, as provided by the user.
-   */
-  vec3_t start, end;
-
-  /**
-   * @brief The trace bounds, as provided by the user.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief The head node, as provided by the user.
-   */
-  int32_t head_node;
-
-  /**
-   * @brief The absolute bounds of the trace, spanning the start and end points.
-   */
-  box3_t abs_bounds;
-
-  /**
-   * @brief The trace size, expanded to a symmetrical box to account for rotations.
-   */
-  vec3_t size;
-
-  /**
-   * @brief The "corners" of the trace bounds, used for fast plane sidedness tests.
-   */
-  vec3_t offsets[8];
-
-  /**
-   * @brief The contents mask to collide with, as provided by the user.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The transformation matrix for plane collisions, as provided by the user.
-   */
-  mat4_t matrix;
-
-  /**
-   * @brief The transformation matrix for start/end/bounds, for the node tests, as provided by the user.
-   */
-  mat4_t inverse_matrix;
-
-  /**
-   * @brief True if matrix is not the identity.
-   */
-  bool is_transformed;
-
-  /**
-   * @brief The brush cache, to avoid multiple tests against the same brush.
-   */
-  int32_t brush_cache[256];
-
-  /**
-   * @brief The trace result.
-   */
-  cm_trace_t trace;
-
-  /**
-   * @brief The trace fraction not taking any epsilon nudging into account.
-   */
-  float unnudged_fraction;
+  vec3_t start, end;        ///< The trace start and end points, as provided by the user.
+  box3_t bounds;            ///< The trace bounds, as provided by the user.
+  int32_t head_node;        ///< The head node, as provided by the user.
+  box3_t abs_bounds;        ///< The absolute bounds of the trace, spanning the start and end points.
+  vec3_t size;              ///< The trace size, expanded to a symmetrical box to account for rotations.
+  vec3_t offsets[8];        ///< The "corners" of the trace bounds, used for fast plane sidedness tests.
+  int32_t contents;         ///< The contents mask to collide with, as provided by the user.
+  mat4_t matrix;            ///< The transformation matrix for plane collisions, as provided by the user.
+  mat4_t inverse_matrix;    ///< The transformation matrix for start/end/bounds, for the node tests.
+  bool is_transformed;      ///< True if matrix is not the identity.
+  int32_t brush_cache[256]; ///< The brush cache, to avoid multiple tests against the same brush.
+  cm_trace_t trace;         ///< The trace result.
+  float unnudged_fraction;  ///< The trace fraction not taking any epsilon nudging into account.
 } cm_trace_data_t;
 
 /**
- * @brief
+ * @brief Returns true if this brush was already tested in the current trace,
+ *   preventing duplicate work when a brush spans multiple leaves.
  */
 static inline bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_num) {
   const int32_t hash = brush_num & (lengthof(data->brush_cache) - 1);
@@ -231,7 +181,7 @@ static void Cm_TraceToBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) 
 }
 
 /**
- * @brief
+ * @brief Tests whether the trace start point is inside the given brush.
  */
 static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
 
@@ -272,7 +222,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
 }
 
 /**
- * @brief
+ * @brief Clips the trace against all brushes within the given leaf.
  */
 static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 
@@ -305,7 +255,7 @@ static void Cm_TraceToLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 }
 
 /**
- * @brief
+ * @brief Tests the trace start position against all brushes within the given leaf.
  */
 static void Cm_TestInLeaf(cm_trace_data_t *data, int32_t leaf_num) {
 

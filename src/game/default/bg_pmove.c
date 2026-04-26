@@ -272,7 +272,7 @@ static bool Pm_CheckStep(const cm_trace_t *trace) {
 }
 
 /**
- * @brief
+ * @brief Moves the player origin to the end of a step-down trace and records the step height.
  */
 static void Pm_StepDown(const cm_trace_t *trace) {
 
@@ -286,7 +286,7 @@ static void Pm_StepDown(const cm_trace_t *trace) {
 }
 
 /**
- * @brief
+ * @brief Performs a slide move with stair stepping, attempting to step up over obstacles.
  */
 static void Pm_StepSlideMove(void) {
 
@@ -434,7 +434,7 @@ static void Pm_Gravity(void) {
 }
 
 /**
- * @brief
+ * @brief Applies water and conveyor belt current velocities to the player.
  */
 static void Pm_Currents(void) {
   vec3_t current = Vec3_Zero();
@@ -536,7 +536,7 @@ static bool Pm_CheckHookJump(void) {
 }
 
 /**
- * @brief
+ * @brief Validates and processes grappling hook state, updating movement type as needed.
  */
 static void Pm_CheckHook(void) {
 
@@ -963,7 +963,7 @@ static bool Pm_CheckWaterJump(void) {
 }
 
 /**
- * @brief
+ * @brief Handles player movement while climbing a ladder.
  */
 static void Pm_LadderMove(void) {
 
@@ -1019,7 +1019,7 @@ static void Pm_LadderMove(void) {
 }
 
 /**
- * @brief
+ * @brief Handles player movement during a water jump, propelling the player out of the water.
  */
 static void Pm_WaterJumpMove(void) {
 
@@ -1047,7 +1047,7 @@ static void Pm_WaterJumpMove(void) {
 }
 
 /**
- * @brief
+ * @brief Handles player movement while submerged or wading in water.
  */
 static void Pm_WaterMove(void) {
 
@@ -1112,7 +1112,7 @@ static void Pm_WaterMove(void) {
 }
 
 /**
- * @brief
+ * @brief Handles player movement while airborne, applying friction, gravity, and air acceleration.
  */
 static void Pm_AirMove(void) {
 
@@ -1234,7 +1234,7 @@ static void Pm_WalkMove(void) {
 }
 
 /**
- * @brief
+ * @brief Handles spectator movement, allowing free-fly navigation through the world.
  */
 static void Pm_SpectatorMove(void) {
 
@@ -1264,7 +1264,7 @@ static void Pm_SpectatorMove(void) {
 }
 
 /**
- * @brief
+ * @brief Handles movement for a frozen or dead player, suppressing all movement.
  */
 static void Pm_FreezeMove(void) {
 
@@ -1272,7 +1272,7 @@ static void Pm_FreezeMove(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes outgoing player movement state for a new move frame.
  */
 static void Pm_Init(void) {
 
@@ -1316,7 +1316,7 @@ static void Pm_Init(void) {
 }
 
 /**
- * @brief
+ * @brief Copies command angles into view state and clamps pitch to prevent inversion.
  */
 static void Pm_ClampAngles(void) {
 
@@ -1335,7 +1335,7 @@ static void Pm_ClampAngles(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes local movement state, computing directional vectors and frame timing.
  */
 static void Pm_InitLocal(void) {
 
@@ -1356,7 +1356,7 @@ static void Pm_InitLocal(void) {
 }
 
 /**
- * @brief
+ * @brief Updates the view step offset to smoothly interpolate the camera over stair steps.
  */
 static void Pm_CheckViewStep(void) {
 

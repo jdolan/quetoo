@@ -554,7 +554,8 @@ const char *InfoString_Next(const char *s, char *key, char *value) {
 }
 
 /**
- * @brief
+ * @brief Removes the key-value pair identified by `key` from the info string.
+ * @return True if the key was found and removed, false otherwise.
  */
 bool InfoString_Delete(char *s, const char *key) {
   char *start;
@@ -615,7 +616,8 @@ bool InfoString_Validate(const char *s) {
 }
 
 /**
- * @brief
+ * @brief Inserts or updates the key-value pair in the info string.
+ * @return True on success, false if the key or value contains invalid characters or exceeds length limits.
  */
 bool InfoString_Set(char *s, const char *key, const char *value) {
   char newi[MAX_INFO_STRING_STRING * 16], *v;

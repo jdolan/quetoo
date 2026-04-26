@@ -450,7 +450,7 @@ void Con_AutocompleteInput_f(const uint32_t argi, GList **matches) {
 }
 
 /**
- * @brief
+ * @brief Prints the list of autocomplete matches to the console, formatted in columns.
  */
 static void Con_PrintMatches(const console_t *console, GList *matches) {
   const guint num_matches = g_list_length(matches);

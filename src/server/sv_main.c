@@ -110,7 +110,7 @@ static void Sv_Status_f(void) {
 }
 
 /**
- * @brief
+ * @brief Acknowledges a ping by printing the sender's address.
  */
 static void Sv_Ack_f(void) {
   Com_Print("Ping acknowledge from %s\n", Net_NetaddrToString(&net_from));
@@ -344,7 +344,8 @@ static void Sv_Connect_f(void) {
 }
 
 /**
- * @brief
+ * @brief Authenticates a remote console request by checking the rcon password.
+ * @return True if the password is set and matches, false otherwise.
  */
 static bool Sv_RconAuthenticate(void) {
 
@@ -532,7 +533,7 @@ static void Sv_CheckCommandTimes(void) {
 }
 
 /**
- * @brief
+ * @brief Reads and dispatches all pending network packets from connected clients.
  */
 static void Sv_ReadPackets(void) {
 
@@ -587,7 +588,7 @@ static void Sv_ReadPackets(void) {
 }
 
 /**
- * @brief
+ * @brief Disconnects clients that have exceeded the idle timeout threshold.
  */
 static void Sv_CheckTimeouts(void) {
 
@@ -644,7 +645,7 @@ static void Sv_RunGameFrame(void) {
 }
 
 /**
- * @brief
+ * @brief Kicks the specified client from the server with an optional message.
  */
 void Sv_KickClient(sv_client_t *cl, const char *msg) {
   char buf[MAX_STRING_CHARS], name[32];
@@ -775,7 +776,7 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
 }
 
 /**
- * @brief
+ * @brief Main server frame entry point; advances the simulation and services all clients.
  */
 void Sv_Frame(const uint32_t msec) {
   static uint32_t frame_delta;
@@ -843,7 +844,7 @@ void Sv_Frame(const uint32_t msec) {
 }
 
 /**
- * @brief
+ * @brief Initializes server-local console variables.
  */
 static void Sv_InitLocal(void) {
 

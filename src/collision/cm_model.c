@@ -24,7 +24,7 @@
 cm_bsp_t cm_bsp = {};
 
 /**
- * @brief
+ * @brief Loads and parses the entity string lump into cm_bsp.entities.
  */
 static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
@@ -42,7 +42,7 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and converts the planes lump into cm_bsp.planes.
  */
 static void Cm_LoadBspPlanes(cm_bsp_t *bsp) {
 
@@ -57,7 +57,7 @@ static void Cm_LoadBspPlanes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and converts the nodes lump into cm_bsp.nodes.
  */
 static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
 
@@ -78,7 +78,7 @@ static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
 
 
 /**
- * @brief
+ * @brief Loads and converts the leafs lump into cm_bsp.leafs.
  */
 static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
 
@@ -95,7 +95,7 @@ static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads the leaf-brush index lump into cm_bsp.leaf_brushes.
  */
 static void Cm_LoadBspLeafBrushes(cm_bsp_t *bsp) {
 
@@ -110,7 +110,7 @@ static void Cm_LoadBspLeafBrushes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and converts the brush sides lump into cm_bsp.brush_sides.
  */
 static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
 
@@ -145,7 +145,7 @@ static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and converts the brushes lump into cm_bsp.brushes.
  */
 static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
 
@@ -165,7 +165,7 @@ static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and converts the inline models lump into cm_bsp.models.
  */
 static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
 
@@ -183,7 +183,7 @@ static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief
+ * @brief Loads and resolves materials referenced by the BSP into cm_bsp.materials.
  */
 static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 
@@ -290,7 +290,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
 }
 
 /**
- * @brief
+ * @brief Returns the inline BSP model with the given name (e.g. "*1").
  */
 cm_bsp_model_t *Cm_Model(const char *name) {
 
@@ -308,28 +308,28 @@ cm_bsp_model_t *Cm_Model(const char *name) {
 }
 
 /**
- * @brief
+ * @brief Returns the number of inline BSP models in the loaded BSP file.
  */
 int32_t Cm_NumModels(void) {
   return cm_bsp.file->num_models;
 }
 
 /**
- * @brief
+ * @brief Returns the raw entity string from the loaded BSP file.
  */
 const char *Cm_EntityString(void) {
   return cm_bsp.file->entity_string;
 }
 
 /**
- * @brief
+ * @brief Returns the worldspawn entity (first entity in the loaded BSP).
  */
 const cm_entity_t *Cm_Worldspawn(void) {
   return *cm_bsp.entities;
 }
 
 /**
- * @brief
+ * @brief Returns the contents mask for the given leaf number.
  */
 int32_t Cm_LeafContents(const int32_t leaf_num) {
 
@@ -341,7 +341,7 @@ int32_t Cm_LeafContents(const int32_t leaf_num) {
 }
 
 /**
- * @brief
+ * @brief Returns a const pointer to the global BSP collision model.
  */
 const cm_bsp_t *Cm_Bsp(void) {
   return &cm_bsp;

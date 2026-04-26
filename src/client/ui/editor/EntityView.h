@@ -38,7 +38,7 @@ typedef struct EntityViewInterface EntityViewInterface;
  * @brief The Editor entity type.
  */
 typedef struct {
-  int16_t number; ///< The entity number.
+  int16_t number;   ///< The entity number.
   cl_entity_t *ent; ///< The client entity.
   cm_entity_t *def; ///< The entity definition.
 } EditorEntity;
@@ -47,7 +47,7 @@ typedef struct {
  * @brief The EntityViewDelegate type.
  */
 typedef struct EntityViewDelegate {
-  ident self; ///< The delegate self-reference.
+  ident self;                                                ///< The delegate self-reference.
   void (*didEditEntity)(EntityView *view, cm_entity_t *def); ///< Callback invoked when the entity is edited.
 } EntityViewDelegate;
 
@@ -57,13 +57,13 @@ typedef struct EntityViewDelegate {
  */
 struct EntityView {
 
-  StackView stackView; ///< The superclass.
+  StackView stackView;            ///< The superclass.
   EntityViewInterface *interface; ///< The interface. @protected
 
-  EntityViewDelegate delegate; ///< The EntityViewDelegate.
-  EditorEntity entity; ///< The entity being edited.
-  TextView *key; ///< The entity key text field.
-  TextView *value; ///< The entity value text field.
+  EntityViewDelegate delegate;    ///< The EntityViewDelegate.
+  EditorEntity entity;            ///< The entity being edited.
+  TextView *key;                  ///< The entity key text field.
+  TextView *value;                ///< The entity value text field.
 };
 
 /**

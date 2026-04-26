@@ -24,14 +24,14 @@
 static const cm_entity_t null_entity;
 
 /**
- * @brief
+ * @brief Allocates and returns a new zeroed entity key-value pair.
  */
 cm_entity_t *Cm_AllocEntity(void) {
   return Mem_TagMalloc(sizeof(cm_entity_t), MEM_TAG_COLLISION);
 }
 
 /**
- * @brief
+ * @brief Frees the entity and all subsequent pairs in its linked list.
  */
 void Cm_FreeEntity(cm_entity_t *entity) {
 
@@ -45,7 +45,7 @@ void Cm_FreeEntity(cm_entity_t *entity) {
 }
 
 /**
- * @brief
+ * @brief Returns a deep copy of the entity linked list.
  */
 cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
 
@@ -71,7 +71,7 @@ cm_entity_t *Cm_CopyEntity(const cm_entity_t *entity) {
 }
 
 /**
- * @brief
+ * @brief Parses the string field of an entity pair into its typed fields.
  */
 void Cm_ParseEntity(cm_entity_t *pair) {
 
@@ -138,7 +138,7 @@ static gint Cm_SortEntity_cmp(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief
+ * @brief Sorts the entity key-value pairs, placing classname first.
  */
 cm_entity_t *Cm_SortEntity(cm_entity_t *entity) {
 
@@ -235,7 +235,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 }
 
 /**
- * @brief
+ * @brief Returns the index of the entity in the loaded BSP entities array, or -1 if not found.
  */
 int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 
@@ -249,7 +249,7 @@ int32_t Cm_EntityNumber(const cm_entity_t *entity) {
 }
 
 /**
- * @brief
+ * @brief Returns the entity pair matching key, or a null entity if not found.
  */
 const cm_entity_t *Cm_EntityValue(const cm_entity_t *entity, const char *key) {
 
@@ -327,7 +327,7 @@ cm_entity_t *Cm_EntitySetKeyValue(cm_entity_t *entity, const char *key, cm_entit
 }
 
 /**
- * @brief
+ * @brief Returns a GPtrArray of brushes belonging to the given entity.
  */
 GPtrArray *Cm_EntityBrushes(const cm_entity_t *entity) {
 

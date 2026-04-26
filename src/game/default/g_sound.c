@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief
+ * @brief Writes sound playback data into the network buffer.
  */
 static void G_Sound(const g_play_sound_t *play) {
 
@@ -69,7 +69,7 @@ static void G_Sound(const g_play_sound_t *play) {
 }
 
 /**
- * @brief
+ * @brief Plays a sound, multicasting it to nearby clients.
  */
 void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
   vec3_t from = Vec3_Zero();
@@ -88,7 +88,7 @@ void G_MulticastSound(const g_play_sound_t *play, multicast_t to) {
 }
 
 /**
- * @brief
+ * @brief Plays a sound to a single specific client.
  */
 void G_UnicastSound(const g_play_sound_t *play, const g_client_t *cl, bool reliable) {
 

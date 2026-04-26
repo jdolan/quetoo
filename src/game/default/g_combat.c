@@ -116,7 +116,7 @@ vec3_t G_GetOrigin(const g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Emits a temporary damage visual effect at the specified position and surface normal.
  */
 static void G_SpawnDamage(g_temp_entity_t type, const vec3_t pos, const vec3_t normal, int32_t damage) {
 
@@ -396,7 +396,7 @@ void G_Damage(const g_damage_t *dmg) {
 }
 
 /**
- * @brief
+ * @brief Deals damage and knockback to all damageable entities within the specified radius of the inflictor.
  */
 void G_RadiusDamage(g_entity_t *inflictor, g_entity_t *attacker, g_entity_t *ignore, int32_t damage,
                     int32_t knockback, float radius, g_means_of_death mod) {

@@ -51,30 +51,11 @@ typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
 
 struct g_client_s {
-  /**
-   * @brief The entity bound to this client.
-   */
-  g_entity_t *entity;
-
-  /**
-   * @brief Communicated by server to clients
-   */
-  player_state_t ps;
-
-  /**
-   * @brief This player's ping
-   */
-  uint32_t ping;
-
-  /**
-   * @brief True if the client is in use.
-   */
-  bool in_use;
-
-  /**
-   * @brief Non-null if the client is a bot.
-   */
-  struct g_ai_s *ai;
+  g_entity_t *entity; ///< The entity bound to this client.
+  player_state_t ps;  ///< Player state communicated to clients by the server.
+  uint32_t ping;      ///< Round-trip latency in milliseconds.
+  bool in_use;        ///< True if this client slot is currently active.
+  struct g_ai_s *ai;  ///< Non-null if this client is a bot.
 };
 
 /**
@@ -83,73 +64,18 @@ struct g_client_s {
  * share a common base for this structure, but the game is free to extend it.
  */
 struct g_entity_s {
-  /**
-   * @brief The entity definition from the BSP file.
-   */
-  const cm_entity_t *def;
-
-  /**
-   * @brief The class name provides basic identification and taxonomy for
-   * the entity. This is guaranteed to be set through `G_Spawn`.
-   */
-  const char *classname;
-
-  /**
-   * @brief The model name for an entity (optional). For `SOLID_BSP` entities,
-   * this is the inline model name (e.g. `"*1"`).
-   */
-  const char *model;
-
-  /**
-   * @brief The entity state is written by the game module and serialized
-   * using delta compression by the server.
-   */
-  entity_state_t s;
-
-  /**
-   * @brief True if the entity is currently allocated and active.
-   */
-  bool in_use;
-
-  /**
-   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
-   */
-  uint32_t sv_flags;
-
-  /**
-   * @brief The entity bounding box, set by the game, defines its relative
-   * bounds. These are typically populated in the entity's spawn function.
-   */
-  box3_t bounds;
-
-  /**
-   * @brief The entity bounding box, set by the server, in world space. These
-   * are populated by `gi.LinkEntity` / `Sv_LinkEntity`.
-   */
-  box3_t abs_bounds;
-  
-  /**
-   * @brief The entity size, set by the server. This
-   * is populated by `gi.LinkEntity` / `Sv_LinkEntity`.
-   */
-  vec3_t size;
-
-  /**
-   * @brief The solid type for the entity (e.g. SOLID_BOX) defines its
-   * clipping behavior and interactions with other entities.
-   */
-  solid_t solid;
-
-  /**
-   * @brief Sometimes it is useful for an entity to not be clipped against
-   * the entity that created it (for example, player projectiles).
-   */
-  g_entity_t *owner;
-
-  /**
-   * @brief The `g_client_t` bound to this entity, if any.
-   */
-  g_client_t *client;
+  const cm_entity_t *def; ///< Entity definition from the BSP file.
+  const char *classname;  ///< Entity class name; guaranteed set through G_Spawn.
+  const char *model;      ///< Model name; for SOLID_BSP entities this is the inline model name.
+  entity_state_t s;       ///< Entity state written by the game and delta-compressed by the server.
+  bool in_use;            ///< True if the entity is currently allocated and active.
+  uint32_t sv_flags;      ///< Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+  box3_t bounds;          ///< Game-set bounding box in entity-local space.
+  box3_t abs_bounds;      ///< Server-set bounding box in world space; populated by gi.LinkEntity.
+  vec3_t size;            ///< Server-set entity size; populated by gi.LinkEntity.
+  solid_t solid;          ///< Solid type defining clipping behavior.
+  g_entity_t *owner;      ///< Entity that spawned this one; not clipped against its owner.
+  g_client_t *client;     ///< Non-null for client entities 1..sv_max_clients.
 };
 
 #endif /* __GAME_LOCAL_H__ */
@@ -177,7 +103,7 @@ typedef struct g_import_s {
 
   /**
    * @brief Prints a formatted debug message to the configured consoles.
-   * @details If the proivided `debug` mask is inactive, the message will not be printed.
+   * @details If the provided `debug` mask is inactive, the message will not be printed.
    */
   void (*Debug_)(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
@@ -187,7 +113,7 @@ typedef struct g_import_s {
   void (*Warn_)(const char *func, const char *fmr, ...) __attribute__((format(printf, 2, 3)));
 
   /**
-   * @brief Prints a formattet error message to the configured consoles.
+   * @brief Prints a formatted error message to the configured consoles.
    */
   void (*Error_)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 
@@ -260,7 +186,7 @@ typedef struct g_import_s {
    * @param file The file.
    * @param buffer The buffer to write from.
    * @param size The size of the objects to write.
-   * @param count The count of the objecst to write.
+   * @param count The count of the objects to write.
    * @return The number of objects written, or `-1` on error.
    */
   int64_t (*WriteFile)(file_t *file, const void *buffer, size_t size, size_t count);
@@ -311,7 +237,7 @@ typedef struct g_import_s {
    */
   void (*EnumerateFiles)(const char *pattern, Fs_Enumerator enumerator, void *data);
 
-  /*
+  /**
    * @}
    * @defgroup console-variables Console variables & commands
    * @{
@@ -476,13 +402,12 @@ typedef struct g_import_s {
    */
 
   /**
-   * @return The BSP model for the currrently loaded map.
+   * @return The BSP model for the currently loaded map.
    */
   const cm_bsp_t *(*Bsp)(void);
   
   /**
    * @brief Returns the worldspawn entity definition.
-   * @return The worldspawn entity definition.
    */
   const cm_entity_t *(*Worldspawn)(void);
 
@@ -623,76 +548,19 @@ typedef struct g_import_s {
  * the server. The game must populate this structure as part of G_LoadGame.
  */
 typedef struct g_export_s {
-  /**
-   * @brief Game API version, in case the game module was compiled for a
-   * different version than the engine provides.
-   */
-  int32_t api_version;
-
-  /**
-   * @brief Minor protocol version.
-   */
-  int32_t protocol;
-
-  /**
-   * @brief The `g_client_t` pointer array, `sv_max_clients` in length.
-   * @details The game module is responsible for allocating the actual client structures.
-   */
-  g_client_t *clients[MAX_CLIENTS];
-
-  /**
-   * @brief The `g_entity_t` poitner array, `sv_max_entities` in length.
-   * @details The game module is responsible for allocating the actual entity structures.
-   */
-  g_entity_t *entities[MAX_ENTITIES];
-
-  /**
-   * @brief Called only when the game module is first loaded. Persistent
-   * structures for clients and game sate should be allocated here.
-   */
-  void (*Init)(void);
-
-  /**
-   * @brief Called when the game module is unloaded.
-   */
-  void (*Shutdown)(void);
-
-  /**
-   * @brief Called at the start of a new level.
-   */
-  void (*SpawnEntities)(const char *name, cm_entity_t *const *entities, size_t num_entities);
-
-  /**
-   * @brief Called when a client connects with valid user information.
-   */
-  bool (*ClientConnect)(g_client_t *cl, char *user_info);
-
-  /**
-   * @brief Called when a client has fully spawned and should begin thinking.
-   */
-  void (*ClientBegin)(g_client_t *cl);
-  void (*ClientUserInfoChanged)(g_client_t *cl, const char *user_info);
-  void (*ClientDisconnect)(g_client_t *cl);
-
-  /**
-   * @brief Called when a client has issued a console command that could not
-   * be handled by the server directly (e.g. voting).
-   */
-  void (*ClientCommand)(g_client_t *cl);
-
-  /**
-   * @brief Called when a client issues a movement command, which may include
-   * button actions such as attacking.
-   */
-  void (*ClientThink)(g_client_t *cl, pm_cmd_t *cmd);
-
-  /**
-   * @brief Called every QUETOO_TICK_SECONDS to advance game logic.
-   */
-  void (*Frame)(void);
-
-  /**
-   * @brief Used to advertise the game name to server browsers.
-   */
-  const char *(*GameName)(void);
+  int32_t api_version;                                                                        ///< Game API version; validated by the server on load.
+  int32_t protocol;                                                                           ///< Minor protocol version; must match the engine.
+  g_client_t *clients[MAX_CLIENTS];                                                           ///< Client array, sv_max_clients in length; allocated by the game.
+  g_entity_t *entities[MAX_ENTITIES];                                                         ///< Entity array, sv_max_entities in length; allocated by the game.
+  void (*Init)(void);                                                                         ///< Called once when the game module is first loaded.
+  void (*Shutdown)(void);                                                                     ///< Called when the game module is unloaded.
+  void (*SpawnEntities)(const char *name, cm_entity_t *const *entities, size_t num_entities); ///< Called at the start of each new level.
+  bool (*ClientConnect)(g_client_t *cl, char *user_info);                                     ///< Called when a client connects with valid user info; return false to reject.
+  void (*ClientBegin)(g_client_t *cl);                                                        ///< Called when a client has fully spawned and should begin thinking.
+  void (*ClientUserInfoChanged)(g_client_t *cl, const char *user_info);                       ///< Called when the client's user info string changes.
+  void (*ClientDisconnect)(g_client_t *cl);                                                   ///< Called when a client disconnects.
+  void (*ClientCommand)(g_client_t *cl);                                                      ///< Called for unhandled client console commands (e.g. voting).
+  void (*ClientThink)(g_client_t *cl, pm_cmd_t *cmd);                                         ///< Called each frame with the client's movement command.
+  void (*Frame)(void);                                                                        ///< Called every QUETOO_TICK_SECONDS to advance game logic.
+  const char *(*GameName)(void);                                                              ///< Returns the game name advertised to server browsers.
 } g_export_t;

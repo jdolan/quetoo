@@ -194,7 +194,8 @@ static GList *G_MapList_Parse(const char *filename) {
 }
 
 /**
- * @brief
+ * @brief Finds a map entry in the list by name.
+ * @return The map entry matching @p name, or NULL if not found.
  */
 const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 
@@ -209,7 +210,8 @@ const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 }
 
 /**
- * @brief
+ * @brief Returns the next map to load, chosen randomly or sequentially from the map list.
+ * @return The next map entry, or NULL if the map list is empty.
  */
 const g_map_list_map_t *G_MapList_Next(void) {
 
@@ -237,7 +239,7 @@ const g_map_list_map_t *G_MapList_Next(void) {
 }
 
 /**
- * @brief
+ * @brief Console command handler that advances the server to the next map.
  */
 static void G_NextMap_f(void) {
 
@@ -255,7 +257,7 @@ static void G_NextMap_f(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the map list subsystem, parsing the default and optional custom maps list files.
  */
 void G_MapList_Init(void) {
 
@@ -279,7 +281,7 @@ void G_MapList_Init(void) {
 }
 
 /**
- * @brief
+ * @brief Frees all map list entries and clears the active map list.
  */
 void G_MapList_Shutdown(void) {
 

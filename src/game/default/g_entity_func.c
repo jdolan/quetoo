@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief
+ * @brief Finalizes linear movement, snapping the entity to its destination and translating any riding entities.
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 
@@ -58,7 +58,7 @@ static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called each tick during the final approach of linear movement to detect when the destination is reached.
  */
 static void G_MoveInfo_Linear_Final(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -232,7 +232,7 @@ static void G_MoveInfo_Linear_Init(g_entity_t *ent, const vec3_t dest, void (*Do
 }
 
 /**
- * @brief
+ * @brief Finalizes angular movement by zeroing angular velocity and invoking the Done callback.
  */
 static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 
@@ -241,7 +241,7 @@ static void G_MoveInfo_Angular_Done(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called during the final tick of angular movement to snap the entity to its exact destination angles.
  */
 static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -265,7 +265,7 @@ static void G_MoveInfo_Angular_Final(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Begins angular movement by computing angular velocity toward the target angles.
  */
 static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -300,7 +300,7 @@ static void G_MoveInfo_Angular_Begin(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initializes angular movement for the specified entity, scheduling the beginning of rotation.
  */
 static void G_MoveInfo_Angular_Init(g_entity_t *ent, void (*Done)(g_entity_t *)) {
 
@@ -398,7 +398,7 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
 static void G_func_plat_GoingDown(g_entity_t *ent);
 
 /**
- * @brief
+ * @brief Called when a platform reaches its top (raised) position, scheduling the return trip.
  */
 static void G_func_plat_Top(g_entity_t *ent) {
 
@@ -422,7 +422,7 @@ static void G_func_plat_Top(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called when a platform reaches its bottom (lowered) position, marking movement complete.
  */
 static void G_func_plat_Bottom(g_entity_t *ent) {
 
@@ -448,7 +448,7 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initiates downward movement of a platform toward its lowered position.
  */
 static void G_func_plat_GoingDown(g_entity_t *ent) {
 
@@ -470,7 +470,7 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initiates upward movement of a platform toward its raised position.
  */
 static void G_func_plat_GoingUp(g_entity_t *ent) {
 
@@ -497,7 +497,7 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles a platform blocked by an obstacle, reversing its direction of travel.
  */
 static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 
@@ -511,7 +511,7 @@ static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a platform, starting its downward descent.
  */
 static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
@@ -523,7 +523,7 @@ static void G_func_plat_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *acti
 }
 
 /**
- * @brief
+ * @brief Handles touch events on the platform trigger, sending the platform upward when a player steps on it.
  */
 static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -545,7 +545,7 @@ static void G_func_plat_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
 }
 
 /**
- * @brief
+ * @brief Creates the touch trigger volume used to automatically raise the platform.
  */
 static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
   g_entity_t *trigger;
@@ -676,7 +676,7 @@ void G_func_plat(g_entity_t *ent) {
 #define ROTATE_TOUCH_STOP  0x20
 
 /**
- * @brief
+ * @brief Damages entities that touch a rotating brush while it is in motion.
  */
 static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -699,7 +699,7 @@ static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
 }
 
 /**
- * @brief
+ * @brief Toggles rotation of a func_rotating brush on or off when triggered.
  */
 static void G_func_rotating_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
@@ -778,14 +778,14 @@ void G_func_rotating(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called when a button has fully returned to its resting (bottom) position.
  */
 static void G_func_button_Done(g_entity_t *ent) {
   ent->move_info.state = MOVE_STATE_BOTTOM;
 }
 
 /**
- * @brief
+ * @brief Moves a button back to its starting position and re-enables damage if applicable.
  */
 static void G_func_button_Reset(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -800,7 +800,7 @@ static void G_func_button_Reset(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called when a button reaches its pressed position, firing targets and scheduling the reset.
  */
 static void G_func_button_Wait(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -816,7 +816,7 @@ static void G_func_button_Wait(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initiates button press movement from its resting position toward its destination.
  */
 static void G_func_button_Activate(g_entity_t *ent) {
   g_move_info_t *move = &ent->move_info;
@@ -839,7 +839,7 @@ static void G_func_button_Activate(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a button by storing the activator and pressing the button.
  */
 static void G_func_button_Use(g_entity_t *ent, g_entity_t *other,
                               g_entity_t *activator) {
@@ -849,7 +849,7 @@ static void G_func_button_Use(g_entity_t *ent, g_entity_t *other,
 }
 
 /**
- * @brief
+ * @brief Handles touch events on a button, pressing it when a live player makes contact.
  */
 static void G_func_button_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -866,7 +866,7 @@ static void G_func_button_Touch(g_entity_t *ent, g_entity_t *other, const cm_tra
 }
 
 /**
- * @brief
+ * @brief Handles button death (destroyed by damage), triggering it as if it were pressed.
  */
 static void G_func_button_Die(g_entity_t *ent, g_entity_t *attacker,
                               uint32_t mod) {
@@ -955,7 +955,7 @@ void G_func_button(g_entity_t *ent) {
 static void G_func_door_GoingDown(g_entity_t *ent);
 
 /**
- * @brief
+ * @brief Called when a door reaches its fully open position, scheduling automatic closure.
  */
 static void G_func_door_Top(g_entity_t *ent) {
 
@@ -985,7 +985,7 @@ static void G_func_door_Top(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called when a door reaches its fully closed position, marking movement complete.
  */
 static void G_func_door_Bottom(g_entity_t *ent) {
 
@@ -1006,7 +1006,7 @@ static void G_func_door_Bottom(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initiates closing movement of a door toward its start (closed) origin.
  */
 static void G_func_door_GoingDown(g_entity_t *ent) {
   if (!(ent->flags & FL_TEAM_SLAVE)) {
@@ -1033,7 +1033,7 @@ static void G_func_door_GoingDown(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initiates opening movement of a door toward its end (open) origin.
  */
 static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
 
@@ -1069,7 +1069,7 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a door, toggling it open or closed for all team members.
  */
 static void G_func_door_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
   g_entity_t *e;
@@ -1100,7 +1100,7 @@ static void G_func_door_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *acti
 }
 
 /**
- * @brief
+ * @brief Touch callback for a door's proximity trigger, opening the door when a player enters the volume.
  */
 static void G_func_door_TouchTrigger(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -1122,7 +1122,7 @@ static void G_func_door_TouchTrigger(g_entity_t *ent, g_entity_t *other, const c
 }
 
 /**
- * @brief
+ * @brief Adjusts the speeds of all door team members so they all complete their movement simultaneously.
  */
 static void G_func_door_CalculateMove(g_entity_t *ent) {
   g_entity_t *e;
@@ -1161,7 +1161,7 @@ static void G_func_door_CalculateMove(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Creates the proximity trigger volume that automatically opens a door when entered.
  */
 static void G_func_door_CreateTrigger(g_entity_t *ent) {
   g_entity_t *trigger;
@@ -1191,7 +1191,7 @@ static void G_func_door_CreateTrigger(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles a door blocked by an obstacle, reversing its travel direction.
  */
 static void G_func_door_Blocked(g_entity_t *ent, g_entity_t *other) {
 
@@ -1214,7 +1214,7 @@ static void G_func_door_Blocked(g_entity_t *ent, g_entity_t *other) {
 }
 
 /**
- * @brief
+ * @brief Handles door death (destroyed by damage), forcing the door open for all team members.
  */
 static void G_func_door_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
@@ -1229,7 +1229,7 @@ static void G_func_door_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod)
 }
 
 /**
- * @brief
+ * @brief Displays the door's locked message when a player first touches it.
  */
 static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -1500,7 +1500,7 @@ static void G_func_door_secret_Move6(g_entity_t *ent);
 static void G_func_door_secret_Done(g_entity_t *ent);
 
 /**
- * @brief
+ * @brief Handles use activation of a secret door, beginning its two-stage open sequence.
  */
 static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
                                    g_entity_t *activator) {
@@ -1527,7 +1527,7 @@ static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
 }
 
 /**
- * @brief
+ * @brief First stage pause of the secret door open sequence before beginning lateral movement.
  */
 static void G_func_door_secret_Move1(g_entity_t *ent) {
 
@@ -1536,7 +1536,7 @@ static void G_func_door_secret_Move1(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Second stage of the secret door sequence, sliding the door laterally.
  */
 static void G_func_door_secret_Move2(g_entity_t *ent) {
 
@@ -1544,7 +1544,7 @@ static void G_func_door_secret_Move2(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Third stage of the secret door sequence, pausing at the open position before returning.
  */
 static void G_func_door_secret_Move3(g_entity_t *ent) {
 
@@ -1570,7 +1570,7 @@ static void G_func_door_secret_Move3(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fourth stage of the secret door sequence, starting the return slide.
  */
 static void G_func_door_secret_Move4(g_entity_t *ent) {
 
@@ -1591,7 +1591,7 @@ static void G_func_door_secret_Move4(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fifth stage pause of the secret door return sequence before the final slide back.
  */
 static void G_func_door_secret_Move5(g_entity_t *ent) {
 
@@ -1600,7 +1600,7 @@ static void G_func_door_secret_Move5(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Sixth stage of the secret door sequence, sliding the door back to its origin.
  */
 static void G_func_door_secret_Move6(g_entity_t *ent) {
 
@@ -1608,7 +1608,7 @@ static void G_func_door_secret_Move6(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Completes the secret door movement sequence, restoring damage if applicable.
  */
 static void G_func_door_secret_Done(g_entity_t *ent) {
 
@@ -1632,7 +1632,7 @@ static void G_func_door_secret_Done(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles a secret door blocked by a player, dealing damage and delaying retraction.
  */
 static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
 
@@ -1663,7 +1663,7 @@ static void G_func_door_secret_Blocked(g_entity_t *ent, g_entity_t *other) {
 }
 
 /**
- * @brief
+ * @brief Handles secret door death (shot open), triggering it as if it were used.
  */
 static void G_func_door_secret_Die(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
@@ -1769,7 +1769,7 @@ void G_func_door_secret(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a func_wall, toggling its solidity on or off.
  */
 static void G_func_wall_Use(g_entity_t *ent, g_entity_t *other,
                             g_entity_t *activator) {
@@ -1909,7 +1909,7 @@ void G_func_water(g_entity_t *ent) {
 static void G_func_train_Next(g_entity_t *ent);
 
 /**
- * @brief
+ * @brief Called when a train arrives at a path_corner, firing pathtargets and scheduling the next segment.
  */
 static void G_func_train_Wait(g_entity_t *ent) {
 
@@ -1954,7 +1954,7 @@ static void G_func_train_Wait(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Advances the train to the next path_corner in its route.
  */
 static void G_func_train_Next(g_entity_t *ent) {
   g_entity_t *target;
@@ -2013,7 +2013,7 @@ again:
 }
 
 /**
- * @brief
+ * @brief Resumes train movement toward the current target path_corner after a stop.
  */
 static void G_func_train_Resume(g_entity_t *ent) {
   g_entity_t *target;
@@ -2030,7 +2030,7 @@ static void G_func_train_Resume(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Locates the initial path_corner and positions the train at its starting origin.
  */
 static void G_func_train_Find(g_entity_t *ent) {
   g_entity_t *target;
@@ -2062,7 +2062,7 @@ static void G_func_train_Find(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a train, toggling movement on or off.
  */
 static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
                              g_entity_t *activator) {
@@ -2142,7 +2142,7 @@ void G_func_train(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fires all targets of a func_timer and schedules the next timer tick.
  */
 static void G_func_timer_Think(g_entity_t *ent) {
 
@@ -2155,7 +2155,7 @@ static void G_func_timer_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a func_timer, toggling it on or off.
  */
 static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
                              g_entity_t *activator) {
@@ -2215,7 +2215,7 @@ void G_func_timer(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a func_conveyor, toggling the belt speed on or off.
  */
 static void G_func_conveyor_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {

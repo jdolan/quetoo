@@ -88,7 +88,7 @@ bool G_Ai_CanPickup(const g_client_t *cl, const g_entity_t *other) {
 }
 
 /**
- * @brief
+ * @brief Counts and caches the number of weapons available for AI weapon selection.
  */
 void G_Ai_InitItems(void) {
 

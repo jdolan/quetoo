@@ -4,10 +4,10 @@
  * @brief Metadata for BSP lumps
  */
 typedef struct {
-  size_t count_ofs; // offset to count
-  size_t data_ofs; // offset to data
-  size_t type_size; // size of the data we're pointed to
-  size_t max_count; // the max size of this lump (in elements, not bytes)
+  size_t count_ofs; ///< Offset into bsp_file_t to the lump element count.
+  size_t data_ofs;  ///< Offset into bsp_file_t to the lump data pointer.
+  size_t type_size; ///< Size in bytes of each lump element.
+  size_t max_count; ///< Maximum allowed element count for this lump.
 } bsp_lump_meta_t;
 
 #if !defined(BSP_SIZEOF)

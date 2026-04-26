@@ -165,88 +165,37 @@ typedef enum {
  * from the scene as needed.
  */
 typedef struct {
-  /**
-   * @brief The entity number that this state update belongs to.
-   */
-  int16_t number;
+  int16_t number;                         ///< Entity slot number this state update belongs to.
   
-  /**
-   * @brief The entity's spawn identifier; this will differ if an entity is replaced.
-   */
-  uint8_t spawn_id;
+  uint8_t spawn_id;                       ///< Spawn identifier; changes when an entity slot is reused for a new entity.
 
-  /**
-   * @brief The entity origin.
-   */
-  vec3_t origin;
+  vec3_t origin;                          ///< World-space position of the entity.
 
-  /**
-   * @brief The entity termination for beams.
-   */
-  vec3_t termination;
+  vec3_t termination;                     ///< Far end of a beam entity.
 
-  /**
-   * @brief The entity angles.
-   */
-  vec3_t angles;
+  vec3_t angles;                          ///< Euler orientation angles.
 
-  /**
-   * @brief The entity animation identifiers.
-   */
-  uint8_t animation1, animation2;
+  uint8_t animation1, animation2;         ///< Primary and secondary animation sequence identifiers.
 
-  /**
-   * @brief The entity event (`entity_event_t`).
-   */
-  uint8_t event;
+  uint8_t event;                          ///< Instantaneous entity event (`entity_event_t`) for this frame.
 
-  /**
-   * @brief The entity effects flags (`EF_ROTATE`, `EF_BOB`, etc).
-   */
-  uint16_t effects;
+  uint16_t effects;                       ///< Bit mask of active visual effects (EF_ROTATE, EF_BOB, etc.).
 
-  /**
-   * @brief The entity trail effect (`entity_trail_t`).
-   */
-  uint8_t trail;
+  uint8_t trail;                          ///< Trail effect identifier (`entity_trail_t`).
 
-  /**
-   * @brief The entity model indexes (primary and linked models).
-   */
-  uint8_t model1, model2, model3, model4;
+  uint8_t model1, model2, model3, model4; ///< Precached model indexes (primary and up to three linked models).
 
-  /**
-   * @brief The entity color.
-   */
-  color32_t color;
+  color32_t color;                        ///< Entity tint color.
 
-  /**
-   * @brief The entity client info index.
-   */
-  uint8_t client;
+  uint8_t client;                         ///< Client info index, used to look up player skins and names.
 
-  /**
-   * @brief The entity ambient sound index.
-   */
-  uint8_t sound;
+  uint8_t sound;                          ///< Ambient looping sound index.
 
-  /**
-   * @brief The solid type. All solid types are sent to the client, but the
-   * client may elect to only predict collisions with certain types.
-   */
-  uint8_t solid;
+  uint8_t solid;                          ///< Solid type; determines which entities the client will predict collisions against.
 
-  /**
-   * @brief Bounding box dimensions for mesh entities. This enables
-   * client-sided prediction so that players don't e.g. run through each
-   * other.
-   */
-  box3_t bounds;
+  box3_t bounds;                          ///< Bounding box for mesh entities, enabling client-side collision prediction.
 
-  /**
-   * @brief Step offset, used for player positional offsets from stair stepping.
-   */
-  int8_t step_offset;
+  int8_t step_offset;                     ///< Vertical position offset from stair-step interpolation.
 } entity_state_t;
 
 /**
@@ -322,25 +271,13 @@ typedef struct {
  * contains.
  */
 typedef struct player_state_s {
-  /**
-   * @brief The player's client index.
-   */
-  uint8_t client;
+  uint8_t client;           ///< Client index for this player.
 
-  /**
-   * @brief The player's entity index.
-   */
-  int16_t entity;
+  int16_t entity;           ///< Entity index associated with this player.
 
-  /**
-   * @brief The player's movement state.
-   */
-  pm_state_t pm_state;
+  pm_state_t pm_state;      ///< Quantized player movement state snapshot.
 
-  /**
-   * @brief The player's stats.
-   */
-  int16_t stats[MAX_STATS];
+  int16_t stats[MAX_STATS]; ///< Game-defined statistics array (health, ammo, scores, etc.).
 } player_state_t;
 
 /*

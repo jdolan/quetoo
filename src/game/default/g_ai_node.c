@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief
+ * @brief State used during player roam recording for AI node development.
  */
 static struct {
   vec3_t position;
@@ -44,7 +44,7 @@ static struct {
 } ai_player_roam;
 
 /**
- * @brief
+ * @brief Returns a test path between the last two recorded nodes for visualization.
  */
 GArray *G_Ai_Node_TestPath(void) {
 
@@ -66,7 +66,7 @@ GArray *G_Ai_Node_TestPath(void) {
 }
 
 /**
- * @brief
+ * @brief An AI navigation node with world position, outgoing links, and pathfinding state.
  */
 typedef struct {
   // persisted to disk
@@ -81,19 +81,19 @@ typedef struct {
 } ai_node_t;
 
 /**
- * @brief
+ * @brief The global array of navigation nodes for the current map.
  */
 static GArray *ai_nodes;
 
 /**
- * @brief
+ * @brief Returns the index of a node pointer within the global node array.
  */
 static inline ai_node_id_t G_Ai_Node_Index(const ai_node_t *node) {
   return node - (ai_node_t *) ai_nodes->data;
 }
 
 /**
- * @brief
+ * @brief Returns true if the given node is visible (unobstructed) from the specified position.
  */
 static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 
@@ -101,7 +101,7 @@ static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
 }
 
 /**
- * @brief
+ * @brief Returns the total number of navigation nodes currently loaded.
  */
 guint G_Ai_Node_Count(void) {
 
@@ -109,7 +109,7 @@ guint G_Ai_Node_Count(void) {
 }
 
 /**
- * @brief
+ * @brief Finds the closest navigation node to the given position within the specified distance.
  */
 ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level) {
 
@@ -140,7 +140,7 @@ ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distan
 }
 
 /**
- * @brief
+ * @brief Creates and appends a new navigation node at the specified world position.
  */
 ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
 
@@ -163,7 +163,7 @@ ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
 }
 
 /**
- * @brief
+ * @brief Returns true if node a has a directed link to node b.
  */
 bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
   const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
@@ -182,7 +182,7 @@ bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
 }
 
 /**
- * @brief
+ * @brief Returns the array of outgoing links for the specified node.
  */
 const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a) {
   const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
@@ -190,7 +190,7 @@ const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a) {
 }
 
 /**
- * @brief
+ * @brief Creates a directed link from node a to node b with the given traversal cost.
  */
 void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost) {
 
@@ -217,7 +217,7 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
 }
 
 /**
- * @brief
+ * @brief Creates a link between two nodes using their Euclidean distance as the cost.
  */
 static inline void G_Ai_Node_LinkDefault(const ai_node_id_t a, const ai_node_id_t b, const bool bidirectional) {
 
@@ -233,7 +233,7 @@ static inline void G_Ai_Node_LinkDefault(const ai_node_id_t a, const ai_node_id_
 }
 
 /**
- * @brief
+ * @brief Removes the bidirectional link between two nodes.
  */
 static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
   {
@@ -278,7 +278,7 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
 }
 
 /**
- * @brief
+ * @brief Removes all links connected to the specified node.
  */
 static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
   const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, id);
@@ -320,7 +320,7 @@ static void G_Ai_Node_Adjust(const ai_node_id_t id) {
 }
 
 /**
- * @brief
+ * @brief Destroys a navigation node, removing all of its links and freeing its slot.
  */
 void G_Ai_Node_Destroy(const ai_node_id_t id) {
 
@@ -341,7 +341,7 @@ void G_Ai_Node_Destroy(const ai_node_id_t id) {
 }
 
 /**
- * @brief
+ * @brief Returns true if the client entity is currently standing on solid ground.
  */
 static bool G_Ai_Node_OnGround(const g_client_t *cl) {
   const cm_trace_t tr = gi.Trace(cl->entity->s.origin,
@@ -354,7 +354,7 @@ static bool G_Ai_Node_OnGround(const g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Returns the world position of the specified navigation node.
  */
 vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node) {
 
@@ -362,7 +362,7 @@ vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node) {
 }
 
 /**
- * @brief
+ * @brief Recalculates the traversal costs for all links incident to the given node.
  */
 static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
 
@@ -452,7 +452,7 @@ bool G_Ai_Path_CanPathTo(const GArray *path, const guint index) {
 #define TELEPORT_DISTANCE  64.f
 
 /**
- * @brief
+ * @brief Handles automatic node placement as the player moves through the map during development.
  */
 void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
 
@@ -708,7 +708,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
 }
 
 /**
- * @brief
+ * @brief A compact representation of a directed link pair used for render deduplication.
  */
 typedef struct {
   union {
@@ -720,7 +720,7 @@ typedef struct {
 } ai_unique_link_t;
 
 /**
- * @brief
+ * @brief Renders a single node link line for developer visualization.
  */
 static void G_Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdata) {
 
@@ -755,7 +755,7 @@ static void G_Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdat
 }
 
 /**
- * @brief
+ * @brief Returns true if the specified node ID is present in the given path array.
  */
 static bool G_Ai_NodeInPath(GArray *path, ai_node_id_t node) {
 
@@ -773,7 +773,7 @@ static bool G_Ai_NodeInPath(GArray *path, ai_node_id_t node) {
 }
 
 /**
- * @brief
+ * @brief Renders all navigation nodes and their links for developer visualization.
  */
 void G_Ai_Node_Render(void) {
 
@@ -894,7 +894,7 @@ void G_Ai_Node_Render(void) {
 #define AI_NODE_VERSION 2
 
 /**
- * @brief 
+ * @brief Initializes the navigation node system and loads the .nav file for the current map.
  */
 void G_Ai_InitNodes(void) {
 
@@ -977,7 +977,7 @@ void G_Ai_InitNodes(void) {
 }
 
 /**
- * @brief 
+ * @brief Validates node integrity: warns about item entities with no nearby node and nodes inside solid.
  */
 static void G_Ai_CheckNodes(void) {
 
@@ -1039,7 +1039,7 @@ void G_Ai_NodesReady(void) {
 }
 
 /**
- * @brief 
+ * @brief Serializes all navigation nodes and their links to the current map's .nav file.
  */
 void G_Ai_SaveNodes(void) {
 
@@ -1088,7 +1088,7 @@ void G_Ai_SaveNodes(void) {
 }
 
 /**
- * @brief
+ * @brief Clears all navigation nodes, freeing their link arrays but retaining the backing array.
  */
 void G_Ai_DeleteNodes(void) {
 
@@ -1106,7 +1106,7 @@ void G_Ai_DeleteNodes(void) {
 }
 
 /**
- * @brief 
+ * @brief Frees all navigation node data, including the backing node array.
  */
 void G_Ai_ShutdownNodes(void) {
 
@@ -1147,7 +1147,7 @@ static inline float G_Ai_LinkCost(const ai_node_id_t a, const ai_node_id_t b) {
 }
 
 /**
- * @brief
+ * @brief Finds the shortest path between two nodes using the A* algorithm.
  */
 GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, const G_Ai_NodeCostFunc heuristic, float *length) {
   

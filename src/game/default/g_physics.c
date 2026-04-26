@@ -57,7 +57,7 @@ static void G_CheckGround(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Checks and updates the entity's water level, dispatching entry and exit sound effects.
  */
 static void G_CheckWater(g_entity_t *ent) {
   vec3_t pos;
@@ -204,7 +204,7 @@ static bool G_CorrectPosition(g_entity_t *ent) {
 #define STOP_EPSILON PM_STOP_EPSILON
 
 /**
- * @brief
+ * @brief Clamps entity velocity to MAX_SPEED, or zeroes it when below STOP_EPSILON.
  */
 static void G_ClampVelocity(g_entity_t *ent) {
 
@@ -442,7 +442,8 @@ typedef struct {
 static g_push_t g_pushes[MAX_ENTITIES], *g_push_p;
 
 /**
- * @brief
+ * @brief Records the current origin, angles, and client delta-yaw of the entity
+ * on the push stack to allow the move to be reverted if blocked.
  */
 static void G_Physics_Push_Impact(g_entity_t *ent) {
 
@@ -465,7 +466,7 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Reverts an entity to its saved origin and angles from the push stack entry.
  */
 static void G_Physics_Push_Revert(const g_push_t *p) {
 
@@ -495,7 +496,8 @@ static void G_Physics_Push_Rotate_Entity(g_entity_t *self, g_entity_t *ent, floa
 }
 
 /**
- * @brief
+ * @brief Translates a BSP pusher entity by @p move, pushing or carrying any entities in its path.
+ * @return The first entity that blocked the move, or NULL if the move succeeded.
  */
 static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) {
   g_entity_t *ents[MAX_ENTITIES];
@@ -678,7 +680,7 @@ static cm_trace_t G_Physics_Push_Rotate_And_Trace(g_entity_t *ent, g_entity_t *m
 #define TOI_MIN_FRACTION  0.06f
 
 /**
- * @return 
+ * @return The time-of-impact fraction in [0, 1] for the entity against the rotating mover.
  */
 static float G_Physics_Push_Calculate_Rotational_TOI(g_entity_t *ent, g_entity_t *mover, const vec3_t original_angles, const vec3_t final_angles, const float left, const float right) {
   const cm_trace_t left_tr = G_Physics_Push_Rotate_And_Trace(ent, mover, Vec3_Mix(original_angles, final_angles, left));
@@ -713,7 +715,8 @@ static float G_Physics_Push_Calculate_Rotational_TOI(g_entity_t *ent, g_entity_t
 }
 
 /**
- * @brief
+ * @brief Rotates a BSP pusher entity by @p amove, pushing or carrying any entities in its path.
+ * @return The first entity that blocked the move, or NULL if the move succeeded.
  */
 static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
   g_entity_t *ents[MAX_ENTITIES];

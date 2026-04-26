@@ -24,7 +24,7 @@
 #include <SDL3/SDL_endian.h>
 
 /**
- * @brief
+ * @brief Byte-swaps a 32-bit float by reversing its byte representation.
  */
 static float SwapFloat(float f) {
 
@@ -44,35 +44,35 @@ static float SwapFloat(float f) {
 }
 
 /**
- * @brief
+ * @brief Converts a 16-bit integer to big-endian byte order.
  */
 int16_t BigShort(int16_t s) {
   return SDL_Swap16BE(s);
 }
 
 /**
- * @brief
+ * @brief Converts a 16-bit integer to little-endian byte order.
  */
 int16_t LittleShort(int16_t s) {
   return SDL_Swap16LE(s);
 }
 
 /**
- * @brief
+ * @brief Converts a 32-bit integer to big-endian byte order.
  */
 int32_t BigLong(int32_t l) {
   return SDL_Swap32BE(l);
 }
 
 /**
- * @brief
+ * @brief Converts a 32-bit integer to little-endian byte order.
  */
 int32_t LittleLong(int32_t l) {
   return SDL_Swap32LE(l);
 }
 
 /**
- * @brief
+ * @brief Converts a float to big-endian byte order.
  */
 float BigFloat(float f) {
   if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
@@ -82,7 +82,7 @@ float BigFloat(float f) {
 }
 
 /**
- * @brief
+ * @brief Converts a float to little-endian byte order.
  */
 float LittleFloat(float f) {
   if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
@@ -92,7 +92,7 @@ float LittleFloat(float f) {
 }
 
 /**
- * @brief
+ * @brief Converts all elements of a mat4_t to little-endian byte order.
  */
 mat4_t LittleMat4(const mat4_t m) {
   mat4_t out = m;
@@ -105,7 +105,7 @@ mat4_t LittleMat4(const mat4_t m) {
 }
 
 /**
- * @brief
+ * @brief Converts all components of a vec3s_t to little-endian byte order.
  */
 vec3s_t LittleVec3s(const vec3s_t v) {
   return Vec3s(LittleShort(v.x),
@@ -114,7 +114,7 @@ vec3s_t LittleVec3s(const vec3s_t v) {
 }
 
 /**
- * @brief
+ * @brief Converts all components of a vec3i_t to little-endian byte order.
  */
 vec3i_t LittleVec3i(const vec3i_t v) {
   return Vec3i(LittleLong(v.x),
@@ -123,7 +123,7 @@ vec3i_t LittleVec3i(const vec3i_t v) {
 }
 
 /**
- * @brief
+ * @brief Converts all components of a vec2_t to little-endian byte order.
  */
 vec2_t LittleVec2(const vec2_t v) {
   return Vec2(LittleFloat(v.x),
@@ -131,7 +131,7 @@ vec2_t LittleVec2(const vec2_t v) {
 }
 
 /**
- * @brief
+ * @brief Converts all components of a vec3_t to little-endian byte order.
  */
 vec3_t LittleVec3(const vec3_t v) {
   return Vec3(LittleFloat(v.x),
@@ -140,7 +140,7 @@ vec3_t LittleVec3(const vec3_t v) {
 }
 
 /**
- * @brief
+ * @brief Converts all components of a vec4_t to little-endian byte order.
  */
 vec4_t LittleVec4(const vec4_t v) {
   return Vec4(LittleFloat(v.x),
@@ -150,7 +150,7 @@ vec4_t LittleVec4(const vec4_t v) {
 }
 
 /**
- * @brief
+ * @brief Converts both min and max vectors of a box3_t to little-endian byte order.
  */
 box3_t LittleBounds(const box3_t b) {
   return Box3(LittleVec3(b.mins),

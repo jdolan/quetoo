@@ -27,9 +27,9 @@
  * @brief The editor entity type.
  */
 typedef struct {
-  int16_t number; ///< The entity number.
-  cl_entity_t *ent; ///< The client entity.
-  cm_entity_t *def; ///< The entity definition.
+  int16_t number;     ///< The entity number.
+  cl_entity_t *ent;   ///< The client entity.
+  cm_entity_t *def;   ///< The entity definition.
   bool shadow_cached; ///< Persistent shadow cache flag for shadowmap optimization (light entities only).
 } cl_editor_entity_t;
 

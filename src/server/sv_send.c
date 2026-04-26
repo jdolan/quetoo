@@ -244,7 +244,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
 
 
 /**
- * @brief
+ * @brief Builds and transmits the current frame packet to the specified client.
  */
 static void Sv_SendClientDatagram(sv_client_t *cl) {
   byte buffer[MAX_MSG_SIZE];
@@ -287,7 +287,7 @@ static void Sv_SendClientDatagram(sv_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Advances to the next demo in the playlist or restarts from the beginning.
  */
 static void Sv_DemoCompleted(void) {
 

@@ -41,20 +41,20 @@ typedef struct MaterialViewControllerInterface MaterialViewControllerInterface;
  */
 struct MaterialViewController {
 
-  ViewController viewController; ///< The superclass.
+  ViewController viewController;              ///< The superclass.
   MaterialViewControllerInterface *interface; ///< The interface. @private
 
-  r_material_t *material; ///< The material being edited.
-  TextView *name; ///< The material name text field.
-  TextView *diffusemap; ///< The diffusemap texture name text field.
-  TextView *normalmap; ///< The normalmap texture name text field.
-  TextView *specularmap; ///< The specularmap texture name text field.
-  Slider *roughness; ///< The roughness slider.
-  Slider *hardness; ///< The hardness slider.
-  Slider *specularity; ///< The specularity slider.
-  Slider *parallax; ///< The parallax amplitude slider.
-  Slider *shadow; ///< The shadow amplitude slider.
-  Slider *alphaTest; ///< The alpha test threshold slider.
+  r_material_t *material;                     ///< The material being edited.
+  TextView *name;                             ///< The material name text field.
+  TextView *diffusemap;                       ///< The diffusemap texture name text field.
+  TextView *normalmap;                        ///< The normalmap texture name text field.
+  TextView *specularmap;                      ///< The specularmap texture name text field.
+  Slider *roughness;                          ///< The roughness slider.
+  Slider *hardness;                           ///< The hardness slider.
+  Slider *specularity;                        ///< The specularity slider.
+  Slider *parallax;                           ///< The parallax amplitude slider.
+  Slider *shadow;                             ///< The shadow amplitude slider.
+  Slider *alphaTest;                          ///< The alpha test threshold slider.
 };
 
 /**

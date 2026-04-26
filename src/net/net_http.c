@@ -24,7 +24,8 @@
 #include <Objectively/URLSession.h>
 
 /**
- * @brief
+ * @brief Synchronously performs an HTTP GET request and returns the response body.
+ * @return The HTTP status code.
  */
 int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
 
@@ -84,7 +85,7 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 }
 
 /**
- * @brief
+ * @brief Initiates an asynchronous HTTP GET request and invokes `callback` on completion.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data) {
 

@@ -604,7 +604,7 @@ static void G_Give(g_client_t *cl, char *it, int16_t quantity) {
 }
 
 /**
- * @brief
+ * @brief Grants items specified in the level's give string to the client.
  */
 static bool G_GiveLevelLocals(g_client_t *cl) {
   char buf[512], *it, *q;
@@ -648,7 +648,7 @@ static bool G_GiveLevelLocals(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Initializes a client's starting inventory based on the current game mode.
  */
 static void G_InitClientInventory(g_client_t *cl) {
   const g_item_t *item;
@@ -751,7 +751,7 @@ static bool G_WouldTelefrag(const vec3_t spot) {
 }
 
 /**
- * @brief
+ * @brief Selects a random unoccupied spawn point from the given set.
  */
 static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points) {
   uint32_t empty_spawns[spawn_points->count];
@@ -778,7 +778,7 @@ static g_entity_t *G_SelectRandomSpawnPoint(const g_spawn_points_t *spawn_points
 }
 
 /**
- * @brief
+ * @brief Selects the spawn point farthest from all enemies for the given client.
  */
 static g_entity_t *G_SelectFarthestSpawnPoint(g_client_t *cl, const g_spawn_points_t *spawn_points) {
   g_entity_t *spot, *best_spot;
@@ -806,7 +806,7 @@ static g_entity_t *G_SelectFarthestSpawnPoint(g_client_t *cl, const g_spawn_poin
 }
 
 /**
- * @brief
+ * @brief Selects an appropriate deathmatch spawn point for the given client.
  */
 static g_entity_t *G_SelectDeathmatchSpawnPoint(g_client_t *cl) {
 
@@ -818,7 +818,7 @@ static g_entity_t *G_SelectDeathmatchSpawnPoint(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Selects an appropriate team spawn point for the given client.
  */
 static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
 
@@ -1103,7 +1103,7 @@ void G_SetClientHookStyle(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Applies updates from a client's user info string to their persistent state.
  */
 void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   char name[MAX_NET_NAME];

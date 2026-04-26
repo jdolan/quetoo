@@ -187,7 +187,7 @@ static void Sv_DrawConsole_Background(void) {
 }
 
 /**
- * @brief
+ * @brief Renders the scrollback buffer to the curses window.
  */
 static void Sv_DrawConsole_Buffer(void) {
 
@@ -284,7 +284,7 @@ static void Sv_ResizeConsole(int32_t sig) {
 #endif
 
 /**
- * @brief
+ * @brief Initializes the curses-based server console for dedicated servers.
  */
 void Sv_InitConsole(void) {
 
@@ -363,7 +363,7 @@ void Sv_InitConsole(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the curses-based server console.
  */
 void Sv_ShutdownConsole(void) {
 

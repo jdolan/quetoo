@@ -30,8 +30,8 @@ bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b);
  * @brief A link from one AI node to another, with traversal cost.
  */
 typedef struct {
-  ai_node_id_t id;
-  float cost;
+  ai_node_id_t id; ///< Destination node ID.
+  float cost;      ///< Traversal cost to reach the destination node.
 } ai_link_t;
 
 const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a);
@@ -52,7 +52,7 @@ void G_Ai_ShutdownNodes(void);
 typedef float (*G_Ai_NodeCostFunc)(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
- * @brief
+ * @brief Heuristic cost function for A* pathfinding using weighted Manhattan distance.
  */
 static inline float G_Ai_Node_Heuristic(const ai_node_id_t link, const ai_node_id_t end) {
   const vec3_t av = G_Ai_Node_GetPosition(link);
@@ -67,7 +67,7 @@ static inline float G_Ai_Node_Heuristic(const ai_node_id_t link, const ai_node_i
 }
 
 /**
- * @brief
+ * @brief Computes the traversal cost between two nodes as their Euclidean distance.
  */
 static inline float G_Ai_Node_Cost(const ai_node_id_t a, const ai_node_id_t b) {
   const vec3_t av = G_Ai_Node_GetPosition(a);

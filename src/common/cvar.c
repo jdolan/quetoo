@@ -294,7 +294,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 }
 
 /**
- * @brief
+ * @brief Sets a cvar's value, respecting CVAR_CLI, CVAR_NO_SET, CVAR_LATCH, and related flags unless `force` is true.
  */
 static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, bool force) {
 
@@ -399,28 +399,28 @@ static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, boo
 }
 
 /**
- * @brief
+ * @brief Sets a cvar's value from an integer, without bypassing flag restrictions.
  */
 cvar_t *Cvar_SetInteger(const char *name, int32_t value) {
   return Cvar_Set_(name, va("%d", value), 0, false);
 }
 
 /**
- * @brief
+ * @brief Sets a cvar's value from a string, without bypassing flag restrictions.
  */
 cvar_t *Cvar_SetString(const char *name, const char *value) {
   return Cvar_Set_(name, value, 0, false);
 }
 
 /**
- * @brief
+ * @brief Sets a cvar's value from a float, without bypassing flag restrictions.
  */
 cvar_t *Cvar_SetValue(const char *name, float value) {
   return Cvar_Set_(name, va("%g", value), 0, false);
 }
 
 /**
- * @brief
+ * @brief Replaces the flags bitmask of an existing cvar.
  */
 cvar_t *Cvar_SetFlags(const char *name, uint32_t flags) {
   cvar_t *var = Cvar_Get(name);
@@ -431,28 +431,28 @@ cvar_t *Cvar_SetFlags(const char *name, uint32_t flags) {
 }
 
 /**
- * @brief
+ * @brief Force-sets a cvar's value from an integer, bypassing all flag-based restrictions.
  */
 cvar_t *Cvar_ForceSetInteger(const char *name, int32_t value) {
   return Cvar_Set_(name, va("%d", value), 0, true);
 }
 
 /**
- * @brief
+ * @brief Force-sets a cvar's value from a string, bypassing all flag-based restrictions.
  */
 cvar_t *Cvar_ForceSetString(const char *name, const char *value) {
   return Cvar_Set_(name, value, 0, true);
 }
 
 /**
- * @brief
+ * @brief Force-sets a cvar's value from a float, bypassing all flag-based restrictions.
  */
 cvar_t *Cvar_ForceSetValue(const char *name, float value) {
   return Cvar_Set_(name, va("%f", value), 0, true);
 }
 
 /**
- * @brief
+ * @brief Toggles an integer cvar between 0 and 1, creating it at 0 if it does not exist.
  */
 cvar_t *Cvar_Toggle(const char *name) {
 
@@ -731,7 +731,7 @@ void Cvar_WriteAll(file_t *f) {
 static GRegex *cvar_emplace_regex = NULL;
 
 /**
- * @brief
+ * @brief `g_regex_replace_eval` callback that substitutes a matched cvar name with its current string value.
  */
 static gboolean Cvar_ExpandString_EvalCallback(const GMatchInfo *match_info, GString *result, gpointer data) {
   gchar *name = g_match_info_fetch(match_info, 1);
@@ -765,7 +765,7 @@ bool Cvar_ExpandString(const char *input, const size_t in_size, GString **output
 }
 
 /**
- * @brief
+ * @brief Frees a GQueue value stored in the cvar hash table.
  */
 static void Cvar_HashTable_Free(gpointer list) {
 

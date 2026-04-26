@@ -90,7 +90,7 @@ static void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem
 }
 
 /**
- * @brief
+ * @brief Writes a delta-compressed player state to the message buffer.
  */
 static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg) {
   static player_state_t null_state;
@@ -103,7 +103,7 @@ static void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, 
 }
 
 /**
- * @brief
+ * @brief Assembles and writes a complete client frame to the message buffer.
  */
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
   sv_client_frame_t *frame, *delta_frame;

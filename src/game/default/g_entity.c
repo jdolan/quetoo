@@ -572,7 +572,7 @@ static void G_InitSpawnPoints(void) {
 }
 
 /**
- * @brief
+ * @brief Spawns a single tech item at a randomly selected spawn point with a random initial velocity.
  */
 void G_SpawnTech(const g_item_t *item) {
 
@@ -666,7 +666,7 @@ gint G_worldspawn_MusicShuffle(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief
+ * @brief Selects and sets the music tracks for the current level from the music key or available files.
  */
 static void G_worldspawn_Music(void) {
 

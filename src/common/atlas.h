@@ -29,31 +29,15 @@
  */
 typedef struct {
 
-  /**
-   * @brief The surfaces, which must all be of the same size. The first surface
-   * (first layer) must not be `NULL`.
-   */
-  SDL_Surface **surfaces;
+  SDL_Surface **surfaces; ///< Layered surfaces, all of the same size; the first (layer 0) must not be NULL.
 
-  /**
-   * @brief The node coordinates within the compiled atlas.
-   */
-  int32_t x, y;
+  int32_t x, y;           ///< Node coordinates within the compiled atlas.
 
-  /**
-   * @brief The node width/height of the compiled atlas image.
-   */
-  int32_t w, h;
+  int32_t w, h;           ///< Node width and height in the compiled atlas image.
 
-  /**
-   * @brief The atlas tag at which this node was compiled.
-   */
-  int32_t tag;
+  int32_t tag;            ///< Atlas iteration tag written to this node when it is compiled.
 
-  /**
-   * @brief User data.
-   */
-  void *data;
+  void *data;             ///< User data pointer.
 
 } atlas_node_t;
 
@@ -81,30 +65,15 @@ typedef int32_t (*AtlasBlit)(const SDL_Surface *src, SDL_Surface *dest, const SD
  */
 typedef struct atlas_s {
 
-  /**
-   * @brief The number of layers in the atlas.
-   */
-  int32_t layers;
+  int32_t layers;                 ///< Number of surface layers in the atlas.
 
-  /**
-   * @brief The atlas nodes.
-   */
-  GPtrArray *nodes;
+  GPtrArray *nodes;               ///< Array of atlas_node_t pointers to be packed.
 
-  /**
-   * @brief The comparator to sort nodes for packing.
-   */
-  AtlasNodeComparator comparator;
+  AtlasNodeComparator comparator; ///< Comparator used to sort nodes before packing (default: sort by height).
 
-  /**
-   * @brief The blit function for blitting packed nodes into the atlas.
-   */
-  AtlasBlit blit;
+  AtlasBlit blit;                 ///< Blit function used to copy packed nodes into the atlas surfaces (default: SDL_BlitSurfaceScaled).
 
-  /**
-   * @brief The iteration identifier, which is written to nodes as they are compiled.
-   */
-  int32_t tag;
+  int32_t tag;                    ///< Iteration identifier written to each node as it is compiled.
 
 } atlas_t;
 

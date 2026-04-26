@@ -81,10 +81,10 @@
  * vector such that all components are >= 0.
  */
 typedef struct {
-  vec3_t normal;
-  float dist;
-  int32_t type; // for fast side tests
-  int32_t sign_bits; // sign_x + (sign_y << 1) + (sign_z << 2)
+  vec3_t normal;     ///< Plane normal vector.
+  float dist;        ///< Plane distance from origin.
+  int32_t type;      ///< Plane type constant for axial optimizations (PLANE_X, PLANE_Y, etc.).
+  int32_t sign_bits; ///< Sign bit mask of normal components, used for fast plane side tests.
 } cm_bsp_plane_t;
 
 /**
@@ -97,20 +97,9 @@ typedef struct {
  * They are treated as their own sub-trees and recursed separately.
  */
 typedef struct {
-  /**
-   * @brief The entity definition of this inline model.
-   */
-  struct cm_entity_s *entity;
-
-  /**
-   * @brief The index of the head node in the BSP file.
-   */
-  int32_t head_node;
-
-  /**
-   * @brief The model bounds.
-   */
-  box3_t bounds;
+  struct cm_entity_s *entity; ///< The entity definition of this inline model.
+  int32_t head_node;          ///< The index of the head node in the BSP file.
+  box3_t bounds;              ///< The model bounds.
 } cm_bsp_model_t;
 
 /**
@@ -127,40 +116,19 @@ typedef struct {
  * @brief Entity pair parsed types.
  */
 typedef enum {
-  /**
-   * @brief A value of one or more characters is available.
-   */
-  ENTITY_STRING = 0x1,
+    ENTITY_STRING = 0x1,        ///< A value of one or more characters is available.
 
-  /**
-   * @brief An integer value is available.
-   */
-  ENTITY_INTEGER = 0x2,
+    ENTITY_INTEGER = 0x2,       ///< An integer value is available.
 
-  /**
-   * @brief A float value is available.
-   */
-  ENTITY_FLOAT = 0x4,
+    ENTITY_FLOAT = 0x4,         ///< A float value is available.
 
-  /**
-   * @brief A two component vector value is available.
-   */
-  ENTITY_VEC2 = 0x8,
+    ENTITY_VEC2 = 0x8,          ///< A two component vector value is available.
 
-  /**
-   * @brief A three component vector value is available.
-   */
-  ENTITY_VEC3 = 0x10,
+    ENTITY_VEC3 = 0x10,         ///< A three component vector value is available.
 
-  /**
-   * @brief An alias for `ENTITY_VEC3`.
-   */
-  ENTITY_COLOR = ENTITY_VEC3,
+    ENTITY_COLOR = ENTITY_VEC3, ///< An alias for `ENTITY_VEC3`.
 
-  /**
-   * @brief A four component vector is available.
-   */
-  ENTITY_VEC4 = 0x20,
+    ENTITY_VEC4 = 0x20,         ///< A four component vector is available.
 
 } cm_entity_parsed_t;
 
@@ -168,15 +136,8 @@ typedef enum {
  * @brief Entities are, essentially, linked lists of key-value pairs.
  */
 typedef struct cm_entity_s {
-  /**
-   * @brief A bitmask of entity pair parsed types.
-   */
-  cm_entity_parsed_t parsed;
-
-  /**
-   * @brief The entity pair key.
-   */
-  char key[MAX_BSP_ENTITY_KEY];
+  cm_entity_parsed_t parsed;    ///< A bitmask of entity pair parsed types.
+  char key[MAX_BSP_ENTITY_KEY]; ///< The entity pair key.
 
   /**
    * @brief The entity pair value, as a string.
@@ -189,40 +150,17 @@ typedef struct cm_entity_s {
    * @remarks This will be `NULL` if no string was present.
    */
   char *nullable_string;
+  int32_t integer;              ///< The entity pair value, as an integer.
 
   /**
-   * @brief The entity pair value, as an integer.
-   */
-  int32_t integer;
-
-  /**
-   * @brief Floating point values.
+   * @brief Floating point values parsed from the entity string.
    */
   union {
-    /**
-     * @brief The entity pair value, as a float.
-     */
-    float value;
-
-    /**
-     * @brief The entity pair value, as a two component vector.
-     */
-    vec2_t vec2;
-
-    /**
-     * @brief The entity pair value, as a three component vector.
-     */
-    vec3_t vec3;
-
-    /**
-     * @brief The entity pair value, as a four component vector.
-     */
-    vec4_t vec4;
-
-    /**
-     * @brief The entity pair value, as a four component color.
-     */
-    color_t color;
+    float value;   ///< The entity pair value, as a float.
+    vec2_t vec2;   ///< The entity pair value, as a two component vector.
+    vec3_t vec3;   ///< The entity pair value, as a three component vector.
+    vec4_t vec4;   ///< The entity pair value, as a four component vector.
+    color_t color; ///< The entity pair value, as a four component color.
   };
 
   /**
@@ -230,16 +168,8 @@ typedef struct cm_entity_s {
    * may be re-serialized to the .map.
    */
   char *brushes;
-
-  /**
-   * @brief The previous entity pair in this entity, or `NULL`.
-   */
-  struct cm_entity_s *prev;
-
-  /**
-   * @brief The next entity pair in this entity, or `NULL`.
-   */
-  struct cm_entity_s *next;
+  struct cm_entity_s *prev;     ///< The previous entity pair in this entity, or `NULL`.
+  struct cm_entity_s *next;     ///< The next entity pair in this entity, or `NULL`.
 } cm_entity_t;
 
 /**
@@ -250,30 +180,11 @@ typedef struct cm_entity_s {
  * and portals in turn generate faces (rendered geometry).
  */
 typedef struct cm_bsp_brush_side_s {
-  /**
-   * @brief The plane.
-   */
-  cm_bsp_plane_t *plane;
-
-  /**
-   * @brief The material definition.
-   */
-  struct cm_material_s *material;
-
-  /**
-   * @brief The contents mask (CONTENTS_*).
-   */
-  int32_t contents;
-
-  /**
-   * @brief The surface mask (SURF_*).
-   */
-  int32_t surface;
-
-  /**
-   * @brief The surface value (e.g. light radius).
-   */
-  int32_t value;
+  cm_bsp_plane_t *plane;          ///< The plane.
+  struct cm_material_s *material; ///< The material definition.
+  int32_t contents;               ///< The contents mask (CONTENTS_*).
+  int32_t surface;                ///< The surface mask (SURF_*).
+  int32_t value;                  ///< The surface value (e.g. light radius).
 } cm_bsp_brush_side_t;
 
 /**
@@ -286,26 +197,10 @@ typedef struct cm_bsp_brush_s {
    * defined in a different entity (`func_group`, `misc_fog`, etc).
    */
   cm_entity_t *entity;
-
-  /**
-   * @brief The contents mask (`CONTENTS_*`).
-   */
-  int32_t contents;
-
-  /**
-   * @brief The brush sides.
-   */
-  cm_bsp_brush_side_t *brush_sides;
-
-  /**
-   * @brief The number of brush sides.
-   */
-  int32_t num_brush_sides;
-
-  /**
-   * @brief The brush bounds.
-   */
-  box3_t bounds;
+  int32_t contents;                 ///< The contents mask (`CONTENTS_*`).
+  cm_bsp_brush_side_t *brush_sides; ///< The brush sides.
+  int32_t num_brush_sides;          ///< The number of brush sides.
+  box3_t bounds;                    ///< The brush bounds.
 } cm_bsp_brush_t;
 
 /**
@@ -315,30 +210,16 @@ typedef struct cm_bsp_brush_s {
  * with non-solid contents comprise the parts of the world the player may occupy.
  */
 typedef struct {
-  /**
-   * @brief The leaf `CONTENTS_*`.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The index of the first leaf-brush reference.
-   */
-  int32_t first_leaf_brush;
-
-  /**
-   * @brief The number of leaf-brush references for this leaf.
-   */
-  int32_t num_leaf_brushes;
+  int32_t contents;         ///< The leaf `CONTENTS_*`.
+  int32_t first_leaf_brush; ///< The index of the first leaf-brush reference.
+  int32_t num_leaf_brushes; ///< The number of leaf-brush references for this leaf.
 } cm_bsp_leaf_t;
 
 /**
  * @brief The BSP node structure.
  */
 typedef struct {
-  /**
-   * @brief The positive plane that separates this node's children.
-   */
-  cm_bsp_plane_t *plane;
+  cm_bsp_plane_t *plane; ///< The positive plane that separates this node's children.
 
   /**
    * @brief The child node indexes, where positive values are nodes, and negative are leafs.
@@ -351,37 +232,28 @@ typedef struct {
  * @brief The BSP model structure.
  */
 typedef struct {
-  char name[MAX_QPATH]; ///< The Quake path of the .bsp, e.g. `maps/edge.bsp`.
-  struct bsp_file_s *file; ///< A pointer to the backing file on disk.
-  int64_t size; ///< File size, for compatibility checking.
-  int64_t mod_time; ///< File modification time, for compatibility checking.
-
-  int32_t num_planes; ///< Number of planes.
-  cm_bsp_plane_t *planes; ///< Plane array.
-
-  int32_t num_nodes; ///< Number of BSP nodes.
-  cm_bsp_node_t *nodes; ///< Node array.
-
-  int32_t num_leafs; ///< Number of BSP leafs.
-  cm_bsp_leaf_t *leafs; ///< Leaf array.
-
-  int32_t num_brushes; ///< Number of brushes.
-  cm_bsp_brush_t *brushes; ///< Brush array.
-
-  int32_t num_brush_sides; ///< Number of brush sides.
+  char name[MAX_QPATH];             ///< The Quake path of the .bsp, e.g. `maps/edge.bsp`.
+  struct bsp_file_s *file;          ///< A pointer to the backing file on disk.
+  int64_t size;                     ///< File size, for compatibility checking.
+  int64_t mod_time;                 ///< File modification time, for compatibility checking.
+  int32_t num_planes;               ///< Number of planes.
+  cm_bsp_plane_t *planes;           ///< Plane array.
+  int32_t num_nodes;                ///< Number of BSP nodes.
+  cm_bsp_node_t *nodes;             ///< Node array.
+  int32_t num_leafs;                ///< Number of BSP leafs.
+  cm_bsp_leaf_t *leafs;             ///< Leaf array.
+  int32_t num_brushes;              ///< Number of brushes.
+  cm_bsp_brush_t *brushes;          ///< Brush array.
+  int32_t num_brush_sides;          ///< Number of brush sides.
   cm_bsp_brush_side_t *brush_sides; ///< Brush side array.
-
-  int32_t num_leaf_brushes; ///< Number of leaf-brush references.
-  int32_t *leaf_brushes; ///< Leaf-brush reference array.
-
-  int32_t num_models; ///< Number of inline models.
-  cm_bsp_model_t *models; ///< Inline model array.
-
-  int32_t num_entities; ///< Number of parsed entities.
-  cm_entity_t **entities; ///< Parsed entity array.
-
-  int32_t num_materials; ///< Number of materials referenced by brush sides.
-  cm_material_t **materials; ///< Material pointer array.
+  int32_t num_leaf_brushes;         ///< Number of leaf-brush references.
+  int32_t *leaf_brushes;            ///< Leaf-brush reference array.
+  int32_t num_models;               ///< Number of inline models.
+  cm_bsp_model_t *models;           ///< Inline model array.
+  int32_t num_entities;             ///< Number of parsed entities.
+  cm_entity_t **entities;           ///< Parsed entity array.
+  int32_t num_materials;            ///< Number of materials referenced by brush sides.
+  cm_material_t **materials;        ///< Material pointer array.
 
 } cm_bsp_t;
 
@@ -391,15 +263,15 @@ typedef struct {
  * within Quake.
  */
 typedef struct {
-  bool all_solid; ///< True if the trace started and ended within the same solid.
-  bool start_solid; ///< True if the trace started within a solid but exited it.
-  float fraction; ///< The fraction of the desired distance traveled (0.0 - 1.0).
-  vec3_t end; ///< The destination position.
-  const struct cm_bsp_brush_s *brush; ///< The impacted or enclosing brush; prefer derived fields.
+  bool all_solid;                               ///< True if the trace started and ended within the same solid.
+  bool start_solid;                             ///< True if the trace started within a solid but exited it.
+  float fraction;                               ///< The fraction of the desired distance traveled (0.0 - 1.0).
+  vec3_t end;                                   ///< The destination position.
+  const struct cm_bsp_brush_s *brush;           ///< The impacted or enclosing brush; prefer derived fields.
   const struct cm_bsp_brush_side_s *brush_side; ///< The impacted brush side; prefer derived fields.
-  cm_bsp_plane_t plane; ///< The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
-  int32_t contents; ///< The contents mask of the impacted brush side.
-  int32_t surface; ///< The surface mask of the impacted brush side.
-  const struct cm_material_s *material; ///< The material of the impacted brush side.
-  void *ent; ///< The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by Cm_BoxTrace.
+  cm_bsp_plane_t plane;                         ///< The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
+  int32_t contents;                             ///< The contents mask of the impacted brush side.
+  int32_t surface;                              ///< The surface mask of the impacted brush side.
+  const struct cm_material_s *material;         ///< The material of the impacted brush side.
+  void *ent;                                    ///< The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by Cm_BoxTrace.
 } cm_trace_t;

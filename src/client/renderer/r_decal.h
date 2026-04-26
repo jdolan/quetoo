@@ -34,10 +34,10 @@ void R_AddDecal(r_view_t *view, const r_decal_t *decal);
  * @brief BSP decal vertex structure.
  */
 typedef struct {
-  vec3_t position; ///< The vertex position.
-  vec2_t texcoord; ///< The diffusemap texture coordinate.
-  color32_t color; ///< The vertex color.
-  uint32_t time; ///< The decal creation time, for GPU decal expiration.
+  vec3_t position;   ///< The vertex position.
+  vec2_t texcoord;   ///< The diffusemap texture coordinate.
+  color32_t color;   ///< The vertex color.
+  uint32_t time;     ///< The decal creation time, for GPU decal expiration.
   uint32_t lifetime; ///< The decal lifetime, for GPU decal expiration.
 } r_decal_vertex_t;
 

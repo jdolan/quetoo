@@ -90,7 +90,7 @@ static sv_sector_t *Sv_CreateSector(int32_t depth, const box3_t bounds) {
 }
 
 /**
- * @brief
+ * @brief Initializes the world sector tree for spatial partitioning of entities.
  */
 static void Sv_InitWorld(void) {
 
@@ -104,7 +104,7 @@ static void Sv_InitWorld(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes the world and spawns all entities for the current map.
  */
 void Sv_SpawnEntities(void) {
 
@@ -248,7 +248,7 @@ static bool Sv_BoxEntities_Filter(const g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Recursively collects entities from the sector tree that overlap the query box.
  */
 static void Sv_BoxEntities_r(sv_sector_t *sector) {
 

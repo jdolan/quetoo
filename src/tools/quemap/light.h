@@ -31,16 +31,16 @@
  * @brief BSP light sources may come from entities or emissive surfaces.
  */
 typedef struct light_s {
-  int32_t entity; ///< The entity number.
-  vec3_t origin; ///< The origin.
-  vec3_t color; ///< The color.
-  float radius; ///< The light radius in units.
-  float intensity; ///< The light intensity.
-  box3_t bounds; ///< The unclipped light bounds.
-  box3_t visible_bounds; ///< The visible light bounds.
+  int32_t entity;                   ///< The entity number.
+  vec3_t origin;                    ///< The origin.
+  vec3_t color;                     ///< The color.
+  float radius;                     ///< The light radius in units.
+  float intensity;                  ///< The light intensity.
+  box3_t bounds;                    ///< The unclipped light bounds.
+  box3_t visible_bounds;            ///< The visible light bounds.
   char style[MAX_BSP_ENTITY_VALUE]; ///< The light style.
-  bsp_light_t *out; ///< The output light in the BSP, so that voxels may reference them.
-  int32_t target_entity; ///< The entity number of the inline model entity this light is attached to, or 0.
+  bsp_light_t *out;                 ///< The output light in the BSP, so that voxels may reference them.
+  int32_t target_entity;            ///< The entity number of the inline model entity this light is attached to, or 0.
 } light_t;
 
 extern GPtrArray *lights;

@@ -113,7 +113,8 @@ const char *Sys_UserDir(void) {
 }
 
 /**
- * @brief
+ * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
+ * @return A handle to the loaded library, or aborts with ERROR_DROP on failure.
  */
 void *Sys_OpenLibrary(const char *name, bool global) {
 

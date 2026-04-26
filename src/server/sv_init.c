@@ -166,14 +166,14 @@ static void Sv_UpdateLatchedVars(void) {
 }
 
 /**
- * @brief
+ * @brief Allocates the client array for the current server session.
  */
 static void Sv_InitClients(void) {
   svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
 }
 
 /**
- * @brief
+ * @brief Allocates the entity state ring buffer used for delta compression.
  */
 static void Sv_InitEntityState(void) {
   svs.num_entity_states = PACKET_BACKUP * MAX_ENTITIES;
@@ -202,7 +202,7 @@ static void Sv_ShutdownClients(void) {
 }
 
 /**
- * @brief
+ * @brief Resets all spawned clients back to the connected state for a map change.
  */
 static void Sv_ReconnectClients(void) {
 

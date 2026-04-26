@@ -84,7 +84,7 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
 }
 
 /**
- * @brief
+ * @brief Initializes the AI name prefix console variable.
  */
 void G_Ai_InitSkins(void) {
 
@@ -92,7 +92,7 @@ void G_Ai_InitSkins(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down AI skin and name resources.
  */
 void G_Ai_ShutdownSkins(void) {
 }

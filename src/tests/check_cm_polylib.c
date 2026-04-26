@@ -39,7 +39,7 @@ void teardown(void) {
 }
 
 /**
- * @brief
+ * @brief Prints a winding's point list to stdout for debugging.
  */
 static void __attribute__((unused)) PrintWinding(const char *name, const cm_winding_t *w) {
 

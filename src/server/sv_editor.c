@@ -73,7 +73,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 }
 
 /**
- * @brief
+ * @brief Updates or creates an editor entity from an info string.
  */
 void Sv_EditEditorEntity(int32_t number, const char *info) {
 
@@ -104,7 +104,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
 }
 
 /**
- * @brief
+ * @brief Removes an editor entity from the world and clears its config string slot.
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
@@ -138,7 +138,7 @@ void Sv_LoadEditorMap(void) {
 }
 
 /**
- * @brief
+ * @brief Saves all current editor entity changes back to the .map file.
  */
 void Sv_SaveEditorMap_f(void) {
 

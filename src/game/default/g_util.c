@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief
+ * @brief Initializes a player spawn point entity, adjusting origin and angle for the spawn preview model.
  */
 void G_InitPlayerSpawn(g_entity_t *ent) {
   // up
@@ -166,7 +166,7 @@ g_entity_t *G_PickTarget(const char *target_name) {
 }
 
 /**
- * @brief
+ * @brief Fires targets on behalf of an entity after a delay.
  */
 static void G_UseTargets_Delay(g_entity_t *ent) {
   G_UseTargets(ent, ent->activator);
@@ -243,7 +243,7 @@ void G_UseTargets(g_entity_t *ent, g_entity_t *activator) {
 }
 
 /**
- * @brief
+ * @brief Derives and sets a movement direction from the entity's angles, then clears the angles.
  */
 void G_SetMoveDir(g_entity_t *ent) {
 
@@ -410,7 +410,7 @@ void G_Gib(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Returns a short display name for the given gameplay mode integer.
  */
 char *G_GameplayName(int32_t g) {
   switch (g) {
@@ -426,7 +426,7 @@ char *G_GameplayName(int32_t g) {
 }
 
 /**
- * @brief
+ * @brief Returns the gameplay mode for the given name string.
  */
 g_gameplay_t G_GameplayByName(const char *c) {
   g_gameplay_t gameplay = GAME_DEATHMATCH;
@@ -448,7 +448,8 @@ g_gameplay_t G_GameplayByName(const char *c) {
 }
 
 /**
- * @brief
+ * @brief Finds a team by name, performing a case-insensitive strip-compare.
+ * @return The matching team, or NULL if not found.
  */
 g_team_t *G_TeamByName(const char *c) {
 
@@ -467,7 +468,7 @@ g_team_t *G_TeamByName(const char *c) {
 }
 
 /**
- * @brief
+ * @brief Returns the team that owns the given flag entity, or NULL if the entity is not a flag.
  */
 g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
@@ -490,7 +491,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Returns the flag entity currently placed for the given team, or NULL if CTF is off.
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
 
@@ -502,7 +503,7 @@ g_entity_t *G_FlagForTeam(const g_team_t *t) {
 }
 
 /**
- * @brief
+ * @brief Returns the entity state effect flag for the given team, or 0 if none.
  */
 int32_t G_EffectForTeam(const g_team_t *t) {
 
@@ -534,8 +535,8 @@ const g_item_t *G_GetFlag(const g_client_t *cl) {
   return NULL;
 }
 
-/*
- *  Return the number of players on the given team.
+/**
+ * @brief Returns the number of players currently assigned to the given team.
  */
 size_t G_TeamSize(const g_team_t *team) {
   size_t count = 0;
@@ -550,7 +551,8 @@ size_t G_TeamSize(const g_team_t *team) {
 }
 
 /**
- * @brief
+ * @brief Returns the team with the fewest players, used for auto-assignment.
+ * @return The smallest team, or NULL if no teams are active.
  */
 g_team_t *G_SmallestTeam(void) {
 
@@ -570,7 +572,8 @@ g_team_t *G_SmallestTeam(void) {
 }
 
 /**
- * @brief
+ * @brief Finds a client by name using a case-insensitive strip-compare.
+ * @return The best-matching client, or NULL if not found.
  */
 g_client_t *G_ClientByName(char *name) {
 

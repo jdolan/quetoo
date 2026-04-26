@@ -294,7 +294,7 @@ static inline vec4i_t __attribute__ ((warn_unused_result)) Vec4i_Zero(void) {
 #pragma mark - single precision
 
 /**
- * @brief
+ * @brief Wraps an angle in degrees to the range [0, 360).
  */
 static inline float __attribute__ ((warn_unused_result)) AngleMod(float a) {
   a = fmodf(a, 360.f);
@@ -394,7 +394,7 @@ static inline float __attribute__ ((warn_unused_result)) Radians(float degrees) 
 }
 
 /**
- * @brief
+ * @brief Returns the smallest absolute angular difference between two angles in degrees.
  */
 static inline float __attribute__ ((warn_unused_result)) SmallestAngleBetween(const float x, const float y) {
   return Minf(360.f - fabsf(x - y), fabsf(x - y));
@@ -1158,7 +1158,7 @@ static inline void Vec3_Tangents(const vec3_t normal, const vec3_t sdir, const v
 }
 
 /**
- * @brief
+ * @brief Computes the sine and cosine of `rad` simultaneously.
  */
 static inline void SinCosf(const float rad, float *s, float *c) {
   *s = sinf(rad);

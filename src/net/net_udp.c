@@ -149,7 +149,7 @@ bool Net_ReceiveDatagram(net_src_t source, net_addr_t *from, mem_buf_t *buf) {
 }
 
 /**
- * @brief
+ * @brief Enqueues a datagram directly into the opposing side's loopback receive queue.
  */
 static bool Net_SendDatagram_Loop(net_src_t source, const void *data, size_t len) {
   net_udp_loop_t *loop = &net_udp_state.loops[source ^ 1];

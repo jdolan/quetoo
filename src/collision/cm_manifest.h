@@ -27,10 +27,10 @@
  * @brief Status of a manifest entry, used by the installer to track update state.
  */
 typedef enum {
-	ENTRY_CURRENT,
-	ENTRY_PENDING,
-	ENTRY_DOWNLOADING,
-	ENTRY_STALE,
+	ENTRY_CURRENT,     ///< The local file matches the manifest entry.
+	ENTRY_PENDING,     ///< The entry has not yet been checked against the local file.
+	ENTRY_DOWNLOADING, ///< The entry is currently being downloaded.
+	ENTRY_STALE,       ///< The local file is missing or has a mismatched hash.
 } cm_manifest_entry_status_t;
 
 /**
@@ -38,10 +38,10 @@ typedef enum {
  * @details Fields are ordered to match the on-disk format: <hash> <size> <path>
  */
 typedef struct {
-	char hash[MAX_QPATH];
-	int64_t size;
-	char path[MAX_QPATH];
-	cm_manifest_entry_status_t status;
+	char hash[MAX_QPATH];              ///< MD5 hex digest of the file contents.
+	int64_t size;                      ///< File size in bytes.
+	char path[MAX_QPATH];              ///< Asset path used as the table key (e.g. "maps/edge.bsp").
+	cm_manifest_entry_status_t status; ///< Current update status of this entry.
 } cm_manifest_entry_t;
 
 /**

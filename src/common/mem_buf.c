@@ -24,7 +24,7 @@
 #include "mem_buf.h"
 
 /**
- * @brief
+ * @brief Initializes a fixed-size memory buffer backed by the given data array.
  */
 void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
 
@@ -35,7 +35,7 @@ void Mem_InitBuffer(mem_buf_t *buf, byte *data, size_t len) {
 }
 
 /**
- * @brief
+ * @brief Resets the buffer's write position to zero and clears the overflow flag.
  */
 void Mem_ClearBuffer(mem_buf_t *buf) {
 
@@ -44,7 +44,9 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
 }
 
 /**
- * @brief
+ * @brief Advances the write cursor by `len` bytes and returns a pointer to the newly reserved region.
+ * @details If `allow_overflow` is set and the buffer would overflow, the buffer is cleared first.
+ *   Aborts if the buffer does not have `allow_overflow` set and an overflow would occur.
  */
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
   void *data;
@@ -74,7 +76,7 @@ void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
 }
 
 /**
- * @brief
+ * @brief Copies `len` bytes from `data` into the next available region of the buffer.
  */
 void Mem_WriteBuffer(mem_buf_t *buf, const void *data, size_t len) {
   memcpy(Mem_AllocBuffer(buf, len), data, len);

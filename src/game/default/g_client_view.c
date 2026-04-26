@@ -455,7 +455,7 @@ void G_ClientEndFrame(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Finalizes all client frames and applies chase camera state.
  */
 void G_EndClientFrames(void) {
 

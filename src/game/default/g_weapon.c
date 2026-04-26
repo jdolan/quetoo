@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief
+ * @brief Switches the client to a new weapon, animating the deselect/select sequence.
  */
 static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
 
@@ -73,7 +73,8 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
 }
 
 /**
- * @brief
+ * @brief Gives the client the weapon item if eligible, staying it in place if g_weapon_stay is set.
+ * @return True if the weapon was successfully picked up, false otherwise.
  */
 bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {
 
@@ -141,7 +142,7 @@ static bool G_HasWeapon(const g_client_t *cl, const g_item_t *weapon) {
 }
 
 /**
- * @brief
+ * @brief Selects the best available weapon for the client, preferring more powerful options.
  */
 void G_UseBestWeapon(g_client_t *cl) {
 
@@ -175,7 +176,7 @@ void G_UseBestWeapon(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Initiates a weapon change to @p item, or toggles back to the previous weapon if already active.
  */
 void G_UseWeapon(g_client_t *cl, const g_item_t *item) {
 
@@ -301,7 +302,7 @@ static bool G_FireWeapon(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Plays the activation or ambient sound for the client's currently held tech powerup.
  */
 void G_PlayTechSound(g_client_t *cl) {
 
@@ -322,7 +323,7 @@ void G_PlayTechSound(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Records that the weapon was fired, decrementing ammo and advancing the attack animation.
  */
 static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_needed) {
 
@@ -361,7 +362,7 @@ static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_neede
 }
 
 /**
- * @brief
+ * @brief Runs weapon state logic for the client each frame, including firing, switching, and animations.
  */
 void G_ClientWeaponThink(g_client_t *cl) {
 
@@ -421,7 +422,7 @@ void G_ClientWeaponThink(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Broadcasts a muzzle flash event for the entity's current weapon.
  */
 static void G_MuzzleFlash(g_entity_t *ent, g_muzzle_flash_t flash) {
 
@@ -564,7 +565,7 @@ void G_HookThink(g_client_t *cl, const bool refire) {
 }
 
 /**
- * @brief
+ * @brief Fires a blaster bolt from the client's weapon.
  */
 void G_FireBlaster(g_client_t *cl) {
 
@@ -583,7 +584,7 @@ void G_FireBlaster(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a spread of pellets from the shotgun.
  */
 void G_FireShotgun(g_client_t *cl) {
 
@@ -603,7 +604,7 @@ void G_FireShotgun(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a wider, denser spread of pellets from the super shotgun.
  */
 void G_FireSuperShotgun(g_client_t *cl) {
 
@@ -623,7 +624,7 @@ void G_FireSuperShotgun(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a single machinegun bullet with random spread.
  */
 void G_FireMachinegun(g_client_t *cl) {
 
@@ -642,8 +643,8 @@ void G_FireMachinegun(g_client_t *cl) {
   }
 }
 
-/*
- *  Create a grenade entity that will follow the player while playing the ticking sound.
+/**
+ * @brief Spawns a grenade entity attached to the client that ticks until thrown or released.
  */
 static void G_PullGrenadePin(g_client_t *cl) {
   g_entity_t *nade = G_AllocEntity(__func__);
@@ -685,7 +686,7 @@ static bool G_CheckGrenadeHold(g_client_t *cl, uint32_t buttons) {
 }
 
 /**
- * @brief
+ * @brief Handles hand grenade pin-pulling, priming, and throwing logic.
  */
 void G_FireHandGrenade(g_client_t *cl) {
 
@@ -791,7 +792,7 @@ void G_FireHandGrenade(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a bouncing grenade from the grenade launcher.
  */
 void G_FireGrenadeLauncher(g_client_t *cl) {
 
@@ -811,7 +812,7 @@ void G_FireGrenadeLauncher(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a rocket from the rocket launcher.
  */
 void G_FireRocketLauncher(g_client_t *cl) {
 
@@ -831,7 +832,7 @@ void G_FireRocketLauncher(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a hyperblaster bolt.
  */
 void G_FireHyperblaster(g_client_t *cl) {
 
@@ -850,7 +851,7 @@ void G_FireHyperblaster(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a continuous lightning beam, dealing damage along its path.
  */
 void G_FireLightning(g_client_t *cl) {
 
@@ -878,7 +879,7 @@ void G_FireLightning(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Fires a railgun slug that instantly hits the first target along its path.
  */
 void G_FireRailgun(g_client_t *cl) {
 
@@ -898,7 +899,7 @@ void G_FireRailgun(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Think callback that detonates an in-flight BFG ball on expiry or target impact.
  */
 static void G_FireBfg_(g_entity_t *ent) {
 
@@ -925,7 +926,7 @@ static void G_FireBfg_(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fires a BFG energy ball that damages everything along its flight path.
  */
 void G_FireBfg(g_client_t *cl) {
 

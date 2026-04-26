@@ -26,7 +26,7 @@
 #define SHOOTABLE 0x2
 
 /**
- * @brief
+ * @brief Initializes a trigger entity, setting its move direction, solid type, and model.
  */
 static void G_Trigger_Init(g_entity_t *ent) {
 
@@ -48,7 +48,7 @@ static void G_trigger_multiple_Wait(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Called after the wait period expires, re-enabling the trigger for another activation.
  */
 static void G_trigger_multiple_Think(g_entity_t *ent) {
 
@@ -69,7 +69,7 @@ static void G_trigger_multiple_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fires the trigger's targets after the optional delay, then resets or removes the trigger.
  */
 static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
                                    g_entity_t *activator) {
@@ -80,7 +80,7 @@ static void G_trigger_multiple_Use(g_entity_t *ent, g_entity_t *other,
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a trigger_multiple, delegating to the think function.
  */
 static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -108,7 +108,7 @@ static void G_trigger_multiple_Touch(g_entity_t *ent, g_entity_t *other, const c
 }
 
 /**
- * @brief
+ * @brief Handles touch events on a trigger_multiple, activating it when a qualifying entity enters.
  */
 static void G_trigger_multiple_Enable(g_entity_t *ent, g_entity_t *other,
                                       g_entity_t *activator) {
@@ -179,7 +179,7 @@ void G_trigger_once(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Enables a previously dormant triggered trigger, making it solid and ready to activate.
  */
 static void G_trigger_relay_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
@@ -223,7 +223,7 @@ void G_trigger_always(g_entity_t *ent) {
 #define PUSH_EFFECT 2
 
 /**
- * @brief
+ * @brief Handles touch events on a trigger_push, applying velocity to the touching entity.
  */
 static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -303,7 +303,7 @@ void G_trigger_push(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a trigger_hurt, toggling its solidity on or off.
  */
 static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
@@ -321,7 +321,7 @@ static void G_trigger_hurt_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *a
 }
 
 /**
- * @brief
+ * @brief Handles touch events on a trigger_hurt, dealing damage to entities that enter it.
  */
 static void G_trigger_hurt_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -415,7 +415,7 @@ void G_trigger_hurt(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles touch events on a trigger_exec, executing a console command or script.
  */
 static void G_trigger_exec_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 

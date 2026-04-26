@@ -56,7 +56,7 @@ static void Sv_New_f(void) {
 }
 
 /**
- * @brief
+ * @brief Sends config strings to a connecting client in batches.
  */
 static void Sv_ConfigStrings_f(void) {
   uint32_t start;
@@ -112,7 +112,7 @@ static void Sv_ConfigStrings_f(void) {
 }
 
 /**
- * @brief
+ * @brief Sends entity baseline states to a connecting client in batches.
  */
 static void Sv_Baselines_f(void) {
   uint32_t start;
@@ -158,7 +158,7 @@ static void Sv_Baselines_f(void) {
 }
 
 /**
- * @brief
+ * @brief Transitions a connected client to the active state and spawns them in-game.
  */
 static void Sv_Begin_f(void) {
 

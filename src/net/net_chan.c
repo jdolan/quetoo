@@ -289,7 +289,7 @@ bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
 }
 
 /**
- * @brief
+ * @brief Initializes the network channel subsystem, the global message buffer, and debug cvars.
  */
 void Netchan_Init(void) {
 
@@ -302,7 +302,7 @@ void Netchan_Init(void) {
 }
 
 /**
- * @brief
+ * @brief Shuts down the network channel subsystem and releases all socket resources.
  */
 void Netchan_Shutdown(void) {
 

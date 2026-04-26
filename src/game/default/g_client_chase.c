@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief
+ * @brief Updates a spectating client's chase camera state to mirror their target.
  */
 void G_ClientChaseThink(g_client_t *cl) {
 
@@ -70,7 +70,7 @@ void G_ClientChaseThink(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Advances the chase camera to the next living player.
  */
 void G_ClientChaseNext(g_client_t *cl) {
 
@@ -100,7 +100,7 @@ void G_ClientChaseNext(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Moves the chase camera back to the previous living player.
  */
 void G_ClientChasePrevious(g_client_t *cl) {
 

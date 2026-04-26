@@ -43,15 +43,15 @@ typedef struct EntityViewControllerInterface EntityViewControllerInterface;
  */
 struct EntityViewController {
 
-  ViewController viewController; ///< The superclass.
+  ViewController viewController;            ///< The superclass.
   EntityViewControllerInterface *interface; ///< The interface. @private
 
-  StackView *pairs; ///< The StackView containing the entity key-value pairs.
-  StackView *teamPairs; ///< The StackView containing the team entity key-value pairs.
-  EntityView *add; ///< The EntityView for adding a new key-value pair to the current entity.
-  EntityView *teamAdd; ///< The EntityView for adding a new key-value pair to the current team entity.
-  EditorEntity entity; ///< The entity being edited.
-  EditorEntity teamEntity; ///< The team entity being edited.
+  StackView *pairs;                         ///< The StackView containing the entity key-value pairs.
+  StackView *teamPairs;                     ///< The StackView containing the team entity key-value pairs.
+  EntityView *add;                          ///< The EntityView for adding a new key-value pair to the current entity.
+  EntityView *teamAdd;                      ///< The EntityView for adding a new key-value pair to the current team entity.
+  EditorEntity entity;                      ///< The entity being edited.
+  EditorEntity teamEntity;                  ///< The team entity being edited.
 
   /**
    * @brief The info string of the most recently created entity. When this entity returns to us

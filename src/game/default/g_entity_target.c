@@ -47,7 +47,7 @@ static void G_target_light_Cycle(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Handles use activation of a target_light, toggling or cycling the light after an optional delay.
  */
 static void G_target_light_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 
@@ -111,7 +111,7 @@ void G_target_light(g_entity_t *ent) {
 #define SPEAKER_LOOP (SPEAKER_LOOP_ON | SPEAKER_LOOP_OFF)
 
 /**
- * @brief
+ * @brief Handles use activation of a target_speaker, toggling looping sounds or playing a one-shot sound.
  */
 static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t *activator) {
 

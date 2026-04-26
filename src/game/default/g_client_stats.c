@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief
+ * @brief Moves a client to the intermission position and freezes their input.
  */
 void G_ClientToIntermission(g_client_t *cl) {
 
@@ -311,7 +311,7 @@ void G_ClientStats(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Updates the player stats HUD for a spectating client.
  */
 void G_ClientSpectatorStats(g_client_t *cl) {
 

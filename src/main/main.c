@@ -53,7 +53,7 @@ static void Verbose(const char *msg);
 static void Warn(const char *msg);
 
 /**
- * @brief
+ * @brief Console command to set or toggle active debug categories.
  */
 static void Debug_f(void) {
 
@@ -209,7 +209,7 @@ static void Warn(const char *msg) {
 }
 
 /**
- * @brief
+ * @brief Console command to cleanly shut down the engine.
  */
 static void Quit_f(void) __attribute__((noreturn));
 static void Quit_f(void) {
@@ -237,7 +237,7 @@ static const char *mem_tag_names[MEM_TAG_TOTAL] = {
 };
 
 /**
- * @brief
+ * @brief Console command to print a per-tag memory usage breakdown.
  */
 static void MemStats_f(void) {
 
@@ -276,7 +276,7 @@ static void MemStats_f(void) {
 }
 
 /**
- * @brief
+ * @brief Initializes all engine subsystems in dependency order.
  */
 static void Init(void) {
 
@@ -392,7 +392,7 @@ static void Shutdown(const char *msg) {
 }
 
 /**
- * @brief
+ * @brief Runs one engine frame, executing queued commands and ticking all subsystems.
  */
 static void Frame(const uint32_t msec) {
 

@@ -56,7 +56,7 @@ static cm_dictionary_t cm_contents_dict[] = {
 };
 
 /**
- * @brief
+ * @brief Parses a contents flag string into a contents bitmask.
  */
 static int32_t Cm_ParseContents(const char *c) {
 
@@ -72,7 +72,7 @@ static int32_t Cm_ParseContents(const char *c) {
 }
 
 /**
- * @brief
+ * @brief Serializes a contents bitmask to a space-separated keyword string.
  */
 static char *Cm_UnparseContents(int32_t contents) {
   static char s[MAX_STRING_CHARS];
@@ -106,7 +106,7 @@ static cm_dictionary_t cm_surfaceList[] = {
 };
 
 /**
- * @brief
+ * @brief Parses a surface flag string into a surface bitmask.
  */
 static int32_t Cm_ParseSurface(const char *c) {
 
@@ -122,7 +122,7 @@ static int32_t Cm_ParseSurface(const char *c) {
 }
 
 /**
- * @brief
+ * @brief Serializes a surface bitmask to a space-separated keyword string.
  */
 static char *Cm_UnparseSurface(int32_t surface) {
   static char s[MAX_STRING_CHARS];
@@ -151,7 +151,7 @@ static cm_dictionary_t cm_blendConstList[] = {
 };
 
 /**
- * @brief
+ * @brief Returns the OpenGL blend constant for the given keyword string.
  */
 static inline GLenum Cm_BlendConstByName(const char *c) {
   
@@ -166,7 +166,7 @@ static inline GLenum Cm_BlendConstByName(const char *c) {
 }
 
 /**
- * @brief
+ * @brief Returns the keyword string for the given OpenGL blend constant.
  */
 static inline const char *Cm_BlendNameByConst(const GLenum c) {
   
@@ -181,7 +181,7 @@ static inline const char *Cm_BlendNameByConst(const GLenum c) {
 }
 
 /**
- * @brief
+ * @brief Emits a parse warning with file position for the given material.
  */
 static void Cm_MaterialWarn(const cm_material_t *m, const parser_t *parser, const char *message) {
   Com_Warn("%s: Syntax error (Ln %u Col %u)\n", m->path, parser->position.row + 1, parser->position.col);
@@ -192,7 +192,7 @@ static void Cm_MaterialWarn(const cm_material_t *m, const parser_t *parser, cons
 }
 
 /**
- * @brief
+ * @brief Parses a stage block from the material parser into the given stage.
  */
 static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
   char token[MAX_TOKEN_CHARS];
@@ -582,7 +582,7 @@ void Cm_MaterialBasename(const char *in, char *out, size_t len) {
 }
 
 /**
- * @brief
+ * @brief Appends a stage to the end of the material's stage list.
  */
 static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
 
@@ -598,7 +598,7 @@ static void Cm_AppendStage(cm_material_t *m, cm_stage_t *s) {
 }
 
 /**
- * @brief
+ * @brief Returns the zero-based index of the stage within the material, or -1.
  */
 static int32_t Cm_StageIndex(const cm_material_t *m, const cm_stage_t *stage) {
   int32_t i = 0;
@@ -899,7 +899,7 @@ static bool Cm_ResolveAsset(cm_asset_t *asset, cm_asset_context_t context) {
 }
 
 /**
- * @brief
+ * @brief Resolves the frame assets for an animation stage.
  */
 static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t context) {
 
@@ -939,7 +939,7 @@ static bool Cm_ResolveStageAnimation(cm_stage_t *stage, cm_asset_context_t conte
 }
 
 /**
- * @brief
+ * @brief Resolves all asset references within the given stage.
  */
 static bool Cm_ResolveStageAssets(cm_material_t *material, cm_stage_t *stage, cm_asset_context_t context) {
 
@@ -1036,7 +1036,7 @@ static int32_t Cm_ResolveFootsteps_Compare(const void *a, const void *b) {
 }
 
 /**
- * @brief Resolves
+ * @brief Resolves footstep audio sample assets for the given footsteps definition.
  */
 static void Cm_ResolveFootsteps(cm_footsteps_t *footsteps) {
 

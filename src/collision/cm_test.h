@@ -24,29 +24,73 @@
 #include "cm_types.h"
 
 /**
- * @return The distance from `point` to `plane`.
+ * @brief Returns the distance from `point` to `plane`.
+ * @return The signed distance; positive is in front, negative is behind.
  */
 static inline float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t *plane) {
   return Vec3_Dot(point, plane->normal) - plane->dist;
 }
 
+/**
+ * @brief Returns the PLANE_* type constant for the given normal vector.
+ */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
+
+/**
+ * @brief Returns the sign-bits mask for the given normal vector (used for fast BSP traversal).
+ */
 int32_t Cm_SignBitsForNormal(const vec3_t normal);
 
+/**
+ * @brief Constructs a cm_bsp_plane_t from a normal and distance.
+ */
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
+
+/**
+ * @brief Transforms a plane by the given 4x4 matrix.
+ */
 cm_bsp_plane_t Cm_TransformPlane(const mat4_t matrix, const cm_bsp_plane_t plane);
 
+/**
+ * @brief Projects a point onto the plane, returning the nearest point on the plane surface.
+ */
 vec3_t Cm_ProjectPointToPlane(const vec3_t point, const cm_bsp_plane_t *plane);
 
+/**
+ * @brief Returns the side(s) of the plane that the bounding box intersects.
+ */
 int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *plane);
+
+/**
+ * @brief Returns true if the point lies inside (or on) all sides of the brush.
+ */
 bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush);
 
+/**
+ * @brief Allocates a temporary hull for the given axis-aligned bounding box.
+ * @return The head node number for the box hull.
+ */
 int32_t Cm_SetBoxHull(const box3_t bounds, const int32_t contents);
 
+/**
+ * @brief Returns the leaf number containing the given point.
+ */
 int32_t Cm_PointLeafnum(const vec3_t p, int32_t head_node);
+
+/**
+ * @brief Returns the contents mask at the given point in the BSP tree.
+ */
 int32_t Cm_PointContents(const vec3_t p, int32_t head_node, const mat4_t inverse_matrix);
 
+/**
+ * @brief Fills list[] with leaf numbers that overlap the bounding box.
+ * @return The number of leaves written to list[].
+ */
 size_t Cm_BoxLeafnums(const box3_t bounds, int32_t *list, size_t length, int32_t *top_node, int32_t head_node);
+
+/**
+ * @brief Returns the combined contents mask for all BSP leaves overlapping the bounding box.
+ */
 int32_t Cm_BoxContents(const box3_t bounds, int32_t head_node);
 
 #if defined(__CM_LOCAL_H__)

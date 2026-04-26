@@ -188,7 +188,7 @@ static void G_BulletImpact(const cm_trace_t *trace) {
 }
 
 /**
- * @brief
+ * @brief Touch callback for the blaster projectile; deals energy damage and emits an impact effect.
  */
 static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -234,7 +234,7 @@ static void G_BlasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const 
 }
 
 /**
- * @brief
+ * @brief Fires a blaster projectile from the specified entity in the given direction.
  */
 void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
 
@@ -267,7 +267,7 @@ void G_BlasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 }
 
 /**
- * @brief
+ * @brief Fires a single bullet projectile with randomized spread, dealing damage and emitting impact effects.
  */
 void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod) {
 
@@ -317,7 +317,7 @@ void G_BulletProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 }
 
 /**
- * @brief
+ * @brief Fires multiple bullet projectiles to simulate shotgun pellet spread.
  */
 void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t count, int32_t mod) {
 
@@ -330,7 +330,7 @@ void G_ShotgunProjectiles(g_entity_t *ent, const vec3_t start, const vec3_t dir,
 #define HAND_GRENADE_HELD 2
 
 /**
- * @brief
+ * @brief Detonates a grenade projectile, dealing direct and splash radius damage.
  */
 static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
   int32_t mod;
@@ -376,7 +376,7 @@ static void G_GrenadeProjectile_Explode(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Touch callback for the grenade projectile; bounces off structures or explodes on contact with damageable entities.
  */
 void G_GrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -417,7 +417,7 @@ void G_GrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trac
 }
 
 /**
- * @brief
+ * @brief Fires a grenade projectile with bounce physics and a timed fuse.
  */
 void G_GrenadeProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius, uint32_t timer) {
 
@@ -511,7 +511,7 @@ void G_HandGrenadeProjectile(g_entity_t *ent, g_entity_t *projectile, vec3_t con
 }
 
 /**
- * @brief
+ * @brief Touch callback for the rocket projectile; deals direct and radius explosion damage on impact.
  */
 static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -558,7 +558,7 @@ static void G_RocketProjectile_Touch(g_entity_t *ent, g_entity_t *other, const c
 }
 
 /**
- * @brief
+ * @brief Fires a rocket projectile that explodes with radius damage on impact.
  */
 void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
@@ -595,7 +595,7 @@ void G_RocketProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, i
 }
 
 /**
- * @brief
+ * @brief Touch callback for the hyperblaster projectile; deals energy damage and handles hyperblaster climb mechanics.
  */
 static void G_HyperblasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -663,7 +663,7 @@ static void G_HyperblasterProjectile_Touch(g_entity_t *ent, g_entity_t *other, c
 }
 
 /**
- * @brief
+ * @brief Fires a hyperblaster energy projectile in the given direction.
  */
 void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback) {
 
@@ -696,7 +696,7 @@ void G_HyperblasterProjectile(g_entity_t *ent, const vec3_t start, const vec3_t 
 }
 
 /**
- * @brief
+ * @brief Discharges the lightning gun into water, killing the owner and dealing scaled damage to all nearby entities.
  */
 static void G_LightningProjectile_Discharge(g_entity_t *ent) {
 
@@ -752,7 +752,7 @@ static void G_LightningProjectile_Discharge(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Returns true if the lightning projectile should expire due to timeout or owner death.
  */
 static bool G_LightningProjectile_Expire(g_entity_t *ent) {
 
@@ -768,7 +768,7 @@ static bool G_LightningProjectile_Expire(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Think callback for the lightning projectile; updates beam endpoints, handles water entry, and deals damage each tick.
  */
 static void G_LightningProjectile_Think(g_entity_t *ent) {
   vec3_t forward, right, up;
@@ -866,7 +866,7 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Creates or updates the lightning beam projectile entity for the given owner.
  */
 void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage, int32_t knockback) {
 
@@ -911,7 +911,7 @@ void G_LightningProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir
 }
 
 /**
- * @brief
+ * @brief Fires a railgun slug that traces through multiple targets, dealing damage to each.
  */
 void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t damage,
              int32_t knockback) {
@@ -998,7 +998,7 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
 }
 
 /**
- * @brief
+ * @brief Touch callback for the BFG projectile; deals energy and radius blast damage on impact.
  */
 static void G_BfgProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -1044,7 +1044,7 @@ static void G_BfgProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
 }
 
 /**
- * @brief
+ * @brief Think callback for the BFG projectile; deals continuous radius laser damage to nearby entities each tick.
  */
 static void G_BfgProjectile_Think(g_entity_t *ent) {
 
@@ -1100,7 +1100,7 @@ static void G_BfgProjectile_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fires a BFG projectile with continuous area-effect damage and a large on-impact explosion.
  */
 void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int32_t speed, int32_t damage, int32_t knockback, float damage_radius) {
 
@@ -1132,7 +1132,7 @@ void G_BfgProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, int3
 }
 
 /**
- * @brief
+ * @brief Touch callback for the hook projectile; attaches to structural surfaces or deals damage and detaches on hitting enemies.
  */
 static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 
@@ -1222,7 +1222,7 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 }
 
 /**
- * @brief
+ * @brief Think callback for the hook cable trail; updates beam endpoints and detaches if the hook exceeds maximum range.
  */
 static void G_HookTrail_Think(g_entity_t *ent) {
 
@@ -1250,7 +1250,7 @@ static void G_HookTrail_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Think callback for the hook projectile; tracks attached movers and updates the hook position each tick.
  */
 static void G_HookProjectile_Think(g_entity_t *ent) {
 
@@ -1302,7 +1302,7 @@ static void G_HookProjectile_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Fires a grappling hook projectile from the specified entity in the given direction.
  */
 g_entity_t *G_HookProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir) {
   g_entity_t *projectile = G_AllocEntity(__func__);

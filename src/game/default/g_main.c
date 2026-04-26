@@ -151,7 +151,7 @@ static const struct {
 };
 
 /**
- * @brief
+ * @brief Initializes a team slot with the given id, name, shirt color, hue, and effect.
  */
 static void G_InitTeam(const g_team_id_t id, const char *name,
              const char *shirt,
@@ -185,7 +185,7 @@ static void G_InitTeam(const g_team_id_t id, const char *name,
 }
 
 /**
- * @brief
+ * @brief Resets all teams from their cvar-configured values and updates the configstring.
  */
 void G_ResetTeams(void) {
 
@@ -408,7 +408,7 @@ static void G_RestartGame(bool teamz) {
 }
 
 /**
- * @brief
+ * @brief Sets or clears the muted flag on the named client.
  */
 void G_MuteClient(char *name, bool mute) {
   g_client_t *cl;
@@ -421,7 +421,8 @@ void G_MuteClient(char *name, bool mute) {
 }
 
 /**
- * @brief
+ * @brief Starts an intermission sequence, moving all clients to the intermission viewpoint
+ * and selecting the next map.
  */
 static void G_BeginIntermission(const char *map) {
 
@@ -480,7 +481,8 @@ static void G_EndLevel(void) {
 }
 
 /**
- * @brief
+ * @brief Formats a millisecond time value as a "MM:SS" string, highlighting countdowns.
+ * @return A static formatted time string.
  */
 static char *G_FormatTime(uint32_t time) {
   static char formatted_time[MAX_QPATH];
@@ -504,7 +506,8 @@ static char *G_FormatTime(uint32_t time) {
 }
 
 /**
- * @brief
+ * @brief Inspects and enforces gameplay rules each server frame, including frag/capture/time
+ * limits and live cvar-driven gameplay changes.
  */
 static void G_CheckRules(void) {
   bool restart = false;
@@ -815,7 +818,7 @@ static void G_CheckRules(void) {
 }
 
 /**
- * @brief
+ * @brief Console command handler that loads the next map after an intermission.
  */
 static void G_NextMap_f(void) {
 
@@ -1087,8 +1090,8 @@ void G_Shutdown(void) {
   gi.FreeTag(MEM_TAG_GAME);
 }
 
-/*
- * Timer based stuff for the game (clock, countdowns, timeouts, etc)
+/**
+ * @brief Handles clock, countdown, and timeout timers for the current level.
  */
 void G_RunTimers(void) {
   uint32_t time = g_level.time;

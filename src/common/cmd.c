@@ -92,7 +92,7 @@ void Cbuf_InsertText(const char *text) {
 }
 
 /**
- * @brief
+ * @brief Copies the current command buffer to the deferred slot and clears the primary buffer.
  */
 void Cbuf_CopyToDefer(void) {
 
@@ -104,7 +104,7 @@ void Cbuf_CopyToDefer(void) {
 }
 
 /**
- * @brief
+ * @brief Inserts the contents of the deferred buffer at the front of the command buffer.
  */
 void Cbuf_InsertFromDefer(void) {
 
@@ -668,7 +668,7 @@ static void Cmd_Wait_f(void) {
 }
 
 /**
- * @brief
+ * @brief Frees a GQueue value stored in the command hash table.
  */
 static void Cmd_HashTable_Free(gpointer list) {
 

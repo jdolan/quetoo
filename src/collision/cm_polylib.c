@@ -26,7 +26,7 @@
 static SDL_AtomicInt c_windings;
 
 /**
- * @brief
+ * @brief Allocates a winding for the given number of points.
  */
 cm_winding_t *Cm_AllocWinding(int32_t num_points) {
 
@@ -36,7 +36,7 @@ cm_winding_t *Cm_AllocWinding(int32_t num_points) {
 }
 
 /**
- * @brief
+ * @brief Frees the given winding.
  */
 void Cm_FreeWinding(cm_winding_t *w) {
 
@@ -46,7 +46,7 @@ void Cm_FreeWinding(cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Returns a copy of the given winding.
  */
 cm_winding_t *Cm_CopyWinding(const cm_winding_t *w) {
 
@@ -60,7 +60,7 @@ cm_winding_t *Cm_CopyWinding(const cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Returns a new winding with its points in reverse order.
  */
 cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
 
@@ -75,14 +75,14 @@ cm_winding_t *Cm_ReverseWinding(const cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Returns the AABB enclosing all points of the winding.
  */
 box3_t Cm_WindingBounds(const cm_winding_t *w) {
   return Box3_FromPoints(w->points, w->num_points);
 }
 
 /**
- * @brief
+ * @brief Returns the centroid of the winding.
  */
 vec3_t Cm_WindingCenter(const cm_winding_t *w) {
 
@@ -96,7 +96,7 @@ vec3_t Cm_WindingCenter(const cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Returns the surface area of the winding.
  */
 float Cm_WindingArea(const cm_winding_t *w) {
   float area = 0.0;
@@ -147,7 +147,7 @@ float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir) {
 }
 
 /**
- * @brief
+ * @brief Computes the plane equation for the given winding's points.
  */
 void Cm_PlaneForWinding(const cm_winding_t *w, vec3_t *normal, double *dist) {
 
@@ -267,7 +267,7 @@ cm_winding_t *Cm_WindingForFace(const bsp_file_t *file, const bsp_face_t *face) 
 }
 
 /**
- * @brief
+ * @brief Creates a winding for the given brush side, clipped to its brush.
  */
 cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_side_t *brush_side) {
 
@@ -305,7 +305,7 @@ cm_winding_t *Cm_WindingForBrushSide(const bsp_file_t *file, const bsp_brush_sid
 }
 
 /**
- * @brief
+ * @brief Removes duplicate adjacent points and frees degenerate windings.
  */
 static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
 
@@ -332,7 +332,7 @@ static cm_winding_t *Cm_FixWinding(cm_winding_t *w) {
 }
 
 /**
- * @brief
+ * @brief Splits the winding by the given plane into front and back components.
  */
 void Cm_SplitWinding(const cm_winding_t *in, const vec3_t normal, double dist, double epsilon,
             cm_winding_t **front, cm_winding_t **back) {
@@ -863,7 +863,7 @@ void Cm_Tangents(cm_vertex_t *vertexes, int32_t base_vertex, int32_t num_vertexe
 }
 
 /**
- * @brief
+ * @brief Clips an AABB to the positive half-space of the given plane.
  */
 box3_t Cm_ClipBox(const box3_t in, const vec4_t plane) {
   box3_t out = Box3_Null();

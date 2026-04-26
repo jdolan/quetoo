@@ -77,7 +77,7 @@ static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Returns true if the AI client has line of sight to the target entity.
  */
 static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
 
@@ -102,7 +102,7 @@ static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
 }
 
 /**
- * @brief
+ * @brief Returns true if the given entity is a valid (enemy, alive, boxed) target for the AI.
  */
 static inline bool G_Ai_IsTargetable(const g_client_t *cl, const g_entity_t *other) {
 
@@ -114,7 +114,7 @@ static inline bool G_Ai_IsTargetable(const g_client_t *cl, const g_entity_t *oth
 }
 
 /**
- * @brief
+ * @brief Returns true if the AI can both target and see the given entity.
  */
 static inline bool G_Ai_CanTarget(const g_client_t *cl, const g_entity_t *other) {
   return G_Ai_IsTargetable(cl, other) && G_Ai_CanSee(cl, other);
@@ -126,7 +126,7 @@ static inline bool G_Ai_CanTarget(const g_client_t *cl, const g_entity_t *other)
 #define AI_MAX_ITEM_DISTANCE 768.f
 
 /**
- * @brief
+ * @brief Candidate item considered for AI pickup, weighted by desirability.
  */
 typedef struct {
   const g_entity_t *entity;
@@ -135,7 +135,7 @@ typedef struct {
 } ai_item_pick_t;
 
 /**
- * @brief
+ * @brief Comparison function for sorting item pick candidates by descending weight.
  */
 static int32_t G_Ai_CompareItems(const void *a, const void *b) {
 
@@ -148,7 +148,7 @@ static int32_t G_Ai_CompareItems(const void *a, const void *b) {
 #define AI_ITEM_UNREACHABLE -1.0
 
 /**
- * @brief
+ * @brief Returns the distance to a nearby item, or AI_ITEM_UNREACHABLE if beyond awareness range.
  */
 static float G_Ai_ItemReachable(const g_client_t *cl, const g_entity_t *other) {
 
@@ -359,7 +359,7 @@ typedef enum {
 } ai_range_t;
 
 /**
- * @brief
+ * @brief Classifies a distance value into a discrete range category.
  */
 static ai_range_t G_Ai_GetRange(const float distance) {
   if (distance < RANGE_MELEE) {
@@ -929,9 +929,8 @@ static bool G_Ai_CheckNav(g_client_t *cl, ai_goal_t *goal) {
 }
 
 /**
- * @brief 
+ * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
  */
-static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest) {
   const float path_dist = Vec3_Distance(cl->entity->s.origin, dest);
 
   // wander's distress is handled elsewhere
@@ -990,7 +989,7 @@ static bool G_Ai_GoalDistress(g_client_t *cl, ai_goal_t *goal, const vec3_t dest
 }
 
 /**
- * @brief
+ * @brief Returns true if consecutive nodes at path indices a and b are linked.
  */
 static inline bool G_Ai_Path_IsLinked(const GArray *path, const guint a, const guint b) {
 
@@ -998,9 +997,8 @@ static inline bool G_Ai_Path_IsLinked(const GArray *path, const guint a, const g
 }
 
 /**
- * @brief 
+ * @brief Returns true if the bot is roughly facing the given target (within ~37 degrees).
  */
-static bool G_Ai_FacingTarget(const g_client_t *cl, const vec3_t target) {
   vec3_t sub = Vec3_Subtract(target, cl->entity->s.origin);
   sub.z = 0;
 
@@ -1686,7 +1684,7 @@ void G_Ai_Begin(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Runs the AI think function multiple times per server frame to simulate a real client.
  */
 static void G_Ai_ClientThink(g_entity_t *ent) {
   const int32_t num_runs = 3;
@@ -1706,7 +1704,7 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
 }
 
 /**
- * @brief
+ * @brief Initializes the AI client state and begins its presence in the game world.
  */
 static void G_Ai_ClientBegin(g_client_t *cl) {
 
@@ -1721,7 +1719,7 @@ static void G_Ai_ClientBegin(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Allocates AI state and connects the bot client to the game using a generated user info string.
  */
 static void G_Ai_Connect(g_client_t *cl) {
 
@@ -1737,7 +1735,7 @@ static void G_Ai_Connect(g_client_t *cl) {
 }
 
 /**
- * @brief
+ * @brief Manages the bot population and runs each bot's think function every frame.
  */
 void G_Ai_Frame(void) {
 
@@ -1784,14 +1782,14 @@ void G_Ai_Frame(void) {
 }
 
 /**
- * @brief 
+ * @brief Console command handler to save navigation node data to disk.
  */
 static void G_Ai_SaveNodes_f(void) {
   G_Ai_SaveNodes();
 }
 
 /**
- * @brief
+ * @brief Console command handler to destroy a specific navigation node by ID.
  */
 static void G_Ai_DeleteNode_f(void) {
 
@@ -1804,14 +1802,14 @@ static void G_Ai_DeleteNode_f(void) {
 }
 
 /**
- * @brief
+ * @brief Console command handler to delete all navigation nodes.
  */
 static void G_Ai_DeleteNodes_f(void) {
   G_Ai_DeleteNodes();
 }
 
 /**
- * @brief 
+ * @brief Console command handler that tests pathfinding by routing all bots through a specified path.
  */
 static void G_Ai_TestPath_f(void) {
 
@@ -1889,7 +1887,7 @@ void G_Ai_Shutdown(void) {
 }
 
 /**
- * @brief 
+ * @brief Returns true if the AI subsystem is running in full node development mode.
  */
 bool G_Ai_InDeveloperMode(void) {
 

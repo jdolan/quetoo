@@ -29,7 +29,7 @@ static debug_t Sv_DebugMask(void) {
 }
 
 /**
- * @brief
+ * @brief Forwards debug output from the game module to the common debug system.
  */
 static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt, ...) {
@@ -77,7 +77,7 @@ static void Sv_SetModel(g_entity_t *ent, const char *name) {
 }
 
 /**
- * @brief
+ * @brief Sets a config string by index and multicasts the update to all clients.
  */
 void Sv_SetConfigString(const int32_t index, const char *val) {
 
@@ -109,7 +109,7 @@ void Sv_SetConfigString(const int32_t index, const char *val) {
 }
 
 /**
- * @brief
+ * @brief Returns the config string at the given index.
  */
 const char *Sv_GetConfigString(const int32_t index) {
 
@@ -122,77 +122,77 @@ const char *Sv_GetConfigString(const int32_t index) {
 }
 
 /**
- * @brief
+ * @brief Writes raw data to the server multicast buffer.
  */
 static void Sv_WriteData(const void *data, size_t len) {
   Net_WriteData(&sv.multicast, data, len);
 }
 
 /**
- * @brief
+ * @brief Writes a character to the server multicast buffer.
  */
 static void Sv_WriteChar(const int32_t c) {
   Net_WriteChar(&sv.multicast, c);
 }
 
 /**
- * @brief
+ * @brief Writes a byte to the server multicast buffer.
  */
 static void Sv_WriteByte(const int32_t c) {
   Net_WriteByte(&sv.multicast, c);
 }
 
 /**
- * @brief
+ * @brief Writes a short integer to the server multicast buffer.
  */
 static void Sv_WriteShort(const int32_t c) {
   Net_WriteShort(&sv.multicast, c);
 }
 
 /**
- * @brief
+ * @brief Writes a long integer to the server multicast buffer.
  */
 static void Sv_WriteLong(const int32_t c) {
   Net_WriteLong(&sv.multicast, c);
 }
 
 /**
- * @brief
+ * @brief Writes a string to the server multicast buffer.
  */
 static void Sv_WriteString(const char *s) {
   Net_WriteString(&sv.multicast, s);
 }
 
 /**
- * @brief
+ * @brief Writes a floating-point vector component to the server multicast buffer.
  */
 static void Sv_WriteVector(const float v) {
   Net_WriteFloat(&sv.multicast, v);
 }
 
 /**
- * @brief
+ * @brief Writes a position vector to the server multicast buffer.
  */
 static void Sv_WritePosition(const vec3_t pos) {
   Net_WritePosition(&sv.multicast, pos);
 }
 
 /**
- * @brief
+ * @brief Writes a direction vector to the server multicast buffer.
  */
 static void Sv_WriteDir(const vec3_t dir) {
   Net_WriteDir(&sv.multicast, dir);
 }
 
 /**
- * @brief
+ * @brief Writes an angle value to the server multicast buffer.
  */
 static void Sv_WriteAngle(const float v) {
   Net_WriteAngle(&sv.multicast, v);
 }
 
 /**
- * @brief
+ * @brief Writes an angles vector to the server multicast buffer.
  */
 static void Sv_WriteAngles(const vec3_t angles) {
   Net_WriteAngles(&sv.multicast, angles);

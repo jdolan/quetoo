@@ -29,9 +29,9 @@
  * @brief The depth program.
  */
 typedef struct {
-  GLuint name; ///< The program object name.
+  GLuint name;           ///< The program object name.
   GLuint uniforms_block; ///< The uniforms UBO binding.
-  GLint model; ///< The model matrix uniform location.
+  GLint model;           ///< The model matrix uniform location.
 } r_depth_pass_program_t;
 
 extern r_depth_pass_program_t r_depth_pass_program;

@@ -33,7 +33,7 @@ void R_AddLight(r_view_t *view, const r_light_t *l);
  */
 typedef struct {
   vec4_t origin; ///< The light origin in model space (xyz) and radius (w).
-  vec4_t color; ///< The light color (xyz) and intensity (w).
+  vec4_t color;  ///< The light color (xyz) and intensity (w).
   vec4_t shadow; ///< Shadow atlas tile: xy = base UV origin, z = tile UV size, w = layer index.
 } r_light_uniform_t;
 
@@ -49,7 +49,7 @@ typedef struct {
  * @brief The lights uniform block type.
  */
 typedef struct {
-  GLuint buffer; ///< The uniform buffer name.
+  GLuint buffer;                 ///< The uniform buffer name.
   r_light_uniform_block_t block; ///< The uniform buffer interface block.
 } r_lights_t;
 
