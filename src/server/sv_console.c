@@ -312,6 +312,8 @@ void Sv_InitConsole(void) {
   sv_console_curses.window = initscr();
   sv_console_curses.dirty = true;
 
+  atexit((void (*)(void)) endwin);
+
   cbreak();
   noecho();
   keypad(sv_console_curses.window, TRUE);

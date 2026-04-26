@@ -22,6 +22,7 @@
 #include <SDL3/SDL_timer.h>
 
 #include "sv_local.h"
+#include "common/sys.h"
 
 #define INSTALLER_UPDATE_INTERVAL (4 * 60 * 60 * 1000u) // 4 hours in milliseconds
 
@@ -766,9 +767,11 @@ int32_t Sv_InstallerFrame(const installer_status_t *in) {
     last = *in;
   }
 
+  Sv_DrawConsole();
+
   SDL_Delay(100);
 
-  return in->state >= INSTALLER_DONE;
+  return in->state >= INSTALLER_DONE || sys_signal_received;
 }
 
 /**
