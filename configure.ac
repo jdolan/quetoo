@@ -364,8 +364,8 @@ test "$exec_prefix" = "NONE" && exec_prefix=$prefix
 
 if test "x${prefix}" = "x/"; then
 	eval BINDIR="/bin"
-	eval PKGLIBDIR="/lib"
-	eval PKGDATADIR="/share"
+	eval PKGLIBDIR="/lib/$PACKAGE"
+	eval PKGDATADIR="/share/$PACKAGE"
 else
 	eval BINDIR="$prefix/bin"
 	eval PKGLIBDIR="$prefix/lib/$PACKAGE"
