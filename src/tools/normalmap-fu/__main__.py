@@ -1215,8 +1215,8 @@ class NormalmapFuApp:
     out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
     h, w = normals.shape[:2]
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
-    # Internal pixels are OpenGL/Y-up; convert to engine convention on save.
-    rgba[:, :, :3] = to_engine_normal(normals)
+    # WYSIWYG: save exactly what's shown in the Modified tile.
+    rgba[:, :, :3] = normals
     rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
 
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
@@ -1404,8 +1404,8 @@ def _save_normal_rgba(out_path: Path, normal_rgb: np.ndarray,
   if height_a.shape != (h, w):
     height_a = cv2.resize(height_a, (w, h), interpolation=cv2.INTER_LINEAR)
   rgba = np.zeros((h, w, 4), dtype=np.uint8)
-  # Internal pixels are OpenGL/Y-up; convert to engine convention on save.
-  rgba[:, :, :3] = to_engine_normal(normal_rgb)
+  # WYSIWYG: pipeline already produces the bytes we want on disk.
+  rgba[:, :, :3] = normal_rgb
   rgba[:, :, 3] = height_a
   Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
 
