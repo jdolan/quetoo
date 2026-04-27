@@ -1,0 +1,1221 @@
+#!/usr/bin/env python3
+"""
+Normalmap-fu: comprehensive GUI tool for authoring Quetoo per-pixel material
+assets (diffuse, normalmap+heightmap, specularmap).
+
+Run with:
+    python normalmap-fu/                              # current dir, no args
+    python normalmap-fu/ /path/to/normalmap.png
+    python normalmap-fu/ --directory /path/to/textures/
+
+File conventions
+----------------
+    <base>.jpg | <base>_d.jpg     diffuse map (sRGB)
+    <base>_norm.png               normalmap RGB + heightmap in alpha
+    <base>_spec.jpg               specularmap (greyscale stored as RGB)
+
+The diffuse map is read-only in this tool. The normalmap+heightmap is saved
+as a single RGBA PNG. The specularmap is saved as JPG.
+"""
+
+import concurrent.futures
+import os
+import sys
+from pathlib import Path
+
+import cv2
+import numpy as np
+from PIL import Image, ImageTk
+import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
+
+
+# ---------------------------------------------------------------------------
+# File-naming conventions
+# ---------------------------------------------------------------------------
+
+NORMAL_SUFFIX = "_norm"
+SPEC_SUFFIX = "_spec"
+DIFFUSE_SUFFIXES = ("_d", "")
+
+DIFFUSE_EXTS = (".jpg", ".jpeg", ".png", ".tga")
+NORMAL_EXT = ".png"
+SPEC_EXT = ".jpg"
+
+THUMB_SIZE = 96
+TILE_SIZE = 256
+
+
+def _is_normal_map(path: Path) -> bool:
+  return path.stem.lower().endswith(NORMAL_SUFFIX)
+
+
+def _is_spec_map(path: Path) -> bool:
+  return path.stem.lower().endswith(SPEC_SUFFIX)
+
+
+def _strip_suffix(stem: str, suffix: str) -> str | None:
+  if stem.lower().endswith(suffix):
+    return stem[: len(stem) - len(suffix)]
+  return None
+
+
+def _base_of(path: Path) -> str:
+  """Strip any known suffix (_norm, _spec, _d) from the filename stem."""
+
+  stem = path.stem
+  for suf in (NORMAL_SUFFIX, SPEC_SUFFIX, "_d"):
+    base = _strip_suffix(stem, suf)
+    if base is not None:
+      return base
+  return stem
+
+
+def _find_diffuse(parent: Path, base: str) -> Path | None:
+  for dsuf in DIFFUSE_SUFFIXES:
+    for ext in DIFFUSE_EXTS:
+      candidate = parent / (base + dsuf + ext)
+      if candidate.is_file() and not _is_normal_map(candidate) \
+              and not _is_spec_map(candidate):
+        return candidate
+  return None
+
+
+def _find_normal(parent: Path, base: str) -> Path | None:
+  candidate = parent / (base + NORMAL_SUFFIX + NORMAL_EXT)
+  return candidate if candidate.is_file() else None
+
+
+def _find_spec(parent: Path, base: str) -> Path | None:
+  candidate = parent / (base + SPEC_SUFFIX + SPEC_EXT)
+  return candidate if candidate.is_file() else None
+
+
+# ---------------------------------------------------------------------------
+# Image processing
+# ---------------------------------------------------------------------------
+
+def _to_luminance(rgb: np.ndarray) -> np.ndarray:
+  """Convert uint8 HxWx3 RGB to float32 HxW luminance in [0, 1]."""
+
+  return (np.dot(rgb[:, :, :3].astype(np.float32),
+                 [0.2126, 0.7152, 0.0722]) / 255.0)
+
+
+def _normalize(arr: np.ndarray) -> np.ndarray:
+  """Linearly rescale a float array into [0, 1]."""
+
+  lo, hi = float(arr.min()), float(arr.max())
+  if hi - lo < 1e-6:
+    return np.full_like(arr, 0.5, dtype=np.float32)
+  return ((arr - lo) / (hi - lo)).astype(np.float32)
+
+
+def split_bands(img: np.ndarray, cutoff: float,
+                low_gain: float, high_gain: float) -> np.ndarray:
+  """Frequency-band split with adjustable gains.
+
+  Splits img into a low-frequency band (below cutoff) and a high-frequency
+  band (above cutoff), scales each by its gain, and recombines.
+
+  Parameters
+  ----------
+  img : float32 HxW
+  cutoff : 0..1, normalized frequency where 1.0 is Nyquist.
+           Smaller values keep less low-band detail in the "low" portion.
+  low_gain : multiplier on the low-frequency band
+  high_gain : multiplier on the high-frequency band
+
+  Returns
+  -------
+  float32 HxW reconstructed image (not clipped, not renormalized).
+  """
+
+  if abs(low_gain - 1.0) < 1e-3 and abs(high_gain - 1.0) < 1e-3:
+    return img.astype(np.float32)
+
+  h, w = img.shape
+  F = np.fft.fft2(img.astype(np.float32))
+
+  u = np.fft.fftfreq(w) * 2.0
+  v = np.fft.fftfreq(h) * 2.0
+  uu, vv = np.meshgrid(u, v)
+  radius = np.sqrt(uu * uu + vv * vv)
+
+  sigma = max(cutoff, 0.01)
+  low_mask = np.exp(-(radius * radius) / (2.0 * sigma * sigma))
+  high_mask = 1.0 - low_mask
+
+  F_out = F * (low_gain * low_mask + high_gain * high_mask)
+  return np.real(np.fft.ifft2(F_out)).astype(np.float32)
+
+
+def frankot_chellappa(p: np.ndarray, q: np.ndarray) -> np.ndarray:
+  """Integrate gradients (p, q) into a height field via Frankot-Chellappa."""
+
+  h, w = p.shape
+  P = np.fft.fft2(p)
+  Q = np.fft.fft2(q)
+
+  u = np.fft.fftfreq(w) * 2.0 * np.pi
+  v = np.fft.fftfreq(h) * 2.0 * np.pi
+  uu, vv = np.meshgrid(u, v)
+
+  denom = uu * uu + vv * vv
+  denom[0, 0] = 1.0
+
+  H = (1j * uu * P + 1j * vv * Q) / denom
+  H[0, 0] = 0.0
+
+  return np.real(np.fft.ifft2(H)).astype(np.float32)
+
+
+def attenuate_normals(normals_u8: np.ndarray, strength: float) -> np.ndarray:
+  """Scale the XY of a tangent-space normalmap and renormalize Z."""
+
+  if abs(strength - 1.0) < 1e-3:
+    return normals_u8.copy()
+
+  n = normals_u8.astype(np.float64) / 127.5 - 1.0
+  nx = n[:, :, 0] * strength
+  ny = n[:, :, 1] * strength
+
+  xy_sq = nx * nx + ny * ny
+  too_large = xy_sq > 0.999
+  scale = np.where(too_large, np.sqrt(0.999 / np.maximum(xy_sq, 1e-10)), 1.0)
+  nx *= scale
+  ny *= scale
+
+  nz = np.sqrt(np.maximum(1.0 - nx * nx - ny * ny, 0.0))
+  result = np.stack([nx, ny, nz], axis=2)
+  return np.clip((result + 1.0) * 127.5, 0, 255).astype(np.uint8)
+
+
+def heightmap_from_normals(normals_u8: np.ndarray,
+                           cutoff: float, low_gain: float, high_gain: float,
+                           strength: float, y_flip: bool, invert: bool
+                           ) -> np.ndarray:
+  """Generate a heightmap from an RGB normalmap via Frankot-Chellappa,
+     then apply frequency-band reweighting + contrast strength."""
+
+  n = normals_u8.astype(np.float32) / 127.5 - 1.0
+  nx, ny, nz = n[:, :, 0], n[:, :, 1], np.clip(n[:, :, 2], 0.01, None)
+
+  p = -nx / nz
+  q = -ny / nz
+  if y_flip:
+    q = -q
+
+  height = frankot_chellappa(p, q)
+  height = _normalize(height)
+
+  height = split_bands(height, cutoff, low_gain, high_gain)
+  height = np.clip(height, 0.0, 1.0)
+
+  height = 0.5 + (height - 0.5) * strength
+  height = np.clip(height, 0.0, 1.0)
+
+  if invert:
+    height = 1.0 - height
+
+  return (height * 255.0).astype(np.uint8)
+
+
+def normals_from_diffuse(diffuse_u8: np.ndarray,
+                         strength: float,
+                         cutoff: float, low_gain: float, high_gain: float
+                         ) -> tuple[np.ndarray, np.ndarray]:
+  """Generate a normalmap (and matching heightmap) from a diffuse texture.
+
+  Builds a luminance height field, frequency-band reweights it, then derives
+  tangent-space normals from Sobel gradients. Returns (normals_u8_HxWx3,
+  height_u8_HxW).
+  """
+
+  height = _to_luminance(diffuse_u8)
+  height = split_bands(height, cutoff, low_gain, high_gain)
+  height_norm = _normalize(height)
+  height_u8 = (height_norm * 255.0).astype(np.uint8)
+
+  dx = cv2.Sobel(height_norm, cv2.CV_32F, 1, 0, ksize=3) * strength
+  dy = cv2.Sobel(height_norm, cv2.CV_32F, 0, 1, ksize=3) * strength
+
+  nz = np.ones_like(dx)
+  length = np.sqrt(dx * dx + dy * dy + nz * nz)
+  nx = -dx / length
+  ny = -dy / length
+  nz = nz / length
+
+  normals = np.stack([nx, ny, nz], axis=2)
+  normals_u8 = np.clip((normals + 1.0) * 127.5, 0, 255).astype(np.uint8)
+  return normals_u8, height_u8
+
+
+def normals_from_height(height_u8: np.ndarray, strength: float) -> np.ndarray:
+  """Derive a tangent-space normalmap from a heightmap via Sobel gradients.
+
+  Larger 'strength' steepens the slope (taller bumps).  Output is unit-length.
+  """
+
+  h = height_u8.astype(np.float32) / 255.0
+  dx = cv2.Sobel(h, cv2.CV_32F, 1, 0, ksize=3) * strength
+  dy = cv2.Sobel(h, cv2.CV_32F, 0, 1, ksize=3) * strength
+  nz = np.ones_like(dx)
+  length = np.sqrt(dx * dx + dy * dy + nz * nz)
+  nx = -dx / length
+  ny = -dy / length
+  nz = nz / length
+  normals = np.stack([nx, ny, nz], axis=2)
+  return np.clip((normals + 1.0) * 127.5, 0, 255).astype(np.uint8)
+
+
+def specular_from_diffuse(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
+                          input_black: float, input_white: float,
+                          output_black: float, output_white: float,
+                          cavity_strength: float) -> np.ndarray:
+  """Generate a specularmap from diffuse luminance, darkened by heightmap
+     cavity. Levels are applied Photoshop-style (input range remapped to
+     output range)."""
+
+  lum = _to_luminance(diffuse_u8)
+
+  if height_u8 is not None and cavity_strength > 1e-3:
+    h, w = lum.shape
+    if height_u8.shape != lum.shape:
+      height_resized = cv2.resize(height_u8, (w, h), interpolation=cv2.INTER_LINEAR)
+    else:
+      height_resized = height_u8
+    cavity = height_resized.astype(np.float32) / 255.0
+    lum = lum * (1.0 - cavity_strength * (1.0 - cavity))
+
+  ib = max(0.0, min(input_black, input_white - 1e-3))
+  iw = max(input_white, ib + 1e-3)
+  spec = np.clip((lum - ib) / (iw - ib), 0.0, 1.0)
+  spec = output_black + spec * (output_white - output_black)
+  return np.clip(spec * 255.0, 0, 255).astype(np.uint8)
+
+
+# ---------------------------------------------------------------------------
+# Asset model
+# ---------------------------------------------------------------------------
+
+class Asset:
+  """An on-disk asset and its in-memory modified version, with toggle state."""
+
+  def __init__(self, path: Path | None = None):
+    self.path: Path | None = path
+    self.original: np.ndarray | None = None
+    self.modified: np.ndarray | None = None
+    self.show_modified: tk.BooleanVar | None = None  # bound to UI toggle
+
+  def display(self) -> np.ndarray | None:
+    if self.show_modified is not None and self.show_modified.get() \
+            and self.modified is not None:
+      return self.modified
+    return self.original
+
+
+# ---------------------------------------------------------------------------
+# Application
+# ---------------------------------------------------------------------------
+
+PARAM_GROUPS = {
+  "normal": [
+    ("normal_strength",   "Strength",         0.1,  3.0,    1.0,  False),
+    ("n_freq_cutoff",     "Freq cutoff",      0.01, 2.0,    0.5,  False),
+    ("n_freq_low_gain",   "Low-freq gain",    0.0,  3.0,    1.0,  False),
+    ("n_freq_high_gain",  "High-freq gain",   0.0,  3.0,    1.0,  False),
+    ("n_denoise",         "Denoise (edge-preserving)", 0.0, 50.0, 0.0, False),
+    ("n_slope_gate",      "Slope gate",       0.0,  0.3,    0.0,  False),
+  ],
+  "height": [
+    ("h_strength",        "Strength",         0.1,  4.0,    1.0,  False),
+    ("h_freq_cutoff",     "Freq cutoff",      0.01, 2.0,    0.3,  False),
+    ("h_freq_low_gain",   "Low-freq gain",    0.0,  3.0,    1.0,  False),
+    ("h_freq_high_gain",  "High-freq gain",   0.0,  3.0,    1.0,  False),
+  ],
+  "spec": [
+    ("s_input_black",     "Input black",      0.0,  1.0,    0.0,  False),
+    ("s_input_white",     "Input white",      0.0,  1.0,    1.0,  False),
+    ("s_output_black",    "Output black",     0.0,  1.0,    0.0,  False),
+    ("s_output_white",    "Output white",     0.0,  1.0,    1.0,  False),
+    ("s_cavity_strength", "Cavity strength",  0.0,  1.0,    0.5,  False),
+  ],
+}
+
+
+class NormalmapFuApp:
+  def __init__(self, root: tk.Tk):
+    self.root = root
+    self.root.title("Normalmap-fu")
+    self.root.configure(bg="#2b2b2b")
+    self.root.geometry("1700x1000")
+    self.root.minsize(1100, 750)
+
+    self.diffuse = Asset()
+    self.normal = Asset()
+    self.height = Asset()
+    self.spec = Asset()
+
+    self.base_path: Path | None = None  # parent / base name of current set
+    self.base_name: str | None = None
+
+    self.slider_vars: dict[str, tk.Variable] = {}
+
+    self.y_flip_var = tk.BooleanVar(master=self.root, value=False)
+    self.invert_var = tk.BooleanVar(master=self.root, value=False)
+
+    self._build_ui()
+    self._poll_directory()
+
+  # --------------------------------------------------------------------
+  # UI construction
+  # --------------------------------------------------------------------
+
+  def _build_ui(self):
+    paned = tk.PanedWindow(self.root, orient=tk.VERTICAL, bg="#2b2b2b",
+                           sashwidth=6, sashrelief=tk.RAISED)
+    paned.pack(fill=tk.BOTH, expand=True)
+
+    top_pane = tk.Frame(paned, bg="#2b2b2b")
+    paned.add(top_pane, stretch="always", minsize=600)
+
+    self._build_header(top_pane)
+    self._build_action_bar(top_pane)
+    self._build_controls(top_pane)
+    self._build_tiles(top_pane)
+
+    browser_pane = tk.Frame(paned, bg="#2b2b2b")
+    paned.add(browser_pane, stretch="always", minsize=120)
+    self._build_browser(browser_pane)
+
+  def _build_header(self, parent):
+    hdr = tk.Frame(parent, bg="#2b2b2b")
+    hdr.pack(side=tk.TOP, fill=tk.X, padx=8, pady=(8, 0))
+
+    self.file_var = tk.StringVar(master=self.root,
+                                 value="Select a texture to begin")
+    tk.Label(hdr, textvariable=self.file_var, anchor="w", bg="#2b2b2b",
+             fg="#cccccc", font=("Helvetica", 11, "bold"))\
+      .pack(side=tk.LEFT)
+
+    self.stats_var = tk.StringVar(master=self.root)
+    tk.Label(hdr, textvariable=self.stats_var, anchor="e", bg="#2b2b2b",
+             fg="#888888", font=("Helvetica", 10))\
+      .pack(side=tk.RIGHT)
+
+  def _build_action_bar(self, parent):
+    bar = tk.Frame(parent, bg="#2b2b2b")
+    bar.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(4, 4))
+
+    tk.Button(bar, text="Set directory...", command=self._browse_directory)\
+      .pack(side=tk.LEFT, padx=4)
+
+    self.dir_var = tk.StringVar(master=self.root, value="(no directory)")
+    tk.Label(bar, textvariable=self.dir_var, anchor="w", bg="#2b2b2b",
+             fg="#999999", font=("Helvetica", 10))\
+      .pack(side=tk.LEFT, padx=4)
+
+    tk.Label(bar, text="Filter:", bg="#2b2b2b", fg="#cccccc",
+             font=("Helvetica", 10)).pack(side=tk.LEFT, padx=(12, 2))
+    self.filter_var = tk.StringVar(master=self.root, value="")
+    tk.Entry(bar, textvariable=self.filter_var, width=20,
+             font=("Helvetica", 10)).pack(side=tk.LEFT, padx=2)
+    self._filter_after_id: str | None = None
+    self.filter_var.trace_add("write", lambda *_: self._schedule_filter())
+
+    tk.Button(bar, text="Save Specular", width=14,
+              command=self._save_spec).pack(side=tk.RIGHT, padx=4)
+    tk.Button(bar, text="Save Normal+Height", width=18,
+              command=self._save_normal_height).pack(side=tk.RIGHT, padx=4)
+
+    self.browser_count_var = tk.StringVar(master=self.root)
+    tk.Label(bar, textvariable=self.browser_count_var, anchor="e",
+             bg="#2b2b2b", fg="#888888", font=("Helvetica", 10))\
+      .pack(side=tk.RIGHT, padx=4)
+
+  def _build_controls(self, parent):
+    """Build the tabbed parameter notebook above the tiles."""
+
+    notebook = ttk.Notebook(parent)
+    notebook.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=4)
+
+    # --- Normal tab ---
+    n_tab = tk.Frame(notebook, bg="#2b2b2b")
+    notebook.add(n_tab, text="Normalmap")
+    self._build_param_grid(n_tab, "normal")
+    n_btns = tk.Frame(n_tab, bg="#2b2b2b")
+    n_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+    tk.Button(n_btns, text="Generate normalmap from diffuse",
+              command=self._generate_normal_from_diffuse)\
+      .pack(side=tk.LEFT, padx=(0, 6))
+    tk.Button(n_btns, text="Generate normalmap from heightmap",
+              command=self._generate_normal_from_height)\
+      .pack(side=tk.LEFT)
+
+    # --- Heightmap tab ---
+    h_tab = tk.Frame(notebook, bg="#2b2b2b")
+    notebook.add(h_tab, text="Heightmap")
+    self._build_param_grid(h_tab, "height")
+
+    tk.Button(h_tab, text="Generate heightmap from normalmap",
+              command=self._reprocess_height)\
+      .grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+
+    # --- Specular tab ---
+    s_tab = tk.Frame(notebook, bg="#2b2b2b")
+    notebook.add(s_tab, text="Specularmap")
+    self._build_param_grid(s_tab, "spec")
+    tk.Button(s_tab, text="Generate specularmap from diffuse + height",
+              command=self._reprocess_spec)\
+      .grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+
+  def _build_param_grid(self, parent: tk.Frame, group: str):
+    for row, (key, label, lo, hi, default, is_int) in \
+            enumerate(PARAM_GROUPS[group]):
+      var = tk.IntVar(master=self.root, value=default) if is_int \
+        else tk.DoubleVar(master=self.root, value=default)
+      self.slider_vars[key] = var
+
+      tk.Label(parent, text=label, width=16, anchor="w", bg="#2b2b2b",
+               fg="#cccccc").grid(row=row, column=0, padx=(8, 4), pady=2,
+                                  sticky="w")
+
+      val_label = tk.Label(parent, width=6, anchor="e", bg="#2b2b2b",
+                           fg="#999999")
+      val_label.grid(row=row, column=2, padx=(4, 8))
+
+      def _update(v, vl=val_label, vr=var, is_i=is_int, g=group):
+        vl.config(text=str(int(vr.get())) if is_i else f"{vr.get():.2f}")
+        if g == "normal":
+          self._reprocess_normal()
+        elif g == "height":
+          self._reprocess_height()
+        elif g == "spec":
+          self._reprocess_spec()
+
+      ttk.Scale(parent, from_=lo, to=hi, variable=var, orient=tk.HORIZONTAL,
+                command=_update, length=420)\
+        .grid(row=row, column=1, padx=4, pady=2, sticky="ew")
+
+      val_label.config(text=str(int(default)) if is_int else f"{default:.2f}")
+
+    parent.columnconfigure(1, weight=1)
+
+  def _build_tiles(self, parent):
+    """Build the four 256×256 preview tiles with original/modified toggles."""
+
+    frame = tk.Frame(parent, bg="#1e1e1e")
+    frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=8, pady=8)
+
+    self._tile_widgets: dict[str, tk.Label] = {}
+    self._tile_photos: dict[str, ImageTk.PhotoImage] = {}
+
+    specs = [
+      ("diffuse", "DIFFUSE",  "#cccc50", self.diffuse, False),
+      ("normal",  "NORMAL",   "#5090dc", self.normal,  True),
+      ("height",  "HEIGHT",   "#dc9050", self.height,  True),
+      ("spec",    "SPECULAR", "#50dc50", self.spec,    True),
+    ]
+
+    for col, (key, title, color, asset, has_toggle) in enumerate(specs):
+      cell = tk.Frame(frame, bg="#1e1e1e")
+      cell.grid(row=0, column=col, padx=4, sticky="nsew")
+
+      tk.Label(cell, text=title, bg="#1e1e1e", fg=color,
+               font=("Helvetica", 10, "bold"))\
+        .pack(side=tk.TOP, anchor="w")
+
+      tile = tk.Label(cell, bg="#1e1e1e", text="(empty)", fg="#555555",
+                      font=("Helvetica", 12),
+                      width=TILE_SIZE, height=TILE_SIZE,
+                      relief="sunken", borderwidth=2)
+      tile.pack(side=tk.TOP, padx=0, pady=2)
+      tile.config(width=0, height=0)  # unset char-based size after pack
+      self._tile_widgets[key] = tile
+
+      if has_toggle:
+        toggle_frame = tk.Frame(cell, bg="#1e1e1e")
+        toggle_frame.pack(side=tk.TOP, fill=tk.X)
+        var = tk.BooleanVar(master=self.root, value=True)
+        asset.show_modified = var
+        ttk.Radiobutton(toggle_frame, text="Original", variable=var,
+                        value=False,
+                        command=lambda k=key: self._update_tile(k))\
+          .pack(side=tk.LEFT, padx=4)
+        ttk.Radiobutton(toggle_frame, text="Modified", variable=var,
+                        value=True,
+                        command=lambda k=key: self._update_tile(k))\
+          .pack(side=tk.LEFT, padx=4)
+
+      if key == "normal":
+        ttk.Checkbutton(cell, text="Flip Y (DirectX)",
+                        variable=self.y_flip_var,
+                        command=self._on_flip_y)\
+          .pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+      elif key == "height":
+        ttk.Checkbutton(cell, text="Invert height",
+                        variable=self.invert_var,
+                        command=self._reprocess_height)\
+          .pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+
+      frame.columnconfigure(col, weight=1)
+
+    frame.rowconfigure(0, weight=1)
+
+    # Diffuse tile click loads file
+    self._tile_widgets["diffuse"].bind("<Button-1>",
+                                       lambda e: self._open_file_dialog())
+
+  # --------------------------------------------------------------------
+  # Browser
+  # --------------------------------------------------------------------
+
+  def _build_browser(self, parent):
+    browser_frame = tk.Frame(parent, bg="#1e1e1e")
+    browser_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=4, pady=4)
+
+    self.browser_canvas = tk.Canvas(browser_frame, bg="#1e1e1e",
+                                    highlightthickness=0)
+    self.browser_scrollbar = ttk.Scrollbar(browser_frame, orient=tk.VERTICAL,
+                                           command=self.browser_canvas.yview)
+    self.browser_canvas.configure(yscrollcommand=self.browser_scrollbar.set)
+
+    self.browser_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+    self.browser_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    self.thumb_frame = tk.Frame(self.browser_canvas, bg="#1e1e1e")
+    self._thumb_window = self.browser_canvas.create_window(
+      (0, 0), window=self.thumb_frame, anchor="nw")
+
+    self.thumb_frame.bind("<Configure>",
+                          lambda e: self.browser_canvas.configure(
+                            scrollregion=self.browser_canvas.bbox("all")))
+    self.browser_canvas.bind("<Configure>", self._on_browser_resize)
+
+    def _on_mousewheel(event):
+      self.browser_canvas.yview_scroll(-1 * event.delta, "units")
+    self.browser_canvas.bind("<MouseWheel>", _on_mousewheel)
+    self.thumb_frame.bind("<MouseWheel>", _on_mousewheel)
+
+    self.browser_dir: Path | None = None
+    self._all_browser_files: list[Path] = []
+    self.browser_files: list[Path] = []
+    self._browser_set: set[Path] = set()
+    self._thumb_path_map: dict[Path, tk.Label] = {}
+    self._thumb_photos: dict[Path, ImageTk.PhotoImage] = {}
+    self._decode_queued: set[Path] = set()
+    self._selected_thumb: tk.Label | None = None
+    self._browser_cols = 1
+    self._thumb_executor = concurrent.futures.ThreadPoolExecutor(
+      max_workers=4, thread_name_prefix="thumb")
+
+  def _on_browser_resize(self, event):
+    self.browser_canvas.itemconfigure(self._thumb_window, width=event.width)
+    pad = 2 * 2 + 4
+    cols = max(1, event.width // (THUMB_SIZE + pad))
+    if cols != self._browser_cols:
+      self._browser_cols = cols
+      self._reflow_thumbs()
+
+  def _filter_files(self, files: list[Path]) -> list[Path]:
+    needle = self.filter_var.get().strip().lower()
+    if not needle:
+      return list(files)
+    return [f for f in files if needle in f.name.lower()]
+
+  def _schedule_filter(self):
+    """Coalesce rapid keystrokes into a single filter pass."""
+    if self._filter_after_id is not None:
+      try:
+        self.root.after_cancel(self._filter_after_id)
+      except Exception:
+        pass
+    self._filter_after_id = self.root.after(200, self._apply_filter)
+
+  def _apply_filter(self):
+    if self.browser_dir is None:
+      return
+    self._incremental_update()
+
+  def _browse_directory(self):
+    path = filedialog.askdirectory(title="Select texture directory")
+    if not path:
+      return
+    self._set_directory(Path(path))
+
+  def _set_directory(self, directory: Path):
+    self.browser_dir = directory
+    self.dir_var.set(str(directory))
+
+    files = []
+    for ext in ("*.tga", "*.png", "*.jpg", "*.jpeg"):
+      files.extend(directory.rglob(ext))
+    self._all_browser_files = sorted(files)
+    self.browser_files = self._filter_files(self._all_browser_files)
+
+    self.browser_count_var.set(f"{len(self.browser_files)} textures")
+    print(f"Browser: {len(self.browser_files)} textures in {directory}")
+
+    # New directory: nuke any previously-loaded thumbnails.
+    for lbl in self._thumb_path_map.values():
+      lbl.destroy()
+    self._thumb_path_map.clear()
+    self._thumb_photos.clear()
+    self._decode_queued.clear()
+    self._selected_thumb = None
+
+    self._sync_browser_view()
+
+  @staticmethod
+  def _decode_thumbnail(path: Path) -> tuple | None:
+    """Background worker: open + thumbnail an image. Returns (img, has_alpha).
+       Pure CPU/IO; does NOT touch any Tk objects."""
+    try:
+      img = Image.open(path)
+      img.load()
+      has_alpha_height = False
+      if img.mode in ("RGBA", "LA", "PA"):
+        alpha = np.array(img.split()[-1])
+        has_alpha_height = alpha.min() < 250 and np.std(alpha) >= 2.0
+      img = img.convert("RGB")
+      img.thumbnail((THUMB_SIZE, THUMB_SIZE), Image.LANCZOS)
+      return (img, has_alpha_height)
+    except Exception:
+      return None
+
+  def _queue_decode(self, path: Path):
+    """Submit a thumbnail decode to the worker pool."""
+    if path in self._thumb_path_map or path in self._decode_queued:
+      return
+    self._decode_queued.add(path)
+    future = self._thumb_executor.submit(self._decode_thumbnail, path)
+    future.add_done_callback(
+      lambda fut, p=path: self.root.after(
+        0, lambda: self._on_decode_done(p, fut.result())))
+
+  def _on_decode_done(self, path: Path, result):
+    """Main-thread callback: build the Label + PhotoImage from decoded data."""
+    self._decode_queued.discard(path)
+    if result is None:
+      return
+    if path in self._thumb_path_map:
+      return  # raced; already built
+    img, has_alpha_height = result
+    photo = ImageTk.PhotoImage(img, master=self.root)
+    self._thumb_photos[path] = photo
+
+    needs_height = _is_normal_map(path) and not has_alpha_height
+    border_color = "#cc3333" if needs_height else "#1e1e1e"
+    pad = 3 if needs_height else 0
+    lbl = tk.Label(self.thumb_frame, image=photo, bg=border_color,
+                   relief="flat", borderwidth=0, cursor="hand2",
+                   padx=pad, pady=pad,
+                   highlightthickness=3 if needs_height else 0,
+                   highlightbackground="#cc3333" if needs_height
+                                                  else "#1e1e1e")
+    lbl._default_highlight = "#cc3333" if needs_height else "#1e1e1e"
+    lbl._needs_height = needs_height
+
+    lbl.bind("<Button-1>",
+             lambda e, p=path, l=lbl: self._on_thumb_click(p, l))
+    name = path.stem
+    lbl.bind("<Enter>",
+             lambda e, n=name: self.browser_count_var.set(n))
+    lbl.bind("<Leave>",
+             lambda e: self.browser_count_var.set(
+               f"{len(self.browser_files)} textures"))
+    lbl.bind("<MouseWheel>",
+             lambda e: self.browser_canvas.yview_scroll(-1 * e.delta, "units"))
+
+    self._thumb_path_map[path] = lbl
+    # Place into grid only if this path is in the current filtered view.
+    if path in self._browser_set:
+      try:
+        idx = self.browser_files.index(path)
+        row, col = divmod(idx, self._browser_cols)
+        lbl.grid(row=row, column=col, padx=2, pady=2)
+      except ValueError:
+        pass
+
+  def _sync_browser_view(self):
+    """Show labels in current filter, hide others, queue any missing decodes."""
+    self._browser_set = set(self.browser_files)
+
+    # Hide labels that are no longer in the filter.
+    for path, lbl in self._thumb_path_map.items():
+      if path not in self._browser_set:
+        lbl.grid_remove()
+
+    # Place / queue thumbs for filtered set, in order.
+    cols = self._browser_cols
+    for idx, path in enumerate(self.browser_files):
+      lbl = self._thumb_path_map.get(path)
+      if lbl is not None:
+        row, col = divmod(idx, cols)
+        lbl.grid(row=row, column=col, padx=2, pady=2)
+      else:
+        self._queue_decode(path)
+
+  def _reflow_thumbs(self):
+    if not hasattr(self, "_browser_set"):
+      self._browser_set = set(self.browser_files)
+    cols = self._browser_cols
+    for idx, path in enumerate(self.browser_files):
+      lbl = self._thumb_path_map.get(path)
+      if lbl is not None:
+        row, col = divmod(idx, cols)
+        lbl.grid(row=row, column=col, padx=2, pady=2)
+
+  def _on_thumb_click(self, path: Path, label: tk.Label):
+    if self._selected_thumb is not None:
+      prev = self._selected_thumb
+      prev.config(highlightbackground=prev._default_highlight,
+                  highlightthickness=3 if prev._needs_height else 0)
+    label.config(highlightbackground="#5090dc", highlightthickness=3)
+    self._selected_thumb = label
+    self._load_set(path)
+
+  # --------------------------------------------------------------------
+  # File I/O
+  # --------------------------------------------------------------------
+
+  def _open_file_dialog(self):
+    path = filedialog.askopenfilename(
+      title="Open texture",
+      filetypes=[
+        ("Image files", "*.tga *.png *.jpg *.jpeg"),
+        ("All files",   "*"),
+      ],
+    )
+    if path:
+      self._load_set(Path(path))
+
+  def _load_set(self, path: Path):
+    """Resolve diffuse/normal/spec for the asset set sharing a base name."""
+
+    parent = path.parent
+    base = _base_of(path)
+    self.base_path = parent
+    self.base_name = base
+
+    diffuse_path = _find_diffuse(parent, base)
+    normal_path = _find_normal(parent, base)
+    spec_path = _find_spec(parent, base)
+
+    self.diffuse = Asset(diffuse_path)
+    self.diffuse.original = self._read_rgb(diffuse_path)
+    self._tile_widgets["diffuse"].config(text="(no diffuse)" if
+                                         self.diffuse.original is None
+                                         else "")
+
+    # Normal + height are coupled: read the normalmap PNG once.
+    n_var = self.normal.show_modified
+    h_var = self.height.show_modified
+    self.normal = Asset(normal_path)
+    self.height = Asset(normal_path)
+    self.normal.show_modified = n_var
+    self.height.show_modified = h_var
+
+    if normal_path is not None:
+      try:
+        img = Image.open(normal_path)
+        img.load()
+        self.normal.original = np.array(img.convert("RGB"))
+        if img.mode in ("RGBA", "LA", "PA"):
+          alpha = np.array(img.split()[-1])
+          if alpha.min() < 250:
+            self.height.original = alpha
+      except Exception as exc:
+        messagebox.showerror("Error", f"Failed to read normalmap:\n{exc}")
+
+    s_var = self.spec.show_modified
+    self.spec = Asset(spec_path)
+    self.spec.show_modified = s_var
+    self.spec.original = self._read_rgb(spec_path)
+    if self.spec.original is not None and self.spec.original.ndim == 3:
+      # Specular stored as RGB; collapse to single luminance channel display
+      self.spec.original = self.spec.original
+
+    # Header
+    parts = [base]
+    if normal_path:
+      h, w = self.normal.original.shape[:2]
+      parts.append(f"({w}×{h})")
+    self.file_var.set("  ".join(parts))
+
+    # Initial preview generation
+    self._reprocess_height()
+    self._reprocess_spec()
+    self._update_all_tiles()
+
+  @staticmethod
+  def _read_rgb(path: Path | None) -> np.ndarray | None:
+    if path is None or not path.is_file():
+      return None
+    try:
+      img = Image.open(path)
+      img.load()
+      return np.array(img.convert("RGB"))
+    except Exception:
+      return None
+
+  # --------------------------------------------------------------------
+  # Processing
+  # --------------------------------------------------------------------
+
+  def _fv(self, k: str) -> float:
+    return float(self.slider_vars[k].get())
+
+  def _reprocess_normal(self, cascade: bool = True):
+    """Apply normal-strength attenuation + frequency reweighting."""
+
+    if self.normal.original is None:
+      self.normal.modified = None
+      self._update_tile("normal")
+      return
+
+    n = attenuate_normals(self.normal.original, self._fv("normal_strength"))
+
+    # All subsequent operations work in tangent space: X, Y are slope
+    # components in [-1, 1] (0 = flat); Z is reconstructed at the end so
+    # the result is guaranteed unit length.
+    v = n.astype(np.float32) / 127.5 - 1.0
+    x = v[:, :, 0].copy()
+    y = v[:, :, 1].copy()
+
+    # Edge-preserving smoothing: bilateral filter on each slope component.
+    # Smooths low-amplitude (noisy) regions while keeping sharp seams,
+    # rivets, grout lines.
+    denoise = self._fv("n_denoise")
+    if denoise > 0.05:
+      sigma_color = denoise / 100.0  # slope is in [-1, 1]
+      sigma_space = max(2.0, denoise * 0.4)
+      x = cv2.bilateralFilter(x, d=0, sigmaColor=sigma_color,
+                              sigmaSpace=sigma_space)
+      y = cv2.bilateralFilter(y, d=0, sigmaColor=sigma_color,
+                              sigmaSpace=sigma_space)
+
+    # Slope gate: zero out slope vectors below a magnitude threshold.
+    # Surgical against low-amplitude grain.  Soft knee so it doesn't
+    # produce posterized artifacts.
+    gate = self._fv("n_slope_gate")
+    if gate > 1e-4:
+      mag = np.sqrt(x * x + y * y)
+      knee = max(gate * 0.5, 1e-4)
+      attenuation = np.clip((mag - gate + knee) / (knee * 2.0), 0.0, 1.0)
+      x *= attenuation
+      y *= attenuation
+
+    # Frequency reweighting on slope components.
+    cutoff = self._fv("n_freq_cutoff")
+    low_g = self._fv("n_freq_low_gain")
+    high_g = self._fv("n_freq_high_gain")
+    if abs(low_g - 1.0) > 1e-3 or abs(high_g - 1.0) > 1e-3:
+      x = split_bands(x, cutoff, low_g, high_g)
+      y = split_bands(y, cutoff, low_g, high_g)
+
+    # Clamp slope so Z stays real, then reconstruct unit-length normal.
+    mag2 = x * x + y * y
+    scale = np.where(mag2 > 0.999, np.sqrt(0.999 / np.maximum(mag2, 1e-10)),
+                     1.0).astype(np.float32)
+    x *= scale
+    y *= scale
+    z = np.sqrt(np.maximum(1.0 - x * x - y * y, 0.0))
+    v = np.stack([x, y, z], axis=2)
+    n = np.clip((v + 1.0) * 127.5, 0, 255).astype(np.uint8)
+
+    if self.y_flip_var.get():
+      n = n.copy()
+      n[:, :, 1] = 255 - n[:, :, 1]
+
+    self.normal.modified = n
+    self._update_tile("normal")
+
+    # Heightmap depends on normalmap; re-derive unless the caller asked us
+    # not to (e.g. when the normal was just *generated* from the heightmap,
+    # to avoid a feedback loop).
+    if cascade:
+      self._reprocess_height()
+
+  def _on_flip_y(self):
+    """Flipping Y rebuilds the normalmap (with G inverted) and the heightmap."""
+    self._reprocess_normal()
+
+  def _reprocess_height(self):
+    """Generate heightmap from the modified (or original) normalmap."""
+
+    src = self.normal.modified if self.normal.modified is not None \
+      else self.normal.original
+    if src is None:
+      self.height.modified = None
+      self._update_tile("height")
+      return
+
+    self.height.modified = heightmap_from_normals(
+      src,
+      cutoff=self._fv("h_freq_cutoff"),
+      low_gain=self._fv("h_freq_low_gain"),
+      high_gain=self._fv("h_freq_high_gain"),
+      strength=self._fv("h_strength"),
+      y_flip=False,
+      invert=self.invert_var.get(),
+    )
+
+    std = float(np.std(self.height.modified))
+    self.stats_var.set(f"height std: {std:.1f}")
+    self._update_tile("height")
+    self._reprocess_spec()
+
+  def _reprocess_spec(self):
+    """Generate specularmap from diffuse + height."""
+
+    if self.diffuse.original is None:
+      self.spec.modified = None
+      self._update_tile("spec")
+      return
+
+    height_src = self.height.modified if self.height.modified is not None \
+      else self.height.original
+    self.spec.modified = specular_from_diffuse(
+      self.diffuse.original,
+      height_src,
+      input_black=self._fv("s_input_black"),
+      input_white=self._fv("s_input_white"),
+      output_black=self._fv("s_output_black"),
+      output_white=self._fv("s_output_white"),
+      cavity_strength=self._fv("s_cavity_strength"),
+    )
+    self._update_tile("spec")
+
+  def _generate_normal_from_diffuse(self):
+    if self.diffuse.original is None:
+      messagebox.showinfo("Info", "No diffuse texture loaded.")
+      return
+
+    normals, height = normals_from_diffuse(
+      self.diffuse.original,
+      strength=self._fv("normal_strength"),
+      cutoff=self._fv("n_freq_cutoff"),
+      low_gain=self._fv("n_freq_low_gain"),
+      high_gain=self._fv("n_freq_high_gain"),
+    )
+    # Treat the generated normals as the new "original" so that subsequent
+    # re-processing stays consistent.
+    self.normal.original = normals
+    self.normal.modified = normals
+    self.height.original = height
+    self.height.modified = height
+    if self.base_path is not None and self.base_name is not None:
+      self.normal.path = self.base_path / (self.base_name + NORMAL_SUFFIX
+                                           + NORMAL_EXT)
+      self.height.path = self.normal.path
+    self._update_all_tiles()
+    self._reprocess_height()
+    self._reprocess_spec()
+
+  def _generate_normal_from_height(self):
+    src = self.height.display()
+    if src is None:
+      messagebox.showinfo("Info", "No heightmap loaded.")
+      return
+
+    normals = normals_from_height(src, strength=self._fv("normal_strength"))
+    self.normal.original = normals
+    self.normal.modified = None
+    if self.base_path is not None and self.base_name is not None:
+      self.normal.path = self.base_path / (self.base_name + NORMAL_SUFFIX
+                                           + NORMAL_EXT)
+    self._reprocess_normal(cascade=False)
+    self._reprocess_spec()
+
+  # --------------------------------------------------------------------
+  # Display
+  # --------------------------------------------------------------------
+
+  def _update_all_tiles(self):
+    for k in ("diffuse", "normal", "height", "spec"):
+      self._update_tile(k)
+
+  def _update_tile(self, key: str):
+    asset: Asset = getattr(self, key)
+    arr = asset.display()
+    tile = self._tile_widgets[key]
+
+    if arr is None:
+      tile.config(image="", text=f"(no {key})")
+      self._tile_photos.pop(key, None)
+      return
+
+    if arr.ndim == 2:
+      img = Image.fromarray(arr, mode="L").convert("RGB")
+    else:
+      img = Image.fromarray(arr, mode="RGB")
+
+    w, h = img.size
+    scale = TILE_SIZE / max(w, h)
+    if scale != 1.0:
+      img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+
+    photo = ImageTk.PhotoImage(img, master=self.root)
+    self._tile_photos[key] = photo
+    tile.config(image=photo, text="")
+
+  # --------------------------------------------------------------------
+  # Saving
+  # --------------------------------------------------------------------
+
+  def _save_normal_height(self):
+    """Save the modified normalmap+heightmap as a single RGBA PNG."""
+
+    normals = self.normal.modified if self.normal.modified is not None \
+      else self.normal.original
+    height = self.height.modified if self.height.modified is not None \
+      else self.height.original
+
+    if normals is None:
+      messagebox.showinfo("Info", "No normalmap to save.")
+      return
+
+    if self.base_path is None or self.base_name is None:
+      messagebox.showinfo("Info", "No output location.")
+      return
+
+    h, w = normals.shape[:2]
+    rgba = np.zeros((h, w, 4), dtype=np.uint8)
+    rgba[:, :, :3] = normals
+    if height is None:
+      rgba[:, :, 3] = 255
+    elif height.shape != (h, w):
+      rgba[:, :, 3] = cv2.resize(height, (w, h),
+                                 interpolation=cv2.INTER_LINEAR)
+    else:
+      rgba[:, :, 3] = height
+
+    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
+    Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
+    print(f"Saved: {out_path.name}")
+
+    # Promote modified to original
+    self.normal.path = out_path
+    self.height.path = out_path
+    self.normal.original = normals
+    self.height.original = rgba[:, :, 3]
+    self._update_all_tiles()
+    self._refresh_thumb_for(out_path)
+
+  def _save_spec(self):
+    """Save the modified specularmap as a JPG."""
+
+    spec = self.spec.modified if self.spec.modified is not None \
+      else self.spec.original
+    if spec is None:
+      messagebox.showinfo("Info", "No specularmap to save.")
+      return
+    if self.base_path is None or self.base_name is None:
+      messagebox.showinfo("Info", "No output location.")
+      return
+
+    if spec.ndim == 2:
+      img = Image.fromarray(spec, mode="L").convert("RGB")
+    else:
+      img = Image.fromarray(spec, mode="RGB")
+
+    out_path = self.base_path / (self.base_name + SPEC_SUFFIX + SPEC_EXT)
+    img.save(out_path, quality=92, optimize=True)
+    print(f"Saved: {out_path.name}")
+
+    self.spec.path = out_path
+    self.spec.original = np.array(img)
+    self._update_tile("spec")
+    self._refresh_thumb_for(out_path)
+
+  # --------------------------------------------------------------------
+  # Browser auto-refresh
+  # --------------------------------------------------------------------
+
+  def _refresh_thumb_for(self, path: Path):
+    lbl = self._thumb_path_map.get(path)
+    if lbl is None:
+      # File is new in the directory; trigger a poll
+      self.root.after(50, self._poll_directory_now)
+      return
+
+    try:
+      img = Image.open(path)
+      img.load()
+      has_alpha_height = False
+      if img.mode in ("RGBA", "LA", "PA"):
+        alpha = np.array(img.split()[-1])
+        has_alpha_height = alpha.min() < 250 and np.std(alpha) >= 2.0
+    except Exception:
+      return
+
+    needs_height = _is_normal_map(path) and not has_alpha_height
+    lbl._needs_height = needs_height
+    lbl._default_highlight = "#cc3333" if needs_height else "#1e1e1e"
+    border_color = "#cc3333" if needs_height else "#1e1e1e"
+    lbl.config(bg=border_color, padx=3 if needs_height else 0,
+               pady=3 if needs_height else 0)
+    if lbl is self._selected_thumb:
+      lbl.config(highlightbackground="#5090dc", highlightthickness=3)
+    else:
+      lbl.config(highlightbackground=lbl._default_highlight,
+                 highlightthickness=3 if needs_height else 0)
+
+  def _poll_directory(self):
+    self._poll_directory_now()
+    self.root.after(1000, self._poll_directory)
+
+  def _poll_directory_now(self):
+    if self.browser_dir is None or not self.browser_dir.is_dir():
+      return
+    files = []
+    for ext in ("*.tga", "*.png", "*.jpg", "*.jpeg"):
+      files.extend(self.browser_dir.rglob(ext))
+    files = sorted(files)
+    if files != self._all_browser_files:
+      self._all_browser_files = files
+      self._incremental_update(self._filter_files(files))
+
+  def _incremental_update(self, new_files: list[Path] | None = None):
+    if new_files is None:
+      new_files = self._filter_files(self._all_browser_files)
+    self.browser_files = new_files
+    self.browser_count_var.set(f"{len(self.browser_files)} textures")
+    self._sync_browser_view()
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+def main():
+  root = tk.Tk()
+  app = NormalmapFuApp(root)
+
+  args = sys.argv[1:]
+  directory = None
+  files = []
+  i = 0
+  while i < len(args):
+    if args[i] in ("--directory", "-d") and i + 1 < len(args):
+      directory = Path(args[i + 1]).expanduser()
+      i += 2
+    else:
+      files.append(Path(args[i]).expanduser())
+      i += 1
+
+  if directory and directory.is_dir():
+    root.after(100, lambda: app._set_directory(directory))
+  elif files and files[0].is_file():
+    root.after(100, lambda: app._set_directory(files[0].parent))
+
+  if files and files[0].is_file():
+    root.after(200, lambda: app._load_set(files[0]))
+
+  root.mainloop()
+
+
+if __name__ == "__main__":
+  main()
