@@ -1116,12 +1116,6 @@ class NormalmapFuApp:
   def _update_tile(self, key: str):
     asset: Asset = getattr(self, key)
     arr = asset.display()
-    # The "Original" view of the normalmap should reflect the chosen source
-    # convention so toggling DirectX/OpenGL is visible regardless of which
-    # radio (Original/Modified) is selected.
-    if key == "normal" and arr is asset.original and arr is not None:
-      arr = to_opengl_normal(
-        arr, source_is_directx=self.normal_convention_var.get() == "DirectX")
     tile = self._tile_widgets[key]
 
     if arr is None:
