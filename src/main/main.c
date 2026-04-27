@@ -41,6 +41,7 @@ cvar_t *developer;
 cvar_t *editor;
 cvar_t *game;
 cvar_t *rcon_password;
+cvar_t *rcon_address;
 cvar_t *threads;
 cvar_t *time_demo;
 cvar_t *time_scale;
@@ -306,6 +307,7 @@ static void Init(void) {
   game->modified = g_strcmp0(game->string, DEFAULT_GAME);
 
   rcon_password = Cvar_Add("rcon_password", "", CVAR_ARCHIVE, "The remote console password. If set, only give this to trusted clients");
+  rcon_address = Cvar_Add("rcon_address", "", 0, "The remote console server address");
 
   threads = Cvar_Add("threads", "0", CVAR_ARCHIVE, "Specifies the number of threads to create");
   threads->modified = false;

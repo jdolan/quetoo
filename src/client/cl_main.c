@@ -44,8 +44,6 @@ cvar_t *rate;
 
 cvar_t *qport;
 
-cvar_t *rcon_address;
-
 cvar_t *cl_draw_net_messages;
 
 cl_static_t cls;
@@ -541,8 +539,6 @@ static void Cl_InitLocal(void) {
   rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
-
-  rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
 
   cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
 
