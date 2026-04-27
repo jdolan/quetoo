@@ -424,11 +424,6 @@ class NormalmapFuApp:
     self._filter_after_id: str | None = None
     self.filter_var.trace_add("write", lambda *_: self._schedule_filter())
 
-    tk.Button(bar, text="Save Specular", width=14,
-              command=self._save_spec).pack(side=tk.RIGHT, padx=4)
-    tk.Button(bar, text="Save Normal+Height", width=18,
-              command=self._save_normal_height).pack(side=tk.RIGHT, padx=4)
-
     self.browser_count_var = tk.StringVar(master=self.root)
     tk.Label(bar, textvariable=self.browser_count_var, anchor="e",
              bg="#2b2b2b", fg="#888888", font=("Helvetica", 10))\
@@ -446,29 +441,38 @@ class NormalmapFuApp:
     self._build_param_grid(n_tab, "normal")
     n_btns = tk.Frame(n_tab, bg="#2b2b2b")
     n_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
-    tk.Button(n_btns, text="Generate normalmap from diffuse",
+    tk.Button(n_btns, text="Generate from diffuse",
               command=self._generate_normal_from_diffuse)\
       .pack(side=tk.LEFT, padx=(0, 6))
-    tk.Button(n_btns, text="Generate normalmap from heightmap",
+    tk.Button(n_btns, text="Generate from heightmap",
               command=self._generate_normal_from_height)\
-      .pack(side=tk.LEFT)
+      .pack(side=tk.LEFT, padx=(0, 6))
+    tk.Button(n_btns, text="Save", width=10,
+              command=self._save_normal).pack(side=tk.LEFT, padx=(12, 0))
 
     # --- Heightmap tab ---
     h_tab = tk.Frame(notebook, bg="#2b2b2b")
     notebook.add(h_tab, text="Heightmap")
     self._build_param_grid(h_tab, "height")
-
-    tk.Button(h_tab, text="Generate heightmap from normalmap",
+    h_btns = tk.Frame(h_tab, bg="#2b2b2b")
+    h_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+    tk.Button(h_btns, text="Generate from normalmap",
               command=self._reprocess_height)\
-      .grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+      .pack(side=tk.LEFT, padx=(0, 6))
+    tk.Button(h_btns, text="Save", width=10,
+              command=self._save_height).pack(side=tk.LEFT, padx=(12, 0))
 
     # --- Specular tab ---
     s_tab = tk.Frame(notebook, bg="#2b2b2b")
     notebook.add(s_tab, text="Specularmap")
     self._build_param_grid(s_tab, "spec")
-    tk.Button(s_tab, text="Generate specularmap from diffuse + height",
+    s_btns = tk.Frame(s_tab, bg="#2b2b2b")
+    s_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+    tk.Button(s_btns, text="Generate from diffuse + height",
               command=self._reprocess_spec)\
-      .grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
+      .pack(side=tk.LEFT, padx=(0, 6))
+    tk.Button(s_btns, text="Save", width=10,
+              command=self._save_spec).pack(side=tk.LEFT, padx=(12, 0))
 
   def _build_param_grid(self, parent: tk.Frame, group: str):
     for row, (key, label, lo, hi, default, is_int) in \
@@ -1065,44 +1069,87 @@ class NormalmapFuApp:
   # Saving
   # --------------------------------------------------------------------
 
-  def _save_normal_height(self):
-    """Save the modified normalmap+heightmap as a single RGBA PNG."""
+  def _save_normal(self):
+    """Save the modified normalmap (RGB), preserving existing height (A)."""
 
     normals = self.normal.modified if self.normal.modified is not None \
       else self.normal.original
-    height = self.height.modified if self.height.modified is not None \
-      else self.height.original
-
     if normals is None:
       messagebox.showinfo("Info", "No normalmap to save.")
       return
-
     if self.base_path is None or self.base_name is None:
       messagebox.showinfo("Info", "No output location.")
       return
 
+    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
     h, w = normals.shape[:2]
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     rgba[:, :, :3] = normals
-    if height is None:
-      rgba[:, :, 3] = 255
-    elif height.shape != (h, w):
-      rgba[:, :, 3] = cv2.resize(height, (w, h),
-                                 interpolation=cv2.INTER_LINEAR)
-    else:
-      rgba[:, :, 3] = height
+    rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
 
-    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
     print(f"Saved: {out_path.name}")
 
-    # Promote modified to original
     self.normal.path = out_path
-    self.height.path = out_path
     self.normal.original = normals
-    self.height.original = rgba[:, :, 3]
-    self._update_all_tiles()
+    self._update_tile("normal")
     self._refresh_thumb_for(out_path)
+
+  def _save_height(self):
+    """Save the modified heightmap (A), preserving existing normal (RGB)."""
+
+    height = self.height.modified if self.height.modified is not None \
+      else self.height.original
+    if height is None:
+      messagebox.showinfo("Info", "No heightmap to save.")
+      return
+    if self.base_path is None or self.base_name is None:
+      messagebox.showinfo("Info", "No output location.")
+      return
+
+    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
+    h, w = height.shape[:2]
+    rgba = np.zeros((h, w, 4), dtype=np.uint8)
+    rgba[:, :, :3] = self._existing_rgb(out_path, w, h)
+    rgba[:, :, 3] = height
+
+    Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
+    print(f"Saved: {out_path.name}")
+
+    self.height.path = out_path
+    self.height.original = height
+    self._update_tile("height")
+    self._refresh_thumb_for(out_path)
+
+  def _existing_alpha(self, path: Path, w: int, h: int) -> np.ndarray:
+    """Return alpha channel of existing PNG at (w,h), or 255 if missing."""
+    if path.exists():
+      try:
+        img = np.array(Image.open(path).convert("RGBA"))
+        a = img[:, :, 3]
+        if a.shape != (h, w):
+          a = cv2.resize(a, (w, h), interpolation=cv2.INTER_LINEAR)
+        return a
+      except Exception:
+        pass
+    return np.full((h, w), 255, dtype=np.uint8)
+
+  def _existing_rgb(self, path: Path, w: int, h: int) -> np.ndarray:
+    """Return RGB channels of existing PNG at (w,h), or flat normal if missing."""
+    if path.exists():
+      try:
+        img = np.array(Image.open(path).convert("RGBA"))
+        rgb = img[:, :, :3]
+        if rgb.shape[:2] != (h, w):
+          rgb = cv2.resize(rgb, (w, h), interpolation=cv2.INTER_LINEAR)
+        return rgb
+      except Exception:
+        pass
+    flat = np.zeros((h, w, 3), dtype=np.uint8)
+    flat[:, :, 0] = 128
+    flat[:, :, 1] = 128
+    flat[:, :, 2] = 255
+    return flat
 
   def _save_spec(self):
     """Save the modified specularmap as a JPG."""
