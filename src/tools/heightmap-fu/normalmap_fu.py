@@ -3,7 +3,7 @@
 Interactive normalmap editor with heightmap generation.
 
 Browse normal maps (*_nm, *_n, *_local, *_bump), attenuate normals,
-generate heightmaps via Frankot-Chellappa, and save back with the
+generate heightmaps via Frankot-Chellappa, and save back as PNG with the
 heightmap embedded in the alpha channel.
 
 Usage:
@@ -249,7 +249,7 @@ def _find_counterpart(path: Path) -> Path | None:
         if base is None:
             return None
         for dsuf in DIFFUSE_SUFFIXES:
-            for ext in (".tga", ".png"):
+            for ext in (".jpg", ".jpeg", ".png", ".tga"):
                 candidate = parent / (base + dsuf + ext)
                 if candidate.exists():
                     return candidate
@@ -259,10 +259,9 @@ def _find_counterpart(path: Path) -> Path | None:
         if base is None:
             base = stem
         for nsuf in NORMAL_SUFFIXES:
-            for ext in (".tga", ".png"):
-                candidate = parent / (base + nsuf + ext)
-                if candidate.exists():
-                    return candidate
+            candidate = parent / (base + nsuf + ".png")
+            if candidate.exists():
+                return candidate
     return None
 
 # ---------------------------------------------------------------------------
@@ -546,7 +545,7 @@ class HeightmapApp:
 
         # scan for all textures
         files = []
-        for ext in ("*.tga", "*.png"):
+        for ext in ("*.tga", "*.png", "*.jpg", "*.jpeg"):
             files.extend(directory.rglob(ext))
         self._all_browser_files = sorted(files)
 
@@ -660,6 +659,7 @@ class HeightmapApp:
             filetypes=[
                 ("TGA files", "*.tga"),
                 ("PNG files", "*.png"),
+                ("JPEG files", "*.jpg *.jpeg"),
                 ("All image files", "*.tga *.png *.jpg *.jpeg *.bmp *.tif *.tiff"),
                 ("All files", "*"),
             ],
@@ -862,11 +862,8 @@ class HeightmapApp:
 
         result = Image.fromarray(rgba, mode="RGBA")
 
-        path = self.source_path
-        if str(path).lower().endswith(".tga"):
-            result.save(path, compression="tga_rle")
-        else:
-            result.save(path)
+        path = self.source_path.with_suffix(".png")
+        result.save(path, optimize=True)
         print(f"Saved: {path.name}")
 
         # Update existing alpha preview
@@ -912,7 +909,7 @@ class HeightmapApp:
         """Periodically check if the browser directory contents have changed."""
         if self.browser_dir is not None and self.browser_dir.is_dir():
             files = []
-            for ext in ("*.tga", "*.png"):
+            for ext in ("*.tga", "*.png", "*.jpg", "*.jpeg"):
                 files.extend(self.browser_dir.rglob(ext))
             files = sorted(files)
             if files != self._all_browser_files:
