@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
-"""Detect (and optionally fix) DirectX-style normalmaps in a directory tree.
+"""Detect (and optionally fix) OpenGL-style normalmaps in a directory tree.
 
-Heuristic: a normalmap encodes a surface gradient field. If the surface is
-z = h(x, y) and the normal is N = (-h_x, -h_y, 1) (OpenGL Y-up), then
+Quetoo's renderer expects DirectX-convention normalmaps (G channel encodes
+"+Y = image-down") because the engine's per-vertex bitangent points in
+the image-down direction (Quake-style V-down texture coords). Any
+normalmap stored in OpenGL convention (G = image-up) will render with
+inverted bump lighting -- highlights and shadows on the opposite side
+of every feature.
 
-    h_x = -nx / nz       h_y = -ny / nz       (OpenGL)
-    h_x = -nx / nz       h_y = +ny / nz       (DirectX, G flipped)
+Heuristic: a normalmap encodes a surface gradient field. If the surface
+is z = h(x, y) and the normal is N = (-h_x, -h_y, 1) (OpenGL Y-up):
 
-A true gradient field has zero curl:  d(h_y)/dx - d(h_x)/dy == 0
-For each candidate convention we compute the mean |curl|; the convention
-with the lower curl is the correct one. The ratio between the two
-provides a confidence metric.
+    h_x = -nx / nz       h_y = -ny / nz       (OpenGL: G = +Y up)
+    h_x = -nx / nz       h_y = +ny / nz       (DirectX: G = +Y down)
+
+A true gradient field has zero curl (d(h_y)/dx - d(h_x)/dy == 0). For
+each candidate convention we compute the mean |curl|; the convention
+with the lower curl is the one the file is actually authored in.
 
 Usage:
   ./venv/bin/python detect_convention.py DIRECTORY [--apply] [--threshold 1.2]
                                          [--limit N] [--quiet]
 
-  --apply       rewrite detected DirectX files (flip G channel) in place,
-                preserving alpha (which carries the heightmap).
+  --apply       rewrite detected OpenGL files (flip G channel) in place
+                so they match the engine's DirectX convention. Alpha
+                (heightmap) is preserved.
   --threshold   minimum confidence ratio to act on; default 1.2 (i.e. the
                 wrong convention must have at least 20% more curl).
   --limit       only process the first N files (useful for sanity checks).
@@ -132,7 +139,7 @@ def main() -> int:
       print(f"  {verdict_str:9s} ratio={ratio:5.2f}  "
             f"gl={gl:.4f} dx={dx:.4f}  {rel}")
 
-    if args.apply and confident and verdict == "DirectX":
+    if args.apply and confident and verdict == "OpenGL":
       try:
         flip_g(path)
         flipped += 1
@@ -141,15 +148,15 @@ def main() -> int:
         print(f"  ! flip failed for {path}: {exc}", file=sys.stderr)
 
   print()
-  print(f"Detected OpenGL : {counts['OpenGL']}")
-  print(f"Detected DirectX: {counts['DirectX']}")
+  print(f"Detected OpenGL : {counts['OpenGL']}  (wrong for engine)")
+  print(f"Detected DirectX: {counts['DirectX']}  (engine-correct)")
   print(f"Ambiguous       : {ambiguous}  (ratio < {args.threshold})")
   if errors:
     print(f"Errors          : {errors}")
   if args.apply:
-    print(f"Flipped in place: {flipped}")
+    print(f"Flipped to DX   : {flipped}")
   else:
-    print(f"(rerun with --apply to flip {counts['DirectX']} DirectX files)")
+    print(f"(rerun with --apply to flip {counts['OpenGL']} OpenGL files to DirectX)")
 
   return 0
 

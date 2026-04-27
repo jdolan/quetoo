@@ -46,6 +46,14 @@ TILE_SIZE = 256
 
 PRESET_FILENAME = ".normalmap-fu.json"
 
+# Quetoo's renderer uses Quake's V-down texture coordinates, which makes the
+# per-vertex bitangent point in the image-down direction. As a result the
+# engine expects normalmaps where G encodes "+Y = image-down" -- i.e. the
+# DirectX convention. All processed normalmaps are saved in this convention.
+# (The math pipeline internally normalizes everything to OpenGL/Y-up because
+# that's what Frankot-Chellappa integration assumes.)
+ENGINE_NORMAL_CONVENTION = "DirectX"
+
 
 def _is_normal_map(path: Path) -> bool:
   return path.stem.lower().endswith(NORMAL_SUFFIX)
@@ -299,6 +307,15 @@ def specular_from_diffuse(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
 # Pipeline (pure functions, shared by GUI and CLI)
 # ---------------------------------------------------------------------------
 
+def to_engine_normal(opengl_u8: np.ndarray) -> np.ndarray:
+  """Convert an internal (OpenGL) normalmap to the engine's expected convention."""
+  if ENGINE_NORMAL_CONVENTION == "OpenGL":
+    return opengl_u8
+  out = opengl_u8.copy()
+  out[:, :, 1] = 255 - out[:, :, 1]
+  return out
+
+
 def to_opengl_normal(raw_u8: np.ndarray, *, source_is_directx: bool) -> np.ndarray:
   """Return the normalmap in OpenGL convention (Y up), flipping G if needed."""
   if not source_is_directx:
@@ -447,7 +464,7 @@ class NormalmapFuApp:
 
     self.slider_vars: dict[str, tk.Variable] = {}
 
-    self.normal_convention_var = tk.StringVar(master=self.root, value="OpenGL")
+    self.normal_convention_var = tk.StringVar(master=self.root, value="DirectX")
     self.height_convention_var = tk.StringVar(master=self.root, value="Heightmap")
 
     self._build_ui()
@@ -1204,7 +1221,8 @@ class NormalmapFuApp:
     out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
     h, w = normals.shape[:2]
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
-    rgba[:, :, :3] = normals
+    # Internal pixels are OpenGL/Y-up; convert to engine convention on save.
+    rgba[:, :, :3] = to_engine_normal(normals)
     rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
 
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
@@ -1393,7 +1411,8 @@ def _save_normal_rgba(out_path: Path, normal_rgb: np.ndarray,
   if height_a.shape != (h, w):
     height_a = cv2.resize(height_a, (w, h), interpolation=cv2.INTER_LINEAR)
   rgba = np.zeros((h, w, 4), dtype=np.uint8)
-  rgba[:, :, :3] = normal_rgb
+  # Internal pixels are OpenGL/Y-up; convert to engine convention on save.
+  rgba[:, :, :3] = to_engine_normal(normal_rgb)
   rgba[:, :, 3] = height_a
   Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
 
