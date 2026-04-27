@@ -848,8 +848,9 @@ class NormalmapFuApp:
       parts.append(f"({w}×{h})")
     self.file_var.set("  ".join(parts))
 
-    # Initial preview generation
-    self._reprocess_height()
+    # Initial preview generation; apply current slider settings so that
+    # tuning carries across selections (useful for batching variant families).
+    self._reprocess_normal()
     self._reprocess_spec()
     self._update_all_tiles()
 
