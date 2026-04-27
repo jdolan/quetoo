@@ -1,121 +1,100 @@
-# Heightmap Fu
+# normalmap-fu
 
-Batch processing tool for cleaning noisy heightmaps in normalmap textures.
+Tool for authoring per-pixel material assets used by Quetoo:
+diffuse + normalmap (with packed heightmap in the alpha channel) + specular.
 
-## Problem
+The main entry point is a Tkinter GUI that lets you preview and tweak each
+processing stage interactively. The same pipeline is also exposed as a
+headless CLI driven by a preset file saved from the GUI.
 
-High-resolution diffuse textures often have normalmaps with heightmaps encoded in the alpha channel. When these heightmaps contain too much fine detail (hairline cracks, small surface imperfections), steep parallax mapping effects can make surfaces look like they're covered in marbles instead of having smooth, realistic depth.
+## Setup
 
-## Solution
-
-This tool uses advanced image processing (bilateral filtering + median blur) to smooth out high-frequency noise in heightmaps while preserving the major depth features like bevels, grooves, and intentional surface variation.
-
-**Key technique:** Bilateral filtering smooths similar adjacent pixels while preserving sharp edges, making it perfect for removing texture detail noise while keeping the important geometric features.
-
-## Requirements
+All Python tools in `src/tools/` share a single virtual environment at the
+repo root:
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install numpy pillow opencv-python
+pip install numpy pillow opencv-python scikit-image scipy
 ```
 
-## Usage
+## Asset naming
 
-### Basic Usage
+Assets live next to each other and share a base name:
+
+```
+diffuse.jpg          diffuse texture (sRGB)
+diffuse_norm.png     RGB = tangent-space normal, A = heightmap
+diffuse_spec.jpg     specular intensity
+```
+
+JPG/PNG/TGA are all accepted on input.
+
+## Normalmap convention
+
+Quetoo's renderer expects **DirectX-convention** normalmaps (G channel
+points image-down). This is determined by how `Cm_Tangents`
+(`src/collision/cm_polylib.c`) builds the bitangent (`∂P/∂T`) combined
+with Quake's V-down texture coordinates.
+
+The GUI's `Source convention` radio (DirectX / OpenGL) tells the tool how
+to interpret the file you loaded. Internally everything is processed in
+OpenGL convention (Y-up, required by the Frankot-Chellappa heightmap
+integration), and the saved output is always converted back to DirectX
+before writing.
+
+## GUI
 
 ```bash
-# Activate virtual environment
-source /path/to/quetoo/venv/bin/activate
-
-# Process all *_norm.tga files in a directory
-python clean_heightmaps.py /path/to/textures
+python -m src.tools.normalmap-fu       # from repo root
+# or:
+python src/tools/normalmap-fu/__main__.py gui
 ```
 
-### Advanced Usage
+Browse to a texture directory; thumbnails of every diffuse base appear in
+a grid. Clicking one opens the editor with sliders for normal smoothing,
+heightmap integration, specular generation, etc. Save writes
+`*_norm.png` and `*_spec.jpg` next to the diffuse.
+
+Presets can be saved to a JSON file and reused in batch mode or shared
+between texture sets.
+
+## Batch / CLI
 
 ```bash
-# Custom file pattern
-python clean_heightmaps.py /path/to/textures --pattern "*_normal.tga"
+python src/tools/normalmap-fu/__main__.py batch \
+    --preset path/to/preset.json \
+    --directory ~/Coding/quetoo-data/target/default/textures/quake \
+    --save normal,height,spec
 
-# Adjust smoothing strength (higher = more smoothing)
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 300
+# Or process specific files:
+python src/tools/normalmap-fu/__main__.py batch \
+    --preset preset.json \
+    --files texture1_d.jpg texture2_norm.png
 
-# Adjust median blur for noise removal (higher = more aggressive)
-python clean_heightmaps.py /path/to/textures --median 15
-
-# Adjust bilateral filter diameter (higher = larger smoothing area)
-python clean_heightmaps.py /path/to/textures --bilateral-d 21
-
-# Aggressive denoising (recommended for very noisy heightmaps)
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 300 --median 15 --bilateral-d 21
-
-# Dry run to see what files will be processed
-python clean_heightmaps.py /path/to/textures --dry-run
+# Preview without writing:
+python src/tools/normalmap-fu/__main__.py batch \
+    --preset preset.json -d /textures --dry-run
 ```
 
-## Parameters
+`--save` controls which outputs to write (any combination of
+`normal`, `height`, `spec`). `--filter SUBSTR` restricts processing to
+bases whose name contains `SUBSTR`.
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--pattern` | `*_norm.tga` | Glob pattern for normalmap files |
-| `--median` | 5 | Median blur kernel size (odd number, 0 to disable) |
-| `--bilateral-d` | 9 | Bilateral filter diameter (0 to disable) |
-| `--bilateral-sigma` | 75 | Bilateral filter sigma (higher = more smoothing) |
-| `--dry-run` | False | List files without processing |
+## One-off scripts
 
-## How It Works
+The other `*.py` files in this directory are standalone utilities used
+during the Quake-remake texture import:
 
-1. **Median Blur**: Removes salt-and-pepper noise and small speckles (like hairline cracks)
-2. **Bilateral Filter**: Smooths gradual variations while preserving sharp edges (like bevels)
-3. **Preserves**: RGB normalmap data is untouched, only alpha channel (heightmap) is processed
+| Script | Purpose |
+|---|---|
+| `detect_convention.py` | Scan a directory and flag (or `--apply`-fix) normalmaps stored in OpenGL convention so they match the engine's DirectX expectation. Uses a curl-of-implied-gradient heuristic. |
+| `clean_heightmaps.py` | Smooth noisy alpha-channel heightmaps with bilateral + median filtering. Predates the GUI; kept for batch CLI use. |
+| `regenerate_normalmaps.py` | Recompute normal RGB from the alpha heightmap when the existing RGB data is corrupt. |
+| `pack_heightmaps.py` | Move standalone `*_h.*` heightmaps into the alpha channel of the matching normalmap. |
+| `correct_diffuse.py` | Retinex-style diffuse lighting removal, optionally guided by a height-derived shadow mask. |
+| `extract_quake_textures.py` | Extract wall textures from Quake 1 `.pak`/`.bsp` files for use as color reference. |
+| `dedupe.py` / `prune_duplicates.py` | Find and remove identical or near-identical textures across a tree. |
+| `variant_review.py` | GUI for reviewing color-variant consolidations produced by `dedupe.py`. |
 
-## Tips
-
-- Start with default settings and gradually increase if needed
-- Multiple passes can help achieve smoother results
-- Higher `--median` values remove finer details (good for hairline cracks)
-- Higher `--bilateral-sigma` values create smoother transitions
-- Larger `--bilateral-d` affects a wider area around each pixel
-- Always keep backups before processing!
-
-## Example Workflow
-
-```bash
-# Initial test on one texture
-python clean_heightmaps.py /path/to/textures --pattern "metal1_1_norm.tga"
-
-# If still too noisy, increase settings
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 200 --median 9 --bilateral-d 15
-
-# Run multiple passes for extreme noise
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 300 --median 15 --bilateral-d 21
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 300 --median 15 --bilateral-d 21
-
-# Process all textures once satisfied
-python clean_heightmaps.py /path/to/textures --bilateral-sigma 300 --median 15 --bilateral-d 21
-```
-
-## Output
-
-The script shows statistics for each processed file:
-```
-Processing: metal1_1_norm.tga
-  Original heightmap - min: 129, max: 227, std: 9.19
-  Processed heightmap - min: 173, max: 222, std: 5.69
-  Saved to: metal1_1_norm.tga
-```
-
-Lower standard deviation (std) indicates smoother heightmaps with less noise.
-
-## Technical Details
-
-- Uses OpenCV's `bilateralFilter` for edge-preserving smoothing
-- Uses `medianBlur` for impulse noise removal
-- Processes only the alpha channel; RGB normalmap data remains intact
-- Overwrites original files (make backups first!)
-- Skips files without alpha channels or flat heightmaps
-
-## Author
-
-Created for Quetoo texture processing to improve parallax mapping quality.
+Each script has its own `--help`.
