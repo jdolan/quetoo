@@ -124,8 +124,8 @@ jobs:
           -x apple/target/Quetoo.app/Contents/MacOS/quetoo \
           -x apple/target/Quetoo.app/Contents/MacOS/quetoo-dedicated \
           -x apple/target/Quetoo.app/Contents/MacOS/quetoo-master \
-          -x apple/target/Quetoo.app/Contents/MacOS/lib/default/cgame.so \
-          -x apple/target/Quetoo.app/Contents/MacOS/lib/default/game.so \
+          -x apple/target/Quetoo.app/Contents/MacOS/lib/quetoo/default/cgame.so \
+          -x apple/target/Quetoo.app/Contents/MacOS/lib/quetoo/default/game.so \
           -d apple/target/Quetoo.app/Contents/MacOS/lib \
           -of -p @executable_path/lib
 
