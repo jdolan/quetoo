@@ -734,7 +734,7 @@ void Fs_Init(const uint32_t flags) {
       }
 
       g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib", fs_state.base_dir);
+      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
       g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
     }
 #elif defined(__linux__)
