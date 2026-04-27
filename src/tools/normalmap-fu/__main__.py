@@ -10,7 +10,7 @@ Run with:
 
 File conventions
 ----------------
-    <base>.jpg | <base>_d.jpg     diffuse map (sRGB)
+    <base>.jpg                    diffuse map (sRGB)
     <base>_norm.png               normalmap RGB + heightmap in alpha
     <base>_spec.jpg               specularmap (greyscale stored as RGB)
 
@@ -19,6 +19,7 @@ as a single RGBA PNG. The specularmap is saved as JPG.
 """
 
 import concurrent.futures
+import json
 import os
 import sys
 from pathlib import Path
@@ -36,14 +37,14 @@ from tkinter import ttk, filedialog, messagebox
 
 NORMAL_SUFFIX = "_norm"
 SPEC_SUFFIX = "_spec"
-DIFFUSE_SUFFIXES = ("_d", "")
-
 DIFFUSE_EXTS = (".jpg", ".jpeg", ".png", ".tga")
 NORMAL_EXT = ".png"
 SPEC_EXT = ".jpg"
 
 THUMB_SIZE = 96
 TILE_SIZE = 256
+
+PRESET_FILENAME = ".normalmap-fu.json"
 
 
 def _is_normal_map(path: Path) -> bool:
@@ -61,10 +62,10 @@ def _strip_suffix(stem: str, suffix: str) -> str | None:
 
 
 def _base_of(path: Path) -> str:
-  """Strip any known suffix (_norm, _spec, _d) from the filename stem."""
+  """Strip any known suffix (_norm, _spec) from the filename stem."""
 
   stem = path.stem
-  for suf in (NORMAL_SUFFIX, SPEC_SUFFIX, "_d"):
+  for suf in (NORMAL_SUFFIX, SPEC_SUFFIX):
     base = _strip_suffix(stem, suf)
     if base is not None:
       return base
@@ -72,12 +73,11 @@ def _base_of(path: Path) -> str:
 
 
 def _find_diffuse(parent: Path, base: str) -> Path | None:
-  for dsuf in DIFFUSE_SUFFIXES:
-    for ext in DIFFUSE_EXTS:
-      candidate = parent / (base + dsuf + ext)
-      if candidate.is_file() and not _is_normal_map(candidate) \
-              and not _is_spec_map(candidate):
-        return candidate
+  for ext in DIFFUSE_EXTS:
+    candidate = parent / (base + ext)
+    if candidate.is_file() and not _is_normal_map(candidate) \
+            and not _is_spec_map(candidate):
+      return candidate
   return None
 
 
@@ -296,6 +296,87 @@ def specular_from_diffuse(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
 
 
 # ---------------------------------------------------------------------------
+# Pipeline (pure functions, shared by GUI and CLI)
+# ---------------------------------------------------------------------------
+
+def process_normal(orig_normal_u8: np.ndarray, params: dict,
+                   *, dx_to_gl: bool) -> np.ndarray:
+  """Apply strength + denoise + slope-gate + freq reweight to a normalmap.
+
+  Returns an RGB normalmap in OpenGL convention (Y up). If `dx_to_gl` is
+  True, the input is interpreted as DirectX and G is flipped at the end.
+  """
+  n = attenuate_normals(orig_normal_u8, float(params.get("normal_strength", 1.0)))
+
+  v = n.astype(np.float32) / 127.5 - 1.0
+  x = v[:, :, 0].copy()
+  y = v[:, :, 1].copy()
+
+  denoise = float(params.get("n_denoise", 0.0))
+  if denoise > 0.05:
+    sigma_color = denoise / 100.0
+    sigma_space = max(2.0, denoise * 0.4)
+    x = cv2.bilateralFilter(x, d=0, sigmaColor=sigma_color, sigmaSpace=sigma_space)
+    y = cv2.bilateralFilter(y, d=0, sigmaColor=sigma_color, sigmaSpace=sigma_space)
+
+  gate = float(params.get("n_slope_gate", 0.0))
+  if gate > 1e-4:
+    mag = np.sqrt(x * x + y * y)
+    knee = max(gate * 0.5, 1e-4)
+    attenuation = np.clip((mag - gate + knee) / (knee * 2.0), 0.0, 1.0)
+    x *= attenuation
+    y *= attenuation
+
+  cutoff = float(params.get("n_freq_cutoff", 0.5))
+  low_g = float(params.get("n_freq_low_gain", 1.0))
+  high_g = float(params.get("n_freq_high_gain", 1.0))
+  if abs(low_g - 1.0) > 1e-3 or abs(high_g - 1.0) > 1e-3:
+    x = split_bands(x, cutoff, low_g, high_g)
+    y = split_bands(y, cutoff, low_g, high_g)
+
+  mag2 = x * x + y * y
+  scale = np.where(mag2 > 0.999, np.sqrt(0.999 / np.maximum(mag2, 1e-10)),
+                   1.0).astype(np.float32)
+  x *= scale
+  y *= scale
+  z = np.sqrt(np.maximum(1.0 - x * x - y * y, 0.0))
+  v = np.stack([x, y, z], axis=2)
+  n = np.clip((v + 1.0) * 127.5, 0, 255).astype(np.uint8)
+
+  if dx_to_gl:
+    n = n.copy()
+    n[:, :, 1] = 255 - n[:, :, 1]
+
+  return n
+
+
+def process_height(processed_normal_u8: np.ndarray, params: dict,
+                   *, as_heightmap: bool) -> np.ndarray:
+  """Derive heightmap (white=high) or depthmap (white=low) from a normalmap."""
+  return heightmap_from_normals(
+    processed_normal_u8,
+    cutoff=float(params.get("h_freq_cutoff", 0.3)),
+    low_gain=float(params.get("h_freq_low_gain", 1.0)),
+    high_gain=float(params.get("h_freq_high_gain", 1.0)),
+    strength=float(params.get("h_strength", 1.0)),
+    y_flip=False,
+    invert=as_heightmap,
+  )
+
+
+def process_spec(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
+                 params: dict) -> np.ndarray:
+  return specular_from_diffuse(
+    diffuse_u8, height_u8,
+    input_black=float(params.get("s_input_black", 0.0)),
+    input_white=float(params.get("s_input_white", 1.0)),
+    output_black=float(params.get("s_output_black", 0.0)),
+    output_white=float(params.get("s_output_white", 1.0)),
+    cavity_strength=float(params.get("s_cavity_strength", 0.5)),
+  )
+
+
+# ---------------------------------------------------------------------------
 # Asset model
 # ---------------------------------------------------------------------------
 
@@ -362,8 +443,8 @@ class NormalmapFuApp:
 
     self.slider_vars: dict[str, tk.Variable] = {}
 
-    self.y_flip_var = tk.BooleanVar(master=self.root, value=False)
-    self.invert_var = tk.BooleanVar(master=self.root, value=False)
+    self.normal_convention_var = tk.StringVar(master=self.root, value="OpenGL")
+    self.height_convention_var = tk.StringVar(master=self.root, value="Heightmap")
 
     self._build_ui()
     self._poll_directory()
@@ -411,6 +492,11 @@ class NormalmapFuApp:
     tk.Button(bar, text="Set directory...", command=self._browse_directory)\
       .pack(side=tk.LEFT, padx=4)
 
+    tk.Button(bar, text="Load preset...", command=self._load_preset_dialog)\
+      .pack(side=tk.LEFT, padx=4)
+    tk.Button(bar, text="Save preset...", command=self._save_preset_dialog)\
+      .pack(side=tk.LEFT, padx=4)
+
     self.dir_var = tk.StringVar(master=self.root, value="(no directory)")
     tk.Label(bar, textvariable=self.dir_var, anchor="w", bg="#2b2b2b",
              fg="#999999", font=("Helvetica", 10))\
@@ -441,14 +527,14 @@ class NormalmapFuApp:
     self._build_param_grid(n_tab, "normal")
     n_btns = tk.Frame(n_tab, bg="#2b2b2b")
     n_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
-    tk.Button(n_btns, text="Generate from diffuse",
-              command=self._generate_normal_from_diffuse)\
+    ttk.Button(n_btns, text="Generate from diffuse",
+               command=self._generate_normal_from_diffuse)\
       .pack(side=tk.LEFT, padx=(0, 6))
-    tk.Button(n_btns, text="Generate from heightmap",
-              command=self._generate_normal_from_height)\
+    ttk.Button(n_btns, text="Generate from heightmap",
+               command=self._generate_normal_from_height)\
       .pack(side=tk.LEFT, padx=(0, 6))
-    tk.Button(n_btns, text="Save", width=10,
-              command=self._save_normal).pack(side=tk.LEFT, padx=(12, 0))
+    ttk.Button(n_btns, text="Save", width=10,
+               command=self._save_normal).pack(side=tk.LEFT, padx=(12, 0))
 
     # --- Heightmap tab ---
     h_tab = tk.Frame(notebook, bg="#2b2b2b")
@@ -456,11 +542,11 @@ class NormalmapFuApp:
     self._build_param_grid(h_tab, "height")
     h_btns = tk.Frame(h_tab, bg="#2b2b2b")
     h_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
-    tk.Button(h_btns, text="Generate from normalmap",
-              command=self._reprocess_height)\
+    ttk.Button(h_btns, text="Generate from normalmap",
+               command=self._reprocess_height)\
       .pack(side=tk.LEFT, padx=(0, 6))
-    tk.Button(h_btns, text="Save", width=10,
-              command=self._save_height).pack(side=tk.LEFT, padx=(12, 0))
+    ttk.Button(h_btns, text="Save", width=10,
+               command=self._save_height).pack(side=tk.LEFT, padx=(12, 0))
 
     # --- Specular tab ---
     s_tab = tk.Frame(notebook, bg="#2b2b2b")
@@ -468,11 +554,11 @@ class NormalmapFuApp:
     self._build_param_grid(s_tab, "spec")
     s_btns = tk.Frame(s_tab, bg="#2b2b2b")
     s_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
-    tk.Button(s_btns, text="Generate from diffuse + height",
-              command=self._reprocess_spec)\
+    ttk.Button(s_btns, text="Generate from diffuse + height",
+               command=self._reprocess_spec)\
       .pack(side=tk.LEFT, padx=(0, 6))
-    tk.Button(s_btns, text="Save", width=10,
-              command=self._save_spec).pack(side=tk.LEFT, padx=(12, 0))
+    ttk.Button(s_btns, text="Save", width=10,
+               command=self._save_spec).pack(side=tk.LEFT, padx=(12, 0))
 
   def _build_param_grid(self, parent: tk.Frame, group: str):
     for row, (key, label, lo, hi, default, is_int) in \
@@ -553,15 +639,31 @@ class NormalmapFuApp:
           .pack(side=tk.LEFT, padx=4)
 
       if key == "normal":
-        ttk.Checkbutton(cell, text="Flip Y (DirectX)",
-                        variable=self.y_flip_var,
-                        command=self._on_flip_y)\
-          .pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+        conv = tk.Frame(cell, bg="#2b2b2b")
+        conv.pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+        tk.Label(conv, text="Source:", bg="#2b2b2b", fg="#cccccc",
+                 font=("Helvetica", 10)).pack(side=tk.LEFT)
+        ttk.Radiobutton(conv, text="OpenGL", value="OpenGL",
+                        variable=self.normal_convention_var,
+                        command=self._on_normal_convention)\
+          .pack(side=tk.LEFT, padx=2)
+        ttk.Radiobutton(conv, text="DirectX", value="DirectX",
+                        variable=self.normal_convention_var,
+                        command=self._on_normal_convention)\
+          .pack(side=tk.LEFT, padx=2)
       elif key == "height":
-        ttk.Checkbutton(cell, text="Invert height",
-                        variable=self.invert_var,
+        conv = tk.Frame(cell, bg="#2b2b2b")
+        conv.pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+        tk.Label(conv, text="Output:", bg="#2b2b2b", fg="#cccccc",
+                 font=("Helvetica", 10)).pack(side=tk.LEFT)
+        ttk.Radiobutton(conv, text="Heightmap", value="Heightmap",
+                        variable=self.height_convention_var,
                         command=self._reprocess_height)\
-          .pack(side=tk.TOP, anchor="w", padx=4, pady=(2, 0))
+          .pack(side=tk.LEFT, padx=2)
+        ttk.Radiobutton(conv, text="Depthmap", value="Depthmap",
+                        variable=self.height_convention_var,
+                        command=self._reprocess_height)\
+          .pack(side=tk.LEFT, padx=2)
 
       frame.columnconfigure(col, weight=1)
 
@@ -651,6 +753,15 @@ class NormalmapFuApp:
   def _set_directory(self, directory: Path):
     self.browser_dir = directory
     self.dir_var.set(str(directory))
+
+    # Auto-load directory-local preset if present
+    preset_path = directory / PRESET_FILENAME
+    if preset_path.is_file():
+      try:
+        self._apply_preset(json.loads(preset_path.read_text()))
+        print(f"Preset: loaded {preset_path}")
+      except Exception as exc:
+        print(f"Preset: failed to load {preset_path}: {exc}")
 
     files = []
     for ext in ("*.tga", "*.png", "*.jpg", "*.jpeg"):
@@ -872,6 +983,9 @@ class NormalmapFuApp:
   def _fv(self, k: str) -> float:
     return float(self.slider_vars[k].get())
 
+  def _params_dict(self) -> dict:
+    return {key: var.get() for key, var in self.slider_vars.items()}
+
   def _reprocess_normal(self, cascade: bool = True):
     """Apply normal-strength attenuation + frequency reweighting."""
 
@@ -880,61 +994,9 @@ class NormalmapFuApp:
       self._update_tile("normal")
       return
 
-    n = attenuate_normals(self.normal.original, self._fv("normal_strength"))
-
-    # All subsequent operations work in tangent space: X, Y are slope
-    # components in [-1, 1] (0 = flat); Z is reconstructed at the end so
-    # the result is guaranteed unit length.
-    v = n.astype(np.float32) / 127.5 - 1.0
-    x = v[:, :, 0].copy()
-    y = v[:, :, 1].copy()
-
-    # Edge-preserving smoothing: bilateral filter on each slope component.
-    # Smooths low-amplitude (noisy) regions while keeping sharp seams,
-    # rivets, grout lines.
-    denoise = self._fv("n_denoise")
-    if denoise > 0.05:
-      sigma_color = denoise / 100.0  # slope is in [-1, 1]
-      sigma_space = max(2.0, denoise * 0.4)
-      x = cv2.bilateralFilter(x, d=0, sigmaColor=sigma_color,
-                              sigmaSpace=sigma_space)
-      y = cv2.bilateralFilter(y, d=0, sigmaColor=sigma_color,
-                              sigmaSpace=sigma_space)
-
-    # Slope gate: zero out slope vectors below a magnitude threshold.
-    # Surgical against low-amplitude grain.  Soft knee so it doesn't
-    # produce posterized artifacts.
-    gate = self._fv("n_slope_gate")
-    if gate > 1e-4:
-      mag = np.sqrt(x * x + y * y)
-      knee = max(gate * 0.5, 1e-4)
-      attenuation = np.clip((mag - gate + knee) / (knee * 2.0), 0.0, 1.0)
-      x *= attenuation
-      y *= attenuation
-
-    # Frequency reweighting on slope components.
-    cutoff = self._fv("n_freq_cutoff")
-    low_g = self._fv("n_freq_low_gain")
-    high_g = self._fv("n_freq_high_gain")
-    if abs(low_g - 1.0) > 1e-3 or abs(high_g - 1.0) > 1e-3:
-      x = split_bands(x, cutoff, low_g, high_g)
-      y = split_bands(y, cutoff, low_g, high_g)
-
-    # Clamp slope so Z stays real, then reconstruct unit-length normal.
-    mag2 = x * x + y * y
-    scale = np.where(mag2 > 0.999, np.sqrt(0.999 / np.maximum(mag2, 1e-10)),
-                     1.0).astype(np.float32)
-    x *= scale
-    y *= scale
-    z = np.sqrt(np.maximum(1.0 - x * x - y * y, 0.0))
-    v = np.stack([x, y, z], axis=2)
-    n = np.clip((v + 1.0) * 127.5, 0, 255).astype(np.uint8)
-
-    if self.y_flip_var.get():
-      n = n.copy()
-      n[:, :, 1] = 255 - n[:, :, 1]
-
-    self.normal.modified = n
+    self.normal.modified = process_normal(
+      self.normal.original, self._params_dict(),
+      dx_to_gl=self.normal_convention_var.get() == "DirectX")
     self._update_tile("normal")
 
     # Heightmap depends on normalmap; re-derive unless the caller asked us
@@ -943,8 +1005,8 @@ class NormalmapFuApp:
     if cascade:
       self._reprocess_height()
 
-  def _on_flip_y(self):
-    """Flipping Y rebuilds the normalmap (with G inverted) and the heightmap."""
+  def _on_normal_convention(self):
+    """Switching DirectX/OpenGL rebuilds the normalmap and the heightmap."""
     self._reprocess_normal()
 
   def _reprocess_height(self):
@@ -957,15 +1019,9 @@ class NormalmapFuApp:
       self._update_tile("height")
       return
 
-    self.height.modified = heightmap_from_normals(
-      src,
-      cutoff=self._fv("h_freq_cutoff"),
-      low_gain=self._fv("h_freq_low_gain"),
-      high_gain=self._fv("h_freq_high_gain"),
-      strength=self._fv("h_strength"),
-      y_flip=False,
-      invert=self.invert_var.get(),
-    )
+    self.height.modified = process_height(
+      src, self._params_dict(),
+      as_heightmap=self.height_convention_var.get() == "Heightmap")
 
     std = float(np.std(self.height.modified))
     self.stats_var.set(f"height std: {std:.1f}")
@@ -982,15 +1038,8 @@ class NormalmapFuApp:
 
     height_src = self.height.modified if self.height.modified is not None \
       else self.height.original
-    self.spec.modified = specular_from_diffuse(
-      self.diffuse.original,
-      height_src,
-      input_black=self._fv("s_input_black"),
-      input_white=self._fv("s_input_white"),
-      output_black=self._fv("s_output_black"),
-      output_white=self._fv("s_output_white"),
-      cavity_strength=self._fv("s_cavity_strength"),
-    )
+    self.spec.modified = process_spec(
+      self.diffuse.original, height_src, self._params_dict())
     self._update_tile("spec")
 
   def _generate_normal_from_diffuse(self):
@@ -1069,6 +1118,65 @@ class NormalmapFuApp:
   # --------------------------------------------------------------------
   # Saving
   # --------------------------------------------------------------------
+
+  # --------------------------------------------------------------------
+  # Presets
+  # --------------------------------------------------------------------
+
+  def _collect_preset(self) -> dict:
+    """Snapshot all slider values + conventions into a dict."""
+    preset = {
+      "normal_convention": self.normal_convention_var.get(),
+      "height_convention": self.height_convention_var.get(),
+      "params": {key: var.get() for key, var in self.slider_vars.items()},
+    }
+    return preset
+
+  def _apply_preset(self, preset: dict):
+    """Apply a preset dict to the UI variables. Unknown keys are ignored."""
+    nc = preset.get("normal_convention")
+    if nc in ("OpenGL", "DirectX"):
+      self.normal_convention_var.set(nc)
+    hc = preset.get("height_convention")
+    if hc in ("Heightmap", "Depthmap"):
+      self.height_convention_var.set(hc)
+    for key, val in (preset.get("params") or {}).items():
+      var = self.slider_vars.get(key)
+      if var is not None:
+        try:
+          var.set(val)
+        except Exception:
+          pass
+    # Re-derive everything that may have changed
+    self._reprocess_normal()
+    self._reprocess_spec()
+
+  def _save_preset_dialog(self):
+    initial = str(self.browser_dir / PRESET_FILENAME) if self.browser_dir \
+      else PRESET_FILENAME
+    path = filedialog.asksaveasfilename(
+      title="Save preset", defaultextension=".json",
+      initialfile=Path(initial).name,
+      initialdir=str(Path(initial).parent),
+      filetypes=[("JSON preset", "*.json")])
+    if not path:
+      return
+    Path(path).write_text(json.dumps(self._collect_preset(), indent=2) + "\n")
+    print(f"Preset: saved {path}")
+
+  def _load_preset_dialog(self):
+    initial = str(self.browser_dir) if self.browser_dir else "."
+    path = filedialog.askopenfilename(
+      title="Load preset",
+      initialdir=initial,
+      filetypes=[("JSON preset", "*.json")])
+    if not path:
+      return
+    try:
+      self._apply_preset(json.loads(Path(path).read_text()))
+      print(f"Preset: loaded {path}")
+    except Exception as exc:
+      messagebox.showerror("Error", f"Failed to load preset:\n{exc}")
 
   def _save_normal(self):
     """Save the modified normalmap (RGB), preserving existing height (A)."""
@@ -1235,24 +1343,175 @@ class NormalmapFuApp:
 
 
 # ---------------------------------------------------------------------------
+# Batch CLI
+# ---------------------------------------------------------------------------
+
+def _load_image_rgb(path: Path) -> np.ndarray | None:
+  if not path.is_file():
+    return None
+  try:
+    img = Image.open(path)
+    img.load()
+    return np.array(img.convert("RGB"))
+  except Exception as exc:
+    print(f"  ! load failed {path.name}: {exc}", file=sys.stderr)
+    return None
+
+
+def _load_normal_rgba(path: Path) -> tuple[np.ndarray, np.ndarray] | None:
+  """Returns (rgb, alpha) from a normalmap PNG, or (rgb, 255-filled) if no alpha."""
+  if not path.is_file():
+    return None
+  try:
+    img = Image.open(path)
+    img.load()
+    rgb = np.array(img.convert("RGB"))
+    if img.mode in ("RGBA", "LA", "PA"):
+      alpha = np.array(img.split()[-1])
+    else:
+      alpha = np.full(rgb.shape[:2], 255, dtype=np.uint8)
+    return rgb, alpha
+  except Exception as exc:
+    print(f"  ! load failed {path.name}: {exc}", file=sys.stderr)
+    return None
+
+
+def _save_normal_rgba(out_path: Path, normal_rgb: np.ndarray,
+                      height_a: np.ndarray):
+  h, w = normal_rgb.shape[:2]
+  if height_a.shape != (h, w):
+    height_a = cv2.resize(height_a, (w, h), interpolation=cv2.INTER_LINEAR)
+  rgba = np.zeros((h, w, 4), dtype=np.uint8)
+  rgba[:, :, :3] = normal_rgb
+  rgba[:, :, 3] = height_a
+  Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
+
+
+def _save_spec_jpg(out_path: Path, spec: np.ndarray):
+  if spec.ndim == 2:
+    img = Image.fromarray(spec, mode="L").convert("RGB")
+  else:
+    img = Image.fromarray(spec, mode="RGB")
+  img.save(out_path, quality=92, optimize=True)
+
+
+def _enumerate_bases(directory: Path) -> list[tuple[str, Path]]:
+  """Discover (base, parent) pairs by scanning for diffuse files."""
+  bases: dict[tuple[Path, str], None] = {}
+  for ext in DIFFUSE_EXTS:
+    for path in directory.rglob(f"*{ext}"):
+      if _is_normal_map(path) or _is_spec_map(path):
+        continue
+      bases[(path.parent, path.stem)] = None
+  return [(stem, parent) for (parent, stem) in bases]
+
+
+def cmd_batch(args) -> int:
+  preset = json.loads(Path(args.preset).read_text())
+  params = preset.get("params") or {}
+  dx_to_gl = preset.get("normal_convention", "OpenGL") == "DirectX"
+  as_heightmap = preset.get("height_convention", "Heightmap") == "Heightmap"
+  save_set = set(s.strip() for s in args.save.split(",") if s.strip())
+  unknown = save_set - {"normal", "height", "spec"}
+  if unknown:
+    print(f"Unknown --save targets: {', '.join(unknown)}", file=sys.stderr)
+    return 2
+
+  if args.directory:
+    bases = _enumerate_bases(Path(args.directory).expanduser())
+  elif args.files:
+    bases = []
+    for f in args.files:
+      p = Path(f).expanduser()
+      bases.append((_base_of(p), p.parent))
+  else:
+    print("--directory or --files required", file=sys.stderr)
+    return 2
+
+  if args.filter:
+    needle = args.filter.lower()
+    bases = [b for b in bases if needle in b[0].lower()]
+
+  print(f"Batch: {len(bases)} candidates  "
+        f"(normal={preset.get('normal_convention')}, "
+        f"height={preset.get('height_convention')}, "
+        f"save={','.join(sorted(save_set))})")
+
+  ok = 0
+  skipped = 0
+  for base, parent in sorted(bases):
+    diffuse_path = _find_diffuse(parent, base)
+    normal_path = parent / (base + NORMAL_SUFFIX + NORMAL_EXT)
+    spec_path = parent / (base + SPEC_SUFFIX + SPEC_EXT)
+
+    # Need a normal source for normal/height save targets
+    needs_normal_src = bool({"normal", "height"} & save_set)
+    needs_diffuse = "spec" in save_set
+
+    norm_rgb = None
+    norm_alpha = None
+    if needs_normal_src:
+      loaded = _load_normal_rgba(normal_path)
+      if loaded is None:
+        print(f"  - {base}: no normalmap, skipping")
+        skipped += 1
+        continue
+      norm_rgb, norm_alpha = loaded
+
+    diffuse = None
+    if needs_diffuse:
+      if diffuse_path is None:
+        print(f"  - {base}: no diffuse, skipping spec")
+      else:
+        diffuse = _load_image_rgb(diffuse_path)
+
+    # Process pipeline
+    proc_normal = None
+    proc_height = None
+    if norm_rgb is not None:
+      proc_normal = process_normal(norm_rgb, params, dx_to_gl=dx_to_gl)
+      proc_height = process_height(proc_normal, params, as_heightmap=as_heightmap)
+
+    proc_spec = None
+    if diffuse is not None:
+      height_for_spec = proc_height if proc_height is not None else norm_alpha
+      proc_spec = process_spec(diffuse, height_for_spec, params)
+
+    # Write
+    actions = []
+    if "normal" in save_set or "height" in save_set:
+      out_normal = proc_normal if "normal" in save_set else norm_rgb
+      out_height = proc_height if "height" in save_set else norm_alpha
+      actions.append(f"-> {normal_path.name}")
+      if not args.dry_run:
+        _save_normal_rgba(normal_path, out_normal, out_height)
+
+    if "spec" in save_set and proc_spec is not None:
+      actions.append(f"-> {spec_path.name}")
+      if not args.dry_run:
+        _save_spec_jpg(spec_path, proc_spec)
+
+    if actions:
+      print(f"  + {base}  {' '.join(actions)}")
+      ok += 1
+    else:
+      skipped += 1
+
+  print(f"Done: {ok} written, {skipped} skipped"
+        + (" (dry run)" if args.dry_run else ""))
+  return 0
+
+
+# ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
 
-def main():
+def cmd_gui(args) -> int:
   root = tk.Tk()
   app = NormalmapFuApp(root)
 
-  args = sys.argv[1:]
-  directory = None
-  files = []
-  i = 0
-  while i < len(args):
-    if args[i] in ("--directory", "-d") and i + 1 < len(args):
-      directory = Path(args[i + 1]).expanduser()
-      i += 2
-    else:
-      files.append(Path(args[i]).expanduser())
-      i += 1
+  directory = Path(args.directory).expanduser() if args.directory else None
+  files = [Path(f).expanduser() for f in (args.files or [])]
 
   if directory and directory.is_dir():
     root.after(100, lambda: app._set_directory(directory))
@@ -1263,7 +1522,45 @@ def main():
     root.after(200, lambda: app._load_set(files[0]))
 
   root.mainloop()
+  return 0
+
+
+def main() -> int:
+  import argparse
+  parser = argparse.ArgumentParser(
+    prog="normalmap-fu",
+    description="Author Quetoo per-pixel material assets (normal/height/spec).")
+  sub = parser.add_subparsers(dest="cmd")
+
+  gui = sub.add_parser("gui", help="Launch the GUI (default).")
+  gui.add_argument("-d", "--directory")
+  gui.add_argument("files", nargs="*")
+  gui.set_defaults(func=cmd_gui)
+
+  batch = sub.add_parser("batch", help="Reprocess assets headlessly.")
+  batch.add_argument("--preset", required=True,
+                     help="Path to preset .json (saved from the GUI).")
+  group = batch.add_mutually_exclusive_group()
+  group.add_argument("-d", "--directory",
+                     help="Recursively process all bases under this directory.")
+  group.add_argument("--files", nargs="+",
+                     help="Explicit list of files (any of diffuse/norm/spec).")
+  batch.add_argument("--save", default="normal,height,spec",
+                     help="Comma-separated list of {normal,height,spec}.")
+  batch.add_argument("--filter",
+                     help="Only process bases whose name contains this substring.")
+  batch.add_argument("--dry-run", action="store_true",
+                     help="Report what would be written without writing.")
+  batch.set_defaults(func=cmd_batch)
+
+  # Default to GUI when no subcommand given.  Preserve backward-compatible
+  # `--directory PATH` and bare-file forms by falling through to gui parsing.
+  argv = sys.argv[1:]
+  if not argv or argv[0] not in ("gui", "batch", "-h", "--help"):
+    argv = ["gui", *argv]
+  args = parser.parse_args(argv)
+  return args.func(args) or 0
 
 
 if __name__ == "__main__":
-  main()
+  sys.exit(main())
