@@ -299,12 +299,20 @@ def specular_from_diffuse(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
 # Pipeline (pure functions, shared by GUI and CLI)
 # ---------------------------------------------------------------------------
 
-def process_normal(orig_normal_u8: np.ndarray, params: dict,
-                   *, dx_to_gl: bool) -> np.ndarray:
+def to_opengl_normal(raw_u8: np.ndarray, *, source_is_directx: bool) -> np.ndarray:
+  """Return the normalmap in OpenGL convention (Y up), flipping G if needed."""
+  if not source_is_directx:
+    return raw_u8
+  out = raw_u8.copy()
+  out[:, :, 1] = 255 - out[:, :, 1]
+  return out
+
+
+def process_normal(orig_normal_u8: np.ndarray, params: dict) -> np.ndarray:
   """Apply strength + denoise + slope-gate + freq reweight to a normalmap.
 
-  Returns an RGB normalmap in OpenGL convention (Y up). If `dx_to_gl` is
-  True, the input is interpreted as DirectX and G is flipped at the end.
+  The input is assumed to already be in OpenGL convention (Y up); callers
+  are responsible for converting via `to_opengl_normal` first if needed.
   """
   n = attenuate_normals(orig_normal_u8, float(params.get("normal_strength", 1.0)))
 
@@ -342,10 +350,6 @@ def process_normal(orig_normal_u8: np.ndarray, params: dict,
   z = np.sqrt(np.maximum(1.0 - x * x - y * y, 0.0))
   v = np.stack([x, y, z], axis=2)
   n = np.clip((v + 1.0) * 127.5, 0, 255).astype(np.uint8)
-
-  if dx_to_gl:
-    n = n.copy()
-    n[:, :, 1] = 255 - n[:, :, 1]
 
   return n
 
@@ -995,8 +999,9 @@ class NormalmapFuApp:
       return
 
     self.normal.modified = process_normal(
-      self.normal.original, self._params_dict(),
-      dx_to_gl=self.normal_convention_var.get() == "DirectX")
+      to_opengl_normal(self.normal.original,
+                       source_is_directx=self.normal_convention_var.get() == "DirectX"),
+      self._params_dict())
     self._update_tile("normal")
 
     # Heightmap depends on normalmap; re-derive unless the caller asked us
@@ -1094,6 +1099,12 @@ class NormalmapFuApp:
   def _update_tile(self, key: str):
     asset: Asset = getattr(self, key)
     arr = asset.display()
+    # The "Original" view of the normalmap should reflect the chosen source
+    # convention so toggling DirectX/OpenGL is visible regardless of which
+    # radio (Original/Modified) is selected.
+    if key == "normal" and arr is asset.original and arr is not None:
+      arr = to_opengl_normal(
+        arr, source_is_directx=self.normal_convention_var.get() == "DirectX")
     tile = self._tile_widgets[key]
 
     if arr is None:
@@ -1469,7 +1480,8 @@ def cmd_batch(args) -> int:
     proc_normal = None
     proc_height = None
     if norm_rgb is not None:
-      proc_normal = process_normal(norm_rgb, params, dx_to_gl=dx_to_gl)
+      proc_normal = process_normal(
+        to_opengl_normal(norm_rgb, source_is_directx=dx_to_gl), params)
       proc_height = process_height(proc_normal, params, as_heightmap=as_heightmap)
 
     proc_spec = None
