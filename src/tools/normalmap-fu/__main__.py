@@ -1320,15 +1320,14 @@ class NormalmapFuApp:
       self.root.after(50, self._poll_directory_now)
       return
 
-    try:
-      img = Image.open(path)
-      img.load()
-      has_alpha_height = False
-      if img.mode in ("RGBA", "LA", "PA"):
-        alpha = np.array(img.split()[-1])
-        has_alpha_height = alpha.min() < 250 and np.std(alpha) >= 2.0
-    except Exception:
+    # Re-decode the image so the thumbnail reflects what's now on disk.
+    result = self._decode_thumbnail(path)
+    if result is None:
       return
+    img, has_alpha_height = result
+    photo = ImageTk.PhotoImage(img, master=self.root)
+    self._thumb_photos[path] = photo
+    lbl.config(image=photo)
 
     needs_height = _is_normal_map(path) and not has_alpha_height
     lbl._needs_height = needs_height
