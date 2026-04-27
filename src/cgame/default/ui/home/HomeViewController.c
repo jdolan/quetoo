@@ -43,8 +43,37 @@ static void loadView(ViewController *self) {
   View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
   assert(view);
 
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/HomeViewController.css");
+  assert(view->stylesheet);
+
   $(self, setView, view);
   release(view);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+  HomeViewController *this = (HomeViewController *) self;
+
+  void *body;
+  size_t length;
+
+  const int32_t status = cgi.HttpGet(QUETOO_MOTD_URL, &body, &length);
+  if (status == 200) {
+
+    MutableString *motd = $(alloc(MutableString), initWithBytes, body, length, STRING_ENCODING_UTF8);
+    $(motd, trim);
+
+    Cg_Debug("Fetched motd: %s\n", motd->string.chars);
+
+    $(this->motd->text, setText, motd->string.chars);
+
+    release(motd);
+  } else {
+    Cg_Warn("Failed to fetch motd: HTTP %d\n", status);
+  }
 }
 
 #pragma mark - Class lifecycle
@@ -54,6 +83,7 @@ static void loadView(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**

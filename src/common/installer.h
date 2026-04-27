@@ -27,6 +27,7 @@
 
 #define QUETOO_RELEASES_URL     "https://github.com/jdolan/quetoo/releases/latest"
 #define QUETOO_VERSION_URL      "https://quetoo.s3.amazonaws.com/version"
+#define QUETOO_MOTD_URL         "https://quetoo.s3.amazonaws.com/motd"
 #define QUETOO_DATA_BASE_URL    "https://quetoo-data.s3.amazonaws.com"
 
 /**

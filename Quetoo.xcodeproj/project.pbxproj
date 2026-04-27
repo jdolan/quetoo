@@ -714,6 +714,7 @@
 		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
 		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEEC203025B3265700E49614 /* simplex.c in Sources */ = {isa = PBXBuildFile; fileRef = CEEC202F25B3265700E49614 /* simplex.c */; };
+		CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */; };
 		CEF18C3E23F43D6B00B85FD8 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CEF3B6002F455CB30024F4DF /* voxel.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B5FF2F455C990024F4DF /* voxel.glsl */; };
 		CEF3B6022F456FBE0024F4DF /* light.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEF3B6012F456F5A0024F4DF /* light.glsl */; };
@@ -1159,6 +1160,7 @@
 			dstPath = ui/home;
 			dstSubfolderSpec = 16;
 			files = (
+				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1918,6 +1920,7 @@
 		CEEC202E25B3265700E49614 /* simplex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simplex.h; sourceTree = "<group>"; };
 		CEEC202F25B3265700E49614 /* simplex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = simplex.c; sourceTree = "<group>"; };
 		CEEEEEA62F9DB2F400665A30 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = HomeViewController.css; sourceTree = "<group>"; };
 		CEF3B5FF2F455C990024F4DF /* voxel.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = voxel.glsl; sourceTree = "<group>"; };
 		CEF3B6012F456F5A0024F4DF /* light.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = light.glsl; sourceTree = "<group>"; };
 		CEF75F3F2EB996E80026CCA4 /* sv_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_editor.h; sourceTree = "<group>"; };
@@ -3485,6 +3488,7 @@
 		CE7D2C10202F690A004BC58E /* home */ = {
 			isa = PBXGroup;
 			children = (
+				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
 				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
 				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
