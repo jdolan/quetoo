@@ -37,7 +37,6 @@ cvar_t *sv_hostname;
 cvar_t *sv_max_clients;
 cvar_t *sv_max_entities;
 cvar_t *sv_public;
-cvar_t *sv_rcon_password; // password for remote server commands
 cvar_t *sv_timeout;
 
 /**
@@ -350,12 +349,12 @@ static void Sv_Connect_f(void) {
 static bool Sv_RconAuthenticate(void) {
 
   // a password must be set for rcon to be available
-  if (*sv_rcon_password->string == '\0') {
+  if (*rcon_password->string == '\0') {
     return false;
   }
 
   // and of course the passwords must match
-  if (g_strcmp0(Cmd_Argv(1), sv_rcon_password->string)) {
+  if (g_strcmp0(Cmd_Argv(1), rcon_password->string)) {
     return false;
   }
 
@@ -854,7 +853,6 @@ static void Sv_InitLocal(void) {
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
-  sv_rcon_password = Cvar_Add("rcon_password", "", 0, "The remote console password. If set, only give this to trusted clients");
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
 
   sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);

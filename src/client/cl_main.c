@@ -45,7 +45,6 @@ cvar_t *rate;
 cvar_t *qport;
 
 cvar_t *rcon_address;
-cvar_t *rcon_password;
 
 cvar_t *cl_draw_net_messages;
 
@@ -544,7 +543,6 @@ static void Cl_InitLocal(void) {
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
   rcon_address = Cvar_Add("rcon_address", "", 0, NULL);
-  rcon_password = Cvar_Add("rcon_password", "", 0, NULL);
 
   cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
 

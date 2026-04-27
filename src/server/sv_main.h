@@ -36,7 +36,6 @@ extern cvar_t *sv_hostname;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_max_entities;
 extern cvar_t *sv_public;
-extern cvar_t *sv_rcon_password;
 extern cvar_t *sv_timeout;
 
 // per-level and static server structures

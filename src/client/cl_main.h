@@ -54,7 +54,6 @@ extern s_stage_t cl_stage;
 
 extern cvar_t *qport;
 
-extern cvar_t *rcon_password;
 extern cvar_t *rcon_address;
 
 extern cvar_t *cl_draw_net_messages;
