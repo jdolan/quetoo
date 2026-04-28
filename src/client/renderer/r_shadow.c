@@ -460,28 +460,39 @@ static void R_InitShadowProgram(void) {
 
 /**
  * @brief Initializes the shadow atlas texture.
- * @details Computes square layer dimensions from `tile_size` and `GL_MAX_TEXTURE_SIZE`,
- * then allocates a `GL_TEXTURE_2D_ARRAY` with enough layers for `MAX_LIGHTS`.
- * Layers are forced square by choosing `lights_per_col = lights_per_row * 3 / 2`.
+ * @details Allocates a `GL_TEXTURE_2D_ARRAY` of square 8192x8192 depth
+ * layers with enough layers for `MAX_LIGHTS`. Each light occupies a 3x2
+ * block of `tile_size` faces. Layers are forced square by choosing
+ * `lights_per_col = lights_per_row * 3 / 2`.
+ *
+ * Sizing per `r_shadow_tile_size` (with MAX_LIGHTS = 576):
+ *
+ *   tile  lights/row  lights/layer  layers  layer_size  total depth mem
+ *   ----  ----------  ------------  ------  ----------  ---------------
+ *    128       20          600         1      7680^2     ~117 MB
+ *    192       14          294         2      8064^2     ~248 MB
+ *    256       10          150         4      7680^2     ~470 MB
+ *    512        4           24        24      6144^2     ~1.8 GB
+ *   1024        2            6        96      6144^2     ~7.2 GB
  */
 static void R_InitShadowTextures(void) {
 
-  GLint max_texture_size;
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+  GLint max_array_layers;
+  glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_layers);
 
   r_shadow_atlas.tile_size = r_shadow_tile_size->integer;
 
-  // Find the largest lights_per_row such that the layer is square and fits in max_texture_size.
-  // Square constraint: lights_per_row * 3 * tile_size == lights_per_col * 2 * tile_size
-  // So lights_per_col = lights_per_row * 3 / 2 (must be integer, so lights_per_row must be even).
-  // Layer dimension = lights_per_row * 3 * tile_size.
+  // Use a fixed 8192x8192 layer dimension. GL 4.1 guarantees at least
+  // 16384 for GL_MAX_TEXTURE_SIZE so this fits universally, and 8192
+  // stays well within GL_MAX_FRAMEBUFFER_WIDTH/HEIGHT on every driver
+  // we've seen. Square constraint: lights_per_col = lights_per_row * 3/2
+  // (so lights_per_row must be even). Layer dim = lights_per_row*3*tile.
+  enum { LAYER_DIM = 8192 };
 
-  r_shadow_atlas.lights_per_row = max_texture_size / (3 * r_shadow_atlas.tile_size);
+  r_shadow_atlas.lights_per_row = LAYER_DIM / (3 * r_shadow_atlas.tile_size);
   if (r_shadow_atlas.lights_per_row < 2) {
     r_shadow_atlas.lights_per_row = 2;
   }
-
-  // Force even so that lights_per_col = lights_per_row * 3 / 2 is integer
   r_shadow_atlas.lights_per_row &= ~1;
 
   r_shadow_atlas.lights_per_col = r_shadow_atlas.lights_per_row * 3 / 2;
@@ -489,6 +500,11 @@ static void R_InitShadowTextures(void) {
 
   r_shadow_atlas.lights_per_layer = r_shadow_atlas.lights_per_row * r_shadow_atlas.lights_per_col;
   r_shadow_atlas.num_layers = (MAX_LIGHTS + r_shadow_atlas.lights_per_layer - 1) / r_shadow_atlas.lights_per_layer;
+
+  if (r_shadow_atlas.num_layers > max_array_layers) {
+    Com_Error(ERROR_FATAL, "Shadow atlas needs %d layers, GPU max is %d\n",
+              r_shadow_atlas.num_layers, max_array_layers);
+  }
 
   Com_Verbose("   Shadow atlas: %dx%d x %d layers (%d lights/layer, %d tile size)\n",
       r_shadow_atlas.layer_size,
