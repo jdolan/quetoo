@@ -21,6 +21,7 @@ as a single RGBA PNG. The specularmap is saved as JPG.
 import concurrent.futures
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -97,6 +98,99 @@ def _find_normal(parent: Path, base: str) -> Path | None:
 def _find_spec(parent: Path, base: str) -> Path | None:
   candidate = parent / (base + SPEC_SUFFIX + SPEC_EXT)
   return candidate if candidate.is_file() else None
+
+
+# ---------------------------------------------------------------------------
+# .mat file resolution
+# ---------------------------------------------------------------------------
+
+# Quetoo materials are described by `<base>.mat` files that may redirect the
+# normalmap/specularmap to a different path entirely (often shared across a
+# variant family). Format is a brace-delimited block of `key value` lines:
+#
+#   {
+#     diffusemap quake/adoor03_3
+#     normalmap quake/adoor03_norm
+#     specularmap quake/adoor03_spec
+#   }
+#
+# Values are paths relative to the textures root (the parent directory named
+# `textures`), without an extension.
+
+_MAT_KEYS = ("diffusemap", "normalmap", "specularmap", "heightmap", "tintmap")
+_MAT_RESOLVE_EXTS = {
+  "diffusemap":  DIFFUSE_EXTS,
+  "normalmap":   (NORMAL_EXT, ".tga", ".jpg"),
+  "specularmap": (SPEC_EXT, ".png", ".tga"),
+  "heightmap":   (".png", ".tga", ".jpg"),
+  "tintmap":     (".png", ".tga", ".jpg"),
+}
+
+
+def _textures_root(start: Path) -> Path | None:
+  """Walk up from `start` looking for an ancestor directory named `textures`."""
+  for d in [start, *start.parents]:
+    if d.name == "textures":
+      return d
+  return None
+
+
+def _parse_mat(mat_path: Path) -> dict[str, str]:
+  """Return {key: rel_path} for the keys we know about. Tolerant of comments
+  and whitespace; ignores nested stages."""
+  out: dict[str, str] = {}
+  try:
+    text = mat_path.read_text(errors="replace")
+  except Exception:
+    return out
+  # Strip // line and /* */ block comments
+  text = re.sub(r"/\*.*?\*/", " ", text, flags=re.DOTALL)
+  text = re.sub(r"//[^\n]*", " ", text)
+  # Tokenize on whitespace and braces
+  tokens = re.findall(r"\{|\}|[^\s{}]+", text)
+  depth = 0
+  i = 0
+  while i < len(tokens):
+    tok = tokens[i]
+    if tok == "{":
+      depth += 1
+    elif tok == "}":
+      depth -= 1
+    elif depth == 1 and tok in _MAT_KEYS and i + 1 < len(tokens):
+      val = tokens[i + 1]
+      if val not in ("{", "}"):
+        out.setdefault(tok, val)
+        i += 1
+    i += 1
+  return out
+
+
+def _resolve_mat_value(textures_root: Path, rel: str, key: str) -> Path | None:
+  """Resolve a .mat path value (e.g. 'quake/adoor03_norm') to an actual file."""
+  for ext in _MAT_RESOLVE_EXTS.get(key, (".png", ".tga", ".jpg")):
+    candidate = textures_root / (rel + ext)
+    if candidate.is_file():
+      return candidate
+  return None
+
+
+def _resolve_mat_assets(parent: Path, base: str) -> dict[str, Path]:
+  """If `<parent>/<base>.mat` exists, parse it and resolve normalmap/
+  specularmap (and diffusemap, for completeness) to concrete paths.
+  Returns an empty dict if there's no .mat or no textures root."""
+  mat_path = parent / (base + ".mat")
+  if not mat_path.is_file():
+    return {}
+  root = _textures_root(parent)
+  if root is None:
+    return {}
+  parsed = _parse_mat(mat_path)
+  resolved: dict[str, Path] = {}
+  for key, rel in parsed.items():
+    p = _resolve_mat_value(root, rel, key)
+    if p is not None:
+      resolved[key] = p
+  return resolved
 
 
 # ---------------------------------------------------------------------------
@@ -928,7 +1022,9 @@ class NormalmapFuApp:
       self._load_set(Path(path))
 
   def _load_set(self, path: Path):
-    """Resolve diffuse/normal/spec for the asset set sharing a base name."""
+    """Resolve diffuse/normal/spec for the asset set sharing a base name.
+    A sibling <base>.mat file, if present, can redirect normal/spec to a
+    different shared file (typical for variant families)."""
 
     parent = path.parent
     base = _base_of(path)
@@ -938,6 +1034,20 @@ class NormalmapFuApp:
     diffuse_path = _find_diffuse(parent, base)
     normal_path = _find_normal(parent, base)
     spec_path = _find_spec(parent, base)
+
+    # .mat overrides take precedence: a material may share its normalmap
+    # or specularmap with sibling textures (e.g. all the variant frames of
+    # an animated door point at one shared normalmap).
+    mat = _resolve_mat_assets(parent, base)
+    if "diffusemap" in mat:
+      diffuse_path = mat["diffusemap"]
+    if "normalmap" in mat:
+      normal_path = mat["normalmap"]
+    if "specularmap" in mat:
+      spec_path = mat["specularmap"]
+    if mat:
+      print(f".mat: {base}  ->  "
+            + ", ".join(f"{k}={v.name}" for k, v in mat.items()))
 
     self.diffuse = Asset(diffuse_path)
     self.diffuse.original = self._read_rgb(diffuse_path)
@@ -1212,7 +1322,8 @@ class NormalmapFuApp:
       messagebox.showinfo("Info", "No output location.")
       return
 
-    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
+    out_path = self.normal.path or (
+      self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT))
     h, w = normals.shape[:2]
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     # WYSIWYG: save exactly what's shown in the Modified tile.
@@ -1239,7 +1350,8 @@ class NormalmapFuApp:
       messagebox.showinfo("Info", "No output location.")
       return
 
-    out_path = self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT)
+    out_path = self.height.path or self.normal.path or (
+      self.base_path / (self.base_name + NORMAL_SUFFIX + NORMAL_EXT))
     h, w = height.shape[:2]
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     rgba[:, :, :3] = self._existing_rgb(out_path, w, h)
@@ -1300,7 +1412,8 @@ class NormalmapFuApp:
     else:
       img = Image.fromarray(spec, mode="RGB")
 
-    out_path = self.base_path / (self.base_name + SPEC_SUFFIX + SPEC_EXT)
+    out_path = self.spec.path or (
+      self.base_path / (self.base_name + SPEC_SUFFIX + SPEC_EXT))
     img.save(out_path, quality=92, optimize=True)
     print(f"Saved: {out_path.name}")
 
