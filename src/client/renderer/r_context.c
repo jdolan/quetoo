@@ -130,18 +130,14 @@ void R_InitContext(void) {
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 32);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
-    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
-  }
 
   SDL_GLContextFlag context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
 
@@ -151,15 +147,12 @@ void R_InitContext(void) {
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, context_flags);
 
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+    Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
+  }
+
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-    Com_Warn("Failed to create 32 bit OpenGL context: %s\n", SDL_GetError());
-
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-
-    if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
-      Com_Error(ERROR_FATAL, "Failed to create 24 bit OpenGL context: %s\n", SDL_GetError());
-    }
+    Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
   }
 
   const SDL_GLAttr attr_names[] = {
