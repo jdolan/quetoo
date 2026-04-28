@@ -489,6 +489,29 @@ def process_height(processed_normal_u8: np.ndarray, params: dict,
   )
 
 
+def apply_height_filters(height_u8: np.ndarray, params: dict,
+                         *, as_heightmap: bool) -> np.ndarray:
+  """Apply the same frequency / strength / invert pipeline used by
+  heightmap_from_normals, but to an existing 8-bit heightmap. This lets
+  the height sliders edit a loaded heightmap in place without re-deriving
+  it from the normalmap on every change."""
+  cutoff = float(params.get("h_freq_cutoff", 0.3))
+  low_gain = float(params.get("h_freq_low_gain", 1.0))
+  high_gain = float(params.get("h_freq_high_gain", 1.0))
+  strength = float(params.get("h_strength", 1.0))
+
+  height = height_u8.astype(np.float32) / 255.0
+  height = split_bands(height, cutoff, low_gain, high_gain)
+  height = np.clip(height, 0.0, 1.0)
+  height = 0.5 + (height - 0.5) * strength
+  height = np.clip(height, 0.0, 1.0)
+  if as_heightmap:
+    # 'Heightmap' mode shows white=high; if the loaded data is stored
+    # as a depthmap (white=low) the user toggles this to flip back.
+    height = 1.0 - height
+  return (height * 255.0).astype(np.uint8)
+
+
 def process_spec(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
                  params: dict) -> np.ndarray:
   return specular_from_diffuse(
@@ -671,7 +694,7 @@ class NormalmapFuApp:
     h_btns = tk.Frame(h_tab, bg="#2b2b2b")
     h_btns.grid(row=99, column=0, columnspan=3, padx=8, pady=6, sticky="w")
     ttk.Button(h_btns, text="Generate from normalmap",
-               command=self._reprocess_height)\
+               command=self._generate_height_from_normal)\
       .pack(side=tk.LEFT, padx=(0, 6))
     ttk.Button(h_btns, text="Save", width=10,
                command=self._save_height).pack(side=tk.LEFT, padx=(12, 0))
@@ -1155,23 +1178,48 @@ class NormalmapFuApp:
     self._reprocess_normal()
 
   def _reprocess_height(self):
-    """Generate heightmap from the modified (or original) normalmap."""
+    """Apply height-tab sliders. If a heightmap is already loaded
+    (self.height.original), filter it in place; otherwise derive a fresh
+    heightmap from the (modified or original) normalmap."""
 
-    src = self.normal.modified if self.normal.modified is not None \
-      else self.normal.original
-    if src is None:
-      self.height.modified = None
-      self._update_tile("height")
-      return
+    as_heightmap = self.height_convention_var.get() == "Heightmap"
 
-    self.height.modified = process_height(
-      src, self._params_dict(),
-      as_heightmap=self.height_convention_var.get() == "Heightmap")
+    if self.height.original is not None:
+      self.height.modified = apply_height_filters(
+        self.height.original, self._params_dict(), as_heightmap=as_heightmap)
+    else:
+      src = self.normal.modified if self.normal.modified is not None \
+        else self.normal.original
+      if src is None:
+        self.height.modified = None
+        self._update_tile("height")
+        return
+      self.height.modified = process_height(
+        src, self._params_dict(), as_heightmap=as_heightmap)
 
     std = float(np.std(self.height.modified))
     self.stats_var.set(f"height std: {std:.1f}")
     self._update_tile("height")
     self._reprocess_spec()
+
+  def _generate_height_from_normal(self):
+    """Replace the loaded heightmap with one freshly integrated from the
+    current normalmap, then run the slider filters on top."""
+
+    src = self.normal.modified if self.normal.modified is not None \
+      else self.normal.original
+    if src is None:
+      messagebox.showinfo("Info", "No normalmap loaded.")
+      return
+
+    as_heightmap = self.height_convention_var.get() == "Heightmap"
+    # Integrate at neutral filter settings so the integration result is
+    # the new "original"; sliders then act on top via _reprocess_height.
+    neutral = {"h_freq_cutoff": 0.3, "h_freq_low_gain": 1.0,
+               "h_freq_high_gain": 1.0, "h_strength": 1.0}
+    self.height.original = process_height(src, neutral,
+                                          as_heightmap=as_heightmap)
+    self._reprocess_height()
 
   def _reprocess_spec(self):
     """Generate specularmap from diffuse + height."""
