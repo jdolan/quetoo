@@ -658,6 +658,9 @@ class NormalmapFuApp:
     ttk.Button(n_btns, text="Generate from heightmap",
                command=self._generate_normal_from_height)\
       .pack(side=tk.LEFT, padx=(0, 6))
+    ttk.Button(n_btns, text="Sanitize",
+               command=self._sanitize_normal)\
+      .pack(side=tk.LEFT, padx=(0, 6))
     ttk.Button(n_btns, text="Save", width=10,
                command=self._save_normal).pack(side=tk.LEFT, padx=(12, 0))
 
@@ -1202,9 +1205,11 @@ class NormalmapFuApp:
     self.normal.modified = normals
     self.height.original = height
     self.height.modified = height
-    if self.base_path is not None and self.base_name is not None:
+    if self.normal.path is None and self.base_path is not None \
+        and self.base_name is not None:
       self.normal.path = self.base_path / (self.base_name + NORMAL_SUFFIX
                                            + NORMAL_EXT)
+    if self.height.path is None:
       self.height.path = self.normal.path
     self._update_all_tiles()
     self._reprocess_height()
@@ -1219,11 +1224,48 @@ class NormalmapFuApp:
     normals = normals_from_height(src, strength=self._fv("normal_strength"))
     self.normal.original = normals
     self.normal.modified = None
-    if self.base_path is not None and self.base_name is not None:
+    if self.normal.path is None and self.base_path is not None \
+        and self.base_name is not None:
       self.normal.path = self.base_path / (self.base_name + NORMAL_SUFFIX
                                            + NORMAL_EXT)
     self._reprocess_normal(cascade=False)
     self._reprocess_spec()
+
+  def _sanitize_normal(self):
+    """Replace 'dead' RGB pixels (those baked under low-alpha heightmap
+    regions) with flat normal (128, 128, 255). The source baker often
+    leaves junk normals where the heightmap is deeply concave; image
+    viewers hide them via alpha compositing, but the engine sees them.
+    Lerps RGB toward flat by (1 - alpha/threshold) where alpha < threshold."""
+
+    if self.normal.original is None:
+      messagebox.showinfo("Info", "No normalmap loaded.")
+      return
+    if self.height.original is None:
+      messagebox.showinfo("Info",
+                          "No heightmap (alpha) to drive sanitization.")
+      return
+
+    rgb = self.normal.original.astype(np.float32)
+    h, w = rgb.shape[:2]
+    if self.height.original.shape[:2] != (h, w):
+      messagebox.showinfo("Info", "Heightmap size mismatch; cannot sanitize.")
+      return
+
+    THRESHOLD = 64.0  # alpha below this is considered "dead"
+    alpha = self.height.original.astype(np.float32)
+    weight = np.clip(1.0 - alpha / THRESHOLD, 0.0, 1.0)[..., None]
+
+    flat = np.array([128.0, 128.0, 255.0], dtype=np.float32)
+    sanitized = (1.0 - weight) * rgb + weight * flat
+    sanitized = np.clip(sanitized, 0.0, 255.0).astype(np.uint8)
+
+    affected = int((weight > 0).sum())
+    print(f"Sanitize: blended {affected} pixels (alpha < {int(THRESHOLD)})"
+          f" toward flat normal")
+
+    self.normal.original = sanitized
+    self._reprocess_normal()
 
   # --------------------------------------------------------------------
   # Display
@@ -1338,7 +1380,15 @@ class NormalmapFuApp:
     rgba = np.zeros((h, w, 4), dtype=np.uint8)
     # WYSIWYG: save exactly what's shown in the Modified tile.
     rgba[:, :, :3] = normals
-    rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
+    # Re-merge the current heightmap into the alpha channel so the .mat-
+    # referenced file ends up with both the edited normal and the edited
+    # height. Fall back to whatever's on disk, then a flat 255.
+    height = self.height.modified if self.height.modified is not None \
+      else self.height.original
+    if height is not None and height.shape[:2] == (h, w):
+      rgba[:, :, 3] = height
+    else:
+      rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
 
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
     print(f"Saved: {out_path.name}")
