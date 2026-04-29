@@ -1,13 +1,4 @@
-# docker-compose.yml — Quetoo dedicated server example.
-#
-# Before starting, populate the quetoo-data volume:
-#   docker run --rm \
-#     -v quetoo-data:/usr/lib/quetoo/share/quetoo/default \
-#     -v /path/to/quetoo-data/target/default:/src:ro \
-#     busybox cp -a /src/. /usr/lib/quetoo/share/quetoo/default/
-#
-# Or install the quetoo-data .deb inside a container and export its
-# /usr/lib/quetoo/share/quetoo/default/ into the named volume.
+# See linux/docker/README.md for usage.
 
 services:
 
@@ -19,9 +10,7 @@ services:
     ports:
       - "1998:1998/udp"
     volumes:
-      # Game data (required). See note above.
       - quetoo-data:/usr/lib/quetoo/share/quetoo/default:ro
-      # Server config. Defaults are provided by the image.
       - ./server.cfg:/etc/quetoo-dedicated/default.cfg:ro
     stdin_open: true
     tty: true

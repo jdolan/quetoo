@@ -1,12 +1,5 @@
 #!/bin/bash
-# Build quetoo .deb and .rpm inside the quetoo-build container.
-# Mount the quetoo source at /src and an output directory at /out:
-#
-#   docker run --rm \
-#     -v /path/to/quetoo:/src \
-#     -v /tmp/pkgs:/out \
-#     quetoo-build
-
+# See linux/docker/README.md for usage.
 set -e
 
 export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
