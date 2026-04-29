@@ -414,6 +414,7 @@ jobs:
         repository: jdolan/quetoo-data
         path: quetoo-data
         fetch-depth: 1
+        sparse-checkout: target
 
     - name: Create bundles
       run: |
