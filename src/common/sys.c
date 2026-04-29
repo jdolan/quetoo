@@ -24,6 +24,7 @@
 #include "filesystem.h"
 
 #include <signal.h>
+#include <glib/gstdio.h>
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -95,19 +96,28 @@ const char *Sys_Username(void) {
 /**
  * @brief Returns the current user's Quetoo directory.
  *
- * @remarks On Windows, this is `\My Documents\My Games\Quetoo`. On POSIX
- * platforms, it's `~/.quetoo`.
+ * @details Uses `SDL_GetPrefPath`, which yields a platform-conventional
+ * per-user, per-app directory:
+ *   - Windows: `%APPDATA%\WickedOldGames\Quetoo`
+ *   - macOS:   `~/Library/Application Support/Quetoo`
+ *   - Linux:   `$XDG_DATA_HOME/Quetoo` (or `~/.local/share/Quetoo`)
  */
 const char *Sys_UserDir(void) {
   static char user_dir[MAX_OS_PATH];
 
-#if defined(_WIN32)
-  const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-  g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
-#else
-  const char *home = g_get_home_dir();
-  g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", home);
-#endif
+  if (*user_dir == '\0') {
+    char *pref = SDL_GetPrefPath("WickedOldGames", "Quetoo");
+    if (pref == NULL) {
+      Com_Error(ERROR_FATAL, "SDL_GetPrefPath failed: %s\n", SDL_GetError());
+    }
+
+    if (g_str_has_suffix(pref, G_DIR_SEPARATOR_S)) {
+      pref[strlen(pref) - strlen(G_DIR_SEPARATOR_S)] = '\0';
+    }
+
+    g_strlcpy(user_dir, pref, sizeof(user_dir));
+    SDL_free(pref);
+  }
 
   return user_dir;
 }
@@ -278,8 +288,7 @@ static void Sys_EnsureCrashLogPath(void) {
 
   gchar *dir = g_build_filename(Sys_UserDir(), "default", NULL);
   g_mkdir_with_parents(dir, 0755);
-  g_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path),
-             "%s%scrash.log", dir, G_DIR_SEPARATOR_S);
+  g_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s%scrash.log", dir, G_DIR_SEPARATOR_S);
   g_free(dir);
 
 #if !defined(_WIN32)
