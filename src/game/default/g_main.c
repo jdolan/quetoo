@@ -1017,12 +1017,12 @@ void G_Init(void) {
     , CVAR_SERVER_INFO, NULL);
   g_ctf = gi.AddCvar("g_ctf", "0", CVAR_SERVER_INFO, "Enables capture the flag gameplay.");
   g_hook = gi.AddCvar("g_hook", "default", CVAR_SERVER_INFO, "Whether to allow the hook to be used or not. \"default\" only allows hook in CTF; 1 is always allow, 0 is never allow.");
-  g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_SERVER_INFO, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
-  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_SERVER_INFO, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
-  g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_SERVER_INFO, "The maximum distance the hook will travel.");
-  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_SERVER_INFO, "The speed that you get pulled towards the hook.");
-  g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_SERVER_INFO, "The refire delay on the grapple hook in seconds.");
-  g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_SERVER_INFO, "The speed that the hook will fly at.");
+  g_hook_style = gi.AddCvar("g_hook_style", "default", CVAR_ARCHIVE, "Whether to allow only \"pull\", \"swing_manual\", \"swing_auto\" or any (\"default\") hook swing style.");
+  g_hook_auto_refire = gi.AddCvar("g_hook_auto_refire", "0", CVAR_ARCHIVE, "If the hook automatically refires when it hits a non-solid surface, like players or weapon clips. (Currently non-functional)");
+  g_hook_distance = gi.AddCvar("g_hook_distance", va("%.1f", PM_HOOK_DEF_DIST), CVAR_ARCHIVE, "The maximum distance the hook will travel.");
+  g_hook_pull_speed = gi.AddCvar("g_hook_pull_speed", "800", CVAR_ARCHIVE, "The speed that you get pulled towards the hook.");
+  g_hook_refire = gi.AddCvar("g_hook_refire", "0.25", CVAR_ARCHIVE, "The refire delay on the grapple hook in seconds.");
+  g_hook_speed = gi.AddCvar("g_hook_speed", "1200", CVAR_ARCHIVE, "The speed that the hook will fly at.");
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
