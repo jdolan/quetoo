@@ -1861,11 +1861,11 @@ void G_Ai_Init(void) {
 
   gi.SetConfigString(CS_NAV_EDIT, g_ai_node_dev->string);
 
-  gi.AddCmd("ai_save_nodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
-  gi.AddCmd("ai_delete_node", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
-  gi.AddCmd("ai_delete_nodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
-  gi.AddCmd("ai_test_path", G_Ai_TestPath_f, CMD_AI, "Save current node data");
-  gi.AddCmd("ai_offset_nodes", G_Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
+  gi.AddCmd("g_ai_save_nodes", G_Ai_SaveNodes_f, CMD_AI, "Save current node data");
+  gi.AddCmd("g_ai_delete_node", G_Ai_DeleteNode_f, CMD_AI, "Delete a node by id");
+  gi.AddCmd("g_ai_delete_nodes", G_Ai_DeleteNodes_f, CMD_AI, "Delete all current node data");
+  gi.AddCmd("g_ai_test_path", G_Ai_TestPath_f, CMD_AI, "Save current node data");
+  gi.AddCmd("g_ai_offset_nodes", G_Ai_OffsetNodes_f, CMD_AI, "Offset the loaded nodes by the specified translation");
 
   G_Ai_InitItems();
   G_Ai_InitSkins();
