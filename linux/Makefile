@@ -125,7 +125,7 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 
 	# Server management: init script, default instance config, update script.
 	install -Dm755 quetoo-dedicated.init $(PKGDIR)/etc/init.d/quetoo-dedicated
-	install -Dm644 default.cfg           $(PKGDIR)/etc/quetoo-dedicated/default.cfg
+	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg $(PKGDIR)/etc/quetoo-dedicated/default.cfg
 	install -Dm755 quetoo-update         $(PKGDIR)/usr/lib/quetoo/bin/quetoo-update
 
 	touch $@
