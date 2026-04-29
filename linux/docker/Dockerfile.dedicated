@@ -1,0 +1,43 @@
+# syntax=docker/dockerfile:1
+#
+# Two-stage build: the quetoo-build image compiles and packages quetoo;
+# debian:bookworm-slim installs the resulting .deb and runs the server.
+#
+# Build (from the quetoo repo root):
+#   docker build -t quetoo-dedicated -f linux/docker/Dockerfile.dedicated .
+#
+# Run with game data mounted from a quetoo-data install or volume:
+#   docker run -d \
+#     --name quetoo \
+#     -p 1998:1998/udp \
+#     -v quetoo-data:/usr/lib/quetoo/share/quetoo/default:ro \
+#     -v ./my-server.cfg:/etc/quetoo-dedicated/default.cfg:ro \
+#     quetoo-dedicated
+#
+# Attach to the running server console:
+#   docker attach quetoo
+#
+# See linux/docker/docker-compose.yml for a full example.
+
+FROM quetoo-build AS builder
+COPY . /src
+RUN /usr/local/bin/build-pkgs.sh \
+  && cp /src/linux/target/quetoo_*.deb /tmp/quetoo.deb
+
+FROM debian:bookworm-slim
+COPY --from=builder /tmp/quetoo.deb /tmp/quetoo.deb
+RUN apt-get update \
+  && apt-get install -y /tmp/quetoo.deb \
+  && rm -rf /var/lib/apt/lists/* /tmp/quetoo.deb
+
+# Game data is not bundled — mount a quetoo-data volume here,
+# or extend this image and install the quetoo-data .deb on top.
+VOLUME ["/usr/lib/quetoo/share/quetoo/default"]
+
+# Server config. Override by mounting your own .cfg here.
+VOLUME ["/etc/quetoo-dedicated"]
+
+EXPOSE 1998/udp
+
+USER quetoo
+ENTRYPOINT ["/usr/lib/quetoo/bin/quetoo-dedicated"]

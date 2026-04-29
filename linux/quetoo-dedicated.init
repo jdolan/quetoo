@@ -1,0 +1,73 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          quetoo-dedicated
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Quetoo dedicated game server
+### END INIT INFO
+
+DAEMON=/usr/lib/quetoo/bin/quetoo-dedicated
+
+# Derive instance name from $0: quetoo-dedicated -> default, quetoo-dedicated-ffa -> ffa.
+SCRIPT=$(basename "$0")
+INSTANCE="${SCRIPT#quetoo-dedicated}"
+INSTANCE="${INSTANCE#-}"
+INSTANCE="${INSTANCE:-default}"
+
+SCREEN="quetoo-${INSTANCE}"
+CONFIG="/etc/quetoo-dedicated/${INSTANCE}.cfg"
+PIDFILE="/var/run/quetoo-dedicated-${INSTANCE}.pid"
+
+if [[ ! -f "$CONFIG" ]]; then
+  echo "error: $CONFIG not found" >&2
+  exit 1
+fi
+
+# Parse config: prepend + to each non-blank, non-comment line and let the
+# shell handle word-splitting and quote stripping via eval.
+OPTS=()
+while IFS= read -r line; do
+  line="${line#"${line%%[![:space:]]*}"}"
+  [[ -z "$line" || "$line" == //* || "$line" == \#* ]] && continue
+  eval "set -- +${line}"
+  OPTS+=("$@")
+done < "$CONFIG"
+
+case "$1" in
+  start)
+    echo "Starting quetoo-dedicated (${INSTANCE})..."
+    runuser -u quetoo -- screen -dmS "$SCREEN" "$DAEMON" "${OPTS[@]}"
+    sleep 0.5
+    PID=$(runuser -u quetoo -- screen -ls "$SCREEN" 2>/dev/null \
+      | awk -v s=".$SCREEN" '$0 ~ s { split($1,a,"."); print a[1]; exit }')
+    echo "$PID" > "$PIDFILE"
+    echo "Attach with: sudo -u quetoo screen -r ${SCREEN}"
+    ;;
+  stop)
+    echo "Stopping quetoo-dedicated (${INSTANCE})..."
+    runuser -u quetoo -- screen -S "$SCREEN" -X quit 2>/dev/null || true
+    rm -f "$PIDFILE"
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  status)
+    if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+      echo "quetoo-dedicated (${INSTANCE}) is running (PID $(cat "$PIDFILE"))"
+      echo "Attach with: sudo -u quetoo screen -r ${SCREEN}"
+    else
+      echo "quetoo-dedicated (${INSTANCE}) is not running"
+      exit 1
+    fi
+    ;;
+  attach)
+    exec runuser -u quetoo -- screen -r "$SCREEN"
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status|attach}" >&2
+    exit 1
+    ;;
+esac

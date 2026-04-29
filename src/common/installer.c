@@ -394,6 +394,13 @@ void Installer_Init(Installer_FrameFunction frame) {
     return;
   }
 
+#if defined(__linux__)
+  if (g_strcmp0(Fs_BinDir(), "/usr/lib/quetoo/bin") == 0) {
+    Com_Print("Package-managed installation; auto-updates disabled.\n");
+    return;
+  }
+#endif
+
   memset(&installer, 0, sizeof(installer));
   installer.status.state = INSTALLER_COMPARING;
 
