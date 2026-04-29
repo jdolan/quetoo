@@ -94,158 +94,31 @@ const char *Sys_Username(void) {
 }
 
 /**
- * @brief Returns the legacy per-user directory used before the move to
- * platform-conventional locations: `~/.quetoo` on POSIX,
- * `<Documents>\My Games\Quetoo` on Windows.
- */
-static void Sys_LegacyUserDir(char *out, size_t out_size) {
-#if defined(_WIN32)
-  const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-  if (my_documents) {
-    g_snprintf(out, out_size, "%s\\My Games\\Quetoo", my_documents);
-  } else {
-    *out = '\0';
-  }
-#else
-  g_snprintf(out, out_size, "%s/.quetoo", g_get_home_dir());
-#endif
-}
-
-/**
- * @brief Returns true if `dir` exists and contains at least one entry
- * other than our own MIGRATED.txt breadcrumb.
- */
-static bool Sys_DirHasContent(const char *dir) {
-  GDir *d = g_dir_open(dir, 0, NULL);
-  if (d == NULL) {
-    return false;
-  }
-  bool any = false;
-  const char *entry;
-  while ((entry = g_dir_read_name(d)) != NULL) {
-    if (g_strcmp0(entry, "MIGRATED.txt") != 0) {
-      any = true;
-      break;
-    }
-  }
-  g_dir_close(d);
-  return any;
-}
-
-/**
- * @brief Recursively moves the contents of `src` into `dst` (which must
- * already exist). Tries a single rename first; falls back to per-entry
- * move on failure (e.g. cross-device). Returns true on full success.
- */
-static bool Sys_MoveDirContents(const char *src, const char *dst) {
-  GDir *d = g_dir_open(src, 0, NULL);
-  if (d == NULL) {
-    return false;
-  }
-  bool ok = true;
-  const char *entry;
-  while ((entry = g_dir_read_name(d)) != NULL) {
-    gchar *src_path = g_build_filename(src, entry, NULL);
-    gchar *dst_path = g_build_filename(dst, entry, NULL);
-    if (g_rename(src_path, dst_path) != 0) {
-      Com_Warn("Failed to move %s -> %s\n", src_path, dst_path);
-      ok = false;
-    }
-    g_free(src_path);
-    g_free(dst_path);
-  }
-  g_dir_close(d);
-  return ok;
-}
-
-/**
- * @brief One-shot migration of the legacy per-user directory into the new
- * platform-conventional location. Runs only when the new directory is
- * empty and the legacy directory has content. Leaves a MIGRATED.txt
- * breadcrumb in the legacy directory pointing at the new location.
- */
-static void Sys_MigrateLegacyUserDir(const char *new_dir) {
-  char legacy_dir[MAX_OS_PATH];
-  Sys_LegacyUserDir(legacy_dir, sizeof(legacy_dir));
-
-  if (!*legacy_dir) {
-    return;
-  }
-  if (!g_strcmp0(legacy_dir, new_dir)) {
-    return;
-  }
-  if (!g_file_test(legacy_dir, G_FILE_TEST_IS_DIR)) {
-    return;
-  }
-  if (!Sys_DirHasContent(legacy_dir)) {
-    return;
-  }
-  if (Sys_DirHasContent(new_dir)) {
-    Com_Warn("Legacy user dir %s exists but new dir %s is non-empty; "
-             "leaving both in place. Migrate manually if desired.\n",
-             legacy_dir, new_dir);
-    return;
-  }
-
-  Com_Print("Migrating user data: %s -> %s\n", legacy_dir, new_dir);
-  if (!Sys_MoveDirContents(legacy_dir, new_dir)) {
-    Com_Warn("Migration incomplete; please complete manually.\n");
-    return;
-  }
-
-  gchar *bread = g_build_filename(legacy_dir, "MIGRATED.txt", NULL);
-  gchar *msg = g_strdup_printf(
-    "Quetoo user data was migrated to:\n  %s\n"
-    "This directory is no longer used and may be deleted.\n", new_dir);
-  g_file_set_contents(bread, msg, -1, NULL);
-  g_free(msg);
-  g_free(bread);
-}
-
-/**
  * @brief Returns the current user's Quetoo directory.
  *
- * @details Uses SDL_GetPrefPath, which yields a platform-conventional
+ * @details Uses `SDL_GetPrefPath`, which yields a platform-conventional
  * per-user, per-app directory:
- *   - Windows: %APPDATA%\WickedOldGames\Quetoo
- *   - macOS:   ~/Library/Application Support/Quetoo
- *   - Linux:   $XDG_DATA_HOME/Quetoo (or ~/.local/share/Quetoo)
- *
- * If the new directory is empty and a legacy ~/.quetoo (POSIX) or
- * Documents\My Games\Quetoo (Windows) exists, its contents are moved to
- * the new location on first call and a MIGRATED.txt breadcrumb is left
- * behind.
+ *   - Windows: `%APPDATA%\WickedOldGames\Quetoo`
+ *   - macOS:   `~/Library/Application Support/Quetoo`
+ *   - Linux:   `$XDG_DATA_HOME/Quetoo` (or `~/.local/share/Quetoo`)
  */
 const char *Sys_UserDir(void) {
   static char user_dir[MAX_OS_PATH];
 
-  if (*user_dir) {
-    return user_dir;
+  if (*user_dir == '\0') {
+    char *pref = SDL_GetPrefPath("WickedOldGames", "Quetoo");
+    if (pref == NULL) {
+      Com_Error(ERROR_FATAL, "SDL_GetPrefPath failed: %s\n", SDL_GetError());
+    }
+
+    if (g_str_has_suffix(pref, G_DIR_SEPARATOR_S)) {
+      pref[strlen(pref) - strlen(G_DIR_SEPARATOR_S)] = '\0';
+    }
+
+    g_strlcpy(user_dir, pref, sizeof(user_dir));
+    SDL_free(pref);
   }
 
-  char *pref = SDL_GetPrefPath("WickedOldGames", "Quetoo");
-  if (pref == NULL) {
-    Com_Warn("SDL_GetPrefPath failed: %s\n", SDL_GetError());
-    // Fall back to the legacy location so we still produce *something*.
-#if defined(_WIN32)
-    const char *my_documents = g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS);
-    g_snprintf(user_dir, sizeof(user_dir), "%s\\My Games\\Quetoo", my_documents);
-#else
-    g_snprintf(user_dir, sizeof(user_dir), "%s/.quetoo", g_get_home_dir());
-#endif
-    return user_dir;
-  }
-
-  // SDL_GetPrefPath always appends a trailing separator; strip it so
-  // callers can g_build_filename() naturally.
-  size_t len = strlen(pref);
-  if (len > 0 && (pref[len - 1] == '/' || pref[len - 1] == '\\')) {
-    pref[len - 1] = '\0';
-  }
-  g_strlcpy(user_dir, pref, sizeof(user_dir));
-  SDL_free(pref);
-
-  Sys_MigrateLegacyUserDir(user_dir);
   return user_dir;
 }
 
@@ -415,8 +288,7 @@ static void Sys_EnsureCrashLogPath(void) {
 
   gchar *dir = g_build_filename(Sys_UserDir(), "default", NULL);
   g_mkdir_with_parents(dir, 0755);
-  g_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path),
-             "%s%scrash.log", dir, G_DIR_SEPARATOR_S);
+  g_snprintf(sys_crash_log_path, sizeof(sys_crash_log_path), "%s%scrash.log", dir, G_DIR_SEPARATOR_S);
   g_free(dir);
 
 #if !defined(_WIN32)
