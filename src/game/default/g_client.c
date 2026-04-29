@@ -1116,6 +1116,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // save off the user_info in case we want to check something later
   const size_t len = strlen(user_info);
+  memmove(cl->user_info, user_info, len + 1);
   memmove(cl->persistent.user_info, user_info, len + 1);
 
   G_Debug("%s\n", user_info);
@@ -1162,7 +1163,6 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     }
 
     g_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
-    g_strlcpy(cl->name, name, sizeof(cl->name));
   }
 
   const g_team_t *team = cl->persistent.team;

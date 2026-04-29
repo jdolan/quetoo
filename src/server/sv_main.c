@@ -645,7 +645,8 @@ static void Sv_SyncBotClients(void) {
     const g_client_t *gcl = svs.game->clients[i];
 
     if (gcl->in_use && gcl->ai && cl->state == SV_CLIENT_FREE) {
-      g_strlcpy(cl->name, gcl->name, sizeof(cl->name));
+      g_strlcpy(cl->user_info, gcl->user_info, sizeof(cl->user_info));
+      Sv_UserInfoChanged(cl);
       cl->last_message = UINT32_MAX; // bots never time out
       cl->state = SV_CLIENT_ACTIVE;
     } else if (!gcl->in_use && cl->state != SV_CLIENT_FREE) {
