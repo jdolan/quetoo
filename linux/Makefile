@@ -136,7 +136,7 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 deb: $(TARGET)/.pkg-stamp
 	fpm -s dir -t deb \
 		-n quetoo -v $(VERSION) \
-		--architecture amd64 \
+		--architecture $(DEB_ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \
@@ -158,7 +158,7 @@ deb: $(TARGET)/.pkg-stamp
 rpm: $(TARGET)/.pkg-stamp
 	fpm -s dir -t rpm \
 		-n quetoo -v $(VERSION) \
-		--architecture x86_64 \
+		--architecture $(ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \

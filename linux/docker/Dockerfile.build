@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM debian:bookworm
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     ruby ruby-dev rubygems rpm \
   && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install meson
+RUN pip3 install --break-system-packages meson
 RUN gem install fpm --no-document
 
 RUN curl -fsSL -o glib-2.88.0.tar.xz https://download.gnome.org/sources/glib/2.88/glib-2.88.0.tar.xz \
@@ -77,7 +77,7 @@ RUN ARCH=$(uname -m) && \
     "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage" \
   && chmod +x /usr/local/bin/linuxdeploy-${ARCH}.AppImage
 
-COPY build-pkgs.sh /usr/local/bin/build-pkgs.sh
+COPY linux/docker/build-pkgs.sh /usr/local/bin/build-pkgs.sh
 RUN chmod +x /usr/local/bin/build-pkgs.sh
 
 WORKDIR /src
