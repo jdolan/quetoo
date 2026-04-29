@@ -55,7 +55,7 @@ if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
     port="${port:-1998}"
 
     humans=$(python3 - <<EOF
-import re, socket
+import socket
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(2)
@@ -66,10 +66,10 @@ try:
         line = line.strip()
         if not line or line.startswith(b'\\\\'):
             continue
-        # extract quoted name, strip Quake color codes (^[0-9]), check for bot prefix
-        m = re.search(rb'"([^"]*)"', line)
-        if m:
-            name = re.sub(rb'\^[0-9]', b'', m.group(1))
+        # extract quoted name; server strips color codes before sending
+        m = line.split(b'"')
+        if len(m) >= 2:
+            name = m[1]
             if name.startswith(b'[BOT]'):
                 continue
             humans += 1

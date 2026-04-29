@@ -88,7 +88,9 @@ const char *Sv_StatusString(void) {
     if (cl->state == SV_CLIENT_CONNECTED || cl->state == SV_CLIENT_ACTIVE) {
       char player[MAX_TOKEN_CHARS];
 
-      g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, cl->name);
+      char name[sizeof(cl->name)];
+      StrStrip(cl->name, name);
+      g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, name);
       const size_t player_len = strlen(player);
 
       if (status_len + player_len + 1 >= sizeof(status)) {

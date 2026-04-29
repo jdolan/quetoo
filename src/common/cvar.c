@@ -694,7 +694,9 @@ char *Cvar_UserInfo(void) {
 static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 
   if (var->flags & CVAR_SERVER_INFO) {
-    InfoString_Set((char *) data, var->name, var->string);
+    char value[MAX_INFO_STRING_VALUE];
+    StrStrip(var->string, value);
+    InfoString_Set((char *) data, var->name, value);
   }
 }
 
