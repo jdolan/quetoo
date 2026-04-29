@@ -10,12 +10,13 @@
 
 DAEMON=/usr/lib/quetoo/bin/quetoo-dedicated
 
-# Derive instance name from $0: quetoo-dedicated -> default, quetoo-dedicated-ffa -> ffa.
-SCRIPT=$(basename "$0")
-INSTANCE="${SCRIPT#quetoo-dedicated}"
-INSTANCE="${INSTANCE#-}"
-INSTANCE="${INSTANCE:-default}"
+if [[ $# -lt 2 ]]; then
+  echo "Usage: $0 {start|stop|restart|status|attach} <instance>" >&2
+  exit 1
+fi
 
+ACTION="$1"
+INSTANCE="$2"
 SCREEN="quetoo-${INSTANCE}"
 CONFIG="/etc/quetoo-dedicated/${INSTANCE}.cfg"
 PIDFILE="/var/run/quetoo-dedicated-${INSTANCE}.pid"
@@ -35,7 +36,7 @@ while IFS= read -r line; do
   OPTS+=("$@")
 done < "$CONFIG"
 
-case "$1" in
+case "$ACTION" in
   start)
     echo "Starting quetoo-dedicated (${INSTANCE})..."
     runuser -u quetoo -- screen -dmS "$SCREEN" "$DAEMON" "${OPTS[@]}"
@@ -51,8 +52,8 @@ case "$1" in
     rm -f "$PIDFILE"
     ;;
   restart)
-    "$0" stop
-    "$0" start
+    "$0" stop "$INSTANCE"
+    "$0" start "$INSTANCE"
     ;;
   status)
     if [[ -f "$PIDFILE" ]] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
@@ -67,7 +68,7 @@ case "$1" in
     exec runuser -u quetoo -- screen -r "$SCREEN"
     ;;
   *)
-    echo "Usage: $0 {start|stop|restart|status|attach}" >&2
+    echo "Usage: $0 {start|stop|restart|status|attach} <instance>" >&2
     exit 1
     ;;
 esac
