@@ -20,6 +20,7 @@ INSTANCE="$2"
 SCREEN="quetoo-${INSTANCE}"
 CONFIG="/etc/quetoo-dedicated/${INSTANCE}.cfg"
 PIDFILE="/var/run/quetoo-dedicated-${INSTANCE}.pid"
+EXTRA=("${@:3}")
 
 if [[ ! -f "$CONFIG" ]]; then
   echo "error: $CONFIG not found" >&2
@@ -39,7 +40,7 @@ done < "$CONFIG"
 case "$ACTION" in
   start)
     echo "Starting quetoo-dedicated (${INSTANCE})..."
-    runuser -u quetoo -- screen -dmS "$SCREEN" "$DAEMON" "${OPTS[@]}"
+    runuser -u quetoo -- screen -dmS "$SCREEN" "$DAEMON" "${OPTS[@]}" "${EXTRA[@]}"
     sleep 0.5
     PID=$(runuser -u quetoo -- screen -ls "$SCREEN" 2>/dev/null \
       | awk -v s=".$SCREEN" '$0 ~ s { split($1,a,"."); print a[1]; exit }')
