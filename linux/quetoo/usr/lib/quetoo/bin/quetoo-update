@@ -72,7 +72,7 @@ try:
             name = re.sub(rb'\^[0-9]', b'', m.group(1))
             if name.startswith(b'[BOT]'):
                 continue
-        humans += 1
+            humans += 1
     print(humans)
 except Exception:
     print(0)

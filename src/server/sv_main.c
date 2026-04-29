@@ -59,8 +59,10 @@ void Sv_DropClient(sv_client_t *cl) {
       svs.game->ClientDisconnect(svs.game->clients[cl - svs.clients]);
     }
 
-    Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
-    Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
+    if (!svs.game->clients[cl - svs.clients]->ai) { // bots have no network connection
+      Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
+      Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
+    }
   }
 
   Sv_HttpClientDisconnect(&cl->http);
@@ -631,6 +633,27 @@ static void Sv_ResetEntities(void) {
 }
 
 /**
+ * @brief Syncs sv_client_t state with the game module's g_client_t for bot clients.
+ * Called after each game frame to reflect bot connects and disconnects.
+ */
+static void Sv_SyncBotClients(void) {
+
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+    sv_client_t *cl = &svs.clients[i];
+    const g_client_t *gcl = svs.game->clients[i];
+
+    if (gcl->in_use && gcl->ai && cl->state == SV_CLIENT_FREE) {
+      g_strlcpy(cl->name, gcl->name, sizeof(cl->name));
+      cl->last_message = UINT32_MAX; // bots never time out
+      cl->state = SV_CLIENT_ACTIVE;
+    } else if (!gcl->in_use && cl->state != SV_CLIENT_FREE) {
+      memset(cl, 0, sizeof(*cl));
+      cl->last_frame = -1;
+    }
+  }
+}
+
+/**
  * @brief Updates the game module's time and runs its frame function.
  */
 static void Sv_RunGameFrame(void) {
@@ -640,6 +663,7 @@ static void Sv_RunGameFrame(void) {
 
   if (svs.state == SV_ACTIVE_GAME) {
     svs.game->Frame();
+    Sv_SyncBotClients();
   }
 }
 

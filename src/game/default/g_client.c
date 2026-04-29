@@ -1162,6 +1162,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
     }
 
     g_strlcpy(cl->persistent.net_name, name, sizeof(cl->persistent.net_name));
+    g_strlcpy(cl->name, name, sizeof(cl->name));
   }
 
   const g_team_t *team = cl->persistent.team;

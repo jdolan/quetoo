@@ -1388,6 +1388,11 @@ struct g_client_s {
   uint32_t ping;
 
   /**
+   * @brief Player name, extracted from user info.
+   */
+  char name[32];
+
+  /**
    * @brief True if this client slot is currently active.
    */
   bool in_use;
