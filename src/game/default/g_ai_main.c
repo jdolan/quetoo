@@ -872,14 +872,14 @@ static inline float G_Ai_Wander(g_client_t *cl, pm_cmd_t *cmd) {
   return *angle;
 }
 
-static g_entity_t *ai_current_entity;
+static g_entity_t *g_ai_current_entity;
 
 /**
  * @brief Ignore ourselves, clipping to the correct mask based on our status.
  */
 static cm_trace_t G_Ai_MoveTrace(const vec3_t start, const vec3_t end, const box3_t bounds) {
 
-  const g_entity_t *ent= ai_current_entity;
+  const g_entity_t *ent= g_ai_current_entity;
 
   if (ent->solid == SOLID_DEAD) {
     return gi.Trace(start, end, bounds, ent, CONTENTS_MASK_CLIP_CORPSE);
@@ -1178,7 +1178,7 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
   cmd->forward = dir.x;
   cmd->right = dir.y;
 
-  ai_current_entity = ent;
+  g_ai_current_entity = ent;
 
   // predict ahead
   pm_move_t pm;
@@ -1614,7 +1614,7 @@ static uint32_t G_Ai_LongRange(g_client_t *cl, pm_cmd_t *cmd) {
 /**
  * @brief Static list of func goal functions
  */
-static const G_Ai_GoalFunc ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
+static const G_Ai_GoalFunc g_ai_goalfuncs[AI_FUNC_GOAL_TOTAL] = {
   [AI_FUNC_GOAL_LONGRANGE] = G_Ai_LongRange,
   [AI_FUNC_GOAL_HUNT] = G_Ai_Hunt,
   [AI_FUNC_GOAL_WEAPONRY] = G_Ai_Weaponry,
@@ -1639,7 +1639,7 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->func_goal_next_thinks[i] <= g_level.time) {
-      cl->ai->func_goal_next_thinks[i] = g_level.time + ai_goalfuncs[i](cl, cmd);
+      cl->ai->func_goal_next_thinks[i] = g_level.time + g_ai_goalfuncs[i](cl, cmd);
     }
   }
 

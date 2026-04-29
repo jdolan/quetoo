@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-static cvar_t *ai_name_prefix;
+static cvar_t *g_ai_name_prefix;
 
 /**
  * @brief The static roster of bot definitions.
@@ -43,7 +43,7 @@ static const g_ai_roster_t g_ai_roster[] = {
   { "Flyer",      "bunker/fidget",     .55f,  .65f,  .40f },
 };
 
-static const uint32_t ai_roster_count = lengthof(g_ai_roster);
+static const uint32_t g_ai_roster_count = lengthof(g_ai_roster);
 
 /**
  * @brief Round-robin index for assigning bots from the roster.
@@ -68,14 +68,14 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
   if (g_ai_roster_suffix == 0) {
-    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, entry->name));
+    InfoString_Set(info, "name", va("%s%s", g_ai_name_prefix->string, entry->name));
   } else {
-    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, entry->name, g_ai_roster_suffix + 1));
+    InfoString_Set(info, "name", va("%s%s %i", g_ai_name_prefix->string, entry->name, g_ai_roster_suffix + 1));
   }
 
   g_ai_roster_index++;
 
-  if (g_ai_roster_index == ai_roster_count) {
+  if (g_ai_roster_index == g_ai_roster_count) {
     g_ai_roster_index = 0;
     g_ai_roster_suffix++;
   }
@@ -88,7 +88,7 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
  */
 void G_Ai_InitSkins(void) {
 
-  ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+  g_ai_name_prefix = gi.AddCvar("g_ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 }
 
 /**
