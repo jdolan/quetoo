@@ -1513,8 +1513,6 @@
 		CE12D7061C5C58C300CD0B13 /* work.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = work.c; sourceTree = "<group>"; };
 		CE12D7071C5C58C300CD0B13 /* tree.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = tree.c; sourceTree = "<group>"; };
 		CE12D7081C5C58C300CD0B13 /* writebsp.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = writebsp.c; sourceTree = "<group>"; };
-		CE12D7241C5C58C300CD0B13 /* create_fixtures.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = create_fixtures.sh; sourceTree = "<group>"; };
-		CE12D7251C5C58C300CD0B13 /* install_deps.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = install_deps.sh; sourceTree = "<group>"; };
 		CE12D7281C5C58C300CD0B13 /* TODO */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO; sourceTree = "<group>"; };
 		CE12D72B1C5C58D800CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		CE12D7351C5C5B9300CD0B13 /* quetoo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = quetoo; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2451,7 +2449,6 @@
 				CE12D7291C5C58D800CD0B13 /* apple */,
 				CE12D4A91C5C58C300CD0B13 /* deps */,
 				CE12D5091C5C58C300CD0B13 /* doc */,
-				CE12D7231C5C58C300CD0B13 /* jenkins */,
 				CE12D50D1C5C58C300CD0B13 /* linux */,
 				CE12D5381C5C58C300CD0B13 /* src */,
 				CE12D4A71C5C58C300CD0B13 /* config.h */,
@@ -3070,15 +3067,6 @@
 				CE12D6EF1C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = quemap;
-			sourceTree = "<group>";
-		};
-		CE12D7231C5C58C300CD0B13 /* jenkins */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D7241C5C58C300CD0B13 /* create_fixtures.sh */,
-				CE12D7251C5C58C300CD0B13 /* install_deps.sh */,
-			);
-			path = jenkins;
 			sourceTree = "<group>";
 		};
 		CE12D7291C5C58D800CD0B13 /* apple */ = {
