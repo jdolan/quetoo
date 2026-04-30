@@ -404,7 +404,16 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
 
     g_strlcpy(out->style, in->style, sizeof(out->style));
-    out->drift = Cm_EntityValue(out->entity, "drift")->value;
+
+    const float drift = Cm_EntityValue(out->entity, "drift")->value;
+    if (drift > 0.f) {
+      // Derive a stable per-light random phase from the light's world origin,
+      // scaled by drift so mappers can control the spread (0 = no offset, 1 = full random).
+      const float h = fabsf(sinf(out->origin.x * 127.1f +
+                                 out->origin.y * 311.7f +
+                                 out->origin.z *  74.7f));
+      out->drift = drift * fmodf(h, 1.f);
+    }
   }
 }
 
