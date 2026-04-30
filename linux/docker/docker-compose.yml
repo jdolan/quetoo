@@ -1,0 +1,20 @@
+# See linux/docker/README.md for usage.
+
+services:
+
+  quetoo-dedicated:
+    image: quetoo-dedicated
+    build:
+      context: ../..
+      dockerfile: linux/docker/Dockerfile.dedicated
+    ports:
+      - "1998:1998/udp"
+    volumes:
+      - quetoo-data:/usr/lib/quetoo/share/quetoo/default:ro
+      - ./server.cfg:/etc/quetoo-dedicated/default.cfg:ro
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+volumes:
+  quetoo-data:

@@ -1,0 +1,25 @@
+# syntax=docker/dockerfile:1
+# See linux/docker/README.md for usage.
+
+FROM quetoo-build AS builder
+COPY . /src
+RUN /usr/local/bin/build-pkgs.sh \
+  && cp /src/linux/target/quetoo_*.deb /tmp/quetoo.deb
+
+FROM debian:bookworm-slim
+COPY --from=builder /tmp/quetoo.deb /tmp/quetoo.deb
+RUN apt-get update \
+  && apt-get install -y /tmp/quetoo.deb \
+  && rm -rf /var/lib/apt/lists/* /tmp/quetoo.deb
+
+VOLUME ["/usr/lib/quetoo/share/quetoo/default"]
+VOLUME ["/etc/quetoo-dedicated"]
+
+EXPOSE 1998/udp
+
+COPY linux/docker/entrypoint.sh /usr/local/bin/quetoo-entrypoint
+RUN chmod +x /usr/local/bin/quetoo-entrypoint
+
+USER quetoo
+ENTRYPOINT ["/usr/local/bin/quetoo-entrypoint"]
+CMD ["default"]

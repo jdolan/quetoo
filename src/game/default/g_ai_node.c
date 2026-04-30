@@ -83,13 +83,13 @@ typedef struct {
 /**
  * @brief The global array of navigation nodes for the current map.
  */
-static GArray *ai_nodes;
+static GArray *g_ai_nodes;
 
 /**
  * @brief Returns the index of a node pointer within the global node array.
  */
 static inline ai_node_id_t G_Ai_Node_Index(const ai_node_t *node) {
-  return node - (ai_node_t *) ai_nodes->data;
+  return node - (ai_node_t *) g_ai_nodes->data;
 }
 
 /**
@@ -105,7 +105,7 @@ static bool G_Ai_Node_Visible(const vec3_t position, const ai_node_id_t node) {
  */
 guint G_Ai_Node_Count(void) {
 
-  return ai_nodes ? ai_nodes->len : 0;
+  return g_ai_nodes ? g_ai_nodes->len : 0;
 }
 
 /**
@@ -113,15 +113,15 @@ guint G_Ai_Node_Count(void) {
  */
 ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level) {
 
-  if (!ai_nodes)
+  if (!g_ai_nodes)
     return AI_NODE_INVALID;
 
   ai_node_id_t closest = AI_NODE_INVALID;
   float closest_dist = 0;
   const float dist_squared = max_distance * max_distance;
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     vec3_t dir = Vec3_Subtract(position, node->position);
     // weigh the Z axis more heavily
@@ -149,24 +149,24 @@ ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
     return AI_NODE_INVALID;
   }
 
-  if (!ai_nodes) {
-    ai_nodes = g_array_new(false, true, sizeof(ai_node_t));
+  if (!g_ai_nodes) {
+    g_ai_nodes = g_array_new(false, true, sizeof(ai_node_t));
   }
 
-  ai_nodes = g_array_append_val(ai_nodes, (ai_node_t) {
+  g_ai_nodes = g_array_append_val(g_ai_nodes, (ai_node_t) {
     .position = position
   });
 
-  G_Ai_Debug("Dropped new node %d\n", ai_nodes->len - 1);
+  G_Ai_Debug("Dropped new node %d\n", g_ai_nodes->len - 1);
 
-  return ai_nodes->len - 1;
+  return g_ai_nodes->len - 1;
 }
 
 /**
  * @brief Returns true if node a has a directed link to node b.
  */
 bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
-  const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
+  const ai_node_t *node_a = &g_array_index(g_ai_nodes, ai_node_t, a);
 
   if (node_a->links) {
     for (guint i = 0; i < node_a->links->len; i++) {
@@ -185,7 +185,7 @@ bool G_Ai_Node_IsLinked(const ai_node_id_t a, const ai_node_id_t b) {
  * @brief Returns the array of outgoing links for the specified node.
  */
 const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a) {
-  const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
+  const ai_node_t *node_a = &g_array_index(g_ai_nodes, ai_node_t, a);
   return node_a->links;
 }
 
@@ -194,7 +194,7 @@ const GArray *G_Ai_Node_GetLinks(const ai_node_id_t a) {
  */
 void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost) {
 
-  if (!ai_nodes || a >= ai_nodes->len || b >= ai_nodes->len) {
+  if (!g_ai_nodes || a >= g_ai_nodes->len || b >= g_ai_nodes->len) {
     return;
   }
 
@@ -202,7 +202,7 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
     return;
   }
 
-  ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
+  ai_node_t *node_a = &g_array_index(g_ai_nodes, ai_node_t, a);
 
   if (!node_a->links) {
     node_a->links = g_array_new(false, false, sizeof(ai_link_t));
@@ -237,7 +237,7 @@ static inline void G_Ai_Node_LinkDefault(const ai_node_id_t a, const ai_node_id_
  */
 static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
   {
-    ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, a);
+    ai_node_t *node_a = &g_array_index(g_ai_nodes, ai_node_t, a);
 
     if (node_a->links) {
       for (guint i = 0; i < node_a->links->len; i++) {
@@ -257,7 +257,7 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
   }
 
   {
-    ai_node_t *node_b = &g_array_index(ai_nodes, ai_node_t, b);
+    ai_node_t *node_b = &g_array_index(g_ai_nodes, ai_node_t, b);
   
     if (node_b->links) {
       for (guint i = 0; i < node_b->links->len; i++) {
@@ -281,7 +281,7 @@ static void G_Ai_Node_Unlink(const ai_node_id_t a, const ai_node_id_t b) {
  * @brief Removes all links connected to the specified node.
  */
 static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
-  const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, id);
+  const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, id);
 
   if (!node->links) {
     return;
@@ -302,8 +302,8 @@ static void G_Ai_Node_UnlinkAll(const ai_node_id_t id) {
 */
 static void G_Ai_Node_Adjust(const ai_node_id_t id) {
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     if (!node->links) {
       continue;
@@ -324,17 +324,17 @@ static void G_Ai_Node_Adjust(const ai_node_id_t id) {
  */
 void G_Ai_Node_Destroy(const ai_node_id_t id) {
 
-  if (!ai_nodes || id >= ai_nodes->len) {
+  if (!g_ai_nodes || id >= g_ai_nodes->len) {
     gi.Warn("Invalid node id %u\n", id);
     return;
   }
 
   G_Ai_Node_UnlinkAll(id);
-  ai_nodes = g_array_remove_index(ai_nodes, id);
+  g_ai_nodes = g_array_remove_index(g_ai_nodes, id);
 
-  if (!ai_nodes->len) {
-    g_array_free(ai_nodes, true);
-    ai_nodes = NULL;
+  if (!g_ai_nodes->len) {
+    g_array_free(g_ai_nodes, true);
+    g_ai_nodes = NULL;
   } else {
     G_Ai_Node_Adjust(id);
   }
@@ -358,7 +358,7 @@ static bool G_Ai_Node_OnGround(const g_client_t *cl) {
  */
 vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node) {
 
-  return g_array_index(ai_nodes, ai_node_t, node).position;
+  return g_array_index(g_ai_nodes, ai_node_t, node).position;
 }
 
 /**
@@ -366,8 +366,8 @@ vec3_t G_Ai_Node_GetPosition(const ai_node_id_t node) {
  */
 static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     if (!node->links || !node->links->len) {
       continue;
@@ -438,7 +438,7 @@ bool G_Ai_Path_CanPathTo(const GArray *path, const guint index) {
 
   // if we're heading onto a mover node, only allow us to go forth
   // if the mover is there
-  return G_Ai_Node_CanPathTo(g_array_index(ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index)).position);
+  return G_Ai_Node_CanPathTo(g_array_index(g_ai_nodes, ai_node_t, g_array_index(path, ai_node_id_t, index)).position);
 }
 
 /**
@@ -596,7 +596,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   // "use" moves node
   } else if (allow_adjustments && ent->move_node) {
     if (ai_player_roam.last_nodes[0] != AI_NODE_INVALID) {
-      ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, ai_player_roam.last_nodes[0]);
+      ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, ai_player_roam.last_nodes[0]);
       node->position = ent->s.origin;
 
       if (cmd->up < 0) {
@@ -727,8 +727,8 @@ static void G_Ai_Node_RenderLinks(gpointer key, gpointer value, gpointer userdat
   const ai_unique_link_t ulink = { .v = GPOINTER_TO_INT(key) };
   const int32_t bits = GPOINTER_TO_INT(value);
   
-  const ai_node_t *node_a = &g_array_index(ai_nodes, ai_node_t, ulink.a);
-  const ai_node_t *node_b = &g_array_index(ai_nodes, ai_node_t, ulink.b);
+  const ai_node_t *node_a = &g_array_index(g_ai_nodes, ai_node_t, ulink.a);
+  const ai_node_t *node_b = &g_array_index(g_ai_nodes, ai_node_t, ulink.b);
 
   g_client_t *client = NULL;
   G_ForEachClient(cl, {
@@ -781,7 +781,7 @@ void G_Ai_Node_Render(void) {
     return;
   }
 
-  if (!ai_nodes) {
+  if (!g_ai_nodes) {
     return;
   }
 
@@ -801,8 +801,8 @@ void G_Ai_Node_Render(void) {
 
   GHashTable *unique_links = g_hash_table_new(g_direct_hash, g_direct_equal);
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
     const bool in_path = G_Ai_NodeInPath(ai_player_roam.test_path, i);
 
     if (G_Ai_Node_Visible(Vec3_Add(ent->s.origin, client->ps.pm_state.view_offset), i)) {
@@ -935,13 +935,13 @@ void G_Ai_InitNodes(void) {
   guint num_nodes;
   gi.ReadFile(file, &num_nodes, sizeof(num_nodes), 1);
 
-  ai_nodes = g_array_sized_new(false, true, sizeof(ai_node_t), num_nodes);
-  g_array_set_size(ai_nodes, num_nodes);
+  g_ai_nodes = g_array_sized_new(false, true, sizeof(ai_node_t), num_nodes);
+  g_array_set_size(g_ai_nodes, num_nodes);
 
   guint total_links = 0;
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     gi.ReadFile(file, &node->position, sizeof(node->position), 1);
 
@@ -967,8 +967,8 @@ void G_Ai_InitNodes(void) {
   ai_player_roam.file_nodes = num_nodes;
   ai_player_roam.file_links = 0;
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     if (node->links) {
       ai_player_roam.file_links += node->links->len;
@@ -997,8 +997,8 @@ static void G_Ai_CheckNodes(void) {
     });
   }
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
     
     if (gi.PointContents(node->position) & CONTENTS_MASK_SOLID) {
       gi.Warn("Node %i @ %s is inside of solid\n", i, vtos(node->position));
@@ -1012,15 +1012,15 @@ static void G_Ai_CheckNodes(void) {
  */
 void G_Ai_NodesReady(void) {
 
-  if (!ai_nodes) {
+  if (!g_ai_nodes) {
     return;
   }
 
-  const guint added_nodes = ai_nodes->len - ai_player_roam.file_nodes;
+  const guint added_nodes = g_ai_nodes->len - ai_player_roam.file_nodes;
   guint added_links = 0;
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     if (node->links) {
       added_links += node->links->len;
@@ -1052,7 +1052,7 @@ void G_Ai_SaveNodes(void) {
 
   g_snprintf(filename, sizeof(filename), "maps/%s.nav", g_level.name);
 
-  if (!ai_nodes) {
+  if (!g_ai_nodes) {
     gi.Warn("No nodes to write.\n");
     return;
   }
@@ -1064,10 +1064,10 @@ void G_Ai_SaveNodes(void) {
   gi.WriteFile(file, &magic, sizeof(magic), 1);
   gi.WriteFile(file, &version, sizeof(version), 1);
 
-  gi.WriteFile(file, &ai_nodes->len, sizeof(ai_nodes->len), 1);
+  gi.WriteFile(file, &g_ai_nodes->len, sizeof(g_ai_nodes->len), 1);
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     gi.WriteFile(file, &node->position, sizeof(node->position), 1);
 
@@ -1092,16 +1092,16 @@ void G_Ai_SaveNodes(void) {
  */
 void G_Ai_DeleteNodes(void) {
 
-  if (ai_nodes) {
-    for (guint i = 0; i < ai_nodes->len; i++) {
-      ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  if (g_ai_nodes) {
+    for (guint i = 0; i < g_ai_nodes->len; i++) {
+      ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
       if (node->links) {
         g_array_free(node->links, true);
       }
     }
 
-    g_array_set_size(ai_nodes, 0);
+    g_array_set_size(g_ai_nodes, 0);
   }
 }
 
@@ -1110,17 +1110,17 @@ void G_Ai_DeleteNodes(void) {
  */
 void G_Ai_ShutdownNodes(void) {
 
-  if (ai_nodes) {
-    for (guint i = 0; i < ai_nodes->len; i++) {
-      ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  if (g_ai_nodes) {
+    for (guint i = 0; i < g_ai_nodes->len; i++) {
+      ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
       if (node->links) {
         g_array_free(node->links, true);
       }
     }
 
-    g_array_free(ai_nodes, true);
-    ai_nodes = NULL;
+    g_array_free(g_ai_nodes, true);
+    g_ai_nodes = NULL;
   }
 }
 
@@ -1130,7 +1130,7 @@ typedef struct {
 } ai_node_priority_t;
 
 static inline float G_Ai_LinkCost(const ai_node_id_t a, const ai_node_id_t b) {
-  const ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, a);
+  const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, a);
 
   assert(node->links);
 
@@ -1169,7 +1169,7 @@ GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, con
     .priority = 0
   }, 1);
 
-  ai_node_t *start_node = &g_array_index(ai_nodes, ai_node_t, start);
+  ai_node_t *start_node = &g_array_index(g_ai_nodes, ai_node_t, start);
   start_node->cost = 0;
   g_hash_table_add(costs_started, start_node);
 
@@ -1183,7 +1183,7 @@ GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, con
       break;
     }
 
-    ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, current.id);
+    ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, current.id);
 
     if (!node->links || !node->links->len) {
       continue;
@@ -1191,7 +1191,7 @@ GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, con
 
     for (guint i = 0; i < node->links->len; i++) {
       const ai_link_t *link = &g_array_index(node->links, ai_link_t, i);
-      ai_node_t *link_node = &g_array_index(ai_nodes, ai_node_t, link->id);
+      ai_node_t *link_node = &g_array_index(g_ai_nodes, ai_node_t, link->id);
       const float new_cost = node->cost + link->cost;
 
       if (!g_hash_table_lookup(costs_started, link_node) || new_cost < link_node->cost) {
@@ -1245,7 +1245,7 @@ GArray *G_Ai_Node_FindPath(const ai_node_id_t start, const ai_node_id_t end, con
       ai_node_id_t from = end;
 
       for (;;) {
-        const ai_node_t *from_node = &g_array_index(ai_nodes, ai_node_t, from);
+        const ai_node_t *from_node = &g_array_index(g_ai_nodes, ai_node_t, from);
         from = from_node->came_from;
         return_path = g_array_prepend_val(return_path, from);
 
@@ -1293,8 +1293,8 @@ void G_Ai_OffsetNodes_f(void) {
     }
   }
 
-  for (guint i = 0; i < ai_nodes->len; i++) {
-    ai_node_t *node = &g_array_index(ai_nodes, ai_node_t, i);
+  for (guint i = 0; i < g_ai_nodes->len; i++) {
+    ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
     node->position = Vec3_Add(node->position, translate);
   }
 }

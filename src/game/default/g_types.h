@@ -1388,6 +1388,11 @@ struct g_client_s {
   uint32_t ping;
 
   /**
+   * @brief Raw user info key-value string.
+   */
+  char user_info[MAX_INFO_STRING_STRING];
+
+  /**
    * @brief True if this client slot is currently active.
    */
   bool in_use;

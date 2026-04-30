@@ -21,7 +21,7 @@
 
 #include "g_local.h"
 
-static cvar_t *ai_name_prefix;
+static cvar_t *g_ai_name_prefix;
 
 /**
  * @brief The static roster of bot definitions.
@@ -43,20 +43,20 @@ static const g_ai_roster_t g_ai_roster[] = {
   { "Flyer",      "bunker/fidget",     .55f,  .65f,  .40f },
 };
 
-static const uint32_t ai_roster_count = lengthof(g_ai_roster);
+static const uint32_t g_ai_roster_count = lengthof(g_ai_roster);
 
 /**
  * @brief Round-robin index for assigning bots from the roster.
  */
-static uint32_t ai_roster_index;
-static uint32_t ai_roster_suffix;
+static uint32_t g_ai_roster_index;
+static uint32_t g_ai_roster_suffix;
 
 /**
  * @brief Create the user info for the specified bot and return its roster entry.
  */
 const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
-  const g_ai_roster_t *entry = &g_ai_roster[ai_roster_index];
+  const g_ai_roster_t *entry = &g_ai_roster[g_ai_roster_index];
 
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
@@ -67,17 +67,17 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
   InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
-  if (ai_roster_suffix == 0) {
-    InfoString_Set(info, "name", va("%s%s", ai_name_prefix->string, entry->name));
+  if (g_ai_roster_suffix == 0) {
+    InfoString_Set(info, "name", va("%s%s", g_ai_name_prefix->string, entry->name));
   } else {
-    InfoString_Set(info, "name", va("%s%s %i", ai_name_prefix->string, entry->name, ai_roster_suffix + 1));
+    InfoString_Set(info, "name", va("%s%s %i", g_ai_name_prefix->string, entry->name, g_ai_roster_suffix + 1));
   }
 
-  ai_roster_index++;
+  g_ai_roster_index++;
 
-  if (ai_roster_index == ai_roster_count) {
-    ai_roster_index = 0;
-    ai_roster_suffix++;
+  if (g_ai_roster_index == g_ai_roster_count) {
+    g_ai_roster_index = 0;
+    g_ai_roster_suffix++;
   }
 
   return entry;
@@ -88,7 +88,7 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
  */
 void G_Ai_InitSkins(void) {
 
-  ai_name_prefix = gi.AddCvar("ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
+  g_ai_name_prefix = gi.AddCvar("g_ai_name_prefix", "^0[^1BOT^0] ^7", 0, NULL);
 }
 
 /**

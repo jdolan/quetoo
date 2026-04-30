@@ -68,6 +68,11 @@ struct g_client_s {
   uint32_t ping;
 
   /**
+   * @brief Raw user info key-value string.
+   */
+  char user_info[MAX_INFO_STRING_STRING];
+
+  /**
    * @brief True if this client slot is currently active.
    */
   bool in_use;
@@ -613,7 +618,7 @@ typedef struct g_import_s {
 
 /**
  * @brief The game export structure exposes core game module entry points to
- * the server. The game must populate this structure as part of G_LoadGame.
+ * the server. The game must populate this structure as part of `G_Init`.
  */
 typedef struct g_export_s {
 
@@ -628,12 +633,12 @@ typedef struct g_export_s {
   int32_t protocol;
 
   /**
-   * @brief Client array, sv_max_clients in length; allocated by the game.
+   * @brief Client array, `sv_max_clients` in length; allocated by the game.
    */
   g_client_t *clients[MAX_CLIENTS];
 
   /**
-   * @brief Entity array, sv_max_entities in length; allocated by the game.
+   * @brief Entity array, `sv_max_entities` in length; allocated by the game.
    */
   g_entity_t *entities[MAX_ENTITIES];
 

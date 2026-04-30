@@ -2,13 +2,16 @@
 # Produces: AppImage, .deb, and .rpm
 # Requires: linuxdeploy, fpm, imagemagick
 
-ARCH      = x86_64
-BUILD     = $(ARCH)-pc-linux
+ARCH     := $(shell uname -m)
+BUILD    := $(ARCH)-pc-linux
 TARGET    = target
 STAGING   = $(TARGET)/staging
 APPDIR    = $(TARGET)/Quetoo.AppDir
 PKGDIR    = $(TARGET)/pkg
 VERSION  := $(shell cd .. && git rev-list --count HEAD 2>/dev/null || echo 0)
+
+# Debian uses amd64/arm64; rpm uses the uname names directly.
+DEB_ARCH := $(if $(filter x86_64,$(ARCH)),amd64,$(if $(filter aarch64,$(ARCH)),arm64,$(ARCH)))
 
 QUETOO_S3_BUCKET      = s3://quetoo
 QUETOO_DATA_S3_BUCKET = s3://quetoo-data
@@ -24,8 +27,8 @@ MODULES = \
 	$(STAGING)/lib/default/game.so
 
 APPIMAGE = $(TARGET)/quetoo-$(BUILD).AppImage
-DEB      = $(TARGET)/quetoo_$(VERSION)_amd64.deb
-RPM      = $(TARGET)/quetoo-$(VERSION)-1.x86_64.rpm
+DEB      = $(TARGET)/quetoo_$(VERSION)_$(DEB_ARCH).deb
+RPM      = $(TARGET)/quetoo-$(VERSION)-1.$(ARCH).rpm
 
 LINUXDEPLOY     = $(TARGET)/linuxdeploy-$(ARCH).AppImage
 APPIMAGETOOL    = $(TARGET)/appimagetool-$(ARCH).AppImage
@@ -120,6 +123,11 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR)/usr/bin/$$bin; \
 	done
 
+	# Server management: init script, default instance config, update script.
+	install -Dm755 quetoo/etc/init.d/quetoo-dedicated            $(PKGDIR)/etc/init.d/quetoo-dedicated
+	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg       $(PKGDIR)/etc/quetoo-dedicated/default.cfg
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-update
+
 	touch $@
 
 # ---------------------------------------------------------------------------
@@ -128,7 +136,7 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 deb: $(TARGET)/.pkg-stamp
 	fpm -s dir -t deb \
 		-n quetoo -v $(VERSION) \
-		--architecture amd64 \
+		--architecture $(DEB_ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \
@@ -136,6 +144,11 @@ deb: $(TARGET)/.pkg-stamp
 		--depends "libc6 (>= 2.31)" \
 		--depends "libstdc++6" \
 		--depends "libgl1 | libgles2" \
+		--depends "screen" \
+		--deb-recommends "quetoo-data" \
+		--config-files /etc/quetoo-dedicated/default.cfg \
+		--config-files /etc/init.d/quetoo-dedicated \
+		--after-install postinstall.sh \
 		-p $(DEB) \
 		-C $(PKGDIR) .
 
@@ -145,7 +158,7 @@ deb: $(TARGET)/.pkg-stamp
 rpm: $(TARGET)/.pkg-stamp
 	fpm -s dir -t rpm \
 		-n quetoo -v $(VERSION) \
-		--architecture x86_64 \
+		--architecture $(ARCH) \
 		--description "Free, open-source arena first-person shooter" \
 		--url "https://quetoo.org" \
 		--license "GPL-2.0" \
@@ -153,6 +166,11 @@ rpm: $(TARGET)/.pkg-stamp
 		--depends "glibc >= 2.31" \
 		--depends "libstdc++" \
 		--depends "mesa-libGL" \
+		--depends "screen" \
+		--rpm-tag "Recommends: quetoo-data" \
+		--config-files /etc/quetoo-dedicated/default.cfg \
+		--config-files /etc/init.d/quetoo-dedicated \
+		--after-install postinstall.sh \
 		-p $(RPM) \
 		-C $(PKGDIR) .
 

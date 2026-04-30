@@ -876,6 +876,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   cl->in_use = tmp.in_use;
   cl->ai = tmp.ai;
   cl->persistent = tmp.persistent;
+  memmove(cl->user_info, cl->persistent.user_info, sizeof(cl->user_info));
 
   g_entity_t *ent = cl->entity;
 
@@ -1116,6 +1117,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // save off the user_info in case we want to check something later
   const size_t len = strlen(user_info);
+  memmove(cl->user_info, user_info, len + 1);
   memmove(cl->persistent.user_info, user_info, len + 1);
 
   G_Debug("%s\n", user_info);

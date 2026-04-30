@@ -1,0 +1,84 @@
+FROM debian:bookworm
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+
+RUN apt-get update && apt-get install -y \
+    build-essential autoconf automake libtool pkg-config git curl \
+    libncurses-dev \
+    libpcre2-dev libffi-dev \
+    libopenal-dev libsndfile1-dev libphysfs-dev zlib1g-dev \
+    libcurl4-openssl-dev \
+    libgl-dev \
+    libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
+    libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev \
+    libdrm-dev libgbm-dev libdecor-0-dev libasound2-dev \
+    libfreetype-dev libharfbuzz-dev \
+    check \
+    cmake ninja-build python3-pip \
+    imagemagick \
+    ruby ruby-dev rubygems rpm \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --break-system-packages meson
+RUN gem install fpm --no-document
+
+RUN curl -fsSL -o glib-2.88.0.tar.xz https://download.gnome.org/sources/glib/2.88/glib-2.88.0.tar.xz \
+  && tar -xf glib-2.88.0.tar.xz \
+  && meson setup glib-2.88.0/_build glib-2.88.0 \
+    --prefix=/usr/local \
+    --buildtype=release \
+    -Dtests=false \
+    -Dintrospection=disabled \
+    -Ddocumentation=false \
+  && ninja -C glib-2.88.0/_build -j$(nproc) \
+  && ninja -C glib-2.88.0/_build install \
+  && rm -rf glib-2.88.0 glib-2.88.0.tar.xz
+
+RUN git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL.git SDL3 \
+  && cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+  && cmake --build SDL3/build -j$(nproc) \
+  && cmake --install SDL3/build \
+  && rm -rf SDL3
+
+RUN git clone --depth 1 --branch release-3.4.0 https://github.com/libsdl-org/SDL_image.git SDL3_image \
+  && cmake -S SDL3_image -B SDL3_image/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+  && cmake --build SDL3_image/build -j$(nproc) \
+  && cmake --install SDL3_image/build \
+  && rm -rf SDL3_image
+
+RUN git clone --depth 1 --branch release-3.2.2 https://github.com/libsdl-org/SDL_ttf.git SDL3_ttf \
+  && cmake -S SDL3_ttf -B SDL3_ttf/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+  && cmake --build SDL3_ttf/build -j$(nproc) \
+  && cmake --install SDL3_ttf/build \
+  && rm -rf SDL3_ttf
+
+RUN git clone https://github.com/jdolan/Objectively.git \
+  && cd Objectively \
+  && autoreconf -i \
+  && ./configure \
+  && make -j$(nproc) \
+  && make install \
+  && cd .. && rm -rf Objectively
+
+RUN git clone https://github.com/jdolan/ObjectivelyMVC.git \
+  && cd ObjectivelyMVC \
+  && autoreconf -i \
+  && ./configure \
+  && make -j$(nproc) \
+  && make install \
+  && cd .. && rm -rf ObjectivelyMVC
+
+RUN ldconfig
+
+# Pre-download linuxdeploy for the host architecture so the Makefile doesn't fetch it at build time.
+RUN ARCH=$(uname -m) && \
+    curl -fsSL -o /usr/local/bin/linuxdeploy-${ARCH}.AppImage \
+    "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-${ARCH}.AppImage" \
+  && chmod +x /usr/local/bin/linuxdeploy-${ARCH}.AppImage
+
+COPY linux/docker/build-pkgs.sh /usr/local/bin/build-pkgs.sh
+RUN chmod +x /usr/local/bin/build-pkgs.sh
+
+WORKDIR /src
+ENTRYPOINT ["/usr/local/bin/build-pkgs.sh"]

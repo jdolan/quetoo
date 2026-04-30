@@ -1,0 +1,116 @@
+#!/bin/bash
+# quetoo-update — update Quetoo engine and game data packages.
+#
+# Usage:
+#   quetoo-update                  Update immediately and restart all instances.
+#   quetoo-update --wait-for-empty Defer until all instances have no human clients.
+#
+# Recommended crontab (every 15 minutes, restart as soon as server empties):
+#   */15 * * * * root /usr/lib/quetoo/bin/quetoo-update --wait-for-empty >> /var/log/quetoo-update.log 2>&1
+
+set -euo pipefail
+
+WAIT_FOR_EMPTY=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --wait-for-empty) WAIT_FOR_EMPTY=1; shift ;;
+    *) echo "Usage: $0 [--wait-for-empty]" >&2; exit 1 ;;
+  esac
+done
+
+# Detect package manager.
+if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
+  PKG_MANAGER=deb
+  INSTALLED_VERSION=$(dpkg-query -W -f='${Version}' quetoo 2>/dev/null || true)
+elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
+  PKG_MANAGER=rpm
+  INSTALLED_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo 2>/dev/null || true)
+else
+  echo "error: no supported package manager found (apt or dnf required)" >&2
+  exit 1
+fi
+
+# Fetch latest release tag from GitHub.
+LATEST=$(curl -fsSL "https://api.github.com/repos/jdolan/quetoo/releases/latest" \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+
+if [[ -z "$LATEST" ]]; then
+  echo "error: could not determine latest release version" >&2
+  exit 1
+fi
+
+if [[ "$INSTALLED_VERSION" == "$LATEST" ]]; then
+  echo "quetoo $INSTALLED_VERSION is already up to date."
+  exit 0
+fi
+
+echo "Update available: $INSTALLED_VERSION -> $LATEST"
+
+# If --wait-for-empty, check every instance for human clients.
+if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
+  for cfg in /etc/quetoo-dedicated/*.cfg; do
+    instance=$(basename "$cfg" .cfg)
+    port=$(grep -E '^set net_port[[:space:]]' "$cfg" 2>/dev/null | head -1 | awk '{print $3}' | tr -d '"')
+    port="${port:-1998}"
+
+    humans=$(python3 - <<EOF
+import socket
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(2)
+    s.sendto(b'\xff\xff\xff\xffstatus\n', ('127.0.0.1', $port))
+    data, _ = s.recvfrom(4096)
+    humans = 0
+    for line in data.split(b'\n')[1:]:
+        line = line.strip()
+        if not line or line.startswith(b'\\\\'):
+            continue
+        # extract quoted name; server strips color codes before sending
+        m = line.split(b'"')
+        if len(m) >= 2:
+            name = m[1]
+            if name.startswith(b'[BOT]'):
+                continue
+            humans += 1
+    print(humans)
+except Exception:
+    print(0)
+EOF
+    )
+
+    if [[ "$humans" -gt 0 ]]; then
+      echo "Instance '$instance' (port $port) has $humans human client(s). Deferring update."
+      exit 0
+    fi
+  done
+fi
+
+# Download and install packages.
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+QUETOO_BASE="https://github.com/jdolan/quetoo/releases/download/v${LATEST}"
+DATA_BASE="https://github.com/jdolan/quetoo-data/releases/download/v${LATEST}"
+
+echo "Downloading quetoo $LATEST..."
+
+if [[ "$PKG_MANAGER" == "deb" ]]; then
+  curl -fsSL -o "$TMPDIR/quetoo.deb"      "$QUETOO_BASE/quetoo-x86_64-pc-linux.deb"
+  curl -fsSL -o "$TMPDIR/quetoo-data.deb" "$DATA_BASE/quetoo-data_${LATEST}_all.deb"
+  apt install -y "$TMPDIR/quetoo.deb" "$TMPDIR/quetoo-data.deb"
+else
+  curl -fsSL -o "$TMPDIR/quetoo.rpm"      "$QUETOO_BASE/quetoo-x86_64-pc-linux.rpm"
+  curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${LATEST}-1.noarch.rpm"
+  dnf install -y "$TMPDIR/quetoo.rpm" "$TMPDIR/quetoo-data.rpm"
+fi
+
+# Restart all running instances.
+for pidfile in /var/run/quetoo-dedicated-*.pid; do
+  [[ -f "$pidfile" ]] || continue
+  instance=$(basename "$pidfile" .pid)
+  echo "Restarting $instance..."
+  service "$instance" restart || true
+done
+
+echo "Quetoo updated to $LATEST."

@@ -92,6 +92,10 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
       continue;
     }
 
+    if (svs.game->clients[cl - svs.clients]->ai) {
+      continue;
+    }
+
     Net_WriteByte(&cl->net_chan.message, SV_CMD_PRINT);
     Net_WriteByte(&cl->net_chan.message, level);
     Net_WriteString(&cl->net_chan.message, string);
@@ -385,6 +389,10 @@ void Sv_SendClientPackets(void) {
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
+      continue;
+    }
+
+    if (svs.game->clients[i]->ai) {
       continue;
     }
 
