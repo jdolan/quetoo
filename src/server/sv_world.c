@@ -149,7 +149,9 @@ void Sv_UnlinkEntity(g_entity_t *ent) {
     sv_sector_t *sector = (sv_sector_t *) sent->sector;
     sector->entities = g_list_remove(sector->entities, ent);
 
+    g_entity_t *gent = sent->gent;
     memset(sent, 0, sizeof(*sent));
+    sent->gent = gent;
   }
 }
 

@@ -85,7 +85,7 @@ static int32_t Sv_CreateBaseline(void) {
 
     g_entity_t *ent = sv.entities[i].gent;
 
-    if (!ent->in_use) {
+    if (!ent || !ent->in_use) {
       continue;
     }
 
@@ -169,7 +169,12 @@ static void Sv_UpdateLatchedVars(void) {
  * @brief Allocates the client array for the current server session.
  */
 static void Sv_InitClients(void) {
+
   svs.clients = Mem_TagMalloc(sizeof(sv_client_t) * sv_max_clients->integer, MEM_TAG_SERVER);
+
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+    svs.clients[i].gclient = svs.game->clients[i];
+  }
 }
 
 /**
@@ -234,11 +239,11 @@ static void Sv_InitEntities(sv_state_t state) {
 
     Sv_UpdateLatchedVars();
 
+    Sv_InitGame();
+
     Sv_InitClients();
 
     Sv_InitEntityState();
-
-    Sv_InitGame();
   } else {
     Sv_ReconnectClients();
   }

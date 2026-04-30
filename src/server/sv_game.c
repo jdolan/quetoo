@@ -312,10 +312,6 @@ void Sv_InitGame(void) {
 
   svs.game->Init();
 
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    svs.clients[i].gclient = svs.game->clients[i];
-  }
-
   Com_Print("Game initialized, starting...\n");
   Com_InitSubsystem(QUETOO_GAME);
 }

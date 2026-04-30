@@ -137,6 +137,13 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
   - `-vis`: Visibility (PVS) calculation
   - `-light`: Static and dynamic light baking, voxel light assignment
 
+## Workflow Conventions
+
+### Git
+
+- **Never auto-push.** Always stop after `git commit` and wait for explicit approval before running `git push`. This applies to all repos (quetoo, quetoo-data, quetoo-www).
+- `allow-all` mode is fine as a default for staging changes, but pushing to `origin` always requires user sign-off.
+
 ## Key Conventions
 
 ### Code Style

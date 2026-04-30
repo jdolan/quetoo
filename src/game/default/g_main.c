@@ -932,6 +932,16 @@ void G_InitNumTeams(void) {
  */
 void G_Init(void) {
 
+  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
+    ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
+    ge.clients[i]->ps.client = i;
+  }
+
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+    ge.entities[i] = gi.Malloc(sizeof(g_entity_t), MEM_TAG_GAME);
+    ge.entities[i]->s.number = i;
+  }
+
   gi.Print("Game module initialization...\n");
 
   const char *s = va("%s %s", BUILD, VERSION);
@@ -1129,16 +1139,6 @@ g_export_t *G_LoadGame(g_import_t *import) {
   editor = gi.GetCvar("editor");
 
   memset(&ge, 0, sizeof(ge));
-
-  for (int32_t i = 0; i < sv_max_clients->integer; i++) {
-    ge.clients[i] = gi.Malloc(sizeof(g_client_t), MEM_TAG_GAME);
-    ge.clients[i]->ps.client = i;
-  }
-
-  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    ge.entities[i] = gi.Malloc(sizeof(g_entity_t), MEM_TAG_GAME);
-    ge.entities[i]->s.number = i;
-  }
 
   ge.api_version = GAME_API_VERSION;
   ge.protocol = PROTOCOL_MINOR;
