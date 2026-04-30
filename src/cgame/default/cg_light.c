@@ -86,16 +86,14 @@ void Cg_AddLight(const cg_light_t *in) {
  * @param style The style string (a-z, animated at 10Hz). May be empty.
  * @return The animated intensity.
  */
-float Cg_AnimateLight(float intensity, const char *style, float drift) {
+float Cg_AnimateLight(float intensity, const char *style) {
 
   if (*style) {
     const size_t len = strlen(style);
-    const uint32_t offset = (uint32_t)(drift * len * 100);
-    const uint32_t t = cgi.client->unclamped_time + offset;
-    const uint32_t style_index = (t / 100) % len;
-    const uint32_t style_time = (t / 100) * 100;
+    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
+    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
 
-    const float lerp = (t - style_time) / 100.f;
+    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
 
     const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
     const float u = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
@@ -131,7 +129,7 @@ static void Cg_AddBspLights(void) {
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, 0);
+    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style);
 
     if (l->target_entity) {
       // Resolve the inline model string and find the matching cl_entity_t each frame.

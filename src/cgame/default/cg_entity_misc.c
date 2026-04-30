@@ -214,25 +214,14 @@ const cg_entity_class_t cg_misc_dust = {
 typedef struct {
 
   /**
-   * @brief Flame sprite distribution radius.
+   * @brief Flame radius.
    */
-  float spread;
+  float radius;
 
   /**
-   * @brief Flame sprite density (sprites per unit of spread, per frame, scaled by style).
+   * @brief Flame density.
    */
   float density;
-
-  /**
-   * @brief Per-instance style phase offset as a fraction of one cycle (0-1), derived from
-   * the drift key. Ensures multiple torches sharing the same style don't flicker in lockstep.
-   */
-  float drift;
-
-  /**
-   * @brief The light emitted each frame, driven by the style string.
-   */
-  cg_light_t light;
 
   /**
    * @brief The looping sample to play.
@@ -241,29 +230,19 @@ typedef struct {
 } cg_flame_t;
 
 /**
- * @brief Initializes a misc_flame entity from its entity definition.
+ * @brief Initializes a misc_flame entity by reading radius, density, and sound from the entity definition.
  */
 static void Cg_misc_flame_Init(cg_entity_t *self) {
 
+  self->hz = cgi.EntityValue(self->def, "hz")->value ?: 10.f;
+  self->drift = cgi.EntityValue(self->def, "drift")->value ?: .1f;
+
   cg_flame_t *flame = self->data;
 
-  flame->spread = cgi.EntityValue(self->def, "spread")->value ?: 16.f;
   flame->density = cgi.EntityValue(self->def, "density")->value ?: 1.f;
+  flame->radius = cgi.EntityValue(self->def, "radius")->value ?: 16.f;
 
-  self->bounds = Box3_FromCenterRadius(self->origin, flame->spread * 16.f);
-
-  flame->light.origin = self->origin;
-  flame->light.radius = cgi.EntityValue(self->def, "radius")->value ?: 300.f;
-  flame->light.color = cgi.EntityValue(self->def, "color")->vec3;
-  if (Vec3_Equal(flame->light.color, Vec3_Zero())) {
-    flame->light.color = Vec3(1.f, 0.7f, 0.2f);
-  }
-  flame->light.intensity = cgi.EntityValue(self->def, "intensity")->value ?: 1.f;
-
-  const char *style = cgi.EntityValue(self->def, "style")->nullable_string ?: "mzqqmmgzzgmmgzmggzg";
-  g_strlcpy(flame->light.style, style, sizeof(flame->light.style));
-
-  flame->drift = RandomRangef(0.f, cgi.EntityValue(self->def, "drift")->value);
+  self->bounds = Box3_FromCenterRadius(self->origin, flame->radius * 16.f);
 
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
@@ -276,11 +255,7 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief Emits flame sprites and a dynamic light for a misc_flame entity each frame.
- * @details The light style string drives both the light intensity and the sprite
- * emission count so that the visual flame and its light pulse in sync. The per-instance
- * style phase offset (derived from the drift key) ensures multiple torches don't flicker
- * in lockstep.
+ * @brief Emits flame sprites for a misc_flame entity each frame.
  */
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
@@ -290,13 +265,10 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
     return;
   }
 
-  const float style = Cg_AnimateLight(1.f, flame->light.style, flame->drift);
-
-  const float r = flame->spread;
+  const float r = flame->radius;
   const float s = Clampf(r / 64.f, .125f, 1.f);
 
-  const int32_t count = (int32_t)(r * flame->density * style);
-  for (int32_t i = 0; i < count; i++) {
+  for (int32_t i = 0; i < flame->radius * flame->density; i++) {
     const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
     const float sat = RandomRangef(.7f, 1.f);
 
@@ -314,14 +286,6 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
       break;
     }
   }
-
-  cgi.AddLight(cgi.view, &(const r_light_t) {
-    .origin = flame->light.origin,
-    .radius = flame->light.radius,
-    .color = flame->light.color,
-    .intensity = flame->light.intensity * style,
-    .bounds = Box3_FromCenterRadius(flame->light.origin, flame->light.radius),
-  });
 
   if (flame->sample) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {

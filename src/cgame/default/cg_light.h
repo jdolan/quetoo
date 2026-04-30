@@ -71,7 +71,7 @@ typedef struct {
   void *source;
 } cg_light_t;
 
-float Cg_AnimateLight(float intensity, const char *style, float drift);
+float Cg_AnimateLight(float intensity, const char *style);
 void Cg_AddLight(const cg_light_t *s);
 void Cg_AddLights(void);
 void Cg_InitLights(void);
