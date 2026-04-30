@@ -883,7 +883,7 @@ static void Sv_InitLocal(void) {
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
-  sv_public = Cvar_Add("sv_public", "1", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
+  sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
 
   sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);
