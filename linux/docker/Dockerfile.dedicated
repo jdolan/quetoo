@@ -17,5 +17,9 @@ VOLUME ["/etc/quetoo-dedicated"]
 
 EXPOSE 1998/udp
 
+COPY linux/docker/entrypoint.sh /usr/local/bin/quetoo-entrypoint
+RUN chmod +x /usr/local/bin/quetoo-entrypoint
+
 USER quetoo
-ENTRYPOINT ["/usr/lib/quetoo/bin/quetoo-dedicated"]
+ENTRYPOINT ["/usr/local/bin/quetoo-entrypoint"]
+CMD ["default"]

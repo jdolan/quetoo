@@ -876,6 +876,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
   cl->in_use = tmp.in_use;
   cl->ai = tmp.ai;
   cl->persistent = tmp.persistent;
+  memmove(cl->user_info, cl->persistent.user_info, sizeof(cl->user_info));
 
   g_entity_t *ent = cl->entity;
 
