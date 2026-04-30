@@ -518,6 +518,19 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
 #endif
   }
 
+  // Attempt to display crash dialog and write crash log.
+  // Not async-signal-safe, but acceptable in practice for crashes in game code.
+  const char *name;
+  switch (sig) {
+    case SIGSEGV: name = "SIGSEGV"; break;
+    case SIGILL:  name = "SIGILL";  break;
+    case SIGFPE:  name = "SIGFPE";  break;
+    case SIGABRT: name = "SIGABRT"; break;
+    case SIGBUS:  name = "SIGBUS";  break;
+    default:      name = "Unknown signal"; break;
+  }
+  Sys_Raise(name);
+
   signal(sig, SIG_DFL);
   raise(sig);
 }

@@ -69,9 +69,11 @@ void Sv_DropClient(sv_client_t *client) {
 
   Sv_HttpClientDisconnect(&client->http);
 
+  g_client_t *gclient = client->gclient;
   memset(client, 0, sizeof(*client));
 
   client->last_frame = -1;
+  client->gclient = gclient;
 }
 
 /**
