@@ -83,7 +83,7 @@ static int32_t Sv_CreateBaseline(void) {
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
 
-    g_entity_t *ent = svs.game->entities[i];
+    g_entity_t *ent = sv.entities[i].gent;
 
     if (!ent->in_use) {
       continue;

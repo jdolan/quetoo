@@ -33,6 +33,11 @@
 typedef struct {
 
   /**
+   * @brief The corresponding game entity; set once per map at spawn time.
+   */
+  g_entity_t *gent;
+
+  /**
    * @brief Baseline entity state for delta compression.
    */
   entity_state_t baseline;

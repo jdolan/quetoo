@@ -110,6 +110,10 @@ void Sv_SpawnEntities(void) {
 
   Sv_InitWorld();
 
+  for (int32_t i = 0; i < sv_max_entities->integer; i++) {
+    sv.entities[i].gent = svs.game->entities[i];
+  }
+
   if (editor->value) {
     Sv_LoadEditorMap();
 

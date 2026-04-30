@@ -629,9 +629,7 @@ static void Sv_ResetEntities(void) {
   }
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    g_entity_t *ent = svs.game->entities[i];
-
-    // events only last for a single message
+    g_entity_t *ent = sv.entities[i].gent;
     ent->s.event = 0;
   }
 }

@@ -249,7 +249,7 @@ static void Sv_ListEntities_f(void) {
   }
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
-    const g_entity_t *e = svs.game->entities[i];
+    const g_entity_t *e = sv.entities[i].gent;
 
     if (Cmd_Argc() > 1) {
       if (!GlobMatch(Cmd_Argv(1), e->classname, GLOB_FLAGS_NONE)) {
