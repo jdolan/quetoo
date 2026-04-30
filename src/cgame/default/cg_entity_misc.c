@@ -224,14 +224,9 @@ typedef struct {
   float density;
 
   /**
-   * @brief The last time a light was emitted.
+   * @brief The light emitted each frame, driven by the style string.
    */
-  uint32_t light_time;
-
-  /**
-   * @brief The light decay interval.
-   */
-  uint32_t light_decay;
+  cg_light_t light;
 
   /**
    * @brief The looping sample to play.
@@ -254,6 +249,15 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 
   self->bounds = Box3_FromCenterRadius(self->origin, flame->radius * 16.f);
 
+  flame->light.origin = self->origin;
+  flame->light.radius = cgi.EntityValue(self->def, "light")->value ?: flame->radius * 12.f;
+  flame->light.color = cgi.EntityValue(self->def, "color")->vec3;
+  if (Vec3_Equal(flame->light.color, Vec3_Zero())) {
+    flame->light.color = Vec3(0.9f, 0.5f, 0.2f);
+  }
+  flame->light.intensity = cgi.EntityValue(self->def, "intensity")->value ?: 1.f;
+  g_strlcpy(flame->light.style, cgi.EntityValue(self->def, "style")->string, sizeof(flame->light.style));
+
   const char *sound = cgi.EntityValue(self->def, "sound")->nullable_string;
   if (sound) {
     if (g_strcmp0(sound, "none")) {
@@ -265,7 +269,9 @@ static void Cg_misc_flame_Init(cg_entity_t *self) {
 }
 
 /**
- * @brief Emits flame sprites and a flickering dynamic light for a misc_flame entity each frame.
+ * @brief Emits flame sprites and a dynamic light for a misc_flame entity each frame.
+ * @details The light style string drives both the light intensity and the sprite
+ * emission count so that the visual flame and its light pulse in sync.
  */
 static void Cg_misc_flame_Think(cg_entity_t *self) {
 
@@ -275,10 +281,13 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
     return;
   }
 
+  const float style = Cg_AnimateLight(1.f, flame->light.style);
+
   const float r = flame->radius;
   const float s = Clampf(r / 64.f, .125f, 1.f);
 
-  for (int32_t i = 0; i < flame->radius * flame->density; i++) {
+  const int32_t count = (int32_t)(r * flame->density * style);
+  for (int32_t i = 0; i < count; i++) {
     const float hue = color_hue_orange + RandomRangef(-20.f, 20.f);
     const float sat = RandomRangef(.7f, 1.f);
 
@@ -297,19 +306,13 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
     }
   }
 
-  if (cgi.client->unclamped_time - flame->light_time > flame->light_decay * .666f) {
-
-    flame->light_time = cgi.client->unclamped_time;
-    flame->light_decay = RandomRangeu(300, 800);
-
-    Cg_AddLight(&(const cg_light_t) {
-      .origin = self->origin,
-      .radius = r * RandomRangef(10.f, 16.f),
-      .color = Vec3_RandomRanges(.8f, .9f, .4f, .5f, .2f, .3f),
-      .intensity = RandomRangef(.5f, .8f),
-      .decay = flame->light_decay,
-    });
-  }
+  cgi.AddLight(cgi.view, &(const r_light_t) {
+    .origin = flame->light.origin,
+    .radius = flame->light.radius,
+    .color = flame->light.color,
+    .intensity = flame->light.intensity * style,
+    .bounds = Box3_FromCenterRadius(flame->light.origin, flame->light.radius),
+  });
 
   if (flame->sample) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {

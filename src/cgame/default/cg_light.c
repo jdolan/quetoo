@@ -86,7 +86,7 @@ void Cg_AddLight(const cg_light_t *in) {
  * @param style The style string (a-z, animated at 10Hz). May be empty.
  * @return The animated intensity.
  */
-static float Cg_AnimateLight(float intensity, const char *style) {
+float Cg_AnimateLight(float intensity, const char *style) {
 
   if (*style) {
     const size_t len = strlen(style);

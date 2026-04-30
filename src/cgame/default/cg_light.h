@@ -51,6 +51,11 @@ typedef struct {
   float intensity;
 
   /**
+   * @brief The light style string (a-z, animated at 10Hz). Empty for steady.
+   */
+  char style[MAX_BSP_ENTITY_VALUE];
+
+  /**
    * @brief The decay period in milliseconds.
    */
   uint32_t decay;
@@ -66,6 +71,7 @@ typedef struct {
   void *source;
 } cg_light_t;
 
+float Cg_AnimateLight(float intensity, const char *style);
 void Cg_AddLight(const cg_light_t *s);
 void Cg_AddLights(void);
 void Cg_InitLights(void);
