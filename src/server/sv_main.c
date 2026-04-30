@@ -44,32 +44,34 @@ cvar_t *sv_timeout;
  * or unwillingly. This is NOT called if the entire server is quitting
  * or crashing.
  */
-void Sv_DropClient(sv_client_t *cl) {
+void Sv_DropClient(sv_client_t *client) {
 
-  Mem_ClearBuffer(&cl->net_chan.message);
-  Mem_ClearBuffer(&cl->datagram.buffer);
+  Mem_ClearBuffer(&client->net_chan.message);
+  Mem_ClearBuffer(&client->datagram.buffer);
 
-  if (cl->datagram.messages) {
-    g_list_free_full(cl->datagram.messages, Mem_Free);
+  if (client->datagram.messages) {
+    g_list_free_full(client->datagram.messages, Mem_Free);
   }
 
-  if (cl->state > SV_CLIENT_FREE) { // send the disconnect
+  if (client->state > SV_CLIENT_FREE) { // send the disconnect
 
-    if (cl->state == SV_CLIENT_ACTIVE) { // after informing the game module
-      svs.game->ClientDisconnect(svs.game->clients[cl - svs.clients]);
+    g_client_t *cl = client->gclient;
+
+    if (client->state == SV_CLIENT_ACTIVE) { // after informing the game module
+      svs.game->ClientDisconnect(cl);
     }
 
-    if (!svs.game->clients[cl - svs.clients]->ai) { // bots have no network connection
-      Net_WriteByte(&cl->net_chan.message, SV_CMD_DROP);
-      Netchan_Transmit(&cl->net_chan, cl->net_chan.message.data, cl->net_chan.message.size);
+    if (!cl->ai) { // bots have no network connection
+      Net_WriteByte(&client->net_chan.message, SV_CMD_DROP);
+      Netchan_Transmit(&client->net_chan, client->net_chan.message.data, client->net_chan.message.size);
     }
   }
 
-  Sv_HttpClientDisconnect(&cl->http);
+  Sv_HttpClientDisconnect(&client->http);
 
-  memset(cl, 0, sizeof(*cl));
+  memset(client, 0, sizeof(*client));
 
-  cl->last_frame = -1;
+  client->last_frame = -1;
 }
 
 /**
@@ -301,9 +303,9 @@ static void Sv_Connect_f(void) {
   if (!client) {
     sv_client_t *cl = svs.clients;
     for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
-      if (svs.game->clients[cl - svs.clients]->ai) {
+      if (cl->gclient->ai) {
         client = cl;
-        svs.game->ClientDisconnect(svs.game->clients[cl - svs.clients]);
+        svs.game->ClientDisconnect(cl->gclient);
         break;
       }
     }
@@ -316,7 +318,7 @@ static void Sv_Connect_f(void) {
   }
 
   // give the game a chance to reject this connection or modify the user_info
-  if (!(svs.game->ClientConnect(svs.game->clients[client - svs.clients], user_info))) {
+  if (!(svs.game->ClientConnect(client->gclient, user_info))) {
     const char *rejmsg = InfoString_Get(user_info, "rejmsg");
 
     if (strlen(rejmsg)) {
@@ -483,7 +485,7 @@ static void Sv_UpdatePings(void) {
       cl->ping = total / (float) count;
     }
 
-    svs.game->clients[cl - svs.clients]->ping = cl->ping;
+    cl->gclient->ping = cl->ping;
   }
 }
 
@@ -642,7 +644,7 @@ static void Sv_SyncGameClients(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
     sv_client_t *client = &svs.clients[i];
-    const g_client_t *cl = svs.game->clients[i];
+    const g_client_t *cl = client->gclient;
 
     if (client->state == SV_CLIENT_FREE) {
       if (cl->in_use && cl->ai) { // ai client has just connected
@@ -700,7 +702,7 @@ void Sv_KickClient(sv_client_t *cl, const char *msg) {
     g_snprintf(buf, sizeof(buf), ": %s", msg);
   }
 
-  Sv_ClientPrint(svs.game->clients[cl - svs.clients], PRINT_HIGH, "You were kicked%s\n", buf);
+  Sv_ClientPrint(cl->gclient, PRINT_HIGH, "You were kicked%s\n", buf);
 
   Sv_DropClient(cl);
 
@@ -740,7 +742,7 @@ void Sv_UserInfoChanged(sv_client_t *cl) {
   }
 
   // call game code to allow overrides
-  svs.game->ClientUserInfoChanged(svs.game->clients[cl - svs.clients], cl->user_info);
+  svs.game->ClientUserInfoChanged(cl->gclient, cl->user_info);
 
   // name for C code, mask off high bit
   g_strlcpy(cl->name, InfoString_Get(cl->user_info, "name"), sizeof(cl->name));

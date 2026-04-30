@@ -284,14 +284,15 @@ static void Sv_Say_f(void) {
     s++;
   }
 
-  const sv_client_t *cl = svs.clients;
-  for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
+  const sv_client_t *client = svs.clients;
+  for (int32_t i = 0; i < sv_max_clients->integer; i++, client++) {
 
-    if (cl->state != SV_CLIENT_ACTIVE) {
+    if (client->state != SV_CLIENT_ACTIVE) {
       continue;
     }
 
-    Sv_ClientPrint(svs.game->clients[i], PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
+    const g_client_t *cl = svs.clients[i].gclient;
+    Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_CHAT, s);
   }
 
   Com_Print("^1console^%d: %s\n", ESC_COLOR_CHAT, s);
@@ -329,7 +330,7 @@ static void Sv_Tell_f(void) {
     return;
   }
 
-  const g_client_t *cl = svs.game->clients[sv_client - svs.clients];
+  const g_client_t *cl = sv_client->gclient;
   Sv_ClientPrint(cl, PRINT_CHAT, "^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
   Com_Print("^1console^%d: %s\n", ESC_COLOR_TEAM_CHAT, s);
 }

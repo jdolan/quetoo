@@ -92,7 +92,7 @@ void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
       continue;
     }
 
-    if (svs.game->clients[cl - svs.clients]->ai) {
+    if (cl->gclient->ai) {
       continue;
     }
 
@@ -227,7 +227,7 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
       continue;
     }
 
-    if (svs.game->clients[j]->ai) {
+    if (svs.clients[j].gclient->ai) {
       continue;
     }
 
@@ -392,7 +392,7 @@ void Sv_SendClientPackets(void) {
       continue;
     }
 
-    if (svs.game->clients[i]->ai) {
+    if (svs.clients[i].gclient->ai) {
       continue;
     }
 

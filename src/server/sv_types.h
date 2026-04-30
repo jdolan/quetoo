@@ -223,6 +223,11 @@ typedef struct {
 typedef struct {
 
   /**
+   * @brief The corresponding game client; set once at game initialization.
+   */
+  g_client_t *gclient;
+
+  /**
    * @brief Connection state of this client slot.
    */
   sv_client_state_t state;

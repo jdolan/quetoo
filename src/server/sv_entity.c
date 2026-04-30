@@ -142,7 +142,7 @@ void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg) {
  */
 void Sv_BuildClientFrame(sv_client_t *client) {
 
-  g_client_t *cl = svs.game->clients[client - svs.clients];
+  g_client_t *cl = client->gclient;
 
   if (!cl->in_use) {
     return; // not in game yet
