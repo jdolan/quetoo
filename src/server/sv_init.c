@@ -213,6 +213,9 @@ static void Sv_ReconnectClients(void) {
 
   for (int32_t i = 0; i < sv_max_clients->integer; i++) {
 
+    // re-bind the game client pointer (may have been cleared on bot disconnect)
+    svs.clients[i].gclient = svs.game->clients[i];
+
     // reset state of spawned clients back to connected
     if (svs.clients[i].state > SV_CLIENT_CONNECTED) {
       svs.clients[i].state = SV_CLIENT_CONNECTED;

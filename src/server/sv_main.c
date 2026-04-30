@@ -630,7 +630,9 @@ static void Sv_ResetEntities(void) {
 
   for (int32_t i = 0; i < sv_max_entities->integer; i++) {
     g_entity_t *ent = sv.entities[i].gent;
-    ent->s.event = 0;
+    if (ent) {
+      ent->s.event = 0;
+    }
   }
 }
 
@@ -653,8 +655,10 @@ static void Sv_SyncGameClients(void) {
       }
     } else {
       if (!cl->in_use) { // ai client has just disconnected
+        g_client_t *gclient = client->gclient;
         memset(client, 0, sizeof(*client));
         client->last_frame = -1;
+        client->gclient = gclient;
       }
     }
   }
