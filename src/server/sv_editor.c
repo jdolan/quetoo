@@ -26,9 +26,7 @@
  */
 void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
-  g_entity_t *ent = svs.game->entities[number];
-
-  ent->def = Cm_CopyEntity(def);
+  g_entity_t *ent = sv.entities[number].gent;
   ent->in_use = true;
   ent->classname = Cm_EntityValue(ent->def, "classname")->string;
   ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
@@ -80,14 +78,13 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
   cm_entity_t *def = Cm_EntityFromInfoString(info);
 
   if (number > -1) {
-    g_entity_t *entity = svs.game->entities[number];
+    g_entity_t *entity = sv.entities[number].gent;
     cm_entity_t *ent = (cm_entity_t *) entity->def;
-    def->brushes = ent->brushes;
     ent->brushes = NULL;
     Cm_FreeEntity(ent);
   } else {
     for (int32_t i = Cm_Bsp()->num_entities; i < sv_max_entities->integer; i++) {
-      if (svs.game->entities[i]->in_use == false) {
+      if (sv.entities[i].gent->in_use == false) {
         number = i;
         break;
       }
@@ -108,9 +105,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
  */
 void Sv_FreeEditorEntity(int32_t number) {
 
-  g_entity_t *entity = svs.game->entities[number];
-
-  Sv_UnlinkEntity(entity);
+  g_entity_t *entity = sv.entities[number].gent;
 
   memset(entity, 0, sizeof(*entity));
 
@@ -165,7 +160,7 @@ void Sv_SaveEditorMap_f(void) {
   int32_t entity_num = 0;
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 
-    const g_entity_t *ent = svs.game->entities[i];
+    const g_entity_t *ent = sv.entities[i].gent;
     if (!ent->in_use) {
       continue;
     }
