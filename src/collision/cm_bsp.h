@@ -631,6 +631,13 @@ typedef struct {
   char style[MAX_BSP_ENTITY_VALUE];
 
   /**
+   * @brief Per-light style animation phase offset (0-1 fraction of the style cycle).
+   * @details Derived by quemap from the `drift` entity key and the light's world origin.
+   * Lights with the same style string flicker independently when their drift values differ.
+   */
+  float drift;
+
+  /**
    * @brief The index of the first element of this light's depth pass geometry.
    */
   int32_t first_depth_pass_element;
@@ -647,13 +654,6 @@ typedef struct {
    * entity's initial position.
    */
   int32_t target_entity;
-
-  /**
-   * @brief Per-light style animation phase offset (0-1 fraction of the style cycle).
-   * @details Derived by quemap from the `drift` entity key and the light's world origin.
-   * Lights with the same style string flicker independently when their drift values differ.
-   */
-  float drift;
 } bsp_light_t;
 
 /**
