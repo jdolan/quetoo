@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 74
+#define BSP_VERSION 75
 
 /**
  * @brief BSP file format limits.
@@ -647,6 +647,13 @@ typedef struct {
    * entity's initial position.
    */
   int32_t target_entity;
+
+  /**
+   * @brief Per-light style animation phase offset (0-1 fraction of the style cycle).
+   * @details Derived by quemap from the `drift` entity key and the light's world origin.
+   * Lights with the same style string flicker independently when their drift values differ.
+   */
+  float drift;
 } bsp_light_t;
 
 /**

@@ -81,6 +81,8 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     light->intensity = Cm_EntityValue(entity, "intensity")->value;
     g_strlcpy(light->style, Cm_EntityValue(entity, "style")->string, sizeof(light->style));
 
+    const float drift = Cm_EntityValue(entity, "drift")->value;
+
     const cm_entity_t *master = FindTeamMaster(Cm_EntityValue(entity, "team")->nullable_string);
     if (master) {
       light->radius = light->radius ?: Cm_EntityValue(master, "radius")->value;
@@ -94,6 +96,10 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       if (!*light->style) {
         g_strlcpy(light->style, Cm_EntityValue(master, "style")->string, sizeof(light->style));
       }
+
+      if (!light->drift) {
+        light->drift = Cm_EntityValue(master, "drift")->value;
+      }
     }
 
     light->radius = light->radius ?: LIGHT_RADIUS;
@@ -103,6 +109,16 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
     }
 
     light->intensity = light->intensity ?: LIGHT_INTENSITY;
+
+    // Compute per-light phase from origin hash, scaled by drift.
+    // This gives each compiled light instance a unique stable offset.
+    const float effective_drift = drift ?: light->drift;
+    if (effective_drift > 0.f) {
+      const float h = fabsf(sinf(light->origin.x * 127.1f +
+                                 light->origin.y * 311.7f +
+                                 light->origin.z *  74.7f));
+      light->drift = effective_drift * fmodf(h, 1.f);
+    }
 
     light->bounds = Box3_FromCenterRadius(light->origin, light->radius);
     light->visible_bounds = Box3_Null();
@@ -209,6 +225,7 @@ void EmitLights(void) {
     out->bounds = light->visible_bounds;
     out->target_entity = light->target_entity;
     g_strlcpy(out->style, light->style, sizeof(out->style));
+    out->drift = light->drift;
 
     if (!light->target_entity) {
       out->first_depth_pass_element = bsp_file.num_elements;

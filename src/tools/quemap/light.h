@@ -73,6 +73,11 @@ typedef struct light_s {
   char style[MAX_BSP_ENTITY_VALUE];
 
   /**
+   * @brief The resolved style animation phase offset (0-1), derived from the drift key and origin.
+   */
+  float drift;
+
+  /**
    * @brief The output light in the BSP, so that voxels may reference them.
    */
   bsp_light_t *out;
