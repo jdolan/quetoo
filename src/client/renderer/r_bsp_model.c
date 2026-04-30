@@ -404,6 +404,7 @@ static void R_LoadBspLights(r_bsp_model_t *bsp) {
     out->target_entity = in->target_entity > 0 ? bsp->cm->entities[in->target_entity] : NULL;
 
     g_strlcpy(out->style, in->style, sizeof(out->style));
+    out->drift = Cm_EntityValue(out->entity, "drift")->value;
   }
 }
 

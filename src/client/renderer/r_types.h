@@ -852,6 +852,11 @@ typedef struct {
   char style[MAX_BSP_ENTITY_VALUE];
 
   /**
+   * @brief Phase offset (0-1 fraction of style cycle) to desynchronize instances with the same style.
+   */
+  float drift;
+
+  /**
    * @brief True if this light's shadowmap can be reused from the previous frame.
    */
   bool shadow_cached;

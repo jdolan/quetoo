@@ -84,16 +84,19 @@ void Cg_AddLight(const cg_light_t *in) {
  * @brief Applies light style animation to an intensity value.
  * @param intensity The base intensity.
  * @param style The style string (a-z, animated at 10Hz). May be empty.
+ * @param drift A phase offset (0-1 fraction of the style cycle) to desynchronize instances.
  * @return The animated intensity.
  */
-float Cg_AnimateLight(float intensity, const char *style) {
+float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
   if (*style) {
     const size_t len = strlen(style);
-    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
+    const uint32_t phase_offset = (uint32_t)(drift * len * 100);
+    const uint32_t time = cgi.client->unclamped_time + phase_offset;
+    const uint32_t style_index = (time / 100) % len;
+    const uint32_t style_time = (time / 100) * 100;
 
-    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
+    const float lerp = (time - style_time) / 100.f;
 
     const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
     const float u = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
@@ -129,7 +132,7 @@ static void Cg_AddBspLights(void) {
   r_bsp_light_t *l = cgi.WorldModel()->bsp->lights;
   for (int32_t i = 0; i < cgi.WorldModel()->bsp->num_lights; i++, l++) {
 
-    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style);
+    const float intensity = Cg_AnimateLight(l->intensity ?: 1.f, l->style, l->drift);
 
     if (l->target_entity) {
       // Resolve the inline model string and find the matching cl_entity_t each frame.
