@@ -11,6 +11,7 @@ Group=quetoo
 #   screen -r quetoo-%i
 ExecStart=/usr/bin/screen -dmS quetoo-%i /usr/lib/quetoo/bin/quetoo-dedicated-start %i
 ExecStop=/usr/bin/screen -S quetoo-%i -X quit
+KillMode=control-group
 Restart=always
 RestartSec=5s
 
