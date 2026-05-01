@@ -819,7 +819,9 @@ void Sv_Frame(const uint32_t msec) {
 
   if (svs.state == SV_UNINITIALIZED) {
     Sv_DrawConsole();
-    SDL_Delay(QUETOO_TICK_MILLIS);
+    if (dedicated->value) {
+      SDL_Delay(QUETOO_TICK_MILLIS);
+    }
     return;
   }
 
