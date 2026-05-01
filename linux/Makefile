@@ -148,6 +148,7 @@ deb: $(TARGET)/.pkg-stamp
 		--depends "libc6 (>= 2.31)" \
 		--depends "libstdc++6" \
 		--depends "libgl1 | libgles2" \
+		--depends "screen" \
 		--deb-recommends "quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--after-install postinstall.sh \
@@ -169,6 +170,7 @@ rpm: $(TARGET)/.pkg-stamp
 		--depends "glibc >= 2.31" \
 		--depends "libstdc++" \
 		--depends "mesa-libGL" \
+		--depends "screen" \
 		--rpm-tag "Recommends: quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--after-install postinstall.sh \

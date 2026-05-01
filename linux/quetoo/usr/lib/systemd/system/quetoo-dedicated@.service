@@ -4,11 +4,14 @@ After=network.target
 Documentation=https://github.com/jdolan/quetoo
 
 [Service]
-Type=simple
+Type=forking
 User=quetoo
 Group=quetoo
-ExecStart=/usr/lib/quetoo/bin/quetoo-dedicated-start %i
-Restart=on-failure
+# Runs inside a named screen session so admins can attach:
+#   screen -r quetoo-%i
+ExecStart=/usr/bin/screen -dmS quetoo-%i /usr/lib/quetoo/bin/quetoo-dedicated-start %i
+ExecStop=/usr/bin/screen -S quetoo-%i -X quit
+Restart=always
 RestartSec=5s
 
 [Install]
