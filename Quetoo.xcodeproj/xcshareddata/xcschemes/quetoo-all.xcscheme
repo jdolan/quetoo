@@ -144,7 +144,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map 2deaths"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
