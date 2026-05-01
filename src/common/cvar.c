@@ -804,7 +804,7 @@ void Cvar_Init(void) {
     const char *s = Com_Argv(i);
 
     if (!strncmp(s, "+set", 4)) {
-      Cmd_ExecuteString(va("%s %s %s\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
+      Cmd_ExecuteString(va("%s %s \"%s\"\n", Com_Argv(i) + 1, Com_Argv(i + 1), Com_Argv(i + 2)));
 
       cvar_t *var = Cvar_Get(Com_Argv(i + 1));
       if (var) {
