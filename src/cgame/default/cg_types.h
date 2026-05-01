@@ -177,6 +177,16 @@ typedef struct {
    * @brief Bot navitation node editor.
    */
   int32_t nav_edit;
+
+  /**
+   * @brief Pending view angle snap from a reliable `SV_CMD_SNAP_ANGLES` message.
+   */
+  bool snap_angles;
+
+  /**
+   * @brief The view angles to snap to.
+   */
+  vec3_t snap_view_angles;
 } cg_state_t;
 
 extern cg_state_t cg_state;

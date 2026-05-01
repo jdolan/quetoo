@@ -111,8 +111,8 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 
   // If the server is requesting a snap, use the authoritative angles rather than
   // the last cmd angles, which may be stale (pre-snap) pending commands.
-  if (cgi.client->frame.ps.pm_state.flags & PMF_SNAP_ANGLES) {
-    pr->view.angles = cgi.client->frame.ps.pm_state.view_angles;
+  if (cg_state.snap_angles) {
+    pr->view.angles = cg_state.snap_view_angles;
   } else {
     pr->view.angles = pm.cmd.angles;
   }

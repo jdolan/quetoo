@@ -28,7 +28,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1021
+#define PROTOCOL_MINOR 1022
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -41,6 +41,7 @@ typedef enum {
   SV_CMD_VIEW_KICK,
   SV_CMD_CENTER_PRINT,
   SV_CMD_SCORES,
+  SV_CMD_SNAP_ANGLES,
 } g_sv_packet_cmd_t;
 
 /**
@@ -1546,11 +1547,6 @@ struct g_client_s {
    * @brief View kick angles accumulated this frame.
    */
   vec3_t kick_angles;
-
-  /**
-   * @brief One-shot flag to snap the view angles on the next frame.
-   */
-  bool snap_angles;
 
   /**
    * @brief Client may respawn when time exceeds this.

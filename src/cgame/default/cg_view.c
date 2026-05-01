@@ -248,15 +248,16 @@ static void Cg_UpdateOrigin(const player_state_t *ps0, const player_state_t *ps1
 static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1) {
   vec3_t angles, angles0, angles1;
 
-  if (ps1->pm_state.flags & PMF_SNAP_ANGLES) {
+  if (cg_state.snap_angles) {
     // Server requests an immediate snap to the authoritative view angles.
     // Bypass all interpolation and prediction, and also fix up cl.angles so
     // that subsequent input and prediction frames start from the right place.
-    cgi.view->angles = ps1->pm_state.view_angles;
-    cgi.client->angles = ps1->pm_state.view_angles;
+    cgi.view->angles = cg_state.snap_view_angles;
+    cgi.client->angles = cg_state.snap_view_angles;
     Cg_ClearInput();
 
     Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+    cg_state.snap_angles = false;
     return;
   }
 

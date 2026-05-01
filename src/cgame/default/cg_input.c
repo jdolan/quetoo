@@ -73,7 +73,7 @@ static void Cg_ViewKick(const pm_cmd_t *cmd) {
 
   const player_state_t *ps1 = &cgi.client->frame.ps;
 
-  if (ps1->pm_state.flags & PMF_SNAP_ANGLES) {
+  if (cg_state.snap_angles) {
     // Snap is handled authoritatively in Cg_UpdateAngles; just clear kick state here.
     memset(&cg_kick, 0, sizeof(cg_kick));
   } else if (cgi.client->previous_frame) {

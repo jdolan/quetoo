@@ -901,7 +901,9 @@ static void G_ClientRespawn_(g_client_t *cl) {
 
   // signal the client to snap to view_angles; only for player spawns, not spectators
   if (!cl->persistent.spectator && !editor->value) {
-    cl->snap_angles = true;
+    gi.WriteByte(SV_CMD_SNAP_ANGLES);
+    gi.WriteAngles(spawn->s.angles);
+    gi.Unicast(cl, true);
   }
 
   ent->velocity = Vec3_Zero();

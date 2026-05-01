@@ -340,6 +340,11 @@ static bool Cg_ParseMessage(int32_t cmd) {
       Cg_ParseScores();
       return true;
 
+    case SV_CMD_SNAP_ANGLES:
+      cg_state.snap_view_angles = cgi.ReadAngles();
+      cg_state.snap_angles = true;
+      return true;
+
     case SV_CMD_CENTER_PRINT:
       Cg_ParseCenterPrint();
       return true;
