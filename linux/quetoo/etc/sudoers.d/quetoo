@@ -1,0 +1,2 @@
+# Allow members of the sudo group to attach to quetoo dedicated server console sessions.
+%sudo ALL=(quetoo) NOPASSWD: /usr/bin/screen -r quetoo-*

@@ -1,0 +1,10 @@
+#!/bin/bash
+# quetoo-attach — attach to a running quetoo dedicated server console.
+#
+# Usage:
+#   quetoo-attach [instance]   Attach to the named instance (default: "default").
+#
+# Detach with Ctrl-A D.
+
+instance="${1:-default}"
+exec sudo -u quetoo screen -r "quetoo-${instance}"
