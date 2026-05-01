@@ -63,3 +63,4 @@ target
 test-driver
 xcuserdata
 /Quetoo.vs15/.vs/quetoo/v15/*.suo
+*.dSYM/
