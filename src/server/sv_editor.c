@@ -27,6 +27,8 @@
 void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
 
   g_entity_t *ent = sv.entities[number].gent;
+
+  ent->def = Cm_CopyEntity(def);
   ent->in_use = true;
   ent->classname = Cm_EntityValue(ent->def, "classname")->string;
   ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 8.f);
