@@ -236,7 +236,9 @@ static void Sv_InitEntities(sv_state_t state) {
 
   if (svs.state == SV_UNINITIALIZED || Cvar_PendingLatched()) {
 
-    svs.state = SV_LOADING;
+    if (svs.state != SV_UNINITIALIZED) {
+      svs.state = SV_LOADING;
+    }
 
     Sv_ShutdownGame();
 
