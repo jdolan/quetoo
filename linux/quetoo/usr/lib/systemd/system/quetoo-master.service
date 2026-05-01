@@ -1,0 +1,15 @@
+[Unit]
+Description=Quetoo Master Server
+After=network.target
+Documentation=https://github.com/jdolan/quetoo
+
+[Service]
+Type=simple
+User=quetoo
+Group=quetoo
+ExecStart=/usr/lib/quetoo/bin/quetoo-master
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

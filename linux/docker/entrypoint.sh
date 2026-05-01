@@ -1,8 +1,8 @@
 #!/bin/sh
 # Docker entrypoint for quetoo-dedicated.
 # Reads /etc/quetoo-dedicated/<instance>.cfg and passes each non-blank,
-# non-comment line as a +command argument to the binary, exactly as the
-# init.d script does.
+# non-comment line as a +command argument to the binary.
+# On bare-metal installs the systemd unit calls quetoo-dedicated-start instead.
 
 INSTANCE="${1:-default}"
 CFG="/etc/quetoo-dedicated/${INSTANCE}.cfg"

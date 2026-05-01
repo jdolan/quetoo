@@ -20,6 +20,10 @@ EXPOSE 1998/udp
 COPY linux/docker/entrypoint.sh /usr/local/bin/quetoo-entrypoint
 RUN chmod +x /usr/local/bin/quetoo-entrypoint
 
+# Run as quetoo user (created by package postinstall).
+# systemd is not available in Docker; the entrypoint parses the instance
+# config directly and execs quetoo-dedicated.  For crash recovery, use
+# Docker's own restart policy (e.g. --restart=on-failure).
 USER quetoo
 ENTRYPOINT ["/usr/local/bin/quetoo-entrypoint"]
 CMD ["default"]

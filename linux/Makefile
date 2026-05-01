@@ -123,9 +123,13 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR)/usr/bin/$$bin; \
 	done
 
-	# Server management: init script, default instance config, update script.
-	install -Dm755 quetoo/etc/init.d/quetoo-dedicated            $(PKGDIR)/etc/init.d/quetoo-dedicated
+	# Server management: systemd units, start wrapper, default config, update script.
+	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-dedicated@.service \
+		$(PKGDIR)/usr/lib/systemd/system/quetoo-dedicated@.service
+	install -Dm644 quetoo/usr/lib/systemd/system/quetoo-master.service \
+		$(PKGDIR)/usr/lib/systemd/system/quetoo-master.service
 	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg       $(PKGDIR)/etc/quetoo-dedicated/default.cfg
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-dedicated-start $(PKGDIR)/usr/lib/quetoo/bin/quetoo-dedicated-start
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-update
 
 	touch $@
@@ -144,11 +148,10 @@ deb: $(TARGET)/.pkg-stamp
 		--depends "libc6 (>= 2.31)" \
 		--depends "libstdc++6" \
 		--depends "libgl1 | libgles2" \
-		--depends "screen" \
 		--deb-recommends "quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
-		--config-files /etc/init.d/quetoo-dedicated \
 		--after-install postinstall.sh \
+		--before-remove preremove.sh \
 		-p $(DEB) \
 		-C $(PKGDIR) .
 
@@ -166,11 +169,10 @@ rpm: $(TARGET)/.pkg-stamp
 		--depends "glibc >= 2.31" \
 		--depends "libstdc++" \
 		--depends "mesa-libGL" \
-		--depends "screen" \
 		--rpm-tag "Recommends: quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
-		--config-files /etc/init.d/quetoo-dedicated \
 		--after-install postinstall.sh \
+		--before-remove preremove.sh \
 		-p $(RPM) \
 		-C $(PKGDIR) .
 

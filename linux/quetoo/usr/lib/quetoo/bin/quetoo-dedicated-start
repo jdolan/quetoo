@@ -1,0 +1,24 @@
+#!/bin/bash
+# Wrapper called by quetoo-dedicated@.service.
+# Parses /etc/quetoo-dedicated/<instance>.cfg and passes each non-blank,
+# non-comment line as a +command argument to quetoo-dedicated.
+
+INSTANCE="${1:?usage: quetoo-dedicated-start <instance>}"
+CFG="/etc/quetoo-dedicated/${INSTANCE}.cfg"
+BINARY="/usr/lib/quetoo/bin/quetoo-dedicated"
+
+if [[ ! -f "$CFG" ]]; then
+  echo "error: $CFG not found" >&2
+  exit 1
+fi
+
+OPTS=()
+while IFS= read -r line || [[ -n "$line" ]]; do
+  line="${line%%//*}"
+  line="${line#"${line%%[![:space:]]*}"}"
+  line="${line%"${line##*[![:space:]]}"}"
+  [[ -z "$line" ]] && continue
+  eval "OPTS+=(+${line})"
+done < "$CFG"
+
+exec "$BINARY" "${OPTS[@]}"
