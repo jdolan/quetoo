@@ -30,29 +30,48 @@ esac
 if command -v dpkg &>/dev/null && command -v apt &>/dev/null; then
   PKG_MANAGER=deb
   INSTALLED_VERSION=$(dpkg-query -W -f='${Version}' quetoo 2>/dev/null || true)
+  INSTALLED_DATA_VERSION=$(dpkg-query -W -f='${Version}' quetoo-data 2>/dev/null || true)
 elif command -v rpm &>/dev/null && command -v dnf &>/dev/null; then
   PKG_MANAGER=rpm
   INSTALLED_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo 2>/dev/null || true)
+  INSTALLED_DATA_VERSION=$(rpm -q --queryformat '%{VERSION}' quetoo-data 2>/dev/null || true)
 else
   echo "error: no supported package manager found (apt or dnf required)" >&2
   exit 1
 fi
 
-# Fetch latest release tag from GitHub.
-LATEST=$(curl -fsSL "https://api.github.com/repos/jdolan/quetoo/releases/latest" \
-  | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))")
+# Fetch latest release tags from GitHub (quetoo and quetoo-data have independent release cycles).
+gh_latest() {
+  curl -fsSL "https://api.github.com/repos/jdolan/$1/releases/latest" \
+    | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'].lstrip('v'))"
+}
+
+LATEST=$(gh_latest quetoo)
+DATA_LATEST=$(gh_latest quetoo-data)
 
 if [[ -z "$LATEST" ]]; then
-  echo "error: could not determine latest release version" >&2
+  echo "error: could not determine latest quetoo release version" >&2
+  exit 1
+fi
+if [[ -z "$DATA_LATEST" ]]; then
+  echo "error: could not determine latest quetoo-data release version" >&2
   exit 1
 fi
 
-if [[ "$INSTALLED_VERSION" == "$LATEST" ]]; then
-  echo "quetoo $INSTALLED_VERSION is already up to date."
-  exit 0
+NEED_UPDATE=0
+if [[ "$INSTALLED_VERSION" != "$LATEST" ]]; then
+  echo "quetoo update available: $INSTALLED_VERSION -> $LATEST"
+  NEED_UPDATE=1
+fi
+if [[ "$INSTALLED_DATA_VERSION" != "$DATA_LATEST" ]]; then
+  echo "quetoo-data update available: $INSTALLED_DATA_VERSION -> $DATA_LATEST"
+  NEED_UPDATE=1
 fi
 
-echo "Update available: $INSTALLED_VERSION -> $LATEST"
+if [[ $NEED_UPDATE -eq 0 ]]; then
+  echo "quetoo $INSTALLED_VERSION and quetoo-data $INSTALLED_DATA_VERSION are already up to date."
+  exit 0
+fi
 
 # If --wait-for-empty, check every instance for human clients.
 if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
@@ -98,26 +117,26 @@ TMPDIR=$(mktemp -d)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 QUETOO_BASE="https://github.com/jdolan/quetoo/releases/download/v${LATEST}"
-DATA_BASE="https://github.com/jdolan/quetoo-data/releases/download/v${LATEST}"
+DATA_BASE="https://github.com/jdolan/quetoo-data/releases/download/v${DATA_LATEST}"
 
-echo "Downloading quetoo $LATEST..."
+echo "Downloading quetoo $LATEST and quetoo-data $DATA_LATEST..."
 
 if [[ "$PKG_MANAGER" == "deb" ]]; then
   curl -fsSL -o "$TMPDIR/quetoo.deb"      "$QUETOO_BASE/quetoo-${BUILD}.deb"
-  curl -fsSL -o "$TMPDIR/quetoo-data.deb" "$DATA_BASE/quetoo-data_${LATEST}_all.deb"
+  curl -fsSL -o "$TMPDIR/quetoo-data.deb" "$DATA_BASE/quetoo-data_${DATA_LATEST}_all.deb"
   apt install -y "$TMPDIR/quetoo.deb" "$TMPDIR/quetoo-data.deb"
 else
   curl -fsSL -o "$TMPDIR/quetoo.rpm"      "$QUETOO_BASE/quetoo-${BUILD}.rpm"
-  curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${LATEST}-1.noarch.rpm"
+  curl -fsSL -o "$TMPDIR/quetoo-data.rpm" "$DATA_BASE/quetoo-data-${DATA_LATEST}-1.noarch.rpm"
   dnf install -y "$TMPDIR/quetoo.rpm" "$TMPDIR/quetoo-data.rpm"
 fi
 
 # Restart all running instances.
-for pidfile in /var/run/quetoo-dedicated-*.pid; do
-  [[ -f "$pidfile" ]] || continue
-  instance=$(basename "$pidfile" .pid)
-  echo "Restarting $instance..."
-  service "$instance" restart || true
-done
+while IFS= read -r unit; do
+  instance="${unit#quetoo-dedicated@}"
+  instance="${instance%.service}"
+  echo "Restarting quetoo-dedicated@${instance}..."
+  systemctl restart "quetoo-dedicated@${instance}" || true
+done < <(systemctl list-units --state=active --plain --no-legend 'quetoo-dedicated@*.service' | awk '{print $1}')
 
-echo "Quetoo updated to $LATEST."
+echo "Quetoo updated to $LATEST (data: $DATA_LATEST)."

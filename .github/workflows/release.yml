@@ -264,9 +264,9 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         if [ "${{ matrix.appimage }}" = "true" ]; then
-          make appimage deb rpm
+          make appimage deb rpm VERSION=${GITHUB_REF_NAME#v}
         else
-          make deb rpm
+          make deb rpm VERSION=${GITHUB_REF_NAME#v}
         fi
 
     - name: Upload AppImage artifact
