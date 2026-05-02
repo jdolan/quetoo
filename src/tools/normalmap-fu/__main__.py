@@ -389,6 +389,63 @@ def normals_from_height(height_u8: np.ndarray, strength: float) -> np.ndarray:
   return np.clip((normals + 1.0) * 127.5, 0, 255).astype(np.uint8)
 
 
+def fix_tiling_borders_rgba(rgba: np.ndarray, strength: float = 1.0) -> np.ndarray:
+  """Fix the outermost 1px border of an RGBA normalmap for seamless tiling.
+
+  Recomputes only the border pixels from the alpha-channel heightmap using
+  wrap-aware Sobel, leaving the entire interior completely unchanged.
+  Y-axis convention is auto-detected by correlating interior normals.
+  """
+
+  alpha = rgba[:, :, 3]
+  if float(np.std(alpha)) < 1.0:
+    return rgba  # flat heightmap, nothing to do
+
+  h = alpha.astype(np.float32) / 255.0
+  H, W = h.shape
+
+  # Compute interior normals (non-wrap; identical to wrap for non-edge pixels)
+  # to detect Y convention by correlating against the original green channel.
+  b = 8
+  flip_y = False
+  if H > b * 2 + 4 and W > b * 2 + 4:
+    dx0 = cv2.Sobel(h, cv2.CV_32F, 1, 0, ksize=3) * strength
+    dy0 = cv2.Sobel(h, cv2.CV_32F, 0, 1, ksize=3) * strength
+    dx_s = dx0[b:-b, b:-b].ravel()
+    dy_s = dy0[b:-b, b:-b].ravel()
+    orig_g = rgba[b:-b, b:-b, 1].astype(np.float32).ravel()
+    mag = np.maximum(np.sqrt(dx_s ** 2 + dy_s ** 2 + 1), 1e-8)
+    corr_normal = float(np.corrcoef(orig_g, (-dy_s / mag * 0.5 + 0.5) * 255)[0, 1])
+    corr_flip   = float(np.corrcoef(orig_g, ( dy_s / mag * 0.5 + 0.5) * 255)[0, 1])
+    flip_y = corr_flip > corr_normal
+
+  # Recompute with wrap padding
+  pad = 1
+  h_padded = np.pad(h, pad, mode='wrap')
+  dx = cv2.Sobel(h_padded, cv2.CV_32F, 1, 0, ksize=3) * strength
+  dy = cv2.Sobel(h_padded, cv2.CV_32F, 0, 1, ksize=3) * strength
+  dx = dx[pad:-pad, pad:-pad]
+  dy = dy[pad:-pad, pad:-pad]
+
+  nx = -dx
+  ny = dy if flip_y else -dy
+  nz = np.ones_like(nx)
+  length = np.maximum(np.sqrt(nx * nx + ny * ny + nz * nz), 1e-8)
+  nx /= length; ny /= length; nz /= length
+
+  r = np.clip((nx * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)
+  g = np.clip((ny * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)
+  b_ch = np.clip((nz * 0.5 + 0.5) * 255, 0, 255).astype(np.uint8)
+  new_border = np.stack([r, g, b_ch], axis=-1)
+
+  result = rgba.copy()
+  result[0,    :,   :3] = new_border[0,    :]
+  result[-1,   :,   :3] = new_border[-1,   :]
+  result[1:-1, 0,   :3] = new_border[1:-1, 0]
+  result[1:-1, -1,  :3] = new_border[1:-1, -1]
+  return result
+
+
 def specular_from_diffuse(diffuse_u8: np.ndarray, height_u8: np.ndarray | None,
                           input_black: float, input_white: float,
                           output_black: float, output_white: float,
@@ -1446,6 +1503,7 @@ class NormalmapFuApp:
     else:
       rgba[:, :, 3] = self._existing_alpha(out_path, w, h)
 
+    rgba = fix_tiling_borders_rgba(rgba)
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
     print(f"Saved: {out_path.name}")
 
@@ -1473,6 +1531,7 @@ class NormalmapFuApp:
     rgba[:, :, :3] = self._existing_rgb(out_path, w, h)
     rgba[:, :, 3] = height
 
+    rgba = fix_tiling_borders_rgba(rgba)
     Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
     print(f"Saved: {out_path.name}")
 
