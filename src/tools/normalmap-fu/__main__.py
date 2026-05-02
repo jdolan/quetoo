@@ -349,8 +349,12 @@ def normals_from_diffuse(diffuse_u8: np.ndarray,
   height_norm = _normalize(height)
   height_u8 = (height_norm * 255.0).astype(np.uint8)
 
-  dx = cv2.Sobel(height_norm, cv2.CV_32F, 1, 0, ksize=3) * strength
-  dy = cv2.Sobel(height_norm, cv2.CV_32F, 0, 1, ksize=3) * strength
+  pad = 2
+  h_padded = np.pad(height_norm, pad, mode='wrap')
+  dx = cv2.Sobel(h_padded, cv2.CV_32F, 1, 0, ksize=3) * strength
+  dy = cv2.Sobel(h_padded, cv2.CV_32F, 0, 1, ksize=3) * strength
+  dx = dx[pad:-pad, pad:-pad]
+  dy = dy[pad:-pad, pad:-pad]
 
   nz = np.ones_like(dx)
   length = np.sqrt(dx * dx + dy * dy + nz * nz)
@@ -370,8 +374,12 @@ def normals_from_height(height_u8: np.ndarray, strength: float) -> np.ndarray:
   """
 
   h = height_u8.astype(np.float32) / 255.0
-  dx = cv2.Sobel(h, cv2.CV_32F, 1, 0, ksize=3) * strength
-  dy = cv2.Sobel(h, cv2.CV_32F, 0, 1, ksize=3) * strength
+  pad = 2
+  h_padded = np.pad(h, pad, mode='wrap')
+  dx = cv2.Sobel(h_padded, cv2.CV_32F, 1, 0, ksize=3) * strength
+  dy = cv2.Sobel(h_padded, cv2.CV_32F, 0, 1, ksize=3) * strength
+  dx = dx[pad:-pad, pad:-pad]
+  dy = dy[pad:-pad, pad:-pad]
   nz = np.ones_like(dx)
   length = np.sqrt(dx * dx + dy * dy + nz * nz)
   nx = -dx / length

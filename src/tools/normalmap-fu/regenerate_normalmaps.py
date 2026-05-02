@@ -82,10 +82,14 @@ def heightmap_to_normals(
             blur += 1
         h = cv2.GaussianBlur(h, (blur, blur), 0)
 
-    # Sobel gradients: dh/dx and dh/dy
-    # ksize=3 for a good balance of detail vs noise sensitivity
-    dx = cv2.Sobel(h, cv2.CV_32F, 1, 0, ksize=3) * strength
-    dy = cv2.Sobel(h, cv2.CV_32F, 0, 1, ksize=3) * strength
+    # Wrap-pad before Sobel so edge gradients are consistent with tiling.
+    # ksize=3 Sobel needs only 1px, but 2px keeps things safe and is invisible.
+    pad = 2
+    h_padded = np.pad(h, pad, mode='wrap')
+    dx = cv2.Sobel(h_padded, cv2.CV_32F, 1, 0, ksize=3) * strength
+    dy = cv2.Sobel(h_padded, cv2.CV_32F, 0, 1, ksize=3) * strength
+    dx = dx[pad:-pad, pad:-pad]
+    dy = dy[pad:-pad, pad:-pad]
 
     # Construct normal vectors: N = normalize(-dx, -dy, 1)
     nx = -dx
