@@ -1695,6 +1695,7 @@ def _save_normal_rgba(out_path: Path, normal_rgb: np.ndarray,
   # WYSIWYG: pipeline already produces the bytes we want on disk.
   rgba[:, :, :3] = normal_rgb
   rgba[:, :, 3] = height_a
+  rgba = fix_tiling_borders_rgba(rgba)
   Image.fromarray(rgba, mode="RGBA").save(out_path, optimize=True)
 
 
