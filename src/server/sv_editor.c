@@ -82,6 +82,7 @@ void Sv_EditEditorEntity(int32_t number, const char *info) {
   if (number > -1) {
     g_entity_t *entity = sv.entities[number].gent;
     cm_entity_t *ent = (cm_entity_t *) entity->def;
+    def->brushes = ent->brushes;
     ent->brushes = NULL;
     Cm_FreeEntity(ent);
   } else {
