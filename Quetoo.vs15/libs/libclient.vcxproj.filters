@@ -66,9 +66,6 @@
     <ClInclude Include="..\..\src\client\cl_sound.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\cl_editor.h">
-      <Filter>src</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\cl_cgame.c">
@@ -117,9 +114,6 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\client\cl_sound.c">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\cl_editor.c">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
