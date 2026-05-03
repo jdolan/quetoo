@@ -23,6 +23,8 @@
 
 #include "cg_types.h"
 
+extern cm_entity_t *cg_entity_definitions[MAX_ENTITIES];
+
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);

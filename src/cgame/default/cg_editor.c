@@ -24,6 +24,11 @@
 #include "ui/editor/EditorViewController.h"
 
 /**
+ * @brief Entity definitions parsed from entity configstrings, indexed by entity number.
+ */
+cm_entity_t *cg_entity_definitions[MAX_ENTITIES];
+
+/**
  * @brief Sparse array of client-side entities for the editor, indexed by entity number.
  */
 static cg_entity_t cg_editor_entities[MAX_ENTITIES];
@@ -43,7 +48,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const cm_entity_t *e = cgi.client->entity_definitions[i];
+    const cm_entity_t *e = cg_entity_definitions[i];
     if (!e) {
       continue;
     }
@@ -79,7 +84,7 @@ static vec4_t Cg_AddEditorEntity_Light(const cg_editor_entity_t *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const cm_entity_t *e = cgi.client->entity_definitions[master];
+      const cm_entity_t *e = cg_entity_definitions[master];
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -192,7 +197,7 @@ static void Cg_InitEditorEntity(int16_t number) {
 
   cg_entity_t *e = &cg_editor_entities[number];
 
-  const cm_entity_t *def = cgi.client->entity_definitions[number];
+  const cm_entity_t *def = cg_entity_definitions[number];
   if (!def) {
     if (e->clazz) {
       cgi.Free(e->data);
@@ -240,20 +245,20 @@ static void Cg_InitEditorEntity(int16_t number) {
 
 /**
  * @brief Called by the client when an entity configstring is received.
- * @details Updates entity_definitions[number] via cgi.ParseEntityDefinition,
- *   populates the cg_edit slot, and (if active) initializes the vtable entity.
- *   Also fires NOTIFICATION_ENTITY_PARSED for the editor UI.
+ * @details Parses the entity definition, populates the cg_edit slot, and (if active)
+ *   initializes the vtable entity. Also fires NOTIFICATION_ENTITY_PARSED for the editor UI.
  */
 void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
-  cgi.ParseEntityDefinition(number, info);
+  cgi.FreeEntity(cg_entity_definitions[number]);
+  cg_entity_definitions[number] = strlen(info) ? cgi.EntityFromInfoString(info) : NULL;
 
   cg_editor_entity_t *edit = &cg_edit[number];
   memset(edit, 0, sizeof(*edit));
 
   edit->number = number;
   edit->ent = &cgi.client->entities[number];
-  edit->def = cgi.client->entity_definitions[number];
+  edit->def = cg_entity_definitions[number];
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
     cg_edit[i].shadow_cached = false;
@@ -279,7 +284,7 @@ void Cg_LoadEditorEntities(void) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    if (cgi.client->entity_definitions[i]) {
+    if (cg_entity_definitions[i]) {
       Cg_InitEditorEntity(i);
     }
   }
@@ -297,6 +302,11 @@ void Cg_FreeEditorEntities(void) {
     }
   }
 
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    cgi.FreeEntity(cg_entity_definitions[i]);
+  }
+
+  memset(cg_entity_definitions, 0, sizeof(cg_entity_definitions));
   memset(cg_editor_entities, 0, sizeof(cg_editor_entities));
   memset(cg_edit, 0, sizeof(cg_edit));
 }

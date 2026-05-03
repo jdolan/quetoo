@@ -291,7 +291,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const EditorEntity entity = {
           .number = number,
           .ent = &cgi.client->entities[number],
-          .def = cgi.client->entity_definitions[number]
+          .def = cg_entity_definitions[number]
         };
 
         if (number == this->entity.number) {
@@ -306,7 +306,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         }
 
         if (number == this->teamEntity.number) {
-          this->teamEntity.def = cgi.client->entity_definitions[number];
+          this->teamEntity.def = cg_entity_definitions[number];
           if (this->shouldUpdateEntity && this->teamEntity.def) {
             $(this, updateEntity, &this->entity);
           } else {
@@ -332,7 +332,7 @@ static void viewWillAppear(ViewController *self) {
   EditorEntity entity = {
     .number = 0,
     .ent = cgi.client->entities,
-    .def = cgi.client->entity_definitions[0]
+    .def = cg_entity_definitions[0]
   };
 
   cl_entity_t *ent = NULL;
@@ -354,7 +354,7 @@ static void viewWillAppear(ViewController *self) {
     EditorEntity e = {
       .number = ent->current.number,
       .ent = ent,
-      .def = cgi.client->entity_definitions[ent->current.number]
+      .def = cg_entity_definitions[ent->current.number]
     };
 
     const float radius = Box3_Radius(e.ent->bounds);
@@ -497,7 +497,7 @@ static void setEntity(EntityViewController *self, const EditorEntity *entity) {
         self->teamEntity = (EditorEntity) {
           .number = teamMaster,
           .ent = &cgi.client->entities[teamMaster],
-          .def = cgi.client->entity_definitions[teamMaster]
+          .def = cg_entity_definitions[teamMaster]
         };
 
         for (cm_entity_t *e = self->teamEntity.def; e; e = e->next) {

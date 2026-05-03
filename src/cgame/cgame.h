@@ -708,14 +708,6 @@ typedef struct cg_import_s {
   void (*WriteEntityInfoCommand)(int16_t number, const cm_entity_t *entity);
 
   /**
-   * @brief Parses an entity definition from an info string and stores it in the client's
-   *   entity_definitions array at the given slot.
-   * @param number The entity slot index.
-   * @param info The info string to parse, or empty to clear the slot.
-   */
-  void (*ParseEntityDefinition)(int16_t number, const char *info);
-
-  /**
    * @brief Register a button as being held down.
    */
   void (*KeyDown)(button_t *b);

@@ -252,10 +252,6 @@ void Cl_ClearState(void) {
 
   S_StopMusic();
 
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    Cm_FreeEntity(cl.entity_definitions[i]);
-  }
-
   memset(&cl, 0, sizeof(cl));
 
   Mem_ClearBuffer(&cls.net_chan.message);

@@ -259,7 +259,6 @@ void Cl_InitCgame(void) {
   import.SetKeyDest = Cl_SetKeyDest;
   import.GetKeyDest = Cl_GetKeyDest;
   import.WriteEntityInfoCommand = Cl_WriteEntityInfoCommand;
-  import.ParseEntityDefinition = Cl_ParseEntityDefinition;
   import.KeyDown = Cl_KeyDown;
   import.KeyUp = Cl_KeyUp;
   import.KeyState = Cl_KeyState;

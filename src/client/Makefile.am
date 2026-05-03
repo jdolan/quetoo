@@ -9,7 +9,6 @@ noinst_HEADERS = \
 	cl_cmd.h \
 	cl_console.h \
 	cl_demo.h \
-	cl_editor.h \
 	cl_entity.h \
 	cl_input.h \
 	cl_keys.h \
@@ -35,7 +34,6 @@ libclient_la_SOURCES = \
 	cl_cmd.c \
 	cl_console.c \
 	cl_demo.c \
-	cl_editor.c \
 	cl_entity.c \
 	cl_input.c \
 	cl_keys.c \

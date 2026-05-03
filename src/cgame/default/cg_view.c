@@ -310,7 +310,7 @@ static void Cg_UpdateAngles(const player_state_t *ps0, const player_state_t *ps1
 static void Cg_UpdateAmbient(void) {
 
   const cm_entity_t *worldspawn = editor->value
-  ? cgi.client->entity_definitions[0]
+  ? cg_entity_definitions[0]
   : cgi.WorldModel()->bsp->cm->entities[0];
 
   const cm_entity_t *ambient = cgi.EntityValue(worldspawn, "ambient");
