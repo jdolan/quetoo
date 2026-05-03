@@ -223,19 +223,6 @@
 		CE41019C242CE0D900BF482F /* version.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE41019B242CE0B200BF482F /* version.glsl */; };
 		CE45F4F425733768004DEFED /* uniforms.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE45F4C625728264004DEFED /* uniforms.glsl */; };
 		CE4898D11D8B9DE100EEACA5 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
-		CE49C13D2E91801200B89CB6 /* MaterialViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1382E91801200B89CB6 /* MaterialViewController.css */; };
-		CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C13A2E91801200B89CB6 /* MaterialViewController.json */; };
-		CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1402E91816E00B89CB6 /* EditorViewController.c */; };
-		CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C1412E91816E00B89CB6 /* EditorViewController.h */; };
-		CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1422E91816E00B89CB6 /* EditorViewController.json */; };
-		CE49C1472E91B99C00B89CB6 /* editor.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1462E91B8B500B89CB6 /* editor.css */; };
-		CE49C14C2E91B9CF00B89CB6 /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */; };
-		CE49C14D2E91B9CF00B89CB6 /* EntityViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */; };
-		CE49C14E2E91B9CF00B89CB6 /* EntityViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */; };
-		CE49C14F2E91B9CF00B89CB6 /* EntityViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */; };
-		CE49C1532E91F6C500B89CB6 /* EntityView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE49C1512E91F6C500B89CB6 /* EntityView.h */; };
-		CE49C1542E91F6C500B89CB6 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE49C1522E91F6C500B89CB6 /* EntityView.c */; };
-		CE49C1552E91FDBA00B89CB6 /* EntityView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE49C1502E91CECE00B89CB6 /* EntityView.json */; };
 		CE4A255C1FA2032700A539E7 /* draw_2d_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */; };
 		CE4A255D1FA2032700A539E7 /* draw_2d_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */; };
 		CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4DCF04256DCCA100FECAFC /* cg_weapon.h */; };
@@ -283,8 +270,6 @@
 		CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE548C7F25B79F17003677ED /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE548C7D25B79F17003677ED /* r_framebuffer.h */; };
 		CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE548C7E25B79F17003677ED /* r_framebuffer.c */; };
-		CE55308D1E57E3670009A127 /* ui_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CE55308B1E57E3670009A127 /* ui_editor.c */; };
-		CE55308E1E57E3670009A127 /* ui_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CE55308C1E57E3670009A127 /* ui_editor.h */; };
 		CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
 		CE56BD562AAE34C100A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
 		CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
@@ -328,8 +313,6 @@
 		CE67EF961E350DCC009C2819 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE67EF8A1E350D54009C2819 /* main.c */; };
 		CE69DC9F202D3EE700E5C8B1 /* miniz.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DC9D202D3EE600E5C8B1 /* miniz.h */; };
 		CE69DCA0202D3EE700E5C8B1 /* miniz.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DC9E202D3EE700E5C8B1 /* miniz.c */; };
-		CE69DCAC202D4FE500E5C8B1 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */; };
-		CE69DCAE202D4FE500E5C8B1 /* MaterialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */; };
 		CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */; };
 		CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
@@ -587,8 +570,6 @@
 		CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA509062EA5D21F00F27205 /* check_cm_entity.c */; };
 		CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
 		CEA5090B2EA5D44B00F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
-		CEA5090D2EA900D600F27205 /* cl_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA5090C2EA900D100F27205 /* cl_editor.h */; };
-		CEA5090F2EA900DF00F27205 /* cl_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA5090E2EA900DC00F27205 /* cl_editor.c */; };
 		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
@@ -738,6 +719,23 @@
 		CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1376277FB721001E1500 /* TeamPlayerView.c */; };
 		CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1378277FB721001E1500 /* TeamPlayerView.h */; };
 		CEFF1426277FB7C8001E1500 /* TeamPlayerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEFF1377277FB721001E1500 /* TeamPlayerView.json */; };
+		CFA000142F9100000000C014 /* cg_editor.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000022F9100000000C002 /* cg_editor.c */; };
+		CFA000152F9100000000C015 /* cg_editor.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA000032F9100000000C003 /* cg_editor.h */; };
+		CFA000162F9100000000C016 /* EditorViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000042F9100000000C004 /* EditorViewController.c */; };
+		CFA000172F9100000000C017 /* EditorViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA000052F9100000000C005 /* EditorViewController.h */; };
+		CFA000182F9100000000C018 /* EditorViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000062F9100000000C006 /* EditorViewController.json */; };
+		CFA000192F9100000000C019 /* EntityView.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000072F9100000000C007 /* EntityView.c */; };
+		CFA0001A2F9100000000C01A /* EntityView.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA000082F9100000000C008 /* EntityView.h */; };
+		CFA0001B2F9100000000C01B /* EntityView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000092F9100000000C009 /* EntityView.json */; };
+		CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000A2F9100000000C00A /* EntityViewController.c */; };
+		CFA0001D2F9100000000C01D /* EntityViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA0000B2F9100000000C00B /* EntityViewController.h */; };
+		CFA0001E2F9100000000C01E /* EntityViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA0000C2F9100000000C00C /* EntityViewController.css */; };
+		CFA0001F2F9100000000C01F /* EntityViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA0000D2F9100000000C00D /* EntityViewController.json */; };
+		CFA000202F9100000000C020 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
+		CFA000212F9100000000C021 /* MaterialViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CFA0000F2F9100000000C00F /* MaterialViewController.h */; };
+		CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000102F9100000000C010 /* MaterialViewController.css */; };
+		CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000112F9100000000C011 /* MaterialViewController.json */; };
+		CFA000242F9100000000C024 /* editor.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C012 /* editor.css */; };
 		D081469FB0034668B00C4DB3 /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
@@ -1138,22 +1136,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		CE69DCA4202D4E9500E5C8B1 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = ui/editor;
-			dstSubfolderSpec = 16;
-			files = (
-				CE49C1452E91887100B89CB6 /* EditorViewController.json in CopyFiles */,
-				CE49C1552E91FDBA00B89CB6 /* EntityView.json in CopyFiles */,
-				CE49C14F2E91B9CF00B89CB6 /* EntityViewController.css in CopyFiles */,
-				CE49C14E2E91B9CF00B89CB6 /* EntityViewController.json in CopyFiles */,
-				CE49C13D2E91801200B89CB6 /* MaterialViewController.css in CopyFiles */,
-				CE49C13E2E91801200B89CB6 /* MaterialViewController.json in CopyFiles */,
-				CE49C1472E91B99C00B89CB6 /* editor.css in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		CE7D2C15202F6911004BC58E /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -1206,6 +1188,22 @@
 				CEAA7A0C27753C7300EAC853 /* TeamsViewController.css in CopyFiles */,
 				CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */,
 				CEAA797827753A5500EAC853 /* TeamView.json in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CFA000132F9100000000C013 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ui/editor;
+			dstSubfolderSpec = 16;
+			files = (
+				CFA000182F9100000000C018 /* EditorViewController.json in CopyFiles */,
+				CFA0001B2F9100000000C01B /* EntityView.json in CopyFiles */,
+				CFA0001E2F9100000000C01E /* EntityViewController.css in CopyFiles */,
+				CFA0001F2F9100000000C01F /* EntityViewController.json in CopyFiles */,
+				CFA000222F9100000000C022 /* MaterialViewController.css in CopyFiles */,
+				CFA000232F9100000000C023 /* MaterialViewController.json in CopyFiles */,
+				CFA000242F9100000000C024 /* editor.css in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1648,19 +1646,6 @@
 		CE42657621C3EF0500F768DD /* csg.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csg.h; sourceTree = "<group>"; };
 		CE42657721C3EF7500F768DD /* portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = portal.h; sourceTree = "<group>"; };
 		CE45F4C625728264004DEFED /* uniforms.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = uniforms.glsl; sourceTree = "<group>"; };
-		CE49C1382E91801200B89CB6 /* MaterialViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MaterialViewController.css; sourceTree = "<group>"; };
-		CE49C13A2E91801200B89CB6 /* MaterialViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MaterialViewController.json; sourceTree = "<group>"; };
-		CE49C1402E91816E00B89CB6 /* EditorViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
-		CE49C1412E91816E00B89CB6 /* EditorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
-		CE49C1422E91816E00B89CB6 /* EditorViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorViewController.json; sourceTree = "<group>"; };
-		CE49C1462E91B8B500B89CB6 /* editor.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = editor.css; sourceTree = "<group>"; };
-		CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityViewController.c; sourceTree = "<group>"; };
-		CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = EntityViewController.css; sourceTree = "<group>"; };
-		CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityViewController.h; sourceTree = "<group>"; };
-		CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityViewController.json; sourceTree = "<group>"; };
-		CE49C1502E91CECE00B89CB6 /* EntityView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityView.json; sourceTree = "<group>"; };
-		CE49C1512E91F6C500B89CB6 /* EntityView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityView.h; sourceTree = "<group>"; };
-		CE49C1522E91F6C500B89CB6 /* EntityView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityView.c; sourceTree = "<group>"; };
 		CE4DCF04256DCCA100FECAFC /* cg_weapon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_weapon.h; sourceTree = "<group>"; };
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1687,8 +1672,6 @@
 		CE5333F12DA164EC00E47B5B /* libopenal.1.24.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.24.3.dylib; path = "../../../../opt/homebrew/Cellar/openal-soft/1.24.3/lib/libopenal.1.24.3.dylib"; sourceTree = "<group>"; };
 		CE548C7D25B79F17003677ED /* r_framebuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_framebuffer.h; sourceTree = "<group>"; };
 		CE548C7E25B79F17003677ED /* r_framebuffer.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_framebuffer.c; sourceTree = "<group>"; };
-		CE55308B1E57E3670009A127 /* ui_editor.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ui_editor.c; sourceTree = "<group>"; };
-		CE55308C1E57E3670009A127 /* ui_editor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ui_editor.h; sourceTree = "<group>"; };
 		CE55309A1E5A93C60009A127 /* parse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parse.c; sourceTree = "<group>"; };
 		CE55309B1E5A93C60009A127 /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../usr/local/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
@@ -1742,8 +1725,6 @@
 		CE67EF8C1E350D54009C2819 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE69DC9D202D3EE600E5C8B1 /* miniz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = miniz.h; sourceTree = "<group>"; };
 		CE69DC9E202D3EE700E5C8B1 /* miniz.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = miniz.c; sourceTree = "<group>"; };
-		CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = MaterialViewController.c; sourceTree = "<group>"; };
-		CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MaterialViewController.h; sourceTree = "<group>"; };
 		CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuetooRenderer.h; sourceTree = "<group>"; };
 		CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
@@ -1756,7 +1737,6 @@
 		CE6FF29C1E9E6FBA00F3C160 /* qzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = qzip.h; sourceTree = "<group>"; };
 		CE795971294E4207001B52F3 /* r_occlude.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_occlude.h; sourceTree = "<group>"; };
 		CE795972294E4207001B52F3 /* r_occlude.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_occlude.c; sourceTree = "<group>"; };
-		CE7D2C06202E670E004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C07202E9C6D004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C08202E9DE6004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C0A202EA0FB004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1840,8 +1820,7 @@
 		CEA509052EA5D20A00F27205 /* check_cm_polylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_polylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEA509062EA5D21F00F27205 /* check_cm_entity.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_entity.c; sourceTree = "<group>"; };
 		CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../opt/homebrew/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
-		CEA5090C2EA900D100F27205 /* cl_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cl_editor.h; sourceTree = "<group>"; };
-		CEA5090E2EA900DC00F27205 /* cl_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cl_editor.c; sourceTree = "<group>"; };
+		CEA716EB2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
 		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1947,6 +1926,23 @@
 		CEFF1376277FB721001E1500 /* TeamPlayerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamPlayerView.c; sourceTree = "<group>"; };
 		CEFF1377277FB721001E1500 /* TeamPlayerView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TeamPlayerView.json; sourceTree = "<group>"; };
 		CEFF1378277FB721001E1500 /* TeamPlayerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamPlayerView.h; sourceTree = "<group>"; };
+		CFA000022F9100000000C002 /* cg_editor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_editor.c; sourceTree = "<group>"; };
+		CFA000032F9100000000C003 /* cg_editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_editor.h; sourceTree = "<group>"; };
+		CFA000042F9100000000C004 /* EditorViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EditorViewController.c; sourceTree = "<group>"; };
+		CFA000052F9100000000C005 /* EditorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EditorViewController.h; sourceTree = "<group>"; };
+		CFA000062F9100000000C006 /* EditorViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EditorViewController.json; sourceTree = "<group>"; };
+		CFA000072F9100000000C007 /* EntityView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityView.c; sourceTree = "<group>"; };
+		CFA000082F9100000000C008 /* EntityView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityView.h; sourceTree = "<group>"; };
+		CFA000092F9100000000C009 /* EntityView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityView.json; sourceTree = "<group>"; };
+		CFA0000A2F9100000000C00A /* EntityViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = EntityViewController.c; sourceTree = "<group>"; };
+		CFA0000B2F9100000000C00B /* EntityViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntityViewController.h; sourceTree = "<group>"; };
+		CFA0000C2F9100000000C00C /* EntityViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = EntityViewController.css; sourceTree = "<group>"; };
+		CFA0000D2F9100000000C00D /* EntityViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = EntityViewController.json; sourceTree = "<group>"; };
+		CFA0000E2F9100000000C00E /* MaterialViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MaterialViewController.c; sourceTree = "<group>"; };
+		CFA0000F2F9100000000C00F /* MaterialViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MaterialViewController.h; sourceTree = "<group>"; };
+		CFA000102F9100000000C010 /* MaterialViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = MaterialViewController.css; sourceTree = "<group>"; };
+		CFA000112F9100000000C011 /* MaterialViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = MaterialViewController.json; sourceTree = "<group>"; };
+		CFA000122F9100000000C012 /* editor.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = editor.css; sourceTree = "<group>"; };
 		D126FFD46C343DDC86C13E17 /* cm_manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_manifest.c; sourceTree = "<group>"; };
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		F57902A124843E730023101D /* soften_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = soften_fs.glsl; sourceTree = "<group>"; };
@@ -2615,6 +2611,8 @@
 				CE12D57D1C5C58C300CD0B13 /* cg_types.h */,
 				CE6EE40F1F72919800FBC830 /* cg_ui.c */,
 				CE6EE4101F72919800FBC830 /* cg_ui.h */,
+				CFA000022F9100000000C002 /* cg_editor.c */,
+				CFA000032F9100000000C003 /* cg_editor.h */,
 				CE12D57E1C5C58C300CD0B13 /* cg_view.c */,
 				CE12D57F1C5C58C300CD0B13 /* cg_view.h */,
 				CE4DCF05256DCCA100FECAFC /* cg_weapon.c */,
@@ -2639,8 +2637,6 @@
 				CE12D58B1C5C58C300CD0B13 /* cl_console.h */,
 				CE12D58C1C5C58C300CD0B13 /* cl_demo.c */,
 				CE12D58D1C5C58C300CD0B13 /* cl_demo.h */,
-				CEA5090E2EA900DC00F27205 /* cl_editor.c */,
-				CEA5090C2EA900D100F27205 /* cl_editor.h */,
 				CE12D58E1C5C58C300CD0B13 /* cl_entity.c */,
 				CE12D58F1C5C58C300CD0B13 /* cl_entity.h */,
 				CE12D5921C5C58C300CD0B13 /* cl_input.c */,
@@ -3318,6 +3314,7 @@
 				CEA4000F2F9800000087B100 /* backgrounds */,
 				CE5870781F5CDFE0004CAAB2 /* common */,
 				CE1A28351F75FE70005F62A9 /* controls */,
+				CFA000012F9100000000C001 /* editor */,
 				3F698657FE99AC45EBDFE4C7 /* fonts */,
 				CE7D2C10202F690A004BC58E /* home */,
 				CE5870931F5CE7D2004CAAB2 /* main */,
@@ -3424,13 +3421,10 @@
 		CE5CDB931D9F45090034757D /* ui */ = {
 			isa = PBXGroup;
 			children = (
-				CE69DCA6202D4FE500E5C8B1 /* editor */,
 				CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */,
 				CE69DCB0202D500700E5C8B1 /* QuetooRenderer.h */,
 				CE4E07E22028B0CB000B276C /* ui_data.h */,
 				CE4E07E32028B0CB000B276C /* ui_data.c */,
-				CE55308B1E57E3670009A127 /* ui_editor.c */,
-				CE55308C1E57E3670009A127 /* ui_editor.h */,
 				CE5CDBB11D9F45090034757D /* ui_local.h */,
 				CE5CDBB21D9F45090034757D /* ui_main.c */,
 				CE5CDBB31D9F45090034757D /* ui_main.h */,
@@ -3448,29 +3442,6 @@
 				CE67EF8C1E350D54009C2819 /* Makefile.am */,
 			);
 			path = "quetoo-master";
-			sourceTree = "<group>";
-		};
-		CE69DCA6202D4FE500E5C8B1 /* editor */ = {
-			isa = PBXGroup;
-			children = (
-				CE49C1402E91816E00B89CB6 /* EditorViewController.c */,
-				CE49C1412E91816E00B89CB6 /* EditorViewController.h */,
-				CE49C1422E91816E00B89CB6 /* EditorViewController.json */,
-				CE49C1522E91F6C500B89CB6 /* EntityView.c */,
-				CE49C1512E91F6C500B89CB6 /* EntityView.h */,
-				CE49C1502E91CECE00B89CB6 /* EntityView.json */,
-				CE49C1482E91B9CF00B89CB6 /* EntityViewController.c */,
-				CE49C1492E91B9CF00B89CB6 /* EntityViewController.css */,
-				CE49C14A2E91B9CF00B89CB6 /* EntityViewController.h */,
-				CE49C14B2E91B9CF00B89CB6 /* EntityViewController.json */,
-				CE69DCA8202D4FE500E5C8B1 /* MaterialViewController.c */,
-				CE49C1382E91801200B89CB6 /* MaterialViewController.css */,
-				CE69DCAA202D4FE500E5C8B1 /* MaterialViewController.h */,
-				CE49C13A2E91801200B89CB6 /* MaterialViewController.json */,
-				CE49C1462E91B8B500B89CB6 /* editor.css */,
-				CE7D2C06202E670E004BC58E /* Makefile.am */,
-			);
-			path = editor;
 			sourceTree = "<group>";
 		};
 		CE7D2C10202F690A004BC58E /* home */ = {
@@ -3534,6 +3505,29 @@
 				CEF7B4B22EDB871F00B551CA /* SHADOWMAP_OPTIMIZATION.md */,
 			);
 			path = copilot;
+			sourceTree = "<group>";
+		};
+		CFA000012F9100000000C001 /* editor */ = {
+			isa = PBXGroup;
+			children = (
+				CFA000042F9100000000C004 /* EditorViewController.c */,
+				CFA000052F9100000000C005 /* EditorViewController.h */,
+				CFA000062F9100000000C006 /* EditorViewController.json */,
+				CFA000072F9100000000C007 /* EntityView.c */,
+				CFA000082F9100000000C008 /* EntityView.h */,
+				CFA000092F9100000000C009 /* EntityView.json */,
+				CFA0000A2F9100000000C00A /* EntityViewController.c */,
+				CFA0000C2F9100000000C00C /* EntityViewController.css */,
+				CFA0000B2F9100000000C00B /* EntityViewController.h */,
+				CFA0000D2F9100000000C00D /* EntityViewController.json */,
+				CFA0000E2F9100000000C00E /* MaterialViewController.c */,
+				CFA000102F9100000000C010 /* MaterialViewController.css */,
+				CFA0000F2F9100000000C00F /* MaterialViewController.h */,
+				CFA000112F9100000000C011 /* MaterialViewController.json */,
+				CFA000122F9100000000C012 /* editor.css */,
+				CEA716EB2FA796690099B469 /* Makefile.am */,
+			);
+			path = editor;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -3601,6 +3595,7 @@
 				CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */,
 				CE80FEA41C5E445500A21A51 /* cg_temp_entity.h in Headers */,
 				CE80FEA51C5E445500A21A51 /* cg_types.h in Headers */,
+				CFA000152F9100000000C015 /* cg_editor.h in Headers */,
 				CE6EE4121F72919800FBC830 /* cg_ui.h in Headers */,
 				CE80FEA61C5E445500A21A51 /* cg_view.h in Headers */,
 				CE4DCF06256DCCA100FECAFC /* cg_weapon.h in Headers */,
@@ -3633,13 +3628,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE49C1442E91816E00B89CB6 /* EditorViewController.h in Headers */,
-				CE49C1532E91F6C500B89CB6 /* EntityView.h in Headers */,
-				CE49C14D2E91B9CF00B89CB6 /* EntityViewController.h in Headers */,
-				CE69DCAE202D4FE500E5C8B1 /* MaterialViewController.h in Headers */,
 				CE69DCB2202D500700E5C8B1 /* QuetooRenderer.h in Headers */,
 				CE4E07E42028B0CB000B276C /* ui_data.h in Headers */,
-				CE55308E1E57E3670009A127 /* ui_editor.h in Headers */,
 				CE5CDC361D9F51A90034757D /* ui_local.h in Headers */,
 				CE5CDC381D9F51A90034757D /* ui_main.h in Headers */,
 				CE5CDC391D9F51A90034757D /* ui_types.h in Headers */,
@@ -3672,6 +3662,10 @@
 				CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */,
 				CE1A28341F75FC1D005F62A9 /* PlayerSetupViewController.h in Headers */,
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
+				CFA000172F9100000000C017 /* EditorViewController.h in Headers */,
+				CFA0001A2F9100000000C01A /* EntityView.h in Headers */,
+				CFA0001D2F9100000000C01D /* EntityViewController.h in Headers */,
+				CFA000212F9100000000C021 /* MaterialViewController.h in Headers */,
 				CE6EE40B1F720DC300FBC830 /* SettingsViewController.h in Headers */,
 				CEFF13BE277FB7AC001E1500 /* TeamPlayerView.h in Headers */,
 				CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */,
@@ -3756,7 +3750,6 @@
 				CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */,
 				CE80FF831C5E49E700A21A51 /* cl_console.h in Headers */,
 				CE80FF841C5E49E700A21A51 /* cl_demo.h in Headers */,
-				CEA5090D2EA900D600F27205 /* cl_editor.h in Headers */,
 				CE80FF851C5E49E700A21A51 /* cl_entity.h in Headers */,
 				CE80FF871C5E49E700A21A51 /* cl_input.h in Headers */,
 				CE80FF881C5E49E700A21A51 /* cl_keys.h in Headers */,
@@ -4134,7 +4127,6 @@
 				CE5CDC1D1D9F51580034757D /* Sources */,
 				CE5CDC231D9F51580034757D /* Frameworks */,
 				CE5CDC261D9F51580034757D /* Headers */,
-				CE69DCA4202D4E9500E5C8B1 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -4154,6 +4146,7 @@
 				CE6EE3271F6BFAF600FBC830 /* Headers */,
 				CE4E07B420265210000B276C /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
+				CFA000132F9100000000C013 /* CopyFiles */,
 				CE7D2C15202F6911004BC58E /* CopyFiles */,
 				CE4E07D32026888A000B276C /* CopyFiles */,
 				CE4E07B720267815000B276C /* CopyFiles */,
@@ -4516,7 +4509,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2640;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -4700,6 +4693,7 @@
 				CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */,
 				CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */,
 				CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */,
+				CFA000142F9100000000C014 /* cg_editor.c in Sources */,
 				CE6EE4111F72919800FBC830 /* cg_ui.c in Sources */,
 				CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */,
 				CE4DCF07256DCCA100FECAFC /* cg_weapon.c in Sources */,
@@ -4802,13 +4796,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CE49C1432E91816E00B89CB6 /* EditorViewController.c in Sources */,
-				CE49C1542E91F6C500B89CB6 /* EntityView.c in Sources */,
-				CE49C14C2E91B9CF00B89CB6 /* EntityViewController.c in Sources */,
-				CE69DCAC202D4FE500E5C8B1 /* MaterialViewController.c in Sources */,
 				CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */,
 				CE4E07E52028B0CB000B276C /* ui_data.c in Sources */,
-				CE55308D1E57E3670009A127 /* ui_editor.c in Sources */,
 				CE5CDC331D9F518B0034757D /* ui_main.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -4838,6 +4827,10 @@
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
+				CFA000162F9100000000C016 /* EditorViewController.c in Sources */,
+				CFA000192F9100000000C019 /* EntityView.c in Sources */,
+				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,
+				CFA000202F9100000000C020 /* MaterialViewController.c in Sources */,
 				CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
 				CEFF1379277FB763001E1500 /* TeamPlayerView.c in Sources */,
@@ -4943,7 +4936,6 @@
 				CE80FF321C5E473500A21A51 /* cl_cmd.c in Sources */,
 				CE80FF331C5E473500A21A51 /* cl_console.c in Sources */,
 				CE80FF341C5E473500A21A51 /* cl_demo.c in Sources */,
-				CEA5090F2EA900DF00F27205 /* cl_editor.c in Sources */,
 				CE80FF351C5E473500A21A51 /* cl_entity.c in Sources */,
 				CE80FF371C5E473500A21A51 /* cl_input.c in Sources */,
 				CE80FF381C5E473500A21A51 /* cl_keys.c in Sources */,

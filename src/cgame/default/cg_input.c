@@ -45,6 +45,8 @@ void Cg_HandleEvent(const SDL_Event *event) {
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
       break;
+    default:
+      break;
   }
 }
 

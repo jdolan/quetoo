@@ -362,11 +362,11 @@ typedef enum {
  * @brief Classifies a distance value into a discrete range category.
  */
 static ai_range_t G_Ai_GetRange(const float distance) {
-  if (distance < RANGE_MELEE) {
+  if (distance < (float) RANGE_MELEE) {
     return RANGE_MELEE;
-  } else if (distance < RANGE_SHORT) {
+  } else if (distance < (float) RANGE_SHORT) {
     return RANGE_SHORT;
-  } else if (distance < RANGE_MED) {
+  } else if (distance < (float) RANGE_MED) {
     return RANGE_MED;
   }
 

@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include "net/net_http.h"
 
-#define CGAME_API_VERSION 27
+#define CGAME_API_VERSION 29
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -545,6 +545,48 @@ typedef struct cg_import_s {
   GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
 
   /**
+   * @brief Allocates a new entity definition. Used primarily by the editor.
+   * @return A new entity definition.
+   */
+  cm_entity_t *(*AllocEntity)(void);
+
+  /**
+   * @brief Frees an entity definition. Used primarily by the editor.
+   * @param entity The entity definition to free.
+   */
+  void (*FreeEntity)(cm_entity_t *entity);
+
+  /**
+   * @brief Parses the key/value pairs of the specified entity.
+   * @param entity The entity to parse.
+   */
+  void (*ParseEntity)(cm_entity_t *entity);
+
+  /**
+   * @brief Sets a key/value pair on the specified entity.
+   * @param entity The entity, or NULL to allocate a new entity.
+   * @param key The key.
+   * @param field The parsed type.
+   * @param value The value.
+   * @return The entity.
+   */
+  cm_entity_t *(*SetEntityKeyValue)(cm_entity_t *entity, const char *key, cm_entity_parsed_t field, const void *value);
+
+  /**
+   * @brief Serializes the entity to an info string.
+   * @param entity The entity.
+   * @return The info string. The caller must free this.
+   */
+  char *(*EntityToInfoString)(const cm_entity_t *entity);
+
+  /**
+   * @brief Deserializes an entity from an info string.
+   * @param str The info string.
+   * @return A newly allocated entity. The caller must free this with FreeEntity.
+   */
+  cm_entity_t *(*EntityFromInfoString)(const char *str);
+
+  /**
    * @return The contents mask at the specified point.
    * @param point The point to test.
    * @remarks This checks the world model and all known solid entities.
@@ -591,6 +633,33 @@ typedef struct cg_import_s {
   cm_trace_t (*Trace)(const vec3_t start, const vec3_t end, const box3_t bounds, const cl_entity_t *skip, int32_t contents);
 
   /**
+   * @brief Returns the leaf number containing the specified point.
+   * @param p The point.
+   * @param head_node The head node to recurse from, or 0 for the world.
+   * @return The leaf number, or -1 if outside.
+   */
+  int32_t (*PointLeafnum)(const vec3_t p, int32_t head_node);
+
+  /**
+   * @brief Sets up a box hull for use with BoxTrace.
+   * @param bounds The bounding box.
+   * @param contents The contents mask.
+   * @return The head node for the resulting box hull.
+   */
+  int32_t (*SetBoxHull)(const box3_t bounds, int32_t contents);
+
+  /**
+   * @brief Traces a box through the BSP from `start` to `end`.
+   * @param start The trace start.
+   * @param end The trace end.
+   * @param bounds The trace bounds.
+   * @param head_node The head node (use SetBoxHull or 0 for world).
+   * @param contents Contents mask.
+   * @return A trace result.
+   */
+  cm_trace_t (*BoxTrace)(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node, int32_t contents);
+
+  /**
    * @}
    */
 
@@ -598,6 +667,18 @@ typedef struct cg_import_s {
    * @brief Set the keyboard input destination.
    */
   void (*SetKeyDest)(cl_key_dest_t dest);
+
+  /**
+   * @brief Returns the current keyboard input destination.
+   */
+  cl_key_dest_t (*GetKeyDest)(void);
+
+  /**
+   * @brief Sends an entity info string to the server, creating, updating, or deleting an entity.
+   * @param number The entity number, or -1 to create a new entity.
+   * @param entity The entity definition, or NULL to delete the entity.
+   */
+  void (*WriteEntityInfoCommand)(int16_t number, const cm_entity_t *entity);
 
   /**
    * @brief Register a button as being held down.
@@ -933,6 +1014,13 @@ typedef struct cg_export_s {
   void (*HandleEvent)(const SDL_Event *event);
 
   /**
+   * @brief Called when a configstring update is received for an editor entity slot.
+   * @param number The entity slot index (CS_ENTITIES-relative).
+   * @param info The raw info string from the configstring, or empty to clear the slot.
+   */
+  void (*ParseEditorEntity)(int16_t number, const char *info);
+
+  /**
    * @brief Called each frame to update the current movement command angles.
    * @param cmd The current movement command.
    */
@@ -983,6 +1071,13 @@ typedef struct cg_export_s {
    * definition and sound stage.
    */
   void (*PopulateScene)(const cl_frame_t *frame);
+
+  /**
+   * @brief Called each frame to populate the view definition and sound stage for the in-game editor.
+   * @details This function should add editor entities (lights, models, etc.) and think client-side
+   * entities such as misc_sound and misc_flame so they are live in editor mode.
+   */
+  void (*PopulateEditorScene)(const cl_frame_t *frame);
 
   /**
    * @brief Called each frame to draw any non-view visual elements, such as the HUD.

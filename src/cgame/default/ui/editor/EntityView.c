@@ -21,8 +21,7 @@
 
 #include <assert.h>
 
-#include "ui_local.h"
-#include "client.h"
+#include "cg_local.h"
 
 #include "EntityView.h"
 
@@ -40,23 +39,20 @@ static void didEndEditing(TextView *textView) {
   assert(self);
   assert(self->delegate.didEditEntity);
 
-  cm_entity_t *e = self->entity.def ?: Cm_AllocEntity();
+  cm_entity_t *e = self->entity.def ?: cgi.AllocEntity();
 
   const char *key = self->key->attributedText->string.chars;
   const char *value = self->value->attributedText->string.chars;
 
-  if (g_strcmp0(e->key, key) || g_strcmp0(e->string, value)) {
+  g_strlcpy(e->key, key ?: "", sizeof(e->key));
+  g_strlcpy(e->string, value ?: "", sizeof(e->string));
 
-    g_strlcpy(e->key, key ?: "", sizeof(e->key));
-    g_strlcpy(e->string, value ?: "", sizeof(e->string));
+  cgi.ParseEntity(e);
 
-    Cm_ParseEntity(e);
+  self->delegate.didEditEntity(self, e);
 
-    self->delegate.didEditEntity(self, e);
-
-    if (e != self->entity.def) {
-      Cm_FreeEntity(e);
-    }
+  if (e != self->entity.def) {
+    cgi.FreeEntity(e);
   }
 }
 
@@ -131,15 +127,15 @@ static void render(View *self, Renderer *renderer) {
       vec3_t points[2] = { ent->origin };
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(1.f, 0.f, 0.f));
-      R_Draw3DLines(GL_LINES, points, 2, color_red, true);
+      cgi.Draw3DLines(GL_LINES, points, 2, color_red, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 1.f, 0.f));
-      R_Draw3DLines(GL_LINES, points, 2, color_green, true);
+      cgi.Draw3DLines(GL_LINES, points, 2, color_green, true);
 
       points[1] = Vec3_Fmaf(ent->origin, 64.f, Vec3(0.f, 0.f, 1.f));
-      R_Draw3DLines(GL_LINES, points, 2, color_blue, true);
+      cgi.Draw3DLines(GL_LINES, points, 2, color_blue, true);
 
-      R_Draw3DBox(Box3_Expand(ent->abs_bounds, 2.f), color_red, false);
+      cgi.Draw3DBox(Box3_Expand(ent->abs_bounds, 2.f), color_red, false);
     }
   }
 }

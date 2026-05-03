@@ -22,11 +22,6 @@
 #include "cg_local.h"
 
 /**
- * @file Client-sided entities emit lights, sounds, static models, sprites, etc.
- * These are used to add atmosphere to the level without incuring network overhead.
- */
-
-/**
  * @brief The misc_dist type.
  */
 typedef struct {
@@ -115,7 +110,9 @@ static void Cg_misc_dust_Init(cg_entity_t *self) {
 
   self->bounds = Box3_Null();
 
-  GPtrArray *brushes = cgi.EntityBrushes(self->def);
+  const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
+  const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
+  GPtrArray *brushes = cgi.EntityBrushes(brush_def);
   for (guint i = 0; i < brushes->len; i++) {
 
     const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);
@@ -809,7 +806,9 @@ static void Cg_misc_weather_Init(cg_entity_t *self) {
 
   self->bounds = Box3_Null();
 
-  GPtrArray *brushes = cgi.EntityBrushes(self->def);
+  const cm_bsp_t *bsp = cgi.WorldModel()->bsp->cm;
+  const cm_entity_t *brush_def = self->id < bsp->num_entities ? bsp->entities[self->id] : self->def;
+  GPtrArray *brushes = cgi.EntityBrushes(brush_def);
   for (guint i = 0; i < brushes->len; i++) {
 
     const cm_bsp_brush_t *brush = g_ptr_array_index(brushes, i);

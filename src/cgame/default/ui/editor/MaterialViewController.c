@@ -19,8 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
-#include "client.h"
+#include "cg_local.h"
 
 #include "MaterialViewController.h"
 
@@ -51,7 +50,7 @@ static void didSetValue(Slider *slider, double value) {
   } else if (slider == this->alphaTest) {
     this->material->cm->alpha_test = slider->value;
   } else {
-    Com_Debug(DEBUG_UI, "Unknown Slider %p\n", (void *) slider);
+    Cg_Debug("Unknown Slider %p\n", (void *) slider);
     return;
   }
 
@@ -118,28 +117,28 @@ static void viewWillAppear(ViewController *self) {
 
   float distance = MAX_WORLD_DIST;
 
-  vec3_t start = Vec3_Fmaf(cl_view.origin, 32.f, cl_view.forward);
-  vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+  vec3_t start = Vec3_Fmaf(cgi.view->origin, 32.f, cgi.view->forward);
+  vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
 
   while (material == NULL) {
 
-    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), 0, CONTENTS_MASK_VISIBLE);
+    const cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), NULL, CONTENTS_MASK_VISIBLE);
     if (!tr.material) {
       break;
     }
 
     if (!g_strcmp0(tr.material->name, "common/fog")) {
-      start = Vec3_Add(tr.end, cl_view.forward);
+      start = Vec3_Add(tr.end, cgi.view->forward);
       continue;
     }
 
-    material = R_LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
+    material = cgi.LoadMaterial(tr.material->name, ASSET_CONTEXT_TEXTURES);
 
-    distance = Vec3_Distance(cl_view.origin, tr.end);
+    distance = Vec3_Distance(cgi.view->origin, tr.end);
   }
 
-  const r_entity_t *e = cl_view.entities;
-  for (int32_t i = 0; i < cl_view.num_entities; i++, e++) {
+  const r_entity_t *e = cgi.view->entities;
+  for (int32_t i = 0; i < cgi.view->num_entities; i++, e++) {
 
     if (e->model == NULL) {
       continue;
@@ -157,12 +156,12 @@ static void viewWillAppear(ViewController *self) {
       continue;
     }
 
-    const int32_t head_node = Cm_SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
+    const int32_t head_node = cgi.SetBoxHull(e->abs_model_bounds, CONTENTS_SOLID);
 
-    const cm_trace_t tr = Cm_BoxTrace(cl_view.origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
+    const cm_trace_t tr = cgi.BoxTrace(cgi.view->origin, end, Box3_Zero(), head_node, CONTENTS_SOLID);
     if (tr.fraction < 1.f) {
 
-      const float dist = Vec3_Distance(cl_view.origin, tr.end);
+      const float dist = Vec3_Distance(cgi.view->origin, tr.end);
       if (dist < distance) {
         material = e->model->mesh->faces->material;
 

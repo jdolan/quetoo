@@ -163,8 +163,6 @@ void Ui_Draw(void) {
 
   assert(windowController);
 
-  Ui_CheckEditor();
-
   R_SetDraw2DProjection(PROJECTION_UI);
 
   $(windowController, render);
@@ -262,8 +260,6 @@ void Ui_Init(void) {
   Ui_LoadSample("#ui/change");
   Ui_LoadSample("#ui/click");
   Ui_LoadSample("#ui/clack");
-
-  Ui_InitEditor();
 }
 
 /**
@@ -272,8 +268,6 @@ void Ui_Init(void) {
 void Ui_Shutdown(void) {
 
   $$(Resource, removeResourceProvider, Ui_Data);
-
-  Ui_ShutdownEditor();
 
   Ui_PopAllViewControllers();
 

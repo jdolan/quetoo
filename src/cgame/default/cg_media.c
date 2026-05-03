@@ -323,6 +323,8 @@ void Cg_LoadMedia(void) {
 
   Cg_LoadEntities();
 
+  Cg_LoadEditorEntities();
+
   Cg_InitLights();
 
   cgi.LoadingProgress(-1, "clients");
@@ -351,6 +353,8 @@ void Cg_FreeMedia(void) {
   Cg_FreeLights();
 
   Cg_FreeEntities();
+
+  Cg_FreeEditorEntities();
 
   Cg_FreeFlares();
 

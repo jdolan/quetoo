@@ -21,8 +21,7 @@
 
 #pragma once
 
-#include "ui_local.h"
-#include "cl_types.h"
+#include "cgame/cgame.h"
 
 #include <ObjectivelyMVC/StackView.h>
 
@@ -144,4 +143,4 @@ struct EntityViewInterface {
  * @return The EntityView Class.
  * @memberof EntityView
  */
-UI_EXPORT Class *_EntityView(void);
+CGAME_EXPORT Class *_EntityView(void);

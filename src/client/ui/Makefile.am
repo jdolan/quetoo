@@ -1,11 +1,9 @@
-SUBDIRS = \
-	editor
+SUBDIRS =
 
 noinst_HEADERS = \
 	QuetooRenderer.h \
 	ui.h \
 	ui_data.h \
-	ui_editor.h \
 	ui_local.h \
 	ui_main.h
 
@@ -15,7 +13,6 @@ noinst_LTLIBRARIES = \
 libui_la_SOURCES = \
 	QuetooRenderer.c \
 	ui_data.c \
-	ui_editor.c \
 	ui_main.c
 
 libui_la_CFLAGS = \
@@ -33,5 +30,4 @@ libui_la_LDFLAGS = \
 
 libui_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
-	$(top_builddir)/src/client/ui/editor/libuieditor.la \
 	@OBJECTIVELYMVC_LIBS@

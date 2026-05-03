@@ -88,21 +88,24 @@ cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e) {
   return NULL;
 }
 
+const cg_entity_class_t *cg_entity_classes[] = {
+  &cg_misc_dust,
+  &cg_misc_flame,
+  &cg_misc_model,
+  &cg_misc_sound,
+  &cg_misc_sparks,
+  &cg_misc_sprite,
+  &cg_misc_steam,
+  &cg_misc_weather
+};
+
+const size_t cg_num_entity_classes = lengthof(cg_entity_classes);
+
 /**
  * @brief Loads entities from the current level.
  * @remarks This should be called once per map load, after the precache routine.
  */
 void Cg_LoadEntities(void) {
-  const cg_entity_class_t *classes[] = {
-    &cg_misc_dust,
-    &cg_misc_flame,
-    &cg_misc_model,
-    &cg_misc_sound,
-    &cg_misc_sparks,
-    &cg_misc_sprite,
-    &cg_misc_steam,
-    &cg_misc_weather
-  };
 
   Cg_FreeEntities();
 
@@ -114,8 +117,8 @@ void Cg_LoadEntities(void) {
     const cm_entity_t *def = bsp->entities[i];
     const char *classname = cgi.EntityValue(def, "classname")->string;
 
-    const cg_entity_class_t **clazz = classes;
-    for (size_t j = 0; j < lengthof(classes); j++, clazz++) {
+    const cg_entity_class_t **clazz = cg_entity_classes;
+    for (size_t j = 0; j < cg_num_entity_classes; j++, clazz++) {
 
       if (!g_strcmp0(classname, (*clazz)->classname)) {
 
@@ -132,7 +135,6 @@ void Cg_LoadEntities(void) {
           const char *target_name = cgi.EntityValue(def, "target")->string;
           e.target = Cg_FindEntity(NULL, Cg_EntityTarget_Predicate, (void *) target_name);
           if (!e.target) {
-            const char *classname = cgi.EntityValue(def, "classname")->string;
             Cg_Warn("Target not found for %s @ %s\n", classname, vtos(e.origin));
           }
         }

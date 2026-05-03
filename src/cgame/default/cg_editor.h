@@ -21,10 +21,12 @@
 
 #pragma once
 
-#include "cl_types.h"
+#include "cg_entity.h"
+#include "cg_types.h"
 
 /**
- * @brief The editor entity type.
+ * @brief An editor entity consolidating client entity, owned definition, vtable state,
+ *   and shadow cache flag into a single slot indexed by entity number.
  */
 typedef struct {
 
@@ -36,10 +38,10 @@ typedef struct {
   /**
    * @brief The client entity.
    */
-  cl_entity_t *ent;
+  const cl_entity_t *ent;
 
   /**
-   * @brief The entity definition.
+   * @brief The owned entity definition, parsed from configstrings.
    */
   cm_entity_t *def;
 
@@ -47,11 +49,19 @@ typedef struct {
    * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
    */
   bool shadow_cached;
-} cl_editor_entity_t;
 
-int32_t Cl_FindTeamMaster(const char *classname, const char *team);
+  /**
+   * @brief The client-side entity state for `misc_*` (class, origin, think, etc.).
+   */
+  cg_entity_t misc;
 
-#if defined(__CL_LOCAL_H__)
-void Cl_ParseEditorEntity(int16_t number, const char *info);
-void Cl_PopulateEditorScene(const cl_frame_t *frame);
-#endif /* __CL_LOCAL_H__ */
+} cg_editor_entity_t;
+
+extern cg_editor_entity_t cg_editor_entities[MAX_ENTITIES];
+
+int32_t Cg_FindTeamMaster(const char *classname, const char *team);
+void Cg_ParseEditorEntity(int16_t number, const char *info);
+void Cg_LoadEditorEntities(void);
+void Cg_FreeEditorEntities(void);
+void Cg_PopulateEditorScene(const cl_frame_t *frame);
+void Cg_CheckEditor(void);

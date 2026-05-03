@@ -1,0 +1,11 @@
+#material Input Label {
+  max-width: 100;
+}
+
+#material Input TextView {
+  width: 250;
+}
+
+#material Input Slider {
+  width: 250;
+}

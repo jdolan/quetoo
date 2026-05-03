@@ -4,9 +4,6 @@
     <Filter Include="src">
       <UniqueIdentifier>{fdc66d56-c60f-41f4-9e2a-482e8362c59e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="src\editor">
-      <UniqueIdentifier>{e79a0750-db00-4f18-a415-1b09c9f034d0}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\client\ui\QuetooRenderer.c">
@@ -15,23 +12,8 @@
     <ClCompile Include="..\..\src\client\ui\ui_data.c">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\ui_editor.c">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\client\ui\ui_main.c">
       <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\EditorViewController.c">
-      <Filter>src\editor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\EntityView.c">
-      <Filter>src\editor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\EntityViewController.c">
-      <Filter>src\editor</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\client\ui\editor\MaterialViewController.c">
-      <Filter>src\editor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,9 +26,6 @@
     <ClInclude Include="..\..\src\client\ui\ui_data.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\ui_editor.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_local.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -55,18 +34,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\client\ui\ui_types.h">
       <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\EditorViewController.h">
-      <Filter>src\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\EntityView.h">
-      <Filter>src\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\EntityViewController.h">
-      <Filter>src\editor</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\client\ui\editor\MaterialViewController.h">
-      <Filter>src\editor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

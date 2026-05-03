@@ -32,6 +32,7 @@
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_effect.h" />
+    <ClInclude Include="..\src\cgame\default\cg_editor.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_event.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_misc.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity_trail.h" />
@@ -62,6 +63,10 @@
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\editor\EditorViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\editor\EntityView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\editor\EntityViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\editor\MaterialViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
@@ -88,6 +93,7 @@
     <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
     <ClCompile Include="..\src\cgame\default\cg_discord.c" />
+    <ClCompile Include="..\src\cgame\default\cg_editor.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity.c" />
     <ClCompile Include="..\src\cgame\default\cg_entity_effect.c" />
@@ -119,6 +125,10 @@
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\editor\EditorViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\editor\EntityView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\editor\EntityViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\editor\MaterialViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />

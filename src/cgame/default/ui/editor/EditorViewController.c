@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "cg_local.h"
+
 #include "EditorViewController.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
@@ -50,8 +52,8 @@ static void didClickDeleteEntity(Button *button) {
  */
 static void didClickSave(Button *button) {
 
-  Cbuf_AddText("save_editor_map\n");
-  Cbuf_AddText("r_save_materials\n");
+  cgi.Cbuf("save_editor_map\n");
+  cgi.Cbuf("r_save_materials\n");
 }
 
 #define _Class _EditorViewController
@@ -104,7 +106,7 @@ static void loadView(ViewController *self) {
   $(tabViewController, addChildViewController, (ViewController *) this->materialViewController);
 
   $(self, addChildViewController, tabViewController);
-  $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
+  $((View *) ((Panel *) self->view)->contentView, addSubview, tabViewController->view);
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("createEntity", &this->createEntity),

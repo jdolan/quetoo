@@ -475,11 +475,6 @@ typedef struct {
   s_music_t *musics[MAX_MUSICS];
 
   /**
-   * @brief Entity definitions resolved from `config_strings`.
-   */
-  cm_entity_t *entity_definitions[MAX_ENTITIES];
-
-  /**
    * @brief Index into `config_strings` used to verify file presence or initiate downloads.
    */
   int32_t precache_check;

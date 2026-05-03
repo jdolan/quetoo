@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "2620"
+   LastUpgradeVersion = "2640"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -125,7 +125,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ai_node_dev 1"

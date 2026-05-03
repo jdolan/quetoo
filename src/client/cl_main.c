@@ -252,10 +252,6 @@ void Cl_ClearState(void) {
 
   S_StopMusic();
 
-  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    Cm_FreeEntity(cl.entity_definitions[i]);
-  }
-
   memset(&cl, 0, sizeof(cl));
 
   Mem_ClearBuffer(&cls.net_chan.message);
@@ -576,7 +572,7 @@ static void Cl_UpdateScene(void) {
   cls.cgame->PrepareScene(&cl.frame);
 
   if (editor->value) {
-    thread = Thread_Create((ThreadRunFunc) Cl_PopulateEditorScene, &cl.frame, THREAD_NONE);
+    thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
   } else {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateScene, &cl.frame, THREAD_NONE);
   }

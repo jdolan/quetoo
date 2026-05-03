@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "ui_types.h"
-
 #include "EntityView.h"
 
 #include <ObjectivelyMVC/ViewController.h>
@@ -89,12 +87,6 @@ struct EntityViewController {
    */
   char *created;
 
-  /**
-   * @brief If true, the next `NOTIFICATION_ENTITY_PARSED` for the current EditorEntity will
-   * call updateEntity to refresh the form rather than fully rebuilding it. This minimizes
-   * disruption to the user.
-   */
-  bool shouldUpdateEntity;
 };
 
 /**
@@ -140,15 +132,6 @@ struct EntityViewControllerInterface {
    * @memberof EntityViewController
    */
   void (*setEntity)(EntityViewController *self, const EditorEntity *entity);
-
-  /**
-   * @fn void EntityViewController::updateEntity(EntityViewController *self, const EditorEntity *entity)
-   * @brief Updates the entity in-place without rebuilding the view hierarchy.
-   * @param self The EntityViewController.
-   * @param entity The entity to update.
-   * @memberof EntityViewController
-   */
-  void (*updateEntity)(EntityViewController *self, const EditorEntity *entity);
 };
 
 /**
