@@ -90,7 +90,6 @@ static vec4_t Cg_AddEditorEntity_light(cl_editor_entity_t *edit) {
   light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
 
   if (style && *style) {
-    // FIXME: support drift
     const size_t len = strlen(style);
     const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
     const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
@@ -192,7 +191,7 @@ void Cg_ParseEditorEntity(int16_t number) {
 
   const cm_entity_t *def = cgi.client->entity_definitions[number];
   if (!def) {
-    if (e->clazz && e->data) {
+    if (e->clazz) {
       cgi.Free(e->data);
     }
     memset(e, 0, sizeof(*e));
@@ -210,7 +209,7 @@ void Cg_ParseEditorEntity(int16_t number) {
   }
 
   if (!clazz) {
-    if (e->clazz && e->data) {
+    if (e->clazz) {
       cgi.Free(e->data);
     }
     memset(e, 0, sizeof(*e));
@@ -218,9 +217,7 @@ void Cg_ParseEditorEntity(int16_t number) {
   }
 
   if (e->clazz != clazz) {
-    if (e->data) {
-      cgi.Free(e->data);
-    }
+    cgi.Free(e->data);
     e->data = cgi.Malloc(clazz->data_size, MEM_TAG_CGAME_LEVEL);
   } else if (clazz->data_size) {
     memset(e->data, 0, clazz->data_size);
