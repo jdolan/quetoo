@@ -88,10 +88,10 @@ struct EntityViewController {
   char *created;
 
   /**
-   * @brief True while a `WriteEntityInfoCommand` is in flight awaiting `NOTIFICATION_ENTITY_PARSED`.
-   * Edit events are dropped while pending to prevent stale cm_entity_t pointer races.
+   * @brief True while `setEntity` is rebuilding the form, to guard against `didEndEditing`
+   * callbacks fired by `removeAllSubviews` triggering re-entrant sends.
    */
-  bool pending;
+  bool rebuilding;
 };
 
 /**

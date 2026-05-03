@@ -59,7 +59,7 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
 
-  if (this->pending) {
+  if (this->rebuilding) {
     return;
   }
 
@@ -75,7 +75,6 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
     $(this->add->value, setAttributedText, NULL);
   }
 
-  this->pending = true;
   cgi.WriteEntityInfoCommand(this->entity.number, this->entity.def);
 }
 
@@ -86,7 +85,7 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
 
-  if (this->pending) {
+  if (this->rebuilding) {
     return;
   }
 
@@ -102,7 +101,6 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
     $(this->teamAdd->value, setAttributedText, NULL);
   }
 
-  this->pending = true;
   cgi.WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
 }
 
@@ -299,7 +297,6 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
         if (number == this->entity.number || number == this->teamEntity.number) {
           $(this, setEntity, &entity);
-          this->pending = false;
         } else if (!g_strcmp0(this->created, info)) {
           $(this, setEntity, &entity);
         }
@@ -402,6 +399,8 @@ static EntityViewController *init(EntityViewController *self) {
  */
 static void setEntity(EntityViewController *self, const EditorEntity *entity) {
 
+  self->rebuilding = true;
+
   $((View *) self->pairs, removeAllSubviews);
   $((View *) self->teamPairs, removeAllSubviews);
 
@@ -481,6 +480,8 @@ static void setEntity(EntityViewController *self, const EditorEntity *entity) {
 
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);
+
+  self->rebuilding = false;
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
