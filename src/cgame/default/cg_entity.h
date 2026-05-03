@@ -116,6 +116,9 @@ struct cg_entity_s {
   void *data;
 };
 
+extern const cg_entity_class_t *cg_entity_classes[];
+extern const size_t cg_num_entity_classes;
+
 extern GArray *cg_entities;
 
 cg_entity_t *Cg_EntityForDefinition(const cm_entity_t *e);

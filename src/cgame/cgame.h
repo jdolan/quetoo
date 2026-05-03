@@ -545,13 +545,13 @@ typedef struct cg_import_s {
   GPtrArray *(*EntityBrushes)(const cm_entity_t *entity);
 
   /**
-   * @brief Allocates a new entity definition.
+   * @brief Allocates a new entity definition. Used primarily by the editor.
    * @return A new entity definition.
    */
   cm_entity_t *(*AllocEntity)(void);
 
   /**
-   * @brief Frees an entity definition.
+   * @brief Frees an entity definition. Used primarily by the editor.
    * @param entity The entity definition to free.
    */
   void (*FreeEntity)(cm_entity_t *entity);

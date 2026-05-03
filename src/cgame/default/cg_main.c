@@ -383,6 +383,8 @@ static void Cg_ClearState(void) {
 
   Cg_FreeEntities();
 
+  Cg_FreeEditorEntities();
+
   Cg_ClearHud();
 
   Cg_ClearUi();

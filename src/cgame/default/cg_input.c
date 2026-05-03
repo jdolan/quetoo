@@ -45,6 +45,14 @@ void Cg_HandleEvent(const SDL_Event *event) {
     case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
       Cg_CreateFramebuffer();
       break;
+    default:
+      break;
+  }
+
+  if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
+    if (*cgi.state == CL_ACTIVE) {
+      Cg_ParseEditorEntity((int16_t)(intptr_t) event->user.data1);
+    }
   }
 }
 

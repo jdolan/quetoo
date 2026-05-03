@@ -26,6 +26,13 @@
 static ViewController *cg_editorViewController;
 
 /**
+ * @brief Sparse array of client-side entities for the editor, indexed by entity number.
+ * @details Slots are populated (and re-initialized) each time the server sends a
+ *   `NOTIFICATION_ENTITY_PARSED` for that entity number. A NULL `clazz` means unused.
+ */
+static cg_entity_t cg_editor_entities[MAX_ENTITIES];
+
+/**
  * @brief Finds the `team_master` entity for the given classname and team.
  */
 int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
@@ -155,9 +162,13 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     });
   }
 
-  // think client-side entities so misc_sound, misc_flame, etc. are live in editor mode
-  cg_entity_t *e = (cg_entity_t *) cg_entities->data;
-  for (guint i = 0; i < cg_entities->len; i++, e++) {
+  // think client-side editor entities so misc_sound, misc_flame, etc. are live in editor mode
+  cg_entity_t *e = cg_editor_entities;
+  for (int32_t i = 0; i < MAX_ENTITIES; i++, e++) {
+
+    if (!e->clazz) {
+      continue;
+    }
 
     if (e->next_think > cgi.client->unclamped_time) {
       continue;
@@ -169,6 +180,100 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
       e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
     }
   }
+
+  Cg_AddSprites();
+}
+
+/**
+ * @brief Initializes or re-initializes the editor's client-side entity slot for the given number.
+ * @details Called whenever the server sends a `NOTIFICATION_ENTITY_PARSED` event. Scans the
+ *   client-side entity class vtable for a matching classname and calls Init() if found,
+ *   so that misc_dust, misc_flame, misc_sound, etc. are live and responsive in editor mode.
+ */
+void Cg_ParseEditorEntity(int16_t number) {
+
+  cg_entity_t *e = &cg_editor_entities[number];
+
+  const cm_entity_t *def = cgi.client->entity_definitions[number];
+  if (!def) {
+    if (e->clazz && e->data) {
+      cgi.Free(e->data);
+    }
+    memset(e, 0, sizeof(*e));
+    return;
+  }
+
+  const char *classname = cgi.EntityValue(def, "classname")->string;
+
+  const cg_entity_class_t *clazz = NULL;
+  for (size_t j = 0; j < cg_num_entity_classes; j++) {
+    if (!g_strcmp0(classname, cg_entity_classes[j]->classname)) {
+      clazz = cg_entity_classes[j];
+      break;
+    }
+  }
+
+  if (!clazz) {
+    if (e->clazz && e->data) {
+      cgi.Free(e->data);
+    }
+    memset(e, 0, sizeof(*e));
+    return;
+  }
+
+  if (e->clazz != clazz) {
+    if (e->data) {
+      cgi.Free(e->data);
+    }
+    e->data = cgi.Malloc(clazz->data_size, MEM_TAG_CGAME_LEVEL);
+  } else if (clazz->data_size) {
+    memset(e->data, 0, clazz->data_size);
+  }
+
+  e->id = number;
+  e->clazz = clazz;
+  e->def = def;
+  e->origin = cgi.EntityValue(def, "origin")->vec3;
+  e->bounds = Box3_FromCenter(e->origin);
+  e->target = NULL;
+  e->team = NULL;
+  e->next_think = 0;
+
+  e->clazz->Init(e);
+}
+
+/**
+ * @brief Initializes all client-side editor entity slots from the current entity definitions.
+ * @details Called at the end of `Cg_LoadMedia` so that client-side entities (`misc_dust`,
+ * `misc_flame`, etc.) are live in editor mode regardless of when `NOTIFICATION_ENTITY_PARSED`
+ * events fired.
+ */
+void Cg_LoadEditorEntities(void) {
+
+  if (!editor->integer) {
+    return;
+  }
+
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    if (cgi.client->entity_definitions[i]) {
+      Cg_ParseEditorEntity(i);
+    }
+  }
+}
+
+/**
+ * @brief Frees all client-side editor entity slots and resets the sparse array.
+ */
+void Cg_FreeEditorEntities(void) {
+
+  cg_entity_t *e = cg_editor_entities;
+  for (int32_t i = 0; i < MAX_ENTITIES; i++, e++) {
+    if (e->clazz && e->data) {
+      cgi.Free(e->data);
+    }
+  }
+
+  memset(cg_editor_entities, 0, sizeof(cg_editor_entities));
 }
 
 /**
