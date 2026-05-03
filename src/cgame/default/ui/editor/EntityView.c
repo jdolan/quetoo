@@ -39,7 +39,21 @@ static void didEndEditing(TextView *textView) {
   assert(self);
   assert(self->delegate.didEditEntity);
 
-  cm_entity_t *e = self->entity.def ?: cgi.AllocEntity();
+  // Re-look up the live node from cg_edit by original_key to avoid using a stale pointer.
+  // Between the time setEntity was called and now, Cg_ParseEditorEntity may have freed and
+  // rebuilt the linked list (e.g. due to a server round-trip triggered by another field's
+  // didEndEditing). Caching the raw def pointer is not safe.
+  cm_entity_t *live = NULL;
+  if (self->original_key[0] && self->entity.number >= 0) {
+    for (cm_entity_t *p = cg_edit[self->entity.number].def; p; p = p->next) {
+      if (!g_strcmp0(p->key, self->original_key)) {
+        live = p;
+        break;
+      }
+    }
+  }
+
+  cm_entity_t *e = live ?: cgi.AllocEntity();
 
   const char *key = self->key->attributedText->string.chars;
   const char *value = self->value->attributedText->string.chars;
@@ -53,7 +67,7 @@ static void didEndEditing(TextView *textView) {
 
     self->delegate.didEditEntity(self, e);
 
-    if (e != self->entity.def) {
+    if (!live) {
       cgi.FreeEntity(e);
     }
   }
@@ -180,6 +194,8 @@ static void setEntity(EntityView *self, EditorEntity *entity) {
   assert(entity);
 
   self->entity = *entity;
+
+  g_strlcpy(self->original_key, entity->def ? entity->def->key : "", sizeof(self->original_key));
 
   self->key->control.state = ControlStateDefault;
   self->value->control.state = ControlStateDefault;

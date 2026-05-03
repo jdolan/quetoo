@@ -107,7 +107,9 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   return Vec3_ToVec4(light.color, 1.f);
 }
 
-
+/**
+ * @brief Populates the view and sound stage for the given editor frame.
+ */
 void Cg_PopulateEditorScene(const cl_frame_t *frame) {
   static bool did_print_help = false;
 

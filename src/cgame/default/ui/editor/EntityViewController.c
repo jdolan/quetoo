@@ -418,18 +418,27 @@ static void updatePairs(StackView *stackView, const EditorEntity *entity) {
   for (size_t i = 0; i < subviews->count; i++) {
     EntityView *ev = $(subviews, objectAtIndex, i);
 
-    if ($((View *) ev->key, isKeyResponder) || $((View *) ev->value, isKeyResponder)) {
-      continue;
-    }
+    const bool focused = $((View *) ev->key, isKeyResponder) || $((View *) ev->value, isKeyResponder);
 
-    const char *evKey = ev->key->attributedText->string.chars;
+    // Use original_key for the lookup so the match works even when the user has
+    // partially edited the displayed key text without yet losing focus.
+    const char *lookupKey = ev->original_key[0] ? ev->original_key
+                                                 : ev->key->attributedText->string.chars;
+
     for (const cm_entity_t *e = entity->def; e; e = e->next) {
-      if (!g_strcmp0(e->key, evKey)) {
-        $(ev, setEntity, &(EditorEntity) {
-          .number = entity->number,
-          .ent = entity->ent,
-          .def = (cm_entity_t *) e
-        });
+      if (!g_strcmp0(e->key, lookupKey)) {
+        if (focused) {
+          // Keep the def pointer current without disturbing the in-progress text edit.
+          ev->entity.number = entity->number;
+          ev->entity.ent = entity->ent;
+          ev->entity.def = (cm_entity_t *) e;
+        } else {
+          $(ev, setEntity, &(EditorEntity) {
+            .number = entity->number,
+            .ent = entity->ent,
+            .def = (cm_entity_t *) e
+          });
+        }
         break;
       }
     }

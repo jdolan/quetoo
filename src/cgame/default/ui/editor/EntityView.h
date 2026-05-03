@@ -97,6 +97,13 @@ struct EntityView {
   EditorEntity entity;
 
   /**
+   * @brief The entity key at the time setEntity was last called. Used to re-look up the live
+   *   cm_entity_t node from cg_edit when the pointer may have been invalidated by a server
+   *   round-trip.
+   */
+  char original_key[MAX_BSP_ENTITY_KEY];
+
+  /**
    * @brief The entity key text field.
    */
   TextView *key;
