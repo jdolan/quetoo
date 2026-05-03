@@ -283,7 +283,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         const EditorEntity entity = {
           .number = number,
           .ent = &cgi.client->entities[number],
-          .def = cg_edit[number].def
+          .def = cg_editor_entities[number].def
         };
 
         if (number == this->entity.number || number == this->teamEntity.number) {
@@ -309,7 +309,7 @@ static void viewWillAppear(ViewController *self) {
   EditorEntity entity = {
     .number = 0,
     .ent = cgi.client->entities,
-    .def = cg_edit[0].def
+    .def = cg_editor_entities[0].def
   };
 
   cl_entity_t *ent = NULL;
@@ -331,7 +331,7 @@ static void viewWillAppear(ViewController *self) {
     EditorEntity e = {
       .number = ent->current.number,
       .ent = ent,
-      .def = cg_edit[ent->current.number].def
+      .def = cg_editor_entities[ent->current.number].def
     };
 
     const float radius = Box3_Radius(e.ent->bounds);
@@ -428,7 +428,7 @@ static void setEntity(EntityViewController *self, const EditorEntity *entity) {
         self->teamEntity = (EditorEntity) {
           .number = teamMaster,
           .ent = &cgi.client->entities[teamMaster],
-          .def = cg_edit[teamMaster].def
+          .def = cg_editor_entities[teamMaster].def
         };
 
         for (cm_entity_t *e = self->teamEntity.def; e; e = e->next) {

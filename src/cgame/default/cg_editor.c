@@ -27,7 +27,7 @@
  * @brief Editor entity array, indexed by entity number.
  * @details Each slot owns its definition, vtable state, and shadow cache flag.
  */
-cg_editor_entity_t cg_edit[MAX_ENTITIES];
+cg_editor_entity_t cg_editor_entities[MAX_ENTITIES];
 
 /**
  * @brief Finds the `team_master` entity for the given classname and team.
@@ -39,7 +39,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const cm_entity_t *e = cg_edit[i].def;
+    const cm_entity_t *e = cg_editor_entities[i].def;
     if (!e) {
       continue;
     }
@@ -75,7 +75,7 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const cm_entity_t *e = cg_edit[master].def;
+      const cm_entity_t *e = cg_editor_entities[master].def;
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -123,7 +123,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
-  cg_editor_entity_t *edit = cg_edit;
+  cg_editor_entity_t *edit = cg_editor_entities;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (!edit->def) {
@@ -156,7 +156,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
       // check for a client-side entity like misc_flame
 
-      cg_entity_t *e = &cg_edit[i].entity;
+      cg_entity_t *e = &cg_editor_entities[i].misc;
       if (e->clazz) {
         if (e->next_think <= cgi.client->unclamped_time) {
           e->clazz->Think(e);
@@ -188,8 +188,8 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
  */
 static void Cg_InitEditorEntity(int16_t number) {
 
-  cg_editor_entity_t *edit = &cg_edit[number];
-  cg_entity_t *e = &edit->entity;
+  cg_editor_entity_t *edit = &cg_editor_entities[number];
+  cg_entity_t *e = &edit->misc;
 
   if (!edit->def) {
     if (e->clazz) {
@@ -244,10 +244,10 @@ static void Cg_InitEditorEntity(int16_t number) {
  */
 void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
-  cg_editor_entity_t *edit = &cg_edit[number];
+  cg_editor_entity_t *edit = &cg_editor_entities[number];
 
-  if (edit->entity.clazz && edit->entity.data) {
-    cgi.Free(edit->entity.data);
+  if (edit->misc.clazz && edit->misc.data) {
+    cgi.Free(edit->misc.data);
   }
 
   cgi.FreeEntity(edit->def);
@@ -258,7 +258,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
   edit->def = strlen(info) ? cgi.EntityFromInfoString(info) : NULL;
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    cg_edit[i].shadow_cached = false;
+    cg_editor_entities[i].shadow_cached = false;
   }
 
   if (*cgi.state == CL_ACTIVE) {
@@ -287,9 +287,9 @@ void Cg_LoadEditorEntities(void) {
       continue;
     }
 
-    cg_edit[i].number = i;
-    cg_edit[i].ent = &cgi.client->entities[i];
-    cg_edit[i].def = cgi.EntityFromInfoString(info);
+    cg_editor_entities[i].number = i;
+    cg_editor_entities[i].ent = &cgi.client->entities[i];
+    cg_editor_entities[i].def = cgi.EntityFromInfoString(info);
     Cg_InitEditorEntity(i);
   }
 }
@@ -300,14 +300,14 @@ void Cg_LoadEditorEntities(void) {
 void Cg_FreeEditorEntities(void) {
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    cg_editor_entity_t *edit = &cg_edit[i];
-    if (edit->entity.clazz && edit->entity.data) {
-      cgi.Free(edit->entity.data);
+    cg_editor_entity_t *edit = &cg_editor_entities[i];
+    if (edit->misc.clazz && edit->misc.data) {
+      cgi.Free(edit->misc.data);
     }
     cgi.FreeEntity(edit->def);
   }
 
-  memset(cg_edit, 0, sizeof(cg_edit));
+  memset(cg_editor_entities, 0, sizeof(cg_editor_entities));
 }
 
 /**

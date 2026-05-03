@@ -51,13 +51,13 @@ typedef struct {
   bool shadow_cached;
 
   /**
-   * @brief The client-side entity vtable state (class, origin, think, etc.).
+   * @brief The client-side entity state for `misc_*` (class, origin, think, etc.).
    */
-  cg_entity_t entity;
+  cg_entity_t misc;
 
 } cg_editor_entity_t;
 
-extern cg_editor_entity_t cg_edit[MAX_ENTITIES];
+extern cg_editor_entity_t cg_editor_entities[MAX_ENTITIES];
 
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);
