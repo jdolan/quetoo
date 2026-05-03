@@ -87,11 +87,6 @@ struct EntityViewController {
    */
   char *created;
 
-  /**
-   * @brief True while `setEntity` is rebuilding the form, to guard against `didEndEditing`
-   * callbacks fired by `removeAllSubviews` triggering re-entrant sends.
-   */
-  bool rebuilding;
 };
 
 /**

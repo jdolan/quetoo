@@ -52,16 +52,11 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
 #pragma mark - Delegates
 
 /**
- /**
  * @brief EntityViewDelegate.
  */
 static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
-
-  if (this->rebuilding) {
-    return;
-  }
 
   if (view == this->add) {
 
@@ -84,10 +79,6 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
-
-  if (this->rebuilding) {
-    return;
-  }
 
   if (view == this->teamAdd) {
 
@@ -399,8 +390,6 @@ static EntityViewController *init(EntityViewController *self) {
  */
 static void setEntity(EntityViewController *self, const EditorEntity *entity) {
 
-  self->rebuilding = true;
-
   $((View *) self->pairs, removeAllSubviews);
   $((View *) self->teamPairs, removeAllSubviews);
 
@@ -480,8 +469,6 @@ static void setEntity(EntityViewController *self, const EditorEntity *entity) {
 
   $((View *) self->pairs, sizeToFit);
   $((View *) self->teamPairs, sizeToFit);
-
-  self->rebuilding = false;
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
