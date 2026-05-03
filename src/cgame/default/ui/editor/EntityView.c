@@ -44,18 +44,15 @@ static void didEndEditing(TextView *textView) {
   const char *key = self->key->attributedText->string.chars;
   const char *value = self->value->attributedText->string.chars;
 
-  if (g_strcmp0(e->key, key) || g_strcmp0(e->string, value)) {
+  g_strlcpy(e->key, key ?: "", sizeof(e->key));
+  g_strlcpy(e->string, value ?: "", sizeof(e->string));
 
-    g_strlcpy(e->key, key ?: "", sizeof(e->key));
-    g_strlcpy(e->string, value ?: "", sizeof(e->string));
+  cgi.ParseEntity(e);
 
-    cgi.ParseEntity(e);
+  self->delegate.didEditEntity(self, e);
 
-    self->delegate.didEditEntity(self, e);
-
-    if (e != self->entity.def) {
-      cgi.FreeEntity(e);
-    }
+  if (e != self->entity.def) {
+    cgi.FreeEntity(e);
   }
 }
 
