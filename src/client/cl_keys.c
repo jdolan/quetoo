@@ -83,6 +83,13 @@ void Cl_SetKeyDest(cl_key_dest_t dest) {
 }
 
 /**
+ * @brief Returns the current key state destination.
+ */
+cl_key_dest_t Cl_GetKeyDest(void) {
+  return cls.key_state.dest;
+}
+
+/**
  * @brief Interactive line editing and console scrollback.
  */
 static void Cl_KeyConsole(const SDL_Event *event) {

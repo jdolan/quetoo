@@ -241,13 +241,24 @@ void Cl_InitCgame(void) {
   import.Worldspawn = Cm_Worldspawn;
   import.EntityValue = Cm_EntityValue;
   import.EntityBrushes = Cm_EntityBrushes;
+  import.AllocEntity = Cm_AllocEntity;
+  import.FreeEntity = Cm_FreeEntity;
+  import.ParseEntity = Cm_ParseEntity;
+  import.SetEntityKeyValue = Cm_EntitySetKeyValue;
+  import.EntityToInfoString = Cm_EntityToInfoString;
+  import.EntityFromInfoString = Cm_EntityFromInfoString;
   import.PointContents = Cl_PointContents;
   import.BoxContents = Cl_BoxContents;
   import.BoxLeafnums = Cm_BoxLeafnums;
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Cl_Trace;
+  import.PointLeafnum = Cm_PointLeafnum;
+  import.SetBoxHull = Cm_SetBoxHull;
+  import.BoxTrace = Cm_BoxTrace;
 
   import.SetKeyDest = Cl_SetKeyDest;
+  import.GetKeyDest = Cl_GetKeyDest;
+  import.WriteEntityInfoCommand = Cl_WriteEntityInfoCommand;
   import.KeyDown = Cl_KeyDown;
   import.KeyUp = Cl_KeyUp;
   import.KeyState = Cl_KeyState;

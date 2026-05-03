@@ -3,6 +3,7 @@ SUBDIRS = \
 
 noinst_HEADERS = \
 	cg_client.h \
+	cg_editor.h \
 	cg_effect.h \
 	cg_entity.h \
 	cg_entity_effect.h \
@@ -36,6 +37,7 @@ cgamelib_LTLIBRARIES = \
 cgame_la_SOURCES = \
 	cg_client.c \
 	cg_discord.c \
+	cg_editor.c \
 	cg_effect.c \
 	cg_entity.c \
 	cg_entity_effect.c \
@@ -75,6 +77,7 @@ cgame_la_LDFLAGS = \
 cgame_la_LIBADD = \
 	ui/common/libcguicommon.la \
 	ui/controls/libcguicontrols.la \
+	ui/editor/libcguieditor.la \
 	ui/home/libcguihome.la \
 	ui/main/libcguimain.la \
 	ui/play/libcguiplay.la \

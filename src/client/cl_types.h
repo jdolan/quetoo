@@ -250,6 +250,32 @@ typedef struct {
 } cl_entity_t;
 
 /**
+ * @brief An editor entity, combining a client entity with its definition and shadow cache state.
+ */
+typedef struct {
+
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+
+  /**
+   * @brief The client entity.
+   */
+  cl_entity_t *ent;
+
+  /**
+   * @brief The entity definition.
+   */
+  cm_entity_t *def;
+
+  /**
+   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
+   */
+  bool shadow_cached;
+} cl_editor_entity_t;
+
+/**
  * @brief A circular buffer of recently sent user_cmd_t is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
  * that client-side prediction can verify its accuracy.
@@ -478,6 +504,11 @@ typedef struct {
    * @brief Entity definitions resolved from `config_strings`.
    */
   cm_entity_t *entity_definitions[MAX_ENTITIES];
+
+  /**
+   * @brief Editor entities, populated when the in-game editor is active.
+   */
+  cl_editor_entity_t editor_entities[MAX_ENTITIES];
 
   /**
    * @brief Index into `config_strings` used to verify file presence or initiate downloads.

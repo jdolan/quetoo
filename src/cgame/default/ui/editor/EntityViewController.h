@@ -21,8 +21,6 @@
 
 #pragma once
 
-#include "ui_types.h"
-
 #include "EntityView.h"
 
 #include <ObjectivelyMVC/ViewController.h>

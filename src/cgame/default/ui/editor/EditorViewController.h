@@ -21,7 +21,6 @@
 
 #pragma once
 
-#include "ui_types.h"
 #include "EntityViewController.h"
 #include "MaterialViewController.h"
 
@@ -29,7 +28,7 @@
 
 /**
  * @file
- * @brief Play ViewController.
+ * @brief The EditorViewController.
  */
 
 typedef struct EditorViewController EditorViewController;

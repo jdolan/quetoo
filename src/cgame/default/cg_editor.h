@@ -21,11 +21,10 @@
 
 #pragma once
 
-#include "ui_types.h"
+#include "cg_types.h"
 
-void Ui_CheckEditor(void);
-void Ui_InitEditor(void);
-void Ui_ShutdownEditor(void);
-
-#if defined(__UI_LOCAL_H__)
-#endif /* __UI_LOCAL_H__ */
+int32_t Cg_FindTeamMaster(const char *classname, const char *team);
+void Cg_PopulateEditorScene(const cl_frame_t *frame);
+void Cg_InitEditor(void);
+void Cg_ShutdownEditor(void);
+void Cg_CheckEditor(void);

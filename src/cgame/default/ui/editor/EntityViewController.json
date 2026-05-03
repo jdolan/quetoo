@@ -1,0 +1,57 @@
+{
+  "identifier": "entity",
+  "classNames": [
+    "container"
+  ],
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "identifier": "pairs",
+          "class": "StackView",
+          "classNames": [
+            "container"
+          ],
+          "subviews": [
+            
+          ]
+        },
+        {
+          "identifier": "add",
+          "class": "EntityView"
+        },
+        {
+          "identifier": "teamEntity",
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "Team Master"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "identifier": "teamPairs",
+                "class": "StackView",
+                "classNames": [
+                  "container"
+                ],
+                "subviews": [
+                  
+                ]
+              },
+              {
+                "identifier": "teamAdd",
+                "class": "EntityView"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

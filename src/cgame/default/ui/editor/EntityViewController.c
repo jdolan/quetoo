@@ -19,11 +19,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include "ui_local.h"
-#include "client.h"
-
-extern cl_client_t cl;
-extern cl_static_t cls;
+#include "cg_local.h"
 
 static cvar_t *editor_grid_size;
 
@@ -39,18 +35,18 @@ static cvar_t *editor_grid_size;
  */
 static void setEntityOriginFromClientView(cm_entity_t *entity) {
 
-  vec3_t origin = Vec3_Fmaf(cl_view.origin, MAX_WORLD_DIST, cl_view.forward);
-  const cm_trace_t tr = Cl_Trace(cl_view.origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
+  vec3_t origin = Vec3_Fmaf(cgi.view->origin, MAX_WORLD_DIST, cgi.view->forward);
+  const cm_trace_t tr = cgi.Trace(cgi.view->origin, origin, Box3_Zero(), 0, CONTENTS_SOLID);
 
-  origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cl_view.forward));
+  origin = Vec3_Fmaf(tr.end, editor_grid_size->value, Vec3_Negate(cgi.view->forward));
   origin = Vec3_Quantize(origin, editor_grid_size->value);
 
-  if (Cm_PointLeafnum(origin, 0) == -1) {
-    origin = Vec3_Fmaf(cl_view.origin, 256.f, cl_view.forward);
+  if (cgi.PointLeafnum(origin, 0) == -1) {
+    origin = Vec3_Fmaf(cgi.view->origin, 256.f, cgi.view->forward);
     origin = Vec3_Quantize(origin, editor_grid_size->value);
   }
 
-  Cm_EntitySetKeyValue(entity, "origin", ENTITY_VEC3, &origin);
+  cgi.SetEntityKeyValue(entity, "origin", ENTITY_VEC3, &origin);
 }
 
 #pragma mark - Delegates
@@ -68,7 +64,7 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       return;
     }
 
-    Cm_EntitySetKeyValue(this->entity.def, def->key, ENTITY_STRING, def->string);
+    cgi.SetEntityKeyValue(this->entity.def, def->key, ENTITY_STRING, def->string);
 
     $(this->add->key, setAttributedText, NULL);
     $(this->add->value, setAttributedText, NULL);
@@ -78,7 +74,7 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
     this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
-  Cl_WriteEntityInfoCommand(this->entity.number, this->entity.def);
+  cgi.WriteEntityInfoCommand(this->entity.number, this->entity.def);
 }
 
 /**
@@ -94,7 +90,7 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
       return;
     }
 
-    Cm_EntitySetKeyValue(this->teamEntity.def, def->key, ENTITY_STRING, def->string);
+    cgi.SetEntityKeyValue(this->teamEntity.def, def->key, ENTITY_STRING, def->string);
 
     $(this->teamAdd->key, setAttributedText, NULL);
     $(this->teamAdd->value, setAttributedText, NULL);
@@ -104,7 +100,7 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
     this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
-  Cl_WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
+  cgi.WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
 }
 
 #pragma mark - Object
@@ -116,7 +112,7 @@ static void dealloc(Object *self) {
 
   EntityViewController *this = (EntityViewController *) self;
 
-  Mem_Free(this->created);
+  cgi.Free(this->created);
 
   super(Object, self, dealloc);
 }
@@ -163,35 +159,35 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   if (mod & SDL_KMOD_CLIPBOARD) {
     switch (key) {
       case SDLK_C:
-        if (cls.key_state.dest == KEY_UI && e) {
-          char *info = Cm_EntityToInfoString(e);
+        if (cgi.GetKeyDest() == KEY_UI && e) {
+          char *info = cgi.EntityToInfoString(e);
           SDL_SetClipboardText(info);
-          Mem_Free(info);
-          Com_Print("Copied %s\n", Cm_EntityValue(e, "classname")->string);
+          cgi.Free(info);
+          cgi.Print("Copied %s\n", cgi.EntityValue(e, "classname")->string);
         }
         break;
 
       case SDLK_X:
-        if (cls.key_state.dest == KEY_UI && e) {
-          char *info = Cm_EntityToInfoString(e);
+        if (cgi.GetKeyDest() == KEY_UI && e) {
+          char *info = cgi.EntityToInfoString(e);
           SDL_SetClipboardText(info);
-          Mem_Free(info);
+          cgi.Free(info);
           $(self, deleteEntity);
-          Com_Print("Cut %s\n", Cm_EntityValue(e, "classname")->string);
+          cgi.Print("Cut %s\n", cgi.EntityValue(e, "classname")->string);
         }
         break;
 
       case SDLK_V:
         if (SDL_HasClipboardText()) {
           char *info = SDL_GetClipboardText();
-          cm_entity_t *entity = Cm_EntityFromInfoString(info);
+          cm_entity_t *entity = cgi.EntityFromInfoString(info);
           if (entity) {
             setEntityOriginFromClientView(entity);
-            Mem_Free(self->created);
-            self->created = Cm_EntityToInfoString(entity);
-            Cl_WriteEntityInfoCommand(-1, entity);
-            Com_Print("Pasted %s\n", Cm_EntityValue(entity, "classname")->string);
-            Cm_FreeEntity(entity);
+            cgi.Free(self->created);
+            self->created = cgi.EntityToInfoString(entity);
+            cgi.WriteEntityInfoCommand(-1, entity);
+            cgi.Print("Pasted %s\n", cgi.EntityValue(entity, "classname")->string);
+            cgi.FreeEntity(entity);
           }
           SDL_free(info);
         }
@@ -200,22 +196,22 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   } else if (mod == SDL_KMOD_NONE) {
 
     if (key >= SDLK_1 && key <= SDLK_8) {
-      Cvar_SetValue(editor_grid_size->name, (1 << (key - SDLK_1)));
-      Com_Print("Editor grid size set to %g\n", editor_grid_size->value);
+      cgi.SetCvarValue(editor_grid_size->name, (1 << (key - SDLK_1)));
+      cgi.Print("Editor grid size set to %g\n", editor_grid_size->value);
     }
 
-    if (cls.key_state.dest == KEY_UI && e) {
+    if (cgi.GetKeyDest() == KEY_UI && e) {
 
       vec3_t move = Vec3_Zero();
       vec3_t forward = Vec3_Zero();
       vec3_t right = Vec3_Zero();
 
-      if (fabsf(cl_view.forward.x) > fabsf(cl_view.forward.y)) {
-        forward.x = SignOf(cl_view.forward.x);
-        right.y = SignOf(cl_view.right.y);
+      if (fabsf(cgi.view->forward.x) > fabsf(cgi.view->forward.y)) {
+        forward.x = SignOf(cgi.view->forward.x);
+        right.y = SignOf(cgi.view->right.y);
       } else {
-        forward.y = SignOf(cl_view.forward.y);
-        right.x = SignOf(cl_view.right.x);
+        forward.y = SignOf(cgi.view->forward.y);
+        right.x = SignOf(cgi.view->right.x);
       }
 
       const float step = editor_grid_size->value;
@@ -258,15 +254,15 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           break;
       }
 
-      const char *model = Cm_EntityValue(e, "model")->string;
+      const char *model = cgi.EntityValue(e, "model")->string;
       if (!Vec3_Equal(move, Vec3_Zero()) && *model != '*') {
 
-        vec3_t origin = Cm_EntityValue(e, "origin")->vec3;
+        vec3_t origin = cgi.EntityValue(e, "origin")->vec3;
         origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
 
-        Cm_EntitySetKeyValue(e, "origin", ENTITY_VEC3, &origin);
+        cgi.SetEntityKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
-        Cl_WriteEntityInfoCommand(self->entity.number, e);
+        cgi.WriteEntityInfoCommand(self->entity.number, e);
       }
     }
   }
@@ -280,7 +276,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   EntityViewController *this = (EntityViewController *) self;
 
   if (event->type == SDL_EVENT_KEY_DOWN
-      && (cls.key_state.dest == KEY_UI || cls.key_state.dest == KEY_GAME)) {
+      && (cgi.GetKeyDest() == KEY_UI || cgi.GetKeyDest() == KEY_GAME)) {
     respondToKeyEvent(this, event);
   }
 
@@ -290,12 +286,12 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
       case NOTIFICATION_ENTITY_PARSED: {
 
         const int16_t number = (int16_t) (intptr_t) event->user.data1;
-        const char *info = cl.config_strings[CS_ENTITIES + number];
+        const char *info = cgi.client->config_strings[CS_ENTITIES + number];
 
         const EditorEntity entity = {
           .number = number,
-          .ent = &cl.entities[number],
-          .def = cl.entity_definitions[number]
+          .ent = &cgi.client->entities[number],
+          .def = cgi.client->entity_definitions[number]
         };
 
         if (number == this->entity.number) {
@@ -310,7 +306,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         }
 
         if (number == this->teamEntity.number) {
-          this->teamEntity.def = cl.entity_definitions[number];
+          this->teamEntity.def = cgi.client->entity_definitions[number];
           if (this->shouldUpdateEntity && this->teamEntity.def) {
             $(this, updateEntity, &this->entity);
           } else {
@@ -335,30 +331,30 @@ static void viewWillAppear(ViewController *self) {
 
   EditorEntity entity = {
     .number = 0,
-    .ent = cl.entities,
-    .def = cl.entity_definitions[0]
+    .ent = cgi.client->entities,
+    .def = cgi.client->entity_definitions[0]
   };
 
   cl_entity_t *ent = NULL;
   float best_radius = FLT_MAX;
 
-  vec3_t start = cl_view.origin;
-  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cl_view.forward);
+  vec3_t start = cgi.view->origin;
+  const vec3_t end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
 
   while (true) {
 
-    const cm_trace_t tr = Cl_Trace(start, end, Box3_Zero(), ent, CONTENTS_EDITOR);
+    const cm_trace_t tr = cgi.Trace(start, end, Box3_Zero(), ent, CONTENTS_EDITOR);
     if (tr.fraction == 1.f) {
       break;
     }
 
-    start = Vec3_Add(tr.end, cl_view.forward);
+    start = Vec3_Add(tr.end, cgi.view->forward);
     ent = tr.ent;
 
     EditorEntity e = {
       .number = ent->current.number,
       .ent = ent,
-      .def = cl.entity_definitions[ent->current.number]
+      .def = cgi.client->entity_definitions[ent->current.number]
     };
 
     const float radius = Box3_Radius(e.ent->bounds);
@@ -381,14 +377,14 @@ static void viewWillAppear(ViewController *self) {
  */
 static void createEntity(EntityViewController *self) {
 
-  cm_entity_t *entity = Cm_EntitySetKeyValue(NULL, "classname", ENTITY_STRING, "light");
+  cm_entity_t *entity = cgi.SetEntityKeyValue(NULL, "classname", ENTITY_STRING, "light");
   setEntityOriginFromClientView(entity);
 
-  Mem_Free(self->created);
-  self->created = Cm_EntityToInfoString(entity);
+  cgi.Free(self->created);
+  self->created = cgi.EntityToInfoString(entity);
 
-  Cl_WriteEntityInfoCommand(-1, entity);
-  Cm_FreeEntity(entity);
+  cgi.WriteEntityInfoCommand(-1, entity);
+  cgi.FreeEntity(entity);
 }
 
 /**
@@ -398,7 +394,7 @@ static void createEntity(EntityViewController *self) {
 static void deleteEntity(EntityViewController *self) {
 
   if (self->entity.number) {
-    Cl_WriteEntityInfoCommand(self->entity.number, NULL);
+    cgi.WriteEntityInfoCommand(self->entity.number, NULL);
     $(self, setEntity, NULL);
   }
 }
@@ -491,17 +487,17 @@ static void setEntity(EntityViewController *self, const EditorEntity *entity) {
       release(view);
     }
 
-    const char *classname = Cm_EntityValue(self->entity.def, "classname")->string;
+    const char *classname = cgi.EntityValue(self->entity.def, "classname")->string;
     if (!g_strcmp0(classname, "light")) {
 
-      const char *team = Cm_EntityValue(self->entity.def, "team")->nullable_string;
-      const int32_t teamMaster = Cl_FindTeamMaster(classname, team);
+      const char *team = cgi.EntityValue(self->entity.def, "team")->nullable_string;
+      const int32_t teamMaster = Cg_FindTeamMaster(classname, team);
       if (teamMaster != -1 && teamMaster != self->entity.number) {
 
         self->teamEntity = (EditorEntity) {
           .number = teamMaster,
-          .ent = &cl.entities[teamMaster],
-          .def = cl.entity_definitions[teamMaster]
+          .ent = &cgi.client->entities[teamMaster],
+          .def = cgi.client->entity_definitions[teamMaster]
         };
 
         for (cm_entity_t *e = self->teamEntity.def; e; e = e->next) {
@@ -569,7 +565,7 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
   ((EntityViewControllerInterface *) clazz->interface)->updateEntity = updateEntity;
 
-  editor_grid_size = Cvar_Add("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
+  editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
 }
 
 /**

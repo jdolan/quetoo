@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "ui_types.h"
+#include "cgame/cgame.h"
 
 #include <ObjectivelyMVC/ViewController.h>
 

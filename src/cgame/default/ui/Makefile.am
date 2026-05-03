@@ -1,6 +1,7 @@
 SUBDIRS = \
 	backgrounds \
 	common \
+	editor \
 	fonts \
 	controls \
 	home \

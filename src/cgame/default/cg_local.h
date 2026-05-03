@@ -28,6 +28,7 @@
 #define Cg_Warn(...) cgi.Warn(__func__, __VA_ARGS__)
 
 #include "cg_client.h"
+#include "cg_editor.h"
 #include "cg_discord.h"
 #include "cg_effect.h"
 #include "cg_entity.h"
