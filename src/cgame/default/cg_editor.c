@@ -266,10 +266,9 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
   }
 
   SDL_PushEvent(&(SDL_Event) {
-    .user = {
-      .type = NOTIFICATION_ENTITY_PARSED,
-      .data1 = (void *) (ptrdiff_t) number
-    }
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_ENTITY_PARSED,
+    .user.data1 = (void *) (ptrdiff_t) number
   });
 }
 
