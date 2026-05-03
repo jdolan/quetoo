@@ -60,7 +60,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
  * @brief Adds a dynamic light for the given editor light entity.
  * @return The resolved light color, for use in the selection overlay.
  */
-static vec4_t Cg_AddEditorEntity_Light(const cg_editor_entity_t *edit) {
+static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
 
   r_light_t light = { 0 };
 
@@ -260,8 +260,10 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
   }
 
   SDL_PushEvent(&(SDL_Event) {
-    .type = NOTIFICATION_ENTITY_PARSED,
-    .user.data1 = (void *) (ptrdiff_t) number
+    .user = {
+      .type = NOTIFICATION_ENTITY_PARSED,
+      .data1 = (void *) (ptrdiff_t) number
+    }
   });
 }
 
