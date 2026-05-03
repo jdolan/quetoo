@@ -34,7 +34,34 @@
 #include "common/installer.h"
 #include "net/net_http.h"
 
-#define CGAME_API_VERSION 28
+#define CGAME_API_VERSION 29
+
+/**
+ * @brief An editor entity, combining a client entity with its definition and shadow cache state.
+ * @details Managed entirely by cgame; the client has no knowledge of this struct.
+ */
+typedef struct {
+
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+
+  /**
+   * @brief The client entity.
+   */
+  const cl_entity_t *ent;
+
+  /**
+   * @brief The entity definition.
+   */
+  const cm_entity_t *def;
+
+  /**
+   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
+   */
+  bool shadow_cached;
+} cg_editor_entity_t;
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -681,6 +708,14 @@ typedef struct cg_import_s {
   void (*WriteEntityInfoCommand)(int16_t number, const cm_entity_t *entity);
 
   /**
+   * @brief Parses an entity definition from an info string and stores it in the client's
+   *   entity_definitions array at the given slot.
+   * @param number The entity slot index.
+   * @param info The info string to parse, or empty to clear the slot.
+   */
+  void (*ParseEntityDefinition)(int16_t number, const char *info);
+
+  /**
    * @brief Register a button as being held down.
    */
   void (*KeyDown)(button_t *b);
@@ -1012,6 +1047,15 @@ typedef struct cg_export_s {
    * function allows the client game to augment them, or handle custom event types.
    */
   void (*HandleEvent)(const SDL_Event *event);
+
+  /**
+   * @brief Called when a configstring update is received for an editor entity slot.
+   * @param number The entity slot index (CS_ENTITIES-relative).
+   * @param info The raw info string from the configstring, or empty to clear the slot.
+   * @details cgame is responsible for parsing the info string, updating its own
+   *   cg_editor_entity_t array, and managing shadow cache invalidation.
+   */
+  void (*ParseEditorEntity)(int16_t number, const char *info);
 
   /**
    * @brief Called each frame to update the current movement command angles.

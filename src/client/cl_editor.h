@@ -24,5 +24,5 @@
 #include "cl_types.h"
 
 #if defined(__CL_LOCAL_H__)
-void Cl_ParseEditorEntity(int16_t number, const char *info);
+void Cl_ParseEntityDefinition(int16_t number, const char *info);
 #endif /* __CL_LOCAL_H__ */

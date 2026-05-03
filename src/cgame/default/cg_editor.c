@@ -29,6 +29,11 @@
 static cg_entity_t cg_editor_entities[MAX_ENTITIES];
 
 /**
+ * @brief Editor entity state array, owned by cgame. Indexed by entity number.
+ */
+static cg_editor_entity_t cg_edit[MAX_ENTITIES];
+
+/**
  * @brief Finds the `team_master` entity for the given classname and team.
  */
 int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
@@ -59,7 +64,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
  * @brief Adds a dynamic light for the given editor light entity.
  * @return The resolved light color, for use in the selection overlay.
  */
-static vec4_t Cg_AddEditorEntity_light(cl_editor_entity_t *edit) {
+static vec4_t Cg_AddEditorEntity_Light(const cg_editor_entity_t *edit) {
 
   r_light_t light = { 0 };
 
@@ -120,7 +125,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     did_print_help = true;
   }
 
-  cl_editor_entity_t *edit = cgi.client->editor_entities;
+  cg_editor_entity_t *edit = cg_edit;
   for (int32_t i = 0; i < MAX_ENTITIES; i++, edit++) {
 
     if (!edit->def) {
@@ -148,7 +153,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
     if (!g_strcmp0(classname, "light")) {
-      color = Cg_AddEditorEntity_light(edit);
+      color = Cg_AddEditorEntity_Light(edit);
     } else {
 
       // check for a client-side entity like misc_flame
@@ -163,8 +168,6 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
         }
       }
     }
-
-    // finally, add the selection box, which may include the model as well for inline models
 
     cgi.AddEntity(cgi.view, &(const r_entity_t) {
       .id = edit,
@@ -183,9 +186,9 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Initializes or re-initializes the editor's client-side entity slot for the given number.
+ * @brief Initializes or re-initializes the vtable entity slot for the given number.
  */
-void Cg_ParseEditorEntity(int16_t number) {
+static void Cg_InitEditorEntity(int16_t number) {
 
   cg_entity_t *e = &cg_editor_entities[number];
 
@@ -236,6 +239,37 @@ void Cg_ParseEditorEntity(int16_t number) {
 }
 
 /**
+ * @brief Called by the client when an entity configstring is received.
+ * @details Updates entity_definitions[number] via cgi.ParseEntityDefinition,
+ *   populates the cg_edit slot, and (if active) initializes the vtable entity.
+ *   Also fires NOTIFICATION_ENTITY_PARSED for the editor UI.
+ */
+void Cg_ParseEditorEntity(int16_t number, const char *info) {
+
+  cgi.ParseEntityDefinition(number, info);
+
+  cg_editor_entity_t *edit = &cg_edit[number];
+  memset(edit, 0, sizeof(*edit));
+
+  edit->number = number;
+  edit->ent = &cgi.client->entities[number];
+  edit->def = cgi.client->entity_definitions[number];
+
+  for (int32_t i = 0; i < MAX_ENTITIES; i++) {
+    cg_edit[i].shadow_cached = false;
+  }
+
+  if (*cgi.state == CL_ACTIVE) {
+    Cg_InitEditorEntity(number);
+  }
+
+  SDL_PushEvent(&(SDL_Event) {
+    .type = NOTIFICATION_ENTITY_PARSED,
+    .user.data1 = (void *) (ptrdiff_t) number
+  });
+}
+
+/**
  * @brief Initializes all client-side editor entity slots from the current entity definitions.
  */
 void Cg_LoadEditorEntities(void) {
@@ -246,13 +280,13 @@ void Cg_LoadEditorEntities(void) {
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
     if (cgi.client->entity_definitions[i]) {
-      Cg_ParseEditorEntity(i);
+      Cg_InitEditorEntity(i);
     }
   }
 }
 
 /**
- * @brief Frees all client-side editor entity slots and resets the sparse array.
+ * @brief Frees all client-side editor entity slots and resets the sparse arrays.
  */
 void Cg_FreeEditorEntities(void) {
 
@@ -264,6 +298,7 @@ void Cg_FreeEditorEntities(void) {
   }
 
   memset(cg_editor_entities, 0, sizeof(cg_editor_entities));
+  memset(cg_edit, 0, sizeof(cg_edit));
 }
 
 /**

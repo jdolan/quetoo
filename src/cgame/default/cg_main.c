@@ -498,6 +498,7 @@ cg_export_t *Cg_LoadCgame(cg_import_t *import) {
   cge.PrepareScene = Cg_PrepareScene;
   cge.PopulateScene = Cg_PopulateScene;
   cge.PopulateEditorScene = Cg_PopulateEditorScene;
+  cge.ParseEditorEntity = Cg_ParseEditorEntity;
   cge.UpdateScreen = Cg_UpdateScreen;
   cge.UpdateInstaller = Cg_UpdateInstaller;
   cge.UpdateDiscord = Cg_UpdateDiscord;

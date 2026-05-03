@@ -48,12 +48,6 @@ void Cg_HandleEvent(const SDL_Event *event) {
     default:
       break;
   }
-
-  if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_ENTITY_PARSED) {
-    if (*cgi.state == CL_ACTIVE) {
-      Cg_ParseEditorEntity((int16_t)(intptr_t) event->user.data1);
-    }
-  }
 }
 
 /**

@@ -24,7 +24,7 @@
 #include "cg_types.h"
 
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
-void Cg_ParseEditorEntity(int16_t number);
+void Cg_ParseEditorEntity(int16_t number, const char *info);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const cl_frame_t *frame);
