@@ -37,33 +37,6 @@
 #define CGAME_API_VERSION 29
 
 /**
- * @brief An editor entity, combining a client entity with its definition and shadow cache state.
- * @details Managed entirely by cgame; the client has no knowledge of this struct.
- */
-typedef struct {
-
-  /**
-   * @brief The entity number.
-   */
-  int16_t number;
-
-  /**
-   * @brief The client entity.
-   */
-  const cl_entity_t *ent;
-
-  /**
-   * @brief The entity definition.
-   */
-  const cm_entity_t *def;
-
-  /**
-   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
-   */
-  bool shadow_cached;
-} cg_editor_entity_t;
-
-/**
  * @brief The client game import struct imports engine functionailty to the client game.
  */
 typedef struct cg_import_s {
@@ -1044,8 +1017,6 @@ typedef struct cg_export_s {
    * @brief Called when a configstring update is received for an editor entity slot.
    * @param number The entity slot index (CS_ENTITIES-relative).
    * @param info The raw info string from the configstring, or empty to clear the slot.
-   * @details cgame is responsible for parsing the info string, updating its own
-   *   cg_editor_entity_t array, and managing shadow cache invalidation.
    */
   void (*ParseEditorEntity)(int16_t number, const char *info);
 

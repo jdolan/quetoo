@@ -21,9 +21,43 @@
 
 #pragma once
 
+#include "cg_entity.h"
 #include "cg_types.h"
 
-extern cm_entity_t *cg_entity_definitions[MAX_ENTITIES];
+/**
+ * @brief An editor entity consolidating client entity, owned definition, vtable state,
+ *   and shadow cache flag into a single slot indexed by entity number.
+ */
+typedef struct {
+
+  /**
+   * @brief The entity number.
+   */
+  int16_t number;
+
+  /**
+   * @brief The client entity.
+   */
+  const cl_entity_t *ent;
+
+  /**
+   * @brief The owned entity definition, parsed from configstrings.
+   */
+  cm_entity_t *def;
+
+  /**
+   * @brief Persistent shadow cache flag for shadowmap optimization (light entities only).
+   */
+  bool shadow_cached;
+
+  /**
+   * @brief The client-side entity vtable state (class, origin, think, etc.).
+   */
+  cg_entity_t entity;
+
+} cg_editor_entity_t;
+
+extern cg_editor_entity_t cg_edit[MAX_ENTITIES];
 
 int32_t Cg_FindTeamMaster(const char *classname, const char *team);
 void Cg_ParseEditorEntity(int16_t number, const char *info);

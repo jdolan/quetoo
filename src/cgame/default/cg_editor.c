@@ -24,19 +24,10 @@
 #include "ui/editor/EditorViewController.h"
 
 /**
- * @brief Entity definitions parsed from entity configstrings, indexed by entity number.
+ * @brief Editor entity array, indexed by entity number.
+ * @details Each slot owns its definition, vtable state, and shadow cache flag.
  */
-cm_entity_t *cg_entity_definitions[MAX_ENTITIES];
-
-/**
- * @brief Sparse array of client-side entities for the editor, indexed by entity number.
- */
-static cg_entity_t cg_editor_entities[MAX_ENTITIES];
-
-/**
- * @brief Editor entity state array, owned by cgame. Indexed by entity number.
- */
-static cg_editor_entity_t cg_edit[MAX_ENTITIES];
+cg_editor_entity_t cg_edit[MAX_ENTITIES];
 
 /**
  * @brief Finds the `team_master` entity for the given classname and team.
@@ -48,7 +39,7 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    const cm_entity_t *e = cg_entity_definitions[i];
+    const cm_entity_t *e = cg_edit[i].def;
     if (!e) {
       continue;
     }
@@ -84,7 +75,7 @@ static vec4_t Cg_AddEditorEntity_Light(const cg_editor_entity_t *edit) {
   if (team) {
     const int32_t master = Cg_FindTeamMaster("light", team);
     if (master != -1) {
-      const cm_entity_t *e = cg_entity_definitions[master];
+      const cm_entity_t *e = cg_edit[master].def;
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
@@ -163,7 +154,7 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
       // check for a client-side entity like misc_flame
 
-      cg_entity_t *e = &cg_editor_entities[i];
+      cg_entity_t *e = &cg_edit[i].entity;
       if (e->clazz) {
         if (e->next_think <= cgi.client->unclamped_time) {
           e->clazz->Think(e);
@@ -195,10 +186,10 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
  */
 static void Cg_InitEditorEntity(int16_t number) {
 
-  cg_entity_t *e = &cg_editor_entities[number];
+  cg_editor_entity_t *edit = &cg_edit[number];
+  cg_entity_t *e = &edit->entity;
 
-  const cm_entity_t *def = cg_entity_definitions[number];
-  if (!def) {
+  if (!edit->def) {
     if (e->clazz) {
       cgi.Free(e->data);
     }
@@ -206,6 +197,7 @@ static void Cg_InitEditorEntity(int16_t number) {
     return;
   }
 
+  const cm_entity_t *def = edit->def;
   const char *classname = cgi.EntityValue(def, "classname")->string;
 
   const cg_entity_class_t *clazz = NULL;
@@ -250,15 +242,14 @@ static void Cg_InitEditorEntity(int16_t number) {
  */
 void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
-  cgi.FreeEntity(cg_entity_definitions[number]);
-  cg_entity_definitions[number] = strlen(info) ? cgi.EntityFromInfoString(info) : NULL;
-
   cg_editor_entity_t *edit = &cg_edit[number];
-  memset(edit, 0, sizeof(*edit));
 
+  cgi.FreeEntity(edit->def);
+
+  memset(edit, 0, sizeof(*edit));
   edit->number = number;
   edit->ent = &cgi.client->entities[number];
-  edit->def = cg_entity_definitions[number];
+  edit->def = strlen(info) ? cgi.EntityFromInfoString(info) : NULL;
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
     cg_edit[i].shadow_cached = false;
@@ -284,7 +275,7 @@ void Cg_LoadEditorEntities(void) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    if (cg_entity_definitions[i]) {
+    if (cg_edit[i].def) {
       Cg_InitEditorEntity(i);
     }
   }
@@ -295,19 +286,14 @@ void Cg_LoadEditorEntities(void) {
  */
 void Cg_FreeEditorEntities(void) {
 
-  cg_entity_t *e = cg_editor_entities;
-  for (int32_t i = 0; i < MAX_ENTITIES; i++, e++) {
-    if (e->clazz && e->data) {
-      cgi.Free(e->data);
-    }
-  }
-
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    cgi.FreeEntity(cg_entity_definitions[i]);
+    cg_editor_entity_t *edit = &cg_edit[i];
+    if (edit->entity.clazz && edit->entity.data) {
+      cgi.Free(edit->entity.data);
+    }
+    cgi.FreeEntity(edit->def);
   }
 
-  memset(cg_entity_definitions, 0, sizeof(cg_entity_definitions));
-  memset(cg_editor_entities, 0, sizeof(cg_editor_entities));
   memset(cg_edit, 0, sizeof(cg_edit));
 }
 
