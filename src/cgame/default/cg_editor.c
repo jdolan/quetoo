@@ -25,8 +25,6 @@
 
 /**
  * @brief Sparse array of client-side entities for the editor, indexed by entity number.
- * @details Slots are populated (and re-initialized) each time the server sends a
- *   `NOTIFICATION_ENTITY_PARSED` for that entity number. A NULL `clazz` means unused.
  */
 static cg_entity_t cg_editor_entities[MAX_ENTITIES];
 
@@ -58,8 +56,58 @@ int32_t Cg_FindTeamMaster(const char *classname, const char *team) {
 }
 
 /**
- * @brief Populates the scene with editor entities for the interpolated frame.
+ * @brief Adds a dynamic light for the given editor light entity.
+ * @return The resolved light color, for use in the selection overlay.
  */
+static vec4_t Cg_AddEditorEntity_light(cl_editor_entity_t *edit) {
+
+  r_light_t light = { 0 };
+
+  light.origin = cgi.EntityValue(edit->def, "origin")->vec3;
+  light.radius = cgi.EntityValue(edit->def, "radius")->value;
+  light.color = cgi.EntityValue(edit->def, "color")->vec3;
+  light.intensity = cgi.EntityValue(edit->def, "intensity")->value;
+
+  const char *style = cgi.EntityValue(edit->def, "style")->nullable_string;
+  const char *team = cgi.EntityValue(edit->def, "team")->nullable_string;
+
+  if (team) {
+    const int32_t master = Cg_FindTeamMaster("light", team);
+    if (master != -1) {
+      const cm_entity_t *e = cgi.client->entity_definitions[master];
+      light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
+      light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
+      light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
+      if (!style) {
+        style = cgi.EntityValue(e, "style")->nullable_string;
+      }
+    }
+  }
+
+  light.radius = light.radius ?: 300.f;
+  light.color = Vec3_Equal(Vec3_Zero(), light.color) ? Vec3(1.f, 1.f, 1.f) : light.color;
+  light.intensity = light.intensity ?: 1.f;
+  light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
+
+  if (style && *style) {
+    // FIXME: support drift
+    const size_t len = strlen(style);
+    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
+    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
+    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
+    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
+    const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
+    light.intensity *= Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
+  }
+
+  light.shadow_cached = &edit->shadow_cached;
+
+  cgi.AddLight(cgi.view, &light);
+
+  return Vec3_ToVec4(light.color, 1.f);
+}
+
+
 void Cg_PopulateEditorScene(const cl_frame_t *frame) {
   static bool did_print_help = false;
 
@@ -96,56 +144,28 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
     vec4_t color = Color32_Vec4(edit->ent->current.color);
 
+    const char *mod = cgi.EntityValue(edit->def, "model")->string;
+    r_model_t *model = strlen(mod) ? cgi.LoadModel(mod) : NULL;
+
     const char *classname = cgi.EntityValue(edit->def, "classname")->string;
     if (!g_strcmp0(classname, "light")) {
+      color = Cg_AddEditorEntity_light(edit);
+    } else {
 
-      r_light_t light = { 0 };
+      // check for a client-side entity like misc_flame
 
-      light.origin = cgi.EntityValue(edit->def, "origin")->vec3;
-      light.radius = cgi.EntityValue(edit->def, "radius")->value;
-      light.color = cgi.EntityValue(edit->def, "color")->vec3;
-      light.intensity = cgi.EntityValue(edit->def, "intensity")->value;
-
-      const char *style = cgi.EntityValue(edit->def, "style")->nullable_string;
-      const char *team = cgi.EntityValue(edit->def, "team")->nullable_string;
-
-      if (team) {
-        const int32_t master = Cg_FindTeamMaster(classname, team);
-        if (master != -1) {
-          const cm_entity_t *e = cgi.client->entity_definitions[master];
-          light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
-          light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
-          light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
-          if (!style) {
-            style = cgi.EntityValue(e, "style")->nullable_string;
+      cg_entity_t *e = &cg_editor_entities[i];
+      if (e->clazz) {
+        if (e->next_think <= cgi.client->unclamped_time) {
+          e->clazz->Think(e);
+          if (e->hz) {
+            e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
           }
         }
       }
-
-      light.radius = light.radius ?: 300.f;
-      light.color = Vec3_Equal(Vec3_Zero(), light.color) ? Vec3(1.f, 1.f, 1.f) : light.color;
-      light.intensity = light.intensity ?: 1.f;
-      light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
-
-      if (style && *style) {
-        const size_t len = strlen(style);
-        const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-        const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
-        const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
-        const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-        const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
-        light.intensity *= Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-      }
-
-      light.shadow_cached = &edit->shadow_cached;
-
-      cgi.AddLight(cgi.view, &light);
-
-      color = Vec3_ToVec4(light.color, 1.f);
     }
 
-    const char *mod = cgi.EntityValue(edit->def, "model")->string;
-    r_model_t *model = strlen(mod) ? cgi.LoadModel(mod) : NULL;
+    // finally, add the selection box, which may include the model as well for inline models
 
     cgi.AddEntity(cgi.view, &(const r_entity_t) {
       .id = edit,
@@ -160,33 +180,11 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
     });
   }
 
-  // think client-side editor entities so misc_sound, misc_flame, etc. are live in editor mode
-  cg_entity_t *e = cg_editor_entities;
-  for (int32_t i = 0; i < MAX_ENTITIES; i++, e++) {
-
-    if (!e->clazz) {
-      continue;
-    }
-
-    if (e->next_think > cgi.client->unclamped_time) {
-      continue;
-    }
-
-    e->clazz->Think(e);
-
-    if (e->hz) {
-      e->next_think += 1000.f / e->hz + 1000.f * e->drift * Randomf();
-    }
-  }
-
   Cg_AddSprites();
 }
 
 /**
  * @brief Initializes or re-initializes the editor's client-side entity slot for the given number.
- * @details Called whenever the server sends a `NOTIFICATION_ENTITY_PARSED` event. Scans the
- *   client-side entity class vtable for a matching classname and calls Init() if found,
- *   so that misc_dust, misc_flame, misc_sound, etc. are live and responsive in editor mode.
  */
 void Cg_ParseEditorEntity(int16_t number) {
 
@@ -242,9 +240,6 @@ void Cg_ParseEditorEntity(int16_t number) {
 
 /**
  * @brief Initializes all client-side editor entity slots from the current entity definitions.
- * @details Called at the end of `Cg_LoadMedia` so that client-side entities (`misc_dust`,
- * `misc_flame`, etc.) are live in editor mode regardless of when `NOTIFICATION_ENTITY_PARSED`
- * events fired.
  */
 void Cg_LoadEditorEntities(void) {
 

@@ -50,7 +50,7 @@ static void didSetValue(Slider *slider, double value) {
   } else if (slider == this->alphaTest) {
     this->material->cm->alpha_test = slider->value;
   } else {
-    cgi.Debug(DEBUG_UI, __func__, "Unknown Slider %p\n", (void *) slider);
+    Cg_Debug("Unknown Slider %p\n", (void *) slider);
     return;
   }
 
