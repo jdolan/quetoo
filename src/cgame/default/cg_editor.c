@@ -244,6 +244,10 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
 
   cg_editor_entity_t *edit = &cg_edit[number];
 
+  if (edit->entity.clazz && edit->entity.data) {
+    cgi.Free(edit->entity.data);
+  }
+
   cgi.FreeEntity(edit->def);
 
   memset(edit, 0, sizeof(*edit));
@@ -268,7 +272,7 @@ void Cg_ParseEditorEntity(int16_t number, const char *info) {
 }
 
 /**
- * @brief Initializes all client-side editor entity slots from the current entity definitions.
+ * @brief Initializes all client-side editor entity slots from the current config strings.
  */
 void Cg_LoadEditorEntities(void) {
 
@@ -277,9 +281,15 @@ void Cg_LoadEditorEntities(void) {
   }
 
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
-    if (cg_edit[i].def) {
-      Cg_InitEditorEntity(i);
+    const char *info = cgi.client->config_strings[CS_ENTITIES + i];
+    if (!*info) {
+      continue;
     }
+
+    cg_edit[i].number = i;
+    cg_edit[i].ent = &cgi.client->entities[i];
+    cg_edit[i].def = cgi.EntityFromInfoString(info);
+    Cg_InitEditorEntity(i);
   }
 }
 
@@ -310,6 +320,7 @@ void Cg_CheckEditor(void) {
 
   if (editor->value) {
     if (!instanceof(EditorViewController, cgi.TopViewController())) {
+      Cg_LoadEditorEntities();
       ViewController *vc = (ViewController *) alloc(EditorViewController);
       cgi.PushViewController($(vc, init));
       release(vc);
