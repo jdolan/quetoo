@@ -88,11 +88,10 @@ struct EntityViewController {
   char *created;
 
   /**
-   * @brief If true, the next `NOTIFICATION_ENTITY_PARSED` for the current EditorEntity will
-   * call updateEntity to refresh the form rather than fully rebuilding it. This minimizes
-   * disruption to the user.
+   * @brief True while a `WriteEntityInfoCommand` is in flight awaiting `NOTIFICATION_ENTITY_PARSED`.
+   * The form is disabled during this window to prevent stale-pointer races.
    */
-  bool shouldUpdateEntity;
+  bool pending;
 };
 
 /**
@@ -138,15 +137,6 @@ struct EntityViewControllerInterface {
    * @memberof EntityViewController
    */
   void (*setEntity)(EntityViewController *self, const EditorEntity *entity);
-
-  /**
-   * @fn void EntityViewController::updateEntity(EntityViewController *self, const EditorEntity *entity)
-   * @brief Updates the entity in-place without rebuilding the view hierarchy.
-   * @param self The EntityViewController.
-   * @param entity The entity to update.
-   * @memberof EntityViewController
-   */
-  void (*updateEntity)(EntityViewController *self, const EditorEntity *entity);
 };
 
 /**

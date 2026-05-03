@@ -52,6 +52,53 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
 #pragma mark - Delegates
 
 /**
+ /**
+ * @brief Enables or disables all editable controls in the entity and team entity forms.
+ * The form is disabled while a WriteEntityInfoCommand is in flight to prevent stale
+ * cm_entity_t pointer races during the server round-trip.
+ */
+static void setFormEnabled(EntityViewController *self, bool enabled) {
+
+  const int32_t disable = ControlStateDisabled;
+
+  Array *subviews = (Array *) ((View *) self->pairs)->subviews;
+  for (size_t i = 0; i < subviews->count; i++) {
+    EntityView *ev = $(subviews, objectAtIndex, i);
+    if (enabled) {
+      ev->key->control.state &= ~disable;
+      ev->value->control.state &= ~disable;
+    } else {
+      ev->key->control.state |= disable;
+      ev->value->control.state |= disable;
+    }
+  }
+
+  subviews = (Array *) ((View *) self->teamPairs)->subviews;
+  for (size_t i = 0; i < subviews->count; i++) {
+    EntityView *ev = $(subviews, objectAtIndex, i);
+    if (enabled) {
+      ev->key->control.state &= ~disable;
+      ev->value->control.state &= ~disable;
+    } else {
+      ev->key->control.state |= disable;
+      ev->value->control.state |= disable;
+    }
+  }
+
+  if (enabled) {
+    self->add->key->control.state &= ~disable;
+    self->add->value->control.state &= ~disable;
+    self->teamAdd->key->control.state &= ~disable;
+    self->teamAdd->value->control.state &= ~disable;
+  } else {
+    self->add->key->control.state |= disable;
+    self->add->value->control.state |= disable;
+    self->teamAdd->key->control.state |= disable;
+    self->teamAdd->value->control.state |= disable;
+  }
+}
+
+/**
  * @brief EntityViewDelegate.
  */
 static void didEditEntity(EntityView *view, cm_entity_t *def) {
@@ -68,12 +115,10 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
     $(this->add->key, setAttributedText, NULL);
     $(this->add->value, setAttributedText, NULL);
-
-    this->shouldUpdateEntity = false;
-  } else {
-    this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
+  this->pending = true;
+  setFormEnabled(this, false);
   cgi.WriteEntityInfoCommand(this->entity.number, this->entity.def);
 }
 
@@ -94,12 +139,10 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
     $(this->teamAdd->key, setAttributedText, NULL);
     $(this->teamAdd->value, setAttributedText, NULL);
-
-    this->shouldUpdateEntity = false;
-  } else {
-    this->shouldUpdateEntity = strlen(def->key) > 0;
   }
 
+  this->pending = true;
+  setFormEnabled(this, false);
   cgi.WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
 }
 
@@ -294,25 +337,12 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
           .def = cg_edit[number].def
         };
 
-        if (number == this->entity.number) {
-          if (this->shouldUpdateEntity) {
-            $(this, updateEntity, &entity);
-          } else {
-            $(this, setEntity, &entity);
-          }
-          this->shouldUpdateEntity = false;
+        if (number == this->entity.number || number == this->teamEntity.number) {
+          $(this, setEntity, &entity);
+          this->pending = false;
+          setFormEnabled(this, true);
         } else if (!g_strcmp0(this->created, info)) {
           $(this, setEntity, &entity);
-        }
-
-        if (number == this->teamEntity.number) {
-          this->teamEntity.def = cg_edit[number].def;
-          if (this->shouldUpdateEntity && this->teamEntity.def) {
-            $(this, updateEntity, &this->entity);
-          } else {
-            $(this, setEntity, &this->entity);
-            this->shouldUpdateEntity = false;
-          }
         }
       }
         break;
@@ -405,61 +435,6 @@ static void deleteEntity(EntityViewController *self) {
  */
 static EntityViewController *init(EntityViewController *self) {
   return (EntityViewController *) super(ViewController, self, init);
-}
-
-/**
- * @brief Updates the value TextViews of a StackView's EntityView subviews in-place,
- * skipping any view that currently has keyboard focus.
- */
-static void updatePairs(StackView *stackView, const EditorEntity *entity) {
-
-  Array *subviews = (Array *) ((View *) stackView)->subviews;
-
-  for (size_t i = 0; i < subviews->count; i++) {
-    EntityView *ev = $(subviews, objectAtIndex, i);
-
-    const bool focused = $((View *) ev->key, isKeyResponder) || $((View *) ev->value, isKeyResponder);
-
-    // Use original_key for the lookup so the match works even when the user has
-    // partially edited the displayed key text without yet losing focus.
-    const char *lookupKey = ev->original_key[0] ? ev->original_key
-                                                 : ev->key->attributedText->string.chars;
-
-    for (const cm_entity_t *e = entity->def; e; e = e->next) {
-      if (!g_strcmp0(e->key, lookupKey)) {
-        if (focused) {
-          // Keep the def pointer current without disturbing the in-progress text edit.
-          ev->entity.number = entity->number;
-          ev->entity.ent = entity->ent;
-          ev->entity.def = (cm_entity_t *) e;
-        } else {
-          $(ev, setEntity, &(EditorEntity) {
-            .number = entity->number,
-            .ent = entity->ent,
-            .def = (cm_entity_t *) e
-          });
-        }
-        break;
-      }
-    }
-  }
-}
-
-/**
- * @fn void EntityViewController::updateEntity(EntityViewController *, const EditorEntity *)
- * @memberof EntityViewController
- */
-static void updateEntity(EntityViewController *self, const EditorEntity *entity) {
-
-  if (!entity) {
-    $(self, setEntity, NULL);
-    return;
-  }
-
-  self->entity = *entity;
-
-  updatePairs(self->pairs, &self->entity);
-  updatePairs(self->teamPairs, &self->teamEntity);
 }
 
 /**
@@ -572,7 +547,6 @@ static void initialize(Class *clazz) {
   ((EntityViewControllerInterface *) clazz->interface)->deleteEntity = deleteEntity;
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
-  ((EntityViewControllerInterface *) clazz->interface)->updateEntity = updateEntity;
 
   editor_grid_size = cgi.AddCvar("editor_grid_size", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");
 }
