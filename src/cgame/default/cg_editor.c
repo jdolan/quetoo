@@ -23,8 +23,6 @@
 
 #include "ui/editor/EditorViewController.h"
 
-
-
 /**
  * @brief Sparse array of client-side entities for the editor, indexed by entity number.
  * @details Slots are populated (and re-initialized) each time the server sends a
