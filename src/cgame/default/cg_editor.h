@@ -28,6 +28,4 @@ void Cg_ParseEditorEntity(int16_t number);
 void Cg_LoadEditorEntities(void);
 void Cg_FreeEditorEntities(void);
 void Cg_PopulateEditorScene(const cl_frame_t *frame);
-void Cg_InitEditor(void);
-void Cg_ShutdownEditor(void);
 void Cg_CheckEditor(void);

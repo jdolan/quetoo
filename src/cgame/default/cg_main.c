@@ -200,8 +200,6 @@ static void Cg_Init(void) {
 
   Cg_InitUi();
 
-  Cg_InitEditor();
-
   Cg_InitHud();
 
   Cg_InitDiscord();
@@ -217,8 +215,6 @@ static void Cg_Shutdown(void) {
   cgi.Print("Client game module shutdown...\n");
 
   Cg_FreeMedia();
-
-  Cg_ShutdownEditor();
 
   Cg_ShutdownUi();
 

@@ -23,7 +23,7 @@
 
 #include "ui/editor/EditorViewController.h"
 
-static ViewController *cg_editorViewController;
+
 
 /**
  * @brief Sparse array of client-side entities for the editor, indexed by entity number.
@@ -286,28 +286,14 @@ void Cg_CheckEditor(void) {
   }
 
   if (editor->value) {
-    if (cgi.TopViewController() != cg_editorViewController) {
-      cgi.PushViewController(cg_editorViewController);
+    if (!instanceof(EditorViewController, cgi.TopViewController())) {
+      ViewController *vc = (ViewController *) alloc(EditorViewController);
+      cgi.PushViewController($(vc, init));
+      release(vc);
     }
   } else {
-    if (cgi.TopViewController() == cg_editorViewController) {
+    if (instanceof(EditorViewController, cgi.TopViewController())) {
       cgi.PopViewController();
     }
   }
-}
-
-/**
- * @brief Initializes the in-game editor.
- */
-void Cg_InitEditor(void) {
-  cg_editorViewController = (ViewController *) alloc(EditorViewController);
-  cg_editorViewController = (ViewController *) $(cg_editorViewController, init);
-}
-
-/**
- * @brief Shuts down the in-game editor.
- */
-void Cg_ShutdownEditor(void) {
-  release(cg_editorViewController);
-  cg_editorViewController = NULL;
 }
