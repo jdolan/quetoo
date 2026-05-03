@@ -89,7 +89,7 @@ struct EntityViewController {
 
   /**
    * @brief True while a `WriteEntityInfoCommand` is in flight awaiting `NOTIFICATION_ENTITY_PARSED`.
-   * The form is disabled during this window to prevent stale-pointer races.
+   * Edit events are dropped while pending to prevent stale cm_entity_t pointer races.
    */
   bool pending;
 };

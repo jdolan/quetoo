@@ -53,57 +53,15 @@ static void setEntityOriginFromClientView(cm_entity_t *entity) {
 
 /**
  /**
- * @brief Enables or disables all editable controls in the entity and team entity forms.
- * The form is disabled while a WriteEntityInfoCommand is in flight to prevent stale
- * cm_entity_t pointer races during the server round-trip.
- */
-static void setFormEnabled(EntityViewController *self, bool enabled) {
-
-  const int32_t disable = ControlStateDisabled;
-
-  Array *subviews = (Array *) ((View *) self->pairs)->subviews;
-  for (size_t i = 0; i < subviews->count; i++) {
-    EntityView *ev = $(subviews, objectAtIndex, i);
-    if (enabled) {
-      ev->key->control.state &= ~disable;
-      ev->value->control.state &= ~disable;
-    } else {
-      ev->key->control.state |= disable;
-      ev->value->control.state |= disable;
-    }
-  }
-
-  subviews = (Array *) ((View *) self->teamPairs)->subviews;
-  for (size_t i = 0; i < subviews->count; i++) {
-    EntityView *ev = $(subviews, objectAtIndex, i);
-    if (enabled) {
-      ev->key->control.state &= ~disable;
-      ev->value->control.state &= ~disable;
-    } else {
-      ev->key->control.state |= disable;
-      ev->value->control.state |= disable;
-    }
-  }
-
-  if (enabled) {
-    self->add->key->control.state &= ~disable;
-    self->add->value->control.state &= ~disable;
-    self->teamAdd->key->control.state &= ~disable;
-    self->teamAdd->value->control.state &= ~disable;
-  } else {
-    self->add->key->control.state |= disable;
-    self->add->value->control.state |= disable;
-    self->teamAdd->key->control.state |= disable;
-    self->teamAdd->value->control.state |= disable;
-  }
-}
-
-/**
  * @brief EntityViewDelegate.
  */
 static void didEditEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
+
+  if (this->pending) {
+    return;
+  }
 
   if (view == this->add) {
 
@@ -118,7 +76,6 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
   }
 
   this->pending = true;
-  setFormEnabled(this, false);
   cgi.WriteEntityInfoCommand(this->entity.number, this->entity.def);
 }
 
@@ -128,6 +85,10 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
 static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
 
   EntityViewController *this = view->delegate.self;
+
+  if (this->pending) {
+    return;
+  }
 
   if (view == this->teamAdd) {
 
@@ -142,7 +103,6 @@ static void didEditTeamEntity(EntityView *view, cm_entity_t *def) {
   }
 
   this->pending = true;
-  setFormEnabled(this, false);
   cgi.WriteEntityInfoCommand(this->teamEntity.number, this->teamEntity.def);
 }
 
@@ -340,7 +300,6 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
         if (number == this->entity.number || number == this->teamEntity.number) {
           $(this, setEntity, &entity);
           this->pending = false;
-          setFormEnabled(this, true);
         } else if (!g_strcmp0(this->created, info)) {
           $(this, setEntity, &entity);
         }
