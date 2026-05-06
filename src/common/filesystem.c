@@ -523,7 +523,7 @@ void Fs_AddToSearchPath(const char *path) {
 }
 
 /**
- * @brief Variadic arguments version of Fs_AddToSearchPath.
+ * @brief Variadic arguments version of `Fs_AddToSearchPath`.
  */
 void Fs_AddToSearchPathv(const char *dir, ...) {
   char path[MAX_OS_PATH] = "";
@@ -546,7 +546,7 @@ void Fs_AddToSearchPathv(const char *dir, ...) {
 }
 
 /**
- * @brief Enumeration helper for Fs_AddToSearchPath. Adds all archive files for
+ * @brief Enumeration helper for `Fs_AddToSearchPath`. Adds all archive files for
  * the newly added filesystem mount point.
  */
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data) {
@@ -733,9 +733,26 @@ void Fs_Init(const uint32_t flags) {
           "Please move Quetoo.app to your Applications folder and try again.\n");
       }
 
+      /*
+       * The macOS paths for game data are a little funky. The .app bundle ships with a copy of
+       * `quetoo-data` so that users don't have to sit through a lengthy download the first time
+       * they launch the game. But this copy is immutable, signed, and must never be updated by the
+       * in-game installer, or Gatekeeper would hassle the user when they relaunch the game.
+       *
+       * So, we set `data_dir` to `Sys_UserDir()/share`. This writes updated official game content to
+       * the user's home, without conflating it with true user-owned data like screenshots, configs,
+       * custom maps etc. Then, we append `Contents/Resources` to the search path, allowing the
+       * game to fall back on the read-only copy of quetoo-data that it originally came with.
+       */
+
       g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/Contents/MacOS", fs_state.base_dir);
       g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/Contents/MacOS/lib/quetoo", fs_state.base_dir);
-      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
+      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/share", Sys_UserDir());
+
+      char resources[MAX_OS_PATH];
+      g_snprintf(resources, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
+      Fs_AddToSearchPathv(resources, NULL);
+      Fs_AddToSearchPathv(resources, DEFAULT_GAME, NULL);
     }
 #elif defined(__linux__)
     if ((c = strstr(path, "/bin/"))) {

@@ -104,8 +104,8 @@ const char *Sys_Username(void) {
  * @details Uses `SDL_GetPrefPath`, which yields a platform-conventional
  * per-user, per-app directory:
  *   - Windows: `%APPDATA%\WickedOldGames\Quetoo`
- *   - macOS:   `~/Library/Application Support/Quetoo`
- *   - Linux:   `$XDG_DATA_HOME/Quetoo` (or `~/.local/share/Quetoo`)
+ *   - macOS:   `~/Library/Application Support/WickedOldGames/Quetoo`
+ *   - Linux:   `$XDG_DATA_HOME/WickedOldGames/Quetoo` (or `~/.local/share/WickedOldGames/Quetoo`)
  */
 const char *Sys_UserDir(void) {
   static char user_dir[MAX_OS_PATH];
