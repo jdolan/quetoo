@@ -738,12 +738,7 @@ void Fs_Init(const uint32_t flags) {
       g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/Contents/Resources", fs_state.base_dir);
     }
 #elif defined(__linux__)
-    const char *appdir = getenv("APPDIR");
-    if (appdir) {
-      g_snprintf(fs_state.bin_dir, MAX_OS_PATH, "%s/usr/bin", appdir);
-      g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s/usr/lib/quetoo", appdir);
-      g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s/usr/share/quetoo", appdir);
-    } else if ((c = strstr(path, "/bin/"))) {
+    if ((c = strstr(path, "/bin/"))) {
       *c = '\0';
       g_strlcpy(fs_state.base_dir, path, sizeof(fs_state.base_dir));
 

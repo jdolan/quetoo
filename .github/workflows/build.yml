@@ -254,13 +254,13 @@ jobs:
       working-directory: quetoo/linux
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
-        make appimage deb rpm
+        make archive deb rpm
 
-    - name: Upload AppImage artifact
+    - name: Upload archive artifact
       uses: actions/upload-artifact@v6
       with:
-        name: quetoo-x86_64-pc-linux-appimage
-        path: quetoo/linux/target/quetoo-x86_64-pc-linux.AppImage
+        name: quetoo-x86_64-pc-linux-archive
+        path: quetoo/linux/target/quetoo-x86_64-pc-linux.tar.gz
 
     - name: Upload .deb artifact
       uses: actions/upload-artifact@v6

@@ -452,6 +452,11 @@ int32_t main(int32_t argc, char *argv[]) {
 
   Com_Init(argc, argv); // let's get it started in here
 
+#if defined(__linux__)
+  Sys_InstallDesktopEntry();
+  Sys_InstallLocalBin();
+#endif
+
   jmp_set = true;
 
   while (true) { // this is our main loop

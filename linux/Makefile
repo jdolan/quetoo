@@ -26,14 +26,13 @@ MODULES = \
 	$(STAGING)/lib/default/cgame.so \
 	$(STAGING)/lib/default/game.so
 
-APPIMAGE = $(TARGET)/quetoo-$(BUILD).AppImage
+ARCHIVE  = $(TARGET)/quetoo-$(BUILD).tar.gz
 DEB      = $(TARGET)/quetoo_$(VERSION)_$(DEB_ARCH).deb
 RPM      = $(TARGET)/quetoo-$(VERSION)-1.$(ARCH).rpm
 
 LINUXDEPLOY     = $(TARGET)/linuxdeploy-$(ARCH).AppImage
-APPIMAGETOOL    = $(TARGET)/appimagetool-$(ARCH).AppImage
 
-all: appimage deb rpm
+all: archive deb rpm
 
 configure:
 	cd .. && autoreconf -i && ./configure \
@@ -53,11 +52,6 @@ $(STAGING): compile
 $(LINUXDEPLOY):
 	curl -fsSL -o $@ \
 		https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-$(ARCH).AppImage
-	chmod +x $@
-
-$(APPIMAGETOOL):
-	curl -fsSL -o $@ \
-		https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-$(ARCH).AppImage
 	chmod +x $@
 
 # ---------------------------------------------------------------------------
@@ -80,18 +74,15 @@ $(APPDIR): $(STAGING) $(LINUXDEPLOY)
 		--desktop-file quetoo/Quetoo.desktop \
 		--icon-file $(APPDIR)/quetoo.png
 
-	# Install our custom AppRun.  Remove any symlink linuxdeploy created first,
-	# because cp(1) follows symlinks and would otherwise overwrite the binary it
-	# points to instead of replacing the symlink itself.
-	rm -f $(APPDIR)/AppRun
-	install -m755 AppRun $(APPDIR)/AppRun
+	# Install the icon at its XDG path so Sys_RegisterDesktopEntry can reference it.
+	install -Dm644 $(APPDIR)/quetoo.png \
+		$(APPDIR)/usr/share/icons/hicolor/256x256/apps/quetoo.png
 
 # ---------------------------------------------------------------------------
-# AppImage
+# Archive
 
-appimage: $(APPDIR) $(APPIMAGETOOL)
-	ARCH=$(ARCH) $(APPIMAGETOOL) --appimage-extract-and-run \
-		$(APPDIR) $(APPIMAGE)
+archive: $(APPDIR)
+	tar czf $(ARCHIVE) -C $(APPDIR) --transform 's|^usr|quetoo|' usr/
 
 # ---------------------------------------------------------------------------
 # .deb / .rpm — reuse the linuxdeploy-bundled AppDir content so we don't
@@ -189,9 +180,9 @@ release: all
 	aws s3 sync --delete $(STAGING) $(QUETOO_S3_BUCKET)/$(BUILD)
 	git rev-list --count HEAD > $(TARGET)/version
 	aws s3 cp $(TARGET)/version $(QUETOO_S3_BUCKET)/versions/$(BUILD)
-	aws s3 cp $(APPIMAGE) $(QUETOO_S3_BUCKET)/snapshots/
-	aws s3 cp $(DEB)      $(QUETOO_S3_BUCKET)/snapshots/
-	aws s3 cp $(RPM)      $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(ARCHIVE) $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(DEB)     $(QUETOO_S3_BUCKET)/snapshots/
+	aws s3 cp $(RPM)     $(QUETOO_S3_BUCKET)/snapshots/
 
 install-data:
 	aws s3 sync $(QUETOO_DATA_S3_BUCKET)/ $(STAGING)/share
@@ -199,4 +190,4 @@ install-data:
 clean:
 	rm -rf $(TARGET)
 
-.PHONY: all configure compile appimage deb rpm release install-data clean
+.PHONY: all configure compile archive deb rpm release install-data clean

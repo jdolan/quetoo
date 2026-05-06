@@ -23,8 +23,13 @@
 #include "sys.h"
 #include "filesystem.h"
 
+#include <errno.h>
 #include <signal.h>
 #include <glib/gstdio.h>
+
+#if !defined(_WIN32)
+  #include <unistd.h>
+#endif
 
 #if defined(_WIN32)
   #include <windows.h>
@@ -177,6 +182,138 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
 
   return EntryPoint(params);
 }
+
+/**
+ * @brief On Linux archive installs, writes a .desktop file to
+ * ~/.local/share/applications/ so the game appears in the system launcher.
+ * No-op for system-managed installs (deb/rpm under /usr/).
+ */
+#if defined(__linux__)
+void Sys_InstallDesktopEntry(void) {
+
+  const char *exe = Sys_ExecutablePath();
+  if (!exe) {
+    return;
+  }
+
+  // Skip system-managed installs; the package manager owns desktop integration.
+  if (g_str_has_prefix(exe, "/usr/")) {
+    return;
+  }
+
+  // Derive install prefix by stripping /bin/<name>.
+  char prefix[MAX_OS_PATH];
+  g_strlcpy(prefix, exe, sizeof(prefix));
+  char *bin = strstr(prefix, "/bin/");
+  if (!bin) {
+    return;
+  }
+  *bin = '\0';
+
+  char icon_path[MAX_OS_PATH];
+  g_snprintf(icon_path, sizeof(icon_path),
+    "%s/share/icons/hicolor/256x256/apps/quetoo.png", prefix);
+
+  // Destination: ~/.local/share/applications/quetoo.desktop
+  char desktop_dest[MAX_OS_PATH];
+  g_snprintf(desktop_dest, sizeof(desktop_dest),
+    "%s/applications/quetoo.desktop", g_get_user_data_dir());
+
+  // Skip writing if Exec= already points at this binary (no change needed).
+  char expected_exec[MAX_OS_PATH];
+  g_snprintf(expected_exec, sizeof(expected_exec), "Exec=%s", exe);
+  if (g_file_test(desktop_dest, G_FILE_TEST_EXISTS)) {
+    gchar *contents = NULL;
+    if (g_file_get_contents(desktop_dest, &contents, NULL, NULL)) {
+      const bool up_to_date = strstr(contents, expected_exec) != NULL;
+      g_free(contents);
+      if (up_to_date) {
+        return;
+      }
+    }
+  }
+
+  gchar *dir = g_path_get_dirname(desktop_dest);
+  g_mkdir_with_parents(dir, 0755);
+  g_free(dir);
+
+  gchar *content = g_strdup_printf(
+    "[Desktop Entry]\n"
+    "Name=Quetoo\n"
+    "Comment=Free, open-source arena first-person shooter\n"
+    "Exec=%s %%U\n"
+    "Icon=%s\n"
+    "Terminal=false\n"
+    "Type=Application\n"
+    "Categories=Game;ActionGame;\n"
+    "StartupNotify=true\n",
+    exe, icon_path);
+
+  GError *error = NULL;
+  if (!g_file_set_contents(desktop_dest, content, -1, &error)) {
+    Com_Warn("Failed to install desktop entry: %s\n", error->message);
+    g_error_free(error);
+  }
+
+  g_free(content);
+}
+
+/**
+ * @brief On Linux archive installs, creates symlinks in ~/.local/bin pointing
+ * to the game's executables, making them available on the user's $PATH.
+ * No-op for system-managed installs (deb/rpm under /usr/).
+ */
+void Sys_InstallLocalBin(void) {
+
+  static const char *names[] = { "quetoo", "quemap", "quetoo-dedicated", NULL };
+
+  const char *exe = Sys_ExecutablePath();
+  if (!exe || g_str_has_prefix(exe, "/usr/")) {
+    return;
+  }
+
+  char prefix[MAX_OS_PATH];
+  g_strlcpy(prefix, exe, sizeof(prefix));
+  char *bin = strstr(prefix, "/bin/");
+  if (!bin) {
+    return;
+  }
+  *bin = '\0';
+
+  gchar *local_bin = g_build_filename(g_get_home_dir(), ".local", "bin", NULL);
+  g_mkdir_with_parents(local_bin, 0755);
+
+  for (const char * const *name = names; *name; name++) {
+    char src[MAX_OS_PATH];
+    g_snprintf(src, sizeof(src), "%s/bin/%s", prefix, *name);
+
+    if (!g_file_test(src, G_FILE_TEST_EXISTS)) {
+      continue;
+    }
+
+    gchar *dest = g_build_filename(local_bin, *name, NULL);
+
+    char current[MAX_OS_PATH] = { 0 };
+    const ssize_t len = readlink(dest, current, sizeof(current) - 1);
+    if (len > 0) {
+      current[len] = '\0';
+      if (g_strcmp0(current, src) == 0) {
+        g_free(dest);
+        continue;
+      }
+      g_unlink(dest);
+    }
+
+    if (symlink(src, dest) != 0) {
+      Com_Warn("Failed to install %s to %s: %s\n", src, dest, strerror(errno));
+    }
+
+    g_free(dest);
+  }
+
+  g_free(local_bin);
+}
+#endif
 
 /**
  * @brief On platforms supporting it, capture a backtrace. Returns

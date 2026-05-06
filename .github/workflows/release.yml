@@ -149,10 +149,8 @@ jobs:
         include:
           - runner: ubuntu-22.04
             build: x86_64-pc-linux
-            appimage: true
           - runner: ubuntu-22.04-arm
             build: aarch64-pc-linux
-            appimage: false
 
     runs-on: ${{ matrix.runner }}
 
@@ -263,18 +261,13 @@ jobs:
       working-directory: quetoo/linux
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
-        if [ "${{ matrix.appimage }}" = "true" ]; then
-          make appimage deb rpm VERSION=${GITHUB_REF_NAME#v}
-        else
-          make deb rpm VERSION=${GITHUB_REF_NAME#v}
-        fi
+        make archive deb rpm VERSION=${GITHUB_REF_NAME#v}
 
-    - name: Upload AppImage artifact
-      if: matrix.appimage
+    - name: Upload archive artifact
       uses: actions/upload-artifact@v6
       with:
-        name: quetoo-${{ matrix.build }}-appimage
-        path: quetoo/linux/target/quetoo-${{ matrix.build }}.AppImage
+        name: quetoo-${{ matrix.build }}-archive
+        path: quetoo/linux/target/quetoo-${{ matrix.build }}.tar.gz
 
     - name: Upload .deb artifact
       uses: actions/upload-artifact@v6
@@ -442,16 +435,18 @@ jobs:
         zip -r ../quetoo-bundle-arm64-apple-darwin.zip Quetoo.app
         cd ..
 
-        # Linux bundle: extract AppImage, inject data into usr/share/default/, repack
-        chmod +x quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage
-        ./quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage --appimage-extract
-        mkdir -p squashfs-root/usr/share/default
-        cp -r quetoo-data/target/default/. squashfs-root/usr/share/default/
-        curl -fsSL -o appimagetool \
-          https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-        chmod +x appimagetool
-        ARCH=x86_64 ./appimagetool --appimage-extract-and-run \
-          squashfs-root quetoo-bundle-x86_64-pc-linux.AppImage
+        # Linux bundle: extract archive, inject data into quetoo/share/quetoo/default/, repack
+        mkdir -p quetoo-bundle-linux-x86_64
+        tar xzf quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz -C quetoo-bundle-linux-x86_64
+        mkdir -p quetoo-bundle-linux-x86_64/quetoo/share/quetoo/default
+        cp -r quetoo-data/target/default/. quetoo-bundle-linux-x86_64/quetoo/share/quetoo/default/
+        tar czf quetoo-bundle-x86_64-pc-linux.tar.gz -C quetoo-bundle-linux-x86_64 quetoo/
+
+        mkdir -p quetoo-bundle-linux-aarch64
+        tar xzf quetoo-aarch64-pc-linux-archive/quetoo-aarch64-pc-linux.tar.gz -C quetoo-bundle-linux-aarch64
+        mkdir -p quetoo-bundle-linux-aarch64/quetoo/share/quetoo/default
+        cp -r quetoo-data/target/default/. quetoo-bundle-linux-aarch64/quetoo/share/quetoo/default/
+        tar czf quetoo-bundle-aarch64-pc-linux.tar.gz -C quetoo-bundle-linux-aarch64 quetoo/
 
         # Windows bundle: data as share/default/ alongside bin/ and lib/
         mkdir bundle-windows && cd bundle-windows
@@ -475,28 +470,32 @@ jobs:
         | Platform | Download |
         |----------|----------|
         | macOS (Apple Silicon) | quetoo-bundle-arm64-apple-darwin.zip |
-        | Linux (x86_64 AppImage) | quetoo-bundle-x86_64-pc-linux.AppImage |
+        | Linux (x86_64 archive) | quetoo-bundle-x86_64-pc-linux.tar.gz |
+        | Linux (arm64 archive) | quetoo-bundle-aarch64-pc-linux.tar.gz |
         | Windows (x86_64) | quetoo-bundle-x86_64-pc-windows.zip |
 
         ### Binaries only (for updates)
         | Platform | Download |
         |----------|----------|
         | macOS (Apple Silicon) | quetoo-arm64-apple-darwin.zip |
-        | Linux (x86_64 AppImage) | quetoo-x86_64-pc-linux.AppImage |
+        | Linux (x86_64 archive) | quetoo-x86_64-pc-linux.tar.gz |
         | Linux (x86_64 .deb) | quetoo-x86_64-pc-linux.deb |
         | Linux (x86_64 .rpm) | quetoo-x86_64-pc-linux.rpm |
+        | Linux (arm64 archive) | quetoo-aarch64-pc-linux.tar.gz |
         | Linux (arm64 .deb) | quetoo-aarch64-pc-linux.deb |
         | Linux (arm64 .rpm) | quetoo-aarch64-pc-linux.rpm |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |
 
         For Linux package-managed installs, also install the matching [quetoo-data ${{ github.ref_name }}](https://github.com/jdolan/quetoo-data/releases/tag/${{ github.ref_name }}) release." \
           quetoo-bundle-arm64-apple-darwin.zip \
-          quetoo-bundle-x86_64-pc-linux.AppImage \
+          quetoo-bundle-x86_64-pc-linux.tar.gz \
+          quetoo-bundle-aarch64-pc-linux.tar.gz \
           quetoo-bundle-x86_64-pc-windows.zip \
           quetoo-arm64-apple-darwin/quetoo-arm64-apple-darwin.zip \
-          quetoo-x86_64-pc-linux-appimage/quetoo-x86_64-pc-linux.AppImage \
+          quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz \
           quetoo-x86_64-pc-linux-deb/quetoo-x86_64-pc-linux.deb \
           quetoo-x86_64-pc-linux-rpm/quetoo-x86_64-pc-linux.rpm \
+          quetoo-aarch64-pc-linux-archive/quetoo-aarch64-pc-linux.tar.gz \
           quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb \
           quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm \
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
