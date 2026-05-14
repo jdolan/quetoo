@@ -231,8 +231,17 @@ static void Cg_DrawPowerups(const player_state_t *ps) {
   y = cgi.context->h / 2;
 
   if (ps->stats[STAT_QUAD_TIME] > 0) {
-    const int32_t timer = ps->stats[STAT_QUAD_TIME];
-    Cg_DrawPowerup(y, timer, cgi.LoadImage("pics/i_quad", IMG_PIC));
+    Cg_DrawPowerup(y, ps->stats[STAT_QUAD_TIME], cgi.LoadImage("pics/i_quad", IMG_PIC));
+    y += ch;
+  }
+
+  if (ps->stats[STAT_INVULNERABILITY_TIME] > 0) {
+    Cg_DrawPowerup(y, ps->stats[STAT_INVULNERABILITY_TIME], cgi.LoadImage("pics/i_invulnerability", IMG_PIC));
+    y += ch;
+  }
+
+  if (ps->stats[STAT_INVISIBILITY_TIME] > 0) {
+    Cg_DrawPowerup(y, ps->stats[STAT_INVISIBILITY_TIME], cgi.LoadImage("pics/i_invisibility", IMG_PIC));
   }
 
   cgi.BindFont(NULL, NULL, NULL);
