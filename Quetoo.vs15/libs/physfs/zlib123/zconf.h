@@ -312,6 +312,15 @@ typedef uLong FAR uLongf;
 #  endif
 #endif
 
+/* On WIN32 and C99-compliant platforms, vsnprintf is available.
+ * Ensure NO_vsnprintf is not set so gzprintf uses the safe vsnprintf
+ * path instead of the unbounded sprintf/vsprintf functions. */
+#if defined(WIN32) || defined(STDC99)
+#  ifdef NO_vsnprintf
+#    undef NO_vsnprintf
+#  endif
+#endif
+
 /* MVS linker does not support external names larger than 8 bytes */
 #if defined(__MVS__)
 #   pragma map(deflateInit_,"DEIN")
