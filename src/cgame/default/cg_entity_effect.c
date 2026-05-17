@@ -157,7 +157,7 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   }
 
   const vec3_t shell_rgb = Vec3(e->shell.x, e->shell.y, e->shell.z);
-  if (Vec3_Length(shell_rgb) > 0.0f) {
+  if (Vec3_Length(shell_rgb) > 0.f) {
     e->shell = Vec3_ToVec4(Vec3_Normalize(shell_rgb), e->shell.w);
     e->effects |= EF_SHELL;
   }

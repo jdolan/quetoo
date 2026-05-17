@@ -168,6 +168,14 @@ typedef struct {
    * @brief Lighting intensity scalar.
    */
   float intensity;
+
+  /**
+   * @brief Lighting mode.
+   */
+  enum {
+    STAGE_LIGHTING_MODE_MATERIAL,
+    STAGE_LIGHTING_MODE_FLAT
+  } mode;
 } cm_stage_lighting_t;
 
 /**
@@ -234,6 +242,7 @@ typedef enum {
   STAGE_LIGHTING  = (1 << 16),
   STAGE_ANIM_LERP = (1 << 17),
   STAGE_SHELL     = (1 << 18),
+  STAGE_LIGHTING_FLAT = (1 << 19),
 
   STAGE_DRAW      = (1 << 30),
 

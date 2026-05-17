@@ -55,6 +55,7 @@
 #define STAGE_LIGHTING  (1 << 16)
 #define STAGE_ANIM_LERP (1 << 17)
 #define STAGE_SHELL     (1 << 18)
+#define STAGE_LIGHTING_FLAT (1 << 19)
 
 #define STAGE_DRAW      (1 << 30)
 

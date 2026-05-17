@@ -431,6 +431,10 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
       }
 
       s->flags |= STAGE_ENVMAP;
+      if (s->flags & STAGE_LIGHTING) {
+        s->flags |= STAGE_LIGHTING_FLAT;
+        s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+      }
       continue;
     }
 
@@ -504,6 +508,17 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         s->lighting.intensity = 1.f;
       }
 
+      if (s->flags & STAGE_ENVMAP) {
+        s->flags |= STAGE_LIGHTING_FLAT;
+        s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+      }
+
+      if (Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token)) && !g_strcmp0(token, "flat")) {
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
+        s->flags |= STAGE_LIGHTING_FLAT;
+      }
+
       continue;
     }
 
@@ -527,6 +542,11 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         // terrain and dirtmapping use lighting
         if (s->flags & (STAGE_TERRAIN | STAGE_DIRTMAP)) {
           s->flags |= STAGE_LIGHTING;
+        }
+
+        if (s->flags & STAGE_ENVMAP) {
+          s->flags |= STAGE_LIGHTING_FLAT;
+          s->lighting.mode = STAGE_LIGHTING_MODE_FLAT;
         }
       }
 
@@ -1173,7 +1193,11 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
   }
 
   if (stage->flags & STAGE_LIGHTING) {
-    Fs_Print(file, "\t\tlighting %0.2f\n", stage->lighting.intensity);
+    if (stage->lighting.mode == STAGE_LIGHTING_MODE_FLAT) {
+      Fs_Print(file, "\t\tlighting %0.2f flat\n", stage->lighting.intensity);
+    } else {
+      Fs_Print(file, "\t\tlighting %0.2f\n", stage->lighting.intensity);
+    }
   }
 
   if (stage->flags & STAGE_SHELL) {

@@ -125,7 +125,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 /**
  * @brief Draws the shell effect on a mesh face if the entity has the `EF_SHELL` flag set.
  */
-static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh) {
+static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh, const r_material_t *material) {
 
   if (!(e->effects & EF_SHELL)) {
     return;
@@ -138,17 +138,35 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
     }
   }
 
-  R_DrawMeshEntityMaterialStage(e, face, mesh, &(const r_stage_t) {
-    .cm = &(const cm_stage_t) {
-      .flags = STAGE_COLOR | STAGE_SHELL | STAGE_SCROLL_S | STAGE_SCROLL_T | STAGE_LIGHTING,
-      .color = Color4fv(e->shell),
-      .blend = { GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA },
-      .scroll = { 0.25f, 0.25f },
-      .shell = { (e->effects & EF_WEAPON) ? .33f : 1.f },
-      .lighting = { 1.f }
-    },
-    .media = r_mesh_program.shell
-  });
+  r_stage_t *shell = NULL;
+  for (r_stage_t *s = material->stages; s; s = s->next) {
+    if (s->cm->flags & STAGE_SHELL) {
+      shell = s;
+      break;
+    }
+  }
+
+  if (shell == NULL) { // probably EF_SHELL rather than material-driven, use the default shell
+    shell = &(r_stage_t) {
+      .cm = &(const cm_stage_t) {
+        .flags = STAGE_COLOR | STAGE_SHELL
+            | STAGE_SCALE_S | STAGE_SCALE_T
+            | STAGE_SCROLL_S | STAGE_SCROLL_T
+            | STAGE_LIGHTING | STAGE_LIGHTING_FLAT | STAGE_ENVMAP,
+        .color = Color4fv(e->shell),
+        .blend = { GL_SRC_ALPHA, GL_ONE },
+        .scroll = { 1.f, 1.f },
+        .scale = { .25f, .25f },
+        .shell = { 1.f },
+        .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT }
+      },
+      .media = r_mesh_program.shell
+    };
+  }
+
+  assert(shell->media);
+
+  R_DrawMeshEntityMaterialStage(e, face, mesh, shell);
 }
 
 /**
@@ -185,7 +203,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
     R_DrawMeshEntityMaterialStage(e, face, mesh, stage);
   }
 
-  R_DrawMeshEntityShellEffect(e, face, mesh);
+  R_DrawMeshEntityShellEffect(e, face, mesh, material);
 
   glUniform1i(r_mesh_program.stage.flags, STAGE_NONE);
 
