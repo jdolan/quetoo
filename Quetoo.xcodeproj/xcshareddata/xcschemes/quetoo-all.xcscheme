@@ -148,12 +148,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map pits"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+god"

@@ -54,6 +54,37 @@ static struct {
 #define MAX_SCREENSHOTS 1000
 
 /**
+ * @brief Replaces cubemap face border texels with adjacent interior texels.
+ * @details This removes 1px edge artifacts present in some source sky cross images and
+ * helps prevent seam bleed in mip generation and filtered cubemap sampling.
+ */
+static void R_FixupCubemapFace(SDL_Surface *side) {
+
+  if (!side || side->w < 2 || side->h < 2) {
+    return;
+  }
+
+  SDL_LockSurface(side);
+
+  const int32_t bpp = SDL_BYTESPERPIXEL(side->format);
+  byte *pixels = side->pixels;
+  const int32_t pitch = side->pitch;
+
+  // Top row <- row 1, bottom row <- row h-2.
+  memcpy(pixels, pixels + pitch, side->w * bpp);
+  memcpy(pixels + (side->h - 1) * pitch, pixels + (side->h - 2) * pitch, side->w * bpp);
+
+  // Left / right columns <- adjacent interior columns.
+  for (int32_t y = 0; y < side->h; y++) {
+    byte *row = pixels + y * pitch;
+    memcpy(row, row + bpp, bpp);
+    memcpy(row + (side->w - 1) * bpp, row + (side->w - 2) * bpp, bpp);
+  }
+
+  SDL_UnlockSurface(side);
+}
+
+/**
  * @brief ThreadRunFunc for `R_Screenshot`.
  */
 static void R_Screenshot_encode(void *data) {
@@ -363,6 +394,8 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
           side = rotated;
         }
       }
+
+      R_FixupCubemapFace(side);
 
       R_UploadImageTarget(image, target, side->pixels);
 
