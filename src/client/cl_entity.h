@@ -27,7 +27,7 @@
 
 /**
  * @brief For delta compression to be valid, the player's origin must be within
- * this distance from the previous frame. This is MAX_SPEED for one tick.
+ * this distance from the previous frame. This is `MAX_SPEED` for one tick.
  */
 #define MAX_DELTA_ORIGIN (2400.f * QUETOO_TICK_SECONDS)
 

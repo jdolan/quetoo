@@ -37,7 +37,7 @@
 #define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\qforcer/default"
 
 /**
- * @brief The type of goal we're after. This controls which variant in ai_goal_t
+ * @brief The type of goal we're after. This controls which variant in `ai_goal_t`
  * we can access.
  */
 typedef enum {
@@ -158,7 +158,7 @@ typedef struct {
     struct {
 
       /**
-       * @brief Array of ai_node_id_t forming the route.
+       * @brief Array of `ai_node_id_t` forming the route.
        */
       GArray *path;
 
@@ -188,7 +188,7 @@ typedef struct {
       const g_entity_t *path_target;
 
       /**
-       * @brief Spawn ID of path_target at goal-set time.
+       * @brief Spawn ID of `path_target` at goal-set time.
        */
       uint32_t path_target_spawn_id;
     } path;
@@ -288,7 +288,7 @@ typedef struct ai_s {
   ai_personality_t personality;
 
   /**
-   * @brief Next think times indexed by ai_func_goal_t.
+   * @brief Next think times indexed by `ai_func_goal_t`.
    */
   uint32_t func_goal_next_thinks[AI_FUNC_GOAL_TOTAL];
 

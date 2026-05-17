@@ -22,8 +22,8 @@
 #include "bg_pmove.h"
 
 /**
- * @brief PM_BOUNDS is the default bounding box, scaled by PM_SCALE
- * in Pm_Init. They are referenced in a few other places e.g. to create effects
+ * @brief `PM_BOUNDS` is the default bounding box, scaled by `PM_SCALE`
+ * in `Pm_Init`. They are referenced in a few other places e.g. to create effects
  * at a certain body position on the player model.
  */
 const box3_t PM_BOUNDS = {
@@ -53,7 +53,7 @@ static pm_move_t *pm;
 /**
  * @brief A structure containing full floating point precision copies of all
  * movement variables. This is initialized with the player's last movement
- * at each call to Pm_Move (this is obviously not thread-safe).
+ * at each call to `Pm_Move` (this is obviously not thread-safe).
  */
 static struct {
 

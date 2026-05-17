@@ -164,7 +164,7 @@ static void Sv_Ping_f(void) {
 }
 
 /**
- * @brief Returns a challenge number that can be used in a subsequent client_connect
+ * @brief Returns a challenge number that can be used in a subsequent `client_connect`
  * command.
  *
  * We do this to prevent denial of service attacks that flood the server with
@@ -723,7 +723,7 @@ const char *Sv_NetaddrToString(const sv_client_t *cl) {
 }
 
 /**
- * @brief Enforces safe user_info data before passing onto game module.
+ * @brief Enforces safe `user_info` data before passing onto game module.
  */
 void Sv_UserInfoChanged(sv_client_t *cl) {
   char *val;

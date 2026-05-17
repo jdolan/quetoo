@@ -77,7 +77,7 @@ static inline box3_t __attribute__ ((warn_unused_result)) Box3_Zero(void) {
 
 /**
  * @return A `box_t` centered around `0, 0, 0` with a negative size.
- * @remarks This is often used as a seed value to add points to, as Box3_Zero()
+ * @remarks This is often used as a seed value to add points to, as `Box3_Zero()`
  * will require that `0, 0, 0` be in the box, but the points added may not be centered
  * around that point. Using this as a seed guarantees that the first point added will
  * become the new seed.
@@ -296,7 +296,7 @@ static inline float __attribute__ ((warn_unused_result)) Box3_Distance(const box
 }
 
 /**
- * @return The radius of the bounds (equivalent to Box3_Distance(a) / 2). This is
+ * @return The radius of the bounds (equivalent to `Box3_Distance(a) / 2`). This is
  * a sphere that contains the whole box, including its corners.
  */
 static inline float __attribute__ ((warn_unused_result)) Box3_Radius(const box3_t a) {

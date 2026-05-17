@@ -183,8 +183,8 @@ void Sv_Unicast(const g_client_t *cl, const bool reliable) {
 }
 
 /**
- * @brief Sends the contents of sv.multicast to a subset of the clients,
- * then clears sv.multicast.
+ * @brief Sends the contents of `sv.multicast` to a subset of the clients,
+ * then clears `sv.multicast`.
  */
 void Sv_Multicast(const vec3_t origin, multicast_t to) {
 

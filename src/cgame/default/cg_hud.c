@@ -38,7 +38,7 @@
 #define CENTER_PRINT_LINES 8
 
 /**
- * @brief The center print, parsed from SV_CMD_CENTER_PRINT.
+ * @brief The center print, parsed from `SV_CMD_CENTER_PRINT`.
  */
 static struct {
   char lines[CENTER_PRINT_LINES][MAX_STRING_CHARS];
@@ -91,7 +91,7 @@ static cvar_t *cg_select_weapon_fade;
 static cvar_t *cg_select_weapon_interval;
 
 /**
- * @brief Draws the icon at the specified ConfigString index, relative to CS_IMAGES.
+ * @brief Draws the icon at the specified ConfigString index, relative to `CS_IMAGES`.
  */
 static void Cg_DrawIcon(const GLint x, const GLint y, const r_image_t *image, const color_t color) {
 

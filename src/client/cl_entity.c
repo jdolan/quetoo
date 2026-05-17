@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief Parse the player_state_t for the current frame from the server, using delta
+ * @brief Parse the `player_state_t` for the current frame from the server, using delta
  * compression for all fields where possible.
  */
 static void Cl_ParsePlayerState(const cl_frame_t *delta_frame, cl_frame_t *frame) {
@@ -117,7 +117,7 @@ static void Cl_ReadDeltaEntity(cl_frame_t *frame, const entity_state_t *from, in
 }
 
 /**
- * @brief An svc_packetentities has just been parsed, deal with the rest of the data stream.
+ * @brief An `svc_packetentities` has just been parsed, deal with the rest of the data stream.
  */
 static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
 

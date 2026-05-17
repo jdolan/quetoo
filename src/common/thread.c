@@ -124,7 +124,7 @@ static void Thread_Init_(ssize_t num_threads) {
 }
 
 /**
- * Thread_Shutdown_
+ * `Thread_Shutdown_`
  */
 static void Thread_Shutdown_(void) {
 

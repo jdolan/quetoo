@@ -219,8 +219,8 @@ void Netchan_Transmit(net_chan_t *chan, byte *data, size_t len) {
 }
 
 /**
- * @brief Called when the current net_message is from remote_address
- * modifies net_message so that it points to the packet payload
+ * @brief Called when the current `net_message` is from `remote_address`
+ * modifies `net_message` so that it points to the packet payload
  */
 bool Netchan_Process(net_chan_t *chan, mem_buf_t *msg) {
   uint32_t sequence, sequence_ack;

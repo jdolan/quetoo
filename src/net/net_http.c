@@ -24,7 +24,7 @@
 #include <Objectively/URLSession.h>
 
 /**
- * @brief Synchronously performs an HTTP GET request and returns the response body.
+ * @brief Synchronously performs an HTTP `GET` request and returns the response body.
  * @return The HTTP status code.
  */
 int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
@@ -63,7 +63,7 @@ typedef struct {
 } Net_HttpGetAsync_State;
 
 /**
- * @brief URLSessionTaskCompletion for Net_HttpGetAsync.
+ * @brief URLSessionTaskCompletion for `Net_HttpGetAsync`.
  */
 static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 
@@ -85,7 +85,7 @@ static void Net_HttpGetAsync_Completion(URLSessionTask *task, bool success) {
 }
 
 /**
- * @brief Initiates an asynchronous HTTP GET request and invokes `callback` on completion.
+ * @brief Initiates an asynchronous HTTP `GET` request and invokes `callback` on completion.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data) {
 
@@ -105,7 +105,7 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *u
 }
 
 /**
- * @brief Construct an HTTP URL from a net_addr_t and path.
+ * @brief Construct an HTTP URL from a `net_addr_t` and path.
  */
 int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size) {
 

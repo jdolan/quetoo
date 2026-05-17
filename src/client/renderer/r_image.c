@@ -538,7 +538,7 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 }
 
 /**
- * @brief R_MediaEnumerator for R_DumpImages_f.
+ * @brief `R_MediaEnumerator` for `R_DumpImages_f`.
  */
 static void R_DumpImages_enumerator(const r_media_t *media, void *data) {
 

@@ -49,7 +49,7 @@
 /**
  * @brief Max length of a single packet. No individual command can exceed
  * this length. However, large server messages can be split into multiple
- * messages and sent in series. See Sv_SendClientDatagram.
+ * messages and sent in series. See `Sv_SendClientDatagram`.
  */
 #define MAX_MSG_SIZE 16384
 

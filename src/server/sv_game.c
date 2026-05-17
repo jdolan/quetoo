@@ -43,7 +43,7 @@ static void Sv_GameDebug(const debug_t debug, const char *func, const char *fmt,
 }
 
 /**
- * @brief Abort the server with a game error, always emitting ERROR_DROP.
+ * @brief Abort the server with a game error, always emitting `ERROR_DROP`.
  */
 static void Sv_GameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 static void Sv_GameError(const char *func, const char *fmt, ...) {

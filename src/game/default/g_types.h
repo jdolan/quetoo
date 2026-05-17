@@ -206,7 +206,7 @@ typedef enum {
 
 /**
  * @brief Temporary entities are positional events that are not explicitly
- * bound to a game entity (g_entity_t). Examples are explosions, certain weapon
+ * bound to a game entity (`g_entity_t`). Examples are explosions, certain weapon
  * trails and other short-lived effects.
  */
 typedef enum {
@@ -306,7 +306,7 @@ typedef struct {
   uint16_t deaths;
 
   /**
-   * @brief Score flags (SCORE_CTF_FLAG, etc.).
+   * @brief Score flags (`SCORE_CTF_FLAG`, etc.).
    */
   uint8_t flags;
 
@@ -490,15 +490,15 @@ typedef struct {
 #if defined(__GAME_LOCAL_H__)
 
 /**
- * @brief This file will define the game-visible definitions of g_client_t
- * and g_entity_t. They are much larger than the server-visible definitions,
+ * @brief This file will define the game-visible definitions of `g_client_t`
+ * and `g_entity_t`. They are much larger than the server-visible definitions,
  * which are intentionally truncated stubs.
  */
 typedef struct g_client_s g_client_t;
 typedef struct g_entity_s g_entity_t;
 
 /**
- * @brief Spawn flags for g_entity_t are set in the level editor.
+ * @brief Spawn flags for `g_entity_t` are set in the level editor.
  */
 #define SF_ITEM_TRIGGER  0x00000001
 #define SF_ITEM_NO_TOUCH 0x00000002
@@ -512,7 +512,7 @@ typedef struct g_entity_s g_entity_t;
 #define SF_ITEM_TARGETS_USED 0x00020000
 
 /**
- * @brief Entity flags (g_entity_locals.flags). These again are mostly for
+ * @brief Entity flags (`g_entity_locals.flags`). These again are mostly for
  * backwards compatibility with Quake II.
  */
 #define FL_FLY        0x00000001
@@ -521,7 +521,7 @@ typedef struct g_entity_s g_entity_t;
 #define FL_TEAM_SLAVE 0x00000008  // not the first on the team
 
 /**
- * @brief Move types govern the physics dispatch in G_RunEntity.
+ * @brief Move types govern the physics dispatch in `G_RunEntity`.
  */
 typedef enum {
   MOVE_TYPE_NONE,
@@ -535,7 +535,7 @@ typedef enum {
 } g_move_type_t;
 
 /**
- * @brief A synonym for readability; MOVE_TYPE_THINK implies that the entity's
+ * @brief A synonym for readability; `MOVE_TYPE_THINK` implies that the entity's
  * Think function will update its origin and handle other interactions.
  */
 #define MOVE_TYPE_THINK MOVE_TYPE_NONE
@@ -561,7 +561,7 @@ typedef struct g_item_s {
   void (*Use)(g_client_t *cl, const struct g_item_s *item);
 
   /**
-   * @brief Called to drop the item; returns the dropped entity or NULL.
+   * @brief Called to drop the item; returns the dropped entity or `NULL`.
    */
   g_entity_t *(*Drop)(g_client_t *cl, const struct g_item_s *item);
 
@@ -912,7 +912,7 @@ typedef struct {
   const char *next_map;
 
   /**
-   * @brief Entity currently being processed by G_RunFrame.
+   * @brief Entity currently being processed by `G_RunFrame`.
    */
   g_entity_t *current_entity;
 
@@ -981,7 +981,7 @@ typedef struct {
 #define DMG_NO_GOD   0x10  // armor and god mode have no effect
 
 /**
- * @brief Damage parameters for G_Damage.
+ * @brief Damage parameters for `G_Damage`.
  */
 typedef struct {
 
@@ -1026,7 +1026,7 @@ typedef struct {
 	int32_t knockback;
 
  /**
-  * @brief Damage flags (DMG_RADIUS, DMG_ENERGY, etc.).
+  * @brief Damage flags (`DMG_RADIUS`, `DMG_ENERGY`, etc.).
   */
 	int32_t flags;
 
@@ -1570,7 +1570,7 @@ struct g_client_s {
 typedef struct g_client_s g_client_t;
 
 /**
- * @brief The g_entity_s structure extends the server stub to
+ * @brief The `g_entity_s` structure extends the server stub to
  * provide all of the state management the game module requires.
  */
 struct g_entity_s {
@@ -1581,12 +1581,12 @@ struct g_entity_s {
   const cm_entity_t *def;
 
   /**
-   * @brief Entity class name; guaranteed set through G_Spawn.
+   * @brief Entity class name; guaranteed set through `G_Spawn`.
    */
   const char *classname;
 
   /**
-   * @brief Model name; for SOLID_BSP entities this is the inline model name.
+   * @brief Model name; for `SOLID_BSP` entities this is the inline model name.
    */
   const char *model;
 
@@ -1601,7 +1601,7 @@ struct g_entity_s {
   bool in_use;
 
   /**
-   * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
   uint32_t sv_flags;
 
@@ -1611,12 +1611,12 @@ struct g_entity_s {
   box3_t bounds;
 
   /**
-   * @brief Server-set bounding box in world space; set by gi.LinkEntity.
+   * @brief Server-set bounding box in world space; set by `gi.LinkEntity`.
    */
   box3_t abs_bounds;
 
   /**
-   * @brief Server-set entity size; set by gi.LinkEntity.
+   * @brief Server-set entity size; set by `gi.LinkEntity`.
    */
   vec3_t size;
 
@@ -1631,17 +1631,17 @@ struct g_entity_s {
   g_entity_t *owner;
 
   /**
-   * @brief Non-null for entities 1..sv_max_clients.
+   * @brief Non-null for entities 1..`sv_max_clients`.
    */
   g_client_t *client;
 
   /**
-   * @brief Spawn flags (SF_ITEM_HOVER, etc.).
+   * @brief Spawn flags (`SF_ITEM_HOVER`, etc.).
    */
   uint32_t spawn_flags;
 
   /**
-   * @brief Entity flags (FL_GOD_MODE, etc.).
+   * @brief Entity flags (`FL_GOD_MODE`, etc.).
    */
   uint32_t flags;
 
@@ -1656,7 +1656,7 @@ struct g_entity_s {
   g_move_info_t move_info;
 
   /**
-   * @brief Clip mask (e.g. CONTENTS_MASK_CLIP_PROJECTILE).
+   * @brief Clip mask (e.g. `CONTENTS_MASK_CLIP_PROJECTILE`).
    */
   int32_t clip_mask;
 

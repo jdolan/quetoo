@@ -86,7 +86,7 @@ void Cl_RequestNextDownload(void) {
 
 
 /**
- * @brief Fs_Enumerate function for Cl_Mapshots.
+ * @brief `Fs_Enumerate` function for `Cl_Mapshots`.
  */
 static void Cl_Mapshots_enumerate(const char *path, void *data) {
   GList **list = (GList **) data;
@@ -164,7 +164,7 @@ static void Cl_LoadModels(void) {
 }
 
 /**
- * @brief Fs_Enumerator to load all emoji into the images atlas.
+ * @brief `Fs_Enumerator` to load all emoji into the images atlas.
  */
 static void Cl_LoadImages_Emoji(const char *path, void *data) {
   R_LoadAtlasImage((r_atlas_t *) data, path, IMG_PIC);

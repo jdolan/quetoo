@@ -131,7 +131,7 @@ static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t
  *  - Track the latest "enter" fraction (where we cross from front to back of a plane)
  *  - Track the earliest "leave" fraction (where we cross from back to front)
  *  - If start is in front of any plane and stays there, no collision
- *  - If start is behind all planes: inside the brush (start_solid)
+ *  - If start is behind all planes: inside the brush (`start_solid`)
  *  - If enter < leave: pierced the brush, record the impact at enter fraction
  * The offsets[] array provides the box corner in the direction of each plane normal,
  * effectively expanding each plane outward by the box's radius in that direction.

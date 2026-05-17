@@ -212,7 +212,7 @@ float BrushVolume(csg_brush_t *brush) {
 }
 
 /**
- * @brief Returns a side classification (SIDE_FRONT, SIDE_BACK, SIDE_ON, or SIDE_BOTH) for the brush relative to the given plane.
+ * @brief Returns a side classification (`SIDE_FRONT`, `SIDE_BACK`, `SIDE_ON`, or `SIDE_BOTH`) for the brush relative to the given plane.
  */
 int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane) {
 
@@ -233,7 +233,7 @@ int32_t BrushOnPlaneSide(const csg_brush_t *brush, int32_t plane) {
 }
 
 /**
- * @brief Returns the plane-side classification of the brush and sets num_split_sides to the count of sides straddling the plane.
+ * @brief Returns the plane-side classification of the brush and sets `num_split_sides` to the count of sides straddling the plane.
  */
 int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t *num_split_sides) {
 
@@ -277,7 +277,7 @@ int32_t BrushOnPlaneSideSplits(const csg_brush_t *brush, int32_t plane, int32_t 
 }
 
 /**
- * @brief Returns SIDE_FRONT or SIDE_BACK indicating which side of the plane contains most of the brush's vertices.
+ * @brief Returns `SIDE_FRONT` or `SIDE_BACK` indicating which side of the plane contains most of the brush's vertices.
  */
 static int32_t BrushMostlyOnSide(const csg_brush_t *brush, const plane_t *plane) {
 

@@ -30,7 +30,7 @@
 typedef struct {
 
   /**
-   * @brief Layered surfaces, all of the same size; the first (layer 0) must not be NULL.
+   * @brief Layered surfaces, all of the same size; the first (layer 0) must not be `NULL`.
    */
   SDL_Surface **surfaces;
 
@@ -86,7 +86,7 @@ typedef struct atlas_s {
   int32_t layers;
 
   /**
-   * @brief Array of atlas_node_t pointers to be packed.
+   * @brief Array of `atlas_node_t` pointers to be packed.
    */
   GPtrArray *nodes;
 
@@ -96,7 +96,7 @@ typedef struct atlas_s {
   AtlasNodeComparator comparator;
 
   /**
-   * @brief Blit function used to copy packed nodes into the atlas surfaces (default: SDL_BlitSurfaceScaled).
+   * @brief Blit function used to copy packed nodes into the atlas surfaces (default: `SDL_BlitSurfaceScaled`).
    */
   AtlasBlit blit;
 

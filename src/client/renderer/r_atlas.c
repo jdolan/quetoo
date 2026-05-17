@@ -66,7 +66,7 @@ r_atlas_t *R_LoadAtlas(const char *name) {
 }
 
 /**
- * @brief Loads the named image through the specified atlas. The returned r_atlas_image_t is
+ * @brief Loads the named image through the specified atlas. The returned `r_atlas_image_t` is
  * not available for rendering until the atlas is recompiled.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {

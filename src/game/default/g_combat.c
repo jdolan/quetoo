@@ -190,11 +190,11 @@ static int32_t G_CheckArmor(g_entity_t *ent, const vec3_t pos, const vec3_t norm
  *   knockback Velocity added to target in the direction of the normal.
  *   flags Damage flags:
  *
- *     DAMAGE_RADIUS        damage was indirect (from a nearby explosion)
- *     DAMAGE_NO_ARMOR      armor does not protect from this damage
- *     DAMAGE_ENERGY        damage is from an energy based weapon
- *     DAMAGE_BULLET        damage is from a bullet
- *     DAMAGE_NO_PROTECTION kills god mode, armor, everything
+ *     `DAMAGE_RADIUS`        damage was indirect (from a nearby explosion)
+ *     `DAMAGE_NO_ARMOR`      armor does not protect from this damage
+ *     `DAMAGE_ENERGY`        damage is from an energy based weapon
+ *     `DAMAGE_BULLET`        damage is from a bullet
+ *     `DAMAGE_NO_PROTECTION` kills god mode, armor, everything
  *
  *   mod The means of death, used by the obituaries routine.
  */

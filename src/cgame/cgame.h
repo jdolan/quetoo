@@ -109,7 +109,7 @@ typedef struct cg_import_s {
    */
 
   /**
-   * @param tag The tag to associate the managed block with (e.g. MEM_TAG_CGAME_LEVEL).
+   * @param tag The tag to associate the managed block with (e.g. `MEM_TAG_CGAME_LEVEL`).
    * @return A newly allocated block of managed memory under the given `tag`.
    */
   void *(*Malloc)(size_t size, mem_tag_t tag);
@@ -166,7 +166,7 @@ typedef struct cg_import_s {
    */
 
   /**
-   * @brief Performs a synchronous HTTP GET request.
+   * @brief Performs a synchronous HTTP `GET` request.
    * @param url The URL to fetch.
    * @param body Receives a newly allocated buffer containing the response body. Caller must free.
    * @param length Receives the length of the response body in bytes.
@@ -177,7 +177,7 @@ typedef struct cg_import_s {
   int32_t (*HttpGet)(const char *url, void **body, size_t *length);
 
   /**
-   * @brief Performs an asynchronous HTTP GET request.
+   * @brief Performs an asynchronous HTTP `GET` request.
    * @param url The URL to fetch.
    * @param callback Invoked on a background thread when the request completes.
    * @param user_data User data pointer passed through to the callback.
@@ -276,7 +276,7 @@ typedef struct cg_import_s {
    * @brief Resolves a console variable, creating it if not found.
    * @param name The variable name.
    * @param value The variable value string.
-   * @param flags The variable flags (e.g. CVAR_ARCHIVE).
+   * @param flags The variable flags (e.g. `CVAR_ARCHIVE`).
    * @param desc The variable description for builtin console help.
    * @return The console variable.
    */
@@ -343,7 +343,7 @@ typedef struct cg_import_s {
    * @brief Registers and returns a console command.
    * @param name The command name (e.g. `"wave"`).
    * @param function The command function.
-   * @param flags The command flags (e.g. CMD_CGAME).
+   * @param flags The command flags (e.g. `CMD_CGAME`).
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
@@ -396,7 +396,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Resolves the next key after `from` that references `bind`.
-   * @param from The key to search from (SDL_SCANCODE_UNKNOWN to begin).
+   * @param from The key to search from (`SDL_SCANCODE_UNKNOWN` to begin).
    * @param bind The key binding to search for.
    * @return The next key bound to `bind`.
    */
@@ -415,7 +415,7 @@ typedef struct cg_import_s {
   void (*BindKey)(SDL_Scancode key, const char *bind);
 
   /**
-   * @return The list of known servers (cl_server_info_t).
+   * @return The list of known servers (`cl_server_info_t`).
    */
   GList *(*Servers)(void);
 
@@ -529,7 +529,7 @@ typedef struct cg_import_s {
    * @param entity The entity.
    * @param key The entity key.
    * @return The entity pair for the specified key within entity.
-   * @remarks This function will always return non-NULL for convenience. Check the
+   * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
   const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
@@ -537,8 +537,8 @@ typedef struct cg_import_s {
   /**
    * @brief Returns a new entity list with keys from src assigned into a copy of dst.
    * @details Keys already present in dst take priority; keys only in src are appended.
-   *   Analogous to JavaScript's Object.assign(dst, src).
-   * @return A newly allocated entity list; the caller must free with Cm_FreeEntity.
+   *   Analogous to JavaScript's `Object.assign(dst, src)`.
+   * @return A newly allocated entity list; the caller must free with `Cm_FreeEntity`.
    */
   cm_entity_t *(*EntityAssign)(const cm_entity_t *dst, const cm_entity_t *src);
 
@@ -572,7 +572,7 @@ typedef struct cg_import_s {
 
   /**
    * @brief Sets a key/value pair on the specified entity.
-   * @param entity The entity, or NULL to allocate a new entity.
+   * @param entity The entity, or `NULL` to allocate a new entity.
    * @param key The key.
    * @param field The parsed type.
    * @param value The value.
@@ -674,7 +674,7 @@ typedef struct cg_import_s {
   /**
    * @brief Sends an entity info string to the server, creating, updating, or deleting an entity.
    * @param number The entity number, or -1 to create a new entity.
-   * @param entity The entity definition, or NULL to delete the entity.
+   * @param entity The entity definition, or `NULL` to delete the entity.
    */
   void (*WriteEntityInfoCommand)(int16_t number, const cm_entity_t *entity);
 
@@ -999,8 +999,8 @@ typedef struct cg_export_s {
 
   /**
    * @brief Called when a server message known to the client is received.
-   * @param cmd The message type (e.g. SV_CMD_SOUND).
-   * @param data The parsed type-specific data or NULL.
+   * @param cmd The message type (e.g. `SV_CMD_SOUND`).
+   * @param data The parsed type-specific data or `NULL`.
    */
   void (*ParsedMessage)(int32_t cmd, void *data);
 
@@ -1021,7 +1021,7 @@ typedef struct cg_export_s {
 
   /**
    * @brief Called when a configstring update is received for an editor entity slot.
-   * @param number The entity slot index (CS_ENTITIES-relative).
+   * @param number The entity slot index (`CS_ENTITIES`-relative).
    * @param info The raw info string from the configstring, or empty to clear the slot.
    */
   void (*ParseEditorEntity)(int16_t number, const char *info);
@@ -1081,7 +1081,7 @@ typedef struct cg_export_s {
   /**
    * @brief Called each frame to populate the view definition and sound stage for the in-game editor.
    * @details This function should add editor entities (lights, models, etc.) and think client-side
-   * entities such as misc_sound and misc_flame so they are live in editor mode.
+   * entities such as `misc_sound` and `misc_flame` so they are live in editor mode.
    */
   void (*PopulateEditorScene)(const cl_frame_t *frame);
 

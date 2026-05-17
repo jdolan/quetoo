@@ -176,7 +176,7 @@ static void R_AddDraw2DArrays(const r_draw_2d_arrays_t *draw) {
 }
 
 /**
- * @brief Emits GL_TRIANGLES data from the specified quad.
+ * @brief Emits `GL_TRIANGLES` data from the specified quad.
  */
 static void R_EmitDrawVertexes2D_Quad(const r_draw_2d_vertex_t *quad) {
 
@@ -650,7 +650,7 @@ void R_Draw2D(void) {
  *  !"#$%&'()*+,-./
  * 0123456789:;<=>?
  * @ABCDEFGHIJKLMNO
- * PQRSTUVWXYZ[\]^_
+ * `PQRSTUVWXYZ`[\]^_
  * 'abcdefghijklmno
  * pqrstuvwxyz{|}"
  */

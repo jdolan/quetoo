@@ -34,7 +34,7 @@
 typedef struct {
 
   /**
-   * @brief The print level (e.g. PRINT_HIGH).
+   * @brief The print level (e.g. `PRINT_HIGH`).
    */
   uint32_t level;
 

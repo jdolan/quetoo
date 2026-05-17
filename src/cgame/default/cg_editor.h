@@ -46,12 +46,12 @@ typedef struct {
   const cl_entity_t *ent;
 
   /**
-   * @brief The model, or NULL.
+   * @brief The model, or `NULL`.
    */
   const r_model_t *model;
 
   /**
-   * @brief The brushes pointer array for BSP model entities, or NULL.
+   * @brief The brushes pointer array for BSP model entities, or `NULL`.
    */
   GPtrArray *brushes;
 
@@ -78,7 +78,7 @@ typedef struct {
   cg_editor_entity_t entities[MAX_ENTITIES];
 
   /**
-   * @brief When false, func_group entities are excluded from editor traces and scene drawing.
+   * @brief When false, `func_group` entities are excluded from editor traces and scene drawing.
    * @details Toggled via the 'G' key in the EntityViewController.
    */
   bool show_func_groups;
@@ -93,7 +93,7 @@ typedef struct {
 extern cg_editor_t cg_editor;
 
 /**
- * @brief The result of a combined editor trace against all BSP models and CONTENTS_EDITOR entities.
+ * @brief The result of a combined editor trace against all BSP models and `CONTENTS_EDITOR` entities.
  */
 typedef struct {
 

@@ -93,7 +93,7 @@ typedef enum {
 
   /**
    * @brief Don't traverse line returns. This causes parses to return false and
-   * Parse_EndOfLine to return true if we're waiting for a regular parse to move forward.
+   * `Parse_EndOfLine` to return true if we're waiting for a regular parse to move forward.
    */
   PARSE_NO_WRAP = 2,
 
@@ -124,7 +124,7 @@ typedef enum {
 } parse_flags_t;
 
 /**
- * @brief Types for Parser_Parse
+ * @brief Types for `Parser_Parse`
  */
 typedef enum {
   PARSE_UINT8,

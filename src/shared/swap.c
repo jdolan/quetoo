@@ -92,7 +92,7 @@ float LittleFloat(float f) {
 }
 
 /**
- * @brief Converts all elements of a mat4_t to little-endian byte order.
+ * @brief Converts all elements of a `mat4_t` to little-endian byte order.
  */
 mat4_t LittleMat4(const mat4_t m) {
   mat4_t out = m;
@@ -105,7 +105,7 @@ mat4_t LittleMat4(const mat4_t m) {
 }
 
 /**
- * @brief Converts all components of a vec3s_t to little-endian byte order.
+ * @brief Converts all components of a `vec3s_t` to little-endian byte order.
  */
 vec3s_t LittleVec3s(const vec3s_t v) {
   return Vec3s(LittleShort(v.x),
@@ -114,7 +114,7 @@ vec3s_t LittleVec3s(const vec3s_t v) {
 }
 
 /**
- * @brief Converts all components of a vec3i_t to little-endian byte order.
+ * @brief Converts all components of a `vec3i_t` to little-endian byte order.
  */
 vec3i_t LittleVec3i(const vec3i_t v) {
   return Vec3i(LittleLong(v.x),
@@ -123,7 +123,7 @@ vec3i_t LittleVec3i(const vec3i_t v) {
 }
 
 /**
- * @brief Converts all components of a vec2_t to little-endian byte order.
+ * @brief Converts all components of a `vec2_t` to little-endian byte order.
  */
 vec2_t LittleVec2(const vec2_t v) {
   return Vec2(LittleFloat(v.x),
@@ -131,7 +131,7 @@ vec2_t LittleVec2(const vec2_t v) {
 }
 
 /**
- * @brief Converts all components of a vec3_t to little-endian byte order.
+ * @brief Converts all components of a `vec3_t` to little-endian byte order.
  */
 vec3_t LittleVec3(const vec3_t v) {
   return Vec3(LittleFloat(v.x),
@@ -140,7 +140,7 @@ vec3_t LittleVec3(const vec3_t v) {
 }
 
 /**
- * @brief Converts all components of a vec4_t to little-endian byte order.
+ * @brief Converts all components of a `vec4_t` to little-endian byte order.
  */
 vec4_t LittleVec4(const vec4_t v) {
   return Vec4(LittleFloat(v.x),
@@ -150,7 +150,7 @@ vec4_t LittleVec4(const vec4_t v) {
 }
 
 /**
- * @brief Converts both min and max vectors of a box3_t to little-endian byte order.
+ * @brief Converts both min and max vectors of a `box3_t` to little-endian byte order.
  */
 box3_t LittleBounds(const box3_t b) {
   return Box3(LittleVec3(b.mins),

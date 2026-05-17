@@ -56,7 +56,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief OpenGL blend function constants (GL_SRC_ALPHA, etc.).
+   * @brief OpenGL blend function constants (`GL_SRC_ALPHA`, etc.).
    */
   uint32_t src, dest;
 } cm_stage_blend_t;
@@ -320,7 +320,7 @@ typedef struct cm_stage_s {
   cm_stage_shell_t shell;
 
   /**
-   * @brief The next stage, or NULL.
+   * @brief The next stage, or `NULL`.
    */
   struct cm_stage_s *next;
 } cm_stage_t;
@@ -468,7 +468,7 @@ typedef struct cm_material_s {
 
 /**
  * @brief Loads the material with the given name in the given asset context.
- * @return The loaded material, or NULL on failure.
+ * @return The loaded material, or `NULL` on failure.
  */
 cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context);
 

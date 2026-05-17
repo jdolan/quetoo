@@ -198,7 +198,7 @@ static void Sv_Disconnect_f(void) {
 }
 
 /**
- * @brief Enumeration helper for Sv_Info_f.
+ * @brief Enumeration helper for `Sv_Info_f`.
  */
 static void Sv_Info_f_enumerate(cvar_t *var, void *data) {
 
@@ -283,7 +283,7 @@ static void Sv_ClientThink(sv_client_t *cl, pm_cmd_t *cmd) {
 #define CMD_MAX_STRINGS 8
 
 /**
- * @brief The current net_message is parsed for the given client.
+ * @brief The current `net_message` is parsed for the given client.
  */
 void Sv_ParseClientMessage(sv_client_t *cl) {
   int32_t strings_issued;

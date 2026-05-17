@@ -393,7 +393,7 @@ static void Cg_PopulateScene(const cl_frame_t *frame) {
 }
 
 /**
- * @brief Returns the colored key name bound to the given command, or red "UNBOUND" if not set.
+ * @brief Returns the colored key name bound to the given command, or red "`UNBOUND`" if not set.
  */
 static const char *Cg_Nav_KeyBind(const char *bind) {
   SDL_Scancode code = cgi.KeyForBind(SDL_SCANCODE_UNKNOWN, bind);

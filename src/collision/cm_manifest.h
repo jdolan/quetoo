@@ -40,7 +40,7 @@ typedef enum {
 typedef struct {
 
  /**
-  * @brief MD5 hex digest of the file contents.
+  * @brief `MD5` hex digest of the file contents.
   */
 	char hash[MAX_QPATH];
 
@@ -50,7 +50,7 @@ typedef struct {
 	int64_t size;
 
  /**
-  * @brief Asset path used as the table key (e.g. "maps/edge.bsp").
+  * @brief Asset path used as the table key (e.g. "maps/`edge.bsp`").
   */
 	char path[MAX_QPATH];
 
@@ -62,13 +62,13 @@ typedef struct {
 
 /**
  * @brief Allocates an empty manifest table.
- * @return A new GHashTable mapping path strings to cm_manifest_entry_t values.
+ * @return A new GHashTable mapping path strings to `cm_manifest_entry_t` values.
  */
 GHashTable *Cm_AllocManifest(void);
 
 /**
- * @brief Inserts an entry into a manifest table, computing the MD5 checksum of the given data.
- * @param manifest The manifest table returned by Cm_AllocManifest or Cm_ParseManifest.
+ * @brief Inserts an entry into a manifest table, computing the `MD5` checksum of the given data.
+ * @param manifest The manifest table returned by `Cm_AllocManifest` or `Cm_ParseManifest`.
  * @param path The asset path (used as the table key).
  * @param data The file data to checksum.
  * @param len The length of the data in bytes.
@@ -78,13 +78,13 @@ void Cm_AddManifestEntry(GHashTable *manifest, const char *path, const void *dat
 /**
  * @brief Verifies a manifest entry against the local file on disk.
  * @param entry The manifest entry to check.
- * @return true if the local file exists and its MD5 matches the entry's hash.
+ * @return true if the local file exists and its `MD5` matches the entry's hash.
  */
 bool Cm_CheckManifestEntry(const cm_manifest_entry_t *entry);
 
 /**
  * @brief Writes a manifest table to a file, sorted by path.
- * @param path The output file path (e.g. "maps/edge.mf").
+ * @param path The output file path (e.g. "maps/`edge.mf`").
  * @param manifest The manifest table to write.
  * @return The number of entries written, or -1 on failure.
  */
@@ -92,18 +92,18 @@ int32_t Cm_WriteManifest(const char *path, GHashTable *manifest);
 
 /**
  * @brief Parses a manifest from an in-memory buffer.
- * @details The buffer must be NUL-terminated (or zero-padded past @c len).
- * Returns an empty table (never NULL) when @c data is NULL or @c len is zero.
- * @param data The manifest text data, or NULL for an empty manifest.
+ * @details The buffer must be null-terminated (or zero-padded past @c len).
+ * Returns an empty table (never `NULL`) when @c data is `NULL` or @c len is zero.
+ * @param data The manifest text data, or `NULL` for an empty manifest.
  * @param len The length of @c data in bytes.
- * @return A GHashTable mapping path strings to cm_manifest_entry_t values.
+ * @return A GHashTable mapping path strings to `cm_manifest_entry_t` values.
  */
 GHashTable *Cm_ParseManifest(const char *data, size_t len);
 
 /**
  * @brief Reads a manifest file into a table.
- * @param path The manifest file path (e.g. "maps/edge.mf").
- * @return A GHashTable of cm_manifest_entry_t, or NULL if the file does not exist.
+ * @param path The manifest file path (e.g. "maps/`edge.mf`").
+ * @return A GHashTable of `cm_manifest_entry_t`, or `NULL` if the file does not exist.
  */
 GHashTable *Cm_ReadManifest(const char *path);
 

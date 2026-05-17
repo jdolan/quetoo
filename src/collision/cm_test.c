@@ -22,7 +22,7 @@
 #include "cm_local.h"
 
 /**
- * @return The PLANE_ type for the given normal vector.
+ * @return The `PLANE_` type for the given normal vector.
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal) {
 
@@ -118,7 +118,7 @@ bool Cm_PointInsideBrush(const vec3_t point, const cm_bsp_brush_t *brush) {
 
 /**
  * @return The sidedness of the given bounds relative to the specified plane.
- * If the box straddles the plane, SIDE_BOTH is returned.
+ * If the box straddles the plane, `SIDE_BOTH` is returned.
  */
 int32_t Cm_BoxOnPlaneSide(const box3_t bounds, const cm_bsp_plane_t *p) {
 
@@ -213,7 +213,7 @@ static cm_box_t cm_box;
 
 /**
  * @brief Appends a brush (6 nodes, 12 planes) opaquely to the primary BSP
- * structure to represent the bounding box used for Cm_BoxLeafnums. This brush
+ * structure to represent the bounding box used for `Cm_BoxLeafnums`. This brush
  * is never tested by the rest of the collision detection code, as it resides
  * just beyond the parsed size of the map.
  */
@@ -443,7 +443,7 @@ static void Cm_BoxLeafnums_r(cm_box_leafnum_data *data, int32_t node_num) {
 
 /**
  * @brief Populates the list of leafs the specified bounding box touches. If
- * top_node is not NULL, it will contain the top node of the BSP tree that
+ * `top_node` is not `NULL`, it will contain the top node of the BSP tree that
  * fully contains the box.
  *
  * @param bounds The bounds in world space.

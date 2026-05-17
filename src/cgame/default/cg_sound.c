@@ -83,7 +83,7 @@ void Cg_ParseSound(void) {
 
 
 /**
- * @brief S_PlaySampleThink implementation.
+ * @brief `S_PlaySampleThink` implementation.
  */
 static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
   
@@ -119,7 +119,7 @@ static void Cg_PlaySampleThink(const s_stage_t *stage, s_play_sample_t *play) {
 }
 
 /**
- * @brief Wraps cgi.AddSample, installing the default PlaySampleThink function.
+ * @brief Wraps `cgi.AddSample`, installing the default PlaySampleThink function.
  */
 void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 

@@ -29,7 +29,7 @@
  * @param bounds The AABB of the moving object (zero-sized for a point trace).
  * @param head_node The BSP head node to trace against.
  * @param contents The contents mask; only brush sides with matching contents are tested.
- * @return The cm_trace_t result; check `fraction` (1.0 = no hit) and `surface`.
+ * @return The `cm_trace_t` result; check `fraction` (1.0 = no hit) and `surface`.
  */
 __attribute__ ((warn_unused_result))
 cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds, int32_t head_node,
@@ -39,7 +39,7 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
  * @param start The trace start point.
  * @param end The trace end point.
  * @param brush The brush to trace against.
- * @return The cm_trace_t result. Check `start_solid` to detect the view origin being inside
+ * @return The `cm_trace_t` result. Check `start_solid` to detect the view origin being inside
  *   the brush — callers should skip such results when selecting entities.
  */
 __attribute__ ((warn_unused_result))

@@ -107,7 +107,7 @@ static bool BrushesDisjoint(const csg_brush_t *a, const csg_brush_t *b) {
 }
 
 /**
- * @brief Create a list of csg_brush_t for the brush_t between start and start + count.
+ * @brief Create a list of `csg_brush_t` for the `brush_t` between start and start + count.
  */
 csg_brush_t *MakeBrushes(int32_t index, int32_t count) {
 

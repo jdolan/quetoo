@@ -25,7 +25,7 @@
 
 /**
  * @brief Resample audio. outdata will be realloc'd to the size required to handle this operation,
- * so be sure to initialize to NULL before calling if it's first time!
+ * so be sure to initialize to `NULL` before calling if it's first time!
  */
 size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32_t dest_rate, const size_t num_frames, const int16_t *in_frames, int16_t **out_frames, size_t *out_size) {
   
@@ -169,7 +169,7 @@ static void S_LoadSampleBuffer(s_sample_t *sample) {
 }
 
 /**
- * @brief Free event listener for s_sample_t.
+ * @brief Free event listener for `s_sample_t`.
  */
 static void S_FreeSample(s_media_t *self) {
   s_sample_t *sample = (s_sample_t *) self;
@@ -181,7 +181,7 @@ static void S_FreeSample(s_media_t *self) {
 }
 
 /**
- * @brief Free event listener for aliased s_sample_t. Does not delete the
+ * @brief Free event listener for aliased `s_sample_t`. Does not delete the
  * OpenAL buffer, which is owned by the sample being aliased.
  */
 static void S_FreeAliasedSample(s_media_t *self) {

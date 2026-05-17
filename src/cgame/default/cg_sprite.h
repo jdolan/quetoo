@@ -213,7 +213,7 @@ struct cg_sprite_s {
 
   /**
    * @brief Custom data allocated on a sprite. Automatically freed unless
-   * SPRITE_DATA_NOFREE is set.
+   * `SPRITE_DATA_NOFREE` is set.
    */
   void *data;
 
@@ -243,7 +243,7 @@ struct cg_sprite_s {
   float lighting;
 
   /**
-   * @brief Entity to follow, for SPRITE_FOLLOW_ENTITY. Use Cg_GetSpriteEntity.
+   * @brief Entity to follow, for `SPRITE_FOLLOW_ENTITY`. Use `Cg_GetSpriteEntity`.
    */
   cg_sprite_entity_t entity;
 

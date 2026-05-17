@@ -123,7 +123,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 }
 
 /**
- * @brief Draws the shell effect on a mesh face if the entity has the EF_SHELL flag set.
+ * @brief Draws the shell effect on a mesh face if the entity has the `EF_SHELL` flag set.
  */
 static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t *face, const r_mesh_model_t *mesh) {
 

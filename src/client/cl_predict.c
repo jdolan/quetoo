@@ -126,7 +126,7 @@ int32_t Cl_BoxContents(const box3_t bounds) {
 }
 
 /**
- * @brief A structure facilitating clipping to SOLID_BOX entities.
+ * @brief A structure facilitating clipping to `SOLID_BOX` entities.
  */
 typedef struct {
   vec3_t start, end;
@@ -188,7 +188,7 @@ static void Cl_ClipTraceToEntities(cl_trace_t *trace) {
 
 /**
  * @brief Client-side collision model tracing. This is the reciprocal of
- * Sv_Trace.
+ * `Sv_Trace`.
  *
  * @param skip An optional entity to skip.
  */
@@ -216,10 +216,10 @@ cm_trace_t Cl_Trace(const vec3_t start, const vec3_t end, const box3_t bounds, c
  * @brief Entry point for client-side prediction. For each server frame, run
  * the player movement code with the user commands we've sent to the server
  * but have not yet received acknowledgment for. Store the resulting move so
- * that it may be interpolated into by Cl_UpdateView.
+ * that it may be interpolated into by `Cl_UpdateView`.
  *
  * Most of the work is passed off to the client game, which is responsible for
- * the implementation Pm_Move.
+ * the implementation `Pm_Move`.
  */
 void Cl_PredictMovement(void) {
 

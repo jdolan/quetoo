@@ -36,7 +36,7 @@ static struct {
 } cl_download;
 
 /**
- * @brief Net_HttpCallback for Cl_CheckOrDownloadFile.
+ * @brief `Net_HttpCallback` for `Cl_CheckOrDownloadFile`.
  */
 static void Cl_DownloadComplete(int32_t status, void *body, size_t length, void *user_data) {
 
@@ -173,7 +173,7 @@ void Cl_Download_f(void) {
 }
 
 /**
- * @brief The server sends this command just after server_data. Hang onto the spawn
+ * @brief The server sends this command just after `server_data`. Hang onto the spawn
  * count and check for the media we'll need to enter the game.
  */
 void Cl_Precache_f(void) {
@@ -297,7 +297,7 @@ static void Cl_ParseServerData(void) {
 }
 
 /**
- * @brief Parses an incoming SVC_PRINT message.
+ * @brief Parses an incoming `SVC_PRINT` message.
  */
 static void Cl_ParsePrint(void) {
 

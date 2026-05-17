@@ -27,7 +27,7 @@ GList *g_map_list;
 static cvar_t *g_map_list_var;
 
 /**
- * @brief Populates g_map_list from a text file. See default/maps.lst
+ * @brief Populates `g_map_list` from a text file. See `default/maps.lst`
  */
 static GList *G_MapList_Parse(const char *filename) {
   GList *list = NULL;
@@ -195,7 +195,7 @@ static GList *G_MapList_Parse(const char *filename) {
 
 /**
  * @brief Finds a map entry in the list by name.
- * @return The map entry matching @p name, or NULL if not found.
+ * @return The map entry matching @p name, or `NULL` if not found.
  */
 const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 
@@ -211,7 +211,7 @@ const g_map_list_map_t *G_MapList_Find(GList *list, const char *name) {
 
 /**
  * @brief Returns the next map to load, chosen randomly or sequentially from the map list.
- * @return The next map entry, or NULL if the map list is empty.
+ * @return The next map entry, or `NULL` if the map list is empty.
  */
 const g_map_list_map_t *G_MapList_Next(void) {
 

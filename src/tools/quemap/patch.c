@@ -37,10 +37,10 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 /**
  * @brief Parses a patchDef2 block from the map file.
  * @details Expected format:
- * ```
+ * ``
  *   patchDef2
  *   {
- *    texture_name
+ *    `texture_name`
  *    ( width height 0 0 0 )
  *    (
  *    ( ( x y z u v ) ( x y z u v ) ... )
@@ -48,7 +48,7 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
  *    ...
  *    )
  *   }
- * ```
+ * ``
  * The opening `{` of the brush has already been consumed, and the `patchDef2`
  * token has been peeked but not consumed.
  */
@@ -472,8 +472,8 @@ static void EvaluatePatch(const patch_control_point_t cp[3][3],
 
 /**
  * @brief Pre-tessellates all patches belonging to the given entity.
- * @details Tessellates each 3×3 sub-patch into patch_face_t structures stored
- * on the patch_t, and updates the patch bounds accordingly. These precomputed
+ * @details Tessellates each 3×3 sub-patch into `patch_face_t` structures stored
+ * on the `patch_t`, and updates the patch bounds accordingly. These precomputed
  * faces are later used when emitting BSP geometry.
  */
 void TessellatePatches(int32_t entity_num) {

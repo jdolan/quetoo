@@ -129,7 +129,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set editor 1"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ai_node_dev 1"
@@ -137,7 +137,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1"
@@ -148,7 +148,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map pits"
+            argument = "+map 2deaths"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

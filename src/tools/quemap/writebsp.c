@@ -165,7 +165,7 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
 
 /**
  * @brief Emits a leaf node into the BSP leaves lump, writing its contents, bounds, and leaf-brush references.
- * @return The index of the new leaf in bsp_file.leafs.
+ * @return The index of the new leaf in `bsp_file`.leafs`.
  */
 static int32_t EmitLeaf(node_t *node) {
 
@@ -213,7 +213,7 @@ static int32_t EmitLeaf(node_t *node) {
 
 /**
  * @brief Recursively emits a BSP node and its children into the BSP nodes and leafs lumps.
- * @return The index of the emitted node in bsp_file.nodes.
+ * @return The index of the emitted node in `bsp_file`.nodes`.
  */
 static int32_t EmitNode(const node_t *node) {
 
@@ -257,8 +257,8 @@ static int32_t EmitNode(const node_t *node) {
 }
 
 /**
- * @brief Emits the entire BSP tree rooted at tree->head_node into the BSP file.
- * @return The index of the head node in bsp_file.nodes.
+ * @brief Emits the entire BSP tree rooted at `tree->`head_node` into the BSP file.
+ * @return The index of the head node in `bsp_file`.nodes`.
  */
 int32_t EmitNodes(const tree_t *tree) {
 
@@ -606,7 +606,7 @@ static int32_t EmitDrawElements(GPtrArray *faces) {
 }
 
 /**
- * @brief Recursively emits block draw-element groups for all CONTENTS_BLOCK nodes in the BSP tree.
+ * @brief Recursively emits block draw-element groups for all `CONTENTS_BLOCK` nodes in the BSP tree.
  */
 static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 

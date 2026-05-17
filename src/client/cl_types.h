@@ -127,7 +127,7 @@ typedef struct {
   int32_t old_frame;
 
   /**
-   * @brief The interpolation fraction between old_frame and frame.
+   * @brief The interpolation fraction between `old_frame` and frame.
    */
   float lerp;
 
@@ -250,7 +250,7 @@ typedef struct {
 } cl_entity_t;
 
 /**
- * @brief A circular buffer of recently sent user_cmd_t is maintained so that
+ * @brief A circular buffer of recently sent `user_cmd_t` is maintained so that
  * we can always re-send the last 2 commands to counter packet loss, and so
  * that client-side prediction can verify its accuracy.
  */
@@ -259,7 +259,7 @@ typedef struct {
 
 /**
  * @brief Client side prediction output, produced by running sent but
- * unacknowledged user_cmd_t's through the player movement code locally.
+ * unacknowledged `user_cmd_t`'s through the player movement code locally.
  */
 typedef struct {
 
@@ -410,12 +410,12 @@ typedef struct {
   uint32_t time;
 
   /**
-   * @brief Unclamped time in milliseconds since launch. Affected by time_scale; useful for effect durations.
+   * @brief Unclamped time in milliseconds since launch. Affected by `time_scale`; useful for effect durations.
    */
   uint32_t unclamped_time;
 
   /**
-   * @brief Unclamped time in milliseconds since the player connected. Not affected by time_scale.
+   * @brief Unclamped time in milliseconds since the player connected. Not affected by `time_scale`.
    */
   uint32_t ticks;
 
@@ -542,7 +542,7 @@ typedef struct {
   cl_key_dest_t dest;
 
   /**
-   * @brief Key binding strings, indexed by SDL_Scancode.
+   * @brief Key binding strings, indexed by `SDL_Scancode`.
    */
   char *binds[SDL_SCANCODE_COUNT];
 

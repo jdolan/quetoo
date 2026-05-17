@@ -230,7 +230,7 @@ void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLi
 }
 
 /**
- * @brief Reads the specified framebuffer attachment pixels into an SDL_Surface.
+ * @brief Reads the specified framebuffer attachment pixels into an `SDL_Surface`.
  */
 void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface) {
 

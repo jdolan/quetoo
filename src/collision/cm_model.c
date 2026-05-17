@@ -24,7 +24,7 @@
 cm_bsp_t cm_bsp = {};
 
 /**
- * @brief Loads and parses the entity string lump into cm_bsp.entities.
+ * @brief Loads and parses the entity string lump into `cm_bsp`.entities`.
  */
 static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 
@@ -42,7 +42,7 @@ static void Cm_LoadBspEntities(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the planes lump into cm_bsp.planes.
+ * @brief Loads and converts the planes lump into `cm_bsp`.planes`.
  */
 static void Cm_LoadBspPlanes(cm_bsp_t *bsp) {
 
@@ -57,7 +57,7 @@ static void Cm_LoadBspPlanes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the nodes lump into cm_bsp.nodes.
+ * @brief Loads and converts the nodes lump into `cm_bsp`.nodes`.
  */
 static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
 
@@ -78,7 +78,7 @@ static void Cm_LoadBspNodes(cm_bsp_t *bsp) {
 
 
 /**
- * @brief Loads and converts the leafs lump into cm_bsp.leafs.
+ * @brief Loads and converts the leafs lump into `cm_bsp`.leafs`.
  */
 static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
 
@@ -95,7 +95,7 @@ static void Cm_LoadBspLeafs(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads the leaf-brush index lump into cm_bsp.leaf_brushes.
+ * @brief Loads the leaf-brush index lump into `cm_bsp`.`leaf_brushes`.
  */
 static void Cm_LoadBspLeafBrushes(cm_bsp_t *bsp) {
 
@@ -110,7 +110,7 @@ static void Cm_LoadBspLeafBrushes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the brush sides lump into cm_bsp.brush_sides.
+ * @brief Loads and converts the brush sides lump into `cm_bsp`.`brush_sides`.
  */
 static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
 
@@ -145,7 +145,7 @@ static void Cm_LoadBspBrushSides(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the brushes lump into cm_bsp.brushes.
+ * @brief Loads and converts the brushes lump into `cm_bsp`.brushes`.
  */
 static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
 
@@ -165,7 +165,7 @@ static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and converts the inline models lump into cm_bsp.models.
+ * @brief Loads and converts the inline models lump into `cm_bsp`.models`.
  */
 static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
 
@@ -183,7 +183,7 @@ static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
 }
 
 /**
- * @brief Loads and resolves materials referenced by the BSP into cm_bsp.materials.
+ * @brief Loads and resolves materials referenced by the BSP into `cm_bsp`.materials`.
  */
 static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 
@@ -217,7 +217,7 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 /**
  * @brief Loads in the BSP and all sub-models for collision detection. This
  * function can also be used to initialize or clean up the collision model by
- * invoking with NULL.
+ * invoking with `NULL`.
  */
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
   static bsp_file_t file;

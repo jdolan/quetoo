@@ -98,7 +98,7 @@ void S_RegisterDependency(s_media_t *dependent, s_media_t *dependency) {
 }
 
 /**
- * @brief GCompareFunc for S_RegisterMedia. Sorts media by name.
+ * @brief GCompareFunc for `S_RegisterMedia`. Sorts media by name.
  */
 static int32_t S_RegisterMedia_Compare(gconstpointer name1, gconstpointer name2) {
   return g_strcmp0((const char *) name1, (const char *) name2);
@@ -146,7 +146,7 @@ void S_RegisterMedia(s_media_t *media) {
 /**
  * @brief Resolves the specified media if it is already known. The returned
  * media is re-registered for convenience.
- * @return s_media_t The media, or `NULL`.
+ * @return `s_media_t` The media, or `NULL`.
  */
 s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
 
@@ -165,8 +165,8 @@ s_media_t *S_FindMedia(const char *name, s_media_type_t type) {
 }
 
 /**
- * @brief Returns a newly allocated s_media_t with the specified name.
- * @param size_t size The number of bytes to allocate for the media.
+ * @brief Returns a newly allocated `s_media_t` with the specified name.
+ * @param size The number of bytes to allocate for the media.
  * @param type The media type.
  * @return The newly initialized media.
  */
@@ -185,7 +185,7 @@ s_media_t *S_AllocMedia(const char *name, size_t size, s_media_type_t type) {
 }
 
 /**
- * @brief GHRFunc for freeing media. If data is non-NULL, then the media is
+ * @brief GHRFunc for freeing media. If data is non-`NULL`, then the media is
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are released.
  */

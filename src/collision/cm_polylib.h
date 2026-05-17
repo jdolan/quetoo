@@ -61,7 +61,7 @@ typedef struct {
 } cm_clip_point_t;
 
 /**
- * @brief Allocates a winding with space for num_points points.
+ * @brief Allocates a winding with space for `num_points` points.
  */
 cm_winding_t *Cm_AllocWinding(int32_t num_points);
 
@@ -97,7 +97,7 @@ float Cm_WindingArea(const cm_winding_t *w);
 
 /**
  * @brief Returns the minimum distance from point p to the winding boundary.
- * @param dir If non-NULL, receives the direction from p to the nearest point.
+ * @param dir If non-`NULL`, receives the direction from p to the nearest point.
  */
 float Cm_DistanceToWinding(const cm_winding_t *w, const vec3_t p, vec3_t *dir);
 
@@ -138,7 +138,7 @@ cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t
 
 /**
  * @brief Merges two coplanar windings into a single winding, if possible.
- * @return The merged winding, or NULL if the windings could not be merged.
+ * @return The merged winding, or `NULL` if the windings could not be merged.
  */
 cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal);
 
@@ -155,7 +155,7 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c);
 
 /**
  * @brief Computes barycentric coordinates of point p in triangle abc.
- * @param out If non-NULL, receives the barycentric weights as a vec3_t.
+ * @param out If non-`NULL`, receives the barycentric weights as a `vec3_t`.
  * @return The interpolated scalar value at p.
  */
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out);

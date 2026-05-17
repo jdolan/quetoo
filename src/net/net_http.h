@@ -28,31 +28,31 @@
  * @param status The HTTP response code.
  * @param body The response body.
  * @param length The response body length in bytes.
- * @param user_data The user data pointer passed to Net_HttpGetAsync.
+ * @param user_data The user data pointer passed to `Net_HttpGetAsync`.
  */
 typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void *user_data);
 
 /**
- * @brief Synchronously GET the specified URL string.
- * @param url_string The URL string to GET.
- * @param body Receives a newly allocated buffer containing the response body. Caller must Mem_Free.
+ * @brief Synchronously `GET` the specified URL string.
+ * @param url_string The URL string to `GET`.
+ * @param body Receives a newly allocated buffer containing the response body. Caller must `Mem_Free`.
  * @param length The response body length in bytes.
  * @return The HTTP response code.
  */
 int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
 
 /**
- * @brief Asynchronously GET the specified URL string.
- * @param url_string The URL string to GET.
+ * @brief Asynchronously `GET` the specified URL string.
+ * @param url_string The URL string to `GET`.
  * @param callback The completion callback.
  * @param user_data User data pointer passed through to the callback.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data);
 
 /**
- * @brief Construct an HTTP URL from a net_addr_t and path.
+ * @brief Construct an HTTP URL from a `net_addr_t` and path.
  * @param addr The server address.
- * @param path The URL path (e.g. "maps/foo.bsp").
+ * @param path The URL path (e.g. "maps/`foo.bsp`").
  * @param buf The output buffer.
  * @param buf_size The size of the output buffer.
  * @return The number of characters written, or -1 on error.
@@ -62,9 +62,9 @@ int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t 
 /**
  * @brief Parse the request line of an HTTP request.
  * @param request The raw HTTP request buffer (must be null-terminated).
- * @param method The parsed method (e.g. "GET").
+ * @param method The parsed method (e.g. "`GET`").
  * @param method_size The size of the method buffer.
- * @param path The parsed path (e.g. "maps/foo.bsp"), without leading slash.
+ * @param path The parsed path (e.g. "maps/`foo.bsp`"), without leading slash.
  * @param path_size The size of the path buffer.
  * @return True if the request line was successfully parsed.
  */
@@ -75,7 +75,7 @@ bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_s
  * @brief Format an HTTP/1.0 response header into a buffer.
  * @param status The HTTP status code.
  * @param reason The HTTP reason phrase.
- * @param content_type The Content-Type header value, or NULL for none.
+ * @param content_type The Content-Type header value, or `NULL` for none.
  * @param content_length The Content-Length value.
  * @param buf The output buffer.
  * @param buf_size The size of the output buffer.

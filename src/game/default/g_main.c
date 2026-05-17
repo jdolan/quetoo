@@ -1169,7 +1169,7 @@ void G_Init(void) {
 
 /**
  * @brief Shuts down the game module. This is called when the game is unloaded
- * (complements G_Init).
+ * (complements `G_Init`).
  */
 void G_Shutdown(void) {
 

@@ -33,7 +33,7 @@ typedef struct {
 static cg_score_state_t cg_score_state;
 
 /**
- * @brief A comparator for sorting player_score_t.
+ * @brief A comparator for sorting `player_score_t`.
  */
 static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
   const g_score_t *sa = (g_score_t *) a;

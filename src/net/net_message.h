@@ -24,7 +24,7 @@
 #include "net_types.h"
 
 /**
- * @brief Delta compression flags for pm_state_t.
+ * @brief Delta compression flags for `pm_state_t`.
  */
 #define PS_PM_CLIENT        (1 << 0)
 #define PS_PM_ENTITY        (1 << 1)
@@ -42,7 +42,7 @@
 #define PS_PM_STEP_OFFSET   (1 << 13)
 
 /**
- * @brief Delta compression flags for user_cmd_t.
+ * @brief Delta compression flags for `user_cmd_t`.
  */
 #define CMD_ANGLE1  0x01
 #define CMD_ANGLE2  0x02

@@ -48,7 +48,7 @@ box3_t map_bounds;
 #define DIST_EPSILON   0.005
 
 /**
- * @brief Returns true if the two planes are equal within NORMAL_EPSILON and DIST_EPSILON.
+ * @brief Returns true if the two planes are equal within `NORMAL_EPSILON` and `DIST_EPSILON`.
  */
 static bool PlaneEqual(const plane_t *p, const vec3_t normal, double dist) {
 
@@ -139,7 +139,7 @@ static vec3_t SnapNormal(const vec3_t normal) {
 }
 
 /**
- * @brief Snaps normals within NORMAL_EPSILON to axial, and snaps axial plane
+ * @brief Snaps normals within `NORMAL_EPSILON` to axial, and snaps axial plane
  * distances to integers, rounding towards the origin.
  */
 static void SnapPlane(vec3_t *normal, double *dist) {
@@ -673,7 +673,7 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 }
 
 /**
- * @brief Some entities are merged into the world, e.g. func_group.
+ * @brief Some entities are merged into the world, e.g. `func_group`.
  */
 static void MoveBrushesToWorld(entity_t *ent) {
 
@@ -703,7 +703,7 @@ static void MoveBrushesToWorld(entity_t *ent) {
 }
 
 /**
- * @brief Some entities are merged into the world, e.g. func_group.
+ * @brief Some entities are merged into the world, e.g. `func_group`.
  */
 static void MovePatchesToWorld(entity_t *ent) {
 

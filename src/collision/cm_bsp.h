@@ -517,7 +517,7 @@ typedef struct {
   int32_t num_draw_elements;
 
   /**
-   * @brief AABB of all draw elements within this block; larger than the node's own visible_bounds.
+   * @brief AABB of all draw elements within this block; larger than the node's own `visible_bounds`.
    */
   box3_t visible_bounds;
 } bsp_block_t;

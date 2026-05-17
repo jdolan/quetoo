@@ -172,7 +172,7 @@ static const char *Cvar_Stringify(const cvar_t *var) {
 }
 
 /**
- * @brief GCompareFunc for Cvar_Enumerate.
+ * @brief GCompareFunc for `Cvar_Enumerate`.
  */
 static gint Cvar_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
   return g_ascii_strcasecmp(((const cvar_t *) a)->name, ((const cvar_t *) b)->name);
@@ -206,7 +206,7 @@ void Cvar_Enumerate(Cvar_Enumerator func, void *data) {
 static char cvar_complete_pattern[MAX_STRING_CHARS];
 
 /**
- * @brief Enumeration helper for Cvar_CompleteVar.
+ * @brief Enumeration helper for `Cvar_CompleteVar`.
  */
 static void Cvar_CompleteVar_enumerate(cvar_t *var, void *data) {
   GList **matches = (GList **) data;
@@ -294,7 +294,7 @@ cvar_t *Cvar_Add(const char *name, const char *value, uint32_t flags, const char
 }
 
 /**
- * @brief Sets a cvar's value, respecting CVAR_CLI, CVAR_NO_SET, CVAR_LATCH, and related flags unless `force` is true.
+ * @brief Sets a cvar's value, respecting `CVAR_CLI`, `CVAR_NO_SET`, `CVAR_LATCH`, and related flags unless `force` is true.
  */
 static cvar_t *Cvar_Set_(const char *name, const char *value, int32_t flags, bool force) {
 
@@ -466,7 +466,7 @@ cvar_t *Cvar_Toggle(const char *name) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_ResetDeveloper.
+ * @brief Enumeration helper for `Cvar_ResetDeveloper`.
  */
 static void Cvar_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 
@@ -478,7 +478,7 @@ static void Cvar_ResetDeveloper_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @brief Reset CVAR_DEVELOPER to their default values.
+ * @brief Reset `CVAR_DEVELOPER` to their default values.
  */
 void Cvar_ResetDeveloper(void) {
 
@@ -488,7 +488,7 @@ void Cvar_ResetDeveloper(void) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_PendingLatched.
+ * @brief Enumeration helper for `Cvar_PendingLatched`.
  */
 static void Cvar_PendingLatched_enumerate(cvar_t *var, void *data) {
 
@@ -498,7 +498,7 @@ static void Cvar_PendingLatched_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @brief Returns true if there are any CVAR_LATCH variables pending.
+ * @brief Returns true if there are any `CVAR_LATCH` variables pending.
  */
 bool Cvar_PendingLatched(void) {
   bool pending = false;
@@ -509,7 +509,7 @@ bool Cvar_PendingLatched(void) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_UpdateLatched.
+ * @brief Enumeration helper for `Cvar_UpdateLatched`.
  */
 static void Cvar_UpdateLatched_enumerate(cvar_t *var, void *data) {
 
@@ -534,7 +534,7 @@ void Cvar_UpdateLatched(void) {
 static bool cvar_pending;
 
 /**
- * @brief Enumeration helper for Cvar_Pending.
+ * @brief Enumeration helper for `Cvar_Pending`.
  */
 static void Cvar_Pending_enumerate(cvar_t *var, void *data) {
   uint32_t flags = *((uint32_t *) data);
@@ -556,7 +556,7 @@ bool Cvar_Pending(uint32_t flags) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_ClearAll.
+ * @brief Enumeration helper for `Cvar_ClearAll`.
  */
 static void Cvar_ClearAll_enumerate(cvar_t *var, void *data) {
   uint32_t flags = *((uint32_t *) data);
@@ -640,7 +640,7 @@ static void Cvar_Toggle_f(void) {
 }
 
 /**
- * @brief Cvar_Enumerator for Cvar_List_f.
+ * @brief `Cvar_Enumerator` for `Cvar_List_f`.
  */
 static void Cvar_List_f_enumerate(cvar_t *var, void *data) {
 
@@ -666,7 +666,7 @@ static void Cvar_List_f(void) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_Userinfo.
+ * @brief Enumeration helper for `Cvar_Userinfo`.
  */
 static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 
@@ -676,7 +676,7 @@ static void Cvar_UserInfo_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @brief Returns an info string containing all the CVAR_USER_INFO cvars.
+ * @brief Returns an info string containing all the `CVAR_USER_INFO` cvars.
  */
 char *Cvar_UserInfo(void) {
   static char info[MAX_INFO_STRING_STRING];
@@ -689,7 +689,7 @@ char *Cvar_UserInfo(void) {
 }
 
 /**
- * @brief Enumeration helper for Cvar_ServerInfo.
+ * @brief Enumeration helper for `Cvar_ServerInfo`.
  */
 static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 
@@ -701,7 +701,7 @@ static void Cvar_ServerInfo_enumerate(cvar_t *var, void *data) {
 }
 
 /**
- * @return An info string containing all the CVAR_SERVER_INFO cvars.
+ * @return An info string containing all the `CVAR_SERVER_INFO` cvars.
  */
 char *Cvar_ServerInfo(void) {
   static char info[MAX_INFO_STRING_STRING * 16];
@@ -714,7 +714,7 @@ char *Cvar_ServerInfo(void) {
 }
 
 /**
- * @brief Enumeration helper for Cl_WriteVariables.
+ * @brief Enumeration helper for `Cl_WriteVariables`.
  */
 static void Cvar_WriteAll_enumerate(cvar_t *var, void *data) {
 

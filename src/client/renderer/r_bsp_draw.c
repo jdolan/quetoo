@@ -320,7 +320,7 @@ static const r_material_t *r_bsp_bound_material;
 
 /**
  * @brief Draws the specified draw elements for the given entity.
- * @param entity The entity, or NULL for the world model.
+ * @param entity The entity, or `NULL` for the world model.
  * @param draw The draw elements command.
  */
 static inline void R_DrawBspDrawElements(const r_view_t *view,

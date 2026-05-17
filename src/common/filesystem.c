@@ -30,7 +30,7 @@
 typedef struct {
 
   /**
-   * @brief The FS_* flags.
+   * @brief The `FS_`* flags.
    */
   uint32_t flags;
 
@@ -57,15 +57,15 @@ typedef struct {
   char data_dir[MAX_OS_PATH];
 
   /**
-   * @brief The base search paths (all those present after invoking Fs_Init).
-   * When calling Fs_SetGameDir, all paths following the base paths are
+   * @brief The base search paths (all those present after invoking `Fs_Init`).
+   * When calling `Fs_SetGameDir`, all paths following the base paths are
    * unloaded.
    */
   char **base_search_paths;
 
   /**
    * @brief For debugging purposes, track all loaded files to ensure that
-   * they are freed (Fs_Free) in all code paths.
+   * they are freed (`Fs_Free`) in all code paths.
    */
   GHashTable *loaded_files;
 } fs_state_t;
@@ -145,7 +145,7 @@ const char *Fs_LastError(void) {
 }
 
 /**
- * @brief Creates the specified directory (and any ancestors) in Fs_WriteDir.
+ * @brief Creates the specified directory (and any ancestors) in `Fs_WriteDir`.
  */
 bool Fs_Mkdir(const char *dir) {
   return PHYSFS_mkdir(dir) ? true : false;
@@ -291,8 +291,8 @@ int64_t Fs_Write(file_t *file, const void *buffer, size_t size, size_t count) {
 
 /**
  * @brief Loads the specified file into the given buffer, which is automatically
- * allocated if non-NULL. Returns the file length, or -1 if it is unable to be
- * read. Be sure to free the buffer when finished with Fs_Free.
+ * allocated if non-`NULL`. Returns the file length, or -1 if it is unable to be
+ * read. Be sure to free the buffer when finished with `Fs_Free`.
  *
  * @return The file length, or -1 on error.
  */
@@ -385,7 +385,7 @@ int64_t Fs_Load(const char *filename, void **buffer) {
 }
 
 /**
- * @brief Frees the specified buffer allocated by Fs_LoadFile.
+ * @brief Frees the specified buffer allocated by `Fs_LoadFile`.
  */
 void Fs_Free(void *buffer) {
 
@@ -432,7 +432,7 @@ bool Fs_Unlink(const char *filename) {
 }
 
 /**
- * @brief Fs_Enumerate context.
+ * @brief `Fs_Enumerate` context.
  */
 typedef struct {
   char dir[MAX_QPATH];
@@ -442,7 +442,7 @@ typedef struct {
 } fs_enumerate_t;
 
 /**
- * @brief PHYSFS_EnumerateCallback for Fs_Enumerate.
+ * @brief `PHYSFS_EnumerateCallback` for `Fs_Enumerate`.
  */
 static int32_t Fs_Enumerate_(void *data, const char *dir, const char *filename) {
   const fs_enumerate_t *enumerator = data;
@@ -478,7 +478,7 @@ void Fs_Enumerate(const char *pattern, Fs_Enumerator func, void *data) {
 }
 
 /**
- * @brief GHFunc for Fs_CompleteFile.
+ * @brief GHFunc for `Fs_CompleteFile`.
  */
 static void Fs_CompleteFile_enumerate(const char *path, void *data) {
   GList **matches = (GList **) data;
@@ -499,7 +499,7 @@ void Fs_CompleteFile(const char *pattern, GList **matches) {
 static void Fs_AddToSearchPath_enumerate(const char *path, void *data);
 
 /**
- * @brief Concatenates the NULL-terminated list of path components and adds the
+ * @brief Concatenates the `NULL`-terminated list of path components and adds the
  * resulting path to the search path.
  */
 void Fs_AddToSearchPath(const char *path) {

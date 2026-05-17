@@ -93,7 +93,7 @@ typedef struct {
   float dist;
 
   /**
-   * @brief Plane type constant for axial optimizations (PLANE_X, PLANE_Y, etc.).
+   * @brief Plane type constant for axial optimizations (`PLANE_X`, `PLANE_Y`, etc.).
    */
   int32_t type;
 
@@ -260,12 +260,12 @@ typedef struct cm_bsp_brush_side_s {
   struct cm_material_s *material;
 
   /**
-   * @brief The contents mask (CONTENTS_*).
+   * @brief The contents mask (`CONTENTS_`*).
    */
   int32_t contents;
 
   /**
-   * @brief The surface mask (SURF_*).
+   * @brief The surface mask (`SURF_`*).
    */
   int32_t surface;
 
@@ -504,7 +504,7 @@ typedef struct {
   const struct cm_bsp_brush_side_s *brush_side;
 
   /**
-   * @brief The impacted plane, transformed by the matrix provided to Cm_BoxTrace.
+   * @brief The impacted plane, transformed by the matrix provided to `Cm_BoxTrace`.
    */
   cm_bsp_plane_t plane;
 
@@ -524,7 +524,7 @@ typedef struct {
   const struct cm_material_s *material;
 
   /**
-   * @brief The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by Cm_BoxTrace.
+   * @brief The impacted entity, or `NULL`; set by `Sv_Trace` / `Cl_Trace`, not by `Cm_BoxTrace`.
    */
   void *ent;
 } cm_trace_t;

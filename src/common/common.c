@@ -45,7 +45,7 @@ void Com_LogString(const char *str) {
 /**
  * @brief Sets up a log file in the user's data directory.
  * @details Scans argv for `+set game <name>` to match the write path that
- * Fs_Init will use, so the log lands in the right place even for game mods.
+ * `Fs_Init` will use, so the log lands in the right place even for game mods.
  */
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
@@ -129,7 +129,7 @@ const char *Com_GetDebug(void) {
 }
 
 /**
- * @brief Parses a debug string and sets up the quetoo.debug value
+ * @brief Parses a debug string and sets up the `quetoo.debug` value
  */
 void Com_SetDebug(const char *debug) {
 

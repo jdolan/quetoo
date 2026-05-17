@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Parses animation.cfg, loading the frame specifications for the given model.
+ * @brief Parses `animation.cfg`, loading the frame specifications for the given model.
  */
 static void R_LoadMd3Animations(r_model_t *mod) {
   char path[MAX_QPATH];
@@ -260,7 +260,7 @@ static d_md3_t R_SwapMd3(const d_md3_t *in) {
 }
 
 /**
- * @brief Loads the d_md3_t contents of buffer to the specified model.
+ * @brief Loads the `d_md3_t` contents of buffer to the specified model.
  */
 static void R_LoadMd3Model(r_model_t *mod, void *buffer) {
 

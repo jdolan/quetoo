@@ -39,7 +39,7 @@ typedef enum {
 } g_item_type_t;
 
 /**
- * @brief Global item tags. Each tag is the item's index in g_items[].
+ * @brief Global item tags. Each tag is the item's index in `g_items[]`.
  */
 typedef enum {
   ITEM_NONE = 0,
@@ -147,7 +147,7 @@ _Static_assert(ITEM_TOTAL <= MAX_INVENTORY, "ITEM_TOTAL exceeds MAX_INVENTORY; i
 
 /**
  * @brief Shared item definition, visible to both game and cgame.
- * This struct holds all static data for an item; g_item_t (game only)
+ * This struct holds all static data for an item; `g_item_t` (game only)
  * embeds this as its first member and adds runtime-computed fields.
  */
 typedef struct {
@@ -193,12 +193,12 @@ typedef struct {
   uint16_t max;
 
   /**
-   * @brief Tag of the ammo item this weapon consumes, or ITEM_NONE.
+   * @brief Tag of the ammo item this weapon consumes, or `ITEM_NONE`.
    */
   g_item_tag_t ammo;
 
   /**
-   * @brief Global item tag; equals the item's index in g_items[].
+   * @brief Global item tag; equals the item's index in `g_items[]`.
    */
   g_item_tag_t tag;
 
@@ -223,12 +223,12 @@ typedef struct {
   const char *precaches;
 
   /**
-   * @brief RGB color for EF_LIGHT emission. Ignored if light_radius is 0.
+   * @brief RGB color for `EF_LIGHT` emission. Ignored if `light_radius` is 0.
    */
   vec3_t light_color;
 
   /**
-   * @brief Base radius for EF_LIGHT emission. 0 means no light.
+   * @brief Base radius for `EF_LIGHT` emission. 0 means no light.
    */
   float light_radius;
 

@@ -53,7 +53,7 @@ static float S_MusicGain(void) {
 }
 
 /**
- * @brief Retain event listener for s_music_t.
+ * @brief Retain event listener for `s_music_t`.
  */
 static bool S_RetainMusic(s_media_t *self) {
   (void) self;
@@ -62,7 +62,7 @@ static bool S_RetainMusic(s_media_t *self) {
 }
 
 /**
- * @brief Free event listener for s_music_t.
+ * @brief Free event listener for `s_music_t`.
  */
 static void S_FreeMusic(s_media_t *self) {
   s_music_t *music = (s_music_t *) self;
@@ -120,7 +120,7 @@ void S_ClearPlaylist(void) {
 }
 
 /**
- * @brief Returns the currently playing music track, or NULL if none.
+ * @brief Returns the currently playing music track, or `NULL` if none.
  */
 s_music_t *S_CurrentMusic(void) {
   return s_music_state.current_music;
@@ -255,7 +255,7 @@ static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
 }
 
 /**
- * @brief Begins playback of the specified s_music_t.
+ * @brief Begins playback of the specified `s_music_t`.
  */
 static void S_PlayMusic(s_music_t *music) {
 

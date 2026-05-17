@@ -217,7 +217,7 @@ typedef struct {
 } r_atlas_image_t;
 
 /**
- * @brief An animation, castable to r_media_t.
+ * @brief An animation, castable to `r_media_t`.
  */
 typedef struct {
 
@@ -416,7 +416,7 @@ typedef struct {
 } r_bsp_brush_side_t;
 
 /**
- * @brief BSP patch structure, resolved from bsp_patch_t.
+ * @brief BSP patch structure, resolved from `bsp_patch_t`.
  */
 typedef struct {
 
@@ -478,7 +478,7 @@ typedef struct {
 typedef struct r_bsp_face_s {
 
   /**
-   * @brief The brush side which generated this face, or NULL for patch faces.
+   * @brief The brush side which generated this face, or `NULL` for patch faces.
    */
   r_bsp_brush_side_t *brush_side;
 
@@ -488,7 +488,7 @@ typedef struct r_bsp_face_s {
   r_bsp_plane_t *plane;
 
   /**
-   * @brief The patch which generated this face, or NULL for brush faces.
+   * @brief The patch which generated this face, or `NULL` for brush faces.
    */
   r_bsp_patch_t *patch;
 
@@ -857,7 +857,7 @@ typedef struct {
   bool shadow_cached;
 
   /**
-   * @brief The target entity for dynamic lights attached to inline model entities, or NULL.
+   * @brief The target entity for dynamic lights attached to inline model entities, or `NULL`.
    */
   cm_entity_t *target_entity;
 } r_bsp_light_t;
@@ -914,17 +914,17 @@ typedef struct {
   r_bsp_voxel_t *voxels;
 
   /**
-   * @brief The voxel data 3D texture (RG8): caustics and exposure.
+   * @brief The voxel data 3D texture (`RG8`): caustics and exposure.
    */
   r_image_t *data;
 
   /**
-   * @brief The light data 3D texture (RG32I) for offset and count pairs per voxel.
+   * @brief The light data 3D texture (`RG32I`) for offset and count pairs per voxel.
    */
   r_image_t *light_data;
 
   /**
-   * @brief Voxel light index texture to sample the index buffer (R32I).
+   * @brief Voxel light index texture to sample the index buffer (`R32I`).
    */
   r_image_t *light_indices;
 
@@ -1576,7 +1576,7 @@ typedef struct {
   float height;
 
   /**
-   * @brief The sprite media (an r_animation_t, r_image_t, etc).
+   * @brief The sprite media (an `r_animation_t`, `r_image_t`, etc).
    */
   r_media_t *media;
 
@@ -1845,7 +1845,7 @@ typedef struct r_entity_s {
   float lerp, back_lerp;
 
   /**
-   * @brief Mesh model skins, up to one per face. NULL implies the default skin.
+   * @brief Mesh model skins, up to one per face. `NULL` implies the default skin.
    */
   r_material_t *skins[MAX_MESH_FACES];
 
@@ -2144,7 +2144,7 @@ typedef struct {
   int32_t num_lights;
 
   /**
-   * @brief New decals added this frame, to be processed during R_UpdateDecals.
+   * @brief New decals added this frame, to be processed during `R_UpdateDecals`.
    */
   r_decal_t decals[MAX_DECALS];
 

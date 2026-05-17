@@ -112,7 +112,7 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
 /**
  * @brief Emit a water ripple and optional splash effect.
  * @details The caller must pass either an entity, or two points to trace between.
- * @param ent The entity entering the water, or NULL.
+ * @param ent The entity entering the water, or `NULL`.
  * @param pos1 The start position to trace for liquid from.
  * @param pos2 The end position to trace for liquid to.
  * @param size The ripple size, or 0.0 to use the entity's size.

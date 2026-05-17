@@ -64,7 +64,7 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief Simulation time in ms; always frame_num * 1000 / QUETOO_TICK_RATE.
+   * @brief Simulation time in ms; always `frame_num` * 1000 / `QUETOO_TICK_RATE`.
    */
   uint32_t time;
 
@@ -104,7 +104,7 @@ typedef struct {
   byte multicast_buffer[MAX_MSG_SIZE];
 
   /**
-   * @brief Open demo file for demo playback, or NULL during live gameplay.
+   * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
   file_t *demo_file;
 } sv_server_t;
@@ -243,7 +243,7 @@ typedef struct {
   char user_info[MAX_INFO_STRING_STRING];
 
   /**
-   * @brief Player name extracted from user_info, stripped of color codes.
+   * @brief Player name extracted from `user_info`, stripped of color codes.
    */
   char name[32];
 
@@ -263,7 +263,7 @@ typedef struct {
   uint32_t cmd_msec;
 
   /**
-   * @brief Consecutive anti-cheat violation count for cmd_msec drift.
+   * @brief Consecutive anti-cheat violation count for `cmd_msec` drift.
    */
   uint16_t cmd_msec_errors;
 
@@ -360,12 +360,12 @@ typedef struct {
   entity_state_t *entity_states;
 
   /**
-   * @brief Length of entity_states; always PACKET_BACKUP * MAX_ENTITIES.
+   * @brief Length of `entity_states`; always `PACKET_BACKUP` * `MAX_ENTITIES`.
    */
   uint32_t num_entity_states;
 
   /**
-   * @brief Next free index in entity_states for newly spawned entities.
+   * @brief Next free index in `entity_states` for newly spawned entities.
    */
   uint32_t next_entity_state;
 

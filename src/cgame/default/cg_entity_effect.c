@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 /**
- * @brief Returns an HSV color from a hue pointer, substituting a default hue if the pointer is NULL or negative.
+ * @brief Returns an HSV color from a hue pointer, substituting a default hue if the pointer is `NULL` or negative.
  */
 vec3_t Cg_EffectColor(float *hue, const float default_hue) {
 

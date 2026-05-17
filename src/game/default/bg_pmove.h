@@ -134,7 +134,7 @@ extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
 #define BUTTON_SCORE  (1 << 3)
 
 /**
- * @brief Game-specific flags for pm_state_t.flags.
+ * @brief Game-specific flags for `pm_state_t`.flags`.
  */
 #define PMF_DUCKED           (PMF_GAME << 0) // player is ducked
 #define PMF_JUMPED           (PMF_GAME << 1) // player jumped
@@ -152,7 +152,7 @@ extern const box3_t PM_BOUNDS, PM_CROUCHED_BOUNDS;
 #define PMF_TIME_TRICK_START (PMF_GAME << 13) // time until we can initiate a trick jump
 
 /**
- * @brief The mask of pm_state_t.flags affecting pm_state_t.time.
+ * @brief The mask of `pm_state_t`.flags` affecting `pm_state_t`.time`.
  */
 #define PMF_TIME_MASK ( \
   PMF_TIME_PUSHED | \

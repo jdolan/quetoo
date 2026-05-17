@@ -135,7 +135,7 @@ typedef enum {
 
 /**
  * @brief Entity bounds are to be handled by the protocol based on
- * entity_state_t.solid. Box entities encode their bounds into a 16 bit
+ * `entity_state_t`.solid`. Box entities encode their bounds into a 16 bit
  * integer. The rest simply send their respective constant.
  */
 typedef enum {
@@ -201,7 +201,7 @@ typedef struct {
   uint8_t event;
 
   /**
-   * @brief Bit mask of active visual effects (EF_ROTATE, EF_BOB, etc.).
+   * @brief Bit mask of active visual effects (`EF_ROTATE`, `EF_BOB`, etc.).
    */
   uint32_t effects;
 
@@ -285,7 +285,7 @@ typedef enum {
 /**
  * @brief The player movement state contains quantized snapshots of player
  * position, orientation, velocity and world interaction state. This should
- * be modified only through invoking Pm_Move.
+ * be modified only through invoking `Pm_Move`.
  */
 typedef struct {
   pm_type_t type;
@@ -313,7 +313,7 @@ typedef struct {
 #define MAX_STAT_BITS 32
 
 /**
- * @brief The number of inventory slots in player_state_t. Must match ITEM_TOTAL in bg_item.h.
+ * @brief The number of inventory slots in `player_state_t`. Must match `ITEM_TOTAL` in `bg_item`.h`.
  */
 #define MAX_INVENTORY 64
 
@@ -346,7 +346,7 @@ typedef struct player_state_s {
   int16_t stats[MAX_STATS];
 
   /**
-   * @brief Tag-indexed inventory counts. Index by g_item_tag_t; 0 = not carried.
+   * @brief Tag-indexed inventory counts. Index by `g_item_tag_t`; 0 = not carried.
    * Health items are not stored here (they modify entity health directly).
    */
   int16_t inventory[MAX_INVENTORY];
@@ -392,7 +392,7 @@ typedef struct {
 /**
  * @brief Autocomplete function definition. You must fill "matches"
  * with any results that match the state of the current input buffer.
- * You can fetch the current state of the typed command with the Cmd_Arg*
+ * You can fetch the current state of the typed command with the `Cmd_Arg`*
  * functions.
  *
  * @param argi The index of the argument being autocompleted.
@@ -534,7 +534,7 @@ char *vtos(const vec3_t v);
 void StrLower(const char *in, char *out);
 
 /**
- * @brief A convenience macro for printing g_entity_t pointers in debug messages.
+ * @brief A convenience macro for printing `g_entity_t` pointers in debug messages.
  */
 #define etos(e) ((e) ? va("%u: %s @ %s", (e)->s.number, (e)->classname, vtos((e)->s.origin)) : "null")
 
@@ -568,7 +568,7 @@ typedef uint16_t ai_node_id_t;
 /**
  * @brief If set, supported archives (.pk3, .pak) in search paths will be
  * automatically loaded. Set this to false for tools that require the write
- * directory, but not read access to the Quake file system (e.g quetoo-master).
+ * directory, but not read access to the Quake file system (e.g. quetoo-master).
  */
 #define FS_AUTO_LOAD_ARCHIVES 0x1
 

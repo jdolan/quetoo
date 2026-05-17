@@ -27,9 +27,9 @@
 
 /**
  * @brief The shadow atlas.
- * @details Uses a layered 2D array texture (GL_TEXTURE_2D_ARRAY) with square layers.
+ * @details Uses a layered 2D array texture (`GL_TEXTURE_2D_ARRAY`) with square layers.
  * Each layer has the same dimensions and tile layout. Lights are assigned to layers
- * sequentially: layer = light_index / lights_per_layer.
+ * sequentially: layer = `light_index` / `lights_per_layer`.
  */
 typedef struct {
 
@@ -44,7 +44,7 @@ typedef struct {
   GLuint framebuffer;
 
   /**
-   * @brief Per-layer dimensions in pixels (square: layer_size × layer_size).
+   * @brief Per-layer dimensions in pixels (square: `layer_size` × `layer_size`).
    */
   GLsizei layer_size;
 
@@ -64,7 +64,7 @@ typedef struct {
   int32_t lights_per_col;
 
   /**
-   * @brief The number of lights per layer (lights_per_row × lights_per_col).
+   * @brief The number of lights per layer (`lights_per_row` × `lights_per_col`).
    */
   int32_t lights_per_layer;
 

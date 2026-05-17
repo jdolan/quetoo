@@ -25,9 +25,9 @@
 
 /**
  * @brief Loads the BSP and all sub-models for collision detection.
- * @param name The Quake path to the .bsp file, or NULL to unload.
- * @param size If non-NULL, receives the file size for compatibility checking.
- * @return The world inline model (model 0), or NULL on failure.
+ * @param name The Quake path to the .bsp file, or `NULL` to unload.
+ * @param size If non-`NULL`, receives the file size for compatibility checking.
+ * @return The world inline model (model 0), or `NULL` on failure.
  */
 cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size);
 

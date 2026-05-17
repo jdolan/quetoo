@@ -29,7 +29,7 @@ static const r_image_t *cg_health_icons[4]; // indexed by health threshold
 
 /**
  * @brief Initializes the inventory cache (weapon icons, ammo tags, models, armor/health icons).
- * Called once per map load from Cg_LoadHudMedia.
+ * Called once per map load from `Cg_LoadHudMedia`.
  */
 void Cg_InitInventory(void) {
 
@@ -74,7 +74,7 @@ bool Cg_HasWeapon(const player_state_t *ps) {
 }
 
 /**
- * @brief Returns the active weapon index into cg_weapons[], or WEAPON_SELECT_OFF.
+ * @brief Returns the active weapon index into `cg_weapons[]`, or `WEAPON_SELECT_OFF`.
  * Prefers the weapon being switched to over the one currently equipped.
  */
 int16_t Cg_ActiveWeapon(const player_state_t *ps) {
@@ -108,7 +108,7 @@ int16_t Cg_ActiveAmmo(const player_state_t *ps) {
 
 /**
  * @brief Returns the icon for the player's current armor based on inventory.
- * Mirrors G_ClientArmor: returns the highest-priority armor in inventory.
+ * Mirrors `G_ClientArmor`: returns the highest-priority armor in inventory.
  */
 const r_image_t *Cg_ArmorIcon(const player_state_t *ps) {
 
@@ -122,7 +122,7 @@ const r_image_t *Cg_ArmorIcon(const player_state_t *ps) {
 
 /**
  * @brief Returns the health icon appropriate for the given health value,
- * mirroring the server-side G_ClientStats health icon selection.
+ * mirroring the server-side `G_ClientStats` health icon selection.
  */
 const r_image_t *Cg_HealthIcon(int16_t health) {
 

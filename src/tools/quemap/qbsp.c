@@ -89,7 +89,7 @@ static void ProcessWorldModel(const entity_t *e, bsp_model_t *out) {
 }
 
 /**
- * @brief Compiles a brush entity as an inline BSP model (e.g. func_door, func_plat).
+ * @brief Compiles a brush entity as an inline BSP model (e.g. `func_door`, `func_plat`).
  */
 static void ProcessInlineModel(const entity_t *e, bsp_model_t *out) {
 

@@ -384,7 +384,7 @@ static void G_Ai_Node_UpdateCosts(const ai_node_id_t id) {
 }
 
 /**
- * @brief Returns false if any func_plat covering position is not at its bottom (accessible) state.
+ * @brief Returns false if any `func_plat` covering position is not at its bottom (accessible) state.
  * Bots should not attempt to path to nodes on an elevated platform.
  */
 static bool G_Ai_PlatformAccessible(const vec3_t position) {

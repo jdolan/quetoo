@@ -155,7 +155,7 @@ void Cg_LoadEntities(void) {
 }
 
 /**
- * @brief Frees the client-side entity array and sets the pointer to NULL.
+ * @brief Frees the client-side entity array and sets the pointer to `NULL`.
  */
 void Cg_FreeEntities(void) {
 

@@ -109,7 +109,7 @@ static SDL_Surface *R_LoadMaterialSurface(int32_t w, int32_t h, const char *path
 }
 
 /**
- * @brief Creates a solid-color SDL_Surface of the given dimensions.
+ * @brief Creates a solid-color `SDL_Surface` of the given dimensions.
  */
 static SDL_Surface *R_CreateMaterialSurface(int32_t w, int32_t h, color32_t color) {
 

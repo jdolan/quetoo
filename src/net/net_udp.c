@@ -178,8 +178,8 @@ static bool Net_SendDatagramToAddr(int32_t sock, const net_sockaddr *to_addr, co
 
 /**
  * @brief Sends a broadcast datagram by enumerating interfaces and sending to
- * each interface's subnet-directed broadcast address. This avoids EHOSTUNREACH,
- * which occurs when sending to 255.255.255.255 on a socket bound to INADDR_ANY
+ * each interface's subnet-directed broadcast address. This avoids `EHOSTUNREACH`,
+ * which occurs when sending to 255.255.255.255 on a socket bound to `INADDR_ANY`
  * because the kernel cannot determine the outgoing interface.
  */
 static bool Net_SendBroadcastDatagram(int32_t sock, const net_addr_t *to, const void *data, size_t len) {
@@ -262,7 +262,7 @@ void Net_Sleep(uint32_t msec) {
 }
 
 /**
- * @brief Opens or closes the managed UDP socket for the given net_src_t. The
+ * @brief Opens or closes the managed UDP socket for the given `net_src_t`. The
  * interface and port are resolved from immutable console variables, optionally
  * set at the command line.
  */

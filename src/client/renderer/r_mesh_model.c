@@ -22,7 +22,7 @@
 #include "r_local.h"
 
 /**
- * @brief Loads the specified r_mesh_config_t from the file at path.
+ * @brief Loads the specified `r_mesh_config_t` from the file at path.
  */
 static void R_LoadMeshConfig(r_mesh_config_t *config, const char *path) {
   void *buf;

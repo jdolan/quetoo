@@ -81,7 +81,7 @@ static void Sv_Heartbeat_f(void) {
 }
 
 /**
- * @brief Sets sv_client and sv_player to the player identified by Cmd_Argv(1).
+ * @brief Sets `sv_client` and `sv_player` to the player identified by `Cmd_Argv(1)`.
  */
 static bool Sv_SetPlayer(void) {
   sv_client_t *cl;

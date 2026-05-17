@@ -291,7 +291,7 @@ cmd_t *Cmd_Get(const char *name) {
 }
 
 /**
- * @brief GCompareFunc for Cmd_Enumerate.
+ * @brief GCompareFunc for `Cmd_Enumerate`.
  */
 static gint Cmd_Enumerate_comparator(gconstpointer a, const gconstpointer b) {
   return g_ascii_strcasecmp(((const cmd_t *) a)->name, ((const cmd_t *) b)->name);
@@ -482,7 +482,7 @@ static const char *Cmd_Stringify(const cmd_t *cmd) {
 static char cmd_complete_pattern[MAX_STRING_CHARS];
 
 /**
- * @brief Enumeration helper for Cmd_CompleteCommand.
+ * @brief Enumeration helper for `Cmd_CompleteCommand`.
  */
 static void Cmd_CompleteCommand_enumerate(cmd_t *cmd, void *data) {
   GList **matches = (GList **) data;
@@ -540,7 +540,7 @@ void Cmd_ExecuteString(const char *text) {
 }
 
 /**
- * @brief Enumeration helper for Cmd_Alias_f.
+ * @brief Enumeration helper for `Cmd_Alias_f`.
  */
 static void Cmd_Alias_f_enumerate(cmd_t *cmd, void *data) {
 
@@ -588,7 +588,7 @@ static void Cmd_Alias_f(void) {
 }
 
 /**
- * @brief Enumeration helper for Cmd_List_f.
+ * @brief Enumeration helper for `Cmd_List_f`.
  */
 static void Cmd_List_f_enumerate(cmd_t *cmd, void *data) {
   GSList **list = (GSList **) data;
@@ -621,7 +621,7 @@ static void Cmd_Exec_Autocomplete_f(const uint32_t argi, GList **matches) {
 }
 
 /**
- * @brief Executes the specified script file (e.g autoexec.cfg).
+ * @brief Executes the specified script file (e.g. `autoexec.cfg`).
  */
 static void Cmd_Exec_f(void) {
   char path[MAX_QPATH];

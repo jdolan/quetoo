@@ -533,7 +533,7 @@ void Cm_ClipWinding(cm_winding_t **in_out, const vec3_t normal, double dist, dou
  * @param clip The winding whose edges define the clipping region.
  * @param normal The shared plane normal (must match for both windings).
  * @param epsilon The epsilon for plane distance tests.
- * @return The clipped winding, or NULL if fully clipped away.
+ * @return The clipped winding, or `NULL` if fully clipped away.
  * @remarks The input winding is NOT freed. The returned winding must be freed by caller.
  */
 cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t *clip, const vec3_t normal, double epsilon) {
@@ -567,7 +567,7 @@ cm_winding_t *Cm_ClipWindingToWinding(const cm_winding_t *in, const cm_winding_t
  * @brief If two polygons share a common edge and the edges that meet at the
  * common points are both inside the other polygons, merge them
  *
- * Returns NULL if the faces couldn't be merged, or the new face.
+ * Returns `NULL` if the faces couldn't be merged, or the new face.
  * The originals will NOT be freed.
  */
 cm_winding_t *Cm_MergeWindings(const cm_winding_t *a, const cm_winding_t *b, const vec3_t normal) {
@@ -769,7 +769,7 @@ float Cm_TriangleArea(const vec3_t a, const vec3_t b, const vec3_t c) {
 
 /**
 * @brief Calculates barycentric coordinates for p in the triangle defined by a, b and c.
-* @remarks The max_area checks ensure that p is (approximately) inside the triangle abc.
+* @remarks The `max_area` checks ensure that p is (approximately) inside the triangle abc.
 * @see https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 */
 float Cm_Barycentric(const vec3_t a, const vec3_t b, const vec3_t c, const vec3_t p, vec3_t *out) {

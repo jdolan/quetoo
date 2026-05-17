@@ -79,7 +79,7 @@ static struct {
 
 /**
  * @brief Computes the tile origin within a layer for a given light index and face.
- * @details Uses the local index (light_index % lights_per_layer) so that tile
+ * @details Uses the local index (`light_index` % `lights_per_layer`) so that tile
  * positions repeat across layers.
  */
 static void R_ShadowAtlasTile(int32_t light_index, int32_t face, GLint *x, GLint *y) {
@@ -172,7 +172,7 @@ static void R_CullBspEntitiesForShadow(const r_view_t *view, const r_light_t *li
 
 /**
  * @brief Draws BSP entity shadows for the specified light.
- * @details Iterates the pre-culled list built by R_CullBspEntitiesForShadow().
+ * @details Iterates the pre-culled list built by `R_CullBspEntitiesForShadow`.
  */
 static void R_DrawBspEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
@@ -278,7 +278,7 @@ static void R_CullMeshEntitiesForShadow(const r_view_t *view, const r_light_t *l
 
 /**
  * @brief Draws mesh entity shadows for the specified light.
- * @details Iterates the pre-culled list built by R_CullMeshEntitiesForShadow().
+ * @details Iterates the pre-culled list built by `R_CullMeshEntitiesForShadow`.
  */
 static void R_DrawMeshEntitiesShadow(const r_view_t *view, const r_light_t *light) {
 
@@ -465,7 +465,7 @@ static void R_InitShadowProgram(void) {
  * block of `tile_size` faces. Layers are forced square by choosing
  * `lights_per_col = lights_per_row * 3 / 2`.
  *
- * Sizing per `r_shadow_tile_size` (with MAX_LIGHTS = 576):
+ * Sizing per `r_shadow_tile_size` (with `MAX_LIGHTS` = 576):
  *
  *   tile  lights/row  lights/layer  layers  layer_size  total depth mem
  *   ----  ----------  ------------  ------  ----------  ---------------

@@ -22,7 +22,7 @@
 #include "cm_manifest.h"
 
 /**
- * @brief Computes the MD5 hex digest of the given data.
+ * @brief Computes the `MD5` hex digest of the given data.
  */
 static void Cm_Md5Hex(const void *data, size_t len, char *hex, size_t hex_size) {
 
@@ -40,7 +40,7 @@ GHashTable *Cm_AllocManifest(void) {
 }
 
 /**
- * @brief Inserts an entry into a manifest table, computing the MD5 checksum of the given data.
+ * @brief Inserts an entry into a manifest table, computing the `MD5` checksum of the given data.
  */
 void Cm_AddManifestEntry(GHashTable *manifest, const char *path, const void *data, size_t len) {
 

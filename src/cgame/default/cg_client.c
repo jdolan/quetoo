@@ -194,7 +194,7 @@ static bool Cg_LoadClientModel(cg_client_info_t *ci, const char *model, const ch
 
 /**
  * @brief Resolves the player name, model and skins for the specified user info string.
- * If validation fails, we fall back on the DEFAULT_CLIENT_INFO constant.
+ * If validation fails, we fall back on the `DEFAULT_CLIENT_INFO` constant.
  */
 void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
   const char *t;

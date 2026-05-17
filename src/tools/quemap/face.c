@@ -49,7 +49,7 @@ void FreeFace(face_t *f) {
 /**
  * @brief Merges the two faces if they share a brush side, plane, and common edge.
  *
- * @return NULL if the faces couldn't be merged, or the new face.
+ * @return `NULL` if the faces couldn't be merged, or the new face.
  * @remark The originals will NOT be freed.
  */
 face_t *MergeFaces(face_t *a, face_t *b) {
@@ -191,7 +191,7 @@ static void AddVertexToWeldingSpatialHash(const vec3_t v, const int32_t index) {
 int32_t num_welds = 0;
 
 /**
- * @brief Searches the welding spatial hash for an existing vertex within VERTEX_EPSILON of the input, returning it in out.
+ * @brief Searches the welding spatial hash for an existing vertex within `VERTEX_EPSILON` of the input, returning it in out.
  */
 static void FindWeldingSpatialHashPoint(const vec3_t in, vec3_t *out) {
   static const int32_t offsets[] = { 0, 1, -1 };

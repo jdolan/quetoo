@@ -59,7 +59,7 @@ static void Cl_CgameWarn(const char *func, const char *fmt, ...) {
 }
 
 /**
- * @brief Handle a client game error. This wraps Com_Error, always emitting ERROR_DROP.
+ * @brief Handle a client game error. This wraps `Com_Error`, always emitting `ERROR_DROP`.
  */
 static void Cl_CgameError(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
 static void Cl_CgameError(const char *func, const char *fmt, ...) {

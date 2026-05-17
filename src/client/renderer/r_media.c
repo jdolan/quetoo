@@ -49,7 +49,7 @@ void R_EnumerateMedia(R_MediaEnumerator enumerator, void *data) {
 }
 
 /**
- * @brief R_MediaEnumerator for R_ListMedia_f.
+ * @brief `R_MediaEnumerator` for `R_ListMedia_f`.
  */
 static void R_ListMedia_enumerator(const r_media_t *media, void *data) {
   Com_Print("%s\n", media->name);
@@ -134,7 +134,7 @@ r_media_t *R_FindMedia(const char *name, r_media_type_t type) {
 }
 
 /**
- * @brief Returns a newly allocated r_media_t with the specified name.
+ * @brief Returns a newly allocated `r_media_t` with the specified name.
  * @param size The number of bytes to allocate for the media.
  * @return The newly initialized media.
  */
@@ -153,7 +153,7 @@ r_media_t *R_AllocMedia(const char *name, size_t size, r_media_type_t type) {
 }
 
 /**
- * @brief GHRFunc for freeing media. If data is non-NULL, then the media is
+ * @brief GHRFunc for freeing media. If data is non-`NULL`, then the media is
  * always freed. Otherwise, only media with stale seed values and no explicit
  * retainment are freed.
  */

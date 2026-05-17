@@ -421,7 +421,7 @@ static void FloodPortals_r(node_t *node, int32_t occupied) {
 }
 
 /**
- * @return True if the entity can be placed in a valid leaf beneath head_node, false otherwise.
+ * @return True if the entity can be placed in a valid leaf beneath `head_node`, false otherwise.
  */
 static bool PlaceOccupant(node_t *head_node, const vec3_t origin, const entity_t *occupant) {
 
@@ -632,7 +632,7 @@ void FindPortalBrushSides(tree_t *tree) {
 }
 
 /**
- * @brief Creates a face from the portal's winding for the given portal side, or NULL if the portal is not a visible boundary.
+ * @brief Creates a face from the portal's winding for the given portal side, or `NULL` if the portal is not a visible boundary.
  */
 static face_t *FaceFromPortal(portal_t *p, int32_t pside) {
 

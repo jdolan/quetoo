@@ -657,7 +657,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Vec3(float x, float y,
 
 /**
  * @return A `vec3_t` from the specified bytes.
- * @see `Vec3_Bytes`
+ * @see Vec3_Bytes
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Vec3bv(const byte *bytes) {
   return Vec3(

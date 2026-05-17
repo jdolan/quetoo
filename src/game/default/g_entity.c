@@ -691,7 +691,7 @@ gint G_worldspawn_MusicShuffle(gconstpointer a, gconstpointer b) {
 }
 
 /**
- * @brief Fs_Enumerator to collect music track names.
+ * @brief `Fs_Enumerator` to collect music track names.
  */
 static void G_worldspawn_EnumerateMusic(const char *path, void *data) {
   GArray *tracks = (GArray *) data;

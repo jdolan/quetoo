@@ -424,7 +424,7 @@ static void LightWorld(void) {
 }
 
 /**
- * @brief LIGHT stage entry point: loads the BSP, builds and bakes all lights, and writes the updated BSP.
+ * @brief `LIGHT` stage entry point: loads the BSP, builds and bakes all lights, and writes the updated BSP.
  */
 int32_t LIGHT_Main(void) {
 

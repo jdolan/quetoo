@@ -250,7 +250,7 @@ void Cg_LoadFlares(void) {
 }
 
 /**
- * @brief Frees the flare array and sets the pointer to NULL.
+ * @brief Frees the flare array and sets the pointer to `NULL`.
  */
 void Cg_FreeFlares(void) {
 

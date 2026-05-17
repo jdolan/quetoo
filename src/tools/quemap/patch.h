@@ -115,12 +115,12 @@ typedef struct patch_s {
   int32_t material;
 
   /**
-   * @brief The CONTENTS_* mask.
+   * @brief The `CONTENTS_`* mask.
    */
   int32_t contents;
 
   /**
-   * @brief The SURF_* mask.
+   * @brief The `SURF_`* mask.
    */
   int32_t surface;
 

@@ -73,7 +73,7 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
 }
 
 /**
- * @brief Gives the client the weapon item if eligible, staying it in place if g_weapon_stay is set.
+ * @brief Gives the client the weapon item if eligible, staying it in place if `g_weapon_stay` is set.
  * @return True if the weapon was successfully picked up, false otherwise.
  */
 bool G_PickupWeapon(g_client_t *cl, g_entity_t *ent) {

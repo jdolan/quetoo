@@ -63,17 +63,17 @@ static bool GlobMatchStar(const char *pattern, const char *text, const glob_flag
  *
  * A match means the entire string TEXT is used up in matching.
  *
- * In the pattern string, `*' matches any sequence of characters,
- * `?' matches any character, [SET] matches any character in the specified set,
+ * In the pattern string, `*` matches any sequence of characters,
+ * `?` matches any character, [SET] matches any character in the specified set,
  * [!SET] matches any character not in the specified set.
  *
  * A set is composed of characters or ranges; a range looks like
  * character hyphen character(as in 0-9 or A-Z).
- * [0-9a-zA-Z_] is the set of characters allowed in C identifiers.
+ * `[0-9a-zA-Z_]` is the set of characters allowed in C identifiers.
  * Any other character in the pattern must be matched exactly.
  *
- * To suppress the special syntactic significance of any of `[]*?!-\',
- * and match the character exactly, precede it with a `\'.
+ * To suppress the special syntactic significance of any of []`*?!-\`,
+ * and match the character exactly, precede it with a `\`.
  */
 bool GlobMatch(const char *pattern, const char *text, const glob_flags_t flags) {
   const char *p = pattern, *t = text;
@@ -290,7 +290,7 @@ bool StrIsEmoji(const char *c) {
 }
 
 /**
- * @return A color_t for the color specified escape sequence.
+ * @return A `color_t` for the color specified escape sequence.
  */
 color_t ColorEsc(int32_t esc) {
   switch (esc) {
@@ -427,7 +427,7 @@ int32_t StrrColor(const char *s) {
 }
 
 /**
- * @brief A shorthand g_snprintf into a statically allocated buffer. Several
+ * @brief A shorthand `g_snprintf` into a statically allocated buffer. Several
  * buffers are maintained internally so that nested va()'s are safe within
  * reasonable limits. This function is not thread safe.
  */
@@ -679,14 +679,14 @@ bool InfoString_Set(char *s, const char *key, const char *value) {
 }
 
 /**
- * @brief Case-insensitive version of g_str_equal
+ * @brief Case-insensitive version of `g_str_equal`
  */
 gboolean g_stri_equal(gconstpointer v1, gconstpointer v2) {
   return g_ascii_strcasecmp((const gchar *) v1, (const gchar *) v2) == 0;
 }
 
 /**
- * @brief Case-insensitive version of g_str_hash
+ * @brief Case-insensitive version of `g_str_hash`
  */
 guint g_stri_hash(gconstpointer v) {
   guint32 h = 5381;

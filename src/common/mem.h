@@ -36,7 +36,7 @@ char *Mem_CopyString(const char *in);
 void Mem_Check(void *p);
 
 /**
- * @brief Struct used for return values of Mem_Stats
+ * @brief Struct used for return values of `Mem_Stats`
  */
 typedef struct {
   mem_tag_t  tag; // tag

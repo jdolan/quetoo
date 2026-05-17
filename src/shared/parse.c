@@ -395,7 +395,7 @@ bool Parse_Token(parser_t *parser, const parse_flags_t flags, char *output, cons
 }
 
 /**
- * @brief Get byte size for parse_type_t
+ * @brief Get byte size for `parse_type_t`
  */
 static size_t Parse_TypeSize(const parse_type_t type) {
 
@@ -467,7 +467,7 @@ static bool Parse_TypeParse(const parse_type_t type, const char *input, void *ou
 static __thread char scratch[3 + DBL_MANT_DIG - DBL_MIN_EXP + 1]; // enough to hold one full double plus \0
 
 /**
- * @brief Parse typed data out of the parser with the specified parse flags. You may pass NULL as the output
+ * @brief Parse typed data out of the parser with the specified parse flags. You may pass `NULL` as the output
  * if you only wish to verify that the data can be parsed and not actually store the results.
  * @return The number of primitives successfully parsed.
  */

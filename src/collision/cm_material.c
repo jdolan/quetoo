@@ -656,7 +656,7 @@ static cm_material_t *Cm_AllocMaterial(const char *name, cm_asset_context_t cont
  * @brief Loads a material by name, allocating it and parsing its .mat file if one exists.
  * @param name The material name (e.g. "common/caulk" for textures).
  * @param context The asset context for path resolution.
- * @return The material (always non-NULL).
+ * @return The material (always non-`NULL`).
  */
 cm_material_t *Cm_LoadMaterial(const char *name, cm_asset_context_t context) {
 

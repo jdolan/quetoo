@@ -58,7 +58,7 @@ void S_GetError_(const char *function, const char *msg) {
 }
 
 /**
- * @brief Returns the size of the SDL_IOStream for use as a libsndfile virtual file length callback.
+ * @brief Returns the size of the `SDL_IOStream` for use as a libsndfile virtual file length callback.
  */
 static sf_count_t S_RWops_get_filelen(void *user_data) {
   SDL_IOStream *rwops = (SDL_IOStream *) user_data;
@@ -66,7 +66,7 @@ static sf_count_t S_RWops_get_filelen(void *user_data) {
 }
 
 /**
- * @brief Seeks the SDL_IOStream for use as a libsndfile virtual seek callback.
+ * @brief Seeks the `SDL_IOStream` for use as a libsndfile virtual seek callback.
  */
 static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
   SDL_IOStream *rwops = (SDL_IOStream *) user_data;
@@ -74,7 +74,7 @@ static sf_count_t S_RWops_seek(sf_count_t offset, int whence, void *user_data) {
 }
 
 /**
- * @brief Reads from the SDL_IOStream for use as a libsndfile virtual read callback.
+ * @brief Reads from the `SDL_IOStream` for use as a libsndfile virtual read callback.
  */
 static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
   SDL_IOStream *rwops = (SDL_IOStream *) user_data;
@@ -82,7 +82,7 @@ static sf_count_t S_RWops_read(void *ptr, sf_count_t count, void *user_data) {
 }
 
 /**
- * @brief Writes to the SDL_IOStream for use as a libsndfile virtual write callback.
+ * @brief Writes to the `SDL_IOStream` for use as a libsndfile virtual write callback.
  */
 static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_data) {
   SDL_IOStream *rwops = (SDL_IOStream *) user_data;
@@ -90,7 +90,7 @@ static sf_count_t S_RWops_write(const void *ptr, sf_count_t count, void *user_da
 }
 
 /**
- * @brief Returns the current position of the SDL_IOStream for use as a libsndfile virtual tell callback.
+ * @brief Returns the current position of the `SDL_IOStream` for use as a libsndfile virtual tell callback.
  */
 static sf_count_t S_RWops_tell(void *user_data) {
   SDL_IOStream *rwops = (SDL_IOStream *) user_data;
@@ -98,7 +98,7 @@ static sf_count_t S_RWops_tell(void *user_data) {
 }
 
 /**
- * @brief An interface to SDL_IOStream for libsndfile
+ * @brief An interface to `SDL_IOStream` for libsndfile
  */
 SF_VIRTUAL_IO s_rwops_io = {
   .get_filelen = S_RWops_get_filelen,
@@ -250,7 +250,7 @@ void S_RenderStage(const s_stage_t *stage) {
 }
 
 /**
- * @brief Console command wrapper that calls S_Stop to silence all active channels.
+ * @brief Console command wrapper that calls `S_Stop` to silence all active channels.
  */
 static void S_Stop_f(void) {
   S_Stop();

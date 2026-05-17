@@ -84,12 +84,12 @@ typedef struct brush_side_s {
   vec4_t axis[2];
 
   /**
-   * @brief The CONTENTS_* mask.
+   * @brief The `CONTENTS_`* mask.
    */
   int32_t contents;
 
   /**
-   * @brief The SURF_* mask.
+   * @brief The `SURF_`* mask.
    */
   int32_t surface;
 
@@ -140,7 +140,7 @@ typedef struct brush_s {
   int32_t brush;
 
   /**
-   * @brief The combined CONTENTS_* mask (bitwise OR) of all sides of this brush.
+   * @brief The combined `CONTENTS_`* mask (bitwise OR) of all sides of this brush.
    */
   int32_t contents;
 

@@ -114,7 +114,7 @@ struct cg_entity_s {
   uint32_t next_think;
 
   /**
-   * @brief Randomization of next_think.
+   * @brief Randomization of `next_think`.
    */
   float hz, drift;
 

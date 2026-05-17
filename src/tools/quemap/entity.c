@@ -56,7 +56,7 @@ const char *ValueForKey(const entity_t *ent, const char *key, const char *def) {
 }
 
 /**
- * @brief Returns the vec3_t value for the given key on the entity, or def if not found or not parseable.
+ * @brief Returns the `vec3_t` value for the given key on the entity, or def if not found or not parseable.
  */
 vec3_t VectorForKey(const entity_t *ent, const char *key, const vec3_t def) {
 

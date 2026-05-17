@@ -105,10 +105,10 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
 
 /**
  * @brief Searches all active entities for the next one that holds the matching string
- * at field offset (use the ELOFS() macro) in the structure.
+ * at field offset (use the `ELOFS` macro) in the structure.
  *
- * Searches beginning at the entity after from, or the beginning if NULL
- * NULL will be returned if the end of the list is reached.
+ * Searches beginning at the entity after from, or the beginning if `NULL`
+ * `NULL` will be returned if the end of the list is reached.
  *
  * Example:
  *   `G_Find(NULL, EOFS(classname), "info_player_deathmatch")`
@@ -456,7 +456,7 @@ g_gameplay_t G_GameplayByName(const char *c) {
 
 /**
  * @brief Finds a team by name, performing a case-insensitive strip-compare.
- * @return The matching team, or NULL if not found.
+ * @return The matching team, or `NULL` if not found.
  */
 g_team_t *G_TeamByName(const char *c) {
 
@@ -475,7 +475,7 @@ g_team_t *G_TeamByName(const char *c) {
 }
 
 /**
- * @brief Returns the team that owns the given flag entity, or NULL if the entity is not a flag.
+ * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
  */
 g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 
@@ -498,7 +498,7 @@ g_team_t *G_TeamForFlag(const g_entity_t *ent) {
 }
 
 /**
- * @brief Returns the flag entity currently placed for the given team, or NULL if CTF is off.
+ * @brief Returns the flag entity currently placed for the given team, or `NULL` if CTF is off.
  */
 g_entity_t *G_FlagForTeam(const g_team_t *t) {
 
@@ -522,7 +522,7 @@ int32_t G_EffectForTeam(const g_team_t *t) {
 }
 
 /**
- * @brief Get the flag a player is holding, or NULL if we're not a flag-bearer.
+ * @brief Get the flag a player is holding, or `NULL` if we're not a flag-bearer.
  */
 const g_item_t *G_GetFlag(const g_client_t *cl) {
 
@@ -559,7 +559,7 @@ size_t G_TeamSize(const g_team_t *team) {
 
 /**
  * @brief Returns the team with the fewest players, used for auto-assignment.
- * @return The smallest team, or NULL if no teams are active.
+ * @return The smallest team, or `NULL` if no teams are active.
  */
 g_team_t *G_SmallestTeam(void) {
 
@@ -580,7 +580,7 @@ g_team_t *G_SmallestTeam(void) {
 
 /**
  * @brief Finds a client by name using a case-insensitive strip-compare.
- * @return The best-matching client, or NULL if not found.
+ * @return The best-matching client, or `NULL` if not found.
  */
 g_client_t *G_ClientByName(char *name) {
 
@@ -599,7 +599,7 @@ g_client_t *G_ClientByName(char *name) {
 }
 
 /**
- * @return Get the g_hook_style_t this string describes.
+ * @return Get the `g_hook_style_t` this string describes.
  */
 g_hook_style_t G_HookStyleByName(const char *s) {
   

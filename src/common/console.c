@@ -67,7 +67,7 @@ static console_string_t *Con_AllocString(int32_t level, const char *string) {
 }
 
 /**
- * @brief Frees the specified console_str_t.
+ * @brief Frees the specified `console_str_t`.
  */
 static void Con_FreeString(console_string_t *str) {
 
@@ -78,21 +78,21 @@ static void Con_FreeString(console_string_t *str) {
 }
 
 /**
- * @brief GFunc flavor of Con_FreeString.
+ * @brief GFunc flavor of `Con_FreeString`.
  */
 static void Con_FreeString_GFunc(gpointer data, gpointer user_data) {
   Con_FreeString(data);
 }
 
 /**
- * @brief GDestroyNotify flavor of Con_FreeString.
+ * @brief GDestroyNotify flavor of `Con_FreeString`.
  */
 static void Con_FreeString_GDestroyNotify(gpointer data) {
   Con_FreeString(data);
 }
 
 /**
- * @brief Frees all console_str_t.
+ * @brief Frees all `console_str_t`.
  */
 static void Con_FreeStrings(void) {
 
@@ -284,7 +284,7 @@ size_t Con_Wrap(const char *chars, size_t line_width, char **lines, size_t max_l
 }
 
 /**
- * @brief Tails the console, returning as many as `max_lines` in `lines.
+ * @brief Tails the console, returning as many as `max_lines` in `lines`.
  *
  * @param console The console to tail.
  * @param lines The output to store line offsets.

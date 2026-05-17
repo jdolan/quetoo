@@ -699,7 +699,7 @@ static void G_func_rotating_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
 }
 
 /**
- * @brief Toggles rotation of a func_rotating brush on or off when triggered.
+ * @brief Toggles rotation of a `func_rotating` brush on or off when triggered.
  */
 static void G_func_rotating_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {
@@ -1769,7 +1769,7 @@ void G_func_door_secret(g_entity_t *ent) {
 }
 
 /**
- * @brief Handles use activation of a func_wall, toggling its solidity on or off.
+ * @brief Handles use activation of a `func_wall`, toggling its solidity on or off.
  */
 static void G_func_wall_Use(g_entity_t *ent, g_entity_t *other,
                             g_entity_t *activator) {
@@ -1909,7 +1909,7 @@ void G_func_water(g_entity_t *ent) {
 static void G_func_train_Next(g_entity_t *ent);
 
 /**
- * @brief Called when a train arrives at a path_corner, firing pathtargets and scheduling the next segment.
+ * @brief Called when a train arrives at a `path_corner`, firing pathtargets and scheduling the next segment.
  */
 static void G_func_train_Wait(g_entity_t *ent) {
 
@@ -1954,7 +1954,7 @@ static void G_func_train_Wait(g_entity_t *ent) {
 }
 
 /**
- * @brief Advances the train to the next path_corner in its route.
+ * @brief Advances the train to the next `path_corner` in its route.
  */
 static void G_func_train_Next(g_entity_t *ent) {
   g_entity_t *target;
@@ -2013,7 +2013,7 @@ again:
 }
 
 /**
- * @brief Resumes train movement toward the current target path_corner after a stop.
+ * @brief Resumes train movement toward the current target `path_corner` after a stop.
  */
 static void G_func_train_Resume(g_entity_t *ent) {
   g_entity_t *target;
@@ -2030,7 +2030,7 @@ static void G_func_train_Resume(g_entity_t *ent) {
 }
 
 /**
- * @brief Locates the initial path_corner and positions the train at its starting origin.
+ * @brief Locates the initial `path_corner` and positions the train at its starting origin.
  */
 static void G_func_train_Find(g_entity_t *ent) {
   g_entity_t *target;
@@ -2142,7 +2142,7 @@ void G_func_train(g_entity_t *ent) {
 }
 
 /**
- * @brief Fires all targets of a func_timer and schedules the next timer tick.
+ * @brief Fires all targets of a `func_timer` and schedules the next timer tick.
  */
 static void G_func_timer_Think(g_entity_t *ent) {
 
@@ -2155,7 +2155,7 @@ static void G_func_timer_Think(g_entity_t *ent) {
 }
 
 /**
- * @brief Handles use activation of a func_timer, toggling it on or off.
+ * @brief Handles use activation of a `func_timer`, toggling it on or off.
  */
 static void G_func_timer_Use(g_entity_t *ent, g_entity_t *other,
                              g_entity_t *activator) {
@@ -2215,7 +2215,7 @@ void G_func_timer(g_entity_t *ent) {
 }
 
 /**
- * @brief Handles use activation of a func_conveyor, toggling the belt speed on or off.
+ * @brief Handles use activation of a `func_conveyor`, toggling the belt speed on or off.
  */
 static void G_func_conveyor_Use(g_entity_t *ent, g_entity_t *other,
                                 g_entity_t *activator) {

@@ -1131,7 +1131,7 @@ static bool G_PickupTech(g_client_t *cl, g_entity_t *ent) {
 }
 
 /**
- * @brief Returns the tech item currently held by the client, or NULL if none.
+ * @brief Returns the tech item currently held by the client, or `NULL` if none.
  */
 const g_item_t *G_GetTech(const g_client_t *cl) {
 
@@ -1387,7 +1387,7 @@ void G_SpawnItem(g_entity_t *ent, const g_item_t *item) {
 }
 
 /**
- * @brief The item list; allocated and initialized in G_InitItems.
+ * @brief The item list; allocated and initialized in `G_InitItems`.
  */
 g_item_t *g_items;
 

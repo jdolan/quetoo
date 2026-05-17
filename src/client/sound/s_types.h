@@ -243,7 +243,7 @@ typedef struct {
 } s_music_t;
 
 /**
- * @brief Filters used by the sound system if s_effects is enabled & supported.
+ * @brief Filters used by the sound system if `s_effects` is enabled & supported.
  */
 typedef struct {
 

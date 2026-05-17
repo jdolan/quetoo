@@ -33,7 +33,7 @@
 #define SVF_GAME      (1 << 1) // game may extend from here
 
 /**
- * @brief Filter bits to Sv_BoxEntities / gi.BoxEntities.
+ * @brief Filter bits to `Sv_BoxEntities` / `gi.BoxEntities`.
  */
 #define BOX_COLLIDE   (1 << 0) // SOLID_DEAD, SOLID_BOX, SOLID_BSP, ..
 #define BOX_OCCUPY    (1 << 1) // SOLID_TRIGGER, SOLID_PROJECTILE, ..
@@ -96,12 +96,12 @@ struct g_entity_s {
   const cm_entity_t *def;
 
   /**
-   * @brief Entity class name; guaranteed set through G_Spawn.
+   * @brief Entity class name; guaranteed set through `G_Spawn`.
    */
   const char *classname;
 
   /**
-   * @brief Model name; for SOLID_BSP entities this is the inline model name.
+   * @brief Model name; for `SOLID_BSP` entities this is the inline model name.
    */
   const char *model;
 
@@ -116,7 +116,7 @@ struct g_entity_s {
   bool in_use;
 
   /**
-   * @brief Server-specific flags bitmask (e.g. SVF_NO_CLIENT).
+   * @brief Server-specific flags bitmask (e.g. `SVF_NO_CLIENT`).
    */
   uint32_t sv_flags;
 
@@ -126,12 +126,12 @@ struct g_entity_s {
   box3_t bounds;
 
   /**
-   * @brief Server-set bounding box in world space; populated by gi.LinkEntity.
+   * @brief Server-set bounding box in world space; populated by `gi.LinkEntity`.
    */
   box3_t abs_bounds;
 
   /**
-   * @brief Server-set entity size; populated by gi.LinkEntity.
+   * @brief Server-set entity size; populated by `gi.LinkEntity`.
    */
   vec3_t size;
 
@@ -146,7 +146,7 @@ struct g_entity_s {
   g_entity_t *owner;
 
   /**
-   * @brief Non-null for client entities 1..sv_max_clients.
+   * @brief Non-null for client entities 1..`sv_max_clients`.
    */
   g_client_t *client;
 };
@@ -197,7 +197,7 @@ typedef struct g_import_s {
    */
 
   /**
-   * @param tag The tag to associate the managed block with (e.g. MEM_TAG_GAME_LEVEL).
+   * @param tag The tag to associate the managed block with (e.g. `MEM_TAG_GAME_LEVEL`).
    * @return A newly allocated block of managed memory under the given `tag`.
    */
   void *(*Malloc)(size_t size, mem_tag_t tag);
@@ -320,7 +320,7 @@ typedef struct g_import_s {
    * @brief Resolves a console variable, creating it if not found.
    * @param name The variable name.
    * @param value The variable value string.
-   * @param flags The variable flags (e.g. CVAR_ARCHIVE).
+   * @param flags The variable flags (e.g. `CVAR_ARCHIVE`).
    * @param desc The variable description for builtin console help.
    * @return The console variable.
    */
@@ -387,7 +387,7 @@ typedef struct g_import_s {
    * @brief Registers and returns a console command.
    * @param name The command name (e.g. `"wave"`).
    * @param function The command function.
-   * @param flags The command flags (e.g. CMD_CGAME).
+   * @param flags The command flags (e.g. `CMD_CGAME`).
    * @param desc The command description for builtin console help.
    * @return The console command.
    */
@@ -430,7 +430,7 @@ typedef struct g_import_s {
    * @}
    * @defgroup configstrings Configuration strings
    * @details Configuration strings are used to transmit arbitrary tokens such
-   * as model names, skin names, team names and weather effects. See CS_GAME.
+   * as model names, skin names, team names and weather effects. See `CS_GAME`.
    * @{
    */
 
@@ -489,7 +489,7 @@ typedef struct g_import_s {
    * @param entity The entity.
    * @param key The entity key.
    * @return The entity pair for the specified key within entity.
-   * @remarks This function will always return non-NULL for convenience. Check the
+   * @remarks This function will always return non-`NULL` for convenience. Check the
    * parsed types on the returned pair to differentiate "not present" from "0."
    */
   const cm_entity_t *(*EntityValue)(const cm_entity_t *entity, const char *key);
@@ -531,9 +531,9 @@ typedef struct g_import_s {
    *
    * @param start The start point.
    * @param end The end point.
-   * @param bounds The bounding box mins (optional; Box3_Zero() for a line trace).
+   * @param bounds The bounding box mins (optional; `Box3_Zero()` for a line trace).
    * @param skip The entity to skip (e.g. self) (optional).
-   * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
+   * @param contents The contents mask to intersect with (e.g. `CONTENTS_MASK_SOLID`).
    *
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
@@ -546,9 +546,9 @@ typedef struct g_import_s {
    *
    * @param start The start point.
    * @param end The end point.
-   * @param bounds The bounding box mins (optional; Box3_Zero() for a line trace).
+   * @param bounds The bounding box mins (optional; `Box3_Zero()` for a line trace).
    * @param ent The entity to clip against.
-   * @param contents The contents mask to intersect with (e.g. CONTENTS_MASK_SOLID).
+   * @param contents The contents mask to intersect with (e.g. `CONTENTS_MASK_SOLID`).
    *
    * @return The resulting trace. A fraction less than 1.0 indicates that
    * the trace intersected a plane.
@@ -575,12 +575,12 @@ typedef struct g_import_s {
 
   /**
    * @brief Populates a list of entities occupying the specified bounding
-   * box, filtered by the given type (BOX_SOLID, BOX_TRIGGER, ..).
+   * box, filtered by the given type (`BOX_SOLID`, `BOX_TRIGGER`, ..).
    *
    * @param bounds The box bounds in world space.
    * @param list The list of entities to populate.
    * @param len The maximum number of entities to return (lengthof(list)).
-   * @param type The entity type to return (BOX_SOLID, BOX_TRIGGER, ..).
+   * @param type The entity type to return (`BOX_SOLID`, `BOX_TRIGGER`, ..).
    *
    * @return The number of entities found.
    */
@@ -688,7 +688,7 @@ typedef struct g_export_s {
   void (*ClientThink)(g_client_t *cl, pm_cmd_t *cmd);
 
   /**
-   * @brief Called every QUETOO_TICK_SECONDS to advance game logic.
+   * @brief Called every `QUETOO_TICK_SECONDS` to advance game logic.
    */
   void (*Frame)(void);
 

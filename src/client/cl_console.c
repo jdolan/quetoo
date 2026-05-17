@@ -321,7 +321,7 @@ static void Cl_Backtrace_f(void) {
 }
 
 /**
- * @brief Handles the `error` console command, triggering a Com_Error with the given type.
+ * @brief Handles the `error` console command, triggering a `Com_Error` with the given type.
  */
 __attribute__((noreturn))
 static void Cl_Error_f(void) {

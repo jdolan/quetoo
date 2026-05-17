@@ -128,7 +128,7 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
 }
 
 /**
- * @brief Links a GLSL program from a NULL-terminated list of shader descriptors.
+ * @brief Links a GLSL program from a `NULL`-terminated list of shader descriptors.
  */
 GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 

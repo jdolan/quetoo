@@ -29,7 +29,7 @@ static GHashTable *paths;
 
 /**
  * @brief Forbidden extensions that must never appear in a manifest.
- * A malicious map could reference server.cfg to expose rcon_password, etc.
+ * A malicious map could reference `server.cfg` to expose `rcon_password`, etc.
  */
 static const char *forbidden_extensions[] = { ".cfg", ".rc", NULL };
 
@@ -169,7 +169,7 @@ static void AddBspMaterials(void) {
 }
 
 /**
- * @brief Fs_Enumerate callback that adds all files in a model directory.
+ * @brief `Fs_Enumerate` callback that adds all files in a model directory.
  */
 static void AddModel_enumerate(const char *path, void *data) {
 	Add(path);
@@ -244,7 +244,7 @@ static void AddDocumentation(void) {
 }
 
 /**
- * @brief Fs_Enumerate callback for mapshots.
+ * @brief `Fs_Enumerate` callback for mapshots.
  */
 static void AddMapshots_enumerate(const char *path, void *data) {
 

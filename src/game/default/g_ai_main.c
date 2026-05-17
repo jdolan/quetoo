@@ -147,7 +147,7 @@ static int32_t G_Ai_CompareItems(const void *a, const void *b) {
 #define AI_ITEM_UNREACHABLE -1.0
 
 /**
- * @brief Returns the distance to a nearby item, or AI_ITEM_UNREACHABLE if beyond awareness range.
+ * @brief Returns the distance to a nearby item, or `AI_ITEM_UNREACHABLE` if beyond awareness range.
  */
 static float G_Ai_ItemReachable(const g_client_t *cl, const g_entity_t *other) {
 

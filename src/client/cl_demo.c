@@ -22,7 +22,7 @@
 #include "cl_local.h"
 
 /**
- * @brief Writes server_data, config_strings, and baselines once a non-delta
+ * @brief Writes `server_data`, `config_strings`, and baselines once a non-delta
  * compressed frame arrives from the server.
  */
 static void Cl_WriteDemoHeader(void) {

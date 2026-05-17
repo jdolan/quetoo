@@ -32,7 +32,7 @@ static inline float Cm_DistanceToPlane(const vec3_t point, const cm_bsp_plane_t 
 }
 
 /**
- * @brief Returns the PLANE_* type constant for the given normal vector.
+ * @brief Returns the `PLANE_`* type constant for the given normal vector.
  */
 int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 
@@ -42,7 +42,7 @@ int32_t Cm_PlaneTypeForNormal(const vec3_t normal);
 int32_t Cm_SignBitsForNormal(const vec3_t normal);
 
 /**
- * @brief Constructs a cm_bsp_plane_t from a normal and distance.
+ * @brief Constructs a `cm_bsp_plane_t` from a normal and distance.
  */
 cm_bsp_plane_t Cm_Plane(const vec3_t normal, float dist);
 

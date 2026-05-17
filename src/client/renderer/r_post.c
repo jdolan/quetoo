@@ -40,11 +40,11 @@ static struct {
 /**
  * @brief Half-resolution bloom ping-pong framebuffers.
  *
- * bloom_fbo[0] receives the bloom extract pass and every second blur result.
- * bloom_fbo[1] receives every first blur result. They ping-pong across
+ * `bloom_fbo`[0] receives the bloom extract pass and every second blur result.
+ * `bloom_fbo`[1] receives every first blur result. They ping-pong across
  * the horizontal and vertical Gaussian passes.
  *
- * Stored dimensions let R_DrawPost detect viewport resizes and recreate.
+ * Stored dimensions let `R_DrawPost` detect viewport resizes and recreate.
  */
 static struct {
   GLuint name;
@@ -54,7 +54,7 @@ static struct {
 static GLint r_bloom_width, r_bloom_height;
 
 /**
- * @brief The Gaussian blur program (blur_vs.glsl + blur_fs.glsl).
+ * @brief The Gaussian blur program (`blur_vs`.glsl` + `blur_fs`.glsl`).
  */
 static struct {
   GLuint name;
@@ -63,7 +63,7 @@ static struct {
 } r_blur_program;
 
 /**
- * @brief The post-processing program (post_vs.glsl + post_fs.glsl).
+ * @brief The post-processing program (`post_vs`.glsl` + `post_fs`.glsl`).
  *
  * Handles both bloom extraction (mode 0) and bloom composite (mode 1).
  */
@@ -162,14 +162,14 @@ static void R_DestroyBloomFramebuffers(void) {
  *
  *   2. For each blur iteration:
  *      a. Horizontal Gaussian blur (blur program, axis 0):
- *         Read bloom_fbo[0], write bloom_fbo[1].
+ *         Read `bloom_fbo`[0], write `bloom_fbo`[1].
  *      b. Vertical Gaussian blur (blur program, axis 1):
- *         Read bloom_fbo[1], write bloom_fbo[0].
+ *         Read `bloom_fbo`[1], write `bloom_fbo`[0].
  *
  *   3. Bloom composite (post program, mode 1):
- *      Add the blurred bloom (bloom_fbo[0]) onto the scene color and
- *      write the result to the post attachment (GL_COLOR_ATTACHMENT1).
- *      R_BlitFramebuffer will then blit the post attachment to the screen.
+ *      Add the blurred bloom (`bloom_fbo`[0]) onto the scene color and
+ *      write the result to the post attachment (`GL_COLOR_ATTACHMENT1`).
+ *      `R_BlitFramebuffer` will then blit the post attachment to the screen.
  */
 void R_DrawPost(const r_view_t *view) {
 

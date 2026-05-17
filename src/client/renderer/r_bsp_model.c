@@ -170,7 +170,7 @@ static void R_LoadBspFaces(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_leaf_t for the specified BSP model.
+ * @brief Loads all `r_bsp_leaf_t` for the specified BSP model.
  */
 static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
   r_bsp_leaf_t *out;
@@ -187,7 +187,7 @@ static void R_LoadBspLeafs(r_bsp_model_t *bsp) {
 }
 
 /**
- * @brief Loads all r_bsp_node_t for the specified BSP model.
+ * @brief Loads all `r_bsp_node_t` for the specified BSP model.
  */
 static void R_LoadBspNodes(r_bsp_model_t *bsp) {
   r_bsp_node_t *out;

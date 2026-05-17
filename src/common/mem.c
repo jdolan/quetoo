@@ -57,7 +57,7 @@ static inline mem_footer_t *Mem_Footer(const void *data, size_t size) {
 }
 
 /**
- * @brief Throws a fatal error if the specified memory block is non-NULL but
+ * @brief Throws a fatal error if the specified memory block is non-`NULL` but
  * not owned by the memory subsystem.
  */
 static mem_block_t *Mem_CheckMagic(void *p) {
@@ -191,12 +191,12 @@ static size_t Mem_BlockSize(const size_t size) {
 }
 
 /**
- * @brief Performs the grunt work of allocating a mem_block_t and inserting it
+ * @brief Performs the grunt work of allocating a `mem_block_t` and inserting it
  * into the managed memory structures. Note that parent should be a pointer to
- * a previously allocated structure, and not to a mem_block_t.
+ * a previously allocated structure, and not to a `mem_block_t`.
  *
  * @param size The number of bytes to allocate.
- * @param tag The tag to allocate with (e.g. MEM_TAG_DEFAULT).
+ * @param tag The tag to allocate with (e.g. `MEM_TAG_DEFAULT`).
  * @param parent The parent to link this allocation to.
  *
  * @return A block of managed memory initialized to 0x0.
@@ -257,9 +257,9 @@ void *Mem_TagMalloc(size_t size, mem_tag_t tag) {
  * @brief Allocates a block of managed memory with the specified parent.
  *
  * @param size The number of bytes to allocate.
- * @param parent The parent block previously allocated through Mem_Malloc /
- * Mem_TagMalloc. The returned block will automatically be released when the
- * parent is freed through Mem_Free.
+ * @param parent The parent block previously allocated through `Mem_Malloc` /
+ * `Mem_TagMalloc`. The returned block will automatically be released when the
+ * parent is freed through `Mem_Free`.
  *
  * @return A block of managed memory initialized to 0x0.
  */
@@ -269,7 +269,7 @@ void *Mem_LinkMalloc(size_t size, void *parent) {
 
 /**
  * @brief Allocates a block of managed memory. All managed memory is freed when
- * the game exits, but may be explicitly freed with Mem_Free.
+ * the game exits, but may be explicitly freed with `Mem_Free`.
  *
  * @return A block of memory initialized to 0x0.
  */
@@ -349,8 +349,8 @@ void *Mem_Realloc(void *p, size_t size) {
  * @brief Links the specified child to the given parent. The child will
  * subsequently be freed with the parent.
  *
- * @param child The child object, previously allocated with Mem_Malloc.
- * @param parent The parent object, previously allocated with Mem_Malloc.
+ * @param child The child object, previously allocated with `Mem_Malloc`.
+ * @param parent The parent object, previously allocated with `Mem_Malloc`.
  *
  * @return The child, for convenience.
  */

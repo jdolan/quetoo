@@ -129,7 +129,7 @@ const char *Sys_UserDir(void) {
 
 /**
  * @brief Loads a shared library by name, searching the game filesystem for the .so/.dll file.
- * @return A handle to the loaded library, or aborts with ERROR_DROP on failure.
+ * @return A handle to the loaded library, or aborts with `ERROR_DROP` on failure.
  */
 void *Sys_OpenLibrary(const char *name, bool global) {
 
@@ -165,7 +165,7 @@ void Sys_CloseLibrary(void *handle) {
 
 /**
  * @brief Opens and loads the specified shared library. The function identified by
- * entry_point is resolved and invoked with the specified parameters, its
+ * `entry_point` is resolved and invoked with the specified parameters, its
  * return value returned by this function.
  */
 void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
@@ -415,7 +415,7 @@ static char sys_crash_log_path[MAX_OS_PATH];
 static int sys_crash_log_fd = -1;
 
 /**
- * @brief Ensures sys_crash_log_path is set and its directory exists.
+ * @brief Ensures `sys_crash_log_path` is set and its directory exists.
  */
 static void Sys_EnsureCrashLogPath(void) {
 
@@ -461,7 +461,7 @@ static void Sys_WriteCrashLog(const char *text) {
 
 /**
  * @brief Percent-encodes a string for use as a URL query parameter value.
- * @return Heap-allocated encoded string; caller must g_free.
+ * @return Heap-allocated encoded string; caller must `g_free`.
  */
 static gchar *Sys_UrlEncode(const char *str) {
 
@@ -516,9 +516,9 @@ void Sys_Raise(const char *msg) {
     GString *issue_body = g_string_new(NULL);
     g_string_append_printf(issue_body, "**Quetoo %s %s crash report**\n\n", VERSION, BUILD);
     g_string_append_printf(issue_body, "**Error:** %s\n\n", msg);
-    g_string_append(issue_body, "**Backtrace:**\n```\n");
+    g_string_append(issue_body, "**Backtrace:**\n``\n");
     g_string_append(issue_body, crash->str);
-    g_string_append(issue_body, "\n```\n");
+    g_string_append(issue_body, "\n``\n");
 
     gchar *encoded_body = Sys_UrlEncode(issue_body->str);
     g_string_free(issue_body, true);
@@ -589,11 +589,11 @@ volatile sig_atomic_t sys_signal_received = 0;
 /**
  * @brief Catch kernel interrupts and dispatch the appropriate exit routine.
  *
- * For graceful signals (SIGINT, SIGTERM, etc.), we set a flag and return so
- * the main loop can shut down safely — calling Com_Shutdown from signal
+ * For graceful signals (`SIGINT`, `SIGTERM`, etc.), we set a flag and return so
+ * the main loop can shut down safely — calling `Com_Shutdown` from signal
  * context risks crashing inside the GL driver or other non-reentrant code.
  *
- * For fatal signals (SIGSEGV, SIGILL, etc.), we reset to SIG_DFL and
+ * For fatal signals (`SIGSEGV`, `SIGILL`, etc.), we reset to `SIG_DFL` and
  * re-raise to produce a clean crash with a core dump.
  */
 void Sys_Signal(int32_t s) {
@@ -617,7 +617,7 @@ void Sys_Signal(int32_t s) {
 #if !defined(_WIN32)
 
 /**
- * @brief Signal handler for fatal crash signals (SIGSEGV, SIGILL, etc.).
+ * @brief Signal handler for fatal crash signals (`SIGSEGV`, `SIGILL`, etc.).
  *
  * Writes a crash log entry using only async-signal-safe functions, then
  * resets to the default handler and re-raises to produce a core dump.
@@ -675,7 +675,7 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
 /**
  * @brief Installs async-signal-safe crash handlers for fatal signals.
  *
- * Uses sigaltstack so the handler survives stack overflows, and SA_SIGINFO
+ * Uses sigaltstack so the handler survives stack overflows, and `SA_SIGINFO`
  * for access to fault context. Call once during startup, after signal().
  */
 void Sys_InitCrashSignals(void) {

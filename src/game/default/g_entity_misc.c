@@ -23,7 +23,7 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Handles touch events on a misc_teleporter, warping the touching entity to the destination.
+ * @brief Handles touch events on a `misc_teleporter`, warping the touching entity to the destination.
  */
 static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
 

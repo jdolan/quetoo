@@ -22,7 +22,7 @@
 #include "sv_local.h"
 
 /**
- * @brief Searches sv.config_strings from the specified start, searching for the
+ * @brief Searches `sv.`config_strings` from the specified start, searching for the
  * desired name. If not found, the name can be optionally created and sent to
  * all connected clients. This allows the game to lazily load assets.
  */
@@ -186,7 +186,7 @@ static void Sv_InitEntityState(void) {
 }
 
 /**
- * @brief Gracefully frees all resources allocated to svs.clients.
+ * @brief Gracefully frees all resources allocated to `svs.clients`.
  */
 static void Sv_ShutdownClients(void) {
 
@@ -228,7 +228,7 @@ static void Sv_ReconnectClients(void) {
 }
 
 /**
- * @brief Reloads svs.clients, svs.client_entities, the game programs, etc. Because
+ * @brief Reloads `svs.clients`, `svs.`client_entities`, the game programs, etc. Because
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module.
  */

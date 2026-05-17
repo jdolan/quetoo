@@ -320,7 +320,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
 }
 
 /**
- * @brief Com_Debug implementation.
+ * @brief `Com_Debug` implementation.
  */
 static void Debug(const debug_t debug, const char *msg) {
 
@@ -330,7 +330,7 @@ static void Debug(const debug_t debug, const char *msg) {
 }
 
 /**
- * @brief Com_Verbose implementation.
+ * @brief `Com_Verbose` implementation.
  */
 static void Verbose(const char *msg) {
 
@@ -340,7 +340,7 @@ static void Verbose(const char *msg) {
 }
 
 /**
- * @brief Com_Init implementation.
+ * @brief `Com_Init` implementation.
  */
 static void Init(void) {
 
@@ -350,7 +350,7 @@ static void Init(void) {
 }
 
 /**
- * @brief Com_Shutdown implementation.
+ * @brief `Com_Shutdown` implementation.
  */
 static void Shutdown(const char *msg) {
 

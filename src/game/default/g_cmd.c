@@ -427,7 +427,7 @@ void G_Mute_f(void) {
 }
 
 /**
- * @brief This is the client-specific sibling to Cvar_VariableString.
+ * @brief This is the client-specific sibling to `Cvar_VariableString`.
  */
 static const char *G_ExpandVariable(g_client_t *cl, char v) {
   int32_t i;
@@ -484,7 +484,7 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
 }
 
 /**
- * @brief Handles the say and say_team chat commands, broadcasting text to other clients.
+ * @brief Handles the say and `say_team` chat commands, broadcasting text to other clients.
  */
 static void G_Say_f(g_client_t *cl) {
   char text[MAX_STRING_CHARS];

@@ -1582,7 +1582,7 @@ void G_PlayPmove(void) {
 #endif
 
 /**
- * @brief Process the movement command, call Pm_Move and act on the result.
+ * @brief Process the movement command, call `Pm_Move` and act on the result.
  */
 static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
   vec3_t old_velocity, velocity;

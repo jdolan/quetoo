@@ -65,7 +65,7 @@ const char *Net_GetErrorString(void) {
 }
 
 /**
- * @brief Initializes the specified sockaddr_in according to the net_addr_t.
+ * @brief Initializes the specified `sockaddr_in` according to the `net_addr_t`.
  */
 void Net_NetAddrToSockaddr(const net_addr_t *a, net_sockaddr *s) {
 
@@ -96,7 +96,7 @@ bool Net_CompareClientNetaddr(const net_addr_t *a, const net_addr_t *b) {
 }
 
 /**
- * @brief Converts a net_addr_t to a "host:port" string.
+ * @brief Converts a `net_addr_t` to a "host:port" string.
  * @remarks Uses a static buffer; not reentrant.
  */
 const char *Net_NetaddrToString(const net_addr_t *a) {
@@ -108,7 +108,7 @@ const char *Net_NetaddrToString(const net_addr_t *a) {
 }
 
 /**
- * @brief Returns the IP address of a net_addr_t as a string, without port.
+ * @brief Returns the IP address of a `net_addr_t` as a string, without port.
  * @remarks Uses a static buffer; not reentrant.
  */
 const char *Net_NetaddrToIpString(const net_addr_t *a) {
@@ -156,7 +156,7 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
 }
 
 /**
- * @brief Parses the hostname and port into the specified net_addr_t.
+ * @brief Parses the hostname and port into the specified `net_addr_t`.
  */
 bool Net_StringToNetaddr(const char *s, net_addr_t *a) {
   net_sockaddr saddr;
@@ -232,7 +232,7 @@ int32_t Net_Socket(net_addr_type_t type, const char *iface, in_port_t port) {
 }
 
 /**
- * @brief Creates a non-blocking TCP listen socket with SO_REUSEADDR.
+ * @brief Creates a non-blocking TCP listen socket with `SO_REUSEADDR`.
  * @return The socket descriptor, or -1 on failure.
  */
 int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
@@ -278,7 +278,7 @@ int32_t Net_SocketListen(const char *iface, in_port_t port, int32_t backlog) {
 
 /**
  * @brief Accept a connection on a listening socket.
- * @param from If non-NULL, receives the remote address.
+ * @param from If non-`NULL`, receives the remote address.
  * @return The accepted socket descriptor, or -1 if none pending.
  */
 int32_t Net_Accept(int32_t sock, net_addr_t *from) {

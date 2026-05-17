@@ -66,7 +66,7 @@ static struct {
 } installer;
 
 /**
- * @brief Performs a blocking HTTP GET and parses an integer from the response body.
+ * @brief Performs a blocking HTTP `GET` and parses an integer from the response body.
  */
 static int32_t Installer_GetVersion(const char *version_url) {
   void *body;
@@ -192,7 +192,7 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 
 /**
  * @brief Worker thread for parallel downloads. Iterates the remote manifest for
- * PENDING entries, claims each by marking it CURRENT, then downloads it.
+ * `PENDING` entries, claims each by marking it `CURRENT`, then downloads it.
  */
 static int Installer_DownloadThread(void *unused) {
 

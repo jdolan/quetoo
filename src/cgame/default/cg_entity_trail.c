@@ -41,7 +41,7 @@ static inline void Cg_ParticleTrailLifeOffset(vec3_t start, vec3_t end, float sp
  * @brief Calculates the number of "distance" steps that have been travelled between the last recorded trail position & the end.
  * @param end The end of the trail - the current position, basically.
  * @param distance The distance that the trail should spawn particles within.
- * @param ent The entity spawning this trail. If this is NULL, "start" must be pointing to a proper start point.
+ * @param ent The entity spawning this trail. If this is `NULL`, "start" must be pointing to a proper start point.
  * @param trail The trail ID.
  * @param start The trail's output start position.
  * @param dir The trail's output direction.

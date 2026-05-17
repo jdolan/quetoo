@@ -215,7 +215,7 @@ static void Cl_Rcon_f(void) {
 }
 
 /**
- * @brief Client implementation of Cmd_ForwardToServer. Any commands not recognized
+ * @brief Client implementation of `Cmd_ForwardToServer`. Any commands not recognized
  * locally by the client will be sent to the server. Some will undergo parameter
  * expansion so that players can use macros for locations, weapons, etc.
  */
@@ -271,7 +271,7 @@ void Cl_SendDisconnect(void) {
 
 /**
  * @brief Sends a disconnect message to the current server, stops any pending
- * demo recording, and updates cls.state so that we drop to console.
+ * demo recording, and updates `cls.state` so that we drop to console.
  */
 void Cl_Disconnect(void) {
 
@@ -346,7 +346,7 @@ void Cl_Reconnect_f(void) {
 }
 
 /**
- * @brief Tells the cgame to show the last ERROR_DROP message.
+ * @brief Tells the cgame to show the last `ERROR_DROP` message.
  */
 void Cl_Drop(const char *text) {
   //cls.cgame->Dialog(text, "Ok", "Reconnect", Cl_Reconnect_f);
@@ -490,7 +490,7 @@ static const char *Cl_Username(void) {
 }
 
 /**
- * @brief Writes key bindings and archived cvars to quetoo.cfg.
+ * @brief Writes key bindings and archived cvars to `quetoo.cfg`.
  */
 static void Cl_WriteConfiguration(void) {
   file_t *f;
