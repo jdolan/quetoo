@@ -59,12 +59,14 @@ void sprite_fragment_lighting(void) {
 
   vec3 diffuse = vec3(0.0);
 
-  ivec3 voxel = voxel_xyz(in_position);
-  ivec2 data = voxel_light_data(voxel);
+  if (editor == 0) {
+    ivec3 voxel = voxel_xyz(in_position);
+    ivec2 data = voxel_light_data(voxel);
 
-  for (int i = 0; i < data.y; i++) {
-    int index = voxel_light_index(data.x + i);
-    diffuse += sprite_fragment_lighting_light(index);
+    for (int i = 0; i < data.y; i++) {
+      int index = voxel_light_index(data.x + i);
+      diffuse += sprite_fragment_lighting_light(index);
+    }
   }
 
   for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
