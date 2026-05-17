@@ -21,6 +21,8 @@
 
 #include "cg_local.h"
 
+#include <SDL3_image/SDL_image.h>
+
 #include "DialogViewController.h"
 #include "UpdateViewController.h"
 
@@ -90,7 +92,32 @@ static void fetchHeroImages(void *data) {
 
 	for (guint i = 0; i < urls->len; i++) {
 		if (cgi.HttpGet(urls->pdata[i], &image_body, &image_length) == 200) {
-			Image *image = $$(Image, imageWithBytes, image_body, image_length);
+			Image *image = NULL;
+
+			SDL_IOStream *io = SDL_IOFromConstMem(image_body, (int32_t) image_length);
+			if (io) {
+				SDL_Surface *surf = IMG_Load_IO(io, false);
+				SDL_CloseIO(io);
+
+				if (surf) {
+					if (surf->format != SDL_PIXELFORMAT_RGBA32) {
+						SDL_Surface *converted = SDL_ConvertSurface(surf, SDL_PIXELFORMAT_RGBA32);
+						SDL_DestroySurface(surf);
+						surf = converted;
+					}
+
+					if (surf) {
+						cgi.BlurSurface(surf, 3);
+						image = $$(Image, imageWithSurface, surf);
+						SDL_DestroySurface(surf);
+					}
+				}
+			}
+
+			if (image == NULL) {
+				image = $$(Image, imageWithBytes, image_body, image_length);
+			}
+
 			if (image) {
 				SDL_LockMutex(this->pendingImagesLock);
 				$(this->pendingImages, addObject, image);
