@@ -75,6 +75,30 @@ SDL_Surface *Img_LoadSurface(const char *name) {
 }
 
 /**
+ * @brief Loads an image from the specified constant memory.
+ */
+SDL_Surface *Img_LoadSurfaceFromData(const void *data, size_t len) {
+
+  SDL_Surface *surf = NULL;
+
+  SDL_IOStream *io = SDL_IOFromConstMem(data, len);
+  if (io) {
+    surf = IMG_Load_IO(io, false);
+    SDL_CloseIO(io);
+
+    if (surf) {
+      if (surf->format != SDL_PIXELFORMAT_RGBA32) {
+        SDL_Surface *converted = SDL_ConvertSurface(surf, SDL_PIXELFORMAT_RGBA32);
+        SDL_DestroySurface(surf);
+        surf = converted;
+      }
+    }
+  }
+
+  return surf;
+}
+
+/**
  * @brief Resolves the average color of the pixels which exceed the highpass filter.
  */
 color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {

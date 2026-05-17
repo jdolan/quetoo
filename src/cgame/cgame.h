@@ -743,11 +743,19 @@ typedef struct cg_import_s {
   void (*DestroyFramebuffer)(r_framebuffer_t *framebuffer);
 
   /**
-   * @brief Loads the image by `name` into the SDL_Surface `surface`.
+   * @brief Loads a surface by `name` into the `SDL_Surface` `surface`.
    * @param name The image name (e.g. `"pics/ch1"`).
    * @return The surface, or `NULL` if it could not be loaded.
    */
   SDL_Surface *(*LoadSurface)(const char *name);
+
+  /**
+   * @brief Loads a surface from the given constant memory.
+   * @param data The image data.
+   * @param len The length of data.
+   * @return The surface, or `NULL` if it could not be loaded.
+   */
+  SDL_Surface *(*LoadSurfaceFromData)(const void *data, size_t len);
 
   /**
    * @brief Applies a Gaussian blur to the specified surface, in-place.
