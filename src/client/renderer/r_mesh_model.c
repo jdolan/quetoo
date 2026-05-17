@@ -273,10 +273,21 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
       remap[i] = j;
     }
 
-    // re-calculate normals for every vertex
+    // clear accumulators for this frame
     for (int32_t i = 0; i < face->num_vertexes; i++) {
+      if (remap[i] == i) {
+        face->vertexes[frame_vert_offset + i].smooth_normal = Vec3_Zero();
+      }
+    }
+
+    // re-calculate normals for every unique vertex
+    for (int32_t i = 0; i < face->num_vertexes; i++) {
+      if (remap[i] != i) {
+        continue;
+      }
+
       const uint32_t v_i = remap[i];
-      vec3_t *smooth_normal = &face->vertexes[v_i].smooth_normal;
+      vec3_t *smooth_normal = &face->vertexes[frame_vert_offset + v_i].smooth_normal;
 
       const GLuint *e = (GLuint *) face->elements;
 
@@ -295,15 +306,18 @@ static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
           num_normals[v_i]++;
         }
       }
+
+      if (num_normals[v_i]) {
+        *smooth_normal = Vec3_Normalize(Vec3_Scale(*smooth_normal, 1.f / num_normals[v_i]));
+      } else {
+        *smooth_normal = face->vertexes[frame_vert_offset + v_i].normal;
+      }
     }
 
-    // divide and normalize
-    r_mesh_vertex_t *v = face->vertexes;
-    for (int32_t i = 0; i < face->num_vertexes; i++, v++) {
-      if (remap[i] == i) {
-        v->smooth_normal = Vec3_Normalize(Vec3_Scale(v->smooth_normal, num_normals[i]));
-      } else {
-        v->smooth_normal = face->vertexes[remap[i]].smooth_normal;
+    // assign shared smooth normals to remapped vertices
+    for (int32_t i = 0; i < face->num_vertexes; i++) {
+      if (remap[i] != i) {
+        face->vertexes[frame_vert_offset + i].smooth_normal = face->vertexes[frame_vert_offset + remap[i]].smooth_normal;
       }
     }
   }
