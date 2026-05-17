@@ -89,7 +89,7 @@ void Cg_AddLight(const cg_light_t *in) {
  */
 float Cg_AnimateLight(float intensity, const char *style, float drift) {
 
-  if (*style) {
+  if (style && *style) {
     const size_t len = strlen(style);
     const uint32_t phase_offset = (uint32_t)(drift * len * 100);
     const uint32_t time = cgi.client->unclamped_time + phase_offset;

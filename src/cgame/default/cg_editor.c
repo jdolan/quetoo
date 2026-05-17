@@ -71,6 +71,7 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   light.radius = cgi.EntityValue(edit->def, "radius")->value;
   light.color = cgi.EntityValue(edit->def, "color")->vec3;
   light.intensity = cgi.EntityValue(edit->def, "intensity")->value;
+  float drift = cgi.EntityValue(edit->def, "drift")->value;
 
   const char *style = cgi.EntityValue(edit->def, "style")->nullable_string;
   const char *team = cgi.EntityValue(edit->def, "team")->nullable_string;
@@ -82,9 +83,8 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
       light.radius = light.radius ?: cgi.EntityValue(e, "radius")->value;
       light.color = Vec3_Equal(Vec3_Zero(), light.color) ? cgi.EntityValue(e, "color")->vec3 : light.color;
       light.intensity = light.intensity ?: cgi.EntityValue(e, "intensity")->value;
-      if (!style) {
-        style = cgi.EntityValue(e, "style")->nullable_string;
-      }
+      drift = drift ?: cgi.EntityValue(e, "drift")->value;
+      style = style ?: cgi.EntityValue(e, "style")->nullable_string;
     }
   }
 
@@ -92,17 +92,7 @@ static vec4_t Cg_AddEditorEntity_Light(cg_editor_entity_t *edit) {
   light.color = Vec3_Equal(Vec3_Zero(), light.color) ? Vec3(1.f, 1.f, 1.f) : light.color;
   light.intensity = light.intensity ?: 1.f;
   light.bounds = Box3_FromCenterRadius(light.origin, light.radius);
-
-  if (style && *style) {
-    const size_t len = strlen(style);
-    const uint32_t style_index = (cgi.client->unclamped_time / 100) % len;
-    const uint32_t style_time = (cgi.client->unclamped_time / 100) * 100;
-    const float lerp = (cgi.client->unclamped_time - style_time) / 100.f;
-    const float s = (style[(style_index + 0) % len] - 'a') / (float) ('z' - 'a');
-    const float t = (style[(style_index + 1) % len] - 'a') / (float) ('z' - 'a');
-    light.intensity *= Clampf(Mixf(s, t, lerp), FLT_EPSILON, 1.f);
-  }
-
+  light.intensity = Cg_AnimateLight(light.intensity, style, drift);
   light.shadow_cached = &edit->shadow_cached;
 
   cgi.AddLight(cgi.view, &light);
