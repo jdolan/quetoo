@@ -148,6 +148,14 @@ void Cg_LoadEntities(void) {
 
         e.clazz->Init(&e);
 
+        // Reset periodic thinker scheduling so media reloads don't "catch up" from t=0
+        // and spam emissions for several frames (e.g. misc_sound during r_restart).
+        e.next_think = cgi.client->unclamped_time;
+        if (e.hz > 0.f) {
+          const float interval = 1000.f / e.hz;
+          e.next_think += interval * Randomf();
+        }
+
         cg_entities = g_array_append_val(cg_entities, e);
       }
     }
