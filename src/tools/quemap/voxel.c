@@ -337,10 +337,10 @@ void FeatherLights(void) {
   }
 }
 
-#define CAUSTICS_RADIUS 128.f
+#define CAUSTICS_RADIUS 256.f
 
 /**
- * @brief Calculates caustics intensity based on visibility to nearby liquid brushes.
+ * @brief Calculates caustics direction and intensity based on visibility to nearby liquid brushes.
  */
 void CausticsVoxel(int32_t voxel_num) {
 
@@ -349,7 +349,7 @@ void CausticsVoxel(int32_t voxel_num) {
   const int32_t contents = Cm_BoxContents(voxel->bounds, 0);
 
   if (contents & CONTENTS_MASK_LIQUID) {
-    voxel->caustics = 1.f;
+    voxel->caustics = Vec3_Down();
     return;
   }
   
@@ -357,7 +357,7 @@ void CausticsVoxel(int32_t voxel_num) {
   points[0] = voxel->origin;
   Box3_ToPoints(voxel->bounds, &points[1]);
 
-  voxel->caustics = 0.f;
+  voxel->caustics = Vec3_Zero();
   const float weight = 1.f / lengthof(points);
 
   for (int32_t i = 0; i < bsp_file.num_brushes; i++) {
@@ -378,10 +378,16 @@ void CausticsVoxel(int32_t voxel_num) {
       
       const cm_trace_t trace = Cm_BoxTrace(points[j], point, Box3_Zero(), 0, CONTENTS_SOLID);
       if (trace.fraction == 1.f) {
-        voxel->caustics += Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
+        const float strength = Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
+        const vec3_t dir = Vec3_Normalize(Vec3_Subtract(point, points[j]));
+        voxel->caustics = Vec3_Fmaf(voxel->caustics, strength, dir);
       }
     }
   }
+
+  float intensity;
+  voxel->caustics = Vec3_NormalizeLength(voxel->caustics, &intensity);
+  voxel->caustics = Vec3_Scale(voxel->caustics, Clampf01(intensity));
 }
 
 /**
@@ -423,7 +429,7 @@ static int IntCompare(const void *a, const void *b) {
 }
 
 /**
- * @brief Serializes the voxel grid (caustics, exposure, and light indices) into the BSP voxels lump.
+ * @brief Serializes the voxel grid (caustics direction/strength, exposure, and light indices) into the BSP voxels lump.
  */
 void EmitVoxels(void) {
 
@@ -454,7 +460,7 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // caustics + exposure (RG)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 4; // caustics xyz + exposure (RGBA)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
 
@@ -467,7 +473,7 @@ void EmitVoxels(void) {
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
   byte *out_data = out;
-  out += voxels.num_voxels * sizeof(byte) * 2; // RG = caustics + exposure
+  out += voxels.num_voxels * sizeof(byte) * 4; // RGBA = caustics xyz + exposure
   
   for (int32_t z = 0; z < voxels.size.z; z++) {
 
@@ -479,7 +485,10 @@ void EmitVoxels(void) {
         const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
         const voxel_t *voxel = &voxels.voxels[index];
 
-        *out_data++ = (byte)(Clampf01(voxel->caustics) * 255.f);
+        const vec3_t caustics = Vec3_Clamp(voxel->caustics, Vec3_Negate(Vec3_One()), Vec3_One());
+        *out_data++ = (byte)((caustics.x * 0.5f + 0.5f) * 255.f);
+        *out_data++ = (byte)((caustics.y * 0.5f + 0.5f) * 255.f);
+        *out_data++ = (byte)((caustics.z * 0.5f + 0.5f) * 255.f);
         *out_data++ = (byte)(Clampf01(voxel->exposure) * 255.f);
       }
     }

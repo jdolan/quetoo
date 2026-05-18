@@ -245,7 +245,7 @@ void vertex_lighting(inout common_vertex_t v) {
  * @brief Calculate caustics lighting contribution.
  */
 void vertex_caustics(inout common_vertex_t v) {
-  v.caustics = voxel_caustics(v.voxel);
+  v.caustics = length(voxel_caustics(v.voxel));
 }
 
 /**
@@ -258,7 +258,17 @@ void vertex_caustics(inout common_vertex_t v) {
  */
 void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
 
-  f.caustics = v.caustics;
+  vec3 caustics_sample = voxel_caustics(v.voxel);
+
+  float caustics_strength = length(caustics_sample);
+  if (caustics_strength == 0.0) {
+    return;
+  }
+
+  vec3 caustics_dir = normalize(mat3(view) * caustics_sample);
+  float facing = dot(v.normal, caustics_dir);
+  float backface = facing < -0.25 ? 0.25 : 1.0;
+  f.caustics = caustics_strength * backface;
 
   if (f.caustics == 0.0) {
     return;

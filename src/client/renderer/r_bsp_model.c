@@ -420,7 +420,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
   const byte *data_data = data;
-  data += out->num_voxels * sizeof(byte) * 2; // RG
+  data += out->num_voxels * sizeof(byte) * 4; // RGBA
 
   out->data = (r_image_t *) R_AllocMedia("voxel_data", sizeof(r_image_t), R_MEDIA_IMAGE);
   out->data->media.Free = R_FreeImage;
@@ -432,8 +432,8 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->data->levels = levels;
   out->data->minify = GL_LINEAR_MIPMAP_LINEAR;
   out->data->magnify = GL_LINEAR;
-  out->data->internal_format = GL_RG8;
-  out->data->format = GL_RG;
+  out->data->internal_format = GL_RGBA8;
+  out->data->format = GL_RGBA;
   out->data->pixel_type = GL_UNSIGNED_BYTE;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DATA);

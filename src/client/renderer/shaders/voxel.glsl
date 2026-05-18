@@ -63,19 +63,20 @@ int voxel_light_index(in int index) {
 }
 
 /**
- * @brief Samples the caustics intensity at the given voxel texture coordinate.
+ * @brief Samples the encoded caustics vector at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
- * @return The caustics intensity (R channel, 0-1).
+ * @return Signed direction vector with length as intensity (scaled by uniform caustics).
  */
-float voxel_caustics(in vec3 texcoord) {
-  return texture(texture_voxel_data, texcoord).r * caustics;
+vec3 voxel_caustics(in vec3 texcoord) {
+  vec3 encoded = texture(texture_voxel_data, texcoord).rgb;
+  return ((encoded * 2.0) - 1.0) * caustics;
 }
 
 /**
  * @brief Samples the exposure at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
- * @return The exposure (G channel, 0-1).
+ * @return The exposure (A channel, 0-1).
  */
 float voxel_exposure(in vec3 texcoord) {
-  return max(0.25, texture(texture_voxel_data, texcoord).g);
+  return max(0.25, texture(texture_voxel_data, texcoord).a);
 }

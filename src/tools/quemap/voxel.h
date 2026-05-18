@@ -28,7 +28,7 @@ typedef struct {
   vec3i_t xyz;
   vec3_t origin;
   box3_t bounds;
-  float caustics;
+  vec3_t caustics;
   float exposure;
   GHashTable *lights;
   int32_t lights_offset;

@@ -914,7 +914,7 @@ typedef struct {
   r_bsp_voxel_t *voxels;
 
   /**
-   * @brief The voxel data 3D texture (`RG8`): caustics and exposure.
+   * @brief The voxel data 3D texture (`RGBA8`): caustics direction+strength (rgb) and exposure (a).
    */
   r_image_t *data;
 
