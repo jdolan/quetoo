@@ -458,13 +458,12 @@ bool FloodEntities(tree_t *tree) {
   const entity_t *ent = &entities[1];
   for (int32_t i = 1; i < num_entities; i++, ent++) {
 
-    if (!ValueForKey(ent, "origin", NULL)) {
+    // Skip brush entities, we're only interested in point entities for flooding
+    if (ent->num_brushes || ent->num_patches) {
       continue;
     }
 
-    // skip BSP inline model entities; their origin key is not meaningful for flood purposes
-    const char *model = ValueForKey(ent, "model", NULL);
-    if (model && *model == '*') {
+    if (!ValueForKey(ent, "origin", NULL)) {
       continue;
     }
 
