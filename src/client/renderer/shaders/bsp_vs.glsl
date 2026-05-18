@@ -62,7 +62,7 @@ void main(void) {
   vertex.caustics = 0.0;
   vertex.lighting = vec3(0.0);
 
-  stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+  stage_vertex(stage, position.xyz, vertex);
 
   vertex_caustics(vertex);
   vertex_lighting(vertex);

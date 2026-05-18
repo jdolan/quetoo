@@ -85,5 +85,5 @@ void main(void) {
 
   gl_Position = projection3D * view_model * position;
 
-  stage_vertex(stage, position.xyz, vertex.position, vertex.diffusemap, vertex.color);
+  stage_vertex(stage, position.xyz, vertex);
 }

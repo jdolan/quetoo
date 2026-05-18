@@ -50,7 +50,7 @@ void main(void) {
   vertex.caustics = 0.0;
   vertex.lighting = vec3(0.0);
 
-  stage_vertex(stage, in_position, vertex.position, vertex.diffusemap, vertex.color);
+  stage_vertex(stage, in_position, vertex);
 
   gl_Position = projection3D * view * position;
 }

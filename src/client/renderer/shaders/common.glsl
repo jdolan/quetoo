@@ -194,4 +194,3 @@ float toksvig_gloss(in vec3 normal, in float power) {
   float len_rcp = 1.0 / saturate(length(normal));
   return 1.0 / (1.0 + power * (len_rcp - 1.0));
 }
-

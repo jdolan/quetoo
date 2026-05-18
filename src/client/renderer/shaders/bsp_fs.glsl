@@ -31,7 +31,7 @@ common_fragment_t fragment;
  * @brief Calculates the augmented texcoord for parallax occlusion mapping.
  * @see https://learnopengl.com/Advanced-Lighting/Parallax-Mapping
  */
-void parallax_occlusion_mapping() {
+void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
   fragment.parallax = vertex.diffusemap;
 
@@ -71,7 +71,7 @@ void parallax_occlusion_mapping() {
  * @brief Calculate lighting and shadows for BSP with distance-based LOD.
  * @details Handles BSP-specific ambient (sky + voxel exposure) and editor mode.
  */
-void bsp_fragment_lighting(void) {
+void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
@@ -123,7 +123,7 @@ void main(void) {
   fragment.view_dist = length(vertex.position);
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 
-  parallax_occlusion_mapping();
+  parallax_occlusion_mapping(vertex, fragment);
 
   if (stage.flags == STAGE_NONE) {
 
@@ -135,7 +135,7 @@ void main(void) {
 
     out_color = fragment.diffuse_sample;
 
-    bsp_fragment_lighting();
+    bsp_fragment_lighting(vertex, fragment);
 
     out_color.rgb *= (fragment.ambient + fragment.diffuse);
     out_color.rgb += fragment.specular;
@@ -154,11 +154,10 @@ void main(void) {
 
     if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
 
-      bsp_fragment_lighting();
+      bsp_fragment_lighting(vertex, fragment);
 
       out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
       out_color.rgb += fragment.specular * stage.lighting;
     }
   }
 }
-

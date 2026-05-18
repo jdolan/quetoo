@@ -196,7 +196,14 @@ void stage_transform(in stage_t stage, inout vec3 position, inout vec3 normal, i
 /**
  * @brief
  */
-void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout vec2 diffusemap, inout vec4 color) {
+void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t vertex) {
+  int envmap = stage.flags & STAGE_ENVMAP;
+
+  if (envmap != 0) {
+    vec3 view_dir = normalize(vertex.position);
+    vec3 reflect_dir = reflect(view_dir, normalize(vertex.normal));
+    vertex.diffusemap = vec2(0.5 + reflect_dir.y * 0.5, 0.5 - reflect_dir.z * 0.5);
+  }
 
   if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
 	  float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
@@ -211,54 +218,74 @@ void stage_vertex(in stage_t stage, in vec3 in_position, in vec3 position, inout
 	  matrix[1][1] = p;
 	  translate[1] = stage.st_origin.y - stage.st_origin.y * p;
 
-	  diffusemap[0] = diffusemap[0] * matrix[0][0] + diffusemap[1] * matrix[1][0] + translate[0];
-	  diffusemap[1] = diffusemap[0] * matrix[0][1] + diffusemap[1] * matrix[1][1] + translate[1];
+	  vertex.diffusemap[0] = vertex.diffusemap[0] * matrix[0][0] + vertex.diffusemap[1] * matrix[1][0] + translate[0];
+	  vertex.diffusemap[1] = vertex.diffusemap[0] * matrix[0][1] + vertex.diffusemap[1] * matrix[1][1] + translate[1];
   }
 
   if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
 	  float theta = ticks * 0.001 * stage.rotate * TWO_PI;
+    vec2 st_origin = stage.st_origin;
+    if (envmap != 0) {
+      st_origin = vec2(0.5);
+    }
 
-	  diffusemap = diffusemap - stage.st_origin;
-	  diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * diffusemap;
-	  diffusemap = diffusemap + stage.st_origin;
+	  vertex.diffusemap = vertex.diffusemap - st_origin;
+	  vertex.diffusemap = mat2(cos(theta), -sin(theta), sin(theta),  cos(theta)) * vertex.diffusemap;
+	  vertex.diffusemap = vertex.diffusemap + st_origin;
   }
 
-  if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-	  diffusemap.s += stage.scroll.s * ticks * 0.001;
-  }
+  if (envmap != 0) {
+    if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) != 0) {
+      vec2 scale = vec2(
+        (stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S ? stage.scale.s : 1.0,
+        (stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T ? stage.scale.t : 1.0
+      );
+      vec2 centered = vertex.diffusemap - vec2(0.5);
+      centered /= max(abs(scale), vec2(0.0001));
+      vertex.diffusemap = centered + vec2(0.5);
+    }
 
-  if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-	  diffusemap.t += stage.scroll.t * ticks * 0.001;
-  }
+    if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+    }
 
-  if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
-	  diffusemap.s *= stage.scale.s;
-  }
+    if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+    }
+  } else {
+    if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
+      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+    }
 
-  if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
-	  diffusemap.t *= stage.scale.t;
-  }
+    if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
+      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+    }
 
-  if ((stage.flags & STAGE_ENVMAP) == STAGE_ENVMAP) {
-	  diffusemap *= normalize(position).xy;
+    if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
+      vertex.diffusemap.s *= stage.scale.s;
+    }
+
+    if ((stage.flags & STAGE_SCALE_T) == STAGE_SCALE_T) {
+      vertex.diffusemap.t *= stage.scale.t;
+    }
   }
 
   if ((stage.flags & STAGE_COLOR) == STAGE_COLOR) {
-	  color = stage.color;
+	  vertex.color = stage.color;
   }
 
   if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-	  color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
+	  vertex.color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
   }
 
   if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {
 	  float z = clamp(in_position.z, stage.terrain.x, stage.terrain.y);
-	  color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
+	  vertex.color.a *= (z - stage.terrain.x) / (stage.terrain.y - stage.terrain.x);
   }
 
   if ((stage.flags & STAGE_DIRTMAP) == STAGE_DIRTMAP) {
 	  int index = int(in_position.x) + int(in_position.y) + int(in_position.z);
-	  color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
+	  vertex.color.a *= DIRTMAP[index % DIRTMAP.length()] * stage.dirtmap;
   }
 }
 

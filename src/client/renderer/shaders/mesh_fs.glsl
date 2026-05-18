@@ -30,7 +30,7 @@ common_fragment_t fragment;
 /**
  * @brief Calculate lighting and shadows for mesh with distance-based LOD.
  */
-void mesh_fragment_lighting(void) {
+void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
@@ -88,7 +88,7 @@ void main(void) {
 	  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
 	  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
-	  mesh_fragment_lighting();
+	  mesh_fragment_lighting(vertex, fragment);
 
 	  out_color = fragment.diffuse_sample;
 
@@ -103,7 +103,7 @@ void main(void) {
 
     if ((stage.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
 
-      mesh_fragment_lighting();
+      mesh_fragment_lighting(vertex, fragment);
 
       out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
       out_color.rgb += fragment.specular * stage.lighting;
