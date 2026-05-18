@@ -31,6 +31,13 @@ static cvar_t *editor_grid_size;
 #pragma mark - Utilities
 
 /**
+ * @brief Returns true for BSP inline model entities (`model` key starts with `*`).
+ */
+static bool isInlineModelEntity(const cm_entity_t *entity) {
+  return cgi.EntityValue(entity, "model")->string[0] == '*';
+}
+
+/**
  * @brief Sets the given entity's origin to where the client is looking.
  */
 static void setEntityOriginFromClientView(cm_entity_t *entity) {
@@ -64,7 +71,11 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       return;
     }
 
-    cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
+    if (isInlineModelEntity(this->entity->def) && !g_strcmp0(def->key, "origin")) {
+      Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
+    } else {
+      cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
+    }
 
     $(this->add->key, setAttributedText, NULL);
     $(this->add->value, setAttributedText, NULL);
@@ -252,8 +263,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           break;
       }
 
-      const char *model = cgi.EntityValue(e, "model")->string;
-      if (!Vec3_Equal(move, Vec3_Zero()) && *model != '*') {
+      if (!Vec3_Equal(move, Vec3_Zero()) && !isInlineModelEntity(e)) {
 
         vec3_t origin = cgi.EntityValue(e, "origin")->vec3;
         origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
@@ -385,6 +395,10 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
     for (cm_entity_t *e = self->entity->def; e; e = e->next) {
 
       if (g_str_has_prefix(e->key, "_tb_")) {
+        continue;
+      }
+
+      if (isInlineModelEntity(self->entity->def) && !g_strcmp0(e->key, "origin")) {
         continue;
       }
 
