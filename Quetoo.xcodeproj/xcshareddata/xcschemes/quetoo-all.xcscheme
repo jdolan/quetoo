@@ -148,7 +148,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
+            argument = "+map pits"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
@@ -157,7 +157,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give quad damage"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+god"
@@ -165,7 +165,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+no_clip"
-            isEnabled = "NO">
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

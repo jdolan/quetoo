@@ -132,7 +132,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
   }
 
   if (!r_mesh_program.shell) {
-    r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/envmap_3", IMG_PROGRAM);
+    r_mesh_program.shell = (r_media_t *) R_LoadImage("textures/envmaps/white", IMG_PROGRAM);
     if (!r_mesh_program.shell) {
       return;
     }
@@ -156,7 +156,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
         .color = Color4fv(e->shell),
         .blend = { GL_SRC_ALPHA, GL_ONE },
         .scroll = { 1.f, 1.f },
-        .scale = { .25f, .25f },
+        .scale = { .5f, .5f },
         .shell = { 1.f },
         .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT }
       },
