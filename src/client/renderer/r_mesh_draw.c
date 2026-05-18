@@ -62,6 +62,7 @@ static struct {
     GLint flags;
     GLint color;
     GLint pulse;
+    GLint drift;
     GLint scroll;
     GLint scale;
     GLint shell;
@@ -70,6 +71,16 @@ static struct {
 
   r_media_t *shell;
 } r_mesh_program;
+
+static float R_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
 
 /**
  * @brief Binds the material stage uniforms and draws elements for a single mesh face material stage.
@@ -84,6 +95,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
   if (stage->cm->flags & STAGE_PULSE) {
     glUniform1f(r_mesh_program.stage.pulse, stage->cm->pulse.hz);
+    glUniform1f(r_mesh_program.stage.drift, stage->cm->pulse.drift * R_StageDriftHash(e, stage));
   }
 
   if (stage->cm->flags & (STAGE_SCROLL_S | STAGE_SCROLL_T)) {
@@ -456,6 +468,7 @@ void R_InitMeshProgram(void) {
   r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
   r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
   r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
+  r_mesh_program.stage.drift = glGetUniformLocation(r_mesh_program.name, "stage.drift");
   r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
   r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
   r_mesh_program.stage.lighting = glGetUniformLocation(r_mesh_program.name, "stage.lighting");

@@ -70,6 +70,11 @@ typedef struct {
    * @brief Pulse frequency in Hz.
    */
   float hz;
+
+  /**
+   * @brief Optional random time offset in seconds.
+   */
+  float drift;
 } cm_stage_pulse_t;
 
 /**
@@ -208,6 +213,11 @@ typedef struct {
    * @brief Playback rate in frames per second.
    */
   float fps;
+
+  /**
+   * @brief Optional random time offset in seconds.
+   */
+  float drift;
 } cm_stage_animation_t;
 
 typedef enum {

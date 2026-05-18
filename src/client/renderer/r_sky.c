@@ -57,11 +57,22 @@ static struct {
     GLint flags;
     GLint color;
     GLint pulse;
+    GLint drift;
     GLint rotate;
     GLint scroll;
     GLint scale;
   } stage;
 } r_sky_program;
+
+static float R_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
 
 /**
  * @brief Binds material stage uniforms and draws elements for a single sky draw elements material stage.
@@ -79,6 +90,7 @@ static void R_DrawSkyDrawElementsMaterialStage(const r_view_t *view,
 
   if (stage->cm->flags & STAGE_PULSE) {
     glUniform1f(r_sky_program.stage.pulse, stage->cm->pulse.hz);
+    glUniform1f(r_sky_program.stage.drift, stage->cm->pulse.drift * R_StageDriftHash(draw, stage));
   }
 
   if (stage->cm->flags & STAGE_ROTATE) {
@@ -239,6 +251,7 @@ static void R_InitSkyProgram(void) {
   r_sky_program.stage.flags = glGetUniformLocation(r_sky_program.name, "stage.flags");
   r_sky_program.stage.color = glGetUniformLocation(r_sky_program.name, "stage.color");
   r_sky_program.stage.pulse = glGetUniformLocation(r_sky_program.name, "stage.pulse");
+  r_sky_program.stage.drift = glGetUniformLocation(r_sky_program.name, "stage.drift");
   r_sky_program.stage.rotate = glGetUniformLocation(r_sky_program.name, "stage.rotate");
   r_sky_program.stage.scroll = glGetUniformLocation(r_sky_program.name, "stage.scroll");
   r_sky_program.stage.scale = glGetUniformLocation(r_sky_program.name, "stage.scale");

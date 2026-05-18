@@ -126,6 +126,11 @@ struct stage_t {
   float pulse;
 
   /**
+   * @brief Per-stage pulse drift offset in seconds.
+   */
+  float drift;
+
+  /**
    * @brief The stage texture coordinate origin for rotations and stretches.
    */
   vec2 st_origin;
@@ -275,7 +280,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
   }
 
   if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-	  vertex.color.a *= (sin(ticks * .001 * stage.pulse * PI) + 1.0) * .5;
+	  vertex.color.a *= (sin((ticks * .001 + stage.drift) * stage.pulse * PI) + 1.0) * .5;
   }
 
   if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {

@@ -63,6 +63,7 @@ static struct {
     GLint flags;
     GLint color;
     GLint pulse;
+    GLint drift;
     GLint st_origin;
     GLint stretch;
     GLint rotate;
@@ -77,6 +78,16 @@ static struct {
 
   r_image_t *warp_image;
 } r_bsp_program;
+
+static float R_StageDriftHash(const void *a, const void *b) {
+  uint32_t h = (uint32_t) ((uintptr_t) a >> 4) ^ (uint32_t) ((uintptr_t) b >> 4);
+  h ^= h >> 16;
+  h *= 0x7feb352dU;
+  h ^= h >> 15;
+  h *= 0x846ca68bU;
+  h ^= h >> 16;
+  return h / (float) UINT32_MAX;
+}
 
 /**
  * @brief Draws per-vertex normal, tangent, and bitangent lines for nearby BSP vertices when enabled.
@@ -177,6 +188,7 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   if (stage->cm->flags & STAGE_PULSE) {
     glUniform1f(r_bsp_program.stage.pulse, stage->cm->pulse.hz);
+    glUniform1f(r_bsp_program.stage.drift, stage->cm->pulse.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage));
   }
 
   if (stage->cm->flags & (STAGE_STRETCH | STAGE_ROTATE)) {
@@ -235,7 +247,8 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
             lerp_frac = entity->lerp;
           }
         } else {
-          const float frame_f = view->ticks / 1000.f * stage->cm->animation.fps;
+          const float drift = stage->cm->animation.drift * R_StageDriftHash(entity ? (const void *) entity : (const void *) draw, stage);
+          const float frame_f = (view->ticks / 1000.f + drift) * stage->cm->animation.fps;
           frame = (int32_t) frame_f;
           if (stage->cm->flags & STAGE_ANIM_LERP) {
             lerp_frac = frame_f - floorf(frame_f);
@@ -594,6 +607,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.stage.flags = glGetUniformLocation(r_bsp_program.name, "stage.flags");
   r_bsp_program.stage.color = glGetUniformLocation(r_bsp_program.name, "stage.color");
   r_bsp_program.stage.pulse = glGetUniformLocation(r_bsp_program.name, "stage.pulse");
+  r_bsp_program.stage.drift = glGetUniformLocation(r_bsp_program.name, "stage.drift");
   r_bsp_program.stage.st_origin = glGetUniformLocation(r_bsp_program.name, "stage.st_origin");
   r_bsp_program.stage.stretch = glGetUniformLocation(r_bsp_program.name, "stage.stretch");
   r_bsp_program.stage.rotate = glGetUniformLocation(r_bsp_program.name, "stage.rotate");

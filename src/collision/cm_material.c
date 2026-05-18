@@ -279,6 +279,10 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         s->flags |= STAGE_PULSE;
       }
 
+      if (Parse_PeekPrimitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.drift, 1) == 1) {
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->pulse.drift, 1);
+      }
+
       continue;
     }
 
@@ -484,6 +488,10 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
         Cm_MaterialWarn(m, parser, "Invalid FPS value, must be >= 0.0");
       }
 
+      if (Parse_PeekPrimitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->animation.drift, 1) == 1) {
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->animation.drift, 1);
+      }
+
       // the frame images are loaded once the stage is parsed completely
       if (s->animation.num_frames && s->animation.fps >= 0.0) {
         s->flags |= STAGE_ANIMATION;
@@ -565,7 +573,7 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
                 "  texture: %s\n"
                 "  blend: %d %d\n"
                 "  color: %.1f %.1f %.1f %.1f\n"
-                "  pulse: %.1f\n"
+                "  pulse: %.1f drift: %.1f\n"
                 "  stretch: %.1f %.1f\n"
                 "  rotate: %.1f\n"
                 "  scroll.s: %.1f\n"
@@ -575,18 +583,18 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
                 "  terrain.floor: %.1f\n"
                 "  terrain.ceil: %.1f\n"
                 "  anim.num_frames: %d\n"
-                "  anim.fps: %.1f\n",
+                "  anim.fps: %.1f drift: %.1f\n",
                 s->flags,
                 (*s->asset.name ? s->asset.name : "NULL"),
                 s->blend.src, s->blend.dest,
                 s->color.r, s->color.g, s->color.b, s->color.a,
-                s->pulse.hz,
+                s->pulse.hz, s->pulse.drift,
                 s->stretch.amplitude, s->stretch.hz,
                 s->rotate.hz,
                 s->scroll.s, s->scroll.t,
                 s->scale.s, s->scale.t,
                 s->terrain.floor, s->terrain.ceil,
-                s->animation.num_frames, s->animation.fps);
+                s->animation.num_frames, s->animation.fps, s->animation.drift);
 
       return true;
     }
@@ -1137,7 +1145,11 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
   }
 
   if (stage->flags & STAGE_PULSE) {
-    Fs_Print(file, "\t\tpulse %0.2f\n", stage->pulse.hz);
+    if (stage->pulse.drift != 0.f) {
+      Fs_Print(file, "\t\tpulse %0.2f %0.3f\n", stage->pulse.hz, stage->pulse.drift);
+    } else {
+      Fs_Print(file, "\t\tpulse %0.2f\n", stage->pulse.hz);
+    }
   }
 
   if (stage->flags & STAGE_STRETCH) {
@@ -1165,7 +1177,11 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
   }
 
   if (stage->flags & STAGE_ANIMATION) {
-    Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
+    if (stage->animation.drift != 0.f) {
+      Fs_Print(file, "\t\tanim %u %0.2f %0.3f\n", stage->animation.num_frames, stage->animation.fps, stage->animation.drift);
+    } else {
+      Fs_Print(file, "\t\tanim %u %0.2f\n", stage->animation.num_frames, stage->animation.fps);
+    }
   }
 
   if (stage->flags & STAGE_ANIM_LERP) {
