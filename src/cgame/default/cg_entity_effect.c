@@ -187,22 +187,23 @@ void Cg_EntityEffects(cl_entity_t *ent, r_entity_t *e) {
   }
 
   if (e->effects & EF_LIGHT) {
-    const color_t color = Color32_Color(ent->current.color);
-    float pulse = 1.f;
-    float radius = ent->current.termination.x;
-    if (e->effects & EF_LIGHT_PULSE) {
-      pulse = 1.f + .25f * sinf(cgi.client->unclamped_time * .003f);
-      radius *= pulse;
-    }
-    const cg_light_t l = {
+    Cg_AddLight(&(const cg_light_t) {
       .origin = e->origin,
-      .radius = radius,
-      .color = color.vec3,
+      .radius = ent->current.termination.x,
+      .color = Color32_Color(ent->current.color).vec3,
       .intensity = 1.f,
       .source = ent
-    };
+    });
+  }
 
-    Cg_AddLight(&l);
+  if (e->effects & EF_LIGHT_PULSE) {
+    const float pulse = .25f + .75f * (1.f + sinf(cgi.client->unclamped_time * .003f)) * .5f;
+    Cg_AddLight(&(const cg_light_t) {
+      .origin = Vec3_Fmaf(e->origin, 32.f, Vec3_Up()),
+      .radius = ent->current.termination.x * pulse,
+      .color = Color32_Color(ent->current.color).vec3,
+      .intensity = 1.f,
+    });
   }
 
   if (e->effects & EF_TEAM_TINT) {
