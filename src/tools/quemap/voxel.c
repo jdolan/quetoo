@@ -366,20 +366,35 @@ void CausticsVoxel(int32_t voxel_num) {
     if (!(brush->contents & CONTENTS_MASK_LIQUID)) {
       continue;
     }
+
+    const vec3_t brush_center = Box3_Center(brush->bounds);
     
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      const vec3_t point = Box3_ClampPoint(brush->bounds, points[j]);
-      const float dist = Vec3_Distance(points[j], point);
+      vec3_t liquid_point = Box3_ClampPoint(brush->bounds, points[j]);
+      const float dist = Vec3_Distance(points[j], liquid_point);
       
       if (dist > CAUSTICS_RADIUS) {
         continue;
       }
+
+      // ClampPoint can land on brush AABB bounds outside the actual liquid brush volume.
+      // Nudge toward the brush center and require that the target is truly liquid.
+      const vec3_t to_center = Vec3_Subtract(brush_center, liquid_point);
+      float to_center_length;
+      const vec3_t to_center_dir = Vec3_NormalizeLength(to_center, &to_center_length);
+      if (to_center_length > 0.f) {
+        liquid_point = Vec3_Fmaf(liquid_point, 1.f, to_center_dir);
+      }
+
+      if (!(Light_PointContents(liquid_point, 0) & CONTENTS_MASK_LIQUID)) {
+        continue;
+      }
       
-      const cm_trace_t trace = Cm_BoxTrace(points[j], point, Box3_Zero(), 0, CONTENTS_SOLID);
+      const cm_trace_t trace = Light_Trace(points[j], liquid_point, 0, CONTENTS_MASK_SOLID);
       if (trace.fraction == 1.f) {
         const float strength = Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
-        const vec3_t dir = Vec3_Normalize(Vec3_Subtract(point, points[j]));
+        const vec3_t dir = Vec3_Normalize(Vec3_Subtract(liquid_point, points[j]));
         voxel->caustics = Vec3_Fmaf(voxel->caustics, strength, dir);
       }
     }
