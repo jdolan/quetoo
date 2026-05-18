@@ -365,6 +365,7 @@ bsp_face_t *EmitFace(const face_t *face) {
   out->brush_side = (int32_t) (ptrdiff_t) (face->brush_side->out - bsp_file.brush_sides);
   out->patch = -1;
   out->plane = face->plane;
+  out->block = -1;
   
   out->bounds = Box3_Null();
 

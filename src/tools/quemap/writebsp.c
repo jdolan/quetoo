@@ -133,6 +133,7 @@ static int32_t EmitFaces(const node_t *node, int32_t node_num) {
     out->patch = -1;  // set by EmitPatches after BSP patch index is assigned
     out->plane = -1;
     out->node = node_num;
+    out->block = -1;
     out->bounds = pf->bounds;
 
     // Copy vertexes to bsp_file
@@ -616,7 +617,15 @@ static void EmitBlocks_r(bsp_model_t *mod, bsp_node_t *node) {
 
     bsp_face_t *face = bsp_file.faces + mod->first_face;
     for (int32_t i = 0; i < mod->num_faces; i++, face++) {
+
+      const bsp_brush_side_t *side = bsp_file.brush_sides + face->brush_side;
+      const bsp_material_t *material = bsp_file.materials + side->material;
+
       if (Box3_ContainsPoint(node->bounds, Box3_Center(face->bounds))) {
+        if (face->block != -1) {
+          Com_Verbose("Face %s @ %s resides in multiple blocks\n", material->name, vtos(Box3_Center(face->bounds)));
+        }
+        
         g_ptr_array_add(faces, face);
       }
     }
@@ -683,6 +692,14 @@ void EndModel(bsp_model_t *mod) {
   EmitDepthPassElements(mod);
 
   EmitBlocks(mod);
+
+  const bsp_face_t *face = &bsp_file.faces[mod->first_face];
+  for (int32_t i = 0; i < mod->num_faces; i++, face++) {
+    if (face->block == -1) {
+      Com_Warn("Model %d face %d (%s) was not assigned to a CONTENTS_BLOCK node\n",
+               mod->entity, i, materials[FaceMaterial(face)].cm->name);
+    }
+  }
 
   mod->num_draw_elements = bsp_file.num_draw_elements - mod->first_draw_elements;
   mod->num_blocks = bsp_file.num_blocks - mod->first_block;

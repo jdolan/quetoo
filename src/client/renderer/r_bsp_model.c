@@ -615,7 +615,17 @@ static void R_LoadBspOcclusionQueries(r_bsp_model_t *bsp) {
 
   r_bsp_block_t *block = bsp->inline_models->blocks;
   for (int32_t i = 0; i < bsp->inline_models->num_blocks; i++, block++) {
-    block->query = R_AllocOcclusionQuery(block->node->bounds);
+
+    /*
+     * Collectively, block node bounds cover all valid positions in the BSP with no gaps between
+     * them. However, during BSP compilation, when faces are assigned to the block node that best
+     * contains them, they may actually reside partially outside of the block, and therefore expand
+     * the block's visible bounds. For this reason, we use the union of block->node->bounds and
+     * block->visible_bounds for the occlusion query AABB.
+     */
+
+    const box3_t bounds = Box3_Union(block->node->bounds, block->visible_bounds);
+    block->query = R_AllocOcclusionQuery(bounds);
   }
 
   r_bsp_light_t *light = bsp->lights;
