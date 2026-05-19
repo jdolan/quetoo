@@ -28,14 +28,6 @@
 voxels_t voxels;
 
 /**
- * @brief Adds a light to a voxel's light list.
- */
-static void IlluminateVoxel(voxel_t *voxel, light_t *light) {
-
-  g_hash_table_add(voxel->lights, light);
-}
-
-/**
  * @brief Create an `SDL_Surface` with the given voxel data.
  */
 SDL_Surface *CreateVoxelSurface(int32_t w, int32_t h, size_t voxel_size, void *voxels) {
@@ -289,7 +281,7 @@ void LightVoxel(int32_t voxel_num) {
 
       const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
       if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
-        IlluminateVoxel(voxel, light);
+        g_hash_table_add(voxel->lights, light);
         break;
       }
     }
@@ -301,9 +293,6 @@ void LightVoxel(int32_t voxel_num) {
  */
 void FeatherLights(void) {
 
-  // Compute each light's visible_bounds from voxel assignments.
-  // This was previously done in IlluminateVoxel during threaded LightVoxel,
-  // but Box3_Union on shared light state is a data race.
   for (size_t v = 0; v < voxels.num_voxels; v++) {
     voxel_t *voxel = &voxels.voxels[v];
 

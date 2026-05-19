@@ -81,13 +81,13 @@ bool R_OccludeBox(const r_view_t *view, const box3_t bounds) {
   for (int32_t i = 0; i < in->num_blocks; i++, block++) {
 
     if (block->query->result == 0) {
-      if (Box3_Contains(block->node->bounds, bounds)) {
+      if (Box3_Contains(block->query->bounds, bounds)) {
         return true;
       }
       continue;
     }
 
-    if (Box3_Intersects(block->node->bounds, bounds)) {
+    if (Box3_Intersects(block->query->bounds, bounds)) {
       return false;
     }
   }
