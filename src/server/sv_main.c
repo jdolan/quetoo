@@ -607,13 +607,18 @@ static void Sv_CheckTimeouts(void) {
     return;
   }
 
-  const uint32_t whence = quetoo.ticks - timeout;
-
   sv_client_t *cl = svs.clients;
   for (int32_t i = 0; i < sv_max_clients->integer; i++, cl++) {
 
     if (cl->state == SV_CLIENT_FREE) {
       continue;
+    }
+
+    uint32_t whence = quetoo.ticks;
+    whence -= timeout;
+
+    if (cl->state == SV_CLIENT_CONNECTED) {
+      whence -= timeout;
     }
 
     if (cl->last_message < whence) {
