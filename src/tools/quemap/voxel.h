@@ -50,7 +50,7 @@ extern voxels_t voxels;
 
 size_t BuildVoxels(void);
 void LightVoxel(int32_t voxel_num);
-void FeatherLights(void);
+void FloodLights(void);
 void CausticsVoxel(int32_t voxel_num);
 void ExposureVoxel(int32_t voxel_num);
 void EmitVoxels(void);

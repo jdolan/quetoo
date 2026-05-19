@@ -289,63 +289,41 @@ void LightVoxel(int32_t voxel_num) {
 }
 
 /**
- * @brief Feathers lights into neighboring voxels to smooth boundaries.
+ * @brief Calculates light visible bounds by taking the union of all visible voxels and feathering
+ * those bounds to ensure smooth shadowing with no visible voxel boundaries in-game.
  */
-void FeatherLights(void) {
+void FloodLights(void) {
 
-  // Pass 1: derive per-light bounds from direct voxel visibility assignments.
-  for (size_t v = 0; v < voxels.num_voxels; v++) {
-    voxel_t *voxel = &voxels.voxels[v];
+  voxel_t *v = voxels.voxels;
 
-    GHashTableIter iter;
-    light_t *light;
-
-    g_hash_table_iter_init(&iter, voxel->lights);
-    while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
-      light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
-    }
-  }
-
-  // Pass 2: feather one voxel outward from those bounds.
   for (guint i = 0; i < lights->len; i++) {
-    light_t *light = g_ptr_array_index(lights, i);
+    light_t *l = g_ptr_array_index(lights, i);
 
-    if (light->target_entity) {
+    l->visible_bounds = Box3_Null();
+
+    if (l->target_entity) {
       continue;
     }
 
-    light->visible_bounds = Box3_Expand(light->visible_bounds, BSP_VOXEL_SIZE * .5f);
+    box3_t bounds = Box3_Null();
 
-    for (size_t v = 0; v < voxels.num_voxels; v++) {
-      voxel_t *voxel = &voxels.voxels[v];
-
-      if (!Box3_Intersects(light->visible_bounds, voxel->bounds)) {
-        continue;
+    for (size_t j = 0; j < voxels.num_voxels; j++) {
+      if (g_hash_table_contains(v[j].lights, l)) {
+        bounds = Box3_Union(bounds, v[j].bounds);
       }
-
-      g_hash_table_add(voxel->lights, light);
     }
-  }
 
-  // Pass 3: recompute bounds from the final feathered voxel assignments so that emitted light
-  // bounds and renderer occlusion queries agree with the actual voxel->light associations.
-  for (guint i = 0; i < lights->len; i++) {
-    light_t *light = g_ptr_array_index(lights, i);
-    if (!light->target_entity) {
-      light->visible_bounds = Box3_Null();
+    bounds = Box3_Expand(bounds, BSP_VOXEL_SIZE * .5f);
+
+    for (size_t j = 0; j < voxels.num_voxels; j++) {
+      if (Box3_Intersects(bounds, v[j].bounds)) {
+        g_hash_table_add(v[j].lights, l);
+      }
     }
-  }
 
-  for (size_t v = 0; v < voxels.num_voxels; v++) {
-    voxel_t *voxel = &voxels.voxels[v];
-
-    GHashTableIter iter;
-    light_t *light;
-
-    g_hash_table_iter_init(&iter, voxel->lights);
-    while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
-      if (!light->target_entity) {
-        light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
+    for (size_t j = 0; j < voxels.num_voxels; j++) {
+      if (g_hash_table_contains(v[j].lights, l)) {
+        l->visible_bounds = Box3_Union(l->visible_bounds, v[j].bounds);
       }
     }
   }

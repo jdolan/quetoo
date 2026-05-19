@@ -172,7 +172,7 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
 
     } else {
 
-        if (R_CullBox(view, query->bounds)) {
+      if (R_CullBox(view, query->bounds)) {
 
         query->available = 1;
         query->result = 0;

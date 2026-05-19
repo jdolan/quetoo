@@ -43,8 +43,8 @@ void R_AddLight(r_view_t *view, const r_light_t *l) {
  */
 void R_UpdateLights(r_view_t *view) {
 
-  r_light_uniform_block_t *out = &r_lights.block;
-  memset(out, 0, sizeof(*out));
+  r_light_uniform_block_t *block = &r_lights.block;
+  memset(block, 0, sizeof(*block));
 
   cm_trace_t tr = { 0 };
   if (r_draw_light_bounds->value) {
@@ -56,6 +56,10 @@ void R_UpdateLights(r_view_t *view) {
 
   r_light_t *l = view->lights;
   for (int32_t i = 0; i < view->num_lights; i++, l++) {
+    r_light_uniform_t *out = &block->lights[i];
+    out->origin = Vec3_ToVec4(l->origin, l->radius);
+    out->color = Vec3_ToVec4(l->color, l->intensity);
+    out->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
 
     if (l->query) {
       l->occluded = l->query->result == 0;
@@ -66,24 +70,15 @@ void R_UpdateLights(r_view_t *view) {
     if (l->occluded) {
       r_stats.lights_occluded++;
     } else {
+      const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
+      const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
+      const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
+      const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
+      const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
+      const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
+      const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
+      out->shadow = Vec4(base_x, base_y, tile_uv, layer);
       r_stats.lights_visible++;
-
-      r_light_uniform_t *uniform = &out->lights[i];
-      uniform->origin = Vec3_ToVec4(l->origin, l->radius);
-      uniform->color = Vec3_ToVec4(l->color, l->intensity);
-
-      if (r_shadow_atlas.tile_size > 0) {
-        const int32_t local_index = i % r_shadow_atlas.lights_per_layer;
-        const int32_t light_col = local_index % r_shadow_atlas.lights_per_row;
-        const int32_t light_row = local_index / r_shadow_atlas.lights_per_row;
-        const float base_x = (float) (light_col * 3 * r_shadow_atlas.tile_size) * inv_layer;
-        const float base_y = (float) (light_row * 2 * r_shadow_atlas.tile_size) * inv_layer;
-        const float tile_uv = (float) r_shadow_atlas.tile_size * inv_layer;
-        const float layer = (float) (i / r_shadow_atlas.lights_per_layer);
-        uniform->shadow = Vec4(base_x, base_y, tile_uv, layer);
-      } else {
-        uniform->shadow = Vec4(0.f, 0.f, 0.f, 0.f);
-      }
     }
 
     if (r_draw_light_bounds->value && Vec3_Distance(tr.end, l->origin) < 64.f) {
@@ -94,7 +89,7 @@ void R_UpdateLights(r_view_t *view) {
   const GLsizei size = view->num_lights * sizeof(r_light_uniform_t);
 
   glBindBuffer(GL_UNIFORM_BUFFER, r_lights.buffer);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, &r_lights.block);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, size, block);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   R_GetError(NULL);

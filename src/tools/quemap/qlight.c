@@ -402,7 +402,7 @@ static void LightWorld(void) {
   Work("Lighting", LightVoxel, (int32_t) num_voxel);
 
   // feather lights into neighboring voxels to smooth boundaries
-  FeatherLights();
+  FloodLights();
 
   // calculate exposure from sky visibility
   Work("Exposure", ExposureVoxel, (int32_t) num_voxel);

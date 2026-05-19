@@ -137,8 +137,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
       }
 
       if (!light->target_entity) {
-        Com_Warn("Entity light @ %s: target \"%s\" not found\n",
-                 vtos(light->origin), target);
+        Com_Warn("Entity light @ %s: target \"%s\" not found\n", vtos(light->origin), target);
       }
     }
 
@@ -209,8 +208,14 @@ void EmitLights(void) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    if (Box3_IsNull(light->visible_bounds) && !light->target_entity) {
-      continue;
+    if (light->target_entity) {
+      // These will use the dynamic lighting code path at runtime and can not use precomputed
+      // bounds or voxelization, because they can move; simply emit them to the BSP.
+    } else {
+      if (Box3_IsNull(light->visible_bounds)) {
+        Com_Warn("light @ %s has no visible bounds; is it inside of CONTENTS_SOLID?\n", vtos(light->origin));
+        continue;
+      }
     }
 
     light->out = out;
