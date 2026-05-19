@@ -634,6 +634,11 @@ typedef struct {
   uint16_t sound_end;
 
   /**
+   * @brief Sound attenuation.
+   */
+  sound_atten_t sound_atten;
+
+  /**
    * @brief Acceleration rate.
    */
   float accel;
