@@ -279,7 +279,7 @@ void LightVoxel(int32_t voxel_num) {
 
     for (size_t j = 0; j < lengthof(points); j++) {
 
-      const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_SOLID);
+      const cm_trace_t to_voxel = Light_Trace(light->origin, points[j], 0, CONTENTS_MASK_SHADOW);
       if (to_voxel.fraction == 1.f || Box3_ContainsPoint(voxel->bounds, to_voxel.end)) {
         g_hash_table_add(voxel->lights, light);
         break;
@@ -383,7 +383,7 @@ void CausticsVoxel(int32_t voxel_num) {
         continue;
       }
       
-      const cm_trace_t trace = Light_Trace(points[j], liquid_point, 0, CONTENTS_MASK_SOLID);
+      const cm_trace_t trace = Light_Trace(points[j], liquid_point, 0, CONTENTS_MASK_SHADOW);
       if (trace.fraction == 1.f) {
         const float strength = Clampf01(1.f - dist / CAUSTICS_RADIUS) * weight;
         const vec3_t dir = Vec3_Normalize(Vec3_Subtract(liquid_point, points[j]));
@@ -414,7 +414,7 @@ void ExposureVoxel(int32_t voxel_num) {
     const vec3_t dir = Vec3_Scale(dome_vectors[i], MAX_WORLD_AXIAL);
     const vec3_t end = Vec3_Add(start, dir);
     
-    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_SOLID);
+    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SHADOW);
     
     // If we hit sky or nothing, count as exposed
     if (trace.surface & SURF_SKY || trace.fraction == 1.f) {

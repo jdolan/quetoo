@@ -47,6 +47,7 @@ typedef struct {
 static cm_dictionary_t cm_contents_dict[] = {
   { .keyword = "solid", .flag = CONTENTS_SOLID },
   { .keyword = "window", .flag = CONTENTS_WINDOW },
+  { .keyword = "decoration", .flag = CONTENTS_DECORATION },
   { .keyword = "lava", .flag = CONTENTS_LAVA },
   { .keyword = "slime", .flag = CONTENTS_SLIME },
   { .keyword = "water", .flag = CONTENTS_WATER },

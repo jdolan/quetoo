@@ -19,20 +19,20 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define VIEW_UNKNOWN      0
-#define VIEW_MAIN         1
-#define VIEW_PLAYER_MODEL 2
+#define VIEW_UNKNOWN        0
+#define VIEW_MAIN           1
+#define VIEW_PLAYER_MODEL   2
 
-#define BSP_VOXEL_SIZE    32.0
+#define BSP_VOXEL_SIZE      32.0
 
-// BSP Contents flags
-#define CONTENTS_NONE   0x0
-#define CONTENTS_SOLID  0x1
-#define CONTENTS_WINDOW 0x2
-#define CONTENTS_LAVA   0x8
-#define CONTENTS_SLIME  0x10
-#define CONTENTS_WATER  0x20
-#define CONTENTS_MIST   0x40
+#define CONTENTS_NONE       0x0
+#define CONTENTS_SOLID      0x1
+#define CONTENTS_WINDOW     0x2
+#define CONTENTS_DECORATION 0x4
+#define CONTENTS_LAVA       0x8
+#define CONTENTS_SLIME      0x10
+#define CONTENTS_WATER      0x20
+#define CONTENTS_MIST       0x40
 
 #define CONTENTS_MASK_SOLID  (CONTENTS_SOLID | CONTENTS_WINDOW)
 #define CONTENTS_MASK_LIQUID (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)

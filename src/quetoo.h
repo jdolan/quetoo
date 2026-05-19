@@ -169,14 +169,14 @@ typedef enum {
  * @brief Brush contents bitmasks.
  * @details Lower bits are stronger, and will eat weaker brushes completely.
  */
-#define CONTENTS_NONE   0x0 // brush sides may have no contents (skip, hint)
-#define CONTENTS_SOLID  0x1 // opaque solids
-#define CONTENTS_WINDOW 0x2 // translucent solids
-#define CONTENTS_AUX    0x4
-#define CONTENTS_LAVA   0x8
-#define CONTENTS_SLIME  0x10
-#define CONTENTS_WATER  0x20
-#define CONTENTS_MIST   0x40 // visible, but does not collide
+#define CONTENTS_NONE       0x0 // brush sides may have no contents (skip, hint)
+#define CONTENTS_SOLID      0x1 // opaque solids
+#define CONTENTS_WINDOW     0x2 // translucent solids
+#define CONTENTS_DECORATION 0x4 // does not collide, does cast shadow
+#define CONTENTS_LAVA       0x8
+#define CONTENTS_SLIME      0x10
+#define CONTENTS_WATER      0x20
+#define CONTENTS_MIST       0x40 // does not collide, does not cast shadow
 
 #define LAST_VISIBLE_CONTENTS    CONTENTS_MIST
 
@@ -209,7 +209,8 @@ typedef enum {
  */
 #define CONTENTS_MASK_SOLID           (CONTENTS_SOLID | CONTENTS_WINDOW)
 #define CONTENTS_MASK_LIQUID          (CONTENTS_WATER | CONTENTS_LAVA | CONTENTS_SLIME)
-#define CONTENTS_MASK_VISIBLE         (CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID | CONTENTS_MIST)
+#define CONTENTS_MASK_VISIBLE         (CONTENTS_MASK_SOLID | CONTENTS_DECORATION | CONTENTS_MASK_LIQUID | CONTENTS_MIST)
+#define CONTENTS_MASK_SHADOW          (CONTENTS_SOLID | CONTENTS_DECORATION)
 #define CONTENTS_MASK_CLIP            (CONTENTS_PLAYER_CLIP | CONTENTS_MONSTER_CLIP)
 #define CONTENTS_MASK_MEAT            (CONTENTS_MONSTER | CONTENTS_DEAD_MONSTER)
 #define CONTENTS_MASK_CURRENT_X       (CONTENTS_CURRENT_0 | CONTENTS_CURRENT_180)
