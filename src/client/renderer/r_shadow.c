@@ -379,7 +379,7 @@ void R_DrawShadows(const r_view_t *view) {
   glEnable(GL_DEPTH_CLAMP);
 
   glEnable(GL_CULL_FACE);
-  glCullFace(GL_FRONT);
+  glCullFace(GL_BACK);
 
   GLint current_layer = -1;
 
@@ -400,7 +400,6 @@ void R_DrawShadows(const r_view_t *view) {
     R_DrawShadow(view, l);
   }
 
-  glCullFace(GL_BACK);
   glDisable(GL_CULL_FACE);
 
   glDisable(GL_DEPTH_CLAMP);
