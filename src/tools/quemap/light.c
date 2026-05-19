@@ -197,14 +197,12 @@ void EmitLights(void) {
 
   const uint32_t start = (uint32_t) SDL_GetTicks();
 
-  bsp_file.num_lights = lights->len;
-
-  if (bsp_file.num_lights >= MAX_BSP_LIGHTS) {
+  if ((int32_t) lights->len >= MAX_BSP_LIGHTS) {
     Com_Error(ERROR_FATAL, "MAX_BSP_LIGHTS\n");
   }
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_ELEMENTS, MAX_BSP_ELEMENTS);
-  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, bsp_file.num_lights);
+  Bsp_AllocLump(&bsp_file, BSP_LUMP_LIGHTS, lights->len);
 
   bsp_light_t *out = bsp_file.lights;
   for (guint i = 0; i < lights->len; i++) {
@@ -238,14 +236,12 @@ void EmitLights(void) {
           continue;
         }
 
-        int32_t contents, surface;
+        int32_t surface;
         if (face->brush_side >= 0) {
           const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
-          contents = side->contents;
           surface = side->surface;
         } else {
           const bsp_patch_t *patch = &bsp_file.patches[face->patch];
-          contents = patch->contents;
           surface = patch->surface;
         }
 
@@ -278,6 +274,8 @@ void EmitLights(void) {
 
     Progress("Emitting lights", 100.f * i / lights->len);
   }
+
+  bsp_file.num_lights = (int32_t) (ptrdiff_t) (out - bsp_file.lights);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting lights", (uint32_t) SDL_GetTicks() - start);
 }
