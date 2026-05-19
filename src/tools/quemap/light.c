@@ -242,12 +242,19 @@ void EmitLights(void) {
         }
 
         int32_t surface;
+        int32_t contents;
         if (face->brush_side >= 0) {
           const bsp_brush_side_t *side = &bsp_file.brush_sides[face->brush_side];
           surface = side->surface;
+          contents = side->contents;
         } else {
           const bsp_patch_t *patch = &bsp_file.patches[face->patch];
           surface = patch->surface;
+          contents = patch->contents;
+        }
+
+        if (contents & CONTENTS_MIST) {
+          continue;
         }
 
         if (surface & SURF_MASK_NO_DRAW_ELEMENTS) {
