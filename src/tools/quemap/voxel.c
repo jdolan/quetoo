@@ -293,6 +293,7 @@ void LightVoxel(int32_t voxel_num) {
  */
 void FeatherLights(void) {
 
+  // Pass 1: derive per-light bounds from direct voxel visibility assignments.
   for (size_t v = 0; v < voxels.num_voxels; v++) {
     voxel_t *voxel = &voxels.voxels[v];
 
@@ -305,6 +306,7 @@ void FeatherLights(void) {
     }
   }
 
+  // Pass 2: feather one voxel outward from those bounds.
   for (guint i = 0; i < lights->len; i++) {
     light_t *light = g_ptr_array_index(lights, i);
 
@@ -322,6 +324,29 @@ void FeatherLights(void) {
       }
 
       g_hash_table_add(voxel->lights, light);
+    }
+  }
+
+  // Pass 3: recompute bounds from the final feathered voxel assignments so that emitted light
+  // bounds and renderer occlusion queries agree with the actual voxel->light associations.
+  for (guint i = 0; i < lights->len; i++) {
+    light_t *light = g_ptr_array_index(lights, i);
+    if (!light->target_entity) {
+      light->visible_bounds = Box3_Null();
+    }
+  }
+
+  for (size_t v = 0; v < voxels.num_voxels; v++) {
+    voxel_t *voxel = &voxels.voxels[v];
+
+    GHashTableIter iter;
+    light_t *light;
+
+    g_hash_table_iter_init(&iter, voxel->lights);
+    while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
+      if (!light->target_entity) {
+        light->visible_bounds = Box3_Union(light->visible_bounds, voxel->bounds);
+      }
     }
   }
 }
