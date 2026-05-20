@@ -614,12 +614,16 @@ static void Sv_CheckTimeouts(void) {
       continue;
     }
 
-    uint32_t whence = quetoo.ticks;
-    whence -= timeout;
-
+    uint64_t grace = timeout;
     if (cl->state == SV_CLIENT_CONNECTED) {
-      whence -= timeout;
+      grace += timeout;
     }
+
+    if (quetoo.ticks <= grace) {
+      continue;
+    }
+
+    const uint32_t whence = (uint32_t) (quetoo.ticks - grace);
 
     if (cl->last_message < whence) {
       Sv_BroadcastPrint(PRINT_MEDIUM, "%s timed out\n", cl->name);
