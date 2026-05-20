@@ -50,6 +50,7 @@ void Com_LogString(const char *str) {
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
   const char *game = DEFAULT_GAME;
+  const char *log_name = quetoo.log_name ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
     if (!g_strcmp0(argv[i], "+set") && !g_strcmp0(argv[i + 1], "game")) {
       game = argv[i + 2];
@@ -57,7 +58,7 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
     }
   }
 
-  gchar *path = g_build_filename(Sys_UserDir(), game, "quetoo.log", NULL);
+  gchar *path = g_build_filename(Sys_UserDir(), game, log_name, NULL);
   gchar *dir = g_path_get_dirname(path);
   g_mkdir_with_parents(dir, 0700);
   g_free(dir);

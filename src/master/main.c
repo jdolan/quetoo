@@ -379,6 +379,7 @@ int32_t quetoo_main(int32_t argc, char **argv) {
 
   quetoo.Init = Init;
   quetoo.Shutdown = Shutdown;
+  quetoo.log_name = "quetoo-master.log";
 
   signal(SIGINT, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
