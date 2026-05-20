@@ -368,10 +368,7 @@ static void Shutdown(const char *msg) {
 /**
  * @brief Master server entry point: opens the UDP socket and runs the main receive/dispatch loop.
  */
-#if defined(_WIN32)
-#undef main
-#endif
-int32_t main(int32_t argc, char **argv) {
+int32_t quetoo_main(int32_t argc, char **argv) {
 
   printf("Quetoo Master Server %s %s\n", VERSION, BUILD);
 
@@ -466,3 +463,9 @@ int32_t main(int32_t argc, char **argv) {
     Ms_Frame();
   }
 }
+
+#if !defined(_WIN32)
+int32_t main(int32_t argc, char **argv) {
+  return quetoo_main(argc, argv);
+}
+#endif

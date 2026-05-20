@@ -7,10 +7,16 @@
     <Filter Include="src\master">
       <UniqueIdentifier>{e5ae9557-ee20-4d84-83f3-c4f33988246c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\main">
+      <UniqueIdentifier>{9d3f4d3b-f560-4fb2-bcde-8cbf5f2a4e52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\master\main.c">
       <Filter>src\master</Filter>
+    </ClCompile>
+    <ClCompile Include="src\main\winmain.c">
+      <Filter>src\main</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
