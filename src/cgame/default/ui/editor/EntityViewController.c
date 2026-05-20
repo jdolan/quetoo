@@ -31,10 +31,10 @@ static cvar_t *editor_grid_size;
 #pragma mark - Utilities
 
 /**
- * @brief Returns true for BSP inline model entities (`model` key starts with `*`).
+ * @brief Returns true if this editor entity has BSP brushes.
  */
-static bool isInlineModelEntity(const cm_entity_t *entity) {
-  return cgi.EntityValue(entity, "model")->string[0] == '*';
+static bool isBrushEntity(const cg_editor_entity_t *entity) {
+  return entity && entity->brushes != NULL;
 }
 
 /**
@@ -71,7 +71,7 @@ static void didEditEntity(EntityView *view, cm_entity_t *def) {
       return;
     }
 
-    if (isInlineModelEntity(this->entity->def) && !g_strcmp0(def->key, "origin")) {
+    if (isBrushEntity(this->entity) && !g_strcmp0(def->key, "origin")) {
       Cg_Warn("Skipping origin on %s\n", cgi.EntityValue(this->entity->def, "classname")->string);
     } else {
       cgi.SetEntityKeyValue(this->entity->def, def->key, ENTITY_STRING, def->string);
@@ -263,7 +263,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           break;
       }
 
-      if (!Vec3_Equal(move, Vec3_Zero()) && !isInlineModelEntity(e)) {
+      if (!Vec3_Equal(move, Vec3_Zero()) && !isBrushEntity(self->entity)) {
 
         vec3_t origin = cgi.EntityValue(e, "origin")->vec3;
         origin = Vec3_Quantize(Vec3_Add(origin, move), editor_grid_size->value);
@@ -298,9 +298,11 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
         cg_editor_entity_t *entity = &cg_editor.entities[number];
 
-        if ((this->entity && number == this->entity->number)
-            || (this->teamEntity && number == this->teamEntity->number)) {
+        if (this->entity && number == this->entity->number) {
           $(this, setEntity, entity);
+        } else if (this->teamEntity && number == this->teamEntity->number) {
+          // Preserve the selected light while refreshing team-level fields.
+          $(this, setEntity, this->entity);
         } else if (!g_strcmp0(this->created, info)) {
           $(this, setEntity, entity);
         }
@@ -398,7 +400,7 @@ static void setEntity(EntityViewController *self, cg_editor_entity_t *entity) {
         continue;
       }
 
-      if (isInlineModelEntity(self->entity->def) && !g_strcmp0(e->key, "origin")) {
+      if (isBrushEntity(self->entity) && !g_strcmp0(e->key, "origin")) {
         continue;
       }
 
