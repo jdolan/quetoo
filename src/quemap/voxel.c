@@ -22,7 +22,6 @@
 #include "bsp.h"
 #include "points.h"
 #include "qlight.h"
-#include "simplex.h"
 #include "voxel.h"
 
 voxels_t voxels;

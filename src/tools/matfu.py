@@ -4,9 +4,9 @@ Mat-fu: comprehensive GUI tool for authoring Quetoo per-pixel material
 assets (diffuse, normalmap+heightmap, specularmap).
 
 Run with:
-    python mat-fu/                              # current dir, no args
-    python mat-fu/ /path/to/normalmap.png
-    python mat-fu/ --directory /path/to/textures/
+    python matfu.py                             # current dir, no args
+    python matfu.py /path/to/normalmap.png
+    python matfu.py --directory /path/to/textures/
 
 File conventions
 ----------------

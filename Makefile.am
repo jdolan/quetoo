@@ -12,3 +12,7 @@ html-clean:
 
 html-release:
 	rsync -rz --delete doc/html/ jaydolan.com:/var/www/projects/quetoo
+
+.PHONY: install-tools
+install-tools:
+	$(MAKE) -C src install-tools

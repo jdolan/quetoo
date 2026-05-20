@@ -4,7 +4,7 @@ The Quetoo map compiler (quemap) converts human-readable .map files into optimiz
 
 ## Location
 
-`src/tools/quemap/` - Map compiler tool
+`src/quemap/` - Map compiler tool
 
 ## Core Purpose
 

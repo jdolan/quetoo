@@ -431,13 +431,13 @@ AC_CONFIG_FILES([
 	src/game/Makefile
 	src/game/default/Makefile
 	src/main/Makefile
+	src/master/Makefile
 	src/net/Makefile
+	src/quemap/Makefile
 	src/server/Makefile
 	src/shared/Makefile
 	src/tests/Makefile
 	src/tools/Makefile
-	src/tools/quemap/Makefile
-	src/tools/quetoo-master/Makefile
 ])
 
 AC_OUTPUT

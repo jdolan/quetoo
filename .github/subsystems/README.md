@@ -178,7 +178,7 @@ When adding new documentation:
 | Renderer | `src/client/renderer/` | r_main.c, r_bsp_draw.c |
 | Common | `src/common/` | console.c, cvar.c, filesystem.c |
 | AI | `src/game/default/g_ai*.c` | g_ai_main.c, g_ai_node.c |
-| Quemap | `src/tools/quemap/` | main.c, light.c, voxel.c |
+| Quemap | `src/quemap/` | main.c, light.c, voxel.c |
 
 ---
 

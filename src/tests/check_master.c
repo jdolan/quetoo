@@ -22,7 +22,7 @@
 #include "tests.h"
 
 #define main Ms_Main
-#include "../tools/quetoo-master/main.c"
+#include "../master/main.c"
 #undef main
 
 /**

@@ -240,4 +240,4 @@ BSP files are little-endian binary with this structure:
 2. Lumps (variable-size chunks of data)
 3. Each lump: offset, length in header
 
-See `cm_bsp.h` for complete format specification and `src/tools/quemap/bsp.c` for writer.
+See `cm_bsp.h` for complete format specification and `src/quemap/bsp.c` for writer.
