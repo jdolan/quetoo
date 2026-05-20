@@ -124,7 +124,7 @@ The renderer uses a **compile-time voxel grid** for light culling:
 4. Dramatically reduces per-fragment lighting cost vs. testing all lights
 
 **Key files**:
-- `src/tools/quemap/voxel.c` - Voxel grid building and light assignment
+- `src/quemap/voxel.c` - Voxel grid building and light assignment
 - `src/client/renderer/r_bsp_model.c` - Voxel data loading
 - `src/client/renderer/shaders/common.glsl` - Voxel lookup functions
 - `src/client/renderer/shaders/bsp_fs.glsl` - Fragment shader with voxel lighting
@@ -142,7 +142,7 @@ See `doc/copilot/CLUSTERED_LIGHTING_IMPLEMENTATION.md` for detailed implementati
 ### BSP/Map Format
 
 - **Quake II BSP format**: Enhanced with additional lumps (voxels, lights, etc.)
-- **Map compiler** (`src/tools/quemap/`): Compiles `.map` → `.bsp`
+- **Map compiler** (`src/quemap/`): Compiles `.map` → `.bsp`
   - `-bsp`: BSP tree generation
   - `-vis`: Visibility (PVS) calculation
   - `-light`: Static and dynamic light baking, voxel light assignment
@@ -313,7 +313,7 @@ grep -r "entity" doc/copilot/
 ### Modifying the BSP Format
 
 1. Update `src/collision/cm_bsp.h` (lump IDs, structures)
-2. Update quemap writer: `src/tools/quemap/bsp.c::WriteBSPFile()`
+2. Update quemap writer: `src/quemap/bsp.c::WriteBSPFile()`
 3. Update engine reader: `src/collision/cm_bsp.c` or `src/client/renderer/r_bsp_model.c`
 4. Increment `BSP_VERSION` if format breaks compatibility
 

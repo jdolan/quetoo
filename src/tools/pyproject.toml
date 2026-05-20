@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quetoo-tools"
+version = "0.1.0"
+description = "Developer Python tools for Quetoo"
+requires-python = ">=3.9"
+
+[project.scripts]
+matfu = "matfu:main"
+unpak = "unpak:main"
+mdl2obj = "mdl2obj:main"
+md22obj = "md22obj:main"
+md32obj = "md32obj:main"
+objfu = "objfu:main"
+skyfu = "skyfu:main"
+
+[tool.setuptools]
+py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "objfu", "skyfu"]

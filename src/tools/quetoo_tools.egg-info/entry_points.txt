@@ -1,0 +1,8 @@
+[console_scripts]
+matfu = matfu:main
+md22obj = md22obj:main
+md32obj = md32obj:main
+mdl2obj = mdl2obj:main
+objfu = objfu:main
+skyfu = skyfu:main
+unpak = unpak:main
