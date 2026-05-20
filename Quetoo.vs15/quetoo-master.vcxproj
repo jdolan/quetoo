@@ -57,7 +57,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <PreprocessorDefinitions>QUETOO_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>QUETOO_CONSOLE;SDL_MAIN_HANDLED;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glib-2.0.lib;intl.lib;SDL3.lib;physfs.lib;ws2_32.lib;dbghelp.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
