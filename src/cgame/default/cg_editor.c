@@ -131,11 +131,12 @@ void Cg_PopulateEditorScene(const cl_frame_t *frame) {
 
     const cl_entity_t *ent = edit->ent;
 
-    const vec4_t debug_color = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
+    vec4_t debug_color = ent->current.color.rgba ? Color32_Vec4(ent->current.color) : color_white.vec4;
     vec4_t model_color = color_white.vec4;
 
     if (!g_strcmp0(classname, "light")) {
       model_color = Cg_AddEditorEntity_Light(edit);
+      debug_color = model_color;
     } else {
 
       // check for a client-side entity like misc_flame
