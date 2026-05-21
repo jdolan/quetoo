@@ -726,11 +726,17 @@ typedef struct {
 
   struct g_media_sounds_t {
     uint16_t gib_hits[NUM_GIB_SOUNDS];
+    uint16_t lava[3];
+    uint16_t pain[4];
 
     uint16_t bfg_hit;
     uint16_t bfg_prime;
+    uint16_t death;
+    uint16_t gasp;
     uint16_t grenade_hit;
+    uint16_t grenade_clang;
     uint16_t grenade_throw;
+    uint16_t grenade_tick;
     uint16_t quake_grenade_hit;
     uint16_t quake_nail_hit;
     uint16_t rocket_fly;
@@ -755,6 +761,9 @@ typedef struct {
     uint16_t weapon_switch;
 
     uint16_t countdown[11];
+    uint16_t ctf_capture;
+    uint16_t ctf_return;
+    uint16_t ctf_steal;
 
     uint16_t roar;
 

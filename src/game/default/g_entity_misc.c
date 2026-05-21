@@ -295,7 +295,7 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
 
   if (Randomf() < 0.33) {
     G_MulticastSound(&(const g_play_sound_t) {
-      .index = gi.SoundIndex(va("ambient/lava_%d", (count++ % 3) + 1)),
+      .index = g_media.sounds.lava[count++ % lengthof(g_media.sounds.lava)],
       .entity = ent,
       .atten = SOUND_ATTEN_SQUARE
     }, MULTICAST_PHS);
@@ -315,10 +315,6 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
  wait : The interval in seconds between fireball emissions (default 5.0).
  */
 void G_misc_fireball(g_entity_t *ent) {
-
-  for (int32_t i = 1; i < 4; i++) {
-    gi.SoundIndex(va("ambient/lava_%d", i));
-  }
 
   if (Vec3_Equal(ent->s.angles, Vec3_Zero())) {
     ent->s.angles = Vec3(-90.0, 0.0, 0.0);
@@ -343,4 +339,3 @@ void G_misc_fireball(g_entity_t *ent) {
   ent->Think = G_misc_fireball_Fly;
   ent->next_think = g_level.time + (Randomf() * 1000);
 }
-

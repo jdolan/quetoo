@@ -42,11 +42,15 @@ void Cg_ParseSound(void) {
 
   const byte flags = cgi.ReadByte();
 
+  const uint8_t sample_index = cgi.ReadByte();
   s_play_sample_t play = {
-    .sample = cgi.client->sounds[cgi.ReadByte()]
+    .sample = cgi.client->sounds[sample_index]
   };
-  
-  assert(play.sample);
+
+  if (!play.sample) {
+    Cg_Warn("NULL sample for sound index %u\n", sample_index);
+    return;
+  }
 
   if (flags & SOUND_ENTITY) {
     const int16_t number = cgi.ReadShort();
@@ -131,4 +135,3 @@ void Cg_AddSample(s_stage_t *stage, const s_play_sample_t *play) {
 
   cgi.AddSample(stage, &s);
 }
-

@@ -667,7 +667,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
   gi.LinkEntity(f);
 
   G_MulticastSound(&(const g_play_sound_t) {
-    .index = gi.SoundIndex("ctf/return")
+    .index = g_media.sounds.ctf_return
   }, MULTICAST_PHS_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
@@ -703,7 +703,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
       team_flag->s.event = EV_ITEM_RESPAWN;
 
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = gi.SoundIndex("ctf/return")
+        .index = g_media.sounds.ctf_return
       }, MULTICAST_PHS);
 
       gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.net_name, team->name, team->id + 1);
@@ -730,7 +730,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
         other_team_flag->s.event = EV_ITEM_RESPAWN;
 
         G_MulticastSound(&(const g_play_sound_t) {
-          .index = gi.SoundIndex("ctf/capture")
+          .index = g_media.sounds.ctf_capture
         }, MULTICAST_PHS_R);
 
         gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.net_name, other_team->name, other_team->id + 1);
@@ -763,7 +763,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
   cl->entity->s.model3 = team_flag->item->model_index;
 
   G_MulticastSound(&(const g_play_sound_t) {
-    .index = gi.SoundIndex("ctf/steal"),
+    .index = g_media.sounds.ctf_steal,
   }, MULTICAST_PHS_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.net_name, team->name, team->id + 1);

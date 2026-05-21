@@ -30,24 +30,24 @@ static void G_ClientDamage(g_client_t *cl) {
   if (cl->damage_health || cl->damage_armor) {
     // play an appropriate pain sound
     if (g_level.time > cl->pain_time) {
-      int32_t l;
+      int32_t pain;
 
       cl->pain_time = g_level.time + 700;
 
       if (cl->entity->health < 25) {
-        l = 25;
+        pain = 0;
       } else if (cl->entity->health < 50) {
-        l = 50;
+        pain = 1;
       } else if (cl->entity->health < 75) {
-        l = 75;
+        pain = 2;
       } else {
-        l = 100;
+        pain = 3;
       }
 
       const vec3_t org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
 
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = gi.SoundIndex(va("*pain%i_1", l)),
+        .index = g_media.sounds.pain[pain],
         .entity = cl->entity,
         .origin = &org,
         .atten = SOUND_ATTEN_LINEAR
@@ -108,7 +108,7 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
       const vec3_t org = Vec3_Add(cl->ps.pm_state.origin, cl->ps.pm_state.view_offset);
 
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = gi.SoundIndex("*gasp_1"),
+        .index = g_media.sounds.gasp,
         .entity = ent,
         .origin = &org,
         .atten = SOUND_ATTEN_LINEAR

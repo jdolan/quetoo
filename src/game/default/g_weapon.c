@@ -686,7 +686,7 @@ static void G_PullGrenadePin(g_client_t *cl) {
   nade->touch_time = g_level.time;
   nade->s.trail = TRAIL_GRENADE;
   nade->s.model1 = g_media.models.grenade;
-  nade->s.sound = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
+  nade->s.sound = g_media.sounds.grenade_tick;
   gi.LinkEntity(nade);
 }
 
@@ -771,7 +771,7 @@ void G_FireHandGrenade(g_client_t *cl) {
     // play the timer sound if we're holding once every second
     if ((g_level.frame_num - cl->grenade_hold_frame) % QUETOO_TICK_RATE == 0) {
       G_MulticastSound(&(const g_play_sound_t) {
-        .index = gi.SoundIndex("weapons/handgrenades/hg_clang"),
+        .index = g_media.sounds.grenade_clang,
         .entity = cl->entity,
         .atten = SOUND_ATTEN_LINEAR,
       }, MULTICAST_PHS);

@@ -236,23 +236,23 @@ static void G_InitMedia(void) {
   G_InitItems();
 
   // precache player sounds; clients will load these when a new player model gets loaded.
-  gi.SoundIndex("*gurp_1");
+  gi.SoundIndex("*death_1");
   gi.SoundIndex("*drown_1");
   gi.SoundIndex("*fall_1");
   gi.SoundIndex("*fall_2");
-  gi.SoundIndex("*land_1");
+  gi.SoundIndex("*gasp_1");
+  gi.SoundIndex("*gurp_1");
   gi.SoundIndex("*jump_1");
   gi.SoundIndex("*jump_2");
   gi.SoundIndex("*jump_3");
   gi.SoundIndex("*jump_4");
   gi.SoundIndex("*jump_5");
-  gi.SoundIndex("*sizzle_1");
-  gi.SoundIndex("*death_1");
-  gi.SoundIndex("*gasp_1");
+  gi.SoundIndex("*land_1");
   gi.SoundIndex("*pain25_1");
   gi.SoundIndex("*pain50_1");
   gi.SoundIndex("*pain75_1");
   gi.SoundIndex("*pain100_1");
+  gi.SoundIndex("*sizzle_1");
 
   g_media.models.grenade = gi.ModelIndex("models/projectiles/grenade/tris");
   g_media.models.quake_grenade = gi.ModelIndex("models/projectiles/quake_grenade/tris");
@@ -261,31 +261,35 @@ static void G_InitMedia(void) {
   g_media.models.quake_rocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
   g_media.models.hook = gi.ModelIndex("models/grapplehook/tris");
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
-
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
+  g_media.sounds.death = gi.SoundIndex("*death_1");
+  g_media.sounds.gasp = gi.SoundIndex("*gasp_1");
+  g_media.sounds.pain[0] = gi.SoundIndex("*pain25_1");
+  g_media.sounds.pain[1] = gi.SoundIndex("*pain50_1");
+  g_media.sounds.pain[2] = gi.SoundIndex("*pain75_1");
+  g_media.sounds.pain[3] = gi.SoundIndex("*pain100_1");
   g_media.sounds.grenade_hit = gi.SoundIndex("projectiles/grenade/hit");
+  g_media.sounds.grenade_clang = gi.SoundIndex("weapons/handgrenades/hg_clang");
   g_media.sounds.grenade_throw = gi.SoundIndex("weapons/handgrenades/hg_throw");
+  g_media.sounds.grenade_tick = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
   g_media.sounds.quake_grenade_hit = gi.SoundIndex("projectiles/quake_grenade/hit");
   g_media.sounds.quake_nail_hit = gi.SoundIndex("projectiles/quake_nail/hit");
   g_media.sounds.rocket_fly = gi.SoundIndex("projectiles/rocket/fly");
   g_media.sounds.lightning_fly = gi.SoundIndex("weapons/lightning/fly");
   g_media.sounds.quad_attack = gi.SoundIndex("powerups/quad/attack");
   g_media.sounds.quad_expire = gi.SoundIndex("powerups/quad/expire");
-
   g_media.sounds.invulnerability_pickup = gi.SoundIndex("powerups/invulnerability/pickup");
   g_media.sounds.invulnerability_expire = gi.SoundIndex("powerups/invulnerability/expire");
   g_media.sounds.invulnerability_protect = gi.SoundIndex("powerups/invulnerability/protect");
   g_media.sounds.invisibility_pickup = gi.SoundIndex("powerups/invisibility/pickup");
   g_media.sounds.invisibility_expire = gi.SoundIndex("powerups/invisibility/expire");
-
   g_media.sounds.hook_fire = gi.SoundIndex("grapplehook/fire");
   g_media.sounds.hook_fly = gi.SoundIndex("grapplehook/fly");
   g_media.sounds.hook_hit = gi.SoundIndex("grapplehook/hit");
   g_media.sounds.hook_pull = gi.SoundIndex("grapplehook/pull");
   g_media.sounds.hook_detach = gi.SoundIndex("grapplehook/detach");
   g_media.sounds.hook_gibhit = gi.SoundIndex("grapplehook/gibhit");
-
   g_media.sounds.teleport = gi.SoundIndex("misc/teleport");
 
   for (i = 0; i < lengthof(g_media.sounds.quake_teleport); i++) {
@@ -299,9 +303,16 @@ static void G_InitMedia(void) {
   g_media.sounds.weapon_switch = gi.SoundIndex("weapons/common/switch");
 
   g_media.sounds.chat = gi.SoundIndex("misc/chat");
+  g_media.sounds.ctf_capture = gi.SoundIndex("ctf/capture");
+  g_media.sounds.ctf_return = gi.SoundIndex("ctf/return");
+  g_media.sounds.ctf_steal = gi.SoundIndex("ctf/steal");
 
   for (i = 0; i < NUM_GIB_MODELS; i++) {
     g_media.models.gibs[i] = gi.ModelIndex(va("models/gibs/gib_%i/tris", i + 1));
+  }
+
+  for (i = 0; i < lengthof(g_media.sounds.lava); i++) {
+    g_media.sounds.lava[i] = gi.SoundIndex(va("ambient/lava_%d", i + 1));
   }
 
   for (i = 0; i < NUM_GIB_SOUNDS; i++) {
