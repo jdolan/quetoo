@@ -25,7 +25,7 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Response"
+                      "text": "Mouse"
                     }
                   },
                   "contentView": {
@@ -42,20 +42,6 @@
                           "min": 0.125,
                           "max": 6,
                           "var": "m_sensitivity"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Zoom sensitivity"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0.125,
-                          "max": 6,
-                          "var": "m_sensitivity_zoom"
                         }
                       },
                       {
@@ -89,26 +75,11 @@
                   "class": "Box",
                   "label": {
                     "text": {
-                      "text": "Field of view"
+                      "text": "Zoom"
                     }
                   },
                   "contentView": {
                     "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "FOV"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 90,
-                          "max": 130,
-                          "step": 1,
-                          "var": "cg_fov"
-                        }
-                      },
                       {
                         "class": "Input",
                         "label": {
@@ -149,6 +120,20 @@
                           "max": 2,
                           "step": 0.1,
                           "var": "cg_fov_interpolate"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Zoom sensitivity"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0.125,
+                          "max": 6,
+                          "var": "m_sensitivity_zoom"
                         }
                       }
                     ]
@@ -286,7 +271,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Say"
+                            "text": "Chat"
                           }
                         },
                         "control": {
@@ -298,7 +283,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Say team"
+                            "text": "Team chat"
                           }
                         },
                         "control": {
@@ -328,6 +313,18 @@
                         "control": {
                           "class": "BindTextView",
                           "bind": "r_screenshot"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Take screenshot (3D only)"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "r_screenshot view"
                         }
                       }
                     ]
