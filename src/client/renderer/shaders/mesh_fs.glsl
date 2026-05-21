@@ -78,9 +78,10 @@ void main(void) {
 
 	  fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap) * vertex.color;
 
-	  if (fragment.diffuse_sample.a < material.alpha_test) {
-  	  discard;
-	  }
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST
+        && fragment.diffuse_sample.a < material.alpha_test) {
+      discard;
+    }
 
 	  vec4 tintmap = sample_material_tint(vertex.diffusemap);
 	  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;

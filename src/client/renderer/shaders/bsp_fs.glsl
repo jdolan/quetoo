@@ -129,7 +129,8 @@ void main(void) {
 
     fragment.diffuse_sample = sample_material_diffuse(fragment.parallax) * vertex.color;
 
-    if (fragment.diffuse_sample.a < material.alpha_test) {
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST
+        && fragment.diffuse_sample.a < material.alpha_test) {
       discard;
     }
 

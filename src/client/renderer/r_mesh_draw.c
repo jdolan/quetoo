@@ -208,8 +208,7 @@ static void R_DrawMeshEntityMaterialStages(const r_entity_t *e, const r_mesh_fac
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_STAGE);
 
-  int32_t s = 1;
-  for (const r_stage_t *stage = material->stages; stage; stage = stage->next, s++) {
+  for (const r_stage_t *stage = material->stages; stage; stage = stage->next) {
 
     if (!(stage->cm->flags & STAGE_DRAW)) {
       continue;
@@ -265,11 +264,11 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
   glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
 
+  glUniform1i(r_mesh_program.material.surface, material->cm->surface);
   glUniform1f(r_mesh_program.material.alpha_test, material->cm->alpha_test * r_alpha_test->value);
   glUniform1f(r_mesh_program.material.roughness, material->cm->roughness * r_roughness->value);
   glUniform1f(r_mesh_program.material.hardness, material->cm->hardness * r_hardness->value);
   glUniform1f(r_mesh_program.material.specularity, material->cm->specularity * r_specularity->value);
-  glUniform1i(r_mesh_program.material.surface, material->cm->surface);
 
   if (*material->cm->tintmap.path) {
     vec4_t tints[3];
@@ -461,6 +460,9 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.texture_shadow_atlas = glGetUniformLocation(r_mesh_program.name, "texture_shadow_atlas");
 
+  r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
+  r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
+
   r_mesh_program.material.surface = glGetUniformLocation(r_mesh_program.name, "material.surface");
   r_mesh_program.material.alpha_test = glGetUniformLocation(r_mesh_program.name, "material.alpha_test");
   r_mesh_program.material.roughness = glGetUniformLocation(r_mesh_program.name, "material.roughness");
@@ -469,15 +471,12 @@ void R_InitMeshProgram(void) {
 
   r_mesh_program.stage.flags = glGetUniformLocation(r_mesh_program.name, "stage.flags");
   r_mesh_program.stage.color = glGetUniformLocation(r_mesh_program.name, "stage.color");
-  r_mesh_program.color = glGetUniformLocation(r_mesh_program.name, "color");
   r_mesh_program.stage.pulse = glGetUniformLocation(r_mesh_program.name, "stage.pulse");
   r_mesh_program.stage.drift = glGetUniformLocation(r_mesh_program.name, "stage.drift");
   r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
   r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
   r_mesh_program.stage.lighting = glGetUniformLocation(r_mesh_program.name, "stage.lighting");
   r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
-
-  r_mesh_program.tint_colors = glGetUniformLocation(r_mesh_program.name, "tint_colors");
 
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);

@@ -348,7 +348,7 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
   }
 
   // sink into the floor after a few seconds
-  if (age > 30000) {
+  if (age > 10000) {
 
     ent->s.effects |= EF_DESPAWN;
 
