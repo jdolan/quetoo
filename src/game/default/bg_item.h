@@ -232,6 +232,12 @@ typedef struct {
    */
   float light_radius;
 
+  /**
+   * @brief Color used by cgame for item pickup / respawn effects.
+   * Zero means "use cgame fallback palette".
+   */
+  color_t effect_color;
+
 } g_item_def_t;
 
 /**

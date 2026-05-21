@@ -201,6 +201,11 @@ typedef struct {
   uint8_t event;
 
   /**
+   * @brief Optional event payload byte (event-specific semantics).
+   */
+  uint8_t event_data;
+
+  /**
    * @brief Bit mask of active visual effects (`EF_ROTATE`, `EF_BOB`, etc.).
    */
   uint32_t effects;

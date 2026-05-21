@@ -145,6 +145,7 @@ static void G_ItemRespawn(g_entity_t *ent) {
 
   // send an effect
   ent->s.event = EV_ITEM_RESPAWN;
+  ent->s.event_data = ent->item->def.tag;
 }
 
 /**
@@ -662,6 +663,7 @@ void G_ResetDroppedFlag(g_entity_t *ent) {
 
   f->sv_flags &= ~SVF_NO_CLIENT;
   f->s.event = EV_ITEM_RESPAWN;
+  f->s.event_data = f->item->def.tag;
   f->solid = SOLID_TRIGGER;
 
   gi.LinkEntity(f);
@@ -701,6 +703,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
       gi.LinkEntity(team_flag);
 
       team_flag->s.event = EV_ITEM_RESPAWN;
+      team_flag->s.event_data = team_flag->item->def.tag;
 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.ctf_return
@@ -728,6 +731,7 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
         gi.LinkEntity(other_team_flag);
 
         other_team_flag->s.event = EV_ITEM_RESPAWN;
+        other_team_flag->s.event_data = other_team_flag->item->def.tag;
 
         G_MulticastSound(&(const g_play_sound_t) {
           .index = g_media.sounds.ctf_capture
@@ -911,6 +915,7 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
     }
 
     other->s.event = EV_ITEM_PICKUP;
+    other->s.event_data = ent->item->def.tag;
   }
 
   if (!(ent->spawn_flags & SF_ITEM_TARGETS_USED)) {

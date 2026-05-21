@@ -503,6 +503,7 @@ void Net_WriteDeltaEntity(mem_buf_t *msg, const entity_state_t *from, const enti
 
   if (bits & U_EVENT) {
     Net_WriteByte(msg, to->event);
+    Net_WriteByte(msg, to->event_data);
   }
 
   if (bits & U_EFFECTS) {
@@ -907,8 +908,10 @@ void Net_ReadDeltaEntity(mem_buf_t *msg, const entity_state_t *from, entity_stat
 
   if (bits & U_EVENT) {
     to->event = Net_ReadByte(msg);
+    to->event_data = Net_ReadByte(msg);
   } else {
     to->event = 0;
+    to->event_data = 0;
   }
 
   if (bits & U_EFFECTS) {

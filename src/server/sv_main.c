@@ -645,6 +645,7 @@ static void Sv_ResetEntities(void) {
     g_entity_t *ent = sv.entities[i].gent;
     if (ent) {
       ent->s.event = 0;
+      ent->s.event_data = 0;
     }
   }
 }
