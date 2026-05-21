@@ -137,7 +137,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_cheats 1"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set g_ctf 1"
@@ -149,11 +149,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map pits"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give quad damage"

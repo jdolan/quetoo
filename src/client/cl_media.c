@@ -62,8 +62,7 @@ void Cl_RequestNextDownload(void) {
 
         if (Fs_Exists(entry->path)) {
           if (!Cm_CheckManifestEntry(entry)) {
-            Com_Warn("%s differs from server (expected %s)\n",
-                     entry->path, entry->hash);
+            Com_Warn("%s differs from server (expected %s)\n", entry->path, entry->hash);
           }
         } else {
           Cl_CheckOrDownloadFile(entry->path);
