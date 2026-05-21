@@ -26,6 +26,8 @@
 
 #if defined(__CG_LOCAL_H__)
 
+#define CG_CENTER_PRINT_LINES 8
+
 /**
  * @brief The client game reprensetation of teams.
  */
@@ -182,6 +184,15 @@ typedef struct {
    * @brief Bot navitation node editor.
    */
   int32_t nav_edit;
+
+  /**
+   * @brief Center print message state from `SV_CMD_CENTER_PRINT`.
+   */
+  struct {
+    char lines[CG_CENTER_PRINT_LINES][MAX_STRING_CHARS];
+    int32_t num_lines;
+    uint32_t time;
+  } center_print;
 
   /**
    * @brief Pending view angle snap from a reliable `SV_CMD_SNAP_ANGLES` message.

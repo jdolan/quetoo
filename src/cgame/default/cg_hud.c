@@ -35,17 +35,6 @@
 
 #define HUD_POWERUP_LOW      5
 
-#define CENTER_PRINT_LINES 8
-
-/**
- * @brief The center print, parsed from `SV_CMD_CENTER_PRINT`.
- */
-static struct {
-  char lines[CENTER_PRINT_LINES][MAX_STRING_CHARS];
-  int32_t num_lines;
-  uint32_t time;
-} cg_center_print;
-
 /**
  * @brief The HUD state, cleared when respawning or changing chase targets.
  */
@@ -527,7 +516,7 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
       return; // dead
     }
 
-    if (cg_center_print.time > cgi.client->unclamped_time) {
+    if (cg_state.center_print.time > cgi.client->unclamped_time) {
       return;
     }
   }
@@ -683,19 +672,19 @@ static void Cg_DrawCrosshair(const player_state_t *ps) {
 void Cg_ParseCenterPrint(void) {
   char *c, *out, *line;
 
-  memset(&cg_center_print, 0, sizeof(cg_center_print));
+  memset(&cg_state.center_print, 0, sizeof(cg_state.center_print));
 
   c = cgi.ReadString();
 
-  line = cg_center_print.lines[0];
+  line = cg_state.center_print.lines[0];
   out = line;
 
-  while (*c && cg_center_print.num_lines < CENTER_PRINT_LINES - 1) {
+  while (*c && cg_state.center_print.num_lines < CG_CENTER_PRINT_LINES - 1) {
 
     if (*c == '\n') {
       line += MAX_STRING_CHARS;
       out = line;
-      cg_center_print.num_lines++;
+      cg_state.center_print.num_lines++;
       c++;
       continue;
     }
@@ -703,8 +692,8 @@ void Cg_ParseCenterPrint(void) {
     *out++ = *c++;
   }
 
-  cg_center_print.num_lines++;
-  cg_center_print.time = cgi.client->unclamped_time + 3000;
+  cg_state.center_print.num_lines++;
+  cg_state.center_print.time = cgi.client->unclamped_time + 3000;
 }
 
 /**
@@ -712,19 +701,19 @@ void Cg_ParseCenterPrint(void) {
  */
 static void Cg_DrawCenterPrint(const player_state_t *ps) {
   GLint cw, ch, x, y;
-  char *line = cg_center_print.lines[0];
+  char *line = cg_state.center_print.lines[0];
 
   if (ps->stats[STAT_SCORES]) {
     return;
   }
 
-  if (cg_center_print.time < cgi.client->unclamped_time) {
+  if (cg_state.center_print.time < cgi.client->unclamped_time) {
     return;
   }
 
   cgi.BindFont(NULL, &cw, &ch);
 
-  y = (cgi.context->h - cg_center_print.num_lines * ch) / 2;
+  y = (cgi.context->h - cg_state.center_print.num_lines * ch) / 2;
 
   while (*line) {
     x = (cgi.context->w - cgi.StringWidth(line)) / 2;
