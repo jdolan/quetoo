@@ -1159,7 +1159,7 @@ static void Cg_DrawTargetName(const player_state_t *ps) {
     }
   }
 
-  if (cgi.client->unclamped_time - time > 3000) {
+  if (cgi.client->unclamped_time - time > 500) {
     *name = '\0';
   }
 
