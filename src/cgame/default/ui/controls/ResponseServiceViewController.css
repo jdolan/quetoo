@@ -1,3 +1,6 @@
+.responseService {
+  autoresizing-mask: contain | width;
+}
 
 CrosshairView {
   alignment: center;

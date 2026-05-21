@@ -1,1 +1,3 @@
-
+.movementCombat {
+  autoresizing-mask: contain | width;
+}

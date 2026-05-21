@@ -1,5 +1,8 @@
 {
   "identifier": "Movement & combat",
+  "classNames": [
+    "movementCombat"
+  ],
   "subviews": [
     {
       "class": "StackView",

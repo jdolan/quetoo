@@ -1,5 +1,8 @@
 {
   "identifier": "Response & service",
+  "classNames": [
+    "responseService"
+  ],
   "subviews": [
     {
       "class": "StackView",
