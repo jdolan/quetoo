@@ -36,9 +36,9 @@ Panel.menu {
 }
 
 Panel.menu .tabPageView {
-  autoresizing-mask: none;
+  autoresizing-mask: contain;
   width: 1440;
-  height: 720;
+  /*height: 720;*/
 }
 
 Select {
@@ -80,7 +80,7 @@ TextView {
 }
 
 .columns {
-  autoreizing-mask: contain | width;
+  autoresizing-mask: contain | width;
   axis: horizontal;
   distribution: fill;
 }
@@ -98,5 +98,5 @@ TextView {
 }
 
 .column Box {
-  autoresizing-mask: contain | width;
+  autoresizing-mask: contain ;
 }
