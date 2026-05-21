@@ -50,7 +50,7 @@ void Com_LogString(const char *str) {
 static void Com_InitLog(int32_t argc, char *argv[]) {
 
   const char *game = DEFAULT_GAME;
-  const char *log_name = quetoo.log_name ? : "quetoo.log";
+  const char *log_name = quetoo.log_file_name ? : "quetoo.log";
   for (int32_t i = 1; i < argc - 2; i++) {
     if (!g_strcmp0(argv[i], "+set") && !g_strcmp0(argv[i + 1], "game")) {
       game = argv[i + 2];

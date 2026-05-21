@@ -184,7 +184,7 @@ typedef struct {
   /**
    * @brief Optional log file name override within the selected game dir.
    */
-  const char *log_name;
+  const char *log_file_name;
 
   void (*Debug)(const debug_t debug, const char *msg);
   void (*Error)(err_t error, const char *msg) __attribute__((noreturn));
