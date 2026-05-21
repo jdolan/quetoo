@@ -379,7 +379,8 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
       if (cls.key_state.binds[key]) {
         cmd_t *cmd;
 
-        if ((cmd = Cmd_Get(cls.key_state.binds[key]))) {
+        Cmd_TokenizeString(cls.key_state.binds[key]);
+        if ((cmd = Cmd_Get(Cmd_Argv(0)))) {
           if (cmd->flags & CMD_SYSTEM) {
             Cbuf_AddText(cls.key_state.binds[key]);
             Cbuf_Execute();
