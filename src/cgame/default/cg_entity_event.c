@@ -24,15 +24,19 @@
 #include "collision/collision.h"
 
 typedef struct {
+  float start;
+  float peak;
+  float end;
+  float peak_life;
+} cg_item_respawn_intensity_t;
+
+typedef struct {
   float radius;
   float turns;
   float z;
   float drop;
   vec3_t color;
-  float intensity_start;
-  float intensity_peak;
-  float intensity_end;
-  float intensity_peak_life;
+  cg_item_respawn_intensity_t intensity;
 } cg_item_respawn_helix_t;
 
 typedef struct {
@@ -40,25 +44,23 @@ typedef struct {
   float z;
   float drop;
   vec3_t color;
-  float intensity_start;
-  float intensity_peak;
-  float intensity_end;
-  float intensity_peak_life;
+  cg_item_respawn_intensity_t intensity;
 } cg_item_respawn_ring_t;
 
 /**
  * @brief Returns envelope intensity for item respawn effects.
  */
-static float Cg_ItemRespawnIntensity(const float life, const float intensity_start, const float intensity_peak,
-                                     const float intensity_end, const float intensity_peak_life) {
+static float Cg_ItemRespawnIntensity(const float life, const cg_item_respawn_intensity_t *intensity) {
+
   const float clamped_life = Clampf01(life);
-  if (clamped_life <= intensity_peak_life) {
-    const float t = Smoothf(clamped_life, 0.f, intensity_peak_life);
-    return Mixf(intensity_start, intensity_peak, t);
+
+  if (clamped_life <= intensity->peak_life) {
+    const float t = Smoothf(clamped_life, 0.f, intensity->peak_life);
+    return Mixf(intensity->start, intensity->peak, t);
   }
 
-  const float t = Smoothf(clamped_life, intensity_peak_life, 1.f);
-  return Mixf(intensity_peak, intensity_end, t);
+  const float t = Smoothf(clamped_life, intensity->peak_life, 1.f);
+  return Mixf(intensity->peak, intensity->end, t);
 }
 
 /**
@@ -71,8 +73,7 @@ static void Cg_ItemRespawn_Think(cg_sprite_t *sprite, float life, float delta) {
     return;
   }
 
-  const float intensity = Cg_ItemRespawnIntensity(life, helix->intensity_start, helix->intensity_peak,
-                                                  helix->intensity_end, helix->intensity_peak_life);
+  const float intensity = Cg_ItemRespawnIntensity(life, &helix->intensity);
   const vec3_t center = sprite->termination;
   const float radius = helix->radius * intensity;
   const float angle = sprite->rotation + life * helix->turns * 2.f * M_PI;
@@ -99,8 +100,7 @@ static void Cg_ItemRespawnRing_Think(cg_sprite_t *sprite, float life, float delt
     return;
   }
 
-  const float intensity = Cg_ItemRespawnIntensity(life, ring->intensity_start, ring->intensity_peak,
-                                                  ring->intensity_end, ring->intensity_peak_life);
+  const float intensity = Cg_ItemRespawnIntensity(life, &ring->intensity);
   const vec3_t center = sprite->termination;
 
   sprite->origin = center;
@@ -123,7 +123,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
   const float height = 56.f;
   const float turns = .666f;
 
-  // descending helix curtain
   for (int32_t i = 0; i < segments; i++) {
     const float t = (float) i / (segments - 1);
     const float z = height * t;
@@ -138,10 +137,10 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
       helix->z = z;
       helix->drop = RandomRangef(48.f, 56.f);
       helix->color = color.vec3;
-      helix->intensity_start = RandomRangef(0.0f, 0.15f);
-      helix->intensity_peak = RandomRangef(1.5f, 2.5f);
-      helix->intensity_end = RandomRangef(0.0f, 0.15f);
-      helix->intensity_peak_life = RandomRangef(0.2f, 0.4f);
+      helix->intensity.start = RandomRangef(0.0f, 0.15f);
+      helix->intensity.peak = RandomRangef(1.5f, 2.5f);
+      helix->intensity.end = RandomRangef(0.0f, 0.15f);
+      helix->intensity.peak_life = RandomRangef(0.2f, 0.4f);
 
       const float angle = phase + strand * M_PI;
 
@@ -163,10 +162,10 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
   ring->z = height;
   ring->drop = height * 1.35f;
   ring->color = color.vec3;
-  ring->intensity_start = RandomRangef(0.0f, 0.15f);
-  ring->intensity_peak = RandomRangef(1.4f, 2.0f);
-  ring->intensity_end = RandomRangef(0.0f, 0.15f);
-  ring->intensity_peak_life = RandomRangef(0.2f, 0.4f);
+  ring->intensity.start = RandomRangef(0.0f, 0.15f);
+  ring->intensity.peak = RandomRangef(1.4f, 2.0f);
+  ring->intensity.end = RandomRangef(0.0f, 0.15f);
+  ring->intensity.peak_life = RandomRangef(0.2f, 0.4f);
 
   Cg_AddSprite(&(cg_sprite_t) {
     .atlas_image = cg_sprite_ring,
