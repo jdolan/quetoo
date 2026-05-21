@@ -516,6 +516,12 @@ static void G_func_plat_Blocked(g_entity_t *ent, g_entity_t *other) {
 
   G_MoveType_Push_Blocked(ent, other);
 
+  // Dead blockers (e.g. giblets) should not cause direction flips and
+  // movement sound restarts every frame.
+  if (!other->in_use || other->dead) {
+    return;
+  }
+
   if (ent->move_info.state == MOVE_STATE_GOING_UP) {
     G_func_plat_GoingDown(ent);
   } else if (ent->move_info.state == MOVE_STATE_GOING_DOWN) {
