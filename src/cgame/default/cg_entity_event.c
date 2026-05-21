@@ -23,58 +23,175 @@
 #include "game/default/bg_pmove.h"
 #include "collision/collision.h"
 
-static vec3_t Cg_FibonacciLatticeDir(int32_t count, int32_t index) {
-  // source: http://extremelearning.com.au/evenly-distributing-points-on-a-sphere/
-  float phi = acosf(1.f - 2.f * index / count);
-  float golden_ratio = (1.f + pow(5.f, .5f)) * .5f;
-  float theta = 2.f * M_PI * index / golden_ratio;
-  return Vec3(cosf(theta) * sinf(phi), sinf(theta) * sinf(phi), cosf(phi));
+typedef struct {
+  float radius;
+  float turns;
+  float z;
+  float drop;
+  vec3_t color;
+  float intensity_start;
+  float intensity_peak;
+  float intensity_end;
+  float intensity_peak_life;
+} cg_item_respawn_helix_t;
+
+typedef struct {
+  float size;
+  float z;
+  float drop;
+  vec3_t color;
+  float intensity_start;
+  float intensity_peak;
+  float intensity_end;
+  float intensity_peak_life;
+} cg_item_respawn_ring_t;
+
+/**
+ * @brief Returns envelope intensity for item respawn effects.
+ */
+static float Cg_ItemRespawnIntensity(const float life, const float intensity_start, const float intensity_peak,
+                                     const float intensity_end, const float intensity_peak_life) {
+  const float clamped_life = Clampf01(life);
+  if (clamped_life <= intensity_peak_life) {
+    const float t = Smoothf(clamped_life, 0.f, intensity_peak_life);
+    return Mixf(intensity_start, intensity_peak, t);
+  }
+
+  const float t = Smoothf(clamped_life, intensity_peak_life, 1.f);
+  return Mixf(intensity_peak, intensity_end, t);
 }
 
 /**
- * @brief Spawns particle sphere and glow effects for an item respawn event.
+ * @brief Think callback for item respawn helix sprites.
+ */
+static void Cg_ItemRespawn_Think(cg_sprite_t *sprite, float life, float delta) {
+
+  const cg_item_respawn_helix_t *helix = sprite->data;
+  if (!helix) {
+    return;
+  }
+
+  const float intensity = Cg_ItemRespawnIntensity(life, helix->intensity_start, helix->intensity_peak,
+                                                  helix->intensity_end, helix->intensity_peak_life);
+  const vec3_t center = sprite->termination;
+  const float radius = helix->radius * intensity;
+  const float angle = sprite->rotation + life * helix->turns * 2.f * M_PI;
+
+  sprite->origin.x = center.x + cosf(angle) * radius;
+  sprite->origin.y = center.y + sinf(angle) * radius;
+  sprite->origin.z = center.z + helix->z - life * helix->drop;
+
+  sprite->size = (4.5f + sinf(angle * 1.7f) * 0.8f) * (1.f - life * 0.5f);
+
+  const vec3_t color = Vec3_Scale(helix->color, intensity);
+  sprite->color = color;
+  sprite->end_color = color;
+}
+
+/**
+ * @brief Think callback for a face-up ring that descends with item respawn helix.
+ */
+static void Cg_ItemRespawnRing_Think(cg_sprite_t *sprite, float life, float delta) {
+  (void) delta;
+
+  const cg_item_respawn_ring_t *ring = sprite->data;
+  if (!ring) {
+    return;
+  }
+
+  const float intensity = Cg_ItemRespawnIntensity(life, ring->intensity_start, ring->intensity_peak,
+                                                  ring->intensity_end, ring->intensity_peak_life);
+  const vec3_t center = sprite->termination;
+
+  sprite->origin = center;
+  sprite->origin.z = center.z + ring->z - life * ring->drop;
+  sprite->size = ring->size * (0.8f + 0.4f * intensity);
+
+  const vec3_t color = Vec3_Scale(ring->color, intensity);
+  sprite->color = color;
+  sprite->end_color = color;
+}
+
+/**
+ * @brief Spawns a descending helix "curtain" and glow for an item respawn event.
  */
 static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 
-  cg_sprite_t *s;
-  const vec3_t sprite_color = Vec3_Add(Vec3_Scale(color.vec3, 0.8f), Vec3(0.2f, 0.2f, 0.2f));
-  const vec3_t light_color = Vec3_Add(Vec3_Scale(color.vec3, 0.5f), Vec3(0.1f, 0.1f, 0.1f));
+  const int32_t strands = 2;
+  const int32_t segments = 24;
+  const float radius = 18.f;
+  const float height = 56.f;
+  const float turns = .666f;
 
-  int32_t particle_count = 64;
-  vec3_t z_offset = org;
-  z_offset.z += 20.f;
+  // descending helix curtain
+  for (int32_t i = 0; i < segments; i++) {
+    const float t = (float) i / (segments - 1);
+    const float z = height * t;
+    const float phase = turns * 2.f * M_PI * t;
 
-  // sphere particles
-  for (int32_t i = 0; i < particle_count; i++) {
+    for (int32_t strand = 0; strand < strands; strand++) {
 
-    if (!(s = Cg_AddSprite(&(cg_sprite_t) {
-        .atlas_image = cg_sprite_particle2,
-        .lifetime = 1000,
-        .origin = z_offset,
-        .velocity = Vec3_Scale(Cg_FibonacciLatticeDir(particle_count, i + 1), 55.f),
-        .color = sprite_color,
-        .size = 10.f,
-      }))) {
-      break;
+      cg_item_respawn_helix_t *helix = cgi.Malloc(sizeof(*helix), MEM_TAG_CGAME_LEVEL);
+
+      helix->radius = radius * RandomRangef(0.9f, 1.1f);
+      helix->turns = turns * RandomRangef(0.5f, 1.15f) * (Randomf() < 0.5f ? -1.f : 1.f);
+      helix->z = z;
+      helix->drop = RandomRangef(48.f, 56.f);
+      helix->color = color.vec3;
+      helix->intensity_start = RandomRangef(0.0f, 0.15f);
+      helix->intensity_peak = RandomRangef(1.5f, 2.5f);
+      helix->intensity_end = RandomRangef(0.0f, 0.15f);
+      helix->intensity_peak_life = RandomRangef(0.2f, 0.4f);
+
+      const float angle = phase + strand * M_PI;
+
+      Cg_AddSprite(&(cg_sprite_t) {
+        .atlas_image = cg_sprite_particle3,
+        .origin = org,
+        .termination = org,
+        .lifetime = RandomRangeu(1700, 2301),
+        .rotation = angle,
+        .data = helix,
+        .Think = Cg_ItemRespawn_Think,
+        .lighting = 1.f,
+      });
     }
-
-    s->acceleration = Vec3_Scale(s->velocity, -1.f);
-    s->size_velocity = -s->size / MILLIS_TO_SECONDS(s->lifetime);
   }
+
+  cg_item_respawn_ring_t *ring = cgi.Malloc(sizeof(*ring), MEM_TAG_CGAME_LEVEL);
+  ring->size = 48.f;
+  ring->z = height;
+  ring->drop = height * 1.35f;
+  ring->color = color.vec3;
+  ring->intensity_start = RandomRangef(0.0f, 0.15f);
+  ring->intensity_peak = RandomRangef(1.4f, 2.0f);
+  ring->intensity_end = RandomRangef(0.0f, 0.15f);
+  ring->intensity_peak_life = RandomRangef(0.2f, 0.4f);
+
+  Cg_AddSprite(&(cg_sprite_t) {
+    .atlas_image = cg_sprite_ring,
+    .origin = Vec3_Fmaf(org, height, Vec3_Up()),
+    .termination = org,
+    .lifetime = 1200,
+    .dir = Vec3_Up(),
+    .data = ring,
+    .Think = Cg_ItemRespawnRing_Think,
+    .lighting = 1.f,
+  });
 
   // glow
   Cg_AddSprite(&(cg_sprite_t) {
-    .origin = z_offset,
+    .origin = Vec3_Fmaf(org, 20.f, Vec3_Up()),
     .lifetime = 1000,
     .size = 150.f,
     .atlas_image = cg_sprite_particle,
-    .color = sprite_color,
+    .color = color.vec3,
   });
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
     .radius = 160.f,
-    .color = light_color,
+    .color = color.vec3,
     .intensity = 1.f,
     .decay = 1000
   });
@@ -86,8 +203,6 @@ static void Cg_ItemRespawnEffect(const vec3_t org, const color_t color) {
 static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
 
   cg_sprite_t *s;
-  const vec3_t sprite_color = Vec3_Add(Vec3_Scale(color.vec3, 0.8f), Vec3(0.2f, 0.2f, 0.2f));
-  const vec3_t light_color = Vec3_Add(Vec3_Scale(color.vec3, 0.5f), Vec3(0.1f, 0.1f, 0.1f));
 
   // ring
   if ((s = Cg_AddSprite(&(cg_sprite_t) {
@@ -95,7 +210,7 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
       .lifetime = 400,
       .size = 10.f,
       .atlas_image = cg_sprite_ring,
-      .color = sprite_color,
+      .color = color.vec3,
       .dir = Vec3_Up()
     }))) {
     s->size_velocity = 50.f / MILLIS_TO_SECONDS(s->lifetime);
@@ -107,13 +222,13 @@ static void Cg_ItemPickupEffect(const vec3_t org, const color_t color) {
     .lifetime = 1000,
     .size = 150,
     .atlas_image = cg_sprite_particle,
-    .color = sprite_color,
+    .color = color.vec3,
   });
 
   Cg_AddLight(&(cg_light_t) {
     .origin = org,
     .radius = 160.f,
-    .color = light_color,
+    .color = color.vec3,
     .intensity = 1.f,
     .decay = 1000
   });
@@ -271,22 +386,18 @@ void Cg_EntityEvent(cl_entity_t *ent) {
       Cg_TeleporterEffect(s->origin);
       break;
 
-    case EV_ITEM_RESPAWN:
-      color_t respawn_color = color_white;
-      const g_item_tag_t respawn_tag = (g_item_tag_t) s->event_data;
-      if (respawn_tag > ITEM_NONE && respawn_tag < ITEM_TOTAL) {
-        respawn_color = bg_item_defs[respawn_tag].effect_color;
-      }
+    case EV_ITEM_RESPAWN: {
+      const g_item_tag_t tag = (g_item_tag_t) s->event_data;
+      const color_t effect_color = bg_item_defs[tag].effect_color;
       play.sample = cg_sample_respawn;
-      Cg_ItemRespawnEffect(s->origin, respawn_color);
+      Cg_ItemRespawnEffect(s->origin, effect_color);
       break;
-    case EV_ITEM_PICKUP:
-      color_t pickup_color = color_white;
-      const g_item_tag_t pickup_tag = (g_item_tag_t) s->event_data;
-      if (pickup_tag > ITEM_NONE && pickup_tag < ITEM_TOTAL) {
-        pickup_color = bg_item_defs[pickup_tag].effect_color;
-      }
-      Cg_ItemPickupEffect(s->origin, pickup_color);
+    }
+    case EV_ITEM_PICKUP: {
+      const g_item_tag_t tag = (g_item_tag_t) s->event_data;
+      const color_t effect_color = bg_item_defs[tag].effect_color;
+      Cg_ItemPickupEffect(s->origin, effect_color);
+    }
       break;
 
     default:
