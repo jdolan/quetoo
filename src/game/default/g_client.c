@@ -1187,6 +1187,9 @@ void G_ClientBegin(g_client_t *cl) {
   cl->cmd_angles = Vec3_Zero();
   cl->persistent.first_frame = g_level.frame_num;
 
+  // ensure CS_CLIENTS is set before the entity becomes visible in frames
+  G_ClientUserInfoChanged(cl, cl->persistent.user_info);
+
   if (editor->value) {
     cl->persistent.spectator = true;
   }
