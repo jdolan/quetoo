@@ -226,7 +226,7 @@ static void Sv_HttpClientThink(sv_http_client_t *http) {
  */
 void Sv_HttpThink(void) {
 
-	if (sv_http_socket == -1) {
+	if (sv_http_socket == -1 || svs.clients == NULL) {
 		return;
 	}
 
