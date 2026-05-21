@@ -159,6 +159,9 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
   }
 
   if (shell == NULL) { // probably EF_SHELL rather than material-driven, use the default shell
+
+    const float radius = e->effects & EF_WEAPON ? .25f : 1.f;
+
     shell = &(r_stage_t) {
       .cm = &(const cm_stage_t) {
         .flags = STAGE_COLOR | STAGE_SHELL
@@ -169,7 +172,7 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
         .blend = { GL_SRC_ALPHA, GL_ONE },
         .scroll = { 1.f, 1.f },
         .scale = { .5f, .5f },
-        .shell = { 1.f },
+        .shell = { radius },
         .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT }
       },
       .media = r_mesh_program.shell
