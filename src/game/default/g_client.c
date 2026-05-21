@@ -760,7 +760,7 @@ static float G_EnemyRangeFromSpot(g_client_t *cl, g_entity_t *spot) {
   best_dist = 9999999.0;
 
   G_ForEachClient(enemy, {
-    if (enemy->entity->health <= 0) {
+    if (!enemy->entity || enemy->entity->health <= 0) {
       continue;
     }
 
