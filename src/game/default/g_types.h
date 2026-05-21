@@ -1073,17 +1073,17 @@ typedef struct {
   /**
    * @brief Team skin name.
    */
-  char skin[32];
+  char skin[MAX_QPATH];
 
   /**
    * @brief Flag entity classname.
    */
-  char flag[32];
+  char flag[MAX_QPATH];
 
   /**
    * @brief Spawn point classname.
    */
-  char spawn[32];
+  char spawn[MAX_QPATH];
 
   /**
    * @brief Team player colors.

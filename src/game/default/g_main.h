@@ -188,7 +188,6 @@ void G_ResetItems(void);
 void G_ResetTeams(void);
 void G_InitNumTeams(void);
 void G_SetTeamNames(void);
-const g_team_t *G_TeamDefaults(const g_team_t *team);
 void G_ResetSpawnPoints(void);
 void G_CallTimeOut(g_entity_t *ent);
 void G_CallTimeIn(void);

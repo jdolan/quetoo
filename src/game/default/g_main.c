@@ -170,76 +170,69 @@ cvar_t *sv_hostname;
 cvar_t *dedicated;
 cvar_t *editor;
 
-g_team_t g_team_list[MAX_TEAMS];
-static g_team_t g_team_list_default[MAX_TEAMS];
-
-static struct {
-  cvar_t *g_team_name;
-  cvar_t *g_team_shirt;
-  cvar_t *g_team_color;
-} g_team_cvars[MAX_TEAMS];
-
-static const struct {
-  const char *name;
-  const char *shirt;
-  int16_t color;
-} g_team_defaults[MAX_TEAMS] = {
-  { "Red", "ff0000", TEAM_COLOR_RED },
-  { "Blue", "0000ff", TEAM_COLOR_BLUE },
-  { "Yellow", "ffff00", TEAM_COLOR_YELLOW },
-  { "Green", "00ff00", TEAM_COLOR_GREEN }
+g_team_t g_team_list[MAX_TEAMS] = {
+  [TEAM_RED] = {
+    .id = TEAM_RED,
+    .name = "Red",
+    .skin = DEFAULT_TEAM_SKIN,
+    .flag = "item_flag_team1",
+    .spawn = "info_player_team1",
+    .shirt = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
+    .pants = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
+    .helmet = { .r = 1.f, .g = 0.f, .b = 0.f, .a = 1.f },
+    .color = TEAM_COLOR_RED,
+    .effect = EF_CTF_RED,
+  },
+  [TEAM_BLUE] = {
+    .id = TEAM_BLUE,
+    .name = "Blue",
+    .skin = DEFAULT_TEAM_SKIN,
+    .flag = "item_flag_team2",
+    .spawn = "info_player_team2",
+    .shirt = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
+    .pants = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
+    .helmet = { .r = 0.f, .g = 0.f, .b = 1.f, .a = 1.f },
+    .color = TEAM_COLOR_BLUE,
+    .effect = EF_CTF_BLUE,
+  },
+  [TEAM_YELLOW] = {
+    .id = TEAM_YELLOW,
+    .name = "Yellow",
+    .skin = DEFAULT_TEAM_SKIN,
+    .flag = "item_flag_team3",
+    .spawn = "info_player_team3",
+    .shirt = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .pants = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .helmet = { .r = 1.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .color = TEAM_COLOR_YELLOW,
+    .effect = EF_CTF_YELLOW,
+  },
+  [TEAM_GREEN] = {
+    .id = TEAM_GREEN,
+    .name = "Green",
+    .skin = DEFAULT_TEAM_SKIN,
+    .flag = "item_flag_team4",
+    .spawn = "info_player_team4",
+    .shirt = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .pants = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .helmet = { .r = 0.f, .g = 1.f, .b = 0.f, .a = 1.f },
+    .color = TEAM_COLOR_GREEN,
+    .effect = EF_CTF_GREEN,
+  },
 };
 
 /**
- * @brief Initializes a team slot with the given id, name, shirt color, hue, and effect.
- */
-static void G_InitTeam(const g_team_id_t id, const char *name,
-             const char *shirt,
-             const int16_t color,
-             const int16_t effect) {
-
-  g_team_t *team = &g_team_list[id];
-
-  team->id = id;
-
-  g_strlcpy(team->name, name, sizeof(team->name));
-
-  team->color = color;
-
-  if (!Color_Parse(shirt, &team->shirt)) {
-    gi.Warn("Failed to parse default team color %s\n", shirt);
-    team->shirt = color_white;
-  }
-
-  team->pants = team->helmet = team->shirt;
-
-  // FIXME: enforcing "ctf" skin is kinda dumb if we have tints. it should just enforce
-  // that the skin has tints (on client side), and if it doesn't, fall back to "ctf", "team" or "default", whichever
-  // first has tints
-  g_strlcpy(team->skin, DEFAULT_TEAM_SKIN, sizeof(team->skin));
-
-  team->effect = effect;
-
-  g_strlcpy(team->flag, va("item_flag_team%i", id + 1), sizeof(team->flag));
-  g_strlcpy(team->spawn, va("info_player_team%i", id + 1), sizeof(team->spawn));
-}
-
-/**
- * @brief Resets all teams from their cvar-configured values and updates the configstring.
+ * @brief Resets team runtime state and updates the configstring.
  */
 void G_ResetTeams(void) {
 
-  memset(g_team_list, 0, sizeof(g_team_list));
-
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    G_InitTeam(i,
-           g_team_cvars[i].g_team_name->string,
-           g_team_cvars[i].g_team_shirt->string,
-           g_team_cvars[i].g_team_color->integer,
-           EF_CTF_RED << i);
+    g_team_t *team = &g_team_list[i];
+    team->score = 0;
+    team->captures = 0;
+    team->spawn_points = (g_spawn_points_t) { 0 };
+    team->flag_entity = NULL;
   }
-
-  memcpy(g_team_list_default, g_team_list, sizeof(g_team_list));
 
   G_SetTeamNames();
 }
@@ -266,14 +259,6 @@ void G_SetTeamNames(void) {
   }
 
   gi.SetConfigString(CS_TEAM_INFO, team_info);
-}
-
-/**
- * @brief Fetch the defaults for a team
- */
-const g_team_t *G_TeamDefaults(const g_team_t *team) {
-
-  return &g_team_list_default[team->id];
 }
 
 /**
@@ -801,67 +786,6 @@ static void G_CheckRules(void) {
     }
   }
 
-  for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    bool changed = false, reset_userinfo = false;
-
-    if (g_team_cvars[i].g_team_name->modified) {
-      g_team_cvars[i].g_team_name->modified = false;
-    
-      if (strlen(g_team_cvars[i].g_team_name->string) > 1 && strlen(g_team_cvars[i].g_team_name->string) < lengthof(g_team_list[i].name) - 1 &&
-        !strstr(g_team_cvars[i].g_team_name->string, "\\") && strcmp(g_team_cvars[i].g_team_name->string, g_team_list[i].name)) {
-
-        gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s name has been changed to \"%s\"\n", g_team_list[i].name, g_team_cvars[i].g_team_name->string);
-        strcpy(g_team_list[i].name, g_team_cvars[i].g_team_name->string);
-        changed = true;
-      }
-    }
-
-    if (g_team_cvars[i].g_team_shirt->modified) {
-      g_team_cvars[i].g_team_shirt->modified = false;
-
-      color_t shirt;
-
-      if (Color_Parse(g_team_cvars[i].g_team_shirt->string, &shirt) &&
-        Color_Color32(shirt).rgba != Color_Color32(g_team_list[i].shirt).rgba) {
-
-        gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s shirt color has been changed to \"%s\"\n",
-                  g_team_list[i].name, g_team_cvars[i].g_team_shirt->string);
-        g_team_list[i].shirt = g_team_list[i].helmet = g_team_list[i].pants = shirt;
-        changed = true;
-        reset_userinfo = true;
-      }
-    }
-
-    if (g_team_cvars[i].g_team_color->modified) {
-      g_team_cvars[i].g_team_color->modified = false;
-      char *end_point;
-
-      int16_t hue = strtol(g_team_cvars[i].g_team_color->string, &end_point, 10);
-
-      if (end_point && hue >= 0 && hue <= 361 && hue != g_team_list[i].color) {
-
-        gi.BroadcastPrint(PRINT_HIGH, "Team \"%s\"'s effect color has been changed to \"%i\"\n", g_team_list[i].name, hue);
-        g_team_list[i].color = hue;
-        changed = true;
-        reset_userinfo = true;
-      }
-    }
-
-    if (changed) {
-      G_SetTeamNames();
-    }
-
-    if (reset_userinfo) {
-      G_ForEachClient(cl, {
-        if (!cl->persistent.team) {
-          continue;
-        }
-
-        G_ClientUserInfoChanged(cl, cl->persistent.user_info);
-      });
-    }
-  }
-
   if (restart) {
     G_RestartGame(true); // reset all clients
   }
@@ -1136,12 +1060,6 @@ void G_Init(void) {
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
-
-  for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    g_team_cvars[i].g_team_name = gi.AddCvar(va("g_team_%i_name", i + 1), g_team_defaults[i].name, 0, NULL);
-    g_team_cvars[i].g_team_shirt = gi.AddCvar(va("g_team_%i_shirt", i + 1), g_team_defaults[i].shirt, 0, NULL);
-    g_team_cvars[i].g_team_color = gi.AddCvar(va("g_team_%i_color", i + 1), va("%i", g_team_defaults[i].color), 0, NULL);
-  }
 
   G_Ai_Init(); // initialize the AI
 
