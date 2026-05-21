@@ -342,13 +342,13 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
     }
   }
 
-  if (age > 33000) {
+  if (age > 30000 + 4000) {
     G_FreeEntity(ent);
     return;
   }
 
-  // sink into the floor after a few seconds
-  if (age > 10000) {
+  // sink into the floor after a while
+  if (age > 30000) {
 
     ent->s.effects |= EF_DESPAWN;
 
@@ -358,7 +358,7 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
     ent->solid = SOLID_NOT;
 
     if (ent->ground.ent) {
-      ent->s.origin.z -= QUETOO_TICK_SECONDS * 8.0;
+      ent->s.origin.z -= QUETOO_TICK_SECONDS * 4.f;
     }
 
     gi.LinkEntity(ent);

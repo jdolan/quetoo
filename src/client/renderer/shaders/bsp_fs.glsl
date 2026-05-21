@@ -127,14 +127,17 @@ void main(void) {
 
   if (stage.flags == STAGE_NONE) {
 
-    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax) * vertex.color;
+    fragment.diffuse_sample = sample_material_diffuse(fragment.parallax);
 
-    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST
-        && fragment.diffuse_sample.a < material.alpha_test) {
-      discard;
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
+      if (fragment.diffuse_sample.a < material.alpha_test) {
+        discard;
+      }
     }
 
     out_color = fragment.diffuse_sample;
+
+    out_color *= vertex.color;
 
     bsp_fragment_lighting(vertex, fragment);
 

@@ -76,29 +76,32 @@ void main(void) {
 
   if (stage.flags == STAGE_NONE) {
 
-	  fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap) * vertex.color;
+    fragment.diffuse_sample = sample_material_diffuse(vertex.diffusemap);
 
-    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST
-        && fragment.diffuse_sample.a < material.alpha_test) {
-      discard;
+    if ((material.surface & SURF_ALPHA_TEST) == SURF_ALPHA_TEST) {
+      if (fragment.diffuse_sample.a < material.alpha_test) {
+        discard;
+      }
     }
 
-	  vec4 tintmap = sample_material_tint(vertex.diffusemap);
-	  fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
-	  fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
-	  fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
-	  fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
+    vec4 tintmap = sample_material_tint(vertex.diffusemap);
+    fragment.diffuse_sample.rgb *= 1.0 - tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[0] * tintmap.r).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[1] * tintmap.g).rgb * tintmap.a;
+    fragment.diffuse_sample.rgb += (tint_colors[2] * tintmap.b).rgb * tintmap.a;
 
-	  mesh_fragment_lighting(vertex, fragment);
+    mesh_fragment_lighting(vertex, fragment);
 
-	  out_color = fragment.diffuse_sample;
+    out_color = fragment.diffuse_sample;
 
-	  out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
-	  out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
+    out_color *= vertex.color;
+
+    out_color.rgb = max(out_color.rgb * (fragment.ambient + fragment.diffuse), 0.0);
+    out_color.rgb = max(out_color.rgb + fragment.specular, 0.0);
 
   } else {
 
-	  fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
+    fragment.diffuse_sample = sample_material_stage(vertex.diffusemap) * vertex.color;
 
     out_color = fragment.diffuse_sample;
 
