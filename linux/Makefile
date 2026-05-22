@@ -68,7 +68,7 @@ $(APPDIR): $(STAGING) $(LINUXDEPLOY)
 
 	convert ../src/main/quetoo.ico[0] $(APPDIR)/quetoo.png
 
-	ARCH=$(ARCH) $(LINUXDEPLOY) --appimage-extract-and-run \
+	ARCH=$(ARCH) LINUXDEPLOY_DISABLE_STRIP=1 $(LINUXDEPLOY) --appimage-extract-and-run \
 		--appdir $(APPDIR) \
 		$(foreach b,$(notdir $(BINARIES)),--executable $(APPDIR)/usr/bin/$(b)) \
 		--desktop-file quetoo/Quetoo.desktop \
