@@ -1285,7 +1285,7 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
  angle : Determines the opening direction of the door (up = -1, down = -2).
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
- wait : wait before returning (3 default, -1 = never return).
+ wait : Seconds before the door returns (3 default, -1 = never return). Ignored when toggle is set.
  lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  atten : The attenuation level for door sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
@@ -1298,6 +1298,12 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
  */
 void G_func_door(g_entity_t *ent) {
   vec3_t abs_move_dir;
+
+  // spawnflag 16 is the QUAKED-documented toggle position; normalize to DOOR_TOGGLE (0x2)
+  // since 0x10 is otherwise only meaningful for func_door_rotating
+  if (ent->spawn_flags & 0x10) {
+    ent->spawn_flags = (ent->spawn_flags & ~0x10) | DOOR_TOGGLE;
+  }
 
   if (!(gi.EntityValue(ent->def, "angle")->parsed & ENTITY_INTEGER)) {
     ent->s.angles = Vec3(0.0, -1.0, 0.0); // default to sliding up
@@ -1395,7 +1401,7 @@ void G_func_door(g_entity_t *ent) {
   }
 }
 
-/*QUAKED func_door_rotating (0 .5 .8) ? start_open reverse toggle x_axis y_axis
+/*QUAKED func_door_rotating (0 .5 .8) ? start_open toggle reverse x_axis y_axis
  A door which rotates about an origin on its Z axis. By default, doors open when a player walks close to them.
 
  -------- Keys --------
