@@ -88,14 +88,8 @@ void G_ClientProjectile(const g_client_t *cl, vec3_t *forward, vec3_t *right, ve
     *org = Vec3_Fmaf(*org, -12.f, ent_up);
   }
 
-  // if the projected origin is invalid, use the entity's origin
-  if (gi.Trace(*org, *org, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE).start_solid) {
-    *org = cl->entity->s.origin;
-  }
-
-  // if the path from eye to muzzle is blocked (wall too close), spawn at eye instead;
-  // the eye is always in free space and the aim direction still tracks the crosshair target
-  if (gi.Trace(start, *org, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE).fraction < 1.f) {
+  const cm_trace_t check = gi.Trace(*org, tr.end, Box3f(8.f, 8.f, 8.f), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  if (Vec3_Distance(tr.end, check.end) > 16.f) {
     *org = start;
   }
 
