@@ -6,7 +6,7 @@
 
 ## Overview
 
-[_Quetoo_](https://wickedoldgames.itch.io/quetoo) ("Q2") is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
+[_Quetoo_](https://quetoo.org) ("Q2") is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
 
 ## Features
 
