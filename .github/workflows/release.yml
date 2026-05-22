@@ -3,6 +3,11 @@ name: Release
 on:
   push:
     tags: [ "v*" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to release (e.g. v1.0.2)'
+        required: true
 
 permissions:
   contents: write
@@ -610,3 +615,41 @@ jobs:
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
+
+  publish-itch:
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download macOS bundle
+      uses: actions/download-artifact@v8
+      with:
+        name: quetoo-bundle-universal-apple-darwin
+        path: itch/mac
+
+    - name: Download Linux x86_64 bundle
+      uses: actions/download-artifact@v8
+      with:
+        name: quetoo-bundle-x86_64-pc-linux
+        path: itch/linux
+
+    - name: Download Windows bundle
+      uses: actions/download-artifact@v8
+      with:
+        name: quetoo-bundle-x86_64-pc-windows
+        path: itch/windows
+
+    - name: Install Butler
+      run: |
+        curl -L -o butler.zip https://broth.itch.ovh/butler/linux-amd64/LATEST/archive/default
+        unzip butler.zip
+        chmod +x butler
+
+    - name: Push to itch.io
+      env:
+        BUTLER_API_KEY: ${{ secrets.BUTLER_API_KEY }}
+        VERSION: ${{ github.event.inputs.version || github.ref_name }}
+      run: |
+        ./butler push itch/mac/quetoo-bundle-universal-apple-darwin.dmg    wickedoldgames/quetoo:mac     --userversion $VERSION
+        ./butler push itch/linux/quetoo-bundle-x86_64-pc-linux.tar.gz      wickedoldgames/quetoo:linux   --userversion $VERSION
+        ./butler push itch/windows/quetoo-bundle-x86_64-pc-windows.zip     wickedoldgames/quetoo:windows --userversion $VERSION
