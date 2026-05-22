@@ -6,7 +6,7 @@
 
 ## Overview
 
-[_Quetoo_](http://quetoo.org) ("Q2") is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
+[_Quetoo_](https://wickedoldgames.itch.io/quetoo) ("Q2") is a free first person shooter for Mac, PC and Linux. Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers. We're pwning nubz, one rail slug at a time.
 
 ## Features
 
@@ -16,7 +16,7 @@
  * Steep parallax occlusion mapping with self-shadowing
  * Dramatically improved artwork pipeline with in-game editor for level artists
  * TrenchBroom support
- * 100% free to download, play and modify. See our <a href="http://quetoo.org/books/documentation/licensing">licensing</a> page.
+ * 100% free to download, play and modify. Source code licensed under GPL v2, artwork under Creative Commons.
 
 ## Downloads
 
@@ -34,7 +34,7 @@ Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4
 
 ## Compiling
 
-Compiling _Quetoo_ is only recommended for developers and mappers. Supported platforms and targets include GNU Linux, BSD, macOS, MinGW Cross Compile, and Microsoft Visual Studio. See [Developing and Modding](http://quetoo.org/books/documentation/developing-and-modding) for further details.
+Compiling _Quetoo_ is only recommended for developers and mappers. Supported platforms and targets include GNU Linux, BSD, macOS, and Microsoft Visual Studio.
 
 The following dependencies are required:
 
