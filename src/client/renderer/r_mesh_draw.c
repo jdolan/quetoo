@@ -162,21 +162,31 @@ static void R_DrawMeshEntityShellEffect(const r_entity_t *e, const r_mesh_face_t
 
     const float radius = e->effects & EF_WEAPON ? .25f : 1.f;
 
-    shell = &(r_stage_t) {
-      .cm = &(const cm_stage_t) {
-        .flags = STAGE_COLOR | STAGE_SHELL
-            | STAGE_SCALE_S | STAGE_SCALE_T
-            | STAGE_SCROLL_S | STAGE_SCROLL_T
-            | STAGE_LIGHTING | STAGE_LIGHTING_FLAT | STAGE_ENVMAP,
-        .color = Color4fv(e->shell),
-        .blend = { GL_SRC_ALPHA, GL_ONE },
-        .scroll = { 1.f, 1.f },
-        .scale = { .5f, .5f },
-        .shell = { radius },
-        .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT }
-      },
+    // Use named variables so that their storage duration extends to the end of this
+    // function call, not just the enclosing if-block. Compound literals inside a block
+    // have block scope, and passing a pointer to one out of scope is undefined behavior
+    // that manifests as a crash inside R_DrawMeshEntityMaterialStage (stage->cm = NULL).
+    const cm_stage_t cm = {
+      .flags = STAGE_COLOR | STAGE_SHELL
+          | STAGE_SCALE_S | STAGE_SCALE_T
+          | STAGE_SCROLL_S | STAGE_SCROLL_T
+          | STAGE_LIGHTING | STAGE_LIGHTING_FLAT | STAGE_ENVMAP,
+      .color = Color4fv(e->shell),
+      .blend = { GL_SRC_ALPHA, GL_ONE },
+      .scroll = { 1.f, 1.f },
+      .scale = { .5f, .5f },
+      .shell = { radius },
+      .lighting = { 1.f, STAGE_LIGHTING_MODE_FLAT }
+    };
+    const r_stage_t default_shell = {
+      .cm = &cm,
       .media = r_mesh_program.shell
     };
+
+    assert(default_shell.media);
+
+    R_DrawMeshEntityMaterialStage(e, face, mesh, &default_shell);
+    return;
   }
 
   assert(shell->media);
