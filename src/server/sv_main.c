@@ -852,8 +852,8 @@ void Sv_Frame(const uint32_t msec) {
     }
   }
 
-  // clamp the frame interval to 1 second of simulation
-  frame_delta = Minf(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * QUETOO_TICK_RATE));
+  // clamp the frame interval to 4 ticks to prevent physics tunneling under heavy load
+  frame_delta = Minf(frame_delta, (uint32_t) (QUETOO_TICK_MILLIS * 4));
 
   // read any pending packets from clients
   Sv_ReadPackets();

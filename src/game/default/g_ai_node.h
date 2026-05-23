@@ -61,18 +61,12 @@ void G_Ai_ShutdownNodes(void);
 typedef float (*G_Ai_NodeCostFunc)(const ai_node_id_t a, const ai_node_id_t b);
 
 /**
- * @brief Heuristic cost function for A* pathfinding using weighted Manhattan distance.
+ * @brief Heuristic cost function for A* pathfinding using Manhattan distance.
  */
 static inline float G_Ai_Node_Heuristic(const ai_node_id_t link, const ai_node_id_t end) {
   const vec3_t av = G_Ai_Node_GetPosition(link);
   const vec3_t bv = G_Ai_Node_GetPosition(end);
-  float cost = fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
-
-  if (!G_Ai_Node_CanPathTo(av)) {
-    cost *= 8.f;
-  }
-
-  return cost;
+  return fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
 }
 
 /**
