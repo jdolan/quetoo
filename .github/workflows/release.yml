@@ -584,39 +584,37 @@ jobs:
         cp quetoo-aarch64-pc-linux-deb/quetoo_*_arm64.deb quetoo-aarch64-pc-linux-deb/quetoo-aarch64-pc-linux.deb
         cp quetoo-aarch64-pc-linux-rpm/quetoo-*.aarch64.rpm quetoo-aarch64-pc-linux-rpm/quetoo-aarch64-pc-linux.rpm
 
+        prev_tag=$(git describe --tags --abbrev=0 "$VERSION^" 2>/dev/null || true)
+        if [ -n "$prev_tag" ]; then
+          changelog=$(git log "$prev_tag..$VERSION" --pretty=format:"- [\`%h\`](https://github.com/${{ github.repository }}/commit/%H) %s" --no-merges)
+        else
+          changelog=$(git log "$VERSION" --pretty=format:"- [\`%h\`](https://github.com/${{ github.repository }}/commit/%H) %s" --no-merges)
+        fi
+
         notes=$(cat <<EOF
-        Quetoo $VERSION
+        ## Downloads
 
-        ## macOS
-        ### New Install
-        - [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg)
-        ### Update from Existing Install
-        - [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg)
+        | Platform | New Install | Update |
+        |---|---|---|
+        | Windows x86-64 | [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip) | [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip) |
+        | Linux x86-64 | [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz) | [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz) |
+        | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
+        | macOS Universal | [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg) | [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg) |
 
-        ## Linux x86-64
-        ### New Install
-        - [quetoo-bundle-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-linux.tar.gz)
-        ### Update from Existing Install
-        - [quetoo-x86_64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.tar.gz)
-        - [quetoo-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.deb)
-        - [quetoo-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.rpm)
+        Windows debugging symbols: [quetoo-x86_64-pc-windows-symbols.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows-symbols.zip)
 
-        ## Linux arm64
-        ### New Install
-        - [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz)
-        ### Update from Existing Install
-        - [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz)
-        - [quetoo-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.deb)
-        - [quetoo-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.rpm)
+        ## Linux Dedicated Server Packages
 
-        ## Windows x86-64
-        ### New Install
-        - [quetoo-bundle-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-x86_64-pc-windows.zip)
-        ### Update from Existing Install
-        - [quetoo-x86_64-pc-windows.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows.zip)
-        - [quetoo-x86_64-pc-windows-symbols.zip](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-windows-symbols.zip)
+        | Package | x86-64 | arm64 |
+        |---|---|---|
+        | .deb | [quetoo-x86_64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.deb) | [quetoo-aarch64-pc-linux.deb](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.deb) |
+        | .rpm | [quetoo-x86_64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-x86_64-pc-linux.rpm) | [quetoo-aarch64-pc-linux.rpm](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.rpm) |
 
-        For Linux package-managed installs, also install the matching [quetoo-data $VERSION](https://github.com/jdolan/quetoo-data/releases/tag/$VERSION) release.
+        > .deb and .rpm are for **dedicated servers only** — not for game clients. Also install the matching [quetoo-data $VERSION](https://github.com/jdolan/quetoo-data/releases/tag/$VERSION) release.
+
+        ## Changelog
+
+        $changelog
         EOF
         )
 
