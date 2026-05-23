@@ -84,36 +84,38 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
 }
 
 /**
- * @brief Data passed to the screenshot encode thread.
- */
-typedef struct {
-  SDL_Surface *surface;
-  char filename[MAX_QPATH];
-} r_screenshot_encode_t;
-
-/**
  * @brief ThreadRunFunc for `R_Screenshot`.
  */
 static void R_Screenshot_encode(void *data) {
-  r_screenshot_encode_t *encode = (r_screenshot_encode_t *) data;
-  const char *filename = encode->filename;
-  SDL_Surface *surface = encode->surface;
+  char path[MAX_QPATH];
+  char date[MAX_QPATH];
 
-  Mem_Free(encode);
-  bool screenshot_saved;
+  SDL_Surface *surface = data;
+  assert(surface);
 
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  strftime(date, sizeof(date), "%Y-%m-%d-%H:%M:%S", tm);
+  const int32_t millis = (int32_t) (quetoo.ticks % 1000);
+
+  g_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
+
+  bool res;
   if (!g_strcmp0(r_screenshot_format->string, "tga")) {
-    screenshot_saved = Img_WriteTGA(filename, surface->pixels, surface->w, surface->h);
+    g_strlcat(path, ".tga", sizeof(path));
+    res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
   } else if (!g_strcmp0(r_screenshot_format->string, "jpg")) {
-    screenshot_saved = Img_WriteJPG(filename, surface->pixels, surface->w, surface->h, 95);
+    g_strlcat(path, ".jpg", sizeof(path));
+    res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
   } else {
-    screenshot_saved = Img_WritePNG(filename, surface->pixels, surface->w, surface->h);
+    g_strlcat(path, ".png", sizeof(path));
+    res = Img_WritePNG(path, surface->pixels, surface->w, surface->h);
   }
 
-  if (screenshot_saved) {
-    Com_Print("Saved %s\n", Basename(filename));
+  if (res) {
+    Com_Print("Saved %s\n", path);
   } else {
-    Com_Warn("Failed to write %s\n", filename);
+    Com_Warn("Failed to write %s\n", path);
   }
 
   SDL_DestroySurface(surface);
@@ -141,25 +143,7 @@ void R_Screenshot(r_view_t *view) {
 
   assert(surface);
 
-  r_screenshot_encode_t *encode = Mem_Malloc(sizeof(*encode));
-  encode->surface = surface;
-
-  time_t t = time(NULL);
-  struct tm *tm = localtime(&t);
-  char datestamp[32];
-  strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H:%M:%S", tm);
-  const int32_t millis = (int32_t) (view->ticks % 1000);
-
-  const r_model_t *world = R_WorldModel();
-  if (world) {
-    char map[MAX_QPATH];
-    StripExtension(Basename(world->media.name), map);
-    g_snprintf(encode->filename, sizeof(encode->filename), "screenshots/%s.%03d-%s.%s", datestamp, millis, map, r_screenshot_format->string);
-  } else {
-    g_snprintf(encode->filename, sizeof(encode->filename), "screenshots/%s.%03d.%s", datestamp, millis, r_screenshot_format->string);
-  }
-
-  Thread_Create(R_Screenshot_encode, encode, THREAD_NO_WAIT);
+  Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
 
   r_image_state.screenshot = SCREENSHOT_NONE;
 }
