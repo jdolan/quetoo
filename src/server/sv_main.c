@@ -871,7 +871,12 @@ void Sv_Frame(const uint32_t msec) {
   Sv_HeartbeatMasters();
 
   // let everything in the world think and move
+  const uint64_t sim_start = SDL_GetTicks();
+  int32_t ticks_run = 0;
+
   while (frame_delta >= QUETOO_TICK_MILLIS) {
+
+    const uint64_t tick_start = SDL_GetTicks();
 
     // run the simulation
     Sv_RunGameFrame();
@@ -881,6 +886,17 @@ void Sv_Frame(const uint32_t msec) {
 
     // decrement the simulation time
     frame_delta -= QUETOO_TICK_MILLIS;
+    ticks_run++;
+
+    const uint32_t tick_ms = (uint32_t) (SDL_GetTicks() - tick_start);
+    if (tick_ms > 50) {
+      Com_Warn("Slow game tick: %ums (frame %u)\n", tick_ms, sv.frame_num);
+    }
+  }
+
+  const uint32_t sim_ms = (uint32_t) (SDL_GetTicks() - sim_start);
+  if (sim_ms > 100 || ticks_run > 2) {
+    Com_Warn("Server frame overrun: %ums wall time, %d ticks\n", sim_ms, ticks_run);
   }
 
   // clear entity flags, etc for next frame

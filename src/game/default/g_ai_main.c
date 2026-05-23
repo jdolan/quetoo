@@ -1663,7 +1663,16 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->func_goal_next_thinks[i] <= g_level.time) {
-      cl->ai->func_goal_next_thinks[i] = g_level.time + g_ai_goalfuncs[i](cl, cmd);
+      const gint64 func_start = g_get_monotonic_time();
+      const uint32_t next = g_ai_goalfuncs[i](cl, cmd);
+      const gint64 func_us = g_get_monotonic_time() - func_start;
+
+      cl->ai->func_goal_next_thinks[i] = g_level.time + next;
+
+      if (func_us > 10000) { // > 10ms for one goal function is suspicious
+        gi.Warn("%s goal func %d took %dms\n",
+               cl->persistent.net_name, i, (int32_t)(func_us / 1000));
+      }
     }
   }
 
@@ -1721,7 +1730,14 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
 
     cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
 
+    const gint64 think_start = g_get_monotonic_time();
     G_Ai_Think(ent->client, &cmd);
+    const gint64 think_us = g_get_monotonic_time() - think_start;
+
+    if (think_us > 20000) { // > 20ms for one think pass is excessive
+      gi.Warn("%s AI think pass %d took %dms\n",
+             ent->client->persistent.net_name, i, (int32_t)(think_us / 1000));
+    }
 
     msec_left -= cmd.msec;
   }
