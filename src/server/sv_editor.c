@@ -173,6 +173,9 @@ void Sv_SaveEditorMap_f(void) {
     return;
   }
 
+  Fs_Print(file, "// Game: Quetoo\n");
+  Fs_Print(file, "// Format: Quake3\n");
+
   int32_t entity_num = 0;
   for (int32_t i = 0; i < MAX_ENTITIES; i++) {
 
