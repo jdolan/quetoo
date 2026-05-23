@@ -1033,56 +1033,70 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
 
   g_entity_t *ent = cl->entity;
 
-
   bool target_enemy = false;
 
   vec3_t dir, angles, dest = Vec3_Zero();
   bool move_wander = false;
 
-  switch (cl->ai->move_target.type) {
-    default:
-      dest = ent->s.origin;
-      move_wander = true;
-      break;
-    case AI_GOAL_POSITION:
-      dest = cl->ai->move_target.position.pos;
-      break;
-    case AI_GOAL_ENTITY:
-      switch (cl->ai->move_target.entity.combat_type) {
-      case AI_COMBAT_NONE:
+  // Resolve the move goal iteratively. The original code used tail-recursive calls
+  // when the path check or distress check failed, which could overflow the stack since
+  // G_Ai_Move has a large frame (~6.5 KB for two pm_move_t locals). Three tries matches
+  // the maximum depth of the original recursion.
+  bool goal_ready = false;
+  for (int32_t tries = 0; tries < 3 && !goal_ready; tries++) {
+
+    target_enemy = false;
+    dest = Vec3_Zero();
+    move_wander = false;
+
+    switch (cl->ai->move_target.type) {
       default:
-        dest = cl->ai->move_target.entity.ent->s.origin;
-        break;
-      case AI_COMBAT_CLOSE:
-        dest = cl->ai->move_target.entity.ent->s.origin;
-        target_enemy = true;
-        break;
-      case AI_COMBAT_FLANK:
-      case AI_COMBAT_WANDER:
+        dest = ent->s.origin;
         move_wander = true;
-        target_enemy = true;
         break;
-      }
+      case AI_GOAL_POSITION:
+        dest = cl->ai->move_target.position.pos;
+        break;
+      case AI_GOAL_ENTITY:
+        switch (cl->ai->move_target.entity.combat_type) {
+        case AI_COMBAT_NONE:
+        default:
+          dest = cl->ai->move_target.entity.ent->s.origin;
+          break;
+        case AI_COMBAT_CLOSE:
+          dest = cl->ai->move_target.entity.ent->s.origin;
+          target_enemy = true;
+          break;
+        case AI_COMBAT_FLANK:
+        case AI_COMBAT_WANDER:
+          move_wander = true;
+          target_enemy = true;
+          break;
+        }
+        break;
+      case AI_GOAL_PATH:
+        if (!G_Ai_CheckNav(cl, &cl->ai->move_target)) {
+          G_Ai_RestorePath(cl, cl->ai);
+          continue;
+        }
 
-      break;
-    case AI_GOAL_PATH:
-      if (!G_Ai_CheckNav(cl, &cl->ai->move_target)) {
-        G_Ai_RestorePath(cl, cl->ai);
-        G_Ai_Move(cl, cmd);
-        return 1;
-      }
+        if (cl->ai->move_target.path.trick_jump) {
+          dest = cl->ai->move_target.path.trick_position;
+        } else {
+          dest = cl->ai->move_target.path.path_position;
+        }
+        break;
+    }
 
-      if (cl->ai->move_target.path.trick_jump) {
-        dest = cl->ai->move_target.path.trick_position;
-      } else {
-        dest = cl->ai->move_target.path.path_position;
-      }
-      break;
+    if (!G_Ai_GoalDistress(cl, &cl->ai->move_target, dest)) {
+      G_Ai_ClearGoal(&cl->ai->move_target);
+      continue;
+    }
+
+    goal_ready = true;
   }
-  
-  if (!G_Ai_GoalDistress(cl, &cl->ai->move_target, dest)) {
-    G_Ai_ClearGoal(&cl->ai->move_target);
-    G_Ai_Move(cl, cmd);
+
+  if (!goal_ready) {
     return 1;
   }
 
