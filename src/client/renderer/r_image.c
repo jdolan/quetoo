@@ -51,7 +51,6 @@ static struct {
   r_screenshot_type_t screenshot;
 } r_image_state;
 
-#define MAX_SCREENSHOTS 1000
 
 /**
  * @brief Replaces cubemap face border texels with adjacent interior texels.
@@ -85,29 +84,22 @@ static void R_FixupCubemapFace(SDL_Surface *side) {
 }
 
 /**
+ * @brief Data passed to the screenshot encode thread.
+ */
+typedef struct {
+  SDL_Surface *surface;
+  char filename[MAX_QPATH];
+} r_screenshot_encode_t;
+
+/**
  * @brief ThreadRunFunc for `R_Screenshot`.
  */
 static void R_Screenshot_encode(void *data) {
-  static int32_t last_screenshot;
-  char filename[MAX_QPATH];
-  int32_t i;
+  r_screenshot_encode_t *encode = (r_screenshot_encode_t *) data;
+  const char *filename = encode->filename;
+  SDL_Surface *surface = encode->surface;
 
-  for (i = last_screenshot; i < MAX_SCREENSHOTS; i++) {
-    g_snprintf(filename, sizeof(filename), "screenshots/quetoo%03u.%s", i, r_screenshot_format->string);
-
-    if (!Fs_Exists(filename)) {
-      break;
-    }
-  }
-
-  if (i == MAX_SCREENSHOTS) {
-    Com_Warn("MAX_SCREENSHOTS exceeded\n");
-    return;
-  }
-
-  last_screenshot = i;
-
-  SDL_Surface *surface = (SDL_Surface *) data;
+  Mem_Free(encode);
   bool screenshot_saved;
 
   if (!g_strcmp0(r_screenshot_format->string, "tga")) {
@@ -149,7 +141,25 @@ void R_Screenshot(r_view_t *view) {
 
   assert(surface);
 
-  Thread_Create(R_Screenshot_encode, surface, THREAD_NO_WAIT);
+  r_screenshot_encode_t *encode = Mem_Malloc(sizeof(*encode));
+  encode->surface = surface;
+
+  time_t t = time(NULL);
+  struct tm *tm = localtime(&t);
+  char datestamp[32];
+  strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H:%M:%S", tm);
+  const int32_t millis = (int32_t) (view->ticks % 1000);
+
+  const r_model_t *world = R_WorldModel();
+  if (world) {
+    char map[MAX_QPATH];
+    StripExtension(Basename(world->media.name), map);
+    g_snprintf(encode->filename, sizeof(encode->filename), "screenshots/%s.%03d-%s.%s", datestamp, millis, map, r_screenshot_format->string);
+  } else {
+    g_snprintf(encode->filename, sizeof(encode->filename), "screenshots/%s.%03d.%s", datestamp, millis, r_screenshot_format->string);
+  }
+
+  Thread_Create(R_Screenshot_encode, encode, THREAD_NO_WAIT);
 
   r_image_state.screenshot = SCREENSHOT_NONE;
 }
