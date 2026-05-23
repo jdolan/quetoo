@@ -1883,6 +1883,11 @@ typedef struct r_entity_s {
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
 
 /**
+ * @brief Hardware light source flags.
+ */
+#define R_LIGHT_NO_SHADOW (1 << 0)
+
+/**
  * @brief Hardware light sources.
  */
 typedef struct {

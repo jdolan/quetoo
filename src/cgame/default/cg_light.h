@@ -69,6 +69,11 @@ typedef struct {
    * @brief The identifier of the light source entity, which will not cast shadow.
    */
   void *source;
+
+  /**
+   * @brief The light flags (R_LIGHT_*).
+   */
+  int32_t flags;
 } cg_light_t;
 
 float Cg_AnimateLight(float intensity, const char *style, float drift);

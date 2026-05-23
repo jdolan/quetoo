@@ -387,10 +387,13 @@ void R_DrawShadows(const r_view_t *view) {
       continue;
     }
 
+    if (l->flags & R_LIGHT_NO_SHADOW) {
+      continue;
+    }
+
     const GLint layer = i / r_shadow_atlas.lights_per_layer;
     if (layer != current_layer) {
-      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
-                                r_shadow_atlas.texture, 0, layer);
+      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_atlas.texture, 0, layer);
       current_layer = layer;
     }
 

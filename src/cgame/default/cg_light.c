@@ -204,6 +204,7 @@ void Cg_AddLights(void) {
         .intensity = intensity,
         .bounds = Box3_FromCenterRadius(light->origin, light->radius),
         .source = light->source,
+        .flags = light->flags,
       });
     }
 

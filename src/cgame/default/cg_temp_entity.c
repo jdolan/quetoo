@@ -353,19 +353,23 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .dir = dir
     });
 
-    // spark dots
+    // spark dots - fall, bounce, and rest before fading
     vec3_t spark_origin = Vec3_Fmaf(org, 2.f, dir);
-    for (int32_t i = 0; i < 6; i++) {
-      float size = RandomRangef(3.f, 6.f);
-      float lifetime = RandomRangef(400.f, 600.f);
+    for (int32_t i = 0; i < 8; i++) {
+      float size = RandomRangef(2.f, 6.f);
+      float lifetime = RandomRangef(800.f, 1200.f);
       Cg_AddSprite(&(cg_sprite_t) {
         .atlas_image = cg_sprite_impact_spark_01_dot,
         .origin = spark_origin,
-        .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.33f), 55.f),
+        .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.5f), 120.f),
+        .acceleration.z = -SPRITE_GRAVITY * 2.f,
+        .bounce = 0.3f,
+        .friction = 60.f,
         .size = size,
-        .size_velocity = -size * 5.f,
+        .size_velocity = -size * 0.6f,
         .lifetime = lifetime,
-        .color = Vec3(1.f, 1.f, 1.f),
+        .color = Vec3(1.f, .8f, .3f),
+        .end_color = Vec3(0.f, 0.f, 0.f),
       });
     }
 
@@ -391,6 +395,16 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
       .size = 4.f,
       .lifetime = 650,
       .color = ColorHSV(color_hue_orange, 0.8f, 1.f).vec3,
+    });
+
+    // impact light flash
+    Cg_AddLight(&(const cg_light_t) {
+      .origin = Vec3_Fmaf(org, 2.f, dir),
+      .radius = 80.f,
+      .color = Vec3(1.f, .7f, .3f),
+      .intensity = 3.f,
+      .decay = 150,
+      .flags = R_LIGHT_NO_SHADOW,
     });
   }
 
@@ -451,19 +465,23 @@ static void Cg_NailEffect(const vec3_t org, const vec3_t dir) {
       .dir = dir
     });
 
-    // spark dots
+    // spark dots - fall, bounce, and rest before fading
     vec3_t spark_origin = Vec3_Fmaf(org, 2.f, dir);
     for (int32_t i = 0; i < 6; i++) {
-      float size = RandomRangef(3.f, 6.f);
-      float lifetime = RandomRangef(400.f, 600.f);
+      float size = RandomRangef(2.f, 6.f);
+      float lifetime = RandomRangef(800.f, 1200.f);
       Cg_AddSprite(&(cg_sprite_t) {
         .atlas_image = cg_sprite_impact_spark_01_dot,
         .origin = spark_origin,
-        .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.33f), 55.f),
+        .velocity = Vec3_Scale(Vec3_Mix(Vec3_RandomDir(), dir, 0.5f), 120.f),
+        .acceleration.z = -SPRITE_GRAVITY * 2.f,
+        .bounce = 0.3f,
+        .friction = 60.f,
         .size = size,
-        .size_velocity = -size * 5.f,
+        .size_velocity = -size * 0.6f,
         .lifetime = lifetime,
-        .color = Vec3(1.f, 1.f, 1.f),
+        .color = Vec3(1.f, .8f, .3f),
+        .end_color = Vec3(0.f, 0.f, 0.f),
       });
     }
 
@@ -489,6 +507,16 @@ static void Cg_NailEffect(const vec3_t org, const vec3_t dir) {
       .size = 4.f,
       .lifetime = 650,
       .color = ColorHSV(color_hue_orange, 0.8f, 1.f).vec3,
+    });
+
+    // impact light flash
+    Cg_AddLight(&(const cg_light_t) {
+      .origin = Vec3_Fmaf(org, 2.f, dir),
+      .radius = 80.f,
+      .color = Vec3(1.f, .7f, .3f),
+      .intensity = 3.f,
+      .decay = 150,
+      .flags = R_LIGHT_NO_SHADOW,
     });
   }
 
