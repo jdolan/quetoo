@@ -96,8 +96,8 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
   cls.mouse_state.y = event->motion.yrel * m_sensitivity->value;
 
   if (m_interpolate->value) {
-    cls.mouse_state.x = (cls.mouse_state.x + cls.mouse_state.old_x) * 0.5;
-    cls.mouse_state.y = (cls.mouse_state.y + cls.mouse_state.old_y) * 0.5;
+    cls.mouse_state.x = (cls.mouse_state.x + cls.mouse_state.old_x) * 0.5f;
+    cls.mouse_state.y = (cls.mouse_state.y + cls.mouse_state.old_y) * 0.5f;
   }
 
   if (cls.state == CL_ACTIVE) {

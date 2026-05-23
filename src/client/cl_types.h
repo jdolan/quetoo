@@ -568,14 +568,14 @@ typedef struct {
 typedef struct {
 
   /**
-   * @brief Current mouse position in window coordinates.
+   * @brief Current relative mouse delta, in sensitivity-scaled units.
    */
-  int32_t x, y;
+  float x, y;
 
   /**
-   * @brief Previous mouse position in window coordinates.
+   * @brief Previous relative mouse delta, for interpolation.
    */
-  int32_t old_x, old_y;
+  float old_x, old_y;
 } cl_mouse_state_t;
 
 typedef struct {
