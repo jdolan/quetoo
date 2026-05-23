@@ -331,6 +331,7 @@ static void Cg_GrenadeTrail(cl_entity_t *ent, const vec3_t start, const vec3_t e
     .color = Vec3(.8f, .1f, .05f),
     .intensity = 2.f * (1.f - pulse),
     .source = ent,
+    .flags = R_LIGHT_NO_SHADOW,
   });
 }
 

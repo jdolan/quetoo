@@ -707,6 +707,7 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
     .color = Vec3(.7f, .5f, .5f),
     .intensity = 2.f,
     .decay = RandomRangeu(120, 180),
+    .flags = R_LIGHT_NO_SHADOW,
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
@@ -955,6 +956,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
     .color = color,
     .intensity = 5.f,
     .decay = 240,
+    .flags = R_LIGHT_NO_SHADOW,
   });
 
   if (cgi.BoxContents(Box3_FromPoints((const vec3_t[]) { start, end }, 2)) & CONTENTS_MASK_LIQUID) {
@@ -972,6 +974,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
       .color = color,
       .intensity = 2.5f,
       .decay = 150.f,
+      .flags = R_LIGHT_NO_SHADOW,
     });
   }
 
@@ -1049,6 +1052,7 @@ static void Cg_RailEffect(const vec3_t start, const vec3_t end, const vec3_t dir
     .color = color,
     .intensity = 10.f,
     .decay = 800.f,
+    .flags = R_LIGHT_NO_SHADOW,
   });
 
   // hit billboards
@@ -1155,6 +1159,7 @@ static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entit
     .color = Vec3(.8f, 1.f, .5f),
     .intensity = 3.f,
     .decay = 50,
+    .flags = R_LIGHT_NO_SHADOW,
   });
 
   Cg_AddDecal(&(r_decal_t) {
@@ -1404,7 +1409,8 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
     .radius = 80.0,
     .color = Vec3(.7f, .5f, .5f),
     .intensity = 1.f,
-    .decay = 850
+    .decay = 850,
+    .flags = R_LIGHT_NO_SHADOW,
   });
 
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
