@@ -36,6 +36,7 @@ extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_modulate;
+extern cvar_t *r_saturation;
 extern cvar_t *r_parallax;
 extern cvar_t *r_parallax_shadow;
 extern cvar_t *r_roughness;
@@ -204,6 +205,11 @@ typedef struct {
      * @brief The light modulation scalar.
      */
     float modulate;
+
+    /**
+     * @brief The saturation scalar.
+     */
+    float saturation;
 
     /**
      * @brief The caustics intensity scalar.

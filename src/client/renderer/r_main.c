@@ -52,6 +52,7 @@ cvar_t *r_fullscreen;
 cvar_t *r_hardness;
 cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
+cvar_t *r_saturation;
 cvar_t *r_parallax;
 cvar_t *r_parallax_shadow;
 cvar_t *r_roughness;
@@ -139,6 +140,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->ticks = view->ticks;
     out->ambient = r_ambient->value * view->ambient;
     out->modulate = r_modulate->value;
+    out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
@@ -360,6 +362,7 @@ static void R_InitLocal(void) {
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects");
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting");
+  r_saturation = Cvar_Add("r_saturation", "1", CVAR_ARCHIVE, "Controls the color saturation of the rendered scene. 0 = grayscale, 1 = normal, 2 = vivid.");
   r_parallax = Cvar_Add("r_parallax", "1", CVAR_ARCHIVE, "Controls the intensity of parallax effects.");
   r_parallax_shadow = Cvar_Add("r_parallax_shadow", "1", CVAR_ARCHIVE, "Controls the intensity of parallax self-shadow effects.");
   r_roughness = Cvar_Add("r_roughness", "1", CVAR_ARCHIVE, "Controls the roughness of bump-mapping effects.");

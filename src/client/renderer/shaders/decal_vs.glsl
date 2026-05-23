@@ -60,7 +60,7 @@ void main(void) {
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
     
-    diffuse += light.color.rgb * light.color.a * atten * modulate;
+    diffuse += light_color(light) * atten;
   }
   
   for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
@@ -75,7 +75,7 @@ void main(void) {
     float radius = light.origin.w;
     float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
     
-    diffuse += light.color.rgb * light.color.a * atten * modulate;
+    diffuse += light_color(light) * atten;
   }
   
   vertex.lighting = diffuse;

@@ -209,7 +209,7 @@ vec3 vertex_light(in common_vertex_t v, in int index) {
   light_dir = normalize(light_dir);
   float lambert = dot(v.model_normal, light_dir);
   lambert = bool(material.surface & (SURF_MASK_BLEND | SURF_LIQUID)) ? abs(lambert) : max(0.0, lambert);
-  return light.color.rgb * light.color.a * atten * lambert * modulate;
+  return light_color(light) * atten * lambert;
 }
 
 /**
@@ -343,7 +343,7 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
     return;
   }
 
-  vec3 color = light.color.rgb * light.color.a * atten * modulate;
+  vec3 color = light_color(light) * atten;
 
   float shadow = sample_shadow_atlas(light, index, v, f, atten);
 

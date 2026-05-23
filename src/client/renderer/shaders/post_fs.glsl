@@ -45,14 +45,16 @@ void bloom_extract(void) {
  * @brief Mode 1: composite blurred bloom onto scene color and clamp to LDR.
  *
  * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene color,
- * then clamps to [0, 1] to produce the final LDR output.  When r_bloom is 0
- * the bloom texture is not bound, glow evaluates to (0, 0, 0), and this
- * reduces to a plain HDR clamp.
+ * then clamps to [0, 1] to produce the final LDR output.
+ * When r_bloom is 0 the bloom texture is not bound, glow evaluates to (0, 0, 0),
+ * and this reduces to a plain HDR clamp.
  */
 void bloom_composite(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
-  out_color = vec4(clamp(color + glow * bloom, 0.0, 1.0), 1.0);
+  color = color + glow * bloom;
+
+  out_color = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
 
 /**

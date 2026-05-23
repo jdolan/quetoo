@@ -170,6 +170,21 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Saturation"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_saturation",
+                            "min": 0.0,
+                            "max": 2.0,
+                            "step": 0.1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Field of View"
                             }
                           },

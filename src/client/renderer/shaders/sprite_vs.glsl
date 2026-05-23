@@ -45,7 +45,7 @@ vec3 sprite_fragment_lighting_light(in int index) {
   float radius = light.origin.w;
   float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
 
-  return light.color.rgb * light.color.a * atten * modulate;
+  return light_color(light) * atten;
 }
 
 /**

@@ -122,6 +122,11 @@ layout (std140) uniform uniforms_block {
   float modulate;
 
   /**
+   * @brief The saturation scalar.
+   */
+  float saturation;
+
+  /**
    * @brief The caustics scalar.
    */
   float caustics;
@@ -168,6 +173,17 @@ struct light_t {
    */
   vec4 shadow;
 };
+
+/**
+ * @brief Returns the modulated, intensity-scaled, and saturated color for a light.
+ * @param l The light.
+ * @return The color scaled by intensity, modulate, and saturation.
+ */
+vec3 light_color(in light_t l) {
+  vec3 color = l.color.rgb * l.color.a * modulate;
+  float luma = dot(color, vec3(0.2126, 0.7152, 0.0722));
+  return mix(vec3(luma), color, saturation);
+}
 
 #define MAX_BSP_LIGHTS 512
 #define MAX_DYNAMIC_LIGHTS 64
