@@ -140,8 +140,8 @@ void Cl_Stop_f(void) {
  */
 void Cl_Record_f(void) {
 
-  if (Cmd_Argc() != 2) {
-    Com_Print("Usage: %s <demo name>\n", Cmd_Argv(0));
+  if (Cmd_Argc() > 2) {
+    Com_Print("Usage: %s [demo name]\n", Cmd_Argv(0));
     return;
   }
 
@@ -155,7 +155,19 @@ void Cl_Record_f(void) {
     return;
   }
 
-  g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
+  if (Cmd_Argc() == 2) {
+    g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s.demo", Cmd_Argv(1));
+  } else {
+    char map[MAX_QPATH];
+    StripExtension(Basename(cl.config_strings[CS_MODELS]), map);
+
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    char datestamp[32];
+    strftime(datestamp, sizeof(datestamp), "%Y-%m-%d-%H:%M:%S", tm);
+
+    g_snprintf(cls.demo_filename, sizeof(cls.demo_filename), "demos/%s-%s.demo", datestamp, map);
+  }
 
   // open the demo file
   if (!(cls.demo_file = Fs_OpenWrite(cls.demo_filename))) {
