@@ -1242,6 +1242,18 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     return NULL;
   }
   
+  // Pre-collect func_plat entities once so G_Ai_PlatformAccessible doesn't
+  // call G_ForEachEntity for every link expansion inside the A* loop.
+  GArray *platforms = NULL;
+  G_ForEachEntity(ent, {
+    if (ent->classname && strcmp(ent->classname, "func_plat") == 0) {
+      if (!platforms) {
+        platforms = g_array_new(false, false, sizeof(g_entity_t *));
+      }
+      platforms = g_array_append_vals(platforms, &ent, 1);
+    }
+  });
+
   GHashTable *costs_started = g_hash_table_new(g_direct_hash, g_direct_equal);
   GArray *queue = g_array_new(false, false, sizeof(ai_node_priority_t));
   bool finished = false;
@@ -1271,17 +1283,34 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       continue;
     }
 
+    // Compute once per expanded node rather than once per link.
+    const int32_t node_contents = gi.PointContents(node->position);
+    const bool from_hazard = (node_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
+
     for (guint i = 0; i < node->links->len; i++) {
       const ai_link_t *link = &g_array_index(node->links, ai_link_t, i);
       ai_node_t *link_node = &g_array_index(g_ai_nodes, ai_node_t, link->id);
       const float drop = node->position.z - link_node->position.z;
-      const int32_t node_contents = gi.PointContents(node->position);
       const int32_t link_contents = gi.PointContents(link_node->position);
-      const bool from_hazard = (node_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
       const bool to_hazard = (link_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
-      if (!G_Ai_PlatformAccessible(link_node->position)) {
-        continue;
+      // Check platform accessibility using the pre-collected list.
+      if (platforms) {
+        bool blocked = false;
+        for (guint p = 0; p < platforms->len; p++) {
+          const g_entity_t *plat = g_array_index(platforms, g_entity_t *, p);
+          if (link_node->position.x < plat->abs_bounds.mins.x || link_node->position.x > plat->abs_bounds.maxs.x ||
+              link_node->position.y < plat->abs_bounds.mins.y || link_node->position.y > plat->abs_bounds.maxs.y) {
+            continue;
+          }
+          if (plat->abs_bounds.maxs.z > link_node->position.z + 32.f) {
+            blocked = true;
+            break;
+          }
+        }
+        if (blocked) {
+          continue;
+        }
       }
 
       if (from_hazard && to_hazard) {
@@ -1393,6 +1422,9 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
   g_array_free(queue, true);
   g_hash_table_destroy(costs_started);
+  if (platforms) {
+    g_array_free(platforms, true);
+  }
 
   return return_path;
 }

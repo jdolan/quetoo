@@ -215,11 +215,11 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
 
   // skip item seeking if we're in the air, or if we're armed, healthy, and fighting
   if (!cl->entity->ground.ent) {
-    return 5;
+    return 50;
   }
 
   if (cl->ai->combat_target.type && G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl)) {
-    return 5;
+    return 50;
   }
   
   // we're not attacking, so we probably care about items.
@@ -241,7 +241,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
         }
       // still a good goal
       } else {
-        return 5;
+        return 50;
       }
     }
   }
@@ -343,7 +343,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
   }
 
   g_array_free(items_visible, true);
-  return 5;
+  return 100;
 }
 
 /**
@@ -603,11 +603,11 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
         G_Ai_ClearGoal(&cl->ai->combat_target);
         G_Ai_Debug("%s: disengaging\n", !armed ? "Unarmed" : "Low health");
-        return 5;
+        return 50;
       }
     } else {
       // don't acquire new targets; focus on items
-      return 5;
+      return 50;
     }
   }
 
@@ -718,10 +718,10 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 
   // still have an enemy
   if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
-    return 3;
+    return 50;
   }
 
-  return 5;
+  return 100;
 }
 
 /**
