@@ -58,6 +58,18 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Bots"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarTextView",
+                          "var": "sv_min_clients"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Public"
                           }
                         },
