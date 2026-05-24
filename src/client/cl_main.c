@@ -529,7 +529,7 @@ static void Cl_InitLocal(void) {
 
   // user info
 
-  guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE | CVAR_NO_SET, NULL);
+  guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
   if (strlen(guid->string) == 0) {
     char *uuid = g_uuid_string_random();
     Cvar_ForceSetString("guid", uuid);
