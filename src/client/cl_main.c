@@ -534,6 +534,13 @@ static void Cl_InitLocal(void) {
   password = Cvar_Add("password", "", CVAR_USER_INFO, "Password to the server you want to connect to");
   rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none");
 
+  cvar_t *cl_guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE | CVAR_NO_SET, "Per-install anonymous stats identifier");
+  if (!cl_guid->string[0]) {
+    char *uuid = g_uuid_string_random();
+    Cvar_ForceSetString("guid", uuid);
+    g_free(uuid);
+  }
+
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 
   cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);

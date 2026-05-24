@@ -28,7 +28,7 @@
  * @param status The HTTP response code.
  * @param body The response body.
  * @param length The response body length in bytes.
- * @param user_data The user data pointer passed to `Net_HttpGetAsync`.
+ * @param user_data The user data pointer passed to `Net_HttpGetAsync` or `Net_HttpPostAsync`.
  */
 typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void *user_data);
 
@@ -48,6 +48,18 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
  * @param user_data User data pointer passed through to the callback.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data);
+
+/**
+ * @brief Asynchronously `POST` data to the specified URL string.
+ * @param url_string The URL string to `POST` to.
+ * @param body The request body bytes.
+ * @param length The request body length in bytes.
+ * @param content_type The `Content-Type` header value (e.g. "application/json").
+ * @param callback The completion callback, or `NULL`.
+ * @param user_data User data pointer passed through to the callback.
+ */
+void Net_HttpPostAsync(const char *url_string, const void *body, size_t length,
+                       const char *content_type, Net_HttpCallback callback, void *user_data);
 
 /**
  * @brief Construct an HTTP URL from a `net_addr_t` and path.

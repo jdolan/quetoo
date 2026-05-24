@@ -934,6 +934,11 @@ typedef struct {
    * @brief Global spawn points (used in non-team modes).
    */
   g_spawn_points_t spawn_points;
+
+  /**
+   * @brief Accumulated frag events for this map, POSTed at intermission.
+   */
+  GArray *frag_events;
 } g_level_t;
 
 /**
@@ -1147,6 +1152,23 @@ typedef struct {
 #define MAX_NET_NAME_PRINTABLE 15
 
 /**
+ * @brief A single frag event, accumulated during a map and POSTed at intermission.
+ */
+typedef struct {
+  char level[MAX_QPATH];
+  char attacker[MAX_NET_NAME];
+  char attacker_guid[37];
+  char target[MAX_NET_NAME];
+  char target_guid[37];
+  char weapon[MAX_QPATH];
+  int32_t mod;
+  int32_t damage;
+  uint32_t time;
+  bool attacker_ai;
+  bool target_ai;
+} g_frag_event_t;
+
+/**
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
@@ -1230,6 +1252,11 @@ typedef struct {
    * @brief True if the player is muted.
    */
   bool muted;
+
+  /**
+   * @brief Per-install GUID sent via userinfo, used for stats reporting.
+   */
+  char guid[37];
 } g_client_persistent_t;
 
 /**

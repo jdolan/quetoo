@@ -231,6 +231,11 @@ typedef struct {
   const char *skin;
 
   /**
+   * @brief Stable per-bot UUID for stats tracking.
+   */
+  const char *guid;
+
+  /**
    * @brief 0.0 (easy) to 1.0 (hard): aim, turn speed, reaction time.
    */
   float skill;

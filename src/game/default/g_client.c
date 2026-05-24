@@ -1437,6 +1437,9 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // hook style
   G_SetClientHookStyle(cl);
+
+  // stats guid
+  g_strlcpy(cl->persistent.guid, InfoString_Get(user_info, "guid"), sizeof(cl->persistent.guid));
 }
 
 /**

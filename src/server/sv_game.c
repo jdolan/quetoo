@@ -20,6 +20,7 @@
  */
 
 #include "sv_local.h"
+#include "net/net_http.h"
 
 /**
  * @brief Fetch the active debug mask.
@@ -201,6 +202,13 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
+ * @brief Asynchronously POSTs a JSON payload to the given URL. Best-effort; errors are logged.
+ */
+static void Sv_HttpPostAsync(const char *url, const char *json) {
+  Net_HttpPostAsync(url, json, strlen(json), "application/json", NULL, NULL);
+}
+
+/**
  * @brief Initializes the game module by exposing a subset of server functionality
  * through function pointers. In return, the game module allocates memory for
  * entities and returns a few pointers of its own.
@@ -296,6 +304,8 @@ void Sv_InitGame(void) {
 
   import.BroadcastPrint = Sv_BroadcastPrint;
   import.ClientPrint = Sv_ClientPrint;
+
+  import.HttpPostAsync = Sv_HttpPostAsync;
 
   game_handle = Sys_OpenLibrary("game", false);
   assert(game_handle);

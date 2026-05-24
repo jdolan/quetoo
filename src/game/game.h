@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 26
+#define GAME_API_VERSION 27
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -610,6 +610,12 @@ typedef struct g_import_s {
    */
   void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
   void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+
+  /**
+   * @brief Asynchronously `POST` a JSON payload to the given URL.
+   * @details Best-effort; failures are logged and silently discarded.
+   */
+  void (*HttpPostAsync)(const char *url, const char *json);
 
   /**
    * @}

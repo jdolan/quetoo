@@ -21,6 +21,7 @@
 
 #include "net_http.h"
 
+#include <Objectively/URLRequest.h>
 #include <Objectively/URLSession.h>
 
 /**
@@ -97,6 +98,64 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *u
   release(url);
 
   Net_HttpGetAsync_State *state = Mem_Malloc(sizeof(Net_HttpGetAsync_State));
+  state->callback = callback;
+  state->user_data = user_data;
+  task->urlSessionTask.data = state;
+
+  $((URLSessionTask *) task, resume);
+}
+
+typedef struct {
+  Net_HttpCallback callback;
+  void *user_data;
+} Net_HttpPostAsync_State;
+
+/**
+ * @brief URLSessionTaskCompletion for `Net_HttpPostAsync`.
+ */
+static void Net_HttpPostAsync_Completion(URLSessionTask *task, bool success) {
+
+  const int32_t status = task->response->httpStatusCode;
+
+  Com_Debug(DEBUG_NET, "%s: HTTP %d\n", task->request->url->urlString->chars, status);
+
+  Net_HttpPostAsync_State *state = (Net_HttpPostAsync_State *) task->data;
+
+  if (state->callback) {
+    const Data *data = ((URLSessionDataTask *) task)->data;
+    if (data) {
+      state->callback(status, (void *) data->bytes, data->length, state->user_data);
+    } else {
+      state->callback(status, NULL, 0, state->user_data);
+    }
+  }
+
+  Mem_Free(state);
+  release(task);
+}
+
+/**
+ * @brief Initiates an asynchronous HTTP `POST` request and invokes `callback` on completion.
+ */
+void Net_HttpPostAsync(const char *url_string, const void *body, size_t length,
+                       const char *content_type, Net_HttpCallback callback, void *user_data) {
+
+  Com_Debug(DEBUG_NET, "POST %s (%zu bytes)\n", url_string, length);
+
+  URL *url = $(alloc(URL), initWithCharacters, url_string);
+  URLRequest *request = $(alloc(URLRequest), initWithURL, url);
+  release(url);
+
+  request->httpMethod = HTTP_POST;
+  request->httpBody = $$(Data, dataWithBytes, (const uint8_t *) body, length);
+
+  $(request, setValueForHTTPHeaderField, content_type, "Content-Type");
+
+  URLSession *session = $$(URLSession, sharedInstance);
+  URLSessionDataTask *task = $(session, dataTaskWithRequest, request, Net_HttpPostAsync_Completion);
+  release(request);
+
+  Net_HttpPostAsync_State *state = Mem_Malloc(sizeof(Net_HttpPostAsync_State));
   state->callback = callback;
   state->user_data = user_data;
   task->urlSessionTask.data = state;

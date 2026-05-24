@@ -21,6 +21,7 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include <time.h>
 
 /**
  * @brief Returns true if ent1 and ent2 are on the same team.
@@ -371,6 +372,31 @@ void G_Damage(const g_damage_t *dmg) {
     // kill target if he has *excessive blood loss*
     if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
       target->dead = true;
+
+      if (attacker->client && target->client && attacker != target && g_stats_url->string[0]) {
+        const bool attacker_ai = attacker->client->ai != NULL;
+        const bool target_ai = target->client->ai != NULL;
+
+        if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
+          if (!g_level.frag_events) {
+            g_level.frag_events = g_array_new(false, false, sizeof(g_frag_event_t));
+          }
+          g_frag_event_t frag = {
+            .mod = (int32_t) mod,
+            .damage = damage_health,
+            .time = (uint32_t) time(NULL),
+            .attacker_ai = attacker_ai,
+            .target_ai = target_ai,
+          };
+          g_strlcpy(frag.level, g_level.name, sizeof(frag.level));
+          g_strlcpy(frag.attacker, attacker->client->persistent.net_name, sizeof(frag.attacker));
+          g_strlcpy(frag.attacker_guid, attacker->client->persistent.guid, sizeof(frag.attacker_guid));
+          g_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
+          g_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
+          g_strlcpy(frag.weapon, inflictor->classname ?: "unknown", sizeof(frag.weapon));
+          g_array_append_val(g_level.frag_events, frag);
+        }
+      }
 
       if (target->Die) {
         target->Die(target, attacker, mod);

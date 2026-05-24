@@ -166,6 +166,9 @@ extern cvar_t *g_time_limit;
 extern cvar_t *g_weapon_respawn_time;
 extern cvar_t *g_weapon_stay;
 
+extern cvar_t *g_stats_url;
+extern cvar_t *sv_public;
+
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_max_entities;
 extern cvar_t *sv_min_clients;
