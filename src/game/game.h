@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 26
+#define GAME_API_VERSION 27
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -152,6 +152,23 @@ struct g_entity_s {
 };
 
 #endif /* __GAME_LOCAL_H__ */
+
+/**
+ * @brief A frag event accumulated during a match, submitted to the stats service at intermission.
+ */
+typedef struct {
+  char     level[MAX_QPATH];
+  char     attacker[MAX_QPATH];
+  char     attacker_guid[MAX_QPATH];
+  bool     attacker_ai;
+  char     target[MAX_QPATH];
+  char     target_guid[MAX_QPATH];
+  bool     target_ai;
+  char     weapon[MAX_QPATH];
+  int32_t  mod;
+  int32_t  damage;
+  uint32_t time;
+} g_frag_t;
 
 /**
  * @brief The game import provides engine functionality and core configuration
@@ -610,6 +627,13 @@ typedef struct g_import_s {
    */
   void (*BroadcastPrint)(const int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
   void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+
+  /**
+   * @brief Submit frag events accumulated during a match to the stats service.
+   * @details The server handles URL, gating, JSON serialization, and HTTP POST.
+   * Best-effort; failures are silently discarded.
+   */
+  void (*FragLog)(const g_frag_t *frags, size_t len);
 
   /**
    * @}

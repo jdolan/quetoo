@@ -944,6 +944,11 @@ typedef struct {
    * @brief Global spawn points (used in non-team modes).
    */
   g_spawn_points_t spawn_points;
+
+  /**
+   * @brief Accumulated frag events for this map, POSTed at intermission.
+   */
+  GArray *frags;
 } g_level_t;
 
 /**
@@ -1240,6 +1245,11 @@ typedef struct {
    * @brief True if the player is muted.
    */
   bool muted;
+
+  /**
+   * @brief Per-install GUID sent via userinfo, used for stats reporting.
+   */
+  char guid[MAX_QPATH];
 } g_client_persistent_t;
 
 /**

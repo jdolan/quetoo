@@ -36,6 +36,7 @@ cvar_t *cl_no_lerp;
 cvar_t *cl_team_chat_sound;
 cvar_t *cl_timeout;
 
+cvar_t *guid;
 cvar_t *name;
 cvar_t *active;
 cvar_t *message_level;
@@ -527,6 +528,13 @@ static void Cl_InitLocal(void) {
   cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server");
 
   // user info
+
+  guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE | CVAR_NO_SET, NULL);
+  if (strlen(guid->string) == 0) {
+    char *uuid = g_uuid_string_random();
+    Cvar_ForceSetString("guid", uuid);
+    g_free(uuid);
+  }
 
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);

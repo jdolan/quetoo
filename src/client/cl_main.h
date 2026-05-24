@@ -33,6 +33,7 @@ extern cvar_t *cl_no_lerp;
 extern cvar_t *cl_team_chat_sound;
 extern cvar_t *cl_timeout;
 
+extern cvar_t *guid;
 extern cvar_t *name;
 extern cvar_t *active;
 extern cvar_t *message_level;

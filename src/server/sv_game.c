@@ -20,6 +20,9 @@
  */
 
 #include "sv_local.h"
+#include "net/net_http.h"
+
+#include <Objectively/JSONSerialization.h>
 
 /**
  * @brief Fetch the active debug mask.
@@ -201,6 +204,49 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
+ * @brief `Net_HttpCallback` for `Sv_FragLog`.
+ */
+static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *user_data) {
+  if (status < 200 || status >= 300) {
+    Com_Warn("Sv_FragLog: POST to %s failed (HTTP %d): %.*s\n",
+             sv_stats_url->string, status, (int) length, (const char *) body);
+  }
+}
+
+/**
+ * @brief Serializes frag events from the game module to JSON and POSTs them
+ * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
+ */
+static void Sv_FragLog(const g_frag_t *frags, size_t len) {
+
+  static const JsonProperty props[] = MakeJsonProperties(
+    MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
+    MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
+    MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
+    MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
+    MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
+    MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
+    MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
+    MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
+  );
+
+  if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
+    return;
+  }
+
+  if (len) {
+    Data *data = $$(JSONSerialization, dataFromInstances, props, frags, len, sizeof(g_frag_t));
+    if (data) {
+      Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
+      release(data);
+    }
+  }
+}
+
+/**
  * @brief Initializes the game module by exposing a subset of server functionality
  * through function pointers. In return, the game module allocates memory for
  * entities and returns a few pointers of its own.
@@ -296,6 +342,8 @@ void Sv_InitGame(void) {
 
   import.BroadcastPrint = Sv_BroadcastPrint;
   import.ClientPrint = Sv_ClientPrint;
+
+  import.FragLog = Sv_FragLog;
 
   game_handle = Sys_OpenLibrary("game", false);
   assert(game_handle);

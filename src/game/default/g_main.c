@@ -446,6 +446,21 @@ void G_MuteClient(char *name, bool mute) {
 }
 
 /**
+ * @brief Submits accumulated frags to the server for stats processing.
+ */
+static void G_FragLog(void) {
+
+  if (!g_level.frags || !g_level.frags->len) {
+    return;
+  }
+
+  gi.FragLog((g_frag_t *) g_level.frags->data, g_level.frags->len);
+
+  g_array_free(g_level.frags, true);
+  g_level.frags = NULL;
+}
+
+/**
  * @brief Starts an intermission sequence, moving all clients to the intermission viewpoint
  * and selecting the next map.
  */
@@ -456,6 +471,8 @@ static void G_BeginIntermission(const char *map) {
   }
 
   g_level.intermission_time = g_level.time;
+
+  G_FragLog();
 
   // respawn any dead clients
   G_ForEachClient(cl, {
@@ -489,7 +506,6 @@ static void G_BeginIntermission(const char *map) {
   // move all clients to the intermission point
   G_ForEachClient(cl, {
     G_ClientToIntermission(cl);
-
   });
 
   // play a dramatic sound effect

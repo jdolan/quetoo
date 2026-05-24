@@ -28,19 +28,19 @@ static cvar_t *g_ai_name_prefix;
  * Each entry defines a unique bot with its own name, appearance, and personality.
  */
 static const g_ai_roster_t g_ai_roster[] = {
-  // name          skin                skill  aggr   aware
-  { "Stroggo",    "qforcer/default",   .50f,  .50f,  .50f },
-  { "Enforcer",   "guard/default",     .65f,  .60f,  .55f },
-  { "Berserker",  "gork/default",      .40f,  .85f,  .30f },
-  { "Gunner",     "guard/mgss",        .70f,  .45f,  .70f },
-  { "Gladiator",  "dragoon/default",   .55f,  .70f,  .45f },
-  { "Makron",     "dragoon/baron",     .85f,  .55f,  .80f },
-  { "Brain",      "gork/ctf",          .75f,  .25f,  .90f },
-  { "Widow",      "bunker/default",    .60f,  .40f,  .65f },
-  { "Tank",       "bunker/hax",        .35f,  .80f,  .35f },
-  { "Medic",      "guard/sggrd",       .45f,  .30f,  .75f },
-  { "Parasite",   "dragoon/bastard",   .80f,  .75f,  .60f },
-  { "Flyer",      "bunker/fidget",     .55f,  .65f,  .40f },
+  // name          skin                guid                                    skill  aggr   aware
+  { "Stroggo",    "qforcer/default",   "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .50f,  .50f,  .50f },
+  { "Enforcer",   "guard/default",     "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
+  { "Berserker",  "gork/default",      "9fa691aa-dc2d-49b4-a4b4-0c0fad4d755b", .40f,  .85f,  .30f },
+  { "Gunner",     "guard/mgss",        "42a7c448-4c4a-434a-9274-69f700b2f8b6", .70f,  .45f,  .70f },
+  { "Gladiator",  "dragoon/default",   "c4ad0a99-5251-42fc-bc63-2f705ce6f363", .55f,  .70f,  .45f },
+  { "Makron",     "dragoon/baron",     "1ba330d3-6ee3-473c-9d18-bd21d29ec262", .85f,  .55f,  .80f },
+  { "Brain",      "gork/ctf",          "82229474-3efc-4872-bd05-a5a997f9a3e6", .75f,  .25f,  .90f },
+  { "Widow",      "bunker/default",    "c83474c1-422c-44cd-a93b-918390435187", .60f,  .40f,  .65f },
+  { "Tank",       "bunker/hax",        "a66cc25d-e234-4f8d-98b5-7cc4d34ea067", .35f,  .80f,  .35f },
+  { "Medic",      "guard/sggrd",       "80baa7ff-2ea6-4d8e-b111-caaaf2147e8b", .45f,  .30f,  .75f },
+  { "Parasite",   "dragoon/bastard",   "cbb2fb55-72fc-4242-aa5b-ff9d5f056883", .80f,  .75f,  .60f },
+  { "Flyer",      "bunker/fidget",     "cbbe6216-801e-4c53-84bc-f2de6fcc3e1c", .55f,  .65f,  .40f },
 };
 
 static const uint32_t g_ai_roster_count = lengthof(g_ai_roster);
@@ -61,6 +61,7 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
   InfoString_Set(info, "skin", entry->skin);
+  InfoString_Set(info, "guid", entry->guid);
   InfoString_Set(info, "color", va("%u", RandomRangeu(0, 360)));
   InfoString_Set(info, "hand", va("%u", RandomRangeu(0, 3)));
   InfoString_Set(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
