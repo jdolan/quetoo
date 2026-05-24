@@ -240,6 +240,7 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
   if (len) {
     Data *data = $$(JSONSerialization, dataFromInstances, props, frags, len, sizeof(g_frag_t));
     if (data) {
+      Com_Print("POSTing %zd frags to %s\n", len, sv_stats_url->string);
       Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
       release(data);
     }
