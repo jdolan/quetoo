@@ -22,6 +22,13 @@
 #include "sv_local.h"
 #include "net/net_http.h"
 
+#include <Objectively/Boole.h>
+#include <Objectively/JSONSerialization.h>
+#include <Objectively/MutableArray.h>
+#include <Objectively/MutableDictionary.h>
+#include <Objectively/Number.h>
+#include <Objectively/String.h>
+
 /**
  * @brief Fetch the active debug mask.
  */
@@ -218,9 +225,8 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
     return;
   }
 
-  GString *json = g_string_new("[");
+  MutableArray *array = $(alloc(MutableArray), init);
 
-  bool first = true;
   for (size_t i = 0; i < len; i++) {
     const g_frag_t *f = &frags[i];
 
@@ -229,35 +235,58 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
       continue;
     }
 
-    if (!first) {
-      g_string_append_c(json, ',');
+    MutableDictionary *frag = $(alloc(MutableDictionary), init);
+
+#define SET_STR(key, val) do { \
+    String *_k = $$(String, stringWithCharacters, (key)); \
+    String *_v = $$(String, stringWithCharacters, (val)); \
+    $(frag, setObjectForKey, _v, _k); \
+    release(_k); release(_v); \
+  } while (0)
+
+#define SET_NUM(key, val) do { \
+    String *_k = $$(String, stringWithCharacters, (key)); \
+    Number *_v = $$(Number, numberWithValue, (val)); \
+    $(frag, setObjectForKey, _v, _k); \
+    release(_k); release(_v); \
+  } while (0)
+
+#define SET_BOOL(key, val) do { \
+    String *_k = $$(String, stringWithCharacters, (key)); \
+    Boole *_v = (val) ? $$(Boole, True) : $$(Boole, False); \
+    $(frag, setObjectForKey, _v, _k); \
+    release(_k); release(_v); \
+  } while (0)
+
+    SET_STR("level",         f->level);
+    SET_STR("attacker",      f->attacker);
+    SET_STR("attacker_guid", f->attacker_guid);
+    SET_BOOL("attacker_ai",  f->attacker_ai);
+    SET_STR("target",        f->target);
+    SET_STR("target_guid",   f->target_guid);
+    SET_BOOL("target_ai",    f->target_ai);
+    SET_STR("weapon",        f->weapon);
+    SET_NUM("mod",           f->mod);
+    SET_NUM("damage",        f->damage);
+    SET_NUM("time",          f->time);
+
+#undef SET_STR
+#undef SET_NUM
+#undef SET_BOOL
+
+    $(array, addObject, frag);
+    release(frag);
+  }
+
+  if (array->array.count) {
+    Data *data = $$(JSONSerialization, dataFromObject, array, 0);
+    if (data) {
+      Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
+      release(data);
     }
-    first = false;
-
-    g_string_append_printf(json,
-      "{\"level\":\"%s\","
-      "\"attacker\":\"%s\","
-      "\"attacker_guid\":\"%s\","
-      "\"attacker_ai\":%s,"
-      "\"target\":\"%s\","
-      "\"target_guid\":\"%s\","
-      "\"target_ai\":%s,"
-      "\"weapon\":\"%s\","
-      "\"mod\":%d,"
-      "\"damage\":%d,"
-      "\"time\":%u}",
-      f->level, f->attacker, f->attacker_guid, f->attacker_ai ? "true" : "false",
-      f->target, f->target_guid, f->target_ai ? "true" : "false",
-      f->weapon, f->mod, f->damage, f->time);
   }
 
-  g_string_append_c(json, ']');
-
-  if (!first) {
-    Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", Sv_FragLogCallback, NULL);
-  }
-
-  g_string_free(json, true);
+  release(array);
 }
 
 /**

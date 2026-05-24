@@ -37,6 +37,7 @@ libserver_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@CURSES_CFLAGS@ \
 	@GLIB_CFLAGS@ \
+	@OBJECTIVELY_CFLAGS@ \
 	@SDL3_CFLAGS@
 
 libserver_la_LDFLAGS = \
