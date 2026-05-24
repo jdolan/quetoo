@@ -631,7 +631,7 @@ typedef struct g_import_s {
   /**
    * @brief Submit frag events accumulated during a match to the stats service.
    * @details The server handles URL, gating, JSON serialization, and HTTP POST.
-   * Best-effort; failures are logged and silently discarded.
+   * Best-effort; failures are silently discarded.
    */
   void (*FragLog)(const g_frag_t *frags, size_t len);
 
