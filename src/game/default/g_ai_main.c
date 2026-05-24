@@ -1216,14 +1216,18 @@ static uint32_t G_Ai_Move(g_client_t *cl, pm_cmd_t *cmd) {
   // perform a move; predict our next frame
   Pm_Move(&pm);
 
-  // predict a few frames ahead, for timely stoppage
-  pm_move_t pm_ahead = pm;
-
-  pm_ahead.cmd.msec = 100;
-  Pm_Move(&pm_ahead);
+  // predict a few frames ahead for timely edge/mover stoppage; cache result per
+  // tick so the three sub-passes of G_Ai_ClientThink share one expensive Pm_Move
+  if (cl->ai->lookahead_frame != g_level.frame_num) {
+    pm_move_t pm_ahead = pm;
+    pm_ahead.cmd.msec = 100;
+    Pm_Move(&pm_ahead);
+    cl->ai->lookahead_frame = g_level.frame_num;
+    cl->ai->lookahead_no_ground = !pm_ahead.ground.ent;
+  }
 
   // predicted ground is gone
-  if (ent->ground.ent && (!pm_ahead.ground.ent || !pm.ground.ent)) {
+  if (ent->ground.ent && (cl->ai->lookahead_no_ground || !pm.ground.ent)) {
 
     if (cl->ai->move_target.type == AI_GOAL_PATH) {
 

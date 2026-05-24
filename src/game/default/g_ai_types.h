@@ -321,6 +321,17 @@ typedef struct ai_s {
    * @brief Random per-bot offset applied to distress jump timing.
    */
   uint32_t distress_jump_offset;
+
+  /**
+   * @brief Frame number for which the lookahead ground-loss result was computed.
+   */
+  uint32_t lookahead_frame;
+
+  /**
+   * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
+   * Valid only when lookahead_frame == g_level.frame_num.
+   */
+  bool lookahead_no_ground;
 } ai_t;
 
 #endif /* __GAME_LOCAL_H__ */
