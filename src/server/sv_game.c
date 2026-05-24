@@ -204,17 +204,17 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 static const JsonProperty sv_frag_properties[] = MakeJsonProperties(
-  MakeJsonProperty("level",         JsonPropertyTypeCharacters, offsetof(g_frag_t, level),         sizeof(((g_frag_t *)0)->level)),
-  MakeJsonProperty("attacker",      JsonPropertyTypeCharacters, offsetof(g_frag_t, attacker),      sizeof(((g_frag_t *)0)->attacker)),
-  MakeJsonProperty("attacker_guid", JsonPropertyTypeCharacters, offsetof(g_frag_t, attacker_guid), sizeof(((g_frag_t *)0)->attacker_guid)),
-  MakeJsonProperty("attacker_ai",   JsonPropertyTypeBool,       offsetof(g_frag_t, attacker_ai),   sizeof(((g_frag_t *)0)->attacker_ai)),
-  MakeJsonProperty("target",        JsonPropertyTypeCharacters, offsetof(g_frag_t, target),        sizeof(((g_frag_t *)0)->target)),
-  MakeJsonProperty("target_guid",   JsonPropertyTypeCharacters, offsetof(g_frag_t, target_guid),   sizeof(((g_frag_t *)0)->target_guid)),
-  MakeJsonProperty("target_ai",     JsonPropertyTypeBool,       offsetof(g_frag_t, target_ai),     sizeof(((g_frag_t *)0)->target_ai)),
-  MakeJsonProperty("weapon",        JsonPropertyTypeCharacters, offsetof(g_frag_t, weapon),        sizeof(((g_frag_t *)0)->weapon)),
-  MakeJsonProperty("mod",           JsonPropertyTypeInteger,    offsetof(g_frag_t, mod),           sizeof(((g_frag_t *)0)->mod)),
-  MakeJsonProperty("damage",        JsonPropertyTypeInteger,    offsetof(g_frag_t, damage),        sizeof(((g_frag_t *)0)->damage)),
-  MakeJsonProperty("time",          JsonPropertyTypeInteger,    offsetof(g_frag_t, time),          sizeof(((g_frag_t *)0)->time))
+  MakeJsonProperty("level",         JsonPropertyCharacters, offsetof(g_frag_t, level),         sizeof(((g_frag_t *)0)->level)),
+  MakeJsonProperty("attacker",      JsonPropertyCharacters, offsetof(g_frag_t, attacker),      sizeof(((g_frag_t *)0)->attacker)),
+  MakeJsonProperty("attacker_guid", JsonPropertyCharacters, offsetof(g_frag_t, attacker_guid), sizeof(((g_frag_t *)0)->attacker_guid)),
+  MakeJsonProperty("attacker_ai",   JsonPropertyBool,       offsetof(g_frag_t, attacker_ai),   sizeof(((g_frag_t *)0)->attacker_ai)),
+  MakeJsonProperty("target",        JsonPropertyCharacters, offsetof(g_frag_t, target),        sizeof(((g_frag_t *)0)->target)),
+  MakeJsonProperty("target_guid",   JsonPropertyCharacters, offsetof(g_frag_t, target_guid),   sizeof(((g_frag_t *)0)->target_guid)),
+  MakeJsonProperty("target_ai",     JsonPropertyBool,       offsetof(g_frag_t, target_ai),     sizeof(((g_frag_t *)0)->target_ai)),
+  MakeJsonProperty("weapon",        JsonPropertyCharacters, offsetof(g_frag_t, weapon),        sizeof(((g_frag_t *)0)->weapon)),
+  MakeJsonProperty("mod",           JsonPropertyInteger,    offsetof(g_frag_t, mod),           sizeof(((g_frag_t *)0)->mod)),
+  MakeJsonProperty("damage",        JsonPropertyInteger,    offsetof(g_frag_t, damage),        sizeof(((g_frag_t *)0)->damage)),
+  MakeJsonProperty("time",          JsonPropertyInteger,    offsetof(g_frag_t, time),          sizeof(((g_frag_t *)0)->time))
 );
 
 /**
