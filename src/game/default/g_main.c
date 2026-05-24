@@ -450,14 +450,14 @@ void G_MuteClient(char *name, bool mute) {
  */
 static void G_FragLog(void) {
 
-  if (!g_level.frag_events || !g_level.frag_events->len) {
+  if (!g_level.frags || !g_level.frags->len) {
     return;
   }
 
-  gi.FragLog((g_frag_t *) g_level.frag_events->data, g_level.frag_events->len);
+  gi.FragLog((g_frag_t *) g_level.frags->data, g_level.frags->len);
 
-  g_array_free(g_level.frag_events, true);
-  g_level.frag_events = NULL;
+  g_array_free(g_level.frags, true);
+  g_level.frags = NULL;
 }
 
 /**

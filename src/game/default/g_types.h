@@ -938,7 +938,7 @@ typedef struct {
   /**
    * @brief Accumulated frag events for this map, POSTed at intermission.
    */
-  GArray *frag_events;
+  GArray *frags;
 } g_level_t;
 
 /**

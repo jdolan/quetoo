@@ -441,8 +441,8 @@ void G_Damage(const g_damage_t *dmg) {
         const bool target_ai = target->client->ai != NULL;
 
         if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
-          if (!g_level.frag_events) {
-            g_level.frag_events = g_array_new(false, false, sizeof(g_frag_t));
+          if (!g_level.frags) {
+            g_level.frags = g_array_new(false, false, sizeof(g_frag_t));
           }
           g_frag_t frag = {
             .mod = (int32_t) mod,
@@ -457,7 +457,7 @@ void G_Damage(const g_damage_t *dmg) {
           g_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
           g_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
           g_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
-          g_array_append_val(g_level.frag_events, frag);
+          g_array_append_val(g_level.frags, frag);
         }
       }
 
