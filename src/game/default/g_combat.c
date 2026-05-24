@@ -44,9 +44,72 @@ bool G_OnSameTeam(const g_client_t *a, const g_client_t *b) {
 }
 
 /**
- * @brief Returns true if the inflictor can directly damage the target. Used for
- * explosions and melee attacks.
+ * @brief Returns a human-readable weapon name for a means of death, for stats recording.
  */
+static const char *G_WeaponNameForMod(g_means_of_death mod) {
+
+  switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_BLASTER:
+      return "Blaster";
+    case MOD_SHOTGUN:
+      return "Shotgun";
+    case MOD_SUPER_SHOTGUN:
+      return "Super Shotgun";
+    case MOD_MACHINEGUN:
+      return "Machinegun";
+    case MOD_GRENADE:
+    case MOD_GRENADE_SPLASH:
+      return "Grenade Launcher";
+    case MOD_HANDGRENADE:
+    case MOD_HANDGRENADE_SPLASH:
+    case MOD_HANDGRENADE_KAMIKAZE:
+    case MOD_HANDGRENADE_SUICIDE:
+      return "Hand Grenade";
+    case MOD_ROCKET:
+    case MOD_ROCKET_SPLASH:
+      return "Rocket Launcher";
+    case MOD_HYPERBLASTER:
+    case MOD_HYPERBLASTER_CLIMB:
+      return "Hyperblaster";
+    case MOD_LIGHTNING:
+    case MOD_LIGHTNING_DISCHARGE:
+      return "Lightning";
+    case MOD_RAILGUN:
+      return "Railgun";
+    case MOD_BFG_LASER:
+    case MOD_BFG_BLAST:
+      return "BFG10K";
+    case MOD_QUAKE_SHOTGUN:
+      return "Quake Shotgun";
+    case MOD_QUAKE_SUPER_SHOTGUN:
+      return "Quake Super Shotgun";
+    case MOD_QUAKE_NAILGUN:
+      return "Nailgun";
+    case MOD_QUAKE_SUPER_NAILGUN:
+      return "Super Nailgun";
+    case MOD_QUAKE_GRENADE:
+    case MOD_QUAKE_GRENADE_SPLASH:
+      return "Quake Grenade Launcher";
+    case MOD_QUAKE_ROCKET:
+    case MOD_QUAKE_ROCKET_SPLASH:
+      return "Quake Rocket Launcher";
+    case MOD_QUAKE_THUNDERBOLT:
+    case MOD_QUAKE_THUNDERBOLT_DISCHARGE:
+      return "Thunderbolt";
+    case MOD_FIREBALL:
+      return "Fireball";
+    case MOD_HOOK:
+      return "Hook";
+    case MOD_TELEFRAG:
+      return "Telefrag";
+    case MOD_EXPLOSIVE:
+      return "Explosive";
+    default:
+      return "Unknown";
+  }
+}
+
+
 bool G_CanDamage(const g_entity_t *targ, const g_entity_t *inflictor) {
   vec3_t dest;
   cm_trace_t tr;
@@ -393,7 +456,7 @@ void G_Damage(const g_damage_t *dmg) {
           g_strlcpy(frag.attacker_guid, attacker->client->persistent.guid, sizeof(frag.attacker_guid));
           g_strlcpy(frag.target, target->client->persistent.net_name, sizeof(frag.target));
           g_strlcpy(frag.target_guid, target->client->persistent.guid, sizeof(frag.target_guid));
-          g_strlcpy(frag.weapon, inflictor->classname ?: "unknown", sizeof(frag.weapon));
+          g_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
           g_array_append_val(g_level.frag_events, frag);
         }
       }
