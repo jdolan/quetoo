@@ -154,6 +154,23 @@ struct g_entity_s {
 #endif /* __GAME_LOCAL_H__ */
 
 /**
+ * @brief A frag event accumulated during a match, submitted to the stats service at intermission.
+ */
+typedef struct {
+  char     level[64];
+  char     attacker[64];
+  char     attacker_guid[37];
+  bool     attacker_ai;
+  char     target[64];
+  char     target_guid[37];
+  bool     target_ai;
+  char     weapon[64];
+  int32_t  mod;
+  int32_t  damage;
+  uint32_t time;
+} g_frag_t;
+
+/**
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
@@ -612,10 +629,11 @@ typedef struct g_import_s {
   void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
-   * @brief Asynchronously `POST` a JSON payload to the given URL.
-   * @details Best-effort; failures are logged and silently discarded.
+   * @brief Submit frag events accumulated during a match to the stats service.
+   * @details The server handles URL, gating, JSON serialization, and HTTP POST.
+   * Best-effort; failures are logged and silently discarded.
    */
-  void (*HttpPostAsync)(const char *url, const char *json);
+  void (*FragLog)(const g_frag_t *frags, size_t len);
 
   /**
    * @}

@@ -373,15 +373,15 @@ void G_Damage(const g_damage_t *dmg) {
     if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
       target->dead = true;
 
-      if (attacker->client && target->client && attacker != target && g_stats_url->string[0]) {
+      if (attacker->client && target->client && attacker != target) {
         const bool attacker_ai = attacker->client->ai != NULL;
         const bool target_ai = target->client->ai != NULL;
 
         if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
           if (!g_level.frag_events) {
-            g_level.frag_events = g_array_new(false, false, sizeof(g_frag_event_t));
+            g_level.frag_events = g_array_new(false, false, sizeof(g_frag_t));
           }
-          g_frag_event_t frag = {
+          g_frag_t frag = {
             .mod = (int32_t) mod,
             .damage = damage_health,
             .time = (uint32_t) time(NULL),

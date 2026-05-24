@@ -38,6 +38,7 @@ cvar_t *sv_max_clients;
 cvar_t *sv_max_entities;
 cvar_t *sv_min_clients;
 cvar_t *sv_public;
+cvar_t *sv_stats_url;
 cvar_t *sv_timeout;
 
 /**
@@ -921,6 +922,7 @@ static void Sv_InitLocal(void) {
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
+  sv_stats_url = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org/api/frags", CVAR_ARCHIVE, "URL to POST per-match frag stats to. Requires sv_public 1. Leave empty to disable.");
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");
 
   sv_max_clients->integer = Mini(sv_max_clients->integer, MAX_CLIENTS);

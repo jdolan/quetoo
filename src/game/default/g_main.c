@@ -163,13 +163,10 @@ cvar_t *g_time_limit;
 cvar_t *g_weapon_respawn_time;
 cvar_t *g_weapon_stay;
 
-cvar_t *g_stats_url;
-
 cvar_t *sv_min_clients;
 cvar_t *sv_max_clients;
 cvar_t *sv_max_entities;
 cvar_t *sv_hostname;
-cvar_t *sv_public;
 cvar_t *dedicated;
 cvar_t *editor;
 
@@ -449,7 +446,7 @@ void G_MuteClient(char *name, bool mute) {
 }
 
 /**
- * @brief Serializes accumulated frag events to JSON and POSTs them asynchronously.
+ * @brief Submits accumulated frag events to the server for stats processing.
  */
 static void G_Stats_PostMatchSummary(void) {
 
@@ -457,37 +454,8 @@ static void G_Stats_PostMatchSummary(void) {
     return;
   }
 
-  GString *json = g_string_new("[");
+  gi.FragLog((g_frag_t *) g_level.frag_events->data, g_level.frag_events->len);
 
-  for (guint i = 0; i < g_level.frag_events->len; i++) {
-    const g_frag_event_t *f = &g_array_index(g_level.frag_events, g_frag_event_t, i);
-
-    if (i > 0) {
-      g_string_append_c(json, ',');
-    }
-
-    g_string_append_printf(json,
-      "{\"level\":\"%s\","
-      "\"attacker\":\"%s\","
-      "\"attacker_guid\":\"%s\","
-      "\"attacker_ai\":%s,"
-      "\"target\":\"%s\","
-      "\"target_guid\":\"%s\","
-      "\"target_ai\":%s,"
-      "\"weapon\":\"%s\","
-      "\"mod\":%d,"
-      "\"damage\":%d,"
-      "\"time\":%u}",
-      f->level, f->attacker, f->attacker_guid, f->attacker_ai ? "true" : "false",
-      f->target, f->target_guid, f->target_ai ? "true" : "false",
-      f->weapon, f->mod, f->damage, f->time);
-  }
-
-  g_string_append_c(json, ']');
-
-  gi.HttpPostAsync(g_stats_url->string, json->str);
-
-  g_string_free(json, true);
   g_array_free(g_level.frag_events, true);
   g_level.frag_events = NULL;
 }
@@ -504,9 +472,7 @@ static void G_BeginIntermission(const char *map) {
 
   g_level.intermission_time = g_level.time;
 
-  if (g_stats_url->string[0] && sv_public->integer > 0) {
-    G_Stats_PostMatchSummary();
-  }
+  G_Stats_PostMatchSummary();
 
   // respawn any dead clients
   G_ForEachClient(cl, {
@@ -1111,10 +1077,6 @@ void G_Init(void) {
   g_time_limit = gi.AddCvar("g_time_limit", "20", CVAR_SERVER_INFO, "The time limit per level in minutes.");
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
-
-  g_stats_url = gi.AddCvar("g_stats_url", "https://giblets.quetoo.org/api/frags", 0, "URL to POST per-match frag stats to. Leave empty to disable.");
-
-  sv_public = gi.AddCvar("sv_public", "0", 0, NULL);
 
   G_Ai_Init(); // initialize the AI
 

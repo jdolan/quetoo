@@ -1152,23 +1152,6 @@ typedef struct {
 #define MAX_NET_NAME_PRINTABLE 15
 
 /**
- * @brief A single frag event, accumulated during a map and POSTed at intermission.
- */
-typedef struct {
-  char level[MAX_QPATH];
-  char attacker[MAX_NET_NAME];
-  char attacker_guid[37];
-  char target[MAX_NET_NAME];
-  char target_guid[37];
-  char weapon[MAX_QPATH];
-  int32_t mod;
-  int32_t damage;
-  uint32_t time;
-  bool attacker_ai;
-  bool target_ai;
-} g_frag_event_t;
-
-/**
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {

@@ -202,10 +202,46 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
- * @brief Asynchronously POSTs a JSON payload to the given URL. Best-effort; errors are logged.
+ * @brief Serializes frag events from the game module to JSON and POSTs them
+ * asynchronously to sv_stats_url. Gated on sv_public and a non-empty URL.
  */
-static void Sv_HttpPostAsync(const char *url, const char *json) {
-  Net_HttpPostAsync(url, json, strlen(json), "application/json", NULL, NULL);
+static void Sv_FragLog(const g_frag_t *frags, size_t len) {
+
+  if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
+    return;
+  }
+
+  GString *json = g_string_new("[");
+
+  for (size_t i = 0; i < len; i++) {
+    const g_frag_t *f = &frags[i];
+
+    if (i > 0) {
+      g_string_append_c(json, ',');
+    }
+
+    g_string_append_printf(json,
+      "{\"level\":\"%s\","
+      "\"attacker\":\"%s\","
+      "\"attacker_guid\":\"%s\","
+      "\"attacker_ai\":%s,"
+      "\"target\":\"%s\","
+      "\"target_guid\":\"%s\","
+      "\"target_ai\":%s,"
+      "\"weapon\":\"%s\","
+      "\"mod\":%d,"
+      "\"damage\":%d,"
+      "\"time\":%u}",
+      f->level, f->attacker, f->attacker_guid, f->attacker_ai ? "true" : "false",
+      f->target, f->target_guid, f->target_ai ? "true" : "false",
+      f->weapon, f->mod, f->damage, f->time);
+  }
+
+  g_string_append_c(json, ']');
+
+  Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", NULL, NULL);
+
+  g_string_free(json, true);
 }
 
 /**
@@ -305,7 +341,7 @@ void Sv_InitGame(void) {
   import.BroadcastPrint = Sv_BroadcastPrint;
   import.ClientPrint = Sv_ClientPrint;
 
-  import.HttpPostAsync = Sv_HttpPostAsync;
+  import.FragLog = Sv_FragLog;
 
   game_handle = Sys_OpenLibrary("game", false);
   assert(game_handle);
