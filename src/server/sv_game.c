@@ -213,12 +213,19 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
 
   GString *json = g_string_new("[");
 
+  bool first = true;
   for (size_t i = 0; i < len; i++) {
     const g_frag_t *f = &frags[i];
 
-    if (i > 0) {
+    if (!f->attacker_guid[0] || !f->target_guid[0]) {
+      Com_Debug(DEBUG_SERVER, "Sv_FragLog: skipping frag from %s — missing guid\n", f->attacker);
+      continue;
+    }
+
+    if (!first) {
       g_string_append_c(json, ',');
     }
+    first = false;
 
     g_string_append_printf(json,
       "{\"level\":\"%s\","
@@ -239,7 +246,9 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
 
   g_string_append_c(json, ']');
 
-  Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", NULL, NULL);
+  if (!first) {
+    Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", NULL, NULL);
+  }
 
   g_string_free(json, true);
 }
