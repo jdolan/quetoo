@@ -1239,7 +1239,7 @@ typedef struct {
   /**
    * @brief Per-install GUID sent via userinfo, used for stats reporting.
    */
-  char guid[37];
+  char guid[MAX_QPATH];
 } g_client_persistent_t;
 
 /**
