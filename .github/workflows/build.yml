@@ -31,10 +31,9 @@ jobs:
           - runner: macos-15
             arch: arm64
             build: arm64-apple-darwin
-          # x86_64 (macos-15-large) disabled to reduce CI cost; re-enable before release
-          # - runner: macos-15-large
-          #   arch: x86_64
-          #   build: x86_64-apple-darwin
+          - runner: macos-15-large
+            arch: x86_64
+            build: x86_64-apple-darwin
 
     runs-on: ${{ matrix.runner }}
 
@@ -144,10 +143,26 @@ jobs:
       with:
         name: quetoo-arm64-apple-darwin
 
-    - name: Extract artifact
+    - name: Download x86_64 artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: quetoo-x86_64-apple-darwin
+
+    - name: Create universal binary
       run: |
-        mkdir arm64
+        mkdir arm64 x86_64
         unzip quetoo-arm64-apple-darwin.zip -d arm64
+        unzip quetoo-x86_64-apple-darwin.zip -d x86_64
+
+        find arm64/Quetoo.app -type f | while read -r f; do
+          if ! file "$f" | grep -q "Mach-O"; then
+            continue
+          fi
+          x86="x86_64/${f#arm64/}"
+          if [ -f "$x86" ]; then
+            lipo -create "$f" "$x86" -output "$f"
+          fi
+        done
 
     - name: Checkout Quetoo
       uses: actions/checkout@v6
