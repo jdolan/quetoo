@@ -251,14 +251,14 @@ jobs:
 
     - name: Build SDL3
       run: |
-        git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL.git SDL3
+        git clone --depth 1 --branch release-3.4.8 https://github.com/libsdl-org/SDL.git SDL3
         cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3/build -j$(nproc)
         sudo cmake --install SDL3/build
 
     - name: Build SDL3_image
       run: |
-        git clone --depth 1 --branch release-3.4.0 https://github.com/libsdl-org/SDL_image.git SDL3_image
+        git clone --depth 1 --branch release-3.4.4 https://github.com/libsdl-org/SDL_image.git SDL3_image
         cmake -S SDL3_image -B SDL3_image/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
         cmake --build SDL3_image/build -j$(nproc)
         sudo cmake --install SDL3_image/build
