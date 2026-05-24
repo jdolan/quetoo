@@ -95,7 +95,7 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
       return "Quake Rocket Launcher";
     case MOD_QUAKE_THUNDERBOLT:
     case MOD_QUAKE_THUNDERBOLT_DISCHARGE:
-      return "Thunderbolt";
+      return "Quake Thunderbolt";
     case MOD_FIREBALL:
       return "Fireball";
     case MOD_HOOK:
