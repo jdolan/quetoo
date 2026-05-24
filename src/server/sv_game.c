@@ -219,7 +219,7 @@ static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *
  */
 static void Sv_FragLog(const g_frag_t *frags, size_t len) {
 
-  static const JsonProperty g_frag_properties[] = MakeJsonProperties(
+  static const JsonProperty props[] = MakeJsonProperties(
     MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
     MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
     MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
@@ -238,7 +238,7 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
   }
 
   if (len) {
-    Data *data = $$(JSONSerialization, dataFromInstances, g_frag_properties, frags, len, sizeof(g_frag_t));
+    Data *data = $$(JSONSerialization, dataFromInstances, props, frags, len, sizeof(g_frag_t));
     if (data) {
       Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
       release(data);
