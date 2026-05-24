@@ -1807,7 +1807,7 @@ void G_Ai_Frame(void) {
 
     const int32_t active_clients = human_clients + ai_clients;
 
-    const int32_t min_clients = Maxi(0, sv_min_clients->integer);
+    const int32_t min_clients = Maxi(0, g_level.min_clients_map > -1 ? g_level.min_clients_map : sv_min_clients->integer);
     const int32_t max_clients = Maxi(0, sv_max_clients->integer);
 
     const int32_t desired_clients = Mini(min_clients, max_clients);
