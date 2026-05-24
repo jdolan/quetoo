@@ -84,9 +84,9 @@ static const char *G_WeaponNameForMod(g_means_of_death mod) {
     case MOD_QUAKE_SUPER_SHOTGUN:
       return "Quake Super Shotgun";
     case MOD_QUAKE_NAILGUN:
-      return "Nailgun";
+      return "Quake Nailgun";
     case MOD_QUAKE_SUPER_NAILGUN:
-      return "Super Nailgun";
+      return "Quake Super Nailgun";
     case MOD_QUAKE_GRENADE:
     case MOD_QUAKE_GRENADE_SPLASH:
       return "Quake Grenade Launcher";
