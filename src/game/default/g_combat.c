@@ -436,7 +436,7 @@ void G_Damage(const g_damage_t *dmg) {
     if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
       target->dead = true;
 
-      if (attacker->client && target->client && attacker != target) {
+      if (attacker->client && target->client) {
         const bool attacker_ai = attacker->client->ai != NULL;
         const bool target_ai = target->client->ai != NULL;
 
