@@ -157,14 +157,14 @@ struct g_entity_s {
  * @brief A frag event accumulated during a match, submitted to the stats service at intermission.
  */
 typedef struct {
-  char     level[64];
-  char     attacker[64];
-  char     attacker_guid[37];
+  char     level[MAX_QPATH];
+  char     attacker[MAX_QPATH];
+  char     attacker_guid[MAX_QPATH];
   bool     attacker_ai;
-  char     target[64];
-  char     target_guid[37];
+  char     target[MAX_QPATH];
+  char     target_guid[MAX_QPATH];
   bool     target_ai;
-  char     weapon[64];
+  char     weapon[MAX_QPATH];
   int32_t  mod;
   int32_t  damage;
   uint32_t time;
