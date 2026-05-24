@@ -205,6 +205,13 @@ static void *game_handle;
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to sv_stats_url. Gated on sv_public and a non-empty URL.
  */
+static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *user_data) {
+  if (status < 200 || status >= 300) {
+    Com_Warn("Sv_FragLog: POST to %s failed (HTTP %d): %.*s\n",
+             sv_stats_url->string, status, (int) length, (const char *) body);
+  }
+}
+
 static void Sv_FragLog(const g_frag_t *frags, size_t len) {
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
@@ -247,7 +254,7 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
   g_string_append_c(json, ']');
 
   if (!first) {
-    Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", NULL, NULL);
+    Net_HttpPostAsync(sv_stats_url->string, json->str, strlen(json->str), "application/json", Sv_FragLogCallback, NULL);
   }
 
   g_string_free(json, true);
