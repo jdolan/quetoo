@@ -246,7 +246,7 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
   }
 
   if (count) {
-    Data *data = $$(JSONSerialization, dataFromStructs, sv_frag_properties, valid, count, sizeof(g_frag_t));
+    Data *data = $$(JSONSerialization, dataFromInstances, sv_frag_properties, valid, count, sizeof(g_frag_t));
     if (data) {
       Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
       release(data);
