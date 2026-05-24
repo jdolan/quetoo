@@ -223,6 +223,10 @@ void Sv_Multicast(const vec3_t origin, multicast_t to) {
       continue;
     }
 
+    if (cl->net_chan.message.max_size == 0) {
+      continue;
+    }
+
     if (cl->state != SV_CLIENT_ACTIVE && !reliable) {
       continue;
     }
