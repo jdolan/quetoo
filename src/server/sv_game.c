@@ -22,12 +22,7 @@
 #include "sv_local.h"
 #include "net/net_http.h"
 
-#include <Objectively/Boole.h>
 #include <Objectively/JSONSerialization.h>
-#include <Objectively/MutableArray.h>
-#include <Objectively/MutableDictionary.h>
-#include <Objectively/Number.h>
-#include <Objectively/String.h>
 
 /**
  * @brief Fetch the active debug mask.
@@ -208,6 +203,20 @@ static void Sv_WriteAngles(const vec3_t angles) {
 
 static void *game_handle;
 
+static const JsonProperty sv_frag_properties[] = MakeJsonProperties(
+  MakeJsonProperty("level",         JsonPropertyTypeCharacters, offsetof(g_frag_t, level),         sizeof(((g_frag_t *)0)->level)),
+  MakeJsonProperty("attacker",      JsonPropertyTypeCharacters, offsetof(g_frag_t, attacker),      sizeof(((g_frag_t *)0)->attacker)),
+  MakeJsonProperty("attacker_guid", JsonPropertyTypeCharacters, offsetof(g_frag_t, attacker_guid), sizeof(((g_frag_t *)0)->attacker_guid)),
+  MakeJsonProperty("attacker_ai",   JsonPropertyTypeBool,       offsetof(g_frag_t, attacker_ai),   sizeof(((g_frag_t *)0)->attacker_ai)),
+  MakeJsonProperty("target",        JsonPropertyTypeCharacters, offsetof(g_frag_t, target),        sizeof(((g_frag_t *)0)->target)),
+  MakeJsonProperty("target_guid",   JsonPropertyTypeCharacters, offsetof(g_frag_t, target_guid),   sizeof(((g_frag_t *)0)->target_guid)),
+  MakeJsonProperty("target_ai",     JsonPropertyTypeBool,       offsetof(g_frag_t, target_ai),     sizeof(((g_frag_t *)0)->target_ai)),
+  MakeJsonProperty("weapon",        JsonPropertyTypeCharacters, offsetof(g_frag_t, weapon),        sizeof(((g_frag_t *)0)->weapon)),
+  MakeJsonProperty("mod",           JsonPropertyTypeInteger,    offsetof(g_frag_t, mod),           sizeof(((g_frag_t *)0)->mod)),
+  MakeJsonProperty("damage",        JsonPropertyTypeInteger,    offsetof(g_frag_t, damage),        sizeof(((g_frag_t *)0)->damage)),
+  MakeJsonProperty("time",          JsonPropertyTypeInteger,    offsetof(g_frag_t, time),          sizeof(((g_frag_t *)0)->time))
+);
+
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to sv_stats_url. Gated on sv_public and a non-empty URL.
@@ -225,68 +234,24 @@ static void Sv_FragLog(const g_frag_t *frags, size_t len) {
     return;
   }
 
-  MutableArray *array = $(alloc(MutableArray), init);
+  g_frag_t valid[len];
+  size_t count = 0;
 
   for (size_t i = 0; i < len; i++) {
-    const g_frag_t *f = &frags[i];
-
-    if (!f->attacker_guid[0] || !f->target_guid[0]) {
-      Com_Debug(DEBUG_SERVER, "Sv_FragLog: skipping frag from %s — missing guid\n", f->attacker);
-      continue;
+    if (frags[i].attacker_guid[0] && frags[i].target_guid[0]) {
+      valid[count++] = frags[i];
+    } else {
+      Com_Debug(DEBUG_SERVER, "Sv_FragLog: skipping frag from %s — missing guid\n", frags[i].attacker);
     }
-
-    MutableDictionary *frag = $(alloc(MutableDictionary), init);
-
-#define SET_STR(key, val) do { \
-    String *_k = $$(String, stringWithCharacters, (key)); \
-    String *_v = $$(String, stringWithCharacters, (val)); \
-    $(frag, setObjectForKey, _v, _k); \
-    release(_k); release(_v); \
-  } while (0)
-
-#define SET_NUM(key, val) do { \
-    String *_k = $$(String, stringWithCharacters, (key)); \
-    Number *_v = $$(Number, numberWithValue, (val)); \
-    $(frag, setObjectForKey, _v, _k); \
-    release(_k); release(_v); \
-  } while (0)
-
-#define SET_BOOL(key, val) do { \
-    String *_k = $$(String, stringWithCharacters, (key)); \
-    Boole *_v = (val) ? $$(Boole, True) : $$(Boole, False); \
-    $(frag, setObjectForKey, _v, _k); \
-    release(_k); release(_v); \
-  } while (0)
-
-    SET_STR("level",         f->level);
-    SET_STR("attacker",      f->attacker);
-    SET_STR("attacker_guid", f->attacker_guid);
-    SET_BOOL("attacker_ai",  f->attacker_ai);
-    SET_STR("target",        f->target);
-    SET_STR("target_guid",   f->target_guid);
-    SET_BOOL("target_ai",    f->target_ai);
-    SET_STR("weapon",        f->weapon);
-    SET_NUM("mod",           f->mod);
-    SET_NUM("damage",        f->damage);
-    SET_NUM("time",          f->time);
-
-#undef SET_STR
-#undef SET_NUM
-#undef SET_BOOL
-
-    $(array, addObject, frag);
-    release(frag);
   }
 
-  if (array->array.count) {
-    Data *data = $$(JSONSerialization, dataFromObject, array, 0);
+  if (count) {
+    Data *data = $$(JSONSerialization, dataFromStructs, sv_frag_properties, valid, count, sizeof(g_frag_t));
     if (data) {
       Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
       release(data);
     }
   }
-
-  release(array);
 }
 
 /**
