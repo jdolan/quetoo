@@ -203,23 +203,8 @@ static void Sv_WriteAngles(const vec3_t angles) {
 
 static void *game_handle;
 
-static const JsonProperty sv_frag_properties[] = MakeJsonProperties(
-  MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
-  MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
-  MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
-  MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
-  MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
-  MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
-  MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
-  MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
-  MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
-  MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
-  MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
-);
-
 /**
- * @brief Serializes frag events from the game module to JSON and POSTs them
- * asynchronously to sv_stats_url. Gated on sv_public and a non-empty URL.
+ * @brief `Net_HttpCallback` for `Sv_FragLog`.
  */
 static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *user_data) {
   if (status < 200 || status >= 300) {
@@ -228,25 +213,32 @@ static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *
   }
 }
 
+/**
+ * @brief Serializes frag events from the game module to JSON and POSTs them
+ * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
+ */
 static void Sv_FragLog(const g_frag_t *frags, size_t len) {
+
+  static const JsonProperty g_frag_properties[] = MakeJsonProperties(
+    MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
+    MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
+    MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
+    MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
+    MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
+    MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
+    MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
+    MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
+    MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
+  );
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
     return;
   }
 
-  g_frag_t valid[len];
-  size_t count = 0;
-
-  for (size_t i = 0; i < len; i++) {
-    if (frags[i].attacker_guid[0] && frags[i].target_guid[0]) {
-      valid[count++] = frags[i];
-    } else {
-      Com_Debug(DEBUG_SERVER, "Sv_FragLog: skipping frag from %s — missing guid\n", frags[i].attacker);
-    }
-  }
-
-  if (count) {
-    Data *data = $$(JSONSerialization, dataFromInstances, sv_frag_properties, valid, count, sizeof(g_frag_t));
+  if (len) {
+    Data *data = $$(JSONSerialization, dataFromInstances, g_frag_properties, frags, len, sizeof(g_frag_t));
     if (data) {
       Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
       release(data);
