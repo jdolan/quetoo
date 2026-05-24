@@ -592,8 +592,8 @@
 		CEAC32BD24212553007E1253 /* r_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32BB24212553007E1253 /* r_sprite.h */; };
 		CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32C0242125ED007E1253 /* sprite_fs.glsl */; };
 		CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
-		CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
-		CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */; };
+		CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */; };
+		CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */; };
 		CEAD8F912F8D765F0087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -1730,7 +1730,7 @@
 		CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
 		CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionView.c; sourceTree = "<group>"; };
 		CE5870B11F5CE99C004CAAB2 /* MapListCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionView.h; sourceTree = "<group>"; };
-		CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.2.26/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
+		CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.4.8/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
 		CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.2.4.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.2.4/lib/libSDL3_image.0.2.4.dylib; sourceTree = "<group>"; };
 		CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_fs.glsl; sourceTree = "<group>"; };
 		CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = decal_vs.glsl; sourceTree = "<group>"; };
@@ -1804,7 +1804,7 @@
 		CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.1.tbd"; path = "usr/lib/libc++.1.tbd"; sourceTree = SDKROOT; };
 		CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.2.6.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.2.6/lib/libSDL3_image.0.2.6.dylib; sourceTree = "<group>"; };
 		CE85F47B2F12C3C6005D2F9C /* libSDL3_ttf.0.2.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_ttf.0.2.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_ttf/3.2.2/lib/libSDL3_ttf.0.2.2.dylib; sourceTree = "<group>"; };
-		CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.4.0/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
+		CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3.0.dylib; path = ../../../../opt/homebrew/Cellar/sdl3/3.4.8/lib/libSDL3.0.dylib; sourceTree = "<group>"; };
 		CE8819581F882D9F000D5AB7 /* DialogViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DialogViewController.c; sourceTree = "<group>"; };
 		CE8819591F882D9F000D5AB7 /* DialogViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DialogViewController.h; sourceTree = "<group>"; };
 		CE89268723EE0F7300CF3D33 /* color.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = color.h; sourceTree = "<group>"; };
@@ -1883,7 +1883,7 @@
 		CEAC32BB24212553007E1253 /* r_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = r_sprite.h; sourceTree = "<group>"; };
 		CEAC32BF242125ED007E1253 /* sprite_vs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_vs.glsl; sourceTree = "<group>"; };
 		CEAC32C0242125ED007E1253 /* sprite_fs.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = sprite_fs.glsl; sourceTree = "<group>"; };
-		CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.2.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.2/lib/libSDL3_image.0.4.2.dylib; sourceTree = "<group>"; };
+		CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSDL3_image.0.4.4.dylib; path = ../../../../opt/homebrew/Cellar/sdl3_image/3.4.4/lib/libSDL3_image.0.4.4.dylib; sourceTree = "<group>"; };
 		CEAD8F8C2F8D76260087A850 /* check_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_http.c; sourceTree = "<group>"; };
 		CEAD8F9D2F8D765F0087A850 /* check_http */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_http; sourceTree = BUILT_PRODUCTS_DIR; };
 		CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_manifest.c; sourceTree = "<group>"; };
@@ -2051,7 +2051,7 @@
 				CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */,
-				CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */,
+				CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */,
 				CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2235,7 +2235,7 @@
 				CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */,
 				CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */,
-				CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.2.dylib in Frameworks */,
+				CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */,
 				CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */,
 				CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */,
 			);
@@ -3212,7 +3212,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.2.dylib */,
+				CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */,
 				CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */,
 				CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */,
 				CE85F47A2F12C3C6005D2F9C /* libSDL3_image.0.2.6.dylib */,
@@ -5602,7 +5602,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5613,7 +5613,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5858,7 +5858,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5869,7 +5869,7 @@
 			buildSettings = {
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					/opt/homebrew/Cellar/sdl3_image/3.4.2/lib,
+					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
