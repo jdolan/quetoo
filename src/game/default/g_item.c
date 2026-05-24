@@ -192,8 +192,6 @@ static bool G_PickupQuadDamage(g_client_t *cl, g_entity_t *ent) {
   uint32_t delta = 3000;
 
   if (ent->spawn_flags & SF_ITEM_DROPPED) { // receive only the time left
-    delta = Maxf(0, (ent->next_think - g_level.time) - 3000.f);
-
     cl->quad_damage_time = ent->next_think;
     cl->quad_countdown_time = ent->next_think - delta;
   } else {
@@ -293,8 +291,6 @@ static bool G_PickupInvulnerability(g_client_t *cl, g_entity_t *ent) {
   uint32_t delta = 3000;
 
   if (ent->spawn_flags & SF_ITEM_DROPPED) {
-    delta = Maxf(0, (ent->next_think - g_level.time) - 3000.f);
-
     cl->invulnerability_time = ent->next_think;
     cl->invulnerability_countdown_time = ent->next_think - delta;
   } else {
