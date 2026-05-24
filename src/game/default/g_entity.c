@@ -890,6 +890,12 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.techs_map = -1;
   }
 
+  if (map && map->min_clients > -1) {
+    g_level.min_clients_map = map->min_clients;
+  } else {
+    g_level.min_clients_map = -1;
+  }
+
   if (g_level.teams && g_level.ctf) { // ctf overrides teams
     g_level.teams = 0;
   }

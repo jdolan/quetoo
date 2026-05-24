@@ -65,6 +65,7 @@ static GList *G_MapList_Parse(const char *filename) {
       map->frag_limit = -1;
       map->capture_limit = -1;
       map->time_limit = -1;
+      map->min_clients = -1;
       map->hook = -1;
     }
 
@@ -164,6 +165,13 @@ static GList *G_MapList_Parse(const char *filename) {
 
     if (!g_strcmp0(token, "time_limit")) {
       if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_FLOAT, &map->time_limit, 1)) {
+        gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
+      }
+      continue;
+    }
+
+    if (!g_strcmp0(token, "min_clients")) {
+      if (!Parse_Primitive(&parser, PARSE_DEFAULT, PARSE_INT32, &map->min_clients, 1)) {
         gi.Error("Malformed maps.lst at %s: %u,%u\n", token, parser.position.row, parser.position.col);
       }
       continue;

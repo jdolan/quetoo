@@ -124,6 +124,11 @@ typedef struct {
   float time_limit;
 
   /**
+   * @brief Override minimum clients, or -1 for default.
+   */
+  int32_t min_clients;
+
+  /**
    * @brief Items to give to all players on spawn.
    */
   char give[MAX_STRING_CHARS];
@@ -874,6 +879,11 @@ typedef struct {
    * @brief Map-specified techs allowance.
    */
   int32_t techs_map;
+
+  /**
+   * @brief Map-specified minimum clients override.
+   */
+  int32_t min_clients_map;
 
   /**
    * @brief Frag limit; game ends when a player reaches this.
