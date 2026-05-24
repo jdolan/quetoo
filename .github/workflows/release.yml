@@ -157,7 +157,7 @@ jobs:
         unzip quetoo-arm64-apple-darwin.zip -d arm64
         unzip quetoo-x86_64-apple-darwin.zip -d x86_64
 
-        find arm64/Quetoo.app -type f | while read f; do
+        find arm64/Quetoo.app -type f | while read -r f; do
           if ! file "$f" | grep -q "Mach-O"; then
             continue
           fi
