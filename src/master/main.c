@@ -142,7 +142,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   char val[256];
 
   if (Ms_InfoValue(status, "hostname", val, sizeof(val))) {
-    g_strlcpy(server->hostname, val, sizeof(server->hostname));
+    StrStrip(val, server->hostname);
   }
 
   server->max_clients = 0;
@@ -164,7 +164,9 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     int32_t score, ping;
     char name[64] = { 0 };
     if (sscanf(line, "%d %d \"%63[^\"]\"", &score, &ping, name) >= 2 && name[0]) {
-      g_strlcpy(new_players[new_count], name, sizeof(new_players[new_count]));
+      char stripped[64];
+      StrStrip(name, stripped);
+      g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
       new_count++;
     }
 
