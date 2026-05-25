@@ -950,8 +950,8 @@ static void G_LightningProjectile_Discharge(g_entity_t *ent) {
     const float dist = Vec3_Distance(ent->s.origin, other->s.origin);
     const float atten = Clampf01(1.f - (dist / 1024.f));
 
-    if (ent->water_level > WATER_NONE) {
-      const int32_t dmg = 50 * ent->water_level * atten;
+    if (other->water_level > WATER_NONE) {
+      const int32_t dmg = 50 * other->water_level * atten;
 
       G_Damage(&(g_damage_t) {
         .target = other,
