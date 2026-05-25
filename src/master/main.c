@@ -59,6 +59,7 @@ typedef struct ms_server_s {
   time_t last_ping;
   bool validated;
   char hostname[256];
+  char mapname[64];
   int32_t num_clients;
   int32_t max_clients;
   char players[MAX_CLIENTS][64];
@@ -127,13 +128,20 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
 
   char escaped_player[128];
   char escaped_host[256];
+  char escaped_map[128];
   Ms_JsonEscape(player_name, escaped_player, sizeof(escaped_player));
   Ms_JsonEscape(server->hostname, escaped_host, sizeof(escaped_host));
+  Ms_JsonEscape(server->mapname, escaped_map, sizeof(escaped_map));
+
+  const char *ip = inet_ntoa(server->addr.sin_addr);
+  const int32_t port = ntohs(server->addr.sin_port);
 
   char json[1024];
   g_snprintf(json, sizeof(json),
-    "{\"content\": \"\xF0\x9F\x8E\xAE **%s** joined **%s** (%d/%d players)\"}",
-    escaped_player, escaped_host, server->num_clients, server->max_clients);
+    "{\"content\": \"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 `connect %s:%d`\"}",
+    escaped_player, escaped_host, escaped_map,
+    server->num_clients, server->max_clients,
+    ip, port);
 
   Net_HttpPostAsync(ms_discord_webhook, json, strlen(json), "application/json", NULL, NULL);
 }
@@ -147,13 +155,17 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
 
   char val[256];
 
-  if (Ms_InfoValue(status, "hostname", val, sizeof(val))) {
+  if (Ms_InfoValue(status, "sv_hostname", val, sizeof(val))) {
     StrStrip(val, server->hostname);
   }
 
   server->max_clients = 0;
-  if (Ms_InfoValue(status, "maxclients", val, sizeof(val))) {
+  if (Ms_InfoValue(status, "sv_max_clients", val, sizeof(val))) {
     server->max_clients = atoi(val);
+  }
+
+  if (Ms_InfoValue(status, "map_name", val, sizeof(val))) {
+    g_strlcpy(server->mapname, val, sizeof(server->mapname));
   }
 
   char new_players[MAX_CLIENTS][64];
