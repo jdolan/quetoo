@@ -949,6 +949,11 @@ typedef struct {
    * @brief Accumulated frag events for this map, POSTed at intermission.
    */
   GArray *frags;
+
+  /**
+   * @brief Accumulated capture events for this CTF map, POSTed at intermission.
+   */
+  GArray *captures;
 } g_level_t;
 
 /**

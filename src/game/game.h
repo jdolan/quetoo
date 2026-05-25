@@ -171,6 +171,18 @@ typedef struct {
 } g_frag_t;
 
 /**
+ * @brief A capture event accumulated during a CTF match, submitted to the stats service at intermission.
+ */
+typedef struct {
+  char     level[MAX_QPATH];
+  char     player[MAX_QPATH];
+  char     player_guid[MAX_QPATH];
+  bool     player_ai;
+  char     team[MAX_QPATH];
+  uint32_t time;
+} g_capture_t;
+
+/**
  * @brief The game import provides engine functionality and core configuration
  * such as frame intervals to the game module.
  */
@@ -629,11 +641,11 @@ typedef struct g_import_s {
   void (*ClientPrint)(const g_client_t *cl, const int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 
   /**
-   * @brief Submit frag events accumulated during a match to the stats service.
+   * @brief Submit frag and capture events accumulated during a match to the stats service.
    * @details The server handles URL, gating, JSON serialization, and HTTP POST.
-   * Best-effort; failures are silently discarded.
+   * @details This is best-effort delivery only; failures are silently discarded.
    */
-  void (*FragLog)(const g_frag_t *frags, size_t len);
+  void (*PostStats)(const g_frag_t *frags, size_t frags_len, const g_capture_t *captures, size_t captures_len);
 
   /**
    * @}

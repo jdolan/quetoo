@@ -204,12 +204,15 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
- * @brief `Net_HttpCallback` for `Sv_FragLog`.
+ * @brief `Net_HttpCallback` for `Sv_FragLog` and `Sv_CaptureLog`.
  */
-static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *user_data) {
+static void Sv_PostStatsCallback(int32_t status, void *body, size_t length, void *user_data) {
+  const char *url = user_data;
+
   if (status < 200 || status >= 300) {
-    Com_Warn("Sv_FragLog: POST to %s failed (HTTP %d): %.*s\n",
-             sv_stats_url->string, status, (int) length, (const char *) body);
+    Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status, (int) length, (const char *) body);
+  } else {
+    Com_Print("POST to %s: HTTP %d\n", url, status);
   }
 }
 
@@ -217,33 +220,61 @@ static void Sv_FragLogCallback(int32_t status, void *body, size_t length, void *
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
  */
-static void Sv_FragLog(const g_frag_t *frags, size_t len) {
-
-  static const JsonProperty props[] = MakeJsonProperties(
-    MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
-    MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
-    MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
-    MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
-    MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
-    MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
-    MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
-    MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
-    MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
-    MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
-    MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
-  );
+static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_capture_t *captures, size_t captures_len) {
 
   if (!sv_stats_url->string[0] || sv_public->integer <= 0) {
     return;
   }
 
-  if (len) {
-    Data *data = $$(JSONSerialization, dataFromInstances, props, frags, len, sizeof(g_frag_t));
-    if (data) {
-      Com_Print("POSTing %zd frags to %s\n", len, sv_stats_url->string);
-      Net_HttpPostAsync(sv_stats_url->string, data->bytes, data->length, "application/json", Sv_FragLogCallback, NULL);
-      release(data);
-    }
+  if (frags_len) {
+
+    static char frags_url[MAX_STRING_CHARS];
+    g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
+
+    static const JsonProperty props[] = MakeJsonProperties(
+      MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
+      MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
+      MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
+      MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
+      MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
+      MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
+      MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
+      MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
+      MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
+      MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
+      MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
+    );
+
+    Data *data = $$(JSONSerialization, dataFromInstances, props, frags, frags_len, sizeof(g_frag_t));
+    assert(data);
+
+    Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
+    Net_HttpPostAsync(frags_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, frags_url);
+
+    release(data);
+  }
+
+  if (captures_len) {
+
+    static char captures_url[MAX_STRING_CHARS];
+    g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
+
+    static const JsonProperty props[] = MakeJsonProperties(
+      MakeJsonProperty(g_capture_t, level,       JsonPropertyString),
+      MakeJsonProperty(g_capture_t, player,      JsonPropertyString),
+      MakeJsonProperty(g_capture_t, player_guid, JsonPropertyString),
+      MakeJsonProperty(g_capture_t, player_ai,   JsonPropertyBool),
+      MakeJsonProperty(g_capture_t, team,        JsonPropertyString),
+      MakeJsonProperty(g_capture_t, time,        JsonPropertyInteger)
+    );
+
+    Data *data = $$(JSONSerialization, dataFromInstances, props, captures, captures_len, sizeof(g_capture_t));
+    assert(data);
+
+    Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);
+    Net_HttpPostAsync(captures_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, captures_url);
+
+    release(data);
   }
 }
 
@@ -344,7 +375,7 @@ void Sv_InitGame(void) {
   import.BroadcastPrint = Sv_BroadcastPrint;
   import.ClientPrint = Sv_ClientPrint;
 
-  import.FragLog = Sv_FragLog;
+  import.PostStats = Sv_PostStats;
 
   game_handle = Sys_OpenLibrary("game", false);
   assert(game_handle);

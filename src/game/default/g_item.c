@@ -738,6 +738,22 @@ static bool G_PickupFlag(g_client_t *cl, g_entity_t *ent) {
         team->captures++;
         cl->persistent.captures++;
 
+        {
+          const bool player_ai = cl->ai != NULL;
+          g_capture_t capture = {
+            .player_ai = player_ai,
+            .time = (uint32_t) time(NULL),
+          };
+          g_strlcpy(capture.level,       g_level.name,              sizeof(capture.level));
+          g_strlcpy(capture.player,      cl->persistent.net_name,   sizeof(capture.player));
+          g_strlcpy(capture.player_guid, cl->persistent.guid,       sizeof(capture.player_guid));
+          g_strlcpy(capture.team,        other_team->name,          sizeof(capture.team));
+
+          if (capture.player_guid[0]) {
+            g_array_append_val(g_level.captures, capture);
+          }
+        }
+
         return false;
       }
     }

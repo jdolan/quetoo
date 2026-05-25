@@ -446,18 +446,18 @@ void G_MuteClient(char *name, bool mute) {
 }
 
 /**
- * @brief Submits accumulated frags to the server for stats processing.
+ * @brief Submits accumulated frags and captures to the server for stats processing.
  */
-static void G_FragLog(void) {
+static void G_PostStats(void) {
 
-  if (!g_level.frags || !g_level.frags->len) {
-    return;
-  }
-
-  gi.FragLog((g_frag_t *) g_level.frags->data, g_level.frags->len);
+  gi.PostStats((g_frag_t *) g_level.frags->data, g_level.frags->len,
+               (g_capture_t *) g_level.captures->data, g_level.captures->len);
 
   g_array_free(g_level.frags, true);
   g_level.frags = NULL;
+
+  g_array_free(g_level.captures, true);
+  g_level.captures = NULL;
 }
 
 /**
@@ -472,7 +472,7 @@ static void G_BeginIntermission(const char *map) {
 
   g_level.intermission_time = g_level.time;
 
-  G_FragLog();
+  G_PostStats();
 
   // respawn any dead clients
   G_ForEachClient(cl, {

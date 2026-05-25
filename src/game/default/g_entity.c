@@ -652,6 +652,9 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
 
   memset(&g_level, 0, sizeof(g_level));
 
+  g_level.frags    = g_array_new(false, false, sizeof(g_frag_t));
+  g_level.captures = g_array_new(false, false, sizeof(g_capture_t));
+
   // Clear real client entity pointers before freeing entities to prevent dangling references
   G_ForEachClient(cl, {
     cl->entity = NULL;

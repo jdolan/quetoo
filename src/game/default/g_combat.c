@@ -456,9 +456,6 @@ void G_Damage(const g_damage_t *dmg) {
           g_strlcpy(frag.weapon, G_WeaponNameForMod(mod), sizeof(frag.weapon));
 
           if (frag.attacker_guid[0] && frag.target_guid[0]) {
-            if (!g_level.frags) {
-              g_level.frags = g_array_new(false, false, sizeof(g_frag_t));
-            }
             g_array_append_val(g_level.frags, frag);
           }
         }
