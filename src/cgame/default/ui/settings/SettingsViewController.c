@@ -63,7 +63,7 @@ typedef struct {
 static const QualityPreset qualityPresets[] = {
   [0] = { // Low
     .shadows                = 0,
-    .shadowTileSize         = 0,
+    .shadowTileSize         = 128,
     .shadowDistance         = 0,
     .lightingDistance       = 1024,
     .parallax               = 0,

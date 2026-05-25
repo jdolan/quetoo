@@ -477,7 +477,7 @@ static void R_InitShadowTextures(void) {
   GLint max_array_layers;
   glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &max_array_layers);
 
-  r_shadow_atlas.tile_size = r_shadow_tile_size->integer;
+  r_shadow_atlas.tile_size = MAX(r_shadow_tile_size->integer, 128);
 
   // Use a fixed 8192x8192 layer dimension. GL 4.1 guarantees at least
   // 16384 for GL_MAX_TEXTURE_SIZE so this fits universally, and 8192
