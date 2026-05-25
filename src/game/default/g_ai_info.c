@@ -49,14 +49,35 @@ static const uint32_t g_ai_roster_count = lengthof(g_ai_roster);
  * @brief Round-robin index for assigning bots from the roster.
  */
 static uint32_t g_ai_roster_index;
-static uint32_t g_ai_roster_suffix;
+
+/**
+ * @brief Returns true if the given name is already in use by a connected client other than @p cl.
+ */
+static _Bool G_Ai_NameInUse(const g_client_t *cl, const char *name) {
+  G_ForEachClient(other, {
+    if (other == cl) {
+      continue;
+    }
+    const char *other_name = InfoString_Get(other->user_info, "name");
+    if (other_name && strcmp(other_name, name) == 0) {
+      return true;
+    }
+  });
+  return false;
+}
 
 /**
  * @brief Create the user info for the specified bot and return its roster entry.
+ *
+ * @details Assigns the next roster entry in round-robin order. If the base name is
+ * already taken by another connected client, appends " 1", " 2", etc. until a
+ * unique name is found.
  */
 const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
 
   const g_ai_roster_t *entry = &g_ai_roster[g_ai_roster_index];
+
+  g_ai_roster_index = (g_ai_roster_index + 1) % g_ai_roster_count;
 
   g_strlcpy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
 
@@ -68,18 +89,13 @@ const g_ai_roster_t *G_Ai_GetUserInfo(const g_client_t *cl, char *info) {
   InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
   InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
 
-  if (g_ai_roster_suffix == 0) {
-    InfoString_Set(info, "name", va("%s%s", g_ai_name_prefix->string, entry->name));
-  } else {
-    InfoString_Set(info, "name", va("%s%s %i", g_ai_name_prefix->string, entry->name, g_ai_roster_suffix + 1));
+  char name[MAX_INFO_STRING_VALUE];
+  g_snprintf(name, sizeof(name), "%s%s", g_ai_name_prefix->string, entry->name);
+  for (uint32_t suffix = 1; G_Ai_NameInUse(cl, name); suffix++) {
+    g_snprintf(name, sizeof(name), "%s%s %u", g_ai_name_prefix->string, entry->name, suffix);
   }
 
-  g_ai_roster_index++;
-
-  if (g_ai_roster_index == g_ai_roster_count) {
-    g_ai_roster_index = 0;
-    g_ai_roster_suffix++;
-  }
+  InfoString_Set(info, "name", name);
 
   return entry;
 }
