@@ -24,6 +24,10 @@
 
 #include <SDL3/SDL_assert.h>
 
+#if defined(_WIN32)
+#include <windows.h>
+#endif
+
 #include "config.h"
 #include "client/client.h"
 #include "server/server.h"
@@ -451,6 +455,40 @@ int32_t main(int32_t argc, char *argv[]) {
 #endif
 
   Com_Init(argc, argv); // let's get it started in here
+
+#if defined(_WIN32)
+  {
+    // Register quetoo:// URI scheme in HKCU so no elevation is needed.
+    char exe_path[MAX_PATH];
+    GetModuleFileName(NULL, exe_path, sizeof(exe_path));
+
+    HKEY key;
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo", 0, NULL,
+                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &key, NULL) == ERROR_SUCCESS) {
+      const char *url_proto = "URL:Quetoo Protocol";
+      RegSetValueEx(key, NULL, 0, REG_SZ, (const BYTE *) url_proto, (DWORD) strlen(url_proto) + 1);
+      RegSetValueEx(key, "URL Protocol", 0, REG_SZ, (const BYTE *) "", 1);
+      RegCloseKey(key);
+    }
+
+    HKEY cmd_key;
+    if (RegCreateKeyEx(HKEY_CURRENT_USER, "Software\\Classes\\quetoo\\shell\\open\\command", 0, NULL,
+                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL, &cmd_key, NULL) == ERROR_SUCCESS) {
+      char cmd[MAX_PATH + 8];
+      g_snprintf(cmd, sizeof(cmd), "\"%s\" \"%%1\"", exe_path);
+      RegSetValueEx(cmd_key, NULL, 0, REG_SZ, (const BYTE *) cmd, (DWORD) strlen(cmd) + 1);
+      RegCloseKey(cmd_key);
+    }
+  }
+#endif
+
+  // Handle quetoo:// URI scheme launch (Linux / Windows pass the URL as argv).
+  for (int32_t i = 1; i < argc; i++) {
+    if (g_str_has_prefix(argv[i], "quetoo://")) {
+      Cbuf_AddText(va("connect %s\n", argv[i] + strlen("quetoo://")));
+      break;
+    }
+  }
 
 #if defined(__linux__)
   Sys_InstallDesktopEntry();

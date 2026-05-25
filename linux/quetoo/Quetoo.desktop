@@ -1,9 +1,10 @@
 [Desktop Entry]
 Name=Quetoo
 Comment=Free, open-source arena first-person shooter
-Exec=quetoo
+Exec=quetoo %U
 Icon=quetoo
 Terminal=false
 Type=Application
 Categories=Game;ActionGame;
+MimeType=x-scheme-handler/quetoo;
 StartupNotify=true

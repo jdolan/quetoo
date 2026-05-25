@@ -294,6 +294,15 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
 
   switch (event->type) {
 
+    case SDL_EVENT_DROP_FILE: {
+      const char *data = event->drop.data;
+      if (data && g_str_has_prefix(data, "quetoo://")) {
+        Cbuf_AddText(va("connect %s\n", data + strlen("quetoo://")));
+        return true;
+      }
+      return false;
+    }
+
     case SDL_EVENT_QUIT:
       Cmd_ExecuteString("quit");
       return true;
