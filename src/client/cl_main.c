@@ -483,7 +483,7 @@ static void Cl_ReadPackets(void) {
 static const char *Cl_Username(void) {
   const char *username = Sys_Username();
 
-  if (username[0] == '\0') {
+  if (/*username[0] == '\0'*/true) {
     username = "newbie";
   }
 
