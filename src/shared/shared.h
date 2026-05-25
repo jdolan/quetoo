@@ -511,8 +511,10 @@ void StripExtension(const char *in, char *out);
 #define ESC_COLOR_MAGENTA   5
 #define ESC_COLOR_CYAN      6
 #define ESC_COLOR_WHITE     7
+#define ESC_COLOR_ORANGE    8
+#define ESC_COLOR_GREY      9
 
-#define MAX_ESC_COLORS      8
+#define MAX_ESC_COLORS      10
 
 #define ESC_COLOR_DEFAULT   ESC_COLOR_WHITE
 #define ESC_COLOR_ALT       ESC_COLOR_GREEN

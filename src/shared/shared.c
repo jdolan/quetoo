@@ -261,7 +261,7 @@ bool StrIsColor(const char *c) {
   if (c) {
     if (*c == ESC_COLOR) {
       const char num = *(c + 1);
-      if (num >= '0' && num <= '7') {
+      if (num >= '0' && num <= '9') {
         return true;
       }
     }
@@ -310,6 +310,10 @@ color_t ColorEsc(int32_t esc) {
       return color_cyan;
     case ESC_COLOR_WHITE:
       return color_white;
+    case ESC_COLOR_ORANGE:
+      return color_orange;
+    case ESC_COLOR_GREY:
+      return color_grey;
   }
 
   return color_white;
