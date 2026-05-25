@@ -138,7 +138,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
 
   char json[1024];
   g_snprintf(json, sizeof(json),
-    "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](quetoo://%s:%d)\",\"color\":3066993}]}",
+    "{\"embeds\":[{\"description\":\"\xF0\x9F\x8E\xAE **%s** joined **%s** on **%s** \xC2\xB7 %d/%d players \xC2\xB7 [Join](https://quetoo.org/join/?%s:%d)\",\"color\":3066993}]}",
     escaped_player, escaped_host, escaped_map,
     server->num_clients, server->max_clients,
     ip, port);
