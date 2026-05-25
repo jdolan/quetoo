@@ -332,7 +332,7 @@ static inline int32_t __attribute__ ((warn_unused_result)) Mini(int32_t a, int32
 /**
  * @return The minimum of `a` and `b`.
  */
-static inline int64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, uint64_t b) {
+static inline uint64_t __attribute__ ((warn_unused_result)) Minui64(uint64_t a, uint64_t b) {
   return a < b ? a : b;
 }
 

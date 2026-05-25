@@ -87,8 +87,14 @@ static bool Ms_InfoValue(const char *info, const char *key, char *buf, size_t bu
 
   p += strlen(search);
 
+  size_t len;
   const char *end = strpbrk(p, "\\\n");
-  const size_t len = end ? Mini((size_t) (end - p), buf_size - 1) : Mini(strlen(p), buf_size - 1);
+  if (end) {
+    len = end - p;
+  } else {
+    len = strlen(p);
+  }
+  len = Minui64(len, buf_size - 1);
 
   memcpy(buf, p, len);
   buf[len] = '\0';
