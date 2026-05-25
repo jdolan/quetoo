@@ -26,6 +26,9 @@
     <ProjectReference Include="..\..\Objectively\Objectively.vs15\Objectively.vcxproj">
       <Project>{3e6b97c6-1f51-4d72-bdfe-1d492f5eda6c}</Project>
     </ProjectReference>
+    <ProjectReference Include="libs\libnet.vcxproj">
+      <Project>{07DA2CEA-0340-40C6-B389-357B69130815}</Project>
+    </ProjectReference>
     <ProjectReference Include="libs\libcommon.vcxproj">
       <Project>{99c2a2a7-35f3-4a06-ae2f-8b98db2e4bfd}</Project>
     </ProjectReference>
