@@ -137,6 +137,7 @@ typedef enum {
 
 typedef struct {
   bool initialized;
+  bool failed;
   cg_discord_status_t status;
 } cg_discord_state_t;
 
@@ -167,6 +168,10 @@ static const char *Cg_GetGameMode(void) {
 }
 
 void Cg_UpdateDiscord(void) {
+
+  if (cg_discord_state.failed) {
+    return;
+  }
 
   if (cg_discord_state.initialized) {
     DiscordRichPresence presence = { 0 };
@@ -247,12 +252,23 @@ void Cg_InitDiscord(void) {
     .spectateGame = Cg_DiscordJoinGame
   };
 
+#if defined(_WIN32)
+  __try {
+    Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+  } __except(EXCEPTION_EXECUTE_HANDLER) {
+    cgi.Warn("Discord RPC initialization crashed, Rich Presence disabled\n");
+    cg_discord_state.failed = true;
+  }
+#else
   Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
+#endif
 }
 
 void Cg_ShutdownDiscord(void) {
 
-  Discord_Shutdown();
+  if (!cg_discord_state.failed) {
+    Discord_Shutdown();
+  }
 
   memset(&cg_discord_state, 0, sizeof(cg_discord_state));
 }
