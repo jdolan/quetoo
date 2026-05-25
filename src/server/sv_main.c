@@ -890,13 +890,13 @@ void Sv_Frame(const uint32_t msec) {
     ticks_run++;
 
     const uint32_t tick_ms = (uint32_t) (SDL_GetTicks() - tick_start);
-    if (tick_ms > 50) {
+    if (tick_ms > 50 && sv.frame_num > QUETOO_TICK_RATE) {
       Com_Warn("Slow game tick: %ums (frame %u)\n", tick_ms, sv.frame_num);
     }
   }
 
   const uint32_t sim_ms = (uint32_t) (SDL_GetTicks() - sim_start);
-  if (sim_ms > 100 || ticks_run > 2) {
+  if ((sim_ms > 100 || ticks_run > 2) && sv.frame_num > QUETOO_TICK_RATE) {
     Com_Warn("Server frame overrun: %ums wall time, %d ticks\n", sim_ms, ticks_run);
   }
 
