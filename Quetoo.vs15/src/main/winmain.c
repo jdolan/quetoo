@@ -89,7 +89,7 @@ static HRESULT GenerateCrashDump(MINIDUMP_TYPE flags, EXCEPTION_POINTERS *seh) {
   // close the file
   CloseHandle(hFile);
 
-  MessageBox(NULL, "Quetoo has encountered an unrecoverable error. Please go to http://quetoo.org and file an issue report. Check the bin folder for a .dmp file, this will be instrumental to figuring out the problem. Thank you!", "Crash!", MB_OK | MB_ICONERROR);
+  MessageBox(NULL, "Quetoo has encountered an unrecoverable error. Please go to https://github.com/jdolan/quetoo/issues and file a bug report. Attach the .dmp file from the bin folder AND the quetoo.log file from %APPDATA%\\WickedOldGames\\Quetoo\\default\\ — both are essential for debugging. Thank you!", "Crash!", MB_OK | MB_ICONERROR);
   exit(error);
 }
 #endif
