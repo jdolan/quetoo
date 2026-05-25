@@ -166,8 +166,10 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     if (sscanf(line, "%d %d \"%63[^\"]\"", &score, &ping, name) >= 2 && name[0]) {
       char stripped[64];
       StrStrip(name, stripped);
-      g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
-      new_count++;
+      if (!g_str_has_prefix(stripped, "[BOT]")) {
+        g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
+        new_count++;
+      }
     }
 
     line = strchr(line, '\n');
