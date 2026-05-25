@@ -529,7 +529,9 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
   cg_client_info_t *ci = &cg_state.clients[s->client];
   if (!ci->head || !ci->torso || !ci->legs) {
-    Cg_Warn("Invalid client info: %d\n", s->client);
+    if (*cgi.ConfigString(CS_CLIENTS + s->client)) {
+      Cg_Warn("Invalid client info: %d\n", s->client);
+    }
     return;
   }
 
