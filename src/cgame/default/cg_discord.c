@@ -256,7 +256,7 @@ void Cg_InitDiscord(void) {
   __try {
     Discord_Initialize(G_STRINGIFY(DISCORD_APP_ID), &handlers, 1, NULL);
   } __except(EXCEPTION_EXECUTE_HANDLER) {
-    cgi.Warn("Discord RPC initialization crashed, Rich Presence disabled\n");
+    cgi.Warn(__func__, "Discord RPC initialization crashed, Rich Presence disabled\n");
     cg_discord_state.failed = true;
   }
 #else
