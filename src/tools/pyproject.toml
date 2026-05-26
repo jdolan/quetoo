@@ -16,6 +16,7 @@ md22obj = "md22obj:main"
 md32obj = "md32obj:main"
 objfu = "objfu:main"
 skyfu = "skyfu:main"
+symbolicate-dmp = "symbolicate_dmp:main"
 
 [tool.setuptools]
-py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "objfu", "skyfu"]
+py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "objfu", "skyfu", "symbolicate_dmp"]
