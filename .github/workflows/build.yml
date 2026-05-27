@@ -106,7 +106,7 @@ jobs:
       working-directory: quetoo
       run: |
         autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) CFLAGS='-g -O2' --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
+        ./configure --with-version=$(git rev-list --count HEAD) --enable-optimizations --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
         make -j$(sysctl -n hw.logicalcpu)
 
     - name: Install Quetoo
@@ -314,7 +314,7 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) CFLAGS='-g -O2' LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
+        ./configure --with-version=$(git rev-list --count HEAD) --enable-optimizations LDFLAGS='-Wl,-rpath=XORIGIN/../lib' --prefix=/
         make -j$(nproc)
 
     - name: Package Quetoo
@@ -322,6 +322,14 @@ jobs:
       run: |
         export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH}"
         make archive deb rpm
+
+    - name: Upload symbols artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: quetoo-x86_64-pc-linux-symbols
+        path: |
+          quetoo/linux/target/staging/bin/quetoo
+          quetoo/linux/target/staging/bin/quetoo-dedicated
 
     - name: Upload archive artifact
       uses: actions/upload-artifact@v7

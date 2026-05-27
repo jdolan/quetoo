@@ -39,8 +39,6 @@ HOST_NAME=""
 HOST_CFLAGS=""
 HOST_LDFLAGS=""
 HOST_LIBS=""
-HOST_DEBUG_CFLAGS=""
-HOST_DEBUG_LIBS=""
 HOST_PROFILE_CFLAGS=""
 HOST_PROFILE_LIBS=""
 HOST_SO_CFLAGS=""
@@ -71,8 +69,7 @@ case "$host" in
 
 		HOST_CFLAGS="-I${HOMEBREW_PREFIX}/include"
 		HOST_LDFLAGS="-L${HOMEBREW_PREFIX}/lib -headerpad_max_install_names"
-		HOST_LIBS="-ldl"
-		HOST_DEBUG_LIBS="-rdynamic"
+		HOST_LIBS="-ldl -rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		;;
 	*bsd*)
@@ -83,8 +80,7 @@ case "$host" in
 	*)
 		AC_MSG_RESULT(linux)
 		HOST_NAME="LINUX"
-		HOST_LIBS="-ldl -lm"
-		HOST_DEBUG_LIBS="-rdynamic"
+		HOST_LIBS="-ldl -lm -rdynamic"
 		HOST_SO_CFLAGS="-fPIC -DPIC"
 		;;
 esac
@@ -103,8 +99,6 @@ AC_SUBST(HOST)
 AC_SUBST(HOST_NAME)
 AC_SUBST(HOST_CFLAGS)
 AC_SUBST(HOST_LIBS)
-AC_SUBST(HOST_DEBUG_CFLAGS)
-AC_SUBST(HOST_DEBUG_LIBS)
 AC_SUBST(HOST_PROFILE_CFLAGS)
 AC_SUBST(HOST_PROFILE_LIBS)
 
@@ -297,8 +291,10 @@ AC_ARG_ENABLE(optimizations,
 		OPT_CFLAGS="-O0 $OPT_CFLAGS"
 	elif test "x${enable_optimizations}" = xexpensive; then
 		OPT_CFLAGS="-O3 $OPT_CFLAGS"
+	else
+		OPT_CFLAGS="-O2 $OPT_CFLAGS"
 	fi,
-	AC_MSG_RESULT(default)
+	AC_MSG_RESULT(no)
 )
 AC_SUBST(OPT_CFLAGS)
 
@@ -308,20 +304,17 @@ dnl ---------------------
 
 AC_MSG_CHECKING(whether to include debugging information)
 
-DEBUG_CFLAGS=""
-DEBUG_LIBS=""
+DEBUG_CFLAGS="-g"
 
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING(
-		[--enable-debug], [include debugging information]
+		[--disable-debug], [omit debugging information]
 	),
-	AC_MSG_RESULT(yes)
-	DEBUG_CFLAGS="-g $DEBUG_CFLAGS $HOST_DEBUG_CFLAGS"
-	DEBUG_LIBS="$DEBUG_LIBS $HOST_DEBUG_LIBS",
 	AC_MSG_RESULT(no)
+	DEBUG_CFLAGS="",
+	AC_MSG_RESULT(yes)
 )
 AC_SUBST(DEBUG_CFLAGS)
-AC_SUBST(DEBUG_LIBS)
 
 dnl ---------------------
 dnl Profiling information
@@ -349,7 +342,7 @@ dnl Consolidate our core flags and libraries
 dnl ----------------------------------------
 
 BASE_CFLAGS=$(echo $CFLAGS $OPT_CFLAGS $DEBUG_CFLAGS $PROFILE_CFLAGS $WARN_CFLAGS)
-BASE_LIBS=$(echo $HOST_LIBS $DEBUG_LIBS $PROFILE_LIBS $WARN_LIBS)
+BASE_LIBS=$(echo $HOST_LIBS $PROFILE_LIBS $WARN_LIBS)
 BASE_LDFLAGS=$(echo $LDFLAGS)
 
 AC_SUBST(BASE_CFLAGS)
