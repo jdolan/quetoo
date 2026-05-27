@@ -529,6 +529,18 @@ static void R_InitShadowTextures(void) {
                r_shadow_atlas.num_layers, 0,
                GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
+  if (glGetError() == GL_OUT_OF_MEMORY) {
+    const size_t mb = (size_t) r_shadow_atlas.layer_size * r_shadow_atlas.layer_size *
+                      r_shadow_atlas.num_layers * 2 / (1024 * 1024);
+    Com_Error(ERROR_DROP,
+              "Shadow atlas allocation failed: not enough GPU memory.\n"
+              "Requested %dx%d x %d layers (~%zu MB).\n"
+              "Try lowering r_shadow_tile_size (currently %d) or using a lower quality preset.\n",
+              r_shadow_atlas.layer_size, r_shadow_atlas.layer_size,
+              r_shadow_atlas.num_layers, mb,
+              r_shadow_atlas.tile_size);
+  }
+
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
   R_GetError(NULL);
@@ -550,7 +562,8 @@ static void R_InitShadowFramebuffer(void) {
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
-    Com_Error(ERROR_FATAL, "Shadow atlas framebuffer incomplete: %d\n", status);
+    Com_Error(ERROR_DROP, "Shadow atlas framebuffer incomplete (status 0x%x). "
+              "Try lowering r_shadow_tile_size or using a lower quality preset.\n", status);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
