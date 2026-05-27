@@ -943,7 +943,7 @@ static void Cg_ValidateSelectedWeapon(const player_state_t *ps) {
 static void Cg_SelectWeapon(const int8_t dir) {
   const player_state_t *ps = &cgi.client->frame.ps;
 
-  if (ps->stats[STAT_SPECTATOR]) {
+  if (ps->stats[STAT_SPECTATOR] || ps->pm_state.type == PM_DEAD) {
 
     if (ps->stats[STAT_CHASE]) {
 
@@ -1027,7 +1027,7 @@ bool Cg_AttemptSelectWeapon(const player_state_t *ps) {
 static void Cg_DrawSelectWeapon(const player_state_t *ps) {
 
   // spectator/dead
-  if (!Cg_HasWeapon(ps)) {
+  if (!Cg_HasWeapon(ps) || ps->pm_state.type == PM_DEAD) {
     cg_hud_state.weapon.bit = -1;
     cg_hud_state.weapon.time = 0;
     cg_hud_state.weapon.bar_time = 0;

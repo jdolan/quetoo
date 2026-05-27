@@ -37,6 +37,9 @@ void Cl_MouseButtonEvent(const SDL_Event *event) {
 
 /**
  * @brief Handles an SDL mouse wheel event, scrolling the console or dispatching key events.
+ * @details In KEY_GAME mode only one event per direction is dispatched per frame to prevent
+ * high-resolution or Wayland scroll wheels from delivering multiple events per physical notch
+ * and causing the weapon selector to skip weapons.
  */
 void Cl_MouseWheelEvent(const SDL_Event *event) {
 
@@ -55,11 +58,21 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
       break;
 
     case KEY_GAME: {
+        static uint32_t last_up, last_down;
+
+        const SDL_Scancode scancode = event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN;
+        uint32_t *last = scancode == SDL_SCANCODE_MWHEELUP ? &last_up : &last_down;
+
+        if (*last == cl.unclamped_time) {
+          break; // already fired this direction this frame
+        }
+        *last = cl.unclamped_time;
+
         SDL_Event e;
         memset(&e, 0, sizeof(e));
 
         e.type = SDL_EVENT_KEY_DOWN;
-        e.key.scancode = (SDL_Scancode) (event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN);
+        e.key.scancode = scancode;
         e.key.key = SDL_SCANCODE_TO_KEYCODE(e.key.scancode);
 
         Cl_KeyEvent(&e);
