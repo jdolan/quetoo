@@ -1129,6 +1129,28 @@ static void Cg_BfgLaserThink(cg_sprite_t *sprite, float life, float delta) {
 }
 
 /**
+ * @brief Spawns a faint BFG laser beam sprite targeting a dead entity (corpse or giblet).
+ */
+static void Cg_BfgLaserDeadEffect(const int16_t org_entity, const int16_t dest_entity) {
+
+  const vec3_t org = cgi.client->entities[org_entity].origin;
+  const vec3_t end = cgi.client->entities[dest_entity].origin;
+
+  Cg_AddSprite(&(cg_sprite_t) {
+    .type = SPRITE_BEAM,
+    .image = cg_beam_rail,
+    .origin = org,
+    .termination = end,
+    .size = 1.5f,
+    .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
+    .color = ColorHSV(color_hue_green, .5f, .5f).vec3,
+    .data = ((cg_bfg_laser_data_t) { .org = org_entity, .dest = dest_entity }).data,
+    .Think = Cg_BfgLaserThink,
+    .lighting = .25f,
+  });
+}
+
+/**
  * @brief Spawns a persistent BFG laser beam sprite between two entities with a light and burn decal.
  */
 static void Cg_BfgLaserEffect(const int16_t org_entity, const int16_t dest_entity) {
@@ -1510,6 +1532,12 @@ void Cg_ParseTempEntity(void) {
       i = cgi.ReadShort();
       j = cgi.ReadShort();
       Cg_BfgLaserEffect(j, i);
+      break;
+
+    case TE_BFG_LASER_DEAD:
+      i = cgi.ReadShort();
+      j = cgi.ReadShort();
+      Cg_BfgLaserDeadEffect(j, i);
       break;
 
     case TE_BFG: // bfg explosion

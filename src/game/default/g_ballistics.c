@@ -1315,7 +1315,7 @@ static void G_BfgProjectile_Think(g_entity_t *ent) {
     });
 
     gi.WriteByte(SV_CMD_TEMP_ENTITY);
-    gi.WriteByte(TE_BFG_LASER);
+    gi.WriteByte(other->dead ? TE_BFG_LASER_DEAD : TE_BFG_LASER);
     gi.WriteShort(ent->s.number);
     gi.WriteShort(other->s.number);
     gi.Multicast(ent->s.origin, MULTICAST_PVS);

@@ -29,7 +29,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1037
+#define PROTOCOL_MINOR 1038
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -227,6 +227,7 @@ typedef enum {
   TE_EXPLOSION,
   TE_BUBBLES,
   TE_BFG_LASER,
+  TE_BFG_LASER_DEAD,
   TE_BFG,
   TE_GIB,
   TE_RIPPLE,
