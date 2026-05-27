@@ -180,13 +180,13 @@ static gboolean R_FreeMedia_(gpointer key, gpointer value, gpointer data) {
 }
 
 /**
- * @breif Frees the specified media immediately.
+ * @brief Frees the specified media immediately.
  */
 void R_FreeMedia(r_media_t *media) {
 
   R_FreeMedia_(NULL, media, (void *) 1);
 
-  g_hash_table_remove(r_media_state.media, media->name);
+  g_hash_table_remove(r_media_state.media, media);
 }
 
 /**

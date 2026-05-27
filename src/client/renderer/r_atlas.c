@@ -77,7 +77,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
 
     r_atlas_image_t *atlas_image = node->data;
     if (!strcmp(name, atlas_image->image.media.name)) {
-      R_RegisterMedia((r_media_t *) atlas_image);
+      R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
       return atlas_image;
     }
   }
@@ -102,7 +102,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
   atlas_image->image.width = surf->w;
   atlas_image->image.height = surf->h;
 
-  R_RegisterMedia((r_media_t *) atlas_image);
+  R_RegisterDependency((r_media_t *) atlas, (r_media_t *) atlas_image);
 
   atlas->dirty = true;
 

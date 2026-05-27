@@ -99,6 +99,25 @@ START_TEST(check_R_RegisterMedia) {
 
 } END_TEST
 
+START_TEST(check_R_FreeMedia) {
+  R_BeginLoading();
+
+  r_media_t *media = R_AllocMedia("free_me", sizeof(r_media_t), R_MEDIA_GENERIC);
+  R_RegisterMedia(media);
+
+  ck_assert_msg(R_FindMedia("free_me", R_MEDIA_GENERIC) == media, "Failed to find free_me before free");
+
+  R_FreeMedia(media);
+
+  ck_assert_msg(R_FindMedia("free_me", R_MEDIA_GENERIC) == NULL, "free_me should not be findable after R_FreeMedia");
+
+  R_BeginLoading();
+  R_EndLoading();
+
+  ck_assert_msg(Mem_Size() == 0, "Not all memory freed: %u", (uint32_t) Mem_Size());
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -110,6 +129,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_checked_fixture(tcase, setup, teardown);
 
   tcase_add_test(tcase, check_R_RegisterMedia);
+  tcase_add_test(tcase, check_R_FreeMedia);
 
   Suite *suite = suite_create("check_r_media");
   suite_add_tcase(suite, tcase);
