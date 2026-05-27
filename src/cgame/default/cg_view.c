@@ -66,11 +66,7 @@ static void Cg_UpdateFov(void) {
   const float width = cgi.view->viewport.z;
   const float height = cgi.view->viewport.w;
 
-  const float x = width / tanf(Radians(fov));
-  const float y = atan2f(width, x);
-  const float a = height / width;
-
-  cgi.view->fov.y = Degrees(y) * a / 2.f;
+  cgi.view->fov.y = Degrees(atanf(tanf(Radians(fov / 2.f)) * height / width));
 }
 
 /**
