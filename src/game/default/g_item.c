@@ -413,7 +413,7 @@ static bool G_PickupGrenades(g_client_t *cl, g_entity_t *ent) {
       cl->inventory[WEAPON_HAND_GRENADE]++;
     }
 
-    if (cl->weapon == &g_items[WEAPON_BLASTER]) {
+    if (cl->persistent.auto_switch && cl->weapon == &g_items[WEAPON_BLASTER]) {
       G_UseWeapon(cl, &g_items[WEAPON_HAND_GRENADE]);
     }
   }
