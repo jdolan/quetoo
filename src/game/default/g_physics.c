@@ -796,11 +796,11 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
 
       // try a few movements, taking the one that doesn't clip with the mover.
       const int32_t total_movements = 55;
-      int32_t i;
+      int32_t k;
 
-      for (i = 0; i < total_movements; i++) {
-        int32_t offset = (int32_t) ceilf(i * 0.5f);
-        if (i & 1) {
+      for (k = 0; k < total_movements; k++) {
+        int32_t offset = (int32_t) ceilf(k * 0.5f);
+        if (k & 1) {
           offset = -offset;
         }
         mat4_t m = Mat4_FromTranslation(self->s.origin);
@@ -810,13 +810,13 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
         ent->s.origin = Mat4_Transform(m, original_ent_position);
 
         if (gi.Clip(ent->s.origin, ent->s.origin, ent->bounds, self, ent->clip_mask ? : CONTENTS_MASK_SOLID).fraction == 1.0f) {
-          G_Debug("%s rotated %s @ %i, good position\n", etos(self), etos(ent), i);
+          G_Debug("%s rotated %s @ %i, good position\n", etos(self), etos(ent), k);
           break;
         }
       }
 
-      if (i == total_movements) {
-        G_Debug("%s rotated %s, but couldn't fit; %f was remaining\n", etos(self), etos(ent), remaining_move);
+      if (k == total_movements) {
+        gi.Warn("%s rotated %s, but couldn't fit; %f was remaining\n", etos(self), etos(ent), remaining_move);
       }
 
       // clip rest of the movement.
@@ -827,7 +827,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       // if the move has separated us, finish up by rotating the entity
       if (G_CorrectPosition(ent)) {
         G_Physics_Push_Rotate_Entity(self, ent, amove.y);
-        break;
+        continue;
       }
 
       if (ent->ground.ent == self) {
