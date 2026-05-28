@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.quetoo.Quetoo</id>
+  <launchable type="desktop-id">org.quetoo.Quetoo.desktop</launchable>
+  <name>Quetoo</name>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <developer id="org.quetoo">
+    <name>jdolan</name>
+  </developer>
+  <branding>
+    <color type="primary" scheme_preference="light">#158477</color>
+    <color type="primary" scheme_preference="dark">#0d4e47</color>
+  </branding>
+  <summary>A free first person shooter for Mac, PC and Linux</summary>
+  <description>
+    <p>
+      Quetoo ("Q2") is a free first person shooter for Mac, PC and Linux.
+      Our goal is to bring the fun of oldschool deathmatch to a new generation of gamers.
+      We're pwning nubz, one rail slug at a time.
+    </p>
+    <ul>
+      <li>Deathmatch, Team DM, Capture the Flag, Instagib and Rocket Arena gameplay modes</li>
+      <li>High quality remakes of id Software's legendary Quake series deathmatch levels, as well as many originals</li>
+      <li>Realtime lighting with soft shadowmapping</li>
+      <li>Steep parallax occlusion mapping with self-shadowing</li>
+      <li>Dramatically improved artwork pipeline with in-game editor for level artists</li>
+      <li>TrenchBroom support</li>
+      <li>100% free to download, play and modify. Source code licensed under GPL v2, artwork under Creative Commons.</li>
+    </ul>
+  </description>
+  <url type="homepage">https://quetoo.org</url>
+  <url type="bugtracker">https://github.com/jdolan/quetoo/issues</url>
+  <url type="vcs-browser">https://github.com/jdolan/quetoo</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>In-game screenshot</caption>
+      <image>https://quetoo.org/images/screenshots/quetoo001.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>In-game screenshot</caption>
+      <image>https://quetoo.org/images/screenshots/quetoo004.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>In-game screenshot</caption>
+      <image>https://quetoo.org/images/screenshots/quetoo008.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>In-game screenshot</caption>
+      <image>https://quetoo.org/images/screenshots/quetoo013.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>In-game screenshot</caption>
+      <image>https://quetoo.org/images/screenshots/quetoo051.jpg</image>
+    </screenshot>
+  </screenshots>
+  <update_contact>jay@jaydolan.com</update_contact>
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-cartoon">intense</content_attribute>
+    <content_attribute id="violence-fantasy">intense</content_attribute>
+    <content_attribute id="violence-bloodshed">intense</content_attribute>
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+  <releases>
+    <release version="1.0.24" date="2026-05-27"/>
+  </releases>
+</component>
