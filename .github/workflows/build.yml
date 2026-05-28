@@ -22,194 +22,6 @@ jobs:
         echo "objectively-sha=$(git ls-remote https://github.com/jdolan/Objectively.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
         echo "objectivelymvc-sha=$(git ls-remote https://github.com/jdolan/ObjectivelyMVC.git HEAD | cut -f1)" >> $GITHUB_OUTPUT
 
-  build-macos:
-    needs: resolve-deps
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: macos-15
-            arch: arm64
-            build: arm64-apple-darwin
-          - runner: macos-15-large
-            arch: x86_64
-            build: x86_64-apple-darwin
-
-    runs-on: ${{ matrix.runner }}
-
-    env:
-      HOMEBREW_PREFIX: ${{ matrix.arch == 'arm64' && '/opt/homebrew' || '/usr/local' }}
-
-    steps:
-    - name: Install dependencies
-      run: |
-        brew update
-        brew install --quiet \
-          autoconf automake libtool pkg-config \
-          glib ncurses check \
-          sdl3 sdl3_image sdl3_ttf \
-          openal-soft libsndfile physfs \
-          curl dylibbundler
-
-    - name: Cache Objectively and ObjectivelyMVC
-      id: cache-deps
-      uses: actions/cache@v5
-      with:
-        path: /usr/local
-        key: macos-deps-${{ matrix.arch }}-${{ needs.resolve-deps.outputs.objectively-sha }}-${{ needs.resolve-deps.outputs.objectivelymvc-sha }}
-
-    - name: Checkout Objectively
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v6
-      with:
-        repository: jdolan/Objectively
-        path: Objectively
-
-    - name: Build Objectively
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      working-directory: Objectively
-      run: |
-        export CFLAGS="-I${HOMEBREW_PREFIX}/include"
-        export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
-        export PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-        autoreconf -i
-        ./configure
-        make -j$(sysctl -n hw.logicalcpu)
-        sudo make install
-
-    - name: Checkout ObjectivelyMVC
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      uses: actions/checkout@v6
-      with:
-        repository: jdolan/ObjectivelyMVC
-        path: ObjectivelyMVC
-
-    - name: Build ObjectivelyMVC
-      if: steps.cache-deps.outputs.cache-hit != 'true'
-      working-directory: ObjectivelyMVC
-      run: |
-        export CFLAGS="-I${HOMEBREW_PREFIX}/include"
-        export LDFLAGS="-L${HOMEBREW_PREFIX}/lib"
-        export PKG_CONFIG_PATH="${HOMEBREW_PREFIX}/lib/pkgconfig:${HOMEBREW_PREFIX}/opt/openal-soft/lib/pkgconfig:${PKG_CONFIG_PATH}"
-        autoreconf -i
-        ./configure
-        make -j$(sysctl -n hw.logicalcpu)
-        sudo make install
-
-    - name: Checkout Quetoo
-      uses: actions/checkout@v6
-      with:
-        path: quetoo
-        fetch-depth: 0
-
-    - name: Build Quetoo
-      working-directory: quetoo
-      run: |
-        autoreconf -i
-        ./configure --with-version=$(git rev-list --count HEAD) --enable-optimizations --with-homebrew=${HOMEBREW_PREFIX} --prefix=/
-        make -j$(sysctl -n hw.logicalcpu)
-
-    - name: Install Quetoo
-      working-directory: quetoo
-      run: make -C apple pre-install install
-
-    - name: Bundle libraries
-      working-directory: quetoo
-      run: make -C apple install-lib
-
-    - name: Move engine assets to Resources
-      working-directory: quetoo
-      run: make -C apple move-resources
-
-    - name: Create archive
-      working-directory: quetoo
-      run: |
-        cd apple/target
-        zip -r ../../quetoo-${{ matrix.build }}.zip Quetoo.app
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: quetoo-${{ matrix.build }}
-        path: quetoo/quetoo-${{ matrix.build }}.zip
-
-  lipo-macos:
-    needs: build-macos
-    runs-on: macos-15
-
-    steps:
-    - name: Download arm64 artifact
-      uses: actions/download-artifact@v8
-      with:
-        name: quetoo-arm64-apple-darwin
-
-    - name: Download x86_64 artifact
-      uses: actions/download-artifact@v8
-      with:
-        name: quetoo-x86_64-apple-darwin
-
-    - name: Create universal binary
-      run: |
-        mkdir arm64 x86_64
-        unzip quetoo-arm64-apple-darwin.zip -d arm64
-        unzip quetoo-x86_64-apple-darwin.zip -d x86_64
-
-        find arm64/Quetoo.app -type f | while read -r f; do
-          if ! file "$f" | grep -q "Mach-O"; then
-            continue
-          fi
-          x86="x86_64/${f#arm64/}"
-          if [ -f "$x86" ]; then
-            lipo -create "$f" "$x86" -output "$f"
-          fi
-        done
-
-    - name: Checkout Quetoo
-      uses: actions/checkout@v6
-      with:
-        path: quetoo
-        fetch-depth: 1
-
-    - name: Set up keychain
-      env:
-        APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
-        APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      run: |
-        KEYCHAIN_PASSWORD=$(openssl rand -base64 32)
-        echo "KEYCHAIN_PASSWORD=$KEYCHAIN_PASSWORD" >> $GITHUB_ENV
-        echo "$APPLE_CERTIFICATE_P12" | base64 --decode > certificate.p12
-        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security default-keychain -s build.keychain
-        security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-        security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-        rm certificate.p12
-
-    - name: Sign application
-      run: make -C quetoo/apple sign INSTALL=$(pwd)/arm64/Quetoo.app
-
-    - name: Create DMG
-      run: make -C quetoo/apple dmg INSTALL=$(pwd)/arm64/Quetoo.app \
-             SNAPSHOT=$(pwd)/quetoo-universal-apple-darwin.dmg
-
-    - name: Notarize DMG
-      env:
-        APPLE_ID: ${{ secrets.APPLE_ID }}
-        APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
-        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      run: make -C quetoo/apple notarize INSTALL=$(pwd)/arm64/Quetoo.app \
-             SNAPSHOT=$(pwd)/quetoo-universal-apple-darwin.dmg
-
-    - name: Tear down keychain
-      if: always()
-      run: security delete-keychain build.keychain
-
-    - name: Upload universal artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: quetoo-universal-apple-darwin
-        path: quetoo-universal-apple-darwin.dmg
-
   build-linux:
     needs: resolve-deps
     runs-on: ubuntu-22.04
@@ -471,7 +283,7 @@ jobs:
         path: quetoo/quetoo-x86_64-pc-windows.zip
 
   release:
-    needs: [lipo-macos, build-linux, build-windows]
+    needs: [build-linux, build-windows]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -509,11 +321,9 @@ jobs:
 
         | Platform | Download |
         |----------|----------|
-        | macOS (Universal) | quetoo-universal-apple-darwin.dmg |
         | Linux (x86_64) | quetoo-x86_64-pc-linux.tar.gz |
         | Windows (x86_64) | quetoo-x86_64-pc-windows.zip |" \
           --prerelease \
-          quetoo-universal-apple-darwin/quetoo-universal-apple-darwin.dmg \
           quetoo-x86_64-pc-linux-archive/quetoo-x86_64-pc-linux.tar.gz \
           quetoo-x86_64-pc-windows/quetoo-x86_64-pc-windows.zip
       env:
