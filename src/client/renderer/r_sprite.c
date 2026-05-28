@@ -528,8 +528,8 @@ void R_InitSprites(void) {
   glGenBuffers(1, &r_sprites.elements_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sprites.elements_buffer);
 
-  GLuint elements[MAX_SPRITES * 6];
-  for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITES; i++, v += 4, e += 6) {
+  GLuint elements[MAX_SPRITE_INSTANCES * 6];
+  for (GLuint i = 0, v = 0, e = 0; i < MAX_SPRITE_INSTANCES; i++, v += 4, e += 6) {
     elements[e + 0] = v + 0;
     elements[e + 1] = v + 1;
     elements[e + 2] = v + 2;
