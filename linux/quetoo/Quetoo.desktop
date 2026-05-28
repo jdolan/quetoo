@@ -5,6 +5,6 @@ Exec=quetoo %U
 Icon=quetoo
 Terminal=false
 Type=Application
-Categories=Game;ActionGame;
+Categories=Game;ActionGame;Shooter;
 MimeType=x-scheme-handler/quetoo;
 StartupNotify=true
