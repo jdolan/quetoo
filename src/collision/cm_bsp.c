@@ -570,6 +570,11 @@ bool Bsp_LoadLump(const bsp_header_t *file, bsp_file_t *bsp, const bsp_lump_id_t
 
   const size_t lump_type_size = bsp_lump_meta[lump_id].type_size;
 
+  if (lump.file_len < 0 || lump.file_ofs < 0) {
+    Com_Error(ERROR_DROP, "Lump (%i) has invalid offset (%i) or size (%i)\n",
+              lump_id, lump.file_ofs, lump.file_len);
+  }
+
   if (lump.file_len % lump_type_size) {
     Com_Error(ERROR_DROP, "Lump (%i) size (%i) doesn't match expected data type (%" PRIuPTR ")\n",
               lump_id, lump.file_len, lump_type_size);
