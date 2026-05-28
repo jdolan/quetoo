@@ -70,7 +70,6 @@ r_atlas_t *R_LoadAtlas(const char *name) {
  * not available for rendering until the atlas is recompiled.
  */
 r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_type_t type) {
-  const int32_t pixels = 0xff0000ff;
 
   for (guint i = 0; i < atlas->atlas->nodes->len; i++) {
     atlas_node_t *node = g_ptr_array_index(atlas->atlas->nodes, i);
@@ -88,6 +87,7 @@ r_atlas_image_t *R_LoadAtlasImage(r_atlas_t *atlas, const char *name, r_image_ty
   SDL_Surface *surf = Img_LoadSurface(name);
   if (!surf) {
     Com_Warn("Failed to load atlas image %s\n", name);
+    static const int32_t pixels = 0xff0000ff;
     surf = SDL_CreateSurfaceFrom(1, 1, SDL_PIXELFORMAT_RGBA32, (void *) &pixels, sizeof(pixels));
   }
 
