@@ -472,9 +472,9 @@ static inline vec4_t __attribute__ ((warn_unused_result)) Mat4_TransformPlane(co
  */
 static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_ToScale3(const mat4_t m) {
   return Vec3(
-    Vec3_Length(Vec3(m.m[1][1], m.m[1][2], m.m[1][3])),
-    Vec3_Length(Vec3(m.m[2][1], m.m[2][2], m.m[2][3])),
-    Vec3_Length(Vec3(m.m[3][1], m.m[3][2], m.m[3][3]))
+    Vec3_Length(Vec3(m.m[0][0], m.m[1][0], m.m[2][0])),
+    Vec3_Length(Vec3(m.m[0][1], m.m[1][1], m.m[2][1])),
+    Vec3_Length(Vec3(m.m[0][2], m.m[1][2], m.m[2][2]))
   );
 }
 
@@ -482,7 +482,7 @@ static inline vec3_t __attribute__ ((warn_unused_result)) Mat4_ToScale3(const ma
  * @return The (fast, uniform-scaling only) scale factor of the supplied matrix.
  */
 static inline float __attribute__ ((warn_unused_result)) Mat4_ToScale(const mat4_t m) {
-  return Vec3_Length(Vec3(m.m[1][1], m.m[1][2], m.m[1][3]));
+  return Vec3_Length(Vec3(m.m[0][0], m.m[1][0], m.m[2][0]));
 }
 
 /**
