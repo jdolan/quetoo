@@ -1312,7 +1312,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
   }
 
   if (color) { // reset to white
-    strcat(name, "^7");
+    g_strlcat(name, "^7", sizeof(name));
   }
 
   if (strncmp(cl->persistent.net_name, name, sizeof(cl->persistent.net_name))) {
