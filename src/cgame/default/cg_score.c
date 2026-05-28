@@ -53,8 +53,12 @@ static int32_t Cg_ParseScores_Compare(const void *a, const void *b) {
  */
 void Cg_ParseScores(void) {
 
-  const size_t index = cgi.ReadShort();
-  const size_t count = cgi.ReadShort();
+  const int32_t index = cgi.ReadShort();
+  const int32_t count = cgi.ReadShort();
+
+  if (index < 0 || count < 0 || index + count > MAX_CLIENTS + MAX_TEAMS) {
+    Cg_Error("Invalid score index and count: %d + %d\n", index, count);
+  }
 
   if (index == 0) {
     memset(&cg_score_state, 0, sizeof(cg_score_state));
