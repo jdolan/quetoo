@@ -199,6 +199,10 @@ static void Cl_ParseBaseline(void) {
   const int16_t number = Net_ReadShort(&net_message);
   const uint16_t bits = Net_ReadShort(&net_message);
 
+  if (number < 0 || number >= MAX_ENTITIES) {
+    Com_Error(ERROR_DROP, "Invalid entity number: %d\n", number);
+  }
+
   cl_entity_t *ent = &cl.entities[number];
 
   Net_ReadDeltaEntity(&net_message, &null_state, &ent->baseline, number, bits);
@@ -222,11 +226,12 @@ static const char *Cl_ParseCbufText(void) {
 int32_t Cl_ParseConfigString(void) {
   const int32_t i = Net_ReadShort(&net_message);
 
-  if (i >= MAX_CONFIG_STRINGS) {
+  if (i < 0 || i >= MAX_CONFIG_STRINGS) {
     Com_Error(ERROR_DROP, "Invalid index %i\n", i);
   }
 
-  strcpy(cl.config_strings[i], Net_ReadString(&net_message));
+  g_strlcpy(cl.config_strings[i], Net_ReadString(&net_message), MAX_STRING_CHARS);
+
   const char *s = cl.config_strings[i];
 
   if (i >= CS_MODELS && i < CS_MODELS + MAX_MODELS) {
