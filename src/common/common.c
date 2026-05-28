@@ -494,8 +494,11 @@ void Com_PrintInfo(const char *s) {
   }
   while (*s) {
     o = key;
-    while (*s && *s != '\\') {
+    while (*s && *s != '\\' && o < key + sizeof(key) - 1) {
       *o++ = *s++;
+    }
+    while (*s && *s != '\\') { // skip excess if truncated
+      s++;
     }
 
     l = o - key;
@@ -514,8 +517,11 @@ void Com_PrintInfo(const char *s) {
 
     o = value;
     s++;
-    while (*s && *s != '\\') {
+    while (*s && *s != '\\' && o < value + sizeof(value) - 1) {
       *o++ = *s++;
+    }
+    while (*s && *s != '\\') { // skip excess if truncated
+      s++;
     }
     *o = 0;
 
