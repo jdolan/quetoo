@@ -128,7 +128,7 @@ done < <(
 )
 
 # Download and install packages.
-TMPDIR=$(mktemp -d)
+TMPDIR=$(mktemp -d -p /var/tmp)
 trap 'rm -rf "$TMPDIR"' EXIT
 
 QUETOO_BASE="https://github.com/jdolan/quetoo/releases/download/v${LATEST}"
