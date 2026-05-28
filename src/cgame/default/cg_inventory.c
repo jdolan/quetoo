@@ -79,13 +79,18 @@ bool Cg_HasWeapon(const player_state_t *ps) {
  */
 int16_t Cg_ActiveWeapon(const player_state_t *ps) {
 
-  const int16_t switching = (ps->stats[STAT_WEAPON] >> 8) & 0xFF;
-  if (switching) {
+  const int16_t weapon    = (ps->stats[STAT_WEAPON] >> 0) & 0xff;
+  const int16_t switching = (ps->stats[STAT_WEAPON] >> 8) & 0xff;
+
+  if (switching >= WEAPON_FIRST && switching < WEAPON_LAST) {
     return switching - WEAPON_FIRST;
   }
 
-  const int16_t tag = ps->stats[STAT_WEAPON] & 0xFF;
-  return tag > 0 ? tag - WEAPON_FIRST : WEAPON_SELECT_OFF;
+  if (weapon >= WEAPON_FIRST && weapon < WEAPON_LAST) {
+    return weapon - WEAPON_FIRST;
+  }
+
+  return WEAPON_SELECT_OFF;
 }
 
 /**
