@@ -595,7 +595,7 @@ jobs:
         fi
 
         notes=$(cat <<EOF
-        ## Downloads
+        ## Client Packages
 
         | Platform | New Install | Update |
         |---|---|---|
@@ -604,7 +604,7 @@ jobs:
         | Linux arm64 | [quetoo-bundle-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-aarch64-pc-linux.tar.gz) | [quetoo-aarch64-pc-linux.tar.gz](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-aarch64-pc-linux.tar.gz) |
         | macOS Universal | [quetoo-bundle-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-bundle-universal-apple-darwin.dmg) | [quetoo-universal-apple-darwin.dmg](https://github.com/${{ github.repository }}/releases/download/$VERSION/quetoo-universal-apple-darwin.dmg) |
 
-        ## Linux Dedicated Server Packages
+        ## Dedicated Server Packages
 
         | Package | x86-64 | arm64 |
         |---|---|---|
