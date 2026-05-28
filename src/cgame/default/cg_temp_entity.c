@@ -1531,12 +1531,20 @@ void Cg_ParseTempEntity(void) {
     case TE_BFG_LASER:
       i = cgi.ReadShort();
       j = cgi.ReadShort();
+      if (i < 0 || i >= MAX_ENTITIES || j < 0 || j >= MAX_ENTITIES) {
+        Com_Warn("TE_BFG_LASER: invalid entity index %d, %d\n", i, j);
+        break;
+      }
       Cg_BfgLaserEffect(j, i);
       break;
 
     case TE_BFG_LASER_DEAD:
       i = cgi.ReadShort();
       j = cgi.ReadShort();
+      if (i < 0 || i >= MAX_ENTITIES || j < 0 || j >= MAX_ENTITIES) {
+        Com_Warn("TE_BFG_LASER_DEAD: invalid entity index %d, %d\n", i, j);
+        break;
+      }
       Cg_BfgLaserDeadEffect(j, i);
       break;
 
