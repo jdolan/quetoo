@@ -106,11 +106,11 @@ static vec3i_t GetWeldingPoint(const vec3_t p) {
  * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
 static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
-  const uint16_t x = roundf((MAX_WORLD_COORD + ptr->x) * .5f);
-  const uint16_t y = roundf((MAX_WORLD_COORD + ptr->y) * .5f);
-  const uint16_t z = roundf((MAX_WORLD_COORD + ptr->z) * .25f);
+  const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
+  const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
+  const uint32_t z = (uint32_t) roundf((MAX_WORLD_COORD + ptr->z) * .25f);
 
-  return x | (y << 11) | (z << 22);
+  return x | (y << 12) | (z << 24);
 }
 
 /**
