@@ -41,9 +41,10 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
   }
 
   // For close fragments, do full per-fragment lighting
+
   if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
     fragment.normal_sample = normalize(vertex.normal);
-    fragment.specular_sample = vec4(vec3(1.0), pow(1.0 + material.specularity, 4.0));
+    fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
   } else {
     fragment.normal_sample = sample_material_normal(vertex.diffusemap, fragment.tbn);
     fragment.specular_sample = sample_material_specular(vertex.diffusemap);
