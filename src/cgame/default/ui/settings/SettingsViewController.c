@@ -172,6 +172,20 @@ static void didSelectQuality(Select *select, Option *option) {
   }
 }
 
+/**
+ * @brief SelectDelegate callback for the resolution picker. Writes the chosen
+ * width/height to the r_display_* cvars; the Apply button's r_restart applies them.
+ */
+static void didSelectResolution(Select *select, Option *option) {
+
+  const intptr_t value = (intptr_t) option->value;
+  const int width = (value >> 16) & 0xFFFF;
+  const int height = value & 0xFFFF;
+
+  cgi.SetCvarInteger("r_display_width", width);
+  cgi.SetCvarInteger("r_display_height", height);
+}
+
 #pragma mark - ViewController
 
 /**
@@ -187,11 +201,12 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *verticalSync, *anisotropy, *quality;
+  Select *windowMode, *resolution, *verticalSync, *anisotropy, *quality;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("windowMode", &windowMode),
+    MakeOutlet("resolution", &resolution),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
     MakeOutlet("quality", &quality),
@@ -203,6 +218,38 @@ static void loadView(ViewController *self) {
   $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);
   $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
+
+  // Resolution options, deduped to unique WxH (highest refresh chosen at apply time).
+  // The chosen dimensions are packed into the option value as (width << 16) | height;
+  // 0 ("Desktop") leaves r_display_width/height at 0 to use the desktop resolution.
+  $(resolution, addOption, "Desktop", (ident) 0);
+
+  const SDL_DisplayID display = SDL_GetPrimaryDisplay();
+  int num_modes = 0;
+  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &num_modes);
+  if (modes) {
+    int last_w = 0, last_h = 0;
+    for (int i = 0; i < num_modes; i++) {
+      const int mw = modes[i]->w, mh = modes[i]->h;
+      if (mw == last_w && mh == last_h) {
+        continue;
+      }
+      last_w = mw;
+      last_h = mh;
+
+      char label[32];
+      g_snprintf(label, sizeof(label), "%dx%d", mw, mh);
+      $(resolution, addOption, label, (ident) (intptr_t) ((mw << 16) | mh));
+    }
+    SDL_free(modes);
+  }
+
+  const int cur_w = cgi.GetCvarInteger("r_display_width");
+  const int cur_h = cgi.GetCvarInteger("r_display_height");
+  $(resolution, selectOptionWithValue, (ident) (intptr_t) ((cur_w << 16) | cur_h));
+
+  resolution->delegate.self = self;
+  resolution->delegate.didSelectOption = didSelectResolution;
 
   $(verticalSync, addOption, "Disabled", (ident) 0);
   $(verticalSync, addOption, "Enabled", (ident) 1);
