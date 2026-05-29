@@ -173,7 +173,7 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
 
       Com_Error(ERROR_FATAL, "%s\n", log);
     } else {
-      while (--i > 0) {
+      while (i-- > 0) {
         glDetachShader(program, shaders[i]);
         glDeleteShader(shaders[i]);
       }
