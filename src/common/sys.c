@@ -75,7 +75,8 @@ const char *Sys_ExecutablePath(void) {
 
 #elif defined(__linux__)
 
-  if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path)) > -1) {
+  if (readlink(va("/proc/%d/exe", getpid()), path, sizeof(path) - 1) > -1) {
+    path[sizeof(path) - 1] = '\0';
     return path;
   }
 
