@@ -156,7 +156,12 @@ static void Cm_LoadBspBrushes(cm_bsp_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_brushes; i++, in++, out++) {
 
-    out->entity = bsp->entities[in->entity];
+    if (in->entity < 0 || in->entity >= bsp->num_entities) {
+      Com_Warn("Brush %d: invalid entity index %d\n", i, in->entity);
+      out->entity = NULL;
+    } else {
+      out->entity = bsp->entities[in->entity];
+    }
     out->contents = in->contents;
     out->brush_sides = bsp->brush_sides + in->first_brush_side;
     out->num_brush_sides = in->num_brush_sides;
@@ -176,7 +181,12 @@ static void Cm_LoadBspInlineModels(cm_bsp_t *bsp) {
 
   for (int32_t i = 0; i < bsp->num_models; i++, in++, out++) {
     
-    out->entity = bsp->entities[in->entity];
+    if (in->entity < 0 || in->entity >= bsp->num_entities) {
+      Com_Warn("Model %d: invalid entity index %d\n", i, in->entity);
+      out->entity = NULL;
+    } else {
+      out->entity = bsp->entities[in->entity];
+    }
     out->head_node = in->head_node;
     out->bounds = in->bounds;
   }
