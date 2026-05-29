@@ -60,7 +60,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
     case KEY_GAME: {
         static uint32_t last_up, last_down;
 
-        const SDL_Scancode scancode = event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN;
+        const SDL_Buttoncode scancode = event->wheel.y > 0 ? SDL_SCANCODE_MWHEELUP : SDL_SCANCODE_MWHEELDOWN;
         uint32_t *last = scancode == SDL_SCANCODE_MWHEELUP ? &last_up : &last_down;
 
         if (*last == cl.unclamped_time) {
@@ -72,7 +72,7 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
         memset(&e, 0, sizeof(e));
 
         e.type = SDL_EVENT_KEY_DOWN;
-        e.key.scancode = scancode;
+        e.key.scancode = (SDL_Scancode) scancode;
         e.key.key = SDL_SCANCODE_TO_KEYCODE(e.key.scancode);
 
         Cl_KeyEvent(&e);
