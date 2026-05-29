@@ -27,6 +27,7 @@ void R_DrawPost(const r_view_t *view);
 
 #if defined(__R_LOCAL_H__)
 
+void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer);
 void R_InitPost(void);
 void R_ShutdownPost(void);
 

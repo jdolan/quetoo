@@ -251,4 +251,5 @@ uniform sampler2DArrayShadow texture_shadow_atlas;
  * @brief The framebuffer attachment textures.
  */
 uniform sampler2D texture_color_attachment;
+uniform sampler2D texture_post_attachment;
 uniform sampler2D texture_depth_attachment_copy;

@@ -28,6 +28,7 @@ void R_ClearFramebuffer(r_framebuffer_t *framebuffer);
 void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLuint *texture);
 void R_BlitFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, GLint x, GLint y, GLint w, GLint h);
 void R_BlitFramebuffer(const r_framebuffer_t *framebuffer, GLint x, GLint y, GLint w, GLint h);
+void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer);
 void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachment_t attachment, SDL_Surface **surface);
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer);
 #if defined(__R_LOCAL_H__)

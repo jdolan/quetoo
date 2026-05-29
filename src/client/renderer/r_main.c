@@ -41,6 +41,7 @@ cvar_t *r_occlude;
 
 cvar_t *r_ambient;
 cvar_t *r_anisotropy;
+cvar_t *r_antialias;
 cvar_t *r_bloom;
 cvar_t *r_bloom_iterations;
 cvar_t *r_bloom_threshold;
@@ -185,6 +186,13 @@ void R_BeginFrame(void) {
     r_framebuffer_scale->modified = false;
   }
 
+  if (r_antialias->modified) {
+    SDL_PushEvent(&(SDL_Event) {
+      .type = SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED,
+    });
+    r_antialias->modified = false;
+  }
+
   if (r_swap_interval->modified) {
     SDL_GL_SetSwapInterval(r_swap_interval->integer);
     r_swap_interval->modified = false;
@@ -225,7 +233,9 @@ void R_DrawViewDepth(r_view_t *view) {
 
   R_ClearFramebuffer(view->framebuffer);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
+
+  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
@@ -257,7 +267,9 @@ void R_DrawMainView(r_view_t *view) {
 
   R_DrawShadows(view);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
+  const GLuint render_fbo = view->framebuffer->msaa.fbo ?: view->framebuffer->name;
+
+  glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
 
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
@@ -269,7 +281,13 @@ void R_DrawMainView(r_view_t *view) {
   R_DrawEntities(view);
 
   Thread_Wait(sprites);
-  
+
+  if (view->framebuffer->msaa.fbo) {
+    R_ResolveFramebufferDepth(view->framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, render_fbo);
+    glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+  }
+
   R_DrawSprites(view);
 
   if (r_draw_wireframe->integer) {
@@ -278,9 +296,13 @@ void R_DrawMainView(r_view_t *view) {
 
   R_Draw3D();
 
+  if (view->framebuffer->msaa.fbo) {
+    R_ResolveFramebuffer(view->framebuffer);
+  }
+
   const SDL_Rect viewport = r_context.viewport;
   glViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-  
+
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -351,6 +373,7 @@ static void R_InitLocal(void) {
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering");
+  r_antialias = Cvar_Add("r_antialias", "0", CVAR_ARCHIVE, "MSAA sample count (0 = disabled, 2, 4, 8).");
   r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");

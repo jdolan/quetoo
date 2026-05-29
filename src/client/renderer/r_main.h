@@ -25,6 +25,7 @@
 
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
+extern cvar_t *r_antialias;
 extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_bloom_threshold;

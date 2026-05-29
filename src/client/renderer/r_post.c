@@ -54,27 +54,38 @@ static struct {
 static GLint r_bloom_width, r_bloom_height;
 
 /**
- * @brief The Gaussian blur program (`blur_vs`.glsl` + `blur_fs`.glsl`).
+ * @brief Post-processing stage selector, mirroring the const int values in `post_fs.glsl`.
  */
-static struct {
-  GLuint name;
-  GLint texture_bloom_attachment;
-  GLint axis;
-} r_blur_program;
+typedef enum {
+  R_POST_BLOOM_EXTRACT,
+  R_POST_BLOOM_BLUR_X,
+  R_POST_BLOOM_BLUR_Y,
+  R_POST_TONEMAP,
+} r_post_stage_t;
 
 /**
- * @brief The post-processing program (`post_vs`.glsl` + `post_fs`.glsl`).
- *
- * Handles both bloom extraction (mode 0) and bloom composite (mode 1).
+ * @brief The post-processing program (`post_vs.glsl` + `post_fs.glsl`).
+ * @details Handles all post-processing stages: bloom extraction, Gaussian
+ * blur, and tonemap+bloom composite.
  */
 static struct {
   GLuint name;
   GLint texture_color_attachment;
   GLint texture_bloom_attachment;
-  GLint mode;
+  GLint post_stage;
   GLint bloom;
   GLint bloom_threshold;
 } r_post_program;
+
+/**
+ * @brief The depth-resolve program (`post_vs.glsl` + `depth_resolve_fs.glsl`).
+ * @details Resolves the MSAA depth texture (sampler2DMS) into the single-sample
+ * depth attachment by writing sample 0 to gl_FragDepth.
+ */
+static struct {
+  GLuint name;
+  GLint texture_depth_ms;
+} r_depth_resolve_program;
 
 /**
  * @brief Create or recreate the half-resolution bloom ping-pong FBOs.
@@ -150,45 +161,91 @@ static void R_DestroyBloomFramebuffers(void) {
 }
 
 /**
- * @brief Draw the bloom pipeline: extract → blur → composite.
+ * @brief Resolves the MSAA depth texture into the single-sample @c depth_attachment.
+ *
+ * This must be called after all opaque 3D geometry is rendered and before @c R_DrawSprites,
+ * so that the per-sprite depth comparison uses an up-to-date single-sample depth texture.
+ *
+ * The resolve is done via a fullscreen quad that reads @c sampler2DMS sample 0 and writes
+ * @c gl_FragDepth, with depth test forced to @c GL_ALWAYS.
+ */
+void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
+
+  assert(framebuffer);
+  assert(framebuffer->msaa.fbo);
+  assert(framebuffer->msaa.depth_attachment);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
+  glDrawBuffers(1, (const GLenum []) { GL_NONE });
+  glViewport(0, 0, framebuffer->width, framebuffer->height);
+
+  glBindVertexArray(r_post_data.vertex_array);
+  glUseProgram(r_depth_resolve_program.name);
+
+  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_ALWAYS);
+  glEnable(GL_DEPTH_TEST);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_DEPTH_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer->msaa.depth_attachment);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  glDepthFunc(GL_LEQUAL);
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
+  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+
+  glBindVertexArray(0);
+  glUseProgram(0);
+
+  R_GetError(NULL);
+}
+
+/**
+ * @brief Draws the bloom pipeline: extract → blur → composite.
+ *
+ * The final tonemapped image is written to @c post_attachment. The caller
+ * blits @c post_attachment to the screen. When MSAA is active the geometry
+ * aliasing is already resolved by the hardware; no additional AA pass is needed.
  *
  * The pipeline runs entirely on the GPU using three fullscreen quad passes
  * per blur iteration:
  *
- *   1. Bloom extract (post program, mode 0):
+ *   1. Bloom extract (post program, `R_POST_BLOOM_EXTRACT`):
  *      Sample the full-resolution scene color attachment, apply a
  *      soft-knee quadratic threshold, and write the bright regions to
  *      the first half-resolution bloom FBO.
  *
  *   2. For each blur iteration:
- *      a. Horizontal Gaussian blur (blur program, axis 0):
+ *      a. Horizontal Gaussian blur (post program, `R_POST_BLOOM_BLUR_X`):
  *         Read `bloom_fbo`[0], write `bloom_fbo`[1].
- *      b. Vertical Gaussian blur (blur program, axis 1):
+ *      b. Vertical Gaussian blur (post program, `R_POST_BLOOM_BLUR_Y`):
  *         Read `bloom_fbo`[1], write `bloom_fbo`[0].
  *
- *   3. Bloom composite (post program, mode 1):
+ *   3. Tonemap + bloom composite (post program, `R_POST_TONEMAP`):
  *      Add the blurred bloom (`bloom_fbo`[0]) onto the scene color and
- *      write the result to the post attachment (`GL_COLOR_ATTACHMENT1`).
- *      `R_BlitFramebuffer` will then blit the post attachment to the screen.
+ *      write the LDR result to the post attachment (`GL_COLOR_ATTACHMENT1`).
  */
 void R_DrawPost(const r_view_t *view) {
 
   assert(view->framebuffer);
   assert(view->framebuffer->post_attachment);
 
-  if (view->framebuffer->width  != r_bloom_width  * 2 ||
+  if (view->framebuffer->width != r_bloom_width * 2 ||
       view->framebuffer->height != r_bloom_height * 2) {
     R_CreateBloomFramebuffers(view->framebuffer->width, view->framebuffer->height);
   }
 
   glBindVertexArray(r_post_data.vertex_array);
-
-  // --- Pass 1: bloom extract → bloom_fbo[0] ---
+  glUseProgram(r_post_program.name);
 
   if (r_bloom->value > 0.f) {
 
-    glUseProgram(r_post_program.name);
-    glUniform1i(r_post_program.mode, 0);
+    glUniform1i(r_post_program.post_stage, R_POST_BLOOM_EXTRACT);
     glUniform1f(r_post_program.bloom_threshold, r_bloom_threshold->value);
 
     glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
@@ -199,33 +256,24 @@ void R_DrawPost(const r_view_t *view) {
 
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
-    // --- Pass 2: iterative separable Gaussian blur ---
-
-    glUseProgram(r_blur_program.name);
-
     const int32_t iterations = Clampf(r_bloom_iterations->integer, 1, 8);
     for (int32_t i = 0; i < iterations; i++) {
 
-      // Horizontal pass: bloom_fbo[0] → bloom_fbo[1]
       glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[1].name);
-      glUniform1i(r_blur_program.axis, 0);
+      glUniform1i(r_post_program.post_stage, R_POST_BLOOM_BLUR_X);
       glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
       glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[0].color_attachment);
       glDrawArrays(GL_TRIANGLES, 0, 6);
 
-      // Vertical pass: bloom_fbo[1] → bloom_fbo[0]
       glBindFramebuffer(GL_FRAMEBUFFER, r_bloom_framebuffers[0].name);
-      glUniform1i(r_blur_program.axis, 1);
+      glUniform1i(r_post_program.post_stage, R_POST_BLOOM_BLUR_Y);
       glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
       glBindTexture(GL_TEXTURE_2D, r_bloom_framebuffers[1].color_attachment);
       glDrawArrays(GL_TRIANGLES, 0, 6);
     }
   }
 
-  // --- Pass 3: composite bloom onto scene → post_attachment ---
-
-  glUseProgram(r_post_program.name);
-  glUniform1i(r_post_program.mode, 1);
+  glUniform1i(r_post_program.post_stage, R_POST_TONEMAP);
   glUniform1f(r_post_program.bloom, r_bloom->value);
 
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
@@ -241,33 +289,13 @@ void R_DrawPost(const r_view_t *view) {
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  R_BlitFramebuffer(view->framebuffer, 0, 0, 0, 0);
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
   glBindVertexArray(0);
-  glUseProgram(0);
-
-  R_GetError(NULL);
-}
-
-/**
- * @brief Initializes the bloom blur GLSL program and resolves its uniform locations.
- */
-static void R_InitBlurProgram(void) {
-
-  r_blur_program.name = R_LoadProgram(
-    R_ShaderDescriptor(GL_VERTEX_SHADER,   "blur_vs.glsl", NULL),
-    R_ShaderDescriptor(GL_FRAGMENT_SHADER, "blur_fs.glsl", NULL),
-    NULL);
-
-  glUseProgram(r_blur_program.name);
-
-  r_blur_program.texture_bloom_attachment = glGetUniformLocation(r_blur_program.name, "texture_bloom_attachment");
-  r_blur_program.axis                     = glGetUniformLocation(r_blur_program.name, "axis");
-
-  glUniform1i(r_blur_program.texture_bloom_attachment, TEXTURE_BLOOM_ATTACHMENT);
-
   glUseProgram(0);
 
   R_GetError(NULL);
@@ -287,7 +315,7 @@ static void R_InitPostProgram(void) {
 
   r_post_program.texture_color_attachment = glGetUniformLocation(r_post_program.name, "texture_color_attachment");
   r_post_program.texture_bloom_attachment = glGetUniformLocation(r_post_program.name, "texture_bloom_attachment");
-  r_post_program.mode                     = glGetUniformLocation(r_post_program.name, "mode");
+  r_post_program.post_stage               = glGetUniformLocation(r_post_program.name, "post_stage");
   r_post_program.bloom                    = glGetUniformLocation(r_post_program.name, "bloom");
   r_post_program.bloom_threshold          = glGetUniformLocation(r_post_program.name, "bloom_threshold");
 
@@ -304,9 +332,9 @@ static void R_InitPostProgram(void) {
  */
 void R_InitPost(void) {
 
-  memset(&r_post_data,    0, sizeof(r_post_data));
-  memset(&r_blur_program, 0, sizeof(r_blur_program));
-  memset(&r_post_program, 0, sizeof(r_post_program));
+  memset(&r_post_data,             0, sizeof(r_post_data));
+  memset(&r_post_program,          0, sizeof(r_post_program));
+  memset(&r_depth_resolve_program, 0, sizeof(r_depth_resolve_program));
   memset(r_bloom_framebuffers,     0, sizeof(r_bloom_framebuffers));
 
   glGenVertexArrays(1, &r_post_data.vertex_array);
@@ -341,8 +369,19 @@ void R_InitPost(void) {
 
   R_GetError(NULL);
 
-  R_InitBlurProgram();
   R_InitPostProgram();
+
+  r_depth_resolve_program.name = R_LoadProgram(
+    R_ShaderDescriptor(GL_VERTEX_SHADER,   "post_vs.glsl", NULL),
+    R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_resolve_fs.glsl", NULL),
+    NULL);
+
+  glUseProgram(r_depth_resolve_program.name);
+  r_depth_resolve_program.texture_depth_ms = glGetUniformLocation(r_depth_resolve_program.name, "texture_depth_ms");
+  glUniform1i(r_depth_resolve_program.texture_depth_ms, TEXTURE_DEPTH_ATTACHMENT);
+  glUseProgram(0);
+
+  R_GetError(NULL);
 }
 
 /**
@@ -352,15 +391,15 @@ void R_ShutdownPost(void) {
 
   R_DestroyBloomFramebuffers();
 
-  glDeleteProgram(r_blur_program.name);
   glDeleteProgram(r_post_program.name);
+  glDeleteProgram(r_depth_resolve_program.name);
 
   glDeleteBuffers(1, &r_post_data.vertex_buffer);
   glDeleteVertexArrays(1, &r_post_data.vertex_array);
 
   R_GetError(NULL);
 
-  memset(&r_post_data,    0, sizeof(r_post_data));
-  memset(&r_blur_program, 0, sizeof(r_blur_program));
-  memset(&r_post_program, 0, sizeof(r_post_program));
+  memset(&r_post_data,             0, sizeof(r_post_data));
+  memset(&r_post_program,          0, sizeof(r_post_program));
+  memset(&r_depth_resolve_program, 0, sizeof(r_depth_resolve_program));
 }
