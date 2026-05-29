@@ -160,7 +160,8 @@ void FixTJunctions(tree_t *tree) {
   faces = g_ptr_array_new();
   FixTJunctions_r(tree->head_node);
 
-  largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_winding);
+  const int32_t largest_point_count = largest_winding;
+  largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_point_count);
 
   faces_locks = Mem_Malloc(sizeof(SDL_SpinLock) * faces->len);
 
