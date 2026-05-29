@@ -422,11 +422,11 @@ void Con_AutocompleteMatch(GList **matches, const char *name, const char *descri
   con_autocomplete_match_t *match = Mem_Malloc(sizeof(con_autocomplete_match_t));
 
   match->name = Mem_CopyString(name);
-  Mem_Link(match, match->name);
+  Mem_Link(match->name, match);
 
   if (description) {
     match->description = Mem_CopyString(description);
-    Mem_Link(match, match->description);
+    Mem_Link(match->description, match);
   }
   
   if (!g_list_find_custom(*matches, match, Con_AutocompleteMatchCompare)) {
