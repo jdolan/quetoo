@@ -542,6 +542,16 @@ void R_Draw2DLines(const GLint *points, size_t count, const color_t color) {
   };
 
   r_draw_2d_arrays_list_t *list = r_draw_2d.active;
+
+  if (list->num_vertexes + (int32_t) count > MAX_DRAW_2D_VERTEXES) {
+    Com_Warn("R_Draw2DLines: vertex buffer overflow; truncating %zu vertices\n", count);
+    count = (size_t) Maxi(MAX_DRAW_2D_VERTEXES - list->num_vertexes, 0);
+    if (count == 0) {
+      return;
+    }
+    draw.num_vertexes = (GLsizei) count;
+  }
+
   r_draw_2d_vertex_t *out = list->vertexes + list->num_vertexes;
 
   const GLint *in = points;
