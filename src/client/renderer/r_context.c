@@ -151,6 +151,27 @@ void R_InitContext(void) {
     Com_Error(ERROR_FATAL, "Failed to set video mode: %s\n", SDL_GetError());
   }
 
+  // In exclusive fullscreen, switch to the requested resolution. A width or height
+  // of 0, or no matching mode, falls back to the desktop resolution.
+  if (r_fullscreen->integer == 2) {
+    const SDL_DisplayID display = SDL_GetDisplayForWindow(r_context.window);
+
+    if (r_display_width->integer && r_display_height->integer) {
+      SDL_DisplayMode closest;
+      if (SDL_GetClosestFullscreenDisplayMode(display, r_display_width->integer,
+          r_display_height->integer, 0.f, false, &closest)) {
+        SDL_SetWindowFullscreenMode(r_context.window, &closest);
+        Com_Print("  Exclusive fullscreen %dx%d@%gHz\n", closest.w, closest.h, closest.refresh_rate);
+      } else {
+        Com_Warn("No fullscreen mode for %dx%d; using desktop resolution\n",
+            r_display_width->integer, r_display_height->integer);
+        SDL_SetWindowFullscreenMode(r_context.window, NULL);
+      }
+    } else {
+      SDL_SetWindowFullscreenMode(r_context.window, NULL);
+    }
+  }
+
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
   }

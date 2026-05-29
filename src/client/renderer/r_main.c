@@ -62,6 +62,8 @@ cvar_t *r_shadow_tile_size;
 cvar_t *r_shadow_distance;
 cvar_t *r_specularity;
 cvar_t *r_swap_interval;
+cvar_t *r_display_width;
+cvar_t *r_display_height;
 cvar_t *r_window_height;
 cvar_t *r_window_width;
 cvar_t *r_draw_stats;
@@ -355,6 +357,8 @@ static void R_InitLocal(void) {
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
+  r_display_width = Cvar_Add("r_display_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Exclusive-fullscreen resolution width. 0 uses the desktop resolution.");
+  r_display_height = Cvar_Add("r_display_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Exclusive-fullscreen resolution height. 0 uses the desktop resolution.");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
