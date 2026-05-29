@@ -113,13 +113,6 @@ static inline bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_nu
 }
 
 /**
- * @brief Returns true if the trace's absolute bounds intersect the brush bounds.
- */
-static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
-  return Box3_Intersects(data->model_abs_bounds, brush->bounds);
-}
-
-/**
  * @brief Clips the bounded box to all brush sides for the given brush.
  *
  * This implements swept box vs convex brush collision using the separating axis theorem.
@@ -139,7 +132,7 @@ static void Cm_TraceToBrush_(cm_trace_data_t *data, const cm_bsp_brush_t *brush)
     return;
   }
 
-  if (!Cm_TraceIntersect(data, brush)) {
+  if (!Box3_Intersects(data->model_abs_bounds, brush->bounds)) {
     return;
   }
 
@@ -238,7 +231,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
     return;
   }
 
-  if (!Cm_TraceIntersect(data, brush)) {
+  if (!Box3_Intersects(data->model_abs_bounds, brush->bounds)) {
     return;
   }
 
