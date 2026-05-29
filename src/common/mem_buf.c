@@ -51,7 +51,7 @@ void Mem_ClearBuffer(mem_buf_t *buf) {
 void *Mem_AllocBuffer(mem_buf_t *buf, size_t len) {
   void *data;
 
-  if (buf->size + len > buf->max_size) {
+  if (len > buf->max_size - buf->size) {
     const uint32_t delta = (uint32_t) (buf->size + len - buf->max_size);
     fprintf(stderr, "%s: Overflow by %u bytes\n", __func__, delta);
 
