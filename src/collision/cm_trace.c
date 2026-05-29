@@ -598,11 +598,14 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
  */
 cm_trace_t Cm_TraceToBrush(const vec3_t start, const vec3_t end, const cm_bsp_brush_t *brush) {
 
+  const box3_t abs_bounds = Cm_TraceBounds(start, end, Box3_Zero());
+
   cm_trace_data_t data = {
     .start = start,
     .end = end,
     .bounds = Box3_Zero(),
-    .abs_bounds = Cm_TraceBounds(start, end, Box3_Zero()),
+    .abs_bounds = abs_bounds,
+    .model_abs_bounds = abs_bounds,
     .trace = {
       .fraction = 1.f
     },
