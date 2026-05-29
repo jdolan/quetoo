@@ -467,15 +467,13 @@ static char *G_ExpandVariables(g_client_t *cl, const char *text) {
   memset(expanded, 0, sizeof(expanded));
   len = strlen(text);
 
-  for (i = j = 0; i < len; i++) {
+  for (i = j = 0; i < len && j < sizeof(expanded); i++) {
     if (text[i] == '%' && i < len - 1) { // expand %variables
       const char *c = G_ExpandVariable(cl, text[i + 1]);
-      strcat(expanded, c);
+      g_strlcat(expanded, c, sizeof(expanded));
       j += strlen(c);
       i++;
-    } else
-      // or just append normal chars
-    {
+    } else { // or just append normal chars
       expanded[j++] = text[i];
     }
   }
