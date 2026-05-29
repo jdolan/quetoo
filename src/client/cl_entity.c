@@ -149,13 +149,14 @@ static void Cl_ParseEntities(const cl_frame_t *delta_frame, cl_frame_t *frame) {
    */
   
   while (true) {
+
     const int16_t number = Net_ReadShort(&net_message);
 
     if (number == -1) {
       break;
     }
 
-    if (number >= MAX_ENTITIES) {
+    if (number < 0 || number >= MAX_ENTITIES) {
       Com_Error(ERROR_DROP, "Bad number: %i\n", number);
     }
 
