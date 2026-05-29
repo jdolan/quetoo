@@ -269,7 +269,7 @@ void LightVoxel(int32_t voxel_num) {
   for (guint i = 0; i < lights->len; i++) {
 
     light_t *light = g_ptr_array_index(lights, i);
-    if (light->target_entity) {
+    if (light->target_entity != -1) {
       continue;
     }
     if (!Box3_Intersects(light->bounds, voxel->bounds)) {
@@ -300,7 +300,7 @@ void FloodLights(void) {
 
     l->visible_bounds = Box3_Null();
 
-    if (l->target_entity) {
+    if (l->target_entity != -1) {
       continue;
     }
 

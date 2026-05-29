@@ -29,7 +29,9 @@ GPtrArray *lights = NULL;
  * @brief Allocates and returns a new light structure.
  */
 static light_t *AllocLight(void) {
-  return Mem_TagMalloc(sizeof(light_t), (mem_tag_t) MEM_TAG_LIGHT);
+  light_t *light = Mem_TagMalloc(sizeof(light_t), (mem_tag_t) MEM_TAG_LIGHT);
+  light->target_entity = -1;
+  return light;
 }
 
 /**
@@ -136,7 +138,7 @@ static light_t *LightForEntity(const cm_entity_t *entity) {
         }
       }
 
-      if (!light->target_entity) {
+      if (light->target_entity == -1) {
         Com_Warn("Entity light @ %s: target \"%s\" not found\n", vtos(light->origin), target);
       }
     }
@@ -208,7 +210,7 @@ void EmitLights(void) {
 
     light_t *light = g_ptr_array_index(lights, i);
 
-    if (light->target_entity) {
+    if (light->target_entity != -1) {
       // These will use the dynamic lighting code path at runtime and can not use precomputed
       // bounds or voxelization, because they can move; simply emit them to the BSP.
     } else {
@@ -230,7 +232,7 @@ void EmitLights(void) {
     g_strlcpy(out->style, light->style, sizeof(out->style));
     out->drift = light->drift;
 
-    if (!light->target_entity) {
+    if (light->target_entity == -1) {
       out->first_depth_pass_element = bsp_file.num_elements;
 
       const bsp_model_t *worldspawn = bsp_file.models;
