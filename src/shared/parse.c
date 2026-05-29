@@ -287,8 +287,12 @@ static bool Parse_ParseQuotedString(parser_t *parser, const parse_flags_t flags,
       }
 
       // if we reached here, we're copying them literally or was an invalid escape sequence.
+      ++parser->position.ptr;
+      if (*parser->position.ptr == '\0') {
+        return false;
+      }
       if (!Parse_AppendOutputChar(parser, flags, c, output_position, output, output_len) ||
-        !Parse_AppendOutputChar(parser, flags, *(++parser->position.ptr), output_position, output, output_len)) {
+        !Parse_AppendOutputChar(parser, flags, *parser->position.ptr, output_position, output, output_len)) {
         return false;
       }
 
