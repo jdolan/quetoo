@@ -50,7 +50,7 @@ void R_ApplyMeshConfig(r_entity_t *e) {
 */
 static const r_mesh_tag_t *R_MeshTag(const r_model_t *mod, const char *name, const int32_t frame) {
 
-  if (frame > mod->mesh->num_frames) {
+  if (frame >= mod->mesh->num_frames) {
     Com_Warn("%s: Invalid frame: %d\n", mod->media.name, frame);
     return NULL;
   }
