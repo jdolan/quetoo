@@ -928,6 +928,12 @@ void Cg_ParseMuzzleFlash(void) {
   }
 
   const cl_entity_t *ent = &cgi.client->entities[entity];
+
+  if (ent->current.client >= MAX_CLIENTS) {
+    Cg_Warn("Bad client %u for entity %d\n", ent->current.client, entity);
+    return;
+  }
+
   const s_sample_t *sample;
   int32_t pitch = 0;
 

@@ -62,6 +62,10 @@ void Cg_ParseSound(void) {
     } else {
       play.origin = ent->current.origin;
       if (play.sample->media.name[0] == '*') {
+        if (ent->current.client >= MAX_CLIENTS) {
+          Cg_Warn("Bad client %u for entity %d\n", ent->current.client, number);
+          return;
+        }
         const cg_client_info_t *info = &cg_state.clients[ent->current.client];
         play.sample = cgi.LoadClientModelSample(info->model, play.sample->media.name);
       }
