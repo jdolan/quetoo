@@ -317,9 +317,21 @@ void Sv_ParseClientMessage(sv_client_t *cl) {
       case CL_CMD_ENTITY_INFO: {
         const int16_t number = Net_ReadShort(&net_message);
         const char *info = Net_ReadString(&net_message);
+        if (!editor->value) {
+          Com_Warn("CL_CMD_ENTITY_INFO from %s but editor is disabled\n", Sv_NetaddrToString(cl));
+          break;
+        }
         if (strlen(info)) {
+          if (number != -1 && (number < 0 || number >= sv_max_entities->integer)) {
+            Com_Warn("CL_CMD_ENTITY_INFO from %s: bad entity number %d\n", Sv_NetaddrToString(cl), number);
+            break;
+          }
           Sv_EditEditorEntity(number, info);
         } else {
+          if (number < 0 || number >= sv_max_entities->integer) {
+            Com_Warn("CL_CMD_ENTITY_INFO from %s: bad entity number %d\n", Sv_NetaddrToString(cl), number);
+            break;
+          }
           Sv_FreeEditorEntity(number);
         }
         break;
