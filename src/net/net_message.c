@@ -723,7 +723,7 @@ vec3_t Net_ReadDir(mem_buf_t *msg) {
 
   const int32_t b = Net_ReadByte(msg);
 
-  if (b >= NUM_APPROXIMATE_NORMALS) {
+  if (b < 0 || b >= NUM_APPROXIMATE_NORMALS) {
     Com_Error(ERROR_DROP, "%d out of range\n", b);
   }
 
