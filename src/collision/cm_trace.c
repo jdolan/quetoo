@@ -371,7 +371,7 @@ next:;
     d2 = Vec3_Dot(plane.normal, p2) - plane.dist;
     offset = (fabsf(data->size.x * plane.normal.x) +
           fabsf(data->size.y * plane.normal.y) +
-          fabsf(data->size.z * plane.normal.z)) * 3.f;
+          fabsf(data->size.z * plane.normal.z));
   }
 
   // see which sides we need to consider
