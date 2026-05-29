@@ -957,7 +957,7 @@ g_entity_t *G_DropItem(g_client_t *cl, const g_item_t *item) {
   it->solid = SOLID_TRIGGER;
 
   // resolve forward direction and project origin
-  if (cl && cl->entity->dead) {
+  if (cl->entity->dead) {
     Vec3_Vectors(Vec3(.0f, cl->angles.y, .0f), &forward, NULL, NULL);
     it->s.origin = Vec3_Fmaf(cl->entity->s.origin, 24.f, forward);
   } else {

@@ -1269,7 +1269,7 @@ void G_ClientUserInfoChanged(g_client_t *cl, const char *user_info) {
 
   // check for malformed or illegal info strings
   if (!InfoString_Validate(user_info)) {
-    printf("invalid\n");
+    gi.Warn("Invalid user info\n");
     user_info = DEFAULT_USER_INFO;
   }
 
