@@ -242,7 +242,10 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
         cm_entity_t *pair = Cm_AllocEntity();
 
-        Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key));
+        if (!Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key))) {
+          Cm_FreeEntity(pair);
+          break;
+        }
         Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
 
         Cm_ParseEntity(pair);
