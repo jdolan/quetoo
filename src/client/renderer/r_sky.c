@@ -306,7 +306,11 @@ void R_LoadSky(void) {
   }
 
   if (r_sky.image == NULL) {
-    Com_Warn("Failed to load sky sky/%s\n", name);
+    if (name) {
+      Com_Warn("Failed to load sky sky/%s\n", name);
+    } else {
+      Com_Warn("Failed to load sky (no sky key on worldspawn)\n");
+    }
 
     r_sky.image = R_LoadImage("sky/template", IMG_CUBEMAP);
     if (r_sky.image == NULL) {

@@ -131,7 +131,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
   glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
-  R_GetError(stage->media->name);
+  R_GetError(stage->media ? stage->media->name : NULL);
 }
 
 /**
