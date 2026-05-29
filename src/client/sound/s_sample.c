@@ -43,7 +43,10 @@ size_t S_Resample(const int32_t channels, const int32_t source_rate, const int32
 
   for (size_t i = 0; i < outcount; ) {
     for (int32_t c = 0; c < channels; c++, i++) {
-      const int32_t srcsample = NearestMultiple(samplefrac >> 8, channels) + c;
+      int32_t srcsample = NearestMultiple(samplefrac >> 8, channels) + c;
+      if (srcsample >= (int32_t)(num_frames * channels)) {
+        srcsample = (int32_t)(num_frames * channels) - channels + c;
+      }
 
       samplefrac += fracstep;
       (*out_frames)[i] = LittleShort(in_frames[srcsample]);
