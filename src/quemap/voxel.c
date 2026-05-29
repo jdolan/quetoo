@@ -533,6 +533,9 @@ void EmitVoxels(void) {
 
         g_hash_table_iter_init(&iter, voxel->lights);
         while (g_hash_table_iter_next(&iter, (gpointer *) &light, NULL)) {
+          if (!light->out) {
+            continue;
+          }
           *out_light_indices++ = (int32_t) (ptrdiff_t) (light->out - bsp_file.lights);
         }
 
