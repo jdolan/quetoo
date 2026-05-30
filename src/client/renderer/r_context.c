@@ -130,15 +130,14 @@ void R_InitContext(void) {
 
   SDL_SyncWindow(r_context.window);
 
-  // If we created an exclusive fullscreen window, apply the desired display mode
-
   if (SDL_GetWindowFlags(r_context.window) & SDL_WINDOW_FULLSCREEN) {
 
     if (r_fullscreen_width->integer > 0 && r_fullscreen_height->integer > 0) {
-      SDL_DisplayMode mode;
 
-      if (SDL_GetClosestFullscreenDisplayMode(r_context.display, w, h, 0.f, true, &mode)) {
+      SDL_DisplayMode mode;
+      if (SDL_GetClosestFullscreenDisplayMode(r_context.display, w, h, 0.f, false, &mode)) {
         Com_Print("  Setting fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);
+
         if (SDL_SetWindowFullscreenMode(r_context.window, &mode)) {
           SDL_SyncWindow(r_context.window);
           Com_Print("  Set fullscreen display mode %dx%d@%gHz\n", mode.w, mode.h, mode.refresh_rate);

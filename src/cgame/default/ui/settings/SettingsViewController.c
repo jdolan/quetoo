@@ -229,6 +229,10 @@ static void loadView(ViewController *self) {
     for (int32_t i = 0; i < num_modes; i++) {
 
       const SDL_DisplayMode *mode = modes[i];
+      if (mode->pixel_density > 1.f) {
+        continue;
+      }
+
       const int32_t w = mode->w, h = mode->h;
       if (w == last_w && h == last_h) {
         continue;
