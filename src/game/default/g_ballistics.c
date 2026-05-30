@@ -1286,7 +1286,7 @@ static void G_BfgProjectile_Think(g_entity_t *ent) {
       continue;
     }
 
-    if (!G_CanDamage(ent, other)) {
+    if (!G_CanDamage(other, ent)) {
       continue;
     }
 

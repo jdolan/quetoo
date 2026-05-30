@@ -201,7 +201,7 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *resolution, *verticalSync, *anisotropy, *quality;
+  Select *windowMode, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
@@ -209,6 +209,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("resolution", &resolution),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
+    MakeOutlet("antialias", &antialias),
     MakeOutlet("quality", &quality),
     MakeOutlet("apply", &apply)
   );
@@ -260,6 +261,11 @@ static void loadView(ViewController *self) {
   $(anisotropy, addOption, "4x", (ident) 4);
   $(anisotropy, addOption, "8x", (ident) 8);
   $(anisotropy, addOption, "16x", (ident) 16);
+
+  $(antialias, addOption, "Disabled", (ident) 0);
+  $(antialias, addOption, "2x", (ident) 2);
+  $(antialias, addOption, "4x", (ident) 4);
+  $(antialias, addOption, "8x", (ident) 8);
 
   $(quality, addOption, "Custom", (ident) -1);
   $(quality, addOption, "Low", (ident) 0);

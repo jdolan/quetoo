@@ -27,12 +27,20 @@ out vec4 out_color;
 
 uniform sampler2D texture_bloom_attachment;
 
-uniform int mode;
+uniform int post_stage;
 uniform float bloom;
 uniform float bloom_threshold;
 
 /**
- * @brief Mode 0: extract bright regions from the HDR scene color buffer.
+ * @brief Post-processing stage selector, mirroring the r_post_stage_t C enum.
+ */
+const int R_POST_BLOOM_EXTRACT = 0;
+const int R_POST_BLOOM_BLUR_X  = 1;
+const int R_POST_BLOOM_BLUR_Y  = 2;
+const int R_POST_TONEMAP       = 3;
+
+/**
+ * @brief Extract bright regions from the HDR scene color buffer.
  *
  * Subtracts bloom_threshold from each channel and clamps to zero, so only
  * HDR-range pixels (above the threshold) feed the blur passes.
@@ -42,14 +50,47 @@ void bloom_extract(void) {
 }
 
 /**
- * @brief Mode 1: composite blurred bloom onto scene color and clamp to LDR.
+ * @brief One axis of the separable Gaussian bloom blur.
+ *
+ * Two-pass (X then Y) Gaussian blur using the bilinear sampling trick.
+ * Each pass performs a 9-tap kernel with only 5 texture fetches by exploiting
+ * hardware bilinear filtering to evaluate two weighted taps per sample.
+ *
+ * @see https://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
+ */
+void bloom_blur(void) {
+
+  const float offsets[3] = float[](0.0, 1.3846153846, 3.2307692308);
+  const float weights[3] = float[](0.2270270270, 0.3162162162, 0.0702702703);
+
+  vec2 texel = 1.0 / textureSize(texture_bloom_attachment, 0);
+
+  out_color = texture(texture_bloom_attachment, vertex.texcoord) * weights[0];
+
+  if (post_stage == R_POST_BLOOM_BLUR_X) {
+    for (int i = 1; i < 3; i++) {
+      out_color += texture(texture_bloom_attachment, vertex.texcoord + vec2(texel.x * offsets[i], 0.0)) * weights[i];
+      out_color += texture(texture_bloom_attachment, vertex.texcoord - vec2(texel.x * offsets[i], 0.0)) * weights[i];
+    }
+  } else {
+    for (int i = 1; i < 3; i++) {
+      out_color += texture(texture_bloom_attachment, vertex.texcoord + vec2(0.0, texel.y * offsets[i])) * weights[i];
+      out_color += texture(texture_bloom_attachment, vertex.texcoord - vec2(0.0, texel.y * offsets[i])) * weights[i];
+    }
+  }
+
+  out_color.a = 1.0;
+}
+
+/**
+ * @brief Tonemap and color clamp to LDR.
  *
  * Adds the blurred bloom (scaled by bloom intensity) to the HDR scene color,
- * then clamps to [0, 1] to produce the final LDR output.
+ * then clamps to [0, 1] to produce the final LDR output written to post_attachment.
  * When r_bloom is 0 the bloom texture is not bound, glow evaluates to (0, 0, 0),
  * and this reduces to a plain HDR clamp.
  */
-void bloom_composite(void) {
+void tonemap(void) {
   vec3 color = texture(texture_color_attachment, vertex.texcoord).rgb;
   vec3 glow  = texture(texture_bloom_attachment, vertex.texcoord).rgb;
   color = color + glow * bloom;
@@ -62,9 +103,11 @@ void bloom_composite(void) {
  */
 void main(void) {
 
-  if (mode == 0) {
+  if (post_stage == R_POST_BLOOM_EXTRACT) {
     bloom_extract();
+  } else if (post_stage == R_POST_BLOOM_BLUR_X || post_stage == R_POST_BLOOM_BLUR_Y) {
+    bloom_blur();
   } else {
-    bloom_composite();
+    tonemap();
   }
 }

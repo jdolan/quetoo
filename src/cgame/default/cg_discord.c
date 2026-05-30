@@ -232,7 +232,17 @@ static void Cg_DiscordJoinGame(const char *secret) {
     return;
   }
 
-  cgi.Cbuf(va("connect %s\n", (secret + 5)));
+  // Sanitize the address to prevent command injection via newlines or semicolons
+  char addr[MAX_STRING_CHARS];
+  g_strlcpy(addr, secret + 5, sizeof(addr));
+  for (char *c = addr; *c; c++) {
+    if (*c == '\n' || *c == ';' || *c == '"') {
+      *c = '\0';
+      break;
+    }
+  }
+
+  cgi.Cbuf(va("connect %s\n", addr));
 }
 
 static void Cg_DiscordJoinRequest(const DiscordUser *request) {

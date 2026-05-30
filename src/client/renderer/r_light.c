@@ -115,6 +115,10 @@ void R_ActiveLights(const r_view_t *view, const box3_t bounds, GLint name) {
 
     if (Box3_Intersects(l->bounds, bounds)) {
       active_lights[len++] = i;
+
+      if (len == MAX_LIGHTS - 1) {
+        break;
+      }
     }
   }
 

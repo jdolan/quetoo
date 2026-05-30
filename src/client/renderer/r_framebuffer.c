@@ -116,6 +116,38 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  if (r_antialias->integer > 0) {
+
+    framebuffer.msaa.samples = r_antialias->integer;
+
+    GLint max_samples;
+    glGetIntegerv(GL_MAX_SAMPLES, &max_samples);
+
+    framebuffer.msaa.samples = Mini(framebuffer.msaa.samples, max_samples);
+
+    glGenFramebuffers(1, &framebuffer.msaa.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.msaa.fbo);
+
+    glGenRenderbuffers(1, &framebuffer.msaa.color_attachment);
+    glBindRenderbuffer(GL_RENDERBUFFER, framebuffer.msaa.color_attachment);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, framebuffer.msaa.samples, GL_R11F_G11F_B10F, framebuffer.width, framebuffer.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, framebuffer.msaa.color_attachment);
+
+    glGenTextures(1, &framebuffer.msaa.depth_attachment);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.msaa.depth_attachment);
+    glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, framebuffer.msaa.samples, GL_DEPTH_COMPONENT32F, framebuffer.width, framebuffer.height, GL_TRUE);
+    glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, framebuffer.msaa.depth_attachment, 0);
+
+    const GLenum msaa_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (msaa_status != GL_FRAMEBUFFER_COMPLETE) {
+      Com_Error(ERROR_FATAL, "Failed to create MSAA framebuffer: %d\n", msaa_status);
+    }
+
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+
   R_GetError(NULL);
 
   return framebuffer;
@@ -125,6 +157,12 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
  * @brief Clears all color and depth attachments of the framebuffer.
  */
 void R_ClearFramebuffer(r_framebuffer_t *framebuffer) {
+
+  if (framebuffer->msaa.fbo) {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->msaa.fbo);
+    glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT0 });
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
 
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->name);
 
@@ -174,6 +212,31 @@ void R_CopyFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
   glReadBuffer(GL_BACK);
+
+  R_GetError(NULL);
+}
+
+/**
+ * @brief Resolves the MSAA color renderbuffer into the @c color_attachment texture.
+ *
+ * After this call, @c color_attachment contains the resolved scene color ready
+ * for post-processing. @c GL_DRAW_FRAMEBUFFER is left bound to @c framebuffer->name.
+ */
+void R_ResolveFramebuffer(const r_framebuffer_t *framebuffer) {
+
+  assert(framebuffer);
+  assert(framebuffer->msaa.fbo);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer->msaa.fbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->name);
+
+  glBlitFramebuffer(
+    0, 0, framebuffer->width, framebuffer->height,
+    0, 0, framebuffer->width, framebuffer->height,
+    GL_COLOR_BUFFER_BIT,
+    GL_NEAREST);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
   R_GetError(NULL);
 }
@@ -267,6 +330,12 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
 void R_DestroyFramebuffer(r_framebuffer_t *framebuffer) {
 
   assert(framebuffer);
+
+  if (framebuffer->msaa.fbo) {
+    glDeleteFramebuffers(1, &framebuffer->msaa.fbo);
+    glDeleteRenderbuffers(1, &framebuffer->msaa.color_attachment);
+    glDeleteTextures(1, &framebuffer->msaa.depth_attachment);
+  }
 
   if (framebuffer->name) {
     glDeleteFramebuffers(1, &framebuffer->name);

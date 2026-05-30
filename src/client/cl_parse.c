@@ -391,7 +391,7 @@ void Cl_ParseServerMessage(void) {
       break;
     }
 
-    if (cl_draw_net_messages->integer >= 2 && sv_cmd_names[cmd]) {
+    if (cl_draw_net_messages->integer >= 2 && cmd < (int32_t) lengthof(sv_cmd_names) && sv_cmd_names[cmd]) {
       Cl_ShowNet(sv_cmd_names[cmd]);
     }
 
@@ -445,7 +445,8 @@ void Cl_ParseServerMessage(void) {
         // delegate to the client game module before failing
         if (!cls.cgame->ParseMessage(cmd)) {
           Com_Error(ERROR_DROP, "Illegible server message:\n"
-                    " %d: last command was %s\n", cmd, sv_cmd_names[old_cmd]);
+                    " %d: last command was %s\n", cmd,
+                    old_cmd < (int32_t) lengthof(sv_cmd_names) ? sv_cmd_names[old_cmd] : "unknown");
         }
         break;
     }

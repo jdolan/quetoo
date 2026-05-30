@@ -25,6 +25,7 @@
 
 extern cvar_t *r_ambient;
 extern cvar_t *r_anisotropy;
+extern cvar_t *r_antialias;
 extern cvar_t *r_bloom;
 extern cvar_t *r_bloom_iterations;
 extern cvar_t *r_bloom_threshold;
@@ -36,6 +37,7 @@ extern cvar_t *r_fullscreen;
 extern cvar_t *r_hardness;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_modulate;
+extern cvar_t *r_modulate_mesh;
 extern cvar_t *r_saturation;
 extern cvar_t *r_parallax;
 extern cvar_t *r_parallax_shadow;
@@ -207,6 +209,11 @@ typedef struct {
      * @brief The light modulation scalar.
      */
     float modulate;
+
+    /**
+     * @brief The light modulation scalar for mesh models (multiplies `modulate` just for mesh models).
+     */
+    float modulate_mesh;
 
     /**
      * @brief The saturation scalar.

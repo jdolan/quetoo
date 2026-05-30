@@ -1995,6 +1995,41 @@ typedef struct r_framebuffer_s {
   GLuint post_attachment;
 
   /**
+   * @brief MSAA state (all zero when MSAA is disabled).
+   */
+  struct {
+    /**
+     * @brief The MSAA renderbuffer FBO.
+     *
+     * When non-zero, all 3D rendering targets this FBO. After rendering,
+     * the MSAA color is resolved to @c color_attachment via R_ResolveFramebuffer,
+     * and MSAA depth is resolved to @c depth_attachment via R_ResolveFramebufferDepth.
+     */
+    GLuint fbo;
+
+    /**
+     * @brief The MSAA color attachment (GL_R11F_G11F_B10F renderbuffer, multisampled).
+     *
+     * A renderbuffer rather than a texture since it is resolved to @c color_attachment
+     * via glBlitFramebuffer rather than shader sampling.
+     */
+    GLuint color_attachment;
+
+    /**
+     * @brief The MSAA depth attachment (GL_TEXTURE_2D_MULTISAMPLE, GL_DEPTH_COMPONENT32F).
+     *
+     * A texture rather than a renderbuffer so that it can be shader-sampled during
+     * the depth resolve pass.
+     */
+    GLuint depth_attachment;
+
+    /**
+     * @brief The actual sample count after clamping to GL_MAX_SAMPLES.
+     */
+    int32_t samples;
+  } msaa;
+
+  /**
    * @brief The framebuffer width.
    */
   GLint width;
@@ -2362,6 +2397,7 @@ typedef enum {
 
   TEXTURE_COLOR_ATTACHMENT,
   TEXTURE_BLOOM_ATTACHMENT,
+  TEXTURE_POST_ATTACHMENT,
   TEXTURE_DEPTH_ATTACHMENT,
   TEXTURE_DEPTH_ATTACHMENT_COPY,
 } r_texture_t;

@@ -595,8 +595,6 @@ static void Cl_UpdateScene(void) {
 
   R_DrawPost(&cl_view);
 
-  R_BlitFramebuffer(cl_view.framebuffer, 0, 0, 0, 0);
-
   Thread_Wait(thread);
 }
 

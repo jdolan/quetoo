@@ -215,6 +215,10 @@ void Cl_Servers_f(void) {
 void Cl_ParseServers(void) {
   cl_server_info_t *server;
 
+  if (net_message.size <= 12) {
+    return;
+  }
+
   byte *buffptr = net_message.data + 12;
   byte *buffend = buffptr + net_message.size - 12;
 
