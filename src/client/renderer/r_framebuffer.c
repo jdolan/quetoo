@@ -118,7 +118,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
   if (r_antialias->integer > 0) {
 
-    framebuffer.msaa.samples = 1 << r_antialias->integer;
+    framebuffer.msaa.samples = r_antialias->integer;
 
     GLint max_samples;
     glGetIntegerv(GL_MAX_SAMPLES, &max_samples);

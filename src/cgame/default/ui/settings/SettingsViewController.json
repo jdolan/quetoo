@@ -59,7 +59,7 @@
                             "var": "r_framebuffer_scale",
                             "min": 0.25,
                             "max": 2.0,
-                            "step": 0.25
+                            "step": 0.05
                           }
                         },
                         {
@@ -74,7 +74,20 @@
                             "var": "r_draw_scale",
                             "min": 0.5,
                             "max": 3.0,
-                            "step": 0.25
+                            "step": 0.1
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Antialiasing"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "antialias",
+                            "var": "r_antialias"
                           }
                         },
                         {
