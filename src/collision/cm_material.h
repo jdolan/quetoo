@@ -253,6 +253,7 @@ typedef enum {
   STAGE_ANIM_LERP = (1 << 17),
   STAGE_SHELL     = (1 << 18),
   STAGE_LIGHTING_FLAT = (1 << 19),
+  STAGE_EMISSIVE  = (1 << 20),
 
   STAGE_DRAW      = (1 << 30),
 
@@ -337,6 +338,11 @@ typedef struct cm_stage_s {
    * @brief The stage shell parameters.
    */
   cm_stage_shell_t shell;
+
+  /**
+   * @brief The stage emissive intensity [0, 1]. Adds unlit stage color to output.
+   */
+  float emissive;
 
   /**
    * @brief The next stage, or `NULL`.

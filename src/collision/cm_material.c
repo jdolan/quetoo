@@ -531,6 +531,16 @@ static bool Cm_ParseStage(cm_material_t *m, cm_stage_t *s, parser_t *parser) {
       continue;
     }
 
+    if (!g_strcmp0(token, "emissive")) {
+      s->flags |= STAGE_EMISSIVE;
+
+      if (Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &s->emissive, 1) != 1) {
+        s->emissive = 1.f;
+      }
+
+      continue;
+    }
+
     if (!g_strcmp0(token, "flare")) {
 
       if (!Parse_Token(parser, PARSE_NO_WRAP, s->asset.name, sizeof(s->asset.name))) {
@@ -1215,6 +1225,10 @@ static void Cm_WriteStage(const cm_material_t *material, const cm_stage_t *stage
     } else {
       Fs_Print(file, "\t\tlighting %0.2f\n", stage->lighting.intensity);
     }
+  }
+
+  if (stage->flags & STAGE_EMISSIVE) {
+    Fs_Print(file, "\t\temissive %0.2f\n", stage->emissive);
   }
 
   if (stage->flags & STAGE_SHELL) {
