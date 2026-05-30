@@ -83,6 +83,9 @@ void main(void) {
     vertex_lighting(vertex);
   }
 
+  vertex.ambient *= modulate_mesh;
+  vertex.lighting *= modulate_mesh;
+
   gl_Position = projection3D * view_model * position;
 
   stage_vertex(stage, position.xyz, vertex);

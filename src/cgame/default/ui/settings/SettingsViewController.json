@@ -81,19 +81,6 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Antialiasing"
-                            }
-                          },
-                          "control": {
-                            "class": "CvarSelect",
-                            "identifier": "antialias",
-                            "var": "r_antialias"
-                          }
-                        },
-                        {
-                          "class": "Input",
-                          "label": {
-                            "text": {
                               "text": "Vertical sync"
                             }
                           },
@@ -168,6 +155,19 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Antialiasing"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "antialias",
+                            "var": "r_antialias"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Brightness"
                             }
                           },
@@ -176,6 +176,20 @@
                             "var": "r_modulate",
                             "min": 0.1,
                             "max": 2.0
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Entity brightness"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_modulate_mesh",
+                            "min": 1.0,
+                            "max": 8.0
                           }
                         },
                         {

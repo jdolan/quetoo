@@ -122,6 +122,11 @@ layout (std140) uniform uniforms_block {
   float modulate;
 
   /**
+   * @Brief The additive modulate scalar for mesh entities.
+   */
+  float modulate_mesh;
+
+  /**
    * @brief The saturation scalar.
    */
   float saturation;
