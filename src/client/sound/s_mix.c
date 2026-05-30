@@ -201,7 +201,7 @@ void S_MixChannels(const s_stage_t *stage) {
           rolloff = 2.f;
           break;
         case SOUND_ATTEN_CUBIC:
-          rolloff = 4.f;
+          rolloff = 3.f;
           break;
       }
 

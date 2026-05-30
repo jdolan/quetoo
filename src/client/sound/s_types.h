@@ -26,6 +26,8 @@
 
 #include "s_al_ext.h"
 
+#include <AL/alext.h>
+
 #include <SDL3/SDL_audio.h>
 
 #include <sndfile.h>

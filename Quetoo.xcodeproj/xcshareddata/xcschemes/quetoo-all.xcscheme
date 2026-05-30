@@ -149,11 +149,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map darkzone"
-            isEnabled = "NO">
+            argument = "+map edge"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"

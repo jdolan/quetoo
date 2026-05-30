@@ -32,6 +32,7 @@ cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
 cvar_t *s_effects;
 cvar_t *s_effects_volume;
+cvar_t *s_hrtf;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -268,6 +269,7 @@ static void S_InitLocal(void) {
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
   s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
+  s_hrtf = Cvar_Add("s_hrtf", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables HRTF sound spatialization. Recommended for headphones.");
   s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
   s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
 
@@ -299,7 +301,18 @@ void S_Init(void) {
     return;
   }
 
-  s_context.context = alcCreateContext(s_context.device, NULL);
+  if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
+    ALCint attrs[7] = { ALC_HRTF_SOFT, ALC_TRUE };
+    int n = 2;
+    if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
+      attrs[n++] = ALC_OUTPUT_MODE_SOFT;
+      attrs[n++] = ALC_STEREO_HRTF_SOFT;
+    }
+    attrs[n] = 0;
+    s_context.context = alcCreateContext(s_context.device, attrs);
+  } else {
+    s_context.context = alcCreateContext(s_context.device, NULL);
+  }
 
   if (!s_context.context || !alcMakeContextCurrent(s_context.context)) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
@@ -315,6 +328,17 @@ void S_Init(void) {
   Com_Print("  Renderer:   ^2%s^7\n", s_context.renderer);
   Com_Print("  Vendor:     ^2%s^7\n", s_context.vendor);
   Com_Print("  Version:    ^2%s^7\n", s_context.version);
+
+  if (s_hrtf->integer) {
+    ALCint hrtf_status;
+    alcGetIntegerv(s_context.device, ALC_HRTF_STATUS_SOFT, 1, &hrtf_status);
+    if (hrtf_status == ALC_HRTF_ENABLED_SOFT || hrtf_status == ALC_HRTF_REQUIRED_SOFT) {
+      const ALCchar *name = alcGetString(s_context.device, ALC_HRTF_SPECIFIER_SOFT);
+      Com_Print("  HRTF:       ^2%s^7\n", name ? name : "enabled");
+    } else {
+      Com_Warn("HRTF requested but not enabled (status %d)\n", hrtf_status);
+    }
+  }
 
   gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
 
