@@ -51,7 +51,7 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "Resolution"
+                              "text": "Fullscreen resolution"
                             }
                           },
                           "control": {

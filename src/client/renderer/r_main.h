@@ -34,6 +34,8 @@ extern cvar_t *r_draw_scale;
 extern cvar_t *r_finish;
 extern cvar_t *r_framebuffer_scale;
 extern cvar_t *r_fullscreen;
+extern cvar_t *r_fullscreen_width;
+extern cvar_t *r_fullscreen_height;
 extern cvar_t *r_hardness;
 extern cvar_t *r_lighting_distance;
 extern cvar_t *r_modulate;
@@ -48,8 +50,6 @@ extern cvar_t *r_shadow_tile_size;
 extern cvar_t *r_shadow_distance;
 extern cvar_t *r_specularity;
 extern cvar_t *r_swap_interval;
-extern cvar_t *r_display_width;
-extern cvar_t *r_display_height;
 extern cvar_t *r_window_height;
 extern cvar_t *r_window_width;
 

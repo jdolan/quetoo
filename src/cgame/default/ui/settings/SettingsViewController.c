@@ -173,17 +173,17 @@ static void didSelectQuality(Select *select, Option *option) {
 }
 
 /**
- * @brief SelectDelegate callback for the resolution picker. Writes the chosen
- * width/height to the r_display_* cvars; the Apply button's r_restart applies them.
+ * @brief SelectDelegate for the resolution Select.
  */
 static void didSelectResolution(Select *select, Option *option) {
 
   const intptr_t value = (intptr_t) option->value;
-  const int width = (value >> 16) & 0xFFFF;
-  const int height = value & 0xFFFF;
 
-  cgi.SetCvarInteger("r_display_width", width);
-  cgi.SetCvarInteger("r_display_height", height);
+  const int32_t w  = (value >> 16) & 0xFFFF;
+  const int32_t h =  (value >>  0) & 0xFFFF;
+
+  cgi.SetCvarInteger("r_fullscreen_width", w);
+  cgi.SetCvarInteger("r_fullscreen_height", h);
 }
 
 #pragma mark - ViewController
@@ -201,7 +201,7 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *verticalSync, *anisotropy, *antialias, *quality;
+  Select *windowMode, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
@@ -220,34 +220,34 @@ static void loadView(ViewController *self) {
   $(windowMode, addOption, "Fullscreen", (ident) 1);
   $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
 
-  // Resolution options, deduped to unique WxH (highest refresh chosen at apply time).
-  // The chosen dimensions are packed into the option value as (width << 16) | height;
-  // 0 ("Desktop") leaves r_display_width/height at 0 to use the desktop resolution.
   $(resolution, addOption, "Desktop", (ident) 0);
 
-  const SDL_DisplayID display = SDL_GetPrimaryDisplay();
-  int num_modes = 0;
-  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &num_modes);
+  int32_t num_modes;
+  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(cgi.context->display, &num_modes);
   if (modes) {
-    int last_w = 0, last_h = 0;
-    for (int i = 0; i < num_modes; i++) {
-      const int mw = modes[i]->w, mh = modes[i]->h;
-      if (mw == last_w && mh == last_h) {
+    int32_t last_w = 0, last_h = 0;
+    for (int32_t i = 0; i < num_modes; i++) {
+
+      const SDL_DisplayMode *mode = modes[i];
+      const int32_t w = mode->w, h = mode->h;
+      if (w == last_w && h == last_h) {
         continue;
       }
-      last_w = mw;
-      last_h = mh;
 
-      char label[32];
-      g_snprintf(label, sizeof(label), "%dx%d", mw, mh);
-      $(resolution, addOption, label, (ident) (intptr_t) ((mw << 16) | mh));
+      last_w = w;
+      last_h = h;
+
+      char label[MAX_QPATH];
+      g_snprintf(label, sizeof(label), "%dx%d", w, h);
+      $(resolution, addOption, label, (ident) (intptr_t) ((w << 16) | h));
     }
     SDL_free(modes);
   }
 
-  const int cur_w = cgi.GetCvarInteger("r_display_width");
-  const int cur_h = cgi.GetCvarInteger("r_display_height");
-  $(resolution, selectOptionWithValue, (ident) (intptr_t) ((cur_w << 16) | cur_h));
+  const int32_t w = cgi.GetCvarInteger("r_fullscreen_width");
+  const int32_t h = cgi.GetCvarInteger("r_fullscreen_height");
+
+  $(resolution, selectOptionWithValue, (ident) (intptr_t) ((w << 16) | h));
 
   resolution->delegate.self = self;
   resolution->delegate.didSelectOption = didSelectResolution;
