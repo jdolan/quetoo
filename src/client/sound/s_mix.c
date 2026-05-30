@@ -61,63 +61,28 @@ void S_FreeChannel(int32_t c) {
   memset(&s_context.channels[c], 0, sizeof(s_context.channels[c]));
 }
 
-#define SOUND_MAX_DISTANCE 2048.0
-
 /**
- * @brief Resolve gain, pitch and effects for the specified channel.
+ * @brief Resolve the frame-fade gain, pitch, and effects for the specified channel.
+ * Distance attenuation and 3D panning are handled by OpenAL via `AL_LINEAR_DISTANCE_CLAMPED`.
  * @param ch The channel.
- * @return True if the channel is hearable, false otherwise.
+ * @return True if the channel is audible, false if it should be freed.
  */
 static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 
-  if (ch->play.flags & S_PLAY_UI) {
-    ch->gain = 1.f;
-    ch->pitch = 1.f;
-    ch->filter = AL_NONE;
-    return true;
-  }
+  ch->gain = 1.f;
 
-  vec3_t delta;
-  float dist;
-  
-  if (ch->play.flags & S_PLAY_RELATIVE) {
-    delta = Vec3_NormalizeLength(ch->play.origin, &dist);
-  } else {
-    dist = Vec3_DistanceDir(ch->play.origin, stage->origin, &delta);
-  }
+  if (!(ch->play.flags & S_PLAY_UI)) {
 
-  float atten;
-  switch (ch->play.atten) {
-    case SOUND_ATTEN_NONE:
-    default:
-      atten = 0.f;
-      break;
-    case SOUND_ATTEN_LINEAR:
-      atten = 1.f;
-      break;
-    case SOUND_ATTEN_SQUARE:
-      atten = 2.f;
-      break;
-    case SOUND_ATTEN_CUBIC:
-      atten = 4.f;
-      break;
-  }
-
-  const float frac = dist * atten / SOUND_MAX_DISTANCE;
-
-  ch->gain = 1.f - frac;
-
-  // fade out frame sounds if they are no longer in the frame
-  if (ch->start_time) {
-    if (ch->play.flags & S_PLAY_FRAME) {
+    // fade out frame sounds that are no longer being submitted
+    if (ch->start_time && (ch->play.flags & S_PLAY_FRAME)) {
       if (ch->timestamp != stage->ticks) {
         const uint32_t delta = stage->ticks - ch->timestamp;
 
         if (delta > 250) {
-          return false; // x faded out
+          return false;
         }
 
-        ch->gain *= 1.f - (delta / 250.f);
+        ch->gain = 1.f - (delta / 250.f);
       }
     }
   }
@@ -125,20 +90,16 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
   ch->pitch = 1.f;
   ch->filter = AL_NONE;
 
-  // adjust pitch in liquids
   if (stage->contents & CONTENTS_MASK_LIQUID) {
     ch->pitch = .5f;
   }
 
-  // offset pitch by sound-requested offset
   if (ch->play.pitch) {
     const float octaves = (float) pow(2.0, 0.69314718 * ((float) ch->play.pitch / TONES_PER_OCTAVE));
     ch->pitch *= octaves;
   }
 
-  // apply sound effects
   if (s_context.effects.loaded) {
-
     if (ch->play.flags & S_PLAY_UNDERWATER) {
       ch->filter = s_context.effects.underwater;
     } else if (ch->play.flags & S_PLAY_OCCLUDED) {
@@ -146,7 +107,7 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
     }
   }
 
-  return ch->gain > 0.f;
+  return true;
 }
 
 /**
@@ -226,6 +187,27 @@ void S_MixChannels(const s_stage_t *stage) {
       } else {
         alSourcei(src, AL_SOURCE_RELATIVE, 0);
       }
+
+      float rolloff;
+      switch (ch->play.atten) {
+        case SOUND_ATTEN_NONE:
+        default:
+          rolloff = 0.f;
+          break;
+        case SOUND_ATTEN_LINEAR:
+          rolloff = 1.f;
+          break;
+        case SOUND_ATTEN_SQUARE:
+          rolloff = 2.f;
+          break;
+        case SOUND_ATTEN_CUBIC:
+          rolloff = 4.f;
+          break;
+      }
+
+      alSourcef(src, AL_ROLLOFF_FACTOR, rolloff);
+      alSourcef(src, AL_REFERENCE_DISTANCE, 128.f);
+      alSourcef(src, AL_MAX_DISTANCE, MAX_WORLD_DIST);
 
       if (ch->play.flags & S_PLAY_LOOP) {
         alSourcei(src, AL_LOOPING, 1);
