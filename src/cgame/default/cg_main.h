@@ -55,7 +55,6 @@ extern cvar_t *cg_draw_weapon_y;
 extern cvar_t *cg_draw_weapon_z;
 extern cvar_t *cg_draw_vitals_pulse;
 extern cvar_t *cg_entity_bob;
-extern cvar_t *cg_entity_pulse;
 extern cvar_t *cg_entity_rotate;
 extern cvar_t *cg_fov;
 extern cvar_t *cg_fov_zoom;

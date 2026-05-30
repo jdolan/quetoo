@@ -25,6 +25,7 @@
 
 static SDL_AtomicInt c_tjunctions;
 static GPtrArray *faces;
+static GHashTable *faces_set;
 static SDL_SpinLock *faces_locks;
 static int32_t largest_winding = 0;
 
@@ -139,11 +140,12 @@ static void FixTJunctions_r(node_t *node) {
       continue;
     }
     
-    if (g_ptr_array_find(faces, face, NULL)) {
+    if (g_hash_table_contains(faces_set, face)) {
       continue;
     }
     
     g_ptr_array_add(faces, face);
+    g_hash_table_add(faces_set, face);
 
     largest_winding = MAX(largest_winding, face->w->num_points);
   }
@@ -158,7 +160,10 @@ void FixTJunctions(tree_t *tree) {
   SDL_SetAtomicInt(&c_tjunctions, 0);
 
   faces = g_ptr_array_new();
+  faces_set = g_hash_table_new(g_direct_hash, g_direct_equal);
   FixTJunctions_r(tree->head_node);
+  g_hash_table_destroy(faces_set);
+  faces_set = NULL;
 
   const int32_t largest_point_count = largest_winding;
   largest_winding = sizeof(cm_winding_t) + (sizeof(vec3_t) * largest_point_count);

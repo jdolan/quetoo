@@ -106,11 +106,11 @@ static vec3i_t GetWeldingPoint(const vec3_t p) {
  * @brief Hash function for integer grid-cell keys used by the welding spatial hash.
  */
 static guint WeldingSpatialHashFunc(const vec3i_t* ptr) {
-  const uint16_t x = roundf((MAX_WORLD_COORD + ptr->x) * .5f);
-  const uint16_t y = roundf((MAX_WORLD_COORD + ptr->y) * .5f);
-  const uint16_t z = roundf((MAX_WORLD_COORD + ptr->z) * .25f);
+  const uint32_t x = (uint32_t) roundf((MAX_WORLD_COORD + ptr->x) * .5f);
+  const uint32_t y = (uint32_t) roundf((MAX_WORLD_COORD + ptr->y) * .5f);
+  const uint32_t z = (uint32_t) roundf((MAX_WORLD_COORD + ptr->z) * .25f);
 
-  return x | (y << 11) | (z << 22);
+  return x | (y << 12) | (z << 24);
 }
 
 /**
@@ -390,30 +390,72 @@ bsp_face_t *EmitFace(const face_t *face) {
 static const bsp_model_t *phong_model;
 static float phong_cosine;
 
+// Pre-built for PhongShading: position -> GPtrArray*(bsp_face_t*) and brush_side* -> winding*
+static GHashTable *phong_vertex_faces;
+static GHashTable *phong_brush_side_windings;
+
+/**
+ * @brief Builds lookup tables used by Phong shading for O(1) vertex-to-face and brush-side-to-winding queries.
+ */
+static void BuildPhongMaps(const bsp_model_t *mod) {
+
+  phong_vertex_faces = g_hash_table_new_full(
+    (GHashFunc) WeldingSpatialHashFunc,
+    (GEqualFunc) WeldingSpatialHashEqualFunc,
+    g_free,
+    (GDestroyNotify) g_ptr_array_unref
+  );
+
+  const bsp_face_t *f = &bsp_file.faces[mod->first_face];
+  for (int32_t i = 0; i < mod->num_faces; i++, f++) {
+    if (f->plane == -1) {
+      continue;
+    }
+    const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
+    for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
+      const vec3i_t key = GetWeldingPoint(v->position);
+      GPtrArray *arr = g_hash_table_lookup(phong_vertex_faces, &key);
+      if (!arr) {
+        arr = g_ptr_array_new();
+        vec3i_t *key_copy = g_new(vec3i_t, 1);
+        *key_copy = key;
+        g_hash_table_insert(phong_vertex_faces, key_copy, arr);
+      }
+      g_ptr_array_add(arr, (gpointer) f);
+    }
+  }
+
+  phong_brush_side_windings = g_hash_table_new(g_direct_hash, g_direct_equal);
+  const brush_side_t *map_side = brush_sides;
+  for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
+    if (map_side->out && map_side->winding) {
+      g_hash_table_insert(phong_brush_side_windings, (gpointer) map_side->out, map_side->winding);
+    }
+  }
+}
+
+static void FreePhongMaps(void) {
+  g_hash_table_destroy(phong_vertex_faces);
+  phong_vertex_faces = NULL;
+  g_hash_table_destroy(phong_brush_side_windings);
+  phong_brush_side_windings = NULL;
+}
+
 /**
  * @brief Populates faces with pointers to all those referencing the vertex.
  * @return The count of faces referencing the vertex.
  */
 static size_t FacesForVertex(const bsp_face_t *face, const bsp_vertex_t *vertex, const bsp_face_t **faces) {
 
+  const vec3i_t key = GetWeldingPoint(vertex->position);
+  const GPtrArray *arr = g_hash_table_lookup(phong_vertex_faces, &key);
+  if (!arr) {
+    return 0;
+  }
+
   size_t count = 0;
-
-  const bsp_face_t *f = &bsp_file.faces[phong_model->first_face];
-  for (int32_t i = 0; i < phong_model->num_faces; i++, f++) {
-
-    if (f->plane == -1) {
-      continue;
-    }
-
-    const bsp_vertex_t *v = &bsp_file.vertexes[f->first_vertex];
-    for (int32_t j = 0; j < f->num_vertexes; j++, v++) {
-
-      if (Vec3_Distance(vertex->position, v->position) < VERTEX_EPSILON) {
-        faces[count++] = f;
-        break;
-      }
-    }
-
+  for (guint i = 0; i < arr->len; i++) {
+    faces[count++] = arr->pdata[i];
     if (count == MAX_VERTEX_FACES) {
       Com_Warn("Vertex @ %s is shared by too many faces.\n", vtos(vertex->position));
       break;
@@ -481,15 +523,7 @@ static void PhongVertex(const bsp_face_t *face, bsp_vertex_t *v, float phong_cos
        * are more reliable.
        */
 
-      cm_winding_t *w = NULL;
-      const brush_side_t *map_side = brush_sides;
-      for (int32_t j = 0; j < num_brush_sides; j++, map_side++) {
-        if (s == map_side->out) {
-          w = map_side->winding;
-          break;
-        }
-      }
-
+      cm_winding_t *w = g_hash_table_lookup(phong_brush_side_windings, s);
       if (!w) {
         continue;
       }
@@ -586,7 +620,9 @@ void PhongShading(const bsp_model_t *mod) {
 
   phong_cosine = cosf(Radians(phong_angle));
 
+  BuildPhongMaps(mod);
   Work("Phong shading", PhongFace, mod->num_faces);
+  FreePhongMaps();
 
   phong_model = NULL;
   phong_cosine = 0.f;

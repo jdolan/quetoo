@@ -47,6 +47,12 @@ typedef struct {
   box3_t abs_bounds;
 
   /**
+   * @brief abs_bounds in model space; equals abs_bounds for non-transformed traces.
+   * Pre-computed once to avoid per-brush Mat4_TransformBounds calls.
+   */
+  box3_t model_abs_bounds;
+
+  /**
    * @brief The trace size, expanded to a symmetrical box to account for rotations.
    */
   vec3_t size;
@@ -107,22 +113,6 @@ static inline bool Cm_BrushAlreadyTested(cm_trace_data_t *data, int32_t brush_nu
 }
 
 /**
- * @brief Returns true if the trace's absolute bounds intersect the brush bounds.
- */
-static inline bool Cm_TraceIntersect(cm_trace_data_t *data, const cm_bsp_brush_t *brush) {
-
-  box3_t brush_bounds;
-
-  if (data->is_transformed) {
-    brush_bounds = Mat4_TransformBounds(data->matrix, brush->bounds);
-  } else {
-    brush_bounds = brush->bounds;
-  }
-
-  return Box3_Intersects(data->abs_bounds, brush_bounds);
-}
-
-/**
  * @brief Clips the bounded box to all brush sides for the given brush.
  *
  * This implements swept box vs convex brush collision using the separating axis theorem.
@@ -142,7 +132,7 @@ static void Cm_TraceToBrush_(cm_trace_data_t *data, const cm_bsp_brush_t *brush)
     return;
   }
 
-  if (!Cm_TraceIntersect(data, brush)) {
+  if (!Box3_Intersects(data->model_abs_bounds, brush->bounds)) {
     return;
   }
 
@@ -241,7 +231,7 @@ static void Cm_TestBoxInBrush(cm_trace_data_t *data, const cm_bsp_brush_t *brush
     return;
   }
 
-  if (!Cm_TraceIntersect(data, brush)) {
+  if (!Box3_Intersects(data->model_abs_bounds, brush->bounds)) {
     return;
   }
 
@@ -371,7 +361,7 @@ next:;
     d2 = Vec3_Dot(plane.normal, p2) - plane.dist;
     offset = (fabsf(data->size.x * plane.normal.x) +
           fabsf(data->size.y * plane.normal.y) +
-          fabsf(data->size.z * plane.normal.z)) * 3.f;
+          fabsf(data->size.z * plane.normal.z));
   }
 
   // see which sides we need to consider
@@ -481,16 +471,15 @@ static inline cm_trace_t Cm_BoxTrace_(cm_trace_data_t *data) {
 
   memset(data->brush_cache, 0xff, sizeof(data->brush_cache));
 
+  data->model_abs_bounds = data->is_transformed
+    ? Mat4_TransformBounds(data->inverse_matrix, data->abs_bounds)
+    : data->abs_bounds;
+
   // check for position test special case
   if (Vec3_Equal(data->start, data->end)) {
     static __thread int32_t leafs[MAX_BSP_LEAFS];
-    box3_t abs_bounds = data->abs_bounds;
 
-    if (data->is_transformed) {
-      abs_bounds = Mat4_TransformBounds(data->inverse_matrix, abs_bounds);
-    }
-
-    const size_t num_leafs = Cm_BoxLeafnums(abs_bounds,
+    const size_t num_leafs = Cm_BoxLeafnums(data->model_abs_bounds,
                         leafs,
                         lengthof(leafs),
                         NULL,
@@ -609,11 +598,14 @@ cm_trace_t Cm_BoxTrace(const vec3_t start, const vec3_t end, const box3_t bounds
  */
 cm_trace_t Cm_TraceToBrush(const vec3_t start, const vec3_t end, const cm_bsp_brush_t *brush) {
 
+  const box3_t abs_bounds = Cm_TraceBounds(start, end, Box3_Zero());
+
   cm_trace_data_t data = {
     .start = start,
     .end = end,
     .bounds = Box3_Zero(),
-    .abs_bounds = Cm_TraceBounds(start, end, Box3_Zero()),
+    .abs_bounds = abs_bounds,
+    .model_abs_bounds = abs_bounds,
     .trace = {
       .fraction = 1.f
     },

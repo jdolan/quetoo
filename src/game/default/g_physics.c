@@ -816,7 +816,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       }
 
       if (k == total_movements) {
-        gi.Warn("%s rotated %s, but couldn't fit; %f was remaining\n", etos(self), etos(ent), remaining_move);
+        G_Debug("%s rotated %s, rotational fit failed; %f remaining, trying positional correction\n", etos(self), etos(ent), remaining_move);
       }
 
       // clip rest of the movement.
@@ -842,6 +842,8 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
           continue;
         }
       }
+
+      gi.Warn("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remaining_move);
     }
 
     // try to destroy the impeding entity by calling our Blocked function

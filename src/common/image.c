@@ -133,7 +133,9 @@ color_t Img_ColorHighPass(const SDL_Surface *surf, float filter) {
       }
     }
 
-    out = Color3fv(Vec3_Scale(accumulator, 1.f / passed));
+    if (passed > 0) {
+      out = Color3fv(Vec3_Scale(accumulator, 1.f / passed));
+    }
   }
 
   return out;

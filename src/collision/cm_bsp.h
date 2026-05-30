@@ -39,7 +39,7 @@
 #define MAX_BSP_BRUSH_SIDES   0x20000
 #define MAX_BSP_BRUSHES       0x8000
 #define MAX_BSP_VERTEXES      0x80000
-#define MAX_BSP_ELEMENTS      0x400000
+#define MAX_BSP_ELEMENTS      0x800000
 #define MAX_BSP_FACES         0x20000
 #define MAX_BSP_NODES         0x20000
 #define MAX_BSP_LEAF_BRUSHES  0x20000

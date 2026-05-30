@@ -52,7 +52,6 @@ cvar_t *cg_draw_weapon_y;
 cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_entity_bob;
-cvar_t *cg_entity_pulse;
 cvar_t *cg_entity_rotate;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
@@ -127,7 +126,6 @@ static void Cg_Init(void) {
   cg_draw_weapon_z = cgi.AddCvar("cg_draw_weapon_z", "0", CVAR_ARCHIVE, "The z offset for drawing the weapon model.");
   cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
   cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
-  cg_entity_pulse = cgi.AddCvar("cg_entity_pulse", "1", CVAR_ARCHIVE, "Controls the pulsing of items");
   cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
   cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
   cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
