@@ -137,6 +137,10 @@ bool Net_StringToSockaddr(const char *s, net_sockaddr *saddr) {
   char *service = strchr(node, ':');
   if (service) {
     *service++ = '\0';
+    char *slash = strchr(service, '/'); // strip trailing slash from URL-style addresses
+    if (slash) {
+      *slash = '\0';
+    }
   }
 
   const struct addrinfo hints = {
