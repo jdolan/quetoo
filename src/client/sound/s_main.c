@@ -23,6 +23,11 @@
 
 #include "s_local.h"
 
+#ifndef ALC_SOFT_output_mode
+#define ALC_OUTPUT_MODE_SOFT  0x19AC
+#define ALC_STEREO_HRTF_SOFT  0x19B2
+#endif
+
 s_context_t s_context;
 
 cvar_t *s_get_error;
