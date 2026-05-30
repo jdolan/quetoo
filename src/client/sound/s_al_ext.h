@@ -750,6 +750,7 @@ typedef void (AL_APIENTRY *LPALGETAUXILIARYEFFECTSLOTFV)(ALuint, ALenum, ALfloat
 #endif
 
 /* VARIABLE DEFINITIONS */
+#ifndef AL_ALEXT_PROTOTYPES
 extern LPALGENEFFECTS alGenEffects;
 extern LPALDELETEEFFECTS alDeleteEffects;
 extern LPALISEFFECT alIsEffect;
@@ -785,6 +786,7 @@ extern LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
 extern LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
 extern LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 extern LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
+#endif /* AL_ALEXT_PROTOTYPES */
 
 #ifndef ALC_EXT_EFX
 #define ALC_EXT_EFX 1

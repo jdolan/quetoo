@@ -22,6 +22,7 @@
 #include "s_local.h"
 
 /* ALC_EXT_EFX */
+#ifndef AL_ALEXT_PROTOTYPES
 LPALGENEFFECTS alGenEffects;
 LPALDELETEEFFECTS alDeleteEffects;
 LPALISEFFECT alIsEffect;
@@ -57,6 +58,7 @@ LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
 LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
 LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
+#endif /* AL_ALEXT_PROTOTYPES */
 
 int ALAD_ALC_EXT_EFX;
 
@@ -79,6 +81,7 @@ static int has_ext(const char *ext) {
 
 static void load_ALC_EXT_EFX(void) {
   if(!ALAD_ALC_EXT_EFX) return;
+#ifndef AL_ALEXT_PROTOTYPES
   alGenEffects = (LPALGENEFFECTS)get_proc("alGenEffects");
   alDeleteEffects = (LPALDELETEEFFECTS)get_proc("alDeleteEffects");
   alIsEffect = (LPALISEFFECT)get_proc("alIsEffect");
@@ -114,6 +117,7 @@ static void load_ALC_EXT_EFX(void) {
   alGetAuxiliaryEffectSlotiv = (LPALGETAUXILIARYEFFECTSLOTIV)get_proc("alGetAuxiliaryEffectSlotiv");
   alGetAuxiliaryEffectSlotf = (LPALGETAUXILIARYEFFECTSLOTF)get_proc("alGetAuxiliaryEffectSlotf");
   alGetAuxiliaryEffectSlotfv = (LPALGETAUXILIARYEFFECTSLOTFV)get_proc("alGetAuxiliaryEffectSlotfv");
+#endif /* AL_ALEXT_PROTOTYPES */
 }
 
 static int find_extensionsAL(void) {
