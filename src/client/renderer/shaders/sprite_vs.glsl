@@ -37,7 +37,7 @@ out vertex_data {
 /**
  * @brief
  */
-vec3 sprite_fragment_lighting_light(in int index) {
+vec3 sprite_lighting_light(in int index) {
 
   light_t light = lights[index];
 
@@ -51,7 +51,7 @@ vec3 sprite_fragment_lighting_light(in int index) {
 /**
  * @brief Dynamic lighting for sprites
  */
-void sprite_fragment_lighting(void) {
+void sprite_lighting(void) {
 
   if (in_lighting == 0.0) {
     return;
@@ -65,7 +65,7 @@ void sprite_fragment_lighting(void) {
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      diffuse += sprite_fragment_lighting_light(index);
+      diffuse += sprite_lighting_light(index);
     }
   }
 
@@ -75,7 +75,7 @@ void sprite_fragment_lighting(void) {
       break;
     }
 
-    diffuse += sprite_fragment_lighting_light(index);
+    diffuse += sprite_lighting_light(index);
   }
 
   vertex.color.rgb = mix(vertex.color.rgb, vertex.color.rgb * diffuse, in_lighting);
@@ -96,7 +96,7 @@ void main(void) {
 
   vec3 texcoord = voxel_uvw(in_position);
 
-  sprite_fragment_lighting();
+  sprite_lighting();
 
   gl_Position = projection3D * view * position;
 }

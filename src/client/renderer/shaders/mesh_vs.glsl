@@ -68,26 +68,18 @@ void main(void) {
   vertex.voxel = vec3(0.0);
   vertex.color = color;
   vertex.ambient = vec3(0.0);
+  vertex.diffuse = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.lighting = vec3(0.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
     vertex.ambient = vec3(0.666);
   } else {
     vertex.voxel = voxel_uvw(vertex.model_position);
-
-    float occlusion = voxel_occlusion(vertex.voxel);
-    float exposure = voxel_exposure(vertex.voxel);
-
-    vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
-    vertex.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
-
-    vertex_caustics(vertex);
     vertex_lighting(vertex);
   }
 
   vertex.ambient *= modulate_mesh;
-  vertex.lighting *= modulate_mesh;
+  vertex.diffuse *= modulate_mesh;
 
   gl_Position = projection3D * view_model * position;
 

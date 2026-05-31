@@ -75,13 +75,13 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
-    fragment.ambient = vec3(0.0);
-    fragment.diffuse = vertex.lighting;
+    fragment.ambient = vertex.ambient;
+    fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);
     return;
   }
 
-  // For close fragments, do full per-fragment lighting
+  // For fragments within range, do full per-fragment lighting
 
   if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
     fragment.normal_sample = normalize(vertex.normal);
@@ -91,31 +91,11 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
 
-  float occlusion = voxel_occlusion(vertex.voxel);
-  float exposure = voxel_exposure(vertex.voxel);
-
-  vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
-
-  fragment.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
-
-  fragment.diffuse = vec3(0.0);
-  fragment.specular = vec3(0.0);
-
   // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
-  if (editor == 0) {
-    fragment_lighting(vertex, fragment);
-  } else {
-    for (int i = 0; i < MAX_LIGHTS; i++) {
-      int index = active_lights[i];
-      if (index == -1) {
-        break;
-      }
-      fragment_light(vertex, fragment, index);
-    }
-  }
+  fragment_lighting(vertex, fragment);
 }
 
 /**

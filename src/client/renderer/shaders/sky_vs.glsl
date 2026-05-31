@@ -47,8 +47,8 @@ void main(void) {
   vertex.voxel = voxel_uvw(in_position);
   vertex.color = vec4(1.0);
   vertex.ambient = vec3(0.0);
+  vertex.diffuse = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.lighting = vec3(0.0);
 
   stage_vertex(stage, in_position, vertex);
 

@@ -34,6 +34,7 @@ static struct {
   GLint texture_voxel_occlusion;
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
+  GLint texture_sky;
 
   GLint model;
 } r_decal_program;
@@ -156,6 +157,7 @@ static void R_ClipDecalToFace(const r_view_t *view,
     for (int32_t j = 0; j < 3; j++) {
       const vec3_t pos = w->points[indices[j]];
       triangle.vertexes[j].position = pos;
+      triangle.vertexes[j].normal = normal;
 
       const vec3_t delta = Vec3_Subtract(pos, org);
       const float x = (Vec3_Dot(delta, t) / r) * 0.5f + 0.5f;
@@ -459,12 +461,14 @@ static void R_InitDecalProgram(void) {
   r_decal_program.texture_voxel_occlusion = glGetUniformLocation(r_decal_program.name, "texture_voxel_occlusion");
   r_decal_program.texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
   r_decal_program.texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
+  r_decal_program.texture_sky = glGetUniformLocation(r_decal_program.name, "texture_sky");
 
   glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
   glUniform1i(r_decal_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
   glUniform1i(r_decal_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
   glUniform1i(r_decal_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_decal_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
+  glUniform1i(r_decal_program.texture_sky, TEXTURE_SKY);
 
   R_GetError(NULL);
 }
@@ -486,7 +490,6 @@ static void R_ShutdownDecalProgram(void) {
 
   r_decal_program.name = 0;
 }
-
 
 /**
  * @brief Shutdown the decals subsystem.

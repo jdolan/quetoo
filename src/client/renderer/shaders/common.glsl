@@ -93,8 +93,8 @@ struct common_vertex_t {
   vec3 voxel;            // Voxel texture coordinates
   vec4 color;            // Vertex color
   vec3 ambient;          // Ambient lighting
-  float caustics;        // Caustics intensity
-  vec3 lighting;         // Pre-calculated vertex lighting
+  vec3 diffuse;          // Diffuse lighting
+  float caustics;        // Caustics lighting
 };
 
 /**
