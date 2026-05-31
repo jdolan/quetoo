@@ -20,6 +20,7 @@
  */
 
 #include "s_local.h"
+#include "collision/cm_voxel.h"
 
 /**
  * @brief Returns effective gain for non-ambient samples.
@@ -132,6 +133,27 @@ void S_MixChannels(const s_stage_t *stage) {
     alListenerfv(AL_VELOCITY, Vec3_Zero().xyz);
   }
 
+  if (s_context.effects.loaded) {
+    const cm_voxel_t *voxel = Cm_VoxelForPoint(stage->origin);
+    if (voxel) {
+      const float r = voxel->occlusion;
+      s_context.reverb = r;
+      ALenum type;
+      alGetEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, &type);
+      if (type == AL_EFFECT_EAXREVERB) {
+        alEffectf(s_context.effects.reverb, AL_EAXREVERB_GAIN, 0.32f * r);
+        alEffectf(s_context.effects.reverb, AL_EAXREVERB_DECAY_TIME, 0.1f + 2.4f * r);
+        alEffectf(s_context.effects.reverb, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, r);
+      } else {
+        alEffectf(s_context.effects.reverb, AL_REVERB_GAIN, 0.32f * r);
+        alEffectf(s_context.effects.reverb, AL_REVERB_DECAY_TIME, 0.1f + 2.4f * r);
+        alEffectf(s_context.effects.reverb, AL_REVERB_ROOM_ROLLOFF_FACTOR, r);
+      }
+      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT,
+                             (ALint) s_context.effects.reverb);
+    }
+  }
+
   s_context.num_active_channels = 0;
 
   s_channel_t *ch = s_context.channels;
@@ -175,6 +197,9 @@ void S_MixChannels(const s_stage_t *stage) {
 
     if (s_context.effects.loaded) {
       alSourcei(src, AL_DIRECT_FILTER, ch->filter);
+      alSourcef(src, AL_AIR_ABSORPTION_FACTOR, 0.025f); // 0.05 dB/m × (1 m / 40 units)
+      alSource3i(src, AL_AUXILIARY_SEND_FILTER,
+                 (ALint) s_context.effects.reverb_slot, 0, AL_FILTER_NULL);
     }
 
     if (ch->start_time == 0) {

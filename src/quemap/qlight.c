@@ -410,6 +410,12 @@ static void LightWorld(void) {
   // calculate caustics from liquid contents
   Work("Caustics", CausticsVoxel, (int32_t) num_voxel);
 
+  // calculate reverb enclosure
+  Work("Occlusion", OccludeVoxel, (int32_t) num_voxel);
+
+  // smooth voxel grid to reduce 32-unit grid discontinuities
+  SmoothVoxels();
+
   // emit light sources to the bsp
   EmitLights();
 

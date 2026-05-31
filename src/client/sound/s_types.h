@@ -243,7 +243,7 @@ typedef struct {
 } s_music_t;
 
 /**
- * @brief Filters used by the sound system if `s_effects` is enabled & supported.
+ * @brief Filters and effects used by the sound system if `s_effects` is enabled & supported.
  */
 typedef struct {
 
@@ -256,6 +256,16 @@ typedef struct {
    * @brief Extreme low-pass filter applied to sounds of different liquid state than the listener.
    */
   ALuint underwater;
+
+  /**
+   * @brief EAX or standard reverb effect, driven by per-listener voxel enclosure.
+   */
+  ALuint reverb;
+
+  /**
+   * @brief Auxiliary effect slot the reverb effect is attached to.
+   */
+  ALuint reverb_slot;
 
   /**
    * @brief True if the filters above are currently loaded.
@@ -342,6 +352,11 @@ typedef struct {
    * @brief Effect IDs.
    */
   s_effects_t effects;
+
+  /**
+   * @brief The current listener reverb level (0=open, 1=fully enclosed).
+   */
+  float reverb;
 } s_context_t;
 
 /**

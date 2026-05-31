@@ -76,8 +76,11 @@ void main(void) {
   } else {
     vertex.voxel = voxel_uvw(vertex.model_position);
 
+    float occlusion = voxel_occlusion(vertex.voxel);
+    float exposure = voxel_exposure(vertex.voxel);
+
     vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
-    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
+    vertex.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
 
     vertex_caustics(vertex);
     vertex_lighting(vertex);

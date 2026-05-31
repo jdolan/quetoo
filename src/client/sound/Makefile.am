@@ -30,6 +30,7 @@ libsound_la_LDFLAGS = \
 	-shared
 
 libsound_la_LIBADD = \
+	$(top_builddir)/src/collision/libcollision.la \
 	$(top_builddir)/src/common/libcommon.la \
 	@OPENAL_LIBS@ \
 	@SDL3_LIBS@ \

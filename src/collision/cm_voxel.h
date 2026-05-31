@@ -21,40 +21,6 @@
 
 #pragma once
 
-/**
- * @brief The voxel type.
- */
-typedef struct {
-  vec3i_t xyz;
-  vec3_t origin;
-  box3_t bounds;
-  vec3_t caustics;
-  float exposure;
-  float occlusion;
-  GHashTable *lights;
-  int32_t lights_offset;
-  int32_t lights_count;
-} voxel_t;
+#include "cm_types.h"
 
-/**
- * @brief The voxel grid type.
- */
-typedef struct {
-  box3_t stu_bounds;
-  vec3i_t size;
-  size_t num_voxels;
-  voxel_t *voxels;
-  size_t num_light_indices;
-} voxels_t;
-
-extern voxels_t voxels;
-
-size_t BuildVoxels(void);
-void LightVoxel(int32_t voxel_num);
-void FloodLights(void);
-void CausticsVoxel(int32_t voxel_num);
-void ExposureVoxel(int32_t voxel_num);
-void OccludeVoxel(int32_t voxel_num);
-void SmoothVoxels(void);
-void EmitVoxels(void);
-void FreeVoxels(void);
+const cm_voxel_t *Cm_VoxelForPoint(const vec3_t pos);

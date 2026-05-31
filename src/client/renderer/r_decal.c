@@ -30,7 +30,8 @@ static struct {
   GLuint lights_block;
 
   GLint texture_diffusemap;
-  GLint texture_voxel_data;
+  GLint texture_voxel_caustics;
+  GLint texture_voxel_occlusion;
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
 
@@ -454,12 +455,14 @@ static void R_InitDecalProgram(void) {
   r_decal_program.model = glGetUniformLocation(r_decal_program.name, "model");
 
   r_decal_program.texture_diffusemap = glGetUniformLocation(r_decal_program.name, "texture_diffusemap");
-  r_decal_program.texture_voxel_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_data");
+  r_decal_program.texture_voxel_caustics = glGetUniformLocation(r_decal_program.name, "texture_voxel_caustics");
+  r_decal_program.texture_voxel_occlusion = glGetUniformLocation(r_decal_program.name, "texture_voxel_occlusion");
   r_decal_program.texture_voxel_light_data = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_data");
   r_decal_program.texture_voxel_light_indices = glGetUniformLocation(r_decal_program.name, "texture_voxel_light_indices");
 
   glUniform1i(r_decal_program.texture_diffusemap, TEXTURE_DIFFUSEMAP);
-  glUniform1i(r_decal_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
+  glUniform1i(r_decal_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
+  glUniform1i(r_decal_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
   glUniform1i(r_decal_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_decal_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 

@@ -317,6 +317,8 @@
 		CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
+		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
+		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
 		CE6EE3D21F720D6700FBC830 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
 		CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
@@ -1752,6 +1754,8 @@
 		CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
+		1EE6A866A93B42938A4E84E6 /* cm_voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_voxel.c; sourceTree = "<group>"; };
+		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.0.dylib; path = ../../../../usr/local/lib/libObjectively.0.dylib; sourceTree = "<group>"; };
 		CE6EE3CE1F72018C00FBC830 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2862,6 +2866,8 @@
 			children = (
 				CE6C2D0F1E24902900F55B0A /* cm_bsp.c */,
 				CE6C2D101E24902900F55B0A /* cm_bsp.h */,
+				1EE6A866A93B42938A4E84E6 /* cm_voxel.c */,
+				97BDA8A5C8DF41E290656B3D /* cm_voxel.h */,
 				CEBDB0C8214A037900A7AC3D /* cm_entity.c */,
 				CEBDB0C7214A037800A7AC3D /* cm_entity.h */,
 				CE12D6291C5C58C300CD0B13 /* cm_local.h */,
@@ -3799,6 +3805,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */,
+				EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */,
 				CEBDB0C9214A037900A7AC3D /* cm_entity.h in Headers */,
 				CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */,
 				CE80FE721C5E437F00A21A51 /* cm_local.h in Headers */,
@@ -5026,6 +5033,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */,
+				CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */,
 				CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */,
 				CEA3B48D1E0576E3004A6CF3 /* cm_material.c in Sources */,
 				522B158EA7384E83CD005789 /* cm_manifest.c in Sources */,

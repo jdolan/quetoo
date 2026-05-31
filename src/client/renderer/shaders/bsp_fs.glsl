@@ -91,9 +91,13 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
 
+  float occlusion = voxel_occlusion(vertex.voxel);
+  float exposure = voxel_exposure(vertex.voxel);
+
   vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
 
-  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
+  fragment.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
+
   fragment.diffuse = vec3(0.0);
   fragment.specular = vec3(0.0);
 

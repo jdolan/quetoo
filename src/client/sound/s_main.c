@@ -380,6 +380,18 @@ void S_Init(void) {
       alFilterf(s_context.effects.underwater, AL_LOWPASS_GAIN, 0.3);
       alFilterf(s_context.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
 
+      alGenEffects(1, &s_context.effects.reverb);
+      if (alGetError() == AL_NO_ERROR) {
+        alEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+        if (alGetError() != AL_NO_ERROR) {
+          alEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+          S_GetError("Failed to set reverb effect type");
+        }
+      }
+
+      alGenAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
+
       S_GetError("Failed to create filters");
 
       s_context.effects.loaded = true;
@@ -418,6 +430,9 @@ void S_Shutdown(void) {
 
   if (s_context.effects.loaded) {
     alDeleteFilters(1, &s_context.effects.underwater);
+    alDeleteFilters(1, &s_context.effects.occluded);
+    alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+    alDeleteEffects(1, &s_context.effects.reverb);
     s_context.effects.loaded = false;
   }
 
