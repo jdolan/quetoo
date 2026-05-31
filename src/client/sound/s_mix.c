@@ -135,8 +135,8 @@ void S_MixChannels(const s_stage_t *stage) {
 
   if (s_context.effects.loaded) {
     const cm_voxel_t *voxel = Cm_VoxelForPoint(stage->origin);
-    if (voxel) {
-      const float r = voxel->occlusion;
+    const float r = voxel ? voxel->occlusion : 0.f;
+    if (r != s_context.reverb) {
       s_context.reverb = r;
       ALenum type;
       alGetEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, &type);
@@ -149,8 +149,7 @@ void S_MixChannels(const s_stage_t *stage) {
         alEffectf(s_context.effects.reverb, AL_REVERB_DECAY_TIME, 0.1f + 2.4f * r);
         alEffectf(s_context.effects.reverb, AL_REVERB_ROOM_ROLLOFF_FACTOR, r);
       }
-      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT,
-                             (ALint) s_context.effects.reverb);
+      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
     }
   }
 
@@ -198,8 +197,8 @@ void S_MixChannels(const s_stage_t *stage) {
     if (s_context.effects.loaded) {
       alSourcei(src, AL_DIRECT_FILTER, ch->filter);
       alSourcef(src, AL_AIR_ABSORPTION_FACTOR, 0.025f); // 0.05 dB/m × (1 m / 40 units)
-      alSource3i(src, AL_AUXILIARY_SEND_FILTER,
-                 (ALint) s_context.effects.reverb_slot, 0, AL_FILTER_NULL);
+      const ALuint send = (ch->play.flags & S_PLAY_UI) ? AL_EFFECTSLOT_NULL : (ALuint) s_context.effects.reverb_slot;
+      alSource3i(src, AL_AUXILIARY_SEND_FILTER, (ALint) send, 0, AL_FILTER_NULL);
     }
 
     if (ch->start_time == 0) {
