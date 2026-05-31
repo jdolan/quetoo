@@ -8,6 +8,7 @@ shaders_DATA = \
 	decal_vs.glsl \
 	depth_pass_fs.glsl \
 	depth_pass_vs.glsl \
+	depth_resolve_fs.glsl \
 	draw_2d_fs.glsl \
 	draw_2d_vs.glsl \
 	draw_3d_fs.glsl \

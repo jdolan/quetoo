@@ -55,8 +55,8 @@
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		0975D2E7118D42B05C9F5422 /* small.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FD02F9650560087A850 /* small.png */; };
 		1384B3692A611AB241B9C51C /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = F7E7256984E276048C2A155E /* bg_item.h */; };
-		2674BBB566394C8280B03A25 /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */; };
 		238D2003D535476E99DF4AC2 /* depth_resolve_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */; };
+		2674BBB566394C8280B03A25 /* post_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */; };
 		2C468DAAA30BB6E232FA21C3 /* large.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCC2F9650560087A850 /* large.png */; };
 		522B158EA7384E83CD005789 /* cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* cm_manifest.c */; };
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
@@ -1241,8 +1241,8 @@
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
-		7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = depth_resolve_fs.glsl; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
+		7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = depth_resolve_fs.glsl; sourceTree = "<group>"; };
 		93837BFDD89832004989509B /* libgame-item.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-item.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
@@ -2814,6 +2814,7 @@
 				CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */,
 				CE2CECA72585B9920001E599 /* depth_pass_fs.glsl */,
 				CE2CEC1C25852FA20001E599 /* depth_pass_vs.glsl */,
+				7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */,
 				CE3BCDC31DB6DD05002E6C6D /* draw_2d_fs.glsl */,
 				CE3BCDC41DB6DD05002E6C6D /* draw_2d_vs.glsl */,
 				CED5BB182406B74300784D93 /* draw_3d_fs.glsl */,
@@ -2828,7 +2829,6 @@
 				CE8FD2F923D70A11002FD074 /* sky_vs.glsl */,
 				F57902A124843E730023101D /* soften_fs.glsl */,
 				6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */,
-				7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */,
 				59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */,
 				CEAC32C0242125ED007E1253 /* sprite_fs.glsl */,
 				CEAC32BF242125ED007E1253 /* sprite_vs.glsl */,
