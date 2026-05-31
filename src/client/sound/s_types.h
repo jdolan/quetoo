@@ -21,11 +21,9 @@
 
 #pragma once
 
+#define AL_ALEXT_PROTOTYPES
 #include <AL/al.h>
 #include <AL/alc.h>
-
-#include "s_al_ext.h"
-
 #include <AL/alext.h>
 
 #include <SDL3/SDL_audio.h>

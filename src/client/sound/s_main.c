@@ -23,11 +23,6 @@
 
 #include "s_local.h"
 
-#ifndef ALC_SOFT_output_mode
-#define ALC_OUTPUT_MODE_SOFT  0x19AC
-#define ALC_STEREO_HRTF_SOFT  0x19B2
-#endif
-
 s_context_t s_context;
 
 cvar_t *s_get_error;
@@ -324,7 +319,7 @@ void S_Init(void) {
     return;
   }
 
-  aladLoadAL();
+  const int efx_supported = alcIsExtensionPresent(s_context.device, "ALC_EXT_EFX");
 
   s_context.renderer = (const char *) alGetString(AL_RENDERER);
   s_context.vendor = (const char *) alGetString(AL_VENDOR);
@@ -369,7 +364,7 @@ void S_Init(void) {
   g_strfreev(strings);
 
   if (s_effects->integer) {
-    if (!ALAD_ALC_EXT_EFX) {
+    if (!efx_supported) {
       Com_Warn("s_effects is enabled but OpenAL driver does not support them.\n");
       Cvar_ForceSetInteger(s_effects->name, 0);
       s_effects->modified = false;

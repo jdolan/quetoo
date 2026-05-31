@@ -20,7 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\sound\sound.h" />
-    <ClInclude Include="..\..\src\client\sound\s_al_ext.h" />
     <ClInclude Include="..\..\src\client\sound\s_local.h" />
     <ClInclude Include="..\..\src\client\sound\s_main.h" />
     <ClInclude Include="..\..\src\client\sound\s_media.h" />
@@ -30,7 +29,6 @@
     <ClInclude Include="..\..\src\client\sound\s_types.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\client\sound\s_al_ext.c" />
     <ClCompile Include="..\..\src\client\sound\s_main.c" />
     <ClCompile Include="..\..\src\client\sound\s_media.c" />
     <ClCompile Include="..\..\src\client\sound\s_mix.c" />

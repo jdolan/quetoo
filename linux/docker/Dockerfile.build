@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y \
     build-essential autoconf automake libtool pkg-config git curl \
     libncurses-dev \
     libpcre2-dev libffi-dev \
-    libopenal-dev libsndfile1-dev libphysfs-dev zlib1g-dev \
+    libsndfile1-dev libphysfs-dev zlib1g-dev \
     libcurl4-openssl-dev \
     libgl-dev \
     libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
@@ -34,6 +34,17 @@ RUN curl -fsSL -o glib-2.88.0.tar.xz https://download.gnome.org/sources/glib/2.8
   && ninja -C glib-2.88.0/_build -j$(nproc) \
   && ninja -C glib-2.88.0/_build install \
   && rm -rf glib-2.88.0 glib-2.88.0.tar.xz
+
+RUN git clone --depth 1 --branch 1.25.2 https://github.com/kcat/openal-soft.git openal-soft \
+  && cmake -S openal-soft -B openal-soft/build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DALSOFT_EXAMPLES=OFF \
+    -DALSOFT_TESTS=OFF \
+    -DALSOFT_UTILS=OFF \
+  && cmake --build openal-soft/build -j$(nproc) \
+  && cmake --install openal-soft/build \
+  && rm -rf openal-soft
 
 RUN git clone --depth 1 --branch release-3.4.2 https://github.com/libsdl-org/SDL.git SDL3 \
   && cmake -S SDL3 -B SDL3/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
