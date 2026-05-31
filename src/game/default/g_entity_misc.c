@@ -259,7 +259,6 @@ static void G_misc_fireball_Touch(g_entity_t *ent, g_entity_t *other, const cm_t
  * @brief Spawns a new fireball projectile and schedules the next emission from the emitter.
  */
 static void G_misc_fireball_Fly(g_entity_t *ent) {
-  static uint32_t count;
 
   g_entity_t *fireball = G_AllocEntity(__func__);
 
@@ -280,6 +279,7 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
 
   fireball->solid = SOLID_TRIGGER;
   fireball->move_type = MOVE_TYPE_BOUNCE;
+  fireball->mass = 10.f;
 
   fireball->s.model1 = g_media.models.fireball;
   fireball->damage = ent->damage;
@@ -291,10 +291,12 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
 
   gi.LinkEntity(fireball);
 
-  if (Randomf() < 0.33) {
+  if (Randomf() < 0.1f) {
+    static uint32_t count;
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.lava[count++ % lengthof(g_media.sounds.lava)],
       .entity = ent,
+      .gain = RandomRangef(0.1f, 0.3f)
     }, MULTICAST_PHS);
   }
 

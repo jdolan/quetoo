@@ -153,6 +153,11 @@ typedef struct s_play_sample_s {
   int32_t pitch;
 
   /**
+   * @brief Gain scalar in [0, 1]; 0 means use the default (1.0).
+   */
+  float gain;
+
+  /**
    * @brief The entity associated with this sample, so that occlusion traces may skip it.
    */
   const void *entity;
@@ -199,9 +204,19 @@ typedef struct {
   float pitch;
 
   /**
-   * @brief The channel filter.
+   * @brief The combined lowpass filter applied to this channel (occlusion + underwater).
    */
   ALuint filter;
+
+  /**
+   * @brief Occlusion (through-wall) mix fraction, smoothly interpolated [0, 1].
+   */
+  float occlusion;
+
+  /**
+   * @brief Underwater mix fraction, smoothly interpolated [0, 1].
+   */
+  float underwater;
 } s_channel_t;
 
 #define MAX_CHANNELS 128
@@ -241,16 +256,6 @@ typedef struct {
  * @brief Filters and effects used by the sound system if `s_effects` is enabled & supported.
  */
 typedef struct {
-
-  /**
-   * @brief Low-pass filter applied to occluded sound sources.
-   */
-  ALuint occluded;
-
-  /**
-   * @brief Extreme low-pass filter applied to sounds of different liquid state than the listener.
-   */
-  ALuint underwater;
 
   /**
    * @brief EAX or standard reverb effect, driven by per-listener voxel enclosure.
@@ -352,6 +357,11 @@ typedef struct {
    * @brief The current listener reverb level (0=open, 1=fully enclosed).
    */
   float reverb;
+
+  /**
+   * @brief Stage ticks at last mix, used to compute per-frame dt for filter interpolation.
+   */
+  uint32_t prev_ticks;
 } s_context_t;
 
 /**

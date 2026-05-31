@@ -96,11 +96,13 @@ static void G_CheckWater(g_entity_t *ent) {
 
     if (!(ent->sv_flags & SVF_NO_CLIENT)) {
       const int8_t pitch = ent->water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+      const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &pos,
-        .pitch = pitch
+        .pitch = pitch,
+        .gain = gain
       }, MULTICAST_PHS);
 
       if (ent->move_type != MOVE_TYPE_NO_CLIP) {
@@ -116,11 +118,13 @@ static void G_CheckWater(g_entity_t *ent) {
 
     if (!(ent->sv_flags & SVF_NO_CLIENT)) {
       const int8_t pitch = old_water_type & (CONTENTS_LAVA | CONTENTS_SLIME) ? -32 : 0;
+      const float gain = Clampf(sqrtf(ent->mass / 200.f), 0.f, 1.f);
 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_out,
         .origin = &pos,
-        .pitch = pitch
+        .pitch = pitch,
+        .gain = gain
       }, MULTICAST_PHS);
 
       if (ent->move_type != MOVE_TYPE_NO_CLIP) {

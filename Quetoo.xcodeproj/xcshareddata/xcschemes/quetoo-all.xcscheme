@@ -152,8 +152,8 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map edge"
-            isEnabled = "NO">
+            argument = "+map lavatomb"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"

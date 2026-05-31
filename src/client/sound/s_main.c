@@ -178,7 +178,19 @@ SF_VIRTUAL_IO s_physfs_io = {
  */
 void S_Stop(void) {
 
+  // Preserve per-channel filter handles (AL objects outlive channel state)
+  ALuint filters[MAX_CHANNELS];
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    filters[i] = s_context.channels[i].filter;
+  }
+
   memset(s_context.channels, 0, sizeof(s_context.channels));
+
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    s_context.channels[i].filter = filters[i];
+  }
+
+  s_context.prev_ticks = 0;
 
   alSourceStopv(MAX_CHANNELS, s_context.sources);
 
@@ -366,15 +378,14 @@ void S_Init(void) {
       s_effects->modified = false;
       s_context.effects.loaded = false;
     } else {
-      alGenFilters(1, &s_context.effects.occluded);
-      alFilteri(s_context.effects.occluded, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-      alFilterf(s_context.effects.occluded, AL_LOWPASS_GAIN, 0.6);
-      alFilterf(s_context.effects.occluded, AL_LOWPASS_GAINHF, 0.6);
 
-      alGenFilters(1, &s_context.effects.underwater);
-      alFilteri(s_context.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-      alFilterf(s_context.effects.underwater, AL_LOWPASS_GAIN, 0.3);
-      alFilterf(s_context.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+      // Per-channel combined lowpass filter (occlusion + underwater blended into one)
+      ALuint filters[MAX_CHANNELS];
+      alGenFilters(MAX_CHANNELS, filters);
+      for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+        alFilteri(filters[i], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+        s_context.channels[i].filter = filters[i];
+      }
 
       alGenEffects(1, &s_context.effects.reverb);
       if (alGetError() == AL_NO_ERROR) {
@@ -388,9 +399,12 @@ void S_Init(void) {
       alGenAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
       alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
 
-      S_GetError("Failed to create filters");
-
-      s_context.effects.loaded = true;
+      if (alGetError() == AL_NO_ERROR) {
+        s_context.effects.loaded = true;
+      } else {
+        Com_Warn("s_effects: failed to create filters, disabling.\n");
+        s_context.effects.loaded = false;
+      }
     }
   } else {
     s_context.effects.loaded = false;
@@ -425,8 +439,11 @@ void S_Shutdown(void) {
   alDeleteSources(MAX_CHANNELS, s_context.sources);
 
   if (s_context.effects.loaded) {
-    alDeleteFilters(1, &s_context.effects.underwater);
-    alDeleteFilters(1, &s_context.effects.occluded);
+    ALuint filters[MAX_CHANNELS];
+    for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+      filters[i] = s_context.channels[i].filter;
+    }
+    alDeleteFilters(MAX_CHANNELS, filters);
     alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
     alDeleteEffects(1, &s_context.effects.reverb);
     s_context.effects.loaded = false;

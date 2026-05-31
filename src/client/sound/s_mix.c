@@ -59,12 +59,15 @@ void S_FreeChannel(int32_t c) {
   alSourceStop(s_context.sources[c]);
   alSourcei(s_context.sources[c], AL_BUFFER, 0);
 
+  const ALuint filter = s_context.channels[c].filter;
   memset(&s_context.channels[c], 0, sizeof(s_context.channels[c]));
+  s_context.channels[c].filter = filter;
 }
 
 /**
  * @brief Resolve the frame-fade gain, pitch, and effects for the specified channel.
  * @details Distance attenuation and 3D panning are handled by OpenAL.
+ * @param stage The sound stage.
  * @param ch The channel.
  * @return True if the channel is audible, false if it should be freed.
  */
@@ -88,8 +91,11 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
     }
   }
 
+  if (ch->play.gain) {
+    ch->gain *= ch->play.gain;
+  }
+
   ch->pitch = 1.f;
-  ch->filter = AL_NONE;
 
   if (stage->contents & CONTENTS_MASK_LIQUID) {
     ch->pitch = .5f;
@@ -101,10 +107,28 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
   }
 
   if (s_context.effects.loaded) {
-    if (ch->play.flags & S_PLAY_UNDERWATER) {
-      ch->filter = s_context.effects.underwater;
-    } else if (ch->play.flags & S_PLAY_OCCLUDED) {
-      ch->filter = s_context.effects.occluded;
+    const uint32_t delta = s_context.prev_ticks ? stage->ticks - s_context.prev_ticks : 0;
+
+    // Underwater: 300 ms transition, heavy lowpass (muffled and dark)
+    {
+      const float target = (ch->play.flags & S_PLAY_UNDERWATER) ? 1.f : 0.f;
+      const float step = delta / 300.f;
+      ch->underwater = Clampf(ch->underwater + (target > ch->underwater ? step : -step), 0.f, 1.f);
+    }
+
+    // Occlusion: 300 ms transition, extreme HF cut (through-wall muffle)
+    {
+      const float target = (ch->play.flags & S_PLAY_OCCLUDED) ? 1.f : 0.f;
+      const float step = delta / 300.f;
+      ch->occlusion = Clampf(ch->occlusion + (target > ch->occlusion ? step : -step), 0.f, 1.f);
+    }
+
+    // Combine both into a single filter by multiplying gains; only one AL_DIRECT_FILTER slot exists per source.
+    {
+      const float gain   = Mixf(1.f, 0.66f,  ch->underwater) * Mixf(1.f, 0.33f, ch->occlusion);
+      const float gainhf = Mixf(1.f, 0.33f,  ch->underwater) * Mixf(1.f, 0.88f, ch->occlusion);
+      alFilterf(ch->filter, AL_LOWPASS_GAIN,   gain);
+      alFilterf(ch->filter, AL_LOWPASS_GAINHF, gainhf);
     }
   }
 
@@ -195,7 +219,7 @@ void S_MixChannels(const s_stage_t *stage) {
     alSourcef(src, AL_PITCH, ch->pitch);
 
     if (s_context.effects.loaded) {
-      alSourcei(src, AL_DIRECT_FILTER, ch->filter);
+      alSourcei(src, AL_DIRECT_FILTER, (ALint) ch->filter);
       alSourcef(src, AL_AIR_ABSORPTION_FACTOR, 0.025f); // 0.05 dB/m × (1 m / 40 units)
       const ALuint send = (ch->play.flags & S_PLAY_UI) ? AL_EFFECTSLOT_NULL : (ALuint) s_context.effects.reverb_slot;
       alSource3i(src, AL_AUXILIARY_SEND_FILTER, (ALint) send, 0, AL_FILTER_NULL);
@@ -242,6 +266,8 @@ void S_MixChannels(const s_stage_t *stage) {
 
     s_context.num_active_channels++;
   }
+
+  s_context.prev_ticks = stage->ticks;
 }
 
 /**
