@@ -22,19 +22,6 @@
 #include "g_local.h"
 
 /**
- * @brief Returns the parsed per-entity sound attenuation, or `default_atten`.
- */
-static sound_atten_t G_EntitySoundAtten(const g_entity_t *ent, const sound_atten_t default_atten) {
-
-  const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
-  if (atten->parsed & ENTITY_INTEGER) {
-    return (sound_atten_t) atten->integer;
-  }
-
-  return default_atten;
-}
-
-/**
  * @brief Finalizes linear movement, snapping the entity to its destination and translating any riding entities.
  */
 static void G_MoveInfo_Linear_Done(g_entity_t *ent) {
@@ -421,7 +408,6 @@ static void G_func_plat_Top(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -450,7 +436,6 @@ static void G_func_plat_Bottom(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .origin = &pos,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -471,7 +456,6 @@ static void G_func_plat_GoingDown(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -498,7 +482,6 @@ static void G_func_plat_GoingUp(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .origin = &pos,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -608,7 +591,6 @@ static void G_func_plat_CreateTrigger(g_entity_t *ent, float lip) {
  lip : The lip remaining at end of move (default 8 units).
  height : If set, this will determine the extent of the platform's movement, rather than implicitly using the platform's height.
  sounds : The sound set for the platform (0 default, 1 stone, -1 silent).
- atten : The attenuation level for platform sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -685,14 +667,13 @@ void G_func_plat(g_entity_t *ent) {
     ent->move_info.sound_start = gi.SoundIndex(va("func/plat_start_%d", s + 1));
     ent->move_info.sound_middle = gi.SoundIndex(va("func/plat_middle_%d", s + 1));
     ent->move_info.sound_end = gi.SoundIndex(va("func/plat_end_%d", s + 1));
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 }
 
 #define ROTATE_START_ON    0x1
-#define ROTATE_REVERSE    0x2
-#define ROTATE_AXIS_X    0x4
-#define ROTATE_AXIS_Y    0x8
+#define ROTATE_REVERSE     0x2
+#define ROTATE_AXIS_X      0x4
+#define ROTATE_AXIS_Y      0x8
 #define ROTATE_TOUCH_PAIN  0x10
 #define ROTATE_TOUCH_STOP  0x20
 
@@ -852,7 +833,6 @@ static void G_func_button_Activate(g_entity_t *ent) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = move->sound_start,
       .entity = ent,
-      .atten = ent->move_info.sound_atten
     }, MULTICAST_PHS);
   }
 
@@ -909,7 +889,6 @@ static void G_func_button_Die(g_entity_t *ent, g_entity_t *attacker,
  wait : Number of seconds the button stays pressed (default 1, -1 = indefinitely).
  lip : Lip remaining at end of move (default 4 units).
  sounds : The sound set for the button (0 default, -1 silent).
- atten : The attenuation level for button sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  health : If set, the button must be killed instead of touched to use.
  targetname : The target name of this entity if it is to be triggered.
  */
@@ -926,7 +905,6 @@ void G_func_button(g_entity_t *ent) {
 
   if (gi.EntityValue(ent->def, "sounds")->integer != -1) {
     ent->move_info.sound_start = gi.SoundIndex("func/switch");
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 
   if (!ent->speed) {
@@ -988,7 +966,6 @@ static void G_func_door_Top(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1018,7 +995,6 @@ static void G_func_door_Bottom(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1037,7 +1013,6 @@ static void G_func_door_GoingDown(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
     ent->s.sound = ent->move_info.sound_middle;
@@ -1076,7 +1051,6 @@ static void G_func_door_GoingUp(g_entity_t *ent, g_entity_t *activator) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
     ent->s.sound = ent->move_info.sound_middle;
@@ -1288,7 +1262,6 @@ static void G_func_door_Touch(g_entity_t *ent, g_entity_t *other, const cm_trace
  wait : Seconds before the door returns (3 default, -1 = never return). Ignored when toggle is set.
  lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
- atten : The attenuation level for door sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1385,7 +1358,6 @@ void G_func_door(g_entity_t *ent) {
     ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
     ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
     ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1411,7 +1383,6 @@ void G_func_door(g_entity_t *ent) {
  rotation : The rotation the door will open, in degrees (default 90).
  wait : wait before returning (3 default, -1 = never return).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
- atten : The attenuation level for door sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1504,7 +1475,6 @@ void G_func_door_rotating(g_entity_t *ent) {
     ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
     ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
     ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 
   // to simplify logic elsewhere, make non-teamed doors into a team of one
@@ -1553,7 +1523,6 @@ static void G_func_door_secret_Use(g_entity_t *ent, g_entity_t *other,
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1593,7 +1562,6 @@ static void G_func_door_secret_Move3(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1615,7 +1583,6 @@ static void G_func_door_secret_Move4(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1658,7 +1625,6 @@ static void G_func_door_secret_Done(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_end,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
 
@@ -1718,7 +1684,6 @@ static void G_func_door_secret_Die(g_entity_t *ent, g_entity_t *attacker, uint32
  wait : wait before returning (3 default, -1 = never return).
  lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
- atten : The attenuation level for door sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
 
@@ -1767,7 +1732,6 @@ void G_func_door_secret(g_entity_t *ent) {
     ent->move_info.sound_start = gi.SoundIndex(va("func/door_start_%d", s + 1));
     ent->move_info.sound_middle = gi.SoundIndex(va("func/door_middle_%d", s + 1));
     ent->move_info.sound_end = gi.SoundIndex(va("func/door_end_%d", s + 1));
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 
   // calculate positions
@@ -1980,7 +1944,6 @@ static void G_func_train_Wait(g_entity_t *ent) {
         G_MulticastSound(&(const g_play_sound_t) {
           .index = ent->move_info.sound_end,
           .entity = ent,
-          .atten = ent->move_info.sound_atten
         }, MULTICAST_PHS);
       }
       ent->s.sound = 0;
@@ -2035,7 +1998,6 @@ again:
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .entity = ent,
-        .atten = ent->move_info.sound_atten
       }, MULTICAST_PHS);
     }
     ent->s.sound = ent->move_info.sound_middle;
@@ -2130,7 +2092,6 @@ static void G_func_train_Use(g_entity_t *ent, g_entity_t *other,
  speed : The speed with which the train moves (default 100).
  dmg : The damage inflicted on players who block the train (default 2).
  sound : The looping sound to play while the train is in motion.
- atten : The attenuation level for train sounds (0 = none, 1 = linear, 2 = square, 3 = cubic, default = 2).
  targetname : The target name of this entity if it is to be triggered.
 
  -------- Spawn flags --------
@@ -2156,7 +2117,6 @@ void G_func_train(g_entity_t *ent) {
   const char *sound = gi.EntityValue(ent->def, "sound")->string;
   if (*sound) {
     ent->move_info.sound_middle = gi.SoundIndex(sound);
-    ent->move_info.sound_atten = G_EntitySoundAtten(ent, SOUND_ATTEN_SQUARE);
   }
 
   if (!ent->speed) {

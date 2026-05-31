@@ -64,7 +64,7 @@ void S_FreeChannel(int32_t c) {
 
 /**
  * @brief Resolve the frame-fade gain, pitch, and effects for the specified channel.
- * Distance attenuation and 3D panning are handled by OpenAL via `AL_LINEAR_DISTANCE_CLAMPED`.
+ * @details Distance attenuation and 3D panning are handled by OpenAL.
  * @param ch The channel.
  * @return True if the channel is audible, false if it should be freed.
  */
@@ -213,24 +213,7 @@ void S_MixChannels(const s_stage_t *stage) {
         alSourcei(src, AL_SOURCE_RELATIVE, 0);
       }
 
-      float rolloff;
-      switch (ch->play.atten) {
-        case SOUND_ATTEN_NONE:
-        default:
-          rolloff = 0.f;
-          break;
-        case SOUND_ATTEN_LINEAR:
-          rolloff = 1.f;
-          break;
-        case SOUND_ATTEN_SQUARE:
-          rolloff = 2.f;
-          break;
-        case SOUND_ATTEN_CUBIC:
-          rolloff = 3.f;
-          break;
-      }
-
-      alSourcef(src, AL_ROLLOFF_FACTOR, rolloff);
+      alSourcef(src, AL_ROLLOFF_FACTOR, 0.5f);
       alSourcef(src, AL_REFERENCE_DISTANCE, 128.f);
       alSourcef(src, AL_MAX_DISTANCE, MAX_WORLD_DIST);
 

@@ -232,10 +232,6 @@ void S_RenderStage(const s_stage_t *stage) {
       }
     }
 
-    if (s->sample->stereo && s->atten) {
-      Com_Warn("%s is a stereo sound sample and is being spatialized\n", s->sample->media.name);
-    }
-
     const int32_t c = S_AllocChannel();
     if (c == -1) {
       continue;

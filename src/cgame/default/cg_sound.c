@@ -78,10 +78,6 @@ void Cg_ParseSound(void) {
     play.origin = cgi.ReadPosition();
   }
 
-  if (flags & SOUND_ATTEN) {
-    play.atten = cgi.ReadByte();
-  }
-
   if (flags & SOUND_PITCH) {
     play.pitch = cgi.ReadChar() * 2;
   }

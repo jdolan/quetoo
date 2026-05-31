@@ -88,13 +88,11 @@ static void G_misc_teleporter_Touch(g_entity_t *ent, g_entity_t *other, const cm
   G_MulticastSound(&(const g_play_sound_t) {
     .index = sound_index,
     .origin = &entry_origin,
-    .atten = SOUND_ATTEN_LINEAR
   }, MULTICAST_PHS);
 
   G_MulticastSound(&(const g_play_sound_t) {
     .index = sound_index,
     .origin = &dest->s.origin,
-    .atten = SOUND_ATTEN_LINEAR
   }, MULTICAST_PHS);
 
   // create the particle effects at the teleporter
@@ -297,7 +295,6 @@ static void G_misc_fireball_Fly(g_entity_t *ent) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.lava[count++ % lengthof(g_media.sounds.lava)],
       .entity = ent,
-      .atten = SOUND_ATTEN_SQUARE
     }, MULTICAST_PHS);
   }
 

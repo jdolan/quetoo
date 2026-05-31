@@ -487,7 +487,6 @@ void G_GrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_trac
           G_MulticastSound(&(const g_play_sound_t) {
             .index = ent->hit_sound,
             .entity = ent,
-            .atten = SOUND_ATTEN_LINEAR,
             .pitch = (int8_t) (Randomf() * 5.0)
           }, MULTICAST_PHS);
           ent->touch_time = g_level.time;
@@ -525,7 +524,6 @@ static void G_QuakeGrenadeProjectile_Touch(g_entity_t *ent, g_entity_t *other, c
           G_MulticastSound(&(const g_play_sound_t) {
             .index = ent->hit_sound,
             .entity = ent,
-            .atten = SOUND_ATTEN_LINEAR,
           }, MULTICAST_PHS);
           ent->touch_time = g_level.time;
         }
@@ -1031,7 +1029,6 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &water_start,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
       ent->water_level = WATER_FEET;
     }
@@ -1045,7 +1042,6 @@ static void G_LightningProjectile_Think(g_entity_t *ent) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_out,
         .origin = &start,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
       ent->water_level = WATER_NONE;
     }
@@ -1177,7 +1173,6 @@ void G_RailgunProjectile(g_entity_t *ent, const vec3_t start, const vec3_t dir, 
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.water_in,
         .origin = &tr.end,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
 
       ignore = ent;
@@ -1409,7 +1404,6 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.hook_gibhit,
         .entity = ent,
-        .atten = SOUND_ATTEN_LINEAR,
         .pitch = RandomRangei(-4, 5)
       }, MULTICAST_PHS);
 

@@ -29,7 +29,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1038
+#define PROTOCOL_MINOR 1040
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -242,8 +242,7 @@ typedef enum {
  */
 #define SOUND_ENTITY    (1 << 0)
 #define SOUND_ORIGIN    (1 << 1)
-#define SOUND_ATTEN     (1 << 2)
-#define SOUND_PITCH     (1 << 3)
+#define SOUND_PITCH     (1 << 2)
 
 /**
  * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
@@ -264,11 +263,6 @@ typedef struct {
    * @brief Sound origin, takes precedence over the entity origin.
    */
   const vec3_t *origin;
-
-  /**
-   * @brief Attenuation model.
-   */
-  sound_atten_t atten;
 
   /**
    * @brief Pitch shift in tones; 8 tones per octave.
@@ -638,11 +632,6 @@ typedef struct {
    * @brief Sound played when movement ends.
    */
   uint16_t sound_end;
-
-  /**
-   * @brief Sound attenuation.
-   */
-  sound_atten_t sound_atten;
 
   /**
    * @brief Acceleration rate.

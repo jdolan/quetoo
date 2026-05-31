@@ -241,7 +241,6 @@ static void G_trigger_push_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->move_info.sound_start,
         .origin = &other->s.origin,
-        .atten = SOUND_ATTEN_SQUARE
       }, MULTICAST_PHS);
     }
   }

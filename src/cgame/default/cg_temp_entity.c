@@ -119,7 +119,6 @@ static void Cg_BlasterEffect(const vec3_t org, const vec3_t dir, const vec3_t co
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_blaster_hit,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -427,7 +426,6 @@ static void Cg_BulletEffect(const vec3_t org, const vec3_t dir) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
       .sample = cg_sample_machinegun_hit[RandomRangeu(0, 3)],
       .origin = org,
-      .atten = SOUND_ATTEN_LINEAR,
       .pitch = RandomRangei(-8, 9)
     });
   }
@@ -532,7 +530,6 @@ static void Cg_NailEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_quake_nail_hit,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
     .pitch = RandomRangei(0, 5)
   });
 }
@@ -623,7 +620,6 @@ void Cg_GibEffect(const vec3_t org, int32_t count) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_gib,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -712,7 +708,6 @@ void Cg_SparksEffect(const vec3_t org, const vec3_t dir, int32_t count) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_sparks,
     .origin = org,
-    .atten = SOUND_ATTEN_SQUARE,
   });
 }
 
@@ -842,7 +837,6 @@ static void Cg_ExplosionEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_explosion,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -913,7 +907,6 @@ static void Cg_HyperblasterEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_hyperblaster_hit,
     .origin = Vec3_Add(org, dir),
-    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -936,7 +929,6 @@ static void Cg_LightningDischargeEffect(const vec3_t org) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_lightning_discharge,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
   });
 
   
@@ -1281,7 +1273,6 @@ static void Cg_BfgEffect(const vec3_t org) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_bfg_hit,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
   });
 }
 
@@ -1432,7 +1423,6 @@ static void Cg_HookImpactEffect(const vec3_t org, const vec3_t dir) {
   Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
     .sample = cg_sample_hook_hit,
     .origin = org,
-    .atten = SOUND_ATTEN_LINEAR,
     .pitch = RandomRangei(-4, 5)
   });
 }

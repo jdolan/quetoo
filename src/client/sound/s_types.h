@@ -143,11 +143,6 @@ typedef struct s_play_sample_s {
   vec3_t velocity;
 
   /**
-   * @brief The sample attenuation.
-   */
-  sound_atten_t atten;
-
-  /**
    * @brief The sample flags.
    */
   int32_t flags;

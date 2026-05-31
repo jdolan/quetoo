@@ -39,10 +39,6 @@ static void G_Sound(const g_play_sound_t *play) {
     flags |= SOUND_ORIGIN;
   }
 
-  if (play->atten) {
-    flags |= SOUND_ATTEN;
-  }
-
   if (play->pitch) {
     flags |= SOUND_PITCH;
   }
@@ -57,10 +53,6 @@ static void G_Sound(const g_play_sound_t *play) {
 
   if (flags & SOUND_ORIGIN) {
     gi.WritePosition(*play->origin);
-  }
-
-  if (flags & SOUND_ATTEN) {
-    gi.WriteByte(play->atten);
   }
 
   if (flags & SOUND_PITCH) {

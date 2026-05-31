@@ -1030,7 +1030,6 @@ void Cg_ParseMuzzleFlash(void) {
     .origin = ent->current.origin,
     .sample = sample,
     .entity = ent,
-    .atten = SOUND_ATTEN_LINEAR,
     .pitch = RandomRangei(-pitch, pitch + 1)
   });
 }
