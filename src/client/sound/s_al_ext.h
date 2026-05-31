@@ -788,9 +788,16 @@ extern LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 extern LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
 #endif /* AL_ALEXT_PROTOTYPES */
 
+/* Only claim ALC_EXT_EFX is handled (blocking alext.h from including efx.h)
+ * when we're manually loading the function pointers ourselves. When
+ * AL_ALEXT_PROTOTYPES is defined, let alext.h include efx.h normally so
+ * that the direct function declarations are visible. */
+#ifndef AL_ALEXT_PROTOTYPES
 #ifndef ALC_EXT_EFX
 #define ALC_EXT_EFX 1
-extern int ALAD_ALC_EXT_EFX;
 #endif
+#endif
+
+extern int ALAD_ALC_EXT_EFX;
 
 int aladLoadAL(void);
