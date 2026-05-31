@@ -33,7 +33,7 @@ common_fragment_t fragment;
 void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fragment) {
 
   // For distant fragments, use simple vertex lighting
-  if (fragment.view_dist >= lighting_distance) {
+  if (fragment.view_dist >= lighting_distance || view_type == VIEW_PLAYER_MODEL) {
     fragment.ambient = vertex.ambient;
     fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);

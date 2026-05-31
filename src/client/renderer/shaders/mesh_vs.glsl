@@ -73,6 +73,7 @@ void main(void) {
 
   if (view_type == VIEW_PLAYER_MODEL) {
     vertex.ambient = vec3(0.666);
+    vertex.diffuse = vec3(0.0);
   } else {
     vertex.voxel = voxel_uvw(vertex.model_position);
     vertex_lighting(vertex);

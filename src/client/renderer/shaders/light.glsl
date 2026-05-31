@@ -232,7 +232,6 @@ void vertex_lighting(inout common_vertex_t v) {
   vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
 
   v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
-
   v.diffuse = vec3(0.0);
 
   if (editor == 0) {
