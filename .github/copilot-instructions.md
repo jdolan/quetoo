@@ -335,6 +335,16 @@ if (my_var->integer) {
 - **In-game console**: `~ ` key opens console
 - **Server/client logs**: Check stdout/stderr or log files
 
+### Windows Crash Dumps
+
+When a GitHub issue contains a Windows `.dmp` crash file, use the **`win-crash-debug`** skill:
+
+```
+.github/copilot/skills/win-crash-debug.md
+```
+
+The skill documents the full workflow: download the `.dmp`, extract the PDB GUID, fetch matching symbols from the GitHub releases page (`quetoo-x86_64-pc-windows-symbols.zip`), and run `src/tools/symbolicate_dmp.py` to produce a symbolicated stack trace. **Never skip the symbols step** — wrong or missing PDB produces garbage output.
+
 ## Dependencies
 
 ### Required Libraries

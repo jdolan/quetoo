@@ -210,22 +210,22 @@ def parse_module_list(data, rva):
 
 
 def parse_memory_list(data, rva):
-    """Returns list of (base_addr, size, file_offset) from MemoryListStream."""
+    """Returns list of (base_addr, size, file_offset) from MemoryListStream (type 5).
+
+    Each MINIDUMP_MEMORY_DESCRIPTOR is 16 bytes:
+      StartOfMemoryRange : ULONG64  (8 bytes)
+      Memory.DataSize    : ULONG32  (4 bytes)
+      Memory.Rva         : ULONG32  (4 bytes)
+    """
     count = read_u32(data, rva)
     regions = []
     off = rva + 4
     for _ in range(count):
         base     = read_u64(data, off)
-        alloc_base = read_u64(data, off + 8)
-        alloc_prot = read_u32(data, off + 16)
-        region_size= read_u64(data, off + 24)
-        state    = read_u32(data, off + 32)
-        protect  = read_u32(data, off + 36)
-        mtype    = read_u32(data, off + 40)
-        mem_rva  = read_u32(data, off + 44)
-        mem_size = read_u32(data, off + 48)
+        mem_size = read_u32(data, off + 8)
+        mem_rva  = read_u32(data, off + 12)
         regions.append((base, mem_size, mem_rva))
-        off += 52
+        off += 16
     return regions
 
 
@@ -387,6 +387,7 @@ def download_symbols(pdb_guid, pdb_age, dest_dir):
     """
     Download the matching symbols ZIP from GitHub releases using the gh CLI.
     Matches by trying tags in descending order and verifying the GUID.
+    Since v1.0.22, PDBs are bundled inside the main quetoo-x86_64-pc-windows.zip.
     """
     print("Fetching release list from GitHub...")
     result = subprocess.run(
@@ -403,12 +404,12 @@ def download_symbols(pdb_guid, pdb_age, dest_dir):
     for rel in releases:
         tag = rel["tagName"]
         print(f"  Trying {tag}...")
-        zip_name = f"quetoo-{tag.lstrip('v')}-windows-symbols.zip"
-        # Try common naming patterns
+        # Try a dedicated symbols ZIP first, then fall back to the main Windows bundle
         for pattern in [
-            f"*windows*symbols*",
-            f"*symbols*windows*",
+            "*windows*symbols*",
+            "*symbols*windows*",
             "*symbols*",
+            "quetoo-x86_64-pc-windows.zip",
         ]:
             dl = subprocess.run(
                 ["gh", "release", "download", tag,
@@ -429,6 +430,7 @@ def download_symbols(pdb_guid, pdb_age, dest_dir):
                     elif pdb:
                         print(f"  ✗ GUID mismatch for {tag}, trying next release...")
                         pdb.unlink(missing_ok=True)
+                    z.unlink(missing_ok=True)
                 break
 
     print("ERROR: Could not find matching symbols in any recent release.")
