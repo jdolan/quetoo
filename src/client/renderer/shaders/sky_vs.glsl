@@ -38,11 +38,8 @@ void main(void) {
   vertex.model_normal = normalize(in_position);
   vertex.position = vec3(view * position);
   vertex.normal = normalize(vec3(view * vec4(in_position, 0.0)));
-  vertex.smooth_normal = vertex.normal;
   vertex.tangent = vec3(1.0, 0.0, 0.0);
   vertex.bitangent = vec3(0.0, 1.0, 0.0);
-  vertex.tbn = mat3(1.0);
-  vertex.inverse_tbn = mat3(1.0);
   vertex.diffusemap = vec2(0.0);
   vertex.voxel = voxel_uvw(in_position);
   vertex.color = vec4(1.0);

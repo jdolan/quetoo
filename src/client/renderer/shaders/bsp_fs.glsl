@@ -42,7 +42,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
   float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * vertex.tbn);
+  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
@@ -87,7 +87,7 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
     fragment.normal_sample = normalize(vertex.normal);
     fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
   } else {
-    fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
+    fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
 

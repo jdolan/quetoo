@@ -308,7 +308,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
   float step_scale = mix(1.0, 2.5, min(f.lod * 0.5, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(v.inverse_tbn * light_dir);
+  vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
   vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.lod));
 
