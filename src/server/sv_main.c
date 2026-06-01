@@ -138,36 +138,6 @@ static void Sv_Ack_f(void) {
 }
 
 /**
- * @brief Responds with brief info for broadcast scans.
- */
-static void Sv_Info_f(void) {
-  char string[MAX_MSG_SIZE];
-
-  if (sv.demo_file) {
-    Com_Debug(DEBUG_SERVER, "Demo server ignoring server info request\n");
-    return;
-  }
-
-  const int32_t p = atoi(Cmd_Argv(1));
-  if (p != PROTOCOL_MAJOR) {
-    g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p, PROTOCOL_MAJOR);
-  } else {
-    int32_t i, count = 0;
-
-    for (i = 0; i < sv_max_clients->integer; i++) {
-      if (svs.clients[i].state >= SV_CLIENT_CONNECTED) {
-        count++;
-      }
-    }
-
-    g_snprintf(string, sizeof(string), "%s\\%s\\%s\\%d\\%d", sv_hostname->string,
-               sv.name, svs.game->GameName(), count, sv_max_clients->integer);
-  }
-
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "info\n%s", string);
-}
-
-/**
  * @brief Just responds with an acknowledgment.
  */
 static void Sv_Ping_f(void) {
@@ -460,8 +430,6 @@ static void Sv_ConnectionlessPacket(void) {
     Sv_Ack_f();
   } else if (!g_strcmp0(c, "status")) {
     Sv_Status_f();
-  } else if (!g_strcmp0(c, "info")) {
-    Sv_Info_f();
   } else if (!g_strcmp0(c, "get_challenge")) {
     Sv_GetChallenge_f();
   } else if (!g_strcmp0(c, "connect")) {
