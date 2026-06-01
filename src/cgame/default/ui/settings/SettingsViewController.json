@@ -339,7 +339,7 @@
                           "class": "Input",
                           "label": {
                             "text": {
-                              "text": "HRTF (headphones recommended)"
+                              "text": "HRTF (headphones)"
                             }
                           },
                           "control": {
