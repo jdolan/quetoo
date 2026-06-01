@@ -185,7 +185,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       char stripped[64];
       StrStrip(name, stripped);
       Ms_InfoValue(line, "ai", ai_val, sizeof(ai_val));
-      if (!atoi(ai_val)) {
+      if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
         g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
