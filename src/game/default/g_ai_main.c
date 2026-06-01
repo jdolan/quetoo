@@ -98,6 +98,15 @@ static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
  */
 static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
 
+  // invisible enemies are only detectable within a skill-dependent range
+  if (other->s.effects & EF_INVISIBILITY) {
+    const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
+    const float detect_range = Lerpf(256.f, 512.f, cl->ai->personality.skill);
+    if (dist > detect_range) {
+      return false;
+    }
+  }
+
   // see if we're even facing the object
 
   const vec3_t eye_origin = Vec3_Add(cl->entity->s.origin, cl->ps.pm_state.view_offset);
