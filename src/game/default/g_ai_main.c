@@ -1513,7 +1513,9 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
     ideal_angles = Vec3_Euler(aim_direction);
 
     // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
-    const float wobble = (1.f - cl->ai->personality.skill) * 2.f;
+    // hitscan weapons carry a small fixed floor to prevent perfect tracking
+    const float wobble = (1.f - cl->ai->personality.skill) * 2.f
+        + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
     const float phase = cl->ai->personality.aim_phase;
     ideal_angles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
     ideal_angles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;
