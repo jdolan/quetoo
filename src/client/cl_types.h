@@ -641,6 +641,11 @@ typedef struct {
   int32_t clients;
 
   /**
+   * @brief The number of connected clients that are bots.
+   */
+  int32_t bots;
+
+  /**
    * @brief The maximum number of clients.
    */
   int32_t max_clients;
