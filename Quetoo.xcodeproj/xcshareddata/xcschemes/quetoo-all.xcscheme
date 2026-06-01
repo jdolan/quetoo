@@ -153,7 +153,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map lavatomb"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+give all"

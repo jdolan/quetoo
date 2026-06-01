@@ -448,7 +448,7 @@ static void reloadServers(JoinServerViewController *self) {
 
     const int32_t visible_clients = self->filters.hideBots ? server->clients - server->bots : server->clients;
 
-    if (self->filters.hideEmpty && visible_clients == 0) {
+    if (visible_clients == 0 && (self->filters.hideEmpty || self->filters.hideBots)) {
       self->servers = g_list_remove_link(self->servers, list);
     }
 

@@ -19,6 +19,30 @@
           ],
           "subviews": [
             {
+              "class": "Input",
+              "label": {
+                "text": {
+                  "text": "Hide empty"
+                }
+              },
+              "control": {
+                "class": "Checkbox",
+                "identifier": "hideEmpty"
+              }
+            },
+            {
+              "class": "Input",
+              "label": {
+                "text": {
+                  "text": "Hide bots"
+                }
+              },
+              "control": {
+                "class": "Checkbox",
+                "identifier": "hideBots"
+              }
+            },
+            {
               "class": "Button",
               "identifier": "quickJoin",
               "title": {
