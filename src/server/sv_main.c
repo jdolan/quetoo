@@ -97,7 +97,18 @@ const char *Sv_StatusString(void) {
 
       char name[sizeof(cl->name)];
       StrStrip(cl->name, name);
-      g_snprintf(player, sizeof(player), "%d %u \"%s\"\n", i, cl->ping, name);
+
+      const int16_t score = cl->state == SV_CLIENT_ACTIVE ? cl->gclient->score : 0;
+      const bool is_bot = cl->gclient->ai != NULL;
+
+      if (is_bot) {
+        g_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
+                   score, cl->ping, name);
+      } else {
+        g_snprintf(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\n",
+                   score, cl->ping, name);
+      }
+
       const size_t player_len = strlen(player);
 
       if (status_len + player_len + 1 >= sizeof(status)) {
@@ -116,7 +127,7 @@ const char *Sv_StatusString(void) {
  * @brief Responds with all the info that qplug or qspy can see.
  */
 static void Sv_Status_f(void) {
-  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "print\n%s", Sv_StatusString());
+  Netchan_OutOfBandPrint(NS_UDP_SERVER, &net_from, "status\n%s", Sv_StatusString());
 }
 
 /**
@@ -139,8 +150,7 @@ static void Sv_Info_f(void) {
 
   const int32_t p = atoi(Cmd_Argv(1));
   if (p != PROTOCOL_MAJOR) {
-    g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p,
-               PROTOCOL_MAJOR);
+    g_snprintf(string, sizeof(string), "%s: Wrong protocol: %d != %d", sv_hostname->string, p, PROTOCOL_MAJOR);
   } else {
     int32_t i, count = 0;
 
