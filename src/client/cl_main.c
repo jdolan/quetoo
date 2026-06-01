@@ -393,14 +393,10 @@ static void Cl_ConnectionlessPacket(void) {
     return;
   }
 
-  // print command from somewhere; suppress during server browsing to avoid printing
-  // raw status strings from pre-protocol-redesign servers that respond to "status"
-  // queries with "print\n<statusstring>" instead of "status\n<statusstring>"
+  // print command from somewhere
   if (!g_strcmp0(c, "print")) {
     s = Net_ReadString(&net_message);
-    if (cls.state >= CL_CONNECTING) {
-      Com_Print("%s", s);
-    }
+    Com_Print("%s", s);
     return;
   }
 
