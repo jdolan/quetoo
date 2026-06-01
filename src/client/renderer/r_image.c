@@ -95,7 +95,7 @@ static void R_Screenshot_encode(void *data) {
 
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
-  strftime(date, sizeof(date), "%Y-%m-%d-%H:%M:%S", tm);
+  strftime(date, sizeof(date), "%Y-%m-%d-%H-%M-%S", tm);
   const int32_t millis = (int32_t) (quetoo.ticks % 1000);
 
   g_snprintf(path, sizeof(path), "screenshots/%s.%03d", date, millis);
