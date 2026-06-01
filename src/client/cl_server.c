@@ -234,7 +234,7 @@ void Cl_Servers_f(void) {
   addr.type = NA_DATAGRAM;
   addr.port = htons(PORT_MASTER);
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers");
+  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers %d", PROTOCOL_MAJOR);
 
   Cl_SendBroadcast();
 }
