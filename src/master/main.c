@@ -179,19 +179,29 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       break;
     }
 
+    // isolate the current player line to prevent cross-line key lookups
+    const char *line_end = strchr(line, '\n');
+    char cur_line[256];
+    if (line_end) {
+      g_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
+    } else {
+      g_strlcpy(cur_line, line, sizeof(cur_line));
+    }
+
     char name[64] = { 0 };
     char ai_val[4] = { 0 };
-    if (Ms_InfoValue(line, "name", name, sizeof(name)) && name[0]) {
+    if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
       StrStrip(name, stripped);
-      Ms_InfoValue(line, "ai", ai_val, sizeof(ai_val));
+      Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
+      Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
       if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
         g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
     }
 
-    line = strchr(line, '\n');
+    line = line_end;
   }
 
   const bool initialized = (server->num_clients >= 0);
