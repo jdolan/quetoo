@@ -233,7 +233,13 @@ static void S_BufferMusic(s_music_t *music, bool setup_buffers) {
     const int16_t *frame_buffer = s_music_state.frame_buffer;
 
     if (music->info.samplerate != s_rate->integer) {
-      frames = S_Resample(music->info.channels, music->info.samplerate, s_rate->integer, frames, s_music_state.frame_buffer, &s_music_state.resample_frame_buffer, &s_music_state.resample_frame_buffer_size);
+      frames = S_Resample(music->info.channels,
+                          music->info.samplerate,
+                          s_rate->integer,
+                          frames,
+                          s_music_state.frame_buffer,
+                          &s_music_state.resample_frame_buffer,
+                          &s_music_state.resample_frame_buffer_size);
       frame_buffer = s_music_state.resample_frame_buffer;
     }
 
@@ -481,6 +487,13 @@ void S_InitMusic(void) {
   }
 
   alSourcef(s_music_state.source, AL_GAIN, S_MusicGain());
+  alSourcei(s_music_state.source, AL_SOURCE_RELATIVE, AL_TRUE);
+  alSourcef(s_music_state.source, AL_ROLLOFF_FACTOR, 0.f);
+
+  // Bypass spatialization and HRTF for the stereo music stream
+  if (alIsExtensionPresent("AL_SOFT_direct_channels")) {
+    alSourcei(s_music_state.source, AL_DIRECT_CHANNELS_SOFT, AL_TRUE);
+  }
 
   alGenBuffers(MUSIC_BUFFERS, s_music_state.music_buffers);
 
