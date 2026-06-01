@@ -1139,11 +1139,6 @@ typedef struct {
   vec3_t normal;
 
   /**
-   * @brief The smoothed vertex normal, for Phong shading.
-   */
-  vec3_t smooth_normal;
-
-  /**
    * @brief The vertex tangent, for per-pixel lighting.
    */
   vec3_t tangent;

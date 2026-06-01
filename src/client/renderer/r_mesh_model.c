@@ -239,91 +239,6 @@ static void R_LoadMeshTangents(r_model_t *mod) {
 }
 
 /**
- * @brief Calculates smoothened normal vectors for translucent shell effects.
- */
-static void R_SetupMeshShellNormals(r_model_t *mod, r_mesh_face_t *face) {
-
-  assert(mod->mesh);
-  assert(mod->mesh->num_vertexes);
-  assert(mod->mesh->num_frames);
-
-  int32_t remap[face->num_vertexes];
-  int32_t num_normals[face->num_vertexes];
-
-  for (int32_t f = 0; f < mod->mesh->num_frames; f++) {
-    const ptrdiff_t frame_vert_offset = (f * face->num_vertexes);
-
-    // reset remap lists
-    memset(remap, -1, sizeof(remap));
-    memset(num_normals, 0, sizeof(num_normals));
-
-    // first, remap vertices on every frame if they have the same position.
-    for (int32_t i = face->num_vertexes - 1; i >= 0; i--) {
-      const r_mesh_vertex_t *v = &face->vertexes[frame_vert_offset + i];
-      int32_t j;
-
-      for (j = 0; j < i; j++) {
-        const r_mesh_vertex_t *v2 = &face->vertexes[frame_vert_offset + j];
-
-        if (Vec3_Equal(v2->position, v->position)) {
-          break;
-        }
-      }
-
-      remap[i] = j;
-    }
-
-    // clear accumulators for this frame
-    for (int32_t i = 0; i < face->num_vertexes; i++) {
-      if (remap[i] == i) {
-        face->vertexes[frame_vert_offset + i].smooth_normal = Vec3_Zero();
-      }
-    }
-
-    // re-calculate normals for every unique vertex
-    for (int32_t i = 0; i < face->num_vertexes; i++) {
-      if (remap[i] != i) {
-        continue;
-      }
-
-      const uint32_t v_i = remap[i];
-      vec3_t *smooth_normal = &face->vertexes[frame_vert_offset + v_i].smooth_normal;
-
-      const GLuint *e = (GLuint *) face->elements;
-
-      for (int32_t k = 0; k < face->num_elements; k += 3, e += 3) {
-        const uint32_t a = remap[*e], b = remap[*(e + 1)], c = remap[*(e + 2)];
-
-        if (v_i == a || v_i == b || v_i == c) {
-          const vec3_t va = face->vertexes[frame_vert_offset + a].position;
-          const vec3_t vb = face->vertexes[frame_vert_offset + b].position;
-          const vec3_t vc = face->vertexes[frame_vert_offset + c].position;
-
-          const vec3_t v1 = Vec3_Subtract(va, vc);
-          const vec3_t v2 = Vec3_Subtract(vc, vb);
-
-          *smooth_normal = Vec3_Add(*smooth_normal, Vec3_Cross(v1, v2));
-          num_normals[v_i]++;
-        }
-      }
-
-      if (num_normals[v_i]) {
-        *smooth_normal = Vec3_Normalize(Vec3_Scale(*smooth_normal, 1.f / num_normals[v_i]));
-      } else {
-        *smooth_normal = face->vertexes[frame_vert_offset + v_i].normal;
-      }
-    }
-
-    // assign shared smooth normals to remapped vertices
-    for (int32_t i = 0; i < face->num_vertexes; i++) {
-      if (remap[i] != i) {
-        face->vertexes[frame_vert_offset + i].smooth_normal = face->vertexes[frame_vert_offset + remap[i]].smooth_normal;
-      }
-    }
-  }
-}
-
-/**
  * @brief Appends the given model's vertex and element arrays to the shared mesh VAO.
  */
 void R_LoadMeshVertexArray(r_model_t *mod) {
@@ -351,8 +266,6 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
   {
     r_mesh_face_t *face = mod->mesh->faces;
     for (int32_t i = 0; i < mod->mesh->num_faces; i++, face++) {
-
-      R_SetupMeshShellNormals(mod, face);
 
       memcpy(vertex, face->vertexes, face->num_vertexes * mod->mesh->num_frames * sizeof(r_mesh_vertex_t));
       Mem_Free(face->vertexes);
@@ -444,15 +357,13 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-  glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
-  glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-  glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-  glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-  glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-  glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+  glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
+  glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+  glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
+  glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+  glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
 
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
@@ -463,8 +374,6 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
   glEnableVertexAttribArray(6);
   glEnableVertexAttribArray(7);
   glEnableVertexAttribArray(8);
-  glEnableVertexAttribArray(9);
-  glEnableVertexAttribArray(10);
 
   glBindVertexArray(r_models.mesh.depth_pass.vertex_array);
   glBindBuffer(GL_ARRAY_BUFFER, r_models.mesh.vertex_buffer);

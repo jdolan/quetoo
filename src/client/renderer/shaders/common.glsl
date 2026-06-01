@@ -112,8 +112,8 @@ struct common_fragment_t {
   vec4 specular_sample;  // Specular texture sample (rgb = color, a = gloss)
   vec3 ambient;          // Ambient lighting contribution
   vec3 diffuse;          // Diffuse lighting contribution
-  float caustics;        // Caustics contribution (BSP only)
   vec3 specular;         // Specular lighting contribution
+  float caustics;        // Caustics contribution (BSP only)
   vec2 shadow_sin_cos;   // Per-pixel Poisson rotation (sin, cos)
 };
 
