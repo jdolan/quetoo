@@ -81,24 +81,30 @@ if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
     port="${port:-1998}"
 
     humans=$(python3 - <<EOF
-import socket
+import socket, re
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(2)
     s.sendto(b'\xff\xff\xff\xffstatus\n', ('127.0.0.1', $port))
     data, _ = s.recvfrom(4096)
     humans = 0
+    # Player lines follow the infostring line; each is a \key\value infostring.
+    # Bots have \ai\1; humans do not.
     for line in data.split(b'\n')[1:]:
         line = line.strip()
-        if not line or line.startswith(b'\\\\'):
+        if not line:
             continue
-        # extract quoted name; server strips color codes before sending
-        m = line.split(b'"')
-        if len(m) >= 2:
-            name = m[1]
-            if name.startswith(b'[BOT]'):
-                continue
-            humans += 1
+        def info_val(line, key):
+            m = re.search(rb'\\' + key + rb'\\([^\\\\n]*)', line)
+            return m.group(1) if m else b''
+        name = info_val(line, b'name')
+        if not name:
+            continue
+        if info_val(line, b'ai') == b'1':
+            continue
+        if name.startswith(b'[BOT]'):
+            continue
+        humans += 1
     print(humans)
 except Exception:
     print(0)
