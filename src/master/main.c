@@ -164,7 +164,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     server->max_clients = atoi(val);
   }
 
-  if (Ms_InfoValue(status, "map_name", val, sizeof(val))) {
+  if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
     g_strlcpy(server->mapname, val, sizeof(server->mapname));
   }
 
@@ -179,12 +179,13 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       break;
     }
 
-    int32_t score, ping;
     char name[64] = { 0 };
-    if (sscanf(line, "%d %d \"%63[^\"]\"", &score, &ping, name) >= 2 && name[0]) {
+    char ai_val[4] = { 0 };
+    if (Ms_InfoValue(line, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
       StrStrip(name, stripped);
-      if (!g_str_has_prefix(stripped, "[BOT]")) {
+      Ms_InfoValue(line, "ai", ai_val, sizeof(ai_val));
+      if (!atoi(ai_val)) {
         g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
