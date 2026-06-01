@@ -69,10 +69,28 @@ static bool G_Ai_IsArmed(const g_client_t *cl) {
 /**
  * @return True if the bot should disengage from combat to seek health/armor.
  * Aggressive bots retreat at lower health; cautious bots retreat earlier.
+ * Bots also flee from enemies carrying dangerous powerups.
  */
 static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
   const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Lerpf(1.5f, .5f, cl->ai->personality.aggression));
-  return cl->entity->health < threshold;
+  if (cl->entity->health < threshold) {
+    return true;
+  }
+
+  if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
+    const g_entity_t *target = cl->ai->combat_target.entity.ent;
+
+    if (target->s.effects & EF_INVULNERABILITY) {
+      return true; // no point fighting an invulnerable enemy
+    }
+
+    // all but the most aggressive bots flee from quad damage
+    if ((target->s.effects & EF_QUAD) && cl->ai->personality.aggression < 0.8f) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
