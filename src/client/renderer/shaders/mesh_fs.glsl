@@ -56,6 +56,10 @@ void mesh_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t f
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
   fragment_lighting(vertex, fragment);
+
+  fragment.ambient *= modulate_mesh;
+  fragment.diffuse *= modulate_mesh;
+  fragment.specular *= modulate_mesh;
 }
 
 /**
