@@ -231,7 +231,7 @@ void vertex_lighting(inout common_vertex_t v) {
 
   vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
 
-  v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
+  v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   v.diffuse = vec3(0.0);
 
   if (editor == 0) {
@@ -387,7 +387,7 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
   vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
 
-  f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion) * ambient;
+  f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   f.diffuse = vec3(0.0);
   f.specular = vec3(0.0);
 

@@ -24,6 +24,7 @@
 #include "r_types.h"
 
 extern cvar_t *r_ambient;
+extern cvar_t *r_ambient_occlusion;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_antialias;
 extern cvar_t *r_bloom;
@@ -224,6 +225,11 @@ typedef struct {
      * @brief The caustics intensity scalar.
      */
     float caustics;
+
+    /**
+     * @brief The ambient occlusion intensity scalar (0 = disabled, 1 = full).
+     */
+    float ambient_occlusion;
 
     /**
      * @brief Distance threshold beyond which vertex lighting is used.

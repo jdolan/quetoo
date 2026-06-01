@@ -137,6 +137,11 @@ layout (std140) uniform uniforms_block {
   float caustics;
 
   /**
+   * @brief The ambient occlusion scalar (0 = disabled, 1 = full).
+   */
+  float ambient_occlusion;
+
+  /**
    * @brief Distance threshold for switching to vertex lighting.
    */
   float lighting_distance;

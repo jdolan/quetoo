@@ -40,6 +40,7 @@ cvar_t *r_get_error;
 cvar_t *r_occlude;
 
 cvar_t *r_ambient;
+cvar_t *r_ambient_occlusion;
 cvar_t *r_anisotropy;
 cvar_t *r_antialias;
 cvar_t *r_bloom;
@@ -147,6 +148,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->modulate_mesh = r_modulate_mesh->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
+    out->ambient_occlusion = r_ambient_occlusion->value;
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
@@ -376,6 +378,7 @@ static void R_InitLocal(void) {
 
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
+  r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering.");
   r_antialias = Cvar_Add("r_antialias", "0", CVAR_ARCHIVE, "MSAA sample count (0 = disabled, 2, 4, 8).");
   r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
