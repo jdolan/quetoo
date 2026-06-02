@@ -74,6 +74,7 @@ static struct {
     GLint dirtmap;
     GLint warp;
     GLint lighting;
+    GLint emissive;
     GLint lerp;
   } stage;
 
@@ -226,6 +227,10 @@ static void R_DrawBspDrawElementsMaterialStage(const r_view_t *view,
 
   if (stage->cm->flags & STAGE_LIGHTING) {
     glUniform1f(r_bsp_program.stage.lighting, stage->cm->lighting.intensity);
+  }
+
+  if (stage->cm->flags & STAGE_EMISSIVE) {
+    glUniform1f(r_bsp_program.stage.emissive, stage->cm->emissive);
   }
 
   glBlendFunc(stage->cm->blend.src, stage->cm->blend.dest);
@@ -619,6 +624,7 @@ void R_InitBspProgram(void) {
   r_bsp_program.stage.dirtmap = glGetUniformLocation(r_bsp_program.name, "stage.dirtmap");
   r_bsp_program.stage.warp = glGetUniformLocation(r_bsp_program.name, "stage.warp");
   r_bsp_program.stage.lighting = glGetUniformLocation(r_bsp_program.name, "stage.lighting");
+  r_bsp_program.stage.emissive = glGetUniformLocation(r_bsp_program.name, "stage.emissive");
   r_bsp_program.stage.lerp = glGetUniformLocation(r_bsp_program.name, "stage.lerp");
 
   glUniform1i(r_bsp_program.texture_material, TEXTURE_MATERIAL);

@@ -56,6 +56,7 @@
 #define STAGE_ANIM_LERP (1 << 17)
 #define STAGE_SHELL     (1 << 18)
 #define STAGE_LIGHTING_FLAT (1 << 19)
+#define STAGE_EMISSIVE  (1 << 20)
 
 #define STAGE_DRAW      (1 << 30)
 
@@ -174,6 +175,11 @@ struct stage_t {
    * @brief The stage lighting intensity.
    */
   float lighting;
+
+  /**
+   * @brief The stage emissive intensity. Adds unlit stage color to output.
+   */
+  float emissive;
 
   /**
    * @brief The animation lerp factor [0, 1] between current and next frame.

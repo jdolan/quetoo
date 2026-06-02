@@ -68,6 +68,7 @@ static struct {
     GLint scale;
     GLint shell;
     GLint lighting;
+    GLint emissive;
   } stage;
 
   r_media_t *shell;
@@ -109,6 +110,10 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
 
   if (stage->cm->flags & STAGE_LIGHTING) {
     glUniform1f(r_mesh_program.stage.lighting, stage->cm->lighting.intensity);
+  }
+
+  if (stage->cm->flags & STAGE_EMISSIVE) {
+    glUniform1f(r_mesh_program.stage.emissive, stage->cm->emissive);
   }
 
   if (stage->cm->flags & STAGE_SHELL) {
@@ -484,6 +489,7 @@ void R_InitMeshProgram(void) {
   r_mesh_program.stage.scroll = glGetUniformLocation(r_mesh_program.name, "stage.scroll");
   r_mesh_program.stage.scale = glGetUniformLocation(r_mesh_program.name, "stage.scale");
   r_mesh_program.stage.lighting = glGetUniformLocation(r_mesh_program.name, "stage.lighting");
+  r_mesh_program.stage.emissive = glGetUniformLocation(r_mesh_program.name, "stage.emissive");
   r_mesh_program.stage.shell = glGetUniformLocation(r_mesh_program.name, "stage.shell");
 
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);

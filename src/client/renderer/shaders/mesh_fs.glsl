@@ -114,5 +114,9 @@ void main(void) {
       out_color.rgb *= mix(vec3(1.0), fragment.ambient + fragment.diffuse, stage.lighting);
       out_color.rgb += fragment.specular * stage.lighting;
     }
+
+    if ((stage.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
+      out_color.rgb += fragment.diffuse_sample.rgb * stage.emissive;
+    }
   }
 }

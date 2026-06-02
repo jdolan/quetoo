@@ -232,30 +232,35 @@ typedef enum {
  * @brief Stage flags indicate what assets and effects a material or stage may include.
  */
 typedef enum {
-  STAGE_NONE      = (0),
-  STAGE_TEXTURE   = (1 << 0),
-  STAGE_BLEND     = (1 << 1),
-  STAGE_COLOR     = (1 << 2),
-  STAGE_PULSE     = (1 << 3),
-  STAGE_STRETCH   = (1 << 4),
-  STAGE_ROTATE    = (1 << 5),
-  STAGE_SCROLL_S  = (1 << 6),
-  STAGE_SCROLL_T  = (1 << 7),
-  STAGE_SCALE_S   = (1 << 8),
-  STAGE_SCALE_T   = (1 << 9),
-  STAGE_ANIMATION = (1 << 10),
-  STAGE_TERRAIN   = (1 << 11),
-  STAGE_DIRTMAP   = (1 << 12),
-  STAGE_ENVMAP    = (1 << 13),
-  STAGE_WARP      = (1 << 14),
-  STAGE_FLARE     = (1 << 15),
-  STAGE_LIGHTING  = (1 << 16),
-  STAGE_ANIM_LERP = (1 << 17),
-  STAGE_SHELL     = (1 << 18),
-  STAGE_LIGHTING_FLAT = (1 << 19),
+  STAGE_NONE          = (0),
+  STAGE_TEXTURE       = (1 << 0),
+  STAGE_BLEND         = (1 << 1),
+  STAGE_COLOR         = (1 << 2),
 
-  STAGE_DRAW      = (1 << 30),
+  STAGE_SCROLL_S      = (1 << 3),
+  STAGE_SCROLL_T      = (1 << 4),
+  STAGE_SCALE_S       = (1 << 5),
+  STAGE_SCALE_T       = (1 << 6),
+  STAGE_ROTATE        = (1 << 7),
+  STAGE_STRETCH       = (1 << 8),
+  STAGE_PULSE         = (1 << 9),
 
+  STAGE_ANIMATION     = (1 << 10),
+  STAGE_ANIM_LERP     = (1 << 11),
+
+  STAGE_TERRAIN       = (1 << 12),
+  STAGE_DIRTMAP       = (1 << 13),
+  STAGE_ENVMAP        = (1 << 14),
+  STAGE_WARP          = (1 << 15),
+
+  STAGE_LIGHTING      = (1 << 16),
+  STAGE_LIGHTING_FLAT = (1 << 17),
+  STAGE_EMISSIVE      = (1 << 18),
+
+  STAGE_FLARE         = (1 << 19),
+  STAGE_SHELL         = (1 << 20),
+
+  STAGE_DRAW          = (1 << 30),
 } cm_stage_flags_t;
 
 /**
@@ -337,6 +342,11 @@ typedef struct cm_stage_s {
    * @brief The stage shell parameters.
    */
   cm_stage_shell_t shell;
+
+  /**
+   * @brief The stage emissive intensity [0, 1]. Adds unlit stage color to output.
+   */
+  float emissive;
 
   /**
    * @brief The next stage, or `NULL`.
