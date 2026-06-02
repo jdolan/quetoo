@@ -846,6 +846,22 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       }
 
       gi.Warn("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remaining_move);
+
+      // Entity is completely stuck inside the pusher; apply lethal crush damage
+      // immediately rather than waiting for the throttled G_MoveType_Push_Blocked path.
+      if (ent->take_damage) {
+        G_Damage(&(g_damage_t) {
+          .target = ent,
+          .inflictor = self,
+          .attacker = self,
+          .dir = Vec3_Zero(),
+          .point = ent->s.origin,
+          .normal = Vec3_Zero(),
+          .damage = 999,
+          .knockback = 0,
+          .mod = MOD_CRUSH
+        });
+      }
     }
 
     // try to destroy the impeding entity by calling our Blocked function
