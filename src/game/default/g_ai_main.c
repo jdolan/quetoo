@@ -1770,6 +1770,11 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
   uint8_t msec_left = QUETOO_TICK_MILLIS;
 
   for (int32_t i = 0; i < num_runs; i++) {
+
+    if (!ent->in_use || !ent->client) {
+      break;
+    }
+
     pm_cmd_t cmd = { 0 };
 
     cmd.msec = (i == num_runs - 1) ? msec_left : ceilf(1000.f / QUETOO_TICK_RATE / num_runs);
@@ -1779,8 +1784,10 @@ static void G_Ai_ClientThink(g_entity_t *ent) {
     const gint64 think_us = g_get_monotonic_time() - think_start;
 
     if (think_us > 100000) { // > 100ms for one think pass is pathological
-      gi.Warn("%s AI think pass %d took %dms\n",
-             ent->client->persistent.net_name, i, (int32_t)(think_us / 1000));
+      if (ent->client) {
+        gi.Warn("%s AI think pass %d took %dms\n",
+               ent->client->persistent.net_name, i, (int32_t)(think_us / 1000));
+      }
     }
 
     msec_left -= cmd.msec;
