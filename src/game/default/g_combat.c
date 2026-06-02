@@ -470,8 +470,11 @@ void G_Damage(const g_damage_t *dmg) {
     }
   }
 
-  // if the target was already dead, we're done
+  // if the target was already dead, invoke pain (if any) and we're done
   if (was_dead) {
+    if (damage_health && target->Pain) {
+      target->Pain(target, attacker, damage_health, knockback);
+    }
     return;
   }
 

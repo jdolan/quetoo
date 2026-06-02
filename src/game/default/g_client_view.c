@@ -300,6 +300,7 @@ static void G_ClientAnimation(g_client_t *cl) {
   // corpses animate to their final resting place
 
   if (ent->solid == SOLID_DEAD) {
+
     if (g_level.time >= cl->respawn_time) {
       switch (ent->s.animation1 & ANIM_MASK_VALUE) {
         case ANIM_BOTH_DEATH1:

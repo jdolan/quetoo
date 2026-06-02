@@ -367,6 +367,13 @@ static void G_ClientCorpse_Think(g_entity_t *ent) {
 }
 
 /**
+ * @brief Fires a ragdoll jolt event; the client handles all animation locally.
+ */
+static void G_ClientCorpse_Pain(g_entity_t *ent, g_entity_t *attacker, int16_t damage, int16_t knockback) {
+  ent->s.event = EV_CLIENT_RAGDOLL;
+}
+
+/**
  * @brief Corpses explode into giblets when killed. Giblets receive the
  * velocity of the corpse, and bounce when damaged. They eventually sink
  * through the floor and disappear.
@@ -507,13 +514,14 @@ static void G_ClientCorpse(g_client_t *cl) {
   ent->take_damage = true;
   ent->health = cl->entity->health;
   ent->Die = ent->health > 0 ? G_ClientCorpse_Die : NULL;
+  ent->Pain = ent->health > 0 ? G_ClientCorpse_Pain : NULL;
   ent->Think = G_ClientCorpse_Think;
   ent->next_think = g_level.time + QUETOO_TICK_MILLIS;
 
   gi.LinkEntity(ent);
 }
 
-#define CLIENT_CORPSE_HEALTH 80
+#define CLIENT_CORPSE_HEALTH 200
 
 /**
  * @brief A client's health is less than or equal to zero. Render death effects, drop
@@ -568,6 +576,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
     ent->health = CLIENT_CORPSE_HEALTH;
     ent->Die = G_ClientCorpse_Die;
+    ent->Pain = G_ClientCorpse_Pain;
   }
 
   uint32_t nade_hold_time = cl->grenade_hold_time;

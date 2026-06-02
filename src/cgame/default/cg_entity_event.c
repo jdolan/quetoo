@@ -398,16 +398,20 @@ void Cg_EntityEvent(cl_entity_t *ent) {
     }
       break;
 
+    case EV_CLIENT_RAGDOLL:
+      Cg_ClientRagdoll(ent);
+      break;
+
     default:
+      if (s->event) {
+        Cg_Debug("NULL sample for ent #%d event=%d\n",
+                 (int32_t) (ent - cgi.client->entities), s->event);
+      }
       break;
   }
 
   if (play.sample) {
     Cg_AddSample(cgi.stage, &play);
-  } else if (s->event != EV_CLIENT_FOOTSTEP && s->event != EV_CLIENT_TELEPORT &&
-             s->event != EV_ITEM_PICKUP && s->event != 0) {
-    Cg_Debug("NULL sample for ent #%d event=%d\n",
-             (int32_t) (ent - cgi.client->entities), s->event);
   }
 
   s->event = 0;

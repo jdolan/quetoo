@@ -345,13 +345,13 @@ void Cg_LoadClients(void) {
 /**
  * @brief Returns the next animation to advance to, defaulting to a no-op.
  */
-static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
+static entity_animation_t Cg_NextAnimation(const cl_entity_animation_t *a) {
 
-  switch (a) {
+  switch (a->animation) {
     case ANIM_BOTH_DEATH1:
     case ANIM_BOTH_DEATH2:
     case ANIM_BOTH_DEATH3:
-      return a + 1;
+      return a->animation + 1;
 
     case ANIM_TORSO_DROP:
       return ANIM_TORSO_RAISE;
@@ -367,8 +367,47 @@ static entity_animation_t Cg_NextAnimation(const entity_animation_t a) {
       return ANIM_LEGS_IDLE;
 
     default:
-      return a;
+      return a->animation;
   }
+}
+
+/**
+ * @brief Initiates a ragdoll animation on a client corpse. Jump a few frames back into the
+ * death animation that preceeded the dead animation.
+ */
+void Cg_ClientRagdoll(cl_entity_t *ent) {
+
+  switch (ent->animation1.animation) {
+    case ANIM_BOTH_DEAD1:
+      ent->animation1.animation = ANIM_BOTH_DEATH1;
+      ent->animation2.animation = ANIM_BOTH_DEATH1;
+      break;
+    case ANIM_BOTH_DEAD2:
+      ent->animation1.animation = ANIM_BOTH_DEATH2;
+      ent->animation2.animation = ANIM_BOTH_DEATH2;
+      break;
+    case ANIM_BOTH_DEAD3:
+      ent->animation1.animation = ANIM_BOTH_DEATH3;
+      ent->animation2.animation = ANIM_BOTH_DEATH3;
+      break;
+    default:
+      return;
+  }
+
+  const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
+  if (!ci->torso) {
+    return;
+  }
+
+  const r_mesh_animation_t *death = &ci->torso->mesh->animations[ent->animation1.animation];
+
+  const uint32_t frame_duration = 1000 / death->hz;
+  const uint32_t anim_duration = death->num_frames * frame_duration;
+  const uint32_t ragdoll_frames = 300 / frame_duration;
+  const uint32_t ragdoll_duration = ragdoll_frames * frame_duration;
+
+  ent->animation1.time = cgi.client->unclamped_time - anim_duration + ragdoll_duration;
+  ent->animation2.time = cgi.client->unclamped_time - anim_duration + ragdoll_duration;
 }
 
 /**
@@ -391,16 +430,16 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
     return;
   }
 
-  const uint32_t frame_duration = 1000 / anim->hz;
-  const uint32_t animation_duration = anim->num_frames * frame_duration;
   const uint32_t elapsed_time = cgi.client->unclamped_time - a->time;
+  const uint32_t frame_duration = 1000 / anim->hz;
+  const uint32_t anim_duration = anim->num_frames * frame_duration;
+
   int32_t frame = elapsed_time / frame_duration;
 
-  if (elapsed_time >= animation_duration) { // to loop, or not to loop
+  if (elapsed_time >= anim_duration) { // to loop, or not to loop
 
     if (!anim->looped_frames) {
-      const entity_animation_t next = Cg_NextAnimation(a->animation);
-
+      const entity_animation_t next = Cg_NextAnimation(a);
       if (next == a->animation) { // no change, just stay put
         a->old_frame = a->frame;
         a->lerp = a->fraction = 1.0;
@@ -434,7 +473,7 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
   }
 
   a->lerp = (elapsed_time % frame_duration) / (float) frame_duration;
-  a->fraction = Clampf01(elapsed_time / (float) animation_duration);
+  a->fraction = Clampf01(elapsed_time / (float) anim_duration);
 }
 
 /**
@@ -467,22 +506,22 @@ static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity
 /**
  * @brief The min velocity we should apply leg rotation on.
  */
-#define CLIENT_LEGS_SPEED_EPSILON    .5f
+#define CLIENT_LEGS_SPEED_EPSILON .5f
 
 /**
  * @brief The max yaw that we'll rotate the legs by when moving left/right.
  */
-#define CLIENT_LEGS_YAW_MAX        65.f
+#define CLIENT_LEGS_YAW_MAX 65.f
 
 /**
  * @brief Clamp angle
  */
-#define CLIENT_LEGS_CLAMP        (CLIENT_LEGS_YAW_MAX * 1.5f)
+#define CLIENT_LEGS_CLAMP (CLIENT_LEGS_YAW_MAX * 1.5f)
 
 /**
  * @brief The speed that the legs will catch up to the current leg yaw.
  */
-#define CLIENT_LEGS_YAW_LERP_SPEED    240.f
+#define CLIENT_LEGS_YAW_LERP_SPEED 240.f
 
 /**
  * @brief Rotates a current angle toward an ideal value at the given angular speed in degrees per second.

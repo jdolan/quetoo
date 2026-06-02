@@ -350,6 +350,7 @@ typedef enum {
   EV_CLIENT_SIZZLE,
   EV_ITEM_RESPAWN,
   EV_ITEM_PICKUP,
+  EV_CLIENT_RAGDOLL,
 } g_entity_event_t;
 
 /**
