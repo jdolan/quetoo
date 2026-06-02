@@ -348,7 +348,6 @@ void Cg_EntityEvent(cl_entity_t *ent) {
 
   s_play_sample_t play = {
     .origin = ent->current.origin,
-    .atten = SOUND_ATTEN_SQUARE,
     .entity = ent,
   };
 

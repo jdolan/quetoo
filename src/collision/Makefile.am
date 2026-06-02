@@ -8,6 +8,7 @@ noinst_HEADERS = \
 	cm_polylib.h \
 	cm_test.h \
 	cm_types.h \
+	cm_voxel.h \
 	collision.h
 
 noinst_LTLIBRARIES = \
@@ -27,7 +28,8 @@ libcollision_la_SOURCES = \
 	cm_model.c \
 	cm_polylib.c \
 	cm_test.c \
-	cm_trace.c
+	cm_trace.c \
+	cm_voxel.c
 
 libcollision_la_LDFLAGS = \
 	-shared

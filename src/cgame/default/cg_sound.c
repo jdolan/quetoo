@@ -78,12 +78,16 @@ void Cg_ParseSound(void) {
     play.origin = cgi.ReadPosition();
   }
 
-  if (flags & SOUND_ATTEN) {
-    play.atten = cgi.ReadByte();
-  }
-
   if (flags & SOUND_PITCH) {
     play.pitch = cgi.ReadChar() * 2;
+  }
+
+  if (flags & SOUND_GAIN) {
+    play.gain = cgi.ReadByte() / 255.f;
+  }
+
+  if (flags & SOUND_RELATIVE) {
+    play.flags |= S_PLAY_RELATIVE;
   }
 
   Cg_AddSample(cgi.stage, &play);

@@ -29,7 +29,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1038
+#define PROTOCOL_MINOR 1041
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -242,8 +242,9 @@ typedef enum {
  */
 #define SOUND_ENTITY    (1 << 0)
 #define SOUND_ORIGIN    (1 << 1)
-#define SOUND_ATTEN     (1 << 2)
-#define SOUND_PITCH     (1 << 3)
+#define SOUND_PITCH     (1 << 2)
+#define SOUND_GAIN      (1 << 3)
+#define SOUND_RELATIVE  (1 << 4)
 
 /**
  * @brief Sound playback dispatch. Sounds may be associated with an entity, or simply positioned.
@@ -256,6 +257,11 @@ typedef struct {
   int32_t index;
 
   /**
+   * @brief Sound flags; see SOUND_*.
+   */
+  int32_t flags;
+
+  /**
    * @brief Entity to bind the sound to for positioning.
    */
   const struct g_entity_s *entity;
@@ -266,14 +272,14 @@ typedef struct {
   const vec3_t *origin;
 
   /**
-   * @brief Attenuation model.
-   */
-  sound_atten_t atten;
-
-  /**
    * @brief Pitch shift in tones; 8 tones per octave.
    */
   int8_t pitch;
+
+  /**
+   * @brief Gain scalar in [0, 1]; 0 means use the default (1.0).
+   */
+  float gain;
 } g_play_sound_t;
 
 /**
@@ -638,11 +644,6 @@ typedef struct {
    * @brief Sound played when movement ends.
    */
   uint16_t sound_end;
-
-  /**
-   * @brief Sound attenuation.
-   */
-  sound_atten_t sound_atten;
 
   /**
    * @brief Acceleration rate.
@@ -1280,6 +1281,11 @@ struct g_client_s {
    * @brief Current round-trip latency in milliseconds.
    */
   uint32_t ping;
+
+  /**
+   * @brief Current score (frags, points, etc.), mirrored for the server.
+   */
+  int16_t score;
 
   /**
    * @brief Raw user info key-value string.

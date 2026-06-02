@@ -161,7 +161,7 @@ PKG_CHECK_MODULES([OBJECTIVELYMVC], [ObjectivelyMVC])
 dnl ----------------
 dnl Check for OpenAL
 dnl ----------------
-PKG_CHECK_MODULES([OPENAL], [openal])
+PKG_CHECK_MODULES([OPENAL], [openal >= 1.20])
 
 dnl -------------------
 dnl Check for PhysicsFS

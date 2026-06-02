@@ -39,7 +39,7 @@ void main(void) {
 
   // Apply vertex lighting
   out_color = diffuse * vertex.color;
-  out_color.rgb *= vertex.lighting;
+  out_color.rgb *= (vertex.ambient + vertex.diffuse);
 
   if (decal.lifetime > 0u) {
     float age = float(uint(ticks) - decal.time);

@@ -298,7 +298,6 @@ void G_Damage(const g_damage_t *dmg) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.invulnerability_protect,
         .entity = target,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
       damage = 0;
       // knockback is intentionally preserved so rocket jumping still works

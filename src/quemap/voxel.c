@@ -404,7 +404,7 @@ void ExposureVoxel(int32_t voxel_num) {
   voxel_t *voxel = &voxels.voxels[voxel_num];
   
   // Use dome vectors to sample hemisphere for better coverage
-  static const vec3_t dome_vectors[] = DOME_COSINE_16X;
+  static const vec3_t dome_vectors[] = DOME_UNIFORM_16X;
   
   float exposure_sum = 0.f;
   
@@ -427,9 +427,93 @@ void ExposureVoxel(int32_t voxel_num) {
   voxel->exposure = exposure_sum / (float)lengthof(dome_vectors);
 }
 
+#define OCCLUSION_RADIUS 256.f
+
 /**
- * @brief qsort comparator for deterministic voxel light index ordering.
+ * @brief Calculates spatial occlusion based on enclosure. Uses full-sphere
+ * rays: low average fraction (walls close) yields high occlusion; open areas
+ * yield low occlusion. Rays are distance capped so large rooms and outdoor
+ * areas produce meaningfully low values rather than collapsing toward 1.0.
+ * Used for both audio reverb and ambient occlusion in the renderer.
  */
+void OccludeVoxel(int32_t voxel_num) {
+
+  voxel_t *voxel = &voxels.voxels[voxel_num];
+
+  static const vec3_t sphere_vectors[] = SPHERE_UNIFORM_32X;
+
+  float fraction_sum = 0.f;
+
+  for (size_t i = 0; i < lengthof(sphere_vectors); i++) {
+    const vec3_t start = voxel->origin;
+    const vec3_t dir = Vec3_Scale(sphere_vectors[i], OCCLUSION_RADIUS);
+    const vec3_t end = Vec3_Add(start, dir);
+
+    const cm_trace_t trace = Light_Trace(start, end, 0, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+    fraction_sum += trace.fraction;
+  }
+
+  voxel->occlusion = 1.f - (fraction_sum / (float) lengthof(sphere_vectors));
+}
+
+/**
+ * @brief Applies a 3×3×3 box blur to the occlusion, exposure, and caustics fields
+ * of all voxels. This smooths the sharp 32-unit grid discontinuities that result
+ * from sampling each voxel only at its center.
+ */
+void SmoothVoxels(void) {
+
+  const size_t n = voxels.num_voxels;
+
+  float *smooth_occ = Mem_TagMalloc(n * sizeof(float), MEM_TAG_VOXEL);
+  float *smooth_exp = Mem_TagMalloc(n * sizeof(float), MEM_TAG_VOXEL);
+  vec3_t *smooth_caust = Mem_TagMalloc(n * sizeof(vec3_t), MEM_TAG_VOXEL);
+
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
+
+        float occ_sum = 0.f, exp_sum = 0.f;
+        vec3_t caust_sum = Vec3_Zero();
+        int32_t count = 0;
+
+        for (int32_t dz = -1; dz <= 1; dz++) {
+          for (int32_t dy = -1; dy <= 1; dy++) {
+            for (int32_t dx = -1; dx <= 1; dx++) {
+              const int32_t nx = x + dx, ny = y + dy, nz = z + dz;
+              if (nx < 0 || nx >= voxels.size.x ||
+                  ny < 0 || ny >= voxels.size.y ||
+                  nz < 0 || nz >= voxels.size.z) {
+                continue;
+              }
+              const int32_t ni = (nz * voxels.size.y + ny) * voxels.size.x + nx;
+              occ_sum += voxels.voxels[ni].occlusion;
+              exp_sum += voxels.voxels[ni].exposure;
+              caust_sum = Vec3_Add(caust_sum, voxels.voxels[ni].caustics);
+              count++;
+            }
+          }
+        }
+
+        const int32_t i = (z * voxels.size.y + y) * voxels.size.x + x;
+        smooth_occ[i] = occ_sum / (float) count;
+        smooth_exp[i] = exp_sum / (float) count;
+        smooth_caust[i] = Vec3_Scale(caust_sum, 1.f / (float) count);
+      }
+    }
+  }
+
+  for (size_t i = 0; i < n; i++) {
+    voxels.voxels[i].occlusion = smooth_occ[i];
+    voxels.voxels[i].exposure = smooth_exp[i];
+    voxels.voxels[i].caustics = smooth_caust[i];
+  }
+
+  Mem_Free(smooth_occ);
+  Mem_Free(smooth_exp);
+  Mem_Free(smooth_caust);
+}
+
 static int IntCompare(const void *a, const void *b) {
   return *(const int32_t *) a - *(const int32_t *) b;
 }
@@ -466,20 +550,22 @@ void EmitVoxels(void) {
               min_lights, max_lights, (float)total_lights / voxels.num_voxels, total_lights);
 
   bsp_file.voxels_size = sizeof(bsp_voxels_t);
-  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 4; // caustics xyz + exposure (RGBA)
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 3; // caustics xyz (RGB)
   bsp_file.voxels_size += voxels.num_voxels * sizeof(int32_t) * 2; // light indices offset and count
   bsp_file.voxels_size += voxels.num_light_indices * sizeof(int32_t);
+  bsp_file.voxels_size += voxels.num_voxels * sizeof(byte) * 2; // occlusion + exposure (RG)
 
   Bsp_AllocLump(&bsp_file, BSP_LUMP_VOXELS, bsp_file.voxels_size);
   memset(bsp_file.voxels, 0, bsp_file.voxels_size);
 
   bsp_file.voxels->size = voxels.size;
   bsp_file.voxels->num_light_indices = (int32_t) voxels.num_light_indices;
+  bsp_file.voxels->bounds = voxels.stu_bounds;
 
   byte *out = (byte *) bsp_file.voxels + sizeof(bsp_voxels_t);
   
   byte *out_data = out;
-  out += voxels.num_voxels * sizeof(byte) * 4; // RGBA = caustics xyz + exposure
+  out += voxels.num_voxels * sizeof(byte) * 3; // RGB = caustics xyz
   
   for (int32_t z = 0; z < voxels.size.z; z++) {
 
@@ -495,7 +581,6 @@ void EmitVoxels(void) {
         *out_data++ = (byte)((caustics.x * 0.5f + 0.5f) * 255.f);
         *out_data++ = (byte)((caustics.y * 0.5f + 0.5f) * 255.f);
         *out_data++ = (byte)((caustics.z * 0.5f + 0.5f) * 255.f);
-        *out_data++ = (byte)(Clampf01(voxel->exposure) * 255.f);
       }
     }
   }
@@ -546,7 +631,22 @@ void EmitVoxels(void) {
       }
     }
   }
-  
+
+  byte *out_occlusion = (byte *) out_light_indices;
+
+  for (int32_t z = 0; z < voxels.size.z; z++) {
+    for (int32_t y = 0; y < voxels.size.y; y++) {
+      for (int32_t x = 0; x < voxels.size.x; x++) {
+
+        const int32_t index = (z * voxels.size.y + y) * voxels.size.x + x;
+        const voxel_t *voxel = &voxels.voxels[index];
+
+        *out_occlusion++ = (byte)(Clampf01(voxel->occlusion) * 255.f);
+        *out_occlusion++ = (byte)(Clampf01(voxel->exposure) * 255.f);
+      }
+    }
+  }
+
   Com_Debug(DEBUG_ALL, "Emitted voxels=%zd indices=%zd\n", voxels.num_voxels, voxels.num_light_indices);
 
   Com_Print("\r%-24s [100%%] %d ms\n", "Emitting voxels", (uint32_t) SDL_GetTicks() - start);

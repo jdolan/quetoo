@@ -35,6 +35,30 @@ static const char *_ping = "Ping";
 #pragma mark - Delegates
 
 /**
+ * @brief CheckboxDelegate for Hide Bots.
+ */
+static void didToggleHideBots(Checkbox *checkbox) {
+
+  JoinServerViewController *this = checkbox->delegate.self;
+
+  this->filters.hideBots = checkbox->control.state & ControlStateSelected;
+
+  $(this, reloadServers);
+}
+
+/**
+ * @brief CheckboxDelegate for Hide Empty.
+ */
+static void didToggleHideEmpty(Checkbox *checkbox) {
+
+  JoinServerViewController *this = checkbox->delegate.self;
+
+  this->filters.hideEmpty = checkbox->control.state & ControlStateSelected;
+
+  $(this, reloadServers);
+}
+
+/**
  * @brief ButtonDelegate for Quick Join.
  * @description Selects a server based on minumum ping and maximum players with
  * a bit of lovely random thrown in. Any server that matches the criteria will
@@ -220,7 +244,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     } else if (g_strcmp0(column->identifier, _gameplay) == 0) {
       $(cell->text, setText, server->gameplay);
     } else if (g_strcmp0(column->identifier, _players) == 0) {
-      $(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
+      const int32_t visible_clients = this->filters.hideBots ? server->clients - server->bots : server->clients;
+      $(cell->text, setText, va("%d/%d", visible_clients, server->max_clients));
     } else if (g_strcmp0(column->identifier, _ping) == 0) {
       $(cell->text, setText, va("%3d", server->ping));
     }
@@ -284,10 +309,13 @@ static void loadView(ViewController *self) {
 
   JoinServerViewController *this = (JoinServerViewController *) self;
 
+  Checkbox *hideEmpty, *hideBots;
   Button *quickJoin, *refresh, *connect;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("servers", &this->serversTableView),
+    MakeOutlet("hideEmpty", &hideEmpty),
+    MakeOutlet("hideBots", &hideBots),
     MakeOutlet("quickJoin", &quickJoin),
     MakeOutlet("refresh", &refresh),
     MakeOutlet("connect", &connect)
@@ -314,6 +342,12 @@ static void loadView(ViewController *self) {
   this->serversTableView->delegate.didSetSortColumn = didSetSortColumn;
   this->serversTableView->delegate.didSelectRowsAtIndexes = didSelectRowsAtIndexes;
   this->serversTableView->delegate.self = this;
+
+  hideBots->delegate.didToggle = didToggleHideBots;
+  hideBots->delegate.self = this;
+
+  hideEmpty->delegate.didToggle = didToggleHideEmpty;
+  hideEmpty->delegate.self = this;
 
   quickJoin->delegate.didClick = didClickQuickJoin;
   quickJoin->delegate.self = this;
@@ -405,6 +439,22 @@ static void reloadServers(JoinServerViewController *self) {
   g_list_free(self->servers);
 
   self->servers = g_list_copy(cgi.Servers());
+
+  GList *list = self->servers;
+  while (list) {
+    GList *next = list->next;
+
+    cl_server_info_t *server = list->data;
+
+    const int32_t visible_clients = self->filters.hideBots ? server->clients - server->bots : server->clients;
+
+    if (visible_clients == 0 && (self->filters.hideEmpty || self->filters.hideBots)) {
+      self->servers = g_list_remove_link(self->servers, list);
+    }
+
+    list = next;
+  }
+
   self->servers = g_list_sort_with_data(self->servers, comparator, self);
 
   $(self->serversTableView, reloadData);

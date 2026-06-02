@@ -42,7 +42,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
   float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(fragment.view_dir * vertex.tbn);
+  vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
   vec2 delta = p / num_samples;
@@ -75,43 +75,27 @@ void bsp_fragment_lighting(in common_vertex_t vertex, inout common_fragment_t fr
 
   // For distant fragments, use simple vertex lighting
   if (fragment.view_dist >= lighting_distance) {
-    fragment.ambient = vec3(0.0);
-    fragment.diffuse = vertex.lighting;
+    fragment.ambient = vertex.ambient;
+    fragment.diffuse = vertex.diffuse;
     fragment.specular = vec3(0.0);
     return;
   }
 
-  // For close fragments, do full per-fragment lighting
+  // For fragments within range, do full per-fragment lighting
 
   if ((stage.flags & STAGE_LIGHTING_FLAT) == STAGE_LIGHTING_FLAT) {
     fragment.normal_sample = normalize(vertex.normal);
     fragment.specular_sample = vec4(fragment.diffuse_sample.rgb, pow(1.0 + material.specularity, 4.0));
   } else {
-    fragment.normal_sample = sample_material_normal(fragment.parallax, vertex.tbn);
+    fragment.normal_sample = sample_material_normal(fragment.parallax, mat3(vertex.tangent, vertex.bitangent, vertex.normal));
     fragment.specular_sample = sample_material_specular(fragment.parallax);
   }
-
-  vec3 sky = textureLod(texture_sky, normalize(vertex.model_normal), 6).rgb;
-
-  fragment.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
-  fragment.diffuse = vec3(0.0);
-  fragment.specular = vec3(0.0);
 
   // Precompute per-pixel Poisson rotation for shadow PCF
   float angle = random_angle(vertex.model_position);
   fragment.shadow_sin_cos = vec2(sin(angle), cos(angle));
 
-  if (editor == 0) {
-    fragment_lighting(vertex, fragment);
-  } else {
-    for (int i = 0; i < MAX_LIGHTS; i++) {
-      int index = active_lights[i];
-      if (index == -1) {
-        break;
-      }
-      fragment_light(vertex, fragment, index);
-    }
-  }
+  fragment_lighting(vertex, fragment);
 }
 
 /**

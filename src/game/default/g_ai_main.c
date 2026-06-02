@@ -69,16 +69,43 @@ static bool G_Ai_IsArmed(const g_client_t *cl) {
 /**
  * @return True if the bot should disengage from combat to seek health/armor.
  * Aggressive bots retreat at lower health; cautious bots retreat earlier.
+ * Bots also flee from enemies carrying dangerous powerups.
  */
 static bool G_Ai_ShouldRetreat(const g_client_t *cl) {
   const int32_t threshold = (int32_t)(AI_RETREAT_HEALTH * Lerpf(1.5f, .5f, cl->ai->personality.aggression));
-  return cl->entity->health < threshold;
+  if (cl->entity->health < threshold) {
+    return true;
+  }
+
+  if (cl->ai->combat_target.type == AI_GOAL_ENTITY) {
+    const g_entity_t *target = cl->ai->combat_target.entity.ent;
+
+    if (target->s.effects & EF_INVULNERABILITY) {
+      return true; // no point fighting an invulnerable enemy
+    }
+
+    // all but the most aggressive bots flee from quad damage
+    if ((target->s.effects & EF_QUAD) && cl->ai->personality.aggression < 0.8f) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
  * @brief Returns true if the AI client has line of sight to the target entity.
  */
 static bool G_Ai_CanSee(const g_client_t *cl, const g_entity_t *other) {
+
+  // invisible enemies are only detectable within a skill-dependent range
+  if (other->s.effects & EF_INVISIBILITY) {
+    const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
+    const float detect_range = Lerpf(256.f, 512.f, cl->ai->personality.skill);
+    if (dist > detect_range) {
+      return false;
+    }
+  }
 
   // see if we're even facing the object
 
@@ -1486,7 +1513,9 @@ static uint32_t G_Ai_Turn(g_client_t *cl, pm_cmd_t *cmd) {
     ideal_angles = Vec3_Euler(aim_direction);
 
     // fuzzy angle: amplitude scales with (1 - skill), per-bot phase offset
-    const float wobble = (1.f - cl->ai->personality.skill) * 2.f;
+    // hitscan weapons carry a small fixed floor to prevent perfect tracking
+    const float wobble = (1.f - cl->ai->personality.skill) * 2.f
+        + ((weapon->def.flags & WF_HITSCAN) ? 0.3f : 0.f);
     const float phase = cl->ai->personality.aim_phase;
     ideal_angles.x += sinf((g_level.time + phase) / 128.0f) * 4.3f * wobble;
     ideal_angles.y += cosf((g_level.time + phase) / 164.0f) * 4.0f * wobble;

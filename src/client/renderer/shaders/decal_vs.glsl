@@ -20,10 +20,11 @@
  */
 
 layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec2 in_texcoord;
-layout (location = 2) in vec4 in_color;
-layout (location = 3) in uint in_time;
-layout (location = 4) in uint in_lifetime;
+layout (location = 1) in vec3 in_normal;
+layout (location = 2) in vec2 in_texcoord;
+layout (location = 3) in vec4 in_color;
+layout (location = 4) in uint in_time;
+layout (location = 5) in uint in_lifetime;
 
 out common_vertex_t vertex;
 
@@ -39,63 +40,25 @@ uniform mat4 model;
  */
 void main(void) {
 
-  vec4 position = vec4(in_position, 1.0);
+  mat4 view_model = view * model;
 
-  vertex.model_position = in_position;
-  vertex.position = vec3(view * position);
-  vertex.diffusemap = in_texcoord;
-  vertex.color = in_color;
-  
-  // Calculate vertex lighting for decals (unshadowed diffuse)
-  vec3 diffuse = vec3(0.0);
-  
-  ivec3 voxel_coord = voxel_xyz(in_position);
-  ivec2 data = voxel_light_data(voxel_coord);
-  
-  for (int i = 0; i < data.y; i++) {
-    int index = voxel_light_index(data.x + i);
-    light_t light = lights[index];
-    
-    float dist = distance(light.origin.xyz, in_position);
-    float radius = light.origin.w;
-    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-    
-    diffuse += light_color(light) * atten;
-  }
-  
-  for (int i = 0; i < MAX_DYNAMIC_LIGHTS; i++) {
-    int index = active_lights[i];
-    if (index == -1) {
-      break;
-    }
-    
-    light_t light = lights[index];
-    
-    float dist = distance(light.origin.xyz, in_position);
-    float radius = light.origin.w;
-    float atten = clamp(1.0 - dist / radius, 0.0, 1.0);
-    
-    diffuse += light_color(light) * atten;
-  }
-  
-  vertex.lighting = diffuse;
-  
-  // Decal-specific data
-  decal.time = in_time;
-  decal.lifetime = in_lifetime;
-  
-  // Initialize unused fields
-  vertex.model_normal = vec3(0.0, 0.0, 1.0);
-  vertex.normal = vec3(0.0, 0.0, 1.0);
-  vertex.smooth_normal = vec3(0.0, 0.0, 1.0);
+  vec4 position = vec4(in_position, 1.0);
+  vec4 normal = vec4(in_normal, 0.0);
+
+  vertex.model_position = vec3(model * position);
+  vertex.model_normal = normalize(vec3(model * normal));
+  vertex.position = vec3(view_model * position);
+  vertex.normal = normalize(vec3(view_model * normal));
   vertex.tangent = vec3(1.0, 0.0, 0.0);
   vertex.bitangent = vec3(0.0, 1.0, 0.0);
-  vertex.tbn = mat3(1.0);
-  vertex.inverse_tbn = mat3(1.0);
-  vertex.voxel = voxel_uvw(in_position);
-  vertex.ambient = vec3(0.0);
-  vertex.caustics = 0.0;
-  vertex_caustics(vertex);
+  vertex.diffusemap = in_texcoord;
+  vertex.voxel = voxel_uvw(vec3(model * position));
+  vertex.color = in_color;
+
+  vertex_lighting(vertex);
+
+  decal.time = in_time;
+  decal.lifetime = in_lifetime;
 
   gl_Position = projection3D * view * model * position;
 }

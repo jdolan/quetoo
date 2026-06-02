@@ -21,10 +21,10 @@
 
 #pragma once
 
+#define AL_ALEXT_PROTOTYPES
 #include <AL/al.h>
 #include <AL/alc.h>
-
-#include "s_al_ext.h"
+#include <AL/alext.h>
 
 #include <SDL3/SDL_audio.h>
 
@@ -143,11 +143,6 @@ typedef struct s_play_sample_s {
   vec3_t velocity;
 
   /**
-   * @brief The sample attenuation.
-   */
-  sound_atten_t atten;
-
-  /**
    * @brief The sample flags.
    */
   int32_t flags;
@@ -156,6 +151,11 @@ typedef struct s_play_sample_s {
    * @brief The sample pitch shift, positive or negative.
    */
   int32_t pitch;
+
+  /**
+   * @brief Gain scalar in [0, 1]; 0 means use the default (1.0).
+   */
+  float gain;
 
   /**
    * @brief The entity associated with this sample, so that occlusion traces may skip it.
@@ -204,9 +204,19 @@ typedef struct {
   float pitch;
 
   /**
-   * @brief The channel filter.
+   * @brief The combined lowpass filter applied to this channel (occlusion + underwater).
    */
   ALuint filter;
+
+  /**
+   * @brief Occlusion (through-wall) mix fraction, smoothly interpolated [0, 1].
+   */
+  float occlusion;
+
+  /**
+   * @brief Underwater mix fraction, smoothly interpolated [0, 1].
+   */
+  float underwater;
 } s_channel_t;
 
 #define MAX_CHANNELS 128
@@ -243,19 +253,19 @@ typedef struct {
 } s_music_t;
 
 /**
- * @brief Filters used by the sound system if `s_effects` is enabled & supported.
+ * @brief Filters and effects used by the sound system if `s_effects` is enabled & supported.
  */
 typedef struct {
 
   /**
-   * @brief Low-pass filter applied to occluded sound sources.
+   * @brief EAX or standard reverb effect, driven by per-listener voxel enclosure.
    */
-  ALuint occluded;
+  ALuint reverb;
 
   /**
-   * @brief Extreme low-pass filter applied to sounds of different liquid state than the listener.
+   * @brief Auxiliary effect slot the reverb effect is attached to.
    */
-  ALuint underwater;
+  ALuint reverb_slot;
 
   /**
    * @brief True if the filters above are currently loaded.
@@ -342,6 +352,16 @@ typedef struct {
    * @brief Effect IDs.
    */
   s_effects_t effects;
+
+  /**
+   * @brief The current listener reverb level (0=open, 1=fully enclosed).
+   */
+  float reverb;
+
+  /**
+   * @brief Stage ticks at last mix, used to compute per-frame dt for filter interpolation.
+   */
+  uint32_t prev_ticks;
 } s_context_t;
 
 /**

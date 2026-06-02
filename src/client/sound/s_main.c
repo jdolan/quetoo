@@ -32,6 +32,7 @@ cvar_t *s_ambient_volume;
 cvar_t *s_doppler;
 cvar_t *s_effects;
 cvar_t *s_effects_volume;
+cvar_t *s_hrtf;
 cvar_t *s_rate;
 cvar_t *s_volume;
 
@@ -177,7 +178,19 @@ SF_VIRTUAL_IO s_physfs_io = {
  */
 void S_Stop(void) {
 
+  // Preserve per-channel filter handles (AL objects outlive channel state)
+  ALuint filters[MAX_CHANNELS];
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    filters[i] = s_context.channels[i].filter;
+  }
+
   memset(s_context.channels, 0, sizeof(s_context.channels));
+
+  for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+    s_context.channels[i].filter = filters[i];
+  }
+
+  s_context.prev_ticks = 0;
 
   alSourceStopv(MAX_CHANNELS, s_context.sources);
 
@@ -231,10 +244,6 @@ void S_RenderStage(const s_stage_t *stage) {
       }
     }
 
-    if (s->sample->stereo && s->atten) {
-      Com_Warn("%s is a stereo sound sample and is being spatialized\n", s->sample->media.name);
-    }
-
     const int32_t c = S_AllocChannel();
     if (c == -1) {
       continue;
@@ -268,6 +277,7 @@ static void S_InitLocal(void) {
   s_doppler = Cvar_Add("s_doppler", "1", CVAR_ARCHIVE, "Doppler effect intensity (default 1).");
   s_effects = Cvar_Add("s_effects", "1", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables advanced sound effects.");
   s_effects_volume = Cvar_Add("s_effects_volume", "1", CVAR_ARCHIVE, "Effects sound volume.");
+  s_hrtf = Cvar_Add("s_hrtf", "0", CVAR_ARCHIVE | CVAR_S_DEVICE, "Enables HRTF sound spatialization. Recommended for headphones.");
   s_rate = Cvar_Add("s_rate", "44100", CVAR_ARCHIVE | CVAR_S_DEVICE, "Sound sample rate in Hz.");
   s_volume = Cvar_Add("s_volume", "1", CVAR_ARCHIVE, "Master sound volume level.");
 
@@ -299,14 +309,25 @@ void S_Init(void) {
     return;
   }
 
-  s_context.context = alcCreateContext(s_context.device, NULL);
+  if (s_hrtf->integer && alcIsExtensionPresent(s_context.device, "ALC_SOFT_HRTF")) {
+    ALCint attrs[7] = { ALC_HRTF_SOFT, ALC_TRUE };
+    int n = 2;
+    if (alcIsExtensionPresent(s_context.device, "ALC_SOFT_output_mode")) {
+      attrs[n++] = ALC_OUTPUT_MODE_SOFT;
+      attrs[n++] = ALC_STEREO_HRTF_SOFT;
+    }
+    attrs[n] = 0;
+    s_context.context = alcCreateContext(s_context.device, attrs);
+  } else {
+    s_context.context = alcCreateContext(s_context.device, NULL);
+  }
 
   if (!s_context.context || !alcMakeContextCurrent(s_context.context)) {
     Com_Warn("%s\n", alcGetString(NULL, alcGetError(NULL)));
     return;
   }
 
-  aladLoadAL();
+  const int efx_supported = alcIsExtensionPresent(s_context.device, "ALC_EXT_EFX");
 
   s_context.renderer = (const char *) alGetString(AL_RENDERER);
   s_context.vendor = (const char *) alGetString(AL_VENDOR);
@@ -315,6 +336,17 @@ void S_Init(void) {
   Com_Print("  Renderer:   ^2%s^7\n", s_context.renderer);
   Com_Print("  Vendor:     ^2%s^7\n", s_context.vendor);
   Com_Print("  Version:    ^2%s^7\n", s_context.version);
+
+  if (s_hrtf->integer) {
+    ALCint hrtf_status;
+    alcGetIntegerv(s_context.device, ALC_HRTF_STATUS_SOFT, 1, &hrtf_status);
+    if (hrtf_status == ALC_HRTF_ENABLED_SOFT || hrtf_status == ALC_HRTF_REQUIRED_SOFT) {
+      const ALCchar *name = alcGetString(s_context.device, ALC_HRTF_SPECIFIER_SOFT);
+      Com_Print("  HRTF:       ^2%s^7\n", name ? name : "enabled");
+    } else {
+      Com_Warn("HRTF requested but not enabled (status %d)\n", hrtf_status);
+    }
+  }
 
   gchar **strings = g_strsplit(alGetString(AL_EXTENSIONS), " ", 0);
 
@@ -340,25 +372,39 @@ void S_Init(void) {
   g_strfreev(strings);
 
   if (s_effects->integer) {
-    if (!ALAD_ALC_EXT_EFX) {
+    if (!efx_supported) {
       Com_Warn("s_effects is enabled but OpenAL driver does not support them.\n");
       Cvar_ForceSetInteger(s_effects->name, 0);
       s_effects->modified = false;
       s_context.effects.loaded = false;
     } else {
-      alGenFilters(1, &s_context.effects.occluded);
-      alFilteri(s_context.effects.occluded, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-      alFilterf(s_context.effects.occluded, AL_LOWPASS_GAIN, 0.6);
-      alFilterf(s_context.effects.occluded, AL_LOWPASS_GAINHF, 0.6);
 
-      alGenFilters(1, &s_context.effects.underwater);
-      alFilteri(s_context.effects.underwater, AL_FILTER_TYPE, AL_FILTER_LOWPASS);
-      alFilterf(s_context.effects.underwater, AL_LOWPASS_GAIN, 0.3);
-      alFilterf(s_context.effects.underwater, AL_LOWPASS_GAINHF, 0.3);
+      // Per-channel combined lowpass filter (occlusion + underwater blended into one)
+      ALuint filters[MAX_CHANNELS];
+      alGenFilters(MAX_CHANNELS, filters);
+      for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+        alFilteri(filters[i], AL_FILTER_TYPE, AL_FILTER_LOWPASS);
+        s_context.channels[i].filter = filters[i];
+      }
 
-      S_GetError("Failed to create filters");
+      alGenEffects(1, &s_context.effects.reverb);
+      if (alGetError() == AL_NO_ERROR) {
+        alEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+        if (alGetError() != AL_NO_ERROR) {
+          alEffecti(s_context.effects.reverb, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+          S_GetError("Failed to set reverb effect type");
+        }
+      }
 
-      s_context.effects.loaded = true;
+      alGenAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+      alAuxiliaryEffectSloti(s_context.effects.reverb_slot, AL_EFFECTSLOT_EFFECT, (ALint) s_context.effects.reverb);
+
+      if (alGetError() == AL_NO_ERROR) {
+        s_context.effects.loaded = true;
+      } else {
+        Com_Warn("s_effects: failed to create filters, disabling.\n");
+        s_context.effects.loaded = false;
+      }
     }
   } else {
     s_context.effects.loaded = false;
@@ -393,7 +439,13 @@ void S_Shutdown(void) {
   alDeleteSources(MAX_CHANNELS, s_context.sources);
 
   if (s_context.effects.loaded) {
-    alDeleteFilters(1, &s_context.effects.underwater);
+    ALuint filters[MAX_CHANNELS];
+    for (int32_t i = 0; i < MAX_CHANNELS; i++) {
+      filters[i] = s_context.channels[i].filter;
+    }
+    alDeleteFilters(MAX_CHANNELS, filters);
+    alDeleteAuxiliaryEffectSlots(1, &s_context.effects.reverb_slot);
+    alDeleteEffects(1, &s_context.effects.reverb);
     s_context.effects.loaded = false;
   }
 

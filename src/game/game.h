@@ -68,6 +68,11 @@ struct g_client_s {
   uint32_t ping;
 
   /**
+   * @brief Current score (frags, points, etc.), updated each server frame.
+   */
+  int16_t score;
+
+  /**
    * @brief Raw user info key-value string.
    */
   char user_info[MAX_INFO_STRING_STRING];

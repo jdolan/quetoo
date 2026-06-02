@@ -137,6 +137,11 @@ layout (std140) uniform uniforms_block {
   float caustics;
 
   /**
+   * @brief The ambient occlusion scalar (0 = disabled, 1 = full).
+   */
+  float ambient_occlusion;
+
+  /**
    * @brief Distance threshold for switching to vertex lighting.
    */
   float lighting_distance;
@@ -238,7 +243,8 @@ uniform sampler2D texture_warp;
 /**
  * @brief The voxel textures.
  */
-uniform sampler3D texture_voxel_data;
+uniform sampler3D texture_voxel_caustics;
+uniform sampler3D texture_voxel_occlusion;
 uniform isampler3D texture_voxel_light_data;
 uniform isamplerBuffer texture_voxel_light_indices;
 

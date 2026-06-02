@@ -39,7 +39,8 @@ static struct {
   GLint texture_stage_next;
   GLint texture_warp;
 
-  GLint texture_voxel_data;
+  GLint texture_voxel_caustics;
+  GLint texture_voxel_occlusion;
 
   GLint texture_sky;
 
@@ -592,7 +593,8 @@ void R_InitBspProgram(void) {
   r_bsp_program.texture_stage_next = glGetUniformLocation(r_bsp_program.name, "texture_stage_next");
   r_bsp_program.texture_warp = glGetUniformLocation(r_bsp_program.name, "texture_warp");
 
-  r_bsp_program.texture_voxel_data = glGetUniformLocation(r_bsp_program.name, "texture_voxel_data");
+  r_bsp_program.texture_voxel_caustics = glGetUniformLocation(r_bsp_program.name, "texture_voxel_caustics");
+  r_bsp_program.texture_voxel_occlusion = glGetUniformLocation(r_bsp_program.name, "texture_voxel_occlusion");
 
   r_bsp_program.texture_sky = glGetUniformLocation(r_bsp_program.name, "texture_sky");
 
@@ -630,7 +632,8 @@ void R_InitBspProgram(void) {
   glUniform1i(r_bsp_program.texture_stage_next, TEXTURE_STAGE_NEXT);
   glUniform1i(r_bsp_program.texture_warp, TEXTURE_WARP);
 
-  glUniform1i(r_bsp_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
+  glUniform1i(r_bsp_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
+  glUniform1i(r_bsp_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
 
   glUniform1i(r_bsp_program.texture_sky, TEXTURE_SKY);
 

@@ -484,7 +484,6 @@ static void Cg_misc_flame_Think(cg_entity_t *self) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
       .sample = flame->sample,
       .origin = self->origin,
-      .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
       .pitch = RandomRangei(-1, 1),
       .data = self
@@ -582,13 +581,6 @@ static void Cg_misc_sound_Init(cg_entity_t *self) {
   }
 
   sound->play.origin = self->origin;
-
-  if (cgi.EntityValue(self->def, "atten")->parsed & ENTITY_INTEGER) {
-    sound->play.atten = cgi.EntityValue(self->def, "atten")->integer;
-  } else {
-    sound->play.atten = SOUND_ATTEN_SQUARE;
-  }
-
   sound->play.flags = S_PLAY_AMBIENT;
 
   if (self->hz == 0.f) {
@@ -900,7 +892,6 @@ static void Cg_misc_steam_Think(cg_entity_t *self) {
     Cg_AddSample(cgi.stage, &(const s_play_sample_t) {
       .sample = steam->sample,
       .origin = self->origin,
-      .atten = SOUND_ATTEN_CUBIC,
       .flags = S_PLAY_AMBIENT | S_PLAY_LOOP | S_PLAY_FRAME,
       .data = self,
     });

@@ -40,6 +40,7 @@ cvar_t *r_get_error;
 cvar_t *r_occlude;
 
 cvar_t *r_ambient;
+cvar_t *r_ambient_occlusion;
 cvar_t *r_anisotropy;
 cvar_t *r_antialias;
 cvar_t *r_bloom;
@@ -50,6 +51,8 @@ cvar_t *r_draw_scale;
 cvar_t *r_finish;
 cvar_t *r_framebuffer_scale;
 cvar_t *r_fullscreen;
+cvar_t *r_fullscreen_width;
+cvar_t *r_fullscreen_height;
 cvar_t *r_hardness;
 cvar_t *r_lighting_distance;
 cvar_t *r_modulate;
@@ -145,6 +148,7 @@ void R_UpdateUniforms(const r_view_t *view) {
     out->modulate_mesh = r_modulate_mesh->value;
     out->saturation = r_saturation->value;
     out->caustics = r_caustics->value;
+    out->ambient_occlusion = r_ambient_occlusion->value;
     out->lighting_distance = r_lighting_distance->value;
     out->editor = editor->integer;
     out->developer = developer->integer;
@@ -374,16 +378,19 @@ static void R_InitLocal(void) {
 
   // settings and preferences
   r_ambient = Cvar_Add("r_ambient", "1", CVAR_ARCHIVE, "Controls the intensity of ambient lighting.");
+  r_ambient_occlusion = Cvar_Add("r_ambient_occlusion", "1", CVAR_ARCHIVE, "Controls the intensity of ambient occlusion. 0 = disabled, 1 = full.");
   r_anisotropy = Cvar_Add("r_anisotropy", "16", CVAR_ARCHIVE | CVAR_R_MEDIA, "Controls anisotropic texture filtering.");
   r_antialias = Cvar_Add("r_antialias", "0", CVAR_ARCHIVE, "MSAA sample count (0 = disabled, 2, 4, 8).");
   r_bloom = Cvar_Add("r_bloom", "4", CVAR_ARCHIVE, "Controls the intensity of bloom. 0 disables bloom.");
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
-  r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects.");
+  r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
+  r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
+  r_fullscreen_height = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");
   r_lighting_distance = Cvar_Add("r_lighting_distance", "2048", CVAR_ARCHIVE, "Distance threshold for vertex lighting.");
   r_modulate = Cvar_Add("r_modulate", "1", CVAR_ARCHIVE, "Controls the brightness of static lighting.");
@@ -429,13 +436,9 @@ static void R_InitConfig(void) {
   glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &r_config.max_3d_texture_size);
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &r_config.max_uniform_block_size);
 
-  Com_Print(  "  Renderer:           ^2%s^7\n", r_config.renderer);
-  Com_Print(  "  Vendor:             ^2%s^7\n", r_config.vendor);
-  Com_Print(  "  Version:            ^2%s^7\n", r_config.version);
-  Com_Verbose("  Texture Units:      ^2%i^7\n", r_config.max_texunits);
-  Com_Verbose("  Texture Size:       ^2%i^7\n", r_config.max_texture_size);
-  Com_Verbose("  3D Texture Size     ^2%i^7\n", r_config.max_3d_texture_size);
-  Com_Verbose("  Uniform block Size: ^2%i^7\n", r_config.max_uniform_block_size);
+  Com_Print(  "  Renderer:   ^2%s^7\n", r_config.renderer);
+  Com_Print(  "  Vendor:     ^2%s^7\n", r_config.vendor);
+  Com_Print(  "  Version:    ^2%s^7\n", r_config.version);
 
   for (int32_t i = 0; i < num_extensions; i++) {
     const char *c = (const char *) glGetStringi(GL_EXTENSIONS, i);

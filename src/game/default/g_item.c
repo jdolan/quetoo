@@ -249,7 +249,6 @@ static bool G_PickupInvisibility(g_client_t *cl, g_entity_t *ent) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.invisibility_pickup,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR
   }, MULTICAST_PHS);
 
   return true;
@@ -304,7 +303,6 @@ static bool G_PickupInvulnerability(g_client_t *cl, g_entity_t *ent) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.invulnerability_pickup,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR
   }, MULTICAST_PHS);
 
   return true;
@@ -922,7 +920,6 @@ void G_TouchItem(g_entity_t *ent, g_entity_t *other, const cm_trace_t *trace) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = ent->item->pickup_sound_index,
         .origin = &other->s.origin,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
     }
 

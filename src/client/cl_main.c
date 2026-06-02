@@ -387,8 +387,8 @@ static void Cl_ConnectionlessPacket(void) {
     return;
   }
 
-  // server responding to a status broadcast
-  if (!g_strcmp0(c, "info")) {
+  // server responding to a status query
+  if (!g_strcmp0(c, "status")) {
     Cl_ParseServerInfo();
     return;
   }

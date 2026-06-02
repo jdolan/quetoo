@@ -27,7 +27,7 @@
  * @brief BSP file identification.
  */
 #define BSP_IDENT (('P' << 24) + ('S' << 16) + ('B' << 8) + 'I') // "IBSP"
-#define BSP_VERSION 76
+#define BSP_VERSION 78
 
 /**
  * @brief BSP file format limits.
@@ -670,6 +670,11 @@ typedef struct {
    * @brief The total count of light indices for all voxels.
    */
   int32_t num_light_indices;
+
+  /**
+   * @brief The world bounds used to build the voxel grid, aligned to BSP_VOXEL_SIZE.
+   */
+  box3_t bounds;
 } bsp_voxels_t;
 
 /**

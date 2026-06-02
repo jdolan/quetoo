@@ -282,7 +282,6 @@ static void G_ClientGiblet_Touch(g_entity_t *ent, g_entity_t *other, const cm_tr
         G_MulticastSound(&(const g_play_sound_t) {
           .index = ent->sound,
           .entity = ent,
-          .atten = SOUND_ATTEN_SQUARE
         }, MULTICAST_PHS);
         ent->touch_time = g_level.time;
       }
@@ -554,7 +553,6 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
       .index = g_media.sounds.death,
       .entity = ent,
       .origin = &ent->s.origin, // send the origin in case of fast respawn
-      .atten = SOUND_ATTEN_LINEAR
     }, MULTICAST_PHS);
 
     const float r = Randomf();
@@ -1091,7 +1089,6 @@ static void G_ClientRespawn_(g_client_t *cl) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = teleport_sound,
       .origin = &ent->s.origin,
-      .atten = SOUND_ATTEN_LINEAR
     }, MULTICAST_PHS);
 
     G_SetAnimation(cl, ANIM_TORSO_STAND1, true);
@@ -1831,7 +1828,6 @@ static void G_ClientInventoryThink(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.quad_expire,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
       
       cl->quad_countdown_time += 1000;
@@ -1858,7 +1854,6 @@ static void G_ClientInventoryThink(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.invisibility_expire,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
     }
   }
@@ -1869,7 +1864,6 @@ static void G_ClientInventoryThink(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.invulnerability_expire,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
 
       cl->invulnerability_countdown_time += 1000;

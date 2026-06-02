@@ -39,7 +39,8 @@ static struct {
   GLint texture_material;
   GLint texture_stage;
   GLint texture_stage_next;
-  GLint texture_voxel_data;
+  GLint texture_voxel_caustics;
+  GLint texture_voxel_occlusion;
   GLint texture_voxel_light_data;
   GLint texture_voxel_light_indices;
 
@@ -263,18 +264,16 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, normal)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
-    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, diffusemap)));
 
     const ptrdiff_t frame_offset = e->frame * face->num_vertexes * sizeof(r_mesh_vertex_t);
 
-    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
-    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
-    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, smooth_normal)));
-    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
-    glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, normal)));
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, tangent)));
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, bitangent)));
   }
 
   glBindTexture(GL_TEXTURE_2D_ARRAY, material->texture->texnum);
@@ -325,15 +324,13 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
-    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
-    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
-    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
-    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, smooth_normal));
-    glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
-    glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, diffusemap));
+    glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, position));
+    glVertexAttribPointer(6, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, normal));
+    glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, tangent));
+    glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) offsetof(r_mesh_vertex_t, bitangent));
   }
 }
 
@@ -467,7 +464,8 @@ void R_InitMeshProgram(void) {
   r_mesh_program.texture_material = glGetUniformLocation(r_mesh_program.name, "texture_material");
   r_mesh_program.texture_stage = glGetUniformLocation(r_mesh_program.name, "texture_stage");
   r_mesh_program.texture_stage_next = glGetUniformLocation(r_mesh_program.name, "texture_stage_next");
-  r_mesh_program.texture_voxel_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_data");
+  r_mesh_program.texture_voxel_caustics = glGetUniformLocation(r_mesh_program.name, "texture_voxel_caustics");
+  r_mesh_program.texture_voxel_occlusion = glGetUniformLocation(r_mesh_program.name, "texture_voxel_occlusion");
   r_mesh_program.texture_voxel_light_data = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_data");
   r_mesh_program.texture_voxel_light_indices = glGetUniformLocation(r_mesh_program.name, "texture_voxel_light_indices");
 
@@ -497,7 +495,8 @@ void R_InitMeshProgram(void) {
   glUniform1i(r_mesh_program.texture_material, TEXTURE_MATERIAL);
   glUniform1i(r_mesh_program.texture_stage, TEXTURE_STAGE);
   glUniform1i(r_mesh_program.texture_stage_next, TEXTURE_STAGE_NEXT);
-  glUniform1i(r_mesh_program.texture_voxel_data, TEXTURE_VOXEL_DATA);
+  glUniform1i(r_mesh_program.texture_voxel_caustics, TEXTURE_VOXEL_CAUSTICS);
+  glUniform1i(r_mesh_program.texture_voxel_occlusion, TEXTURE_VOXEL_OCCLUSION);
   glUniform1i(r_mesh_program.texture_voxel_light_data, TEXTURE_VOXEL_LIGHT_DATA);
   glUniform1i(r_mesh_program.texture_voxel_light_indices, TEXTURE_VOXEL_LIGHT_INDICES);
 

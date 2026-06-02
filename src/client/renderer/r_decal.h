@@ -41,6 +41,11 @@ typedef struct {
   vec3_t position;
 
   /**
+   * @brief The vertex normal.
+   */
+  vec3_t normal;
+
+  /**
    * @brief The diffusemap texture coordinate.
    */
   vec2_t texcoord;

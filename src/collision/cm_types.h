@@ -350,6 +350,34 @@ typedef struct {
 } cm_bsp_node_t;
 
 /**
+ * @brief Per-voxel data decoded from the BSP voxel lump.
+ */
+typedef struct cm_voxel_s {
+
+  /**
+   * @brief World-space center of the voxel cell.
+   */
+  vec3_t origin;
+
+  /**
+   * @brief Caustics direction and strength, encoded as a normalized direction
+   * scaled by intensity in [-1, 1] per component.
+   */
+  vec3_t caustics;
+
+  /**
+   * @brief Sky exposure in [0, 1]; 1 means fully open to sky.
+   */
+  float exposure;
+
+  /**
+   * @brief Spatial enclosure in [0, 1]; 1 means fully enclosed. Used for
+   * audio reverb and renderer ambient occlusion.
+   */
+  float occlusion;
+} cm_voxel_t;
+
+/**
  * @brief The BSP model structure.
  */
 typedef struct {
@@ -463,6 +491,26 @@ typedef struct {
    * @brief Material pointer array.
    */
   cm_material_t **materials;
+
+  /**
+   * @brief Voxel grid dimensions.
+   */
+  vec3i_t voxel_size;
+
+  /**
+   * @brief Voxel grid world bounds.
+   */
+  box3_t voxel_bounds;
+
+  /**
+   * @brief Number of voxels (voxel_size.x * y * z).
+   */
+  int32_t num_voxels;
+
+  /**
+   * @brief Decoded voxel array, indexed by (z*size.y + y)*size.x + x.
+   */
+  cm_voxel_t *voxels;
 
 } cm_bsp_t;
 

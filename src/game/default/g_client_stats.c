@@ -199,6 +199,7 @@ void G_ClientStats(g_client_t *cl) {
   // frags
   cl->ps.stats[STAT_FRAGS] = cl->persistent.score;
   cl->ps.stats[STAT_DEATHS] = cl->persistent.deaths;
+  cl->score = cl->persistent.score;
 
   // health
   if (cl->persistent.spectator || cl->entity->dead) {

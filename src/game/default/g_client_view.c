@@ -50,7 +50,6 @@ static void G_ClientDamage(g_client_t *cl) {
         .index = g_media.sounds.pain[pain],
         .entity = cl->entity,
         .origin = &org,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
     }
   }
@@ -81,7 +80,6 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.water_in,
       .entity = ent,
-      .atten = SOUND_ATTEN_LINEAR
     }, MULTICAST_PHS);
   }
 
@@ -90,7 +88,6 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.water_out,
       .entity = ent,
-      .atten = SOUND_ATTEN_LINEAR
     }, MULTICAST_PHS);
   }
 
@@ -111,7 +108,6 @@ static void G_ClientWaterInteraction(g_client_t *cl) {
         .index = g_media.sounds.gasp,
         .entity = ent,
         .origin = &org,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
     }
 

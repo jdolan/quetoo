@@ -32,9 +32,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y \
           build-essential autoconf automake libtool pkg-config \
+          g++-12 \
           libncurses-dev \
           libpcre2-dev libffi-dev \
-          libopenal-dev libsndfile1-dev libphysfs-dev zlib1g-dev \
+          libsndfile1-dev libphysfs-dev zlib1g-dev \
           libcurl4-openssl-dev \
           libgl-dev \
           libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev \
@@ -47,6 +48,19 @@ jobs:
           ruby ruby-dev rubygems rpm
         sudo pip3 install meson
         sudo gem install fpm --no-document
+
+    - name: Build OpenAL Soft
+      run: |
+        git clone --depth 1 --branch 1.25.2 https://github.com/kcat/openal-soft.git openal-soft
+        cmake -S openal-soft -B openal-soft/build \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_INSTALL_PREFIX=/usr/local \
+          -DCMAKE_CXX_COMPILER=g++-12 \
+          -DALSOFT_EXAMPLES=OFF \
+          -DALSOFT_TESTS=OFF \
+          -DALSOFT_UTILS=OFF
+        cmake --build openal-soft/build -j$(nproc)
+        sudo cmake --install openal-soft/build
 
     - name: Build GLib
       run: |

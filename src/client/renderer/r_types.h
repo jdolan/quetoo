@@ -914,9 +914,14 @@ typedef struct {
   r_bsp_voxel_t *voxels;
 
   /**
-   * @brief The voxel data 3D texture (`RGBA8`): caustics direction+strength (rgb) and exposure (a).
+   * @brief The voxel caustics 3D texture (`RGB8`): caustics direction+strength.
    */
-  r_image_t *data;
+  r_image_t *caustics;
+
+  /**
+   * @brief The voxel occlusion 3D texture (`RG8`): spatial occlusion (r) and sky exposure (g).
+   */
+  r_image_t *occlusion;
 
   /**
    * @brief The light data 3D texture (`RG32I`) for offset and count pairs per voxel.
@@ -1132,11 +1137,6 @@ typedef struct {
    * @brief The vertex normal.
    */
   vec3_t normal;
-
-  /**
-   * @brief The smoothed vertex normal, for Phong shading.
-   */
-  vec3_t smooth_normal;
 
   /**
    * @brief The vertex tangent, for per-pixel lighting.
@@ -2385,7 +2385,8 @@ typedef enum {
   TEXTURE_WARP,
 
   TEXTURE_VOXEL,
-  TEXTURE_VOXEL_DATA,
+  TEXTURE_VOXEL_CAUSTICS,
+  TEXTURE_VOXEL_OCCLUSION,
   TEXTURE_VOXEL_LIGHT_DATA,
   TEXTURE_VOXEL_LIGHT_INDICES,
 

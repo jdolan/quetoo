@@ -71,7 +71,7 @@ void Cl_FreeServers(void) {
 }
 
 /**
- * @brief Parses a server info response and updates or creates the matching server entry.
+ * @brief Parses a server status response and updates or creates the matching server entry.
  */
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
@@ -85,18 +85,49 @@ void Cl_ParseServerInfo(void) {
     server->ping_time = cls.broadcast_time;
   }
 
-  // try to parse the info string
   g_strlcpy(string, Net_ReadString(&net_message), sizeof(string));
 
-  gchar **info = g_strsplit(string, "\\", 0);
-  const size_t num_info = g_strv_length(info);
-  if (num_info == 5) {
-    g_strlcpy(server->hostname, g_strchomp(info[0]), sizeof(server->hostname));
-    g_strlcpy(server->name, g_strchomp(info[1]), sizeof(server->name));
-    g_strlcpy(server->gameplay, g_strchomp(info[2]), sizeof(server->gameplay));
+  // First line is the server infostring; subsequent lines are player entries.
+  char *player_start = strchr(string, '\n');
+  if (player_start) {
+    *player_start++ = '\0';
+  }
 
-    server->clients = atoi(info[3]);
-    server->max_clients = atoi(info[4]);
+  char hostname[sizeof(server->hostname)];
+  char name[sizeof(server->name)];
+  char gameplay[sizeof(server->gameplay)];
+
+  g_strlcpy(hostname, InfoString_Get(string, "sv_hostname"), sizeof(hostname));
+  g_strlcpy(name, InfoString_Get(string, "sv_map"), sizeof(name));
+  g_strlcpy(gameplay, InfoString_Get(string, "g_gameplay"), sizeof(gameplay));
+  const int32_t max_clients = atoi(InfoString_Get(string, "sv_max_clients"));
+
+  if (hostname[0] && name[0]) {
+    g_strlcpy(server->hostname, hostname, sizeof(server->hostname));
+    g_strlcpy(server->name, name, sizeof(server->name));
+    g_strlcpy(server->gameplay, gameplay, sizeof(server->gameplay));
+    server->max_clients = max_clients;
+
+    server->clients = 0;
+    server->bots = 0;
+
+    const char *line = player_start;
+    while (line && *line) {
+      const char *end = strchr(line, '\n');
+
+      char player[MAX_TOKEN_CHARS];
+      const size_t len = end ? (size_t)(end - line) : strlen(line);
+      g_strlcpy(player, line, MIN(len + 1, sizeof(player)));
+
+      if (player[0]) {
+        server->clients++;
+        if (atoi(InfoString_Get(player, "ai"))) {
+          server->bots++;
+        }
+      }
+
+      line = end ? end + 1 : NULL;
+    }
 
     server->ping = Clampf(quetoo.ticks - server->ping_time, 1u, 999u);
     server->error[0] = '\0';
@@ -108,11 +139,10 @@ void Cl_ParseServerInfo(void) {
 
     server->clients = 0;
     server->max_clients = 0;
+    server->bots = 0;
 
     g_snprintf(server->error, sizeof(server->error), "Invalid response from %s\n", Net_NetaddrToString(&server->addr));
   }
-
-  g_strfreev(info);
 
   SDL_PushEvent(&(SDL_Event) {
     .user.type = MVC_NOTIFICATION_EVENT,
@@ -156,7 +186,7 @@ void Cl_Ping_f(void) {
 
   Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);
+  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
 }
 
 /**
@@ -183,7 +213,7 @@ static void Cl_SendBroadcast(void) {
   addr.type = NA_BROADCAST;
   addr.port = htons(PORT_SERVER);
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "info %i", PROTOCOL_MAJOR);
+  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
 
   cls.broadcast_time = quetoo.ticks;
 }
@@ -204,7 +234,7 @@ void Cl_Servers_f(void) {
   addr.type = NA_DATAGRAM;
   addr.port = htons(PORT_MASTER);
 
-  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers");
+  Netchan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "getservers %d", PROTOCOL_MAJOR);
 
   Cl_SendBroadcast();
 }
@@ -271,7 +301,7 @@ void Cl_ParseServers(void) {
       server->ping_time = quetoo.ticks;
       server->ping = 0;
 
-      Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "info %i", PROTOCOL_MAJOR);
+      Netchan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
     }
 
     e = e->next;

@@ -373,6 +373,7 @@ static void Bsp_SwapVoxels(void *lump, const int32_t num) {
 
   voxel->size = LittleVec3i(voxel->size);
   voxel->num_light_indices = LittleLong(voxel->num_light_indices);
+  voxel->bounds = LittleBounds(voxel->bounds);
 }
 
 /**

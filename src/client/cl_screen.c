@@ -293,7 +293,7 @@ static void Cl_DrawSoundStats(void) {
   R_Draw2DString(x, y, "Sound:", color_magenta);
   y += ch;
 
-  R_Draw2DString(x, y, va("%d channels", s_context.num_active_channels), color_magenta);
+  R_Draw2DString(x, y, va("%d channels  reverb %.2f", s_context.num_active_channels, s_context.reverb), color_magenta);
   y += ch;
 
   for (int32_t i = 0; i < MAX_CHANNELS; i++) {
@@ -309,7 +309,7 @@ static void Cl_DrawSoundStats(void) {
     if (state != AL_PLAYING)
       continue;
 
-    R_Draw2DString(x + ch, y, va("%i: %s @ (%f %f %f) : %i", i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y, channel->play.origin.z, channel->play.flags), color_magenta);
+    R_Draw2DString(x + ch, y, va("%i: %s @ (%f %f %f) : %i : (%.2f occluded)", i, channel->play.sample->media.name, channel->play.origin.x, channel->play.origin.y, channel->play.origin.z, channel->play.flags, channel->occlusion), color_magenta);
     y += ch;
   }
 

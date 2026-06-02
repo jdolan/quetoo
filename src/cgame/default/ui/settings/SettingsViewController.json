@@ -51,6 +51,18 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Fullscreen resolution"
+                            }
+                          },
+                          "control": {
+                            "class": "Select",
+                            "identifier": "resolution"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Render scale"
                             }
                           },
@@ -162,6 +174,20 @@
                             "class": "CvarSelect",
                             "identifier": "antialias",
                             "var": "r_antialias"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "Ambient occlusion"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSlider",
+                            "var": "r_ambient_occlusion",
+                            "min": 0.0,
+                            "max": 1.0
                           }
                         },
                         {
@@ -307,6 +333,18 @@
                           "control": {
                             "class": "CvarCheckbox",
                             "var": "s_effects"
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
+                              "text": "HRTF (headphones)"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarCheckbox",
+                            "var": "s_hrtf"
                           }
                         }
                       ]

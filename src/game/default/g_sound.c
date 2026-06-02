@@ -29,7 +29,7 @@ static void G_Sound(const g_play_sound_t *play) {
   assert(play->index > -1);
   assert(play->index < MAX_SOUNDS);
 
-  int32_t flags = 0;
+  int32_t flags = play->flags;
 
   if (play->entity) {
     flags |= SOUND_ENTITY;
@@ -39,12 +39,12 @@ static void G_Sound(const g_play_sound_t *play) {
     flags |= SOUND_ORIGIN;
   }
 
-  if (play->atten) {
-    flags |= SOUND_ATTEN;
-  }
-
   if (play->pitch) {
     flags |= SOUND_PITCH;
+  }
+
+  if (play->gain) {
+    flags |= SOUND_GAIN;
   }
 
   gi.WriteByte(SV_CMD_SOUND);
@@ -59,12 +59,12 @@ static void G_Sound(const g_play_sound_t *play) {
     gi.WritePosition(*play->origin);
   }
 
-  if (flags & SOUND_ATTEN) {
-    gi.WriteByte(play->atten);
-  }
-
   if (flags & SOUND_PITCH) {
     gi.WriteChar(play->pitch);
+  }
+
+  if (flags & SOUND_GAIN) {
+    gi.WriteByte((uint8_t) (Clampf(play->gain, 0.f, 1.f) * 255.f + 0.5f));
   }
 }
 

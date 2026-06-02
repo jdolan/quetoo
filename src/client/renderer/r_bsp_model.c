@@ -310,16 +310,18 @@ static void R_LoadBspBlocks(r_bsp_model_t *bsp) {
     glBufferData(GL_ARRAY_BUFFER, MAX_BSP_BLOCK_DECALS * sizeof(r_decal_triangle_t), NULL, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, position));
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
-    glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
-    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
-    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, normal));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, texcoord));
+    glVertexAttribPointer(3, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, color));
+    glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, time));
+    glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, sizeof(r_decal_vertex_t), (void *) offsetof(r_decal_vertex_t, lifetime));
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     glEnableVertexAttribArray(3);
     glEnableVertexAttribArray(4);
+    glEnableVertexAttribArray(5);
 
     glBindVertexArray(0);
   }
@@ -406,38 +408,29 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   out->size = in->size;
   out->num_voxels = out->size.x * out->size.y * out->size.z;
   out->num_light_indices = in->num_light_indices;
-
-  const box3_t world_bounds = mod->bsp->inline_models->visible_bounds;
-  
-  out->bounds.mins.x = floorf(world_bounds.mins.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
-  out->bounds.mins.y = floorf(world_bounds.mins.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
-  out->bounds.mins.z = floorf(world_bounds.mins.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
-  
-  out->bounds.maxs.x = ceilf(world_bounds.maxs.x / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
-  out->bounds.maxs.y = ceilf(world_bounds.maxs.y / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
-  out->bounds.maxs.z = ceilf(world_bounds.maxs.z / BSP_VOXEL_SIZE) * BSP_VOXEL_SIZE;
+  out->bounds = in->bounds;
 
   const GLsizei levels = log2f(Mini(Mini(out->size.x, out->size.y), out->size.z)) + 1;
 
-  const byte *data_data = data;
-  data += out->num_voxels * sizeof(byte) * 4; // RGBA
+  const byte *caustics_data = data;
+  data += out->num_voxels * sizeof(byte) * 3; // RGB
 
-  out->data = (r_image_t *) R_AllocMedia("voxel_data", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->data->media.Free = R_FreeImage;
-  out->data->type = IMG_VOXELS;
-  out->data->width = out->size.x;
-  out->data->height = out->size.y;
-  out->data->depth = out->size.z;
-  out->data->target = GL_TEXTURE_3D;
-  out->data->levels = levels;
-  out->data->minify = GL_LINEAR_MIPMAP_LINEAR;
-  out->data->magnify = GL_LINEAR;
-  out->data->internal_format = GL_RGBA8;
-  out->data->format = GL_RGBA;
-  out->data->pixel_type = GL_UNSIGNED_BYTE;
+  out->caustics = (r_image_t *) R_AllocMedia("voxel_caustics", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->caustics->media.Free = R_FreeImage;
+  out->caustics->type = IMG_VOXELS;
+  out->caustics->width = out->size.x;
+  out->caustics->height = out->size.y;
+  out->caustics->depth = out->size.z;
+  out->caustics->target = GL_TEXTURE_3D;
+  out->caustics->levels = levels;
+  out->caustics->minify = GL_LINEAR_MIPMAP_LINEAR;
+  out->caustics->magnify = GL_LINEAR;
+  out->caustics->internal_format = GL_RGB8;
+  out->caustics->format = GL_RGB;
+  out->caustics->pixel_type = GL_UNSIGNED_BYTE;
 
-  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_DATA);
-  R_UploadImage(out->data, data_data);
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_CAUSTICS);
+  R_UploadImage(out->caustics, caustics_data);
 
   const int32_t *light_data = (const int32_t *) data;
   data += out->num_voxels * sizeof(int32_t) * 2;
@@ -459,6 +452,7 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   R_UploadImage(out->light_data, (const byte *) light_data);
 
   const int32_t *light_indices_data = (const int32_t *) data;
+  data += out->num_light_indices * sizeof(int32_t);
 
   glGenBuffers(1, &out->light_indices_buffer);
   glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
@@ -474,6 +468,25 @@ static void R_LoadBspVoxels(r_model_t *mod) {
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
   R_SetupImage(out->light_indices);
+
+  const byte *occlusion_data = data;
+
+  out->occlusion = (r_image_t *) R_AllocMedia("voxel_occlusion", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->occlusion->media.Free = R_FreeImage;
+  out->occlusion->type = IMG_VOXELS;
+  out->occlusion->width = out->size.x;
+  out->occlusion->height = out->size.y;
+  out->occlusion->depth = out->size.z;
+  out->occlusion->target = GL_TEXTURE_3D;
+  out->occlusion->levels = levels;
+  out->occlusion->minify = GL_LINEAR_MIPMAP_LINEAR;
+  out->occlusion->magnify = GL_LINEAR;
+  out->occlusion->internal_format = GL_RG8;
+  out->occlusion->format = GL_RG;
+  out->occlusion->pixel_type = GL_UNSIGNED_BYTE;
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_OCCLUSION);
+  R_UploadImage(out->occlusion, occlusion_data);
 
   if (r_draw_bsp_voxels->value) {
     
@@ -707,7 +720,8 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.data);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.caustics);
+  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.occlusion);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
   R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
 

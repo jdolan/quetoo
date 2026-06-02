@@ -36,6 +36,9 @@
     <ClInclude Include="..\..\src\collision\cm_polylib.h">
       <Filter>src\collision</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\collision\cm_voxel.h">
+      <Filter>src\collision</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\collision\cm_model.c">
@@ -57,6 +60,9 @@
       <Filter>src\collision</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\collision\cm_polylib.c">
+      <Filter>src\collision</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\collision\cm_voxel.c">
       <Filter>src\collision</Filter>
     </ClCompile>
   </ItemGroup>

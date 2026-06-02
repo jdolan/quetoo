@@ -442,8 +442,9 @@ void Cmd_RemoveAll(uint32_t flags) {
   while (g_hash_table_iter_next (&iter, &key, &value)) {
     const GQueue *queue = (GQueue *) value;
     
-    for (const GList *list = queue->head; list; list = list->next) {
+    for (const GList *list = queue->head; list; ) {
       cmd_t *cmd = (cmd_t *) list->data;
+      list = list->next; // advance before Cmd_Remove_ frees the GList node
 
       if (cmd->flags & flags) {
         Cmd_Remove_(cmd);

@@ -60,6 +60,7 @@ typedef struct ms_server_s {
   bool validated;
   char hostname[256];
   char mapname[64];
+  int32_t protocol;
   int32_t num_clients;
   int32_t max_clients;
   char players[MAX_CLIENTS][64];
@@ -159,12 +160,16 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
     StrStrip(val, server->hostname);
   }
 
+  if (Ms_InfoValue(status, "sv_protocol", val, sizeof(val))) {
+    server->protocol = atoi(val);
+  }
+
   server->max_clients = 0;
   if (Ms_InfoValue(status, "sv_max_clients", val, sizeof(val))) {
     server->max_clients = atoi(val);
   }
 
-  if (Ms_InfoValue(status, "map_name", val, sizeof(val))) {
+  if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
     g_strlcpy(server->mapname, val, sizeof(server->mapname));
   }
 
@@ -179,18 +184,29 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
       break;
     }
 
-    int32_t score, ping;
+    // isolate the current player line to prevent cross-line key lookups
+    const char *line_end = strchr(line, '\n');
+    char cur_line[256];
+    if (line_end) {
+      g_strlcpy(cur_line, line, MIN((size_t) (line_end - line) + 1, sizeof(cur_line)));
+    } else {
+      g_strlcpy(cur_line, line, sizeof(cur_line));
+    }
+
     char name[64] = { 0 };
-    if (sscanf(line, "%d %d \"%63[^\"]\"", &score, &ping, name) >= 2 && name[0]) {
+    char ai_val[4] = { 0 };
+    if (Ms_InfoValue(cur_line, "name", name, sizeof(name)) && name[0]) {
       char stripped[64];
       StrStrip(name, stripped);
-      if (!g_str_has_prefix(stripped, "[BOT]")) {
+      Ms_InfoValue(cur_line, "ai", ai_val, sizeof(ai_val));
+      Com_Verbose("Player: %s ai=%s\n", stripped, ai_val[0] ? ai_val : "(none)");
+      if (!atoi(ai_val) && !g_str_has_prefix(stripped, "[BOT]")) {
         g_strlcpy(new_players[new_count], stripped, sizeof(new_players[new_count]));
         new_count++;
       }
     }
 
-    line = strchr(line, '\n');
+    line = line_end;
   }
 
   const bool initialized = (server->num_clients >= 0);
@@ -380,9 +396,20 @@ static void Ms_Frame(void) {
 /**
  * @brief Send the servers list to the specified client address.
  */
-static void Ms_GetServers(struct sockaddr_in *from) {
+static void Ms_GetServers(struct sockaddr_in *from, const char *cmd) {
   mem_buf_t buf;
   byte buffer[0xffff];
+
+  // parse optional protocol version from command (e.g. "getservers 2026")
+  int32_t protocol = PROTOCOL_MAJOR;
+  const char *p = cmd + strlen("getservers");
+  while (*p == ' ') p++;
+  if (*p) {
+    const int32_t requested = atoi(p);
+    if (requested > 0) {
+      protocol = requested;
+    }
+  }
 
   Mem_InitBuffer(&buf, buffer, sizeof(buffer));
 
@@ -393,7 +420,7 @@ static void Ms_GetServers(struct sockaddr_in *from) {
   GList *s = ms_servers;
   while (s) {
     const ms_server_t *server = (ms_server_t *) s->data;
-    if (server->validated) {
+    if (server->validated && server->protocol == protocol) {
       Mem_WriteBuffer(&buf, &server->addr.sin_addr, sizeof(server->addr.sin_addr));
       Mem_WriteBuffer(&buf, &server->addr.sin_port, sizeof(server->addr.sin_port));
       i++;
@@ -404,7 +431,7 @@ static void Ms_GetServers(struct sockaddr_in *from) {
   if ((sendto(ms_sock, buf.data, buf.size, 0, (struct sockaddr *) from, sizeof(*from))) == -1) {
     Com_Warn("%s: %s\n", atos(from), strerror(errno));
   } else {
-    Com_Verbose("Sent %d servers to %s\n", i, atos(from));
+    Com_Verbose("Sent %d servers (protocol %d) to %s\n", i, protocol, atos(from));
   }
 }
 
@@ -470,7 +497,7 @@ static void Ms_ParseMessage(struct sockaddr_in *from, char *data) {
   } else if (!g_ascii_strncasecmp(cmd, "shutdown", 8)) {
     Ms_RemoveServer(from);
   } else if (!g_ascii_strncasecmp(cmd, "getservers", 10) || !g_ascii_strncasecmp(cmd, "y", 1)) {
-    Ms_GetServers(from);
+    Ms_GetServers(from, cmd);
   } else {
     Com_Warn("Unknown command from %s: '%s'\n", atos(from), cmd);
   }

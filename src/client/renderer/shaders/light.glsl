@@ -213,12 +213,26 @@ vec3 vertex_light(in common_vertex_t v, in int index) {
 }
 
 /**
+ * @brief Calculate caustics lighting contribution.
+ */
+void vertex_caustics(inout common_vertex_t v) {
+  v.caustics = length(voxel_caustics(v.voxel));
+}
+
+/**
  * @brief Calculate vertex lighting from voxel lights (unshadowed diffuse only).
  * @details Used for distant geometry where per-fragment lighting is too expensive.
  * @param v Vertex data (lighting field is written).
  */
 void vertex_lighting(inout common_vertex_t v) {
-  vec3 diffuse = vec3(0.0);
+
+  float occlusion = voxel_occlusion(v.voxel);
+  float exposure = voxel_exposure(v.voxel);
+
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+
+  v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+  v.diffuse = vec3(0.0);
 
   if (editor == 0) {
     ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -226,7 +240,7 @@ void vertex_lighting(inout common_vertex_t v) {
 
     for (int i = 0; i < data.y; i++) {
       int index = voxel_light_index(data.x + i);
-      diffuse += vertex_light(v, index);
+      v.diffuse += vertex_light(v, index);
     }
   }
 
@@ -235,17 +249,10 @@ void vertex_lighting(inout common_vertex_t v) {
     if (index == -1) {
       break;
     }
-    diffuse += vertex_light(v, index);
+    v.diffuse += vertex_light(v, index);
   }
 
-  v.lighting = diffuse;
-}
-
-/**
- * @brief Calculate caustics lighting contribution.
- */
-void vertex_caustics(inout common_vertex_t v) {
-  v.caustics = length(voxel_caustics(v.voxel));
+  vertex_caustics(v);
 }
 
 /**
@@ -286,7 +293,6 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
   f.diffuse += max(vec3(0.0), light * f.caustics * noise);
 }
 
-
 /**
  * @brief Parallax occlusion self-shadowing.
  * @details Raymarches along light direction through heightmap to compute shadows.
@@ -302,7 +308,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
   float step_scale = mix(1.0, 2.5, min(f.lod * 0.5, 1.0));
 
   vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
-  vec3 dir = normalize(v.inverse_tbn * light_dir);
+  vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
   vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.lod));
 
@@ -376,6 +382,15 @@ void fragment_light(in common_vertex_t v, inout common_fragment_t f, in int inde
  */
 void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
 
+  float occlusion = voxel_occlusion(v.voxel);
+  float exposure = voxel_exposure(v.voxel);
+
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+
+  f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
+  f.diffuse = vec3(0.0);
+  f.specular = vec3(0.0);
+
   if (editor == 0) {
     // Sample static voxel lights
     ivec3 voxel_coord = voxel_xyz(v.model_position);
@@ -396,6 +411,5 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
     fragment_light(v, f, index);
   }
 
-  // Add caustics
   fragment_caustics(v, f);
 }

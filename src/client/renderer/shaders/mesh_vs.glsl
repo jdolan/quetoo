@@ -21,16 +21,14 @@
 
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec3 in_normal;
-layout (location = 2) in vec3 in_smooth_normal;
-layout (location = 3) in vec3 in_tangent;
-layout (location = 4) in vec3 in_bitangent;
-layout (location = 5) in vec2 in_diffusemap;
+layout (location = 2) in vec3 in_tangent;
+layout (location = 3) in vec3 in_bitangent;
+layout (location = 4) in vec2 in_diffusemap;
 
-layout (location = 6) in vec3 in_next_position;
-layout (location = 7) in vec3 in_next_normal;
-layout (location = 8) in vec3 in_next_smooth_normal;
-layout (location = 9) in vec3 in_next_tangent;
-layout (location = 10) in vec3 in_next_bitangent;
+layout (location = 5) in vec3 in_next_position;
+layout (location = 6) in vec3 in_next_normal;
+layout (location = 7) in vec3 in_next_tangent;
+layout (location = 8) in vec3 in_next_bitangent;
 
 uniform mat4 model;
 uniform float lerp;
@@ -49,7 +47,6 @@ void main(void) {
 
   vec4 position = vec4(mix(in_position, in_next_position, lerp), 1.0);
   vec4 normal = vec4(mix(in_normal, in_next_normal, lerp), 0.0);
-  vec4 smooth_normal = vec4(mix(in_smooth_normal, in_next_smooth_normal, lerp), 0.0);
   vec4 tangent = vec4(mix(in_tangent, in_next_tangent, lerp), 0.0);
   vec4 bitangent = vec4(mix(in_bitangent, in_next_bitangent, lerp), 0.0);
 
@@ -59,32 +56,25 @@ void main(void) {
   vertex.model_normal = normalize(vec3(model * normal));
   vertex.position = vec3(view_model * position);
   vertex.normal = normalize(vec3(view_model * normal));
-  vertex.smooth_normal = normalize(vec3(view_model * smooth_normal));
   vertex.tangent = normalize(vec3(view_model * tangent));
   vertex.bitangent = normalize(vec3(view_model * bitangent));
-  vertex.tbn = mat3(vertex.tangent, vertex.bitangent, vertex.normal);
-  vertex.inverse_tbn = inverse(vertex.tbn);
   vertex.diffusemap = in_diffusemap;
   vertex.voxel = vec3(0.0);
   vertex.color = color;
   vertex.ambient = vec3(0.0);
+  vertex.diffuse = vec3(0.0);
   vertex.caustics = 0.0;
-  vertex.lighting = vec3(0.0);
 
   if (view_type == VIEW_PLAYER_MODEL) {
     vertex.ambient = vec3(0.666);
+    vertex.diffuse = vec3(0.0);
   } else {
     vertex.voxel = voxel_uvw(vertex.model_position);
-
-    vec3 sky = textureLod(texture_sky, normalize(vec3(model * normal)), 6).rgb;
-    vertex.ambient = pow(vec3(1.0) + sky, vec3(2.0)) * ambient * voxel_exposure(vertex.voxel);
-
-    vertex_caustics(vertex);
     vertex_lighting(vertex);
   }
 
   vertex.ambient *= modulate_mesh;
-  vertex.lighting *= modulate_mesh;
+  vertex.diffuse *= modulate_mesh;
 
   gl_Position = projection3D * view_model * position;
 

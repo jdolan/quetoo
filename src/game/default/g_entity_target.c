@@ -122,15 +122,9 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
       ent->s.sound = ent->sound;
     }
   } else { // intermittent sound
-    const cm_entity_t *atten = gi.EntityValue(ent->def, "atten");
-    int16_t atten_value = SOUND_ATTEN_LINEAR;
-    if (atten->parsed & ENTITY_INTEGER) {
-      atten_value = atten->integer;
-    }
     G_MulticastSound(&(const g_play_sound_t) {
       .index = ent->sound,
       .origin = &ent->s.origin,
-      .atten = atten_value
     }, MULTICAST_PHS);
   }
 }
@@ -140,11 +134,6 @@ static void G_target_speaker_Use(g_entity_t *ent, g_entity_t *other, g_entity_t 
 
  -------- Keys --------
  sound : The name of the sample to play, e.g. voices/haunting.
- atten : The attenuation level; higher levels drop off more quickly (default 1):
-    0 : No attenuation, send the sound to the entire level.
-    1 : Normal attenuation, hearable to all those in PHS of entity.
-    2 : Idle attenuation, hearable only by those near to entity.
-    3 : Static attenuation, hearable only by those very close to entity.
  targetname : The target name of this entity.
 
  -------- Spawn flags --------

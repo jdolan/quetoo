@@ -68,15 +68,24 @@ int voxel_light_index(in int index) {
  * @return Signed direction vector with length as intensity (scaled by uniform caustics).
  */
 vec3 voxel_caustics(in vec3 texcoord) {
-  vec3 encoded = texture(texture_voxel_data, texcoord).rgb;
+  vec3 encoded = texture(texture_voxel_caustics, texcoord).rgb;
   return ((encoded * 2.0) - 1.0) * caustics;
+}
+
+/**
+ * @brief Samples the spatial occlusion at the given voxel texture coordinate.
+ * @param texcoord The voxel texture coordinate (0-1 range).
+ * @return The occlusion (R channel, 0=open, 1=fully enclosed).
+ */
+float voxel_occlusion(in vec3 texcoord) {
+  return texture(texture_voxel_occlusion, texcoord).r;
 }
 
 /**
  * @brief Samples the exposure at the given voxel texture coordinate.
  * @param texcoord The voxel texture coordinate (0-1 range).
- * @return The exposure (A channel, 0-1).
+ * @return The sky exposure (G channel, 0-1), floored at 0.25.
  */
 float voxel_exposure(in vec3 texcoord) {
-  return max(0.25, texture(texture_voxel_data, texcoord).a);
+  return max(0.25, texture(texture_voxel_occlusion, texcoord).g);
 }

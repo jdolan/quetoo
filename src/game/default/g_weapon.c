@@ -68,7 +68,6 @@ static void G_ChangeWeapon(g_client_t *cl, const g_item_t *item) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.weapon_switch,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR
   }, MULTICAST_PHS);
 }
 
@@ -290,7 +289,6 @@ static bool G_FireWeapon(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.weapon_no_ammo,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
       cl->pain_time = g_level.time + 1000;
     }
@@ -318,7 +316,6 @@ void G_PlayTechSound(g_client_t *cl) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.techs[tech->def.tag - TECH_FIRST],
       .entity = cl->entity,
-      .atten = SOUND_ATTEN_LINEAR
     }, MULTICAST_PHS);
     cl->tech_sound_time = g_level.time + 500;
   }
@@ -357,7 +354,6 @@ static void G_WeaponFired(g_client_t *cl, uint32_t interval, uint32_t ammo_neede
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.quad_attack,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR
       }, MULTICAST_PHS);
 
       cl->quad_attack_time = g_level.time + 500;
@@ -469,7 +465,6 @@ void G_HookDetach(g_client_t *cl) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.hook_detach,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR,
     .pitch = RandomRangei(-4, 5)
   }, MULTICAST_PHS);
 
@@ -518,7 +513,6 @@ static void G_HookCheckFire(g_client_t *cl, const bool refire) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.hook_fire,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR,
     .pitch = RandomRangei(-4, 5)
   }, MULTICAST_PHS);
 
@@ -749,7 +743,6 @@ void G_FireHandGrenade(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.weapon_no_ammo,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR,
       }, MULTICAST_PHS);
       
       cl->pain_time = g_level.time + 1000;
@@ -773,7 +766,6 @@ void G_FireHandGrenade(g_client_t *cl) {
       G_MulticastSound(&(const g_play_sound_t) {
         .index = g_media.sounds.grenade_clang,
         .entity = cl->entity,
-        .atten = SOUND_ATTEN_LINEAR,
       }, MULTICAST_PHS);
     }
     return;
@@ -808,7 +800,6 @@ void G_FireHandGrenade(g_client_t *cl) {
   G_MulticastSound(&(const g_play_sound_t) {
     .index = g_media.sounds.grenade_throw,
     .entity = cl->entity,
-    .atten = SOUND_ATTEN_LINEAR,
   }, MULTICAST_PHS);
 
   // push the next fire time out by the interval (2 secs)
@@ -1138,7 +1129,6 @@ void G_FireBfg(g_client_t *cl) {
     G_MulticastSound(&(const g_play_sound_t) {
       .index = g_media.sounds.bfg_prime,
       .entity = cl->entity,
-      .atten = SOUND_ATTEN_LINEAR,
     }, MULTICAST_PHS);
   }
 }

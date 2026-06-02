@@ -210,7 +210,6 @@ static void Cg_EntitySound(cl_entity_t *ent) {
       .sample = cgi.client->sounds[s->sound],
       .origin = s->origin,
       .entity = ent,
-      .atten = SOUND_ATTEN_SQUARE,
       .flags = S_PLAY_LOOP | S_PLAY_FRAME
     });
   }

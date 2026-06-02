@@ -84,17 +84,14 @@ struct common_vertex_t {
   vec3 model_normal;     // World-space normal
   vec3 position;         // View-space position
   vec3 normal;           // View-space normal
-  vec3 smooth_normal;    // View-space smooth normal (mesh only)
   vec3 tangent;          // View-space tangent
   vec3 bitangent;        // View-space bitangent
-  mat3 tbn;              // Tangent-to-view matrix
-  mat3 inverse_tbn;      // View-to-tangent matrix (BSP only)
   vec2 diffusemap;       // Diffuse texture coordinates
   vec3 voxel;            // Voxel texture coordinates
   vec4 color;            // Vertex color
   vec3 ambient;          // Ambient lighting
-  float caustics;        // Caustics intensity
-  vec3 lighting;         // Pre-calculated vertex lighting
+  vec3 diffuse;          // Diffuse lighting
+  float caustics;        // Caustics lighting
 };
 
 /**
@@ -115,8 +112,8 @@ struct common_fragment_t {
   vec4 specular_sample;  // Specular texture sample (rgb = color, a = gloss)
   vec3 ambient;          // Ambient lighting contribution
   vec3 diffuse;          // Diffuse lighting contribution
-  float caustics;        // Caustics contribution (BSP only)
   vec3 specular;         // Specular lighting contribution
+  float caustics;        // Caustics contribution (BSP only)
   vec2 shadow_sin_cos;   // Per-pixel Poisson rotation (sin, cos)
 };
 

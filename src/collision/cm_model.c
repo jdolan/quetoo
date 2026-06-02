@@ -211,6 +211,49 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
 }
 
 /**
+ * @brief Decodes the voxel lump into a flat cm_voxel_t array on the cm_bsp_t.
+ */
+static void Cm_LoadBspVoxels(cm_bsp_t *bsp) {
+
+  if (!bsp->file->voxels) {
+    return;
+  }
+
+  const bsp_voxels_t *v = bsp->file->voxels;
+
+  bsp->voxel_size = v->size;
+  bsp->voxel_bounds = v->bounds;
+  bsp->num_voxels = v->size.x * v->size.y * v->size.z;
+
+  cm_voxel_t *out = bsp->voxels = Mem_TagMalloc(sizeof(cm_voxel_t) * bsp->num_voxels, MEM_TAG_COLLISION);
+
+  const byte *rgb = (const byte *) (v + 1);
+  const byte *occlusion = rgb +
+    bsp->num_voxels * 3 +
+    bsp->num_voxels * (int32_t) sizeof(int32_t) * 2 +
+    (size_t) v->num_light_indices * sizeof(int32_t);
+
+  for (int32_t z = 0; z < v->size.z; z++) {
+    for (int32_t y = 0; y < v->size.y; y++) {
+      for (int32_t x = 0; x < v->size.x; x++, out++, rgb += 3, occlusion += 2) {
+
+        out->origin = Vec3_Add(v->bounds.mins,
+          Vec3_Scale(Vec3((float) x + 0.5f, (float) y + 0.5f, (float) z + 0.5f), BSP_VOXEL_SIZE));
+
+        out->caustics = Vec3(
+          (rgb[0] / 255.f) * 2.f - 1.f,
+          (rgb[1] / 255.f) * 2.f - 1.f,
+          (rgb[2] / 255.f) * 2.f - 1.f
+        );
+
+        out->occlusion = occlusion[0] / 255.f;
+        out->exposure  = occlusion[1] / 255.f;
+      }
+    }
+  }
+}
+
+/**
  * @brief Lumps we need to load for the CM subsystem.
  */
 #define CM_BSP_LUMPS \
@@ -222,7 +265,8 @@ static void Cm_LoadBspMaterials(cm_bsp_t *bsp) {
   (1 << BSP_LUMP_LEAF_BRUSHES) | \
   (1 << BSP_LUMP_BRUSHES) | \
   (1 << BSP_LUMP_BRUSH_SIDES) | \
-  (1 << BSP_LUMP_MODELS)
+  (1 << BSP_LUMP_MODELS) | \
+  (1 << BSP_LUMP_VOXELS)
 
 /**
  * @brief Loads in the BSP and all sub-models for collision detection. This
@@ -244,6 +288,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
   Mem_Free(cm_bsp.models);
   Mem_Free(cm_bsp.entities);
   Mem_Free(cm_bsp.materials);
+  Mem_Free(cm_bsp.voxels);
 
   memset(&cm_bsp, 0, sizeof(cm_bsp));
   cm_bsp.file = &file;
@@ -293,6 +338,7 @@ cm_bsp_model_t *Cm_LoadBspModel(const char *name, int64_t *size) {
   Cm_LoadBspBrushSides(&cm_bsp);
   Cm_LoadBspBrushes(&cm_bsp);
   Cm_LoadBspInlineModels(&cm_bsp);
+  Cm_LoadBspVoxels(&cm_bsp);
 
   Cm_InitBoxHull(&cm_bsp);
 
