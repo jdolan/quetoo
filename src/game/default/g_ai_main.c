@@ -1728,6 +1728,17 @@ void G_Ai_Think(g_client_t *cl, pm_cmd_t *cmd) {
  * @brief Called every time an AI spawns
  */
 void G_Ai_Respawn(g_client_t *cl) {
+
+  G_Ai_ClearGoal(&cl->ai->combat_target);
+  G_Ai_ClearGoal(&cl->ai->move_target);
+  G_Ai_ClearGoal(&cl->ai->backup_move_target);
+
+  memset(cl->ai->func_goal_next_thinks, 0, sizeof(cl->ai->func_goal_next_thinks));
+
+  cl->ai->weapon_check_time = 0;
+  cl->ai->reacquire_time = 0;
+  cl->ai->lookahead_frame = 0;
+  cl->ai->lookahead_no_ground = false;
 }
 
 /**
