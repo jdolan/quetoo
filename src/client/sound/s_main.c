@@ -410,7 +410,7 @@ void S_Init(void) {
     s_context.effects.loaded = false;
   }
 
-  alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+  alDistanceModel(AL_LINEAR_DISTANCE_CLAMPED);
   alGenSources(MAX_CHANNELS, s_context.sources);
   alSpeedOfSound(343.3f * 40.f); // 1 Quake unit ≈ 1 inch; 1 meter ≈ 40 units
 

@@ -236,9 +236,9 @@ void S_MixChannels(const s_stage_t *stage) {
         alSourcei(src, AL_SOURCE_RELATIVE, 0);
       }
 
-      alSourcef(src, AL_ROLLOFF_FACTOR, 0.5f);
-      alSourcef(src, AL_REFERENCE_DISTANCE, 128.f);
-      alSourcef(src, AL_MAX_DISTANCE, MAX_WORLD_DIST);
+      alSourcef(src, AL_ROLLOFF_FACTOR, 1.f);
+      alSourcef(src, AL_REFERENCE_DISTANCE, 256.f);
+      alSourcef(src, AL_MAX_DISTANCE, 2048.f);
 
       if (ch->play.flags & S_PLAY_LOOP) {
         alSourcei(src, AL_LOOPING, 1);
