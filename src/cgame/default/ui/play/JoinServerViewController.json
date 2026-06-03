@@ -26,8 +26,9 @@
                 }
               },
               "control": {
-                "class": "Checkbox",
-                "identifier": "hideEmpty"
+                "class": "CvarCheckbox",
+                "identifier": "hideEmpty",
+                "var": "cg_join_server_hide_empty"
               }
             },
             {
@@ -38,8 +39,9 @@
                 }
               },
               "control": {
-                "class": "Checkbox",
-                "identifier": "hideBots"
+                "class": "CvarCheckbox",
+                "identifier": "hideBots",
+                "var": "cg_join_server_hide_bots"
               }
             },
             {

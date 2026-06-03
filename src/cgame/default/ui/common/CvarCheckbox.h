@@ -26,6 +26,12 @@
 #include <ObjectivelyMVC/Checkbox.h>
 
 /**
+ * @brief The default `CheckboxDelegate` callback for `CvarCheckbox`.
+ * @details Call this from custom `CheckboxDelegate` callbacks to preserve `CvarCheckbox` functionality.
+ */
+CGAME_EXPORT void cvarCheckboxDidToggle(Checkbox *checkbox);
+
+/**
  * @file
  * @brief A Checkbox bound to a cvar_t.
  */

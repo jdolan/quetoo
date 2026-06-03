@@ -53,22 +53,6 @@ struct JoinServerViewController {
   JoinServerViewControllerInterface *interface;
 
   /**
-   * @brief The server list filters.
-   */
-  struct {
-
-    /**
-     * @brief If true, hide empty servers from the list.
-     */
-    bool hideEmpty;
-
-    /**
-     * @brief If true, exclude bots from player counts.
-     */
-    bool hideBots;
-  } filters;
-
-  /**
    * @brief A copy of the client's servers list, for sorting, filtering, etc.
    */
   GList *servers;

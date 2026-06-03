@@ -77,7 +77,7 @@ static void updateBindings(View *self) {
 /**
  * @brief CheckboxDelegate.
  */
-static void didToggle(Checkbox *checkbox) {
+void cvarCheckboxDidToggle(Checkbox *checkbox) {
 
   const CvarCheckbox *this = (CvarCheckbox *) checkbox;
 
@@ -98,7 +98,7 @@ static CvarCheckbox *initWithVariable(CvarCheckbox *self, cvar_t *var) {
 
     self->var = var;
 
-    self->checkbox.delegate.didToggle = didToggle;
+    self->checkbox.delegate.didToggle = cvarCheckboxDidToggle;
   }
 
   return self;

@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 #include "JoinServerViewController.h"
+#include "CvarCheckbox.h"
 
 static const char *_hostname = "Hostname";
 static const char *_source = "Source";
@@ -29,6 +30,9 @@ static const char *_name = "Map";
 static const char *_gameplay = "Gameplay";
 static const char *_players = "Players";
 static const char *_ping = "Ping";
+
+static cvar_t *cg_join_server_hide_empty;
+static cvar_t *cg_join_server_hide_bots;
 
 #define _Class _JoinServerViewController
 
@@ -39,9 +43,9 @@ static const char *_ping = "Ping";
  */
 static void didToggleHideBots(Checkbox *checkbox) {
 
-  JoinServerViewController *this = checkbox->delegate.self;
+  cvarCheckboxDidToggle(checkbox);
 
-  this->filters.hideBots = checkbox->control.state & ControlStateSelected;
+  JoinServerViewController *this = checkbox->delegate.self;
 
   $(this, reloadServers);
 }
@@ -51,9 +55,9 @@ static void didToggleHideBots(Checkbox *checkbox) {
  */
 static void didToggleHideEmpty(Checkbox *checkbox) {
 
-  JoinServerViewController *this = checkbox->delegate.self;
+  cvarCheckboxDidToggle(checkbox);
 
-  this->filters.hideEmpty = checkbox->control.state & ControlStateSelected;
+  JoinServerViewController *this = checkbox->delegate.self;
 
   $(this, reloadServers);
 }
@@ -244,13 +248,15 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     } else if (g_strcmp0(column->identifier, _gameplay) == 0) {
       $(cell->text, setText, server->gameplay);
     } else if (g_strcmp0(column->identifier, _players) == 0) {
-      const int32_t visible_clients = this->filters.hideBots ? server->clients - server->bots : server->clients;
-      $(cell->text, setText, va("%d/%d", visible_clients, server->max_clients));
+      if (cg_join_server_hide_bots->value) {
+        $(cell->text, setText, va("%d/%d", server->clients - server->bots, server->max_clients));
+      } else {
+        $(cell->text, setText, va("%d/%d", server->clients, server->max_clients));
+      }
     } else if (g_strcmp0(column->identifier, _ping) == 0) {
       $(cell->text, setText, va("%3d", server->ping));
     }
   }
-
 
   return cell;
 }
@@ -446,9 +452,9 @@ static void reloadServers(JoinServerViewController *self) {
 
     cl_server_info_t *server = list->data;
 
-    const int32_t visible_clients = self->filters.hideBots ? server->clients - server->bots : server->clients;
+    const int32_t clients = cg_join_server_hide_bots->value ? server->clients - server->bots : server->clients;
 
-    if (visible_clients == 0 && (self->filters.hideEmpty || self->filters.hideBots)) {
+    if (clients == 0 && (cg_join_server_hide_empty->value || cg_join_server_hide_bots->value)) {
       self->servers = g_list_remove_link(self->servers, list);
     }
 
@@ -474,6 +480,9 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
+
+  cg_join_server_hide_empty = cgi.AddCvar("cg_join_server_hide_empty", "0", CVAR_ARCHIVE, NULL);
+  cg_join_server_hide_bots = cgi.AddCvar("cg_join_server_hide_bots", "0", CVAR_ARCHIVE, NULL);
 }
 
 /**
