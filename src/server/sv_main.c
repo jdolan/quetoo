@@ -34,6 +34,7 @@ sv_client_t *sv_client; // current client
 cvar_t *sv_demo_list;
 cvar_t *sv_enforce_time;
 cvar_t *sv_hostname;
+cvar_t *sv_map;
 cvar_t *sv_max_clients;
 cvar_t *sv_max_entities;
 cvar_t *sv_min_clients;
@@ -896,9 +897,10 @@ static void Sv_InitLocal(void) {
   sv_demo_list = Cvar_Add("sv_demo_list", "", CVAR_SERVER_INFO, "A list of demo names to cycle through");
   sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
-  sv_min_clients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
+  sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
+  sv_min_clients = Cvar_Add("sv_min_clients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server");
   sv_stats_url = Cvar_Add("sv_stats_url", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to \"\" to disable.");
   sv_timeout = Cvar_Add("sv_timeout", va("%d", SV_TIMEOUT), 0, "The client connection timeout threshold in seconds");

@@ -59,7 +59,7 @@ typedef struct ms_server_s {
   time_t last_ping;
   bool validated;
   char hostname[256];
-  char mapname[64];
+  char map[64];
   int32_t protocol;
   int32_t num_clients;
   int32_t max_clients;
@@ -132,7 +132,7 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
   char escaped_map[128];
   Ms_JsonEscape(player_name, escaped_player, sizeof(escaped_player));
   Ms_JsonEscape(server->hostname, escaped_host, sizeof(escaped_host));
-  Ms_JsonEscape(server->mapname, escaped_map, sizeof(escaped_map));
+  Ms_JsonEscape(server->map, escaped_map, sizeof(escaped_map));
 
   const char *ip = inet_ntoa(server->addr.sin_addr);
   const int32_t port = ntohs(server->addr.sin_port);
@@ -170,7 +170,7 @@ static void Ms_ParseStatusString(ms_server_t *server, const char *status) {
   }
 
   if (Ms_InfoValue(status, "sv_map", val, sizeof(val))) {
-    g_strlcpy(server->mapname, val, sizeof(server->mapname));
+    g_strlcpy(server->map, val, sizeof(server->map));
   }
 
   char new_players[MAX_CLIENTS][64];

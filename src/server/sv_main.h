@@ -29,12 +29,13 @@ int32_t Sv_InstallerFrame(const installer_status_t *s);
 void Sv_Frame(const uint32_t msec);
 
 #if defined(__SV_LOCAL_H__)
-// cvars
 extern cvar_t *sv_demo_list;
 extern cvar_t *sv_enforce_time;
 extern cvar_t *sv_hostname;
+extern cvar_t *sv_map;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_max_entities;
+extern cvar_t *sv_min_clients;
 extern cvar_t *sv_public;
 extern cvar_t *sv_stats_url;
 extern cvar_t *sv_timeout;

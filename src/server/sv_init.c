@@ -270,12 +270,15 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
   strcpy(sv.config_strings[CS_NAME], server);
 
   if (state == SV_ACTIVE_DEMO) { // loading a demo
+    Cvar_ForceSetString(sv_map->name, "");
 
     sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
     svs.spawn_count = 0;
 
     Com_Print("  Loaded demo %s.\n", sv.name);
   } else { // loading a map
+    Cvar_ForceSetString(sv_map->name, sv.name);
+
     g_snprintf(sv.config_strings[CS_BSP], MAX_STRING_CHARS, "maps/%s.bsp", sv.name);
 
     sv.cm_models[0] = Cm_LoadBspModel(sv.config_strings[CS_BSP], &bsp_size);
@@ -311,10 +314,6 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
   }
 
   g_snprintf(sv.config_strings[CS_BSP_SIZE], MAX_STRING_CHARS, "%" PRId64, bsp_size);
-
-  // do not delete: this cvar is sent within status reply packets
-  // to server query tools and game server browsers
-  Cvar_Add("sv_map", sv.name, CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
 }
 
 /**
