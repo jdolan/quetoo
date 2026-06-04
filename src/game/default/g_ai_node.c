@@ -21,6 +21,33 @@
 
 #include "g_local.h"
 #include "bg_pmove.h"
+#include "grid.h"
+
+/**
+ * @brief Cached spatial acceleration structures for the navigation graph.
+ *
+ * The kd-tree accelerates G_Ai_Node_FindClosest queries (O(log n) average vs.
+ * the previous O(n) linear scan), and is rebuilt lazily after any mutation
+ * of the global node array.
+ */
+static struct gridkdtree_s *g_ai_nodes_kdtree = NULL;
+static vec3_t *g_ai_nodes_kdtree_positions = NULL;
+static guint g_ai_nodes_kdtree_count = 0;
+
+/**
+ * @brief Invalidates the cached kd-tree. Must be called whenever the
+ * underlying g_ai_nodes array is mutated (add/remove/move/reload).
+ */
+static void G_Ai_Node_InvalidateSpatialIndex(void) {
+  if (g_ai_nodes_kdtree) {
+    gridkdtree_free(&g_ai_nodes_kdtree);
+  }
+  if (g_ai_nodes_kdtree_positions) {
+    free(g_ai_nodes_kdtree_positions);
+    g_ai_nodes_kdtree_positions = NULL;
+  }
+  g_ai_nodes_kdtree_count = 0;
+}
 
 /**
  * @brief State used during player roam recording for AI node development.
@@ -92,6 +119,8 @@ static inline ai_node_id_t G_Ai_Node_Index(const ai_node_t *node) {
   return node - (ai_node_t *) g_ai_nodes->data;
 }
 
+static void G_Ai_Node_FreePathPool(void);
+
 /**
  * @brief Returns true if the given node is visible (unobstructed) from the specified position.
  */
@@ -109,22 +138,99 @@ guint G_Ai_Node_Count(void) {
 }
 
 /**
+ * @brief Lazily (re)builds the kd-tree spatial index over g_ai_nodes.
+ * Returns true on success. The index is invalidated whenever the node
+ * array is mutated (see G_Ai_Node_InvalidateSpatialIndex callers).
+ */
+static bool G_Ai_Node_EnsureSpatialIndex(void) {
+
+  if (!g_ai_nodes || g_ai_nodes->len == 0) {
+    return false;
+  }
+
+  if (g_ai_nodes_kdtree && g_ai_nodes_kdtree_count == g_ai_nodes->len) {
+    return true;
+  }
+
+  G_Ai_Node_InvalidateSpatialIndex();
+
+  const guint n = g_ai_nodes->len;
+  g_ai_nodes_kdtree_positions = malloc(sizeof(vec3_t) * n);
+  if (!g_ai_nodes_kdtree_positions) {
+    return false;
+  }
+
+  for (guint i = 0; i < n; i++) {
+    g_ai_nodes_kdtree_positions[i] = g_array_index(g_ai_nodes, ai_node_t, i).position;
+  }
+
+  g_ai_nodes_kdtree = gridkdtree_create(g_ai_nodes_kdtree_positions, n);
+  if (!g_ai_nodes_kdtree) {
+    free(g_ai_nodes_kdtree_positions);
+    g_ai_nodes_kdtree_positions = NULL;
+    return false;
+  }
+
+  g_ai_nodes_kdtree_count = n;
+  return true;
+}
+
+typedef struct {
+  vec3_t position;
+  bool only_visible;
+  bool prefer_level;
+} ai_node_query_filter_t;
+
+static bool G_Ai_Node_FindClosestFilter(const size_t nodenum, void *data, float *distance) {
+  const ai_node_query_filter_t *filter = data;
+  const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, nodenum);
+
+  vec3_t dir = Vec3_Subtract(filter->position, node->position);
+
+  if (filter->prefer_level && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
+    dir.z *= 4.0f;
+  }
+
+  *distance = Vec3_LengthSquared(dir);
+
+  return !filter->only_visible || G_Ai_Node_Visible(filter->position, nodenum);
+}
+
+/**
  * @brief Finds the closest navigation node to the given position within the specified distance.
+ *
+ * Uses the cached kd-tree spatial index (built lazily) to gather candidate
+ * nodes within `max_distance` and selects the best one that passes the
+ * `only_visible` / `prefer_level` filters. Falls back to a linear scan if
+ * the spatial index is unavailable.
  */
 ai_node_id_t G_Ai_Node_FindClosest(const vec3_t position, const float max_distance, const bool only_visible, const bool prefer_level) {
 
-  if (!g_ai_nodes)
+  if (!g_ai_nodes || g_ai_nodes->len == 0) {
     return AI_NODE_INVALID;
+  }
 
   ai_node_id_t closest = AI_NODE_INVALID;
   float closest_dist = 0;
   const float dist_squared = max_distance * max_distance;
 
+  if (G_Ai_Node_EnsureSpatialIndex()) {
+    ai_node_query_filter_t filter = {
+      .position = position,
+      .only_visible = only_visible,
+      .prefer_level = prefer_level
+    };
+
+    const size_t node = gridkdtree_query_filter(g_ai_nodes_kdtree, position, max_distance, G_Ai_Node_FindClosestFilter, &filter);
+
+    return node == SIZE_MAX ? AI_NODE_INVALID : (ai_node_id_t) node;
+  }
+
+  // Fallback: linear scan (kd-tree build failed).
   for (guint i = 0; i < g_ai_nodes->len; i++) {
     const ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
 
     vec3_t dir = Vec3_Subtract(position, node->position);
-    // weigh the Z axis more heavily
     if (prefer_level && !(gi.PointContents(node->position) & CONTENTS_MASK_LIQUID)) {
       dir.z *= 4.0f;
     }
@@ -156,6 +262,8 @@ ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
   g_ai_nodes = g_array_append_val(g_ai_nodes, (ai_node_t) {
     .position = position
   });
+
+  G_Ai_Node_InvalidateSpatialIndex();
 
   G_Ai_Debug("Dropped new node %d\n", g_ai_nodes->len - 1);
 
@@ -331,6 +439,8 @@ void G_Ai_Node_Destroy(const ai_node_id_t id) {
 
   G_Ai_Node_UnlinkAll(id);
   g_ai_nodes = g_array_remove_index(g_ai_nodes, id);
+
+  G_Ai_Node_InvalidateSpatialIndex();
 
   if (!g_ai_nodes->len) {
     g_array_free(g_ai_nodes, true);
@@ -967,6 +1077,8 @@ void G_Ai_InitNodes(void) {
   g_ai_nodes = g_array_sized_new(false, true, sizeof(ai_node_t), num_nodes);
   g_array_set_size(g_ai_nodes, num_nodes);
 
+  G_Ai_Node_InvalidateSpatialIndex();
+
   guint total_links = 0;
 
   for (guint i = 0; i < g_ai_nodes->len; i++) {
@@ -1132,6 +1244,9 @@ void G_Ai_DeleteNodes(void) {
 
     g_array_set_size(g_ai_nodes, 0);
   }
+
+  G_Ai_Node_InvalidateSpatialIndex();
+  G_Ai_Node_FreePathPool();
 }
 
 /**
@@ -1151,12 +1266,60 @@ void G_Ai_ShutdownNodes(void) {
     g_array_free(g_ai_nodes, true);
     g_ai_nodes = NULL;
   }
+
+  G_Ai_Node_InvalidateSpatialIndex();
+  G_Ai_Node_FreePathPool();
 }
 
 typedef struct {
   ai_node_id_t id;
   float priority;
 } ai_node_priority_t;
+
+static struct gheap_s *g_ai_node_path_queue;
+static ai_node_priority_t *g_ai_node_path_entries;
+static size_t g_ai_node_path_capacity;
+static size_t g_ai_node_path_count;
+
+static void G_Ai_Node_FreePathPool(void) {
+
+  gheap_free(&g_ai_node_path_queue);
+  free(g_ai_node_path_entries);
+  g_ai_node_path_entries = NULL;
+  g_ai_node_path_capacity = 0;
+  g_ai_node_path_count = 0;
+}
+
+static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
+
+  if (g_ai_node_path_queue && g_ai_node_path_capacity >= capacity) {
+    gheap_reset(g_ai_node_path_queue);
+    g_ai_node_path_count = 0;
+    return true;
+  }
+
+  G_Ai_Node_FreePathPool();
+
+  g_ai_node_path_queue = gheap_create(capacity);
+  g_ai_node_path_entries = malloc(sizeof(ai_node_priority_t) * capacity);
+
+  if (!g_ai_node_path_queue || !g_ai_node_path_entries) {
+    G_Ai_Node_FreePathPool();
+    return false;
+  }
+
+  g_ai_node_path_capacity = capacity;
+  return true;
+}
+
+static ai_node_priority_t *G_Ai_Node_AllocPathEntry(void) {
+
+  if (g_ai_node_path_count == g_ai_node_path_capacity) {
+    return NULL;
+  }
+
+  return &g_ai_node_path_entries[g_ai_node_path_count++];
+}
 
 #define AI_MAX_DROP_HEIGHT 512.f
 #define AI_DROP_PENALTY_START 128.f
@@ -1255,29 +1418,52 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   });
 
   GHashTable *costs_started = g_hash_table_new(g_direct_hash, g_direct_equal);
-  GArray *queue = g_array_new(false, false, sizeof(ai_node_priority_t));
+  // Min-heap open set (priority = f-cost). Replaces the previous sorted-array
+  // queue (O(n) insertion) with an O(log n) binary heap from grid_ds.c.
+  // Capacity is bounded by the node count plus headroom for re-insertions
+  // (A* may push a better-cost duplicate before popping the stale one).
+  const size_t heap_capacity = (size_t) g_ai_nodes->len * 4 + 16;
+  if (!G_Ai_Node_EnsurePathPool(heap_capacity)) {
+    g_hash_table_destroy(costs_started);
+    if (platforms) {
+      g_array_free(platforms, true);
+    }
+    return NULL;
+  }
+
+  struct gheap_s *queue = g_ai_node_path_queue;
   bool finished = false;
 
-  queue = g_array_append_vals(queue, &(ai_node_priority_t) {
-    .id = start,
-    .priority = 0
-  }, 1);
+  {
+    ai_node_priority_t *e = G_Ai_Node_AllocPathEntry();
+    e->id = start;
+    e->priority = 0;
+    gheap_push(queue, e->priority, e);
+  }
 
   ai_node_t *start_node = &g_array_index(g_ai_nodes, ai_node_t, start);
   start_node->cost = 0;
   g_hash_table_add(costs_started, start_node);
 
-  while (queue->len) {
-    
-    ai_node_priority_t current = g_array_index(queue, ai_node_priority_t, queue->len - 1);
-    queue = g_array_remove_index_fast(queue, queue->len - 1);
+  for (;;) {
+    ai_node_priority_t *current = (ai_node_priority_t *) gheap_pop(queue);
+    if (!current) {
+      break;
+    }
 
-    if (current.id == end) {
+    if (current->id == end) {
       finished = true;
       break;
     }
 
-    ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, current.id);
+    ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, current->id);
+
+    // Stale entry guard: if this entry's priority is worse than the node's
+    // best-known f-cost approximation (cost + 0 heuristic lower bound), the
+    // node has already been processed via a better path.
+    if (current->priority > node->cost + heuristic(current->id, end) + 0.0001f) {
+      continue;
+    }
 
     if (!node->links || !node->links->len) {
       continue;
@@ -1354,30 +1540,21 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
         link_node->cost = new_cost;
         const float priority = new_cost + heuristic(link->id, end);
 
-        if (!queue->len) {
-          queue = g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
-            .id = link->id,
-            .priority = priority
-          }, 1);
-        } else {
-          for (gint x = queue->len - 1; ; x--) {
+        ai_node_priority_t *e = G_Ai_Node_AllocPathEntry();
+        if (!e) {
+          gi.Warn("A* open-set entry pool exhausted (capacity %zu)\n", heap_capacity);
+          break;
+        }
 
-            if (priority < g_array_index(queue, ai_node_priority_t, x).priority) {
-              queue = g_array_insert_vals(queue, x + 1, &(ai_node_priority_t) {
-                .id = link->id,
-                .priority = priority
-              }, 1);
-              break;
-            }
-
-            if (x == 0) {
-              queue = g_array_insert_vals(queue, 0, &(ai_node_priority_t) {
-                .id = link->id,
-                .priority = priority
-              }, 1);
-              break;
-            }
-          }
+        e->id = link->id;
+        e->priority = priority;
+        // If the heap is somehow full (large maps with many revisits),
+        // fall back to allocating a larger one is overkill; we simply
+        // log and stop expanding from this node. The capacity heuristic
+        // above (4 * N + 16) is generous for typical Quetoo maps.
+        if (!gheap_push(queue, priority, e)) {
+          gi.Warn("A* open-set heap exhausted (capacity %zu)\n", heap_capacity);
+          break;
         }
 
         link_node->came_from = G_Ai_Node_Index(node);
@@ -1420,7 +1597,6 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
-  g_array_free(queue, true);
   g_hash_table_destroy(costs_started);
   if (platforms) {
     g_array_free(platforms, true);
@@ -1453,6 +1629,8 @@ void G_Ai_OffsetNodes_f(void) {
     ai_node_t *node = &g_array_index(g_ai_nodes, ai_node_t, i);
     node->position = Vec3_Add(node->position, translate);
   }
+
+  G_Ai_Node_InvalidateSpatialIndex();
 }
 
 /**
