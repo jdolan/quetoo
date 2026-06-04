@@ -152,7 +152,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+map warehouse"
+            argument = "+map fragpipe"
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument

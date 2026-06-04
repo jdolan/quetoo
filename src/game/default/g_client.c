@@ -521,7 +521,7 @@ static void G_ClientCorpse(g_client_t *cl) {
   gi.LinkEntity(ent);
 }
 
-#define CLIENT_CORPSE_HEALTH 200
+#define CLIENT_CORPSE_HEALTH 80
 
 /**
  * @brief A client's health is less than or equal to zero. Render death effects, drop
