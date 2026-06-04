@@ -24,6 +24,8 @@
 console_t cl_console;
 console_t cl_chat_console;
 
+static console_t cl_notify_console;
+
 static cvar_t *cl_console_height;
 static cvar_t *cl_draw_console_background_alpha;
 
@@ -155,7 +157,7 @@ void Cl_DrawConsole(void) {
 }
 
 /**
- * @brief Draws the last few lines of output transparently over the game top
+ * @brief Draws the last few lines of console output over the game.
  */
 void Cl_DrawNotify(void) {
   GLint cw, ch;
@@ -166,18 +168,15 @@ void Cl_DrawNotify(void) {
 
   R_BindFont("small", &cw, &ch);
 
-  console_t con = {
-    .width = r_context.w / cw,
-    .height = Clampf(cl_notify_lines->integer, 1, 12),
-    .level = (PRINT_MEDIUM | PRINT_HIGH),
-  };
+  cl_notify_console.width = r_context.w / cw;
+  cl_notify_console.height = Clampf(cl_notify_lines->integer, 1, 12);
+  cl_notify_console.level = (PRINT_MEDIUM | PRINT_HIGH);
 
-  if (quetoo.ticks > cl_notify_time->value * 1000) {
-    con.whence = quetoo.ticks - cl_notify_time->value * 1000;
-  }
+  const uint32_t notify_millis = cl_notify_time->value * 1000;
+  cl_notify_console.whence = Maxi(quetoo.ticks - notify_millis, cls.connect_time);
 
-  char *lines[con.height];
-  const size_t count = Con_Tail(&con, lines, con.height);
+  char *lines[cl_notify_console.height];
+  const size_t count = Con_Tail(&cl_notify_console, lines, cl_notify_console.height);
 
   GLint y = 0;
 
@@ -208,7 +207,7 @@ void Cl_DrawChat(void) {
   if (cl_draw_chat->value && cl_chat_console.height) {
 
     if (cls.key_state.dest == KEY_CHAT) {
-      cl_chat_console.whence = 0;
+      cl_chat_console.whence = cls.connect_time;
     } else if (quetoo.ticks > cl_chat_time->value * 1000) {
       cl_chat_console.whence = quetoo.ticks - cl_chat_time->value * 1000;
     }
