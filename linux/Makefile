@@ -47,6 +47,7 @@ $(STAGING): compile
 	install -d $(STAGING)
 	cp -r quetoo/* $(STAGING)
 	find $(STAGING) -name .turd -delete
+	install -d $(STAGING)/bin $(STAGING)/lib $(STAGING)/share
 	$(MAKE) -C .. DESTDIR=$(abspath $(STAGING)) install
 
 $(LINUXDEPLOY):
