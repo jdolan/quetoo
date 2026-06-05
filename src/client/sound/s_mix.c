@@ -141,7 +141,8 @@ static bool S_SpatializeChannel(const s_stage_t *stage, s_channel_t *ch) {
 void S_MixChannels(const s_stage_t *stage) {
 
   if (s_doppler->modified) {
-    alDopplerFactor(.05f * s_doppler->value);
+    alDopplerFactor(s_doppler->value);
+    s_doppler->modified = false;
   }
 
   alListenerfv(AL_POSITION, stage->origin.xyz);
