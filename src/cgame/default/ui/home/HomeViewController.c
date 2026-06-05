@@ -28,6 +28,7 @@
 #define _Class _HomeViewController
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
+#define QUETOO_GUID_URL  "https://giblets.quetoo.org/api/guid"
 
 static const char *_rank        = "Rank";
 static const char *_player      = "Player";
@@ -105,6 +106,10 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $(((View *) cell), addClassName, "silver");
   } else if (row == 2) {
     $(((View *) cell), addClassName, "bronze");
+  }
+
+  if (this->guid[0] && g_strcmp0(entry->guid, this->guid) == 0) {
+    $(((View *) cell), addClassName, "me");
   }
 
   if (g_strcmp0(column->identifier, _rank) == 0) {
@@ -214,6 +219,37 @@ static void viewWillAppear(ViewController *self) {
     void *body = NULL;
     size_t length = 0;
 
+    const cvar_t *guid_cvar = cgi.GetCvar("guid");
+    if (guid_cvar && guid_cvar->string[0]) {
+      char url[256];
+      g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid_cvar->string);
+
+      const int32_t status = cgi.HttpGet(url, &body, &length);
+      if (status == 200) {
+        Data *data = $$(Data, dataWithConstMemory, body, length);
+        Dictionary *dict = (Dictionary *) $$(JSONSerialization, objectFromData, data, 0);
+        release(data);
+
+        if (dict) {
+          const String *hashed = $(dict, objectForKeyPath, "guid");
+          if (hashed) {
+            g_strlcpy(this->guid, hashed->chars, sizeof(this->guid));
+            Cg_Debug("Fetched hashed guid: %s\n", this->guid);
+          }
+          release(dict);
+        }
+      } else {
+        Cg_Warn("Failed to fetch guid: HTTP %d\n", status);
+      }
+
+      cgi.Free(body);
+    }
+  }
+
+  {
+    void *body = NULL;
+    size_t length = 0;
+
     const int32_t status = cgi.HttpGet(QUETOO_MOTD_URL, &body, &length);
     if (status == 200) {
 
@@ -246,6 +282,15 @@ static void viewWillAppear(ViewController *self) {
       release(data);
 
       $(this->leaderboard, reloadData);
+
+      if (this->guid[0]) {
+        for (size_t i = 0; i < this->num_entries; i++) {
+          if (g_strcmp0(this->entries[i].guid, this->guid) == 0) {
+            $(this->leaderboard, selectRowAtIndex, i);
+            break;
+          }
+        }
+      }
     } else {
       Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
     }

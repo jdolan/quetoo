@@ -79,6 +79,11 @@ struct HomeViewController {
   TableView *leaderboard;
 
   /**
+   * @brief Our hashed GUID from the stats API (empty until fetched).
+   */
+  char guid[68];
+
+  /**
    * @brief Cached leaderboard entries fetched from the stats API.
    */
   LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
