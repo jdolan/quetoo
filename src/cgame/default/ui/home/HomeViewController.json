@@ -2,44 +2,5 @@
   "class": "Panel",
   "classNames": [
     "menu"
-  ],
-  "contentView": {
-    "subviews": [
-      {
-        "class": "Box",
-        "label": {
-          "text": {
-            "text": "Home"
-          }
-        },
-        "contentView": {
-          "subviews": [
-            {
-              "class": "Label",
-              "identifier": "motd",
-              "text": {
-                "lineWrap": true
-              }
-            }
-          ]
-        }
-      },
-      {
-        "class": "Box",
-        "label": {
-          "text": {
-            "text": "Leaderboard"
-          }
-        },
-        "contentView": {
-          "subviews": [
-            {
-              "class": "TableView",
-              "identifier": "leaderboard"
-            }
-          ]
-        }
-      }
-    ]
-  }
+  ]
 }

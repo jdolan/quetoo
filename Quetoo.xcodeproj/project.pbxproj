@@ -353,6 +353,14 @@
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
+		CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
+		CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */; };
+		CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
+		CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */; };
+		CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */; };
+		CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */; };
+		CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */; };
+		CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */; };
 		CE7D2C1C202F7116004BC58E /* CreateServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */; };
 		CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */; };
 		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
@@ -1157,6 +1165,10 @@
 			files = (
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
+				CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */,
+				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
+				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
+				CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1777,6 +1789,14 @@
 		CE7D2C13202F690A004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C14202F690A004BC58E /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE7D2C19202F6E80004BC58E /* HomeViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = HomeViewController.json; sourceTree = "<group>"; };
+		CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LeaderboardViewController.c; sourceTree = "<group>"; };
+		CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeaderboardViewController.h; sourceTree = "<group>"; };
+		CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatsViewController.c; sourceTree = "<group>"; };
+		CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatsViewController.h; sourceTree = "<group>"; };
+		CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = LeaderboardViewController.css; sourceTree = "<group>"; };
+		CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LeaderboardViewController.json; sourceTree = "<group>"; };
+		CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StatsViewController.css; sourceTree = "<group>"; };
+		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CreateServerViewController.json; sourceTree = "<group>"; };
 		CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JoinServerViewController.json; sourceTree = "<group>"; };
 		CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayerSetupViewController.json; sourceTree = "<group>"; };
@@ -3544,7 +3564,15 @@
 				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
 				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
+				CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */,
+				CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */,
+				CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */,
+				CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */,
 				CE7D2C13202F690A004BC58E /* Makefile.am */,
+				CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */,
+				CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */,
+				CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */,
+				CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */,
 			);
 			path = home;
 			sourceTree = "<group>";
@@ -3763,6 +3791,7 @@
 				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CEA1A0022F9F00000087B100 /* CreditsViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
+				CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
@@ -3773,6 +3802,7 @@
 				CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */,
 				CE1A28341F75FC1D005F62A9 /* PlayerSetupViewController.h in Headers */,
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
+				CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */,
 				CFA000172F9100000000C017 /* EditorViewController.h in Headers */,
 				CFA0001A2F9100000000C01A /* EntityView.h in Headers */,
 				CFA0001D2F9100000000C01D /* EntityViewController.h in Headers */,
@@ -4966,6 +4996,7 @@
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CEA1A0012F9F00000087B100 /* CreditsViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
+				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
@@ -4976,6 +5007,7 @@
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
+				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CFA000162F9100000000C016 /* EditorViewController.c in Sources */,
 				CFA000192F9100000000C019 /* EntityView.c in Sources */,
 				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,

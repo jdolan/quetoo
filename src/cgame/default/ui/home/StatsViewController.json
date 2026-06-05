@@ -1,0 +1,81 @@
+{
+  "identifier": "Stats",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "statTiles"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "nameLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Name" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "rankLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Rank" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "fragsLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Frags" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "deathsLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Deaths" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "kdLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "KD" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "damageLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Damage" } }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "timeLabel", "classNames": ["statValue"] },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
+              ]
+            }
+          ]
+        },
+        {
+          "class": "TableView",
+          "identifier": "weapons"
+        }
+      ]
+    }
+  ]
+}

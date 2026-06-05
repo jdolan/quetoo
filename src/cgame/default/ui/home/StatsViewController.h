@@ -27,52 +27,59 @@
 
 /**
  * @file
- * @brief Home ViewController.
+ * @brief Stats ViewController.
  */
 
-typedef struct HomeViewController HomeViewController;
-typedef struct HomeViewControllerInterface HomeViewControllerInterface;
+#define STATS_MAX_WEAPON_ROWS 20
+
+typedef struct {
+  char    weapon[64];
+  int32_t frags;
+  int32_t damage;
+} WeaponStat;
+
+typedef struct StatsViewController StatsViewController;
+typedef struct StatsViewControllerInterface StatsViewControllerInterface;
 
 /**
- * @brief The HomeViewController type.
+ * @brief The StatsViewController type.
  * @extends ViewController
  * @ingroup ViewControllers
  */
-struct HomeViewController {
-
-  /**
-   * @brief The superclass.
-   * @private
-   */
+struct StatsViewController {
   ViewController viewController;
+  StatsViewControllerInterface *interface;
 
-  /**
-   * @brief The interface.
-   * @private
-   */
-  HomeViewControllerInterface *interface;
+  int32_t rank;
+  int32_t frags;
+  int32_t deaths;
+  int32_t damage;
+  int32_t time_played;
 
-  /**
-   * @brief TabViewController to contain tabs.
-   */
-  TabViewController *tabViewController;
+  Label *nameLabel;
+  Label *rankLabel;
+  Label *fragsLabel;
+  Label *deathsLabel;
+  Label *kdLabel;
+  Label *damageLabel;
+  Label *timeLabel;
+
+  TableView *weaponsTable;
+  WeaponStat weapons[STATS_MAX_WEAPON_ROWS];
+  size_t num_weapons;
 };
 
 /**
- * @brief The HomeViewController interface.
+ * @brief The StatsViewController interface.
  */
-struct HomeViewControllerInterface {
-
-  /**
-   * @brief The superclass interface.
-   */
+struct StatsViewControllerInterface {
   ViewControllerInterface viewControllerInterface;
 };
 
 /**
- * @fn Class *HomeViewController::_HomeViewController(void)
- * @brief The HomeViewController archetype.
- * @return The HomeViewController Class.
- * @memberof HomeViewController
+ * @fn Class *StatsViewController::_StatsViewController(void)
+ * @brief The StatsViewController archetype.
+ * @return The StatsViewController Class.
+ * @memberof StatsViewController
  */
-CGAME_EXPORT Class *_HomeViewController(void);
+CGAME_EXPORT Class *_StatsViewController(void);

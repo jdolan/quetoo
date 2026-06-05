@@ -1,16 +1,24 @@
 cguihomedir = @PKGLIBDIR@/default/ui/home
 cguihome_DATA = \
 	HomeViewController.css \
-	HomeViewController.json
+	HomeViewController.json \
+	LeaderboardViewController.css \
+	LeaderboardViewController.json \
+	StatsViewController.css \
+	StatsViewController.json
 
 noinst_HEADERS = \
-	HomeViewController.h
+	HomeViewController.h \
+	LeaderboardViewController.h \
+	StatsViewController.h
 
 noinst_LTLIBRARIES = \
 	libcguihome.la
 
 libcguihome_la_SOURCES = \
-	HomeViewController.c
+	HomeViewController.c \
+	LeaderboardViewController.c \
+	StatsViewController.c
 
 libcguihome_la_CFLAGS = \
 	-I$(top_srcdir)/src \
