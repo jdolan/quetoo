@@ -739,8 +739,9 @@ typedef struct {
 
     uint16_t bfg_hit;
     uint16_t bfg_prime;
-    uint16_t death;
+    uint16_t death[2];
     uint16_t gasp;
+    uint16_t gurp;
     uint16_t grenade_hit;
     uint16_t grenade_clang;
     uint16_t grenade_throw;

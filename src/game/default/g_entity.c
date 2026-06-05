@@ -237,6 +237,7 @@ static void G_InitMedia(void) {
 
   // precache player sounds; clients will load these when a new player model gets loaded.
   gi.SoundIndex("*death_1");
+  gi.SoundIndex("*death_2");
   gi.SoundIndex("*drown_1");
   gi.SoundIndex("*fall_1");
   gi.SoundIndex("*fall_2");
@@ -263,8 +264,10 @@ static void G_InitMedia(void) {
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
-  g_media.sounds.death = gi.SoundIndex("*death_1");
+  g_media.sounds.death[0] = gi.SoundIndex("*death_1");
+  g_media.sounds.death[1] = gi.SoundIndex("*death_2");
   g_media.sounds.gasp = gi.SoundIndex("*gasp_1");
+  g_media.sounds.gurp = gi.SoundIndex("*gurp_1");
   g_media.sounds.pain[0] = gi.SoundIndex("*pain25_1");
   g_media.sounds.pain[1] = gi.SoundIndex("*pain50_1");
   g_media.sounds.pain[2] = gi.SoundIndex("*pain75_1");

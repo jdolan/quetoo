@@ -558,7 +558,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
     G_MulticastSound(&(const g_play_sound_t) {
-      .index = g_media.sounds.death,
+      .index = g_media.sounds.death[Randomi() % lengthof(g_media.sounds.death)],
       .entity = ent,
       .origin = &ent->s.origin, // send the origin in case of fast respawn
     }, MULTICAST_PHS);
