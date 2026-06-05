@@ -80,37 +80,20 @@ if [[ $WAIT_FOR_EMPTY -eq 1 ]]; then
     port=$(grep -E '^set net_port[[:space:]]' "$cfg" 2>/dev/null | head -1 | awk '{print $3}' | tr -d '"' || true)
     port="${port:-1998}"
 
-    humans=$(python3 - <<EOF
-import socket, re
+    humans=$(python3 - "$port" <<'EOF'
+import socket, sys
+port = int(sys.argv[1])
 try:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.settimeout(2)
-    s.sendto(b'\xff\xff\xff\xffstatus\n', ('127.0.0.1', $port))
+    s.sendto(b'\xff\xff\xff\xffstatus\n', ('127.0.0.1', port))
     data, _ = s.recvfrom(4096)
-    humans = 0
-    # Player lines follow the infostring line; each is a \key\value infostring.
-    # Bots have \ai\1; humans do not.
-    for line in data.split(b'\n')[1:]:
-        line = line.strip()
-        if not line:
-            continue
-        def info_val(line, key):
-            m = re.search(rb'\\' + key + rb'\\([^\\\\n]*)', line)
-            return m.group(1) if m else b''
-        name = info_val(line, b'name')
-        if not name:
-            continue
-        if info_val(line, b'ai') == b'1':
-            continue
-        if name.startswith(b'[BOT]'):
-            continue
-        humans += 1
-    print(humans)
+    lines = [l.strip() for l in data.split(b'\n')[2:] if l.strip()]
+    print(sum(1 for l in lines if b'\\ai\\1' not in l))
 except Exception:
     print(0)
 EOF
     )
-
     if [[ "$humans" -gt 0 ]]; then
       echo "Instance '$instance' (port $port) has $humans human client(s). Deferring update."
       exit 0
