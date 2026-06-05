@@ -146,8 +146,8 @@ deb: $(TARGET)/.pkg-stamp
 		--deb-recommends "quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
-		--after-install postinstall.sh \
-		--before-remove preremove.sh \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
 		-p $(DEB) \
 		-C $(PKGDIR) .
 
@@ -169,8 +169,8 @@ rpm: $(TARGET)/.pkg-stamp
 		--rpm-tag "Recommends: quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
-		--after-install postinstall.sh \
-		--before-remove preremove.sh \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
 		-p $(RPM) \
 		-C $(PKGDIR) .
 
