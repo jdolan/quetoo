@@ -171,8 +171,9 @@ void Sv_BuildClientFrame(sv_client_t *client) {
 
     if (!editor->value) {
 
-      // ignore entities that are local to the server
-      if (ent->sv_flags & SVF_NO_CLIENT) {
+      // ignore entities that are local to the server, except for the
+      // client's own entity which must always be up-to-date
+      if ((ent->sv_flags & SVF_NO_CLIENT) && ent->s.number != cl->ps.entity) {
         continue;
       }
 
