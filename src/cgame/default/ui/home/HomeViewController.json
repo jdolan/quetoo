@@ -23,6 +23,22 @@
             }
           ]
         }
+      },
+      {
+        "class": "Box",
+        "label": {
+          "text": {
+            "text": "Leaderboard"
+          }
+        },
+        "contentView": {
+          "subviews": [
+            {
+              "class": "TableView",
+              "identifier": "leaderboard"
+            }
+          ]
+        }
       }
     ]
   }

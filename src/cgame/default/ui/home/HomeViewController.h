@@ -30,6 +30,22 @@
  * @brief Home ViewController.
  */
 
+#define LEADERBOARD_MAX_ENTRIES 50
+
+/**
+ * @brief A single row from the global leaderboard API.
+ */
+typedef struct {
+  int32_t rank;
+  char    name[64];
+  char    guid[68];
+  int32_t frags;
+  int32_t deaths;
+  int32_t damage;
+  int32_t captures;
+  int32_t time_played;
+} LeaderboardEntry;
+
 typedef struct HomeViewController HomeViewController;
 typedef struct HomeViewControllerInterface HomeViewControllerInterface;
 
@@ -52,10 +68,21 @@ struct HomeViewController {
    */
   HomeViewControllerInterface *interface;
 
-  /**
-   * @brief The message of the day / version status label.
-   */
+/**
+ * @brief The message of the day / version status label.
+ */
   Label *motd;
+
+  /**
+   * @brief The global leaderboard table.
+   */
+  TableView *leaderboard;
+
+  /**
+   * @brief Cached leaderboard entries fetched from the stats API.
+   */
+  LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
+  size_t num_entries;
 };
 
 /**

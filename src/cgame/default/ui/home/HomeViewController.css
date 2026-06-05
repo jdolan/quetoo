@@ -2,3 +2,47 @@
 #motd {
   width: 960;
 }
+
+#leaderboard {
+  width: 980;
+  height: 600;
+}
+
+#Rank {
+  min-width: 60;
+}
+
+#Player {
+  min-width: 320;
+}
+
+#Frags {
+  min-width: 100;
+}
+
+#Deaths {
+  min-width: 100;
+}
+
+#KD {
+  min-width: 100;
+}
+
+#Time {
+  min-width: 100;
+}
+
+.gold > Text {
+  color: #ffd700;
+  font-style: bold;
+}
+
+.silver > Text {
+  color: #c0c0c0;
+  font-style: bold;
+}
+
+.bronze > Text {
+  color: #cd7f32;
+  font-style: bold;
+}
