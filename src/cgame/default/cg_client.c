@@ -340,6 +340,12 @@ void Cg_LoadClients(void) {
       cgi.LoadingProgress(-1, ci->model);
     }
   }
+
+  memset(&cg_state.force_skin, 0, sizeof(cg_state.force_skin));
+
+  if (*cg_force_skin->string) {
+    Cg_LoadClient(&cg_state.force_skin, va("-1\\newbie\\%s\\default\\default\\default\\default", cg_force_skin->string));
+  }
 }
 
 /**
@@ -482,25 +488,19 @@ static void Cg_AnimateClientEntity_(const r_model_t *model, cl_entity_animation_
  */
 static void Cg_AnimateClientEntity(cl_entity_t *ent, r_entity_t *torso, r_entity_t *legs) {
 
-  const cg_client_info_t *ci = &cg_state.clients[ent->current.client];
+  Cg_AnimateClientEntity_(torso->model, &ent->animation1);
 
-  Cg_AnimateClientEntity_(ci->torso, &ent->animation1);
+  torso->frame = ent->animation1.frame;
+  torso->old_frame = ent->animation1.old_frame;
+  torso->lerp = ent->animation1.lerp;
+  torso->back_lerp = 1.0 - ent->animation1.lerp;
 
-  if (torso) {
-    torso->frame = ent->animation1.frame;
-    torso->old_frame = ent->animation1.old_frame;
-    torso->lerp = ent->animation1.lerp;
-    torso->back_lerp = 1.0 - ent->animation1.lerp;
-  }
+  Cg_AnimateClientEntity_(torso->model, &ent->animation2);
 
-  Cg_AnimateClientEntity_(ci->torso, &ent->animation2);
-
-  if (legs) {
-    legs->frame = ent->animation2.frame;
-    legs->old_frame = ent->animation2.old_frame;
-    legs->lerp = ent->animation2.lerp;
-    legs->back_lerp = 1.0 - ent->animation2.lerp;
-  }
+  legs->frame = ent->animation2.frame;
+  legs->old_frame = ent->animation2.old_frame;
+  legs->lerp = ent->animation2.lerp;
+  legs->back_lerp = 1.0 - ent->animation2.lerp;
 }
 
 /**
@@ -560,13 +560,77 @@ static inline float Cg_CalculateAngle(const float speed, float current, float id
 }
 
 /**
+ * @brief Resolves legs angles using the client entity's velocity. This allows the player torso
+ * to face the direction of the player's view, and their legs to face the direction of the player's
+ * movement. The leg-to-torso delta angle is clamped so that we don't get Totally Krossed Out like
+ * Kris Kross. Those who were sentient in 1992 will understand.
+ */
+static void Cg_RotateClientLegs(cl_entity_t *ent, r_entity_t *legs) {
+
+  vec3_t right;
+  Vec3_Vectors(legs->angles, NULL, &right, NULL);
+
+  vec3_t move_dir;
+  move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
+  move_dir.z = 0.f; // don't care about z, just x/y
+
+  if (ent->animation2.animation < ANIM_LEGS_SWIM) {
+    if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
+      move_dir = Vec3_Normalize(move_dir);
+      float legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
+
+      if (ent->animation2.animation == ANIM_LEGS_BACK || ent->animation2.reverse) {
+        legs_yaw = -legs_yaw;
+      }
+
+      ent->legs_yaw = ent->angles.y + legs_yaw;
+    } else {
+      ent->legs_yaw = ent->angles.y;
+    }
+  } else {
+
+    const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
+
+    if (ent->animation2.animation == ANIM_LEGS_TURN || fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
+      ent->legs_yaw = ent->angles.y;
+
+      // change animation as well
+      if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+        ent->animation2.time = cgi.client->unclamped_time;
+        ent->animation2.frame = ent->animation2.old_frame = -1;
+        ent->animation2.lerp = ent->animation2.fraction = 0;
+      }
+    }
+  }
+
+  ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
+
+  const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
+
+  ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
+
+  if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
+    if (ent->animation2.animation == ANIM_LEGS_IDLE) {
+      ent->animation2.time = cgi.client->unclamped_time;
+      ent->animation2.animation = ANIM_LEGS_TURN;
+    }
+  } else {
+    if (ent->animation2.animation == ANIM_LEGS_TURN) {
+      ent->animation2.time = cgi.client->unclamped_time;
+      ent->animation2.animation = ANIM_LEGS_IDLE;
+    }
+  }
+}
+
+/**
  * @brief Adds the numerous render entities which comprise a given client (player)
  * entity: head, torso, legs, weapon, flags, etc.
  */
 void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
-  const entity_state_t *s = &ent->current;
 
+  const entity_state_t *s = &ent->current;
   cg_client_info_t *ci = &cg_state.clients[s->client];
+
   if (!ci->head || !ci->torso || !ci->legs) {
     if (*cgi.ConfigString(CS_CLIENTS + s->client)) {
       Cg_Warn("Invalid client info: %d\n", s->client);
@@ -611,82 +675,33 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
   head = torso = legs = *e;
 
   if ((ent->current.effects & EF_CORPSE) == 0) {
-    vec3_t right;
-    Vec3_Vectors(legs.angles, NULL, &right, NULL);
-
-    vec3_t move_dir;
-    move_dir = Vec3_Subtract(ent->prev.origin, ent->current.origin);
-    move_dir.z = 0.f; // don't care about z, just x/y
-
-    if (ent->animation2.animation < ANIM_LEGS_SWIM) {
-      if (Vec3_Length(move_dir) > CLIENT_LEGS_SPEED_EPSILON) {
-        move_dir = Vec3_Normalize(move_dir);
-        float legs_yaw = Vec3_Dot(move_dir, right) * CLIENT_LEGS_YAW_MAX;
-
-        if (ent->animation2.animation == ANIM_LEGS_BACK ||
-          ent->animation2.reverse) {
-          legs_yaw = -legs_yaw;
-        }
-
-        ent->legs_yaw = ent->angles.y + legs_yaw;
-      } else {
-        ent->legs_yaw = ent->angles.y;
-      }
-    } else {
-
-      const float angle_diff = SmallestAngleBetween(ent->legs_yaw, ent->angles.y);
-
-      if (ent->animation2.animation == ANIM_LEGS_TURN ||
-        fabsf(angle_diff) > CLIENT_LEGS_YAW_MAX) {
-
-        ent->legs_yaw = ent->angles.y;
-
-        // change animation as well
-        if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-          ent->animation2.time = cgi.client->unclamped_time;
-          ent->animation2.frame = ent->animation2.old_frame = -1;
-          ent->animation2.lerp = ent->animation2.fraction = 0;
-        }
-      }
-    }
-
-    ent->legs_current_yaw = Cg_CalculateAngle(CLIENT_LEGS_YAW_LERP_SPEED
-        * MILLIS_TO_SECONDS(cgi.client->frame_msec), ent->legs_current_yaw, ent->legs_yaw);
-
-    const float angle_delta = AngleMod(ent->legs_current_yaw - ent->legs_yaw + 180.0f) - 180.0f;
-
-    ent->legs_current_yaw = AngleMod(ent->legs_yaw + clamp(angle_delta, -CLIENT_LEGS_CLAMP, CLIENT_LEGS_CLAMP));
-
-    if (fabsf(SmallestAngleBetween(ent->legs_yaw, ent->legs_current_yaw)) > 1) {
-      if (ent->animation2.animation == ANIM_LEGS_IDLE) {
-        ent->animation2.time = cgi.client->unclamped_time;
-        ent->animation2.animation = ANIM_LEGS_TURN;
-      }
-    } else {
-      if (ent->animation2.animation == ANIM_LEGS_TURN) {
-        ent->animation2.time = cgi.client->unclamped_time;
-        ent->animation2.animation = ANIM_LEGS_IDLE;
-      }
-    }
+    Cg_RotateClientLegs(ent, &legs);
   }
 
-  legs.model = ci->legs;
+  cg_client_info_t *skin = ci;
+
+  // force the preferred skin on all _other_ players, not on ourselves
+  if (cg_state.force_skin.torso && ent != cgi.client->entity) {
+    skin = &cg_state.force_skin;
+  }
+
+  legs.model = skin->legs;
   legs.angles.y = ent->legs_current_yaw;
   legs.angles.x = legs.angles.z = 0.0; // legs only use yaw
   legs.bounds = legs.model->bounds;
-  memcpy(legs.skins, ci->legs_skins, sizeof(legs.skins));
+  memcpy(legs.skins, skin->legs_skins, sizeof(legs.skins));
 
-  torso.model = ci->torso;
+  torso.model = skin->torso;
   torso.origin = Vec3_Zero();
   torso.angles.y = ent->angles.y - legs.angles.y; // legs twisted already, we just need to pitch/roll
   torso.bounds = torso.model->bounds;
-  memcpy(torso.skins, ci->torso_skins, sizeof(torso.skins));
+  memcpy(torso.skins, skin->torso_skins, sizeof(torso.skins));
 
-  head.model = ci->head;
+  head.model = skin->head;
   head.origin = Vec3_Zero();
   head.angles.y = 0.0;
   head.bounds = head.model->bounds;
-  memcpy(head.skins, ci->head_skins, sizeof(head.skins));
+  memcpy(head.skins, skin->head_skins, sizeof(head.skins));
 
   Cg_AnimateClientEntity(ent, &torso, &legs);
 

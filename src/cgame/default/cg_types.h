@@ -141,6 +141,11 @@ typedef struct {
   cg_client_info_t clients[MAX_CLIENTS];
 
   /**
+   * @brief The forced skin (foreskin?) client info.
+   */
+  cg_client_info_t force_skin;
+
+  /**
    * @brief The teams.
    */
   cg_team_info_t teams[MAX_TEAMS];
