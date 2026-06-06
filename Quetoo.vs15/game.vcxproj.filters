@@ -96,6 +96,9 @@
     <ClInclude Include="..\src\game\default\g_ai_node.h">
       <Filter>src\default</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\default\grid.h">
+      <Filter>src\default</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\default\g_ai_types.h">
       <Filter>src\default</Filter>
     </ClInclude>
@@ -174,6 +177,9 @@
       <Filter>src\default</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\default\g_ai_node.c">
+      <Filter>src\default</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\default\grid_ds.c">
       <Filter>src\default</Filter>
     </ClCompile>
   </ItemGroup>
