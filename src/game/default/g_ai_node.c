@@ -113,6 +113,11 @@ typedef struct {
 static GArray *g_ai_nodes;
 
 /**
+ * @brief The global array of platforms for the current map.
+ */
+static GArray *g_ai_platforms;
+
+/**
  * @brief Returns the index of a node pointer within the global node array.
  */
 static inline ai_node_id_t G_Ai_Node_Index(const ai_node_t *node) {
@@ -1171,6 +1176,15 @@ void G_Ai_NodesReady(void) {
   added_links -= g_ai_player_roam.file_links;
   gi.Print("  Game loaded %u additional nodes with %u new links.\n", added_nodes, added_links);
 
+  G_ForEachEntity(ent, {
+    if (ent->classname && strcmp(ent->classname, "func_plat") == 0) {
+      if (!g_ai_platforms) {
+        g_ai_platforms = g_array_new(false, false, sizeof(g_entity_t *));
+      }
+      g_ai_platforms = g_array_append_vals(g_ai_platforms, &ent, 1);
+    }
+  });
+
   /*if (g_ai_node_dev->integer != 1) {
     const guint optimized = Ai_OptimizeNodes();
     gi.Print("  %u nodes optimized\n", optimized);
@@ -1407,27 +1421,16 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   
   // Pre-collect func_plat entities once so G_Ai_PlatformAccessible doesn't
   // call G_ForEachEntity for every link expansion inside the A* loop.
-  GArray *platforms = NULL;
-  G_ForEachEntity(ent, {
-    if (ent->classname && strcmp(ent->classname, "func_plat") == 0) {
-      if (!platforms) {
-        platforms = g_array_new(false, false, sizeof(g_entity_t *));
-      }
-      platforms = g_array_append_vals(platforms, &ent, 1);
-    }
-  });
 
-  GHashTable *costs_started = g_hash_table_new(g_direct_hash, g_direct_equal);
+  // size on 64k nodes is, say, 8kb.
+  uint32_t costs_started[g_ai_nodes->len / 32 + 1];
+  size_t visited = 0;
   // Min-heap open set (priority = f-cost). Replaces the previous sorted-array
   // queue (O(n) insertion) with an O(log n) binary heap from grid_ds.c.
   // Capacity is bounded by the node count plus headroom for re-insertions
   // (A* may push a better-cost duplicate before popping the stale one).
   const size_t heap_capacity = (size_t) g_ai_nodes->len * 4 + 16;
   if (!G_Ai_Node_EnsurePathPool(heap_capacity)) {
-    g_hash_table_destroy(costs_started);
-    if (platforms) {
-      g_array_free(platforms, true);
-    }
     return NULL;
   }
 
@@ -1443,7 +1446,9 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
   ai_node_t *start_node = &g_array_index(g_ai_nodes, ai_node_t, start);
   start_node->cost = 0;
-  g_hash_table_add(costs_started, start_node);
+  costs_started[start / 32] |= 1 << (start % 32);
+  visited++;
+  // g_hash_table_add(costs_started, start_node);
 
   for (;;) {
     ai_node_priority_t *current = (ai_node_priority_t *) gheap_pop(queue);
@@ -1481,10 +1486,10 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       const bool to_hazard = (link_contents & (CONTENTS_LAVA | CONTENTS_SLIME)) != 0;
 
       // Check platform accessibility using the pre-collected list.
-      if (platforms) {
+      if (g_ai_platforms) {
         bool blocked = false;
-        for (guint p = 0; p < platforms->len; p++) {
-          const g_entity_t *plat = g_array_index(platforms, g_entity_t *, p);
+        for (guint p = 0; p < g_ai_platforms->len; p++) {
+          const g_entity_t *plat = g_array_index(g_ai_platforms, g_entity_t *, p);
           if (link_node->position.x < plat->abs_bounds.mins.x || link_node->position.x > plat->abs_bounds.maxs.x ||
               link_node->position.y < plat->abs_bounds.mins.y || link_node->position.y > plat->abs_bounds.maxs.y) {
             continue;
@@ -1533,9 +1538,11 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
       const float new_cost = node->cost + link->cost + drop_penalty;
 
-      if (!g_hash_table_lookup(costs_started, link_node) || new_cost < link_node->cost) {
-
-        g_hash_table_add(costs_started, link_node);
+      ai_node_id_t link_index = G_Ai_Node_Index(link_node);
+      bool found = costs_started[link_index / 32] & (1 << (link_index % 32));
+      if (!found || new_cost < link_node->cost) {
+        costs_started[link_index / 32] |= 1 << (link_index % 32);
+        visited++;
 
         link_node->cost = new_cost;
         const float priority = new_cost + heuristic(link->id, end);
@@ -1565,9 +1572,9 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   GArray *return_path = NULL;
 
   if (finished) {
-    G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, g_hash_table_size(costs_started));
+    G_Ai_Debug("Found path from %u -> %u with %zu nodes visited\n", start, end, visited);
 
-    return_path = g_array_sized_new(false, false, sizeof(ai_node_id_t), g_hash_table_size(costs_started));
+    return_path = g_array_sized_new(false, false, sizeof(ai_node_id_t), visited);
 
     return_path = g_array_prepend_val(return_path, end);
 
@@ -1595,11 +1602,6 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     }
   } else {
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
-  }
-
-  g_hash_table_destroy(costs_started);
-  if (platforms) {
-    g_array_free(platforms, true);
   }
 
   return return_path;
