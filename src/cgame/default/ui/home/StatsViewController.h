@@ -32,6 +32,9 @@
 
 #define STATS_MAX_WEAPON_ROWS 20
 
+/**
+ * @brief A single row from the kills-by-weapon breakdown.
+ */
 typedef struct {
   char    weapon[64];
   int32_t frags;
@@ -47,15 +50,36 @@ typedef struct StatsViewControllerInterface StatsViewControllerInterface;
  * @ingroup ViewControllers
  */
 struct StatsViewController {
+
+  /**
+   * @brief The superclass.
+   * @private
+   */
   ViewController viewController;
+
+  /**
+   * @brief The interface.
+   * @private
+   */
   StatsViewControllerInterface *interface;
 
+  /**
+   * @brief Cached summary stats for the local player.
+   */
   int32_t rank;
   int32_t frags;
   int32_t deaths;
   int32_t damage;
   int32_t time_played;
 
+  /**
+   * @brief Name of the player who has killed us the most.
+   */
+  char nemesis[64];
+
+  /**
+   * @brief Summary stat tile labels.
+   */
   Label *nameLabel;
   Label *rankLabel;
   Label *fragsLabel;
@@ -63,7 +87,11 @@ struct StatsViewController {
   Label *kdLabel;
   Label *damageLabel;
   Label *timeLabel;
+  Label *nemesisLabel;
 
+  /**
+   * @brief Kills-by-weapon breakdown table.
+   */
   TableView *weaponsTable;
   WeaponStat weapons[STATS_MAX_WEAPON_ROWS];
   size_t num_weapons;
@@ -73,6 +101,10 @@ struct StatsViewController {
  * @brief The StatsViewController interface.
  */
 struct StatsViewControllerInterface {
+
+  /**
+   * @brief The superclass interface.
+   */
   ViewControllerInterface viewControllerInterface;
 };
 

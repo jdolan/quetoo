@@ -69,6 +69,7 @@ static void clearStats(StatsViewController *this) {
   this->deaths = 0;
   this->damage = 0;
   this->time_played = 0;
+  this->nemesis[0] = '\0';
   this->num_weapons = 0;
   memset(this->weapons, 0, sizeof(this->weapons));
 }
@@ -78,13 +79,14 @@ static void clearStats(StatsViewController *this) {
  */
 static void updateTiles(StatsViewController *this) {
   const double kd = this->deaths > 0 ? (double) this->frags / this->deaths : (double) this->frags;
-  $(this->nameLabel->text,   setText, cgi.GetCvarString("name"));
-  $(this->rankLabel->text,   setText, this->rank       ? va("#%d",  this->rank)        : "—");
-  $(this->fragsLabel->text,  setText, this->frags      ? va("%d",   this->frags)       : "—");
-  $(this->deathsLabel->text, setText, this->deaths     ? va("%d",   this->deaths)      : "—");
-  $(this->kdLabel->text,     setText, this->frags      ? va("%.2f", kd)                : "—");
-  $(this->damageLabel->text, setText, this->damage     ? va("%d",   this->damage)      : "—");
-  $(this->timeLabel->text,   setText, formatTime(this->time_played));
+  $(this->nameLabel->text,    setText, cgi.GetCvarString("name"));
+  $(this->rankLabel->text,    setText, this->rank       ? va("#%d",  this->rank)   : "—");
+  $(this->fragsLabel->text,   setText, this->frags      ? va("%d",   this->frags)  : "—");
+  $(this->deathsLabel->text,  setText, this->deaths     ? va("%d",   this->deaths) : "—");
+  $(this->kdLabel->text,      setText, this->frags      ? va("%.2f", kd)           : "—");
+  $(this->damageLabel->text,  setText, this->damage     ? va("%d",   this->damage) : "—");
+  $(this->timeLabel->text,    setText, formatTime(this->time_played));
+  $(this->nemesisLabel->text, setText, this->nemesis[0] ? this->nemesis            : "—");
 }
 
 /**
@@ -205,14 +207,15 @@ static void loadView(ViewController *self) {
   StatsViewController *this = (StatsViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("nameLabel",   &this->nameLabel),
-    MakeOutlet("rankLabel",   &this->rankLabel),
-    MakeOutlet("fragsLabel",  &this->fragsLabel),
-    MakeOutlet("deathsLabel", &this->deathsLabel),
-    MakeOutlet("kdLabel",     &this->kdLabel),
-    MakeOutlet("damageLabel", &this->damageLabel),
-    MakeOutlet("timeLabel",   &this->timeLabel),
-    MakeOutlet("weapons",     &this->weaponsTable)
+    MakeOutlet("nameLabel",    &this->nameLabel),
+    MakeOutlet("rankLabel",    &this->rankLabel),
+    MakeOutlet("fragsLabel",   &this->fragsLabel),
+    MakeOutlet("deathsLabel",  &this->deathsLabel),
+    MakeOutlet("kdLabel",      &this->kdLabel),
+    MakeOutlet("damageLabel",  &this->damageLabel),
+    MakeOutlet("timeLabel",    &this->timeLabel),
+    MakeOutlet("nemesisLabel", &this->nemesisLabel),
+    MakeOutlet("weapons",      &this->weaponsTable)
   );
 
   $(self->view, awakeWithResourceName, "ui/home/StatsViewController.json");
@@ -273,6 +276,14 @@ static void viewWillAppear(ViewController *self) {
       this->deaths = integerForKeyPath(dict, "deaths");
       this->damage = integerForKeyPath(dict, "damage");
       this->time_played = integerForKeyPath(dict, "time_played");
+
+      const Dictionary *nemesis = (Dictionary *) $(dict, objectForKeyPath, "nemesis");
+      if (nemesis) {
+        const String *name = (String *) $(nemesis, objectForKeyPath, "name");
+        if (name) {
+          g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
+        }
+      }
 
       loadWeapons(this, (Array *) $(dict, objectForKeyPath, "kills_by_weapon"));
 

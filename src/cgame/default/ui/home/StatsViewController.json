@@ -68,6 +68,14 @@
                 { "class": "Label", "identifier": "timeLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
               ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [ "statTile" ],
+              "subviews": [
+                { "class": "Label", "identifier": "nemesisLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Nemesis" } }
+              ]
             }
           ]
         },
