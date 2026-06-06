@@ -1259,6 +1259,11 @@ void G_Ai_DeleteNodes(void) {
     g_array_set_size(g_ai_nodes, 0);
   }
 
+  if (g_ai_platforms) {
+    g_array_free(g_ai_platforms, true);
+    g_ai_platforms = NULL;
+  }
+
   G_Ai_Node_InvalidateSpatialIndex();
   G_Ai_Node_FreePathPool();
 }
@@ -1283,6 +1288,7 @@ void G_Ai_ShutdownNodes(void) {
 
   if (g_ai_platforms) {
     g_array_free(g_ai_platforms, true);
+    g_ai_platforms = NULL;
   }
 
   G_Ai_Node_InvalidateSpatialIndex();
