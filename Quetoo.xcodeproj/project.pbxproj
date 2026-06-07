@@ -353,14 +353,6 @@
 		CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE7D2C11202F690A004BC58E /* HomeViewController.c */; };
 		CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7D2C14202F690A004BC58E /* HomeViewController.h */; };
 		CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C19202F6E80004BC58E /* HomeViewController.json */; };
-		CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
-		CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */; };
-		CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
-		CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */; };
-		CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */; };
-		CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */; };
-		CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */; };
-		CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */; };
 		CE7D2C1C202F7116004BC58E /* CreateServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */; };
 		CE7D2C1F202F7177004BC58E /* JoinServerViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */; };
 		CE7D2C20202F7179004BC58E /* PlayerSetupViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */; };
@@ -583,6 +575,14 @@
 		CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA509062EA5D21F00F27205 /* check_cm_entity.c */; };
 		CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
 		CEA5090B2EA5D44B00F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
+		CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
+		CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */; };
+		CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
+		CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */; };
+		CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */; };
+		CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */; };
+		CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */; };
+		CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */; };
 		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
@@ -1789,14 +1789,6 @@
 		CE7D2C13202F690A004BC58E /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE7D2C14202F690A004BC58E /* HomeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HomeViewController.h; sourceTree = "<group>"; };
 		CE7D2C19202F6E80004BC58E /* HomeViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = HomeViewController.json; sourceTree = "<group>"; };
-		CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LeaderboardViewController.c; sourceTree = "<group>"; };
-		CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeaderboardViewController.h; sourceTree = "<group>"; };
-		CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatsViewController.c; sourceTree = "<group>"; };
-		CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatsViewController.h; sourceTree = "<group>"; };
-		CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = LeaderboardViewController.css; sourceTree = "<group>"; };
-		CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LeaderboardViewController.json; sourceTree = "<group>"; };
-		CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StatsViewController.css; sourceTree = "<group>"; };
-		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CE7D2C1B202F7101004BC58E /* CreateServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CreateServerViewController.json; sourceTree = "<group>"; };
 		CE7D2C1D202F714F004BC58E /* JoinServerViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = JoinServerViewController.json; sourceTree = "<group>"; };
 		CE7D2C1E202F7166004BC58E /* PlayerSetupViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PlayerSetupViewController.json; sourceTree = "<group>"; };
@@ -1887,6 +1879,14 @@
 		CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../opt/homebrew/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
 		CEA716EB2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEA716EC2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LeaderboardViewController.c; sourceTree = "<group>"; };
+		CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeaderboardViewController.h; sourceTree = "<group>"; };
+		CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatsViewController.c; sourceTree = "<group>"; };
+		CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatsViewController.h; sourceTree = "<group>"; };
+		CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = LeaderboardViewController.css; sourceTree = "<group>"; };
+		CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StatsViewController.css; sourceTree = "<group>"; };
+		CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LeaderboardViewController.json; sourceTree = "<group>"; };
+		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
 		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -3560,19 +3560,19 @@
 		CE7D2C10202F690A004BC58E /* home */ = {
 			isa = PBXGroup;
 			children = (
-				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
-				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
 				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
+				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
+				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
+				CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */,
+				CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */,
 				CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */,
 				CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */,
-				CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */,
-				CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */,
-				CE7D2C13202F690A004BC58E /* Makefile.am */,
+				CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */,
+				CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */,
 				CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */,
 				CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */,
-				CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */,
-				CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */,
+				CE7D2C13202F690A004BC58E /* Makefile.am */,
 			);
 			path = home;
 			sourceTree = "<group>";

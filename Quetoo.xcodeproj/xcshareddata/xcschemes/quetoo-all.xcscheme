@@ -156,6 +156,10 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
+            argument = "+set g_map_list maps-jdolan.lst"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
             argument = "+give all"
             isEnabled = "NO">
          </CommandLineArgument>
