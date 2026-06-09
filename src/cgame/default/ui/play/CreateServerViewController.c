@@ -61,7 +61,6 @@ static void createServer(Button *button) {
 
   Array *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
-    char map[MAX_QPATH];
 
     file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
@@ -75,10 +74,6 @@ static void createServer(Button *button) {
 
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);
-
-        if (i == 0) {
-          g_strlcpy(map, name, sizeof(map));
-        }
 
         $(string, appendFormat, "{\n\tname %s\n}\n", name);
       }
@@ -96,8 +91,8 @@ static void createServer(Button *button) {
 
     cgi.CloseFile(file);
 
-    cgi.SetCvarString("g_map_list", MAP_LIST_UI);
-    cgi.Cbuf(va("map %s", map));
+    cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
+    cgi.Cbuf("next_map");
 
   } else {
     cgi.Print("No maps selected\n");

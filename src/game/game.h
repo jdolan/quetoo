@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 27
+#define GAME_API_VERSION 28
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -696,7 +696,7 @@ typedef struct g_export_s {
   /**
    * @brief Called at the start of each new level.
    */
-  void (*SpawnEntities)(const char *name, cm_entity_t *const *entities, size_t num_entities);
+  void (*SpawnEntities)(const cm_entity_t *map, cm_entity_t *const *entities, size_t num_entities);
 
   /**
    * @brief Called when a client connects with valid user info; return false to reject.

@@ -57,7 +57,7 @@ void Cm_ParseEntity(cm_entity_t *pair);
 cm_entity_t *Cm_SortEntity(cm_entity_t *entity);
 
 /**
- * @brief Parses the BSP entity string into a GList of entity linked lists.
+ * @brief Parses an entity string into a GList of entity linked lists.
  * @return A GList of `cm_entity_t`* head pointers (one per entity).
  */
 GList *Cm_LoadEntities(const char *entity_string);

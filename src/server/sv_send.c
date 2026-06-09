@@ -324,7 +324,7 @@ static void Sv_DemoCompleted(void) {
     demo_token[len] = 0;
 
     if (demo_token[0]) {
-      Sv_InitServer(demo_token, SV_ACTIVE_DEMO);
+      Sv_InitServer(demo_token, NULL, SV_ACTIVE_DEMO);
     } else {
       Sv_ShutdownServer("Demo complete\n");
     }

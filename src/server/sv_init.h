@@ -23,11 +23,11 @@
 
 #include "sv_types.h"
 
+void Sv_InitServer(const char *name, const cm_entity_t *map, sv_state_t state);
 void Sv_ShutdownServer(const char *msg);
 
 #if defined(__SV_LOCAL_H__)
 int32_t Sv_ModelIndex(const char *name);
 int32_t Sv_SoundIndex(const char *name);
 int32_t Sv_ImageIndex(const char *name);
-void Sv_InitServer(const char *name, sv_state_t state);
 #endif /* __SV_LOCAL_H__ */

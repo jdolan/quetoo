@@ -228,7 +228,7 @@ static void Sv_ReconnectClients(void) {
 }
 
 /**
- * @brief Reloads `svs.clients`, `svs.`client_entities`, the game programs, etc. Because
+ * @brief Reloads `svs.clients`, `svs.client_entities`, the game programs, etc. Because
  * we must allocate clients and edicts based on sizes the game module requests,
  * we refresh the game module.
  */
@@ -263,11 +263,11 @@ static void Sv_InitEntities(sv_state_t state) {
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
-static void Sv_LoadMedia(const char *server, sv_state_t state) {
+static void Sv_LoadMedia(const char *name, const cm_entity_t *map, sv_state_t state) {
   int64_t bsp_size = -1;
 
-  strcpy(sv.name, server);
-  strcpy(sv.config_strings[CS_NAME], server);
+  strcpy(sv.name, name);
+  strcpy(sv.config_strings[CS_NAME], name);
 
   if (state == SV_ACTIVE_DEMO) { // loading a demo
     Cvar_ForceSetString(sv_map->name, "");
@@ -306,7 +306,7 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
 
     svs.state = SV_LOADING;
 
-    Sv_SpawnEntities();
+    Sv_SpawnEntities(map);
 
     const int32_t num_entities = Sv_CreateBaseline();
 
@@ -322,10 +322,10 @@ static void Sv_LoadMedia(const char *server, sv_state_t state) {
  * clearing state. Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
-void Sv_InitServer(const char *server, sv_state_t state) {
+void Sv_InitServer(const char *name, const cm_entity_t *map, sv_state_t state) {
   extern void Cl_Disconnect(void);
 
-  Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", server, state);
+  Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", name, state);
 
   Cbuf_CopyToDefer();
 
@@ -348,7 +348,7 @@ void Sv_InitServer(const char *server, sv_state_t state) {
   Sv_InitEntities(state);
 
   // load the map or demo and related media
-  Sv_LoadMedia(server, state);
+  Sv_LoadMedia(name, map, state);
   svs.state = state;
 
   Com_Print("Server initialized\n");
