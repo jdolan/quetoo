@@ -8,10 +8,10 @@ void gridkdtree_free(struct gridkdtree_s **tree) {
   }
 
   free(*tree);
-  *tree = nullptr;
+  *tree = NULL;
 }
 
-thread_local struct cmpstr_s {
+_Thread_local struct cmpstr_s {
   uint8_t dim;
   vec3_t *srcdata;
 } cmpstr;
@@ -44,13 +44,13 @@ static struct kdtree_node_s *gkdt_alloc_node(struct gridkdtree_s *tree) {
     return &tree->nodes[tree->nodecount++];
   }
 
-  return nullptr;
+  return NULL;
 }
 
 static struct kdtree_node_s *kdtree_build(struct kdtbuildctx_s *ctx, const size_t dim) {
 
   if (ctx->slicesize == 0) {
-    return nullptr;
+    return NULL;
   }
 
   cmpstr.srcdata = ctx->tree->srcdata;
@@ -85,7 +85,7 @@ struct gridkdtree_s *gridkdtree_create(vec3_t *srcdata, const size_t count) {
   if (!tree || !sortedx) {
     free(tree);
     free(sortedx);
-    return nullptr;
+    return NULL;
   }
 
   for (size_t i = 0; i < count; i++) {
@@ -94,8 +94,8 @@ struct gridkdtree_s *gridkdtree_create(vec3_t *srcdata, const size_t count) {
 
   for (size_t i = 0; i < capacity; i++) {
     tree->nodes[i].nodenum = SIZE_MAX;
-    tree->nodes[i].left = nullptr;
-    tree->nodes[i].right = nullptr;
+    tree->nodes[i].left = NULL;
+    tree->nodes[i].right = NULL;
   }
 
   tree->srcdata = srcdata;
@@ -122,7 +122,7 @@ struct kdtree_filter_ctx_s {
 
 static void kdtree_query_filter_rec(struct kdtree_filter_ctx_s *ctx, const struct kdtree_node_s *node, const size_t dim) {
 
-  if (node == nullptr || node->nodenum == SIZE_MAX) {
+  if (node == NULL || node->nodenum == SIZE_MAX) {
     return;
   }
 
@@ -169,13 +169,13 @@ size_t gridkdtree_query_filter(struct gridkdtree_s *tree, const vec3_t querypos,
 struct gheap_s *gheap_create(const size_t capacity) {
   struct gheap_s *ret = malloc(sizeof(struct gheap_s) + sizeof(struct gheap_entry_s) * capacity);
 
-  if (ret == nullptr) {
-    return nullptr;
+  if (ret == NULL) {
+    return NULL;
   }
 
   for (size_t i = 0; i < capacity; i++) {
     ret->entries[i].cost = INFINITY;
-    ret->entries[i].data = nullptr;
+    ret->entries[i].data = NULL;
   }
 
   ret->capacity = capacity;
@@ -190,7 +190,7 @@ void gheap_free(struct gheap_s **heap) {
   }
 
   free(*heap);
-  *heap = nullptr;
+  *heap = NULL;
 }
 
 static void hswap(struct gheap_entry_s *a, struct gheap_entry_s *b) {
@@ -200,7 +200,7 @@ static void hswap(struct gheap_entry_s *a, struct gheap_entry_s *b) {
 }
 
 bool gheap_push(struct gheap_s *heap, const float cost, void *data) {
-  assert(data != nullptr);
+  assert(data != NULL);
 
   if (heap->count >= heap->capacity) {
     return false;
@@ -243,7 +243,7 @@ static float gheap_peek_cost(const struct gheap_s *heap, const size_t node) {
 static struct gheap_entry_s gheap_pop_inner(struct gheap_s *heap) {
 
   if (heap->count == 0) {
-    return (struct gheap_entry_s) { INFINITY, nullptr };
+    return (struct gheap_entry_s) { INFINITY, NULL };
   }
 
   const struct gheap_entry_s ret = heap->entries[0];
