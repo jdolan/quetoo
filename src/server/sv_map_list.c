@@ -58,7 +58,7 @@ void Sv_InitMapList(void) {
   }
 
   char *buffer;
-  if (Fs_Load(sv_map_list->string, (void **) &buffer) == -1) {
+  if (Fs_Load(sv_map_list->string, (void **) &buffer) <= 0) {
     Com_Warn("Couldn't load %s\n", sv_map_list->string);
     return;
   }
@@ -85,6 +85,8 @@ void Sv_InitMapList(void) {
   svs.maps.index = -1;
 
   Mem_Free(buffer);
+
+  Com_Print("Parsed %d maps from %s\n", svs.maps.length, svs.maps.filename);
 }
 
 /**
