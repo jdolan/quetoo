@@ -42,6 +42,11 @@ typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void
 int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
 
 /**
+ * @brief Clears the shared HTTP response cache, if one is configured.
+ */
+void Net_HttpClearCache(void);
+
+/**
  * @brief Asynchronously `GET` the specified URL string.
  * @param url_string The URL string to `GET`.
  * @param callback The completion callback.

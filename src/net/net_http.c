@@ -21,8 +21,42 @@
 
 #include "net_http.h"
 
+#include <assert.h>
+
+#include <Objectively/Once.h>
+#include <Objectively/URLCache.h>
 #include <Objectively/URLRequest.h>
 #include <Objectively/URLSession.h>
+
+/**
+ * @brief Returns Quetoo's shared HTTP session, enabling response caching on demand.
+ */
+static URLSession *session;
+static Once sessionOnce;
+
+static URLSession *Net_HttpSession(void) {
+
+  do_once(&sessionOnce, {
+    session = $$(URLSession, sharedInstance);
+
+    if (session->configuration->urlCache == NULL) {
+      session->configuration->urlCache = $(alloc(URLCache), init);
+      assert(session->configuration->urlCache);
+    }
+  });
+
+  return session;
+}
+
+/**
+ * @brief Clears the shared HTTP response cache, if one exists.
+ */
+void Net_HttpClearCache(void) {
+
+  if (session && session->configuration->urlCache) {
+    $(session->configuration->urlCache, removeAllCachedResponses);
+  }
+}
 
 /**
  * @brief Synchronously performs an HTTP `GET` request and returns the response body.
@@ -33,7 +67,7 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
   URL *url = $(alloc(URL), initWithCharacters, url_string);
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithURL, url, NULL);
   release(url);
 
@@ -93,7 +127,7 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *u
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
   URL *url = $(alloc(URL), initWithCharacters, url_string);
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
   release(url);
 
@@ -151,7 +185,7 @@ void Net_HttpPostAsync(const char *url_string, const void *body, size_t length,
 
   $(request, setValueForHTTPHeaderField, content_type, "Content-Type");
 
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithRequest, request, Net_HttpPostAsync_Completion);
   release(request);
 

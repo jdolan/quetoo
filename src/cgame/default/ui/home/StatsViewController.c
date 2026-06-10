@@ -30,7 +30,6 @@
 
 #define _Class _StatsViewController
 
-#define QUETOO_GUID_URL  "https://giblets.quetoo.org/api/guid"
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
 static const char *_weapon = "Weapon";
@@ -56,30 +55,15 @@ static const char *formatTime(int32_t seconds) {
 /**
  * @brief Returns an integer value for the specified key path, or 0.
  */
-static int32_t integerForKeyPath(const Dictionary *dict, const char *keyPath) {
-  const Number *number = dict ? cast(Number, $(dict, objectForKeyPath, keyPath)) : NULL;
-  return number ? $(number, intValue) : 0;
-}
+static int32_t integerForKeyPath(const Dictionary *dict, const char *path) {
 
-/**
- * @brief Returns the dictionary value at the specified key path, or `NULL`.
- */
-static const Dictionary *dictionaryForKeyPath(const Dictionary *dict, const char *keyPath) {
-  return dict ? cast(Dictionary, $(dict, objectForKeyPath, keyPath)) : NULL;
-}
+  const ident value = $(dict, objectForKeyPathWithClass, path, _Number());
+  if (value) {
+    const Number *number = cast(Number, value);
+    return $(number, intValue);
+  }
 
-/**
- * @brief Returns the array value at the specified key path, or `NULL`.
- */
-static const Array *arrayForKeyPath(const Dictionary *dict, const char *keyPath) {
-  return dict ? cast(Array, $(dict, objectForKeyPath, keyPath)) : NULL;
-}
-
-/**
- * @brief Returns the string value at the specified key path, or `NULL`.
- */
-static const String *stringForKeyPath(const Dictionary *dict, const char *keyPath) {
-  return dict ? cast(String, $(dict, objectForKeyPath, keyPath)) : NULL;
+  return 0;
 }
 
 /**
@@ -110,52 +94,6 @@ static void updateTiles(StatsViewController *this) {
 }
 
 /**
- * @brief Fetches the hashed GUID for the current player.
- */
-static bool fetchGuid(char *guid, size_t length) {
-
-  guid[0] = '\0';
-
-  const cvar_t *guid_cvar = cgi.GetCvar("guid");
-  if (guid_cvar == NULL || guid_cvar->string[0] == '\0') {
-    return false;
-  }
-
-  void *body = NULL;
-  size_t body_length = 0;
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid_cvar->string);
-
-  const int32_t status = cgi.HttpGet(url, &body, &body_length);
-  if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, body_length);
-    ident json = $$(JSONSerialization, objectFromData, data, 0);
-    release(data);
-
-    if (json) {
-      Dictionary *dict = cast(Dictionary, json);
-      if (dict) {
-        const String *hashed = cast(String, $(dict, objectForKeyPath, "guid"));
-        if (hashed) {
-          g_strlcpy(guid, hashed->chars, length);
-        }
-      } else if (!cast(Null, json)) {
-        Cg_Warn("Unexpected guid response type: %s\n", classnameof(json));
-      }
-
-      release(json);
-    }
-  } else {
-    Cg_Warn("Failed to fetch guid: HTTP %d\n", status);
-  }
-
-  cgi.Free(body);
-
-  return guid[0] != '\0';
-}
-
-/**
  * @brief Loads weapon rows from the given JSON array.
  */
 static void loadWeapons(StatsViewController *this, const Array *array) {
@@ -172,7 +110,7 @@ static void loadWeapons(StatsViewController *this, const Array *array) {
       continue;
     }
 
-    const String *weapon = stringForKeyPath(entry, "weapon");
+    const String *weapon = $(entry, objectForKeyPathWithClass, "weapon", _String());
     if (weapon == NULL) {
       continue;
     }
@@ -254,6 +192,8 @@ static void loadView(ViewController *self) {
 
   this->weaponsTable->delegate.cellForColumnAndRow = cellForColumnAndRow;
   this->weaponsTable->delegate.self = this;
+
+  clearStats(this);
 }
 
 /**
@@ -265,10 +205,11 @@ static void viewWillAppear(ViewController *self) {
 
   StatsViewController *this = (StatsViewController *) self;
 
-  clearStats(this);
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
 
-  char guid[68];
-  if (!fetchGuid(guid, sizeof(guid))) {
+  if (!guid_hashed || !guid_hashed[0]) {
+    clearStats(this);
+
     $(this->rankLabel->text, setText, "—");
     $(this->fragsLabel->text, setText, "Sign in");
     $(this->deathsLabel->text, setText, "—");
@@ -278,11 +219,13 @@ static void viewWillAppear(ViewController *self) {
     return;
   }
 
+  clearStats(this);
+
   void *body = NULL;
   size_t length = 0;
 
   char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid);
+  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
 
   const int32_t status = cgi.HttpGet(url, &body, &length);
   if (status == 200) {
@@ -298,15 +241,16 @@ static void viewWillAppear(ViewController *self) {
         this->deaths = integerForKeyPath(dict, "deaths");
         this->time_played = integerForKeyPath(dict, "time_played");
 
-        const Dictionary *nemesis = dictionaryForKeyPath(dict, "nemesis");
+        const Dictionary *nemesis = $(dict, objectForKeyPathWithClass, "nemesis", _Dictionary());
         if (nemesis) {
-          const String *name = stringForKeyPath(nemesis, "name");
+          const String *name = $(nemesis, objectForKeyPathWithClass, "name", _String());
           if (name) {
             g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
           }
         }
 
-        loadWeapons(this, arrayForKeyPath(dict, "kills_by_weapon"));
+        loadWeapons(this, $(dict, objectForKeyPathWithClass, "kills_by_weapon", _Array()));
+
       } else if (!cast(Null, json)) {
         Cg_Warn("Unexpected stats response type: %s\n", classnameof(json));
       }

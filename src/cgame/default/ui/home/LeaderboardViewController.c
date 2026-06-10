@@ -30,7 +30,6 @@
 #define _Class _LeaderboardViewController
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
-#define QUETOO_GUID_URL  "https://giblets.quetoo.org/api/guid"
 
 static const char *_rank        = "Rank";
 static const char *_player      = "Player";
@@ -79,54 +78,9 @@ static const char *formatTime(int32_t seconds) {
 }
 
 /**
- * @brief Fetches and stores the hashed GUID for the current player.
- */
-static void fetchGuid(LeaderboardViewController *this) {
-
-  this->guid[0] = '\0';
-
-  const cvar_t *guid_cvar = cgi.GetCvar("guid");
-  if (guid_cvar == NULL || guid_cvar->string[0] == '\0') {
-    return;
-  }
-
-  void *body = NULL;
-  size_t length = 0;
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid_cvar->string);
-
-  const int32_t status = cgi.HttpGet(url, &body, &length);
-  if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, length);
-    ident json = $$(JSONSerialization, objectFromData, data, 0);
-    release(data);
-
-    if (json) {
-      Dictionary *dict = cast(Dictionary, json);
-      if (dict) {
-        const String *hashed = cast(String, $(dict, objectForKeyPath, "guid"));
-        if (hashed) {
-          g_strlcpy(this->guid, hashed->chars, sizeof(this->guid));
-          Cg_Debug("Fetched hashed guid: %s\n", this->guid);
-        }
-      } else if (!cast(Null, json)) {
-        Cg_Warn("Unexpected guid response type: %s\n", classnameof(json));
-      }
-
-      release(json);
-    }
-  } else {
-    Cg_Warn("Failed to fetch guid: HTTP %d\n", status);
-  }
-
-  cgi.Free(body);
-}
-
-/**
  * @brief Fetches leaderboard rows using the given sort column.
  */
-static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
+static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
 
   void *body = NULL;
   size_t length = 0;
@@ -150,10 +104,13 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
     release(data);
   } else {
     this->num_entries = 0;
+    memset(this->entries, 0, sizeof(this->entries));
     Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
   }
 
   cgi.Free(body);
+
+  return status == 200;
 }
 
 /**
@@ -161,12 +118,13 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
  */
 static void selectOwnRow(LeaderboardViewController *this) {
 
-  if (this->guid[0] == '\0') {
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
+  if (!guid_hashed || !guid_hashed[0]) {
     return;
   }
 
   for (size_t i = 0; i < this->num_entries; i++) {
-    if (g_strcmp0(this->entries[i].guid, this->guid) == 0) {
+    if (g_strcmp0(this->entries[i].guid, guid_hashed) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -206,7 +164,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "bronze");
   }
 
-  if (this->guid[0] && g_strcmp0(entry->guid, this->guid) == 0) {
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
+  if (guid_hashed && guid_hashed[0] && g_strcmp0(entry->guid, guid_hashed) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
@@ -275,6 +234,7 @@ static void loadView(ViewController *self) {
   this->leaderboard->delegate.cellForColumnAndRow = cellForColumnAndRow;
   this->leaderboard->delegate.didSetSortColumn = didSetSortColumn;
   this->leaderboard->delegate.self = this;
+
 }
 
 /**
@@ -286,7 +246,6 @@ static void viewWillAppear(ViewController *self) {
 
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
-  fetchGuid(this);
   fetchLeaderboard(this, this->leaderboard->sortColumn);
   $(this->leaderboard, reloadData);
   selectOwnRow(this);

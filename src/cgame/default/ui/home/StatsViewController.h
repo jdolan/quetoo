@@ -63,7 +63,7 @@ struct StatsViewController {
   StatsViewControllerInterface *interface;
 
   /**
-   * @brief Cached summary stats for the local player.
+   * @brief Current summary stats for the local player.
    */
   int32_t rank;
   int32_t frags;
