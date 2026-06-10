@@ -33,7 +33,7 @@
  * all connected clients. Each ConfigString can be at most `MAX_STRING_CHARS` in
  * length. The game module is free to populate `CS_GAME - MAX_CONFIG_STRINGS`.
  */
-#define CS_NAME     0 // the server name
+#define CS_MESSAGE  0 // map message
 #define CS_PK3      1 // pk3 name
 #define CS_MANIFEST 2 // map manifest
 #define CS_BSP      3 // bsp name

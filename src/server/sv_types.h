@@ -25,6 +25,17 @@
 
 #include "game/game.h"
 
+/**
+ * @brief Server states.
+ */
+typedef enum {
+  SV_UNINITIALIZED,
+  SV_INITIALIZED,
+  SV_LOADING,
+  SV_ACTIVE_GAME,
+  SV_ACTIVE_DEMO
+} sv_state_t;
+
 #if defined(__SV_LOCAL_H__)
 
 /**
@@ -326,16 +337,27 @@ typedef struct {
  */
 #define MAX_CHALLENGES 1024
 
-/**
- * @brief Server states.
- */
-typedef enum {
-  SV_UNINITIALIZED,
-  SV_INITIALIZED,
-  SV_LOADING,
-  SV_ACTIVE_GAME,
-  SV_ACTIVE_DEMO
-} sv_state_t;
+typedef struct {
+  /**
+   * @brief The filename the map list was parsed from.
+   */
+  char filename[MAX_QPATH];
+
+  /**
+   * @brief Cached map list entries (`cm_entity_t *`) parsed from `sv_map_list`.
+   */
+  GList *list;
+
+  /**
+   * @brief The length of `map_list`.
+   */
+  int32_t length;
+
+  /**
+   * @brief The current map list index.
+   */
+  int32_t index;
+} sv_map_list_t;
 
 /**
  * @brief The `sv_static_t` structure is persistent for the execution of the
@@ -388,6 +410,11 @@ typedef struct {
    * @brief Incremented at each map load to validate late-arriving connection handshakes.
    */
   uint32_t spawn_count;
+
+  /**
+   * @brief The map list.
+   */
+  sv_map_list_t maps;
 
   /**
    * @brief Exported API from the loaded game module.

@@ -124,7 +124,6 @@
 		CE12D7DF1C5C5D6A00CD0B13 /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6611C5C58C300CD0B13 /* g_item.c */; };
 		CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6641C5C58C300CD0B13 /* g_main.c */; };
-		CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6661C5C58C300CD0B13 /* g_map_list.c */; };
 		CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66F1C5C58C300CD0B13 /* g_weapon.c */; };
@@ -407,7 +406,6 @@
 		CE80FE8B1C5E442700A21A51 /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
-		CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6671C5C58C300CD0B13 /* g_map_list.h */; };
 		CE80FE901C5E442700A21A51 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
 		CE80FE911C5E442800A21A51 /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66C1C5C58C300CD0B13 /* g_types.h */; };
 		CE80FE921C5E442800A21A51 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
@@ -469,6 +467,7 @@
 		CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
 		CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
 		CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AE1C5C58C300CD0B13 /* sv_main.c */; };
+		CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00072EC1A00000000007 /* sv_map_list.c */; };
 		CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B01C5C58C300CD0B13 /* sv_master.c */; };
 		CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B21C5C58C300CD0B13 /* sv_send.c */; };
 		CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B51C5C58C300CD0B13 /* sv_world.c */; };
@@ -481,6 +480,7 @@
 		CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AC1C5C58C300CD0B13 /* sv_init.h */; };
 		CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AD1C5C58C300CD0B13 /* sv_local.h */; };
 		CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AF1C5C58C300CD0B13 /* sv_main.h */; };
+		CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00082EC1A00000000008 /* sv_map_list.h */; };
 		CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B11C5C58C300CD0B13 /* sv_master.h */; };
 		CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B31C5C58C300CD0B13 /* sv_send.h */; };
 		CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B41C5C58C300CD0B13 /* sv_types.h */; };
@@ -1038,6 +1038,13 @@
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
 		};
+		CEEC176B2FD6F88900C72A8A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE12D7CC1C5C5D5C00CD0B13;
+			remoteInfo = game;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1448,8 +1455,6 @@
 		CE12D6631C5C58C300CD0B13 /* g_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_local.h; sourceTree = "<group>"; };
 		CE12D6641C5C58C300CD0B13 /* g_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_main.c; sourceTree = "<group>"; };
 		CE12D6651C5C58C300CD0B13 /* g_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_main.h; sourceTree = "<group>"; };
-		CE12D6661C5C58C300CD0B13 /* g_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_map_list.c; sourceTree = "<group>"; };
-		CE12D6671C5C58C300CD0B13 /* g_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_map_list.h; sourceTree = "<group>"; };
 		CE12D66A1C5C58C300CD0B13 /* g_physics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_physics.c; sourceTree = "<group>"; };
 		CE12D66B1C5C58C300CD0B13 /* g_physics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_physics.h; sourceTree = "<group>"; };
 		CE12D66C1C5C58C300CD0B13 /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
@@ -1500,6 +1505,8 @@
 		CE12D6AD1C5C58C300CD0B13 /* sv_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_local.h; sourceTree = "<group>"; };
 		CE12D6AE1C5C58C300CD0B13 /* sv_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = sv_main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6AF1C5C58C300CD0B13 /* sv_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_main.h; sourceTree = "<group>"; };
+		CEAB00072EC1A00000000007 /* sv_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_map_list.c; sourceTree = "<group>"; };
+		CEAB00082EC1A00000000008 /* sv_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_map_list.h; sourceTree = "<group>"; };
 		CE12D6B01C5C58C300CD0B13 /* sv_master.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_master.c; sourceTree = "<group>"; };
 		CE12D6B11C5C58C300CD0B13 /* sv_master.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_master.h; sourceTree = "<group>"; };
 		CE12D6B21C5C58C300CD0B13 /* sv_send.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_send.c; sourceTree = "<group>"; };
@@ -2938,8 +2945,6 @@
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
-				CE12D6661C5C58C300CD0B13 /* g_map_list.c */,
-				CE12D6671C5C58C300CD0B13 /* g_map_list.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
@@ -3009,6 +3014,8 @@
 				CE12D6AD1C5C58C300CD0B13 /* sv_local.h */,
 				CE12D6AE1C5C58C300CD0B13 /* sv_main.c */,
 				CE12D6AF1C5C58C300CD0B13 /* sv_main.h */,
+				CEAB00072EC1A00000000007 /* sv_map_list.c */,
+				CEAB00082EC1A00000000008 /* sv_map_list.h */,
 				CE12D6B01C5C58C300CD0B13 /* sv_master.c */,
 				CE12D6B11C5C58C300CD0B13 /* sv_master.h */,
 				CE12D6B21C5C58C300CD0B13 /* sv_send.c */,
@@ -3696,7 +3703,6 @@
 				CE80FE8B1C5E442700A21A51 /* g_item.h in Headers */,
 				CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */,
 				CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */,
-				CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */,
 				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
@@ -3932,6 +3938,7 @@
 				CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */,
 				CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */,
 				CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */,
+				CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */,
 				CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */,
 				CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */,
 				CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */,
@@ -4143,6 +4150,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEEC176C2FD6F88900C72A8A /* PBXTargetDependency */,
 				CE80FFCB1C5E4B6600A21A51 /* PBXTargetDependency */,
 				CE80FFCD1C5E4B6600A21A51 /* PBXTargetDependency */,
 			);
@@ -4840,7 +4848,6 @@
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
-				CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
@@ -5154,6 +5161,7 @@
 				CEAB00032EC1A00000000003 /* sv_http.c in Sources */,
 				CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */,
 				CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */,
+				CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */,
 				CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */,
 				CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */,
 				CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */,
@@ -5490,6 +5498,11 @@
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */;
+		};
+		CEEC176C2FD6F88900C72A8A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE12D7CC1C5C5D5C00CD0B13 /* game */;
+			targetProxy = CEEC176B2FD6F88900C72A8A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

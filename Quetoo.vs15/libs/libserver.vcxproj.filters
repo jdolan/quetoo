@@ -36,6 +36,9 @@
     <ClInclude Include="..\..\src\server\sv_main.h">
       <Filter>src\server</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\server\sv_map_list.h">
+      <Filter>src\server</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\server\sv_master.h">
       <Filter>src\server</Filter>
     </ClInclude>
@@ -72,6 +75,9 @@
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\server\sv_main.c">
+      <Filter>src\server</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\server\sv_map_list.c">
       <Filter>src\server</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\server\sv_master.c">

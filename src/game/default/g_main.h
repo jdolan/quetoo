@@ -154,7 +154,6 @@ extern cvar_t *g_num_teams;
 extern cvar_t *g_motd;
 extern cvar_t *g_password;
 extern cvar_t *g_player_projectile;
-extern cvar_t *g_random_map;
 extern cvar_t *g_respawn_protection;
 extern cvar_t *g_self_damage;
 extern cvar_t *g_self_knockback;

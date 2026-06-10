@@ -361,9 +361,9 @@ static void Init(void) {
   Cbuf_InsertFromDefer();
   Cbuf_Execute();
 
-  // dedicated server, nothing specified, use Edge
+  // dedicated server, but no explicit +map specified, begin maps.lst
   if (dedicated->value && !Com_WasInit(QUETOO_SERVER)) {
-    Cbuf_AddText("map edge\n");
+    Cbuf_AddText("next_map\n");
     Cbuf_Execute();
   }
 }

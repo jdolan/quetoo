@@ -147,7 +147,7 @@ static void Sv_Demo_f(void) {
   const char *path = va("demos/%s.demo", Cmd_Argv(1));
 
   if (Fs_Exists(path)) {
-    Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_DEMO);
+    Sv_InitServer(Cmd_Argv(1), NULL, SV_ACTIVE_DEMO);
   } else {
     Com_Warn("%s does not exist\n", path);
   }
@@ -174,9 +174,25 @@ static void Sv_Map_f(void) {
   const char *path = va("maps/%s.bsp", Cmd_Argv(1));
 
   if (Fs_Exists(path)) {
-    Sv_InitServer(Cmd_Argv(1), SV_ACTIVE_GAME);
+    Sv_InitServer(Cmd_Argv(1), NULL, SV_ACTIVE_GAME);
   } else {
     Com_Warn("%s does not exist\n", path);
+  }
+}
+
+/**
+ * @brief Advances the server to the next map in `sv_map_list`.
+ */
+void Sv_NextMap_f(void) {
+
+  const cm_entity_t *props = Sv_NextMap();
+  if (props) {
+    const char *name = Cm_EntityValue(props, "name")->string;
+    Sv_InitServer(name, props, SV_ACTIVE_GAME);
+  } else if (*sv.name && svs.state == SV_ACTIVE_GAME) {
+    Sv_InitServer(sv.name, NULL, SV_ACTIVE_GAME);
+  } else {
+    Com_Warn("No map list configured\n");
   }
 }
 
@@ -406,23 +422,24 @@ static void Sv_Stuff_f(void) {
  */
 void Sv_InitAdmin(void) {
 
-  Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user");
-  Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information");
-  Cmd_Add("list_entities", Sv_ListEntities_f, CMD_SERVER, "List all entities in use");
-  Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings");
-  Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user");
+  Cmd_Add("kick", Sv_Kick_f, CMD_SERVER, "Kick a specific user.");
+  Cmd_Add("status", Sv_Status_f, CMD_SERVER, "Print server status information.");
+  Cmd_Add("list_entities", Sv_ListEntities_f, CMD_SERVER, "List all entities in use.");
+  Cmd_Add("server_info", Sv_ServerInfo_f, CMD_SERVER, "Print server info settings.");
+  Cmd_Add("user_info", Sv_UserInfo_f, CMD_SERVER, "Print information for a given user.");
 
   cmd_t *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
   Cmd_SetAutocomplete(demo_cmd, Sv_Demo_Autocomplete_f);
 
-  cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map");
+  cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
 
-  Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER,
-          "Set the master server(s) for the dedicated server");
-  Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server");
+  Cmd_Add("next_map", Sv_NextMap_f, CMD_SERVER, "Advance to the next map in sv_map_list.");
 
-  Cmd_Add("save_editor_map", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file");
+  Cmd_Add("set_master", Sv_SetMaster_f, CMD_SERVER, "Set the master server(s) for the dedicated server");
+  Cmd_Add("heartbeat", Sv_Heartbeat_f, CMD_SERVER, "Send a heartbeat to the master server.");
+
+  Cmd_Add("save_editor_map", Sv_SaveEditorMap_f, CMD_SERVER, "Saves editor changes to the .map file.");
 
   if (dedicated->value) {
     Cmd_Add("say", Sv_Say_f, CMD_SERVER, "Send a global chat message");
@@ -430,4 +447,3 @@ void Sv_InitAdmin(void) {
     Cmd_Add("stuff", Sv_Stuff_f, CMD_SERVER, "Force a client to execute a command");
   }
 }
-

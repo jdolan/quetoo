@@ -147,7 +147,8 @@ check_master_SOURCES = \
 check_master_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_master_LDADD = \
-	$(TESTS_LIBS)
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/net/libnet.la
 
 check_mem_SOURCES = \
 	check_mem.c

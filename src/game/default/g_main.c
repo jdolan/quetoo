@@ -151,7 +151,6 @@ cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
 cvar_t *g_player_projectile;
-cvar_t *g_random_map;
 cvar_t *g_respawn_protection;
 cvar_t *g_self_damage;
 cvar_t *g_self_knockback;
@@ -464,7 +463,7 @@ static void G_PostStats(void) {
  * @brief Starts an intermission sequence, moving all clients to the intermission viewpoint
  * and selecting the next map.
  */
-static void G_BeginIntermission(const char *map) {
+static void G_BeginIntermission(void) {
 
   if (g_level.intermission_time) {
     return; // already activated
@@ -513,22 +512,13 @@ static void G_BeginIntermission(const char *map) {
     .index = g_media.sounds.roar
   }, MULTICAST_PHS_R);
 
-  // stay on same level if not provided
-  g_level.next_map = map ?: g_level.name;
 }
 
 /**
  * @brief The time limit, frag limit, etc.. has been exceeded.
  */
 static void G_EndLevel(void) {
-
-  const g_map_list_map_t *map = G_MapList_Next();
-
-  if (map) {
-    G_BeginIntermission(map->name);
-  } else {
-    G_BeginIntermission(NULL);
-  }
+  G_BeginIntermission();
 }
 
 /**
@@ -807,19 +797,6 @@ static void G_CheckRules(void) {
   }
 }
 
-/**
- * @brief Console command handler that loads the next map after an intermission.
- */
-static void G_NextMap_f(void) {
-
-  gi.Cbuf(va("map %s\n", g_level.next_map));
-
-  g_level.next_map = NULL;
-  g_level.intermission_time = 0;
-
-  G_EndClientFrames();
-}
-
 #define INTERMISSION (10.0 * 1000) // intermission duration
 
 /**
@@ -834,7 +811,11 @@ static void G_Frame(void) {
   // check for level change after running intermission
   if (g_level.intermission_time) {
     if (g_level.time > g_level.intermission_time + INTERMISSION) {
-      G_NextMap_f();
+      g_level.intermission_time = 0;
+
+      gi.Cbuf("next_map\n");
+
+      G_EndClientFrames();
       return;
     }
   }
@@ -1064,7 +1045,6 @@ void G_Init(void) {
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
   g_player_projectile = gi.AddCvar("g_player_projectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
-  g_random_map = gi.AddCvar("g_random_map", "0", 0, "Enables map shuffling.");
   g_respawn_protection = gi.AddCvar("g_respawn_protection", "0", 0, "Respawn protection in seconds.");
   g_self_damage = gi.AddCvar("g_self_damage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
   g_self_knockback = gi.AddCvar("g_self_knockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
@@ -1077,19 +1057,24 @@ void G_Init(void) {
   g_weapon_respawn_time = gi.AddCvar("g_weapon_respawn_time", "5", CVAR_SERVER_INFO, "Weapon respawn interval in seconds.");
   g_weapon_stay = gi.AddCvar("g_weapon_stay", "0", CVAR_SERVER_INFO, "If enabled, weapons will remain when picked up rather than respawn with delay.");
 
-  G_Ai_Init(); // initialize the AI
-
-  G_MapList_Init();
+  G_Ai_Init();
 
   // set these to false to avoid spurious game restarts and alerts on init
-  g_gameplay->modified =
-      g_ctf->modified =
-      g_teams->modified =
-      g_num_teams->modified =
-      g_techs->modified =
+  g_capture_limit->modified =
       g_cheats->modified =
+      g_ctf->modified =
       g_frag_limit->modified =
-      g_capture_limit->modified =
+      g_friendly_fire->modified =
+      g_gameplay->modified =
+      g_hook_pull_speed->modified =
+      g_hook_speed->modified =
+      g_hook_style->modified =
+      g_hook->modified =
+      g_num_teams->modified =
+      g_self_damage->modified =
+      g_self_knockback->modified =
+      g_teams->modified =
+      g_techs->modified =
       g_time_limit->modified =
       g_weapon_stay->modified = false;
 
@@ -1108,8 +1093,6 @@ void G_Init(void) {
 void G_Shutdown(void) {
 
   gi.Print("Game module shutdown...\n");
-
-  G_MapList_Shutdown();
   
   G_Ai_Shutdown();
 
