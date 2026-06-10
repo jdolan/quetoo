@@ -22,7 +22,9 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONSerialization.h>
+#include <Objectively/Null.h>
 #include <Objectively/Number.h>
+#include <Objectively/String.h>
 
 #include "StatsViewController.h"
 
@@ -56,8 +58,29 @@ static const char *formatTime(int32_t seconds) {
  * @brief Returns an integer value for the specified key path, or 0.
  */
 static int32_t integerForKeyPath(const Dictionary *dict, const char *keyPath) {
-  const Number *number = (Number *) $(dict, objectForKeyPath, keyPath);
+  const Number *number = dict ? cast(Number, $(dict, objectForKeyPath, keyPath)) : NULL;
   return number ? $(number, intValue) : 0;
+}
+
+/**
+ * @brief Returns the dictionary value at the specified key path, or `NULL`.
+ */
+static const Dictionary *dictionaryForKeyPath(const Dictionary *dict, const char *keyPath) {
+  return dict ? cast(Dictionary, $(dict, objectForKeyPath, keyPath)) : NULL;
+}
+
+/**
+ * @brief Returns the array value at the specified key path, or `NULL`.
+ */
+static const Array *arrayForKeyPath(const Dictionary *dict, const char *keyPath) {
+  return dict ? cast(Array, $(dict, objectForKeyPath, keyPath)) : NULL;
+}
+
+/**
+ * @brief Returns the string value at the specified key path, or `NULL`.
+ */
+static const String *stringForKeyPath(const Dictionary *dict, const char *keyPath) {
+  return dict ? cast(String, $(dict, objectForKeyPath, keyPath)) : NULL;
 }
 
 /**
@@ -110,15 +133,21 @@ static bool fetchGuid(char *guid, size_t length) {
   const int32_t status = cgi.HttpGet(url, &body, &body_length);
   if (status == 200) {
     Data *data = $$(Data, dataWithConstMemory, body, body_length);
-    Dictionary *dict = (Dictionary *) $$(JSONSerialization, objectFromData, data, 0);
+    ident json = $$(JSONSerialization, objectFromData, data, 0);
     release(data);
 
-    if (dict) {
-      const String *hashed = $(dict, objectForKeyPath, "guid");
-      if (hashed) {
-        g_strlcpy(guid, hashed->chars, length);
+    if (json) {
+      Dictionary *dict = cast(Dictionary, json);
+      if (dict) {
+        const String *hashed = cast(String, $(dict, objectForKeyPath, "guid"));
+        if (hashed) {
+          g_strlcpy(guid, hashed->chars, length);
+        }
+      } else if (!cast(Null, json)) {
+        Cg_Warn("Unexpected guid response type: %s\n", classnameof(json));
       }
-      release(dict);
+
+      release(json);
     }
   } else {
     Cg_Warn("Failed to fetch guid: HTTP %d\n", status);
@@ -141,12 +170,12 @@ static void loadWeapons(StatsViewController *this, const Array *array) {
   }
 
   for (size_t i = 0; i < array->count && i < STATS_MAX_WEAPON_ROWS; i++) {
-    const Dictionary *entry = (Dictionary *) $(array, objectAtIndex, i);
+    const Dictionary *entry = cast(Dictionary, $(array, objectAtIndex, i));
     if (entry == NULL) {
       continue;
     }
 
-    const String *weapon = $(entry, objectForKeyPath, "weapon");
+    const String *weapon = stringForKeyPath(entry, "weapon");
     if (weapon == NULL) {
       continue;
     }
@@ -267,36 +296,35 @@ static void viewWillAppear(ViewController *self) {
   const int32_t status = cgi.HttpGet(url, &body, &length);
   if (status == 200) {
     Data *data = $$(Data, dataWithConstMemory, body, length);
-    Dictionary *dict = (Dictionary *) $$(JSONSerialization, objectFromData, data, 0);
+    ident json = $$(JSONSerialization, objectFromData, data, 0);
     release(data);
 
-    if (dict) {
-      this->rank = integerForKeyPath(dict, "rank");
-      this->frags = integerForKeyPath(dict, "frags");
-      this->deaths = integerForKeyPath(dict, "deaths");
-      this->damage = integerForKeyPath(dict, "damage");
-      this->time_played = integerForKeyPath(dict, "time_played");
+    if (json) {
+      Dictionary *dict = cast(Dictionary, json);
+      if (dict) {
+        this->rank = integerForKeyPath(dict, "rank");
+        this->frags = integerForKeyPath(dict, "frags");
+        this->deaths = integerForKeyPath(dict, "deaths");
+        this->damage = integerForKeyPath(dict, "damage");
+        this->time_played = integerForKeyPath(dict, "time_played");
 
-      const Dictionary *nemesis = (Dictionary *) $(dict, objectForKeyPath, "nemesis");
-      if (nemesis) {
-        const String *name = (String *) $(nemesis, objectForKeyPath, "name");
-        if (name) {
-          g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
+        const Dictionary *nemesis = dictionaryForKeyPath(dict, "nemesis");
+        if (nemesis) {
+          const String *name = stringForKeyPath(nemesis, "name");
+          if (name) {
+            g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
+          }
         }
+
+        loadWeapons(this, arrayForKeyPath(dict, "kills_by_weapon"));
+      } else if (!cast(Null, json)) {
+        Cg_Warn("Unexpected stats response type: %s\n", classnameof(json));
       }
 
-      loadWeapons(this, (Array *) $(dict, objectForKeyPath, "kills_by_weapon"));
-
       updateTiles(this);
-
-      release(dict);
+      release(json);
     } else {
-      $(this->rankLabel->text, setText, "—");
-      $(this->fragsLabel->text, setText, "Error");
-      $(this->deathsLabel->text, setText, "—");
-      $(this->kdLabel->text, setText, "—");
-      $(this->damageLabel->text, setText, "—");
-      $(this->timeLabel->text, setText, "—");
+      updateTiles(this);
     }
   } else {
     $(this->rankLabel->text, setText, "—");

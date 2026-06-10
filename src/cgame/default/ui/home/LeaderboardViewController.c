@@ -22,6 +22,8 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONSerialization.h>
+#include <Objectively/Null.h>
+#include <Objectively/String.h>
 
 #include "LeaderboardViewController.h"
 
@@ -98,16 +100,22 @@ static void fetchGuid(LeaderboardViewController *this) {
   const int32_t status = cgi.HttpGet(url, &body, &length);
   if (status == 200) {
     Data *data = $$(Data, dataWithConstMemory, body, length);
-    Dictionary *dict = (Dictionary *) $$(JSONSerialization, objectFromData, data, 0);
+    ident json = $$(JSONSerialization, objectFromData, data, 0);
     release(data);
 
-    if (dict) {
-      const String *hashed = $(dict, objectForKeyPath, "guid");
-      if (hashed) {
-        g_strlcpy(this->guid, hashed->chars, sizeof(this->guid));
-        Cg_Debug("Fetched hashed guid: %s\n", this->guid);
+    if (json) {
+      Dictionary *dict = cast(Dictionary, json);
+      if (dict) {
+        const String *hashed = cast(String, $(dict, objectForKeyPath, "guid"));
+        if (hashed) {
+          g_strlcpy(this->guid, hashed->chars, sizeof(this->guid));
+          Cg_Debug("Fetched hashed guid: %s\n", this->guid);
+        }
+      } else if (!cast(Null, json)) {
+        Cg_Warn("Unexpected guid response type: %s\n", classnameof(json));
       }
-      release(dict);
+
+      release(json);
     }
   } else {
     Cg_Warn("Failed to fetch guid: HTTP %d\n", status);
