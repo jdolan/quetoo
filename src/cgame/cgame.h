@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include "net/net_http.h"
 
-#define CGAME_API_VERSION 29
+#define CGAME_API_VERSION 30
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -175,6 +175,28 @@ typedef struct cg_import_s {
    * to avoid stalling the frame loop.
    */
   int32_t (*HttpGet)(const char *url, void **body, size_t *length);
+
+  /**
+   * @brief Performs a synchronous HTTP `GET` request and deserializes a single JSON object.
+   * @param url The URL to fetch.
+   * @param properties The JsonProperty descriptors for the destination struct.
+   * @param instance Receives the parsed struct instance.
+   * @return The HTTP status code, or 0 on network error / parse failure.
+   */
+  int32_t (*HttpGetInstance)(const char *url, const JsonProperty *properties, void *instance);
+
+  /**
+   * @brief Performs a synchronous HTTP `GET` request and deserializes a JSON array.
+   * @param url The URL to fetch.
+   * @param properties The JsonProperty descriptors for the destination struct array.
+   * @param instances Receives the parsed struct instances.
+   * @param stride The byte distance between consecutive structs.
+   * @param count The capacity of the destination array.
+   * @param instances_count Receives the number of parsed instances.
+   * @return The HTTP status code.
+   */
+  int32_t (*HttpGetInstances)(const char *url, const JsonProperty *properties,
+                              void *instances, size_t stride, size_t count, size_t *instances_count);
 
   /**
    * @brief Performs an asynchronous HTTP `GET` request.

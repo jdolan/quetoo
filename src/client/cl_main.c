@@ -24,14 +24,19 @@
 #endif
 
 #include <Objectively/JSONSerialization.h>
-#include <Objectively/Null.h>
-#include <Objectively/String.h>
-
 #include "cl_local.h"
 #include "net/net_http.h"
 #include "server/server.h"
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
+
+typedef struct {
+  char guid[68];
+} GuidHashResponse;
+
+static const JsonProperty guid_hash_properties[] = MakeJsonProperties(
+  MakeJsonProperty(GuidHashResponse, guid, JsonPropertyCharacters)
+);
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
@@ -69,37 +74,15 @@ static void Cl_InitGuidHash(void) {
   char url[256];
   g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
 
-  void *body = NULL;
-  size_t length = 0;
+  GuidHashResponse response = { 0 };
 
-  const int32_t status = Net_HttpGet(url, &body, &length);
-  if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, length);
-    ident json = $$(JSONSerialization, objectFromData, data, 0);
-    release(data);
-
-    if (json) {
-      Dictionary *dict = cast(Dictionary, json);
-      if (dict) {
-        const String *hashed = cast(String, $(dict, objectForKeyPath, "guid"));
-        if (hashed) {
-          Cvar_ForceSetString("guid_hashed", hashed->chars);
-        } else {
-          Com_Warn("GUID hash response missing guid field\n");
-        }
-      } else if (!cast(Null, json)) {
-        Com_Warn("Unexpected guid hash response type: %s\n", classnameof(json));
-      }
-
-      release(json);
+  if (Net_HttpGetInstance(url, guid_hash_properties, &response) == 200) {
+    if (response.guid[0]) {
+      Cvar_ForceSetString("guid_hashed", response.guid);
     } else {
-      Com_Warn("Failed to parse hashed guid response\n");
+      Com_Warn("GUID hash response missing guid field\n");
     }
-  } else {
-    Com_Warn("Failed to fetch hashed guid: HTTP %d\n", status);
   }
-
-  Mem_Free(body);
 }
 
 cl_static_t cls;

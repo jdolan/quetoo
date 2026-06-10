@@ -232,19 +232,19 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
 
     static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_frag_t, level,         JsonPropertyString),
-      MakeJsonProperty(g_frag_t, attacker,      JsonPropertyString),
-      MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyString),
+      MakeJsonProperty(g_frag_t, level,         JsonPropertyCharacters),
+      MakeJsonProperty(g_frag_t, attacker,      JsonPropertyCharacters),
+      MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyCharacters),
       MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, target,        JsonPropertyString),
-      MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyString),
+      MakeJsonProperty(g_frag_t, target,        JsonPropertyCharacters),
+      MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyCharacters),
       MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
+      MakeJsonProperty(g_frag_t, weapon,        JsonPropertyCharacters),
       MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
       MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
     );
 
-    Data *data = $$(JSONSerialization, dataFromInstances, props, frags, frags_len, sizeof(g_frag_t));
+    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) frags, frags_len, sizeof(g_frag_t));
     assert(data);
 
     Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
@@ -259,15 +259,15 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
 
     static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_capture_t, level,       JsonPropertyString),
-      MakeJsonProperty(g_capture_t, player,      JsonPropertyString),
-      MakeJsonProperty(g_capture_t, player_guid, JsonPropertyString),
+      MakeJsonProperty(g_capture_t, level,       JsonPropertyCharacters),
+      MakeJsonProperty(g_capture_t, player,      JsonPropertyCharacters),
+      MakeJsonProperty(g_capture_t, player_guid, JsonPropertyCharacters),
       MakeJsonProperty(g_capture_t, player_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_capture_t, team,        JsonPropertyString),
+      MakeJsonProperty(g_capture_t, team,        JsonPropertyCharacters),
       MakeJsonProperty(g_capture_t, time,        JsonPropertyInteger)
     );
 
-    Data *data = $$(JSONSerialization, dataFromInstances, props, captures, captures_len, sizeof(g_capture_t));
+    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) captures, captures_len, sizeof(g_capture_t));
     assert(data);
 
     Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);

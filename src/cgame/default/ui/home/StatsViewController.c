@@ -32,6 +32,20 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
+typedef struct {
+  int32_t rank;
+  int32_t frags;
+  int32_t deaths;
+  int32_t time_played;
+} StatsSummary;
+
+static const JsonProperty stats_summary_properties[] = MakeJsonProperties(
+  MakeJsonProperty(StatsSummary, rank,        JsonPropertyInteger),
+  MakeJsonProperty(StatsSummary, frags,       JsonPropertyInteger),
+  MakeJsonProperty(StatsSummary, deaths,      JsonPropertyInteger),
+  MakeJsonProperty(StatsSummary, time_played, JsonPropertyInteger)
+);
+
 static const char *_weapon = "Weapon";
 static const char *_frags  = "Frags";
 
@@ -230,16 +244,18 @@ static void viewWillAppear(ViewController *self) {
   const int32_t status = cgi.HttpGet(url, &body, &length);
   if (status == 200) {
     Data *data = $$(Data, dataWithConstMemory, body, length);
+    StatsSummary summary = { 0 };
+    (void) $$(JSONSerialization, instanceFromData, stats_summary_properties, data, &summary);
     ident json = $$(JSONSerialization, objectFromData, data, 0);
     release(data);
 
     if (json) {
       Dictionary *dict = cast(Dictionary, json);
       if (dict) {
-        this->rank = integerForKeyPath(dict, "rank");
-        this->frags = integerForKeyPath(dict, "frags");
-        this->deaths = integerForKeyPath(dict, "deaths");
-        this->time_played = integerForKeyPath(dict, "time_played");
+        this->rank = summary.rank;
+        this->frags = summary.frags;
+        this->deaths = summary.deaths;
+        this->time_played = summary.time_played;
 
         const Dictionary *nemesis = $(dict, objectForKeyPathWithClass, "nemesis", _Dictionary());
         if (nemesis) {
@@ -258,6 +274,10 @@ static void viewWillAppear(ViewController *self) {
       updateTiles(this);
       release(json);
     } else {
+      this->rank = summary.rank;
+      this->frags = summary.frags;
+      this->deaths = summary.deaths;
+      this->time_played = summary.time_played;
       updateTiles(this);
     }
   } else {

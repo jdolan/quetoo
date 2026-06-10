@@ -22,8 +22,6 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONSerialization.h>
-#include <Objectively/Null.h>
-#include <Objectively/String.h>
 
 #include "LeaderboardViewController.h"
 
@@ -40,8 +38,8 @@ static const char *_time_played = "Time";
 
 static const JsonProperty leaderboard_properties[] = MakeJsonProperties(
   MakeJsonProperty(LeaderboardEntry, rank,        JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, name,        JsonPropertyString),
-  MakeJsonProperty(LeaderboardEntry, guid,        JsonPropertyString),
+  MakeJsonProperty(LeaderboardEntry, name,        JsonPropertyCharacters),
+  MakeJsonProperty(LeaderboardEntry, guid,        JsonPropertyCharacters),
   MakeJsonProperty(LeaderboardEntry, frags,       JsonPropertyInteger),
   MakeJsonProperty(LeaderboardEntry, deaths,      JsonPropertyInteger),
   MakeJsonProperty(LeaderboardEntry, captures,    JsonPropertyInteger),
@@ -82,9 +80,6 @@ static const char *formatTime(int32_t seconds) {
  */
 static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
 
-  void *body = NULL;
-  size_t length = 0;
-
   const char *sort = column ? sortParamForColumn(column->identifier) : NULL;
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
@@ -95,21 +90,11 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
     g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   }
 
-  const int32_t status = cgi.HttpGet(url, &body, &length);
-  if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, length);
-    this->num_entries = $$(JSONSerialization, instancesFromData,
-      leaderboard_properties, data, this->entries,
-      sizeof(LeaderboardEntry), LEADERBOARD_MAX_ENTRIES);
-    release(data);
-  } else {
-    this->num_entries = 0;
-    memset(this->entries, 0, sizeof(this->entries));
-    Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
-  }
-
-  cgi.Free(body);
-
+  size_t num_entries = 0;
+  const int32_t status = cgi.HttpGetInstances(url, leaderboard_properties,
+                                              this->entries, sizeof(LeaderboardEntry),
+                                              LEADERBOARD_MAX_ENTRIES, &num_entries);
+  this->num_entries = num_entries;
   return status == 200;
 }
 
