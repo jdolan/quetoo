@@ -829,7 +829,7 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
-  if (g_strcmp0(g_gameplay->string, "default")) { // perfer g_gameplay
+  if (g_strcmp0(g_gameplay->string, "default")) { // prefer g_gameplay
     g_level.gameplay = G_GameplayByName(g_gameplay->string);
   } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
     g_level.gameplay = gameplay_map->integer;
