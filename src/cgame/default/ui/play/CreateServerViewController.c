@@ -87,13 +87,14 @@ static void createServer(Button *button) {
       }
 
       release(string);
+
+      cgi.CloseFile(file);
+
+      cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
+      cgi.Cbuf("next_map");
+    } else {
+      Cg_Warn("Failed to create %s\n", MAP_LIST_UI);
     }
-
-    cgi.CloseFile(file);
-
-    cgi.SetCvarString("sv_map_list", MAP_LIST_UI);
-    cgi.Cbuf("next_map");
-
   } else {
     cgi.Print("No maps selected\n");
   }
