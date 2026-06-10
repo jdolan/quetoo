@@ -900,7 +900,7 @@ static void Sv_InitLocal(void) {
   sv_enforce_time = Cvar_Add("sv_enforce_time", va("%d", CMD_MSEC_MAX_DRIFT_ERRORS), 0, "Prevents the most blatant form of speed cheating, disable at your own risk");
   sv_hostname = Cvar_Add("sv_hostname", "Quetoo", CVAR_SERVER_INFO | CVAR_ARCHIVE, "The server hostname, visible in the server browser");
   sv_map = Cvar_Add("sv_map", "", CVAR_SERVER_INFO | CVAR_NO_SET, "The name of the current map.");
-  sv_map_list = Cvar_Add("sv_map_list", "maps.lst", CVAR_LATCH, "The map list filename.");
+  sv_map_list = Cvar_Add("sv_map_list", "maps.lst", 0, "The map list filename.");
   sv_map_list_shuffle = Cvar_Add("sv_map_list_shuffle", "0", 0, "Enables map shuffling.");
   sv_max_clients = Cvar_Add("sv_max_clients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow");
   sv_max_entities = Cvar_Add("sv_max_entities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow");
