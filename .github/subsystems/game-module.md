@@ -201,7 +201,7 @@ Game sound system:
 ### Map rotation
 Map rotation is now owned by the server:
 - `sv_map_list` configures the map list filename
-- `sv_next_map` advances to the next entry
+- `next_map` advances to the next entry
 - The game module only reads per-map metadata from the passed map record
 
 ## Game Module API
