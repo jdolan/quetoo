@@ -369,25 +369,27 @@ static void Pm_Friction(const bool flying) {
     return;
   }
 
-  const float control = Maxf(PM_SPEED_STOP, speed);
+  const float control = Maxf(pm->s.params.speed_stop, speed);
 
   float friction = 0.f;
 
   if (pm->s.type == PM_SPECTATOR) { // spectator friction
-    friction = PM_FRICT_SPECTATOR;
+    friction = pm->s.params.friction_spectator;
   } else if (pm->s.flags & PMF_ON_LADDER) { // ladder friction
-    friction = PM_FRICT_LADDER;
+    friction = pm->s.params.friction_ladder;
   } else if (pm->water_level > WATER_FEET) { // water friction
-    friction = PM_FRICT_WATER;
+    friction = pm->s.params.friction_water;
   } else if (pm->s.flags & PMF_ON_GROUND) { // ground friction
     if (pm_locals.ground.ent && (pm_locals.ground.surface & SURF_SLICK)) {
-      friction = PM_FRICT_GROUND_SLICK;
+      friction = pm->s.params.friction_ground_slick;
     } else {
-      friction = PM_FRICT_GROUND;
+      friction = pm->s.params.friction_ground;
     }
   } else { // everything else friction
-    friction = PM_FRICT_AIR;
+    friction = pm->s.params.friction_air;
   }
+
+  friction = Maxf(0.f, friction); // never reverse direction
 
   // scale the velocity, taking care to not reverse direction
   const float scale = Maxf(0.f, speed - (friction * control * pm_locals.time)) / speed;
@@ -424,10 +426,10 @@ static void Pm_Gravity(void) {
     return;
   }
 
-  float gravity = pm->s.gravity;
+  float gravity = pm->s.params.gravity;
 
   if (pm->water_level > WATER_WAIST) {
-    gravity *= PM_GRAVITY_WATER;
+    gravity *= pm->s.params.gravity_water;
   }
 
   pm->s.velocity.z -= gravity * pm_locals.time;
@@ -781,12 +783,13 @@ static void Pm_CheckDuck(void) {
     }
 
     const float height = Box3_Size(pm->bounds).z;
+    const float duck_stand_speed = Maxf(0.f, pm->s.params.speed_duck_stand); // never reverse the transition
 
     if (pm->s.flags & PMF_DUCKED) { // ducked, reduce height
       const float target = pm->bounds.mins.z + height * 0.5f;
 
       if (pm->s.view_offset.z > target) { // go down
-        pm->s.view_offset.z -= pm_locals.time * PM_SPEED_DUCK_STAND;
+        pm->s.view_offset.z -= pm_locals.time * duck_stand_speed;
       }
 
       if (pm->s.view_offset.z < target) {
@@ -799,7 +802,7 @@ static void Pm_CheckDuck(void) {
       const float target = pm->bounds.mins.z + height * 0.9f;
 
       if (pm->s.view_offset.z < target) { // go up
-        pm->s.view_offset.z += pm_locals.time * PM_SPEED_DUCK_STAND;
+        pm->s.view_offset.z += pm_locals.time * duck_stand_speed;
       }
 
       if (pm->s.view_offset.z > target) {
@@ -838,7 +841,7 @@ static bool Pm_CheckJump(void) {
   }
 
   // finally, do the jump
-  float jump = PM_SPEED_JUMP;
+  float jump = Maxf(0.f, pm->s.params.speed_jump);
 
   // factoring in water level
   if (pm->water_level > WATER_FEET) {
@@ -951,7 +954,7 @@ static bool Pm_CheckWaterJump(void) {
     }
 
     // jump out of water
-    pm->s.velocity.z = PM_SPEED_WATER_JUMP;
+    pm->s.velocity.z = Maxf(0.f, pm->s.params.speed_water_jump);
 
     pm->s.flags |= PMF_TIME_WATER_JUMP | PMF_JUMP_HELD;
     pm->s.time = 2000;
@@ -973,12 +976,15 @@ static void Pm_LadderMove(void) {
 
   Pm_Currents();
 
+  const float ladder_speed = Maxf(0.f, pm->s.params.speed_ladder);
+  const float ladder_accel = Maxf(0.f, pm->s.params.accel_ladder);
+
   // user intentions in X/Y
   vec3_t vel = Vec3_Zero();
   vel = Vec3_Fmaf(vel, pm->cmd.forward, pm_locals.forward_xy);
   vel = Vec3_Fmaf(vel, pm->cmd.right, pm_locals.right_xy);
 
-  const float s = PM_SPEED_LADDER * 0.125f;
+  const float s = ladder_speed * 0.125f;
 
   // limit horizontal speed when on a ladder
   vel.x = Clampf(vel.x, -s, s);
@@ -986,16 +992,16 @@ static void Pm_LadderMove(void) {
   vel.z = 0.f;
 
   // handle Z intentions differently
-  if (fabsf(pm->s.velocity.z) < PM_SPEED_LADDER) {
+  if (fabsf(pm->s.velocity.z) < ladder_speed) {
 
     if ((pm->angles.x <= -15.f) && (pm->cmd.forward > 0)) {
-      vel.z = PM_SPEED_LADDER;
+      vel.z = ladder_speed;
     } else if ((pm->angles.x >= 15.f) && (pm->cmd.forward > 0)) {
-      vel.z = -PM_SPEED_LADDER;
+      vel.z = -ladder_speed;
     } else if (pm->cmd.up > 0) {
-      vel.z = PM_SPEED_LADDER;
+      vel.z = ladder_speed;
     } else if (pm->cmd.up < 0) {
-      vel.z = -PM_SPEED_LADDER;
+      vel.z = -ladder_speed;
     } else {
       vel.z = 0.f;
     }
@@ -1007,13 +1013,13 @@ static void Pm_LadderMove(void) {
 
   float speed;
   const vec3_t dir = Vec3_NormalizeLength(vel, &speed);
-  speed = Clampf(speed, 0.f, PM_SPEED_LADDER);
+  speed = Clampf(speed, 0.f, ladder_speed);
 
   if (speed < PM_STOP_EPSILON) {
     speed = 0.f;
   }
 
-  Pm_Accelerate(dir, speed, PM_ACCEL_LADDER);
+  Pm_Accelerate(dir, speed, ladder_accel);
 
   Pm_StepSlideMove();
 }
@@ -1034,7 +1040,7 @@ static void Pm_WaterJumpMove(void) {
 
   // if we've reached a usable spot, clamp the jump to avoid launching
   if (Pm_Trace(pm->s.origin, pos, pm->bounds).fraction == 1.f) {
-    pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.f, PM_SPEED_JUMP);
+    pm->s.velocity.z = Clampf(pm->s.velocity.z, 0.f, Maxf(0.f, pm->s.params.speed_jump));
   }
 
   // if we're falling back down, clear the timer to regain control
@@ -1058,10 +1064,12 @@ static void Pm_WaterMove(void) {
 
   Pm_Debug("%s\n", vtos(pm->s.origin));
 
+  const float water_speed = Maxf(1.f, pm->s.params.speed_water); // also a loop divisor below
+
   // apply friction, slowing rapidly when first entering the water
   float speed = Vec3_Length(pm->s.velocity);
 
-  for (int32_t i = speed / PM_SPEED_WATER; i >= 0; i--) {
+  for (int32_t i = speed / water_speed; i >= 0; i--) {
     Pm_Friction(true);
   }
 
@@ -1096,13 +1104,13 @@ static void Pm_WaterMove(void) {
   }
 
   const vec3_t dir = Vec3_NormalizeLength(vel, &speed);
-  speed = Clampf(speed, 0, PM_SPEED_WATER);
+  speed = Clampf(speed, 0, water_speed);
 
   if (speed < PM_STOP_EPSILON) {
     speed = 0.f;
   }
 
-  Pm_Accelerate(dir, speed, PM_ACCEL_WATER);
+  Pm_Accelerate(dir, speed, Maxf(0.f, pm->s.params.accel_water));
 
   if (pm->cmd.up > 0) {
     Pm_SlideMove();
@@ -1127,7 +1135,7 @@ static void Pm_AirMove(void) {
   vel = Vec3_Fmaf(vel, pm->cmd.right, pm_locals.right_xy);
   vel.z = 0.f;
 
-  float max_speed = PM_SPEED_AIR;
+  float max_speed = Maxf(1.f, pm->s.params.speed_air); // air_speed must stay positive to bound the wish-speed
 
   // accounting for walk modulus
   if (pm->cmd.buttons & BUTTON_WALK) {
@@ -1142,7 +1150,7 @@ static void Pm_AirMove(void) {
     speed = 0.f;
   }
 
-  float accel = PM_ACCEL_AIR;
+  float accel = Maxf(0.f, pm->s.params.accel_air);
 
   if (pm->s.flags & PMF_DUCKED) {
     accel *= PM_ACCEL_AIR_MOD_DUCKED;
@@ -1194,12 +1202,14 @@ static void Pm_WalkMove(void) {
 
   // clamp to max speed
   if (pm->water_level > WATER_FEET) {
-    max_speed = PM_SPEED_WATER;
+    max_speed = pm->s.params.speed_water;
   } else if (pm->s.flags & PMF_DUCKED) {
-    max_speed = PM_SPEED_DUCKED;
+    max_speed = pm->s.params.speed_ducked;
   } else {
-    max_speed = PM_SPEED_RUN;
+    max_speed = pm->s.params.speed_ground;
   }
+
+  max_speed = Maxf(0.f, max_speed); // keep the Clampf range valid
 
   // accounting for walk modulus
   if (pm->cmd.buttons & BUTTON_WALK) {
@@ -1216,7 +1226,8 @@ static void Pm_WalkMove(void) {
   }
 
   // accelerate based on slickness of ground surface
-  const float accel = (pm_locals.ground.surface & SURF_SLICK) ? PM_ACCEL_GROUND_SLICK : PM_ACCEL_GROUND;
+  const float accel = Maxf(0.f, (pm_locals.ground.surface & SURF_SLICK)
+      ? pm->s.params.accel_ground_slick : pm->s.params.accel_ground);
 
   Pm_Accelerate(dir, speed, accel);
 
@@ -1250,14 +1261,14 @@ static void Pm_SpectatorMove(void) {
 
   float speed;
   vel = Vec3_NormalizeLength(vel, &speed);
-  speed = Clampf(speed, 0.f, PM_SPEED_SPECTATOR);
+  speed = Clampf(speed, 0.f, Maxf(0.f, pm->s.params.speed_spectator));
 
   if (speed < PM_STOP_EPSILON) {
     speed = 0.f;
   }
 
   // accelerate
-  Pm_Accelerate(vel, speed, PM_ACCEL_SPECTATOR);
+  Pm_Accelerate(vel, speed, Maxf(0.f, pm->s.params.accel_spectator));
 
   // do the move
   pm->s.origin = Vec3_Fmaf(pm->s.origin, pm_locals.time, pm->s.velocity);
