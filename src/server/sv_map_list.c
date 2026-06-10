@@ -84,7 +84,7 @@ void Sv_InitMapList(void) {
   svs.maps.length = g_list_length(svs.maps.list);
   svs.maps.index = -1;
 
-  Mem_Free(buffer);
+  Fs_Free(buffer);
 
   Com_Print("Parsed %d maps from %s\n", svs.maps.length, svs.maps.filename);
 }
