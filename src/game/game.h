@@ -695,8 +695,9 @@ typedef struct g_export_s {
 
   /**
    * @brief Called at the start of each new level.
+   * @param name The map name, e.g. "edge"
    */
-  void (*SpawnEntities)(const cm_entity_t *map, cm_entity_t *const *entities, size_t num_entities);
+  void (*SpawnEntities)(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities);
 
   /**
    * @brief Called when a client connects with valid user info; return false to reject.

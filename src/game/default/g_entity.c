@@ -648,7 +648,7 @@ void G_SpawnTechs(void) {
 /**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
-void G_SpawnEntities(const cm_entity_t *map, cm_entity_t *const *entities, size_t num_entities) {
+void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
 
   // Drop bots, they will reconnect via G_Ai_Frame
   G_ForEachClient(cl, {
@@ -660,6 +660,8 @@ void G_SpawnEntities(const cm_entity_t *map, cm_entity_t *const *entities, size_
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
+
+  g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   g_level.frags    = g_array_new(false, false, sizeof(g_frag_t));
   g_level.captures = g_array_new(false, false, sizeof(g_capture_t));
@@ -677,10 +679,7 @@ void G_SpawnEntities(const cm_entity_t *map, cm_entity_t *const *entities, size_
     G_FreeEntity(ge.entities[i]);
   }
 
-  g_map = map;
-
-  const cm_entity_t *name = map ? gi.EntityValue(map, "name") : NULL;
-  g_strlcpy(g_level.name, name ? name->string : "", sizeof(g_level.name));
+  g_map = props;
 
   G_InitMedia();
 
@@ -809,12 +808,12 @@ static void G_worldspawn(g_entity_t *ent) {
   ent->s.bounds = ent->bounds;
 
   if (ent->message && *ent->message) {
-    g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
+    g_strlcpy(g_level.message, ent->message, sizeof(g_level.message));
   } else {
-    g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
+    g_strlcpy(g_level.message, g_level.name, sizeof(g_level.message));
   }
 
-  gi.SetConfigString(CS_NAME, g_level.title);
+  gi.SetConfigString(CS_MESSAGE, g_level.message);
   gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
   const cm_entity_t *gravity_map = G_MapValue("gravity");

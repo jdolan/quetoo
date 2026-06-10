@@ -106,7 +106,7 @@ static void Sv_InitWorld(void) {
 /**
  * @brief Initializes the world and spawns all entities for the current map.
  */
-void Sv_SpawnEntities(const cm_entity_t *map) {
+void Sv_SpawnEntities(const char *name, const cm_entity_t *props) {
 
   Sv_InitWorld();
 
@@ -117,13 +117,13 @@ void Sv_SpawnEntities(const cm_entity_t *map) {
   if (editor->value) {
     Sv_LoadEditorMap();
 
-    svs.game->SpawnEntities(map, NULL, 0);
+    svs.game->SpawnEntities(name, props, NULL, 0);
 
     for (int32_t i = 0; i < Cm_Bsp()->num_entities; i++) {
       Sv_SpawnEditorEntity(i, Cm_Bsp()->entities[i]);
     }
   } else {
-    svs.game->SpawnEntities(map, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
+    svs.game->SpawnEntities(name, props, Cm_Bsp()->entities, Cm_Bsp()->num_entities);
   }
 
   /*

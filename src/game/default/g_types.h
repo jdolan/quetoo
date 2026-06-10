@@ -746,7 +746,7 @@ typedef struct {
   /**
    * @brief Descriptive map name (e.g. "Stress Fractures").
    */
-  char title[MAX_STRING_CHARS];
+  char message[MAX_STRING_CHARS];
 
   /**
    * @brief Short server map name (e.g. "fractures").

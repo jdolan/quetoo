@@ -263,11 +263,11 @@ static void Sv_InitEntities(sv_state_t state) {
  * strings."  We hand off the entity string to the game module, which will
  * load the rest.
  */
-static void Sv_LoadMedia(const char *name, const cm_entity_t *map, sv_state_t state) {
+static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t state) {
   int64_t bsp_size = -1;
 
   strcpy(sv.name, name);
-  strcpy(sv.config_strings[CS_NAME], name);
+  strcpy(sv.config_strings[CS_MESSAGE], name);
 
   if (state == SV_ACTIVE_DEMO) { // loading a demo
     Cvar_ForceSetString(sv_map->name, "");
@@ -306,7 +306,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *map, sv_state_t st
 
     svs.state = SV_LOADING;
 
-    Sv_SpawnEntities(map);
+    Sv_SpawnEntities(name, props);
 
     const int32_t num_entities = Sv_CreateBaseline();
 
@@ -322,7 +322,7 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *map, sv_state_t st
  * clearing state. Special effort is made to ensure that a locally connected
  * client sees the reconnect message immediately.
  */
-void Sv_InitServer(const char *name, const cm_entity_t *map, sv_state_t state) {
+void Sv_InitServer(const char *name, const cm_entity_t *props, sv_state_t state) {
   extern void Cl_Disconnect(void);
 
   Com_Debug(DEBUG_SERVER, "Sv_InitServer: %s (%d)\n", name, state);
@@ -348,7 +348,7 @@ void Sv_InitServer(const char *name, const cm_entity_t *map, sv_state_t state) {
   Sv_InitEntities(state);
 
   // load the map or demo and related media
-  Sv_LoadMedia(name, map, state);
+  Sv_LoadMedia(name, props, state);
   svs.state = state;
 
   Com_Print("Server initialized\n");

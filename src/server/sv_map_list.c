@@ -71,12 +71,12 @@ void Sv_InitMapList(void) {
   for (GList *next, *link = svs.maps.list; link; link = next, i++) {
     next = link->next;
 
-    cm_entity_t *map = link->data;
+    cm_entity_t *props = link->data;
 
-    const cm_entity_t *name = Cm_EntityValue(map, "name");
+    const cm_entity_t *name = Cm_EntityValue(props, "name");
     if (strlen(name->string) == 0) {
       Com_Warn("Map list element %d in %s is missing \"name\"\n", i, sv_map_list->string);
-      Cm_FreeEntity(map);
+      Cm_FreeEntity(props);
       svs.maps.list = g_list_delete_link(svs.maps.list, link);
     }
   }
