@@ -24,7 +24,7 @@
 #include "shared/shared.h"
 #include "collision/cm_types.h"
 
-#define GAME_API_VERSION 28
+#define GAME_API_VERSION 29
 
 /**
  * @brief Server flags for `g_entity_t`.
@@ -171,7 +171,6 @@ typedef struct {
   bool     target_ai;
   char     weapon[MAX_QPATH];
   int32_t  mod;
-  int32_t  damage;
   uint32_t time;
 } g_frag_t;
 

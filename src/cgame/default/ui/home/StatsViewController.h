@@ -38,7 +38,6 @@
 typedef struct {
   char    weapon[64];
   int32_t frags;
-  int32_t damage;
 } WeaponStat;
 
 typedef struct StatsViewController StatsViewController;
@@ -69,7 +68,6 @@ struct StatsViewController {
   int32_t rank;
   int32_t frags;
   int32_t deaths;
-  int32_t damage;
   int32_t time_played;
 
   /**
@@ -85,7 +83,6 @@ struct StatsViewController {
   Label *fragsLabel;
   Label *deathsLabel;
   Label *kdLabel;
-  Label *damageLabel;
   Label *timeLabel;
   Label *nemesisLabel;
 

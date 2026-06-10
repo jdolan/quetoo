@@ -45,7 +45,6 @@ static const JsonProperty leaderboard_properties[] = MakeJsonProperties(
   MakeJsonProperty(LeaderboardEntry, guid,        JsonPropertyString),
   MakeJsonProperty(LeaderboardEntry, frags,       JsonPropertyInteger),
   MakeJsonProperty(LeaderboardEntry, deaths,      JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, damage,      JsonPropertyInteger),
   MakeJsonProperty(LeaderboardEntry, captures,    JsonPropertyInteger),
   MakeJsonProperty(LeaderboardEntry, time_played, JsonPropertyInteger)
 );

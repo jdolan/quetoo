@@ -41,7 +41,6 @@ typedef struct {
   char    guid[68];
   int32_t frags;
   int32_t deaths;
-  int32_t damage;
   int32_t captures;
   int32_t time_played;
 } LeaderboardEntry;

@@ -35,7 +35,6 @@
 
 static const char *_weapon = "Weapon";
 static const char *_frags  = "Frags";
-static const char *_damage = "Damage";
 
 /**
  * @brief Formats a duration in seconds as "Xh Ym" or "Ym".
@@ -90,7 +89,6 @@ static void clearStats(StatsViewController *this) {
   this->rank = 0;
   this->frags = 0;
   this->deaths = 0;
-  this->damage = 0;
   this->time_played = 0;
   this->nemesis[0] = '\0';
   this->num_weapons = 0;
@@ -107,7 +105,6 @@ static void updateTiles(StatsViewController *this) {
   $(this->fragsLabel->text,   setText, this->frags      ? va("%d",   this->frags)  : "—");
   $(this->deathsLabel->text,  setText, this->deaths     ? va("%d",   this->deaths) : "—");
   $(this->kdLabel->text,      setText, this->frags      ? va("%.2f", kd)           : "—");
-  $(this->damageLabel->text,  setText, this->damage     ? va("%d",   this->damage) : "—");
   $(this->timeLabel->text,    setText, formatTime(this->time_played));
   $(this->nemesisLabel->text, setText, this->nemesis[0] ? this->nemesis            : "—");
 }
@@ -184,7 +181,6 @@ static void loadWeapons(StatsViewController *this, const Array *array) {
     memset(stat, 0, sizeof(*stat));
     g_strlcpy(stat->weapon, weapon->chars, sizeof(stat->weapon));
     stat->frags = integerForKeyPath(entry, "frags");
-    stat->damage = integerForKeyPath(entry, "damage");
   }
 }
 
@@ -217,8 +213,6 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $(cell->text, setText, weapon->weapon);
   } else if (g_strcmp0(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", weapon->frags));
-  } else if (g_strcmp0(column->identifier, _damage) == 0) {
-    $(cell->text, setText, va("%d", weapon->damage));
   }
 
   return cell;
@@ -241,7 +235,6 @@ static void loadView(ViewController *self) {
     MakeOutlet("fragsLabel",   &this->fragsLabel),
     MakeOutlet("deathsLabel",  &this->deathsLabel),
     MakeOutlet("kdLabel",      &this->kdLabel),
-    MakeOutlet("damageLabel",  &this->damageLabel),
     MakeOutlet("timeLabel",    &this->timeLabel),
     MakeOutlet("nemesisLabel", &this->nemesisLabel),
     MakeOutlet("weapons",      &this->weaponsTable)
@@ -255,7 +248,6 @@ static void loadView(ViewController *self) {
 
   $(this->weaponsTable, addColumnWithIdentifier, _weapon);
   $(this->weaponsTable, addColumnWithIdentifier, _frags);
-  $(this->weaponsTable, addColumnWithIdentifier, _damage);
 
   this->weaponsTable->dataSource.numberOfRows = numberOfRows;
   this->weaponsTable->dataSource.self = this;
@@ -281,7 +273,6 @@ static void viewWillAppear(ViewController *self) {
     $(this->fragsLabel->text, setText, "Sign in");
     $(this->deathsLabel->text, setText, "—");
     $(this->kdLabel->text, setText, "—");
-    $(this->damageLabel->text, setText, "—");
     $(this->timeLabel->text, setText, "—");
     $(this->weaponsTable, reloadData);
     return;
@@ -305,7 +296,6 @@ static void viewWillAppear(ViewController *self) {
         this->rank = integerForKeyPath(dict, "rank");
         this->frags = integerForKeyPath(dict, "frags");
         this->deaths = integerForKeyPath(dict, "deaths");
-        this->damage = integerForKeyPath(dict, "damage");
         this->time_played = integerForKeyPath(dict, "time_played");
 
         const Dictionary *nemesis = dictionaryForKeyPath(dict, "nemesis");
@@ -331,7 +321,6 @@ static void viewWillAppear(ViewController *self) {
     $(this->fragsLabel->text, setText, "Error");
     $(this->deathsLabel->text, setText, "—");
     $(this->kdLabel->text, setText, "—");
-    $(this->damageLabel->text, setText, "—");
     $(this->timeLabel->text, setText, "—");
     Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
   }

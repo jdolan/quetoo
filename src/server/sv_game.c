@@ -241,7 +241,6 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
       MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
       MakeJsonProperty(g_frag_t, weapon,        JsonPropertyString),
       MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
-      MakeJsonProperty(g_frag_t, damage,        JsonPropertyInteger),
       MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
     );
 

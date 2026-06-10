@@ -442,7 +442,6 @@ void G_Damage(const g_damage_t *dmg) {
         if (!attacker_ai || !target_ai) { // drop ai-on-ai frags
           g_frag_t frag = {
             .mod = (int32_t) mod,
-            .damage = damage_health,
             .time = (uint32_t) time(NULL),
             .attacker_ai = attacker_ai,
             .target_ai = target_ai,

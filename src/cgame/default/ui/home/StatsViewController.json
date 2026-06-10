@@ -57,14 +57,6 @@
               "class": "StackView",
               "classNames": [ "statTile" ],
               "subviews": [
-                { "class": "Label", "identifier": "damageLabel", "classNames": ["statValue"] },
-                { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Damage" } }
-              ]
-            },
-            {
-              "class": "StackView",
-              "classNames": [ "statTile" ],
-              "subviews": [
                 { "class": "Label", "identifier": "timeLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
               ]
