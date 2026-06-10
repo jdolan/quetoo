@@ -10,6 +10,7 @@ noinst_HEADERS = \
 	sv_init.h \
 	sv_local.h \
 	sv_main.h \
+	sv_map_list.h \
 	sv_master.h \
 	sv_send.h \
 	sv_types.h \
@@ -28,6 +29,7 @@ libserver_la_SOURCES = \
 	sv_http.c \
 	sv_init.c \
 	sv_main.c \
+	sv_map_list.c \
 	sv_master.c \
 	sv_send.c \
 	sv_world.c

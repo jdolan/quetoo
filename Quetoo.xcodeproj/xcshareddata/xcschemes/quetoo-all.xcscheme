@@ -67,7 +67,7 @@
       enableGPUValidationMode = "1"
       allowLocationSimulation = "NO"
       consoleMode = "0"
-      structuredConsoleMode = "2">
+      structuredConsoleMode = "1">
       <BuildableProductRunnable
          runnableDebuggingMode = "0">
          <BuildableReference
@@ -153,6 +153,10 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map fragpipe"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set sv_map_list maps.lst"
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument

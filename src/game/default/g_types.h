@@ -59,87 +59,6 @@ typedef enum {
 #define MAP_LIST_UI "maps.ui.lst"
 
 /**
- * @brief Map list entries describe available gameplay parameters for a given map.
- */
-typedef struct {
-
-  /**
-   * @brief Map file name.
-   */
-  char name[32];
-
-  /**
-   * @brief Descriptive map title shown in the UI.
-   */
-  char message[128];
-
-  /**
-   * @brief Override gravity, or 0 for default.
-   */
-  int32_t gravity;
-
-  /**
-   * @brief Override gameplay mode, or -1 for default.
-   */
-  int32_t gameplay;
-
-  /**
-   * @brief Override hook setting, or -1 for default.
-   */
-  int32_t hook;
-
-  /**
-   * @brief Override teams setting, or -1 for default.
-   */
-  int32_t teams;
-
-  /**
-   * @brief Number of teams, or 0 for default.
-   */
-  int32_t num_teams;
-
-  /**
-   * @brief Override techs setting, or -1 for default.
-   */
-  int32_t techs;
-
-  /**
-   * @brief Override CTF setting, or -1 for default.
-   */
-  int32_t ctf;
-
-  /**
-   * @brief Override frag limit, or 0 for default.
-   */
-  int32_t frag_limit;
-
-  /**
-   * @brief Override capture limit, or 0 for default.
-   */
-  int32_t capture_limit;
-
-  /**
-   * @brief Override time limit in minutes, or 0 for default.
-   */
-  float time_limit;
-
-  /**
-   * @brief Override minimum clients, or -1 for default.
-   */
-  int32_t min_clients;
-
-  /**
-   * @brief Items to give to all players on spawn.
-   */
-  char give[MAX_STRING_CHARS];
-
-  /**
-   * @brief Background music track.
-   */
-  char music[MAX_STRING_CHARS];
-} g_map_list_map_t;
-
-/**
  * @brief ConfigStrings that are local to the game module.
  */
 #define CS_GAMEPLAY        (CS_GAME + 0)  // gameplay string
@@ -827,7 +746,7 @@ typedef struct {
   /**
    * @brief Descriptive map name (e.g. "Stress Fractures").
    */
-  char title[MAX_STRING_CHARS];
+  char message[MAX_STRING_CHARS];
 
   /**
    * @brief Short server map name (e.g. "fractures").
@@ -933,11 +852,6 @@ typedef struct {
    * @brief Camera angles during intermission.
    */
   vec3_t intermission_angle;
-
-  /**
-   * @brief Next map name to load after intermission.
-   */
-  const char *next_map;
 
   /**
    * @brief Entity currently being processed by `G_RunFrame`.

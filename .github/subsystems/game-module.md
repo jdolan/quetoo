@@ -198,11 +198,11 @@ Game sound system:
 - Sound index management
 - Attenuation types (NONE, IDLE, STATIC, NORM)
 
-### g_map_list.c / g_map_list.h
-Map rotation/voting:
-- Parse .maps files (map rotation lists)
-- Map voting system
-- Automatic map rotation
+### Map rotation
+Map rotation is now owned by the server:
+- `sv_map_list` configures the map list filename
+- `next_map` advances to the next entry
+- The game module only reads per-map metadata from the passed map record
 
 ## Game Module API
 
