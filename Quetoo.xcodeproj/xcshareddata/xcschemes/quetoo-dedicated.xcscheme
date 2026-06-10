@@ -67,10 +67,10 @@
             argument = "-p $BUILT_PRODUCTS_DIR"
             isEnabled = "YES">
          </CommandLineArgument>
-         <CommandLineArgument
-            argument = "+set sv_map_list maps-jdolan.lst"
-            isEnabled = "YES">
-         </CommandLineArgument>
+          <CommandLineArgument
+             argument = "+set sv_map_list maps.lst"
+             isEnabled = "NO">
+          </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
