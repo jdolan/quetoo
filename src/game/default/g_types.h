@@ -29,7 +29,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1041
+#define PROTOCOL_MINOR 1043
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -754,7 +754,8 @@ typedef struct {
   char name[MAX_QPATH];
 
   /**
-   * @brief Gravity override.
+   * @brief Resolved world gravity (maps.lst / worldspawn / g_gravity). Seeded at
+   * spawn and on cvar change; hydrated into pm_params_t by G_MovementParams().
    */
   int16_t gravity;
 

@@ -44,6 +44,7 @@ TESTS = \
 	check_http \
 	check_master \
 	check_mem \
+	check_net_message \
 	check_r_media \
 	check_shared \
 	check_thread \
@@ -156,6 +157,15 @@ check_mem_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_mem_LDADD = \
 	$(TESTS_LIBS)
+
+check_net_message_SOURCES = \
+	check_net_message.c
+check_net_message_CFLAGS = \
+	-I$(top_srcdir)/src \
+	$(TESTS_CFLAGS)
+check_net_message_LDADD = \
+	$(TESTS_LIBS) \
+	$(top_builddir)/src/net/libnet.la
 
 check_r_media_SOURCES = \
 	check_r_media.c

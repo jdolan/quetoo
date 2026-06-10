@@ -146,7 +146,32 @@ cvar_t *g_hook_style;
 cvar_t *g_frag_limit;
 cvar_t *g_friendly_fire;
 cvar_t *g_gameplay;
+
+// player movement parameters (hydrated into pm_params_t by G_MovementParams)
+cvar_t *g_air_acceleration;
+cvar_t *g_air_friction;
+cvar_t *g_air_speed;
+cvar_t *g_duck_speed;
+cvar_t *g_duck_stand_speed;
 cvar_t *g_gravity;
+cvar_t *g_ground_acceleration;
+cvar_t *g_ground_acceleration_slick;
+cvar_t *g_ground_friction;
+cvar_t *g_ground_friction_slick;
+cvar_t *g_ground_speed;
+cvar_t *g_jump_speed;
+cvar_t *g_ladder_acceleration;
+cvar_t *g_ladder_friction;
+cvar_t *g_ladder_speed;
+cvar_t *g_spectator_acceleration;
+cvar_t *g_spectator_friction;
+cvar_t *g_spectator_speed;
+cvar_t *g_stop_speed;
+cvar_t *g_water_acceleration;
+cvar_t *g_water_friction;
+cvar_t *g_water_gravity;
+cvar_t *g_water_jump_speed;
+cvar_t *g_water_speed;
 cvar_t *g_motd;
 cvar_t *g_num_teams;
 cvar_t *g_password;
@@ -547,6 +572,44 @@ static char *G_FormatTime(uint32_t time) {
 }
 
 /**
+ * @brief Factory for `pm_params_t`, hydrated fresh from the g_* movement cvars at
+ * each `Pm_Move` call site. Gravity carries map/worldspawn precedence, so it is
+ * taken from `g_level`. Values are passed through verbatim; `Pm_Move` performs all
+ * sanitization (clamping, divide-by-zero guards).
+ */
+pm_params_t G_MovementParams(void) {
+  return (pm_params_t) {
+    .gravity = g_level.gravity,
+    .gravity_water = g_water_gravity->value,
+
+    .accel_ground = g_ground_acceleration->value,
+    .accel_ground_slick = g_ground_acceleration_slick->value,
+    .accel_air = g_air_acceleration->value,
+    .accel_water = g_water_acceleration->value,
+    .accel_spectator = g_spectator_acceleration->value,
+    .accel_ladder = g_ladder_acceleration->value,
+
+    .friction_ground = g_ground_friction->value,
+    .friction_ground_slick = g_ground_friction_slick->value,
+    .friction_air = g_air_friction->value,
+    .friction_water = g_water_friction->value,
+    .friction_spectator = g_spectator_friction->value,
+    .friction_ladder = g_ladder_friction->value,
+
+    .speed_ground = g_ground_speed->value,
+    .speed_air = g_air_speed->value,
+    .speed_water = g_water_speed->value,
+    .speed_ladder = g_ladder_speed->value,
+    .speed_spectator = g_spectator_speed->value,
+    .speed_stop = g_stop_speed->value,
+    .speed_jump = g_jump_speed->value,
+    .speed_ducked = g_duck_speed->value,
+    .speed_duck_stand = g_duck_stand_speed->value,
+    .speed_water_jump = g_water_jump_speed->value,
+  };
+}
+
+/**
  * @brief Inspects and enforces gameplay rules each server frame, including frag/capture/time
  * limits and live cvar-driven gameplay changes.
  */
@@ -667,7 +730,7 @@ static void G_CheckRules(void) {
     gi.BroadcastPrint(PRINT_HIGH, "Hook style has been changed to %s\n", g_hook_style->string);
   }
 
-  if (g_gravity->modified) { // set gravity, G_ClientMove will read it
+  if (g_gravity->modified) { // G_MovementParams() reads g_level.gravity each move
     g_gravity->modified = false;
 
     g_level.gravity = g_gravity->integer;
@@ -1040,7 +1103,33 @@ void G_Init(void) {
   g_frag_limit = gi.AddCvar("g_frag_limit", "30", CVAR_SERVER_INFO, "The frag limit per level.");
   g_friendly_fire = gi.AddCvar("g_friendly_fire", "1", CVAR_SERVER_INFO, "Factor of how much damage can be dealt to teammates.");
   g_gameplay = gi.AddCvar("g_gameplay", "default", CVAR_SERVER_INFO, "Selects deathmatch, instagib or arena combat.");
+
+  // player movement parameters (hydrated into pm_params_t by G_MovementParams)
+  g_air_acceleration = gi.AddCvar("g_air_acceleration", "2.0", 0, "Acceleration applied while airborne. Default 2.0; set 0 for classic-Quake2 movement.");
+  g_air_friction = gi.AddCvar("g_air_friction", "0.125", 0, "Friction applied while airborne. Default 0.125; set 0 to remove air drag.");
+  g_air_speed = gi.AddCvar("g_air_speed", "350", 0, "Wish-speed cap while airborne. Default 350.");
+  g_duck_speed = gi.AddCvar("g_duck_speed", "140.0", 0, "Maximum ground speed while ducked. Default 140.0.");
+  g_duck_stand_speed = gi.AddCvar("g_duck_stand_speed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
   g_gravity = gi.AddCvar("g_gravity", "800", CVAR_SERVER_INFO, NULL);
+  g_ground_acceleration = gi.AddCvar("g_ground_acceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
+  g_ground_acceleration_slick = gi.AddCvar("g_ground_acceleration_slick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
+  g_ground_friction = gi.AddCvar("g_ground_friction", "6.0", 0, "Ground friction. Default 6.0.");
+  g_ground_friction_slick = gi.AddCvar("g_ground_friction_slick", "2.0", 0, "Ground friction on slick surfaces. Default 2.0.");
+  g_ground_speed = gi.AddCvar("g_ground_speed", "300.0", 0, "Maximum ground running speed. Default 300.0.");
+  g_jump_speed = gi.AddCvar("g_jump_speed", "270.0", 0, "Upward velocity imparted by a jump. Default 270.0.");
+  g_ladder_acceleration = gi.AddCvar("g_ladder_acceleration", "16.0", 0, "Acceleration while on ladders. Default 16.0.");
+  g_ladder_friction = gi.AddCvar("g_ladder_friction", "5.0", 0, "Friction while on ladders. Default 5.0.");
+  g_ladder_speed = gi.AddCvar("g_ladder_speed", "125.0", 0, "Maximum ladder-climbing speed. Default 125.0.");
+  g_spectator_acceleration = gi.AddCvar("g_spectator_acceleration", "2.5", 0, "Spectator free-fly acceleration. Default 2.5.");
+  g_spectator_friction = gi.AddCvar("g_spectator_friction", "2.5", 0, "Spectator free-fly friction. Default 2.5.");
+  g_spectator_speed = gi.AddCvar("g_spectator_speed", "500.0", 0, "Maximum spectator free-fly speed. Default 500.0.");
+  g_stop_speed = gi.AddCvar("g_stop_speed", "100.0", 0, "Speed below which friction is amplified to stop the player. Default 100.0.");
+  g_water_acceleration = gi.AddCvar("g_water_acceleration", "3.0", 0, "Acceleration applied underwater. Default 3.0.");
+  g_water_friction = gi.AddCvar("g_water_friction", "2.0", 0, "Friction applied underwater. Default 2.0.");
+  g_water_gravity = gi.AddCvar("g_water_gravity", "0.33", 0, "Fraction of gravity applied underwater. Default 0.33.");
+  g_water_jump_speed = gi.AddCvar("g_water_jump_speed", "420.0", 0, "Upward velocity when jumping out of water. Default 420.0.");
+  g_water_speed = gi.AddCvar("g_water_speed", "140.0", 0, "Maximum swimming speed. Default 140.0.");
+
   g_num_teams = gi.AddCvar("g_num_teams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");

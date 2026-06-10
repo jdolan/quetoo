@@ -1613,8 +1613,9 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
     cl->ps.pm_state.type = PM_NORMAL;
   }
 
-  // copy the current gravity in
-  cl->ps.pm_state.gravity = g_level.gravity;
+  // hydrate the current movement parameters (gravity, accel, friction, speeds);
+  // a class-based mod could override fields here for per-player physics
+  cl->ps.pm_state.params = G_MovementParams();
 
   pm_move_t pm;
   memset(&pm, 0, sizeof(pm));
