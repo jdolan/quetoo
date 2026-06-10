@@ -1456,7 +1456,7 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
 
   ai_node_t *start_node = &g_array_index(g_ai_nodes, ai_node_t, start);
   start_node->cost = 0;
-  costs_started[start / 32] |= 1 << (start % 32);
+  costs_started[start / 32] |= (uint32_t)1 << (start % 32);
   visited++;
   // g_hash_table_add(costs_started, start_node);
 
@@ -1549,9 +1549,9 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       const float new_cost = node->cost + link->cost + drop_penalty;
 
       ai_node_id_t link_index = G_Ai_Node_Index(link_node);
-      bool found = costs_started[link_index / 32] & (1 << (link_index % 32));
+      bool found = costs_started[link_index / 32] & ((uint32_t)1 << (link_index % 32));
       if (!found || new_cost < link_node->cost) {
-        costs_started[link_index / 32] |= 1 << (link_index % 32);
+        costs_started[link_index / 32] |= (uint32_t)1 << (link_index % 32);
         visited++;
 
         link_node->cost = new_cost;
