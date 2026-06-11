@@ -610,7 +610,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   g_ai_player_roam.latched_buttons |= g_ai_player_roam.buttons & ~g_ai_player_roam.old_buttons;
   
   const bool allow_adjustments = g_ai_node_dev->integer == 1;
-  const bool do_noding = allow_adjustments && g_ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;  
+  const bool do_noding = allow_adjustments && g_ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;
 
   // we just switched between noclip/not noclip, clear some stuff
   // so we don't accidentally drop nodes
@@ -1636,7 +1636,7 @@ void G_Ai_OffsetNodes_f(void) {
     const vec3_t node = G_Ai_Node_GetPosition(g_ai_player_roam.last_nodes[0]);
     const vec3_t player_position = g_ai_player_roam.position;
     translate = Vec3_Subtract(player_position, node);
-  } else {  
+  } else {
     const char *offset = gi.Argv(1);
 
     if (Parse_QuickPrimitive(offset, PARSER_DEFAULT, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
@@ -1703,7 +1703,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 
       const vec3_t link_pos = G_Ai_Node_GetPosition(link->id);
 
-      // can't see 
+      // can't see
       if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
         continue;
       }

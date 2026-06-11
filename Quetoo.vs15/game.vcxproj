@@ -25,6 +25,7 @@
     <ClInclude Include="..\src\game\default\g_ai_goal.h" />
     <ClInclude Include="..\src\game\default\g_ai_info.h" />
     <ClInclude Include="..\src\game\default\g_ai_item.h" />
+    <ClInclude Include="..\src\game\default\g_ai_main.h" />
     <ClInclude Include="..\src\game\default\g_ai_node.h" />
     <ClInclude Include="..\src\game\default\g_ai_grid.h" />
     <ClInclude Include="..\src\game\default\g_ai_types.h" />
