@@ -1757,27 +1757,31 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
             damage = 1;
           }
 
+          damage = (int32_t) (damage * g_fall_damage->value); // scale fall damage; 0 disables it (cf. Quake2 DF_NO_FALLING)
+
           if (old_velocity.z <= PM_SPEED_FALL_FAR) {
             event = EV_CLIENT_FALL_FAR;
           } else {
             event = EV_CLIENT_FALL;
           }
 
-          cl->pain_time = g_level.time; // suppress pain sound
-          
-          // TODO: get normal from what we've landed on
-          G_Damage(&(g_damage_t) {
-            .target = ent,
-            .inflictor = NULL,
-            .attacker = NULL,
-            .dir = Vec3_Up(),
-            .point = ent->s.origin,
-            .normal = Vec3_Zero(),
-            .damage = damage,
-            .knockback = 0,
-            .flags = DMG_NO_ARMOR,
-            .mod = MOD_FALLING
-          });
+          if (damage >= 1) {
+            cl->pain_time = g_level.time; // suppress pain sound
+
+            // TODO: get normal from what we've landed on
+            G_Damage(&(g_damage_t) {
+              .target = ent,
+              .inflictor = NULL,
+              .attacker = NULL,
+              .dir = Vec3_Up(),
+              .point = ent->s.origin,
+              .normal = Vec3_Zero(),
+              .damage = damage,
+              .knockback = 0,
+              .flags = DMG_NO_ARMOR,
+              .mod = MOD_FALLING
+            });
+          }
         }
 
         ent->s.event = event;
