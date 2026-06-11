@@ -31,7 +31,7 @@ void gridkdtree_free(struct gridkdtree_s **tree) {
   *tree = NULL;
 }
 
-_Thread_local struct cmpstr_s {
+static _Thread_local struct cmpstr_s {
   uint8_t dim;
   vec3_t *srcdata;
 } cmpstr;
