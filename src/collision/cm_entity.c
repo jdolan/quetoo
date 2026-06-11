@@ -224,7 +224,7 @@ GList *Cm_LoadEntities(const char *entity_string) {
 
   GList *entities = NULL;
 
-  parser_t parser = Parse_Init(entity_string, PARSER_NO_COMMENTS);
+  parser_t parser = Parse_Init(entity_string, PARSER_ALL_COMMENTS);
 
   while (true) {
 

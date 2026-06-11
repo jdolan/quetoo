@@ -120,9 +120,11 @@ static void G_Tracer(const vec3_t start, const vec3_t end) {
  */
 void G_Ripple(g_entity_t *ent, const vec3_t pos1, const vec3_t pos2, float size, bool splash) {
 
-  const cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+  cm_trace_t tr = gi.Trace(pos1, pos2, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
   if (!tr.brush_side) {
-    G_Debug("Failed to resolve water brush side for %s\n", etos(ent));
+    tr = gi.Trace(pos2, pos1, Box3_Zero(), ent, CONTENTS_MASK_LIQUID);
+  }
+  if (!tr.brush_side) {
     return;
   }
 

@@ -1,0 +1,42 @@
+#Stats {
+  autoresizing-mask: contain;
+}
+
+.statTiles {
+  axis: horizontal;
+  spacing: 8;
+}
+
+.statTile {
+  autoresizing-mask: contain;
+  background-color: #0c1f27cc;
+  border-color: #1e4e62;
+  border-width: 1;
+  padding: 10 16 10 16;
+  min-width: 150;
+  spacing: 4;
+}
+
+.statValue > Text {
+  font-size: 28;
+  font-style: bold;
+  color: #ffffff;
+}
+
+.statCaption > Text {
+  font-size: 12;
+  color: #6a9fb5;
+}
+
+#weapons {
+  width: 1420;
+  height: 700;
+}
+
+#weapons #Weapon {
+  min-width: 520;
+}
+
+#weapons #Frags {
+  min-width: 140;
+}

@@ -30,6 +30,7 @@
     <ClInclude Include="..\..\src\server\sv_init.h" />
     <ClInclude Include="..\..\src\server\sv_local.h" />
     <ClInclude Include="..\..\src\server\sv_main.h" />
+    <ClInclude Include="..\..\src\server\sv_map_list.h" />
     <ClInclude Include="..\..\src\server\sv_master.h" />
     <ClInclude Include="..\..\src\server\sv_send.h" />
     <ClInclude Include="..\..\src\server\sv_types.h" />
@@ -45,6 +46,7 @@
     <ClCompile Include="..\..\src\server\sv_http.c" />
     <ClCompile Include="..\..\src\server\sv_init.c" />
     <ClCompile Include="..\..\src\server\sv_main.c" />
+    <ClCompile Include="..\..\src\server\sv_map_list.c" />
     <ClCompile Include="..\..\src\server\sv_master.c" />
     <ClCompile Include="..\..\src\server\sv_send.c" />
     <ClCompile Include="..\..\src\server\sv_world.c" />

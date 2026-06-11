@@ -245,7 +245,7 @@ void Net_WriteDeltaMoveCmd(mem_buf_t *msg, const pm_cmd_t *from, const pm_cmd_t 
  */
 void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const player_state_t *to) {
 
-  uint16_t bits = 0;
+  uint32_t bits = 0;
 
   if (to->client != from->client) {
     bits |= PS_PM_CLIENT;
@@ -275,7 +275,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     bits |= PS_PM_TIME;
   }
 
-  if (to->pm_state.gravity != from->pm_state.gravity) {
+  if (to->pm_state.params.gravity != from->pm_state.params.gravity) {
     bits |= PS_PM_GRAVITY;
   }
 
@@ -303,7 +303,12 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
     bits |= PS_PM_STEP_OFFSET;
   }
 
-  Net_WriteShort(msg, bits);
+  if (memcmp(&to->pm_state.params.gravity_water, &from->pm_state.params.gravity_water,
+             sizeof(pm_params_t) - offsetof(pm_params_t, gravity_water)) != 0) {
+    bits |= PS_PM_PARAMS;
+  }
+
+  Net_WriteLong(msg, bits);
 
   if (bits & PS_PM_CLIENT) {
     Net_WriteByte(msg, to->client);
@@ -334,7 +339,7 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
   }
 
   if (bits & PS_PM_GRAVITY) {
-    Net_WriteShort(msg, to->pm_state.gravity);
+    Net_WriteShort(msg, to->pm_state.params.gravity);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
@@ -359,6 +364,32 @@ void Net_WriteDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, const
 
   if (bits & PS_PM_STEP_OFFSET) {
     Net_WriteFloat(msg, to->pm_state.step_offset);
+  }
+
+  if (bits & PS_PM_PARAMS) {
+    Net_WriteFloat(msg, to->pm_state.params.gravity_water);
+    Net_WriteFloat(msg, to->pm_state.params.accel_ground);
+    Net_WriteFloat(msg, to->pm_state.params.accel_ground_slick);
+    Net_WriteFloat(msg, to->pm_state.params.accel_air);
+    Net_WriteFloat(msg, to->pm_state.params.accel_water);
+    Net_WriteFloat(msg, to->pm_state.params.accel_spectator);
+    Net_WriteFloat(msg, to->pm_state.params.accel_ladder);
+    Net_WriteFloat(msg, to->pm_state.params.friction_ground);
+    Net_WriteFloat(msg, to->pm_state.params.friction_ground_slick);
+    Net_WriteFloat(msg, to->pm_state.params.friction_air);
+    Net_WriteFloat(msg, to->pm_state.params.friction_water);
+    Net_WriteFloat(msg, to->pm_state.params.friction_spectator);
+    Net_WriteFloat(msg, to->pm_state.params.friction_ladder);
+    Net_WriteFloat(msg, to->pm_state.params.speed_ground);
+    Net_WriteFloat(msg, to->pm_state.params.speed_air);
+    Net_WriteFloat(msg, to->pm_state.params.speed_water);
+    Net_WriteFloat(msg, to->pm_state.params.speed_ladder);
+    Net_WriteFloat(msg, to->pm_state.params.speed_spectator);
+    Net_WriteFloat(msg, to->pm_state.params.speed_stop);
+    Net_WriteFloat(msg, to->pm_state.params.speed_jump);
+    Net_WriteFloat(msg, to->pm_state.params.speed_ducked);
+    Net_WriteFloat(msg, to->pm_state.params.speed_duck_stand);
+    Net_WriteFloat(msg, to->pm_state.params.speed_water_jump);
   }
 
   uint32_t stat_bits = 0;
@@ -795,7 +826,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 
   *to = *from;
 
-  const uint16_t bits = Net_ReadShort(msg);
+  const uint32_t bits = Net_ReadLong(msg);
 
   if (bits & PS_PM_CLIENT) {
     to->client = Net_ReadByte(msg);
@@ -826,7 +857,7 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
   }
 
   if (bits & PS_PM_GRAVITY) {
-    to->pm_state.gravity = Net_ReadShort(msg);
+    to->pm_state.params.gravity = Net_ReadShort(msg);
   }
 
   if (bits & PS_PM_VIEW_OFFSET) {
@@ -851,6 +882,32 @@ void Net_ReadDeltaPlayerState(mem_buf_t *msg, const player_state_t *from, player
 
   if (bits & PS_PM_STEP_OFFSET) {
     to->pm_state.step_offset = Net_ReadFloat(msg);
+  }
+
+  if (bits & PS_PM_PARAMS) {
+    to->pm_state.params.gravity_water = Net_ReadFloat(msg);
+    to->pm_state.params.accel_ground = Net_ReadFloat(msg);
+    to->pm_state.params.accel_ground_slick = Net_ReadFloat(msg);
+    to->pm_state.params.accel_air = Net_ReadFloat(msg);
+    to->pm_state.params.accel_water = Net_ReadFloat(msg);
+    to->pm_state.params.accel_spectator = Net_ReadFloat(msg);
+    to->pm_state.params.accel_ladder = Net_ReadFloat(msg);
+    to->pm_state.params.friction_ground = Net_ReadFloat(msg);
+    to->pm_state.params.friction_ground_slick = Net_ReadFloat(msg);
+    to->pm_state.params.friction_air = Net_ReadFloat(msg);
+    to->pm_state.params.friction_water = Net_ReadFloat(msg);
+    to->pm_state.params.friction_spectator = Net_ReadFloat(msg);
+    to->pm_state.params.friction_ladder = Net_ReadFloat(msg);
+    to->pm_state.params.speed_ground = Net_ReadFloat(msg);
+    to->pm_state.params.speed_air = Net_ReadFloat(msg);
+    to->pm_state.params.speed_water = Net_ReadFloat(msg);
+    to->pm_state.params.speed_ladder = Net_ReadFloat(msg);
+    to->pm_state.params.speed_spectator = Net_ReadFloat(msg);
+    to->pm_state.params.speed_stop = Net_ReadFloat(msg);
+    to->pm_state.params.speed_jump = Net_ReadFloat(msg);
+    to->pm_state.params.speed_ducked = Net_ReadFloat(msg);
+    to->pm_state.params.speed_duck_stand = Net_ReadFloat(msg);
+    to->pm_state.params.speed_water_jump = Net_ReadFloat(msg);
   }
 
   const int32_t stat_bits = Net_ReadLong(msg);

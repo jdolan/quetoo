@@ -521,7 +521,7 @@ static void G_ClientCorpse(g_client_t *cl) {
   gi.LinkEntity(ent);
 }
 
-#define CLIENT_CORPSE_HEALTH 200
+#define CLIENT_CORPSE_HEALTH 80
 
 /**
  * @brief A client's health is less than or equal to zero. Render death effects, drop
@@ -558,7 +558,7 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
     G_ClientCorpse_Die(ent, attacker, mod);
   } else {
     G_MulticastSound(&(const g_play_sound_t) {
-      .index = g_media.sounds.death,
+      .index = g_media.sounds.death[Randomi() % lengthof(g_media.sounds.death)],
       .entity = ent,
       .origin = &ent->s.origin, // send the origin in case of fast respawn
     }, MULTICAST_PHS);
@@ -1613,8 +1613,9 @@ static void G_ClientMove(g_client_t *cl, pm_cmd_t *cmd) {
     cl->ps.pm_state.type = PM_NORMAL;
   }
 
-  // copy the current gravity in
-  cl->ps.pm_state.gravity = g_level.gravity;
+  // hydrate the current movement parameters (gravity, accel, friction, speeds);
+  // a class-based mod could override fields here for per-player physics
+  cl->ps.pm_state.params = G_MovementParams();
 
   pm_move_t pm;
   memset(&pm, 0, sizeof(pm));

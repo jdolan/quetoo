@@ -62,6 +62,7 @@
 		997E573805B0DCF96FB8C299 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = 57941D4E858E897A2E3083ED /* manifest.c */; };
 		9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
 		C0ABDA2643FBD2CB55EB732A /* libgame-item.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93837BFDD89832004989509B /* libgame-item.a */; };
+		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
 		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
 		CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
@@ -123,7 +124,6 @@
 		CE12D7DF1C5C5D6A00CD0B13 /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6611C5C58C300CD0B13 /* g_item.c */; };
 		CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6641C5C58C300CD0B13 /* g_main.c */; };
-		CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6661C5C58C300CD0B13 /* g_map_list.c */; };
 		CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66D1C5C58C300CD0B13 /* g_util.c */; };
 		CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66F1C5C58C300CD0B13 /* g_weapon.c */; };
@@ -317,8 +317,6 @@
 		CE69DCB3202D500700E5C8B1 /* QuetooRenderer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */; };
 		CE6C2D111E24902900F55B0A /* cm_bsp.c in Sources */ = {isa = PBXBuildFile; fileRef = CE6C2D0F1E24902900F55B0A /* cm_bsp.c */; };
 		CE6C2D121E24902900F55B0A /* cm_bsp.h in Headers */ = {isa = PBXBuildFile; fileRef = CE6C2D101E24902900F55B0A /* cm_bsp.h */; };
-		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
-		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
 		CE6EE3D21F720D6700FBC830 /* CvarCheckbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709C1F5CE97C004CAAB2 /* CvarCheckbox.c */; };
 		CE6EE3D31F720D6700FBC830 /* CvarSelect.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58709E1F5CE97C004CAAB2 /* CvarSelect.c */; };
 		CE6EE3D41F720D6700FBC830 /* CvarSlider.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870A01F5CE97C004CAAB2 /* CvarSlider.c */; };
@@ -408,7 +406,6 @@
 		CE80FE8B1C5E442700A21A51 /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
 		CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6651C5C58C300CD0B13 /* g_main.h */; };
-		CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6671C5C58C300CD0B13 /* g_map_list.h */; };
 		CE80FE901C5E442700A21A51 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
 		CE80FE911C5E442800A21A51 /* g_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66C1C5C58C300CD0B13 /* g_types.h */; };
 		CE80FE921C5E442800A21A51 /* g_util.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66E1C5C58C300CD0B13 /* g_util.h */; };
@@ -470,6 +467,7 @@
 		CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
 		CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
 		CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AE1C5C58C300CD0B13 /* sv_main.c */; };
+		CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00072EC1A00000000007 /* sv_map_list.c */; };
 		CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B01C5C58C300CD0B13 /* sv_master.c */; };
 		CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B21C5C58C300CD0B13 /* sv_send.c */; };
 		CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B51C5C58C300CD0B13 /* sv_world.c */; };
@@ -482,6 +480,7 @@
 		CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AC1C5C58C300CD0B13 /* sv_init.h */; };
 		CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AD1C5C58C300CD0B13 /* sv_local.h */; };
 		CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AF1C5C58C300CD0B13 /* sv_main.h */; };
+		CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00082EC1A00000000008 /* sv_map_list.h */; };
 		CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B11C5C58C300CD0B13 /* sv_master.h */; };
 		CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B31C5C58C300CD0B13 /* sv_send.h */; };
 		CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B41C5C58C300CD0B13 /* sv_types.h */; };
@@ -576,6 +575,14 @@
 		CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA509062EA5D21F00F27205 /* check_cm_entity.c */; };
 		CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
 		CEA5090B2EA5D44B00F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
+		CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
+		CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */; };
+		CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
+		CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */; };
+		CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */; };
+		CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */; };
+		CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */; };
+		CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */; };
 		CEAA77F22775333300EAC853 /* TeamsViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA77F02775333300EAC853 /* TeamsViewController.h */; };
 		CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAA78182775337300EAC853 /* TeamsViewController.c */; };
 		CEAA78EC2775388700EAC853 /* TeamView.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAA78EA2775388700EAC853 /* TeamView.h */; };
@@ -749,6 +756,7 @@
 		CFA000282F9100000000C028 /* MeshViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CFA000152F9100000000C028 /* MeshViewController.json */; };
 		D081469FB0034668B00C4DB3 /* post_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = 59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */; };
 		EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */ = {isa = PBXBuildFile; fileRef = FCD76A809F00440F99BC0068 /* cg_inventory.c */; };
+		EEE815CF5A924D398351DF7C /* cm_voxel.h in Headers */ = {isa = PBXBuildFile; fileRef = 97BDA8A5C8DF41E290656B3D /* cm_voxel.h */; };
 		F53787C291008C7507AE5FF4 /* cm_manifest.h in Headers */ = {isa = PBXBuildFile; fileRef = 9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */; };
 		F57902A224843EA10023101D /* soften_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = F57902A124843E730023101D /* soften_fs.glsl */; };
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
@@ -1030,6 +1038,13 @@
 			remoteGlobalIDString = CE80FE0E1C5E421900A21A51;
 			remoteInfo = collision;
 		};
+		CEEC176B2FD6F88900C72A8A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CE12D4A11C5C579D00CD0B13 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CE12D7CC1C5C5D5C00CD0B13;
+			remoteInfo = game;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -1157,6 +1172,10 @@
 			files = (
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
 				CE7D2C1A202F6E96004BC58E /* HomeViewController.json in CopyFiles */,
+				CEA9B3A56C6E4B3A9F010001 /* LeaderboardViewController.css in CopyFiles */,
+				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
+				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
+				CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1237,6 +1256,7 @@
 
 /* Begin PBXFileReference section */
 		066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_inventory.h; sourceTree = "<group>"; };
+		1EE6A866A93B42938A4E84E6 /* cm_voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_voxel.c; sourceTree = "<group>"; };
 		26FE8732000C404A8AFA1688 /* r_post.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = r_post.c; sourceTree = "<group>"; };
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
 		59216DDAE6EB4C3EBE0336A3 /* post_vs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_vs.glsl; sourceTree = "<group>"; };
@@ -1244,6 +1264,7 @@
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		7C9C4D0367AE485BA6F40075 /* depth_resolve_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = depth_resolve_fs.glsl; sourceTree = "<group>"; };
 		93837BFDD89832004989509B /* libgame-item.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libgame-item.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		9BEEC6DF7149D25DE326F0A7 /* cm_manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_manifest.h; sourceTree = "<group>"; };
 		B80C92655F5249E48131CB95 /* r_post.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = r_post.h; sourceTree = "<group>"; };
 		CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../usr/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
@@ -1254,7 +1275,6 @@
 		CE04FE4E25D0D90400C31433 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
-		CE0B64811D89955B0011F974 /* .turd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE0C0751260CC75700FFE27B /* box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box.h; sourceTree = "<group>"; };
 		CE12D4A71C5C58C300CD0B13 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		CE12D4A81C5C58C300CD0B13 /* configure.ac */ = {isa = PBXFileReference; lastKnownFileType = text; path = configure.ac; sourceTree = "<group>"; };
@@ -1264,10 +1284,7 @@
 		CE12D50B1C5C58C300CD0B13 /* engine-architecture.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = "engine-architecture.pdf"; sourceTree = "<group>"; };
 		CE12D50C1C5C58C300CD0B13 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
 		CE12D50E1C5C58C300CD0B13 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		CE12D5141C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
 		CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */ = {isa = PBXFileReference; lastKnownFileType = text; path = Quetoo.desktop; sourceTree = "<group>"; };
-		CE12D5191C5C58C300CD0B13 /* .turd */ = {isa = PBXFileReference; lastKnownFileType = text; path = .turd; sourceTree = "<group>"; };
-		CE12D51A1C5C58C300CD0B13 /* sobundler.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = sobundler.sh; sourceTree = "<group>"; };
 		CE12D51B1C5C58C300CD0B13 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE12D5371C5C58C300CD0B13 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CE12D55C1C5C58C300CD0B13 /* cgame.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cgame.h; sourceTree = "<group>"; };
@@ -1438,8 +1455,6 @@
 		CE12D6631C5C58C300CD0B13 /* g_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_local.h; sourceTree = "<group>"; };
 		CE12D6641C5C58C300CD0B13 /* g_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_main.c; sourceTree = "<group>"; };
 		CE12D6651C5C58C300CD0B13 /* g_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_main.h; sourceTree = "<group>"; };
-		CE12D6661C5C58C300CD0B13 /* g_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_map_list.c; sourceTree = "<group>"; };
-		CE12D6671C5C58C300CD0B13 /* g_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_map_list.h; sourceTree = "<group>"; };
 		CE12D66A1C5C58C300CD0B13 /* g_physics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_physics.c; sourceTree = "<group>"; };
 		CE12D66B1C5C58C300CD0B13 /* g_physics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_physics.h; sourceTree = "<group>"; };
 		CE12D66C1C5C58C300CD0B13 /* g_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_types.h; sourceTree = "<group>"; };
@@ -1490,6 +1505,8 @@
 		CE12D6AD1C5C58C300CD0B13 /* sv_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_local.h; sourceTree = "<group>"; };
 		CE12D6AE1C5C58C300CD0B13 /* sv_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = sv_main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6AF1C5C58C300CD0B13 /* sv_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_main.h; sourceTree = "<group>"; };
+		CEAB00072EC1A00000000007 /* sv_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_map_list.c; sourceTree = "<group>"; };
+		CEAB00082EC1A00000000008 /* sv_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_map_list.h; sourceTree = "<group>"; };
 		CE12D6B01C5C58C300CD0B13 /* sv_master.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_master.c; sourceTree = "<group>"; };
 		CE12D6B11C5C58C300CD0B13 /* sv_master.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_master.h; sourceTree = "<group>"; };
 		CE12D6B21C5C58C300CD0B13 /* sv_send.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_send.c; sourceTree = "<group>"; };
@@ -1700,6 +1717,13 @@
 		CE55309A1E5A93C60009A127 /* parse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = parse.c; sourceTree = "<group>"; };
 		CE55309B1E5A93C60009A127 /* parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = parse.h; sourceTree = "<group>"; };
 		CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../usr/local/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
+		CE5751852FD2678B006FAC78 /* org.quetoo.Quetoo.metainfo.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = org.quetoo.Quetoo.metainfo.xml; sourceTree = "<group>"; };
+		CE5751862FD2678B006FAC78 /* quetoo-attach */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "quetoo-attach"; sourceTree = "<group>"; };
+		CE5751872FD2678B006FAC78 /* quetoo-dedicated-start */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "quetoo-dedicated-start"; sourceTree = "<group>"; };
+		CE5751882FD2678B006FAC78 /* quetoo-status */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-status"; sourceTree = "<group>"; };
+		CE5751892FD2678B006FAC78 /* quetoo-update */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "quetoo-update"; sourceTree = "<group>"; };
+		CE57518C2FD2678B006FAC78 /* quetoo-dedicated@.service */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-dedicated@.service"; sourceTree = "<group>"; };
+		CE57518D2FD2678B006FAC78 /* quetoo-master.service */ = {isa = PBXFileReference; lastKnownFileType = text; path = "quetoo-master.service"; sourceTree = "<group>"; };
 		CE57E13C246255D100F8902F /* material.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = material.glsl; sourceTree = "<group>"; };
 		CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CreateServerViewController.c; sourceTree = "<group>"; };
 		CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CreateServerViewController.h; sourceTree = "<group>"; };
@@ -1754,8 +1778,6 @@
 		CE69DCB1202D500700E5C8B1 /* QuetooRenderer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = QuetooRenderer.c; sourceTree = "<group>"; };
 		CE6C2D0F1E24902900F55B0A /* cm_bsp.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_bsp.c; sourceTree = "<group>"; };
 		CE6C2D101E24902900F55B0A /* cm_bsp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_bsp.h; sourceTree = "<group>"; };
-		1EE6A866A93B42938A4E84E6 /* cm_voxel.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cm_voxel.c; sourceTree = "<group>"; };
-		97BDA8A5C8DF41E290656B3D /* cm_voxel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cm_voxel.h; sourceTree = "<group>"; };
 		CE6EE3371F6BFAF600FBC830 /* libcgame-ui.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libcgame-ui.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE6EE3BE1F71450C00FBC830 /* libObjectively.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libObjectively.0.dylib; path = ../../../../usr/local/lib/libObjectively.0.dylib; sourceTree = "<group>"; };
 		CE6EE3CE1F72018C00FBC830 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -1864,6 +1886,14 @@
 		CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libphysfs.3.2.0.dylib; path = ../../../../opt/homebrew/Cellar/physfs/3.2.0/lib/libphysfs.3.2.0.dylib; sourceTree = "<group>"; };
 		CEA716EB2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CEA716EC2FA796690099B469 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
+		CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = LeaderboardViewController.c; sourceTree = "<group>"; };
+		CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LeaderboardViewController.h; sourceTree = "<group>"; };
+		CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatsViewController.c; sourceTree = "<group>"; };
+		CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatsViewController.h; sourceTree = "<group>"; };
+		CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = LeaderboardViewController.css; sourceTree = "<group>"; };
+		CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = StatsViewController.css; sourceTree = "<group>"; };
+		CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LeaderboardViewController.json; sourceTree = "<group>"; };
+		CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StatsViewController.json; sourceTree = "<group>"; };
 		CEAA77F02775333300EAC853 /* TeamsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamsViewController.h; sourceTree = "<group>"; };
 		CEAA78182775337300EAC853 /* TeamsViewController.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TeamsViewController.c; sourceTree = "<group>"; };
 		CEAA7882277533B100EAC853 /* Makefile.am */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
@@ -2486,14 +2516,6 @@
 			path = shared;
 			sourceTree = "<group>";
 		};
-		CE0B64801D89955B0011F974 /* bin */ = {
-			isa = PBXGroup;
-			children = (
-				CE0B64811D89955B0011F974 /* .turd */,
-			);
-			path = bin;
-			sourceTree = "<group>";
-		};
 		CE12D4A01C5C579D00CD0B13 = {
 			isa = PBXGroup;
 			children = (
@@ -2550,7 +2572,6 @@
 			isa = PBXGroup;
 			children = (
 				CE12D50F1C5C58C300CD0B13 /* quetoo */,
-				CE12D51A1C5C58C300CD0B13 /* sobundler.sh */,
 				CE12D50E1C5C58C300CD0B13 /* Makefile */,
 			);
 			path = linux;
@@ -2559,36 +2580,11 @@
 		CE12D50F1C5C58C300CD0B13 /* quetoo */ = {
 			isa = PBXGroup;
 			children = (
-				CE0B64801D89955B0011F974 /* bin */,
-				CE12D5121C5C58C300CD0B13 /* lib */,
-				CE12D5181C5C58C300CD0B13 /* share */,
+				CE5751912FD2678B006FAC78 /* usr */,
 				CE12D5161C5C58C300CD0B13 /* Quetoo.desktop */,
+				CE5751852FD2678B006FAC78 /* org.quetoo.Quetoo.metainfo.xml */,
 			);
 			path = quetoo;
-			sourceTree = "<group>";
-		};
-		CE12D5121C5C58C300CD0B13 /* lib */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5131C5C58C300CD0B13 /* default */,
-			);
-			path = lib;
-			sourceTree = "<group>";
-		};
-		CE12D5131C5C58C300CD0B13 /* default */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5141C5C58C300CD0B13 /* .turd */,
-			);
-			path = default;
-			sourceTree = "<group>";
-		};
-		CE12D5181C5C58C300CD0B13 /* share */ = {
-			isa = PBXGroup;
-			children = (
-				CE12D5191C5C58C300CD0B13 /* .turd */,
-			);
-			path = share;
 			sourceTree = "<group>";
 		};
 		CE12D5381C5C58C300CD0B13 /* src */ = {
@@ -2949,8 +2945,6 @@
 				CE12D6631C5C58C300CD0B13 /* g_local.h */,
 				CE12D6641C5C58C300CD0B13 /* g_main.c */,
 				CE12D6651C5C58C300CD0B13 /* g_main.h */,
-				CE12D6661C5C58C300CD0B13 /* g_map_list.c */,
-				CE12D6671C5C58C300CD0B13 /* g_map_list.h */,
 				CE12D66A1C5C58C300CD0B13 /* g_physics.c */,
 				CE12D66B1C5C58C300CD0B13 /* g_physics.h */,
 				CEFF1296277D439B001E1500 /* g_sound.c */,
@@ -3020,6 +3014,8 @@
 				CE12D6AD1C5C58C300CD0B13 /* sv_local.h */,
 				CE12D6AE1C5C58C300CD0B13 /* sv_main.c */,
 				CE12D6AF1C5C58C300CD0B13 /* sv_main.h */,
+				CEAB00072EC1A00000000007 /* sv_map_list.c */,
+				CEAB00082EC1A00000000008 /* sv_map_list.h */,
 				CE12D6B01C5C58C300CD0B13 /* sv_master.c */,
 				CE12D6B11C5C58C300CD0B13 /* sv_master.h */,
 				CE12D6B21C5C58C300CD0B13 /* sv_send.c */,
@@ -3378,6 +3374,59 @@
 			path = msinttypes;
 			sourceTree = "<group>";
 		};
+		CE57518A2FD2678B006FAC78 /* bin */ = {
+			isa = PBXGroup;
+			children = (
+				CE5751862FD2678B006FAC78 /* quetoo-attach */,
+				CE5751872FD2678B006FAC78 /* quetoo-dedicated-start */,
+				CE5751882FD2678B006FAC78 /* quetoo-status */,
+				CE5751892FD2678B006FAC78 /* quetoo-update */,
+			);
+			path = bin;
+			sourceTree = "<group>";
+		};
+		CE57518B2FD2678B006FAC78 /* quetoo */ = {
+			isa = PBXGroup;
+			children = (
+				CE57518A2FD2678B006FAC78 /* bin */,
+			);
+			path = quetoo;
+			sourceTree = "<group>";
+		};
+		CE57518E2FD2678B006FAC78 /* system */ = {
+			isa = PBXGroup;
+			children = (
+				CE57518C2FD2678B006FAC78 /* quetoo-dedicated@.service */,
+				CE57518D2FD2678B006FAC78 /* quetoo-master.service */,
+			);
+			path = system;
+			sourceTree = "<group>";
+		};
+		CE57518F2FD2678B006FAC78 /* systemd */ = {
+			isa = PBXGroup;
+			children = (
+				CE57518E2FD2678B006FAC78 /* system */,
+			);
+			path = systemd;
+			sourceTree = "<group>";
+		};
+		CE5751902FD2678B006FAC78 /* lib */ = {
+			isa = PBXGroup;
+			children = (
+				CE57518B2FD2678B006FAC78 /* quetoo */,
+				CE57518F2FD2678B006FAC78 /* systemd */,
+			);
+			path = lib;
+			sourceTree = "<group>";
+		};
+		CE5751912FD2678B006FAC78 /* usr */ = {
+			isa = PBXGroup;
+			children = (
+				CE5751902FD2678B006FAC78 /* lib */,
+			);
+			path = usr;
+			sourceTree = "<group>";
+		};
 		CE5870711F5CDFE0004CAAB2 /* ui */ = {
 			isa = PBXGroup;
 			children = (
@@ -3518,10 +3567,18 @@
 		CE7D2C10202F690A004BC58E /* home */ = {
 			isa = PBXGroup;
 			children = (
-				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
-				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
 				CE7D2C14202F690A004BC58E /* HomeViewController.h */,
+				CE7D2C11202F690A004BC58E /* HomeViewController.c */,
+				CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */,
 				CE7D2C19202F6E80004BC58E /* HomeViewController.json */,
+				CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */,
+				CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */,
+				CEA9B3B56C6E4B3A9F010001 /* LeaderboardViewController.css */,
+				CEA9B3B76C6E4B3A9F010001 /* LeaderboardViewController.json */,
+				CEA9B3B46C6E4B3A9F010001 /* StatsViewController.h */,
+				CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */,
+				CEA9B3B66C6E4B3A9F010001 /* StatsViewController.css */,
+				CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */,
 				CE7D2C13202F690A004BC58E /* Makefile.am */,
 			);
 			path = home;
@@ -3646,7 +3703,6 @@
 				CE80FE8B1C5E442700A21A51 /* g_item.h in Headers */,
 				CE80FE8C1C5E442700A21A51 /* g_local.h in Headers */,
 				CE80FE8D1C5E442700A21A51 /* g_main.h in Headers */,
-				CE80FE8E1C5E442700A21A51 /* g_map_list.h in Headers */,
 				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
@@ -3741,6 +3797,7 @@
 				CE1A28511F7602F2005F62A9 /* MovementCombatViewController.h in Headers */,
 				CEA1A0022F9F00000087B100 /* CreditsViewController.h in Headers */,
 				CE7D2C18202F69D4004BC58E /* HomeViewController.h in Headers */,
+				CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */,
 				CE6EE3FA1F720DC300FBC830 /* LoadingViewController.h in Headers */,
 				CE6EE3FB1F720DC300FBC830 /* MainView.h in Headers */,
 				CE6EE3FC1F720DC300FBC830 /* MainViewController.h in Headers */,
@@ -3751,6 +3808,7 @@
 				CE1A28321F75FC1D005F62A9 /* PlayerModelView.h in Headers */,
 				CE1A28341F75FC1D005F62A9 /* PlayerSetupViewController.h in Headers */,
 				CE6EE4031F720DC300FBC830 /* PlayViewController.h in Headers */,
+				CEA9B3A46C6E4B3A9F010001 /* StatsViewController.h in Headers */,
 				CFA000172F9100000000C017 /* EditorViewController.h in Headers */,
 				CFA0001A2F9100000000C01A /* EntityView.h in Headers */,
 				CFA0001D2F9100000000C01D /* EntityViewController.h in Headers */,
@@ -3880,6 +3938,7 @@
 				CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */,
 				CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */,
 				CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */,
+				CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */,
 				CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */,
 				CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */,
 				CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */,
@@ -4091,6 +4150,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				CEEC176C2FD6F88900C72A8A /* PBXTargetDependency */,
 				CE80FFCB1C5E4B6600A21A51 /* PBXTargetDependency */,
 				CE80FFCD1C5E4B6600A21A51 /* PBXTargetDependency */,
 			);
@@ -4788,7 +4848,6 @@
 				CE12D7E01C5C5D6A00CD0B13 /* g_item.c in Sources */,
 				CE12D7E11C5C5D6A00CD0B13 /* g_main.c in Sources */,
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
-				CE12D7E21C5C5D6A00CD0B13 /* g_map_list.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
@@ -4944,6 +5003,7 @@
 				CE1A28501F7602F2005F62A9 /* MovementCombatViewController.c in Sources */,
 				CEA1A0012F9F00000087B100 /* CreditsViewController.c in Sources */,
 				CE7D2C17202F69B9004BC58E /* HomeViewController.c in Sources */,
+				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
 				CE6EE3DD1F720D8700FBC830 /* MainView.c in Sources */,
 				CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */,
@@ -4954,6 +5014,7 @@
 				CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */,
 				CE1A28331F75FC1D005F62A9 /* PlayerSetupViewController.c in Sources */,
 				CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */,
+				CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */,
 				CFA000162F9100000000C016 /* EditorViewController.c in Sources */,
 				CFA000192F9100000000C019 /* EntityView.c in Sources */,
 				CFA0001C2F9100000000C01C /* EntityViewController.c in Sources */,
@@ -5100,6 +5161,7 @@
 				CEAB00032EC1A00000000003 /* sv_http.c in Sources */,
 				CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */,
 				CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */,
+				CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */,
 				CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */,
 				CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */,
 				CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */,
@@ -5436,6 +5498,11 @@
 			isa = PBXTargetDependency;
 			target = CE80FE0E1C5E421900A21A51 /* collision */;
 			targetProxy = CEE3A10221EE2B570070FD3E /* PBXContainerItemProxy */;
+		};
+		CEEC176C2FD6F88900C72A8A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CE12D7CC1C5C5D5C00CD0B13 /* game */;
+			targetProxy = CEEC176B2FD6F88900C72A8A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

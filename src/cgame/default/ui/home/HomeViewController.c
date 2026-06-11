@@ -23,7 +23,21 @@
 
 #include "HomeViewController.h"
 
+#include "LeaderboardViewController.h"
+#include "StatsViewController.h"
+
 #define _Class _HomeViewController
+
+#pragma mark - Object
+
+static void dealloc(Object *self) {
+
+  HomeViewController *this = (HomeViewController *) self;
+
+  release(this->tabViewController);
+
+  super(Object, self, dealloc);
+}
 
 #pragma mark - ViewController
 
@@ -36,11 +50,7 @@ static void loadView(ViewController *self) {
 
   HomeViewController *this = (HomeViewController *) self;
 
-  Outlet outlets[] = MakeOutlets(
-    MakeOutlet("motd", &this->motd)
-  );
-
-  View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", outlets);
+  View *view = $$(View, viewWithResourceName, "ui/home/HomeViewController.json", NULL);
   assert(view);
 
   view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/HomeViewController.css");
@@ -48,42 +58,32 @@ static void loadView(ViewController *self) {
 
   $(self, setView, view);
   release(view);
+
+  this->tabViewController = $(alloc(TabViewController), init);
+  assert(this->tabViewController);
+
+  ViewController *viewController, *tabViewController = (ViewController *) this->tabViewController;
+
+  viewController = $((ViewController *) alloc(StatsViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
+
+  viewController = $((ViewController *) alloc(LeaderboardViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
+
+  $(self, addChildViewController, tabViewController);
+  $((View *) ((Panel *) view)->contentView, addSubview, tabViewController->view);
 }
-
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-  HomeViewController *this = (HomeViewController *) self;
-
-  void *body;
-  size_t length;
-
-  const int32_t status = cgi.HttpGet(QUETOO_MOTD_URL, &body, &length);
-  if (status == 200) {
-
-    MutableString *motd = $(alloc(MutableString), initWithBytes, body, length, STRING_ENCODING_UTF8);
-    $(motd, trim);
-
-    Cg_Debug("Fetched motd: %s\n", motd->string.chars);
-
-    $(this->motd->text, setText, motd->string.chars);
-
-    release(motd);
-  } else {
-    Cg_Warn("Failed to fetch motd: HTTP %d\n", status);
-  }
-}
-
-#pragma mark - Class lifecycle
 
 /**
  * @see Class::initialize(Class *)
  */
 static void initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
+
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
 /**

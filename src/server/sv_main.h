@@ -33,6 +33,8 @@ extern cvar_t *sv_demo_list;
 extern cvar_t *sv_enforce_time;
 extern cvar_t *sv_hostname;
 extern cvar_t *sv_map;
+extern cvar_t *sv_map_list;
+extern cvar_t *sv_map_list_shuffle;
 extern cvar_t *sv_max_clients;
 extern cvar_t *sv_max_entities;
 extern cvar_t *sv_min_clients;

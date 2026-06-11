@@ -1,0 +1,17 @@
+{
+  "identifier": "Leaderboard",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "TableView",
+          "identifier": "leaderboard"
+        }
+      ]
+    }
+  ]
+}

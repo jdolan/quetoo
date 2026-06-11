@@ -21,6 +21,8 @@
 
 #include "tests.h"
 
+#include <Objectively/JSONSerialization.h>
+
 #include "net/net_http.h"
 
 #include <SDL3/SDL_thread.h>
@@ -258,6 +260,26 @@ typedef struct {
 	bool ok;
 } http_server_t;
 
+typedef struct {
+	char guid[68];
+	int32_t rank;
+} http_instance_t;
+
+static const JsonProperty http_instance_properties[] = MakeJsonProperties(
+	MakeJsonProperty(http_instance_t, guid, JsonPropertyCharacters),
+	MakeJsonProperty(http_instance_t, rank, JsonPropertyInteger)
+);
+
+typedef struct {
+	char name[64];
+	int32_t value;
+} http_item_t;
+
+static const JsonProperty http_item_properties[] = MakeJsonProperties(
+	MakeJsonProperty(http_item_t, name, JsonPropertyCharacters),
+	MakeJsonProperty(http_item_t, value, JsonPropertyInteger)
+);
+
 static int SDLCALL http_server_thread(void *data) {
 	http_server_t *ctx = data;
 
@@ -356,6 +378,99 @@ START_TEST(check_Net_Http_roundtrip) {
 
 } END_TEST
 
+START_TEST(check_Net_HttpGetInstance_json) {
+
+	Net_Init();
+
+	const in_port_t port = 39982;
+
+	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+
+	const char payload[] = "{\"guid\":\"abc123\",\"rank\":7}";
+
+	http_server_t server = {
+		.listen_sock = listen_sock,
+		.port = port,
+		.payload = payload,
+		.payload_len = sizeof(payload) - 1,
+		.ok = false,
+	};
+
+	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
+
+	char url[128];
+	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
+
+	http_instance_t instance = { 0 };
+	const int32_t status = Net_HttpGetInstance(url, http_instance_properties, &instance);
+
+	ck_assert_int_eq(status, 200);
+	ck_assert_str_eq(instance.guid, "abc123");
+	ck_assert_int_eq(instance.rank, 7);
+
+	int thread_status;
+	SDL_WaitThread(thread, &thread_status);
+	ck_assert_int_eq(thread_status, 0);
+	ck_assert(server.ok);
+	ck_assert_str_eq(server.parsed_method, "GET");
+	ck_assert_str_eq(server.parsed_path, "test.json");
+
+	Net_CloseSocket(listen_sock);
+	Net_Shutdown();
+
+} END_TEST
+
+START_TEST(check_Net_HttpGetInstances_json) {
+
+	Net_Init();
+
+	const in_port_t port = 39983;
+
+	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+
+	const char payload[] = "[{\"name\":\"one\",\"value\":1},{\"name\":\"two\",\"value\":2}]";
+
+	http_server_t server = {
+		.listen_sock = listen_sock,
+		.port = port,
+		.payload = payload,
+		.payload_len = sizeof(payload) - 1,
+		.ok = false,
+	};
+
+	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
+
+	char url[128];
+	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
+
+	http_item_t items[2] = { 0 };
+	size_t num_items = 0;
+	const int32_t status = Net_HttpGetInstances(url, http_item_properties,
+	                                            items, sizeof(http_item_t), 2, &num_items);
+
+	ck_assert_int_eq(status, 200);
+	ck_assert_uint_eq(num_items, 2);
+	ck_assert_str_eq(items[0].name, "one");
+	ck_assert_int_eq(items[0].value, 1);
+	ck_assert_str_eq(items[1].name, "two");
+	ck_assert_int_eq(items[1].value, 2);
+
+	int thread_status;
+	SDL_WaitThread(thread, &thread_status);
+	ck_assert_int_eq(thread_status, 0);
+	ck_assert(server.ok);
+	ck_assert_str_eq(server.parsed_method, "GET");
+	ck_assert_str_eq(server.parsed_path, "test.json");
+
+	Net_CloseSocket(listen_sock);
+	Net_Shutdown();
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -391,6 +506,8 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_checked_fixture(tcase, setup, teardown);
 	tcase_set_timeout(tcase, 10);
 	tcase_add_test(tcase, check_Net_Http_roundtrip);
+	tcase_add_test(tcase, check_Net_HttpGetInstance_json);
+	tcase_add_test(tcase, check_Net_HttpGetInstances_json);
 	suite_add_tcase(suite, tcase);
 
 	// Run with CK_NOFORK because Net_HttpGet uses libcurl, which is not fork-safe

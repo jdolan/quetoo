@@ -53,6 +53,7 @@ cvar_t *cg_draw_weapon_z;
 cvar_t *cg_draw_vitals_pulse;
 cvar_t *cg_entity_bob;
 cvar_t *cg_entity_rotate;
+cvar_t *cg_force_skin;
 cvar_t *cg_fov;
 cvar_t *cg_fov_zoom;
 cvar_t *cg_fov_interpolate;
@@ -127,6 +128,7 @@ static void Cg_Init(void) {
   cg_draw_vitals_pulse = cgi.AddCvar("cg_draw_vitals_pulse", "1", CVAR_ARCHIVE, "Pulse the vitals when low");
   cg_entity_bob = cgi.AddCvar("cg_entity_bob", "1", CVAR_ARCHIVE, "Controls the bobbing of items");
   cg_entity_rotate = cgi.AddCvar("cg_entity_rotate", "1", CVAR_ARCHIVE, "Controls the rotation of items");
+  cg_force_skin = cgi.AddCvar("cg_force_skin", "", CVAR_ARCHIVE | CVAR_R_MEDIA, "Force all other players to use this model/skin (e.g. \"qforcer/default\").");
   cg_fov = cgi.AddCvar("cg_fov", "110", CVAR_ARCHIVE, "Horizontal field of view, in degrees");
   cg_fov_zoom = cgi.AddCvar("cg_fov_zoom", "55", CVAR_ARCHIVE, "Zoomed in field of view");
   cg_fov_interpolate = cgi.AddCvar("cg_fov_interpolate", "1", CVAR_ARCHIVE, "Interpolate between field of view changes (default 1.0).");

@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+"""Query a Quetoo dedicated server status."""
+
+import argparse
+import socket
+import sys
+
+TIMEOUT = 2
+DEFAULT_ADDRESS = 'localhost:1998'
+
+
+def query_status(host, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(TIMEOUT)
+    s.sendto(b'\xff\xff\xff\xffstatus\n', (host, port))
+    data, _ = s.recvfrom(4096)
+    return data
+
+
+def parse_status(data):
+    lines = data.split(b'\n')
+    # line 0: b'\xff\xff\xff\xffstatus'
+    # line 1: server infostring (\key\value pairs)
+    # lines 2+: player entries (\key\value pairs)
+
+    info = {}
+    if len(lines) > 1:
+        parts = lines[1].split(b'\\')
+        for i in range(0, len(parts) - 1, 2):
+            info[parts[i].decode(errors='replace')] = parts[i + 1].decode(errors='replace')
+
+    players = []
+    for line in lines[2:]:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split(b'\\')
+        player = {}
+        for i in range(1, len(parts) - 1, 2):
+            player[parts[i].decode(errors='replace')] = parts[i + 1].decode(errors='replace')
+        if player:
+            players.append(player)
+
+    return info, players
+
+
+def parse_address(addr):
+    if ':' in addr:
+        host, port_str = addr.rsplit(':', 1)
+        try:
+            return host, int(port_str)
+        except ValueError:
+            print(f'error: invalid port: {port_str}', file=sys.stderr)
+            sys.exit(1)
+    return addr, 1998
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Query a Quetoo server status.')
+    parser.add_argument('address', nargs='?', default=DEFAULT_ADDRESS,
+                        metavar='host:port',
+                        help=f'Server address (default: {DEFAULT_ADDRESS})')
+    parser.add_argument('--num-humans', action='store_true',
+                        help='Print the number of connected human (non-bot) clients')
+    parser.add_argument('--num-clients', action='store_true',
+                        help='Print the total number of connected clients')
+    args = parser.parse_args()
+
+    host, port = parse_address(args.address)
+
+    try:
+        data = query_status(host, port)
+    except Exception as e:
+        print(f'error: could not reach {host}:{port}: {e}', file=sys.stderr)
+        sys.exit(1)
+
+    info, players = parse_status(data)
+
+    if args.num_humans:
+        print(sum(1 for p in players if p.get('ai') != '1'))
+        return
+
+    if args.num_clients:
+        print(len(players))
+        return
+
+    # Default: human-readable summary
+    print(f"hostname : {info.get('sv_hostname', '?')}")
+    print(f"map      : {info.get('sv_map', '?')}")
+    print(f"players  : {len(players)} / {info.get('sv_max_clients', '?')}")
+
+    if players:
+        print()
+        print(f"{'name':<24} {'score':>6} {'ping':>5} {'bot':>4}")
+        print('-' * 44)
+        for p in players:
+            print(f"{p.get('name', '?'):<24} {p.get('score', '?'):>6} {p.get('ping', '?'):>5} {'yes' if p.get('ai') == '1' else 'no':>4}")
+
+
+if __name__ == '__main__':
+    main()

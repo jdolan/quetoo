@@ -47,8 +47,8 @@ static void Sv_New_f(void) {
   Net_WriteByte(&sv_client->net_chan.message, 0);
   Net_WriteString(&sv_client->net_chan.message, Cvar_GetString("game"));
 
-  // send full level name
-  Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_NAME]);
+  // send level title
+  Net_WriteString(&sv_client->net_chan.message, sv.config_strings[CS_MESSAGE]);
 
   // begin fetching config_strings
   Net_WriteByte(&sv_client->net_chan.message, SV_CMD_CBUF_TEXT);

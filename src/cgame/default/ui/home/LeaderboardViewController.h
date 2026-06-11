@@ -27,18 +27,33 @@
 
 /**
  * @file
- * @brief Home ViewController.
+ * @brief Leaderboard ViewController.
  */
 
-typedef struct HomeViewController HomeViewController;
-typedef struct HomeViewControllerInterface HomeViewControllerInterface;
+#define LEADERBOARD_MAX_ENTRIES 50
 
 /**
- * @brief The HomeViewController type.
+ * @brief A single row from the global leaderboard API.
+ */
+typedef struct {
+  int32_t rank;
+  char    name[64];
+  char    guid[68];
+  int32_t frags;
+  int32_t deaths;
+  int32_t captures;
+  int32_t time_played;
+} LeaderboardEntry;
+
+typedef struct LeaderboardViewController LeaderboardViewController;
+typedef struct LeaderboardViewControllerInterface LeaderboardViewControllerInterface;
+
+/**
+ * @brief The LeaderboardViewController type.
  * @extends ViewController
  * @ingroup ViewControllers
  */
-struct HomeViewController {
+struct LeaderboardViewController {
 
   /**
    * @brief The superclass.
@@ -50,18 +65,24 @@ struct HomeViewController {
    * @brief The interface.
    * @private
    */
-  HomeViewControllerInterface *interface;
+  LeaderboardViewControllerInterface *interface;
 
   /**
-   * @brief TabViewController to contain tabs.
+   * @brief The global leaderboard table.
    */
-  TabViewController *tabViewController;
+  TableView *leaderboard;
+
+  /**
+   * @brief Current leaderboard entries fetched from the stats API.
+   */
+  LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
+  size_t num_entries;
 };
 
 /**
- * @brief The HomeViewController interface.
+ * @brief The LeaderboardViewController interface.
  */
-struct HomeViewControllerInterface {
+struct LeaderboardViewControllerInterface {
 
   /**
    * @brief The superclass interface.
@@ -70,9 +91,9 @@ struct HomeViewControllerInterface {
 };
 
 /**
- * @fn Class *HomeViewController::_HomeViewController(void)
- * @brief The HomeViewController archetype.
- * @return The HomeViewController Class.
- * @memberof HomeViewController
+ * @fn Class *LeaderboardViewController::_LeaderboardViewController(void)
+ * @brief The LeaderboardViewController archetype.
+ * @return The LeaderboardViewController Class.
+ * @memberof LeaderboardViewController
  */
-CGAME_EXPORT Class *_HomeViewController(void);
+CGAME_EXPORT Class *_LeaderboardViewController(void);

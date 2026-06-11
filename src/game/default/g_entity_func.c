@@ -325,6 +325,20 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
 
   const vec3_t dir = ent->velocity;
 
+  // Dead entities (meat boxes) are obliterated immediately, no throttle needed.
+  // Symmetrical to non-meat entities which get G_Explode + freed.
+  // Client entities are never freed while connected, even when SOLID_DEAD.
+  if (other->solid == SOLID_DEAD) {
+    if (!other->client) {
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_GIB);
+      gi.WritePosition(other->s.origin);
+      gi.Multicast(other->s.origin, MULTICAST_PVS);
+      G_FreeEntity(other);
+    }
+    return;
+  }
+
   if (g_level.time < ent->touch_time) {
     return;
   }
@@ -332,48 +346,18 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
   ent->touch_time = g_level.time + 1000;
 
   if (G_IsMeat(other)) {
-
-    if (other->solid == SOLID_DEAD) {
-      G_Damage(&(g_damage_t) {
-        .target = other,
-        .inflictor = ent,
-        .attacker = NULL,
-        .dir = dir,
-        .point = other->s.origin,
-        .normal = Vec3_Up(),
-        .damage = 999,
-        .knockback = 0,
-        .flags = DMG_NO_ARMOR,
-        .mod = MOD_CRUSH
-      });
-      if (other->in_use) {
-        if (other->client) {
-          gi.WriteByte(SV_CMD_TEMP_ENTITY);
-          gi.WriteByte(TE_GIB);
-          gi.WritePosition(other->s.origin);
-          gi.Multicast(other->s.origin, MULTICAST_PVS);
-
-          other->solid = SOLID_NOT;
-        } else {
-          G_Gib(other);
-        }
-      }
-    } else if (other->solid == SOLID_BOX) {
-      G_Damage(&(g_damage_t) {
-        .target = other,
-        .inflictor = ent,
-        .attacker = NULL,
-        .dir = dir,
-        .point = other->s.origin,
-        .normal = Vec3_Up(),
-        .damage = ent->damage,
-        .knockback = 0,
-        .flags = DMG_NO_ARMOR,
-        .mod = MOD_CRUSH
-      });
-    } else {
-      G_Debug("Unhandled blocker: %s: %s\n", etos(ent), etos(other));
-    }
+    G_Damage(&(g_damage_t) {
+      .target = other,
+      .inflictor = ent,
+      .attacker = NULL,
+      .dir = dir,
+      .point = other->s.origin,
+      .normal = Vec3_Up(),
+      .damage = ent->damage,
+      .knockback = 0,
+      .flags = DMG_NO_ARMOR,
+      .mod = MOD_CRUSH
+    });
   } else {
     G_Damage(&(g_damage_t) {
       .target = other,

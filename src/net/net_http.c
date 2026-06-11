@@ -21,8 +21,63 @@
 
 #include "net_http.h"
 
+#include <assert.h>
+#include <string.h>
+
+#include <Objectively/JSONSerialization.h>
+#include <Objectively/Once.h>
+#include <Objectively/URLCache.h>
 #include <Objectively/URLRequest.h>
 #include <Objectively/URLSession.h>
+
+/**
+ * @brief Returns Quetoo's shared HTTP session, enabling response caching on demand.
+ */
+static URLSession *session;
+static Once sessionOnce;
+
+static int32_t Net_HttpJsonFirstByte(const Data *data) {
+
+  if (data && data->bytes) {
+    for (size_t i = 0; i < data->length; i++) {
+      switch (data->bytes[i]) {
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\n':
+          continue;
+        default:
+          return (int32_t) data->bytes[i];
+      }
+    }
+  }
+
+  return -1;
+}
+
+static URLSession *Net_HttpSession(void) {
+
+  do_once(&sessionOnce, {
+    session = $$(URLSession, sharedInstance);
+
+    if (session->configuration->urlCache == NULL) {
+      session->configuration->urlCache = $(alloc(URLCache), init);
+      assert(session->configuration->urlCache);
+    }
+  });
+
+  return session;
+}
+
+/**
+ * @brief Clears the shared HTTP response cache, if one exists.
+ */
+void Net_HttpClearCache(void) {
+
+  if (session && session->configuration->urlCache) {
+    $(session->configuration->urlCache, removeAllCachedResponses);
+  }
+}
 
 /**
  * @brief Synchronously performs an HTTP `GET` request and returns the response body.
@@ -33,7 +88,7 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
   URL *url = $(alloc(URL), initWithCharacters, url_string);
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithURL, url, NULL);
   release(url);
 
@@ -55,6 +110,89 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
   }
 
   release(task);
+  return status;
+}
+
+/**
+ * @brief Synchronously performs an HTTP `GET` request and deserializes a single JSON object.
+ */
+int32_t Net_HttpGetInstance(const char *url_string, const JsonProperty *properties, void *instance) {
+
+  assert(url_string);
+  assert(properties);
+  assert(instance);
+
+  void *body = NULL;
+  size_t length = 0;
+
+  const int32_t status = Net_HttpGet(url_string, &body, &length);
+  if (status == 200) {
+    Data *data = $$(Data, dataWithConstMemory, body, length);
+    const int32_t first_byte = Net_HttpJsonFirstByte(data);
+    if (first_byte != '{') {
+      Com_Warn("%s: Failed to parse JSON object\n", url_string);
+      release(data);
+      Mem_Free(body);
+      return 0;
+    }
+
+    if ($$(JSONSerialization, instanceFromData, properties, data, instance) != 1) {
+      Com_Warn("%s: Failed to parse JSON object\n", url_string);
+      release(data);
+      Mem_Free(body);
+      return 0;
+    }
+
+    release(data);
+  } else if (status) {
+    Com_Warn("%s: HTTP %d\n", url_string, status);
+  } else {
+    Com_Warn("%s: HTTP request failed\n", url_string);
+  }
+
+  Mem_Free(body);
+  return status;
+}
+
+/**
+ * @brief Synchronously performs an HTTP `GET` request and deserializes a JSON array.
+ */
+int32_t Net_HttpGetInstances(const char *url_string, const JsonProperty *properties,
+                             void *instances, size_t stride, size_t count, size_t *instances_count) {
+
+  assert(url_string);
+  assert(properties);
+  assert(instances);
+  assert(instances_count);
+
+  *instances_count = 0;
+  if (count) {
+    memset(instances, 0, stride * count);
+  }
+
+  void *body = NULL;
+  size_t length = 0;
+
+  const int32_t status = Net_HttpGet(url_string, &body, &length);
+  if (status == 200) {
+    Data *data = $$(Data, dataWithConstMemory, body, length);
+    const int32_t first_byte = Net_HttpJsonFirstByte(data);
+    if (first_byte != '[') {
+      Com_Warn("%s: Failed to parse JSON array\n", url_string);
+      release(data);
+      Mem_Free(body);
+      return 0;
+    }
+
+    *instances_count = $$(JSONSerialization, instancesFromData, properties, data, instances, stride, count);
+    release(data);
+  } else if (status) {
+    Com_Warn("%s: HTTP %d\n", url_string, status);
+  } else {
+    Com_Warn("%s: HTTP request failed\n", url_string);
+  }
+
+  Mem_Free(body);
   return status;
 }
 
@@ -93,7 +231,7 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *u
   Com_Debug(DEBUG_NET, "%s\n", url_string);
 
   URL *url = $(alloc(URL), initWithCharacters, url_string);
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetAsync_Completion);
   release(url);
 
@@ -151,7 +289,7 @@ void Net_HttpPostAsync(const char *url_string, const void *body, size_t length,
 
   $(request, setValueForHTTPHeaderField, content_type, "Content-Type");
 
-  URLSession *session = $$(URLSession, sharedInstance);
+  URLSession *session = Net_HttpSession();
   URLSessionDataTask *task = $(session, dataTaskWithRequest, request, Net_HttpPostAsync_Completion);
   release(request);
 

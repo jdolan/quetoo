@@ -89,12 +89,12 @@ static GLint Cg_DrawScoresHeader(void) {
 
   y = 64 - ch - 4;
 
-  const char *map_name = cgi.ConfigString(CS_NAME);
-  const GLint sw = cgi.StringWidth(map_name);
+  const char *title = cgi.ConfigString(CS_MESSAGE);
+  const GLint sw = cgi.StringWidth(title);
 
   // map title
   x = cgi.context->w / 2 - sw / 2;
-  cgi.Draw2DString(x, y, map_name, color_white);
+  cgi.Draw2DString(x, y, title, color_white);
 
   y += ch;
 

@@ -23,8 +23,20 @@
  #include <winsock2.h>
 #endif
 
+#include <Objectively/JSONSerialization.h>
 #include "cl_local.h"
+#include "net/net_http.h"
 #include "server/server.h"
+
+#define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
+
+typedef struct {
+  char guid[68];
+} GuidHashResponse;
+
+static const JsonProperty guid_hash_properties[] = MakeJsonProperties(
+  MakeJsonProperty(GuidHashResponse, guid, JsonPropertyCharacters)
+);
 
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
@@ -46,6 +58,32 @@ cvar_t *rate;
 cvar_t *qport;
 
 cvar_t *cl_draw_net_messages;
+
+/**
+ * @brief Requests the server-side GUID hash once at startup and stores it in `guid_hashed`.
+ */
+static void Cl_InitGuidHash(void) {
+
+  if (!guid || !guid->string[0]) {
+    Cvar_ForceSetString("guid_hashed", "");
+    return;
+  }
+
+  Cvar_ForceSetString("guid_hashed", "");
+
+  char url[256];
+  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+
+  GuidHashResponse response = { 0 };
+
+  if (Net_HttpGetInstance(url, guid_hash_properties, &response) == 200) {
+    if (response.guid[0]) {
+      Cvar_ForceSetString("guid_hashed", response.guid);
+    } else {
+      Com_Warn("GUID hash response missing guid field\n");
+    }
+  }
+}
 
 cl_static_t cls;
 cl_client_t cl;
@@ -285,6 +323,7 @@ void Cl_Disconnect(void) {
   Cl_SendDisconnect();
 
   Cl_ClearState();
+  Net_HttpClearCache();
 
   if (cls.demo_file) {
     Cl_Stop_f();
@@ -536,6 +575,8 @@ static void Cl_InitLocal(void) {
     g_free(uuid);
   }
 
+  Cvar_Add("guid_hashed", "", CVAR_NO_SET, NULL);
+
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
   message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
@@ -728,6 +769,8 @@ void Cl_Init(void) {
   Cl_InitKeys();
 
   Net_Config(NS_UDP_CLIENT, true);
+
+  Cl_InitGuidHash();
 
   S_Init();
 

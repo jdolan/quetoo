@@ -106,6 +106,12 @@ static const g_entity_class_t g_entity_classes[] = {
   { "misc_weather", G_FreeEntity },
 };
 
+static const cm_entity_t *g_map;
+
+static const cm_entity_t *G_MapValue(const char *key) {
+  return g_map ? gi.EntityValue(g_map, key) : NULL;
+}
+
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
@@ -237,6 +243,7 @@ static void G_InitMedia(void) {
 
   // precache player sounds; clients will load these when a new player model gets loaded.
   gi.SoundIndex("*death_1");
+  gi.SoundIndex("*death_2");
   gi.SoundIndex("*drown_1");
   gi.SoundIndex("*fall_1");
   gi.SoundIndex("*fall_2");
@@ -263,8 +270,10 @@ static void G_InitMedia(void) {
   g_media.models.fireball = gi.ModelIndex("models/fireball/tris");
   g_media.sounds.bfg_hit = gi.SoundIndex("weapons/bfg/hit");
   g_media.sounds.bfg_prime = gi.SoundIndex("weapons/bfg/prime");
-  g_media.sounds.death = gi.SoundIndex("*death_1");
+  g_media.sounds.death[0] = gi.SoundIndex("*death_1");
+  g_media.sounds.death[1] = gi.SoundIndex("*death_2");
   g_media.sounds.gasp = gi.SoundIndex("*gasp_1");
+  g_media.sounds.gurp = gi.SoundIndex("*gurp_1");
   g_media.sounds.pain[0] = gi.SoundIndex("*pain25_1");
   g_media.sounds.pain[1] = gi.SoundIndex("*pain50_1");
   g_media.sounds.pain[2] = gi.SoundIndex("*pain75_1");
@@ -639,7 +648,7 @@ void G_SpawnTechs(void) {
 /**
  * @brief Spawns game entities from the BSP entity definition lump.
  */
-void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_entities) {
+void G_SpawnEntities(const char *name, const cm_entity_t *props, cm_entity_t *const *entities, size_t num_entities) {
 
   // Drop bots, they will reconnect via G_Ai_Frame
   G_ForEachClient(cl, {
@@ -651,6 +660,8 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   gi.FreeTag(MEM_TAG_GAME_LEVEL);
 
   memset(&g_level, 0, sizeof(g_level));
+
+  g_strlcpy(g_level.name, name, sizeof(g_level.name));
 
   g_level.frags    = g_array_new(false, false, sizeof(g_frag_t));
   g_level.captures = g_array_new(false, false, sizeof(g_capture_t));
@@ -668,7 +679,7 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
     G_FreeEntity(ge.entities[i]);
   }
 
-  g_strlcpy(g_level.name, name, sizeof(g_level.name));
+  g_map = props;
 
   G_InitMedia();
 
@@ -695,6 +706,8 @@ void G_SpawnEntities(const char *name, cm_entity_t *const *entities, size_t num_
   G_ResetItems();
 
   G_Ai_Load();
+
+  g_map = NULL;
 }
 
 /**
@@ -794,19 +807,18 @@ static void G_worldspawn(g_entity_t *ent) {
 
   ent->s.bounds = ent->bounds;
 
-  const g_map_list_map_t *map = G_MapList_Find(NULL, g_level.name);
-
   if (ent->message && *ent->message) {
-    g_strlcpy(g_level.title, ent->message, sizeof(g_level.title));
+    g_strlcpy(g_level.message, ent->message, sizeof(g_level.message));
   } else {
-    g_strlcpy(g_level.title, g_level.name, sizeof(g_level.title));
+    g_strlcpy(g_level.message, g_level.name, sizeof(g_level.message));
   }
 
-  gi.SetConfigString(CS_NAME, g_level.title);
+  gi.SetConfigString(CS_MESSAGE, g_level.message);
   gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
-  if (map && map->gravity > 0) { // prefer maps.lst gravity
-    g_level.gravity = map->gravity;
+  const cm_entity_t *gravity_map = G_MapValue("gravity");
+  if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // prefer map metadata gravity
+    g_level.gravity = gravity_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *gravity = gi.EntityValue(ent->def, "gravity");
     if (gravity->parsed & ENTITY_INTEGER) {
@@ -816,10 +828,11 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  if (g_strcmp0(g_gameplay->string, "default")) { // perfer g_gameplay
+  const cm_entity_t *gameplay_map = G_MapValue("gameplay");
+  if (g_strcmp0(g_gameplay->string, "default")) { // prefer g_gameplay
     g_level.gameplay = G_GameplayByName(g_gameplay->string);
-  } else if (map && map->gameplay > -1) { // then maps.lst gameplay
-    g_level.gameplay = map->gameplay;
+  } else if (gameplay_map && (gameplay_map->parsed & ENTITY_INTEGER) && gameplay_map->integer > -1) { // then map metadata gameplay
+    g_level.gameplay = gameplay_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *gameplay = gi.EntityValue(ent->def, "gameplay");
     if (*gameplay->string) {
@@ -840,8 +853,9 @@ static void G_worldspawn(g_entity_t *ent) {
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", g_level.items));
 
-  if (map && map->teams > -1) { // prefer maps.lst teams
-    g_level.teams = map->teams;
+  const cm_entity_t *teams_map = G_MapValue("teams");
+  if (teams_map && (teams_map->parsed & ENTITY_INTEGER) && teams_map->integer > -1) { // prefer map metadata teams
+    g_level.teams = teams_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *teams = gi.EntityValue(ent->def, "teams");
     if (teams->parsed & ENTITY_INTEGER) {
@@ -851,8 +865,9 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  if (map && map->num_teams > -1) { // prefer maps.lst teams
-    g_level.num_teams = map->num_teams;
+  const cm_entity_t *num_teams_map = G_MapValue("num_teams");
+  if (num_teams_map && (num_teams_map->parsed & ENTITY_INTEGER) && num_teams_map->integer > -1) { // prefer map metadata teams
+    g_level.num_teams = num_teams_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *num_teams = gi.EntityValue(ent->def, "num_teams");
     if (num_teams->parsed & ENTITY_INTEGER) {
@@ -870,8 +885,9 @@ static void G_worldspawn(g_entity_t *ent) {
     g_level.num_teams = Clampf(g_level.num_teams, 2, MAX_TEAMS);
   }
 
-  if (map && map->ctf > -1) { // prefer maps.lst ctf
-    g_level.ctf = map->ctf;
+  const cm_entity_t *ctf_map = G_MapValue("ctf");
+  if (ctf_map && (ctf_map->parsed & ENTITY_INTEGER) && ctf_map->integer > -1) { // prefer map metadata ctf
+    g_level.ctf = ctf_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *ctf = gi.EntityValue(ent->def, "ctf");
     if (ctf->parsed & ENTITY_INTEGER) {
@@ -881,20 +897,23 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  if (map && map->hook > -1) {
-    g_level.hook_map = map->hook;
+  const cm_entity_t *hook_map = G_MapValue("hook");
+  if (hook_map && (hook_map->parsed & ENTITY_INTEGER) && hook_map->integer > -1) {
+    g_level.hook_map = hook_map->integer;
   } else {
     g_level.hook_map = -1;
   }
 
-  if (map && map->techs > -1) {
-    g_level.techs_map = map->techs;
+  const cm_entity_t *techs_map = G_MapValue("techs");
+  if (techs_map && (techs_map->parsed & ENTITY_INTEGER) && techs_map->integer > -1) {
+    g_level.techs_map = techs_map->integer;
   } else {
     g_level.techs_map = -1;
   }
 
-  if (map && map->min_clients > -1) {
-    g_level.min_clients_map = map->min_clients;
+  const cm_entity_t *min_clients_map = G_MapValue("min_clients");
+  if (min_clients_map && (min_clients_map->parsed & ENTITY_INTEGER) && min_clients_map->integer > -1) {
+    g_level.min_clients_map = min_clients_map->integer;
   } else {
     g_level.min_clients_map = -1;
   }
@@ -906,8 +925,9 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_CTF, va("%d", g_level.ctf));
   gi.SetConfigString(CS_HOOK_PULL_SPEED, g_hook_pull_speed->string);
 
-  if (map && map->frag_limit > -1) { // prefer maps.lst frag_limit
-    g_level.frag_limit = map->frag_limit;
+  const cm_entity_t *frag_limit_map = G_MapValue("frag_limit");
+  if (frag_limit_map && (frag_limit_map->parsed & ENTITY_INTEGER) && frag_limit_map->integer > -1) { // prefer map metadata frag_limit
+    g_level.frag_limit = frag_limit_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *frag_limit = gi.EntityValue(ent->def, "frag_limit");
     if (frag_limit->parsed & ENTITY_INTEGER) {
@@ -917,8 +937,9 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  if (map && map->capture_limit > -1) { // prefer maps.lst capture_limit
-    g_level.capture_limit = map->capture_limit;
+  const cm_entity_t *capture_limit_map = G_MapValue("capture_limit");
+  if (capture_limit_map && (capture_limit_map->parsed & ENTITY_INTEGER) && capture_limit_map->integer > -1) { // prefer map metadata capture_limit
+    g_level.capture_limit = capture_limit_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *capture_limit = gi.EntityValue(ent->def, "capture_limit");
     if (capture_limit->parsed & ENTITY_INTEGER) {
@@ -929,8 +950,9 @@ static void G_worldspawn(g_entity_t *ent) {
   }
 
   float minutes;
-  if (map && map->time_limit > -1) { // prefer maps.lst time_limit
-    minutes = map->time_limit;
+  const cm_entity_t *time_limit_map = G_MapValue("time_limit");
+  if (time_limit_map && (time_limit_map->parsed & ENTITY_FLOAT) && time_limit_map->value > -1.f) { // prefer map metadata time_limit
+    minutes = time_limit_map->value;
   } else { // or fall back on worldspawn
     const cm_entity_t *time_limit = gi.EntityValue(ent->def, "time_limit");
     if (time_limit->parsed & ENTITY_FLOAT) {
@@ -941,8 +963,9 @@ static void G_worldspawn(g_entity_t *ent) {
   }
   g_level.time_limit = minutes * 60 * 1000;
 
-  if (map && *map->give) { // prefer maps.lst give
-    g_strlcpy(g_level.give, map->give, sizeof(g_level.give));
+  const cm_entity_t *give_map = G_MapValue("give");
+  if (give_map && *give_map->string) { // prefer map metadata give
+    g_strlcpy(g_level.give, give_map->string, sizeof(g_level.give));
   } else { // or fall back on worldspawn
     const cm_entity_t *give = gi.EntityValue(ent->def, "give");
     if (*give->string) {
@@ -952,8 +975,9 @@ static void G_worldspawn(g_entity_t *ent) {
     }
   }
 
-  if (map && *map->music) { // prefer maps.lst music
-    g_strlcpy(g_level.music, map->music, sizeof(g_level.music));
+  const cm_entity_t *music_map = G_MapValue("music");
+  if (music_map && *music_map->string) { // prefer map metadata music
+    g_strlcpy(g_level.music, music_map->string, sizeof(g_level.music));
   } else { // or fall back on worldspawn
     const cm_entity_t *music = gi.EntityValue(ent->def, "music");
     if (*music->string) {

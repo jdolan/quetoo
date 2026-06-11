@@ -183,6 +183,12 @@
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h">
       <Filter>src\default\ui\home</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\home\LeaderboardViewController.h">
+      <Filter>src\default\ui\home</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\default\ui\home\StatsViewController.h">
+      <Filter>src\default\ui\home</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h">
       <Filter>src\default\ui\controls</Filter>
     </ClInclude>
@@ -366,6 +372,12 @@
       <Filter>src\default\ui\credits</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c">
+      <Filter>src\default\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\home\LeaderboardViewController.c">
+      <Filter>src\default\ui\home</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\default\ui\home\StatsViewController.c">
       <Filter>src\default\ui\home</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c">

@@ -71,6 +71,8 @@
     <ClInclude Include="..\src\cgame\default\ui\editor\MeshViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\credits\CreditsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\home\HomeViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\home\LeaderboardViewController.h" />
+    <ClInclude Include="..\src\cgame\default\ui\home\StatsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\LoadingViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainView.h" />
     <ClInclude Include="..\src\cgame\default\ui\main\MainViewController.h" />
@@ -136,6 +138,8 @@
     <ClCompile Include="..\src\cgame\default\ui\editor\MeshViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\credits\CreditsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\home\HomeViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\home\LeaderboardViewController.c" />
+    <ClCompile Include="..\src\cgame\default\ui\home\StatsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\LoadingViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainView.c" />
     <ClCompile Include="..\src\cgame\default\ui\main\MainViewController.c" />

@@ -757,7 +757,7 @@ static uint32_t G_Ai_Hunt(g_client_t *cl, pm_cmd_t *cmd) {
 static uint32_t G_Ai_Weaponry(g_client_t *cl, pm_cmd_t *cmd) {
 
   // if we're dead, just keep clicking so we respawn.
-  if (cl->entity->solid == SOLID_DEAD) {
+  if (cl->entity->dead) {
 
     if (g_level.frame_num & 1) {
       cmd->buttons = BUTTON_ATTACK;

@@ -145,19 +145,12 @@ typedef struct {
  */
 typedef enum {
     ENTITY_STRING = 0x1,
-
     ENTITY_INTEGER = 0x2,
-
     ENTITY_FLOAT = 0x4,
-
     ENTITY_VEC2 = 0x8,
-
     ENTITY_VEC3 = 0x10,
-
     ENTITY_COLOR = ENTITY_VEC3,
-
     ENTITY_VEC4 = 0x20,
-
 } cm_entity_parsed_t;
 
 /**

@@ -21,16 +21,12 @@
 
 #pragma once
 
-#include "g_types.h"
+#include "sv_types.h"
 
-#if defined(__GAME_LOCAL_H__)
+#if defined(__SV_LOCAL_H__)
 
-extern GList *g_map_list;
+const cm_entity_t *Sv_NextMap(void);
+void Sv_InitMapList(void);
+void Sv_ShutdownMapList(void);
 
-const g_map_list_map_t *G_MapList_Find(GList *list, const char *name);
-const g_map_list_map_t *G_MapList_Next(void);
-
-void G_MapList_Init(void);
-void G_MapList_Shutdown(void);
-
-#endif /* __GAME_LOCAL_H__ */
+#endif /* __SV_LOCAL_H__ */

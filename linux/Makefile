@@ -47,6 +47,7 @@ $(STAGING): compile
 	install -d $(STAGING)
 	cp -r quetoo/* $(STAGING)
 	find $(STAGING) -name .turd -delete
+	install -d $(STAGING)/bin $(STAGING)/lib $(STAGING)/share
 	$(MAKE) -C .. DESTDIR=$(abspath $(STAGING)) install
 
 $(LINUXDEPLOY):
@@ -109,7 +110,7 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 	# derives lib_dir and data_dir from /usr/lib/quetoo regardless of how it was invoked.
 	# The RPATH ($ORIGIN/../lib) baked in by linuxdeploy also resolves from the real
 	# binary location, so no LD_LIBRARY_PATH wrapper is needed.
-	for bin in quetoo quetoo-dedicated quemap quetoo-master quetoo-attach quetoo-update; do \
+	for bin in quetoo quetoo-dedicated quemap quetoo-master quetoo-attach quetoo-update quetoo-status; do \
 		install -d $(PKGDIR)/usr/bin; \
 		ln -sf /usr/lib/quetoo/bin/$$bin $(PKGDIR)/usr/bin/$$bin; \
 	done
@@ -122,6 +123,7 @@ $(TARGET)/.pkg-stamp: $(APPDIR)
 	install -Dm644 quetoo/etc/quetoo-dedicated/default.cfg       $(PKGDIR)/etc/quetoo-dedicated/default.cfg
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-dedicated-start $(PKGDIR)/usr/lib/quetoo/bin/quetoo-dedicated-start
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-update       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-update
+	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-status       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-status
 	install -Dm755 quetoo/usr/lib/quetoo/bin/quetoo-attach       $(PKGDIR)/usr/lib/quetoo/bin/quetoo-attach
 	install -Dm440 quetoo/etc/sudoers.d/quetoo                   $(PKGDIR)/etc/sudoers.d/quetoo
 
@@ -145,8 +147,8 @@ deb: $(TARGET)/.pkg-stamp
 		--deb-recommends "quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
-		--after-install postinstall.sh \
-		--before-remove preremove.sh \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
 		-p $(DEB) \
 		-C $(PKGDIR) .
 
@@ -168,8 +170,8 @@ rpm: $(TARGET)/.pkg-stamp
 		--rpm-tag "Recommends: quetoo-data" \
 		--config-files /etc/quetoo-dedicated/default.cfg \
 		--config-files /etc/sudoers.d/quetoo \
-		--after-install postinstall.sh \
-		--before-remove preremove.sh \
+		--after-install quetoo/postinstall.sh \
+		--before-remove quetoo/preremove.sh \
 		-p $(RPM) \
 		-C $(PKGDIR) .
 

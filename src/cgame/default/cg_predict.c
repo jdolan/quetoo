@@ -43,6 +43,10 @@ bool Cg_UsePrediction(void) {
     return false;
   }
 
+  if (cgi.client->frame.ps.pm_state.type == PM_DEAD) {
+    return false;
+  }
+
   if (cgi.client->frame.ps.pm_state.type == PM_FREEZE) {
     return false;
   }

@@ -33,7 +33,7 @@
  * all connected clients. Each ConfigString can be at most `MAX_STRING_CHARS` in
  * length. The game module is free to populate `CS_GAME - MAX_CONFIG_STRINGS`.
  */
-#define CS_NAME     0 // the server name
+#define CS_MESSAGE  0 // map message
 #define CS_PK3      1 // pk3 name
 #define CS_MANIFEST 2 // map manifest
 #define CS_BSP      3 // bsp name
@@ -278,6 +278,25 @@ typedef enum {
 #define PMF_GAME (1 << 0)
 
 /**
+ * @brief Server-tunable player-movement parameters, networked per-player
+ * inside `pm_state_t` so that client-side prediction matches the server.
+ * Each field defaults to the `PM_*` constant it replaces (see bg_pmove.h).
+ */
+typedef struct {
+  int16_t gravity;     // world gravity; default from g_gravity / map (int16)
+  float gravity_water; // PM_GRAVITY_WATER
+
+  float accel_ground, accel_ground_slick, accel_air, accel_water,
+        accel_spectator, accel_ladder;
+
+  float friction_ground, friction_ground_slick, friction_air, friction_water,
+        friction_spectator, friction_ladder;
+
+  float speed_ground, speed_air, speed_water, speed_ladder, speed_spectator,
+        speed_stop, speed_jump, speed_ducked, speed_duck_stand, speed_water_jump;
+} pm_params_t;
+
+/**
  * @brief The player movement state contains quantized snapshots of player
  * position, orientation, velocity and world interaction state. This should
  * be modified only through invoking `Pm_Move`.
@@ -288,7 +307,7 @@ typedef struct {
   vec3_t velocity;
   uint16_t flags; // game-specific state flags
   uint16_t time; // duration for temporal state flags
-  int16_t gravity;
+  pm_params_t params; // server-tunable movement parameters (incl. gravity)
   vec3_t view_offset; // add to origin to resolve eyes
   float step_offset; // add to final origin to resolve step interpolation
   vec3_t view_angles; // base view angles

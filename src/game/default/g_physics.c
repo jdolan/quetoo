@@ -476,6 +476,10 @@ static void G_Physics_Push_Impact(g_entity_t *ent) {
  */
 static void G_Physics_Push_Revert(const g_push_t *p) {
 
+  if (!p->ent->in_use) {
+    return;
+  }
+
   p->ent->s.origin = p->origin;
   p->ent->s.angles = p->angles;
 
@@ -536,6 +540,14 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
     g_entity_t *other = ents[i];
 
     if (other->solid == SOLID_BSP) {
+      continue;
+    }
+
+    // Dead entities are not pushed; if the mover has moved into one, obliterate it.
+    if (other->solid == SOLID_DEAD) {
+      if (!G_GoodPosition(other) && ent->Blocked) {
+        ent->Blocked(ent, other);
+      }
       continue;
     }
 
@@ -757,6 +769,14 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
       continue;
     }
 
+    // Dead entities are not pushed; if the mover has moved into one, obliterate it.
+    if (ent->solid == SOLID_DEAD) {
+      if (!G_GoodPosition(ent) && self->Blocked) {
+        self->Blocked(self, ent);
+      }
+      continue;
+    }
+
     if (ent->move_type < MOVE_TYPE_WALK) {
       continue;
     }
@@ -845,7 +865,7 @@ static g_entity_t *G_Physics_Push_Rotate(g_entity_t *self, const vec3_t amove) {
         }
       }
 
-      gi.Warn("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remaining_move);
+      G_Debug("%s rotated %s, but couldn't fit after positional correction; %f was remaining\n", etos(self), etos(ent), remaining_move);
 
       // Entity is completely stuck inside the pusher; apply lethal crush damage
       // immediately rather than waiting for the throttled G_MoveType_Push_Blocked path.
