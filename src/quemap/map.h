@@ -79,6 +79,11 @@ typedef struct brush_side_s {
   vec2_t scale;
 
   /**
+   * @brief True if this brush side uses Valve-220 explicit texture axes.
+   */
+  bool valve;
+
+  /**
    * @brief The texture axis for S and T, in xyz + offset notation.
    */
   vec4_t axis[2];

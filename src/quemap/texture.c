@@ -68,6 +68,23 @@ static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
  */
 void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
+  if (side->valve) {
+    // Valve-220: axes are already stored in side->axis as (direction, shift); apply scale and origin offset
+    const vec2_t scale = {
+      .x = side->scale.x ?: 1.f,
+      .y = side->scale.y ?: 1.f,
+    };
+    for (int32_t i = 0; i < 2; i++) {
+      const vec3_t dir = Vec3(side->axis[i].x, side->axis[i].y, side->axis[i].z);
+      const float shift = side->axis[i].w;
+      for (int32_t j = 0; j < 3; j++) {
+        side->axis[i].xyzw[j] /= scale.xy[i];
+      }
+      side->axis[i].w = shift + Vec3_Dot(origin, dir);
+    }
+    return;
+  }
+
   vec3_t axis[2];
   TextureAxisForPlane(&planes[side->plane], &axis[0], &axis[1]);
 
