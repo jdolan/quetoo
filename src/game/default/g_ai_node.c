@@ -1553,10 +1553,12 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       const float new_cost = node->cost + link->cost + drop_penalty;
 
       ai_node_id_t link_index = G_Ai_Node_Index(link_node);
-      bool found = costs_started[link_index / 32] & ((uint32_t)1 << (link_index % 32));
-      if (!found || new_cost < link_node->cost) {
-        costs_started[link_index / 32] |= (uint32_t)1 << (link_index % 32);
+      const bool found = (costs_started[link_index / 32] & ((uint32_t) 1u << (link_index % 32))) != 0;
+      if (!found) {
+        costs_started[link_index / 32] |= (uint32_t) 1u << (link_index % 32);
         visited++;
+      }
+      if (!found || new_cost < link_node->cost) {
 
         link_node->cost = new_cost;
         const float priority = new_cost + heuristic(link->id, end);
