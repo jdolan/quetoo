@@ -68,6 +68,11 @@ struct LeaderboardViewController {
   LeaderboardViewControllerInterface *interface;
 
   /**
+   * @brief Period filter selector (This Week / This Month / This Year / All Time).
+   */
+  Select *periodSelect;
+
+  /**
    * @brief The global leaderboard table.
    */
   TableView *leaderboard;

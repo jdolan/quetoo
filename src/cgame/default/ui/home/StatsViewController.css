@@ -2,6 +2,11 @@
   autoresizing-mask: contain;
 }
 
+.statsControls {
+  axis: horizontal;
+  padding: 0 0 8 0;
+}
+
 .statTiles {
   axis: horizontal;
   spacing: 8;

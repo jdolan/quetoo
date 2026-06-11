@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <time.h>
+
 #include "cg_local.h"
 
 #include <Objectively/JSONSerialization.h>
@@ -35,6 +37,11 @@ static const char *_frags       = "Frags";
 static const char *_deaths      = "Deaths";
 static const char *_kd          = "KD";
 static const char *_time_played = "Time";
+
+static const char *_period_week  = "week";
+static const char *_period_month = "month";
+static const char *_period_year  = "year";
+static const char *_period_all   = "";
 
 static const JsonProperty leaderboard_properties[] = MakeJsonProperties(
   MakeJsonProperty(LeaderboardEntry, rank,        JsonPropertyInteger),
@@ -76,6 +83,38 @@ static const char *formatTime(int32_t seconds) {
 }
 
 /**
+ * @brief Computes YYYY-MM-DD date strings for the given period.
+ *        Sets from to empty string for "all time" (no date filter).
+ */
+static void periodDateRange(const char *period, char *from, size_t from_len, char *to, size_t to_len) {
+  from[0] = '\0';
+  to[0]   = '\0';
+
+  if (!period || !period[0]) {
+    return;
+  }
+
+  const time_t now = time(NULL);
+  struct tm t = *localtime(&now);
+
+  strftime(to, to_len, "%Y-%m-%d", &t);
+
+  if (g_strcmp0(period, "week") == 0) {
+    t.tm_mday -= t.tm_wday;
+  } else if (g_strcmp0(period, "month") == 0) {
+    t.tm_mday = 1;
+  } else if (g_strcmp0(period, "year") == 0) {
+    t.tm_mday = 1;
+    t.tm_mon  = 0;
+  } else {
+    return;
+  }
+
+  mktime(&t);
+  strftime(from, from_len, "%Y-%m-%d", &t);
+}
+
+/**
  * @brief Fetches leaderboard rows using the given sort column.
  */
 static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
@@ -83,11 +122,19 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *sort = column ? sortParamForColumn(column->identifier) : NULL;
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
-  char url[256];
+  char from[16] = {0}, to[16] = {0};
+  const Option *period = $(this->periodSelect, selectedOption);
+  if (period) {
+    periodDateRange((const char *) period->value, from, sizeof(from), to, sizeof(to));
+  }
+
+  char url[512];
+  int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0&sort=%s&dir=%s", LEADERBOARD_MAX_ENTRIES, sort, dir);
-  } else {
-    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
+    n += g_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
+  }
+  if (from[0]) {
+    n += g_snprintf(url + n, sizeof(url) - n, "&from=%s&to=%s", from, to);
   }
 
   size_t num_entries = 0;
@@ -114,6 +161,20 @@ static void selectOwnRow(LeaderboardViewController *this) {
       return;
     }
   }
+}
+
+#pragma mark - SelectDelegate
+
+/**
+ * @see SelectDelegate::didSelectOption
+ */
+static void didSelectPeriod(Select *select, Option *option) {
+
+  LeaderboardViewController *this = select->delegate.self;
+
+  fetchLeaderboard(this, this->leaderboard->sortColumn);
+  $(this->leaderboard, reloadData);
+  selectOwnRow(this);
 }
 
 #pragma mark - TableViewDataSource
@@ -197,7 +258,8 @@ static void loadView(ViewController *self) {
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("leaderboard", &this->leaderboard)
+    MakeOutlet("periodSelect", &this->periodSelect),
+    MakeOutlet("leaderboard",  &this->leaderboard)
   );
 
   $(self->view, awakeWithResourceName, "ui/home/LeaderboardViewController.json");
@@ -205,6 +267,15 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/LeaderboardViewController.css");
   assert(self->view->stylesheet);
+
+  $(this->periodSelect, addOption, "This Week",  (ident) _period_week);
+  $(this->periodSelect, addOption, "This Month", (ident) _period_month);
+  $(this->periodSelect, addOption, "This Year",  (ident) _period_year);
+  $(this->periodSelect, addOption, "All Time",   (ident) _period_all);
+  $(this->periodSelect, selectOptionWithValue, (ident) _period_week);
+
+  this->periodSelect->delegate.self = this;
+  this->periodSelect->delegate.didSelectOption = didSelectPeriod;
 
   $(this->leaderboard, addColumnWithIdentifier, _rank);
   $(this->leaderboard, addColumnWithIdentifier, _player);

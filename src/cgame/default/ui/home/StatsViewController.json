@@ -10,6 +10,18 @@
         {
           "class": "StackView",
           "classNames": [
+            "statsControls"
+          ],
+          "subviews": [
+            {
+              "class": "Select",
+              "identifier": "periodSelect"
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "classNames": [
             "statTiles"
           ],
           "subviews": [

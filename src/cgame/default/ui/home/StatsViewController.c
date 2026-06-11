@@ -19,6 +19,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <time.h>
+
 #include "cg_local.h"
 
 #include <Objectively/JSONSerialization.h>
@@ -48,6 +50,11 @@ static const JsonProperty stats_summary_properties[] = MakeJsonProperties(
 
 static const char *_weapon = "Weapon";
 static const char *_frags  = "Frags";
+
+static const char *_period_week  = "week";
+static const char *_period_month = "month";
+static const char *_period_year  = "year";
+static const char *_period_all   = "";
 
 /**
  * @brief Formats a duration in seconds as "Xh Ym" or "Ym".
@@ -136,6 +143,136 @@ static void loadWeapons(StatsViewController *this, const Array *array) {
   }
 }
 
+/**
+ * @brief Computes YYYY-MM-DD date strings for the given period.
+ *        Sets from to empty string for "all time" (no date filter).
+ */
+static void periodDateRange(const char *period, char *from, size_t from_len, char *to, size_t to_len) {
+  from[0] = '\0';
+  to[0]   = '\0';
+
+  if (!period || !period[0]) {
+    return;
+  }
+
+  const time_t now = time(NULL);
+  struct tm t = *localtime(&now);
+
+  strftime(to, to_len, "%Y-%m-%d", &t);
+
+  if (g_strcmp0(period, "week") == 0) {
+    t.tm_mday -= t.tm_wday;
+  } else if (g_strcmp0(period, "month") == 0) {
+    t.tm_mday = 1;
+  } else if (g_strcmp0(period, "year") == 0) {
+    t.tm_mday = 1;
+    t.tm_mon  = 0;
+  } else {
+    return;
+  }
+
+  mktime(&t);
+  strftime(from, from_len, "%Y-%m-%d", &t);
+}
+
+/**
+ * @brief Fetches and displays stats for the local player.
+ */
+static void fetchStats(StatsViewController *this) {
+
+  clearStats(this);
+
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
+
+  if (!guid_hashed || !guid_hashed[0]) {
+    $(this->rankLabel->text,   setText, "—");
+    $(this->fragsLabel->text,  setText, "Sign in");
+    $(this->deathsLabel->text, setText, "—");
+    $(this->kdLabel->text,     setText, "—");
+    $(this->timeLabel->text,   setText, "—");
+    $(this->weaponsTable, reloadData);
+    return;
+  }
+
+  char from[16] = {0}, to[16] = {0};
+  const Option *period = $(this->periodSelect, selectedOption);
+  if (period) {
+    periodDateRange((const char *) period->value, from, sizeof(from), to, sizeof(to));
+  }
+
+  char url[512];
+  int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
+  if (from[0]) {
+    n += g_snprintf(url + n, sizeof(url) - n, "?from=%s&to=%s", from, to);
+  }
+
+  void *body = NULL;
+  size_t length = 0;
+
+  const int32_t status = cgi.HttpGet(url, &body, &length);
+  if (status == 200) {
+    Data *data = $$(Data, dataWithConstMemory, body, length);
+    StatsSummary summary = { 0 };
+    (void) $$(JSONSerialization, instanceFromData, stats_summary_properties, data, &summary);
+    ident json = $$(JSONSerialization, objectFromData, data, 0);
+    release(data);
+
+    if (json) {
+      Dictionary *dict = cast(Dictionary, json);
+      if (dict) {
+        this->rank = summary.rank;
+        this->frags = summary.frags;
+        this->deaths = summary.deaths;
+        this->time_played = summary.time_played;
+
+        const Dictionary *nemesis = $(dict, objectForKeyPathWithClass, "nemesis", _Dictionary());
+        if (nemesis) {
+          const String *name = $(nemesis, objectForKeyPathWithClass, "name", _String());
+          if (name) {
+            g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
+          }
+        }
+
+        loadWeapons(this, $(dict, objectForKeyPathWithClass, "kills_by_weapon", _Array()));
+
+      } else if (!cast(Null, json)) {
+        Cg_Warn("Unexpected stats response type: %s\n", classnameof(json));
+      }
+
+      updateTiles(this);
+      release(json);
+    } else {
+      this->rank = summary.rank;
+      this->frags = summary.frags;
+      this->deaths = summary.deaths;
+      this->time_played = summary.time_played;
+      updateTiles(this);
+    }
+  } else {
+    $(this->rankLabel->text,   setText, "—");
+    $(this->fragsLabel->text,  setText, "Error");
+    $(this->deathsLabel->text, setText, "—");
+    $(this->kdLabel->text,     setText, "—");
+    $(this->timeLabel->text,   setText, "—");
+    Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
+  }
+
+  cgi.Free(body);
+
+  $(this->weaponsTable, reloadData);
+}
+
+#pragma mark - SelectDelegate
+
+/**
+ * @see SelectDelegate::didSelectOption
+ */
+static void didSelectPeriod(Select *select, Option *option) {
+
+  StatsViewController *this = select->delegate.self;
+  fetchStats(this);
+}
+
 #pragma mark - TableViewDataSource
 
 /**
@@ -182,14 +319,15 @@ static void loadView(ViewController *self) {
   StatsViewController *this = (StatsViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("nameLabel",    &this->nameLabel),
-    MakeOutlet("rankLabel",    &this->rankLabel),
-    MakeOutlet("fragsLabel",   &this->fragsLabel),
-    MakeOutlet("deathsLabel",  &this->deathsLabel),
-    MakeOutlet("kdLabel",      &this->kdLabel),
-    MakeOutlet("timeLabel",    &this->timeLabel),
-    MakeOutlet("nemesisLabel", &this->nemesisLabel),
-    MakeOutlet("weapons",      &this->weaponsTable)
+    MakeOutlet("periodSelect",  &this->periodSelect),
+    MakeOutlet("nameLabel",     &this->nameLabel),
+    MakeOutlet("rankLabel",     &this->rankLabel),
+    MakeOutlet("fragsLabel",    &this->fragsLabel),
+    MakeOutlet("deathsLabel",   &this->deathsLabel),
+    MakeOutlet("kdLabel",       &this->kdLabel),
+    MakeOutlet("timeLabel",     &this->timeLabel),
+    MakeOutlet("nemesisLabel",  &this->nemesisLabel),
+    MakeOutlet("weapons",       &this->weaponsTable)
   );
 
   $(self->view, awakeWithResourceName, "ui/home/StatsViewController.json");
@@ -197,6 +335,15 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
+
+  $(this->periodSelect, addOption, "This Week",  (ident) _period_week);
+  $(this->periodSelect, addOption, "This Month", (ident) _period_month);
+  $(this->periodSelect, addOption, "This Year",  (ident) _period_year);
+  $(this->periodSelect, addOption, "All Time",   (ident) _period_all);
+  $(this->periodSelect, selectOptionWithValue, (ident) _period_week);
+
+  this->periodSelect->delegate.self = this;
+  this->periodSelect->delegate.didSelectOption = didSelectPeriod;
 
   $(this->weaponsTable, addColumnWithIdentifier, _weapon);
   $(this->weaponsTable, addColumnWithIdentifier, _frags);
@@ -219,79 +366,7 @@ static void viewWillAppear(ViewController *self) {
 
   StatsViewController *this = (StatsViewController *) self;
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-
-  if (!guid_hashed || !guid_hashed[0]) {
-    clearStats(this);
-
-    $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Sign in");
-    $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text, setText, "—");
-    $(this->timeLabel->text, setText, "—");
-    $(this->weaponsTable, reloadData);
-    return;
-  }
-
-  clearStats(this);
-
-  void *body = NULL;
-  size_t length = 0;
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
-
-  const int32_t status = cgi.HttpGet(url, &body, &length);
-  if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, length);
-    StatsSummary summary = { 0 };
-    (void) $$(JSONSerialization, instanceFromData, stats_summary_properties, data, &summary);
-    ident json = $$(JSONSerialization, objectFromData, data, 0);
-    release(data);
-
-    if (json) {
-      Dictionary *dict = cast(Dictionary, json);
-      if (dict) {
-        this->rank = summary.rank;
-        this->frags = summary.frags;
-        this->deaths = summary.deaths;
-        this->time_played = summary.time_played;
-
-        const Dictionary *nemesis = $(dict, objectForKeyPathWithClass, "nemesis", _Dictionary());
-        if (nemesis) {
-          const String *name = $(nemesis, objectForKeyPathWithClass, "name", _String());
-          if (name) {
-            g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
-          }
-        }
-
-        loadWeapons(this, $(dict, objectForKeyPathWithClass, "kills_by_weapon", _Array()));
-
-      } else if (!cast(Null, json)) {
-        Cg_Warn("Unexpected stats response type: %s\n", classnameof(json));
-      }
-
-      updateTiles(this);
-      release(json);
-    } else {
-      this->rank = summary.rank;
-      this->frags = summary.frags;
-      this->deaths = summary.deaths;
-      this->time_played = summary.time_played;
-      updateTiles(this);
-    }
-  } else {
-    $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Error");
-    $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text, setText, "—");
-    $(this->timeLabel->text, setText, "—");
-    Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
-  }
-
-  cgi.Free(body);
-
-  $(this->weaponsTable, reloadData);
+  fetchStats(this);
 }
 
 #pragma mark - Class lifecycle

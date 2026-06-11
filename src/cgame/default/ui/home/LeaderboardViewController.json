@@ -8,6 +8,18 @@
       ],
       "subviews": [
         {
+          "class": "StackView",
+          "classNames": [
+            "leaderboardControls"
+          ],
+          "subviews": [
+            {
+              "class": "Select",
+              "identifier": "periodSelect"
+            }
+          ]
+        },
+        {
           "class": "TableView",
           "identifier": "leaderboard"
         }

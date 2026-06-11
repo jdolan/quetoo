@@ -76,6 +76,11 @@ struct StatsViewController {
   char nemesis[64];
 
   /**
+   * @brief Period filter selector (This Week / This Month / This Year / All Time).
+   */
+  Select *periodSelect;
+
+  /**
    * @brief Summary stat tile labels.
    */
   Label *nameLabel;
