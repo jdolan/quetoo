@@ -232,6 +232,9 @@
 		CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE4DCF9A256F0DAD00FECAFC /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE4DCFFB256F0DF500FECAFC /* check_cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */; };
+		CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
+		CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
+		CE4E054D2FDAE7A700B92C32 /* libopenal.1.25.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4E054C2FDAE7A700B92C32 /* libopenal.1.25.2.dylib */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
 		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
@@ -301,7 +304,6 @@
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
 		CE5ABADB2F32D8BD00D05D09 /* decal_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD52F32D84000D05D09 /* decal_vs.glsl */; };
-		CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */; };
 		CE5ABAE52F6CA9AD00D05D09 /* patch.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAE42F6CA9AD00D05D09 /* patch.c */; };
 		CE5CDC331D9F518B0034757D /* ui_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5CDBB21D9F45090034757D /* ui_main.c */; };
 		CE5CDC361D9F51A90034757D /* ui_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5CDBB11D9F45090034757D /* ui_local.h */; };
@@ -467,7 +469,6 @@
 		CE80FFAC1C5E4A2800A21A51 /* sv_game.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6A91C5C58C300CD0B13 /* sv_game.c */; };
 		CE80FFAD1C5E4A2800A21A51 /* sv_init.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AB1C5C58C300CD0B13 /* sv_init.c */; };
 		CE80FFAE1C5E4A2800A21A51 /* sv_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6AE1C5C58C300CD0B13 /* sv_main.c */; };
-		CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00072EC1A00000000007 /* sv_map_list.c */; };
 		CE80FFAF1C5E4A2800A21A51 /* sv_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B01C5C58C300CD0B13 /* sv_master.c */; };
 		CE80FFB01C5E4A2800A21A51 /* sv_send.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B21C5C58C300CD0B13 /* sv_send.c */; };
 		CE80FFB11C5E4A2800A21A51 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B51C5C58C300CD0B13 /* sv_world.c */; };
@@ -480,7 +481,6 @@
 		CE80FFB81C5E4A3100A21A51 /* sv_init.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AC1C5C58C300CD0B13 /* sv_init.h */; };
 		CE80FFB91C5E4A3100A21A51 /* sv_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AD1C5C58C300CD0B13 /* sv_local.h */; };
 		CE80FFBA1C5E4A3100A21A51 /* sv_main.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6AF1C5C58C300CD0B13 /* sv_main.h */; };
-		CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00082EC1A00000000008 /* sv_map_list.h */; };
 		CE80FFBB1C5E4A3200A21A51 /* sv_master.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B11C5C58C300CD0B13 /* sv_master.h */; };
 		CE80FFBC1C5E4A3200A21A51 /* sv_send.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B31C5C58C300CD0B13 /* sv_send.h */; };
 		CE80FFBD1C5E4A3200A21A51 /* sv_types.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6B41C5C58C300CD0B13 /* sv_types.h */; };
@@ -592,6 +592,8 @@
 		CEAA7A2F27753C7500EAC853 /* TeamsViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAA7A0A27753AD400EAC853 /* TeamsViewController.json */; };
 		CEAB00032EC1A00000000003 /* sv_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00012EC1A00000000001 /* sv_http.c */; };
 		CEAB00042EC1A00000000004 /* sv_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00022EC1A00000000002 /* sv_http.h */; };
+		CEAB00052EC1A00000000005 /* sv_map_list.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAB00072EC1A00000000007 /* sv_map_list.c */; };
+		CEAB00062EC1A00000000006 /* sv_map_list.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAB00082EC1A00000000008 /* sv_map_list.h */; };
 		CEAC32B8242124BB007E1253 /* cg_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32B6242124BB007E1253 /* cg_sprite.h */; };
 		CEAC32B9242124BB007E1253 /* cg_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32B7242124BB007E1253 /* cg_sprite.c */; };
 		CEAC32BC24212553007E1253 /* r_sprite.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAC32BA24212553007E1253 /* r_sprite.c */; };
@@ -1505,8 +1507,6 @@
 		CE12D6AD1C5C58C300CD0B13 /* sv_local.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_local.h; sourceTree = "<group>"; };
 		CE12D6AE1C5C58C300CD0B13 /* sv_main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = sv_main.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		CE12D6AF1C5C58C300CD0B13 /* sv_main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_main.h; sourceTree = "<group>"; };
-		CEAB00072EC1A00000000007 /* sv_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_map_list.c; sourceTree = "<group>"; };
-		CEAB00082EC1A00000000008 /* sv_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_map_list.h; sourceTree = "<group>"; };
 		CE12D6B01C5C58C300CD0B13 /* sv_master.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_master.c; sourceTree = "<group>"; };
 		CE12D6B11C5C58C300CD0B13 /* sv_master.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_master.h; sourceTree = "<group>"; };
 		CE12D6B21C5C58C300CD0B13 /* sv_send.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_send.c; sourceTree = "<group>"; };
@@ -1692,6 +1692,9 @@
 		CE4DCF05256DCCA100FECAFC /* cg_weapon.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_weapon.c; sourceTree = "<group>"; };
 		CE4DCF9F256F0DAD00FECAFC /* check_cm_test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_cm_test; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = check_cm_test.c; sourceTree = "<group>"; };
+		CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_grid.h; sourceTree = "<group>"; };
+		CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_grid.c; sourceTree = "<group>"; };
+		CE4E054C2FDAE7A700B92C32 /* libopenal.1.25.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libopenal.1.25.2.dylib; path = "../../../../opt/homebrew/Cellar/openal-soft/1.25.2/lib/libopenal.1.25.2.dylib"; sourceTree = "<group>"; };
 		CE4E07B320264B15000B276C /* common.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = common.css; sourceTree = "<group>"; };
 		CE4E07B6202676E7000B276C /* JoinServerViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = JoinServerViewController.css; sourceTree = "<group>"; };
 		CE4E07BA20267EAB000B276C /* MovementCombatViewController.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = MovementCombatViewController.css; sourceTree = "<group>"; };
@@ -1906,6 +1909,8 @@
 		CEAAA50C25C6E75000EE81B3 /* Quetoo.app */ = {isa = PBXFileReference; lastKnownFileType = wrapper.application; path = Quetoo.app; sourceTree = "<group>"; };
 		CEAB00012EC1A00000000001 /* sv_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_http.c; sourceTree = "<group>"; };
 		CEAB00022EC1A00000000002 /* sv_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_http.h; sourceTree = "<group>"; };
+		CEAB00072EC1A00000000007 /* sv_map_list.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sv_map_list.c; sourceTree = "<group>"; };
+		CEAB00082EC1A00000000008 /* sv_map_list.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sv_map_list.h; sourceTree = "<group>"; };
 		CEAC32B6242124BB007E1253 /* cg_sprite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cg_sprite.h; sourceTree = "<group>"; };
 		CEAC32B7242124BB007E1253 /* cg_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cg_sprite.c; sourceTree = "<group>"; };
 		CEAC32BA24212553007E1253 /* r_sprite.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = r_sprite.c; sourceTree = "<group>"; };
@@ -2074,10 +2079,10 @@
 				CED4397A1D9D3E4F0052BAFA /* libshared.a in Frameworks */,
 				CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */,
 				CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */,
+				CE4E054D2FDAE7A700B92C32 /* libopenal.1.25.2.dylib in Frameworks */,
 				CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */,
 				CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */,
 				CEC2339E2C3B0320005C826C /* libncursesw.6.dylib in Frameworks */,
-				CE5ABAE22F37E86E00D05D09 /* libopenal.1.25.1.dylib in Frameworks */,
 				CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */,
 				CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */,
 				CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */,
@@ -2905,6 +2910,8 @@
 				CE12D6421C5C58C300CD0B13 /* bg_pmove.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
+				CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */,
+				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
 				CE27E9F427BDA2AE003D56AC /* g_ai_info.c */,
 				CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */,
 				CE27E9F227BDA2AE003D56AC /* g_ai_item.c */,
@@ -3208,6 +3215,7 @@
 		CE12D8391C5C6F4900CD0B13 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				CE4E054C2FDAE7A700B92C32 /* libopenal.1.25.2.dylib */,
 				CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */,
 				CE5ABAE12F37E86E00D05D09 /* libopenal.1.25.1.dylib */,
 				CE5ABADE2F37E78000D05D09 /* libSDL3_image.0.4.0.dylib */,
@@ -3706,6 +3714,7 @@
 				CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */,
 				CE80FE901C5E442700A21A51 /* g_physics.h in Headers */,
 				CE80FE911C5E442800A21A51 /* g_types.h in Headers */,
+				CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */,
 				CE80FE921C5E442800A21A51 /* g_util.h in Headers */,
 				CEFF1297277D439B001E1500 /* g_sound.h in Headers */,
 				CE80FE931C5E442800A21A51 /* g_weapon.h in Headers */,
@@ -4685,7 +4694,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2640;
+				LastUpgradeCheck = 2650;
 				ORGANIZATIONNAME = "https://github.com/jdolan";
 				TargetAttributes = {
 					CE052A8C2148333C003446C9 = {
@@ -4850,6 +4859,7 @@
 				CEFF1298277D439B001E1500 /* g_sound.c in Sources */,
 				CE12D7E41C5C5D6A00CD0B13 /* g_physics.c in Sources */,
 				CE12D7E51C5C5D6A00CD0B13 /* g_util.c in Sources */,
+				CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */,
 				CE12D7E61C5C5D6A00CD0B13 /* g_weapon.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -5670,6 +5680,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
+					"/opt/homebrew/Cellar/openal-soft/1.25.2/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -5681,6 +5692,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/opt/homebrew/Cellar/sdl3_image/3.4.4/lib,
+					"/opt/homebrew/Cellar/openal-soft/1.25.2/lib",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
