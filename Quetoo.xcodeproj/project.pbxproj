@@ -63,7 +63,6 @@
 		9D2572D4A56A8180A52671E2 /* medium.png in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAD8FCE2F9650560087A850 /* medium.png */; };
 		C0ABDA2643FBD2CB55EB732A /* libgame-item.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93837BFDD89832004989509B /* libgame-item.a */; };
 		CC87D6AEB29F498DB8AA7E1C /* cm_voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* cm_voxel.c */; };
-		CE04015D25D32C4D00C31433 /* libsndfile.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */; };
 		CE0401EF25D34C1100C31433 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE04F03E25CADF4900C31433 /* atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EDA220738BF008AE0C2 /* atlas.c */; };
 		CE04F06325CADF4D00C31433 /* atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CE354ED9220738BF008AE0C2 /* atlas.h */; };
@@ -101,10 +100,8 @@
 		CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CE04FB1825CEDCD400C31433 /* net_http.c */; };
 		CE052A5F214831FE003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE052A62214831FE003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE052A67214831FE003446C9 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE052A712148320E003446C9 /* check_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D31C5C58C300CD0B13 /* check_mem.c */; };
 		CE052A7721483255003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
-		CE052A7E21483255003446C9 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE052A8721483275003446C9 /* check_thread.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D71C5C58C300CD0B13 /* check_thread.c */; };
 		CE052A88214832E1003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE0C0752260CC75700FFE27B /* box.h in Headers */ = {isa = PBXBuildFile; fileRef = CE0C0751260CC75700FFE27B /* box.h */; };
@@ -142,15 +139,11 @@
 		CE12D7FC1C5C5E0200CD0B13 /* cg_score.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5791C5C58C300CD0B13 /* cg_score.c */; };
 		CE12D7FD1C5C5E0200CD0B13 /* cg_temp_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57B1C5C58C300CD0B13 /* cg_temp_entity.c */; };
 		CE12D7FE1C5C5E0200CD0B13 /* cg_view.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D57E1C5C58C300CD0B13 /* cg_view.c */; };
-		CE12D8241C5C69A800CD0B13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE12D82A1C5C69F900CD0B13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE12D82E1C5C6EAD00CD0B13 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CE12D8C41C5CF86600CD0B13 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D67A1C5C58C300CD0B13 /* main.c */; };
 		CE12D8F81C5CF97E00CD0B13 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8191C5C614B00CD0B13 /* AppKit.framework */; };
 		CE148DA8242A37BA00B589D8 /* r_animation.c in Sources */ = {isa = PBXBuildFile; fileRef = CE148DA6242A37B900B589D8 /* r_animation.c */; };
 		CE148DA9242A37BA00B589D8 /* r_animation.h in Headers */ = {isa = PBXBuildFile; fileRef = CE148DA7242A37BA00B589D8 /* r_animation.h */; };
-		CE1A281B1F740E7B005F62A9 /* libcurl.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FF561C5E485A00A21A51 /* libcurl.4.dylib */; };
-		CE1A28211F748B3A005F62A9 /* libz.1.2.11.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEE59C301F2125D70044F6F2 /* libz.1.2.11.dylib */; };
 		CE1A28221F748B59005F62A9 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CE1A28231F748B59005F62A9 /* libObjectivelyMVC.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEDB4BB01D404D9D009921B6 /* libObjectivelyMVC.dylib */; };
 		CE1A28311F75FC1D005F62A9 /* PlayerModelView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1A282D1F75FC1D005F62A9 /* PlayerModelView.c */; };
@@ -192,7 +185,6 @@
 		CE27EA0427BDA2AF003D56AC /* g_ai_node.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9F927BDA2AE003D56AC /* g_ai_node.h */; };
 		CE27EA0527BDA2AF003D56AC /* g_ai_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FA27BDA2AE003D56AC /* g_ai_item.h */; };
 		CE27EA0627BDA2AF003D56AC /* g_ai_info.h in Headers */ = {isa = PBXBuildFile; fileRef = CE27E9FB27BDA2AE003D56AC /* g_ai_info.h */; };
-		CE2B081A23F60C4F007C77B6 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE2B082223F9EB7A007C77B6 /* libclient-renderer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED438AD1D9D34450052BAFA /* libclient-renderer.a */; };
 		CE2B082323F9EB7A007C77B6 /* libclient-sound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CED4393B1D9D344E0052BAFA /* libclient-sound.a */; };
 		CE2B082423F9EB7A007C77B6 /* libclient-ui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5CDC321D9F51580034757D /* libclient-ui.a */; };
@@ -212,7 +204,6 @@
 		CE32529E1F760D3F00512523 /* BindTextView.h in Headers */ = {isa = PBXBuildFile; fileRef = CE32529C1F760D3F00512523 /* BindTextView.h */; };
 		CE34099021C2D52500989FC9 /* entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CE34098F21C2D52500989FC9 /* entity.c */; };
 		CE354F012207514B008AE0C2 /* check_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CE354EEE22075054008AE0C2 /* check_atlas.c */; };
-		CE354F0422077620008AE0C2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE3C529421E4DF2500FEDBED /* cm_polylib.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3C529221E4DF2500FEDBED /* cm_polylib.h */; };
 		CE3C529521E4DF2500FEDBED /* cm_polylib.c in Sources */ = {isa = PBXBuildFile; fileRef = CE3C529321E4DF2500FEDBED /* cm_polylib.c */; };
 		CE3CFB6D25A10AAC003D6148 /* cl_renderer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE3CFB6B25A10AAC003D6148 /* cl_renderer.h */; };
@@ -230,11 +221,9 @@
 		CE4DCF90256F0DAD00FECAFC /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE4DCF94256F0DAD00FECAFC /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE4DCF97256F0DAD00FECAFC /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE4DCF9A256F0DAD00FECAFC /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE4DCFFB256F0DF500FECAFC /* check_cm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4DCFFA256F0DF500FECAFC /* check_cm_test.c */; };
 		CE4E05412FDAE2CE00B92C32 /* g_ai_grid.h in Headers */ = {isa = PBXBuildFile; fileRef = CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */; };
 		CE4E05422FDAE2CE00B92C32 /* g_ai_grid.c in Sources */ = {isa = PBXBuildFile; fileRef = CE4E05402FDAE2CE00B92C32 /* g_ai_grid.c */; };
-		CE4E054D2FDAE7A700B92C32 /* libopenal.1.25.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE4E054C2FDAE7A700B92C32 /* libopenal.1.25.2.dylib */; };
 		CE4E07B52026524A000B276C /* common.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B320264B15000B276C /* common.css */; };
 		CE4E07B820267825000B276C /* JoinServerViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07B6202676E7000B276C /* JoinServerViewController.css */; };
 		CE4E07CC20268832000B276C /* ResponseServiceViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE4E07BD20267EAB000B276C /* ResponseServiceViewController.css */; };
@@ -252,54 +241,23 @@
 		CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D51C5C58C300CD0B13 /* check_r_media.c */; };
 		CE51FB9521481B5F00ABE14F /* r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D51C5C58C300CD0B13 /* r_media.c */; };
 		CE51FB9621481B8100ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE51FB9A21481BC200ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FB9C21481CF700ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FBA021481DD300ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FBA321481DD300ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE51FBA921481DD300ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FBB021481E1C00ABE14F /* check_cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6CB1C5C58C300CD0B13 /* check_cmd.c */; };
 		CE51FBB521481F2500ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FBB821481F2500ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE51FBBD21481F2500ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FBCB21481F6700ABE14F /* check_cvar.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6CD1C5C58C300CD0B13 /* check_cvar.c */; };
 		CE51FBD021481FC100ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FBD321481FC100ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
-		CE51FBD821481FC100ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FBE221481FD500ABE14F /* check_filesystem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6CF1C5C58C300CD0B13 /* check_filesystem.c */; };
-		CE51FBF02148207700ABE14F /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE51FC042148213200ABE14F /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
 		CE51FC062148214300ABE14F /* check_master.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D11C5C58C300CD0B13 /* check_master.c */; };
 		CE51FC072148219900ABE14F /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE51FC08214821F000ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE548C7F25B79F17003677ED /* r_framebuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = CE548C7D25B79F17003677ED /* r_framebuffer.h */; };
 		CE548C8025B79F17003677ED /* r_framebuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = CE548C7E25B79F17003677ED /* r_framebuffer.c */; };
-		CE56BD552AAE349700A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD562AAE34C100A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD572AAE34DA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD582AAE34F900A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD592AAE350D00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD5A2AAE357300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD5B2AAE358200A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD5C2AAE359300A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CE56BD5D2AAE35CA00A8AB5E /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
 		CE57E13D2462572900F8902F /* material.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE57E13C246255D100F8902F /* material.glsl */; };
-		CE5A6AB12EC600E4005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB22EC60117005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB52EC6014D005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB62EC60172005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AB92EC601F9005F3C92 /* libSDL3_image.0.2.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB32EC60117005F3C92 /* libSDL3_image.0.2.4.dylib */; };
-		CE5A6ABA2EC601F9005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6ABB2EC6021E005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6ABC2EC60241005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6ABD2EC60258005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6ABE2EC60261005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6ABF2EC6026B005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC02EC60273005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC12EC60278005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC22EC6027E005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC32EC60286005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC42EC6028E005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CE5A6AC52EC60296005F3C92 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
 		CE5ABAD82F32D86C00D05D09 /* r_decal.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5ABAD72F32D86C00D05D09 /* r_decal.c */; };
 		CE5ABAD92F32D86C00D05D09 /* r_decal.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5ABAD62F32D86C00D05D09 /* r_decal.h */; };
 		CE5ABADA2F32D8BA00D05D09 /* decal_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE5ABAD42F32D84000D05D09 /* decal_fs.glsl */; };
@@ -367,8 +325,6 @@
 		CE7FCDD82596996600E49A2D /* cl_screen.h in Headers */ = {isa = PBXBuildFile; fileRef = CE7FCDD62596996500E49A2D /* cl_screen.h */; };
 		CE8000001C5E4D4400A21A51 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CE8000021C5E4D4400A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE8000031C5E4ED700A21A51 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE8000061C5E4F0500A21A51 /* libxml2.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE8000051C5E4F0500A21A51 /* libxml2.2.dylib */; };
 		CE80FDB61C5E3D4E00A21A51 /* shared-anorms.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B71C5C58C300CD0B13 /* shared-anorms.c */; };
 		CE80FDB71C5E3D4E00A21A51 /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6B81C5C58C300CD0B13 /* shared.c */; };
 		CE80FDD61C5E3D9700A21A51 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
@@ -512,7 +468,6 @@
 		CE80FFFE1C5E4D4400A21A51 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CE80FFFF1C5E4D4400A21A51 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE82F2962D0F9FBE004EE5DF /* libc++.1.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CE82F2952D0F9FBE004EE5DF /* libc++.1.tbd */; };
-		CE85F47F2F12C3C6005D2F9C /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE85F47C2F12C3C6005D2F9C /* libSDL3.0.dylib */; };
 		CE88195C1F882EBE000D5AB7 /* DialogViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE8819581F882D9F000D5AB7 /* DialogViewController.c */; };
 		CE88195D1F882EC3000D5AB7 /* DialogViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8819591F882D9F000D5AB7 /* DialogViewController.h */; };
 		CE8FD2EC23D3E034002FD074 /* r_program.h in Headers */ = {isa = PBXBuildFile; fileRef = CE8FD2EA23D3E034002FD074 /* r_program.h */; };
@@ -520,25 +475,9 @@
 		CE8FD2FB23D70F52002FD074 /* sky_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2FA23D70A1E002FD074 /* sky_fs.glsl */; };
 		CE8FD2FC23D70F52002FD074 /* sky_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE8FD2F923D70A11002FD074 /* sky_vs.glsl */; };
 		CE91924D2055731E007AC8FF /* tjunction.c in Sources */ = {isa = PBXBuildFile; fileRef = CE91924C2055731E007AC8FF /* tjunction.c */; };
-		CE948B1C2235652600D961FA /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CE948B232235655700D961FA /* check_shared.c in Sources */ = {isa = PBXBuildFile; fileRef = CE948B0F223564E900D961FA /* check_shared.c */; };
 		CE948B2E2235699300D961FA /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE9A66FC2D246A1D0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A66FD2D246A310068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A66FE2D246A480068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A66FF2D246A710068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67002D246A790068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67012D246A800068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67022D246A870068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67032D246A8D0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67042D246A980068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67052D246A9B0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67062D246A9F0068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67072D246AA20068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
-		CE9A67082D246AA50068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CE9A670E2D2589020068D720 /* check_box.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9A67092D2588B20068D720 /* check_box.c */; };
-		CE9A67102D2589020068D720 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CE9A67112D2589020068D720 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9023E792FE0009DA65 /* cg_light.h */; };
 		CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9123E792FE0009DA65 /* cg_light.c */; };
 		CE9CFC9623E7A9410009DA65 /* r_mesh.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9CFC9423E7A9410009DA65 /* r_mesh.h */; };
@@ -546,8 +485,6 @@
 		CE9CFCB023EB3D240009DA65 /* check_vector.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9CFC9C23EB3BF50009DA65 /* check_vector.c */; };
 		CE9FECDD201FEB7400F954ED /* r_gl.c in Sources */ = {isa = PBXBuildFile; fileRef = CE9FECDA201FEB7400F954ED /* r_gl.c */; };
 		CE9FECDE201FEB7400F954ED /* r_gl.h in Headers */ = {isa = PBXBuildFile; fileRef = CE9FECDB201FEB7400F954ED /* r_gl.h */; };
-		CEA029C31C5E54C200341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CEA029C41C5E54F600341079 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEA082371DC6EC50001207AA /* r_atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA082331DC6EBB7001207AA /* r_atlas.c */; };
 		CEA082381DC6EC59001207AA /* r_atlas.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA082341DC6EBB7001207AA /* r_atlas.h */; };
 		CEA153B3296B4BE100916F83 /* r_cull.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA153B1296B4BE100916F83 /* r_cull.h */; };
@@ -570,11 +507,7 @@
 		CEA508FC2EA5D20A00F27205 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEA508FD2EA5D20A00F27205 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEA508FE2EA5D20A00F27205 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CEA508FF2EA5D20A00F27205 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CEA509012EA5D20A00F27205 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CEA509072EA5D21F00F27205 /* check_cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA509062EA5D21F00F27205 /* check_cm_entity.c */; };
-		CEA5090A2EA5D43600F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
-		CEA5090B2EA5D44B00F27205 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEA509092EA5D43600F27205 /* libphysfs.3.2.0.dylib */; };
 		CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B16C6E4B3A9F010001 /* LeaderboardViewController.c */; };
 		CEA9B3A26C6E4B3A9F010001 /* LeaderboardViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA9B3B26C6E4B3A9F010001 /* LeaderboardViewController.h */; };
 		CEA9B3A36C6E4B3A9F010001 /* StatsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CEA9B3B36C6E4B3A9F010001 /* StatsViewController.c */; };
@@ -600,25 +533,15 @@
 		CEAC32BD24212553007E1253 /* r_sprite.h in Headers */ = {isa = PBXBuildFile; fileRef = CEAC32BB24212553007E1253 /* r_sprite.h */; };
 		CEAC32C22421262A007E1253 /* sprite_fs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32C0242125ED007E1253 /* sprite_fs.glsl */; };
 		CEAC32C32421262B007E1253 /* sprite_vs.glsl in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEAC32BF242125ED007E1253 /* sprite_vs.glsl */; };
-		CEAD8F882F8690B90087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */; };
-		CEAD8F892F8690E50087A850 /* libSDL3_image.0.4.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEAD8F872F8690B90087A850 /* libSDL3_image.0.4.4.dylib */; };
 		CEAD8F912F8D765F0087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEAD8F942F8D765F0087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEAD8F952F8D765F0087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CEAD8F962F8D765F0087A850 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CEAD8F972F8D765F0087A850 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CEAD8F982F8D765F0087A850 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CEAD8F992F8D765F0087A850 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CEAD8FA02F8D76830087A850 /* check_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8F8C2F8D76260087A850 /* check_http.c */; };
 		CEAD8FA12F8D76E60087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
 		CEAD8FA22F8D76FC0087A850 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CEAD8FA82F8D8DE30087A850 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEAD8FAB2F8D8DE30087A850 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEAD8FAC2F8D8DE30087A850 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CEAD8FAD2F8D8DE30087A850 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
-		CEAD8FAE2F8D8DE30087A850 /* libphysfs.3.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE56BD542AAE349700A8AB5E /* libphysfs.3.2.0.dylib */; };
-		CEAD8FAF2F8D8DE30087A850 /* libSDL3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE5A6AB02EC600E4005F3C92 /* libSDL3.0.dylib */; };
-		CEAD8FB02F8D8DE30087A850 /* libcheck.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE9A66FB2D246A1D0068D720 /* libcheck.0.dylib */; };
 		CEAD8FB52F8D8DF70087A850 /* check_cm_manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = CEAD8FA32F8D8DB70087A850 /* check_cm_manifest.c */; };
 		CEAD8FB62F8D8E060087A850 /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEAD8FB82F8DA0000087A850 /* libnet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE661C5E431000A21A51 /* libnet.a */; };
@@ -638,7 +561,6 @@
 		CEADCE2725DB415C006E34A6 /* DialogViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C2A2030F269004BC58E /* DialogViewController.css */; };
 		CEADCE4A25DB415E006E34A6 /* DialogViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE7D2C292030F25B004BC58E /* DialogViewController.json */; };
 		CEB112B022544B3900CE65F6 /* voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB112AF22544B3900CE65F6 /* voxel.c */; };
-		CEB384E629A3A73B006DEA13 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEB384EE29A3A76C006DEA13 /* check_color.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB384ED29A3A76C006DEA13 /* check_color.c */; };
 		CEB8D6271E00B73200043814 /* cg_input.c in Sources */ = {isa = PBXBuildFile; fileRef = CEB8D6231E00B72100043814 /* cg_input.c */; };
 		CEBDB0C6214A02B500A7AC3D /* light.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C5214A02B500A7AC3D /* light.c */; };
@@ -646,8 +568,6 @@
 		CEBDB0CA214A037900A7AC3D /* cm_entity.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDB0C8214A037900A7AC3D /* cm_entity.c */; };
 		CEBDD1B625A0C2710055860E /* cg_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEBDD1B425A0C2710055860E /* cg_sound.h */; };
 		CEBDD1B725A0C2710055860E /* cg_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEBDD1B525A0C2710055860E /* cg_sound.c */; };
-		CEC2339E2C3B0320005C826C /* libncursesw.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC2339D2C3B0320005C826C /* libncursesw.6.dylib */; };
-		CEC2339F2C3B0351005C826C /* libncursesw.6.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CEC2339D2C3B0320005C826C /* libncursesw.6.dylib */; };
 		CEC74D1325C8F98D009C6218 /* libObjectively.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE27BE561D9167C700F87B2C /* libObjectively.dylib */; };
 		CECA8CB01E50B5F1005E97E8 /* material.c in Sources */ = {isa = PBXBuildFile; fileRef = CECA8CAE1E50B5F1005E97E8 /* material.c */; };
 		CED4381E1D9D33AF0052BAFA /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
@@ -707,7 +627,6 @@
 		CEE13C16293241970075585D /* r_shadow.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE13C14293241970075585D /* r_shadow.h */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
-		CEE3A10621EE2DDC0070FD3E /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEE7508B2D6A3267004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
 		CEE7508E2D6A3C78004CDBCA /* rgb9e5.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE7508D2D6A3C73004CDBCA /* rgb9e5.c */; };
 		CEE7508F2D6A3E3B004CDBCA /* rgb9e5.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE7508A2D6A3253004CDBCA /* rgb9e5.h */; };
@@ -722,7 +641,6 @@
 		CEFC79A41D9CB1A6000FA6B2 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D82D1C5C6EAD00CD0B13 /* OpenGL.framework */; };
 		CEFC7A931D9CB75D000FA6B2 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CEFC7A941D9CB75D000FA6B2 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CEFC7A961D9CB776000FA6B2 /* libglib-2.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8231C5C69A800CD0B13 /* libglib-2.0.0.dylib */; };
 		CEFC7B8B1D9D2E9C000FA6B2 /* bg_pmove.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6411C5C58C300CD0B13 /* bg_pmove.c */; };
 		CEFC7B8C1D9D2EB5000FA6B2 /* bg_pmove.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6421C5C58C300CD0B13 /* bg_pmove.h */; };
 		CEFC7B931D9D2FB3000FA6B2 /* libgame-pmove.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CEFC7B8A1D9D2E71000FA6B2 /* libgame-pmove.a */; };
@@ -5439,11 +5357,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5451,18 +5369,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE052A6C214831FE003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5472,13 +5389,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE052A6D214831FE003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5488,13 +5405,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE052A8221483255003446C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5504,13 +5421,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE052A8321483255003446C9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5520,6 +5437,7 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5644,17 +5562,17 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
 					"-lcurl",
 					"-lglib-2.0",
-					"-lncursesw",
+					"-lncurses",
 					"-lopenal",
 					"-lphysfs",
 					"-lsndfile",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -5666,17 +5584,17 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
 					"-lcurl",
 					"-lglib-2.0",
-					"-lncursesw",
+					"-lncurses",
 					"-lopenal",
 					"-lphysfs",
 					"-lsndfile",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5684,12 +5602,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
 				OTHER_LDFLAGS = "-lglib-2.0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -5697,12 +5615,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
 				OTHER_LDFLAGS = "-lglib-2.0";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5710,16 +5628,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-all_load",
 					"-lSDL3",
 					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Debug;
 		};
@@ -5727,16 +5645,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_EXTENSION = so;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-all_load",
 					"-lSDL3",
 					"-lglib-2.0",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Release;
 		};
@@ -5745,15 +5663,15 @@
 			buildSettings = {
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DUSE_FILE32API",
 					"-DNOCRYPT",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Debug;
 		};
@@ -5762,22 +5680,21 @@
 			buildSettings = {
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DUSE_FILE32API",
 					"-DNOCRYPT",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Release;
 		};
 		CE12D8F21C5CF86600CD0B13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5785,16 +5702,16 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lglib-2.0",
-					"-lncursesw",
+					"-lncurses",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE12D8F31C5CF86600CD0B13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5802,9 +5719,10 @@
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lglib-2.0",
-					"-lncursesw",
+					"-lncurses",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -5815,15 +5733,15 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",
 					"-Ideps/discord-rpc/include",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Debug;
 		};
@@ -5834,22 +5752,21 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_WARN_COMMA = NO;
 				EXECUTABLE_PREFIX = lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/lib",
+					/usr/local/lib,
+				);
 				OTHER_CFLAGS = (
 					"-Ideps/rapidjson",
 					"-Ideps/discord-rpc/include",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(HOMEBREW_PREFIX)/lib",
-					/usr/local/lib,
-				);
 			};
 			name = Release;
 		};
 		CE354EFC22075132008AE0C2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5860,13 +5777,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE354EFD22075132008AE0C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5877,13 +5794,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE4DCF9D256F0DAD00FECAFC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5894,13 +5811,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE4DCF9E256F0DAD00FECAFC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5911,13 +5828,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE51FB8E214819B000ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5927,13 +5844,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE51FB8F214819B000ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5943,13 +5860,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE51FBAD21481DD300ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5960,13 +5877,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE51FBAE21481DD300ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5977,13 +5894,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE51FBC221481F2500ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -5994,13 +5911,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE51FBC321481F2500ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6011,13 +5928,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE51FBDD21481FC100ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6028,13 +5945,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE51FBDE21481FC100ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6045,13 +5962,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE51FBF52148207700ABE14F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6062,13 +5979,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE51FBF62148207700ABE14F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6079,6 +5996,7 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6086,11 +6004,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6098,11 +6016,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6110,11 +6028,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6122,11 +6040,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6138,7 +6056,6 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
@@ -6147,6 +6064,7 @@
 					"-lxml2",
 					"-lz",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6158,7 +6076,6 @@
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				OTHER_LDFLAGS = (
 					"-lSDL3",
 					"-lSDL3_image",
@@ -6167,6 +6084,7 @@
 					"-lxml2",
 					"-lz",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6174,11 +6092,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6186,11 +6104,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6198,11 +6116,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6210,11 +6128,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6222,11 +6140,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6234,11 +6152,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6246,11 +6164,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6258,11 +6176,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6270,11 +6188,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6282,11 +6200,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6294,11 +6212,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6306,11 +6224,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6318,11 +6236,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6330,18 +6248,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE948B202235652600D961FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6351,13 +6268,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE948B212235652600D961FA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6367,13 +6284,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE9A67132D2589020068D720 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6382,13 +6299,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE9A67142D2589020068D720 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6397,13 +6314,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CE9CFCAD23EB3D020009DA65 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6412,13 +6329,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CE9CFCAE23EB3D020009DA65 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6427,6 +6344,7 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6447,7 +6365,6 @@
 		CEA029F21C5E558100341079 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6457,13 +6374,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEA029F31C5E558100341079 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6473,13 +6390,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CEA509032EA5D20A00F27205 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6490,13 +6407,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEA509042EA5D20A00F27205 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6507,13 +6424,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CEAD8F9B2F8D765F0087A850 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6524,13 +6441,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEAD8F9C2F8D765F0087A850 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6541,13 +6458,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CEAD8FB22F8D8DE30087A850 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6558,13 +6475,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEAD8FB32F8D8DE30087A850 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6575,13 +6492,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CEB384EA29A3A73B006DEA13 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6590,13 +6507,13 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEB384EB29A3A73B006DEA13 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6605,6 +6522,7 @@
 					"-lcheck",
 					"-lglib-2.0",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6612,11 +6530,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6624,11 +6542,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6636,11 +6554,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6648,18 +6566,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
 		CEE3A0FF21EE2B3F0070FD3E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6670,13 +6587,13 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
 		CEE3A10021EE2B3F0070FD3E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
@@ -6687,6 +6604,7 @@
 					"-lglib-2.0",
 					"-lphysfs",
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -6694,11 +6612,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
 		};
@@ -6706,11 +6624,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(HOMEBREW_PREFIX)/lib",
 					/usr/local/lib,
 				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
