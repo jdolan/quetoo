@@ -20,7 +20,6 @@
  */
 
 #include "g_local.h"
-#include "grid.h"
 
 void gridkdtree_free(struct gridkdtree_s **tree) {
 
@@ -39,13 +38,13 @@ _Thread_local struct cmpstr_s {
 
 struct kdtbuildctx_s {
   struct gridkdtree_s *tree;
-  int *sortedx;
+  int32_t *sortedx;
   size_t slicesize;
 };
 
-static int compare_v(const void *_l, const void *_r) {
-  const int l = *(const int *) _l;
-  const int r = *(const int *) _r;
+static int32_t compare_v(const void *_l, const void *_r) {
+  const int32_t l = *(const int32_t *) _l;
+  const int32_t r = *(const int32_t *) _r;
   const vec3_t *srcdata = cmpstr.srcdata;
   const uint8_t dim = cmpstr.dim;
 
@@ -98,7 +97,7 @@ static struct kdtree_node_s *kdtree_build(struct kdtbuildctx_s *ctx, const size_
 }
 
 struct gridkdtree_s *gridkdtree_create(vec3_t *srcdata, const size_t count) {
-  int *sortedx = malloc(count * sizeof(int));
+  int32_t *sortedx = malloc(count * sizeof(int32_t));
   const size_t capacity = count;
   const size_t size = sizeof(struct gridkdtree_s) + capacity * sizeof(struct kdtree_node_s);
   struct gridkdtree_s *tree = malloc(size);
@@ -110,7 +109,7 @@ struct gridkdtree_s *gridkdtree_create(vec3_t *srcdata, const size_t count) {
   }
 
   for (size_t i = 0; i < count; i++) {
-    sortedx[i] = i;
+    sortedx[i] = (int32_t) i;
   }
 
   for (size_t i = 0; i < capacity; i++) {
