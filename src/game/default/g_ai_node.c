@@ -1432,14 +1432,19 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   // call G_ForEachEntity for every link expansion inside the A* loop.
 
   // size on 64k nodes is, say, 8kb.
-  uint32_t costs_started[g_ai_nodes->len / 32 + 1] = {};
+  const size_t costs_started_words = ((size_t) g_ai_nodes->len + 31u) / 32u;
+  uint32_t *costs_started = calloc(costs_started_words, sizeof(*costs_started));
+  if (!costs_started) {
+    return NULL;
+  }
   uint32_t visited = 0;
   // Min-heap open set (priority = f-cost). Replaces the previous sorted-array
-  // queue (O(n) insertion) with an O(log n) binary heap from grid_ds.c.
+  // queue (O(n) insertion) with an O(log n) binary heap from g_ai_grid.c.
   // Capacity is bounded by the node count plus headroom for re-insertions
   // (A* may push a better-cost duplicate before popping the stale one).
   const size_t heap_capacity = (size_t) g_ai_nodes->len * 4 + 16;
   if (!G_Ai_Node_EnsurePathPool(heap_capacity)) {
+    free(costs_started);
     return NULL;
   }
 
