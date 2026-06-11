@@ -1372,9 +1372,11 @@ static void G_HookProjectile_Touch(g_entity_t *ent, g_entity_t *other, const cm_
 
   ent->s.sound = 0;
 
-  if (!G_IsSky(trace)) {
+  const bool sky = G_IsSky(trace);
 
-    if (G_IsStructural(trace) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
+  if (!sky || g_hook_sky->integer) {
+
+    if (G_IsStructural(trace) || (sky && g_hook_sky->integer) || (G_IsMeat(other) && G_OnSameTeam(other->client, ent->owner->client))) {
 
       ent->velocity = Vec3_Zero();
       ent->avelocity = Vec3_Zero();
