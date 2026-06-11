@@ -610,7 +610,7 @@ void G_Ai_Node_PlayerRoam(g_client_t *cl, const pm_cmd_t *cmd) {
   g_ai_player_roam.latched_buttons |= g_ai_player_roam.buttons & ~g_ai_player_roam.old_buttons;
   
   const bool allow_adjustments = g_ai_node_dev->integer == 1;
-  const bool do_noding = allow_adjustments && g_ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;  
+  const bool do_noding = allow_adjustments && g_ai_player_roam.drop_nodes && cl->ps.pm_state.type == PM_NORMAL;
 
   // we just switched between noclip/not noclip, clear some stuff
   // so we don't accidentally drop nodes
@@ -1432,15 +1432,19 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
   // call G_ForEachEntity for every link expansion inside the A* loop.
 
   // size on 64k nodes is, say, 8kb.
-  uint32_t costs_started[g_ai_nodes->len / 32 + 1];
-  memset(costs_started, 0, sizeof(costs_started));
+  const size_t costs_started_words = ((size_t) g_ai_nodes->len + 31u) / 32u;
+  uint32_t *costs_started = calloc(costs_started_words, sizeof(*costs_started));
+  if (!costs_started) {
+    return NULL;
+  }
   uint32_t visited = 0;
   // Min-heap open set (priority = f-cost). Replaces the previous sorted-array
-  // queue (O(n) insertion) with an O(log n) binary heap from grid_ds.c.
+  // queue (O(n) insertion) with an O(log n) binary heap from g_ai_grid.c.
   // Capacity is bounded by the node count plus headroom for re-insertions
   // (A* may push a better-cost duplicate before popping the stale one).
   const size_t heap_capacity = (size_t) g_ai_nodes->len * 4 + 16;
   if (!G_Ai_Node_EnsurePathPool(heap_capacity)) {
+    free(costs_started);
     return NULL;
   }
 
@@ -1549,10 +1553,12 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
       const float new_cost = node->cost + link->cost + drop_penalty;
 
       ai_node_id_t link_index = G_Ai_Node_Index(link_node);
-      bool found = costs_started[link_index / 32] & ((uint32_t)1 << (link_index % 32));
-      if (!found || new_cost < link_node->cost) {
-        costs_started[link_index / 32] |= (uint32_t)1 << (link_index % 32);
+      const bool found = (costs_started[link_index / 32] & ((uint32_t) 1u << (link_index % 32))) != 0;
+      if (!found) {
+        costs_started[link_index / 32] |= (uint32_t) 1u << (link_index % 32);
         visited++;
+      }
+      if (!found || new_cost < link_node->cost) {
 
         link_node->cost = new_cost;
         const float priority = new_cost + heuristic(link->id, end);
@@ -1614,6 +1620,7 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
+  free(costs_started);
   return return_path;
 }
 
@@ -1629,7 +1636,7 @@ void G_Ai_OffsetNodes_f(void) {
     const vec3_t node = G_Ai_Node_GetPosition(g_ai_player_roam.last_nodes[0]);
     const vec3_t player_position = g_ai_player_roam.position;
     translate = Vec3_Subtract(player_position, node);
-  } else {  
+  } else {
     const char *offset = gi.Argv(1);
 
     if (Parse_QuickPrimitive(offset, PARSER_DEFAULT, PARSE_DEFAULT, PARSE_FLOAT, &translate, 3) != 3) {
@@ -1696,7 +1703,7 @@ bool G_Ai_DropItemLikeNode(g_entity_t *ent) {
 
       const vec3_t link_pos = G_Ai_Node_GetPosition(link->id);
 
-      // can't see 
+      // can't see
       if (gi.Trace(ent->s.origin, link_pos, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction < 1.0) {
         continue;
       }
