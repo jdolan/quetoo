@@ -2,6 +2,7 @@ noinst_HEADERS = \
 	bg_item.h \
 	bg_pmove.h \
 	g_ai_goal.h \
+    g_ai_grid.h \
 	g_ai_info.h \
 	g_ai_item.h \
 	g_ai_main.h \
@@ -62,6 +63,7 @@ gamelib_LTLIBRARIES = \
 
 game_la_SOURCES = \
 	g_ai_goal.c \
+    g_ai_grid.c \
 	g_ai_info.c \
 	g_ai_item.c \
 	g_ai_main.c \
