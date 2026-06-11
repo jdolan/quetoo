@@ -1618,6 +1618,7 @@ GArray *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
+  free(costs_started);
   return return_path;
 }
 
