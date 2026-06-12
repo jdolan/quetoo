@@ -537,7 +537,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
       // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
       side->valve = true;
       for (int32_t i = 0; i < 2; i++) {
-        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token)); // consume "["
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "[")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].y, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
