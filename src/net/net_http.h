@@ -35,6 +35,25 @@ typedef struct JsonProperty JsonProperty;
 typedef void (*Net_HttpCallback)(int32_t status, void *body, size_t length, void *user_data);
 
 /**
+ * @brief The asynchronous HTTP JSON object callback type.
+ * @param status The HTTP response code, or `0` if the response could not be parsed.
+ * @param instance The parsed struct instance, or `NULL` on failure. Valid only for the
+ * duration of the callback.
+ * @param user_data The user data pointer passed to `Net_HttpGetInstanceAsync`.
+ */
+typedef void (*Net_HttpInstanceCallback)(int32_t status, void *instance, void *user_data);
+
+/**
+ * @brief The asynchronous HTTP JSON array callback type.
+ * @param status The HTTP response code, or `0` if the response could not be parsed.
+ * @param instances The parsed struct instances, or `NULL` on failure. Valid only for the
+ * duration of the callback.
+ * @param count The number of parsed instances.
+ * @param user_data The user data pointer passed to `Net_HttpGetInstancesAsync`.
+ */
+typedef void (*Net_HttpInstancesCallback)(int32_t status, void *instances, size_t count, void *user_data);
+
+/**
  * @brief Synchronously `GET` the specified URL string.
  * @param url_string The URL string to `GET`.
  * @param body Receives a newly allocated buffer containing the response body. Caller must `Mem_Free`.
@@ -77,6 +96,34 @@ void Net_HttpClearCache(void);
  * @param user_data User data pointer passed through to the callback.
  */
 void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *user_data);
+
+/**
+ * @brief Asynchronously `GET` the specified URL string and deserialize a single JSON object.
+ * @details The callback runs on the HTTP session thread; marshal results to the main
+ * thread (e.g. via `SDL_PushEvent`) before touching game or UI state.
+ * @param url_string The URL string to `GET`.
+ * @param properties The JsonProperty descriptors for the destination struct.
+ * @param size The size of the destination struct.
+ * @param callback The completion callback.
+ * @param user_data User data pointer passed through to the callback.
+ */
+void Net_HttpGetInstanceAsync(const char *url_string, const JsonProperty *properties,
+                              size_t size, Net_HttpInstanceCallback callback, void *user_data);
+
+/**
+ * @brief Asynchronously `GET` the specified URL string and deserialize a JSON array.
+ * @details The callback runs on the HTTP session thread; marshal results to the main
+ * thread (e.g. via `SDL_PushEvent`) before touching game or UI state.
+ * @param url_string The URL string to `GET`.
+ * @param properties The JsonProperty descriptors for the destination struct array.
+ * @param stride The byte distance between consecutive structs.
+ * @param count The capacity of the destination array.
+ * @param callback The completion callback.
+ * @param user_data User data pointer passed through to the callback.
+ */
+void Net_HttpGetInstancesAsync(const char *url_string, const JsonProperty *properties,
+                               size_t stride, size_t count,
+                               Net_HttpInstancesCallback callback, void *user_data);
 
 /**
  * @brief Asynchronously `POST` data to the specified URL string.

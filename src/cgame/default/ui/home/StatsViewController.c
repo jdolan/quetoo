@@ -136,112 +136,57 @@ static void loadWeapons(StatsViewController *this, const Array *array) {
   }
 }
 
-#pragma mark - TableViewDataSource
+/**
+ * @brief Pending stats fetch results, shared with the HTTP session thread.
+ */
+static struct {
+  SDL_Mutex *lock;
+  uint32_t generation;
+  int32_t status;
+  void *body;
+  size_t length;
+} stats_fetch;
 
 /**
- * @see TableViewDataSource::numberOfRows
+ * @brief Net_HttpCallback for `refresh`. Runs on the HTTP session thread, so the
+ * response body is staged and marshaled to the main thread via an MVC notification.
  */
-static size_t numberOfRows(const TableView *tableView) {
+static void fetchStatsComplete(int32_t status, void *body, size_t length, void *user_data) {
 
-  StatsViewController *this = tableView->dataSource.self;
+  const uint32_t generation = (uint32_t) (uintptr_t) user_data;
 
-  return this->num_weapons;
-}
+  SDL_LockMutex(stats_fetch.lock);
 
-#pragma mark - TableViewDelegate
-
-/**
- * @see TableViewDelegate::cellForColumnAndRow
- */
-static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
-
-  StatsViewController *this = tableView->dataSource.self;
-
-  const WeaponStat *weapon = &this->weapons[row];
-
-  TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
-
-  if (g_strcmp0(column->identifier, _weapon) == 0) {
-    $(cell->text, setText, weapon->weapon);
-  } else if (g_strcmp0(column->identifier, _frags) == 0) {
-    $(cell->text, setText, va("%d", weapon->frags));
-  }
-
-  return cell;
-}
-
-#pragma mark - ViewController
-
-/**
- * @see ViewController::loadView(ViewController *)
- */
-static void loadView(ViewController *self) {
-
-  super(ViewController, self, loadView);
-
-  StatsViewController *this = (StatsViewController *) self;
-
-  Outlet outlets[] = MakeOutlets(
-    MakeOutlet("nameLabel",    &this->nameLabel),
-    MakeOutlet("rankLabel",    &this->rankLabel),
-    MakeOutlet("fragsLabel",   &this->fragsLabel),
-    MakeOutlet("deathsLabel",  &this->deathsLabel),
-    MakeOutlet("kdLabel",      &this->kdLabel),
-    MakeOutlet("timeLabel",    &this->timeLabel),
-    MakeOutlet("nemesisLabel", &this->nemesisLabel),
-    MakeOutlet("weapons",      &this->weaponsTable)
-  );
-
-  $(self->view, awakeWithResourceName, "ui/home/StatsViewController.json");
-  $(self->view, resolve, outlets);
-
-  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
-  assert(self->view->stylesheet);
-
-  $(this->weaponsTable, addColumnWithIdentifier, _weapon);
-  $(this->weaponsTable, addColumnWithIdentifier, _frags);
-
-  this->weaponsTable->dataSource.numberOfRows = numberOfRows;
-  this->weaponsTable->dataSource.self = this;
-
-  this->weaponsTable->delegate.cellForColumnAndRow = cellForColumnAndRow;
-  this->weaponsTable->delegate.self = this;
-
-  clearStats(this);
-}
-
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-  super(ViewController, self, viewWillAppear);
-
-  StatsViewController *this = (StatsViewController *) self;
-
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-
-  if (!guid_hashed || !guid_hashed[0]) {
-    clearStats(this);
-
-    $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Sign in");
-    $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text, setText, "—");
-    $(this->timeLabel->text, setText, "—");
-    $(this->weaponsTable, reloadData);
+  if (generation != stats_fetch.generation) {
+    SDL_UnlockMutex(stats_fetch.lock);
     return;
   }
 
-  clearStats(this);
+  g_free(stats_fetch.body);
 
-  void *body = NULL;
-  size_t length = 0;
+  stats_fetch.status = status;
+  stats_fetch.body = NULL;
+  stats_fetch.length = 0;
 
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
+  if (body && length) {
+    stats_fetch.body = g_malloc(length);
+    memcpy(stats_fetch.body, body, length);
+    stats_fetch.length = length;
+  }
 
-  const int32_t status = cgi.HttpGet(url, &body, &length);
+  SDL_UnlockMutex(stats_fetch.lock);
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_STATS_FETCHED
+  });
+}
+
+/**
+ * @brief Loads stats from the given response body, updating all tiles and tables.
+ */
+static void loadStats(StatsViewController *this, int32_t status, void *body, size_t length) {
+
   if (status == 200) {
     Data *data = $$(Data, dataWithConstMemory, body, length);
     StatsSummary summary = { 0 };
@@ -289,9 +234,158 @@ static void viewWillAppear(ViewController *self) {
     Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
   }
 
-  cgi.Free(body);
-
   $(this->weaponsTable, reloadData);
+}
+
+/**
+ * @brief Clears the view and asynchronously fetches stats for the local player.
+ */
+static void refresh(StatsViewController *this) {
+
+  clearStats(this);
+
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
+
+  if (!guid_hashed || !guid_hashed[0]) {
+    $(this->rankLabel->text, setText, "—");
+    $(this->fragsLabel->text, setText, "Sign in");
+    $(this->deathsLabel->text, setText, "—");
+    $(this->kdLabel->text, setText, "—");
+    $(this->timeLabel->text, setText, "—");
+    $(this->weaponsTable, reloadData);
+    return;
+  }
+
+  updateTiles(this);
+  $(this->weaponsTable, reloadData);
+
+  char url[256];
+  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
+
+  SDL_LockMutex(stats_fetch.lock);
+  const uint32_t generation = ++stats_fetch.generation;
+  SDL_UnlockMutex(stats_fetch.lock);
+
+  cgi.HttpGetAsync(url, fetchStatsComplete, (void *) (uintptr_t) generation);
+}
+
+#pragma mark - TableViewDataSource
+
+/**
+ * @see TableViewDataSource::numberOfRows
+ */
+static size_t numberOfRows(const TableView *tableView) {
+
+  StatsViewController *this = tableView->dataSource.self;
+
+  return this->num_weapons;
+}
+
+#pragma mark - TableViewDelegate
+
+/**
+ * @see TableViewDelegate::cellForColumnAndRow
+ */
+static TableCellView *cellForColumnAndRow(const TableView *tableView, const TableColumn *column, size_t row) {
+
+  StatsViewController *this = tableView->dataSource.self;
+
+  const WeaponStat *weapon = &this->weapons[row];
+
+  TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
+
+  if (g_strcmp0(column->identifier, _weapon) == 0) {
+    $(cell->text, setText, weapon->weapon);
+  } else if (g_strcmp0(column->identifier, _frags) == 0) {
+    $(cell->text, setText, va("%d", weapon->frags));
+  }
+
+  return cell;
+}
+
+#pragma mark - ViewController
+
+/**
+ * @see ViewController::loadView(ViewController *)
+ */
+static void loadView(ViewController *self) {
+
+  super(ViewController, self, loadView);
+
+  StatsViewController *this = (StatsViewController *) self;
+
+  if (stats_fetch.lock == NULL) {
+    stats_fetch.lock = SDL_CreateMutex();
+  }
+
+  Outlet outlets[] = MakeOutlets(
+    MakeOutlet("nameLabel",    &this->nameLabel),
+    MakeOutlet("rankLabel",    &this->rankLabel),
+    MakeOutlet("fragsLabel",   &this->fragsLabel),
+    MakeOutlet("deathsLabel",  &this->deathsLabel),
+    MakeOutlet("kdLabel",      &this->kdLabel),
+    MakeOutlet("timeLabel",    &this->timeLabel),
+    MakeOutlet("nemesisLabel", &this->nemesisLabel),
+    MakeOutlet("weapons",      &this->weaponsTable)
+  );
+
+  $(self->view, awakeWithResourceName, "ui/home/StatsViewController.json");
+  $(self->view, resolve, outlets);
+
+  self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
+  assert(self->view->stylesheet);
+
+  $(this->weaponsTable, addColumnWithIdentifier, _weapon);
+  $(this->weaponsTable, addColumnWithIdentifier, _frags);
+
+  this->weaponsTable->dataSource.numberOfRows = numberOfRows;
+  this->weaponsTable->dataSource.self = this;
+
+  this->weaponsTable->delegate.cellForColumnAndRow = cellForColumnAndRow;
+  this->weaponsTable->delegate.self = this;
+
+  clearStats(this);
+}
+
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  StatsViewController *this = (StatsViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+
+    if (event->user.code == NOTIFICATION_STATS_FETCHED) {
+
+      SDL_LockMutex(stats_fetch.lock);
+      const int32_t status = stats_fetch.status;
+      void *body = stats_fetch.body;
+      const size_t length = stats_fetch.length;
+      stats_fetch.body = NULL;
+      stats_fetch.length = 0;
+      SDL_UnlockMutex(stats_fetch.lock);
+
+      loadStats(this, status, body, length);
+
+      g_free(body);
+
+    } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
+      refresh(this);
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ */
+static void viewWillAppear(ViewController *self) {
+
+  super(ViewController, self, viewWillAppear);
+
+  refresh((StatsViewController *) self);
 }
 
 #pragma mark - Class lifecycle
@@ -301,6 +395,7 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 

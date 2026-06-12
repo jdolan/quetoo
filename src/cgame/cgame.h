@@ -208,6 +208,32 @@ typedef struct cg_import_s {
   void (*HttpGetAsync)(const char *url, Net_HttpCallback callback, void *user_data);
 
   /**
+   * @brief Performs an asynchronous HTTP `GET` request and deserializes a single JSON object.
+   * @param url The URL to fetch.
+   * @param properties The JsonProperty descriptors for the destination struct.
+   * @param size The size of the destination struct.
+   * @param callback Invoked on a background thread when the request completes.
+   * @param user_data User data pointer passed through to the callback.
+   * @remarks The parsed instance is valid only for the duration of the callback; copy it if needed.
+   */
+  void (*HttpGetInstanceAsync)(const char *url, const JsonProperty *properties,
+                               size_t size, Net_HttpInstanceCallback callback, void *user_data);
+
+  /**
+   * @brief Performs an asynchronous HTTP `GET` request and deserializes a JSON array.
+   * @param url The URL to fetch.
+   * @param properties The JsonProperty descriptors for the destination struct array.
+   * @param stride The byte distance between consecutive structs.
+   * @param count The capacity of the destination array.
+   * @param callback Invoked on a background thread when the request completes.
+   * @param user_data User data pointer passed through to the callback.
+   * @remarks The parsed instances are valid only for the duration of the callback; copy them if needed.
+   */
+  void (*HttpGetInstancesAsync)(const char *url, const JsonProperty *properties,
+                                size_t stride, size_t count,
+                                Net_HttpInstancesCallback callback, void *user_data);
+
+  /**
    * @}
    * @defgroup filesystem Filesystem
    * @{

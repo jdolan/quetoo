@@ -60,29 +60,59 @@ cvar_t *qport;
 cvar_t *cl_draw_net_messages;
 
 /**
- * @brief Requests the server-side GUID hash once at startup and stores it in `guid_hashed`.
+ * @brief Net_HttpInstanceCallback for `Cl_InitGuidHash`. Runs on the HTTP session
+ * thread, so the parsed hash is marshaled to the main thread via an MVC notification.
  */
-static void Cl_InitGuidHash(void) {
+static void Cl_GuidHashComplete(int32_t status, void *instance, void *user_data) {
 
-  if (!guid || !guid->string[0]) {
-    Cvar_ForceSetString("guid_hashed", "");
-    return;
-  }
+  char *guid_hashed = NULL;
 
-  Cvar_ForceSetString("guid_hashed", "");
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
-
-  GuidHashResponse response = { 0 };
-
-  if (Net_HttpGetInstance(url, guid_hash_properties, &response) == 200) {
-    if (response.guid[0]) {
-      Cvar_ForceSetString("guid_hashed", response.guid);
+  if (status == 200 && instance) {
+    const GuidHashResponse *response = instance;
+    if (response->guid[0]) {
+      guid_hashed = g_strdup(response->guid);
     } else {
       Com_Warn("GUID hash response missing guid field\n");
     }
   }
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_GUID_HASHED,
+    .user.data1 = guid_hashed
+  });
+}
+
+/**
+ * @brief Applies the GUID hash from a `NOTIFICATION_GUID_HASHED` event on the main thread.
+ */
+void Cl_GuidHashedEvent(const SDL_Event *event) {
+
+  char *guid_hashed = event->user.data1;
+
+  if (guid_hashed) {
+    Cvar_ForceSetString("guid_hashed", guid_hashed);
+    g_free(guid_hashed);
+  }
+}
+
+/**
+ * @brief Asynchronously requests the server-side GUID hash once at startup and stores
+ * it in `guid_hashed` when the response arrives.
+ */
+static void Cl_InitGuidHash(void) {
+
+  Cvar_ForceSetString("guid_hashed", "");
+
+  if (!guid || !guid->string[0]) {
+    return;
+  }
+
+  char url[256];
+  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+
+  Net_HttpGetInstanceAsync(url, guid_hash_properties, sizeof(GuidHashResponse),
+                           Cl_GuidHashComplete, NULL);
 }
 
 cl_static_t cls;
@@ -770,8 +800,6 @@ void Cl_Init(void) {
 
   Net_Config(NS_UDP_CLIENT, true);
 
-  Cl_InitGuidHash();
-
   S_Init();
 
   R_Init();
@@ -783,6 +811,9 @@ void Cl_Init(void) {
   Cl_ClearState();
 
   Cl_InitCgame();
+
+  // after Ui_Init, so that MVC_NOTIFICATION_EVENT is registered before the completion fires
+  Cl_InitGuidHash();
 
   Cl_SetKeyDest(KEY_UI);
 

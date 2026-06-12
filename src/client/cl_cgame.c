@@ -182,6 +182,8 @@ void Cl_InitCgame(void) {
   import.HttpGetInstance = Net_HttpGetInstance;
   import.HttpGetInstances = Net_HttpGetInstances;
   import.HttpGetAsync = Net_HttpGetAsync;
+  import.HttpGetInstanceAsync = Net_HttpGetInstanceAsync;
+  import.HttpGetInstancesAsync = Net_HttpGetInstancesAsync;
 
   import.OpenFile = Fs_OpenRead;
   import.SeekFile = Fs_Seek;

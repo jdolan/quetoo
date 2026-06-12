@@ -76,9 +76,54 @@ static const char *formatTime(int32_t seconds) {
 }
 
 /**
- * @brief Fetches leaderboard rows using the given sort column.
+ * @brief Pending leaderboard fetch results, shared with the HTTP session thread.
  */
-static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
+static struct {
+  SDL_Mutex *lock;
+  uint32_t generation;
+  LeaderboardEntry entries[LEADERBOARD_MAX_ENTRIES];
+  size_t num_entries;
+} leaderboard_fetch;
+
+/**
+ * @brief Net_HttpInstancesCallback for `fetchLeaderboard`. Runs on the HTTP session
+ * thread, so the parsed rows are staged and marshaled to the main thread via an
+ * MVC notification.
+ */
+static void fetchLeaderboardComplete(int32_t status, void *instances, size_t count, void *user_data) {
+
+  if (status != 200) {
+    return;
+  }
+
+  const uint32_t generation = (uint32_t) (uintptr_t) user_data;
+
+  SDL_LockMutex(leaderboard_fetch.lock);
+
+  if (generation != leaderboard_fetch.generation) {
+    SDL_UnlockMutex(leaderboard_fetch.lock);
+    return;
+  }
+
+  memset(leaderboard_fetch.entries, 0, sizeof(leaderboard_fetch.entries));
+
+  leaderboard_fetch.num_entries = count < LEADERBOARD_MAX_ENTRIES ? count : LEADERBOARD_MAX_ENTRIES;
+  if (instances && leaderboard_fetch.num_entries) {
+    memcpy(leaderboard_fetch.entries, instances, leaderboard_fetch.num_entries * sizeof(LeaderboardEntry));
+  }
+
+  SDL_UnlockMutex(leaderboard_fetch.lock);
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_LEADERBOARD_FETCHED
+  });
+}
+
+/**
+ * @brief Asynchronously fetches leaderboard rows using the given sort column.
+ */
+static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
 
   const char *sort = column ? sortParamForColumn(column->identifier) : NULL;
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
@@ -90,12 +135,13 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
     g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   }
 
-  size_t num_entries = 0;
-  const int32_t status = cgi.HttpGetInstances(url, leaderboard_properties,
-                                              this->entries, sizeof(LeaderboardEntry),
-                                              LEADERBOARD_MAX_ENTRIES, &num_entries);
-  this->num_entries = num_entries;
-  return status == 200;
+  SDL_LockMutex(leaderboard_fetch.lock);
+  const uint32_t generation = ++leaderboard_fetch.generation;
+  SDL_UnlockMutex(leaderboard_fetch.lock);
+
+  cgi.HttpGetInstancesAsync(url, leaderboard_properties,
+                            sizeof(LeaderboardEntry), LEADERBOARD_MAX_ENTRIES,
+                            fetchLeaderboardComplete, (void *) (uintptr_t) generation);
 }
 
 /**
@@ -181,8 +227,6 @@ static void didSetSortColumn(TableView *tableView) {
   LeaderboardViewController *this = tableView->delegate.self;
 
   fetchLeaderboard(this, tableView->sortColumn);
-  $(this->leaderboard, reloadData);
-  selectOwnRow(this);
 }
 
 #pragma mark - ViewController
@@ -195,6 +239,10 @@ static void loadView(ViewController *self) {
   super(ViewController, self, loadView);
 
   LeaderboardViewController *this = (LeaderboardViewController *) self;
+
+  if (leaderboard_fetch.lock == NULL) {
+    leaderboard_fetch.lock = SDL_CreateMutex();
+  }
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("leaderboard", &this->leaderboard)
@@ -223,6 +271,34 @@ static void loadView(ViewController *self) {
 }
 
 /**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  LeaderboardViewController *this = (LeaderboardViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+
+    if (event->user.code == NOTIFICATION_LEADERBOARD_FETCHED) {
+
+      SDL_LockMutex(leaderboard_fetch.lock);
+      this->num_entries = leaderboard_fetch.num_entries;
+      memcpy(this->entries, leaderboard_fetch.entries, sizeof(this->entries));
+      SDL_UnlockMutex(leaderboard_fetch.lock);
+
+      $(this->leaderboard, reloadData);
+      selectOwnRow(this);
+
+    } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
+      $(this->leaderboard, reloadData);
+      selectOwnRow(this);
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
  * @see ViewController::viewWillAppear(ViewController *)
  */
 static void viewWillAppear(ViewController *self) {
@@ -232,8 +308,6 @@ static void viewWillAppear(ViewController *self) {
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
   fetchLeaderboard(this, this->leaderboard->sortColumn);
-  $(this->leaderboard, reloadData);
-  selectOwnRow(this);
 }
 
 #pragma mark - Class lifecycle
@@ -243,6 +317,7 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 

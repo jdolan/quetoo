@@ -471,6 +471,148 @@ START_TEST(check_Net_HttpGetInstances_json) {
 
 } END_TEST
 
+typedef struct {
+	SDL_AtomicInt complete;
+	int32_t status;
+	http_instance_t instance;
+	bool had_instance;
+} http_instance_async_t;
+
+static void http_instance_async_callback(int32_t status, void *instance, void *user_data) {
+	http_instance_async_t *ctx = user_data;
+
+	ctx->status = status;
+	if (instance) {
+		ctx->instance = *(http_instance_t *) instance;
+		ctx->had_instance = true;
+	}
+
+	SDL_SetAtomicInt(&ctx->complete, 1);
+}
+
+START_TEST(check_Net_HttpGetInstanceAsync_json) {
+
+	Net_Init();
+
+	const in_port_t port = 39984;
+
+	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+
+	const char payload[] = "{\"guid\":\"abc123\",\"rank\":7}";
+
+	http_server_t server = {
+		.listen_sock = listen_sock,
+		.port = port,
+		.payload = payload,
+		.payload_len = sizeof(payload) - 1,
+		.ok = false,
+	};
+
+	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
+
+	char url[128];
+	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
+
+	http_instance_async_t ctx = { 0 };
+	Net_HttpGetInstanceAsync(url, http_instance_properties, sizeof(http_instance_t),
+	                         http_instance_async_callback, &ctx);
+
+	for (int32_t i = 0; !SDL_GetAtomicInt(&ctx.complete); i++) {
+		ck_assert_msg(i < 500, "Timed out awaiting async completion");
+		SDL_Delay(10);
+	}
+
+	ck_assert_int_eq(ctx.status, 200);
+	ck_assert(ctx.had_instance);
+	ck_assert_str_eq(ctx.instance.guid, "abc123");
+	ck_assert_int_eq(ctx.instance.rank, 7);
+
+	int thread_status;
+	SDL_WaitThread(thread, &thread_status);
+	ck_assert_int_eq(thread_status, 0);
+	ck_assert(server.ok);
+	ck_assert_str_eq(server.parsed_method, "GET");
+	ck_assert_str_eq(server.parsed_path, "test.json");
+
+	Net_CloseSocket(listen_sock);
+	Net_Shutdown();
+
+} END_TEST
+
+typedef struct {
+	SDL_AtomicInt complete;
+	int32_t status;
+	http_item_t items[2];
+	size_t num_items;
+} http_items_async_t;
+
+static void http_items_async_callback(int32_t status, void *instances, size_t count, void *user_data) {
+	http_items_async_t *ctx = user_data;
+
+	ctx->status = status;
+	ctx->num_items = count < 2 ? count : 2;
+	if (instances && ctx->num_items) {
+		memcpy(ctx->items, instances, ctx->num_items * sizeof(http_item_t));
+	}
+
+	SDL_SetAtomicInt(&ctx->complete, 1);
+}
+
+START_TEST(check_Net_HttpGetInstancesAsync_json) {
+
+	Net_Init();
+
+	const in_port_t port = 39985;
+
+	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+
+	const char payload[] = "[{\"name\":\"one\",\"value\":1},{\"name\":\"two\",\"value\":2}]";
+
+	http_server_t server = {
+		.listen_sock = listen_sock,
+		.port = port,
+		.payload = payload,
+		.payload_len = sizeof(payload) - 1,
+		.ok = false,
+	};
+
+	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
+
+	char url[128];
+	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
+
+	http_items_async_t ctx = { 0 };
+	Net_HttpGetInstancesAsync(url, http_item_properties, sizeof(http_item_t), 2,
+	                          http_items_async_callback, &ctx);
+
+	for (int32_t i = 0; !SDL_GetAtomicInt(&ctx.complete); i++) {
+		ck_assert_msg(i < 500, "Timed out awaiting async completion");
+		SDL_Delay(10);
+	}
+
+	ck_assert_int_eq(ctx.status, 200);
+	ck_assert_uint_eq(ctx.num_items, 2);
+	ck_assert_str_eq(ctx.items[0].name, "one");
+	ck_assert_int_eq(ctx.items[0].value, 1);
+	ck_assert_str_eq(ctx.items[1].name, "two");
+	ck_assert_int_eq(ctx.items[1].value, 2);
+
+	int thread_status;
+	SDL_WaitThread(thread, &thread_status);
+	ck_assert_int_eq(thread_status, 0);
+	ck_assert(server.ok);
+	ck_assert_str_eq(server.parsed_method, "GET");
+	ck_assert_str_eq(server.parsed_path, "test.json");
+
+	Net_CloseSocket(listen_sock);
+	Net_Shutdown();
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -508,6 +650,8 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_test(tcase, check_Net_Http_roundtrip);
 	tcase_add_test(tcase, check_Net_HttpGetInstance_json);
 	tcase_add_test(tcase, check_Net_HttpGetInstances_json);
+	tcase_add_test(tcase, check_Net_HttpGetInstanceAsync_json);
+	tcase_add_test(tcase, check_Net_HttpGetInstancesAsync_json);
 	suite_add_tcase(suite, tcase);
 
 	// Run with CK_NOFORK because Net_HttpGet uses libcurl, which is not fork-safe

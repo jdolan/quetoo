@@ -244,6 +244,158 @@ void Net_HttpGetAsync(const char *url_string, Net_HttpCallback callback, void *u
 }
 
 typedef struct {
+  const JsonProperty *properties;
+  size_t size;
+  Net_HttpInstanceCallback callback;
+  void *user_data;
+} Net_HttpGetInstanceAsync_State;
+
+/**
+ * @brief URLSessionTaskCompletion for `Net_HttpGetInstanceAsync`.
+ */
+static void Net_HttpGetInstanceAsync_Completion(URLSessionTask *task, bool success) {
+
+  int32_t status = task->response->httpStatusCode;
+
+  const char *url_string = task->request->url->urlString->chars;
+
+  Com_Debug(DEBUG_NET, "%s: HTTP %d\n", url_string, status);
+
+  Net_HttpGetInstanceAsync_State *state = (Net_HttpGetInstanceAsync_State *) task->data;
+
+  void *instance = NULL;
+
+  if (status == 200) {
+    const Data *data = ((URLSessionDataTask *) task)->data;
+    if (Net_HttpJsonFirstByte(data) == '{') {
+      instance = Mem_Malloc(state->size);
+      if ($$(JSONSerialization, instanceFromData, state->properties, data, instance) != 1) {
+        Com_Warn("%s: Failed to parse JSON object\n", url_string);
+        Mem_Free(instance);
+        instance = NULL;
+        status = 0;
+      }
+    } else {
+      Com_Warn("%s: Failed to parse JSON object\n", url_string);
+      status = 0;
+    }
+  } else if (status) {
+    Com_Warn("%s: HTTP %d\n", url_string, status);
+  } else {
+    Com_Warn("%s: HTTP request failed\n", url_string);
+  }
+
+  state->callback(status, instance, state->user_data);
+
+  Mem_Free(instance);
+  Mem_Free(state);
+  release(task);
+}
+
+/**
+ * @brief Initiates an asynchronous HTTP `GET` request, deserializing a single JSON object.
+ */
+void Net_HttpGetInstanceAsync(const char *url_string, const JsonProperty *properties,
+                              size_t size, Net_HttpInstanceCallback callback, void *user_data) {
+
+  assert(url_string);
+  assert(properties);
+  assert(callback);
+
+  Com_Debug(DEBUG_NET, "%s\n", url_string);
+
+  URL *url = $(alloc(URL), initWithCharacters, url_string);
+  URLSession *session = Net_HttpSession();
+  URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetInstanceAsync_Completion);
+  release(url);
+
+  Net_HttpGetInstanceAsync_State *state = Mem_Malloc(sizeof(Net_HttpGetInstanceAsync_State));
+  state->properties = properties;
+  state->size = size;
+  state->callback = callback;
+  state->user_data = user_data;
+  task->urlSessionTask.data = state;
+
+  $((URLSessionTask *) task, resume);
+}
+
+typedef struct {
+  const JsonProperty *properties;
+  size_t stride;
+  size_t count;
+  Net_HttpInstancesCallback callback;
+  void *user_data;
+} Net_HttpGetInstancesAsync_State;
+
+/**
+ * @brief URLSessionTaskCompletion for `Net_HttpGetInstancesAsync`.
+ */
+static void Net_HttpGetInstancesAsync_Completion(URLSessionTask *task, bool success) {
+
+  int32_t status = task->response->httpStatusCode;
+
+  const char *url_string = task->request->url->urlString->chars;
+
+  Com_Debug(DEBUG_NET, "%s: HTTP %d\n", url_string, status);
+
+  Net_HttpGetInstancesAsync_State *state = (Net_HttpGetInstancesAsync_State *) task->data;
+
+  void *instances = NULL;
+  size_t instances_count = 0;
+
+  if (status == 200) {
+    const Data *data = ((URLSessionDataTask *) task)->data;
+    if (Net_HttpJsonFirstByte(data) == '[') {
+      instances = Mem_Malloc(state->stride * state->count);
+      instances_count = $$(JSONSerialization, instancesFromData, state->properties, data,
+                           instances, state->stride, state->count);
+    } else {
+      Com_Warn("%s: Failed to parse JSON array\n", url_string);
+      status = 0;
+    }
+  } else if (status) {
+    Com_Warn("%s: HTTP %d\n", url_string, status);
+  } else {
+    Com_Warn("%s: HTTP request failed\n", url_string);
+  }
+
+  state->callback(status, instances, instances_count, state->user_data);
+
+  Mem_Free(instances);
+  Mem_Free(state);
+  release(task);
+}
+
+/**
+ * @brief Initiates an asynchronous HTTP `GET` request, deserializing a JSON array.
+ */
+void Net_HttpGetInstancesAsync(const char *url_string, const JsonProperty *properties,
+                               size_t stride, size_t count,
+                               Net_HttpInstancesCallback callback, void *user_data) {
+
+  assert(url_string);
+  assert(properties);
+  assert(callback);
+
+  Com_Debug(DEBUG_NET, "%s\n", url_string);
+
+  URL *url = $(alloc(URL), initWithCharacters, url_string);
+  URLSession *session = Net_HttpSession();
+  URLSessionDataTask *task = $(session, dataTaskWithURL, url, Net_HttpGetInstancesAsync_Completion);
+  release(url);
+
+  Net_HttpGetInstancesAsync_State *state = Mem_Malloc(sizeof(Net_HttpGetInstancesAsync_State));
+  state->properties = properties;
+  state->stride = stride;
+  state->count = count;
+  state->callback = callback;
+  state->user_data = user_data;
+  task->urlSessionTask.data = state;
+
+  $((URLSessionTask *) task, resume);
+}
+
+typedef struct {
   Net_HttpCallback callback;
   void *user_data;
 } Net_HttpPostAsync_State;
