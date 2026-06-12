@@ -555,8 +555,12 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
       continue;
     }
 
+    // Crouched clients can lose the rider classification near the top of a rising plat,
+    // so keep them in the push path even if their current spot looks valid.
+    const bool crouched_client = other->client && (other->client->ps.pm_state.flags & PMF_DUCKED);
+
     // if the entity is in a good position and not riding us, we can skip them
-    if (G_GoodPosition(other) && other->ground.ent != ent) {
+    if (G_GoodPosition(other) && other->ground.ent != ent && !(crouched_client && move.z > 0.0f)) {
       continue;
     }
 
