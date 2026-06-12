@@ -555,21 +555,20 @@ static g_entity_t *G_Physics_Push_Translate(g_entity_t *ent, const vec3_t move) 
       continue;
     }
 
-    // Crouched clients can lose the rider classification near the top of a rising plat,
-    // so keep them in the push path even if their current spot looks valid.
     const bool crouched_client = other->client && (other->client->ps.pm_state.flags & PMF_DUCKED);
+    const bool riding = (other->ground.ent == ent) || (crouched_client && move.z > 0.0f);
 
     // if the entity is in a good position and not riding us, we can skip them
-    if (G_GoodPosition(other) && other->ground.ent != ent && !(crouched_client && move.z > 0.0f)) {
+    if (G_GoodPosition(other) && !riding) {
       continue;
     }
 
     // if we are a pusher, or someone is riding us, try to move them
-    if ((ent->move_type == MOVE_TYPE_PUSH) || (other->ground.ent == ent)) {
+    if ((ent->move_type == MOVE_TYPE_PUSH) || riding) {
 
       G_Physics_Push_Impact(other);
 
-      if (other->ground.ent == ent) {
+      if (riding) {
         // we can only ride a bmodel if we're in a good position
         // on top of it already; to make things simpler, we assume
         // that we're not going to self-intersect with the pusher.
