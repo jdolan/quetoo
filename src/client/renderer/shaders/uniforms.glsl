@@ -211,8 +211,11 @@ layout (std140) uniform lights_block {
 
 /**
  * @brief The -1 terminated array of active light indexes for the current render operation.
+ * @details Sized to MAX_DYNAMIC_LIGHTS rather than MAX_LIGHTS because all consumers only
+ * iterate the first MAX_DYNAMIC_LIGHTS entries, and a larger default-block uniform array
+ * exceeds the vertex program parameter limits of older GL drivers (#842).
  */
-uniform int active_lights[MAX_LIGHTS];
+uniform int active_lights[MAX_DYNAMIC_LIGHTS];
 
 /**
  * @brief The diffusemap texture, for non-material passes such as sprites.
