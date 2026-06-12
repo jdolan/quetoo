@@ -69,18 +69,27 @@ static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
 void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
   if (side->valve) {
-    // Valve-220: axes are already stored in side->axis as (direction, shift); apply scale and origin offset
+    // Valve-220: axes are already stored in side->axis as (direction, shift).
+    // Note that this function is called once during parsing (origin = 0) and may be called
+    // a second time when applying entity origin offsets.
     const vec2_t scale = {
       .x = side->scale.x ?: 1.f,
       .y = side->scale.y ?: 1.f,
     };
+
+    if (!Vec3_Equal(origin, Vec3_Zero())) {
+      // Axis xyz are already scaled from the first pass; only apply the origin offset.
+      for (int32_t i = 0; i < 2; i++) {
+        side->axis[i].w += Vec3_Dot(origin, side->axis[i].xyz);
+      }
+      return;
+    }
+
+    // First pass: apply scale.
     for (int32_t i = 0; i < 2; i++) {
-      const vec3_t dir = Vec3(side->axis[i].x, side->axis[i].y, side->axis[i].z);
-      const float shift = side->axis[i].w;
       for (int32_t j = 0; j < 3; j++) {
         side->axis[i].xyzw[j] /= scale.xy[i];
       }
-      side->axis[i].w = shift + Vec3_Dot(origin, dir);
     }
     return;
   }
