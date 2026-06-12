@@ -545,7 +545,10 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].y, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
         Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
-        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token)); // consume "]"
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "]")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
       }
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
