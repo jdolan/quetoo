@@ -94,8 +94,8 @@ typedef enum {
   STAT_TEAM,
   STAT_TECH,
   STAT_TIME,
-  STAT_VOID,
-  STAT_WEAPON
+  STAT_WEAPON,
+  STAT_VOID // new stats must be appended at the end to preserve wire indices for mismatched servers
 } g_stat_t;
 
 /**
