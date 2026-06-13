@@ -121,8 +121,41 @@ static void Cl_WriteDemoHeader(void) {
 }
 
 /**
+ * @brief Re-encodes the current decoded frame as a self-contained keyframe (a
+ * full, non-delta snapshot) and writes it as a FRAME_KEY record. This is the
+ * exact wire format the client parser expects for an uncompressed frame: the
+ * player state delta'd from null, and every live entity delta'd from its
+ * baseline. Seeking jumps to these keyframes (see Demo_ScanIndex / Sv_DemoSeek).
+ */
+static void Cl_WriteDemoKeyframe(uint32_t timecode) {
+  static player_state_t null_state;
+  mem_buf_t kf;
+  byte buffer[MAX_MSG_SIZE];
+
+  Mem_InitBuffer(&kf, buffer, sizeof(buffer));
+
+  Net_WriteByte(&kf, SV_CMD_FRAME);
+  Net_WriteLong(&kf, cl.frame.frame_num);
+  Net_WriteLong(&kf, -1); // uncompressed
+
+  Net_WriteDeltaPlayerState(&kf, &null_state, &cl.frame.ps);
+
+  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
+    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cl.entity_states[snum];
+    Net_WriteDeltaEntity(&kf, &cl.entities[s->number].baseline, s, true);
+  }
+
+  Net_WriteShort(&kf, -1); // end of entities
+
+  Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_KEY, timecode, kf.data, kf.size);
+}
+
+/**
  * @brief Writes the current net message as a v2 record, stamping it with the
  * current frame's timecode and classifying it as a keyframe, delta, or reliable.
+ * Every DEMO_KEYFRAME_INTERVAL frames the natural delta is replaced with a
+ * re-encoded keyframe so that seeking has a nearby self-contained entry point.
  */
 static void Cl_WriteDemoRecord(void) {
 
@@ -130,18 +163,23 @@ static void Cl_WriteDemoRecord(void) {
     cl_demo_first_frame = cl.frame.frame_num;
   }
 
-  const uint32_t timecode = (uint32_t) (cl.frame.frame_num - cl_demo_first_frame) * QUETOO_TICK_MILLIS;
+  const int32_t rel_frame = cl.frame.frame_num - cl_demo_first_frame;
+  const uint32_t timecode = (uint32_t) rel_frame * QUETOO_TICK_MILLIS;
 
-  uint8_t type;
-  if (cl.frame.frame_num != cl_demo_last_frame) { // this packet delivered a new frame
-    type = (cl.frame.delta_frame_num < 0) ? DEMO_RECORD_FRAME_KEY : DEMO_RECORD_FRAME_DELTA;
-    cl_demo_last_frame = cl.frame.frame_num;
-  } else { // a trailing datagram-only packet for the same frame
-    type = DEMO_RECORD_RELIABLE;
+  if (cl.frame.frame_num == cl_demo_last_frame) { // a trailing datagram-only packet
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, net_message.data + 8, net_message.size - 8);
+    return;
   }
 
-  // the first eight bytes are just packet sequencing stuff
-  Demo_WriteRecord(cls.demo_file, type, timecode, net_message.data + 8, net_message.size - 8);
+  cl_demo_last_frame = cl.frame.frame_num;
+
+  if (cl.frame.delta_frame_num < 0) { // a naturally uncompressed frame is already a keyframe
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_KEY, timecode, net_message.data + 8, net_message.size - 8);
+  } else if (rel_frame > 0 && (rel_frame % DEMO_KEYFRAME_INTERVAL) == 0) { // periodic keyframe
+    Cl_WriteDemoKeyframe(timecode);
+  } else {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_DELTA, timecode, net_message.data + 8, net_message.size - 8);
+  }
 }
 
 /**

@@ -150,6 +150,8 @@ static void Sv_ClearState(void) {
     Fs_Close(sv.demo_file);
   }
 
+  Demo_FreeIndex(&sv.demo_index);
+
   memset(&sv, 0, sizeof(sv));
   Com_QuitSubsystem(QUETOO_SERVER);
 
@@ -285,6 +287,12 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
       demo_header_t header;
       if (Demo_ReadHeader(sv.demo_file, &header, NULL)) {
         sv.demo_v2 = true;
+        sv.demo_speed = 1.0;
+        sv.demo_paused = false;
+
+        // build the keyframe seek index; this leaves the cursor at the first record
+        Demo_ScanIndex(sv.demo_file, &sv.demo_index);
+        Com_Print("  %u keyframe(s), %.1fs.\n", sv.demo_index.count, sv.demo_index.duration / 1000.0);
       } else {
         Com_Warn("Corrupt v2 demo header in %s\n", sv.name);
       }

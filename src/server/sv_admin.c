@@ -24,6 +24,7 @@
 #endif
 
 #include "sv_local.h"
+#include "common/demo.h"
 
 /**
  * @brief Sets the master servers for this dedicated server and sends an initial ping.
@@ -151,6 +152,119 @@ static void Sv_Demo_f(void) {
   } else {
     Com_Warn("%s does not exist\n", path);
   }
+}
+
+/**
+ * @return True if a seekable v2 demo is currently playing.
+ */
+static bool Sv_DemoActive(void) {
+  return svs.state == SV_ACTIVE_DEMO && sv.demo_v2;
+}
+
+/**
+ * @brief Seeks playback to the nearest keyframe at or before `target_ms`; the
+ * frames between the keyframe and the target are then replayed to the client,
+ * which snaps to the result (see Cl_UpdateLerp).
+ */
+static void Sv_DemoSeekTo(uint32_t target_ms) {
+
+  const demo_index_entry_t *kf = Demo_IndexFloor(&sv.demo_index, target_ms);
+  if (kf == NULL) {
+    if (sv.demo_index.count == 0) {
+      Com_Print("Demo has no keyframes to seek to\n");
+      return;
+    }
+    kf = &sv.demo_index.entries[0]; // before the first keyframe; clamp to it
+  }
+
+  Fs_Seek(sv.demo_file, (int64_t) kf->offset);
+  sv.demo_time = target_ms;
+
+  Com_Print("Seek to %.1fs\n", target_ms / 1000.0);
+}
+
+/**
+ * @brief demo_seek <seconds | +seconds | -seconds> — seek demo playback.
+ */
+static void Sv_DemoSeek_f(void) {
+
+  if (!Sv_DemoActive()) {
+    Com_Print("Not playing a seekable demo\n");
+    return;
+  }
+
+  if (Cmd_Argc() != 2) {
+    Com_Print("Usage: %s <seconds | +seconds | -seconds>\n", Cmd_Argv(0));
+    return;
+  }
+
+  const char *arg = Cmd_Argv(1);
+  const bool relative = (arg[0] == '+' || arg[0] == '-');
+  const int32_t delta_ms = (int32_t) (strtof(relative ? arg + 1 : arg, NULL) * 1000.0f);
+
+  int32_t target;
+  if (arg[0] == '+') {
+    target = (int32_t) sv.demo_time + delta_ms;
+  } else if (arg[0] == '-') {
+    target = (int32_t) sv.demo_time - delta_ms;
+  } else {
+    target = delta_ms;
+  }
+
+  target = Clampf(target, 0, (int32_t) sv.demo_index.duration);
+
+  Sv_DemoSeekTo((uint32_t) target);
+}
+
+/**
+ * @brief demo_pause — toggle demo playback.
+ */
+static void Sv_DemoPause_f(void) {
+
+  if (!Sv_DemoActive()) {
+    Com_Print("Not playing a seekable demo\n");
+    return;
+  }
+
+  sv.demo_paused = !sv.demo_paused;
+  Com_Print("Demo %s\n", sv.demo_paused ? "paused" : "resumed");
+}
+
+/**
+ * @brief demo_speed [multiplier] — get or set demo playback rate (0.1 - 8.0).
+ */
+static void Sv_DemoSpeed_f(void) {
+
+  if (!Sv_DemoActive()) {
+    Com_Print("Not playing a seekable demo\n");
+    return;
+  }
+
+  if (Cmd_Argc() == 2) {
+    sv.demo_speed = Clampf(strtof(Cmd_Argv(1), NULL), 0.1f, 8.0f);
+  }
+
+  Com_Print("Demo speed %.2fx\n", sv.demo_speed);
+}
+
+/**
+ * @brief demo_step [frames] — step playback by N frames (default 1) and pause.
+ */
+static void Sv_DemoStep_f(void) {
+
+  if (!Sv_DemoActive()) {
+    Com_Print("Not playing a seekable demo\n");
+    return;
+  }
+
+  const int32_t frames = (Cmd_Argc() == 2) ? atoi(Cmd_Argv(1)) : 1;
+
+  sv.demo_paused = true;
+
+  const int32_t target = Clampf((int32_t) sv.demo_time + frames * QUETOO_TICK_MILLIS,
+                                 0, (int32_t) sv.demo_index.duration);
+
+  Sv_DemoSeekTo((uint32_t) target);
 }
 
 /**
@@ -430,6 +544,11 @@ void Sv_InitAdmin(void) {
 
   cmd_t *demo_cmd = Cmd_Add("demo", Sv_Demo_f, CMD_SERVER, "Start playback of the specified demo file");
   Cmd_SetAutocomplete(demo_cmd, Sv_Demo_Autocomplete_f);
+
+  Cmd_Add("demo_seek", Sv_DemoSeek_f, CMD_SERVER, "Seek demo playback: <seconds | +seconds | -seconds>");
+  Cmd_Add("demo_pause", Sv_DemoPause_f, CMD_SERVER, "Toggle demo playback pause");
+  Cmd_Add("demo_speed", Sv_DemoSpeed_f, CMD_SERVER, "Get or set demo playback speed multiplier");
+  Cmd_Add("demo_step", Sv_DemoStep_f, CMD_SERVER, "Step demo playback by N frames (pauses)");
 
   cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);

@@ -22,6 +22,7 @@
 #pragma once
 
 #include "common/common.h"
+#include "common/demo.h"
 
 #include "game/game.h"
 
@@ -129,6 +130,22 @@ typedef struct {
    * Records are transmitted to the client as this clock reaches their timecode.
    */
   uint32_t demo_time;
+
+  /**
+   * @brief Keyframe seek index for the active v2 demo, built on load.
+   */
+  demo_index_t demo_index;
+
+  /**
+   * @brief When true, the demo clock is frozen (v2 only).
+   */
+  bool demo_paused;
+
+  /**
+   * @brief Demo clock rate multiplier (1.0 = realtime). Independent of
+   * time_scale, so the (real-time) free camera stays smooth at any speed.
+   */
+  float demo_speed;
 } sv_server_t;
 
 /**
