@@ -28,6 +28,7 @@
     <ClInclude Include="..\deps\discord-rpc\src\serialization.h" />
     <ClInclude Include="..\src\cgame\cgame.h" />
     <ClInclude Include="..\src\cgame\default\cg_client.h" />
+    <ClInclude Include="..\src\cgame\default\cg_demo.h" />
     <ClInclude Include="..\src\cgame\default\cg_discord.h" />
     <ClInclude Include="..\src\cgame\default\cg_effect.h" />
     <ClInclude Include="..\src\cgame\default\cg_entity.h" />
@@ -62,6 +63,7 @@
     <ClInclude Include="..\src\cgame\default\ui\common\DialogViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\ControlsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\CrosshairView.h" />
+    <ClInclude Include="..\src\cgame\default\ui\controls\DemoBindsViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\MovementCombatViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.h" />
     <ClInclude Include="..\src\cgame\default\ui\editor\EditorViewController.h" />
@@ -97,6 +99,7 @@
     <ClCompile Include="..\deps\discord-rpc\src\rpc_connection.cpp" />
     <ClCompile Include="..\deps\discord-rpc\src\serialization.cpp" />
     <ClCompile Include="..\src\cgame\default\cg_client.c" />
+    <ClCompile Include="..\src\cgame\default\cg_demo.c" />
     <ClCompile Include="..\src\cgame\default\cg_discord.c" />
     <ClCompile Include="..\src\cgame\default\cg_editor.c" />
     <ClCompile Include="..\src\cgame\default\cg_effect.c" />
@@ -129,6 +132,7 @@
     <ClCompile Include="..\src\cgame\default\ui\common\DialogViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\ControlsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\CrosshairView.c" />
+    <ClCompile Include="..\src\cgame\default\ui\controls\DemoBindsViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\MovementCombatViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\controls\ResponseServiceViewController.c" />
     <ClCompile Include="..\src\cgame\default\ui\editor\EditorViewController.c" />

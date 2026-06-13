@@ -248,6 +248,34 @@ static void Sv_DemoSpeed_f(void) {
 }
 
 /**
+ * @brief Adjusts the demo speed by `delta`, for bindable relative controls.
+ */
+static void Sv_DemoSpeedAdjust(float delta) {
+
+  if (!Sv_DemoActive()) {
+    Com_Print("Not playing a seekable demo\n");
+    return;
+  }
+
+  sv.demo_speed = Clampf(sv.demo_speed + delta, 0.1f, 8.0f);
+  Com_Print("Demo speed %.2fx\n", sv.demo_speed);
+}
+
+/**
+ * @brief demo_speed_up — increase demo playback speed.
+ */
+static void Sv_DemoSpeedUp_f(void) {
+  Sv_DemoSpeedAdjust(0.25f);
+}
+
+/**
+ * @brief demo_speed_down — decrease demo playback speed.
+ */
+static void Sv_DemoSpeedDown_f(void) {
+  Sv_DemoSpeedAdjust(-0.25f);
+}
+
+/**
  * @brief demo_step [frames] — step playback by N frames (default 1) and pause.
  */
 static void Sv_DemoStep_f(void) {
@@ -548,6 +576,8 @@ void Sv_InitAdmin(void) {
   Cmd_Add("demo_seek", Sv_DemoSeek_f, CMD_SERVER, "Seek demo playback: <seconds | +seconds | -seconds>");
   Cmd_Add("demo_pause", Sv_DemoPause_f, CMD_SERVER, "Toggle demo playback pause");
   Cmd_Add("demo_speed", Sv_DemoSpeed_f, CMD_SERVER, "Get or set demo playback speed multiplier");
+  Cmd_Add("demo_speed_up", Sv_DemoSpeedUp_f, CMD_SERVER, "Increase demo playback speed");
+  Cmd_Add("demo_speed_down", Sv_DemoSpeedDown_f, CMD_SERVER, "Decrease demo playback speed");
   Cmd_Add("demo_step", Sv_DemoStep_f, CMD_SERVER, "Step demo playback by N frames (pauses)");
 
   cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
