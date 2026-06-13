@@ -337,8 +337,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   const player_state_t *ps1 = &frame->ps;
 
-  if (Cg_DemoInFreeCamera()) {
-    Cg_UpdateDemoCamera();
+  if (Cg_DemoOverridingView()) {
+    Cg_UpdateDemoView();
   } else {
     Cg_UpdateOrigin(ps0, ps1);
 
@@ -349,7 +349,7 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   Cg_UpdateFov();
 
-  if (!Cg_DemoInFreeCamera()) {
+  if (!Cg_DemoOverridingView()) {
     Cg_UpdateBob(ps1);
   }
 

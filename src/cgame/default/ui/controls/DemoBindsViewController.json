@@ -44,6 +44,30 @@
                           "class": "BindTextView",
                           "bind": "demo_freecam"
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Follow next player"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_follow_next"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Follow previous player"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_follow_prev"
+                        }
                       }
                     ]
                   }
