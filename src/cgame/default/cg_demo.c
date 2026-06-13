@@ -31,7 +31,22 @@ typedef enum {
   CG_DEMO_CAM_LOCKED, // the recorded player's eye (default)
   CG_DEMO_CAM_FREE,   // free-fly spectator under local input
   CG_DEMO_CAM_FOLLOW, // chase camera following a player entity
+  CG_DEMO_CAM_PATH,   // cinematic keyframed dolly path
 } cg_demo_cam_t;
+
+/**
+ * @brief A cinematic camera path keyframe.
+ */
+typedef struct {
+  uint32_t time;  // demo frame time (frame_num * QUETOO_TICK_MILLIS)
+  vec3_t origin;
+  vec3_t angles;
+} cg_demo_key_t;
+
+#define CG_DEMO_MAX_CAM_KEYS 256
+
+static cg_demo_key_t cg_demo_cam_keys[CG_DEMO_MAX_CAM_KEYS];
+static int32_t cg_demo_cam_count;
 
 /**
  * @brief Demo camera state. While not LOCKED, the camera detaches from the
@@ -212,6 +227,200 @@ static void Cg_UpdateDemoFollowCamera(void) {
   Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
 }
 
+#pragma mark - Camera paths
+
+#define CG_DEMO_CAM_PATH_FILE "demos/cinematic.cam"
+
+/**
+ * @brief Catmull-Rom interpolation of four control points at fraction t [0,1].
+ */
+static vec3_t Cg_DemoCatmullRom(const vec3_t p0, const vec3_t p1, const vec3_t p2, const vec3_t p3, float t) {
+
+  const float t2 = t * t;
+  const float t3 = t2 * t;
+
+  // c = 2*p0 - 5*p1 + 4*p2 - p3
+  vec3_t c = Vec3_Scale(p0, 2.f);
+  c = Vec3_Fmaf(c, -5.f, p1);
+  c = Vec3_Fmaf(c, 4.f, p2);
+  c = Vec3_Subtract(c, p3);
+
+  // d = -p0 + 3*p1 - 3*p2 + p3
+  vec3_t d = Vec3_Scale(p1, 3.f);
+  d = Vec3_Subtract(d, p0);
+  d = Vec3_Fmaf(d, -3.f, p2);
+  d = Vec3_Add(d, p3);
+
+  // r = (2*p1 + t*(p2 - p0) + t2*c + t3*d) / 2
+  vec3_t r = Vec3_Scale(p1, 2.f);
+  r = Vec3_Fmaf(r, t, Vec3_Subtract(p2, p0));
+  r = Vec3_Fmaf(r, t2, c);
+  r = Vec3_Fmaf(r, t3, d);
+
+  return Vec3_Scale(r, 0.5f);
+}
+
+/**
+ * @brief demo_cam_add — captures the current view as a camera keyframe.
+ */
+static void Cg_DemoCamAdd_f(void) {
+
+  if (!cgi.client->demo_server) {
+    cgi.Print("Not playing a demo\n");
+    return;
+  }
+
+  if (cg_demo_cam_count >= CG_DEMO_MAX_CAM_KEYS) {
+    cgi.Print("Camera path is full\n");
+    return;
+  }
+
+  const uint32_t t = cgi.client->frame.time;
+
+  // keep the keyframes sorted by time
+  int32_t i = cg_demo_cam_count;
+  while (i > 0 && cg_demo_cam_keys[i - 1].time > t) {
+    cg_demo_cam_keys[i] = cg_demo_cam_keys[i - 1];
+    i--;
+  }
+
+  cg_demo_cam_keys[i].time = t;
+  cg_demo_cam_keys[i].origin = cgi.view->origin;
+  cg_demo_cam_keys[i].angles = cgi.view->angles;
+  cg_demo_cam_count++;
+
+  cgi.Print("Camera keyframe %d at %.1fs\n", cg_demo_cam_count, t / 1000.0);
+}
+
+/**
+ * @brief demo_cam_clear — removes all camera keyframes.
+ */
+static void Cg_DemoCamClear_f(void) {
+
+  cg_demo_cam_count = 0;
+
+  if (cg_demo.mode == CG_DEMO_CAM_PATH) {
+    cg_demo.mode = CG_DEMO_CAM_LOCKED;
+  }
+
+  cgi.Print("Camera path cleared\n");
+}
+
+/**
+ * @brief demo_cam_play — toggles flying the cinematic camera path.
+ */
+static void Cg_DemoCamPlay_f(void) {
+
+  if (!cgi.client->demo_server) {
+    cgi.Print("Not playing a demo\n");
+    return;
+  }
+
+  if (cg_demo.mode == CG_DEMO_CAM_PATH) {
+    cg_demo.mode = CG_DEMO_CAM_LOCKED;
+    cgi.Print("Camera path stopped\n");
+    return;
+  }
+
+  if (cg_demo_cam_count < 2) {
+    cgi.Print("Add at least 2 camera keyframes first (demo_cam_add)\n");
+    return;
+  }
+
+  cg_demo.mode = CG_DEMO_CAM_PATH;
+  cgi.Print("Flying camera path (%d keyframes)\n", cg_demo_cam_count);
+}
+
+/**
+ * @brief demo_cam_save — writes the camera path to a sidecar file.
+ */
+static void Cg_DemoCamSave_f(void) {
+
+  if (cg_demo_cam_count == 0) {
+    cgi.Print("No camera path to save\n");
+    return;
+  }
+
+  file_t *file = cgi.OpenFileWrite(CG_DEMO_CAM_PATH_FILE);
+  if (!file) {
+    cgi.Print("Couldn't write %s\n", CG_DEMO_CAM_PATH_FILE);
+    return;
+  }
+
+  for (int32_t i = 0; i < cg_demo_cam_count; i++) {
+    const cg_demo_key_t *k = &cg_demo_cam_keys[i];
+    const char *line = va("%u %f %f %f %f %f %f\n", k->time,
+                          k->origin.x, k->origin.y, k->origin.z,
+                          k->angles.x, k->angles.y, k->angles.z);
+    cgi.WriteFile(file, line, 1, strlen(line));
+  }
+
+  cgi.CloseFile(file);
+  cgi.Print("Saved %d camera keyframes to %s\n", cg_demo_cam_count, CG_DEMO_CAM_PATH_FILE);
+}
+
+/**
+ * @brief demo_cam_load — reads the camera path from a sidecar file.
+ */
+static void Cg_DemoCamLoad_f(void) {
+
+  file_t *file = cgi.OpenFile(CG_DEMO_CAM_PATH_FILE);
+  if (!file) {
+    cgi.Print("No saved camera path (%s)\n", CG_DEMO_CAM_PATH_FILE);
+    return;
+  }
+
+  static char buffer[CG_DEMO_MAX_CAM_KEYS * 80];
+  const int64_t len = cgi.ReadFile(file, buffer, 1, sizeof(buffer) - 1);
+  cgi.CloseFile(file);
+
+  if (len <= 0) {
+    return;
+  }
+  buffer[len] = '\0';
+
+  cg_demo_cam_count = 0;
+  char *line = strtok(buffer, "\n");
+  while (line && cg_demo_cam_count < CG_DEMO_MAX_CAM_KEYS) {
+    cg_demo_key_t *k = &cg_demo_cam_keys[cg_demo_cam_count];
+    if (sscanf(line, "%u %f %f %f %f %f %f", &k->time,
+               &k->origin.x, &k->origin.y, &k->origin.z,
+               &k->angles.x, &k->angles.y, &k->angles.z) == 7) {
+      cg_demo_cam_count++;
+    }
+    line = strtok(NULL, "\n");
+  }
+
+  cgi.Print("Loaded %d camera keyframes\n", cg_demo_cam_count);
+}
+
+/**
+ * @brief Drives the view along the cinematic camera path by the demo time.
+ */
+static void Cg_UpdateDemoPathCamera(void) {
+
+  const uint32_t now = cgi.client->frame.time;
+
+  // find the segment [i, i+1] containing the current time
+  int32_t i = 0;
+  while (i < cg_demo_cam_count - 2 && cg_demo_cam_keys[i + 1].time <= now) {
+    i++;
+  }
+
+  const cg_demo_key_t *k1 = &cg_demo_cam_keys[i];
+  const cg_demo_key_t *k2 = &cg_demo_cam_keys[i + 1];
+  const cg_demo_key_t *k0 = &cg_demo_cam_keys[i > 0 ? i - 1 : i];
+  const cg_demo_key_t *k3 = &cg_demo_cam_keys[i + 2 < cg_demo_cam_count ? i + 2 : i + 1];
+
+  float t = (k2->time > k1->time) ? (float) (now - k1->time) / (float) (k2->time - k1->time) : 0.f;
+  t = Clampf(t, 0.f, 1.f);
+
+  cgi.view->origin = Cg_DemoCatmullRom(k0->origin, k1->origin, k2->origin, k3->origin, t);
+  cgi.view->angles = Vec3_MixEuler(k1->angles, k2->angles, t);
+
+  Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+}
+
 /**
  * @brief Writes the demo camera into the view, dispatching by mode.
  */
@@ -221,6 +430,8 @@ void Cg_UpdateDemoView(void) {
     Cg_UpdateDemoFreeCamera();
   } else if (cg_demo.mode == CG_DEMO_CAM_FOLLOW) {
     Cg_UpdateDemoFollowCamera();
+  } else if (cg_demo.mode == CG_DEMO_CAM_PATH) {
+    Cg_UpdateDemoPathCamera();
   }
 }
 
@@ -240,4 +451,15 @@ void Cg_InitDemo(void) {
 
   cgi.AddCmd("demo_follow_prev", Cg_DemoFollowPrev_f, CMD_CGAME,
       "Follow the previous player while watching a demo.");
+
+  cgi.AddCmd("demo_cam_add", Cg_DemoCamAdd_f, CMD_CGAME,
+      "Add a cinematic camera keyframe at the current view.");
+  cgi.AddCmd("demo_cam_clear", Cg_DemoCamClear_f, CMD_CGAME,
+      "Clear all cinematic camera keyframes.");
+  cgi.AddCmd("demo_cam_play", Cg_DemoCamPlay_f, CMD_CGAME,
+      "Toggle flying the cinematic camera path.");
+  cgi.AddCmd("demo_cam_save", Cg_DemoCamSave_f, CMD_CGAME,
+      "Save the cinematic camera path to " CG_DEMO_CAM_PATH_FILE ".");
+  cgi.AddCmd("demo_cam_load", Cg_DemoCamLoad_f, CMD_CGAME,
+      "Load the cinematic camera path from " CG_DEMO_CAM_PATH_FILE ".");
 }

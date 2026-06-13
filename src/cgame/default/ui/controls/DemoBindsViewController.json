@@ -68,6 +68,30 @@
                           "class": "BindTextView",
                           "bind": "demo_follow_prev"
                         }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Add camera keyframe"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_add"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Play camera path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_play"
+                        }
                       }
                     ]
                   }
