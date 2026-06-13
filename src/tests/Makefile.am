@@ -39,6 +39,7 @@ TESTS = \
 	check_cmd \
 	check_color \
 	check_cvar \
+	check_demo \
 	check_editor_map \
 	check_filesystem \
 	check_http \
@@ -125,6 +126,13 @@ check_cvar_SOURCES = \
 check_cvar_CFLAGS = \
 	$(TESTS_CFLAGS)
 check_cvar_LDADD = \
+	$(TESTS_LIBS)
+
+check_demo_SOURCES = \
+	check_demo.c
+check_demo_CFLAGS = \
+	$(TESTS_CFLAGS)
+check_demo_LDADD = \
 	$(TESTS_LIBS)
 
 check_filesystem_SOURCES = \
