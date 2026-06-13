@@ -2,6 +2,8 @@ cguiplaydir = @PKGLIBDIR@/default/ui/play
 cguiplay_DATA = \
 	CreateServerViewController.css \
 	CreateServerViewController.json \
+	DemosViewController.css \
+	DemosViewController.json \
 	JoinServerViewController.css \
 	JoinServerViewController.json \
 	PlayerSetupViewController.css \
@@ -10,6 +12,7 @@ cguiplay_DATA = \
 
 noinst_HEADERS = \
 	CreateServerViewController.h \
+	DemosViewController.h \
 	JoinServerViewController.h \
 	MapListCollectionItemView.h \
 	MapListCollectionView.h \
@@ -22,6 +25,7 @@ noinst_LTLIBRARIES = \
 
 libcguiplay_la_SOURCES = \
 	CreateServerViewController.c \
+	DemosViewController.c \
 	JoinServerViewController.c \
 	MapListCollectionItemView.c \
 	MapListCollectionView.c \
