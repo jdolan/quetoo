@@ -25,6 +25,7 @@
 
 #if defined(__GAME_LOCAL_H__)
 void G_ClientBegin(g_client_t *cl);
+g_entity_t *G_SelectSpawnPoint(g_client_t *cl);
 void G_ClientBeginFrame(g_client_t *cl);
 bool G_ClientConnect(g_client_t *cl, char *user_info);
 void G_ClientDisconnect(g_client_t *cl);

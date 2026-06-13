@@ -815,6 +815,49 @@ g_entity_t *G_TossFlag(g_client_t *cl) {
 }
 
 /**
+ * @brief Removes the CTF flag carried by the client and returns it directly to
+ * its base, announcing both actions in a single message. Used when a carrier is
+ * removed without dropping the flag (e.g. falling into a trigger_void).
+ */
+void G_ReturnFlag(g_client_t *cl) {
+
+  const g_item_t *flag = G_GetFlag(cl);
+
+  if (!flag) {
+    return;
+  }
+
+  const g_team_t *team = &g_team_list[flag->def.tag - FLAG_FIRST];
+  const g_item_tag_t index = flag->def.tag;
+
+  if (!cl->inventory[index]) {
+    return;
+  }
+
+  // remove the flag from the carrier
+  cl->inventory[index] = 0;
+  cl->entity->s.model3 = 0;
+  cl->entity->s.effects &= ~EF_CTF_MASK;
+
+  // send the team's flag entity straight back to its base
+  g_entity_t *f = G_FlagForTeam(team);
+  if (f) {
+    f->sv_flags &= ~SVF_NO_CLIENT;
+    f->s.event = EV_ITEM_RESPAWN;
+    f->s.event_data = f->item->def.tag;
+    f->solid = SOLID_TRIGGER;
+    gi.LinkEntity(f);
+  }
+
+  G_MulticastSound(&(const g_play_sound_t) {
+    .index = g_media.sounds.ctf_return
+  }, MULTICAST_PHS_R);
+
+  gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag and it was returned :flag%d_return:\n",
+                    cl->persistent.net_name, team->name, team->id + 1);
+}
+
+/**
  * @brief Drop command callback that tosses the client's carried CTF flag.
  */
 static g_entity_t *G_DropFlag(g_client_t *cl, const g_item_t *item) {

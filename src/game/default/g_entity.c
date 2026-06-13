@@ -84,6 +84,7 @@ static const g_entity_class_t g_entity_classes[] = {
   { "trigger_once", G_trigger_once },
   { "trigger_push", G_trigger_push },
   { "trigger_relay", G_trigger_relay },
+  { "trigger_void", G_trigger_void },
   { "trigger_teleporter", G_misc_teleporter },
 
   { "worldspawn", G_worldspawn },
@@ -244,6 +245,7 @@ static void G_InitMedia(void) {
   // precache player sounds; clients will load these when a new player model gets loaded.
   gi.SoundIndex("*death_1");
   gi.SoundIndex("*death_2");
+  gi.SoundIndex("*death_void");
   gi.SoundIndex("*drown_1");
   gi.SoundIndex("*fall_1");
   gi.SoundIndex("*fall_2");

@@ -169,6 +169,9 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
       case MOD_TRIGGER_HURT:
         msg = "%s was in the wrong place :actofgod:";
         break;
+      case MOD_TRIGGER_VOID:
+        msg = "%s has succumbed to the void king :actofgod:";
+        break;
       case MOD_ACT_OF_GOD:
         msg = "%s was killed by an act of god :actofgod:";
         break;
@@ -534,13 +537,15 @@ static void G_ClientDie(g_entity_t *ent, g_entity_t *attacker, uint32_t mod) {
 
   G_ClientObituary(cl, attacker, mod);
 
+  cl->in_void = false;
+
   G_HookDetach(cl);
 
   G_TossQuadDamage(cl);
   G_TossInvisibility(cl);
   G_TossInvulnerability(cl);
 
-  if (g_level.gameplay == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
+  if (g_level.gameplay == GAME_DEATHMATCH && mod != MOD_TRIGGER_HURT && mod != MOD_TRIGGER_VOID) {
     G_TossWeapon(cl);
   }
 
@@ -986,7 +991,7 @@ static g_entity_t *G_SelectTeamSpawnPoint(g_client_t *cl) {
 /**
  * @brief Selects the most appropriate spawn point for the given client.
  */
-static g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
+g_entity_t *G_SelectSpawnPoint(g_client_t *cl) {
   g_entity_t *spawn = NULL;
 
   if (g_level.teams || g_level.ctf) { // try team spawns first if applicable
@@ -1110,6 +1115,7 @@ static void G_ClientRespawn_(g_client_t *cl) {
     }
 
     ent->dead = false;
+    cl->in_void = false;
     ent->Die = G_ClientDie;
     memset(&ent->ground, 0, sizeof(ent->ground));
     ent->max_health = 100;
@@ -1989,7 +1995,13 @@ void G_ClientBeginFrame(g_client_t *cl) {
 
   g_entity_t *ent = cl->entity;
 
-  if ((G_IsMeat(ent) && ent->dead) ||  ((cl->buttons | cl->latched_buttons) & BUTTON_SCORE)) {
+  // clear a stale void state if the player has left the brush without reaching
+  // the bottom (e.g. air-controlled back out over the lip)
+  if (cl->in_void && g_level.time > cl->void_touch_time + 100) {
+    cl->in_void = false;
+  }
+
+  if ((G_IsMeat(ent) && ent->dead) || cl->in_void || ((cl->buttons | cl->latched_buttons) & BUTTON_SCORE)) {
     cl->show_scores = true;
   } else {
     cl->show_scores = false;

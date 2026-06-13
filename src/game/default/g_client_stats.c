@@ -219,6 +219,9 @@ void G_ClientStats(g_client_t *cl) {
     cl->ps.stats[STAT_SCORES] |= 1;
   }
 
+  // void fall: signals the client to lock the camera and track the falling player
+  cl->ps.stats[STAT_VOID] = cl->in_void ? 1 : 0;
+
   if (cl->persistent.team) { // send team ID, -1 is no team
     cl->ps.stats[STAT_TEAM] = cl->persistent.team->id;
   } else {

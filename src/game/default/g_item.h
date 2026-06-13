@@ -87,6 +87,7 @@
   void G_SpawnItem(g_entity_t *ent, const g_item_t *item);
   bool G_SetAmmo(g_client_t *cl, const g_item_t *item, int16_t count);
   g_entity_t *G_TossFlag(g_client_t *cl);
+  void G_ReturnFlag(g_client_t *cl);
   g_entity_t *G_TossTech(g_client_t *cl);
   g_entity_t *G_TossQuadDamage(g_client_t *cl);
   g_entity_t *G_TossInvisibility(g_client_t *cl);
