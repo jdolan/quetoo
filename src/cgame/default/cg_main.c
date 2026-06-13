@@ -454,6 +454,8 @@ static void Cg_UpdateScreen(const cl_frame_t *frame) {
     Cg_DrawHud(&frame->ps);
 
     Cg_DrawScores(&frame->ps);
+
+    Cg_DrawDemoBar();
   }
 
   Cg_CheckEditor();

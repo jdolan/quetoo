@@ -436,6 +436,54 @@ void Cg_UpdateDemoView(void) {
 }
 
 /**
+ * @brief Draws the demo timeline scrubber bar during playback. The demo time
+ * and duration come from the server via the CS_DEMO_STATUS config string.
+ */
+void Cg_DrawDemoBar(void) {
+
+  if (!cgi.client->demo_server) {
+    return;
+  }
+
+  const char *status = cgi.ConfigString(CS_DEMO_STATUS);
+  if (!status || !*status) {
+    return; // v1 demo, or status not yet received
+  }
+
+  uint32_t time = 0, duration = 0;
+  int32_t paused = 0;
+  float speed = 1.f;
+  sscanf(status, "%u %u %d %f", &time, &duration, &paused, &speed);
+
+  if (duration == 0) {
+    return;
+  }
+
+  const GLint w = cgi.context->w;
+  const GLint h = cgi.context->h;
+
+  const GLint barWidth = (GLint) (w * 0.6f);
+  const GLint barHeight = 6;
+  const GLint barX = (w - barWidth) / 2;
+  const GLint barY = h - 48;
+
+  const float frac = Clampf((float) time / (float) duration, 0.f, 1.f);
+  const GLint progress = (GLint) (barWidth * frac);
+
+  cgi.Draw2DFill(barX, barY, barWidth, barHeight, ColorHSVA(0.f, 0.f, 0.f, 0.5f));
+  cgi.Draw2DFill(barX, barY, progress, barHeight, color_orange);
+  cgi.Draw2DFill(barX + progress - 1, barY - 4, 3, barHeight + 8, color_white);
+
+  char text[MAX_STRING_CHARS];
+  g_snprintf(text, sizeof(text), "%u:%02u / %u:%02u   %.2gx%s",
+             time / 60000, (time / 1000) % 60,
+             duration / 60000, (duration / 1000) % 60,
+             speed, paused ? "   PAUSED" : "");
+
+  cgi.Draw2DString(barX, barY - 22, text, color_white);
+}
+
+/**
  * @brief Registers the demo camera cvar and commands.
  */
 void Cg_InitDemo(void) {

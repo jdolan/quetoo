@@ -46,6 +46,8 @@
 #define CS_ENTITIES (CS_CLIENTS + MAX_CLIENTS) // for the in-game editor
 #define CS_GAME     (CS_ENTITIES + MAX_ENTITIES) // game-module specific config strings
 
+#define CS_DEMO_STATUS (CS_GAME + 8) // engine demo playback status: "time duration paused speed"
+
 #define MAX_GAME_CONFIG_STRINGS 256
 
 #define MAX_CONFIG_STRINGS (CS_GAME + MAX_GAME_CONFIG_STRINGS)

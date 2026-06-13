@@ -406,6 +406,25 @@ static bool Sv_SendDemoV2Records(sv_client_t *cl) {
 }
 
 /**
+ * @brief Transmits the demo playback status (time, duration, paused, speed) to
+ * the client as a config string, so the cgame can draw the timeline scrubber.
+ * Sent explicitly here because the demo path does not flush the multicast.
+ */
+static void Sv_SendDemoStatus(sv_client_t *cl) {
+  byte buffer[256];
+  mem_buf_t msg;
+
+  Mem_InitBuffer(&msg, buffer, sizeof(buffer));
+
+  Net_WriteByte(&msg, SV_CMD_CONFIG_STRING);
+  Net_WriteShort(&msg, CS_DEMO_STATUS);
+  Net_WriteString(&msg, va("%u %u %d %.3f", sv.demo_time, sv.demo_index.duration,
+                           sv.demo_paused ? 1 : 0, sv.demo_speed));
+
+  Netchan_Transmit(&cl->net_chan, msg.data, msg.size);
+}
+
+/**
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {
@@ -439,6 +458,7 @@ void Sv_SendClientPackets(void) {
         if (!Sv_SendDemoV2Records(cl)) {
           break; // demo complete
         }
+        Sv_SendDemoStatus(cl);
       } else {
         byte buffer[MAX_MSG_SIZE];
         size_t size;

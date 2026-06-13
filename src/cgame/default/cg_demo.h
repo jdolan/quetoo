@@ -27,6 +27,7 @@ extern cvar_t *cg_demo_freecam;
 
 bool Cg_DemoInFreeCamera(void);
 bool Cg_DemoOverridingView(void);
+void Cg_DrawDemoBar(void);
 void Cg_InitDemo(void);
 void Cg_PredictDemoCamera(const GPtrArray *cmds);
 void Cg_UpdateDemoView(void);

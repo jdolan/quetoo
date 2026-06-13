@@ -69,6 +69,7 @@ typedef enum {
 #define CS_MAX_CLIENTS     (CS_GAME + 5)  // max clients of server
 #define CS_NUM_CLIENTS     (CS_GAME + 6)  // number of players in server
 #define CS_NUM_TEAMS       (CS_GAME + 7)  // number of teams (0 - MAX_TEAMS)
+// CS_GAME + 8 is reserved engine-side for CS_DEMO_STATUS (see shared.h)
 #define CS_NAV_EDIT        (CS_GAME + 9)  // nav edit mode
 #define CS_ITEM_SET        (CS_GAME + 10) // active item set (g_items_t)
 
