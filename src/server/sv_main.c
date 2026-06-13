@@ -671,6 +671,10 @@ static void Sv_RunGameFrame(void) {
   if (svs.state == SV_ACTIVE_GAME) {
     svs.game->Frame();
     Sv_SyncGameClients();
+  } else if (svs.state == SV_ACTIVE_DEMO && sv.demo_v2) {
+    // advance the demo clock; records become due as it reaches their timecode.
+    // time_scale already scales the real frame rate, so this tracks playback speed.
+    sv.demo_time += QUETOO_TICK_MILLIS;
   }
 }
 

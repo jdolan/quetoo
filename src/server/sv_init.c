@@ -20,6 +20,7 @@
  */
 
 #include "sv_local.h"
+#include "common/demo.h"
 
 /**
  * @brief Searches `sv.`config_strings` from the specified start, searching for the
@@ -275,7 +276,21 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
     sv.demo_file = Fs_OpenRead(va("demos/%s.demo", sv.name));
     svs.spawn_count = 0;
 
-    Com_Print("  Loaded demo %s.\n", sv.name);
+    // detect the v2 container; if present, consume its header so the read
+    // cursor is left at the first record. Otherwise fall back to legacy v1.
+    sv.demo_v2 = false;
+    sv.demo_time = 0;
+
+    if (sv.demo_file && Demo_IsV2(sv.demo_file)) {
+      demo_header_t header;
+      if (Demo_ReadHeader(sv.demo_file, &header, NULL)) {
+        sv.demo_v2 = true;
+      } else {
+        Com_Warn("Corrupt v2 demo header in %s\n", sv.name);
+      }
+    }
+
+    Com_Print("  Loaded demo %s (%s).\n", sv.name, sv.demo_v2 ? "v2" : "v1");
   } else { // loading a map
     Cvar_ForceSetString(sv_map->name, sv.name);
 

@@ -118,6 +118,17 @@ typedef struct {
    * @brief Open demo file for demo playback, or `NULL` during live gameplay.
    */
   file_t *demo_file;
+
+  /**
+   * @brief True if the active demo is the v2 (timecoded, seekable) container.
+   */
+  bool demo_v2;
+
+  /**
+   * @brief Demo playback clock, in milliseconds from demo start (v2 only).
+   * Records are transmitted to the client as this clock reaches their timecode.
+   */
+  uint32_t demo_time;
 } sv_server_t;
 
 /**

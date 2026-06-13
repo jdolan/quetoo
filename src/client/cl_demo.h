@@ -23,7 +23,10 @@
 
 #include "cl_types.h"
 
+extern cvar_t *cl_demo_v2;
+
 #if defined(__CL_LOCAL_H__)
+void Cl_InitDemo(void);
 void Cl_WriteDemoMessage(void);
 void Cl_Record_f(void);
 void Cl_Stop_f(void);

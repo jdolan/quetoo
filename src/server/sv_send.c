@@ -20,6 +20,7 @@
  */
 
 #include "sv_local.h"
+#include "common/demo.h"
 
 /**
  * @brief Sends text across to be displayed if the level filter passes.
@@ -378,6 +379,33 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 }
 
 /**
+ * @brief Transmits all v2 demo records whose timecode has been reached by the
+ * demo clock, reframing each as the client expects. The records are the exact
+ * v1 wire messages, so the client parses them identically to live play.
+ * @return False when the demo has completed (end of records).
+ */
+static bool Sv_SendDemoV2Records(sv_client_t *cl) {
+  byte buffer[MAX_MSG_SIZE];
+  demo_record_t rec;
+
+  for (;;) {
+    const int64_t offset = Fs_Tell(sv.demo_file);
+
+    if (!Demo_ReadRecord(sv.demo_file, &rec, buffer, sizeof(buffer))) {
+      Sv_DemoCompleted();
+      return false;
+    }
+
+    if (rec.timecode > sv.demo_time) { // not due yet; rewind and wait
+      Fs_Seek(sv.demo_file, offset);
+      return true;
+    }
+
+    Netchan_Transmit(&cl->net_chan, buffer, rec.length);
+  }
+}
+
+/**
  * @brief Send the frame and all pending datagram messages since the last frame.
  */
 void Sv_SendClientPackets(void) {
@@ -406,13 +434,20 @@ void Sv_SendClientPackets(void) {
     }
 
     if (svs.state == SV_ACTIVE_DEMO) { // send the demo packet
-      byte buffer[MAX_MSG_SIZE];
-      size_t size;
 
-      if ((size = Sv_GetDemoMessage(buffer))) {
-        Netchan_Transmit(&cl->net_chan, buffer, size);
+      if (sv.demo_v2) {
+        if (!Sv_SendDemoV2Records(cl)) {
+          break; // demo complete
+        }
       } else {
-        break;    // recording is done, so we're done
+        byte buffer[MAX_MSG_SIZE];
+        size_t size;
+
+        if ((size = Sv_GetDemoMessage(buffer))) {
+          Netchan_Transmit(&cl->net_chan, buffer, size);
+        } else {
+          break;    // recording is done, so we're done
+        }
       }
     } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
 

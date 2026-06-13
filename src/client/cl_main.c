@@ -587,6 +587,8 @@ static void Cl_InitLocal(void) {
 
   cl_draw_net_messages = Cvar_Add("cl_draw_net_messages", "0", CVAR_DEVELOPER, NULL);
 
+  Cl_InitDemo();
+
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);
   Cmd_Add("servers", Cl_Servers_f, CMD_CLIENT, NULL);
