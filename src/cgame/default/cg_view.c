@@ -337,15 +337,21 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   const player_state_t *ps1 = &frame->ps;
 
-  Cg_UpdateOrigin(ps0, ps1);
+  if (Cg_DemoInFreeCamera()) {
+    Cg_UpdateDemoCamera();
+  } else {
+    Cg_UpdateOrigin(ps0, ps1);
 
-  Cg_UpdateAngles(ps0, ps1);
+    Cg_UpdateAngles(ps0, ps1);
 
-  Cg_UpdateThirdPerson(ps1);
+    Cg_UpdateThirdPerson(ps1);
+  }
 
   Cg_UpdateFov();
 
-  Cg_UpdateBob(ps1);
+  if (!Cg_DemoInFreeCamera()) {
+    Cg_UpdateBob(ps1);
+  }
 
   Cg_UpdateAmbient();
 

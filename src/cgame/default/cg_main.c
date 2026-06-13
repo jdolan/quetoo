@@ -184,6 +184,8 @@ static void Cg_Init(void) {
 
   Cg_InitDiscord();
 
+  Cg_InitDemo();
+
   cgi.Print("Client game module initialized\n");
 }
 

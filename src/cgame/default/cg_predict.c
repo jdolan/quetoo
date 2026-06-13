@@ -27,6 +27,10 @@
  */
 bool Cg_UsePrediction(void) {
 
+  if (Cg_DemoInFreeCamera()) {
+    return true;
+  }
+
   if (!cg_predict->value) {
     return false;
   }
@@ -69,6 +73,11 @@ void Cg_PredictMovement(const GPtrArray *cmds) {
 
   assert(cmds);
   assert(cmds->len);
+
+  if (Cg_DemoInFreeCamera()) {
+    Cg_PredictDemoCamera(cmds);
+    return;
+  }
 
   cl_predicted_state_t *pr = &cgi.client->predicted_state;
 
