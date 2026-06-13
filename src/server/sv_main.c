@@ -872,6 +872,9 @@ void Sv_Frame(const uint32_t msec) {
     // send the resulting frame to connected clients
     Sv_SendClientPackets();
 
+    // capture an omniscient snapshot for serverrecord, if active
+    Sv_DemoRecordFrame();
+
     // decrement the simulation time
     frame_delta -= QUETOO_TICK_MILLIS;
     ticks_run++;

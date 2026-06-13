@@ -146,6 +146,26 @@ typedef struct {
    * time_scale, so the (real-time) free camera stays smooth at any speed.
    */
   float demo_speed;
+
+  /**
+   * @brief Open file for server-side demo recording (serverrecord), or NULL.
+   */
+  file_t *record_file;
+
+  /**
+   * @brief True while recording a server-side demo.
+   */
+  bool recording;
+
+  /**
+   * @brief Frame number of the first recorded frame, or -1.
+   */
+  int32_t record_first_frame;
+
+  /**
+   * @brief Frame number of the most recently recorded frame.
+   */
+  int32_t record_last_frame;
 } sv_server_t;
 
 /**

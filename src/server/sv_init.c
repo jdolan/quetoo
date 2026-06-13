@@ -146,6 +146,8 @@ static void Sv_ClearState(void) {
     return;
   }
 
+  Sv_StopServerRecord();
+
   if (sv.demo_file) {
     Fs_Close(sv.demo_file);
   }

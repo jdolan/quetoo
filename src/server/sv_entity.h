@@ -26,4 +26,6 @@
 #if defined(__SV_LOCAL_H__)
 void Sv_WriteClientFrame(sv_client_t *client, mem_buf_t *msg);
 void Sv_BuildClientFrame(sv_client_t *client);
+void Sv_WriteEntities(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg);
+void Sv_WritePlayerState(sv_client_frame_t *from, sv_client_frame_t *to, mem_buf_t *msg);
 #endif /* __SV_LOCAL_H__ */

@@ -580,6 +580,9 @@ void Sv_InitAdmin(void) {
   Cmd_Add("demo_speed_down", Sv_DemoSpeedDown_f, CMD_SERVER, "Decrease demo playback speed");
   Cmd_Add("demo_step", Sv_DemoStep_f, CMD_SERVER, "Step demo playback by N frames (pauses)");
 
+  Cmd_Add("sv_record", Sv_Record_f, CMD_SERVER, "Record an omniscient server demo: sv_record [name]");
+  Cmd_Add("sv_stoprecord", Sv_StopRecord_f, CMD_SERVER, "Stop recording a server demo");
+
   cmd_t *map_cmd = Cmd_Add("map", Sv_Map_f, CMD_SERVER, "Start a server for the specified map.");
   Cmd_SetAutocomplete(map_cmd, Sv_Map_Autocomplete_f);
 
