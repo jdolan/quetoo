@@ -23,6 +23,15 @@
 #include "game/default/bg_pmove.h"
 
 cvar_t *cg_demo_freecam;
+cvar_t *cg_draw_demo_bar;
+static cvar_t *cg_draw_demo_hud;
+static cvar_t *cg_demo_letterbox;
+static cvar_t *cg_demo_fov;
+static cvar_t *cg_demo_roll;
+static cvar_t *cg_demo_smoothing;
+static cvar_t *cg_demo_orbit_radius;
+static cvar_t *cg_demo_orbit_height;
+static cvar_t *cg_demo_orbit_speed;
 
 /**
  * @brief Demo camera modes.
@@ -31,6 +40,7 @@ typedef enum {
   CG_DEMO_CAM_LOCKED, // the recorded player's eye (default)
   CG_DEMO_CAM_FREE,   // free-fly spectator under local input
   CG_DEMO_CAM_FOLLOW, // chase camera following a player entity
+  CG_DEMO_CAM_ORBIT,  // cinematic auto-orbit around a player
   CG_DEMO_CAM_PATH,   // cinematic keyframed dolly path
 } cg_demo_cam_t;
 
@@ -56,8 +66,49 @@ static int32_t cg_demo_cam_count;
 static struct {
   cg_demo_cam_t mode;
   pm_state_t s;   // free-fly spectator state (CG_DEMO_CAM_FREE)
-  int32_t follow; // followed entity number (CG_DEMO_CAM_FOLLOW)
+  int32_t follow; // followed entity number (CG_DEMO_CAM_FOLLOW / ORBIT)
+
+  // cinematic camera smoothing (FOLLOW / ORBIT): the view is eased toward the
+  // computed target so player jitter does not transfer to the camera
+  vec3_t smooth_origin;
+  vec3_t smooth_angles;
+  uint32_t smooth_time;
+  bool smooth_valid;
+
+  // auto-orbit state (CG_DEMO_CAM_ORBIT)
+  float orbit_angle; // current orbit yaw, degrees
+  uint32_t orbit_time;
+  bool orbit_valid;
 } cg_demo;
+
+/**
+ * @return The entity number of the first player in the current frame, or -1.
+ */
+static int32_t Cg_DemoFirstPlayer(void) {
+
+  const cl_frame_t *frame = &cgi.client->frame;
+
+  for (int32_t i = 0; i < frame->num_entities; i++) {
+    const uint32_t snum = (frame->entity_state + i) & ENTITY_STATE_MASK;
+    const entity_state_t *s = &cgi.client->entity_states[snum];
+    if (s->effects & EF_CLIENT) {
+      return s->number;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * @brief Resets the camera smoothing so the next FOLLOW/ORBIT frame eases from
+ * the current view rather than snapping from a stale position.
+ */
+static void Cg_DemoSeedSmoothing(void) {
+  cg_demo.smooth_origin = cgi.view->origin;
+  cg_demo.smooth_angles = cgi.view->angles;
+  cg_demo.smooth_time = cgi.client->unclamped_time;
+  cg_demo.smooth_valid = true;
+}
 
 /**
  * @return True if a demo is playing and the free camera is active.
@@ -71,6 +122,13 @@ bool Cg_DemoInFreeCamera(void) {
  */
 bool Cg_DemoOverridingView(void) {
   return cgi.client->demo_server && cg_demo.mode != CG_DEMO_CAM_LOCKED;
+}
+
+/**
+ * @return True if the HUD should be hidden for a clean cinematic shot.
+ */
+bool Cg_DemoHidesHud(void) {
+  return cgi.client->demo_server && !cg_draw_demo_hud->integer;
 }
 
 /**
@@ -144,7 +202,11 @@ static void Cg_DemoFollow(int32_t dir) {
   }
 
   cg_demo.follow = players[index];
-  cg_demo.mode = CG_DEMO_CAM_FOLLOW;
+
+  if (cg_demo.mode != CG_DEMO_CAM_FOLLOW) {
+    cg_demo.mode = CG_DEMO_CAM_FOLLOW;
+    Cg_DemoSeedSmoothing();
+  }
 
   cgi.Print("Following player %d\n", cg_demo.follow);
 }
@@ -200,8 +262,60 @@ static void Cg_UpdateDemoFreeCamera(void) {
 
   cgi.view->origin = Vec3_Add(cg_demo.s.origin, cg_demo.s.view_offset);
   cgi.view->angles = cgi.client->angles;
+  cgi.view->angles.z += cg_demo_roll->value; // cinematic camera roll (Dutch angle)
 
   Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+}
+
+/**
+ * @brief Eases the view toward the given target origin/angles using a
+ * time-constant exponential filter (cg_demo_smoothing, in seconds of lag), then
+ * writes the smoothed result into the view. With smoothing at 0 the view snaps.
+ */
+static void Cg_DemoSmoothView(const vec3_t origin, const vec3_t angles) {
+
+  const float lag = cg_demo_smoothing->value;
+  const uint32_t now = cgi.client->unclamped_time;
+
+  if (lag <= 0.f || !cg_demo.smooth_valid) {
+    cg_demo.smooth_origin = origin;
+    cg_demo.smooth_angles = angles;
+  } else {
+    const float dt = (float) (now - cg_demo.smooth_time);
+    const float alpha = Clampf(1.f - expf(-dt / (lag * 1000.f)), 0.f, 1.f);
+    cg_demo.smooth_origin = Vec3_Mix(cg_demo.smooth_origin, origin, alpha);
+    cg_demo.smooth_angles = Vec3_MixEuler(cg_demo.smooth_angles, angles, alpha);
+  }
+
+  cg_demo.smooth_time = now;
+  cg_demo.smooth_valid = true;
+
+  cgi.view->origin = cg_demo.smooth_origin;
+  cgi.view->angles = cg_demo.smooth_angles;
+
+  Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+}
+
+/**
+ * @brief Resolves the followed entity, re-acquiring if the current target is no
+ * longer a live player in this frame (e.g. after a seek, a disconnect, or the
+ * player leaving the recorder's view). Returns NULL if there is no one to follow.
+ */
+static const cl_entity_t *Cg_DemoFollowEntity(void) {
+
+  if (cg_demo.follow >= 0 && cg_demo.follow < MAX_ENTITIES) {
+    const cl_entity_t *ent = &cgi.client->entities[cg_demo.follow];
+    if (ent->frame_num == cgi.client->frame.frame_num && (ent->current.effects & EF_CLIENT)) {
+      return ent; // still current
+    }
+  }
+
+  cg_demo.follow = Cg_DemoFirstPlayer(); // stale; re-acquire a present player
+  if (cg_demo.follow >= 0) {
+    return &cgi.client->entities[cg_demo.follow];
+  }
+
+  return NULL;
 }
 
 /**
@@ -209,7 +323,11 @@ static void Cg_UpdateDemoFreeCamera(void) {
  */
 static void Cg_UpdateDemoFollowCamera(void) {
 
-  const cl_entity_t *ent = &cgi.client->entities[cg_demo.follow];
+  const cl_entity_t *ent = Cg_DemoFollowEntity();
+  if (ent == NULL) {
+    return;
+  }
+
   const vec3_t target = ent->origin;
 
   vec3_t forward, right, up;
@@ -219,12 +337,103 @@ static void Cg_UpdateDemoFollowCamera(void) {
   desired.z += 50.f;
 
   const cm_trace_t tr = cgi.Trace(target, desired, Box3f(8.f, 8.f, 8.f), NULL, CONTENTS_MASK_CLIP_PLAYER);
-  cgi.view->origin = tr.end;
 
-  const vec3_t dir = Vec3_Subtract(target, cgi.view->origin);
-  cgi.view->angles = Vec3_Euler(Vec3_Normalize(dir));
+  const vec3_t dir = Vec3_Subtract(target, tr.end);
+  Cg_DemoSmoothView(tr.end, Vec3_Euler(Vec3_Normalize(dir)));
+}
 
-  Vec3_Vectors(cgi.view->angles, &cgi.view->forward, &cgi.view->right, &cgi.view->up);
+/**
+ * @brief Slowly orbits the camera around the followed player at a configurable
+ * radius, height, and angular speed -- a hands-free cinematic shot. The orbit
+ * advances in real time so it is unaffected by demo speed or pausing.
+ */
+static void Cg_UpdateDemoOrbitCamera(void) {
+
+  const cl_entity_t *ent = Cg_DemoFollowEntity();
+  if (ent == NULL) {
+    return;
+  }
+
+  const vec3_t target = Vec3_Add(ent->origin, Vec3(0.f, 0.f, 24.f));
+
+  const uint32_t now = cgi.client->unclamped_time;
+  if (cg_demo.orbit_valid) {
+    const float dt = (float) (now - cg_demo.orbit_time) / 1000.f;
+    cg_demo.orbit_angle += dt * cg_demo_orbit_speed->value;
+  }
+  cg_demo.orbit_time = now;
+  cg_demo.orbit_valid = true;
+
+  const float yaw = Radians(cg_demo.orbit_angle);
+  const float radius = cg_demo_orbit_radius->value;
+
+  vec3_t desired = target;
+  desired.x += cosf(yaw) * radius;
+  desired.y += sinf(yaw) * radius;
+  desired.z += cg_demo_orbit_height->value;
+
+  const cm_trace_t tr = cgi.Trace(target, desired, Box3f(8.f, 8.f, 8.f), NULL, CONTENTS_MASK_CLIP_PLAYER);
+
+  const vec3_t dir = Vec3_Subtract(target, tr.end);
+  Cg_DemoSmoothView(tr.end, Vec3_Euler(Vec3_Normalize(dir)));
+}
+
+/**
+ * @brief demo_orbit — toggles the cinematic auto-orbit camera, targeting the
+ * followed player or, if none, the first player in the frame.
+ */
+static void Cg_DemoOrbit_f(void) {
+
+  if (!cgi.client->demo_server) {
+    cgi.Print("Not playing a demo\n");
+    return;
+  }
+
+  if (cg_demo.mode == CG_DEMO_CAM_ORBIT) {
+    cg_demo.mode = CG_DEMO_CAM_LOCKED;
+    cgi.Print("Orbit camera disabled\n");
+    return;
+  }
+
+  if (cg_demo.follow < 0 || cg_demo.follow >= MAX_ENTITIES ||
+      !(cgi.client->entities[cg_demo.follow].current.effects & EF_CLIENT)) {
+    cg_demo.follow = Cg_DemoFirstPlayer();
+  }
+
+  if (cg_demo.follow < 0) {
+    cgi.Print("No players to orbit\n");
+    return;
+  }
+
+  cg_demo.mode = CG_DEMO_CAM_ORBIT;
+  cg_demo.orbit_valid = false;
+  Cg_DemoSeedSmoothing();
+
+  cgi.Print("Orbit camera on player %d\n", cg_demo.follow);
+}
+
+/**
+ * @brief demo_cinematic — one-shot toggle for a clean cinematic look: letterbox
+ * bars on, HUD and timeline hidden, extra camera smoothing. Toggling off
+ * restores the defaults.
+ */
+static void Cg_DemoCinematic_f(void) {
+  static bool on = false;
+
+  if (!cgi.client->demo_server) {
+    cgi.Print("Not playing a demo\n");
+    return;
+  }
+
+  on = !on;
+
+  if (on) {
+    cgi.Cbuf("cg_demo_letterbox 0.12; cg_draw_demo_hud 0; cg_draw_demo_bar 0; cg_demo_smoothing 0.3\n");
+    cgi.Print("Cinematic mode enabled\n");
+  } else {
+    cgi.Cbuf("cg_demo_letterbox 0; cg_draw_demo_hud 1; cg_draw_demo_bar 1; cg_demo_smoothing 0.15\n");
+    cgi.Print("Cinematic mode disabled\n");
+  }
 }
 
 #pragma mark - Camera paths
@@ -430,9 +639,59 @@ void Cg_UpdateDemoView(void) {
     Cg_UpdateDemoFreeCamera();
   } else if (cg_demo.mode == CG_DEMO_CAM_FOLLOW) {
     Cg_UpdateDemoFollowCamera();
+  } else if (cg_demo.mode == CG_DEMO_CAM_ORBIT) {
+    Cg_UpdateDemoOrbitCamera();
   } else if (cg_demo.mode == CG_DEMO_CAM_PATH) {
     Cg_UpdateDemoPathCamera();
   }
+}
+
+/**
+ * @brief Applies the cinematic FOV override during demo playback. When
+ * cg_demo_fov is greater than zero it replaces the computed field of view,
+ * allowing dramatic wide or zoomed shots. Called after Cg_UpdateFov.
+ */
+void Cg_UpdateDemoFov(void) {
+
+  if (!cgi.client->demo_server) {
+    return;
+  }
+
+  const float fov = Clampf(cg_demo_fov->value, 0.f, 170.f);
+  if (fov <= 0.f) {
+    return;
+  }
+
+  // fov.x/fov.y are half-angles; derive them exactly as Cg_UpdateFov does
+  cgi.view->fov.x = fov / 2.f;
+
+  const float width = cgi.view->viewport.z;
+  const float height = cgi.view->viewport.w;
+
+  cgi.view->fov.y = Degrees(atanf(tanf(Radians(fov / 2.f)) * height / width));
+}
+
+/**
+ * @brief Draws cinematic letterbox bars (top and bottom) during demo playback.
+ * cg_demo_letterbox is the fraction of the screen height each bar covers.
+ */
+void Cg_DrawDemoLetterbox(void) {
+
+  if (!cgi.client->demo_server) {
+    return;
+  }
+
+  const float frac = Clampf(cg_demo_letterbox->value, 0.f, 0.45f);
+  if (frac <= 0.f) {
+    return;
+  }
+
+  const GLint w = cgi.context->w;
+  const GLint h = cgi.context->h;
+  const GLint bar = (GLint) (h * frac);
+
+  cgi.Draw2DFill(0, 0, w, bar, color_black);
+  cgi.Draw2DFill(0, h - bar, w, bar, color_black);
 }
 
 /**
@@ -440,6 +699,10 @@ void Cg_UpdateDemoView(void) {
  * and duration come from the server via the CS_DEMO_STATUS config string.
  */
 void Cg_DrawDemoBar(void) {
+
+  if (!cg_draw_demo_bar->integer) {
+    return; // bar hidden by the user
+  }
 
   if (!cgi.client->demo_server) {
     return;
@@ -484,6 +747,21 @@ void Cg_DrawDemoBar(void) {
 }
 
 /**
+ * @brief Resets all demo camera state. Called when a server connection is
+ * established (Cg_ClearState) so the camera mode, follow target, smoothing,
+ * orbit, and cinematic path start clean for each demo rather than leaking from
+ * the previously played one.
+ */
+void Cg_ClearDemo(void) {
+
+  memset(&cg_demo, 0, sizeof(cg_demo));
+  cg_demo.mode = CG_DEMO_CAM_LOCKED;
+  cg_demo.follow = -1;
+
+  cg_demo_cam_count = 0;
+}
+
+/**
  * @brief Registers the demo camera cvar and commands.
  */
 void Cg_InitDemo(void) {
@@ -491,8 +769,41 @@ void Cg_InitDemo(void) {
   cg_demo_freecam = cgi.AddCvar("cg_demo_freecam", "1", CVAR_ARCHIVE,
       "Enables the free spectator camera during demo playback.");
 
+  cg_draw_demo_bar = cgi.AddCvar("cg_draw_demo_bar", "1", CVAR_ARCHIVE,
+      "Draws the demo playback timeline bar. Set to 0 to hide it.");
+
+  cg_draw_demo_hud = cgi.AddCvar("cg_draw_demo_hud", "1", CVAR_ARCHIVE,
+      "Draws the HUD during demo playback. Set to 0 for a clean cinematic view.");
+
+  cg_demo_letterbox = cgi.AddCvar("cg_demo_letterbox", "0", CVAR_ARCHIVE,
+      "Cinematic letterbox bar size during demo playback (0 to 0.45 of screen height).");
+
+  cg_demo_fov = cgi.AddCvar("cg_demo_fov", "0", CVAR_ARCHIVE,
+      "Cinematic field of view override during demo playback (0 to use the normal fov).");
+
+  cg_demo_roll = cgi.AddCvar("cg_demo_roll", "0", CVAR_ARCHIVE,
+      "Cinematic free-camera roll (Dutch angle), in degrees.");
+
+  cg_demo_smoothing = cgi.AddCvar("cg_demo_smoothing", "0.15", CVAR_ARCHIVE,
+      "Follow/orbit camera smoothing, in seconds of lag (0 to disable).");
+
+  cg_demo_orbit_radius = cgi.AddCvar("cg_demo_orbit_radius", "180", CVAR_ARCHIVE,
+      "Cinematic orbit camera radius, in units.");
+
+  cg_demo_orbit_height = cgi.AddCvar("cg_demo_orbit_height", "64", CVAR_ARCHIVE,
+      "Cinematic orbit camera height above the target, in units.");
+
+  cg_demo_orbit_speed = cgi.AddCvar("cg_demo_orbit_speed", "30", CVAR_ARCHIVE,
+      "Cinematic orbit camera angular speed, in degrees per second.");
+
   cgi.AddCmd("demo_freecam", Cg_DemoFreecam_f, CMD_CGAME,
       "Toggle the free-fly camera while watching a demo.");
+
+  cgi.AddCmd("demo_orbit", Cg_DemoOrbit_f, CMD_CGAME,
+      "Toggle the cinematic auto-orbit camera while watching a demo.");
+
+  cgi.AddCmd("demo_cinematic", Cg_DemoCinematic_f, CMD_CGAME,
+      "Toggle a clean cinematic look (letterbox, no HUD, smoothing).");
 
   cgi.AddCmd("demo_follow_next", Cg_DemoFollowNext_f, CMD_CGAME,
       "Follow the next player while watching a demo.");

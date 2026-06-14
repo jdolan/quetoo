@@ -349,6 +349,8 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   Cg_UpdateFov();
 
+  Cg_UpdateDemoFov();
+
   if (!Cg_DemoOverridingView()) {
     Cg_UpdateBob(ps1);
   }

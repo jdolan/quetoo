@@ -49,6 +49,18 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Orbit camera"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_orbit"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Follow next player"
                           }
                         },
@@ -68,34 +80,67 @@
                           "class": "BindTextView",
                           "bind": "demo_follow_prev"
                         }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Add camera keyframe"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "demo_cam_add"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Play camera path"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "demo_cam_play"
-                        }
                       }
                     ]
                   }
                 },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Cinematic"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle cinematic mode"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cinematic"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle HUD"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "toggle cg_draw_demo_hud"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Toggle timeline bar"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "toggle cg_draw_demo_bar"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
                 {
                   "class": "Box",
                   "label": {
@@ -187,6 +232,78 @@
                         "control": {
                           "class": "BindTextView",
                           "bind": "demo_speed_up"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Camera path"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Add keyframe"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_add"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Play / stop path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_play"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Clear path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_clear"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Save path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_save"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Load path"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "demo_cam_load"
                         }
                       }
                     ]
