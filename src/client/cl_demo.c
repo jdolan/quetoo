@@ -28,7 +28,6 @@ cvar_t *cl_demo_v2;
 static bool cl_demo_recording_v2; // true if the active recording is the v2 container
 static int32_t cl_demo_first_frame; // frame_num of the first recorded frame, or -1
 static int32_t cl_demo_last_frame; // frame_num of the most recently recorded frame
-static int32_t cl_demo_last_keyframe; // frame_num of the most recently recorded keyframe
 
 /**
  * @brief Flushes one accumulated startup sub-message to the demo file, as a v1
@@ -153,77 +152,10 @@ static void Cl_WriteDemoKeyframe(uint32_t timecode) {
 }
 
 /**
- * @brief Delta-encodes the entities of `to` against `from`, mirroring the
- * server's Sv_WriteEntities. Both entity lists are sorted by number.
- */
-static void Cl_WriteDemoEntitiesDelta(const cl_frame_t *from, const cl_frame_t *to, mem_buf_t *msg) {
-
-  int32_t old_index = 0, new_index = 0;
-
-  while (new_index < to->num_entities || old_index < from->num_entities) {
-
-    const entity_state_t *new_state = (new_index < to->num_entities)
-        ? &cl.entity_states[(to->entity_state + new_index) & ENTITY_STATE_MASK] : NULL;
-    const entity_state_t *old_state = (old_index < from->num_entities)
-        ? &cl.entity_states[(from->entity_state + old_index) & ENTITY_STATE_MASK] : NULL;
-
-    const int16_t new_num = new_state ? new_state->number : INT16_MAX;
-    const int16_t old_num = old_state ? old_state->number : INT16_MAX;
-
-    if (new_num == old_num) { // delta update
-      Net_WriteDeltaEntity(msg, old_state, new_state, false);
-      old_index++;
-      new_index++;
-    } else if (new_num < old_num) { // new entity from baseline
-      Net_WriteDeltaEntity(msg, &cl.entities[new_num].baseline, new_state, true);
-      new_index++;
-    } else { // removed entity
-      Net_WriteShort(msg, old_num);
-      Net_WriteShort(msg, U_REMOVE);
-      old_index++;
-    }
-  }
-
-  Net_WriteShort(msg, -1); // end of entities
-}
-
-/**
- * @brief Re-encodes the current frame as a delta from the immediately preceding
- * recorded frame. Used when the original packet's delta references a frame
- * older than the last keyframe, which would break playback after a seek. Falls
- * back to a keyframe if the previous frame isn't available.
- */
-static void Cl_WriteDemoFrameDelta(uint32_t timecode) {
-
-  const cl_frame_t *prev = &cl.frames[(cl.frame.frame_num - 1) & PACKET_MASK];
-
-  if (!prev->valid || prev->frame_num != cl.frame.frame_num - 1) {
-    Cl_WriteDemoKeyframe(timecode);
-    cl_demo_last_keyframe = cl.frame.frame_num;
-    return;
-  }
-
-  mem_buf_t msg;
-  byte buffer[MAX_MSG_SIZE];
-  Mem_InitBuffer(&msg, buffer, sizeof(buffer));
-
-  Net_WriteByte(&msg, SV_CMD_FRAME);
-  Net_WriteLong(&msg, cl.frame.frame_num);
-  Net_WriteLong(&msg, cl.frame.frame_num - 1); // delta from the previous frame
-
-  Net_WriteDeltaPlayerState(&msg, &prev->ps, &cl.frame.ps);
-  Cl_WriteDemoEntitiesDelta(prev, &cl.frame, &msg);
-
-  Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_DELTA, timecode, msg.data, msg.size);
-}
-
-/**
  * @brief Writes the current net message as a v2 record, stamping it with the
  * current frame's timecode and classifying it as a keyframe, delta, or reliable.
  * Every DEMO_KEYFRAME_INTERVAL frames the natural delta is replaced with a
  * re-encoded keyframe so that seeking has a nearby self-contained entry point.
- * Any delta that references a frame older than the last keyframe is rebased so
- * that playback after a seek can always be reconstructed from the keyframe.
  */
 static void Cl_WriteDemoRecord(void) {
 
@@ -243,12 +175,8 @@ static void Cl_WriteDemoRecord(void) {
 
   if (cl.frame.delta_frame_num < 0) { // a naturally uncompressed frame is already a keyframe
     Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_KEY, timecode, net_message.data + 8, net_message.size - 8);
-    cl_demo_last_keyframe = cl.frame.frame_num;
   } else if (rel_frame > 0 && (rel_frame % DEMO_KEYFRAME_INTERVAL) == 0) { // periodic keyframe
     Cl_WriteDemoKeyframe(timecode);
-    cl_demo_last_keyframe = cl.frame.frame_num;
-  } else if (cl.frame.delta_frame_num < cl_demo_last_keyframe) { // delta reaches before the keyframe
-    Cl_WriteDemoFrameDelta(timecode);
   } else {
     Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_DELTA, timecode, net_message.data + 8, net_message.size - 8);
   }
@@ -348,7 +276,6 @@ void Cl_Record_f(void) {
   cl_demo_recording_v2 = cl_demo_v2->value;
   cl_demo_first_frame = -1;
   cl_demo_last_frame = -1;
-  cl_demo_last_keyframe = -1;
 
   Com_Print("Recording to %s (%s)\n", cls.demo_filename, cl_demo_recording_v2 ? "v2" : "v1");
 }
