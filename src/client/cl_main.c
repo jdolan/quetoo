@@ -23,7 +23,7 @@
  #include <winsock2.h>
 #endif
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 #include "cl_local.h"
 #include "net/net_http.h"
 #include "server/server.h"
@@ -34,8 +34,8 @@ typedef struct {
   char guid[68];
 } GuidHashResponse;
 
-static const JsonProperty guid_hash_properties[] = MakeJsonProperties(
-  MakeJsonProperty(GuidHashResponse, guid, JsonPropertyCharacters)
+static const JSONProperties guid_hash_properties = MakeJSONProperties(GuidHashResponse,
+  MakeJSONProperty(GuidHashResponse, guid, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(GuidHashResponse, guid))
 );
 
 cvar_t *cl_chat_sound;
@@ -76,7 +76,7 @@ static void Cl_InitGuidHash(void) {
 
   GuidHashResponse response = { 0 };
 
-  if (Net_HttpGetInstance(url, guid_hash_properties, &response) == 200) {
+  if (Net_HttpGetInstance(url, &guid_hash_properties, &response) == 200) {
     if (response.guid[0]) {
       Cvar_ForceSetString("guid_hashed", response.guid);
     } else {

@@ -23,7 +23,7 @@
 
 #include "net_sock.h"
 
-typedef struct JsonProperty JsonProperty;
+#include <Objectively/JSONSerializers.h>
 
 /**
  * @brief The asynchronous HTTP callback type.
@@ -46,24 +46,23 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
 /**
  * @brief Synchronously `GET` the specified URL string and deserialize a single JSON object.
  * @param url_string The URL string to `GET`.
- * @param properties The JsonProperty descriptors for the destination struct.
+ * @param properties The JSONProperties descriptor for the destination struct.
  * @param instance Receives the parsed struct instance.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGetInstance(const char *url_string, const JsonProperty *properties, void *instance);
+int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *properties, void *instance);
 
 /**
  * @brief Synchronously `GET` the specified URL string and deserialize a JSON array.
  * @param url_string The URL string to `GET`.
- * @param properties The JsonProperty descriptors for the destination struct array.
+ * @param properties The JSONProperties descriptor for the destination struct array.
  * @param instances Receives the parsed struct instances.
- * @param stride The byte distance between consecutive structs.
  * @param count The capacity of the destination array.
  * @param instances_count Receives the number of parsed instances.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGetInstances(const char *url_string, const JsonProperty *properties,
-                             void *instances, size_t stride, size_t count, size_t *instances_count);
+int32_t Net_HttpGetInstances(const char *url_string, const JSONProperties *properties,
+                             void *instances, size_t count, size_t *instances_count);
 
 /**
  * @brief Clears the shared HTTP response cache, if one is configured.

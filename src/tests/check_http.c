@@ -21,7 +21,9 @@
 
 #include "tests.h"
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
+
+#include <string.h>
 
 #include "net/net_http.h"
 
@@ -265,9 +267,9 @@ typedef struct {
 	int32_t rank;
 } http_instance_t;
 
-static const JsonProperty http_instance_properties[] = MakeJsonProperties(
-	MakeJsonProperty(http_instance_t, guid, JsonPropertyCharacters),
-	MakeJsonProperty(http_instance_t, rank, JsonPropertyInteger)
+static const JSONProperties http_instance_properties = MakeJSONProperties(http_instance_t,
+	MakeJSONProperty(http_instance_t, guid, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_instance_t, guid)),
+	MakeJSONProperty(http_instance_t, rank, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
 );
 
 typedef struct {
@@ -275,9 +277,38 @@ typedef struct {
 	int32_t value;
 } http_item_t;
 
-static const JsonProperty http_item_properties[] = MakeJsonProperties(
-	MakeJsonProperty(http_item_t, name, JsonPropertyCharacters),
-	MakeJsonProperty(http_item_t, value, JsonPropertyInteger)
+static const JSONProperties http_item_properties = MakeJSONProperties(http_item_t,
+	MakeJSONProperty(http_item_t, name,  JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_item_t, name)),
+	MakeJSONProperty(http_item_t, value, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+);
+
+typedef struct {
+	char name[64];
+	int32_t score;
+} http_nested_entry_t;
+
+typedef struct {
+	char title[64];
+	http_nested_entry_t owner;
+	http_nested_entry_t items[2];
+	size_t num_items;
+} http_nested_response_t;
+
+static const JSONProperties http_nested_entry_properties = MakeJSONProperties(http_nested_entry_t,
+	MakeJSONProperty(http_nested_entry_t, name,  JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_nested_entry_t, name)),
+	MakeJSONProperty(http_nested_entry_t, score, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+);
+
+static const JSONArrayProperties http_nested_response_items = {
+	.properties = &http_nested_entry_properties,
+	.count = lengthof(((http_nested_response_t *)0)->items),
+	.count_offset = offsetof(http_nested_response_t, num_items)
+};
+
+static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
+	MakeJSONProperty(http_nested_response_t, title, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_nested_response_t, title)),
+	MakeJSONProperty(http_nested_response_t, owner, JSONSerializeObject,     JSONDeserializeObject,     (ident) &http_nested_entry_properties),
+	MakeJSONProperty(http_nested_response_t, items, JSONSerializeArray,      JSONDeserializeArray,      (ident) &http_nested_response_items)
 );
 
 static int SDLCALL http_server_thread(void *data) {
@@ -404,7 +435,7 @@ START_TEST(check_Net_HttpGetInstance_json) {
 	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
 
 	http_instance_t instance = { 0 };
-	const int32_t status = Net_HttpGetInstance(url, http_instance_properties, &instance);
+	const int32_t status = Net_HttpGetInstance(url, &http_instance_properties, &instance);
 
 	ck_assert_int_eq(status, 200);
 	ck_assert_str_eq(instance.guid, "abc123");
@@ -449,8 +480,8 @@ START_TEST(check_Net_HttpGetInstances_json) {
 
 	http_item_t items[2] = { 0 };
 	size_t num_items = 0;
-	const int32_t status = Net_HttpGetInstances(url, http_item_properties,
-	                                            items, sizeof(http_item_t), 2, &num_items);
+	const int32_t status = Net_HttpGetInstances(url, &http_item_properties,
+	                                            items, 2, &num_items);
 
 	ck_assert_int_eq(status, 200);
 	ck_assert_uint_eq(num_items, 2);
@@ -458,6 +489,56 @@ START_TEST(check_Net_HttpGetInstances_json) {
 	ck_assert_int_eq(items[0].value, 1);
 	ck_assert_str_eq(items[1].name, "two");
 	ck_assert_int_eq(items[1].value, 2);
+
+	int thread_status;
+	SDL_WaitThread(thread, &thread_status);
+	ck_assert_int_eq(thread_status, 0);
+	ck_assert(server.ok);
+	ck_assert_str_eq(server.parsed_method, "GET");
+	ck_assert_str_eq(server.parsed_path, "test.json");
+
+	Net_CloseSocket(listen_sock);
+	Net_Shutdown();
+
+} END_TEST
+
+START_TEST(check_Net_HttpGetInstance_nested_json) {
+
+	Net_Init();
+
+	const in_port_t port = 39984;
+
+	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
+	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
+
+	const char payload[] = "{\"title\":\"outer\",\"owner\":{\"name\":\"Alice\",\"score\":7},\"items\":[{\"name\":\"one\",\"score\":1},{\"name\":\"two\",\"score\":2}]}";
+
+	http_server_t server = {
+		.listen_sock = listen_sock,
+		.port = port,
+		.payload = payload,
+		.payload_len = sizeof(payload) - 1,
+		.ok = false,
+	};
+
+	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
+	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
+
+	char url[128];
+	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
+
+	http_nested_response_t response = { 0 };
+	const int32_t status = Net_HttpGetInstance(url, &http_nested_response_properties, &response);
+
+	ck_assert_int_eq(status, 200);
+	ck_assert_str_eq(response.title, "outer");
+	ck_assert_str_eq(response.owner.name, "Alice");
+	ck_assert_int_eq(response.owner.score, 7);
+	ck_assert_uint_eq(response.num_items, 2);
+	ck_assert_str_eq(response.items[0].name, "one");
+	ck_assert_int_eq(response.items[0].score, 1);
+	ck_assert_str_eq(response.items[1].name, "two");
+	ck_assert_int_eq(response.items[1].score, 2);
 
 	int thread_status;
 	SDL_WaitThread(thread, &thread_status);
@@ -507,6 +588,7 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_set_timeout(tcase, 10);
 	tcase_add_test(tcase, check_Net_Http_roundtrip);
 	tcase_add_test(tcase, check_Net_HttpGetInstance_json);
+	tcase_add_test(tcase, check_Net_HttpGetInstance_nested_json);
 	tcase_add_test(tcase, check_Net_HttpGetInstances_json);
 	suite_add_tcase(suite, tcase);
 

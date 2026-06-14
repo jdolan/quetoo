@@ -7,12 +7,12 @@
   padding: 0 0 8 0;
 }
 
-.statTiles {
+.tiles {
   axis: horizontal;
   spacing: 8;
 }
 
-.statTile {
+.tile {
   autoresizing-mask: contain;
   background-color: #0c1f27cc;
   border-color: #1e4e62;

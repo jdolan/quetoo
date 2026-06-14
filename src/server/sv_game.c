@@ -22,7 +22,7 @@
 #include "sv_local.h"
 #include "net/net_http.h"
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 
 /**
  * @brief Fetch the active debug mask.
@@ -216,6 +216,28 @@ static void Sv_PostStatsCallback(int32_t status, void *body, size_t length, void
   }
 }
 
+static const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
+  MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, level)),
+  MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, attacker)),
+  MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, attacker_guid)),
+  MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      JSONDeserializeBoole,      NULL),
+  MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, target)),
+  MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, target_guid)),
+  MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      JSONDeserializeBoole,      NULL),
+  MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_frag_t, weapon)),
+  MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+);
+
+static const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
+  MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_capture_t, level)),
+  MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_capture_t, player)),
+  MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_capture_t, player_guid)),
+  MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      JSONDeserializeBoole,      NULL),
+  MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(g_capture_t, team)),
+  MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+);
+
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
@@ -231,20 +253,9 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     static char frags_url[MAX_STRING_CHARS];
     g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
 
-    static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_frag_t, level,         JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker,      JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker_guid, JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, attacker_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, target,        JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, target_guid,   JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, target_ai,     JsonPropertyBool),
-      MakeJsonProperty(g_frag_t, weapon,        JsonPropertyCharacters),
-      MakeJsonProperty(g_frag_t, mod,           JsonPropertyInteger),
-      MakeJsonProperty(g_frag_t, time,          JsonPropertyInteger)
-    );
-
-    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) frags, frags_len, sizeof(g_frag_t));
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Data *data = $(ctx, dataFromInstances, &sv_frag_properties, (ident) frags, frags_len);
+    release(ctx);
     assert(data);
 
     Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
@@ -258,16 +269,9 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     static char captures_url[MAX_STRING_CHARS];
     g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
 
-    static const JsonProperty props[] = MakeJsonProperties(
-      MakeJsonProperty(g_capture_t, level,       JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player,      JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player_guid, JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, player_ai,   JsonPropertyBool),
-      MakeJsonProperty(g_capture_t, team,        JsonPropertyCharacters),
-      MakeJsonProperty(g_capture_t, time,        JsonPropertyInteger)
-    );
-
-    Data *data = $$(JSONSerialization, dataFromInstances, props, (ident) captures, captures_len, sizeof(g_capture_t));
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Data *data = $(ctx, dataFromInstances, &sv_capture_properties, (ident) captures, captures_len);
+    release(ctx);
     assert(data);
 
     Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);

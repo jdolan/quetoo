@@ -23,7 +23,7 @@
 
 #include "cg_local.h"
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 
 #include "LeaderboardViewController.h"
 
@@ -43,14 +43,14 @@ static const char *_period_month = "month";
 static const char *_period_year  = "year";
 static const char *_period_all   = "";
 
-static const JsonProperty leaderboard_properties[] = MakeJsonProperties(
-  MakeJsonProperty(LeaderboardEntry, rank,        JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, name,        JsonPropertyCharacters),
-  MakeJsonProperty(LeaderboardEntry, guid,        JsonPropertyCharacters),
-  MakeJsonProperty(LeaderboardEntry, frags,       JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, deaths,      JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, captures,    JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, time_played, JsonPropertyInteger)
+static const JSONProperties leaderboard_properties = MakeJSONProperties(LeaderboardEntry,
+  MakeJSONProperty(LeaderboardEntry, rank,        JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, name,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, name)),
+  MakeJSONProperty(LeaderboardEntry, guid,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, guid)),
+  MakeJSONProperty(LeaderboardEntry, frags,       JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, deaths,      JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, captures,    JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, time_played, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
 );
 
 /**
@@ -138,8 +138,8 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   }
 
   size_t num_entries = 0;
-  const int32_t status = cgi.HttpGetInstances(url, leaderboard_properties,
-                                              this->entries, sizeof(LeaderboardEntry),
+  const int32_t status = cgi.HttpGetInstances(url, &leaderboard_properties,
+                                              this->entries,
                                               LEADERBOARD_MAX_ENTRIES, &num_entries);
   this->num_entries = num_entries;
   return status == 200;

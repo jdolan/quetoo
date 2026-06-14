@@ -10,24 +10,12 @@
         {
           "class": "StackView",
           "classNames": [
-            "statsControls"
-          ],
-          "subviews": [
-            {
-              "class": "Select",
-              "identifier": "periodSelect"
-            }
-          ]
-        },
-        {
-          "class": "StackView",
-          "classNames": [
-            "statTiles"
+            "tiles"
           ],
           "subviews": [
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "nameLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Name" } }
@@ -35,7 +23,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "rankLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Rank" } }
@@ -43,7 +31,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "fragsLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Frags" } }
@@ -51,7 +39,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "deathsLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Deaths" } }
@@ -59,7 +47,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "kdLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "KD" } }
@@ -67,7 +55,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "timeLabel", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
@@ -75,7 +63,7 @@
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
                 { "class": "Label", "identifier": "nemesisLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Nemesis" } }

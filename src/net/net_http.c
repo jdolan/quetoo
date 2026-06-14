@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 #include <Objectively/Once.h>
 #include <Objectively/URLCache.h>
 #include <Objectively/URLRequest.h>
@@ -116,7 +116,7 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
 /**
  * @brief Synchronously performs an HTTP `GET` request and deserializes a single JSON object.
  */
-int32_t Net_HttpGetInstance(const char *url_string, const JsonProperty *properties, void *instance) {
+int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *properties, void *instance) {
 
   assert(url_string);
   assert(properties);
@@ -136,13 +136,16 @@ int32_t Net_HttpGetInstance(const char *url_string, const JsonProperty *properti
       return 0;
     }
 
-    if ($$(JSONSerialization, instanceFromData, properties, data, instance) != 1) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    if (!$(ctx, instanceFromData, properties, data, instance)) {
       Com_Warn("%s: Failed to parse JSON object\n", url_string);
+      release(ctx);
       release(data);
       Mem_Free(body);
       return 0;
     }
 
+    release(ctx);
     release(data);
   } else if (status) {
     Com_Warn("%s: HTTP %d\n", url_string, status);
@@ -157,8 +160,8 @@ int32_t Net_HttpGetInstance(const char *url_string, const JsonProperty *properti
 /**
  * @brief Synchronously performs an HTTP `GET` request and deserializes a JSON array.
  */
-int32_t Net_HttpGetInstances(const char *url_string, const JsonProperty *properties,
-                             void *instances, size_t stride, size_t count, size_t *instances_count) {
+int32_t Net_HttpGetInstances(const char *url_string, const JSONProperties *properties,
+                             void *instances, size_t count, size_t *instances_count) {
 
   assert(url_string);
   assert(properties);
@@ -167,7 +170,7 @@ int32_t Net_HttpGetInstances(const char *url_string, const JsonProperty *propert
 
   *instances_count = 0;
   if (count) {
-    memset(instances, 0, stride * count);
+    memset(instances, 0, properties->size * count);
   }
 
   void *body = NULL;
@@ -184,7 +187,9 @@ int32_t Net_HttpGetInstances(const char *url_string, const JsonProperty *propert
       return 0;
     }
 
-    *instances_count = $$(JSONSerialization, instancesFromData, properties, data, instances, stride, count);
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    *instances_count = $(ctx, instancesFromData, properties, data, instances, count);
+    release(ctx);
     release(data);
   } else if (status) {
     Com_Warn("%s: HTTP %d\n", url_string, status);

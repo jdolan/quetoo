@@ -20,13 +20,11 @@
  */
 
 #include <time.h>
+#include <string.h>
 
 #include "cg_local.h"
 
-#include <Objectively/JSONSerialization.h>
-#include <Objectively/Null.h>
-#include <Objectively/Number.h>
-#include <Objectively/String.h>
+#include <Objectively/JSONContext.h>
 
 #include "StatsViewController.h"
 
@@ -34,27 +32,8 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-typedef struct {
-  int32_t rank;
-  int32_t frags;
-  int32_t deaths;
-  int32_t time_played;
-} StatsSummary;
-
-static const JsonProperty stats_summary_properties[] = MakeJsonProperties(
-  MakeJsonProperty(StatsSummary, rank,        JsonPropertyInteger),
-  MakeJsonProperty(StatsSummary, frags,       JsonPropertyInteger),
-  MakeJsonProperty(StatsSummary, deaths,      JsonPropertyInteger),
-  MakeJsonProperty(StatsSummary, time_played, JsonPropertyInteger)
-);
-
 static const char *_weapon = "Weapon";
 static const char *_frags  = "Frags";
-
-static const char *_period_week  = "week";
-static const char *_period_month = "month";
-static const char *_period_year  = "year";
-static const char *_period_all   = "";
 
 /**
  * @brief Formats a duration in seconds as "Xh Ym" or "Ym".
@@ -73,204 +52,74 @@ static const char *formatTime(int32_t seconds) {
   return va("%dm", m);
 }
 
-/**
- * @brief Returns an integer value for the specified key path, or 0.
- */
-static int32_t integerForKeyPath(const Dictionary *dict, const char *path) {
+static const JSONProperties nemesis_properties = MakeJSONProperties(Nemesis,
+  MakeJSONProperty(Nemesis, name, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(Nemesis, name))
+);
 
-  const ident value = $(dict, objectForKeyPathWithClass, path, _Number());
-  if (value) {
-    const Number *number = cast(Number, value);
-    return $(number, intValue);
-  }
+static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(KillsByWeapon,
+  MakeJSONProperty(KillsByWeapon, weapon, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(KillsByWeapon, weapon)),
+  MakeJSONProperty(KillsByWeapon, frags,  JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+);
 
-  return 0;
-}
-
-/**
- * @brief Clears cached stats data.
- */
-static void clearStats(StatsViewController *this) {
-  this->rank = 0;
-  this->frags = 0;
-  this->deaths = 0;
-  this->time_played = 0;
-  this->nemesis[0] = '\0';
-  this->num_weapons = 0;
-  memset(this->weapons, 0, sizeof(this->weapons));
-}
-
-/**
- * @brief Updates all tile labels from current stats fields.
- */
-static void updateTiles(StatsViewController *this) {
-  const double kd = this->deaths > 0 ? (double) this->frags / this->deaths : (double) this->frags;
-  $(this->nameLabel->text,    setText, cgi.GetCvarString("name"));
-  $(this->rankLabel->text,    setText, this->rank       ? va("#%d",  this->rank)   : "—");
-  $(this->fragsLabel->text,   setText, this->frags      ? va("%d",   this->frags)  : "—");
-  $(this->deathsLabel->text,  setText, this->deaths     ? va("%d",   this->deaths) : "—");
-  $(this->kdLabel->text,      setText, this->frags      ? va("%.2f", kd)           : "—");
-  $(this->timeLabel->text,    setText, formatTime(this->time_played));
-  $(this->nemesisLabel->text, setText, this->nemesis[0] ? this->nemesis            : "—");
-}
-
-/**
- * @brief Loads weapon rows from the given JSON array.
- */
-static void loadWeapons(StatsViewController *this, const Array *array) {
-
-  this->num_weapons = 0;
-
-  if (array == NULL) {
-    return;
-  }
-
-  for (size_t i = 0; i < array->count && i < STATS_MAX_WEAPON_ROWS; i++) {
-    const Dictionary *entry = cast(Dictionary, $(array, objectAtIndex, i));
-    if (entry == NULL) {
-      continue;
-    }
-
-    const String *weapon = $(entry, objectForKeyPathWithClass, "weapon", _String());
-    if (weapon == NULL) {
-      continue;
-    }
-
-    WeaponStat *stat = &this->weapons[this->num_weapons++];
-    memset(stat, 0, sizeof(*stat));
-    g_strlcpy(stat->weapon, weapon->chars, sizeof(stat->weapon));
-    stat->frags = integerForKeyPath(entry, "frags");
-  }
-}
-
-/**
- * @brief Computes YYYY-MM-DD date strings for the given period.
- *        Sets from to empty string for "all time" (no date filter).
- */
-static void periodDateRange(const char *period, char *from, size_t from_len, char *to, size_t to_len) {
-  from[0] = '\0';
-  to[0]   = '\0';
-
-  if (!period || !period[0]) {
-    return;
-  }
-
-  const time_t now = time(NULL);
-  struct tm t = *localtime(&now);
-
-  strftime(to, to_len, "%Y-%m-%d", &t);
-
-  if (g_strcmp0(period, "week") == 0) {
-    t.tm_mday -= t.tm_wday;
-  } else if (g_strcmp0(period, "month") == 0) {
-    t.tm_mday = 1;
-  } else if (g_strcmp0(period, "year") == 0) {
-    t.tm_mday = 1;
-    t.tm_mon  = 0;
-  } else {
-    return;
-  }
-
-  mktime(&t);
-  strftime(from, from_len, "%Y-%m-%d", &t);
-}
+static const JSONArrayProperties kills_by_weapon_array = {
+  .properties = &kills_by_weapon_properties,
+  .count = lengthof(((StatsResponse *)0)->kills_by_weapon),
+  .count_offset = JSONArrayProperties_NoCount
+};
 
 /**
  * @brief Fetches and displays stats for the local player.
  */
 static void fetchStats(StatsViewController *this) {
 
-  clearStats(this);
+  StatsResponse *s = &this->stats;
+  memset(s, 0, sizeof(*s));
 
   const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-
   if (!guid_hashed || !guid_hashed[0]) {
-    $(this->rankLabel->text,   setText, "—");
-    $(this->fragsLabel->text,  setText, "Sign in");
+    $(this->rankLabel->text, setText, "—");
+    $(this->fragsLabel->text, setText, "Sign in");
     $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text,     setText, "—");
-    $(this->timeLabel->text,   setText, "—");
+    $(this->kdLabel->text, setText, "—");
+    $(this->timeLabel->text, setText, "—");
     $(this->weaponsTable, reloadData);
     return;
   }
 
-  char from[16] = {0}, to[16] = {0};
-  const Option *period = $(this->periodSelect, selectedOption);
-  if (period) {
-    periodDateRange((const char *) period->value, from, sizeof(from), to, sizeof(to));
-  }
+  char url[MAX_STRING_CHARS];
+  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
 
-  char url[512];
-  int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
-  if (from[0]) {
-    n += g_snprintf(url + n, sizeof(url) - n, "?from=%s&to=%s", from, to);
-  }
+  const JSONProperties props = MakeJSONProperties(StatsResponse,
+    MakeJSONProperty(StatsResponse, rank,            JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
+    MakeJSONProperty(StatsResponse, frags,           JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
+    MakeJSONProperty(StatsResponse, deaths,          JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
+    MakeJSONProperty(StatsResponse, time_played,     JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
+    MakeJSONProperty(StatsResponse, nemesis,         JSONSerializeObject, JSONDeserializeObject, (ident) &nemesis_properties),
+    MakeJSONProperty(StatsResponse, kills_by_weapon, JSONSerializeArray,  JSONDeserializeArray,  (ident) &kills_by_weapon_array)
+  );
 
-  void *body = NULL;
-  size_t length = 0;
-
-  const int32_t status = cgi.HttpGet(url, &body, &length);
+  const int32_t status = cgi.HttpGetInstance(url, &props, s);
   if (status == 200) {
-    Data *data = $$(Data, dataWithConstMemory, body, length);
-    StatsSummary summary = { 0 };
-    (void) $$(JSONSerialization, instanceFromData, stats_summary_properties, data, &summary);
-    ident json = $$(JSONSerialization, objectFromData, data, 0);
-    release(data);
+    $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
+    $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
+    $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
+    $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
 
-    if (json) {
-      Dictionary *dict = cast(Dictionary, json);
-      if (dict) {
-        this->rank = summary.rank;
-        this->frags = summary.frags;
-        this->deaths = summary.deaths;
-        this->time_played = summary.time_played;
+    const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
+    $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
 
-        const Dictionary *nemesis = $(dict, objectForKeyPathWithClass, "nemesis", _Dictionary());
-        if (nemesis) {
-          const String *name = $(nemesis, objectForKeyPathWithClass, "name", _String());
-          if (name) {
-            g_strlcpy(this->nemesis, name->chars, sizeof(this->nemesis));
-          }
-        }
-
-        loadWeapons(this, $(dict, objectForKeyPathWithClass, "kills_by_weapon", _Array()));
-
-      } else if (!cast(Null, json)) {
-        Cg_Warn("Unexpected stats response type: %s\n", classnameof(json));
-      }
-
-      updateTiles(this);
-      release(json);
-    } else {
-      this->rank = summary.rank;
-      this->frags = summary.frags;
-      this->deaths = summary.deaths;
-      this->time_played = summary.time_played;
-      updateTiles(this);
-    }
+    $(this->timeLabel->text, setText, formatTime(s->time_played));
+    $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name  : "—");
   } else {
-    $(this->rankLabel->text,   setText, "—");
-    $(this->fragsLabel->text,  setText, "Error");
+    $(this->rankLabel->text, setText, "—");
+    $(this->fragsLabel->text, setText, "Error");
     $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text,     setText, "—");
-    $(this->timeLabel->text,   setText, "—");
+    $(this->kdLabel->text, setText, "—");
+    $(this->timeLabel->text, setText, "—");
     Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
   }
 
-  cgi.Free(body);
-
   $(this->weaponsTable, reloadData);
-}
-
-#pragma mark - SelectDelegate
-
-/**
- * @see SelectDelegate::didSelectOption
- */
-static void didSelectPeriod(Select *select, Option *option) {
-
-  StatsViewController *this = select->delegate.self;
-  fetchStats(this);
 }
 
 #pragma mark - TableViewDataSource
@@ -282,7 +131,15 @@ static size_t numberOfRows(const TableView *tableView) {
 
   StatsViewController *this = tableView->dataSource.self;
 
-  return this->num_weapons;
+  size_t i;
+  const KillsByWeapon *w = this->stats.kills_by_weapon;
+  for (i = 0; i < lengthof(this->stats.kills_by_weapon); i++, w++) {
+    if (strlen(w->weapon) == 0) {
+      break;
+    }
+  }
+
+  return i;
 }
 
 #pragma mark - TableViewDelegate
@@ -294,14 +151,14 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   StatsViewController *this = tableView->dataSource.self;
 
-  const WeaponStat *weapon = &this->weapons[row];
+  const KillsByWeapon *w = &this->stats.kills_by_weapon[row];
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
   if (g_strcmp0(column->identifier, _weapon) == 0) {
-    $(cell->text, setText, weapon->weapon);
+    $(cell->text, setText, w->weapon);
   } else if (g_strcmp0(column->identifier, _frags) == 0) {
-    $(cell->text, setText, va("%d", weapon->frags));
+    $(cell->text, setText, va("%d", w->frags));
   }
 
   return cell;
@@ -319,7 +176,6 @@ static void loadView(ViewController *self) {
   StatsViewController *this = (StatsViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("periodSelect",  &this->periodSelect),
     MakeOutlet("nameLabel",     &this->nameLabel),
     MakeOutlet("rankLabel",     &this->rankLabel),
     MakeOutlet("fragsLabel",    &this->fragsLabel),
@@ -336,15 +192,6 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->periodSelect, addOption, "This Week",  (ident) _period_week);
-  $(this->periodSelect, addOption, "This Month", (ident) _period_month);
-  $(this->periodSelect, addOption, "This Year",  (ident) _period_year);
-  $(this->periodSelect, addOption, "All Time",   (ident) _period_all);
-  $(this->periodSelect, selectOptionWithValue, (ident) _period_week);
-
-  this->periodSelect->delegate.self = this;
-  this->periodSelect->delegate.didSelectOption = didSelectPeriod;
-
   $(this->weaponsTable, addColumnWithIdentifier, _weapon);
   $(this->weaponsTable, addColumnWithIdentifier, _frags);
 
@@ -353,8 +200,6 @@ static void loadView(ViewController *self) {
 
   this->weaponsTable->delegate.cellForColumnAndRow = cellForColumnAndRow;
   this->weaponsTable->delegate.self = this;
-
-  clearStats(this);
 }
 
 /**
