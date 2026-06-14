@@ -152,6 +152,8 @@ static void Sv_ClearState(void) {
     Fs_Close(sv.demo_file);
   }
 
+  Sv_DemoSeekCleanup();
+
   Demo_FreeIndex(&sv.demo_index);
 
   memset(&sv, 0, sizeof(sv));
@@ -291,6 +293,12 @@ static void Sv_LoadMedia(const char *name, const cm_entity_t *props, sv_state_t 
         sv.demo_v2 = true;
         sv.demo_speed = 1.0;
         sv.demo_paused = false;
+
+        // pre-decode the whole demo into a clean, fully seekable stream (periodic
+        // keyframes + sequential deltas) so scrubbing can't break the delta chain
+        if (!Sv_DemoMakeSeekable(&header)) {
+          Com_Warn("  Seek re-encode failed; forward playback only.\n");
+        }
 
         // build the keyframe seek index; this leaves the cursor at the first record
         Demo_ScanIndex(sv.demo_file, &sv.demo_index);

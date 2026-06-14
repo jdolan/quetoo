@@ -27,7 +27,6 @@ cvar_t *cl_demo_v2;
 // state for the in-progress recording
 static bool cl_demo_recording_v2; // true if the active recording is the v2 container
 static int32_t cl_demo_first_frame; // frame_num of the first recorded frame, or -1
-static int32_t cl_demo_last_frame; // frame_num of the most recently recorded frame
 
 /**
  * @brief Flushes one accumulated startup sub-message to the demo file, as a v1
@@ -121,43 +120,26 @@ static void Cl_WriteDemoHeader(void) {
 }
 
 /**
- * @brief Re-encodes the current decoded frame as a self-contained keyframe (a
- * full, non-delta snapshot) and writes it as a FRAME_KEY record. This is the
- * exact wire format the client parser expects for an uncompressed frame: the
- * player state delta'd from null, and every live entity delta'd from its
- * baseline. Seeking jumps to these keyframes (see Demo_ScanIndex / Sv_DemoSeek).
+ * @brief Writes the current packet as v2 records, stamped with the current
+ * frame's timecode. A server packet is the concatenation of any reliable
+ * commands the netchan prepended, the frame command, and the per-frame datagram.
+ * The frame command is written as its own FRAME record with the surrounding
+ * bytes written verbatim as RELIABLE records, so the frame is isolated in pure
+ * engine wire format. This lets playback decode and re-encode it into a fully
+ * seekable stream (see Sv_DemoMakeSeekable) without having to parse the game's
+ * datagram commands, whose lengths only the client game module knows.
+ *
+ * Datagram-only packets (a fragmented frame's continuation) carry no frame
+ * command (`frame_start < 0`) and are written verbatim as a single RELIABLE
+ * record.
+ *
+ * @param frame_start Byte offset of the frame command in net_message, or -1.
+ * @param frame_end Byte offset just past the frame command in net_message.
  */
-static void Cl_WriteDemoKeyframe(uint32_t timecode) {
-  static player_state_t null_state;
-  mem_buf_t kf;
-  byte buffer[MAX_MSG_SIZE];
+static void Cl_WriteDemoRecord(int32_t frame_start, int32_t frame_end) {
 
-  Mem_InitBuffer(&kf, buffer, sizeof(buffer));
-
-  Net_WriteByte(&kf, SV_CMD_FRAME);
-  Net_WriteLong(&kf, cl.frame.frame_num);
-  Net_WriteLong(&kf, -1); // uncompressed
-
-  Net_WriteDeltaPlayerState(&kf, &null_state, &cl.frame.ps);
-
-  for (int32_t i = 0; i < cl.frame.num_entities; i++) {
-    const uint32_t snum = (cl.frame.entity_state + i) & ENTITY_STATE_MASK;
-    const entity_state_t *s = &cl.entity_states[snum];
-    Net_WriteDeltaEntity(&kf, &cl.entities[s->number].baseline, s, true);
-  }
-
-  Net_WriteShort(&kf, -1); // end of entities
-
-  Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_KEY, timecode, kf.data, kf.size);
-}
-
-/**
- * @brief Writes the current net message as a v2 record, stamping it with the
- * current frame's timecode and classifying it as a keyframe, delta, or reliable.
- * Every DEMO_KEYFRAME_INTERVAL frames the natural delta is replaced with a
- * re-encoded keyframe so that seeking has a nearby self-contained entry point.
- */
-static void Cl_WriteDemoRecord(void) {
+  byte *payload = net_message.data + 8;
+  const int32_t payload_size = (int32_t) net_message.size - 8;
 
   if (cl_demo_first_frame < 0) {
     cl_demo_first_frame = cl.frame.frame_num;
@@ -166,27 +148,37 @@ static void Cl_WriteDemoRecord(void) {
   const int32_t rel_frame = cl.frame.frame_num - cl_demo_first_frame;
   const uint32_t timecode = (uint32_t) rel_frame * QUETOO_TICK_MILLIS;
 
-  if (cl.frame.frame_num == cl_demo_last_frame) { // a trailing datagram-only packet
-    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, net_message.data + 8, net_message.size - 8);
+  // the frame command's range within the recorded payload (skip the 8-byte seq)
+  const int32_t fstart = frame_start - 8;
+  const int32_t fend = frame_end - 8;
+
+  if (frame_start < 0 || fstart < 0 || fend > payload_size || fstart >= fend) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload, payload_size);
     return;
   }
 
-  cl_demo_last_frame = cl.frame.frame_num;
+  const uint8_t frame_type = (cl.frame.delta_frame_num < 0)
+      ? DEMO_RECORD_FRAME_KEY : DEMO_RECORD_FRAME_DELTA;
 
-  if (cl.frame.delta_frame_num < 0) { // a naturally uncompressed frame is already a keyframe
-    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_KEY, timecode, net_message.data + 8, net_message.size - 8);
-  } else if (rel_frame > 0 && (rel_frame % DEMO_KEYFRAME_INTERVAL) == 0) { // periodic keyframe
-    Cl_WriteDemoKeyframe(timecode);
-  } else {
-    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_FRAME_DELTA, timecode, net_message.data + 8, net_message.size - 8);
+  // reliable commands the netchan prepended ahead of the frame
+  if (fstart > 0) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload, fstart);
+  }
+
+  // the isolated, engine-format frame command (decodable without the cgame)
+  Demo_WriteRecord(cls.demo_file, frame_type, timecode, payload + fstart, fend - fstart);
+
+  // trailing datagram commands (sounds, temp entities, ...)
+  if (fend < payload_size) {
+    Demo_WriteRecord(cls.demo_file, DEMO_RECORD_RELIABLE, timecode, payload + fend, payload_size - fend);
   }
 }
 
 /**
  * @brief Dumps the current net message to the demo, prefixed by the length (v1)
- * or wrapped in a timecoded record (v2).
+ * or wrapped in timecoded records (v2).
  */
-void Cl_WriteDemoMessage(void) {
+void Cl_WriteDemoMessage(int32_t frame_start, int32_t frame_end) {
 
   if (!cls.demo_file) {
     return;
@@ -202,7 +194,7 @@ void Cl_WriteDemoMessage(void) {
   }
 
   if (cl_demo_recording_v2) {
-    Cl_WriteDemoRecord();
+    Cl_WriteDemoRecord(frame_start, frame_end);
   } else {
     // the first eight bytes are just packet sequencing stuff
     const int32_t len = LittleLong((int32_t) (net_message.size - 8));
@@ -275,7 +267,6 @@ void Cl_Record_f(void) {
 
   cl_demo_recording_v2 = cl_demo_v2->value;
   cl_demo_first_frame = -1;
-  cl_demo_last_frame = -1;
 
   Com_Print("Recording to %s (%s)\n", cls.demo_filename, cl_demo_recording_v2 ? "v2" : "v1");
 }

@@ -27,7 +27,7 @@ extern cvar_t *cl_demo_v2;
 
 #if defined(__CL_LOCAL_H__)
 void Cl_InitDemo(void);
-void Cl_WriteDemoMessage(void);
+void Cl_WriteDemoMessage(int32_t frame_start, int32_t frame_end);
 void Cl_Record_f(void);
 void Cl_Stop_f(void);
 void Cl_FastForward_f(void);

@@ -379,14 +379,33 @@ static size_t Sv_GetDemoMessage(byte *buffer) {
 }
 
 /**
- * @brief Transmits all v2 demo records whose timecode has been reached by the
+ * @brief Largest number of demo records transmitted to a client per server tick.
+ * A seek makes a large backlog of records due at once (the keyframe plus every
+ * frame up to the target); transmitting them all at once would overrun the
+ * loopback receive ring (MAX_NET_UDP_LOOPS == 64), silently dropping frames and
+ * breaking the delta chain ("Delta frame too old"). Capping the burst spreads
+ * the catch-up over a few ticks -- a brief, smooth fast-forward -- while keeping
+ * every frame in order so the chain never breaks.
+ *
+ * Sv_Frame may run up to 4 ticks before the client drains the ring once (and the
+ * client can skip draining entirely under its frame-rate cap), so the bound is
+ * 4 * (SV_DEMO_MAX_BURST + 1 status) records between drains. 12 keeps that at 52,
+ * safely under the 64-slot ring for any realistic frame rate.
+ */
+#define SV_DEMO_MAX_BURST 12
+
+/**
+ * @brief Transmits the v2 demo records whose timecode has been reached by the
  * demo clock, reframing each as the client expects. The records are the exact
- * v1 wire messages, so the client parses them identically to live play.
+ * v1 wire messages, so the client parses them identically to live play. At most
+ * SV_DEMO_MAX_BURST are sent per frame so a seek's backlog cannot overrun the
+ * loopback ring.
  * @return False when the demo has completed (end of records).
  */
 static bool Sv_SendDemoV2Records(sv_client_t *cl) {
   byte buffer[MAX_MSG_SIZE];
   demo_record_t rec;
+  int32_t sent = 0;
 
   for (;;) {
     const int64_t offset = Fs_Tell(sv.demo_file);
@@ -401,7 +420,13 @@ static bool Sv_SendDemoV2Records(sv_client_t *cl) {
       return true;
     }
 
+    if (sent >= SV_DEMO_MAX_BURST) { // throttle the catch-up; resume next frame
+      Fs_Seek(sv.demo_file, offset);
+      return true;
+    }
+
     Netchan_Transmit(&cl->net_chan, buffer, rec.length);
+    sent++;
   }
 }
 

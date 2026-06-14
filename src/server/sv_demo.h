@@ -28,4 +28,6 @@ void Sv_Record_f(void);
 void Sv_StopRecord_f(void);
 void Sv_DemoRecordFrame(void);
 void Sv_StopServerRecord(void);
+bool Sv_DemoMakeSeekable(const demo_header_t *header);
+void Sv_DemoSeekCleanup(void);
 #endif /* __SV_LOCAL_H__ */
