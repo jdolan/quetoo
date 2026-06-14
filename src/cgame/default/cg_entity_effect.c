@@ -41,11 +41,13 @@ vec3_t Cg_EffectColor(float *hue, const float default_hue) {
  */
 vec3_t Cg_ClientEffectColor(const int32_t client, float *hue, const float default_hue) {
 
-  assert(client >= 0);
-  assert(client < MAX_CLIENTS);
-
-  const cg_client_info_t *ci = &cg_state.clients[client];
-  float client_hue = ci->team ? ci->team->hue : ci->hue;
+  // the client index arrives raw off the wire; fall back to the default hue if it
+  // is out of range rather than indexing cg_state.clients[] out of bounds
+  float client_hue = default_hue;
+  if (client >= 0 && client < MAX_CLIENTS) {
+    const cg_client_info_t *ci = &cg_state.clients[client];
+    client_hue = ci->team ? ci->team->hue : ci->hue;
+  }
 
   const vec3_t color = Cg_EffectColor(&client_hue, default_hue);
 
