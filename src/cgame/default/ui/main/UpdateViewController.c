@@ -49,7 +49,7 @@ static void fetchHeroImages(void *data) {
 
 	Data *list_data = NULL, *image_data = NULL;
 
-	if ($(cgi.http, get, QUETOO_HERO_LIST_URL, &list_data) != 200 || !list_data) {
+	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, &list_data) != 200 || !list_data) {
 		Cg_Warn("Failed to fetch hero image list");
 		release(list_data);
 		return;
@@ -91,7 +91,7 @@ static void fetchHeroImages(void *data) {
 
 	for (guint i = 0; i < urls->len; i++) {
 		image_data = NULL;
-		if ($(cgi.http, get, urls->pdata[i], &image_data) == 200 && image_data) {
+		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
       SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);

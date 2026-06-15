@@ -110,7 +110,7 @@ static void fetchStats(StatsViewController *this) {
   }
 
   Data *data = NULL;
-  const int32_t status = $(cgi.http, get, url, &data);
+  const int32_t status = $(cgi.restClient, get, url, &data);
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
     $(ctx, structFromData, &stats_properties, data, s);

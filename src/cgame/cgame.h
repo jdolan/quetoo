@@ -168,9 +168,9 @@ typedef struct cg_import_s {
   /**
    * @brief The shared RESTClient instance, backed by a URLSession with URLCache enabled.
    * @remarks Use this for all HTTP requests from cgame. The session is shared with the engine;
-   * call `$(cgi.http->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
+   * call `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
    */
-  RESTClient *http;
+  RESTClient *restClient;
 
   /**
    * @}

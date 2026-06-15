@@ -131,7 +131,7 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
 
   size_t num_entries = 0;
   Data *data = NULL;
-  const int32_t status = $(cgi.http, get, url, &data);
+  const int32_t status = $(cgi.restClient, get, url, &data);
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
     num_entries = $(ctx, structsFromData, &leaderboard_properties, data, this->entries, LEADERBOARD_MAX_ENTRIES);

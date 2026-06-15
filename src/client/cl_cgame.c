@@ -186,7 +186,7 @@ void Cl_InitCgame(void) {
     if (client->session->configuration->urlCache == NULL) {
       client->session->configuration->urlCache = $(alloc(URLCache), init);
     }
-    import.http = client;
+    import.restClient = client;
   }
 
   import.OpenFile = Fs_OpenRead;
