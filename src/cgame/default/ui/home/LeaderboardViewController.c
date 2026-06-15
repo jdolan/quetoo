@@ -44,13 +44,13 @@ static const char *_period_year  = "year";
 static const char *_period_all   = "";
 
 static const JSONProperties leaderboard_properties = MakeJSONProperties(LeaderboardEntry,
-  MakeJSONProperty(LeaderboardEntry, rank,        JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, name,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, name)),
-  MakeJSONProperty(LeaderboardEntry, guid,        JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, guid)),
-  MakeJSONProperty(LeaderboardEntry, frags,       JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, deaths,      JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, captures,    JSONSerializeInt32,      JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, time_played, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+  MakeJSONProperty(LeaderboardEntry, rank,        NULL, JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, name)),
+  MakeJSONProperty(LeaderboardEntry, guid,        NULL, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, guid)),
+  MakeJSONProperty(LeaderboardEntry, frags,       NULL, JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, deaths,      NULL, JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, captures,    NULL, JSONDeserializeInt32,      NULL),
+  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32,      NULL)
 );
 
 /**

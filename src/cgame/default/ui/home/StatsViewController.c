@@ -53,19 +53,28 @@ static const char *formatTime(int32_t seconds) {
 }
 
 static const JSONProperties nemesis_properties = MakeJSONProperties(Nemesis,
-  MakeJSONProperty(Nemesis, name, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(Nemesis, name))
+  MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, JSONFieldSize(Nemesis, name))
 );
 
 static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(KillsByWeapon,
-  MakeJSONProperty(KillsByWeapon, weapon, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(KillsByWeapon, weapon)),
-  MakeJSONProperty(KillsByWeapon, frags,  JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+  MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, JSONFieldSize(KillsByWeapon, weapon)),
+  MakeJSONProperty(KillsByWeapon, frags,  NULL, JSONDeserializeInt32,      NULL)
 );
 
 static const JSONArrayProperties kills_by_weapon_array = {
-  .properties = &kills_by_weapon_properties,
-  .count = lengthof(((StatsResponse *)0)->kills_by_weapon),
+  .properties   = &kills_by_weapon_properties,
+  .count        = lengthof(((StatsResponse *) 0)->kills_by_weapon),
   .count_offset = JSONArrayProperties_NoCount
 };
+
+static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
+  MakeJSONProperty(StatsResponse, rank,            NULL, JSONDeserializeInt32,  NULL),
+  MakeJSONProperty(StatsResponse, frags,           NULL, JSONDeserializeInt32,  NULL),
+  MakeJSONProperty(StatsResponse, deaths,          NULL, JSONDeserializeInt32,  NULL),
+  MakeJSONProperty(StatsResponse, time_played,     NULL, JSONDeserializeInt32,  NULL),
+  MakeJSONProperty(StatsResponse, nemesis,         NULL, JSONDeserializeStruct, (ident) &nemesis_properties),
+  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray,  (ident) &kills_by_weapon_array)
+);
 
 /**
  * @brief Fetches and displays stats for the local player.
@@ -89,16 +98,7 @@ static void fetchStats(StatsViewController *this) {
   char url[MAX_STRING_CHARS];
   g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
 
-  const JSONProperties props = MakeJSONProperties(StatsResponse,
-    MakeJSONProperty(StatsResponse, rank,            JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
-    MakeJSONProperty(StatsResponse, frags,           JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
-    MakeJSONProperty(StatsResponse, deaths,          JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
-    MakeJSONProperty(StatsResponse, time_played,     JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
-    MakeJSONProperty(StatsResponse, nemesis,         JSONSerializeStruct, JSONDeserializeStruct, (ident) &nemesis_properties),
-    MakeJSONProperty(StatsResponse, kills_by_weapon, JSONSerializeArray,  JSONDeserializeArray,  (ident) &kills_by_weapon_array)
-  );
-
-  const int32_t status = cgi.HttpGetStruct(url, &props, s);
+  const int32_t status = cgi.HttpGetStruct(url, &stats_properties, s);
   if (status == 200) {
     $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
     $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");

@@ -268,8 +268,8 @@ typedef struct {
 } http_instance_t;
 
 static const JSONProperties http_instance_properties = MakeJSONProperties(http_instance_t,
-	MakeJSONProperty(http_instance_t, guid, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_instance_t, guid)),
-	MakeJSONProperty(http_instance_t, rank, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+	MakeJSONProperty(http_instance_t, guid, NULL, JSONDeserializeCharacters, JSONFieldSize(http_instance_t, guid)),
+	MakeJSONProperty(http_instance_t, rank, NULL, JSONDeserializeInt32,      NULL)
 );
 
 typedef struct {
@@ -278,8 +278,8 @@ typedef struct {
 } http_item_t;
 
 static const JSONProperties http_item_properties = MakeJSONProperties(http_item_t,
-	MakeJSONProperty(http_item_t, name,  JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_item_t, name)),
-	MakeJSONProperty(http_item_t, value, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+	MakeJSONProperty(http_item_t, name,  NULL, JSONDeserializeCharacters, JSONFieldSize(http_item_t, name)),
+	MakeJSONProperty(http_item_t, value, NULL, JSONDeserializeInt32,      NULL)
 );
 
 typedef struct {
@@ -295,20 +295,20 @@ typedef struct {
 } http_nested_response_t;
 
 static const JSONProperties http_nested_entry_properties = MakeJSONProperties(http_nested_entry_t,
-	MakeJSONProperty(http_nested_entry_t, name,  JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_nested_entry_t, name)),
-	MakeJSONProperty(http_nested_entry_t, score, JSONSerializeInt32,      JSONDeserializeInt32,      NULL)
+	MakeJSONProperty(http_nested_entry_t, name,  NULL, JSONDeserializeCharacters, JSONFieldSize(http_nested_entry_t, name)),
+	MakeJSONProperty(http_nested_entry_t, score, NULL, JSONDeserializeInt32,      NULL)
 );
 
 static const JSONArrayProperties http_nested_response_items = {
-	.properties = &http_nested_entry_properties,
-	.count = lengthof(((http_nested_response_t *)0)->items),
+	.properties   = &http_nested_entry_properties,
+	.count        = lengthof(((http_nested_response_t *) 0)->items),
 	.count_offset = offsetof(http_nested_response_t, num_items)
 };
 
 static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
-	MakeJSONProperty(http_nested_response_t, title, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_nested_response_t, title)),
-	MakeJSONProperty(http_nested_response_t, owner, JSONSerializeStruct,     JSONDeserializeStruct,     (ident) &http_nested_entry_properties),
-	MakeJSONProperty(http_nested_response_t, items, JSONSerializeArray,      JSONDeserializeArray,      (ident) &http_nested_response_items)
+	MakeJSONProperty(http_nested_response_t, title, NULL, JSONDeserializeCharacters, JSONFieldSize(http_nested_response_t, title)),
+	MakeJSONProperty(http_nested_response_t, owner, NULL, JSONDeserializeStruct,    (ident) &http_nested_entry_properties),
+	MakeJSONProperty(http_nested_response_t, items, NULL, JSONDeserializeArray,     (ident) &http_nested_response_items)
 );
 
 static int SDLCALL http_server_thread(void *data) {
