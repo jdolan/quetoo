@@ -217,28 +217,6 @@ static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
   }
 }
 
-static const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
-  MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      NULL, NULL),
-  MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      NULL, NULL)
-);
-
-static const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
-  MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, NULL),
-  MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      NULL, NULL)
-);
-
 /**
  * @brief Serializes frag events from the game module to JSON and POSTs them
  * asynchronously to `sv_stats_url`. Gated on `sv_public` and a non-empty URL.
@@ -250,6 +228,19 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
   }
 
   if (frags_len) {
+
+    const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
+      MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      NULL, NULL),
+      MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      NULL, NULL)
+    );
 
     static char frags_url[MAX_STRING_CHARS];
     g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
@@ -266,6 +257,15 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
   }
 
   if (captures_len) {
+
+    const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
+      MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      NULL, NULL),
+      MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, NULL),
+      MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      NULL, NULL)
+    );
 
     static char captures_url[MAX_STRING_CHARS];
     g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
