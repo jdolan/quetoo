@@ -19,7 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <time.h>
 #include <string.h>
 
 #include "cg_local.h"
@@ -69,7 +68,7 @@ static const JSONArrayProperties killsByWeaponArrayProperties = {
   .count = JSONArrayProperties_NoCount
 };
 
-static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
+static const JSONProperties statsResponseProperties = MakeJSONProperties(StatsResponse,
   MakeJSONProperty(StatsResponse, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
@@ -81,9 +80,10 @@ static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
 /**
  * @brief Staging buffer written by the HTTP thread, read by the main thread.
  * The SDL event queue provides the happens-before guarantee between the write
- * (before SDL_PushEvent) and the read (after SDL_PollEvent).
+ * (before `SDL_PushEvent`) and the read (after `SDL_PollEvent`).
  */
-static StatsResponse stats_pending;
+static StatsResponse pendingStatsResponse;
+static int32_t pendingStatsStatus;
 
 /**
  * @brief `RESTClientCompletion` for `fetchStats`. Runs on the HTTP session thread;
@@ -91,11 +91,12 @@ static StatsResponse stats_pending;
  */
 static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
 
-  memset(&stats_pending, 0, sizeof(stats_pending));
+  memset(&pendingStatsResponse, 0, sizeof(pendingStatsResponse));
+  pendingStatsStatus = status;
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    $(ctx, structFromData, &stats_properties, data, &stats_pending);
+    $(ctx, structFromData, &statsResponseProperties, data, &pendingStatsResponse);
     release(ctx);
   } else if (status && status != 200) {
     Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
@@ -110,9 +111,9 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
 /**
  * @brief Applies a decoded stats response to the view.
  */
-static void loadStats(StatsViewController *this, const StatsResponse *s) {
+static void loadStats(StatsViewController *this, int32_t status, const StatsResponse *s) {
 
-  if (s->rank || s->frags || s->deaths || s->time_played) {
+  if (status == 200) {
     $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
     $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
     $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
@@ -145,8 +146,8 @@ static void fetchStats(StatsViewController *this) {
   $(this->kdLabel->text, setText, "—");
   $(this->timeLabel->text, setText, "—");
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (!guid_hashed || !guid_hashed[0]) {
+  const char *guid_hash = cgi.GetCvarString("guid_hash");
+  if (!guid_hash || !guid_hash[0]) {
     $(this->fragsLabel->text, setText, "Sign in");
     $(this->weaponsTable, reloadData);
     return;
@@ -155,16 +156,7 @@ static void fetchStats(StatsViewController *this) {
   $(this->weaponsTable, reloadData);
 
   char url[MAX_STRING_CHARS];
-  {
-    time_t t = time(NULL);
-    const struct tm *lt = localtime(&t);
-
-    char from[16], to[16];
-    snprintf(from, sizeof(from), "%04d-%02d-01", lt->tm_year + 1900, lt->tm_mon + 1);
-    strftime(to, sizeof(to), "%Y-%m-%d", lt);
-
-    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s?from=%s&to=%s", guid_hashed, from, to);
-  }
+  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
 
   $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
 }
@@ -258,12 +250,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_STATS_FETCHED) {
-
-      memcpy(&this->stats, &stats_pending, sizeof(this->stats));
-      loadStats(this, &this->stats);
-
-    } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
-      fetchStats(this);
+      memcpy(&this->stats, &pendingStatsResponse, sizeof(this->stats));
+      loadStats(this, pendingStatsStatus, &this->stats);
     }
   }
 

@@ -19,8 +19,6 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#include <time.h>
-
 #include "cg_local.h"
 
 #include <Objectively/JSONContext.h>
@@ -31,31 +29,31 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_rank        = "Rank";
-static const char *_player      = "Player";
-static const char *_frags       = "Frags";
-static const char *_deaths      = "Deaths";
-static const char *_kd          = "KD";
+static const char *_rank = "Rank";
+static const char *_player = "Player";
+static const char *_frags = "Frags";
+static const char *_deaths = "Deaths";
+static const char *_kd = "KD";
 static const char *_time_played = "Time";
 
 static const JSONProperties leaderboard_entry_properties = MakeJSONProperties(LeaderboardEntry,
-  MakeJSONProperty(LeaderboardEntry, rank,        NULL, JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, NULL),
-  MakeJSONProperty(LeaderboardEntry, guid,        NULL, JSONDeserializeCharacters, NULL),
-  MakeJSONProperty(LeaderboardEntry, frags,       NULL, JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, deaths,      NULL, JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, captures,    NULL, JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32,      NULL)
+  MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, name, NULL, JSONDeserializeCharacters, NULL),
+  MakeJSONProperty(LeaderboardEntry, guid, NULL, JSONDeserializeCharacters, NULL),
+  MakeJSONProperty(LeaderboardEntry, frags, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, deaths, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, captures, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32, NULL)
 );
 
 /**
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (g_strcmp0(identifier, _player)      == 0) return "name";
-  if (g_strcmp0(identifier, _frags)       == 0) return "frags";
-  if (g_strcmp0(identifier, _deaths)      == 0) return "deaths";
-  if (g_strcmp0(identifier, _kd)          == 0) return "kd";
+  if (g_strcmp0(identifier, _player) == 0) return "name";
+  if (g_strcmp0(identifier, _frags) == 0) return "frags";
+  if (g_strcmp0(identifier, _deaths) == 0) return "deaths";
+  if (g_strcmp0(identifier, _kd) == 0) return "kd";
   if (g_strcmp0(identifier, _time_played) == 0) return "time_played";
   return NULL;
 }
@@ -78,43 +76,11 @@ static const char *formatTime(int32_t seconds) {
 }
 
 /**
- * @brief Computes YYYY-MM-DD date strings for the given period.
- *        Sets from to empty string for "all time" (no date filter).
- */
-static void periodDateRange(const char *period, char *from, size_t from_len, char *to, size_t to_len) {
-  from[0] = '\0';
-  to[0]   = '\0';
-
-  if (!period || !period[0]) {
-    return;
-  }
-
-  const time_t now = time(NULL);
-  struct tm t = *localtime(&now);
-
-  strftime(to, to_len, "%Y-%m-%d", &t);
-
-  if (g_strcmp0(period, "week") == 0) {
-    t.tm_mday -= t.tm_wday;
-  } else if (g_strcmp0(period, "month") == 0) {
-    t.tm_mday = 1;
-  } else if (g_strcmp0(period, "year") == 0) {
-    t.tm_mday = 1;
-    t.tm_mon  = 0;
-  } else {
-    return;
-  }
-
-  mktime(&t);
-  strftime(from, from_len, "%Y-%m-%d", &t);
-}
-
-/**
  * @brief Staging buffer written by the HTTP thread, read by the main thread.
  * The SDL event queue provides the happens-before guarantee between the write
- * (before SDL_PushEvent) and the read (after SDL_PollEvent).
+ * (before `SDL_PushEvent`) and the read (after `SDL_PollEvent`).
  */
-static LeaderboardResponse leaderboard_pending;
+static LeaderboardResponse pendingLeaderboardResponse;
 
 /**
  * @brief `RESTClientCompletion` for `fetchLeaderboard`. Runs on the HTTP session thread;
@@ -122,12 +88,12 @@ static LeaderboardResponse leaderboard_pending;
  */
 static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data) {
 
-  memset(&leaderboard_pending, 0, sizeof(leaderboard_pending));
+  memset(&pendingLeaderboardResponse, 0, sizeof(pendingLeaderboardResponse));
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    leaderboard_pending.num_entries = $(ctx, structsFromData, &leaderboard_entry_properties, data,
-                                        leaderboard_pending.entries, LEADERBOARD_MAX_ENTRIES);
+    pendingLeaderboardResponse.num_entries = $(ctx, structsFromData, &leaderboard_entry_properties, data,
+                                        pendingLeaderboardResponse.entries, LEADERBOARD_MAX_ENTRIES);
     release(ctx);
   } else if (status && status != 200) {
     Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
@@ -147,16 +113,10 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *sort = column ? sortParamForColumn(column->identifier) : NULL;
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
-  char from[16] = {0}, to[16] = {0};
-  periodDateRange("month", from, sizeof(from), to, sizeof(to));
-
   char url[512];
   int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
     n += g_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
-  }
-  if (from[0]) {
-    n += g_snprintf(url + n, sizeof(url) - n, "&from=%s&to=%s", from, to);
   }
 
   $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);
@@ -167,13 +127,13 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
  */
 static void selectOwnRow(LeaderboardViewController *this) {
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (!guid_hashed || !guid_hashed[0]) {
+  const char *guid_hash = cgi.GetCvarString("guid_hash");
+  if (!guid_hash || !guid_hash[0]) {
     return;
   }
 
-  for (size_t i = 0; i < this->leaderboard_response.num_entries; i++) {
-    if (g_strcmp0(this->leaderboard_response.entries[i].guid, guid_hashed) == 0) {
+  for (size_t i = 0; i < this->leaderboardResponse.num_entries; i++) {
+    if (g_strcmp0(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -189,7 +149,7 @@ static size_t numberOfRows(const TableView *tableView) {
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  return this->leaderboard_response.num_entries;
+  return this->leaderboardResponse.num_entries;
 }
 
 #pragma mark - TableViewDelegate
@@ -201,7 +161,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  const LeaderboardEntry *entry = &this->leaderboard_response.entries[row];
+  const LeaderboardEntry *entry = &this->leaderboardResponse.entries[row];
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
@@ -213,8 +173,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "bronze");
   }
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (guid_hashed && guid_hashed[0] && g_strcmp0(entry->guid, guid_hashed) == 0) {
+  const char *guid_hash = cgi.GetCvarString("guid_hash");
+  if (guid_hash && guid_hash[0] && g_strcmp0(entry->guid, guid_hash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
@@ -293,13 +253,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_LEADERBOARD_FETCHED) {
-
-      this->leaderboard_response = leaderboard_pending;
-
-      $(this->leaderboard, reloadData);
-      selectOwnRow(this);
-
-    } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
+      this->leaderboardResponse = pendingLeaderboardResponse;
       $(this->leaderboard, reloadData);
       selectOwnRow(this);
     }

@@ -83,7 +83,7 @@ struct LeaderboardViewController {
   /**
    * @brief Current leaderboard entries fetched from the stats API.
    */
-  LeaderboardResponse leaderboard_response;
+  LeaderboardResponse leaderboardResponse;
 };
 
 /**
