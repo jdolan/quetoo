@@ -53,11 +53,11 @@ static const char *formatTime(int32_t seconds) {
 }
 
 static const JSONProperties nemesis_properties = MakeJSONProperties(Nemesis,
-  MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, JSONFieldSize(Nemesis, name))
+  MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, NULL)
 );
 
 static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(KillsByWeapon,
-  MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, JSONFieldSize(KillsByWeapon, weapon)),
+  MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(KillsByWeapon, frags,  NULL, JSONDeserializeInt32,      NULL)
 );
 

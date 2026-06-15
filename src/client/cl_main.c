@@ -35,7 +35,7 @@ typedef struct {
 } GuidHashResponse;
 
 static const JSONProperties guid_hash_properties = MakeJSONProperties(GuidHashResponse,
-  MakeJSONProperty(GuidHashResponse, guid, NULL, JSONDeserializeCharacters, JSONFieldSize(GuidHashResponse, guid))
+  MakeJSONProperty(GuidHashResponse, guid, NULL, JSONDeserializeCharacters, NULL)
 );
 
 cvar_t *cl_chat_sound;

@@ -268,7 +268,7 @@ typedef struct {
 } http_instance_t;
 
 static const JSONProperties http_instance_properties = MakeJSONProperties(http_instance_t,
-	MakeJSONProperty(http_instance_t, guid, NULL, JSONDeserializeCharacters, JSONFieldSize(http_instance_t, guid)),
+	MakeJSONProperty(http_instance_t, guid, NULL, JSONDeserializeCharacters, NULL),
 	MakeJSONProperty(http_instance_t, rank, NULL, JSONDeserializeInt32,      NULL)
 );
 
@@ -278,7 +278,7 @@ typedef struct {
 } http_item_t;
 
 static const JSONProperties http_item_properties = MakeJSONProperties(http_item_t,
-	MakeJSONProperty(http_item_t, name,  NULL, JSONDeserializeCharacters, JSONFieldSize(http_item_t, name)),
+	MakeJSONProperty(http_item_t, name,  NULL, JSONDeserializeCharacters, NULL),
 	MakeJSONProperty(http_item_t, value, NULL, JSONDeserializeInt32,      NULL)
 );
 
@@ -295,7 +295,7 @@ typedef struct {
 } http_nested_response_t;
 
 static const JSONProperties http_nested_entry_properties = MakeJSONProperties(http_nested_entry_t,
-	MakeJSONProperty(http_nested_entry_t, name,  NULL, JSONDeserializeCharacters, JSONFieldSize(http_nested_entry_t, name)),
+	MakeJSONProperty(http_nested_entry_t, name,  NULL, JSONDeserializeCharacters, NULL),
 	MakeJSONProperty(http_nested_entry_t, score, NULL, JSONDeserializeInt32,      NULL)
 );
 
@@ -306,7 +306,7 @@ static const JSONArrayProperties http_nested_response_items = {
 };
 
 static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
-	MakeJSONProperty(http_nested_response_t, title, NULL, JSONDeserializeCharacters, JSONFieldSize(http_nested_response_t, title)),
+	MakeJSONProperty(http_nested_response_t, title, NULL, JSONDeserializeCharacters, NULL),
 	MakeJSONProperty(http_nested_response_t, owner, NULL, JSONDeserializeStruct,    (ident) &http_nested_entry_properties),
 	MakeJSONProperty(http_nested_response_t, items, NULL, JSONDeserializeArray,     (ident) &http_nested_response_items)
 );

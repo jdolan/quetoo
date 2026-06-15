@@ -45,8 +45,8 @@ static const char *_period_all   = "";
 
 static const JSONProperties leaderboard_properties = MakeJSONProperties(LeaderboardEntry,
   MakeJSONProperty(LeaderboardEntry, rank,        NULL, JSONDeserializeInt32,      NULL),
-  MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, name)),
-  MakeJSONProperty(LeaderboardEntry, guid,        NULL, JSONDeserializeCharacters, JSONFieldSize(LeaderboardEntry, guid)),
+  MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, NULL),
+  MakeJSONProperty(LeaderboardEntry, guid,        NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, frags,       NULL, JSONDeserializeInt32,      NULL),
   MakeJSONProperty(LeaderboardEntry, deaths,      NULL, JSONDeserializeInt32,      NULL),
   MakeJSONProperty(LeaderboardEntry, captures,    NULL, JSONDeserializeInt32,      NULL),

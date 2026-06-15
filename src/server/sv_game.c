@@ -217,24 +217,24 @@ static void Sv_PostStatsCallback(int32_t status, void *body, size_t length, void
 }
 
 static const JSONProperties sv_frag_properties = MakeJSONProperties(g_frag_t,
-  MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, level)),
-  MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, attacker)),
-  MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, attacker_guid)),
+  MakeJSONProperty(g_frag_t, level,         JSONSerializeCharacters, NULL, NULL),
+  MakeJSONProperty(g_frag_t, attacker,      JSONSerializeCharacters, NULL, NULL),
+  MakeJSONProperty(g_frag_t, attacker_guid, JSONSerializeCharacters, NULL, NULL),
   MakeJSONProperty(g_frag_t, attacker_ai,   JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, target)),
-  MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, target_guid)),
+  MakeJSONProperty(g_frag_t, target,        JSONSerializeCharacters, NULL, NULL),
+  MakeJSONProperty(g_frag_t, target_guid,   JSONSerializeCharacters, NULL, NULL),
   MakeJSONProperty(g_frag_t, target_ai,     JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, JSONFieldSize(g_frag_t, weapon)),
+  MakeJSONProperty(g_frag_t, weapon,        JSONSerializeCharacters, NULL, NULL),
   MakeJSONProperty(g_frag_t, mod,           JSONSerializeInt32,      NULL, NULL),
   MakeJSONProperty(g_frag_t, time,          JSONSerializeInt32,      NULL, NULL)
 );
 
 static const JSONProperties sv_capture_properties = MakeJSONProperties(g_capture_t,
-  MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, JSONFieldSize(g_capture_t, level)),
-  MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, JSONFieldSize(g_capture_t, player)),
-  MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, JSONFieldSize(g_capture_t, player_guid)),
+  MakeJSONProperty(g_capture_t, level,       JSONSerializeCharacters, NULL, NULL),
+  MakeJSONProperty(g_capture_t, player,      JSONSerializeCharacters, NULL, NULL),
+  MakeJSONProperty(g_capture_t, player_guid, JSONSerializeCharacters, NULL, NULL),
   MakeJSONProperty(g_capture_t, player_ai,   JSONSerializeBoole,      NULL, NULL),
-  MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, JSONFieldSize(g_capture_t, team)),
+  MakeJSONProperty(g_capture_t, team,        JSONSerializeCharacters, NULL, NULL),
   MakeJSONProperty(g_capture_t, time,        JSONSerializeInt32,      NULL, NULL)
 );
 
