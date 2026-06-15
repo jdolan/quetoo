@@ -32,6 +32,9 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
+static const char *_weapon = "Weapon";
+static const char *_frags = "Frags";
+
 #pragma mark - JSON deserialization
 
 /**
@@ -95,7 +98,16 @@ static void fetchStats(StatsViewController *this) {
   }
 
   char url[MAX_STRING_CHARS];
-  g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hashed);
+  {
+    time_t t = time(NULL);
+    const struct tm *lt = localtime(&t);
+
+    char from[16], to[16];
+    snprintf(from, sizeof(from), "%04d-%02d-01", lt->tm_year + 1900, lt->tm_mon + 1);
+    strftime(to, sizeof(to), "%Y-%m-%d", lt);
+
+    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s?from=%s&to=%s", guid_hashed, from, to);
+  }
 
   const int32_t status = cgi.HttpGetStruct(url, &stats_properties, s);
   if (status == 200) {
@@ -154,9 +166,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (g_strcmp0(column->identifier, "Weapon") == 0) {
+  if (g_strcmp0(column->identifier, _weapon) == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (g_strcmp0(column->identifier, "Frags") == 0) {
+  } else if (g_strcmp0(column->identifier, _frags) == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 
@@ -191,8 +203,8 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->weaponsTable, addColumnWithIdentifier, "Weapon");
-  $(this->weaponsTable, addColumnWithIdentifier, "Frags");
+  $(this->weaponsTable, addColumnWithIdentifier, _weapon);
+  $(this->weaponsTable, addColumnWithIdentifier, _frags);
 
   this->weaponsTable->dataSource.numberOfRows = numberOfRows;
   this->weaponsTable->dataSource.self = this;

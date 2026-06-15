@@ -38,11 +38,6 @@ static const char *_deaths      = "Deaths";
 static const char *_kd          = "KD";
 static const char *_time_played = "Time";
 
-static const char *_period_week  = "week";
-static const char *_period_month = "month";
-static const char *_period_year  = "year";
-static const char *_period_all   = "";
-
 static const JSONProperties leaderboard_properties = MakeJSONProperties(LeaderboardEntry,
   MakeJSONProperty(LeaderboardEntry, rank,        NULL, JSONDeserializeInt32,      NULL),
   MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, NULL),
@@ -123,10 +118,7 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
   char from[16] = {0}, to[16] = {0};
-  const Option *period = $(this->periodSelect, selectedOption);
-  if (period) {
-    periodDateRange((const char *) period->value, from, sizeof(from), to, sizeof(to));
-  }
+  periodDateRange("month", from, sizeof(from), to, sizeof(to));
 
   char url[512];
   int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
@@ -161,20 +153,6 @@ static void selectOwnRow(LeaderboardViewController *this) {
       return;
     }
   }
-}
-
-#pragma mark - SelectDelegate
-
-/**
- * @see SelectDelegate::didSelectOption
- */
-static void didSelectPeriod(Select *select, Option *option) {
-
-  LeaderboardViewController *this = select->delegate.self;
-
-  fetchLeaderboard(this, this->leaderboard->sortColumn);
-  $(this->leaderboard, reloadData);
-  selectOwnRow(this);
 }
 
 #pragma mark - TableViewDataSource
@@ -258,8 +236,7 @@ static void loadView(ViewController *self) {
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("periodSelect", &this->periodSelect),
-    MakeOutlet("leaderboard",  &this->leaderboard)
+    MakeOutlet("leaderboard", &this->leaderboard)
   );
 
   $(self->view, awakeWithResourceName, "ui/home/LeaderboardViewController.json");
@@ -267,15 +244,6 @@ static void loadView(ViewController *self) {
 
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/LeaderboardViewController.css");
   assert(self->view->stylesheet);
-
-  $(this->periodSelect, addOption, "This Week",  (ident) _period_week);
-  $(this->periodSelect, addOption, "This Month", (ident) _period_month);
-  $(this->periodSelect, addOption, "This Year",  (ident) _period_year);
-  $(this->periodSelect, addOption, "All Time",   (ident) _period_all);
-  $(this->periodSelect, selectOptionWithValue, (ident) _period_week);
-
-  this->periodSelect->delegate.self = this;
-  this->periodSelect->delegate.didSelectOption = didSelectPeriod;
 
   $(this->leaderboard, addColumnWithIdentifier, _rank);
   $(this->leaderboard, addColumnWithIdentifier, _player);

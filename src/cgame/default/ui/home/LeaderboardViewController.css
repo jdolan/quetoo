@@ -2,11 +2,6 @@
   autoresizing-mask: contain;
 }
 
-.leaderboardControls {
-  axis: horizontal;
-  padding: 0 0 8 0;
-}
-
 #leaderboard {
   width: 1420;
   height: 700;
