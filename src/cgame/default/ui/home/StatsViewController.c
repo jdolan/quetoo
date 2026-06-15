@@ -54,17 +54,17 @@ static const char *formatTime(int32_t seconds) {
   return va("%dm", m);
 }
 
-static const JSONProperties nemesis_properties = MakeJSONProperties(Nemesis,
+static const JSONProperties nemesisProperties = MakeJSONProperties(Nemesis,
   MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, NULL)
 );
 
-static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(KillsByWeapon,
+static const JSONProperties killsByWeaponProperties = MakeJSONProperties(KillsByWeapon,
   MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(KillsByWeapon, frags, NULL, JSONDeserializeInt32, NULL)
 );
 
-static const JSONArrayProperties kills_by_weapon_array = {
-  .properties   = &kills_by_weapon_properties,
+static const JSONArrayProperties killsByWeaponArrayProperties = {
+  .properties = &killsByWeaponProperties,
   .capacity = lengthof(((StatsResponse *) 0)->kills_by_weapon),
   .count = JSONArrayProperties_NoCount
 };
@@ -74,8 +74,8 @@ static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, time_played, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesis_properties),
-  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &kills_by_weapon_array)
+  MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesisProperties),
+  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties)
 );
 
 /**

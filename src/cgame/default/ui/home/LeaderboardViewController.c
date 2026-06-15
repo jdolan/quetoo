@@ -38,7 +38,7 @@ static const char *_deaths      = "Deaths";
 static const char *_kd          = "KD";
 static const char *_time_played = "Time";
 
-static const JSONProperties leaderboard_properties = MakeJSONProperties(LeaderboardEntry,
+static const JSONProperties leaderboard_entry_properties = MakeJSONProperties(LeaderboardEntry,
   MakeJSONProperty(LeaderboardEntry, rank,        NULL, JSONDeserializeInt32,      NULL),
   MakeJSONProperty(LeaderboardEntry, name,        NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, guid,        NULL, JSONDeserializeCharacters, NULL),
@@ -114,8 +114,7 @@ static void periodDateRange(const char *period, char *from, size_t from_len, cha
  * The SDL event queue provides the happens-before guarantee between the write
  * (before SDL_PushEvent) and the read (after SDL_PollEvent).
  */
-static LeaderboardEntry leaderboard_pending[LEADERBOARD_MAX_ENTRIES];
-static size_t leaderboard_pending_count;
+static LeaderboardResponse leaderboard_pending;
 
 /**
  * @brief `RESTClientCompletion` for `fetchLeaderboard`. Runs on the HTTP session thread;
@@ -123,13 +122,12 @@ static size_t leaderboard_pending_count;
  */
 static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data) {
 
-  memset(leaderboard_pending, 0, sizeof(leaderboard_pending));
-  leaderboard_pending_count = 0;
+  memset(&leaderboard_pending, 0, sizeof(leaderboard_pending));
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    leaderboard_pending_count = $(ctx, structsFromData, &leaderboard_properties, data,
-                                  leaderboard_pending, LEADERBOARD_MAX_ENTRIES);
+    leaderboard_pending.num_entries = $(ctx, structsFromData, &leaderboard_entry_properties, data,
+                                        leaderboard_pending.entries, LEADERBOARD_MAX_ENTRIES);
     release(ctx);
   } else if (status && status != 200) {
     Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
@@ -174,8 +172,8 @@ static void selectOwnRow(LeaderboardViewController *this) {
     return;
   }
 
-  for (size_t i = 0; i < this->num_entries; i++) {
-    if (g_strcmp0(this->entries[i].guid, guid_hashed) == 0) {
+  for (size_t i = 0; i < this->leaderboard_response.num_entries; i++) {
+    if (g_strcmp0(this->leaderboard_response.entries[i].guid, guid_hashed) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -191,7 +189,7 @@ static size_t numberOfRows(const TableView *tableView) {
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  return this->num_entries;
+  return this->leaderboard_response.num_entries;
 }
 
 #pragma mark - TableViewDelegate
@@ -203,7 +201,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  const LeaderboardEntry *entry = &this->entries[row];
+  const LeaderboardEntry *entry = &this->leaderboard_response.entries[row];
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
@@ -296,8 +294,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_LEADERBOARD_FETCHED) {
 
-      this->num_entries = leaderboard_pending_count;
-      memcpy(this->entries, leaderboard_pending, sizeof(this->entries));
+      this->leaderboard_response = leaderboard_pending;
 
       $(this->leaderboard, reloadData);
       selectOwnRow(this);
