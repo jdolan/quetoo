@@ -25,7 +25,6 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONContext.h>
-#include <SDL3/SDL_mutex.h>
 
 #include "StatsViewController.h"
 
@@ -80,54 +79,40 @@ static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
 );
 
 /**
- * @brief Pending stats fetch state, shared between the HTTP thread and the main thread.
+ * @brief Staging buffer written by the HTTP thread, read by the main thread.
+ * The SDL event queue provides the happens-before guarantee between the write
+ * (before SDL_PushEvent) and the read (after SDL_PollEvent).
  */
-static struct {
-  SDL_Mutex *lock;
-  uint32_t generation;
-  int32_t status;
-  Data *data;
-} stats_fetch;
+static StatsResponse stats_pending;
 
 /**
  * @brief `RESTClientCompletion` for `fetchStats`. Runs on the HTTP session thread;
- * retains `data` and marshals the result to the main thread via `NOTIFICATION_STATS_FETCHED`.
+ * hydrates `stats_pending` and dispatches `NOTIFICATION_STATS_FETCHED` as the signal.
  */
 static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
 
-  const uint32_t generation = (uint32_t) (uintptr_t) user_data;
-
-  SDL_LockMutex(stats_fetch.lock);
-
-  if (generation == stats_fetch.generation) {
-    stats_fetch.status = status;
-    release(stats_fetch.data);
-    stats_fetch.data = (status == 200 && data) ? retain(data) : NULL;
-  }
-
-  SDL_UnlockMutex(stats_fetch.lock);
-
-  if (generation == stats_fetch.generation) {
-    SDL_PushEvent(&(SDL_Event) {
-      .user.type = MVC_NOTIFICATION_EVENT,
-      .user.code = NOTIFICATION_STATS_FETCHED
-    });
-  }
-}
-
-/**
- * @brief Applies a completed stats response to the view. Must run on the main thread.
- */
-static void loadStats(StatsViewController *this, int32_t status, Data *data) {
-
-  StatsResponse *s = &this->stats;
-  memset(s, 0, sizeof(*s));
+  memset(&stats_pending, 0, sizeof(stats_pending));
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    $(ctx, structFromData, &stats_properties, data, s);
+    $(ctx, structFromData, &stats_properties, data, &stats_pending);
     release(ctx);
+  } else if (status && status != 200) {
+    Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
+  }
 
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_STATS_FETCHED
+  });
+}
+
+/**
+ * @brief Applies a decoded stats response to the view.
+ */
+static void loadStats(StatsViewController *this, const StatsResponse *s) {
+
+  if (s->rank || s->frags || s->deaths || s->time_played) {
     $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
     $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
     $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
@@ -140,13 +125,10 @@ static void loadStats(StatsViewController *this, int32_t status, Data *data) {
     $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
   } else {
     $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, status ? "Error" : "—");
+    $(this->fragsLabel->text, setText, "Error");
     $(this->deathsLabel->text, setText, "—");
     $(this->kdLabel->text, setText, "—");
     $(this->timeLabel->text, setText, "—");
-    if (status && status != 200) {
-      Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
-    }
   }
 
   $(this->weaponsTable, reloadData);
@@ -184,11 +166,7 @@ static void fetchStats(StatsViewController *this) {
     g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s?from=%s&to=%s", guid_hashed, from, to);
   }
 
-  SDL_LockMutex(stats_fetch.lock);
-  const uint32_t generation = ++stats_fetch.generation;
-  SDL_UnlockMutex(stats_fetch.lock);
-
-  $(cgi.restClient, getAsync, url, fetchStatsComplete, (void *) (uintptr_t) generation);
+  $(cgi.restClient, getAsync, url, fetchStatsComplete, NULL);
 }
 
 #pragma mark - TableViewDataSource
@@ -244,10 +222,6 @@ static void loadView(ViewController *self) {
 
   StatsViewController *this = (StatsViewController *) self;
 
-  if (stats_fetch.lock == NULL) {
-    stats_fetch.lock = SDL_CreateMutex();
-  }
-
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("nameLabel",     &this->nameLabel),
     MakeOutlet("rankLabel",     &this->rankLabel),
@@ -285,13 +259,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_STATS_FETCHED) {
 
-      SDL_LockMutex(stats_fetch.lock);
-      const int32_t status = stats_fetch.status;
-      Data *data = stats_fetch.data ? retain(stats_fetch.data) : NULL;
-      SDL_UnlockMutex(stats_fetch.lock);
-
-      loadStats(this, status, data);
-      release(data);
+      memcpy(&this->stats, &stats_pending, sizeof(this->stats));
+      loadStats(this, &this->stats);
 
     } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
       fetchStats(this);

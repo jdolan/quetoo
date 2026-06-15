@@ -24,7 +24,6 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONContext.h>
-#include <SDL3/SDL_mutex.h>
 
 #include "LeaderboardViewController.h"
 
@@ -111,39 +110,35 @@ static void periodDateRange(const char *period, char *from, size_t from_len, cha
 }
 
 /**
- * @brief Pending leaderboard fetch state, shared between the HTTP thread and the main thread.
+ * @brief Staging buffer written by the HTTP thread, read by the main thread.
+ * The SDL event queue provides the happens-before guarantee between the write
+ * (before SDL_PushEvent) and the read (after SDL_PollEvent).
  */
-static struct {
-  SDL_Mutex *lock;
-  uint32_t generation;
-  int32_t status;
-  Data *data;
-} leaderboard_fetch;
+static LeaderboardEntry leaderboard_pending[LEADERBOARD_MAX_ENTRIES];
+static size_t leaderboard_pending_count;
 
 /**
  * @brief `RESTClientCompletion` for `fetchLeaderboard`. Runs on the HTTP session thread;
- * retains `data` and marshals the result to the main thread via `NOTIFICATION_LEADERBOARD_FETCHED`.
+ * hydrates `leaderboard_pending` and dispatches `NOTIFICATION_LEADERBOARD_FETCHED` as the signal.
  */
 static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data) {
 
-  const uint32_t generation = (uint32_t) (uintptr_t) user_data;
+  memset(leaderboard_pending, 0, sizeof(leaderboard_pending));
+  leaderboard_pending_count = 0;
 
-  SDL_LockMutex(leaderboard_fetch.lock);
-
-  if (generation == leaderboard_fetch.generation) {
-    leaderboard_fetch.status = status;
-    release(leaderboard_fetch.data);
-    leaderboard_fetch.data = (status == 200 && data) ? retain(data) : NULL;
+  if (status == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    leaderboard_pending_count = $(ctx, structsFromData, &leaderboard_properties, data,
+                                  leaderboard_pending, LEADERBOARD_MAX_ENTRIES);
+    release(ctx);
+  } else if (status && status != 200) {
+    Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
   }
 
-  SDL_UnlockMutex(leaderboard_fetch.lock);
-
-  if (generation == leaderboard_fetch.generation) {
-    SDL_PushEvent(&(SDL_Event) {
-      .user.type = MVC_NOTIFICATION_EVENT,
-      .user.code = NOTIFICATION_LEADERBOARD_FETCHED
-    });
-  }
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_LEADERBOARD_FETCHED
+  });
 }
 
 /**
@@ -166,11 +161,7 @@ static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
     n += g_snprintf(url + n, sizeof(url) - n, "&from=%s&to=%s", from, to);
   }
 
-  SDL_LockMutex(leaderboard_fetch.lock);
-  const uint32_t generation = ++leaderboard_fetch.generation;
-  SDL_UnlockMutex(leaderboard_fetch.lock);
-
-  $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, (void *) (uintptr_t) generation);
+  $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);
 }
 
 /**
@@ -269,10 +260,6 @@ static void loadView(ViewController *self) {
 
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
-  if (leaderboard_fetch.lock == NULL) {
-    leaderboard_fetch.lock = SDL_CreateMutex();
-  }
-
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("leaderboard", &this->leaderboard)
   );
@@ -309,18 +296,8 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_LEADERBOARD_FETCHED) {
 
-      SDL_LockMutex(leaderboard_fetch.lock);
-      Data *data = leaderboard_fetch.data ? retain(leaderboard_fetch.data) : NULL;
-      SDL_UnlockMutex(leaderboard_fetch.lock);
-
-      if (data) {
-        JSONContext *ctx = $(alloc(JSONContext), init);
-        this->num_entries = $(ctx, structsFromData, &leaderboard_properties, data, this->entries, LEADERBOARD_MAX_ENTRIES);
-        release(ctx);
-        release(data);
-      } else {
-        this->num_entries = 0;
-      }
+      this->num_entries = leaderboard_pending_count;
+      memcpy(this->entries, leaderboard_pending, sizeof(this->entries));
 
       $(this->leaderboard, reloadData);
       selectOwnRow(this);
