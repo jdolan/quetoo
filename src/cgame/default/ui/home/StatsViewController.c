@@ -63,8 +63,8 @@ static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(Kill
 
 static const JSONArrayProperties kills_by_weapon_array = {
   .properties   = &kills_by_weapon_properties,
-  .count        = lengthof(((StatsResponse *) 0)->kills_by_weapon),
-  .count_offset = JSONArrayProperties_NoCount
+  .capacity = lengthof(((StatsResponse *) 0)->kills_by_weapon),
+  .count = JSONArrayProperties_NoCount
 };
 
 static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,

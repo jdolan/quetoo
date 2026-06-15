@@ -301,8 +301,8 @@ static const JSONProperties http_nested_entry_properties = MakeJSONProperties(ht
 
 static const JSONArrayProperties http_nested_response_items = {
 	.properties   = &http_nested_entry_properties,
-	.count        = lengthof(((http_nested_response_t *) 0)->items),
-	.count_offset = offsetof(http_nested_response_t, num_items)
+	.capacity = lengthof(((http_nested_response_t *) 0)->items),
+	.count = offsetof(http_nested_response_t, num_items)
 };
 
 static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
