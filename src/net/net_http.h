@@ -50,7 +50,7 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length);
  * @param instance Receives the parsed struct instance.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *properties, void *instance);
+int32_t Net_HttpGetStruct(const char *url_string, const JSONProperties *properties, void *instance);
 
 /**
  * @brief Synchronously `GET` the specified URL string and deserialize a JSON array.
@@ -61,7 +61,7 @@ int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *proper
  * @param instances_count Receives the number of parsed instances.
  * @return The HTTP response code.
  */
-int32_t Net_HttpGetInstances(const char *url_string, const JSONProperties *properties,
+int32_t Net_HttpGetStructs(const char *url_string, const JSONProperties *properties,
                              void *instances, size_t count, size_t *instances_count);
 
 /**

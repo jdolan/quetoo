@@ -138,7 +138,7 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   }
 
   size_t num_entries = 0;
-  const int32_t status = cgi.HttpGetInstances(url, &leaderboard_properties,
+  const int32_t status = cgi.HttpGetStructs(url, &leaderboard_properties,
                                               this->entries,
                                               LEADERBOARD_MAX_ENTRIES, &num_entries);
   this->num_entries = num_entries;

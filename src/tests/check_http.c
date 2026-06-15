@@ -307,7 +307,7 @@ static const JSONArrayProperties http_nested_response_items = {
 
 static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
 	MakeJSONProperty(http_nested_response_t, title, JSONSerializeCharacters, JSONDeserializeCharacters, JSONFieldSize(http_nested_response_t, title)),
-	MakeJSONProperty(http_nested_response_t, owner, JSONSerializeObject,     JSONDeserializeObject,     (ident) &http_nested_entry_properties),
+	MakeJSONProperty(http_nested_response_t, owner, JSONSerializeStruct,     JSONDeserializeStruct,     (ident) &http_nested_entry_properties),
 	MakeJSONProperty(http_nested_response_t, items, JSONSerializeArray,      JSONDeserializeArray,      (ident) &http_nested_response_items)
 );
 
@@ -409,7 +409,7 @@ START_TEST(check_Net_Http_roundtrip) {
 
 } END_TEST
 
-START_TEST(check_Net_HttpGetInstance_json) {
+START_TEST(check_Net_HttpGetStruct_json) {
 
 	Net_Init();
 
@@ -435,7 +435,7 @@ START_TEST(check_Net_HttpGetInstance_json) {
 	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
 
 	http_instance_t instance = { 0 };
-	const int32_t status = Net_HttpGetInstance(url, &http_instance_properties, &instance);
+	const int32_t status = Net_HttpGetStruct(url, &http_instance_properties, &instance);
 
 	ck_assert_int_eq(status, 200);
 	ck_assert_str_eq(instance.guid, "abc123");
@@ -453,7 +453,7 @@ START_TEST(check_Net_HttpGetInstance_json) {
 
 } END_TEST
 
-START_TEST(check_Net_HttpGetInstances_json) {
+START_TEST(check_Net_HttpGetStructs_json) {
 
 	Net_Init();
 
@@ -480,7 +480,7 @@ START_TEST(check_Net_HttpGetInstances_json) {
 
 	http_item_t items[2] = { 0 };
 	size_t num_items = 0;
-	const int32_t status = Net_HttpGetInstances(url, &http_item_properties,
+	const int32_t status = Net_HttpGetStructs(url, &http_item_properties,
 	                                            items, 2, &num_items);
 
 	ck_assert_int_eq(status, 200);
@@ -502,7 +502,7 @@ START_TEST(check_Net_HttpGetInstances_json) {
 
 } END_TEST
 
-START_TEST(check_Net_HttpGetInstance_nested_json) {
+START_TEST(check_Net_HttpGetStruct_nested_json) {
 
 	Net_Init();
 
@@ -528,7 +528,7 @@ START_TEST(check_Net_HttpGetInstance_nested_json) {
 	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
 
 	http_nested_response_t response = { 0 };
-	const int32_t status = Net_HttpGetInstance(url, &http_nested_response_properties, &response);
+	const int32_t status = Net_HttpGetStruct(url, &http_nested_response_properties, &response);
 
 	ck_assert_int_eq(status, 200);
 	ck_assert_str_eq(response.title, "outer");
@@ -587,9 +587,9 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_checked_fixture(tcase, setup, teardown);
 	tcase_set_timeout(tcase, 10);
 	tcase_add_test(tcase, check_Net_Http_roundtrip);
-	tcase_add_test(tcase, check_Net_HttpGetInstance_json);
-	tcase_add_test(tcase, check_Net_HttpGetInstance_nested_json);
-	tcase_add_test(tcase, check_Net_HttpGetInstances_json);
+	tcase_add_test(tcase, check_Net_HttpGetStruct_json);
+	tcase_add_test(tcase, check_Net_HttpGetStruct_nested_json);
+	tcase_add_test(tcase, check_Net_HttpGetStructs_json);
 	suite_add_tcase(suite, tcase);
 
 	// Run with CK_NOFORK because Net_HttpGet uses libcurl, which is not fork-safe

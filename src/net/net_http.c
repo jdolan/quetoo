@@ -116,7 +116,7 @@ int32_t Net_HttpGet(const char *url_string, void **body, size_t *length) {
 /**
  * @brief Synchronously performs an HTTP `GET` request and deserializes a single JSON object.
  */
-int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *properties, void *instance) {
+int32_t Net_HttpGetStruct(const char *url_string, const JSONProperties *properties, void *instance) {
 
   assert(url_string);
   assert(properties);
@@ -137,7 +137,7 @@ int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *proper
     }
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    if (!$(ctx, instanceFromData, properties, data, instance)) {
+    if (!$(ctx, structFromData, properties, data, instance)) {
       Com_Warn("%s: Failed to parse JSON object\n", url_string);
       release(ctx);
       release(data);
@@ -160,7 +160,7 @@ int32_t Net_HttpGetInstance(const char *url_string, const JSONProperties *proper
 /**
  * @brief Synchronously performs an HTTP `GET` request and deserializes a JSON array.
  */
-int32_t Net_HttpGetInstances(const char *url_string, const JSONProperties *properties,
+int32_t Net_HttpGetStructs(const char *url_string, const JSONProperties *properties,
                              void *instances, size_t count, size_t *instances_count) {
 
   assert(url_string);
@@ -188,7 +188,7 @@ int32_t Net_HttpGetInstances(const char *url_string, const JSONProperties *prope
     }
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    *instances_count = $(ctx, instancesFromData, properties, data, instances, count);
+    *instances_count = $(ctx, structsFromData, properties, data, instances, count);
     release(ctx);
     release(data);
   } else if (status) {

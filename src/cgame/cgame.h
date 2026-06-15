@@ -183,7 +183,7 @@ typedef struct cg_import_s {
    * @param instance Receives the parsed struct instance.
    * @return The HTTP status code, or 0 on network error / parse failure.
    */
-  int32_t (*HttpGetInstance)(const char *url, const JSONProperties *properties, void *instance);
+  int32_t (*HttpGetStruct)(const char *url, const JSONProperties *properties, void *instance);
 
   /**
    * @brief Performs a synchronous HTTP `GET` request and deserializes a JSON array.
@@ -194,7 +194,7 @@ typedef struct cg_import_s {
    * @param instances_count Receives the number of parsed instances.
    * @return The HTTP status code.
    */
-  int32_t (*HttpGetInstances)(const char *url, const JSONProperties *properties,
+  int32_t (*HttpGetStructs)(const char *url, const JSONProperties *properties,
                               void *instances, size_t count, size_t *instances_count);
 
   /**

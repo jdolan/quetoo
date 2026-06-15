@@ -254,7 +254,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     g_snprintf(frags_url, sizeof(frags_url), "%s/api/frags", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromInstances, &sv_frag_properties, (ident) frags, frags_len);
+    Data *data = $(ctx, dataFromStructs, &sv_frag_properties, (ident) frags, frags_len);
     release(ctx);
     assert(data);
 
@@ -270,7 +270,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     g_snprintf(captures_url, sizeof(captures_url), "%s/api/captures", sv_stats_url->string);
 
     JSONContext *ctx = $(alloc(JSONContext), init);
-    Data *data = $(ctx, dataFromInstances, &sv_capture_properties, (ident) captures, captures_len);
+    Data *data = $(ctx, dataFromStructs, &sv_capture_properties, (ident) captures, captures_len);
     release(ctx);
     assert(data);
 

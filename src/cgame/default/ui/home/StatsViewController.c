@@ -94,11 +94,11 @@ static void fetchStats(StatsViewController *this) {
     MakeJSONProperty(StatsResponse, frags,           JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
     MakeJSONProperty(StatsResponse, deaths,          JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
     MakeJSONProperty(StatsResponse, time_played,     JSONSerializeInt32,  JSONDeserializeInt32,  NULL),
-    MakeJSONProperty(StatsResponse, nemesis,         JSONSerializeObject, JSONDeserializeObject, (ident) &nemesis_properties),
+    MakeJSONProperty(StatsResponse, nemesis,         JSONSerializeStruct, JSONDeserializeStruct, (ident) &nemesis_properties),
     MakeJSONProperty(StatsResponse, kills_by_weapon, JSONSerializeArray,  JSONDeserializeArray,  (ident) &kills_by_weapon_array)
   );
 
-  const int32_t status = cgi.HttpGetInstance(url, &props, s);
+  const int32_t status = cgi.HttpGetStruct(url, &props, s);
   if (status == 200) {
     $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
     $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");

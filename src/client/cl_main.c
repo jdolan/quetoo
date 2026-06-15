@@ -76,7 +76,7 @@ static void Cl_InitGuidHash(void) {
 
   GuidHashResponse response = { 0 };
 
-  if (Net_HttpGetInstance(url, &guid_hash_properties, &response) == 200) {
+  if (Net_HttpGetStruct(url, &guid_hash_properties, &response) == 200) {
     if (response.guid[0]) {
       Cvar_ForceSetString("guid_hashed", response.guid);
     } else {
