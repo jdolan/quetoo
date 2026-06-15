@@ -539,14 +539,6 @@ static void Cl_InitLocal(void) {
   // user info
 
   guid = Cvar_Add("guid", "", CVAR_USER_INFO | CVAR_ARCHIVE, NULL);
-  if (strlen(guid->string) == 0) {
-    char *uuid = g_uuid_string_random();
-    Cvar_ForceSetString("guid", uuid);
-    g_free(uuid);
-  }
-
-  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
-
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
   message_level = Cvar_Add("message_level", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive");
@@ -722,7 +714,13 @@ void Cl_Frame(const uint32_t msec) {
  */
 static void Cl_InitGuid(void) {
 
-  Cvar_ForceSetString("guid_hash", "");
+  if (strlen(guid->string) == 0) {
+    char *uuid = g_uuid_string_random();
+    Cvar_ForceSetString("guid", uuid);
+    g_free(uuid);
+  }
+
+  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
 
   char url[256];
   g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
@@ -766,8 +764,6 @@ void Cl_Init(void) {
 
   Cl_InitLocal();
 
-  Cl_InitGuid();
-
   Cl_InitKeys();
 
   Net_Config(NS_UDP_CLIENT, true);
@@ -775,6 +771,8 @@ void Cl_Init(void) {
   S_Init();
 
   R_Init();
+
+  Cl_InitGuid();
 
   Ui_Init();
 

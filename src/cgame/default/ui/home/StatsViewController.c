@@ -83,7 +83,6 @@ static const JSONProperties statsResponseProperties = MakeJSONProperties(StatsRe
  * (before `SDL_PushEvent`) and the read (after `SDL_PollEvent`).
  */
 static StatsResponse pendingStatsResponse;
-static int32_t pendingStatsStatus;
 
 /**
  * @brief `RESTClientCompletion` for `fetchStats`. Runs on the HTTP session thread;
@@ -92,7 +91,6 @@ static int32_t pendingStatsStatus;
 static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
 
   memset(&pendingStatsResponse, 0, sizeof(pendingStatsResponse));
-  pendingStatsStatus = status;
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
@@ -106,33 +104,6 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
     .user.type = MVC_NOTIFICATION_EVENT,
     .user.code = NOTIFICATION_STATS_FETCHED
   });
-}
-
-/**
- * @brief Applies a decoded stats response to the view.
- */
-static void loadStats(StatsViewController *this, int32_t status, const StatsResponse *s) {
-
-  if (status == 200) {
-    $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
-    $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
-    $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
-    $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
-
-    const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
-    $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
-
-    $(this->timeLabel->text, setText, formatTime(s->time_played));
-    $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
-  } else {
-    $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Error");
-    $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text, setText, "—");
-    $(this->timeLabel->text, setText, "—");
-  }
-
-  $(this->weaponsTable, reloadData);
 }
 
 /**
@@ -250,8 +221,22 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
   if (event->type == MVC_NOTIFICATION_EVENT) {
     if (event->user.code == NOTIFICATION_STATS_FETCHED) {
-      memcpy(&this->stats, &pendingStatsResponse, sizeof(this->stats));
-      loadStats(this, pendingStatsStatus, &this->stats);
+      StatsResponse *s = &this->stats;
+
+      *s = pendingStatsResponse;
+
+      $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
+      $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
+      $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
+      $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
+
+      const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
+      $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
+
+      $(this->timeLabel->text, setText, formatTime(s->time_played));
+      $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
+
+      $(this->weaponsTable, reloadData);
     }
   }
 
