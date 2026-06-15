@@ -25,6 +25,7 @@
 #include "cg_local.h"
 
 #include <Objectively/JSONContext.h>
+#include <SDL3/SDL_mutex.h>
 
 #include "StatsViewController.h"
 
@@ -79,23 +80,97 @@ static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
 );
 
 /**
- * @brief Fetches and displays stats for the local player.
+ * @brief Pending stats fetch state, shared between the HTTP thread and the main thread.
  */
-static void fetchStats(StatsViewController *this) {
+static struct {
+  SDL_Mutex *lock;
+  uint32_t generation;
+  int32_t status;
+  Data *data;
+} stats_fetch;
+
+/**
+ * @brief `RESTClientCompletion` for `fetchStats`. Runs on the HTTP session thread;
+ * retains `data` and marshals the result to the main thread via `NOTIFICATION_STATS_FETCHED`.
+ */
+static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
+
+  const uint32_t generation = (uint32_t) (uintptr_t) user_data;
+
+  SDL_LockMutex(stats_fetch.lock);
+
+  if (generation == stats_fetch.generation) {
+    stats_fetch.status = status;
+    release(stats_fetch.data);
+    stats_fetch.data = (status == 200 && data) ? retain(data) : NULL;
+  }
+
+  SDL_UnlockMutex(stats_fetch.lock);
+
+  if (generation == stats_fetch.generation) {
+    SDL_PushEvent(&(SDL_Event) {
+      .user.type = MVC_NOTIFICATION_EVENT,
+      .user.code = NOTIFICATION_STATS_FETCHED
+    });
+  }
+}
+
+/**
+ * @brief Applies a completed stats response to the view. Must run on the main thread.
+ */
+static void loadStats(StatsViewController *this, int32_t status, Data *data) {
 
   StatsResponse *s = &this->stats;
   memset(s, 0, sizeof(*s));
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (!guid_hashed || !guid_hashed[0]) {
+  if (status == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    $(ctx, structFromData, &stats_properties, data, s);
+    release(ctx);
+
+    $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
+    $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
+    $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
+    $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
+
+    const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
+    $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
+
+    $(this->timeLabel->text, setText, formatTime(s->time_played));
+    $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
+  } else {
     $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Sign in");
+    $(this->fragsLabel->text, setText, status ? "Error" : "—");
     $(this->deathsLabel->text, setText, "—");
     $(this->kdLabel->text, setText, "—");
     $(this->timeLabel->text, setText, "—");
+    if (status && status != 200) {
+      Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
+    }
+  }
+
+  $(this->weaponsTable, reloadData);
+}
+
+/**
+ * @brief Clears the stats view and fires an asynchronous stats fetch for the local player.
+ */
+static void fetchStats(StatsViewController *this) {
+
+  $(this->rankLabel->text, setText, "—");
+  $(this->fragsLabel->text, setText, "—");
+  $(this->deathsLabel->text, setText, "—");
+  $(this->kdLabel->text, setText, "—");
+  $(this->timeLabel->text, setText, "—");
+
+  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
+  if (!guid_hashed || !guid_hashed[0]) {
+    $(this->fragsLabel->text, setText, "Sign in");
     $(this->weaponsTable, reloadData);
     return;
   }
+
+  $(this->weaponsTable, reloadData);
 
   char url[MAX_STRING_CHARS];
   {
@@ -109,35 +184,11 @@ static void fetchStats(StatsViewController *this) {
     g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s?from=%s&to=%s", guid_hashed, from, to);
   }
 
-  Data *data = NULL;
-  const int32_t status = $(cgi.restClient, get, url, &data);
-  if (status == 200 && data) {
-    JSONContext *ctx = $(alloc(JSONContext), init);
-    $(ctx, structFromData, &stats_properties, data, s);
-    release(ctx);
-  }
-  release(data);
-  if (status == 200) {
-    $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
-    $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
-    $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
-    $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
+  SDL_LockMutex(stats_fetch.lock);
+  const uint32_t generation = ++stats_fetch.generation;
+  SDL_UnlockMutex(stats_fetch.lock);
 
-    const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
-    $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
-
-    $(this->timeLabel->text, setText, formatTime(s->time_played));
-    $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name  : "—");
-  } else {
-    $(this->rankLabel->text, setText, "—");
-    $(this->fragsLabel->text, setText, "Error");
-    $(this->deathsLabel->text, setText, "—");
-    $(this->kdLabel->text, setText, "—");
-    $(this->timeLabel->text, setText, "—");
-    Cg_Warn("Failed to fetch stats: HTTP %d\n", status);
-  }
-
-  $(this->weaponsTable, reloadData);
+  $(cgi.restClient, getAsync, url, fetchStatsComplete, (void *) (uintptr_t) generation);
 }
 
 #pragma mark - TableViewDataSource
@@ -193,6 +244,10 @@ static void loadView(ViewController *self) {
 
   StatsViewController *this = (StatsViewController *) self;
 
+  if (stats_fetch.lock == NULL) {
+    stats_fetch.lock = SDL_CreateMutex();
+  }
+
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("nameLabel",     &this->nameLabel),
     MakeOutlet("rankLabel",     &this->rankLabel),
@@ -221,6 +276,32 @@ static void loadView(ViewController *self) {
 }
 
 /**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  StatsViewController *this = (StatsViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+    if (event->user.code == NOTIFICATION_STATS_FETCHED) {
+
+      SDL_LockMutex(stats_fetch.lock);
+      const int32_t status = stats_fetch.status;
+      Data *data = stats_fetch.data ? retain(stats_fetch.data) : NULL;
+      SDL_UnlockMutex(stats_fetch.lock);
+
+      loadStats(this, status, data);
+      release(data);
+
+    } else if (event->user.code == NOTIFICATION_GUID_HASHED) {
+      fetchStats(this);
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
  * @see ViewController::viewWillAppear(ViewController *)
  */
 static void viewWillAppear(ViewController *self) {
@@ -239,6 +320,7 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 

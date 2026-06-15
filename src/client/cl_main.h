@@ -63,5 +63,6 @@ extern cl_static_t cls;
 void Cl_SendDisconnect(void);
 void Cl_Reconnect_f(void);
 void Cl_ClearState(void);
+void Cl_GuidHashedEvent(const SDL_Event *event);
 
 #endif /* __CL_LOCAL_H__ */
