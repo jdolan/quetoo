@@ -25,9 +25,8 @@
 
 #include <ObjectivelyMVC.h>
 
-
 /**
- * @brief The kills-by-weapon portion of the API response shape.
+ * @brief The kills-by-weapon block of the StatsResponse shape.
  */
 typedef struct {
   char weapon[64];
@@ -35,7 +34,7 @@ typedef struct {
 } KillsByWeapon;
 
 /**
- * @brief The relevant parts of the nemesis shape.
+ * @brief The nemesis block of the StatsResponse shape.
  */
 typedef struct {
   char name[64];

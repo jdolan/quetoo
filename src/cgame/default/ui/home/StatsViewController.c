@@ -32,8 +32,7 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_weapon = "Weapon";
-static const char *_frags  = "Frags";
+#pragma mark - JSON deserialization
 
 /**
  * @brief Formats a duration in seconds as "Xh Ym" or "Ym".
@@ -58,7 +57,7 @@ static const JSONProperties nemesis_properties = MakeJSONProperties(Nemesis,
 
 static const JSONProperties kills_by_weapon_properties = MakeJSONProperties(KillsByWeapon,
   MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, NULL),
-  MakeJSONProperty(KillsByWeapon, frags,  NULL, JSONDeserializeInt32,      NULL)
+  MakeJSONProperty(KillsByWeapon, frags, NULL, JSONDeserializeInt32, NULL)
 );
 
 static const JSONArrayProperties kills_by_weapon_array = {
@@ -68,12 +67,12 @@ static const JSONArrayProperties kills_by_weapon_array = {
 };
 
 static const JSONProperties stats_properties = MakeJSONProperties(StatsResponse,
-  MakeJSONProperty(StatsResponse, rank,            NULL, JSONDeserializeInt32,  NULL),
-  MakeJSONProperty(StatsResponse, frags,           NULL, JSONDeserializeInt32,  NULL),
-  MakeJSONProperty(StatsResponse, deaths,          NULL, JSONDeserializeInt32,  NULL),
-  MakeJSONProperty(StatsResponse, time_played,     NULL, JSONDeserializeInt32,  NULL),
-  MakeJSONProperty(StatsResponse, nemesis,         NULL, JSONDeserializeStruct, (ident) &nemesis_properties),
-  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray,  (ident) &kills_by_weapon_array)
+  MakeJSONProperty(StatsResponse, rank, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, time_played, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesis_properties),
+  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &kills_by_weapon_array)
 );
 
 /**
@@ -155,9 +154,9 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
-  if (g_strcmp0(column->identifier, _weapon) == 0) {
+  if (g_strcmp0(column->identifier, "Weapon") == 0) {
     $(cell->text, setText, w->weapon);
-  } else if (g_strcmp0(column->identifier, _frags) == 0) {
+  } else if (g_strcmp0(column->identifier, "Frags") == 0) {
     $(cell->text, setText, va("%d", w->frags));
   }
 
@@ -192,8 +191,8 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->weaponsTable, addColumnWithIdentifier, _weapon);
-  $(this->weaponsTable, addColumnWithIdentifier, _frags);
+  $(this->weaponsTable, addColumnWithIdentifier, "Weapon");
+  $(this->weaponsTable, addColumnWithIdentifier, "Frags");
 
   this->weaponsTable->dataSource.numberOfRows = numberOfRows;
   this->weaponsTable->dataSource.self = this;
