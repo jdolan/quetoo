@@ -109,7 +109,14 @@ static void fetchStats(StatsViewController *this) {
     g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s?from=%s&to=%s", guid_hashed, from, to);
   }
 
-  const int32_t status = cgi.HttpGetStruct(url, &stats_properties, s);
+  Data *data = NULL;
+  const int32_t status = $(cgi.http, get, url, &data);
+  if (status == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    $(ctx, structFromData, &stats_properties, data, s);
+    release(ctx);
+  }
+  release(data);
   if (status == 200) {
     $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
     $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");

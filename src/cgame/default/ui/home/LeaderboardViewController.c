@@ -130,9 +130,14 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
   }
 
   size_t num_entries = 0;
-  const int32_t status = cgi.HttpGetStructs(url, &leaderboard_properties,
-                                              this->entries,
-                                              LEADERBOARD_MAX_ENTRIES, &num_entries);
+  Data *data = NULL;
+  const int32_t status = $(cgi.http, get, url, &data);
+  if (status == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    num_entries = $(ctx, structsFromData, &leaderboard_properties, data, this->entries, LEADERBOARD_MAX_ENTRIES);
+    release(ctx);
+  }
+  release(data);
   this->num_entries = num_entries;
   return status == 200;
 }

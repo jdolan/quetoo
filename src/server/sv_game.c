@@ -20,7 +20,7 @@
  */
 
 #include "sv_local.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
 #include <Objectively/JSONContext.h>
 
@@ -204,13 +204,14 @@ static void Sv_WriteAngles(const vec3_t angles) {
 static void *game_handle;
 
 /**
- * @brief `Net_HttpCallback` for `Sv_FragLog` and `Sv_CaptureLog`.
+ * @brief `RESTClientCompletion` for `Sv_PostStats`.
  */
-static void Sv_PostStatsCallback(int32_t status, void *body, size_t length, void *user_data) {
+static void Sv_PostStatsCallback(int32_t status, Data *data, void *user_data) {
   const char *url = user_data;
 
   if (status < 200 || status >= 300) {
-    Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status, (int) length, (const char *) body);
+    Com_Warn("Sv_PostStatsCallback: POST to %s failed (HTTP %d): %.*s\n", url, status,
+             data ? (int) data->length : 0, data ? (const char *) data->bytes : "");
   } else {
     Com_Print("POST to %s: HTTP %d\n", url, status);
   }
@@ -259,7 +260,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     assert(data);
 
     Com_Print("POSTing %zd frags to %s\n", frags_len, frags_url);
-    Net_HttpPostAsync(frags_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, frags_url);
+    $($$(RESTClient, sharedInstance), postAsync, frags_url, data, Sv_PostStatsCallback, frags_url);
 
     release(data);
   }
@@ -275,7 +276,7 @@ static void Sv_PostStats(const g_frag_t *frags, size_t frags_len, const g_captur
     assert(data);
 
     Com_Print("POSTing %zd captures to %s\n", captures_len, captures_url);
-    Net_HttpPostAsync(captures_url, data->bytes, data->length, "application/json", Sv_PostStatsCallback, captures_url);
+    $($$(RESTClient, sharedInstance), postAsync, captures_url, data, Sv_PostStatsCallback, captures_url);
 
     release(data);
   }

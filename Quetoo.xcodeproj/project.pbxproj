@@ -96,8 +96,8 @@
 		CE04F4B025CADFF200C31433 /* swap.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6BA1C5C58C300CD0B13 /* swap.c */; };
 		CE04F56525CAE12B00C31433 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE04F5AA25CAE14500C31433 /* libshared.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDD51C5E3D4E00A21A51 /* libshared.a */; };
-		CE04FB1925CEDCD400C31433 /* net_http.h in Headers */ = {isa = PBXBuildFile; fileRef = CE04FB1725CEDCD400C31433 /* net_http.h */; };
-		CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */ = {isa = PBXBuildFile; fileRef = CE04FB1825CEDCD400C31433 /* net_http.c */; };
+		CE04FB1925CEDCD400C31433 /* net_http_server.h in Headers */ = {isa = PBXBuildFile; fileRef = CE04FB1725CEDCD400C31433 /* net_http_server.h */; };
+		CE04FB1A25CEDCD400C31433 /* net_http_server.c in Sources */ = {isa = PBXBuildFile; fileRef = CE04FB1825CEDCD400C31433 /* net_http_server.c */; };
 		CE052A5F214831FE003446C9 /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CE052A62214831FE003446C9 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		CE052A712148320E003446C9 /* check_mem.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D31C5C58C300CD0B13 /* check_mem.c */; };
@@ -1190,8 +1190,8 @@
 		CE04015C25D32C4D00C31433 /* libsndfile.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsndfile.1.dylib; path = ../../../../usr/local/lib/libsndfile.1.dylib; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
-		CE04FB1725CEDCD400C31433 /* net_http.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http.h; sourceTree = "<group>"; };
-		CE04FB1825CEDCD400C31433 /* net_http.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http.c; sourceTree = "<group>"; };
+		CE04FB1725CEDCD400C31433 /* net_http_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http_server.h; sourceTree = "<group>"; };
+		CE04FB1825CEDCD400C31433 /* net_http_server.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = net_http_server.c; sourceTree = "<group>"; };
 		CE04FE4E25D0D90400C31433 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		CE052A6E214831FE003446C9 /* check_mem */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_mem; sourceTree = BUILT_PRODUCTS_DIR; };
 		CE052A8421483255003446C9 /* check_thread */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_thread; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2791,8 +2791,8 @@
 			children = (
 				CE12D6921C5C58C300CD0B13 /* net_chan.c */,
 				CE12D6931C5C58C300CD0B13 /* net_chan.h */,
-				CE04FB1825CEDCD400C31433 /* net_http.c */,
-				CE04FB1725CEDCD400C31433 /* net_http.h */,
+				CE04FB1825CEDCD400C31433 /* net_http_server.c */,
+				CE04FB1725CEDCD400C31433 /* net_http_server.h */,
 				CE12D6941C5C58C300CD0B13 /* net_message.c */,
 				CE12D6951C5C58C300CD0B13 /* net_message.h */,
 				CE12D6901C5C58C300CD0B13 /* net_sock.c */,
@@ -3669,7 +3669,7 @@
 			files = (
 				CE80FE6C1C5E435C00A21A51 /* net_sock.h in Headers */,
 				CE80FE6D1C5E435C00A21A51 /* net_chan.h in Headers */,
-				CE04FB1925CEDCD400C31433 /* net_http.h in Headers */,
+				CE04FB1925CEDCD400C31433 /* net_http_server.h in Headers */,
 				CE80FE6E1C5E435C00A21A51 /* net_message.h in Headers */,
 				CE80FE701C5E435C00A21A51 /* net_types.h in Headers */,
 				CE80FE711C5E435C00A21A51 /* net_udp.h in Headers */,
@@ -4899,7 +4899,7 @@
 			files = (
 				CE80FE671C5E433F00A21A51 /* net_sock.c in Sources */,
 				CE80FE681C5E433F00A21A51 /* net_chan.c in Sources */,
-				CE04FB1A25CEDCD400C31433 /* net_http.c in Sources */,
+				CE04FB1A25CEDCD400C31433 /* net_http_server.c in Sources */,
 				CE80FE691C5E433F00A21A51 /* net_message.c in Sources */,
 				CE80FE6B1C5E433F00A21A51 /* net_udp.c in Sources */,
 			);

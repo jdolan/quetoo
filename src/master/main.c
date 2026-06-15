@@ -48,7 +48,7 @@
 #endif
 
 #include "common/common.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
 quetoo_t quetoo;
 
@@ -144,7 +144,9 @@ static void Ms_DiscordNotify(const ms_server_t *server, const char *player_name)
     server->num_clients, server->max_clients,
     ip, port);
 
-  Net_HttpPostAsync(ms_discord_webhook, json, strlen(json), "application/json", NULL, NULL);
+  Data *body = $$(Data, dataWithBytes, (const uint8_t *) json, strlen(json));
+  $($$(RESTClient, sharedInstance), postAsync, ms_discord_webhook, body, NULL, NULL);
+  release(body);
 }
 
 /**

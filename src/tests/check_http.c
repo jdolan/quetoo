@@ -22,10 +22,11 @@
 #include "tests.h"
 
 #include <Objectively/JSONContext.h>
+#include <Objectively/RESTClient.h>
 
 #include <string.h>
 
-#include "net/net_http.h"
+#include "net/net_http_server.h"
 
 #include <SDL3/SDL_thread.h>
 
@@ -262,55 +263,6 @@ typedef struct {
 	bool ok;
 } http_server_t;
 
-typedef struct {
-	char guid[68];
-	int32_t rank;
-} http_instance_t;
-
-static const JSONProperties http_instance_properties = MakeJSONProperties(http_instance_t,
-	MakeJSONProperty(http_instance_t, guid, NULL, JSONDeserializeCharacters, NULL),
-	MakeJSONProperty(http_instance_t, rank, NULL, JSONDeserializeInt32,      NULL)
-);
-
-typedef struct {
-	char name[64];
-	int32_t value;
-} http_item_t;
-
-static const JSONProperties http_item_properties = MakeJSONProperties(http_item_t,
-	MakeJSONProperty(http_item_t, name,  NULL, JSONDeserializeCharacters, NULL),
-	MakeJSONProperty(http_item_t, value, NULL, JSONDeserializeInt32,      NULL)
-);
-
-typedef struct {
-	char name[64];
-	int32_t score;
-} http_nested_entry_t;
-
-typedef struct {
-	char title[64];
-	http_nested_entry_t owner;
-	http_nested_entry_t items[2];
-	size_t num_items;
-} http_nested_response_t;
-
-static const JSONProperties http_nested_entry_properties = MakeJSONProperties(http_nested_entry_t,
-	MakeJSONProperty(http_nested_entry_t, name,  NULL, JSONDeserializeCharacters, NULL),
-	MakeJSONProperty(http_nested_entry_t, score, NULL, JSONDeserializeInt32,      NULL)
-);
-
-static const JSONArrayProperties http_nested_response_items = {
-	.properties   = &http_nested_entry_properties,
-	.capacity = lengthof(((http_nested_response_t *) 0)->items),
-	.count = offsetof(http_nested_response_t, num_items)
-};
-
-static const JSONProperties http_nested_response_properties = MakeJSONProperties(http_nested_response_t,
-	MakeJSONProperty(http_nested_response_t, title, NULL, JSONDeserializeCharacters, NULL),
-	MakeJSONProperty(http_nested_response_t, owner, NULL, JSONDeserializeStruct,    (ident) &http_nested_entry_properties),
-	MakeJSONProperty(http_nested_response_t, items, NULL, JSONDeserializeArray,     (ident) &http_nested_response_items)
-);
-
 static int SDLCALL http_server_thread(void *data) {
 	http_server_t *ctx = data;
 
@@ -381,20 +333,19 @@ START_TEST(check_Net_Http_roundtrip) {
 	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
 	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
 
-	// Client: download via Net_HttpGet (Objectively URLSession / libcurl)
+	// Client: download via RESTClient (Objectively URLSession / libcurl)
 	char url[128];
 	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.txt", port);
 
-	void *data = NULL;
-	size_t length = 0;
-	const int32_t status = Net_HttpGet(url, &data, &length);
+	Data *data = NULL;
+	const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
 
 	ck_assert_int_eq(status, 200);
-	ck_assert_uint_eq(length, sizeof(payload) - 1);
 	ck_assert(data != NULL);
-	ck_assert(memcmp(data, payload, length) == 0);
+	ck_assert_uint_eq(data->length, sizeof(payload) - 1);
+	ck_assert(memcmp(data->bytes, payload, data->length) == 0);
 
-	Mem_Free(data);
+	release(data);
 
 	// Join server thread and verify it parsed the request correctly
 	int thread_status;
@@ -403,149 +354,6 @@ START_TEST(check_Net_Http_roundtrip) {
 	ck_assert(server.ok);
 	ck_assert_str_eq(server.parsed_method, "GET");
 	ck_assert_str_eq(server.parsed_path, "test.txt");
-
-	Net_CloseSocket(listen_sock);
-	Net_Shutdown();
-
-} END_TEST
-
-START_TEST(check_Net_HttpGetStruct_json) {
-
-	Net_Init();
-
-	const in_port_t port = 39982;
-
-	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
-	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
-
-	const char payload[] = "{\"guid\":\"abc123\",\"rank\":7}";
-
-	http_server_t server = {
-		.listen_sock = listen_sock,
-		.port = port,
-		.payload = payload,
-		.payload_len = sizeof(payload) - 1,
-		.ok = false,
-	};
-
-	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
-	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
-
-	char url[128];
-	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
-
-	http_instance_t instance = { 0 };
-	const int32_t status = Net_HttpGetStruct(url, &http_instance_properties, &instance);
-
-	ck_assert_int_eq(status, 200);
-	ck_assert_str_eq(instance.guid, "abc123");
-	ck_assert_int_eq(instance.rank, 7);
-
-	int thread_status;
-	SDL_WaitThread(thread, &thread_status);
-	ck_assert_int_eq(thread_status, 0);
-	ck_assert(server.ok);
-	ck_assert_str_eq(server.parsed_method, "GET");
-	ck_assert_str_eq(server.parsed_path, "test.json");
-
-	Net_CloseSocket(listen_sock);
-	Net_Shutdown();
-
-} END_TEST
-
-START_TEST(check_Net_HttpGetStructs_json) {
-
-	Net_Init();
-
-	const in_port_t port = 39983;
-
-	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
-	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
-
-	const char payload[] = "[{\"name\":\"one\",\"value\":1},{\"name\":\"two\",\"value\":2}]";
-
-	http_server_t server = {
-		.listen_sock = listen_sock,
-		.port = port,
-		.payload = payload,
-		.payload_len = sizeof(payload) - 1,
-		.ok = false,
-	};
-
-	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
-	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
-
-	char url[128];
-	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
-
-	http_item_t items[2] = { 0 };
-	size_t num_items = 0;
-	const int32_t status = Net_HttpGetStructs(url, &http_item_properties,
-	                                            items, 2, &num_items);
-
-	ck_assert_int_eq(status, 200);
-	ck_assert_uint_eq(num_items, 2);
-	ck_assert_str_eq(items[0].name, "one");
-	ck_assert_int_eq(items[0].value, 1);
-	ck_assert_str_eq(items[1].name, "two");
-	ck_assert_int_eq(items[1].value, 2);
-
-	int thread_status;
-	SDL_WaitThread(thread, &thread_status);
-	ck_assert_int_eq(thread_status, 0);
-	ck_assert(server.ok);
-	ck_assert_str_eq(server.parsed_method, "GET");
-	ck_assert_str_eq(server.parsed_path, "test.json");
-
-	Net_CloseSocket(listen_sock);
-	Net_Shutdown();
-
-} END_TEST
-
-START_TEST(check_Net_HttpGetStruct_nested_json) {
-
-	Net_Init();
-
-	const in_port_t port = 39984;
-
-	const int32_t listen_sock = Net_SocketListen(NULL, port, 1);
-	ck_assert_msg(listen_sock >= 0, "Net_SocketListen failed on port %d", port);
-
-	const char payload[] = "{\"title\":\"outer\",\"owner\":{\"name\":\"Alice\",\"score\":7},\"items\":[{\"name\":\"one\",\"score\":1},{\"name\":\"two\",\"score\":2}]}";
-
-	http_server_t server = {
-		.listen_sock = listen_sock,
-		.port = port,
-		.payload = payload,
-		.payload_len = sizeof(payload) - 1,
-		.ok = false,
-	};
-
-	SDL_Thread *thread = SDL_CreateThread(http_server_thread, "http_server", &server);
-	ck_assert_msg(thread != NULL, "SDL_CreateThread failed");
-
-	char url[128];
-	g_snprintf(url, sizeof(url), "http://127.0.0.1:%d/test.json", port);
-
-	http_nested_response_t response = { 0 };
-	const int32_t status = Net_HttpGetStruct(url, &http_nested_response_properties, &response);
-
-	ck_assert_int_eq(status, 200);
-	ck_assert_str_eq(response.title, "outer");
-	ck_assert_str_eq(response.owner.name, "Alice");
-	ck_assert_int_eq(response.owner.score, 7);
-	ck_assert_uint_eq(response.num_items, 2);
-	ck_assert_str_eq(response.items[0].name, "one");
-	ck_assert_int_eq(response.items[0].score, 1);
-	ck_assert_str_eq(response.items[1].name, "two");
-	ck_assert_int_eq(response.items[1].score, 2);
-
-	int thread_status;
-	SDL_WaitThread(thread, &thread_status);
-	ck_assert_int_eq(thread_status, 0);
-	ck_assert(server.ok);
-	ck_assert_str_eq(server.parsed_method, "GET");
-	ck_assert_str_eq(server.parsed_path, "test.json");
 
 	Net_CloseSocket(listen_sock);
 	Net_Shutdown();
@@ -587,9 +395,6 @@ int32_t main(int32_t argc, char **argv) {
 	tcase_add_checked_fixture(tcase, setup, teardown);
 	tcase_set_timeout(tcase, 10);
 	tcase_add_test(tcase, check_Net_Http_roundtrip);
-	tcase_add_test(tcase, check_Net_HttpGetStruct_json);
-	tcase_add_test(tcase, check_Net_HttpGetStruct_nested_json);
-	tcase_add_test(tcase, check_Net_HttpGetStructs_json);
 	suite_add_tcase(suite, tcase);
 
 	// Run with CK_NOFORK because Net_HttpGet uses libcurl, which is not fork-safe

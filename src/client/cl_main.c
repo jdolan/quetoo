@@ -24,8 +24,9 @@
 #endif
 
 #include <Objectively/JSONContext.h>
+#include <Objectively/RESTClient.h>
+#include <Objectively/URLCache.h>
 #include "cl_local.h"
-#include "net/net_http.h"
 #include "server/server.h"
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
@@ -76,13 +77,18 @@ static void Cl_InitGuidHash(void) {
 
   GuidHashResponse response = { 0 };
 
-  if (Net_HttpGetStruct(url, &guid_hash_properties, &response) == 200) {
+  Data *data = NULL;
+  if ($($$(RESTClient, sharedInstance), get, url, &data) == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    $(ctx, structFromData, &guid_hash_properties, data, &response);
+    release(ctx);
     if (response.guid[0]) {
       Cvar_ForceSetString("guid_hashed", response.guid);
     } else {
       Com_Warn("GUID hash response missing guid field\n");
     }
   }
+  release(data);
 }
 
 cl_static_t cls;
@@ -323,7 +329,10 @@ void Cl_Disconnect(void) {
   Cl_SendDisconnect();
 
   Cl_ClearState();
-  Net_HttpClearCache();
+  RESTClient *client = $$(RESTClient, sharedInstance);
+  if (client->session->configuration->urlCache) {
+    $(client->session->configuration->urlCache, removeAllCachedResponses);
+  }
 
   if (cls.demo_file) {
     Cl_Stop_f();

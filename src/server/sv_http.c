@@ -20,7 +20,7 @@
  */
 
 #include "sv_local.h"
-#include "net/net_http.h"
+#include "net/net_http_server.h"
 
 static int32_t sv_http_socket = -1;
 
