@@ -31,14 +31,6 @@
 
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
-typedef struct {
-  char guid[68];
-} GuidHashResponse;
-
-static const JSONProperties guid_hash_properties = MakeJSONProperties(GuidHashResponse,
-  MakeJSONProperty(GuidHashResponse, guid, NULL, JSONDeserializeCharacters, NULL)
-);
-
 cvar_t *cl_chat_sound;
 cvar_t *cl_draw_counters;
 cvar_t *cl_draw_position;
@@ -59,65 +51,6 @@ cvar_t *rate;
 cvar_t *qport;
 
 cvar_t *cl_draw_net_messages;
-
-/**
- * @brief `RESTClientCompletion` for `Cl_InitGuidHash`. Runs on the HTTP session thread;
- * marshals the result to the main thread via `NOTIFICATION_GUID_HASHED`.
- */
-static void Cl_GuidHashComplete(int32_t status, Data *data, void *user_data) {
-
-  char *guid_hashed = NULL;
-
-  if (status == 200 && data) {
-    GuidHashResponse response = { 0 };
-    JSONContext *ctx = $(alloc(JSONContext), init);
-    $(ctx, structFromData, &guid_hash_properties, data, &response);
-    release(ctx);
-
-    if (response.guid[0]) {
-      guid_hashed = g_strdup(response.guid);
-    } else {
-      Com_Warn("GUID hash response missing guid field\n");
-    }
-  }
-
-  SDL_PushEvent(&(SDL_Event) {
-    .user.type = MVC_NOTIFICATION_EVENT,
-    .user.code = NOTIFICATION_GUID_HASHED,
-    .user.data1 = guid_hashed
-  });
-}
-
-/**
- * @brief Applies the GUID hash from a `NOTIFICATION_GUID_HASHED` event on the main thread.
- */
-void Cl_GuidHashedEvent(const SDL_Event *event) {
-
-  char *guid_hashed = event->user.data1;
-
-  if (guid_hashed) {
-    Cvar_ForceSetString("guid_hashed", guid_hashed);
-    g_free(guid_hashed);
-  }
-}
-
-/**
- * @brief Asynchronously requests the server-side GUID hash and stores it in `guid_hashed`
- * when the response arrives via `NOTIFICATION_GUID_HASHED`.
- */
-static void Cl_InitGuidHash(void) {
-
-  Cvar_ForceSetString("guid_hashed", "");
-
-  if (!guid || !guid->string[0]) {
-    return;
-  }
-
-  char url[256];
-  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
-
-  $($$(RESTClient, sharedInstance), getAsync, url, Cl_GuidHashComplete, NULL);
-}
 
 cl_static_t cls;
 cl_client_t cl;
@@ -612,7 +545,7 @@ static void Cl_InitLocal(void) {
     g_free(uuid);
   }
 
-  Cvar_Add("guid_hashed", "", CVAR_NO_SET, NULL);
+  Cvar_Add("guid_hash", "", CVAR_NO_SET, NULL);
 
   name = Cvar_Add("name", Cl_Username(), CVAR_USER_INFO | CVAR_ARCHIVE, "Your player name");
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
@@ -785,6 +718,36 @@ void Cl_Frame(const uint32_t msec) {
 }
 
 /**
+ * @brief Synchronously fetches the server-side GUID hash and stores it in `guid_hash` cvar.
+ */
+static void Cl_InitGuid(void) {
+
+  Cvar_ForceSetString("guid_hash", "");
+
+  char url[256];
+  g_snprintf(url, sizeof(url), QUETOO_GUID_URL "?guid=%s", guid->string);
+
+  Data *data;
+  const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
+  if (status == 200 && data) {
+
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    Dictionary *dictionary = $(ctx, objectFromData, data, 0);
+    if ($(dictionary, containsKeyPath, "guid")) {
+      String *hash = $(dictionary, objectForKeyPathWithClass, "guid", _String());
+      Cvar_ForceSetString("guid_hash", hash->chars);
+    } else {
+      Com_Warn("Malformed GUID response from %s\n", url);
+    }
+
+    release(ctx);
+    release(dictionary);
+  } else {
+    Com_Warn("GUID fetch %s failed with HTTP %d\n", url, status);
+  }
+}
+
+/**
  * @brief Initializes all client subsystems: console, renderer, sound, UI, and cgame.
  */
 void Cl_Init(void) {
@@ -803,6 +766,8 @@ void Cl_Init(void) {
 
   Cl_InitLocal();
 
+  Cl_InitGuid();
+
   Cl_InitKeys();
 
   Net_Config(NS_UDP_CLIENT, true);
@@ -818,9 +783,6 @@ void Cl_Init(void) {
   Cl_ClearState();
 
   Cl_InitCgame();
-
-  // Must be after Ui_Init so MVC_NOTIFICATION_EVENT is registered before the completion fires.
-  Cl_InitGuidHash();
 
   Cl_SetKeyDest(KEY_UI);
 

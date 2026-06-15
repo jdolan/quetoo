@@ -454,10 +454,6 @@ void Cl_HandleEvents(void) {
     if (SDL_PollEvent(&event)) {
       if (Cl_HandleSystemEvent(&event) == false) {
 
-        if (event.type == MVC_NOTIFICATION_EVENT && event.user.code == NOTIFICATION_GUID_HASHED) {
-          Cl_GuidHashedEvent(&event);
-        }
-
         Ui_HandleEvent(&event);
         Cl_HandleEvent(&event);
 
