@@ -34,7 +34,7 @@
 #include "common/installer.h"
 #include <Objectively/RESTClient.h>
 
-#define CGAME_API_VERSION 30
+#define CGAME_API_VERSION 31
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
