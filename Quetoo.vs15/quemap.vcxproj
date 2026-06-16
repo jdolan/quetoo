@@ -119,6 +119,10 @@
     <Link>
       <AdditionalDependencies>SDL3.lib;SDL3_image.lib;glib-2.0.lib;intl.lib;dbghelp.lib;Wldap32.lib;physfs.lib;ws2_32.lib;dlfcn.lib;Objectively.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
+      <!-- BSP tree/portal generation recurses to tree depth; the default 1 MB Windows
+           main-thread stack overflows on large maps (e.g. cavern). Reserve 8 MB to match
+           the Linux/macOS main-thread default. -->
+      <StackReserveSize>8388608</StackReserveSize>
     </Link>
     <PostBuildEvent>
       <Command>COPY_DEPENDENCIES "$(QUETOO_HOME)" "$(Platform)" "$(Configuration)" &amp;&amp; COPY_QUEMAP "$(QUETOO_HOME)" "$(Platform)$(Configuration)"</Command>
