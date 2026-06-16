@@ -112,21 +112,10 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
  */
 static void fetchStats(StatsViewController *this) {
 
-  $(this->name->text, setText, "—");
-  $(this->rank->text, setText, "—");
-  $(this->frags->text, setText, "—");
-  $(this->deaths->text, setText, "—");
-  $(this->kd->text, setText, "—");
-  $(this->time->text, setText, "—");
-  $(this->nemesis->text, setText, "—");
-
   const char *guid_hash = cgi.GetCvarString("guid_hash");
-  if (!guid_hash || !guid_hash[0]) {
-    $(this->weapons, reloadData);
+  if (strlen(guid_hash) == 0) {
     return;
   }
-
-  $(this->weapons, reloadData);
 
   char url[MAX_STRING_CHARS];
   g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);

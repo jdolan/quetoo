@@ -727,7 +727,7 @@ static void Cl_InitGuid(void) {
 
   Data *data;
   const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
-  if (status == 200 && data) {
+  if (status == 200) {
 
     JSONContext *ctx = $(alloc(JSONContext), init);
     Dictionary *dictionary = $(ctx, objectFromData, data, 0);
@@ -740,8 +740,9 @@ static void Cl_InitGuid(void) {
 
     release(ctx);
     release(dictionary);
+    release(data);
   } else {
-    Com_Warn("GUID fetch %s failed with HTTP %d\n", url, status);
+    Com_Warn("Failed to fetch %s: HTTP %d\n", url, status);
   }
 }
 
