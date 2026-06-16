@@ -157,7 +157,9 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
   cm_entity_t *e = self->entity ? self->entity->def : NULL;
 
   const SDL_Keycode key = event->key.key;
-  const int32_t mod = event->key.mod;
+  // Mask out lock keys (Num/Caps/Scroll); their sticky modifier bits otherwise
+  // suppress all un-modified editor key binds while toggled on (#839).
+  const int32_t mod = event->key.mod & ~(SDL_KMOD_NUM | SDL_KMOD_CAPS | SDL_KMOD_SCROLL);
 
   if (mod & SDL_KMOD_CLIPBOARD) {
     switch (key) {
