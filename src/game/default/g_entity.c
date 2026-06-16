@@ -817,7 +817,9 @@ static void G_worldspawn(g_entity_t *ent) {
   gi.SetConfigString(CS_MAX_CLIENTS, va("%d", sv_max_clients->integer));
 
   const cm_entity_t *gravity_map = G_MapValue("gravity");
-  if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // prefer map metadata gravity
+  if (g_strcmp0(g_gravity->string, g_gravity->default_string)) { // prefer an explicit g_gravity override
+    g_level.gravity = g_gravity->integer;
+  } else if (gravity_map && (gravity_map->parsed & ENTITY_INTEGER) && gravity_map->integer > 0) { // then map metadata gravity
     g_level.gravity = gravity_map->integer;
   } else { // or fall back on worldspawn
     const cm_entity_t *gravity = gi.EntityValue(ent->def, "gravity");
@@ -827,6 +829,10 @@ static void G_worldspawn(g_entity_t *ent) {
       g_level.gravity = DEFAULT_GRAVITY;
     }
   }
+
+  // clear the flag the cvar carried from creation so the first G_CheckRules frame
+  // can't overwrite the resolved value with g_gravity's default (runtime changes still apply)
+  g_gravity->modified = false;
 
   const cm_entity_t *gameplay_map = G_MapValue("gameplay");
   if (g_strcmp0(g_gameplay->string, "default")) { // prefer g_gameplay
