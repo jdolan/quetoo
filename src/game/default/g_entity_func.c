@@ -335,6 +335,8 @@ static void G_MoveType_Push_Blocked(g_entity_t *ent, g_entity_t *other) {
       gi.WritePosition(other->s.origin);
       gi.Multicast(other->s.origin, MULTICAST_PVS);
       G_FreeEntity(other);
+    } else if (other->Die) {
+      other->Die(other, ent, MOD_CRUSH);
     }
     return;
   }
