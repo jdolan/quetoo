@@ -53,14 +53,28 @@ static const char *formatTime(int32_t seconds) {
   return va("%dm", m);
 }
 
-static const JSONProperties nemesisProperties = MakeJSONProperties(Nemesis,
-  MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, NULL)
-);
+static const JSONProperty nemesis_fields[] = {
+  MakeJSONProperty(Nemesis, name, NULL, JSONDeserializeCharacters, NULL),
+  { .key = NULL }
+};
 
-static const JSONProperties killsByWeaponProperties = MakeJSONProperties(KillsByWeapon,
+static const JSONProperties nemesisProperties = {
+  .name = "Nemesis",
+  .size = sizeof(Nemesis),
+  .properties = nemesis_fields
+};
+
+static const JSONProperty kills_by_weapon_fields[] = {
   MakeJSONProperty(KillsByWeapon, weapon, NULL, JSONDeserializeCharacters, NULL),
-  MakeJSONProperty(KillsByWeapon, frags, NULL, JSONDeserializeInt32, NULL)
-);
+  MakeJSONProperty(KillsByWeapon, frags, NULL, JSONDeserializeInt32, NULL),
+  { .key = NULL }
+};
+
+static const JSONProperties killsByWeaponProperties = {
+  .name = "KillsByWeapon",
+  .size = sizeof(KillsByWeapon),
+  .properties = kills_by_weapon_fields
+};
 
 static const JSONArrayProperties killsByWeaponArrayProperties = {
   .properties = &killsByWeaponProperties,
@@ -68,15 +82,22 @@ static const JSONArrayProperties killsByWeaponArrayProperties = {
   .count = JSONArrayProperties_NoCount
 };
 
-static const JSONProperties statsResponseProperties = MakeJSONProperties(StatsResponse,
+static const JSONProperty stats_response_fields[] = {
   MakeJSONProperty(StatsResponse, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, captures, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, time_played, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesisProperties),
-  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties)
-);
+  MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties),
+  { .key = NULL }
+};
+
+static const JSONProperties statsResponseProperties = {
+  .name = "StatsResponse",
+  .size = sizeof(StatsResponse),
+  .properties = stats_response_fields
+};
 
 /**
  * @brief Staging buffer written by the HTTP thread, read by the main thread.

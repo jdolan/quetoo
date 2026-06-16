@@ -36,15 +36,22 @@ static const char *_deaths = "Deaths";
 static const char *_kd = "KD";
 static const char *_time_played = "Time";
 
-static const JSONProperties leaderboard_entry_properties = MakeJSONProperties(LeaderboardEntry,
+static const JSONProperty leaderboard_entry_fields[] = {
   MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, name, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, guid, NULL, JSONDeserializeCharacters, NULL),
   MakeJSONProperty(LeaderboardEntry, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, deaths, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(LeaderboardEntry, captures, NULL, JSONDeserializeInt32, NULL),
-  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32, NULL)
-);
+  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32, NULL),
+  { .key = NULL }
+};
+
+static const JSONProperties leaderboard_entry_properties = {
+  .name = "LeaderboardEntry",
+  .size = sizeof(LeaderboardEntry),
+  .properties = leaderboard_entry_fields
+};
 
 /**
  * @brief Maps a column identifier to its API sort parameter.
