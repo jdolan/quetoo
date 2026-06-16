@@ -170,7 +170,7 @@ static void G_ClientObituary(g_client_t *cl, g_entity_t *attacker, uint32_t mod)
         msg = "%s was in the wrong place :actofgod:";
         break;
       case MOD_TRIGGER_VOID:
-        msg = "%s has succumbed to the void king :actofgod:";
+        msg = "%s has succumbed to the emptiness :actofgod:";
         break;
       case MOD_ACT_OF_GOD:
         msg = "%s was killed by an act of god :actofgod:";
