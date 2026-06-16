@@ -32,9 +32,9 @@
 
 #include "client/cl_types.h"
 #include "common/installer.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
-#define CGAME_API_VERSION 30
+#define CGAME_API_VERSION 31
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -166,46 +166,11 @@ typedef struct cg_import_s {
    */
 
   /**
-   * @brief Performs a synchronous HTTP `GET` request.
-   * @param url The URL to fetch.
-   * @param body Receives a newly allocated buffer containing the response body. Caller must free.
-   * @param length Receives the length of the response body in bytes.
-   * @return The HTTP status code, or 0 on network error.
-   * @remarks This call blocks until the request completes. Use on a dedicated thread (see Thread)
-   * to avoid stalling the frame loop.
+   * @brief The shared RESTClient instance, backed by a URLSession with URLCache enabled.
+   * @remarks Use this for all HTTP requests from cgame. The session is shared with the engine;
+   * call `$(cgi.restClient->session->configuration->urlCache, removeAllCachedResponses)` to clear it.
    */
-  int32_t (*HttpGet)(const char *url, void **body, size_t *length);
-
-  /**
-   * @brief Performs a synchronous HTTP `GET` request and deserializes a single JSON object.
-   * @param url The URL to fetch.
-   * @param properties The JsonProperty descriptors for the destination struct.
-   * @param instance Receives the parsed struct instance.
-   * @return The HTTP status code, or 0 on network error / parse failure.
-   */
-  int32_t (*HttpGetInstance)(const char *url, const JsonProperty *properties, void *instance);
-
-  /**
-   * @brief Performs a synchronous HTTP `GET` request and deserializes a JSON array.
-   * @param url The URL to fetch.
-   * @param properties The JsonProperty descriptors for the destination struct array.
-   * @param instances Receives the parsed struct instances.
-   * @param stride The byte distance between consecutive structs.
-   * @param count The capacity of the destination array.
-   * @param instances_count Receives the number of parsed instances.
-   * @return The HTTP status code.
-   */
-  int32_t (*HttpGetInstances)(const char *url, const JsonProperty *properties,
-                              void *instances, size_t stride, size_t count, size_t *instances_count);
-
-  /**
-   * @brief Performs an asynchronous HTTP `GET` request.
-   * @param url The URL to fetch.
-   * @param callback Invoked on a background thread when the request completes.
-   * @param user_data User data pointer passed through to the callback.
-   * @remarks The response body is valid only for the duration of the callback; copy it if needed.
-   */
-  void (*HttpGetAsync)(const char *url, Net_HttpCallback callback, void *user_data);
+  RESTClient *restClient;
 
   /**
    * @}

@@ -1,0 +1,68 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#pragma once
+
+#include "net_sock.h"
+
+/**
+ * @brief Construct an HTTP URL from a `net_addr_t` and path.
+ * @param addr The server address.
+ * @param path The URL path (e.g. "maps/`foo.bsp`").
+ * @param buf The output buffer.
+ * @param buf_size The size of the output buffer.
+ * @return The number of characters written, or -1 on error.
+ */
+int32_t Net_HttpUrl(const net_addr_t *addr, const char *path, char *buf, size_t buf_size);
+
+/**
+ * @brief Parse the request line of an HTTP request.
+ * @param request The raw HTTP request buffer (must be null-terminated).
+ * @param method The parsed method (e.g. "`GET`").
+ * @param method_size The size of the method buffer.
+ * @param path The parsed path (e.g. "maps/`foo.bsp`"), without leading slash.
+ * @param path_size The size of the path buffer.
+ * @return True if the request line was successfully parsed.
+ */
+bool Net_HttpParseRequestLine(const char *request, char *method, size_t method_size,
+                              char *path, size_t path_size);
+
+/**
+ * @brief Format an HTTP/1.0 response header into a buffer.
+ * @param status The HTTP status code.
+ * @param reason The HTTP reason phrase.
+ * @param content_type The Content-Type header value, or `NULL` for none.
+ * @param content_length The Content-Length value.
+ * @param buf The output buffer.
+ * @param buf_size The size of the output buffer.
+ * @return The number of characters written.
+ */
+int32_t Net_HttpFormatResponse(int32_t status, const char *reason,
+                               const char *content_type, int64_t content_length,
+                               char *buf, size_t buf_size);
+
+/**
+ * @brief Send an HTTP error response on a socket.
+ * @param sock The socket to send on.
+ * @param status The HTTP status code.
+ * @param reason The HTTP reason phrase.
+ */
+void Net_HttpSendError(int32_t sock, int32_t status, const char *reason);

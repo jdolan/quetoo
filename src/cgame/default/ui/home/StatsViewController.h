@@ -26,20 +26,37 @@
 #include <ObjectivelyMVC.h>
 
 /**
+ * @brief The kills-by-weapon block of the StatsResponse shape.
+ */
+typedef struct {
+  char weapon[64];
+  int32_t frags;
+} KillsByWeapon;
+
+/**
+ * @brief The nemesis block of the StatsResponse shape.
+ */
+typedef struct {
+  char name[64];
+} Nemesis;
+
+/**
+ * @brief The Stats API JSON response shape.
+ */
+typedef struct {
+  int32_t rank;
+  int32_t frags;
+  int32_t deaths;
+  int32_t captures;
+  int32_t time_played;
+  Nemesis nemesis;
+  KillsByWeapon kills_by_weapon[20];
+} StatsResponse;
+
+/**
  * @file
  * @brief Stats ViewController.
  */
-
-#define STATS_MAX_WEAPON_ROWS 20
-
-/**
- * @brief A single row from the kills-by-weapon breakdown.
- */
-typedef struct {
-  char    weapon[64];
-  int32_t frags;
-} WeaponStat;
-
 typedef struct StatsViewController StatsViewController;
 typedef struct StatsViewControllerInterface StatsViewControllerInterface;
 
@@ -63,35 +80,25 @@ struct StatsViewController {
   StatsViewControllerInterface *interface;
 
   /**
-   * @brief Current summary stats for the local player.
+   * @brief The StatsResponse.
    */
-  int32_t rank;
-  int32_t frags;
-  int32_t deaths;
-  int32_t time_played;
+  StatsResponse stats;
 
   /**
-   * @brief Name of the player who has killed us the most.
+   * @brief Stat tile labels.
    */
-  char nemesis[64];
-
-  /**
-   * @brief Summary stat tile labels.
-   */
-  Label *nameLabel;
-  Label *rankLabel;
-  Label *fragsLabel;
-  Label *deathsLabel;
-  Label *kdLabel;
-  Label *timeLabel;
-  Label *nemesisLabel;
+  Label *name;
+  Label *rank;
+  Label *frags;
+  Label *deaths;
+  Label *kd;
+  Label *time;
+  Label *nemesis;
 
   /**
    * @brief Kills-by-weapon breakdown table.
    */
-  TableView *weaponsTable;
-  WeaponStat weapons[STATS_MAX_WEAPON_ROWS];
-  size_t num_weapons;
+  TableView *weapons;
 };
 
 /**

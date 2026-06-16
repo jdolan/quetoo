@@ -465,9 +465,9 @@ void SmoothVoxels(void) {
 
   const size_t n = voxels.num_voxels;
 
-  float *smooth_occ = Mem_TagMalloc(n * sizeof(float), MEM_TAG_VOXEL);
-  float *smooth_exp = Mem_TagMalloc(n * sizeof(float), MEM_TAG_VOXEL);
-  vec3_t *smooth_caust = Mem_TagMalloc(n * sizeof(vec3_t), MEM_TAG_VOXEL);
+  float *smooth_occ = Mem_TagMalloc(n * sizeof(float), (mem_tag_t) MEM_TAG_VOXEL);
+  float *smooth_exp = Mem_TagMalloc(n * sizeof(float), (mem_tag_t) MEM_TAG_VOXEL);
+  vec3_t *smooth_caust = Mem_TagMalloc(n * sizeof(vec3_t), (mem_tag_t) MEM_TAG_VOXEL);
 
   for (int32_t z = 0; z < voxels.size.z; z++) {
     for (int32_t y = 0; y < voxels.size.y; y++) {

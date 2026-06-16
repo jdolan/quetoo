@@ -21,7 +21,7 @@
 
 #include "cg_local.h"
 
-#include <Objectively/JSONSerialization.h>
+#include <Objectively/JSONContext.h>
 
 #include "LeaderboardViewController.h"
 
@@ -29,31 +29,38 @@
 
 #define QUETOO_STATS_URL "https://giblets.quetoo.org/api/stats"
 
-static const char *_rank        = "Rank";
-static const char *_player      = "Player";
-static const char *_frags       = "Frags";
-static const char *_deaths      = "Deaths";
-static const char *_kd          = "KD";
+static const char *_rank = "Rank";
+static const char *_player = "Player";
+static const char *_frags = "Frags";
+static const char *_deaths = "Deaths";
+static const char *_kd = "KD";
 static const char *_time_played = "Time";
 
-static const JsonProperty leaderboard_properties[] = MakeJsonProperties(
-  MakeJsonProperty(LeaderboardEntry, rank,        JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, name,        JsonPropertyCharacters),
-  MakeJsonProperty(LeaderboardEntry, guid,        JsonPropertyCharacters),
-  MakeJsonProperty(LeaderboardEntry, frags,       JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, deaths,      JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, captures,    JsonPropertyInteger),
-  MakeJsonProperty(LeaderboardEntry, time_played, JsonPropertyInteger)
-);
+static const JSONProperty leaderboard_entry_fields[] = {
+  MakeJSONProperty(LeaderboardEntry, rank, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, name, NULL, JSONDeserializeCharacters, NULL),
+  MakeJSONProperty(LeaderboardEntry, guid, NULL, JSONDeserializeCharacters, NULL),
+  MakeJSONProperty(LeaderboardEntry, frags, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, deaths, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, captures, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(LeaderboardEntry, time_played, NULL, JSONDeserializeInt32, NULL),
+  { .key = NULL }
+};
+
+static const JSONProperties leaderboard_entry_properties = {
+  .name = "LeaderboardEntry",
+  .size = sizeof(LeaderboardEntry),
+  .properties = leaderboard_entry_fields
+};
 
 /**
  * @brief Maps a column identifier to its API sort parameter.
  */
 static const char *sortParamForColumn(const char *identifier) {
-  if (g_strcmp0(identifier, _player)      == 0) return "name";
-  if (g_strcmp0(identifier, _frags)       == 0) return "frags";
-  if (g_strcmp0(identifier, _deaths)      == 0) return "deaths";
-  if (g_strcmp0(identifier, _kd)          == 0) return "kd";
+  if (g_strcmp0(identifier, _player) == 0) return "name";
+  if (g_strcmp0(identifier, _frags) == 0) return "frags";
+  if (g_strcmp0(identifier, _deaths) == 0) return "deaths";
+  if (g_strcmp0(identifier, _kd) == 0) return "kd";
   if (g_strcmp0(identifier, _time_played) == 0) return "time_played";
   return NULL;
 }
@@ -76,26 +83,53 @@ static const char *formatTime(int32_t seconds) {
 }
 
 /**
- * @brief Fetches leaderboard rows using the given sort column.
+ * @brief Staging buffer written by the HTTP thread, read by the main thread.
+ * The SDL event queue provides the happens-before guarantee between the write
+ * (before `SDL_PushEvent`) and the read (after `SDL_PollEvent`).
  */
-static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
+static LeaderboardResponse pendingLeaderboardResponse;
+
+/**
+ * @brief `RESTClientCompletion` for `fetchLeaderboard`. Runs on the HTTP session thread;
+ * hydrates `leaderboard_pending` and dispatches `NOTIFICATION_LEADERBOARD_FETCHED` as the signal.
+ */
+static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data) {
+
+  memset(&pendingLeaderboardResponse, 0, sizeof(pendingLeaderboardResponse));
+
+  if (status == 200 && data) {
+    JSONContext *ctx = $(alloc(JSONContext), init);
+    pendingLeaderboardResponse.num_entries = $(ctx, structsFromData,
+                                               &leaderboard_entry_properties,
+                                               data,
+                                               pendingLeaderboardResponse.entries,
+                                               LEADERBOARD_MAX_ENTRIES);
+    release(ctx);
+  } else if (status && status != 200) {
+    Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
+  }
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = NOTIFICATION_LEADERBOARD_FETCHED
+  });
+}
+
+/**
+ * @brief Fires an asynchronous leaderboard fetch using the given sort column.
+ */
+static void fetchLeaderboard(LeaderboardViewController *this, const TableColumn *column) {
 
   const char *sort = column ? sortParamForColumn(column->identifier) : NULL;
   const char *dir  = (column && column->order == OrderAscending) ? "asc" : "desc";
 
-  char url[256];
+  char url[512];
+  int n = g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
   if (sort) {
-    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0&sort=%s&dir=%s", LEADERBOARD_MAX_ENTRIES, sort, dir);
-  } else {
-    g_snprintf(url, sizeof(url), QUETOO_STATS_URL "?limit=%d&ai=0", LEADERBOARD_MAX_ENTRIES);
+    n += g_snprintf(url + n, sizeof(url) - n, "&sort=%s&dir=%s", sort, dir);
   }
 
-  size_t num_entries = 0;
-  const int32_t status = cgi.HttpGetInstances(url, leaderboard_properties,
-                                              this->entries, sizeof(LeaderboardEntry),
-                                              LEADERBOARD_MAX_ENTRIES, &num_entries);
-  this->num_entries = num_entries;
-  return status == 200;
+  $(cgi.restClient, getAsync, url, fetchLeaderboardComplete, NULL);
 }
 
 /**
@@ -103,13 +137,13 @@ static bool fetchLeaderboard(LeaderboardViewController *this, const TableColumn 
  */
 static void selectOwnRow(LeaderboardViewController *this) {
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (!guid_hashed || !guid_hashed[0]) {
+  const char *guid_hash = cgi.GetCvarString("guid_hash");
+  if (strlen(guid_hash) == 0) {
     return;
   }
 
-  for (size_t i = 0; i < this->num_entries; i++) {
-    if (g_strcmp0(this->entries[i].guid, guid_hashed) == 0) {
+  for (size_t i = 0; i < this->leaderboardResponse.num_entries; i++) {
+    if (g_strcmp0(this->leaderboardResponse.entries[i].guid, guid_hash) == 0) {
       $(this->leaderboard, selectRowAtIndex, i);
       return;
     }
@@ -125,7 +159,7 @@ static size_t numberOfRows(const TableView *tableView) {
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  return this->num_entries;
+  return this->leaderboardResponse.num_entries;
 }
 
 #pragma mark - TableViewDelegate
@@ -137,7 +171,7 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
 
   LeaderboardViewController *this = tableView->dataSource.self;
 
-  const LeaderboardEntry *entry = &this->entries[row];
+  const LeaderboardEntry *entry = &this->leaderboardResponse.entries[row];
 
   TableCellView *cell = $(alloc(TableCellView), initWithFrame, NULL);
 
@@ -149,8 +183,8 @@ static TableCellView *cellForColumnAndRow(const TableView *tableView, const Tabl
     $((View *) cell, addClassName, "bronze");
   }
 
-  const char *guid_hashed = cgi.GetCvarString("guid_hashed");
-  if (guid_hashed && guid_hashed[0] && g_strcmp0(entry->guid, guid_hashed) == 0) {
+  const char *guid_hash = cgi.GetCvarString("guid_hash");
+  if (g_strcmp0(entry->guid, guid_hash) == 0) {
     $((View *) cell, addClassName, "me");
   }
 
@@ -181,8 +215,6 @@ static void didSetSortColumn(TableView *tableView) {
   LeaderboardViewController *this = tableView->delegate.self;
 
   fetchLeaderboard(this, tableView->sortColumn);
-  $(this->leaderboard, reloadData);
-  selectOwnRow(this);
 }
 
 #pragma mark - ViewController
@@ -223,6 +255,24 @@ static void loadView(ViewController *self) {
 }
 
 /**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  LeaderboardViewController *this = (LeaderboardViewController *) self;
+
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+    if (event->user.code == NOTIFICATION_LEADERBOARD_FETCHED) {
+      this->leaderboardResponse = pendingLeaderboardResponse;
+      $(this->leaderboard, reloadData);
+      selectOwnRow(this);
+    }
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
  * @see ViewController::viewWillAppear(ViewController *)
  */
 static void viewWillAppear(ViewController *self) {
@@ -232,8 +282,6 @@ static void viewWillAppear(ViewController *self) {
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
   fetchLeaderboard(this, this->leaderboard->sortColumn);
-  $(this->leaderboard, reloadData);
-  selectOwnRow(this);
 }
 
 #pragma mark - Class lifecycle
@@ -243,6 +291,7 @@ static void viewWillAppear(ViewController *self) {
  */
 static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 }
 
