@@ -72,6 +72,7 @@ static const JSONProperties statsResponseProperties = MakeJSONProperties(StatsRe
   MakeJSONProperty(StatsResponse, rank, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, frags, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, deaths, NULL, JSONDeserializeInt32, NULL),
+  MakeJSONProperty(StatsResponse, captures, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, time_played, NULL, JSONDeserializeInt32, NULL),
   MakeJSONProperty(StatsResponse, nemesis, NULL, JSONDeserializeStruct, (ident) &nemesisProperties),
   MakeJSONProperty(StatsResponse, kills_by_weapon, NULL, JSONDeserializeArray, (ident) &killsByWeaponArrayProperties)
