@@ -10,62 +10,62 @@
         {
           "class": "StackView",
           "classNames": [
-            "statTiles"
+            "tiles"
           ],
           "subviews": [
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "nameLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "identifier": "name", "classNames": ["statValue"], "text": { "colorEscapes": true } },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Name" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "rankLabel", "classNames": ["statValue"] },
+                { "class": "Label", "identifier": "rank", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Rank" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "fragsLabel", "classNames": ["statValue"] },
+                { "class": "Label", "identifier": "frags", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Frags" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "deathsLabel", "classNames": ["statValue"] },
+                { "class": "Label", "identifier": "deaths", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Deaths" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "kdLabel", "classNames": ["statValue"] },
+                { "class": "Label", "identifier": "kd", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "KD" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "timeLabel", "classNames": ["statValue"] },
+                { "class": "Label", "identifier": "time", "classNames": ["statValue"] },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Time" } }
               ]
             },
             {
               "class": "StackView",
-              "classNames": [ "statTile" ],
+              "classNames": [ "tile" ],
               "subviews": [
-                { "class": "Label", "identifier": "nemesisLabel", "classNames": ["statValue"], "text": { "colorEscapes": true } },
+                { "class": "Label", "identifier": "nemesis", "classNames": ["statValue"], "text": { "colorEscapes": true } },
                 { "class": "Label", "classNames": ["statCaption"], "text": { "text": "Nemesis" } }
               ]
             }

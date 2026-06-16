@@ -28,7 +28,7 @@
 #include "console.h"
 #include "filesystem.h"
 #include "installer.h"
-#include "net/net_http.h"
+#include <Objectively/RESTClient.h>
 
 /**
  * @brief The installer type.
@@ -69,23 +69,22 @@ static struct {
  * @brief Performs a blocking HTTP `GET` and parses an integer from the response body.
  */
 static int32_t Installer_GetVersion(const char *version_url) {
-  void *body;
-  size_t length;
   int32_t version;
 
-  const int32_t status = Net_HttpGet(version_url, &body, &length);
-  if (status == 200) {
-    version = (int32_t) strtol((char *) body, NULL, 10);
+  Data *data = NULL;
+  const int32_t status = $($$(RESTClient, sharedInstance), get, version_url, &data);
+  if (status == 200 && data) {
+    version = (int32_t) strtol((const char *) data->bytes, NULL, 10);
     Com_Debug(DEBUG_COMMON, "%s == %d\n", version_url, version);
   } else {
     Com_Warn("%s: HTTP %d\n", version_url, status);
-    if (length) {
-      Com_Debug(DEBUG_COMMON, "%s\n", (char *) body);
+    if (data && data->length) {
+      Com_Debug(DEBUG_COMMON, "%s\n", (const char *) data->bytes);
     }
     version = -1;
   }
 
-  Mem_Free(body);
+  release(data);
   return version;
 }
 
@@ -149,13 +148,12 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   g_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
   g_free(encoded);
 
-  void *data = NULL;
-  size_t length = 0;
+  Data *data = NULL;
 
-  const int32_t status = Net_HttpGet(url, &data, &length);
+  const int32_t status = $($$(RESTClient, sharedInstance), get, url, &data);
   if (status != 200) {
     Com_Warn("Downloading %s failed: HTTP %d\n", url, status);
-    Mem_Free(data);
+    release(data);
     return false;
   }
 
@@ -167,26 +165,27 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   g_free(dir);
   if (mkdir_result != 0) {
     Com_Warn("Failed to create directory for: %s\n", path);
-    Mem_Free(data);
+    release(data);
     return false;
   }
 
   FILE *f = g_fopen(path, "wb");
   if (!f) {
     Com_Warn("Failed to open for writing: %s\n", path);
-    Mem_Free(data);
+    release(data);
     return false;
   }
 
-  const size_t written = fwrite(data, 1, length, f);
+  const size_t written = fwrite(data->bytes, 1, data->length, f);
   fclose(f);
-  Mem_Free(data);
 
-  if (written != length) {
-    Com_Warn("Failed to write %s: %zu of %zu bytes\n", path, written, length);
+  if (written != data->length) {
+    Com_Warn("Failed to write %s: %zu of %zu bytes\n", path, written, data->length);
+    release(data);
     return false;
   }
 
+  release(data);
   return true;
 }
 
@@ -273,22 +272,21 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_COMPARING: {
-        void *data = NULL;
-        size_t length = 0;
+        Data *data = NULL;
         char manifest_url[MAX_OS_PATH];
         g_snprintf(manifest_url, sizeof(manifest_url), QUETOO_DATA_BASE_URL "/%s/manifest.mf", game->string);
-        const int32_t http_status = Net_HttpGet(manifest_url, &data, &length);
+        const int32_t http_status = $($$(RESTClient, sharedInstance), get, manifest_url, &data);
         if (http_status != 200 || !data) {
           SDL_LockMutex(installer.mutex);
           in->state = INSTALLER_ERROR;
           g_snprintf(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", http_status);
           SDL_UnlockMutex(installer.mutex);
-          Mem_Free(data);
+          release(data);
           break;
         }
 
-        GHashTable *remote = Cm_ParseManifest((const char *) data, length);
-        Mem_Free(data);
+        GHashTable *remote = Cm_ParseManifest((const char *) data->bytes, data->length);
+        release(data);
 
         {
           GHashTableIter iter;

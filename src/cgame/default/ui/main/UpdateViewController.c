@@ -47,12 +47,11 @@ static void fetchHeroImages(void *data) {
 
 	UpdateViewController *this = data;
 
-	void *list_body = NULL, *image_body = NULL;
-	size_t list_length, image_length;
+	Data *list_data = NULL, *image_data = NULL;
 
-	if (cgi.HttpGet(QUETOO_HERO_LIST_URL, &list_body, &list_length) != 200) {
+	if ($(cgi.restClient, get, QUETOO_HERO_LIST_URL, &list_data) != 200 || !list_data) {
 		Cg_Warn("Failed to fetch hero image list");
-		cgi.Free(list_body);
+		release(list_data);
 		return;
 	}
 
@@ -61,7 +60,7 @@ static void fetchHeroImages(void *data) {
 
 	GPtrArray *urls = g_ptr_array_new_with_free_func(g_free);
 
-	char *p = (char *) list_body;
+	char *p = (char *) list_data->bytes;
 	while ((p = strstr(p, prefix)) != NULL) {
 
 		p += strlen(prefix);
@@ -81,7 +80,7 @@ static void fetchHeroImages(void *data) {
 		p = s + strlen(suffix);
 	}
 
-	cgi.Free(list_body);
+	release(list_data);
 
 	for (guint i = urls->len - 1; i > 0; i--) {
 		const guint j = (guint) rand() % (i + 1);
@@ -91,10 +90,11 @@ static void fetchHeroImages(void *data) {
 	}
 
 	for (guint i = 0; i < urls->len; i++) {
-		if (cgi.HttpGet(urls->pdata[i], &image_body, &image_length) == 200) {
+		image_data = NULL;
+		if ($(cgi.restClient, get, urls->pdata[i], &image_data) == 200 && image_data) {
 			Image *image = NULL;
 
-      SDL_Surface *surf = cgi.LoadSurfaceFromData(image_body, image_length);
+      SDL_Surface *surf = cgi.LoadSurfaceFromData(image_data->bytes, image_data->length);
       if (surf) {
         cgi.BlurSurface(surf, 3);
         image = $$(Image, imageWithSurface, surf);
@@ -102,7 +102,7 @@ static void fetchHeroImages(void *data) {
       }
 
 			if (image == NULL) {
-				image = $$(Image, imageWithBytes, image_body, image_length);
+				image = $$(Image, imageWithBytes, image_data->bytes, image_data->length);
 			}
 
 			if (image) {
@@ -114,7 +114,7 @@ static void fetchHeroImages(void *data) {
 		} else {
 			Cg_Warn("Failed to fetch hero image: %s", (char *) urls->pdata[i]);
 		}
-		cgi.Free(image_body);
+		release(image_data);
 	}
 
 	g_ptr_array_free(urls, true);

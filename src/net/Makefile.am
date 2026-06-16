@@ -1,6 +1,6 @@
 noinst_HEADERS = \
 	net_chan.h \
-	net_http.h \
+	net_http_server.h \
 	net_message.h \
 	net_sock.h \
 	net_types.h \
@@ -11,7 +11,7 @@ noinst_LTLIBRARIES = \
 
 libnet_la_SOURCES = \
 	net_chan.c \
-	net_http.c \
+	net_http_server.c \
 	net_message.c \
 	net_sock.c \
 	net_udp.c
