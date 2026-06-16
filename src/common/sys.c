@@ -260,7 +260,7 @@ void Sys_InstallDesktopEntry(void) {
   g_free(content);
 
   // Register quetoo:// URI scheme handler for this user session.
-  system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
+  (void) system("update-desktop-database ~/.local/share/applications/ 2>/dev/null");
 }
 
 /**
@@ -653,8 +653,8 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
     if (fds[i] == -1) {
       continue;
     }
-    write(fds[i], header, sizeof(header) - 1);
-    write(fds[i], sig_name, strlen(sig_name));
+    (void) write(fds[i], header, sizeof(header) - 1);
+    (void) write(fds[i], sig_name, strlen(sig_name));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif
