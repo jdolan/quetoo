@@ -87,18 +87,18 @@ struct StatsViewController {
   /**
    * @brief Stat tile labels.
    */
-  Label *nameLabel;
-  Label *rankLabel;
-  Label *fragsLabel;
-  Label *deathsLabel;
-  Label *kdLabel;
-  Label *timeLabel;
-  Label *nemesisLabel;
+  Label *name;
+  Label *rank;
+  Label *frags;
+  Label *deaths;
+  Label *kd;
+  Label *time;
+  Label *nemesis;
 
   /**
    * @brief Kills-by-weapon breakdown table.
    */
-  TableView *weaponsTable;
+  TableView *weapons;
 };
 
 /**

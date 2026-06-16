@@ -111,20 +111,21 @@ static void fetchStatsComplete(int32_t status, Data *data, void *user_data) {
  */
 static void fetchStats(StatsViewController *this) {
 
-  $(this->rankLabel->text, setText, "—");
-  $(this->fragsLabel->text, setText, "—");
-  $(this->deathsLabel->text, setText, "—");
-  $(this->kdLabel->text, setText, "—");
-  $(this->timeLabel->text, setText, "—");
+  $(this->name->text, setText, "—");
+  $(this->rank->text, setText, "—");
+  $(this->frags->text, setText, "—");
+  $(this->deaths->text, setText, "—");
+  $(this->kd->text, setText, "—");
+  $(this->time->text, setText, "—");
+  $(this->nemesis->text, setText, "—");
 
   const char *guid_hash = cgi.GetCvarString("guid_hash");
   if (!guid_hash || !guid_hash[0]) {
-    $(this->fragsLabel->text, setText, "Sign in");
-    $(this->weaponsTable, reloadData);
+    $(this->weapons, reloadData);
     return;
   }
 
-  $(this->weaponsTable, reloadData);
+  $(this->weapons, reloadData);
 
   char url[MAX_STRING_CHARS];
   g_snprintf(url, sizeof(url), QUETOO_STATS_URL "/%s", guid_hash);
@@ -186,14 +187,14 @@ static void loadView(ViewController *self) {
   StatsViewController *this = (StatsViewController *) self;
 
   Outlet outlets[] = MakeOutlets(
-    MakeOutlet("nameLabel",     &this->nameLabel),
-    MakeOutlet("rankLabel",     &this->rankLabel),
-    MakeOutlet("fragsLabel",    &this->fragsLabel),
-    MakeOutlet("deathsLabel",   &this->deathsLabel),
-    MakeOutlet("kdLabel",       &this->kdLabel),
-    MakeOutlet("timeLabel",     &this->timeLabel),
-    MakeOutlet("nemesisLabel",  &this->nemesisLabel),
-    MakeOutlet("weapons",       &this->weaponsTable)
+    MakeOutlet("name", &this->name),
+    MakeOutlet("rank", &this->rank),
+    MakeOutlet("frags", &this->frags),
+    MakeOutlet("deaths", &this->deaths),
+    MakeOutlet("kd", &this->kd),
+    MakeOutlet("time", &this->time),
+    MakeOutlet("nemesis", &this->nemesis),
+    MakeOutlet("weapons", &this->weapons)
   );
 
   $(self->view, awakeWithResourceName, "ui/home/StatsViewController.json");
@@ -202,14 +203,14 @@ static void loadView(ViewController *self) {
   self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/StatsViewController.css");
   assert(self->view->stylesheet);
 
-  $(this->weaponsTable, addColumnWithIdentifier, _weapon);
-  $(this->weaponsTable, addColumnWithIdentifier, _frags);
+  $(this->weapons, addColumnWithIdentifier, _weapon);
+  $(this->weapons, addColumnWithIdentifier, _frags);
 
-  this->weaponsTable->dataSource.numberOfRows = numberOfRows;
-  this->weaponsTable->dataSource.self = this;
+  this->weapons->dataSource.numberOfRows = numberOfRows;
+  this->weapons->dataSource.self = this;
 
-  this->weaponsTable->delegate.cellForColumnAndRow = cellForColumnAndRow;
-  this->weaponsTable->delegate.self = this;
+  this->weapons->delegate.cellForColumnAndRow = cellForColumnAndRow;
+  this->weapons->delegate.self = this;
 }
 
 /**
@@ -225,18 +226,18 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
       *s = pendingStatsResponse;
 
-      $(this->nameLabel->text, setText, cgi.GetCvarString("name"));
-      $(this->rankLabel->text, setText, s->rank ? va("#%d", s->rank) : "—");
-      $(this->fragsLabel->text, setText, s->frags ? va("%d", s->frags) : "—");
-      $(this->deathsLabel->text, setText, s->deaths ? va("%d", s->deaths) : "—");
+      $(this->name->text, setText, cgi.GetCvarString("name"));
+      $(this->rank->text, setText, s->rank ? va("#%d", s->rank) : "—");
+      $(this->frags->text, setText, s->frags ? va("%d", s->frags) : "—");
+      $(this->deaths->text, setText, s->deaths ? va("%d", s->deaths) : "—");
 
       const double kd = s->deaths > 0 ? (double) s->frags / s->deaths : (double) s->frags;
-      $(this->kdLabel->text, setText, s->frags ? va("%.2f", kd) : "—");
+      $(this->kd->text, setText, s->frags ? va("%.2f", kd) : "—");
 
-      $(this->timeLabel->text, setText, formatTime(s->time_played));
-      $(this->nemesisLabel->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
+      $(this->time->text, setText, formatTime(s->time_played));
+      $(this->nemesis->text, setText, s->nemesis.name[0] ? s->nemesis.name : "—");
 
-      $(this->weaponsTable, reloadData);
+      $(this->weapons, reloadData);
     }
   }
 
