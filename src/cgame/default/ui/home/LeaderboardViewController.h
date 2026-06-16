@@ -37,8 +37,8 @@
  */
 typedef struct {
   int32_t rank;
-  char    name[64];
-  char    guid[68];
+  char name[64];
+  char guid[68];
   int32_t frags;
   int32_t deaths;
   int32_t captures;

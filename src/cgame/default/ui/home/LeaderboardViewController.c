@@ -92,8 +92,11 @@ static void fetchLeaderboardComplete(int32_t status, Data *data, void *user_data
 
   if (status == 200 && data) {
     JSONContext *ctx = $(alloc(JSONContext), init);
-    pendingLeaderboardResponse.num_entries = $(ctx, structsFromData, &leaderboard_entry_properties, data,
-                                        pendingLeaderboardResponse.entries, LEADERBOARD_MAX_ENTRIES);
+    pendingLeaderboardResponse.num_entries = $(ctx, structsFromData,
+                                               &leaderboard_entry_properties,
+                                               data,
+                                               pendingLeaderboardResponse.entries,
+                                               LEADERBOARD_MAX_ENTRIES);
     release(ctx);
   } else if (status && status != 200) {
     Cg_Warn("Failed to fetch leaderboard: HTTP %d\n", status);
