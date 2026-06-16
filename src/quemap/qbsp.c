@@ -168,6 +168,15 @@ int32_t BSP_Main(void) {
 
   LoadMapFile(map_name);
 
+  bool valve = false;
+  for (int32_t i = 0; i < num_brush_sides; i++) {
+    if (brush_sides[i].valve) {
+      valve = true;
+      break;
+    }
+  }
+  Com_Print("Map format: %s\n", valve ? "Quake3 (Valve)" : "Quake3");
+
   EmitPlanes();
   EmitMaterials();
   EmitBrushes();

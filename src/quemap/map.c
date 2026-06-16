@@ -530,12 +530,37 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
     g_strlcpy(side->texture, token, sizeof(side->texture));
 
-    // read the texture parameters
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    // detect Valve-220 vs standard Q1/Q3 format by peeking for '['
+    Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token));
+
+    if (!g_strcmp0(token, "[")) {
+      // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
+      side->valve = true;
+      for (int32_t i = 0; i < 2; i++) {
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "[")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].y, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "]")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
+      }
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    } else {
+      // Standard Q1/Q3: shift_x shift_y rotation scale_x scale_y
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    }
 
     if (!Parse_IsEOL(parser)) {
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->contents, 1);
