@@ -62,9 +62,13 @@ void main() {
       shadow = lit;
     }
 
-    diffuse += lcol * (ndotl * atten * shadow * 0.006 * intensity);
+    diffuse += lcol * (ndotl * atten * shadow * 0.02 * intensity);
   }
 
-  // a little ambient so unlit surfaces remain readable
-  hit_value = t.albedo.xyz * (0.12 + diffuse);
+  // the diffuse textures average to dark linear values (~0.15); gamma-correct the
+  // albedo to a perceptual value first, then apply an ambient floor plus the lights
+  // so the real material colors are clearly readable.
+  vec3 base = pow(clamp(t.albedo.xyz, 0.0, 1.0), vec3(1.0 / 2.2));
+  vec3 color = base * (0.55 + diffuse * 3.0);
+  hit_value = clamp(color, 0.0, 1.0);
 }

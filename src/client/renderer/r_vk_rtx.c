@@ -297,6 +297,48 @@ static void R_Rtx_LoadProcs(void) {
 }
 
 /**
+ * @brief Computes a representative (average) diffuse color for a material so RTX
+ * surfaces are tinted by their actual texture. Full per-pixel sampling is future work.
+ */
+static vec3_t R_Rtx_MaterialColor(const r_material_t *material) {
+
+  const vec3_t fallback = Vec3(0.6f, 0.6f, 0.6f);
+  if (!material || !material->cm || !*material->cm->diffusemap.path) {
+    return fallback;
+  }
+
+  SDL_Surface *surface = Img_LoadSurface(material->cm->diffusemap.path);
+  if (!surface) {
+    return fallback;
+  }
+
+  SDL_Surface *rgba = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
+  SDL_DestroySurface(surface);
+  if (!rgba) {
+    return fallback;
+  }
+
+  uint64_t r = 0, g = 0, b = 0, n = 0;
+  const uint8_t *pixels = rgba->pixels;
+  for (int32_t y = 0; y < rgba->h; y++) {
+    const uint8_t *row = pixels + (size_t) y * rgba->pitch;
+    for (int32_t x = 0; x < rgba->w; x++) {
+      const uint8_t *p = row + x * 4;
+      if (p[3] < 8) {
+        continue;
+      }
+      r += p[0]; g += p[1]; b += p[2]; n++;
+    }
+  }
+  SDL_DestroySurface(rgba);
+
+  if (n == 0) {
+    return fallback;
+  }
+  return Vec3((float) r / n / 255.f, (float) g / n / 255.f, (float) b / n / 255.f);
+}
+
+/**
  * @brief Builds the bottom- and top-level acceleration structures from the loaded BSP
  * world geometry, plus the per-triangle shading buffer.
  */
@@ -312,10 +354,8 @@ static void R_Rtx_BuildWorld(void) {
 
   const r_bsp_model_t *bsp = world->bsp;
   const int32_t num_vertexes = bsp->num_vertexes;
-  const int32_t num_elements = bsp->num_elements;
-  const int32_t num_tris = num_elements / 3;
 
-  if (num_vertexes <= 0 || num_tris <= 0) {
+  if (num_vertexes <= 0 || bsp->num_elements < 3) {
     return;
   }
 
@@ -329,23 +369,89 @@ static void R_Rtx_BuildWorld(void) {
     r_rtx.world_maxs = Vec3_Maxf(r_rtx.world_maxs, positions[i]);
   }
 
-  uint32_t *elements = Mem_Malloc(sizeof(uint32_t) * num_elements);
-  for (int32_t i = 0; i < num_elements; i++) {
-    elements[i] = (uint32_t) bsp->elements[i];
+  // average each material's diffuse texture once so every triangle can be tinted
+  vec3_t *mat_color = NULL;
+  if (bsp->num_materials > 0) {
+    mat_color = Mem_Malloc(sizeof(vec3_t) * bsp->num_materials);
+    for (int32_t i = 0; i < bsp->num_materials; i++) {
+      mat_color[i] = R_Rtx_MaterialColor(bsp->materials[i]);
+    }
   }
 
-  // per-triangle flat normal + orientation-tinted albedo
-  r_rtx_tri_t *tris = Mem_Malloc(sizeof(r_rtx_tri_t) * num_tris);
-  for (int32_t t = 0; t < num_tris; t++) {
-    const vec3_t a = positions[elements[t * 3 + 0]];
-    const vec3_t b = positions[elements[t * 3 + 1]];
-    const vec3_t c = positions[elements[t * 3 + 2]];
-    vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(b, a), Vec3_Subtract(c, a)));
-    tris[t].normal = Vec4(n.x, n.y, n.z, 0.f);
-    tris[t].albedo = Vec4(0.45f + 0.45f * fabsf(n.x),
-                          0.45f + 0.45f * fabsf(n.y),
-                          0.45f + 0.45f * fabsf(n.z), 0.f);
+  // count the elements covered by draw elements (opaque faces batched per material)
+  int32_t draw_elements_count = 0;
+  for (int32_t d = 0; d < bsp->num_draw_elements; d++) {
+    draw_elements_count += bsp->draw_elements[d].num_elements;
   }
+
+  uint32_t *elements;
+  r_rtx_tri_t *tris;
+  int32_t num_elements;
+  int32_t num_tris;
+
+  if (draw_elements_count >= 3) {
+    // build the ray-traced geometry from the draw elements: this is exactly what the
+    // rasterizer draws, and each batch carries its material, so every triangle gets
+    // its real (averaged) diffuse color.
+    elements = Mem_Malloc(sizeof(uint32_t) * draw_elements_count);
+    tris = Mem_Malloc(sizeof(r_rtx_tri_t) * (draw_elements_count / 3));
+    int32_t e_out = 0;
+    for (int32_t d = 0; d < bsp->num_draw_elements; d++) {
+      const r_bsp_draw_elements_t *de = &bsp->draw_elements[d];
+      vec3_t albedo = Vec3(0.6f, 0.6f, 0.6f);
+      if (mat_color) {
+        for (int32_t i = 0; i < bsp->num_materials; i++) {
+          if (bsp->materials[i] == de->material) {
+            albedo = mat_color[i];
+            break;
+          }
+        }
+      }
+      const uint32_t first = (uint32_t) ((uintptr_t) de->elements / sizeof(uint32_t));
+      for (int32_t j = 0; j + 2 < de->num_elements; j += 3) {
+        const uint32_t i0 = (uint32_t) bsp->elements[first + j + 0];
+        const uint32_t i1 = (uint32_t) bsp->elements[first + j + 1];
+        const uint32_t i2 = (uint32_t) bsp->elements[first + j + 2];
+        elements[e_out + 0] = i0;
+        elements[e_out + 1] = i1;
+        elements[e_out + 2] = i2;
+        const vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(positions[i1], positions[i0]),
+                                                   Vec3_Subtract(positions[i2], positions[i0])));
+        const int32_t t = e_out / 3;
+        tris[t].normal = Vec4(n.x, n.y, n.z, 0.f);
+        tris[t].albedo = Vec4(albedo.x, albedo.y, albedo.z, 0.f);
+        e_out += 3;
+      }
+    }
+    num_elements = e_out;
+    num_tris = num_elements / 3;
+  } else {
+    // fallback: trace the full element array with an orientation tint
+    num_elements = bsp->num_elements;
+    num_tris = num_elements / 3;
+    elements = Mem_Malloc(sizeof(uint32_t) * num_elements);
+    for (int32_t i = 0; i < num_elements; i++) {
+      elements[i] = (uint32_t) bsp->elements[i];
+    }
+    tris = Mem_Malloc(sizeof(r_rtx_tri_t) * num_tris);
+    for (int32_t t = 0; t < num_tris; t++) {
+      const vec3_t a = positions[elements[t * 3 + 0]];
+      const vec3_t b = positions[elements[t * 3 + 1]];
+      const vec3_t c = positions[elements[t * 3 + 2]];
+      const vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(b, a), Vec3_Subtract(c, a)));
+      tris[t].normal = Vec4(n.x, n.y, n.z, 0.f);
+      tris[t].albedo = Vec4(0.45f + 0.45f * fabsf(n.x),
+                            0.45f + 0.45f * fabsf(n.y),
+                            0.45f + 0.45f * fabsf(n.z), 0.f);
+    }
+  }
+
+  if (mat_color) {
+    Mem_Free(mat_color);
+  }
+
+  Com_Print("  RTX: geometry %d tris from %d draw elements, %d materials\n",
+            num_tris, bsp->num_draw_elements, bsp->num_materials);
 
   const VkMemoryPropertyFlags host = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   const VkMemoryPropertyFlags local = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
