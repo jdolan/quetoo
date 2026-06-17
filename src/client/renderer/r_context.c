@@ -153,7 +153,13 @@ void R_InitContext(void) {
 
   memset(&r_context, 0, sizeof(r_context));
 
-  if (R_Vulkan()) {
+  // R_Vulkan() reports the *active* backend, which the memset above just cleared;
+  // choose which backend to bring up from the r_backend cvar (the desired backend).
+  // R_InitContextVulkan() sets r_context.vulkan, after which R_Vulkan() reports
+  // Vulkan for the remainder of this context's lifetime (including its teardown).
+  const _Bool want_vulkan = r_backend && !g_strcmp0(r_backend->string, "vulkan");
+
+  if (want_vulkan) {
 #if BUILD_VULKAN
     R_InitContextVulkan();
     return;

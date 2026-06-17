@@ -185,13 +185,19 @@ void R_UpdateUniforms(const r_view_t *view) {
 static const r_view_t *r_current_view;
 
 /**
- * @brief Returns true if the renderer is running on the Vulkan backend (`r_backend
- * vulkan`) in a build with Vulkan support compiled in. When false, the OpenGL
- * backend is in use.
+ * @brief Returns true if the renderer is currently running on the Vulkan backend.
+ *
+ * This reflects the *active* backend (recorded in `r_context.vulkan` when the
+ * context is created), not the `r_backend` cvar. The cvar can already hold a
+ * newly-selected backend that only takes effect on the next `r_restart`, so all
+ * per-frame and teardown paths must key off the active backend: otherwise a
+ * GL->Vulkan (or Vulkan->GL) switch would tear down the backend being brought up
+ * rather than the one actually running, and crash. Only R_InitContext() consults
+ * the cvar, to decide which backend to bring up. When false, OpenGL is in use.
  */
 _Bool R_Vulkan(void) {
 #if BUILD_VULKAN
-  return r_backend && !g_strcmp0(r_backend->string, "vulkan");
+  return r_context.vulkan;
 #else
   return false;
 #endif
