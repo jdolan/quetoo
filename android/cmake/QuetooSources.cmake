@@ -53,14 +53,15 @@ set(QUETOO_COLLISION_SOURCES
     "${QUETOO_SRC}/collision/cm_polylib.c"
     "${QUETOO_SRC}/collision/cm_test.c"
     "${QUETOO_SRC}/collision/cm_trace.c"
+    "${QUETOO_SRC}/collision/cm_voxel.c"
 )
 
 # --- src/net/Makefile.am : libnet.la -----------------------------------------
-# NOTE: net_http.c uses Objectively's URLRequest/URLSession (NOT libcurl). See
-# QuetooDependencies.cmake — Objectively is the real HTTP dependency here.
+# v78: the HTTP *client* (old net_http.c, Objectively URLSession) was removed
+# upstream; net_http_server.c is the pure-C listen-server responder (no Objectively).
 set(QUETOO_NET_SOURCES
     "${QUETOO_SRC}/net/net_chan.c"
-    "${QUETOO_SRC}/net/net_http.c"
+    "${QUETOO_SRC}/net/net_http_server.c"
     "${QUETOO_SRC}/net/net_message.c"
     "${QUETOO_SRC}/net/net_sock.c"
     "${QUETOO_SRC}/net/net_udp.c"
@@ -77,6 +78,7 @@ set(QUETOO_SERVER_SOURCES
     "${QUETOO_SRC}/server/sv_http.c"
     "${QUETOO_SRC}/server/sv_init.c"
     "${QUETOO_SRC}/server/sv_main.c"
+    "${QUETOO_SRC}/server/sv_map_list.c"
     "${QUETOO_SRC}/server/sv_master.c"
     "${QUETOO_SRC}/server/sv_send.c"
     "${QUETOO_SRC}/server/sv_world.c"
@@ -121,7 +123,6 @@ set(QUETOO_RENDERER_SOURCES
 
 # --- src/client/sound/Makefile.am : libsound.la ------------------------------
 set(QUETOO_SOUND_SOURCES
-    "${QUETOO_SRC}/client/sound/s_al_ext.c"
     "${QUETOO_SRC}/client/sound/s_main.c"
     "${QUETOO_SRC}/client/sound/s_media.c"
     "${QUETOO_SRC}/client/sound/s_mix.c"
@@ -156,6 +157,7 @@ set(QUETOO_CLIENT_SOURCES
     "${QUETOO_SRC}/client/cl_screen.c"
     "${QUETOO_SRC}/client/cl_server.c"
     "${QUETOO_SRC}/client/cl_sound.c"
+    "${QUETOO_SRC}/client/cl_touch.c"
 )
 
 # --- src/client/Makefile.am : libclient_null.la (headless, for dedicated) ----
@@ -174,6 +176,7 @@ set(QUETOO_GAME_PMOVE_SOURCES
 # ... and the loadable game module itself (-> game.so / game.la).
 set(QUETOO_GAME_SOURCES
     "${QUETOO_SRC}/game/default/g_ai_goal.c"
+    "${QUETOO_SRC}/game/default/g_ai_grid.c"
     "${QUETOO_SRC}/game/default/g_ai_info.c"
     "${QUETOO_SRC}/game/default/g_ai_item.c"
     "${QUETOO_SRC}/game/default/g_ai_main.c"
@@ -193,7 +196,6 @@ set(QUETOO_GAME_SOURCES
     "${QUETOO_SRC}/game/default/g_entity.c"
     "${QUETOO_SRC}/game/default/g_item.c"
     "${QUETOO_SRC}/game/default/g_main.c"
-    "${QUETOO_SRC}/game/default/g_map_list.c"
     "${QUETOO_SRC}/game/default/g_physics.c"
     "${QUETOO_SRC}/game/default/g_sound.c"
     "${QUETOO_SRC}/game/default/g_util.c"
@@ -258,6 +260,8 @@ set(QUETOO_CGAME_UI_SOURCES
     "${QUETOO_SRC}/cgame/default/ui/editor/MeshViewController.c"
     # ui/home  (libcguihome)
     "${QUETOO_SRC}/cgame/default/ui/home/HomeViewController.c"
+    "${QUETOO_SRC}/cgame/default/ui/home/LeaderboardViewController.c"
+    "${QUETOO_SRC}/cgame/default/ui/home/StatsViewController.c"
     # ui/main  (libcguimain)
     "${QUETOO_SRC}/cgame/default/ui/main/LoadingViewController.c"
     "${QUETOO_SRC}/cgame/default/ui/main/MainView.c"

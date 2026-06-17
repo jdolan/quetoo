@@ -171,6 +171,13 @@ static void R_DestroyBloomFramebuffers(void) {
  */
 void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
 
+#if defined(QUETOO_GLES)
+  // #856: the MSAA depth resolve binds GL_TEXTURE_2D_MULTISAMPLE and samples it via
+  // sampler2DMS (GL ES 3.1+), neither of which exists in the ES 3.0 core we target.
+  // MSAA framebuffers are never created under GLES (see r_framebuffer.c), so the
+  // r_main.c caller's `if (msaa.fbo)` guard keeps this unreachable; stub it to link.
+  (void) framebuffer;
+#else
   assert(framebuffer);
   assert(framebuffer->msaa.fbo);
   assert(framebuffer->msaa.depth_attachment);
@@ -203,6 +210,7 @@ void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
   glUseProgram(0);
 
   R_GetError(NULL);
+#endif
 }
 
 /**
@@ -371,6 +379,11 @@ void R_InitPost(void) {
 
   R_InitPostProgram();
 
+#if !defined(QUETOO_GLES)
+  // #856: depth_resolve_fs.glsl samples a sampler2DMS (GL ES 3.1+), so it can't be
+  // compiled on the ES 3.0 core target. MSAA is disabled under GLES, so the depth
+  // resolve program is never used; skip loading it (name stays 0, a safe no-op for
+  // the glDeleteProgram in R_ShutdownPost).
   r_depth_resolve_program.name = R_LoadProgram(
     R_ShaderDescriptor(GL_VERTEX_SHADER,   "post_vs.glsl", NULL),
     R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_resolve_fs.glsl", NULL),
@@ -380,6 +393,7 @@ void R_InitPost(void) {
   r_depth_resolve_program.texture_depth_ms = glGetUniformLocation(r_depth_resolve_program.name, "texture_depth_ms");
   glUniform1i(r_depth_resolve_program.texture_depth_ms, TEXTURE_DEPTH_ATTACHMENT);
   glUseProgram(0);
+#endif
 
   R_GetError(NULL);
 }

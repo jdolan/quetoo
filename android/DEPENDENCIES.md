@@ -1,8 +1,52 @@
 # Quetoo Android — NDK Dependency Status
 
-Cross-compiling the engine for Android (arm64-v8a, NDK r27c, clang 18, Bionic).
+Cross-compiling the engine for Android (arm64-v8a + x86_64, NDK r27c, clang 18, Bionic).
 Status of each native dependency. Validated on the `quetoo-build` LXC with the
 NDK at `/opt/android-ndk-r27c`.
+
+> ## ✅ v78 status (2026-06-17): full online stack + GL ES 3.0 MVC — BOOTS TO MENU
+>
+> The clean re-port onto upstream **v78** (`feature/android-port-v78`) builds and
+> links for **both x86_64 and arm64-v8a**, and the x86_64 build boots on the
+> emulator through full init to a **rendered GL ES 3.0 main menu** (no crash). The
+> earlier "HTTP deferred / MVC stubbed / renderer is the long pole" plan below is
+> **superseded** — all of it is done. Key facts for reproducing the dependency layer:
+>
+> - **Full HTTPS online stack (path B), not stubbed.** v78 moved the HTTP client into
+>   Objectively's `RESTClient → URLSession → libcurl`. The engine's endpoints are
+>   HTTPS (`giblets.quetoo.org/api/{guid,stats}`, `*.s3.amazonaws.com`), so a TLS
+>   backend is required. `android/build_http_stack.sh <abi> <prefix>` cross-builds,
+>   per ABI: **mbedTLS 3.6.2** (TLS) → **libcurl 8.11.1** (`-DHTTP_ONLY=ON
+>   -DCURL_USE_MBEDTLS=ON`, no other protocols) → **`libObjectively.so` including the
+>   URLSession + RESTClient + JSON layer** (the old `build_all_ndk.sh` skipped
+>   `URLSession*.c`). The engine links `libObjectively.so`; curl/mbedTLS load
+>   transitively (DT_NEEDED). Ship `libcurl.so` + `libmbed{tls,x509,crypto}.so` in
+>   the APK. (Runtime TODO: HTTPS needs a CA bundle — ship `cacert.pem` /
+>   `CURLOPT_CAINFO`; offline play + http:// map downloads work without it.)
+> - **Objectively & ObjectivelyMVC bumped to `origin/main`.** Objectively `0c4f120`
+>   adds `RESTClient`/`JSONContext`; **ObjectivelyMVC `d2f70f4` "Replace FFP Renderer
+>   with OpenGL ES 3.0 implementation"** is jdolan's official GLES MVC renderer (use
+>   it — no custom GLES MVC needed). `Resource` now lives in **Objectively**, not MVC.
+> - **Required Objectively patch (`Class.c`): `dlsym(_handle,s)` → `dlsym(RTLD_DEFAULT,s)`.**
+>   Bionic's `dlopen(NULL,0)` handle can't resolve the main program's class-archetype
+>   symbols (`_RESTClient`, …); `RTLD_DEFAULT` searches the global scope. Without it
+>   the OO runtime can't find classes by name.
+> - **Headers must match in BOTH include roots.** The engine compiles with
+>   `-I/usr/local/include` (pkg-config `.pc`) **and** `-I<prefix>/include` (via
+>   `CMAKE_PREFIX_PATH`). If either holds *stale* Objectively/MVC headers, a subclass
+>   (e.g. `QuetooRenderer`) is sized against an old, smaller `Renderer` and
+>   `Class::_initialize` aborts: `assertion "superclass->def.instanceSize <=
+>   def->instanceSize"`. Refresh new headers into `/usr/local/include` **and**
+>   `/root/android-<abi>/include` after bumping the libs.
+> - **UI resources must be in `default.pk3`.** The cgame loads view layouts via
+>   `ui/**/*.json` + `*.css` (MVC `awakeWithResourceName`, resolved by `Ui_Data` →
+>   `Fs_Load`). v78 added `ui/home/{Stats,Leaderboard}ViewController.{json,css}`; a
+>   missing file makes `View::awakeWithResource` assert `"resource"`. Refresh
+>   `src/cgame/default/ui/**/*.{json,css}` into the pk3 (same as the shaders).
+> - **Build order per ABI:** `build_all_ndk.sh <abi>` (base deps) → `build_http_stack.sh
+>   <abi>` (mbedTLS+curl+Objectively-HTTP) → rebuild `libObjectivelyMVC.so` (GLES) →
+>   refresh prefix headers → `cmake -S android -B qa-v78-<abi> -DANDROID_ABI=<abi>
+>   -DCMAKE_PREFIX_PATH=/root/android-<abi> -DQUETOO_GLES=ON` → `cmake --build`.
 
 | Dependency | NDK status | Notes |
 |---|---|---|
