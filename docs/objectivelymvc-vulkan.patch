@@ -1,0 +1,87 @@
+--- /opt/ObjectivelyMVC/Sources/ObjectivelyMVC/Font.c	2026-05-28 00:20:02.561829023 +0000
++++ /tmp/ObjectivelyMVC/Sources/ObjectivelyMVC/Font.c	2026-06-17 21:54:47.357428198 +0000
+@@ -135,7 +135,7 @@
+     style = DEFAULT_FONT_STYLE;
+   }
+ 
+-  const int renderSize = size * SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
++  const int renderSize = size * SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+ 
+   const Array *fonts = (Array *) _fonts;
+   for (size_t i = 0; i < fonts->count; i++) {
+@@ -226,7 +226,7 @@
+ 
+   SDL_Surface *surface;
+   if (wrapWidth) {
+-    const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
++    const float scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+     surface = TTF_RenderText_Blended_Wrapped(self->font, chars, 0, color, wrapWidth * scale);
+   } else {
+     surface = TTF_RenderText_Blended(self->font, chars, 0, color);
+@@ -249,7 +249,7 @@
+  */
+ static void renderDeviceDidReset(Font *self) {
+ 
+-  const int renderSize = self->size * SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
++  const int renderSize = self->size * SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+   if (renderSize != self->renderSize) {
+ 
+     self->renderSize = renderSize;
+@@ -298,7 +298,7 @@
+     }
+     free(lines);
+ 
+-    const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
++    const float scale = SDL_GetDisplayContentScale(SDL_GetPrimaryDisplay());
+     if (w) {
+       *w = ceilf(*w / scale);
+     }
+--- /opt/ObjectivelyMVC/Sources/ObjectivelyMVC/ImageView.c	2026-05-28 00:20:02.561829023 +0000
++++ /tmp/ObjectivelyMVC/Sources/ObjectivelyMVC/ImageView.c	2026-06-17 21:54:47.362428195 +0000
+@@ -54,7 +54,7 @@
+   release(this->image);
+ 
+   if (this->texture) {
+-    glDeleteTextures(1, &this->texture);
++    if (SDL_GL_GetCurrentWindow()) { glDeleteTextures(1, &this->texture); }
+   }
+ 
+   super(Object, self, dealloc);
+@@ -123,7 +123,7 @@
+   ImageView *this = (ImageView *) self;
+ 
+   if (this->texture) {
+-    glDeleteTextures(1, &this->texture);
++    if (SDL_GL_GetCurrentWindow()) { glDeleteTextures(1, &this->texture); }
+   }
+ 
+   this->texture = 0;
+@@ -186,7 +186,7 @@
+   }
+ 
+   if (self->texture) {
+-    glDeleteTextures(1, &self->texture);
++    if (SDL_GL_GetCurrentWindow()) { glDeleteTextures(1, &self->texture); }
+     self->texture = 0;
+   }
+ }
+--- /opt/ObjectivelyMVC/Sources/ObjectivelyMVC/WindowController.c	2026-05-28 00:20:02.563829018 +0000
++++ /tmp/ObjectivelyMVC/Sources/ObjectivelyMVC/WindowController.c	2026-06-17 21:54:47.367428192 +0000
+@@ -217,7 +217,7 @@
+ 
+   switch (event->type) {
+     case SDL_EVENT_WINDOW_EXPOSED:
+-      $(self, setWindow, SDL_GL_GetCurrentWindow());
++      if (SDL_GL_GetCurrentWindow()) $(self, setWindow, SDL_GL_GetCurrentWindow());
+       $(self->renderer, renderDeviceDidReset);
+       $(self->viewController, renderDeviceDidReset);
+       $(self->viewController->view, updateBindings);
+@@ -230,7 +230,7 @@
+     case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+     case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+     case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
+-      $(self, setWindow, SDL_GL_GetCurrentWindow());
++      if (SDL_GL_GetCurrentWindow()) $(self, setWindow, SDL_GL_GetCurrentWindow());
+       break;
+     case SDL_EVENT_WINDOW_DESTROYED:
+     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
