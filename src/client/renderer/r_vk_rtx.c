@@ -457,7 +457,14 @@ static void R_Rtx_BuildWorld(void) {
     mat_color = Mem_Malloc(sizeof(vec3_t) * bsp->num_materials);
     for (int32_t i = 0; i < bsp->num_materials; i++) {
       mat_color[i] = R_Rtx_MaterialColor(bsp->materials[i]);
+
+      // upload the diffuse texture into the bindless array; the closest-hit
+      // shader samples it for real per-pixel texturing (phase 3)
+      if (bsp->materials[i] && bsp->materials[i]->cm) {
+        R_Vk_LoadTexture(bsp->materials[i]->cm->diffusemap.path);
+      }
     }
+    Com_Print("  RTX: uploaded %u Vulkan textures to the bindless array\n", R_Vk_TextureCount());
   }
 
   // count the elements covered by draw elements (opaque faces batched per material)
