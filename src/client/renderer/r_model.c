@@ -90,10 +90,12 @@ r_model_t *R_LoadModel(const char *name) {
 
     Fs_Load(path, &buf);
 
-    // model loading and registration create OpenGL textures, materials and vertex
-    // buffers, which are unavailable under the Vulkan backend. The RTX path sources
-    // world geometry from the collision BSP (Cm_Bsp), so a stub model suffices here.
-    if (!r_context.vulkan) {
+    // Under Vulkan, the BSP world model still loads its CPU data (brush sides,
+    // inline models, CPU-only materials) so the cgame's cgi.WorldModel()->bsp
+    // dereferences resolve and the RTX path has the world registered; its GL-only
+    // steps are guarded inside R_LoadBspModel. Mesh models (players/weapons) remain
+    // stubs since their GL meshes are not used by the Vulkan path.
+    if (!r_context.vulkan || format->type == MODEL_BSP) {
       format->Load(mod, buf);
     }
 
@@ -101,7 +103,7 @@ r_model_t *R_LoadModel(const char *name) {
 
     mod->radius = Box3_Radius(mod->bounds);
 
-    if (!r_context.vulkan) {
+    if (!r_context.vulkan || format->type == MODEL_BSP) {
       R_RegisterMedia((r_media_t *) mod);
     }
   }

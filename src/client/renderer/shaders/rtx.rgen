@@ -4,7 +4,7 @@
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, set = 0, rgba8) uniform image2D out_image;
 layout(push_constant) uniform PC {
-  vec4 eye; vec4 fwd; vec4 right; vec4 up; vec4 light; vec4 params;
+  vec4 eye; vec4 target; vec4 light; vec4 params;
 } pc;
 
 layout(location = 0) rayPayloadEXT vec3 hit_value;
@@ -12,8 +12,16 @@ layout(location = 0) rayPayloadEXT vec3 hit_value;
 void main() {
   const vec2 uv = (vec2(gl_LaunchIDEXT.xy) + 0.5) / vec2(gl_LaunchSizeEXT.xy);
   const vec2 d = uv * 2.0 - 1.0;
-  vec3 dir = normalize(pc.fwd.xyz + d.x * pc.params.x * pc.right.xyz - d.y * pc.params.y * pc.up.xyz);
+
+  // derive the camera basis from eye + target (Quetoo is Z-up)
+  const vec3 eye = pc.eye.xyz;
+  const vec3 fwd = normalize(pc.target.xyz - eye);
+  const vec3 right = normalize(cross(fwd, vec3(0.0, 0.0, 1.0)));
+  const vec3 up = cross(right, fwd);
+
+  vec3 dir = normalize(fwd + d.x * pc.params.x * right - d.y * pc.params.y * up);
+
   hit_value = vec3(0.0);
-  traceRayEXT(tlas, gl_RayFlagsOpaqueEXT, 0xFF, 0, 0, 0, pc.eye.xyz, 1.0, dir, 1.0e6, 0);
+  traceRayEXT(tlas, gl_RayFlagsOpaqueEXT, 0xFF, 0, 0, 0, eye, 1.0, dir, 1.0e6, 0);
   imageStore(out_image, ivec2(gl_LaunchIDEXT.xy), vec4(hit_value, 1.0));
 }

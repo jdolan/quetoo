@@ -683,14 +683,24 @@ static void R_LoadBspModel(r_model_t *mod, void *buffer) {
   R_LoadBspLeafs(mod->bsp);
   R_LoadBspNodes(mod->bsp);
   R_LoadBspDrawElements(mod->bsp);
-  R_LoadBspBlocks(mod->bsp);
+
+  // GL-only steps (render blocks, vertex/element buffers, voxel textures, occlusion
+  // queries) are skipped under the Vulkan backend; the CPU data is what the cgame and
+  // the RTX path require. Original ordering is preserved for the OpenGL path.
+  const _Bool gl = !r_context.vulkan;
+
+  if (gl) { R_LoadBspBlocks(mod->bsp); }
   R_LoadBspInlineModels(mod->bsp);
-  R_LoadBspVertexArray(mod);
-  R_LoadBspDepthPassVertexArray(mod);
+  if (gl) {
+    R_LoadBspVertexArray(mod);
+    R_LoadBspDepthPassVertexArray(mod);
+  }
   R_SetupBspInlineModels(mod);
   R_LoadBspLights(mod->bsp);
-  R_LoadBspVoxels(mod);
-  R_LoadBspOcclusionQueries(mod->bsp);
+  if (gl) {
+    R_LoadBspVoxels(mod);
+    R_LoadBspOcclusionQueries(mod->bsp);
+  }
 
   Bsp_UnloadLumps(mod->bsp->cm->file, R_BSP_LUMPS);
 
@@ -720,10 +730,13 @@ static void R_RegisterBspModel(r_media_t *self) {
 
   r_model_t *mod = (r_model_t *) self;
 
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.caustics);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.occlusion);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
-  R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
+  // voxel light textures are only built for the OpenGL backend
+  if (!r_context.vulkan) {
+    R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.caustics);
+    R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.occlusion);
+    R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_data);
+    R_RegisterDependency(self, (r_media_t *) mod->bsp->voxels.light_indices);
+  }
 
   r_models.world = mod;
 }

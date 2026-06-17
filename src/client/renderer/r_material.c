@@ -240,7 +240,13 @@ static r_material_t *R_ResolveMaterial(cm_material_t *cm) {
   R_RegisterDependency((r_media_t *) material, (r_media_t *) material->texture);
 
   Cm_ResolveMaterial(cm);
-  
+
+  // Under the Vulkan backend, materials carry their collision data (surface flags,
+  // contents, footsteps) for game logic but build no OpenGL texture arrays/stages.
+  if (r_context.vulkan) {
+    return material;
+  }
+
   SDL_Surface *diffusemap = NULL;
   if (*cm->diffusemap.path) {
     if ((diffusemap = Img_LoadSurface(cm->diffusemap.path))) {

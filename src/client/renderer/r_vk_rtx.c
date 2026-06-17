@@ -43,15 +43,15 @@ typedef struct {
 } r_rtx_tri_t;
 
 /**
- * @brief Push constants: camera basis and light, matching shaders/rtx.*.
+ * @brief Push constants matching shaders/rtx.*. The camera basis is derived in the
+ * raygen shader from eye + target (Z-up), so only the eye, look-at target, light and
+ * field-of-view tangents are uploaded.
  */
 typedef struct {
   vec4_t eye;
-  vec4_t forward;
-  vec4_t right;
-  vec4_t up;
+  vec4_t target;
   vec4_t light;
-  vec4_t params; // x,y = tan(fov/2)
+  vec4_t params; // x,y = tan(fov/2) including aspect
 } r_rtx_push_t;
 
 static struct {
@@ -97,6 +97,10 @@ static struct {
   VkStridedDeviceAddressRegionKHR miss_region;
   VkStridedDeviceAddressRegionKHR hit_region;
   VkStridedDeviceAddressRegionKHR call_region;
+
+  // world bounds, used to frame a fallback camera when no valid player view exists
+  vec3_t world_mins;
+  vec3_t world_maxs;
 } r_rtx;
 
 /**
@@ -285,31 +289,36 @@ static void R_Rtx_LoadProcs(void) {
  */
 static void R_Rtx_BuildWorld(void) {
 
-  // source world geometry from the collision BSP, which is loaded independently of
-  // the OpenGL renderer model system (disabled under the Vulkan backend)
-  const cm_bsp_t *cm = Cm_Bsp();
-  if (!cm || !cm->file) {
+  // source world geometry from the renderer's loaded BSP model. Its vertex/element
+  // arrays persist for the map's lifetime, unlike the collision file lumps which are
+  // unloaded after R_LoadBspModel.
+  const r_model_t *world = R_WorldModel();
+  if (!world || !world->bsp) {
     return;
   }
 
-  const bsp_file_t *file = cm->file;
-  const int32_t num_vertexes = file->num_vertexes;
-  const int32_t num_elements = file->num_elements;
+  const r_bsp_model_t *bsp = world->bsp;
+  const int32_t num_vertexes = bsp->num_vertexes;
+  const int32_t num_elements = bsp->num_elements;
   const int32_t num_tris = num_elements / 3;
 
   if (num_vertexes <= 0 || num_tris <= 0) {
     return;
   }
 
-  // tightly-packed positions for the acceleration structure
+  // tightly-packed positions for the acceleration structure, tracking world bounds
   vec3_t *positions = Mem_Malloc(sizeof(vec3_t) * num_vertexes);
+  r_rtx.world_mins = Vec3_Mins();
+  r_rtx.world_maxs = Vec3_Maxs();
   for (int32_t i = 0; i < num_vertexes; i++) {
-    positions[i] = file->vertexes[i].position;
+    positions[i] = bsp->vertexes[i].position;
+    r_rtx.world_mins = Vec3_Minf(r_rtx.world_mins, positions[i]);
+    r_rtx.world_maxs = Vec3_Maxf(r_rtx.world_maxs, positions[i]);
   }
 
   uint32_t *elements = Mem_Malloc(sizeof(uint32_t) * num_elements);
   for (int32_t i = 0; i < num_elements; i++) {
-    elements[i] = (uint32_t) file->elements[i];
+    elements[i] = (uint32_t) bsp->elements[i];
   }
 
   // per-triangle flat normal + orientation-tinted albedo
@@ -663,8 +672,8 @@ static void R_Rtx_CreatePipeline(void) {
  * the RTX path can render this frame.
  */
 _Bool R_Vk_RtxAvailable(void) {
-  const cm_bsp_t *cm = Cm_Bsp();
-  return r_vk.rtx && cm != NULL && cm->file != NULL;
+  const r_model_t *world = R_WorldModel();
+  return r_vk.rtx && world != NULL && world->bsp != NULL;
 }
 
 /**
@@ -717,6 +726,7 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
   if (!r_rtx.initialized) {
     R_Rtx_Init();
     if (!r_rtx.initialized) {
+      Com_Print("RTX: init failed (world_built=%d)\n", r_rtx.world_built);
       return false;
     }
   }
@@ -731,17 +741,33 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
   }
   vkResetFences(r_vk.device, 1, &r_vk.in_flight[frame]);
 
-  // camera push constants from the player view (Quetoo is Z-up)
-  vec3_t forward, right, up;
-  Vec3_Vectors(view->angles, &forward, &right, &up);
+  // eye + look-at target (Quetoo is Z-up). When a valid player view is available the
+  // world is ray-traced first-person from it; otherwise (e.g. before spawn) it is
+  // framed from an elevated bounds camera so the loaded map is always visible. The
+  // `r_rtx_overview` cvar forces the bounds camera.
+  const float aspect = (float) r_rtx.extent.width / (float) r_rtx.extent.height;
+  vec3_t origin = view->origin;
+  vec3_t target;
+  vec2_t tan_fov;
+
+  if (r_rtx_overview->integer || Vec3_Length(origin) < 1.f) {
+    const vec3_t center = Vec3_Scale(Vec3_Add(r_rtx.world_mins, r_rtx.world_maxs), 0.5f);
+    const vec3_t size = Vec3_Subtract(r_rtx.world_maxs, r_rtx.world_mins);
+    origin = Vec3(center.x, center.y - size.y * 0.5f, r_rtx.world_maxs.z + size.z * 0.6f);
+    target = center;
+    tan_fov = Vec2(0.55f * aspect, 0.55f);
+  } else {
+    vec3_t forward, right, up;
+    Vec3_Vectors(view->angles, &forward, &right, &up);
+    target = Vec3_Add(origin, forward);
+    tan_fov = Vec2(tanf(Radians(view->fov.x) * .5f), tanf(Radians(view->fov.y) * .5f));
+  }
 
   r_rtx_push_t pc = {
-    .eye = Vec4(view->origin.x, view->origin.y, view->origin.z, 0.f),
-    .forward = Vec4(forward.x, forward.y, forward.z, 0.f),
-    .right = Vec4(right.x, right.y, right.z, 0.f),
-    .up = Vec4(up.x, up.y, up.z, 0.f),
-    .light = Vec4(view->origin.x, view->origin.y, view->origin.z + 256.f, 0.f),
-    .params = Vec4(tanf(Radians(view->fov.x) * .5f), tanf(Radians(view->fov.y) * .5f), 0.f, 0.f)
+    .eye = Vec4(origin.x, origin.y, origin.z, 0.f),
+    .target = Vec4(target.x, target.y, target.z, 0.f),
+    .light = Vec4(origin.x, origin.y, origin.z + 512.f, 0.f),
+    .params = Vec4(tan_fov.x, tan_fov.y, 0.f, 0.f)
   };
 
   VkCommandBuffer cb = r_vk.command_buffers[frame];

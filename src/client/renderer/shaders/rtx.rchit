@@ -5,7 +5,7 @@ struct Tri { vec4 normal; vec4 albedo; };
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 2, set = 0, std430) readonly buffer Tris { Tri tris[]; };
 layout(push_constant) uniform PC {
-  vec4 eye; vec4 fwd; vec4 right; vec4 up; vec4 light; vec4 params;
+  vec4 eye; vec4 target; vec4 light; vec4 params;
 } pc;
 
 layout(location = 0) rayPayloadInEXT vec3 hit_value;
