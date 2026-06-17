@@ -1,0 +1,10 @@
+# Normalize line endings so the autotools/build files and sources are always LF in
+# the repository, regardless of the checkout platform. This prevents CRLF from a
+# Windows checkout breaking autoreconf/configure and shader compilation on Linux.
+* text=auto eol=lf
+
+# Treat compiled SPIR-V and image renders as binary (no EOL conversion / diffing).
+*.spv binary
+*.png binary
+*.pk3 binary
+*.bsp binary
