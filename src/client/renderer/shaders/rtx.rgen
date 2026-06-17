@@ -4,13 +4,26 @@
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 1, set = 0, rgba8) uniform image2D out_image;
 layout(push_constant) uniform PC {
-  vec4 eye; vec4 target; vec4 light; vec4 params;
+  vec4 eye; vec4 target; vec4 light; vec4 params; // params.w = accumulation frame index
 } pc;
 
 layout(location = 0) rayPayloadEXT vec3 hit_value;
 
+// PCG hash based RNG for sub-pixel jitter
+float rand(inout uint seed) {
+  seed = seed * 747796405u + 2891336453u;
+  uint r = ((seed >> ((seed >> 28u) + 4u)) ^ seed) * 277803737u;
+  r = (r >> 22u) ^ r;
+  return float(r) / 4294967295.0;
+}
+
 void main() {
-  const vec2 uv = (vec2(gl_LaunchIDEXT.xy) + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+  const uint frame = uint(pc.params.w);
+  uint seed = (gl_LaunchIDEXT.x * 1973u + gl_LaunchIDEXT.y * 9277u + frame * 26699u) | 1u;
+
+  // jitter the sample within the pixel for temporal anti-aliasing
+  const vec2 jitter = vec2(rand(seed), rand(seed)) - 0.5;
+  const vec2 uv = (vec2(gl_LaunchIDEXT.xy) + 0.5 + jitter) / vec2(gl_LaunchSizeEXT.xy);
   const vec2 d = uv * 2.0 - 1.0;
 
   // derive the camera basis from eye + target (Quetoo is Z-up)
@@ -19,9 +32,17 @@ void main() {
   const vec3 right = normalize(cross(fwd, vec3(0.0, 0.0, 1.0)));
   const vec3 up = cross(right, fwd);
 
-  vec3 dir = normalize(fwd + d.x * pc.params.x * right - d.y * pc.params.y * up);
+  const vec3 dir = normalize(fwd + d.x * pc.params.x * right - d.y * pc.params.y * up);
 
   hit_value = vec3(0.0);
   traceRayEXT(tlas, gl_RayFlagsOpaqueEXT, 0xFF, 0, 0, 0, eye, 1.0, dir, 1.0e6, 0);
-  imageStore(out_image, ivec2(gl_LaunchIDEXT.xy), vec4(hit_value, 1.0));
+
+  // temporal accumulation: a running average that converges the jittered samples.
+  // Clamp the blend weight so the rgba8 image keeps responding (exponential moving
+  // average) rather than freezing once 1/(frame+1) drops below the 8-bit step.
+  const vec3 prev = imageLoad(out_image, ivec2(gl_LaunchIDEXT.xy)).rgb;
+  const float alpha = (frame == 0u) ? 1.0 : max(1.0 / (float(frame) + 1.0), 1.0 / 32.0);
+  const vec3 color = mix(prev, hit_value, alpha);
+
+  imageStore(out_image, ivec2(gl_LaunchIDEXT.xy), vec4(color, 1.0));
 }

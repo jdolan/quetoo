@@ -15,7 +15,17 @@ layout(location = 0) rayPayloadInEXT vec3 hit_value;
 layout(location = 1) rayPayloadEXT float lit;
 hitAttributeEXT vec2 attribs;
 
+// PCG hash based RNG, seeded per pixel + accumulation frame for soft shadows
+float rand(inout uint seed) {
+  seed = seed * 747796405u + 2891336453u;
+  uint r = ((seed >> ((seed >> 28u) + 4u)) ^ seed) * 277803737u;
+  r = (r >> 22u) ^ r;
+  return float(r) / 4294967295.0;
+}
+
 void main() {
+  const uint frame = uint(pc.params.w);
+  uint seed = (gl_LaunchIDEXT.x * 6151u + gl_LaunchIDEXT.y * 3079u + frame * 12289u + 7u) | 1u;
   Tri t = tris[gl_PrimitiveID];
   vec3 N = normalize(t.normal.xyz);
   vec3 P = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
@@ -51,14 +61,24 @@ void main() {
     float a = 1.0 - dist / radius;
     float atten = a * a;
 
-    // trace a shadow ray for the strongest few contributors
+    // trace a shadow ray for the strongest few contributors. Jitter the sampled
+    // point on the light within a small sphere so the shadow edge is a soft
+    // penumbra; the per-frame seed makes successive accumulated frames converge.
     float shadow = 1.0;
     if (shadows_cast < shadow_budget) {
       shadows_cast++;
+
+      const float soft = min(radius * 0.1, 24.0);
+      const vec3 jit = (vec3(rand(seed), rand(seed), rand(seed)) * 2.0 - 1.0) * soft;
+      const vec3 sample_pos = lpos + jit;
+      vec3 sdir = sample_pos - P;
+      const float sdist = length(sdir);
+      sdir /= sdist;
+
       lit = 0.0;
       traceRayEXT(tlas,
         gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-        0xFF, 0, 0, 1, P + N * 1.0, 1.0, to_light, dist - 2.0, 1);
+        0xFF, 0, 0, 1, P + N * 1.0, 1.0, sdir, sdist - 2.0, 1);
       shadow = lit;
     }
 

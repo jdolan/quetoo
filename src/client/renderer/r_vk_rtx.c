@@ -114,6 +114,12 @@ static struct {
   // world bounds, used to frame a fallback camera when no valid player view exists
   vec3_t world_mins;
   vec3_t world_maxs;
+
+  // temporal accumulation state: the sample count resets to 0 whenever the camera
+  // moves, then climbs each frame so jittered soft shadows / anti-aliasing converge
+  vec3_t last_eye;
+  vec3_t last_target;
+  uint32_t accum_frame;
 } r_rtx;
 
 /**
@@ -1000,11 +1006,21 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
     tan_fov = Vec2(tx, tx / aspect);
   }
 
+  // reset temporal accumulation whenever the camera moves; otherwise advance the
+  // sample index so the shader converges jittered soft shadows and anti-aliasing
+  if (Vec3_Distance(origin, r_rtx.last_eye) > 0.1f || Vec3_Distance(target, r_rtx.last_target) > 0.1f) {
+    r_rtx.accum_frame = 0;
+  } else {
+    r_rtx.accum_frame++;
+  }
+  r_rtx.last_eye = origin;
+  r_rtx.last_target = target;
+
   r_rtx_push_t pc = {
     .eye = Vec4(origin.x, origin.y, origin.z, 0.f),
     .target = Vec4(target.x, target.y, target.z, 0.f),
     .light = Vec4(origin.x, origin.y, origin.z + 512.f, 0.f),
-    .params = Vec4(tan_fov.x, tan_fov.y, (float) r_rtx.num_lights, 0.f)
+    .params = Vec4(tan_fov.x, tan_fov.y, (float) r_rtx.num_lights, (float) r_rtx.accum_frame)
   };
 
   VkCommandBuffer cb = r_vk.command_buffers[frame];
