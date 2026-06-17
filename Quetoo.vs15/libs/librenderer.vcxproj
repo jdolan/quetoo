@@ -49,9 +49,13 @@
     <ClCompile Include="..\..\src\client\renderer\r_shadow.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sky.c" />
     <ClCompile Include="..\..\src\client\renderer\r_sprite.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_vk.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_vk_image.c" />
+    <ClCompile Include="..\..\src\client\renderer\r_vk_rtx.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\client\renderer\renderer.h" />
+    <ClInclude Include="..\..\src\client\renderer\r_vk.h" />
     <ClInclude Include="..\..\src\client\renderer\r_animation.h" />
     <ClInclude Include="..\..\src\client\renderer\r_atlas.h" />
     <ClInclude Include="..\..\src\client\renderer\r_bsp_draw.h" />
