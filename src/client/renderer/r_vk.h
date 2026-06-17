@@ -1,0 +1,102 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ */
+
+#pragma once
+
+/**
+ * @file
+ * @brief Vulkan rendering backend. This is the foundation of the optional Vulkan /
+ * RTX renderer; see VULKAN_RTX.md for the architecture and roadmap. The entire
+ * translation unit is compiled only when `BUILD_VULKAN` is defined (via the
+ * `--enable-vulkan` configure option), so default OpenGL builds are unaffected.
+ */
+
+#if BUILD_VULKAN
+
+#include <SDL3/SDL.h>
+#include <vulkan/vulkan.h>
+
+/**
+ * @brief The Vulkan backend context. Mirrors how `r_context_t` owns the OpenGL
+ * context, but for the Vulkan device. Populated by `R_Vk_Init`.
+ */
+typedef struct {
+  /**
+   * @brief The Vulkan instance.
+   */
+  VkInstance instance;
+
+  /**
+   * @brief The presentation surface, created from the SDL window.
+   */
+  VkSurfaceKHR surface;
+
+  /**
+   * @brief The selected physical device (GPU).
+   */
+  VkPhysicalDevice physical_device;
+
+  /**
+   * @brief Cached properties of the selected physical device.
+   */
+  VkPhysicalDeviceProperties physical_device_properties;
+
+  /**
+   * @brief The logical device.
+   */
+  VkDevice device;
+
+  /**
+   * @brief The graphics queue family index.
+   */
+  uint32_t graphics_queue_family;
+
+  /**
+   * @brief The presentation queue family index.
+   */
+  uint32_t present_queue_family;
+
+  /**
+   * @brief The graphics queue.
+   */
+  VkQueue graphics_queue;
+
+  /**
+   * @brief The presentation queue.
+   */
+  VkQueue present_queue;
+
+  /**
+   * @brief True if the selected device exposes the hardware ray tracing extensions
+   * (`VK_KHR_acceleration_structure` and `VK_KHR_ray_tracing_pipeline`), i.e. the
+   * RTX lighting path (phase B) is available on this GPU.
+   */
+  _Bool rtx;
+} r_vk_t;
+
+extern r_vk_t r_vk;
+
+#if defined(__R_LOCAL_H__)
+void R_Vk_Init(SDL_Window *window);
+void R_Vk_Shutdown(void);
+#endif /* __R_LOCAL_H__ */
+
+#endif /* BUILD_VULKAN */

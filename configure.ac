@@ -198,6 +198,29 @@ AC_SUBST(OPENGL_CFLAGS)
 OPENGL_LIBS="$OPENGL_LIBS $HOST_OPENGL_LIBS"
 AC_SUBST(OPENGL_LIBS)
 
+dnl ------------------------------------------------
+dnl Optional Vulkan / RTX backend (--enable-vulkan)
+dnl Default builds are OpenGL-only and unaffected.
+dnl See src/client/renderer/VULKAN_RTX.md
+dnl ------------------------------------------------
+
+VULKAN_CFLAGS=""
+VULKAN_LIBS=""
+
+AC_ARG_ENABLE(vulkan,
+	[AS_HELP_STRING([--enable-vulkan], [build the optional Vulkan/RTX renderer backend (default: no)])],
+	[enable_vulkan=$enableval], [enable_vulkan=no])
+
+if test "x$enable_vulkan" = "xyes"; then
+	PKG_CHECK_MODULES([VULKAN], [vulkan],, [
+		AC_MSG_ERROR([--enable-vulkan requires the Vulkan SDK (pkg-config module 'vulkan')])
+	])
+	AC_DEFINE(BUILD_VULKAN, 1, [Define to 1 to build the Vulkan/RTX renderer backend.])
+fi
+
+AC_SUBST(VULKAN_CFLAGS)
+AC_SUBST(VULKAN_LIBS)
+
 dnl -----------------------------------
 dnl Sort out OpenAL flags and libraries
 dnl -----------------------------------

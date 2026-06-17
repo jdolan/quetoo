@@ -26,6 +26,7 @@ r_uniforms_t r_uniforms;
 r_stats_t r_stats;
 
 cvar_t *r_alpha_test;
+cvar_t *r_backend;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_draw_occlusion_queries;
@@ -385,6 +386,7 @@ static void R_InitLocal(void) {
   r_bloom_iterations = Cvar_Add("r_bloom_iterations", "8", CVAR_ARCHIVE, "Controls the number of bloom blur iterations. Higher values produce softer, wider bloom.");
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
+  r_backend = Cvar_Add("r_backend", "gl", CVAR_ARCHIVE | CVAR_R_CONTEXT, "The rendering backend. 'gl' is the default OpenGL renderer; 'vulkan' selects the optional Vulkan/RTX backend (in development, requires a --enable-vulkan build).");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");

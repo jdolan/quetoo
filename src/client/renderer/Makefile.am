@@ -35,6 +35,7 @@ noinst_HEADERS = \
 	r_sky.h \
 	r_sprite.h \
 	r_types.h \
+	r_vk.h \
 	renderer.h
 
 noinst_LTLIBRARIES = \
@@ -70,7 +71,8 @@ librenderer_la_SOURCES = \
 	r_program.c \
 	r_shadow.c \
 	r_sky.c \
-	r_sprite.c
+	r_sprite.c \
+	r_vk.c
 
 librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \
@@ -78,11 +80,13 @@ librenderer_la_CFLAGS = \
 	@BASE_CFLAGS@ \
 	@GLIB_CFLAGS@ \
 	@OPENGL_CFLAGS@ \
-	@SDL3_CFLAGS@
+	@SDL3_CFLAGS@ \
+	@VULKAN_CFLAGS@
 
 librenderer_la_LDFLAGS = \
 	-shared
 	
 librenderer_la_LIBADD = \
 	$(top_builddir)/src/common/libcommon.la \
-	@OPENGL_LIBS@
+	@OPENGL_LIBS@ \
+	@VULKAN_LIBS@

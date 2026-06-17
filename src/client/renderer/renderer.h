@@ -55,3 +55,4 @@
 #include "r_sky.h"
 #include "r_sprite.h"
 #include "r_types.h"
+#include "r_vk.h"

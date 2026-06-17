@@ -78,6 +78,35 @@ void R_UpdateContext(void) {
 }
 
 /**
+ * @brief Probes the Vulkan/RTX backend: brings up a Vulkan device on a temporary
+ * window, reports the selected GPU and whether ray tracing is available, then tears
+ * it back down. This exercises the device-selection foundation (see VULKAN_RTX.md
+ * phase 0); the Vulkan backend cannot present a frame yet, so the caller continues
+ * with the OpenGL context.
+ */
+static void R_ProbeVulkanBackend(void) {
+
+#if BUILD_VULKAN
+  SDL_Window *window = SDL_CreateWindow("Quetoo", 1, 1, SDL_WINDOW_VULKAN | SDL_WINDOW_HIDDEN);
+  if (!window) {
+    Com_Warn("r_backend vulkan: failed to create probe window: %s\n", SDL_GetError());
+    return;
+  }
+
+  R_Vk_Init(window);
+  R_Vk_Shutdown();
+
+  SDL_DestroyWindow(window);
+
+  Com_Warn("r_backend vulkan: backend foundation only; cannot render yet. "
+           "Using OpenGL. See VULKAN_RTX.md.\n");
+#else
+  Com_Warn("r_backend vulkan: this build has no Vulkan support "
+           "(configure with --enable-vulkan). Using OpenGL.\n");
+#endif
+}
+
+/**
  * @brief Initialize the `SDL_Window` and OpenGL context, returning true on success, false on failure.
  */
 void R_InitContext(void) {
@@ -89,6 +118,10 @@ void R_InitContext(void) {
 #endif
 
   memset(&r_context, 0, sizeof(r_context));
+
+  if (!g_strcmp0(r_backend->string, "vulkan")) {
+    R_ProbeVulkanBackend();
+  }
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
     if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {

@@ -25,6 +25,7 @@
 
 extern cvar_t *r_ambient;
 extern cvar_t *r_ambient_occlusion;
+extern cvar_t *r_backend;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_antialias;
 extern cvar_t *r_bloom;
