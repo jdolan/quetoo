@@ -714,17 +714,28 @@ const char *Fs_RealPath(const char *path) {
  */
 static bool Fs_Android_ExtractAsset(const char *asset_path, const char *dest_path) {
 
-  // already extracted on a previous run (or updated by the installer) -- keep it
-  if (g_file_test(dest_path, G_FILE_TEST_EXISTS)) {
-    Com_Debug(DEBUG_FILESYSTEM, "Android asset %s already present at %s\n", asset_path, dest_path);
-    return true;
-  }
-
   // open the bundled asset; a relative path routes to the APK's assets/ dir
   SDL_IOStream *in = SDL_IOFromFile(asset_path, "rb");
   if (in == NULL) {
     Com_Warn("Android: bundled asset %s not found in APK: %s\n", asset_path, SDL_GetError());
     return false;
+  }
+  const Sint64 asset_size = SDL_GetIOSize(in);
+
+  // #856: keep the extracted copy only if it MATCHES the bundled asset's size.
+  // The old "skip if it exists" left clean re-installs / APK updates running a
+  // STALE pk3 (e.g. an older one missing the v78 UI layouts + shaders), which
+  // crashed the cgame UI load. A size change means the APK shipped a new baseline
+  // -> re-extract. (Installer-downloaded content is refreshed too; acceptable for
+  // the base pk3 during bring-up.)
+  if (g_file_test(dest_path, G_FILE_TEST_EXISTS)) {
+    SDL_PathInfo info;
+    if (asset_size > 0 && SDL_GetPathInfo(dest_path, &info) && (Sint64) info.size == asset_size) {
+      Com_Debug(DEBUG_FILESYSTEM, "Android asset %s up to date at %s\n", asset_path, dest_path);
+      SDL_CloseIO(in);
+      return true;
+    }
+    Com_Print("Android: bundled asset %s differs from local copy; re-extracting\n", asset_path);
   }
 
   // SDL_LoadFile_IO slurps the whole asset (and closes the stream for us)
