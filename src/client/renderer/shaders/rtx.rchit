@@ -2,10 +2,13 @@
 #extension GL_EXT_ray_tracing : require
 
 struct Tri { vec4 normal; vec4 albedo; };
+struct Light { vec4 origin_radius; vec4 color_intensity; };
+
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 2, set = 0, std430) readonly buffer Tris { Tri tris[]; };
+layout(binding = 3, set = 0, std430) readonly buffer Lights { Light lights[]; };
 layout(push_constant) uniform PC {
-  vec4 eye; vec4 target; vec4 light; vec4 params;
+  vec4 eye; vec4 target; vec4 light; vec4 params; // params.z = light count
 } pc;
 
 layout(location = 0) rayPayloadInEXT vec3 hit_value;
@@ -16,16 +19,52 @@ void main() {
   Tri t = tris[gl_PrimitiveID];
   vec3 N = normalize(t.normal.xyz);
   vec3 P = gl_WorldRayOriginEXT + gl_HitTEXT * gl_WorldRayDirectionEXT;
-  if (dot(N, gl_WorldRayDirectionEXT) > 0.0) { N = -N; }
+  if (dot(N, gl_WorldRayDirectionEXT) > 0.0) {
+    N = -N;
+  }
 
-  vec3 to_light = pc.light.xyz - P;
-  float dist = length(to_light);
-  to_light /= dist;
-  lit = 0.0;
-  traceRayEXT(tlas, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
-    0xFF, 0, 0, 1, P + N * 1.0, 0.5, to_light, dist - 1.0, 1);
-  float diffuse = max(dot(N, to_light), 0.0) * lit;
-  vec3 to_eye = normalize(pc.eye.xyz - P);
-  float head = max(dot(N, to_eye), 0.0);
-  hit_value = t.albedo.xyz * (0.12 + 0.55 * diffuse + 0.30 * head);
+  vec3 diffuse = vec3(0.0);
+  const int count = int(pc.params.z);
+  // cap the per-pixel shadow-ray budget; sum diffuse from all lights regardless
+  const int shadow_budget = 6;
+  int shadows_cast = 0;
+
+  for (int i = 0; i < count; i++) {
+    vec3 lpos = lights[i].origin_radius.xyz;
+    float radius = max(lights[i].origin_radius.w, 1.0);
+    vec3 lcol = lights[i].color_intensity.rgb;
+    float intensity = max(lights[i].color_intensity.a, 1.0);
+
+    vec3 to_light = lpos - P;
+    float dist = length(to_light);
+    if (dist > radius) {
+      continue;
+    }
+    to_light /= dist;
+
+    float ndotl = max(dot(N, to_light), 0.0);
+    if (ndotl <= 0.0) {
+      continue;
+    }
+
+    // smooth distance attenuation
+    float a = 1.0 - dist / radius;
+    float atten = a * a;
+
+    // trace a shadow ray for the strongest few contributors
+    float shadow = 1.0;
+    if (shadows_cast < shadow_budget) {
+      shadows_cast++;
+      lit = 0.0;
+      traceRayEXT(tlas,
+        gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsSkipClosestHitShaderEXT,
+        0xFF, 0, 0, 1, P + N * 1.0, 1.0, to_light, dist - 2.0, 1);
+      shadow = lit;
+    }
+
+    diffuse += lcol * (ndotl * atten * shadow * 0.006 * intensity);
+  }
+
+  // a little ambient so unlit surfaces remain readable
+  hit_value = t.albedo.xyz * (0.12 + diffuse);
 }

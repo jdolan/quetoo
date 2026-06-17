@@ -43,6 +43,15 @@ typedef struct {
 } r_rtx_tri_t;
 
 /**
+ * @brief A light uploaded for the closest-hit shader: xyz = origin, w = radius;
+ * rgb = color, a = intensity.
+ */
+typedef struct {
+  vec4_t origin_radius;
+  vec4_t color_intensity;
+} r_rtx_light_t;
+
+/**
  * @brief Push constants matching shaders/rtx.*. The camera basis is derived in the
  * raygen shader from eye + target (Z-up), so only the eye, look-at target, light and
  * field-of-view tangents are uploaded.
@@ -79,6 +88,10 @@ static struct {
 
   VkBuffer tri_buffer;
   VkDeviceMemory tri_memory;
+
+  VkBuffer light_buffer;
+  VkDeviceMemory light_memory;
+  uint32_t num_lights;
 
   VkImage image;
   VkDeviceMemory image_memory;
@@ -467,6 +480,28 @@ static void R_Rtx_BuildWorld(void) {
   R_Rtx_CreateBuffer(sizeof(r_rtx_tri_t) * num_tris, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
     host, tris, &r_rtx.tri_buffer, &r_rtx.tri_memory);
 
+  // upload the map's lights for the closest-hit shader. Always allocate at least one
+  // entry (a sky-ish fill light) so the buffer/descriptor is valid even on maps with
+  // no compiled lights.
+  r_rtx.num_lights = (uint32_t) (world->bsp->num_lights > 0 ? world->bsp->num_lights : 1);
+  r_rtx_light_t *lights = Mem_Malloc(sizeof(r_rtx_light_t) * r_rtx.num_lights);
+  if (world->bsp->num_lights > 0) {
+    for (int32_t i = 0; i < world->bsp->num_lights; i++) {
+      const r_bsp_light_t *l = &world->bsp->lights[i];
+      lights[i].origin_radius = Vec4(l->origin.x, l->origin.y, l->origin.z, l->radius);
+      lights[i].color_intensity = Vec4(l->color.x, l->color.y, l->color.z, l->intensity);
+    }
+  } else {
+    const vec3_t c = Vec3_Scale(Vec3_Add(r_rtx.world_mins, r_rtx.world_maxs), 0.5f);
+    const float r = Vec3_Distance(r_rtx.world_maxs, r_rtx.world_mins);
+    lights[0].origin_radius = Vec4(c.x, c.y, r_rtx.world_maxs.z, r);
+    lights[0].color_intensity = Vec4(1.f, 1.f, 1.f, 1.f);
+  }
+  R_Rtx_CreateBuffer(sizeof(r_rtx_light_t) * r_rtx.num_lights, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+    host, lights, &r_rtx.light_buffer, &r_rtx.light_memory);
+  Mem_Free(lights);
+  Com_Print("  RTX: %u lights\n", r_rtx.num_lights);
+
   // scratch and input buffers are no longer needed
   vkDestroyBuffer(r_vk.device, scratch_buf, NULL); vkFreeMemory(r_vk.device, scratch_mem, NULL);
   vkDestroyBuffer(r_vk.device, tscratch_buf, NULL); vkFreeMemory(r_vk.device, tscratch_mem, NULL);
@@ -531,7 +566,8 @@ static void R_Rtx_CreateDescriptors(void) {
   const VkDescriptorSetLayoutBinding binds[] = {
     { 0, VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, NULL },
     { 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR, NULL },
-    { 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, NULL }
+    { 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, NULL },
+    { 3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, NULL }
   };
   const VkDescriptorSetLayoutCreateInfo dslci = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
@@ -543,7 +579,7 @@ static void R_Rtx_CreateDescriptors(void) {
   const VkDescriptorPoolSize sizes[] = {
     { VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1 },
     { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1 },
-    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1 }
+    { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2 }
   };
   const VkDescriptorPoolCreateInfo dpci = {
     .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -568,6 +604,7 @@ static void R_Rtx_CreateDescriptors(void) {
   };
   const VkDescriptorImageInfo image_info = { .imageView = r_rtx.image_view, .imageLayout = VK_IMAGE_LAYOUT_GENERAL };
   const VkDescriptorBufferInfo buffer_info = { .buffer = r_rtx.tri_buffer, .range = VK_WHOLE_SIZE };
+  const VkDescriptorBufferInfo light_info = { .buffer = r_rtx.light_buffer, .range = VK_WHOLE_SIZE };
 
   const VkWriteDescriptorSet writes[] = {
     { .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, .pNext = &was, .dstSet = r_rtx.descriptor_set,
@@ -575,7 +612,9 @@ static void R_Rtx_CreateDescriptors(void) {
     { .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, .dstSet = r_rtx.descriptor_set,
       .dstBinding = 1, .descriptorCount = 1, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, .pImageInfo = &image_info },
     { .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, .dstSet = r_rtx.descriptor_set,
-      .dstBinding = 2, .descriptorCount = 1, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .pBufferInfo = &buffer_info }
+      .dstBinding = 2, .descriptorCount = 1, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .pBufferInfo = &buffer_info },
+    { .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, .dstSet = r_rtx.descriptor_set,
+      .dstBinding = 3, .descriptorCount = 1, .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, .pBufferInfo = &light_info }
   };
   vkUpdateDescriptorSets(r_vk.device, lengthof(writes), writes, 0, NULL);
 }
@@ -770,7 +809,7 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
     .eye = Vec4(origin.x, origin.y, origin.z, 0.f),
     .target = Vec4(target.x, target.y, target.z, 0.f),
     .light = Vec4(origin.x, origin.y, origin.z + 512.f, 0.f),
-    .params = Vec4(tan_fov.x, tan_fov.y, 0.f, 0.f)
+    .params = Vec4(tan_fov.x, tan_fov.y, (float) r_rtx.num_lights, 0.f)
   };
 
   VkCommandBuffer cb = r_vk.command_buffers[frame];
@@ -853,6 +892,7 @@ void R_Vk_RtxShutdown(void) {
   if (r_rtx.image_view) { vkDestroyImageView(r_vk.device, r_rtx.image_view, NULL); }
   if (r_rtx.image) { vkDestroyImage(r_vk.device, r_rtx.image, NULL); vkFreeMemory(r_vk.device, r_rtx.image_memory, NULL); }
   if (r_rtx.tri_buffer) { vkDestroyBuffer(r_vk.device, r_rtx.tri_buffer, NULL); vkFreeMemory(r_vk.device, r_rtx.tri_memory, NULL); }
+  if (r_rtx.light_buffer) { vkDestroyBuffer(r_vk.device, r_rtx.light_buffer, NULL); vkFreeMemory(r_vk.device, r_rtx.light_memory, NULL); }
   if (r_rtx.tlas) { r_rtx.DestroyAccelerationStructure(r_vk.device, r_rtx.tlas, NULL); }
   if (r_rtx.tlas_buffer) { vkDestroyBuffer(r_vk.device, r_rtx.tlas_buffer, NULL); vkFreeMemory(r_vk.device, r_rtx.tlas_memory, NULL); }
   if (r_rtx.blas) { r_rtx.DestroyAccelerationStructure(r_vk.device, r_rtx.blas, NULL); }
