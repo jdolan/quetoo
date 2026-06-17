@@ -164,9 +164,17 @@ void R_Screenshot_f(void) {
  * @brief Creates the base image state for the image.
  */
 void R_SetupImage(r_image_t *image) {
-  
+
   assert(image);
   assert(image->type);
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    R_RegisterMedia((r_media_t *) image); // GL texture objects are not used by the Vulkan backend
+    return;
+  }
+#endif
+
   assert(image->target);
   assert(image->internal_format);
 
@@ -237,6 +245,23 @@ void R_UploadImageTarget(r_image_t *image, GLenum target, const void *data) {
   assert(image);
   assert(target);
 
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    // the Vulkan backend has no GL context; upload into the bindless texture
+    // array and stash the returned index in texnum so the 2D draw queue (which
+    // carries image->texnum) addresses it transparently
+    if (data) {
+      const SDL_PixelFormat fmt = (image->format == GL_RGBA) ? SDL_PIXELFORMAT_RGBA32 : SDL_PIXELFORMAT_RGB24;
+      const int32_t channels = (image->format == GL_RGBA) ? 4 : 3;
+      SDL_Surface *surface = SDL_CreateSurfaceFrom(image->width, image->height, fmt, (void *) data, image->width * channels);
+      image->texnum = R_Vk_UploadSurface(surface);
+      SDL_DestroySurface(surface);
+    }
+    R_RegisterMedia((r_media_t *) image);
+    return;
+  }
+#endif
+
   if (image->texnum == 0) {
     R_SetupImage(image);
   }
@@ -290,6 +315,13 @@ void R_FreeImage(r_media_t *media) {
 
   r_image_t *image = (r_image_t *) media;
 
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    image->texnum = 0; // bindless textures persist for the device lifetime
+    return;
+  }
+#endif
+
   glDeleteTextures(1, &image->texnum);
 
   image->texnum = 0;
@@ -342,6 +374,10 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
     } else {
       image->width = surface->w;
       image->height = surface->h;
+      // upload 2D images (fonts, UI, HUD, diffusemaps) into the bindless texture
+      // array so the Vulkan 2D pass and RTX shaders can sample them; texnum holds
+      // the bindless index rather than a GL texture name
+      image->texnum = R_Vk_UploadSurface(surface);
     }
     SDL_DestroySurface(surface);
     R_RegisterMedia((r_media_t *) image);
@@ -579,16 +615,23 @@ void R_DumpImages_f(void) {
  */
 void R_InitImages(void) {
 
+  memset(&r_image_state, 0, sizeof(r_image_state));
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    Fs_Mkdir("screenshots");
+    return; // GL pixel-store / anisotropy state is not used by the Vulkan backend
+  }
+#endif
+
   // set up alignment parameters
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-  memset(&r_image_state, 0, sizeof(r_image_state));
 
   glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.max_anisotropy);
   r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
 
   R_GetError(NULL);
-  
+
   Fs_Mkdir("screenshots");
 }

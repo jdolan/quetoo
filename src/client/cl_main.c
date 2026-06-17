@@ -708,11 +708,10 @@ void Cl_Frame(const uint32_t msec) {
     S_RenderStage(&cl_stage);
   }
 
-  // the Vulkan backend presents a cleared frame; its per-pass scene and 2D
-  // rendering is not yet wired in (see VULKAN_RTX.md)
-  if (!R_Vulkan()) {
-    Cl_UpdateScreen();
-  }
+  // enqueue the 2D UI (menu / HUD / console). The 3D scene is drawn by the GL
+  // renderer here, or ray-traced from R_EndFrame on the Vulkan backend; either
+  // way R_EndFrame flushes the queued 2D, compositing it over the frame.
+  Cl_UpdateScreen();
 
   R_EndFrame();
 

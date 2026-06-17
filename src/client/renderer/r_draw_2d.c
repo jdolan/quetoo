@@ -677,7 +677,7 @@ static void R_InitFont(char *name) {
   font->image = R_LoadImage(va("ui/fonts/%s", name), IMG_FONT);
   assert(font->image);
   
-  const float scale = SDL_GetWindowDisplayScale(SDL_GL_GetCurrentWindow());
+  const float scale = SDL_GetWindowDisplayScale(r_context.window);
 
   font->char_width = font->image->width / scale / 16.f;
   font->char_height = font->image->height / scale / 8.f;
@@ -712,6 +712,362 @@ static void R_InitDraw2DProgram(void) {
   R_GetError(NULL);
 }
 
+#if BUILD_VULKAN
+
+/**
+ * @brief Push constants for the Vulkan 2D pipeline; must match vk_2d.vert/.frag.
+ */
+typedef struct {
+  mat4_t projection2D;
+  uint32_t texture_index;
+} r_vk_2d_push_t;
+
+/**
+ * @brief Vulkan 2D draw state: pipelines, the load render pass that composites the
+ * UI over the ray-traced frame, and per-frame host-visible vertex buffers.
+ */
+static struct {
+  VkShaderModule vert, frag;
+  VkPipelineLayout pipeline_layout;
+  VkPipeline triangles;
+  VkPipeline lines;
+  VkRenderPass render_pass_load;
+  VkBuffer vertex_buffers[R_VK_MAX_FRAMES_IN_FLIGHT];
+  VkDeviceMemory vertex_memory[R_VK_MAX_FRAMES_IN_FLIGHT];
+  void *vertex_mapped[R_VK_MAX_FRAMES_IN_FLIGHT];
+  VkDeviceSize vertex_capacity;
+  _Bool ready;
+} r_vk_2d;
+
+static uint32_t R_Vk_2D_FindMemoryType(uint32_t bits, VkMemoryPropertyFlags want) {
+
+  VkPhysicalDeviceMemoryProperties mp;
+  vkGetPhysicalDeviceMemoryProperties(r_vk.physical_device, &mp);
+
+  for (uint32_t i = 0; i < mp.memoryTypeCount; i++) {
+    if ((bits & (1u << i)) && (mp.memoryTypes[i].propertyFlags & want) == want) {
+      return i;
+    }
+  }
+
+  Com_Error(ERROR_FATAL, "No suitable Vulkan memory type\n");
+  return 0;
+}
+
+static VkShaderModule R_Vk_2D_LoadShader(const char *name) {
+
+  void *buffer;
+  const int64_t len = Fs_Load(name, &buffer);
+  if (len == -1) {
+    Com_Error(ERROR_FATAL, "Failed to load 2D shader %s\n", name);
+  }
+
+  const VkShaderModuleCreateInfo ci = {
+    .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+    .codeSize = (size_t) len,
+    .pCode = (const uint32_t *) buffer
+  };
+
+  VkShaderModule module;
+  if (vkCreateShaderModule(r_vk.device, &ci, NULL, &module) != VK_SUCCESS) {
+    Com_Error(ERROR_FATAL, "vkCreateShaderModule failed for %s\n", name);
+  }
+
+  Fs_Free(buffer);
+  return module;
+}
+
+/**
+ * @brief Creates the render pass used to composite the 2D UI onto the swapchain
+ * image after the ray-traced blit: it preserves the existing contents (LOAD) and
+ * transitions the image from transfer-dst to present.
+ */
+static void R_Vk_2D_CreateLoadRenderPass(void) {
+
+  const VkAttachmentDescription color = {
+    .format = r_vk.swapchain_format,
+    .samples = VK_SAMPLE_COUNT_1_BIT,
+    .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+    .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+    .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+    .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+    .initialLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+  };
+
+  const VkAttachmentReference ref = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+
+  const VkSubpassDescription subpass = {
+    .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+    .colorAttachmentCount = 1,
+    .pColorAttachments = &ref
+  };
+
+  const VkSubpassDependency dep = {
+    .srcSubpass = VK_SUBPASS_EXTERNAL,
+    .dstSubpass = 0,
+    .srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT,
+    .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+    .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+    .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT
+  };
+
+  const VkRenderPassCreateInfo ci = {
+    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+    .attachmentCount = 1,
+    .pAttachments = &color,
+    .subpassCount = 1,
+    .pSubpasses = &subpass,
+    .dependencyCount = 1,
+    .pDependencies = &dep
+  };
+
+  if (vkCreateRenderPass(r_vk.device, &ci, NULL, &r_vk_2d.render_pass_load) != VK_SUCCESS) {
+    Com_Error(ERROR_FATAL, "vkCreateRenderPass (2D) failed\n");
+  }
+}
+
+static VkPipeline R_Vk_2D_CreatePipeline(VkPrimitiveTopology topology) {
+
+  const VkPipelineShaderStageCreateInfo stages[] = {
+    { .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, .stage = VK_SHADER_STAGE_VERTEX_BIT, .module = r_vk_2d.vert, .pName = "main" },
+    { .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, .stage = VK_SHADER_STAGE_FRAGMENT_BIT, .module = r_vk_2d.frag, .pName = "main" }
+  };
+
+  const VkVertexInputBindingDescription binding = { 0, sizeof(r_draw_2d_vertex_t), VK_VERTEX_INPUT_RATE_VERTEX };
+  const VkVertexInputAttributeDescription attrs[] = {
+    { 0, 0, VK_FORMAT_R16G16_SINT, offsetof(r_draw_2d_vertex_t, position) },
+    { 1, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(r_draw_2d_vertex_t, diffusemap) },
+    { 2, 0, VK_FORMAT_R8G8B8A8_UNORM, offsetof(r_draw_2d_vertex_t, color) }
+  };
+
+  const VkPipelineVertexInputStateCreateInfo vi = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    .vertexBindingDescriptionCount = 1, .pVertexBindingDescriptions = &binding,
+    .vertexAttributeDescriptionCount = 3, .pVertexAttributeDescriptions = attrs
+  };
+
+  const VkPipelineInputAssemblyStateCreateInfo ia = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO, .topology = topology
+  };
+
+  const VkPipelineViewportStateCreateInfo vp = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, .viewportCount = 1, .scissorCount = 1
+  };
+
+  const VkPipelineRasterizationStateCreateInfo rs = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+    .polygonMode = VK_POLYGON_MODE_FILL, .cullMode = VK_CULL_MODE_NONE,
+    .frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE, .lineWidth = 1.f
+  };
+
+  const VkPipelineMultisampleStateCreateInfo ms = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO, .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT
+  };
+
+  const VkPipelineColorBlendAttachmentState cba = {
+    .blendEnable = VK_TRUE,
+    .srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA, .dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, .colorBlendOp = VK_BLEND_OP_ADD,
+    .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE, .dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, .alphaBlendOp = VK_BLEND_OP_ADD,
+    .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
+  };
+
+  const VkPipelineColorBlendStateCreateInfo cb = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO, .attachmentCount = 1, .pAttachments = &cba
+  };
+
+  const VkDynamicState dyn[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+  const VkPipelineDynamicStateCreateInfo ds = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, .dynamicStateCount = 2, .pDynamicStates = dyn
+  };
+
+  const VkGraphicsPipelineCreateInfo gpci = {
+    .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+    .stageCount = 2, .pStages = stages,
+    .pVertexInputState = &vi, .pInputAssemblyState = &ia, .pViewportState = &vp,
+    .pRasterizationState = &rs, .pMultisampleState = &ms, .pColorBlendState = &cb, .pDynamicState = &ds,
+    .layout = r_vk_2d.pipeline_layout, .renderPass = r_vk.render_pass, .subpass = 0
+  };
+
+  VkPipeline pipeline;
+  if (vkCreateGraphicsPipelines(r_vk.device, VK_NULL_HANDLE, 1, &gpci, NULL, &pipeline) != VK_SUCCESS) {
+    Com_Error(ERROR_FATAL, "vkCreateGraphicsPipelines (2D) failed\n");
+  }
+  return pipeline;
+}
+
+/**
+ * @brief Initializes the Vulkan 2D pipeline, render pass and per-frame vertex buffers.
+ */
+void R_Vk_InitDraw2D(void) {
+
+  r_vk_2d.vert = R_Vk_2D_LoadShader("shaders/vk_2d.vert.spv");
+  r_vk_2d.frag = R_Vk_2D_LoadShader("shaders/vk_2d.frag.spv");
+
+  const VkDescriptorSetLayout set_layout = R_Vk_TextureSetLayout();
+  const VkPushConstantRange pcr = {
+    .stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+    .offset = 0, .size = sizeof(r_vk_2d_push_t)
+  };
+  const VkPipelineLayoutCreateInfo plci = {
+    .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+    .setLayoutCount = 1, .pSetLayouts = &set_layout,
+    .pushConstantRangeCount = 1, .pPushConstantRanges = &pcr
+  };
+  if (vkCreatePipelineLayout(r_vk.device, &plci, NULL, &r_vk_2d.pipeline_layout) != VK_SUCCESS) {
+    Com_Error(ERROR_FATAL, "vkCreatePipelineLayout (2D) failed\n");
+  }
+
+  R_Vk_2D_CreateLoadRenderPass();
+
+  r_vk_2d.triangles = R_Vk_2D_CreatePipeline(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+  r_vk_2d.lines = R_Vk_2D_CreatePipeline(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+
+  r_vk_2d.vertex_capacity = sizeof(r_draw_2d_vertex_t) * MAX_DRAW_2D_VERTEXES * 2;
+  for (uint32_t i = 0; i < R_VK_MAX_FRAMES_IN_FLIGHT; i++) {
+    const VkBufferCreateInfo bci = {
+      .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+      .size = r_vk_2d.vertex_capacity,
+      .usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+      .sharingMode = VK_SHARING_MODE_EXCLUSIVE
+    };
+    if (vkCreateBuffer(r_vk.device, &bci, NULL, &r_vk_2d.vertex_buffers[i]) != VK_SUCCESS) {
+      Com_Error(ERROR_FATAL, "vkCreateBuffer (2D) failed\n");
+    }
+    VkMemoryRequirements req;
+    vkGetBufferMemoryRequirements(r_vk.device, r_vk_2d.vertex_buffers[i], &req);
+    const VkMemoryAllocateInfo ai = {
+      .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+      .allocationSize = req.size,
+      .memoryTypeIndex = R_Vk_2D_FindMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+    };
+    if (vkAllocateMemory(r_vk.device, &ai, NULL, &r_vk_2d.vertex_memory[i]) != VK_SUCCESS) {
+      Com_Error(ERROR_FATAL, "vkAllocateMemory (2D) failed\n");
+    }
+    vkBindBufferMemory(r_vk.device, r_vk_2d.vertex_buffers[i], r_vk_2d.vertex_memory[i], 0);
+    vkMapMemory(r_vk.device, r_vk_2d.vertex_memory[i], 0, r_vk_2d.vertex_capacity, 0, &r_vk_2d.vertex_mapped[i]);
+  }
+
+  r_vk_2d.ready = true;
+}
+
+/**
+ * @brief Records the draw batches for one 2D list with the given projection.
+ */
+static void R_Vk_2D_DrawList(VkCommandBuffer cb, const r_draw_2d_arrays_list_t *list,
+                             mat4_t projection, int32_t vertex_offset, VkDescriptorSet set) {
+
+  VkPipeline bound = VK_NULL_HANDLE;
+  const r_draw_2d_arrays_t *d = list->draw_arrays;
+
+  for (int32_t i = 0; i < list->num_draw_arrays; i++, d++) {
+
+    if (d->mode != GL_TRIANGLES && d->mode != GL_LINES) {
+      continue; // points and other modes are unused by the UI
+    }
+
+    const VkPipeline want = (d->mode == GL_LINES) ? r_vk_2d.lines : r_vk_2d.triangles;
+    if (want != bound) {
+      vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, want);
+      vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, r_vk_2d.pipeline_layout, 0, 1, &set, 0, NULL);
+      bound = want;
+    }
+
+    const r_vk_2d_push_t push = { .projection2D = projection, .texture_index = d->texture };
+    vkCmdPushConstants(cb, r_vk_2d.pipeline_layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(push), &push);
+
+    vkCmdDraw(cb, d->num_vertexes, 1, d->first_vertex + vertex_offset, 0);
+  }
+}
+
+/**
+ * @brief Records the queued 2D draw lists into the command buffer, compositing the UI
+ * onto the swapchain image. `overlay` selects the load render pass (preserving the
+ * ray-traced frame underneath); otherwise the clearing render pass is used (menu).
+ */
+void R_Vk_Draw2D(VkCommandBuffer cb, uint32_t image_index, _Bool overlay) {
+
+  if (!r_vk_2d.ready) {
+    return;
+  }
+
+  const uint32_t frame = r_vk.current_frame;
+
+  const size_t game_bytes = (size_t) r_draw_2d.game.num_vertexes * sizeof(r_draw_2d_vertex_t);
+  const size_t ui_bytes = (size_t) r_draw_2d.ui.num_vertexes * sizeof(r_draw_2d_vertex_t);
+  if (game_bytes) {
+    memcpy(r_vk_2d.vertex_mapped[frame], r_draw_2d.game.vertexes, game_bytes);
+  }
+  if (ui_bytes) {
+    memcpy((byte *) r_vk_2d.vertex_mapped[frame] + game_bytes, r_draw_2d.ui.vertexes, ui_bytes);
+  }
+
+  const VkClearValue clear = { .color = { .float32 = { 0.f, 0.f, 0.f, 1.f } } };
+  const VkRenderPassBeginInfo rpbi = {
+    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+    .renderPass = overlay ? r_vk_2d.render_pass_load : r_vk.render_pass,
+    .framebuffer = r_vk.framebuffers[image_index],
+    .renderArea = { .offset = { 0, 0 }, .extent = r_vk.swapchain_extent },
+    .clearValueCount = 1,
+    .pClearValues = &clear
+  };
+  vkCmdBeginRenderPass(cb, &rpbi, VK_SUBPASS_CONTENTS_INLINE);
+
+  if (r_draw_2d.game.num_draw_arrays + r_draw_2d.ui.num_draw_arrays > 0) {
+
+    // negative height flips clip-space Y so the GL-style top-left ortho projection
+    // and texture UVs render upright on Vulkan (whose NDC Y points down)
+    const VkViewport viewport = {
+      0.f, (float) r_vk.swapchain_extent.height,
+      (float) r_vk.swapchain_extent.width, -(float) r_vk.swapchain_extent.height,
+      0.f, 1.f
+    };
+    vkCmdSetViewport(cb, 0, 1, &viewport);
+    const VkRect2D scissor = { .offset = { 0, 0 }, .extent = r_vk.swapchain_extent };
+    vkCmdSetScissor(cb, 0, 1, &scissor);
+
+    const VkDescriptorSet set = R_Vk_TextureSet();
+    const VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(cb, 0, 1, &r_vk_2d.vertex_buffers[frame], &offset);
+
+    R_Vk_2D_DrawList(cb, &r_draw_2d.game, Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f), 0, set);
+    R_Vk_2D_DrawList(cb, &r_draw_2d.ui, Mat4_FromOrtho(0.f, r_context.window_bounds.w, r_context.window_bounds.h, 0.f, -1.f, 1.f), r_draw_2d.game.num_vertexes, set);
+  }
+
+  vkCmdEndRenderPass(cb);
+
+  r_draw_2d.game.num_vertexes = 0;
+  r_draw_2d.game.num_draw_arrays = 0;
+  r_draw_2d.ui.num_vertexes = 0;
+  r_draw_2d.ui.num_draw_arrays = 0;
+}
+
+/**
+ * @brief Destroys the Vulkan 2D pipeline, render pass and buffers.
+ */
+void R_Vk_ShutdownDraw2D(void) {
+
+  if (!r_vk_2d.ready) {
+    return;
+  }
+
+  for (uint32_t i = 0; i < R_VK_MAX_FRAMES_IN_FLIGHT; i++) {
+    vkDestroyBuffer(r_vk.device, r_vk_2d.vertex_buffers[i], NULL);
+    vkFreeMemory(r_vk.device, r_vk_2d.vertex_memory[i], NULL);
+  }
+
+  vkDestroyPipeline(r_vk.device, r_vk_2d.triangles, NULL);
+  vkDestroyPipeline(r_vk.device, r_vk_2d.lines, NULL);
+  vkDestroyRenderPass(r_vk.device, r_vk_2d.render_pass_load, NULL);
+  vkDestroyPipelineLayout(r_vk.device, r_vk_2d.pipeline_layout, NULL);
+  vkDestroyShaderModule(r_vk.device, r_vk_2d.vert, NULL);
+  vkDestroyShaderModule(r_vk.device, r_vk_2d.frag, NULL);
+
+  memset(&r_vk_2d, 0, sizeof(r_vk_2d));
+}
+
+#endif /* BUILD_VULKAN */
+
 /**
  * @brief Initializes the 2D draw subsystem, loading fonts and creating GPU buffers.
  */
@@ -739,6 +1095,14 @@ void R_InitDraw2D(void) {
   r_draw_2d.null_texture->minify = GL_LINEAR;
   r_draw_2d.null_texture->levels = 1;
   R_UploadImage(r_draw_2d.null_texture, &(const uint32_t) { 0xffffffff });
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    R_Vk_InitDraw2D();
+    R_SetDraw2DProjection(PROJECTION_GAME);
+    return;
+  }
+#endif
 
   glGenVertexArrays(1, &r_draw_2d.vertex_array);
   glBindVertexArray(r_draw_2d.vertex_array);
@@ -777,6 +1141,13 @@ static void R_ShutdownDraw2DProgram(void) {
  * @brief Shuts down the 2D draw subsystem, freeing GPU buffers.
  */
 void R_ShutdownDraw2D(void) {
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    R_Vk_ShutdownDraw2D();
+    return;
+  }
+#endif
 
   glDeleteVertexArrays(1, &r_draw_2d.vertex_array);
   glDeleteBuffers(1, &r_draw_2d.vertex_buffer);

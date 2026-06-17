@@ -157,6 +157,11 @@ uint32_t R_Vk_TextureCount(void);
 VkDescriptorSetLayout R_Vk_TextureSetLayout(void);
 VkDescriptorSet R_Vk_TextureSet(void);
 void R_Vk_ShutdownImages(void);
+
+// r_draw_2d.c — Vulkan 2D UI pass (defined alongside the GL 2D code)
+void R_Vk_InitDraw2D(void);
+void R_Vk_Draw2D(VkCommandBuffer cb, uint32_t image_index, _Bool overlay);
+void R_Vk_ShutdownDraw2D(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* BUILD_VULKAN */

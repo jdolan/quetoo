@@ -629,19 +629,12 @@ void R_Vk_DrawClear(float r, float g, float b) {
   };
   vkBeginCommandBuffer(cb, &begin_info);
 
-  const VkClearValue clear = { .color = { .float32 = { r, g, b, 1.f } } };
-
-  const VkRenderPassBeginInfo render_pass_info = {
-    .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-    .renderPass = r_vk.render_pass,
-    .framebuffer = r_vk.framebuffers[image_index],
-    .renderArea = { .offset = { 0, 0 }, .extent = r_vk.swapchain_extent },
-    .clearValueCount = 1,
-    .pClearValues = &clear
-  };
-
-  vkCmdBeginRenderPass(cb, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdEndRenderPass(cb);
+  // clear the frame to black and composite the 2D UI (menu / console) on top;
+  // this is the no-world path, so there is no ray-traced image to preserve
+  (void) r;
+  (void) g;
+  (void) b;
+  R_Vk_Draw2D(cb, image_index, false);
   vkEndCommandBuffer(cb);
 
   const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -765,6 +758,7 @@ void R_Vk_Shutdown(void) {
 
   if (r_vk.device) {
     vkDeviceWaitIdle(r_vk.device);
+    R_Vk_ShutdownDraw2D();
     R_Vk_ShutdownImages();
     R_Vk_DestroySwapchain();
     vkDestroyDevice(r_vk.device, NULL);

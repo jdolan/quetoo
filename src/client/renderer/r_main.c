@@ -538,9 +538,16 @@ void R_Init(void) {
 
 #if BUILD_VULKAN
   if (R_Vulkan()) {
+    // the Vulkan backend needs the media, image and 2D UI subsystems (the latter
+    // composites the HUD/menu/console over the ray-traced frame); the remaining
+    // GL-only subsystems below are skipped
+    R_InitMedia();
+    R_InitImages();
+    R_InitDraw2D();
+
     const SDL_Rect bounds = r_context.window_bounds;
     Com_Print("Video initialized %dx%d (Vulkan)\n", bounds.w, bounds.h);
-    return; // GL subsystems below are not used by the Vulkan backend
+    return;
   }
 #endif
 

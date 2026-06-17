@@ -99,6 +99,20 @@ static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 void Ui_HandleEvent(const SDL_Event *event) {
 
   if (windowController) {
+
+    // ObjectivelyMVC refreshes its window from SDL_GL_GetCurrentWindow() on most
+    // window events; that is NULL on the Vulkan backend (no GL context) and trips
+    // an assertion in setWindow, so drop window events under Vulkan (the window
+    // never changes here anyway)
+    if (r_context.vulkan) {
+      switch (event->type) {
+        case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
+          return;
+        default:
+          break;
+      }
+    }
+
     if (cls.key_state.dest != KEY_UI) {
       switch (event->type) {
         case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
@@ -162,7 +176,7 @@ void Ui_ViewWillDisappear(void) {
 void Ui_Draw(void) {
 
   if (r_context.vulkan) {
-    return;
+    return; // ObjectivelyMVC menu is not yet ported to Vulkan; see Ui_Init
   }
 
   assert(windowController);
@@ -248,8 +262,10 @@ void Ui_PopAllViewControllers(void) {
  */
 void Ui_Init(void) {
 
-  // ObjectivelyMVC renders through the OpenGL renderer; it is unavailable on the
-  // Vulkan/RTX backend (see VULKAN_RTX.md)
+  // ObjectivelyMVC is coupled to the OpenGL renderer (it refreshes its window from
+  // SDL_GL_GetCurrentWindow() and resets a GL render device); the menu is not yet
+  // ported to the Vulkan backend. The HUD and console render through the Vulkan 2D
+  // pass directly. See VULKAN_RTX.md.
   if (r_context.vulkan) {
     return;
   }

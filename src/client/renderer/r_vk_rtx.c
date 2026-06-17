@@ -1059,8 +1059,9 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
   vkCmdBlitImage(cb, r_rtx.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
     r_vk.swapchain_images[image_index], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
 
-  R_Rtx_Barrier(cb, r_vk.swapchain_images[image_index], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-    VK_ACCESS_TRANSFER_WRITE_BIT, 0, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
+  // composite the 2D UI (HUD / console / menu) over the ray-traced frame; the 2D
+  // load render pass preserves the blit and transitions the image to present
+  R_Vk_Draw2D(cb, image_index, true);
 
   vkEndCommandBuffer(cb);
 

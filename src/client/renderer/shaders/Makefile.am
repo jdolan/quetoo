@@ -32,12 +32,17 @@ shaders_DATA = \
 	rtx.rgen.spv \
 	rtx.rmiss.spv \
 	rtx_shadow.rmiss.spv \
-	rtx.rchit.spv
+	rtx.rchit.spv \
+	vk_2d.vert.spv \
+	vk_2d.frag.spv
 
-# Source for the precompiled SPIR-V ray tracing shaders above. Regenerate with:
+# Source for the precompiled SPIR-V shaders above. Regenerate with:
 #   glslangValidator --target-env vulkan1.2 -V rtx.rgen -o rtx.rgen.spv  (etc.)
+#   glslangValidator --target-env vulkan1.2 -V vk_2d.vert -o vk_2d.vert.spv
 EXTRA_DIST = \
 	rtx.rgen \
 	rtx.rmiss \
 	rtx_shadow.rmiss \
-	rtx.rchit
+	rtx.rchit \
+	vk_2d.vert \
+	vk_2d.frag
