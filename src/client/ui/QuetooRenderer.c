@@ -19,12 +19,21 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "config.h"
+
 #include <assert.h>
 
 #include "src/client/renderer/r_gl.h"
 #include "QuetooRenderer.h"
 
 #include "ui_local.h"
+
+#if BUILD_VULKAN
+// the Vulkan backend has no GL context; UI textures are uploaded into the bindless
+// array (defined in r_main.c / r_vk_image.c, resolved at link time)
+extern _Bool R_Vulkan(void);
+extern uint32_t R_Vk_UploadSurface(SDL_Surface *surface);
+#endif
 
 #define _Class _QuetooRenderer
 
@@ -48,6 +57,14 @@ static void beginFrame(Renderer *self) {
 static GLuint createTexture(const Renderer *self, const SDL_Surface *surface) {
 
   assert(surface);
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    // the returned "GLuint" is a bindless texture index; drawTexture passes it
+    // through to the 2D draw queue, which the Vulkan 2D pass samples
+    return (GLuint) R_Vk_UploadSurface((SDL_Surface *) surface);
+  }
+#endif
 
   GLenum internal_format;
   GLenum format;
