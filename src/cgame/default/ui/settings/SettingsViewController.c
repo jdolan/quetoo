@@ -201,11 +201,12 @@ static void loadView(ViewController *self) {
   $(self, setView, view);
   release(view);
 
-  Select *windowMode, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
+  Select *windowMode, *renderBackend, *resolution, *verticalSync, *anisotropy, *antialias, *quality;
   Button *apply;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("windowMode", &windowMode),
+    MakeOutlet("renderBackend", &renderBackend),
     MakeOutlet("resolution", &resolution),
     MakeOutlet("verticalSync", &verticalSync),
     MakeOutlet("anisotropy", &anisotropy),
@@ -219,6 +220,11 @@ static void loadView(ViewController *self) {
   $(windowMode, addOption, "Window", (ident) 0);
   $(windowMode, addOption, "Fullscreen", (ident) 1);
   $(windowMode, addOption, "Exclusive Fullscreen", (ident) 2);
+
+  // string-valued options: CvarSelect sets r_backend to "gl" or "vulkan". Changing
+  // it applies on the renderer-context restart (r_backend is CVAR_R_CONTEXT).
+  $(renderBackend, addOption, "OpenGL", (ident) "gl");
+  $(renderBackend, addOption, "Vulkan / RTX", (ident) "vulkan");
 
   $(resolution, addOption, "Desktop", (ident) 0);
 

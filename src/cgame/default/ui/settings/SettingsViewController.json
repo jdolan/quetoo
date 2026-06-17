@@ -51,6 +51,20 @@
                           "class": "Input",
                           "label": {
                             "text": {
+                              "text": "Render backend"
+                            }
+                          },
+                          "control": {
+                            "class": "CvarSelect",
+                            "identifier": "renderBackend",
+                            "var": "r_backend",
+                            "expectsStringValue": true
+                          }
+                        },
+                        {
+                          "class": "Input",
+                          "label": {
+                            "text": {
                               "text": "Fullscreen resolution"
                             }
                           },
