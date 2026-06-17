@@ -760,7 +760,10 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
     vec3_t forward, right, up;
     Vec3_Vectors(view->angles, &forward, &right, &up);
     target = Vec3_Add(origin, forward);
-    tan_fov = Vec2(tanf(Radians(view->fov.x) * .5f), tanf(Radians(view->fov.y) * .5f));
+    // derive vertical fov from the horizontal fov and the swapchain aspect; the
+    // engine's view->fov.y is computed from the (unused) GL framebuffer and is NaN
+    const float tx = tanf(Radians(view->fov.x) * .5f);
+    tan_fov = Vec2(tx, tx / aspect);
   }
 
   r_rtx_push_t pc = {

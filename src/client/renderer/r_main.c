@@ -425,7 +425,7 @@ static void R_InitLocal(void) {
   r_bloom_threshold = Cvar_Add("r_bloom_threshold", "1.0", CVAR_ARCHIVE, "Controls the luminance threshold above which bloom is applied.");
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_backend = Cvar_Add("r_backend", "gl", CVAR_ARCHIVE | CVAR_R_CONTEXT, "The rendering backend. 'gl' is the default OpenGL renderer; 'vulkan' selects the optional Vulkan/RTX backend (in development, requires a --enable-vulkan build).");
-  r_rtx_overview = Cvar_Add("r_rtx_overview", "1", CVAR_ARCHIVE, "Vulkan/RTX backend: 1 ray-traces the loaded map from a bounds-framed overview camera; 0 uses the first-person player view.");
+  r_rtx_overview = Cvar_Add("r_rtx_overview", "0", CVAR_ARCHIVE, "Vulkan/RTX backend: 0 ray-traces from the first-person player view; 1 uses a bounds-framed overview camera of the loaded map.");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
