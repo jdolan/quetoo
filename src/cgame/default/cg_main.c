@@ -377,7 +377,10 @@ static void Cg_PrepareScene(const cl_frame_t *frame) {
 
   Cg_PrepareView(frame);
 
-  Cg_PrepareStage(frame);
+  // the stage (particle/effect emitters) depends on GL-loaded cgame media
+  if (!cgi.context->vulkan) {
+    Cg_PrepareStage(frame);
+  }
 }
 
 /**

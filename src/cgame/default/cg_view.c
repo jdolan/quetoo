@@ -321,10 +321,13 @@ void Cg_PrepareView(const cl_frame_t *frame) {
   cgi.view->type = VIEW_MAIN;
   cgi.view->flags = VIEW_FLAG_NONE;
 
-  assert(cg_framebuffer.name);
-  cgi.view->framebuffer = &cg_framebuffer;
-
-  cgi.view->viewport = Vec4i(0, 0, cg_framebuffer.width, cg_framebuffer.height);
+  // the GL post-processing framebuffer is not created under the Vulkan backend;
+  // the view origin/angles/fov set below still drive the RTX camera
+  if (!cgi.context->vulkan) {
+    assert(cg_framebuffer.name);
+    cgi.view->framebuffer = &cg_framebuffer;
+    cgi.view->viewport = Vec4i(0, 0, cg_framebuffer.width, cg_framebuffer.height);
+  }
 
   const player_state_t *ps0;
 
@@ -347,7 +350,10 @@ void Cg_PrepareView(const cl_frame_t *frame) {
 
   Cg_UpdateBob(ps1);
 
-  Cg_UpdateAmbient();
+  // ambient lighting/sounds depend on GL-loaded cgame media, unavailable on Vulkan
+  if (!cgi.context->vulkan) {
+    Cg_UpdateAmbient();
+  }
 
   cgi.view->contents = cgi.PointContents(cgi.view->origin);
 

@@ -461,7 +461,11 @@ void Cl_Interpolate(void) {
     ent->abs_bounds = Cm_EntityBounds(ent->current.solid, ent->matrix, ent->bounds);
   }
 
-  cls.cgame->Interpolate(&cl.frame);
+  // cgame interpolation spawns entity events/effects that depend on GL-loaded
+  // cgame media, which is unavailable under the Vulkan backend
+  if (!R_Vulkan()) {
+    cls.cgame->Interpolate(&cl.frame);
+  }
 
   cl.frame.interpolated = true;
 }

@@ -582,6 +582,13 @@ static void Cl_UpdateScene(void) {
 
   cls.cgame->PrepareScene(&cl.frame);
 
+  // PrepareScene set the view (origin/angles/fov) used by the Vulkan/RTX camera.
+  // The remaining scene population and GL draw calls are OpenGL-only; the Vulkan
+  // backend ray-traces the world from R_EndFrame instead.
+  if (R_Vulkan()) {
+    return;
+  }
+
   if (editor->value) {
     thread = Thread_Create((ThreadRunFunc) cls.cgame->PopulateEditorScene, &cl.frame, THREAD_NONE);
   } else {
