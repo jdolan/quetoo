@@ -177,9 +177,28 @@ void R_UpdateUniforms(const r_view_t *view) {
 }
 
 /**
+ * @brief Returns true if the renderer is running on the Vulkan backend (`r_backend
+ * vulkan`) in a build with Vulkan support compiled in. When false, the OpenGL
+ * backend is in use.
+ */
+_Bool R_Vulkan(void) {
+#if BUILD_VULKAN
+  return r_backend && !g_strcmp0(r_backend->string, "vulkan");
+#else
+  return false;
+#endif
+}
+
+/**
  * @brief Called at the beginning of each render frame.
  */
 void R_BeginFrame(void) {
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    return; // the Vulkan frame is recorded and presented in R_EndFrame
+  }
+#endif
 
   if (r_draw_scale->modified) {
     R_UpdateContext();
@@ -347,6 +366,15 @@ void R_DrawPlayerModelView(r_view_t *view) {
  */
 void R_EndFrame(void) {
 
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    // present a cleared frame; per-pass Vulkan rendering (2D, world, RTX) is
+    // layered onto this acquire/record/submit/present cycle (see VULKAN_RTX.md)
+    R_Vk_DrawClear(0.f, 0.f, 0.f);
+    return;
+  }
+#endif
+
   R_Draw2D();
 
   if (r_finish->value) {
@@ -493,6 +521,14 @@ void R_Init(void) {
 
   R_InitContext();
 
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    const SDL_Rect bounds = r_context.window_bounds;
+    Com_Print("Video initialized %dx%d (Vulkan)\n", bounds.w, bounds.h);
+    return; // GL subsystems below are not used by the Vulkan backend
+  }
+#endif
+
   R_InitConfig();
 
   R_InitUniforms();
@@ -538,6 +574,14 @@ void R_Init(void) {
 void R_Shutdown(void) {
 
   Cmd_RemoveAll(CMD_RENDERER);
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    R_ShutdownContext();
+    Mem_FreeTag(MEM_TAG_RENDERER);
+    return;
+  }
+#endif
 
   R_ShutdownMedia();
 

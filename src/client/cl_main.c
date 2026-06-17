@@ -614,9 +614,11 @@ int32_t Cl_InstallerFrame(const installer_status_t *in) {
 
   R_BeginFrame();
 
-  const int32_t res = cls.cgame->UpdateInstaller(in);
-
-  Cl_UpdateScreen();
+  int32_t res = 0;
+  if (!R_Vulkan()) {
+    res = cls.cgame->UpdateInstaller(in);
+    Cl_UpdateScreen();
+  }
 
   R_EndFrame();
 
@@ -690,14 +692,20 @@ void Cl_Frame(const uint32_t msec) {
 
     Cl_PredictMovement();
 
-    Cl_UpdateScene();
+    if (!R_Vulkan()) {
+      Cl_UpdateScene();
+    }
   } else {
     Cl_SendCommands();
 
     S_RenderStage(&cl_stage);
   }
 
-  Cl_UpdateScreen();
+  // the Vulkan backend presents a cleared frame; its per-pass scene and 2D
+  // rendering is not yet wired in (see VULKAN_RTX.md)
+  if (!R_Vulkan()) {
+    Cl_UpdateScreen();
+  }
 
   R_EndFrame();
 

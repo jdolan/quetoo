@@ -133,7 +133,9 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
   R_BeginFrame();
 
-  Cl_UpdateScreen();
+  if (!R_Vulkan()) {
+    Cl_UpdateScreen();
+  }
 
   R_EndFrame();
 

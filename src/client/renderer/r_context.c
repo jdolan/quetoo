@@ -44,7 +44,9 @@ static void R_SetWindowIcon(void) {
  */
 void R_UpdateContext(void) {
 
-  r_context.window = SDL_GL_GetCurrentWindow();
+  if (!R_Vulkan()) {
+    r_context.window = SDL_GL_GetCurrentWindow();
+  }
   assert(r_context.window);
   
   r_context.window_flags = SDL_GetWindowFlags(r_context.window);
@@ -73,38 +75,68 @@ void R_UpdateContext(void) {
     r_context.window_bounds.w * r_context.display_mode->pixel_density,
     r_context.window_bounds.h * r_context.display_mode->pixel_density
   };
-    
-  R_UpdateUniforms(NULL);
-}
 
-/**
- * @brief Probes the Vulkan/RTX backend: brings up a Vulkan device on a temporary
- * window, reports the selected GPU and whether ray tracing is available, then tears
- * it back down. This exercises the device-selection foundation (see VULKAN_RTX.md
- * phase 0); the Vulkan backend cannot present a frame yet, so the caller continues
- * with the OpenGL context.
- */
-static void R_ProbeVulkanBackend(void) {
+  if (!R_Vulkan()) {
+    R_UpdateUniforms(NULL);
+  }
+}
 
 #if BUILD_VULKAN
-  SDL_Window *window = SDL_CreateWindow("Quetoo", 1, 1, SDL_WINDOW_VULKAN | SDL_WINDOW_HIDDEN);
-  if (!window) {
-    Com_Warn("r_backend vulkan: failed to create probe window: %s\n", SDL_GetError());
-    return;
+/**
+ * @brief Initializes the renderer context on the Vulkan backend: creates a Vulkan
+ * window, brings up the device (with RTX detection) and the swapchain, and records
+ * the context dimensions. Mirrors the window sizing of the OpenGL path. The per-pass
+ * Vulkan rendering (2D, world, mesh, RTX) is layered on top of this; see VULKAN_RTX.md.
+ */
+static void R_InitContextVulkan(void) {
+
+  if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+    if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
+      Com_Error(ERROR_FATAL, "%s\n", SDL_GetError());
+    }
   }
 
-  R_Vk_Init(window);
-  R_Vk_Shutdown();
+  r_context.display = SDL_GetPrimaryDisplay();
 
-  SDL_DestroyWindow(window);
+  SDL_Rect bounds;
+  SDL_GetDisplayUsableBounds(r_context.display, &bounds);
 
-  Com_Warn("r_backend vulkan: backend foundation only; cannot render yet. "
-           "Using OpenGL. See VULKAN_RTX.md.\n");
-#else
-  Com_Warn("r_backend vulkan: this build has no Vulkan support "
-           "(configure with --enable-vulkan). Using OpenGL.\n");
-#endif
+  int32_t w = bounds.w;
+  int32_t h = bounds.h;
+
+  SDL_WindowFlags window_flags = SDL_WINDOW_VULKAN | SDL_WINDOW_HIGH_PIXEL_DENSITY;
+
+  switch (r_fullscreen->integer) {
+    case 0:
+      window_flags |= SDL_WINDOW_RESIZABLE;
+      w = r_window_width->integer ?: w;
+      h = r_window_height->integer ?: h;
+      break;
+    case 1:
+      window_flags |= SDL_WINDOW_BORDERLESS;
+      break;
+    case 2:
+      window_flags |= SDL_WINDOW_FULLSCREEN;
+      w = r_fullscreen_width->integer ?: w;
+      h = r_fullscreen_height->integer ?: h;
+      break;
+  }
+
+  if ((r_context.window = SDL_CreateWindow(PACKAGE_STRING, w, h, window_flags)) == NULL) {
+    Com_Error(ERROR_FATAL, "Failed to create Vulkan window: %s\n", SDL_GetError());
+  }
+
+  R_SetWindowIcon();
+  SDL_SyncWindow(r_context.window);
+
+  R_Vk_Init(r_context.window);
+  R_Vk_InitSwapchain(r_context.window);
+
+  R_UpdateContext();
+
+  Com_Print("  Vulkan render backend initialized\n");
 }
+#endif /* BUILD_VULKAN */
 
 /**
  * @brief Initialize the `SDL_Window` and OpenGL context, returning true on success, false on failure.
@@ -119,8 +151,14 @@ void R_InitContext(void) {
 
   memset(&r_context, 0, sizeof(r_context));
 
-  if (!g_strcmp0(r_backend->string, "vulkan")) {
-    R_ProbeVulkanBackend();
+  if (R_Vulkan()) {
+#if BUILD_VULKAN
+    R_InitContextVulkan();
+    return;
+#else
+    Com_Warn("r_backend vulkan: this build has no Vulkan support "
+             "(configure with --enable-vulkan). Using OpenGL.\n");
+#endif
   }
 
   if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
@@ -266,6 +304,20 @@ void R_InitContext(void) {
  * @brief Destroys the OpenGL context and SDL window.
  */
 void R_ShutdownContext(void) {
+
+#if BUILD_VULKAN
+  if (R_Vulkan()) {
+    R_Vk_Shutdown();
+
+    if (r_context.window) {
+      SDL_DestroyWindow(r_context.window);
+      r_context.window = NULL;
+    }
+
+    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    return;
+  }
+#endif
 
   if (r_context.context) {
     SDL_GL_DestroyContext(r_context.context);
