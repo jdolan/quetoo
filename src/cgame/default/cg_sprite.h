@@ -255,6 +255,9 @@ struct cg_sprite_s {
  * @brief Calculate a lifetime value that causes the animation to run at a specified framerate.
  */
 static inline uint32_t Cg_AnimationLifetime(const r_animation_t *animation, const float fps) {
+  if (!animation) {
+    return 0; // animation media is not loaded under the Vulkan backend
+  }
   return animation->num_frames * FRAMES_TO_SECONDS(fps);
 }
 

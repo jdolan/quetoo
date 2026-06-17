@@ -67,6 +67,12 @@ static void Cg_PopSprite(cg_sprite_t *s, cg_sprite_t **list) {
  */
 cg_sprite_t *Cg_AddSprite(const cg_sprite_t *in_s) {
 
+  // sprites render through the OpenGL renderer and reference cgame media that is not
+  // loaded under the Vulkan backend; skip them (the world is ray-traced separately)
+  if (cgi.context->vulkan) {
+    return NULL;
+  }
+
   if (!cg_add_sprites->integer) {
     return NULL;
   }

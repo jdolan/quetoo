@@ -332,6 +332,22 @@ r_image_t *R_LoadImage(const char *name, r_image_type_t type) {
 
   image->type = type;
 
+  // Under the Vulkan backend there is no GL texture pipeline. Register a CPU-only
+  // stub carrying the image dimensions so cgame/client media handles are non-NULL
+  // and their logic (atlases, animations, bounds) works without OpenGL uploads.
+  if (r_context.vulkan) {
+    if (type == IMG_CUBEMAP) {
+      image->width = surface->w / 4;
+      image->height = surface->h / 3;
+    } else {
+      image->width = surface->w;
+      image->height = surface->h;
+    }
+    SDL_DestroySurface(surface);
+    R_RegisterMedia((r_media_t *) image);
+    return image;
+  }
+
   if (type == IMG_CUBEMAP) {
 
     image->width = surface->w / 4;
