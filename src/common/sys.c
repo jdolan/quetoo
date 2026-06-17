@@ -50,6 +50,16 @@
   #define MAX_BACKTRACE_SYMBOLS 50
 #endif
 
+#if defined(__ANDROID__)
+  // Bionic has no linkable execinfo backtrace() at our API level (#856), and a
+  // crash tombstone is unreachable on a non-rooted/non-debuggable install. We
+  // walk the stack with the C++ unwinder and log frames to logcat instead.
+  #include <android/log.h>
+  #include <dlfcn.h>
+  #include <ucontext.h>
+  #include <unwind.h>
+#endif
+
 #if HAVE_SYS_TIME_H
   #include <sys/time.h>
 #endif
@@ -638,6 +648,108 @@ void Sys_Signal(int32_t s) {
 
 #if !defined(_WIN32)
 
+#if defined(__ANDROID__)
+
+#define ANDROID_BT_TAG "Quetoo"
+#define ANDROID_BT_MAX 64
+
+typedef struct {
+  void *frames[ANDROID_BT_MAX];
+  int count;
+} android_bt_t;
+
+/**
+ * @brief `_Unwind_Backtrace` callback: records each return address.
+ */
+static _Unwind_Reason_Code Sys_AndroidUnwindCallback(struct _Unwind_Context *uc, void *arg) {
+
+  android_bt_t *bt = (android_bt_t *) arg;
+  const uintptr_t ip = _Unwind_GetIP(uc);
+
+  if (ip && bt->count < ANDROID_BT_MAX) {
+    bt->frames[bt->count++] = (void *) ip;
+  }
+
+  return (bt->count >= ANDROID_BT_MAX) ? _URC_END_OF_STACK : _URC_NO_REASON;
+}
+
+/**
+ * @brief Logs a symbolicatable native backtrace to logcat (tag "Quetoo"), the
+ * only crash channel reachable on a stock Samsung device. Each line is the
+ * faulting module + load-relative offset; resolve with:
+ *   llvm-addr2line -fCe <unstripped .so> <offset>
+ * or pipe the whole logcat through `ndk-stack -sym <dir of unstripped .so>`.
+ */
+static void Sys_AndroidLogBacktrace(int sig, siginfo_t *info, void *ctx) {
+
+  const char *name;
+  switch (sig) {
+    case SIGSEGV: name = "SIGSEGV"; break;
+    case SIGILL:  name = "SIGILL";  break;
+    case SIGFPE:  name = "SIGFPE";  break;
+    case SIGABRT: name = "SIGABRT"; break;
+    case SIGBUS:  name = "SIGBUS";  break;
+    default:      name = "signal";  break;
+  }
+
+  __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG,
+                      "*** Quetoo native crash: %s (fault addr %p) ***",
+                      name, info ? info->si_addr : NULL);
+
+  // The faulting PC is in the machine context, not on the unwound stack (which
+  // begins inside this handler). Log it explicitly -- it is the key line.
+  if (ctx) {
+    const ucontext_t *uc = (const ucontext_t *) ctx;
+    void *pc = NULL;
+#if defined(__aarch64__)
+    pc = (void *) uc->uc_mcontext.pc;
+#elif defined(__arm__)
+    pc = (void *) uc->uc_mcontext.arm_pc;
+#elif defined(__x86_64__)
+    pc = (void *) uc->uc_mcontext.gregs[REG_RIP];
+#elif defined(__i386__)
+    pc = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#endif
+    if (pc) {
+      Dl_info dli;
+      if (dladdr(pc, &dli) && dli.dli_fbase) {
+        __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG,
+            "  fault pc %012zx  %s (%s)",
+            (uintptr_t) pc - (uintptr_t) dli.dli_fbase,
+            dli.dli_fname ? dli.dli_fname : "?",
+            dli.dli_sname ? dli.dli_sname : "?");
+      } else {
+        __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG, "  fault pc %p (unknown)", pc);
+      }
+    }
+  }
+
+  android_bt_t bt = { .count = 0 };
+  _Unwind_Backtrace(Sys_AndroidUnwindCallback, &bt);
+
+  __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG, "  backtrace (%d frames):", bt.count);
+  for (int i = 0; i < bt.count; i++) {
+    Dl_info dli;
+    if (dladdr(bt.frames[i], &dli) && dli.dli_fbase) {
+      const uintptr_t off = (uintptr_t) bt.frames[i] - (uintptr_t) dli.dli_fbase;
+      if (dli.dli_sname) {
+        __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG,
+            "    #%02d pc %012zx  %s (%s+0x%zx)", i, off,
+            dli.dli_fname ? dli.dli_fname : "?", dli.dli_sname,
+            (uintptr_t) bt.frames[i] - (uintptr_t) dli.dli_saddr);
+      } else {
+        __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG,
+            "    #%02d pc %012zx  %s", i, off, dli.dli_fname ? dli.dli_fname : "?");
+      }
+    } else {
+      __android_log_print(ANDROID_LOG_FATAL, ANDROID_BT_TAG,
+          "    #%02d pc %p  (unknown)", i, bt.frames[i]);
+    }
+  }
+}
+
+#endif /* __ANDROID__ */
+
 /**
  * @brief Signal handler for fatal crash signals (`SIGSEGV`, `SIGILL`, etc.).
  *
@@ -645,6 +757,17 @@ void Sys_Signal(int32_t s) {
  * resets to the default handler and re-raises to produce a core dump.
  */
 static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
+
+#if defined(__ANDROID__)
+  // Log a symbolicatable backtrace to logcat (the only channel reachable on a
+  // stock device), then chain to the default handler for a tombstone. The
+  // desktop crash-dialog path below is non-async-safe and can deadlock here.
+  Sys_AndroidLogBacktrace(sig, info, ctx);
+  signal(sig, SIG_DFL);
+  raise(sig);
+  return;
+#endif
+
   (void) info;
   (void) ctx;
 
