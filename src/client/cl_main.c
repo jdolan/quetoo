@@ -692,9 +692,9 @@ void Cl_Frame(const uint32_t msec) {
 
     Cl_PredictMovement();
 
-    if (!R_Vulkan()) {
-      Cl_UpdateScene();
-    }
+    // populates cl_view (origin/angles) and the scene; the Vulkan/RTX path uses
+    // the view for its camera. The GL scene drawing happens in Cl_UpdateScreen.
+    Cl_UpdateScene();
   } else {
     Cl_SendCommands();
 

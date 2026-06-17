@@ -28,4 +28,16 @@ shaders_DATA = \
 	sprite_vs.glsl \
 	uniforms.glsl \
 	version.glsl \
-  voxel.glsl
+	voxel.glsl \
+	rtx.rgen.spv \
+	rtx.rmiss.spv \
+	rtx_shadow.rmiss.spv \
+	rtx.rchit.spv
+
+# Source for the precompiled SPIR-V ray tracing shaders above. Regenerate with:
+#   glslangValidator --target-env vulkan1.2 -V rtx.rgen -o rtx.rgen.spv  (etc.)
+EXTRA_DIST = \
+	rtx.rgen \
+	rtx.rmiss \
+	rtx_shadow.rmiss \
+	rtx.rchit

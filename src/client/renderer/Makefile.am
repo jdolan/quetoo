@@ -72,7 +72,8 @@ librenderer_la_SOURCES = \
 	r_shadow.c \
 	r_sky.c \
 	r_sprite.c \
-	r_vk.c
+	r_vk.c \
+	r_vk_rtx.c
 
 librenderer_la_CFLAGS = \
 	-I$(top_srcdir)/src \

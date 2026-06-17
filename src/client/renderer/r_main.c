@@ -177,6 +177,11 @@ void R_UpdateUniforms(const r_view_t *view) {
 }
 
 /**
+ * @brief The most recent view, captured for the Vulkan/RTX present path.
+ */
+static const r_view_t *r_current_view;
+
+/**
  * @brief Returns true if the renderer is running on the Vulkan backend (`r_backend
  * vulkan`) in a build with Vulkan support compiled in. When false, the OpenGL
  * backend is in use.
@@ -241,6 +246,8 @@ void R_InitView(r_view_t *view) {
   view->num_sprites = 0;
   view->num_sprite_instances = 0;
   view->num_decals = 0;
+
+  r_current_view = view;
 }
 
 /**
@@ -368,9 +375,11 @@ void R_EndFrame(void) {
 
 #if BUILD_VULKAN
   if (R_Vulkan()) {
-    // present a cleared frame; per-pass Vulkan rendering (2D, world, RTX) is
-    // layered onto this acquire/record/submit/present cycle (see VULKAN_RTX.md)
-    R_Vk_DrawClear(0.f, 0.f, 0.f);
+    // ray-trace the loaded world from the player's view; if RTX is unavailable
+    // or no map is loaded, present a cleared frame (see VULKAN_RTX.md)
+    if (!R_Vk_RtxRenderView(r_current_view)) {
+      R_Vk_DrawClear(0.f, 0.f, 0.f);
+    }
     return;
   }
 #endif
@@ -577,6 +586,7 @@ void R_Shutdown(void) {
 
 #if BUILD_VULKAN
   if (R_Vulkan()) {
+    R_Vk_RtxShutdown();
     R_ShutdownContext();
     Mem_FreeTag(MEM_TAG_RENDERER);
     return;

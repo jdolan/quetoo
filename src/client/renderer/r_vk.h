@@ -143,6 +143,11 @@ void R_Vk_Init(SDL_Window *window);
 void R_Vk_InitSwapchain(SDL_Window *window);
 void R_Vk_DrawClear(float r, float g, float b);
 void R_Vk_Shutdown(void);
+
+// r_vk_rtx.c — in-engine hardware ray tracing
+_Bool R_Vk_RtxAvailable(void);
+_Bool R_Vk_RtxRenderView(const r_view_t *view);
+void R_Vk_RtxShutdown(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* BUILD_VULKAN */
