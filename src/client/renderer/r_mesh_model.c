@@ -283,6 +283,13 @@ void R_LoadMeshVertexArray(r_model_t *mod) {
 
   R_LoadMeshTangents(mod);
 
+  // Under Vulkan there is no GL context: the consolidated CPU vertex/element arrays
+  // above are all the RTX path needs (it builds acceleration structures from them).
+  // Skip the shared GL vertex/element buffer and VAO setup entirely.
+  if (r_context.vulkan) {
+    return;
+  }
+
   {
     GLuint vertex_buffer;
     glGenBuffers(1, &vertex_buffer);

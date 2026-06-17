@@ -90,22 +90,17 @@ r_model_t *R_LoadModel(const char *name) {
 
     Fs_Load(path, &buf);
 
-    // Under Vulkan, the BSP world model still loads its CPU data (brush sides,
-    // inline models, CPU-only materials) so the cgame's cgi.WorldModel()->bsp
-    // dereferences resolve and the RTX path has the world registered; its GL-only
-    // steps are guarded inside R_LoadBspModel. Mesh models (players/weapons) remain
-    // stubs since their GL meshes are not used by the Vulkan path.
-    if (!r_context.vulkan || format->type == MODEL_BSP) {
-      format->Load(mod, buf);
-    }
+    // Under Vulkan, both BSP and mesh models load their CPU data: the BSP world for
+    // the world acceleration structure, and mesh models (players/weapons/items) so
+    // their geometry can be placed in the ray-traced scene. Each loader's GL-only
+    // steps are guarded internally (R_LoadBspModel, R_LoadMeshVertexArray).
+    format->Load(mod, buf);
 
     Fs_Free(buf);
 
     mod->radius = Box3_Radius(mod->bounds);
 
-    if (!r_context.vulkan || format->type == MODEL_BSP) {
-      R_RegisterMedia((r_media_t *) mod);
-    }
+    R_RegisterMedia((r_media_t *) mod);
   }
 
   return mod;

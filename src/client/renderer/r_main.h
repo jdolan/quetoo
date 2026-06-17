@@ -27,6 +27,8 @@ extern cvar_t *r_ambient;
 extern cvar_t *r_ambient_occlusion;
 extern cvar_t *r_backend;
 extern cvar_t *r_rtx_overview;
+extern cvar_t *r_rtx_test_model;
+extern cvar_t *r_rtx_test_scale;
 extern cvar_t *r_anisotropy;
 extern cvar_t *r_antialias;
 extern cvar_t *r_bloom;

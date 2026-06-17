@@ -339,6 +339,82 @@ static vec3_t R_Rtx_MaterialColor(const r_material_t *material) {
 }
 
 /**
+ * @brief Appends a mesh model's bind-pose (frame 0) geometry into the world geometry
+ * arrays, translated to @p origin, so it is included in the ray-traced scene. The
+ * arrays are grown in place; their counts are updated through the in/out pointers.
+ * @details Mesh vertices are frame-major, so frame 0 is simply the first
+ * `face->num_vertexes` entries of each face. Face elements are local to the face, so
+ * they are rebased onto the appended vertices. Each face's triangles are tinted by
+ * that face's material diffuse color.
+ */
+static void R_Rtx_AppendMesh(const char *name, const vec3_t origin, const float scale,
+                             vec3_t **positions, uint32_t **elements, r_rtx_tri_t **tris,
+                             int32_t *num_vertexes, int32_t *num_elements, int32_t *num_tris) {
+
+  r_model_t *mod = R_LoadModel(name);
+  if (!mod || !mod->mesh || mod->mesh->num_faces <= 0) {
+    return;
+  }
+
+  const r_mesh_model_t *mesh = mod->mesh;
+
+  int32_t add_v = 0, add_e = 0;
+  for (int32_t i = 0; i < mesh->num_faces; i++) {
+    add_v += mesh->faces[i].num_vertexes;
+    add_e += mesh->faces[i].num_elements;
+  }
+  if (add_v <= 0 || add_e < 3) {
+    return;
+  }
+
+  const int32_t base_v = *num_vertexes;
+  const int32_t base_e = *num_elements;
+  const int32_t base_t = *num_tris;
+
+  *positions = Mem_Realloc(*positions, sizeof(vec3_t) * (base_v + add_v));
+  *elements = Mem_Realloc(*elements, sizeof(uint32_t) * (base_e + add_e));
+  *tris = Mem_Realloc(*tris, sizeof(r_rtx_tri_t) * (base_t + add_e / 3));
+
+  vec3_t *pos = *positions;
+  uint32_t *elem = *elements;
+  r_rtx_tri_t *tri = *tris;
+
+  int32_t vo = base_v, eo = base_e;
+  for (int32_t i = 0; i < mesh->num_faces; i++) {
+    const r_mesh_face_t *face = &mesh->faces[i];
+    const vec3_t albedo = R_Rtx_MaterialColor(face->material);
+
+    for (int32_t k = 0; k < face->num_vertexes; k++) {
+      pos[vo + k] = Vec3_Add(Vec3_Scale(face->vertexes[k].position, scale), origin);
+    }
+
+    for (int32_t j = 0; j + 2 < face->num_elements; j += 3) {
+      const uint32_t a = vo + face->elements[j + 0];
+      const uint32_t b = vo + face->elements[j + 1];
+      const uint32_t c = vo + face->elements[j + 2];
+      elem[eo + 0] = a;
+      elem[eo + 1] = b;
+      elem[eo + 2] = c;
+      const vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(pos[b], pos[a]),
+                                                 Vec3_Subtract(pos[c], pos[a])));
+      const int32_t t = eo / 3;
+      tri[t].normal = Vec4(n.x, n.y, n.z, 0.f);
+      tri[t].albedo = Vec4(albedo.x, albedo.y, albedo.z, 0.f);
+      eo += 3;
+    }
+
+    vo += face->num_vertexes;
+  }
+
+  *num_vertexes = vo;
+  *num_elements = eo;
+  *num_tris = eo / 3;
+
+  Com_Print("  RTX: appended mesh %s (%d verts, %d tris) at %.0f %.0f %.0f\n",
+            name, add_v, add_e / 3, origin.x, origin.y, origin.z);
+}
+
+/**
  * @brief Builds the bottom- and top-level acceleration structures from the loaded BSP
  * world geometry, plus the per-triangle shading buffer.
  */
@@ -353,7 +429,7 @@ static void R_Rtx_BuildWorld(void) {
   }
 
   const r_bsp_model_t *bsp = world->bsp;
-  const int32_t num_vertexes = bsp->num_vertexes;
+  int32_t num_vertexes = bsp->num_vertexes;
 
   if (num_vertexes <= 0 || bsp->num_elements < 3) {
     return;
@@ -452,6 +528,19 @@ static void R_Rtx_BuildWorld(void) {
 
   Com_Print("  RTX: geometry %d tris from %d draw elements, %d materials\n",
             num_tris, bsp->num_draw_elements, bsp->num_materials);
+
+  // place mesh models into the ray-traced scene. With no live entity feed under the
+  // Vulkan path yet, drop the qforcer player model at the center of the world so the
+  // mesh-in-acceleration-structure path is exercised end to end.
+  if (r_rtx_test_model->string[0]) {
+    const vec3_t center = Vec3_Scale(Vec3_Add(r_rtx.world_mins, r_rtx.world_maxs), 0.5f);
+    const float size_z = r_rtx.world_maxs.z - r_rtx.world_mins.z;
+    // float it above the rooftops so the bounds-overview camera always has a clear,
+    // unoccluded line of sight to it
+    const vec3_t where = Vec3(center.x, center.y, r_rtx.world_maxs.z + size_z * 0.15f);
+    R_Rtx_AppendMesh(r_rtx_test_model->string, where, r_rtx_test_scale->value,
+                     &positions, &elements, &tris, &num_vertexes, &num_elements, &num_tris);
+  }
 
   const VkMemoryPropertyFlags host = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
   const VkMemoryPropertyFlags local = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;

@@ -28,6 +28,8 @@ r_stats_t r_stats;
 cvar_t *r_alpha_test;
 cvar_t *r_backend;
 cvar_t *r_rtx_overview;
+cvar_t *r_rtx_test_model;
+cvar_t *r_rtx_test_scale;
 cvar_t *r_cull;
 cvar_t *r_depth_pass;
 cvar_t *r_draw_occlusion_queries;
@@ -426,6 +428,8 @@ static void R_InitLocal(void) {
   r_caustics = Cvar_Add("r_caustics", "1", CVAR_ARCHIVE, "Controls the intensity of liquid caustic effects");
   r_backend = Cvar_Add("r_backend", "gl", CVAR_ARCHIVE | CVAR_R_CONTEXT, "The rendering backend. 'gl' is the default OpenGL renderer; 'vulkan' selects the optional Vulkan/RTX backend (in development, requires a --enable-vulkan build).");
   r_rtx_overview = Cvar_Add("r_rtx_overview", "0", CVAR_ARCHIVE, "Vulkan/RTX backend: 0 ray-traces from the first-person player view; 1 uses a bounds-framed overview camera of the loaded map.");
+  r_rtx_test_model = Cvar_Add("r_rtx_test_model", "players/qforcer/upper.md3", CVAR_ARCHIVE, "Vulkan/RTX backend: mesh model placed at the center of the world to exercise mesh geometry in the acceleration structure. Empty disables.");
+  r_rtx_test_scale = Cvar_Add("r_rtx_test_scale", "6.0", CVAR_ARCHIVE, "Vulkan/RTX backend: uniform scale applied to the test mesh model so it is clearly visible in the overview camera.");
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
