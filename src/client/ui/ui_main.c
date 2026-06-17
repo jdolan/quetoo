@@ -175,10 +175,6 @@ void Ui_ViewWillDisappear(void) {
  */
 void Ui_Draw(void) {
 
-  if (r_context.vulkan) {
-    return; // ObjectivelyMVC menu is not yet ported to Vulkan; see Ui_Init
-  }
-
   assert(windowController);
 
   R_SetDraw2DProjection(PROJECTION_UI);
@@ -261,14 +257,6 @@ void Ui_PopAllViewControllers(void) {
  * @brief Initializes the user interface.
  */
 void Ui_Init(void) {
-
-  // ObjectivelyMVC is coupled to the OpenGL renderer (it refreshes its window from
-  // SDL_GL_GetCurrentWindow() and resets a GL render device); the menu is not yet
-  // ported to the Vulkan backend. The HUD and console render through the Vulkan 2D
-  // pass directly. See VULKAN_RTX.md.
-  if (r_context.vulkan) {
-    return;
-  }
 
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
