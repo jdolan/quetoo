@@ -1,0 +1,125 @@
+// Quetoo Android — application module
+//
+// Builds the native engine via the NDK + CMake and wraps it in SDL3's Android
+// Java glue (org.libsdl.app.*). The native build is driven by the root Android
+// CMakeLists at android/CMakeLists.txt (produced by a separate task) and is
+// referenced below via externalNativeBuild.
+//
+// The CMake project is expected to emit a shared library named "main"
+// (-> libmain.so) whose entry point is the engine's main(), which SDL renames
+// to SDL_main via <SDL3/SDL_main.h>. SDLActivity loads libSDL3.so then
+// libmain.so and invokes SDL_main. See QuetooActivity.getLibraries() and
+// android/app/README.md for the full contract.
+
+plugins {
+    // TODO(version): keep in sync with the AGP installed by Android Studio.
+    //   AGP 8.6.1+ is REQUIRED for compileSdk 35. 8.7.x is current-stable.
+    id 'com.android.application' version '8.7.3'
+    // Kotlin is not required (the glue + activity are Java). Uncomment if you
+    // later add Kotlin sources:
+    // id 'org.jetbrains.kotlin.android' version '2.0.21'
+}
+
+android {
+    namespace 'org.quetoo.android'
+
+    // TODO(version): current stable platform. compileSdk 35 == Android 15.
+    compileSdk 35
+
+    // TODO(version): pin to an NDK installed via the SDK Manager. r27 is the
+    //   current LTS. Pinning (vs. leaving unset) keeps native builds
+    //   reproducible across machines/CI.
+    ndkVersion '27.2.12479018'
+
+    // CMake toolchain version that ships with the above NDK / Android Studio.
+    // The actual cmake.path is set in defaultConfig.externalNativeBuild below.
+
+    defaultConfig {
+        applicationId 'org.quetoo.android'
+
+        minSdk 24      // Android 7.0 — ~95% device coverage, Vulkan-capable (per #856)
+        targetSdk 35   // TODO(version): match compileSdk
+
+        versionCode 1
+        // TODO(version): wire to the engine VERSION/BUILD if desired.
+        versionName '0.1.0-dev'
+
+        externalNativeBuild {
+            cmake {
+                // Engine compile-time switches. The GL ES 3.0 dual code path is
+                // gated on QUETOO_GLES (see PORTING.md §4). Adjust/extend as the
+                // root CMakeLists grows its option() surface.
+                arguments '-DQUETOO_GLES=ON'
+                // Build only the C/C++ we ship; SDL3 is built/linked by the
+                // CMake project itself (or consumed prebuilt — see README).
+                // cppFlags '-std=c++17'
+            }
+        }
+
+        ndk {
+            // Primary: 64-bit ARM (essentially all modern devices).
+            // Emulator: x86_64.
+            abiFilters 'arm64-v8a', 'x86_64'
+            // armeabi-v7a is optional (older 32-bit ARM). Uncomment to ship it;
+            // expect a larger APK and 32-bit-only caveats:
+            // abiFilters 'arm64-v8a', 'x86_64', 'armeabi-v7a'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            // The root Android CMake entry point (produced by the CMake task).
+            // Relative to this module dir (android/app/), so ../CMakeLists.txt
+            // resolves to android/CMakeLists.txt.
+            path '../CMakeLists.txt'
+            // TODO(version): match the CMake bundled with the pinned NDK /
+            //   Android Studio (sdkmanager "cmake;3.22.1" or newer).
+            version '3.22.1'
+        }
+    }
+
+    buildTypes {
+        debug {
+            // Native debug symbols are kept by default for debuggable builds.
+            jniDebuggable true
+        }
+        release {
+            minifyEnabled false   // no Java/Kotlin to shrink yet
+            // Keep full native symbols in the build dir for symbolication while
+            // stripping them from the shipped APK.
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // SDL ships its Java glue (org.libsdl.app.*) as plain .java sources. By
+    // default we expect them vendored under src/main/java/org/libsdl/app/ (see
+    // README for the alternative of consuming an SDL .aar). If you instead point
+    // at the SDL checkout's sources, add the source set here, e.g.:
+    // sourceSets {
+    //     main.java.srcDirs += '/path/to/SDL/android-project/app/src/main/java'
+    // }
+
+    // default.pk3 game data, when bundled, lives in src/main/assets/ (see
+    // README for the bundled-vs-first-run-download decision). assets/ is the
+    // Android-standard location and needs no extra configuration.
+}
+
+dependencies {
+    // SDL3's Java glue. PREFERRED for buildability: vendor the SDL3
+    // org.libsdl.app sources into src/main/java/ (see README) so no external
+    // artifact is needed and the Java glue version matches the linked libSDL3.so.
+    //
+    // ALTERNATIVE (if/when an official SDL3 AndroidX artifact is used):
+    //   implementation 'org.libsdl:sdl3:<version>'   // TODO(version)
+    //
+    // androidx.core is enough for the minimal SDLActivity-based app:
+    implementation 'androidx.core:core:1.13.1'   // TODO(version) optional but idiomatic
+}

@@ -19,13 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
  
-in vertex_data {
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct vertex_data_t {
   vec3 position;
   vec2 diffusemap;
   vec2 next_diffusemap;
   vec3 color;
   float lerp;
-} vertex;
+};
+in vertex_data_t vertex;
 
 out vec3 out_color;
 

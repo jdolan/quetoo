@@ -24,6 +24,16 @@
 
 #include <Objectively/JSONContext.h>
 
+/*
+ * The installed Objectively names the inline C-string property accessor
+ * JsonPropertyCString. This source was written against a build that called it
+ * JsonPropertyString; g_frag_t/g_capture_t store their strings as char[MAX_QPATH]
+ * (inline buffers), so JsonPropertyCString is the correct, equivalent mapping.
+ */
+#ifndef JsonPropertyString
+#define JsonPropertyString JsonPropertyCString
+#endif
+
 /**
  * @brief Fetch the active debug mask.
  */

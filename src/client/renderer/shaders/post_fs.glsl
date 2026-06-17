@@ -19,9 +19,11 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-in vertex_data {
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct vertex_data_t {
   vec2 texcoord;
-} vertex;
+};
+in vertex_data_t vertex;
 
 out vec4 out_color;
 

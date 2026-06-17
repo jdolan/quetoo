@@ -281,7 +281,7 @@ void R_DrawMainView(r_view_t *view) {
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
 
   if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    R_SetPolygonMode(GL_LINE);
   }
 
   R_DrawEntities(view);
@@ -297,7 +297,7 @@ void R_DrawMainView(r_view_t *view) {
   R_DrawSprites(view);
 
   if (r_draw_wireframe->integer) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    R_SetPolygonMode(GL_FILL);
   }
 
   R_Draw3D();

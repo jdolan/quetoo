@@ -134,6 +134,22 @@ const char *Sys_UserDir(void) {
  */
 void *Sys_OpenLibrary(const char *name, bool global) {
 
+#if defined(__ANDROID__)
+  /* On Android the game/cgame modules ship in the APK's nativeLibraryDir as
+   * lib<name>.so -- the only place the packager keeps .so files and where the
+   * app's dynamic-linker namespace searches. There is no game-filesystem copy
+   * to locate as on desktop; dlopen by soname and let the linker resolve it. */
+  const char *so_name = va("lib%s.so", name);
+
+  void *handle = dlopen(so_name, RTLD_LAZY | (global ? RTLD_GLOBAL : RTLD_LOCAL));
+  if (handle) {
+    Com_Print("  Loaded %s\n", so_name);
+    return handle;
+  }
+
+  Com_Error(ERROR_DROP, "Couldn't load %s: %s\n", so_name, dlerror());
+#else
+
 #if defined(_WIN32)
   const char *so_name = va("%s.dll", name);
 #else
@@ -155,6 +171,7 @@ void *Sys_OpenLibrary(const char *name, bool global) {
   }
 
   Com_Error(ERROR_DROP, "Couldn't find %s\n", so_name);
+#endif
 }
 
 /**

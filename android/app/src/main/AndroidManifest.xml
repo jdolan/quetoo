@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Quetoo Android — application manifest
+
+  Modeled on SDL3's reference android-project manifest, trimmed to Quetoo's
+  needs. The activity extends org.libsdl.app.SDLActivity (subclassed as
+  org.quetoo.android.QuetooActivity).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Networking: multiplayer + first-run game-data download via the updater. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- OpenGL ES 3.0 is required (Quetoo's GLES renderer path, PORTING.md §4). -->
+    <uses-feature
+        android:glEsVersion="0x00030000"
+        android:required="true" />
+
+    <!-- This is a game: it does NOT require touchscreen-only input and works
+         with gamepads. Mark touchscreen optional so TV/controller devices are
+         eligible (virtual controls cover touch devices). -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@android:drawable/sym_def_app_icon"
+        android:label="Quetoo"
+        android:hardwareAccelerated="true"
+        android:isGame="true"
+        android:appCategory="game"
+        tools:targetApi="26"
+        android:hasCode="true">
+        <!--
+          android:hasCode="true" — we DO ship Java (the SDL glue + QuetooActivity).
+          The heavy lifting is native (libmain.so + libSDL3.so) loaded by SDL.
+        -->
+
+        <activity
+            android:name="org.quetoo.android.QuetooActivity"
+            android:label="Quetoo"
+            android:exported="true"
+            android:alwaysRetainTaskState="true"
+            android:launchMode="singleInstance"
+            android:screenOrientation="landscape"
+            android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|mcc|mnc|density|fontScale"
+            android:preferMinimalPostProcessing="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <!-- LEANBACK_LAUNCHER lets the game appear on Android TV too. -->
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+
+            <!-- quetoo:// URI scheme (server connect) — engine parses argv;
+                 SDL forwards the launch intent's data. Mirrors the desktop
+                 quetoo:// handler in src/main/main.c. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="quetoo" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

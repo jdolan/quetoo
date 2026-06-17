@@ -135,7 +135,7 @@ static void R_DrawMeshEntityMaterialStage(const r_entity_t *e, const r_mesh_face
     }
   }
 
-  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
+  R_DrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
   R_GetError(stage->media ? stage->media->name : NULL);
 }
@@ -313,7 +313,7 @@ static void R_DrawMeshEntityFace(const r_entity_t *e,
 
   glUniform4fv(r_mesh_program.color, 1, color.xyzw);
 
-  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
+  R_DrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 
   r_stats.mesh_draw_elements++;
   r_stats.mesh_triangles += face->num_elements / 3;

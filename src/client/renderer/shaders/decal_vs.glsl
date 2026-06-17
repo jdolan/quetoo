@@ -28,10 +28,12 @@ layout (location = 5) in uint in_lifetime;
 
 out common_vertex_t vertex;
 
-out decal_data {
-  flat uint time;
-  flat uint lifetime;
-} decal;
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct decal_data_t {
+  uint time;
+  uint lifetime;
+};
+flat out decal_data_t decal;
 
 uniform mat4 model;
 

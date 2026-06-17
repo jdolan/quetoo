@@ -50,14 +50,14 @@ vec2 transform_stage_uv(vec2 uv) {
   vec2 center = uv - 0.5;
   
   if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-    float cos_a = cos(stage.rotate * ticks * 0.001);
-    float sin_a = sin(stage.rotate * ticks * 0.001);
+    float cos_a = cos(stage.rotate * float(ticks) * 0.001);
+    float sin_a = sin(stage.rotate * float(ticks) * 0.001);
     center = mat2(cos_a, -sin_a, sin_a, cos_a) * center;
   }
   
   uv = center + 0.5;
   
-  uv += stage.scroll * ticks * 0.001;
+  uv += stage.scroll * float(ticks) * 0.001;
   
   if ((stage.flags & (STAGE_SCALE_S | STAGE_SCALE_T)) > 0) {
     center = uv - 0.5;

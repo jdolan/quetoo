@@ -24,6 +24,14 @@
 
 #include <SDL3/SDL_assert.h>
 
+#if defined(__ANDROID__)
+/* Android: the engine is built as libmain.so and launched by SDL's Java glue
+ * (SDLActivity), which dlsym()s "SDL_main". Including <SDL3/SDL_main.h> renames
+ * our main() to SDL_main and gives it default visibility so the loader finds
+ * it. Desktop builds keep a plain main(). */
+#include <SDL3/SDL_main.h>
+#endif
+
 #if defined(_WIN32)
 #include <windows.h>
 #endif

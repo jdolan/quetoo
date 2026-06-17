@@ -1,0 +1,19 @@
+# qglib standalone test build artifacts
+qgtest
+qgtest-glib
+t_string
+t_slist
+t_ptrarray
+t_queue
+t_hash
+t_util
+t_checksum
+t_misc
+t_rand
+t_regex
+t_io
+tg_*
+*.exe
+*.obj
+*.pdb
+*.ilk

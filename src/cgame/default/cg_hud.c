@@ -338,6 +338,37 @@ static void Cg_DrawDeaths(const player_state_t *ps) {
 }
 
 
+#define CG_STAT_PB 19  // matches game-side STAT_PB (appended after STAT_WEAPON=18)
+
+/**
+ * @brief Draws the per-map personal best (TMG-style) below the frag/death counters.
+ */
+static void Cg_DrawPB(const player_state_t *ps) {
+  const int16_t pb = ps->stats[CG_STAT_PB];
+  const int16_t frags = ps->stats[STAT_FRAGS];
+  GLint x, y, cw, ch;
+
+  if (ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE]) {
+    return;
+  }
+  if (pb <= 0) {
+    return;
+  }
+
+  cgi.BindFont("small", NULL, &ch);
+  x = cgi.context->w - cgi.StringWidth("PB");
+  y = 3 * (HUD_PIC_HEIGHT + ch);
+  cgi.Draw2DString(x, y, "PB", color_green);
+  y += ch;
+
+  cgi.BindFont("large", &cw, NULL);
+  x = cgi.context->w - 3 * cw;
+  cgi.Draw2DString(x, y, va("%3d", pb), frags > pb ? color_green : HUD_COLOR_STAT);
+
+  cgi.BindFont(NULL, NULL, NULL);
+}
+
+
 /**
  * @brief Draws the player's flag capture count in the top-right corner for CTF games.
  */
@@ -1221,6 +1252,8 @@ void Cg_DrawHud(const player_state_t *ps) {
   Cg_DrawFrags(ps);
 
   Cg_DrawDeaths(ps);
+
+  Cg_DrawPB(ps);
 
   Cg_DrawCaptures(ps);
 

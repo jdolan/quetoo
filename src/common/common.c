@@ -29,6 +29,10 @@
  #include <Windows.h>
 #endif
 
+#if defined(__ANDROID__)
+ #include <android/log.h>  // Android discards a process's stdout/stderr; route console output to logcat
+#endif
+
 /**
  * @brief Logs a string to the log file.
  */
@@ -312,6 +316,10 @@ void Com_Printv(const char *fmt, va_list args) {
 
   char msg[MAX_PRINT_MSG];
   Com_Sprintfv(msg, sizeof(msg), NULL, fmt, args);
+
+#if defined(__ANDROID__)
+  __android_log_write(ANDROID_LOG_INFO, "Quetoo", msg);  // logged before any console mutex/file op
+#endif
 
   Com_LogString(msg);
 

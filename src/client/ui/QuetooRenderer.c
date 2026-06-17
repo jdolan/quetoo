@@ -21,7 +21,11 @@
 
 #include <assert.h>
 
+#ifdef QUETOO_GLES
+#include <GLES3/gl3.h>  // GL ES 3.0 core, exported by libGLESv3 (no glad loader on ES)
+#else
 #include "src/client/renderer/r_gl.h"
+#endif
 #include "QuetooRenderer.h"
 
 #include "ui_local.h"

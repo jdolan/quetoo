@@ -32,7 +32,14 @@ r_shader_descriptor_t *R_ShaderDescriptor(GLenum type, ...) {
 
   size_t i = 0;
 
+#ifdef QUETOO_GLES
+  // OpenGL ES 3.0 swaps the shared preamble for `#version 300 es` plus the
+  // mandatory default precision qualifiers. This single substitution gates all
+  // 29 shaders with no per-file edits. See android/RENDERER_GLES.md Finding J.
+  desc->filenames[i++] = "version_es.glsl";
+#else
   desc->filenames[i++] = "version.glsl";
+#endif
   desc->filenames[i++] = "uniforms.glsl";
   desc->filenames[i++] = "common.glsl";
 
@@ -120,7 +127,16 @@ GLuint R_LoadShader(const r_shader_descriptor_t *desc) {
       Com_LogString("Shader source:\n");
       Com_LogString(src);
 
+#if defined(QUETOO_GLES)
+      // ES bring-up (#856): tolerate shaders that don't yet compile under ES 3.0
+      // so the 2D UI/menu still comes up. Warn (with sources) and return 0; the
+      // caller drops the whole program. See android/RENDERER_GLES.md.
+      Com_Warn("Shader compile failed (GLES, non-fatal): %s\n%s\n", source_list, log);
+      glDeleteShader(shader);
+      return 0;
+#else
       Com_Error(ERROR_FATAL, "Sources: %s\n%s\n", source_list, log);
+#endif
     }
   }
 
@@ -171,7 +187,16 @@ GLuint R_LoadProgram(const r_shader_descriptor_t *desc, ...) {
       GLchar log[log_length];
       glGetProgramInfoLog(program, log_length, NULL, log);
 
+#if defined(QUETOO_GLES)
+      // ES bring-up (#856): several 3D-world programs still exceed ES uniform/UBO
+      // minimums (RENDERER_GLES.md). Warn instead of aborting so the 2D UI/menu
+      // (which links fine) still runs; the affected programs stay 0 until ported.
+      Com_Warn("Program link failed (GLES, non-fatal): %s\n", log);
+      glDeleteProgram(program);
+      program = 0;
+#else
       Com_Error(ERROR_FATAL, "%s\n", log);
+#endif
     } else {
       while (i-- > 0) {
         glDetachShader(program, shaders[i]);

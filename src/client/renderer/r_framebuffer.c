@@ -319,7 +319,10 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   assert(in);
 
   glBindTexture(GL_TEXTURE_2D, in);
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, (*surface)->pixels);
+  // TODO(QUETOO_GLES, #856): the GL_BGR readback (RENDERER_GLES.md Finding F) still
+  // needs the RGBA-read + CPU-swizzle treatment under ES; the shim only abstracts
+  // glGetTexImage -> FBO + glReadPixels (Finding E). Screenshot path only.
+  R_GetTextureImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, (*surface)->pixels);
 
   R_GetError(NULL);
 }

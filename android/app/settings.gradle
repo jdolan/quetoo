@@ -1,0 +1,33 @@
+// Quetoo Android — Gradle settings
+//
+// This is intentionally a single-module project rooted at android/app/ (per the
+// scaffolding task constraint: files live only under android/app/). If/when the
+// SDL3 Java glue is vendored as its own Gradle module, add it here with
+// `include ':sdl'` and a matching `project(':sdl').projectDir = ...`.
+//
+// NOTE (wrapper): run `gradle wrapper --gradle-version 8.9` from this directory
+// once to generate gradle/wrapper/gradle-wrapper.{properties,jar} + gradlew.
+// The wrapper jar is a binary and is intentionally NOT committed by this scaffold.
+
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    // FAIL_ON_PROJECT_REPOS keeps repo declarations centralized here.
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "Quetoo"
+
+// Single application module. The Gradle "app" module IS this directory.
+include ':app'
+project(':app').projectDir = file('.')

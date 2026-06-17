@@ -197,7 +197,17 @@ vec3 light_color(in light_t l) {
 
 #define MAX_BSP_LIGHTS 512
 #define MAX_DYNAMIC_LIGHTS 64
+#ifdef GL_ES
+// Bounded by ES minimums: GL_MAX_UNIFORM_BLOCK_SIZE (16384) and the vertex/
+// fragment uniform-vector limits. The emulator's ES 3.0 (SwiftShader) counts
+// UBO-backed uniforms (uniforms_block + lights_block[MAX_LIGHTS]) against
+// GL_MAX_VERTEX_UNIFORM_VECTORS (256), so even the 2D/menu programs — which only
+// pull these blocks in via uniforms.glsl and never read them — overflow at 96.
+// 32 keeps every program under the limit. Lockstep with r_types.h (#856).
+#define MAX_LIGHTS 32
+#else
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+#endif
 
 /**
  * @brief The lights uniform block.

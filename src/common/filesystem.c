@@ -686,6 +686,87 @@ const char *Fs_RealPath(const char *path) {
   return real_path;
 }
 
+#if defined(__ANDROID__)
+/**
+ * @brief Extracts the APK-bundled @p filename into @p dest_dir on first run.
+ *
+ * @details On Android the read-only game data (`default.pk3`) ships inside the
+ * APK under `assets/` (Gradle: `android/app/src/main/assets/`; see
+ * `android/ASSETS.md`). PhysicsFS cannot mount the APK asset namespace
+ * directly -- assets are not real files on the device filesystem, they live
+ * compressed inside the APK and are only reachable through Android's
+ * `AAssetManager`. SDL3 bridges this: on Android, `SDL_IOFromFile()` opens a
+ * *relative* path against the APK `assets/` directory (it tries internal
+ * storage first, then falls back to the asset manager). So we read the asset
+ * via SDL's IOStream and write a real copy into app-internal storage
+ * (`SDL_GetPrefPath`-backed, the same tree as the writable user dir), where
+ * PhysicsFS can `PHYSFS_mount` it like any other `.pk3`.
+ *
+ * This runs only when the destination copy is missing, so it costs nothing on
+ * subsequent launches. It deliberately does *not* overwrite an existing copy:
+ * the in-game `Installer_Init` updater (see `src/main/main.c`,
+ * `src/common/installer.c`) owns post-install content updates and writes into
+ * the same `data_dir`, and we must not clobber its newer data with the stale
+ * APK-bundled baseline.
+ *
+ * @return True if the destination file exists after the call (either freshly
+ * extracted or already present), false if extraction was required but failed.
+ */
+static bool Fs_Android_ExtractAsset(const char *asset_path, const char *dest_path) {
+
+  // already extracted on a previous run (or updated by the installer) -- keep it
+  if (g_file_test(dest_path, G_FILE_TEST_EXISTS)) {
+    Com_Debug(DEBUG_FILESYSTEM, "Android asset %s already present at %s\n", asset_path, dest_path);
+    return true;
+  }
+
+  // open the bundled asset; a relative path routes to the APK's assets/ dir
+  SDL_IOStream *in = SDL_IOFromFile(asset_path, "rb");
+  if (in == NULL) {
+    Com_Warn("Android: bundled asset %s not found in APK: %s\n", asset_path, SDL_GetError());
+    return false;
+  }
+
+  // SDL_LoadFile_IO slurps the whole asset (and closes the stream for us)
+  size_t len = 0;
+  void *buffer = SDL_LoadFile_IO(in, &len, true);
+  if (buffer == NULL) {
+    Com_Warn("Android: failed to read asset %s: %s\n", asset_path, SDL_GetError());
+    return false;
+  }
+
+  // ensure the *destination file's* parent dir exists, then write the copy
+  char *dest_parent = g_path_get_dirname(dest_path);
+  const int mkdir_rc = g_mkdir_with_parents(dest_parent, 0755);
+  g_free(dest_parent);
+  if (mkdir_rc) {
+    Com_Warn("Android: failed to create parent dir for %s\n", dest_path);
+    SDL_free(buffer);
+    return false;
+  }
+
+  SDL_IOStream *out = SDL_IOFromFile(dest_path, "wb");
+  if (out == NULL) {
+    Com_Warn("Android: failed to open %s for writing: %s\n", dest_path, SDL_GetError());
+    SDL_free(buffer);
+    return false;
+  }
+
+  const size_t written = SDL_WriteIO(out, buffer, len);
+  SDL_CloseIO(out);
+  SDL_free(buffer);
+
+  if (written != len) {
+    Com_Warn("Android: short write extracting %s (%zu/%zu): %s\n",
+         asset_path, written, len, SDL_GetError());
+    return false;
+  }
+
+  Com_Print("Android: extracted %s -> %s (%zu bytes)\n", asset_path, dest_path, len);
+  return true;
+}
+#endif /* __ANDROID__ */
+
 /**
  * @brief Initializes the file subsystem.
  */
@@ -699,9 +780,24 @@ void Fs_Init(const uint32_t flags) {
   Com_Debug(DEBUG_FILESYSTEM, "Initializing PhysFS %i.%i.%i...\n",
         physfs_version.major, physfs_version.minor, physfs_version.patch);
 
+#if defined(__ANDROID__)
+  /* PhysicsFS's Android backend (physfs_platform_android.c) does NOT take a
+   * string argv0; it expects a PHYSFS_AndroidInit* carrying a valid JNIEnv +
+   * Context, which it uses to locate the APK and app storage. Passing a plain
+   * string faults inside PhysicsFS (deref of a garbage JNIEnv). Hand it SDL3's
+   * JNIEnv and Activity (an Activity is a Context). */
+  PHYSFS_AndroidInit android_init = {
+    .jnienv = SDL_GetAndroidJNIEnv(),
+    .context = SDL_GetAndroidActivity()
+  };
+  if (PHYSFS_init((const char *) &android_init) == 0) {
+    Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
+  }
+#else
   if (PHYSFS_init(Com_Argv(0)) == 0) {
     Com_Error(ERROR_FATAL, "%s\n", Fs_LastError());
   }
+#endif
 
   fs_state.flags = flags;
 
@@ -784,8 +880,64 @@ void Fs_Init(const uint32_t flags) {
       g_snprintf(fs_state.lib_dir, MAX_OS_PATH, "%s\\lib", fs_state.base_dir);
       g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s\\share", fs_state.base_dir);
     }
+#elif defined(__ANDROID__)
+    /*
+     * Android has no meaningful executable-path layout to derive base/bin/lib
+     * from -- the engine runs as `libmain.so` loaded by SDL's SDLActivity, and
+     * `Sys_ExecutablePath()` does not map to an on-disk install tree like it
+     * does on the desktop. So we ignore `path` here entirely and instead:
+     *
+     *   1. Point `data_dir` at app-internal storage (the same writable tree as
+     *      `Sys_UserDir()`, which is `SDL_GetPrefPath`-backed -- on Android that
+     *      resolves to `Context.getFilesDir()`, e.g.
+     *      `/data/data/<package>/files/WickedOldGames/Quetoo`). This is private,
+     *      survives across launches, needs no runtime storage permission, and is
+     *      where the `Installer_Init` updater (src/main/main.c) writes content
+     *      updates. We use a `data` subdir so engine content stays separate from
+     *      user-owned files (configs, screenshots, demos) under `Sys_UserDir()`.
+     *
+     *   2. On first run, extract the APK-bundled `default.pk3`
+     *      (android/app/src/main/assets/default/default.pk3) into
+     *      `data_dir/default/` via SDL3's IOStream (see Fs_Android_ExtractAsset
+     *      above). Read-only assets ship inside the APK; PhysicsFS can only
+     *      mount real files, so we materialise a copy on first launch and mount
+     *      that copy on every launch thereafter.
+     *
+     * `lib_dir` is left at its compile-time default and additionally pointed at
+     * `data_dir`: on Android the game/cgame modules are packaged as native libs
+     * loaded from the APK's lib dir by the dynamic linker via
+     * `Sys_OpenLibrary` (which resolves through the search path), so no separate
+     * on-device lib tree is required here.
+     *
+     * (void) path silences the unused-variable warning for `c`/`path` since this
+     * arm, unlike the desktop arms, does not parse the executable path.
+     */
+    (void) path;
+
+    g_snprintf(fs_state.data_dir, MAX_OS_PATH, "%s%cdata", Sys_UserDir(), G_DIR_SEPARATOR);
+    g_strlcpy(fs_state.base_dir, fs_state.data_dir, sizeof(fs_state.base_dir));
+    g_strlcpy(fs_state.lib_dir, fs_state.data_dir, sizeof(fs_state.lib_dir));
+
+    // The bundled default.pk3 is extracted unconditionally just below this
+    // block (it must run even when Sys_ExecutablePath() is NULL on Android),
+    // into the user game dir that Fs_AddUserSearchPath mounts + auto-loads. #856
 #endif
   }
+
+#if defined(__ANDROID__)
+  // First run: materialise the APK-bundled default.pk3 into the writable user
+  // game dir (Sys_UserDir()/DEFAULT_GAME) -- the same dir Fs_AddUserSearchPath
+  // mounts and auto-loads archives from just below. Runs every launch but
+  // no-ops once the file exists (the installer may also update it later). #856
+  {
+    char pk3_dest[MAX_OS_PATH];
+    g_snprintf(pk3_dest, sizeof(pk3_dest), "%s%c%s%c%s", Sys_UserDir(),
+               G_DIR_SEPARATOR, DEFAULT_GAME, G_DIR_SEPARATOR, "default.pk3");
+    if (!Fs_Android_ExtractAsset(DEFAULT_GAME G_DIR_SEPARATOR_S "default.pk3", pk3_dest)) {
+      Com_Warn("Android: default.pk3 not extracted; the engine may have no game data.\n");
+    }
+  }
+#endif
 
   Fs_AddToSearchPathv(fs_state.lib_dir, NULL);
   Fs_AddToSearchPathv(fs_state.data_dir, NULL);

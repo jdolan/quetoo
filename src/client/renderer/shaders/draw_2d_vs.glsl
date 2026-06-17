@@ -25,10 +25,13 @@ layout (location = 2) in vec4 in_color;
 
 uniform mat4 projection2D;
 
-out vertex_data {
+// #856: struct-typed varying, not an in/out interface block. Named in/out blocks
+// require GLSL ES 3.20; struct varyings are valid in ES 3.00 and desktop alike.
+struct vertex_data_t {
   vec2 diffusemap;
   vec4 color;
-} vertex;
+};
+out vertex_data_t vertex;
 
 /**
  * @brief

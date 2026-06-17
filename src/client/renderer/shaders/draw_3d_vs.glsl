@@ -22,9 +22,11 @@
 layout (location = 0) in vec3 in_position;
 layout (location = 1) in vec4 in_color;
 
-out vertex_data {
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct vertex_data_t {
   vec4 color;
-} vertex;
+};
+out vertex_data_t vertex;
 
 /**
  * @brief

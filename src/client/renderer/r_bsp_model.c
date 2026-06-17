@@ -22,6 +22,11 @@
 #include "r_local.h"
 #include "r_local.h"
 
+// #856 Finding D: on GL ES 3.0 (no buffer textures) the voxel light-index array
+// is uploaded as a 2D R32I texture this many texels wide. Must stay in lockstep
+// with VOXEL_LIGHT_INDICES_WIDTH in shaders/voxel.glsl.
+#define VOXEL_LIGHT_INDICES_WIDTH 4096
+
 /**
  * @brief Loads BSP plane data from the collision model into renderer plane structures.
  */
@@ -454,20 +459,53 @@ static void R_LoadBspVoxels(r_model_t *mod) {
   const int32_t *light_indices_data = (const int32_t *) data;
   data += out->num_light_indices * sizeof(int32_t);
 
+  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
+  out->light_indices->media.Free = R_FreeImage;
+  out->light_indices->type = IMG_VOXELS;
+
+#if defined(QUETOO_GLES)
+  // #856 Finding D: GL ES 3.0 has no buffer textures (GL_TEXTURE_BUFFER,
+  // glTexBuffer, GLSL isamplerBuffer are ES 3.2). Repack the linear int32 light-
+  // index array into a 2D R32I texture VOXEL_LIGHT_INDICES_WIDTH texels wide;
+  // voxel.glsl unpacks the linear index to (x, y). The companion light_data 3D
+  // texture (RG32I) is already ES-safe. RENDERER_GLES.md Finding D.
+  {
+    const int32_t w = VOXEL_LIGHT_INDICES_WIDTH;
+    const int32_t h = Maxi(1, (out->num_light_indices + w - 1) / w);
+
+    int32_t *padded = Mem_TagMalloc(w * h * sizeof(int32_t), MEM_TAG_RENDERER);
+    if (out->num_light_indices > 0) {
+      memcpy(padded, light_indices_data, out->num_light_indices * sizeof(int32_t));
+    }
+
+    out->light_indices->target = GL_TEXTURE_2D;
+    out->light_indices->width = w;
+    out->light_indices->height = h;
+    out->light_indices->levels = 1;
+    out->light_indices->minify = GL_NEAREST;
+    out->light_indices->magnify = GL_NEAREST;
+    out->light_indices->internal_format = GL_R32I;
+    out->light_indices->format = GL_RED_INTEGER;
+    out->light_indices->pixel_type = GL_INT;
+
+    glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
+    R_UploadImage(out->light_indices, (const byte *) padded);
+
+    Mem_Free(padded);
+  }
+#else
   glGenBuffers(1, &out->light_indices_buffer);
   glBindBuffer(GL_TEXTURE_BUFFER, out->light_indices_buffer);
   glBufferData(GL_TEXTURE_BUFFER, out->num_light_indices * sizeof(int32_t), light_indices_data, GL_STATIC_DRAW);
   glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
-  out->light_indices = (r_image_t *) R_AllocMedia("voxel_light_indices", sizeof(r_image_t), R_MEDIA_IMAGE);
-  out->light_indices->media.Free = R_FreeImage;
-  out->light_indices->type = IMG_VOXELS;
   out->light_indices->target = GL_TEXTURE_BUFFER;
   out->light_indices->internal_format = GL_R32I;
   out->light_indices->buffer = out->light_indices_buffer;
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_VOXEL_LIGHT_INDICES);
   R_SetupImage(out->light_indices);
+#endif
 
   const byte *occlusion_data = data;
 

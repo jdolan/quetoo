@@ -21,10 +21,12 @@
 
 in common_vertex_t vertex;
 
-in decal_data {
-  flat uint time;
-  flat uint lifetime;
-} decal;
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct decal_data_t {
+  uint time;
+  uint lifetime;
+};
+flat in decal_data_t decal;
 
 uniform mat4 model;
 
@@ -43,7 +45,7 @@ void main(void) {
 
   if (decal.lifetime > 0u) {
     float age = float(uint(ticks) - decal.time);
-    float fade = 1.0 - clamp(age / decal.lifetime, 0.0, 1.0);
+    float fade = 1.0 - clamp(age / float(decal.lifetime), 0.0, 1.0);
     out_color.a *= fade;
   }
 }

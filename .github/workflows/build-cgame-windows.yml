@@ -1,0 +1,64 @@
+name: build-cgame-windows
+
+# Builds a Windows cgame.dll (RailWarz HUD incl. per-map PB) from this fork,
+# mirroring jdolan/quetoo's release.yml build-windows job. Output is uploaded
+# as an artifact to overlay onto an existing Quetoo install (C:\QueToo\lib\default\cgame.dll).
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/cgame/**'
+      - 'src/shared/**'
+      - 'Quetoo.vs15/**'
+      - '.github/workflows/build-cgame-windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      SOLUTION_FILE_PATH: Quetoo.vs15/quetoo_all.sln
+      BUILD_CONFIGURATION: Release
+    steps:
+      - name: Checkout Objectively
+        uses: actions/checkout@v4
+        with:
+          repository: jdolan/Objectively
+          path: Objectively
+
+      - name: Checkout ObjectivelyMVC
+        uses: actions/checkout@v4
+        with:
+          repository: jdolan/ObjectivelyMVC
+          path: ObjectivelyMVC
+
+      - name: Checkout Quetoo (this fork)
+        uses: actions/checkout@v4
+        with:
+          path: quetoo
+          fetch-depth: 0
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install vcpkg glib
+        run: vcpkg install glib:x64-windows
+
+      - name: Restore NuGet packages
+        working-directory: quetoo
+        run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Build solution (Release x64)
+        working-directory: quetoo
+        shell: pwsh
+        run: |
+          $version = (git rev-list --count HEAD).Trim()
+          msbuild /m /p:Configuration=$env:BUILD_CONFIGURATION /p:Platform=x64 "/p:ExtraPreprocessorDefinitions=VERSION=`"$version`"" $env:SOLUTION_FILE_PATH
+
+      - name: Upload cgame.dll
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgame-dll-windows
+          path: quetoo/Quetoo.vs15/bin/x64Release/cgame.dll
+          if-no-files-found: error

@@ -28,4 +28,5 @@ shaders_DATA = \
 	sprite_vs.glsl \
 	uniforms.glsl \
 	version.glsl \
+	version_es.glsl \
   voxel.glsl
