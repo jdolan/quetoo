@@ -1,0 +1,27 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+
+layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
+layout(binding = 1, set = 0, rgba8) uniform image2D out_image;
+
+layout(location = 0) rayPayloadEXT vec3 hit_value;
+
+void main() {
+  const vec2 px = vec2(gl_LaunchIDEXT.xy) + 0.5;
+  const vec2 uv = px / vec2(gl_LaunchSizeEXT.xy);
+  const vec2 d = uv * 2.0 - 1.0;
+
+  // perspective camera looking at the scene
+  const vec3 eye = vec3(2.2, 2.0, 3.4);
+  const vec3 target = vec3(0.0, 0.5, 0.0);
+  const vec3 fwd = normalize(target - eye);
+  const vec3 right = normalize(cross(fwd, vec3(0.0, 1.0, 0.0)));
+  const vec3 up = cross(right, fwd);
+  const float tan_half = 0.55;
+
+  vec3 dir = normalize(fwd + d.x * tan_half * right - d.y * tan_half * up);
+
+  hit_value = vec3(0.0);
+  traceRayEXT(tlas, gl_RayFlagsOpaqueEXT, 0xFF, 0, 0, 0, eye, 0.001, dir, 1000.0, 0);
+  imageStore(out_image, ivec2(gl_LaunchIDEXT.xy), vec4(hit_value, 1.0));
+}
