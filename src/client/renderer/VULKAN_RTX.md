@@ -113,16 +113,27 @@ Status legend: ✅ done & verified · 🟢 technique proven on hardware · ⬜ p
   port `draw_2d` (HUD/console) onto it.
 - **Phase 3 — World + mesh raster parity.** ⬜ BSP and mesh passes, depth, materials,
   lights, sky, post. Vulkan becomes a usable alternative backend.
-- **Phase 4 — RTX.** 🟢 *Core proven* (`vulkan-validation/rt.c`): BLAS+TLAS,
-  ray-tracing pipeline (raygen/miss/closest-hit), SBT, and `vkCmdTraceRaysKHR`
-  produce ray-traced output on the RTX 3090 (closest-hit on intersection, miss
-  shader on background). ⬜ Remaining: build acceleration structures from BSP+mesh
-  geometry, trace RT lighting into the HDR target, then denoise. `r_rtx` cvar gates
-  the ray-traced path.
+- **Phase 4 — RTX.** 🟢 *Core proven* (`vulkan-validation/rt.c`, `scene.c`, `map.c`):
+  BLAS+TLAS, ray-tracing pipeline (raygen/miss/closest-hit), SBT, and
+  `vkCmdTraceRaysKHR` produce ray-traced output on the RTX 3090 — including an actual
+  Quetoo map (`map.c` on `omf.bsp`, 141,900 triangles, with shading + shadow rays).
+  ✅ *Integrated in-engine* (`r_vk_rtx.c`): builds the world BLAS/TLAS from the loaded
+  BSP (`R_WorldModel()->bsp->cm->file`), creates the ray-tracing pipeline from the
+  installed `shaders/rtx.*.spv`, and `R_Vk_RtxRenderView()` traces from the player
+  view into a storage image blitted to the swapchain each frame. Builds clean with
+  `--enable-vulkan`. ⬜ Remaining: runtime validation on a GPU+display; entities/mesh
+  instances in the TLAS; materials/lights as closest-hit inputs; denoising.
 
-The validation harnesses in `vulkan-validation/` retire the graphics-API risk for
-phases 2 and 4 independently of the engine; what remains is feeding them real Quetoo
-geometry and wiring them into the frame loop.
+## 8. Running the Vulkan/RTX path
+
+```
+./configure --enable-vulkan && make -j$(nproc) && make install
+quetoo +set r_backend vulkan +map omf
+```
+Requires a Vulkan 1.2+ driver; an RTX-class GPU enables the ray-traced path. With a
+map loaded, the frame is ray-traced from the player's view; otherwise the Vulkan path
+presents a cleared frame. The standalone harnesses in `vulkan-validation/` reproduce
+each stage in isolation for debugging.
 
 ## 7. Build & verification notes
 
