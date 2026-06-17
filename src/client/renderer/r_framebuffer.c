@@ -79,6 +79,11 @@ static GLuint R_CreateFramebufferAttachment(const r_framebuffer_t *f, r_attachme
  */
 r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachments) {
 
+  // GL framebuffers are not used by the Vulkan backend
+  if (r_context.vulkan) {
+    return (r_framebuffer_t) { 0 };
+  }
+
   const float scale = Clampf(r_framebuffer_scale->value, 0.125f, 4.f);
 
   r_framebuffer_t framebuffer = {

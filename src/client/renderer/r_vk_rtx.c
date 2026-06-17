@@ -285,12 +285,14 @@ static void R_Rtx_LoadProcs(void) {
  */
 static void R_Rtx_BuildWorld(void) {
 
-  const r_model_t *world = R_WorldModel();
-  if (!world || !world->bsp || !world->bsp->cm || !world->bsp->cm->file) {
+  // source world geometry from the collision BSP, which is loaded independently of
+  // the OpenGL renderer model system (disabled under the Vulkan backend)
+  const cm_bsp_t *cm = Cm_Bsp();
+  if (!cm || !cm->file) {
     return;
   }
 
-  const bsp_file_t *file = world->bsp->cm->file;
+  const bsp_file_t *file = cm->file;
   const int32_t num_vertexes = file->num_vertexes;
   const int32_t num_elements = file->num_elements;
   const int32_t num_tris = num_elements / 3;
@@ -661,7 +663,8 @@ static void R_Rtx_CreatePipeline(void) {
  * the RTX path can render this frame.
  */
 _Bool R_Vk_RtxAvailable(void) {
-  return r_vk.rtx && R_WorldModel() != NULL;
+  const cm_bsp_t *cm = Cm_Bsp();
+  return r_vk.rtx && cm != NULL && cm->file != NULL;
 }
 
 /**

@@ -161,6 +161,10 @@ void Ui_ViewWillDisappear(void) {
  */
 void Ui_Draw(void) {
 
+  if (r_context.vulkan) {
+    return;
+  }
+
   assert(windowController);
 
   R_SetDraw2DProjection(PROJECTION_UI);
@@ -244,6 +248,12 @@ void Ui_PopAllViewControllers(void) {
  */
 void Ui_Init(void) {
 
+  // ObjectivelyMVC renders through the OpenGL renderer; it is unavailable on the
+  // Vulkan/RTX backend (see VULKAN_RTX.md)
+  if (r_context.vulkan) {
+    return;
+  }
+
   MVC_LogSetPriority(SDL_LOG_PRIORITY_DEBUG);
 
   $$(Resource, addResourceProvider, Ui_Data);
@@ -268,6 +278,10 @@ void Ui_Init(void) {
  * @brief Shuts down the user interface.
  */
 void Ui_Shutdown(void) {
+
+  if (r_context.vulkan) {
+    return;
+  }
 
   $$(Resource, removeResourceProvider, Ui_Data);
 

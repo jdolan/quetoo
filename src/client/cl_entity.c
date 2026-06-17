@@ -437,10 +437,12 @@ void Cl_Interpolate(void) {
 
       const r_model_t *mod = cl.models[ent->current.model1];
 
-      assert(mod);
-      assert(mod->bsp_inline);
-
-      ent->bounds = mod->bsp_inline->visible_bounds;
+      if (mod && mod->bsp_inline) {
+        ent->bounds = mod->bsp_inline->visible_bounds;
+      } else {
+        // inline BSP models are not loaded under the Vulkan backend (stub models)
+        ent->bounds = ent->current.bounds;
+      }
     } else {
       angles = Vec3_Zero();
       ent->bounds = ent->current.bounds;

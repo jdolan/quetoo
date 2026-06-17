@@ -2248,6 +2248,13 @@ typedef struct {
    * @brief The OpenGL context.
    */
   SDL_GLContext context;
+
+  /**
+   * @brief True when the renderer is running on the Vulkan backend. The OpenGL
+   * context and GL-bound subsystems (e.g. the ObjectivelyMVC UI) are not available
+   * in this mode.
+   */
+  _Bool vulkan;
 } r_context_t;
 
 /**

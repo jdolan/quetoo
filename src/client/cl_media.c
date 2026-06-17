@@ -129,7 +129,10 @@ void Cl_LoadingProgress(int32_t percent, const char *status) {
 
   Cl_SendCommands();
 
-  cls.cgame->UpdateLoading(cls.loading);
+  // the loading screen is an ObjectivelyMVC view bound to the OpenGL renderer
+  if (!R_Vulkan()) {
+    cls.cgame->UpdateLoading(cls.loading);
+  }
 
   R_BeginFrame();
 
@@ -281,11 +284,18 @@ void Cl_LoadMedia(void) {
 
   Cl_UpdatePrediction();
 
-  R_BeginLoading();
+  // the OpenGL media pipeline (images, materials, model/cgame GL assets) is
+  // unavailable under the Vulkan backend; the RTX path renders world geometry from
+  // the collision BSP, so the GL-bound loading phases are skipped (see VULKAN_RTX.md)
+  if (!R_Vulkan()) {
+    R_BeginLoading();
+  }
 
   Cl_LoadModels();
 
-  Cl_LoadImages();
+  if (!R_Vulkan()) {
+    Cl_LoadImages();
+  }
 
   S_Stop();
 
@@ -295,13 +305,19 @@ void Cl_LoadMedia(void) {
 
   Cl_LoadMusics();
 
-  cls.cgame->LoadMedia();
+  if (!R_Vulkan()) {
+    cls.cgame->LoadMedia();
+  }
 
   Cl_LoadingProgress(100, "ready");
 
-  R_EndLoading();
+  if (!R_Vulkan()) {
+    R_EndLoading();
+  }
 
   S_EndLoading();
 
-  Ui_ViewWillAppear();
+  if (!R_Vulkan()) {
+    Ui_ViewWillAppear();
+  }
 }

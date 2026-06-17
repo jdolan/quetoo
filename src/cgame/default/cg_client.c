@@ -247,7 +247,13 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       if (!Cg_LoadClientModel(ci, info[2], v + 1)) {
         if (!Cg_LoadClientModel(ci, info[2], DEFAULT_SKIN)) {
           if (!Cg_LoadClientModel(ci, DEFAULT_MODEL, DEFAULT_SKIN)) {
-            Cg_Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
+            // the GL-based skin pipeline is unavailable under the Vulkan backend;
+            // don't drop the connection so the world can still be ray-traced
+            if (cgi.context->vulkan) {
+              Cg_Warn("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
+            } else {
+              Cg_Error("Failed to load default client skin %s/%s\n", DEFAULT_MODEL, DEFAULT_SKIN);
+            }
           }
         }
       }
@@ -272,21 +278,27 @@ void Cg_LoadClient(cg_client_info_t *ci, const char *s) {
       ci->hue = -1;
     }
 
-    // ensure we were able to load everything
-    if (!Cg_ValidateSkin(ci)) {
+    // the client model pipeline (legs/model media) is GL-based and unavailable
+    // under the Vulkan backend; skip the model-dependent setup so the world can
+    // still be ray-traced (player models are not yet rendered under Vulkan)
+    if (!cgi.context->vulkan) {
 
-      if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
-        Cg_Error("Failed to load default client info\n");
+      // ensure we were able to load everything
+      if (!Cg_ValidateSkin(ci)) {
+
+        if (!g_strcmp0(s, DEFAULT_CLIENT_INFO)) {
+          Cg_Error("Failed to load default client info\n");
+        }
       }
-    }
 
-    ci->legs->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
+      ci->legs->bounds = Box3_Scale(PM_BOUNDS, PM_SCALE);
 
-    ci->legs->radius = Box3_Size(ci->legs->bounds).z / 2.0;
+      ci->legs->radius = Box3_Size(ci->legs->bounds).z / 2.0;
 
-    // load sound files if we're in-game
-    if (*cgi.state > CL_DISCONNECTED) {
-      cgi.LoadClientModelSamples(ci->model);
+      // load sound files if we're in-game
+      if (*cgi.state > CL_DISCONNECTED) {
+        cgi.LoadClientModelSamples(ci->model);
+      }
     }
   }
 

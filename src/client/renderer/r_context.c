@@ -129,6 +129,8 @@ static void R_InitContextVulkan(void) {
   R_SetWindowIcon();
   SDL_SyncWindow(r_context.window);
 
+  r_context.vulkan = true;
+
   R_Vk_Init(r_context.window);
   R_Vk_InitSwapchain(r_context.window);
 

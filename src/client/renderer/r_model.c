@@ -90,13 +90,20 @@ r_model_t *R_LoadModel(const char *name) {
 
     Fs_Load(path, &buf);
 
-    format->Load(mod, buf);
+    // model loading and registration create OpenGL textures, materials and vertex
+    // buffers, which are unavailable under the Vulkan backend. The RTX path sources
+    // world geometry from the collision BSP (Cm_Bsp), so a stub model suffices here.
+    if (!r_context.vulkan) {
+      format->Load(mod, buf);
+    }
 
     Fs_Free(buf);
 
     mod->radius = Box3_Radius(mod->bounds);
 
-    R_RegisterMedia((r_media_t *) mod);
+    if (!r_context.vulkan) {
+      R_RegisterMedia((r_media_t *) mod);
+    }
   }
 
   return mod;

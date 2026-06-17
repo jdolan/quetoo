@@ -178,9 +178,13 @@ static void Cg_Init(void) {
   cgi.AddCmd("unready", NULL, CMD_CGAME, NULL);
   cgi.AddCmd("player_list", NULL, CMD_CGAME, NULL);
 
-  Cg_InitUi();
+  // the ObjectivelyMVC UI and bitmap-font HUD are bound to the OpenGL renderer and
+  // are not available under the Vulkan/RTX backend (see VULKAN_RTX.md)
+  if (!cgi.context->vulkan) {
+    Cg_InitUi();
 
-  Cg_InitHud();
+    Cg_InitHud();
+  }
 
   Cg_InitDiscord();
 
