@@ -1,12 +1,14 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
+#extension GL_EXT_nonuniform_qualifier : require
 
-struct Tri { vec4 normal; vec4 albedo; };
+struct Tri { vec4 normal; vec4 albedo; vec4 uv0_uv1; vec4 uv2_tex; };
 struct Light { vec4 origin_radius; vec4 color_intensity; };
 
 layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
 layout(binding = 2, set = 0, std430) readonly buffer Tris { Tri tris[]; };
 layout(binding = 3, set = 0, std430) readonly buffer Lights { Light lights[]; };
+layout(binding = 0, set = 1) uniform sampler2D textures[];
 layout(push_constant) uniform PC {
   vec4 eye; vec4 target; vec4 light; vec4 params; // params.z = light count
 } pc;
@@ -85,10 +87,20 @@ void main() {
     diffuse += lcol * (ndotl * atten * shadow * 0.02 * intensity);
   }
 
-  // the diffuse textures average to dark linear values (~0.15); gamma-correct the
-  // albedo to a perceptual value first, then apply an ambient floor plus the lights
-  // so the real material colors are clearly readable.
-  vec3 base = pow(clamp(t.albedo.xyz, 0.0, 1.0), vec3(1.0 / 2.2));
+  // sample the material's diffuse texture with barycentric-interpolated UVs, or
+  // fall back to the averaged material color when the material has no texture
+  vec3 albedo;
+  if (t.uv2_tex.w > 0.5) {
+    const vec3 bary = vec3(1.0 - attribs.x - attribs.y, attribs.x, attribs.y);
+    const vec2 uv = bary.x * t.uv0_uv1.xy + bary.y * t.uv0_uv1.zw + bary.z * t.uv2_tex.xy;
+    albedo = texture(textures[nonuniformEXT(uint(t.uv2_tex.z))], uv).rgb;
+  } else {
+    albedo = t.albedo.xyz;
+  }
+
+  // gamma-correct the albedo to a perceptual value, then apply an ambient floor
+  // plus the lights so the material is clearly readable.
+  vec3 base = pow(clamp(albedo, 0.0, 1.0), vec3(1.0 / 2.2));
   vec3 color = base * (0.55 + diffuse * 3.0);
   hit_value = clamp(color, 0.0, 1.0);
 }

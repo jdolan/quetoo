@@ -38,8 +38,10 @@
  * @brief Per-triangle shading data uploaded to the closest-hit shader.
  */
 typedef struct {
-  vec4_t normal;
-  vec4_t albedo;
+  vec4_t normal;    // xyz: face normal
+  vec4_t albedo;    // xyz: fallback diffuse color when the material has no texture
+  vec4_t uv0_uv1;   // (u0, v0, u1, v1) texture coordinates of the triangle's vertices
+  vec4_t uv2_tex;   // (u2, v2, bindless texture index as float, 1.0 if textured else 0.0)
 } r_rtx_tri_t;
 
 /**
@@ -389,23 +391,36 @@ static void R_Rtx_AppendMesh(const char *name, const vec3_t origin, const float 
   for (int32_t i = 0; i < mesh->num_faces; i++) {
     const r_mesh_face_t *face = &mesh->faces[i];
     const vec3_t albedo = R_Rtx_MaterialColor(face->material);
+    uint32_t tex_index = 0;
+    if (face->material && face->material->cm) {
+      tex_index = R_Vk_LoadTexture(face->material->cm->diffusemap.path);
+    }
+    const float textured = tex_index ? 1.f : 0.f;
 
     for (int32_t k = 0; k < face->num_vertexes; k++) {
       pos[vo + k] = Vec3_Add(Vec3_Scale(face->vertexes[k].position, scale), origin);
     }
 
     for (int32_t j = 0; j + 2 < face->num_elements; j += 3) {
-      const uint32_t a = vo + face->elements[j + 0];
-      const uint32_t b = vo + face->elements[j + 1];
-      const uint32_t c = vo + face->elements[j + 2];
+      const uint32_t la = face->elements[j + 0];
+      const uint32_t lb = face->elements[j + 1];
+      const uint32_t lc = face->elements[j + 2];
+      const uint32_t a = vo + la;
+      const uint32_t b = vo + lb;
+      const uint32_t c = vo + lc;
       elem[eo + 0] = a;
       elem[eo + 1] = b;
       elem[eo + 2] = c;
       const vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(pos[b], pos[a]),
                                                  Vec3_Subtract(pos[c], pos[a])));
+      const vec2_t uv0 = face->vertexes[la].diffusemap;
+      const vec2_t uv1 = face->vertexes[lb].diffusemap;
+      const vec2_t uv2 = face->vertexes[lc].diffusemap;
       const int32_t t = eo / 3;
       tri[t].normal = Vec4(n.x, n.y, n.z, 0.f);
       tri[t].albedo = Vec4(albedo.x, albedo.y, albedo.z, 0.f);
+      tri[t].uv0_uv1 = Vec4(uv0.x, uv0.y, uv1.x, uv1.y);
+      tri[t].uv2_tex = Vec4(uv2.x, uv2.y, (float) tex_index, textured);
       eo += 3;
     }
 
@@ -451,17 +466,20 @@ static void R_Rtx_BuildWorld(void) {
     r_rtx.world_maxs = Vec3_Maxf(r_rtx.world_maxs, positions[i]);
   }
 
-  // average each material's diffuse texture once so every triangle can be tinted
+  // average each material's diffuse texture (fallback color) and upload it to the
+  // bindless array, recording each material's texture index so the closest-hit
+  // shader can sample it per-pixel
   vec3_t *mat_color = NULL;
+  uint32_t *mat_index = NULL;
   if (bsp->num_materials > 0) {
     mat_color = Mem_Malloc(sizeof(vec3_t) * bsp->num_materials);
+    mat_index = Mem_Malloc(sizeof(uint32_t) * bsp->num_materials);
     for (int32_t i = 0; i < bsp->num_materials; i++) {
       mat_color[i] = R_Rtx_MaterialColor(bsp->materials[i]);
-
-      // upload the diffuse texture into the bindless array; the closest-hit
-      // shader samples it for real per-pixel texturing (phase 3)
       if (bsp->materials[i] && bsp->materials[i]->cm) {
-        R_Vk_LoadTexture(bsp->materials[i]->cm->diffusemap.path);
+        mat_index[i] = R_Vk_LoadTexture(bsp->materials[i]->cm->diffusemap.path);
+      } else {
+        mat_index[i] = 0;
       }
     }
     Com_Print("  RTX: uploaded %u Vulkan textures to the bindless array\n", R_Vk_TextureCount());
@@ -488,14 +506,17 @@ static void R_Rtx_BuildWorld(void) {
     for (int32_t d = 0; d < bsp->num_draw_elements; d++) {
       const r_bsp_draw_elements_t *de = &bsp->draw_elements[d];
       vec3_t albedo = Vec3(0.6f, 0.6f, 0.6f);
+      uint32_t tex_index = 0;
       if (mat_color) {
         for (int32_t i = 0; i < bsp->num_materials; i++) {
           if (bsp->materials[i] == de->material) {
             albedo = mat_color[i];
+            tex_index = mat_index[i];
             break;
           }
         }
       }
+      const float textured = tex_index ? 1.f : 0.f;
       const uint32_t first = (uint32_t) ((uintptr_t) de->elements / sizeof(uint32_t));
       for (int32_t j = 0; j + 2 < de->num_elements; j += 3) {
         const uint32_t i0 = (uint32_t) bsp->elements[first + j + 0];
@@ -506,9 +527,14 @@ static void R_Rtx_BuildWorld(void) {
         elements[e_out + 2] = i2;
         const vec3_t n = Vec3_Normalize(Vec3_Cross(Vec3_Subtract(positions[i1], positions[i0]),
                                                    Vec3_Subtract(positions[i2], positions[i0])));
+        const vec2_t uv0 = bsp->vertexes[i0].diffusemap;
+        const vec2_t uv1 = bsp->vertexes[i1].diffusemap;
+        const vec2_t uv2 = bsp->vertexes[i2].diffusemap;
         const int32_t t = e_out / 3;
         tris[t].normal = Vec4(n.x, n.y, n.z, 0.f);
         tris[t].albedo = Vec4(albedo.x, albedo.y, albedo.z, 0.f);
+        tris[t].uv0_uv1 = Vec4(uv0.x, uv0.y, uv1.x, uv1.y);
+        tris[t].uv2_tex = Vec4(uv2.x, uv2.y, (float) tex_index, textured);
         e_out += 3;
       }
     }
@@ -532,11 +558,16 @@ static void R_Rtx_BuildWorld(void) {
       tris[t].albedo = Vec4(0.45f + 0.45f * fabsf(n.x),
                             0.45f + 0.45f * fabsf(n.y),
                             0.45f + 0.45f * fabsf(n.z), 0.f);
+      tris[t].uv0_uv1 = Vec4(0.f, 0.f, 0.f, 0.f);
+      tris[t].uv2_tex = Vec4(0.f, 0.f, 0.f, 0.f);
     }
   }
 
   if (mat_color) {
     Mem_Free(mat_color);
+  }
+  if (mat_index) {
+    Mem_Free(mat_index);
   }
 
   Com_Print("  RTX: geometry %d tris from %d draw elements, %d materials\n",
@@ -855,10 +886,13 @@ static void R_Rtx_CreatePipeline(void) {
     .offset = 0,
     .size = sizeof(r_rtx_push_t)
   };
+  // set 0: TLAS + storage image + tri/light buffers; set 1: the bindless texture
+  // array, so the closest-hit shader can sample per-material diffuse textures
+  const VkDescriptorSetLayout set_layouts[] = { r_rtx.set_layout, R_Vk_TextureSetLayout() };
   const VkPipelineLayoutCreateInfo plci = {
     .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-    .setLayoutCount = 1,
-    .pSetLayouts = &r_rtx.set_layout,
+    .setLayoutCount = lengthof(set_layouts),
+    .pSetLayouts = set_layouts,
     .pushConstantRangeCount = 1,
     .pPushConstantRanges = &pcr
   };
@@ -1039,7 +1073,8 @@ _Bool R_Vk_RtxRenderView(const r_view_t *view) {
     0, VK_ACCESS_SHADER_WRITE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR);
 
   vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, r_rtx.pipeline);
-  vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, r_rtx.pipeline_layout, 0, 1, &r_rtx.descriptor_set, 0, NULL);
+  const VkDescriptorSet sets[] = { r_rtx.descriptor_set, R_Vk_TextureSet() };
+  vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, r_rtx.pipeline_layout, 0, lengthof(sets), sets, 0, NULL);
   vkCmdPushConstants(cb, r_rtx.pipeline_layout, VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR, 0, sizeof(pc), &pc);
   r_rtx.CmdTraceRays(cb, &r_rtx.rgen_region, &r_rtx.miss_region, &r_rtx.hit_region, &r_rtx.call_region,
     r_rtx.extent.width, r_rtx.extent.height, 1);
