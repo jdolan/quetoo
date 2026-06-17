@@ -90,12 +90,58 @@ typedef struct {
    * RTX lighting path (phase B) is available on this GPU.
    */
   _Bool rtx;
+
+  /**
+   * @brief The number of frames that may be recorded concurrently.
+   */
+#define R_VK_MAX_FRAMES_IN_FLIGHT 2
+
+  /**
+   * @brief The presentation swapchain and its surface format / extent.
+   */
+  VkSwapchainKHR swapchain;
+  VkFormat swapchain_format;
+  VkExtent2D swapchain_extent;
+
+  /**
+   * @brief The swapchain color images and their views (one per image), and the
+   * framebuffers wrapping them for the render pass.
+   */
+  uint32_t swapchain_image_count;
+  VkImage *swapchain_images;
+  VkImageView *swapchain_image_views;
+  VkFramebuffer *framebuffers;
+
+  /**
+   * @brief The render pass used to clear and present a frame (phase 1).
+   */
+  VkRenderPass render_pass;
+
+  /**
+   * @brief The command pool and per-frame primary command buffers.
+   */
+  VkCommandPool command_pool;
+  VkCommandBuffer command_buffers[R_VK_MAX_FRAMES_IN_FLIGHT];
+
+  /**
+   * @brief Per-frame synchronization primitives.
+   */
+  VkSemaphore image_available[R_VK_MAX_FRAMES_IN_FLIGHT];
+  VkSemaphore render_finished[R_VK_MAX_FRAMES_IN_FLIGHT];
+  VkFence in_flight[R_VK_MAX_FRAMES_IN_FLIGHT];
+
+  /**
+   * @brief The frame-in-flight index, in `[0, R_VK_MAX_FRAMES_IN_FLIGHT)`.
+   */
+  uint32_t current_frame;
 } r_vk_t;
 
 extern r_vk_t r_vk;
 
 #if defined(__R_LOCAL_H__)
 void R_Vk_Init(SDL_Window *window);
+void R_Vk_InitSwapchain(SDL_Window *window);
+void R_Vk_DrawClear(float r, float g, float b);
 void R_Vk_Shutdown(void);
 #endif /* __R_LOCAL_H__ */
 
