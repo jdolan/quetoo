@@ -1,0 +1,22 @@
+#version 460
+#extension GL_EXT_ray_tracing : require
+
+layout(binding = 0, set = 0) uniform accelerationStructureEXT tlas;
+layout(binding = 1, set = 0, rgba8) uniform image2D out_image;
+
+layout(location = 0) rayPayloadEXT vec3 payload;
+
+void main() {
+  // orthographic camera: one ray per pixel along +z, from the z=-1 plane
+  vec2 uv = (vec2(gl_LaunchIDEXT.xy) + 0.5) / vec2(gl_LaunchSizeEXT.xy);
+  vec2 ndc = uv * 2.0 - 1.0;
+
+  vec3 origin = vec3(ndc.x, -ndc.y, -1.0);
+  vec3 direction = vec3(0.0, 0.0, 1.0);
+
+  payload = vec3(0.0);
+  traceRayEXT(tlas, gl_RayFlagsOpaqueEXT, 0xFF, 0, 0, 0,
+              origin, 0.001, direction, 100.0, 0);
+
+  imageStore(out_image, ivec2(gl_LaunchIDEXT.xy), vec4(payload, 1.0));
+}

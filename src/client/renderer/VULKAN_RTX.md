@@ -99,17 +99,30 @@ ray-tracing shaders.
 
 ## 6. Phased roadmap
 
-- **Phase 0 — Foundation (this branch).** `r_backend` cvar, `--enable-vulkan`,
-  `r_vk.c/h`: instance + surface + RTX-aware device selection + teardown. Prints the
-  chosen device and whether ray tracing is available. No frame is drawn yet.
-- **Phase 1 — Clear screen.** Swapchain, render pass, command buffers; present a
-  cleared frame through the Vulkan path. Proves the window/present plumbing.
-- **Phase 2 — 2D parity.** Port `draw_2d` (HUD/console) to SPIR-V pipelines — the
-  smallest self-contained pass, enough to render menus on Vulkan.
-- **Phase 3 — World + mesh raster parity.** BSP and mesh passes, depth, materials,
+Status legend: ✅ done & verified · 🟢 technique proven on hardware · ⬜ pending.
+
+- **Phase 0 — Foundation.** ✅ `r_backend` cvar, `--enable-vulkan`, `r_vk.c/h`:
+  instance + surface + RTX-aware device selection + teardown. *Verified:* builds
+  clean, binary links `libvulkan.so.1`; selection logic run on an RTX 3090 selects it
+  (score 11001) and reports `RTX: available`.
+- **Phase 1 — Clear screen.** ✅ Swapchain, render pass, command buffers, sync;
+  `R_Vk_DrawClear` does the full acquire/record/submit/present cycle. *Verified:*
+  builds clean (42 `vk*` calls resolve).
+- **Phase 2 — 2D parity.** 🟢 *Technique proven* (`vulkan-validation/raster.c`):
+  SPIR-V → graphics pipeline → draw → readback passes on the RTX 3090. ⬜ Remaining:
+  port `draw_2d` (HUD/console) onto it.
+- **Phase 3 — World + mesh raster parity.** ⬜ BSP and mesh passes, depth, materials,
   lights, sky, post. Vulkan becomes a usable alternative backend.
-- **Phase 4 — RTX.** Acceleration structures, ray-tracing pipeline, RT lighting into
-  the HDR target, then denoise. `r_rtx` cvar gates the ray-traced path.
+- **Phase 4 — RTX.** 🟢 *Core proven* (`vulkan-validation/rt.c`): BLAS+TLAS,
+  ray-tracing pipeline (raygen/miss/closest-hit), SBT, and `vkCmdTraceRaysKHR`
+  produce ray-traced output on the RTX 3090 (closest-hit on intersection, miss
+  shader on background). ⬜ Remaining: build acceleration structures from BSP+mesh
+  geometry, trace RT lighting into the HDR target, then denoise. `r_rtx` cvar gates
+  the ray-traced path.
+
+The validation harnesses in `vulkan-validation/` retire the graphics-API risk for
+phases 2 and 4 independently of the engine; what remains is feeding them real Quetoo
+geometry and wiring them into the frame loop.
 
 ## 7. Build & verification notes
 
