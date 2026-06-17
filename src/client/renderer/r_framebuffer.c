@@ -116,6 +116,10 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+#if !defined(QUETOO_GLES)
+  // #856: MSAA here uses GL_TEXTURE_2D_MULTISAMPLE + glTexImage2DMultisample and
+  // the depth_resolve_fs sampler2DMS, all GL ES 3.1/3.2 features absent from ES
+  // 3.0 (the symbols are not in the ES headers). Desktop-only; MSAA stays off on ES.
   if (r_antialias->integer > 0) {
 
     framebuffer.msaa.samples = r_antialias->integer;
@@ -147,6 +151,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
+#endif
 
   R_GetError(NULL);
 

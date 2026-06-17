@@ -229,7 +229,7 @@ void vertex_lighting(inout common_vertex_t v) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6.0).rgb;
 
   v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   v.diffuse = vec3(0.0);
@@ -385,7 +385,7 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6.0).rgb;
 
   f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   f.diffuse = vec3(0.0);
