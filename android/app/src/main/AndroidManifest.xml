@@ -46,6 +46,8 @@
             android:alwaysRetainTaskState="true"
             android:launchMode="singleInstance"
             android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            android:windowLayoutInDisplayCutoutMode="shortEdges"
             android:configChanges="layoutDirection|locale|orientation|uiMode|screenLayout|screenSize|smallestScreenSize|keyboard|keyboardHidden|navigation|mcc|mnc|density|fontScale"
             android:preferMinimalPostProcessing="true">
 

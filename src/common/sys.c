@@ -206,7 +206,7 @@ void *Sys_LoadLibrary(void *handle, const char *entry_point, void *params) {
  * ~/.local/share/applications/ so the game appears in the system launcher.
  * No-op for system-managed installs (deb/rpm under /usr/).
  */
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__ANDROID__)
 void Sys_InstallDesktopEntry(void) {
 
   const char *exe = Sys_ExecutablePath();

@@ -47,6 +47,44 @@ NDK at `/opt/android-ndk-r27c`.
 >   <abi>` (mbedTLS+curl+Objectively-HTTP) → rebuild `libObjectivelyMVC.so` (GLES) →
 >   refresh prefix headers → `cmake -S android -B qa-v78-<abi> -DANDROID_ABI=<abi>
 >   -DCMAKE_PREFIX_PATH=/root/android-<abi> -DQUETOO_GLES=ON` → `cmake --build`.
+>
+> ### On-device status (Samsung, Adreno 750, Android 15, GL ES 3.2 — 2026-06-17)
+> Verified on real hardware (not just the SwiftShader emulator):
+> - ✅ **Boots to a fullscreen main menu.** Fullscreen needs BOTH: `r_fullscreen`
+>   defaulting to `2` on Android (exclusive → SDL3 immersive hides the bars; set in
+>   r_main.c) AND the activity theme `@android:style/Theme.NoTitleBar.Fullscreen` +
+>   `windowLayoutInDisplayCutoutMode="shortEdges"` (AndroidManifest). `r_fullscreen_width/height`
+>   do NOT work on Android (no selectable display modes); use `r_framebuffer_scale`
+>   to render 3D below native res.
+> - ✅ **v78 shaders compile on the real Adreno GLSL ES compiler** (0 failures) — the
+>   struct-varying + `float()`-cast fixes are real ES-3.0 conformance, not emulator luck.
+> - ✅ **Maps load server-side** (`map edge`: BSP + collision + nav + 82 entities) and
+>   the client connects to the listen server + precaches. **In-game asset note:** the
+>   client needs the map's full asset set locally or it tries (and fails) to download —
+>   push `maps/<m>.bsp` + `maps/<m>.mf` + everything the `.mf` lists (parse col 3) +
+>   the `qforcer` player; otherwise `Cl_RequestNextDownload` aborts the connect.
+> - ❌ **In-game 3D render: SIGSEGV** ~3s into the world load (media precache → spawn →
+>   first 3D frame), NOT OOM (4 GB free; the ~550 MB spike is just the loaded map).
+>   Backtrace resists remote extraction (debuggerd output not reaching logcat on the
+>   debuggable build; arm64 can't be emulated on an x86 host). This is the GLES in-game
+>   render path's first run on real hardware — likely the BSP/mesh render-data build or
+>   the base-vertex mesh stub (`r_gl_compat.h`). **Next focused task** (needs the device
+>   + `ndk-stack`/lldb against the unstripped libs).
+>
+> ### Required ObjectivelyMVC patch (besides Objectively's `Class.c`)
+> `Renderer.c`'s `GL_GET_ERROR()` macro calls **`SDL_TriggerBreakpoint()`** on any GL
+> error → on arm64 that's a `brk` = **SIGTRAP hard crash**. Real mobile GPUs (Adreno)
+> flag benign pending GL errors that SwiftShader ignores, so this brk-crashes the app
+> during MVC renderer init. Patch it (and the two dev breakpoints in `Theme.c`/`View.c`)
+> to log-only — no shipped build may `brk` on a GL error. Re-apply after each MVC checkout.
+>
+> ### Desktop-only code that must be excluded on Android (`__linux__` ≠ desktop!)
+> Bionic defines `__linux__`, so `#if defined(__linux__)` blocks compile + run on
+> Android. `Sys_InstallDesktopEntry`/`Sys_InstallLocalBin` (sys.c) — desktop launcher
+> integration (writes `~/.local/share/applications`, `system("update-desktop-database")`,
+> `~/.local/bin` symlinks) — crash on Android (glib-shim file ops + `fork`/`exec` from
+> the SDL thread). Guarded with `&& !defined(__ANDROID__)` at both the definition and
+> the main.c call site. Audit other `__linux__` blocks for the same trap.
 
 | Dependency | NDK status | Notes |
 |---|---|---|

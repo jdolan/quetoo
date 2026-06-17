@@ -388,7 +388,13 @@ static void R_InitLocal(void) {
   r_draw_scale = Cvar_Add("r_draw_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 2D elements.");
   r_finish = Cvar_Add("r_finish", "0", CVAR_ARCHIVE, "Controls whether to finish before moving to the next renderer frame.");
   r_framebuffer_scale = Cvar_Add("r_framebuffer_scale", "1", CVAR_ARCHIVE, "Controls the render scale of 3D elements.");
+#if defined(__ANDROID__)
+  // #856: Android has no windowed/borderless desktop; exclusive fullscreen (2) is
+  // what triggers SDL3's immersive mode (hides the status + navigation bars).
+  r_fullscreen = Cvar_Add("r_fullscreen", "2", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
+#else
   r_fullscreen = Cvar_Add("r_fullscreen", "1", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Controls fullscreen mode. 1 = borderless, 2 = exclusive.");
+#endif
   r_fullscreen_width = Cvar_Add("r_fullscreen_width", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution width. 0 uses the desktop resolution.");
   r_fullscreen_height = Cvar_Add("r_fullscreen_height", "0", CVAR_ARCHIVE | CVAR_R_CONTEXT, "Fullscreen resolution height. 0 uses the desktop resolution.");
   r_hardness = Cvar_Add("r_hardness", "1", CVAR_ARCHIVE, "Controls the hardness of bump-mapping effects.");

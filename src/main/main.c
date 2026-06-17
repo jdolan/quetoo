@@ -498,7 +498,10 @@ int32_t main(int32_t argc, char *argv[]) {
     }
   }
 
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__ANDROID__)
+  // #856: desktop launcher integration (.desktop entry + ~/.local/bin symlinks)
+  // is meaningless on Android and crashes there (glib file ops on the qglib shim
+  // + system() fork/exec from the SDL thread). Android ships via the APK manifest.
   Sys_InstallDesktopEntry();
   Sys_InstallLocalBin();
 #endif
