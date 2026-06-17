@@ -148,6 +148,15 @@ void R_Vk_Shutdown(void);
 _Bool R_Vk_RtxAvailable(void);
 _Bool R_Vk_RtxRenderView(const r_view_t *view);
 void R_Vk_RtxShutdown(void);
+
+// r_vk_image.c — texture upload and the bindless combined-image-sampler array
+uint32_t R_Vk_UploadSurface(SDL_Surface *surface);
+uint32_t R_Vk_LoadTexture(const char *path);
+uint32_t R_Vk_WhiteTexture(void);
+uint32_t R_Vk_TextureCount(void);
+VkDescriptorSetLayout R_Vk_TextureSetLayout(void);
+VkDescriptorSet R_Vk_TextureSet(void);
+void R_Vk_ShutdownImages(void);
 #endif /* __R_LOCAL_H__ */
 
 #endif /* BUILD_VULKAN */

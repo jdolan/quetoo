@@ -73,6 +73,7 @@ librenderer_la_SOURCES = \
 	r_sky.c \
 	r_sprite.c \
 	r_vk.c \
+	r_vk_image.c \
 	r_vk_rtx.c
 
 librenderer_la_CFLAGS = \

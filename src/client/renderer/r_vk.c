@@ -293,13 +293,25 @@ static void R_Vk_CreateDevice(void) {
     .pNext = &acceleration_features
   };
 
+  // bindless texture sampling for the 2D UI and RTX closest-hit shaders. Core in
+  // Vulkan 1.2 and enabled regardless of the ray-tracing feature set, so the 2D
+  // path works even on devices without RTX. The RTX feature chain follows it.
+  VkPhysicalDeviceDescriptorIndexingFeatures indexing_features = {
+    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+    .shaderSampledImageArrayNonUniformIndexing = VK_TRUE,
+    .runtimeDescriptorArray = VK_TRUE,
+    .descriptorBindingPartiallyBound = VK_TRUE,
+    .descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
+    .pNext = r_vk.rtx ? (void *) &buffer_address_features : NULL
+  };
+
   VkDeviceCreateInfo create_info = {
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
     .queueCreateInfoCount = queue_count,
     .pQueueCreateInfos = queue_infos,
     .enabledExtensionCount = extension_count,
     .ppEnabledExtensionNames = extensions,
-    .pNext = r_vk.rtx ? (const void *) &buffer_address_features : NULL
+    .pNext = &indexing_features
   };
 
   const VkResult result = vkCreateDevice(r_vk.physical_device, &create_info, NULL, &r_vk.device);
@@ -753,6 +765,7 @@ void R_Vk_Shutdown(void) {
 
   if (r_vk.device) {
     vkDeviceWaitIdle(r_vk.device);
+    R_Vk_ShutdownImages();
     R_Vk_DestroySwapchain();
     vkDestroyDevice(r_vk.device, NULL);
   }
