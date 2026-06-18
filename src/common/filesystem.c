@@ -20,6 +20,7 @@
  */
 
 #include <physfs.h>
+#include <stdlib.h>  // setenv (Android CA bundle, #856)
 #include <SDL3/SDL.h>
 
 #include "console.h"
@@ -946,6 +947,23 @@ void Fs_Init(const uint32_t flags) {
                G_DIR_SEPARATOR, DEFAULT_GAME, G_DIR_SEPARATOR, "default.pk3");
     if (!Fs_Android_ExtractAsset(DEFAULT_GAME G_DIR_SEPARATOR_S "default.pk3", pk3_dest)) {
       Com_Warn("Android: default.pk3 not extracted; the engine may have no game data.\n");
+    }
+  }
+
+  // #856: extract the bundled CA root bundle to a REAL file -- libcurl/mbedTLS
+  // cannot read it from inside the pk3 -- and point libcurl at it via the
+  // CURL_CA_BUNDLE env var, which our Objectively URLSession patch applies as
+  // CURLOPT_CAINFO (libcurl built with -DCURL_CA_BUNDLE=none has no default and
+  // does not read this env itself). Without it, HTTPS to giblets.quetoo.org and
+  // the S3 endpoints fails TLS verification (logged HTTP 0).
+  {
+    char ca_dest[MAX_OS_PATH];
+    g_snprintf(ca_dest, sizeof(ca_dest), "%s%c%s%c%s", Sys_UserDir(),
+               G_DIR_SEPARATOR, DEFAULT_GAME, G_DIR_SEPARATOR, "cacert.pem");
+    if (Fs_Android_ExtractAsset(DEFAULT_GAME G_DIR_SEPARATOR_S "cacert.pem", ca_dest)) {
+      setenv("CURL_CA_BUNDLE", ca_dest, 1);
+    } else {
+      Com_Warn("Android: cacert.pem not extracted; live HTTPS will fail TLS verification.\n");
     }
   }
 #endif
