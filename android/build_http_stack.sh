@@ -23,7 +23,8 @@ COMPAT=/root/obj-compat
 OBJ=/root/Objectively
 MBEDTLS_VER=3.6.2
 CURL_VER=8.11.1
-CM="-DCMAKE_TOOLCHAIN_FILE=$TC -DANDROID_ABI=$ABI -DANDROID_PLATFORM=android-$API -DCMAKE_PREFIX_PATH=$PREFIX -DCMAKE_FIND_ROOT_PATH=$PREFIX -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PREFIX"
+# -Wl,-z,max-page-size=16384: 16 KB ELF segment alignment for arm64 Android (#856).
+CM="-DCMAKE_TOOLCHAIN_FILE=$TC -DANDROID_ABI=$ABI -DANDROID_PLATFORM=android-$API -DCMAKE_PREFIX_PATH=$PREFIX -DCMAKE_FIND_ROOT_PATH=$PREFIX -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=BOTH -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PREFIX -DCMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=16384"
 mkdir -p "$PREFIX" /root/httpsrc
 cd /root/httpsrc
 
@@ -89,7 +90,7 @@ echo "  objectively sources: ok=$ok fail=$fail"
 [ $fail -eq 0 ] || { echo "Objectively compile FAILED"; exit 1; }
 # Static archive (link-time convenience) + the shared lib the engine/APK ship.
 ar rcs "$PREFIX/lib/libObjectively.a" $objs
-"$CC" -shared -o "$PREFIX/lib/libObjectively.so" $objs \
+"$CC" -shared -Wl,-z,max-page-size=16384 -o "$PREFIX/lib/libObjectively.so" $objs \
   -L"$PREFIX/lib" -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -llog
 cp -rf "$OBJ"/Sources/Objectively "$PREFIX/include/"
 echo "Objectively.so: $(stat -c%s "$PREFIX/lib/libObjectively.so") bytes"

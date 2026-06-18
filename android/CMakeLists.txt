@@ -66,6 +66,14 @@ add_compile_definitions(_GNU_SOURCE)
 # Android in general. Mirrors autotools @SO_CFLAGS@ = -fPIC -DPIC.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# 16 KB ELF segment alignment for Android (#856). Newer arm64 devices use 16 KB
+# memory pages and reject 4 KB-aligned shared objects; Android 15+ also flags
+# them. Harmless on 4 KB-page devices and on x86_64 (always 4 KB). Applies to the
+# engine .so (libmain/libgame/libcgame); deps get it via their build scripts.
+if(ANDROID)
+    add_link_options(-Wl,-z,max-page-size=16384)
+endif()
+
 # -----------------------------------------------------------------------------
 # Build options
 # -----------------------------------------------------------------------------
