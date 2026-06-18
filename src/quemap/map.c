@@ -884,7 +884,7 @@ static entity_t *ParseEntity(parser_t *parser) {
  * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
  * @return The resolved map format, also stored in the global `map_format`.
  */
-int LoadMapFile(const char *filename) {
+map_format_t LoadMapFile(const char *filename) {
 
   Com_Verbose("--- LoadMapFile ---\n");
 

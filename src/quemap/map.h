@@ -194,4 +194,4 @@ extern box3_t map_bounds;
 int32_t FindPlane(const vec3_t normal, double dist);
 void MakeBrushWindings(brush_t *brush);
 void AddBrushBevels(brush_t *b);
-int LoadMapFile(const char *filename);
+map_format_t LoadMapFile(const char *filename);
