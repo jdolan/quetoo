@@ -122,7 +122,16 @@ void main(void) {
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
 #endif
 
+#ifdef GL_ES
+  // Parallax occlusion mapping writes its result through an inout parameter and
+  // returns early when disabled. The Adreno GLES compiler drops that inout
+  // write-back on the early return, leaving fragment.parallax divergent so every
+  // material sample lands on a high (flat) mip and the world renders untextured.
+  // Set the texcoord directly in the caller and skip POM on ES (negligible on mobile).
+  fragment.parallax = vertex.diffusemap;
+#else
   parallax_occlusion_mapping(vertex, fragment);
+#endif
 
   if (stage.flags == STAGE_NONE) {
 
