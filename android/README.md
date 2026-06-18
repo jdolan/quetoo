@@ -1,36 +1,41 @@
 # Quetoo — Android Platform Port
 
-Private WIP port of Quetoo to Android (SDL3 + OpenGL ES 3.0).
-Tracks upstream **[jdolan/quetoo#856](https://github.com/jdolan/quetoo/issues/856)**.
+Port of Quetoo to Android (SDL3 + OpenGL ES 3.0), tracking
+**[jdolan/quetoo#856](https://github.com/jdolan/quetoo/issues/856)**. Shares the
+GL ES renderer, the glib2 replacement, and virtual-controls work with the iOS port
+[#855](https://github.com/jdolan/quetoo/issues/855).
 
-> Status: **scaffolding**. No Android build exists yet. Development is local-only
-> on branch `feature/android-port`; this private repo is the home for the effort.
+> **Status:** client builds for `arm64-v8a` (device) and `x86_64` (emulator), packages
+> into a signed APK, boots through full init to a rendered GL ES 3.0 **main menu**, and
+> **renders maps in-game with full textures + lighting** on real hardware (tested on a
+> Samsung Galaxy S24 Ultra, Adreno 750). Client-only; desktop GL builds are unchanged.
 
-## Layout (planned)
+## Documents
+
+| File | Contents |
+|---|---|
+| [`PORT_CHANGES.md`](./PORT_CHANGES.md) | **Retrospective: everything that had to change to run on Android** (start here). |
+| [`PORTING.md`](./PORTING.md) | The up-front technical assessment, strategy, and work breakdown. |
+| [`RENDERER_GLES.md`](./RENDERER_GLES.md) | GL ES 3.0 renderer audit + findings (A–J). |
+| [`DEPENDENCIES.md`](./DEPENDENCIES.md) | Dependency stack and NDK cross-build status. |
+| [`ASSETS.md`](./ASSETS.md) · [`LIFECYCLE.md`](./LIFECYCLE.md) · [`CONTROLS.md`](./CONTROLS.md) | Asset packaging, app lifecycle/filesystem, virtual controls. |
+
+## Layout
 
 ```
 android/
-  README.md          <- this file
-  PORTING.md         <- technical assessment, strategy, and work breakdown
-  app/               <- (planned) Android Studio / Gradle project
-  CMakeLists.txt     <- (planned) NDK build entry, shared with iOS (#855)
+  README.md               <- this file
+  PORT_CHANGES.md         <- what changed (retrospective)
+  PORTING.md              <- assessment / plan
+  CMakeLists.txt, cmake/  <- NDK build entry (shared with iOS #855)
+  app/                    <- Android app (SDLActivity subclass + manifest)
+  qglib/                  <- in-tree glib2 replacement (portable C + SDL3)
+  build_all_ndk.sh        <- cross-build SDL3/image/ttf, OpenAL, PhysicsFS, sndfile
+  build_http_stack.sh     <- cross-build mbedTLS + libcurl + libObjectively (HTTPS)
+  build_apk_manual.sh     <- assemble + sign the APK without Gradle
+  *.md                    <- subsystem notes
 ```
 
-The port sits alongside the existing `apple/` and `linux/` platform directories.
-Engine source under `src/` is shared; Android-specific additions live here and in
-a future root-level `CMakeLists.txt`.
-
-## Quick orientation
-
-- **Base engine:** `Eclipse1982/quetoo` `main` (this branch was cut from it).
-- **Upstream issue:** #856 (Android), shares renderer + glib2 + virtual-controls
-  work with the iOS port #855.
-- **First work item:** glib2 replacement (the shared mobile prerequisite). See
-  [`PORTING.md`](./PORTING.md).
-
-## Why a private repo
-
-This is exploratory work that modifies the engine broadly (renderer, build system,
-a glib compatibility layer). Keeping it private and isolated from the public fork
-avoids churn on `Eclipse1982/quetoo` until the port is coherent enough to upstream
-as PR(s) against #856 / #855.
+The port sits alongside the existing `apple/` and `linux/` platform directories; engine
+source under `src/` is shared, with Android specifics gated behind `QUETOO_GLES` (renderer)
+and `__ANDROID__` (platform). See [`PORT_CHANGES.md`](./PORT_CHANGES.md) for the full story.

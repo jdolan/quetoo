@@ -6,8 +6,8 @@
 # Context: the LXC build host has the NDK (cross-compiles libmain/game/cgame.so
 # + the SDL3/OpenAL/... deps) but no Android SDK/Gradle. The native libs are
 # staged here under $STAGING/jniLibs/<abi>/ and packaged into an APK on a host
-# that has the SDK (gpuserv). This is the jniLibs path: Gradle would otherwise
-# re-run CMake, which needs the NDK + cross-deps that live on the LXC.
+# that has the SDK. This is the jniLibs path: Gradle would otherwise
+# re-run CMake, which needs the NDK + cross-deps that live on the build container.
 #
 # Pipeline: javac -> d8 -> aapt2 link (manifest only, no res) -> add dex+libs
 # -> zipalign -> apksigner (debug key). Produces $OUT_APK.
@@ -77,7 +77,7 @@ mkdir -p "lib/$ABI"
 cp "$ST/jniLibs/$ABI"/*.so "lib/$ABI/"
 ASSET=""
 [ -d "$ST/assets" ] && { cp -r "$ST/assets" .; ASSET="assets"; }
-# gpuserv has no `zip`; use python's zipfile. Native .so are STORED (uncompressed)
+# the build host has no `zip`; use python's zipfile. Native .so are STORED (uncompressed)
 # so zipalign -p can page-align them; dex/assets are deflated.
 python3 - "$OUT/base.apk" "$ABI" "$ASSET" <<'PY'
 import sys, os, glob, zipfile

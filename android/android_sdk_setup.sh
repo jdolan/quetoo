@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stand up the Android SDK + emulator + an x86_64 AVD (KVM-accelerated) for
-# testing the Quetoo port. Run on a host with KVM + Java (gpuserv). x86_64 image
+# testing the Quetoo port. Run on a host with KVM + Java. x86_64 image
 # runs natively-fast under KVM; the engine/deps will be built for x86_64 too for
 # the emulator (arm64-v8a remains the device deliverable).
 set -e

@@ -176,7 +176,7 @@ build before any Android tooling exists, so it can't regress silently.
   Builds via MSVC (`run_tests.bat`) and any C11 toolchain (`Makefile`). Still
   standalone — not yet wired into `src/quetoo.h`. Next containers: GPtrArray,
   GQueue, GList/GSList, GHashTable, GString.
-- _dev env_: work moved to the **`quetoo-build` LXC** (pve2 ct 100; Debian 12,
+- _dev env_: work moved to a **build container** (Debian 12,
   gcc, glib 2.88.0). Workflow: edit on the workstation, build/test in the
   container. A **differential harness** now builds the same suite against qglib
   (`make test`) and system glib-2.0 (`make test-glib`); both pass, so each

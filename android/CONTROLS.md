@@ -314,7 +314,7 @@ handling runs even after full implementation.
 | `android/CONTROLS.md` | this document |
 
 **Validation:** `cl_touch.c` syntax-checks clean against the real client headers
-on the build container (`pve2`, container 100, `/root/quetoo-build`):
+on the build container:
 `gcc -fsyntax-only -I. -Isrc -Isrc/client -Isrc/shared -Isrc/common
 $(pkg-config --cflags sdl3 glib-2.0 Objectively) src/client/cl_touch.c` →
 **`SYNTAX_OK`** (no warnings from `cl_touch.c` itself, including under
