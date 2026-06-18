@@ -79,11 +79,6 @@ typedef struct brush_side_s {
   vec2_t scale;
 
   /**
-   * @brief True if this brush side uses Valve-220 explicit texture axes.
-   */
-  bool valve;
-
-  /**
    * @brief The texture axis for S and T, in xyz + offset notation.
    */
   vec4_t axis[2];
@@ -170,6 +165,18 @@ typedef struct brush_s {
   bsp_brush_t *out;
 } brush_t;
 
+/**
+ * @brief Map file format.
+ */
+typedef enum {
+    MAP_FORMAT_UNKNOWN = 0,
+    MAP_FORMAT_Q2,   // Quake II style map/bsp
+    MAP_FORMAT_Q3,   // Quake III / Radiant style map
+    MAP_FORMAT_VALVE // Valve / Source style map (optional)
+} map_format_t;
+
+extern map_format_t map_format;
+
 extern int32_t num_entities;
 extern entity_t entities[MAX_BSP_ENTITIES];
 
@@ -187,4 +194,4 @@ extern box3_t map_bounds;
 int32_t FindPlane(const vec3_t normal, double dist);
 void MakeBrushWindings(brush_t *brush);
 void AddBrushBevels(brush_t *b);
-void LoadMapFile(const char *filename);
+int LoadMapFile(const char *filename);

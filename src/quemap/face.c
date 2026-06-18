@@ -385,7 +385,7 @@ bsp_face_t *EmitFace(const face_t *face) {
   return out;
 }
 
-#define MAX_VERTEX_FACES 32
+#define MAX_VERTEX_FACES 64
 
 static const bsp_model_t *phong_model;
 static float phong_cosine;

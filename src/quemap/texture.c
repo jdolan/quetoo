@@ -68,7 +68,7 @@ static void TextureAxisForPlane(const plane_t *plane, vec3_t *xv, vec3_t *yv) {
  */
 void TextureVectorsForBrushSide(brush_side_t *side, const vec3_t origin) {
 
-  if (side->valve) {
+  if (map_format == MAP_FORMAT_VALVE) {
     // Valve-220: axes are already stored in side->axis as (direction, shift).
     // Note that this function is called once during parsing (origin = 0) and may be called
     // a second time when applying entity origin offsets.
