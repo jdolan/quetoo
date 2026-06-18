@@ -737,11 +737,14 @@ void Cg_AddClientEntity(cl_entity_t *ent, r_entity_t *e) {
 
     assert(r_weapon);
 
-    // cache the muzzle position post-animation for muzzle flash and beam alignment
-
-    const vec3_t cfg_muzzle = r_weapon->model->mesh->config.link.muzzle;
-    if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
-      ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, cfg_muzzle);
+    // cache the muzzle position post-animation for muzzle flash and beam alignment.
+    // model2 (the weapon) has no default fallback and may be absent on incomplete
+    // data; AddEntity tolerates a NULL model (it just won't draw), but this chained
+    // deref must guard against it -- the assert() above is a no-op in release builds,
+    // so a NULL model otherwise faults here. Fall back to the weapon origin.
+    if (r_weapon->model && r_weapon->model->mesh &&
+        !Vec3_Equal(r_weapon->model->mesh->config.link.muzzle, Vec3_Zero())) {
+      ci->weapon_muzzle = Mat4_Transform(r_weapon->matrix, r_weapon->model->mesh->config.link.muzzle);
     } else {
       ci->weapon_muzzle = r_weapon->origin;
     }

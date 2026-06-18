@@ -197,7 +197,7 @@ void Cg_AddWeapon(cl_entity_t *ent, r_entity_t *self) {
   vec3_t weapon_origin;
   Mat4_Vectors(weapon->matrix, NULL, NULL, NULL, &weapon_origin);
 
-  const vec3_t cfg_muzzle = weapon->model->mesh ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
+  const vec3_t cfg_muzzle = (weapon->model && weapon->model->mesh) ? weapon->model->mesh->config.view.muzzle : Vec3_Zero();
   if (!Vec3_Equal(cfg_muzzle, Vec3_Zero())) {
     ci->weapon_muzzle = Mat4_Transform(weapon->matrix, cfg_muzzle);
   } else {
