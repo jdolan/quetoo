@@ -189,6 +189,25 @@ case "$host" in
 		;;
 esac
 
+dnl ---------------------------------------------------------------------
+dnl OpenGL ES 3.0 renderer (mobile: Android #856, iOS #855). When enabled,
+dnl the renderer compiles its GL ES 3.0 code path (QUETOO_GLES) and links the
+dnl ES driver (libGLESv3) instead of desktop GL. Off by default; desktop
+dnl builds are unaffected.
+dnl ---------------------------------------------------------------------
+AC_MSG_CHECKING(whether to build the OpenGL ES 3.0 renderer)
+AC_ARG_ENABLE(gles,
+	AS_HELP_STRING(
+		[--enable-gles], [build the renderer against OpenGL ES 3.0 (mobile)]
+	),
+	AC_MSG_RESULT($enable_gles)
+	if test "x${enable_gles}" = xyes; then
+		AC_DEFINE([QUETOO_GLES], [1], [Define to build the OpenGL ES 3.0 renderer path])
+		HOST_OPENGL_LIBS="-lGLESv3"
+	fi,
+	AC_MSG_RESULT(no)
+)
+
 AC_SUBST(HOST_OPENGL_CFLAGS)
 AC_SUBST(HOST_OPENGL_LIBS)
 
