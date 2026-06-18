@@ -27,6 +27,8 @@
 #include "qbsp.h"
 #include "texture.h"
 
+map_format_t map_format;
+
 int32_t num_entities;
 entity_t entities[MAX_BSP_ENTITIES];
 
@@ -530,12 +532,46 @@ static brush_t *ParseBrush(parser_t *parser, entity_t *entity) {
 
     g_strlcpy(side->texture, token, sizeof(side->texture));
 
-    // read the texture parameters
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
-    Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    // detect Valve-220 vs standard Q1/Q3 format by peeking for '['
+    Parse_PeekToken(parser, PARSE_NO_WRAP, token, sizeof(token));
+
+    if (!g_strcmp0(token, "[")) {
+      // Valve-220: [ ux uy uz shift_x ] [ vx vy vz shift_y ] rotation scale_x scale_y
+      if (map_format == MAP_FORMAT_UNKNOWN) {
+        map_format = MAP_FORMAT_VALVE;
+      } else if (map_format != MAP_FORMAT_VALVE) {
+        Com_Error(ERROR_FATAL, "Mixed map format: Valve-220 brush side in a non-Valve map (brush %d)\n", num_brushes);
+      }
+      for (int32_t i = 0; i < 2; i++) {
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "[")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].x, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].y, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].z, 1);
+        Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->axis[i].w, 1); // shift
+        Parse_Token(parser, PARSE_NO_WRAP, token, sizeof(token));
+        if (g_strcmp0(token, "]")) {
+          Com_Error(ERROR_FATAL, "Invalid brush %d (%s)\n", num_brushes, token);
+        }
+      }
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    } else {
+      // Standard Q1/Q3: shift_x shift_y rotation scale_x scale_y
+      if (map_format == MAP_FORMAT_UNKNOWN) {
+        map_format = MAP_FORMAT_Q3;
+      } else if (map_format == MAP_FORMAT_VALVE) {
+        Com_Error(ERROR_FATAL, "Mixed map format: standard brush side in a Valve-220 map (brush %d)\n", num_brushes);
+      }
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->shift.y, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->rotate, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.x, 1);
+      Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_FLOAT, &side->scale.y, 1);
+    }
 
     if (!Parse_IsEOL(parser)) {
       Parse_Primitive(parser, PARSE_NO_WRAP, PARSE_INT32, &side->contents, 1);
@@ -846,10 +882,13 @@ static entity_t *ParseEntity(parser_t *parser) {
 
 /**
  * @brief Loads and parses the .map file, populating the global entities, brushes, planes, and patches arrays.
+ * @return The resolved map format, also stored in the global `map_format`.
  */
-void LoadMapFile(const char *filename) {
+map_format_t LoadMapFile(const char *filename) {
 
   Com_Verbose("--- LoadMapFile ---\n");
+
+  map_format = MAP_FORMAT_UNKNOWN;
 
   memset(entities, 0, sizeof(entities));
   num_entities = 0;
@@ -899,4 +938,6 @@ void LoadMapFile(const char *filename) {
         map_bounds.maxs.x, map_bounds.maxs.y, map_bounds.maxs.z);
 
   Fs_Free(buffer);
+
+  return map_format;
 }
