@@ -210,14 +210,33 @@ static inline void R_SetAnisotropy(GLenum target, GLfloat anisotropy) {
 static inline void R_DrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
                                             const GLvoid *indices, GLint base_vertex) {
 #ifdef QUETOO_GLES
-	// TODO(QUETOO_GLES, #856): emulate base-vertex drawing on ES 3.0.
-	// RENDERER_GLES.md Finding C: preferred approach is to bake base_vertex into
-	// the index buffer at load time so a plain glDrawElements suffices; the
-	// occlusion box (indices == NULL) can instead re-point the VAO array buffer by
-	// base_vertex * stride. Optionally probe GL_OES_draw_elements_base_vertex and
-	// use the native call when present. Stubbed so the ES build is well-defined but
-	// not yet functional.
-	(void) mode; (void) count; (void) type; (void) indices; (void) base_vertex;
+	// ES 3.0 lacks glDrawElementsBaseVertex (it is core in ES 3.2 / GL 3.2). Modern
+	// ES 3.1+ GPUs expose it via the core 3.2 entry or the OES/EXT extension, so we
+	// resolve it once at runtime and call the real thing. This is critical, not
+	// cosmetic: the occlusion-query bounding-box draw (r_occlude.c) routes through
+	// here, so a no-op makes every query record zero samples -> every BSP block is
+	// reported occluded -> the entire world renders black. It also draws all mesh
+	// models (r_mesh_draw.c) and mesh shadows (r_shadow.c). (#856, Finding C.)
+	typedef void (*r_pfn_draw_elements_base_vertex)(GLenum, GLsizei, GLenum, const GLvoid *, GLint);
+	static r_pfn_draw_elements_base_vertex draw_base_vertex = NULL;
+	static bool draw_base_vertex_resolved = false;
+	if (!draw_base_vertex_resolved) {
+		draw_base_vertex_resolved = true; // GL is single-threaded; resolve lazily once
+		draw_base_vertex = (r_pfn_draw_elements_base_vertex) SDL_GL_GetProcAddress("glDrawElementsBaseVertex");
+		if (draw_base_vertex == NULL) {
+			draw_base_vertex = (r_pfn_draw_elements_base_vertex) SDL_GL_GetProcAddress("glDrawElementsBaseVertexOES");
+		}
+		if (draw_base_vertex == NULL) {
+			draw_base_vertex = (r_pfn_draw_elements_base_vertex) SDL_GL_GetProcAddress("glDrawElementsBaseVertexEXT");
+		}
+	}
+	if (draw_base_vertex) {
+		draw_base_vertex(mode, count, type, indices, base_vertex);
+	} else {
+		// Pre-3.2 ES with no extension: a plain draw is correct only for
+		// base_vertex == 0; ES 3.2 devices (e.g. Adreno 750) take the path above.
+		glDrawElements(mode, count, type, indices);
+	}
 #else
 	glDrawElementsBaseVertex(mode, count, type, indices, base_vertex);
 #endif
