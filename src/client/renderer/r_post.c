@@ -284,6 +284,25 @@ void R_DrawPost(const r_view_t *view) {
   glUniform1i(r_post_program.post_stage, R_POST_TONEMAP);
   glUniform1f(r_post_program.bloom, r_bloom->value);
 
+#if defined(QUETOO_GLES)
+  // #856: on Adreno ES, glBlitFramebuffer from the scene FBO to the default
+  // framebuffer throws GL_INVALID_OPERATION (default-surface sample/format
+  // mismatch), so the post-processed scene never reached the screen and the
+  // world rendered black (the 2D HUD draws to the default FB separately, so it
+  // still showed). Render the tonemap composite straight to the default
+  // framebuffer instead of into the POST attachment + blit -- the post_fs
+  // single output (location 0) lands on the window color buffer directly.
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(r_context.viewport.x, r_context.viewport.y, r_context.viewport.w, r_context.viewport.h);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_framebuffers[0].color_attachment : 0);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+#else
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
@@ -300,6 +319,7 @@ void R_DrawPost(const r_view_t *view) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   R_BlitFramebuffer(view->framebuffer, 0, 0, 0, 0);
+#endif
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
