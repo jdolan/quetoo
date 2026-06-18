@@ -26,7 +26,11 @@
 #include "common/atlas.h"
 #include "collision/cm_bsp.h"
 
+#ifdef QUETOO_GLES
+#include <GLES3/gl3.h>  // GL ES 3.0 core, exported by libGLESv3 (no glad loader on ES)
+#else
 #include "r_gl.h"
+#endif
 
 /**
  * @brief Media types.
@@ -1880,7 +1884,16 @@ typedef struct r_entity_s {
  * @brief Light sources per scene.
  */
 #define MAX_DYNAMIC_LIGHTS 64
+#ifdef QUETOO_GLES
+// Match the ES shader cap (uniforms.glsl). The emulator's ES 3.0 (SwiftShader)
+// counts UBO-backed uniforms (uniforms_block + lights_block[MAX_LIGHTS]) against
+// GL_MAX_VERTEX_UNIFORM_VECTORS (256), overflowing every program — including the
+// 2D menu — at 96. 32 keeps them all under the limit (also well within
+// GL_MAX_UNIFORM_BLOCK_SIZE 16384). Keep C and GLSL in lockstep.
+#define MAX_LIGHTS 32
+#else
 #define MAX_LIGHTS (MAX_BSP_LIGHTS + MAX_DYNAMIC_LIGHTS)
+#endif
 
 /**
  * @brief Hardware light source flags.

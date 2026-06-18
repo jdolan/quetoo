@@ -23,7 +23,11 @@
 
 #include "collision/collision.h"
 
+#ifdef QUETOO_GLES
+#include <GLES3/gl3.h>  // GL ES 3.0 core, exported by libGLESv3 (no glad loader on ES)
+#else
 #include "r_gl.h"
+#endif
 
 #include "r_atlas.h"
 #include "r_animation.h"

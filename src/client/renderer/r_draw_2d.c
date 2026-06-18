@@ -598,6 +598,21 @@ void R_Draw2D(void) {
   glBufferSubData(GL_ARRAY_BUFFER, 0, game_size, r_draw_2d.game.vertexes);
   glBufferSubData(GL_ARRAY_BUFFER, game_size, ui_size, r_draw_2d.ui.vertexes);
 
+#if defined(__ANDROID__)
+  // #856: one-shot confirmation that the 2D program linked on the device GL.
+  // A name of 0 means the shaders failed to compile (e.g. an ES-illegal construct
+  // such as an in/out interface block) and nothing 2D will rasterize.
+  { static bool _dbg2d; if (!_dbg2d) { _dbg2d = true;
+      Com_Print("R_Draw2D: draw_2d program=%u, ui draw arrays=%d\n",
+                r_draw_2d_program.name, r_draw_2d.ui.num_draw_arrays); } }
+  // #856: the 2D/UI pass renders to the default framebuffer (the presented
+  // surface) with depth testing and face culling off, regardless of prior
+  // scene state.
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+#endif
+
   {
     const mat4_t projection2D = Mat4_FromOrtho(0.f, r_context.w, r_context.h, 0.f, -1.f, 1.f);
     glUniformMatrix4fv(r_draw_2d_program.projection2D, 1, GL_FALSE, projection2D.array);

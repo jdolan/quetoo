@@ -189,7 +189,7 @@ static bool R_DrawOcclusionQuery(const r_view_t *view, r_occlusion_query_t *quer
 
         if (query->available) {
           glBeginQuery(GL_ANY_SAMPLES_PASSED, query->name);
-          glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, query->base_vertex);
+          R_DrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, NULL, query->base_vertex);
           glEndQuery(GL_ANY_SAMPLES_PASSED);
           query->available = 0;
         }

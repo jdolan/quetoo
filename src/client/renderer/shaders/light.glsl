@@ -229,7 +229,7 @@ void vertex_lighting(inout common_vertex_t v) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6.0).rgb;
 
   v.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   v.diffuse = vec3(0.0);
@@ -281,7 +281,7 @@ void fragment_caustics(in common_vertex_t v, inout common_fragment_t f) {
     return;
   }
 
-  float noise = noise3d(v.model_position * .05 + (ticks / 1000.0) * 0.5);
+  float noise = noise3d(v.model_position * .05 + (float(ticks) / 1000.0) * 0.5);
 
   // make the inner edges stronger, clamp to 0-1
   float thickness = 0.02;
@@ -307,7 +307,7 @@ float parallax_self_shadow(in vec3 light_dir, in common_vertex_t v, in common_fr
   // Adaptive step size based on LOD (larger steps at distance)
   float step_scale = mix(1.0, 2.5, min(f.lod * 0.5, 1.0));
 
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+  vec2 texel = 1.0 / vec2(textureSize(texture_material, 0).xy);
   vec3 dir = normalize(vec3(dot(light_dir, v.tangent), dot(light_dir, v.bitangent), dot(light_dir, v.normal)));
   vec3 delta = vec3(dir.xy * texel, max(dir.z * length(texel), .01)) * step_scale;
   vec3 texcoord = vec3(f.parallax, sample_material_heightmap(f.parallax, f.lod));
@@ -385,7 +385,7 @@ void fragment_lighting(in common_vertex_t v, inout common_fragment_t f) {
   float occlusion = voxel_occlusion(v.voxel);
   float exposure = voxel_exposure(v.voxel);
 
-  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6).rgb;
+  vec3 sky = textureLod(texture_sky, normalize(v.model_normal), 6.0).rgb;
 
   f.ambient = pow(vec3(2.0) + sky, vec3(2.0)) * exposure * (1.0 - occlusion * ambient_occlusion) * ambient;
   f.diffuse = vec3(0.0);

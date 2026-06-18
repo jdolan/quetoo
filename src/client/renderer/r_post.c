@@ -171,6 +171,13 @@ static void R_DestroyBloomFramebuffers(void) {
  */
 void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
 
+#if defined(QUETOO_GLES)
+  // #856: the MSAA depth resolve binds GL_TEXTURE_2D_MULTISAMPLE and samples it via
+  // sampler2DMS (GL ES 3.1+), neither of which exists in the ES 3.0 core we target.
+  // MSAA framebuffers are never created under GLES (see r_framebuffer.c), so the
+  // r_main.c caller's `if (msaa.fbo)` guard keeps this unreachable; stub it to link.
+  (void) framebuffer;
+#else
   assert(framebuffer);
   assert(framebuffer->msaa.fbo);
   assert(framebuffer->msaa.depth_attachment);
@@ -203,6 +210,7 @@ void R_ResolveFramebufferDepth(const r_framebuffer_t *framebuffer) {
   glUseProgram(0);
 
   R_GetError(NULL);
+#endif
 }
 
 /**
@@ -276,6 +284,25 @@ void R_DrawPost(const r_view_t *view) {
   glUniform1i(r_post_program.post_stage, R_POST_TONEMAP);
   glUniform1f(r_post_program.bloom, r_bloom->value);
 
+#if defined(QUETOO_GLES)
+  // #856: on Adreno ES, glBlitFramebuffer from the scene FBO to the default
+  // framebuffer throws GL_INVALID_OPERATION (default-surface sample/format
+  // mismatch), so the post-processed scene never reached the screen and the
+  // world rendered black (the 2D HUD draws to the default FB separately, so it
+  // still showed). Render the tonemap composite straight to the default
+  // framebuffer instead of into the POST attachment + blit -- the post_fs
+  // single output (location 0) lands on the window color buffer directly.
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(r_context.viewport.x, r_context.viewport.y, r_context.viewport.w, r_context.viewport.h);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_COLOR_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D, view->framebuffer->color_attachment);
+
+  glActiveTexture(GL_TEXTURE0 + TEXTURE_BLOOM_ATTACHMENT);
+  glBindTexture(GL_TEXTURE_2D, r_bloom->value > 0.f ? r_bloom_framebuffers[0].color_attachment : 0);
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+#else
   glBindFramebuffer(GL_FRAMEBUFFER, view->framebuffer->name);
   glDrawBuffers(1, (const GLenum []) { GL_COLOR_ATTACHMENT1 });
   glViewport(0, 0, view->framebuffer->width, view->framebuffer->height);
@@ -292,6 +319,7 @@ void R_DrawPost(const r_view_t *view) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   R_BlitFramebuffer(view->framebuffer, 0, 0, 0, 0);
+#endif
 
   glActiveTexture(GL_TEXTURE0 + TEXTURE_DIFFUSEMAP);
 
@@ -371,6 +399,11 @@ void R_InitPost(void) {
 
   R_InitPostProgram();
 
+#if !defined(QUETOO_GLES)
+  // #856: depth_resolve_fs.glsl samples a sampler2DMS (GL ES 3.1+), so it can't be
+  // compiled on the ES 3.0 core target. MSAA is disabled under GLES, so the depth
+  // resolve program is never used; skip loading it (name stays 0, a safe no-op for
+  // the glDeleteProgram in R_ShutdownPost).
   r_depth_resolve_program.name = R_LoadProgram(
     R_ShaderDescriptor(GL_VERTEX_SHADER,   "post_vs.glsl", NULL),
     R_ShaderDescriptor(GL_FRAGMENT_SHADER, "depth_resolve_fs.glsl", NULL),
@@ -380,6 +413,7 @@ void R_InitPost(void) {
   r_depth_resolve_program.texture_depth_ms = glGetUniformLocation(r_depth_resolve_program.name, "texture_depth_ms");
   glUniform1i(r_depth_resolve_program.texture_depth_ms, TEXTURE_DEPTH_ATTACHMENT);
   glUseProgram(0);
+#endif
 
   R_GetError(NULL);
 }

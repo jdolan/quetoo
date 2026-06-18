@@ -33,6 +33,6 @@ float calc_depth(in float z) {
  */
 float soften(void) {
 
-  vec4 depth_sample = texture(texture_depth_attachment_copy, gl_FragCoord.xy / viewport.zw);
+  vec4 depth_sample = texture(texture_depth_attachment_copy, gl_FragCoord.xy / vec2(viewport.zw));
   return smoothstep(0.0, TRANSITION_SIZE, clamp(calc_depth(depth_sample.r) - calc_depth(gl_FragCoord.z), 0.0, 1.0));
 }

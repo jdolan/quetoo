@@ -160,11 +160,21 @@ void R_InitContext(void) {
 
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
+#ifdef QUETOO_GLES
+  // OpenGL ES 3.0 context. Forward-compatible is Core-only and not used on ES.
+  // Depth 24 + RGBA8 (alpha 0) are fine. See android/RENDERER_GLES.md Finding K.
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+  SDL_GLContextFlag context_flags = 0;
+#else
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
   SDL_GLContextFlag context_flags = SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG;
+#endif
 
   if (r_get_error->integer) {
     context_flags |= SDL_GL_CONTEXT_DEBUG_FLAG;
@@ -175,6 +185,7 @@ void R_InitContext(void) {
   if ((r_context.context = SDL_GL_CreateContext(r_context.window)) == NULL) {
     Com_Error(ERROR_FATAL, "Failed to create OpenGL context: %s\n", SDL_GetError());
   }
+  Com_Print("  GL context created.\n");
 
   const SDL_GLAttr attr_names[] = {
     SDL_GL_RED_SIZE,
@@ -215,9 +226,20 @@ void R_InitContext(void) {
     Com_Warn("Failed to set swap interval %d: %s\n", r_swap_interval->integer, SDL_GetError());
   }
 
+#ifdef QUETOO_GLES
+  // TODO(QUETOO_GLES, #856): load the parallel glad GLES 3.0 entry points here
+  // (e.g. gladLoaderLoadGLES2(), generated from glad --api='gles2:3.0' with the
+  // optional EXT_texture_filter_anisotropic / EXT_texture_buffer /
+  // OES_draw_elements_base_vertex extensions, selected by r_gl_compat.h). The
+  // desktop gladLoaderLoadGL() resolves Core-only entry points that are null on
+  // ES, so it must not run on the ES path. RENDERER_GLES.md Finding K / §3.1.
+  // GL ES 3.0 core entry points are exported directly by libGLESv3 on Android,
+  // so no loader is needed; EXT entry points (gl2ext.h) are resolved by the driver.
+#else
   if (!gladLoaderLoadGL()) {
     Com_Error(ERROR_FATAL, "Failed to load OpenGL functions\n");
   }
+#endif
 
   // Drain any stale GL errors left by GLAD's loader probing
   while (glGetError() != GL_NO_ERROR) { }
@@ -246,5 +268,10 @@ void R_ShutdownContext(void) {
 
   SDL_QuitSubSystem(SDL_INIT_VIDEO);
 
+#ifdef QUETOO_GLES
+  // TODO(QUETOO_GLES, #856): unload the GLES 3.0 loader (e.g. gladLoaderUnloadGLES2())
+  // once it is in place. RENDERER_GLES.md Finding K.
+#else
   gladLoaderUnloadGL();
+#endif
 }

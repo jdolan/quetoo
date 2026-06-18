@@ -26,13 +26,15 @@ layout (location = 3) in vec3 in_color;
 layout (location = 4) in float in_lerp;
 layout (location = 5) in float in_lighting;
 
-out vertex_data {
+// #856: struct-typed varying, not an in/out interface block (ES 3.20-only).
+struct vertex_data_t {
   vec3 position;
   vec2 diffusemap;
   vec2 next_diffusemap;
   vec3 color;
   float lerp;
-} vertex;
+};
+out vertex_data_t vertex;
 
 /**
  * @brief

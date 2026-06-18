@@ -217,15 +217,15 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
   }
 
   if ((stage.flags & STAGE_STRETCH) == STAGE_STRETCH) {
-	  float p = 1.0 + sin(ticks * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
+	  float p = 1.0 + sin(float(ticks) * .001 * stage.stretch.y * PI) * stage.stretch.x * .5;
 
 	  mat2 matrix;
 	  vec2 translate;
 	  matrix[0][0] = p;
-	  matrix[1][0] = 0;
+	  matrix[1][0] = 0.0;
 	  translate[0] = stage.st_origin.x - stage.st_origin.x * p;
 
-	  matrix[0][1] = 0;
+	  matrix[0][1] = 0.0;
 	  matrix[1][1] = p;
 	  translate[1] = stage.st_origin.y - stage.st_origin.y * p;
 
@@ -234,7 +234,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
   }
 
   if ((stage.flags & STAGE_ROTATE) == STAGE_ROTATE) {
-	  float theta = ticks * 0.001 * stage.rotate * TWO_PI;
+	  float theta = float(ticks) * 0.001 * stage.rotate * TWO_PI;
     vec2 st_origin = stage.st_origin;
     if (envmap != 0) {
       st_origin = vec2(0.5);
@@ -257,19 +257,19 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
     }
 
     if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+      vertex.diffusemap.s += stage.scroll.s * float(ticks) * 0.001;
     }
 
     if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+      vertex.diffusemap.t += stage.scroll.t * float(ticks) * 0.001;
     }
   } else {
     if ((stage.flags & STAGE_SCROLL_S) == STAGE_SCROLL_S) {
-      vertex.diffusemap.s += stage.scroll.s * ticks * 0.001;
+      vertex.diffusemap.s += stage.scroll.s * float(ticks) * 0.001;
     }
 
     if ((stage.flags & STAGE_SCROLL_T) == STAGE_SCROLL_T) {
-      vertex.diffusemap.t += stage.scroll.t * ticks * 0.001;
+      vertex.diffusemap.t += stage.scroll.t * float(ticks) * 0.001;
     }
 
     if ((stage.flags & STAGE_SCALE_S) == STAGE_SCALE_S) {
@@ -286,7 +286,7 @@ void stage_vertex(in stage_t stage, in vec3 in_position, inout common_vertex_t v
   }
 
   if ((stage.flags & STAGE_PULSE) == STAGE_PULSE) {
-	  vertex.color.a *= (sin((ticks * .001 + stage.drift) * stage.pulse * PI) + 1.0) * .5;
+	  vertex.color.a *= (sin((float(ticks) * .001 + stage.drift) * stage.pulse * PI) + 1.0) * .5;
   }
 
   if ((stage.flags & STAGE_TERRAIN) == STAGE_TERRAIN) {

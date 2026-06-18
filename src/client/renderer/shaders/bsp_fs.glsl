@@ -41,7 +41,7 @@ void parallax_occlusion_mapping(in common_vertex_t vertex, inout common_fragment
 
   float num_samples = mix(32.0, 8.0, min(fragment.lod * 0.25, 1.0));
 
-  vec2 texel = 1.0 / textureSize(texture_material, 0).xy;
+  vec2 texel = 1.0 / vec2(textureSize(texture_material, 0).xy);
   vec3 dir = normalize(fragment.view_dir * mat3(vertex.tangent, vertex.bitangent, vertex.normal));
   dir.z = max(dir.z, 0.1);
   vec2 p = ((dir.xy * texel) / dir.z) * material.parallax * material.parallax;
@@ -110,9 +110,28 @@ void main(void) {
 
   fragment.view_dir = normalize(-vertex.position);
   fragment.view_dist = length(vertex.position);
+#ifdef GL_ES
+  // ES 3.0 has no textureQueryLod (it is ES 3.2 / desktop GL 4.0). Reproduce its
+  // result — the accessed mip level — from the screen-space texcoord derivatives,
+  // per the GL definition lambda = 0.5*log2(max(|dP/dx|^2, |dP/dy|^2)).
+  vec2 lod_ts = vec2(textureSize(texture_material, 0).xy);
+  vec2 lod_dx = dFdx(vertex.diffusemap * lod_ts);
+  vec2 lod_dy = dFdy(vertex.diffusemap * lod_ts);
+  fragment.lod = max(0.0, 0.5 * log2(max(dot(lod_dx, lod_dx), dot(lod_dy, lod_dy))));
+#else
   fragment.lod = textureQueryLod(texture_material, vertex.diffusemap).x;
+#endif
 
+#ifdef GL_ES
+  // Parallax occlusion mapping writes its result through an inout parameter and
+  // returns early when disabled. The Adreno GLES compiler drops that inout
+  // write-back on the early return, leaving fragment.parallax divergent so every
+  // material sample lands on a high (flat) mip and the world renders untextured.
+  // Set the texcoord directly in the caller and skip POM on ES (negligible on mobile).
+  fragment.parallax = vertex.diffusemap;
+#else
   parallax_occlusion_mapping(vertex, fragment);
+#endif
 
   if (stage.flags == STAGE_NONE) {
 
@@ -138,7 +157,7 @@ void main(void) {
     vec2 st = fragment.parallax;
 
     if ((stage.flags & STAGE_WARP) == STAGE_WARP) {
-      st += (texture(texture_warp, st + vec2(ticks * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
+      st += (texture(texture_warp, st + vec2(float(ticks) * stage.warp.x * 0.000125)).xy - 0.5) * stage.warp.y;
     }
 
     fragment.diffuse_sample = sample_material_stage(st) * vertex.color;

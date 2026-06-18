@@ -24,4 +24,11 @@
 #define __R_LOCAL_H__
 
 #include "renderer.h"
+#ifdef QUETOO_GLES
+#include <GLES3/gl3.h> /* GL ES 3.0 core — entry points exported directly by libGLESv3 */
+/* EXT entry points (base-vertex draw, texture buffer) are pulled in locally by
+ * r_gl_compat.h where needed; gl2ext.h needs GL_APIENTRY set up first. */
+#else
 #include "r_gl.h"
+#endif
+#include "r_gl_compat.h"

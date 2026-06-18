@@ -24,6 +24,12 @@
  * @brief Voxel grid functions for lighting and caustics.
  */
 
+// #856 Finding D: GL ES 3.0 has no buffer textures (isamplerBuffer is ES 3.2),
+// so on ES the linear light-index array is uploaded as a 2D R32I texture this
+// many texels wide and the linear index is unpacked to (x, y). Must stay in
+// lockstep with VOXEL_LIGHT_INDICES_WIDTH in r_bsp_model.c.
+#define VOXEL_LIGHT_INDICES_WIDTH 4096
+
 /**
  * @brief Resolves the voxel texture coordinate for the specified position in world space.
  * @param position The position in world space.
@@ -59,7 +65,14 @@ ivec2 voxel_light_data(in ivec3 voxel) {
  * @return The index of the light referenced by the index element.
  */
 int voxel_light_index(in int index) {
+#ifdef GL_ES
+  // ES 3.0: texture_voxel_light_indices is a 2D R32I texture (Finding D), not a
+  // buffer texture; unpack the linear index into (x, y).
+  return texelFetch(texture_voxel_light_indices,
+                    ivec2(index % VOXEL_LIGHT_INDICES_WIDTH, index / VOXEL_LIGHT_INDICES_WIDTH), 0).x;
+#else
   return texelFetch(texture_voxel_light_indices, index).x;
+#endif
 }
 
 /**

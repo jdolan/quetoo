@@ -137,6 +137,11 @@ void R_Screenshot(r_view_t *view) {
       break;
     default:
       surface = SDL_CreateSurface(viewport.w, viewport.h, SDL_PIXELFORMAT_BGR24);
+      // TODO(QUETOO_GLES, #856): ES 3.0 glReadPixels does not accept GL_BGR
+      // (only GL_RGBA + the impl-defined format/type). Read as
+      // GL_RGBA/GL_UNSIGNED_BYTE into an SDL_PIXELFORMAT_ABGR8888/RGBA32 surface
+      // and let SDL reorder channels, or swizzle on the CPU. RENDERER_GLES.md
+      // Finding F. Screenshot path only; desktop unchanged below.
       glReadPixels(0, 0, surface->w, surface->h, GL_BGR, GL_UNSIGNED_BYTE, surface->pixels);
       break;
   }
@@ -178,6 +183,10 @@ void R_SetupImage(r_image_t *image) {
 
   if (image->target == GL_TEXTURE_BUFFER) {
 
+    // TODO(QUETOO_GLES, #856): GL_TEXTURE_BUFFER / glTexBuffer are GL ES 3.2, not
+    // 3.0. The only user is the voxel light-index list; repack it as an integer
+    // 2D texture and set it up via glTexStorage2D + glTexSubImage2D here instead.
+    // RENDERER_GLES.md Finding D. Desktop TBO path unchanged.
     assert(image->buffer);
     glTexBuffer(GL_TEXTURE_BUFFER, image->internal_format, image->buffer);
 
@@ -190,7 +199,7 @@ void R_SetupImage(r_image_t *image) {
 
     glTexParameteri(image->target, GL_TEXTURE_MIN_FILTER, image->minify);
     glTexParameteri(image->target, GL_TEXTURE_MAG_FILTER, image->magnify);
-    glTexParameterf(image->target, GL_TEXTURE_MAX_ANISOTROPY, r_image_state.anisotropy);
+    R_SetAnisotropy(image->target, r_image_state.anisotropy);
 
     switch (image->type) {
       case IMG_CUBEMAP:
@@ -439,6 +448,10 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 
   int32_t width, height, depth, mips;
 
+  // TODO(QUETOO_GLES, #856): glGetTexLevelParameteriv is ES 3.1, absent from 3.0.
+  // Use the CPU-side r_image_t width/height/depth (and halve per mip) instead of
+  // querying GL. RENDERER_GLES.md Finding E. Developer dump tool only; desktop
+  // keeps the GL queries below.
   glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_WIDTH, &width);
   glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_HEIGHT, &height);
   glGetTexLevelParameteriv(image->target, 0, GL_TEXTURE_DEPTH, &depth);
@@ -461,7 +474,7 @@ static void R_DumpImage(const r_image_t *image, const char *output, bool mipmap,
 
   for (int32_t level = 0; level <= mips; level++) {
 
-    glGetTexImage(image->target, level, image->format, GL_UNSIGNED_BYTE, pixels);
+    R_GetTextureImage(image->target, level, image->format, GL_UNSIGNED_BYTE, pixels);
 
     if (glGetError() != GL_NO_ERROR) {
       break;
@@ -569,7 +582,13 @@ void R_InitImages(void) {
 
   memset(&r_image_state, 0, sizeof(r_image_state));
 
-  glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.max_anisotropy);
+  // Anisotropy is core on desktop but an optional EXT on ES 3.0; only query the
+  // limit when it is available, else default to 1 (off). RENDERER_GLES.md Finding I.
+  if (R_HasAnisotropy()) {
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &r_image_state.max_anisotropy);
+  } else {
+    r_image_state.max_anisotropy = 1.f;
+  }
   r_image_state.anisotropy = Clampf(r_anisotropy->value, 1.f, r_image_state.max_anisotropy);
 
   R_GetError(NULL);

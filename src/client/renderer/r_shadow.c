@@ -200,7 +200,7 @@ static void R_DrawMeshFaceShadow(const r_entity_t *e, const r_mesh_model_t *mesh
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (old_frame_offset + offsetof(r_mesh_vertex_t, position)));
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(r_mesh_vertex_t), (GLvoid *) (frame_offset + offsetof(r_mesh_vertex_t, position)));
 
-  glDrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
+  R_DrawElementsBaseVertex(GL_TRIANGLES, face->num_elements, GL_UNSIGNED_INT, face->indices, face->base_vertex);
 }
 
 /**
@@ -215,7 +215,7 @@ static void R_DrawMeshEntityShadow(const r_view_t *view, const r_light_t *light,
   glUniform1f(r_shadow_program.lerp, e->lerp);
 
   if (mesh->num_frames == 1) {
-    glDrawElementsBaseVertex(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, mesh->indices, mesh->base_vertex);
+    R_DrawElementsBaseVertex(GL_TRIANGLES, mesh->num_elements, GL_UNSIGNED_INT, mesh->indices, mesh->base_vertex);
   } else {
 
     const r_mesh_face_t *face = mesh->faces;
@@ -376,7 +376,7 @@ void R_DrawShadows(const r_view_t *view) {
   glUseProgram(r_shadow_program.name);
 
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_DEPTH_CLAMP);
+  R_SetDepthClamp(true);
 
   GLint current_layer = -1;
 
@@ -400,7 +400,7 @@ void R_DrawShadows(const r_view_t *view) {
     R_DrawShadow(view, l);
   }
 
-  glDisable(GL_DEPTH_CLAMP);
+  R_SetDepthClamp(false);
   glDisable(GL_DEPTH_TEST);
 
   const SDL_Rect viewport = r_context.viewport;
@@ -479,6 +479,15 @@ static void R_InitShadowTextures(void) {
 
   GLint max_texture_size;
   glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_texture_size);
+
+#if defined(QUETOO_GLES)
+  // SwiftShader's ES translator has been observed reporting 0 here; ES 3.0
+  // guarantees at least 256 array texture layers. Trust the spec minimum so the
+  // shadow atlas can still be created on the emulator (#856).
+  if (max_array_layers < 256) {
+    max_array_layers = 256;
+  }
+#endif
 
   r_shadow_atlas.tile_size = MAX(r_shadow_tile_size->integer, 128);
 
@@ -560,13 +569,21 @@ static void R_InitShadowFramebuffer(void) {
 
   glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, r_shadow_atlas.texture, 0, 0);
 
-  glDrawBuffer(GL_NONE);
+  R_DrawBufferNone();
   glReadBuffer(GL_NONE);
 
   GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
+#if defined(QUETOO_GLES)
+    // ES bring-up (#856): the 8192^2 depth array atlas isn't framebuffer-complete
+    // on SwiftShader. Disable shadows and continue so the 2D UI/menu still runs.
+    Com_Warn("Shadow atlas framebuffer incomplete (status 0x%x); shadows disabled (GLES).\n", status);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return;
+#else
     Com_Error(ERROR_DROP, "Shadow atlas framebuffer incomplete (status 0x%x). "
               "Try lowering r_shadow_tile_size or using a lower quality preset.\n", status);
+#endif
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

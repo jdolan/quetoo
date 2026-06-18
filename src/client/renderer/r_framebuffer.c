@@ -116,6 +116,10 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+#if !defined(QUETOO_GLES)
+  // #856: MSAA here uses GL_TEXTURE_2D_MULTISAMPLE + glTexImage2DMultisample and
+  // the depth_resolve_fs sampler2DMS, all GL ES 3.1/3.2 features absent from ES
+  // 3.0 (the symbols are not in the ES headers). Desktop-only; MSAA stays off on ES.
   if (r_antialias->integer > 0) {
 
     framebuffer.msaa.samples = r_antialias->integer;
@@ -147,6 +151,7 @@ r_framebuffer_t R_CreateFramebuffer(GLint width, GLint height, int32_t attachmen
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
+#endif
 
   R_GetError(NULL);
 
@@ -319,7 +324,10 @@ void R_ReadFramebufferAttachment(const r_framebuffer_t *framebuffer, r_attachmen
   assert(in);
 
   glBindTexture(GL_TEXTURE_2D, in);
-  glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, (*surface)->pixels);
+  // TODO(QUETOO_GLES, #856): the GL_BGR readback (RENDERER_GLES.md Finding F) still
+  // needs the RGBA-read + CPU-swizzle treatment under ES; the shim only abstracts
+  // glGetTexImage -> FBO + glReadPixels (Finding E). Screenshot path only.
+  R_GetTextureImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, (*surface)->pixels);
 
   R_GetError(NULL);
 }
