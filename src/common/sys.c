@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <time.h>
 
 #if !defined(_WIN32)
   #include <unistd.h>
@@ -95,7 +96,10 @@ const char *Sys_ExecutablePath(void) {
  * @return The current user's name.
  */
 const char *Sys_Username(void) {
-  return g_get_user_name();
+  const char *name = getenv("USER");
+  if (!name || !*name) { name = getenv("USERNAME"); }
+  if (!name || !*name) { name = "unknown"; }
+  return name;
 }
 
 /**
@@ -515,44 +519,45 @@ static char *Sys_UrlEncode(const char *str) {
  */
 void Sys_Raise(const char *msg) {
 
-  GString *crash = g_string_new(NULL);
+  // Format timestamp
+  char timestamp[32] = "";
+  {
+    time_t t = time(NULL);
+    struct tm *tm_local = localtime(&t);
+    if (tm_local) {
+      strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M:%S", tm_local);
+    }
+  }
 
-  GDateTime *now = g_date_time_new_now_local();
-  char *timestamp = g_date_time_format(now, "%Y-%m-%d %H:%M:%S");
-  g_date_time_unref(now);
-
-  g_string_append_printf(crash, "Quetoo %s %s — %s\n\n", VERSION, BUILD, timestamp);
-  free(timestamp);
-  g_string_append_printf(crash, "Error: %s\n\nBacktrace:\n", msg);
-
-  GString *bt = Sys_Backtrace(0, UINT32_MAX);
-  g_string_append(crash, bt->str);
-  g_string_free(bt, true);
+  char *bt = Sys_Backtrace(0, UINT32_MAX);
+  char *crash = NULL;
+  SDL_asprintf(&crash, "Quetoo %s %s — %s\n\nError: %s\n\nBacktrace:\n%s",
+               VERSION, BUILD, timestamp, msg, bt ? bt : "");
+  free(bt);
 
   Sys_EnsureCrashLogPath();
-  Sys_WriteCrashLog(crash->str);
+  Sys_WriteCrashLog(crash);
 
   if (Com_WasInit(QUETOO_CLIENT)) {
 
     // Truncate the dialog message to avoid oversized message boxes
-    char *dialog_msg = g_strdup_printf("%s\n\nFull report saved to:\n%s", crash->str, sys_crash_log_path);
+    char *dialog_msg = NULL;
+    SDL_asprintf(&dialog_msg, "%s\n\nFull report saved to:\n%s", crash, sys_crash_log_path);
     if (strlen(dialog_msg) > CRASH_REPORT_DIALOG_MAX) {
       dialog_msg[CRASH_REPORT_DIALOG_MAX] = '\0';
     }
 
     // Build a pre-filled GitHub new-issue URL
-    GString *issue_body = g_string_new(NULL);
-    g_string_append_printf(issue_body, "**Quetoo %s %s crash report**\n\n", VERSION, BUILD);
-    g_string_append_printf(issue_body, "**Error:** %s\n\n", msg);
-    g_string_append(issue_body, "**Backtrace:**\n``\n");
-    g_string_append(issue_body, crash->str);
-    g_string_append(issue_body, "\n``\n");
+    char *issue_body = NULL;
+    SDL_asprintf(&issue_body, "**Quetoo %s %s crash report**\n\n**Error:** %s\n\n**Backtrace:**\n``\n%s\n``\n",
+                 VERSION, BUILD, msg, crash);
 
-    char *encoded_body = Sys_UrlEncode(issue_body->str);
-    g_string_free(issue_body, true);
+    char *encoded_body = Sys_UrlEncode(issue_body);
+    free(issue_body);
 
-    char *issue_url = g_strdup_printf("%s?title=Crash%%20Report&body=%s",
-                                       CRASH_REPORT_GITHUB_URL, encoded_body);
+    char *issue_url = NULL;
+    SDL_asprintf(&issue_url, "%s?title=Crash%%20Report&body=%s",
+                 CRASH_REPORT_GITHUB_URL, encoded_body);
     free(encoded_body);
 
     if (strlen(issue_url) > CRASH_REPORT_URL_MAX) {
@@ -589,7 +594,7 @@ void Sys_Raise(const char *msg) {
 
     switch (button) {
       case 1:
-        SDL_SetClipboardText(crash->str);
+        SDL_SetClipboardText(crash);
         break;
       case 2:
         SDL_OpenURL(issue_url);
@@ -602,7 +607,7 @@ void Sys_Raise(const char *msg) {
     free(issue_url);
   }
 
-  g_string_free(crash, true);
+  free(crash);
 
 #if defined(_MSC_VER)
   RaiseException(EXCEPTION_NONCONTINUABLE_EXCEPTION, EXCEPTION_NONCONTINUABLE, 0, NULL);

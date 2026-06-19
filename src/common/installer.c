@@ -51,12 +51,12 @@ static struct {
   /**
    * @brief The remote data manifest.
    */
-  GHashTable *remote_manifest;
+  HashTable *remote_manifest;
 
   /**
    * @brief The local data manifest.
    */
-  GHashTable *local_manifest;
+  HashTable *local_manifest;
 
   /**
    * @brief The installer status, used to expose progress via `Installer_FrameFunction`.
@@ -91,46 +91,71 @@ static int32_t Installer_GetVersion(const char *version_url) {
  * @brief Prunes stale files and writes the updated manifest on a successful update.
  * @details Must be called from the installer thread without holding the mutex.
  */
+static void Installer_FindPending(const HashTable *table, ident key, ident value, ident data) {
+  cm_manifest_entry_t **out = data;
+  if (*out) { return; } // already found
+  cm_manifest_entry_t *e = value;
+  if (e->status == ENTRY_PENDING) {
+    e->status = ENTRY_DOWNLOADING;
+    *out = e;
+  }
+}
+
+static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident value, ident data) {
+  const cm_manifest_entry_t *entry = value;
+  if (entry->status == ENTRY_STALE) {
+    char full_path[MAX_OS_PATH];
+    SDL_snprintf(full_path, sizeof(full_path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
+    if (SDL_RemovePath(full_path)) {
+      Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
+    } else {
+      Com_Warn("Failed to remove stale file: %s\n", full_path);
+    }
+  }
+}
+
+static void Installer_MarkPending(const HashTable *table, ident key, ident value, ident data) {
+  ((cm_manifest_entry_t *) value)->status = ENTRY_PENDING;
+}
+
+static void Installer_MarkStale(const HashTable *table, ident key, ident value, ident data) {
+  ((cm_manifest_entry_t *) value)->status = ENTRY_STALE;
+}
+
+typedef struct {
+  HashTable *local;
+  int32_t files_total;
+  int32_t kbytes_total;
+} installer_compare_t;
+
+static void Installer_CompareEntry(const HashTable *table, ident key, ident value, ident data) {
+  installer_compare_t *ctx = data;
+  cm_manifest_entry_t *re = value;
+  const cm_manifest_entry_t *le = ctx->local ? $(ctx->local, get, re->path) : NULL;
+  if (le) {
+    ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
+    if (strcmp(le->hash, re->hash) == 0) {
+      re->status = ENTRY_CURRENT;
+    }
+  }
+  if (re->status == ENTRY_PENDING) {
+    ctx->files_total++;
+    ctx->kbytes_total += (int32_t) ((re->size + 1023) / 1024);
+  }
+}
+
 static void Installer_Commit(void) {
 
   if (installer.local_manifest) {
-    GHashTableIter iter;
-    void * key, val;
-    g_hash_table_iter_init(&iter, installer.local_manifest);
-    while (g_hash_table_iter_next(&iter, &key, &val)) {
-      const cm_manifest_entry_t *entry = val;
-      if (entry->status == ENTRY_STALE) {
-        char full_path[MAX_OS_PATH];
-        SDL_snprintf(full_path, sizeof(full_path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
-        if (g_remove(full_path) != 0) {
-          Com_Warn("Failed to remove stale file: %s\n", full_path);
-        } else {
-          Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
-        }
-      }
-    }
+    $(installer.local_manifest, enumerateEntries, Installer_PruneStaleEntry, NULL);
     Cm_FreeManifest(installer.local_manifest);
     installer.local_manifest = NULL;
   }
 
   if (installer.remote_manifest) {
     char mf_path[MAX_OS_PATH];
-    SDL_snprintf(mf_path, sizeof(mf_path), "%s%c%s%cmanifest.mf", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR);
-
-    FILE *f = g_fopen(mf_path, "wb");
-    if (f) {
-      GList *keys = g_hash_table_get_keys(installer.remote_manifest);
-      keys = g_list_sort(keys, (GCompareFunc) g_strcmp0);
-      for (GList *k = keys; k; k = k->next) {
-        const cm_manifest_entry_t *entry = g_hash_table_lookup(installer.remote_manifest, k->data);
-        fprintf(f, "%s %" PRId64 " %s\n", entry->hash, entry->size, entry->path);
-      }
-      g_list_free(keys);
-      fclose(f);
-    } else {
-      Com_Warn("Failed to write manifest: %s\n", mf_path);
-    }
-
+    SDL_snprintf(mf_path, sizeof(mf_path), "%s/%s/manifest.mf", Fs_DataDir(), game->string);
+    Cm_WriteManifest(mf_path, installer.remote_manifest);
     Cm_FreeManifest(installer.remote_manifest);
     installer.remote_manifest = NULL;
   }
@@ -142,10 +167,22 @@ static void Installer_Commit(void) {
  */
 static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
 
-  char *encoded = g_uri_escape_string(entry->path, "/", FALSE);
+  // URL-encode the path (pass-through '/' as safe)
+  const char *src = entry->path;
+  char encoded[MAX_OS_PATH * 3];
+  char *dst = encoded;
+  while (*src && dst < encoded + sizeof(encoded) - 4) {
+    if (isalnum((unsigned char)*src) || *src == '-' || *src == '_' || *src == '.' || *src == '~' || *src == '/') {
+      *dst++ = *src;
+    } else {
+      dst += SDL_snprintf(dst, 4, "%%%02X", (unsigned char)*src);
+    }
+    src++;
+  }
+  *dst = '\0';
+
   char url[MAX_OS_PATH * 2];
   SDL_snprintf(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", game->string, encoded);
-  free(encoded);
 
   Data *data = NULL;
 
@@ -157,18 +194,21 @@ static bool Installer_DownloadFile(const cm_manifest_entry_t *entry) {
   }
 
   char path[MAX_OS_PATH];
-  SDL_snprintf(path, sizeof(path), "%s%c%s%c%s", Fs_DataDir(), G_DIR_SEPARATOR, game->string, G_DIR_SEPARATOR, entry->path);
+  SDL_snprintf(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), game->string, entry->path);
 
-  char *dir = g_path_get_dirname(path);
-  const int mkdir_result = g_mkdir_with_parents(dir, 0755);
-  free(dir);
-  if (mkdir_result != 0) {
-    Com_Warn("Failed to create directory for: %s\n", path);
-    release(data);
-    return false;
+  {
+    char dir[MAX_OS_PATH];
+    SDL_strlcpy(dir, path, sizeof(dir));
+    char *slash = strrchr(dir, '/');
+    if (slash) { *slash = '\0'; }
+    if (!SDL_CreateDirectory(dir)) {
+      Com_Warn("Failed to create directory for: %s\n", path);
+      release(data);
+      return false;
+    }
   }
 
-  FILE *f = g_fopen(path, "wb");
+  FILE *f = fopen(path, "wb");
   if (!f) {
     Com_Warn("Failed to open for writing: %s\n", path);
     release(data);
@@ -206,16 +246,12 @@ static int Installer_DownloadThread(void *unused) {
     }
 
     const cm_manifest_entry_t *entry = NULL;
-    GHashTableIter iter;
-    void * key, val;
-    g_hash_table_iter_init(&iter, installer.remote_manifest);
-    while (g_hash_table_iter_next(&iter, &key, &val)) {
-      cm_manifest_entry_t *e = val;
-      if (e->status == ENTRY_PENDING) {
-        e->status = ENTRY_DOWNLOADING;
-        SDL_strlcpy(in->current_file, e->path, sizeof(in->current_file));
-        entry = e;
-        break;
+    {
+      cm_manifest_entry_t *found = NULL;
+      $(installer.remote_manifest, enumerateEntries, Installer_FindPending, &found);
+      if (found) {
+        SDL_strlcpy(in->current_file, found->path, sizeof(in->current_file));
+        entry = found;
       }
     }
 
@@ -284,50 +320,20 @@ static int Installer_Thread(void *unused) {
           break;
         }
 
-        GHashTable *remote = Cm_ParseManifest((const char *) data->bytes, data->length);
+        HashTable *remote = Cm_ParseManifest((const char *) data->bytes, data->length);
         release(data);
 
-        {
-          GHashTableIter iter;
-          void * key, val;
-          g_hash_table_iter_init(&iter, remote);
-          while (g_hash_table_iter_next(&iter, &key, &val)) {
-            ((cm_manifest_entry_t *) val)->status = ENTRY_PENDING;
-          }
-        }
+        $(remote, enumerateEntries, Installer_MarkPending, NULL);
 
-        GHashTable *local = Cm_ReadManifest("manifest.mf");
-
+        HashTable *local = Cm_ReadManifest("manifest.mf");
         if (local) {
-          GHashTableIter iter;
-          void * key, val;
-          g_hash_table_iter_init(&iter, local);
-          while (g_hash_table_iter_next(&iter, &key, &val)) {
-            ((cm_manifest_entry_t *) val)->status = ENTRY_STALE;
-          }
+          $(local, enumerateEntries, Installer_MarkStale, NULL);
         }
 
-        int32_t files_total = 0;
-        int32_t kbytes_total = 0;
-        {
-          GHashTableIter iter;
-          void * key, val;
-          g_hash_table_iter_init(&iter, remote);
-          while (g_hash_table_iter_next(&iter, &key, &val)) {
-            cm_manifest_entry_t *re = val;
-            const cm_manifest_entry_t *le = local ? g_hash_table_lookup(local, re->path) : NULL;
-            if (le) {
-              ((cm_manifest_entry_t *) le)->status = ENTRY_CURRENT;
-              if (strcmp(le->hash, re->hash) == 0) {
-                re->status = ENTRY_CURRENT;
-              }
-            }
-            if (re->status == ENTRY_PENDING) {
-              files_total++;
-              kbytes_total += (int32_t) ((re->size + 1023) / 1024);
-            }
-          }
-        }
+        installer_compare_t ctx = { .local = local };
+        $(remote, enumerateEntries, Installer_CompareEntry, &ctx);
+        const int32_t files_total = ctx.files_total;
+        const int32_t kbytes_total = ctx.kbytes_total;
 
         installer.remote_manifest = remote;
         installer.local_manifest = local;

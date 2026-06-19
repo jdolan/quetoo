@@ -393,7 +393,7 @@ int32_t StrStripCmp(const char *s1, const char *s2) {
   StrStrip(s1, string1);
   StrStrip(s2, string2);
 
-  return g_ascii_strcasecmp(string1, string2);
+  return SDL_strcasecmp(string1, string2);
 }
 
 /**
