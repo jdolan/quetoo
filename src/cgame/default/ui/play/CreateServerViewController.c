@@ -65,7 +65,7 @@ static void createServer(Button *button) {
     file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
 
-      MutableString *string = mstr("");
+      String *string = $(alloc(String), init);
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
 
@@ -78,7 +78,7 @@ static void createServer(Button *button) {
         $(string, appendFormat, "{\n\tname %s\n}\n", name);
       }
 
-      const int64_t len = cgi.WriteFile(file, string->string.chars, string->string.length, 1);
+      const int64_t len = cgi.WriteFile(file, string->chars, string->length, 1);
 
       if (len == -1) {
         Cg_Warn("Failed to write %s\n", MAP_LIST_UI);

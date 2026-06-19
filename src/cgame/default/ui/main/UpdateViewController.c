@@ -162,7 +162,7 @@ static void loadView(ViewController *self) {
 
 	this->pendingImagesLock = SDL_CreateMutex();
 	assert(this->pendingImagesLock);
-	this->pendingImages = $(alloc(MutableArray), init);
+	this->pendingImages = $(alloc(Array), init);
 	assert(this->pendingImages);
 
 	$(this->logo, setImageWithResourceName, "ui/loading.png");
