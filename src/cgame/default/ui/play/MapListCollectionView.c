@@ -266,7 +266,7 @@ static MapListCollectionView *initWithFrame(MapListCollectionView *self, const S
     self->lock = $(alloc(Lock), init);
     assert(self->lock);
 
-    self->maps = $$(MutableArray, array);
+    self->maps = $$(Array, array);
     assert(self->maps);
 
     cgi.Thread(__func__, loadMaps, self, THREAD_NO_WAIT);
@@ -289,7 +289,7 @@ static Array *selectedMaps(const MapListCollectionView *self) {
 
   const CollectionView *this = (const CollectionView *) self;
 
-  MutableArray *selectedMaps = $$(MutableArray, array);
+  Array *selectedMaps = $$(Array, array);
 
   Array *selection = $(this, selectionIndexPaths);
   for (size_t i = 0; i < selection->count; i++) {

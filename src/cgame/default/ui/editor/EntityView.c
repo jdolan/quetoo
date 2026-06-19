@@ -41,8 +41,8 @@ static void didEndEditing(TextView *textView) {
 
   cm_entity_t *e = self->pair ?: cgi.AllocEntity();
 
-  const char *key = self->key->attributedText->string.chars;
-  const char *value = self->value->attributedText->string.chars;
+  const char *key = self->key->attributedText->chars;
+  const char *value = self->value->attributedText->chars;
 
   g_strlcpy(e->key, key ?: "", sizeof(e->key));
   g_strlcpy(e->string, value ?: "", sizeof(e->string));

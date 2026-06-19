@@ -61,7 +61,7 @@ static void didEndEditing(TextView *textView) {
     return;
   }
 
-  const char *text = textView->attributedText->string.chars ?: "";
+  const char *text = textView->attributedText->chars ?: "";
 
   r_mesh_config_t *world = &this->model->mesh->config.world;
   r_mesh_config_t *link  = &this->model->mesh->config.link;

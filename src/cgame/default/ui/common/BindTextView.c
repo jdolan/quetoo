@@ -74,7 +74,7 @@ static void updateBindings(View *self) {
   BindTextView *this = (BindTextView *) self;
   if (this->bind) {
 
-    MutableArray *keys = $$(MutableArray, array);
+    Array *keys = $$(Array, array);
     SDL_Scancode key = SDL_SCANCODE_UNKNOWN;
     while (true) {
       key = cgi.KeyForBind(key, ((BindTextView *) this)->bind);
