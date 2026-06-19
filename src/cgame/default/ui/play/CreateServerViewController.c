@@ -65,7 +65,8 @@ static void createServer(Button *button) {
     file_t *file = cgi.OpenFileWrite(MAP_LIST_UI);
     if (file) {
 
-      String *string = $(alloc(String), init);
+      String *string = str("");
+      assert(string);
 
       for (size_t i = 0; i < selectedMaps->count; i++) {
 
