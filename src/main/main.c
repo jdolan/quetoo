@@ -276,7 +276,7 @@ static void MemStats_f(void) {
     Com_Print("WARNING: %" PRIuPTR " bytes summed vs %" PRIuPTR " bytes reported!\n", sum, reported_total);
   }
 
-  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %" PRIu32 " blocks\n", console_state.size, console_state.strings->count);
+  Com_Print(" [console] approx. %" PRIuPTR " bytes - approx. %zu blocks\n", console_state.size, (size_t) console_state.strings->count);
 
   release(stats);
 }

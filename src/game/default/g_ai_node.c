@@ -268,14 +268,14 @@ ai_node_id_t G_Ai_Node_Create(const vec3_t position) {
     g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
   }
 
-  const ai_node_t node = (ai_node_t) {
+  ai_node_t node = (ai_node_t) {
     .position = position
   };
   $(g_ai_nodes, addElement, &node);
 
   G_Ai_Node_InvalidateSpatialIndex();
 
-  G_Ai_Debug("Dropped new node %d\n", g_ai_nodes->count - 1);
+  G_Ai_Debug("Dropped new node %zu\n", g_ai_nodes->count - 1);
 
   return g_ai_nodes->count - 1;
 }
@@ -326,7 +326,7 @@ void G_Ai_Node_Link(const ai_node_id_t a, const ai_node_id_t b, const float cost
     node_a->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
   }
 
-  const ai_link_t link = (ai_link_t) {
+  ai_link_t link = (ai_link_t) {
     .id = b,
     .cost = cost
   };
@@ -1019,7 +1019,7 @@ void G_Ai_Node_Render(void) {
         }
 
         if (!found) {
-          const ai_render_link_t render_link = {
+          ai_render_link_t render_link = {
             .link = ulink,
             .bits = bit
           };
@@ -1105,7 +1105,7 @@ void G_Ai_InitNodes(void) {
   g_ai_nodes = $(alloc(Vector), initWithSize, sizeof(ai_node_t));
 
   for (uint32_t i = 0; i < num_nodes; i++) {
-    const ai_node_t node = { 0 };
+    ai_node_t node = { 0 };
     $(g_ai_nodes, addElement, &node);
   }
 
@@ -1126,7 +1126,7 @@ void G_Ai_InitNodes(void) {
       node->links = $(alloc(Vector), initWithSize, sizeof(ai_link_t));
 
       for (uint32_t l = 0; l < num_links; l++) {
-        const ai_link_t link = { 0 };
+        ai_link_t link = { 0 };
         $(node->links, addElement, &link);
       }
 
@@ -1167,7 +1167,7 @@ static void G_Ai_CheckNodes(void) {
         continue;
       }
 
-      const ai_node_id_t node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
+      ai_node_id_t node = G_Ai_Node_FindClosest(ent->s.origin, WALKING_DISTANCE * 2.5f, true, false);
 
       if (node == AI_NODE_INVALID) {
         gi.Warn("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname, vtos(ent->s.origin));
@@ -1625,7 +1625,7 @@ Vector *G_Ai_Node_FindPath(const g_client_t *cl, const ai_node_id_t start, const
     G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, visited);
 
     return_path = $(alloc(Vector), initWithSize, sizeof(ai_node_id_t));
-    $(return_path, insertElementAtIndex, &end, 0);
+    $(return_path, insertElementAtIndex, (void *) &end, 0);
 
     if (start != end) {
       ai_node_id_t from = end;

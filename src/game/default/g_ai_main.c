@@ -319,7 +319,7 @@ static uint32_t G_Ai_FindItems(g_client_t *cl, pm_cmd_t *cmd) {
       weight *= 3.f;
     }
 
-    $(items_visible, addElement, &(const ai_item_pick_t) {
+    $(items_visible, addElement, &(ai_item_pick_t) {
       .entity = ent,
       .item = item,
       .weight = weight
@@ -1946,7 +1946,7 @@ static void G_Ai_TestPath_f(void) {
       }
 
       for (uint32_t i = 1; i < path->count; i++) {
-        const ai_node_id_t node = *VectorElement(path, ai_node_id_t, i);
+        ai_node_id_t node = *VectorElement(path, ai_node_id_t, i);
         $(path_to_start, addElement, &node);
       }
       G_Ai_SetPathGoal(cl, &cl->ai->move_target, 1.0, path_to_start, NULL);

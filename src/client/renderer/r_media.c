@@ -262,7 +262,7 @@ void R_EndLoading(void) {
 /**
  * @brief Computes the hash value for a media entry by name and type.
  */
-static uint32_t R_MediaHash(const void * key) {
+static size_t R_MediaHash(const void * key) {
   const r_media_t *media = key;
   uint32_t hash = 5381;
 

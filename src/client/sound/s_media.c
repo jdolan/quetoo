@@ -286,7 +286,7 @@ void S_BeginLoading(void) {
 /**
  * @brief Hash function for sound media entries keyed by name and type.
  */
-static uint32_t S_MediaHash(const void * key) {
+static size_t S_MediaHash(const void * key) {
   const s_media_t *media = key;
 
   uint32_t hash = 5381;

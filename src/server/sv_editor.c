@@ -69,7 +69,7 @@ void Sv_SpawnEditorEntity(int32_t number, cm_entity_t *def) {
     if (brushes->count) {
       ent->bounds = Box3_Null();
       for (uint32_t j = 0; j < brushes->count; j++) {
-        const cm_bsp_brush_t *brush = VectorElement(brushes, cm_bsp_brush_t *, j);
+        const cm_bsp_brush_t *brush = *VectorElement(brushes, cm_bsp_brush_t *, j);
         ent->bounds = Box3_Union(ent->bounds, brush->bounds);
       }
     }
