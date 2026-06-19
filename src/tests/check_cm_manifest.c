@@ -103,6 +103,35 @@ START_TEST(check_Cm_ReadManifest_missing_file) {
 
 } END_TEST
 
+START_TEST(check_Cm_ParseManifest_respects_len) {
+
+	// Simulates a buffer from Net_HttpGet, which is not null-terminated: the
+	// valid manifest is followed by stale bytes that look like another (bogus)
+	// entry. Cm_ParseManifest must honor `len` and never read past it.
+	static const char valid[] =
+		"d41d8cd98f00b204e9800998ecf8427e 1234 textures/edge/floor01_d.tga\n";
+	static const char garbage[] =
+		"deadbeefdeadbeefdeadbeefdeadbeef 9999 textures/overrun.tga\n";
+
+	const size_t len = sizeof(valid) - 1; // valid content only, no null terminator
+
+	char *buffer = Mem_Malloc(len + sizeof(garbage));
+	memcpy(buffer, valid, len);
+	memcpy(buffer + len, garbage, sizeof(garbage)); // trailing bytes past `len`
+
+	GHashTable *manifest = Cm_ParseManifest(buffer, len);
+	ck_assert_msg(manifest != NULL, "Cm_ParseManifest returned NULL");
+	ck_assert_int_eq(g_hash_table_size(manifest), 1);
+	ck_assert_msg(g_hash_table_lookup(manifest, "textures/edge/floor01_d.tga") != NULL,
+		"Missing valid entry");
+	ck_assert_msg(g_hash_table_lookup(manifest, "textures/overrun.tga") == NULL,
+		"Parsed an entry from beyond `len` (buffer over-read)");
+
+	Cm_FreeManifest(manifest);
+	Mem_Free(buffer);
+
+} END_TEST
+
 START_TEST(check_Cm_WriteManifest) {
 
 	const char *content1 = "hello";
@@ -212,6 +241,7 @@ int32_t main(int32_t argc, char **argv) {
 		tcase_add_test(tcase, check_Cm_ReadManifest);
 		tcase_add_test(tcase, check_Cm_ReadManifest_empty_lines);
 		tcase_add_test(tcase, check_Cm_ReadManifest_missing_file);
+		tcase_add_test(tcase, check_Cm_ParseManifest_respects_len);
 
 		suite_add_tcase(suite, tcase);
 	}
